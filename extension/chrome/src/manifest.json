@@ -1,0 +1,32 @@
+{
+  "name": "Design Capsule",
+  "short_name": "Design Capsule",
+  "offline_enabled": true,
+  "version": "1.0.0",
+  "manifest_version": 2,
+  "icons": {
+    "16": "public/icons/icon-16.png",
+    "24": "public/icons/icon-24.png",
+    "32": "public/icons/icon-32.png",
+    "64": "public/icons/icon-64.png",
+    "128": "public/icons/icon-128.png",
+    "256": "public/icons/icon-256.png",
+    "512": "public/icons/icon-512.png"
+  },
+  "background": {
+    "scripts": ["background.js"]
+  },
+  "permissions": ["*://*/*", "contextMenus"],
+  "content_security_policy": "script-src 'self' 'unsafe-eval'; object-src 'self'",
+  "content_scripts": [
+    {
+      "matches": ["http://*/*", "https://*/*"],
+      "js": ["index.js"],
+      "run_at": "document_start",
+      "all_frames": true
+    }
+  ],
+  "browser_action": {
+    "default_icon": "public/icons/icon-64.png"
+  }
+}
