@@ -41,7 +41,7 @@ function getRulerActivationStatus(tabId, cb) {
   chrome.tabs.executeScript(
     tabId,
     {
-      code: "!!window.DESIGN_CAPSULE_RULLER_ENABLED",
+      code: "!!window.UI_CAPSULE_RULLER_ENABLED",
     },
     (result) => cb(result)
   );

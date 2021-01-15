@@ -10,7 +10,7 @@ window.selectedElementPosition = null;
 window.focusedElementPosition = null;
 window.focusedElement = null;
 window.selectedElement = null;
-window.DESIGN_CAPSULE_RULLER_ENABLED = false;
+window.UI_CAPSULE_RULLER_ENABLED = false;
 
 $(document).ready(() => {
   initalizeEventSubscription(

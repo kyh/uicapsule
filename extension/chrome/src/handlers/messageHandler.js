@@ -8,21 +8,21 @@ export const initalizeEventSubscription = (onSubscribe, onUnSubscribe) => {
   chrome.runtime.onMessage.addListener((request) => {
     switch (request.action) {
       case TOGGLE_APP:
-        if (!window.DESIGN_CAPSULE_RULLER_ENABLED) {
+        if (!window.UI_CAPSULE_RULLER_ENABLED) {
           onSubscribe();
-          window.DESIGN_CAPSULE_RULLER_ENABLED = true;
+          window.UI_CAPSULE_RULLER_ENABLED = true;
         } else {
           onUnSubscribe();
-          window.DESIGN_CAPSULE_RULLER_ENABLED = false;
+          window.UI_CAPSULE_RULLER_ENABLED = false;
         }
         break;
       case ACTIVATE_APP:
         onSubscribe();
-        window.DESIGN_CAPSULE_RULLER_ENABLED = true;
+        window.UI_CAPSULE_RULLER_ENABLED = true;
         break;
       case DEACTIVATE_APP:
         onUnSubscribe();
-        window.DESIGN_CAPSULE_RULLER_ENABLED = false;
+        window.UI_CAPSULE_RULLER_ENABLED = false;
         break;
     }
   });
