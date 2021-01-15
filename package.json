@@ -1,0 +1,44 @@
+{
+  "name": "design-capsule",
+  "version": "0.1.0",
+  "private": true,
+  "dependencies": {
+    "react": "^16.12.0",
+    "react-dom": "^16.12.0",
+    "next": "^10.0.0",
+    "react-hook-form": "^4.10.1",
+    "@material-ui/core": "^4.11.0",
+    "@material-ui/icons": "^4.9.1",
+    "@material-ui/lab": "^4.0.0-alpha.56",
+    "use-dark-mode": "^2.3.1",
+    "query-string": "^6.9.0",
+    "firebase": "^8.1.2",
+    "@stripe/stripe-js": "^1.5.0",
+    "stripe": "^8.52.0",
+    "firebase-admin": "^9.4.2",
+    "raw-body": "^2.4.1",
+    "analytics": "^0.3.1",
+    "@analytics/google-analytics": "^0.2.2"
+  },
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "stripe-webhook": "stripe listen --forward-to localhost:3000/api/stripe-webhook"
+  },
+  "eslintConfig": {
+    "extends": "react-app"
+  },
+  "browserslist": {
+    "production": [
+      ">0.2%",
+      "not dead",
+      "not op_mini all"
+    ],
+    "development": [
+      "last 1 chrome version",
+      "last 1 firefox version",
+      "last 1 safari version"
+    ]
+  }
+}
