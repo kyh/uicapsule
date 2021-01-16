@@ -1,3 +1,8 @@
+import {
+  ACTIVATE_APP,
+  DEACTIVATE_APP,
+  TOGGLE_APP,
+} from "./reducers/appReducer";
 import "crx-hotreload";
 
 const ACTIVATE_MENU_ID = "ACTIVATE";
@@ -5,8 +10,6 @@ const DEACTIVATE_MENU_ID = "DEACTIVATE";
 
 const INACTIVE = "#8B8B8B";
 const ACTIVE = "#21AF0D";
-
-let counter = 0;
 
 function setBadge(text, color) {
   chrome.browserAction.setBadgeText({ text });
@@ -22,33 +25,33 @@ function showDisabled() {
 }
 
 function sendActivationMessage(tabId) {
-  chrome.tabs.sendMessage(tabId, { action: "ACTIVATE_APP" });
+  chrome.tabs.sendMessage(tabId, { action: ACTIVATE_APP });
   showEnabled();
 }
 
 function toggleActivationMessage(tabId, cb) {
-  chrome.tabs.sendMessage(tabId, { action: "TOGGLE_APP" }, () => {
+  chrome.tabs.sendMessage(tabId, { action: TOGGLE_APP }, () => {
     cb();
   });
 }
 
 function sendDeactivationMessage(tabId) {
-  chrome.tabs.sendMessage(tabId, { action: "DEACTIVATE_APP" });
+  chrome.tabs.sendMessage(tabId, { action: DEACTIVATE_APP });
   showDisabled();
 }
 
-function getRulerActivationStatus(tabId, cb) {
+function getActivationStatus(tabId, cb) {
   chrome.tabs.executeScript(
     tabId,
     {
-      code: "!!window.UI_CAPSULE_RULLER_ENABLED",
+      code: "!!window.__UI_CAPSULE_STORE__.getState().app.enabled",
     },
     (result) => cb(result)
   );
 }
 
 function handleTabChange(tabId) {
-  getRulerActivationStatus(tabId, (result) => {
+  getActivationStatus(tabId, (result) => {
     if (!result) {
       showDisabled();
       return;
@@ -74,7 +77,6 @@ chrome.contextMenus.create({
   type: "normal",
   documentUrlPatterns: ["*://*/*"],
   onclick: function (info, tab) {
-    console.log("here??");
     if (info.menuItemId !== ACTIVATE_MENU_ID) {
       return;
     }
