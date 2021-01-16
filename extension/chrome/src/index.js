@@ -1,15 +1,34 @@
-import store from "./reducers/store";
+import * as React from "react";
+import { render, unmountComponentAtNode } from "react-dom";
+import { applyMiddleware, createStore } from "redux";
+import logger from "redux-logger";
+import { Provider } from "react-redux";
 import App from "./components/App";
+import reducer from "./reducers";
 
+const store = createStore(reducer, applyMiddleware(logger));
 window.__UI_CAPSULE_STORE__ = store;
 
 window.addEventListener("DOMContentLoaded", () => {
-  chrome.runtime.onMessage.addListener((request) => {
-    store.dispatch(request.action);
-  });
-
   const host = document.createElement("div");
+  host.setAttribute("data-ui-capsule", "");
   document.body.insertAdjacentElement("beforebegin", host);
 
-  store.attach(App, host);
+  chrome.runtime.onMessage.addListener((action) => {
+    store.dispatch(action);
+  });
+
+  store.subscribe(() => {
+    const state = store.getState();
+    if (state.app.enabled) {
+      render(
+        <Provider store={store}>
+          <App />
+        </Provider>,
+        host
+      );
+    } else {
+      unmountComponentAtNode(host);
+    }
+  });
 });

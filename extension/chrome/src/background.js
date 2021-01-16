@@ -25,18 +25,18 @@ function showDisabled() {
 }
 
 function sendActivationMessage(tabId) {
-  chrome.tabs.sendMessage(tabId, { action: ACTIVATE_APP });
+  chrome.tabs.sendMessage(tabId, { type: ACTIVATE_APP });
   showEnabled();
 }
 
 function toggleActivationMessage(tabId, cb) {
-  chrome.tabs.sendMessage(tabId, { action: TOGGLE_APP }, () => {
+  chrome.tabs.sendMessage(tabId, { type: TOGGLE_APP }, () => {
     cb();
   });
 }
 
 function sendDeactivationMessage(tabId) {
-  chrome.tabs.sendMessage(tabId, { action: DEACTIVATE_APP });
+  chrome.tabs.sendMessage(tabId, { type: DEACTIVATE_APP });
   showDisabled();
 }
 

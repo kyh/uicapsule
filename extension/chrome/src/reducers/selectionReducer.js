@@ -6,7 +6,7 @@ const init = {
 };
 
 export default function reducer(state = init, action, args) {
-  switch (action) {
+  switch (action.type) {
     case SELECT_ELEMENT:
       return {
         ...state,

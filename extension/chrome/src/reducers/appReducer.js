@@ -7,7 +7,7 @@ const init = {
 };
 
 export default function reducer(state = init, action) {
-  switch (action) {
+  switch (action.type) {
     case TOGGLE_APP:
       if (!state.enabled) {
         return {

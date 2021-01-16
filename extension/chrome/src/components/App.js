@@ -1,16 +1,19 @@
-import { html } from "../lib/render";
-import store from "../reducers/store";
+import * as React from "react";
+import { createGlobalStyle } from "styled-components";
 
-function App({ enabled }) {
-  if (!enabled) return "<div></div>";
-  return html`<div>
-    <style>
-      *:hover {
-        outline: red dashed 1px !important;
-      }
-    </style>
-    <h1>App is enabled</h1>
-  </div>`;
+function App() {
+  return (
+    <>
+      <GlobalStyle />
+      <h1>App is enabled</h1>
+    </>
+  );
 }
 
-export default store.connect(App, (state) => state.app);
+const GlobalStyle = createGlobalStyle`
+  *:hover {
+    outline: red dashed 1px !important;
+  }
+`;
+
+export default App;
