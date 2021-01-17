@@ -4,7 +4,7 @@ import { applyMiddleware, createStore } from "redux";
 import logger from "redux-logger";
 import { Provider } from "react-redux";
 import App from "./components/App";
-import reducer from "./reducers";
+import reducer from "./redux";
 
 const store = createStore(reducer, applyMiddleware(logger));
 window.__UI_CAPSULE_STORE__ = store;
@@ -12,7 +12,7 @@ window.__UI_CAPSULE_STORE__ = store;
 window.addEventListener("DOMContentLoaded", () => {
   const host = document.createElement("div");
   host.setAttribute("data-ui-capsule", "");
-  document.body.insertAdjacentElement("beforebegin", host);
+  document.head.insertAdjacentElement("beforebegin", host);
 
   chrome.runtime.onMessage.addListener((action) => {
     store.dispatch(action);

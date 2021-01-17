@@ -1,19 +1,29 @@
 import * as React from "react";
-import { createGlobalStyle } from "styled-components";
+import { ThemeProvider } from "styled-components";
+import { shallowEqual, useSelector } from "react-redux";
+import ElementHandler from "./ElementHandler";
+import Popover from "./Popover";
+
+export const lightTheme = {
+  text: "#24292e",
+  background: "#ffffff",
+  contentBackground: "#f6f6f6",
+};
+
+export const darkTheme = {
+  text: "#c9d1d9",
+  background: "#0d1117",
+  contentBackground: "#24292e",
+};
 
 function App() {
+  const { darkMode } = useSelector((state) => state.app, shallowEqual);
   return (
-    <>
-      <GlobalStyle />
-      <h1>App is enabled</h1>
-    </>
+    <ThemeProvider theme={darkMode ? darkTheme : lightTheme}>
+      <ElementHandler />
+      <Popover />
+    </ThemeProvider>
   );
 }
-
-const GlobalStyle = createGlobalStyle`
-  *:hover {
-    outline: red dashed 1px !important;
-  }
-`;
 
 export default App;

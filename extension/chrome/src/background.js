@@ -1,8 +1,4 @@
-import {
-  ACTIVATE_APP,
-  DEACTIVATE_APP,
-  TOGGLE_APP,
-} from "./reducers/appReducer";
+import { activateApp, deactivateApp, toggleApp } from "./redux/app";
 import "crx-hotreload";
 
 const ACTIVATE_MENU_ID = "ACTIVATE";
@@ -25,19 +21,19 @@ function showDisabled() {
 }
 
 function sendActivationMessage(tabId) {
-  chrome.tabs.sendMessage(tabId, { type: ACTIVATE_APP });
+  chrome.tabs.sendMessage(tabId, activateApp());
   showEnabled();
 }
 
-function toggleActivationMessage(tabId, cb) {
-  chrome.tabs.sendMessage(tabId, { type: TOGGLE_APP }, () => {
-    cb();
-  });
+function sendDeactivationMessage(tabId) {
+  chrome.tabs.sendMessage(tabId, deactivateApp());
+  showDisabled();
 }
 
-function sendDeactivationMessage(tabId) {
-  chrome.tabs.sendMessage(tabId, { type: DEACTIVATE_APP });
-  showDisabled();
+function toggleActivationMessage(tabId, cb) {
+  chrome.tabs.sendMessage(tabId, toggleApp(), () => {
+    cb();
+  });
 }
 
 function getActivationStatus(tabId, cb) {
@@ -64,9 +60,9 @@ function handleTabChange(tabId) {
   });
 }
 
-chrome.browserAction.onClicked.addListener((tab) => {
-  chrome.tabs.query({ active: true, currentWindow: true }, function (tabs) {
-    toggleActivationMessage(tabs[0].id, handleTabChange.bind(null, tabs[0].id));
+chrome.browserAction.onClicked.addListener(() => {
+  chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+    toggleActivationMessage(tabs[0].id, () => handleTabChange(tabs[0].id));
   });
 });
 
@@ -76,10 +72,8 @@ chrome.contextMenus.create({
   contexts: ["all"],
   type: "normal",
   documentUrlPatterns: ["*://*/*"],
-  onclick: function (info, tab) {
-    if (info.menuItemId !== ACTIVATE_MENU_ID) {
-      return;
-    }
+  onclick: (info, tab) => {
+    if (info.menuItemId !== ACTIVATE_MENU_ID) return;
     sendActivationMessage(tab.id);
   },
 });
@@ -90,10 +84,8 @@ chrome.contextMenus.create({
   contexts: ["all"],
   type: "normal",
   documentUrlPatterns: ["*://*/*"],
-  onclick: function (info, tab) {
-    if (info.menuItemId !== DEACTIVATE_MENU_ID) {
-      return;
-    }
+  onclick: (info, tab) => {
+    if (info.menuItemId !== DEACTIVATE_MENU_ID) return;
     sendDeactivationMessage(tab.id);
   },
 });
