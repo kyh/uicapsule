@@ -22,7 +22,7 @@ const GlobalStyle = createGlobalStyle`
   }
 
   [${highlightAttr}] {
-    outline: red dashed 1px !important;
+    outline: ${({ theme }) => theme.primary} dashed 1px !important;
   }
   [${selectedAttr}] {
     outline: blue dashed 1px !important;

@@ -1,28 +1,55 @@
 import * as React from "react";
 import { useDispatch, shallowEqual, useSelector } from "react-redux";
-import { toggleTheme } from "../redux/app";
 import styled from "styled-components";
+import { toggleTheme } from "../redux/app";
+import { LOADING_STATE } from "../redux/selection";
+import Spinner from "./Spinner";
+import { SunIcon, MoonIcon, XIcon } from "./Icons";
 
 function Popover() {
-  const { element, loading, stringified } = useSelector(
+  const { loadingState, stringified } = useSelector(
     (state) => state.selection,
     shallowEqual
   );
 
-  if (!element) return null;
+  if (loadingState === LOADING_STATE.default) {
+    return null;
+  }
 
   return (
     <Container>
-      <Header>UI Capsule</Header>
-      <Content>
-        <iframe srcDoc={stringified} frameBorder="0" />
-      </Content>
-      <Footer>
-        <a href="https://uicapsule.com" target="_blank">
-          View in your Capsule
-        </a>
-        <ToggleThemeButton />
-      </Footer>
+      <Header>
+        {loadingState === LOADING_STATE.loading ? (
+          <HeaderContent>
+            <Spinner loadingState={loadingState} />
+            <div style={{ marginLeft: 4 }}>Saving...</div>
+          </HeaderContent>
+        ) : (
+          <>
+            <HeaderContent>Saved</HeaderContent>
+            <Button
+              type="button"
+              ariaLabel="Close"
+              onClick={() => window.location.reload()}
+            >
+              <XIcon />
+            </Button>
+          </>
+        )}
+      </Header>
+      {loadingState === LOADING_STATE.done && (
+        <>
+          <Content>
+            <iframe srcDoc={stringified} frameBorder="0" />
+          </Content>
+          <Footer>
+            <a href="https://uicapsule.com" target="_blank">
+              View in your Capsule
+            </a>
+            <ToggleThemeButton />
+          </Footer>
+        </>
+      )}
     </Container>
   );
 }
@@ -33,62 +60,33 @@ function ToggleThemeButton() {
 
   if (darkMode) {
     return (
-      <ThemeButton
+      <Button
         type="button"
         ariaLabel="Toggle dark mode"
         onClick={() => dispatch(toggleTheme(darkMode))}
       >
-        <svg
-          aria-hidden="true"
-          xmlns="http://www.w3.org/2000/svg"
-          width="20"
-          height="20"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="2"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-        >
-          <title>Dark Mode</title>
-          <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
-        </svg>
-      </ThemeButton>
+        <MoonIcon />
+      </Button>
     );
   }
 
   return (
-    <ThemeButton
+    <Button
       type="button"
       ariaLabel="Toggle light mode"
       onClick={() => dispatch(toggleTheme(darkMode))}
     >
-      <svg
-        aria-hidden="true"
-        xmlns="http://www.w3.org/2000/svg"
-        width="20"
-        height="20"
-        viewBox="0 0 24 24"
-        fill="none"
-        stroke="currentColor"
-        strokeWidth="2"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      >
-        <title>Light Mode</title>
-        <circle cx="12" cy="12" r="5"></circle>
-        <line x1="12" y1="1" x2="12" y2="3"></line>
-        <line x1="12" y1="21" x2="12" y2="23"></line>
-        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
-        <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
-        <line x1="1" y1="12" x2="3" y2="12"></line>
-        <line x1="21" y1="12" x2="23" y2="12"></line>
-        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
-        <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
-      </svg>
-    </ThemeButton>
+      <SunIcon />
+    </Button>
   );
 }
+
+const HeaderContent = styled.div`
+  display: flex;
+  height: 24px;
+  align-items: center;
+  font-weight: 500;
+`;
 
 const Container = styled.div`
   font-family: -apple-system, BlinkMacSystemFont, Segoe UI, Helvetica, Arial,
@@ -115,9 +113,17 @@ const Footer = styled.footer`
   justify-content: space-between;
   align-items: center;
   padding: 12px;
+  a {
+    color: ${({ theme }) => theme.primary};
+  }
+  a:hover,
+  a:active {
+    color: ${({ theme }) => theme.primary};
+    text-decoration: underline;
+  }
 `;
 
-const ThemeButton = styled.button`
+const Button = styled.button`
   opacity: 0.7;
   text-align: inherit;
   border: none;
@@ -141,7 +147,7 @@ const Content = styled.div`
   overflow-y: scroll;
   iframe {
     width: 100%;
-    height: 100px;
+    height: 70px;
   }
 `;
 

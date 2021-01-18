@@ -5,12 +5,14 @@ import ElementHandler from "./ElementHandler";
 import Popover from "./Popover";
 
 export const lightTheme = {
+  primary: "#8389e1",
   text: "#24292e",
   background: "#ffffff",
   contentBackground: "#f6f6f6",
 };
 
 export const darkTheme = {
+  primary: "#8389e1",
   text: "#c9d1d9",
   background: "#0d1117",
   contentBackground: "#24292e",

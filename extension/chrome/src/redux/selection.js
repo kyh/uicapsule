@@ -2,13 +2,31 @@ export const highlightAttr = "data-ui-capsule-highlight";
 export const selectedAttr = "data-ui-capsule-selected";
 
 export const SELECT_ELEMENT = "SELECT_ELEMENT";
-export const SELECTED_ELEMENT = "SELECTED_ELEMENT";
+export const SELECT_ELEMENT_DONE = "SELECT_ELEMENT_DONE";
 export const RESET_SELECTED_ELEMENT = "RESET_SELECTED_ELEMENT";
 
+export const LOADING_STATE = {
+  default: "default",
+  loading: "loading",
+  done: "done",
+};
+
 export function selectElement(element) {
-  return {
-    type: SELECT_ELEMENT,
-    element,
+  return (dispatch) => {
+    return new Promise((resolve) => {
+      dispatch({
+        type: SELECT_ELEMENT,
+        element,
+      });
+      const computed = parseElement(element);
+      setTimeout(() => {
+        dispatch({
+          type: SELECT_ELEMENT_DONE,
+          stringified: computed,
+        });
+        resolve();
+      }, 2000);
+    });
   };
 }
 
@@ -19,7 +37,7 @@ export function resetSelectedElement() {
 }
 
 const init = {
-  loading: false,
+  loadingState: LOADING_STATE.default,
   element: null,
   stringified: "",
 };
@@ -27,17 +45,20 @@ const init = {
 export default function reducer(state = init, action) {
   switch (action.type) {
     case SELECT_ELEMENT:
-      const computed = computeElement(action.element);
       return {
         ...state,
         element: action.element,
-        stringified: computed,
+        loadingState: LOADING_STATE.loading,
+      };
+    case SELECT_ELEMENT_DONE:
+      return {
+        ...state,
+        stringified: action.stringified,
+        loadingState: LOADING_STATE.done,
       };
     case RESET_SELECTED_ELEMENT: {
       return {
-        ...state,
-        element: null,
-        stringified: "",
+        ...init,
       };
     }
     default:
@@ -58,24 +79,27 @@ export function removeAttributes(el) {
   return removed;
 }
 
+export const ELEMENT_PARSER_VERSION = 1;
+
 // Alternative path is to use the `document.styleSheets` API
-function computeElement(rootNode) {
-  let index = 0;
-  let styles = "";
+function parseElement(rootNode) {
   const clone = rootNode.cloneNode(true);
   const removed = removeAttributes(rootNode);
+  let styles = `
+    body {
+      margin: 0;
+      padding: 0;
+    }
+  `;
+  let index = 0;
 
   walkDom(rootNode, clone, (node, cloneNode) => {
     index = index + 1;
     const className = `c-${index}`;
-    const computedStyle = getComputedStyle(node);
-    const css = Object.keys(computedStyle).reduce((result, styleKey) => {
-      const styleValue = computedStyle[styleKey];
-      if (!isNumber(styleKey) && styleValue) {
-        result = result + `${camelToKebab(styleKey)}: ${styleValue};\n`;
-      }
-      return result;
-    }, "");
+    const css = reduceComputedStyles(
+      getComputedStyle(node),
+      (styleKey, styleValue) => !isNumber(styleKey) && styleValue
+    );
     styles =
       styles +
       `
@@ -120,4 +144,27 @@ function isNumber(num) {
     return Number.isFinite ? Number.isFinite(+num) : isFinite(+num);
   }
   return false;
+}
+
+function reduceComputedStyles(computedStyle, filter) {
+  return Object.keys(computedStyle).reduce((result, styleKey) => {
+    const styleValue = computedStyle[styleKey];
+    if (filter(styleKey, styleValue)) {
+      result = result + `${camelToKebab(styleKey)}: ${styleValue};\n`;
+    }
+    return result;
+  }, "");
+}
+
+function computeRootStyles(rootNode) {
+  const rootComputedStyles = getComputedStyle(rootNode.parentNode);
+  const rootCss = reduceComputedStyles(
+    rootComputedStyles,
+    (styleKey, styleValue) => !isNumber(styleKey) && styleValue
+  );
+  return `
+    body {
+      ${rootCss}
+    }
+  `;
 }
