@@ -1,4 +1,4 @@
-import * as React from "react";
+import React from "react";
 import { render, unmountComponentAtNode } from "react-dom";
 import { applyMiddleware, createStore } from "redux";
 import logger from "redux-logger";

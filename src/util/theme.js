@@ -13,16 +13,10 @@ const themeConfig = {
     palette: {
       type: "light",
       primary: {
-        // Use hue from colors or hex
-        main: colors.indigo["500"],
-        // Uncomment to specify light/dark
-        // shades instead of automatically
-        // calculating from above value.
-        //light: "#4791db",
-        //dark: "#115293",
+        main: "#0070f4",
       },
       secondary: {
-        main: colors.pink["500"],
+        main: "#1F2937",
       },
       background: {
         // Background for <body>
@@ -40,12 +34,10 @@ const themeConfig = {
     palette: {
       type: "dark",
       primary: {
-        // Same as in light but we could
-        // adjust color hue if needed
-        main: colors.indigo["500"],
+        main: "#0070f4",
       },
       secondary: {
-        main: colors.pink["500"],
+        main: "#1F2937",
       },
       background: {
         default: colors.grey["900"],
@@ -58,9 +50,8 @@ const themeConfig = {
   common: {
     typography: {
       fontSize: 14,
-      fontFamily: '"Roboto", "Helvetica", "Arial", sans-serif',
-      // Uncomment to make button lowercase
-      // button: { textTransform: "none" },
+      fontFamily: "Inter, sans-serif",
+      button: { textTransform: "none" },
     },
     breakpoints: {
       values: {

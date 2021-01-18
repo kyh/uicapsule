@@ -4,20 +4,31 @@ import "crx-hotreload";
 const ACTIVATE_MENU_ID = "ACTIVATE";
 const DEACTIVATE_MENU_ID = "DEACTIVATE";
 
-const INACTIVE = "#8B8B8B";
-const ACTIVE = "#21AF0D";
+const ACTIVITY = {
+  on: {
+    64: "public/icons/logo-highlight-64.png",
+    128: "public/icons/logo-highlight-128.png",
+    256: "public/icons/logo-highlight-256.png",
+    512: "public/icons/logo-highlight-512.png",
+  },
+  off: {
+    64: "public/icons/logo-gray-64.png",
+    128: "public/icons/logo-gray-128.png",
+    256: "public/icons/logo-gray-256.png",
+    512: "public/icons/logo-gray-512.png",
+  },
+};
 
-function setBadge(text, color) {
-  chrome.browserAction.setBadgeText({ text });
-  chrome.browserAction.setBadgeBackgroundColor({ color });
+function setIcon(path) {
+  chrome.browserAction.setIcon({ path });
 }
 
 function showEnabled() {
-  setBadge("On", ACTIVE);
+  setIcon(ACTIVITY.on);
 }
 
 function showDisabled() {
-  setBadge("Off", INACTIVE);
+  setIcon(ACTIVITY.off);
 }
 
 function sendActivationMessage(tabId) {

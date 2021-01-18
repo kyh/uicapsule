@@ -1,4 +1,4 @@
-import * as React from "react";
+import React from "react";
 import { useDispatch, shallowEqual, useSelector } from "react-redux";
 import styled from "styled-components";
 import { toggleTheme } from "../redux/app";
