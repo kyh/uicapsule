@@ -1,4 +1,5 @@
 import * as React from "react";
+import { useTheme } from "styled-components";
 
 export function XIcon() {
   return (
@@ -21,6 +22,7 @@ export function XIcon() {
 }
 
 export function LoadingIcon() {
+  const theme = useTheme();
   return (
     <svg
       aria-hidden="true"
@@ -31,9 +33,9 @@ export function LoadingIcon() {
     >
       <defs>
         <linearGradient x1="8.042%" y1="0%" x2="65.682%" y2="23.865%" id="a">
-          <stop stopColor="#8389E1" stopOpacity="0" offset="0%" />
-          <stop stopColor="#8389E1" stopOpacity=".631" offset="63.146%" />
-          <stop stopColor="#8389E1" offset="100%" />
+          <stop stopColor={theme.primary} stopOpacity="0" offset="0%" />
+          <stop stopColor={theme.primary} stopOpacity=".631" offset="63.146%" />
+          <stop stopColor={theme.primary} offset="100%" />
         </linearGradient>
       </defs>
       <g fill="none" fillRule="evenodd">
@@ -53,7 +55,7 @@ export function LoadingIcon() {
               repeatCount="indefinite"
             />
           </path>
-          <circle fill="#8389E1" cx="36" cy="18" r="1">
+          <circle fill={theme.primary} cx="36" cy="18" r="1">
             <animateTransform
               attributeName="transform"
               type="rotate"
