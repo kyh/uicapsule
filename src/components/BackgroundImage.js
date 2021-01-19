@@ -3,9 +3,10 @@ import { makeStyles } from "@material-ui/core/styles";
 
 const useStyles = makeStyles((theme) => ({
   root: {
-    content: "",
+    content: '""',
     backgroundPosition: "center center",
     backgroundSize: "cover",
+    backgroundRepeat: "no-repeat",
     top: 0,
     left: 0,
     bottom: 0,
@@ -18,14 +19,15 @@ const useStyles = makeStyles((theme) => ({
 function BackgroundImage(props) {
   const classes = useStyles();
 
-  const { image, opacity, ...otherProps } = props;
+  const { image, posY, opacity, ...otherProps } = props;
 
   return (
     <div
       className={classes.root}
       style={{
-        backgroundImage: `url(${image})`,
+        backgroundImage: `url("${image}")`,
         opacity: opacity,
+        backgroundPositionY: posY,
       }}
       {...otherProps}
     />

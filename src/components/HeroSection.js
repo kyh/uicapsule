@@ -11,13 +11,14 @@ function HeroSection(props) {
       size={props.size}
       bgImage={props.bgImage}
       bgImageOpacity={props.bgImageOpacity}
+      bgPosY={props.bgPosY}
     >
       <Container>
         <Box textAlign="center">
           <SectionHeader
             title={props.title}
             subtitle={props.subtitle}
-            size={4}
+            size={1}
           />
         </Box>
       </Container>

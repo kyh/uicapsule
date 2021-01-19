@@ -56,6 +56,7 @@ function Section(props) {
     bgColor = "default",
     bgImage,
     bgImageOpacity,
+    bgPosY,
     size = "normal",
     className,
     children,
@@ -82,7 +83,13 @@ function Section(props) {
       }
       {...otherProps}
     >
-      {bgImage && <BackgroundImage image={bgImage} opacity={bgImageOpacity} />}
+      {bgImage && (
+        <BackgroundImage
+          image={bgImage}
+          opacity={bgImageOpacity}
+          posY={bgPosY}
+        />
+      )}
 
       {props.children}
     </Box>

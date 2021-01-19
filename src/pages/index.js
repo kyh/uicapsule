@@ -1,10 +1,19 @@
 import React from "react";
+import HeroSection from "components/HeroSection";
 import TestimonialsSection from "components/TestimonialsSection";
 import CtaSection from "components/CtaSection";
 
-function IndexPage(props) {
+function IndexPage() {
   return (
     <>
+      <HeroSection
+        title="Save UI elements from anywhere"
+        subtitle="Bookmark elements for ideas and inspiration on your next web project"
+        size="large"
+        bgImage="/hero-background.svg"
+        bgImageOpacity="1"
+        bgPosY="200px"
+      />
       <TestimonialsSection
         bgColor="default"
         size="medium"

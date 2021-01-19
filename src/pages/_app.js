@@ -15,9 +15,7 @@ function MyApp({ Component, pageProps }) {
             logo="https://uploads.divjoy.com/logo.svg"
             logoInverted="https://uploads.divjoy.com/logo-white.svg"
           />
-
           <Component {...pageProps} />
-
           <Footer
             bgColor="default"
             size="medium"

@@ -41,7 +41,7 @@ const themeConfig = {
       },
       background: {
         default: colors.grey["900"],
-        paper: colors.grey["800"],
+        paper: colors.grey["900"],
       },
     },
   },
@@ -52,6 +52,36 @@ const themeConfig = {
       fontSize: 14,
       fontFamily: "Inter, sans-serif",
       button: { textTransform: "none" },
+      h1: {
+        fontWeight: 800,
+        fontSize: "3.75rem",
+        lineHeight: "1",
+      },
+      h2: {
+        fontWeight: 800,
+        fontSize: "2.25rem",
+        lineHeight: "2.5rem",
+      },
+      h3: {
+        fontWeight: 600,
+        fontSize: "1.5rem",
+        lineHeight: "2rem",
+      },
+      h4: {
+        fontWeight: 600,
+        fontSize: "1.25rem",
+        lineHeight: "1.75rem",
+      },
+      h5: {
+        fontWeight: 400,
+        fontSize: "1rem",
+        lineHeight: "1.5rem",
+      },
+      h6: {
+        fontWeight: 400,
+        fontSize: "0.875rem",
+        lineHeight: "1.25rem",
+      },
     },
     breakpoints: {
       values: {
@@ -62,28 +92,33 @@ const themeConfig = {
         xl: 1920,
       },
     },
+    shadows: [
+      "none",
+      "0 1px 2px 0 rgba(0, 0, 0, 0.04)",
+      "0 1px 3px 0 rgba(0, 0, 0, 0.04), 0 1px 2px 0 rgba(0, 0, 0, 0.06)",
+      "0 4px 6px -1px rgba(0, 0, 0, 0.04), 0 2px 4px -1px rgba(0, 0, 0, 0.06)",
+      "0 10px 15px -3px rgba(0, 0, 0, 0.04), 0 4px 6px -2px rgba(0, 0, 0, 0.05)",
+      "0 20px 25px -5px rgba(0, 0, 0, 0.04), 0 10px 10px -5px rgba(0, 0, 0, 0.04)",
+      "0 25px 50px -12px rgba(0, 0, 0, 0.25)",
+    ],
     // Override component styles
     overrides: {
-      // Global styles
       MuiCssBaseline: {
         "@global": {
           "#__next": {
-            // Flex column that is height
-            // of viewport so that footer
-            // can push self to bottom by
-            // with auto margin-top
             minHeight: "100vh",
             display: "flex",
             flexDirection: "column",
-            // Prevent child elements from
-            // shrinking when content
-            // is taller than the screen
-            // (quirk of flex parent)
             "& > *": {
               flexShrink: 0,
             },
           },
         },
+      },
+    },
+    props: {
+      MuiButton: {
+        disableElevation: true,
       },
     },
   },
