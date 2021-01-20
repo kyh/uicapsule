@@ -47,7 +47,6 @@ function AuthSection(props) {
       <Container maxWidth="xs">
         <SectionHeader
           title={allTypeValues[currentType].title}
-          subtitle=""
           size={4}
           textAlign="center"
         />

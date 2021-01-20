@@ -2,27 +2,20 @@ import React from "react";
 import FaqSection from "components/FaqSection";
 import CtaSection from "components/CtaSection";
 
-function FaqPage(props) {
+function FaqPage() {
   return (
     <>
       <FaqSection
         bgColor="default"
         size="medium"
-        bgImage=""
-        bgImageOpacity={1}
         title="Frequently Asked Questions"
-        subtitle=""
       />
       <CtaSection
-        bgColor="primary"
         size="medium"
-        bgImage=""
-        bgImageOpacity={1}
         title="Ready to get started?"
-        subtitle=""
-        buttonText="Get Started"
-        buttonColor="default"
-        buttonPath="/pricing"
+        subtitle="We have a generous free tier available to get you started right away"
+        buttonText="Get started for free"
+        buttonPath="/signup"
       />
     </>
   );

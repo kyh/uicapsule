@@ -10,8 +10,6 @@ function SettingsPage(props) {
     <SettingsSection
       bgColor="default"
       size="medium"
-      bgImage=""
-      bgImageOpacity={1}
       section={router.query.section}
       key={router.query.section}
     />

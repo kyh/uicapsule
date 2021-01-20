@@ -9,8 +9,6 @@ function AuthPage(props) {
     <AuthSection
       bgColor="default"
       size="medium"
-      bgImage=""
-      bgImageOpacity={1}
       type={router.query.type}
       providers={["google", "facebook", "twitter"]}
       afterAuthPath={router.query.next || "/dashboard"}

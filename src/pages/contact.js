@@ -1,19 +1,24 @@
 import React from "react";
+import FaqSection from "components/FaqSection";
 import ContactSection from "components/ContactSection";
 
-function ContactPage(props) {
+function ContactPage() {
   return (
-    <ContactSection
-      bgColor="default"
-      size="medium"
-      bgImage=""
-      bgImageOpacity={1}
-      title="Contact Us"
-      subtitle=""
-      buttonText="Send message"
-      buttonColor="primary"
-      showNameField
-    />
+    <>
+      <FaqSection
+        bgColor="default"
+        size="medium"
+        title="Frequently Asked Questions"
+      />
+      <ContactSection
+        bgColor="default"
+        size="medium"
+        title="Contact Us"
+        buttonText="Send message"
+        buttonColor="primary"
+        showNameField
+      />
+    </>
   );
 }
 

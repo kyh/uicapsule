@@ -18,7 +18,7 @@ function AboutPage() {
         title="Enough about us, lets get you started"
         subtitle="We have a generous free tier available to get you started right away"
         buttonText="Get started for free"
-        buttonPath="/pricing"
+        buttonPath="/signup"
       />
     </>
   );
