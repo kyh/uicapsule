@@ -1,4 +1,5 @@
 import React from "react";
+import styled from "styled-components";
 import Section from "components/Section";
 import Container from "@material-ui/core/Container";
 import SectionHeader from "components/SectionHeader";
@@ -8,45 +9,41 @@ import CardContent from "@material-ui/core/CardContent";
 import Typography from "@material-ui/core/Typography";
 import CardHeader from "@material-ui/core/CardHeader";
 import Avatar from "@material-ui/core/Avatar";
-import { makeStyles } from "@material-ui/core/styles";
 
-const useStyles = makeStyles((theme) => ({
-  header: {
-    paddingTop: 0,
+const TestimonialAvatar = styled(Avatar)`
+  width: ${({ theme }) => theme.spacing(7)}px;
+  height: ${({ theme }) => theme.spacing(7)}px;
+`;
+
+const TestimonialHeader = styled(CardHeader)`
+  padding-top: 0;
+`;
+
+const items = [
+  {
+    avatar: "https://uploads.divjoy.com/pravatar-150x-5.jpeg",
+    name: "Sarah Kline",
+    testimonial:
+      "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud.",
+    company: "Company",
   },
-  avatar: {
-    width: theme.spacing(7),
-    height: theme.spacing(7),
+  {
+    avatar: "https://uploads.divjoy.com/pravatar-150x-48.jpeg",
+    name: "Shawna Murray",
+    testimonial:
+      "Lorem ipsum dolor sit amet, consectetur adipisicing elit. Dolorum consequatur numquam aliquam tenetur ad amet inventore hic beatae, quas accusantium perferendis sapiente explicabo, corporis totam!",
+    company: "Company",
   },
-}));
+  {
+    avatar: "https://uploads.divjoy.com/pravatar-150x-12.jpeg",
+    name: "Blake Elder",
+    testimonial:
+      "Lorem ipsum dolor sit amet, consectetur adipisicing elit. Dolorum consequatur numquam aliquam tenetur ad amet inventore hic beatae.",
+    company: "Company",
+  },
+];
 
 function TestimonialsSection(props) {
-  const classes = useStyles();
-
-  const items = [
-    {
-      avatar: "https://uploads.divjoy.com/pravatar-150x-5.jpeg",
-      name: "Sarah Kline",
-      testimonial:
-        "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud.",
-      company: "Company",
-    },
-    {
-      avatar: "https://uploads.divjoy.com/pravatar-150x-48.jpeg",
-      name: "Shawna Murray",
-      testimonial:
-        "Lorem ipsum dolor sit amet, consectetur adipisicing elit. Dolorum consequatur numquam aliquam tenetur ad amet inventore hic beatae, quas accusantium perferendis sapiente explicabo, corporis totam!",
-      company: "Company",
-    },
-    {
-      avatar: "https://uploads.divjoy.com/pravatar-150x-12.jpeg",
-      name: "Blake Elder",
-      testimonial:
-        "Lorem ipsum dolor sit amet, consectetur adipisicing elit. Dolorum consequatur numquam aliquam tenetur ad amet inventore hic beatae.",
-      company: "Company",
-    },
-  ];
-
   return (
     <Section
       bgColor={props.bgColor}
@@ -70,14 +67,9 @@ function TestimonialsSection(props) {
                     "{item.testimonial}"
                   </Typography>
                 </CardContent>
-                <CardHeader
-                  className={classes.header}
+                <TestimonialHeader
                   avatar={
-                    <Avatar
-                      src={item.avatar}
-                      alt={item.name}
-                      className={classes.avatar}
-                    />
+                    <TestimonialAvatar src={item.avatar} alt={item.name} />
                   }
                   title={item.name}
                   subheader={item.company}

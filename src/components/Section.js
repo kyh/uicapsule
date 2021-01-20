@@ -28,13 +28,6 @@ const useStyles = makeStyles((theme) => ({
       backgroundColor: value,
       // Ensure text is legible on background
       color: theme.palette.getContrastText(value),
-      // Sibling selector that adds a top border if section above
-      // has the same color class.
-      // We use emphasize to compute border based on background color
-      // and make sure it's always lightly visible.
-      [`& + &`]: {
-        borderTop: `1px solid ${emphasize(value, 0.09)}`,
-      },
     };
     return acc;
   }, {}),

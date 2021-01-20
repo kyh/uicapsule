@@ -1,24 +1,22 @@
 import React from "react";
+import styled from "styled-components";
 import LinkMui from "@material-ui/core/Link";
 import Link from "next/link";
-import { makeStyles } from "@material-ui/core/styles";
 
-const useStyles = makeStyles((theme) => ({
-  root: {
-    fontSize: "0.9rem",
-    textAlign: "center",
-    marginTop: theme.spacing(3),
-    "& > a": {
-      margin: `0 ${theme.spacing(1)}px`,
-    },
-  },
-}));
+const Conatainer = styled.div`
+  font-size: 0.9rem;
+  text-align: center;
+  margin-top: ${({ theme }) => theme.spacing(3)}px;
+  > a {
+    margin: ${({ theme }) => `0 ${theme.spacing(1)}px`};
+  }
+`;
 
 function AuthFooter(props) {
   const classes = useStyles();
 
   return (
-    <div className={classes.root}>
+    <Conatainer>
       {props.type === "signup" && (
         <>
           Have an account already?
@@ -39,7 +37,7 @@ function AuthFooter(props) {
           </Link>
         </>
       )}
-    </div>
+    </Conatainer>
   );
 }
 

@@ -1,29 +1,23 @@
 import React from "react";
-import { makeStyles } from "@material-ui/core/styles";
+import styled from "styled-components";
 
-const useStyles = makeStyles((theme) => ({
-  root: {
-    content: '""',
-    backgroundPosition: "center center",
-    backgroundSize: "cover",
-    backgroundRepeat: "no-repeat",
-    top: 0,
-    left: 0,
-    bottom: 0,
-    right: 0,
-    position: "absolute",
-    zIndex: 0,
-  },
-}));
+const Conatainer = styled.div`
+  content: "";
+  background-position: center center;
+  background-size: cover;
+  background-repeat: no-repeat;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  right: 0;
+  position: absolute;
+  z-index: 0;
+`;
 
 function BackgroundImage(props) {
-  const classes = useStyles();
-
   const { image, posY, opacity, ...otherProps } = props;
-
   return (
-    <div
-      className={classes.root}
+    <Conatainer
       style={{
         backgroundImage: `url("${image}")`,
         opacity: opacity,
