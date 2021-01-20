@@ -1,6 +1,8 @@
 import React, { useEffect } from "react";
+import { ThemeProvider as StyledThemeProvider } from "styled-components";
 import {
   createMuiTheme,
+  StylesProvider,
   ThemeProvider as MuiThemeProvider,
 } from "@material-ui/core/styles";
 import * as colors from "@material-ui/core/colors";
@@ -156,10 +158,13 @@ export const ThemeProvider = (props) => {
   }, []);
 
   return (
-    <MuiThemeProvider theme={theme}>
-      {/* Set global MUI styles */}
-      <CssBaseline />
-      {props.children}
-    </MuiThemeProvider>
+    <StylesProvider injectFirst>
+      <MuiThemeProvider theme={theme}>
+        <StyledThemeProvider theme={theme}>
+          <CssBaseline />
+          {props.children}
+        </StyledThemeProvider>
+      </MuiThemeProvider>
+    </StylesProvider>
   );
 };
