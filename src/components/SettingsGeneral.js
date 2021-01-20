@@ -48,8 +48,8 @@ function SettingsGeneral(props) {
 
   return (
     <form onSubmit={handleSubmit(onSubmit)}>
-      <Grid container={true} spacing={2}>
-        <Grid item={true} xs={12}>
+      <Grid container spacing={2}>
+        <Grid item xs={12}>
           <TextField
             variant="outlined"
             type="text"
@@ -59,13 +59,13 @@ function SettingsGeneral(props) {
             defaultValue={auth.user.name}
             error={errors.name ? true : false}
             helperText={errors.name && errors.name.message}
-            fullWidth={true}
+            fullWidth
             inputRef={register({
               required: "Please enter your name",
             })}
           />
         </Grid>
-        <Grid item={true} xs={12}>
+        <Grid item xs={12}>
           <TextField
             variant="outlined"
             type="email"
@@ -75,20 +75,20 @@ function SettingsGeneral(props) {
             defaultValue={auth.user.email}
             error={errors.email ? true : false}
             helperText={errors.email && errors.email.message}
-            fullWidth={true}
+            fullWidth
             inputRef={register({
               required: "Please enter your email",
             })}
           />
         </Grid>
-        <Grid item={true} xs={12}>
+        <Grid item xs={12}>
           <Button
             variant="contained"
             color="primary"
             size="large"
             type="submit"
             disabled={pending}
-            fullWidth={true}
+            fullWidth
           >
             {!pending && <span>Save</span>}
 

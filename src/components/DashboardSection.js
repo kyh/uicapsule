@@ -57,40 +57,40 @@ function DashboardSection(props) {
           </Box>
         )}
 
-        <Grid container={true} spacing={4}>
-          <Grid item={true} xs={12} md={6}>
+        <Grid container spacing={4}>
+          <Grid item xs={12} md={6}>
             <DashboardItems />
           </Grid>
-          <Grid item={true} xs={12} md={6}>
+          <Grid item xs={12} md={6}>
             <Card>
               <CardContent className={classes.cardContent}>
                 <Box>
-                  <Typography variant="h6" paragraph={true}>
+                  <Typography variant="h6" paragraph>
                     <strong>What is this?</strong>
                   </Typography>
-                  <Typography paragraph={true}>
+                  <Typography paragraph>
                     The component on your left is an example UI that shows you
                     how to fetch, display, and update a list of items that
                     belong to the current authenticated user. Try it now by
                     adding a couple items.
                   </Typography>
-                  <Typography paragraph={true}>
+                  <Typography paragraph>
                     It also shows how you can limit features based on plan. If
                     you're subscribed to the "pro" or "business" plan then
                     you'll be able to use the star button to highlight items,
                     otherwise you'll be asked to upgrade your plan.
                   </Typography>
-                  <Typography paragraph={true}>
+                  <Typography paragraph>
                     After exporting your code, you'll want to modify this
                     component to your needs. You may also find it easier to just
                     use this component as a reference as you build out your
                     custom UI.
                   </Typography>
                   <Box mt={3}>
-                    <Typography variant="h6" paragraph={true}>
+                    <Typography variant="h6" paragraph>
                       <strong>Extra debug info</strong>
                     </Typography>
-                    <Typography paragraph={true}>
+                    <Typography paragraph>
                       <div>
                         You are signed in as <strong>{auth.user.email}</strong>.
                       </div>
@@ -115,7 +115,7 @@ function DashboardSection(props) {
                         You can change your account info{` `}
                         {auth.user.stripeSubscriptionId && <>and plan{` `}</>}
                         in{` `}
-                        <Link href="/settings/general" passHref={true}>
+                        <Link href="/settings/general" passHref>
                           <LinkMui>
                             <strong>settings</strong>
                           </LinkMui>
@@ -126,7 +126,7 @@ function DashboardSection(props) {
                       {!auth.user.stripeSubscriptionId && (
                         <div>
                           You can signup for a plan in{" "}
-                          <Link href="/pricing" passHref={true}>
+                          <Link href="/pricing" passHref>
                             <LinkMui>
                               <strong>pricing</strong>
                             </LinkMui>

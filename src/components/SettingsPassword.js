@@ -51,8 +51,8 @@ function SettingsPassword(props) {
 
   return (
     <form onSubmit={handleSubmit(onSubmit)}>
-      <Grid container={true} spacing={2}>
-        <Grid item={true} xs={12}>
+      <Grid container spacing={2}>
+        <Grid item xs={12}>
           <TextField
             variant="outlined"
             type="password"
@@ -61,13 +61,13 @@ function SettingsPassword(props) {
             placeholder="Password"
             error={errors.pass ? true : false}
             helperText={errors.pass && errors.pass.message}
-            fullWidth={true}
+            fullWidth
             inputRef={register({
               required: "Please enter a password",
             })}
           />
         </Grid>
-        <Grid item={true} xs={12}>
+        <Grid item xs={12}>
           <TextField
             variant="outlined"
             type="password"
@@ -76,7 +76,7 @@ function SettingsPassword(props) {
             placeholder="Confirm Password"
             error={errors.confirmPass ? true : false}
             helperText={errors.confirmPass && errors.confirmPass.message}
-            fullWidth={true}
+            fullWidth
             inputRef={register({
               required: "Please enter your new password again",
               validate: (value) => {
@@ -89,14 +89,14 @@ function SettingsPassword(props) {
             })}
           />
         </Grid>
-        <Grid item={true} xs={12}>
+        <Grid item xs={12}>
           <Button
             variant="contained"
             color="primary"
             size="large"
             type="submit"
             disabled={pending}
-            fullWidth={true}
+            fullWidth
           >
             {!pending && <span>Save</span>}
 

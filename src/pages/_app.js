@@ -25,7 +25,7 @@ function MyApp({ Component, pageProps }) {
             copyright="© 2020 Company"
             logo="https://uploads.divjoy.com/logo.svg"
             logoInverted="https://uploads.divjoy.com/logo-white.svg"
-            sticky={true}
+            sticky
           />
         </>
       </AuthProvider>

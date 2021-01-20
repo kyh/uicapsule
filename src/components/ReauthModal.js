@@ -52,7 +52,7 @@ function ReauthModal(props) {
   };
 
   return (
-    <Dialog open={true} onClose={props.onDone}>
+    <Dialog open onClose={props.onDone}>
       <DialogTitle>Please sign in again to complete this action</DialogTitle>
       <DialogContent className={classes.content}>
         {formAlert && (
@@ -63,8 +63,8 @@ function ReauthModal(props) {
 
         {props.provider === "password" && (
           <form onSubmit={handleSubmit(onSubmit)}>
-            <Grid container={true} spacing={2}>
-              <Grid item={true} xs={12}>
+            <Grid container spacing={2}>
+              <Grid item xs={12}>
                 <TextField
                   variant="outlined"
                   type="password"
@@ -72,20 +72,20 @@ function ReauthModal(props) {
                   name="pass"
                   error={errors.pass ? true : false}
                   helperText={errors.pass && errors.pass.message}
-                  fullWidth={true}
+                  fullWidth
                   inputRef={register({
                     required: "Please enter your password",
                   })}
                 />
               </Grid>
-              <Grid item={true} xs={12}>
+              <Grid item xs={12}>
                 <Button
                   variant="contained"
                   color="primary"
                   size="large"
                   type="submit"
                   disabled={pending}
-                  fullWidth={true}
+                  fullWidth
                 >
                   {!pending && <span>Submit</span>}
 

@@ -50,9 +50,9 @@ function Contact(props) {
       )}
 
       <form onSubmit={handleSubmit(onSubmit)}>
-        <Grid container={true} spacing={2}>
+        <Grid container spacing={2}>
           {props.showNameField && (
-            <Grid item={true} xs={12} md={6}>
+            <Grid item xs={12} md={6}>
               <TextField
                 variant="outlined"
                 type="text"
@@ -60,7 +60,7 @@ function Contact(props) {
                 name="name"
                 error={errors.name ? true : false}
                 helperText={errors.name && errors.name.message}
-                fullWidth={true}
+                fullWidth
                 inputRef={register({
                   required: "Please enter your name",
                 })}
@@ -68,7 +68,7 @@ function Contact(props) {
             </Grid>
           )}
 
-          <Grid item={true} xs={12} md={props.showNameField ? 6 : 12}>
+          <Grid item xs={12} md={props.showNameField ? 6 : 12}>
             <TextField
               variant="outlined"
               type="email"
@@ -76,29 +76,29 @@ function Contact(props) {
               name="email"
               error={errors.email ? true : false}
               helperText={errors.email && errors.email.message}
-              fullWidth={true}
+              fullWidth
               inputRef={register({
                 required: "Please enter your email",
               })}
             />
           </Grid>
-          <Grid item={true} xs={12}>
+          <Grid item xs={12}>
             <TextField
               variant="outlined"
               type="text"
               label="Message"
               name="message"
-              multiline={true}
+              multiline
               rows={5}
               error={errors.message ? true : false}
               helperText={errors.message && errors.message.message}
-              fullWidth={true}
+              fullWidth
               inputRef={register({
                 required: "Please enter a message",
               })}
             />
           </Grid>
-          <Grid item={true} xs={12}>
+          <Grid item xs={12}>
             <Button
               variant="contained"
               color="primary"

@@ -12,7 +12,7 @@ function ContactPage(props) {
       subtitle=""
       buttonText="Send message"
       buttonColor="primary"
-      showNameField={true}
+      showNameField
     />
   );
 }

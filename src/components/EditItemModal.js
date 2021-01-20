@@ -63,7 +63,7 @@ function EditItemModal(props) {
   };
 
   return (
-    <Dialog open={true} onClose={props.onDone}>
+    <Dialog open onClose={props.onDone}>
       <DialogTitle>
         {props.id && <>Update</>}
         {!props.id && <>Create</>}
@@ -77,8 +77,8 @@ function EditItemModal(props) {
         )}
 
         <form onSubmit={handleSubmit(onSubmit)}>
-          <Grid container={true} spacing={3}>
-            <Grid item={true} xs={12}>
+          <Grid container spacing={3}>
+            <Grid item xs={12}>
               <TextField
                 variant="outlined"
                 type="text"
@@ -87,14 +87,14 @@ function EditItemModal(props) {
                 defaultValue={itemData && itemData.name}
                 error={errors.name ? true : false}
                 helperText={errors.name && errors.name.message}
-                fullWidth={true}
-                autoFocus={true}
+                fullWidth
+                autoFocus
                 inputRef={register({
                   required: "Please enter a name",
                 })}
               />
             </Grid>
-            <Grid item={true} xs={12}>
+            <Grid item xs={12}>
               <Button
                 variant="contained"
                 color="primary"

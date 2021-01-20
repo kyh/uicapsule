@@ -101,7 +101,7 @@ function DashboardItems(props) {
         )}
 
         {itemsStatus !== "loading" && items && items.length > 0 && (
-          <List disablePadding={true}>
+          <List disablePadding>
             {items.map((item, index) => (
               <ListItem
                 key={index}

@@ -66,7 +66,9 @@ function IndexPage() {
                   clearTimeout(resetTimeout);
                   if (index + 1 === items.length) {
                     resetTimeout = setTimeout(() => {
-                      carouselRef.current.goTo(0);
+                      if (carouselRef && carouselRef.current) {
+                        carouselRef.current.goTo(0);
+                      }
                     }, autoPlaySpeed);
                   }
                 }}
@@ -82,7 +84,7 @@ function IndexPage() {
         />
         <HeroCtaContainer>
           <Button variant="contained" color="primary" size="large">
-            Try it for free
+            Get started for free
           </Button>
         </HeroCtaContainer>
         <HeroPreviewContainer>
@@ -95,24 +97,16 @@ function IndexPage() {
           />
         </HeroPreviewContainer>
       </HeroSection>
-
       <TestimonialsSection
         bgColor="default"
         size="medium"
-        bgImage=""
-        bgImageOpacity={1}
         title="Here's what people are saying"
-        subtitle=""
       />
       <CtaSection
-        bgColor="primary"
         size="medium"
-        bgImage=""
-        bgImageOpacity={1}
         title="Ready to get started?"
-        subtitle=""
-        buttonText="Get Started"
-        buttonColor="default"
+        subtitle="We have a generous free tier available to get you started right away"
+        buttonText="Get started for free"
         buttonPath="/pricing"
       />
     </>

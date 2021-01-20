@@ -67,9 +67,9 @@ function AuthForm(props) {
 
   return (
     <form onSubmit={handleSubmit(onSubmit)}>
-      <Grid container={true} spacing={2}>
+      <Grid container spacing={2}>
         {["signup", "signin", "forgotpass"].includes(props.type) && (
-          <Grid item={true} xs={12}>
+          <Grid item xs={12}>
             <TextField
               variant="outlined"
               type="email"
@@ -78,7 +78,7 @@ function AuthForm(props) {
               placeholder="user@example.com"
               error={errors.email ? true : false}
               helperText={errors.email && errors.email.message}
-              fullWidth={true}
+              fullWidth
               inputRef={register({
                 required: "Please enter your email",
               })}
@@ -87,7 +87,7 @@ function AuthForm(props) {
         )}
 
         {["signup", "signin", "changepass"].includes(props.type) && (
-          <Grid item={true} xs={12}>
+          <Grid item xs={12}>
             <TextField
               variant="outlined"
               type="password"
@@ -95,7 +95,7 @@ function AuthForm(props) {
               name="pass"
               error={errors.pass ? true : false}
               helperText={errors.pass && errors.pass.message}
-              fullWidth={true}
+              fullWidth
               inputRef={register({
                 required: "Please enter a password",
               })}
@@ -104,7 +104,7 @@ function AuthForm(props) {
         )}
 
         {["signup", "changepass"].includes(props.type) && (
-          <Grid item={true} xs={12}>
+          <Grid item xs={12}>
             <TextField
               variant="outlined"
               type="password"
@@ -112,7 +112,7 @@ function AuthForm(props) {
               name="confirmPass"
               error={errors.confirmPass ? true : false}
               helperText={errors.confirmPass && errors.confirmPass.message}
-              fullWidth={true}
+              fullWidth
               inputRef={register({
                 required: "Please enter your password again",
                 validate: (value) => {
@@ -127,14 +127,14 @@ function AuthForm(props) {
           </Grid>
         )}
 
-        <Grid item={true} xs={12}>
+        <Grid item xs={12}>
           <Button
             variant="contained"
             color="primary"
             size="large"
             type="submit"
             disabled={pending}
-            fullWidth={true}
+            fullWidth
           >
             {!pending && <span>{props.typeValues.buttonText}</span>}
 

@@ -44,7 +44,7 @@ function Auth(props) {
                 type={props.type}
                 buttonText={props.typeValues.buttonText}
                 providers={props.providers}
-                showLastUsed={true}
+                showLastUsed
                 onAuth={handleAuth}
                 onError={(message) => {
                   handleFormAlert({

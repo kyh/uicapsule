@@ -52,8 +52,8 @@ function Footer(props) {
       className={props.sticky && classes.sticky}
     >
       <Container>
-        <Grid container={true} justify="space-between" spacing={4}>
-          <Grid item={true} xs={12} md={4}>
+        <Grid container justify="space-between" spacing={4}>
+          <Grid item xs={12} md={4}>
             <Link href="/">
               <a>
                 <img src={logo} alt="Logo" className={classes.brand} />
@@ -72,10 +72,10 @@ function Footer(props) {
               </Box>
             )}
           </Grid>
-          <Grid item={true} xs={12} md={6}>
-            <Grid container={true} spacing={4}>
-              <Grid item={true} xs={12} md={4}>
-                <List disablePadding={true}>
+          <Grid item xs={12} md={6}>
+            <Grid container spacing={4}>
+              <Grid item xs={12} md={4}>
+                <List disablePadding>
                   <ListItem className={classes.listItem}>
                     <Typography
                       variant="overline"
@@ -85,29 +85,21 @@ function Footer(props) {
                     </Typography>
                   </ListItem>
 
-                  <Link href="/pricing" passHref={true}>
-                    <ListItem
-                      button={true}
-                      component="a"
-                      className={classes.listItem}
-                    >
+                  <Link href="/pricing" passHref>
+                    <ListItem button component="a" className={classes.listItem}>
                       <ListItemText>Pricing</ListItemText>
                     </ListItem>
                   </Link>
 
-                  <Link href="/faq" passHref={true}>
-                    <ListItem
-                      button={true}
-                      component="a"
-                      className={classes.listItem}
-                    >
+                  <Link href="/faq" passHref>
+                    <ListItem button component="a" className={classes.listItem}>
                       <ListItemText>FAQ</ListItemText>
                     </ListItem>
                   </Link>
                 </List>
               </Grid>
-              <Grid item={true} xs={12} md={4}>
-                <List disablePadding={true}>
+              <Grid item xs={12} md={4}>
+                <List disablePadding>
                   <ListItem className={classes.listItem}>
                     <Typography
                       variant="overline"
@@ -117,28 +109,20 @@ function Footer(props) {
                     </Typography>
                   </ListItem>
 
-                  <Link href="/about" passHref={true}>
-                    <ListItem
-                      button={true}
-                      component="a"
-                      className={classes.listItem}
-                    >
+                  <Link href="/about" passHref>
+                    <ListItem button component="a" className={classes.listItem}>
                       <ListItemText>About</ListItemText>
                     </ListItem>
                   </Link>
 
-                  <Link href="/contact" passHref={true}>
-                    <ListItem
-                      button={true}
-                      component="a"
-                      className={classes.listItem}
-                    >
+                  <Link href="/contact" passHref>
+                    <ListItem button component="a" className={classes.listItem}>
                       <ListItemText>Contact</ListItemText>
                     </ListItem>
                   </Link>
 
                   <ListItem
-                    button={true}
+                    button
                     component="a"
                     target="_blank"
                     href="https://medium.com"
@@ -148,8 +132,8 @@ function Footer(props) {
                   </ListItem>
                 </List>
               </Grid>
-              <Grid item={true} xs={12} md={4}>
-                <List disablePadding={true}>
+              <Grid item xs={12} md={4}>
+                <List disablePadding>
                   <ListItem className={classes.listItem}>
                     <Typography
                       variant="overline"
@@ -159,7 +143,7 @@ function Footer(props) {
                     </Typography>
                   </ListItem>
                   <ListItem
-                    button={true}
+                    button
                     component="a"
                     target="_blank"
                     href="https://twitter.com/divjoy"
@@ -174,7 +158,7 @@ function Footer(props) {
                     <ListItemText>Twitter</ListItemText>
                   </ListItem>
                   <ListItem
-                    button={true}
+                    button
                     component="a"
                     target="_blank"
                     href="https://facebook.com/DivjoyOfficial"
@@ -189,7 +173,7 @@ function Footer(props) {
                     <ListItemText>Facebook</ListItemText>
                   </ListItem>
                   <ListItem
-                    button={true}
+                    button
                     component="a"
                     target="_blank"
                     href="https://instagram.com"

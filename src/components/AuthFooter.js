@@ -18,7 +18,7 @@ function AuthFooter(props) {
       {props.type === "signup" && (
         <>
           Have an account already?
-          <Link href="/auth/signin" passHref={true}>
+          <Link href="/auth/signin" passHref>
             <LinkMui>{props.typeValues.linkTextSignin}</LinkMui>
           </Link>
         </>
@@ -26,11 +26,11 @@ function AuthFooter(props) {
 
       {props.type === "signin" && (
         <>
-          <Link href="/auth/signup" passHref={true}>
+          <Link href="/auth/signup" passHref>
             <LinkMui>{props.typeValues.linkTextSignup}</LinkMui>
           </Link>
 
-          <Link href="/auth/forgotpass" passHref={true}>
+          <Link href="/auth/forgotpass" passHref>
             <LinkMui>{props.typeValues.linkTextForgotpass}</LinkMui>
           </Link>
         </>

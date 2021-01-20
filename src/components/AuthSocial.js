@@ -86,7 +86,7 @@ function AuthSocial(props) {
           size="large"
           type="submit"
           disabled={pending === provider}
-          fullWidth={true}
+          fullWidth
           onClick={() => {
             onSigninWithProvider(provider);
           }}

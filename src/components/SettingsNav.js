@@ -9,17 +9,17 @@ function SettingsNav(props) {
       value={props.activeKey}
       indicatorColor="primary"
       textColor="primary"
-      centered={true}
+      centered
     >
-      <Link href="/settings/general" passHref={true}>
+      <Link href="/settings/general" passHref>
         <Tab label="General" value="general" component="a"></Tab>
       </Link>
 
-      <Link href="/settings/password" passHref={true}>
+      <Link href="/settings/password" passHref>
         <Tab label="Password" value="password" component="a"></Tab>
       </Link>
 
-      <Link href="/settings/billing" passHref={true}>
+      <Link href="/settings/billing" passHref>
         <Tab label="Billing" value="billing" component="a"></Tab>
       </Link>
     </Tabs>

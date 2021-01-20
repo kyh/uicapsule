@@ -58,9 +58,9 @@ function TestimonialsSection(props) {
           size={4}
           textAlign="center"
         />
-        <Grid container={true} justify="center" spacing={4}>
+        <Grid container justify="center" spacing={4}>
           {items.map((item, index) => (
-            <Grid item={true} xs={12} sm={4} key={index}>
+            <Grid item xs={12} sm={4} key={index}>
               <Card>
                 <CardContent>
                   <Typography variant="body1" component="p">
