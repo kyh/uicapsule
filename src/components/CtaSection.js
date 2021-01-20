@@ -56,6 +56,7 @@ function CtaSection(props) {
           <Grid item xs={12} md="auto">
             <Link href={props.buttonPath} passHref>
               <Button
+                component="a"
                 variant="contained"
                 size="large"
                 color={props.buttonColor}

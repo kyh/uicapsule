@@ -85,15 +85,6 @@ const themeConfig = {
         lineHeight: "1.25rem",
       },
     },
-    breakpoints: {
-      values: {
-        xs: 0,
-        sm: 600,
-        md: 960,
-        lg: 1200,
-        xl: 1920,
-      },
-    },
     shadows: [
       "none",
       "0 1px 2px 0 rgba(0, 0, 0, 0.04)",

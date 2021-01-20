@@ -1,6 +1,7 @@
-import React, { useRef } from "react";
+import React, { useRef, useEffect } from "react";
 import styled from "styled-components";
 import Image from "next/image";
+import Link from "next/link";
 import Carousel from "react-elastic-carousel";
 import Button from "@material-ui/core/Button";
 import HeroSection from "components/HeroSection";
@@ -42,6 +43,11 @@ const items = ["websites", "articles", "apps", "anywhere"];
 
 function IndexPage() {
   const carouselRef = useRef(null);
+
+  useEffect(() => {
+    return () => clearTimeout(resetTimeout);
+  }, []);
+
   return (
     <>
       <HeroSection
@@ -66,9 +72,7 @@ function IndexPage() {
                   clearTimeout(resetTimeout);
                   if (index + 1 === items.length) {
                     resetTimeout = setTimeout(() => {
-                      if (carouselRef && carouselRef.current) {
-                        carouselRef.current.goTo(0);
-                      }
+                      carouselRef.current.goTo(0);
                     }, autoPlaySpeed);
                   }
                 }}
@@ -83,9 +87,16 @@ function IndexPage() {
           size="1"
         />
         <HeroCtaContainer>
-          <Button variant="contained" color="primary" size="large">
-            Get started for free
-          </Button>
+          <Link href="/auth/signup" passHref>
+            <Button
+              variant="contained"
+              color="primary"
+              size="large"
+              component="a"
+            >
+              Get started for free
+            </Button>
+          </Link>
         </HeroCtaContainer>
         <HeroPreviewContainer>
           <Image
