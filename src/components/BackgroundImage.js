@@ -15,13 +15,14 @@ const Conatainer = styled.div`
 `;
 
 function BackgroundImage(props) {
-  const { image, posY, opacity, ...otherProps } = props;
+  const { image, posY, posX, opacity, ...otherProps } = props;
   return (
     <Conatainer
       style={{
         backgroundImage: `url("${image}")`,
         opacity: opacity,
         backgroundPositionY: posY,
+        backgroundPositionX: posX,
       }}
       {...otherProps}
     />

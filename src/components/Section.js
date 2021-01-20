@@ -50,6 +50,7 @@ function Section(props) {
     bgImage,
     bgImageOpacity,
     bgPosY,
+    bgPosX,
     size = "normal",
     className,
     children,
@@ -81,6 +82,7 @@ function Section(props) {
           image={bgImage}
           opacity={bgImageOpacity}
           posY={bgPosY}
+          posX={bgPosX}
         />
       )}
 

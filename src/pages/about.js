@@ -8,7 +8,7 @@ function AboutPage() {
     <>
       <HeroSection bgColor="default" size="large">
         <SectionHeader
-          title="We help you make money"
+          title="Make creativity easy, fast, and fun"
           subtitle="Lorem ipsum dolor sit amet, consectetur adipisicing elit. Dolorum consequatur numquam aliquam tenetur ad amet inventore hic beatae, quas accusantium perferendis sapiente explicabo, corporis totam!"
           size={2}
         />

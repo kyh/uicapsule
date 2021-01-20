@@ -10,23 +10,9 @@ function MyApp({ Component, pageProps }) {
     <ThemeProvider>
       <AuthProvider>
         <>
-          <Navbar
-            color="default"
-            logo="https://uploads.divjoy.com/logo.svg"
-            logoInverted="https://uploads.divjoy.com/logo-white.svg"
-          />
+          <Navbar />
           <Component {...pageProps} />
-          <Footer
-            bgColor="default"
-            size="medium"
-            bgImage=""
-            bgImageOpacity={1}
-            description="A short description of what you do here"
-            copyright="© 2020 Company"
-            logo="https://uploads.divjoy.com/logo.svg"
-            logoInverted="https://uploads.divjoy.com/logo-white.svg"
-            sticky
-          />
+          <Footer />
         </>
       </AuthProvider>
     </ThemeProvider>
