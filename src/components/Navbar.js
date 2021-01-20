@@ -27,6 +27,9 @@ const LogoContainer = styled.a`
   svg {
     height: 40px;
   }
+  &:focus {
+    outline-offset: -3px;
+  }
 `;
 
 const NavLink = styled(Button)`
@@ -97,7 +100,7 @@ function Navbar() {
     <NavbarContainer color="inherit" elevation={0} active={trigger ? 1 : 0}>
       <Container disableGutters>
         <Toolbar>
-          <Link href="/">
+          <Link href="/" passHref>
             <LogoContainer>
               <Logo />
             </LogoContainer>

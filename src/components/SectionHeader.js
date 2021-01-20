@@ -10,8 +10,10 @@ const Container = styled(Box)`
 `;
 
 const Subtitle = styled(Typography)`
+  font-size: 1.1rem;
+  color: ${({ theme }) => theme.palette.text.secondary};
   display: inline-block;
-  max-width: 700;
+  max-width: 700px;
 `;
 
 function SectionHeader(props) {

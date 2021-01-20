@@ -13,8 +13,6 @@ const Conatainer = styled.div`
 `;
 
 function AuthFooter(props) {
-  const classes = useStyles();
-
   return (
     <Conatainer>
       {props.type === "signup" && (
