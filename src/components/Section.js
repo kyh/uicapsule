@@ -42,21 +42,18 @@ const useStyles = makeStyles((theme) => ({
   },
 }));
 
-function Section(props) {
+function Section({
+  bgColor = "default",
+  bgImage,
+  bgImageOpacity,
+  bgPosY,
+  bgPosX,
+  size = "normal",
+  className,
+  children,
+  ...rest
+}) {
   const classes = useStyles();
-
-  const {
-    bgColor = "default",
-    bgImage,
-    bgImageOpacity,
-    bgPosY,
-    bgPosX,
-    size = "normal",
-    className,
-    children,
-    ...otherProps
-  } = props;
-
   // Get MUI responsize size object based
   // on size prop (normal, medium, large, auto)
   const verticalPadding = {
@@ -75,7 +72,7 @@ function Section(props) {
         ` ${classes[`color${capitalize(bgColor)}`]}` +
         (className ? ` ${className}` : "")
       }
-      {...otherProps}
+      {...rest}
     >
       {bgImage && (
         <BackgroundImage
@@ -85,8 +82,7 @@ function Section(props) {
           posX={bgPosX}
         />
       )}
-
-      {props.children}
+      {children}
     </Box>
   );
 }

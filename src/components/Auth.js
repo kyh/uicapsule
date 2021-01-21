@@ -11,7 +11,7 @@ const OrText = styled(Box)`
   position: relative;
   text-align: center;
   font-size: 12px;
-  text-transform: capitalize;
+  text-transform: lowercase;
   span {
     position: relative;
     background: ${({ theme }) => theme.palette.background.paper};

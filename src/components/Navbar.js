@@ -106,17 +106,17 @@ function Navbar() {
             </LogoContainer>
           </Link>
           <LeftNav xsDown implementation="css" active={trigger ? 1 : 0}>
-            <Link href="/demo" passHref>
+            <Link href="/#demo" passHref>
               <NavLink color="inherit" component="a">
                 Demo
               </NavLink>
             </Link>
-            <Link href="/explore" passHref>
+            <Link href="/#explore" passHref>
               <NavLink color="inherit" component="a">
                 Explore
               </NavLink>
             </Link>
-            <Link href="/features" passHref>
+            <Link href="/#features" passHref>
               <NavLink color="inherit" component="a">
                 Features
               </NavLink>

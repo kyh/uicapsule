@@ -4,6 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 import Carousel from "react-elastic-carousel";
 import Button from "@material-ui/core/Button";
+import Box from "@material-ui/core/Box";
 import HeroSection from "components/HeroSection";
 import SectionHeader from "components/SectionHeader";
 import TestimonialsSection from "components/TestimonialsSection";
@@ -50,6 +51,13 @@ function IndexPage() {
 
   return (
     <>
+      <style global jsx>
+        {`
+          html {
+            scroll-behavior: smooth;
+          }
+        `}
+      </style>
       <HeroSection
         size="large"
         bgImage="/hero-background.svg"
@@ -109,6 +117,13 @@ function IndexPage() {
             height={432}
           />
         </HeroPreviewContainer>
+        <Box
+          component="a"
+          id="demo"
+          visibility="hidden"
+          top={-600}
+          position="relative"
+        />
       </HeroSection>
       <TestimonialsSection
         bgColor="default"
@@ -117,7 +132,7 @@ function IndexPage() {
       />
       <CtaSection
         size="medium"
-        title="Start capturing your inspiration"
+        title="Start capturing your inspirations"
         subtitle="Curate your own space filled with beautiful ideas"
         buttonText="Get started for free"
         buttonPath="/signup"

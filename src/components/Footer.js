@@ -99,10 +99,10 @@ function Footer() {
             <CategoryHeader variant="caption" component="h4">
               Product
             </CategoryHeader>
-            <Link href="/demo" passHref>
+            <Link href="/#demo" passHref>
               <FooterLink component="a">Demo</FooterLink>
             </Link>
-            <Link href="/explore" passHref>
+            <Link href="/#explore" passHref>
               <FooterLink component="a">Explore</FooterLink>
             </Link>
             <Link href="/pricing" passHref>

@@ -3,17 +3,26 @@ import Section from "components/Section";
 import Container from "@material-ui/core/Container";
 import Box from "@material-ui/core/Box";
 
-function HeroSection(props) {
+function HeroSection({
+  bgColor,
+  size,
+  bgImage,
+  bgImageOpacity,
+  bgPosY,
+  children,
+  ...rest
+}) {
   return (
     <Section
-      bgColor={props.bgColor}
-      size={props.size}
-      bgImage={props.bgImage}
-      bgImageOpacity={props.bgImageOpacity}
-      bgPosY={props.bgPosY}
+      bgColor={bgColor}
+      size={size}
+      bgImage={bgImage}
+      bgImageOpacity={bgImageOpacity}
+      bgPosY={bgPosY}
+      {...rest}
     >
       <Container>
-        <Box textAlign="center">{props.children}</Box>
+        <Box textAlign="center">{children}</Box>
       </Container>
     </Section>
   );
