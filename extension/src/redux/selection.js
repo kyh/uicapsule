@@ -81,7 +81,6 @@ export function removeAttributes(el) {
 
 export const ELEMENT_PARSER_VERSION = 1;
 
-// Alternative path is to use the `document.styleSheets` API
 function parseElement(rootNode) {
   const clone = rootNode.cloneNode(true);
   const removed = removeAttributes(rootNode);
@@ -162,9 +161,56 @@ function computeRootStyles(rootNode) {
     rootComputedStyles,
     (styleKey, styleValue) => !isNumber(styleKey) && styleValue
   );
-  return `
+  return { rootCss, rootComputedStyles };
+}
+
+function parseElement2(rootNode) {
+  const clone = rootNode.cloneNode(true);
+  const removed = removeAttributes(rootNode);
+  const { rootCss, rootComputedStyles } = computeRootStyles(rootNode);
+  const parentStyleCache = {
+    "c-1": rootComputedStyles,
+  };
+  let styles = `
     body {
       ${rootCss}
+      margin: 0;
+      padding: 0;
     }
+  `;
+  let index = 0;
+
+  walkDom(rootNode, clone, (node, cloneNode) => {
+    index = index + 1;
+    const className = `c-${index}`;
+    if (!parentStyleCache[className]) {
+      parentStyleCache[className] = getComputedStyle(node.parentNode);
+    }
+    const computedStyle = getComputedStyle(node);
+    const css = reduceComputedStyles(
+      computedStyle,
+      (styleKey, styleValue) =>
+        !isNumber(styleKey) &&
+        styleValue &&
+        styleValue !== parentStyleCache[className][styleKey]
+    );
+    styles =
+      styles +
+      `
+      .${className} {
+        ${css}
+      }
+    `;
+    cloneNode.setAttribute("class", className);
+    cloneNode.removeAttribute("href");
+  });
+
+  removed.forEach((attr) => rootNode.setAttribute(attr, ""));
+
+  return `
+    <style>
+      ${styles}
+    </style>
+    ${clone.outerHTML}
   `;
 }
