@@ -117,8 +117,8 @@ function IndexPage() {
       />
       <CtaSection
         size="medium"
-        title="Ready to get started?"
-        subtitle="We have a generous free tier available to get you started right away"
+        title="Start capturing your inspiration"
+        subtitle="Curate your own space filled with beautiful ideas"
         buttonText="Get started for free"
         buttonPath="/signup"
       />

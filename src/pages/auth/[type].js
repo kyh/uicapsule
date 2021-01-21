@@ -2,15 +2,14 @@ import React from "react";
 import AuthSection from "components/AuthSection";
 import { useRouter } from "next/router";
 
-function AuthPage(props) {
+function AuthPage() {
   const router = useRouter();
-
   return (
     <AuthSection
       bgColor="default"
       size="medium"
       type={router.query.type}
-      providers={["google", "facebook", "twitter"]}
+      providers={["google"]}
       afterAuthPath={router.query.next || "/dashboard"}
     />
   );

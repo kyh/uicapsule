@@ -4,12 +4,10 @@ import LinkMui from "@material-ui/core/Link";
 import Link from "next/link";
 
 const Conatainer = styled.div`
+  display: flex;
   font-size: 0.9rem;
-  text-align: center;
-  margin-top: ${({ theme }) => theme.spacing(3)}px;
-  > a {
-    margin: ${({ theme }) => `0 ${theme.spacing(1)}px`};
-  }
+  margin: ${({ theme }) => `${theme.spacing(1.5)}px ${theme.spacing(8)}px 0`};
+  justify-content: space-between;
 `;
 
 function AuthFooter(props) {
@@ -17,9 +15,8 @@ function AuthFooter(props) {
     <Conatainer>
       {props.type === "signup" && (
         <>
-          Have an account already?
           <Link href="/auth/signin" passHref>
-            <LinkMui>{props.typeValues.linkTextSignin}</LinkMui>
+            <LinkMui color="inherit">{props.typeValues.linkTextSignin}</LinkMui>
           </Link>
         </>
       )}
@@ -27,11 +24,12 @@ function AuthFooter(props) {
       {props.type === "signin" && (
         <>
           <Link href="/auth/signup" passHref>
-            <LinkMui>{props.typeValues.linkTextSignup}</LinkMui>
+            <LinkMui color="inherit">{props.typeValues.linkTextSignup}</LinkMui>
           </Link>
-
           <Link href="/auth/forgotpass" passHref>
-            <LinkMui>{props.typeValues.linkTextForgotpass}</LinkMui>
+            <LinkMui color="inherit">
+              {props.typeValues.linkTextForgotpass}
+            </LinkMui>
           </Link>
         </>
       )}

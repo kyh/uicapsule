@@ -1,10 +1,32 @@
 import React, { useState } from "react";
+import styled from "styled-components";
 import Box from "@material-ui/core/Box";
 import Alert from "@material-ui/lab/Alert";
 import AuthForm from "components/AuthForm";
 import AuthSocial from "components/AuthSocial";
-import AuthFooter from "components/AuthFooter";
 import { useRouter } from "next/router";
+
+const OrText = styled(Box)`
+  color: ${({ theme }) => theme.palette.text.hint};
+  position: relative;
+  text-align: center;
+  font-size: 12px;
+  text-transform: capitalize;
+  span {
+    position: relative;
+    background: ${({ theme }) => theme.palette.background.paper};
+    padding: 0 ${({ theme }) => theme.spacing(1)}px;
+  }
+  &:before {
+    content: "";
+    position: absolute;
+    height: 1px;
+    left: 0;
+    right: 0;
+    background-color: ${({ theme }) => theme.palette.divider};
+    top: calc(50% - 1px);
+  }
+`;
 
 function Auth(props) {
   const router = useRouter();
@@ -33,32 +55,28 @@ function Auth(props) {
         onFormAlert={handleFormAlert}
       />
 
-      {["signup", "signin"].includes(props.type) && (
-        <>
-          {props.providers && props.providers.length && (
-            <>
-              <Box textAlign="center" fontSize={12} my={2}>
-                OR
-              </Box>
-              <AuthSocial
-                type={props.type}
-                buttonText={props.typeValues.buttonText}
-                providers={props.providers}
-                showLastUsed
-                onAuth={handleAuth}
-                onError={(message) => {
-                  handleFormAlert({
-                    type: "error",
-                    message: message,
-                  });
-                }}
-              />
-            </>
-          )}
-
-          <AuthFooter type={props.type} typeValues={props.typeValues} />
-        </>
-      )}
+      {["signup", "signin"].includes(props.type) &&
+        props.providers &&
+        props.providers.length && (
+          <>
+            <OrText my={2}>
+              <span>Or {props.typeValues.buttonText} with</span>
+            </OrText>
+            <AuthSocial
+              type={props.type}
+              buttonText={props.typeValues.buttonText}
+              providers={props.providers}
+              showLastUsed
+              onAuth={handleAuth}
+              onError={(message) => {
+                handleFormAlert({
+                  type: "error",
+                  message: message,
+                });
+              }}
+            />
+          </>
+        )}
     </>
   );
 }

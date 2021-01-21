@@ -108,6 +108,35 @@ const themeConfig = {
           },
         },
       },
+      MuiCircularProgress: {
+        root: {
+          animationDuration: "550ms !important",
+        },
+      },
+      MuiFormHelperText: {
+        contained: {
+          marginTop: 4,
+          lineHeight: 1.4,
+          marginLeft: 0,
+          marginRight: 0,
+        },
+      },
+      MuiOutlinedInput: {
+        root: {
+          "& $notchedOutline": {
+            borderWidth: 2,
+            borderColor: "#3b475f1a",
+          },
+          "&:hover:not($disabled):not($focused):not($error) $notchedOutline": {
+            borderColor: "#3b475f1a",
+          },
+        },
+      },
+      MuiBackdrop: {
+        root: {
+          backgroundColor: "rgba(59, 71, 95, 0.85)",
+        },
+      },
     },
     props: {
       MuiButton: {

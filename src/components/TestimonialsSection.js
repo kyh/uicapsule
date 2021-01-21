@@ -55,13 +55,13 @@ function TestimonialsSection(props) {
         <SectionHeader
           title={props.title}
           subtitle={props.subtitle}
-          size={4}
+          size={3}
           textAlign="center"
         />
         <Grid container justify="center" spacing={4}>
           {items.map((item, index) => (
             <Grid item xs={12} sm={4} key={index}>
-              <Card>
+              <Card elevation={0}>
                 <CardContent>
                   <Typography variant="body1" component="p">
                     "{item.testimonial}"

@@ -15,8 +15,8 @@ function AboutPage() {
       </HeroSection>
       <CtaSection
         size="medium"
-        title="Enough about us, lets get you started"
-        subtitle="We have a generous free tier available to get you started right away"
+        title="Enough about me, want to give it a try?"
+        subtitle="Start collecting and exploring UI ideas"
         buttonText="Get started for free"
         buttonPath="/signup"
       />

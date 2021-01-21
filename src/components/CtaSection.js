@@ -32,17 +32,13 @@ const Title = styled(Typography)`
 
 const Subtitle = styled(Typography)`
   font-size: 1.1rem;
-  color: #ffffff95;
+  color: #fff;
+  opacity: 0.8;
 `;
 
 function CtaSection(props) {
   return (
-    <Section
-      bgColor={props.bgColor}
-      size={props.size}
-      bgImage={props.bgImage}
-      bgImageOpacity={props.bgImageOpacity}
-    >
+    <Section size={props.size}>
       <CtaContainer>
         <Grid container alignItems="center" justify="space-between" spacing={4}>
           <Grid item xs={12} md="auto">

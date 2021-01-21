@@ -99,11 +99,11 @@ function Footer() {
             <CategoryHeader variant="caption" component="h4">
               Product
             </CategoryHeader>
+            <Link href="/demo" passHref>
+              <FooterLink component="a">Demo</FooterLink>
+            </Link>
             <Link href="/explore" passHref>
               <FooterLink component="a">Explore</FooterLink>
-            </Link>
-            <Link href="/cases" passHref>
-              <FooterLink component="a">Use Cases</FooterLink>
             </Link>
             <Link href="/pricing" passHref>
               <FooterLink component="a">Pricing</FooterLink>
@@ -111,7 +111,7 @@ function Footer() {
           </FooterLinksContainer>
           <FooterLinksContainer item xs={12} md={4}>
             <CategoryHeader variant="caption" component="h4">
-              Company
+              UI Capsule
             </CategoryHeader>
             <Link href="/about" passHref>
               <FooterLink component="a">About</FooterLink>
@@ -119,18 +119,12 @@ function Footer() {
             <Link href="/contact" passHref>
               <FooterLink component="a">Contact</FooterLink>
             </Link>
-            <Link href="/terms" passHref>
-              <FooterLink component="a">Terms</FooterLink>
-            </Link>
-            <Link href="/privacy" passHref>
-              <FooterLink component="a">Privacy Policy</FooterLink>
-            </Link>
           </FooterLinksContainer>
           <FooterLinksContainer item xs={12} md={4}>
             <CategoryHeader variant="caption" component="h4">
               Subscribe
             </CategoryHeader>
-            <Box mb={2}>Get the latest news and articles to your inbox</Box>
+            <Box mb={2}>Stay up to date with catered monthly inspirations</Box>
             <SubscribeForm>
               <InputBase
                 type="email"
@@ -157,7 +151,7 @@ function Footer() {
 
       <BottomFooterSection container justify="space-between" spacing={4}>
         <Grid item xs={12} md={4} container alignItems="center">
-          ©2021 UI Capsule. All rights reserved.
+          ©2021 Built by Kaiyu Hsu
         </Grid>
         <Grid
           item
