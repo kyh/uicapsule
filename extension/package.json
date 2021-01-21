@@ -3,7 +3,8 @@
   "version": "1.0.0",
   "private": true,
   "scripts": {
-    "prebuild": "rm -rf dist .cache",
+    "prebuild": "rm -rf dist .parcel-cache",
+    "clean": "npm run prebuild",
     "dev": "NODE_ENV=development cp src/manifest.json dist/ && cp -R src/public dist/ && parcel watch --no-hmr src/{background.js,index.js}",
     "build": "NODE_ENV=production cp src/manifest.json dist/ && cp -R src/public dist/ && parcel build src/{background.js,index.js}",
     "zip": "zip -r chrome-extension.zip ./dist"

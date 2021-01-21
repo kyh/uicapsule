@@ -62,12 +62,14 @@ function IndexPage() {
               <div>Save UI elements from </div>
               <Carousel
                 ref={carouselRef}
-                verticalMode
-                itemsToShow={1}
-                enableAutoPlay
                 autoPlaySpeed={autoPlaySpeed}
-                renderArrow={() => <span />}
-                renderPagination={() => <span />}
+                verticalMode
+                enableAutoPlay
+                preventDefaultTouchmoveEvent
+                pagination={false}
+                showArrows={false}
+                enableSwipe={false}
+                enableMouseSwipe={false}
                 onNextEnd={({ index }) => {
                   clearTimeout(resetTimeout);
                   if (index + 1 === items.length) {

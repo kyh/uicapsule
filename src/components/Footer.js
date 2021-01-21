@@ -26,7 +26,7 @@ const BottomFooterSection = styled(Grid)`
   padding-bottom: 0.5rem;
 `;
 
-const LogoContainer = styled.a`
+const LogoContainer = styled.div`
   svg {
     height: 40px;
   }
@@ -89,11 +89,9 @@ function Footer() {
     <FooterContainer>
       <FooterSection container justify="space-between" spacing={4}>
         <Grid item xs={12} md={4} container direction="column">
-          <Link href="/" passHref>
-            <LogoContainer>
-              <Logo />
-            </LogoContainer>
-          </Link>
+          <LogoContainer>
+            <Logo />
+          </LogoContainer>
         </Grid>
 
         <Grid item xs={12} md={6} container>
@@ -159,7 +157,7 @@ function Footer() {
 
       <BottomFooterSection container justify="space-between" spacing={4}>
         <Grid item xs={12} md={4} container alignItems="center">
-          ©2021 Kaiyu Hsu. All rights reserved.
+          ©2021 UI Capsule. All rights reserved.
         </Grid>
         <Grid
           item

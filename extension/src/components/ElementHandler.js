@@ -29,7 +29,7 @@ const GlobalStyle = createGlobalStyle`
 
 let lastElement = null;
 
-function ElementHandler() {
+function ElementHandler({ container }) {
   const dispatch = useDispatch();
 
   const handleMousemove = (event) => {
@@ -50,10 +50,10 @@ function ElementHandler() {
   };
 
   useEffect(() => {
-    document.body.addEventListener("mousemove", handleMousemove);
+    container.addEventListener("mousemove", handleMousemove);
     return () => {
-      document.body.removeEventListener("mousemove", handleMousemove);
-      document
+      container.removeEventListener("mousemove", handleMousemove);
+      container
         .querySelectorAll(`[${highlightAttr}], [${selectedAttr}]`)
         .forEach(removeAttributes);
       dispatch(resetSelectedElement());
