@@ -1,3 +1,5 @@
+import { toSvg } from "html-to-image";
+
 export const highlightAttr = "data-ui-capsule-highlight";
 export const selectedAttr = "data-ui-capsule-selected";
 
@@ -12,20 +14,16 @@ export const LOADING_STATE = {
 };
 
 export function selectElement(element) {
-  return (dispatch) => {
-    return new Promise((resolve) => {
-      dispatch({
-        type: SELECT_ELEMENT,
-        element,
-      });
-      const computed = parseElement(element);
-      setTimeout(() => {
-        dispatch({
-          type: SELECT_ELEMENT_DONE,
-          stringified: computed,
-        });
-        resolve();
-      }, 2000);
+  return async (dispatch) => {
+    dispatch({
+      type: SELECT_ELEMENT,
+      element,
+    });
+    const { htmlString, dataUrl } = await compileElement(element);
+    dispatch({
+      type: SELECT_ELEMENT_DONE,
+      stringified: htmlString,
+      image: dataUrl,
     });
   };
 }
@@ -40,6 +38,7 @@ const init = {
   loadingState: LOADING_STATE.default,
   element: null,
   stringified: "",
+  image: "",
 };
 
 export default function reducer(state = init, action) {
@@ -54,6 +53,7 @@ export default function reducer(state = init, action) {
       return {
         ...state,
         stringified: action.stringified,
+        image: action.image,
         loadingState: LOADING_STATE.done,
       };
     case RESET_SELECTED_ELEMENT: {
@@ -66,24 +66,18 @@ export default function reducer(state = init, action) {
   }
 }
 
-export function removeAttributes(el) {
-  const removed = [];
-  if (el.hasAttribute(highlightAttr)) {
-    el.removeAttribute(highlightAttr);
-    removed.push(highlightAttr);
-  }
-  if (el.hasAttribute(selectedAttr)) {
-    el.removeAttribute(selectedAttr);
-    removed.push(selectedAttr);
-  }
-  return removed;
+async function compileElement(element) {
+  const removed = removeAttributes(element);
+  const htmlString = convertToHtmlString(element);
+  const dataUrl = await toSvg(element);
+  removed.forEach((attr) => element.setAttribute(attr, ""));
+  return { htmlString, dataUrl };
 }
 
 export const ELEMENT_PARSER_VERSION = 1;
 
-function parseElement(rootNode) {
+function convertToHtmlString(rootNode) {
   const clone = rootNode.cloneNode(true);
-  const removed = removeAttributes(rootNode);
   let styles = `
     body {
       margin: 0;
@@ -109,8 +103,6 @@ function parseElement(rootNode) {
     cloneNode.setAttribute("class", className);
     cloneNode.removeAttribute("href");
   });
-
-  removed.forEach((attr) => rootNode.setAttribute(attr, ""));
 
   return `
     <style>
@@ -155,6 +147,19 @@ function reduceComputedStyles(computedStyle, filter) {
   }, "");
 }
 
+export function removeAttributes(el) {
+  const removed = [];
+  if (el.hasAttribute(highlightAttr)) {
+    el.removeAttribute(highlightAttr);
+    removed.push(highlightAttr);
+  }
+  if (el.hasAttribute(selectedAttr)) {
+    el.removeAttribute(selectedAttr);
+    removed.push(selectedAttr);
+  }
+  return removed;
+}
+
 function computeRootStyles(rootNode) {
   const rootComputedStyles = getComputedStyle(rootNode.parentNode);
   const rootCss = reduceComputedStyles(
@@ -164,7 +169,7 @@ function computeRootStyles(rootNode) {
   return { rootCss, rootComputedStyles };
 }
 
-function parseElement2(rootNode) {
+function convertToHtmlString2(rootNode) {
   const clone = rootNode.cloneNode(true);
   const removed = removeAttributes(rootNode);
   const { rootCss, rootComputedStyles } = computeRootStyles(rootNode);

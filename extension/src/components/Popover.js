@@ -7,7 +7,7 @@ import Spinner from "./Spinner";
 import { SunIcon, MoonIcon, XIcon } from "./Icons";
 
 function Popover() {
-  const { loadingState, stringified } = useSelector(
+  const { loadingState, stringified, image } = useSelector(
     (state) => state.selection,
     shallowEqual
   );
@@ -40,7 +40,8 @@ function Popover() {
       {loadingState === LOADING_STATE.done && (
         <>
           <Content>
-            <iframe srcDoc={stringified} frameBorder="0" />
+            {/* <iframe srcDoc={stringified} frameBorder="0" /> */}
+            <img src={image} />
           </Content>
           <Footer>
             <a href="https://uicapsule.com" target="_blank">
@@ -145,9 +146,9 @@ const Content = styled.div`
   background: ${({ theme }) => theme.contentBackground};
   padding: 12px;
   overflow-y: scroll;
-  iframe {
+  img {
     width: 100%;
-    height: 70px;
+    object-fit: cover;
   }
 `;
 
