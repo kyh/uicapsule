@@ -6,7 +6,7 @@ import { LOADING_STATE } from "../redux/selection";
 import Spinner from "./Spinner";
 import { SunIcon, MoonIcon, XIcon } from "./Icons";
 
-function Popover({ inlineMode }) {
+function Popover({ demoMode }) {
   const dispatch = useDispatch();
   const { loadingState, image } = useSelector(
     (state) => state.selection,
@@ -32,9 +32,7 @@ function Popover({ inlineMode }) {
               type="button"
               ariaLabel="Close"
               onClick={() =>
-                inlineMode
-                  ? dispatch(deactivateApp())
-                  : window.location.reload()
+                demoMode ? dispatch(deactivateApp()) : window.location.reload()
               }
             >
               <XIcon />

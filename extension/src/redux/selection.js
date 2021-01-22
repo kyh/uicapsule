@@ -13,7 +13,7 @@ export const LOADING_STATE = {
   done: "done",
 };
 
-export function selectElement(element) {
+export function selectElement(element, demoMode) {
   return async (dispatch) => {
     dispatch({
       type: SELECT_ELEMENT,

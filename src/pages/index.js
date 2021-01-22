@@ -17,13 +17,6 @@ const HeroCtaContainer = styled.div`
   }
 `;
 
-const HeroPreviewContainer = styled.section`
-  position: relative;
-  margin: 0 auto;
-  max-width: 900px;
-  height: 470px;
-`;
-
 const Item = styled.div`
   height: 70px;
   background: -webkit-linear-gradient(90deg, #338cf5, #4fd1c5);
@@ -106,9 +99,7 @@ function IndexPage() {
             </Button>
           </Link>
         </HeroCtaContainer>
-        <HeroPreviewContainer>
-          <ExtensionPreview />
-        </HeroPreviewContainer>
+        <ExtensionPreview />
         <Box
           component="a"
           id="demo"

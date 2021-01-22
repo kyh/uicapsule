@@ -33,7 +33,7 @@ export function unmount() {
   if (rootEl) rootEl.remove();
 }
 
-export function mount(container = document.body, inlineMode = false) {
+export function mount(container = document.body, demoMode = false) {
   const host = document.createElement("div");
   host.setAttribute(ROOT_EL_IDENTIFIER, "");
   container.insertAdjacentElement("beforebegin", host);
@@ -43,7 +43,7 @@ export function mount(container = document.body, inlineMode = false) {
     if (state.app.enabled) {
       render(
         <Provider store={store}>
-          <App container={container} inlineMode={inlineMode} />
+          <App container={container} demoMode={demoMode} />
         </Provider>,
         host
       );

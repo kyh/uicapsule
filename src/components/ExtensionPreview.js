@@ -2,7 +2,14 @@ import React, { useRef, useEffect } from "react";
 import styled from "styled-components";
 import Button from "@material-ui/core/Button";
 
-const Container = styled.div`
+const PreviewContainer = styled.section`
+  position: relative;
+  margin: 0 auto;
+  max-width: 900px;
+  height: 470px;
+`;
+
+const Preview = styled.div`
   background: #333;
   width: 100%;
   height: 100%;
@@ -15,8 +22,10 @@ function ExtensionPreview() {
   const containerEl = useRef(null);
 
   const loadAndInitExtension = async () => {
-    Extension = await import("@ui-capsule/chrome-extension/dist/module");
-    Extension.mount(containerEl.current, true);
+    if (!Extension) {
+      Extension = await import("@ui-capsule/chrome-extension");
+      Extension.mount(containerEl.current, true);
+    }
     Extension.activate();
   };
 
@@ -30,8 +39,8 @@ function ExtensionPreview() {
   }, []);
 
   return (
-    <Container ref={containerEl}>
-      Hello world
+    <PreviewContainer>
+      <Preview ref={containerEl}>Hello world</Preview>
       <Button
         type="button"
         variant="contained"
@@ -41,7 +50,7 @@ function ExtensionPreview() {
       >
         Try it
       </Button>
-    </Container>
+    </PreviewContainer>
   );
 }
 

@@ -11,11 +11,10 @@ import {
 
 const GlobalStyle = createGlobalStyle`
   [data-ui-capsule] {
-    position: ${({ inlineMode }) =>
-      inlineMode ? "absolute" : "fixed"} !important;
+    position: ${({ demoMode }) => (demoMode ? "absolute" : "fixed")} !important;
     top: 12px !important;
     right: 12px !important;
-    z-index: ${({ inlineMode }) => (inlineMode ? 1 : 2147483647)} !important;
+    z-index: ${({ demoMode }) => (demoMode ? 1 : 2147483647)} !important;
     border-width: initial !important;
     border-style: none !important;
     border-color: initial !important;
@@ -30,7 +29,7 @@ const GlobalStyle = createGlobalStyle`
 
 let lastElement = null;
 
-function ElementHandler({ container, inlineMode }) {
+function ElementHandler({ container, demoMode }) {
   const dispatch = useDispatch();
 
   const handleMousemove = (event) => {
@@ -47,7 +46,7 @@ function ElementHandler({ container, inlineMode }) {
   const handleClick = (event) => {
     event.stopPropagation();
     event.preventDefault();
-    dispatch(selectElement(event.target));
+    dispatch(selectElement(event.target, demoMode));
   };
 
   useEffect(() => {
@@ -61,7 +60,7 @@ function ElementHandler({ container, inlineMode }) {
     };
   }, []);
 
-  return <GlobalStyle inlineMode={inlineMode} />;
+  return <GlobalStyle demoMode={demoMode} />;
 }
 
 export default ElementHandler;
