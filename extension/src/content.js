@@ -1,11 +1,9 @@
-import init, { store } from "./module";
+import { mount, store } from "./module";
 
 window.__UI_CAPSULE_STORE__ = store;
 
-window.addEventListener("DOMContentLoaded", () => {
-  init(document.body);
-  chrome.runtime.onMessage.addListener(async (action) => {
-    store.dispatch(action);
-    return true;
-  });
+mount(document.body);
+
+chrome.runtime.onMessage.addListener(async (action) => {
+  store.dispatch(action);
 });

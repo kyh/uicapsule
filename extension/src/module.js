@@ -8,6 +8,7 @@ import reducers from "./redux/reducers";
 import { activateApp, deactivateApp, toggleApp } from "./redux/app";
 import App from "./components/App";
 
+const ROOT_EL_IDENTIFIER = "data-ui-capsule";
 const middlewares = [
   thunk,
   process.env.NODE_ENV !== "production" && logger,
@@ -27,9 +28,14 @@ export function toggle() {
   store.dispatch(toggleApp());
 }
 
-export default function init(container) {
+export function unmount() {
+  const rootEl = document.querySelector(`[${ROOT_EL_IDENTIFIER}]`);
+  if (rootEl) rootEl.remove();
+}
+
+export function mount(container = document.body, inlineMode = false) {
   const host = document.createElement("div");
-  host.setAttribute("data-ui-capsule", "");
+  host.setAttribute(ROOT_EL_IDENTIFIER, "");
   container.insertAdjacentElement("beforebegin", host);
 
   store.subscribe(() => {
@@ -37,7 +43,7 @@ export default function init(container) {
     if (state.app.enabled) {
       render(
         <Provider store={store}>
-          <App container={container} />
+          <App container={container} inlineMode={inlineMode} />
         </Provider>,
         host
       );

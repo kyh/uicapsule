@@ -18,6 +18,7 @@ const HeroCtaContainer = styled.div`
 `;
 
 const HeroPreviewContainer = styled.section`
+  position: relative;
   margin: 0 auto;
   max-width: 900px;
   height: 470px;

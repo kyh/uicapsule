@@ -1,4 +1,5 @@
 {
+  "name": "UI Capsule",
   "offline_enabled": true,
   "icons": {
     "64": "public/logo-gray-64.png",

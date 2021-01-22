@@ -18,12 +18,12 @@ export const darkTheme = {
   contentBackground: "#24292e",
 };
 
-function App({ container }) {
+function App({ container, inlineMode }) {
   const { darkMode } = useSelector((state) => state.app, shallowEqual);
   return (
     <ThemeProvider theme={darkMode ? darkTheme : lightTheme}>
-      <ElementHandler container={container} />
-      <Popover />
+      <ElementHandler container={container} inlineMode={inlineMode} />
+      <Popover inlineMode={inlineMode} />
     </ThemeProvider>
   );
 }

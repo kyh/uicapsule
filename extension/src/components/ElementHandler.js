@@ -11,10 +11,11 @@ import {
 
 const GlobalStyle = createGlobalStyle`
   [data-ui-capsule] {
-    position: fixed !important;
+    position: ${({ inlineMode }) =>
+      inlineMode ? "absolute" : "fixed"} !important;
     top: 12px !important;
     right: 12px !important;
-    z-index: 2147483647 !important;
+    z-index: ${({ inlineMode }) => (inlineMode ? 1 : 2147483647)} !important;
     border-width: initial !important;
     border-style: none !important;
     border-color: initial !important;
@@ -29,7 +30,7 @@ const GlobalStyle = createGlobalStyle`
 
 let lastElement = null;
 
-function ElementHandler({ container }) {
+function ElementHandler({ container, inlineMode }) {
   const dispatch = useDispatch();
 
   const handleMousemove = (event) => {
@@ -60,7 +61,7 @@ function ElementHandler({ container }) {
     };
   }, []);
 
-  return <GlobalStyle />;
+  return <GlobalStyle inlineMode={inlineMode} />;
 }
 
 export default ElementHandler;

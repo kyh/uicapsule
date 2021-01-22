@@ -1,13 +1,14 @@
 import React from "react";
 import { useDispatch, shallowEqual, useSelector } from "react-redux";
 import styled from "styled-components";
-import { toggleTheme } from "../redux/app";
+import { toggleTheme, deactivateApp } from "../redux/app";
 import { LOADING_STATE } from "../redux/selection";
 import Spinner from "./Spinner";
 import { SunIcon, MoonIcon, XIcon } from "./Icons";
 
-function Popover() {
-  const { loadingState, stringified, image } = useSelector(
+function Popover({ inlineMode }) {
+  const dispatch = useDispatch();
+  const { loadingState, image } = useSelector(
     (state) => state.selection,
     shallowEqual
   );
@@ -30,7 +31,11 @@ function Popover() {
             <Button
               type="button"
               ariaLabel="Close"
-              onClick={() => window.location.reload()}
+              onClick={() =>
+                inlineMode
+                  ? dispatch(deactivateApp())
+                  : window.location.reload()
+              }
             >
               <XIcon />
             </Button>

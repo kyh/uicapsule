@@ -4,7 +4,7 @@ export const highlightAttr = "data-ui-capsule-highlight";
 export const selectedAttr = "data-ui-capsule-selected";
 
 export const SELECT_ELEMENT = "SELECT_ELEMENT";
-export const SELECT_ELEMENT_DONE = "SELECT_ELEMENT_DONE";
+export const SELECT_ELEMENT_SUCCESS = "SELECT_ELEMENT_SUCCESS";
 export const RESET_SELECTED_ELEMENT = "RESET_SELECTED_ELEMENT";
 
 export const LOADING_STATE = {
@@ -21,7 +21,7 @@ export function selectElement(element) {
     });
     const { htmlString, dataUrl } = await compileElement(element);
     dispatch({
-      type: SELECT_ELEMENT_DONE,
+      type: SELECT_ELEMENT_SUCCESS,
       stringified: htmlString,
       image: dataUrl,
     });
@@ -49,7 +49,7 @@ export default function reducer(state = init, action) {
         element: action.element,
         loadingState: LOADING_STATE.loading,
       };
-    case SELECT_ELEMENT_DONE:
+    case SELECT_ELEMENT_SUCCESS:
       return {
         ...state,
         stringified: action.stringified,

@@ -31,17 +31,15 @@ function showDisabled() {
 }
 
 function sendActivationMessage(tabId) {
-  chrome.tabs.sendMessage(tabId, activateApp());
-  showEnabled();
+  chrome.tabs.sendMessage(tabId, activateApp(), showEnabled);
 }
 
 function sendDeactivationMessage(tabId) {
-  chrome.tabs.sendMessage(tabId, deactivateApp());
-  showDisabled();
+  chrome.tabs.sendMessage(tabId, deactivateApp(), showDisabled);
 }
 
-function toggleActivationMessage(tabId, cb) {
-  chrome.tabs.sendMessage(tabId, toggleApp(), cb);
+function toggleActivationMessage(tabId) {
+  chrome.tabs.sendMessage(tabId, toggleApp(), () => updateExtensionUI(tabId));
 }
 
 function getActivationStatus(tabId, cb) {
@@ -54,9 +52,8 @@ function getActivationStatus(tabId, cb) {
   );
 }
 
-function handleTabChange(tabId) {
+function updateExtensionUI(tabId) {
   getActivationStatus(tabId, (enabled) => {
-    console.log(enabled);
     if (enabled) {
       showEnabled();
     } else {
@@ -67,7 +64,7 @@ function handleTabChange(tabId) {
 
 chrome.browserAction.onClicked.addListener(async () => {
   chrome.tabs.query({ active: true, currentWindow: true }, ([tab]) => {
-    toggleActivationMessage(tab.id, () => handleTabChange(tab.id));
+    toggleActivationMessage(tab.id);
   });
 });
 
@@ -96,9 +93,9 @@ chrome.contextMenus.create({
 });
 
 chrome.tabs.onActivated.addListener(async ({ tabId }) => {
-  handleTabChange(tabId);
+  updateExtensionUI(tabId);
 });
 
 chrome.tabs.onUpdated.addListener(async ({ tabId }) => {
-  handleTabChange(tabId);
+  updateExtensionUI(tabId);
 });

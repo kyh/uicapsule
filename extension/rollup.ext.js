@@ -8,6 +8,7 @@ import {
   simpleReloader,
 } from "rollup-plugin-chrome-extension";
 import { emptyDir } from "rollup-plugin-empty-dir";
+import { terser } from "rollup-plugin-terser";
 import copy from "rollup-plugin-copy";
 import zip from "rollup-plugin-zip";
 
@@ -39,26 +40,24 @@ export default {
     chunkFileNames: "chunks/[name]-[hash].js",
   },
   plugins: [
+    emptyDir(),
     chromeExtension(),
-    // Adds a Chrome extension reloader during watch mode
     simpleReloader(),
     replace({
       "process.env.NODE_ENV": process.env.NODE_ENV,
     }),
     alias({ entries: aliases }),
     babel({
-      // Do not transpile dependencies
       ignore: ["node_modules"],
       babelHelpers: "bundled",
     }),
     resolve(),
     commonjs(),
-    // Empties the output dir before a new build
-    emptyDir(),
     copy({
       targets: [{ src: "src/public/**/*", dest: "dist/public" }],
     }),
     // Outputs a zip file in ./releases
     isProduction && zip({ dir: "releases" }),
+    isProduction && terser(),
   ],
 };

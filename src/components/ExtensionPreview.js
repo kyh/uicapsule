@@ -1,10 +1,6 @@
 import React, { useRef, useEffect } from "react";
 import styled from "styled-components";
 import Button from "@material-ui/core/Button";
-import init, {
-  deactivate,
-  activate,
-} from "@ui-capsule/chrome-extension/dist/module";
 
 const Container = styled.div`
   background: #333;
@@ -15,25 +11,33 @@ const Container = styled.div`
 `;
 
 function ExtensionPreview() {
+  let Extension;
   const containerEl = useRef(null);
+
+  const loadAndInitExtension = async () => {
+    Extension = await import("@ui-capsule/chrome-extension/dist/module");
+    Extension.mount(containerEl.current, true);
+    Extension.activate();
+  };
+
   useEffect(() => {
-    if (containerEl) {
-      init(containerEl.current);
-    }
     return () => {
-      deactivate();
+      if (Extension) {
+        Extension.deactivate();
+        Extension.unmount();
+      }
     };
-  }, [containerEl]);
+  }, []);
 
   return (
-    <Container ref={container}>
-      Hello
+    <Container ref={containerEl}>
+      Hello world
       <Button
         type="button"
         variant="contained"
         color="secondary"
         size="large"
-        onClick={activate}
+        onClick={loadAndInitExtension}
       >
         Try it
       </Button>
