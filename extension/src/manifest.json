@@ -1,14 +1,14 @@
 {
-  "name": "UI Capsule",
-  "short_name": "UI Capsule",
   "offline_enabled": true,
-  "version": "1.0.0",
-  "manifest_version": 2,
   "icons": {
-    "64": "public/icons/logo-gray-64.png",
-    "128": "public/icons/logo-gray-128.png",
-    "256": "public/icons/logo-gray-256.png",
-    "512": "public/icons/logo-gray-512.png"
+    "64": "public/logo-gray-64.png",
+    "128": "public/logo-gray-128.png",
+    "256": "public/logo-gray-256.png",
+    "512": "public/logo-gray-512.png",
+    "65": "public/logo-highlight-64.png",
+    "129": "public/logo-highlight-128.png",
+    "257": "public/logo-highlight-256.png",
+    "513": "public/logo-highlight-512.png"
   },
   "background": {
     "scripts": ["background.js"]
@@ -18,12 +18,11 @@
   "content_scripts": [
     {
       "matches": ["http://*/*", "https://*/*"],
-      "js": ["index.js"],
-      "run_at": "document_start",
-      "all_frames": true
+      "js": ["content.js"],
+      "run_at": "document_start"
     }
   ],
   "browser_action": {
-    "default_icon": "public/icons/logo-gray-128.png"
+    "default_icon": "public/logo-gray-128.png"
   }
 }

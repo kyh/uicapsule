@@ -58,7 +58,7 @@ function AuthSocial(props) {
     auth
       .signinWithProvider(provider)
       .then((user) => {
-        localStorage.setItem("lastUsedAuthProvider", provider);
+        window.localStorage.setItem("lastUsedAuthProvider", provider);
         props.onAuth(user);
       })
       .catch((error) => {

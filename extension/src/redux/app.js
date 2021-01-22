@@ -23,7 +23,7 @@ export function toggleApp() {
 
 export function toggleTheme(darkMode) {
   darkMode = !darkMode;
-  localStorage.setItem("color-mode", darkMode ? "dark" : "light");
+  window.localStorage.setItem("color-mode", darkMode ? "dark" : "light");
   return {
     type: TOGGLE_THEME,
     darkMode,
@@ -73,7 +73,12 @@ export default function reducer(state = init, action) {
 }
 
 function isDarkMode() {
-  localStorage.getItem("color-mode") === "dark" ||
-    (window.matchMedia("(prefers-color-scheme: dark)").matches &&
-      !localStorage.getItem("color-mode"));
+  if (window) {
+    return (
+      window.localStorage.getItem("color-mode") === "dark" ||
+      (window.matchMedia("(prefers-color-scheme: dark)").matches &&
+        !window.localStorage.getItem("color-mode"))
+    );
+  }
+  return false;
 }

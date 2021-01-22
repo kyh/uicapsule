@@ -1,21 +1,20 @@
 import { activateApp, deactivateApp, toggleApp } from "./redux/app";
-import "crx-hotreload";
 
 const ACTIVATE_MENU_ID = "ACTIVATE";
 const DEACTIVATE_MENU_ID = "DEACTIVATE";
 
 const ACTIVITY = {
   on: {
-    64: "public/icons/logo-highlight-64.png",
-    128: "public/icons/logo-highlight-128.png",
-    256: "public/icons/logo-highlight-256.png",
-    512: "public/icons/logo-highlight-512.png",
+    64: "public/logo-highlight-64.png",
+    128: "public/logo-highlight-128.png",
+    256: "public/logo-highlight-256.png",
+    512: "public/logo-highlight-512.png",
   },
   off: {
-    64: "public/icons/logo-gray-64.png",
-    128: "public/icons/logo-gray-128.png",
-    256: "public/icons/logo-gray-256.png",
-    512: "public/icons/logo-gray-512.png",
+    64: "public/logo-gray-64.png",
+    128: "public/logo-gray-128.png",
+    256: "public/logo-gray-256.png",
+    512: "public/logo-gray-512.png",
   },
 };
 
@@ -42,9 +41,7 @@ function sendDeactivationMessage(tabId) {
 }
 
 function toggleActivationMessage(tabId, cb) {
-  chrome.tabs.sendMessage(tabId, toggleApp(), () => {
-    cb();
-  });
+  chrome.tabs.sendMessage(tabId, toggleApp(), cb);
 }
 
 function getActivationStatus(tabId, cb) {
@@ -53,17 +50,14 @@ function getActivationStatus(tabId, cb) {
     {
       code: "!!window.__UI_CAPSULE_STORE__.getState().app.enabled",
     },
-    (result) => cb(result)
+    ([enabled]) => cb(enabled)
   );
 }
 
 function handleTabChange(tabId) {
-  getActivationStatus(tabId, (result) => {
-    if (!result) {
-      showDisabled();
-      return;
-    }
-    if (result[0]) {
+  getActivationStatus(tabId, (enabled) => {
+    console.log(enabled);
+    if (enabled) {
       showEnabled();
     } else {
       showDisabled();
@@ -71,9 +65,9 @@ function handleTabChange(tabId) {
   });
 }
 
-chrome.browserAction.onClicked.addListener(() => {
-  chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
-    toggleActivationMessage(tabs[0].id, () => handleTabChange(tabs[0].id));
+chrome.browserAction.onClicked.addListener(async () => {
+  chrome.tabs.query({ active: true, currentWindow: true }, ([tab]) => {
+    toggleActivationMessage(tab.id, () => handleTabChange(tab.id));
   });
 });
 
@@ -101,10 +95,10 @@ chrome.contextMenus.create({
   },
 });
 
-chrome.tabs.onActivated.addListener(({ id }) => {
-  handleTabChange(id);
+chrome.tabs.onActivated.addListener(async ({ tabId }) => {
+  handleTabChange(tabId);
 });
 
-chrome.tabs.onUpdated.addListener(({ id }) => {
-  handleTabChange(id);
+chrome.tabs.onUpdated.addListener(async ({ tabId }) => {
+  handleTabChange(tabId);
 });

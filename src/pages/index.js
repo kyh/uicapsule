@@ -1,12 +1,12 @@
 import React, { useRef, useEffect } from "react";
 import styled from "styled-components";
-import Image from "next/image";
 import Link from "next/link";
 import Carousel from "react-elastic-carousel";
 import Button from "@material-ui/core/Button";
 import Box from "@material-ui/core/Box";
 import HeroSection from "components/HeroSection";
 import SectionHeader from "components/SectionHeader";
+import ExtensionPreview from "components/ExtensionPreview";
 import TestimonialsSection from "components/TestimonialsSection";
 import CtaSection from "components/CtaSection";
 
@@ -18,12 +18,9 @@ const HeroCtaContainer = styled.div`
 `;
 
 const HeroPreviewContainer = styled.section`
-  display: flex;
-  justify-content: center;
-  > div {
-    border-radius: 5px;
-    overflow: hidden;
-  }
+  margin: 0 auto;
+  max-width: 900px;
+  height: 470px;
 `;
 
 const Item = styled.div`
@@ -109,13 +106,7 @@ function IndexPage() {
           </Link>
         </HeroCtaContainer>
         <HeroPreviewContainer>
-          <Image
-            layout="fill"
-            src="/hero-preview.png"
-            alt="Extension preview"
-            width={850}
-            height={432}
-          />
+          <ExtensionPreview />
         </HeroPreviewContainer>
         <Box
           component="a"
