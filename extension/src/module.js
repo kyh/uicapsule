@@ -17,11 +17,17 @@ const middlewares = [
 export const store = createStore(reducers, applyMiddleware(...middlewares));
 
 export function activate() {
-  store.dispatch(activateApp());
+  const state = store.getState();
+  if (!state.app.enabled) {
+    store.dispatch(activateApp());
+  }
 }
 
 export function deactivate() {
-  store.dispatch(deactivateApp());
+  const state = store.getState();
+  if (state.app.enabled) {
+    store.dispatch(deactivateApp());
+  }
 }
 
 export function toggle() {

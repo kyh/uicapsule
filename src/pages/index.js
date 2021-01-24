@@ -3,7 +3,7 @@ import styled from "styled-components";
 import Link from "next/link";
 import Carousel from "react-elastic-carousel";
 import Button from "@material-ui/core/Button";
-import Box from "@material-ui/core/Box";
+import ScrollToLink from "components/ScrollToLink";
 import HeroSection from "components/HeroSection";
 import SectionHeader from "components/SectionHeader";
 import ExtensionPreview from "components/ExtensionPreview";
@@ -100,19 +100,14 @@ function IndexPage() {
           </Link>
         </HeroCtaContainer>
         <ExtensionPreview />
-        <Box
-          component="a"
-          id="demo"
-          visibility="hidden"
-          top={-600}
-          position="relative"
-        />
+        <ScrollToLink id="demo" top={-690} />
       </HeroSection>
       <TestimonialsSection
         bgColor="default"
         size="medium"
         title="Here's what people are saying"
       />
+      <ScrollToLink id="testimonials" top={-500} />
       <CtaSection
         size="medium"
         title="Start capturing your inspirations"

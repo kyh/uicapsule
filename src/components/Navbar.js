@@ -111,14 +111,14 @@ function Navbar() {
                 Demo
               </NavLink>
             </Link>
-            <Link href="/#explore" passHref>
-              <NavLink color="inherit" component="a">
-                Explore
-              </NavLink>
-            </Link>
             <Link href="/#features" passHref>
               <NavLink color="inherit" component="a">
                 Features
+              </NavLink>
+            </Link>
+            <Link href="/#testimonials" passHref>
+              <NavLink color="inherit" component="a">
+                Testimonials
               </NavLink>
             </Link>
           </LeftNav>

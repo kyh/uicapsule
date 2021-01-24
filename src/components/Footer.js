@@ -102,8 +102,8 @@ function Footer() {
             <Link href="/#demo" passHref>
               <FooterLink component="a">Demo</FooterLink>
             </Link>
-            <Link href="/#explore" passHref>
-              <FooterLink component="a">Explore</FooterLink>
+            <Link href="/#testimonials" passHref>
+              <FooterLink component="a">Testimonials</FooterLink>
             </Link>
             <Link href="/pricing" passHref>
               <FooterLink component="a">Pricing</FooterLink>
