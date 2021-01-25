@@ -102,11 +102,11 @@ function Footer() {
             <Link href="/#demo" passHref>
               <FooterLink component="a">Demo</FooterLink>
             </Link>
+            <Link href="/#features" passHref>
+              <FooterLink component="a">Features</FooterLink>
+            </Link>
             <Link href="/#testimonials" passHref>
               <FooterLink component="a">Testimonials</FooterLink>
-            </Link>
-            <Link href="/pricing" passHref>
-              <FooterLink component="a">Pricing</FooterLink>
             </Link>
           </FooterLinksContainer>
           <FooterLinksContainer item xs={12} md={4}>
@@ -115,6 +115,9 @@ function Footer() {
             </CategoryHeader>
             <Link href="/about" passHref>
               <FooterLink component="a">About</FooterLink>
+            </Link>
+            <Link href="/pricing" passHref>
+              <FooterLink component="a">Pricing</FooterLink>
             </Link>
             <Link href="/contact" passHref>
               <FooterLink component="a">Contact</FooterLink>
@@ -151,7 +154,7 @@ function Footer() {
 
       <BottomFooterSection container justify="space-between" spacing={4}>
         <Grid item xs={12} md={4} container alignItems="center">
-          ©2021 Built by Kaiyu Hsu
+          ©2021 Courtesy of Kaiyu Hsu
         </Grid>
         <Grid
           item

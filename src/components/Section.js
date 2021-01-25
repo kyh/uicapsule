@@ -66,7 +66,8 @@ function Section({
   return (
     <Box
       component="section"
-      py={verticalPadding}
+      pt={verticalPadding}
+      pb={verticalPadding}
       className={
         classes.root +
         ` ${classes[`color${capitalize(bgColor)}`]}` +

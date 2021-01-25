@@ -39,7 +39,7 @@ export function unmount() {
   if (rootEl) rootEl.remove();
 }
 
-export function mount(container = document.body, demoMode = false) {
+export function mount(container = document.body, demoMode) {
   const host = document.createElement("div");
   host.setAttribute(ROOT_EL_IDENTIFIER, "");
   container.insertAdjacentElement("beforebegin", host);
@@ -53,8 +53,14 @@ export function mount(container = document.body, demoMode = false) {
         </Provider>,
         host
       );
+      if (demoMode && demoMode.onActivated) {
+        demoMode.onActivated();
+      }
     } else {
       unmountComponentAtNode(host);
+      if (demoMode && demoMode.onDeactivated) {
+        demoMode.onDeactivated();
+      }
     }
   });
 }

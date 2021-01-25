@@ -1,4 +1,4 @@
-import React, { useRef, useEffect } from "react";
+import React, { useRef, useEffect, useState } from "react";
 import styled from "styled-components";
 import Link from "next/link";
 import Carousel from "react-elastic-carousel";
@@ -7,6 +7,7 @@ import ScrollToLink from "components/ScrollToLink";
 import HeroSection from "components/HeroSection";
 import SectionHeader from "components/SectionHeader";
 import ExtensionPreview from "components/ExtensionPreview";
+import FeaturesSection from "components/FeaturesSection";
 import TestimonialsSection from "components/TestimonialsSection";
 import CtaSection from "components/CtaSection";
 
@@ -35,6 +36,9 @@ const items = ["websites", "articles", "apps", "anywhere"];
 
 function IndexPage() {
   const carouselRef = useRef(null);
+  const [featuresImage, setFeaturesImage] = useState(
+    "https://preview.cruip.com/simple/images/features-home-bg-01.png"
+  );
 
   useEffect(() => {
     return () => clearTimeout(resetTimeout);
@@ -54,6 +58,8 @@ function IndexPage() {
         bgImage="/hero-background.svg"
         bgImageOpacity="1"
         bgPosY="200px"
+        pt={{ xs: 12, sm: 20 }}
+        pb={{ xs: 6, sm: 8 }}
       >
         <SectionHeader
           title={
@@ -99,11 +105,12 @@ function IndexPage() {
             </Button>
           </Link>
         </HeroCtaContainer>
-        <ExtensionPreview />
+        <ExtensionPreview onSetImage={setFeaturesImage} />
         <ScrollToLink id="demo" top={-690} />
       </HeroSection>
+      <FeaturesSection size="normal" image={featuresImage} />
+      <ScrollToLink id="features" top={-620} />
       <TestimonialsSection
-        bgColor="default"
         size="medium"
         title="Here's what people are saying"
       />

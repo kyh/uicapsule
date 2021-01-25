@@ -13,6 +13,22 @@ function Popover({ demoMode }) {
     shallowEqual
   );
 
+  const onClickClose = () => {
+    if (demoMode) {
+      dispatch(deactivateApp());
+    } else {
+      window.location.reload();
+    }
+  };
+
+  const onClickViewInCapsule = (event) => {
+    if (demoMode && demoMode.onClickViewCapsule) {
+      event.stopPropagation();
+      event.preventDefault();
+      demoMode.onClickViewCapsule(image);
+    }
+  };
+
   if (loadingState === LOADING_STATE.default) {
     return null;
   }
@@ -28,13 +44,7 @@ function Popover({ demoMode }) {
         ) : (
           <>
             <HeaderContent>Saved</HeaderContent>
-            <Button
-              type="button"
-              ariaLabel="Close"
-              onClick={() =>
-                demoMode ? dispatch(deactivateApp()) : window.location.reload()
-              }
-            >
+            <Button type="button" ariaLabel="Close" onClick={onClickClose}>
               <XIcon />
             </Button>
           </>
@@ -47,7 +57,11 @@ function Popover({ demoMode }) {
             <img src={image} />
           </Content>
           <Footer>
-            <a href="https://uicapsule.com" target="_blank">
+            <a
+              href="https://uicapsule.com"
+              target="_blank"
+              onClick={onClickViewInCapsule}
+            >
               View in your Capsule
             </a>
             <ToggleThemeButton />

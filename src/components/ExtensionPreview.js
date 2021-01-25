@@ -1,5 +1,6 @@
 import React, { useRef, useEffect, useState } from "react";
 import styled, { css } from "styled-components";
+import { useRouter } from "next/router";
 
 const PreviewContainer = styled.section`
   margin: 0 auto;
@@ -18,17 +19,29 @@ const PreviewMonitor = styled.div`
 const PreviewWindow = styled.div`
   position: relative;
   max-height: 70vh;
-  pointer-events: auto;
-  opacity: 1;
-  transition: opacity 0.3s ease;
+  pointer-events: none;
+  &:before {
+    pointer-events: none;
+    content: "";
+    top: 0;
+    left: 0;
+    bottom: 0;
+    right: 0;
+    position: absolute;
+    background-color: #00000060;
+    z-index: 3;
+    transition: background-color 0.2s ease;
+  }
   [data-ui-capsule] {
     z-index: 5 !important;
   }
   ${({ isActivated }) =>
-    !isActivated &&
+    isActivated &&
     css`
-      opacity: 0.5;
-      pointer-events: none;
+      pointer-events: auto;
+      &:before {
+        background-color: transparent;
+      }
     `}
 `;
 
@@ -42,15 +55,17 @@ const TryButton = styled.button`
   border-radius: 30px;
   border: none;
   cursor: pointer;
-  transition: background 0.2s ease;
+  transition: color 0.2s ease;
   z-index: 5;
   &:hover {
-    background: ${({ theme }) => theme.palette.background.default};
+    color: ${({ theme }) => theme.palette.primary.main};
   }
 `;
 
-function ExtensionPreview() {
-  let Extension;
+let Extension = null;
+
+function ExtensionPreview({ onSetImage = () => {} }) {
+  const router = useRouter();
   const [isActivated, setIsActivated] = useState(false);
   const [html, setHtml] = useState("");
   const mountEl = useRef(null);
@@ -58,30 +73,34 @@ function ExtensionPreview() {
   const loadAndInitExtension = async () => {
     if (!Extension) {
       Extension = await import("@ui-capsule/chrome-extension");
-      Extension.mount(mountEl.current, true);
+      Extension.mount(mountEl.current, {
+        onActivated: () => setIsActivated(true),
+        onDeactivated: () => setIsActivated(false),
+        onClickViewCapsule: (image) => {
+          onSetImage(image);
+          router.push("/#features");
+        },
+      });
     }
     if (!isActivated) {
       Extension.activate();
-      setIsActivated(true);
     } else {
       Extension.deactivate();
-      setIsActivated(false);
     }
   };
-
-  useEffect(() => {
-    return () => {
-      if (Extension) {
-        Extension.deactivate();
-        Extension.unmount();
-      }
-    };
-  }, []);
 
   useEffect(() => {
     fetch("/hero-preview.html")
       .then((response) => response.text())
       .then((data) => setHtml(data));
+
+    return () => {
+      if (Extension) {
+        Extension.deactivate();
+        Extension.unmount();
+        Extension = null;
+      }
+    };
   }, []);
 
   return (

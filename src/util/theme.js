@@ -65,22 +65,22 @@ const themeConfig = {
         lineHeight: "2.5rem",
       },
       h3: {
-        fontWeight: 600,
+        fontWeight: 800,
         fontSize: "1.5rem",
         lineHeight: "2rem",
       },
       h4: {
-        fontWeight: 600,
+        fontWeight: 800,
         fontSize: "1.25rem",
         lineHeight: "1.75rem",
       },
       h5: {
-        fontWeight: 400,
+        fontWeight: 600,
         fontSize: "1rem",
         lineHeight: "1.5rem",
       },
       h6: {
-        fontWeight: 400,
+        fontWeight: 600,
         fontSize: "0.875rem",
         lineHeight: "1.25rem",
       },
