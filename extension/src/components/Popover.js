@@ -8,7 +8,7 @@ import { SunIcon, MoonIcon, XIcon } from "./Icons";
 
 function Popover({ demoMode }) {
   const dispatch = useDispatch();
-  const { loadingState, image } = useSelector(
+  const { loadingState, image, htmlString } = useSelector(
     (state) => state.selection,
     shallowEqual
   );
@@ -25,7 +25,7 @@ function Popover({ demoMode }) {
     if (demoMode && demoMode.onClickViewCapsule) {
       event.stopPropagation();
       event.preventDefault();
-      demoMode.onClickViewCapsule(image);
+      demoMode.onClickViewCapsule({ image, htmlString });
     }
   };
 
@@ -53,7 +53,7 @@ function Popover({ demoMode }) {
       {loadingState === LOADING_STATE.done && (
         <>
           <Content>
-            {/* <iframe srcDoc={stringified} frameBorder="0" /> */}
+            {/* <iframe srcDoc={htmlString} frameBorder="0" /> */}
             <img src={image} />
           </Content>
           <Footer>

@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import styled, { css } from "styled-components";
+import Image from "next/image";
 import Section from "components/Section";
 import Container from "@material-ui/core/Container";
 import Grid from "@material-ui/core/Grid";
@@ -9,11 +10,7 @@ import ButtonBase from "@material-ui/core/ButtonBase";
 
 const ImageContainer = styled.figure`
   margin: 0 auto;
-  max-width: 570;
-  width: 100%;
-  & > img {
-    width: 100%;
-  }
+  transform: translateY(-25px);
 `;
 
 const FeaturesContainer = styled(Container)`
@@ -64,6 +61,7 @@ const items = [
         <path d="M10.707 2.293a1 1 0 00-1.414 0l-7 7a1 1 0 001.414 1.414L4 10.414V17a1 1 0 001 1h2a1 1 0 001-1v-2a1 1 0 011-1h2a1 1 0 011 1v2a1 1 0 001 1h2a1 1 0 001-1v-6.586l.293.293a1 1 0 001.414-1.414l-7-7z" />
       </svg>
     ),
+    image: "/features-collection.png",
   },
   {
     title: "Enjoy the finer UI details",
@@ -82,6 +80,7 @@ const items = [
         />
       </svg>
     ),
+    image: "/features-collection.png",
   },
   {
     title: "Explore with others",
@@ -100,26 +99,22 @@ const items = [
         />
       </svg>
     ),
+    image: "/features-collection.png",
   },
 ];
 
 function FeaturesSection(props) {
-  const [activeItem, setActiveItem] = useState(items[0].title);
+  const [activeItemIndex, setActiveItemIndex] = useState(0);
   return (
-    <Section
-      bgColor={props.bgColor}
-      size={props.size}
-      bgImage={props.bgImage}
-      bgImageOpacity={props.bgImageOpacity}
-    >
+    <Section size={props.size}>
       <FeaturesContainer>
         <Grid container alignItems="center" spacing={8}>
           <Grid item xs={12} md={6}>
-            {items.map((item) => (
+            {items.map((item, index) => (
               <Item
                 key={item.title}
-                active={activeItem === item.title}
-                onClick={() => setActiveItem(item.title)}
+                active={activeItemIndex === index ? 1 : 0}
+                onClick={() => setActiveItemIndex(index)}
                 disableRipple
               >
                 <Box>
@@ -136,7 +131,12 @@ function FeaturesSection(props) {
           </Grid>
           <Grid container item direction="column" xs={12} md={6}>
             <ImageContainer>
-              <img src={props.image} alt="" />
+              <Image
+                src={items[activeItemIndex].image}
+                alt=""
+                height={600}
+                width={500}
+              />
             </ImageContainer>
           </Grid>
         </Grid>

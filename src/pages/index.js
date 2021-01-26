@@ -36,9 +36,10 @@ const items = ["websites", "articles", "apps", "anywhere"];
 
 function IndexPage() {
   const carouselRef = useRef(null);
-  const [featuresImage, setFeaturesImage] = useState(
-    "https://preview.cruip.com/simple/images/features-home-bg-01.png"
-  );
+  const [featuresImage, setFeaturesImage] = useState({
+    image: "",
+    htmlString: "",
+  });
 
   useEffect(() => {
     return () => clearTimeout(resetTimeout);

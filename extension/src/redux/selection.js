@@ -22,7 +22,7 @@ export function selectElement(element, demoMode) {
     const { htmlString, dataUrl } = await compileElement(element);
     dispatch({
       type: SELECT_ELEMENT_SUCCESS,
-      stringified: htmlString,
+      htmlString: htmlString,
       image: dataUrl,
     });
   };
@@ -37,7 +37,7 @@ export function resetSelectedElement() {
 const init = {
   loadingState: LOADING_STATE.default,
   element: null,
-  stringified: "",
+  htmlString: "",
   image: "",
 };
 
@@ -52,7 +52,7 @@ export default function reducer(state = init, action) {
     case SELECT_ELEMENT_SUCCESS:
       return {
         ...state,
-        stringified: action.stringified,
+        htmlString: action.htmlString,
         image: action.image,
         loadingState: LOADING_STATE.done,
       };

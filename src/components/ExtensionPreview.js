@@ -76,8 +76,8 @@ function ExtensionPreview({ onSetImage = () => {} }) {
       Extension.mount(mountEl.current, {
         onActivated: () => setIsActivated(true),
         onDeactivated: () => setIsActivated(false),
-        onClickViewCapsule: (image) => {
-          onSetImage(image);
+        onClickViewCapsule: (props) => {
+          onSetImage(props);
           router.push("/#features");
         },
       });
