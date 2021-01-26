@@ -106,16 +106,16 @@ function IndexPage() {
             </Button>
           </Link>
         </HeroCtaContainer>
+        <ScrollToLink id="demo" top={-80} />
         <ExtensionPreview onSetImage={setFeaturesImage} />
-        <ScrollToLink id="demo" top={-690} />
       </HeroSection>
+      <ScrollToLink id="features" top={-50} />
       <FeaturesSection size="normal" image={featuresImage} />
-      <ScrollToLink id="features" top={-620} />
+      <ScrollToLink id="testimonials" top={-80} />
       <TestimonialsSection
         size="medium"
         title="Here's what people are saying"
       />
-      <ScrollToLink id="testimonials" top={-500} />
       <CtaSection
         size="medium"
         title="Start capturing your inspirations"

@@ -100,7 +100,7 @@ function Navbar() {
     <NavbarContainer color="inherit" elevation={0} active={trigger ? 1 : 0}>
       <Container disableGutters>
         <Toolbar>
-          <Link href="/" passHref>
+          <Link href="/#" passHref>
             <LogoContainer>
               <Logo />
             </LogoContainer>

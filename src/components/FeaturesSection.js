@@ -64,7 +64,7 @@ const items = [
     image: "/features-collection.png",
   },
   {
-    title: "Enjoy the finer UI details",
+    title: "Enjoy the little big details",
     description:
       "You can view and even interact with your saved elements. Yes, that's right, we save the entire code block which include interactive states",
     icon: (
@@ -85,7 +85,7 @@ const items = [
   {
     title: "Explore with others",
     description:
-      "Share your inspirations with your friends, your team, or even the UI Capsule community",
+      "Share your inspirations with your peers, your team, or the UI Capsule community",
     icon: (
       <svg
         xmlns="http://www.w3.org/2000/svg"
