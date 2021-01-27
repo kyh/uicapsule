@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import styled, { css } from "styled-components";
+import styled, { css, keyframes } from "styled-components";
 import Image from "next/image";
 import Section from "components/Section";
 import Container from "@material-ui/core/Container";
@@ -7,11 +7,6 @@ import Grid from "@material-ui/core/Grid";
 import Box from "@material-ui/core/Box";
 import Typography from "@material-ui/core/Typography";
 import ButtonBase from "@material-ui/core/ButtonBase";
-
-const ImageContainer = styled.figure`
-  margin: 0 auto;
-  transform: translateY(-25px);
-`;
 
 const FeaturesContainer = styled(Container)`
   max-width: 1100px;
@@ -47,6 +42,58 @@ const IconContainer = styled.div`
   }
 `;
 
+const ImageContainer = styled.div`
+  position: relative;
+  transform: translateY(-25px);
+  height: 600px;
+  max-width: 500px;
+  width: 100%;
+  overflow: hidden;
+`;
+
+const animateUp = keyframes`
+	from { transform: translateY(0); }
+	to { transform: translateY(-1175px); }
+`;
+
+const animateUp2 = keyframes`
+	from { transform: translateY(1175px); }
+	to { transform: translateY(0); }
+`;
+
+const AnimatedImageContainer = styled.div`
+  &:before,
+  &:after {
+    content: "";
+    position: absolute;
+    display: block;
+    left: 0;
+    right: 0;
+    height: 60px;
+    z-index: 1;
+  }
+
+  &:before {
+    top: 0;
+    background: linear-gradient(to bottom, #ffffff 0%, transparent 100%);
+  }
+
+  &:after {
+    bottom: 0;
+    background: linear-gradient(to top, #ffffff 0%, transparent 100%);
+  }
+
+  > div {
+    position: absolute !important;
+  }
+  > div:nth-child(1) {
+    animation: ${animateUp} 80s linear infinite;
+  }
+  > div:nth-child(2) {
+    animation: ${animateUp2} 80s linear infinite;
+  }
+`;
+
 const items = [
   {
     title: "Build a home for your inspirations",
@@ -61,7 +108,24 @@ const items = [
         <path d="M10.707 2.293a1 1 0 00-1.414 0l-7 7a1 1 0 001.414 1.414L4 10.414V17a1 1 0 001 1h2a1 1 0 001-1v-2a1 1 0 011-1h2a1 1 0 011 1v2a1 1 0 001 1h2a1 1 0 001-1v-6.586l.293.293a1 1 0 001.414-1.414l-7-7z" />
       </svg>
     ),
-    image: "/features-collection.png",
+    render: () => {
+      return (
+        <AnimatedImageContainer>
+          <Image
+            src="/ui-list.webp"
+            alt="dashboard"
+            width={500}
+            height={1175}
+          />
+          <Image
+            src="/ui-list.webp"
+            alt="dashboard"
+            width={500}
+            height={1175}
+          />
+        </AnimatedImageContainer>
+      );
+    },
   },
   {
     title: "Enjoy the little big details",
@@ -80,7 +144,16 @@ const items = [
         />
       </svg>
     ),
-    image: "/features-collection.png",
+    render: () => {
+      return (
+        <Image
+          src="/features-collection.svg"
+          alt="dashboard"
+          width={500}
+          height={600}
+        />
+      );
+    },
   },
   {
     title: "Explore with others",
@@ -99,7 +172,16 @@ const items = [
         />
       </svg>
     ),
-    image: "/features-collection.png",
+    render: () => {
+      return (
+        <Image
+          src="/dashboard-discover.webp"
+          alt="dashboard"
+          width={500}
+          height={600}
+        />
+      );
+    },
   },
 ];
 
@@ -130,14 +212,7 @@ function FeaturesSection(props) {
             ))}
           </Grid>
           <Grid container item direction="column" xs={12} md={6}>
-            <ImageContainer>
-              <Image
-                src={items[activeItemIndex].image}
-                alt=""
-                height={600}
-                width={500}
-              />
-            </ImageContainer>
+            <ImageContainer>{items[activeItemIndex].render()}</ImageContainer>
           </Grid>
         </Grid>
       </FeaturesContainer>
