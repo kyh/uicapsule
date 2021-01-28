@@ -15,7 +15,7 @@ function FaqPage() {
         title="Ready to get started?"
         subtitle="We have a generous free tier available to get you started right away"
         buttonText="Get started for free"
-        buttonPath="/signup"
+        buttonPath="/auth/signup"
       />
     </>
   );

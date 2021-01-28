@@ -1,9 +1,58 @@
-import React from "react";
+import React, { useState } from "react";
+import Container from "@material-ui/core/Container";
+import Typography from "@material-ui/core/Typography";
 import AuthSection from "components/AuthSection";
+import HeroSection from "components/HeroSection";
+import SectionHeader from "components/SectionHeader";
+import EmailForm from "components/EmailForm";
 import { useRouter } from "next/router";
+
+function BetaPage() {
+  const [complete, setComplete] = useState(false);
+  return (
+    <>
+      <HeroSection
+        bgColor="default"
+        size="large"
+        pt={{ xs: 12, sm: 20 }}
+        pb={{ xs: 6, sm: 8 }}
+      >
+        <SectionHeader
+          title="Welcome!"
+          subtitle={
+            <>
+              <div>
+                We're currently still in closed beta as we crank out new
+                features.
+              </div>
+              <div>Sign up below for early access</div>
+            </>
+          }
+          size={2}
+        />
+        <Container maxWidth="sm">
+          {complete ? (
+            <Typography variant="h4">
+              Thanks for your interest! We'll be distributing new logins soon
+            </Typography>
+          ) : (
+            <EmailForm
+              message="BETA_SIGNUP"
+              onComplete={() => setComplete(true)}
+            />
+          )}
+        </Container>
+      </HeroSection>
+    </>
+  );
+}
 
 function AuthPage() {
   const router = useRouter();
+  if (router.query.type === "signup") {
+    return <BetaPage />;
+  }
+
   return (
     <AuthSection
       bgColor="default"

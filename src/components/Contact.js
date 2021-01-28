@@ -3,9 +3,8 @@ import Box from "@material-ui/core/Box";
 import Alert from "@material-ui/lab/Alert";
 import Grid from "@material-ui/core/Grid";
 import TextField from "@material-ui/core/TextField";
-import Button from "@material-ui/core/Button";
-import CircularProgress from "@material-ui/core/CircularProgress";
-import contact from "util/contact.js";
+import Button from "components/Button";
+import contact from "util/contact";
 import { useForm } from "react-hook-form";
 
 function Contact(props) {
@@ -99,17 +98,17 @@ function Contact(props) {
             />
           </Grid>
           <Grid item xs={12}>
-            <Button
-              variant="contained"
-              color="primary"
-              size="large"
-              type="submit"
-              disabled={pending}
-            >
-              {!pending && <span>{props.buttonText}</span>}
-
-              {pending && <CircularProgress size={28} />}
-            </Button>
+            <Box display="flex" justifyContent="center">
+              <Button
+                variant="contained"
+                color="primary"
+                size="large"
+                type="submit"
+                loading={pending}
+              >
+                {props.buttonText}
+              </Button>
+            </Box>
           </Grid>
         </Grid>
       </form>

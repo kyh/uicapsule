@@ -1,5 +1,5 @@
 {
-  "name": "@ui-capsule/app",
+  "name": "ui-capsule",
   "version": "0.1.0",
   "private": true,
   "dependencies": {

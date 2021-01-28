@@ -33,15 +33,31 @@ const Item = styled.div`
 let resetTimeout;
 const autoPlaySpeed = 2000;
 const items = ["websites", "articles", "apps", "anywhere"];
+const examples = [
+  "/featured-examples/checklist.html",
+  "/featured-examples/boat.html",
+  "/featured-examples/radiolist.html",
+];
 
 function IndexPage() {
   const carouselRef = useRef(null);
-  const [featuresImage, setFeaturesImage] = useState({
-    image: "",
-    htmlString: "",
-  });
+  const [html, setHtml] = useState("");
+  const [exampleIndex, setExampleIndex] = useState(0);
+
+  const fetchExample = async (i) => {
+    const data = await fetch(examples[i]).then((response) => response.text());
+    setHtml(data);
+  };
+
+  const nextExample = () => {
+    const nextIndex = exampleIndex + 1 < examples.length ? exampleIndex + 1 : 0;
+    setExampleIndex(nextIndex);
+    fetchExample(nextIndex);
+  };
 
   useEffect(() => {
+    const data = fetchExample(exampleIndex);
+    setHtml(data);
     return () => clearTimeout(resetTimeout);
   }, []);
 
@@ -107,10 +123,10 @@ function IndexPage() {
           </Link>
         </HeroCtaContainer>
         <ScrollToLink id="demo" top={-80} />
-        <ExtensionPreview onSetImage={setFeaturesImage} />
+        <ExtensionPreview onSetHtml={setHtml} />
       </HeroSection>
       <ScrollToLink id="features" top={-50} />
-      <FeaturesSection size="normal" image={featuresImage} />
+      <FeaturesSection size="normal" html={html} nextExample={nextExample} />
       <ScrollToLink id="testimonials" top={-80} />
       <TestimonialsSection
         size="medium"
@@ -121,7 +137,7 @@ function IndexPage() {
         title="Start capturing your inspirations"
         subtitle="Curate your own space filled with beautiful ideas"
         buttonText="Get started for free"
-        buttonPath="/signup"
+        buttonPath="/auth/signup"
       />
     </>
   );

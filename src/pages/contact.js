@@ -5,18 +5,17 @@ import ContactSection from "components/ContactSection";
 function ContactPage() {
   return (
     <>
-      <FaqSection
+      {/* <FaqSection
         bgColor="default"
-        size="medium"
+        size="large"
         title="Frequently Asked Questions"
-      />
+      /> */}
       <ContactSection
         bgColor="default"
-        size="medium"
-        title="Contact Us"
+        size="large"
+        title="Got any feedback?"
         buttonText="Send message"
         buttonColor="primary"
-        showNameField
       />
     </>
   );

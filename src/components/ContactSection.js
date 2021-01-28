@@ -12,11 +12,11 @@ function ContactSection(props) {
       bgImage={props.bgImage}
       bgImageOpacity={props.bgImageOpacity}
     >
-      <Container maxWidth="md">
+      <Container maxWidth="sm">
         <SectionHeader
           title={props.title}
           subtitle={props.subtitle}
-          size={4}
+          size={2}
           textAlign="center"
         />
         <Contact

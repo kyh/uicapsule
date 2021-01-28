@@ -7,6 +7,7 @@ import Grid from "@material-ui/core/Grid";
 import Box from "@material-ui/core/Box";
 import Typography from "@material-ui/core/Typography";
 import ButtonBase from "@material-ui/core/ButtonBase";
+import Button from "@material-ui/core/Button";
 
 const FeaturesContainer = styled(Container)`
   max-width: 1100px;
@@ -42,6 +43,11 @@ const IconContainer = styled.div`
   }
 `;
 
+const animateFadeIn = keyframes`
+	from { opacity: 0; }
+	to { opacity: 1; }
+`;
+
 const ImageContainer = styled.div`
   position: relative;
   transform: translateY(-25px);
@@ -49,6 +55,9 @@ const ImageContainer = styled.div`
   max-width: 500px;
   width: 100%;
   overflow: hidden;
+  img {
+    animation: ${animateFadeIn} 0.5s ease;
+  }
 `;
 
 const animateUp = keyframes`
@@ -91,6 +100,26 @@ const AnimatedImageContainer = styled.div`
   }
   > div:nth-child(2) {
     animation: ${animateUp2} 80s linear infinite;
+  }
+`;
+
+const IFrameContainer = styled.div`
+  position: relative;
+  width: 100%;
+  height: 100%;
+  padding: ${({ theme }) => theme.spacing(4)}px;
+  iframe {
+    width: 100%;
+    height: 100%;
+    border-radius: 10px;
+    box-shadow: ${({ theme }) => theme.shadows[3]};
+    animation: ${animateFadeIn} 0.5s ease;
+  }
+  button {
+    position: absolute;
+    left: 50%;
+    bottom: 40px;
+    transform: translateX(-50%);
   }
 `;
 
@@ -144,14 +173,14 @@ const items = [
         />
       </svg>
     ),
-    render: () => {
+    render: ({ html, nextExample }) => {
       return (
-        <Image
-          src="/features-collection.svg"
-          alt="dashboard"
-          width={500}
-          height={600}
-        />
+        <IFrameContainer>
+          <iframe srcDoc={html} frameBorder="0" />
+          <Button type="button" onClick={nextExample}>
+            Next Example
+          </Button>
+        </IFrameContainer>
       );
     },
   },
@@ -212,7 +241,9 @@ function FeaturesSection(props) {
             ))}
           </Grid>
           <Grid container item direction="column" xs={12} md={6}>
-            <ImageContainer>{items[activeItemIndex].render()}</ImageContainer>
+            <ImageContainer>
+              {items[activeItemIndex].render(props)}
+            </ImageContainer>
           </Grid>
         </Grid>
       </FeaturesContainer>

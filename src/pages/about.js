@@ -23,7 +23,7 @@ function AboutPage() {
         title="Enough about me, want to give it a try?"
         subtitle="Start collecting and exploring UI ideas"
         buttonText="Get started for free"
-        buttonPath="/signup"
+        buttonPath="/auth/signup"
       />
     </>
   );

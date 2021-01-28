@@ -64,7 +64,7 @@ const TryButton = styled.button`
 
 let Extension = null;
 
-function ExtensionPreview({ onSetImage = () => {} }) {
+function ExtensionPreview({ onSetHtml = () => {} }) {
   const router = useRouter();
   const [isActivated, setIsActivated] = useState(false);
   const [html, setHtml] = useState("");
@@ -77,7 +77,7 @@ function ExtensionPreview({ onSetImage = () => {} }) {
         onActivated: () => setIsActivated(true),
         onDeactivated: () => setIsActivated(false),
         onClickViewCapsule: (props) => {
-          onSetImage(props);
+          onSetHtml(props.htmlString);
           router.push("/#features");
         },
       });

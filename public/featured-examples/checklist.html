@@ -1,0 +1,302 @@
+<style>
+  #checklist {
+    --background: #ffffff;
+    --text: #414856;
+    --check: #4f29f0;
+    --disabled: #c3c8de;
+    --width: 100px;
+    --height: 140px;
+    --border-radius: 10px;
+    background: var(--background);
+    width: var(--width);
+    height: var(--height);
+    border-radius: var(--border-radius);
+    position: relative;
+    box-shadow: 0 10px 30px rgba(65, 72, 86, 0.05);
+    padding: 30px 45px;
+    display: grid;
+    grid-template-columns: 30px auto;
+    align-items: center;
+  }
+  #checklist label {
+    color: var(--text);
+    position: relative;
+    cursor: pointer;
+    display: grid;
+    align-items: center;
+    width: -webkit-fit-content;
+    width: -moz-fit-content;
+    width: fit-content;
+    transition: color 0.3s ease;
+  }
+  #checklist label::before,
+  #checklist label::after {
+    content: "";
+    position: absolute;
+  }
+  #checklist label::before {
+    height: 2px;
+    width: 8px;
+    left: -27px;
+    background: var(--check);
+    border-radius: 2px;
+    transition: background 0.3s ease;
+  }
+  #checklist label:after {
+    height: 4px;
+    width: 4px;
+    top: 8px;
+    left: -25px;
+    border-radius: 50%;
+  }
+  #checklist input[type="checkbox"] {
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    position: relative;
+    height: 15px;
+    width: 15px;
+    outline: none;
+    border: 0;
+    margin: 0 15px 0 0;
+    cursor: pointer;
+    background: var(--background);
+    display: grid;
+    align-items: center;
+  }
+  #checklist input[type="checkbox"]::before,
+  #checklist input[type="checkbox"]::after {
+    content: "";
+    position: absolute;
+    height: 2px;
+    top: auto;
+    background: var(--check);
+    border-radius: 2px;
+  }
+  #checklist input[type="checkbox"]::before {
+    width: 0px;
+    right: 60%;
+    transform-origin: right bottom;
+  }
+  #checklist input[type="checkbox"]::after {
+    width: 0px;
+    left: 40%;
+    transform-origin: left bottom;
+  }
+  #checklist input[type="checkbox"]:checked::before {
+    -webkit-animation: check-01 0.4s ease forwards;
+    animation: check-01 0.4s ease forwards;
+  }
+  #checklist input[type="checkbox"]:checked::after {
+    -webkit-animation: check-02 0.4s ease forwards;
+    animation: check-02 0.4s ease forwards;
+  }
+  #checklist input[type="checkbox"]:checked + label {
+    color: var(--disabled);
+    -webkit-animation: move 0.3s ease 0.1s forwards;
+    animation: move 0.3s ease 0.1s forwards;
+  }
+  #checklist input[type="checkbox"]:checked + label::before {
+    background: var(--disabled);
+    -webkit-animation: slice 0.4s ease forwards;
+    animation: slice 0.4s ease forwards;
+  }
+  #checklist input[type="checkbox"]:checked + label::after {
+    -webkit-animation: firework 0.5s ease forwards 0.1s;
+    animation: firework 0.5s ease forwards 0.1s;
+  }
+
+  @-webkit-keyframes move {
+    50% {
+      padding-left: 8px;
+      padding-right: 0px;
+    }
+    100% {
+      padding-right: 4px;
+    }
+  }
+
+  @keyframes move {
+    50% {
+      padding-left: 8px;
+      padding-right: 0px;
+    }
+    100% {
+      padding-right: 4px;
+    }
+  }
+  @-webkit-keyframes slice {
+    60% {
+      width: 100%;
+      left: 4px;
+    }
+    100% {
+      width: 100%;
+      left: -2px;
+      padding-left: 0;
+    }
+  }
+  @keyframes slice {
+    60% {
+      width: 100%;
+      left: 4px;
+    }
+    100% {
+      width: 100%;
+      left: -2px;
+      padding-left: 0;
+    }
+  }
+  @-webkit-keyframes check-01 {
+    0% {
+      width: 4px;
+      top: auto;
+      transform: rotate(0);
+    }
+    50% {
+      width: 0px;
+      top: auto;
+      transform: rotate(0);
+    }
+    51% {
+      width: 0px;
+      top: 8px;
+      transform: rotate(45deg);
+    }
+    100% {
+      width: 5px;
+      top: 8px;
+      transform: rotate(45deg);
+    }
+  }
+  @keyframes check-01 {
+    0% {
+      width: 4px;
+      top: auto;
+      transform: rotate(0);
+    }
+    50% {
+      width: 0px;
+      top: auto;
+      transform: rotate(0);
+    }
+    51% {
+      width: 0px;
+      top: 8px;
+      transform: rotate(45deg);
+    }
+    100% {
+      width: 5px;
+      top: 8px;
+      transform: rotate(45deg);
+    }
+  }
+  @-webkit-keyframes check-02 {
+    0% {
+      width: 4px;
+      top: auto;
+      transform: rotate(0);
+    }
+    50% {
+      width: 0px;
+      top: auto;
+      transform: rotate(0);
+    }
+    51% {
+      width: 0px;
+      top: 8px;
+      transform: rotate(-45deg);
+    }
+    100% {
+      width: 10px;
+      top: 8px;
+      transform: rotate(-45deg);
+    }
+  }
+  @keyframes check-02 {
+    0% {
+      width: 4px;
+      top: auto;
+      transform: rotate(0);
+    }
+    50% {
+      width: 0px;
+      top: auto;
+      transform: rotate(0);
+    }
+    51% {
+      width: 0px;
+      top: 8px;
+      transform: rotate(-45deg);
+    }
+    100% {
+      width: 10px;
+      top: 8px;
+      transform: rotate(-45deg);
+    }
+  }
+  @-webkit-keyframes firework {
+    0% {
+      opacity: 1;
+      box-shadow: 0 0 0 -2px #4f29f0, 0 0 0 -2px #4f29f0, 0 0 0 -2px #4f29f0,
+        0 0 0 -2px #4f29f0, 0 0 0 -2px #4f29f0, 0 0 0 -2px #4f29f0;
+    }
+    30% {
+      opacity: 1;
+    }
+    100% {
+      opacity: 0;
+      box-shadow: 0 -15px 0 0px #4f29f0, 14px -8px 0 0px #4f29f0,
+        14px 8px 0 0px #4f29f0, 0 15px 0 0px #4f29f0, -14px 8px 0 0px #4f29f0,
+        -14px -8px 0 0px #4f29f0;
+    }
+  }
+  @keyframes firework {
+    0% {
+      opacity: 1;
+      box-shadow: 0 0 0 -2px #4f29f0, 0 0 0 -2px #4f29f0, 0 0 0 -2px #4f29f0,
+        0 0 0 -2px #4f29f0, 0 0 0 -2px #4f29f0, 0 0 0 -2px #4f29f0;
+    }
+    30% {
+      opacity: 1;
+    }
+    100% {
+      opacity: 0;
+      box-shadow: 0 -15px 0 0px #4f29f0, 14px -8px 0 0px #4f29f0,
+        14px 8px 0 0px #4f29f0, 0 15px 0 0px #4f29f0, -14px 8px 0 0px #4f29f0,
+        -14px -8px 0 0px #4f29f0;
+    }
+  }
+  body {
+    background: #e8ebf3;
+    height: 100vh;
+    font: 400 16px "Varela Round", sans-serif;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+  }
+  body .socials {
+    position: fixed;
+    display: block;
+    left: 20px;
+    bottom: 20px;
+  }
+  body .socials > a {
+    display: block;
+    width: 30px;
+    opacity: 0.2;
+    transform: scale(var(--scale, 0.8));
+    transition: transform 0.3s cubic-bezier(0.38, -0.12, 0.24, 1.91);
+  }
+  body .socials > a:hover {
+    --scale: 1;
+  }
+</style>
+<div id="checklist">
+  <input id="01" type="checkbox" name="r" value="1" checked />
+  <label for="01">Bread</label>
+  <input id="02" type="checkbox" name="r" value="2" />
+  <label for="02">Cheese</label>
+  <input id="03" type="checkbox" name="r" value="3" />
+  <label for="03">Coffee</label>
+</div>

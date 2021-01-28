@@ -6,9 +6,8 @@ import Link from "next/link";
 import Box from "@material-ui/core/Box";
 import Typography from "@material-ui/core/Typography";
 import Button from "@material-ui/core/Button";
-import IconButton from "@material-ui/core/IconButton";
-import InputBase from "@material-ui/core/InputBase";
 import Logo from "components/Logo";
+import EmailForm from "components/EmailForm";
 
 const FooterContainer = styled(Container)`
   color: ${({ theme }) => theme.palette.text.secondary};
@@ -50,19 +49,6 @@ const FooterLink = styled(Button)`
   display: block;
   color: ${({ theme }) => theme.palette.text.secondary};
   margin-left: ${({ theme }) => theme.spacing(-1)}px;
-`;
-
-const SubscribeForm = styled.form`
-  display: flex;
-  border: 1px solid ${({ theme }) => theme.palette.divider};
-  border-radius: 4px;
-  .MuiInputBase-input {
-    font-size: 0.8rem;
-    padding: ${({ theme }) => `${theme.spacing(1)}px ${theme.spacing(1)}px`};
-  }
-  .MuiIconButton-root {
-    border-radius: 0;
-  }
 `;
 
 const SocialIcon = styled(Button)`
@@ -116,9 +102,9 @@ function Footer() {
             <Link href="/about" passHref>
               <FooterLink component="a">About</FooterLink>
             </Link>
-            <Link href="/pricing" passHref>
+            {/* <Link href="/pricing" passHref>
               <FooterLink component="a">Pricing</FooterLink>
-            </Link>
+            </Link> */}
             <Link href="/contact" passHref>
               <FooterLink component="a">Contact</FooterLink>
             </Link>
@@ -128,30 +114,10 @@ function Footer() {
               Subscribe
             </CategoryHeader>
             <Box mb={2}>Stay up to date with catered monthly inspirations</Box>
-            <SubscribeForm>
-              <InputBase
-                type="email"
-                placeholder="Your email"
-                inputProps={{ "aria-label": "Your email" }}
-              />
-              <IconButton type="submit" aria-label="subscribe">
-                <svg
-                  width="12"
-                  height="12"
-                  viewBox="0 0 12 12"
-                  xmlns="http://www.w3.org/2000/svg"
-                >
-                  <path
-                    d="M11.707 5.293L7 .586 5.586 2l3 3H0v2h8.586l-3 3L7 11.414l4.707-4.707a1 1 0 000-1.414z"
-                    fillRule="nonzero"
-                  ></path>
-                </svg>
-              </IconButton>
-            </SubscribeForm>
+            <EmailForm message="SUBSCRIBE_FOOTER" />
           </FooterLinksContainer>
         </Grid>
       </FooterSection>
-
       <BottomFooterSection container justify="space-between" spacing={4}>
         <Grid item xs={12} md={4} container alignItems="center">
           ©2021 Courtesy of Kaiyu Hsu
