@@ -165,7 +165,8 @@ export const ThemeProvider = (props) => {
   // with fallback to system setting
   const darkMode = useDarkMode();
   // Get MUI theme object
-  const theme = getTheme(darkMode.value ? "dark" : "light");
+  // const theme = getTheme(darkMode.value ? "dark" : "light");
+  const theme = getTheme("light");
 
   // Since Next.js server-renders we need to remove
   // the server-side injected CSS on mount so the
