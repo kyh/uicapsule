@@ -33,9 +33,6 @@ const Item = styled.div`
   }
 `;
 
-let resetTimeout;
-const autoPlaySpeed = 2000;
-const items = ["websites", "articles", "apps", "anywhere"];
 const examples = [
   "/featured-examples/checklist.html",
   "/featured-examples/boat.html",
@@ -43,7 +40,6 @@ const examples = [
 ];
 
 function IndexPage() {
-  const carouselRef = useRef(null);
   const [html, setHtml] = useState("");
   const [exampleIndex, setExampleIndex] = useState(0);
 
@@ -67,15 +63,15 @@ function IndexPage() {
   return (
     <>
       <Head>
-        <style global jsx>
-          {`
-            html {
-              scroll-behavior: smooth;
-            }
-          `}
-        </style>
         <title>UI Capsule | Bookmark your inspirations</title>
       </Head>
+      <style global jsx>
+        {`
+          html {
+            scroll-behavior: smooth;
+          }
+        `}
+      </style>
       <HeroSection
         size="large"
         bgImage="/hero-background.svg"
@@ -85,34 +81,7 @@ function IndexPage() {
         pb={{ xs: 6, sm: 8 }}
       >
         <SectionHeader
-          title={
-            <>
-              <div>Save UI elements from </div>
-              <Carousel
-                ref={carouselRef}
-                autoPlaySpeed={autoPlaySpeed}
-                verticalMode
-                enableAutoPlay
-                preventDefaultTouchmoveEvent
-                pagination={false}
-                showArrows={false}
-                enableSwipe={false}
-                enableMouseSwipe={false}
-                onNextEnd={({ index }) => {
-                  clearTimeout(resetTimeout);
-                  if (index + 1 === items.length) {
-                    resetTimeout = setTimeout(() => {
-                      carouselRef.current.goTo(0);
-                    }, autoPlaySpeed);
-                  }
-                }}
-              >
-                {items.map((i) => (
-                  <Item key={i}>{i}</Item>
-                ))}
-              </Carousel>
-            </>
-          }
+          title={<PageTitle />}
           subtitle="Bookmark elements for ideas and inspiration on your next web project"
           size="1"
         />
@@ -145,6 +114,42 @@ function IndexPage() {
         buttonText="Get started for free"
         buttonPath="/auth/signup"
       />
+    </>
+  );
+}
+
+let resetTimeout;
+const autoPlaySpeed = 2000;
+const items = ["websites", "articles", "apps", "anywhere"];
+
+function PageTitle() {
+  const carouselRef = useRef(null);
+  return (
+    <>
+      <div>Save UI elements from </div>
+      <Carousel
+        ref={carouselRef}
+        autoPlaySpeed={autoPlaySpeed}
+        verticalMode
+        enableAutoPlay
+        preventDefaultTouchmoveEvent
+        pagination={false}
+        showArrows={false}
+        enableSwipe={false}
+        enableMouseSwipe={false}
+        onNextEnd={({ index }) => {
+          clearTimeout(resetTimeout);
+          if (index + 1 === items.length) {
+            resetTimeout = setTimeout(() => {
+              carouselRef.current.goTo(0);
+            }, autoPlaySpeed);
+          }
+        }}
+      >
+        {items.map((i) => (
+          <Item key={i}>{i}</Item>
+        ))}
+      </Carousel>
     </>
   );
 }
