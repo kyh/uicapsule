@@ -33,14 +33,15 @@ const LogoContainer = styled.a`
 `;
 
 const NavLink = styled(Button)`
-  margin-right: ${({ theme }) => theme.spacing(1)}px;
-  ${({ primary, theme }) =>
-    primary &&
+  ${({ theme, primary }) => css`
+    margin-right: ${({ theme }) => theme.spacing(1)}px;
+    ${primary &&
     css`
       margin-right: 0;
       border-color: ${theme.palette.divider};
       border-radius: ${theme.spacing(3)}px;
     `}
+  `}
 `;
 
 const DrawerList = styled(List)`
@@ -48,24 +49,24 @@ const DrawerList = styled(List)`
 `;
 
 const LeftNav = styled.div`
-  background-color: ${({ theme }) => theme.palette.background.default};
-  box-shadow: ${({ theme }) =>
-    `-${theme.spacing(2)}px 0 0 0 ${theme.palette.background.default}`};
-  margin-left: ${({ theme }) => theme.spacing(2)}px;
-  padding-left: ${({ theme }) => theme.spacing(2)}px;
-  border-left: ${({ theme }) => `1px solid ${theme.palette.divider}`};
-  transition: ${({ theme }) =>
-    `transform ${theme.transitions.duration.shortest}ms ${theme.transitions.easing.easeInOut}`};
-  flex-grow: 1;
-  ${({ active }) =>
-    active &&
+  ${({ theme, active }) => css`
+    background-color: ${theme.palette.background.default};
+    box-shadow: -${theme.spacing(2)}px 0 0 0 ${theme.palette.background.default};
+    margin-left: ${theme.spacing(2)}px;
+    padding-left: ${theme.spacing(2)}px;
+    border-left: ${`1px solid ${theme.palette.divider}`};
+    transition: transform ${theme.transitions.duration.shortest}ms
+      ${theme.transitions.easing.easeInOut};
+    flex-grow: 1;
+    ${active &&
     css`
       transform: translateX(-52px);
     `}
 
-  @media (max-width: ${({ theme }) => theme.breakpoints.values.sm}px) {
-    display: none;
-  }
+    @media (max-width: ${theme.breakpoints.values.sm}px) {
+      display: none;
+    }
+  `}
 `;
 
 const NavbarContainer = styled(AppBar)`

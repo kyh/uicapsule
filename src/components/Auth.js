@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import styled from "styled-components";
+import styled, { css } from "styled-components";
 import Box from "@material-ui/core/Box";
 import Alert from "@material-ui/lab/Alert";
 import AuthForm from "components/AuthForm";
@@ -7,25 +7,27 @@ import AuthSocial from "components/AuthSocial";
 import { useRouter } from "next/router";
 
 const OrText = styled(Box)`
-  color: ${({ theme }) => theme.palette.text.hint};
-  position: relative;
-  text-align: center;
-  font-size: 12px;
-  text-transform: lowercase;
-  span {
+  ${({ theme }) => css`
+    color: ${theme.palette.text.hint};
     position: relative;
-    background: ${({ theme }) => theme.palette.background.paper};
-    padding: 0 ${({ theme }) => theme.spacing(1)}px;
-  }
-  &:before {
-    content: "";
-    position: absolute;
-    height: 1px;
-    left: 0;
-    right: 0;
-    background-color: ${({ theme }) => theme.palette.divider};
-    top: calc(50% - 1px);
-  }
+    text-align: center;
+    font-size: 12px;
+    text-transform: lowercase;
+    span {
+      position: relative;
+      background: ${theme.palette.background.paper};
+      padding: 0 ${theme.spacing(1)}px;
+    }
+    &:before {
+      content: "";
+      position: absolute;
+      height: 1px;
+      left: 0;
+      right: 0;
+      background-color: ${theme.palette.divider};
+      top: calc(50% - 1px);
+    }
+  `}
 `;
 
 function Auth(props) {

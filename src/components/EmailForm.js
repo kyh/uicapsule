@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import styled from "styled-components";
+import styled, { css } from "styled-components";
 import IconButton from "@material-ui/core/IconButton";
 import InputBase from "@material-ui/core/InputBase";
 import Snackbar from "@material-ui/core/Snackbar";
@@ -8,16 +8,18 @@ import contact from "util/contact";
 import { useForm } from "react-hook-form";
 
 const SubscribeForm = styled.form`
-  display: flex;
-  border: 1px solid ${({ theme }) => theme.palette.divider};
-  border-radius: 4px;
-  .MuiInputBase-input {
-    font-size: 0.8rem;
-    padding: ${({ theme }) => `${theme.spacing(1)}px ${theme.spacing(1)}px`};
-  }
-  .MuiIconButton-root {
-    border-radius: 0;
-  }
+  ${({ theme }) => css`
+    display: flex;
+    border: 1px solid ${theme.palette.divider};
+    border-radius: 4px;
+    .MuiInputBase-input {
+      font-size: 0.8rem;
+      padding: ${theme.spacing(1)}px ${theme.spacing(1)}px;
+    }
+    .MuiIconButton-root {
+      border-radius: 0;
+    }
+  `}
 `;
 
 const Spinner = styled(CircularProgress)`

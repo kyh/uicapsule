@@ -1,5 +1,5 @@
 import React from "react";
-import styled from "styled-components";
+import styled, { css } from "styled-components";
 import Section from "components/Section";
 import Container from "@material-ui/core/Container";
 import SectionHeader from "components/SectionHeader";
@@ -11,8 +11,10 @@ import CardHeader from "@material-ui/core/CardHeader";
 import Avatar from "@material-ui/core/Avatar";
 
 const TestimonialAvatar = styled(Avatar)`
-  width: ${({ theme }) => theme.spacing(7)}px;
-  height: ${({ theme }) => theme.spacing(7)}px;
+  ${({ theme }) => css`
+    width: ${theme.spacing(7)}px;
+    height: ${theme.spacing(7)}px;
+  `}
 `;
 
 const TestimonialHeader = styled(CardHeader)`

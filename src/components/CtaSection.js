@@ -1,5 +1,5 @@
 import React from "react";
-import styled from "styled-components";
+import styled, { css } from "styled-components";
 import Section from "components/Section";
 import Container from "@material-ui/core/Container";
 import Box from "@material-ui/core/Box";
@@ -9,20 +9,23 @@ import Button from "@material-ui/core/Button";
 import Link from "next/link";
 
 const CtaContainer = styled(Container)`
-  background-color: ${({ theme }) => theme.palette.primary.main};
-  padding: ${({ theme }) => theme.spacing(8)}px;
-  border-radius: 8px;
-  box-shadow: ${({ theme }) => theme.shadows[6]};
-  max-width: 900px;
-  margin: 0 auto;
-  @media (max-width: 900px) {
-    border-radius: 0;
-  }
+  ${({ theme }) => css`
+    background-color: ${theme.palette.primary.main};
+    padding: ${theme.spacing(8)}px;
+    border-radius: 8px;
+    box-shadow: ${theme.shadows[6]};
+    max-width: 900px;
+    margin: 0 auto;
 
-  .MuiButton-contained {
-    background-color: #fff;
-    color: ${({ theme }) => theme.palette.primary.main};
-  }
+    @media (max-width: 900px) {
+      border-radius: 0;
+    }
+
+    .MuiButton-contained {
+      background-color: #fff;
+      color: ${theme.palette.primary.main};
+    }
+  `}
 `;
 
 const Title = styled(Typography)`

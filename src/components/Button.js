@@ -1,11 +1,13 @@
 import React from "react";
-import styled from "styled-components";
+import styled, { css } from "styled-components";
 import Button from "@material-ui/core/Button";
 import CircularProgress from "@material-ui/core/CircularProgress";
 
 const ButtonContent = styled.div`
-  opacity: ${({ loading }) => (loading ? 0 : 1)};
-  transition: opacity 0.3s ease;
+  ${({ loading }) => css`
+    opacity: ${loading ? 0 : 1};
+    transition: opacity 0.3s ease;
+  `}
 `;
 
 const Spinner = styled(CircularProgress)`

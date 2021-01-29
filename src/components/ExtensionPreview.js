@@ -46,20 +46,22 @@ const PreviewWindow = styled.div`
 `;
 
 const TryButton = styled.button`
-  font-size: 0.9375rem;
-  position: relative;
-  top: -${({ theme }) => theme.spacing(3)}px;
-  background: ${({ theme }) => theme.palette.background.default};
-  padding: ${({ theme }) => `${theme.spacing(2)}px ${theme.spacing(4)}px`};
-  box-shadow: ${({ theme }) => theme.shadows[4]};
-  border-radius: 30px;
-  border: none;
-  cursor: pointer;
-  transition: color 0.2s ease;
-  z-index: 5;
-  &:hover {
-    color: ${({ theme }) => theme.palette.primary.main};
-  }
+  ${({ theme }) => css`
+    font-size: 0.9375rem;
+    position: relative;
+    top: -${theme.spacing(3)}px;
+    background: ${theme.palette.background.default};
+    padding: ${theme.spacing(2)}px ${theme.spacing(4)}px;
+    box-shadow: ${theme.shadows[4]};
+    border-radius: 30px;
+    border: none;
+    cursor: pointer;
+    transition: color 0.2s ease;
+    z-index: 5;
+    &:hover {
+      color: ${theme.palette.primary.main};
+    }
+  `}
 `;
 
 let Extension = null;

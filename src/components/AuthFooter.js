@@ -1,13 +1,15 @@
 import React from "react";
-import styled from "styled-components";
+import styled, { css } from "styled-components";
 import LinkMui from "@material-ui/core/Link";
 import Link from "next/link";
 
 const Conatainer = styled.div`
-  display: flex;
-  font-size: 0.9rem;
-  margin: ${({ theme }) => `${theme.spacing(1.5)}px ${theme.spacing(8)}px 0`};
-  justify-content: space-between;
+  ${({ theme }) => css`
+    display: flex;
+    font-size: 0.9rem;
+    margin: ${theme.spacing(1.5)}px ${theme.spacing(8)}px 0;
+    justify-content: space-between;
+  `}
 `;
 
 function AuthFooter(props) {

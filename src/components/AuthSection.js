@@ -1,5 +1,5 @@
 import React from "react";
-import styled from "styled-components";
+import styled, { css } from "styled-components";
 import Section from "components/Section";
 import Container from "@material-ui/core/Container";
 import SectionHeader from "components/SectionHeader";
@@ -7,12 +7,14 @@ import Auth from "components/Auth";
 import AuthFooter from "components/AuthFooter";
 
 const AuthFormContainer = styled.div`
-  @media (min-width: ${({ theme }) => theme.breakpoints.values.sm}px) {
-    border: 1px solid ${({ theme }) => theme.palette.divider};
-    border-radius: 8px;
-    padding: ${({ theme }) => `${theme.spacing(5)}px ${theme.spacing(6)}px`};
-    margin: ${({ theme }) => `${theme.spacing(3)}px ${theme.spacing(8)}px 0`};
-  }
+  ${({ theme }) => css`
+    @media (min-width: ${theme.breakpoints.values.sm}px) {
+      border: 1px solid ${theme.palette.divider};
+      border-radius: 8px;
+      padding: ${theme.spacing(5)}px ${theme.spacing(6)}px;
+      margin: ${theme.spacing(3)}px ${theme.spacing(8)}px 0;
+    }
+  `}
 `;
 
 function AuthSection(props) {

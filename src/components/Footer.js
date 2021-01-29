@@ -1,5 +1,5 @@
 import React from "react";
-import styled from "styled-components";
+import styled, { css } from "styled-components";
 import Container from "@material-ui/core/Container";
 import Grid from "@material-ui/core/Grid";
 import Link from "next/link";
@@ -10,14 +10,18 @@ import Logo from "components/Logo";
 import EmailForm from "components/EmailForm";
 
 const FooterContainer = styled(Container)`
-  color: ${({ theme }) => theme.palette.text.secondary};
-  margin-top: auto;
+  ${({ theme }) => css`
+    color: ${theme.palette.text.secondary};
+    margin-top: auto;
+  `}
 `;
 
 const FooterSection = styled(Grid)`
-  margin-top: 1rem;
-  padding: 1rem 0;
-  border-top: 1px solid ${({ theme }) => theme.palette.divider};
+  ${({ theme }) => css`
+    margin-top: 1rem;
+    padding: 1rem 0;
+    border-top: 1px solid ${theme.palette.divider};
+  `}
 `;
 
 const BottomFooterSection = styled(Grid)`
@@ -32,42 +36,50 @@ const LogoContainer = styled.div`
 `;
 
 const CategoryHeader = styled(Typography)`
-  color: ${({ theme }) => theme.palette.text.primary};
-  font-size: 16px;
-  font-weight: 500;
-  margin-bottom: ${({ theme }) => theme.spacing(1)}px;
+  ${({ theme }) => css`
+    color: ${theme.palette.text.primary};
+    font-size: 16px;
+    font-weight: 500;
+    margin-bottom: ${theme.spacing(1)}px;
+  `}
 `;
 
 const FooterLinksContainer = styled(Grid)`
-  padding-right: ${({ theme }) => theme.spacing(3)}px;
-  &:last-child {
-    padding-right: 0;
-  }
+  ${({ theme }) => css`
+    padding-right: ${theme.spacing(3)}px;
+    &:last-child {
+      padding-right: 0;
+    }
+  `}
 `;
 
 const FooterLink = styled(Button)`
-  display: block;
-  color: ${({ theme }) => theme.palette.text.secondary};
-  margin-left: ${({ theme }) => theme.spacing(-1)}px;
+  ${({ theme }) => css`
+    display: block;
+    color: ${theme.palette.text.secondary};
+    margin-left: ${theme.spacing(-1)}px;
+  `}
 `;
 
 const SocialIcon = styled(Button)`
-  box-shadow: ${({ theme }) => theme.shadows[2]};
-  margin-left: ${({ theme }) => theme.spacing(2)}px;
-  border-radius: 100%;
-  padding: 0;
-  min-width: 0;
-  svg {
-    fill: ${({ theme }) => theme.palette.grey[600]};
-    transition: fill 0.1s ease;
-  }
-  &:hover {
-    background-color: initial;
-    box-shadow: ${({ theme }) => theme.shadows[2]};
+  ${({ theme }) => css`
+    box-shadow: ${theme.shadows[2]};
+    margin-left: ${theme.spacing(2)}px;
+    border-radius: 100%;
+    padding: 0;
+    min-width: 0;
     svg {
-      fill: #000;
+      fill: ${theme.palette.grey[600]};
+      transition: fill 0.1s ease;
     }
-  }
+    &:hover {
+      background-color: initial;
+      box-shadow: ${theme.shadows[2]};
+      svg {
+        fill: #000;
+      }
+    }
+  `}
 `;
 
 function Footer() {

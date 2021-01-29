@@ -1,5 +1,5 @@
 import React, { useRef, useEffect, useState } from "react";
-import styled from "styled-components";
+import styled, { css } from "styled-components";
 import Link from "next/link";
 import Carousel from "react-elastic-carousel";
 import Button from "@material-ui/core/Button";
@@ -12,10 +12,12 @@ import TestimonialsSection from "components/TestimonialsSection";
 import CtaSection from "components/CtaSection";
 
 const HeroCtaContainer = styled.div`
-  margin-bottom: ${({ theme }) => theme.spacing(4)}px;
-  > button {
-    padding: ${({ theme }) => `${theme.spacing(1.5)}px ${theme.spacing(3)}px`};
-  }
+  ${({ theme }) => css`
+    margin-bottom: ${theme.spacing(4)}px;
+    > button {
+      padding: ${theme.spacing(1.5)}px ${theme.spacing(3)}px;
+    }
+  `}
 `;
 
 const Item = styled.div`

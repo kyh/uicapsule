@@ -14,33 +14,36 @@ const FeaturesContainer = styled(Container)`
 `;
 
 const Item = styled(ButtonBase)`
-  text-align: left;
-  border-radius: 8px;
-  border: 1px solid ${({ theme }) => theme.palette.divider};
-  box-shadow: ${({ theme }) => theme.shadows[2]};
-  padding: ${({ theme }) => theme.spacing(3)}px;
-  margin-bottom: ${({ theme }) => theme.spacing(3)}px;
-  transition: all 0.2s ease;
-  ${({ active, theme }) =>
-    active &&
+  ${({ active, theme }) => css`
+    text-align: left;
+    border-radius: 8px;
+    border: 1px solid ${theme.palette.divider};
+    box-shadow: ${theme.shadows[2]};
+    padding: ${theme.spacing(3)}px;
+    margin-bottom: ${theme.spacing(3)}px;
+    transition: all 0.2s ease;
+    ${active &&
     css`
       background-color: ${theme.palette.action.hover};
       box-shadow: none;
     `}
+  `}
 `;
 
 const IconContainer = styled.div`
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  border-radius: 50%;
-  padding: ${({ theme }) => theme.spacing(1.2)}px;
-  margin-left: ${({ theme }) => theme.spacing(2)}px;
-  box-shadow: ${({ theme }) => theme.shadows[2]};
-  background-color: ${({ theme }) => theme.palette.background.default};
-  > svg {
-    width: 16px;
-  }
+  ${({ theme }) => css`
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    border-radius: 50%;
+    padding: ${theme.spacing(1.2)}px;
+    margin-left: ${theme.spacing(2)}px;
+    box-shadow: ${theme.shadows[2]};
+    background-color: ${theme.palette.background.default};
+    > svg {
+      width: 16px;
+    }
+  `}
 `;
 
 const animateFadeIn = keyframes`
@@ -71,56 +74,68 @@ const animateUp2 = keyframes`
 `;
 
 const AnimatedImageContainer = styled.div`
-  &:before,
-  &:after {
-    content: "";
-    position: absolute;
-    display: block;
-    left: 0;
-    right: 0;
-    height: 60px;
-    z-index: 1;
-  }
+  ${({ theme }) => css`
+    &:before,
+    &:after {
+      content: "";
+      position: absolute;
+      display: block;
+      left: 0;
+      right: 0;
+      height: 60px;
+      z-index: 1;
+    }
 
-  &:before {
-    top: 0;
-    background: linear-gradient(to bottom, #ffffff 0%, transparent 100%);
-  }
+    &:before {
+      top: 0;
+      background: linear-gradient(
+        to bottom,
+        ${theme.palette.background.default} 0%,
+        transparent 100%
+      );
+    }
 
-  &:after {
-    bottom: 0;
-    background: linear-gradient(to top, #ffffff 0%, transparent 100%);
-  }
+    &:after {
+      bottom: 0;
+      background: linear-gradient(
+        to top,
+        ${theme.palette.background.default} 0%,
+        transparent 100%
+      );
+    }
 
-  > div {
-    position: absolute !important;
-  }
-  > div:nth-child(1) {
-    animation: ${animateUp} 80s linear infinite;
-  }
-  > div:nth-child(2) {
-    animation: ${animateUp2} 80s linear infinite;
-  }
+    > div {
+      position: absolute !important;
+    }
+    > div:nth-child(1) {
+      animation: ${animateUp} 80s linear infinite;
+    }
+    > div:nth-child(2) {
+      animation: ${animateUp2} 80s linear infinite;
+    }
+  `}
 `;
 
 const IFrameContainer = styled.div`
-  position: relative;
-  width: 100%;
-  height: 100%;
-  padding: ${({ theme }) => theme.spacing(4)}px;
-  iframe {
+  ${({ theme }) => css`
+    position: relative;
     width: 100%;
     height: 100%;
-    border-radius: 10px;
-    box-shadow: ${({ theme }) => theme.shadows[3]};
-    animation: ${animateFadeIn} 0.5s ease;
-  }
-  button {
-    position: absolute;
-    left: 50%;
-    bottom: 40px;
-    transform: translateX(-50%);
-  }
+    padding: ${theme.spacing(4)}px;
+    iframe {
+      width: 100%;
+      height: 100%;
+      border-radius: 10px;
+      box-shadow: ${theme.shadows[3]};
+      animation: ${animateFadeIn} 0.5s ease;
+    }
+    button {
+      position: absolute;
+      left: 50%;
+      bottom: 40px;
+      transform: translateX(-50%);
+    }
+  `}
 `;
 
 const items = [
