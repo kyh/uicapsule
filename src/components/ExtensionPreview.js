@@ -1,6 +1,8 @@
 import React, { useRef, useEffect, useState } from "react";
 import styled, { css } from "styled-components";
 import { useRouter } from "next/router";
+import Snackbar from "@material-ui/core/Snackbar";
+import { isMobile } from "../util/util";
 
 const PreviewContainer = styled.section`
   margin: 0 auto;
@@ -69,10 +71,18 @@ let Extension = null;
 function ExtensionPreview({ onSetHtml = () => {} }) {
   const router = useRouter();
   const [isActivated, setIsActivated] = useState(false);
+  const [alert, setAlert] = useState({ message: "", open: false });
   const [html, setHtml] = useState("");
   const mountEl = useRef(null);
 
   const loadAndInitExtension = async () => {
+    if (isMobile()) {
+      setAlert({
+        message: "Unfortunately, this demo doesn't work on mobile",
+        open: true,
+      });
+      return;
+    }
     if (!Extension) {
       Extension = await import("@ui-capsule/chrome-extension");
       Extension.mount(mountEl.current, {
@@ -117,6 +127,12 @@ function ExtensionPreview({ onSetHtml = () => {} }) {
           ? "Mouse over elements above and click to save"
           : "Try it yourself"}
       </TryButton>
+      <Snackbar
+        anchorOrigin={{ vertical: "bottom", horizontal: "center" }}
+        open={alert.open}
+        onClose={() => setAlert({ ...alert, open: false })}
+        message={alert.message}
+      />
     </PreviewContainer>
   );
 }

@@ -28,7 +28,11 @@ const Spinner = styled(CircularProgress)`
 
 function EmailForm({ message = "", onComplete = () => {}, ...rest }) {
   const [pending, setPending] = useState(false);
-  const [formAlert, setFormAlert] = useState(null);
+  const [alert, setAlert] = useState({
+    type: "",
+    message: "",
+    open: false,
+  });
   const { handleSubmit, register, errors, reset } = useForm();
 
   const onSubmit = (data) => {
@@ -41,16 +45,18 @@ function EmailForm({ message = "", onComplete = () => {}, ...rest }) {
         // Clear form
         reset();
         // Show success alert message
-        setFormAlert({
+        setAlert({
           type: "success",
           message: "Thanks for signing up!",
+          open: true,
         });
       })
       .catch((error) => {
         // Show error alert message
-        setFormAlert({
+        setAlert({
           type: "error",
           message: error.message,
+          open: true,
         });
       })
       .finally(() => {
@@ -100,9 +106,9 @@ function EmailForm({ message = "", onComplete = () => {}, ...rest }) {
       </SubscribeForm>
       <Snackbar
         anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
-        open={!!formAlert}
-        onClose={() => setFormAlert(null)}
-        message={formAlert && formAlert.message}
+        open={alert.open}
+        onClose={() => setAlert({ ...alert, open: false })}
+        message={alert.message}
       />
     </>
   );
