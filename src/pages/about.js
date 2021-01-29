@@ -1,4 +1,5 @@
 import React from "react";
+import Head from "next/head";
 import HeroSection from "components/HeroSection";
 import SectionHeader from "components/SectionHeader";
 import CtaSection from "components/CtaSection";
@@ -6,6 +7,9 @@ import CtaSection from "components/CtaSection";
 function AboutPage() {
   return (
     <>
+      <Head>
+        <title>UI Capsule | About</title>
+      </Head>
       <HeroSection
         bgColor="default"
         size="large"

@@ -50,7 +50,7 @@ const FooterLinksContainer = styled(Grid)`
     &:last-child {
       padding-right: 0;
     }
-    @media (max-width: ${theme.breakpoints.values.sm}px) {
+    @media (max-width: ${theme.breakpoints.values.md}px) {
       margin-bottom: ${theme.spacing(3)}px;
     }
   `}

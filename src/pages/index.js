@@ -1,5 +1,6 @@
 import React, { useRef, useEffect, useState } from "react";
 import styled, { css } from "styled-components";
+import Head from "next/head";
 import Link from "next/link";
 import Carousel from "react-elastic-carousel";
 import Button from "@material-ui/core/Button";
@@ -65,13 +66,16 @@ function IndexPage() {
 
   return (
     <>
-      <style global jsx>
-        {`
-          html {
-            scroll-behavior: smooth;
-          }
-        `}
-      </style>
+      <Head>
+        <style global jsx>
+          {`
+            html {
+              scroll-behavior: smooth;
+            }
+          `}
+        </style>
+        <title>UI Capsule | Bookmark your inspirations</title>
+      </Head>
       <HeroSection
         size="large"
         bgImage="/hero-background.svg"
