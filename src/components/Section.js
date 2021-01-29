@@ -57,9 +57,10 @@ function Section({
   // Get MUI responsize size object based
   // on size prop (normal, medium, large, auto)
   const verticalPadding = {
-    normal: { xs: 6 },
-    medium: { xs: 6, sm: 10 },
-    large: { xs: 6, sm: 20 },
+    small: { xs: 4, sm: 10 },
+    normal: { xs: 8, sm: 10 },
+    medium: { xs: 10, sm: 10 },
+    large: { xs: 12, sm: 20 },
     auto: 0,
   }[size];
 

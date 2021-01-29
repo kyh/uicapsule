@@ -10,7 +10,23 @@ import ButtonBase from "@material-ui/core/ButtonBase";
 import Button from "@material-ui/core/Button";
 
 const FeaturesContainer = styled(Container)`
-  max-width: 1100px;
+  ${({ theme }) => css`
+    display: flex;
+    max-width: 1100px;
+    @media (max-width: ${theme.breakpoints.values.sm}px) {
+      flex-direction: column;
+    }
+  `}
+`;
+
+const ItemsContainer = styled.div`
+  ${({ theme }) => css`
+    width: 100%;
+    padding: ${theme.spacing(4)}px;
+    @media (max-width: ${theme.breakpoints.values.sm}px) {
+      padding: 0 ${theme.spacing(1)}px;
+    }
+  `}
 `;
 
 const Item = styled(ButtonBase)`
@@ -52,15 +68,22 @@ const animateFadeIn = keyframes`
 `;
 
 const ImageContainer = styled.div`
-  position: relative;
-  transform: translateY(-25px);
-  height: 600px;
-  max-width: 500px;
-  width: 100%;
-  overflow: hidden;
-  img {
-    animation: ${animateFadeIn} 0.5s ease;
-  }
+  ${({ theme }) => css`
+    position: relative;
+    transform: translateY(-25px);
+    height: 600px;
+    max-width: 500px;
+    width: 100%;
+    overflow: hidden;
+    padding: ${theme.spacing(4)}px;
+    img {
+      animation: ${animateFadeIn} 0.5s ease;
+    }
+    @media (max-width: ${theme.breakpoints.values.sm}px) {
+      padding: 0;
+      transform: translateY(20px);
+    }
+  `}
 `;
 
 const animateUp = keyframes`
@@ -232,35 +255,27 @@ const items = [
 function FeaturesSection(props) {
   const [activeItemIndex, setActiveItemIndex] = useState(0);
   return (
-    <Section size={props.size}>
+    <Section size="small">
       <FeaturesContainer>
-        <Grid container alignItems="center" spacing={8}>
-          <Grid item xs={12} md={6}>
-            {items.map((item, index) => (
-              <Item
-                key={item.title}
-                active={activeItemIndex === index ? 1 : 0}
-                onClick={() => setActiveItemIndex(index)}
-                disableRipple
-              >
-                <Box>
-                  <Typography variant="h4" gutterBottom>
-                    {item.title}
-                  </Typography>
-                  <Typography variant="subtitle1">
-                    {item.description}
-                  </Typography>
-                </Box>
-                <IconContainer>{item.icon}</IconContainer>
-              </Item>
-            ))}
-          </Grid>
-          <Grid container item direction="column" xs={12} md={6}>
-            <ImageContainer>
-              {items[activeItemIndex].render(props)}
-            </ImageContainer>
-          </Grid>
-        </Grid>
+        <ItemsContainer>
+          {items.map((item, index) => (
+            <Item
+              key={item.title}
+              active={activeItemIndex === index ? 1 : 0}
+              onClick={() => setActiveItemIndex(index)}
+              disableRipple
+            >
+              <Box>
+                <Typography variant="h4" gutterBottom>
+                  {item.title}
+                </Typography>
+                <Typography variant="subtitle1">{item.description}</Typography>
+              </Box>
+              <IconContainer>{item.icon}</IconContainer>
+            </Item>
+          ))}
+        </ItemsContainer>
+        <ImageContainer>{items[activeItemIndex].render(props)}</ImageContainer>
       </FeaturesContainer>
     </Section>
   );

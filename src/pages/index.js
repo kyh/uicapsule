@@ -128,7 +128,7 @@ function IndexPage() {
         <ExtensionPreview onSetHtml={setHtml} />
       </HeroSection>
       <ScrollToLink id="features" top={-50} />
-      <FeaturesSection size="normal" html={html} nextExample={nextExample} />
+      <FeaturesSection html={html} nextExample={nextExample} />
       <ScrollToLink id="testimonials" top={-80} />
       <TestimonialsSection
         size="medium"

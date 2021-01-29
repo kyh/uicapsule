@@ -16,10 +16,19 @@ import Drawer from "@material-ui/core/Drawer";
 import List from "@material-ui/core/List";
 import ListItem from "@material-ui/core/ListItem";
 import ListItemText from "@material-ui/core/ListItemText";
+import Box from "@material-ui/core/Box";
 import useScrollTrigger from "@material-ui/core/useScrollTrigger";
 import { useAuth } from "util/auth.js";
 import useDarkMode from "use-dark-mode";
 import Logo from "components/Logo";
+
+const NavbarContainer = styled(AppBar)`
+  ${({ active, theme }) =>
+    active &&
+    css`
+      box-shadow: ${theme.shadows[4]};
+    `}
+`;
 
 const LogoContainer = styled.a`
   display: flex;
@@ -44,10 +53,6 @@ const NavLink = styled(Button)`
   `}
 `;
 
-const DrawerList = styled(List)`
-  width: 250px;
-`;
-
 const LeftNav = styled.div`
   ${({ theme, active }) => css`
     background-color: ${theme.palette.background.default};
@@ -58,23 +63,20 @@ const LeftNav = styled.div`
     transition: transform ${theme.transitions.duration.shortest}ms
       ${theme.transitions.easing.easeInOut};
     flex-grow: 1;
-    ${active &&
-    css`
-      transform: translateX(-52px);
-    `}
 
     @media (max-width: ${theme.breakpoints.values.sm}px) {
       display: none;
     }
+
+    ${active &&
+    css`
+      transform: translateX(-52px);
+    `}
   `}
 `;
 
-const NavbarContainer = styled(AppBar)`
-  ${({ active, theme }) =>
-    active &&
-    css`
-      box-shadow: ${theme.shadows[4]};
-    `}
+const RightNav = styled(Hidden)`
+  margin-left: auto;
 `;
 
 function Navbar() {
@@ -106,7 +108,7 @@ function Navbar() {
               <Logo />
             </LogoContainer>
           </Link>
-          <LeftNav xsDown implementation="css" active={trigger ? 1 : 0}>
+          <LeftNav active={trigger ? 1 : 0}>
             <Link href="/#demo" passHref>
               <NavLink color="inherit" component="a">
                 Demo
@@ -192,7 +194,7 @@ function Navbar() {
                 {!darkMode.value && <WbSunnyIcon />}
               </IconButton> */}
           </Hidden>
-          <Hidden smUp implementation="css">
+          <RightNav smUp implementation="css">
             <IconButton onClick={() => setDrawerOpen(true)} color="inherit">
               <MenuIcon />
             </IconButton>
@@ -202,7 +204,7 @@ function Navbar() {
               auth={auth}
               darkMode={darkMode}
             />
-          </Hidden>
+          </RightNav>
         </Toolbar>
       </Container>
     </NavbarContainer>
@@ -215,14 +217,34 @@ function NavDrawer({ drawerOpen, setDrawerOpen, auth, darkMode }) {
       anchor="right"
       open={drawerOpen}
       onClose={() => setDrawerOpen(false)}
+      elevation={2}
     >
-      <DrawerList onClick={() => setDrawerOpen(false)}>
+      <List style={{ width: 200 }} onClick={() => setDrawerOpen(false)}>
         {!auth.user && (
-          <Link href="/auth/signin" passHref>
-            <ListItem button component="a">
-              <ListItemText>Sign in</ListItemText>
-            </ListItem>
-          </Link>
+          <>
+            <Link href="/" passHref>
+              <ListItem button component="a">
+                <ListItemText>Home</ListItemText>
+              </ListItem>
+            </Link>
+            <Link href="/about" passHref>
+              <ListItem button component="a">
+                <ListItemText>About</ListItemText>
+              </ListItem>
+            </Link>
+            <Link href="/auth/signin" passHref>
+              <ListItem button component="a">
+                <ListItemText>Sign in</ListItemText>
+              </ListItem>
+            </Link>
+            <Box p={1}>
+              <Link href="/auth/signup" passHref>
+                <Button variant="outlined" component="a" fullWidth>
+                  Sign up
+                </Button>
+              </Link>
+            </Box>
+          </>
         )}
         {auth.user && (
           <>
@@ -252,7 +274,7 @@ function NavDrawer({ drawerOpen, setDrawerOpen, auth, darkMode }) {
             {!darkMode.value && <WbSunnyIcon />}
           </IconButton>
         </ListItem> */}
-      </DrawerList>
+      </List>
     </Drawer>
   );
 }

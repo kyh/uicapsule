@@ -14,7 +14,7 @@ function BetaPage() {
       <HeroSection
         bgColor="default"
         size="large"
-        pt={{ xs: 12, sm: 20 }}
+        pt={{ xs: 15, sm: 20 }}
         pb={{ xs: 6, sm: 8 }}
       >
         <SectionHeader

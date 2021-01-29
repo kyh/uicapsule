@@ -50,6 +50,9 @@ const FooterLinksContainer = styled(Grid)`
     &:last-child {
       padding-right: 0;
     }
+    @media (max-width: ${theme.breakpoints.values.sm}px) {
+      margin-bottom: ${theme.spacing(3)}px;
+    }
   `}
 `;
 
@@ -91,7 +94,6 @@ function Footer() {
             <Logo />
           </LogoContainer>
         </Grid>
-
         <Grid item xs={12} md={6} container>
           <FooterLinksContainer item xs={12} md={4}>
             <CategoryHeader variant="caption" component="h4">
@@ -131,12 +133,12 @@ function Footer() {
         </Grid>
       </FooterSection>
       <BottomFooterSection container justify="space-between" spacing={4}>
-        <Grid item xs={12} md={4} container alignItems="center">
+        <Grid item xs={7} md={4} container alignItems="center">
           ©2021 Courtesy of Kaiyu Hsu
         </Grid>
         <Grid
           item
-          xs={12}
+          xs={5}
           md={4}
           container
           justify="flex-end"
