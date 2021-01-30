@@ -21,6 +21,22 @@ const TestimonialHeader = styled(CardHeader)`
   padding-top: 0;
 `;
 
+const TestimonialText = styled(Typography)`
+  position: relative;
+  &::before {
+    content: "";
+    display: block;
+    position: absolute;
+    left: -15px;
+    top: -6px;
+    background-image: url(/quote.svg);
+    background-repeat: no-repeat;
+    width: 24px;
+    height: 18px;
+    opacity: 0.25;
+  }
+`;
+
 const items = [
   {
     avatar: "https://uploads.divjoy.com/pravatar-150x-5.jpeg",
@@ -65,9 +81,9 @@ function TestimonialsSection(props) {
             <Grid item xs={12} sm={4} key={item.name}>
               <Card elevation={0}>
                 <CardContent>
-                  <Typography variant="body1" component="p">
-                    "{item.testimonial}"
-                  </Typography>
+                  <TestimonialText variant="body1" component="p">
+                    {item.testimonial}
+                  </TestimonialText>
                 </CardContent>
                 <TestimonialHeader
                   avatar={
