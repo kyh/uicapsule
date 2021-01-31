@@ -41,7 +41,6 @@ function DashboardSection(props) {
           size={4}
           textAlign="center"
         />
-
         {router.query.paid && auth.user.planIsActive && (
           <Box mx="auto" mb={4} maxWidth={400}>
             <Alert severity="success">
@@ -56,7 +55,6 @@ function DashboardSection(props) {
             </Alert>
           </Box>
         )}
-
         <Grid container spacing={4}>
           <Grid item xs={12} md={6}>
             <DashboardItems />
@@ -90,11 +88,10 @@ function DashboardSection(props) {
                     <Typography variant="h6" paragraph>
                       <strong>Extra debug info</strong>
                     </Typography>
-                    <Typography paragraph>
+                    <div>
                       <div>
                         You are signed in as <strong>{auth.user.email}</strong>.
                       </div>
-
                       {auth.user.stripeSubscriptionId && (
                         <>
                           <div>
@@ -110,7 +107,6 @@ function DashboardSection(props) {
                           </div>
                         </>
                       )}
-
                       <div>
                         You can change your account info{` `}
                         {auth.user.stripeSubscriptionId && <>and plan{` `}</>}
@@ -122,7 +118,6 @@ function DashboardSection(props) {
                         </Link>
                         .
                       </div>
-
                       {!auth.user.stripeSubscriptionId && (
                         <div>
                           You can signup for a plan in{" "}
@@ -134,7 +129,7 @@ function DashboardSection(props) {
                           .
                         </div>
                       )}
-                    </Typography>
+                    </div>
                   </Box>
                 </Box>
                 <Box />

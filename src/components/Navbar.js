@@ -83,7 +83,11 @@ function Navbar() {
   const auth = useAuth();
   const darkMode = useDarkMode();
   const [drawerOpen, setDrawerOpen] = useState(false);
-  const [menuState, setMenuState] = useState(null);
+  const [menuState, setMenuState] = useState({
+    id: "",
+    anchor: "",
+    open: false,
+  });
   const trigger = useScrollTrigger({
     disableHysteresis: true,
     threshold: 0,
@@ -92,11 +96,11 @@ function Navbar() {
   const handleOpenMenu = (event, id) => {
     // Store clicked element (to anchor the menu to)
     // and the menu id so we can tell which menu is open.
-    setMenuState({ anchor: event.currentTarget, id });
+    setMenuState({ anchor: event.currentTarget, id, open: true });
   };
 
   const handleCloseMenu = () => {
-    setMenuState(null);
+    setMenuState({ ...menuState, open: false });
   };
 
   return (
@@ -159,8 +163,8 @@ function Navbar() {
                 </Button>
                 <Menu
                   id="account-menu"
-                  open={menuState && menuState.id === "account-menu"}
-                  anchorEl={menuState && menuState.anchor}
+                  open={menuState.open}
+                  anchorEl={menuState.anchor}
                   getContentAnchorEl={undefined}
                   onClick={handleCloseMenu}
                   onClose={handleCloseMenu}
@@ -173,15 +177,18 @@ function Navbar() {
                     vertical: "top",
                     horizontal: "center",
                   }}
+                  elevation={0}
                 >
-                  <Link href="/dashboard" passHref>
-                    <MenuItem component="a">Dashboard</MenuItem>
-                  </Link>
-                  <Link href="/settings/general" passHref>
-                    <MenuItem component="a">Settings</MenuItem>
-                  </Link>
-                  <Divider />
-                  <MenuItem onClick={() => auth.signout()}>Signout</MenuItem>
+                  <div>
+                    <Link href="/dashboard" passHref>
+                      <MenuItem component="a">Dashboard</MenuItem>
+                    </Link>
+                    <Link href="/settings/general" passHref>
+                      <MenuItem component="a">Settings</MenuItem>
+                    </Link>
+                    <Divider />
+                    <MenuItem onClick={() => auth.signout()}>Signout</MenuItem>
+                  </div>
                 </Menu>
               </>
             )}

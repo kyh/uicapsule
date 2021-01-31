@@ -112,7 +112,7 @@ function DashboardItems(props) {
                 <ListItemSecondaryAction>
                   <IconButton
                     edge="end"
-                    ariaLabel="star"
+                    aria-label="star"
                     onClick={() => handleStarItem(item)}
                     className={item.featured && classes.starFeatured}
                   >
@@ -120,14 +120,14 @@ function DashboardItems(props) {
                   </IconButton>
                   <IconButton
                     edge="end"
-                    ariaLabel="update"
+                    aria-label="update"
                     onClick={() => setUpdatingItemId(item.id)}
                   >
                     <EditIcon />
                   </IconButton>
                   <IconButton
                     edge="end"
-                    ariaLabel="delete"
+                    aria-label="delete"
                     onClick={() => deleteItem(item.id)}
                   >
                     <DeleteIcon />
