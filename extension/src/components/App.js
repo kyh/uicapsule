@@ -18,12 +18,12 @@ export const darkTheme = {
   contentBackground: "#24292e",
 };
 
-function App({ container, demoMode }) {
+function App({ container, apiMode }) {
   const { darkMode } = useSelector((state) => state.app, shallowEqual);
   return (
     <ThemeProvider theme={darkMode ? darkTheme : lightTheme}>
-      <ElementHandler container={container} demoMode={demoMode} />
-      <Popover demoMode={demoMode} />
+      <ElementHandler container={container} apiMode={apiMode} />
+      <Popover apiMode={apiMode} />
     </ThemeProvider>
   );
 }

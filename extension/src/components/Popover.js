@@ -6,7 +6,7 @@ import { LOADING_STATE } from "../redux/selection";
 import Spinner from "./Spinner";
 import { SunIcon, MoonIcon, XIcon } from "./Icons";
 
-function Popover({ demoMode }) {
+function Popover({ apiMode }) {
   const dispatch = useDispatch();
   const { loadingState, image, htmlString } = useSelector(
     (state) => state.selection,
@@ -14,7 +14,7 @@ function Popover({ demoMode }) {
   );
 
   const onClickClose = () => {
-    if (demoMode) {
+    if (apiMode) {
       dispatch(deactivateApp());
     } else {
       window.location.reload();
@@ -22,10 +22,10 @@ function Popover({ demoMode }) {
   };
 
   const onClickViewInCapsule = (event) => {
-    if (demoMode && demoMode.onClickViewCapsule) {
+    if (apiMode && apiMode.onClickViewCapsule) {
       event.stopPropagation();
       event.preventDefault();
-      demoMode.onClickViewCapsule({ image, htmlString });
+      apiMode.onClickViewCapsule({ image, htmlString });
     }
   };
 
@@ -163,8 +163,8 @@ const Content = styled.div`
   background: ${({ theme }) => theme.contentBackground};
   padding: 12px;
   overflow-y: scroll;
+  max-height: 500px;
   img {
-    width: 100%;
     object-fit: cover;
   }
 `;

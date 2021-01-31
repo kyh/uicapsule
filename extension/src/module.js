@@ -39,7 +39,7 @@ export function unmount() {
   if (rootEl) rootEl.remove();
 }
 
-export function mount(container = document.body, demoMode) {
+export function mount(container = document.body, apiMode) {
   const host = document.createElement("div");
   host.setAttribute(ROOT_EL_IDENTIFIER, "");
   container.insertAdjacentElement("beforebegin", host);
@@ -49,17 +49,17 @@ export function mount(container = document.body, demoMode) {
     if (state.app.enabled) {
       render(
         <Provider store={store}>
-          <App container={container} demoMode={demoMode} />
+          <App container={container} apiMode={apiMode} />
         </Provider>,
         host
       );
-      if (demoMode && demoMode.onActivated) {
-        demoMode.onActivated();
+      if (apiMode && apiMode.onActivated) {
+        apiMode.onActivated();
       }
     } else {
       unmountComponentAtNode(host);
-      if (demoMode && demoMode.onDeactivated) {
-        demoMode.onDeactivated();
+      if (apiMode && apiMode.onDeactivated) {
+        apiMode.onDeactivated();
       }
     }
   });

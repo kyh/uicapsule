@@ -11,10 +11,10 @@ import {
 
 const GlobalStyle = createGlobalStyle`
   [data-ui-capsule] {
-    position: ${({ demoMode }) => (demoMode ? "absolute" : "fixed")} !important;
+    position: ${({ apiMode }) => (apiMode ? "absolute" : "fixed")} !important;
     top: 12px !important;
     right: 12px !important;
-    z-index: ${({ demoMode }) => (demoMode ? 1 : 2147483647)} !important;
+    z-index: ${({ apiMode }) => (apiMode ? 1 : 2147483647)} !important;
     border-width: initial !important;
     border-style: none !important;
     border-color: initial !important;
@@ -29,7 +29,7 @@ const GlobalStyle = createGlobalStyle`
 
 let lastElement = null;
 
-function ElementHandler({ container, demoMode }) {
+function ElementHandler({ container, apiMode }) {
   const dispatch = useDispatch();
 
   const handleMousemove = (event) => {
@@ -46,7 +46,7 @@ function ElementHandler({ container, demoMode }) {
   const handleClick = (event) => {
     event.stopPropagation();
     event.preventDefault();
-    dispatch(selectElement(event.target, demoMode));
+    dispatch(selectElement(event.target, apiMode));
   };
 
   useEffect(() => {
@@ -60,7 +60,7 @@ function ElementHandler({ container, demoMode }) {
     };
   }, []);
 
-  return <GlobalStyle demoMode={demoMode} />;
+  return <GlobalStyle apiMode={apiMode} />;
 }
 
 export default ElementHandler;

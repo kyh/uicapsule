@@ -1,5 +1,5 @@
 import { activateApp, deactivateApp, toggleApp } from "./redux/app";
-
+import { CAPTURE_SCREENSHOT } from "./redux/selection";
 const ACTIVATE_MENU_ID = "ACTIVATE";
 const DEACTIVATE_MENU_ID = "DEACTIVATE";
 
@@ -98,4 +98,15 @@ chrome.tabs.onActivated.addListener(async ({ tabId }) => {
 
 chrome.tabs.onUpdated.addListener(async ({ tabId }) => {
   updateExtensionUI(tabId);
+});
+
+chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+  switch (message.type) {
+    case CAPTURE_SCREENSHOT:
+      chrome.tabs.captureVisibleTab({ format: "png" }, sendResponse);
+      break;
+    default:
+      break;
+  }
+  return true;
 });

@@ -14,11 +14,11 @@
   "background": {
     "scripts": ["background.js"]
   },
-  "permissions": ["*://*/*", "contextMenus"],
+  "permissions": ["<all_urls>", "contextMenus", "tabCapture", "activeTab"],
   "content_security_policy": "script-src 'self' 'unsafe-eval'; object-src 'self'",
   "content_scripts": [
     {
-      "matches": ["http://*/*", "https://*/*"],
+      "matches": ["<all_urls>"],
       "js": ["content.js"],
       "run_at": "document_start"
     }

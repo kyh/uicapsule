@@ -1,4 +1,4 @@
-import { toSvg } from "html-to-image";
+import { toPng } from "html-to-image";
 
 export const highlightAttr = "data-ui-capsule-highlight";
 export const selectedAttr = "data-ui-capsule-selected";
@@ -6,6 +6,7 @@ export const selectedAttr = "data-ui-capsule-selected";
 export const SELECT_ELEMENT = "SELECT_ELEMENT";
 export const SELECT_ELEMENT_SUCCESS = "SELECT_ELEMENT_SUCCESS";
 export const RESET_SELECTED_ELEMENT = "RESET_SELECTED_ELEMENT";
+export const CAPTURE_SCREENSHOT = "CAPTURE_SCREENSHOT";
 
 export const LOADING_STATE = {
   default: "default",
@@ -13,13 +14,13 @@ export const LOADING_STATE = {
   done: "done",
 };
 
-export function selectElement(element, demoMode) {
+export function selectElement(element, apiMode) {
   return async (dispatch) => {
     dispatch({
       type: SELECT_ELEMENT,
       element,
     });
-    const { htmlString, dataUrl } = await compileElement(element);
+    const { htmlString, dataUrl } = await compileElement(element, apiMode);
     dispatch({
       type: SELECT_ELEMENT_SUCCESS,
       htmlString: htmlString,
@@ -66,10 +67,40 @@ export default function reducer(state = init, action) {
   }
 }
 
-async function compileElement(element) {
+function captureScreenshot(element) {
+  return new Promise((resolve) => {
+    chrome.runtime.sendMessage({ type: "CAPTURE_SCREENSHOT" }, (dataUri) => {
+      const rect = element.getBoundingClientRect();
+      const img = new Image();
+      img.src = dataUri;
+      img.onload = () => {
+        const canvas = document.createElement("canvas");
+        canvas.width = img.width;
+        canvas.height = img.height;
+        const context = canvas.getContext("2d");
+        context.drawImage(
+          img,
+          rect.x,
+          rect.y,
+          rect.width,
+          rect.height,
+          0,
+          0,
+          img.width,
+          img.height
+        );
+        const croppedUri = canvas.toDataURL("image/png");
+        // You could deal with croppedUri as cropped image src.
+        resolve(croppedUri);
+      };
+    });
+  });
+}
+
+async function compileElement(element, apiMode) {
   const removed = removeAttributes(element);
   const htmlString = convertToHtmlString(element);
-  const dataUrl = await toSvg(element);
+  const dataUrl = await toPng(element);
   removed.forEach((attr) => element.setAttribute(attr, ""));
   return { htmlString, dataUrl };
 }
