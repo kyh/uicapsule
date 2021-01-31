@@ -1,8 +1,7 @@
 import React, { useState } from "react";
 import Grid from "@material-ui/core/Grid";
 import TextField from "@material-ui/core/TextField";
-import Button from "@material-ui/core/Button";
-import CircularProgress from "@material-ui/core/CircularProgress";
+import Button from "components/Button";
 import { useAuth } from "util/auth.js";
 import { useForm } from "react-hook-form";
 
@@ -85,7 +84,6 @@ function AuthForm(props) {
             />
           </Grid>
         )}
-
         {["signup", "signin", "changepass"].includes(props.type) && (
           <Grid item xs={12}>
             <TextField
@@ -93,6 +91,7 @@ function AuthForm(props) {
               type="password"
               label="Password"
               name="pass"
+              autoComplete="on"
               error={errors.pass ? true : false}
               helperText={errors.pass && errors.pass.message}
               fullWidth
@@ -102,43 +101,16 @@ function AuthForm(props) {
             />
           </Grid>
         )}
-
-        {["signup", "changepass"].includes(props.type) && (
-          <Grid item xs={12}>
-            <TextField
-              variant="outlined"
-              type="password"
-              label="Confirm Password"
-              name="confirmPass"
-              error={errors.confirmPass ? true : false}
-              helperText={errors.confirmPass && errors.confirmPass.message}
-              fullWidth
-              inputRef={register({
-                required: "Please enter your password again",
-                validate: (value) => {
-                  if (value === getValues().pass) {
-                    return true;
-                  } else {
-                    return "This doesn't match your password";
-                  }
-                },
-              })}
-            />
-          </Grid>
-        )}
-
         <Grid item xs={12}>
           <Button
             variant="contained"
             color="primary"
             size="large"
             type="submit"
-            disabled={pending}
+            loading={pending}
             fullWidth
           >
-            {!pending && <span>{props.typeValues.buttonText}</span>}
-
-            {pending && <CircularProgress size={28} />}
+            {props.typeValues.buttonText}
           </Button>
         </Grid>
       </Grid>

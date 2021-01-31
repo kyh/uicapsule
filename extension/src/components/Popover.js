@@ -52,7 +52,7 @@ function Popover({ apiMode }) {
       </Header>
       {loadingState === LOADING_STATE.done && (
         <>
-          <Content>
+          <Content apiMode={apiMode}>
             {/* <iframe srcDoc={htmlString} frameBorder="0" /> */}
             <img src={image} />
           </Content>
@@ -163,7 +163,7 @@ const Content = styled.div`
   background: ${({ theme }) => theme.contentBackground};
   padding: 12px;
   overflow-y: scroll;
-  max-height: 500px;
+  max-height: ${({ apiMode }) => (apiMode ? 300 : 500)}px;
   img {
     object-fit: cover;
   }

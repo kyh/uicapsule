@@ -2,6 +2,7 @@ import { useReducer, useEffect, useRef } from "react";
 import firebase from "./firebase";
 
 const firestore = firebase.firestore();
+const serverTimestamp = firebase.firestore.FieldValue.serverTimestamp;
 
 /**** USERS ****/
 
@@ -30,7 +31,11 @@ export function createUser(uid, data) {
 // Fetch all items by owner (hook)
 export function useItemsByOwner(owner) {
   return useQuery(
-    owner && firestore.collection("items").where("owner", "==", owner)
+    owner &&
+      firestore
+        .collection("items")
+        .where("owner", "==", owner)
+        .orderBy("createdAt", "desc")
   );
 }
 
@@ -46,7 +51,10 @@ export function updateItem(id, data) {
 
 // Create a new item
 export function createItem(data) {
-  return firestore.collection("items").add(data);
+  return firestore.collection("items").add({
+    ...data,
+    createdAt: serverTimestamp(),
+  });
 }
 
 // Delete an item

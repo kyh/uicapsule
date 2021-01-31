@@ -8,12 +8,7 @@ function PricingPage() {
       <Head>
         <title>UI Capsule | Pricing</title>
       </Head>
-      <PricingSection
-        bgColor="default"
-        size="medium"
-        title="Pricing"
-        subtitle="Choose the plan that makes sense for you. All plans include a 14-day free trial."
-      />
+      <PricingSection />
     </>
   );
 }

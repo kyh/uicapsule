@@ -6,8 +6,7 @@ import Box from "@material-ui/core/Box";
 import Alert from "@material-ui/lab/Alert";
 import Grid from "@material-ui/core/Grid";
 import TextField from "@material-ui/core/TextField";
-import Button from "@material-ui/core/Button";
-import CircularProgress from "@material-ui/core/CircularProgress";
+import Button from "components/Button";
 import { useAuth } from "util/auth.js";
 import { useForm } from "react-hook-form";
 import { useItem, updateItem, createItem } from "util/db.js";
@@ -44,7 +43,7 @@ function EditItemModal(props) {
 
     const query = props.id
       ? updateItem(props.id, data)
-      : createItem({ owner: auth.user.id, ...data });
+      : createItem({ owner: auth.user.uid, ...data });
 
     query
       .then(() => {
@@ -100,11 +99,9 @@ function EditItemModal(props) {
                 color="primary"
                 size="large"
                 type="submit"
-                disabled={pending}
+                loading={pending}
               >
-                {!pending && <span>Save</span>}
-
-                {pending && <CircularProgress size={28} />}
+                Save
               </Button>
             </Grid>
           </Grid>

@@ -22,7 +22,9 @@ const Spinner = styled(CircularProgress)`
 function UIButton({ loading = false, children = "", ...rest }) {
   return (
     <Button disabled={loading} {...rest}>
-      <ButtonContent loading={loading}>{children}</ButtonContent>
+      <ButtonContent loading={loading === true ? 1 : 0}>
+        {children}
+      </ButtonContent>
       {loading && (
         <Spinner
           variant="indeterminate"

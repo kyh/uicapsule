@@ -49,7 +49,7 @@ function BetaPage() {
 
 function AuthPage() {
   const router = useRouter();
-  if (router.query.type === "signup") {
+  if (router.query.type === "signup" && router.query.key !== "beta") {
     return <BetaPage />;
   }
 

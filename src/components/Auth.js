@@ -49,14 +49,12 @@ function Auth(props) {
           <Alert severity={formAlert.type}>{formAlert.message}</Alert>
         </Box>
       )}
-
       <AuthForm
         type={props.type}
         typeValues={props.typeValues}
         onAuth={handleAuth}
         onFormAlert={handleFormAlert}
       />
-
       {["signup", "signin"].includes(props.type) &&
         props.providers &&
         props.providers.length && (

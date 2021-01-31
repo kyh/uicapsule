@@ -1,4 +1,5 @@
 import React from "react";
+import styled, { css } from "styled-components";
 import Section from "components/Section";
 import Container from "@material-ui/core/Container";
 import SectionHeader from "components/SectionHeader";
@@ -15,156 +16,147 @@ import ListItemText from "@material-ui/core/ListItemText";
 import Button from "@material-ui/core/Button";
 import Link from "next/link";
 import { useAuth } from "util/auth.js";
-import { makeStyles } from "@material-ui/core/styles";
 
-const useStyles = makeStyles((theme) => ({
-  card: {
-    display: "flex",
-    flexDirection: "column",
-    height: "100%",
-  },
-  cardContent: {
-    display: "flex",
-    flexDirection: "column",
-    height: "100%",
-    padding: theme.spacing(3),
-  },
-  price: {
-    display: "flex",
-    alignItems: "baseline",
-  },
-  listItem: {
-    paddingTop: 2,
-    paddingBottom: 2,
-  },
-  perkIcon: {
-    minWidth: 34,
-    color: theme.palette.success.main,
-  },
-}));
+const PriceCard = styled(Card)`
+  ${({ theme, highlight }) => css`
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    box-shadow: none;
+    ${highlight &&
+    css`
+      box-shadow: ${theme.shadows[4]};
+    `}
+  `}
+`;
 
-function PricingSection(props) {
-  const classes = useStyles();
+const PriceContent = styled(CardContent)`
+  ${({ theme }) => css`
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    padding: ${theme.spacing(3)}px;
+  `}
+`;
 
+const Price = styled(Typography)`
+  font-weight: 500;
+`;
+
+const PerkItem = styled(ListItem)`
+  padding-top: 2px;
+  padding-bottom: 2px;
+`;
+
+const PerkIcon = styled(ListItemIcon)`
+  ${({ theme }) => css`
+    min-width: 34px;
+    color: ${theme.palette.success.main};
+  `}
+`;
+
+const items = [
+  {
+    id: "free",
+    name: "Free",
+    description: "Your default plan",
+    price: "0",
+    perks: [
+      "Capsule UI apps and extensions",
+      "Unlimited bookmarks",
+      "Unlimited collections",
+      "Unlimited devices",
+      "Collection sharing",
+      "UI Playground",
+    ],
+  },
+  {
+    id: "pro",
+    name: "Pro",
+    description: "For less than a coffee a month",
+    price: "5",
+    highlight: 1,
+    perks: [
+      "Everything on the Free plan, plus",
+      "Full-text search",
+      "Data Export",
+      "Cloud backup to Dropbox/Google Drive",
+      "UI Playground code export",
+      "Priority support",
+    ],
+  },
+];
+
+function PricingSection() {
   const auth = useAuth();
-
-  const items = [
-    {
-      id: "starter",
-      name: "Starter",
-      price: "10",
-      perks: [
-        "Lorem ipsum dolor sit amet",
-        "Consectetur adipiscing elit",
-        "Integer molestie lorem at massa",
-      ],
-    },
-    {
-      id: "pro",
-      name: "Pro",
-      price: "20",
-      perks: [
-        "Lorem ipsum dolor sit amet",
-        "Consectetur adipiscing elit",
-        "Integer molestie lorem at massa",
-        "Faucibus porta lacus fringilla vel",
-        "Aenean sit amet erat nunc",
-      ],
-    },
-    {
-      id: "business",
-      name: "Business",
-      price: "50",
-      perks: [
-        "Lorem ipsum dolor sit amet",
-        "Consectetur adipiscing elit",
-        "Integer molestie lorem at massa",
-        "Faucibus porta lacus fringilla vel",
-        "Aenean sit amet erat nunc",
-        "Lorem ipsum dolor sit amet",
-        "Consectetur adipiscing elit",
-      ],
-    },
-  ];
-
   return (
-    <Section
-      bgColor={props.bgColor}
-      size={props.size}
-      bgImage={props.bgImage}
-      bgImageOpacity={props.bgImageOpacity}
-    >
+    <Section size="large">
       <Container>
         <SectionHeader
-          title={props.title}
-          subtitle={props.subtitle}
-          size={4}
+          title="Pricing"
+          subtitle="Probably as simple as they come"
+          size={2}
           textAlign="center"
         />
         <Grid container justify="center" spacing={4}>
-          {items.map((item, index) => (
-            <Grid item xs={12} md={4} key={index}>
-              <Card className={classes.card}>
-                <CardContent className={classes.cardContent}>
-                  <Typography variant="h6" component="h2">
-                    {item.name}
-                  </Typography>
-                  <Box className={classes.price} mt={1}>
-                    <Typography variant="h3">${item.price}</Typography>
-                    <Typography variant="h4" color="textSecondary">
+          {items.map((item) => (
+            <Grid item xs={12} md={4} key={item.id}>
+              <PriceCard highlight={item.highlight}>
+                <PriceContent>
+                  <Box display="flex" alignItems="baseline" mb={1}>
+                    <Box mr={1}>
+                      <Typography variant="h5" component="h2">
+                        {item.name}
+                      </Typography>
+                    </Box>
+                    <Typography variant="caption" color="textSecondary">
+                      {item.description}
+                    </Typography>
+                  </Box>
+                  <Box display="flex" alignItems="baseline">
+                    <Price variant="h1">${item.price}</Price>
+                    <Typography variant="h5" color="textSecondary">
                       /mo
                     </Typography>
                   </Box>
-
-                  {item.description && (
-                    <Box mt={2}>
-                      <Typography component="p" color="textSecondary">
-                        {item.description}
-                      </Typography>
-                    </Box>
-                  )}
-
                   {item.perks && (
                     <Box mt={1}>
                       <List aria-label="perks">
-                        {item.perks.map((perk, index) => (
-                          <ListItem
-                            className={classes.listItem}
-                            disableGutters
-                            key={index}
-                          >
-                            <ListItemIcon className={classes.perkIcon}>
+                        {item.perks.map((perk) => (
+                          <PerkItem disableGutters key={perk}>
+                            <PerkIcon>
                               <CheckIcon />
-                            </ListItemIcon>
+                            </PerkIcon>
                             <ListItemText>{perk}</ListItemText>
-                          </ListItem>
+                          </PerkItem>
                         ))}
                       </List>
                     </Box>
                   )}
-
-                  <Box mt="auto" pt={3}>
-                    <Link
-                      href={
-                        auth.user
-                          ? `/purchase/${item.id}`
-                          : `/auth/signup?next=/purchase/${item.id}`
-                      }
-                      passHref
-                    >
-                      <Button
-                        component="a"
-                        variant="contained"
-                        color="primary"
-                        size="large"
-                        fullWidth
+                  {item.id !== "free" && (
+                    <Box mt="auto" pt={3}>
+                      <Link
+                        href={
+                          auth.user
+                            ? `/purchase/${item.id}`
+                            : `/auth/signup?next=/purchase/${item.id}`
+                        }
+                        passHref
                       >
-                        Choose
-                      </Button>
-                    </Link>
-                  </Box>
-                </CardContent>
-              </Card>
+                        <Button
+                          component="a"
+                          variant="contained"
+                          color="primary"
+                          size="large"
+                          fullWidth
+                        >
+                          Upgrade
+                        </Button>
+                      </Link>
+                    </Box>
+                  )}
+                </PriceContent>
+              </PriceCard>
             </Grid>
           ))}
         </Grid>
