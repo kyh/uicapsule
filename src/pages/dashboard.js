@@ -9,7 +9,7 @@ function DashboardPage(props) {
       <Head>
         <title>UI Capsule | Dashboard</title>
       </Head>
-      <DashboardSection bgColor="default" size="medium" title="Dashboard" />
+      <DashboardSection />
     </>
   );
 }

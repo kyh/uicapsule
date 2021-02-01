@@ -12,15 +12,13 @@ function SettingsNav(props) {
       centered
     >
       <Link href="/settings/general" passHref>
-        <Tab label="General" value="general" component="a"></Tab>
+        <Tab label="General" value="general" component="a" />
       </Link>
-
       <Link href="/settings/password" passHref>
-        <Tab label="Password" value="password" component="a"></Tab>
+        <Tab label="Password" value="password" component="a" />
       </Link>
-
       <Link href="/settings/billing" passHref>
-        <Tab label="Billing" value="billing" component="a"></Tab>
+        <Tab label="Billing" value="billing" component="a" />
       </Link>
     </Tabs>
   );

@@ -51,12 +51,7 @@ function SettingsSection(props) {
   };
 
   return (
-    <Section
-      bgColor={props.bgColor}
-      size={props.size}
-      bgImage={props.bgImage}
-      bgImageOpacity={props.bgImageOpacity}
-    >
+    <Section>
       {reauthState.show && (
         <ReauthModal
           callback={reauthState.callback}
@@ -64,7 +59,6 @@ function SettingsSection(props) {
           onDone={() => setReauthState({ show: false })}
         />
       )}
-
       <SettingsNav activeKey={section} />
       <Box mt={5}>
         <Container maxWidth="xs">
@@ -73,13 +67,10 @@ function SettingsSection(props) {
               <Alert severity={formAlert.type}>{formAlert.message}</Alert>
             </Box>
           )}
-
           {section === "general" && <SettingsGeneral onStatus={handleStatus} />}
-
           {section === "password" && (
             <SettingsPassword onStatus={handleStatus} />
           )}
-
           {section === "billing" && <SettingsBilling onStatus={handleStatus} />}
         </Container>
       </Box>

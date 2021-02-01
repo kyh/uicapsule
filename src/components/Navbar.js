@@ -177,7 +177,7 @@ function Navbar() {
                     vertical: "top",
                     horizontal: "center",
                   }}
-                  elevation={0}
+                  elevation={4}
                 >
                   <div>
                     <Link href="/dashboard" passHref>
