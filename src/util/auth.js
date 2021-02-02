@@ -242,9 +242,13 @@ function usePrepareUser(user) {
   }, [user, userDbQuery]);
 }
 
+function getDisplayName(Component) {
+  return Component.displayName || Component.name || "Component";
+}
+
 // A Higher Order Component for requiring authentication
 export const requireAuth = (Component) => {
-  return (props) => {
+  function WithAuth(props) {
     // Get authenticated user
     const auth = useAuth();
 
@@ -263,7 +267,12 @@ export const requireAuth = (Component) => {
 
     // Render component now that we have user
     return <Component {...props} />;
-  };
+  }
+
+  WithAuth.displayName = `WithAuth(${getDisplayName(Component)})`;
+  WithAuth.Layout = Component.Layout;
+
+  return WithAuth;
 };
 
 // Handle Firebase email link for reverting to original email

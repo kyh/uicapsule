@@ -6,8 +6,7 @@ import Box from "@material-ui/core/Box";
 import Alert from "@material-ui/lab/Alert";
 import Grid from "@material-ui/core/Grid";
 import TextField from "@material-ui/core/TextField";
-import Button from "@material-ui/core/Button";
-import CircularProgress from "@material-ui/core/CircularProgress";
+import Button from "components/Button";
 import AuthSocial from "components/AuthSocial";
 import { useAuth } from "util/auth.js";
 import { useForm } from "react-hook-form";
@@ -60,7 +59,6 @@ function ReauthModal(props) {
             <Alert severity={formAlert.type}>{formAlert.message}</Alert>
           </Box>
         )}
-
         {props.provider === "password" && (
           <form onSubmit={handleSubmit(onSubmit)}>
             <Grid container spacing={2}>
@@ -84,12 +82,10 @@ function ReauthModal(props) {
                   color="primary"
                   size="large"
                   type="submit"
-                  disabled={pending}
+                  loading={pending}
                   fullWidth
                 >
-                  {!pending && <span>Submit</span>}
-
-                  {pending && <CircularProgress size={28} />}
+                  Submit
                 </Button>
               </Grid>
             </Grid>

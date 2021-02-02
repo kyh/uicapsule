@@ -1,5 +1,6 @@
 import React from "react";
 import Head from "next/head";
+import SiteLayout from "components/SiteLayout";
 import PricingSection from "components/PricingSection";
 
 function PricingPage() {
@@ -12,5 +13,7 @@ function PricingPage() {
     </>
   );
 }
+
+PricingPage.Layout = SiteLayout;
 
 export default PricingPage;

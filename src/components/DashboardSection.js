@@ -11,7 +11,7 @@ import LinkMui from "@material-ui/core/Link";
 import Link from "next/link";
 import { useAuth } from "util/auth.js";
 
-function DashboardSection(props) {
+function DashboardSection() {
   const auth = useAuth();
   return (
     <Section>

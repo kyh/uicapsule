@@ -1,8 +1,8 @@
 import React from "react";
 import styled, { css } from "styled-components";
 import Head from "next/head";
-import Box from "@material-ui/core/Box";
 import Typography from "@material-ui/core/Typography";
+import SiteLayout from "components/SiteLayout";
 import HeroSection from "components/HeroSection";
 import SectionHeader from "components/SectionHeader";
 import CtaSection from "components/CtaSection";
@@ -109,5 +109,7 @@ function AboutPage() {
     </>
   );
 }
+
+AboutPage.Layout = SiteLayout;
 
 export default AboutPage;

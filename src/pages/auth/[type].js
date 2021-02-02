@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import Container from "@material-ui/core/Container";
 import Typography from "@material-ui/core/Typography";
+import SiteLayout from "components/SiteLayout";
 import AuthSection from "components/AuthSection";
 import HeroSection from "components/HeroSection";
 import SectionHeader from "components/SectionHeader";
@@ -63,6 +64,8 @@ function AuthPage() {
     />
   );
 }
+
+AuthPage.Layout = SiteLayout;
 
 // Tell Next.js to export static files for each auth page
 // See https://nextjs.org/docs/basic-features/data-fetching#getstaticpaths-static-generation

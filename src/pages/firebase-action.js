@@ -1,8 +1,9 @@
 import React, { useEffect, useState } from "react";
-import PageLoader from "components/PageLoader";
-import Alert from "@material-ui/lab/Alert";
-import { handleRecoverEmail, handleVerifyEmail } from "util/auth.js";
 import { useRouter } from "next/router";
+import Alert from "@material-ui/lab/Alert";
+import SiteLayout from "components/SiteLayout";
+import PageLoader from "components/PageLoader";
+import { handleRecoverEmail, handleVerifyEmail } from "util/auth.js";
 
 function FirebaseActionPage(props) {
   const router = useRouter();
@@ -72,5 +73,7 @@ function FirebaseActionPage(props) {
     </PageLoader>
   );
 }
+
+FirebaseActionPage.Layout = SiteLayout;
 
 export default FirebaseActionPage;

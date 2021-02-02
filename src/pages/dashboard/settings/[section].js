@@ -1,9 +1,10 @@
 import React from "react";
-import SettingsSection from "components/SettingsSection";
 import { useRouter } from "next/router";
+import DashboardLayout from "components/DashboardLayout";
+import SettingsSection from "components/SettingsSection";
 import { requireAuth } from "util/auth.js";
 
-function SettingsPage(props) {
+function SettingsPage() {
   const router = useRouter();
   return (
     <SettingsSection
@@ -12,6 +13,8 @@ function SettingsPage(props) {
     />
   );
 }
+
+SettingsPage.Layout = DashboardLayout;
 
 // Tell Next.js to export static files for each settings page
 // See https://nextjs.org/docs/basic-features/data-fetching#getstaticpaths-static-generation

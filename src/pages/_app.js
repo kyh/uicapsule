@@ -1,19 +1,16 @@
 import React from "react";
-import Navbar from "components/Navbar";
-import Footer from "components/Footer";
 import "util/analytics.js";
 import { AuthProvider } from "util/auth.js";
 import { ThemeProvider } from "util/theme.js";
 
 function MyApp({ Component, pageProps }) {
+  const Layout = Component.Layout ? Component.Layout : React.Fragment;
   return (
     <ThemeProvider>
       <AuthProvider>
-        <>
-          <Navbar />
+        <Layout>
           <Component {...pageProps} />
-          <Footer />
-        </>
+        </Layout>
       </AuthProvider>
     </ThemeProvider>
   );

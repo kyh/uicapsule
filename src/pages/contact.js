@@ -1,6 +1,6 @@
 import React from "react";
 import Head from "next/head";
-import FaqSection from "components/FaqSection";
+import SiteLayout from "components/SiteLayout";
 import ContactSection from "components/ContactSection";
 
 function ContactPage() {
@@ -9,11 +9,6 @@ function ContactPage() {
       <Head>
         <title>UI Capsule | Contact</title>
       </Head>
-      {/* <FaqSection
-        bgColor="default"
-        size="large"
-        title="Frequently Asked Questions"
-      /> */}
       <ContactSection
         bgColor="default"
         size="large"
@@ -24,5 +19,7 @@ function ContactPage() {
     </>
   );
 }
+
+ContactPage.Layout = SiteLayout;
 
 export default ContactPage;

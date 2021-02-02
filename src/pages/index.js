@@ -4,6 +4,7 @@ import Head from "next/head";
 import Link from "next/link";
 import Carousel from "react-elastic-carousel";
 import Button from "@material-ui/core/Button";
+import SiteLayout from "components/SiteLayout";
 import ScrollToLink from "components/ScrollToLink";
 import HeroSection from "components/HeroSection";
 import SectionHeader from "components/SectionHeader";
@@ -153,5 +154,7 @@ function PageTitle() {
     </>
   );
 }
+
+IndexPage.Layout = SiteLayout;
 
 export default IndexPage;

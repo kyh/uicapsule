@@ -1,10 +1,12 @@
 import React, { useState } from "react";
-import Section from "components/Section";
-import ReauthModal from "components/ReauthModal";
-import SettingsNav from "components/SettingsNav";
+import { useRouter } from "next/router";
+import Tabs from "@material-ui/core/Tabs";
+import Tab from "@material-ui/core/Tab";
 import Box from "@material-ui/core/Box";
 import Container from "@material-ui/core/Container";
 import Alert from "@material-ui/lab/Alert";
+import Section from "components/Section";
+import ReauthModal from "components/ReauthModal";
 import SettingsGeneral from "components/SettingsGeneral";
 import SettingsPassword from "components/SettingsPassword";
 import SettingsBilling from "components/SettingsBilling";
@@ -12,21 +14,18 @@ import { useAuth } from "util/auth.js";
 
 function SettingsSection(props) {
   const auth = useAuth();
+  const router = useRouter();
   const [formAlert, setFormAlert] = useState(null);
+
+  const handleChange = (event, value) => {
+    router.push(`/dashboard/settings/${value}`, undefined, { shallow: true });
+  };
 
   // State to control whether we show a re-authentication flow
   // Required by some security sensitive actions, such as changing password.
   const [reauthState, setReauthState] = useState({
     show: false,
   });
-
-  const validSections = {
-    general: true,
-    password: true,
-    billing: true,
-  };
-
-  const section = validSections[props.section] ? props.section : "general";
 
   // Handle status of type "success", "error", or "requires-recent-login"
   // We don't treat "requires-recent-login" as an error as we handle it
@@ -52,14 +51,17 @@ function SettingsSection(props) {
 
   return (
     <Section>
-      {reauthState.show && (
-        <ReauthModal
-          callback={reauthState.callback}
-          provider={auth.user.providers[0]}
-          onDone={() => setReauthState({ show: false })}
-        />
-      )}
-      <SettingsNav activeKey={section} />
+      <Tabs
+        value={props.section}
+        onChange={handleChange}
+        indicatorColor="primary"
+        textColor="primary"
+        centered
+      >
+        <Tab label="General" value="general" />
+        <Tab label="Password" value="password" />
+        <Tab label="Billing" value="billing" />
+      </Tabs>
       <Box mt={5}>
         <Container maxWidth="xs">
           {formAlert && (
@@ -67,13 +69,24 @@ function SettingsSection(props) {
               <Alert severity={formAlert.type}>{formAlert.message}</Alert>
             </Box>
           )}
-          {section === "general" && <SettingsGeneral onStatus={handleStatus} />}
-          {section === "password" && (
+          {props.section === "general" && (
+            <SettingsGeneral onStatus={handleStatus} />
+          )}
+          {props.section === "password" && (
             <SettingsPassword onStatus={handleStatus} />
           )}
-          {section === "billing" && <SettingsBilling onStatus={handleStatus} />}
+          {props.section === "billing" && (
+            <SettingsBilling onStatus={handleStatus} />
+          )}
         </Container>
       </Box>
+      {reauthState.show && (
+        <ReauthModal
+          callback={reauthState.callback}
+          provider={auth.user.providers[0]}
+          onDone={() => setReauthState({ show: false })}
+        />
+      )}
     </Section>
   );
 }
