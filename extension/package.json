@@ -26,10 +26,10 @@
     "webextension-polyfill": "^0.7.0"
   },
   "devDependencies": {
-    "@babel/cli": "^7.12.10",
-    "@babel/core": "^7.12.10",
-    "@babel/preset-env": "^7.12.11",
-    "@babel/preset-react": "^7.12.10",
+    "@babel/cli": "^7.12.13",
+    "@babel/core": "^7.12.13",
+    "@babel/preset-env": "^7.12.13",
+    "@babel/preset-react": "^7.12.13",
     "@rollup/plugin-alias": "^3.1.2",
     "@rollup/plugin-babel": "^5.2.3",
     "@rollup/plugin-commonjs": "^17.1.0",
@@ -38,7 +38,7 @@
     "cross-env": "^7.0.3",
     "react": "npm:@esm-bundle/react@^17.0.1-fix.0",
     "react-dom": "npm:@esm-bundle/react-dom@^17.0.1",
-    "rollup": "^2.38.1",
+    "rollup": "^2.38.4",
     "rollup-plugin-chrome-extension": "^3.4.0",
     "rollup-plugin-copy": "^3.3.0",
     "rollup-plugin-empty-dir": "^1.0.4",
