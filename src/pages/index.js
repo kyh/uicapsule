@@ -43,6 +43,12 @@ const examples = [
 function IndexPage() {
   const [html, setHtml] = useState("");
   const [exampleIndex, setExampleIndex] = useState(0);
+  const [activeFeatureIndex, setActiveFeatureIndex] = useState(0);
+
+  const onExtensionPreviewSetHtml = (html) => {
+    setHtml(html);
+    setActiveFeatureIndex(1);
+  };
 
   const fetchExample = async (i) => {
     const data = await fetch(examples[i]).then((response) => response.text());
@@ -99,10 +105,15 @@ function IndexPage() {
           </Link>
         </HeroCtaContainer>
         <ScrollToLink id="demo" top={-80} />
-        <ExtensionPreview onSetHtml={setHtml} />
+        <ExtensionPreview onSetHtml={onExtensionPreviewSetHtml} />
       </HeroSection>
       <ScrollToLink id="features" top={-50} />
-      <FeaturesSection html={html} nextExample={nextExample} />
+      <FeaturesSection
+        html={html}
+        nextExample={nextExample}
+        activeFeatureIndex={activeFeatureIndex}
+        setActiveFeatureIndex={setActiveFeatureIndex}
+      />
       <ScrollToLink id="testimonials" top={-80} />
       <TestimonialsSection
         size="medium"

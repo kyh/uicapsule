@@ -253,7 +253,6 @@ const items = [
 ];
 
 function FeaturesSection(props) {
-  const [activeItemIndex, setActiveItemIndex] = useState(0);
   return (
     <Section size="small">
       <FeaturesContainer>
@@ -261,8 +260,8 @@ function FeaturesSection(props) {
           {items.map((item, index) => (
             <Item
               key={item.title}
-              active={activeItemIndex === index ? 1 : 0}
-              onClick={() => setActiveItemIndex(index)}
+              active={props.activeFeatureIndex === index ? 1 : 0}
+              onClick={() => props.setActiveFeatureIndex(index)}
               disableRipple
             >
               <Box>
@@ -275,7 +274,9 @@ function FeaturesSection(props) {
             </Item>
           ))}
         </ItemsContainer>
-        <ImageContainer>{items[activeItemIndex].render(props)}</ImageContainer>
+        <ImageContainer>
+          {items[props.activeFeatureIndex].render(props)}
+        </ImageContainer>
       </FeaturesContainer>
     </Section>
   );
