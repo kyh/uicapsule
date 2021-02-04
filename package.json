@@ -7,7 +7,7 @@
     "@material-ui/core": "^4.11.3",
     "@material-ui/icons": "^4.11.2",
     "@material-ui/lab": "^4.0.0-alpha.57",
-    "@stripe/stripe-js": "^1.11.0",
+    "@stripe/stripe-js": "^1.12.1",
     "@ui-capsule/chrome-extension": "^0.0.16",
     "analytics": "^0.6.7",
     "firebase": "^8.2.5",
@@ -19,7 +19,7 @@
     "react-dom": "^17.0.1",
     "react-elastic-carousel": "^0.11.1",
     "react-hook-form": "^6.15.1",
-    "stripe": "^8.132.0",
+    "stripe": "^8.133.0",
     "styled-components": "^5.2.1",
     "use-dark-mode": "^2.3.1"
   },
