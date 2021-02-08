@@ -16,30 +16,30 @@ const middlewares = [
 
 export const store = createStore(reducers, applyMiddleware(...middlewares));
 
-export function activate() {
+export const activate = () => {
   const state = store.getState();
   if (!state.app.enabled) {
     store.dispatch(activateApp());
   }
-}
+};
 
-export function deactivate() {
+export const deactivate = () => {
   const state = store.getState();
   if (state.app.enabled) {
     store.dispatch(deactivateApp());
   }
-}
+};
 
-export function toggle() {
+export const toggle = () => {
   store.dispatch(toggleApp());
-}
+};
 
-export function unmount() {
+export const unmount = () => {
   const rootEl = document.querySelector(`[${ROOT_EL_IDENTIFIER}]`);
   if (rootEl) rootEl.remove();
-}
+};
 
-export function mount(container = document.body, apiMode) {
+export const mount = (container = document.body, apiMode) => {
   const host = document.createElement("div");
   host.setAttribute(ROOT_EL_IDENTIFIER, "");
   container.insertAdjacentElement("beforebegin", host);
@@ -63,4 +63,4 @@ export function mount(container = document.body, apiMode) {
       }
     }
   });
-}
+};

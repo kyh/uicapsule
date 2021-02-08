@@ -2,13 +2,11 @@ import React from "react";
 import styled from "styled-components";
 import { LoadingIcon } from "./Icons";
 
-function Spinner({ ...rest }) {
-  return (
-    <SpinnerContainer {...rest}>
-      <LoadingIcon />
-    </SpinnerContainer>
-  );
-}
+const Spinner = ({ ...rest }) => (
+  <SpinnerContainer {...rest}>
+    <LoadingIcon />
+  </SpinnerContainer>
+);
 
 const SpinnerContainer = styled.div`
   display: flex;

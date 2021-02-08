@@ -29,7 +29,7 @@ const GlobalStyle = createGlobalStyle`
 
 let lastElement = null;
 
-function ElementHandler({ container, apiMode }) {
+const ElementHandler = ({ container, apiMode }) => {
   const dispatch = useDispatch();
 
   const handleMousemove = (event) => {
@@ -61,6 +61,6 @@ function ElementHandler({ container, apiMode }) {
   }, []);
 
   return <GlobalStyle apiMode={apiMode} />;
-}
+};
 
 export default ElementHandler;

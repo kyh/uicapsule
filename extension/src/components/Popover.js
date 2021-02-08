@@ -6,7 +6,7 @@ import { LOADING_STATE } from "../redux/selection";
 import Spinner from "./Spinner";
 import { SunIcon, MoonIcon, XIcon } from "./Icons";
 
-function Popover({ apiMode }) {
+const Popover = ({ apiMode }) => {
   const dispatch = useDispatch();
   const { loadingState, image, htmlString } = useSelector(
     (state) => state.selection,
@@ -70,9 +70,9 @@ function Popover({ apiMode }) {
       )}
     </Container>
   );
-}
+};
 
-function ToggleThemeButton() {
+const ToggleThemeButton = () => {
   const dispatch = useDispatch();
   const { darkMode } = useSelector((state) => state.app, shallowEqual);
 
@@ -97,7 +97,7 @@ function ToggleThemeButton() {
       <SunIcon />
     </Button>
   );
-}
+};
 
 const HeaderContent = styled.div`
   display: flex;

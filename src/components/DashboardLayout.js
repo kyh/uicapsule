@@ -1,13 +1,15 @@
 import React from "react";
+import styled from "styled-components";
 import DashboardNavbar from "components/DashboardNavbar";
-import Footer from "components/Footer";
+import Container from "@material-ui/core/Container";
+
+const DashboardContent = styled(Container)``;
 
 function DashboardLayout({ children }) {
   return (
     <>
       <DashboardNavbar />
       {children}
-      <Footer />
     </>
   );
 }

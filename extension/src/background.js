@@ -18,49 +18,49 @@ const ACTIVITY = {
   },
 };
 
-function setIcon(path) {
+const setIcon = (path) => {
   chrome.browserAction.setIcon({ path });
-}
+};
 
-function showEnabled() {
+const showEnabled = () => {
   setIcon(ACTIVITY.on);
-}
+};
 
-function showDisabled() {
+const showDisabled = () => {
   setIcon(ACTIVITY.off);
-}
+};
 
-function sendActivationMessage(tabId) {
-  chrome.tabs.sendMessage(tabId, activateApp(), showEnabled);
-}
-
-function sendDeactivationMessage(tabId) {
-  chrome.tabs.sendMessage(tabId, deactivateApp(), showDisabled);
-}
-
-function toggleActivationMessage(tabId) {
-  chrome.tabs.sendMessage(tabId, toggleApp(), () => updateExtensionUI(tabId));
-}
-
-function getActivationStatus(tabId, cb) {
-  chrome.tabs.executeScript(
-    tabId,
-    {
-      code: "!!window.__UI_CAPSULE_STORE__.getState().app.enabled",
-    },
-    ([enabled]) => cb(enabled)
-  );
-}
-
-function updateExtensionUI(tabId) {
-  getActivationStatus(tabId, (enabled) => {
-    if (enabled) {
-      showEnabled();
+const show = (tabId) => {
+  chrome.tabs.sendMessage(tabId, "STATE", (state) => {
+    if (state) {
+      state.app.enabled ? showEnabled() : showDisabled();
     } else {
       showDisabled();
     }
   });
-}
+};
+
+const sendActivationMessage = (tabId) => {
+  chrome.tabs.sendMessage(tabId, activateApp(), showEnabled);
+};
+
+const sendDeactivationMessage = (tabId) => {
+  chrome.tabs.sendMessage(tabId, deactivateApp(), showDisabled);
+};
+
+const toggleActivationMessage = (tabId) => {
+  chrome.tabs.sendMessage(tabId, toggleApp(), () => updateExtensionUI(tabId));
+};
+
+const updateExtensionUI = (tabId) => {
+  if (tabId) {
+    show(tabId);
+  } else {
+    chrome.tabs.query({ active: true, currentWindow: true }, ([tab]) => {
+      show(tab.id);
+    });
+  }
+};
 
 chrome.browserAction.onClicked.addListener(async () => {
   chrome.tabs.query({ active: true, currentWindow: true }, ([tab]) => {
@@ -100,7 +100,7 @@ chrome.tabs.onUpdated.addListener(async ({ tabId }) => {
   updateExtensionUI(tabId);
 });
 
-chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
   switch (message.type) {
     case CAPTURE_SCREENSHOT:
       chrome.tabs.captureVisibleTab({ format: "png" }, sendResponse);

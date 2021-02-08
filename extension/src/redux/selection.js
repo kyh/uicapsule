@@ -14,26 +14,22 @@ export const LOADING_STATE = {
   done: "done",
 };
 
-export function selectElement(element, apiMode) {
-  return async (dispatch) => {
-    dispatch({
-      type: SELECT_ELEMENT,
-      element,
-    });
-    const { htmlString, dataUrl } = await compileElement(element, apiMode);
-    dispatch({
-      type: SELECT_ELEMENT_SUCCESS,
-      htmlString: htmlString,
-      image: dataUrl,
-    });
-  };
-}
+export const selectElement = (element, apiMode) => async (dispatch) => {
+  dispatch({
+    type: SELECT_ELEMENT,
+    element,
+  });
+  const { htmlString, dataUrl } = await compileElement(element, apiMode);
+  dispatch({
+    type: SELECT_ELEMENT_SUCCESS,
+    htmlString: htmlString,
+    image: dataUrl,
+  });
+};
 
-export function resetSelectedElement() {
-  return {
-    type: RESET_SELECTED_ELEMENT,
-  };
-}
+export const resetSelectedElement = () => ({
+  type: RESET_SELECTED_ELEMENT,
+});
 
 const init = {
   loadingState: LOADING_STATE.default,
@@ -42,7 +38,7 @@ const init = {
   image: "",
 };
 
-export default function reducer(state = init, action) {
+const reducer = (state = init, action) => {
   switch (action.type) {
     case SELECT_ELEMENT:
       return {
@@ -65,10 +61,12 @@ export default function reducer(state = init, action) {
     default:
       return state;
   }
-}
+};
 
-function captureScreenshot(element) {
-  return new Promise((resolve) => {
+export default reducer;
+
+const captureScreenshot = (element) =>
+  new Promise((resolve) => {
     chrome.runtime.sendMessage({ type: "CAPTURE_SCREENSHOT" }, (dataUri) => {
       const rect = element.getBoundingClientRect();
       const img = new Image();
@@ -95,19 +93,18 @@ function captureScreenshot(element) {
       };
     });
   });
-}
 
-async function compileElement(element, apiMode) {
+const compileElement = async (element, apiMode) => {
   const removed = removeAttributes(element);
   const htmlString = convertToHtmlString(element);
   const dataUrl = await toPng(element);
   removed.forEach((attr) => element.setAttribute(attr, ""));
   return { htmlString, dataUrl };
-}
+};
 
 export const ELEMENT_PARSER_VERSION = 1;
 
-function convertToHtmlString(rootNode) {
+const convertToHtmlString = (rootNode) => {
   const clone = rootNode.cloneNode(true);
   let styles = `
     body {
@@ -141,9 +138,9 @@ function convertToHtmlString(rootNode) {
     </style>
     ${clone.outerHTML}
   `;
-}
+};
 
-function walkDom(el, cl, callback) {
+const walkDom = (el, cl, callback) => {
   callback(el, cl);
   el = el.firstElementChild;
   cl = cl.firstElementChild;
@@ -152,13 +149,12 @@ function walkDom(el, cl, callback) {
     el = el.nextElementSibling;
     cl = cl.nextElementSibling;
   }
-}
+};
 
-function camelToKebab(string) {
-  return string.replace(/([a-z0-9]|(?=[A-Z]))([A-Z])/g, "$1-$2").toLowerCase();
-}
+const camelToKebab = (string) =>
+  string.replace(/([a-z0-9]|(?=[A-Z]))([A-Z])/g, "$1-$2").toLowerCase();
 
-function isNumber(num) {
+const isNumber = (num) => {
   if (typeof num === "number") {
     return num - num === 0;
   }
@@ -166,19 +162,18 @@ function isNumber(num) {
     return Number.isFinite ? Number.isFinite(+num) : isFinite(+num);
   }
   return false;
-}
+};
 
-function reduceComputedStyles(computedStyle, filter) {
-  return Object.keys(computedStyle).reduce((result, styleKey) => {
+const reduceComputedStyles = (computedStyle, filter) =>
+  Object.keys(computedStyle).reduce((result, styleKey) => {
     const styleValue = computedStyle[styleKey];
     if (filter(styleKey, styleValue)) {
       result = result + `${camelToKebab(styleKey)}: ${styleValue};\n`;
     }
     return result;
   }, "");
-}
 
-export function removeAttributes(el) {
+export const removeAttributes = (el) => {
   const removed = [];
   if (el.hasAttribute(highlightAttr)) {
     el.removeAttribute(highlightAttr);
@@ -189,18 +184,18 @@ export function removeAttributes(el) {
     removed.push(selectedAttr);
   }
   return removed;
-}
+};
 
-function computeRootStyles(rootNode) {
+const computeRootStyles = (rootNode) => {
   const rootComputedStyles = getComputedStyle(rootNode.parentNode);
   const rootCss = reduceComputedStyles(
     rootComputedStyles,
     (styleKey, styleValue) => !isNumber(styleKey) && styleValue
   );
   return { rootCss, rootComputedStyles };
-}
+};
 
-function convertToHtmlString2(rootNode) {
+const convertToHtmlString2 = (rootNode) => {
   const clone = rootNode.cloneNode(true);
   const removed = removeAttributes(rootNode);
   const { rootCss, rootComputedStyles } = computeRootStyles(rootNode);
@@ -249,4 +244,4 @@ function convertToHtmlString2(rootNode) {
     </style>
     ${clone.outerHTML}
   `;
-}
+};
