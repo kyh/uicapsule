@@ -39,7 +39,7 @@ const useStyles = makeStyles((theme) => ({
   },
 }));
 
-const AuthSocial = props => {
+const AuthSocial = (props) => {
   const classes = useStyles();
 
   const auth = useAuth();

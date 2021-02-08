@@ -175,7 +175,7 @@ const useAuthProvider = () => {
   };
 };
 
-const usePrepareUser = user => {
+const usePrepareUser = (user) => {
   // Fetch extra data from database (if enabled and auth user has been fetched)
   const userDbQuery = useUser(MERGE_DB_USER && user && user.uid);
 
@@ -240,11 +240,12 @@ const usePrepareUser = user => {
   }, [user, userDbQuery]);
 };
 
-const getDisplayName = Component => Component.displayName || Component.name || "Component";
+const getDisplayName = (Component) =>
+  Component.displayName || Component.name || "Component";
 
 // A Higher Order Component for requiring authentication
 export const requireAuth = (Component) => {
-  const WithAuth = props => {
+  const WithAuth = (props) => {
     // Get authenticated user
     const auth = useAuth();
 
@@ -329,7 +330,7 @@ const allProviders = [
   },
 ];
 
-const useIdentifyUser = user => {
+const useIdentifyUser = (user) => {
   useEffect(() => {
     if (ANALYTICS_IDENTIFY && user) {
       analytics.identify(user.uid);

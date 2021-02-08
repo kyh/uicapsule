@@ -61,7 +61,7 @@ const items = [
   },
 ];
 
-const FaqSection = props => {
+const FaqSection = (props) => {
   const classes = useStyles();
   return (
     <Section

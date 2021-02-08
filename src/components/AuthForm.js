@@ -5,7 +5,7 @@ import Button from "components/Button";
 import { useAuth } from "util/auth.js";
 import { useForm } from "react-hook-form";
 
-const AuthForm = props => {
+const AuthForm = (props) => {
   const auth = useAuth();
   const [pending, setPending] = useState(false);
   const { handleSubmit, register, errors, getValues } = useForm();

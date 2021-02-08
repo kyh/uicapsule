@@ -146,16 +146,17 @@ const themeConfig = {
   },
 };
 
-const getTheme = name => createMuiTheme({
-  ...themeConfig[name],
-  // Merge in common values
-  ...themeConfig.common,
-  overrides: {
-    // Merge overrides
-    ...(themeConfig[name] && themeConfig[name].overrides),
-    ...(themeConfig.common && themeConfig.common.overrides),
-  },
-});
+const getTheme = (name) =>
+  createMuiTheme({
+    ...themeConfig[name],
+    // Merge in common values
+    ...themeConfig.common,
+    overrides: {
+      // Merge overrides
+      ...(themeConfig[name] && themeConfig[name].overrides),
+      ...(themeConfig.common && themeConfig.common.overrides),
+    },
+  });
 
 export const ThemeProvider = (props) => {
   // Detect dark mode based on stored value

@@ -18,7 +18,7 @@ const useStyles = makeStyles((theme) => ({
   },
 }));
 
-const EditItemModal = props => {
+const EditItemModal = (props) => {
   const classes = useStyles();
 
   const auth = useAuth();

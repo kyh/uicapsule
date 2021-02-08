@@ -5,7 +5,7 @@ import { useAuth, requireAuth } from "util/auth.js";
 import { useRouter } from "next/router";
 import { redirectToCheckout } from "util/stripe.js";
 
-const PurchasePage = props => {
+const PurchasePage = (props) => {
   const router = useRouter();
   const auth = useAuth();
   const [formAlert, setFormAlert] = useState();

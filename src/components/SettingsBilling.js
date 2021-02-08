@@ -4,7 +4,7 @@ import { useAuth } from "util/auth.js";
 import { useRouter } from "next/router";
 import { redirectToBilling } from "util/stripe.js";
 
-const SettingsBilling = props => {
+const SettingsBilling = (props) => {
   const router = useRouter();
   const auth = useAuth();
   const [loading, setLoading] = useState(true);

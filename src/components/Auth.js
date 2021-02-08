@@ -30,7 +30,7 @@ const OrText = styled(Box)`
   `}
 `;
 
-const Auth = props => {
+const Auth = (props) => {
   const router = useRouter();
   const [formAlert, setFormAlert] = useState(null);
 

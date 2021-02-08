@@ -18,7 +18,7 @@ const useStyles = makeStyles((theme) => ({
   },
 }));
 
-const ReauthModal = props => {
+const ReauthModal = (props) => {
   const classes = useStyles();
 
   const auth = useAuth();

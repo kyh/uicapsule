@@ -4,12 +4,14 @@ import DashboardLayout from "components/DashboardLayout";
 import DashboardSection from "components/DashboardSection";
 import { requireAuth } from "util/auth.js";
 
-const DashboardPage = () => <>
-  <Head>
-    <title>UI Capsule | Dashboard</title>
-  </Head>
-  <DashboardSection />
-</>;
+const DashboardPage = () => (
+  <>
+    <Head>
+      <title>UI Capsule | Dashboard</title>
+    </Head>
+    <DashboardSection />
+  </>
+);
 
 DashboardPage.Layout = DashboardLayout;
 

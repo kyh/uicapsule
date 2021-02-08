@@ -12,7 +12,7 @@ import SettingsPassword from "components/SettingsPassword";
 import SettingsBilling from "components/SettingsBilling";
 import { useAuth } from "util/auth.js";
 
-const SettingsSection = props => {
+const SettingsSection = (props) => {
   const auth = useAuth();
   const router = useRouter();
   const [formAlert, setFormAlert] = useState(null);

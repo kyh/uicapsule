@@ -14,7 +14,7 @@ const Conatainer = styled.div`
   z-index: 0;
 `;
 
-const BackgroundImage = props => {
+const BackgroundImage = (props) => {
   const { image, posY, posX, opacity, ...otherProps } = props;
   return (
     <Conatainer

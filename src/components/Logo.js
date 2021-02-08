@@ -2,7 +2,7 @@ import React from "react";
 import { useTheme } from "@material-ui/core/styles";
 import useDarkMode from "use-dark-mode";
 
-const Logo = props => {
+const Logo = (props) => {
   const darkMode = useDarkMode();
   const theme = useTheme();
   return (

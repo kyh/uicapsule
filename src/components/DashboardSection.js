@@ -14,7 +14,7 @@ import { useAuth } from "util/auth.js";
 const DashboardSection = () => {
   const auth = useAuth();
   return (
-    <Section>
+    <Section size="small">
       <Container>
         <Grid container spacing={4}>
           <Grid item xs={12} md={6}>

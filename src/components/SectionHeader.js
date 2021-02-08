@@ -18,7 +18,7 @@ const Subtitle = styled(Typography)`
   `}
 `;
 
-const SectionHeader = props => {
+const SectionHeader = (props) => {
   const { subtitle, title, size, className, ...otherProps } = props;
 
   // Render nothing if no title or subtitle

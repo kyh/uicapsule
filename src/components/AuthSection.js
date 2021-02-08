@@ -17,7 +17,7 @@ const AuthFormContainer = styled.div`
   `}
 `;
 
-const AuthSection = props => {
+const AuthSection = (props) => {
   // Values for each auth type
   const allTypeValues = {
     signin: {

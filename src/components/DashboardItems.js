@@ -32,7 +32,7 @@ const useStyles = makeStyles((theme) => ({
   },
 }));
 
-const DashboardItems = props => {
+const DashboardItems = (props) => {
   const classes = useStyles();
 
   const auth = useAuth();

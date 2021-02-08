@@ -4,25 +4,27 @@ import Container from "@material-ui/core/Container";
 import SectionHeader from "components/SectionHeader";
 import Contact from "components/Contact";
 
-const ContactSection = props => <Section
-  bgColor={props.bgColor}
-  size={props.size}
-  bgImage={props.bgImage}
-  bgImageOpacity={props.bgImageOpacity}
->
-  <Container maxWidth="sm">
-    <SectionHeader
-      title={props.title}
-      subtitle={props.subtitle}
-      size={2}
-      textAlign="center"
-    />
-    <Contact
-      showNameField={props.showNameField}
-      buttonText={props.buttonText}
-      buttonColor={props.buttonColor}
-    />
-  </Container>
-</Section>;
+const ContactSection = (props) => (
+  <Section
+    bgColor={props.bgColor}
+    size={props.size}
+    bgImage={props.bgImage}
+    bgImageOpacity={props.bgImageOpacity}
+  >
+    <Container maxWidth="sm">
+      <SectionHeader
+        title={props.title}
+        subtitle={props.subtitle}
+        size={2}
+        textAlign="center"
+      />
+      <Contact
+        showNameField={props.showNameField}
+        buttonText={props.buttonText}
+        buttonColor={props.buttonColor}
+      />
+    </Container>
+  </Section>
+);
 
 export default ContactSection;

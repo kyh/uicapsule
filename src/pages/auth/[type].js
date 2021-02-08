@@ -80,7 +80,7 @@ export const getStaticPaths = () => ({
 });
 
 export const getStaticProps = ({ params }) => ({
-  props: {}
+  props: {},
 });
 
 export default AuthPage;
