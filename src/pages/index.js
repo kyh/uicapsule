@@ -40,7 +40,7 @@ const examples = [
   "/featured-examples/radiolist.html",
 ];
 
-function IndexPage() {
+const IndexPage = () => {
   const [html, setHtml] = useState("");
   const [exampleIndex, setExampleIndex] = useState(0);
   const [activeFeatureIndex, setActiveFeatureIndex] = useState(0);
@@ -128,13 +128,13 @@ function IndexPage() {
       />
     </>
   );
-}
+};
 
 let resetTimeout;
 const autoPlaySpeed = 2000;
 const items = ["websites", "articles", "apps", "anywhere"];
 
-function PageTitle() {
+const PageTitle = () => {
   const carouselRef = useRef(null);
   return (
     <>
@@ -164,7 +164,7 @@ function PageTitle() {
       </Carousel>
     </>
   );
-}
+};
 
 IndexPage.Layout = SiteLayout;
 

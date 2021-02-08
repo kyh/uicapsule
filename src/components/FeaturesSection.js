@@ -252,34 +252,30 @@ const items = [
   },
 ];
 
-function FeaturesSection(props) {
-  return (
-    <Section size="small">
-      <FeaturesContainer>
-        <ItemsContainer>
-          {items.map((item, index) => (
-            <Item
-              key={item.title}
-              active={props.activeFeatureIndex === index ? 1 : 0}
-              onClick={() => props.setActiveFeatureIndex(index)}
-              disableRipple
-            >
-              <Box>
-                <Typography variant="h4" gutterBottom>
-                  {item.title}
-                </Typography>
-                <Typography variant="subtitle1">{item.description}</Typography>
-              </Box>
-              <IconContainer>{item.icon}</IconContainer>
-            </Item>
-          ))}
-        </ItemsContainer>
-        <ImageContainer>
-          {items[props.activeFeatureIndex].render(props)}
-        </ImageContainer>
-      </FeaturesContainer>
-    </Section>
-  );
-}
+const FeaturesSection = props => <Section size="small">
+  <FeaturesContainer>
+    <ItemsContainer>
+      {items.map((item, index) => (
+        <Item
+          key={item.title}
+          active={props.activeFeatureIndex === index ? 1 : 0}
+          onClick={() => props.setActiveFeatureIndex(index)}
+          disableRipple
+        >
+          <Box>
+            <Typography variant="h4" gutterBottom>
+              {item.title}
+            </Typography>
+            <Typography variant="subtitle1">{item.description}</Typography>
+          </Box>
+          <IconContainer>{item.icon}</IconContainer>
+        </Item>
+      ))}
+    </ItemsContainer>
+    <ImageContainer>
+      {items[props.activeFeatureIndex].render(props)}
+    </ImageContainer>
+  </FeaturesContainer>
+</Section>;
 
 export default FeaturesSection;

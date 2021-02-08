@@ -6,7 +6,7 @@ import CircularProgress from "@material-ui/core/CircularProgress";
 import { useAuth } from "util/auth.js";
 import { useForm } from "react-hook-form";
 
-function SettingsPassword(props) {
+const SettingsPassword = props => {
   const auth = useAuth();
   const [pending, setPending] = useState(false);
 
@@ -106,6 +106,6 @@ function SettingsPassword(props) {
       </Grid>
     </form>
   );
-}
+};
 
 export default SettingsPassword;

@@ -26,7 +26,7 @@ const Spinner = styled(CircularProgress)`
   animation-duration: 750ms;
 `;
 
-function EmailForm({ message = "", onComplete = () => {}, ...rest }) {
+const EmailForm = ({ message = "", onComplete = () => {}, ...rest }) => {
   const [pending, setPending] = useState(false);
   const [alert, setAlert] = useState({
     type: "",
@@ -112,6 +112,6 @@ function EmailForm({ message = "", onComplete = () => {}, ...rest }) {
       />
     </>
   );
-}
+};
 
 export default EmailForm;

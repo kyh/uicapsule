@@ -39,35 +39,31 @@ const Subtitle = styled(Typography)`
   opacity: 0.8;
 `;
 
-function CtaSection(props) {
-  return (
-    <Section size={props.size}>
-      <CtaContainer>
-        <Grid container alignItems="center" justify="space-between" spacing={4}>
-          <Grid item xs={12} md="auto">
-            <Box component="header" textAlign="left" color="white">
-              <Title variant="h3" gutterBottom>
-                {props.title}
-              </Title>
-              <Subtitle variant="subtitle1">{props.subtitle}</Subtitle>
-            </Box>
-          </Grid>
-          <Grid item xs={12} md="auto">
-            <Link href={props.buttonPath} passHref>
-              <Button
-                component="a"
-                variant="contained"
-                size="large"
-                color={props.buttonColor}
-              >
-                {props.buttonText}
-              </Button>
-            </Link>
-          </Grid>
-        </Grid>
-      </CtaContainer>
-    </Section>
-  );
-}
+const CtaSection = props => <Section size={props.size}>
+  <CtaContainer>
+    <Grid container alignItems="center" justify="space-between" spacing={4}>
+      <Grid item xs={12} md="auto">
+        <Box component="header" textAlign="left" color="white">
+          <Title variant="h3" gutterBottom>
+            {props.title}
+          </Title>
+          <Subtitle variant="subtitle1">{props.subtitle}</Subtitle>
+        </Box>
+      </Grid>
+      <Grid item xs={12} md="auto">
+        <Link href={props.buttonPath} passHref>
+          <Button
+            component="a"
+            variant="contained"
+            size="large"
+            color={props.buttonColor}
+          >
+            {props.buttonText}
+          </Button>
+        </Link>
+      </Grid>
+    </Grid>
+  </CtaContainer>
+</Section>;
 
 export default CtaSection;

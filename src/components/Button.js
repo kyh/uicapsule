@@ -19,22 +19,18 @@ const Spinner = styled(CircularProgress)`
   animation-duration: 750ms;
 `;
 
-function UIButton({ loading = false, children = "", ...rest }) {
-  return (
-    <Button disabled={loading} {...rest}>
-      <ButtonContent loading={loading === true ? 1 : 0}>
-        {children}
-      </ButtonContent>
-      {loading && (
-        <Spinner
-          variant="indeterminate"
-          disableShrink
-          size={20}
-          thickness={4}
-        />
-      )}
-    </Button>
-  );
-}
+const UIButton = ({ loading = false, children = "", ...rest }) => <Button disabled={loading} {...rest}>
+  <ButtonContent loading={loading === true ? 1 : 0}>
+    {children}
+  </ButtonContent>
+  {loading && (
+    <Spinner
+      variant="indeterminate"
+      disableShrink
+      size={20}
+      thickness={4}
+    />
+  )}
+</Button>;
 
 export default UIButton;

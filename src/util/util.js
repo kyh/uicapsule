@@ -1,6 +1,6 @@
 import firebase from "./firebase";
 
-export async function apiRequest(path, method = "GET", data) {
+export const apiRequest = async (path, method = "GET", data) => {
   const accessToken = firebase.auth().currentUser
     ? await firebase.auth().currentUser.getIdToken()
     : undefined;
@@ -26,17 +26,16 @@ export async function apiRequest(path, method = "GET", data) {
         return response.data;
       }
     });
-}
+};
 
 // Create an Error with custom message and code
-export function CustomError(code, message) {
+export const CustomError = (code, message) => {
   const error = new Error(message);
   error.code = code;
   return error;
-}
+};
 
-export function isMobile() {
-  return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(
+export const isMobile = () =>
+  /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(
     navigator.userAgent
   );
-}

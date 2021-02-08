@@ -12,31 +12,27 @@ const Conatainer = styled.div`
   `}
 `;
 
-function AuthFooter(props) {
-  return (
-    <Conatainer>
-      {props.type === "signup" && (
-        <>
-          <Link href="/auth/signin" passHref>
-            <LinkMui color="inherit">{props.typeValues.linkTextSignin}</LinkMui>
-          </Link>
-        </>
-      )}
+const AuthFooter = props => <Conatainer>
+  {props.type === "signup" && (
+    <>
+      <Link href="/auth/signin" passHref>
+        <LinkMui color="inherit">{props.typeValues.linkTextSignin}</LinkMui>
+      </Link>
+    </>
+  )}
 
-      {props.type === "signin" && (
-        <>
-          <Link href="/auth/signup" passHref>
-            <LinkMui color="inherit">{props.typeValues.linkTextSignup}</LinkMui>
-          </Link>
-          <Link href="/auth/forgotpass" passHref>
-            <LinkMui color="inherit">
-              {props.typeValues.linkTextForgotpass}
-            </LinkMui>
-          </Link>
-        </>
-      )}
-    </Conatainer>
-  );
-}
+  {props.type === "signin" && (
+    <>
+      <Link href="/auth/signup" passHref>
+        <LinkMui color="inherit">{props.typeValues.linkTextSignup}</LinkMui>
+      </Link>
+      <Link href="/auth/forgotpass" passHref>
+        <LinkMui color="inherit">
+          {props.typeValues.linkTextForgotpass}
+        </LinkMui>
+      </Link>
+    </>
+  )}
+</Conatainer>;
 
 export default AuthFooter;

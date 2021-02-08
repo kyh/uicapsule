@@ -39,7 +39,7 @@ const useStyles = makeStyles((theme) => ({
   },
 }));
 
-function AuthSocial(props) {
+const AuthSocial = props => {
   const classes = useStyles();
 
   const auth = useAuth();
@@ -114,6 +114,6 @@ function AuthSocial(props) {
       ))}
     </div>
   );
-}
+};
 
 export default AuthSocial;

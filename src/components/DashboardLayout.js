@@ -5,13 +5,9 @@ import Container from "@material-ui/core/Container";
 
 const DashboardContent = styled(Container)``;
 
-function DashboardLayout({ children }) {
-  return (
-    <>
-      <DashboardNavbar />
-      {children}
-    </>
-  );
-}
+const DashboardLayout = ({ children }) => <>
+  <DashboardNavbar />
+  {children}
+</>;
 
 export default DashboardLayout;

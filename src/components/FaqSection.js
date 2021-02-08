@@ -61,7 +61,7 @@ const items = [
   },
 ];
 
-function FaqSection(props) {
+const FaqSection = props => {
   const classes = useStyles();
   return (
     <Section
@@ -104,6 +104,6 @@ function FaqSection(props) {
       </Container>
     </Section>
   );
-}
+};
 
 export default FaqSection;

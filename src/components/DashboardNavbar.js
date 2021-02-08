@@ -59,7 +59,7 @@ const RightNav = styled(Hidden)`
   margin-left: auto;
 `;
 
-function DashboardNavbar() {
+const DashboardNavbar = () => {
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [menuState, setMenuState] = useState({
     id: "",
@@ -147,34 +147,30 @@ function DashboardNavbar() {
       </Container>
     </AppBar>
   );
-}
+};
 
-function NavDrawer({ drawerOpen, setDrawerOpen }) {
-  return (
-    <Drawer
-      anchor="right"
-      open={drawerOpen}
-      onClose={() => setDrawerOpen(false)}
-      elevation={2}
-    >
-      <List style={{ width: 200 }} onClick={() => setDrawerOpen(false)}>
-        <Link href="/dashboard" passHref>
-          <ListItem button component="a">
-            <ListItemText>Dashboard</ListItemText>
-          </ListItem>
-        </Link>
-        <Link href="/settings/general" passHref>
-          <ListItem button component="a">
-            <ListItemText>Settings</ListItemText>
-          </ListItem>
-        </Link>
-        <Divider />
-        <ListItem button onClick={() => auth.signout()}>
-          <ListItemText>Sign out</ListItemText>
-        </ListItem>
-      </List>
-    </Drawer>
-  );
-}
+const NavDrawer = ({ drawerOpen, setDrawerOpen }) => <Drawer
+  anchor="right"
+  open={drawerOpen}
+  onClose={() => setDrawerOpen(false)}
+  elevation={2}
+>
+  <List style={{ width: 200 }} onClick={() => setDrawerOpen(false)}>
+    <Link href="/dashboard" passHref>
+      <ListItem button component="a">
+        <ListItemText>Dashboard</ListItemText>
+      </ListItem>
+    </Link>
+    <Link href="/settings/general" passHref>
+      <ListItem button component="a">
+        <ListItemText>Settings</ListItemText>
+      </ListItem>
+    </Link>
+    <Divider />
+    <ListItem button onClick={() => auth.signout()}>
+      <ListItemText>Sign out</ListItemText>
+    </ListItem>
+  </List>
+</Drawer>;
 
 export default DashboardNavbar;

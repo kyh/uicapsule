@@ -7,7 +7,7 @@ import Button from "components/Button";
 import contact from "util/contact";
 import { useForm } from "react-hook-form";
 
-function Contact(props) {
+const Contact = props => {
   const [pending, setPending] = useState(false);
   const [formAlert, setFormAlert] = useState(null);
   const { handleSubmit, register, errors, reset } = useForm();
@@ -114,6 +114,6 @@ function Contact(props) {
       </form>
     </>
   );
-}
+};
 
 export default Contact;

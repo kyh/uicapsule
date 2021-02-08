@@ -5,7 +5,7 @@ import Button from "components/Button";
 import { useAuth } from "util/auth.js";
 import { useForm } from "react-hook-form";
 
-function AuthForm(props) {
+const AuthForm = props => {
   const auth = useAuth();
   const [pending, setPending] = useState(false);
   const { handleSubmit, register, errors, getValues } = useForm();
@@ -116,6 +116,6 @@ function AuthForm(props) {
       </Grid>
     </form>
   );
-}
+};
 
 export default AuthForm;

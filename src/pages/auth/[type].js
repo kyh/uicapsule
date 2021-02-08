@@ -8,7 +8,7 @@ import SectionHeader from "components/SectionHeader";
 import EmailForm from "components/EmailForm";
 import { useRouter } from "next/router";
 
-function BetaPage() {
+const BetaPage = () => {
   const [complete, setComplete] = useState(false);
   return (
     <>
@@ -46,9 +46,9 @@ function BetaPage() {
       </HeroSection>
     </>
   );
-}
+};
 
-function AuthPage() {
+const AuthPage = () => {
   const router = useRouter();
   if (router.query.type === "signup" && router.query.key !== "beta") {
     return <BetaPage />;
@@ -63,7 +63,7 @@ function AuthPage() {
       afterAuthPath={router.query.next || "/dashboard"}
     />
   );
-}
+};
 
 AuthPage.Layout = SiteLayout;
 
@@ -79,8 +79,8 @@ export const getStaticPaths = () => ({
   fallback: true,
 });
 
-export function getStaticProps({ params }) {
-  return { props: {} };
-}
+export const getStaticProps = ({ params }) => ({
+  props: {}
+});
 
 export default AuthPage;

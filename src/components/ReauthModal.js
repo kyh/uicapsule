@@ -18,7 +18,7 @@ const useStyles = makeStyles((theme) => ({
   },
 }));
 
-function ReauthModal(props) {
+const ReauthModal = props => {
   const classes = useStyles();
 
   const auth = useAuth();
@@ -113,6 +113,6 @@ function ReauthModal(props) {
       </DialogContent>
     </Dialog>
   );
-}
+};
 
 export default ReauthModal;

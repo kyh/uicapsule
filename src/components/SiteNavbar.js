@@ -73,7 +73,7 @@ const RightNav = styled(Hidden)`
   margin-left: auto;
 `;
 
-function SiteNavbar() {
+const SiteNavbar = () => {
   const [drawerOpen, setDrawerOpen] = useState(false);
   const trigger = useScrollTrigger({
     disableHysteresis: true,
@@ -133,42 +133,38 @@ function SiteNavbar() {
       </Container>
     </SiteNavbarContainer>
   );
-}
+};
 
-function NavDrawer({ drawerOpen, setDrawerOpen }) {
-  return (
-    <Drawer
-      anchor="right"
-      open={drawerOpen}
-      onClose={() => setDrawerOpen(false)}
-      elevation={2}
-    >
-      <List style={{ width: 200 }} onClick={() => setDrawerOpen(false)}>
-        <Link href="/" passHref>
-          <ListItem button component="a">
-            <ListItemText>Home</ListItemText>
-          </ListItem>
-        </Link>
-        <Link href="/about" passHref>
-          <ListItem button component="a">
-            <ListItemText>About</ListItemText>
-          </ListItem>
-        </Link>
-        <Link href="/auth/signin" passHref>
-          <ListItem button component="a">
-            <ListItemText>Sign in</ListItemText>
-          </ListItem>
-        </Link>
-        <Box p={1}>
-          <Link href="/auth/signup" passHref>
-            <Button variant="outlined" component="a" fullWidth>
-              Sign up
-            </Button>
-          </Link>
-        </Box>
-      </List>
-    </Drawer>
-  );
-}
+const NavDrawer = ({ drawerOpen, setDrawerOpen }) => <Drawer
+  anchor="right"
+  open={drawerOpen}
+  onClose={() => setDrawerOpen(false)}
+  elevation={2}
+>
+  <List style={{ width: 200 }} onClick={() => setDrawerOpen(false)}>
+    <Link href="/" passHref>
+      <ListItem button component="a">
+        <ListItemText>Home</ListItemText>
+      </ListItem>
+    </Link>
+    <Link href="/about" passHref>
+      <ListItem button component="a">
+        <ListItemText>About</ListItemText>
+      </ListItem>
+    </Link>
+    <Link href="/auth/signin" passHref>
+      <ListItem button component="a">
+        <ListItemText>Sign in</ListItemText>
+      </ListItem>
+    </Link>
+    <Box p={1}>
+      <Link href="/auth/signup" passHref>
+        <Button variant="outlined" component="a" fullWidth>
+          Sign up
+        </Button>
+      </Link>
+    </Box>
+  </List>
+</Drawer>;
 
 export default SiteNavbar;

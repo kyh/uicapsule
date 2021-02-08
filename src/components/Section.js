@@ -42,17 +42,19 @@ const useStyles = makeStyles((theme) => ({
   },
 }));
 
-function Section({
-  bgColor = "default",
-  bgImage,
-  bgImageOpacity,
-  bgPosY,
-  bgPosX,
-  size = "normal",
-  className,
-  children,
-  ...rest
-}) {
+const Section = (
+  {
+    bgColor = "default",
+    bgImage,
+    bgImageOpacity,
+    bgPosY,
+    bgPosX,
+    size = "normal",
+    className,
+    children,
+    ...rest
+  }
+) => {
   const classes = useStyles();
   // Get MUI responsize size object based
   // on size prop (normal, medium, large, auto)
@@ -87,6 +89,6 @@ function Section({
       {children}
     </Box>
   );
-}
+};
 
 export default Section;

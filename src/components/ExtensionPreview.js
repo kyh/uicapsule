@@ -68,7 +68,7 @@ const TryButton = styled.button`
 
 let Extension = null;
 
-function ExtensionPreview({ onSetHtml = () => {} }) {
+const ExtensionPreview = ({ onSetHtml = () => {} }) => {
   const router = useRouter();
   const [isActivated, setIsActivated] = useState(false);
   const [alert, setAlert] = useState({ message: "", open: false });
@@ -135,6 +135,6 @@ function ExtensionPreview({ onSetHtml = () => {} }) {
       />
     </PreviewContainer>
   );
-}
+};
 
 export default ExtensionPreview;

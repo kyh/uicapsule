@@ -4,7 +4,7 @@ import DashboardLayout from "components/DashboardLayout";
 import SettingsSection from "components/SettingsSection";
 import { requireAuth } from "util/auth.js";
 
-function SettingsPage() {
+const SettingsPage = () => {
   const router = useRouter();
   return (
     <SettingsSection
@@ -12,7 +12,7 @@ function SettingsPage() {
       key={router.query.section}
     />
   );
-}
+};
 
 SettingsPage.Layout = DashboardLayout;
 
@@ -27,8 +27,8 @@ export const getStaticPaths = () => ({
   fallback: true,
 });
 
-export function getStaticProps({ params }) {
-  return { props: {} };
-}
+export const getStaticProps = ({ params }) => ({
+  props: {}
+});
 
 export default requireAuth(SettingsPage);

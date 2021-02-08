@@ -8,59 +8,43 @@ const serverTimestamp = firebase.firestore.FieldValue.serverTimestamp;
 
 // Fetch user data (hook)
 // This is called automatically by auth.js and merged into auth.user
-export function useUser(uid) {
-  return useQuery(uid && firestore.collection("users").doc(uid));
-}
+export const useUser = uid => useQuery(uid && firestore.collection("users").doc(uid));
 
 // Update an existing user
-export function updateUser(uid, data) {
-  return firestore.collection("users").doc(uid).update(data);
-}
+export const updateUser = (uid, data) => firestore.collection("users").doc(uid).update(data);
 
 // Create a new user
-export function createUser(uid, data) {
-  return firestore
-    .collection("users")
-    .doc(uid)
-    .set({ uid, ...data }, { merge: true });
-}
+export const createUser = (uid, data) => firestore
+  .collection("users")
+  .doc(uid)
+  .set({ uid, ...data }, { merge: true });
 
 /**** ITEMS ****/
 /* Example query functions (modify to your needs) */
 
 // Fetch all items by owner (hook)
-export function useItemsByOwner(owner) {
-  return useQuery(
-    owner &&
-      firestore
-        .collection("items")
-        .where("owner", "==", owner)
-        .orderBy("createdAt", "desc")
-  );
-}
+export const useItemsByOwner = owner => useQuery(
+  owner &&
+    firestore
+      .collection("items")
+      .where("owner", "==", owner)
+      .orderBy("createdAt", "desc")
+);
 
 // Fetch item data
-export function useItem(id) {
-  return useQuery(id && firestore.collection("items").doc(id));
-}
+export const useItem = id => useQuery(id && firestore.collection("items").doc(id));
 
 // Update an item
-export function updateItem(id, data) {
-  return firestore.collection("items").doc(id).update(data);
-}
+export const updateItem = (id, data) => firestore.collection("items").doc(id).update(data);
 
 // Create a new item
-export function createItem(data) {
-  return firestore.collection("items").add({
-    ...data,
-    createdAt: serverTimestamp(),
-  });
-}
+export const createItem = data => firestore.collection("items").add({
+  ...data,
+  createdAt: serverTimestamp(),
+});
 
 // Delete an item
-export function deleteItem(id) {
-  return firestore.collection("items").doc(id).delete();
-}
+export const deleteItem = id => firestore.collection("items").doc(id).delete();
 
 /**** HELPERS ****/
 
@@ -80,8 +64,7 @@ const reducer = (state, action) => {
   }
 };
 
-// Custom React hook that subscribes to a Firestore query
-function useQuery(query) {
+const useQuery = query => {
   // Our initial state
   // Start with an "idle" status if query is falsy, as that means hook consumer is
   // waiting on required data before creating the query object.
@@ -131,20 +114,12 @@ function useQuery(query) {
   }, [queryCached]); // Only run effect if queryCached changes
 
   return state;
-}
+};
 
-// Get doc data and merge doc.id
-function getDocData(doc) {
-  return doc.exists === true ? { id: doc.id, ...doc.data() } : null;
-}
+const getDocData = doc => doc.exists === true ? { id: doc.id, ...doc.data() } : null;
+const getCollectionData = collection => collection.docs.map(getDocData);
 
-// Get array of doc data from collection
-function getCollectionData(collection) {
-  return collection.docs.map(getDocData);
-}
-
-// Used by useQuery to store Firestore query object reference
-function useMemoCompare(next, compare) {
+const useMemoCompare = (next, compare) => {
   // Ref for storing previous value
   const previousRef = useRef();
   const previous = previousRef.current;
@@ -164,4 +139,4 @@ function useMemoCompare(next, compare) {
 
   // Finally, if equal then return the previous value
   return isEqual ? previous : next;
-}
+};

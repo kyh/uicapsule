@@ -87,7 +87,7 @@ const items = [
   },
 ];
 
-function PricingSection() {
+const PricingSection = () => {
   const auth = useAuth();
   return (
     <Section size="large">
@@ -163,6 +163,6 @@ function PricingSection() {
       </Container>
     </Section>
   );
-}
+};
 
 export default PricingSection;

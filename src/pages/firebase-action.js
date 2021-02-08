@@ -5,7 +5,7 @@ import SiteLayout from "components/SiteLayout";
 import PageLoader from "components/PageLoader";
 import { handleRecoverEmail, handleVerifyEmail } from "util/auth.js";
 
-function FirebaseActionPage(props) {
+const FirebaseActionPage = props => {
   const router = useRouter();
   const [formAlert, setFormAlert] = useState();
 
@@ -72,7 +72,7 @@ function FirebaseActionPage(props) {
       )}
     </PageLoader>
   );
-}
+};
 
 FirebaseActionPage.Layout = SiteLayout;
 

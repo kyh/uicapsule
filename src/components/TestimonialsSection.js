@@ -61,44 +61,40 @@ const items = [
   },
 ];
 
-function TestimonialsSection(props) {
-  return (
-    <Section
-      bgColor={props.bgColor}
-      size={props.size}
-      bgImage={props.bgImage}
-      bgImageOpacity={props.bgImageOpacity}
-    >
-      <Container>
-        <SectionHeader
-          title={props.title}
-          subtitle={props.subtitle}
-          size={3}
-          textAlign="center"
-        />
-        <Grid container justify="center" spacing={4}>
-          {items.map((item) => (
-            <Grid item xs={12} sm={4} key={item.name}>
-              <Card elevation={0}>
-                <CardContent>
-                  <TestimonialText variant="body1" component="p">
-                    {item.testimonial}
-                  </TestimonialText>
-                </CardContent>
-                <TestimonialHeader
-                  avatar={
-                    <TestimonialAvatar src={item.avatar} alt={item.name} />
-                  }
-                  title={item.name}
-                  subheader={item.company}
-                />
-              </Card>
-            </Grid>
-          ))}
+const TestimonialsSection = props => <Section
+  bgColor={props.bgColor}
+  size={props.size}
+  bgImage={props.bgImage}
+  bgImageOpacity={props.bgImageOpacity}
+>
+  <Container>
+    <SectionHeader
+      title={props.title}
+      subtitle={props.subtitle}
+      size={3}
+      textAlign="center"
+    />
+    <Grid container justify="center" spacing={4}>
+      {items.map((item) => (
+        <Grid item xs={12} sm={4} key={item.name}>
+          <Card elevation={0}>
+            <CardContent>
+              <TestimonialText variant="body1" component="p">
+                {item.testimonial}
+              </TestimonialText>
+            </CardContent>
+            <TestimonialHeader
+              avatar={
+                <TestimonialAvatar src={item.avatar} alt={item.name} />
+              }
+              title={item.name}
+              subheader={item.company}
+            />
+          </Card>
         </Grid>
-      </Container>
-    </Section>
-  );
-}
+      ))}
+    </Grid>
+  </Container>
+</Section>;
 
 export default TestimonialsSection;

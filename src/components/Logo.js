@@ -2,7 +2,7 @@ import React from "react";
 import { useTheme } from "@material-ui/core/styles";
 import useDarkMode from "use-dark-mode";
 
-function Logo(props) {
+const Logo = props => {
   const darkMode = useDarkMode();
   const theme = useTheme();
   return (
@@ -54,6 +54,6 @@ function Logo(props) {
       </g>
     </svg>
   );
-}
+};
 
 export default Logo;

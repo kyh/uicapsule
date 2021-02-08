@@ -11,7 +11,7 @@ loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY, {
   stripe = stripeInstance;
 });
 
-export async function redirectToCheckout(planId) {
+export const redirectToCheckout = async (planId) => {
   // Create a checkout session
   const session = await apiRequest("stripe-create-checkout-session", "POST", {
     priceId: getStripePriceId(planId),
@@ -25,9 +25,9 @@ export async function redirectToCheckout(planId) {
   return stripe.redirectToCheckout({
     sessionId: session.id,
   });
-}
+};
 
-export async function redirectToBilling() {
+export const redirectToBilling = async () => {
   // Create a billing session
   const session = await apiRequest("stripe-create-billing-session", "POST");
 
@@ -37,4 +37,4 @@ export async function redirectToBilling() {
 
   // Redirect to billing session url
   window.location.href = session.url;
-}
+};

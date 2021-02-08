@@ -12,7 +12,7 @@ import SettingsPassword from "components/SettingsPassword";
 import SettingsBilling from "components/SettingsBilling";
 import { useAuth } from "util/auth.js";
 
-function SettingsSection(props) {
+const SettingsSection = props => {
   const auth = useAuth();
   const router = useRouter();
   const [formAlert, setFormAlert] = useState(null);
@@ -89,6 +89,6 @@ function SettingsSection(props) {
       )}
     </Section>
   );
-}
+};
 
 export default SettingsSection;

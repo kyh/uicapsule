@@ -18,7 +18,7 @@ const useStyles = makeStyles((theme) => ({
   },
 }));
 
-function EditItemModal(props) {
+const EditItemModal = props => {
   const classes = useStyles();
 
   const auth = useAuth();
@@ -109,6 +109,6 @@ function EditItemModal(props) {
       </DialogContent>
     </Dialog>
   );
-}
+};
 
 export default EditItemModal;

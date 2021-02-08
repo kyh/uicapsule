@@ -11,7 +11,7 @@ import LinkMui from "@material-ui/core/Link";
 import Link from "next/link";
 import { useAuth } from "util/auth.js";
 
-function DashboardSection() {
+const DashboardSection = () => {
   const auth = useAuth();
   return (
     <Section>
@@ -101,6 +101,6 @@ function DashboardSection() {
       </Container>
     </Section>
   );
-}
+};
 
 export default DashboardSection;

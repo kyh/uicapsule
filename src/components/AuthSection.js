@@ -17,7 +17,7 @@ const AuthFormContainer = styled.div`
   `}
 `;
 
-function AuthSection(props) {
+const AuthSection = props => {
   // Values for each auth type
   const allTypeValues = {
     signin: {
@@ -76,6 +76,6 @@ function AuthSection(props) {
       </Container>
     </Section>
   );
-}
+};
 
 export default AuthSection;

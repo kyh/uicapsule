@@ -18,7 +18,7 @@ const Subtitle = styled(Typography)`
   `}
 `;
 
-function SectionHeader(props) {
+const SectionHeader = props => {
   const { subtitle, title, size, className, ...otherProps } = props;
 
   // Render nothing if no title or subtitle
@@ -40,6 +40,6 @@ function SectionHeader(props) {
       {subtitle && <Subtitle variant="subtitle1">{subtitle}</Subtitle>}
     </Container>
   );
-}
+};
 
 export default SectionHeader;

@@ -14,7 +14,7 @@ const Conatainer = styled.div`
   z-index: 0;
 `;
 
-function BackgroundImage(props) {
+const BackgroundImage = props => {
   const { image, posY, posX, opacity, ...otherProps } = props;
   return (
     <Conatainer
@@ -27,6 +27,6 @@ function BackgroundImage(props) {
       {...otherProps}
     />
   );
-}
+};
 
 export default BackgroundImage;

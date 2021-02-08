@@ -3,7 +3,7 @@ import "util/analytics.js";
 import { AuthProvider } from "util/auth.js";
 import { ThemeProvider } from "util/theme.js";
 
-function MyApp({ Component, pageProps }) {
+const MyApp = ({ Component, pageProps }) => {
   const Layout = Component.Layout ? Component.Layout : React.Fragment;
   return (
     <ThemeProvider>
@@ -14,6 +14,6 @@ function MyApp({ Component, pageProps }) {
       </AuthProvider>
     </ThemeProvider>
   );
-}
+};
 
 export default MyApp;

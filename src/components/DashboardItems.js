@@ -32,7 +32,7 @@ const useStyles = makeStyles((theme) => ({
   },
 }));
 
-function DashboardItems(props) {
+const DashboardItems = props => {
   const classes = useStyles();
 
   const auth = useAuth();
@@ -149,6 +149,6 @@ function DashboardItems(props) {
       )}
     </>
   );
-}
+};
 
 export default DashboardItems;

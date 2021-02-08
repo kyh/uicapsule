@@ -24,18 +24,17 @@ const authContext = createContext();
 
 // Context Provider component that wraps your app and makes auth object
 // available to any child component that calls the useAuth() hook.
-export function AuthProvider({ children }) {
+export const AuthProvider = ({ children }) => {
   const auth = useAuthProvider();
   return <authContext.Provider value={auth}>{children}</authContext.Provider>;
-}
+};
 
 // Hook that enables any component to subscribe to auth state
 export const useAuth = () => {
   return useContext(authContext);
 };
 
-// Provider hook that creates auth object and handles state
-function useAuthProvider() {
+const useAuthProvider = () => {
   // Store auth user object
   const [user, setUser] = useState(null);
 
@@ -174,10 +173,9 @@ function useAuthProvider() {
     updatePassword,
     updateProfile,
   };
-}
+};
 
-// Format final user object and merge extra data from database
-function usePrepareUser(user) {
+const usePrepareUser = user => {
   // Fetch extra data from database (if enabled and auth user has been fetched)
   const userDbQuery = useUser(MERGE_DB_USER && user && user.uid);
 
@@ -240,15 +238,13 @@ function usePrepareUser(user) {
 
     return finalUser;
   }, [user, userDbQuery]);
-}
+};
 
-function getDisplayName(Component) {
-  return Component.displayName || Component.name || "Component";
-}
+const getDisplayName = Component => Component.displayName || Component.name || "Component";
 
 // A Higher Order Component for requiring authentication
 export const requireAuth = (Component) => {
-  function WithAuth(props) {
+  const WithAuth = props => {
     // Get authenticated user
     const auth = useAuth();
 
@@ -267,7 +263,7 @@ export const requireAuth = (Component) => {
 
     // Render component now that we have user
     return <Component {...props} />;
-  }
+  };
 
   WithAuth.displayName = `WithAuth(${getDisplayName(Component)})`;
   WithAuth.Layout = Component.Layout;
@@ -333,14 +329,13 @@ const allProviders = [
   },
 ];
 
-// Connect analytics session to current user.uid
-function useIdentifyUser(user) {
+const useIdentifyUser = user => {
   useEffect(() => {
     if (ANALYTICS_IDENTIFY && user) {
       analytics.identify(user.uid);
     }
   }, [user]);
-}
+};
 
 // Waits on Firebase user to be initialized before resolving promise
 // This is used to ensure auth is ready before any writing to the db can happen
