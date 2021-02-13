@@ -16,6 +16,7 @@ import Menu from "@material-ui/core/Menu";
 import MenuItem from "@material-ui/core/MenuItem";
 import Divider from "@material-ui/core/Divider";
 import Logo from "components/Logo";
+import { useAuth } from "util/auth.js";
 
 const AppHeader = styled(AppBar)`
   ${({ theme }) => css`
@@ -77,6 +78,7 @@ const NavLink = styled(Button)`
 `;
 
 const DashboardNavbar = () => {
+  const auth = useAuth();
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [menuState, setMenuState] = useState({
     id: "",

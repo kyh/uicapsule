@@ -2,6 +2,7 @@ import React, { useRef, useEffect, useState } from "react";
 import styled, { css } from "styled-components";
 import Head from "next/head";
 import Link from "next/link";
+import router from "next/router";
 import Carousel from "react-elastic-carousel";
 import Button from "@material-ui/core/Button";
 import SiteLayout from "components/SiteLayout";
@@ -12,6 +13,7 @@ import ExtensionPreview from "components/ExtensionPreview";
 import FeaturesSection from "components/FeaturesSection";
 import TestimonialsSection from "components/TestimonialsSection";
 import CtaSection from "components/CtaSection";
+import { useAuth } from "util/auth.js";
 
 const HeroCtaContainer = styled.div`
   ${({ theme }) => css`
@@ -44,6 +46,7 @@ const IndexPage = () => {
   const [html, setHtml] = useState("");
   const [exampleIndex, setExampleIndex] = useState(0);
   const [activeFeatureIndex, setActiveFeatureIndex] = useState(0);
+  const auth = useAuth();
 
   const onExtensionPreviewSetHtml = (html) => {
     setHtml(html);
@@ -62,10 +65,10 @@ const IndexPage = () => {
   };
 
   useEffect(() => {
+    if (auth.user) router.replace("/dashboard");
     const data = fetchExample(exampleIndex);
     setHtml(data);
-    return () => clearTimeout(resetTimeout);
-  }, []);
+  }, [auth]);
 
   return (
     <>
@@ -136,6 +139,11 @@ const items = ["websites", "articles", "apps", "anywhere"];
 
 const PageTitle = () => {
   const carouselRef = useRef(null);
+
+  useEffect(() => {
+    return () => clearTimeout(resetTimeout);
+  }, []);
+
   return (
     <>
       <div>Save UI elements from </div>
