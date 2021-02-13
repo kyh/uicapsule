@@ -36,21 +36,21 @@ const AboutContent = () => (
     <AboutParagraph>
       I'm a total bookmark nerd. Often times finding myself bookmarking things I
       think I'll need later on. Specifically, web pages I find beautiful,
-      useful, and well designed. To me, these bookmarks a great reference point
-      when working on a new project to draw inspiration from.
+      useful, and well designed. To me, these bookmarks provide great reference
+      point when working on a new project to draw inspiration from.
     </AboutParagraph>
     <AboutParagraph>
-      Over the years though, I've found that my bookmark manager doesn't quite
-      provide me with the tools to resurface, identify, and organize the things
-      I've saved.
+      Over the years though, I've found that a traditional bookmark manager
+      doesn't quite grant me the tools to resurface, identify, and organize the
+      things I've saved.
     </AboutParagraph>
     <AboutParagraph>
-      The issues, I think, can be split into these few themes:
+      The issues, I think, can be divided into these few themes:
     </AboutParagraph>
     <AboutList>
       <li>
         <AboutParagraph>
-          Bookmarking an entire page seems a little too generic. What was it
+          Bookmarking an entire page seems a little too generic. What is it
           about this particular page did I find fascinating?
         </AboutParagraph>
       </li>
@@ -62,9 +62,9 @@ const AboutContent = () => (
       </li>
       <li>
         <AboutParagraph>
-          If we're lucky our bookmark manager would also take a screenshot if
-          the original source is no longer there. However, screenshot
-          resolutions may be poor and even worse yet, non interactive
+          If we're lucky our bookmark manager would also take a screenshot of
+          the original source. However, screenshot resolutions may be poor and
+          even worse yet, they're non interactive
         </AboutParagraph>
       </li>
       <li>
