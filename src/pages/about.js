@@ -14,6 +14,10 @@ const AboutParagraph = styled(Typography)`
     line-height: 1.6;
     max-width: 600px;
     margin: auto auto ${theme.spacing(3)}px;
+
+    em {
+      font-weight: 500;
+    }
   `}
 `;
 
@@ -30,17 +34,18 @@ const AboutList = styled.ol`
 const AboutContent = () => (
   <>
     <AboutParagraph>
-      I often find myself often bookmarking pages I find beautiful, useful, and
-      well designed. To me, these bookmarks a great reference point when working
-      on a new project to draw inspiration from.
+      I'm a total bookmark nerd. Often times finding myself bookmarking things I
+      think I'll need later on. Specifically, web pages I find beautiful,
+      useful, and well designed. To me, these bookmarks a great reference point
+      when working on a new project to draw inspiration from.
     </AboutParagraph>
     <AboutParagraph>
-      Over the years though, I've found that my bookmark manager doesn't provide
-      me the tools to resurface, identify, and organize the things I've saved
-      very well.
+      Over the years though, I've found that my bookmark manager doesn't quite
+      provide me with the tools to resurface, identify, and organize the things
+      I've saved.
     </AboutParagraph>
     <AboutParagraph>
-      The issues, I think, can be split into these few bullet points:
+      The issues, I think, can be split into these few themes:
     </AboutParagraph>
     <AboutList>
       <li>
@@ -70,9 +75,12 @@ const AboutContent = () => (
       </li>
     </AboutList>
     <AboutParagraph>
-      I built UI Capsule to try to tackle each of these problems. Hopefully,
-      with the help of this tool, design hoarders like myself can continue our
-      passion for collecting, without all the extra baggage.
+      I built UI Capsule to try to tackle each of these problems. I describe it
+      as <em>"Pinterest meets UI"</em>
+    </AboutParagraph>
+    <AboutParagraph>
+      Hopefully, with the help of this tool, design hoarders like myself can
+      continue our passion for collecting, without all the extra baggage.
     </AboutParagraph>
   </>
 );
