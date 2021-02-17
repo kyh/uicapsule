@@ -8,8 +8,15 @@ import Divider from "@material-ui/core/Divider";
 import ListItem from "@material-ui/core/ListItem";
 import ListItemIcon from "@material-ui/core/ListItemIcon";
 import ListItemText from "@material-ui/core/ListItemText";
-import InboxIcon from "@material-ui/icons/MoveToInbox";
-import MailIcon from "@material-ui/icons/Mail";
+import {
+  GlobeOutline,
+  FireOutline,
+  LibraryOutline,
+  CollectionOutline,
+  CubeTransparentOutline,
+  CogOutline,
+} from "@graywolfai/react-heroicons";
+import ActiveLink from "components/ActiveLink";
 import DashboardNavbar from "components/DashboardNavbar";
 
 const Sidebar = styled(Drawer)`
@@ -22,6 +29,34 @@ const Sidebar = styled(Drawer)`
 
 const SidebarContainer = styled.div`
   overflow: auto;
+`;
+
+const SidebarList = styled(List)`
+  ${({ theme }) => css`
+    padding: ${theme.spacing(1)}px;
+
+    .MuiListItem-root {
+      border-radius: 8px;
+      padding: ${theme.spacing(1)}px;
+
+      &.active {
+        color: ${theme.palette.primary.main};
+        .MuiListItemIcon-root {
+          color: ${theme.palette.primary.dark};
+        }
+      }
+    }
+
+    .MuiListItemIcon-root {
+      min-width: ${theme.spacing(3)}px;
+      margin-right: ${theme.spacing(2)}px;
+    }
+
+    .MuiListItemText-root > span {
+      font-size: inherit;
+      font-weight: 500;
+    }
+  `}
 `;
 
 const Content = styled.main`
@@ -38,27 +73,62 @@ const DashboardLayout = ({ children }) => {
       <Sidebar variant="permanent">
         <Toolbar />
         <SidebarContainer>
-          <List>
-            {["Inbox", "Starred", "Send email", "Drafts"].map((text, index) => (
-              <ListItem button key={text}>
+          <SidebarList>
+            <ActiveLink href="/dashboard" passHref>
+              <ListItem button component="a">
                 <ListItemIcon>
-                  {index % 2 === 0 ? <InboxIcon /> : <MailIcon />}
+                  <GlobeOutline />
                 </ListItemIcon>
-                <ListItemText primary={text} />
+                <ListItemText primary="Discover" />
               </ListItem>
-            ))}
-          </List>
+            </ActiveLink>
+            <ActiveLink href="/dashboard/trending" passHref>
+              <ListItem button component="a">
+                <ListItemIcon>
+                  <FireOutline />
+                </ListItemIcon>
+                <ListItemText primary="Trending" />
+              </ListItem>
+            </ActiveLink>
+            <ActiveLink href="/dashboard/capsule" passHref>
+              <ListItem button component="a">
+                <ListItemIcon>
+                  <LibraryOutline />
+                </ListItemIcon>
+                <ListItemText primary="My Capsule" />
+              </ListItem>
+            </ActiveLink>
+          </SidebarList>
           <Divider />
-          <List>
-            {["All mail", "Trash", "Spam"].map((text, index) => (
-              <ListItem button key={text}>
+          <SidebarList>
+            <ActiveLink href="/dashboard/list" passHref>
+              <ListItem button component="a">
                 <ListItemIcon>
-                  {index % 2 === 0 ? <InboxIcon /> : <MailIcon />}
+                  <CollectionOutline />
                 </ListItemIcon>
-                <ListItemText primary={text} />
+                <ListItemText primary="Lists" />
               </ListItem>
-            ))}
-          </List>
+            </ActiveLink>
+            <ActiveLink href="/dashboard/playground" passHref>
+              <ListItem button component="a">
+                <ListItemIcon>
+                  <CubeTransparentOutline />
+                </ListItemIcon>
+                <ListItemText primary="Playground" />
+              </ListItem>
+            </ActiveLink>
+          </SidebarList>
+          <Divider />
+          <SidebarList>
+            <ActiveLink href="/dashboard/settings/general" passHref>
+              <ListItem button component="a">
+                <ListItemIcon>
+                  <CogOutline />
+                </ListItemIcon>
+                <ListItemText primary="Settings" />
+              </ListItem>
+            </ActiveLink>
+          </SidebarList>
         </SidebarContainer>
       </Sidebar>
       <Content>{children}</Content>

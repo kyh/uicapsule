@@ -1,12 +1,14 @@
 import React, { useState } from "react";
 import styled, { css } from "styled-components";
+import Link from "next/link";
+import Avatar from "@material-ui/core/Avatar";
 import AppBar from "@material-ui/core/AppBar";
 import Toolbar from "@material-ui/core/Toolbar";
-import Link from "next/link";
 import Hidden from "@material-ui/core/Hidden";
 import IconButton from "@material-ui/core/IconButton";
 import MenuIcon from "@material-ui/icons/Menu";
 import Button from "@material-ui/core/Button";
+import ButtonBase from "@material-ui/core/ButtonBase";
 import Drawer from "@material-ui/core/Drawer";
 import List from "@material-ui/core/List";
 import ListItem from "@material-ui/core/ListItem";
@@ -62,6 +64,11 @@ const RightNav = styled(Hidden)`
   ${({ theme }) => css`
     padding-right: ${theme.spacing(2)}px;
     align-self: center;
+
+    .MuiAvatar-root {
+      width: ${theme.spacing(4)}px;
+      height: ${theme.spacing(4)}px;
+    }
   `}
 `;
 
@@ -94,6 +101,8 @@ const DashboardNavbar = () => {
     setMenuState({ ...menuState, open: false });
   };
 
+  console.log(auth);
+
   return (
     <AppHeader color="inherit" elevation={0}>
       <AppToolbar>
@@ -103,28 +112,46 @@ const DashboardNavbar = () => {
           </LogoContainer>
         </Link>
         <LeftNav>
-          <Link href="/dashboard" passHref>
-            <NavLink color="inherit" component="a">
-              My Capsule
-            </NavLink>
-          </Link>
-          <Link href="/dashboard/discover" passHref>
-            <NavLink color="inherit" component="a">
-              Discover
-            </NavLink>
-          </Link>
+          <Button onClick={(event) => handleOpenMenu(event, "browse-menu")}>
+            Browse <ExpandMoreIcon />
+          </Button>
+          <Menu
+            id="browse-menu"
+            open={menuState.open}
+            anchorEl={menuState.anchor}
+            getContentAnchorEl={undefined}
+            onClick={handleCloseMenu}
+            onClose={handleCloseMenu}
+            keepMounted
+            anchorOrigin={{
+              vertical: "bottom",
+              horizontal: "right",
+            }}
+            transformOrigin={{
+              vertical: "top",
+              horizontal: "right",
+            }}
+            elevation={4}
+          >
+            <div>
+              <Link href="/dashboard/settings/general" passHref>
+                <MenuItem component="a">Settings</MenuItem>
+              </Link>
+              <Divider />
+              <MenuItem onClick={() => auth.signout()}>Signout</MenuItem>
+            </div>
+          </Menu>
         </LeftNav>
         <RightNav xsDown implementation="css">
-          <Button
+          <ButtonBase
             color="inherit"
             aria-label="Account"
             aria-controls="account-menu"
             aria-haspopup="true"
             onClick={(event) => handleOpenMenu(event, "account-menu")}
           >
-            Account
-            <ExpandMoreIcon />
-          </Button>
+            <Avatar>A</Avatar>
+          </ButtonBase>
           <Menu
             id="account-menu"
             open={menuState.open}
@@ -144,9 +171,6 @@ const DashboardNavbar = () => {
             elevation={4}
           >
             <div>
-              <Link href="/dashboard" passHref>
-                <MenuItem component="a">Dashboard</MenuItem>
-              </Link>
               <Link href="/dashboard/settings/general" passHref>
                 <MenuItem component="a">Settings</MenuItem>
               </Link>
