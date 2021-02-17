@@ -7,7 +7,6 @@ import Toolbar from "@material-ui/core/Toolbar";
 import Hidden from "@material-ui/core/Hidden";
 import IconButton from "@material-ui/core/IconButton";
 import MenuIcon from "@material-ui/icons/Menu";
-import ButtonBase from "@material-ui/core/ButtonBase";
 import Drawer from "@material-ui/core/Drawer";
 import List from "@material-ui/core/List";
 import ListItem from "@material-ui/core/ListItem";
@@ -60,18 +59,6 @@ const LeftNav = styled.div`
   `}
 `;
 
-const RightNav = styled(Hidden)`
-  ${({ theme }) => css`
-    padding-right: ${theme.spacing(2)}px;
-    align-self: center;
-
-    .MuiAvatar-root {
-      width: ${theme.spacing(4)}px;
-      height: ${theme.spacing(4)}px;
-    }
-  `}
-`;
-
 const SearchForm = styled.form`
   ${({ theme }) => css`
     position: relative;
@@ -86,6 +73,24 @@ const SearchForm = styled.form`
       left: 8px;
     }
   `}
+`;
+
+const RightNav = styled(Hidden)`
+  ${({ theme }) => css`
+    padding-right: ${theme.spacing(2)}px;
+    align-self: center;
+
+    .MuiAvatar-root {
+      width: ${theme.spacing(4)}px;
+      height: ${theme.spacing(4)}px;
+    }
+  `}
+`;
+
+const MenuItemsContainer = styled.div`
+  .MuiMenuItem-root {
+    font-size: 0.875rem;
+  }
 `;
 
 const DashboardNavbar = () => {
@@ -124,15 +129,15 @@ const DashboardNavbar = () => {
           </SearchForm>
         </LeftNav>
         <RightNav xsDown implementation="css">
-          <ButtonBase
-            color="inherit"
+          <IconButton
+            size="small"
             aria-label="Account"
             aria-controls="account-menu"
             aria-haspopup="true"
             onClick={(event) => handleOpenMenu(event, "account-menu")}
           >
             <Avatar alt={auth.user.name} src={auth.user.picture} />
-          </ButtonBase>
+          </IconButton>
           <Menu
             id="account-menu"
             open={menuState.open}
@@ -151,13 +156,23 @@ const DashboardNavbar = () => {
             }}
             elevation={4}
           >
-            <div>
+            <MenuItemsContainer>
+              <MenuItem
+                component="a"
+                href="https://chrome.google.com/webstore/detail/pinterest-save-button/gpdjojdkbbmdfjfahjcgigfpmkopogic"
+                target="_blank"
+              >
+                Download browser button
+              </MenuItem>
+              <Link href="/dashboard/settings/billing" passHref>
+                <MenuItem component="a">Upgrade to Pro</MenuItem>
+              </Link>
               <Link href="/dashboard/settings/general" passHref>
                 <MenuItem component="a">Settings</MenuItem>
               </Link>
               <Divider />
               <MenuItem onClick={() => auth.signout()}>Signout</MenuItem>
-            </div>
+            </MenuItemsContainer>
           </Menu>
         </RightNav>
         <RightNav smUp implementation="css">
