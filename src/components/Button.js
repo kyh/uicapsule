@@ -1,7 +1,7 @@
 import React from "react";
 import styled, { css } from "styled-components";
 import Button from "@material-ui/core/Button";
-import CircularProgress from "@material-ui/core/CircularProgress";
+import Spinner from "./Spinner";
 
 const ButtonContent = styled.div`
   ${({ loading }) => css`
@@ -10,21 +10,18 @@ const ButtonContent = styled.div`
   `}
 `;
 
-const Spinner = styled(CircularProgress)`
+const AbsoluteSpinner = styled(Spinner)`
   position: absolute;
   top: 50%;
   left: 50%;
   margin-left: -10px;
   margin-top: -10px;
-  animation-duration: 750ms;
 `;
 
 const UIButton = ({ loading = false, children = "", ...rest }) => (
   <Button disabled={loading} {...rest}>
     <ButtonContent loading={loading === true ? 1 : 0}>{children}</ButtonContent>
-    {loading && (
-      <Spinner variant="indeterminate" disableShrink size={20} thickness={4} />
-    )}
+    {loading && <AbsoluteSpinner size={20} />}
   </Button>
 );
 

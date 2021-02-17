@@ -3,7 +3,8 @@ import styled, { css } from "styled-components";
 import IconButton from "@material-ui/core/IconButton";
 import InputBase from "@material-ui/core/InputBase";
 import Snackbar from "@material-ui/core/Snackbar";
-import CircularProgress from "@material-ui/core/CircularProgress";
+import Spinner from "components/Spinner";
+import { ArrowRightOutline } from "@graywolfai/react-heroicons";
 import contact from "util/contact";
 import { useForm } from "react-hook-form";
 
@@ -20,10 +21,6 @@ const SubscribeForm = styled.form`
       border-radius: 0;
     }
   `}
-`;
-
-const Spinner = styled(CircularProgress)`
-  animation-duration: 750ms;
 `;
 
 const EmailForm = ({ message = "", onComplete = () => {}, ...rest }) => {
@@ -82,26 +79,7 @@ const EmailForm = ({ message = "", onComplete = () => {}, ...rest }) => {
           {...rest}
         />
         <IconButton type="submit" aria-label="subscribe" disabled={pending}>
-          {pending ? (
-            <Spinner
-              variant="indeterminate"
-              disableShrink
-              size={12}
-              thickness={4}
-            />
-          ) : (
-            <svg
-              width="12"
-              height="12"
-              viewBox="0 0 12 12"
-              xmlns="http://www.w3.org/2000/svg"
-            >
-              <path
-                d="M11.707 5.293L7 .586 5.586 2l3 3H0v2h8.586l-3 3L7 11.414l4.707-4.707a1 1 0 000-1.414z"
-                fillRule="nonzero"
-              ></path>
-            </svg>
-          )}
+          {pending ? <Spinner /> : <ArrowRightOutline width="16" />}
         </IconButton>
       </SubscribeForm>
       <Snackbar

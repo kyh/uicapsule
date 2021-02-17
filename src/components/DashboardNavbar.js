@@ -7,16 +7,16 @@ import Toolbar from "@material-ui/core/Toolbar";
 import Hidden from "@material-ui/core/Hidden";
 import IconButton from "@material-ui/core/IconButton";
 import MenuIcon from "@material-ui/icons/Menu";
-import Button from "@material-ui/core/Button";
 import ButtonBase from "@material-ui/core/ButtonBase";
 import Drawer from "@material-ui/core/Drawer";
 import List from "@material-ui/core/List";
 import ListItem from "@material-ui/core/ListItem";
 import ListItemText from "@material-ui/core/ListItemText";
-import ExpandMoreIcon from "@material-ui/icons/ExpandMore";
 import Menu from "@material-ui/core/Menu";
 import MenuItem from "@material-ui/core/MenuItem";
 import Divider from "@material-ui/core/Divider";
+import InputBase from "@material-ui/core/InputBase";
+import { SearchOutline } from "@graywolfai/react-heroicons";
 import Logo from "components/Logo";
 import { useAuth } from "util/auth.js";
 
@@ -72,6 +72,22 @@ const RightNav = styled(Hidden)`
   `}
 `;
 
+const SearchForm = styled.form`
+  ${({ theme }) => css`
+    position: relative;
+    .MuiInputBase-input {
+      font-size: 0.8rem;
+      padding-left: ${theme.spacing(4)}px;
+    }
+    svg {
+      position: absolute;
+      width: 16px;
+      top: 6px;
+      left: 8px;
+    }
+  `}
+`;
+
 const DashboardNavbar = () => {
   const auth = useAuth();
   const [drawerOpen, setDrawerOpen] = useState(false);
@@ -89,7 +105,9 @@ const DashboardNavbar = () => {
     setMenuState({ ...menuState, open: false });
   };
 
-  console.log(auth);
+  if (!auth.user) {
+    return null;
+  }
 
   return (
     <AppHeader color="inherit" elevation={0}>
@@ -100,35 +118,10 @@ const DashboardNavbar = () => {
           </LogoContainer>
         </Link>
         <LeftNav>
-          <Button onClick={(event) => handleOpenMenu(event, "browse-menu")}>
-            Browse <ExpandMoreIcon />
-          </Button>
-          <Menu
-            id="browse-menu"
-            open={menuState.open}
-            anchorEl={menuState.anchor}
-            getContentAnchorEl={undefined}
-            onClick={handleCloseMenu}
-            onClose={handleCloseMenu}
-            keepMounted
-            anchorOrigin={{
-              vertical: "bottom",
-              horizontal: "right",
-            }}
-            transformOrigin={{
-              vertical: "top",
-              horizontal: "right",
-            }}
-            elevation={4}
-          >
-            <div>
-              <Link href="/dashboard/settings/general" passHref>
-                <MenuItem component="a">Settings</MenuItem>
-              </Link>
-              <Divider />
-              <MenuItem onClick={() => auth.signout()}>Signout</MenuItem>
-            </div>
-          </Menu>
+          <SearchForm>
+            <SearchOutline width="16" />
+            <InputBase type="text" placeholder="Search" name="search" />
+          </SearchForm>
         </LeftNav>
         <RightNav xsDown implementation="css">
           <ButtonBase
@@ -138,7 +131,7 @@ const DashboardNavbar = () => {
             aria-haspopup="true"
             onClick={(event) => handleOpenMenu(event, "account-menu")}
           >
-            <Avatar>A</Avatar>
+            <Avatar alt={auth.user.name} src={auth.user.picture} />
           </ButtonBase>
           <Menu
             id="account-menu"
