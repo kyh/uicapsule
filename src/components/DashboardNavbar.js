@@ -72,18 +72,6 @@ const RightNav = styled(Hidden)`
   `}
 `;
 
-const NavLink = styled(Button)`
-  ${({ theme, primary }) => css`
-    margin-right: ${({ theme }) => theme.spacing(1)}px;
-    ${primary &&
-    css`
-      margin-right: 0;
-      border-color: ${theme.palette.divider};
-      border-radius: ${theme.spacing(3)}px;
-    `}
-  `}
-`;
-
 const DashboardNavbar = () => {
   const auth = useAuth();
   const [drawerOpen, setDrawerOpen] = useState(false);

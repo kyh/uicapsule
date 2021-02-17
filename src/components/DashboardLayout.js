@@ -38,23 +38,26 @@ const SidebarList = styled(List)`
     .MuiListItem-root {
       border-radius: 8px;
       padding: ${theme.spacing(1)}px;
-
-      &.active {
-        color: ${theme.palette.primary.main};
-        .MuiListItemIcon-root {
-          color: ${theme.palette.primary.dark};
-        }
-      }
     }
 
     .MuiListItemIcon-root {
-      min-width: ${theme.spacing(3)}px;
-      margin-right: ${theme.spacing(2)}px;
+      min-width: ${theme.spacing(4)}px;
+      margin-right: ${theme.spacing(1)}px;
+      padding: ${theme.spacing(0.5)}px;
+      border-radius: 10px;
     }
 
     .MuiListItemText-root > span {
       font-size: inherit;
       font-weight: 500;
+    }
+
+    .MuiListItem-root.active {
+      color: ${theme.palette.primary.main};
+      .MuiListItemIcon-root {
+        color: ${theme.palette.primary.main};
+        background: ${theme.palette.primary.main}20;
+      }
     }
   `}
 `;
