@@ -65,7 +65,7 @@ const SidebarList = styled(List)`
 const Content = styled.main`
   ${({ theme }) => css`
     flex-grow: 1;
-    padding: ${theme.spacing(3)}px;
+    padding: ${theme.spacing(8)}px ${theme.spacing(3)}px ${theme.spacing(3)}px;
   `}
 `;
 

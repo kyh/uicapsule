@@ -50,7 +50,7 @@ const LogoContainer = styled.a`
 
 const LeftNav = styled.div`
   ${({ theme }) => css`
-    padding-left: ${theme.spacing(2)}px;
+    padding-left: ${theme.spacing(3)}px;
     flex-grow: 1;
     align-self: center;
     @media (max-width: ${theme.breakpoints.values.sm}px) {
@@ -77,7 +77,7 @@ const SearchForm = styled.form`
 
 const RightNav = styled(Hidden)`
   ${({ theme }) => css`
-    padding-right: ${theme.spacing(2)}px;
+    padding-right: ${theme.spacing(3)}px;
     align-self: center;
 
     .MuiAvatar-root {
