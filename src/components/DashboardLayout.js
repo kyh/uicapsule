@@ -10,7 +10,7 @@ import ListItemIcon from "@material-ui/core/ListItemIcon";
 import ListItemText from "@material-ui/core/ListItemText";
 import {
   GlobeOutline,
-  FireOutline,
+  UserGroupOutline,
   LibraryOutline,
   CollectionOutline,
   CubeTransparentOutline,
@@ -77,23 +77,7 @@ const DashboardLayout = ({ children }) => {
         <Toolbar />
         <SidebarContainer>
           <SidebarList>
-            <ActiveLink href="/dashboard" passHref>
-              <ListItem button component="a">
-                <ListItemIcon>
-                  <GlobeOutline />
-                </ListItemIcon>
-                <ListItemText primary="Discover" />
-              </ListItem>
-            </ActiveLink>
-            <ActiveLink href="/dashboard/trending" passHref>
-              <ListItem button component="a">
-                <ListItemIcon>
-                  <FireOutline />
-                </ListItemIcon>
-                <ListItemText primary="Trending" />
-              </ListItem>
-            </ActiveLink>
-            <ActiveLink href="/dashboard/capsule" passHref>
+            <ActiveLink href="/ui" passHref>
               <ListItem button component="a">
                 <ListItemIcon>
                   <LibraryOutline />
@@ -101,18 +85,34 @@ const DashboardLayout = ({ children }) => {
                 <ListItemText primary="My Capsule" />
               </ListItem>
             </ActiveLink>
+            <ActiveLink href="/ui/discover" passHref>
+              <ListItem button component="a">
+                <ListItemIcon>
+                  <GlobeOutline />
+                </ListItemIcon>
+                <ListItemText primary="Discover" />
+              </ListItem>
+            </ActiveLink>
           </SidebarList>
           <Divider />
           <SidebarList>
-            <ActiveLink href="/dashboard/list" passHref>
+            <ActiveLink href="/ui/collections" passHref>
               <ListItem button component="a">
                 <ListItemIcon>
                   <CollectionOutline />
                 </ListItemIcon>
-                <ListItemText primary="Lists" />
+                <ListItemText primary="Collections" />
               </ListItem>
             </ActiveLink>
-            <ActiveLink href="/dashboard/playground" passHref>
+            <ActiveLink href="/ui/following" passHref>
+              <ListItem button component="a">
+                <ListItemIcon>
+                  <UserGroupOutline />
+                </ListItemIcon>
+                <ListItemText primary="Following" />
+              </ListItem>
+            </ActiveLink>
+            <ActiveLink href="/ui/playground" passHref>
               <ListItem button component="a">
                 <ListItemIcon>
                   <CubeTransparentOutline />
@@ -123,7 +123,7 @@ const DashboardLayout = ({ children }) => {
           </SidebarList>
           <Divider />
           <SidebarList>
-            <ActiveLink href="/dashboard/settings/general" passHref>
+            <ActiveLink href="/settings/general" passHref>
               <ListItem button component="a">
                 <ListItemIcon>
                   <CogOutline />

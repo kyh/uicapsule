@@ -52,7 +52,7 @@ export default requireAuth(async (req, res) => {
       // Uncomment if you need address collection
       //billing_address_collection: "required",
       //shipping_address_collection: { allowed_countries: ['US'] },
-      success_url: `${process.env.STRIPE_DOMAIN}/dashboard?paid=true`,
+      success_url: `${process.env.STRIPE_DOMAIN}/ui?paid=true`,
       cancel_url: `${process.env.STRIPE_DOMAIN}/pricing`,
     });
 

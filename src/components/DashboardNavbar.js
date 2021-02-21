@@ -117,7 +117,7 @@ const DashboardNavbar = () => {
   return (
     <AppHeader color="inherit" elevation={0}>
       <AppToolbar>
-        <Link href="/dashboard" passHref>
+        <Link href="/ui" passHref>
           <LogoContainer>
             <Logo />
           </LogoContainer>
@@ -164,10 +164,10 @@ const DashboardNavbar = () => {
               >
                 Download browser button
               </MenuItem>
-              <Link href="/dashboard/settings/billing" passHref>
+              <Link href="/settings/billing" passHref>
                 <MenuItem component="a">Upgrade to Pro</MenuItem>
               </Link>
-              <Link href="/dashboard/settings/general" passHref>
+              <Link href="/settings/general" passHref>
                 <MenuItem component="a">Settings</MenuItem>
               </Link>
               <Divider />
@@ -194,9 +194,14 @@ const NavDrawer = ({ drawerOpen, setDrawerOpen }) => (
     elevation={2}
   >
     <List style={{ width: 200 }} onClick={() => setDrawerOpen(false)}>
-      <Link href="/dashboard" passHref>
+      <Link href="/ui" passHref>
         <ListItem button component="a">
-          <ListItemText>Dashboard</ListItemText>
+          <ListItemText>Home</ListItemText>
+        </ListItem>
+      </Link>
+      <Link href="/settings/billing" passHref>
+        <ListItem button component="a">
+          <ListItemText>Upgrade to Pro</ListItemText>
         </ListItem>
       </Link>
       <Link href="/settings/general" passHref>

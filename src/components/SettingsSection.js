@@ -18,7 +18,7 @@ const SettingsSection = (props) => {
   const [formAlert, setFormAlert] = useState(null);
 
   const handleChange = (event, value) => {
-    router.push(`/dashboard/settings/${value}`, undefined, { shallow: true });
+    router.push(`/settings/${value}`, undefined, { shallow: true });
   };
 
   // State to control whether we show a re-authentication flow

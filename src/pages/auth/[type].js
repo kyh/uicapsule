@@ -60,7 +60,7 @@ const AuthPage = () => {
       size="medium"
       type={router.query.type}
       providers={["google"]}
-      afterAuthPath={router.query.next || "/dashboard"}
+      afterAuthPath={router.query.next || "/ui"}
     />
   );
 };
