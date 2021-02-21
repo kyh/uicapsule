@@ -35,6 +35,15 @@ export const useItemsByOwner = (owner) =>
         .orderBy("createdAt", "desc")
   );
 
+export const useItems = (owner) =>
+  useQuery(
+    owner &&
+      firestore
+        .collection("items")
+        .where("owner", "!=", owner)
+        .orderBy("createdAt", "desc")
+  );
+
 // Fetch item data
 export const useItem = (id) =>
   useQuery(id && firestore.collection("items").doc(id));

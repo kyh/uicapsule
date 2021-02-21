@@ -14,8 +14,6 @@ import ListItemText from "@material-ui/core/ListItemText";
 import Menu from "@material-ui/core/Menu";
 import MenuItem from "@material-ui/core/MenuItem";
 import Divider from "@material-ui/core/Divider";
-import InputBase from "@material-ui/core/InputBase";
-import { SearchOutline } from "@graywolfai/react-heroicons";
 import Logo from "components/Logo";
 import { useAuth } from "util/auth.js";
 
@@ -59,22 +57,6 @@ const LeftNav = styled.div`
   `}
 `;
 
-const SearchForm = styled.form`
-  ${({ theme }) => css`
-    position: relative;
-    .MuiInputBase-input {
-      font-size: 0.8rem;
-      padding-left: ${theme.spacing(4)}px;
-    }
-    svg {
-      position: absolute;
-      width: 16px;
-      top: 6px;
-      left: 8px;
-    }
-  `}
-`;
-
 const RightNav = styled(Hidden)`
   ${({ theme }) => css`
     padding-right: ${theme.spacing(3)}px;
@@ -110,10 +92,6 @@ const DashboardNavbar = () => {
     setMenuState({ ...menuState, open: false });
   };
 
-  if (!auth.user) {
-    return null;
-  }
-
   return (
     <AppHeader color="inherit" elevation={0}>
       <AppToolbar>
@@ -122,65 +100,67 @@ const DashboardNavbar = () => {
             <Logo />
           </LogoContainer>
         </Link>
-        <LeftNav>
-          <SearchForm>
-            <SearchOutline width="16" />
-            <InputBase type="text" placeholder="Search" name="search" />
-          </SearchForm>
-        </LeftNav>
-        <RightNav xsDown implementation="css">
-          <IconButton
-            size="small"
-            aria-label="Account"
-            aria-controls="account-menu"
-            aria-haspopup="true"
-            onClick={(event) => handleOpenMenu(event, "account-menu")}
-          >
-            <Avatar alt={auth.user.name} src={auth.user.picture} />
-          </IconButton>
-          <Menu
-            id="account-menu"
-            open={menuState.open}
-            anchorEl={menuState.anchor}
-            getContentAnchorEl={undefined}
-            onClick={handleCloseMenu}
-            onClose={handleCloseMenu}
-            keepMounted
-            anchorOrigin={{
-              vertical: "bottom",
-              horizontal: "center",
-            }}
-            transformOrigin={{
-              vertical: "top",
-              horizontal: "center",
-            }}
-            elevation={4}
-          >
-            <MenuItemsContainer>
-              <MenuItem
-                component="a"
-                href="https://chrome.google.com/webstore/detail/pinterest-save-button/gpdjojdkbbmdfjfahjcgigfpmkopogic"
-                target="_blank"
+        <LeftNav />
+        {!!auth.user && (
+          <>
+            <RightNav xsDown implementation="css">
+              <IconButton
+                size="small"
+                aria-label="Account"
+                aria-controls="account-menu"
+                aria-haspopup="true"
+                onClick={(event) => handleOpenMenu(event, "account-menu")}
               >
-                Download browser button
-              </MenuItem>
-              <Link href="/settings/billing" passHref>
-                <MenuItem component="a">Upgrade to Pro</MenuItem>
-              </Link>
-              <Link href="/settings/general" passHref>
-                <MenuItem component="a">Settings</MenuItem>
-              </Link>
-              <Divider />
-              <MenuItem onClick={() => auth.signout()}>Signout</MenuItem>
-            </MenuItemsContainer>
-          </Menu>
-        </RightNav>
-        <RightNav smUp implementation="css">
-          <IconButton onClick={() => setDrawerOpen(true)} color="inherit">
-            <MenuIcon />
-          </IconButton>
-          <NavDrawer drawerOpen={drawerOpen} setDrawerOpen={setDrawerOpen} />
-        </RightNav>
+                <Avatar alt={auth.user.name} src={auth.user.picture} />
+              </IconButton>
+              <Menu
+                id="account-menu"
+                open={menuState.open}
+                anchorEl={menuState.anchor}
+                getContentAnchorEl={undefined}
+                onClick={handleCloseMenu}
+                onClose={handleCloseMenu}
+                keepMounted
+                anchorOrigin={{
+                  vertical: "bottom",
+                  horizontal: "center",
+                }}
+                transformOrigin={{
+                  vertical: "top",
+                  horizontal: "center",
+                }}
+                elevation={4}
+              >
+                <MenuItemsContainer>
+                  <MenuItem
+                    component="a"
+                    href="https://chrome.google.com/webstore/detail/pinterest-save-button/gpdjojdkbbmdfjfahjcgigfpmkopogic"
+                    target="_blank"
+                  >
+                    Download browser button
+                  </MenuItem>
+                  <Link href="/settings/billing" passHref>
+                    <MenuItem component="a">Upgrade to Pro</MenuItem>
+                  </Link>
+                  <Link href="/settings/general" passHref>
+                    <MenuItem component="a">Settings</MenuItem>
+                  </Link>
+                  <Divider />
+                  <MenuItem onClick={() => auth.signout()}>Signout</MenuItem>
+                </MenuItemsContainer>
+              </Menu>
+            </RightNav>
+            <RightNav smUp implementation="css">
+              <IconButton onClick={() => setDrawerOpen(true)} color="inherit">
+                <MenuIcon />
+              </IconButton>
+              <NavDrawer
+                drawerOpen={drawerOpen}
+                setDrawerOpen={setDrawerOpen}
+              />
+            </RightNav>
+          </>
+        )}
       </AppToolbar>
     </AppHeader>
   );
