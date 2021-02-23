@@ -3,7 +3,8 @@ import styled, { css } from "styled-components";
 import Head from "next/head";
 import Link from "next/link";
 import router from "next/router";
-import Carousel from "react-elastic-carousel";
+import Swiper from "tiny-swiper";
+import SwiperPluginAutoPlay from "tiny-swiper/lib/modules/autoPlay.min.js";
 import Button from "@material-ui/core/Button";
 import SiteLayout from "components/SiteLayout";
 import ScrollToLink from "components/ScrollToLink";
@@ -25,7 +26,6 @@ const HeroCtaContainer = styled.div`
 `;
 
 const Item = styled.div`
-  height: 70px;
   background: -webkit-linear-gradient(90deg, #338cf5, #4fd1c5);
   background: linear-gradient(90deg, #338cf5, #4fd1c5);
   -webkit-background-clip: text;
@@ -33,6 +33,13 @@ const Item = styled.div`
   background-clip: text;
   &:focus {
     outline: none;
+  }
+`;
+
+const PageTitleContainer = styled.div`
+  .swiper-container {
+    height: 70px;
+    overflow: hidden;
   }
 `;
 
@@ -133,44 +140,38 @@ const IndexPage = () => {
   );
 };
 
-let resetTimeout;
-const autoPlaySpeed = 2000;
 const items = ["websites", "articles", "apps", "anywhere"];
-
 const PageTitle = () => {
   const carouselRef = useRef(null);
 
   useEffect(() => {
-    return () => clearTimeout(resetTimeout);
-  }, []);
+    let swiper;
+    if (carouselRef) {
+      swiper = new Swiper(carouselRef.current, {
+        direction: "vertical",
+        loop: true,
+        autoplay: {
+          delay: 3000,
+        },
+        plugins: [SwiperPluginAutoPlay],
+      });
+    }
+    return () => swiper && swiper.destroy();
+  }, [carouselRef]);
 
   return (
-    <>
+    <PageTitleContainer>
       <div>Save UI elements from </div>
-      <Carousel
-        ref={carouselRef}
-        autoPlaySpeed={autoPlaySpeed}
-        verticalMode
-        enableAutoPlay
-        preventDefaultTouchmoveEvent
-        pagination={false}
-        showArrows={false}
-        enableSwipe={false}
-        enableMouseSwipe={false}
-        onNextEnd={({ index }) => {
-          clearTimeout(resetTimeout);
-          if (index + 1 === items.length) {
-            resetTimeout = setTimeout(() => {
-              carouselRef.current.goTo(0);
-            }, autoPlaySpeed);
-          }
-        }}
-      >
-        {items.map((i) => (
-          <Item key={i}>{i}</Item>
-        ))}
-      </Carousel>
-    </>
+      <div className="swiper-container" ref={carouselRef}>
+        <div className="swiper-wrapper">
+          {items.map((i) => (
+            <Item className="swiper-slide" key={i}>
+              {i}
+            </Item>
+          ))}
+        </div>
+      </div>
+    </PageTitleContainer>
   );
 };
 
