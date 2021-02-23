@@ -28,15 +28,8 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "stripe-webhook": "stripe listen --forward-to localhost:3000/api/stripe-webhook"
-  },
-  "husky": {
-    "hooks": {
-      "pre-commit": "lint-staged"
-    }
-  },
-  "lint-staged": {
-    "**/*": "prettier --write --ignore-unknown"
+    "stripe-webhook": "stripe listen --forward-to localhost:3000/api/stripe-webhook",
+    "postinstall": "husky install"
   },
   "eslintConfig": {
     "extends": "react-app"
@@ -54,8 +47,8 @@
     ]
   },
   "devDependencies": {
-    "husky": "^4.3.8",
-    "lint-staged": "^10.5.4",
-    "prettier": "^2.2.1"
+    "husky": "^5.1.1",
+    "prettier": "^2.2.1",
+    "pretty-quick": "^3.1.0"
   }
 }
