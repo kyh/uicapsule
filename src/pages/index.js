@@ -73,9 +73,12 @@ const IndexPage = () => {
 
   useEffect(() => {
     if (auth.user) router.replace("/ui");
+  }, [auth]);
+
+  useEffect(() => {
     const data = fetchExample(exampleIndex);
     setHtml(data);
-  }, [auth]);
+  }, []);
 
   return (
     <>

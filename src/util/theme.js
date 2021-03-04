@@ -7,7 +7,7 @@ import {
 } from "@material-ui/core/styles";
 import * as colors from "@material-ui/core/colors";
 import CssBaseline from "@material-ui/core/CssBaseline";
-import useDarkMode from "use-dark-mode";
+// import useDarkMode from "use-dark-mode";
 
 const themeConfig = {
   // Light theme
@@ -161,7 +161,7 @@ const getTheme = (name) =>
 export const ThemeProvider = (props) => {
   // Detect dark mode based on stored value
   // with fallback to system setting
-  const darkMode = useDarkMode();
+  // const darkMode = useDarkMode();
   // Get MUI theme object
   // const theme = getTheme(darkMode.value ? "dark" : "light");
   const theme = getTheme("light");
