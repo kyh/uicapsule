@@ -1,17 +1,10 @@
 import React, { useState } from "react";
 import Box from "@material-ui/core/Box";
 import Alert from "@material-ui/lab/Alert";
-import Paper from "@material-ui/core/Paper";
-import List from "@material-ui/core/List";
-import ListItem from "@material-ui/core/ListItem";
-import ListItemText from "@material-ui/core/ListItemText";
-import ListItemSecondaryAction from "@material-ui/core/ListItemSecondaryAction";
-import IconButton from "@material-ui/core/IconButton";
-import StarIcon from "@material-ui/icons/Star";
-import EditIcon from "@material-ui/icons/Edit";
-import DeleteIcon from "@material-ui/icons/Delete";
+import Grid from "@material-ui/core/Grid";
 import Spinner from "components/Spinner";
 import EditItemModal from "components/EditItemModal";
+import ElementCard from "components/ElementCard";
 import { useAuth } from "util/auth.js";
 import { updateItem, deleteItem, useItemsByOwner } from "util/db.js";
 
@@ -44,7 +37,7 @@ const DashboardItems = () => {
           <Alert severity="error">{itemsError.message}</Alert>
         </Box>
       )}
-      <Paper>
+      <Box>
         {(itemsStatus === "loading" || itemsAreEmpty) && (
           <Box py={5} px={3} align="center">
             {itemsStatus === "loading" && <Spinner size={32} />}
@@ -54,38 +47,21 @@ const DashboardItems = () => {
           </Box>
         )}
         {itemsStatus !== "loading" && items && items.length > 0 && (
-          <List disablePadding>
-            {items.map((item, index) => (
-              <ListItem key={index} divider={index !== items.length - 1}>
-                <ListItemText>{item.name}</ListItemText>
-                <ListItemSecondaryAction>
-                  <IconButton
-                    edge="end"
-                    aria-label="star"
-                    onClick={() => handleStarItem(item)}
-                  >
-                    <StarIcon />
-                  </IconButton>
-                  <IconButton
-                    edge="end"
-                    aria-label="update"
-                    onClick={() => setUpdatingItemId(item.id)}
-                  >
-                    <EditIcon />
-                  </IconButton>
-                  <IconButton
-                    edge="end"
-                    aria-label="delete"
-                    onClick={() => deleteItem(item.id)}
-                  >
-                    <DeleteIcon />
-                  </IconButton>
-                </ListItemSecondaryAction>
-              </ListItem>
+          <Grid container spacing={3}>
+            {items.map((item) => (
+              <Grid key={item.id} item xs>
+                <ElementCard
+                  html={item.html}
+                  onClickHeart={() => handleStarItem(item)}
+                  onClickEdit={() => setUpdatingItemId(item.id)}
+                  onClickTag={() => {}}
+                  onClickDelete={() => deleteItem(item.id)}
+                />
+              </Grid>
             ))}
-          </List>
+          </Grid>
         )}
-      </Paper>
+      </Box>
       {updatingItemId && (
         <EditItemModal
           id={updatingItemId}
