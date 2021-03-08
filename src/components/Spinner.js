@@ -17,4 +17,19 @@ const Spinner = (props) => {
   );
 };
 
+const PageContainer = styled.div`
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 30px;
+`;
+
+export const PageSpinner = () => {
+  return (
+    <PageContainer>
+      <Spinner size={32} />
+    </PageContainer>
+  );
+};
+
 export default Spinner;

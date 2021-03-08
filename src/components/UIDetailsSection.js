@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import styled, { css } from "styled-components";
 import { useForm } from "react-hook-form";
 import { useRouter } from "next/router";
@@ -16,7 +16,7 @@ import FormControlLabel from "@material-ui/core/FormControlLabel";
 import Tooltip from "@material-ui/core/Tooltip";
 import Checkbox from "@material-ui/core/Checkbox";
 import { QuestionMarkCircleOutline } from "@graywolfai/react-heroicons";
-import Spinner from "components/Spinner";
+import { PageSpinner } from "components/Spinner";
 import UIEditorModal from "components/UIEditorModal";
 import Button from "components/Button";
 import { useAuth } from "util/auth.js";
@@ -93,14 +93,43 @@ const PublishFooter = styled.footer`
   `}
 `;
 
-function UIDetailsSection(props) {
+const InputLabel = ({ label, tooltip }) => {
+  return (
+    <Box display="flex">
+      <span>{label}</span>
+      {tooltip && (
+        <Tooltip title={tooltip} placement="top">
+          <Box ml={0.5}>
+            <QuestionMarkCircleOutline width="15" />
+          </Box>
+        </Tooltip>
+      )}
+    </Box>
+  );
+};
+
+const UIDetailsSection = (props) => {
   const [pending, setPending] = useState(false);
   const [formAlert, setFormAlert] = useState(null);
   const [editorOpen, setEditorOpen] = useState(false);
   const router = useRouter();
   const auth = useAuth();
   const { data: itemData, status: itemStatus } = useItem(props.id);
-  const { register, handleSubmit, errors, setValue, getValues } = useForm();
+  const { register, handleSubmit, errors, setValue, watch, reset } = useForm();
+
+  useEffect(() => {
+    console.log(itemData);
+    reset({
+      html: itemData ? itemData.html : "",
+      title: itemData ? itemData.title : "",
+      description: itemData ? itemData.description : "",
+      tags: itemData ? itemData.tags : "",
+      public: itemData ? itemData.public : false,
+      featureImage: itemData ? itemData.featureImage : false,
+    });
+  }, [itemData]);
+
+  const html = watch("html", "");
 
   const onSubmit = (data) => {
     setPending(true);
@@ -122,11 +151,23 @@ function UIDetailsSection(props) {
       });
   };
 
+  const openEditorModal = () => {
+    setValue("html", html);
+    setEditorOpen(true);
+  };
+
+  const closeEditorModal = (dirtyHtml) => {
+    if (!dirtyHtml.target) setValue("html", dirtyHtml);
+    setEditorOpen(false);
+  };
+
   if (props.id && itemStatus !== "success") {
     return (
-      <Box py={5} px={3} align="center">
-        <Spinner size={32} />
-      </Box>
+      <Container maxWidth="md">
+        <Form>
+          <PageSpinner />
+        </Form>
+      </Container>
     );
   }
 
@@ -143,25 +184,17 @@ function UIDetailsSection(props) {
         )}
         <FormContent>
           <ComponentPreview elevation={3}>
-            <EditCodeButton onClick={() => setEditorOpen(true)}>
-              Edit Code
-            </EditCodeButton>
-            <iframe srcDoc={getValues("html")} frameBorder="0" />
+            <EditCodeButton onClick={openEditorModal}>Edit Code</EditCodeButton>
+            <iframe srcDoc={html} frameBorder="0" />
           </ComponentPreview>
           <FormInputContainer>
-            <textarea
-              style={{ display: "none" }}
-              name="html"
-              defaultValue={itemData ? itemData.html : ""}
-              ref={register}
-            />
+            <textarea style={{ display: "none" }} name="html" ref={register} />
             <FormInputSection component="fieldset">
               <TextField
                 variant="outlined"
                 type="text"
                 label="Title"
                 name="title"
-                defaultValue={itemData && itemData.title}
                 error={errors.title ? true : false}
                 helperText={errors.title && errors.title.message}
                 fullWidth
@@ -177,13 +210,12 @@ function UIDetailsSection(props) {
                 type="text"
                 label="Description"
                 name="description"
-                defaultValue={itemData && itemData.description}
                 error={errors.description ? true : false}
                 helperText={errors.description && errors.description.message}
                 fullWidth
                 multiline
                 rows={8}
-                inputRef={register()}
+                inputRef={register}
               />
             </FormInputSection>
             <FormInputSection component="fieldset">
@@ -192,48 +224,35 @@ function UIDetailsSection(props) {
                 type="text"
                 label="Tags"
                 name="tags"
-                defaultValue={itemData && itemData.tags}
                 error={errors.tags ? true : false}
                 helperText={errors.tags && errors.tags.message}
                 fullWidth
-                inputRef={register()}
+                inputRef={register}
               />
             </FormInputSection>
             <FormInputSection component="fieldset">
               <FormLabel component="legend">Settings</FormLabel>
               <FormGroup>
                 <FormControlLabel
-                  control={<Checkbox name="public" inputRef={register()} />}
+                  control={<Checkbox />}
+                  name="public"
+                  inputRef={register}
                   label={
-                    <Box display="flex">
-                      <span>Public Component</span>
-                      <Tooltip
-                        title="Show this component will show up on the Discover page"
-                        placement="top"
-                      >
-                        <Box ml={0.5}>
-                          <QuestionMarkCircleOutline width="15" />
-                        </Box>
-                      </Tooltip>
-                    </Box>
+                    <InputLabel
+                      label="Public Component"
+                      tooltip="Show this component will show up on the Discover page"
+                    />
                   }
                 />
                 <FormControlLabel
-                  control={
-                    <Checkbox name="featureImage" inputRef={register()} />
-                  }
+                  control={<Checkbox />}
+                  name="featureImage"
+                  inputRef={register}
                   label={
-                    <Box display="flex">
-                      <span>Feature Image</span>
-                      <Tooltip
-                        title="Use an image as the thumbnail rather than a code rendered component"
-                        placement="top"
-                      >
-                        <Box ml={0.5}>
-                          <QuestionMarkCircleOutline width="15" />
-                        </Box>
-                      </Tooltip>
-                    </Box>
+                    <InputLabel
+                      label="Feature Image"
+                      tooltip="Use an image as the thumbnail rather than a code rendered component"
+                    />
                   }
                 />
               </FormGroup>
@@ -260,15 +279,12 @@ function UIDetailsSection(props) {
       </Form>
       <UIEditorModal
         open={editorOpen}
-        html={getValues("html")}
-        onCancel={() => setEditorOpen(false)}
-        onSave={(code) => {
-          setValue("html", code);
-          setEditorOpen(false);
-        }}
+        html={html}
+        onCancel={closeEditorModal}
+        onSave={closeEditorModal}
       />
     </Container>
   );
-}
+};
 
 export default UIDetailsSection;

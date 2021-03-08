@@ -5,7 +5,7 @@ import Box from "@material-ui/core/Box";
 import Button from "@material-ui/core/Button";
 import InputBase from "@material-ui/core/InputBase";
 import { SearchOutline } from "@graywolfai/react-heroicons";
-import Spinner from "components/Spinner";
+import { PageSpinner } from "components/Spinner";
 import UICardList from "components/UICardList";
 import { useAuth } from "util/auth.js";
 import { useItemsByOwner } from "util/db.js";
@@ -65,11 +65,7 @@ const DashboardSection = ({ discover }) => {
           <Alert severity="error">{itemsError.message}</Alert>
         </Box>
       )}
-      {itemsStatus === "loading" && (
-        <Box py={5} px={3} align="center">
-          <Spinner size={32} />
-        </Box>
-      )}
+      {itemsStatus === "loading" && <PageSpinner />}
       {itemsStatus !== "loading" && <UICardList items={items} />}
     </>
   );

@@ -1,11 +1,11 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import styled, { css } from "styled-components";
 import dynamic from "next/dynamic";
 import Dialog from "@material-ui/core/Dialog";
 import DialogTitle from "@material-ui/core/DialogTitle";
 import Box from "@material-ui/core/Box";
 import Button from "components/Button";
-import Spinner from "components/Spinner";
+import { PageSpinner } from "components/Spinner";
 
 const Editor = dynamic(
   async () => {
@@ -17,7 +17,7 @@ const Editor = dynamic(
     return ace;
   },
   {
-    loading: () => <Spinner />,
+    loading: () => <PageSpinner />,
     ssr: false,
   }
 );
@@ -43,7 +43,12 @@ const DialogContent = styled.div`
 `;
 
 const UIEditorModal = ({ html, open, onCancel, onSave }) => {
-  const [code, setCode] = useState(html);
+  const [dirtyHtml, setDirtyHtml] = useState(html);
+
+  useEffect(() => {
+    if (html) setDirtyHtml(html);
+  }, [html]);
+
   return (
     <Dialog fullScreen open={open} PaperProps={{ elevation: 0 }}>
       <DialogTitleContainer>
@@ -56,7 +61,7 @@ const UIEditorModal = ({ html, open, onCancel, onSave }) => {
             autoFocus
             variant="contained"
             color="primary"
-            onClick={() => onSave(code)}
+            onClick={() => onSave(dirtyHtml)}
           >
             Save
           </Button>
@@ -74,10 +79,10 @@ const UIEditorModal = ({ html, open, onCancel, onSave }) => {
           enableBasicAutocompletion
           enableLiveAutocompletion
           enableSnippets
-          onChange={(code) => setCode(code)}
-          value={code}
+          onChange={(dirtyHtml) => setDirtyHtml(dirtyHtml)}
+          value={dirtyHtml}
         />
-        <iframe srcDoc={code} frameBorder="0" />
+        <iframe srcDoc={dirtyHtml} frameBorder="0" />
       </DialogContent>
     </Dialog>
   );
