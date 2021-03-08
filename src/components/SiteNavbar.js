@@ -53,7 +53,7 @@ const LeftNav = styled.div`
     box-shadow: -${theme.spacing(2)}px 0 0 0 ${theme.palette.background.default};
     margin-left: ${theme.spacing(2)}px;
     padding-left: ${theme.spacing(2)}px;
-    border-left: ${`1px solid ${theme.palette.divider}`};
+    border-left: 1px solid ${theme.palette.divider};
     transition: transform ${theme.transitions.duration.shortest}ms
       ${theme.transitions.easing.easeInOut};
     flex-grow: 1;

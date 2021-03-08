@@ -1,10 +1,10 @@
 import React, { useState } from "react";
 import styled, { css } from "styled-components";
+import { useRouter } from "next/router";
 import Box from "@material-ui/core/Box";
 import Alert from "@material-ui/lab/Alert";
 import AuthForm from "components/AuthForm";
 import AuthSocial from "components/AuthSocial";
-import { useRouter } from "next/router";
 
 const OrText = styled(Box)`
   ${({ theme }) => css`

@@ -1,39 +1,32 @@
 import React from "react";
+import Link from "next/link";
 import Card from "@material-ui/core/Card";
 import CardActions from "@material-ui/core/CardActions";
 import IconButton from "@material-ui/core/IconButton";
 import {
   HeartOutline,
   PencilAltOutline,
-  TagOutline,
   TrashOutline,
 } from "@graywolfai/react-heroicons";
 
-function ElementCard({
-  html,
-  onClickHeart,
-  onClickEdit,
-  onClickTag,
-  onClickDelete,
-}) {
+function UICard({ item, onClickHeart, onClickDelete, showEdit }) {
   return (
     <Card elevation={3}>
-      <iframe srcDoc={html} frameBorder="0" />
+      <Link href={`/ui/${item}`}>
+        <iframe srcDoc={item.html} frameBorder="0" />
+      </Link>
       <CardActions>
         {onClickHeart && (
           <IconButton aria-label="heart" onClick={onClickHeart}>
             <HeartOutline width="20" />
           </IconButton>
         )}
-        {onClickEdit && (
-          <IconButton aria-label="update" onClick={onClickEdit}>
-            <PencilAltOutline width="20" />
-          </IconButton>
-        )}
-        {onClickTag && (
-          <IconButton aria-label="tag" onClick={onClickTag}>
-            <TagOutline width="20" />
-          </IconButton>
+        {showEdit && (
+          <Link href={`/ui/${item}?edit=true`} passHref>
+            <IconButton aria-label="update" onClick={showEdit} as="a">
+              <PencilAltOutline width="20" />
+            </IconButton>
+          </Link>
         )}
         {onClickDelete && (
           <IconButton
@@ -49,4 +42,4 @@ function ElementCard({
   );
 }
 
-export default ElementCard;
+export default UICard;

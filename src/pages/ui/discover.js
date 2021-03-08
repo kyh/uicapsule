@@ -10,7 +10,7 @@ const DiscoverPage = () => {
       <Head>
         <title>UI Capsule | Discover Capsules</title>
       </Head>
-      <DashboardSection section="discover" />
+      <DashboardSection discover />
     </>
   );
 };

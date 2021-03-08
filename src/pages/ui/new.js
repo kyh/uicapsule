@@ -4,15 +4,15 @@ import DashboardFullLayout from "components/DashboardFullLayout";
 import UIDetailsSection from "components/UIDetailsSection";
 import { requireAuth } from "util/auth.js";
 
-const UIPage = ({ title }) => (
+const NewUIPage = () => (
   <>
     <Head>
-      <title>UI Capsule | {title || "Untitled UI"}</title>
+      <title>UI Capsule | New</title>
     </Head>
     <UIDetailsSection />
   </>
 );
 
-UIPage.Layout = DashboardFullLayout;
+NewUIPage.Layout = DashboardFullLayout;
 
-export default requireAuth(UIPage);
+export default requireAuth(NewUIPage);

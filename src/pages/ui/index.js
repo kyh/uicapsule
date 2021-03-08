@@ -10,7 +10,7 @@ const UIPage = () => {
       <Head>
         <title>UI Capsule | My Saved Capsules</title>
       </Head>
-      <DashboardSection section="saved" />
+      <DashboardSection />
     </>
   );
 };

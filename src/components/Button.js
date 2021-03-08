@@ -18,11 +18,15 @@ const AbsoluteSpinner = styled(Spinner)`
   margin-top: -10px;
 `;
 
-const UIButton = ({ loading = false, children = "", ...rest }) => (
-  <Button disabled={loading} {...rest}>
-    <ButtonContent loading={loading === true ? 1 : 0}>{children}</ButtonContent>
-    {loading && <AbsoluteSpinner size={20} />}
-  </Button>
+const UIButton = React.forwardRef(
+  ({ loading = false, children = "", ...rest }, ref) => (
+    <Button disabled={loading} {...rest} ref={ref}>
+      <ButtonContent loading={loading === true ? 1 : 0}>
+        {children}
+      </ButtonContent>
+      {loading && <AbsoluteSpinner size={20} />}
+    </Button>
+  )
 );
 
 export default UIButton;

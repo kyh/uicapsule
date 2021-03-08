@@ -24,9 +24,18 @@ const AppHeader = styled(AppBar)`
 `;
 
 const AppToolbar = styled(Toolbar)`
-  ${({ theme }) => css`
+  ${({ theme, showBorder }) => css`
     padding: 0;
     align-items: stretch;
+
+    ${showBorder &&
+    css`
+      border-bottom: 1px solid ${theme.palette.divider};
+      ${LogoContainer} {
+        width: auto;
+        border-right: none;
+      }
+    `}
   `}
 `;
 
@@ -75,7 +84,7 @@ const MenuItemsContainer = styled.div`
   }
 `;
 
-const DashboardNavbar = () => {
+const DashboardNavbar = ({ showBorder }) => {
   const auth = useAuth();
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [menuState, setMenuState] = useState({
@@ -94,7 +103,7 @@ const DashboardNavbar = () => {
 
   return (
     <AppHeader color="inherit" elevation={0}>
-      <AppToolbar>
+      <AppToolbar showBorder={showBorder}>
         <Link href="/ui" passHref>
           <LogoContainer>
             <Logo />
