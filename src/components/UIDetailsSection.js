@@ -13,7 +13,9 @@ import FormLabel from "@material-ui/core/FormLabel";
 import FormControl from "@material-ui/core/FormControl";
 import FormGroup from "@material-ui/core/FormGroup";
 import FormControlLabel from "@material-ui/core/FormControlLabel";
+import Tooltip from "@material-ui/core/Tooltip";
 import Checkbox from "@material-ui/core/Checkbox";
+import { QuestionMarkCircleOutline } from "@graywolfai/react-heroicons";
 import Spinner from "components/Spinner";
 import UIEditorModal from "components/UIEditorModal";
 import Button from "components/Button";
@@ -101,7 +103,6 @@ function UIDetailsSection(props) {
   const { register, handleSubmit, errors, setValue, getValues } = useForm();
 
   const onSubmit = (data) => {
-    console.log(data);
     setPending(true);
 
     const query = props.id
@@ -174,6 +175,21 @@ function UIDetailsSection(props) {
               <TextField
                 variant="outlined"
                 type="text"
+                label="Description"
+                name="description"
+                defaultValue={itemData && itemData.description}
+                error={errors.description ? true : false}
+                helperText={errors.description && errors.description.message}
+                fullWidth
+                multiline
+                rows={8}
+                inputRef={register()}
+              />
+            </FormInputSection>
+            <FormInputSection component="fieldset">
+              <TextField
+                variant="outlined"
+                type="text"
                 label="Tags"
                 name="tags"
                 defaultValue={itemData && itemData.tags}
@@ -188,7 +204,37 @@ function UIDetailsSection(props) {
               <FormGroup>
                 <FormControlLabel
                   control={<Checkbox name="public" inputRef={register()} />}
-                  label="Public Component"
+                  label={
+                    <Box display="flex">
+                      <span>Public Component</span>
+                      <Tooltip
+                        title="Show this component will show up on the Discover page"
+                        placement="top"
+                      >
+                        <Box ml={0.5}>
+                          <QuestionMarkCircleOutline width="15" />
+                        </Box>
+                      </Tooltip>
+                    </Box>
+                  }
+                />
+                <FormControlLabel
+                  control={
+                    <Checkbox name="featureImage" inputRef={register()} />
+                  }
+                  label={
+                    <Box display="flex">
+                      <span>Feature Image</span>
+                      <Tooltip
+                        title="Use an image as the thumbnail rather than a code rendered component"
+                        placement="top"
+                      >
+                        <Box ml={0.5}>
+                          <QuestionMarkCircleOutline width="15" />
+                        </Box>
+                      </Tooltip>
+                    </Box>
+                  }
                 />
               </FormGroup>
             </FormInputSection>
@@ -207,7 +253,7 @@ function UIDetailsSection(props) {
               type="submit"
               loading={pending}
             >
-              Publish
+              {props.id ? "Update" : "Publish"}
             </Button>
           </Container>
         </PublishFooter>

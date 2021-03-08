@@ -48,11 +48,16 @@ const UIEditorModal = ({ html, open, onCancel, onSave }) => {
     <Dialog fullScreen open={open} PaperProps={{ elevation: 0 }}>
       <DialogTitleContainer>
         <DialogTitle>Editor</DialogTitle>
-        <Box>
-          <Button color="inherit" onClick={onCancel}>
-            Cancel
-          </Button>
-          <Button autoFocus color="inherit" onClick={() => onSave(code)}>
+        <Box display="flex" mr={1}>
+          <Box mr={1}>
+            <Button onClick={onCancel}>Cancel</Button>
+          </Box>
+          <Button
+            autoFocus
+            variant="contained"
+            color="primary"
+            onClick={() => onSave(code)}
+          >
             Save
           </Button>
         </Box>

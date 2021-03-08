@@ -7,6 +7,7 @@ import IconButton from "@material-ui/core/IconButton";
 import {
   HeartOutline,
   PencilAltOutline,
+  EyeOutline,
   TrashOutline,
 } from "@graywolfai/react-heroicons";
 
@@ -14,28 +15,27 @@ const UICardContainer = styled(Card)`
   iframe {
     width: 100%;
     height: 100%;
+    min-height: 260px;
   }
 `;
 
 function UICard({ item, onClickHeart, onClickDelete, showEdit }) {
   return (
     <UICardContainer elevation={3}>
-      <Link href={`/ui/${item.id}`}>
-        <iframe srcDoc={item.html} frameBorder="0" />
-      </Link>
+      <iframe srcDoc={item.html} frameBorder="0" />
       <CardActions>
-        {onClickHeart && (
-          <IconButton aria-label="heart" onClick={onClickHeart}>
-            <HeartOutline width="20" />
-          </IconButton>
-        )}
-        {showEdit && (
-          <Link href={`/ui/${item.id}`} passHref>
-            <IconButton aria-label="update" onClick={showEdit} as="a">
+        <Link href={`/ui/${item.id}`} passHref>
+          <IconButton aria-label="update" as="a">
+            {showEdit ? (
               <PencilAltOutline width="20" />
-            </IconButton>
-          </Link>
-        )}
+            ) : (
+              <EyeOutline width="20" />
+            )}
+          </IconButton>
+        </Link>
+        <IconButton aria-label="heart" onClick={onClickHeart}>
+          <HeartOutline width="20" />
+        </IconButton>
         {onClickDelete && (
           <IconButton
             style={{ marginLeft: "auto" }}
