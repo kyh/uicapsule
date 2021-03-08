@@ -1,17 +1,13 @@
 import React from "react";
-import Head from "next/head";
+import { useRouter } from "next/router";
 import DashboardFullLayout from "components/DashboardFullLayout";
 import UIDetailsSection from "components/UIDetailsSection";
 import { requireAuth } from "util/auth.js";
 
-const UIPage = ({ title }) => (
-  <>
-    <Head>
-      <title>UI Capsule | {title || "Untitled UI"}</title>
-    </Head>
-    <UIDetailsSection />
-  </>
-);
+const UIPage = () => {
+  const router = useRouter();
+  return <UIDetailsSection id={router.query.id} />;
+};
 
 UIPage.Layout = DashboardFullLayout;
 

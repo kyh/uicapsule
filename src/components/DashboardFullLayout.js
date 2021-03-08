@@ -13,7 +13,7 @@ const Content = styled.main`
 const DashboardFullLayout = ({ children }) => {
   return (
     <Box display="flex">
-      <DashboardNavbar showBorder />
+      <DashboardNavbar border="true" />
       <Content>{children}</Content>
     </Box>
   );

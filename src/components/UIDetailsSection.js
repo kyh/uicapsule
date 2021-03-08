@@ -121,10 +121,19 @@ function UIDetailsSection(props) {
       });
   };
 
-  if (props.id && itemStatus !== "success") return <Spinner />;
+  if (props.id && itemStatus !== "success") {
+    return (
+      <Box py={5} px={3} align="center">
+        <Spinner size={32} />
+      </Box>
+    );
+  }
+
   return (
     <Container maxWidth="md">
-      <Title variant="h5">Save new Component</Title>
+      <Title variant="h5">
+        {props.id ? "Update Component" : "Save new Component"}
+      </Title>
       <Form onSubmit={handleSubmit(onSubmit)}>
         {formAlert && (
           <Box mb={4}>
@@ -171,7 +180,6 @@ function UIDetailsSection(props) {
                 error={errors.tags ? true : false}
                 helperText={errors.tags && errors.tags.message}
                 fullWidth
-                autoFocus
                 inputRef={register()}
               />
             </FormInputSection>
@@ -206,7 +214,7 @@ function UIDetailsSection(props) {
       </Form>
       <UIEditorModal
         open={editorOpen}
-        html={itemData ? itemData.html : ""}
+        html={getValues("html")}
         onCancel={() => setEditorOpen(false)}
         onSave={(code) => {
           setValue("html", code);

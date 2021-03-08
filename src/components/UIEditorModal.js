@@ -45,7 +45,7 @@ const DialogContent = styled.div`
 const UIEditorModal = ({ html, open, onCancel, onSave }) => {
   const [code, setCode] = useState(html);
   return (
-    <Dialog fullScreen open={open}>
+    <Dialog fullScreen open={open} PaperProps={{ elevation: 0 }}>
       <DialogTitleContainer>
         <DialogTitle>Editor</DialogTitle>
         <Box>
