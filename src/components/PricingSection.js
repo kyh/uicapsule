@@ -62,11 +62,11 @@ const items = [
     description: "Your default plan",
     price: "0",
     perks: [
-      "Capsule UI apps and extensions",
-      "Unlimited bookmarks",
+      "UI Capsule apps and extensions",
+      "Unlimited component bookmarks",
       "Unlimited collections",
       "Unlimited devices",
-      "Collection sharing",
+      "Collection public sharing",
       "UI Playground",
     ],
   },
@@ -78,11 +78,12 @@ const items = [
     highlight: 1,
     perks: [
       "Everything on the Free plan, plus",
-      "Full-text search",
+      "No ads",
+      "Access to premium collections",
+      "Sell your collections",
       "Data Export",
-      "Cloud backup to Dropbox/Google Drive",
       "UI Playground code export",
-      "Priority support",
+      "Hire me button",
     ],
   },
 ];
@@ -94,7 +95,7 @@ const PricingSection = () => {
       <Container>
         <SectionHeader
           title="Pricing"
-          subtitle="Probably as simple as they come"
+          subtitle="As simple as they come"
           size={2}
           textAlign="center"
         />
