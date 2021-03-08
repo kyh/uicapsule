@@ -19,6 +19,7 @@ import { QuestionMarkCircleOutline } from "@graywolfai/react-heroicons";
 import { PageSpinner } from "components/Spinner";
 import UIEditorModal from "components/UIEditorModal";
 import Button from "components/Button";
+import IFrame from "components/IFrame";
 import { useAuth } from "util/auth.js";
 import { useItem, updateItem, createItem } from "util/db.js";
 
@@ -49,11 +50,6 @@ const ComponentPreview = styled(Card)`
     width: 60%;
     margin-right: ${theme.spacing(4)}px;
     height: 70vh;
-
-    iframe {
-      width: 100%;
-      height: 100%;
-    }
   `}
 `;
 
@@ -184,8 +180,10 @@ const UIDetailsSection = (props) => {
         )}
         <FormContent>
           <ComponentPreview elevation={3}>
-            <EditCodeButton onClick={openEditorModal}>Edit Code</EditCodeButton>
-            <iframe srcDoc={html} frameBorder="0" />
+            <EditCodeButton variant="contained" onClick={openEditorModal}>
+              Edit Code
+            </EditCodeButton>
+            <IFrame srcDoc={html} />
           </ComponentPreview>
           <FormInputContainer>
             <textarea style={{ display: "none" }} name="html" ref={register} />

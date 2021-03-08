@@ -10,22 +10,21 @@ import {
   EyeOutline,
   TrashOutline,
 } from "@graywolfai/react-heroicons";
+import IFrame from "components/IFrame";
 
 const UICardContainer = styled(Card)`
   iframe {
-    width: 100%;
-    height: 100%;
-    min-height: 260px;
+    min-height: 280px;
   }
 `;
 
 function UICard({ item, onClickHeart, onClickDelete, showEdit }) {
   return (
     <UICardContainer elevation={3}>
-      <iframe srcDoc={item.html} frameBorder="0" />
+      <IFrame srcDoc={item.html} />
       <CardActions>
         <Link href={`/ui/${item.id}`} passHref>
-          <IconButton aria-label="update" as="a">
+          <IconButton aria-label="update" as="a" edge="end">
             {showEdit ? (
               <PencilAltOutline width="20" />
             ) : (
@@ -33,7 +32,7 @@ function UICard({ item, onClickHeart, onClickDelete, showEdit }) {
             )}
           </IconButton>
         </Link>
-        <IconButton aria-label="heart" onClick={onClickHeart}>
+        <IconButton aria-label="heart" onClick={onClickHeart} edge="end">
           <HeartOutline width="20" />
         </IconButton>
         {onClickDelete && (

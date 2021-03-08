@@ -12,7 +12,7 @@ import { useItemsByOwner } from "util/db.js";
 
 const SearchForm = styled.form`
   ${({ theme }) => css`
-    position: absolute;
+    position: fixed;
     top: 18px;
     z-index: ${theme.zIndex.drawer + 2};
 
@@ -47,7 +47,8 @@ const DashboardSection = ({ discover }) => {
         display="flex"
         justifyContent="space-between"
         alignItems="center"
-        py={1}
+        pt={1}
+        pb={3}
       >
         <Box>
           <Button>#tag1</Button>

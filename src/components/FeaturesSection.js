@@ -1,13 +1,13 @@
-import React, { useState } from "react";
+import React from "react";
 import styled, { css, keyframes } from "styled-components";
 import Image from "next/image";
 import Section from "components/Section";
 import Container from "@material-ui/core/Container";
-import Grid from "@material-ui/core/Grid";
 import Box from "@material-ui/core/Box";
 import Typography from "@material-ui/core/Typography";
 import ButtonBase from "@material-ui/core/ButtonBase";
 import Button from "@material-ui/core/Button";
+import IFrame from "components/IFrame";
 
 const FeaturesContainer = styled(Container)`
   ${({ theme }) => css`
@@ -146,8 +146,6 @@ const IFrameContainer = styled.div`
     height: 100%;
     padding: ${theme.spacing(4)}px;
     iframe {
-      width: 100%;
-      height: 100%;
       border-radius: 10px;
       box-shadow: ${theme.shadows[3]};
       animation: ${animateFadeIn} 0.5s ease;
@@ -214,7 +212,7 @@ const items = [
     render: ({ html, nextExample }) => {
       return (
         <IFrameContainer>
-          <iframe srcDoc={html} frameBorder="0" />
+          <IFrame srcDoc={html} />
           <Button type="button" onClick={nextExample}>
             Next Example
           </Button>

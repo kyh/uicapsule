@@ -5,6 +5,7 @@ import Dialog from "@material-ui/core/Dialog";
 import DialogTitle from "@material-ui/core/DialogTitle";
 import Box from "@material-ui/core/Box";
 import Button from "components/Button";
+import IFrame from "components/IFrame";
 import { PageSpinner } from "components/Spinner";
 
 const Editor = dynamic(
@@ -82,7 +83,7 @@ const UIEditorModal = ({ html, open, onCancel, onSave }) => {
           onChange={(dirtyHtml) => setDirtyHtml(dirtyHtml)}
           value={dirtyHtml}
         />
-        <iframe srcDoc={dirtyHtml} frameBorder="0" />
+        <IFrame srcDoc={dirtyHtml} />
       </DialogContent>
     </Dialog>
   );

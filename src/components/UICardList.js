@@ -29,7 +29,7 @@ const UICardList = ({ items }) => {
         {items && items.length > 0 && (
           <Grid container spacing={3}>
             {items.map((item) => (
-              <Grid key={item.id} item xs>
+              <Grid key={item.id} item xs={4}>
                 <UICard
                   item={item}
                   onClickHeart={() => handleStarItem(item)}
