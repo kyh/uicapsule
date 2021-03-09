@@ -7,6 +7,7 @@ import Button from "components/Button";
 import BackButton from "components/BackButton";
 import IFrame from "components/IFrame";
 import { useItem } from "util/db";
+import { useAuth } from "util/auth";
 import {
   Title,
   Form,
@@ -18,7 +19,9 @@ import {
 } from "./UIDetailsEditSection";
 
 const UIDetailsSection = (props) => {
+  const auth = useAuth();
   const { data: itemData, status: itemStatus } = useItem(props.id);
+  const uid = auth.user ? auth.user.uid : undefined;
 
   if (props.id && itemStatus !== "success") {
     return (
@@ -50,11 +53,13 @@ const UIDetailsSection = (props) => {
         <Footer>
           <Container>
             <BackButton>Back</BackButton>
-            <Link href={`/ui/${itemData.id}/edit`} passHref>
-              <Button variant="contained" component="a">
-                Edit Component
-              </Button>
-            </Link>
+            {itemData.owner === uid && (
+              <Link href={`/ui/${itemData.id}/edit`} passHref>
+                <Button variant="contained" component="a">
+                  Edit Component
+                </Button>
+              </Link>
+            )}
           </Container>
         </Footer>
       </Form>

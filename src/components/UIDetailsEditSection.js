@@ -104,7 +104,7 @@ const InputLabel = ({ label, tooltip }) => {
   );
 };
 
-const UIDetailsSection = (props) => {
+const UIDetailsEditSection = (props) => {
   const [pending, setPending] = useState(false);
   const [formAlert, setFormAlert] = useState(null);
   const [editorOpen, setEditorOpen] = useState(false);
@@ -134,7 +134,10 @@ const UIDetailsSection = (props) => {
       : createItem({ owner: auth.user.uid, ...data });
 
     query
-      .then(() => router.push("/ui"))
+      .then((data) => {
+        console.log(data);
+        // router.push("/ui")
+      })
       .catch((error) => {
         // Hide pending indicator
         setPending(false);
@@ -288,4 +291,4 @@ const UIDetailsSection = (props) => {
   );
 };
 
-export default UIDetailsSection;
+export default UIDetailsEditSection;
