@@ -37,13 +37,13 @@ const UICardList = ({ items }) => {
             <Container maxWidth="xs">
               <Image src="/plan.svg" alt="No " width={500} height={350} />
               <Typography>
-                Download our browser extension to start adding components to
-                your Capsule.
+                Download our browser button to add components to your Capsule
+                from any webpage.
               </Typography>
               <Box mt={2} textAlign="center">
                 <Box mb={1}>
                   <Button variant="contained" color="primary">
-                    Download Extension
+                    Download Browser Button
                   </Button>
                 </Box>
                 <Link href="/ui/new" passHref>
