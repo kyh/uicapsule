@@ -1,36 +1,17 @@
 import resolve from "@rollup/plugin-node-resolve";
 import commonjs from "@rollup/plugin-commonjs";
-import alias from "@rollup/plugin-alias";
 import babel from "@rollup/plugin-babel";
 import replace from "@rollup/plugin-replace";
 import {
   chromeExtension,
   simpleReloader,
 } from "rollup-plugin-chrome-extension";
-import { emptyDir } from "rollup-plugin-empty-dir";
 import { terser } from "rollup-plugin-terser";
+import empty from "rollup-plugin-empty";
 import copy from "rollup-plugin-copy";
 import zip from "rollup-plugin-zip";
 
 const isProduction = process.env.NODE_ENV === "production";
-
-// Aliases for module resolution
-const aliases = isProduction
-  ? [
-      {
-        find: "react",
-        // Use the production build
-        replacement: require.resolve("react/esm/react.production.min.js"),
-      },
-      {
-        find: "react-dom",
-        // Use the production build
-        replacement: require.resolve(
-          "react-dom/esm/react-dom.production.min.js"
-        ),
-      },
-    ]
-  : [];
 
 export default {
   input: "src/manifest.json",
@@ -40,13 +21,15 @@ export default {
     chunkFileNames: "chunks/[name]-[hash].js",
   },
   plugins: [
-    emptyDir(),
+    empty({
+      silent: false,
+      dir: "dist",
+    }),
     chromeExtension(),
     simpleReloader(),
     replace({
       "process.env.NODE_ENV": process.env.NODE_ENV,
     }),
-    alias({ entries: aliases }),
     babel({
       ignore: ["node_modules"],
       babelHelpers: "bundled",

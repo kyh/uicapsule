@@ -2,7 +2,7 @@ import resolve from "@rollup/plugin-node-resolve";
 import commonjs from "@rollup/plugin-commonjs";
 import babel from "@rollup/plugin-babel";
 import replace from "@rollup/plugin-replace";
-import { emptyDir } from "rollup-plugin-empty-dir";
+import empty from "rollup-plugin-empty";
 import { terser } from "rollup-plugin-terser";
 
 export default {
@@ -13,7 +13,10 @@ export default {
   },
   external: ["react", "react-dom", "styled-components"],
   plugins: [
-    emptyDir(),
+    empty({
+      silent: false,
+      dir: "dist",
+    }),
     replace({
       "process.env.NODE_ENV": process.env.NODE_ENV,
     }),
