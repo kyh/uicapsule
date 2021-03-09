@@ -34,7 +34,6 @@ const UICardList = ({ items }) => {
                   item={item}
                   onClickHeart={() => handleStarItem(item)}
                   onClickDelete={() => deleteItem(item.id)}
-                  showEdit={item.owner === auth.user.uid}
                 />
               </Grid>
             ))}

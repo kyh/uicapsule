@@ -1,7 +1,7 @@
 import React from "react";
 import Head from "next/head";
 import DashboardFullLayout from "components/DashboardFullLayout";
-import UIDetailsSection from "components/UIDetailsSection";
+import UIDetailsEditSection from "components/UIDetailsEditSection";
 import { requireAuth } from "util/auth.js";
 
 const NewUIPage = () => (
@@ -9,7 +9,7 @@ const NewUIPage = () => (
     <Head>
       <title>UI Capsule | New</title>
     </Head>
-    <UIDetailsSection />
+    <UIDetailsEditSection />
   </>
 );
 

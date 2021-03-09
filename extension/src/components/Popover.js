@@ -53,7 +53,7 @@ const Popover = ({ apiMode }) => {
       {loadingState === LOADING_STATE.done && (
         <>
           <Content apiMode={apiMode}>
-            {/* <iframe srcDoc={htmlString} frameBorder="0" /> */}
+            {/* <iframe srcDoc={htmlString} sandbox="" /> */}
             <img src={image} />
           </Content>
           <Footer>

@@ -18,18 +18,14 @@ const UICardContainer = styled(Card)`
   }
 `;
 
-function UICard({ item, onClickHeart, onClickDelete, showEdit }) {
+function UICard({ item, onClickHeart, onClickDelete }) {
   return (
     <UICardContainer elevation={3}>
       <IFrame srcDoc={item.html} />
       <CardActions>
         <Link href={`/ui/${item.id}`} passHref>
           <IconButton aria-label="update" as="a" edge="end">
-            {showEdit ? (
-              <PencilAltOutline width="20" />
-            ) : (
-              <EyeOutline width="20" />
-            )}
+            <EyeOutline width="20" />
           </IconButton>
         </Link>
         <IconButton aria-label="heart" onClick={onClickHeart} edge="end">
