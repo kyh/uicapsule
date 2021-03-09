@@ -6,7 +6,7 @@ import CardActions from "@material-ui/core/CardActions";
 import IconButton from "@material-ui/core/IconButton";
 import {
   HeartOutline,
-  PencilAltOutline,
+  HeartSolid,
   EyeOutline,
   TrashOutline,
 } from "@graywolfai/react-heroicons";
@@ -29,7 +29,11 @@ function UICard({ item, onClickHeart, onClickDelete }) {
           </IconButton>
         </Link>
         <IconButton aria-label="heart" onClick={onClickHeart} edge="end">
-          <HeartOutline width="20" />
+          {item.hearted ? (
+            <HeartSolid width="20" />
+          ) : (
+            <HeartOutline width="20" />
+          )}
         </IconButton>
         {onClickDelete && (
           <IconButton

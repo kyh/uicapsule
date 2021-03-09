@@ -26,22 +26,17 @@ export const createUser = (uid, data) =>
 /* Example query functions (modify to your needs) */
 
 // Fetch all items by owner (hook)
-export const useItemsByOwner = (owner) =>
-  useQuery(
-    owner &&
-      firestore
-        .collection("items")
-        .where("owner", "==", owner)
-        .orderBy("createdAt", "desc")
-  );
-
 export const useItems = (owner) =>
   useQuery(
-    owner &&
-      firestore
-        .collection("items")
-        .where("owner", "!=", owner)
-        .orderBy("createdAt", "desc")
+    owner
+      ? firestore
+          .collection("items")
+          .where("owner", "==", owner)
+          .orderBy("createdAt", "desc")
+      : firestore
+          .collection("items")
+          .where("public", "==", true)
+          .orderBy("createdAt", "desc")
   );
 
 // Fetch item data

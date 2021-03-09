@@ -4,11 +4,12 @@ import Link from "next/link";
 import Box from "@material-ui/core/Box";
 import Button from "@material-ui/core/Button";
 import InputBase from "@material-ui/core/InputBase";
+import Alert from "@material-ui/lab/Alert";
 import { SearchOutline } from "@graywolfai/react-heroicons";
 import { PageSpinner } from "components/Spinner";
 import UICardList from "components/UICardList";
 import { useAuth } from "util/auth.js";
-import { useItemsByOwner } from "util/db.js";
+import { useItems } from "util/db.js";
 
 const SearchForm = styled.form`
   ${({ theme }) => css`
@@ -31,11 +32,9 @@ const SearchForm = styled.form`
 
 const DashboardSection = ({ discover }) => {
   const auth = useAuth();
-  const {
-    data: items,
-    status: itemsStatus,
-    error: itemsError,
-  } = useItemsByOwner(auth.user.uid);
+  const { data: items, status: itemsStatus, error: itemsError } = useItems(
+    discover ? null : auth.user.uid
+  );
 
   return (
     <>

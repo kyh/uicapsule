@@ -1,16 +1,21 @@
 import React, { useState } from "react";
+import styled, { css } from "styled-components";
 import { useRouter } from "next/router";
 import Tabs from "@material-ui/core/Tabs";
 import Tab from "@material-ui/core/Tab";
 import Box from "@material-ui/core/Box";
-import Container from "@material-ui/core/Container";
 import Alert from "@material-ui/lab/Alert";
-import Section from "components/Section";
 import ReauthModal from "components/ReauthModal";
 import SettingsGeneral from "components/SettingsGeneral";
 import SettingsPassword from "components/SettingsPassword";
 import SettingsBilling from "components/SettingsBilling";
 import { useAuth } from "util/auth.js";
+
+const StyledTabs = styled(Tabs)`
+  ${({ theme }) => css`
+    border-bottom: 1px solid ${theme.palette.divider};
+  `}
+`;
 
 const SettingsSection = (props) => {
   const auth = useAuth();
@@ -50,35 +55,32 @@ const SettingsSection = (props) => {
   };
 
   return (
-    <Section>
-      <Tabs
+    <Box mx={-3}>
+      <StyledTabs
         value={props.section}
         onChange={handleChange}
         indicatorColor="primary"
         textColor="primary"
-        centered
       >
-        <Tab label="General" value="general" />
-        <Tab label="Password" value="password" />
-        <Tab label="Billing" value="billing" />
-      </Tabs>
-      <Box mt={5}>
-        <Container maxWidth="xs">
-          {formAlert && (
-            <Box mb={4}>
-              <Alert severity={formAlert.type}>{formAlert.message}</Alert>
-            </Box>
-          )}
-          {props.section === "general" && (
-            <SettingsGeneral onStatus={handleStatus} />
-          )}
-          {props.section === "password" && (
-            <SettingsPassword onStatus={handleStatus} />
-          )}
-          {props.section === "billing" && (
-            <SettingsBilling onStatus={handleStatus} />
-          )}
-        </Container>
+        <Tab label="General" value="general" disableRipple />
+        <Tab label="Password" value="password" disableRipple />
+        <Tab label="Billing" value="billing" disableRipple />
+      </StyledTabs>
+      <Box mt={5} px={5} maxWidth="550px">
+        {formAlert && (
+          <Box mb={4}>
+            <Alert severity={formAlert.type}>{formAlert.message}</Alert>
+          </Box>
+        )}
+        {props.section === "general" && (
+          <SettingsGeneral onStatus={handleStatus} />
+        )}
+        {props.section === "password" && (
+          <SettingsPassword onStatus={handleStatus} />
+        )}
+        {props.section === "billing" && (
+          <SettingsBilling onStatus={handleStatus} />
+        )}
       </Box>
       {reauthState.show && (
         <ReauthModal
@@ -87,7 +89,7 @@ const SettingsSection = (props) => {
           onDone={() => setReauthState({ show: false })}
         />
       )}
-    </Section>
+    </Box>
   );
 };
 
