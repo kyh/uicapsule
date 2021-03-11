@@ -1,11 +1,9 @@
 const requireAuth = require("./_require-auth.js");
 const { getUser } = require("./_db.js");
-
-const stripe = require("stripe")(process.env.STRIPE_SECRET_KEY, {
-  apiVersion: process.env.STRIPE_API_VERSION,
-});
+const stripe = require("./_stripe.js");
 
 export default requireAuth(async (req, res) => {
+  const body = req.body;
   const user = req.user;
 
   try {
@@ -14,7 +12,7 @@ export default requireAuth(async (req, res) => {
     // Create a billing portal session
     const session = await stripe.billingPortal.sessions.create({
       customer: stripeCustomerId,
-      return_url: `${process.env.STRIPE_DOMAIN}/settings/general`,
+      return_url: body.returnUrl,
     });
 
     // Return success response

@@ -1,9 +1,6 @@
 const getRawBody = require("raw-body");
 const { updateUserByCustomerId } = require("./_db.js");
-
-const stripe = require("stripe")(process.env.STRIPE_SECRET_KEY, {
-  apiVersion: process.env.STRIPE_API_VERSION,
-});
+const stripe = require("./_stripe.js");
 
 // Disable next.js body parsing (stripe needs the raw body to validate the event)
 export const config = {

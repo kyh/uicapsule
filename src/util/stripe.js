@@ -5,7 +5,8 @@ import { getStripePriceId } from "./prices";
 let stripe;
 // Load the Stripe script
 loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY, {
-  apiVersion: process.env.NEXT_PUBLIC_STRIPE_API_VERSION,
+  // Pin to specific version of the Stripe API
+  apiVersion: "2020-08-27",
 }).then((stripeInstance) => {
   // Set stripe so all functions below have it in scope
   stripe = stripeInstance;
@@ -15,6 +16,8 @@ export const redirectToCheckout = async (planId) => {
   // Create a checkout session
   const session = await apiRequest("stripe-create-checkout-session", "POST", {
     priceId: getStripePriceId(planId),
+    successUrl: `${window.location.origin}/ui?paid=true`,
+    cancelUrl: `${window.location.origin}/pricing`,
   });
 
   // Ensure if user clicks browser back button from checkout they go to /pricing
@@ -29,7 +32,9 @@ export const redirectToCheckout = async (planId) => {
 
 export const redirectToBilling = async () => {
   // Create a billing session
-  const session = await apiRequest("stripe-create-billing-session", "POST");
+  const session = await apiRequest("stripe-create-billing-session", "POST", {
+    returnUrl: `${window.location.origin}/settings/general`,
+  });
 
   // Ensure if user clicks browser back button from billing they go to /settings/general
   // instead of this page or they'll redirect right back to billing.

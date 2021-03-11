@@ -1,9 +1,6 @@
 const requireAuth = require("./_require-auth.js");
 const { getUser, updateUser } = require("./_db.js");
-
-const stripe = require("stripe")(process.env.STRIPE_SECRET_KEY, {
-  apiVersion: process.env.STRIPE_API_VERSION,
-});
+const stripe = require("./_stripe.js");
 
 export default requireAuth(async (req, res) => {
   const body = req.body;
@@ -52,8 +49,8 @@ export default requireAuth(async (req, res) => {
       // Uncomment if you need address collection
       //billing_address_collection: "required",
       //shipping_address_collection: { allowed_countries: ['US'] },
-      success_url: `${process.env.STRIPE_DOMAIN}/ui?paid=true`,
-      cancel_url: `${process.env.STRIPE_DOMAIN}/pricing`,
+      success_url: body.successUrl,
+      cancel_url: body.cancelUrl,
     });
 
     // Return success response
