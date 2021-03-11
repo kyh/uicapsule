@@ -40,7 +40,10 @@ const show = (tabId) => {
 };
 
 const toggleActivationMessage = (tabId) => {
-  chrome.tabs.sendMessage(tabId, toggleApp(), () => updateExtensionUI(tabId));
+  const user = firebase.auth().currentUser;
+  chrome.tabs.sendMessage(tabId, toggleApp(user && user.toJSON()), () =>
+    updateExtensionUI(tabId)
+  );
 };
 
 const updateExtensionUI = (tabId) => {
@@ -60,7 +63,7 @@ const signin = (token) => {
     .auth()
     .signInWithCustomToken(token)
     .catch((error) => {
-      console.log("Token signin error:", error);
+      console.log("token signin error:", error);
     });
 };
 
@@ -73,7 +76,7 @@ firebase.auth().onAuthStateChanged((user) => {
   console.log("user state change detected:", user);
   chrome.tabs.query({}, (tabs) => {
     tabs.forEach((tab) => {
-      chrome.tabs.sendMessage(tab.id, setUser(user));
+      chrome.tabs.sendMessage(tab.id, setUser(user.toJSON()));
     });
   });
 });

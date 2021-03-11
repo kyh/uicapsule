@@ -135,8 +135,7 @@ const UIDetailsEditSection = (props) => {
 
     query
       .then((data) => {
-        console.log(data);
-        // router.push("/ui")
+        router.push("/ui");
       })
       .catch((error) => {
         // Hide pending indicator

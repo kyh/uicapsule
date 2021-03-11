@@ -12,8 +12,9 @@ export const deactivateApp = () => ({
   type: DEACTIVATE_APP,
 });
 
-export const toggleApp = () => ({
+export const toggleApp = (user) => ({
   type: TOGGLE_APP,
+  user,
 });
 
 export const setUser = (user) => ({
@@ -53,11 +54,13 @@ const reducer = (state = init, action) => {
       if (!state.enabled) {
         return {
           ...state,
+          user: action.user,
           enabled: true,
         };
       } else {
         return {
           ...state,
+          user: action.user,
           enabled: false,
         };
       }
