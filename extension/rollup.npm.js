@@ -4,6 +4,7 @@ import babel from "@rollup/plugin-babel";
 import replace from "@rollup/plugin-replace";
 import empty from "rollup-plugin-empty";
 import { terser } from "rollup-plugin-terser";
+import { emptyArgs, replaceArgs, babelArgs } from "./rollup.ext";
 
 export default {
   input: "src/module.js",
@@ -13,17 +14,9 @@ export default {
   },
   external: ["react", "react-dom", "styled-components"],
   plugins: [
-    empty({
-      silent: false,
-      dir: "dist",
-    }),
-    replace({
-      "process.env.NODE_ENV": process.env.NODE_ENV,
-    }),
-    babel({
-      ignore: ["node_modules"],
-      babelHelpers: "bundled",
-    }),
+    empty(emptyArgs),
+    replace(replaceArgs),
+    babel(babelArgs),
     resolve(),
     commonjs(),
     terser(),

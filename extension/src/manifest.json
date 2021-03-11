@@ -1,6 +1,5 @@
 {
   "name": "UI Capsule",
-  "offline_enabled": true,
   "icons": {
     "64": "public/logo-gray-64.png",
     "128": "public/logo-gray-128.png",
@@ -14,7 +13,13 @@
   "background": {
     "scripts": ["background.js"]
   },
-  "permissions": ["<all_urls>", "contextMenus", "tabCapture", "activeTab"],
+  "permissions": [
+    "<all_urls>",
+    "contextMenus",
+    "tabCapture",
+    "activeTab",
+    "storage"
+  ],
   "content_security_policy": "script-src 'self' 'unsafe-eval'; object-src 'self'",
   "content_scripts": [
     {
@@ -23,6 +28,9 @@
       "run_at": "document_start"
     }
   ],
+  "externally_connectable": {
+    "matches": ["*://uicapsule.com/*", "*://localhost/*"]
+  },
   "browser_action": {
     "default_icon": "public/logo-gray-128.png"
   }

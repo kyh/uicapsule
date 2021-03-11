@@ -2,6 +2,7 @@ export const ACTIVATE_APP = "ACTIVATE_APP";
 export const DEACTIVATE_APP = "DEACTIVATE_APP";
 export const TOGGLE_APP = "TOGGLE_APP";
 export const TOGGLE_THEME = "TOGGLE_THEME";
+export const SET_USER = "SET_USER";
 
 export const activateApp = () => ({
   type: ACTIVATE_APP,
@@ -13,6 +14,11 @@ export const deactivateApp = () => ({
 
 export const toggleApp = () => ({
   type: TOGGLE_APP,
+});
+
+export const setUser = (user) => ({
+  type: SET_USER,
+  user,
 });
 
 export const toggleTheme = (darkMode) => {
@@ -37,7 +43,8 @@ const isDarkMode = () => {
 
 const init = {
   enabled: false,
-  darkMode: isDarkMode(),
+  user: null,
+  darkMode: false, // isDarkMode()
 };
 
 const reducer = (state = init, action) => {
@@ -70,6 +77,12 @@ const reducer = (state = init, action) => {
       return {
         ...state,
         darkMode: action.darkMode,
+      };
+    }
+    case SET_USER: {
+      return {
+        ...state,
+        user: action.user,
       };
     }
     default:

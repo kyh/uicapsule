@@ -8,6 +8,7 @@ import { SunIcon, MoonIcon, XIcon } from "./Icons";
 
 const Popover = ({ apiMode }) => {
   const dispatch = useDispatch();
+  const { user } = useSelector((state) => state.app, shallowEqual);
   const { loadingState, image, htmlString } = useSelector(
     (state) => state.selection,
     shallowEqual
@@ -28,6 +29,30 @@ const Popover = ({ apiMode }) => {
       apiMode.onClickViewCapsule({ image, htmlString });
     }
   };
+
+  if (!apiMode && !user) {
+    return (
+      <Container>
+        <Content center>
+          <img
+            src="https://drive.google.com/uc?id=1mmK0jKTaWBWC8gS4gMrU0lmt30YWIxMX"
+            style={{ width: 230, marginBottom: 12 }}
+          />
+          <h4>Hi there!</h4>
+          <p>
+            You'll need to{" "}
+            <a
+              href={`${process.env.WEBPAGE}/extension-sign-in`}
+              target="_blank"
+            >
+              sign in
+            </a>{" "}
+            first in order to start bookmarking
+          </p>
+        </Content>
+      </Container>
+    );
+  }
 
   if (loadingState === LOADING_STATE.default) {
     return null;
@@ -58,13 +83,12 @@ const Popover = ({ apiMode }) => {
           </Content>
           <Footer>
             <a
-              href="https://uicapsule.com"
+              href={process.env.WEBPAGE}
               target="_blank"
               onClick={onClickViewInCapsule}
             >
               View in your Capsule
             </a>
-            <ToggleThemeButton />
           </Footer>
         </>
       )}
@@ -164,6 +188,7 @@ const Content = styled.div`
   padding: 12px;
   overflow-y: scroll;
   max-height: ${({ apiMode }) => (apiMode ? 300 : 500)}px;
+  text-align: ${({ center }) => (center ? "center" : "left")};
   img {
     object-fit: cover;
   }

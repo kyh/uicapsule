@@ -1,7 +1,6 @@
-import { activateApp, deactivateApp, toggleApp } from "./redux/app";
-import { CAPTURE_SCREENSHOT } from "./redux/selection";
-const ACTIVATE_MENU_ID = "ACTIVATE";
-const DEACTIVATE_MENU_ID = "DEACTIVATE";
+import firebase from "./util/firebase";
+import { toggleApp, setUser } from "./redux/app";
+import { SELECT_ELEMENT } from "./redux/selection";
 
 const ACTIVITY = {
   on: {
@@ -40,14 +39,6 @@ const show = (tabId) => {
   });
 };
 
-const sendActivationMessage = (tabId) => {
-  chrome.tabs.sendMessage(tabId, activateApp(), showEnabled);
-};
-
-const sendDeactivationMessage = (tabId) => {
-  chrome.tabs.sendMessage(tabId, deactivateApp(), showDisabled);
-};
-
 const toggleActivationMessage = (tabId) => {
   chrome.tabs.sendMessage(tabId, toggleApp(), () => updateExtensionUI(tabId));
 };
@@ -62,34 +53,35 @@ const updateExtensionUI = (tabId) => {
   }
 };
 
+const signin = (token) => {
+  if (!token) return;
+  chrome.storage.sync.set({ token: token });
+  return firebase
+    .auth()
+    .signInWithCustomToken(token)
+    .catch((error) => {
+      console.log("Token signin error:", error);
+    });
+};
+
+const signout = () => {
+  chrome.storage.sync.remove(["token"]);
+  return firebase.auth().signOut();
+};
+
+firebase.auth().onAuthStateChanged((user) => {
+  console.log("user state change detected:", user);
+  chrome.tabs.query({}, (tabs) => {
+    tabs.forEach((tab) => {
+      chrome.tabs.sendMessage(tab.id, setUser(user));
+    });
+  });
+});
+
 chrome.browserAction.onClicked.addListener(async () => {
   chrome.tabs.query({ active: true, currentWindow: true }, ([tab]) => {
     toggleActivationMessage(tab.id);
   });
-});
-
-chrome.contextMenus.create({
-  id: ACTIVATE_MENU_ID,
-  title: "Enable",
-  contexts: ["all"],
-  type: "normal",
-  documentUrlPatterns: ["*://*/*"],
-  onclick: (info, tab) => {
-    if (info.menuItemId !== ACTIVATE_MENU_ID) return;
-    sendActivationMessage(tab.id);
-  },
-});
-
-chrome.contextMenus.create({
-  id: DEACTIVATE_MENU_ID,
-  title: "Disable",
-  contexts: ["all"],
-  type: "normal",
-  documentUrlPatterns: ["*://*/*"],
-  onclick: (info, tab) => {
-    if (info.menuItemId !== DEACTIVATE_MENU_ID) return;
-    sendDeactivationMessage(tab.id);
-  },
 });
 
 chrome.tabs.onActivated.addListener(async ({ tabId }) => {
@@ -100,13 +92,40 @@ chrome.tabs.onUpdated.addListener(async ({ tabId }) => {
   updateExtensionUI(tabId);
 });
 
-chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
+chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+  console.log("new message", message);
   switch (message.type) {
-    case CAPTURE_SCREENSHOT:
-      chrome.tabs.captureVisibleTab({ format: "png" }, sendResponse);
-      break;
-    default:
+    // case CAPTURE_SCREENSHOT:
+    //   chrome.tabs.captureVisibleTab({ format: "png" }, sendResponse);
+    //   break;
+    case SELECT_ELEMENT:
+      // Save to backend
       break;
   }
   return true;
+});
+
+const NEW_TOKEN = "NEW_TOKEN";
+const REMOVE_TOKEN = "REMOVE_TOKEN";
+
+chrome.runtime.onMessageExternal.addListener(
+  (message, _sender, sendResponse) => {
+    console.log("new external message", message);
+    switch (message.type) {
+      case NEW_TOKEN:
+        signin(message.token);
+        break;
+      case REMOVE_TOKEN:
+        signout();
+        break;
+      default:
+        break;
+    }
+    return true;
+  }
+);
+
+chrome.storage.sync.get(["token"], (result) => {
+  console.log("getting token from storage...", result);
+  signin(result.token);
 });

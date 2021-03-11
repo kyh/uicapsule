@@ -8,7 +8,7 @@ import Grid from "@material-ui/core/Grid";
 import TextField from "@material-ui/core/TextField";
 import Button from "components/Button";
 import AuthSocial from "components/AuthSocial";
-import { useAuth } from "util/auth.js";
+import { useAuth } from "util/auth";
 import { useForm } from "react-hook-form";
 import { makeStyles } from "@material-ui/core/styles";
 

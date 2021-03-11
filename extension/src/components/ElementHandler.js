@@ -1,5 +1,5 @@
-import React, { useEffect } from "react";
-import { useDispatch } from "react-redux";
+import React, { useEffect, shallowEqual } from "react";
+import { useDispatch, useSelector } from "react-redux";
 import { createGlobalStyle } from "styled-components";
 import {
   highlightAttr,
@@ -31,6 +31,7 @@ let lastElement = null;
 
 const ElementHandler = ({ container, apiMode }) => {
   const dispatch = useDispatch();
+  const { user } = useSelector((state) => state.app, shallowEqual);
 
   const handleMousemove = (event) => {
     if (lastElement === event.target) return;
@@ -50,6 +51,7 @@ const ElementHandler = ({ container, apiMode }) => {
   };
 
   useEffect(() => {
+    if (!apiMode && !user) return;
     container.addEventListener("mousemove", handleMousemove);
     return () => {
       container.removeEventListener("mousemove", handleMousemove);
@@ -58,7 +60,7 @@ const ElementHandler = ({ container, apiMode }) => {
         .forEach(removeAttributes);
       dispatch(resetSelectedElement());
     };
-  }, []);
+  }, [!!apiMode, user]);
 
   return <GlobalStyle apiMode={apiMode} />;
 };

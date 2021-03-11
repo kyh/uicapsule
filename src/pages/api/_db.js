@@ -4,6 +4,7 @@ const firestore = firebaseAdmin.firestore();
 
 const updateUser = (uid, data) =>
   firestore.collection("users").doc(uid).update(data);
+
 const getUser = (uid) =>
   firestore.collection("users").doc(uid).get().then(format);
 

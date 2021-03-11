@@ -13,6 +13,28 @@ import zip from "rollup-plugin-zip";
 
 const isProduction = process.env.NODE_ENV === "production";
 
+export const emptyArgs = {
+  silent: false,
+  dir: "dist",
+};
+
+export const replaceArgs = {
+  "process.env.NODE_ENV": JSON.stringify(process.env.NODE_ENV),
+  "process.env.FIREBASE_API_KEY": JSON.stringify(process.env.FIREBASE_API_KEY),
+  "process.env.FIREBASE_AUTH_DOMAIN": JSON.stringify(
+    process.env.FIREBASE_AUTH_DOMAIN
+  ),
+  "process.env.FIREBASE_PROJECT_ID": JSON.stringify(
+    process.env.FIREBASE_PROJECT_ID
+  ),
+  "process.env.WEBPAGE": JSON.stringify(process.env.WEBPAGE),
+};
+
+export const babelArgs = {
+  ignore: ["node_modules"],
+  babelHelpers: "bundled",
+};
+
 export default {
   input: "src/manifest.json",
   output: {
@@ -21,26 +43,18 @@ export default {
     chunkFileNames: "chunks/[name]-[hash].js",
   },
   plugins: [
-    empty({
-      silent: false,
-      dir: "dist",
-    }),
+    isProduction && empty(emptyArgs),
     chromeExtension(),
     simpleReloader(),
-    replace({
-      "process.env.NODE_ENV": process.env.NODE_ENV,
-    }),
-    babel({
-      ignore: ["node_modules"],
-      babelHelpers: "bundled",
-    }),
+    replace(replaceArgs),
+    babel(babelArgs),
     resolve(),
     commonjs(),
     copy({
       targets: [{ src: "src/public/**/*", dest: "dist/public" }],
     }),
+    isProduction && terser(),
     // Outputs a zip file in ./releases
     isProduction && zip({ dir: "releases" }),
-    isProduction && terser(),
   ],
 };
