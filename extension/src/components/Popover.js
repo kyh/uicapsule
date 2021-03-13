@@ -2,14 +2,14 @@ import React from "react";
 import { useDispatch, shallowEqual, useSelector } from "react-redux";
 import styled from "styled-components";
 import { toggleTheme, deactivateApp } from "../redux/app";
-import { LOADING_STATE } from "../redux/selection";
+import { LOADING_STATE, deleteElement } from "../redux/selection";
 import Spinner from "./Spinner";
 import { SunIcon, MoonIcon, XIcon } from "./Icons";
 
 const Popover = ({ apiMode }) => {
   const dispatch = useDispatch();
   const { user } = useSelector((state) => state.app, shallowEqual);
-  const { loadingState, image, htmlString } = useSelector(
+  const { loadingState, item } = useSelector(
     (state) => state.selection,
     shallowEqual
   );
@@ -26,7 +26,7 @@ const Popover = ({ apiMode }) => {
     if (apiMode && apiMode.onClickViewCapsule) {
       event.stopPropagation();
       event.preventDefault();
-      apiMode.onClickViewCapsule({ image, htmlString });
+      apiMode.onClickViewCapsule({ image: item.image, html: item.html });
     }
   };
 
@@ -61,10 +61,15 @@ const Popover = ({ apiMode }) => {
   return (
     <Container>
       <Header>
-        {loadingState === LOADING_STATE.loading ? (
+        {loadingState === LOADING_STATE.loading ||
+        loadingState === LOADING_STATE.deleting ? (
           <HeaderContent>
-            <Spinner loadingState={loadingState} />
-            <div style={{ marginLeft: 4 }}>Saving...</div>
+            <Spinner />
+            <div style={{ marginLeft: 4 }}>
+              {loadingState === LOADING_STATE.loading
+                ? "Saving..."
+                : "Deleting..."}
+            </div>
           </HeaderContent>
         ) : (
           <>
@@ -78,17 +83,20 @@ const Popover = ({ apiMode }) => {
       {loadingState === LOADING_STATE.done && (
         <>
           <Content apiMode={apiMode}>
-            {/* <iframe srcDoc={htmlString} sandbox="" /> */}
-            <img src={image} />
+            <iframe srcDoc={item.html} sandbox="" />
+            {/* <img src={image} /> */}
           </Content>
           <Footer>
             <a
-              href={process.env.WEBPAGE}
+              href={`${process.env.WEBPAGE}/ui`}
               target="_blank"
               onClick={onClickViewInCapsule}
             >
               View in your Capsule
             </a>
+            <Button type="button" onClick={() => dispatch(deleteElement(item))}>
+              Delete
+            </Button>
           </Footer>
         </>
       )}

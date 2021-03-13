@@ -6,11 +6,12 @@ export const selectedAttr = "data-ui-capsule-selected";
 export const SELECT_ELEMENT = "SELECT_ELEMENT";
 export const SELECT_ELEMENT_SUCCESS = "SELECT_ELEMENT_SUCCESS";
 export const RESET_SELECTED_ELEMENT = "RESET_SELECTED_ELEMENT";
-export const CAPTURE_SCREENSHOT = "CAPTURE_SCREENSHOT";
+export const DELETE_ELEMENT = "DELETE_ELEMENT";
 
 export const LOADING_STATE = {
   default: "default",
   loading: "loading",
+  deleting: "deleting",
   done: "done",
 };
 
@@ -20,10 +21,26 @@ export const selectElement = (element, apiMode) => async (dispatch) => {
     element,
   });
   const { htmlString, dataUrl } = await compileElement(element, apiMode);
-  dispatch({
-    type: SELECT_ELEMENT_SUCCESS,
-    htmlString: htmlString,
+
+  const item = {
+    title: `[${location.hostname}] Component`,
+    html: htmlString,
     image: dataUrl,
+    description: "Added with extension",
+    tags: "",
+  };
+
+  chrome.runtime.sendMessage({ type: SELECT_ELEMENT, item }, (response) => {
+    dispatch({
+      type: SELECT_ELEMENT_SUCCESS,
+      item: response,
+    });
+  });
+};
+
+export const deleteElement = (item) => async (dispatch) => {
+  chrome.runtime.sendMessage({ type: DELETE_ELEMENT, item }, () => {
+    dispatch({ type: RESET_SELECTED_ELEMENT });
   });
 };
 
@@ -34,8 +51,7 @@ export const resetSelectedElement = () => ({
 const init = {
   loadingState: LOADING_STATE.default,
   element: null,
-  htmlString: "",
-  image: "",
+  item: {},
 };
 
 const reducer = (state = init, action) => {
@@ -49,9 +65,13 @@ const reducer = (state = init, action) => {
     case SELECT_ELEMENT_SUCCESS:
       return {
         ...state,
-        htmlString: action.htmlString,
-        image: action.image,
+        item: action.item,
         loadingState: LOADING_STATE.done,
+      };
+    case DELETE_ELEMENT:
+      return {
+        ...state,
+        loadingState: LOADING_STATE.deleting,
       };
     case RESET_SELECTED_ELEMENT: {
       return {

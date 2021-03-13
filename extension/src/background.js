@@ -1,6 +1,9 @@
 import firebase from "./util/firebase";
 import { toggleApp, setUser } from "./redux/app";
-import { SELECT_ELEMENT } from "./redux/selection";
+import { SELECT_ELEMENT, DELETE_ELEMENT } from "./redux/selection";
+
+const firestore = firebase.firestore();
+const serverTimestamp = firebase.firestore.FieldValue.serverTimestamp;
 
 const ACTIVITY = {
   on: {
@@ -21,56 +24,65 @@ const setIcon = (path) => {
   chrome.browserAction.setIcon({ path });
 };
 
-const showEnabled = () => {
-  setIcon(ACTIVITY.on);
-};
-
-const showDisabled = () => {
-  setIcon(ACTIVITY.off);
-};
-
-const show = (tabId) => {
+const toggleIconState = (tabId) => {
   chrome.tabs.sendMessage(tabId, "STATE", (state) => {
     if (state) {
-      state.app.enabled ? showEnabled() : showDisabled();
+      state.app.enabled ? setIcon(ACTIVITY.on) : setIcon(ACTIVITY.off);
     } else {
-      showDisabled();
+      setIcon(ACTIVITY.off);
     }
   });
 };
 
-const toggleActivationMessage = (tabId) => {
+const updateExtensionUI = (tabId) => {
+  tabId
+    ? toggleIconState(tabId)
+    : chrome.tabs.query({ active: true, currentWindow: true }, ([tab]) => {
+        toggleIconState(tab.id);
+      });
+};
+
+const toggleExtension = (tabId) => {
   const user = firebase.auth().currentUser;
   chrome.tabs.sendMessage(tabId, toggleApp(user && user.toJSON()), () =>
     updateExtensionUI(tabId)
   );
 };
 
-const updateExtensionUI = (tabId) => {
-  if (tabId) {
-    show(tabId);
-  } else {
-    chrome.tabs.query({ active: true, currentWindow: true }, ([tab]) => {
-      show(tab.id);
-    });
-  }
-};
-
 const signin = (token) => {
   if (!token) return;
-  chrome.storage.sync.set({ token: token });
   return firebase
     .auth()
     .signInWithCustomToken(token)
+    .then(() => chrome.storage.sync.set({ token: token }))
     .catch((error) => {
+      chrome.storage.sync.remove(["token"]);
       console.log("token signin error:", error);
     });
 };
 
 const signout = () => {
-  chrome.storage.sync.remove(["token"]);
-  return firebase.auth().signOut();
+  return firebase
+    .auth()
+    .signOut()
+    .then(() => chrome.storage.sync.remove(["token"]))
+    .catch((error) => {
+      console.log("token signout error:", error);
+    });
 };
+
+const createItem = async (data) => {
+  const user = firebase.auth().currentUser;
+  const response = await firestore.collection("items").add({
+    ...data,
+    owner: user.uid,
+    createdAt: serverTimestamp(),
+  });
+  return { id: response.id, ...data };
+};
+
+const deleteItem = (item) =>
+  firestore.collection("items").doc(item.id).delete();
 
 firebase.auth().onAuthStateChanged((user) => {
   console.log("user state change detected:", user);
@@ -83,7 +95,7 @@ firebase.auth().onAuthStateChanged((user) => {
 
 chrome.browserAction.onClicked.addListener(async () => {
   chrome.tabs.query({ active: true, currentWindow: true }, ([tab]) => {
-    toggleActivationMessage(tab.id);
+    toggleExtension(tab.id);
   });
 });
 
@@ -98,11 +110,11 @@ chrome.tabs.onUpdated.addListener(async ({ tabId }) => {
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   console.log("new message", message);
   switch (message.type) {
-    // case CAPTURE_SCREENSHOT:
-    //   chrome.tabs.captureVisibleTab({ format: "png" }, sendResponse);
-    //   break;
     case SELECT_ELEMENT:
-      // Save to backend
+      createItem(message.item).then(sendResponse);
+      break;
+    case DELETE_ELEMENT:
+      deleteItem(message.item).then(sendResponse);
       break;
   }
   return true;

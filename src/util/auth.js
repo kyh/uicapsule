@@ -12,6 +12,7 @@ import router from "next/router";
 import PageLoader from "./../components/PageLoader";
 import { getFriendlyPlanId } from "./prices";
 import analytics from "./analytics";
+import { sendRemoveToken } from "./extension";
 
 // Whether to merge extra user data from database into auth.user
 const MERGE_DB_USER = false;
@@ -94,7 +95,7 @@ const useAuthProvider = () => {
   };
 
   const signout = () => {
-    return firebase.auth().signOut();
+    return firebase.auth().signOut().then(sendRemoveToken);
   };
 
   const sendPasswordResetEmail = (email) => {

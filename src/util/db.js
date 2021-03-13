@@ -48,11 +48,14 @@ export const updateItem = (id, data) =>
   firestore.collection("items").doc(id).update(data);
 
 // Create a new item
-export const createItem = (data) =>
-  firestore.collection("items").add({
+export const createItem = (data) => {
+  const user = firebase.auth().currentUser;
+  return firestore.collection("items").add({
     ...data,
+    owner: user.uid,
     createdAt: serverTimestamp(),
   });
+};
 
 // Delete an item
 export const deleteItem = (id) =>

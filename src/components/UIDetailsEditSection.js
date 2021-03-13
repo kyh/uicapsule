@@ -20,7 +20,6 @@ import UIEditorModal from "components/UIEditorModal";
 import Button from "components/Button";
 import BackButton from "components/BackButton";
 import IFrame from "components/IFrame";
-import { useAuth } from "util/auth.js";
 import { useItem, updateItem, createItem } from "util/db.js";
 
 export const Title = styled(Typography)`
@@ -109,7 +108,6 @@ const UIDetailsEditSection = (props) => {
   const [formAlert, setFormAlert] = useState(null);
   const [editorOpen, setEditorOpen] = useState(false);
   const router = useRouter();
-  const auth = useAuth();
   const { data: itemData, status: itemStatus } = useItem(props.id);
   const { register, handleSubmit, errors, setValue, watch, reset } = useForm();
 
@@ -129,14 +127,10 @@ const UIDetailsEditSection = (props) => {
   const onSubmit = (data) => {
     setPending(true);
 
-    const query = props.id
-      ? updateItem(props.id, data)
-      : createItem({ owner: auth.user.uid, ...data });
+    const query = props.id ? updateItem(props.id, data) : createItem(data);
 
     query
-      .then((data) => {
-        router.push("/ui");
-      })
+      .then(() => router.push("/ui"))
       .catch((error) => {
         // Hide pending indicator
         setPending(false);

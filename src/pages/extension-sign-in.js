@@ -4,6 +4,7 @@ import SiteLayout from "components/SiteLayout";
 import HeroSection from "components/HeroSection";
 import SectionHeader from "components/SectionHeader";
 import { useAuth, requireAuth } from "util/auth";
+import { sendNewToken } from "util/extension";
 import { apiRequest } from "../util/util";
 
 const ExtensionSignInPage = () => {
@@ -11,10 +12,7 @@ const ExtensionSignInPage = () => {
 
   useEffect(async () => {
     const token = await apiRequest("firebase-custom-token", "POST", auth.user);
-    chrome.runtime.sendMessage(process.env.NEXT_PUBLIC_CHROME_EXTENSION_ID, {
-      type: "NEW_TOKEN",
-      token,
-    });
+    sendNewToken(token);
   }, []);
 
   return (
