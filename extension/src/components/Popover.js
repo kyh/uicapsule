@@ -200,6 +200,9 @@ const Content = styled.div`
   img {
     object-fit: cover;
   }
+  iframe {
+    border: 0;
+  }
 `;
 
 export default Popover;

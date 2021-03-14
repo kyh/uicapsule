@@ -1,7 +1,5 @@
 import { toPng } from "html-to-image";
-
-export const highlightAttr = "data-ui-capsule-highlight";
-export const selectedAttr = "data-ui-capsule-selected";
+import { convertToHtmlString, removeAttributes } from "../util/parser";
 
 export const SELECT_ELEMENT = "SELECT_ELEMENT";
 export const SELECT_ELEMENT_SUCCESS = "SELECT_ELEMENT_SUCCESS";
@@ -20,12 +18,13 @@ export const selectElement = (element, apiMode) => async (dispatch) => {
     type: SELECT_ELEMENT,
     element,
   });
-  const { htmlString, dataUrl } = await compileElement(element, apiMode);
+
+  const { htmlString, imageString } = await compileElement(element, apiMode);
 
   const item = {
     title: `[${location.hostname}] Component`,
     html: htmlString,
-    image: dataUrl,
+    image: imageString,
     description: "Added with extension",
     tags: "",
   };
@@ -117,151 +116,9 @@ const captureScreenshot = (element) =>
 const compileElement = async (element, apiMode) => {
   const removed = removeAttributes(element);
   const htmlString = convertToHtmlString(element);
-  const dataUrl = await toPng(element);
+  const imageString = await toPng(element);
   removed.forEach((attr) => element.setAttribute(attr, ""));
-  return { htmlString, dataUrl };
+  return { htmlString, imageString };
 };
 
-export const ELEMENT_PARSER_VERSION = 1;
-
-const convertToHtmlString = (rootNode) => {
-  const clone = rootNode.cloneNode(true);
-  let styles = `
-    body {
-      margin: 0;
-      padding: 0;
-    }
-  `;
-  let index = 0;
-
-  walkDom(rootNode, clone, (node, cloneNode) => {
-    index = index + 1;
-    const className = `c-${index}`;
-    const css = reduceComputedStyles(
-      getComputedStyle(node),
-      (styleKey, styleValue) => !isNumber(styleKey) && styleValue
-    );
-    styles =
-      styles +
-      `
-      .${className} {
-        ${css}
-      }
-    `;
-    cloneNode.setAttribute("class", className);
-    cloneNode.removeAttribute("href");
-  });
-
-  return `
-    <style>
-      ${styles}
-    </style>
-    ${clone.outerHTML}
-  `;
-};
-
-const walkDom = (el, cl, callback) => {
-  callback(el, cl);
-  el = el.firstElementChild;
-  cl = cl.firstElementChild;
-  while (el && cl) {
-    walkDom(el, cl, callback);
-    el = el.nextElementSibling;
-    cl = cl.nextElementSibling;
-  }
-};
-
-const camelToKebab = (string) =>
-  string.replace(/([a-z0-9]|(?=[A-Z]))([A-Z])/g, "$1-$2").toLowerCase();
-
-const isNumber = (num) => {
-  if (typeof num === "number") {
-    return num - num === 0;
-  }
-  if (typeof num === "string" && num.trim() !== "") {
-    return Number.isFinite ? Number.isFinite(+num) : isFinite(+num);
-  }
-  return false;
-};
-
-const reduceComputedStyles = (computedStyle, filter) =>
-  Object.keys(computedStyle).reduce((result, styleKey) => {
-    const styleValue = computedStyle[styleKey];
-    if (filter(styleKey, styleValue)) {
-      result = result + `${camelToKebab(styleKey)}: ${styleValue};\n`;
-    }
-    return result;
-  }, "");
-
-export const removeAttributes = (el) => {
-  const removed = [];
-  if (el.hasAttribute(highlightAttr)) {
-    el.removeAttribute(highlightAttr);
-    removed.push(highlightAttr);
-  }
-  if (el.hasAttribute(selectedAttr)) {
-    el.removeAttribute(selectedAttr);
-    removed.push(selectedAttr);
-  }
-  return removed;
-};
-
-const computeRootStyles = (rootNode) => {
-  const rootComputedStyles = getComputedStyle(rootNode.parentNode);
-  const rootCss = reduceComputedStyles(
-    rootComputedStyles,
-    (styleKey, styleValue) => !isNumber(styleKey) && styleValue
-  );
-  return { rootCss, rootComputedStyles };
-};
-
-const convertToHtmlString2 = (rootNode) => {
-  const clone = rootNode.cloneNode(true);
-  const removed = removeAttributes(rootNode);
-  const { rootCss, rootComputedStyles } = computeRootStyles(rootNode);
-  const parentStyleCache = {
-    "c-1": rootComputedStyles,
-  };
-  let styles = `
-    body {
-      ${rootCss}
-      margin: 0;
-      padding: 0;
-    }
-  `;
-  let index = 0;
-
-  walkDom(rootNode, clone, (node, cloneNode) => {
-    index = index + 1;
-    const className = `c-${index}`;
-    if (!parentStyleCache[className]) {
-      parentStyleCache[className] = getComputedStyle(node.parentNode);
-    }
-    const computedStyle = getComputedStyle(node);
-    const css = reduceComputedStyles(
-      computedStyle,
-      (styleKey, styleValue) =>
-        !isNumber(styleKey) &&
-        styleValue &&
-        styleValue !== parentStyleCache[className][styleKey]
-    );
-    styles =
-      styles +
-      `
-      .${className} {
-        ${css}
-      }
-    `;
-    cloneNode.setAttribute("class", className);
-    cloneNode.removeAttribute("href");
-  });
-
-  removed.forEach((attr) => rootNode.setAttribute(attr, ""));
-
-  return `
-    <style>
-      ${styles}
-    </style>
-    ${clone.outerHTML}
-  `;
-};
+export * from "../util/parser";
