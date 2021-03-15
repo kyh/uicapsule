@@ -38,6 +38,27 @@ const TestimonialText = styled(Typography)`
 `;
 
 const items = [
+  // {
+  //   avatar: "https://uicapsule.com/testimonials/boggs.jpeg",
+  //   name: "John Boggs",
+  //   testimonial:
+  //     "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud.",
+  //   company: "Segment / Twitter",
+  // },
+  // {
+  //   avatar: "https://uicapsule.com/testimonials/senedara.jpeg",
+  //   name: "Tina Senedara",
+  //   testimonial:
+  //     "Lorem ipsum dolor sit amet, consectetur adipisicing elit. Dolorum consequatur numquam aliquam tenetur ad amet inventore hic beatae, quas accusantium perferendis sapiente explicabo, corporis totam!",
+  //   company: "SoFi / Lyft",
+  // },
+  // {
+  //   avatar: "https://uicapsule.com/testimonials/singh.jpeg",
+  //   name: "Avesh Singh",
+  //   testimonial:
+  //     "Lorem ipsum dolor sit amet, consectetur adipisicing elit. Dolorum consequatur numquam aliquam tenetur ad amet inventore hic beatae.",
+  //   company: "Databricks / Google",
+  // },
   {
     avatar: "https://uicapsule.com/testimonials/boggs.jpeg",
     name: "John Boggs",
@@ -54,10 +75,10 @@ const items = [
   },
   {
     avatar: "https://uicapsule.com/testimonials/singh.jpeg",
-    name: "Avesh Singh",
+    name: "Andrew Lee",
     testimonial:
       "Lorem ipsum dolor sit amet, consectetur adipisicing elit. Dolorum consequatur numquam aliquam tenetur ad amet inventore hic beatae.",
-    company: "Databricks / Google",
+    company: "Brex / Facebook",
   },
 ];
 
