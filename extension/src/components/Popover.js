@@ -35,7 +35,7 @@ const Popover = ({ apiMode }) => {
       <Container>
         <Content center>
           <img
-            src="https://drive.google.com/uc?id=1mmK0jKTaWBWC8gS4gMrU0lmt30YWIxMX"
+            src={`${process.env.WEBPAGE}/extension/login.svg`}
             style={{ width: 230, marginBottom: 12 }}
           />
           <h4>Hi there!</h4>

@@ -39,25 +39,25 @@ const TestimonialText = styled(Typography)`
 
 const items = [
   {
-    avatar: "https://uploads.divjoy.com/pravatar-150x-5.jpeg",
-    name: "Sarah Kline",
+    // avatar: "https://uicapsule.com/testimonials/boggs.jpeg",
+    name: "John Boggs",
     testimonial:
       "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud.",
-    company: "Company",
+    company: "Segment/Twitter",
   },
   {
-    avatar: "https://uploads.divjoy.com/pravatar-150x-48.jpeg",
-    name: "Shawna Murray",
+    // avatar: "https://uicapsule.com/testimonials/senedara.jpeg",
+    name: "Tina Senedara",
     testimonial:
       "Lorem ipsum dolor sit amet, consectetur adipisicing elit. Dolorum consequatur numquam aliquam tenetur ad amet inventore hic beatae, quas accusantium perferendis sapiente explicabo, corporis totam!",
-    company: "Company",
+    company: "SoFi/Lyft",
   },
   {
-    avatar: "https://uploads.divjoy.com/pravatar-150x-12.jpeg",
-    name: "Blake Elder",
+    // avatar: "https://uicapsule.com/testimonials/singh.jpeg",
+    name: "Avesh Singh",
     testimonial:
       "Lorem ipsum dolor sit amet, consectetur adipisicing elit. Dolorum consequatur numquam aliquam tenetur ad amet inventore hic beatae.",
-    company: "Company",
+    company: "Databricks/Google",
   },
 ];
 

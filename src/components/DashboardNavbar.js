@@ -143,7 +143,7 @@ const DashboardNavbar = ({ border }) => {
                 <MenuItemsContainer>
                   <MenuItem
                     component="a"
-                    href="https://chrome.google.com/webstore/detail/pinterest-save-button/gpdjojdkbbmdfjfahjcgigfpmkopogic"
+                    href={process.env.CHROME_EXTENSION_URL}
                     target="_blank"
                   >
                     Download browser button

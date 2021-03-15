@@ -1,5 +1,6 @@
 {
   "name": "UI Capsule",
+  "version": "0.0.1",
   "icons": {
     "64": "public/logo-gray-64.png",
     "128": "public/logo-gray-128.png",
