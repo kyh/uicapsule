@@ -62,6 +62,7 @@ const signin = (token) => {
 };
 
 const signout = () => {
+  if (!firebase.auth().currentUser) return;
   return firebase
     .auth()
     .signOut()
@@ -143,4 +144,18 @@ chrome.runtime.onMessageExternal.addListener(
 chrome.storage.sync.get(["token"], (result) => {
   console.log("getting token from storage...", result);
   signin(result.token);
+});
+
+chrome.contextMenus.create({
+  title: "Open UI Capsule",
+  onclick: () => {
+    chrome.tabs.create({ url: `${process.env.WEBPAGE}/ui` });
+  },
+});
+
+chrome.contextMenus.create({
+  title: "Sign Out",
+  onclick: () => {
+    signout();
+  },
 });

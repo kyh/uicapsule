@@ -169,7 +169,7 @@ export const convertToHtmlString = (rootNode) => {
     const css = reduceComputedStyles(computedStyle, (styleKey, styleValue) => {
       // only accept certain styles and filter out styles with no values
       if (availailableStyles[styleKey] && styleValue) {
-        // if the style is inheritable, do't apply the style if its the same
+        // if the style is inheritable, don't apply the style if its the same
         // as its parent
         if (inheritableStyles[styleKey]) {
           return styleValue !== styleCache[className][styleKey];
