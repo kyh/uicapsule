@@ -74,7 +74,7 @@ const items = [
     company: "SoFi / Lyft",
   },
   {
-    avatar: "https://uicapsule.com/testimonials/singh.jpeg",
+    avatar: "https://uicapsule.com/testimonials/lee.jpeg",
     name: "Andrew Lee",
     testimonial:
       "Lorem ipsum dolor sit amet, consectetur adipisicing elit. Dolorum consequatur numquam aliquam tenetur ad amet inventore hic beatae.",
