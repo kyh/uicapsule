@@ -38,20 +38,40 @@ const TestimonialText = styled(Typography)`
 `;
 
 const items = [
-  // {
-  //   avatar: "https://uicapsule.com/testimonials/boggs.jpeg",
-  //   name: "John Boggs",
-  //   testimonial:
-  //     "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud.",
-  //   company: "Segment / Twitter",
-  // },
-  // {
-  //   avatar: "https://uicapsule.com/testimonials/senedara.jpeg",
-  //   name: "Tina Senedara",
-  //   testimonial:
-  //     "Lorem ipsum dolor sit amet, consectetur adipisicing elit. Dolorum consequatur numquam aliquam tenetur ad amet inventore hic beatae, quas accusantium perferendis sapiente explicabo, corporis totam!",
-  //   company: "SoFi / Lyft",
-  // },
+  {
+    avatar: "https://uicapsule.com/testimonials/senedara.jpeg",
+    name: "Tina Senedara",
+    testimonial:
+      "UX is a push-and-pull of predictability and innovation. UI Capsule has been vital with helping me identify these predictable patterns, and has helped me create familiar experiences that require as little effort as possible",
+    company: "SoFi / Lyft",
+  },
+  {
+    avatar: "https://uicapsule.com/testimonials/lee.jpeg",
+    name: "Andrew Lee",
+    testimonial:
+      "I've found that mock inspiration websites is more about visual beauty than functionality. UI Capsule reverses this idea with its focus on productionized examples. It has become my go-to resource for real-life product inspiration",
+    company: "Brex / Facebook",
+  },
+  {
+    avatar: "https://uicapsule.com/testimonials/wu.jpeg",
+    name: "Kevin Wu",
+    testimonial:
+      "This tool has helped me categorize what has before seemed like ad hoc approaches to developing an applications UI",
+    company: "SIG / Opendoor",
+  },
+  {
+    avatar: "https://uicapsule.com/testimonials/boggs.jpeg",
+    name: "John Boggs",
+    testimonial:
+      "UI Capsule has been an incredible help with passing ideas along amongst my team",
+    company: "Segment / Twitter",
+  },
+  {
+    avatar: "https://uicapsule.com/testimonials/vu.jpeg",
+    name: "Mandy Vu",
+    testimonial: "Collecting pieces of the web has never been so easy",
+    company: "Google / Ernst & Young",
+  },
   // {
   //   avatar: "https://uicapsule.com/testimonials/singh.jpeg",
   //   name: "Avesh Singh",
@@ -73,34 +93,6 @@ const items = [
   //     "Lorem ipsum dolor sit amet, consectetur adipisicing elit. Dolorum consequatur numquam aliquam tenetur ad amet inventore hic beatae.",
   //   company: "Airbnb",
   // },
-  // {
-  //   avatar: "https://uicapsule.com/testimonials/vu.jpeg",
-  //   name: "Mandy Vu",
-  //   testimonial:
-  //     "Lorem ipsum dolor sit amet, consectetur adipisicing elit. Dolorum consequatur numquam aliquam tenetur ad amet inventore hic beatae.",
-  //   company: "Google",
-  // },
-  {
-    avatar: "https://uicapsule.com/testimonials/wu.jpeg",
-    name: "Kevin Wu",
-    testimonial:
-      "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud.",
-    company: "SIG / Opendoor",
-  },
-  {
-    avatar: "https://uicapsule.com/testimonials/senedara.jpeg",
-    name: "Tina Senedara",
-    testimonial:
-      "Lorem ipsum dolor sit amet, consectetur adipisicing elit. Dolorum consequatur numquam aliquam tenetur ad amet inventore hic beatae, quas accusantium perferendis sapiente explicabo, corporis totam!",
-    company: "SoFi / Lyft",
-  },
-  {
-    avatar: "https://uicapsule.com/testimonials/lee.jpeg",
-    name: "Andrew Lee",
-    testimonial:
-      "Lorem ipsum dolor sit amet, consectetur adipisicing elit. Dolorum consequatur numquam aliquam tenetur ad amet inventore hic beatae.",
-    company: "Brex / Facebook",
-  },
 ];
 
 const TestimonialsSection = (props) => (
