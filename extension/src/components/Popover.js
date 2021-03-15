@@ -94,9 +94,14 @@ const Popover = ({ apiMode }) => {
             >
               View in your Capsule
             </a>
-            <Button type="button" onClick={() => dispatch(deleteElement(item))}>
-              Delete
-            </Button>
+            {!apiMode && (
+              <Button
+                type="button"
+                onClick={() => dispatch(deleteElement(item))}
+              >
+                Delete
+              </Button>
+            )}
           </Footer>
         </>
       )}

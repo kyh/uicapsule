@@ -59,12 +59,33 @@ const items = [
   //     "Lorem ipsum dolor sit amet, consectetur adipisicing elit. Dolorum consequatur numquam aliquam tenetur ad amet inventore hic beatae.",
   //   company: "Databricks / Google",
   // },
+  // {
+  //   avatar: "https://uicapsule.com/testimonials/yue.jpeg",
+  //   name: "Xuan Yue",
+  //   testimonial:
+  //     "Lorem ipsum dolor sit amet, consectetur adipisicing elit. Dolorum consequatur numquam aliquam tenetur ad amet inventore hic beatae.",
+  //   company: "Docusign",
+  // },
+  // {
+  //   avatar: "https://uicapsule.com/testimonials/peck.jpeg",
+  //   name: "Alison Peck",
+  //   testimonial:
+  //     "Lorem ipsum dolor sit amet, consectetur adipisicing elit. Dolorum consequatur numquam aliquam tenetur ad amet inventore hic beatae.",
+  //   company: "Airbnb",
+  // },
+  // {
+  //   avatar: "https://uicapsule.com/testimonials/vu.jpeg",
+  //   name: "Mandy Vu",
+  //   testimonial:
+  //     "Lorem ipsum dolor sit amet, consectetur adipisicing elit. Dolorum consequatur numquam aliquam tenetur ad amet inventore hic beatae.",
+  //   company: "Google",
+  // },
   {
-    avatar: "https://uicapsule.com/testimonials/boggs.jpeg",
-    name: "John Boggs",
+    avatar: "https://uicapsule.com/testimonials/wu.jpeg",
+    name: "Kevin Wu",
     testimonial:
       "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud.",
-    company: "Segment / Twitter",
+    company: "SIG / Opendoor",
   },
   {
     avatar: "https://uicapsule.com/testimonials/senedara.jpeg",
