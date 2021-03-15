@@ -16,6 +16,7 @@ node_modules
 # production
 build
 dist
+releases
 
 # misc
 .DS_Store

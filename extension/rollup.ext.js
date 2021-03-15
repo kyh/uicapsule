@@ -1,3 +1,4 @@
+import path from "path";
 import resolve from "@rollup/plugin-node-resolve";
 import commonjs from "@rollup/plugin-commonjs";
 import babel from "@rollup/plugin-babel";
@@ -9,7 +10,6 @@ import {
 import { terser } from "rollup-plugin-terser";
 import empty from "rollup-plugin-empty";
 import copy from "rollup-plugin-copy";
-import zip from "rollup-plugin-zip";
 
 const isProduction = process.env.NODE_ENV === "production";
 
@@ -19,6 +19,7 @@ export const emptyArgs = {
 };
 
 export const replaceArgs = {
+  preventAssignment: true,
   "process.env.NODE_ENV": JSON.stringify(process.env.NODE_ENV),
   "process.env.FIREBASE_API_KEY": JSON.stringify(process.env.FIREBASE_API_KEY),
   "process.env.FIREBASE_AUTH_DOMAIN": JSON.stringify(
@@ -40,7 +41,7 @@ export default {
   output: {
     dir: "dist",
     format: "esm",
-    chunkFileNames: "chunks/[name]-[hash].js",
+    chunkFileNames: path.join("chunks", "[name]-[hash].js"),
   },
   plugins: [
     isProduction && empty(emptyArgs),
@@ -54,7 +55,5 @@ export default {
       targets: [{ src: "src/public/**/*", dest: "dist/public" }],
     }),
     isProduction && terser(),
-    // Outputs a zip file in ./releases
-    isProduction && zip({ dir: "releases" }),
   ],
 };
