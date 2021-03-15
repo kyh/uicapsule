@@ -245,7 +245,7 @@ const getDisplayName = (Component) =>
   Component.displayName || Component.name || "Component";
 
 // A Higher Order Component for requiring authentication
-export const requireAuth = (Component) => {
+export const requireAuth = (Component, redirectBack) => {
   const WithAuth = (props) => {
     // Get authenticated user
     const auth = useAuth();
@@ -253,7 +253,10 @@ export const requireAuth = (Component) => {
     useEffect(() => {
       // Redirect if not signed in
       if (auth.user === false) {
-        router.replace("/auth/signin");
+        router.replace({
+          pathname: "/auth/signin",
+          query: { next: redirectBack ? location.href : "" },
+        });
       }
     }, [auth]);
 

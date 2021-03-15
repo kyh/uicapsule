@@ -38,8 +38,8 @@ const Popover = ({ apiMode }) => {
             src={`${process.env.WEBPAGE}/extension/login.svg`}
             style={{ width: 230, marginBottom: 12 }}
           />
-          <h4>Hi there!</h4>
-          <p>
+          <h4 style={{ margin: "0 0 4px" }}>Hi there!</h4>
+          <p style={{ margin: "0 0 12px" }}>
             You'll need to{" "}
             <a
               href={`${process.env.WEBPAGE}/extension-sign-in`}

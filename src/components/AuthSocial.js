@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from "react";
-import Button from "@material-ui/core/Button";
-import CircularProgress from "@material-ui/core/CircularProgress";
+import Button from "components/Button";
 import { useAuth } from "util/auth.js";
 import { makeStyles } from "@material-ui/core/styles";
 
@@ -91,6 +90,7 @@ const AuthSocial = (props) => {
             onSigninWithProvider(provider);
           }}
           key={provider}
+          loading={pending === provider}
         >
           <div className={classes.icon}>
             <img
@@ -98,15 +98,9 @@ const AuthSocial = (props) => {
               alt={providerDisplayNames[provider]}
             />
           </div>
-
-          {pending !== provider && (
-            <span>
-              {props.buttonText} with {providerDisplayNames[provider]}
-            </span>
-          )}
-
-          {pending === provider && <CircularProgress size={28} />}
-
+          <span>
+            {props.buttonText} with {providerDisplayNames[provider]}
+          </span>
           {provider === lastUsed && (
             <div className={classes.lastUsedIndicator}>Last used</div>
           )}
