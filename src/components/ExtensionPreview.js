@@ -88,8 +88,8 @@ const ExtensionPreview = ({ onSetHtml = () => {} }) => {
       Extension.mount(mountEl.current, {
         onActivated: () => setIsActivated(true),
         onDeactivated: () => setIsActivated(false),
-        onClickViewCapsule: (props) => {
-          onSetHtml(props.htmlString);
+        onClickViewCapsule: ({ html, image }) => {
+          onSetHtml(html);
           router.push("/#features");
         },
       });

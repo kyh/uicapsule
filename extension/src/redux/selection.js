@@ -29,12 +29,19 @@ export const selectElement = (element, apiMode) => async (dispatch) => {
     tags: "",
   };
 
-  chrome.runtime.sendMessage({ type: SELECT_ELEMENT, item }, (response) => {
+  if (!apiMode) {
+    chrome.runtime.sendMessage({ type: SELECT_ELEMENT, item }, (response) => {
+      dispatch({
+        type: SELECT_ELEMENT_SUCCESS,
+        item: response,
+      });
+    });
+  } else {
     dispatch({
       type: SELECT_ELEMENT_SUCCESS,
-      item: response,
+      item: { id: "id", ...item },
     });
-  });
+  }
 };
 
 export const deleteElement = (item) => async (dispatch) => {
