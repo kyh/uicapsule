@@ -143,7 +143,8 @@ const computeRootStyles = (rootNode) => {
   return { rootCss, rootComputedStyles };
 };
 
-export const convertToHtmlString = (rootNode) => {
+// Deprecated
+export const __convertToHtmlString = (rootNode) => {
   const clone = rootNode.cloneNode(true);
   const removed = removeAttributes(rootNode);
   const { rootCss, rootComputedStyles } = computeRootStyles(rootNode);
@@ -179,6 +180,57 @@ export const convertToHtmlString = (rootNode) => {
       }
       return false;
     });
+    styles =
+      styles +
+      `
+      .${className} {
+        ${css}
+      }
+    `;
+    cloneNode.setAttribute("class", className);
+    cloneNode.removeAttribute("href");
+  });
+
+  removed.forEach((attr) => rootNode.setAttribute(attr, ""));
+
+  return `
+    <style>
+      ${styles}
+    </style>
+    ${clone.outerHTML}
+  `;
+};
+
+const getStylesForElement = (el) => {
+  const ret = [];
+  [...document.styleSheets].forEach((ss) => {
+    if (ss.href) return;
+    const rules = ss.rules || ss.cssRules;
+    [...rules].forEach((rule) => {
+      if (el.matches(rule.selectorText)) {
+        ret.push(rule.style.cssText);
+      }
+    });
+  });
+  return ret;
+};
+
+export const convertToHtmlString = (rootNode) => {
+  const clone = rootNode.cloneNode(true);
+  const removed = removeAttributes(rootNode);
+
+  let styles = `
+    body {
+      margin: 0;
+      padding: 0;
+    }
+  `;
+  let index = 0;
+
+  walkDom(rootNode, clone, (node, cloneNode) => {
+    index = index + 1;
+    const className = `c-${index}`;
+    const css = getStylesForElement(node).join("\n");
     styles =
       styles +
       `
