@@ -204,9 +204,13 @@ export const __convertToHtmlString = (rootNode) => {
 const getStylesForElement = (el) => {
   const ret = [];
   [...document.styleSheets].forEach((ss) => {
-    if (ss.href) return;
-    const rules = ss.rules || ss.cssRules;
-    [...rules].forEach((rule) => {
+    const rules = [];
+    try {
+      rules.push(ss.rules || ss.cssRules);
+    } catch (e) {
+      console.log(e);
+    }
+    rules.forEach((rule) => {
       if (el.matches(rule.selectorText)) {
         ret.push(rule.style.cssText);
       }

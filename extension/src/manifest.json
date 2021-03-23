@@ -14,7 +14,7 @@
   "background": {
     "scripts": ["background.js"]
   },
-  "permissions": ["contextMenus", "tabCapture", "activeTab", "storage"],
+  "permissions": ["tabCapture", "activeTab", "storage", "debugger"],
   "content_scripts": [
     {
       "matches": ["<all_urls>"],
