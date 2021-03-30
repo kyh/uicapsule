@@ -1,5 +1,8 @@
 import { toPng } from "html-to-image";
-import { convertToHtmlString, removeAttributes } from "../util/parser";
+import {
+  convertToHtmlStringWithCompute,
+  removeAttributes,
+} from "../util/parser";
 
 export const SELECT_ELEMENT = "SELECT_ELEMENT";
 export const SELECT_ELEMENT_SUCCESS = "SELECT_ELEMENT_SUCCESS";
@@ -122,7 +125,7 @@ const captureScreenshot = (element) =>
 
 const compileElement = async (element, apiMode) => {
   const removed = removeAttributes(element);
-  const htmlString = convertToHtmlString(element);
+  const htmlString = convertToHtmlStringWithCompute(element);
   const imageString = await toPng(element);
   removed.forEach((attr) => element.setAttribute(attr, ""));
   return { htmlString, imageString };

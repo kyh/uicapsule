@@ -143,8 +143,7 @@ const computeRootStyles = (rootNode) => {
   return { rootCss, rootComputedStyles };
 };
 
-// Deprecated
-export const __convertToHtmlString = (rootNode) => {
+export const convertToHtmlStringWithCompute = (rootNode) => {
   const clone = rootNode.cloneNode(true);
   const removed = removeAttributes(rootNode);
   const { rootCss, rootComputedStyles } = computeRootStyles(rootNode);
@@ -219,7 +218,7 @@ const getStylesForElement = (el) => {
   return ret;
 };
 
-export const convertToHtmlString = (rootNode) => {
+export const convertToHtmlStringWithStylesheet = (rootNode) => {
   const clone = rootNode.cloneNode(true);
   const removed = removeAttributes(rootNode);
 
@@ -254,4 +253,24 @@ export const convertToHtmlString = (rootNode) => {
     </style>
     ${clone.outerHTML}
   `;
+};
+
+export const getSelector = (el) => {
+  let path = [],
+    parent;
+  while ((parent = el.parentNode)) {
+    let tag = el.tagName,
+      siblings;
+    path.unshift(
+      el.id
+        ? `#${el.id}`
+        : ((siblings = parent.children),
+          [].filter.call(siblings, (sibling) => sibling.tagName === tag)
+            .length === 1
+            ? tag
+            : `${tag}:nth-child(${1 + [].indexOf.call(siblings, el)})`)
+    );
+    el = parent;
+  }
+  return `${path.join(" > ")}`.toLowerCase();
 };
