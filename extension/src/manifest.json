@@ -1,6 +1,9 @@
 {
   "name": "UI Capsule",
   "version": "0.0.1",
+  "manifest_version": 2,
+  "homepage_url": "https://uicapsule.com",
+  "description": "Bookmark your inspirations",
   "icons": {
     "64": "public/logo-gray-64.png",
     "128": "public/logo-gray-128.png",
