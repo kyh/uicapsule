@@ -89,8 +89,10 @@ export const convertToHtmlStringWithStylesheet = async (rootNode) => {
         ${css}
       }
     `;
+    [...cloneNode.attributes].forEach((attr) =>
+      cloneNode.removeAttribute(attr.name)
+    );
     cloneNode.setAttribute("class", className);
-    cloneNode.removeAttribute("href");
   });
 
   removed.forEach((attr) => rootNode.setAttribute(attr, ""));
