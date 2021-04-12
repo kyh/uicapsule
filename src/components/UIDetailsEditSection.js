@@ -181,7 +181,7 @@ const UIDetailsEditSection = (props) => {
             <IFrame srcDoc={html} />
           </ComponentPreview>
           <FormInputContainer>
-            <textarea style={{ display: "none" }} name="html" ref={register} />
+            <textarea style={{ display: "none" }} {...register("html")} />
             <FormInputSection component="fieldset">
               <TextField
                 variant="outlined"
