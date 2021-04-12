@@ -9,7 +9,7 @@ import ReauthModal from "components/ReauthModal";
 import SettingsGeneral from "components/SettingsGeneral";
 import SettingsPassword from "components/SettingsPassword";
 import SettingsBilling from "components/SettingsBilling";
-import { useAuth } from "util/auth.js";
+import { useAuth } from "util/auth";
 
 const StyledTabs = styled(Tabs)`
   ${({ theme }) => css`

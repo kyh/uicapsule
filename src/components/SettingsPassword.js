@@ -3,14 +3,20 @@ import Grid from "@material-ui/core/Grid";
 import TextField from "@material-ui/core/TextField";
 import Button from "@material-ui/core/Button";
 import CircularProgress from "@material-ui/core/CircularProgress";
-import { useAuth } from "util/auth.js";
-import { useForm } from "react-hook-form";
+import { useAuth } from "util/auth";
+import { useForm } from "util/form";
 
 const SettingsPassword = (props) => {
   const auth = useAuth();
   const [pending, setPending] = useState(false);
 
-  const { register, handleSubmit, errors, reset, getValues } = useForm();
+  const {
+    register,
+    handleSubmit,
+    reset,
+    getValues,
+    formState: { errors },
+  } = useForm();
 
   const onSubmit = (data) => {
     // Show pending indicator
@@ -57,12 +63,11 @@ const SettingsPassword = (props) => {
             variant="outlined"
             type="password"
             label="Password"
-            name="pass"
             placeholder="Password"
             error={errors.pass ? true : false}
             helperText={errors.pass && errors.pass.message}
             fullWidth
-            inputRef={register({
+            {...register("pass", {
               required: "Please enter a password",
             })}
           />
@@ -72,12 +77,11 @@ const SettingsPassword = (props) => {
             variant="outlined"
             type="password"
             label="Confirm New Password"
-            name="confirmPass"
             placeholder="Confirm Password"
             error={errors.confirmPass ? true : false}
             helperText={errors.confirmPass && errors.confirmPass.message}
             fullWidth
-            inputRef={register({
+            {...register("confirmPass", {
               required: "Please enter your new password again",
               validate: (value) => {
                 if (value === getValues().pass) {

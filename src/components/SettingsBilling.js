@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import PageLoader from "components/PageLoader";
-import { useAuth } from "util/auth.js";
+import { useAuth } from "util/auth";
 import { useRouter } from "next/router";
 import { redirectToBilling } from "util/stripe.js";
 

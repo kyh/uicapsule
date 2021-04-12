@@ -15,7 +15,7 @@ import Menu from "@material-ui/core/Menu";
 import MenuItem from "@material-ui/core/MenuItem";
 import Divider from "@material-ui/core/Divider";
 import Logo from "components/Logo";
-import { useAuth } from "util/auth.js";
+import { useAuth } from "util/auth";
 
 const AppHeader = styled(AppBar)`
   ${({ theme }) => css`

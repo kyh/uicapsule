@@ -8,7 +8,7 @@ import Alert from "@material-ui/lab/Alert";
 import { SearchOutline } from "@graywolfai/react-heroicons";
 import { PageSpinner } from "components/Spinner";
 import UICardList from "components/UICardList";
-import { useAuth } from "util/auth.js";
+import { useAuth } from "util/auth";
 import { useItems } from "util/db.js";
 
 const SearchForm = styled.form`

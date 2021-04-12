@@ -9,7 +9,7 @@ import TextField from "@material-ui/core/TextField";
 import Button from "components/Button";
 import AuthSocial from "components/AuthSocial";
 import { useAuth } from "util/auth";
-import { useForm } from "react-hook-form";
+import { useForm } from "util/form";
 import { makeStyles } from "@material-ui/core/styles";
 
 const useStyles = makeStyles((theme) => ({
@@ -25,7 +25,11 @@ const ReauthModal = (props) => {
   const [pending, setPending] = useState(false);
   const [formAlert, setFormAlert] = useState(null);
 
-  const { register, handleSubmit, errors } = useForm();
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+  } = useForm();
 
   const onSubmit = (data) => {
     const { pass } = data;
@@ -67,11 +71,10 @@ const ReauthModal = (props) => {
                   variant="outlined"
                   type="password"
                   label="Password"
-                  name="pass"
                   error={errors.pass ? true : false}
                   helperText={errors.pass && errors.pass.message}
                   fullWidth
-                  inputRef={register({
+                  {...register("pass", {
                     required: "Please enter your password",
                   })}
                 />

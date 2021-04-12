@@ -3,7 +3,7 @@ export const NEW_TOKEN = "NEW_TOKEN";
 export const REMOVE_TOKEN = "REMOVE_TOKEN";
 
 export const sendNewToken = (token) => {
-  if (chrome) {
+  if (chrome && chrome.runtime) {
     chrome.runtime.sendMessage(extensionID, {
       type: NEW_TOKEN,
       token,
@@ -12,7 +12,7 @@ export const sendNewToken = (token) => {
 };
 
 export const sendRemoveToken = () => {
-  if (chrome) {
+  if (chrome && chrome.runtime) {
     chrome.runtime.sendMessage(extensionID, {
       type: REMOVE_TOKEN,
     });

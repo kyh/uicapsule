@@ -15,7 +15,7 @@ import CheckIcon from "@material-ui/icons/Check";
 import ListItemText from "@material-ui/core/ListItemText";
 import Button from "@material-ui/core/Button";
 import Link from "next/link";
-import { useAuth } from "util/auth.js";
+import { useAuth } from "util/auth";
 
 const PriceCard = styled(Card)`
   ${({ theme, highlight }) => css`

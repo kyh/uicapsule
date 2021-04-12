@@ -14,7 +14,7 @@ import ExtensionPreview from "components/ExtensionPreview";
 import FeaturesSection from "components/FeaturesSection";
 import TestimonialsSection from "components/TestimonialsSection";
 import CtaSection from "components/CtaSection";
-import { useAuth } from "util/auth.js";
+import { useAuth } from "util/auth";
 
 const HeroCtaContainer = styled.div`
   ${({ theme }) => css`

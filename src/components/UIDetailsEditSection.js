@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import styled, { css } from "styled-components";
-import { useForm } from "react-hook-form";
+import { useForm } from "util/form";
 import { useRouter } from "next/router";
 import Box from "@material-ui/core/Box";
 import Card from "@material-ui/core/Card";
@@ -109,7 +109,14 @@ const UIDetailsEditSection = (props) => {
   const [editorOpen, setEditorOpen] = useState(false);
   const router = useRouter();
   const { data: itemData, status: itemStatus } = useItem(props.id);
-  const { register, handleSubmit, errors, setValue, watch, reset } = useForm();
+  const {
+    register,
+    handleSubmit,
+    setValue,
+    watch,
+    reset,
+    formState: { errors },
+  } = useForm();
 
   useEffect(() => {
     reset({
@@ -187,12 +194,11 @@ const UIDetailsEditSection = (props) => {
                 variant="outlined"
                 type="text"
                 label="Title"
-                name="title"
                 error={errors.title ? true : false}
                 helperText={errors.title && errors.title.message}
                 fullWidth
                 autoFocus
-                inputRef={register({
+                {...register("title", {
                   required: "Please enter a title",
                 })}
               />
@@ -202,13 +208,12 @@ const UIDetailsEditSection = (props) => {
                 variant="outlined"
                 type="text"
                 label="Description"
-                name="description"
                 error={errors.description ? true : false}
                 helperText={errors.description && errors.description.message}
                 fullWidth
                 multiline
                 rows={8}
-                inputRef={register}
+                {...register("description")}
               />
             </FormInputSection>
             <FormInputSection component="fieldset">
@@ -216,11 +221,10 @@ const UIDetailsEditSection = (props) => {
                 variant="outlined"
                 type="text"
                 label="Tags"
-                name="tags"
                 error={errors.tags ? true : false}
                 helperText={errors.tags && errors.tags.message}
                 fullWidth
-                inputRef={register}
+                {...register("tags")}
               />
             </FormInputSection>
             <FormInputSection component="fieldset">
@@ -232,14 +236,13 @@ const UIDetailsEditSection = (props) => {
                       defaultChecked={itemData ? itemData.public : false}
                     />
                   }
-                  name="public"
-                  inputRef={register}
                   label={
                     <InputLabel
                       label="Public Component"
                       tooltip="Show this component will show up on the Discover page"
                     />
                   }
+                  {...register("public")}
                 />
                 <FormControlLabel
                   control={
@@ -247,14 +250,13 @@ const UIDetailsEditSection = (props) => {
                       defaultChecked={itemData ? itemData.featureImage : false}
                     />
                   }
-                  name="featureImage"
-                  inputRef={register}
                   label={
                     <InputLabel
                       label="Feature Image"
                       tooltip="Use an image as the thumbnail rather than a code rendered component"
                     />
                   }
+                  {...register("featureImage")}
                 />
               </FormGroup>
             </FormInputSection>

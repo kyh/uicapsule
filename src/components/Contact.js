@@ -5,12 +5,17 @@ import Grid from "@material-ui/core/Grid";
 import TextField from "@material-ui/core/TextField";
 import Button from "components/Button";
 import contact from "util/contact";
-import { useForm } from "react-hook-form";
+import { useForm } from "util/form";
 
 const Contact = (props) => {
   const [pending, setPending] = useState(false);
   const [formAlert, setFormAlert] = useState(null);
-  const { handleSubmit, register, errors, reset } = useForm();
+  const {
+    handleSubmit,
+    register,
+    reset,
+    formState: { errors },
+  } = useForm();
 
   const onSubmit = (data) => {
     // Show pending indicator
@@ -56,11 +61,10 @@ const Contact = (props) => {
                 variant="outlined"
                 type="text"
                 label="Name"
-                name="name"
                 error={errors.name ? true : false}
                 helperText={errors.name && errors.name.message}
                 fullWidth
-                inputRef={register({
+                {...register("name", {
                   required: "Please enter your name",
                 })}
               />
@@ -72,11 +76,10 @@ const Contact = (props) => {
               variant="outlined"
               type="email"
               label="Email"
-              name="email"
               error={errors.email ? true : false}
               helperText={errors.email && errors.email.message}
               fullWidth
-              inputRef={register({
+              {...register("email", {
                 required: "Please enter your email",
               })}
             />
@@ -86,13 +89,12 @@ const Contact = (props) => {
               variant="outlined"
               type="text"
               label="Message"
-              name="message"
               multiline
               rows={5}
               error={errors.message ? true : false}
               helperText={errors.message && errors.message.message}
               fullWidth
-              inputRef={register({
+              {...register("message", {
                 required: "Please enter a message",
               })}
             />

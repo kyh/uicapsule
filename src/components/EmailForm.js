@@ -3,10 +3,10 @@ import styled, { css } from "styled-components";
 import IconButton from "@material-ui/core/IconButton";
 import InputBase from "@material-ui/core/InputBase";
 import Snackbar from "@material-ui/core/Snackbar";
-import Spinner from "components/Spinner";
 import { ArrowRightOutline } from "@graywolfai/react-heroicons";
+import Spinner from "components/Spinner";
 import contact from "util/contact";
-import { useForm } from "react-hook-form";
+import { useForm } from "util/form";
 
 const SubscribeForm = styled.form`
   ${({ theme }) => css`
@@ -30,7 +30,12 @@ const EmailForm = ({ message = "", onComplete = () => {}, ...rest }) => {
     message: "",
     open: false,
   });
-  const { handleSubmit, register, errors, reset } = useForm();
+  const {
+    handleSubmit,
+    register,
+    reset,
+    formState: { errors },
+  } = useForm();
 
   const onSubmit = (data) => {
     // Show pending indicator
@@ -69,13 +74,12 @@ const EmailForm = ({ message = "", onComplete = () => {}, ...rest }) => {
         <InputBase
           type="email"
           label="Email"
-          name="email"
           error={errors.email ? true : false}
-          inputRef={register({
-            required: "Please enter your email",
-          })}
           placeholder="Your email"
           fullWidth
+          {...register("email", {
+            required: "Please enter your email",
+          })}
           {...rest}
         />
         <IconButton type="submit" aria-label="subscribe" disabled={pending}>

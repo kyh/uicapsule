@@ -2,13 +2,17 @@ import React, { useState } from "react";
 import Grid from "@material-ui/core/Grid";
 import TextField from "@material-ui/core/TextField";
 import Button from "components/Button";
-import { useAuth } from "util/auth.js";
-import { useForm } from "react-hook-form";
+import { useAuth } from "util/auth";
+import { useForm } from "util/form";
 
 const AuthForm = (props) => {
   const auth = useAuth();
   const [pending, setPending] = useState(false);
-  const { handleSubmit, register, errors, getValues } = useForm();
+  const {
+    handleSubmit,
+    register,
+    formState: { errors },
+  } = useForm();
 
   const submitHandlersByType = {
     signin: ({ email, pass }) => {
@@ -73,12 +77,11 @@ const AuthForm = (props) => {
               variant="outlined"
               type="email"
               label="Email"
-              name="email"
               placeholder="user@example.com"
               error={errors.email ? true : false}
               helperText={errors.email && errors.email.message}
               fullWidth
-              inputRef={register({
+              {...register("email", {
                 required: "Please enter your email",
               })}
             />
@@ -90,12 +93,11 @@ const AuthForm = (props) => {
               variant="outlined"
               type="password"
               label="Password"
-              name="pass"
               autoComplete="on"
               error={errors.pass ? true : false}
               helperText={errors.pass && errors.pass.message}
               fullWidth
-              inputRef={register({
+              {...register("pass", {
                 required: "Please enter a password",
               })}
             />

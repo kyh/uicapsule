@@ -3,14 +3,18 @@ import Grid from "@material-ui/core/Grid";
 import TextField from "@material-ui/core/TextField";
 import Button from "@material-ui/core/Button";
 import CircularProgress from "@material-ui/core/CircularProgress";
-import { useAuth } from "util/auth.js";
-import { useForm } from "react-hook-form";
+import { useAuth } from "util/auth";
+import { useForm } from "util/form";
 
 const SettingsGeneral = (props) => {
   const auth = useAuth();
   const [pending, setPending] = useState(false);
 
-  const { register, handleSubmit, errors } = useForm();
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+  } = useForm();
 
   const onSubmit = (data) => {
     // Show pending indicator
@@ -54,13 +58,12 @@ const SettingsGeneral = (props) => {
             variant="outlined"
             type="text"
             label="Name"
-            name="name"
             placeholder="Name"
             defaultValue={auth.user.name}
             error={errors.name ? true : false}
             helperText={errors.name && errors.name.message}
             fullWidth
-            inputRef={register({
+            {...register("name", {
               required: "Please enter your name",
             })}
           />
@@ -70,13 +73,12 @@ const SettingsGeneral = (props) => {
             variant="outlined"
             type="email"
             label="Email"
-            name="email"
             placeholder="user@example.com"
             defaultValue={auth.user.email}
             error={errors.email ? true : false}
             helperText={errors.email && errors.email.message}
             fullWidth
-            inputRef={register({
+            {...register("email", {
               required: "Please enter your email",
             })}
           />

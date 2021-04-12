@@ -9,7 +9,7 @@ import MuiLink from "@material-ui/core/Link";
 import Button from "components/Button";
 import UICard from "components/UICard";
 import ConfirmDialog from "components/ConfirmDialog";
-import { useAuth } from "util/auth.js";
+import { useAuth } from "util/auth";
 import { updateItem, deleteItem } from "util/db.js";
 
 // const canUseStar =
