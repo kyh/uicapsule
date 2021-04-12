@@ -5,7 +5,7 @@ import HeroSection from "components/HeroSection";
 import SectionHeader from "components/SectionHeader";
 import { useAuth, requireAuth } from "util/auth";
 import { sendNewToken } from "util/extension";
-import { apiRequest } from "../util/util";
+import { apiRequest } from "util/utils";
 
 const ExtensionSignInPage = () => {
   const auth = useAuth();

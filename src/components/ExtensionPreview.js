@@ -2,7 +2,7 @@ import React, { useRef, useEffect, useState } from "react";
 import styled, { css } from "styled-components";
 import { useRouter } from "next/router";
 import Snackbar from "@material-ui/core/Snackbar";
-import { isMobile } from "../util/util";
+import { isMobile } from "util/utils";
 
 const PreviewContainer = styled.section`
   margin: 0 auto;
