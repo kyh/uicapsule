@@ -42,7 +42,7 @@
     "react": "^17.0.1",
     "react-ace": "^9.3.0",
     "react-dom": "^17.0.1",
-    "react-hook-form": "^6.15.1",
+    "react-hook-form": "^7.0.5",
     "stripe": "^8.133.0",
     "styled-components": "^5.2.1",
     "tiny-swiper": "^2.1.0"
