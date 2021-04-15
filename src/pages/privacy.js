@@ -10,8 +10,9 @@ import TextList from "components/TextList";
 const Content = () => (
   <>
     <TextParagraph>
-      Kaiyu Hsu built the UI Capsule app as an Open Source project. This SERVICE
-      is provided by Kaiyu Hsu at no cost and is intended for use as is.
+      Kaiyu Hsu built the UI Capsule app as an open source project. This SERVICE
+      is provided by Kaiyu Hsu at no cost for the basic version and is intended
+      for use as is.
     </TextParagraph>
     <TextParagraph>
       This page is used to inform visitors regarding my policies with the
@@ -27,15 +28,14 @@ const Content = () => (
     </TextParagraph>
     <TextParagraph>
       The terms used in this Privacy Policy have the same meanings as in our
-      Terms and Conditions, which is accessible at UI Capsule unless otherwise
-      defined in this Privacy Policy.
+      Terms and Conditions, which is accessible at https://uicapsule.com/terms
+      unless otherwise defined in this Privacy Policy.
     </TextParagraph>
     <TextHeader>Information Collection and Use</TextHeader>
     <TextParagraph>
       For a better experience, while using our Service, I may require you to
       provide us with certain personally identifiable information, including but
-      not limited to your name and email. The information that I request will be
-      retained on your device and is not collected by me in any way.
+      not limited to your name and email.
     </TextParagraph>
     <TextParagraph>
       The app does use third party services that may collect information used to
@@ -113,7 +113,7 @@ const Content = () => (
       electronic storage is 100% secure and reliable, and I cannot guarantee its
       absolute security.
     </TextParagraph>
-    <TextHeader>Links to Other Sites</TextHeader>
+    <TextHeader>Links to other sites</TextHeader>
     <TextParagraph>
       This Service may contain links to other sites. If you click on a
       third-party link, you will be directed to that site. Note that these
@@ -122,7 +122,7 @@ const Content = () => (
       assume no responsibility for the content, privacy policies, or practices
       of any third-party sites or services.
     </TextParagraph>
-    <TextHeader>Changes to This Privacy Policy</TextHeader>
+    <TextHeader>Changes to this Privacy Policy</TextHeader>
     <TextParagraph>
       I may update our Privacy Policy from time to time. Thus, you are advised
       to review this page periodically for any changes. I will notify you of any
