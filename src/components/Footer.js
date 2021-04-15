@@ -107,6 +107,9 @@ const Footer = () => (
           <Link href="/#testimonials" passHref>
             <FooterLink component="a">Testimonials</FooterLink>
           </Link>
+          <Link href="/pricing" passHref>
+            <FooterLink component="a">Pricing</FooterLink>
+          </Link>
         </FooterLinksContainer>
         <FooterLinksContainer item xs={12} md={4}>
           <CategoryHeader variant="caption" component="h4">
@@ -115,9 +118,12 @@ const Footer = () => (
           <Link href="/about" passHref>
             <FooterLink component="a">About</FooterLink>
           </Link>
-          {/* <Link href="/pricing" passHref>
-          <FooterLink component="a">Pricing</FooterLink>
-        </Link> */}
+          <Link href="/privacy" passHref>
+            <FooterLink component="a">Privacy</FooterLink>
+          </Link>
+          <Link href="/terms" passHref>
+            <FooterLink component="a">Terms</FooterLink>
+          </Link>
           <Link href="/contact" passHref>
             <FooterLink component="a">Contact</FooterLink>
           </Link>

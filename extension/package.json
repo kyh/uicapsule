@@ -8,9 +8,8 @@
   "main": "dist/module.js",
   "scripts": {
     "dev": "env-cmd -e development rollup -c rollup.ext.js -w",
-    "build": "env-cmd -e production rollup -c rollup.npm.js",
-    "release:ext": "env-cmd -e production rollup -c rollup.ext.js",
-    "release:npm": "env-cmd -e production npm version patch && rollup -c rollup.npm.js && npm publish"
+    "build:ext": "env-cmd -e production rollup -c rollup.ext.js",
+    "build:npm": "env-cmd -e production npm version patch && rollup -c rollup.npm.js && npm publish"
   },
   "dependencies": {
     "firebase": "^8.2.10",

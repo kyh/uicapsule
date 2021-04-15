@@ -1,87 +1,63 @@
 import React from "react";
-import styled, { css } from "styled-components";
 import Head from "next/head";
-import Typography from "@material-ui/core/Typography";
 import SiteLayout from "components/SiteLayout";
 import HeroSection from "components/HeroSection";
 import SectionHeader from "components/SectionHeader";
 import CtaSection from "components/CtaSection";
+import TextParagraph from "components/TextParagraph";
+import TextList from "components/TextList";
 
-const AboutParagraph = styled(Typography)`
-  ${({ theme }) => css`
-    text-align: left;
-    font-size: 1.1rem;
-    line-height: 1.6;
-    max-width: 600px;
-    margin: auto auto ${theme.spacing(3)}px;
-
-    em {
-      font-weight: 500;
-    }
-  `}
-`;
-
-const AboutList = styled.ol`
-  ${({ theme }) => css`
-    font-size: 1.1rem;
-    line-height: 1.6;
-    max-width: 600px;
-    margin: auto auto ${theme.spacing(3)}px;
-    padding-left: 20px;
-  `}
-`;
-
-const AboutContent = () => (
+const Content = () => (
   <>
-    <AboutParagraph>
+    <TextParagraph>
       I'm a total bookmark nerd. Often times finding myself bookmarking things I
       think I'll need later on. Specifically, web pages I find beautiful,
       useful, and well designed. To me, these bookmarks provide great reference
       point when working on a new project to draw inspiration from.
-    </AboutParagraph>
-    <AboutParagraph>
+    </TextParagraph>
+    <TextParagraph>
       Over the years though, I've found that a traditional bookmark manager
       doesn't quite grant me the tools to resurface, identify, and organize the
       things I've saved.
-    </AboutParagraph>
-    <AboutParagraph>
+    </TextParagraph>
+    <TextParagraph>
       The issues, I think, can be divided into these few themes:
-    </AboutParagraph>
-    <AboutList>
+    </TextParagraph>
+    <TextList>
       <li>
-        <AboutParagraph>
+        <TextParagraph>
           Bookmarking an entire page seems a little too generic. What is it
           about this particular page did I find fascinating?
-        </AboutParagraph>
+        </TextParagraph>
       </li>
       <li>
-        <AboutParagraph>
+        <TextParagraph>
           As time goes by these bookmarks would become stale. A nightmare I
           think we've all experienced: the links stop working 😔
-        </AboutParagraph>
+        </TextParagraph>
       </li>
       <li>
-        <AboutParagraph>
+        <TextParagraph>
           If we're lucky our bookmark manager would also take a screenshot of
           the original source. However, screenshot resolutions may be poor and
           even worse yet, they're non interactive
-        </AboutParagraph>
+        </TextParagraph>
       </li>
       <li>
-        <AboutParagraph>
+        <TextParagraph>
           It's difficult to compose various bookmarks together in one single
           source, whether it be a moodboard or some other design artifact
-        </AboutParagraph>
+        </TextParagraph>
       </li>
-    </AboutList>
-    <AboutParagraph>
+    </TextList>
+    <TextParagraph>
       I built UI Capsule to try to tackle each of these problems. I describe it
       as <em>"Pinterest meets UI"</em>
-    </AboutParagraph>
-    <AboutParagraph>
+    </TextParagraph>
+    <TextParagraph>
       Hopefully, with the help of this tool, design hoarders like myself can
       continue our passion for collecting, without all the extra baggage.
-    </AboutParagraph>
+    </TextParagraph>
   </>
 );
 
@@ -101,7 +77,7 @@ const AboutPage = () => (
         subtitle="without the bookmark debt"
         size={2}
       />
-      <AboutContent />
+      <Content />
     </HeroSection>
     <CtaSection
       size="medium"
