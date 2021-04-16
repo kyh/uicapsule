@@ -202,7 +202,7 @@ const TermsPage = () => (
     >
       <SectionHeader
         title="Terms of Use"
-        subtitle="For our protection"
+        subtitle="What we need from you"
         size={2}
       />
       <Content />
