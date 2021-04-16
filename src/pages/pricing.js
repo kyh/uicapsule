@@ -6,7 +6,7 @@ import PricingSection from "components/PricingSection";
 const PricingPage = () => (
   <>
     <Head>
-      <title>UI Capsule | Pricing</title>
+      <title>Pricing</title>
     </Head>
     <PricingSection />
   </>

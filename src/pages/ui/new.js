@@ -7,7 +7,7 @@ import { requireAuth } from "util/auth.js";
 const NewUIPage = () => (
   <>
     <Head>
-      <title>UI Capsule | New</title>
+      <title>New Capsule</title>
     </Head>
     <UIDetailsEditSection />
   </>

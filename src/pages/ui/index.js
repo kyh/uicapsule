@@ -8,7 +8,7 @@ const UIPage = () => {
   return (
     <>
       <Head>
-        <title>UI Capsule | My Saved Capsules</title>
+        <title>My Saved Capsules</title>
       </Head>
       <DashboardSection />
     </>

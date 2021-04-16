@@ -18,7 +18,7 @@ const ExtensionSignInPage = () => {
   return (
     <>
       <Head>
-        <title>UI Capsule | Extension Sign In</title>
+        <title>Extension Sign In</title>
       </Head>
       <HeroSection
         bgColor="default"

@@ -6,7 +6,7 @@ import { requireAuth } from "util/auth.js";
 const CollectionsPage = () => (
   <>
     <Head>
-      <title>UI Capsule | My Capsule Collections</title>
+      <title>Collections</title>
     </Head>
     <p>Collections Page...</p>
   </>

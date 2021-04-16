@@ -64,7 +64,7 @@ const Content = () => (
 const AboutPage = () => (
   <>
     <Head>
-      <title>UI Capsule | About</title>
+      <title>About</title>
     </Head>
     <HeroSection
       bgColor="default"

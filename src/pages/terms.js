@@ -192,7 +192,7 @@ const Content = () => (
 const TermsPage = () => (
   <>
     <Head>
-      <title>UI Capsule | Privacy</title>
+      <title>Terms of use</title>
     </Head>
     <HeroSection
       bgColor="default"

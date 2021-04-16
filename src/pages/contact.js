@@ -6,7 +6,7 @@ import ContactSection from "components/ContactSection";
 const ContactPage = () => (
   <>
     <Head>
-      <title>UI Capsule | Contact</title>
+      <title>Contact</title>
     </Head>
     <ContactSection
       bgColor="default"

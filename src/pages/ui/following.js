@@ -7,7 +7,7 @@ const FollowingPage = () => {
   return (
     <>
       <Head>
-        <title>UI Capsule | People I follow</title>
+        <title>People I follow</title>
       </Head>
       <p>Following Page...</p>
     </>

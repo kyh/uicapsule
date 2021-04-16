@@ -6,7 +6,7 @@ import { requireAuth } from "util/auth.js";
 const PlaygroundPage = () => (
   <>
     <Head>
-      <title>UI Capsule | Playground</title>
+      <title>Playground</title>
     </Head>
     <p>Playground Page...</p>
   </>

@@ -142,7 +142,7 @@ const Content = () => (
 const PrivacyPage = () => (
   <>
     <Head>
-      <title>UI Capsule | Privacy</title>
+      <title>Privacy Policy</title>
     </Head>
     <HeroSection
       bgColor="default"

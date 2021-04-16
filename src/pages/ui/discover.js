@@ -8,7 +8,7 @@ const DiscoverPage = () => {
   return (
     <>
       <Head>
-        <title>UI Capsule | Discover Capsules</title>
+        <title>Discover Capsules</title>
       </Head>
       <DashboardSection discover />
     </>
