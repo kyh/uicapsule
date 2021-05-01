@@ -1,8 +1,8 @@
 import React from "react";
 import styled, { css } from "styled-components";
-import Section from "components/Section";
+import Link from "next/link";
+import { Check } from "@styled-icons/heroicons-outline";
 import Container from "@material-ui/core/Container";
-import SectionHeader from "components/SectionHeader";
 import Grid from "@material-ui/core/Grid";
 import Card from "@material-ui/core/Card";
 import CardContent from "@material-ui/core/CardContent";
@@ -11,10 +11,10 @@ import Box from "@material-ui/core/Box";
 import List from "@material-ui/core/List";
 import ListItem from "@material-ui/core/ListItem";
 import ListItemIcon from "@material-ui/core/ListItemIcon";
-import CheckIcon from "@material-ui/icons/Check";
 import ListItemText from "@material-ui/core/ListItemText";
 import Button from "@material-ui/core/Button";
-import Link from "next/link";
+import Section from "components/Section";
+import SectionHeader from "components/SectionHeader";
 import { useAuth } from "util/auth";
 
 const PriceCard = styled(Card)`
@@ -50,8 +50,9 @@ const PerkItem = styled(ListItem)`
 
 const PerkIcon = styled(ListItemIcon)`
   ${({ theme }) => css`
-    min-width: 34px;
+    min-width: 24px;
     color: ${theme.palette.success.main};
+    margin-right: ${theme.spacing(1)}px;
   `}
 `;
 
@@ -126,7 +127,7 @@ const PricingSection = () => {
                         {item.perks.map((perk) => (
                           <PerkItem disableGutters key={perk}>
                             <PerkIcon>
-                              <CheckIcon />
+                              <Check />
                             </PerkIcon>
                             <ListItemText>{perk}</ListItemText>
                           </PerkItem>

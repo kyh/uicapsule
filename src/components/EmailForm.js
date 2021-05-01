@@ -3,7 +3,7 @@ import styled, { css } from "styled-components";
 import IconButton from "@material-ui/core/IconButton";
 import InputBase from "@material-ui/core/InputBase";
 import Snackbar from "@material-ui/core/Snackbar";
-import { ArrowRightOutline } from "@graywolfai/react-heroicons";
+import { ArrowRight } from "@styled-icons/heroicons-outline";
 import Spinner from "components/Spinner";
 import contact from "util/contact";
 import { useForm } from "util/form";
@@ -83,7 +83,7 @@ const EmailForm = ({ message = "", onComplete = () => {}, ...rest }) => {
           {...rest}
         />
         <IconButton type="submit" aria-label="subscribe" disabled={pending}>
-          {pending ? <Spinner /> : <ArrowRightOutline width="16" />}
+          {pending ? <Spinner /> : <ArrowRight width="16" />}
         </IconButton>
       </SubscribeForm>
       <Snackbar

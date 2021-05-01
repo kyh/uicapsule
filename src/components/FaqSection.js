@@ -1,13 +1,13 @@
 import React from "react";
-import Section from "components/Section";
+import { ChevronDown } from "@styled-icons/heroicons-outline";
 import Container from "@material-ui/core/Container";
 import SectionHeader from "components/SectionHeader";
 import Accordion from "@material-ui/core/Accordion";
 import AccordionSummary from "@material-ui/core/AccordionSummary";
 import Typography from "@material-ui/core/Typography";
 import AccordionDetails from "@material-ui/core/AccordionDetails";
-import ExpandMoreIcon from "@material-ui/icons/ExpandMore";
 import { makeStyles } from "@material-ui/core/styles";
+import Section from "components/Section";
 
 const useStyles = makeStyles((theme) => ({
   accordion: {
@@ -91,7 +91,7 @@ const FaqSection = (props) => {
                 root: classes.summary,
                 content: classes.summaryContent,
               }}
-              expandIcon={<ExpandMoreIcon />}
+              expandIcon={<ChevronDown />}
               aria-controls={`faq-panel-${index}`}
             >
               <Typography variant="h6">{item.question}</Typography>

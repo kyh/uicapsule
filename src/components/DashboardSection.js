@@ -5,7 +5,7 @@ import Box from "@material-ui/core/Box";
 import Button from "@material-ui/core/Button";
 import InputBase from "@material-ui/core/InputBase";
 import Alert from "@material-ui/lab/Alert";
-import { SearchOutline } from "@graywolfai/react-heroicons";
+import { Search } from "@styled-icons/heroicons-outline";
 import { PageSpinner } from "components/Spinner";
 import UICardList from "components/UICardList";
 import { useAuth } from "util/auth";
@@ -39,7 +39,7 @@ const DashboardSection = ({ discover }) => {
   return (
     <>
       <SearchForm>
-        <SearchOutline width="16" />
+        <Search width="16" />
         <InputBase type="text" placeholder="Search" name="search" />
       </SearchForm>
       <Box

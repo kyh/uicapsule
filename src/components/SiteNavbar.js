@@ -1,12 +1,12 @@
 import React, { useState } from "react";
 import styled, { css } from "styled-components";
+import { Menu as MenuIcon } from "@styled-icons/heroicons-outline";
 import AppBar from "@material-ui/core/AppBar";
 import Container from "@material-ui/core/Container";
 import Toolbar from "@material-ui/core/Toolbar";
 import Link from "next/link";
 import Hidden from "@material-ui/core/Hidden";
 import IconButton from "@material-ui/core/IconButton";
-import MenuIcon from "@material-ui/icons/Menu";
 import Button from "@material-ui/core/Button";
 import Drawer from "@material-ui/core/Drawer";
 import List from "@material-ui/core/List";

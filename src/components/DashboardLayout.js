@@ -9,13 +9,13 @@ import ListItem from "@material-ui/core/ListItem";
 import ListItemIcon from "@material-ui/core/ListItemIcon";
 import ListItemText from "@material-ui/core/ListItemText";
 import {
-  GlobeOutline,
-  UserGroupOutline,
-  LibraryOutline,
-  CollectionOutline,
-  CubeTransparentOutline,
-  CogOutline,
-} from "@graywolfai/react-heroicons";
+  Globe,
+  UserGroup,
+  Library,
+  Collection,
+  CubeTransparent,
+  Cog,
+} from "@styled-icons/heroicons-outline";
 import ActiveLink from "components/ActiveLink";
 import DashboardNavbar from "components/DashboardNavbar";
 
@@ -80,7 +80,7 @@ const DashboardLayout = ({ children }) => {
             <ActiveLink href="/ui" passHref>
               <ListItem button component="a">
                 <ListItemIcon>
-                  <LibraryOutline />
+                  <Library />
                 </ListItemIcon>
                 <ListItemText primary="My Capsule" />
               </ListItem>
@@ -88,7 +88,7 @@ const DashboardLayout = ({ children }) => {
             <ActiveLink href="/ui/discover" passHref>
               <ListItem button component="a">
                 <ListItemIcon>
-                  <GlobeOutline />
+                  <Globe />
                 </ListItemIcon>
                 <ListItemText primary="Discover" />
               </ListItem>
@@ -99,7 +99,7 @@ const DashboardLayout = ({ children }) => {
             <ActiveLink href="/ui/collections" passHref>
               <ListItem button component="a">
                 <ListItemIcon>
-                  <CollectionOutline />
+                  <Collection />
                 </ListItemIcon>
                 <ListItemText primary="Collections" />
               </ListItem>
@@ -107,7 +107,7 @@ const DashboardLayout = ({ children }) => {
             <ActiveLink href="/ui/following" passHref>
               <ListItem button component="a">
                 <ListItemIcon>
-                  <UserGroupOutline />
+                  <UserGroup />
                 </ListItemIcon>
                 <ListItemText primary="Following" />
               </ListItem>
@@ -115,7 +115,7 @@ const DashboardLayout = ({ children }) => {
             <ActiveLink href="/ui/playground" passHref>
               <ListItem button component="a">
                 <ListItemIcon>
-                  <CubeTransparentOutline />
+                  <CubeTransparent />
                 </ListItemIcon>
                 <ListItemText primary="Playground" />
               </ListItem>
@@ -126,7 +126,7 @@ const DashboardLayout = ({ children }) => {
             <ActiveLink href="/settings/general" passHref>
               <ListItem button component="a">
                 <ListItemIcon>
-                  <CogOutline />
+                  <Cog />
                 </ListItemIcon>
                 <ListItemText primary="Settings" />
               </ListItem>

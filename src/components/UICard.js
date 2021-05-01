@@ -5,11 +5,11 @@ import Card from "@material-ui/core/Card";
 import CardActions from "@material-ui/core/CardActions";
 import IconButton from "@material-ui/core/IconButton";
 import {
-  HeartOutline,
-  HeartSolid,
-  EyeOutline,
-  TrashOutline,
-} from "@graywolfai/react-heroicons";
+  Heart as HeartOutline,
+  Eye,
+  Trash,
+} from "@styled-icons/heroicons-outline";
+import { Heart as HeartSolid } from "@styled-icons/heroicons-solid";
 import IFrame from "components/IFrame";
 
 const UICardContainer = styled(Card)`
@@ -25,7 +25,7 @@ function UICard({ item, onClickHeart, onClickDelete }) {
       <CardActions>
         <Link href={`/ui/${item.id}`} passHref>
           <IconButton aria-label="update" as="a" edge="end">
-            <EyeOutline width="20" />
+            <Eye width="20" />
           </IconButton>
         </Link>
         <IconButton aria-label="heart" onClick={onClickHeart} edge="end">
@@ -41,7 +41,7 @@ function UICard({ item, onClickHeart, onClickDelete }) {
             aria-label="delete"
             onClick={onClickDelete}
           >
-            <TrashOutline width="20" />
+            <Trash width="20" />
           </IconButton>
         )}
       </CardActions>

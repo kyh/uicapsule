@@ -14,7 +14,7 @@ import FormGroup from "@material-ui/core/FormGroup";
 import FormControlLabel from "@material-ui/core/FormControlLabel";
 import Tooltip from "@material-ui/core/Tooltip";
 import Checkbox from "@material-ui/core/Checkbox";
-import { QuestionMarkCircleOutline } from "@graywolfai/react-heroicons";
+import { QuestionMarkCircle } from "@styled-icons/heroicons-outline";
 import { PageSpinner } from "components/Spinner";
 import UIEditorModal from "components/UIEditorModal";
 import Button from "components/Button";
@@ -95,7 +95,7 @@ const InputLabel = ({ label, tooltip }) => {
       {tooltip && (
         <Tooltip title={tooltip} placement="top">
           <Box ml={0.5}>
-            <QuestionMarkCircleOutline width="15" />
+            <QuestionMarkCircle width="15" />
           </Box>
         </Tooltip>
       )}
