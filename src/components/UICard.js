@@ -11,6 +11,7 @@ import {
 } from "@styled-icons/heroicons-outline";
 import { Heart as HeartSolid } from "@styled-icons/heroicons-solid";
 import IFrame from "components/IFrame";
+import { constructSnippet } from "util/playground";
 
 const UICardContainer = styled(Card)`
   iframe {
@@ -21,7 +22,7 @@ const UICardContainer = styled(Card)`
 function UICard({ item, onClickHeart, onClickDelete }) {
   return (
     <UICardContainer elevation={3}>
-      <IFrame srcDoc={item.html} />
+      <IFrame srcDoc={constructSnippet(item.iSnippet)} />
       <CardActions>
         <Link href={`/ui/${item.id}`} passHref>
           <IconButton aria-label="update" as="a" edge="end">

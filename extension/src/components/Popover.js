@@ -3,6 +3,7 @@ import { useDispatch, shallowEqual, useSelector } from "react-redux";
 import styled from "styled-components";
 import { toggleTheme, deactivateApp } from "../redux/app";
 import { LOADING_STATE, deleteElement } from "../redux/selection";
+import { constructSnippet } from "../util/parser";
 import Spinner from "./Spinner";
 import { SunIcon, MoonIcon, XIcon } from "./Icons";
 
@@ -15,11 +16,7 @@ const Popover = ({ apiMode }) => {
   );
 
   const onClickClose = () => {
-    if (apiMode) {
-      dispatch(deactivateApp());
-    } else {
-      window.location.reload();
-    }
+    dispatch(deactivateApp());
   };
 
   const onClickViewInCapsule = (event) => {
@@ -83,8 +80,7 @@ const Popover = ({ apiMode }) => {
       {loadingState === LOADING_STATE.done && (
         <>
           <Content apiMode={apiMode}>
-            <iframe srcDoc={item.html} sandbox="" />
-            {/* <img src={image} /> */}
+            <iframe srcDoc={constructSnippet(item.iSnippet)} sandbox="" />
           </Content>
           <Footer>
             <a

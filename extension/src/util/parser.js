@@ -64,7 +64,7 @@ const getStylesForElement = (el) => {
     .map((rule) => rule.style.cssText);
 };
 
-export const convertToHtmlStringWithStylesheet = async (rootNode) => {
+export const createISnippet = async (rootNode) => {
   await loadDocumentStyles();
 
   const clone = rootNode.cloneNode(true);
@@ -97,12 +97,10 @@ export const convertToHtmlStringWithStylesheet = async (rootNode) => {
 
   removed.forEach((attr) => rootNode.setAttribute(attr, ""));
 
-  return `
-    <style>
-      ${styles}
-    </style>
-    ${clone.outerHTML}
-  `;
+  return {
+    markup: clone.outerHTML,
+    css: styles,
+  };
 };
 
 export const removeAttributes = (el) => {
@@ -116,4 +114,22 @@ export const removeAttributes = (el) => {
     removed.push(selectedAttr);
   }
   return removed;
+};
+
+export const constructSnippet = ({ markup, css }) => {
+  return `
+    <!DOCTYPE html>
+    <html lang="en">
+    <head>
+      <meta charset="UTF-8"/>
+      <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+      <meta http-equiv="X-UA-Compatible" content="ie=edge"/>
+      <title>Document</title>
+      <style>${css}</style>
+    </head>
+    <body>
+      ${markup}
+    </body>
+    </html>
+  `;
 };

@@ -1,8 +1,5 @@
 import { toPng } from "html-to-image";
-import {
-  convertToHtmlStringWithStylesheet,
-  removeAttributes,
-} from "../util/parser";
+import { createISnippet, removeAttributes } from "../util/parser";
 
 export const SELECT_ELEMENT = "SELECT_ELEMENT";
 export const SELECT_ELEMENT_SUCCESS = "SELECT_ELEMENT_SUCCESS";
@@ -22,12 +19,12 @@ export const selectElement = (element, apiMode) => async (dispatch) => {
     element,
   });
 
-  const { htmlString, imageString } = await compileElement(element, apiMode);
+  const { iSnippet, previewImage } = await compileElement(element, apiMode);
 
   const item = {
     title: `[${location.hostname}] Component`,
-    html: htmlString,
-    image: imageString,
+    iSnippet: iSnippet,
+    // previewImage: previewImage,
     description: "Added with extension",
     tags: "",
   };
@@ -125,10 +122,10 @@ const captureScreenshot = (element) =>
 
 const compileElement = async (element, apiMode) => {
   const removed = removeAttributes(element);
-  const htmlString = await convertToHtmlStringWithStylesheet(element);
-  const imageString = await toPng(element);
+  const iSnippet = await createISnippet(element);
+  const previewImage = await toPng(element);
   removed.forEach((attr) => element.setAttribute(attr, ""));
-  return { htmlString, imageString };
+  return { iSnippet, previewImage };
 };
 
 export * from "../util/parser";

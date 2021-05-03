@@ -8,7 +8,7 @@ const StyledIFrame = styled.iframe`
 `;
 
 const IFrame = (props) => {
-  return <StyledIFrame sandbox="" {...props} />;
+  return <StyledIFrame sandbox="allow-scripts" {...props} />;
 };
 
 export default IFrame;

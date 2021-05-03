@@ -8,6 +8,7 @@ import BackButton from "components/BackButton";
 import IFrame from "components/IFrame";
 import { useItem } from "util/db";
 import { useAuth } from "util/auth";
+import { constructSnippet } from "util/playground";
 import {
   Title,
   Form,
@@ -35,13 +36,15 @@ const UIDetailsSection = (props) => {
 
   return (
     <Container maxWidth="md">
-      <Title variant="h5">{itemData.title}</Title>
       <Form as="div">
         <FormContent>
           <ComponentPreview elevation={3}>
-            <IFrame srcDoc={itemData.html} />
+            <IFrame srcDoc={constructSnippet(itemData.iSnippet)} />
           </ComponentPreview>
           <FormInputContainer>
+            <FormInputSection component="div">
+              <Typography variant="h5">{itemData.title}</Typography>
+            </FormInputSection>
             <FormInputSection component="div">
               <Typography>{itemData.description}</Typography>
             </FormInputSection>

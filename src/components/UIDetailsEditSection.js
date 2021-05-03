@@ -20,7 +20,8 @@ import UIEditorModal from "components/UIEditorModal";
 import Button from "components/Button";
 import BackButton from "components/BackButton";
 import IFrame from "components/IFrame";
-import { useItem, updateItem, createItem } from "util/db.js";
+import { useItem, updateItem, createItem } from "util/db";
+import { constructSnippet } from "util/playground";
 
 export const Title = styled(Typography)`
   ${({ theme }) => css`
@@ -120,7 +121,7 @@ const UIDetailsEditSection = (props) => {
 
   useEffect(() => {
     reset({
-      html: itemData ? itemData.html : "",
+      html: itemData ? constructSnippet(itemData.iSnippet) : "",
       title: itemData ? itemData.title : "",
       description: itemData ? itemData.description : "",
       tags: itemData ? itemData.tags : "",
@@ -129,13 +130,11 @@ const UIDetailsEditSection = (props) => {
     });
   }, [itemData]);
 
-  const html = watch("html", "");
+  const [html] = watch(["html"]);
 
   const onSubmit = (data) => {
-    setPending(true);
-
     const query = props.id ? updateItem(props.id, data) : createItem(data);
-
+    setPending(true);
     query
       .then(() => router.push("/ui"))
       .catch((error) => {
@@ -172,7 +171,7 @@ const UIDetailsEditSection = (props) => {
   return (
     <Container maxWidth="md">
       <Title variant="h5">
-        {props.id ? "Update Component" : "Save new Component"}
+        {props.id ? "Update Component" : "New Component"}
       </Title>
       <Form onSubmit={handleSubmit(onSubmit)}>
         {formAlert && (
@@ -188,7 +187,11 @@ const UIDetailsEditSection = (props) => {
             <IFrame srcDoc={html} />
           </ComponentPreview>
           <FormInputContainer>
-            <textarea style={{ display: "none" }} {...register("html")} />
+            <TextField
+              style={{ display: "none" }}
+              multiline
+              {...register("html")}
+            />
             <FormInputSection component="fieldset">
               <TextField
                 variant="outlined"
@@ -239,7 +242,7 @@ const UIDetailsEditSection = (props) => {
                   label={
                     <InputLabel
                       label="Public Component"
-                      tooltip="Show this component will show up on the Discover page"
+                      tooltip="Show this component on the Discover page"
                     />
                   }
                   {...register("public")}
@@ -253,7 +256,7 @@ const UIDetailsEditSection = (props) => {
                   label={
                     <InputLabel
                       label="Feature Image"
-                      tooltip="Use an image as the thumbnail rather than a code rendered component"
+                      tooltip="Use an image as the thumbnail rather than the code rendered component"
                     />
                   }
                   {...register("featureImage")}
