@@ -98,7 +98,7 @@ export const createISnippet = async (rootNode) => {
   removed.forEach((attr) => rootNode.setAttribute(attr, ""));
 
   return {
-    markup: clone.outerHTML,
+    html: clone.outerHTML,
     css: styles,
   };
 };
@@ -116,7 +116,7 @@ export const removeAttributes = (el) => {
   return removed;
 };
 
-export const constructSnippet = ({ markup, css }) => {
+export const constructSnippet = ({ html, css }) => {
   return `
     <!DOCTYPE html>
     <html lang="en">
@@ -128,7 +128,7 @@ export const constructSnippet = ({ markup, css }) => {
       <style>${css}</style>
     </head>
     <body>
-      ${markup}
+      ${html}
     </body>
     </html>
   `;

@@ -109,19 +109,16 @@ const UIDetailsEditSection = (props) => {
   const [formAlert, setFormAlert] = useState(null);
   const [editorOpen, setEditorOpen] = useState(false);
   const router = useRouter();
-  const { data: itemData, status: itemStatus } = useItem(props.id);
+  const { data: itemData, status: itemStatus, dispatch } = useItem(props.id);
   const {
     register,
     handleSubmit,
-    setValue,
-    watch,
     reset,
     formState: { errors },
   } = useForm();
 
   useEffect(() => {
     reset({
-      html: itemData ? constructSnippet(itemData.iSnippet) : "",
       title: itemData ? itemData.title : "",
       description: itemData ? itemData.description : "",
       tags: itemData ? itemData.tags : "",
@@ -130,13 +127,17 @@ const UIDetailsEditSection = (props) => {
     });
   }, [itemData]);
 
-  const [html] = watch(["html"]);
-
   const onSubmit = (data) => {
-    const query = props.id ? updateItem(props.id, data) : createItem(data);
+    const payload = { ...data, iSnippet: itemData.iSnippet };
+
+    const query = props.id
+      ? updateItem(props.id, payload)
+      : createItem(payload);
+
     setPending(true);
+
     query
-      .then(() => router.push("/ui"))
+      .then(() => router.back())
       .catch((error) => {
         // Hide pending indicator
         setPending(false);
@@ -149,12 +150,13 @@ const UIDetailsEditSection = (props) => {
   };
 
   const openEditorModal = () => {
-    setValue("html", html);
     setEditorOpen(true);
   };
 
-  const closeEditorModal = (dirtyHtml) => {
-    if (!dirtyHtml.target) setValue("html", dirtyHtml);
+  const closeEditorModal = (snippet) => {
+    if (!snippet.target) {
+      dispatch({ type: "update", payload: { iSnippet: snippet } });
+    }
     setEditorOpen(false);
   };
 
@@ -184,14 +186,9 @@ const UIDetailsEditSection = (props) => {
             <EditCodeButton variant="contained" onClick={openEditorModal}>
               Edit Code
             </EditCodeButton>
-            <IFrame srcDoc={html} />
+            <IFrame srcDoc={constructSnippet(itemData.iSnippet)} />
           </ComponentPreview>
           <FormInputContainer>
-            <TextField
-              style={{ display: "none" }}
-              multiline
-              {...register("html")}
-            />
             <FormInputSection component="fieldset">
               <TextField
                 variant="outlined"
@@ -281,7 +278,7 @@ const UIDetailsEditSection = (props) => {
       </Form>
       <UIEditorModal
         open={editorOpen}
-        html={html}
+        source={itemData.iSnippet}
         onCancel={closeEditorModal}
         onSave={closeEditorModal}
       />

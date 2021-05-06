@@ -74,6 +74,13 @@ const reducer = (state, action) => {
       return { status: "success", data: action.payload, error: undefined };
     case "error":
       return { status: "error", data: undefined, error: action.payload };
+    case "update":
+      return {
+        ...state,
+        data: state.data
+          ? { ...state.data, ...action.payload }
+          : action.payload,
+      };
     default:
       throw new Error("invalid action");
   }
@@ -128,7 +135,7 @@ const useQuery = (query) => {
     );
   }, [queryCached]); // Only run effect if queryCached changes
 
-  return state;
+  return { ...state, dispatch };
 };
 
 const getDocData = (doc) =>

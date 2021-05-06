@@ -1,5 +1,5 @@
 export const constructSnippet = (
-  { markup = "", css = "", javascript = "" },
+  { html = "", css = "", javascript = "" },
   id = 0,
   transformJs = false,
   presets = []
@@ -75,8 +75,7 @@ export const constructSnippet = (
       <style>${css}</style>
     </head>
     <body>
-      ${markup}
-      <span></span>
+      ${html}
       <script>
         var _privateLog = console.log;
         console.log = function(...rest) {
