@@ -57,7 +57,7 @@ export default class MyDocument extends Document {
           />
 
           <meta property="fb:app_id" content="{FB_ID}" />
-          <meta property="og:url" content="" />
+          <meta property="og:url" content="https://uicapsule.com" />
           <meta property="og:type" content="website" />
           <meta
             property="og:title"
@@ -72,8 +72,8 @@ export default class MyDocument extends Document {
           <meta property="og:locale" content="en_US" />
 
           <meta name="twitter:card" content="summary_large_image" />
-          <meta name="twitter:site" content="@uglyandcuddly" />
-          <meta name="twitter:creator" content="@uglyandcuddly" />
+          <meta name="twitter:site" content="@kaiyuhsu" />
+          <meta name="twitter:creator" content="@kaiyuhsu" />
           <meta name="twitter:url" content="" />
           <meta
             name="twitter:title"
@@ -104,7 +104,11 @@ export default class MyDocument extends Document {
             href="favicons/favicon-16x16.png"
           />
           <link rel="manifest" href="/site.webmanifest" />
-          <link rel="stylesheet" href="https://rsms.me/inter/inter.css" />
+          <link rel="preconnect" href="https://fonts.gstatic.com" />
+          <link
+            href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&display=fallback"
+            rel="stylesheet"
+          />
         </Head>
         <body>
           <Main />

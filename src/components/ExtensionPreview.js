@@ -20,7 +20,7 @@ const PreviewMonitor = styled.div`
 
 const PreviewWindow = styled.div`
   position: relative;
-  max-height: 70vh;
+  height: 70vh;
   pointer-events: none;
   &:before {
     pointer-events: none;
