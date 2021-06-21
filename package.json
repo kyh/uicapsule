@@ -5,7 +5,7 @@
     "web"
   ],
   "scripts": {
-    "dev:web": "npm run dev --workspace=web",
+    "dev": "npm run dev --workspace=web",
     "dev:extension": "npm run dev --workspace=extension",
     "postinstall": "husky install"
   },

@@ -42,7 +42,13 @@ const UICardList = ({ items }) => {
               </Typography>
               <Box mt={2} textAlign="center">
                 <Box mb={1}>
-                  <Button variant="contained" color="primary">
+                  <Button
+                    variant="contained"
+                    color="primary"
+                    as={Link}
+                    href="https://chrome.google.com/webstore/detail/ui-capsule/ggneccedeodnffmplinemfphnenjpihi"
+                    target="_blank"
+                  >
                     Download Browser Button
                   </Button>
                 </Box>

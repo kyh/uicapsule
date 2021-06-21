@@ -186,7 +186,9 @@ const UIDetailsEditSection = (props) => {
             <EditCodeButton variant="contained" onClick={openEditorModal}>
               Edit Code
             </EditCodeButton>
-            <IFrame srcDoc={constructSnippet(itemData.iSnippet)} />
+            <IFrame
+              srcDoc={constructSnippet(itemData ? itemData.iSnippet : {})}
+            />
           </ComponentPreview>
           <FormInputContainer>
             <FormInputSection component="fieldset">
@@ -278,7 +280,7 @@ const UIDetailsEditSection = (props) => {
       </Form>
       <UIEditorModal
         open={editorOpen}
-        source={itemData.iSnippet}
+        source={itemData ? itemData.iSnippet : {}}
         onCancel={closeEditorModal}
         onSave={closeEditorModal}
       />

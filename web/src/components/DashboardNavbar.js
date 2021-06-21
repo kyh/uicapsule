@@ -143,7 +143,7 @@ const DashboardNavbar = ({ border }) => {
                 <MenuItemsContainer>
                   <MenuItem
                     component="a"
-                    href={process.env.CHROME_EXTENSION_URL}
+                    href="https://chrome.google.com/webstore/detail/ui-capsule/ggneccedeodnffmplinemfphnenjpihi"
                     target="_blank"
                   >
                     Download browser button
