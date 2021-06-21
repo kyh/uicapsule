@@ -1,51 +1,13 @@
 {
   "name": "ui-capsule",
-  "version": "0.1.0",
-  "private": true,
+  "workspaces": [
+    "extension",
+    "web"
+  ],
   "scripts": {
-    "dev": "next dev",
-    "build": "next build",
-    "start": "next start",
-    "stripe-webhook": "stripe listen --forward-to localhost:3000/api/stripe-webhook",
+    "dev:web": "npm run dev --workspace=web",
+    "dev:extension": "npm run dev --workspace=extension",
     "postinstall": "husky install"
-  },
-  "browserslist": {
-    "production": [
-      ">0.2%",
-      "not dead",
-      "not op_mini all"
-    ],
-    "development": [
-      "last 1 chrome version",
-      "last 1 firefox version",
-      "last 1 safari version"
-    ]
-  },
-  "eslintConfig": {
-    "extends": "react-app"
-  },
-  "dependencies": {
-    "@analytics/google-analytics": "^0.5.2",
-    "@material-ui/core": "^4.11.3",
-    "@material-ui/lab": "^4.0.0-alpha.57",
-    "@stripe/stripe-js": "^1.12.1",
-    "@styled-icons/heroicons-outline": "^10.33.0",
-    "@styled-icons/heroicons-solid": "^10.33.0",
-    "@ui-capsule/chrome-extension": "^0.0.18",
-    "ace-builds": "^1.4.12",
-    "analytics": "^0.7.4",
-    "firebase": "^8.2.5",
-    "firebase-admin": "^9.4.2",
-    "next": "^11.0.0",
-    "query-string": "^7.0.0",
-    "raw-body": "^2.4.1",
-    "react": "^17.0.1",
-    "react-ace": "^9.3.0",
-    "react-dom": "^17.0.1",
-    "react-hook-form": "^7.0.5",
-    "stripe": "^8.133.0",
-    "styled-components": "^5.2.1",
-    "tiny-swiper": "^2.1.0"
   },
   "devDependencies": {
     "husky": "^6.0.0",

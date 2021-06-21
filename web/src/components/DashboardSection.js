@@ -32,9 +32,11 @@ const SearchForm = styled.form`
 
 const DashboardSection = ({ discover }) => {
   const auth = useAuth();
-  const { data: items, status: itemsStatus, error: itemsError } = useItems(
-    discover ? null : auth.user.uid
-  );
+  const {
+    data: items,
+    status: itemsStatus,
+    error: itemsError,
+  } = useItems(discover ? null : auth.user.uid);
 
   return (
     <>
