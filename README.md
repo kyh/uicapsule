@@ -14,9 +14,9 @@ This repository is a monorepo managed through [npm workspaces](https://docs.npmj
 │       └── /util                # Utility modules
 └── /extension                   # Chrome web extension
     └── /src
-        ├── /components           # Shared React components
-        ├── /redux                # Redux services
-        └── /util                 # Utility services
+        ├── /components          # Shared React components
+        ├── /redux               # Redux services
+        └── /util                # Utility services
 ```
 
 ### Install dependencies
@@ -88,7 +88,7 @@ function MyComponent() {
   This project uses <a href="https://firebase.google.com">Firebase Auth</a> and includes a convenient <code>useAuth</code> hook (located in <code><a href="src/util/auth.js">src/util/auth.js</a></code>) that wraps Firebase and gives you common authentication methods. Depending on your needs you may want to edit this file and expose more Firebase functionality.
 
 ```js
-import { useAuth } from "./../util/auth.js";
+import { useAuth } from "util/auth.js";
 
 function MyComponent() {
   // Get the auth object in any component
@@ -119,8 +119,8 @@ function MyComponent() {
   This project uses <a href="https://firebase.google.com/products/firestore">Cloud Firestore</a> and includes some data fetching hooks to get you started (located in <code><a href="src/util/db.js">src/util/db.js</a></code>). You'll want to edit that file and add any additional query hooks you need for your project.
 
 ```js
-import { useAuth } from './../util/auth.js';
-import { useItems } from './../util/db.js';
+import { useAuth } from 'util/auth.js';
+import { useItems } from 'util/db.js';
 import ItemsList from './ItemsList.js';
 
 function ItemsPage(){
