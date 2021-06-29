@@ -1,19 +1,31 @@
+# UI Capsule
+
+> Bookmark elements for ideas and inspiration on your next web project
+
 ## 👉 Get Started
 
-Install dependencies
+This repository is a monorepo managed through [npm workspaces](https://docs.npmjs.com/cli/v7/using-npm/workspaces).
+
+```
+├── /web                         # Next.js web client
+|   └── /src
+│       ├── /components          # Shared React components
+│       ├── /pages               # App routes
+│       └── /util                # Utility modules
+└── /extension                   # Chrome web extension
+    └── /src
+        ├── /components           # Shared React components
+        ├── /redux                # Redux services
+        └── /util                 # Utility services
+```
+
+### Install dependencies
 
 ```
 npm install
 ```
 
-Update your `.env` file with values for each environment variable
-
-```
-API_KEY=AIzaSyBkkFF0XhNZeWuDmOfEhsgdfX1VBG7WTas
-etc ...
-```
-
-Run the development server
+### Run the development server
 
 ```
 npm run dev
