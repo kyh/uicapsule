@@ -1,4 +1,3 @@
-import React from "react";
 import styled, { css } from "styled-components";
 import Link from "next/link";
 import Box from "@material-ui/core/Box";
@@ -8,8 +7,8 @@ import Alert from "@material-ui/lab/Alert";
 import { Search } from "@styled-icons/heroicons-outline";
 import { PageSpinner } from "components/Spinner";
 import UICardList from "components/UICardList";
-import { useAuth } from "util/auth";
-import { useItems } from "util/db.js";
+import { useAuth } from "actions/auth";
+import { useElements } from "actions/element";
 
 const SearchForm = styled.form`
   ${({ theme }) => css`
@@ -36,7 +35,7 @@ const DashboardSection = ({ discover }) => {
     data: items,
     status: itemsStatus,
     error: itemsError,
-  } = useItems(discover ? null : auth.user.uid);
+  } = useElements(discover ? null : auth.user.uid);
 
   return (
     <>

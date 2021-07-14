@@ -1,4 +1,3 @@
-import React from "react";
 import Section from "components/Section";
 import Container from "@material-ui/core/Container";
 import SectionHeader from "components/SectionHeader";

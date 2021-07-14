@@ -1,7 +1,7 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import styled, { css } from "styled-components";
-import { Menu as MenuIcon } from "@styled-icons/heroicons-outline";
 import Link from "next/link";
+import { Menu as MenuIcon } from "@styled-icons/heroicons-outline";
 import Avatar from "@material-ui/core/Avatar";
 import AppBar from "@material-ui/core/AppBar";
 import Toolbar from "@material-ui/core/Toolbar";
@@ -15,7 +15,7 @@ import Menu from "@material-ui/core/Menu";
 import MenuItem from "@material-ui/core/MenuItem";
 import Divider from "@material-ui/core/Divider";
 import Logo from "components/Logo";
-import { useAuth } from "util/auth";
+import { useAuth } from "actions/auth";
 
 const AppHeader = styled(AppBar)`
   ${({ theme }) => css`

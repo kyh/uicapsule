@@ -1,5 +1,5 @@
-const firebaseAdmin = require("./_firebase.js");
-const requireAuth = require("./_require-auth.js");
+const firebaseAdmin = require("./_firebase");
+const requireAuth = require("./_require-auth");
 
 export default requireAuth(async (req, res) => {
   const user = req.user;

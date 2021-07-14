@@ -1,18 +1,12 @@
-import React, {
-  useState,
-  useEffect,
-  useMemo,
-  useContext,
-  createContext,
-} from "react";
+import { useState, useEffect, useMemo, useContext, createContext } from "react";
 import queryString from "query-string";
-import firebase from "./firebase";
-import { useUser, createUser, updateUser } from "./db";
 import router from "next/router";
-import PageLoader from "./../components/PageLoader";
-import { getFriendlyPlanId } from "./prices";
-import analytics from "./analytics";
-import { sendRemoveToken } from "./extension";
+import PageLoader from "components/PageLoader";
+import { getFriendlyPlanId } from "util/prices";
+import { analytics } from "util/analytics";
+import { sendRemoveToken } from "util/extension";
+import { firebase } from "util/db";
+import { useUser, createUser, updateUser } from "actions/user";
 
 // Whether to merge extra user data from database into auth.user
 const MERGE_DB_USER = false;
@@ -21,18 +15,18 @@ const EMAIL_VERIFICATION = true;
 // Whether to connect analytics session to user.uid
 const ANALYTICS_IDENTIFY = true;
 
-const authContext = createContext();
+const AuthContext = createContext();
 
 // Context Provider component that wraps your app and makes auth object
 // available to any child component that calls the useAuth() hook.
 export const AuthProvider = ({ children }) => {
   const auth = useAuthProvider();
-  return <authContext.Provider value={auth}>{children}</authContext.Provider>;
+  return <AuthContext.Provider value={auth}>{children}</AuthContext.Provider>;
 };
 
 // Hook that enables any component to subscribe to auth state
 export const useAuth = () => {
-  return useContext(authContext);
+  return useContext(AuthContext);
 };
 
 const useAuthProvider = () => {

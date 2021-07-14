@@ -1,4 +1,4 @@
-import React, { useRef, useEffect, useState } from "react";
+import { useRef, useEffect, useState } from "react";
 import styled, { css } from "styled-components";
 import Head from "next/head";
 import Link from "next/link";
@@ -14,7 +14,7 @@ import ExtensionPreview from "components/ExtensionPreview";
 import FeaturesSection from "components/FeaturesSection";
 import TestimonialsSection from "components/TestimonialsSection";
 import CtaSection from "components/CtaSection";
-import { useAuth } from "util/auth";
+import { useAuth } from "actions/auth";
 
 const HeroCtaContainer = styled.div`
   ${({ theme }) => css`

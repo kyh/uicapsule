@@ -1,4 +1,3 @@
-import React from "react";
 import styled, { css } from "styled-components";
 import Container from "@material-ui/core/Container";
 import Grid from "@material-ui/core/Grid";

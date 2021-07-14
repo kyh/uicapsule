@@ -1,4 +1,3 @@
-import React from "react";
 import Section from "components/Section";
 import Container from "@material-ui/core/Container";
 import Box from "@material-ui/core/Box";
@@ -17,7 +16,6 @@ const PageLoader = (props) => {
           height={height}
         >
           {!props.children && <CircularProgress size={32} />}
-
           {props.children && <>{props.children}</>}
         </Box>
       </Container>

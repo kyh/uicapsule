@@ -1,15 +1,19 @@
 {
   "name": "ui-capsule",
   "workspaces": [
+    "web",
     "extension",
-    "web"
+    "functions"
   ],
   "scripts": {
-    "dev": "npm run dev --workspace=web",
+    "dev": "concurrently --kill-others \"npm run emulators\" \"npm run dev:web\"",
+    "dev:web": "npm run dev --workspace=web",
     "dev:extension": "npm run dev --workspace=extension",
+    "emulators": "firebase emulators:start",
     "postinstall": "husky install"
   },
   "devDependencies": {
+    "concurrently": "^6.2.0",
     "husky": "^7.0.1",
     "prettier": "^2.2.1",
     "pretty-quick": "^3.1.0"

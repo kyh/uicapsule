@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import Dialog from "@material-ui/core/Dialog";
 import DialogTitle from "@material-ui/core/DialogTitle";
 import DialogContent from "@material-ui/core/DialogContent";
@@ -8,7 +8,7 @@ import Grid from "@material-ui/core/Grid";
 import TextField from "@material-ui/core/TextField";
 import Button from "components/Button";
 import AuthSocial from "components/AuthSocial";
-import { useAuth } from "util/auth";
+import { useAuth } from "actions/auth";
 import { useForm } from "util/form";
 import { makeStyles } from "@material-ui/core/styles";
 

@@ -1,4 +1,4 @@
-import React from "react";
+import { forwardRef } from "react";
 import styled, { css } from "styled-components";
 import Button from "@material-ui/core/Button";
 import Spinner from "./Spinner";
@@ -18,7 +18,7 @@ const AbsoluteSpinner = styled(Spinner)`
   margin-top: -10px;
 `;
 
-const UIButton = React.forwardRef(
+const UIButton = forwardRef(
   ({ loading = false, children = "", ...rest }, ref) => (
     <Button disabled={loading} {...rest} ref={ref}>
       <ButtonContent loading={loading === true ? 1 : 0}>

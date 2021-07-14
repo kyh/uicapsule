@@ -1,8 +1,7 @@
-import React from "react";
 import { useRouter } from "next/router";
 import DashboardFullLayout from "components/DashboardFullLayout";
 import UIDetailsEditSection from "components/UIDetailsEditSection";
-import { requireAuth } from "util/auth.js";
+import { requireAuth } from "actions/auth";
 
 const UIPage = () => {
   const router = useRouter();

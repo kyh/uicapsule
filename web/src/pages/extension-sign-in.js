@@ -1,9 +1,9 @@
-import React, { useEffect } from "react";
+import { useEffect } from "react";
 import Head from "next/head";
 import SiteLayout from "components/SiteLayout";
 import HeroSection from "components/HeroSection";
 import SectionHeader from "components/SectionHeader";
-import { useAuth, requireAuth } from "util/auth";
+import { useAuth, requireAuth } from "actions/auth";
 import { sendNewToken } from "util/extension";
 import { apiRequest } from "util/utils";
 

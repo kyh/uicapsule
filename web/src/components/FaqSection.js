@@ -1,4 +1,3 @@
-import React from "react";
 import { ChevronDown } from "@styled-icons/heroicons-outline";
 import Container from "@material-ui/core/Container";
 import SectionHeader from "components/SectionHeader";

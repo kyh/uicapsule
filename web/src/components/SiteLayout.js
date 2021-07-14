@@ -1,4 +1,3 @@
-import React from "react";
 import SiteNavbar from "components/SiteNavbar";
 import Footer from "components/Footer";
 

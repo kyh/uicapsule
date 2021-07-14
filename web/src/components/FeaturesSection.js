@@ -1,4 +1,3 @@
-import React from "react";
 import styled, { css, keyframes } from "styled-components";
 import Image from "next/image";
 import Section from "components/Section";

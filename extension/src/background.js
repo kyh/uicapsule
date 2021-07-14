@@ -72,18 +72,24 @@ const signout = () => {
     });
 };
 
-const createItem = async (data) => {
-  const user = firebase.auth().currentUser;
-  const response = await firestore.collection("items").add({
-    ...data,
-    owner: user.uid,
-    createdAt: serverTimestamp(),
-  });
+const createElement = async (data) => {
+  const response = await firestore
+    .collection("elements")
+    .add(prepareDocForCreate(data));
   return { id: response.id, ...data };
 };
 
-const deleteItem = (item) =>
-  firestore.collection("items").doc(item.id).delete();
+const deleteElement = (item) => {
+  return firestore.collection("elements").doc(item.id).delete();
+};
+
+const prepareDocForCreate = (doc) => {
+  const currentUser = firebase.auth().currentUser;
+  doc.createdBy = currentUser ? currentUser.uid : null;
+  doc.createdAt = serverTimestamp();
+
+  return doc;
+};
 
 firebase.auth().onAuthStateChanged((user) => {
   console.log("user state change detected:", user);
@@ -112,10 +118,10 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   console.log("new message", message);
   switch (message.type) {
     case SELECT_ELEMENT:
-      createItem(message.item).then(sendResponse);
+      createElement(message.item).then(sendResponse);
       break;
     case DELETE_ELEMENT:
-      deleteItem(message.item).then(sendResponse);
+      deleteElement(message.item).then(sendResponse);
       break;
   }
   return true;

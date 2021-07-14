@@ -1,67 +1,35 @@
 import { useReducer, useEffect, useRef } from "react";
-import firebase from "./firebase";
+import { firebase, firestore } from "util/firebase";
 
-const firestore = firebase.firestore();
+export { firebase, firestore };
+
 const serverTimestamp = firebase.firestore.FieldValue.serverTimestamp;
 
-/**** USERS ****/
+export const prepareDocForCreate = (doc) => {
+  const currentUser = firebase.auth().currentUser;
+  doc.createdBy = currentUser ? currentUser.uid : null;
+  doc.createdAt = serverTimestamp();
 
-// Fetch user data (hook)
-// This is called automatically by auth.js and merged into auth.user
-export const useUser = (uid) =>
-  useQuery(uid && firestore.collection("users").doc(uid));
-
-// Update an existing user
-export const updateUser = (uid, data) =>
-  firestore.collection("users").doc(uid).update(data);
-
-// Create a new user
-export const createUser = (uid, data) =>
-  firestore
-    .collection("users")
-    .doc(uid)
-    .set({ uid, ...data }, { merge: true });
-
-/**** ITEMS ****/
-/* Example query functions (modify to your needs) */
-
-// Fetch all items by owner (hook)
-export const useItems = (owner) =>
-  useQuery(
-    owner
-      ? firestore
-          .collection("items")
-          .where("owner", "==", owner)
-          .orderBy("createdAt", "desc")
-      : firestore
-          .collection("items")
-          .where("public", "==", true)
-          .orderBy("createdAt", "desc")
-  );
-
-// Fetch item data
-export const useItem = (id) =>
-  useQuery(id && firestore.collection("items").doc(id));
-
-// Update an item
-export const updateItem = (id, data) =>
-  firestore.collection("items").doc(id).update(data);
-
-// Create a new item
-export const createItem = (data) => {
-  const user = firebase.auth().currentUser;
-  return firestore.collection("items").add({
-    ...data,
-    owner: user.uid,
-    createdAt: serverTimestamp(),
-  });
+  return doc;
 };
 
-// Delete an item
-export const deleteItem = (id) =>
-  firestore.collection("items").doc(id).delete();
+export const prepareDocForUpdate = (doc) => {
+  const currentUser = firebase.auth().currentUser;
+  doc.updatedBy = currentUser ? currentUser.uid : null;
+  doc.updatedAt = serverTimestamp();
 
-/**** HELPERS ****/
+  // don't save the id as part of the document
+  delete doc.id;
+
+  // don't save values that start with an underscore (these are calculated by the backend)
+  Object.keys(doc).forEach((key) => {
+    if (key.indexOf("_") === 0) {
+      delete doc[key];
+    }
+  });
+
+  return doc;
+};
 
 // Reducer for useQuery hook state and actions
 const reducer = (state, action) => {
@@ -86,7 +54,7 @@ const reducer = (state, action) => {
   }
 };
 
-const useQuery = (query) => {
+export const useQuery = (query) => {
   // Our initial state
   // Start with an "idle" status if query is falsy, as that means hook consumer is
   // waiting on required data before creating the query object.

@@ -1,8 +1,8 @@
-import React from "react";
+import { forwardRef } from "react";
 import { useRouter } from "next/router";
 import Button from "@material-ui/core/Button";
 
-const BackButton = React.forwardRef(
+const BackButton = forwardRef(
   ({ loading = false, children = "", onClick = () => {}, ...rest }, ref) => {
     const router = useRouter();
     return (

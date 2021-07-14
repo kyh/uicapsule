@@ -1,4 +1,3 @@
-import React from "react";
 import styled, { css } from "styled-components";
 import LinkMui from "@material-ui/core/Link";
 import Link from "next/link";

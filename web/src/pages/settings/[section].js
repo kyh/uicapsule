@@ -1,8 +1,7 @@
-import React from "react";
 import { useRouter } from "next/router";
 import DashboardLayout from "components/DashboardLayout";
 import SettingsSection from "components/SettingsSection";
-import { requireAuth } from "util/auth.js";
+import { requireAuth } from "actions/auth";
 
 const SettingsPage = () => {
   const router = useRouter();

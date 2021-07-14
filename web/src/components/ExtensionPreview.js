@@ -1,4 +1,4 @@
-import React, { useRef, useEffect, useState } from "react";
+import { useRef, useEffect, useState } from "react";
 import styled, { css } from "styled-components";
 import { useRouter } from "next/router";
 import Snackbar from "@material-ui/core/Snackbar";

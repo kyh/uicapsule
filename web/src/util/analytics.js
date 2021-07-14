@@ -4,7 +4,7 @@ import Router from "next/router";
 
 // Initialize analytics and plugins
 // Documentation: https://getanalytics.io
-const analytics = Analytics({
+export const analytics = Analytics({
   debug: process.env.NODE_ENV !== "production",
   plugins: [
     googleAnalyticsPlugin({
@@ -22,5 +22,3 @@ if (typeof window !== "undefined") {
 Router.events.on("routeChangeComplete", (url) => {
   analytics.page();
 });
-
-export default analytics;

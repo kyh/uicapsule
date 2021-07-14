@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import styled, { css } from "styled-components";
 import { useRouter } from "next/router";
 import Box from "@material-ui/core/Box";

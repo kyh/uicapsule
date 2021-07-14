@@ -1,8 +1,8 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import Grid from "@material-ui/core/Grid";
 import TextField from "@material-ui/core/TextField";
 import Button from "components/Button";
-import { useAuth } from "util/auth";
+import { useAuth } from "actions/auth";
 import { useForm } from "util/form";
 
 const AuthForm = (props) => {

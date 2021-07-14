@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import styled, { css } from "styled-components";
 import dynamic from "next/dynamic";
 import Dialog from "@material-ui/core/Dialog";

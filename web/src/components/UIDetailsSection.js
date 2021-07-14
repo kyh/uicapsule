@@ -1,4 +1,3 @@
-import React from "react";
 import Link from "next/link";
 import Container from "@material-ui/core/Container";
 import Typography from "@material-ui/core/Typography";
@@ -6,8 +5,8 @@ import { PageSpinner } from "components/Spinner";
 import Button from "components/Button";
 import BackButton from "components/BackButton";
 import IFrame from "components/IFrame";
-import { useItem } from "util/db";
-import { useAuth } from "util/auth";
+import { useElement } from "actions/element";
+import { useAuth } from "actions/auth";
 import { constructSnippet } from "util/playground";
 import {
   Title,
@@ -21,7 +20,7 @@ import {
 
 const UIDetailsSection = (props) => {
   const auth = useAuth();
-  const { data: itemData, status: itemStatus } = useItem(props.id);
+  const { data: itemData, status: itemStatus } = useElement(props.id);
   const uid = auth.user ? auth.user.uid : undefined;
 
   if (props.id && itemStatus !== "success") {

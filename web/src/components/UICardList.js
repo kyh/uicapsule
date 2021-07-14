@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import Box from "@material-ui/core/Box";
@@ -9,8 +9,8 @@ import MuiLink from "@material-ui/core/Link";
 import Button from "components/Button";
 import UICard from "components/UICard";
 import ConfirmDialog from "components/ConfirmDialog";
-import { useAuth } from "util/auth";
-import { updateItem, deleteItem } from "util/db.js";
+import { useAuth } from "actions/auth";
+import { updateElement, deleteElement } from "actions/element";
 
 // const canUseStar =
 // auth.user.planIsActive &&
@@ -18,7 +18,7 @@ import { updateItem, deleteItem } from "util/db.js";
 
 // const handleStarItem = (item) => {
 // if (canUseStar) {
-//   updateItem(item.id, { featured: !item.featured });
+//   updateElement(item.id, { featured: !item.featured });
 // } else {
 //   alert("You must upgrade to the pro plan to use this feature");
 // }
@@ -26,7 +26,7 @@ import { updateItem, deleteItem } from "util/db.js";
 
 const UICardList = ({ items }) => {
   const auth = useAuth();
-  const [deleteItemState, setDeleteItemState] = useState(null);
+  const [deleteElementState, setDeleteElementState] = useState(null);
   const uid = auth.user ? auth.user.uid : undefined;
 
   return (
@@ -65,10 +65,12 @@ const UICardList = ({ items }) => {
                 <UICard
                   item={item}
                   onClickHeart={() =>
-                    updateItem(item.id, { hearted: !item.hearted })
+                    updateElement(item.id, { hearted: !item.hearted })
                   }
                   onClickDelete={
-                    item.owner === uid ? () => setDeleteItemState(item) : null
+                    item.owner === uid
+                      ? () => setDeleteElementState(item)
+                      : null
                   }
                 />
               </Grid>
@@ -76,17 +78,17 @@ const UICardList = ({ items }) => {
           </Grid>
         )}
       </Box>
-      {!!deleteItemState && (
+      {!!deleteElementState && (
         <ConfirmDialog
-          onCancel={() => setDeleteItemState(null)}
+          onCancel={() => setDeleteElementState(null)}
           onConfirm={() => {
-            deleteItem(deleteItemState.id);
-            setDeleteItemState(null);
+            deleteElement(deleteElementState.id);
+            setDeleteElementState(null);
           }}
           content={
             <>
-              You are about to remove <strong>{deleteItemState.title}</strong>{" "}
-              from your capsule
+              You are about to remove{" "}
+              <strong>{deleteElementState.title}</strong> from your capsule
             </>
           }
           open

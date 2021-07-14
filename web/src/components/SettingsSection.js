@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import styled, { css } from "styled-components";
 import { useRouter } from "next/router";
 import Tabs from "@material-ui/core/Tabs";
@@ -9,7 +9,7 @@ import ReauthModal from "components/ReauthModal";
 import SettingsGeneral from "components/SettingsGeneral";
 import SettingsPassword from "components/SettingsPassword";
 import SettingsBilling from "components/SettingsBilling";
-import { useAuth } from "util/auth";
+import { useAuth } from "actions/auth";
 
 const StyledTabs = styled(Tabs)`
   ${({ theme }) => css`

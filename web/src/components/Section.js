@@ -1,4 +1,3 @@
-import React from "react";
 import Box from "@material-ui/core/Box";
 import BackgroundImage from "components/BackgroundImage";
 import { makeStyles } from "@material-ui/core/styles";

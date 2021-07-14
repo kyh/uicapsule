@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import styled, { css } from "styled-components";
 import { useForm } from "util/form";
 import { useRouter } from "next/router";
@@ -20,7 +20,7 @@ import UIEditorModal from "components/UIEditorModal";
 import Button from "components/Button";
 import BackButton from "components/BackButton";
 import IFrame from "components/IFrame";
-import { useItem, updateItem, createItem } from "util/db";
+import { useElement, updateElement, createElement } from "actions/element";
 import { constructSnippet } from "util/playground";
 
 export const Title = styled(Typography)`
@@ -109,7 +109,7 @@ const UIDetailsEditSection = (props) => {
   const [formAlert, setFormAlert] = useState(null);
   const [editorOpen, setEditorOpen] = useState(false);
   const router = useRouter();
-  const { data: itemData, status: itemStatus, dispatch } = useItem(props.id);
+  const { data: itemData, status: itemStatus, dispatch } = useElement(props.id);
   const {
     register,
     handleSubmit,
@@ -131,8 +131,8 @@ const UIDetailsEditSection = (props) => {
     const payload = { ...data, iSnippet: itemData.iSnippet };
 
     const query = props.id
-      ? updateItem(props.id, payload)
-      : createItem(payload);
+      ? updateElement(props.id, payload)
+      : createElement(payload);
 
     setPending(true);
 

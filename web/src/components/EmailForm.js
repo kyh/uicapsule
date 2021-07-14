@@ -1,11 +1,11 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import styled, { css } from "styled-components";
+import { ArrowRight } from "@styled-icons/heroicons-outline";
 import IconButton from "@material-ui/core/IconButton";
 import InputBase from "@material-ui/core/InputBase";
 import Snackbar from "@material-ui/core/Snackbar";
-import { ArrowRight } from "@styled-icons/heroicons-outline";
 import Spinner from "components/Spinner";
-import contact from "util/contact";
+import { submit } from "util/contact";
 import { useForm } from "util/form";
 
 const SubscribeForm = styled.form`
@@ -41,8 +41,7 @@ const EmailForm = ({ message = "", onComplete = () => {}, ...rest }) => {
     // Show pending indicator
     setPending(true);
 
-    contact
-      .submit({ email: data.email, message })
+    submit({ email: data.email, message })
       .then(() => {
         // Clear form
         reset();

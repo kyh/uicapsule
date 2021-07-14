@@ -1,9 +1,9 @@
-import React, { useEffect, useState } from "react";
-import PageLoader from "components/PageLoader";
-import Alert from "@material-ui/lab/Alert";
-import { useAuth, requireAuth } from "util/auth.js";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/router";
-import { redirectToCheckout } from "util/stripe.js";
+import Alert from "@material-ui/lab/Alert";
+import PageLoader from "components/PageLoader";
+import { useAuth, requireAuth } from "actions/auth";
+import { redirectToCheckout } from "util/stripe";
 
 const PurchasePage = (props) => {
   const router = useRouter();

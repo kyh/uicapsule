@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import styled, { css } from "styled-components";
 import { Menu as MenuIcon } from "@styled-icons/heroicons-outline";
 import AppBar from "@material-ui/core/AppBar";

@@ -1,4 +1,4 @@
-import React from "react";
+import { Fragment } from "react";
 import Document, { Html, Head, Main, NextScript } from "next/document";
 import { ServerStyleSheet } from "styled-components";
 import { ServerStyleSheets } from "@material-ui/core/styles";
@@ -22,11 +22,11 @@ export default class MyDocument extends Document {
       return {
         ...initialProps,
         styles: (
-          <React.Fragment>
+          <Fragment>
             {initialProps.styles}
             {materialSheets.getStyleElement()}
             {styledComponentsSheet.getStyleElement()}
-          </React.Fragment>
+          </Fragment>
         ),
       };
     } finally {

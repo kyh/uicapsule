@@ -1,9 +1,9 @@
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/router";
 import Alert from "@material-ui/lab/Alert";
 import SiteLayout from "components/SiteLayout";
 import PageLoader from "components/PageLoader";
-import { handleRecoverEmail, handleVerifyEmail } from "util/auth.js";
+import { handleRecoverEmail, handleVerifyEmail } from "actions/auth";
 
 const FirebaseActionPage = (props) => {
   const router = useRouter();

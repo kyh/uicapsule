@@ -1,4 +1,3 @@
-import React from "react";
 import styled, { css } from "styled-components";
 import Link from "next/link";
 import { Check } from "@styled-icons/heroicons-outline";
@@ -15,7 +14,7 @@ import ListItemText from "@material-ui/core/ListItemText";
 import Button from "@material-ui/core/Button";
 import Section from "components/Section";
 import SectionHeader from "components/SectionHeader";
-import { useAuth } from "util/auth";
+import { useAuth } from "actions/auth";
 
 const PriceCard = styled(Card)`
   ${({ theme, highlight }) => css`

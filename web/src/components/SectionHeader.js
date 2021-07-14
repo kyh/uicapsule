@@ -1,4 +1,3 @@
-import React from "react";
 import styled, { css } from "styled-components";
 import Box from "@material-ui/core/Box";
 import Typography from "@material-ui/core/Typography";

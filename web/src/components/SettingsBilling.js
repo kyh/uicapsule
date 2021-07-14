@@ -1,8 +1,8 @@
-import React, { useEffect, useState } from "react";
-import PageLoader from "components/PageLoader";
-import { useAuth } from "util/auth";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/router";
-import { redirectToBilling } from "util/stripe.js";
+import PageLoader from "components/PageLoader";
+import { useAuth } from "actions/auth";
+import { redirectToBilling } from "util/stripe";
 
 const SettingsBilling = (props) => {
   const router = useRouter();
