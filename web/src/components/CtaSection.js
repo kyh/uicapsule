@@ -41,7 +41,12 @@ const Subtitle = styled(Typography)`
 const CtaSection = (props) => (
   <Section size={props.size}>
     <CtaContainer>
-      <Grid container alignItems="center" justify="space-between" spacing={4}>
+      <Grid
+        container
+        alignItems="center"
+        justifyContent="space-between"
+        spacing={4}
+      >
         <Grid item xs={12} md="auto">
           <Box component="header" textAlign="left" color="white">
             <Title variant="h3" gutterBottom>

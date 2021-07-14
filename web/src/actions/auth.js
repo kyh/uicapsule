@@ -5,8 +5,7 @@ import PageLoader from "components/PageLoader";
 import { getFriendlyPlanId } from "util/prices";
 import { analytics } from "util/analytics";
 import { sendRemoveToken } from "util/extension";
-import { firebase } from "util/db";
-import { useUser, createUser, updateUser } from "actions/user";
+import { firebase, useQuery } from "util/db";
 
 // Whether to merge extra user data from database into auth.user
 const MERGE_DB_USER = false;
@@ -14,6 +13,17 @@ const MERGE_DB_USER = false;
 const EMAIL_VERIFICATION = true;
 // Whether to connect analytics session to user.uid
 const ANALYTICS_IDENTIFY = true;
+
+export const useUser = (uid) => {
+  return useQuery(uid && firestore.collection("users").doc(uid));
+};
+
+export const upsertUser = (uid, data) => {
+  return firestore
+    .collection("users")
+    .doc(uid)
+    .set({ ...data, uid }, { merge: true });
+};
 
 const AuthContext = createContext();
 
@@ -48,7 +58,7 @@ const useAuthProvider = () => {
 
     // Create the user in the database if they are new
     if (additionalUserInfo.isNewUser) {
-      await createUser(user.uid, { email: user.email });
+      await upsertUser(user.uid, { email: user.email });
 
       // Send email verification if enabled
       if (EMAIL_VERIFICATION) {
@@ -136,7 +146,7 @@ const useAuthProvider = () => {
     }
 
     // Persist all data to the database
-    await updateUser(user.uid, data);
+    await upsertUser(user.uid, data);
 
     // Update user in state
     setUser(firebase.auth().currentUser);

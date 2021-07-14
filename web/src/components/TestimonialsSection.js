@@ -108,7 +108,7 @@ const TestimonialsSection = (props) => (
         size={3}
         textAlign="center"
       />
-      <Grid container justify="center" spacing={4}>
+      <Grid container justifyContent="center" spacing={4}>
         {items.map((item) => (
           <Grid item xs={12} sm={4} key={item.name}>
             <Card elevation={0}>

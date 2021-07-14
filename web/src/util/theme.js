@@ -1,7 +1,7 @@
 import React, { useEffect } from "react";
 import { ThemeProvider as StyledThemeProvider } from "styled-components";
 import {
-  createMuiTheme,
+  createTheme,
   StylesProvider,
   ThemeProvider as MuiThemeProvider,
 } from "@material-ui/core/styles";
@@ -147,7 +147,7 @@ const themeConfig = {
 };
 
 const getTheme = (name) =>
-  createMuiTheme({
+  createTheme({
     ...themeConfig[name],
     // Merge in common values
     ...themeConfig.common,

@@ -86,7 +86,7 @@ const SocialIcon = styled(Button)`
 
 const Footer = () => (
   <FooterContainer>
-    <FooterSection container justify="space-between" spacing={4}>
+    <FooterSection container justifyContent="space-between" spacing={4}>
       <Grid item xs={12} md={4} container direction="column">
         <LogoContainer>
           <Logo />
@@ -136,11 +136,18 @@ const Footer = () => (
         </FooterLinksContainer>
       </Grid>
     </FooterSection>
-    <BottomFooterSection container justify="space-between" spacing={4}>
+    <BottomFooterSection container justifyContent="space-between" spacing={4}>
       <Grid item xs={7} md={4} container alignItems="center">
         ©2021 Courtesy of Kaiyu Hsu
       </Grid>
-      <Grid item xs={5} md={4} container justify="flex-end" alignItems="center">
+      <Grid
+        item
+        xs={5}
+        md={4}
+        container
+        justifyContent="flex-end"
+        alignItems="center"
+      >
         <SocialIcon
           component="a"
           target="_blank"

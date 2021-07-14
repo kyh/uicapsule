@@ -99,7 +99,7 @@ const PricingSection = () => {
           size={2}
           textAlign="center"
         />
-        <Grid container justify="center" spacing={4}>
+        <Grid container justifyContent="center" spacing={4}>
           {items.map((item) => (
             <Grid item xs={12} md={4} key={item.id}>
               <PriceCard highlight={item.highlight}>
