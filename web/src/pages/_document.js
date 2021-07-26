@@ -38,7 +38,6 @@ export default class MyDocument extends Document {
     return (
       <Html lang="en" dir="ltr">
         <Head>
-          <meta charSet="utf-8" />
           <meta name="referrer" content="origin" />
           <meta name="application-name" content="UI Capsule" />
           <meta name="theme-color" content="#1F2937" />
