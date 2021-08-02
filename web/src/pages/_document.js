@@ -40,7 +40,6 @@ export default class MyDocument extends Document {
         <Head>
           <meta name="referrer" content="origin" />
           <meta name="application-name" content="UI Capsule" />
-          <meta name="theme-color" content="#1F2937" />
           <meta
             name="keywords"
             content="UI, Design, Web Design, Inspirations"
@@ -69,15 +68,15 @@ export default class MyDocument extends Document {
           <link
             rel="mask-icon"
             href="/favicon/safari-pinned-tab.svg"
-            color="#5bbad5"
+            color="#1F2937"
           />
           <link rel="shortcut icon" href="/favicon/favicon.ico" />
-          <meta name="msapplication-TileColor" content="#da532c" />
+          <meta name="msapplication-TileColor" content="#1F2937" />
           <meta
             name="msapplication-config"
             content="/favicon/browserconfig.xml"
           />
-          <meta name="theme-color" content="#ffffff" />
+          <meta name="theme-color" content="#1F2937" />
 
           <link rel="preconnect" href="https://fonts.gstatic.com" />
           <link
