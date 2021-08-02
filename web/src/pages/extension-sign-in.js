@@ -1,5 +1,5 @@
 import { useEffect } from "react";
-import Head from "next/head";
+import SEO from "components/SEO";
 import SiteLayout from "components/SiteLayout";
 import HeroSection from "components/HeroSection";
 import SectionHeader from "components/SectionHeader";
@@ -17,9 +17,7 @@ const ExtensionSignInPage = () => {
 
   return (
     <>
-      <Head>
-        <title>Extension Sign In</title>
-      </Head>
+      <SEO title="Extension Sign In" />
       <HeroSection
         bgColor="default"
         size="large"

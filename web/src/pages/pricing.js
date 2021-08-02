@@ -1,12 +1,10 @@
-import Head from "next/head";
+import SEO from "components/SEO";
 import SiteLayout from "components/SiteLayout";
 import PricingSection from "components/PricingSection";
 
 const PricingPage = () => (
   <>
-    <Head>
-      <title>Pricing</title>
-    </Head>
+    <SEO title="Pricing" />
     <PricingSection />
   </>
 );

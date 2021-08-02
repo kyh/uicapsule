@@ -1,12 +1,10 @@
-import Head from "next/head";
+import SEO from "components/SEO";
 import SiteLayout from "components/SiteLayout";
 import ContactSection from "components/ContactSection";
 
 const ContactPage = () => (
   <>
-    <Head>
-      <title>Contact</title>
-    </Head>
+    <SEO title="Contact" />
     <ContactSection
       bgColor="default"
       size="large"

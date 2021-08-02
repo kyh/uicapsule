@@ -1,6 +1,6 @@
 import { useRef, useEffect, useState } from "react";
 import styled, { css } from "styled-components";
-import Head from "next/head";
+import SEO from "components/SEO";
 import Link from "next/link";
 import router from "next/router";
 import Swiper from "tiny-swiper";
@@ -82,9 +82,7 @@ const IndexPage = () => {
 
   return (
     <>
-      <Head>
-        <title>UI Capsule | Bookmark your inspirations</title>
-      </Head>
+      <SEO title="UI Capsule | Bookmark your inspirations" />
       <style global jsx>
         {`
           html {

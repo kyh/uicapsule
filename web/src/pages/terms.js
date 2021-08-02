@@ -1,4 +1,4 @@
-import Head from "next/head";
+import SEO from "components/SEO";
 import SiteLayout from "components/SiteLayout";
 import HeroSection from "components/HeroSection";
 import SectionHeader from "components/SectionHeader";
@@ -190,9 +190,7 @@ const Content = () => (
 
 const TermsPage = () => (
   <>
-    <Head>
-      <title>Terms of use</title>
-    </Head>
+    <SEO title="Terms of use" />
     <HeroSection
       bgColor="default"
       size="large"

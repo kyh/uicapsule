@@ -1,3 +1,4 @@
+import SEO from "components/SEO";
 import { useRouter } from "next/router";
 import DashboardLayout from "components/DashboardLayout";
 import SettingsSection from "components/SettingsSection";
@@ -6,10 +7,13 @@ import { requireAuth } from "actions/auth";
 const SettingsPage = () => {
   const router = useRouter();
   return (
-    <SettingsSection
-      section={router.query.section}
-      key={router.query.section}
-    />
+    <>
+      <SEO title="Settings" />
+      <SettingsSection
+        section={router.query.section}
+        key={router.query.section}
+      />
+    </>
   );
 };
 

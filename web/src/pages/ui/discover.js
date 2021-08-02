@@ -1,4 +1,4 @@
-import Head from "next/head";
+import SEO from "components/SEO";
 import DashboardLayout from "components/DashboardLayout";
 import DashboardSection from "components/DashboardSection";
 import { requireAuth } from "actions/auth";
@@ -6,9 +6,7 @@ import { requireAuth } from "actions/auth";
 const DiscoverPage = () => {
   return (
     <>
-      <Head>
-        <title>Discover Capsules</title>
-      </Head>
+      <SEO title="Discover" />
       <DashboardSection discover />
     </>
   );

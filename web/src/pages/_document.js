@@ -42,67 +42,43 @@ export default class MyDocument extends Document {
           <meta name="application-name" content="UI Capsule" />
           <meta name="theme-color" content="#1F2937" />
           <meta
-            name="title"
-            content="UI Capsule | Bookmark your inspirations"
-          />
-          <meta
             name="keywords"
             content="UI, Design, Web Design, Inspirations"
           />
           <meta name="robots" content="index, follow" />
-          <meta
-            name="description"
-            content="Quickly collect and explore web design ideas. View and  interact with your saved elements from one simple dashboard."
-          />
-
           <meta property="fb:app_id" content="{FB_ID}" />
-          <meta property="og:url" content="https://uicapsule.com" />
-          <meta property="og:type" content="website" />
-          <meta
-            property="og:title"
-            content="UI Capsule | Bookmark your inspirations"
-          />
-          <meta property="og:image" content="/featured.png" />
-          <meta
-            property="og:description"
-            content="Quickly collect and explore web design ideas. View and  interact with your saved elements from one simple dashboard."
-          />
-          <meta property="og:site_name" content="UI Capsule" />
-          <meta property="og:locale" content="en_US" />
 
-          <meta name="twitter:card" content="summary_large_image" />
-          <meta name="twitter:site" content="@kaiyuhsu" />
-          <meta name="twitter:creator" content="@kaiyuhsu" />
-          <meta name="twitter:url" content="" />
-          <meta
-            name="twitter:title"
-            content="UI Capsule | Bookmark your inspirations"
-          />
-          <meta
-            name="twitter:description"
-            content="Quickly collect and explore web design ideas. View and  interact with your saved elements from one simple dashboard."
-          />
-          <meta name="twitter:image" content="/featured.png" />
-          <meta property="article:author" content="Kaiyu Hsu" />
-          <link rel="manifest" href="/manifest.json" />
           <link
             rel="apple-touch-icon"
             sizes="180x180"
-            href="favicons/apple-touch-icon.png"
+            href="/favicon/apple-touch-icon.png"
           />
           <link
             rel="icon"
             type="image/png"
             sizes="32x32"
-            href="favicons/favicon-32x32.png"
+            href="/favicon/favicon-32x32.png"
           />
           <link
             rel="icon"
             type="image/png"
             sizes="16x16"
-            href="favicons/favicon-16x16.png"
+            href="/favicon/favicon-16x16.png"
           />
-          <link rel="manifest" href="/site.webmanifest" />
+          <link rel="manifest" href="/favicon/site.webmanifest" />
+          <link
+            rel="mask-icon"
+            href="/favicon/safari-pinned-tab.svg"
+            color="#5bbad5"
+          />
+          <link rel="shortcut icon" href="/favicon/favicon.ico" />
+          <meta name="msapplication-TileColor" content="#da532c" />
+          <meta
+            name="msapplication-config"
+            content="/favicon/browserconfig.xml"
+          />
+          <meta name="theme-color" content="#ffffff" />
+
           <link rel="preconnect" href="https://fonts.gstatic.com" />
           <link
             href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&display=fallback"

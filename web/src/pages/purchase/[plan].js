@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/router";
+import SEO from "components/SEO";
 import Alert from "@material-ui/lab/Alert";
 import PageLoader from "components/PageLoader";
 import { useAuth, requireAuth } from "actions/auth";
@@ -29,13 +30,16 @@ const PurchasePage = (props) => {
   }, []);
 
   return (
-    <PageLoader>
-      {formAlert && (
-        <Alert severity={formAlert.type} style={{ maxWidth: "500px" }}>
-          {formAlert.message}
-        </Alert>
-      )}
-    </PageLoader>
+    <>
+      <SEO title="Purchase" />
+      <PageLoader>
+        {formAlert && (
+          <Alert severity={formAlert.type} style={{ maxWidth: "500px" }}>
+            {formAlert.message}
+          </Alert>
+        )}
+      </PageLoader>
+    </>
   );
 };
 

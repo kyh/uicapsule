@@ -1,12 +1,10 @@
-import Head from "next/head";
+import SEO from "components/SEO";
 import DashboardLayout from "components/DashboardLayout";
 import { requireAuth } from "actions/auth";
 
 const CollectionsPage = () => (
   <>
-    <Head>
-      <title>Collections</title>
-    </Head>
+    <SEO title="Collections" />
     <p>Collections Page...</p>
   </>
 );

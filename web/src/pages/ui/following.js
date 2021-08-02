@@ -1,13 +1,11 @@
-import Head from "next/head";
+import SEO from "components/SEO";
 import DashboardLayout from "components/DashboardLayout";
 import { requireAuth } from "actions/auth";
 
 const FollowingPage = () => {
   return (
     <>
-      <Head>
-        <title>People I follow</title>
-      </Head>
+      <SEO title="Following" />
       <p>Following Page...</p>
     </>
   );

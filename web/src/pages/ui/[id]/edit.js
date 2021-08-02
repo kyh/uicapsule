@@ -1,3 +1,4 @@
+import SEO from "components/SEO";
 import { useRouter } from "next/router";
 import DashboardFullLayout from "components/DashboardFullLayout";
 import UIDetailsEditSection from "components/UIDetailsEditSection";
@@ -5,7 +6,12 @@ import { requireAuth } from "actions/auth";
 
 const UIPage = () => {
   const router = useRouter();
-  return <UIDetailsEditSection id={router.query.id} />;
+  return (
+    <>
+      <SEO title="Edit Capsule" />
+      <UIDetailsEditSection id={router.query.id} />
+    </>
+  );
 };
 
 UIPage.Layout = DashboardFullLayout;

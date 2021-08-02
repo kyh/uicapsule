@@ -1,4 +1,5 @@
 import { useState } from "react";
+import SEO from "components/SEO";
 import Container from "@material-ui/core/Container";
 import Typography from "@material-ui/core/Typography";
 import SiteLayout from "components/SiteLayout";
@@ -12,6 +13,7 @@ const BetaPage = () => {
   const [complete, setComplete] = useState(false);
   return (
     <>
+      <SEO title="Join Beta" />
       <HeroSection
         bgColor="default"
         size="large"
@@ -55,13 +57,16 @@ const AuthPage = () => {
   }
 
   return (
-    <AuthSection
-      bgColor="default"
-      size="medium"
-      type={router.query.type}
-      providers={["google"]}
-      afterAuthPath={router.query.next || "/ui"}
-    />
+    <>
+      <SEO title={router.query.type === "signup" ? "Signup" : "Login"} />
+      <AuthSection
+        bgColor="default"
+        size="medium"
+        type={router.query.type}
+        providers={["google"]}
+        afterAuthPath={router.query.next || "/ui"}
+      />
+    </>
   );
 };
 

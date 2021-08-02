@@ -1,4 +1,4 @@
-import Head from "next/head";
+import SEO from "components/SEO";
 import SiteLayout from "components/SiteLayout";
 import HeroSection from "components/HeroSection";
 import SectionHeader from "components/SectionHeader";
@@ -275,9 +275,7 @@ const Content = () => (
 
 const PrivacyPage = () => (
   <>
-    <Head>
-      <title>Privacy Policy</title>
-    </Head>
+    <SEO title="Privacy Policy" />
     <HeroSection
       bgColor="default"
       size="large"
