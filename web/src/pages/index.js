@@ -82,7 +82,7 @@ const IndexPage = () => {
 
   return (
     <>
-      <SEO title="UI Capsule | Bookmark your inspirations" />
+      <SEO />
       <style global jsx>
         {`
           html {
