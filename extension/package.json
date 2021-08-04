@@ -15,7 +15,7 @@
     "firebase": "^8.2.10",
     "html-to-image": "^1.3.21",
     "react-redux": "^7.2.2",
-    "redux": "^4.0.5",
+    "redux": "^4.1.1",
     "redux-logger": "^3.0.6",
     "redux-thunk": "^2.3.0",
     "webextension-polyfill": "^0.8.0"
@@ -26,7 +26,7 @@
     "@babel/preset-env": "^7.13.9",
     "@babel/preset-react": "^7.12.13",
     "@rollup/plugin-babel": "^5.2.3",
-    "@rollup/plugin-commonjs": "^19.0.0",
+    "@rollup/plugin-commonjs": "^20.0.0",
     "@rollup/plugin-node-resolve": "^13.0.0",
     "@rollup/plugin-replace": "^3.0.0",
     "babel-plugin-styled-components": "^1.12.0",
