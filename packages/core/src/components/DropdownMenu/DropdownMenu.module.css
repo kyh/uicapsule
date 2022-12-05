@@ -1,0 +1,13 @@
+.menu {
+  padding: var(--ui-unit-x1);
+}
+
+.section + .section {
+  margin-top: var(--ui-unit-x1);
+  padding-top: var(--ui-unit-x1);
+  border-top: 1px solid var(--ui-color-border-neutral-faded);
+}
+
+.item + .item {
+  margin-top: var(--ui-unit-x1);
+}

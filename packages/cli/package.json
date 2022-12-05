@@ -1,0 +1,7 @@
+{
+  "name": "@uicapsule/cli",
+  "version": "0.0.0",
+  "bin": {
+    "uicapsule": "./bin/cli.js"
+  }
+}

@@ -1,0 +1,102 @@
+.root {
+  display: flex;
+  align-items: center;
+  position: relative;
+}
+
+.input {
+  border: none;
+  outline: none;
+  position: relative;
+  z-index: 1;
+  background: none;
+  flex-grow: 1;
+  width: 100%;
+  box-sizing: border-box;
+  padding: var(--ui-unit-x1) var(--ui-unit-x2);
+  color: var(--ui-color-foreground-neutral);
+  min-height: var(--ui-unit-x9);
+
+  /* TODO: Replace with font utilities when they become available */
+  font-size: var(--ui-font-size-body-2);
+  line-height: var(--ui-line-height-body-2);
+  font-family: var(--ui-font-family-body-2);
+  font-weight: var(--ui-font-weight-body-2);
+
+  &:focus + .focus {
+    border: 2px solid var(--ui-color-border-primary);
+  }
+
+  &[disabled] {
+    cursor: not-allowed;
+    color: var(--ui-color-foreground-disabled);
+  }
+
+  &[disabled] + .focus {
+    border: 1px solid var(--ui-color-border-disabled);
+  }
+
+  &[disabled] + .focus + .decorator {
+    background: var(--ui-color-background-disabled-faded);
+  }
+}
+
+.input:-webkit-autofill {
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: var(--ui-color-foreground-neutral);
+}
+
+.decorator,
+.focus {
+  pointer-events: none;
+  position: absolute;
+  inset: 0;
+  border-radius: var(--ui-unit-radius-small);
+}
+
+.decorator {
+  background: var(--ui-color-background-base);
+}
+
+.focus {
+  z-index: 5;
+  border: 1px solid var(--ui-color-border-neutral);
+}
+
+.slot {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+  padding: var(--ui-unit-x1) 0;
+
+  &:first-child {
+    padding-inline-start: var(--ui-unit-x2);
+  }
+
+  &:last-child {
+    padding-inline-end: var(--ui-unit-x2);
+  }
+}
+
+.root.--status-error {
+  .focus {
+    border: 2px solid var(--ui-color-border-critical);
+  }
+
+  .input:focus + .focus {
+    border: 2px solid var(--ui-color-border-primary);
+  }
+}
+
+.root.--disabled .input,
+.root.--disabled .slot {
+  cursor: not-allowed;
+}
+
+@media (--ui-viewport-s) and (hover: none) {
+  .input {
+    font-size: var(--ui-font-size-body-1);
+  }
+}

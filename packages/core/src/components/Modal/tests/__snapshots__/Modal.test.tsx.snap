@@ -1,0 +1,5 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`Components/Modal renders correctly when active 1`] = `"__uicapsule-4-title"`;
+
+exports[`Components/Modal renders correctly when active 2`] = `"__uicapsule-4-subtitle"`;

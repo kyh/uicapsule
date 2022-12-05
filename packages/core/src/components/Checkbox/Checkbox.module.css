@@ -1,0 +1,103 @@
+.root {
+  display: inline-flex;
+  vertical-align: top;
+  align-items: center;
+  cursor: pointer;
+  user-select: none;
+}
+
+.root:hover .input:not(:checked):not(:indeterminate) + .decorator {
+  background: var(--ui-color-background-neutral-faded);
+}
+
+.field {
+  position: relative;
+}
+
+.decorator {
+  width: var(--ui-unit-x5);
+  height: var(--ui-unit-x5);
+  border-radius: var(--ui-unit-radius-small);
+  border: 1px solid var(--ui-color-border-neutral);
+  background: var(--ui-color-background-base);
+}
+
+.icon {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  opacity: 0;
+}
+
+[data-rs-keyboard] .input:focus + .decorator {
+  box-shadow: var(--ui-focus-shadow);
+}
+
+.input:indeterminate + .decorator,
+.root.--error .input:indeterminate + .decorator,
+.root.--error:hover .input:indeterminate + .decorator {
+  border-color: var(--ui-color-background-primary);
+  background: var(--ui-color-background-primary);
+
+  &:before {
+    content: "";
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    height: 2px;
+    border-radius: 999px;
+    width: var(--ui-unit-x2);
+    background: var(--ui-color-on-background-primary);
+  }
+}
+
+.input:checked + .decorator,
+.root.--error .input:checked + .decorator,
+.root.--error:hover .input:checked + .decorator {
+  border-color: var(--ui-color-background-primary);
+  background: var(--ui-color-background-primary);
+  color: var(--ui-color-on-background-primary);
+
+  & .icon {
+    opacity: 1;
+  }
+}
+
+.text {
+  margin-inline-start: var(--ui-unit-x2);
+}
+
+.root.--error {
+  & .decorator,
+  &:hover .input + .decorator {
+    border-color: var(--ui-color-border-critical);
+  }
+}
+
+.root.--disabled {
+  cursor: not-allowed;
+  color: var(--ui-color-foreground-disabled);
+
+  & .decorator,
+  & .input:checked + .decorator,
+  &:hover .input + .decorator {
+    background: var(--ui-color-background-disabled-faded);
+    border-color: var(--ui-color-border-disabled);
+    color: var(--ui-color-foreground-disabled);
+  }
+
+  & .input:checked + .decorator,
+  & .input:indeterminate + .decorator {
+    border-color: transparent;
+  }
+
+  & .input:indeterminate + .decorator:before {
+    background: var(--ui-color-foreground-disabled);
+  }
+
+  & .input:checked + .decorator:after {
+    background: var(--ui-color-border-disabled);
+  }
+}

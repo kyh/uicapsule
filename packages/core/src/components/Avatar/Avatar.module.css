@@ -1,0 +1,103 @@
+.root {
+  --ui-avatar-px-size: calc(var(--ui-unit-x1) * var(--ui-avatar-size));
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--ui-avatar-px-size);
+  height: var(--ui-avatar-px-size);
+  line-height: var(--ui-avatar-px-size);
+  font-size: calc(var(--ui-avatar-px-size) / 3);
+  font-weight: bold;
+}
+
+.img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: inherit;
+}
+
+@each $radius in small, medium, large {
+  .--radius-$(radius) {
+    border-radius: var(--ui-unit-radius-$(radius));
+  }
+}
+
+@each $viewport in m, l, xl {
+  @media (--ui-viewport-$(viewport)) {
+    @each $radius in small, medium, large {
+      .--radius-$(radius)--$(viewport) {
+        border-radius: var(--ui-unit-radius-$(radius));
+      }
+    }
+  }
+}
+
+.root.--color {
+  &-neutral {
+    background-color: var(--ui-color-background-neutral);
+    color: var(--ui-color-foreground-neutral);
+  }
+
+  &-neutral-faded {
+    background-color: var(--ui-color-background-neutral-faded);
+    color: var(--ui-color-foreground-neutral);
+  }
+
+  &-critical {
+    background: var(--ui-color-background-critical);
+    color: var(--ui-color-on-background-critical);
+  }
+
+  &-critical-faded {
+    background: var(--ui-color-background-critical-faded);
+    color: var(--ui-color-foreground-critical);
+  }
+
+  &-positive {
+    background: var(--ui-color-background-positive);
+    color: var(--ui-color-on-background-positive);
+  }
+
+  &-positive-faded {
+    background: var(--ui-color-background-positive-faded);
+    color: var(--ui-color-foreground-positive);
+  }
+
+  &-primary {
+    background: var(--ui-color-background-primary);
+    color: var(--ui-color-on-background-primary);
+  }
+
+  &-primary-faded {
+    background: var(--ui-color-background-primary-faded);
+    color: var(--ui-color-foreground-primary);
+  }
+}
+
+.root {
+  --_s: 0;
+  --_s-m: var(--_s);
+  --_s-l: var(--_s-m);
+  --_s-xl: var(--_s-l);
+  --ui-avatar-size: var(--_s);
+}
+
+@media (--ui-viewport-m) {
+  .root {
+    --ui-avatar-size: var(--_s-m);
+  }
+}
+
+@media (--ui-viewport-l) {
+  .root {
+    --ui-avatar-size: var(--_s-l);
+  }
+}
+
+@media (--ui-viewport-xl) {
+  .root {
+    --ui-avatar-size: var(--_s-xl);
+  }
+}

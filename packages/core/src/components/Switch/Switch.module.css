@@ -1,0 +1,71 @@
+.root {
+  display: inline-flex;
+  position: relative;
+  vertical-align: top;
+}
+
+.input {
+  position: absolute;
+  top: 0;
+  left: 0;
+  /* Trap focus should be able to find this element with 1px height */
+  width: 1px;
+  height: 1px;
+  border: 0;
+  opacity: 0;
+  outline: none;
+
+  &:checked + .area {
+    background: var(--ui-color-border-primary);
+    border-color: transparent;
+
+    & .thumb {
+      transform: translateX(var(--ui-unit-x3));
+
+      [dir="rtl"] & {
+        transform: translateX(calc(var(--ui-unit-x3) * -1));
+      }
+    }
+  }
+
+  [data-rs-keyboard] &:focus + .area {
+    box-shadow: var(--ui-focus-shadow);
+  }
+
+  &[disabled] + .area {
+    cursor: not-allowed;
+    background: var(--ui-color-background-disabled);
+  }
+
+  &[disabled] + .thumb {
+    background: var(--ui-color-background-disabled-faded);
+  }
+
+  &[disabled]:checked + .area {
+    background: rgba(var(--ui-color-rgb-background-primary), 0.5);
+  }
+}
+
+.area {
+  cursor: pointer;
+  border: 2px solid transparent;
+  height: calc(var(--ui-unit-x1) * 5);
+  width: calc(var(--ui-unit-x1) * 8);
+  border-radius: calc(var(--ui-unit-x1) * 5 / 2);
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  background: var(--ui-color-border-neutral);
+  transition: var(--ui-duration-fast) var(--ui-easing-standard);
+  transition-property: background, border;
+}
+
+.thumb {
+  height: var(--ui-unit-x4);
+  width: var(--ui-unit-x4);
+  background: var(--ui-color-on-background-primary);
+  border-radius: 50%;
+  transition: var(--ui-duration-fast) var(--ui-easing-standard);
+  transition-property: transform;
+  box-shadow: var(--ui-shadow-base);
+}

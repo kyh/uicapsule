@@ -1,149 +1,195 @@
-# UI Capsule
+# Turborepo Design System Starter
 
-> Bookmark elements for ideas and inspiration on your next web project
+This guide explains how to use a React design system starter powered by:
 
-## 👉 Get Started
+- 🏎 [Turborepo](https://turbo.build/repo) — High-performance build system for Monorepos
+- 🚀 [React](https://reactjs.org/) — JavaScript library for user interfaces
+- 🛠 [Tsup](https://github.com/egoist/tsup) — TypeScript bundler powered by esbuild
+- 📖 [Storybook](https://storybook.js.org/) — UI component environment powered by Vite
 
-This repository is a monorepo managed through [npm workspaces](https://docs.npmjs.com/cli/v7/using-npm/workspaces).
+As well as a few others tools preconfigured:
 
-```
-├── /web                         # Next.js web client
-|   └── /src
-│       ├── /components          # Shared React components
-│       ├── /pages               # App routes
-│       └── /util                # Utility modules
-└── /extension                   # Chrome web extension
-    └── /src
-        ├── /components          # Shared React components
-        ├── /redux               # Redux services
-        └── /util                # Utility services
-```
+- [TypeScript](https://www.typescriptlang.org/) for static type checking
+- [ESLint](https://eslint.org/) for code linting
+- [Prettier](https://prettier.io) for code formatting
+- [Changesets](https://github.com/changesets/changesets) for managing versioning and changelogs
+- [GitHub Actions](https://github.com/changesets/action) for fully automated package publishing
 
-### Install dependencies
+## Using this example
 
-```
-npm install
-```
+Clone the design system example locally or [from GitHub](https://github.com/vercel/turbo/tree/main/examples/design-system):
 
-### Run the development server
-
-```
-npm run dev
+```bash
+npx degit vercel/turbo/examples/design-system design-system
+cd design-system
+pnpm install
+git init . && git add . && git commit -m "Init"
 ```
 
-When the above command completes you'll be able to view your website at `http://localhost:3000`
+### Useful Commands
 
-## 🥞 Stack
+- `yarn build` - Build all packages including the Storybook site
+- `yarn dev` - Run all packages locally and preview with Storybook
+- `yarn lint` - Lint all packages
+- `yarn changeset` - Generate a changeset
+- `yarn clean` - Clean up all `node_modules` and `dist` folders (runs each package's clean script)
 
-This project uses the following libraries and services:
+## Turborepo
 
-- Framework - [Next.js](https://nextjs.org)
-- UI Kit - [Material UI](https://material-ui.com)
-- Authentication - [Firebase Auth](https://firebase.google.com/products/auth)
-- Database - [Cloud Firestore](https://firebase.google.com/products/firestore)
-- Payments - [Stripe](https://stripe.com)
-- Contact Form - [Google Sheets](https://www.google.com/sheets/about/)
-- Analytics - [Google Analytics](https://googleanalytics.com)
-- Hosting - [Vercel](https://vercel.com)
+[Turborepo](https://turbo.build/repo) is a high-performance build system for JavaScript and TypeScript codebases. It was designed after the workflows used by massive software engineering organizations to ship code at scale. Turborepo abstracts the complex configuration needed for monorepos and provides fast, incremental builds with zero-configuration remote caching.
 
-## 📚 Guide
+Using Turborepo simplifes managing your design system monorepo, as you can have a single lint, build, test, and release process for all packages. [Learn more](https://vercel.com/blog/monorepos-are-changing-how-teams-build-software) about how monorepos improve your development workflow.
 
-<details>
-<summary><b>Routing</b></summary>
-<p>
-  This project uses the built-in Next.js router and its convenient <code>useRouter</code> hook. Learn more in the <a target="_blank" href="https://github.com/zeit/next.js/#routing">Next.js docs</a>.
+## Apps & Packages
 
-```js
-import Link from "next/link";
-import { useRouter } from "next/router";
+This Turborepo includes the following packages and applications:
 
-function MyComponent() {
-  // Get the router object
-  const router = useRouter();
+- `apps/docs`: Component documentation site with Storybook
+- `packages/@uicapsule/core`: Core React components
+- `packages/@uicapsule/utils`: Shared React utilities
+- `packages/@uicapsule/tsconfig`: Shared `tsconfig.json`s used throughout the Turborepo
+- `packages/eslint-config-capsule`: ESLint preset
 
-  // Get value from query string (?postId=123) or route param (/:postId)
-  console.log(router.query.postId);
+Each package and app is 100% [TypeScript](https://www.typescriptlang.org/). Yarn Workspaces enables us to "hoist" dependencies that are shared between packages to the root `package.json`. This means smaller `node_modules` folders and a better local dev experience. To install a dependency for the entire monorepo, use the `-W` workspaces flag with `yarn add`.
 
-  // Get current pathname
-  console.log(router.pathname);
+This example sets up your `.gitignore` to exclude all generated files, other folders like `node_modules` used to store your dependencies.
 
-  // Navigate with the <Link> component or with router.push()
-  return (
-    <div>
-      <Link href="/about">
-        <a>About</a>
-      </Link>
-      <button onClick={(e) => router.push("/about")}>About</button>
-    </div>
-  );
+### Compilation
+
+To make the core library code work across all browsers, we need to compile the raw TypeScript and React code to plain JavaScript. We can accomplish this with `tsup`, which uses `esbuild` to greatly improve performance.
+
+Running `yarn build` from the root of the Turborepo will run the `build` command defined in each package's `package.json` file. Turborepo runs each `build` in parallel and caches & hashes the output to speed up future builds.
+
+For `capsule-core`, the `build` command is the following:
+
+```bash
+tsup src/index.tsx --format esm,cjs --dts --external react
+```
+
+`tsup` compiles `src/index.tsx`, which exports all of the components in the design system, into both ES Modules and CommonJS formats as well as their TypeScript types. The `package.json` for `capsule-core` then instructs the consumer to select the correct format:
+
+```json:capsule-core/package.json
+{
+  "name": "@uicapsule/core",
+  "version": "0.0.0",
+  "main": "./dist/index.js",
+  "module": "./dist/index.mjs",
+  "types": "./dist/index.d.ts",
+  "sideEffects": false,
 }
 ```
 
-</p>
-</details>
+Run `yarn build` to confirm compilation is working correctly. You should see a folder `capsule-core/dist` which contains the compiled output.
 
-<details>
-<summary><b>Authentication</b></summary>
-<p>
-  This project uses <a href="https://firebase.google.com">Firebase Auth</a> and includes a convenient <code>useAuth</code> hook (located in <code><a href="src/util/auth.js">src/util/auth.js</a></code>) that wraps Firebase and gives you common authentication methods. Depending on your needs you may want to edit this file and expose more Firebase functionality.
-
-```js
-import { useAuth } from "util/auth.js";
-
-function MyComponent() {
-  // Get the auth object in any component
-  const auth = useAuth();
-
-  // Depending on auth state show signin or signout button
-  // auth.user will either be an object, null when loading, or false if signed out
-  return (
-    <div>
-      {auth.user ? (
-        <button onClick={(e) => auth.signout()}>Signout</button>
-      ) : (
-        <button onClick={(e) => auth.signin("hello@divjoy.com", "yolo")}>
-          Signin
-        </button>
-      )}
-    </div>
-  );
-}
+```bash
+capsule-core
+└── dist
+    ├── index.d.ts  <-- Types
+    ├── index.js    <-- CommonJS version
+    └── index.mjs   <-- ES Modules version
 ```
 
-</p>
-</details>
+## Components
 
-<details>
-<summary><b>Database</b></summary>
-<p>
-  This project uses <a href="https://firebase.google.com/products/firestore">Cloud Firestore</a> and includes some data fetching hooks to get you started (located in <code><a href="src/util/db.js">src/util/db.js</a></code>). You'll want to edit that file and add any additional query hooks you need for your project.
+Each file inside of `capsule-core/src` is a component inside our design system. For example:
 
-```js
-import { useAuth } from 'util/auth.js';
-import { useItems } from 'util/db.js';
-import ItemsList from './ItemsList.js';
+```tsx:capsule-core/src/Button.tsx
+import * as React from 'react';
 
-function ItemsPage(){
-  const auth = useAuth();
-
-  // Fetch items by owner
-  // Returned status value will be "idle" if we're waiting on
-  // the uid value or "loading" if the query is executing.
-  const uid = auth.user ? auth.user.uid : undefined;
-  const { data: items, status } = useItems(uid);
-
-  // Once we have items data render ItemsList component
-  return (
-    <div>
-      {(status === "idle" || status === "loading") ? (
-        <span>One moment please</span>
-      ) : (
-        <ItemsList data={items}>
-      )}
-    </div>
-  );
+export interface ButtonProps {
+  children: React.ReactNode;
 }
+
+export function Button(props: ButtonProps) {
+  return <button>{props.children}</button>;
+}
+
+Button.displayName = 'Button';
 ```
 
-</p>
-</details>
+When adding a new file, ensure the component is also exported from the entry `index.tsx` file:
+
+```tsx:capsule-core/src/index.tsx
+import * as React from "react";
+export { Button, type ButtonProps } from "./Button";
+// Add new component exports here
+```
+
+## Storybook
+
+Storybook provides us with an interactive UI playground for our components. This allows us to preview our components in the browser and instantly see changes when developing locally. This example preconfigures Storybook to:
+
+- Use Vite to bundle stories instantly (in milliseconds)
+- Automatically find any stories inside the `stories/` folder
+- Support using module path aliases like `@uicapsule-core` for imports
+- Write MDX for component documentation pages
+
+For example, here's the included Story for our `Button` component:
+
+```js:apps/docs/stories/button.stories.mdx
+import { Button } from '@uicapsule-core/src';
+import { Meta, Story, Preview, Props } from '@storybook/addon-docs/blocks';
+
+<Meta title="Components/Button" component={Button} />
+
+# Button
+
+Lorem ipsum dolor sit amet, consectetur adipiscing elit. Donec euismod, nisl eget consectetur tempor, nisl nunc egestas nisi, euismod aliquam nisl nunc euismod.
+
+## Props
+
+<Props of={Box} />
+
+## Examples
+
+<Preview>
+  <Story name="Default">
+    <Button>Hello</Button>
+  </Story>
+</Preview>
+```
+
+This example includes a few helpful Storybook scripts:
+
+- `yarn dev`: Starts Storybook in dev mode with hot reloading at `localhost:6006`
+- `yarn build`: Builds the Storybook UI and generates the static HTML files
+- `yarn preview-storybook`: Starts a local server to view the generated Storybook UI
+
+## Versioning & Publishing Packages
+
+This example uses [Changesets](https://github.com/changesets/changesets) to manage versions, create changelogs, and publish to npm. It's preconfigured so you can start publishing packages immediately.
+
+You'll need to create an `NPM_TOKEN` and `GITHUB_TOKEN` and add it to your GitHub repository settings to enable access to npm. It's also worth installing the [Changesets bot](https://github.com/apps/changeset-bot) on your repository.
+
+### Generating the Changelog
+
+To generate your changelog, run `yarn changeset` locally:
+
+1. **Which packages would you like to include?** – This shows which packages and changed and which have remained the same. By default, no packages are included. Press `space` to select the packages you want to include in the `changeset`.
+1. **Which packages should have a major bump?** – Press `space` to select the packages you want to bump versions for.
+1. If doing the first major version, confirm you want to release.
+1. Write a summary for the changes.
+1. Confirm the changeset looks as expected.
+1. A new Markdown file will be created in the `changeset` folder with the summary and a list of the packages included.
+
+### Releasing
+
+When you push your code to GitHub, the [GitHub Action](https://github.com/changesets/action) will run the `release` script defined in the root `package.json`:
+
+```bash
+turbo run build --filter=docs^... && changeset publish
+```
+
+Turborepo runs the `build` script for all publishable packages (excluding docs) and publishes the packages to npm. By default, this example includes `capsule` as the npm organization. To change this, do the following:
+
+- Rename folders in `packages/*` to replace `capsule` with your desired scope
+- Search and replace `capsule` with your desired scope
+- Re-run `yarn install`
+
+To publish packages to a private npm organization scope, **remove** the following from each of the `package.json`'s
+
+```diff
+- "publishConfig": {
+-  "access": "public"
+- },
+```

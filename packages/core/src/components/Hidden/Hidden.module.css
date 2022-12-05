@@ -1,0 +1,79 @@
+/**
+* 1. Important is used since classNames can be used as mixins for other components
+* There is no guarantee about the css order though.
+*/
+
+.root {
+  --ui-hidden-display: block;
+  display: var(--ui-hidden-display) !important;
+}
+
+.--inline {
+  --ui-hidden-display: inline;
+}
+
+.--hidden {
+  display: none !important;
+
+  &.--visibility {
+    display: var(--ui-hidden-display) !important;
+    visibility: hidden;
+  }
+}
+
+@media (--ui-viewport-m) {
+  .--hidden-false--m {
+    display: var(--ui-hidden-display) !important;
+
+    &.--visibility {
+      visibility: visible;
+    }
+  }
+
+  .--hidden-true--m {
+    display: none !important;
+
+    &.--visibility {
+      display: var(--ui-hidden-display) !important;
+      visibility: hidden;
+    }
+  }
+}
+
+@media (--ui-viewport-l) {
+  .--hidden-false--l {
+    display: var(--ui-hidden-display) !important;
+
+    &.--visibility {
+      visibility: visible;
+    }
+  }
+
+  .--hidden-true--l {
+    display: none !important;
+
+    &.--visibility {
+      display: var(--ui-hidden-display) !important;
+      visibility: hidden;
+    }
+  }
+}
+
+@media (--ui-viewport-xl) {
+  .--hidden-false--xl {
+    display: var(--ui-hidden-display) !important;
+
+    &.--visibility {
+      visibility: visible;
+    }
+  }
+
+  .--hidden-true--xl {
+    display: none !important;
+
+    &.--visibility {
+      display: var(--ui-hidden-display) !important;
+      visibility: hidden;
+    }
+  }
+}

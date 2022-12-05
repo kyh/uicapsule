@@ -1,0 +1,8 @@
+.root {
+  --ui-focus-shadow: 0 0 0 2px var(--ui-color-background-base),
+    0 0 0 4px var(--ui-color-border-primary);
+  --ui-focus-inset-shadow: inset 0 0 0 2px var(--ui-color-border-primary),
+    inset 0 0 0 4px var(--ui-color-background-base);
+
+  color: var(--ui-color-foreground-neutral);
+}

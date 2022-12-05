@@ -1,0 +1,49 @@
+.root {
+  display: inline;
+  text-underline-offset: calc(var(--ui-unit-x1) / 2);
+}
+
+.root.--color-primary {
+  color: var(--ui-color-foreground-primary);
+}
+
+.root.--color-critical {
+  color: var(--ui-color-foreground-critical);
+}
+
+.root.--color-inherit {
+  color: currentColor;
+}
+
+.root.--variant-plain {
+  transition: opacity var(--ui-duration-fast) var(--ui-easing-standard);
+  opacity: 1;
+
+  &:hover:not(.--disabled) {
+    /* Same as in button */
+    opacity: 0.6;
+  }
+}
+
+.root.--variant-underline {
+  text-decoration: underline;
+  text-decoration-color: currentColor;
+  transition: text-decoration-color var(--ui-duration-fast)
+    var(--ui-easing-standard);
+
+  &:hover:not(.--disabled) {
+    text-decoration-color: transparent;
+  }
+}
+
+.root.--disabled {
+  text-decoration: none;
+  opacity: 1;
+  color: var(--ui-color-foreground-disabled);
+}
+
+.root.--with-icon {
+  display: inline-flex;
+  align-items: center;
+  gap: calc(1em / 3.5);
+}

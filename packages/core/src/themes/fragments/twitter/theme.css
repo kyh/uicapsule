@@ -1,0 +1,15 @@
+[data-rs-theme="twitter-light"],
+[data-rs-theme="twitter-dark"] {
+  --ui-color-background-primary: #1da1f2;
+  --ui-color-background-primary-highlighted: #1a90da;
+  --ui-color-on-background-primary: #fff;
+  --ui-color-rgb-background-primary: 29, 161, 242;
+  --ui-color-on-background-primary-highlighted: #fff;
+  --ui-color-rgb-background-primary-highlighted: 26, 144, 218;
+}
+
+[data-rs-theme="twitter-light"] {
+}
+
+[data-rs-theme="twitter-dark"] {
+}

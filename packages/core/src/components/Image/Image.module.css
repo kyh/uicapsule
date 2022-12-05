@@ -1,0 +1,68 @@
+.root {
+  --_w: auto;
+  --_w-m: var(--_w);
+  --_w-l: var(--_w-m);
+  --_w-xl: var(--_w-l);
+  --ui-image-width: var(--_w);
+
+  --_h: auto;
+  --_h-m: var(--_h);
+  --_h-l: var(--_h-m);
+  --_h-xl: var(--_h-l);
+  --ui-image-height: var(--_h);
+
+  max-width: 100%;
+  display: block;
+  width: var(--ui-image-width);
+  height: var(--ui-image-height);
+}
+
+@media (--ui-viewport-m) {
+  .root {
+    --ui-image-width: var(--_w-m);
+    --ui-image-height: var(--_h-m);
+  }
+}
+
+@media (--ui-viewport-l) {
+  .root {
+    --ui-image-width: var(--_w-l);
+    --ui-image-height: var(--_h-l);
+  }
+}
+
+@media (--ui-viewport-xl) {
+  .root {
+    --ui-image-width: var(--_w-xl);
+    --ui-image-height: var(--_h-xl);
+  }
+}
+
+.fallback {
+  background: var(--ui-color-background-neutral-faded);
+  color: var(--ui-color-foreground-disabled);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.--radius-small {
+  border-radius: var(--ui-unit-radius-small);
+}
+
+.--radius-medium {
+  border-radius: var(--ui-unit-radius-medium);
+}
+
+.--radius-large {
+  border-radius: var(--ui-unit-radius-large);
+}
+
+/* Important to override AspectRatio defaults */
+.--display-mode-cover {
+  object-fit: cover !important;
+}
+
+.--display-mode-contain {
+  object-fit: scale-down !important;
+}

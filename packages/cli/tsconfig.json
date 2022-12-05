@@ -1,0 +1,8 @@
+{
+	"extends": "./tsconfig.json",
+	"compilerOptions": {
+		"baseUrl": "src",
+		"module": "CommonJS"
+	},
+	"include": ["src/cli", "src/themes/index.ts"]
+}

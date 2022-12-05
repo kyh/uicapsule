@@ -1,0 +1,26 @@
+.root {
+  --_p: 4;
+  padding: calc(var(--ui-unit-x1) * var(--_p));
+  border-radius: var(--ui-unit-radius-medium);
+  background: var(--ui-color-background-elevated);
+  color: var(--ui-color-foreground-neutral);
+  border: 1px solid var(--ui-color-border-neutral-faded);
+  box-shadow: var(--ui-shadow-elevated);
+  min-width: 220px;
+  max-width: 360px;
+  overflow: hidden;
+}
+
+.root.--padded {
+}
+
+.root.--has-width {
+  max-width: none;
+  min-width: 0;
+}
+
+@media (--ui-viewport-s) {
+  .root {
+    max-width: none;
+  }
+}
