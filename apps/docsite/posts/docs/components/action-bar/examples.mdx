@@ -1,0 +1,198 @@
+## Confirmation
+
+```jsx
+<View width="400px" maxWidth="100%">
+  <Card padding={0}>
+    <View backgroundColor="neutral-faded" height="150px" />
+    <ActionBar>
+      <View direction="row" gap={3}>
+        <View.Item grow>
+          <Button fullWidth variant="outline" color="critical">
+            Cancel
+          </Button>
+        </View.Item>
+        <View.Item grow>
+          <Button fullWidth color="primary">
+            Confirm
+          </Button>
+        </View.Item>
+      </View>
+    </ActionBar>
+  </Card>
+</View>
+```
+
+## Food delivery
+
+```jsx
+<View width="400px" maxWidth="100%">
+  <Card padding={0}>
+    <View backgroundColor="neutral-faded" height="150px" />
+    <ActionBar>
+      <View gap={3} direction="row" align="center">
+        <View.Item grow>
+          <Text variant="body-strong-1">Pasta Pomodoro</Text>
+          <Text variant="body-2" color="neutral-faded">
+            La Piano &middot; 30 min delivery
+          </Text>
+        </View.Item>
+        <Button color="primary">Order now</Button>
+      </View>
+    </ActionBar>
+  </Card>
+</View>
+```
+
+## Music player
+
+```jsx
+<View width="400px" maxWidth="100%">
+  <Card padding={0}>
+    <View backgroundColor="neutral-faded" height="150px" />
+    <ActionBar>
+      <View gap={3} direction="row" align="center">
+        <AspectRatio ratio={1 / 1}>
+          <Image
+            src="/img/examples/architecture-5.webp"
+            width="48px"
+            borderRadius="small"
+          />
+        </AspectRatio>
+        <View.Item grow>
+          <Text variant="body-strong-1">Moments (feat. B.Mix)</Text>
+          <Text variant="body-medium-2" color="neutral-faded">
+            Clarity State
+          </Text>
+        </View.Item>
+        <Button size="large" rounded variant="outline" icon={IconPlay} />
+      </View>
+    </ActionBar>
+  </Card>
+</View>
+```
+
+## Add to cart
+
+```jsx
+<View width="400px" maxWidth="100%">
+  <Card padding={0}>
+    <View backgroundColor="neutral-faded" height="150px" />
+    <ActionBar>
+      <View gap={3} direction="row" align="center">
+        <Button size="large" rounded icon={IconHeart} variant="outline" />
+        <View.Item grow>
+          <Button color="primary" fullWidth size="large" rounded>
+            $35 &middot; Add to cart
+          </Button>
+        </View.Item>
+      </View>
+    </ActionBar>
+  </Card>
+</View>
+```
+
+## Appointment cancellation
+
+```jsx
+<View width="400px" maxWidth="100%">
+  <Card padding={0}>
+    <View backgroundColor="neutral-faded" height="150px" />
+    <ActionBar>
+      <View gap={3} align="center">
+        <Button color="critical" fullWidth size="large">
+          Cancel appointment
+        </Button>
+        <Text variant="caption-1" color="neutral-faded">
+          Cancellation fee $4.45
+        </Text>
+      </View>
+    </ActionBar>
+  </Card>
+</View>
+```
+
+## Card heading
+
+```jsx
+<View width="400px" maxWidth="100%">
+  <Card padding={0}>
+    <ActionBar position="top">
+      <View gap={3} align="center" direction="row">
+        <Avatar src="/img/examples/avatar-1.png" size={8} />
+        <View.Item grow>
+          <Text variant="body-strong-2">Ester Naomi</Text>
+          <Text variant="caption-1" color="neutral-faded">
+            CEO, Founder
+          </Text>
+        </View.Item>
+        <Button.Aligner>
+          <Button variant="ghost" rounded icon={IconDown} />
+        </Button.Aligner>
+      </View>
+    </ActionBar>
+    <View backgroundColor="neutral-faded" height="150px" />
+  </Card>
+</View>
+```
+
+## Responsive page header
+
+```jsx
+function Demo() {
+  const toggle = useToggle();
+  const items = ["Documentation", "About us", "Pricing"];
+
+  return (
+    <>
+      <ActionBar position="top" size="large">
+        <View gap={4} align="center" direction="row">
+          <View.Item grow={{ s: true, m: false }}>
+            <View
+              width="40px"
+              height="40px"
+              backgroundColor="neutral"
+              borderRadius="small"
+            />
+          </View.Item>
+          <Hidden hide={{ s: true, m: false }}>
+            <View.Item grow key="menu">
+              <View direction="row" gap={1}>
+                {items.map((item) => (
+                  <Button variant="ghost" key={item}>
+                    {item}
+                  </Button>
+                ))}
+              </View>
+            </View.Item>
+          </Hidden>
+          <Button.Aligner position="end">
+            <View gap={2} direction="row">
+              <Button variant="ghost" icon={IconHeart} />
+              <Hidden hide={{ s: false, m: true }}>
+                <Button
+                  variant="ghost"
+                  icon={IconMenu}
+                  onClick={toggle.activate}
+                />
+              </Hidden>
+            </View>
+          </Button.Aligner>
+        </View>
+      </ActionBar>
+      <Modal
+        position="bottom"
+        active={toggle.active}
+        onClose={toggle.deactivate}
+        closeAriaLabel="Close menu"
+        padding={1}
+      >
+        {items.map((item) => (
+          <MenuItem key={item} roundedCorners>
+            {item}
+          </MenuItem>
+        ))}
+      </Modal>
+    </>
+  );
+}
+```

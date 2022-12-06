@@ -1,0 +1,31 @@
+## Usage
+
+Container should be used as a wrapper for your main content.
+It provides the content with max-width for larger screens and adds horizontal paddings for mobile.
+You can use it to center page content horizontally or within other components e.g., centering contents of the page header.
+
+```code
+<Container>
+  <Placeholder />
+</Container>
+```
+
+By default, Container takes the entire width of the parent.
+It supports the `width` property, which accepts any string value so that you can use it with `px`, `%`, or any other valid CSS measurement.
+
+```code
+<Container width="1024px">
+  <Placeholder />
+</Container>
+```
+
+By default, Container has horizontal padding of `x4` units, but you can customize it by using the `padding` property.
+For example, if you use Container to center content inside another component that already has its padding - you can completely remove it.
+
+```code
+<ActionBar>
+  <Container width="1024px" padding={0}>
+    Your content
+  </Container>
+</ActionBar>
+```

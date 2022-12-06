@@ -1,0 +1,233 @@
+<Demo>
+  {(props) => `
+function Example() {
+  const { active, activate, deactivate } = useToggle(false);
+
+return (
+
+<>
+<Button onClick={activate}>Edit profile</Button>
+<Modal ${props.base.attributes} active={active} onClose={deactivate}>
+<View gap={3}>
+<Dismissible onClose={deactivate}>
+<Modal.Title>${props.title.children}</Modal.Title>
+<Modal.Subtitle>${props.subtitle.children}</Modal.Subtitle>
+</Dismissible>
+
+          ${props.base.children}
+        </View>
+      </Modal>
+    </>
+
+);
+}
+`}
+
+</Demo>
+
+<Highlight>Works with any type of content</Highlight>
+<Highlight>Automatically traps focus when opened</Highlight>
+<Highlight>Can be controlled and uncontrolled</Highlight>
+<Highlight>
+  Supports Title and Subtitle compound components for accessibility
+</Highlight>
+<Highlight>Closes on Esc key press</Highlight>
+<Highlight>Supports custom sizes</Highlight>
+<Highlight>Supports custom padding values</Highlight>
+<Highlight>Supports multiple positions</Highlight>
+<Highlight>Supports responsive size and position values</Highlight>
+
+<br />
+<br />
+
+## Usage
+
+Modal is a controlled component which means that it has an `active` property and multiple handlers that you can use to change the value of this property.
+Once Modal is active – it will prevent scrolling of the whole page and support scrolling for the content displayed inside the backdrop.
+
+**Note:** It's safe to keep Modal in your render all the time.
+A modal will be rendered in the DOM only if it is active.
+Conditionally rendering Modal will prevent its animation from working.
+
+```jsx
+function Example() {
+  const { active, activate, deactivate } = useToggle(false);
+
+  return (
+    <>
+      <Button onClick={activate}>Open modal</Button>
+      <Modal active={active} onClose={deactivate}>
+        Modal content
+      </Modal>
+    </>
+  );
+}
+```
+
+## Position
+
+Besides the default `center` position, you can use Modal with the `bottom`, `start`, or `end` position to be displayed as a drawer.
+That will change its animation to slide in and out from either side.
+
+```jsx
+function ExamplePosition() {
+  const { activate, deactivate, active } = useToggle(false);
+
+  return (
+    <>
+      <Button onClick={activate}>Open bottom sheet</Button>
+      <Modal active={active} onClose={deactivate} position="bottom">
+        Bottom sheet content
+      </Modal>
+    </>
+  );
+}
+```
+
+Modal supports responsive syntax for its `position` property, which means you can change its position based on the viewport.
+
+```jsx
+function ExampleResponsivePosition() {
+  const { activate, deactivate, active } = useToggle(false);
+
+  return (
+    <>
+      <Button onClick={activate}>Open responsive sheet</Button>
+      <Modal
+        active={active}
+        onClose={deactivate}
+        position={{ s: "bottom", m: "end" }}
+      >
+        Responsive sheet content
+      </Modal>
+    </>
+  );
+}
+```
+
+## Sizes
+
+Modal comes with a default size that can be customized with `size` property.
+You can pass any px or percent value as a string.
+For `bottom` Modal, size will change its height instead of the width.
+
+```jsx
+function ExampleSize() {
+  const { activate, deactivate, active } = useToggle(false);
+
+  return (
+    <>
+      <Button onClick={activate}>Open modal</Button>
+      <Modal size="200px" active={active} onClose={deactivate}>
+        Small modal content
+      </Modal>
+    </>
+  );
+}
+```
+
+Modal supports responsive syntax for its `size` property, which means you can change its size based on the viewport.
+It's especially helpful when used together with responsive `position` property.
+
+```jsx
+function ExampleResponsiveSize() {
+  const { activate, deactivate, active } = useToggle(false);
+
+  return (
+    <>
+      <Button onClick={activate}>Open responsive sheet</Button>
+      <Modal
+        active={active}
+        onClose={deactivate}
+        position={{ s: "bottom", m: "end" }}
+        size={{ s: "auto", m: "500px" }}
+      >
+        Responsive sheet content
+      </Modal>
+    </>
+  );
+}
+```
+
+Modal comes with a default padding that can be customized using a unit token value.
+For example, you can set the padding to `x2` with `padding={2}` or altogether remove it by setting the `padding` property to `0`.
+
+It also supports responsive property syntax if you want to change it based on the viewport size.
+For example, `{ s: 4, l: 6 }` will reduce the padding on small and medium screens to `x4`.
+
+```jsx
+function ExampleWithoutPadding() {
+  const { active, activate, deactivate } = useToggle(false);
+
+  return (
+    <>
+      <Button onClick={activate}>Open modal with responsive padding</Button>
+      <Modal
+        active={active}
+        onClose={deactivate}
+        padding={{ s: 2, m: 4, l: 6 }}
+      >
+        Modal content
+      </Modal>
+    </>
+  );
+}
+```
+
+To make it easier to control the state, we're providing a `useToggle` hook that you can use together with Modal or other components that toggle states.
+
+<Grid>
+  <CrossLink title="useToggle" href="/content/docs/hooks/use-toggle" />
+</Grid>
+
+## Composition
+
+Modal supports `Modal.Title` and `Modal.Subtitle` compound components that take care of the aria attributes and provide default text styles.
+You can use them with a `Dismissible` utility to implement more complex modal layouts.
+
+```jsx
+function ExampleWithDismissible() {
+  const { active, activate, deactivate } = useToggle(false);
+
+  return (
+    <>
+      <Button onClick={activate}>Open modal</Button>
+      <Modal active={active} onClose={deactivate}>
+        <View gap={3}>
+          <Dismissible onClose={deactivate} closeAriaLabel="Close modal">
+            <Modal.Title>Modal title</Modal.Title>
+            <Modal.Subtitle>Modal subtitle</Modal.Subtitle>
+          </Dismissible>
+          <Placeholder />
+        </View>
+      </Modal>
+    </>
+  );
+}
+```
+
+## Backdrop
+
+You can make backdrop transparent to keep the page content interactive while Modal is opened.
+When Modal has a transparent backdrop – it doesn't lock the scroll anymore.
+
+```jsx
+function ExampleBackdrop() {
+  const { activate, deactivate, active } = useToggle(false);
+
+  return (
+    <>
+      <Button onClick={activate}>Open side panel</Button>
+      <Modal active={active} onClose={deactivate} position="end">
+        Side panel content
+      </Modal>
+    </>
+  );
+}
+```
+
+## Accessibility
+
+- Modal traps focus inside its root element, which means that using any type of keyboard navigation will keep the focus inside the Backdrop while it's opened.
+- Modal triggers its `onClose` handler on `Esc` key press.
+- Using `Modal.Title` and `Modal.Subtitle` will automatically apply `aria-labelledby` and `aria-describedby` attributes to the dialog element.

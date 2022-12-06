@@ -1,0 +1,5 @@
+{
+  "extends": "@uicapsule/config/tsconfig/node16.json",
+  "include": ["."],
+  "exclude": ["dist", "build", "node_modules"]
+}

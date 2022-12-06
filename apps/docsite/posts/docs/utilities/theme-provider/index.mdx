@@ -1,0 +1,70 @@
+```preview
+<View gap={3} direction="row">
+  <Button color="primary">Share</Button>
+
+  <ThemeProvider theme="twitter">
+    <Button color="primary" rounded>
+      Share
+    </Button>
+  </ThemeProvider>
+</View>
+```
+
+<Highlight>Applies chosen theme to the target scope</Highlight>
+<Highlight>Applies chosen color mode to the target scope</Highlight>
+<Highlight>Supports dynamically inverting current color mode</Highlight>
+
+<br />
+<br />
+
+## Usage
+
+ThemeProvider is mainly used to create scoped themes.
+Scoped themes are themes applied only to a specific part of the page.
+For example, they can be used to create social media share buttons using our Button component.
+
+To achieve this, you can create a custom theme using our Theming CLI and then pass that theme to the ThemeProvider.
+
+```jsx
+<ThemeProvider theme="twitter">
+  <Button color="primary" rounded>
+    Share
+  </Button>
+</ThemeProvider>
+```
+
+You can find more about how to create your custom themes in our Scoped theming documentation:
+
+<Grid>
+  <CrossLink
+    title="Scoped theming"
+    href="/content/docs/theming/scoped-theming"
+  />
+  <CrossLink title="useTheme" href="/content/docs/hooks/use-theme" />
+</Grid>
+
+## Color mode
+
+In Reshaped, we don't treat light and dark modes like two different themes.
+Instead, we have a separate `colorMode` definition.
+
+It's applied on the top level of the application for all its themes.
+However, sometimes components might be using dark backgrounds in light mode and vice versa.
+To avoid supporting `inverted` color tokens for every theme and increase the theme CSS size, we allow inverting the current mode in runtime with the `ColorMode` utility.
+
+```jsx
+<View gap={3} direction="row">
+  <Card>I am using the current color mode</Card>
+  <ThemeProvider colorMode="inverted">
+    <Card>I am using the inverted color mode</Card>
+  </ThemeProvider>
+</View>
+```
+
+Same as inverting the currently used color mode, you can pick `dark` or `light` mode to be used all the time.
+
+```jsx
+<ThemeProvider colorMode="dark">
+  <Card>I am using dark mode all the time</Card>
+</ThemeProvider>
+```

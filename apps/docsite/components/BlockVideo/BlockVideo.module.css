@@ -1,0 +1,15 @@
+.root {
+  height: 100%;
+  width: 100%;
+  cursor: pointer;
+}
+
+.preview {
+  background-size: cover;
+  background-repeat: no-repeat;
+  background-color: var(--rs-color-white);
+  background-position: 50%;
+  position: relative;
+  z-index: 5;
+  min-height: 220px;
+}

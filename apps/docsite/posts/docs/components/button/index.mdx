@@ -1,0 +1,387 @@
+<Demo>
+  {(props) => `
+<View width="300px" maxWidth="100%" align="center">
+  <Button ${props.base.attributes}>
+    ${props.base.children}
+  </Button>
+</View>
+`}
+</Demo>
+
+<Highlight>5 colors, 4 sizes and 3 variants</Highlight>
+<Highlight>Automatically resolves to correct HTML tag</Highlight>
+<Highlight>Correctly handles keyboard navigation</Highlight>
+<Highlight>Supports responsive size values</Highlight>
+
+<br />
+<br />
+
+## Usage
+
+Button accepts `children` property to render its content.
+It can be any content from text to a group of elements stacked together inside the Button.
+
+```jsx
+<Button onClick={() => {}}>About us</Button>
+```
+
+Button works with both `href` and `onClick` properties.
+Using either of them will resolve Button rendering to `<a>` or `<button>` tag respectively.
+
+If you use Button for client-side routing, make sure to pass `href` property to it together with `onClick`.
+That will render Button using a correct HTML tag keeping native behavior working like expected.
+For instance, users can open navigation links using Button component in a new tab.
+
+```jsx
+<View gap={3} direction="row">
+  <Button href="/" attributes={{ target: "_blank" }}>
+    Back to main page
+  </Button>
+
+  <Button onClick={() => {}}>Log in</Button>
+</View>
+```
+
+## Variants
+
+Button supports multiple variants depending on the context they are used in.
+For instance, `outline` or `ghost` variants can be used as secondary buttons when rendering a group of actions.
+
+```jsx
+<View gap={3} direction="row" align="center">
+  <Button variant="outline" onClick={() => {}}>
+    Outline button
+  </Button>
+  <Button variant="ghost" onClick={() => {}}>
+    Ghost button
+  </Button>
+</View>
+```
+
+## Colors
+
+Button uses neutral color by default but supports other color values with a `color` property.
+That way, you can emphasize your main call-to-action button using a `primary` button, draw user attention to a `critical` action or highlight a final step of the procedure with `positive` color.
+
+```jsx
+<View gap={3}>
+  <View gap={3} direction="row" align="center">
+    <Button color="primary" onClick={() => {}}>
+      Solid button
+    </Button>
+    <Button color="primary" variant="outline" onClick={() => {}}>
+      Outline button
+    </Button>
+    <Button color="primary" variant="ghost" onClick={() => {}}>
+      Ghost button
+    </Button>
+  </View>
+
+  <View gap={3} direction="row" align="center">
+    <Button color="critical" onClick={() => {}}>
+      Solid button
+    </Button>
+    <Button color="critical" variant="outline" onClick={() => {}}>
+      Outline button
+    </Button>
+    <Button color="critical" variant="ghost" onClick={() => {}}>
+      Ghost button
+    </Button>
+  </View>
+
+  <View gap={3} direction="row" align="center">
+    <Button color="positive" onClick={() => {}}>
+      Solid button
+    </Button>
+    <Button color="positive" variant="outline" onClick={() => {}}>
+      Outline button
+    </Button>
+    <Button color="positive" variant="ghost" onClick={() => {}}>
+      Ghost button
+    </Button>
+  </View>
+</View>
+```
+
+You can use either `white` or `black` button color when you need to display a button over the media content.
+These values use static color tokens, which means they look the same in light and dark mode.
+That's important for media content since images and videos preserve their colors in both color modes.
+
+```jsx
+<View gap={3} direction="row">
+  <View.Item columns={6}>
+    <View borderRadius="medium" overflow="hidden">
+      <AspectRatio ratio={16 / 9}>
+        <Image src="/img/examples/image-retina.webp" />
+        <div style={{ position: "absolute", top: 16, left: 16 }}>
+          <Button color="black" startIcon={IconZap} onClick={() => {}} />
+        </div>
+      </AspectRatio>
+    </View>
+  </View.Item>
+  <View.Item columns={6}>
+    <View borderRadius="medium" overflow="hidden">
+      <Overlay
+        position="top"
+        backgroundSlot={
+          <AspectRatio ratio={16 / 9}>
+            <Image src="/img/examples/image-retina.webp" />
+          </AspectRatio>
+        }
+      >
+        <Button color="white" startIcon={IconZap} onClick={() => {}} />
+      </Overlay>
+    </View>
+  </View.Item>
+</View>
+```
+
+When render Button on top of a dynamic color value, you can use `inherit` color for `ghost` buttons to automatically use the current text color for the Button styles.
+This could be helpful when you're rendering it on `primary` background that changes based on the theme or your component supports multiple background colors while you want to use the same Button component in it.
+In the following example, we're using `inherit` color on top of `primary` and `neutral` colors, so both Buttons stay white in dark mode, but one of them turns black in light mode.
+
+Note, that `inherit` color works only for `ghost` Button variant and will resolve to `neutral` in other variants instead.
+
+```jsx
+<View gap={3} direction="row">
+  <View padding={4} backgroundColor="primary" borderRadius="small">
+    <Button color="inherit" variant="ghost">
+      Inherit
+    </Button>
+  </View>
+  <View padding={4} backgroundColor="neutral" borderRadius="small">
+    <Button color="inherit" variant="ghost">
+      Inherit
+    </Button>
+  </View>
+</View>
+```
+
+## Sizes
+
+Button comes in 4 sizes, with the `medium` size used by default.
+`small` size can be used in cases when there is limited space available for rendering, like in complex tools or dashboards.
+`large` and `xlarge` are built for marketing pages.
+
+```jsx
+<View gap={3} direction="row">
+  <Button size="small" onClick={() => {}}>
+    Save progress
+  </Button>
+  <Button size="medium" onClick={() => {}}>
+    Sign in
+  </Button>
+  <Button size="large" onClick={() => {}}>
+    Get started
+  </Button>
+  <Button size="xlarge" onClick={() => {}}>
+    Subscribe
+  </Button>
+</View>
+```
+
+Button supports responsive syntax for its `size` property, which means you can change its size based on the viewport.
+
+```jsx
+<Button size={{ s: "medium", m: "large" }} onClick={() => {}}>
+  Get started
+</Button>
+```
+
+The content inside the Button automatically defines its width.
+If you want to stretch Button to the entire width of its parent element, you can use the `fullWidth` property.
+For example, you can use this property on mobile viewports where most of the buttons usually take the entire width of the page.
+
+```jsx
+<Button fullWidth color="primary" onClick={() => {}}>
+  Download application
+</Button>
+```
+
+Button supports responsive syntax for its `fullWidth` property, which means you can change its width based on the viewport.
+
+```jsx
+<Button fullWidth={{ s: true, m: false }} onClick={() => {}}>
+  Get started
+</Button>
+```
+
+## States
+
+If button is used for asynchronous actions, use the `loading` property to give feedback to the user.
+Turning the `loading` state on will prevent the Button click events without disabling it visually.
+
+```jsx
+<View gap={3} direction="row">
+  <Button loading onClick={() => {}}>
+    Sign in
+  </Button>
+  <Button color="critical" loading onClick={() => {}}>
+    Delete message
+  </Button>
+  <Button variant="ghost" loading onClick={() => {}}>
+    Load more
+  </Button>
+</View>
+```
+
+Buttons used for actions can also be disabled from the user input with a `disabled` flag.
+That will completely prevent user from interacting with the Button.
+
+```jsx
+<Button disabled onClick={() => {}}>
+  Sign in
+</Button>
+```
+
+## Icon support
+
+Icon can be rendered on either side of the Button text content with `startIcon` and `endIcon` properties, automatically wrapping SVG you pass to it with an Icon utility.
+
+```jsx
+<View gap={3} direction="row">
+  <Button startIcon={IconZap} onClick={() => {}}>
+    1-click order
+  </Button>
+  <Button endIcon={IconZap} onClick={() => {}}>
+    1-click order
+  </Button>
+</View>
+```
+
+If there is not enough space to display a text label, Button can be rendered with just an `icon`.
+In this case, make sure also to pass `aria-label` attribute to the Button or wrap it with `Tooltip` component to keep it accessible for screen readers.
+
+```jsx
+<View gap={3} direction="row">
+  <Button
+    startIcon={IconZap}
+    attributes={{ "aria-label": "1-click order" }}
+    onClick={() => {}}
+  />
+  <Button
+    startIcon={IconZap}
+    variant="ghost"
+    attributes={{ "aria-label": "1-click order" }}
+    onClick={() => {}}
+  />
+</View>
+```
+
+<Grid>
+  <CrossLink title="Icon" href="/content/docs/utilities/icon" />
+  <CrossLink title="Tooltip" href="/content/docs/components/tooltip" />
+</Grid>
+
+## Shape
+
+If you want to differentiate specific buttons in the product or turn them into circular Buttons, you can use a `rounded` flag for both buttons with text and only icons.
+
+```jsx
+<View gap={3} direction="row">
+  <Button rounded onClick={() => {}}>
+    Edit profile
+  </Button>
+  <Button
+    rounded
+    startIcon={IconZap}
+    variant="ghost"
+    attributes={{ "aria-label": "1-click order" }}
+    onClick={() => {}}
+  />
+  <Button
+    rounded
+    startIcon={IconZap}
+    variant="outline"
+    attributes={{ "aria-label": "1-click order" }}
+    onClick={() => {}}
+  />
+  <Button
+    rounded
+    startIcon={IconZap}
+    variant="media"
+    attributes={{ "aria-label": "1-click order" }}
+    onClick={() => {}}
+  />
+</View>
+```
+
+## Elevation
+
+You could use Button `elevated` property when you want to add a shadow to it.
+For example, it can be used for rendering Buttons on top of maps or any decorative backgrounds.
+Note that `elevated` property is not supported for the `ghost` variant.
+
+```jsx
+<View gap={3} direction="row">
+  <Button variant="outline" elevated startIcon={IconZap} onClick={() => {}}>
+    Elevated outline
+  </Button>
+  <Button color="white" elevated startIcon={IconZap} onClick={() => {}}>
+    Elevated white
+  </Button>
+</View>
+```
+
+## Composition
+
+As you may have noticed, we're using a View component in the examples to group the buttons.
+Using ghost buttons may cause misalignment with the content since its background is not visible.
+
+In this case, you can use `Button.Aligner` utility which will adjust the space automatically.
+Passing a `position` property to it will define which sides of the Button need to be aligned with the content.
+It supports both, string and array values.
+
+```jsx
+<View gap={3}>
+  React components that make your product shine.
+  <Button.Aligner position={["start", "top"]}>
+    <Button variant="ghost" color="primary" onClick={() => {}}>
+      Learn more
+    </Button>
+  </Button.Aligner>
+</View>
+```
+
+You can use this approach for adding icon-only buttons to your components without having them take extra space.
+We're also not passing the position value to the Aligner component, so it applies alignment on all sides.
+
+```jsx
+<Card>
+  <View gap={3} direction="row">
+    <View.Item grow>Content</View.Item>
+    <Button.Aligner>
+      <Button
+        startIcon={IconZap}
+        variant="ghost"
+        attributes={{ "aria-label": "1-click order" }}
+        onClick={() => {}}
+      />
+    </Button.Aligner>
+  </View>
+</Card>
+```
+
+With the help of responsive properties, you have a lot of flexibility in terms of how Buttons should behave on different viewports.
+For example, you can completely change their layout on mobile:
+
+```jsx
+<View direction={{ s: "column", m: "row" }} justify="end" gap={2}>
+  <Button
+    size={{ s: "large", m: "medium" }}
+    color="primary"
+    fullWidth={{ s: true, m: false }}
+  >
+    Confirm
+  </Button>
+  <Button size={{ s: "large", m: "medium" }} fullWidth={{ s: true, m: false }}>
+    Cancel
+  </Button>
+</View>
+```
+
+## Accessibility
+
+- Make sure to pass a meaningful aria-label to the component when used without any visually displayed text label.
+- `<button>` click event gets triggered on both `Space` and `Enter` key presses.
+- `<a>` click event gets triggered on `Enter` key press.

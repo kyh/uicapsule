@@ -1,0 +1,160 @@
+<Demo>
+  {(props) => `
+<View height="120px" width="300px" maxWidth="100%">
+  <Accordion ${props.base.attributes}>
+    <Accordion.Trigger ${props.trigger.attributes}>
+      ${props.trigger.children}
+    </Accordion.Trigger>
+    <Accordion.Content>
+      <View paddingTop={4}>
+        ${props.content.children}
+      </View>
+    </Accordion.Content>
+  </Accordion>
+</View>
+`}
+</Demo>
+
+<Highlight>Full keyboard navigation</Highlight>
+<Highlight>Can be controlled and uncontrolled</Highlight>
+<Highlight>Trigger and content layout can be fully customised</Highlight>
+
+<br />
+<br />
+
+## Usage
+
+Accordion is a compound component that includes `Accordion.Trigger` and `Account.Content` in it.
+When it comes to styles, Accordion provides a toggle icon and content transitions, while all other layout styles can be fully customised.
+For example, you can pick your own typography with the `Text` utility and decide which gap you want to use with the help of `View` or custom styles on the product side.
+
+In the following example, we use `View` with `paddingTop` defined inside the `Accordion.Content` which makes the gap between the trigger and the content animated.
+
+```jsx
+<Accordion>
+  <Accordion.Trigger iconSize={6}>
+    <Text variant="title-3">How to enable dark mode?</Text>
+  </Accordion.Trigger>
+  <Accordion.Content>
+    <View paddingTop={4}>
+      <View backgroundColor="neutral" height="80px" borderRadius="small" />
+    </View>
+  </Accordion.Content>
+</Accordion>
+```
+
+## Controlled/Uncontrolled
+
+Accordion can be used as a controlled or uncontrolled component.
+By default, Accordion is uncontrolled and lets you define its default state using the `defaultActive` property.
+In this case, all change events are handled automatically.
+
+```jsx
+<Accordion defaultActive>
+  <Accordion.Trigger>
+    <View backgroundColor="neutral" height="32px" borderRadius="small" />
+  </Accordion.Trigger>
+  <Accordion.Content>
+    <View paddingTop={4}>
+      <View backgroundColor="neutral" height="80px" borderRadius="small" />
+    </View>
+  </Accordion.Content>
+</Accordion>
+```
+
+If you need to control the state of the component manually, you can use the `active` property instead.
+That will give you complete control of the content visibility and will stop handling the state automatically.
+You will have to update the state using the `onToggle` handler and will be able to add custom logic before the state changes for the user.
+
+```jsx
+<Accordion
+  active
+  onToggle={() => {
+    /* Change the state here */
+  }}
+>
+  <Accordion.Trigger>
+    <View backgroundColor="neutral" height="32px" borderRadius="small" />
+  </Accordion.Trigger>
+  <Accordion.Content>
+    <View paddingTop={4}>
+      <View backgroundColor="neutral" height="80px" borderRadius="small" />
+    </View>
+  </Accordion.Content>
+</Accordion>
+```
+
+## Composition
+
+Accordion comes with almost zero styles, which means you can build your own custom layout composition with it.
+For example, you can combine multiple Accordions together and render the Accordion in a styled View when it's active.
+Same way, you can change the layout of the `Accordion.Trigger` content.
+
+```jsx
+function Composition() {
+  const [activeValue, setActiveValue] = React.useState(null);
+
+  return (
+    <View gap={2}>
+      {[1, 2, 3].map((i) => (
+        <View
+          key={i}
+          animated
+          backgroundColor={activeValue === i ? "neutral-faded" : undefined}
+          borderRadius="large"
+          padding={2}
+        >
+          <Accordion
+            active={activeValue === i}
+            onToggle={(active) => setActiveValue(active ? i : null)}
+          >
+            <Accordion.Trigger>
+              <View direction="row" gap={2} align="center">
+                <Avatar size={8} initials={i} color="neutral" />
+                <View.Item grow>Accordion trigger</View.Item>
+              </View>
+            </Accordion.Trigger>
+            <Accordion.Content>
+              <View paddingTop={3}>
+                Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do
+                eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut
+                enim ad minim veniam, quis nostrud exercitation ullamco laboris
+                nisi ut aliquip ex ea commodo consequat.
+              </View>
+            </Accordion.Content>
+          </Accordion>
+        </View>
+      ))}
+    </View>
+  );
+}
+```
+
+## Custom trigger
+
+Accordion.Trigger can be used with render props, which means it won't render the default trigger and instead will give you access to all attributes required for it to work.
+You can pass those attributes to any other component to keep the behaviour accessible.
+
+For example, you can open an Accordion with a Button component and sync it's `highlighted` property with the state of the Accordion.
+
+```jsx
+<Accordion>
+  <Accordion.Trigger>
+    {(attributes, { active }) => (
+      <Button attributes={attributes} highlighted={active}>
+        Toggle
+      </Button>
+    )}
+  </Accordion.Trigger>
+  <Accordion.Content>
+    <View paddingTop={2}>
+      <Placeholder />
+    </View>
+  </Accordion.Content>
+</Accordion>
+```
+
+## Accessibility
+
+- Only content inside the active Accordion can be focused with keyboard
+- Accordion content area is labelled by the trigger content

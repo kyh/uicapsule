@@ -1,0 +1,26 @@
+.root {
+  padding: var(--rs-unit-x6);
+  color: var(--rs-color-white);
+  border-radius: var(--rs-unit-radius-medium);
+  min-height: 100%;
+  display: flex;
+  align-items: center;
+}
+
+.--color-purple {
+  background: radial-gradient(100% 205.72% at 0% 0%, #5F41E3 0%, #6084F8 100%);
+}
+
+.--color-blue {
+  background: radial-gradient(100% 205.72% at 0% 0%, #41BCE3 0%, #6084F8 100%);
+}
+
+.--color-orange {
+  background: radial-gradient(100% 205.72% at 0% 0%, #A259FF 0%, #FF7262 100%);
+}
+
+@media (--rs-viewport-large) {
+  .root {
+    padding: var(--rs-unit-x10) var(--rs-unit-x8);
+  }
+}

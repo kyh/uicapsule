@@ -1,0 +1,71 @@
+## Usage
+
+Reshaped should be used once by wrapping your whole application to enable our global event listeners and give you access to the Reshaped context hooks.
+
+```code
+import { Reshaped } from "reshaped";
+import "reshaped/themes/reshaped/theme.css";
+
+const App = () => {
+  return <Reshaped theme="reshaped">My application</Reshaped>;
+};
+```
+
+Reshaped provider is used to define the root theme of your application.
+By passing a theme to the Reshaped provider &mdash; you will enable access to all design tokens available in the design system.
+
+<Grid>
+  <CrossLink title="Design tokens" href="/content/docs/tokens/overview" />
+</Grid>
+
+## Color mode
+
+By passing `defaultColorMode` to Reshaped provider, you can pick `light` or `dark` color mode to be used by default.
+
+```code
+import { Reshaped } from "reshaped";
+import "reshaped/themes/reshaped/theme.css";
+
+const App = () => {
+  return (
+    <Reshaped theme="reshaped" defaultColorMode="dark">
+      My application
+    </Reshaped>
+  );
+};
+```
+
+<Grid>
+  <CrossLink
+    title="ThemeProvider"
+    href="/content/docs/utilities/theme-provider"
+  />
+  <CrossLink title="useTheme" href="/content/docs/hooks/use-theme" />
+</Grid>
+
+## RTL
+
+Reshaped supports RTL text direction and provides a hook to change that dynamically for the whole application.
+Reshaped component serves as an entry point to define the default value used in the hook later.
+
+```code
+<Reshaped defaultRTL={true} />
+```
+
+<Grid>
+  <CrossLink title="useRTL" href="/content/docs/hooks/use-rtl" />
+</Grid>
+
+## Focus ring management
+
+Reshaped component adds focus management functionality.
+It lets components display a focus ring only when an element on the page is focused using the keyboard.
+If you want to create your custom focusable component that uses this feature &mdash; use an `Actionable` utility that handles this automatically.
+
+<Grid>
+  <CrossLink title="Actionable" href="/content/docs/utilities/actionable" />
+  <CrossLink
+    title=":focus-visible"
+    href="https://drafts.csswg.org/selectors-4/#the-focus-visible-pseudo"
+  />
+</Grid>

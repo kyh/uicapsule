@@ -1,0 +1,60 @@
+---
+title: useToggle
+description: Custom hook for toggling states on and off.
+---
+
+```preview
+function Example() {
+  const { active, activate, deactivate } = useToggle(false);
+
+  return (
+    <Button onClick={active ? deactivate : activate}>{active ? "Deactivate" : "Activate"}</Button>
+  );
+}
+```
+
+<Highlight>
+  Can be used together with components using controlled state
+</Highlight>
+
+<br />
+<br />
+
+## Usage
+
+```ts
+import { useToggle } from "reshaped";
+```
+
+`useToggle` returns methods to activate and deactivate elements in your code and their current value.
+One of the examples where it works can be components like Modal.
+
+```jsx
+function Example() {
+  const { active, activate, deactivate } = useToggle(false);
+
+  return (
+    <>
+      <Button onClick={activate}>Open modal</Button>
+      <Modal active={active} onClose={deactivate}>
+        Modal content
+      </Modal>
+    </>
+  );
+}
+```
+
+<Grid>
+  <CrossLink title="Modal" href="/content/docs/components/modal" />
+</Grid>
+
+## Arguments and return value
+
+```ts
+() => ({
+  activate: () => {},
+  deactivate: () => {},
+  toggle: () => {},
+  active: boolean,
+});
+```

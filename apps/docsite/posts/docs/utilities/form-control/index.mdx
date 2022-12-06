@@ -1,0 +1,109 @@
+```preview
+<FormControl>
+  <FormControl.Label>Twitter handle</FormControl.Label>
+  <TextField name="preview" placeholder="@blvdmitry" />
+  <FormControl.Helper>Account should be verified</FormControl.Helper>
+</FormControl>
+```
+
+<Highlight>
+  Works with all Reshaped form fields with no additional setup
+</Highlight>
+<Highlight>Provides a hook to use with custom form field components</Highlight>
+
+<br />
+<br />
+
+## Usage
+
+FormControl provides a wrapper and separate components for the form field label, helper text, and status captions.
+When used together with input components provided by the Reshaped, those components will use the context data from the FormControl automatically.
+
+```jsx
+<FormControl>
+  <FormControl.Label>Favorite fruit:</FormControl.Label>
+  <TextField name="fruit" />
+  <FormControl.Helper>Melons are berries</FormControl.Helper>
+</FormControl>
+```
+
+By default, FormControl works with single fields, but it can be used for input groups with the `group` property.
+This will convert FormControl to a `fieldset`, providing better accessibility for your grouped form elements.
+It's handy when you need a label for a group of `Radio` or `Checkbox` fields.
+
+```jsx
+<FormControl group>
+  <FormControl.Label>Favorite animals:</FormControl.Label>
+
+  <RadioGroup name="animalGroup">
+    <View gap={2}>
+      <Radio value="dog">Dog</Radio>
+      <Radio value="cat">Cat</Radio>
+    </View>
+  </RadioGroup>
+</FormControl>
+```
+
+## Statuses
+
+FormControl provides `success` and `error` statuses which control the rendering of error/success messages and let you use them to change the input styles based on the current status.
+Error and success messages render only when their status is on, but helper is rendered all the time by default.
+If you want to hide the helper message when input status changes, you can use conditional rendering based on the status.
+
+```jsx
+<FormControl hasError>
+  <FormControl.Label>Favorite fruit:</FormControl.Label>
+  <TextField name="fruit" />
+  <FormControl.Helper>Melons are berries</FormControl.Helper>
+  <FormControl.Error>This field is required</FormControl.Error>
+  <FormControl.Success>All data is correct!</FormControl.Success>
+</FormControl>
+```
+
+## Sizes
+
+FormControl comes in two sizes, where `medium` is a the default one.
+You can use `large` together with larger input sizes to align the text size.
+
+```jsx
+<FormControl size="large">
+  <FormControl.Label>Favorite fruit</FormControl.Label>
+  <TextField name="fruit" value="Apple" size="xlarge" />
+  <FormControl.Helper>Melons are berries</FormControl.Helper>
+</FormControl>
+```
+
+## Using with custom inputs
+
+When using FormControl to render custom-built input fields, you can get all the context data with the `useFormControl` hook.
+All propertiess provided by `useFormControl` can be found in its documentation.
+
+```jsx
+function Example() {
+  const CustomInput = () => {
+    const { attributes } = useFormControl();
+
+    return <input {...attributes} type="text" />;
+  };
+
+  return (
+    <FormControl>
+      <FormControl.Label>Label</FormControl.Label>
+      <CustomInput />
+      <FormControl.Helper>Caption</FormControl.Helper>
+    </FormControl>
+  );
+}
+```
+
+<Grid>
+  <CrossLink
+    title="useFormControl"
+    href="/content/docs/hooks/use-form-control"
+  />
+</Grid>
+
+## Accessibility
+
+FormControl provides all attributes required by accessibility standards to the wrapped elements.
+They are passed to the Reshaped input components by default but make sure all of them are used when building custom input components.

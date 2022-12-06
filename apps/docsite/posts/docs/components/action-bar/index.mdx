@@ -1,0 +1,95 @@
+<Demo>
+  {(props) => `
+<View width="400px" maxWidth="100%">
+  <ActionBar ${props.base.attributes}>
+    ${props.base.children}
+  </ActionBar>
+</View>
+`}
+</Demo>
+
+<Highlight>Works with any type of content</Highlight>
+
+<br />
+<br />
+
+## Usage
+
+ActionBar can be used at any application level and may play many different roles, from control panels to price display areas in the product checkout.
+It provides a content slot and allows any content layout composition with utilities like `View`.
+
+```jsx
+<ActionBar>
+  <View gap={3} direction="row">
+    <Placeholder />
+    <View.Item grow>
+      <Placeholder />
+    </View.Item>
+  </View>
+</ActionBar>
+```
+
+## Position
+
+ActionBar can be used for displaying it as a top or bottom content section.
+Changing its `position` will change the side where the divider is displayed
+
+```jsx
+<ActionBar position="top">
+  <Placeholder />
+</ActionBar>
+```
+
+## Sizes
+
+ActionBar supports `large` size for the page level layout areas, like header or footer.
+Using it will increase the padding size of the ActionBar on desktop screens.
+
+```jsx
+<ActionBar size="large">
+  <Placeholder />
+</ActionBar>
+```
+
+## Composition
+
+ActionBar is highly composable and efficiently works for combining layout utilities, text content, action elements, and other components.
+
+```jsx
+<Card padding={0}>
+  <Placeholder h={200} />
+
+  <ActionBar>
+    <View direction="row" gap={4}>
+      <View.Item columns={6}>
+        <Button color="primary" fullWidth>
+          Confirm
+        </Button>
+      </View.Item>
+      <View.Item columns={6}>
+        <Button color="critical" variant="ghost" fullWidth>
+          Cancel
+        </Button>
+      </View.Item>
+    </View>
+  </ActionBar>
+</Card>
+```
+
+<Grid>
+  <CrossLink title="Card" href="/content/docs/components/card" />
+  <CrossLink title="View" href="/content/docs/utilities/view" />
+</Grid>
+
+## Accessibility
+
+- When used for displaying a set of controls, use it together with the `toolbar` role and [additional keyboard navigation](https://www.w3.org/TR/wai-aria-practices/#toolbar).
+- Action bar can be linked with its internal content using accessibility ids:
+
+```code
+<ActionBar attributes={{ role: "region", "aria-labelledby": "label-id" }}>
+  <Text as="h3" variant="title-3" attributes={{ id: "label-id" }}>
+    Action bar title
+  </Text>
+</ActionBar>
+```

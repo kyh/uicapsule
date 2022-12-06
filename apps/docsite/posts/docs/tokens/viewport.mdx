@@ -1,0 +1,74 @@
+---
+title: Viewport
+description: Viewport tokens define breakpoints tied to the device screen sizes at which a component's behavior or rendering may change.
+---
+
+```preview
+<div
+  style={{
+    borderBottom: "1px solid var(--rs-color-border-critical)",
+    width: 320,
+    textAlign: "center",
+    position: "relative",
+    top: "var(--rs-unit-x3)",
+  }}
+>
+  <div
+    style={{
+      width: 1,
+      height: "var(--rs-unit-x4)",
+      background: "var(--rs-color-border-critical)",
+      position: "absolute",
+      left: 0,
+      bottom: "calc(var(--rs-unit-x2) * -1)",
+    }}
+  />
+  rs-viewport-s
+  <div
+    style={{
+      width: 1,
+      height: "var(--rs-unit-x4)",
+      background: "var(--rs-color-border-critical)",
+      position: "absolute",
+      right: 0,
+      bottom: "calc(var(--rs-unit-x2) * -1)",
+    }}
+  />
+</div>
+```
+
+Reshaped is following a mobile-first approach.
+This means that we treat the smallest viewport size as a default one.
+Other viewports are used to override the mobile styles.
+
+There is no native support for custom media queries in CSS, so we expose them using the PostCSS custom media plugin.
+
+```css
+--rs-viewport-m
+--rs-viewport-l
+--rs-viewport-xl
+
+/* Usage */
+.element {
+  background: var(--rs-color-background-neutral);
+}
+
+@media (--rs-viewport-m) {
+  .element {
+    background: var(--rs-color-background-primary);
+  }
+}
+```
+
+If you still want to make an exception for the mobile viewport, we still expose the small screen media query.
+
+```css
+--rs-viewport-s
+```
+
+Some of the components support responsive properties syntax in JSX code.
+For example, you can check `View` utility with multiple responsive properties supported.
+
+<Grid>
+  <CrossLink title="View" href="/content/docs/utilities/view" />
+</Grid>

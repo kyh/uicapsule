@@ -1,0 +1,195 @@
+<Demo>
+  {(props) => `
+<Tabs ${props.base.attributes}>
+    <Tabs.List>
+      <Tabs.Item ${props.item.attributes}>${props.item.children}</Tabs.Item>
+      <Tabs.Item value="1">Map view</Tabs.Item>
+    </Tabs.List>
+  </Tabs>
+`}
+</Demo>
+
+<Highlight>Full keyboard navigation</Highlight>
+<Highlight>Can be controlled and uncontrolled</Highlight>
+<Highlight>Can be used as a form control</Highlight>
+<Highlight>Works with any content</Highlight>
+
+<br />
+<br />
+
+## Usage
+
+Tabs compound component consists of multiple subcomponents: `List`, `Item` and `Panel` that should be used together.
+Each `Item` and `Panel` should have unique matching IDs within the Tabs parent.
+As you can see, every `Item` has an icon and `children` support.
+
+```jsx
+<Tabs>
+  <Tabs.List>
+    <Tabs.Item value="0" icon={IconZap}>
+      Item 1
+    </Tabs.Item>
+    <Tabs.Item value="1" icon={IconZap}>
+      Long item 2
+    </Tabs.Item>
+    <Tabs.Item value="2" icon={IconZap}>
+      Very long item 3
+    </Tabs.Item>
+  </Tabs.List>
+
+  <Tabs.Panel value="0">Tab 0</Tabs.Panel>
+  <Tabs.Panel value="1">Tab 1</Tabs.Panel>
+  <Tabs.Panel value="2">Tab 2</Tabs.Panel>
+</Tabs>
+```
+
+## Variants
+
+Tabs support `pills`, `pills-elevated` and `borderless` variants.
+
+`borderless` variant is helpful when used with the parent component that already provides its border.
+For example, you can use it together with the `Divider` component and custom padding value.
+
+```jsx
+<>
+  <View padding={[0, 8]}>
+    <Tabs variant="borderless">
+      <Tabs.List>
+        <Tabs.Item value="0">Item 1</Tabs.Item>
+        <Tabs.Item value="1">Long item 2</Tabs.Item>
+        <Tabs.Item value="2">Very long item 3</Tabs.Item>
+      </Tabs.List>
+    </Tabs>
+  </View>
+  <Divider blank />
+</>
+```
+
+`pills` and `pills-elevated` variants can be used for the less prominent secondary navigation.
+
+```jsx
+<View gap={3}>
+  <Tabs variant="pills">
+    <Tabs.List>
+      <Tabs.Item value="0">Item 1</Tabs.Item>
+      <Tabs.Item value="1">Long item 2</Tabs.Item>
+      <Tabs.Item value="2">Very long item 3</Tabs.Item>
+    </Tabs.List>
+  </Tabs>
+
+  <Tabs variant="pills-elevated">
+    <Tabs.List>
+      <Tabs.Item value="0">Item 1</Tabs.Item>
+      <Tabs.Item value="1">Long item 2</Tabs.Item>
+      <Tabs.Item value="2">Very long item 3</Tabs.Item>
+    </Tabs.List>
+  </Tabs>
+</View>
+```
+
+## Controlled/uncontrolled
+
+If you provide `defaultValue` to the component, it will select a tab on the component mount and keep the default selection logic later.
+
+If you provide `value`, a controlled mode will be turned on, and you will have to change the component's state manually.
+This will still call the `onChange` handler, letting you customize the selection logic. For instance, you can fetch data for the tab before making it active.
+
+```jsx
+<Tabs defaultValue="1">
+  <Tabs.List>
+    <Tabs.Item value="0">Item 1</Tabs.Item>
+    <Tabs.Item value="1">Long item 2</Tabs.Item>
+    <Tabs.Item value="2" icon={IconZap}>
+      Very long item 3
+    </Tabs.Item>
+  </Tabs.List>
+
+  <Tabs.Panel value="0">Tab 0</Tabs.Panel>
+  <Tabs.Panel value="1">Tab 1</Tabs.Panel>
+  <Tabs.Panel value="2">Tab 2</Tabs.Panel>
+</Tabs>
+```
+
+## Equal width items
+
+You can stretch the tab items to keep their width equal with `itemWidth` property.
+
+```jsx
+<Tabs itemWidth="equal">
+  <Tabs.List>
+    <Tabs.Item value="0">Item 1</Tabs.Item>
+    <Tabs.Item value="1">Item 2</Tabs.Item>
+    <Tabs.Item value="2">Item 3</Tabs.Item>
+  </Tabs.List>
+
+  <Tabs.Panel value="0">Tab 0</Tabs.Panel>
+  <Tabs.Panel value="1">Tab 1</Tabs.Panel>
+  <Tabs.Panel value="2">Tab 2</Tabs.Panel>
+</Tabs>
+```
+
+## Panel composition
+
+Panels don't have to be located at the top level of the component.
+You can place them anywhere inside the Tabs scope, and they will still work as expected.
+
+```jsx
+function TabsExample() {
+  const [value, setValue] = React.useState("0");
+
+  return (
+    <Tabs value={value} onChange={({ value }) => setValue(value)}>
+      <Tabs.List>
+        <Tabs.Item value="0">Item 1</Tabs.Item>
+        <Tabs.Item value="1">Item 2</Tabs.Item>
+      </Tabs.List>
+      {value === "0" && (
+        <View padding={4}>
+          <Tabs.Panel value="0">Tab 0</Tabs.Panel>
+        </View>
+      )}
+      {value === "1" && (
+        <View padding={4}>
+          <Tabs.Panel value="1">Tab 1</Tabs.Panel>
+        </View>
+      )}
+    </Tabs>
+  );
+}
+```
+
+This approach lets you easily customize their styles and animate their appearance using 3rd-party libraries.
+
+## Using in forms
+
+Tabs can be used in forms as radio buttons if you pass the `name` property to them.
+That will automatically adjust their markup to native input elements, and the selected value will support form submission.
+
+```jsx
+<Tabs variant="pills-elevated" name="tabs">
+  <Tabs.List>
+    <Tabs.Item value="0">Item 1</Tabs.Item>
+    <Tabs.Item value="1">Long item 2</Tabs.Item>
+    <Tabs.Item value="2">Very long item 3</Tabs.Item>
+  </Tabs.List>
+</Tabs>
+```
+
+## Accessibility
+
+Tabs component provides all required aria- attributes and roles to its elements.
+To provide a description to the tablist element, you can use `attributes={{ 'aria-label': 'Tabs label' }}`.
+
+**Keyboard navigation:**
+
+When used as regular tabs:
+
+- Pressing `Tab` will place the focus on the active tab item when the focus moves into the tab list
+- Left and right arrow keys move focus across tab items
+- `Space` and `Enter` select the focused tab
+- `Home` moves focus to the first tab item
+- `End` moves focus to the last tab item
+
+When used in forms:
+
+- Left and right arrow keys change the selected tab

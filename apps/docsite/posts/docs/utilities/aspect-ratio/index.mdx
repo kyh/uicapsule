@@ -1,0 +1,73 @@
+<Demo>
+  {(props) => `
+<AspectRatio ${props.base.attributes}>
+  <Image src="/img/examples/image-retina.webp" alt="Canyon rock" borderRadius="medium" width="300px" />
+</AspectRatio>
+`}
+</Demo>
+
+<Highlight>Supports any custom ratio values</Highlight>
+<Highlight>Supports responsive aspect ratio behavior</Highlight>
+
+<br />
+<br />
+
+## Usage
+
+AspectRatio renders a square by default, but its size can be customized with a `ratio` property.
+It supports any float value; however, it's easier to pass as a division of numbers, like `4 / 3`.
+Since the component is a wrapper for other components - child content should have its height set to 100% or rendered as a background of the AspectRatio.
+
+```jsx
+<View direction="row" gap={3}>
+  <View.Item grow>
+    <AspectRatio>
+      <Placeholder h="auto" />
+    </AspectRatio>
+  </View.Item>
+
+  <View.Item grow>
+    <AspectRatio ratio={4 / 3}>
+      <Placeholder h="auto" />
+    </AspectRatio>
+  </View.Item>
+
+  <View.Item grow>
+    <AspectRatio ratio={16 / 9}>
+      <Placeholder h="auto" />
+    </AspectRatio>
+  </View.Item>
+</View>
+```
+
+## Responsive syntax
+
+AspectRatio supports responsive syntax for its `ratio` property, which means you can change its ratio based on the viewport.
+
+```jsx
+<AspectRatio ratio={{ s: 16 / 4, m: 16 / 9 }}>
+  <Placeholder h="auto" />
+</AspectRatio>
+```
+
+## Composition
+
+One of the most popular use-cases for AspectRatio is using it for media content, like images, videos, or maps.
+
+```jsx
+<AspectRatio ratio={16 / 9}>
+  <Image
+    width="300px"
+    src="/img/examples/image-retina.webp"
+    alt="Canyon rock"
+    borderRadius="medium"
+  />
+</AspectRatio>
+```
+
+This approach works well if combined with other components like `Card`.
+
+<Grid>
+  <CrossLink href="/content/docs/components/card" title="Card" />
+  <CrossLink href="/content/docs/utilities/image" title="Image" />
+</Grid>

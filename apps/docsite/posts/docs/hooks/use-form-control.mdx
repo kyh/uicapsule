@@ -1,0 +1,54 @@
+---
+title: useFormControl
+description: Custom hook to inherit values from the FormControl utility in your custom-built form fields.
+---
+
+<br />
+<br />
+
+## Usage
+
+```ts
+import { useFormControl } from "reshaped";
+```
+
+<Grid>
+  <CrossLink title="Form Control" href="/content/docs/utilities/form-control" />
+</Grid>
+
+When using `FormControl` utility – you would usually pass properties to it that should also affect your form field.
+For instance, passing the `disabled` flag to `FormControl` should also change the field color and prevent the user from interacting with it.
+
+If you're using Reshaped form field components – they are already using `useFormControl` inside them, so this logic is supported automatically.
+However, if you're building a custom input component, `useFormControl` is where you can get data for inheriting the FormControl properties values.
+
+For instance, you can create a custom input component with the hook:
+
+```tsx
+function CustomInputComponent() {
+  const { disabled } = useFormControl();
+
+  return <input type="text" disabled={disabled} />;
+}
+```
+
+Then it will automatically get access to values used in the FormControl your input is wrapped with:
+
+```code
+<FormControl disabled>
+  <FormControl.Label>Custom field:</FormControl.Label>
+  <CustomInputComponent />
+</FormControl>
+```
+
+## Arguments and return value
+
+```ts
+() => ({
+  attributes: object,
+  required: boolean,
+  hasError: boolean,
+  hasSuccess: boolean,
+  disabled: boolean,
+});
+```

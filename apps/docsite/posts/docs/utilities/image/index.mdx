@@ -1,0 +1,125 @@
+<Demo>{(props) => `<Image ${props.base.attributes} />`}</Demo>
+
+<Highlight>Supports responsive image sizes</Highlight>
+<Highlight>Supports srcset for screen density optimisations</Highlight>
+<Highlight>Provides multiple fallback options</Highlight>
+
+<br />
+<br />
+
+## Usage
+
+When `src` is valid and loads correctly, Image component renders an img element as if it was rendered natively with `auto` width and height.
+With the default browser behaviour that's likely to result in **suboptimal quality** on retina screens:
+
+```jsx
+<Image src="/img/examples/image-retina.webp" alt="Canyon rock" />
+```
+
+To improve the quality, make sure to either define the image size manually or use `srcSet` attribute.
+Note that we pass different image assets here for different pixel densities and browser will automatically pick which one to download:
+
+```jsx
+<Image
+  src="/img/examples/image.webp"
+  alt="Canyon rock"
+  imageAttributes={{ srcSet: "/img/examples/image-retina.webp 2x" }}
+/>
+```
+
+<Grid>
+  <CrossLink
+    title="MDN: Responsive images"
+    href="https://developer.mozilla.org/en-US/docs/Learn/HTML/Multimedia_and_embedding/Responsive_images"
+  />
+</Grid>
+
+You can pick the correct `borderRadius` for the Image based on the design tokens to better visually align it with the surrounding components.
+For circular images, `Avatar` component can be used instead.
+
+```jsx
+<Image
+  src="/img/examples/image-retina.webp"
+  alt="Canyon rock"
+  borderRadius="large"
+  width="300px"
+/>
+```
+
+<Grid>
+  <CrossLink title="Avatar" href="/content/docs/components/avatar" />
+</Grid>
+
+## Sizes
+
+You can pass a specific `width` and `height` to the Image to easier control how it's used in the layout.
+These values work with any CSS values and support responsive syntax, which means you can change the Image size per viewport.
+
+```jsx
+<Image
+  src="/img/examples/image-retina.webp"
+  alt="Canyon rock"
+  width={{ s: "200px", l: "300px" }}
+  height={{ s: "calc(var(--rs-unit-x1) * 20)", l: "100%" }}
+/>
+```
+
+Another way to define the Image size is to use it together with `AspectRatio` utility.
+In that case `AspectRatio` will define the Image sizes based on the passed ratio value and will apply `cover` display mode by default.
+
+```jsx
+<AspectRatio ratio={16 / 9}>
+  <Image
+    src="/img/examples/image-retina.webp"
+    alt="Canyon rock"
+    width="300px"
+  />
+</AspectRatio>
+```
+
+## Fallback
+
+Image provides multiple `fallback` options that are shown based on the sizes defined for the image-retina.
+Using them is helpful whenever and error happens during the Image load or `src` is not available in your data source.
+In both cases you might want to show a placeholder.
+
+When `fallback` is passed as a boolean, Image will just render a background.
+
+```jsx
+<View width="300px">
+  <AspectRatio ratio={16 / 9}>
+    <Image fallback />
+  </AspectRatio>
+</View>
+```
+
+When `fallback` is passed as a string, Image will use it as a URL for a fallback image-retina.
+In this case another image will try loading instead of the original one.
+
+```jsx
+<Image
+  width="80px"
+  height="80px"
+  fallback="/img/examples/placeholder.webp"
+  borderRadius="medium"
+/>
+```
+
+When `fallback` is passed as ReactNode, it will be used as a slot to render any component.
+For example, it can be used to render placeholder icons or error messages.
+
+```jsx
+<Image
+  width="80px"
+  height="80px"
+  fallback={<Icon svg={IconZap} size={6} />}
+  borderRadius="medium"
+/>
+```
+
+Note that `fallback` won't be visible if Image doesn't have its sizes defined or is not using `AspectRatio`.
+
+## Accessibility
+
+We recommend using `alt` property for most of the images as long as you have a way to provide meaningful description for the screen reader users.
+If `alt` is not passed, Image will be treated as decorative and will use `presentation` role.

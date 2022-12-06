@@ -1,0 +1,8 @@
+.root {
+  padding-inline-start: var(--rs-unit-x3);
+  border-inline-start: 1px solid var(--rs-color-border-neutral-faded);
+}
+
+.submenu {
+  padding-inline-start: var(--rs-unit-x3);
+}

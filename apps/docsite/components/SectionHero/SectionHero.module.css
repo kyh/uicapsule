@@ -1,0 +1,39 @@
+.root {
+  padding-top: calc(var(--rs-unit-x1) * 10);
+  margin-bottom: 150px;
+  position: relative;
+}
+
+.gradient {
+  /* background: linear-gradient(191.72deg, rgba(67, 151, 228, 0.03) 28%, rgba(92, 67, 228, 0.07) 90.55%); */
+  background: 
+    linear-gradient(
+      180deg, 
+      rgba(var(--rs-color-rgb-background-primary), 0) 50%,
+      rgba(var(--rs-color-rgb-background-primary), 0.08) 90%
+    );
+  border-bottom: 1px solid var(--rs-color-background-primary-faded);
+  position: absolute;
+  pointer-events: none;
+  inset: 0;
+}
+
+.demo {
+  margin-bottom: -150px;
+}
+
+.grid {
+  position: relative;
+}
+
+.platform {
+  border: 1px solid var(--rs-color-border-neutral-faded);
+  border-radius: var(--rs-unit-radius-small);
+  padding: var(--rs-unit-x1) var(--rs-unit-x2);
+}
+
+@media (--rs-viewport-m) {
+  .root {
+    padding-top: calc(var(--rs-unit-x1) * 21);
+  }
+}

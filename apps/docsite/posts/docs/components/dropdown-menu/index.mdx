@@ -1,0 +1,117 @@
+<Demo>
+  {(props) => `
+  <DropdownMenu ${props.base.attributes}>
+    <DropdownMenu.Trigger>
+      {(attributes) => <Button attributes={attributes}>Edit</Button>}
+    </DropdownMenu.Trigger>
+    <DropdownMenu.Content>
+      <DropdownMenu.Section>
+        <DropdownMenu.Item ${props.item.attributes}>${props.item.children}</DropdownMenu.Item>
+        <DropdownMenu.Item endSlot="⌘C">Copy</DropdownMenu.Item>
+        <DropdownMenu.Item endSlot="⌘V">Paste</DropdownMenu.Item>
+      </DropdownMenu.Section>
+      <DropdownMenu.Section>
+        <DropdownMenu.Item endSlot="⌘Z">Undo</DropdownMenu.Item>
+        <DropdownMenu.Item endSlot="⌘Y">Redo</DropdownMenu.Item>
+      </DropdownMenu.Section>
+    </DropdownMenu.Content>
+  </DropdownMenu>
+`}
+</Demo>
+
+<Highlight>Can be controlled and uncontrolled</Highlight>
+<Highlight>Automatically traps focus when opened</Highlight>
+<Highlight>
+  Automatically fits the menu into the viewport or locks it to the position
+  value you provide
+</Highlight>
+<Highlight>Full keyboard navigation</Highlight>
+<Highlight>Supports menu sections</Highlight>
+<Highlight>Supports custom width</Highlight>
+<Highlight>Supports custom trigger element rendering</Highlight>
+
+<br />
+<br />
+
+## Usage
+
+DropdownMenu exposes multiple compound components that you can use to achieve any menu composition you need.
+They all are available through the DropdownMenu component.
+
+```jsx
+<DropdownMenu>
+  <DropdownMenu.Trigger>
+    {(attributes) => <Button attributes={attributes}>Open</Button>}
+  </DropdownMenu.Trigger>
+  <DropdownMenu.Content>
+    <DropdownMenu.Item>Action 1</DropdownMenu.Item>
+    <DropdownMenu.Item>Action 2</DropdownMenu.Item>
+  </DropdownMenu.Content>
+</DropdownMenu>
+```
+
+DropdownMenu itself here serves as the root wrapper for the component.
+
+- `DropdownMenu.Trigger` is a trigger providing all required attributes and handlers for your component, like `Button` in this example.
+- `DropdownMenu.Content` is a wrapper for the overlaying content with menu items.
+  Both components work similarly to how the `Popover` components work but provide additional features for the default `Popover` and `MenuItem` implementations.
+- `DropdownMenu.Item` implementation is based on the `MenuItem` component.
+  It has `className`, `size` and `roundedCorners` properties predefined and supports all other `MenuItem` properties to be passed to it.
+
+<Grid>
+  <CrossLink title="Popover" href="/content/docs/components/popover" />
+  <CrossLink title="Menu Item" href="/content/docs/components/menu-item" />
+</Grid>
+
+DropdownMenu supports most of the properties `Popover` does, which means you can use its event handlers or position it differently.
+In the same way, you can turn it into a controlled component by using `active` property.
+
+```jsx
+<DropdownMenu position="top-end" onClose={() => console.log("Closed")}>
+  <DropdownMenu.Trigger>
+    {(attributes) => <Button attributes={attributes}>Open</Button>}
+  </DropdownMenu.Trigger>
+  <DropdownMenu.Content>
+    <DropdownMenu.Item>Action 1</DropdownMenu.Item>
+    <DropdownMenu.Item>Action 2</DropdownMenu.Item>
+  </DropdownMenu.Content>
+</DropdownMenu>
+```
+
+## Sections
+
+DropdownMenu supports separating items into sections by using `DropdownMenu.Section` component.
+
+```jsx
+<DropdownMenu>
+  <DropdownMenu.Trigger>
+    {(attributes) => <Button attributes={attributes}>Open</Button>}
+  </DropdownMenu.Trigger>
+  <DropdownMenu.Content>
+    <DropdownMenu.Section>
+      <DropdownMenu.Item>Action 1</DropdownMenu.Item>
+      <DropdownMenu.Item>Action 2</DropdownMenu.Item>
+    </DropdownMenu.Section>
+    <DropdownMenu.Section>
+      <DropdownMenu.Item>Action 3</DropdownMenu.Item>
+      <DropdownMenu.Item>Action 4</DropdownMenu.Item>
+    </DropdownMenu.Section>
+  </DropdownMenu.Content>
+</DropdownMenu>
+```
+
+## Controlled/Uncontrolled
+
+If you pass the `defaultActive` flag to the component, it will open the menu on the component mount and use its internal state afterward.
+
+If you pass the `active` flag, the controlled mode will turn on, and you will have to change the component's state manually.
+It means that you have to control the state using `onOpen` and `onClose` handlers, and you can add any custom logic before updating the state.
+
+## Accessibility
+
+- It's essential to pass the attributes provided by the DropdownMenu component to your interactive trigger component.
+  That way you will ensure that all the user events and aria attributes are assigned correctly.
+
+- DropdownMenu manages the navigation and focus when used with the keyboard.
+  After opening the menu, the focus is moved to the first menu item, and next/previous item can be selected with arrow keys.
+  Pressing `Tab`, `Esc`, or clicking outside will close the menu and return the focus back to the trigger.

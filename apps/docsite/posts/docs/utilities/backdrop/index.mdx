@@ -1,0 +1,76 @@
+```preview
+function Example() {
+  const { active, activate, deactivate } = useToggle(false);
+
+  return (
+    <>
+      <Button onClick={activate}>Show photo</Button>
+      <Backdrop active={active} onClose={deactivate}>
+        <Image src="/img/examples/image-retina.webp" width="300px" borderRadius="medium" />
+      </Backdrop>
+    </>
+  );
+}
+```
+
+<Highlight>Works with any type of content</Highlight>
+<Highlight>Automatically traps focus when opened</Highlight>
+<Highlight>Can be controlled and uncontrolled</Highlight>
+<Highlight>Closes on Esc key press</Highlight>
+
+<br />
+<br />
+
+## Usage
+
+Backdrop is a controlled component which means that it has an `active` property and multiple handlers that you can use to change the value of this property.
+Once Backdrop is active &mdash; it will prevent scrolling of the whole page and only support scrolling for the content displayed inside the Backdrop.
+
+**Note:** It's safe to keep Backdrop in your render all the time.
+Backdrop will be rendered in the DOM only if it is active.
+Rendering Backdrop optionally will prevent its animation from working.
+
+```jsx
+function Example() {
+  const { active, activate, deactivate } = useToggle(false);
+
+  return (
+    <>
+      <Button onClick={activate}>Open backdrop</Button>
+      <Backdrop active={active} onClose={deactivate}>
+        Backdrop content
+      </Backdrop>
+    </>
+  );
+}
+```
+
+Backdrop component is animated, so if you want your children animated together with Backdrop, you can use the render props pattern from React.
+With this approach, the `children` property is used as a function that returns an `active` flag.
+You can use this flag to set the state of the Backdrop content.
+
+```jsx
+function ExampleRenderProps() {
+  const { active, activate, deactivate } = useToggle(false);
+
+  return (
+    <>
+      <Button onClick={activate}>Open backdrop</Button>
+      <Backdrop active={active} onClose={deactivate}>
+        {({ active }) => (active ? "Active content" : "Hidden content")}
+      </Backdrop>
+    </>
+  );
+}
+```
+
+To make it easier to control the state, we're providing a `useToggle` hook that you can use together with Backdrop or other components that toggle states.
+
+<Grid>
+  <CrossLink title="useToggle" href="/content/docs/hooks/use-toggle" />
+</Grid>
+
+## Accessibility
+
+- Backdrop traps focus inside its root element, which means that using any type of keyboard navigation will keep the focus inside the Backdrop while it's opened.
+- Backdrop triggers its `onClose` handler on `Esc` key press.

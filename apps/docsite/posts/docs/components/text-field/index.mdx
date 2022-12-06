@@ -1,0 +1,172 @@
+<Demo>
+  {(props) => `
+<View width="300px" maxWidth="100%">
+  <TextField ${props.base.attributes} />
+</View>
+`}
+</Demo>
+
+<Highlight>Full keyboard navigation</Highlight>
+<Highlight>Can be controlled and uncontrolled</Highlight>
+<Highlight>Automatic integration with FormControl utility</Highlight>
+
+<br />
+<br />
+
+## Usage
+
+Form fields have a required `name` property, so that's the only property you have to pass to TextField to start using it.
+If you need to handle its change events - add an `onChange` property to it.
+
+```jsx
+<TextField
+  name="email"
+  placeholder="Enter your email"
+  onChange={(args) => console.log(args)}
+/>
+```
+
+## Controlled/Uncontrolled
+
+Same as when using native inputs in React, TextField can be used as a controlled or uncontrolled component.
+By default, TextField is uncontrolled and lets you define its default value using the `defaultValue` property.
+In this case, all change events are handled automatically.
+This approach is helpful when you're pre-filling a form from a data source, but you don't need to control the further behavior of the input.
+
+```jsx
+<TextField
+  name="email"
+  placeholder="your.email@gmail.com"
+  defaultValue="reshaped.example@gmail.com"
+/>
+```
+
+If you need to control the state of the field manually, you can use the `value` property.
+That will give you complete control of the component value and will stop handling the value automatically.
+You will have to update the state using the `onChange` handler and will be able to add custom logic before that happens.
+
+```jsx
+<TextField
+  name="email"
+  placeholder="your.email@gmail.com"
+  value="reshaped.example@gmail.com"
+  onChange={({ value }) => {
+    /* Update your state here */
+  }}
+/>
+```
+
+## Slots
+
+TextField has slots on both start and end sides, which you can use for displaying inline content, like text, badges, or inline actions.
+
+```jsx
+<View gap={3}>
+  <TextField startSlot={<Badge color="neutral">Breakfast</Badge>} name="name" />
+  <TextField name="email" endSlot="@gmail.com" />
+</View>
+```
+
+## Icon support
+
+For consistent Icon usage in text fields, you can use `startIcon` and `endIcon` properties instead of slots and pass the icon SVG component.
+
+```jsx
+<View gap={3}>
+  <TextField startIcon={IconZap} name="email" />
+  <TextField endIcon={IconZap} name="email" />
+</View>
+```
+
+## Sizes
+
+TextField comes in 3 sizes, with the `medium` size used by default.
+All sizes are aligned with sizes of other related components like `Button` or `Select`.
+
+```jsx
+<View gap={3}>
+  <TextField
+    startIcon={IconZap}
+    name="email"
+    size="medium"
+    placeholder="Enter your email"
+  />
+  <TextField
+    startIcon={IconZap}
+    name="email"
+    size="large"
+    placeholder="Enter your email"
+  />
+  <TextField
+    startIcon={IconZap}
+    name="email"
+    size="xlarge"
+    placeholder="Enter your email"
+  />
+</View>
+```
+
+TextField supports responsive syntax for its `size` property, which means you can change its size based on the viewport.
+
+```jsx
+<TextField
+  startIcon={IconZap}
+  name="email"
+  size={{ s: "medium", l: "xlarge" }}
+  placeholder="Enter your email"
+/>
+```
+
+## States
+
+You can use `hasError` property to show the user that TextArea is not passing the form validation.
+
+```jsx
+<TextField name="email" hasError />
+```
+
+You can disable TextField with the `disabled` flag.
+However, remember that disabling the field will remove it from the form submit query.
+
+```jsx
+<TextField name="email" disabled />
+```
+
+## Using with FormControl
+
+To let the user know what data you expect them to type in, add labels or status messages to your fields with the help of the `FormControl` utility.
+In case you're using `xlarge` TextField size, you can also combine it with the `large` FormControl size for better visual alignment.
+
+**Note:** Don't use placeholders as labels for the fields as users won't see the placeholder when input contains a value.
+
+```jsx
+<FormControl>
+  <FormControl.Label>Email</FormControl.Label>
+  <TextField name="name" placeholder="example@gmail.com" />
+</FormControl>
+```
+
+<Grid>
+  <CrossLink href="/content/docs/utilities/form-control" title="FormControl" />
+</Grid>
+
+## Data types
+
+TextField can be used with any `type` supported in the browsers by passing it to the `inputAttributes`.
+
+```jsx
+<TextField
+  name="password"
+  defaultValue="123"
+  inputAttributes={{ type: "password" }}
+/>
+```
+
+## Accessibility
+
+- When using TextField without a label - make sure to provide a text description.
+  You can either provide the label by using the `FormControl` utility or by passing `inputAttributes={{ 'aria-label': 'Your label' }}` to the component if you don't want to display it visually.
+
+```jsx
+<TextField attributes={{ "aria-label": "Email" }} />
+```

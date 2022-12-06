@@ -1,0 +1,82 @@
+```preview
+<View width="300px" maxWidth="100%">
+  <Card>
+    <View gap={3}>
+      <View.Item>
+        <Text variant="body-strong-2">Work</Text>
+        <Text color="neutral-faded">1,765 photos</Text>
+      </View.Item>
+      <Divider />
+      <View.Item>
+        <Text variant="body-strong-2">Vacation</Text>
+        <Text color="neutral-faded">2,235 photos</Text>
+      </View.Item>
+    </View>
+  </Card>
+</View>
+```
+
+<Highlight>Supports horizontal and vertical directions</Highlight>
+<Highlight>
+  Direction can responsively change based on the viewport size
+</Highlight>
+
+<br />
+<br />
+
+## Usage
+
+You can use the View utility `divided` property whenever you need to separate a group of items.
+It uses the Divider component under the hood.
+
+```jsx
+<View divided gap={3}>
+  <View.Item>Item 1</View.Item>
+  <View.Item>Item 2</View.Item>
+</View>
+```
+
+<Grid>
+  <CrossLink title="View" href="/content/docs/utilities/view" />
+</Grid>
+
+## Vertical
+
+Dividers can be used to separate content horizontally and vertically.
+
+```jsx
+<>
+  Item 1
+  <Divider />
+  Item 2
+</>
+```
+
+Vertical dividers take the full height of their parent.
+This property is responsive, which means you can use an object syntax to define its behavior for different viewports:
+`vertical={{ s: true, l: false }}`.
+
+```jsx
+<div style={{ height: 100 }}>
+  Item 1
+  <Divider vertical />
+  Item 2
+</div>
+```
+
+## Blank
+
+Divider renders a line that takes 1px of space. You can disable this behavior with the `blank` property.
+That can make it easier to use components like borderless `Tabs` where Divider overlaps with the component content.
+
+```jsx
+<>
+  <Tabs variant="borderless">
+    <Tabs.List>
+      <Tabs.Item value="0">List view</Tabs.Item>
+      <Tabs.Item value="1">Map view</Tabs.Item>
+    </Tabs.List>
+  </Tabs>
+  <Divider blank />
+</>
+```

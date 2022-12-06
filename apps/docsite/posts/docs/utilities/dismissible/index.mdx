@@ -1,0 +1,64 @@
+<Demo>
+  {(props) => `
+<View width="300px" maxWidth="100%">
+  <Dismissible ${props.base.attributes}>
+    ${props.base.children}
+  </Dismissible>
+</View>
+`}
+</Demo>
+
+<Highlight>Works with any content</Highlight>
+
+<br />
+<br />
+
+## Usage
+
+Dismissible provides a `children` slot with a reserved spot for the close button.
+
+```jsx
+<Dismissible closeAriaLabel="Close banner">
+  <Placeholder />
+</Dismissible>
+```
+
+Dismissible has a `media` variant for displaying media content that can be removed from the screen.
+It will move the close button away from the edges of the media content and will use a different variant of the button.
+
+```jsx
+<Dismissible variant="media" closeAriaLabel="Close banner">
+  <AspectRatio ratio={16 / 9}>
+    <Image src="/img/examples/image-retina.webp" width="100%" />
+  </AspectRatio>
+</Dismissible>
+```
+
+If you want to hide the close button conditionally, we're providing a `hideCloseButton` property. That should help you simplify the conditional rendering implementation.
+
+```jsx
+<Dismissible hideCloseButton>Dismissible content</Dismissible>
+```
+
+## Composition
+
+In components like `Modal` or `Popover`, you would usually like to display its title with Dismissible but make the rest of the content full width.
+To achieve that, you can group Dismissible with other components.
+
+```jsx
+<View gap={3}>
+  <Dismissible>
+    <Text variant="body-strong-1">View title</Text>
+  </Dismissible>
+  View content
+</View>
+```
+
+<Grid>
+  <CrossLink title="Modal" href="/content/docs/components/modal" />
+  <CrossLink title="Popover" href="/content/docs/components/popover" />
+</Grid>
+
+## Accessibility
+
+- When using Dismissible with a close button, you should also provide the `closeAriaLabel` value to make the close button accessible.

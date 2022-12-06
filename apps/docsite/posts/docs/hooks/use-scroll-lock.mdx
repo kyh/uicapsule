@@ -1,0 +1,60 @@
+---
+title: useScrollLock
+description: Custom hook to lock and unlock page scrolling.
+---
+
+```preview
+function Example() {
+  const { scrollLocked, lockScroll, unlockScroll } = useScrollLock();
+
+  return (
+    <Button onClick={() => (scrollLocked ? unlockScroll() : lockScroll())}>
+      {scrollLocked ? "Unlock" : "Lock"} scroll
+    </Button>
+  );
+}
+```
+
+<Highlight>Preserves the scroll position on lock and unlock</Highlight>
+<Highlight>Avoids page width changes</Highlight>
+
+<br />
+<br />
+
+## Usage
+
+```ts
+import { useScrollLock } from "reshaped";
+```
+
+Backdrop utility component is using `useScrollLock` internally, so you don't have to worry about the scrolling if you're displaying the content inside the `Backdrop`.
+
+<Grid>
+  <CrossLink title="Backdrop" href="/content/docs/utilities/backdrop" />
+</Grid>
+
+Locking page scrolling is something you would usually do when you show content on top of the page and need to avoid the user scrolling the background until it's closed.
+You can try the following demo to see how it works:
+
+```jsx
+function Example() {
+  const { scrollLocked, lockScroll, unlockScroll } = useScrollLock();
+
+  return (
+    <View gap={3} direction="row">
+      <Button onClick={() => lockScroll()}>Lock scroll</Button>
+      <Button onClick={() => unlockScroll()}>Unlock scroll</Button>
+    </View>
+  );
+}
+```
+
+## Arguments and return value
+
+```ts
+() => ({
+  scrollLocked: boolean,
+  lockScroll: () => {},
+  unlockScroll: () => {},
+});
+```

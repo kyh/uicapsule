@@ -1,0 +1,110 @@
+---
+title: Remix installation
+description: Setting up Reshaped package in a Remix project.
+---
+
+## Create your project
+
+Start by creating your Remix project if you don't have one already.
+Using [Create Remix command](https://remix.run/docs/en/v1/tutorials/blog) should speed up this process:
+
+```bash
+npx create-remix --template remix-run/indie-stack my-reshaped-app
+cd my-reshaped-app
+```
+
+We're using `indie-stack` template in this example but feel free to pick any other Remix template.
+
+## Install Reshaped
+
+Download the latest Reshaped release from the [Releases page](/content/changelog) and save the `.tgz` file into your project.
+Then install the package using the file path.
+For example, if you save the package as `./vendor/reshaped.tgz` in the project root folder, you can run:
+
+```json
+// npm
+npm install ./vendor/reshaped.tgz
+
+// yarn
+yarn add ./vendor/reshaped.tgz
+```
+
+## Add Reshaped to the root file
+
+Remix application wrapper is stored in the `app/root.tsx` file.
+To make Reshaped styles and context available for all routes, we should make some changes there.
+
+Import Reshaped provider and CSS files.
+Note that we're importing component from the `reshaped/bundle` to use an already compiled version of the library.
+
+```ts
+import { Reshaped } from "reshaped/bundle";
+import theme from "reshaped/themes/reshaped/theme.css";
+import styles from "reshaped/bundle.css";
+```
+
+Add styles to the exported Remix `links` array:
+
+```ts
+export const links: LinksFunction = () => {
+  return [
+    { rel: "stylesheet", href: styles },
+    { rel: "stylesheet", href: theme },
+  ];
+};
+```
+
+Wrap the application with the provider:
+
+```code
+<Reshaped theme="reshaped">
+  <Outlet />
+</Reshaped>
+```
+
+## Start using Reshaped components
+
+You can start using Reshaped components anywhere in your application.
+Make sure to import them from `reshaped/bundle` to use an already compiled version of the library.
+
+```code
+import { Button, Container, Reshaped } from "reshaped/bundle";
+
+const App = () => {
+  return (
+    <Container width="652px">
+      <Button href="/">Get started</Button>
+    </Container>
+  );
+};
+```
+
+## Start the application
+
+Run your build process with `npm run dev`.
+
+```bash
+npm run dev
+```
+
+## Add PostCSS config
+
+All our components work without PostCSS but in case you need to use our custom media queries available in CSS you'll need a PostCSS setup available in your project.
+In that case, check Remix documentation on [how to make it work with PostCSS](https://remix.run/docs/en/v1/guides/styling#postcss).
+
+After you're done with the setup, import a PostCSS config from Reshaped and add it to `postcss.config.js` file in the root folder:
+
+```js
+const postcss = require("reshaped/postcss");
+module.exports = postcss.config;
+```
+
+You can find more details in our `remix-starter` example on Github.
+If you want to learn more about components - search for the relevant components documentation in the sidebar.
+
+<Grid>
+  <CrossLink
+    title="Remix starter"
+    href="https://github.com/reshaped/community/tree/master/examples/remix-starter"
+  />
+</Grid>
