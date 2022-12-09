@@ -1,14 +1,14 @@
 import React from "react";
-import { useTheme } from "reshaped";
+import { useTheme } from "@uicapsule/components";
 
 const useStoredColorMode = () => {
-	const theme = useTheme();
+  const theme = useTheme();
 
-	React.useEffect(() => {
-		localStorage.setItem("__reshaped-mode", theme.colorMode);
-	}, [theme.colorMode]);
+  React.useEffect(() => {
+    localStorage.setItem("__@uicapsule/components-mode", theme.colorMode);
+  }, [theme.colorMode]);
 
-	return theme;
+  return theme;
 };
 
 export default useStoredColorMode;

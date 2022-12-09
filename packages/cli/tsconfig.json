@@ -1,8 +1,7 @@
 {
-	"extends": "./tsconfig.json",
-	"compilerOptions": {
-		"baseUrl": "src",
-		"module": "CommonJS"
-	},
-	"include": ["src/cli", "src/themes/index.ts"]
+  "extends": "@uicapsule/config/tsconfig/node16.json",
+  "compilerOptions": {
+    "baseUrl": "src"
+  },
+  "include": ["src/cli", "src/themes/index.ts"]
 }

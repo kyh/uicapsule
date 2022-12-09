@@ -9,29 +9,29 @@ Start by creating your Vite project if you don't have one already.
 Using [Create Vite](https://vitejs.dev/guide/#scaffolding-your-first-vite-project) should speed up this process:
 
 ```bash
-npm init vite@latest my-reshaped-app --template react
-cd my-reshaped-app
+npm init vite@latest my-@uicapsule/components-app --template react
+cd my-@uicapsule/components-app
 ```
 
 Or if you're using Typescript:
 
 ```bash
-npm init vite@latest my-reshaped-app --template react-ts
-cd my-reshaped-app
+npm init vite@latest my-@uicapsule/components-app --template react-ts
+cd my-@uicapsule/components-app
 ```
 
 ### Install Reshaped
 
 Download the latest Reshaped release from the [Releases page](/content/changelog) and save the `.tgz` file into your project.
 Then install the package using the file path.
-For example, if you save the package as `./vendor/reshaped.tgz` in the project root folder, you can run:
+For example, if you save the package as `./vendor/@uicapsule/components.tgz` in the project root folder, you can run:
 
 ```json
 // npm
-npm install ./vendor/reshaped.tgz
+npm install ./vendor/@uicapsule/components.tgz
 
 // yarn
-yarn add ./vendor/reshaped.tgz
+yarn add ./vendor/@uicapsule/components.tgz
 ```
 
 ### Add PostCSS config
@@ -39,7 +39,7 @@ yarn add ./vendor/reshaped.tgz
 Import a PostCSS config from Reshaped and add it to `postcss.config.js` file in the root folder:
 
 ```js
-const postcss = require("reshaped/postcss");
+const postcss = require("@uicapsule/components/postcss");
 module.exports = postcss.config;
 ```
 
@@ -56,12 +56,12 @@ npm run dev
 Import some of the core components in `src/App.tsx` and try them out:
 
 ```code
-import { Button, Container, Reshaped } from "reshaped";
-import reshapedTheme from "reshaped/themes/reshaped/theme.css";
+import { Button, Container, Reshaped } from "@uicapsule/components";
+import @uicapsule/componentsTheme from "@uicapsule/components/themes/@uicapsule/components/theme.css";
 
 const App = () => {
   return (
-    <Reshaped theme="reshaped">
+    <Reshaped theme="@uicapsule/components">
       <Container width="652px">
         <Button href="/">Get started</Button>
       </Container>
@@ -76,6 +76,6 @@ If you want to learn more about components - search for the relevant components 
 <Grid>
   <CrossLink
     title="Vite starter"
-    href="https://github.com/reshaped/community/tree/master/examples/vite-starter"
+    href="https://github.com/@uicapsule/components/community/tree/master/examples/vite-starter"
   />
 </Grid>

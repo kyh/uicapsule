@@ -3,11 +3,11 @@
 Reshaped should be used once by wrapping your whole application to enable our global event listeners and give you access to the Reshaped context hooks.
 
 ```code
-import { Reshaped } from "reshaped";
-import "reshaped/themes/reshaped/theme.css";
+import { Reshaped } from "@uicapsule/components";
+import "@uicapsule/components/themes/@uicapsule/components/theme.css";
 
 const App = () => {
-  return <Reshaped theme="reshaped">My application</Reshaped>;
+  return <Reshaped theme="@uicapsule/components">My application</Reshaped>;
 };
 ```
 
@@ -23,12 +23,12 @@ By passing a theme to the Reshaped provider &mdash; you will enable access to al
 By passing `defaultColorMode` to Reshaped provider, you can pick `light` or `dark` color mode to be used by default.
 
 ```code
-import { Reshaped } from "reshaped";
-import "reshaped/themes/reshaped/theme.css";
+import { Reshaped } from "@uicapsule/components";
+import "@uicapsule/components/themes/@uicapsule/components/theme.css";
 
 const App = () => {
   return (
-    <Reshaped theme="reshaped" defaultColorMode="dark">
+    <Reshaped theme="@uicapsule/components" defaultColorMode="dark">
       My application
     </Reshaped>
   );

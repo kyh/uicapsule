@@ -7,14 +7,14 @@ title: Installation
 Log in and download the latest package release from the [Releases](/content/changelog/) page.
 Then, move the downloaded package to your project and install it with `yarn` or `npm`.
 
-For instance, if you move it to the `/./vendor/reshaped-v1.0.0.tgz`, you can then install it like any other package:
+For instance, if you move it to the `/./vendor/@uicapsule/components-v1.0.0.tgz`, you can then install it like any other package:
 
 ```shell
 # Yarn
-yarn add ././vendor/reshaped-v1.0.0.tgz
+yarn add ././vendor/@uicapsule/components-v1.0.0.tgz
 
 # NPM
-npm install ././vendor/reshaped-v1.0.0.tgz
+npm install ././vendor/@uicapsule/components-v1.0.0.tgz
 ```
 
 ### Setup CSS
@@ -26,7 +26,7 @@ This way, you will get CSS only for components you're using in the product inste
 Start by creating a `postcss.config.js` file in your project root and importing a PostCSS config from Reshaped:
 
 ```code
-const postcss = require("reshaped/postcss");
+const postcss = require("@uicapsule/components/postcss");
 module.exports = postcss.config;
 ```
 
@@ -38,20 +38,20 @@ This config can be extended with your own plugins.
 Since we're building the package as ES Modules, we don't merge package files into a single bundle.
 However, we're explicitly defining which imports should be used during development:
 
-`import { Button } from 'reshaped';`
+`import { Button } from '@uicapsule/components';`
 
 You should import all components and utilities from the main library entry point.
 This type of import works with tree-shaking, so your bundle will only contain the code you use in your product.
 
 <br />
 
-`const config = require('reshaped/postcss');`
+`const config = require('@uicapsule/components/postcss');`
 
 PostCSS config provided by the library.
 
 <br />
 
-`import 'reshaped/themes/reshaped/theme.css';`
+`import '@uicapsule/components/themes/@uicapsule/components/theme.css';`
 
 All pre-built themes are stored in the package, and can you can import them from the `themes` folder.
 There is no default theme, so your code bundle will only include the themes you import.
@@ -65,8 +65,8 @@ There is no default theme, so your code bundle will only include the themes you 
 
 <br />
 
-`import { Button } from 'reshaped/bundle';`<br />
-`import 'reshaped/bundle.css';`
+`import { Button } from '@uicapsule/components/bundle';`<br />
+`import '@uicapsule/components/bundle.css';`
 
 Pre-built bundles that can be used for the cases when your framework or build tool doesn't support CSS imports inside the ES modules.
 
@@ -75,12 +75,12 @@ Pre-built bundles that can be used for the cases when your framework or build to
 Import some of the components along with the `Reshaped` provider and try them out:
 
 ```code
-import { Button, Container, Reshaped } from "reshaped";
-import "reshaped/themes/reshaped/theme.css";
+import { Button, Container, Reshaped } from "@uicapsule/components";
+import "@uicapsule/components/themes/@uicapsule/components/theme.css";
 
 const App = () => {
   return (
-    <Reshaped theme="reshaped">
+    <Reshaped theme="@uicapsule/components">
       <Container width="652px">
         <Button href="/">Get started</Button>
       </Container>
@@ -96,7 +96,7 @@ It also means that we keep ES imports and exports in our code, and you have to c
 ### Setup build process
 
 Reshaped supports most popular build tools and frameworks, like Vite or Next.js.
-Check detailed guides for their setup in the Integrations sections or look directly for the project starters in our [community repository](https://github.com/reshaped/community):
+Check detailed guides for their setup in the Integrations sections or look directly for the project starters in our [community repository](https://github.com/@uicapsule/components/community):
 
 <Grid>
   <CrossLink
@@ -127,10 +127,10 @@ To avoid style differences between server and browser rendering, add the default
 
 ```code
 // RTL with light mode
-<body dir="rtl" data-rs-theme="reshaped-light">
+<body dir="rtl" data-rs-theme="@uicapsule/components-light">
 
 // LTR with dark mode
-<body data-rs-theme="reshaped-dark">
+<body data-rs-theme="@uicapsule/components-dark">
 ```
 
 ## Source code

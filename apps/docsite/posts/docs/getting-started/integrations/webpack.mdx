@@ -12,8 +12,8 @@ Dependencies may vary based on the project setup.
 For example, you might use `babel-loader` instead of `ts-loader` if you don't use Typescript.
 
 ```bash
-mkdir my-reshaped-app
-cd my-reshaped-app
+mkdir my-@uicapsule/components-app
+cd my-@uicapsule/components-app
 npm install react react-dom
 npm install --dev webpack webpack-cli webpack-dev-server css-loader postcss-loader mini-css-extract-plugin ts-loader typescript html-webpack-plugin @types/react @types/react-dom
 ```
@@ -22,14 +22,14 @@ npm install --dev webpack webpack-cli webpack-dev-server css-loader postcss-load
 
 Download the latest Reshaped release from the [Releases page](/content/changelog) and save the `.tgz` file into your project.
 Then install the package using the file path.
-For example, if you save the package as `./vendor/reshaped.tgz` in the project root folder, you can run:
+For example, if you save the package as `./vendor/@uicapsule/components.tgz` in the project root folder, you can run:
 
 ```json
 // npm
-npm install ./vendor/reshaped.tgz
+npm install ./vendor/@uicapsule/components.tgz
 
 // yarn
-yarn add ./vendor/reshaped.tgz
+yarn add ./vendor/@uicapsule/components.tgz
 ```
 
 ## Add PostCSS config
@@ -37,7 +37,7 @@ yarn add ./vendor/reshaped.tgz
 Import a PostCSS config from Reshaped and add it to `postcss.config.js` file in the root folder:
 
 ```js
-const postcss = require("reshaped/postcss");
+const postcss = require("@uicapsule/components/postcss");
 module.exports = postcss.config;
 ```
 
@@ -49,7 +49,7 @@ You can find an example of a simple Webpack config in our example project:
 <Grid>
   <CrossLink
     title="Webpack config"
-    href="https://github.com/reshaped/community/blob/master/examples/webpack-starter/webpack.config.js"
+    href="https://github.com/@uicapsule/components/community/blob/master/examples/webpack-starter/webpack.config.js"
   />
 </Grid>
 
@@ -61,7 +61,7 @@ You can find an example of a simple Typescript config in our example project:
 <Grid>
   <CrossLink
     title="Typescript config"
-    href="https://github.com/reshaped/community/blob/master/examples/webpack-starter/tsconfig.json"
+    href="https://github.com/@uicapsule/components/community/blob/master/examples/webpack-starter/tsconfig.json"
   />
 </Grid>
 
@@ -89,12 +89,12 @@ npm run start
 Import some of the core components in `src/App.tsx` and try them out:
 
 ```code
-import { Button, Container, Reshaped } from "reshaped";
-import "reshaped/themes/reshaped/theme.css";
+import { Button, Container, Reshaped } from "@uicapsule/components";
+import "@uicapsule/components/themes/@uicapsule/components/theme.css";
 
 const App = () => {
   return (
-    <Reshaped theme="reshaped">
+    <Reshaped theme="@uicapsule/components">
       <Container width="652px">
         <Button href="/">Get started</Button>
       </Container>
@@ -109,6 +109,6 @@ If you want to learn more about components - search for the relevant components 
 <Grid>
   <CrossLink
     title="Webpack starter"
-    href="https://github.com/reshaped/community/tree/master/examples/webpack-starter"
+    href="https://github.com/@uicapsule/components/community/tree/master/examples/webpack-starter"
   />
 </Grid>

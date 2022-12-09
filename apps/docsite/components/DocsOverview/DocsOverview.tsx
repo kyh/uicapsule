@@ -1,5 +1,5 @@
 import React from "react";
-import { View, Text } from "reshaped";
+import { View, Text } from "@uicapsule/components";
 import LibraryOverview from "components/LibraryOverview";
 import Example from "./components/Example";
 import ExampleActionBar from "./components/ExampleActionBar";
@@ -47,147 +47,148 @@ import ExampleView from "./components/ExampleView";
 import s from "./DocsOverview.module.css";
 
 const examples = [
-	ExampleActionBar,
-	ExampleAlert,
-	ExampleAvatar,
-	ExampleBadge,
-	ExampleButton,
-	ExampleBreadcrumbs,
-	ExampleCard,
-	ExampleCarousel,
-	ExampleCheckbox,
-	ExampleDivider,
-	ExampleDropdownMenu,
-	ExampleLink,
-	ExampleLoader,
-	ExampleMenuItem,
-	ExampleModal,
-	ExampleOverlay,
-	ExamplePopover,
-	ExampleProgress,
-	ExampleRadio,
-	ExampleSelect,
-	ExampleSwitch,
-	ExampleTabs,
-	ExampleTextArea,
-	ExampleTextField,
-	ExampleToast,
-	ExampleTooltip,
+  ExampleActionBar,
+  ExampleAlert,
+  ExampleAvatar,
+  ExampleBadge,
+  ExampleButton,
+  ExampleBreadcrumbs,
+  ExampleCard,
+  ExampleCarousel,
+  ExampleCheckbox,
+  ExampleDivider,
+  ExampleDropdownMenu,
+  ExampleLink,
+  ExampleLoader,
+  ExampleMenuItem,
+  ExampleModal,
+  ExampleOverlay,
+  ExamplePopover,
+  ExampleProgress,
+  ExampleRadio,
+  ExampleSelect,
+  ExampleSwitch,
+  ExampleTabs,
+  ExampleTextArea,
+  ExampleTextField,
+  ExampleToast,
+  ExampleTooltip,
 ];
 
 const utilities = [
-	ExampleReshaped,
-	ExampleAccordion,
-	ExampleActionable,
-	ExampleAspectRatio,
-	ExampleBackdrop,
-	ExampleContainer,
-	ExampleDismissible,
-	ExampleFormControl,
-	ExampleHidden,
-	ExampleHiddenVisually,
-	ExampleIcon,
-	ExampleImage,
-	ExampleText,
-	ExampleThemeProvider,
-	ExampleView,
+  ExampleReshaped,
+  ExampleAccordion,
+  ExampleActionable,
+  ExampleAspectRatio,
+  ExampleBackdrop,
+  ExampleContainer,
+  ExampleDismissible,
+  ExampleFormControl,
+  ExampleHidden,
+  ExampleHiddenVisually,
+  ExampleIcon,
+  ExampleImage,
+  ExampleText,
+  ExampleThemeProvider,
+  ExampleView,
 ];
 
 const hooks = [
-	{
-		title: "useElementId",
-		text: "Custom hook to generate ids for DOM elements",
-		href: "/content/docs/hooks/use-element-id",
-	},
-	{
-		title: "useFormControl",
-		text: "Custom hook to inherit values from the FormControl utility in your custom-built form fields",
-		href: "/content/docs/hooks/use-form-control",
-	},
-	{
-		title: "useRTL",
-		text: "Custom hook to control the direction of the content flow",
-		href: "/content/docs/hooks/use-rtl",
-	},
-	{
-		title: "useScrollLock",
-		text: "Custom hook to lock and unlock page scrolling",
-		href: "/content/docs/hooks/use-scroll-lock",
-	},
-	{
-		title: "useTheme",
-		text: "Custom hook to switch between the light and dark mode of the used theme",
-		href: "/content/docs/hooks/use-theme",
-	},
-	{
-		title: "useToggle",
-		text: "Custom hook for toggling states on and off",
-		href: "/content/docs/hooks/use-toggle",
-	},
+  {
+    title: "useElementId",
+    text: "Custom hook to generate ids for DOM elements",
+    href: "/content/docs/hooks/use-element-id",
+  },
+  {
+    title: "useFormControl",
+    text: "Custom hook to inherit values from the FormControl utility in your custom-built form fields",
+    href: "/content/docs/hooks/use-form-control",
+  },
+  {
+    title: "useRTL",
+    text: "Custom hook to control the direction of the content flow",
+    href: "/content/docs/hooks/use-rtl",
+  },
+  {
+    title: "useScrollLock",
+    text: "Custom hook to lock and unlock page scrolling",
+    href: "/content/docs/hooks/use-scroll-lock",
+  },
+  {
+    title: "useTheme",
+    text: "Custom hook to switch between the light and dark mode of the used theme",
+    href: "/content/docs/hooks/use-theme",
+  },
+  {
+    title: "useToggle",
+    text: "Custom hook for toggling states on and off",
+    href: "/content/docs/hooks/use-toggle",
+  },
 ];
 
 const DocsOverview = () => {
-	return (
-		<View gap={5}>
-			<Text variant="display-3" as="h1">
-				Welcome
-			</Text>
+  return (
+    <View gap={5}>
+      <Text variant="display-3" as="h1">
+        Welcome
+      </Text>
 
-			<Text variant="featured-2" className={s.intro}>
-				Reshaped is a professionally crafted design system for product design and development teams
-				and individuals. We provide with core components you would need in every project, focusing
-				on accessibility, scalable component customization and development experience.
-			</Text>
+      <Text variant="featured-2" className={s.intro}>
+        Reshaped is a professionally crafted design system for product design
+        and development teams and individuals. We provide with core components
+        you would need in every project, focusing on accessibility, scalable
+        component customization and development experience.
+      </Text>
 
-			<View.Item gapBefore={8}>
-				<LibraryOverview />
-			</View.Item>
+      <View.Item gapBefore={8}>
+        <LibraryOverview />
+      </View.Item>
 
-			<View.Item gapBefore={12}>
-				<Text variant="title-1">Components</Text>
-			</View.Item>
+      <View.Item gapBefore={12}>
+        <Text variant="title-1">Components</Text>
+      </View.Item>
 
-			<View.Item gapBefore={6}>
-				<View gap={{ s: 3, m: 5 }} direction="row" align="stretch">
-					{examples.map((ExampleComponent, index) => (
-						<View.Item columns={{ s: 12, m: 6, xl: 4 }} key={index}>
-							<ExampleComponent />
-						</View.Item>
-					))}
-				</View>
-			</View.Item>
+      <View.Item gapBefore={6}>
+        <View gap={{ s: 3, m: 5 }} direction="row" align="stretch">
+          {examples.map((ExampleComponent, index) => (
+            <View.Item columns={{ s: 12, m: 6, xl: 4 }} key={index}>
+              <ExampleComponent />
+            </View.Item>
+          ))}
+        </View>
+      </View.Item>
 
-			<View.Item gapBefore={12}>
-				<Text variant="title-1">Utilities</Text>
-			</View.Item>
+      <View.Item gapBefore={12}>
+        <Text variant="title-1">Utilities</Text>
+      </View.Item>
 
-			<View.Item gapBefore={6}>
-				<View gap={{ s: 3, m: 5 }} direction="row" align="stretch">
-					{utilities.map((Utility, index) => {
-						return (
-							<View.Item columns={{ s: 12, m: 6, xl: 4 }} key={index}>
-								<Utility />
-							</View.Item>
-						);
-					})}
-				</View>
-			</View.Item>
+      <View.Item gapBefore={6}>
+        <View gap={{ s: 3, m: 5 }} direction="row" align="stretch">
+          {utilities.map((Utility, index) => {
+            return (
+              <View.Item columns={{ s: 12, m: 6, xl: 4 }} key={index}>
+                <Utility />
+              </View.Item>
+            );
+          })}
+        </View>
+      </View.Item>
 
-			<View.Item gapBefore={12}>
-				<Text variant="title-1">Hooks</Text>
-			</View.Item>
+      <View.Item gapBefore={12}>
+        <Text variant="title-1">Hooks</Text>
+      </View.Item>
 
-			<View.Item gapBefore={6}>
-				<View gap={{ s: 3, m: 5 }} direction="row" align="stretch">
-					{hooks.map((hook) => (
-						<View.Item columns={{ s: 12, m: 6, xl: 4 }} key={hook.title}>
-							<Example {...hook} />
-						</View.Item>
-					))}
-				</View>
-			</View.Item>
-		</View>
-	);
+      <View.Item gapBefore={6}>
+        <View gap={{ s: 3, m: 5 }} direction="row" align="stretch">
+          {hooks.map((hook) => (
+            <View.Item columns={{ s: 12, m: 6, xl: 4 }} key={hook.title}>
+              <Example {...hook} />
+            </View.Item>
+          ))}
+        </View>
+      </View.Item>
+    </View>
+  );
 };
 
 export default DocsOverview;

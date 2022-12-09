@@ -1,0 +1,73 @@
+.root {
+	/* In case parent changes its color */
+	transition: color var(--rs-duration-fast) var(--rs-easing-standard);
+}
+
+@each $value in start, center, end {
+	.--align-$(value) {
+		text-align: $value;
+	}
+}
+
+@each $viewport in m, l, xl {
+	@media (--rs-viewport-$viewport) {
+		@each $value in start, center, end {
+			.--align-$(value)--$(viewport) {
+				text-align: $value;
+			}
+		}
+	}
+}
+
+.--clamp {
+	display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: var(--_ml);
+  overflow: hidden;
+}
+
+@each $variant in display-1, display-2, display-3, featured-1, featured-2, featured-3, title-1, title-2, title-3, body-strong-1, body-strong-2, body-medium-1, body-medium-2, body-1, body-2, caption-1, caption-2 {
+	.--variant-$(variant) {
+		font-size: var(--rs-font-size-$(variant));
+		line-height: var(--rs-line-height-$(variant));
+		font-weight: var(--rs-font-weight-$(variant));
+		font-family: var(--rs-font-family-$(variant));
+		
+		@each $viewport in m, l, xl {
+			@media (--rs-viewport-$(viewport)) {
+				font-size: var(--rs-font-size-$(variant)-$(viewport));
+				line-height: var(--rs-line-height-$(variant)-$(viewport));
+				font-weight: var(--rs-font-weight-$(variant)-$(viewport));
+				font-family: var(--rs-font-family-$(variant)-$(viewport));
+			}
+		}
+	}
+}
+
+.--color-neutral {
+	color: var(--rs-color-foreground-neutral);
+}
+
+.--color-neutral-faded {
+	color: var(--rs-color-foreground-neutral-faded);
+}
+
+.--color-positive {
+	color: var(--rs-color-foreground-positive);
+}
+
+.--color-critical {
+	color: var(--rs-color-foreground-critical);
+}
+
+.--color-primary {
+	color: var(--rs-color-foreground-primary);
+}
+
+.--color-disabled {
+	color: var(--rs-color-foreground-disabled);
+}
+
+.--decoration-line-through {
+	text-decoration: line-through;
+}

@@ -1,0 +1,120 @@
+.root {
+	display: block;
+	transition: var(--rs-duration-fast) var(--rs-easing-standard);
+	transition-property: background-color, color, transform;
+	padding: var(--rs-menu-item-padding-v) var(--rs-menu-item-padding-h);
+
+	/* TODO: Replace with font utilities when they become available */
+	font-size: var(--rs-font-size-body-medium-2);
+	line-height: var(--rs-line-height-body-medium-2);
+	font-family: var(--rs-font-family-body-medium-2);
+	font-weight: var(--rs-font-weight-body-medium-2);
+
+	&:hover {
+		background-color: rgba(var(--rs-color-rgb-background-neutral), 0.4);
+	}
+}
+
+/* Apply only to button so it works correctly in stack */
+button.root {
+	width: 100%;
+}
+
+.icon {
+	color: var(--rs-color-foreground-neutral-faded);
+	transition: var(--rs-duration-fast) var(--rs-easing-standard);
+	transition-property: color;
+}
+
+.--rounded-corners {
+	border-radius: var(--rs-menu-item-radius);
+}
+
+@each $viewport in m, l, xl {
+	@media (--rs-viewport-$(viewport)) {
+		.--rounded-corners-true--$viewport {
+			border-radius: var(--rs-menu-item-radius);
+		}
+
+		.--rounded-corners-false--$viewport {
+			border-radius: 0;
+		}
+	}
+}
+
+.--size {
+	&-small {
+		--rs-menu-item-padding-v: var(--rs-unit-x2);
+		--rs-menu-item-padding-h: var(--rs-unit-x3);
+		--rs-menu-item-radius: var(--rs-unit-radius-small);
+	}
+
+	&-medium {
+		--rs-menu-item-padding-v: var(--rs-unit-x3);
+		--rs-menu-item-padding-h: var(--rs-unit-x4);
+		--rs-menu-item-radius: var(--rs-unit-radius-medium);
+	}
+
+	&-large {
+		--rs-menu-item-padding-v: var(--rs-unit-x4);
+		--rs-menu-item-padding-h: var(--rs-unit-x6);
+		--rs-menu-item-radius: var(--rs-unit-radius-medium);
+	}
+}
+
+@each $viewport in m, l, xl {
+	@media (--rs-viewport-$(viewport)) {
+		.--size {
+			&-small--$viewport {
+				--rs-menu-item-padding-v: var(--rs-unit-x2);
+				--rs-menu-item-padding-h: var(--rs-unit-x3);
+				--rs-menu-item-radius: var(--rs-unit-radius-small);
+			}
+		
+			&-medium--$viewport {
+				--rs-menu-item-padding-v: var(--rs-unit-x3);
+				--rs-menu-item-padding-h: var(--rs-unit-x4);
+				--rs-menu-item-radius: var(--rs-unit-radius-medium);
+			}
+		
+			&-large--$viewport {
+				--rs-menu-item-padding-v: var(--rs-unit-x4);
+				--rs-menu-item-padding-h: var(--rs-unit-x6);
+				--rs-menu-item-radius: var(--rs-unit-radius-medium);
+			}
+		}
+	}
+}
+
+.--selected,
+.--selected:hover {
+	background-color: rgba(var(--rs-color-rgb-background-primary), 0.16);
+	color: var(--rs-color-foreground-primary);
+	cursor: default;
+
+	& .icon {
+		color: inherit;
+	}
+}
+
+.--disabled,
+.--disabled:hover {
+	color: var(--rs-color-foreground-disabled);
+	background: none;
+
+	& .icon {
+		color: var(--rs-color-foreground-disabled);
+	}
+}
+
+/* Aligner */
+.aligner {
+	/* Normalize button width, since it doesn't respect width: 100% with negative margin */
+	button.root {
+		box-sizing: initial;
+	}
+
+	.root {
+		margin: 0 calc(var(--rs-menu-item-padding-h) * -1);
+	}
+}

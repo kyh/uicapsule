@@ -1,0 +1,22 @@
+.root {
+	border-radius: var(--rs-unit-radius-medium);
+	background: var(--rs-color-background-elevated);
+	color: var(--rs-color-foreground-neutral);
+	border: 1px solid var(--rs-color-border-neutral-faded);
+	box-shadow: var(--rs-shadow-elevated);
+	min-width: 220px;
+	max-width: 360px;
+	overflow: hidden;
+}
+
+.root.--has-width {
+	max-width: none;
+	min-width: 0;
+}
+
+@media (--rs-viewport-s) {
+	.root {
+		max-width: none;
+	}
+}
+

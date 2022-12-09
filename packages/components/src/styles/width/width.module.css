@@ -1,0 +1,17 @@
+.root {
+	--_rs-w: none;
+	--_rs-w-m: var(--_rs-w);
+	--_rs-w-l: var(--_rs-w-m);
+	--_rs-w-xl: var(--_rs-w-l);
+	--_rs-w-responsive: var(--_rs-w);
+
+	width: var(--_rs-w-responsive);
+}
+
+@each $viewport in m, l, xl {
+	@media (--rs-viewport-$viewport) {
+		.root {
+			--_rs-w-responsive: var(--_rs-w-$(viewport));
+		}
+	}
+}

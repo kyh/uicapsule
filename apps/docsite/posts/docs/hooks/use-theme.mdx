@@ -25,7 +25,7 @@ function Example() {
 ## Usage
 
 ```ts
-import { useTheme } from "reshaped";
+import { useTheme } from "@uicapsule/components";
 ```
 
 In Reshaped, we don't treat light and dark modes like two different themes; instead, we have a separate `colorMode` definition.
@@ -76,15 +76,15 @@ By default, the value is set to light mode.
 To support the color mode value with server-side rendering, pass the className from the theme to the `body` element.
 
 ```code
-import 'reshaped/themes/reshaped/theme.css';
+import '@uicapsule/components/themes/@uicapsule/components/theme.css';
 
-<body data-rs-theme="reshaped-light">
+<body data-rs-theme="@uicapsule/components-light">
 ```
 
 <Grid>
   <CrossLink
     title="Reshaped Provider"
-    href="/content/docs/utilities/reshaped"
+    href="/content/docs/utilities/@uicapsule/components"
   />
   <CrossLink title="Installation - SSR" href="/content/docs/getting-started" />
 </Grid>

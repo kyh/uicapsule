@@ -1,5 +1,5 @@
 {
-  "extends": "@uicapsule/config/tsconfig/next.json",
+  "extends": "@uicapsule/config/tsconfig/nextjs.json",
   "compilerOptions": {
     "baseUrl": "."
   },

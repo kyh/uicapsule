@@ -7,7 +7,7 @@ To solve that, Reshaped has a command-line interface for creating new themes.
 
 ## Adding themes
 
-You need to create a `reshaped.config.js` file with the theme definitions next to your project's `package.json` file to add new themes.
+You need to create a `@uicapsule/components.config.js` file with the theme definitions next to your project's `package.json` file to add new themes.
 
 ```code
 const config = {
@@ -28,7 +28,7 @@ All other values are inherited from the default Reshaped theme.
 
 ## Theme fragments
 
-In addition to themes, `reshaped.config.js` allows you to create theme fragments.
+In addition to themes, `@uicapsule/components.config.js` allows you to create theme fragments.
 Theme fragment is a subset of a theme values overrides.
 By using theme fragments, you can save bundle size as your theme output will contain only the tokens you have changed instead of the whole theme.
 
@@ -62,12 +62,12 @@ Let's add an NPM script to call the CLI to your `package.json`:
 ```json
 {
   "scripts": {
-    "build:themes": "reshaped theming --output src/themes"
+    "build:themes": "@uicapsule/components theming --output src/themes"
   }
 }
 ```
 
-Running `yarn build:themes` or `npm run build:themes` now will take your added theme definitions from `reshaped.config.js` file and compile them into the `src/themes` folder.
+Running `yarn build:themes` or `npm run build:themes` now will take your added theme definitions from `@uicapsule/components.config.js` file and compile them into the `src/themes` folder.
 Script will create a folder for each theme and theme fragment with a variables files inside.
 
 ```
@@ -86,7 +86,7 @@ With the themes built, you can now import them into your code.
 We can start by picking the `productTheme` theme we've just built and pass it to the `Reshaped` provider:
 
 ```code
-import { Reshaped } from "reshaped";
+import { Reshaped } from "@uicapsule/components";
 import "themes/productTheme/theme.css";
 
 const Application = ({ children }) => <Reshaped theme="productTheme">{children}</Reshaped>;
@@ -99,7 +99,7 @@ Let's create a `TwitterButton` component with a different button background colo
 We can use a `ThemeProvider` utility to define a theme just for the components rendered inside it.
 
 ```code
-import { Button, ThemeProvider } from "reshaped";
+import { Button, ThemeProvider } from "@uicapsule/components";
 import "themes/fragments/twitter/theme.css";
 
 const TwitterButton = (buttonProps) => (
@@ -120,11 +120,11 @@ This concept is called Scoped theming, and you can learn more about it in a sepa
 
 ## Typescript support
 
-Even though `reshaped.config.js` is a Javascript file, you can use comments to enable type checking for the config:
+Even though `@uicapsule/components.config.js` is a Javascript file, you can use comments to enable type checking for the config:
 
 ```ts
 // @ts-check
-/** @type {import('reshaped').ReshapedConfig} */
+/** @type {import('@uicapsule/components').ReshapedConfig} */
 const config = {
   themes: {
     twitter: {

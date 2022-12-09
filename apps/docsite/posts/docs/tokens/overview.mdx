@@ -24,11 +24,11 @@ To access the token values, first, you need to wrap your application with the `R
 In the following example, we're using the theme provided by the Reshaped package. However, you can also create your custom theme and use it the same way.
 
 ```code
-import { Reshaped } from "reshaped";
-import "reshaped/themes/reshaped/theme.css";
+import { Reshaped } from "@uicapsule/components";
+import "@uicapsule/components/themes/@uicapsule/components/theme.css";
 
 const Application = ({ children }) => (
-  <Reshaped theme="reshaped" defaultColorMode="dark">
+  <Reshaped theme="@uicapsule/components" defaultColorMode="dark">
     {children}
   </Reshaped>
 );

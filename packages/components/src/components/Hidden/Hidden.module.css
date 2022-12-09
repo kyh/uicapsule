@@ -1,0 +1,79 @@
+/**
+* Important is used since classNames can be used as mixins for other components
+* and there is no guarantee about the css specificity
+*/
+
+.root {
+	--rs-hidden-display: block;
+	display: var(--rs-hidden-display) !important;
+}
+
+.--inline {
+	--rs-hidden-display: inline;
+}
+
+.--hidden {
+	display: none !important;
+
+	&.--visibility {
+		display: var(--rs-hidden-display) !important;
+		visibility: hidden;
+	}
+}
+
+@media (--rs-viewport-m) {
+	.--hidden-false--m {
+		display: var(--rs-hidden-display) !important;
+
+		&.--visibility {
+			visibility: visible;
+		}
+	}
+
+	.--hidden-true--m {
+		display: none !important;
+
+		&.--visibility {
+			display: var(--rs-hidden-display) !important;
+			visibility: hidden;
+		}
+	}
+}
+
+@media (--rs-viewport-l) {
+	.--hidden-false--l {
+		display: var(--rs-hidden-display) !important;
+
+		&.--visibility {
+			visibility: visible;
+		}
+	}
+
+	.--hidden-true--l {
+		display: none !important;
+
+		&.--visibility {
+			display: var(--rs-hidden-display) !important;
+			visibility: hidden;
+		}
+	}
+}
+
+@media (--rs-viewport-xl) {
+	.--hidden-false--xl {
+		display: var(--rs-hidden-display) !important;
+
+		&.--visibility {
+			visibility: visible;
+		}
+	}
+
+	.--hidden-true--xl {
+		display: none !important;
+
+		&.--visibility {
+			display: var(--rs-hidden-display) !important;
+			visibility: hidden;
+		}
+	}
+}

@@ -9,8 +9,8 @@ Start by creating your Remix project if you don't have one already.
 Using [Create Remix command](https://remix.run/docs/en/v1/tutorials/blog) should speed up this process:
 
 ```bash
-npx create-remix --template remix-run/indie-stack my-reshaped-app
-cd my-reshaped-app
+npx create-remix --template remix-run/indie-stack my-@uicapsule/components-app
+cd my-@uicapsule/components-app
 ```
 
 We're using `indie-stack` template in this example but feel free to pick any other Remix template.
@@ -19,14 +19,14 @@ We're using `indie-stack` template in this example but feel free to pick any oth
 
 Download the latest Reshaped release from the [Releases page](/content/changelog) and save the `.tgz` file into your project.
 Then install the package using the file path.
-For example, if you save the package as `./vendor/reshaped.tgz` in the project root folder, you can run:
+For example, if you save the package as `./vendor/@uicapsule/components.tgz` in the project root folder, you can run:
 
 ```json
 // npm
-npm install ./vendor/reshaped.tgz
+npm install ./vendor/@uicapsule/components.tgz
 
 // yarn
-yarn add ./vendor/reshaped.tgz
+yarn add ./vendor/@uicapsule/components.tgz
 ```
 
 ## Add Reshaped to the root file
@@ -35,12 +35,12 @@ Remix application wrapper is stored in the `app/root.tsx` file.
 To make Reshaped styles and context available for all routes, we should make some changes there.
 
 Import Reshaped provider and CSS files.
-Note that we're importing component from the `reshaped/bundle` to use an already compiled version of the library.
+Note that we're importing component from the `@uicapsule/components/bundle` to use an already compiled version of the library.
 
 ```ts
-import { Reshaped } from "reshaped/bundle";
-import theme from "reshaped/themes/reshaped/theme.css";
-import styles from "reshaped/bundle.css";
+import { Reshaped } from "@uicapsule/components/bundle";
+import theme from "@uicapsule/components/themes/@uicapsule/components/theme.css";
+import styles from "@uicapsule/components/bundle.css";
 ```
 
 Add styles to the exported Remix `links` array:
@@ -57,7 +57,7 @@ export const links: LinksFunction = () => {
 Wrap the application with the provider:
 
 ```code
-<Reshaped theme="reshaped">
+<Reshaped theme="@uicapsule/components">
   <Outlet />
 </Reshaped>
 ```
@@ -65,10 +65,10 @@ Wrap the application with the provider:
 ## Start using Reshaped components
 
 You can start using Reshaped components anywhere in your application.
-Make sure to import them from `reshaped/bundle` to use an already compiled version of the library.
+Make sure to import them from `@uicapsule/components/bundle` to use an already compiled version of the library.
 
 ```code
-import { Button, Container, Reshaped } from "reshaped/bundle";
+import { Button, Container, Reshaped } from "@uicapsule/components/bundle";
 
 const App = () => {
   return (
@@ -95,7 +95,7 @@ In that case, check Remix documentation on [how to make it work with PostCSS](ht
 After you're done with the setup, import a PostCSS config from Reshaped and add it to `postcss.config.js` file in the root folder:
 
 ```js
-const postcss = require("reshaped/postcss");
+const postcss = require("@uicapsule/components/postcss");
 module.exports = postcss.config;
 ```
 
@@ -105,6 +105,6 @@ If you want to learn more about components - search for the relevant components 
 <Grid>
   <CrossLink
     title="Remix starter"
-    href="https://github.com/reshaped/community/tree/master/examples/remix-starter"
+    href="https://github.com/@uicapsule/components/community/tree/master/examples/remix-starter"
   />
 </Grid>

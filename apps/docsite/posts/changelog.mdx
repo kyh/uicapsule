@@ -44,7 +44,7 @@ In this release, we've added a few improvements to align with the changes introd
 <Grid>
   <CrossLink
     title="Next.js starter"
-    href="https://github.com/reshaped/community/tree/master/examples/next-13-starter"
+    href="https://github.com/@uicapsule/components/community/tree/master/examples/next-13-starter"
   />
 </Grid>
 
@@ -327,7 +327,7 @@ Visit <a href="/figma-plugin" target="_blank">our landing page</a> for demo or f
 
 <Image src="/img/releases/1.3.0/storybook.png" />
 
-Our internal Storybook is finally public for everyone and is now featured in [Storybook Encyclopedia](https://storybook.js.org/showcase/reshaped-reshaped).
+Our internal Storybook is finally public for everyone and is now featured in [Storybook Encyclopedia](https://storybook.js.org/showcase/@uicapsule/components-@uicapsule/components).
 It might give you a better understanding of our internal development setup in case you're looking to purchase our Pro license.
 
 ### Other improvements
@@ -418,7 +418,7 @@ In 1.2 we're finally addressing this with a revamped [overview page](/content/do
 
 - Prioritised two new components that now have Coming soon pages: [Breadcrumbs](/content/docs/components/breadcrumbs) and [Toast](/content/docs/components/toast)
 - Added documentation search for the Coming soon components
-- Added integration guide for [Remix](https://remix.run) and a [Remix starter example](https://github.com/reshaped/community/tree/master/examples/remix-starter) in our community repoository
+- Added integration guide for [Remix](https://remix.run) and a [Remix starter example](https://github.com/@uicapsule/components/community/tree/master/examples/remix-starter) in our community repoository
 
 <Release version="1.1.0" date="2022-05-24" />
 
@@ -591,7 +591,7 @@ In some cases though connection to the master component may be lost: please read
 <Image src="/img/releases/release.png" />
 
 After two years of active development, we've finally reached an important milestone.
-Today we're releasing the 1.0 version of Reshaped for React and Figma and we're live on [Product Hunt](https://www.producthunt.com/posts/reshaped).
+Today we're releasing the 1.0 version of Reshaped for React and Figma and we're live on [Product Hunt](https://www.producthunt.com/posts/@uicapsule/components).
 
 With this release, we're starting to follow our [release strategy](/content/docs/getting-started/release-strategy) with no more breaking changes for the following year.
 It means that the library has reached a stable state, and you can update to any upcoming minor release in a matter of minutes.
@@ -663,7 +663,7 @@ We're adding support for installing Reshaped by access tokens.
 Since we're not publishing the library on the public NPM, this should help 3rd party tools to easier integrate with our design system and install it as a dependency without manually downloading the system.
 In the future we might also explore this approach as our default way for installing the library in any codebase.
 
-Meanwhile, if this is something you would like to see working in your tool or you want to be able to install Reshaped in your codebase - [send us a message](mailto:hello@reshaped.so).
+Meanwhile, if this is something you would like to see working in your tool or you want to be able to install Reshaped in your codebase - [send us a message](mailto:hello@@uicapsule/components.so).
 
 ## Other improvements
 
@@ -677,7 +677,7 @@ Meanwhile, if this is something you would like to see working in your tool or yo
 - [Button](/content/docs/components/button): Updated :active style to scale down on click
 - [Frame](/content/docs/utilities/view): Automated on-background text colors for `primary`, `constructive` and `critical` Frames to keep the text contrast ratio accessible by default
 - [ThemeProvider](/content/docs/utilities/theme-provider): Added className support
-- [Reshaped provider](/content/docs/utilities/reshaped): Added className support
+- [Reshaped provider](/content/docs/utilities/@uicapsule/components): Added className support
 - [Backdrop](/content/docs/utilities/backdrop): Fixed absolutely positioned elements z-index inside Backdrop conflicting with page elements in Safari
 
 **Figma:**
@@ -699,9 +699,9 @@ There are still a few things we're going to roll-out before 1.0 gets released bu
 
 We're renaming to Reshaped, which means there are a few things that are renamed in the code:
 
-- Name of the NPM package was changed to `reshaped`
+- Name of the NPM package was changed to `@uicapsule/components`
 - Arcade provider is now called Reshaped provider
-- Main theme is called `reshaped`
+- Main theme is called `@uicapsule/components`
 - CSS variables a new short `--rs` prefix instead of `--arcade`
 
 ## Server side rendering support for theming in NextJS
@@ -710,7 +710,7 @@ We're changing our theming approach just a bit to make it work with NextJS serve
 Theme definitions now rely on the `data-rs-theme` attribute which means you can assign it in the `_document.jsx` file without importing .css files.
 
 ```code
-<body data-rs-theme="reshaped-light">
+<body data-rs-theme="@uicapsule/components-light">
 ```
 
 ## Component changes
@@ -750,7 +750,7 @@ Check its documentation in the Integrations sections in our docs.
 ## Reshaped config
 
 In this release, we've updated the way you can add custom themes.
-Instead of working with `createTheme` and `createThemeFragment` functions, themes are created from an `reshaped.config.js` file.
+Instead of working with `createTheme` and `createThemeFragment` functions, themes are created from an `@uicapsule/components.config.js` file.
 You can store in the root level of the repository or provide a custom path to our theming CLI.
 
 <Grid>
@@ -825,12 +825,12 @@ We've moved away from theme components and ColorMode utility to a single ThemePr
 This allowed us to avoid additional rerenders of the app when a theme changes and reduced the complexity of theming in general.
 
 ```code
-import { Reshaped, ThemeProvider } from "reshaped";
-import reshapedTheme from "reshaped/themes/reshaped.module.css";
+import { Reshaped, ThemeProvider } from "@uicapsule/components";
+import @uicapsule/componentsTheme from "@uicapsule/components/themes/@uicapsule/components.module.css";
 import productTheme from "themes/product.module.css";
 
 const Application = () => (
-  <Reshaped theme={reshapedTheme}>
+  <Reshaped theme={@uicapsule/componentsTheme}>
     Reshaped theme is used here
     <ThemeProvider theme={productTheme}>Product theme is used here</ThemeProvider>
   </Reshaped>
@@ -847,8 +847,8 @@ To use the bundles, you can import them directly from the package.
 Note that you will need to import styles just once.
 
 ```code
-import { Button } from "reshaped";
-import "reshaped.css";
+import { Button } from "@uicapsule/components";
+import "@uicapsule/components.css";
 ```
 
 ### Other improvements
@@ -952,19 +952,19 @@ So far we have prepared 4 starter examples for Parcel, Webpack, NextJS and Creat
 <Grid>
   <CrossLink
     title="Parcel"
-    href="https://github.com/reshaped/community/tree/master/examples/parcel-starter"
+    href="https://github.com/@uicapsule/components/community/tree/master/examples/parcel-starter"
   />
   <CrossLink
     title="NextJS"
-    href="https://github.com/reshaped/community/tree/master/examples/next-starter"
+    href="https://github.com/@uicapsule/components/community/tree/master/examples/next-starter"
   />
   <CrossLink
     title="Create React App"
-    href="https://github.com/reshaped/community/tree/master/examples/cra-starter"
+    href="https://github.com/@uicapsule/components/community/tree/master/examples/cra-starter"
   />
   <CrossLink
     title="Webpack"
-    href="https://github.com/reshaped/community/tree/master/examples/webpack-starter"
+    href="https://github.com/@uicapsule/components/community/tree/master/examples/webpack-starter"
   />
 </Grid>
 
@@ -973,7 +973,7 @@ As a way to support NextJS users, we've also published an Reshaped Next CSS plug
 <Grid>
   <CrossLink
     title="Reshaped Next CSS"
-    href="https://github.com/reshaped/reshaped-next-css"
+    href="https://github.com/@uicapsule/components/@uicapsule/components-next-css"
   />
 </Grid>
 
@@ -1183,8 +1183,8 @@ Among other features its main highlights are:
 For this release we've built our first demo of a page using Reshaped.
 It's aiming to provide a publicly available example of a project setup as well as giving a hint about how building interfaces with Reshaped looks like.
 
-- Project repository: https://github.com/reshaped/demo
-- Deployed project: https://reshaped.github.io/demo/
+- Project repository: https://github.com/@uicapsule/components/demo
+- Deployed project: https://@uicapsule/components.github.io/demo/
 
 ### Responsive properties API update
 

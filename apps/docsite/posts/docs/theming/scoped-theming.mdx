@@ -6,21 +6,21 @@ Scoped theming is a concept to apply theme values to a specific part of the page
 We've already learned that you're picking the main application theme by passing it to Reshaped provider.
 
 ```code
-import { Reshaped } from "reshaped";
-import "reshaped/themes/reshaped/theme.css";
+import { Reshaped } from "@uicapsule/components";
+import "@uicapsule/components/themes/@uicapsule/components/theme.css";
 
-const Application = ({ children }) => <Reshaped theme="reshaped">{children}</Reshaped>;
+const Application = ({ children }) => <Reshaped theme="@uicapsule/components">{children}</Reshaped>;
 ```
 
 To apply a different theme to a part of the application, we can use `ThemeProvider` provider utility and a pass a custom theme to it.
 
 ```code
-import { Reshaped, ThemeProvider } from "reshaped";
-import "reshaped/themes/reshaped/theme.css";
+import { Reshaped, ThemeProvider } from "@uicapsule/components";
+import "@uicapsule/components/themes/@uicapsule/components/theme.css";
 import "themes/productTheme/theme.css";
 
 const Application = () => (
-  <Reshaped theme="reshaped">
+  <Reshaped theme="@uicapsule/components">
     Reshaped theme is used here
     <ThemeProvider theme="productTheme">Product theme is used here</ThemeProvider>
   </Reshaped>
@@ -46,7 +46,7 @@ Instead of introducing custom css overrides, you can create a lightweight theme 
 ```
 
 ```code
-<Reshaped theme="reshaped">
+<Reshaped theme="@uicapsule/components">
   <View gap={3} direction="row">
     <Button color="primary">Share</Button>
 

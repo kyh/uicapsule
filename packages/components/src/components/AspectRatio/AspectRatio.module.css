@@ -1,0 +1,37 @@
+.root {
+	position: relative;
+}
+
+.root > *:first-child {
+	aspect-ratio: var(--rs-aspect-ratio);
+}
+
+.root > img:first-child {
+	object-fit: cover;
+}
+
+.root {
+	--_r: 1;
+	--_r-m: var(--_r);
+	--_r-l: var(--_r-m);
+	--_r-xl: var(--_r-l);
+	--rs-aspect-ratio: var(--_r);
+}
+
+@media (--rs-viewport-m) {
+	.root {
+		--rs-aspect-ratio: var(--_r-m);
+	}
+}
+
+@media (--rs-viewport-l) {
+	.root {
+		--rs-aspect-ratio: var(--_r-l);
+	}
+}
+
+@media (--rs-viewport-xl) {
+	.root {
+		--rs-aspect-ratio: var(--_r-xl);
+	}
+}

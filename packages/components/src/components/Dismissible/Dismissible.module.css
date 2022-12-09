@@ -1,0 +1,23 @@
+.root {
+	position: relative;
+	padding-inline-end: var(--rs-unit-x9);
+	min-height: var(--rs-unit-x6);
+}
+
+.close {
+	position: absolute;
+	inset-block-start: 0;
+	inset-inline-end: 0;
+	z-index: 5;
+}
+
+.root.--variant-media,
+.root.--hide-close {
+	padding: 0;
+}
+
+.root.--variant-media .close {
+	inset-block-start: var(--rs-unit-x4);
+	inset-inline-end: var(--rs-unit-x4);
+	color: var(--rs-color-white);
+}
