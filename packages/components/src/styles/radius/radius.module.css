@@ -1,27 +1,27 @@
 @each $radius in small, medium, large {
-	.--radius-$radius {
-		--_rs-radius: var(--rs-unit-radius-$radius);
-		border-radius: var(--_rs-radius);
-	}
+  .--radius-$radius {
+    --_rs-radius: var(--rs-unit-radius-$radius);
+    border-radius: var(--_rs-radius);
+  }
 
-	@each $viewport in m, l, xl {
-		@media (--rs-viewport-$(viewport)) {
-			.--radius-$radius--$viewport {
-				--_rs-radius: var(--rs-unit-radius-$radius);
-			}
-		}
-	}
+  @each $viewport in m, l, xl {
+    @media (--rs-viewport-$(viewport)) {
+      .--radius-$(radius)--$(viewport) {
+        --_rs-radius: var(--rs-unit-radius-$radius);
+      }
+    }
+  }
 }
 
 .--radius-circular {
-	--_rs-radius: 9999px;
-	border-radius: var(--_rs-radius);
+  --_rs-radius: 9999px;
+  border-radius: var(--_rs-radius);
 }
 
 @each $viewport in m, l, xl {
-	@media (--rs-viewport-$(viewport)) {
-		.--radius-circular--$viewport {
-			--_rs-radius: 9999px;
-		}
-	}
+  @media (--rs-viewport-$(viewport)) {
+    .--radius-circular--$viewport {
+      --_rs-radius: 9999px;
+    }
+  }
 }

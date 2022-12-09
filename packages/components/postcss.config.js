@@ -1,16 +1,12 @@
 const path = require("path");
-const importPlugin = require("postcss-import");
-const nestedPlugin = require("postcss-nested");
-const eachPlugin = require("postcss-each");
-const customMediaPlugin = require("postcss-custom-media");
 
 module.exports = {
-  plugins: [
-    importPlugin(),
-    eachPlugin(),
-    nestedPlugin(),
-    customMediaPlugin({
+  plugins: {
+    "postcss-import": {},
+    "postcss-nested": {},
+    "postcss-each": {},
+    "postcss-custom-media": {
       importFrom: path.resolve(__dirname, "src/themes/media.css"),
-    }),
-  ],
+    },
+  },
 };
