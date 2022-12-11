@@ -1,4 +1,3 @@
-// @ts-check
 /** @type {import('@uicapsule/components').UICapsuleConfig} */
 const config = {
   themes: {

@@ -9,6 +9,7 @@ import Header from "components/Header";
 
 import "@uicapsule/components/styles.css";
 
+import "themes/uicapsule/theme.css";
 import "themes/funky/theme.css";
 import "themes/classic/theme.css";
 import "themes/figma/theme.css";
@@ -24,7 +25,7 @@ const AppWrapper = ({ Component, pageProps }: any) => {
 
   useIsomorphicLayoutEffect(() => {
     const nextMode = localStorage.getItem(
-      "__@uicapsule/components-mode"
+      "__uicapsule-mode"
     ) as UICapsuleProps["defaultColorMode"];
     setColorMode(nextMode || "light");
   }, [setColorMode]);

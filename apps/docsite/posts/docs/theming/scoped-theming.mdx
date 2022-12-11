@@ -9,7 +9,7 @@ We've already learned that you're picking the main application theme by passing 
 import { UICapsule } from "@uicapsule/components";
 import "@uicapsule/components/themes/@uicapsule/components/theme.css";
 
-const Application = ({ children }) => <UICapsule theme="@uicapsule/components">{children}</UICapsule>;
+const Application = ({ children }) => <UICapsule theme="uicapsule">{children}</UICapsule>;
 ```
 
 To apply a different theme to a part of the application, we can use `ThemeProvider` provider utility and a pass a custom theme to it.
@@ -20,7 +20,7 @@ import "@uicapsule/components/themes/@uicapsule/components/theme.css";
 import "themes/productTheme/theme.css";
 
 const Application = () => (
-  <UICapsule theme="@uicapsule/components">
+  <UICapsule theme="uicapsule">
     UICapsule theme is used here
     <ThemeProvider theme="productTheme">Product theme is used here</ThemeProvider>
   </UICapsule>
@@ -46,7 +46,7 @@ Instead of introducing custom css overrides, you can create a lightweight theme 
 ```
 
 ```code
-<UICapsule theme="@uicapsule/components">
+<UICapsule theme="uicapsule">
   <View gap={3} direction="row">
     <Button color="primary">Share</Button>
 

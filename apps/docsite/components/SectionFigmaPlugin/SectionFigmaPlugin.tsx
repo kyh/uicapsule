@@ -26,7 +26,7 @@ import s from "./SectionFigmaPlugin.module.css";
 
 const themes = [
   {
-    name: "@uicapsule/components",
+    name: "uicapsule",
     color: "#5A58F2",
   },
   {

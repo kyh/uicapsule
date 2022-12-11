@@ -29,7 +29,6 @@ import ExampleTextField from "./components/ExampleTextField";
 import ExampleToast from "./components/ExampleToast";
 import ExampleTooltip from "./components/ExampleTooltip";
 
-import ExampleUICapsule from "./components/ExampleUICapsule";
 import ExampleAccordion from "./components/ExampleAccordion";
 import ExampleActionable from "./components/ExampleActionable";
 import ExampleAspectRatio from "./components/ExampleAspectRatio";
@@ -76,7 +75,6 @@ const examples = [
 ];
 
 const utilities = [
-  ExampleUICapsule,
   ExampleAccordion,
   ExampleActionable,
   ExampleAspectRatio,
