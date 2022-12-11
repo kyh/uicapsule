@@ -77,18 +77,18 @@ const FAQRoute = () => {
             </View>
           </View>
           <View divided>
-            <FAQItem title="What kind of projects can I use Reshaped for?">
-              You can use Reshaped for commercial and non-commercial products,
+            <FAQItem title="What kind of projects can I use UICapsule for?">
+              You can use UICapsule for commercial and non-commercial products,
               no matter if that&apos;s something you build for yourself or for a
-              client. Reshaped can be used for open-source projects.
+              client. UICapsule can be used for open-source projects.
             </FAQItem>
 
-            <FAQItem title="What are the Reshaped usage restrictions?">
-              You can&apos;t use Reshaped for redistributing our components and
+            <FAQItem title="What are the UICapsule usage restrictions?">
+              You can&apos;t use UICapsule for redistributing our components and
               assets as a different package. This includes design systems,
-              component libraries or tools that are providing access to Reshaped
-              package assets without purchasing Reshaped license. You can find
-              more information about this in our&nbsp;
+              component libraries or tools that are providing access to
+              UICapsule package assets without purchasing UICapsule license. You
+              can find more information about this in our&nbsp;
               <NextLink href="/content/license" passHref>
                 <Link attributes={{ target: "_blank" }}>license agreement</Link>
               </NextLink>
@@ -122,12 +122,12 @@ const FAQRoute = () => {
               available in the payments industry.
             </FAQItem>
 
-            <FAQItem title="Can my Reshaped license expire?">
+            <FAQItem title="Can my UICapsule license expire?">
               Both Library and Pro licenses include lifetime access with
               unlimited future updates.
             </FAQItem>
 
-            <FAQItem title="How often do you release new Reshaped versions?">
+            <FAQItem title="How often do you release new UICapsule versions?">
               <View gap={3}>
                 <View.Item>
                   We&apos;re aiming to release ~1 minor release of the design
@@ -173,7 +173,7 @@ const FAQRoute = () => {
                   to update the library version.
                 </View.Item>
                 <View.Item>
-                  In case you&apos;re using Reshaped source code and have
+                  In case you&apos;re using UICapsule source code and have
                   heavily modified the code, it might be challenging to update
                   the modified components. However, you can still leverage from
                   the newly released components and utilities.
@@ -218,7 +218,7 @@ const FAQRoute = () => {
               Yes, it&apos;s included in both Library and Pro licenses.
             </FAQItem>
 
-            <FAQItem title="Do I need to subscribe to Figma to use Reshaped?">
+            <FAQItem title="Do I need to subscribe to Figma to use UICapsule?">
               We recommend having a Figma subscription to fully leverage
               Libraries and Theming capabilities. But don&apos;t worry, if you
               don&apos;t have a professional subscription,{" "}
@@ -227,7 +227,7 @@ const FAQRoute = () => {
                 passHref
               >
                 <Link attributes={{ target: "_blank" }}>
-                  you can still use Reshaped components
+                  you can still use UICapsule components
                 </Link>
               </NextLink>{" "}
               with some limitations and design directly in our file. If
@@ -241,8 +241,8 @@ const FAQRoute = () => {
               to professional features.
             </FAQItem>
 
-            <FAQItem title="Can I apply custom styles to Reshaped components?">
-              Reshaped has a built-in theming engine which allows you to create
+            <FAQItem title="Can I apply custom styles to UICapsule components?">
+              UICapsule has a built-in theming engine which allows you to create
               themes for React and Figma components. Check our{" "}
               <NextLink href="/content/docs/theming/creating-themes" passHref>
                 <Link attributes={{ target: "_blank" }}>
@@ -252,7 +252,7 @@ const FAQRoute = () => {
               for more information.
             </FAQItem>
 
-            <FAQItem title="Does Reshaped support dark mode?">
+            <FAQItem title="Does UICapsule support dark mode?">
               Yes, our theming approach includes automatic dark mode support.
               This means that you won&apos;t need to design your product
               separately for light and dark mode even if you&apos;re building
@@ -265,10 +265,10 @@ const FAQRoute = () => {
               .
             </FAQItem>
 
-            <FAQItem title="Which browsers does Reshaped support?">
-              Reshaped is built using the features from the latest stable
+            <FAQItem title="Which browsers does UICapsule support?">
+              UICapsule is built using the features from the latest stable
               releases of all major browsers including Chrome, Firefox, Safari
-              and Edge. Reshaped doesn&apos;t support Internet Explorer 11.
+              and Edge. UICapsule doesn&apos;t support Internet Explorer 11.
             </FAQItem>
 
             <FAQItem title="How can I request a feature or report a bug?">
@@ -292,7 +292,7 @@ const FAQRoute = () => {
 
             <FAQItem title="Do you provide custom consulting options?">
               We can provide a personalized approach to your design system. This
-              may include an onboarding to Reshaped, an audit of your design
+              may include an onboarding to UICapsule, an audit of your design
               system, priority support and more. Reach out to us at{" "}
               <Link href="mailto:hello@@uicapsule/components.so">
                 hello@@uicapsule/components.so

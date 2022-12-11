@@ -1,6 +1,6 @@
 import React from "react";
 import { Tabs, Text } from "@uicapsule/components";
-import IconZap from "@uicapsule/components/icons/Zap";
+import IconZap from "icons/Zap";
 import IconHeart from "icons/Heart";
 import IconLink from "icons/Link";
 import PropertyBaseControl from "../PropertyBase/PropertyBaseControl";

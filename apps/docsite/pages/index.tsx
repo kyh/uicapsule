@@ -1,4 +1,3 @@
-import React from "react";
 import { View, Text } from "@uicapsule/components";
 import SectionHero from "components/SectionHero";
 import SectionUsers from "components/SectionUsers";

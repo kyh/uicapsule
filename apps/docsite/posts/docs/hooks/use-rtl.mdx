@@ -51,10 +51,10 @@ function Component() {
 }
 ```
 
-Content direction is a value applicable to the whole application, so its default value can be set using `Reshaped` provider.
+Content direction is a value applicable to the whole application, so its default value can be set using `UICapsule` provider.
 
 ```code
-<Reshaped defaultRTL={true} />
+<UICapsule defaultRTL={true} />
 ```
 
 To support the default RTL value with server-side rendering, pass the value to the `dir` attribute to the `body` element.
@@ -65,7 +65,7 @@ To support the default RTL value with server-side rendering, pass the value to t
 
 <Grid>
   <CrossLink
-    title="Reshaped Provider"
+    title="UICapsule Provider"
     href="/content/docs/utilities/@uicapsule/components"
   />
   <CrossLink title="Installation - SSR" href="/content/docs/getting-started" />

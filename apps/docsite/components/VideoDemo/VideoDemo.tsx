@@ -26,7 +26,7 @@ const VideoDemo = (props: T.Props) => {
               allow="autoplay; fullscreen; picture-in-picture"
               allowFullScreen
               style={{ width: "100%", height: "100%" }}
-              title="Reshaped Demo"
+              title="UICapsule Demo"
             />
           </AspectRatio>
         </View>

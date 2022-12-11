@@ -12,11 +12,9 @@ import {
   Text,
   Link,
 } from "@uicapsule/components";
-import useAuth from "hooks/useAuth";
-import Price from "constants/prices";
-import IconReshapedColored from "icons/colored/Reshaped";
-import IconReshaped from "icons/Reshaped";
-import IconReshapedText from "icons/colored/ReshapedText";
+import IconUICapsuleColored from "icons/colored/Reshaped";
+import IconUICapsule from "icons/Reshaped";
+import IconUICapsuleText from "icons/colored/ReshapedText";
 import IconArrowRight from "icons/ArrowRight";
 import IconClose from "icons/Close";
 import * as ga from "utilities/ga";
@@ -29,7 +27,7 @@ const useIsomorphicLayoutEffect =
 
 const Header = () => {
   const router = useRouter();
-  const { loggedIn } = useAuth();
+  const loggedIn = false;
   const [bg, setBg] = React.useState(false);
   const [showBanner, setShowBanner] = React.useState(false);
   const isFigmaPlugin = router.asPath.startsWith("/figma-plugin");
@@ -81,7 +79,7 @@ const Header = () => {
                     <Hidden hide={{ s: false, m: true }}>
                       {(className) => <br className={className} />}
                     </Hidden>
-                    <Link color="inherit">Get Reshaped</Link> for <b>$59</b>{" "}
+                    <Link color="inherit">Get UICapsule</Link> for <b>$59</b>{" "}
                     <Text color="neutral-faded" as="s">
                       $89
                     </Text>{" "}
@@ -112,7 +110,7 @@ const Header = () => {
           >
             <View.Item grow={!isFigmaPlugin} className={s.logo}>
               <NextLink href="/" passHref>
-                <Actionable attributes={{ "aria-label": "Reshaped" }}>
+                <Actionable attributes={{ "aria-label": "UICapsule" }}>
                   <View
                     direction="row"
                     align="center"
@@ -124,11 +122,11 @@ const Header = () => {
                     }
                   >
                     {isFigmaPlugin ? (
-                      <Icon svg={IconReshaped} size={8} />
+                      <Icon svg={IconUICapsule} size={8} />
                     ) : (
-                      <Icon svg={IconReshapedColored} size={6} />
+                      <Icon svg={IconUICapsuleColored} size={6} />
                     )}
-                    {!isMinimal && <IconReshapedText />}
+                    {!isMinimal && <IconUICapsuleText />}
                   </View>
                 </Actionable>
               </NextLink>
@@ -155,7 +153,7 @@ const Header = () => {
                             });
                           }}
                         >
-                          ${Price.seat / 100} Buy now
+                          $89 Buy now
                         </Button>
                       </NextLink>
                     </View>

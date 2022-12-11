@@ -10,7 +10,6 @@ import {
   Hidden,
 } from "@uicapsule/components";
 import DownloadButton from "components/DownloadButton";
-import useAuth from "hooks/useAuth";
 import IconArrowRight from "icons/ArrowRight";
 import IconFigma from "icons/colored/Figma";
 import IconReact from "icons/colored/React";
@@ -21,7 +20,10 @@ import * as ga from "utilities/ga";
 import s from "./Header.module.css";
 
 const HeaderProfile = () => {
-  const { loggedIn, signOut, user, hasSourceCodeAccess } = useAuth();
+  const loggedIn = false;
+  const signOut = () => {};
+  const user = null;
+  const hasSourceCodeAccess = false;
   const { active, activate, deactivate } = useToggle(false);
   const router = useRouter();
   const isWelcome = router.asPath.startsWith("/welcome");
@@ -121,7 +123,7 @@ const HeaderProfile = () => {
           <View gap={2}>
             <View gap={0}>
               <Text variant="body-medium-1">Support</Text>
-              <Text>Got a question about Reshaped?</Text>
+              <Text>Got a question about UICapsule?</Text>
             </View>
 
             <View direction="row" gap={2}>

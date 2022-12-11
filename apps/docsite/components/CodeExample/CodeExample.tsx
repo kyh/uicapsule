@@ -2,10 +2,10 @@ import React from "react";
 import { LiveProvider, LiveEditor, LivePreview } from "react-live";
 import prettier from "prettier/standalone";
 import babelParser from "prettier/parser-babel";
-import * as Reshaped from "@uicapsule/components";
+import * as UICapsule from "@uicapsule/components";
 import { Placeholder, useTheme, View, Accordion } from "@uicapsule/components";
 import ComponentPreview from "components/ComponentPreview";
-import IconZap from "@uicapsule/components/icons/Zap";
+import IconZap from "icons/Zap";
 import IconMic from "icons/Mic";
 import IconLink from "icons/Link";
 import IconHeart from "icons/Heart";
@@ -103,7 +103,7 @@ const CodeExample = (props: Props) => {
         code={formattedCode.trim()}
         language={language}
         scope={{
-          ...Reshaped,
+          ...UICapsule,
           Placeholder,
           IconZap,
           IconMic,

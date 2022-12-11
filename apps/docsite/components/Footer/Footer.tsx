@@ -14,12 +14,12 @@ const Footer = () => {
         gap={6}
       >
         <View.Item grow>
-          © 2020-{new Date().getFullYear()} Reshaped Design. All rights
+          © 2020-{new Date().getFullYear()} UICapsule Design. All rights
           reserved.
           <Hidden hide={{ s: true, l: false }}>
             {(className) => <br className={className} />}
           </Hidden>
-          Built with Reshaped in Amsterdam ❤️
+          Built with UICapsule in Amsterdam ❤️
         </View.Item>
 
         <View gap={6} direction="row">

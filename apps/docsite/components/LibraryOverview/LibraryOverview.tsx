@@ -15,14 +15,13 @@ import IconGithub from "icons/colored/Github";
 import IconPlay from "icons/Play";
 import IconDocumentation from "icons/Documentation";
 import IconDownload from "icons/Download";
-import { reactDemoSrc, figmaDemoSrc } from "constants/vimeo";
-import useAuth from "hooks/useAuth";
 import Section from "./components/Section";
 import * as T from "./LibraryOverview.types";
 
 const LibraryOverview = (props: T.Props) => {
   const { includeDocumentation, includeDownloads } = props;
-  const { hasLibraryAccess, hasSourceCodeAccess } = useAuth();
+  const hasLibraryAccess = false;
+  const hasSourceCodeAccess = false;
   const reactToggle = useToggle();
   const figmaToggle = useToggle();
 
@@ -48,13 +47,13 @@ const LibraryOverview = (props: T.Props) => {
                 <Avatar size={12} icon={IconPlay} squared />
                 <View.Item grow>
                   <Text variant="body-medium-2">React demo</Text>
-                  <Text variant="caption-1">How to build with Reshaped</Text>
+                  <Text variant="caption-1">How to build with UICapsule</Text>
                 </View.Item>
               </View>
             </Actionable>
 
             <VideoDemo
-              src={reactDemoSrc}
+              src={"https://www.youtube.com/embed/9Q1Z4Y9Z1qM"}
               active={reactToggle.active}
               onClose={reactToggle.deactivate}
             />
@@ -118,13 +117,13 @@ const LibraryOverview = (props: T.Props) => {
                 <Avatar size={12} icon={IconPlay} squared />
                 <View.Item grow>
                   <Text variant="body-medium-2">Figma demo</Text>
-                  <Text variant="caption-1">How to build with Reshaped</Text>
+                  <Text variant="caption-1">How to build with UICapsule</Text>
                 </View.Item>
               </View>
             </Actionable>
 
             <VideoDemo
-              src={figmaDemoSrc}
+              src={"https://www.youtube.com/embed/9Q1Z4Z8Z1qM"}
               active={figmaToggle.active}
               onClose={figmaToggle.deactivate}
             />

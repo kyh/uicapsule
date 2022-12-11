@@ -11,7 +11,7 @@ import {
   DropdownMenu,
   Actionable,
 } from "@uicapsule/components";
-import IconReshaped from "icons/colored/Reshaped";
+import IconUICapsule from "icons/colored/Reshaped";
 import IconClose from "icons/Close";
 import IconColors from "icons/Colors";
 import IconFigma from "icons/Figma";
@@ -184,9 +184,9 @@ const SectionFigmaPlugin = (props: T.Props) => {
                   divided
                 >
                   <View padding={3} gap={2} direction="row" align="center">
-                    <Icon svg={IconReshaped} size={4} />
+                    <Icon svg={IconUICapsule} size={4} />
                     <View.Item grow>
-                      <Text variant="body-strong-1">Reshaped</Text>
+                      <Text variant="body-strong-1">UICapsule</Text>
                     </View.Item>
                     <View.Item>
                       <Button.Aligner className={s.close}>

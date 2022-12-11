@@ -2,7 +2,6 @@ import React from "react";
 import NextLink from "next/link";
 import { Button, View, Text, Link } from "@uicapsule/components";
 import IconLock from "icons/Lock";
-import useAuth from "hooks/useAuth";
 import DownloadButton from "components/DownloadButton";
 import ArticleItem from "./ArticleItem";
 import ArticleHeading from "./ArticleHeading";
@@ -18,10 +17,10 @@ const FIRST_FIGMA_VERSION = "0.16.0";
 
 const ArticleRelease = (props: Props) => {
   const { version, date } = props;
-  const { user, hasLibraryAccess } = useAuth();
 
   const d = new Date(date);
-  const hasSourceCodeAccess = user?.sourceCode;
+  const hasLibraryAccess = false;
+  const hasSourceCodeAccess = false;
 
   const downloadActions =
     !hasLibraryAccess && !hasSourceCodeAccess ? (

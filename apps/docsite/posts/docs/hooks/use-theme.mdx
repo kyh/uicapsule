@@ -28,7 +28,7 @@ function Example() {
 import { useTheme } from "@uicapsule/components";
 ```
 
-In Reshaped, we don't treat light and dark modes like two different themes; instead, we have a separate `colorMode` definition.
+In UICapsule, we don't treat light and dark modes like two different themes; instead, we have a separate `colorMode` definition.
 
 ```code
 function Example() {
@@ -56,7 +56,7 @@ Try switching the mode in the previous demo and see how it affects the rendering
 </View>
 ```
 
-Inverted color mode is a concept that we use in Reshaped components like `Tooltip` to avoid introducing additional design tokens while keeping the content accessible.
+Inverted color mode is a concept that we use in UICapsule components like `Tooltip` to avoid introducing additional design tokens while keeping the content accessible.
 
 <Grid>
   <CrossLink
@@ -66,11 +66,11 @@ Inverted color mode is a concept that we use in Reshaped components like `Toolti
   <CrossLink title="Tooltip" href="/content/docs/components/tooltip" />
 </Grid>
 
-Color mode is applicable for the whole application, so its default value can be set using `Reshaped` provider.
+Color mode is applicable for the whole application, so its default value can be set using `UICapsule` provider.
 By default, the value is set to light mode.
 
 ```code
-<Reshaped defaultColorMode="dark" />
+<UICapsule defaultColorMode="dark" />
 ```
 
 To support the color mode value with server-side rendering, pass the className from the theme to the `body` element.
@@ -83,7 +83,7 @@ import '@uicapsule/components/themes/@uicapsule/components/theme.css';
 
 <Grid>
   <CrossLink
-    title="Reshaped Provider"
+    title="UICapsule Provider"
     href="/content/docs/utilities/@uicapsule/components"
   />
   <CrossLink title="Installation - SSR" href="/content/docs/getting-started" />

@@ -29,7 +29,7 @@ import ExampleTextField from "./components/ExampleTextField";
 import ExampleToast from "./components/ExampleToast";
 import ExampleTooltip from "./components/ExampleTooltip";
 
-import ExampleReshaped from "./components/ExampleReshaped";
+import ExampleUICapsule from "./components/ExampleUICapsule";
 import ExampleAccordion from "./components/ExampleAccordion";
 import ExampleActionable from "./components/ExampleActionable";
 import ExampleAspectRatio from "./components/ExampleAspectRatio";
@@ -76,7 +76,7 @@ const examples = [
 ];
 
 const utilities = [
-  ExampleReshaped,
+  ExampleUICapsule,
   ExampleAccordion,
   ExampleActionable,
   ExampleAspectRatio,
@@ -134,7 +134,7 @@ const DocsOverview = () => {
       </Text>
 
       <Text variant="featured-2" className={s.intro}>
-        Reshaped is a professionally crafted design system for product design
+        UICapsule is a professionally crafted design system for product design
         and development teams and individuals. We provide with core components
         you would need in every project, focusing on accessibility, scalable
         component customization and development experience.

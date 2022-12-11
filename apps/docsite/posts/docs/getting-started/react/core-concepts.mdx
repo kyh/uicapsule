@@ -7,7 +7,7 @@ If you learn a concept once, you won't have to learn it again once you start usi
 
 ## Classnames and attributes
 
-All components in Reshaped support `className` and `attributes` properties.
+All components in UICapsule support `className` and `attributes` properties.
 
 `className` is a way to mix additional styles to the components.
 It might be unsafe when you're using it trying to customize existing component styles, but it can also make your life easier when you need to add granular mixins.
@@ -48,7 +48,7 @@ Component properties affecting the product layout support responsive syntax.
 An example of such property can be a `Button` `size` or `View` `direction`. However, `Button` `color` is not responsive.
 It means that instead of passing a single value for the property, you pass an object specifying the value for multiple viewports.
 
-In Reshaped, we're using a mobile-first approach, so defining a property value for a specific value will apply the same value for all wider viewports:
+In UICapsule, we're using a mobile-first approach, so defining a property value for a specific value will apply the same value for all wider viewports:
 
 ```code
 // Regular padding value
@@ -67,7 +67,7 @@ In case you need to render a completely different component for a specific viewp
 
 ## Utility components
 
-When you start working with Reshaped, take some time to learn available utility components.
+When you start working with UICapsule, take some time to learn available utility components.
 These utilities will likely become the most used components in your application and can drastically reduce the number of custom styles you usually have to write.
 
 First of all, we recommend paying attention to the following utilities:
@@ -83,7 +83,7 @@ Learning what these utilities are capable of should get you up to speed extremel
 
 ## Accessibility
 
-In Reshaped, we make sure we provide as much accessibility out-of-the-box as possible.
+In UICapsule, we make sure we provide as much accessibility out-of-the-box as possible.
 However, we don't have opinions on how your product should work or the context of where components are used.
 Because of that, every component has an accessibility section in its documentation, suggesting common tips and tricks to make your product more accessible.
 Most of the time, we suggest using specific HTML attributes through the `attributes` property.
@@ -103,7 +103,7 @@ If you're writing additional custom CSS for your product, you can use the same a
 
 ## Server-side rendering
 
-All components in Reshaped are isomorphic and support server-side rendering.
+All components in UICapsule are isomorphic and support server-side rendering.
 You don't have to do anything additional on your side to use our components, but there are two values we don't have access to during the server-side rendering: used color mode and content direction.
 That's why if you're using SSR, we ask you to provide default values for them:
 
@@ -120,6 +120,6 @@ That's why if you're using SSR, we ask you to provide default values for them:
 One of our core principles is that most custom behavior and styling can be achieved through composition and theming.
 If you need to add something to a component or build custom components with their own styles, you can totally do that.
 
-Our goal here is to make sure that you have the same developer experience in building custom components as we have when building components for Reshaped.
+Our goal here is to make sure that you have the same developer experience in building custom components as we have when building components for UICapsule.
 We're relying on vanilla CSS, including its latest features supported in all major browsers.
 You get access to all design tokens and values like viewport breakpoints or styling utilities in all of your product files.

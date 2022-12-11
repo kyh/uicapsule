@@ -42,10 +42,10 @@ description: Color tokens help communicate the hierarchy of the content, its mea
 
 When using design systems colors, you would usually start with a color palette consisting of values from 100 to 900, like `green600`.
 These values are static and are not themable.
-In Reshaped, we intentionally skip this core layer and instead work with the **semantic color tokens**.
+In UICapsule, we intentionally skip this core layer and instead work with the **semantic color tokens**.
 
 Semantic color tokens represent not just a color value but also a semantic role it's used for.
-In Reshaped, most color tokens belong to three roles: `background`, `border`, and `foreground`.
+In UICapsule, most color tokens belong to three roles: `background`, `border`, and `foreground`.
 By assigning semantic roles to colors, we achieve predictable theming and dark mode support.
 
 We use generic names for the color tokens, which means that color names don't rely on our component inventory.
@@ -474,7 +474,7 @@ To solve this, we generate `on-background` color tokens.
 Their value is dynamically calculated based on the respective background value.
 You can safely use `on` colors with background color tokens, no matter which color values your theme has.
 
-For example, in Reshaped default theme `on-background-primary` color token is resolved to white color.
+For example, in UICapsule default theme `on-background-primary` color token is resolved to white color.
 However, if you use yellow as a primary color, `on-background-primary` will automatically turn black to keep contrast ratio.
 
 ```preview
@@ -778,7 +778,7 @@ Same as in other roles, it supports `faded` modifiers for the cases when you're 
 
 ### Elevation colors
 
-To provide dark mode support, Reshaped follows the concept of elevation of surfaces.
+To provide dark mode support, UICapsule follows the concept of elevation of surfaces.
 This means that some of the page elements can be displayed higher on the z-axis.
 Elevating an element changes its shadow token, but since it's not prominent in dark mode &mdash; background color change can help users understand the hierarchy of the elements.
 
@@ -872,7 +872,7 @@ There are two tokens for separately controlling the global application backgroun
 ### Static colors
 
 When working with media content, like images or videos, and rendering content on top of it, colors should preserve their values in both light and dark mode.
-That's why Reshaped also supports `white` and `black` static color tokens.
+That's why UICapsule also supports `white` and `black` static color tokens.
 They are used for shadows, scrim gradients, and text content displayed on top of them.
 
 ```preview

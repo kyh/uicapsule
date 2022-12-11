@@ -1,8 +1,8 @@
 import React from "react";
-import { RTLContext } from "components/Reshaped/hooks/useRTLGlobal";
+import { RTLContext } from "components/UICapsule/hooks/useRTLGlobal";
 
 const useRTL = () => {
-	return React.useContext(RTLContext);
+  return React.useContext(RTLContext);
 };
 
 export default useRTL;

@@ -1,20 +1,21 @@
 import { resolve } from "path";
-import { defineConfig } from "vite";
-import tsconfigPaths from "vite-tsconfig-paths";
 import react from "@vitejs/plugin-react-swc";
+import tsconfigPaths from "vite-tsconfig-paths";
+import dts from "vite-plugin-dts";
 import * as packageJson from "./package.json";
 
-export default defineConfig({
-  plugins: [tsconfigPaths(), react()],
+export default {
+  plugins: [tsconfigPaths(), react(), dts()],
   build: {
     lib: {
       entry: resolve("src", "index.ts"),
       name: packageJson.name,
-      formats: ["es", "umd"],
-      fileName: (format) => `index.${format}.js`,
+      formats: ["es", "cjs"],
+      fileName: (format: string) =>
+        format === "es" ? "index.mjs" : "index.cjs",
     },
     rollupOptions: {
       external: [...Object.keys(packageJson.peerDependencies)],
     },
   },
-});
+};

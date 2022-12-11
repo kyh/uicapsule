@@ -11,7 +11,7 @@ export const variant = () => (
   <Example>
     <Example.Item title="variant: underline">
       <Link href="http://uicapsule.so" attributes={{ target: "_blank" }}>
-        Reshaped
+        UICapsule
       </Link>
     </Example.Item>
     <Example.Item title="variant: plain">

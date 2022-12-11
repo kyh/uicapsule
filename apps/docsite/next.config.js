@@ -2,7 +2,7 @@ const loaderUtils = require("loader-utils");
 const withTM = require("next-transpile-modules")(["@uicapsule/components"]);
 
 /** @type {import("next").NextConfig} */
-const nextConfig = withTM({
+const nextConfig = {
   webpack: (config) => {
     const rule = config.module.rules.find((rule) => "oneOf" in rule);
 
@@ -48,6 +48,6 @@ const nextConfig = withTM({
 
     return config;
   },
-});
+};
 
 module.exports = nextConfig;

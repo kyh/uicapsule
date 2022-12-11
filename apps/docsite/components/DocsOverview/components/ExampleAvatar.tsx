@@ -1,6 +1,6 @@
 import React from "react";
 import { View, Avatar } from "@uicapsule/components";
-import IconZap from "@uicapsule/components/icons/Zap";
+import IconZap from "icons/Zap";
 import Example from "./Example";
 
 const ExampleAvatar = () => (

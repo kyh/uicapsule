@@ -37,7 +37,7 @@ Check out the components documentation to see it in action. For example, you can
 
 With the v13 being released now, Next.js supports a new way to build routes with the `app` directory.
 One of the changes relevant for UI development that happened there was introduction of global css imports support inside node_modules folder.
-That means that Reshaped now works with Next without any webpack config customisations or additional plugins.
+That means that UICapsule now works with Next without any webpack config customisations or additional plugins.
 
 In this release, we've added a few improvements to align with the changes introduced in the latest Next.js major and have published a new starter example for Next.js 13, as well as we have updated its integration docs.
 
@@ -99,7 +99,7 @@ Looking at the different ways of how `Stack` and `Frame` utilities can be used, 
 `Stack` is solving the layout challenges, while `Frame` allows us to easily access design tokens for typical styles.
 Additionaly, they both have overlaps in terms of what they provide from the flex api.
 
-To avoid producing more markup than needed and simplify the structure of the codebases using Reshaped, we are introducing a new utility, called `View`.
+To avoid producing more markup than needed and simplify the structure of the codebases using UICapsule, we are introducing a new utility, called `View`.
 It supports functionality from both `Stack` and `Frame`, and provides more flexibility for how its properties can be combined, including full responsive syntax support for its layout properties.
 Additionally, we've madded some improvements to the `View` API:
 
@@ -108,7 +108,7 @@ Additionally, we've madded some improvements to the `View` API:
 - `gapBefore` now respects `View.Item` columns property, keeping multi-column layout predictable
 - `backgroundColor` now supports `black` value, that stays black in light and dark mode
 
-Being the most low-level utility component, `View` is probaly going to be the most used component in your interfaces when using Reshaped.
+Being the most low-level utility component, `View` is probaly going to be the most used component in your interfaces when using UICapsule.
 You can find information about the `View` API on its [documentation page](/content/docs/utilities/view).
 
 `Stack` and `Frame` utilities are still available in the library and are now using `View` under the hood.
@@ -190,7 +190,7 @@ The full list of newly added responsives properties includes:
 
 ## Pro license pricing update
 
-We want to make our pricing more accessible for small and medium-sized companies, as well as to cause less confusion when it comes to deciding on the purchase of Reshaped.
+We want to make our pricing more accessible for small and medium-sized companies, as well as to cause less confusion when it comes to deciding on the purchase of UICapsule.
 Therefore, we've decided to simplify our Pro license pricing and make it a one-time payment, similar to the regular license.
 
 Purchasing a Pro license will give you lifetime access to the source code, testing, and Storybook setup, as well as unlimited seats for the library.
@@ -235,7 +235,7 @@ We start with a series of [design system interviews](https://formaat.design/inte
 
 ## Core development concepts
 
-To help you work with Reshaped React components, we've added a new [Core concepts](/content/docs/getting-started/react/core-concepts) article, explaining ideas that apply to the whole system.
+To help you work with UICapsule React components, we've added a new [Core concepts](/content/docs/getting-started/react/core-concepts) article, explaining ideas that apply to the whole system.
 We cover topics like, responsive component properties, accessibility, utility components and other concepts that turn a component library into the design system.
 
 ## Other improvements
@@ -250,7 +250,7 @@ We cover topics like, responsive component properties, accessibility, utility co
 <View className={['foo', bar && 'bar']} />
 ```
 
-- Updated [Reshaped components demo](https://www.figma.com/community/file/1086981007887138777) with overview of all components we have in the library
+- Updated [UICapsule components demo](https://www.figma.com/community/file/1086981007887138777) with overview of all components we have in the library
 - [ActionBar](/content/docs/components/action-bar): Added Figma examples
 - [Button](/content/docs/components/button): Improved handling of icon colors when switching between variants in Figma
 - [Link](/content/docs/components/link): Added `disabled` property support even when component is used as an `<a>` tag
@@ -312,7 +312,7 @@ It works with any type of content, properly handles RTL and supports responsive 
 
 <Release version="1.3.0" date="2022-07-23" />
 
-☝️ In case you have custom themes built with Reshaped, you'll have to run their build script once to make sure the typography fixes are applied.
+☝️ In case you have custom themes built with UICapsule, you'll have to run their build script once to make sure the typography fixes are applied.
 
 ## Figma plugin release
 
@@ -432,7 +432,7 @@ In 1.2 we're finally addressing this with a revamped [overview page](/content/do
     icon={IconZap}
     actionsSlot={<Link variant="plain">View now</Link>}
   >
-    Find out which new features are available in the upcoming Reshaped release
+    Find out which new features are available in the upcoming UICapsule release
   </Alert>
 </View>
 ```
@@ -442,7 +442,7 @@ It comes in 4 different colors, supports horizontal layout direction and works w
 
 ## Faded border color tokens
 
-☝️ In case you have custom themes built with Reshaped, don't forget to run the generation script for them to get these new tokens available in your theme.
+☝️ In case you have custom themes built with UICapsule, don't forget to run the generation script for them to get these new tokens available in your theme.
 
 ```preview
 <View gap={3} direction="row">
@@ -591,12 +591,12 @@ In some cases though connection to the master component may be lost: please read
 <Image src="/img/releases/release.png" />
 
 After two years of active development, we've finally reached an important milestone.
-Today we're releasing the 1.0 version of Reshaped for React and Figma and we're live on [Product Hunt](https://www.producthunt.com/posts/@uicapsule/components).
+Today we're releasing the 1.0 version of UICapsule for React and Figma and we're live on [Product Hunt](https://www.producthunt.com/posts/@uicapsule/components).
 
 With this release, we're starting to follow our [release strategy](/content/docs/getting-started/release-strategy) with no more breaking changes for the following year.
 It means that the library has reached a stable state, and you can update to any upcoming minor release in a matter of minutes.
 
-Until June 10, we're keeping early-bird prices to celebrate the release, and we hope you enjoy using Reshaped as much as we do ourselves.
+Until June 10, we're keeping early-bird prices to celebrate the release, and we hope you enjoy using UICapsule as much as we do ourselves.
 
 ## Website improvements
 
@@ -606,7 +606,7 @@ Until June 10, we're keeping early-bird prices to celebrate the release, and we 
 
 ## Library improvements
 
-☝️ In case you have custom themes built with Reshaped, don't forget to run the generation script for them to get these new tokens available in your theme.
+☝️ In case you have custom themes built with UICapsule, don't forget to run the generation script for them to get these new tokens available in your theme.
 
 - Design tokens: Updated backgroundPrimaryFaded value to better align it with other colors in dark mode
 - [Actionable](/content/docs/utilities/actionable): Removed native highlight color as a part of Actionable css reset
@@ -619,7 +619,7 @@ Until June 10, we're keeping early-bird prices to celebrate the release, and we 
 
 ## New color tokens
 
-☝️ In case you have custom themes built with Reshaped, don't forget to run the generation script for them to get these new tokens available in your theme.
+☝️ In case you have custom themes built with UICapsule, don't forget to run the generation script for them to get these new tokens available in your theme.
 
 ```preview
 <Button color="positive">
@@ -659,17 +659,17 @@ They also now contain icon indicators for responsive and required properties.
 
 ## Token access
 
-We're adding support for installing Reshaped by access tokens.
+We're adding support for installing UICapsule by access tokens.
 Since we're not publishing the library on the public NPM, this should help 3rd party tools to easier integrate with our design system and install it as a dependency without manually downloading the system.
 In the future we might also explore this approach as our default way for installing the library in any codebase.
 
-Meanwhile, if this is something you would like to see working in your tool or you want to be able to install Reshaped in your codebase - [send us a message](mailto:hello@@uicapsule/components.so).
+Meanwhile, if this is something you would like to see working in your tool or you want to be able to install UICapsule in your codebase - [send us a message](mailto:hello@@uicapsule/components.so).
 
 ## Other improvements
 
 - [Button](/content/docs/components/button): Renamed outlined variant to outline to keep API consistent with Badge
 - Updated `m` viewport values to `661px`-`900px` to simplify responsive design and development
-- Updated values for `highlighted` color tokens in the default Reshaped theme
+- Updated values for `highlighted` color tokens in the default UICapsule theme
 
 **React:**
 
@@ -677,7 +677,7 @@ Meanwhile, if this is something you would like to see working in your tool or yo
 - [Button](/content/docs/components/button): Updated :active style to scale down on click
 - [Frame](/content/docs/utilities/view): Automated on-background text colors for `primary`, `constructive` and `critical` Frames to keep the text contrast ratio accessible by default
 - [ThemeProvider](/content/docs/utilities/theme-provider): Added className support
-- [Reshaped provider](/content/docs/utilities/@uicapsule/components): Added className support
+- [UICapsule provider](/content/docs/utilities/@uicapsule/components): Added className support
 - [Backdrop](/content/docs/utilities/backdrop): Fixed absolutely positioned elements z-index inside Backdrop conflicting with page elements in Safari
 
 **Figma:**
@@ -697,10 +697,10 @@ Meanwhile, if this is something you would like to see working in your tool or yo
 During the past two months we've been working on updating our brand and our brand assets.
 There are still a few things we're going to roll-out before 1.0 gets released but today we're shipping our renamed library and the new landing page.
 
-We're renaming to Reshaped, which means there are a few things that are renamed in the code:
+We're renaming to UICapsule, which means there are a few things that are renamed in the code:
 
 - Name of the NPM package was changed to `@uicapsule/components`
-- Arcade provider is now called Reshaped provider
+- Arcade provider is now called UICapsule provider
 - Main theme is called `@uicapsule/components`
 - CSS variables a new short `--rs` prefix instead of `--arcade`
 
@@ -747,7 +747,7 @@ Check its documentation in the Integrations sections in our docs.
   />
 </Grid>
 
-## Reshaped config
+## UICapsule config
 
 In this release, we've updated the way you can add custom themes.
 Instead of working with `createTheme` and `createThemeFragment` functions, themes are created from an `@uicapsule/components.config.js` file.
@@ -773,7 +773,7 @@ You can store in the root level of the repository or provide a custom path to ou
 
 <Image src="/img/releases/figma-release.png" />
 
-This release is the first one to include Reshaped Figma library which is available for both regular and source code licenses.
+This release is the first one to include UICapsule Figma library which is available for both regular and source code licenses.
 Library consists of 3 files that include:
 
 - Figma components with variants and auto-layout that are aligned with code
@@ -781,7 +781,7 @@ Library consists of 3 files that include:
 - File with design tokens for dark mode
 
 With the help of Figma Themer plugin, you'll be able to design your product just once and switching to dark mode will happen automatically without any manual customisation.
-This works not only with Reshaped components but also with any custom component you create yourself.
+This works not only with UICapsule components but also with any custom component you create yourself.
 
 <Grid>
   <CrossLink title="Figma setup" href="/content/docs/figma-setup" />
@@ -792,15 +792,15 @@ This works not only with Reshaped components but also with any custom component 
 
 Along with Figma release, we're also updating our pricing tiers.
 
-First of all, even though we're adding Figma library to the list, we're keeping our single seat license to $79 while we're getting closer to v1.0 release of Reshaped.
+First of all, even though we're adding Figma library to the list, we're keeping our single seat license to $79 while we're getting closer to v1.0 release of UICapsule.
 Shortly after the release its price is going to raise to $99.
 
 Team licenses now scale based on the amount of seats you purchase with increasing discounts which means now you get a better deal for 2-3 people teams.
 
 On top of that we're adding two new tiers:
 
-- **Source code**, for teams building their own design system and who want to use Reshaped as a starting point and skip the whole setup phase. Additionally it could useful for front-end and design teams willing to learn new best practices and dive deeper into the internals of Reshaped for new ideas.
-- **Enterprise**, for companies who need more than just code and design files. We can help you with onboarding to Reshaped, in-house design system workshops, audits or other activities tailored to your needs.
+- **Source code**, for teams building their own design system and who want to use UICapsule as a starting point and skip the whole setup phase. Additionally it could useful for front-end and design teams willing to learn new best practices and dive deeper into the internals of UICapsule for new ideas.
+- **Enterprise**, for companies who need more than just code and design files. We can help you with onboarding to UICapsule, in-house design system workshops, audits or other activities tailored to your needs.
 
 <Grid>
   <CrossLink title="Pricing tiers" href="/pricing" />
@@ -825,21 +825,21 @@ We've moved away from theme components and ColorMode utility to a single ThemePr
 This allowed us to avoid additional rerenders of the app when a theme changes and reduced the complexity of theming in general.
 
 ```code
-import { Reshaped, ThemeProvider } from "@uicapsule/components";
+import { UICapsule, ThemeProvider } from "@uicapsule/components";
 import @uicapsule/componentsTheme from "@uicapsule/components/themes/@uicapsule/components.module.css";
 import productTheme from "themes/product.module.css";
 
 const Application = () => (
-  <Reshaped theme={@uicapsule/componentsTheme}>
-    Reshaped theme is used here
+  <UICapsule theme={@uicapsule/componentsTheme}>
+    UICapsule theme is used here
     <ThemeProvider theme={productTheme}>Product theme is used here</ThemeProvider>
-  </Reshaped>
+  </UICapsule>
 );
 ```
 
 ### Library bundle
 
-For the cases where using our ESM build output is not possible, we're now additionally providing Reshaped JS and CSS bundles.
+For the cases where using our ESM build output is not possible, we're now additionally providing UICapsule JS and CSS bundles.
 This will disable regular tree-shaking of the modules but makes it possible to use the library in environments that currently don't support CSS imports from within node_modules.
 However this shouldn't affect the performance much considering that current library total size is lest than `40kb` including both CSS and JS.
 
@@ -865,7 +865,7 @@ import "@uicapsule/components.css";
 
 After 3 months of design work we're finalising our Figma library with all the components moving into testing phase.
 All components are designed with variants, auto-layout and paying incredible attention to handling composition of components the same way you would do that in code.
-Both React and Figma libraries are perfectly aligned so anything you can design with Reshaped Figma library - you can immediately implement in code with no problems.
+Both React and Figma libraries are perfectly aligned so anything you can design with UICapsule Figma library - you can immediately implement in code with no problems.
 
 ### Design tokens documentation
 
@@ -886,7 +886,7 @@ Both React and Figma libraries are perfectly aligned so anything you can design 
 </View>
 ```
 
-We have revamped our [design tokens documentation](/content/docs/tokens/overview) and added visual examples for all Reshaped tokens.
+We have revamped our [design tokens documentation](/content/docs/tokens/overview) and added visual examples for all UICapsule tokens.
 Every token type now has a separate page, going through their values and guidelines on how to use them.
 
 ### Other improvements
@@ -946,7 +946,7 @@ Some of the highlights are:
 
 ### Framework integrations
 
-During the past two weeks we have been improving the Reshaped onboarding experience for some of the most popular front-end frameworks and bundles.
+During the past two weeks we have been improving the UICapsule onboarding experience for some of the most popular front-end frameworks and bundles.
 So far we have prepared 4 starter examples for Parcel, Webpack, NextJS and Create React App as well as few demos with more advanced examples.
 
 <Grid>
@@ -968,11 +968,11 @@ So far we have prepared 4 starter examples for Parcel, Webpack, NextJS and Creat
   />
 </Grid>
 
-As a way to support NextJS users, we've also published an Reshaped Next CSS plugin to enable CSS setup out of the box.
+As a way to support NextJS users, we've also published an UICapsule Next CSS plugin to enable CSS setup out of the box.
 
 <Grid>
   <CrossLink
-    title="Reshaped Next CSS"
+    title="UICapsule Next CSS"
     href="https://github.com/@uicapsule/components/@uicapsule/components-next-css"
   />
 </Grid>
@@ -1030,7 +1030,7 @@ background: rgba(var(--rs-color-rgb-background-neutral), 0.5);
 
 <Release version="0.11.0" date="2021-09-19" />
 
-### Reshaped video demo
+### UICapsule video demo
 
 On the hompage, we now have a video demo for those who want to take a look of how the development process looks like.
 In the demo we are building a social media card with some common layouts and interactive behavior that you would usually see in your day-to-day job.
@@ -1088,7 +1088,7 @@ function ChainTrapFocus() {
 - [Stack](/content/docs/utilities/view): Added automatic wrap handling for Stack.Item using `grow` and `split` with responsive values.
 - [Backdrop](/content/docs/utilities/backdrop): Darkened the background to improve the contrast ratio of the backdrop content with the page.
 - [useElementId](/content/docs/hooks/use-element-id): Fixed id generation for React.StrictMode development mode.
-- [Reshaped theme](/content/docs/tokens/overview): Reduced the line-height of caption1 font token.
+- [UICapsule theme](/content/docs/tokens/overview): Reduced the line-height of caption1 font token.
 
 ---
 
@@ -1114,7 +1114,7 @@ You can try applying one of the 3 demo themes to our whole website, including th
 - Text: Added `align` property.
 - Text: Added text color transition for cases when parent is controlling the color value.
 - Card: Added `selected` flag.
-- Reshaped Provider: Improved switching between root-level themes
+- UICapsule Provider: Improved switching between root-level themes
 
 ---
 
@@ -1158,7 +1158,7 @@ For example, even after introducing all these new features and responsive styles
 
 <Image src="/img/releases/theming.png" />
 
-We're finally releasing out theming engine, including completely typed JS API and CLI to build themes using Reshaped design tokens.
+We're finally releasing out theming engine, including completely typed JS API and CLI to build themes using UICapsule design tokens.
 Writing your theme definition once will build a React component for you that's ready to be imported into your application.
 Among other features its main highlights are:
 
@@ -1176,12 +1176,12 @@ Among other features its main highlights are:
 
 <Release version="0.7.0" date="2021-06-19" />
 
-### Reshaped demo
+### UICapsule demo
 
 <Image src="/img/releases/demo.png" />
 
-For this release we've built our first demo of a page using Reshaped.
-It's aiming to provide a publicly available example of a project setup as well as giving a hint about how building interfaces with Reshaped looks like.
+For this release we've built our first demo of a page using UICapsule.
+It's aiming to provide a publicly available example of a project setup as well as giving a hint about how building interfaces with UICapsule looks like.
 
 - Project repository: https://github.com/@uicapsule/components/demo
 - Deployed project: https://@uicapsule/components.github.io/demo/
@@ -1406,10 +1406,10 @@ Read more about it in its [documentation](/content/docs/components/dropdown-menu
 
 <Release version="0.2.0" date="2021-04-08" />
 
-### Reshaped hooks
+### UICapsule hooks
 
 We have published and documented 6 hooks provided by the library.
-Together with our utility components they should close the gaps and let you build custom components using the Reshaped context data:
+Together with our utility components they should close the gaps and let you build custom components using the UICapsule context data:
 
 - [useElementId](/content/docs/hooks/use-element-id/) to generate ids for DOM elements.
 - [useFormControl](/content/docs/hooks/use-form-control/) to inherit values from the FormControl utility in your custom-built form fields.
@@ -1429,7 +1429,7 @@ Together with our utility components they should close the gaps and let you buil
 
 <Image src="/img/share-rs.png" />
 
-After a year in the making, the first release of the Reshaped is now available for everyone to use.
+After a year in the making, the first release of the UICapsule is now available for everyone to use.
 We're starting by releasing v0.1.0 with 31 components, utilities and their documentation.
 If you're just starting with the library, start with the Overview page from the menu on the left.
-We hope you enjoy using Reshaped and are already looking forward to get the next release out of the door! 🕹️
+We hope you enjoy using UICapsule and are already looking forward to get the next release out of the door! 🕹️

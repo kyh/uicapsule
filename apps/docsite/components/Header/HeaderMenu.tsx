@@ -11,7 +11,6 @@ import {
 } from "@uicapsule/components";
 import IconMenu from "icons/Menu";
 import SideMenu from "components/SideMenu";
-import useAuth from "hooks/useAuth";
 import * as ga from "utilities/ga";
 import HeaderColorMode from "./HeaderColorMode";
 
@@ -46,7 +45,8 @@ const useMenu = (): MenuItem[] => {
 
 const HeaderMenuMobile = () => {
   const { asPath } = useRouter();
-  const { loggedIn, signOut } = useAuth();
+  const loggedIn = false;
+  const signOut = () => {};
   const menu = useMenu();
   const {
     deactivate: closeMenu,

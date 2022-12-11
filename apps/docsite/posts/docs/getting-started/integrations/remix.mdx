@@ -1,6 +1,6 @@
 ---
 title: Remix installation
-description: Setting up Reshaped package in a Remix project.
+description: Setting up UICapsule package in a Remix project.
 ---
 
 ## Create your project
@@ -15,9 +15,9 @@ cd my-@uicapsule/components-app
 
 We're using `indie-stack` template in this example but feel free to pick any other Remix template.
 
-## Install Reshaped
+## Install UICapsule
 
-Download the latest Reshaped release from the [Releases page](/content/changelog) and save the `.tgz` file into your project.
+Download the latest UICapsule release from the [Releases page](/content/changelog) and save the `.tgz` file into your project.
 Then install the package using the file path.
 For example, if you save the package as `./vendor/@uicapsule/components.tgz` in the project root folder, you can run:
 
@@ -29,16 +29,16 @@ npm install ./vendor/@uicapsule/components.tgz
 yarn add ./vendor/@uicapsule/components.tgz
 ```
 
-## Add Reshaped to the root file
+## Add UICapsule to the root file
 
 Remix application wrapper is stored in the `app/root.tsx` file.
-To make Reshaped styles and context available for all routes, we should make some changes there.
+To make UICapsule styles and context available for all routes, we should make some changes there.
 
-Import Reshaped provider and CSS files.
+Import UICapsule provider and CSS files.
 Note that we're importing component from the `@uicapsule/components/bundle` to use an already compiled version of the library.
 
 ```ts
-import { Reshaped } from "@uicapsule/components/bundle";
+import { UICapsule } from "@uicapsule/components/bundle";
 import theme from "@uicapsule/components/themes/@uicapsule/components/theme.css";
 import styles from "@uicapsule/components/bundle.css";
 ```
@@ -57,18 +57,18 @@ export const links: LinksFunction = () => {
 Wrap the application with the provider:
 
 ```code
-<Reshaped theme="@uicapsule/components">
+<UICapsule theme="@uicapsule/components">
   <Outlet />
-</Reshaped>
+</UICapsule>
 ```
 
-## Start using Reshaped components
+## Start using UICapsule components
 
-You can start using Reshaped components anywhere in your application.
+You can start using UICapsule components anywhere in your application.
 Make sure to import them from `@uicapsule/components/bundle` to use an already compiled version of the library.
 
 ```code
-import { Button, Container, Reshaped } from "@uicapsule/components/bundle";
+import { Button, Container, UICapsule } from "@uicapsule/components/bundle";
 
 const App = () => {
   return (
@@ -92,7 +92,7 @@ npm run dev
 All our components work without PostCSS but in case you need to use our custom media queries available in CSS you'll need a PostCSS setup available in your project.
 In that case, check Remix documentation on [how to make it work with PostCSS](https://remix.run/docs/en/v1/guides/styling#postcss).
 
-After you're done with the setup, import a PostCSS config from Reshaped and add it to `postcss.config.js` file in the root folder:
+After you're done with the setup, import a PostCSS config from UICapsule and add it to `postcss.config.js` file in the root folder:
 
 ```js
 const postcss = require("@uicapsule/components/postcss");

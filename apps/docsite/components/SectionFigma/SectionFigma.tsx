@@ -13,7 +13,6 @@ import BlockVideo from "components/BlockVideo";
 import IconDownload from "icons/Download";
 import IconFigmaStylesArrow from "icons/colored/FigmaStylesArrow";
 import IconHeart from "icons/Heart";
-import { figmaDemoSrc } from "constants/vimeo";
 import * as ga from "utilities/ga";
 import s from "./SectionFigma.module.css";
 
@@ -92,7 +91,7 @@ const SectionFigma = () => {
           <View.Item columns={{ s: 12, m: 6, l: 4 }}>
             <BlockFeature
               title="Variants"
-              text="Reshaped has thousands of variants carefully wrapped into individual components that are easy to find and configure."
+              text="UICapsule has thousands of variants carefully wrapped into individual components that are easy to find and configure."
             >
               <View direction="row" gap={4}>
                 <img
@@ -168,13 +167,13 @@ const SectionFigma = () => {
             <BlockVideo
               label="Figma video demo"
               previewSrc="/img/landing/figma/video.png"
-              src={figmaDemoSrc}
+              src={"https://www.youtube.com/embed/8Z8Z8Z8Z8Z8"}
             />
           </View.Item>
 
           <View.Item columns={{ s: 12, m: 6 }}>
             <BlockReview
-              text="Reshaped's superpower is the theming architecture because it has a fine balance of flexibility and constraints which makes it easier for the consumers to tweak the theme based on the brand and the product and yet it is logical enough to understand from the outside."
+              text="UICapsule's superpower is the theming architecture because it has a fine balance of flexibility and constraints which makes it easier for the consumers to tweak the theme based on the brand and the product and yet it is logical enough to understand from the outside."
               avatarUrl="/img/landing/avatar-kamlesh.webp"
               name="Kamlesh Chandnani"
               position="Principal Frontend Engineer, Razorpay"

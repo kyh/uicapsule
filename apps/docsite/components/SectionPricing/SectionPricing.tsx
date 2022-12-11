@@ -207,7 +207,7 @@ const SectionPricing = () => {
               items={[
                 {
                   title: "Onboarding",
-                  text: "Guidance on how to introduce Reshaped to your development and design process",
+                  text: "Guidance on how to introduce UICapsule to your development and design process",
                 },
                 {
                   title: "Design system audit",

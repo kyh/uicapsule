@@ -44,7 +44,7 @@ const SectionProduct = () => {
               autoHeightPreview
               bleedPreview
               title="Solid foundation"
-              text="Reshaped gives you a head start by solving UI problems at all scales. You can stop worrying about maintaining your foundations and focus entirely on the product."
+              text="UICapsule gives you a head start by solving UI problems at all scales. You can stop worrying about maintaining your foundations and focus entirely on the product."
             >
               <View gap={3} attributes={{ "aria-hidden": true }}>
                 {features.map((items, index) => (
@@ -66,7 +66,7 @@ const SectionProduct = () => {
                 <BlockFeature
                   autoHeightPreview
                   title="React + Figma"
-                  text="Reshaped ships a library of flexible components aligned between Figma and React. Avoid design hand-off surprises and share the same source of truth."
+                  text="UICapsule ships a library of flexible components aligned between Figma and React. Avoid design hand-off surprises and share the same source of truth."
                 >
                   <div className={s.bundle} aria-hidden="true">
                     <div className={s.developer}>
@@ -130,7 +130,7 @@ const SectionProduct = () => {
               </View.Item>
               <View.Item columns={{ s: 12, m: 6, l: 12 }}>
                 <BlockReview
-                  text="Reshaped gives a superpower to not think about the implementation details when building a product. I absolutely love how it helps to solve Light/Dark theming and RTL. You literally don't think about anything except the UI when building."
+                  text="UICapsule gives a superpower to not think about the implementation details when building a product. I absolutely love how it helps to solve Light/Dark theming and RTL. You literally don't think about anything except the UI when building."
                   avatarUrl="/img/landing/avatar-dmitriy.webp"
                   name="Dmitriy Kovalenko"
                   position="Lead Software Engineer, Ex-MUI"

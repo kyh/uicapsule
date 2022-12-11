@@ -1,19 +1,24 @@
 {
   "private": true,
   "workspaces": [
+    "apps/*",
     "packages/*"
   ],
   "scripts": {
     "build": "turbo run build",
+    "build-components": "turbo run build --filter=components...",
+    "build-docsite": "turbo run build --filter=docsite...",
     "dev": "turbo run dev --no-cache --parallel --continue",
-    "dev-components": "npm run storybook --prefix packages/components",
+    "dev-components": "turbo run dev --filter=components...",
+    "dev-docsite": "turbo run dev --filter=docsite...",
+    "storybook": "npm run storybook --prefix packages/components",
     "lint": "turbo run lint",
     "clean": "turbo run clean",
     "clean-node-modules": "find . -name 'node_modules' -type d -prune -exec rm -rf '{}' +",
     "format": "prettier --write \"**/*.{ts,tsx,md}\"",
     "changeset": "changeset",
     "version-packages": "changeset version",
-    "release": "turbo run build --filter=docs^... && changeset publish"
+    "release": "turbo run build --filter=docsite^... && changeset publish"
   },
   "devDependencies": {
     "@changesets/cli": "^2.22.0",

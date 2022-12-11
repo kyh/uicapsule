@@ -13,7 +13,7 @@ const AboutRoute = () => {
         <Container width="830px">
           <Image
             src="/img/landing/about/logo.webp"
-            alt="Reshaped logo on gradient background"
+            alt="UICapsule logo on gradient background"
           />
         </Container>
         <Container width="600px">
@@ -32,7 +32,7 @@ const AboutRoute = () => {
               will be relevant years from now and have created our own approach
               that works at any scale. We&apos;ve packed our expertise into a
               white-label design system that we use ourselves and now make
-              available for others — that&apos;s how Reshaped was born.
+              available for others — that&apos;s how UICapsule was born.
             </Text>
             <Text variant="featured-3" color="neutral-faded">
               No matter what it will grow into, we&apos;ll stay design system

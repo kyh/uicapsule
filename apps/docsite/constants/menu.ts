@@ -308,7 +308,7 @@ const menu: MenuItem[] = [
     items: [
       {
         url: "/content/docs/utilities/@uicapsule/components",
-        title: "Reshaped provider",
+        title: "UICapsule provider",
         keywords: ["rtl", "color mode", "theme", "theming"],
       },
       {

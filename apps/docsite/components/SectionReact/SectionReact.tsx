@@ -6,7 +6,6 @@ import BlockFeature from "components/BlockFeature";
 import BlockVideo from "components/BlockVideo";
 import IconArrowRight from "icons/ArrowRight";
 import IconCheckmark from "icons/Checkmark";
-import { reactDemoSrc } from "constants/vimeo";
 import * as ga from "utilities/ga";
 import s from "./SectionReact.module.css";
 
@@ -35,7 +34,7 @@ const SectionReact = () => {
             <BlockFeature
               horizontal
               title="Compatible with your codebase"
-              text="React is the only dependency Reshaped needs in runtime. You can use it alongside any other dependencies you already use in your product."
+              text="React is the only dependency UICapsule needs in runtime. You can use it alongside any other dependencies you already use in your product."
               action={{
                 children: "Code examples",
                 endIcon: IconArrowRight,
@@ -56,7 +55,7 @@ const SectionReact = () => {
 		<Avatar size={10} src="avatar.jpg" />
 
 		<View.Item grow>
-			<Text variant="body-medium-1">Reshaped</Text>
+			<Text variant="body-medium-1">UICapsule</Text>
 			<Text color="neutral-faded">
 				Design system built for your scale
 			</Text>
@@ -74,7 +73,7 @@ const SectionReact = () => {
             <BlockFeature
               autoHeightPreview
               title="Typescript support"
-              text="Everything you import from Reshaped is written in Typescript. Code editor helps you writing code before you even open the documentation."
+              text="Everything you import from UICapsule is written in Typescript. Code editor helps you writing code before you even open the documentation."
             >
               <img
                 alt="Typescript support"
@@ -101,7 +100,7 @@ const SectionReact = () => {
           <View.Item columns={{ s: 12, m: 6, l: 4 }}>
             <BlockFeature
               title="Fully tested"
-              text="Reshaped is covered with an extensive test suite of unit, screenshot and accessibility tests. You’ll get multiple hundreds of tests and we keep adding more."
+              text="UICapsule is covered with an extensive test suite of unit, screenshot and accessibility tests. You’ll get multiple hundreds of tests and we keep adding more."
             >
               <View gap={3} attributes={{ "aria-hidden": true }}>
                 <View direction="row" align="center" gap={2}>
@@ -130,7 +129,7 @@ const SectionReact = () => {
 
           <View.Item columns={{ s: 12, m: 6 }}>
             <BlockReview
-              text="What I like about Reshaped is its incredible attention to details. Quality of the code I found in the package, setup for the complex components and focus on accessibility immediately got me excited about the project."
+              text="What I like about UICapsule is its incredible attention to details. Quality of the code I found in the package, setup for the complex components and focus on accessibility immediately got me excited about the project."
               avatarUrl="/img/landing/avatar-max.webp"
               name="Max Trusov"
               position="Head of Front-end Development"
@@ -143,7 +142,7 @@ const SectionReact = () => {
               backgroundContain
               label="React video demo"
               previewSrc="/img/landing/react/video.webp"
-              src={reactDemoSrc}
+              src={"https://www.youtube.com/embed/8Z1QZ1Z1Z1Z"}
             />
           </View.Item>
         </View>

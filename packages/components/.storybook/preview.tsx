@@ -1,6 +1,6 @@
 import React from "react";
 import { addDecorator } from "@storybook/react";
-import { Reshaped, Button, View, Hidden, useTheme } from "../src";
+import { UICapsule, Button, View, Hidden, useTheme } from "../src";
 
 import "../src/themes/reshaped/theme.css";
 import "../src/themes/fragments/twitter/theme.css";
@@ -44,13 +44,13 @@ const ThemeSwitch = () => {
 
 addDecorator((story) => (
   <React.StrictMode>
-    <Reshaped
+    <UICapsule
       theme="uicapsule"
       toastOptions={{ "bottom-start": { width: 440, expanded: true } }}
     >
       <View padding={4}>{story()}</View>
       <ThemeSwitch />
-    </Reshaped>
+    </UICapsule>
   </React.StrictMode>
 ));
 

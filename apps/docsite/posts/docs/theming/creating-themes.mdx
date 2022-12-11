@@ -2,8 +2,8 @@
 title: Creating Custom Themes
 ---
 
-You can start using Reshaped with the theme we provide, but at some point, you might want to apply custom values to the design tokens and align them with your brand.
-To solve that, Reshaped has a command-line interface for creating new themes.
+You can start using UICapsule with the theme we provide, but at some point, you might want to apply custom values to the design tokens and align them with your brand.
+To solve that, UICapsule has a command-line interface for creating new themes.
 
 ## Adding themes
 
@@ -24,7 +24,7 @@ module.exports = config;
 ```
 
 In this example, we have defined a theme that will only change `foregroundNeutral` token value.
-All other values are inherited from the default Reshaped theme.
+All other values are inherited from the default UICapsule theme.
 
 ## Theme fragments
 
@@ -56,7 +56,7 @@ Instead, you can create two main themes and a Twitter theme fragment that will i
 
 ## CLI
 
-Now that we have a config file with theme definitions added, we can use Reshaped CLI to generate these themes.
+Now that we have a config file with theme definitions added, we can use UICapsule CLI to generate these themes.
 Let's add an NPM script to call the CLI to your `package.json`:
 
 ```json
@@ -83,17 +83,17 @@ src
 ## Using in the application
 
 With the themes built, you can now import them into your code.
-We can start by picking the `productTheme` theme we've just built and pass it to the `Reshaped` provider:
+We can start by picking the `productTheme` theme we've just built and pass it to the `UICapsule` provider:
 
 ```code
-import { Reshaped } from "@uicapsule/components";
+import { UICapsule } from "@uicapsule/components";
 import "themes/productTheme/theme.css";
 
-const Application = ({ children }) => <Reshaped theme="productTheme">{children}</Reshaped>;
+const Application = ({ children }) => <UICapsule theme="productTheme">{children}</UICapsule>;
 ```
 
 Our product now uses a custom theme and has a new `foregroundNeutral` token value available.
-It still uses other tokens from the default Reshaped theme, which means Button component uses a violet color for its background.
+It still uses other tokens from the default UICapsule theme, which means Button component uses a violet color for its background.
 
 Let's create a `TwitterButton` component with a different button background color with a twitter theme fragment.
 We can use a `ThemeProvider` utility to define a theme just for the components rendered inside it.
@@ -124,7 +124,7 @@ Even though `@uicapsule/components.config.js` is a Javascript file, you can use 
 
 ```ts
 // @ts-check
-/** @type {import('@uicapsule/components').ReshapedConfig} */
+/** @type {import('@uicapsule/components').UICapsuleConfig} */
 const config = {
   themes: {
     twitter: {
@@ -140,7 +140,7 @@ module.exports = config;
 ```
 
 - `// @ts-check` enables type checking for the config file.
-- `@type` comment defines the type for the variable used next. This means that the config format will be type checked according to the type definition coming from the Reshaped package.
+- `@type` comment defines the type for the variable used next. This means that the config format will be type checked according to the type definition coming from the UICapsule package.
 
 ## Tokens format
 

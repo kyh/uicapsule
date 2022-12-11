@@ -1,5 +1,5 @@
 // @ts-check
-/** @type {import('@uicapsule/components').ReshapedConfig} */
+/** @type {import('@uicapsule/components').UICapsuleConfig} */
 const config = {
   themes: {
     funky: {

@@ -3,13 +3,13 @@ import { motion } from "framer-motion";
 import NextLink from "next/link";
 import { Container, Text, View, Button, useTheme } from "@uicapsule/components";
 import IconArrowRight from "icons/ArrowRight";
-import Price from "constants/prices";
 import * as ga from "utilities/ga";
 import LibraryDemo from "./components/LibraryDemo";
 import TimedTheme from "./components/TimedTheme";
 import s from "./SectionHero.module.css";
+import Price from "constants/prices";
 
-const themes = ["@uicapsule/components", "funky", "classic"];
+const themes = ["uicapsule", "funky", "classic"];
 
 const Animation = (props: { order: number; children?: React.ReactNode }) => {
   const duration = 1;
@@ -63,7 +63,7 @@ const SectionHero = () => {
                   {mounted && (
                     <img
                       src={badgeSrc}
-                      alt="Reshaped - Design system built for your scale in React and Figma | Product Hunt"
+                      alt="UICapsule - Design system built for your scale in React and Figma | Product Hunt"
                       height="52"
                     />
                   )}
@@ -84,7 +84,7 @@ const SectionHero = () => {
                     color="neutral-faded"
                     as="p"
                   >
-                    Reshaped is a professionally crafted design system for
+                    UICapsule is a professionally crafted design system for
                     everyday product development with Figma and React
                   </Text>
                 </Animation>

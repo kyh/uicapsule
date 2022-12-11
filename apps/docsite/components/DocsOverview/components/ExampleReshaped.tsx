@@ -1,16 +1,16 @@
 import React from "react";
 import { Icon } from "@uicapsule/components";
-import IconReshaped from "icons/colored/Reshaped";
+import IconUICapsule from "icons/colored/Reshaped";
 import Example from "./Example";
 
-const ExampleReshaped = () => (
+const ExampleUICapsule = () => (
   <Example
-    title="Reshaped provider"
+    title="UICapsule provider"
     text="Global context provider that provides all of our and your components with a shared context"
     href="/content/docs/utilities/@uicapsule/components"
   >
-    <Icon size={6} svg={IconReshaped} />
+    <Icon size={6} svg={IconUICapsule} />
   </Example>
 );
 
-export default ExampleReshaped;
+export default ExampleUICapsule;

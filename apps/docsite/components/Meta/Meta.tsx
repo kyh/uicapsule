@@ -8,7 +8,7 @@ const Meta = (props: {
   image?: string;
 }) => {
   const { title, titleEnding, description, image } = props;
-  const titleBase = "Reshaped";
+  const titleBase = "UICapsule";
   const shareTitle = [title, titleBase, titleEnding]
     .filter(Boolean)
     .join(" - ");

@@ -62,8 +62,8 @@ export { default as Radio } from "components/Radio";
 export type { RadioProps } from "components/Radio";
 export { default as RadioGroup } from "components/RadioGroup";
 export type { RadioGroupProps } from "components/RadioGroup";
-export { default as Reshaped } from "components/Reshaped";
-export type { ReshapedProps } from "components/Reshaped";
+export { default as UICapsule } from "components/UICapsule";
+export type { UICapsuleProps } from "components/UICapsule";
 export { default as Select } from "components/Select";
 export type { SelectProps } from "components/Select";
 export { default as Switch } from "components/Switch";
@@ -93,7 +93,7 @@ export { default as useElementId } from "hooks/useElementId";
 export { default as useIsomorphicLayoutEffect } from "hooks/useIsomorphicLayoutEffect";
 
 export { default as Placeholder } from "utilities/storybook/Placeholder";
-export type { ReshapedConfig } from "types/config";
+export type { UICapsuleConfig } from "types/config";
 
 /** Deprecated */
 export { default as Frame } from "components/_deprecated/Frame";

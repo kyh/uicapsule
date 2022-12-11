@@ -27,7 +27,7 @@ const meta: DocsMeta = {
         type: ControlType.slot,
         control: {
           defaultValue:
-            "Find out which new features are available in the upcoming Reshaped release",
+            "Find out which new features are available in the upcoming UICapsule release",
           mode: "text",
         },
       },

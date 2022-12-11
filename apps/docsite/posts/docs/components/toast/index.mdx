@@ -150,23 +150,23 @@ function Example() {
 }
 ```
 
-Toasts support global options per screen region passed through the Reshaped provider.
+Toasts support global options per screen region passed through the UICapsule provider.
 For every region, you can define the area's width and disable the stacking behavior.
 
 ```code
-<Reshaped
+<UICapsule
   toastOptions={{
     'bottom-start': { width: "460px", expanded: true }
   }}
 >
   ...
-</Reshaped>
+</UICapsule>
 ```
 
 <Grid>
   <CrossLink
     href="/content/docs/utilities/@uicapsule/components"
-    title="Reshaped"
+    title="UICapsule"
   />
 </Grid>
 
@@ -249,7 +249,7 @@ function Example() {
       onClick={() => {
         const id = toast.show({
           startSlot: <Avatar initials="RS" color="primary" size={10} />,
-          text: "Reshaped has logged in",
+          text: "UICapsule has logged in",
           color: "neutral",
         });
       }}

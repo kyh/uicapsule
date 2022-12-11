@@ -1,6 +1,6 @@
 ---
 title: Webpack installation
-description: Setting up Reshaped package in a Webpack project.
+description: Setting up UICapsule package in a Webpack project.
 ---
 
 ## Create your project
@@ -18,9 +18,9 @@ npm install react react-dom
 npm install --dev webpack webpack-cli webpack-dev-server css-loader postcss-loader mini-css-extract-plugin ts-loader typescript html-webpack-plugin @types/react @types/react-dom
 ```
 
-## Install Reshaped
+## Install UICapsule
 
-Download the latest Reshaped release from the [Releases page](/content/changelog) and save the `.tgz` file into your project.
+Download the latest UICapsule release from the [Releases page](/content/changelog) and save the `.tgz` file into your project.
 Then install the package using the file path.
 For example, if you save the package as `./vendor/@uicapsule/components.tgz` in the project root folder, you can run:
 
@@ -34,7 +34,7 @@ yarn add ./vendor/@uicapsule/components.tgz
 
 ## Add PostCSS config
 
-Import a PostCSS config from Reshaped and add it to `postcss.config.js` file in the root folder:
+Import a PostCSS config from UICapsule and add it to `postcss.config.js` file in the root folder:
 
 ```js
 const postcss = require("@uicapsule/components/postcss");
@@ -84,21 +84,21 @@ Now you can run your build process with `npm run start`.
 npm run start
 ```
 
-## Start using Reshaped components
+## Start using UICapsule components
 
 Import some of the core components in `src/App.tsx` and try them out:
 
 ```code
-import { Button, Container, Reshaped } from "@uicapsule/components";
+import { Button, Container, UICapsule } from "@uicapsule/components";
 import "@uicapsule/components/themes/@uicapsule/components/theme.css";
 
 const App = () => {
   return (
-    <Reshaped theme="@uicapsule/components">
+    <UICapsule theme="@uicapsule/components">
       <Container width="652px">
         <Button href="/">Get started</Button>
       </Container>
-    </Reshaped>
+    </UICapsule>
   );
 };
 ```

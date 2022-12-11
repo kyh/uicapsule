@@ -30,9 +30,9 @@ const SectionSource = () => {
                   </Text>
                 </View.Item>
                 <Text variant="featured-3" color="neutral-faded" as="p">
-                  Use Reshaped to start from a point where all core challenges
+                  Use UICapsule to start from a point where all core challenges
                   are already solved with our pro license. Get access to
-                  Reshaped as we develop it and tweak anything you feel like.
+                  UICapsule as we develop it and tweak anything you feel like.
                 </Text>
 
                 <View.Item gapBefore={4}>
@@ -67,7 +67,7 @@ const SectionSource = () => {
               <BlockFeature
                 horizontal
                 title="Source code"
-                text="You get access to Reshaped implementation of all components and utilities with a fully working development environment and Storybook examples. "
+                text="You get access to UICapsule implementation of all components and utilities with a fully working development environment and Storybook examples. "
                 action={{
                   children: "Component demo",
                   endIcon: IconArrowRight,
