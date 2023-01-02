@@ -107,6 +107,7 @@ const App = (props: any) => {
   return (
     <UIC
       theme="uicapsule"
+      defaultColorMode="dark"
       toastOptions={{ "bottom-start": { width: "460px" } }}
     >
       <AppWrapper {...props} />
