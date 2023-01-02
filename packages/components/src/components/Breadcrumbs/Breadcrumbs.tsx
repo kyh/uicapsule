@@ -10,94 +10,109 @@ import IconDotsHorizontal from "icons/DotsHorizontal";
 import * as T from "./Breadcrumbs.types";
 
 const BreadcrumbsItem = (props: T.ItemProps) => {
-	const { children, onClick, href, icon, disabled } = props;
+  const { children, onClick, href, icon, disabled } = props;
 
-	if (!href && !onClick && !disabled) {
-		return (
-			<Text variant="body-medium-2" color="neutral">
-				{children}
-			</Text>
-		);
-	}
+  if (!href && !onClick && !disabled) {
+    return (
+      <Text variant="body-medium-2" color="neutral">
+        {children}
+      </Text>
+    );
+  }
 
-	return (
-		<Link
-			onClick={onClick}
-			href={href}
-			icon={icon}
-			disabled={disabled}
-			variant="plain"
-			color="inherit"
-		>
-			{children}
-		</Link>
-	);
+  return (
+    <Link
+      onClick={onClick}
+      href={href}
+      icon={icon}
+      disabled={disabled}
+      variant="plain"
+      color="inherit"
+    >
+      {children}
+    </Link>
+  );
 };
 
 const Breadcrumbs = (props: T.Props) => {
-	const { children, separator, color, defaultVisibleItems, className, attributes } = props;
-	const visibleItems = defaultVisibleItems && defaultVisibleItems >= 2 ? defaultVisibleItems : null;
-	const [expanded, setExpanded] = React.useState(false);
-	const rootClassNames = classNames(className);
-	const childrenLength = React.Children.count(children);
-	let renderIndex = 0;
+  const {
+    children,
+    separator,
+    color,
+    defaultVisibleItems,
+    className,
+    attributes,
+  } = props;
+  const visibleItems =
+    defaultVisibleItems && defaultVisibleItems >= 2
+      ? defaultVisibleItems
+      : null;
+  const [expanded, setExpanded] = React.useState(false);
+  const rootClassNames = classNames(className);
+  const childrenLength = React.Children.count(children);
+  let renderIndex = 0;
 
-	const handleExpand = () => {
-		setExpanded(true);
-	};
+  const handleExpand = () => {
+    setExpanded(true);
+  };
 
-	return (
-		<nav {...attributes} className={rootClassNames}>
-			<View as="ol" direction="row" gap={2} align="center">
-				{React.Children.map(children, (child, index) => {
-					if (!child) return null;
+  return (
+    <nav {...attributes} className={rootClassNames}>
+      <View as="ol" direction="row" gap={2} align="center">
+        {React.Children.map(children, (child, index) => {
+          if (!child) return null;
 
-					const lastCollapsedIndex = childrenLength - (visibleItems || 0);
-					const isBeforeCollapse = renderIndex === 0;
-					const isAfterCollapse = renderIndex > lastCollapsedIndex;
-					const isDisplayed = !visibleItems || isBeforeCollapse || isAfterCollapse || expanded;
-					const isCollapseButton = renderIndex === lastCollapsedIndex;
-					renderIndex += 1;
+          const lastCollapsedIndex = childrenLength - (visibleItems || 0);
+          const isBeforeCollapse = renderIndex === 0;
+          const isAfterCollapse = renderIndex > lastCollapsedIndex;
+          const isDisplayed =
+            !visibleItems || isBeforeCollapse || isAfterCollapse || expanded;
+          const isCollapseButton = renderIndex === lastCollapsedIndex;
+          renderIndex += 1;
 
-					let itemNode = null;
+          let itemNode = null;
 
-					if (isDisplayed) {
-						itemNode = child;
-					} else if (isCollapseButton) {
-						itemNode = (
-							<Button.Aligner>
-								<Button
-									variant="ghost"
-									size="small"
-									startIcon={IconDotsHorizontal}
-									onClick={handleExpand}
-								/>
-							</Button.Aligner>
-						);
-					}
+          if (isDisplayed) {
+            itemNode = child;
+          } else if (isCollapseButton) {
+            itemNode = (
+              <Button.Aligner>
+                <Button
+                  variant="ghost"
+                  size="small"
+                  startIcon={IconDotsHorizontal}
+                  onClick={handleExpand}
+                />
+              </Button.Aligner>
+            );
+          }
 
-					if (itemNode === null) return null;
+          if (itemNode === null) return null;
 
-					return (
-						<React.Fragment key={index}>
-							{index > 0 && (isDisplayed || isCollapseButton) && (
-								<Text as="li" attributes={{ role: "presentation" }} color="neutral-faded">
-									{separator || <Icon svg={IconChevronRight} size={3} />}
-								</Text>
-							)}
-							<Text
-								variant="body-2"
-								color={color === "primary" ? "primary" : "neutral-faded"}
-								as="li"
-							>
-								{itemNode}
-							</Text>
-						</React.Fragment>
-					);
-				})}
-			</View>
-		</nav>
-	);
+          return (
+            <React.Fragment key={index}>
+              {index > 0 && (isDisplayed || isCollapseButton) && (
+                <Text
+                  as="li"
+                  attributes={{ role: "presentation" }}
+                  color="neutral-faded"
+                >
+                  {separator || <Icon svg={IconChevronRight} size={3} />}
+                </Text>
+              )}
+              <Text
+                variant="body-2"
+                color={color === "primary" ? "primary" : "neutral-faded"}
+                as="li"
+              >
+                {itemNode}
+              </Text>
+            </React.Fragment>
+          );
+        })}
+      </View>
+    </nav>
+  );
 };
 
 Breadcrumbs.Item = BreadcrumbsItem;

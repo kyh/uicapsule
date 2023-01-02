@@ -1,52 +1,51 @@
 .root {
-	/* Center svg in squared icon */
-	--rs-icon-px-size: calc(var(--rs-unit-x1) * var(--rs-icon-size));
-	display: flex;
-	justify-content: center;
-	height: var(--rs-icon-px-size, 1em);
-	width: var(--rs-icon-px-size, 1em);
+  /* Center svg in squared icon */
+  --uic-icon-px-size: calc(var(--uic-unit-x1) * var(--uic-icon-size));
+  display: flex;
+  justify-content: center;
+  height: var(--uic-icon-px-size, 1em);
+  width: var(--uic-icon-px-size, 1em);
 }
 
 .--auto {
-	width: auto;
-	justify-content: flex-start;
+  width: auto;
+  justify-content: flex-start;
 }
 
 .root svg {
-	display: block;
-	height: 100%;
-	/* fill: currentColor; */
+  display: block;
+  height: 100%;
+  /* fill: currentColor; */
 }
 
 @each $color in (neutral-faded, primary, positive, critical) {
-	.--color-$color {
-		color: var(--rs-color-foreground-$color);
-	}
+  .--color-$color {
+    color: var(--uic-color-foreground-$color);
+  }
 }
-
 
 .root {
-	--_s: initial;
-	--_s-m: var(--_s);
-	--_s-l: var(--_s-m);
-	--_s-xl: var(--_s-l);
-	--rs-icon-size: var(--_s);
+  --_s: initial;
+  --_s-m: var(--_s);
+  --_s-l: var(--_s-m);
+  --_s-xl: var(--_s-l);
+  --uic-icon-size: var(--_s);
 }
 
-@media (--rs-viewport-m) {
-	.root {
-		--rs-icon-size: var(--_s-m);
-	}
+@media (--uic-viewport-m) {
+  .root {
+    --uic-icon-size: var(--_s-m);
+  }
 }
 
-@media (--rs-viewport-l) {
-	.root {
-		--rs-icon-size: var(--_s-l);
-	}
+@media (--uic-viewport-l) {
+  .root {
+    --uic-icon-size: var(--_s-l);
+  }
 }
 
-@media (--rs-viewport-xl) {
-	.root {
-		--rs-icon-size: var(--_s-xl);
-	}
+@media (--uic-viewport-xl) {
+  .root {
+    --uic-icon-size: var(--_s-xl);
+  }
 }

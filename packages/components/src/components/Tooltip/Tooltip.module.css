@@ -1,9 +1,8 @@
 .root {
-	color: var(--rs-color-foreground-neutral);
-	background: var(--rs-color-background-elevated);
-	border-radius: var(--rs-unit-radius-small);
-	box-shadow: var(--rs-shadow-elevated);
-	padding: var(--rs-unit-x1) var(--rs-unit-x2);
-	max-width: 360px;
+  color: var(--uic-color-foreground-neutral);
+  background: var(--uic-color-background-elevated);
+  border-radius: var(--uic-unit-radius-small);
+  box-shadow: var(--uic-shadow-elevated);
+  padding: var(--uic-unit-x1) var(--uic-unit-x2);
+  max-width: 360px;
 }
-

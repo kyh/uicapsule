@@ -1,0 +1,22 @@
+.root {
+  animation: rs-skeleton-pulse 2s ease-in-out infinite;
+  min-height: var(--uic-unit-x5);
+}
+
+@media (prefers-reduced-motion) {
+  .root {
+    animation: none;
+  }
+}
+
+@keyframes rs-skeleton-pulse {
+  0% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.4;
+  }
+  100% {
+    opacity: 1;
+  }
+}

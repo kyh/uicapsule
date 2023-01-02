@@ -1,0 +1,100 @@
+---
+title: useTheme
+description: Custom hook to switch between the light and dark mode of the used theme.
+---
+
+```preview
+function Example() {
+  const { setColorMode, invertColorMode, colorMode } = useTheme();
+
+  return (
+    <View align="center" gap={3}>
+      <View.Item>Current color mode: {colorMode}</View.Item>
+      <Button onClick={invertColorMode}>Invert color mode</Button>
+    </View>
+  );
+}
+```
+
+<Highlight>Requires no custom JS logic to handle dark mode colors</Highlight>
+<Highlight>Supports server side rendering</Highlight>
+
+<br />
+<br />
+
+## Usage
+
+```ts
+import { useTheme } from "@uicapsule/components";
+```
+
+In UIC, we don't treat light and dark modes like two different themes; instead, we have a separate `colorMode` definition.
+
+```code
+function Example() {
+  const { setColorMode, invertColorMode, colorMode } = useTheme();
+
+  return (
+    <View direction="row" align="center" gap={3}>
+      <View.Item>Mode: {colorMode}</View.Item>
+      <Button onClick={invertColorMode}>Invert mode</Button>
+      <Button onClick={() => setColorMode("dark")}>Switch to dark mode</Button>
+    </View>
+  );
+}
+```
+
+This means there is always an easy way to toggle the modes even if you're nesting multiple themes into each other using `ThemeProvider`.
+Try switching the mode in the previous demo and see how it affects the rendering of these cards:
+
+```jsx
+<View gap={3} direction="row">
+  <Card>I am using the current color mode</Card>
+  <ThemeProvider colorMode="inverted">
+    <Card>I am using the inverted color mode</Card>
+  </ThemeProvider>
+</View>
+```
+
+Inverted color mode is a concept that we use in UIC components like `Tooltip` to avoid introducing additional design tokens while keeping the content accessible.
+
+<Grid>
+  <CrossLink
+    title="ThemeProvider"
+    href="/content/docs/utilities/theme-provider"
+  />
+  <CrossLink title="Tooltip" href="/content/docs/components/tooltip" />
+</Grid>
+
+Color mode is applicable for the whole application, so its default value can be set using `UIC` provider.
+By default, the value is set to light mode.
+
+```code
+<UIC defaultColorMode="dark" />
+```
+
+To support the color mode value with server-side rendering, pass the className from the theme to the `body` element.
+
+```code
+import '@uicapsule/components/themes/@uicapsule/components/theme.css';
+
+<body data-uic-theme="uicapsule-light">
+```
+
+<Grid>
+  <CrossLink
+    title="UIC Provider"
+    href="/content/docs/utilities/@uicapsule/components"
+  />
+  <CrossLink title="Installation - SSR" href="/content/docs/getting-started" />
+</Grid>
+
+## Arguments and return value
+
+```ts
+() => ({
+  colorMode: "dark" | "light",
+  setColorMode: (mode: "dark" | "light") => {},
+  invertColorMode: () => {},
+});
+```

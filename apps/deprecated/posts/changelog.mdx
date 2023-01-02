@@ -1,0 +1,1435 @@
+---
+title: Releases
+newsletter: true
+---
+
+<Release version="1.8.0" date="2022-11-15" />
+
+## Accordion utility
+
+We've shipped a new [Accordion](/content/docs/utilities/accordion) utility for toggling visibility of the content areas with automatic support of its height animation.
+It supports any type as content as well as it lets you use any component as a trigger.
+
+```preview
+<View height="120px" width="300px" maxWidth="100%">
+  <Accordion>
+    <Accordion.Trigger>
+      <Placeholder />
+    </Accordion.Trigger>
+    <Accordion.Content>
+      <View paddingTop={4}>
+        <Placeholder />
+      </View>
+    </Accordion.Content>
+  </Accordion>
+</View>
+```
+
+## Interactive component demos
+
+Components documentation have received an update with updated demo sections.
+Instead of showing static examples of how components look like, documentation now includes interactive knobs for trying out different combination of component properties values.
+That should help you see how component behaves without reading the whole article.
+
+Check out the components documentation to see it in action. For example, you can start with a [Button component](/content/docs/components/button) as an example of component with many different visual properties.
+
+## Next.js v13 support
+
+With the v13 being released now, Next.js supports a new way to build routes with the `app` directory.
+One of the changes relevant for UI development that happened there was introduction of global css imports support inside node_modules folder.
+That means that UICapsule now works with Next without any webpack config customisations or additional plugins.
+
+In this release, we've added a few improvements to align with the changes introduced in the latest Next.js major and have published a new starter example for Next.js 13, as well as we have updated its integration docs.
+
+<Grid>
+  <CrossLink
+    title="Next.js starter"
+    href="https://github.com/@uicapsule/components/community/tree/master/examples/next-13-starter"
+  />
+</Grid>
+
+## Other improvements
+
+- [Backdrop](/content/docs/utilities/backdrop): Added a new `transparent` flag to hide the background and make the content behind it interactable
+- [Badge](/content/docs/components/badge): Fixed z-index of the badge when used with Badge.Container content that already has its own z-index defined
+- [Breadcrumbs](/content/docs/components/breadcrumbs): Limited minimum amount of `defaultVisibleItems` to 2 items
+- [MenuItem](/content/docs/components/menu-item): Fixed the combination of disabled and selected state hover effects
+- [Modal](/content/docs/components/modal): Added a new `transparentBackdrop` property
+- [Popover](/content/docs/components/Popover): Updated position calculations for the cases when it's rendered in a fixed position element on the page
+- [Popover](/content/docs/components/Popover): Added `ref` to the attributes to automatically inherit the trigger element styles
+- [Tabs](/content/docs/components/tabs): Fixed tabs container width for the cases when it was not taking full size of the parent
+- [Tabs](/content/docs/components/tabs): Fixed icon gap when using Tab.Item without any text content
+- [TextField](/content/docs/components/text-field): Added small vertical padding for start and end slots
+- [Toast](/content/docs/components/toast): Updated z-index to be displayed on top of the `Backdrop` and its content
+- [View](/content/docs/utilities/view): Added support for individual padding properties, including responsive syntax support: `paddingTop`, `paddingStart`, `paddingEnd` and `paddingBottom`
+- Focus trapping: When releasing the focus, we now prevent the page from scrolling for mouse users if the focus target is outside the viewport
+
+<Release version="1.7.0" date="2022-10-07" />
+
+## View utility
+
+```preview
+<View width="200px" maxWidth="100%" gap={2}>
+  <View direction="row" gap={2} align="center">
+    <View
+      width="32px"
+      height="32px"
+      borderRadius="medium"
+      backgroundColor="primary"
+    />
+    <View.Item grow>
+      <View height="12px" backgroundColor="neutral" borderRadius="medium" />
+    </View.Item>
+  </View>
+  <View direction="row" gap={2} align="center">
+    <View
+      width="32px"
+      height="32px"
+      borderRadius="medium"
+      backgroundColor="primary"
+    />
+    <View.Item grow>
+      <View height="12px" backgroundColor="neutral" borderRadius="medium" />
+    </View.Item>
+  </View>
+</View>
+```
+
+Looking at the different ways of how `Stack` and `Frame` utilities can be used, we have noticed that in many cases both of them are used together.
+`Stack` is solving the layout challenges, while `Frame` allows us to easily access design tokens for typical styles.
+Additionaly, they both have overlaps in terms of what they provide from the flex api.
+
+To avoid producing more markup than needed and simplify the structure of the codebases using UICapsule, we are introducing a new utility, called `View`.
+It supports functionality from both `Stack` and `Frame`, and provides more flexibility for how its properties can be combined, including full responsive syntax support for its layout properties.
+Additionally, we've madded some improvements to the `View` API:
+
+- `View.Item` supports a `gapBefore` property, which is called `gap` in `Stack.Item`
+- `View.Item` supports a `columns` property, which is called `size` in `Stack.Item`
+- `gapBefore` now respects `View.Item` columns property, keeping multi-column layout predictable
+- `backgroundColor` now supports `black` value, that stays black in light and dark mode
+
+Being the most low-level utility component, `View` is probaly going to be the most used component in your interfaces when using UICapsule.
+You can find information about the `View` API on its [documentation page](/content/docs/utilities/view).
+
+`Stack` and `Frame` utilities are still available in the library and are now using `View` under the hood.
+They're going to be dropped in the next major release.
+
+## Updated documentation
+
+We are on a path to make our documentation even more interactive and contextual.
+With this release, we have revamped structure of all our component pages:
+
+- We've split content into two tabs, providing a quick access to the properties table for every component
+- For `ActionBar` we've created another tab called Examples, showcasing different composition approaches for the component.
+  We plan to do the same for all other components once we see how well `ActionBar` examples work for our users.
+- Each component now has a card with meta information, that previously was a part of the content and a link to its Storybook files, providing access to even more advanced examples and edge cases.
+- All Storybook files now have decorators for components, explaining the expected behaviour of every example
+
+## Other improvements
+
+- [Button](/content/docs/components/button): Added new `inherit` color support for `ghost` variant to dynamically switch button color based on the context
+- [TextArea](/content/docs/components/text-area): Updated disabled value color to align it with `TextField`
+- [Toast](/content/docs/components/toast): Improved focus trapping to return focus back to the trigger element only if focus is still inside the toast
+- [Toast](/content/docs/components/toast): Updated actions to use new `inherit` button color when possible
+- Rewritten keyboard mode to vanilla javascript to avoid additional rerenders
+
+<Release version="1.6.0" date="2022-09-19" />
+
+## Toast component
+
+We've shipped a new [Toast](/content/docs/components/toast) component for displaying notification messages or other pieces of information above the page content.
+As always, we're focusing on the quality of the component and how flexible it is when comes to building custom layouts.
+Try out the following preview to see how it works or check its documentation to see all the supported features.
+
+```preview
+function Preview() {
+  const toast = useToast();
+
+  return (
+    <Button
+      onClick={() => toast.show({ text: 'Account created', icon: IconZap })}
+    >
+      Create an account
+    </Button>
+  )
+}
+```
+
+## Responsive properties
+
+We've gone through all components and added support for responsive properties for the layout properties that were not supported before.
+With the new properties, you can now make every single piece of layout responsive without writing any additional wrapper components.
+
+For example, you can make a responsive action bar with buttons changing their direction and size for mobile screens.
+Try resizing your browser to see how it changes its layout as you switch to movile viewport size:
+
+```jsx
+<View direction={{ s: "column", m: "row" }} justify="end" gap={2}>
+  <Button
+    size={{ s: "large", m: "medium" }}
+    color="primary"
+    fullWidth={{ s: true, m: false }}
+  >
+    Confirm
+  </Button>
+  <Button size={{ s: "large", m: "medium" }} fullWidth={{ s: true, m: false }}>
+    Cancel
+  </Button>
+</View>
+```
+
+The full list of newly added responsives properties includes:
+
+- [AspectRatio](/content/docs/utilities/aspect-ratio): Added responsive `ratio` support
+- [Avatar](/content/docs/components/avatar): Added responsive `size` support
+- [Button](/content/docs/components/button): Added responsive `size` and `fullWidth` support
+- [Icon](/content/docs/utilities/icon): Added responsive `size` support
+- [Loader](/content/docs/components/loader): Added responsive `size` support
+- [MenuItem](/content/docs/components/menu-item): Added responsive `size` and `roundedCorners` support
+- [Modal](/content/docs/components/modal): Added responsive `position` and `size` support
+
+## Pro license pricing update
+
+We want to make our pricing more accessible for small and medium-sized companies, as well as to cause less confusion when it comes to deciding on the purchase of UICapsule.
+Therefore, we've decided to simplify our Pro license pricing and make it a one-time payment, similar to the regular license.
+
+Purchasing a Pro license will give you lifetime access to the source code, testing, and Storybook setup, as well as unlimited seats for the library.
+All companies, who've purchased the Pro license using the previous pricing model, get automatically migrated to the new lifetime access with this release.
+
+## Other improvements
+
+- [ActionBar](/content/docs/components/action-bar): Updated `large` size padding to change starting with `l` viewport
+- [Button](/content/docs/components/button): Relaxed props types and replaced them with runtime checks instead
+- [Button](/content/docs/components/button): Fixed outline button styles when used with white color
+- [Frame](/content/docs/utilities/view): Added shadow tokens support
+- [Frame](/content/docs/utilities/view): Added transparent border support
+- [Frame](/content/docs/utilities/view): Added transitions support
+- [Modal](/content/docs/components/modal): Updated focus ring to work with scoped theming
+- [Modal](/content/docs/components/modal): Optimized markup to use less elements when rendering a modal
+- [Modal](/content/docs/components/modal): Fixed scrolling inside the `bottom` position modal when content overflows the height of the screen
+- Aligned the name of the keyboard mode attribute with other global data attributes
+
+<Release version="1.5.0" date="2022-08-31" />
+
+## Breadcrumbs component
+
+We've shipped a new [Breadcrumbs](/content/docs/components/breadcrumbs) component for displaying top-level product navigation.
+Components like breadcrumbs have a specific product purpose, so to still keep it white-label and not make any product decisions, it supports rendering any component as a child and lets you control how its collapsing should work.
+
+```preview
+<Breadcrumbs defaultVisibleItems={2} color="primary">
+  <Breadcrumbs.Item onClick={() => {}}>Catalog</Breadcrumbs.Item>
+  <Breadcrumbs.Item onClick={() => {}}>Shoes</Breadcrumbs.Item>
+  <Breadcrumbs.Item onClick={() => {}}>Running</Breadcrumbs.Item>
+  <Breadcrumbs.Item>Ultraboost</Breadcrumbs.Item>
+</Breadcrumbs>
+```
+
+## Design system interviews
+
+We've launched a new umbrella website for our design system studio called [Formaat](https://formaat.design).
+Our website is a place that connects all of our products together and we also want to use it as a platform to help teams working on design system grow.
+We start with a series of [design system interviews](https://formaat.design/interviews) with the industry experts to help you learn about how design systems are built and maintained at scale.
+
+<Image src="https://formaat.design/img/share.png" bordered />
+
+## Core development concepts
+
+To help you work with UICapsule React components, we've added a new [Core concepts](/content/docs/getting-started/react/core-concepts) article, explaining ideas that apply to the whole system.
+We cover topics like, responsive component properties, accessibility, utility components and other concepts that turn a component library into the design system.
+
+## Other improvements
+
+- Improved `className` property across all components with an array syntax, where you can pass multiple classes, as well working with conditionals.
+
+```code
+// Pass conditional as a className without handling it outside
+<View className={foo && 'foo'} />
+
+// Pass arrays of classNames and we will resolve them for you
+<View className={['foo', bar && 'bar']} />
+```
+
+- Updated [UICapsule components demo](https://www.figma.com/community/file/1086981007887138777) with overview of all components we have in the library
+- [ActionBar](/content/docs/components/action-bar): Added Figma examples
+- [Button](/content/docs/components/button): Improved handling of icon colors when switching between variants in Figma
+- [Link](/content/docs/components/link): Added `disabled` property support even when component is used as an `<a>` tag
+- [Text](/content/docs/utilities/text): Added support for passing `neutral` color explicitly without having to pass `undefined`
+
+<Release version="1.4.0" date="2022-08-10" />
+
+## Carousel component
+
+We've shipped a new [Carousel](/content/docs/components/carousel) component for displaying scollable areas with grouped content.
+It works with any type of content, properly handles RTL and supports responsive layouts.
+
+```preview
+<View padding={2}>
+  <Carousel visibleItems={{ s: 2, l: 3 }}>
+    <AspectRatio ratio={16 / 9}>
+      <div style={{ position: 'absolute', top: 8, right: 8 }}>
+        <Button startIcon={IconHeart} color="white" elevated rounded />
+      </div>
+      <Image src="/img/examples/architecture-1.webp" alt="Archirecture design" borderRadius="medium" />
+    </AspectRatio>
+    <AspectRatio ratio={16 / 9}>
+      <div style={{ position: 'absolute', top: 8, right: 8 }}>
+        <Button startIcon={IconHeart} color="white" elevated rounded />
+      </div>
+      <Image src="/img/examples/architecture-2.webp" alt="Archirecture design" borderRadius="medium" />
+    </AspectRatio>
+    <AspectRatio ratio={16 / 9}>
+      <div style={{ position: 'absolute', top: 8, right: 8 }}>
+        <Button startIcon={IconHeart} color="white" elevated rounded />
+      </div>
+      <Image src="/img/examples/architecture-3.webp" alt="Archirecture design" borderRadius="medium" />
+    </AspectRatio>
+    <AspectRatio ratio={16 / 9}>
+      <div style={{ position: 'absolute', top: 8, right: 8 }}>
+        <Button startIcon={IconHeart} color="white" elevated rounded />
+      </div>
+      <Image src="/img/examples/architecture-4.webp" alt="Archirecture design" borderRadius="medium" />
+    </AspectRatio>
+    <AspectRatio ratio={16 / 9}>
+      <div style={{ position: 'absolute', top: 8, right: 8 }}>
+        <Button startIcon={IconHeart} color="white" elevated rounded />
+      </div>
+      <Image src="/img/examples/architecture-5.webp" alt="Archirecture design" borderRadius="medium" />
+    </AspectRatio>
+  </Carousel>
+</View>
+```
+
+## Other improvements
+
+- [Actionable](/content/docs/utilities/actionable): Added a way to set focus ring border radius value based on the child element radius
+- [Card](/content/docs/components/card): Added support for the `style` attribute
+- [Image](/content/docs/utilities/image): Added `imageAttributes` property to pass attributes only to the original image element
+- [Image](/content/docs/utilities/image): Enabled `cover` `displayMode` by default
+- [Stack](/content/docs/utilities/view): Added `baseline` items alignment
+- [Frame](/content/docs/utilities/view): Added `white` background color support
+- Improved typings for `attributes` property in all components, including cases when using `as` property
+
+<Release version="1.3.0" date="2022-07-23" />
+
+☝️ In case you have custom themes built with UICapsule, you'll have to run their build script once to make sure the typography fixes are applied.
+
+## Figma plugin release
+
+<Image src="/img/docs/figma-setup/figma-plugin.png" />
+
+We've built a Figma plugin that can add themes & switch to dark mode.
+It works locally and does it blazingly fast.
+It supports theming for color, text, and effects.
+Visit <a href="/figma-plugin" target="_blank">our landing page</a> for demo or find it <a href="#" target="_blank">directly on Figma</a>.
+
+## Public Storybook
+
+<Image src="/img/releases/1.3.0/storybook.png" />
+
+Our internal Storybook is finally public for everyone and is now featured in [Storybook Encyclopedia](https://storybook.js.org/showcase/@uicapsule/components-@uicapsule/components).
+It might give you a better understanding of our internal development setup in case you're looking to purchase our Pro license.
+
+### Other improvements
+
+- [Alert](/content/docs/components/alert): Added `bleed` support for assigning negative margins
+- [Button](/content/docs/components/button): Fixed endIcon display when both icons are passed simultaneously
+- [Button](/content/docs/components/button): Fixed minimum size values when used in themes with smaller font sizes
+- [DropdownMenu](/content/docs/components/dropdown-menu), [Popover](/content/docs/components/popover): Fixed page scrolling to the top when rendering component as active by default
+- [DropdownMenu](/content/docs/components/dropdown-menu), [Popover](/content/docs/components/popover), [Tooltip](/content/docs/components/tooltip): Fixed animation direction when calculating content position
+- [DropdownMenu](/content/docs/components/dropdown-menu), [Popover](/content/docs/components/popover): Fixed an issue with `active` state getting locked after switching a scoped theme
+- [Frame](/content/docs/utilities/view): Added `maxHeight` and `maxWidth` responsive syntax support
+- [Stack](/content/docs/utilities/view): Fixed edge cases when dividers were rendered with incorrect index
+- [Tabs](/content/docs/components/tabs): Fixed selected state property in Figma in the elevated variant
+- [Text](/content/docs/utilities/text): Added responsive `align` support
+- [TextField](/content/docs/components/text-field), [TextArea](/content/docs/components/text-area), [Select](/content/docs/components/select): Updated font-size to increase 16px only for touch devices
+- Theming engine: Fixed a bug where changing font-family in a theme was not always applying correctly
+- Added missing documentation links in Figma libraries
+
+<Release version="1.2.0" date="2022-06-15" />
+
+## Image utility
+
+```preview
+<View direction="row" gap={3}>
+  <Image width={{ s: "100px", m: "150px" }} height={{ s: "100px", m: "150px" }} src="/img/examples/image-retina.webp" borderRadius="medium" />
+  <Image width={{ s: "100px", m: "150px" }} height={{ s: "100px", m: "150px" }} src="/wrong.png" borderRadius="medium" fallback={<Icon svg={IconZap} size={8} />} />
+</View>
+```
+
+We've shipped a new [Image](/content/docs/utilities/image) utility for displaying images and controlling their behavior.
+It supports rendering image assets based on the screen pixel density and provides multiple fallback options when image asset is not available or was not loaded correctly.
+
+## MenuItem.Aligner utility
+
+```preview
+<View width="200px" gap={2}>
+  <Text variant="title-3">Documentation</Text>
+  <MenuItem.Aligner>
+    <View gap={1}>
+      <MenuItem selected size="small" roundedCorners>Overview</MenuItem>
+      <MenuItem size="small" roundedCorners>Installation</MenuItem>
+    </View>
+  </MenuItem.Aligner>
+</View>
+```
+
+Displaying a title for a menu section is such a common case and we don't want anyone to count the pixels they need for the negative margins.
+Because of that, we've implemented a utility that is similar to `Button.Aligner`.
+It aligns the contents of the [MenuItem](/content/docs/components/menu-item) with the content used around it, no matter which `size` you use them with.
+
+## Overview page
+
+<Image src="/img/releases/overview.webp" bordered />
+
+One of the core documentation parts missing before was a place to have all available components at glance.
+People had to literally go through every single page in the docs to see what we have in the library.
+In 1.2 we're finally addressing this with a revamped [overview page](/content/docs/getting-started/overview) that has previews of every single component in the library and structured access to utilities and hooks from the same page.
+
+### Other improvements
+
+**Figma:**
+
+- [Button](/content/docs/components/button):
+  - ☝️ merged regular and rounded buttons into a single component
+  - ☝️reduced variants by 50% by supporting icon-start and icon-end properties
+  - changed “icon” toggle to “show icon”
+  - aligned icon size for several large button instances
+- [Checkbox](/content/docs/components/checkbox): fixed conflicting property names: value - “show value”, helper “show helper”
+- [Radio](/content/docs/components/radio): fixed conflicting property names: value - “show value”, helper “show helper”
+
+**React:**
+
+- [Actionable](/content/docs/utilities/actionable): added support for non-interactive Actionable cases to avoid displaying unnecessary focus ring
+- [Alert](/content/docs/components/alert): optimized rendered markup for cases where not all Alert properties are used
+- [AspectRatio](/content/docs/utilities/aspect-ratio): switched to using aspect-ratio CSS feature and removed unnecessary wrappers used for custom ratio implementation
+- [Button](/content/docs/components/button): updated `outline` variant to use `neutral-faded` border color token
+- [Button](/content/docs/components/button): added `startIcon` and `endIcon` properties instead of now deprecated `icon` and `iconPosition` to support displaying both icons simultaneously. This is not a breaking change and old behavior still works as expected.
+- [Button.Aligner](/content/docs/components/button): added `string` type support for its `position` property
+- [MenuItem](/content/docs/components/menu-item): added `startIcon` property instead of now deprecated `icon` to align with other component's API. This is not a breaking change and old behavior still works as expected.
+- [Popover](/content/docs/components/popover): fixed edge cases when content was blinking for Popovers used with active by default
+- [Stack](/content/docs/utilities/view): optimized rendered markup when using multiple stacks nested in each other
+- [Text](/content/docs/utilities/text): added `maxLines` property to truncate the text based on the passed number of lines
+- [TextField](/content/docs/components/text-field): added `startIcon` and `endIcon` properties instead of now deprecated `icon` and `iconPosition` to support displaying both icons simultaneously. This is not a breaking change and old behavior still works as expected.
+- [ThemeProvider](/content/docs/utilities/theme-provider): fixed an issue with height inheritance that caused scope themes to take extra space on the page
+- [Tooltip](/content/docs/components/tooltip): added `active` property to support manually controlling the tooltip display
+
+**Website:**
+
+- Prioritised two new components that now have Coming soon pages: [Breadcrumbs](/content/docs/components/breadcrumbs) and [Toast](/content/docs/components/toast)
+- Added documentation search for the Coming soon components
+- Added integration guide for [Remix](https://remix.run) and a [Remix starter example](https://github.com/@uicapsule/components/community/tree/master/examples/remix-starter) in our community repoository
+
+<Release version="1.1.0" date="2022-05-24" />
+
+## Alert component
+
+```preview
+<View width="400px" maxWidth="100%">
+  <Alert
+    color="primary"
+    title="New version is available"
+    icon={IconZap}
+    actionsSlot={<Link variant="plain">View now</Link>}
+  >
+    Find out which new features are available in the upcoming UICapsule release
+  </Alert>
+</View>
+```
+
+We've shipped a new [Alert](/content/docs/components/alert) component that can be used for displaying prominent messages related to the whole page or a specific area.
+It comes in 4 different colors, supports horizontal layout direction and works with any type of content.
+
+## Faded border color tokens
+
+☝️ In case you have custom themes built with UICapsule, don't forget to run the generation script for them to get these new tokens available in your theme.
+
+```preview
+<View gap={3} direction="row">
+  <View
+    backgroundColor="primary-faded"
+    borderColor="primary-faded"
+    borderRadius="medium"
+    width="60px"
+    height="60px"
+  />
+  <View
+    backgroundColor="positive-faded"
+    borderColor="positive-faded"
+    borderRadius="medium"
+    width="60px"
+    height="60px"
+  />
+  <View
+    backgroundColor="critical-faded"
+    borderColor="critical-faded"
+    borderRadius="medium"
+    width="60px"
+    height="60px"
+  />
+</View>
+```
+
+We have added three new color tokens for `faded` borders.
+They work perfectly for decorative elements that don't need to meet 4.5 to 1 contrast ratio requirements.
+For example, we use these tokens ourselves in the newly released [Alert](/content/docs/components/alert) component.
+
+## Figma library updates
+
+We've adopted the [latest features](https://www.figma.com/whats-new/) that Figma announced during Config 2022: individual strokes, instance swap for icons, slot selection, text properties, boolean properties and more.
+This brings more control for library users as well as better alignment with code.
+In some cases though connection to the master component may be lost: please read through the bullet points marked with ☝️ before updating your mockups.
+
+**Action bar**
+
+- Added slot selection in the properties panel
+- Adopted Figma's individual strokes, simplified nesting structure
+
+**Alert**
+
+- Added a new component 🎉
+
+**Avatar**
+
+- Added instance swap for icons in the properties panel
+- Added text property in the properties panel
+
+**Card**
+
+- Added slot selection in the properties panel
+- Adopted Figma's individual strokes, simplified nesting structure
+
+**Badge**
+
+- Added text property in the properties panel
+
+**Button**
+
+- Added instance swap for icons in the properties panel
+- Added text property in the properties panel
+
+**Checkbox**
+
+- Added text property for values and helper in the properties panel
+- ☝️ Attention: detached value and helper to enable the props in the control panel
+
+**Radio**
+
+- Added text property for values and helper in the properties panel
+- ☝️ Attention: detached value and helper to enable the text property
+
+**Link**
+
+- Added text property in the properties panel
+
+**Modal**
+
+- Added slot selection in the properties panel
+
+**Overlay**
+
+- Positioned text absolutedly for “Fill” variant, simplified nesting structure
+
+**Popover**
+
+- Added slot selection in the properties panel
+
+**Input-select**
+
+- Added icon and slot selection in the properties panel
+- Added text property for label, placeholder, value, helper, error and success messages to modify text value directly in the control panel
+- ☝️ Attention: detached label, placeholder, value, helper, error and success messages to enable the text property
+
+**Tabs**
+
+- Added text property in the properties panel
+- ☝️ Attention: added icon boolean property, this allowed deprecation of 50% of variants
+
+**Text area**
+
+- Added text property for values, helper and error message in the property panel
+- ☝️ Attention: detached value, helper and error message to enable the text property
+- Fixed issues with auto-layout when stretching component horizontally
+
+**Text field**
+
+- Added text property for label, placeholder, value, helper, error and success messages to modify text value directly in the control panel
+- ☝️ Attention: detached label, placeholder, value, helper, error and success messages to enable the text property
+- Added instance swap for icons
+- Added slot selection in the properties panel
+
+**Tooltip**
+
+- Added text property in the property panel
+- Updated documentation for all components for easier access through the inspect panel
+
+**Text utility**
+
+- Made it available outside of the library (previously was used as an internal atom)
+
+**Icon utility**
+
+- Added icon selection in the properties panel
+
+**Dependencies**
+
+- Removed internal dependencies in style libraries: now you shouldn't have promts that some libraries are missing
+
+### Other improvements
+
+- [Button](/content/docs/component/button): Updated elevated button shadow to not change on hover
+- [Frame](/content/docs/utilities/view): Added support for `faded` border color values
+- [Hidden](/content/docs/utilities/hidden): Increased hidden mixin classname specificity over other component styles
+- [Select](/content/docs/components/select): Fixed vertical text alignment issue in Firefox
+- Updated public Next.js examples and documentation to use our ESM build instead of the pre-compiled version
+- Updated source code component demo on the homepage to Modal component to better demonstrate our codebase and problems that we're solving
+- Added an endpoint for external tooling to get a list of available package versions
+- We are adding new profile panel to display everything about your purchases and give you quick access to the latest releases
+
+<Release version="1.0.0" date="2022-05-07" />
+
+<Image src="/img/releases/release.png" />
+
+After two years of active development, we've finally reached an important milestone.
+Today we're releasing the 1.0 version of UICapsule for React and Figma and we're live on [Product Hunt](https://www.producthunt.com/posts/@uicapsule/components).
+
+With this release, we're starting to follow our [release strategy](/content/docs/getting-started/release-strategy) with no more breaking changes for the following year.
+It means that the library has reached a stable state, and you can update to any upcoming minor release in a matter of minutes.
+
+Until June 10, we're keeping early-bird prices to celebrate the release, and we hope you enjoy using UICapsule as much as we do ourselves.
+
+## Website improvements
+
+- We have updated our Figma integration documentation, including a new section on how to handle library updates
+- Both React and Figma video demos have been updated and made more than 2 times shorter while keeping all relevant content in
+- We have added a new FAQ page and revamped the content we had previously
+
+## Library improvements
+
+☝️ In case you have custom themes built with UICapsule, don't forget to run the generation script for them to get these new tokens available in your theme.
+
+- Design tokens: Updated backgroundPrimaryFaded value to better align it with other colors in dark mode
+- [Actionable](/content/docs/utilities/actionable): Removed native highlight color as a part of Actionable css reset
+- [Popover](/content/docs/components/popover): Added scoped theming support for the content rendered inside the portal
+- [DropdownMenu](/content/docs/components/dropdown-menu): Added scoped theming support for the content rendered inside the portal
+- [Tabs](/content/docs/components/tabs): Added dynamic height support for the selected tab indicator in the pill variant
+- [Card](/content/docs/components/card): Updated `bleed` property to only support numbers
+
+<Release version="0.21.0" date="2022-04-20" />
+
+## New color tokens
+
+☝️ In case you have custom themes built with UICapsule, don't forget to run the generation script for them to get these new tokens available in your theme.
+
+```preview
+<Button color="positive">
+  Complete registration
+</Button>
+```
+
+We've made a few improvements to our available color tokens to make theming support even more customisation cases:
+
+- Started generating `on-background-highlighted` color tokens separately from regular `on-background` ones. This allows you to completely change the background color of a component in the highlighted state while keeping it accessible for users.
+- Added new `background-positive-highlighted` color in order to introduce `positive` Button variant.
+- Updated default tokens with more vibrant default values.
+
+## React 18 compatibility
+
+We've gone through the whole library and tested everything for React 18 compatibility.
+To confirm that it's all working in external environments, we've also migrated this website to React 18.
+
+React 18 was added to our package peer dependencies and you can start your project migration.
+However, make sure all other dependencies you use are compatible with React 18, there are a few Typescript changes that a lot of packages are catching up with.
+
+## Properties in the documentation
+
+We have updated property tables for all components and utilities to make them more scannable.
+They also now contain icon indicators for responsive and required properties.
+
+## Other improvements
+
+- [Button](/content/docs/components/button): Added `positive` variant support
+- [Checkbox](/content/docs/components/checkbox): Removed unused aria-describedby attribute
+- [Icon](/content/docs/utilities/icon): Added attributes.style support
+- [Icon](/content/docs/utilities/icon): Fixed justify-content value for `autoWidth` icons
+- [Stack](/content/docs/utilities/view): Added automatic `key` assignment for the `Hidden` children
+- [TextField](/content/docs/components/text-field): Added support for `iconPosition` to render an icon on the end side of the field
+
+<Release version="0.20.0" date="2022-03-27" />
+
+## Token access
+
+We're adding support for installing UICapsule by access tokens.
+Since we're not publishing the library on the public NPM, this should help 3rd party tools to easier integrate with our design system and install it as a dependency without manually downloading the system.
+In the future we might also explore this approach as our default way for installing the library in any codebase.
+
+Meanwhile, if this is something you would like to see working in your tool or you want to be able to install UICapsule in your codebase - [send us a message](mailto:hello@@uicapsule/components.so).
+
+## Other improvements
+
+- [Button](/content/docs/components/button): Renamed outlined variant to outline to keep API consistent with Badge
+- Updated `m` viewport values to `661px`-`900px` to simplify responsive design and development
+- Updated values for `highlighted` color tokens in the default UICapsule theme
+
+**React:**
+
+- [Actionable](/content/docs/utilities/actionable): Removed default :active style
+- [Button](/content/docs/components/button): Updated :active style to scale down on click
+- [Frame](/content/docs/utilities/view): Automated on-background text colors for `primary`, `constructive` and `critical` Frames to keep the text contrast ratio accessible by default
+- [ThemeProvider](/content/docs/utilities/theme-provider): Added className support
+- [UICapsule provider](/content/docs/utilities/@uicapsule/components): Added className support
+- [Backdrop](/content/docs/utilities/backdrop): Fixed absolutely positioned elements z-index inside Backdrop conflicting with page elements in Safari
+
+**Figma:**
+
+- [Avatar](/content/docs/components/avatar): Updated an image used in the component by default
+- [Badge](/content/docs/components/badge): Updated copy for all variants to “Badge” to keep overrides while switching variants
+- [Button](/content/docs/components/button): Updated copy for all variants to “Button” to keep overrides while switching variants
+- [Switch](/content/docs/components/switch): added interactive component support
+- Added component library version to the name to help swap libaries
+
+---
+
+<Release version="0.19.0" date="2022-03-14" />
+
+## Updated brand
+
+During the past two months we've been working on updating our brand and our brand assets.
+There are still a few things we're going to roll-out before 1.0 gets released but today we're shipping our renamed library and the new landing page.
+
+We're renaming to UICapsule, which means there are a few things that are renamed in the code:
+
+- Name of the NPM package was changed to `@uicapsule/components`
+- Arcade provider is now called UICapsule provider
+- Main theme is called `@uicapsule/components`
+- CSS variables a new short `--uic` prefix instead of `--arcade`
+
+## Server side rendering support for theming in NextJS
+
+We're changing our theming approach just a bit to make it work with NextJS server-side rendering.
+Theme definitions now rely on the `data-uic-theme` attribute which means you can assign it in the `_document.jsx` file without importing .css files.
+
+```code
+<body data-uic-theme="uicapsule-light">
+```
+
+## Component changes
+
+- [Avatar](/content/docs/components/avatar): Added an `alt` property and made it render as an `img` tag instead of using backround
+- [Button](/content/docs/components/button): Fixed rounded border-radius when used with `size="large"`
+- [Card](/content/docs/components/card): Added responsive syntax support for the `padding` property
+- [Container](/content/docs/utilities/container): Replaced `size` property with `width` to allow more granular control over its dimensions
+- [Frame](/content/docs/utilities/view): Added `base` and `elevated` background support
+- [Frame](/content/docs/utilities/view): Added responsive syntax for `height` and `width` properties
+- [Divider](/content/docs/utilities/divider): Added automatic `aria-orientation` support
+- [DropdownMenu](/content/docs/components/dropdown-menu): Updated focus management to return focus back to the trigger element on pressing Tab instead of moving it to the next one
+- [Loader](/content/docs/components/loader): Added `aria-label` and `aria-live` support
+- [Progress](/content/docs/components/progress): Added `duration` support to make animated progress bars
+- [Hidden](/content/docs/utilities/hidden): Added `inline` property for hidden text elements
+- Updated border color token values in dark mode
+
+---
+
+<Release version="0.18.0" date="2022-01-16" />
+
+## Integrations
+
+We've updated framework integrations guidelines and moved them to a separate documentation section on the website.
+All example projects have been updated with the latest dependencies and their setup has been simplified.
+
+In addition to that, we have added Gatsby starter example and documentation.
+Check its documentation in the Integrations sections in our docs.
+
+<Grid>
+  <CrossLink
+    title="Gatsby integration"
+    href="/content/docs/getting-started/integrations/gatsby"
+  />
+</Grid>
+
+## UICapsule config
+
+In this release, we've updated the way you can add custom themes.
+Instead of working with `createTheme` and `createThemeFragment` functions, themes are created from an `@uicapsule/components.config.js` file.
+You can store in the root level of the repository or provide a custom path to our theming CLI.
+
+<Grid>
+  <CrossLink
+    title="Creating themes"
+    href="/content/docs/theming/creating-themes"
+  />
+</Grid>
+
+## Other improvements
+
+- [Avatar](/content/docs/components/avatar): Added support for dynamic size values which means you can pass any unit token to it
+- [TextField](/content/docs/components/text-field): Normalized input value suggestion style
+
+---
+
+<Release version="0.17.0" date="2021-12-25" />
+
+## Figma library
+
+<Image src="/img/releases/figma-release.png" />
+
+This release is the first one to include UICapsule Figma library which is available for both regular and source code licenses.
+Library consists of 3 files that include:
+
+- Figma components with variants and auto-layout that are aligned with code
+- File with design tokens for light mode
+- File with design tokens for dark mode
+
+With the help of Figma Themer plugin, you'll be able to design your product just once and switching to dark mode will happen automatically without any manual customisation.
+This works not only with UICapsule components but also with any custom component you create yourself.
+
+<Grid>
+  <CrossLink title="Figma setup" href="/content/docs/figma-setup" />
+  <CrossLink title="Design tokens" href="/content/docs/tokens/overview" />
+</Grid>
+
+## New pricing tiers
+
+Along with Figma release, we're also updating our pricing tiers.
+
+First of all, even though we're adding Figma library to the list, we're keeping our single seat license to $79 while we're getting closer to v1.0 release of UICapsule.
+Shortly after the release its price is going to raise to $99.
+
+Team licenses now scale based on the amount of seats you purchase with increasing discounts which means now you get a better deal for 2-3 people teams.
+
+On top of that we're adding two new tiers:
+
+- **Source code**, for teams building their own design system and who want to use UICapsule as a starting point and skip the whole setup phase. Additionally it could useful for front-end and design teams willing to learn new best practices and dive deeper into the internals of UICapsule for new ideas.
+- **Enterprise**, for companies who need more than just code and design files. We can help you with onboarding to UICapsule, in-house design system workshops, audits or other activities tailored to your needs.
+
+<Grid>
+  <CrossLink title="Pricing tiers" href="/pricing" />
+</Grid>
+
+## Other improvements
+
+- [Frame](/content/docs/utilities/view): Added support for responsive `padding` property values.
+- [Frame](/content/docs/utilities/view): Added support for new background color values.
+- [Hidden](/content/docs/utilities/hidden): Added `visibility` flag to work with CSS visibility property instead of display. This is helpful when you want to hide an element visually but keep its space reserved and avoid content jumps.
+- [Hidden](/content/docs/utilities/hidden): Aligned responsive syntax with other components. Instead of providing `from` and `to` value, you can now use `hide` property with the regular responsive properties syntax.
+- [Stack](/content/docs/utilities/view): Added support for multiple `Stack.Item` using `grow` in the same Stack.
+- [Stack](/content/docs/utilities/view): Added support for defining Stack `height`.
+- [Text](/content/docs/utilities/text): Added support for line-through decoration.
+
+---
+
+<Release version="0.16.0" date="2021-12-03" />
+
+In this release, we've updated the way we generate output of the theming engine and the way themes are used in the code.
+We've moved away from theme components and ColorMode utility to a single ThemeProvider component that works with both, scoped themes and color modes.
+This allowed us to avoid additional rerenders of the app when a theme changes and reduced the complexity of theming in general.
+
+```code
+import { UICapsule, ThemeProvider } from "@uicapsule/components";
+import @uicapsule/componentsTheme from "@uicapsule/components/themes/@uicapsule/components.module.css";
+import productTheme from "themes/product.module.css";
+
+const Application = () => (
+  <UICapsule theme={@uicapsule/componentsTheme}>
+    UICapsule theme is used here
+    <ThemeProvider theme={productTheme}>Product theme is used here</ThemeProvider>
+  </UICapsule>
+);
+```
+
+### Library bundle
+
+For the cases where using our ESM build output is not possible, we're now additionally providing UICapsule JS and CSS bundles.
+This will disable regular tree-shaking of the modules but makes it possible to use the library in environments that currently don't support CSS imports from within node_modules.
+However this shouldn't affect the performance much considering that current library total size is lest than `40kb` including both CSS and JS.
+
+To use the bundles, you can import them directly from the package.
+Note that you will need to import styles just once.
+
+```code
+import { Button } from "@uicapsule/components";
+import "@uicapsule/components.css";
+```
+
+### Other improvements
+
+- [Tabs](/content/docs/components/tabs): Adjusted size to align better with other components
+- [Tabs](/content/docs/components/tabs): Adjusted focus selector area to better respect tab item content
+- Updated border radius values across components
+- Updated foundation names and values to align with Figma and improve default theme quality
+- Added [ThemeProvider](/content/docs/utilities/theme-provider) component and [useTheme](/content/docs/hooks/use-theme) hook
+
+---
+
+<Release version="0.15.0" date="2021-11-14" />
+
+After 3 months of design work we're finalising our Figma library with all the components moving into testing phase.
+All components are designed with variants, auto-layout and paying incredible attention to handling composition of components the same way you would do that in code.
+Both React and Figma libraries are perfectly aligned so anything you can design with UICapsule Figma library - you can immediately implement in code with no problems.
+
+### Design tokens documentation
+
+```preview
+<View gap={3} direction="row" align="center">
+  <div
+    style={{
+      background: "var(--uic-color-background-primary)",
+      borderRadius: "var(--uic-unit-radius-small)",
+      width: 24,
+      height: 24,
+    }}
+  />
+
+  <Text variant="body-medium-2" color="neutral-faded">
+    --uic-color-background-primary
+  </Text>
+</View>
+```
+
+We have revamped our [design tokens documentation](/content/docs/tokens/overview) and added visual examples for all UICapsule tokens.
+Every token type now has a separate page, going through their values and guidelines on how to use them.
+
+### Other improvements
+
+- Added [Vite](https://vitejs.dev/) starter project to the [installation guide](/content/docs/installation)
+- [Backdrop](/content/docs/utilities/backdrop): Overlay component was renamed to Backdrop utility
+- [Divider](/content/docs/components/divider): Added `blank` property support for easier composition with Tabs
+- [FormControl](/content/docs/utilities/form-control): Updated label color for the disabled form fields
+- [Modal](/content/docs/components/modal): Merged with Drawer to support position property
+- [Modal](/content/docs/components/modal): Added support for custom and responsive padding values
+- [Modal](/content/docs/components/modal): Added support for custom width values
+- [Overlay](/content/docs/components/overlay): Scrim was renamed to Overlay
+- [Overlay](/content/docs/components/overlay): Added easing to the scrim gradient value
+- [Popover](/content/docs/components/popover): Added custom padding support
+- [Progress](/content/docs/components/progress): Added small size and white color support
+- [Select](/content/docs/components/select): Added icon support
+- [Tabs](/content/docs/components/tabs): Merged SegmentedControl with tabs. Tabs support `pills-elevated` now and all variants can work as a form control
+- [Text field](/content/docs/components/text-field): Added icon support
+
+---
+
+<Release version="0.14.0" date="2021-10-30" />
+
+### Documentation updates
+
+```preview
+<Button color="primary" startIcon={IconZap}>
+  Instant delivery
+</Button>
+```
+
+We've made an major update to our documentation layout to let you discover the information you're looking for faster.
+Some of the highlights are:
+
+- Previews and highlights for all components and utilities
+- Navigation to similar components
+- Navigation to previous and next articles
+- Search to the side menu to filter the components, including filtering by keywords
+- Outline of the article highlighting section that are currently on the screen
+- Anchor links for specific parts of the article
+
+### Other improvements
+
+- [Card](/content/docs/components/card): Add elevated card support
+- [Card](/content/docs/components/card): Added support for custom bleed values and responsive bleed behaviour
+- [Container](/content/docs/utilities/container): Added support for custom padding values and responsive padding
+- [Checkbox](/content/docs/components/checkbox): Updated styles for disabled checked state
+- [Hidden](/content/docs/utilities/hidden): Update format of the function arguments when used with render props
+- [Icon](/content/docs/utilities/icon): Added dynamic size support. Any unit token multiplier can now be used to define the icon size
+- [MenuItem](/content/docs/components/menu-item): Moved from `fullWidth` property to `roundedCorners` to simplify its API
+- [Radio](/content/docs/components/radio): Updated styles for disabled checked state
+- [Switch](/content/docs/components/switch): Added built-in integration with FormControl utility
+
+---
+
+<Release version="0.13.0" date="2021-10-17" />
+
+### Framework integrations
+
+During the past two weeks we have been improving the UICapsule onboarding experience for some of the most popular front-end frameworks and bundles.
+So far we have prepared 4 starter examples for Parcel, Webpack, NextJS and Create React App as well as few demos with more advanced examples.
+
+<Grid>
+  <CrossLink
+    title="Parcel"
+    href="https://github.com/@uicapsule/components/community/tree/master/examples/parcel-starter"
+  />
+  <CrossLink
+    title="NextJS"
+    href="https://github.com/@uicapsule/components/community/tree/master/examples/next-starter"
+  />
+  <CrossLink
+    title="Create React App"
+    href="https://github.com/@uicapsule/components/community/tree/master/examples/cra-starter"
+  />
+  <CrossLink
+    title="Webpack"
+    href="https://github.com/@uicapsule/components/community/tree/master/examples/webpack-starter"
+  />
+</Grid>
+
+As a way to support NextJS users, we've also published an UICapsule Next CSS plugin to enable CSS setup out of the box.
+
+<Grid>
+  <CrossLink
+    title="UICapsule Next CSS"
+    href="https://github.com/@uicapsule/components/@uicapsule/components-next-css"
+  />
+</Grid>
+
+### Figma progress
+
+We have passed 50% of our Figma library progress with 12 components and design token library ready.
+Everything is already built with theming/dark mode support, using auto-layout and providing variants for every component.
+
+If you want to track the progress, you can do that in our [project board](https://blvworkspace.notion.site/64cf1f5713344a7383330e0402f43949?v=b88a6dbbcb9a4faeb867d40d09ec0b12).
+
+### Other improvements
+
+- [Actionable](/content/docs/utilities/actionable): Improved event handling logic
+- [Avatar](/content/docs/components/avatar): Fixed icon alignment for auto width icons
+- Documentation: Added navigation for previous and next articles
+
+---
+
+<Release version="0.12.0" date="2021-10-03" />
+
+### RGB color tokens support
+
+When using colors as variables in CSS, you would usually hit a wall when you want to apply custom opacity values to them.
+The only way to combine a color variable with opacity is to use it with `rgba()` color function in CSS.
+
+In order to support this case, we've added auto-generation for rgb values of the background color tokens.
+They use similar names to background token names with an additional `rgb` prefix:
+
+```css
+var(--uic-color-rgb-background-neutral) /* 223, 226, 234 */
+```
+
+Note that the variable stores only the rgb values themselves but doesn't wrap it with a function.
+This means you can now use it together with `rgba()` color function in your css:
+
+```css
+background: rgba(var(--uic-color-rgb-background-neutral), 0.5);
+```
+
+### Other improvements
+
+- [Avatar](/content/docs/components/avatar): Adjusted icon size in `larger` Avatar size, added faded colors support.
+- [Button](/content/docs/components/button): Updated neutral Button to use `inherit` Loader color, added `white` and `black` colors support for rendering on media content.
+- [Card](/content/docs/components/card): Add custom padding value support.
+- [Frame](/content/docs/utilities/view): Added `maxWidth` and `maxHeight` properties.
+- [Icon](/content/docs/utilities/icon): Added `smallest` size value, added `inherit` size support.
+- [Link](/content/docs/components/link): Added `critical` color, added `icon` support.
+- [Select](/content/docs/components/select): Aligned Select height with Button height on mobile viewports.
+- [Stack](/content/docs/components/view): Stack.Item `split` flag migrated to `gap="auto"`.
+- [Switch](/content/docs/components/switch): Updated the disabled checked background color to use `primary` color.
+- [TextField](/content/docs/components/text-field): Aligned TextField height with Button height on mobile viewports.
+
+---
+
+<Release version="0.11.0" date="2021-09-19" />
+
+### UICapsule video demo
+
+On the hompage, we now have a video demo for those who want to take a look of how the development process looks like.
+In the demo we are building a social media card with some common layouts and interactive behavior that you would usually see in your day-to-day job.
+Additionally, we show how theming and dark mode work with no extra effort or requirements to write custom styling logic on your side.
+
+### Chained trap focus
+
+While building interfaces we have to implement complex behaviors like modal being opened from a dropdown.
+Both of these components should trap the focus and return it back to the trigger element when closed.
+Starting with this release with support chained trap focus.
+It will return the focus back to the correct trigger even if some of the trigger elements are no longer rendered on the screen.
+
+For example, try going through the whole flow using your keyboard in the following example.
+Once you close the modal, focus will return to the "Open menu" button.
+
+**Hint:** Click near the button first and press `Tab`, to focus on the button using keyboard.
+
+```preview
+function ChainTrapFocus() {
+  const { active, activate, deactivate } = useToggle(false);
+
+  return (
+    <>
+      <DropdownMenu>
+        <DropdownMenu.Trigger>
+          {(attributes) => <Button attributes={attributes}>Open menu</Button>}
+        </DropdownMenu.Trigger>
+        <DropdownMenu.Content>
+          <DropdownMenu.Item onClick={activate}>Open modal</DropdownMenu.Item>
+          <DropdownMenu.Item>Second menu item</DropdownMenu.Item>
+        </DropdownMenu.Content>
+      </DropdownMenu>
+      <Modal active={active} onClose={deactivate}>
+        <View gap={3}>
+          <Dismissible onClose={deactivate} closeAriaLabel="Close modal">
+            <Modal.Title>Modal title</Modal.Title>
+            <Modal.Subtitle>Modal subtitle</Modal.Subtitle>
+          </Dismissible>
+          Dialogs present a distinct choice to users through their title, content, and actions.
+          <Button onClick={deactivate}>Got it</Button>
+        </View>
+      </Modal>
+    </>
+  );
+}
+```
+
+### Other improvements
+
+- [Button](/content/docs/components/button): `Elevated` flag support.
+- [Container](/content/docs/utilities/container): Fixed layout issues when used inside other flexbox elements.
+- [DropdownMenu](/content/docs/components/dropdown-menu): Added custom `width` support.
+- [Frame](/content/docs/utilities/view): Added support for separating vertical and horizontal padding values.
+- [Stack](/content/docs/utilities/view): Stack.Item `split` flag support to pull an item away from the rest of the items.
+- [Stack](/content/docs/utilities/view): Added automatic wrap handling for Stack.Item using `grow` and `split` with responsive values.
+- [Backdrop](/content/docs/utilities/backdrop): Darkened the background to improve the contrast ratio of the backdrop content with the page.
+- [useElementId](/content/docs/hooks/use-element-id): Fixed id generation for React.StrictMode development mode.
+- [UICapsule theme](/content/docs/tokens/overview): Reduced the line-height of caption1 font token.
+
+---
+
+<Release version="0.10.0" date="2021-08-16" />
+
+### New homepage
+
+Our homepage has been completely revamped to put emphasize on the newly released features, including our recent theming engine.
+You can try applying one of the 3 demo themes to our whole website, including their light and dark modes.
+
+### More stack improvements
+
+- Stack.Item now has `gap` support. This comes handy when you need a list of elements with different gaps and lets you achieve that without nesting multiple Stacks in each other.
+- Stack got improved nested responsive properties support, including bug fixes for the edge cases found that were not supported before.
+- Inline and reversed flags got merged into a single direction property for better responsive properties support.
+- Vertical stack now automatically take full height of its parent to make controlling its children alignment easier.
+
+### Other improvements
+
+- ThemeMode: Renamed to ColorMode.
+- ColorMode: Added default foreground color reset for ColorMode scopes instead of using the global text color.
+- Hidden: Migrated to `from` and `till` properties to provide better support of responsive values.
+- Text: Added `align` property.
+- Text: Added text color transition for cases when parent is controlling the color value.
+- Card: Added `selected` flag.
+- UICapsule Provider: Improved switching between root-level themes
+
+---
+
+<Release version="0.9.0" date="2021-07-28" />
+
+### Dynamic responsive properties
+
+`Stack` is the core of any layout you build, and we want it to be as flexible as possible.
+Starting with 0.9.0 we are using CSS variables to work with responsive styles, and we've started with `Stack` component integration.
+Till now, we've only supported a limited number of values that you could use as `gap` property because its styles have been predefined in CSS.
+With the new responsive CSS variables, we're changing `gap` property to support any numerical value as a multiplier of the base unit token.
+
+This change includes both, regular and responsive properties, which means you can pass any number you want for every viewport size:
+
+```code
+<View gap={{ s: 2, l: 10 }} />
+```
+
+With this new approach, we're shipping a couple more features for the `Stack` component:
+
+- `Grid` is finally merged with `Stack`. `Stack.Item` now supports `size` property while all other properties stay the same.
+- `Stack` now supports responsive `wrap` property to control `flex-wrap` manually.
+- `Stack.Item` now supports responsive `order` property to control the order of items rendering.
+
+### Logical properties for RTL
+
+We've moved away from supporting RTL during build step with a PostCSS plugin and are using [CSS logical properties](https://developer.mozilla.org/en-US/content/docs/Web/CSS/CSS_Logical_Properties) now instead.
+This takes us one step closer to moving away from CSS build step and using completely native CSS.
+Additionally, this update helped us improve a handful components and how they render in RTL mode.
+
+### Bundle size
+
+We have added `size-limit` integration to our merge requests which lets us track all the bundle size changes as one of our main metrics.
+For example, even after introducing all these new features and responsive styles, we have actually reduced our total bundle size by 2kb down to 41kb.
+
+---
+
+<Release version="0.8.0" date="2021-07-17" />
+
+### Theming Engine
+
+<Image src="/img/releases/theming.png" />
+
+We're finally releasing out theming engine, including completely typed JS API and CLI to build themes using UICapsule design tokens.
+Writing your theme definition once will build a React component for you that's ready to be imported into your application.
+Among other features its main highlights are:
+
+- All theming happens in build time and doesn't affect your runtime performance.
+- Dark mode is supported on the design tokens level. No need to write conditionals in your components.
+- Scoped theming support which makes it easy to use multiple themes in the same application.
+- Theme fragments which define only a part of a theme to save your bundle size
+
+### Other improvements
+
+- Added additional viewport boundaries checks for mobile viewports in Popover.
+- Fixed Popover with `triggerType="hover"` affecting how other Popovers on the page work.
+
+---
+
+<Release version="0.7.0" date="2021-06-19" />
+
+### UICapsule demo
+
+<Image src="/img/releases/demo.png" />
+
+For this release we've built our first demo of a page using UICapsule.
+It's aiming to provide a publicly available example of a project setup as well as giving a hint about how building interfaces with UICapsule looks like.
+
+- Project repository: https://github.com/@uicapsule/components/demo
+- Deployed project: https://@uicapsule/components.github.io/demo/
+
+### Responsive properties API update
+
+We've started supporting more scenarios for responsive development.
+In this release we're adding another viewport support to differentiate between portrait and landscape tablet modes.
+This means that our viewport media queries names have been updated accordingly:
+
+```css
+@media (--uic-viewport-s) @media (--uic-viewport-m) @media (--uic-viewport-l) @media (--uic-viewport-xl);
+```
+
+To make the components easier to use with 4 viewports available, we're also switching from array notation to an object notation for the responsive properties.
+Since we use mobile-first approach, you don't have to define values for every viewport manually.
+For example, you can set the Stack gap to be `x2` by default and change to `x4` starting with large viewport size.
+
+```js
+<View gap={{ s: 2, l: 4 }}>
+```
+
+### Other improvements
+
+- [Tabs](/content/docs/components/tabs): Fixed button animation blinking in iOS Safari
+- [Popover](/content/docs/components/popover): Improved keyboard navigation defaults for triggerType="hover"
+
+---
+
+<Release version="0.6.0" date="2021-06-08" />
+
+### Rethinking Stack utility
+
+```preview
+<View>
+  <Placeholder />
+
+  <View direction="row">
+    <Placeholder />
+    <View.Item grow>
+      <Placeholder />
+    </View.Item>
+    <Placeholder />
+  </View>
+
+  <View direction="row">
+    <View width="200px">
+      <Placeholder />
+    </View>
+    <View.Item grow>
+      <Placeholder />
+    </View.Item>
+  </View>
+</View>
+```
+
+We've completely rebuilt our [Stack](/content/docs/utilities/view) component from ground up to cover a huge number of new edge cases.
+Most of our focus went into improving nested stacks, edge cases for specific components and reducing the number of elements rendered per every stack:
+
+- Refactored the usage of children removing all unnecessary item wrappers
+- Aligned `gap` property naming with token names.
+- Added item grow support to divided stack.
+- Improved support for button elements rendered as direct Stack children.
+- Added support for nested Stacks with flex-wrap: nowrap.
+- Added responsive property support for Stack.Item grow.
+- Improved AspectRatio and Card default layout calculations when used in Stack.
+
+We've also tried using the new `gap` API for flexbox which turned out not so well, due to the limited Safari support and some [webkit bugs](https://bugs.webkit.org/show_bug.cgi?id=225278) that have to be fixed first.
+Once the state of the API becomes more stable, we will immediately migrate to it.
+
+### Other improvements
+
+- [Actionable](/content/docs/utilities/actionable): Added custom tag support with `as` property.
+- [ActionBar](/content/docs/component/action-bar): Added `large` size support.
+- [Button](/content/docs/components/button): Removed min-width from the text button variant.
+- [Container](/content/docs/utilities/container): Added size presets for its max-width.
+- [DropdownMenu](/content/docs/components/dropdown-menu): Added small gaps between menu items.
+- [DropdownMenu](/content/docs/components/dropdown-menu): Fixed a bug which sometimes caused dropdown menu stay open after its close was triggerred.
+- [Frame](/content/docs/utilities/view): Added support for any padding value as a unit design token multiplier.
+- [Link](/content/docs/components/link): Added `color` and `underline` properties.
+- [Switch](/content/docs/components/switch): Improved keyboard navigation support when used inside Popover and Modal.
+- [Tabs](/content/docs/components/tabs): Replaced navigation arrows with fade-out for scrolling tabs on mobile.
+- [Tabs](/content/docs/components/tabs): Improved the navigation arrows toggle throttling.
+
+---
+
+<Release version="0.5.0" date="2021-05-21" />
+
+### Tabs: New variants
+
+```preview
+<Tabs variant="pills">
+  <Tabs.List>
+    <Tabs.Item id="0">Item 1</Tabs.Item>
+    <Tabs.Item id="1">Long item 2</Tabs.Item>
+    <Tabs.Item id="2">Very long item 3</Tabs.Item>
+  </Tabs.List>
+</Tabs>
+```
+
+[Tabs](/content/docs/components/tabs) get 2 new variants to support new UI scenarios.
+`borderless` is helpful when it's used with parent component that provides its own border already.
+`pills` variant is used for less prominent secondary navigation.
+
+### Other improvements
+
+- [Dismissible](/content/docs/utilities/dismissible) got min-height defined in case it has no content provided.
+- [Popover](/content/docs/components/popover) got its keyboard navigation improved when it has no focusable elements in it.
+- [Modal](/content/docs/components/modal) now supports title and subtitle elements to handle accessibility.
+- [Backdrop](/content/docs/components/backdrop) now won't close when user tries to close any type of dropdown menu.
+
+---
+
+<Release version="0.4.0" date="2021-05-09" />
+
+### Progress component
+
+```preview
+<View width="300px" maxWidth="100%" gap={3}>
+  <Progress value={25} color="primary" />
+  <Progress value={50} color="critical" />
+  <Progress value={75} color="positive" />
+</View>
+```
+
+We release [Progress component](/content/docs/components/progress) to the progress status for a task that takes a long time or consists of several steps.
+In some cases it can be used for other types of context, like displaying the score values etc.
+
+### Overlay component
+
+```preview
+<View borderRadius="medium" overflow="hidden" width="300px" maxWidth="100%">
+  <Overlay
+    position="bottom"
+    backgroundSlot={
+      <AspectRatio ratio={16 / 9}>
+        <img src="/img/image.png" alt="Example" />
+      </AspectRatio>
+    }
+  >
+    <Text variant="body-strong-2">Canyon trip</Text>
+  </Overlay>
+</View>
+```
+
+We're adding [Overlay component](/content/docs/components/overlay) to let you build nice-looking media cards and display text content on top of them.
+You can find which position values it supports in the [documentation](/content/docs/components/overlay).
+
+### Other improvements
+
+- Added [HiddenVisually](/content/docs/utilities/hidden-visually) utility to render test applicable only for screen readers.
+- Removed Menu component in favor of MenuItem composition with existing layout components like Grid or Stack.
+- Added [Button](/content/docs/components/button) text variant that have padding around the text.
+- Removed [Link](/content/docs/components/link) icon support since that can be achieved with Button component now.
+- Add `inherit` color support for the [TextField](/content/docs/components/text-field) to use them on any background.
+- Added `backgroundColor`, `borderColor`, `borderRadius` and `overflow` for the [Frame](/content/docs/utilities/view) utility.
+- Improved focus trap functionality for components like [Modal](/content/docs/components/modal) and [Popover](/content/docs/components/popover).
+- Added a color property for [Icon](/content/docs/utilities/icon) when you want to override a color coming from the parent element.
+- Added an internal Portal utility that helps with managing z-index values of the components.
+
+---
+
+<Release version="0.3.0" date="2021-04-24" />
+
+### Tabs component
+
+```preview
+<Tabs defaultActiveId="1">
+  <Tabs.List>
+    <Tabs.Item id="0">Components</Tabs.Item>
+    <Tabs.Item id="1" icon={IconZap}>
+      Utilities
+    </Tabs.Item>
+    <Tabs.Item id="2">Hooks</Tabs.Item>
+  </Tabs.List>
+
+  <Tabs.Panel id="0">
+    <View padding={4}>Components tab</View>
+  </Tabs.Panel>
+  <Tabs.Panel id="1">
+    <View padding={4}>Utilities tab</View>
+  </Tabs.Panel>
+  <Tabs.Panel id="2">
+    <View padding={4}>Hooks tab</View>
+  </Tabs.Panel>
+</Tabs>
+```
+
+We release [Tabs](/content/docs/components/tabs) component to let you organise navigation between multiple pages or content sections.
+Its compound components approach lets you easily build custom tab panels or add animation to them, and it's responsive out-of-the-box.
+Read more about it in its [documentation](/content/docs/components/tabs).
+
+### Dropdown menu component
+
+```preview
+<DropdownMenu>
+  <DropdownMenu.Trigger>
+    {(attributes) => <Button attributes={attributes}>Open</Button>}
+  </DropdownMenu.Trigger>
+  <DropdownMenu.Content>
+    <DropdownMenu.Item>Action 1</DropdownMenu.Item>
+    <DropdownMenu.Item>Action 2</DropdownMenu.Item>
+  </DropdownMenu.Content>
+</DropdownMenu>
+```
+
+We're adding a [DropdownMenu](/content/docs/components/dropdown-menu) component built on top of `Popover` to simplify the process of building action menus.
+It works with a similar API as `Popover` does, however it encapsulates some of its logic, which means you don't have to pass all the right props and aria attributes to `Popover` manually.
+Read more about it in its [documentation](/content/docs/components/dropdown-menu).
+
+### Other improvements
+
+- Popover, Tooltip: Improved the usage of accessibility attributes on their trigger and content components
+- Popover: Separated trapFocusMode and navigationMode into separate properties
+- Menu: Adjusted the gap size between an icon and content in the small Menu.Item
+- Actionable: Added a flag to apply the focus ring inside the element boundaries to make it work better with overflow: hidden parents
+- Dismissible: Simplified properties API
+- AspectRatio: Added default size styles for the img elements used inside it
+- Color design tokens: Simplified the usage of color tokens that include state
+
+---
+
+<Release version="0.2.0" date="2021-04-08" />
+
+### UICapsule hooks
+
+We have published and documented 6 hooks provided by the library.
+Together with our utility components they should close the gaps and let you build custom components using the UICapsule context data:
+
+- [useElementId](/content/docs/hooks/use-element-id/) to generate ids for DOM elements.
+- [useFormControl](/content/docs/hooks/use-form-control/) to inherit values from the FormControl utility in your custom-built form fields.
+- [useRTL](/content/docs/hooks/use-rtl/) to control the direction of the content flow
+- [useScrollLock](/content/docs/hooks/use-scroll-lock/) to lock and unlock page scrolling.
+- [useColorMode](/content/docs/hooks/use-color-mode/) to switch between light and dark mode of the used theme.
+- [useToggle](/content/docs/hooks/use-toggle/) for toggling states on and off.
+
+### Other improvements
+
+- [Frame](/content/docs/utilities/view) utility is now exposed from the library
+- [Badge](/content/docs/components/badge) component received an additional wrapper support for handling Badge position and display
+
+---
+
+<Release version="0.1.0" date="2021-03-30" />
+
+<Image src="/img/share-rs.png" />
+
+After a year in the making, the first release of the UICapsule is now available for everyone to use.
+We're starting by releasing v0.1.0 with 31 components, utilities and their documentation.
+If you're just starting with the library, start with the Overview page from the menu on the left.
+We hope you enjoy using UICapsule and are already looking forward to get the next release out of the door! 🕹️

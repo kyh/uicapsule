@@ -1,17 +1,17 @@
 .root {
-	--_rs-w: none;
-	--_rs-w-m: var(--_rs-w);
-	--_rs-w-l: var(--_rs-w-m);
-	--_rs-w-xl: var(--_rs-w-l);
-	--_rs-w-responsive: var(--_rs-w);
+  --_uic-w: none;
+  --_uic-w-m: var(--_uic-w);
+  --_uic-w-l: var(--_uic-w-m);
+  --_uic-w-xl: var(--_uic-w-l);
+  --_uic-w-responsive: var(--_uic-w);
 
-	width: var(--_rs-w-responsive);
+  width: var(--_uic-w-responsive);
 }
 
 @each $viewport in m, l, xl {
-	@media (--rs-viewport-$viewport) {
-		.root {
-			--_rs-w-responsive: var(--_rs-w-$(viewport));
-		}
-	}
+  @media (--uic-viewport-$viewport) {
+    .root {
+      --_uic-w-responsive: var(--_uic-w-$(viewport));
+    }
+  }
 }

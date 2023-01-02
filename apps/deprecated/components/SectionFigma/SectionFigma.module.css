@@ -1,0 +1,26 @@
+.image {
+  box-shadow: var(--uic-shadow-elevated);
+  border-radius: var(--uic-unit-radius-medium);
+  position: relative;
+  z-index: 5;
+}
+
+.autoLayout {
+  position: relative;
+  /* padding-inline-end: 30%; */
+  padding-block-start: calc(var(--uic-unit-x1) * 10);
+}
+
+.autoLayout > img {
+  margin-inline-start: 0;
+  max-width: none;
+}
+
+.actionBar {
+  position: absolute;
+  top: 0;
+  inset-inline-end: 0;
+  width: 250px;
+  transform: scale(0.8);
+  transform-origin: 100% 0;
+}

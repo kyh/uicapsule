@@ -5,19 +5,20 @@ import path from "path";
 import process from "process";
 import chalk from "chalk";
 import { Command } from "commander";
+import defaultTheme from "./theming/definitions/uic";
 import { addTheme, addThemeFragment } from "./theming";
 
 const program = new Command();
 
 const importJSConfig = (path: string) => {
-  console.log(chalk.yellow(`Using UICapsule config at ${path}`));
+  console.log(chalk.yellow(`Using config at ${path}`));
   // eslint-disable-next-line global-require,import/no-dynamic-require
   const config = require(path);
   return config.default || config;
 };
 
 program
-  .description("Create new themes for UICapsule")
+  .description("Create new themes for your design system")
   .command("theming")
   .requiredOption("-o, --output <path>", "Path to output generated themes")
   .option("-c, --config <path>", "Path to the config file")
@@ -25,6 +26,7 @@ program
     "--private",
     "Package private theme generation that also builds mixins and media queries"
   )
+  .option("--default", "Generate default UIC theme")
   .action(async (opts: any) => {
     const {
       output: outputPath,
@@ -33,8 +35,8 @@ program
     } = opts;
     const originPath = process.cwd();
     let configPath;
-    const jsConfigPath = path.resolve(originPath, "uicapsule.config.js");
-    const tsConfigPath = path.resolve(originPath, "uicapsule.config.ts");
+    const jsConfigPath = path.resolve(originPath, "uic.config.js");
+    const tsConfigPath = path.resolve(originPath, "uic.config.ts");
 
     if (passedConfigPath) {
       const attemptPath = path.resolve(originPath, passedConfigPath);
@@ -47,13 +49,17 @@ program
       configPath = tsConfigPath;
 
     if (!configPath) {
-      console.error(chalk.red("Error: UICapsule config not found"));
+      console.error(chalk.red("Error: Config not found"));
       return;
     }
 
-    console.log(chalk.blue("Processing UICapsule themes..."));
+    console.log(chalk.blue("Processing themes..."));
     const config = importJSConfig(configPath);
     const { themes, themeFragments } = config;
+
+    if (opts.default) {
+      themes["uicapsule"] = defaultTheme;
+    }
 
     if (themes) {
       Object.keys(themes).forEach((themeName) => {

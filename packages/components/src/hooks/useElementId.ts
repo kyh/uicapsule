@@ -1,13 +1,13 @@
 import React from "react";
-import { UICapsuleIdContext } from "components/UICapsule";
-import useIsomorphicLayoutEffect from "hooks/useIsomorphicLayoutEffect";
+import { UICIdContext } from "../components/UIC";
+import useIsomorphicLayoutEffect from "../hooks/useIsomorphicLayoutEffect";
 
 const createId = (counter: number) => {
   return `__uicapsule-${counter}`;
 };
 
 const useElementId = (id?: string): string => {
-  const idRef = React.useContext(UICapsuleIdContext);
+  const idRef = React.useContext(UICIdContext);
   const [generatedId, setGeneratedId] = React.useState(createId(0));
 
   // SSR - set all ids to 0

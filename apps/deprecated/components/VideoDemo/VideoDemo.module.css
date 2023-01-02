@@ -1,0 +1,5 @@
+.close {
+  position: fixed;
+  top: var(--uic-unit-x2);
+  right: var(--uic-unit-x2);
+}

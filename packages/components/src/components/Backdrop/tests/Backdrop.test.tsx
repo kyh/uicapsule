@@ -4,63 +4,71 @@ import userEvent from "@testing-library/user-event";
 import Backdrop from "components/Backdrop";
 
 const fixtures = {
-	content: "Content",
-	testId: "test-id",
+  content: "Content",
+  testId: "test-id",
 };
 
 describe("Utilities/Backdrop", () => {
-	test("renders children", () => {
-		render(<Backdrop active>{fixtures.content}</Backdrop>);
+  test("renders children", () => {
+    render(<Backdrop active>{fixtures.content}</Backdrop>);
 
-		const el = screen.getByText(fixtures.content);
-		expect(el).toBeInTheDocument();
-	});
+    const el = screen.getByText(fixtures.content);
+    expect(el).toBeInTheDocument();
+  });
 
-	test("renders children as a function", () => {
-		render(<Backdrop active>{({ active }) => (active ? fixtures.content : "")}</Backdrop>);
+  test("renders children as a function", () => {
+    render(
+      <Backdrop active>
+        {({ active }) => (active ? fixtures.content : "")}
+      </Backdrop>
+    );
 
-		const el = screen.getByText(fixtures.content);
-		expect(el).toBeInTheDocument();
-	});
+    const el = screen.getByText(fixtures.content);
+    expect(el).toBeInTheDocument();
+  });
 
-	test("triggers onOpen and onClose", async () => {
-		const handleCloseMock = jest.fn();
-		const Component = () => {
-			const [active, setActive] = React.useState(true);
+  test("triggers onOpen and onClose", async () => {
+    const handleCloseMock = jest.fn();
+    const Component = () => {
+      const [active, setActive] = React.useState(true);
 
-			const handleClose = () => {
-				setActive(false);
-				handleCloseMock();
-			};
+      const handleClose = () => {
+        setActive(false);
+        handleCloseMock();
+      };
 
-			const handleOpen = () => {
-				setActive(true);
-			};
+      const handleOpen = () => {
+        setActive(true);
+      };
 
-			return (
-				<>
-					<button type="button" data-testid={fixtures.testId} onClick={handleOpen}>
-						Open
-					</button>
-					<Backdrop active={active} onClose={handleClose}>
-						{fixtures.content}
-					</Backdrop>
-				</>
-			);
-		};
+      return (
+        <>
+          <button
+            type="button"
+            data-testid={fixtures.testId}
+            onClick={handleOpen}
+          >
+            Open
+          </button>
+          <Backdrop active={active} onClose={handleClose}>
+            {fixtures.content}
+          </Backdrop>
+        </>
+      );
+    };
 
-		render(<Component />);
+    render(<Component />);
 
-		const elButton = screen.getByTestId(fixtures.testId);
+    const elButton = screen.getByTestId(fixtures.testId);
 
-		await userEvent.click(screen.getByText(fixtures.content));
+    await userEvent.click(screen.getByText(fixtures.content));
 
-		expect(handleCloseMock).toBeCalledTimes(1);
-		waitFor(() => {
-			expect(screen.getByText(fixtures.content)).not.toBeInTheDocument();
-		});
+    expect(handleCloseMock).toBeCalledTimes(1);
+    waitFor(() => {
+      expect(screen.getByText(fixtures.content)).not.toBeInTheDocument();
+    });
 
-		await userEvent.click(elButton);
-		expect(screen.getByText(fixtures.content)).toBeInTheDocument();
-	});
+    await userEvent.click(elButton);
+    expect(screen.getByText(fixtures.content)).toBeInTheDocument();
+  });
 });

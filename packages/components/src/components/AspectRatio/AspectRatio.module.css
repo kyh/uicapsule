@@ -1,37 +1,37 @@
 .root {
-	position: relative;
+  position: relative;
 }
 
 .root > *:first-child {
-	aspect-ratio: var(--rs-aspect-ratio);
+  aspect-ratio: var(--uic-aspect-ratio);
 }
 
 .root > img:first-child {
-	object-fit: cover;
+  object-fit: cover;
 }
 
 .root {
-	--_r: 1;
-	--_r-m: var(--_r);
-	--_r-l: var(--_r-m);
-	--_r-xl: var(--_r-l);
-	--rs-aspect-ratio: var(--_r);
+  --_r: 1;
+  --_r-m: var(--_r);
+  --_r-l: var(--_r-m);
+  --_r-xl: var(--_r-l);
+  --uic-aspect-ratio: var(--_r);
 }
 
-@media (--rs-viewport-m) {
-	.root {
-		--rs-aspect-ratio: var(--_r-m);
-	}
+@media (--uic-viewport-m) {
+  .root {
+    --uic-aspect-ratio: var(--_r-m);
+  }
 }
 
-@media (--rs-viewport-l) {
-	.root {
-		--rs-aspect-ratio: var(--_r-l);
-	}
+@media (--uic-viewport-l) {
+  .root {
+    --uic-aspect-ratio: var(--_r-l);
+  }
 }
 
-@media (--rs-viewport-xl) {
-	.root {
-		--rs-aspect-ratio: var(--_r-xl);
-	}
+@media (--uic-viewport-xl) {
+  .root {
+    --uic-aspect-ratio: var(--_r-xl);
+  }
 }

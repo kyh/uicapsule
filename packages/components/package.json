@@ -12,14 +12,22 @@
   },
   "main": "./dist/index.cjs",
   "module": "./dist/index.mjs",
-  "types": "./dist/index.d.ts",
+  "types": "./src/index.ts",
+  "bin": {
+    "uicapsule": "./bin/cli/index.js"
+  },
   "scripts": {
     "build": "vite build",
+    "build-cli": "tsc -p tsconfig.cli.json",
     "dev": "vite build --watch",
     "storybook": "start-storybook -p 6006",
     "build-storybook": "build-storybook",
     "lint": "TIMING=1 eslint \"src/**/*.ts*\"",
-    "clean": "rm -rf .turbo && rm -rf dist"
+    "clean": "rm -rf .turbo && rm -rf dist && rm -rf bin"
+  },
+  "dependencies": {
+    "chalk": "^4.1.1",
+    "commander": "^8.0.0"
   },
   "devDependencies": {
     "@storybook/addon-storysource": "^6.5.14",
@@ -27,14 +35,13 @@
     "@storybook/builder-vite": "^0.2.5",
     "@storybook/react": "^6.5.14",
     "@uicapsule/config": "*",
-    "@vitejs/plugin-react-swc": "^3.0.0",
+    "@vitejs/plugin-react": "^3.0.0",
     "postcss-custom-media": "^8.0.2",
     "postcss-each": "^1.1.0",
     "postcss-import": "^14.1.0",
     "postcss-loader": "^7.0.1",
     "postcss-nested": "^5.0.6",
     "vite": "^4.0.0",
-    "vite-plugin-dts": "^1.7.1",
     "vite-tsconfig-paths": "^4.0.2"
   },
   "peerDependencies": {

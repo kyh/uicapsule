@@ -107,7 +107,6 @@ const ButtonBase = (props: T.Props, ref: ActionableRef) => {
 };
 
 const Button = React.forwardRef(ButtonBase) as T.Export;
-
 Button.Aligner = ButtonAligner;
 
 export default Button;

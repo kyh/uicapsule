@@ -15,6 +15,7 @@ build
 dist
 releases
 out
+bin
 
 # misc
 .DS_Store

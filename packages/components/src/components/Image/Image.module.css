@@ -4,8 +4,8 @@
 }
 
 .fallback {
-  background: var(--rs-color-background-neutral-faded);
-  color: var(--rs-color-foreground-disabled);
+  background: var(--uic-color-background-neutral-faded);
+  color: var(--uic-color-foreground-disabled);
   display: flex;
   align-items: center;
   justify-content: center;

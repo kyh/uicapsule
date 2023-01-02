@@ -1,0 +1,49 @@
+---
+title: useElementId
+description: Custom hook to generate ids for DOM elements.
+---
+
+```preview
+function Example() {
+  const id = useElementId();
+  return id;
+}
+```
+
+<Highlight>Provides unique ids for the page accessibility attributes</Highlight>
+
+<br />
+<br />
+
+## Usage
+
+```ts
+import { useElementId } from "@uicapsule/components";
+```
+
+When building interfaces, you'll see a lot of cases when you need to link elements together with an id, especially for implementing accessibility-related features.
+Those ids are global, and there is always a risk of getting a conflict in a large application.
+UIC exposes the `useElementId` hook to avoid id conflicts, which is suited specifically for the DOM elements and supports server-side rendering.
+
+```js
+function Component(props) {
+  const id = useElementId();
+  return <div id={id} />;
+}
+```
+
+Since hooks can't be used conditionally, `useElementId` supports working with random and manually defined ids.
+If your component has an optional id property, you can pass it along to `useElementId,` and it will either use the passed id if it's defined or generate a random one.
+
+```js
+const id = useElementId(props.id);
+```
+
+**Note:** `useElementId` generates simple ids using an internal counter.
+Don't use it for any business logic where you need to generate a truly unique id that stays the same across multiple page renders.
+
+## Arguments and return value
+
+```ts
+(id?: string) => id: string
+```

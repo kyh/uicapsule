@@ -1,71 +1,71 @@
 .root {
-	display: inline-flex;
-	position: relative;
-	vertical-align: top;
+  display: inline-flex;
+  position: relative;
+  vertical-align: top;
 }
 
 .input {
-	position: absolute;
-	top: 0;
-	left: 0;
-	/* Trap focus should be able to find this element with 1px height */
-	width: 1px;
-	height: 1px;
-	border: 0;
-	opacity: 0;
-	outline: none;
+  position: absolute;
+  top: 0;
+  left: 0;
+  /* Trap focus should be able to find this element with 1px height */
+  width: 1px;
+  height: 1px;
+  border: 0;
+  opacity: 0;
+  outline: none;
 
-	&:checked + .area {
-		background: var(--rs-color-border-primary);
-		border-color: transparent;
+  &:checked + .area {
+    background: var(--uic-color-border-primary);
+    border-color: transparent;
 
-		& .thumb {
-			transform: translateX(var(--rs-unit-x3));
+    & .thumb {
+      transform: translateX(var(--uic-unit-x3));
 
-			[dir="rtl"] & {
-				transform: translateX(calc(var(--rs-unit-x3) * -1));
-			}
-		}
-	}
+      [dir="rtl"] & {
+        transform: translateX(calc(var(--uic-unit-x3) * -1));
+      }
+    }
+  }
 
-	[data-rs-keyboard] &:focus + .area {
-		box-shadow: var(--rs-focus-shadow);
-	}
+  [data-rs-keyboard] &:focus + .area {
+    box-shadow: var(--uic-focus-shadow);
+  }
 
-	&[disabled] + .area {
-		cursor: not-allowed;
-		background: var(--rs-color-background-disabled);
-	}
+  &[disabled] + .area {
+    cursor: not-allowed;
+    background: var(--uic-color-background-disabled);
+  }
 
-	&[disabled] + .thumb {
-		background: var(--rs-color-background-disabled-faded);
-	}
+  &[disabled] + .thumb {
+    background: var(--uic-color-background-disabled-faded);
+  }
 
-	&[disabled]:checked + .area {
-		background: rgba(var(--rs-color-rgb-background-primary), 0.5);
-	}
+  &[disabled]:checked + .area {
+    background: rgba(var(--uic-color-rgb-background-primary), 0.5);
+  }
 }
 
 .area {
-	cursor: pointer;
-	border: 2px solid transparent;
-	height: calc(var(--rs-unit-x1) * 5);
-	width: calc(var(--rs-unit-x1) * 8);
-	border-radius: calc(var(--rs-unit-x1) * 5 / 2);
-	box-sizing: border-box;
-	display: flex;
-	align-items: center;
-	background: var(--rs-color-border-neutral);
-	transition: var(--rs-duration-fast) var(--rs-easing-standard);
-	transition-property: background, border;
+  cursor: pointer;
+  border: 2px solid transparent;
+  height: calc(var(--uic-unit-x1) * 5);
+  width: calc(var(--uic-unit-x1) * 8);
+  border-radius: calc(var(--uic-unit-x1) * 5 / 2);
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  background: var(--uic-color-border-neutral);
+  transition: var(--uic-duration-fast) var(--uic-easing-standard);
+  transition-property: background, border;
 }
 
 .thumb {
-	height: var(--rs-unit-x4);
-	width: var(--rs-unit-x4);
-	background: var(--rs-color-on-background-primary);
-	border-radius: 50%;
-	transition: var(--rs-duration-fast) var(--rs-easing-standard);
-	transition-property: transform;
-	box-shadow: var(--rs-shadow-base);
+  height: var(--uic-unit-x4);
+  width: var(--uic-unit-x4);
+  background: var(--uic-color-on-background-primary);
+  border-radius: 50%;
+  transition: var(--uic-duration-fast) var(--uic-easing-standard);
+  transition-property: transform;
+  box-shadow: var(--uic-shadow-base);
 }

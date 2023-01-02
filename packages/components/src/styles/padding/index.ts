@@ -3,10 +3,10 @@ import * as T from "styles/types";
 import s from "./padding.module.css";
 
 const getPaddingStyles: T.DynamicStyleUtility<number> = (value) => {
-	if (!value) return null;
-	const variables = responsiveVariables("--_rs-p", value);
+  if (!value) return null;
+  const variables = responsiveVariables("--_uic-p", value);
 
-	return { classNames: s.root, variables };
+  return { classNames: s.root, variables };
 };
 
 export default getPaddingStyles;

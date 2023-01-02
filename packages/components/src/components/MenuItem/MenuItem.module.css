@@ -1,120 +1,120 @@
 .root {
-	display: block;
-	transition: var(--rs-duration-fast) var(--rs-easing-standard);
-	transition-property: background-color, color, transform;
-	padding: var(--rs-menu-item-padding-v) var(--rs-menu-item-padding-h);
+  display: block;
+  transition: var(--uic-duration-fast) var(--uic-easing-standard);
+  transition-property: background-color, color, transform;
+  padding: var(--uic-menu-item-padding-v) var(--uic-menu-item-padding-h);
 
-	/* TODO: Replace with font utilities when they become available */
-	font-size: var(--rs-font-size-body-medium-2);
-	line-height: var(--rs-line-height-body-medium-2);
-	font-family: var(--rs-font-family-body-medium-2);
-	font-weight: var(--rs-font-weight-body-medium-2);
+  /* TODO: Replace with font utilities when they become available */
+  font-size: var(--uic-font-size-body-medium-2);
+  line-height: var(--uic-line-height-body-medium-2);
+  font-family: var(--uic-font-family-body-medium-2);
+  font-weight: var(--uic-font-weight-body-medium-2);
 
-	&:hover {
-		background-color: rgba(var(--rs-color-rgb-background-neutral), 0.4);
-	}
+  &:hover {
+    background-color: rgba(var(--uic-color-rgb-background-neutral), 0.4);
+  }
 }
 
 /* Apply only to button so it works correctly in stack */
 button.root {
-	width: 100%;
+  width: 100%;
 }
 
 .icon {
-	color: var(--rs-color-foreground-neutral-faded);
-	transition: var(--rs-duration-fast) var(--rs-easing-standard);
-	transition-property: color;
+  color: var(--uic-color-foreground-neutral-faded);
+  transition: var(--uic-duration-fast) var(--uic-easing-standard);
+  transition-property: color;
 }
 
 .--rounded-corners {
-	border-radius: var(--rs-menu-item-radius);
+  border-radius: var(--uic-menu-item-radius);
 }
 
 @each $viewport in m, l, xl {
-	@media (--rs-viewport-$(viewport)) {
-		.--rounded-corners-true--$viewport {
-			border-radius: var(--rs-menu-item-radius);
-		}
+  @media (--uic-viewport-$(viewport)) {
+    .--rounded-corners-true--$viewport {
+      border-radius: var(--uic-menu-item-radius);
+    }
 
-		.--rounded-corners-false--$viewport {
-			border-radius: 0;
-		}
-	}
+    .--rounded-corners-false--$viewport {
+      border-radius: 0;
+    }
+  }
 }
 
 .--size {
-	&-small {
-		--rs-menu-item-padding-v: var(--rs-unit-x2);
-		--rs-menu-item-padding-h: var(--rs-unit-x3);
-		--rs-menu-item-radius: var(--rs-unit-radius-small);
-	}
+  &-small {
+    --uic-menu-item-padding-v: var(--uic-unit-x2);
+    --uic-menu-item-padding-h: var(--uic-unit-x3);
+    --uic-menu-item-radius: var(--uic-unit-radius-small);
+  }
 
-	&-medium {
-		--rs-menu-item-padding-v: var(--rs-unit-x3);
-		--rs-menu-item-padding-h: var(--rs-unit-x4);
-		--rs-menu-item-radius: var(--rs-unit-radius-medium);
-	}
+  &-medium {
+    --uic-menu-item-padding-v: var(--uic-unit-x3);
+    --uic-menu-item-padding-h: var(--uic-unit-x4);
+    --uic-menu-item-radius: var(--uic-unit-radius-medium);
+  }
 
-	&-large {
-		--rs-menu-item-padding-v: var(--rs-unit-x4);
-		--rs-menu-item-padding-h: var(--rs-unit-x6);
-		--rs-menu-item-radius: var(--rs-unit-radius-medium);
-	}
+  &-large {
+    --uic-menu-item-padding-v: var(--uic-unit-x4);
+    --uic-menu-item-padding-h: var(--uic-unit-x6);
+    --uic-menu-item-radius: var(--uic-unit-radius-medium);
+  }
 }
 
 @each $viewport in m, l, xl {
-	@media (--rs-viewport-$(viewport)) {
-		.--size {
-			&-small--$viewport {
-				--rs-menu-item-padding-v: var(--rs-unit-x2);
-				--rs-menu-item-padding-h: var(--rs-unit-x3);
-				--rs-menu-item-radius: var(--rs-unit-radius-small);
-			}
-		
-			&-medium--$viewport {
-				--rs-menu-item-padding-v: var(--rs-unit-x3);
-				--rs-menu-item-padding-h: var(--rs-unit-x4);
-				--rs-menu-item-radius: var(--rs-unit-radius-medium);
-			}
-		
-			&-large--$viewport {
-				--rs-menu-item-padding-v: var(--rs-unit-x4);
-				--rs-menu-item-padding-h: var(--rs-unit-x6);
-				--rs-menu-item-radius: var(--rs-unit-radius-medium);
-			}
-		}
-	}
+  @media (--uic-viewport-$(viewport)) {
+    .--size {
+      &-small--$viewport {
+        --uic-menu-item-padding-v: var(--uic-unit-x2);
+        --uic-menu-item-padding-h: var(--uic-unit-x3);
+        --uic-menu-item-radius: var(--uic-unit-radius-small);
+      }
+
+      &-medium--$viewport {
+        --uic-menu-item-padding-v: var(--uic-unit-x3);
+        --uic-menu-item-padding-h: var(--uic-unit-x4);
+        --uic-menu-item-radius: var(--uic-unit-radius-medium);
+      }
+
+      &-large--$viewport {
+        --uic-menu-item-padding-v: var(--uic-unit-x4);
+        --uic-menu-item-padding-h: var(--uic-unit-x6);
+        --uic-menu-item-radius: var(--uic-unit-radius-medium);
+      }
+    }
+  }
 }
 
 .--selected,
 .--selected:hover {
-	background-color: rgba(var(--rs-color-rgb-background-primary), 0.16);
-	color: var(--rs-color-foreground-primary);
-	cursor: default;
+  background-color: rgba(var(--uic-color-rgb-background-primary), 0.16);
+  color: var(--uic-color-foreground-primary);
+  cursor: default;
 
-	& .icon {
-		color: inherit;
-	}
+  & .icon {
+    color: inherit;
+  }
 }
 
 .--disabled,
 .--disabled:hover {
-	color: var(--rs-color-foreground-disabled);
-	background: none;
+  color: var(--uic-color-foreground-disabled);
+  background: none;
 
-	& .icon {
-		color: var(--rs-color-foreground-disabled);
-	}
+  & .icon {
+    color: var(--uic-color-foreground-disabled);
+  }
 }
 
 /* Aligner */
 .aligner {
-	/* Normalize button width, since it doesn't respect width: 100% with negative margin */
-	button.root {
-		box-sizing: initial;
-	}
+  /* Normalize button width, since it doesn't respect width: 100% with negative margin */
+  button.root {
+    box-sizing: initial;
+  }
 
-	.root {
-		margin: 0 calc(var(--rs-menu-item-padding-h) * -1);
-	}
+  .root {
+    margin: 0 calc(var(--uic-menu-item-padding-h) * -1);
+  }
 }

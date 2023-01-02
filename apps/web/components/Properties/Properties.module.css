@@ -1,0 +1,17 @@
+.property + .property {
+  margin-top: var(--uic-unit-x2);
+  padding-top: var(--uic-unit-x2);
+  border-top: 1px solid var(--uic-color-border-neutral-faded);
+}
+
+.propertyList {
+  border-inline-start: 1px solid var(--uic-color-border-neutral);
+}
+
+.propertyLabel {
+  width: 120px;
+}
+
+.propertyList .propertyLabel {
+  width: 104px;
+}

@@ -4,14 +4,14 @@
 }
 
 .content--animated {
-  /* 
+  /*
   Using standard timing function here to have the same transition curve when animating multiple items together
   */
-  transition: height var(--rs-duration-slow) var(--rs-easing-standard);
+  transition: height var(--uic-duration-slow) var(--uic-easing-standard);
 }
 
 .icon {
-  transition: transform var(--rs-duration-fast) var(--rs-easing-standard);
+  transition: transform var(--uic-duration-fast) var(--uic-easing-standard);
 }
 
 .icon--active {

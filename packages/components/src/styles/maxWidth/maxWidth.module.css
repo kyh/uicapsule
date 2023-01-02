@@ -1,17 +1,17 @@
 .root {
-	--_rs-mw: auto;
-	--_rs-mw-m: var(--_rs-mw);
-	--_rs-mw-l: var(--_rs-mw-m);
-	--_rs-mw-xl: var(--_rs-mw-l);
-	--_rs-mw-responsive: var(--_rs-mw);
+  --_uic-mw: auto;
+  --_uic-mw-m: var(--_uic-mw);
+  --_uic-mw-l: var(--_uic-mw-m);
+  --_uic-mw-xl: var(--_uic-mw-l);
+  --_uic-mw-responsive: var(--_uic-mw);
 
-	max-width: var(--_rs-mw-responsive);
+  max-width: var(--_uic-mw-responsive);
 }
 
 @each $viewport in m, l, xl {
-	@media (--rs-viewport-$viewport) {
-		.root {
-			--_rs-mw-responsive: var(--_rs-mw-$(viewport));
-		}
-	}
+  @media (--uic-viewport-$viewport) {
+    .root {
+      --_uic-mw-responsive: var(--_uic-mw-$(viewport));
+    }
+  }
 }

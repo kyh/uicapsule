@@ -18,7 +18,7 @@ import mergeDefinitions from "./utilities/mergeDefinitions";
 import { getOnColor, hexToRgbString } from "./utilities/color";
 import { capitalize } from "./utilities/string";
 import { variablesTemplate, mediaTemplate } from "./utilities/css";
-import uicapsuleDefinition from "./definitions/ui";
+import uicapsuleDefinition from "./definitions/uic";
 import baseDefinition from "./definitions/base";
 import type * as T from "./types";
 
@@ -162,7 +162,7 @@ export const addTheme = (
   definition: PartialUserThemeDefinition,
   options: T.PublicOptions
 ) => {
-  const withUICapsule = mergeDefinitions(uicapsuleDefinition, definition);
-  const withBase = mergeDefinitions(withUICapsule, baseDefinition);
+  const withUIC = mergeDefinitions(uicapsuleDefinition, definition);
+  const withBase = mergeDefinitions(withUIC, baseDefinition);
   transformDefinition(name, withBase, options);
 };

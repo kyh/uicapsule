@@ -1,0 +1,309 @@
+<Demo>
+  {(props) => `
+<View ${props.base.attributes}>
+  <Placeholder h={64} w={64} />
+  <View.Item ${props.item.attributes}>
+    ${props.item.children}
+  </View.Item>
+</View>
+`}
+</Demo>
+
+<Highlight>
+  Provides flexbox shortcuts while also correctly handling their edge cases
+</Highlight>
+<Highlight>
+  Lets you work with the theme design tokens without writing custom CSS
+</Highlight>
+<Highlight>Supports any custom gap and padding values</Highlight>
+<Highlight>Supports 12-column vertical grid layout</Highlight>
+<Highlight>Supports rendering as custom HTML tags</Highlight>
+<Highlight>
+  Supports changing property values responsively based on the viewport size
+</Highlight>
+<Highlight>
+  Items can be detached for better control over the children layout
+</Highlight>
+<Highlight>Automatically integrates with Hidden utility</Highlight>
+
+<br />
+<br />
+
+## Usage
+
+View is the most used layout utility in UIC as it provides the most common functionality required for building layouts.
+It can be used to apply common styles based on the design tokens provided by UIC and handles a lot of layout edge cases that you would have to solve yourself when using flexbox directly.
+
+## Layout properties
+
+View gives you access to multiple flex-based properties, like `direction`, `gap`, `align` for align-items, `justify` for justyfy-content and `wrap`.
+When either of these properties is applied, View automatically turns on flexbox mode and starts behaving like one.
+
+Using these properties should help you compose groups of elements together, as well as build full page layouts.
+Note, that `gap` property supports any number value you pass to it and will apply a multiplier of an `x1` unit token, which is `4px` by default.
+For example, here `gap` is `8px`:
+
+```jsx
+<View align="center" gap={2} direction="row">
+  <Avatar initials="RS" size={12} />
+  <Text variant="body-medium-1">UIC</Text>
+</View>
+```
+
+In addition to flexbox API, you can control the View dimensions using properties, like `padding`, `width`, `height`, `maxWidth` and `maxHeight`.
+Same as before, `padding` supports any number value as a unit token multiplier and other properties work with any CSS string value, which can be `px`, `%`, `vh` and so on.
+
+When using `padding`, you can also use an array with 2 values, to define its vertical and horizontal padding separatelu.
+Let's try to wrap our previous example with another View:
+
+```jsx
+<View
+  padding={[5, 10]}
+  width="50%"
+  backgroundColor="base"
+  borderColor="neutral-faded"
+>
+  <Placeholder />
+</View>
+```
+
+Padding can also be applied individually for every side with `paddingTop`, `paddingBottom`, `paddingStart` and `paddingEnd` properties.
+Individual padding values have more priority than `padding` property when used together.
+
+```jsx
+<View paddingTop={4} borderColor="neutral">
+  <Placeholder />
+</View>
+```
+
+When used with text content inside of other components inside, you can control its alignment using `textAlign` property.
+
+```jsx
+<View textAlign="center" width="50%">
+  It's a fez. I wear a fez now. Fezes are cool. You know how I sometimes have
+  really brilliant ideas? I hate yogurt. It's just stuff with bits in.
+</View>
+```
+
+When using View on mobile devices or inside other containers, you might want to make it full-width without making the markup more complex.
+Using `bleed` property should help with this case.
+
+Let's look at the following example, where you have multiple paragraphs of text with a View in between them.
+In order to keep a single wrapper for the text, we would rather apply negative margin to the View with the `bleed` property.
+
+Same as `gap`, `bleed` supports any number value and works as a multiplier of an `x1` unit token.
+Using bleed will automatically remove side borders and border-radius from the View if any were applied.
+
+```jsx
+<View gap={4}>
+  <Text as="p">
+    Where'd you get the coconuts? Be quiet! Who's that then? The swallow may fly
+    south with the sun, and the house martin or the plover may seek warmer
+    climes in winter, yet these are not strangers to our land.
+  </Text>
+  <View bleed={4}>
+    <Placeholder />
+  </View>
+  <Text as="p">
+    Oh, ow! It's only a model. We shall say 'Ni' again to you, if you do not
+    appease us. The swallow may fly south with the sun, and the house martin or
+    the plover may seek warmer climes in winter, yet these are not strangers to
+    our land.
+  </Text>
+</View>
+```
+
+When rendering lists, one of the common use cases is to divided them with lines, so View provides you with the `divided` property out of the box.
+It automatically respects the `direction` of the View and works as expected with hidden items.
+
+```jsx
+<View
+  divided
+  gap={4}
+  padding={4}
+  direction="row"
+  backgroundColor="base"
+  borderColor="neutral-faded"
+>
+  <View width="40px" height="40px" backgroundColor="neutral-faded" />
+  <View width="40px" height="40px" backgroundColor="neutral-faded" />
+  <View width="40px" height="40px" backgroundColor="neutral-faded" />
+</View>
+```
+
+## Detaching items
+
+View applies flexbox rules directly to its children and doesn't add any additional markup to the component you provide.
+However, you can still use View.Item compound component directly in case you need to get access to additional properties.
+
+Same as in flexbox API, you can make your View child take all remaining space, using `grow` property.
+That will automatically remove flexbox wrapping from the View and will handle shinking of the other children correctly, when text content inside them goes multiline.
+
+```jsx
+<View direction="row" gap={3}>
+  <View
+    width="80px"
+    height="80px"
+    borderRadius="medium"
+    backgroundColor="base"
+    borderColor="neutral-faded"
+  />
+  <View.Item grow>
+    I am the Doctor, and you are the Daleks! It's a fez. I wear a fez now. Fezes
+    are cool. You know when grown-ups tell you 'everything's going to be fine'
+    and you think they're probably lying to make you feel better?
+  </View.Item>
+</View>
+```
+
+## Individual gaps
+
+Unlike in flexbox API, View lets you override gap on the View.Item level.
+It means that when you use `gapBefore` property on View.Item, gap value before this item will be updated and you won't need multiple View wrappers to achieve custom spacing in between the View children.
+
+```jsx
+<View gap={4}>
+  <Text variant="title-3">Doctor Who</Text>
+  <View.Item gapBefore={0}>
+    <Text variant="featured-3" color="neutral-faded">
+      BBC Series
+    </Text>
+  </View.Item>
+  <Text>
+    I'm nobody's taxi service; I'm not gonna be there to catch you every time
+    you feel like jumping out of a spaceship. I'm the Doctor, I'm worse than
+    everyone's aunt. *catches himself* And that is not how I'm introducing
+    myself.
+  </Text>
+</View>
+```
+
+When building complex layout, `order` property should let you change the rendering order of the children.
+This could be very helpful when building responsive layouts.
+
+Note, that `order` works like adding a weight to an item.
+The bigger the value is, the less priority it will have during rendering.
+In the following example, we're setting second item `order` to `1` which moves it to the end of the list:
+
+```jsx
+<View gap={4} direction="row">
+  <View.Item>Item 1</View.Item>
+  <View.Item order={1}>Item 2</View.Item>
+  <View.Item>Item 3</View.Item>
+</View>
+```
+
+## Multi-column layout
+
+View can be used to implement multi-column layouts with maximum of 12 columns.
+On every View.Item, you can pick the amount of `columns` this item should take.
+
+You don't need to wrap items into separate rows.
+Instead they will automatically wrap into the next row once the current row overflows.
+
+```jsx
+<View gap={4} direction="row">
+  <View.Item columns={6}>
+    <View backgroundColor="neutral-faded" height="40px" />
+  </View.Item>
+  <View.Item columns={6}>
+    <View backgroundColor="neutral-faded" height="40px" />
+  </View.Item>
+  <View.Item columns={4}>
+    <View backgroundColor="neutral-faded" height="40px" />
+  </View.Item>
+  <View.Item columns={8}>
+    <View backgroundColor="neutral-faded" height="40px" />
+  </View.Item>
+</View>
+```
+
+## Styles
+
+View works with common styles coming from the design tokens.
+For example, you can assign `backgroundColor` and `borderColor` values to it.
+Changing `backgroundColor` automatically changes the text color inside it based on the color contrast ratio.
+
+```jsx
+<View
+  width="100px"
+  height="100px"
+  backgroundColor="primary-faded"
+  borderColor="primary-faded"
+  justify="center"
+  align="center"
+>
+  View
+</View>
+```
+
+Same applies for other tokens and styles, like `borderRadius` or `shadow`.
+
+```jsx
+<View
+  borderRadius="medium"
+  shadow="elevated"
+  backgroundColor="elevated"
+  borderColor="neutral-faded"
+  width="100px"
+  height="100px"
+  justify="center"
+  align="center"
+>
+  View
+</View>
+```
+
+Check the properties table for the full list of available styles and values.
+
+## Responsive properties
+
+All View layout properties support responsive syntax, which means you can pass an object with values and control its rendering based on the viewport size.
+We're using mobile-first approach which means that you don't have to define a value for every single viewport.
+Instead, you only need to define the values at which they change and component will apply them from smallest to largest.
+
+If you pass `{ s: "column", l: "row" }`, View will use the `column` direction for the small and medium screens.
+For large and extra-large, it will use the `row` direction.
+
+```jsx
+<View gap={3} direction={{ s: "column", l: "row" }}>
+  <Placeholder />
+  <Placeholder />
+</View>
+```
+
+Properties supporting responsive values:
+
+- View: `gap`, `align`, `justify`, `direction`, `wrap`, `height`, `width`, `maxHeight`, `maxWidth`, `padding`, `bleed`
+- Vie.Item: `columns`, `grow`, `order`, `gapBefore`
+
+## Hiding items
+
+When wrapping View children with the `Hidden` utility, View will recognise it and remove the additional wrapper element to make flexbox `gap` work as expected.
+In the following example, we hide second item starting with the `m` viewport size and `gap` is resolved correctly:
+
+```jsx
+<View direction="row" gap={3}>
+  <View backgroundColor="neutral-faded" height="40px" width="40px" />
+  <Hidden hide={{ s: false, m: true }}>
+    <View backgroundColor="neutral-faded" height="40px" width="40px" />
+  </Hidden>
+  <View backgroundColor="neutral-faded" height="40px" width="40px" />
+</View>
+```
+
+<Grid>
+  <CrossLink href="/content/docs/utilities/hidden" title="Hidden" />
+</Grid>
+
+## Accessibility
+
+- View can be used in many contexts and, therefore, might require to be rendered using specific HTML tags, like `ul` or `ol` for lists of items.
+  It can be achieved by using `as` property on both View and View.Item.
+
+```jsx
+<View as="ul" gap={2}>
+  <View.Item as="li">Item 1</View.Item>
+  <View.Item as="li">Item 2</View.Item>
+</View>
+```

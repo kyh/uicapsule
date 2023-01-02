@@ -1,17 +1,17 @@
 .root {
-	border: none;
+  border: none;
 }
 
 .label {
-	display: block;
-	margin-bottom: var(--rs-unit-x1);
+  display: block;
+  margin-bottom: var(--uic-unit-x1);
 }
 
 .caption {
-	margin-top: var(--rs-unit-x1);
-	display: block;
+  margin-top: var(--uic-unit-x1);
+  display: block;
 }
 
 .caption + .caption {
-	margin-top: 0;
+  margin-top: 0;
 }

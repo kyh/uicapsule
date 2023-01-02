@@ -7,10 +7,11 @@ import TabsPanel from "./TabsPanel";
 import type * as T from "./Tabs.types";
 
 const Tabs = (props: T.Props) => {
-	const { value } = props;
+  const { value } = props;
 
-	if (value !== undefined) return <TabsControlled {...(props as T.PrivateControlledProps)} />;
-	return <TabsUncontrolled {...(props as T.UncontrolledProps)} />;
+  if (value !== undefined)
+    return <TabsControlled {...(props as T.PrivateControlledProps)} />;
+  return <TabsUncontrolled {...(props as T.UncontrolledProps)} />;
 };
 
 Tabs.Item = TabsItem;

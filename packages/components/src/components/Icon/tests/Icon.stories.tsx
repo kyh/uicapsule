@@ -23,7 +23,7 @@ export const size = () => (
       <Text variant="display-1">
         <View direction="row" align="center" gap={2}>
           <Icon svg={IconZap} />
-          <View.Item>UICapsule</View.Item>
+          <View.Item>UIC</View.Item>
         </View>
       </Text>
     </Example.Item>
@@ -60,7 +60,7 @@ export const autoWidth = () => (
     <Example.Item title="square boundaries">
       <div
         style={{
-          background: "var(--rs-color-background-neutral)",
+          background: "var(--uic-color-background-neutral)",
           display: "inline-block",
         }}
       >
@@ -70,7 +70,7 @@ export const autoWidth = () => (
     <Example.Item title="auto width boundaries">
       <div
         style={{
-          background: "var(--rs-color-background-neutral)",
+          background: "var(--uic-color-background-neutral)",
           display: "inline-block",
         }}
       >

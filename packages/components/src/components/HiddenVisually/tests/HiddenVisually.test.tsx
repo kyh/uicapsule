@@ -3,13 +3,13 @@ import { render, screen } from "@testing-library/react";
 import HiddenVisually from "components/HiddenVisually";
 
 const fixtures = {
-	content: "Content",
+  content: "Content",
 };
 
 describe("Utilities/HiddenVisually", () => {
-	test("renders children", () => {
-		render(<HiddenVisually>{fixtures.content}</HiddenVisually>);
+  test("renders children", () => {
+    render(<HiddenVisually>{fixtures.content}</HiddenVisually>);
 
-		expect(screen.getByText(fixtures.content)).toBeInTheDocument();
-	});
+    expect(screen.getByText(fixtures.content)).toBeInTheDocument();
+  });
 });

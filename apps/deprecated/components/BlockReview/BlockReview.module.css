@@ -1,0 +1,26 @@
+.root {
+  padding: var(--uic-unit-x6);
+  color: var(--uic-color-white);
+  border-radius: var(--uic-unit-radius-medium);
+  min-height: 100%;
+  display: flex;
+  align-items: center;
+}
+
+.--color-purple {
+  background: radial-gradient(100% 205.72% at 0% 0%, #5f41e3 0%, #6084f8 100%);
+}
+
+.--color-blue {
+  background: radial-gradient(100% 205.72% at 0% 0%, #41bce3 0%, #6084f8 100%);
+}
+
+.--color-orange {
+  background: radial-gradient(100% 205.72% at 0% 0%, #a259ff 0%, #ff7262 100%);
+}
+
+@media (--uic-viewport-large) {
+  .root {
+    padding: var(--uic-unit-x10) var(--uic-unit-x8);
+  }
+}

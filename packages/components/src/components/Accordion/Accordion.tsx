@@ -6,10 +6,10 @@ import AccordionContent from "./AccordionContent";
 import * as T from "./Accordion.types";
 
 const Accordion = (props: T.Props) => {
-	const { active } = props;
+  const { active } = props;
 
-	if (active !== undefined) return <AccordionControlled {...props} />;
-	return <AccordionUncontrolled {...props} />;
+  if (active !== undefined) return <AccordionControlled {...props} />;
+  return <AccordionUncontrolled {...props} />;
 };
 
 Accordion.Trigger = AccordionTrigger;

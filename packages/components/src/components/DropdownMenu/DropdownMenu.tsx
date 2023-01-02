@@ -6,62 +6,64 @@ import type * as T from "./DropdownMenu.types";
 import s from "./DropdownMenu.module.css";
 
 const DropdownMenu = (props: T.Props) => {
-	const { children, position = "bottom-start", ...popoverProps } = props;
+  const { children, position = "bottom-start", ...popoverProps } = props;
 
-	return (
-		<Popover
-			{...popoverProps}
-			position={position}
-			padding={0}
-			trapFocusMode="action-menu"
-			triggerType="click"
-		>
-			{children}
-		</Popover>
-	);
+  return (
+    <Popover
+      {...popoverProps}
+      position={position}
+      padding={0}
+      trapFocusMode="action-menu"
+      triggerType="click"
+    >
+      {children}
+    </Popover>
+  );
 };
 
 const DropdownMenuContent = (props: T.ContentProps) => {
-	const { children } = props;
+  const { children } = props;
 
-	return (
-		<Popover.Content>
-			<div className={s.menu} role="menu">
-				{children}
-			</div>
-		</Popover.Content>
-	);
+  return (
+    <Popover.Content>
+      <div className={s.menu} role="menu">
+        {children}
+      </div>
+    </Popover.Content>
+  );
 };
 
 const DropdownMenuSection = (props: T.SectionProps) => {
-	const { children } = props;
+  const { children } = props;
 
-	return (
-		<div className={s.section} role="group">
-			{children}
-		</div>
-	);
+  return (
+    <div className={s.section} role="group">
+      {children}
+    </div>
+  );
 };
 
 const DropdownMenuItem = (props: MenuItemProps) => {
-	const { onClick } = props;
-	const { handleClose } = useFlyoutContext();
+  const { onClick } = props;
+  const { handleClose } = useFlyoutContext();
 
-	const handleClick = (e: React.MouseEvent<HTMLElement> | React.KeyboardEvent<HTMLElement>) => {
-		if (handleClose) handleClose();
-		if (onClick) onClick(e);
-	};
+  const handleClick = (
+    e: React.MouseEvent<HTMLElement> | React.KeyboardEvent<HTMLElement>
+  ) => {
+    if (handleClose) handleClose();
+    if (onClick) onClick(e);
+  };
 
-	return (
-		<MenuItem
-			{...props}
-			roundedCorners
-			className={s.item}
-			size="small"
-			attributes={{ ...props.attributes, role: "menuitem" }}
-			onClick={handleClick}
-		/>
-	);
+  return (
+    <MenuItem
+      {...props}
+      roundedCorners
+      className={s.item}
+      size="small"
+      attributes={{ ...props.attributes, role: "menuitem" }}
+      onClick={handleClick}
+    />
+  );
 };
 
 DropdownMenu.Trigger = Popover.Trigger;

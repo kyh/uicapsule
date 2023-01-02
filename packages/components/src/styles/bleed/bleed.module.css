@@ -1,35 +1,35 @@
 .root {
-	--_rs-bleed: 0;
-	--_rs-bleed-m: var(--_rs-bleed);
-	--_rs-bleed-l: var(--_rs-bleed-m);
-	--_rs-bleed-xl: var(--_rs-bleed-l);
-	--_rs-bleed-responsive: var(--_rs-bleed);
+  --_uic-bleed: 0;
+  --_uic-bleed-m: var(--_uic-bleed);
+  --_uic-bleed-l: var(--_uic-bleed-m);
+  --_uic-bleed-xl: var(--_uic-bleed-l);
+  --_uic-bleed-responsive: var(--_uic-bleed);
 
-	margin-left: calc(var(--rs-unit-x1) * var(--_rs-bleed-responsive) * -1);
-	margin-right: calc(var(--rs-unit-x1) * var(--_rs-bleed-responsive) * -1);
+  margin-left: calc(var(--uic-unit-x1) * var(--_uic-bleed-responsive) * -1);
+  margin-right: calc(var(--uic-unit-x1) * var(--_uic-bleed-responsive) * -1);
 }
 
 .--bleed {
-	border-left-style: none;
-	border-right-style: none;
-	border-radius: 0;
+  border-left-style: none;
+  border-right-style: none;
+  border-radius: 0;
 }
 
 @each $viewport in m, l, xl {
-	@media (--rs-viewport-$viewport) {
-		.--bleed-true--$(viewport) {
-			--_rs-bleed-responsive: var(--_rs-bleed-$(viewport));
-			border-left-style: none;
-			border-right-style: none;
-			border-radius: 0;
-		}
-		
-		.--bleed-false--$(viewport) {
-			--_rs-bleed-responsive: 0;
-			border-left-style: solid;
-			border-right-style: solid;
-			/* Depends on the radius css utility */
-			border-radius: var(--_rs-radius);
-		}
-	}
+  @media (--uic-viewport-$viewport) {
+    .--bleed-true--$(viewport) {
+      --_uic-bleed-responsive: var(--_uic-bleed-$(viewport));
+      border-left-style: none;
+      border-right-style: none;
+      border-radius: 0;
+    }
+
+    .--bleed-false--$(viewport) {
+      --_uic-bleed-responsive: 0;
+      border-left-style: solid;
+      border-right-style: solid;
+      /* Depends on the radius css utility */
+      border-radius: var(--_uic-radius);
+    }
+  }
 }

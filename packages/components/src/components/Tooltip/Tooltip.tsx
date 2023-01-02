@@ -6,27 +6,35 @@ import type * as T from "./Tooltip.types";
 import s from "./Tooltip.module.css";
 
 const Tooltip = (props: T.Props) => {
-	const { id, text, children, onOpen, onClose, position = "bottom", active } = props;
+  const {
+    id,
+    text,
+    children,
+    onOpen,
+    onClose,
+    position = "bottom",
+    active,
+  } = props;
 
-	return (
-		<Flyout
-			id={id}
-			active={active}
-			position={position}
-			onOpen={onOpen}
-			onClose={onClose}
-			triggerType="hover"
-		>
-			<Flyout.Trigger>{children}</Flyout.Trigger>
-			<Flyout.Content>
-				<ThemeProvider colorMode="inverted">
-					<Text variant="caption-1" className={s.root}>
-						{text}
-					</Text>
-				</ThemeProvider>
-			</Flyout.Content>
-		</Flyout>
-	);
+  return (
+    <Flyout
+      id={id}
+      active={active}
+      position={position}
+      onOpen={onOpen}
+      onClose={onClose}
+      triggerType="hover"
+    >
+      <Flyout.Trigger>{children}</Flyout.Trigger>
+      <Flyout.Content>
+        <ThemeProvider colorMode="inverted">
+          <Text variant="caption-1" className={s.root}>
+            {text}
+          </Text>
+        </ThemeProvider>
+      </Flyout.Content>
+    </Flyout>
+  );
 };
 
 export default Tooltip;

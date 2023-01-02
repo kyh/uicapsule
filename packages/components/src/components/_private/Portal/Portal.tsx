@@ -6,25 +6,27 @@ import type * as T from "./Portal.types";
 const PortalContext = React.createContext<T.Context>({ scopeRef: undefined });
 
 export const usePortal = () => {
-	return React.useContext(PortalContext);
+  return React.useContext(PortalContext);
 };
 
 /**
  * Disclaimer: Works only for components that don't show the portal immediately
  * That gives Portal time to receive scope on first render
  */
-const PortalProvider = (props: T.Props): ReturnType<typeof ReactDOM.createPortal> => {
-	const { children, scopeRef } = props;
-	const portal = usePortal();
-	const nextScopeRef = scopeRef || portal.scopeRef;
+const PortalProvider = (
+  props: T.Props
+): ReturnType<typeof ReactDOM.createPortal> => {
+  const { children, scopeRef } = props;
+  const portal = usePortal();
+  const nextScopeRef = scopeRef || portal.scopeRef;
 
-	return ReactDOM.createPortal(
-		<PortalContext.Provider value={{ scopeRef: nextScopeRef }}>
-			{/* Preserve the current theme when rendered in body */}
-			<ThemeProvider>{children}</ThemeProvider>
-		</PortalContext.Provider>,
-		portal.scopeRef?.current || document.body
-	);
+  return ReactDOM.createPortal(
+    <PortalContext.Provider value={{ scopeRef: nextScopeRef }}>
+      {/* Preserve the current theme when rendered in body */}
+      <ThemeProvider>{children}</ThemeProvider>
+    </PortalContext.Provider>,
+    portal.scopeRef?.current || document.body
+  );
 };
 
 export default PortalProvider;

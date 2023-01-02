@@ -1,0 +1,112 @@
+<Demo>{(props) => `<Icon ${props.base.attributes} />`}</Demo>
+
+<Highlight>Supports responsive size values</Highlight>
+<Highlight>
+  Supports inheriting size from the font-size of the parent element
+</Highlight>
+<Highlight>Supports inheriting color the parent element</Highlight>
+
+<br />
+<br />
+
+## Usage
+
+Check our blog post about iconography to learn more about what problems we're solving with this utility.
+
+<Grid>
+  <CrossLink href="/content/blog/iconography" title="Iconography" />
+</Grid>
+
+To support tree-shaking and let you use any icon set - Icon has an `svg` property to pass a React component to it.
+Therefore, you can use it with any icon set available across the web if it returns icons as React components or your bundle transforms SVG imports into React nodes.
+
+```jsx
+<Icon svg={IconZap} size={5} />
+```
+
+## Colors
+
+You would like to use the Icon without defining its color manually in most situations.
+It will inherit the text color from its parent elements, making it quite dynamic.
+
+```jsx
+<div style={{ color: "tomato" }}>
+  <Icon svg={IconZap} size={5} />
+</div>
+```
+
+Color for the SVG should be defined on the SVG level by using the `currentColor` value for its fill or stroke CSS properties.
+Example of an SVG component:
+
+```code
+const IconZap = () => (
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    viewBox="0 0 24 24"
+    strokeWidth="2"
+    stroke="currentColor"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+  >
+    <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2" fill="currentColor" />
+  </svg>
+);
+```
+
+There are also cases when you don't want to introduce an additional wrapper just to set the color, and in those situations, you can pass the `color` property directly to the icon.
+That will let you choose one of the foreground colors provided by the design tokens.
+
+```jsx
+<View gap={3} direction="row">
+  <Icon svg={IconZap} color="neutral-faded" size={5} />
+  <Icon svg={IconZap} color="primary" size={5} />
+  <Icon svg={IconZap} color="positive" size={5} />
+  <Icon svg={IconZap} color="critical" size={5} />
+</View>
+```
+
+## Sizes
+
+By default, Icon uses the font size of its parent element to define its width and height.
+However, you can define any size for the icon by passing a unit token multiplier.
+For example, in the default theme, passing `size={3}` will resolve to 12px.
+
+```jsx
+<View gap={3} direction="row">
+  <Icon svg={IconZap} size={3} />
+  <Icon svg={IconZap} size={12} />
+</View>
+```
+
+Icon supports responsive syntax for its `size` property, which means you can change its size based on the viewport.
+
+```jsx
+<Icon svg={IconZap} size={{ s: 3, l: 8 }} />
+```
+
+## Bounding box
+
+By default, we're providing a squared bounding box for all icons.
+That way, whenever you render multiple icons in a list, your content will stay visually aligned.
+Sometimes that's not the case, though, and you would like to avoid that extra horizontal space on either side of the icon.
+For instance, we use that for `Button` or `Link` components in UIC itself.
+You can use the `autoWidth` property to keep only the vertical bounding box to remove this extra space.
+
+```jsx
+<Icon svg={IconMic} autoWidth size={6} />
+```
+
+## Accessibility
+
+Icons are used for decoration and are not focusable or clickable.
+If you need to perform an action on click, focus, etc. - make sure you're wrapping it with a component or HTML element that renders `<a>` or `<button>` tag.
+You would want to use it with the Button component most of the time.
+
+```jsx
+<Button startIcon={IconZap} variant="ghost" />
+```
+
+<Grid>
+  <CrossLink href="/content/docs/components/button" title="Button" />
+  <CrossLink href="/content/docs/utilities/actionable" title="Actionable" />
+</Grid>

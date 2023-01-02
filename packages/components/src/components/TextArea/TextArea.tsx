@@ -6,52 +6,57 @@ import type * as T from "./TextArea.types";
 import s from "./TextArea.module.css";
 
 const InputText = (props: T.Props) => {
-	const {
-		onChange,
-		name,
-		value,
-		defaultValue,
-		placeholder,
-		size = "medium",
-		className,
-		attributes,
-	} = props;
-	const formControl = useFormControl();
-	const id = useElementId(props.id);
-	const inputId =
-		formControl?.attributes?.id || (props.inputAttributes?.id as string | undefined) || id;
-	const disabled = formControl?.disabled || props.disabled;
-	const hasError = formControl?.hasError || props.hasError;
-	const inputAttributes = { ...props.inputAttributes, ...formControl?.attributes };
-	const rootClassName = classNames(
-		s.root,
-		size && responsiveClassNames(s, "--size", size),
-		hasError && s["--status-error"],
-		disabled && s["--disabled"],
-		className
-	);
+  const {
+    onChange,
+    name,
+    value,
+    defaultValue,
+    placeholder,
+    size = "medium",
+    className,
+    attributes,
+  } = props;
+  const formControl = useFormControl();
+  const id = useElementId(props.id);
+  const inputId =
+    formControl?.attributes?.id ||
+    (props.inputAttributes?.id as string | undefined) ||
+    id;
+  const disabled = formControl?.disabled || props.disabled;
+  const hasError = formControl?.hasError || props.hasError;
+  const inputAttributes = {
+    ...props.inputAttributes,
+    ...formControl?.attributes,
+  };
+  const rootClassName = classNames(
+    s.root,
+    size && responsiveClassNames(s, "--size", size),
+    hasError && s["--status-error"],
+    disabled && s["--disabled"],
+    className
+  );
 
-	const handleChange = (event: React.ChangeEvent<HTMLTextAreaElement>) => {
-		if (!onChange) return;
-		onChange({ name, value: event.target.value, event });
-	};
+  const handleChange = (event: React.ChangeEvent<HTMLTextAreaElement>) => {
+    if (!onChange) return;
+    onChange({ name, value: event.target.value, event });
+  };
 
-	return (
-		<div {...attributes} className={rootClassName}>
-			<textarea
-				{...inputAttributes}
-				className={s.input}
-				rows={3}
-				disabled={disabled}
-				name={name}
-				placeholder={placeholder}
-				value={value}
-				defaultValue={defaultValue}
-				onChange={handleChange}
-				id={inputId}
-			/>
-		</div>
-	);
+  return (
+    <div {...attributes} className={rootClassName}>
+      <textarea
+        {...inputAttributes}
+        className={s.input}
+        rows={3}
+        disabled={disabled}
+        name={name}
+        placeholder={placeholder}
+        value={value}
+        defaultValue={defaultValue}
+        onChange={handleChange}
+        id={inputId}
+      />
+    </div>
+  );
 };
 
 export default InputText;

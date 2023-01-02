@@ -1,20 +1,20 @@
 .root {
-	background: var(--rs-color-background-base);
-	padding: var(--rs-unit-x3) var(--rs-unit-x4);
+  background: var(--uic-color-background-base);
+  padding: var(--uic-unit-x3) var(--uic-unit-x4);
 }
 
 .--position {
-	&-bottom {
-		border-top: 1px solid var(--rs-color-border-neutral-faded);
-	}
+  &-bottom {
+    border-top: 1px solid var(--uic-color-border-neutral-faded);
+  }
 
-	&-top {
-		border-bottom: 1px solid var(--rs-color-border-neutral-faded);
-	}
+  &-top {
+    border-bottom: 1px solid var(--uic-color-border-neutral-faded);
+  }
 }
 
-@media (--rs-viewport-l) {
-	.--size-large {
-		padding: var(--rs-unit-x5) var(--rs-unit-x6);
-	}
+@media (--uic-viewport-l) {
+  .--size-large {
+    padding: var(--uic-unit-x5) var(--uic-unit-x6);
+  }
 }

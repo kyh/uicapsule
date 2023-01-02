@@ -1,0 +1,81 @@
+---
+title: Vite installation
+description: Setting up UIC package in a Vite project.
+---
+
+### Create your project
+
+Start by creating your Vite project if you don't have one already.
+Using [Create Vite](https://vitejs.dev/guide/#scaffolding-your-first-vite-project) should speed up this process:
+
+```bash
+npm init vite@latest my-@uicapsule/components-app --template react
+cd my-@uicapsule/components-app
+```
+
+Or if you're using Typescript:
+
+```bash
+npm init vite@latest my-@uicapsule/components-app --template react-ts
+cd my-@uicapsule/components-app
+```
+
+### Install UIC
+
+Download the latest UIC release from the [Releases page](/content/changelog) and save the `.tgz` file into your project.
+Then install the package using the file path.
+For example, if you save the package as `./vendor/@uicapsule/components.tgz` in the project root folder, you can run:
+
+```json
+// npm
+npm install ./vendor/@uicapsule/components.tgz
+
+// yarn
+yarn add ./vendor/@uicapsule/components.tgz
+```
+
+### Add PostCSS config
+
+Import a PostCSS config from UIC and add it to `postcss.config.js` file in the root folder:
+
+```js
+const postcss = require("@uicapsule/components/postcss");
+module.exports = postcss.config;
+```
+
+### Start the application
+
+Run your build process with `npm run dev`.
+
+```bash
+npm run dev
+```
+
+### Start using UIC components
+
+Import some of the core components in `src/App.tsx` and try them out:
+
+```code
+import { Button, Container, UIC } from "@uicapsule/components";
+import @uicapsule/componentsTheme from "@uicapsule/components/theme.css";
+
+const App = () => {
+  return (
+    <UIC theme="uicapsule">
+      <Container width="652px">
+        <Button href="/">Get started</Button>
+      </Container>
+    </UIC>
+  );
+};
+```
+
+You can find more details in our `vite-starter` example on Github.
+If you want to learn more about components - search for the relevant components documentation in the sidebar.
+
+<Grid>
+  <CrossLink
+    title="Vite starter"
+    href="https://github.com/@uicapsule/components/community/tree/master/examples/vite-starter"
+  />
+</Grid>

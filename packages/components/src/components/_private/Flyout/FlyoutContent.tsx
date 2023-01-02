@@ -7,64 +7,68 @@ import type * as T from "./Flyout.types";
 import s from "./Flyout.module.css";
 
 const FlyoutContent = (props: T.ContentProps) => {
-	const { children, className, attributes } = props;
-	const {
-		flyout,
-		id,
-		flyoutElRef,
-		handleTransitionEnd,
-		triggerType,
-		handleMouseEnter,
-		handleMouseLeave,
-		contentClassName,
-		contentAttributes,
-		trapFocusMode,
-	} = useFlyoutContext();
-	const { styles, status, position } = flyout;
-	const [mounted, setMounted] = React.useState(false);
+  const { children, className, attributes } = props;
+  const {
+    flyout,
+    id,
+    flyoutElRef,
+    handleTransitionEnd,
+    triggerType,
+    handleMouseEnter,
+    handleMouseLeave,
+    contentClassName,
+    contentAttributes,
+    trapFocusMode,
+  } = useFlyoutContext();
+  const { styles, status, position } = flyout;
+  const [mounted, setMounted] = React.useState(false);
 
-	useIsomorphicLayoutEffect(() => {
-		setMounted(true);
-	}, []);
+  useIsomorphicLayoutEffect(() => {
+    setMounted(true);
+  }, []);
 
-	if (status === "idle" || !mounted) return null;
+  if (status === "idle" || !mounted) return null;
 
-	const contentClassNames = classNames(
-		s.content,
-		status === "visible" && s["--visible"],
-		// Animate after correct position has been assigned
-		["visible", "hidden"].includes(status) && s["--animated"],
-		position && s[`--position-${position}`]
-	);
-	// className is applied to inner element because it has the transform and is treated like a real root element
-	const innerClassNames = classNames(s.inner, className, contentClassName);
-	let role;
+  const contentClassNames = classNames(
+    s.content,
+    status === "visible" && s["--visible"],
+    // Animate after correct position has been assigned
+    ["visible", "hidden"].includes(status) && s["--animated"],
+    position && s[`--position-${position}`]
+  );
+  // className is applied to inner element because it has the transform and is treated like a real root element
+  const innerClassNames = classNames(s.inner, className, contentClassName);
+  let role;
 
-	if (triggerType === "hover") {
-		role = "tooltip";
-	} else if (trapFocusMode === "dialog") {
-		role = "dialog";
-	}
+  if (triggerType === "hover") {
+    role = "tooltip";
+  } else if (trapFocusMode === "dialog") {
+    role = "dialog";
+  }
 
-	const content = (
-		<div
-			className={contentClassNames}
-			style={styles}
-			ref={flyoutElRef}
-			id={id}
-			role={role}
-			aria-modal={triggerType === "click"}
-			onTransitionEnd={handleTransitionEnd}
-			onMouseEnter={handleMouseEnter}
-			onMouseLeave={handleMouseLeave}
-		>
-			<div {...attributes} style={contentAttributes?.style} className={innerClassNames}>
-				{children}
-			</div>
-		</div>
-	);
+  const content = (
+    <div
+      className={contentClassNames}
+      style={styles}
+      ref={flyoutElRef}
+      id={id}
+      role={role}
+      aria-modal={triggerType === "click"}
+      onTransitionEnd={handleTransitionEnd}
+      onMouseEnter={handleMouseEnter}
+      onMouseLeave={handleMouseLeave}
+    >
+      <div
+        {...attributes}
+        style={contentAttributes?.style}
+        className={innerClassNames}
+      >
+        {children}
+      </div>
+    </div>
+  );
 
-	return <Portal>{content}</Portal>;
+  return <Portal>{content}</Portal>;
 };
 
 export default FlyoutContent;

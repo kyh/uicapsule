@@ -1,195 +1,196 @@
 .root {
-	transition: transform var(--rs-easing-accelerate) var(--rs-duration-medium);
-	background: var(--rs-color-background-elevated);
-	color: var(--rs-color-foreground-neutral);
-	box-shadow: var(--rs-shadow-elevated);
+  transition: transform var(--uic-easing-accelerate) var(--uic-duration-medium);
+  background: var(--uic-color-background-elevated);
+  color: var(--uic-color-foreground-neutral);
+  box-shadow: var(--uic-shadow-elevated);
 }
 
 .root {
-	--_s: calc(var(--rs-unit-x1) * 100);
-	--_s-m: var(--_s);
-	--_s-l: var(--_s-m);
-	--_s-xl: var(--_s-l);
+  --_s: calc(var(--uic-unit-x1) * 100);
+  --_s-m: var(--_s);
+  --_s-l: var(--_s-m);
+  --_s-xl: var(--_s-l);
 
-	--rs-modal-size: var(--_s);
+  --uic-modal-size: var(--_s);
 }
 
-@media (--rs-viewport-m) {
-	.root {
-		--rs-modal-size: var(--_s-m);
-	}
+@media (--uic-viewport-m) {
+  .root {
+    --uic-modal-size: var(--_s-m);
+  }
 }
 
-@media (--rs-viewport-l) {
-	.root {
-		--rs-modal-size: var(--_s-l);
-	}
+@media (--uic-viewport-l) {
+  .root {
+    --uic-modal-size: var(--_s-l);
+  }
 }
 
-@media (--rs-viewport-xl) {
-	.root {
-		--rs-modal-size: var(--_s-xl);
-	}
+@media (--uic-viewport-xl) {
+  .root {
+    --uic-modal-size: var(--_s-xl);
+  }
 }
 
 .--position-center {
-	--_s: calc(var(--rs-unit-x1) * 100);
-	width: var(--rs-modal-size);
-	height: auto;
-	max-height: none;
-	max-width: calc(100vw - var(--rs-unit-x8));
-	margin: var(--rs-unit-x4);
-	inset: 0;
-	transform: scale(0.96);
-	position: relative;
-	border-radius: var(--rs-unit-radius-large);
-	overflow: hidden;
+  --_s: calc(var(--uic-unit-x1) * 100);
+  width: var(--uic-modal-size);
+  height: auto;
+  max-height: none;
+  max-width: calc(100vw - var(--uic-unit-x8));
+  margin: var(--uic-unit-x4);
+  inset: 0;
+  transform: scale(0.96);
+  position: relative;
+  border-radius: var(--uic-unit-radius-large);
+  overflow: hidden;
 }
 
 .--position-bottom {
-	--_s: auto;
-	width: 100%;
-	height: var(--rs-modal-size);
-	max-height: calc(100vh - var(--rs-unit-x4));
-	max-width: 100%;
-	margin: 0;
-	margin-top: var(--rs-unit-x4);
-	top: initial;
-	bottom: 0;
-	inset-inline-start: 0;
-	insert-inline-end: 0;
-	transform: translate(0, 100%);
-	position: fixed;
-	border-radius: var(--rs-unit-radius-large) var(--rs-unit-radius-large) 0 0;
-	overflow: auto;
+  --_s: auto;
+  width: 100%;
+  height: var(--uic-modal-size);
+  max-height: calc(100vh - var(--uic-unit-x4));
+  max-width: 100%;
+  margin: 0;
+  margin-top: var(--uic-unit-x4);
+  top: initial;
+  bottom: 0;
+  inset-inline-start: 0;
+  insert-inline-end: 0;
+  transform: translate(0, 100%);
+  position: fixed;
+  border-radius: var(--uic-unit-radius-large) var(--uic-unit-radius-large) 0 0;
+  overflow: auto;
 }
 
 .--position-start {
-	--_s: calc(var(--rs-unit-x1) * 100);
-	width: var(--rs-modal-size);
-	height: 100%;
-	max-height: 100%;
-	max-width: calc(100vw - var(--rs-unit-x4));
-	margin: 0;
-	margin-inline-end: var(--rs-unit-x4);
-	top: 0;
-	bottom: 0;
-	inset-inline-start: 0;
-	inset-inline-end: initial;
-	transform: translate(-100%, 0);
-	position: fixed;
-	border-radius: 0;
-	overflow: auto;
+  --_s: calc(var(--uic-unit-x1) * 100);
+  width: var(--uic-modal-size);
+  height: 100%;
+  max-height: 100%;
+  max-width: calc(100vw - var(--uic-unit-x4));
+  margin: 0;
+  margin-inline-end: var(--uic-unit-x4);
+  top: 0;
+  bottom: 0;
+  inset-inline-start: 0;
+  inset-inline-end: initial;
+  transform: translate(-100%, 0);
+  position: fixed;
+  border-radius: 0;
+  overflow: auto;
 
-	[dir="rtl"] & {
-		transform: translate(100%, 0);
-	}
+  [dir="rtl"] & {
+    transform: translate(100%, 0);
+  }
 }
 
 .--position-end {
-	--_s: calc(var(--rs-unit-x1) * 100);
-	width: var(--rs-modal-size);
-	height: 100%;
-	max-height: 100%;
-	max-width: calc(100vw - var(--rs-unit-x4));
-	margin: 0;
-	margin-inline-start: var(--rs-unit-x4);
-	top: 0;
-	bottom: 0;
-	inset-inline-end: 0;
-	inset-inline-start: initial;
-	transform: translate(100%, 0);
-	position: fixed;
-	border-radius: 0;
-	overflow: auto;
+  --_s: calc(var(--uic-unit-x1) * 100);
+  width: var(--uic-modal-size);
+  height: 100%;
+  max-height: 100%;
+  max-width: calc(100vw - var(--uic-unit-x4));
+  margin: 0;
+  margin-inline-start: var(--uic-unit-x4);
+  top: 0;
+  bottom: 0;
+  inset-inline-end: 0;
+  inset-inline-start: initial;
+  transform: translate(100%, 0);
+  position: fixed;
+  border-radius: 0;
+  overflow: auto;
 
-	[dir="rtl"] & {
-		transform: translate(-100%, 0);
-	}
+  [dir="rtl"] & {
+    transform: translate(-100%, 0);
+  }
 }
 
 @each $viewport in m, l, xl {
-	@media (--rs-viewport-$(viewport)) {
-		.--position-center--$viewport {
-			--_s: calc(var(--rs-unit-x1) * 100);
-			width: var(--rs-modal-size);
-			height: auto;
-			max-height: none;
-			max-width: calc(100vw - var(--rs-unit-x8));
-			margin: var(--rs-unit-x4);
-			inset: 0;
-			transform: scale(0.96);
-			position: relative;
-			border-radius: var(--rs-unit-radius-large);
-			overflow: hidden;
-		}
-		
-		.--position-bottom--$viewport {
-			--_s: auto;
-			width: 100%;
-			height: var(--rs-modal-size);
-			max-height: calc(100vh - var(--rs-unit-x4));
-			max-width: 100%;
-			margin: 0;
-			margin-top: var(--rs-unit-x4);
-			top: initial;
-			bottom: 0;
-			inset-inline-start: 0;
-			insert-inline-end: 0;
-			transform: translate(0, 100%);
-			position: fixed;
-			border-radius: var(--rs-unit-radius-large) var(--rs-unit-radius-large) 0 0;
-			overflow: auto;
-		}
-		
-		.--position-start--$viewport {
-			--_s: calc(var(--rs-unit-x1) * 100);
-			width: var(--rs-modal-size);
-			height: 100%;
-			max-height: 100%;
-			max-width: calc(100vw - var(--rs-unit-x4));
-			margin: 0;
-			margin-inline-end: var(--rs-unit-x4);
-			top: 0;
-			bottom: 0;
-			inset-inline-start: 0;
-			inset-inline-end: initial;
-			transform: translate(-100%, 0);
-			position: fixed;
-			border-radius: 0;
-			overflow: auto;
-		
-			[dir="rtl"] & {
-				transform: translate(100%, 0);
-			}
-		}
-		
-		.--position-end--$viewport {
-			--_s: calc(var(--rs-unit-x1) * 100);
-			width: var(--rs-modal-size);
-			height: 100%;
-			max-height: 100%;
-			max-width: calc(100vw - var(--rs-unit-x4));
-			margin: 0;
-			margin-inline-start: var(--rs-unit-x4);
-			top: 0;
-			bottom: 0;
-			inset-inline-end: 0;
-			inset-inline-start: initial;
-			transform: translate(100%, 0);
-			position: fixed;
-			border-radius: 0;
-			overflow: auto;
-		
-			[dir="rtl"] & {
-				transform: translate(-100%, 0);
-			}
-		}
-	}
+  @media (--uic-viewport-$(viewport)) {
+    .--position-center--$viewport {
+      --_s: calc(var(--uic-unit-x1) * 100);
+      width: var(--uic-modal-size);
+      height: auto;
+      max-height: none;
+      max-width: calc(100vw - var(--uic-unit-x8));
+      margin: var(--uic-unit-x4);
+      inset: 0;
+      transform: scale(0.96);
+      position: relative;
+      border-radius: var(--uic-unit-radius-large);
+      overflow: hidden;
+    }
+
+    .--position-bottom--$viewport {
+      --_s: auto;
+      width: 100%;
+      height: var(--uic-modal-size);
+      max-height: calc(100vh - var(--uic-unit-x4));
+      max-width: 100%;
+      margin: 0;
+      margin-top: var(--uic-unit-x4);
+      top: initial;
+      bottom: 0;
+      inset-inline-start: 0;
+      insert-inline-end: 0;
+      transform: translate(0, 100%);
+      position: fixed;
+      border-radius: var(--uic-unit-radius-large) var(--uic-unit-radius-large) 0
+        0;
+      overflow: auto;
+    }
+
+    .--position-start--$viewport {
+      --_s: calc(var(--uic-unit-x1) * 100);
+      width: var(--uic-modal-size);
+      height: 100%;
+      max-height: 100%;
+      max-width: calc(100vw - var(--uic-unit-x4));
+      margin: 0;
+      margin-inline-end: var(--uic-unit-x4);
+      top: 0;
+      bottom: 0;
+      inset-inline-start: 0;
+      inset-inline-end: initial;
+      transform: translate(-100%, 0);
+      position: fixed;
+      border-radius: 0;
+      overflow: auto;
+
+      [dir="rtl"] & {
+        transform: translate(100%, 0);
+      }
+    }
+
+    .--position-end--$viewport {
+      --_s: calc(var(--uic-unit-x1) * 100);
+      width: var(--uic-modal-size);
+      height: 100%;
+      max-height: 100%;
+      max-width: calc(100vw - var(--uic-unit-x4));
+      margin: 0;
+      margin-inline-start: var(--uic-unit-x4);
+      top: 0;
+      bottom: 0;
+      inset-inline-end: 0;
+      inset-inline-start: initial;
+      transform: translate(100%, 0);
+      position: fixed;
+      border-radius: 0;
+      overflow: auto;
+
+      [dir="rtl"] & {
+        transform: translate(-100%, 0);
+      }
+    }
+  }
 }
 
 .--active,
 [dir="rtl"] .--active {
-	transform: translate(0, 0) scale(1);
-	transition-timing-function: var(--rs-easing-decelerate);
+  transform: translate(0, 0) scale(1);
+  transition-timing-function: var(--uic-easing-decelerate);
 }

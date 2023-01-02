@@ -1,19 +1,21 @@
 import React from "react";
 import type { FlyoutProps } from "components/_private/Flyout";
 
-export type Props = Pick<
-	FlyoutProps,
-	| "id"
-	| "position"
-	| "forcePosition"
-	| "onOpen"
-	| "onClose"
-	| "width"
-	| "trapFocusMode"
-	| "active"
-	| "defaultActive"
+export type Props = Partial<
+  Pick<
+    FlyoutProps,
+    | "id"
+    | "position"
+    | "forcePosition"
+    | "onOpen"
+    | "onClose"
+    | "width"
+    | "trapFocusMode"
+    | "active"
+    | "defaultActive"
+  >
 > & {
-	children?: React.ReactNode;
-	triggerType?: "click" | "hover";
-	padding?: number;
+  children?: React.ReactNode;
+  triggerType?: "click" | "hover";
+  padding?: number;
 };

@@ -1,17 +1,17 @@
 .root {
-	--_rs-mh: auto;
-	--_rs-mh-m: var(--_rs-mh);
-	--_rs-mh-l: var(--_rs-mh-m);
-	--_rs-mh-xl: var(--_rs-mh-l);
-	--_rs-mh-responsive: var(--_rs-mh);
+  --_uic-mh: auto;
+  --_uic-mh-m: var(--_uic-mh);
+  --_uic-mh-l: var(--_uic-mh-m);
+  --_uic-mh-xl: var(--_uic-mh-l);
+  --_uic-mh-responsive: var(--_uic-mh);
 
-	max-height: var(--_rs-mh-responsive);
+  max-height: var(--_uic-mh-responsive);
 }
 
 @each $viewport in m, l, xl {
-	@media (--rs-viewport-$viewport) {
-		.root {
-			--_rs-mh-responsive: var(--_rs-mh-$(viewport));
-		}
-	}
+  @media (--uic-viewport-$viewport) {
+    .root {
+      --_uic-mh-responsive: var(--_uic-mh-$(viewport));
+    }
+  }
 }

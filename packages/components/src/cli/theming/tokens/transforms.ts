@@ -9,13 +9,13 @@ import unit from "./unit/unit.transforms";
 import viewport from "./viewport/viewport.transforms";
 
 export const css = {
-	color,
-	duration,
-	easing,
-	font,
-	fontFamily,
-	fontWeight,
-	shadow,
-	unit,
-	viewport,
+  color,
+  duration,
+  easing,
+  font,
+  fontFamily,
+  fontWeight,
+  shadow,
+  unit,
+  viewport,
 };

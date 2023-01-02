@@ -1,7 +1,7 @@
 import React from "react";
 import { act } from "react-dom/test-utils";
 import { render } from "@testing-library/react";
-import UICapsule from "components/UICapsule";
+import UIC from "components/UIC";
 import useRTL from "hooks/useRTL";
 
 const Component = () => {
@@ -17,16 +17,16 @@ const Component = () => {
 describe("useRTL", () => {
   test("switches to RTL", () => {
     render(
-      <UICapsule theme="uicapsule">
+      <UIC theme="uicapsule">
         <Component />
-      </UICapsule>
+      </UIC>
     );
 
     expect(document.body).toHaveAttribute("dir", "rtl");
   });
 
   test("defaults to RTL", () => {
-    render(<UICapsule theme="uicapsule" defaultRTL />);
+    render(<UIC theme="uicapsule" defaultRTL />);
 
     expect(document.body).toHaveAttribute("dir", "rtl");
   });

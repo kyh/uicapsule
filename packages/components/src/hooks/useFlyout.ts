@@ -1,7 +1,7 @@
 import React from "react";
-import useRTL from "hooks/useRTL";
-import { usePortal } from "components/_private/Portal";
-import { onNextFrame } from "utilities/animation";
+import useRTL from "../hooks/useRTL";
+import { usePortal } from "../components/_private/Portal";
+import { onNextFrame } from "../utilities/animation";
 
 /**
  * Typings
@@ -207,7 +207,7 @@ const calculatePosition: CalculatePosition = (
   }
 
   if (top === undefined || left === undefined) {
-    throw Error(`[UICapsule, flyout]: ${position} position is not valid`);
+    throw Error(`[UIC, flyout]: ${position} position is not valid`);
   }
 
   // When rendered inside portal, we don't need to accommodate for the page scroll
@@ -236,7 +236,7 @@ const defaultStyles: FlyoutStyles = {
   height: "auto",
   position: "absolute",
   // z-index doesn't accept strings
-  zIndex: "var(--rs-z-index-flyout)" as any,
+  zIndex: "var(--uic-z-index-flyout)" as any,
 };
 
 const resetStyles: FlyoutStyles = {
@@ -246,7 +246,7 @@ const resetStyles: FlyoutStyles = {
   opacity: 0,
   animation: "none",
   transition: "none",
-  zIndex: "var(--rs-z-index-tooltip)" as any,
+  zIndex: "var(--uic-z-index-tooltip)" as any,
 };
 
 /**

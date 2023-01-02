@@ -1,57 +1,57 @@
 .root {
-	cursor: pointer;
-	display: inline-block;
-	vertical-align: top;
-	text-decoration: none;
-	color: inherit;
-	line-height: inherit;
-	font-size: inherit;
-	font-weight: inherit;
-	text-align: initial;
-	border: none;
-	padding: 0;
-	border: 0;
-	margin: 0;
-	background: none;
-	-webkit-tap-highlight-color: none;
+  cursor: pointer;
+  display: inline-block;
+  vertical-align: top;
+  text-decoration: none;
+  color: inherit;
+  line-height: inherit;
+  font-size: inherit;
+  font-weight: inherit;
+  text-align: initial;
+  border: none;
+  padding: 0;
+  border: 0;
+  margin: 0;
+  background: none;
+  -webkit-tap-highlight-color: none;
 
-	&:focus {
-		outline: none;
-		z-index: var(--rs-z-index-elevated);
-	}
+  &:focus {
+    outline: none;
+    z-index: var(--uic-z-index-elevated);
+  }
 }
 
 .root.--disabled,
 .root[disabled] {
-	cursor: not-allowed;
+  cursor: not-allowed;
 
-	&:active {
-		transform: none;
-	}
+  &:active {
+    transform: none;
+  }
 }
 
 .--full-width {
-	width: 100%;
+  width: 100%;
 }
 
 [data-rs-keyboard] .root:focus {
-	box-shadow: var(--rs-focus-shadow);
+  box-shadow: var(--uic-focus-shadow);
 }
 
 [data-rs-keyboard] .root.--inset:focus {
-	box-shadow: var(--rs-focus-inset-shadow);
+  box-shadow: var(--uic-focus-inset-shadow);
 }
 
 [data-rs-keyboard] .root.--radius-inherit {
-	&:focus {
-		box-shadow: none;
-	}
+  &:focus {
+    box-shadow: none;
+  }
 
-	&:focus > * {
-		box-shadow: var(--rs-focus-shadow);
-	}
+  &:focus > * {
+    box-shadow: var(--uic-focus-shadow);
+  }
 
-	&.--inset:focus > * {
-		box-shadow: var(--rs-focus-inset-shadow);
-	}
+  &.--inset:focus > * {
+    box-shadow: var(--uic-focus-inset-shadow);
+  }
 }

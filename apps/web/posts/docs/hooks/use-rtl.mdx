@@ -1,0 +1,78 @@
+---
+title: useRTL
+description: Custom hook to control the direction of the content flow.
+---
+
+```preview
+function Example() {
+  const [rtl, setRTL] = useRTL();
+
+  return (
+    <Checkbox checked={rtl} name="preview" onChange={({ checked }) => setRTL(checked)}>
+      Enable RTL
+    </Checkbox>
+  );
+}
+```
+
+<Highlight>Supports server-side rendering</Highlight>
+<Highlight>Doesn't require page refresh</Highlight>
+
+<br />
+<br />
+
+## Usage
+
+```ts
+import { useRTL } from "@uicapsule/components";
+```
+
+Browsers display text using the left-to-right (LTR) direction by default.
+However, some languages, like Arabic or Hebrew, use right-to-left direction (RTL).
+This means that the text direction should change along with the CSS properties like `margin-left`, `padding-left` etc.
+
+`useRTL` helps you detect which direction is currently used and switch between them.
+
+```tsx
+function Component() {
+  const [rtl, setRTL] = useRTL();
+
+  return (
+    <View gap={3}>
+      Is RTL on? {rtl}
+      <MenuItem roundedCorners onClick={() => setRTL(false)}>
+        English
+      </MenuItem>
+      <MenuItem roundedCorners onClick={() => setRTL(true)}>
+        Hebrew
+      </MenuItem>
+    </View>
+  );
+}
+```
+
+Content direction is a value applicable to the whole application, so its default value can be set using `UIC` provider.
+
+```code
+<UIC defaultRTL={true} />
+```
+
+To support the default RTL value with server-side rendering, pass the value to the `dir` attribute to the `body` element.
+
+```code
+<body dir="rtl">
+```
+
+<Grid>
+  <CrossLink
+    title="UIC Provider"
+    href="/content/docs/utilities/@uicapsule/components"
+  />
+  <CrossLink title="Installation - SSR" href="/content/docs/getting-started" />
+</Grid>
+
+## Arguments and return value
+
+```ts
+() => [rtl: boolean, setRTL: (value: boolean) => {}]
+```

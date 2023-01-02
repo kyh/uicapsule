@@ -1,0 +1,23 @@
+---
+title: Release Strategy
+---
+
+We're following semantic versioning in UIC with a major.minor.patch format for version numbers.
+
+- **Major releases** contain new features affecting how UIC gets integrated into the product. It can be changes in the component properties API, component naming, or visually breaking changes. To update to this version - you will need to make changes to your product. However, we're providing migration guidelines for every major release.
+- **Minor releases** contain new features that are not breaking for the product. These releases can visually update your application. However, they don't require any code refactoring to update the library.
+- **Patch releases** contain bug fixes and smaller changes. No product code changes are required to update the library.
+
+We keep at least 12 months gap between major releases.
+
+<Grid>
+  <CrossLink title="Latest releases" href="/content/changelog/" />
+  <CrossLink title="Semantic versioning" href="https://semver.org" />
+</Grid>
+
+## Previous versions support
+
+To keep our resources spent on the active development of new features and ensuring that their quality meets our user's expectations, we're providing limited support for the outdated major releases while providing the guidelines for smoother migration to the latest major releases.
+
+- **Latest major release:** Active development and complete support.
+- **Previous major release:** Critical bug fixes.

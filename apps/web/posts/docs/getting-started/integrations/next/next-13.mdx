@@ -1,0 +1,89 @@
+---
+title: Next.js installation
+description: Setting up UIC package in a Next.js project.
+tabs:
+  [
+    { label: "Next.js v13", value: "next-13" },
+    { label: "Next.js v12", value: "next-12" },
+  ]
+---
+
+## Create your project
+
+Start by creating your Next.js project if you don't have one already.
+Using [Create Next App](https://nextjs.org/docs/api-reference/create-next-app) should speed up this process:
+
+```bash
+npx create-next-app@latest my-@uicapsule/components-app --experimental-app
+cd my-@uicapsule/components-app
+```
+
+Or if you're using Typescript:
+
+```bash
+npx create-next-app@latest my-@uicapsule/components-app --typescript --experimental-app
+cd my-@uicapsule/components-app
+```
+
+Note that we're using an `--experimental-app` flag to use the new `app` directory introduced in Next 13.
+Using this directory adds support for global css import within node_modules, which lets UIC work with Next.js out-of-the-box.
+
+## Install UIC
+
+Download the latest UIC release from the [Releases page](/content/changelog) and save the `.tgz` file into your project.
+Then install the package using the file path.
+For example, if you save the package as `./vendor/@uicapsule/components.tgz` in the project root folder, you can run:
+
+```json
+// npm
+npm install ./vendor/@uicapsule/components.tgz
+
+// yarn
+yarn add ./vendor/@uicapsule/components.tgz
+```
+
+## Add PostCSS config
+
+Import a PostCSS config from UIC and add it to `postcss.config.js` file in the root folder:
+
+```js
+const postcss = require("@uicapsule/components/postcss");
+module.exports = postcss.config;
+```
+
+## Start the application
+
+Run your build process with `npm run dev`.
+
+```bash
+npm run dev
+```
+
+## Start using UIC components
+
+Import components in `app/page.tsx` and try them out:
+
+```code
+import { Button, Container, UIC } from "@uicapsule/components";
+import "@uicapsule/components/theme.css";
+
+const App = () => {
+  return (
+    <UIC theme="uicapsule">
+      <Container width="652px">
+        <Button href="/">Get started</Button>
+      </Container>
+    </UIC>
+  );
+};
+```
+
+You can find more details in our `next-13-starter` example on Github.
+If you want to learn more about components - search for the relevant components documentation in the sidebar.
+
+<Grid>
+  <CrossLink
+    title="Next.js 13 starter"
+    href="https://github.com/@uicapsule/components/community/tree/master/examples/next-13-starter"
+  />
+</Grid>

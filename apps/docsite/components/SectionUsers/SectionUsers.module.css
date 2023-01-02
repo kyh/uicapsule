@@ -1,8 +1,0 @@
-.logo {
-  color: var(--rs-color-foreground-disabled);
-  transition: color var(--rs-duration-fast) var(--rs-easing-standard);
-}
-
-.logo:hover {
-  color: var(--rs-color-foreground-neutral-faded);
-}

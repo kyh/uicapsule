@@ -1,13 +1,13 @@
 .menu {
-	padding: var(--rs-unit-x1);
+  padding: var(--uic-unit-x1);
 }
 
 .section + .section {
-	margin-top: var(--rs-unit-x1);
-	padding-top: var(--rs-unit-x1);
-	border-top: 1px solid var(--rs-color-border-neutral-faded);
+  margin-top: var(--uic-unit-x1);
+  padding-top: var(--uic-unit-x1);
+  border-top: 1px solid var(--uic-color-border-neutral-faded);
 }
 
 .item + .item {
-	margin-top: var(--rs-unit-x1);
+  margin-top: var(--uic-unit-x1);
 }

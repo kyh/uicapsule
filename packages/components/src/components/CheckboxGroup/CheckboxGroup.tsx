@@ -4,10 +4,11 @@ import CheckboxGroupUncontrolled from "./CheckboxGroupUncontrolled";
 import type * as T from "./CheckboxGroup.types";
 
 const CheckboxGroup = (props: T.Props) => {
-	const { value } = props;
+  const { value } = props;
 
-	if (value !== undefined) return <CheckboxGroupControlled {...(props as T.ControlledProps)} />;
-	return <CheckboxGroupUncontrolled {...(props as T.UncontrolledProps)} />;
+  if (value !== undefined)
+    return <CheckboxGroupControlled {...(props as T.ControlledProps)} />;
+  return <CheckboxGroupUncontrolled {...(props as T.UncontrolledProps)} />;
 };
 
 export default CheckboxGroup;

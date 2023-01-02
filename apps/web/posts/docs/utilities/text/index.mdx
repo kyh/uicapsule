@@ -1,0 +1,130 @@
+<Demo>
+  {(props) => `<Text ${props.base.attributes}>${props.base.children}</Text>`}
+</Demo>
+
+<Highlight>
+  Automatically handles its font-size based on the viewport size
+</Highlight>
+<Highlight>Supports inehriting color from its parent elements</Highlight>
+<Highlight>Supports rendering as custom HTML tags</Highlight>
+
+<br />
+<br />
+
+## Usage
+
+The UIC type scale includes various styles that support both expressive and application font sizes.
+Each style is represented by font size, line-height, font-weight, and font-family values.
+All these values come from the design tokens defined in the theme.
+
+<Grid>
+  <CrossLink title="Design tokens" href="/content/docs/tokens/overview" />
+</Grid>
+
+```jsx
+<View>
+  <Text variant="display-1">Display 1</Text>
+  <Text variant="display-2">Display 2</Text>
+  <Text variant="display-3">Display 3</Text>
+
+  <Text variant="featured-1">Featured 1</Text>
+  <Text variant="featured-2">Featured 2</Text>
+  <Text variant="featured-3">Featured 3</Text>
+
+  <Text variant="title-1">Title 1</Text>
+  <Text variant="title-2">Title 2</Text>
+  <Text variant="title-3">Title 3</Text>
+
+  <Text variant="body-strong-1">Body strong 1</Text>
+  <Text variant="body-strong-2">Body strong 2</Text>
+
+  <Text variant="body-medium-1">Body medium 1</Text>
+  <Text variant="body-medium-2">Body medium 2</Text>
+
+  <Text variant="body-1">Body 1</Text>
+  <Text variant="body-2">Body 2</Text>
+
+  <Text variant="caption-1">Caption 1</Text>
+  <Text variant="caption-2">Caption 2</Text>
+</View>
+```
+
+**Note:** It's better to read this part of documentation from desktop screens and try resizing the screen to see how typography behaves for every viewport size
+
+## Expressive typefaces
+
+Display from 1 to 3 are the biggest typefaces. They are mainly used for marketing materials or landing pages, rather than applications UI.
+They can be paired together with subtitles of the same variant number.
+
+```jsx
+<View>
+  <Text variant="display-2">Line 1</Text>
+  <Text variant="featured-2">Line 2</Text>
+</View>
+```
+
+## Body typefaces
+
+`body-strong`, `body-medium`, and `body` variants of the Text component are used for displaying long-form writing with the chosen font-weight.
+Each of them comes in ranges 1-2, which is related to the size of the typeface, where one is bigger than 2.
+**Default typeface is body-2.**
+
+These smaller typefaces can also be used as subtitles for title 4-6 typefaces.
+
+```jsx
+<View>
+  <Text variant="title-1">Line 1</Text>
+  <Text variant="body-1">Line 2</Text>
+</View>
+```
+
+## Colors
+
+Text component comes with a `color` property that lets you use design token values.
+
+```jsx
+<View>
+  <Text>Neutral</Text>
+  <Text color="neutral-faded">Neutral faded</Text>
+  <Text color="positive">Safe</Text>
+  <Text color="critical">Danger</Text>
+  <Text color="primary">Primary</Text>
+  <Text color="disabled">Disabled</Text>
+</View>
+```
+
+## Formatting
+
+Text can be truncated with the `maxLines` property:
+
+```jsx
+<View width="200px">
+  <Text variant="body-2" maxLines={2}>
+    UIC is a professionally crafted design system for product design and
+    development teams and individuals. We provide with core components you would
+    need in every project, focusing on accessibility, scalable component
+    customization and development experience.
+  </Text>
+</View>
+```
+
+You can decorate Text with `line-through` by using the `decoration` property.
+
+```jsx
+<Text variant="body-medium-2" decoration="line-through">
+  $150
+</Text>
+```
+
+## Accessibility
+
+- Text component can be rendered as any HTML tag using `as` property.
+  This helps assign specific element roles to text elements, like rendering them as headings or paragraphs.
+- Colors used by the `color` property only pick values with foreground roles to achieve a 4.5:1 contrast ratio with backgrounds.
+
+<Grid>
+  <CrossLink
+    href="https://www.w3.org/TR/UNDERSTANDING-WCAG20/visual-audio-contrast-contrast.html"
+    title="WCAG 2.0"
+  />
+</Grid>

@@ -9,28 +9,37 @@ import * as T from "./Accordion.types";
 import s from "./Accordion.module.css";
 
 const AccordionTrigger = (props: T.TriggerProps) => {
-	const { children, iconSize } = props;
-	const { active, onToggle, triggerId, contentId } = React.useContext(AccordionContext);
-	const iconClassNames = classNames(s.icon, active && s["icon--active"]);
+  const { children, iconSize } = props;
+  const { active, onToggle, triggerId, contentId } =
+    React.useContext(AccordionContext);
+  const iconClassNames = classNames(s.icon, active && s["icon--active"]);
 
-	const handleClick = () => {
-		onToggle?.(!active);
-	};
+  const handleClick = () => {
+    onToggle?.(!active);
+  };
 
-	const attributes = { "aria-expanded": active, "aria-controls": contentId, id: triggerId };
+  const attributes = {
+    "aria-expanded": active,
+    "aria-controls": contentId,
+    id: triggerId,
+  };
 
-	if (typeof children === "function") {
-		return <>{children({ ...attributes, onClick: handleClick }, { active })}</>;
-	}
+  if (typeof children === "function") {
+    return <>{children({ ...attributes, onClick: handleClick }, { active })}</>;
+  }
 
-	return (
-		<Actionable onClick={handleClick} fullWidth attributes={attributes}>
-			<View gap={4} direction="row" align="center">
-				<View.Item grow>{children}</View.Item>
-				<Icon size={iconSize || 4} svg={IconChevronDown} className={iconClassNames} />
-			</View>
-		</Actionable>
-	);
+  return (
+    <Actionable onClick={handleClick} fullWidth attributes={attributes}>
+      <View gap={4} direction="row" align="center">
+        <View.Item grow>{children}</View.Item>
+        <Icon
+          size={iconSize || 4}
+          svg={IconChevronDown}
+          className={iconClassNames}
+        />
+      </View>
+    </Actionable>
+  );
 };
 
 export default AccordionTrigger;

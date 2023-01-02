@@ -3,12 +3,14 @@ import type { LinkProps } from "components/Link";
 import type * as G from "types/global";
 
 export type Props = {
-	children: React.ReactElement | React.ReactElement[];
-	separator?: React.ReactNode;
-	color?: "neutral" | "primary";
-	defaultVisibleItems?: number;
-	className?: G.ClassName;
-	attributes?: G.Attributes<"nav", Props>;
+  children: React.ReactElement | React.ReactElement[];
+  separator?: React.ReactNode;
+  color?: "neutral" | "primary";
+  defaultVisibleItems?: number;
+  className?: G.ClassName;
+  attributes?: G.Attributes<"nav", Props>;
 };
 
-export type ItemProps = Pick<LinkProps, "icon" | "href" | "onClick" | "disabled" | "children">;
+export type ItemProps = Partial<
+  Pick<LinkProps, "icon" | "href" | "onClick" | "disabled" | "children">
+>;

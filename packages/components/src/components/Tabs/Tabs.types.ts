@@ -4,62 +4,64 @@ import { IconProps } from "components/Icon";
 import type * as G from "types/global";
 
 export type SelectionState = {
-	left: number;
-	scaleX: number;
-	scaleY: number;
-	status: "idle" | "prepared" | "animated";
+  left: number;
+  scaleX: number;
+  scaleY: number;
+  status: "idle" | "prepared" | "animated";
 };
 
 export type ItemProps = {
-	value: string;
-	children?: React.ReactNode;
-	icon?: IconProps["svg"];
+  value: string;
+  children?: React.ReactNode;
+  icon?: IconProps["svg"];
 };
 
 export type PrivateItemProps = Partial<ItemProps> & {
-	value: string;
-	active?: boolean;
-	visuallySelected?: boolean;
-	attributes?: ActionableProps["attributes"];
+  value: string;
+  active?: boolean;
+  visuallySelected?: boolean;
+  attributes?: ActionableProps["attributes"];
 };
 
 export type ListProps = {
-	children?: React.ReactNode;
-	className?: G.ClassName;
-	attributes?: G.Attributes<"div", Props>;
+  children?: React.ReactNode;
+  className?: G.ClassName;
+  attributes?: G.Attributes<"div", Props>;
 };
 
 export type PanelProps = {
-	value: string;
-	children?: React.ReactNode;
+  value: string;
+  children?: React.ReactNode;
 };
 
 export type BaseProps = {
-	children?: React.ReactNode;
-	itemWidth?: "equal";
-	variant?: "borderless" | "pills" | "pills-elevated";
-	name?: string;
-	onChange?: (args: { value: string; name?: string }) => void;
+  children?: React.ReactNode;
+  itemWidth?: "equal";
+  variant?: "borderless" | "pills" | "pills-elevated";
+  name?: string;
+  onChange?: (args: { value: string; name?: string }) => void;
 };
 
 export type ControlledProps = BaseProps & {
-	value?: string;
-	defaultValue?: never;
+  value?: string;
+  defaultValue?: never;
 };
 
 export type PrivateControlledProps = ControlledProps & {
-	onSilentChange: BaseProps["onChange"];
+  onSilentChange: BaseProps["onChange"];
 };
 
 export type UncontrolledProps = BaseProps & {
-	value?: never;
-	defaultValue?: string;
+  value?: never;
+  defaultValue?: string;
 };
 
 export type Props = ControlledProps | UncontrolledProps;
 
-export type Context = Pick<BaseProps, "itemWidth" | "onChange" | "variant" | "name"> & {
-	value?: string;
-	setDefaultValue: (value: string) => void;
-	id: string;
+export type Context = Partial<
+  Pick<BaseProps, "itemWidth" | "onChange" | "variant" | "name">
+> & {
+  value?: string;
+  setDefaultValue: (value: string) => void;
+  id: string;
 };

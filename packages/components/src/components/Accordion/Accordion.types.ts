@@ -3,38 +3,44 @@ import type { IconProps } from "components/Icon";
 import * as G from "types/global";
 
 export type BaseProps = {
-	children?: React.ReactNode;
-	onToggle?: (active: boolean) => void;
-	className?: G.ClassName;
-	attributes?: G.Attributes<"div", Props>;
+  children?: React.ReactNode;
+  onToggle?: (active: boolean) => void;
+  className?: G.ClassName;
+  attributes?: G.Attributes<"div", Props>;
 };
 
 export type TriggerProps = {
-	children?:
-		| ((
-				attributes: {
-					"aria-expanded": boolean;
-					"aria-controls": string;
-					id: string;
-					onClick: () => void;
-				},
-				props: { active: boolean }
-		  ) => React.ReactNode)
-		| React.ReactNode;
-	iconSize?: IconProps["size"];
+  children?:
+    | ((
+        attributes: {
+          "aria-expanded": boolean;
+          "aria-controls": string;
+          id: string;
+          onClick: () => void;
+        },
+        props: { active: boolean }
+      ) => React.ReactNode)
+    | React.ReactNode;
+  iconSize?: IconProps["size"];
 };
 
 export type ContentProps = {
-	children?: React.ReactNode;
+  children?: React.ReactNode;
 };
 
-export type ControlledProps = BaseProps & { active: boolean; defaultActive?: never };
-export type UncontrolledProps = BaseProps & { active?: never; defaultActive?: boolean };
+export type ControlledProps = BaseProps & {
+  active: boolean;
+  defaultActive?: never;
+};
+export type UncontrolledProps = BaseProps & {
+  active?: never;
+  defaultActive?: boolean;
+};
 export type Props = ControlledProps | UncontrolledProps;
 
 export type ContextProps = {
-	triggerId: string;
-	contentId: string;
-	active: boolean;
-	onToggle?: (active: boolean) => void;
+  triggerId: string;
+  contentId: string;
+  active: boolean;
+  onToggle?: (active: boolean) => void;
 };

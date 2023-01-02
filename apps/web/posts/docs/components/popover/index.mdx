@@ -1,0 +1,160 @@
+<Demo>
+  {(props) => `
+function Example() {
+  const { active, activate, deactivate } = useToggle(false);
+
+return (
+
+<Popover ${props.base.attributes} active={active} onClose={deactivate} onOpen={activate}>
+<Popover.Trigger>
+{(attributes) => (
+<Button rounded attributes={attributes}>
+Show menu
+</Button>
+)}
+</Popover.Trigger>
+<Popover.Content>
+  <Placeholder />
+</Popover.Content>
+</Popover>
+);
+}
+`}
+
+</Demo>
+
+<Highlight>Works with any type of content</Highlight>
+<Highlight>Can be controlled and uncontrolled</Highlight>
+<Highlight>
+  Automatically traps focus when opened and supports multiple focus management
+  modes
+</Highlight>
+<Highlight>
+  Automatically fits the popover into the viewport or locks it to the position
+  value you provide
+</Highlight>
+<Highlight>Full keyboard navigation</Highlight>
+<Highlight>Supports custom width</Highlight>
+<Highlight>Supports custom trigger element rendering</Highlight>
+<Highlight>Supports hover and click trigger events</Highlight>
+
+<br />
+<br />
+
+## Usage
+
+You can use Popovers with any interactive element on the page by passing its attributes and adding the content you want to render.
+
+```jsx
+<Popover>
+  <Popover.Trigger>
+    {(attributes) => <Button attributes={attributes}>Trigger popover</Button>}
+  </Popover.Trigger>
+  <Popover.Content>Popover content</Popover.Content>
+</Popover>
+```
+
+Popovers open after clicking the trigger element, but you can customize that using `triggerType` property.
+
+```jsx
+<Popover triggerType="hover">
+  <Popover.Trigger>
+    {(attributes) => (
+      <Button attributes={attributes}>Trigger popover on hover</Button>
+    )}
+  </Popover.Trigger>
+  <Popover.Content>Popover content</Popover.Content>
+</Popover>
+```
+
+## Position
+
+You can define the position where you want to display the Popover.
+However, if it doesn't fit into the screen, it will automatically pick a better position that stays within the viewport.
+
+```jsx
+<Popover position="bottom-end">
+  <Popover.Trigger>
+    {(attributes) => <Button attributes={attributes}>Trigger popover</Button>}
+  </Popover.Trigger>
+  <Popover.Content>Popover content</Popover.Content>
+</Popover>
+```
+
+If you want to ignore the viewport boundaries and always show Popover using a specific position value, you can lock it with a `forcePosition` property.
+This can be useful when using Popover to build dropdown menus.
+
+```jsx
+<Popover position="bottom-end" forcePosition>
+  <Popover.Trigger>
+    {(attributes) => <Button attributes={attributes}>Trigger popover</Button>}
+  </Popover.Trigger>
+  <Popover.Content>Popover content</Popover.Content>
+</Popover>
+```
+
+## Composition
+
+You can control the width of the Popover with the `width` property.
+You can either pass a specific px or percent value.
+That includes using CSS variables for defining the size.
+
+```jsx
+<Popover width="calc(var(--uic-unit-x1) * 100)">
+  <Popover.Trigger>
+    {(attributes) => <Button attributes={attributes}>Trigger popover</Button>}
+  </Popover.Trigger>
+  <Popover.Content>Popover content</Popover.Content>
+</Popover>
+```
+
+Popover comes with a default padding in its content area, and you can customize it with the `padding` property.
+For example, you can altogether remove it with `padding` set to `0`.
+
+```jsx
+<Popover padding={0}>
+  <Popover.Trigger>
+    {(attributes) => <Button attributes={attributes}>Trigger popover</Button>}
+  </Popover.Trigger>
+  <Popover.Content>
+    <Placeholder h={200} />
+  </Popover.Content>
+</Popover>
+```
+
+If you need to add a close button to the Popover content, you can use it with the `Dismissible` utility.
+
+```jsx
+function Demo() {
+  const { activate, deactivate, active } = useToggle();
+
+  return (
+    <Popover active={active} onOpen={activate} onClose={deactivate}>
+      <Popover.Trigger>
+        {(attributes) => (
+          <Button attributes={attributes}>Trigger popover</Button>
+        )}
+      </Popover.Trigger>
+      <Popover.Content>
+        <Dismissible onClose={deactivate}>
+          <Placeholder h={200} />
+        </Dismissible>
+      </Popover.Content>
+    </Popover>
+  );
+}
+```
+
+<Grid>
+  <CrossLink title="Dismissible" href="/content/docs/utilities/dismissible" />
+  <CrossLink title="useToggle" href="/content/docs/hooks/use-toggle" />
+</Grid>
+
+## Accessibility
+
+- It's essential to pass the attributes provided by the Popover component to your interactive trigger component.
+  That way, you will ensure that all the user events and aria attributes are assigned correctly.
+
+- Popover traps the focus in its content area, but you can control how it's applied with the `trapFocusMode` property.
+  It applies a regular focus trap with the `Tab` key navigation enabled by default.
+  However, you can switch it to `action-menu` or `content-menu` modes to make it work like a listbox or regular content area with links.

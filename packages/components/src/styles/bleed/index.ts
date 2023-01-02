@@ -1,25 +1,28 @@
 import {
-	responsiveClassNames,
-	responsiveVariables,
-	responsivePropDependency,
+  responsiveClassNames,
+  responsiveVariables,
+  responsivePropDependency,
 } from "utilities/helpers";
 import * as T from "styles/types";
 import s from "./bleed.module.css";
 
 const getBleedStyles: T.DynamicStyleUtility<number> = (value) => {
-	if (value === undefined) return null;
+  if (value === undefined) return null;
 
-	const classNames = [
-		s.root,
-		...responsiveClassNames(
-			s,
-			"--bleed",
-			responsivePropDependency(value, (value) => typeof value === "number" && value > 0)
-		),
-	];
-	const variables = responsiveVariables("--_rs-bleed", value);
+  const classNames = [
+    s.root,
+    ...responsiveClassNames(
+      s,
+      "--bleed",
+      responsivePropDependency(
+        value,
+        (value) => typeof value === "number" && value > 0
+      )
+    ),
+  ];
+  const variables = responsiveVariables("--_uic-bleed", value);
 
-	return { classNames, variables };
+  return { classNames, variables };
 };
 
 export default getBleedStyles;
