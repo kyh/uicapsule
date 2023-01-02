@@ -7,10 +7,10 @@ const Meta = (props: {
   image?: string;
 }) => {
   const { title, titleEnding, description, image } = props;
-  const titleBase = "UIC";
+  const titleBase = "UICapsule";
   const shareTitle = [title, titleBase, titleEnding]
     .filter(Boolean)
-    .join(" - ");
+    .join(" | ");
 
   return (
     <Head>

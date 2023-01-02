@@ -23,16 +23,15 @@ const AppWrapper = ({ Component, pageProps }: any) => {
     const nextMode = localStorage.getItem(
       colorModeKey
     ) as UICProps["defaultColorMode"];
-    setColorMode(nextMode || "light");
+    setColorMode(nextMode || "dark");
   }, []);
 
   useEffect(() => {
     setMounted(true);
   }, []);
 
-  const title = "Design system built for your scale with React and Figma";
   const description =
-    "UIC provides professionally crafted component libraries in React and Figma to make your product design and development faster.";
+    "UICapsule implements components from real-world design systems under a single interface.";
 
   return (
     <>
@@ -94,7 +93,7 @@ const AppWrapper = ({ Component, pageProps }: any) => {
           crossOrigin="true"
         />
       </Head>
-      <Meta titleEnding={title} description={description} />
+      <Meta description={description} />
       <div style={{ visibility: mounted ? "visible" : "hidden" }}>
         <Header />
         <Component {...pageProps} />
