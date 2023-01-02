@@ -1,4 +1,3 @@
-import React from "react";
 import { Text, Icon, View, TextProps } from "@uicapsule/components";
 import IconCheckmark from "icons/Checkmark";
 import ArticleItem from "./ArticleItem";

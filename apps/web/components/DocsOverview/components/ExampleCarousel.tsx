@@ -1,4 +1,3 @@
-import React from "react";
 import { View, Carousel, Image } from "@uicapsule/components";
 import Example from "./Example";
 
@@ -14,21 +13,25 @@ const ExampleCarousel = () => (
           src="/img/examples/architecture-1.webp"
           height="70px"
           borderRadius="medium"
+          alt=""
         />
         <Image
           src="/img/examples/architecture-2.webp"
           height="70px"
           borderRadius="medium"
+          alt=""
         />
         <Image
           src="/img/examples/architecture-3.webp"
           height="70px"
           borderRadius="medium"
+          alt=""
         />
         <Image
           src="/img/examples/architecture-4.webp"
           height="70px"
           borderRadius="medium"
+          alt=""
         />
       </Carousel>
     </View>

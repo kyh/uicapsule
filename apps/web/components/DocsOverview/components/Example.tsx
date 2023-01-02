@@ -1,4 +1,3 @@
-import React from "react";
 import NextLink from "next/link";
 import { Card, View, Text, Badge } from "@uicapsule/components";
 import ComponentPreview from "components/ComponentPreview";

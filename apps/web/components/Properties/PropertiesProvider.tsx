@@ -1,9 +1,9 @@
-import React from "react";
+import { createContext, useContext } from "react";
 import * as T from "./Properties.types";
 
-const Context = React.createContext<T.ProviderProps["properties"]>({});
+const Context = createContext<T.ProviderProps["properties"]>({});
 
-export const useProperties = () => React.useContext(Context);
+export const useProperties = () => useContext(Context);
 
 const PropertiesProvider = (props: T.ProviderProps) => {
   const { properties, children } = props;

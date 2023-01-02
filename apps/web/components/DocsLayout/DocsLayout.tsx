@@ -1,22 +1,22 @@
-import React from "react";
 import { useRouter } from "next/router";
 import { View, Hidden, Container } from "@uicapsule/components";
 import AnchorMenu from "components/AnchorMenu";
 import SideMenu from "components/SideMenu";
 import type * as T from "./DocsLayout.types";
 import s from "./DocsLayout.module.css";
+import { useLayoutEffect, useEffect, useRef } from "react";
 
 let scrollValue = 0;
 const useIsomorphicLayoutEffect =
-  typeof window !== "undefined" ? React.useLayoutEffect : React.useEffect;
+  typeof window !== "undefined" ? useLayoutEffect : useEffect;
 
 const DocsLayout = (props: T.Props) => {
   const { children, anchorMenu } = props;
   const router = useRouter();
-  const rootRef = React.useRef<HTMLDivElement>(null);
-  const sideRef = React.useRef<HTMLDivElement>(null);
+  const rootRef = useRef<HTMLDivElement>(null);
+  const sideRef = useRef<HTMLDivElement>(null);
 
-  React.useEffect(() => {
+  useEffect(() => {
     const handleStart = () => {
       if (!sideRef.current) return;
       scrollValue = sideRef.current.scrollTop;

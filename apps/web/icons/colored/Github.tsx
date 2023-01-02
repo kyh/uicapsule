@@ -1,5 +1,3 @@
-import React from "react";
-
 const IconGithub = () => (
   <svg aria-hidden="true" viewBox="0 0 16 16" version="1.1">
     <path

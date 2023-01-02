@@ -1,4 +1,3 @@
-import React from "react";
 import { Alert, View } from "@uicapsule/components";
 import IconCheckmark from "icons/Checkmark";
 import Example from "./Example";

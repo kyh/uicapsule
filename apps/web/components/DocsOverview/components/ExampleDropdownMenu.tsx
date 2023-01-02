@@ -1,4 +1,3 @@
-import React from "react";
 import { DropdownMenu, MenuItem, Button } from "@uicapsule/components";
 import Example from "./Example";
 

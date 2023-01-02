@@ -1,4 +1,3 @@
-import React from "react";
 import type { AnchorMenuProps } from "components/AnchorMenu";
 
 export type Props = {

@@ -1,5 +1,3 @@
-import React from "react";
-
 const IconMargin = () => (
   <svg
     width="24"

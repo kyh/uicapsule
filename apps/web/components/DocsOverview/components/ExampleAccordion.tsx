@@ -1,4 +1,3 @@
-import React from "react";
 import { Accordion, View } from "@uicapsule/components";
 import Example from "./Example";
 

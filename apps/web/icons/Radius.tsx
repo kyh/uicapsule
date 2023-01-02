@@ -1,5 +1,3 @@
-import React from "react";
-
 const IconRadius = () => (
   <svg
     width="24"

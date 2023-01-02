@@ -1,4 +1,3 @@
-import React from "react";
 import { Modal, View, Dismissible, Text } from "@uicapsule/components";
 import PropertiesControl from "./PropertiesControl";
 import { useProperties } from "./PropertiesProvider";

@@ -1,4 +1,3 @@
-import React from "react";
 import { Breadcrumbs } from "@uicapsule/components";
 import Example from "./Example";
 

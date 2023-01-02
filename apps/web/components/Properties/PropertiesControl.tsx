@@ -1,4 +1,3 @@
-import React from "react";
 import PropertyStringControl from "./PropertyString/PropertyStringControl";
 import PropertySlotControl from "./PropertySlot/PropertySlotControl";
 import PropertyEnumControl from "./PropertyEnum/PropertyEnumControl";

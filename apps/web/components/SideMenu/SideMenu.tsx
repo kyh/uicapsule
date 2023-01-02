@@ -1,4 +1,3 @@
-import React from "react";
 import { motion } from "framer-motion";
 import Link from "next/link";
 import { useRouter } from "next/router";
@@ -15,6 +14,7 @@ import IconChevronDown from "icons/ChevronDown";
 import { normalizeMenu, getMenuItemData } from "constants/menu";
 import type * as T from "./SideMenu.types";
 import s from "./SideMenu.module.css";
+import { useState, useRef, useEffect } from "react";
 
 const SideMenuItem = (props: T.MenuItemProps) => {
   const { padded, fullWidth } = props;
@@ -84,7 +84,7 @@ const SideMenuGroup = (props: T.MenuGroupProps) => {
       hasSelectedItem = router.asPath.startsWith(childData.url);
     });
   }
-  const [active, setActive] = React.useState(hasSelectedItem);
+  const [active, setActive] = useState(hasSelectedItem);
   const opened = active || !!query;
 
   if (!data.items || !props.normalizedItems) return null;
@@ -200,12 +200,12 @@ const SideMenuSection = (props: T.MenuSectionProps) => {
 
 const SideMenu = (props: T.Props) => {
   const { extraSection, fullWidth } = props;
-  const [query, setQuery] = React.useState("");
+  const [query, setQuery] = useState("");
   const menu = normalizeMenu({ filter: query });
   const sections = extraSection ? [...extraSection, ...menu.list] : menu.list;
-  const inputRef = React.useRef<HTMLInputElement | null>(null);
+  const inputRef = useRef<HTMLInputElement | null>(null);
 
-  React.useEffect(() => {
+  useEffect(() => {
     const handleKey = (event: KeyboardEvent) => {
       if (
         event.key !== "/" ||

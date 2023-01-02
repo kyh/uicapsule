@@ -1,4 +1,3 @@
-import React from "react";
 import { Text } from "@uicapsule/components";
 import ArticleItem from "./ArticleItem";
 import s from "../Article.module.css";

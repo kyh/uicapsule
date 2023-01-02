@@ -1,4 +1,3 @@
-import React from "react";
 import { View, Button } from "@uicapsule/components";
 import IconMinus from "icons/Minus";
 import PropertyBaseControl from "../PropertyBase/PropertyBaseControl";

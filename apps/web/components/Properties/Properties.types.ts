@@ -1,4 +1,3 @@
-import React from "react";
 import type { ModalProps } from "@uicapsule/components";
 
 export enum ControlType {
@@ -22,7 +21,7 @@ type BaseOptions = {
 };
 
 type RequiredControl<O extends BaseOptions> = {
-  control: {
+  control?: {
     ignore?: boolean;
     defaultValue?: O["value"];
   } & O["extraControlOptions"];

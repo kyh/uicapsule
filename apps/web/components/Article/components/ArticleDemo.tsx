@@ -1,4 +1,3 @@
-import React from "react";
 import { View, Button, useToggle } from "@uicapsule/components";
 import CodeExample from "components/CodeExample";
 import {
@@ -12,6 +11,7 @@ import {
 } from "components/Properties";
 import IconControls from "icons/Controls";
 import IconCode from "icons/Code";
+import { useState } from "react";
 
 const resolveDefaultValues = (properties: ReturnType<typeof useProperties>) => {
   let result: Record<string, Record<string, any>> = {};
@@ -146,7 +146,7 @@ const ArticleDemo = (props: {
   const properties = useProperties();
   const codeVisibility = useToggle();
   const controlsToggle = useToggle();
-  const [values, setValues] = React.useState(resolveDefaultValues(properties));
+  const [values, setValues] = useState(resolveDefaultValues(properties));
   const childrenProps = Object.keys(values).reduce((acc, sectionName) => {
     const sectionValues = values[sectionName];
     const child = properties[sectionName]["children"];

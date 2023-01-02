@@ -1,4 +1,3 @@
-import React from "react";
 import { ThemeProvider, View, Icon } from "@uicapsule/components";
 import IconBell from "icons/Bell";
 import Example from "./Example";

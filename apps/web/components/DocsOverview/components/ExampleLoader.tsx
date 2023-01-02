@@ -1,4 +1,3 @@
-import React from "react";
 import { Loader } from "@uicapsule/components";
 import Example from "./Example";
 

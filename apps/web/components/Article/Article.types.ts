@@ -1,5 +1,3 @@
-import React from "react";
-
 export type ItemProps = {
   children: React.ReactNode;
   className?: string;

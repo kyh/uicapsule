@@ -1,4 +1,3 @@
-import React from "react";
 import { Tooltip, Button } from "@uicapsule/components";
 import IconMic from "icons/Mic";
 import Example from "./Example";

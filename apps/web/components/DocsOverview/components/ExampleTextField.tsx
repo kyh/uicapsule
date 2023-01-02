@@ -1,4 +1,3 @@
-import React from "react";
 import { View, FormControl, TextField } from "@uicapsule/components";
 import Example from "./Example";
 
@@ -11,7 +10,10 @@ const ExampleTextField = () => (
     <View width="180px" maxWidth="100%">
       <FormControl>
         <FormControl.Label>Your email</FormControl.Label>
-        <TextField name="preview" placeholder="hello@@uicapsule/components.so" />
+        <TextField
+          name="preview"
+          placeholder="hello@@uicapsule/components.so"
+        />
       </FormControl>
     </View>
   </Example>

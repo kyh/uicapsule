@@ -1,4 +1,3 @@
-import React from "react";
 import s from "../Article.module.css";
 
 const ArticleCode = (props: { children: React.ReactNode }) => {

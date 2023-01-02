@@ -1,4 +1,3 @@
-import React from "react";
 import { View, Button } from "@uicapsule/components";
 import IconHeart from "icons/Heart";
 import Example from "./Example";

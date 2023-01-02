@@ -1,4 +1,3 @@
-import React from "react";
 import { Switch, View } from "@uicapsule/components";
 import PropertyBaseControl from "../PropertyBase/PropertyBaseControl";
 import * as T from "../Properties.types";

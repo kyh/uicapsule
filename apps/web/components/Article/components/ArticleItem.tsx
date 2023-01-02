@@ -1,4 +1,3 @@
-import React from "react";
 import s from "../Article.module.css";
 
 type Props = {

@@ -1,4 +1,3 @@
-import React from "react";
 import { Text, TextProps, Actionable, Icon } from "@uicapsule/components";
 import { getHeadingId } from "utilities/md";
 import IconLink from "icons/Link";

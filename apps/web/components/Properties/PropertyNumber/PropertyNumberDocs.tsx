@@ -1,4 +1,3 @@
-import React from "react";
 import PropertyBaseDocs from "../PropertyBase/PropertyBaseDocs";
 import * as T from "../Properties.types";
 

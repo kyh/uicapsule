@@ -1,4 +1,3 @@
-import React from "react";
 import { LiveProvider, LiveEditor, LivePreview } from "react-live";
 import prettier from "prettier/standalone";
 import babelParser from "prettier/parser-babel";
@@ -13,6 +12,7 @@ import IconPlay from "icons/Play";
 import IconDown from "icons/ChevronDown";
 import IconMenu from "icons/Menu";
 import s from "./CodeExample.module.css";
+import { useState, useEffect } from "react";
 
 type Props = {
   children: string;
@@ -58,7 +58,7 @@ const getTheme = (dark?: boolean) => ({
 const CodeExample = (props: Props) => {
   const { children, className, elevated, mode: passedMode } = props;
   const { colorMode } = useTheme();
-  const [formattedCode, setFormattedCode] = React.useState(children);
+  const [formattedCode, setFormattedCode] = useState(children);
   const parsedLanguage =
     className && (className.replace(/language-/, "") as any);
   const mode = passedMode || parsedLanguage;
@@ -74,7 +74,7 @@ const CodeExample = (props: Props) => {
     elevated && s["--elevated"],
   ];
 
-  React.useEffect(() => {
+  useEffect(() => {
     if (!isCodeShown || (language !== "jsx" && language !== "tsx")) return;
 
     let code: string = "";

@@ -1,4 +1,3 @@
-import React from "react";
 import { Divider } from "@uicapsule/components";
 import ArticleItem from "./ArticleItem";
 

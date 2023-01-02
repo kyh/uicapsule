@@ -1,4 +1,3 @@
-import React from "react";
 import Link from "next/link";
 import { Card, Icon, View, Text } from "@uicapsule/components";
 import IconArrow from "icons/ArrowUpRight";

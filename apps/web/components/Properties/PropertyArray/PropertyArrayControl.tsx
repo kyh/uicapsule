@@ -1,4 +1,3 @@
-import React from "react";
 import { View, Button, Popover, MenuItem } from "@uicapsule/components";
 import PropertyBaseControl from "../PropertyBase/PropertyBaseControl";
 import PropertiesControl from "../PropertiesControl";

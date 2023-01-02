@@ -1,5 +1,3 @@
-import React from "react";
-
 const IconStripe = () => (
   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 150 34" height="28">
     <path

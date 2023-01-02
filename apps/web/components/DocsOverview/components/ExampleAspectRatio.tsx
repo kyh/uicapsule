@@ -1,4 +1,3 @@
-import React from "react";
 import { AspectRatio, View, Text } from "@uicapsule/components";
 import Example from "./Example";
 

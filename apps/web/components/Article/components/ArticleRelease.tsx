@@ -1,4 +1,3 @@
-import React from "react";
 import NextLink from "next/link";
 import { Button, View, Text, Link } from "@uicapsule/components";
 import IconLock from "icons/Lock";

@@ -1,4 +1,3 @@
-import React from "react";
 import ArticleItem from "./ArticleItem";
 import { PropertiesTable, PropertiesTableProps } from "components/Properties";
 

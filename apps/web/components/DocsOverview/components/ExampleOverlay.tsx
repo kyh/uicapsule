@@ -1,4 +1,3 @@
-import React from "react";
 import { View, Overlay, Text, Image } from "@uicapsule/components";
 import Example from "./Example";
 
@@ -10,7 +9,7 @@ const ExampleOverlay = () => (
   >
     <View width="200px" maxWidth="100%" overflow="hidden" borderRadius="medium">
       <Overlay
-        backgroundSlot={<Image src="/img/examples/office.webp" />}
+        backgroundSlot={<Image src="/img/examples/office.webp" alt="" />}
         position="bottom"
       >
         <Text variant="body-medium-2">Office spaces</Text>

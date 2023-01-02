@@ -1,4 +1,3 @@
-import React from "react";
 import { HiddenVisually } from "@uicapsule/components";
 import Example from "./Example";
 

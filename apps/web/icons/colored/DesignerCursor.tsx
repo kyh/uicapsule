@@ -1,5 +1,3 @@
-import React from "react";
-
 const IconDesignerCursor = () => (
   <svg
     width="83"

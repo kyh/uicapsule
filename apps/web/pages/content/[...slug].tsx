@@ -1,6 +1,5 @@
 import fs from "fs";
 import path from "path";
-import React from "react";
 import { GetStaticPathsResult } from "next";
 import { useRouter } from "next/router";
 import NextLink from "next/link";
@@ -28,6 +27,7 @@ import IconDocumentation from "icons/Documentation";
 import IconInfo from "icons/Info";
 import IconIconography from "icons/Iconography";
 import IconStorybook from "icons/colored/Storybook";
+import { useRef } from "react";
 
 const getAnchorMenu = (source: string) => {
   const result: AnchorMenuProps["items"] = [];
@@ -154,7 +154,7 @@ const PostMeta = (props: any) => {
 
 export default function PostPage(props: any) {
   const router = useRouter();
-  const rootRef = React.useRef<HTMLDivElement>(null);
+  const rootRef = useRef<HTMLDivElement>(null);
   const { source, meta, anchorMenu, shareImage } = props;
   const { title, description, tabs, newsletter, hideOutline } = meta;
   const pageId = `/${(router.query.slug as string[]).join("/")}`;

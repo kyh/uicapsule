@@ -1,4 +1,3 @@
-import React from "react";
 import { Tabs, Text } from "@uicapsule/components";
 import IconZap from "icons/Zap";
 import IconHeart from "icons/Heart";

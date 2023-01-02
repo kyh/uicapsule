@@ -1,5 +1,3 @@
-import React from "react";
-
 const LicenseArrow = () => (
   <svg
     width="122"

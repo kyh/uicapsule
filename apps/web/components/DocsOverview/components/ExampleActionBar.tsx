@@ -1,4 +1,3 @@
-import React from "react";
 import { ActionBar, View, Button, Text } from "@uicapsule/components";
 import IconCart from "icons/Cart";
 import Example from "./Example";

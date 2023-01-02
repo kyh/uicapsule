@@ -1,4 +1,3 @@
-import React from "react";
 import { View } from "@uicapsule/components";
 import PropertyStringDocs from "./PropertyString/PropertyStringDocs";
 import PropertySlotDocs from "./PropertySlot/PropertySlotDocs";

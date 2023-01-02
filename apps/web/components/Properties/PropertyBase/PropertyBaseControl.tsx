@@ -1,4 +1,3 @@
-import React from "react";
 import { View, FormControl } from "@uicapsule/components";
 import * as T from "../Properties.types";
 import s from "../Properties.module.css";

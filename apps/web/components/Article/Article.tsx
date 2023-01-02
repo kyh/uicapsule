@@ -1,4 +1,3 @@
-import React from "react";
 import { MDXRemote } from "next-mdx-remote";
 import CodeExample from "components/CodeExample";
 import ArticleHeading from "./components/ArticleHeading";

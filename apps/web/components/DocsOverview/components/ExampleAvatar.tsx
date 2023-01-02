@@ -1,4 +1,3 @@
-import React from "react";
 import { View, Avatar } from "@uicapsule/components";
 import IconZap from "icons/Zap";
 import Example from "./Example";

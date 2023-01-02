@@ -1,12 +1,12 @@
-import React from "react";
 import { useTheme } from "@uicapsule/components";
+import { useEffect } from "react";
 
 export const colorModeKey = "__uicapsule-color-mode";
 
 const useStoredColorMode = () => {
   const theme = useTheme();
 
-  React.useEffect(() => {
+  useEffect(() => {
     localStorage.setItem(colorModeKey, theme.colorMode);
   }, [theme.colorMode]);
 

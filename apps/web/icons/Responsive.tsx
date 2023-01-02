@@ -1,5 +1,3 @@
-import React from "react";
-
 const IconResponsive = () => (
   <svg
     width="31"

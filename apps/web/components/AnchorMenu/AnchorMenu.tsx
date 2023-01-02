@@ -1,4 +1,4 @@
-import React from "react";
+import { useEffect, useState } from "react";
 import { Link, View, Text } from "@uicapsule/components";
 import { debounce } from "utilities/helpers";
 import type * as T from "./AnchorMenu.types";
@@ -6,13 +6,13 @@ import s from "./AnchorMenu.module.css";
 
 const AnchorMenu = (props: T.Props) => {
   const { items, rootRef } = props;
-  const [selection, setSelection] = React.useState<[number, number]>();
+  const [selection, setSelection] = useState<[number, number]>();
   let from: number;
   let to: number;
 
   if (selection) [from, to] = selection;
 
-  React.useEffect(() => {
+  useEffect(() => {
     if (!rootRef.current) return;
 
     const handleScroll = () => {

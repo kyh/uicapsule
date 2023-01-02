@@ -1,4 +1,3 @@
-import React from "react";
 import { MenuItem, View } from "@uicapsule/components";
 import Example from "./Example";
 

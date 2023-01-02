@@ -1,4 +1,3 @@
-import React from "react";
 import { RadioGroup, View, Radio } from "@uicapsule/components";
 import Example from "./Example";
 
