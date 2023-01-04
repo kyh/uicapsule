@@ -5,8 +5,7 @@ const meta: DocsMeta = {
   description: "Utility for displaying images and controlling their behavior.",
   componentImport: 'import { Image } from "@uicapsule/components";',
   typeImport: 'import type { ImageProps } from "@uicapsule/components";',
-  storybookUrl:
-    "https://@uicapsule/components.so/storybook/?path=/story/utilities-image",
+  storybookUrl: "https://uicapsule.com/storybook/?path=/story/utilities-image",
   relatedComponents: [
     { name: "Aspect Ratio", url: "/content/docs/utilities/aspect-ratio" },
     { name: "Avatar", url: "/content/docs/components/avatar" },

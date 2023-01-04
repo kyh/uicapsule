@@ -6,8 +6,7 @@ const meta: DocsMeta = {
     "Utility to apply typography styles responsively based on the viewport size.",
   componentImport: 'import { Text } from "@uicapsule/components";',
   typeImport: 'import type { TextProps } from "@uicapsule/components";',
-  storybookUrl:
-    "https://@uicapsule/components.so/storybook/?path=/story/utilities-text",
+  storybookUrl: "https://uicapsule.com/storybook/?path=/story/utilities-text",
   properties: {
     base: {
       children: {

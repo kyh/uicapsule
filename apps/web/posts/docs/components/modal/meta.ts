@@ -6,8 +6,7 @@ const meta: DocsMeta = {
     "Container appearing in front of the main content to provide critical information or an actionable piece of content.",
   componentImport: 'import { Modal } from "@uicapsule/components";',
   typeImport: 'import type { ModalProps } from "@uicapsule/components";',
-  storybookUrl:
-    "https://@uicapsule/components.so/storybook/?path=/story/components-modal",
+  storybookUrl: "https://uicapsule.com/storybook/?path=/story/components-modal",
   relatedComponents: [
     { name: "Backdrop", url: "/content/docs/utilities/backdrop" },
   ],

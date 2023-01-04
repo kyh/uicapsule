@@ -8,7 +8,7 @@ const meta: DocsMeta = {
   typeImport:
     'import type { HiddenVisuallyProps } from "@uicapsule/components";',
   storybookUrl:
-    "https://@uicapsule/components.so/storybook/?path=/story/utilities-hiddenvisually",
+    "https://uicapsule.com/storybook/?path=/story/utilities-hiddenvisually",
   properties: {
     base: {
       children: {

@@ -6,7 +6,7 @@ const meta: DocsMeta = {
   componentImport: 'import { TextArea } from "@uicapsule/components";',
   typeImport: 'import type { TextAreaProps } from "@uicapsule/components";',
   storybookUrl:
-    "https://@uicapsule/components.so/storybook/?path=/story/components-textarea",
+    "https://uicapsule.com/storybook/?path=/story/components-textarea",
   relatedComponents: [
     { name: "Text Field", url: "/content/docs/components/text-field" },
   ],

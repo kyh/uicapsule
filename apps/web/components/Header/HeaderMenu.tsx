@@ -1,5 +1,5 @@
 import { useEffect } from "react";
-import Link from "next/link";
+import NextLink from "next/link";
 import { useRouter } from "next/router";
 import {
   Button,
@@ -91,7 +91,12 @@ const HeaderMenu = () => {
               }
 
               return (
-                <Link href={item.url} passHref key={item.title}>
+                <NextLink
+                  href={item.url}
+                  passHref
+                  legacyBehavior
+                  key={item.title}
+                >
                   <Button
                     variant="ghost"
                     className={className}
@@ -99,7 +104,7 @@ const HeaderMenu = () => {
                   >
                     {item.title}
                   </Button>
-                </Link>
+                </NextLink>
               );
             })
           }

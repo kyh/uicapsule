@@ -6,7 +6,7 @@ const meta: DocsMeta = {
   componentImport: 'import { Switch } from "@uicapsule/components";',
   typeImport: 'import type { SwitchProps } from "@uicapsule/components";',
   storybookUrl:
-    "https://@uicapsule/components.so/storybook/?path=/story/components-switch",
+    "https://uicapsule.com/storybook/?path=/story/components-switch",
   relatedComponents: [
     { name: "Checkbox", url: "/content/docs/components/checkbox" },
     { name: "Radio", url: "/content/docs/components/radio" },

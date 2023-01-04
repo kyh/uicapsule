@@ -6,8 +6,7 @@ const meta: DocsMeta = {
     "Compact element that represents the status of an object or user input.",
   componentImport: 'import { Badge } from "@uicapsule/components";',
   typeImport: 'import type { BadgeProps } from "@uicapsule/components";',
-  storybookUrl:
-    "https://@uicapsule/components.so/storybook/?path=/story/components-badge",
+  storybookUrl: "https://uicapsule.com/storybook/?path=/story/components-badge",
   properties: {
     base: {
       children: {

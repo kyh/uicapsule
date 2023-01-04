@@ -6,7 +6,7 @@ const meta: DocsMeta = {
   componentImport: 'import { Divider } from "@uicapsule/components";',
   typeImport: 'import type { DividerProps } from "@uicapsule/components";',
   storybookUrl:
-    "https://@uicapsule/components.so/storybook/?path=/story/components-divider",
+    "https://uicapsule.com/storybook/?path=/story/components-divider",
   relatedComponents: [{ name: "View", url: "/content/docs/utilities/view" }],
   properties: {
     base: {

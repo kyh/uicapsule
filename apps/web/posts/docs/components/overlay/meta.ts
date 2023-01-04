@@ -7,7 +7,7 @@ const meta: DocsMeta = {
   componentImport: 'import { Overlay } from "@uicapsule/components";',
   typeImport: 'import type { OverlayProps } from "@uicapsule/components";',
   storybookUrl:
-    "https://@uicapsule/components.so/storybook/?path=/story/components-overlay",
+    "https://uicapsule.com/storybook/?path=/story/components-overlay",
   relatedComponents: [{ name: "Image", url: "/content/docs/utilities/image" }],
   properties: {
     base: {

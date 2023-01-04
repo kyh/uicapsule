@@ -6,7 +6,7 @@ const meta: DocsMeta = {
   componentImport: 'import { TextField } from "@uicapsule/components";',
   typeImport: 'import type { TextFieldProps } from "@uicapsule/components";',
   storybookUrl:
-    "https://@uicapsule/components.so/storybook/?path=/story/components-textfield",
+    "https://uicapsule.com/storybook/?path=/story/components-textfield",
   relatedComponents: [
     { name: "Text Area", url: "/content/docs/components/text-area" },
   ],
@@ -28,7 +28,7 @@ const meta: DocsMeta = {
       },
       placeholder: {
         type: ControlType.string,
-        control: { defaultValue: "hello@@uicapsule/components.so" },
+        control: { defaultValue: "hello@uicapsule.com" },
       },
       size: {
         type: ControlType.enum,

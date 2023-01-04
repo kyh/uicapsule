@@ -2,6 +2,20 @@
   padding-inline-start: var(--uic-unit-x3);
 }
 
+.linkContainer {
+  position: relative;
+}
+
+.selection {
+  position: absolute;
+  background: rgba(var(--uic-color-rgb-background-neutral), 0.6);
+  width: calc(100% + var(--uic-unit-x6));
+  height: 100%;
+  margin-left: calc(var(--uic-unit-x3) * -1);
+  border-radius: var(--uic-unit-radius-small);
+  z-index: -1;
+}
+
 @media (--uic-viewport-l) {
   .root {
     position: relative;

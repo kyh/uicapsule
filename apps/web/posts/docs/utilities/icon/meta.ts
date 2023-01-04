@@ -5,8 +5,7 @@ const meta: DocsMeta = {
   description: "Wrapper for SVG assets to control their appearance.",
   componentImport: 'import { Icon } from "@uicapsule/components";',
   typeImport: 'import type { IconProps } from "@uicapsule/components";',
-  storybookUrl:
-    "https://@uicapsule/components.so/storybook/?path=/story/utilities-icon",
+  storybookUrl: "https://uicapsule.com/storybook/?path=/story/utilities-icon",
   properties: {
     base: {
       svg: {

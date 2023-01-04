@@ -6,8 +6,7 @@ const meta: DocsMeta = {
     "Utility that lets you hide content responsively with server-side rendering support.",
   componentImport: 'import { Hidden } from "@uicapsule/components";',
   typeImport: 'import type { HiddenProps } from "@uicapsule/components";',
-  storybookUrl:
-    "https://@uicapsule/components.so/storybook/?path=/story/utilities-hidden",
+  storybookUrl: "https://uicapsule.com/storybook/?path=/story/utilities-hidden",
   properties: {
     base: {
       children: {

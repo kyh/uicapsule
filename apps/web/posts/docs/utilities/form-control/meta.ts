@@ -8,7 +8,7 @@ const meta: DocsMeta = {
     'import { FormControl, useFormControl } from "@uicapsule/components";',
   typeImport: 'import type { FormControlProps } from "@uicapsule/components";',
   storybookUrl:
-    "https://@uicapsule/components.so/storybook/?path=/story/utilities-formcontrol",
+    "https://uicapsule.com/storybook/?path=/story/utilities-formcontrol",
   properties: {
     base: {
       children: {

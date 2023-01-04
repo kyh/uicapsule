@@ -11,7 +11,7 @@ const meta: DocsMeta = {
     { name: "Actionable", url: "/content/docs/utilities/actionable" },
   ],
   storybookUrl:
-    "https://@uicapsule/components.so/storybook/?path=/story/components-button",
+    "https://uicapsule.com/storybook/?path=/story/components-button",
   properties: {
     base: {
       children: {

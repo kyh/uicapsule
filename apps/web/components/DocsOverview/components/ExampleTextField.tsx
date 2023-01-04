@@ -10,10 +10,7 @@ const ExampleTextField = () => (
     <View width="180px" maxWidth="100%">
       <FormControl>
         <FormControl.Label>Your email</FormControl.Label>
-        <TextField
-          name="preview"
-          placeholder="hello@@uicapsule/components.so"
-        />
+        <TextField name="preview" placeholder="hello@uicapsule.com" />
       </FormControl>
     </View>
   </Example>

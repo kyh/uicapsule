@@ -115,7 +115,12 @@ const PostMeta = (props: any) => {
           <View.Item grow>
             <View direction="row" gap={2} align="center">
               {relatedComponents.map((item: any) => (
-                <NextLink href={item.url} passHref key={item.url}>
+                <NextLink
+                  href={item.url}
+                  passHref
+                  legacyBehavior
+                  key={item.url}
+                >
                   <Actionable borderRadius="inherit">
                     <Badge>{item.name}</Badge>
                   </Actionable>
@@ -255,7 +260,7 @@ export default function PostPage(props: any) {
                   <View.Item grow>
                     <Text color="neutral-faded">Previous</Text>
                     <Text variant="featured-3">
-                      <NextLink href={previousItem.url} passHref>
+                      <NextLink href={previousItem.url} passHref legacyBehavior>
                         <Link variant="plain">{previousItem.title}</Link>
                       </NextLink>
                     </Text>
@@ -268,7 +273,7 @@ export default function PostPage(props: any) {
                         Next
                       </Text>
                       <Text variant="featured-3" align="end">
-                        <NextLink href={nextItem.url} passHref>
+                        <NextLink href={nextItem.url} passHref legacyBehavior>
                           <Link variant="plain">{nextItem.title}</Link>
                         </NextLink>
                       </Text>

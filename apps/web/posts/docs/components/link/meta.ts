@@ -6,8 +6,7 @@ const meta: DocsMeta = {
     "Interactive text element used for navigation within the text paragraphs.",
   componentImport: 'import { Link } from "@uicapsule/components";',
   typeImport: 'import type { LinkProps } from "@uicapsule/components";',
-  storybookUrl:
-    "https://@uicapsule/components.so/storybook/?path=/story/components-link",
+  storybookUrl: "https://uicapsule.com/storybook/?path=/story/components-link",
   relatedComponents: [
     { name: "Button", url: "/content/docs/components/button" },
     { name: "Menu Item", url: "/content/docs/components/menu-item" },

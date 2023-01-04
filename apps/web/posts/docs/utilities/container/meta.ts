@@ -7,7 +7,7 @@ const meta: DocsMeta = {
   componentImport: 'import { Container } from "@uicapsule/components";',
   typeImport: 'import type { ContainerProps } from "@uicapsule/components";',
   storybookUrl:
-    "https://@uicapsule/components.so/storybook/?path=/story/utilities-container",
+    "https://uicapsule.com/storybook/?path=/story/utilities-container",
   properties: {
     base: {
       width: {

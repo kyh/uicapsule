@@ -9,7 +9,7 @@ const meta: DocsMeta = {
   typeImport:
     'import type { CheckboxProps, CheckboxGroupProps } from "@uicapsule/components";',
   storybookUrl:
-    "https://@uicapsule/components.so/storybook/?path=/story/components-checkbox",
+    "https://uicapsule.com/storybook/?path=/story/components-checkbox",
   relatedComponents: [
     { name: "Select", url: "/content/docs/components/select" },
     { name: "Switch", url: "/content/docs/components/switch" },

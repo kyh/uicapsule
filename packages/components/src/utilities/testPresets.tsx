@@ -15,11 +15,11 @@ export const testChildren = (
 
 export const testLinkBehavior = (renderer: Renderer<{ href: string }>) => {
   test("works as a link", () => {
-    render(renderer({ href: "https://uicapsule.so" }));
+    render(renderer({ href: "https://uicapsule.com" }));
 
     const link = screen.getByRole("link");
     expect(link).toBeInTheDocument();
-    expect(link.getAttribute("href")).toBe("https://uicapsule.so");
+    expect(link.getAttribute("href")).toBe("https://uicapsule.com");
   });
 };
 
@@ -28,7 +28,7 @@ export const testLinkButtonBehavior = (
 ) => {
   test("works as a button with href", async () => {
     const noop = jest.fn();
-    render(renderer({ onClick: noop, href: "https://uicapsule.so" }));
+    render(renderer({ onClick: noop, href: "https://uicapsule.com" }));
     const button = screen.getByRole("link");
     button.addEventListener("click", (e) => e.preventDefault());
     expect(button).toBeInTheDocument();

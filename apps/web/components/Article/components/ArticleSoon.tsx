@@ -14,7 +14,7 @@ const ArticleSoon = (props: { name: string }) => (
         </Text>
         <View.Item gapBefore={6}>
           <Button
-            href="http://newsletter.@uicapsule/components.so"
+            href="http://newsletter.uicapsule.com"
             attributes={{ target: "_blank" }}
             color="primary"
             size="large"

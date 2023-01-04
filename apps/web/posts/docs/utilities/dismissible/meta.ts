@@ -7,7 +7,7 @@ const meta: DocsMeta = {
   componentImport: 'import { Dismissible } from "@uicapsule/components";',
   typeImport: 'import type { DismissibleProps } from "@uicapsule/components";',
   storybookUrl:
-    "https://@uicapsule/components.so/storybook/?path=/story/utilities-dismissible",
+    "https://uicapsule.com/storybook/?path=/story/utilities-dismissible",
   properties: {
     base: {
       children: {

@@ -5,9 +5,9 @@ const meta: DocsMeta = {
   description:
     "Utility to apply themes and color modes to specific page areas.",
   componentImport: 'import { ThemeProvider } from "@uicapsule/components";',
-  typeImport: 'import type { ThemeProviderProps } from "@uicapsule/components";',
-  storybookUrl:
-    "https://@uicapsule/components.so/storybook/?path=/story/utilities-theme",
+  typeImport:
+    'import type { ThemeProviderProps } from "@uicapsule/components";',
+  storybookUrl: "https://uicapsule.com/storybook/?path=/story/utilities-theme",
   properties: {
     base: {
       children: {

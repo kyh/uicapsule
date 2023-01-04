@@ -7,7 +7,7 @@ const meta: DocsMeta = {
   componentImport: 'import { Progress } from "@uicapsule/components";',
   typeImport: 'import type { ProgressProps } from "@uicapsule/components";',
   storybookUrl:
-    "https://@uicapsule/components.so/storybook/?path=/story/components-progress",
+    "https://uicapsule.com/storybook/?path=/story/components-progress",
   relatedComponents: [
     { name: "Loader", url: "/content/docs/components/loader" },
   ],

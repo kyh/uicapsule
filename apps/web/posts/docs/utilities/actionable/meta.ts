@@ -6,7 +6,7 @@ const meta: DocsMeta = {
   componentImport: 'import { Actionable } from "@uicapsule/components";',
   typeImport: 'import type { ActionableProps } from "@uicapsule/components";',
   storybookUrl:
-    "https://@uicapsule/components.so/storybook/?path=/story/utilities-actionable",
+    "https://uicapsule.com/storybook/?path=/story/utilities-actionable",
   relatedComponents: [
     { name: "Button", url: "/content/docs/components/button" },
     { name: "Link", url: "/content/docs/components/link" },

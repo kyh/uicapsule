@@ -7,7 +7,7 @@ const meta: DocsMeta = {
   componentImport: 'import { Loader } from "@uicapsule/components";',
   typeImport: 'import type { LoaderProps } from "@uicapsule/components";',
   storybookUrl:
-    "https://@uicapsule/components.so/storybook/?path=/story/components-loader",
+    "https://uicapsule.com/storybook/?path=/story/components-loader",
   properties: {
     base: {
       size: {

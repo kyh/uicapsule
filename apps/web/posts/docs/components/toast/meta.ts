@@ -6,8 +6,7 @@ const meta: DocsMeta = {
     "Notification message or a piece of information displayed above the page content.",
   componentImport: 'import { useToast } from "@uicapsule/components";',
   typeImport: 'import type { ToastProps } from "@uicapsule/components";',
-  storybookUrl:
-    "https://@uicapsule/components.so/storybook/?path=/story/components-toast",
+  storybookUrl: "https://uicapsule.com/storybook/?path=/story/components-toast",
   relatedComponents: [
     { name: "Alert", url: "/content/docs/components/alert" },
     { name: "Dismissible", url: "/content/docs/utilities/dismissible" },

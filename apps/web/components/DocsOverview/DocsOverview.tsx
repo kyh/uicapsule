@@ -135,8 +135,8 @@ const DocsOverview = () => {
       </Text>
 
       <Text variant="body-1" className={s.intro}>
-        It is a reference implementation for anyone building a design system
-        showcasing common functionality, best practices, accessibility
+        It is a reference implementation for anyone building their own component
+        library - showcasing common functionality, best practices, accessibility
         requirements, and alternative examples.
       </Text>
 

@@ -6,7 +6,7 @@ const meta: DocsMeta = {
   componentImport: 'import { Select } from "@uicapsule/components";',
   typeImport: 'import type { SelectProps } from "@uicapsule/components";',
   storybookUrl:
-    "https://@uicapsule/components.so/storybook/?path=/story/components-select",
+    "https://uicapsule.com/storybook/?path=/story/components-select",
   relatedComponents: [
     { name: "Checkbox", url: "/content/docs/components/checkbox" },
     { name: "Switch", url: "/content/docs/components/switch" },

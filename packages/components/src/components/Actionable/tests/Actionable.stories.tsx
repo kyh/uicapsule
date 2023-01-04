@@ -8,7 +8,10 @@ export default { title: "Utilities/Actionable" };
 export const role = () => (
   <Example>
     <Example.Item title="rendered as link">
-      <Actionable href="https://uicapsule.so" attributes={{ target: "_blank" }}>
+      <Actionable
+        href="https://uicapsule.com"
+        attributes={{ target: "_blank" }}
+      >
         Actionable
       </Actionable>
     </Example.Item>
@@ -23,7 +26,7 @@ export const role = () => (
     <Example.Item title="rendered as link with onClick">
       <Actionable
         onClick={() => console.log("Clicked")}
-        href="https://uicapsule.so"
+        href="https://uicapsule.com"
       >
         Actionable
       </Actionable>
@@ -39,7 +42,7 @@ export const disabled = () => (
       </Actionable>
     </Example.Item>
     <Example.Item title="disabled, link">
-      <Actionable disabled href="https://uicapsule.so">
+      <Actionable disabled href="https://uicapsule.com">
         Actionable
       </Actionable>
     </Example.Item>

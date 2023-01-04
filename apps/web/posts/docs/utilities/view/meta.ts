@@ -7,8 +7,7 @@ const meta: DocsMeta = {
   componentImport: 'import { View } from "@uicapsule/components";',
   typeImport:
     'import type { ViewProps, ViewItemProps } from "@uicapsule/components";',
-  storybookUrl:
-    "https://@uicapsule/components.so/storybook/?path=/story/utilities-view",
+  storybookUrl: "https://uicapsule.com/storybook/?path=/story/utilities-view",
   properties: {
     base: {
       children: {

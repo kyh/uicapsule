@@ -10,7 +10,7 @@ export default { title: "Components/Link" };
 export const variant = () => (
   <Example>
     <Example.Item title="variant: underline">
-      <Link href="http://uicapsule.so" attributes={{ target: "_blank" }}>
+      <Link href="http://uicapsule.com" attributes={{ target: "_blank" }}>
         UIC
       </Link>
     </Example.Item>

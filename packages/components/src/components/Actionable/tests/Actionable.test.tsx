@@ -7,7 +7,7 @@ const fixtures = {
   content: "Click here",
   className: "test-className",
   id: "test-id",
-  href: "uicapsule.so",
+  href: "uicapsule.com",
 };
 
 describe("Utilities/Actionable", () => {

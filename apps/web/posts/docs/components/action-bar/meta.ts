@@ -8,7 +8,7 @@ const meta: DocsMeta = {
   typeImport: 'import type { ActionBarProps } from "@uicapsule/components";',
   relatedComponents: [{ name: "Card", url: "/content/docs/components/card" }],
   storybookUrl:
-    "https://@uicapsule/components.so/storybook/?path=/story/components-actionbar",
+    "https://uicapsule.com/storybook/?path=/story/components-actionbar",
   properties: {
     base: {
       children: { type: ControlType.slot, control: { defaultValue: true } },

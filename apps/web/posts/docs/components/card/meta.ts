@@ -7,8 +7,7 @@ const meta: DocsMeta = {
   componentImport: 'import { Card } from "@uicapsule/components";',
   typeImport: 'import type { CardProps } from "@uicapsule/components";',
   relatedComponents: [{ name: "View", url: "/content/docs/utilities/view" }],
-  storybookUrl:
-    "https://@uicapsule/components.so/storybook/?path=/story/components-card",
+  storybookUrl: "https://uicapsule.com/storybook/?path=/story/components-card",
   properties: {
     base: {
       children: { type: ControlType.slot, control: { defaultValue: true } },

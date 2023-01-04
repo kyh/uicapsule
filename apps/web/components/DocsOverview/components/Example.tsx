@@ -15,7 +15,7 @@ const Example = (props: Props) => {
   const { href, children, title, text, soon } = props;
 
   return (
-    <NextLink href={href} passHref>
+    <NextLink href={href} passHref legacyBehavior>
       <Card padding={0} className={s.card}>
         {children && (
           <ComponentPreview height={156} interactive={false} centered>

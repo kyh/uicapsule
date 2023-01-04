@@ -6,7 +6,7 @@ const meta: DocsMeta = {
   componentImport: 'import { DropdownMenu } from "@uicapsule/components";',
   typeImport: 'import type { DropdownMenuProps } from "@uicapsule/components";',
   storybookUrl:
-    "https://@uicapsule/components.so/storybook/?path=/story/components-dropdownmenu",
+    "https://uicapsule.com/storybook/?path=/story/components-dropdownmenu",
   relatedComponents: [
     { name: "Popover", url: "/content/docs/components/popover" },
     { name: "Select", url: "/content/docs/components/select" },

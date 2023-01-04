@@ -7,8 +7,7 @@ const meta: DocsMeta = {
   componentImport: 'import { Radio, RadioGroup } from "@uicapsule/components";',
   typeImport:
     'import type { RadioProps, RadioGroupProps } from "@uicapsule/components";',
-  storybookUrl:
-    "https://@uicapsule/components.so/storybook/?path=/story/components-radio",
+  storybookUrl: "https://uicapsule.com/storybook/?path=/story/components-radio",
   relatedComponents: [
     { name: "Checkbox", url: "/content/docs/components/checkbox" },
     { name: "Switch", url: "/content/docs/components/switch" },

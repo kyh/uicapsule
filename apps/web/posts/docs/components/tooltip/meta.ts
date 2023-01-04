@@ -6,7 +6,7 @@ const meta: DocsMeta = {
   componentImport: 'import { Tooltip } from "@uicapsule/components";',
   typeImport: 'import type { TooltipProps } from "@uicapsule/components";',
   storybookUrl:
-    "https://@uicapsule/components.so/storybook/?path=/story/components-tooltip",
+    "https://uicapsule.com/storybook/?path=/story/components-tooltip",
   relatedComponents: [
     { name: "Popover", url: "/content/docs/components/popover" },
   ],

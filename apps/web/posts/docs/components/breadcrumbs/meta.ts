@@ -11,7 +11,7 @@ const meta: DocsMeta = {
     { name: "Tabs", url: "/content/docs/components/tabs" },
   ],
   storybookUrl:
-    "https://@uicapsule/components.so/storybook/?path=/story/components-breadcrumbs",
+    "https://uicapsule.com/storybook/?path=/story/components-breadcrumbs",
   properties: {
     base: {
       children: { type: ControlType.slot, control: { ignore: true } },

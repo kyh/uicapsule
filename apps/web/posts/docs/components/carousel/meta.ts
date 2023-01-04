@@ -8,7 +8,7 @@ const meta: DocsMeta = {
   typeImport:
     'import type { CarouselProps, CarouselInstanceRef } from "@uicapsule/components";',
   storybookUrl:
-    "https://@uicapsule/components.so/storybook/?path=/story/components-carousel",
+    "https://uicapsule.com/storybook/?path=/story/components-carousel",
   properties: {
     base: {
       children: { type: ControlType.slot, control: { ignore: true } },

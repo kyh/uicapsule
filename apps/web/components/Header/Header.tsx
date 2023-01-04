@@ -17,7 +17,7 @@ const Header = () => {
       <Container width="1440px">
         <View direction="row" align="center" gap={3} justify="space-between">
           <View.Item className={s.logo}>
-            <NextLink href="/" passHref>
+            <NextLink href="/" passHref legacyBehavior>
               <Actionable attributes={{ "aria-label": "UIC" }}>
                 <View direction="row" align="center" gap={2} height="36px">
                   <Icon svg={IconUICColored} size={8} />

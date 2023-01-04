@@ -6,7 +6,7 @@ const meta: DocsMeta = {
   componentImport: 'import { AspectRatio } from "@uicapsule/components";',
   typeImport: 'import type { AspectRatioProps } from "@uicapsule/components";',
   storybookUrl:
-    "https://@uicapsule/components.so/storybook/?path=/story/utilities-aspectratio",
+    "https://uicapsule.com/storybook/?path=/story/utilities-aspectratio",
   relatedComponents: [{ name: "Image", url: "/content/docs/utilities/image" }],
   properties: {
     base: {

@@ -8,7 +8,7 @@ const meta: DocsMeta = {
   typeImport: 'import type { AvatarProps } from "@uicapsule/components";',
   relatedComponents: [{ name: "Image", url: "/content/docs/utilities/image" }],
   storybookUrl:
-    "https://@uicapsule/components.so/storybook/?path=/story/components-avatar",
+    "https://uicapsule.com/storybook/?path=/story/components-avatar",
   properties: {
     base: {
       src: {

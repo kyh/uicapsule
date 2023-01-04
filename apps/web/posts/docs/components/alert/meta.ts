@@ -10,8 +10,7 @@ const meta: DocsMeta = {
     { name: "Card", url: "/content/docs/components/card" },
     { name: "View", url: "/content/docs/utilities/view" },
   ],
-  storybookUrl:
-    "https://@uicapsule/components.so/storybook/?path=/story/components-alert",
+  storybookUrl: "https://uicapsule.com/storybook/?path=/story/components-alert",
   properties: {
     base: {
       title: {

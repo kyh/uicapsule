@@ -20,23 +20,12 @@ const Meta = (props: {
       {description && <meta name="description" content={description} />}
       {description && <meta property="og:description" content={description} />}
       {description && <meta name="twitter:description" content={description} />}
+      {image && <meta name="image" content={`https://uicapsule.com${image}`} />}
       {image && (
-        <meta
-          name="image"
-          content={`https://@uicapsule/components.so${image}`}
-        />
+        <meta name="twitter:image" content={`https://uicapsule.com${image}`} />
       )}
       {image && (
-        <meta
-          name="twitter:image"
-          content={`https://@uicapsule/components.so${image}`}
-        />
-      )}
-      {image && (
-        <meta
-          property="og:image"
-          content={`https://@uicapsule/components.so${image}`}
-        />
+        <meta property="og:image" content={`https://uicapsule.com${image}`} />
       )}
     </Head>
   );

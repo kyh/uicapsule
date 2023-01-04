@@ -14,8 +14,8 @@ const ArticleLink = (props: { children: React.ReactNode; href: string }) => {
   }
 
   return (
-    <NextLink href={href}>
-      <Link href={href}>{children}</Link>
+    <NextLink href={href} passHref legacyBehavior>
+      <Link>{children}</Link>
     </NextLink>
   );
 };

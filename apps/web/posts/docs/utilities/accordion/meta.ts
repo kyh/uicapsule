@@ -6,7 +6,7 @@ const meta: DocsMeta = {
   componentImport: 'import { Accordion } from "@uicapsule/components";',
   typeImport: 'import type { AccordionProps } from "@uicapsule/components";',
   storybookUrl:
-    "https://@uicapsule/components.so/storybook/?path=/story/utilities-accordion",
+    "https://uicapsule.com/storybook/?path=/story/utilities-accordion",
   relatedComponents: [{ name: "View", url: "/content/docs/utilities/view" }],
   properties: {
     base: {

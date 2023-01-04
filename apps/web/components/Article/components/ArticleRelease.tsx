@@ -30,7 +30,7 @@ const ArticleRelease = (props: Props) => {
           </Button>
           <Text color="neutral-faded">
             Unlock the releases by{" "}
-            <NextLink href="/pricing" passHref>
+            <NextLink href="/pricing" passHref legacyBehavior>
               <Link color="primary">purchasing a license</Link>
             </NextLink>
           </Text>

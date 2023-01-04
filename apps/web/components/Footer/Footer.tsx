@@ -19,7 +19,7 @@ const Footer = () => {
         </View.Item>
 
         <View gap={6} direction="row">
-          <NextLink href="/figma-plugin" passHref>
+          <NextLink href="/figma-plugin" passHref legacyBehavior>
             <Link variant="plain">Figma plugin</Link>
           </NextLink>
           <Link
@@ -29,13 +29,13 @@ const Footer = () => {
           >
             Roadmap
           </Link>
-          <NextLink href="/content/license" passHref>
+          <NextLink href="/content/license" passHref legacyBehavior>
             <Link variant="plain">License</Link>
           </NextLink>
-          <NextLink href="/about" passHref>
+          <NextLink href="/about" passHref legacyBehavior>
             <Link variant="plain">About us</Link>
           </NextLink>
-          <Link variant="plain" href="mailto:hello@@uicapsule/components.so">
+          <Link variant="plain" href="mailto:hello@uicapsule.com">
             Contact us
           </Link>
         </View>

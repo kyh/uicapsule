@@ -1,5 +1,5 @@
 import { motion } from "framer-motion";
-import Link from "next/link";
+import NextLink from "next/link";
 import { useRouter } from "next/router";
 import {
   MenuItem,
@@ -32,7 +32,6 @@ const SideMenuItem = (props: T.MenuItemProps) => {
   const linkElement = (
     <MenuItem
       size="small"
-      selected={selected}
       key={data.url}
       startIcon={data.icon}
       onClick={data.onClick}
@@ -63,9 +62,12 @@ const SideMenuItem = (props: T.MenuItemProps) => {
   if (data.onClick || !data.url) return linkElement;
 
   return (
-    <Link href={data.url} key={data.url} passHref>
-      {linkElement}
-    </Link>
+    <div className={s.linkContainer}>
+      {selected && <motion.span layoutId="selection" className={s.selection} />}
+      <NextLink href={data.url} key={data.url} passHref legacyBehavior>
+        {linkElement}
+      </NextLink>
+    </div>
   );
 };
 

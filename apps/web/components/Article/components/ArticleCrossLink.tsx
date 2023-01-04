@@ -1,4 +1,4 @@
-import Link from "next/link";
+import NextLink from "next/link";
 import { Card, Icon, View, Text } from "@uicapsule/components";
 import IconArrow from "icons/ArrowUpRight";
 
@@ -43,9 +43,9 @@ const ArticleCrossLink = (props: Props) => {
   if (isExternal) return renderCard();
 
   return (
-    <Link href={href} passHref>
+    <NextLink href={href} passHref legacyBehavior>
       {renderCard()}
-    </Link>
+    </NextLink>
   );
 };
 

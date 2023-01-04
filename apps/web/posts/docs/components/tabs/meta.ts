@@ -5,8 +5,7 @@ const meta: DocsMeta = {
   description: "Navigation between multiple pages or content sections.",
   componentImport: 'import { Tabs } from "@uicapsule/components";',
   typeImport: 'import type { TabsProps } from "@uicapsule/components";',
-  storybookUrl:
-    "https://@uicapsule/components.so/storybook/?path=/story/components-tabs",
+  storybookUrl: "https://uicapsule.com/storybook/?path=/story/components-tabs",
   properties: {
     base: {
       children: {

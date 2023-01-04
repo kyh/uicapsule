@@ -7,7 +7,7 @@ const meta: DocsMeta = {
   componentImport: 'import { Backdrop } from "@uicapsule/components";',
   typeImport: 'import type { BackdropProps } from "@uicapsule/components";',
   storybookUrl:
-    "https://@uicapsule/components.so/storybook/?path=/story/utilities-backdrop",
+    "https://uicapsule.com/storybook/?path=/story/utilities-backdrop",
   relatedComponents: [{ name: "Modal", url: "/content/docs/components/modal" }],
   properties: {
     base: {
