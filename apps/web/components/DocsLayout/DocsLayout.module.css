@@ -50,6 +50,7 @@
   margin-inline-end: calc(var(--uic-unit-x10) * -1);
   padding-inline-end: var(--uic-unit-x10);
   overflow: auto;
+  overscroll-behavior: contain;
   height: 100%;
 }
 
