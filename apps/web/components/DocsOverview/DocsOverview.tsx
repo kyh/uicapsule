@@ -135,9 +135,9 @@ const DocsOverview = () => {
       </Text>
 
       <Text variant="body-1" className={s.intro}>
-        It is designed to be a reference implementation for anyone building
-        component-based user interfaces. Showcasing common functionality, best
-        practices, accessibility requirements, and examples.
+        It is a reference implementation for anyone building a design system
+        showcasing common functionality, best practices, accessibility
+        requirements, and alternative examples.
       </Text>
 
       <View.Item gapBefore={12}>
