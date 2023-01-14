@@ -41,7 +41,7 @@
 }
 
 @each $color in neutral, neutral-faded, positive-faded, critical-faded,
-  primary-faded, page, page-faded, base, elevated
+  primary-faded, page, page-faded, disabled, disabled-faded, base, elevated
 {
   .--bg-$color {
     background-color: var(--uic-color-background-$color);
@@ -223,8 +223,8 @@
 }
 
 /* Alignment */
-@each $name, $value in (start, center, end, stretch, space-between),
-  (flex-start, center, flex-end, stretch, space-between)
+@each $name, $value in (start, center, end, stretch),
+  (flex-start, center, flex-end, stretch)
 {
   .--align-$(name) {
     align-items: $value;
@@ -241,8 +241,8 @@
 
 @each $viewport in m, l, xl {
   @media (--uic-viewport-$viewport) {
-    @each $name, $value in (start, center, end, stretch, space-between),
-      (flex-start, center, flex-end, stretch, space-between)
+    @each $name, $value in (start, center, end, stretch),
+      (flex-start, center, flex-end, stretch)
     {
       .--align-$(name)--$(viewport) {
         align-items: $value;
@@ -383,6 +383,9 @@
   --_g-l: var(--_g-m);
   --_g-xl: var(--_g-l);
   --uic-view-gap: calc(var(--uic-unit-x1) * var(--_g));
+
+  --_z: auto;
+  z-index: var(--_z);
 }
 
 .root > .item {
@@ -406,26 +409,26 @@
     --uic-view-gap: calc(var(--uic-unit-x1) * var(--_g-m));
   }
 
-  .root.--padding--m {
+  .root.--padding {
     --uic-view-padding-top: var(--_pv-m);
     --uic-view-padding-bottom: var(--_pv-m);
     --uic-view-padding-start: var(--_ph-m);
     --uic-view-padding-end: var(--_ph-m);
   }
 
-  .root.--padding-top--m {
+  .root.--padding-top {
     --uic-view-padding-top: var(--_pt-m);
   }
 
-  .root.--padding-bottom--m {
+  .root.--padding-bottom {
     --uic-view-padding-bottom: var(--_pb-m);
   }
 
-  .root.--padding-start--m {
+  .root.--padding-start {
     --uic-view-padding-start: var(--_ps-m);
   }
 
-  .root.--padding-end--m {
+  .root.--padding-end {
     --uic-view-padding-end: var(--_pe-m);
   }
 
@@ -442,26 +445,26 @@
     --uic-view-gap: calc(var(--uic-unit-x1) * var(--_g-l));
   }
 
-  .root.--padding--l {
+  .root.--padding {
     --uic-view-padding-top: var(--_pv-l);
     --uic-view-padding-bottom: var(--_pv-l);
     --uic-view-padding-start: var(--_ph-l);
     --uic-view-padding-end: var(--_ph-l);
   }
 
-  .root.--padding-top--l {
+  .root.--padding-top {
     --uic-view-padding-top: var(--_pt-l);
   }
 
-  .root.--padding-bottom--l {
+  .root.--padding-bottom {
     --uic-view-padding-bottom: var(--_pb-l);
   }
 
-  .root.--padding-start--l {
+  .root.--padding-start {
     --uic-view-padding-start: var(--_ps-l);
   }
 
-  .root.--padding-end--l {
+  .root.--padding-end {
     --uic-view-padding-end: var(--_pe-l);
   }
 
@@ -478,26 +481,26 @@
     --uic-view-gap: calc(var(--uic-unit-x1) * var(--_g-xl));
   }
 
-  .root.--padding--xl {
+  .root.--padding {
     --uic-view-padding-top: var(--_pv-xl);
     --uic-view-padding-bottom: var(--_pv-xl);
     --uic-view-padding-start: var(--_ph-xl);
     --uic-view-padding-end: var(--_ph-xl);
   }
 
-  .root.--padding-top--xl {
+  .root.--padding-top {
     --uic-view-padding-top: var(--_pt-xl);
   }
 
-  .root.--padding-bottom--xl {
+  .root.--padding-bottom {
     --uic-view-padding-bottom: var(--_pb-xl);
   }
 
-  .root.--padding-start--xl {
+  .root.--padding-start {
     --uic-view-padding-start: var(--_ps-xl);
   }
 
-  .root.--padding-end--xl {
+  .root.--padding-end {
     --uic-view-padding-end: var(--_pe-xl);
   }
 

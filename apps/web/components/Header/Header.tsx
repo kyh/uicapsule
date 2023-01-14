@@ -15,8 +15,8 @@ const Header = () => {
   return (
     <header className={`${s.root} ${s["root--bg"]}`}>
       <Container width="1440px">
-        <View direction="row" align="center" gap={3} justify="space-between">
-          <View.Item className={s.logo}>
+        <View direction="row" align="center" gap={3}>
+          <View.Item className={s.logo} grow>
             <NextLink href="/" passHref legacyBehavior>
               <Actionable attributes={{ "aria-label": "UIC" }}>
                 <View direction="row" align="center" gap={2} height="36px">

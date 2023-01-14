@@ -1,17 +1,19 @@
-.root {
-  --_uic-mh: auto;
-  --_uic-mh-m: var(--_uic-mh);
-  --_uic-mh-l: var(--_uic-mh-m);
-  --_uic-mh-xl: var(--_uic-mh-l);
-  --_uic-mh-responsive: var(--_uic-mh);
+.literal {
+  max-height: var(--_uic-mh, auto);
+}
 
-  max-height: var(--_uic-mh-responsive);
+.unit {
+  max-height: calc(var(--_uic-mh) * var(--uic-unit-x1));
 }
 
 @each $viewport in m, l, xl {
   @media (--uic-viewport-$viewport) {
-    .root {
-      --_uic-mh-responsive: var(--_uic-mh-$(viewport));
+    .literal--$viewport {
+      max-height: var(--_uic-mh-$viewport);
+    }
+
+    .unit--$viewport {
+      max-height: calc(var(--_uic-mh-$viewport) * var(--uic-unit-x1));
     }
   }
 }

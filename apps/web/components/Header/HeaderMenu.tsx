@@ -72,7 +72,7 @@ const HeaderMenu = () => {
   const menu = useMenu();
 
   return (
-    <View.Item>
+    <View.Item grow>
       <View as="nav" direction="row" gap={2} justify="end" align="center">
         <Hidden hide={{ s: true, l: false }}>
           {(className) =>

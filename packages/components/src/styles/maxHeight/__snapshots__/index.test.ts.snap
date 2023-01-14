@@ -1,0 +1,49 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`Styles/MaxHeight handles % value 1`] = `
+{
+  "classNames": [
+    "literal",
+  ],
+  "variables": {
+    "--_uic-mh": "50%",
+  },
+}
+`;
+
+exports[`Styles/MaxHeight handles px value 1`] = `
+{
+  "classNames": [
+    "literal",
+  ],
+  "variables": {
+    "--_uic-mh": "50px",
+  },
+}
+`;
+
+exports[`Styles/MaxHeight handles responsive value 1`] = `
+{
+  "classNames": [
+    "literal",
+    "literal--l",
+  ],
+  "variables": {
+    "--_uic-mh": "50px",
+    "--_uic-mh-l": "50%",
+  },
+}
+`;
+
+exports[`Styles/MaxHeight handles undefined value 1`] = `null`;
+
+exports[`Styles/MaxHeight handles unit value 1`] = `
+{
+  "classNames": [
+    "unit",
+  ],
+  "variables": {
+    "--_uic-mh": 5,
+  },
+}
+`;

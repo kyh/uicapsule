@@ -5,12 +5,7 @@ const IconUIC = () => {
   const fill = colorMode === "dark" ? "#FFF" : "#000";
 
   return (
-    <svg
-      xmlns="http://www.w3.org/2000/svg"
-      width="593"
-      height="684"
-      viewBox="0 0 593 684"
-    >
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 593 684">
       <path
         fill={fill}
         fillRule="evenodd"

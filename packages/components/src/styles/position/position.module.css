@@ -1,0 +1,15 @@
+@each $value in relative, absolute, fixed, sticky {
+  .--position-$(value) {
+    position: $(value);
+  }
+}
+
+@each $value in relative, absolute, fixed, sticky {
+  @each $viewport in m, l, xl {
+    @media (--uic-viewport-$(viewport)) {
+      .--position-$(value)--$(viewport) {
+        position: $(value);
+      }
+    }
+  }
+}

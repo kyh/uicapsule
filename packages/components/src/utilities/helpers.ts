@@ -42,6 +42,7 @@ export const throttle = <T extends Function>(cb: T, wait: number) => {
 };
 
 type Value = string | boolean | number | undefined;
+type ClassNameResolver = string | ((value: Value) => string);
 
 export const classNames = (...args: G.ClassName[]): string => {
   return args.reduce<string>((acc, cur) => {
@@ -55,8 +56,18 @@ export const classNames = (...args: G.ClassName[]): string => {
   }, "");
 };
 
-const applyClassName = (className: string, value: Value, base?: boolean) => {
-  if (value === true && base) return className;
+const applyClassName = (
+  passedClassName: ClassNameResolver,
+  value: Value,
+  options?: { base?: boolean; excludeValueFromClassName?: boolean }
+) => {
+  const { base, excludeValueFromClassName } = options || {};
+  const className =
+    typeof passedClassName === "string"
+      ? passedClassName
+      : passedClassName(value);
+
+  if ((value === true && base) || excludeValueFromClassName) return className;
 
   // CSS should be turned on/off for non base viewport with mobile first approach
   if (value === true && !base) return `${className}-true`;
@@ -66,24 +77,31 @@ const applyClassName = (className: string, value: Value, base?: boolean) => {
   return null;
 };
 
-export const responsiveClassNames = (
+export const responsiveClassNames = <V extends G.Responsive<Value>>(
   s: Record<string, string>,
-  className: string,
-  value: G.Responsive<Value>
+  className: ClassNameResolver,
+  value: V,
+  options?: { excludeValueFromClassName?: boolean }
 ) => {
   if (typeof value !== "object") {
-    const staticClassName = applyClassName(className, value, true);
+    const staticClassName = applyClassName(className, value, {
+      base: true,
+      excludeValueFromClassName: options?.excludeValueFromClassName,
+    });
     return staticClassName ? [s[staticClassName]] : [];
   }
 
-  return Object.keys(value).reduce<string[]>((acc, key) => {
-    const isBase = key === "s";
+  return Object.keys(value).reduce<string[]>((acc, viewport) => {
+    const base = viewport === "s";
     const viewportClassName = applyClassName(
       className,
-      value[key as G.Viewport],
-      isBase
+      value[viewport as G.Viewport],
+      {
+        base,
+        excludeValueFromClassName: options?.excludeValueFromClassName,
+      }
     );
-    const suffix = isBase ? "" : `--${key}`;
+    const suffix = base ? "" : `--${viewport}`;
 
     return [...acc, s[`${viewportClassName}${suffix}`]];
   }, []);

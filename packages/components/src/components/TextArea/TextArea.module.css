@@ -122,6 +122,6 @@
 
 @media (--uic-viewport-s) and (hover: none) {
   .input {
-    font-size: var(--uic-font-size-body-1);
+    font-size: var(--uic-font-size-body-1) !important;
   }
 }

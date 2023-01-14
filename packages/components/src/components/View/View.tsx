@@ -1,4 +1,4 @@
-import * as React from "react";
+import React from "react";
 import {
   classNames,
   responsiveClassNames,
@@ -16,6 +16,8 @@ import getWidthStyles from "styles/width";
 import getHeightStyles from "styles/height";
 import getMaxWidthStyles from "styles/maxWidth";
 import getMaxHeightStyles from "styles/maxHeight";
+import getPositionStyles from "styles/position";
+import getInsetStyles from "styles/inset";
 
 const ViewItem = <As extends keyof JSX.IntrinsicElements = "div">(
   props: T.ItemProps<As>
@@ -45,7 +47,6 @@ const ViewItem = <As extends keyof JSX.IntrinsicElements = "div">(
   };
 
   return (
-    // eslint-disable-next-line @typescript-eslint/no-use-before-define
     <TagName {...attributes} style={itemVariables} className={itemClassNames}>
       {children}
     </TagName>
@@ -84,6 +85,13 @@ const View = <As extends keyof JSX.IntrinsicElements = "div">(
     shadow,
     textAlign,
     overflow,
+    position,
+    inset,
+    insetTop,
+    insetBottom,
+    insetStart,
+    insetEnd,
+    zIndex,
 
     /**
      * Using any here to let TS save on type resolving, otherwise TS throws an error due to the type complexity
@@ -103,6 +111,12 @@ const View = <As extends keyof JSX.IntrinsicElements = "div">(
   const heightStyles = getHeightStyles(height);
   const maxWidthStyles = getMaxWidthStyles(maxWidth);
   const maxHeightStyles = getMaxHeightStyles(maxHeight);
+  const positionStyles = getPositionStyles(position);
+  const insetStyles = getInsetStyles(inset);
+  const insetTopStyles = getInsetStyles(insetTop, "top");
+  const insetBottomStyles = getInsetStyles(insetBottom, "bottom");
+  const insetStartStyles = getInsetStyles(insetStart, "start");
+  const insetEndStyles = getInsetStyles(insetEnd, "end");
 
   let renderedItemIndex = 0;
   // If wrap is not defined, it can be set based on item grow and split usage
@@ -202,11 +216,17 @@ const View = <As extends keyof JSX.IntrinsicElements = "div">(
     s.root,
     className,
     radiusStyles?.classNames,
+    positionStyles?.classNames,
     bleedStyles?.classNames,
     widthStyles?.classNames,
     heightStyles?.classNames,
     maxWidthStyles?.classNames,
     maxHeightStyles?.classNames,
+    insetStyles?.classNames,
+    insetTopStyles?.classNames,
+    insetBottomStyles?.classNames,
+    insetStartStyles?.classNames,
+    insetEndStyles?.classNames,
     textAlign && s[`--align-text-${textAlign}`],
     backgroundColor && s[`--bg-${backgroundColor}`],
     borderColor && s[`--bd-${borderColor}`],
@@ -254,6 +274,12 @@ const View = <As extends keyof JSX.IntrinsicElements = "div">(
     ...heightStyles?.variables,
     ...maxWidthStyles?.variables,
     ...maxHeightStyles?.variables,
+    ...insetStyles?.variables,
+    ...insetTopStyles?.variables,
+    ...insetBottomStyles?.variables,
+    ...insetStartStyles?.variables,
+    ...insetEndStyles?.variables,
+    ...(zIndex ? { "--_z": zIndex } : {}),
   };
 
   return (

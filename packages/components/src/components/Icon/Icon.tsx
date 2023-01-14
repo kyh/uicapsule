@@ -1,5 +1,6 @@
 import React from "react";
-import { classNames, responsiveVariables } from "utilities/helpers";
+import { classNames } from "utilities/helpers";
+import getHeightStyles from "styles/height";
 import type * as T from "./Icon.types";
 import s from "./Icon.module.css";
 
@@ -8,19 +9,21 @@ const Icon = (props: T.Props) => {
     svg: Component,
     className,
     color,
-    size,
+    size = "1em",
     autoWidth,
     attributes,
   } = props;
+  const heightStyles = getHeightStyles(size);
   const rootClassName = classNames(
     s.root,
     className,
+    heightStyles?.classNames,
     color && s[`--color-${color}`],
     autoWidth && s["--auto"]
   );
 
   const icon = typeof Component === "object" ? Component : <Component />;
-  const style = { ...attributes?.style, ...responsiveVariables("--_s", size) };
+  const style = { ...attributes?.style, ...heightStyles?.variables };
 
   return (
     // All icons are decorative, a11y attributes should be set for buttons wrapping them

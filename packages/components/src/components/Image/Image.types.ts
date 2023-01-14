@@ -5,8 +5,8 @@ import type * as TStyles from "styles/types";
 export type Props = {
   src?: string;
   alt?: string;
-  width?: G.Responsive<string>;
-  height?: G.Responsive<string>;
+  width?: G.Responsive<string | number>;
+  height?: G.Responsive<string | number>;
   onLoad?: (e: React.SyntheticEvent) => void;
   onError?: (e: React.SyntheticEvent) => void;
   fallback?: string | React.ReactNode | boolean;

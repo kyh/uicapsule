@@ -14,11 +14,11 @@ export type Props<TagName extends keyof JSX.IntrinsicElements = "div"> = {
   gap?: G.Responsive<number>;
   wrap?: G.Responsive<boolean>;
   align?: G.Responsive<"center" | "start" | "end" | "stretch" | "baseline">;
-  justify?: G.Responsive<"center" | "start" | "end" | "space-between">;
-  height?: G.Responsive<string>;
-  width?: G.Responsive<string>;
-  maxHeight?: G.Responsive<string>;
-  maxWidth?: G.Responsive<string>;
+  justify?: G.Responsive<"center" | "start" | "end">;
+  height?: G.Responsive<string | number>;
+  width?: G.Responsive<string | number>;
+  maxHeight?: G.Responsive<string | number>;
+  maxWidth?: G.Responsive<string | number>;
   padding?: G.Responsive<Padding>;
   paddingTop?: G.Responsive<number>;
   paddingBottom?: G.Responsive<number>;
@@ -53,7 +53,14 @@ export type Props<TagName extends keyof JSX.IntrinsicElements = "div"> = {
     | "primary"
     | "primary-faded"
     | "transparent";
-  borderRadius?: TStyles.Radius;
+  borderRadius?: G.Responsive<TStyles.Radius>;
+  position?: G.Responsive<TStyles.Position>;
+  inset?: G.Responsive<number>;
+  insetStart?: G.Responsive<number>;
+  insetEnd?: G.Responsive<number>;
+  insetTop?: G.Responsive<number>;
+  insetBottom?: G.Responsive<number>;
+  zIndex?: number;
   shadow?: "base" | "elevated";
   overflow?: "hidden";
   animated?: boolean;

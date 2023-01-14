@@ -86,9 +86,9 @@ const FAQRoute = () => {
             <FAQItem title="What are the UICapsule usage restrictions?">
               You can&apos;t use UICapsule for redistributing our components and
               assets as a different package. This includes design systems,
-              component libraries or tools that are providing access to UICapsule
-              package assets without purchasing UICapsule license. You can find
-              more information about this in our&nbsp;
+              component libraries or tools that are providing access to
+              UICapsule package assets without purchasing UICapsule license. You
+              can find more information about this in our&nbsp;
               <NextLink href="/content/license" passHref>
                 <Link attributes={{ target: "_blank" }}>license agreement</Link>
               </NextLink>

@@ -70,9 +70,9 @@ label {
   }
 }
 
-[data-reshaped-no-transition] *,
-[data-reshaped-no-transition] *:before,
-[data-reshaped-no-transition] *:after {
+[data-uic-no-transition] *,
+[data-uic-no-transition] *:before,
+[data-uic-no-transition] *:after {
   transition: none !important;
 }
 

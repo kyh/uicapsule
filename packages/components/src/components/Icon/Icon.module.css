@@ -1,51 +1,24 @@
 .root {
   /* Center svg in squared icon */
-  --uic-icon-px-size: calc(var(--uic-unit-x1) * var(--uic-icon-size));
   display: flex;
   justify-content: center;
-  height: var(--uic-icon-px-size, 1em);
-  width: var(--uic-icon-px-size, 1em);
+  aspect-ratio: 1;
 }
 
 .--auto {
-  width: auto;
+  aspect-ratio: auto;
   justify-content: flex-start;
+  width: auto;
 }
 
 .root svg {
   display: block;
   height: 100%;
-  /* fill: currentColor; */
+  min-width: 100%;
 }
 
 @each $color in (neutral-faded, primary, positive, critical) {
   .--color-$color {
     color: var(--uic-color-foreground-$color);
-  }
-}
-
-.root {
-  --_s: initial;
-  --_s-m: var(--_s);
-  --_s-l: var(--_s-m);
-  --_s-xl: var(--_s-l);
-  --uic-icon-size: var(--_s);
-}
-
-@media (--uic-viewport-m) {
-  .root {
-    --uic-icon-size: var(--_s-m);
-  }
-}
-
-@media (--uic-viewport-l) {
-  .root {
-    --uic-icon-size: var(--_s-l);
-  }
-}
-
-@media (--uic-viewport-xl) {
-  .root {
-    --uic-icon-size: var(--_s-xl);
   }
 }

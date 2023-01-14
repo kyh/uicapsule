@@ -5,6 +5,7 @@ import Icon from "components/Icon";
 import Text from "components/Text";
 import IconZap from "icons/Zap";
 import IconMic from "icons/Mic";
+import AspectRatio from "components/AspectRatio";
 
 export default { title: "Utilities/Icon" };
 
@@ -14,7 +15,12 @@ export const size = () => (
       <Icon svg={IconZap} size={4} />
     </Example.Item>
     <Example.Item title="size: 8">
-      <Icon svg={IconZap} size={4} />
+      <Icon svg={IconZap} size={8} />
+    </Example.Item>
+    <Example.Item title="size: 100%">
+      <View width={25} height={25}>
+        <Icon svg={IconZap} size="100%" />
+      </View>
     </Example.Item>
     <Example.Item title={["responsive size", "[s] 5", "[m]: 10"]}>
       <Icon svg={IconZap} size={{ s: 5, m: 10 }} />

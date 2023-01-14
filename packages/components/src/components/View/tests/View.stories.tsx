@@ -403,17 +403,20 @@ export const size = () => (
     <Example.Item title="height: 100px, width: 100px">
       <View backgroundColor="neutral-faded" height="100px" width="100px" />
     </Example.Item>
+    <Example.Item title="height: 25, width: 25">
+      <View backgroundColor="neutral-faded" height={25} width={25} />
+    </Example.Item>
     <Example.Item
       title={[
         "responsive height and width",
-        "[s] height: 100px, width: 100px",
+        "[s] height: 25, width: 25",
         "[m+] height: 200px, width: 200px",
       ]}
     >
       <View
         backgroundColor="neutral-faded"
-        height={{ s: "100px", m: "200px" }}
-        width={{ s: "100px", m: "200px" }}
+        height={{ s: 25, m: "200px" }}
+        width={{ s: 25, m: "200px" }}
       />
     </Example.Item>
   </Example>
@@ -429,17 +432,25 @@ export const maxSize = () => (
         height="300px"
       />
     </Example.Item>
+    <Example.Item title="maxHeight: 25, maxWidth: 25, height: 50">
+      <View
+        backgroundColor="neutral-faded"
+        maxHeight={25}
+        maxWidth={25}
+        height={50}
+      />
+    </Example.Item>
     <Example.Item
       title={[
         "responsive maxHeight and maxWidth, height: 300",
-        "[s] maxHeight: 150px, maxWidth: 150px",
+        "[s] maxHeight: 25, maxWidth: 25",
         "[m+] maxHeight: 200px, maxWidth: 200px",
       ]}
     >
       <View
         backgroundColor="neutral-faded"
-        maxHeight={{ s: "150px", m: "200px" }}
-        maxWidth={{ s: "150px", m: "200px" }}
+        maxHeight={{ s: 25, m: "200px" }}
+        maxWidth={{ s: 25, m: "200px" }}
         height="300px"
       />
     </Example.Item>
@@ -651,6 +662,61 @@ export const overflow = () => (
       >
         <View backgroundColor="primary" height="100%" width="100%" />
       </View>
+    </Example.Item>
+  </Example>
+);
+
+export const position = () => (
+  <Example>
+    <Example.Item title="position: relative + absolute">
+      <View borderColor="neutral" position="relative">
+        <Placeholder />
+        <View
+          position="absolute"
+          insetTop={0}
+          insetEnd={0}
+          backgroundColor="critical"
+          zIndex={5}
+        >
+          top
+        </View>
+        <View
+          position="absolute"
+          insetTop={0}
+          insetEnd={0}
+          backgroundColor="primary"
+        >
+          below
+        </View>
+      </View>
+    </Example.Item>
+
+    <Example.Item title="position: sticky">
+      <div style={{ overflow: "auto", height: 100 }}>
+        <View position="sticky" borderColor="primary" insetTop={0}>
+          Content
+        </View>
+        <Placeholder h={1000} />
+      </div>
+    </Example.Item>
+
+    <Example.Item
+      title={[
+        "responsive",
+        "[s] position: absolute",
+        "[m+]: position: relative",
+      ]}
+    >
+      <div style={{ overflow: "auto", height: 100, position: "relative" }}>
+        <View
+          position={{ s: "absolute", m: "relative" }}
+          borderColor="primary"
+          insetTop={0}
+        >
+          Content
+        </View>
+        <Placeholder h={1000} />
+      </div>
     </Example.Item>
   </Example>
 );

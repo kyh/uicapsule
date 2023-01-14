@@ -1,13 +1,12 @@
 .root {
-  --uic-avatar-px-size: calc(var(--uic-unit-x1) * var(--uic-avatar-size));
   display: flex;
   align-items: center;
   justify-content: center;
-  width: var(--uic-avatar-px-size);
-  height: var(--uic-avatar-px-size);
-  line-height: var(--uic-avatar-px-size);
-  font-size: calc(var(--uic-avatar-px-size) / 3);
+  /* Depends on getHeightStyles */
+  font-size: calc(var(--_uic-h) * var(--uic-unit-x1) / 3);
   font-weight: bold;
+  aspect-ratio: 1;
+  line-height: 100%;
 }
 
 .img {
@@ -56,31 +55,5 @@
   &-primary-faded {
     background: var(--uic-color-background-primary-faded);
     color: var(--uic-color-foreground-primary);
-  }
-}
-
-.root {
-  --_s: 0;
-  --_s-m: var(--_s);
-  --_s-l: var(--_s-m);
-  --_s-xl: var(--_s-l);
-  --uic-avatar-size: var(--_s);
-}
-
-@media (--uic-viewport-m) {
-  .root {
-    --uic-avatar-size: var(--_s-m);
-  }
-}
-
-@media (--uic-viewport-l) {
-  .root {
-    --uic-avatar-size: var(--_s-l);
-  }
-}
-
-@media (--uic-viewport-xl) {
-  .root {
-    --uic-avatar-size: var(--_s-xl);
   }
 }

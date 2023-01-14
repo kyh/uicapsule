@@ -1,0 +1,25 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`Styles/Padding handles 0 value 1`] = `null`;
+
+exports[`Styles/Padding handles positive value 1`] = `
+{
+  "classNames": "root",
+  "variables": {
+    "--_uic-p": 4,
+  },
+}
+`;
+
+exports[`Styles/Padding handles responsive value 1`] = `
+{
+  "classNames": "root",
+  "variables": {
+    "--_uic-p": 4,
+    "--_uic-p-l": 2,
+    "--_uic-p-m": 0,
+  },
+}
+`;
+
+exports[`Styles/Padding handles undefined value 1`] = `null`;

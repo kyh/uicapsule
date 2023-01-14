@@ -1,9 +1,6 @@
 import React from "react";
-import {
-  classNames,
-  responsiveVariables,
-  responsivePropDependency,
-} from "utilities/helpers";
+import { classNames, responsivePropDependency } from "utilities/helpers";
+import getHeightStyles from "styles/height";
 import Icon from "components/Icon";
 import View from "components/View";
 import type * as T from "./Avatar.types";
@@ -28,9 +25,11 @@ const Avatar = (props: T.Props) => {
         return "small";
       })
     : "circular";
+  const heightStyles = getHeightStyles(size);
   const rootClassNames = classNames(
     s.root,
     className,
+    heightStyles?.classNames,
     color && s[`--color-${color}`]
   );
 
@@ -49,10 +48,7 @@ const Avatar = (props: T.Props) => {
   return (
     <View
       borderRadius={radius}
-      attributes={{
-        ...attributes,
-        style: { ...responsiveVariables("--_s", size) },
-      }}
+      attributes={{ ...attributes, style: { ...heightStyles?.variables } }}
       backgroundColor={color}
       className={rootClassNames}
     >

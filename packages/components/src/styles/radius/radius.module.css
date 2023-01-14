@@ -1,27 +1,24 @@
-@each $radius in small, medium, large {
-  .--radius-$radius {
-    --_uic-radius: var(--uic-unit-radius-$radius);
-    border-radius: var(--_uic-radius);
-  }
-
-  @each $viewport in m, l, xl {
-    @media (--uic-viewport-$(viewport)) {
-      .--radius-$(radius)--$(viewport) {
-        --_uic-radius: var(--uic-unit-radius-$radius);
-      }
-    }
-  }
+/* prettier-ignore */
+@each $modifier, $value in
+	(small, medium, large, circular),
+	(var(--uic-unit-radius-small), var(--uic-unit-radius-medium), var(--uic-unit-radius-large), 9999px)
+{
+	.--radius-$(modifier) {
+		--_uic-radius: $(value);
+		border-radius: var(--_uic-radius);
+	}
 }
 
-.--radius-circular {
-  --_uic-radius: 9999px;
-  border-radius: var(--_uic-radius);
-}
-
-@each $viewport in m, l, xl {
-  @media (--uic-viewport-$(viewport)) {
-    .--radius-circular--$viewport {
-      --_uic-radius: 9999px;
-    }
-  }
+/* prettier-ignore */
+@each $modifier, $value in
+	(small, medium, large, circular),
+	(var(--uic-unit-radius-small), var(--uic-unit-radius-medium), var(--uic-unit-radius-large), 9999px)
+{
+	@each $viewport in m, l, xl {
+		@media (--uic-viewport-$(viewport)) {
+			.--radius-$(modifier)--$(viewport) {
+				--_uic-radius: $(value);
+			}
+		}
+	}
 }
