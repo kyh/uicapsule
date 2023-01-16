@@ -10,7 +10,7 @@
   font-family: var(--uic-font-family-body-medium-2);
   font-weight: var(--uic-font-weight-body-medium-2);
 
-  &:hover {
+  &:not(.--no-hover):hover {
     background-color: rgba(var(--uic-color-rgb-background-neutral), 0.4);
   }
 }

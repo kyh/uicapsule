@@ -1,4 +1,4 @@
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import NextLink from "next/link";
 import { useRouter } from "next/router";
 import {
@@ -17,7 +17,7 @@ import s from "./SideMenu.module.css";
 import { useState, useRef, useEffect } from "react";
 
 const SideMenuItem = (props: T.MenuItemProps) => {
-  const { padded, fullWidth } = props;
+  const { padded, fullWidth, hovered, setHovered } = props;
   const router = useRouter();
   const data = getMenuItemData(props);
 
@@ -36,7 +36,11 @@ const SideMenuItem = (props: T.MenuItemProps) => {
       startIcon={data.icon}
       onClick={data.onClick}
       roundedCorners={!fullWidth}
-      attributes={{ target: data.url?.startsWith("/") ? undefined : "_blank" }}
+      noHover
+      attributes={{
+        target: data.url?.startsWith("/") ? undefined : "_blank",
+        onMouseEnter: () => setHovered(data.url),
+      }}
       endSlot={
         data.soon && (
           <Badge
@@ -63,6 +67,18 @@ const SideMenuItem = (props: T.MenuItemProps) => {
 
   return (
     <div className={s.linkContainer}>
+      <AnimatePresence>
+        {hovered === data.url && (
+          <motion.span
+            layoutId="hovered"
+            className={s.hovered}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.15 }}
+          />
+        )}
+      </AnimatePresence>
       {selected && <motion.span layoutId="selection" className={s.selection} />}
       <NextLink href={data.url} key={data.url} passHref legacyBehavior>
         {linkElement}
@@ -72,7 +88,7 @@ const SideMenuItem = (props: T.MenuItemProps) => {
 };
 
 const SideMenuGroup = (props: T.MenuGroupProps) => {
-  const { query, fullWidth } = props;
+  const { query, fullWidth, hovered, setHovered } = props;
   const data = getMenuItemData(props);
   const router = useRouter();
   let hasSelectedItem = false;
@@ -150,11 +166,21 @@ const SideMenuGroup = (props: T.MenuGroupProps) => {
                   query={query}
                   key={item.title || index}
                   fullWidth={fullWidth}
+                  hovered={hovered}
+                  setHovered={setHovered}
                 />
               );
             }
 
-            return <SideMenuItem {...item} key={item.title || index} padded />;
+            return (
+              <SideMenuItem
+                {...item}
+                key={item.title || index}
+                padded
+                hovered={hovered}
+                setHovered={setHovered}
+              />
+            );
           })}
         </View>
       </motion.div>
@@ -163,7 +189,7 @@ const SideMenuGroup = (props: T.MenuGroupProps) => {
 };
 
 const SideMenuSection = (props: T.MenuSectionProps) => {
-  const { query, fullWidth } = props;
+  const { query, fullWidth, hovered, setHovered } = props;
   const data = getMenuItemData(props);
 
   if (!data.items || !props.normalizedItems) return null;
@@ -182,6 +208,8 @@ const SideMenuSection = (props: T.MenuSectionProps) => {
                   query={query}
                   key={child.title || index}
                   fullWidth={fullWidth}
+                  hovered={hovered}
+                  setHovered={setHovered}
                 />
               );
             }
@@ -191,6 +219,8 @@ const SideMenuSection = (props: T.MenuSectionProps) => {
                 {...child}
                 key={child.title || index}
                 fullWidth={fullWidth}
+                hovered={hovered}
+                setHovered={setHovered}
               />
             );
           })}
@@ -203,6 +233,7 @@ const SideMenuSection = (props: T.MenuSectionProps) => {
 const SideMenu = (props: T.Props) => {
   const { extraSection, fullWidth } = props;
   const [query, setQuery] = useState("");
+  const [hovered, setHovered] = useState("");
   const menu = normalizeMenu({ filter: query });
   const sections = extraSection ? [...extraSection, ...menu.list] : menu.list;
   const inputRef = useRef<HTMLInputElement | null>(null);
@@ -223,7 +254,11 @@ const SideMenu = (props: T.Props) => {
   }, []);
 
   return (
-    <View gap={6} className={s.root}>
+    <View
+      gap={6}
+      className={s.root}
+      attributes={{ onMouseLeave: () => setHovered("") }}
+    >
       <div className={s.search}>
         <TextField
           name="search"
@@ -259,7 +294,12 @@ const SideMenu = (props: T.Props) => {
               key={item.title || index}
             >
               <MenuItem.Aligner>
-                <SideMenuItem {...item} fullWidth={fullWidth} />
+                <SideMenuItem
+                  {...item}
+                  fullWidth={fullWidth}
+                  hovered={hovered}
+                  setHovered={setHovered}
+                />
               </MenuItem.Aligner>
             </View.Item>
           );
@@ -271,6 +311,8 @@ const SideMenu = (props: T.Props) => {
             query={query}
             key={item.id || item.title || index}
             fullWidth={fullWidth}
+            hovered={hovered}
+            setHovered={setHovered}
           />
         );
       })}

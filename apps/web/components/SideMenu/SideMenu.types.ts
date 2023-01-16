@@ -9,11 +9,9 @@ type WithQuery = { query?: string };
 
 export type MenuItemProps = (NormalizedMenuItem | MenuItem) & {
   padded?: boolean;
+  hovered?: string;
+  setHovered?: (url: string) => void;
 } & Pick<Props, "fullWidth">;
 
-export type MenuGroupProps = (NormalizedMenuItem | MenuItem) &
-  WithQuery &
-  Pick<Props, "fullWidth">;
-export type MenuSectionProps = (NormalizedMenuItem | MenuItem) &
-  WithQuery &
-  Pick<Props, "fullWidth">;
+export type MenuGroupProps = MenuItemProps & WithQuery;
+export type MenuSectionProps = MenuItemProps & WithQuery;

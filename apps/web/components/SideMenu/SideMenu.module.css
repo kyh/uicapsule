@@ -6,14 +6,26 @@
   position: relative;
 }
 
-.selection {
+.selection,
+.hovered {
   position: absolute;
-  background: rgba(var(--uic-color-rgb-background-neutral), 0.6);
-  width: calc(100% + var(--uic-unit-x6));
-  height: 100%;
-  margin-left: calc(var(--uic-unit-x3) * -1);
   border-radius: var(--uic-unit-radius-small);
   z-index: -1;
+}
+
+.selection {
+  height: 75%;
+  margin-left: calc(var(--uic-unit-x4) * -1);
+  margin-top: var(--uic-unit-x1);
+  width: 2px;
+  background: white;
+}
+
+.hovered {
+  height: 100%;
+  margin-left: calc(var(--uic-unit-x3) * -1);
+  width: calc(100% + var(--uic-unit-x6));
+  background: rgba(var(--uic-color-rgb-background-neutral), 0.6);
 }
 
 @media (--uic-viewport-l) {
