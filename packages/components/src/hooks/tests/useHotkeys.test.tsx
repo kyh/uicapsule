@@ -1,7 +1,7 @@
 import React from "react";
 import { render } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import UICapsule from "components/UICapsule";
+import UIC from "components/UIC";
 import useHotkey from "hooks/useHotkeys";
 
 const Component = (props: { hotkeys: Record<string, () => void | null> }) => {
@@ -15,9 +15,9 @@ describe("useHotkey", () => {
   test("triggers callback for a single key", async () => {
     const fn = jest.fn();
     render(
-      <UICapsule theme="uicapsule">
+      <UIC theme="uicapsule">
         <Component hotkeys={{ a: fn }} />
-      </UICapsule>
+      </UIC>
     );
 
     await userEvent.keyboard("a");
@@ -28,9 +28,9 @@ describe("useHotkey", () => {
   test("triggers callback for a key combination", async () => {
     const fn = jest.fn();
     render(
-      <UICapsule theme="uicapsule">
+      <UIC theme="uicapsule">
         <Component hotkeys={{ "a+b": fn }} />
-      </UICapsule>
+      </UIC>
     );
 
     await userEvent.keyboard("{a>}b");
@@ -40,9 +40,9 @@ describe("useHotkey", () => {
   test("triggers callback for an array of keys", async () => {
     const fn = jest.fn();
     render(
-      <UICapsule theme="uicapsule">
+      <UIC theme="uicapsule">
         <Component hotkeys={{ "a,b": fn }} />
-      </UICapsule>
+      </UIC>
     );
 
     await userEvent.keyboard("a");
@@ -55,9 +55,9 @@ describe("useHotkey", () => {
   test("triggers callback for a combination with different casing and spaces", async () => {
     const fn = jest.fn();
     render(
-      <UICapsule theme="uicapsule">
+      <UIC theme="uicapsule">
         <Component hotkeys={{ "A  + b": fn }} />
-      </UICapsule>
+      </UIC>
     );
 
     await userEvent.keyboard("{a>}b");
@@ -67,9 +67,9 @@ describe("useHotkey", () => {
   test("triggers callback for a combination pressed in different order", async () => {
     const fn = jest.fn();
     render(
-      <UICapsule theme="uicapsule">
+      <UIC theme="uicapsule">
         <Component hotkeys={{ "b + a": fn }} />
-      </UICapsule>
+      </UIC>
     );
 
     await userEvent.keyboard("{a>}b");
@@ -79,9 +79,9 @@ describe("useHotkey", () => {
   test("triggers callback when more keys are pressed than required for a callback", async () => {
     const fn = jest.fn();
     render(
-      <UICapsule theme="uicapsule">
+      <UIC theme="uicapsule">
         <Component hotkeys={{ "a + b": fn }} />
-      </UICapsule>
+      </UIC>
     );
 
     await userEvent.keyboard("{a>}{b>}{c>}");
@@ -92,9 +92,9 @@ describe("useHotkey", () => {
   test("triggers callback with meta key on hold and another key pressed multiple times", async () => {
     const fn = jest.fn();
     render(
-      <UICapsule theme="uicapsule">
+      <UIC theme="uicapsule">
         <Component hotkeys={{ "Meta + a": fn }} />
-      </UICapsule>
+      </UIC>
     );
 
     await userEvent.keyboard("{Meta>}aa");

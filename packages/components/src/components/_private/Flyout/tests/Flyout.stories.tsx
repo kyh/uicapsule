@@ -118,7 +118,7 @@ export const testWidthOverflowOnMobile = () => (
 
 export const scopedTheming = () => (
   <View gap={3} align="start">
-    <Button color="primary">UICapsule button</Button>
+    <Button color="primary">UIC button</Button>
     <ThemeProvider theme="twitter">
       <Flyout triggerType="click" active position="bottom-start">
         <Flyout.Trigger>

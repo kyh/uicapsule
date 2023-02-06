@@ -11,7 +11,7 @@ export const content = () => (
     <Example.Item title="With image">
       <Avatar
         src="https://pbs.twimg.com/profile_images/1096029593335676929/OZbE9ZXV_400x400.png"
-        alt="UICapsule"
+        alt="UIC"
       />
     </Example.Item>
     <Example.Item title="With initials">

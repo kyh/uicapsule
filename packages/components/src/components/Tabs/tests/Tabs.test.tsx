@@ -2,7 +2,7 @@ import React from "react";
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import Tabs from "components/Tabs";
-import UICapsule from "components/UICapsule";
+import UIC from "components/UIC";
 
 const fixtures = {
   name: "tabs",
@@ -19,7 +19,7 @@ const fixtures = {
 describe("Tabs", () => {
   test("renders correctly", async () => {
     render(
-      <UICapsule>
+      <UIC>
         <Tabs>
           <Tabs.List>
             <Tabs.Item value={fixtures.value1}>{fixtures.item1}</Tabs.Item>
@@ -29,7 +29,7 @@ describe("Tabs", () => {
           <Tabs.Panel value={fixtures.value1}>{fixtures.tab1}</Tabs.Panel>
           <Tabs.Panel value={fixtures.value2}>{fixtures.tab2}</Tabs.Panel>
         </Tabs>
-      </UICapsule>
+      </UIC>
     );
 
     const list = screen.getByRole("tablist");
@@ -67,7 +67,7 @@ describe("Tabs", () => {
     const handleChange = jest.fn();
 
     render(
-      <UICapsule>
+      <UIC>
         <Tabs defaultValue={fixtures.value2} onChange={handleChange}>
           <Tabs.List>
             <Tabs.Item value={fixtures.value1}>{fixtures.item1}</Tabs.Item>
@@ -77,7 +77,7 @@ describe("Tabs", () => {
           <Tabs.Panel value={fixtures.value1}>{fixtures.tab1}</Tabs.Panel>
           <Tabs.Panel value={fixtures.value2}>{fixtures.tab2}</Tabs.Panel>
         </Tabs>
-      </UICapsule>
+      </UIC>
     );
 
     const items = screen.getAllByRole("tab");
@@ -95,7 +95,7 @@ describe("Tabs", () => {
     const handleChange = jest.fn();
 
     render(
-      <UICapsule>
+      <UIC>
         <Tabs value={fixtures.value2} onChange={handleChange}>
           <Tabs.List>
             <Tabs.Item value={fixtures.value1}>{fixtures.item1}</Tabs.Item>
@@ -105,7 +105,7 @@ describe("Tabs", () => {
           <Tabs.Panel value={fixtures.value1}>{fixtures.tab1}</Tabs.Panel>
           <Tabs.Panel value={fixtures.value2}>{fixtures.tab2}</Tabs.Panel>
         </Tabs>
-      </UICapsule>
+      </UIC>
     );
 
     const items = screen.getAllByRole("tab");
@@ -122,7 +122,7 @@ describe("Tabs", () => {
 
   test("works as a radio button", async () => {
     render(
-      <UICapsule>
+      <UIC>
         <Tabs defaultValue={fixtures.value2} name={fixtures.name}>
           <Tabs.List>
             <Tabs.Item value={fixtures.value1}>{fixtures.item1}</Tabs.Item>
@@ -132,7 +132,7 @@ describe("Tabs", () => {
           <Tabs.Panel value={fixtures.value1}>{fixtures.tab1}</Tabs.Panel>
           <Tabs.Panel value={fixtures.value2}>{fixtures.tab2}</Tabs.Panel>
         </Tabs>
-      </UICapsule>
+      </UIC>
     );
 
     const inputs = screen.getAllByRole("radio");
@@ -158,7 +158,7 @@ describe("Tabs", () => {
 
   test("applies className and attributes", () => {
     const { container } = render(
-      <UICapsule>
+      <UIC>
         <Tabs.List
           className={fixtures.className}
           attributes={{ id: fixtures.id }}
@@ -166,7 +166,7 @@ describe("Tabs", () => {
           <Tabs.Item value={fixtures.value1}>{fixtures.item1}</Tabs.Item>
           <Tabs.Item value={fixtures.value2}>{fixtures.item2}</Tabs.Item>
         </Tabs.List>
-      </UICapsule>
+      </UIC>
     );
 
     expect(container.firstChild?.firstChild).toHaveClass(fixtures.className);

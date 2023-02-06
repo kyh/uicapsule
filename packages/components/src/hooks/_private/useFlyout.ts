@@ -207,7 +207,7 @@ const calculatePosition: CalculatePosition = (
   }
 
   if (top === undefined || left === undefined) {
-    throw Error(`[UICapsule, flyout]: ${position} position is not valid`);
+    throw Error(`[UIC, flyout]: ${position} position is not valid`);
   }
 
   // When rendered inside portal, we don't need to accommodate for the page scroll

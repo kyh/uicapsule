@@ -55,8 +55,8 @@ export const variablesTemplate = (
   Object.entries(filteredTokens).forEach(([type, tokens]) => {
     const selector =
       type === "root"
-        ? `[data-uicapsule-theme="${themeName}-light"], [data-uicapsule-theme="${themeName}-dark"]`
-        : `[data-uicapsule-theme="${themeName}-${type}"]`;
+        ? `[data-uic-theme="${themeName}-light"], [data-uic-theme="${themeName}-dark"]`
+        : `[data-uic-theme="${themeName}-${type}"]`;
 
     code += `
 			${selector} {

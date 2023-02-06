@@ -1,7 +1,7 @@
 import { useEffect, useLayoutEffect, useState } from "react";
 import Head from "next/head";
 import { useRouter } from "next/router";
-import { UICapsule, UICapsuleProps } from "@uicapsule/components";
+import { UIC, UICProps } from "@uicapsule/components";
 import useStoredColorMode, { colorModeKey } from "hooks/useStoredColorMode";
 import Meta from "components/Meta";
 import Header from "components/Header";
@@ -21,7 +21,7 @@ const AppWrapper = ({ Component, pageProps }: any) => {
   useIsomorphicLayoutEffect(() => {
     const nextMode = localStorage.getItem(
       colorModeKey
-    ) as UICapsuleProps["defaultColorMode"];
+    ) as UICProps["defaultColorMode"];
     setColorMode(nextMode || "dark");
   }, []);
 
@@ -103,13 +103,13 @@ const AppWrapper = ({ Component, pageProps }: any) => {
 
 const App = (props: any) => {
   return (
-    <UICapsule
+    <UIC
       theme="uicapsule"
       defaultColorMode="dark"
       toastOptions={{ "bottom-start": { width: "460px" } }}
     >
       <AppWrapper {...props} />
-    </UICapsule>
+    </UIC>
   );
 };
 

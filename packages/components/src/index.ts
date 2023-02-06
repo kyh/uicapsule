@@ -62,8 +62,8 @@ export { default as Radio } from "./components/Radio";
 export type { RadioProps } from "./components/Radio";
 export { default as RadioGroup } from "./components/RadioGroup";
 export type { RadioGroupProps } from "./components/RadioGroup";
-export { default as UICapsule } from "./components/UICapsule";
-export type { UICapsuleProps } from "./components/UICapsule";
+export { default as UIC } from "./components/UIC";
+export type { UICProps } from "./components/UIC";
 export { default as Select } from "./components/Select";
 export type { SelectProps } from "./components/Select";
 export { default as Switch } from "./components/Switch";
@@ -94,7 +94,7 @@ export { default as useIsomorphicLayoutEffect } from "./hooks/useIsomorphicLayou
 export { default as useHotkeys } from "./hooks/useHotkeys";
 
 export { default as Placeholder } from "./utilities/storybook/Placeholder";
-export type { UICapsuleConfig } from "./types/config";
+export type { UICConfig } from "./types/config";
 
 /** Deprecated */
 export { default as Frame } from "./components/_deprecated/Frame";

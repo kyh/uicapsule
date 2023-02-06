@@ -80,11 +80,11 @@ import "@uicapsule/components/theme.css";
 
 const App = () => {
   return (
-    <UICapsule theme="uicapsule">
+    <UIC theme="uicapsule">
       <Container width="652px">
         <Button href="/">Get started</Button>
       </Container>
-    </UICapsule>
+    </UIC>
   );
 };
 ```
@@ -123,14 +123,14 @@ Check detailed guides for their setup in the Integrations sections or look direc
 
 ## Server side rendering
 
-To avoid style differences between server and browser rendering, add the default `dir` value for RTL/LTR and the `data-uicapsule-theme` attribute on the body element.
+To avoid style differences between server and browser rendering, add the default `dir` value for RTL/LTR and the `data-uic-theme` attribute on the body element.
 
 ```code
 // RTL with light mode
-<body dir="rtl" data-uicapsule-theme="uicapsule-light">
+<body dir="rtl" data-uic-theme="uicapsule-light">
 
 // LTR with dark mode
-<body data-uicapsule-theme="@uicapsule/components-dark">
+<body data-uic-theme="@uicapsule/components-dark">
 ```
 
 ## Source code

@@ -197,10 +197,11 @@ To publish packages to a private npm organization scope, **remove** the followin
 ### Updating steps
 
 - replace `packages/components`
+  - skip index.ts
 - run `npm run format`
 - replace `--rs` with `--uic`
 - replace `_rs` with `_uic`
-- replace `data-rs-theme` with `data-uicapsule-theme`
+- replace `data-rs-theme` with `data-uic-theme`
 - replace `reshaped` with `uicapsule`
-- replace `Reshaped` with `UICapsule`
+- replace `Reshaped` with `UIC`
 - replace `uicapsule.so` with `uicapsule.com`

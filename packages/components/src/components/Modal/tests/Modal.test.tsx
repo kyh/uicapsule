@@ -2,7 +2,7 @@ import React from "react";
 import { render, screen, waitFor, fireEvent } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import Modal from "components/Modal";
-import UICapsule from "components/UICapsule";
+import UIC from "components/UIC";
 
 const fixtures = {
   content: "Content",
@@ -15,9 +15,9 @@ const fixtures = {
 describe("Components/Modal", () => {
   test("doesn't render children", () => {
     render(
-      <UICapsule>
+      <UIC>
         <Modal>{fixtures.content}</Modal>
-      </UICapsule>
+      </UIC>
     );
 
     expect(screen.queryByText(fixtures.content)).not.toBeInTheDocument();
@@ -25,13 +25,13 @@ describe("Components/Modal", () => {
 
   test("renders correctly when active", () => {
     render(
-      <UICapsule>
+      <UIC>
         <Modal active>
           <Modal.Title>{fixtures.title}</Modal.Title>
           <Modal.Subtitle>{fixtures.subtitle}</Modal.Subtitle>
           {fixtures.content}
         </Modal>
-      </UICapsule>
+      </UIC>
     );
 
     const elModal = screen.getByRole("dialog");
@@ -53,7 +53,7 @@ describe("Components/Modal", () => {
 
   test("works with className and attributes", () => {
     render(
-      <UICapsule>
+      <UIC>
         <Modal
           active
           className={fixtures.className}
@@ -61,7 +61,7 @@ describe("Components/Modal", () => {
         >
           {fixtures.content}
         </Modal>
-      </UICapsule>
+      </UIC>
     );
 
     const elModal = screen.getByRole("dialog");
@@ -86,14 +86,14 @@ describe("Components/Modal", () => {
       };
 
       return (
-        <UICapsule>
+        <UIC>
           <button type="button" onClick={handleOpen}>
             Open
           </button>
           <Modal active={active} onClose={handleClose}>
             {fixtures.content}
           </Modal>
-        </UICapsule>
+        </UIC>
       );
     };
     render(<Component />);

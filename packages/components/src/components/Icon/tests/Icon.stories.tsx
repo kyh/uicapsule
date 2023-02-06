@@ -29,7 +29,7 @@ export const size = () => (
       <Text variant="display-1">
         <View direction="row" align="center" gap={2}>
           <Icon svg={IconZap} />
-          <View.Item>UICapsule</View.Item>
+          <View.Item>UIC</View.Item>
         </View>
       </Text>
     </Example.Item>

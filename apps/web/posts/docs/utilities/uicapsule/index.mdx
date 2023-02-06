@@ -7,7 +7,7 @@ import { UIC } from "@uicapsule/components";
 import "@uicapsule/components/theme.css";
 
 const App = () => {
-  return <UICapsule theme="uicapsule">My application</UICapsule>;
+  return <UIC theme="uicapsule">My application</UIC>;
 };
 ```
 
@@ -28,9 +28,9 @@ import "@uicapsule/components/theme.css";
 
 const App = () => {
   return (
-    <UICapsule theme="uicapsule" defaultColorMode="dark">
+    <UIC theme="uicapsule" defaultColorMode="dark">
       My application
-    </UICapsule>
+    </UIC>
   );
 };
 ```
@@ -49,7 +49,7 @@ UIC supports RTL text direction and provides a hook to change that dynamically f
 UIC component serves as an entry point to define the default value used in the hook later.
 
 ```code
-<UICapsule defaultRTL={true} />
+<UIC defaultRTL={true} />
 ```
 
 <Grid>

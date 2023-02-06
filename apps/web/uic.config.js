@@ -1,4 +1,4 @@
-/** @type {import('@uicapsule/components').UICapsuleConfig} */
+/** @type {import('@uicapsule/components').UICConfig} */
 const config = {
   themeFragments: {
     twitter: {

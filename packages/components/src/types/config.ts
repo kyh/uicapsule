@@ -1,6 +1,6 @@
 import { PartialUserThemeDefinition } from "cli/theming/tokens/types";
 
-export type UICapsuleConfig = {
+export type UICConfig = {
   themes?: Record<string, PartialUserThemeDefinition>;
   themeFragments?: Record<string, PartialUserThemeDefinition>;
 };

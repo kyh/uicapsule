@@ -7,13 +7,13 @@ import useRTLGlobal, {
   SingletonRTLContext,
 } from "hooks/_private/useSingletonRTL";
 import { SingletonHotkeysProvider } from "hooks/_private/useSingletonHotkeys";
-import type * as T from "./UICapsule.types";
-import "./UICapsule.css";
-import s from "./UICapsule.module.css";
+import type * as T from "./UIC.types";
+import "./UIC.css";
+import s from "./UIC.module.css";
 
 export const IdContext = React.createContext({ current: 0 });
 
-const UICapsuleInner = (props: T.Props) => {
+const UICInner = (props: T.Props) => {
   const { children, defaultRTL, toastOptions } = props;
   const idRef = React.useRef(0);
   const rtlState = useRTLGlobal(defaultRTL);
@@ -31,17 +31,17 @@ const UICapsuleInner = (props: T.Props) => {
   );
 };
 
-const UICapsule = (props: T.Props) => {
+const UIC = (props: T.Props) => {
   const { theme = "uicapsule", defaultColorMode, className } = props;
   const rootClassNames = classNames(s.root, className);
 
   return (
     <GlobalColorMode defaultMode={defaultColorMode}>
       <ThemeProvider theme={theme} className={rootClassNames}>
-        <UICapsuleInner {...props}>{props.children}</UICapsuleInner>
+        <UICInner {...props}>{props.children}</UICInner>
       </ThemeProvider>
     </GlobalColorMode>
   );
 };
 
-export default UICapsule;
+export default UIC;

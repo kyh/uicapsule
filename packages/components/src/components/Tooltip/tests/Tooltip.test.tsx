@@ -3,7 +3,7 @@ import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import Button from "components/Button";
 import Tooltip from "components/Tooltip";
-import UICapsule from "components/UICapsule";
+import UIC from "components/UIC";
 
 const fixtures = {
   content: "Content",
@@ -13,13 +13,13 @@ const fixtures = {
 describe("Components/Tooltip", () => {
   test("doesn't render children", () => {
     const { unmount } = render(
-      <UICapsule>
+      <UIC>
         <Tooltip text={fixtures.content}>
           {(attributes) => (
             <Button attributes={attributes}>{fixtures.openText}</Button>
           )}
         </Tooltip>
-      </UICapsule>
+      </UIC>
     );
 
     expect(screen.queryByText(fixtures.content)).not.toBeInTheDocument();
@@ -32,7 +32,7 @@ describe("Components/Tooltip", () => {
     const handleClose = jest.fn();
 
     render(
-      <UICapsule>
+      <UIC>
         <Tooltip
           text={fixtures.content}
           onOpen={handleOpen}
@@ -42,7 +42,7 @@ describe("Components/Tooltip", () => {
             <Button attributes={attributes}>{fixtures.openText}</Button>
           )}
         </Tooltip>
-      </UICapsule>
+      </UIC>
     );
 
     const button = screen.getByRole("button");

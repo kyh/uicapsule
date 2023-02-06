@@ -8,7 +8,7 @@ import {
 } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import Popover from "components/Popover";
-import UICapsule from "components/UICapsule";
+import UIC from "components/UIC";
 
 const fixtures = {
   content: "Content",
@@ -20,11 +20,11 @@ const fixtures = {
 describe("Components/Popover", () => {
   test("doesn't render children", () => {
     render(
-      <UICapsule>
+      <UIC>
         <Popover>
           <Popover.Content>{fixtures.content}</Popover.Content>
         </Popover>
-      </UICapsule>
+      </UIC>
     );
 
     expect(screen.queryByText(fixtures.content)).not.toBeInTheDocument();
@@ -47,7 +47,7 @@ describe("Components/Popover", () => {
       };
 
       return (
-        <UICapsule>
+        <UIC>
           <Popover active={active} onOpen={handleOpen} onClose={handleClose}>
             <Popover.Trigger>
               {(attributes) => (
@@ -58,7 +58,7 @@ describe("Components/Popover", () => {
             </Popover.Trigger>
             <Popover.Content>{fixtures.content}</Popover.Content>
           </Popover>
-        </UICapsule>
+        </UIC>
       );
     };
 
@@ -97,7 +97,7 @@ describe("Components/Popover", () => {
     const handleClose = jest.fn();
 
     render(
-      <UICapsule>
+      <UIC>
         <Popover defaultActive onOpen={handleOpen} onClose={handleClose}>
           <Popover.Trigger>
             {(attributes) => (
@@ -108,7 +108,7 @@ describe("Components/Popover", () => {
           </Popover.Trigger>
           <Popover.Content>{fixtures.content}</Popover.Content>
         </Popover>
-      </UICapsule>
+      </UIC>
     );
 
     const elButton = screen.getByText(fixtures.openText);
@@ -142,7 +142,7 @@ describe("Components/Popover", () => {
     const handleClose = jest.fn();
 
     render(
-      <UICapsule>
+      <UIC>
         <Popover
           defaultActive
           triggerType="hover"
@@ -158,7 +158,7 @@ describe("Components/Popover", () => {
           </Popover.Trigger>
           <Popover.Content>{fixtures.content}</Popover.Content>
         </Popover>
-      </UICapsule>
+      </UIC>
     );
 
     const elButton = screen.getByText(fixtures.openText);

@@ -11,14 +11,10 @@ export const value = () => (
       <TextArea name="Name" placeholder="Enter your name" />
     </Example.Item>
     <Example.Item title="value, uncontrolled">
-      <TextArea
-        name="Name"
-        placeholder="Enter your name"
-        defaultValue="UICapsule"
-      />
+      <TextArea name="Name" placeholder="Enter your name" defaultValue="UIC" />
     </Example.Item>
     <Example.Item title="value, controlled">
-      <TextArea name="Name" placeholder="Enter your name" value="UICapsule" />
+      <TextArea name="Name" placeholder="Enter your name" value="UIC" />
     </Example.Item>
   </Example>
 );
@@ -57,7 +53,7 @@ export const disabled = () => (
         name="Name"
         placeholder="Enter your name"
         disabled
-        value="UICapsule"
+        value="UIC"
       />
     </Example.Item>
   </Example>
