@@ -1,3 +1,3 @@
 "use client";
 export { default } from "./TextArea";
-export type { Props as TextAreaProps } from "./TextArea.types";
+export { Props as TextAreaProps } from "./TextArea.types";

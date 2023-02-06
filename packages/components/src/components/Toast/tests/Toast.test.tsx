@@ -1,7 +1,7 @@
 import React from "react";
 import { render, screen, fireEvent } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import UIC from "components/UIC";
+import UICapsule from "components/UICapsule";
 import Button from "components/Button";
 import { useToast } from "components/Toast";
 import IconZap from "icons/Zap";
@@ -46,9 +46,9 @@ describe("Components/Toast", () => {
     };
 
     render(
-      <UIC theme="uicapsule">
+      <UICapsule theme="uicapsule">
         <Component />
-      </UIC>
+      </UICapsule>
     );
 
     const elButton = screen.getByRole("button");
@@ -101,9 +101,9 @@ describe("Components/Toast", () => {
     };
 
     render(
-      <UIC theme="uicapsule">
+      <UICapsule theme="uicapsule">
         <Component />
-      </UIC>
+      </UICapsule>
     );
 
     const elButton = screen.getByRole("button");
@@ -146,9 +146,9 @@ describe("Components/Toast", () => {
     };
 
     render(
-      <UIC theme="uicapsule">
+      <UICapsule theme="uicapsule">
         <Component />
-      </UIC>
+      </UICapsule>
     );
 
     const elButton = screen.getByRole("button");

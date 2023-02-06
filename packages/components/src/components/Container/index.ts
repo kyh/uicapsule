@@ -1,3 +1,3 @@
 "use client";
 export { default } from "./Container";
-export type { Props as ContainerProps } from "./Container.types";
+export { Props as ContainerProps } from "./Container.types";

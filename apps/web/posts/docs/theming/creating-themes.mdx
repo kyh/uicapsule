@@ -89,7 +89,7 @@ We can start by picking the `productTheme` theme we've just built and pass it to
 import { UIC } from "@uicapsule/components";
 import "themes/productTheme/theme.css";
 
-const Application = ({ children }) => <UIC theme="productTheme">{children}</UIC>;
+const Application = ({ children }) => <UICapsule theme="productTheme">{children}</UICapsule>;
 ```
 
 Our product now uses a custom theme and has a new `foregroundNeutral` token value available.

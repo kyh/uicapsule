@@ -1,6 +1,7 @@
 .root {
   background: var(--uic-color-background-base);
   padding: var(--uic-unit-x3) var(--uic-unit-x4);
+  position: relative;
 }
 
 .--position {
@@ -10,6 +11,27 @@
 
   &-top {
     border-bottom: 1px solid var(--uic-color-border-neutral-faded);
+  }
+}
+
+.--elevated {
+  border: none;
+  overflow-x: clip;
+  background-color: var(--uic-color-background-elevated);
+}
+
+.--elevated:after {
+  content: "";
+  position: absolute;
+  display: block;
+  bottom: 0;
+  height: 100%;
+  left: 0;
+  right: 0;
+  box-shadow: var(--uic-shadow-base);
+
+  .--position-bottom& {
+    transform: rotateX(180deg);
   }
 }
 

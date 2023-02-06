@@ -1,7 +1,7 @@
 import React from "react";
 import { keyboardModeAttribute } from "constants/attributes";
 
-const useKeyboardModeGlobal = () => {
+const useSingletonKeyboardMode = () => {
   React.useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.metaKey || e.altKey || e.ctrlKey) return;
@@ -22,4 +22,4 @@ const useKeyboardModeGlobal = () => {
   }, []);
 };
 
-export default useKeyboardModeGlobal;
+export default useSingletonKeyboardMode;

@@ -1,6 +1,8 @@
+import React from "react";
 import * as G from "types/global";
 
 export type ColorMode = "light" | "dark";
+// export type Theme = { light: string; dark: string };
 
 export type GlobalColorModeContextData = {
   mode: ColorMode;

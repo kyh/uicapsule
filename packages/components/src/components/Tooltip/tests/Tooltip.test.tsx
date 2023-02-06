@@ -3,6 +3,7 @@ import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import Button from "components/Button";
 import Tooltip from "components/Tooltip";
+import UICapsule from "components/UICapsule";
 
 const fixtures = {
   content: "Content",
@@ -12,11 +13,13 @@ const fixtures = {
 describe("Components/Tooltip", () => {
   test("doesn't render children", () => {
     const { unmount } = render(
-      <Tooltip text={fixtures.content}>
-        {(attributes) => (
-          <Button attributes={attributes}>{fixtures.openText}</Button>
-        )}
-      </Tooltip>
+      <UICapsule>
+        <Tooltip text={fixtures.content}>
+          {(attributes) => (
+            <Button attributes={attributes}>{fixtures.openText}</Button>
+          )}
+        </Tooltip>
+      </UICapsule>
     );
 
     expect(screen.queryByText(fixtures.content)).not.toBeInTheDocument();
@@ -29,15 +32,17 @@ describe("Components/Tooltip", () => {
     const handleClose = jest.fn();
 
     render(
-      <Tooltip
-        text={fixtures.content}
-        onOpen={handleOpen}
-        onClose={handleClose}
-      >
-        {(attributes) => (
-          <Button attributes={attributes}>{fixtures.openText}</Button>
-        )}
-      </Tooltip>
+      <UICapsule>
+        <Tooltip
+          text={fixtures.content}
+          onOpen={handleOpen}
+          onClose={handleClose}
+        >
+          {(attributes) => (
+            <Button attributes={attributes}>{fixtures.openText}</Button>
+          )}
+        </Tooltip>
+      </UICapsule>
     );
 
     const button = screen.getByRole("button");

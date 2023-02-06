@@ -14,7 +14,7 @@ type BaseProps = {
   className?: G.ClassName;
   attributes?: G.Attributes<"div", Props>;
   inputAttributes?: G.Attributes<"textarea", Omit<Props, "id">>;
-} & Partial<Pick<FormControlProps, "hasError">>;
+} & Pick<FormControlProps, "hasError">;
 
 export type ControlledProps = BaseProps & {
   value: string;

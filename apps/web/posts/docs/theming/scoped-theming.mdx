@@ -9,7 +9,7 @@ We've already learned that you're picking the main application theme by passing 
 import { UIC } from "@uicapsule/components";
 import "@uicapsule/components/theme.css";
 
-const Application = ({ children }) => <UIC theme="uicapsule">{children}</UIC>;
+const Application = ({ children }) => <UICapsule theme="uicapsule">{children}</UICapsule>;
 ```
 
 To apply a different theme to a part of the application, we can use `ThemeProvider` provider utility and a pass a custom theme to it.
@@ -20,10 +20,10 @@ import "@uicapsule/components/theme.css";
 import "themes/productTheme/theme.css";
 
 const Application = () => (
-  <UIC theme="uicapsule">
+  <UICapsule theme="uicapsule">
     UIC theme is used here
     <ThemeProvider theme="productTheme">Product theme is used here</ThemeProvider>
-  </UIC>
+  </UICapsule>
 );
 ```
 
@@ -46,7 +46,7 @@ Instead of introducing custom css overrides, you can create a lightweight theme 
 ```
 
 ```code
-<UIC theme="uicapsule">
+<UICapsule theme="uicapsule">
   <View gap={3} direction="row">
     <Button color="primary">Share</Button>
 
@@ -56,7 +56,7 @@ Instead of introducing custom css overrides, you can create a lightweight theme 
       </Button>
     </ThemeProvider>
   </View>
-</UIC>
+</UICapsule>
 ```
 
 ## Scoped color mode

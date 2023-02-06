@@ -1,3 +1,3 @@
 "use client";
 export { default } from "./DropdownMenu";
-export type { Props as DropdownMenuProps } from "./DropdownMenu.types";
+export { Props as DropdownMenuProps } from "./DropdownMenu.types";

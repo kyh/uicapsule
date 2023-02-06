@@ -23,7 +23,7 @@ type BaseProps = {
   icon?: SlotProps["icon"];
   /** @deprecated Use startIcon/endIcon instead */
   iconPosition?: "start" | "end";
-} & Partial<Pick<FormControlProps, "hasError">>;
+} & Pick<FormControlProps, "hasError">;
 
 export type ControlledProps = BaseProps & {
   value: string;

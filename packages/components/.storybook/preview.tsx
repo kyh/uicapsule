@@ -43,13 +43,13 @@ const ThemeSwitch = () => {
 
 addDecorator((story) => (
   <React.StrictMode>
-    <UIC
+    <UICapsule
       theme="uicapsule"
       toastOptions={{ "bottom-start": { width: 440, expanded: true } }}
     >
       <View padding={4}>{story()}</View>
       <ThemeSwitch />
-    </UIC>
+    </UICapsule>
   </React.StrictMode>
 ));
 

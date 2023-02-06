@@ -4,7 +4,7 @@ import Avatar from "components/Avatar";
 
 const fixtures = {
   src: "https://pbs.twimg.com/profile_images/1096029593335676929/OZbE9ZXV_400x400.png",
-  alt: "UIC",
+  alt: "UICapsule",
   initials: "RS",
   className: "test-className",
   id: "test-id",

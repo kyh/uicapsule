@@ -18,7 +18,6 @@ const MenuItemBase = (props: T.Props, ref: ActionableRef) => {
     endSlot,
     children,
     selected,
-    noHover,
     disabled,
     onClick,
     href,
@@ -34,7 +33,6 @@ const MenuItemBase = (props: T.Props, ref: ActionableRef) => {
     responsiveClassNames(s, "--size", size),
     responsiveClassNames(s, "--rounded-corners", roundedCorners),
     selected && s["--selected"],
-    noHover && s["--no-hover"],
     disabled && s["--disabled"]
   );
   const gapSize = responsivePropDependency(size, (size) => {

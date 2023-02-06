@@ -23,7 +23,6 @@ export type Props = Omit<ActionableProps, "type"> &
     children: React.ReactNode;
     endSlot?: React.ReactNode;
     selected?: boolean;
-    noHover?: boolean;
     size?: G.Responsive<Size>;
     roundedCorners?: G.Responsive<boolean>;
   };

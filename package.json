@@ -15,7 +15,7 @@
     "lint": "turbo run lint",
     "clean": "turbo run clean",
     "clean-node-modules": "find . -name 'node_modules' -type d -prune -exec rm -rf '{}' +",
-    "format": "prettier --write \"**/*.{ts,tsx,md}\"",
+    "format": "prettier --write \"**/*.{ts,tsx,md,css}\"",
     "changeset": "changeset",
     "version-packages": "changeset version",
     "release": "turbo run build --filter=web^... && changeset publish"

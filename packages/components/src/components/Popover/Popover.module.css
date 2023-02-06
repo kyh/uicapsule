@@ -1,21 +1,24 @@
-.root {
+.content {
+  max-width: 360px;
+}
+
+.content--variant-elevated {
   border-radius: var(--uic-unit-radius-medium);
   background: var(--uic-color-background-elevated);
   color: var(--uic-color-foreground-neutral);
   border: 1px solid var(--uic-color-border-neutral-faded);
   box-shadow: var(--uic-shadow-elevated);
-  min-width: 220px;
-  max-width: 360px;
   overflow: hidden;
+  min-width: 220px;
 }
 
-.root.--has-width {
+.content.content--has-width {
   max-width: none;
   min-width: 0;
 }
 
 @media (--uic-viewport-s) {
-  .root {
+  .content {
     max-width: none;
   }
 }

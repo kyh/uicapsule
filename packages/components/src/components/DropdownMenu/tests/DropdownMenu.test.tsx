@@ -3,6 +3,7 @@ import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import DropdownMenu from "components/DropdownMenu";
 import Button from "components/Button";
+import UICapsule from "components/UICapsule";
 
 const fixtures = {
   content1: "Item 1",
@@ -15,15 +16,17 @@ describe("DropdownMenu", () => {
     const handleClose = jest.fn();
 
     render(
-      <DropdownMenu onOpen={handleOpen} onClose={handleClose}>
-        <DropdownMenu.Trigger>
-          {(attributes) => <Button attributes={attributes}>Open</Button>}
-        </DropdownMenu.Trigger>
-        <DropdownMenu.Content>
-          <DropdownMenu.Item>{fixtures.content1}</DropdownMenu.Item>
-          <DropdownMenu.Item>{fixtures.content2}</DropdownMenu.Item>
-        </DropdownMenu.Content>
-      </DropdownMenu>
+      <UICapsule>
+        <DropdownMenu onOpen={handleOpen} onClose={handleClose}>
+          <DropdownMenu.Trigger>
+            {(attributes) => <Button attributes={attributes}>Open</Button>}
+          </DropdownMenu.Trigger>
+          <DropdownMenu.Content>
+            <DropdownMenu.Item>{fixtures.content1}</DropdownMenu.Item>
+            <DropdownMenu.Item>{fixtures.content2}</DropdownMenu.Item>
+          </DropdownMenu.Content>
+        </DropdownMenu>
+      </UICapsule>
     );
 
     const button = screen.getByRole("button");
@@ -70,15 +73,17 @@ describe("DropdownMenu", () => {
     const handleClose = jest.fn();
 
     render(
-      <DropdownMenu onOpen={handleOpen} onClose={handleClose} active>
-        <DropdownMenu.Trigger>
-          {(attributes) => <Button attributes={attributes}>Open</Button>}
-        </DropdownMenu.Trigger>
-        <DropdownMenu.Content>
-          <DropdownMenu.Item>{fixtures.content1}</DropdownMenu.Item>
-          <DropdownMenu.Item>{fixtures.content2}</DropdownMenu.Item>
-        </DropdownMenu.Content>
-      </DropdownMenu>
+      <UICapsule>
+        <DropdownMenu onOpen={handleOpen} onClose={handleClose} active>
+          <DropdownMenu.Trigger>
+            {(attributes) => <Button attributes={attributes}>Open</Button>}
+          </DropdownMenu.Trigger>
+          <DropdownMenu.Content>
+            <DropdownMenu.Item>{fixtures.content1}</DropdownMenu.Item>
+            <DropdownMenu.Item>{fixtures.content2}</DropdownMenu.Item>
+          </DropdownMenu.Content>
+        </DropdownMenu>
+      </UICapsule>
     );
 
     const button = screen.getByRole("button");
@@ -97,15 +102,17 @@ describe("DropdownMenu", () => {
     const handleClose = jest.fn();
 
     render(
-      <DropdownMenu onOpen={handleOpen} onClose={handleClose} defaultActive>
-        <DropdownMenu.Trigger>
-          {(attributes) => <Button attributes={attributes}>Open</Button>}
-        </DropdownMenu.Trigger>
-        <DropdownMenu.Content>
-          <DropdownMenu.Item>{fixtures.content1}</DropdownMenu.Item>
-          <DropdownMenu.Item>{fixtures.content2}</DropdownMenu.Item>
-        </DropdownMenu.Content>
-      </DropdownMenu>
+      <UICapsule>
+        <DropdownMenu onOpen={handleOpen} onClose={handleClose} defaultActive>
+          <DropdownMenu.Trigger>
+            {(attributes) => <Button attributes={attributes}>Open</Button>}
+          </DropdownMenu.Trigger>
+          <DropdownMenu.Content>
+            <DropdownMenu.Item>{fixtures.content1}</DropdownMenu.Item>
+            <DropdownMenu.Item>{fixtures.content2}</DropdownMenu.Item>
+          </DropdownMenu.Content>
+        </DropdownMenu>
+      </UICapsule>
     );
 
     const button = screen.getByRole("button");

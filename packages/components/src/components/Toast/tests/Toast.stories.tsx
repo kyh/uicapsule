@@ -312,7 +312,7 @@ const Expanded = () => {
 
   return (
     <Example>
-      <Example.Item title="Custom width coming from UIC provider for bottom-start">
+      <Example.Item title="Custom width coming from UICapsule provider for bottom-start">
         <Button
           onClick={() => {
             toast.show({

@@ -1,3 +1,3 @@
 "use client";
 export { default } from "./Tooltip";
-export type { Props as TooltipProps } from "./Tooltip.types";
+export { Props as TooltipProps } from "./Tooltip.types";

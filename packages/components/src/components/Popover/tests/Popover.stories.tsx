@@ -89,6 +89,26 @@ export const width = () => (
   </Example>
 );
 
+export const variant = () => (
+  <Example>
+    <Example.Item title="variant: headless">
+      <Popover variant="headless">
+        <Popover.Trigger>
+          {(attributes) => <Button attributes={attributes}>Open</Button>}
+        </Popover.Trigger>
+        <Popover.Content>
+          <View
+            height="100px"
+            borderColor="primary"
+            borderRadius="medium"
+            backgroundColor="neutral-faded"
+          />
+        </Popover.Content>
+      </Popover>
+    </Example.Item>
+  </Example>
+);
+
 export const padding = () => (
   <Example>
     <Example.Item title="padding: 0">

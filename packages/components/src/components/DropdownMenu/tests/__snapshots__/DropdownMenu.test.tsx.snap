@@ -2,13 +2,15 @@
 
 exports[`DropdownMenu works as controlled 1`] = `
 <button
-  aria-controls="__uicapsule-3"
+  aria-controls="__uicapsule-1"
   aria-expanded="true"
   aria-haspopup="menu"
-  class=""
+  class=" root  root --color-neutral  --size-medium"
   type="button"
 >
-  <span>
+  <span
+    class="text"
+  >
     Open
   </span>
 </button>
@@ -16,13 +18,15 @@ exports[`DropdownMenu works as controlled 1`] = `
 
 exports[`DropdownMenu works as uncontrolled 1`] = `
 <button
-  aria-controls="__uicapsule-5"
+  aria-controls="__uicapsule-1"
   aria-expanded="true"
   aria-haspopup="menu"
-  class=""
+  class=" root  root --color-neutral  --size-medium"
   type="button"
 >
-  <span>
+  <span
+    class="text"
+  >
     Open
   </span>
 </button>
@@ -32,10 +36,12 @@ exports[`DropdownMenu works when opening and closing 1`] = `
 <button
   aria-expanded="false"
   aria-haspopup="menu"
-  class=""
+  class=" root  root --color-neutral  --size-medium"
   type="button"
 >
-  <span>
+  <span
+    class="text"
+  >
     Open
   </span>
 </button>
@@ -46,10 +52,12 @@ exports[`DropdownMenu works when opening and closing 2`] = `
   aria-controls="__uicapsule-1"
   aria-expanded="true"
   aria-haspopup="menu"
-  class=""
+  class=" root  root --color-neutral  --size-medium"
   type="button"
 >
-  <span>
+  <span
+    class="text"
+  >
     Open
   </span>
 </button>

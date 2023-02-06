@@ -1,7 +1,14 @@
 import React from "react";
-import { render, screen, waitFor, fireEvent } from "@testing-library/react";
+import {
+  render,
+  screen,
+  waitFor,
+  fireEvent,
+  act,
+} from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import Popover from "components/Popover";
+import UICapsule from "components/UICapsule";
 
 const fixtures = {
   content: "Content",
@@ -13,9 +20,11 @@ const fixtures = {
 describe("Components/Popover", () => {
   test("doesn't render children", () => {
     render(
-      <Popover>
-        <Popover.Content>{fixtures.content}</Popover.Content>
-      </Popover>
+      <UICapsule>
+        <Popover>
+          <Popover.Content>{fixtures.content}</Popover.Content>
+        </Popover>
+      </UICapsule>
     );
 
     expect(screen.queryByText(fixtures.content)).not.toBeInTheDocument();
@@ -38,16 +47,18 @@ describe("Components/Popover", () => {
       };
 
       return (
-        <Popover active={active} onOpen={handleOpen} onClose={handleClose}>
-          <Popover.Trigger>
-            {(attributes) => (
-              <button type="button" {...attributes}>
-                {fixtures.openText}
-              </button>
-            )}
-          </Popover.Trigger>
-          <Popover.Content>{fixtures.content}</Popover.Content>
-        </Popover>
+        <UICapsule>
+          <Popover active={active} onOpen={handleOpen} onClose={handleClose}>
+            <Popover.Trigger>
+              {(attributes) => (
+                <button type="button" {...attributes}>
+                  {fixtures.openText}
+                </button>
+              )}
+            </Popover.Trigger>
+            <Popover.Content>{fixtures.content}</Popover.Content>
+          </Popover>
+        </UICapsule>
       );
     };
 
@@ -60,16 +71,25 @@ describe("Components/Popover", () => {
     expect(screen.queryByText(fixtures.content)).toBeInTheDocument();
 
     await userEvent.keyboard("{Escape}");
-    fireEvent.transitionEnd(screen.getByText(fixtures.content));
+    act(() => {
+      fireEvent.transitionEnd(screen.getByText(fixtures.content));
+    });
 
-    expect(handleCloseMock).toBeCalledTimes(1);
     await waitFor(() => {
+      expect(handleCloseMock).toBeCalledTimes(1);
       expect(screen.queryByText(fixtures.content)).not.toBeInTheDocument();
     });
 
     await userEvent.click(elButton);
-    expect(handleOpenMock).toBeCalledTimes(1);
-    expect(screen.getByText(fixtures.content)).toBeInTheDocument();
+
+    act(() => {
+      fireEvent.transitionEnd(screen.getByText(fixtures.content));
+    });
+
+    await waitFor(() => {
+      expect(handleOpenMock).toBeCalledTimes(1);
+      expect(screen.getByText(fixtures.content)).toBeInTheDocument();
+    });
   });
 
   test("works as uncontrolled", async () => {
@@ -77,16 +97,18 @@ describe("Components/Popover", () => {
     const handleClose = jest.fn();
 
     render(
-      <Popover defaultActive onOpen={handleOpen} onClose={handleClose}>
-        <Popover.Trigger>
-          {(attributes) => (
-            <button type="button" {...attributes}>
-              {fixtures.openText}
-            </button>
-          )}
-        </Popover.Trigger>
-        <Popover.Content>{fixtures.content}</Popover.Content>
-      </Popover>
+      <UICapsule>
+        <Popover defaultActive onOpen={handleOpen} onClose={handleClose}>
+          <Popover.Trigger>
+            {(attributes) => (
+              <button type="button" {...attributes}>
+                {fixtures.openText}
+              </button>
+            )}
+          </Popover.Trigger>
+          <Popover.Content>{fixtures.content}</Popover.Content>
+        </Popover>
+      </UICapsule>
     );
 
     const elButton = screen.getByText(fixtures.openText);
@@ -99,13 +121,20 @@ describe("Components/Popover", () => {
     await fireEvent.transitionEnd(screen.getByText(fixtures.content));
 
     await waitFor(() => {
-      expect(screen.queryByText(fixtures.content)).not.toBeInTheDocument();
-      expect(handleClose).toBeCalledTimes(1);
+      act(() => {
+        expect(screen.queryByText(fixtures.content)).not.toBeInTheDocument();
+        expect(handleClose).toBeCalledTimes(1);
+      });
     });
 
     await userEvent.click(elButton);
-    expect(handleOpen).toBeCalledTimes(1);
-    expect(screen.getByText(fixtures.content)).toBeInTheDocument();
+
+    await waitFor(() => {
+      act(() => {
+        expect(handleOpen).toBeCalledTimes(1);
+        expect(screen.getByText(fixtures.content)).toBeInTheDocument();
+      });
+    });
   });
 
   test("works with hover trigger type", async () => {
@@ -113,21 +142,23 @@ describe("Components/Popover", () => {
     const handleClose = jest.fn();
 
     render(
-      <Popover
-        defaultActive
-        triggerType="hover"
-        onOpen={handleOpen}
-        onClose={handleClose}
-      >
-        <Popover.Trigger>
-          {(attributes) => (
-            <button type="button" {...attributes}>
-              {fixtures.openText}
-            </button>
-          )}
-        </Popover.Trigger>
-        <Popover.Content>{fixtures.content}</Popover.Content>
-      </Popover>
+      <UICapsule>
+        <Popover
+          defaultActive
+          triggerType="hover"
+          onOpen={handleOpen}
+          onClose={handleClose}
+        >
+          <Popover.Trigger>
+            {(attributes) => (
+              <button type="button" {...attributes}>
+                {fixtures.openText}
+              </button>
+            )}
+          </Popover.Trigger>
+          <Popover.Content>{fixtures.content}</Popover.Content>
+        </Popover>
+      </UICapsule>
     );
 
     const elButton = screen.getByText(fixtures.openText);
@@ -146,7 +177,10 @@ describe("Components/Popover", () => {
     });
 
     fireEvent.transitionEnd(screen.getByText(fixtures.content));
-    expect(screen.queryByText(fixtures.content)).not.toBeInTheDocument();
+
+    await waitFor(() => {
+      expect(screen.queryByText(fixtures.content)).not.toBeInTheDocument();
+    });
 
     await userEvent.hover(elButton);
 

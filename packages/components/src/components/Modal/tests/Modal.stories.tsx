@@ -42,7 +42,7 @@ const Demo = (props: any) => {
 export const position = () => (
   <Example>
     <Example.Item title="position: center">
-      <Demo position="bottom" />
+      <Demo position="center" />
     </Example.Item>
     <Example.Item title="position: bottom">
       <Demo position="bottom" />

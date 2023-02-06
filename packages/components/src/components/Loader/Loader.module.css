@@ -16,7 +16,8 @@
   --uic-loader-color: var(--uic-color-border-primary);
   position: relative;
   display: block;
-  animation: uicapsule-loader 2.2s infinite cubic-bezier(0.445, 0.05, 0.55, 0.95);
+  animation: uicapsule-loader 2.2s infinite
+    cubic-bezier(0.445, 0.05, 0.55, 0.95);
   width: var(--uic-loader-size);
   height: var(--uic-loader-size);
 }

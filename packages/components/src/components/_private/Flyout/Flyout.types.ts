@@ -1,7 +1,10 @@
 import React from "react";
 import type * as G from "types/global";
 import type { TrapMode } from "utilities/a11y";
-import useFlyout, { FlyoutPosition, FlyoutWidth } from "hooks/useFlyout";
+import useFlyout, {
+  FlyoutPosition,
+  FlyoutWidth,
+} from "hooks/_private/useFlyout";
 
 type WithUncontrolled = { active?: never; defaultActive?: boolean };
 type WithControlled = { active: boolean; defaultActive?: never };

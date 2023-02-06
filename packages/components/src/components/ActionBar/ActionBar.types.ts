@@ -4,6 +4,7 @@ import type * as G from "types/global";
 export type Props = {
   position?: "top" | "bottom";
   size?: "medium" | "large";
+  elevated?: boolean;
   children?: React.ReactNode;
   className?: G.ClassName;
   attributes?: G.Attributes<"div", Props>;

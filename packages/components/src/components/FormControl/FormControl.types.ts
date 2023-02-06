@@ -32,4 +32,4 @@ export type Context = {
   required?: boolean;
   group?: boolean;
   attributes: Attributes & { id: string };
-} & Partial<Pick<Props, "hasError" | "hasSuccess" | "disabled" | "size">>;
+} & Pick<Props, "hasError" | "hasSuccess" | "disabled" | "size">;

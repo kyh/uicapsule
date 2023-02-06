@@ -50,6 +50,39 @@ export const variant = () => (
   </Example>
 );
 
+export const direction = () => (
+  <Example>
+    <Example.Item title="direction: column, variant: underline">
+      <Tabs direction="column">
+        <Tabs.List>
+          <Tabs.Item value="0">Item 1</Tabs.Item>
+          <Tabs.Item value="1">Long item 2</Tabs.Item>
+          <Tabs.Item value="2">Very long item 3</Tabs.Item>
+          <Tabs.Item value="3">Very long item 3</Tabs.Item>
+        </Tabs.List>
+      </Tabs>
+    </Example.Item>
+    <Example.Item title="direction: column, variant: pills">
+      <Tabs direction="column" variant="pills">
+        <Tabs.List>
+          <Tabs.Item value="0">Item 1</Tabs.Item>
+          <Tabs.Item value="1">Long item 2</Tabs.Item>
+          <Tabs.Item value="2">Very long item 3</Tabs.Item>
+        </Tabs.List>
+      </Tabs>
+    </Example.Item>
+    <Example.Item title="direction: column, variant: pills-elevated">
+      <Tabs direction="column" variant="pills-elevated">
+        <Tabs.List>
+          <Tabs.Item value="0">Item 1</Tabs.Item>
+          <Tabs.Item value="1">Long item 2</Tabs.Item>
+          <Tabs.Item value="2">Very long item 3</Tabs.Item>
+        </Tabs.List>
+      </Tabs>
+    </Example.Item>
+  </Example>
+);
+
 export const composition = () => (
   <Example>
     <Example.Item title="switching panels">
@@ -186,6 +219,20 @@ export const edgeCases = () => (
               Item 3
             </View>
           </Tabs.Item>
+        </Tabs.List>
+      </Tabs>
+    </Example.Item>
+    <Example.Item title="Custom non-interactive list children">
+      <Tabs direction="column">
+        <Tabs.List>
+          <Tabs.Item value="0">Item 1</Tabs.Item>
+          <View
+            height={6}
+            backgroundColor="neutral-faded"
+            borderRadius="small"
+          />
+          <Tabs.Item value="1">Long item 2</Tabs.Item>
+          <Tabs.Item value="2">Very long item 3</Tabs.Item>
         </Tabs.List>
       </Tabs>
     </Example.Item>

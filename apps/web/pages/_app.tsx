@@ -1,7 +1,7 @@
 import { useEffect, useLayoutEffect, useState } from "react";
 import Head from "next/head";
 import { useRouter } from "next/router";
-import { UIC, UICProps } from "@uicapsule/components";
+import { UICapsule, UICapsuleProps } from "@uicapsule/components";
 import useStoredColorMode, { colorModeKey } from "hooks/useStoredColorMode";
 import Meta from "components/Meta";
 import Header from "components/Header";
@@ -9,7 +9,6 @@ import Header from "components/Header";
 import "@uicapsule/components/styles.css";
 
 import "themes/uicapsule/theme.css";
-import "themes/fragments/twitter/theme.css";
 
 const useIsomorphicLayoutEffect =
   typeof window !== "undefined" ? useLayoutEffect : useEffect;
@@ -22,7 +21,7 @@ const AppWrapper = ({ Component, pageProps }: any) => {
   useIsomorphicLayoutEffect(() => {
     const nextMode = localStorage.getItem(
       colorModeKey
-    ) as UICProps["defaultColorMode"];
+    ) as UICapsuleProps["defaultColorMode"];
     setColorMode(nextMode || "dark");
   }, []);
 
@@ -81,7 +80,7 @@ const AppWrapper = ({ Component, pageProps }: any) => {
         />
         <meta name="theme-color" content="#ffffff" />
 
-        <meta property="og:site_name" content="UIC" />
+        <meta property="og:site_name" content="UICapsule" />
         <meta property="og:url" content="https://uicapsule.com" />
         <meta name="twitter:url" content="https://uicapsule.com" />
         <meta property="og:type" content="website" />
@@ -104,13 +103,13 @@ const AppWrapper = ({ Component, pageProps }: any) => {
 
 const App = (props: any) => {
   return (
-    <UIC
+    <UICapsule
       theme="uicapsule"
       defaultColorMode="dark"
       toastOptions={{ "bottom-start": { width: "460px" } }}
     >
       <AppWrapper {...props} />
-    </UIC>
+    </UICapsule>
   );
 };
 

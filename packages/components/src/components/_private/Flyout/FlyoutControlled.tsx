@@ -1,14 +1,13 @@
 import React from "react";
 import { debounce } from "utilities/helpers";
 import { trapFocus } from "utilities/a11y";
-import * as keys from "constants/keys";
 import * as timeouts from "constants/timeouts";
-import useIsDismissible from "hooks/useIsDismissible";
+import useIsDismissible from "hooks/_private/useIsDismissible";
 import useElementId from "hooks/useElementId";
 import useIsomorphicLayoutEffect from "hooks/useIsomorphicLayoutEffect";
-import useFlyout from "hooks/useFlyout";
-import useKeyboardCallback from "hooks/useKeyboardCallback";
-import useOnClickOutside from "hooks/useOnClickOutside";
+import useHotkeys from "hooks/useHotkeys";
+import useFlyout from "hooks/_private/useFlyout";
+import useOnClickOutside from "hooks/_private/useOnClickOutside";
 import useRTL from "hooks/useRTL";
 import { checkTransitions } from "utilities/animation";
 import { Provider } from "./Flyout.context";
@@ -216,13 +215,7 @@ const FlyoutRoot = (props: T.ControlledProps & T.DefaultProps, ref: T.Ref) => {
     [handleOpen, handleClose]
   );
 
-  useKeyboardCallback(
-    keys.ESC,
-    () => {
-      handleClose();
-    },
-    [handleClose]
-  );
+  useHotkeys({ Escape: handleClose }, [handleClose]);
 
   useOnClickOutside([flyoutElRef, triggerElRef], () => {
     // Clicking outside changes focused element so we don't need to set it back ourselves

@@ -11,6 +11,7 @@
   background: var(--uic-color-background-base);
   border: 1px solid var(--uic-color-border-neutral);
   padding: var(--uic-text-field-padding-v) var(--uic-text-field-padding-h);
+  overflow: hidden;
 
   &:focus-within {
     box-shadow: 0 0 0 1px var(--uic-color-border-primary);
@@ -177,6 +178,6 @@
 
 @media (--uic-viewport-s) and (hover: none) {
   .input {
-    font-size: var(--uic-font-size-body-1);
+    font-size: var(--uic-font-size-body-1) !important;
   }
 }

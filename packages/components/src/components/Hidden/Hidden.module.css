@@ -8,8 +8,14 @@
   display: var(--uic-hidden-display) !important;
 }
 
-.--inline {
-  --uic-hidden-display: inline;
+.--display {
+  &-inline {
+    --uic-hidden-display: inline;
+  }
+
+  &-flex {
+    --uic-hidden-display: flex;
+  }
 }
 
 .--hidden {

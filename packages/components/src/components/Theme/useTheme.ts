@@ -1,16 +1,19 @@
-import { useContext, useMemo } from "react";
+import React from "react";
 import { ThemeContext, GlobalColorModeContext } from "./Theme.context";
 
 export const useGlobalColorMode = () => {
-  const { mode } = useContext(GlobalColorModeContext);
+  const { mode } = React.useContext(GlobalColorModeContext);
+
   return mode;
 };
 
 export const useTheme = () => {
-  const { colorMode, theme } = useContext(ThemeContext);
-  const { mode, setMode, invertMode } = useContext(GlobalColorModeContext);
+  const { colorMode, theme } = React.useContext(ThemeContext);
+  const { mode, setMode, invertMode } = React.useContext(
+    GlobalColorModeContext
+  );
 
-  return useMemo(
+  return React.useMemo(
     () => ({
       theme,
       colorMode: colorMode || mode,

@@ -2,7 +2,7 @@ import React from "react";
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import MatchMediaMock from "jest-matchmedia-mock";
-import UIC from "components/UIC";
+import UICapsule from "components/UICapsule";
 
 // Render is used in every test because otherwise matchMedia mock is failing
 let matchMedia: MatchMediaMock;
@@ -11,7 +11,7 @@ const fixtures = {
   content: "Content",
 };
 
-describe("Utilities/UIC", () => {
+describe("Utilities/UICapsule", () => {
   beforeAll(() => {
     matchMedia = new MatchMediaMock();
   });
@@ -21,34 +21,34 @@ describe("Utilities/UIC", () => {
   });
 
   it("renders children", () => {
-    render(<UIC theme="uicapsule">{fixtures.content}</UIC>);
+    render(<UICapsule theme="uicapsule">{fixtures.content}</UICapsule>);
 
     expect(screen.getByText(fixtures.content)).toBeInTheDocument();
   });
 
   it("applies RTL to html", () => {
-    render(<UIC theme="uicapsule" defaultRTL />);
+    render(<UICapsule theme="uicapsule" defaultRTL />);
 
     expect(document.body).toHaveAttribute("dir", "rtl");
   });
 
   it("applies light theme", () => {
-    render(<UIC theme="uicapsule" />);
+    render(<UICapsule theme="uicapsule" />);
 
-    const theme = document.body.getAttribute("data-rs-theme");
+    const theme = document.body.getAttribute("data-uicapsule-theme");
     expect(theme).toEqual("uicapsule-light");
   });
 
   it("applies dark theme", () => {
-    render(<UIC theme="uicapsule" defaultColorMode="dark" />);
+    render(<UICapsule theme="uicapsule" defaultColorMode="dark" />);
 
-    const theme = document.body.getAttribute("data-rs-theme");
+    const theme = document.body.getAttribute("data-uicapsule-theme");
     expect(theme).toEqual("uicapsule-dark");
   });
 
   it("applies keyboard mode", async () => {
     const attribute = "data-rs-keyboard";
-    render(<UIC theme="uicapsule" />);
+    render(<UICapsule theme="uicapsule" />);
 
     expect(document.body).not.toHaveAttribute(attribute);
     await userEvent.keyboard("{Tab}");

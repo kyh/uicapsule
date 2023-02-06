@@ -5,6 +5,7 @@ import type * as G from "types/global";
 
 export type SelectionState = {
   left: number;
+  top: number;
   scaleX: number;
   scaleY: number;
   status: "idle" | "prepared" | "animated";
@@ -36,8 +37,9 @@ export type PanelProps = {
 
 export type BaseProps = {
   children?: React.ReactNode;
+  direction?: "column" | "row";
   itemWidth?: "equal";
-  variant?: "borderless" | "pills" | "pills-elevated";
+  variant?: "bordered" | "borderless" | "pills" | "pills-elevated";
   name?: string;
   onChange?: (args: { value: string; name?: string }) => void;
 };
@@ -58,8 +60,9 @@ export type UncontrolledProps = BaseProps & {
 
 export type Props = ControlledProps | UncontrolledProps;
 
-export type Context = Partial<
-  Pick<BaseProps, "itemWidth" | "onChange" | "variant" | "name">
+export type Context = Pick<
+  BaseProps,
+  "itemWidth" | "onChange" | "variant" | "name" | "direction"
 > & {
   value?: string;
   setDefaultValue: (value: string) => void;

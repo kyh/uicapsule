@@ -24,10 +24,10 @@ const ThemeProvider = (props: T.Props) => {
 
   useIsomorphicLayoutEffect(() => {
     if (!document || !isRootProvider) return;
-    document.body.setAttribute("data-uic-theme", themeAttribute);
+    document.body.setAttribute("data-uicapsule-theme", themeAttribute);
 
     return () => {
-      document.body.removeAttribute("data-uic-theme");
+      document.body.removeAttribute("data-uicapsule-theme");
     };
   }, [usedColorMode, isRootProvider]);
 
@@ -38,7 +38,7 @@ const ThemeProvider = (props: T.Props) => {
         colorMode: usedColorMode,
       }}
     >
-      <div className={rootClassNames} data-uic-theme={themeAttribute}>
+      <div className={rootClassNames} data-uicapsule-theme={themeAttribute}>
         {children}
       </div>
     </ThemeContext.Provider>

@@ -4,12 +4,20 @@ import type * as T from "./Hidden.types";
 import s from "./Hidden.module.css";
 
 const Hidden = (props: T.Props) => {
-  const { as: TagName = "div", children, visibility, hide, inline } = props;
+  const {
+    as: TagName = "div",
+    children,
+    visibility,
+    hide,
+    displayStyle,
+    inline,
+  } = props;
   const rootClassNames = classNames(
     s.root,
     ...responsiveClassNames(s, "--hidden", hide),
     visibility && s["--visibility"],
-    inline && s["--inline"]
+    displayStyle && s[`--display-${displayStyle}`],
+    inline && s["--display-inline"]
   );
 
   if (typeof children === "function") return <>{children(rootClassNames)}</>;

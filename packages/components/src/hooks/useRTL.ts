@@ -1,8 +1,8 @@
 import React from "react";
-import { RTLContext } from "../components/UIC/hooks/useRTLGlobal";
+import { SingletonRTLContext } from "hooks/_private/useSingletonRTL";
 
 const useRTL = () => {
-  return React.useContext(RTLContext);
+  return React.useContext(SingletonRTLContext);
 };
 
 export default useRTL;

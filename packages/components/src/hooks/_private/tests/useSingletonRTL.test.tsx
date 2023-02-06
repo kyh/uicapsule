@@ -1,7 +1,7 @@
 import React from "react";
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import useRTLGlobal from "components/UIC/hooks/useRTLGlobal";
+import useRTLGlobal from "hooks/_private/useSingletonRTL";
 
 const Test = () => {
   const [rtl, setRTL] = useRTLGlobal();
@@ -13,7 +13,7 @@ const Test = () => {
   );
 };
 
-describe("Utilities/UIC/useRTLGlobal", () => {
+describe("hooks/_private/useSingletonRTL", () => {
   it("toggles dir", async () => {
     render(<Test />);
 

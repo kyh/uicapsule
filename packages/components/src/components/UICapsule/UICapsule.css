@@ -70,9 +70,9 @@ label {
   }
 }
 
-[data-uic-no-transition] *,
-[data-uic-no-transition] *:before,
-[data-uic-no-transition] *:after {
+[data-uicapsule-no-transition] *,
+[data-uicapsule-no-transition] *:before,
+[data-uicapsule-no-transition] *:after {
   transition: none !important;
 }
 

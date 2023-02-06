@@ -13,11 +13,15 @@ export const value = () => (
     </Example.Item>
 
     <Example.Item title="value, uncontrolled">
-      <TextField name="Name" defaultValue="UIC" placeholder="Enter your name" />
+      <TextField
+        name="Name"
+        defaultValue="UICapsule"
+        placeholder="Enter your name"
+      />
     </Example.Item>
 
     <Example.Item title="value, controlled">
-      <TextField name="Name" value="UIC" placeholder="Enter your name" />
+      <TextField name="Name" value="UICapsule" placeholder="Enter your name" />
     </Example.Item>
   </Example>
 );
@@ -32,7 +36,7 @@ export const disabled = () => (
         name="Name"
         placeholder="Enter your name"
         disabled
-        value="UIC"
+        value="UICapsule"
       />
     </Example.Item>
   </Example>
@@ -52,7 +56,7 @@ export const icon = () => (
       <TextField
         name="Name"
         placeholder="Enter your name"
-        value="UIC"
+        value="UICapsule"
         startIcon={IconZap}
       />
     </Example.Item>
@@ -60,7 +64,7 @@ export const icon = () => (
       <TextField
         name="Name"
         placeholder="Enter your name"
-        value="UIC"
+        value="UICapsule"
         endIcon={IconZap}
       />
     </Example.Item>
@@ -115,7 +119,7 @@ export const slots = () => (
       <TextField
         name="Name"
         placeholder="Enter your name"
-        value="UIC"
+        value="UICapsule"
         startSlot={<Placeholder h={28} />}
       />
     </Example.Item>
@@ -125,7 +129,7 @@ export const slots = () => (
       <TextField
         name="Name"
         placeholder="Enter your name"
-        value="UIC"
+        value="UICapsule"
         endSlot={<Placeholder h={28} />}
       />
     </Example.Item>
@@ -138,7 +142,7 @@ export const slots = () => (
       <TextField
         name="Name"
         placeholder="Enter your name"
-        value="UIC"
+        value="UICapsule"
         startSlot="text slot"
       />
     </Example.Item>
@@ -151,7 +155,7 @@ export const slots = () => (
       <TextField
         name="Name"
         placeholder="Enter your name"
-        value="UIC"
+        value="UICapsule"
         endSlot="text slot"
       />
     </Example.Item>

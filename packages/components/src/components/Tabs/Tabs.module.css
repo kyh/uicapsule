@@ -1,9 +1,5 @@
 .root {
   position: relative;
-  overflow: hidden;
-  /* We're using negative margins here to avoid button focus outline being cut off with overflow: hidden */
-  margin: 0 calc(var(--uic-unit-x2) * -1);
-  padding: 0 var(--uic-unit-x2);
   box-sizing: initial;
 
   /* Make sure that tab is not stretching the flex container when is in the middle of other flex children */
@@ -11,40 +7,22 @@
   max-width: 100%;
 }
 
-.inner {
-  white-space: nowrap;
-  overflow: auto;
-  /* 1 */
-  margin: 0 calc(var(--uic-unit-x2) * -1) -40px;
-  padding: 0 var(--uic-unit-x2) 40px;
-}
-
 .list {
-  display: inline-flex;
-  vertical-align: top;
-  flex-wrap: nowrap;
-  align-items: center;
   position: relative;
 }
 
 .inner:after {
   content: "";
   position: absolute;
-  height: 1px;
-  /* 1 */
-  inset-inline: var(--uic-unit-x2);
-  inset-block-end: 0;
   background-color: var(--uic-color-border-neutral-faded);
   z-index: 2;
 }
 
 .item {
+  --_uic-tab-item-gap: var(--uic-unit-x4);
+
   flex-shrink: 0;
   position: relative;
-
-  & + .item {
-    margin-inline-start: var(--uic-unit-x4);
-  }
 }
 
 .button {
@@ -58,11 +36,6 @@
   overflow: hidden;
   /* Highlighting causes background animation to get cut off */
   -webkit-tap-highlight-color: transparent;
-
-  /* 1 */
-  margin: var(--uic-unit-x1) calc(var(--uic-unit-x2) * -1);
-  padding: 0 var(--uic-unit-x2);
-  box-sizing: initial;
   border-radius: var(--uic-unit-radius-medium);
 }
 
@@ -70,9 +43,7 @@
   width: 100%;
   display: flex;
   align-items: center;
-  justify-content: center;
   box-sizing: border-box;
-  padding: var(--uic-unit-x2) 0;
   border-radius: var(--uic-unit-radius-medium);
   transition: color var(--uic-duration-fast) var(--uic-easing-standard);
 
@@ -91,28 +62,27 @@
 
 .--item-active:after {
   content: "";
-  inset-inline: 0;
 }
 
 .--item-active:after,
 .selector {
   position: absolute;
-  height: 2px;
   border-radius: calc(var(--uic-unit-radius-medium) - 1px);
   background: var(--uic-color-border-primary);
-  inset-block-end: 0;
   z-index: var(--uic-z-index-elevated);
 }
 
 .selector {
-  --_translate: 0;
+  --_translateX: 0;
+  --_translateY: 0;
   --_scaleX: 0;
   --_scaleY: 0;
-  left: 0;
   transform-origin: 0 0;
-  width: calc(var(--_scaleX) * 1px);
-  /* Don't need rtl support here because calculation is happening based on the element position on screen */
-  transform: translateX(calc(var(--_translate) * 1px)) translateZ(0);
+  transform: translate(
+      calc(var(--_translateX) * 1px),
+      calc(var(--_translateY) * 1px)
+    )
+    translateZ(0);
 }
 
 .--selector-hidden {
@@ -157,6 +127,116 @@
   display: none;
 }
 
+.--direction-row {
+  /* We're using negative margins here to avoid button focus outline being cut off with overflow: hidden */
+  margin: 0 calc(var(--uic-unit-x2) * -1);
+  padding: 0 var(--uic-unit-x2);
+  overflow: hidden;
+
+  & .inner {
+    white-space: nowrap;
+    overflow: auto;
+    /* 1 */
+    margin: 0 calc(var(--uic-unit-x2) * -1) -40px;
+    padding: 0 var(--uic-unit-x2) 40px;
+  }
+
+  & .inner:after {
+    height: 1px;
+    /* 1 */
+    inset-inline: var(--uic-unit-x2);
+    inset-block-end: 0;
+  }
+
+  & .list {
+    display: inline-flex;
+    vertical-align: top;
+    flex-wrap: nowrap;
+    align-items: center;
+  }
+
+  & .item + .item {
+    margin-inline-start: var(--_uic-tab-item-gap);
+  }
+
+  & .--item-active:after {
+    inset-inline: 0;
+  }
+
+  & .--item-active:after,
+  & .selector {
+    height: 2px;
+    inset-block-end: 0;
+  }
+
+  & .selector {
+    left: 0;
+    width: calc(var(--_scaleX) * 1px);
+  }
+
+  & .button {
+    /* 1 */
+    margin: var(--uic-unit-x1) calc(var(--uic-unit-x2) * -1);
+    padding: 0 var(--uic-unit-x2);
+    box-sizing: initial;
+  }
+
+  & .buttonContent {
+    justify-content: center;
+    padding: var(--uic-unit-x2) 0;
+  }
+}
+
+.--direction-column {
+  & .inner:after {
+    inset-inline-end: 0;
+    top: 0;
+    bottom: 0;
+    height: 100%;
+    width: 1px;
+  }
+
+  & .list {
+    display: flex;
+    flex-direction: column;
+  }
+
+  & .item {
+    --_uic-tab-item-gap: var(--uic-unit-x1);
+    padding-inline-end: var(--uic-unit-x1);
+  }
+
+  & .item + .item {
+    margin-top: var(--_uic-tab-item-gap);
+  }
+
+  & .--item-active:after {
+    inset-block: 0;
+  }
+
+  & .--item-active:after,
+  & .selector {
+    width: 2px;
+    height: 100%;
+    inset-inline-end: 0;
+  }
+
+  & .selector {
+    top: 0;
+    height: calc(var(--_scaleY) * 1px);
+  }
+
+  & .button {
+    padding: var(--uic-unit-x2);
+    margin-inline-start: calc(var(--uic-unit-x2) * -1);
+    width: calc(100% + var(--uic-unit-x1));
+  }
+
+  & .buttonContent {
+    justify-content: flex-start;
+  }
+}
+
 .--variant-borderless .inner:after,
 .--variant-pills .inner:after,
 .--variant-pills-elevated .inner:after {
@@ -179,9 +259,9 @@
   }
 }
 
-.--variant-pills .item + .item,
-.--variant-pills-elevated .item + .item {
-  margin-inline-start: var(--uic-unit-x2);
+.--variant-pills .item,
+.--variant-pills-elevated .item {
+  --_uic-tab-item-gap: var(--uic-unit-x1);
 }
 
 .--variant-pills .--item-active:after,
@@ -191,15 +271,16 @@
   background-color: var(--uic-color-background-neutral);
   opacity: 0.6;
   z-index: 0;
-  height: 100%;
-}
 
-.--variant-pills .selector,
-.--variant-pills-elevated .selector {
-  height: calc(var(--_scaleY) * 1px);
-  transform: translateX(calc(var(--_translate) * 1px)) translateZ(0)
-    translateY(-50%);
-  top: 50%;
+  .--direction-column& {
+    inset-inline-end: auto;
+    width: 100%;
+  }
+
+  .--direction-row& {
+    inset-block-end: auto;
+    height: 100%;
+  }
 }
 
 .--variant-pills-elevated .list {

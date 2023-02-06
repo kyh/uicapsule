@@ -11,6 +11,6 @@ export type Props = {
   defaultRTL?: boolean;
   defaultColorMode?: GlobalColorModeProps["defaultMode"];
   className?: G.ClassName;
-  theme: NonNullable<ThemeProviderProps["theme"]>;
+  theme?: NonNullable<ThemeProviderProps["theme"]>;
   toastOptions?: ToastProviderProps["options"];
 };

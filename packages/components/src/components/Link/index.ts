@@ -1,3 +1,3 @@
 "use client";
 export { default } from "./Link";
-export type { Props as LinkProps } from "./Link.types";
+export { Props as LinkProps } from "./Link.types";

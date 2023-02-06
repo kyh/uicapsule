@@ -4,8 +4,9 @@ import type {
   FlyoutTriggerProps,
 } from "components/_private/Flyout";
 
-export type Props = Partial<
-  Pick<FlyoutProps, "id" | "position" | "onOpen" | "onClose" | "active">
+export type Props = Pick<
+  FlyoutProps,
+  "id" | "position" | "onOpen" | "onClose" | "active"
 > &
   Pick<FlyoutTriggerProps, "children"> & {
     text: React.ReactNode;

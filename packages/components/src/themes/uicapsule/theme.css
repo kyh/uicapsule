@@ -1,5 +1,5 @@
-[data-uic-theme="uicapsule-light"],
-[data-uic-theme="uicapsule-dark"] {
+[data-uicapsule-theme="uicapsule-light"],
+[data-uicapsule-theme="uicapsule-dark"] {
   --uic-font-family-display: BlinkMacSystemFont, -apple-system, Segoe UI, Roboto,
     Helvetica, Arial, sans-serif;
   --uic-font-family-body: BlinkMacSystemFont, -apple-system, Segoe UI, Roboto,
@@ -328,7 +328,7 @@
     0px 5px 10px rgba(0, 0, 0, 0.05);
 }
 
-[data-uic-theme="uicapsule-light"] {
+[data-uicapsule-theme="uicapsule-light"] {
   --uic-color-foreground-neutral: #14171f;
   --uic-color-foreground-neutral-faded: #3c455d;
   --uic-color-foreground-disabled: #c7cddb;
@@ -372,7 +372,7 @@
   --uic-color-rgb-background-elevated: 255, 255, 255;
 }
 
-[data-uic-theme="uicapsule-dark"] {
+[data-uicapsule-theme="uicapsule-dark"] {
   --uic-color-foreground-neutral: #eff0f1;
   --uic-color-foreground-neutral-faded: #c1c7d7;
   --uic-color-foreground-disabled: #404a63;

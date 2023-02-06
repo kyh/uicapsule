@@ -2,9 +2,12 @@ import React from "react";
 import useIsomorphicLayoutEffect from "hooks/useIsomorphicLayoutEffect";
 
 type Context = [boolean, (state: boolean) => void];
-export const RTLContext = React.createContext<Context>([false, () => {}]);
+export const SingletonRTLContext = React.createContext<Context>([
+  false,
+  () => {},
+]);
 
-const useRTLGlobal = (defaultRTL?: boolean) => {
+const useSingletonRTL = (defaultRTL?: boolean) => {
   const state = React.useState(defaultRTL || false);
   const [isRTL, setRTL] = state;
 
@@ -35,4 +38,4 @@ const useRTLGlobal = (defaultRTL?: boolean) => {
   return state;
 };
 
-export default useRTLGlobal;
+export default useSingletonRTL;

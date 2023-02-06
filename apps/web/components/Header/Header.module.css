@@ -33,7 +33,6 @@
 .themeToggle {
   position: absolute;
   margin: auto;
-  top: 14px;
   left: 50%;
   transform: translateX(-50%);
 }
@@ -41,9 +40,5 @@
 @media (--uic-viewport-m) {
   .root {
     padding: var(--uic-unit-x3) 0;
-  }
-
-  .themeToggle {
-    top: 18px;
   }
 }

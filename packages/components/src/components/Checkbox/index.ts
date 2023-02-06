@@ -1,3 +1,3 @@
 "use client";
 export { default } from "./Checkbox";
-export type { Props as CheckboxProps } from "./Checkbox.types";
+export { Props as CheckboxProps } from "./Checkbox.types";

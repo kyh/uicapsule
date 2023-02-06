@@ -1,1 +1,1 @@
-export const keyboardModeAttribute = "data-uic-keyboard";
+export const keyboardModeAttribute = "data-rs-keyboard";

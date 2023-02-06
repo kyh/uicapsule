@@ -1,5 +1,6 @@
 .root {
   gap: var(--uic-view-gap);
+  position: relative;
 }
 
 .item {

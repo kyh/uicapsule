@@ -1,7 +1,6 @@
 import React from "react";
 import { Example } from "utilities/storybook";
 import Switch from "components/Switch";
-import View from "components/View";
 
 export default { title: "Components/Switch" };
 

@@ -2,6 +2,7 @@ import React from "react";
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import Backdrop from "components/Backdrop";
+import UICapsule from "components/UICapsule";
 
 const fixtures = {
   content: "Content",
@@ -10,7 +11,11 @@ const fixtures = {
 
 describe("Utilities/Backdrop", () => {
   test("renders children", () => {
-    render(<Backdrop active>{fixtures.content}</Backdrop>);
+    render(
+      <UICapsule>
+        <Backdrop active>{fixtures.content}</Backdrop>
+      </UICapsule>
+    );
 
     const el = screen.getByText(fixtures.content);
     expect(el).toBeInTheDocument();
@@ -18,9 +23,11 @@ describe("Utilities/Backdrop", () => {
 
   test("renders children as a function", () => {
     render(
-      <Backdrop active>
-        {({ active }) => (active ? fixtures.content : "")}
-      </Backdrop>
+      <UICapsule>
+        <Backdrop active>
+          {({ active }) => (active ? fixtures.content : "")}
+        </Backdrop>
+      </UICapsule>
     );
 
     const el = screen.getByText(fixtures.content);
@@ -42,7 +49,7 @@ describe("Utilities/Backdrop", () => {
       };
 
       return (
-        <>
+        <UICapsule>
           <button
             type="button"
             data-testid={fixtures.testId}
@@ -53,7 +60,7 @@ describe("Utilities/Backdrop", () => {
           <Backdrop active={active} onClose={handleClose}>
             {fixtures.content}
           </Backdrop>
-        </>
+        </UICapsule>
       );
     };
 

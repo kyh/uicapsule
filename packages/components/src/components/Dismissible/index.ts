@@ -1,6 +1,6 @@
 "use client";
 export { default } from "./Dismissible";
-export type {
+export {
   Props as DismissibleProps,
   CloseProps as DismissibleCloseProps,
 } from "./Dismissible.types";

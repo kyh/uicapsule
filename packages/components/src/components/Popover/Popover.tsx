@@ -15,18 +15,20 @@ const Popover = (props: T.Props) => {
     defaultActive,
     children,
     width,
-    padding = 4,
+    variant = "elevated",
     triggerType = "click",
     position = "bottom",
   } = props;
+  const padding = props.padding ?? (variant === "headless" ? 0 : 4);
   const flyoutRef = React.useRef<FlyoutRefProps | null>(null);
   const trapFocusMode =
     props.trapFocusMode ||
     (triggerType === "hover" ? "content-menu" : undefined);
   const paddingStyles = getPaddingStyles(padding);
   const contentClassName = classNames(
-    s.root,
-    !!width && s["--has-width"],
+    s.content,
+    !!width && s["content--has-width"],
+    variant && s[`content--variant-${variant}`],
     paddingStyles?.classNames
   );
 

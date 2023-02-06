@@ -1,6 +1,5 @@
 import React from "react";
 import { Example } from "utilities/storybook";
-import View from "components/View";
 import Hidden from "components/Hidden";
 
 export default { title: "Utilities/Hidden" };
@@ -33,10 +32,15 @@ export const inline = () => (
     <Example.Item title="inline, shown on s">
       <div>
         Hello&nbsp;
-        <Hidden hide={{ s: false, m: true }} inline>
+        <Hidden hide={{ s: false, m: true }} displayStyle="inline">
           world
         </Hidden>
       </div>
+    </Example.Item>
+    <Example.Item title="flex, shown on s">
+      <Hidden hide={{ s: false, m: true }} displayStyle="flex">
+        world
+      </Hidden>
     </Example.Item>
   </Example>
 );

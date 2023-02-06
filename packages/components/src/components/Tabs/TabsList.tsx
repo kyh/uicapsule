@@ -1,6 +1,5 @@
 import React from "react";
 import { classNames, throttle } from "utilities/helpers";
-import { RIGHT, LEFT, HOME, END } from "constants/keys";
 import useRTL from "hooks/useRTL";
 import {
   focusNextElement,
@@ -9,6 +8,7 @@ import {
   focusLastElement,
 } from "utilities/a11y";
 import useIsomorphicLayoutEffect from "hooks/useIsomorphicLayoutEffect";
+import useHotkeys from "hooks/useHotkeys";
 import Button from "components/Button";
 import IconChevronRight from "icons/ChevronRight";
 import IconChevronLeft from "icons/ChevronLeft";
@@ -19,7 +19,8 @@ import s from "./Tabs.module.css";
 
 const TabsList = (props: T.ListProps) => {
   const { children, className, attributes } = props;
-  const { value, setDefaultValue, itemWidth, variant, name } = useTabs();
+  const { value, setDefaultValue, itemWidth, variant, name, direction } =
+    useTabs();
   const [rtl] = useRTL();
   const elScrollableRef = React.useRef<HTMLDivElement | null>(null);
   const elActiveRef = React.useRef<HTMLElement | null>(null);
@@ -28,6 +29,7 @@ const TabsList = (props: T.ListProps) => {
     scaleX: 0,
     scaleY: 0,
     left: 0,
+    top: 0,
     status: "idle",
   });
   const [cutOffSide, setCutOffSide] = React.useState<
@@ -35,6 +37,7 @@ const TabsList = (props: T.ListProps) => {
   >(null);
   const rootClassNames = classNames(
     s.root,
+    direction && s[`--direction-${direction}`],
     itemWidth && s[`--item-width-${itemWidth}`],
     variant && s[`--variant-${variant}`],
     cutOffSide && s[`--cut-off-${cutOffSide}`],
@@ -71,31 +74,42 @@ const TabsList = (props: T.ListProps) => {
     }));
   };
 
-  const handleKeyDown = (e: React.KeyboardEvent) => {
-    const isPrev = e.key === RIGHT;
-    const isNext = e.key === LEFT;
-    const isHome = e.key === HOME;
-    const isEnd = e.key === END;
-
-    if ((!isPrev && !isNext && !isHome && !isEnd) || name) return;
-    e.preventDefault();
-
-    if (isPrev) focusNextElement(elScrollableRef.current!);
-    if (isNext) focusPreviousElement(elScrollableRef.current!);
-    if (isHome) focusFirstElement(elScrollableRef.current!);
-    if (isEnd) focusLastElement(elScrollableRef.current!);
-  };
-
   const getElementSelectionStyle = React.useCallback(
-    (el: HTMLElement): Pick<T.SelectionState, "scaleX" | "scaleY" | "left"> => {
+    (
+      el: HTMLElement
+    ): Pick<T.SelectionState, "scaleX" | "scaleY" | "left" | "top"> => {
       return {
         scaleX: el.clientWidth,
         scaleY: el.clientHeight,
+        top: el.offsetTop,
         left: el.offsetLeft,
       };
     },
     []
   );
+
+  const { ref: hotkeysRef } = useHotkeys<HTMLDivElement>({
+    "ArrowLeft, ArrowUp": (e) => {
+      if (name) return;
+      e.preventDefault();
+      focusPreviousElement(elScrollableRef.current!);
+    },
+    "ArrowRight, ArrowDown": (e) => {
+      if (name) return;
+      e.preventDefault();
+      focusNextElement(elScrollableRef.current!);
+    },
+    Home: (e) => {
+      if (name) return;
+      e.preventDefault();
+      focusFirstElement(elScrollableRef.current!);
+    },
+    End: (e) => {
+      if (name) return;
+      e.preventDefault();
+      focusLastElement(elScrollableRef.current!);
+    },
+  });
 
   useIsomorphicLayoutEffect(() => {
     if (value) return;
@@ -121,7 +135,7 @@ const TabsList = (props: T.ListProps) => {
 
   useIsomorphicLayoutEffect(() => {
     const elScrollable = elScrollableRef.current;
-    if (!elScrollable) return;
+    if (!elScrollable || direction === "column") return;
 
     const updateArrowNav = () => {
       const isScrollable = elScrollable.clientWidth < elScrollable.scrollWidth;
@@ -156,9 +170,10 @@ const TabsList = (props: T.ListProps) => {
     <div {...attributes} className={rootClassNames}>
       <div className={s.inner} ref={elScrollableRef}>
         {/* eslint-disable-next-line jsx-a11y/interactive-supports-focus */}
-        <div className={s.list} role="tablist" onKeyDown={handleKeyDown}>
+        <div className={s.list} role="tablist" ref={hotkeysRef}>
           {React.Children.map(children, (child: any) => {
-            if (!child || child.type !== TabsItem) return null;
+            if (!child || child.type !== TabsItem)
+              return <div className={s.item}>{child}</div>;
             const childValue = child.props.value;
             const isActive = childValue === value;
 
@@ -185,7 +200,8 @@ const TabsList = (props: T.ListProps) => {
             className={selectorClassNames}
             style={
               {
-                "--_translate": selection.left,
+                "--_translateX": selection.left,
+                "--_translateY": selection.top,
                 "--_scaleX": selection.scaleX,
                 "--_scaleY": selection.scaleY,
               } as React.CSSProperties

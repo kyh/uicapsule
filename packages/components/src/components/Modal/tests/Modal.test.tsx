@@ -2,6 +2,7 @@ import React from "react";
 import { render, screen, waitFor, fireEvent } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import Modal from "components/Modal";
+import UICapsule from "components/UICapsule";
 
 const fixtures = {
   content: "Content",
@@ -13,18 +14,24 @@ const fixtures = {
 
 describe("Components/Modal", () => {
   test("doesn't render children", () => {
-    render(<Modal>{fixtures.content}</Modal>);
+    render(
+      <UICapsule>
+        <Modal>{fixtures.content}</Modal>
+      </UICapsule>
+    );
 
     expect(screen.queryByText(fixtures.content)).not.toBeInTheDocument();
   });
 
   test("renders correctly when active", () => {
     render(
-      <Modal active>
-        <Modal.Title>{fixtures.title}</Modal.Title>
-        <Modal.Subtitle>{fixtures.subtitle}</Modal.Subtitle>
-        {fixtures.content}
-      </Modal>
+      <UICapsule>
+        <Modal active>
+          <Modal.Title>{fixtures.title}</Modal.Title>
+          <Modal.Subtitle>{fixtures.subtitle}</Modal.Subtitle>
+          {fixtures.content}
+        </Modal>
+      </UICapsule>
     );
 
     const elModal = screen.getByRole("dialog");
@@ -46,13 +53,15 @@ describe("Components/Modal", () => {
 
   test("works with className and attributes", () => {
     render(
-      <Modal
-        active
-        className={fixtures.className}
-        attributes={{ id: fixtures.id }}
-      >
-        {fixtures.content}
-      </Modal>
+      <UICapsule>
+        <Modal
+          active
+          className={fixtures.className}
+          attributes={{ id: fixtures.id }}
+        >
+          {fixtures.content}
+        </Modal>
+      </UICapsule>
     );
 
     const elModal = screen.getByRole("dialog");
@@ -77,14 +86,14 @@ describe("Components/Modal", () => {
       };
 
       return (
-        <>
+        <UICapsule>
           <button type="button" onClick={handleOpen}>
             Open
           </button>
           <Modal active={active} onClose={handleClose}>
             {fixtures.content}
           </Modal>
-        </>
+        </UICapsule>
       );
     };
     render(<Component />);

@@ -12,6 +12,7 @@ const TabsControlled = (props: T.PrivateControlledProps) => {
     itemWidth,
     variant,
     name,
+    direction = "row",
   } = props;
   const id = useElementId();
 
@@ -22,7 +23,16 @@ const TabsControlled = (props: T.PrivateControlledProps) => {
 
   return (
     <TabsProvider
-      value={{ value, name, itemWidth, variant, onChange, id, setDefaultValue }}
+      value={{
+        value,
+        name,
+        direction,
+        itemWidth,
+        variant,
+        onChange,
+        id,
+        setDefaultValue,
+      }}
     >
       {children}
     </TabsProvider>

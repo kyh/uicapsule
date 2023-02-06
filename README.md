@@ -193,3 +193,14 @@ To publish packages to a private npm organization scope, **remove** the followin
 -  "access": "public"
 - },
 ```
+
+### Updating steps
+
+- replace `packages/components`
+- run `npm run format`
+- replace `--rs` with `--uic`
+- replace `_rs` with `_uic`
+- replace `data-rs-theme` with `data-uicapsule-theme`
+- replace `reshaped` with `uicapsule`
+- replace `Reshaped` with `UICapsule`
+- replace `uicapsule.so` with `uicapsule.com`

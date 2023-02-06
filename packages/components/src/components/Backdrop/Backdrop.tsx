@@ -4,10 +4,9 @@ import { classNames } from "utilities/helpers";
 import { trapFocus } from "utilities/a11y";
 import useToggle from "hooks/useToggle";
 import useIsomorphicLayoutEffect from "hooks/useIsomorphicLayoutEffect";
-import useKeyboardCallback from "hooks/useKeyboardCallback";
+import useHotkeys from "hooks/useHotkeys";
 import useScrollLock from "hooks/useScrollLock";
-import useIsDismissible from "hooks/useIsDismissible";
-import { ESC } from "constants/keys";
+import useIsDismissible from "hooks/_private/useIsDismissible";
 import Portal from "components/_private/Portal";
 import type * as T from "./Backdrop.types";
 import s from "./Backdrop.module.css";
@@ -85,7 +84,7 @@ const Backdrop = (props: T.Props) => {
     remove();
   };
 
-  useKeyboardCallback(ESC, close, [close]);
+  useHotkeys({ Escape: close }, [close]);
 
   React.useEffect(() => {
     if (active && !rendered) render();

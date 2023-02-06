@@ -1,4 +1,4 @@
-import * as keys from "constants/keys";
+import { TAB, UP, DOWN } from "constants/keys";
 import { keyboardModeAttribute } from "constants/attributes";
 import Chain from "utilities/Chain";
 
@@ -167,11 +167,11 @@ export const trapFocus = (() => {
 
     const handleKeyDown = (event: KeyboardEvent) => {
       const key = event.key;
-      const isTab = key === keys.TAB;
+      const isTab = key === TAB;
       const isNextTab = isTab && !event.shiftKey;
       const isBackTab = isTab && event.shiftKey;
-      const isUp = isArrowsMode && key === keys.UP;
-      const isDown = isArrowsMode && key === keys.DOWN;
+      const isUp = isArrowsMode && key === UP;
+      const isDown = isArrowsMode && key === DOWN;
       const isPrev = (isBackTab && isTabMode) || isUp;
       const isNext = (isNextTab && isTabMode) || isDown;
       const focusData = getFocusData(
