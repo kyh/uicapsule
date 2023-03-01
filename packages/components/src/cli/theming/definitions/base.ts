@@ -2,8 +2,8 @@ import { BaseThemeDefinition } from "../tokens/types";
 
 const base: BaseThemeDefinition = {
   viewport: {
-    s: { maxPx: 660 },
-    m: { minPx: 661 },
+    s: { maxPx: 659 },
+    m: { minPx: 660 },
     l: { minPx: 900 },
     xl: { minPx: 1280 },
   },

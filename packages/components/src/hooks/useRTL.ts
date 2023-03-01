@@ -1,8 +1,10 @@
+"use client";
+
 import React from "react";
-import { SingletonRTLContext } from "hooks/_private/useSingletonRTL";
+import { SingletonEnvironmentContext } from "hooks/_private/useSingletonEnvironment";
 
 const useRTL = () => {
-  return React.useContext(SingletonRTLContext);
+  return React.useContext(SingletonEnvironmentContext).rtl;
 };
 
 export default useRTL;

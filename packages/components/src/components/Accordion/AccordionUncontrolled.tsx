@@ -1,3 +1,5 @@
+"use client";
+
 import React from "react";
 import AccordionControlled from "./AccordionControlled";
 import * as T from "./Accordion.types";

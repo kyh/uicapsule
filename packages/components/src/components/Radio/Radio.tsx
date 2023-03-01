@@ -1,3 +1,5 @@
+"use client";
+
 import React from "react";
 import { classNames } from "utilities/helpers";
 import HiddenInput from "components/_private/HiddenInput";

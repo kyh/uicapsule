@@ -10,10 +10,15 @@ export type GlobalColorModeContextData = {
   invertMode: () => void;
 };
 
-export type ThemeContextData = { colorMode: ColorMode; theme: string };
+export type ThemeContextData = {
+  colorMode: ColorMode;
+  theme: string;
+  setTheme: (theme: string) => void;
+};
 
 export type Props = {
   theme?: string;
+  defaultTheme?: string;
   colorMode?: ColorMode | "inverted";
   className?: G.ClassName;
   children?: React.ReactNode;

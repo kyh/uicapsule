@@ -1,3 +1,5 @@
+"use client";
+
 import React from "react";
 import View, { ViewProps } from "components/View";
 import Button, { ButtonProps } from "components/Button";

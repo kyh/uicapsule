@@ -1,3 +1,5 @@
+"use client";
+
 import React from "react";
 import Popover from "components/Popover";
 import MenuItem, { MenuItemProps } from "components/MenuItem";

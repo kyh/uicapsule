@@ -1,10 +1,6 @@
-import React from "react";
+"use client";
 
-// const adjustScroll = () => {
-//   setImmediate(() => {
-//     this.overlayEl.scrollTop = 0;
-//   });
-// }
+import React from "react";
 
 const getScrollbarWidth = (() => {
   let scrollbarWidth: number;

@@ -196,8 +196,7 @@ To publish packages to a private npm organization scope, **remove** the followin
 
 ### Updating steps
 
-- replace `packages/components`
-  - skip index.ts
+- replace `packages/components/src`
 - run `npm run format`
 - replace `--rs` with `--uic`
 - replace `_rs` with `_uic`

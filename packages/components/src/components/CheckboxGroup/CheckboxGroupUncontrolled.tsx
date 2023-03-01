@@ -1,3 +1,5 @@
+"use client";
+
 import React from "react";
 import CheckboxGroupControlled from "./CheckboxGroupControlled";
 import type * as T from "./CheckboxGroup.types";

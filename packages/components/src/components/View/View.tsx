@@ -18,6 +18,7 @@ import getMaxWidthStyles from "styles/maxWidth";
 import getMaxHeightStyles from "styles/maxHeight";
 import getPositionStyles from "styles/position";
 import getInsetStyles from "styles/inset";
+import getAspectRatioStyles from "styles/aspectRatio";
 
 const ViewItem = <As extends keyof JSX.IntrinsicElements = "div">(
   props: T.ItemProps<As>
@@ -66,6 +67,7 @@ const View = <As extends keyof JSX.IntrinsicElements = "div">(
     gap,
     height,
     width,
+    aspectRatio,
     maxHeight,
     maxWidth,
     padding,
@@ -85,7 +87,7 @@ const View = <As extends keyof JSX.IntrinsicElements = "div">(
     shadow,
     textAlign,
     overflow,
-    position,
+    position = "relative",
     inset,
     insetTop,
     insetBottom,
@@ -117,6 +119,7 @@ const View = <As extends keyof JSX.IntrinsicElements = "div">(
   const insetBottomStyles = getInsetStyles(insetBottom, "bottom");
   const insetStartStyles = getInsetStyles(insetStart, "start");
   const insetEndStyles = getInsetStyles(insetEnd, "end");
+  const aspectRatioStyles = getAspectRatioStyles(aspectRatio);
 
   let renderedItemIndex = 0;
   // If wrap is not defined, it can be set based on item grow and split usage
@@ -220,6 +223,7 @@ const View = <As extends keyof JSX.IntrinsicElements = "div">(
     bleedStyles?.classNames,
     widthStyles?.classNames,
     heightStyles?.classNames,
+    aspectRatioStyles?.classNames,
     maxWidthStyles?.classNames,
     maxHeightStyles?.classNames,
     insetStyles?.classNames,
@@ -272,6 +276,7 @@ const View = <As extends keyof JSX.IntrinsicElements = "div">(
     ...bleedStyles?.variables,
     ...widthStyles?.variables,
     ...heightStyles?.variables,
+    ...aspectRatioStyles?.variables,
     ...maxWidthStyles?.variables,
     ...maxHeightStyles?.variables,
     ...insetStyles?.variables,

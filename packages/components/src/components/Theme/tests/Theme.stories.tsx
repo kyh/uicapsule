@@ -8,6 +8,30 @@ import { Example } from "utilities/storybook";
 
 export default { title: "Utilities/Theme" };
 
+const UncontrolledDemo = () => {
+  const { setTheme, theme } = useTheme();
+  console.log(theme);
+
+  return (
+    <Button
+      color="primary"
+      onClick={() => setTheme(theme === "uicapsule" ? "fake" : "uicapsule")}
+    >
+      Toggle theme
+    </Button>
+  );
+};
+
+export const uncontrolled = () => {
+  return (
+    <Example>
+      <Example.Item title="switches theme using useTheme hooks">
+        <UncontrolledDemo />
+      </Example.Item>
+    </Example>
+  );
+};
+
 const Demo = () => {
   const { invertColorMode } = useTheme();
 
@@ -25,7 +49,6 @@ const Demo = () => {
     </View>
   );
 };
-
 export const edgeCases = () => (
   <Example>
     <Example.Item title="should have no transitions while switching color mode">

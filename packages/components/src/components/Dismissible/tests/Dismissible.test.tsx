@@ -13,7 +13,7 @@ const fixtures = {
 describe("Utilities/Dismissible", () => {
   test("renders children and aria-label", () => {
     render(
-      <Dismissible closeAriaLabel={fixtures.closeLabel}>
+      <Dismissible closeAriaLabel={fixtures.closeLabel} onClose={() => {}}>
         {fixtures.content}
       </Dismissible>
     );

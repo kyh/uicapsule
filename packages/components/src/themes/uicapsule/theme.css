@@ -370,6 +370,7 @@
   --uic-color-rgb-background-page-faded: 248, 248, 248;
   --uic-color-rgb-background-base: 255, 255, 255;
   --uic-color-rgb-background-elevated: 255, 255, 255;
+  color-scheme: light;
 }
 
 [data-uic-theme="uicapsule-dark"] {
@@ -414,4 +415,5 @@
   --uic-color-rgb-background-page-faded: 17, 23, 31;
   --uic-color-rgb-background-base: 24, 28, 37;
   --uic-color-rgb-background-elevated: 28, 33, 43;
+  color-scheme: dark;
 }

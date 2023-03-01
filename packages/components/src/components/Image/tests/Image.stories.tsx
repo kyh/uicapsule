@@ -3,7 +3,7 @@ import { Example } from "utilities/storybook";
 import View from "components/View";
 import Icon from "components/Icon";
 import IconZap from "icons/Zap";
-import AspectRatio from "components/AspectRatio";
+import AspectRatio from "components/_deprecated/AspectRatio";
 import Image from "../Image";
 
 export default { title: "Utilities/Image" };

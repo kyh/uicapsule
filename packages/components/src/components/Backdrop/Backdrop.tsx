@@ -1,3 +1,5 @@
+"use client";
+
 import React from "react";
 import { onNextFrame } from "utilities/animation";
 import { classNames } from "utilities/helpers";

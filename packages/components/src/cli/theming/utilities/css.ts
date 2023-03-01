@@ -61,6 +61,7 @@ export const variablesTemplate = (
     code += `
 			${selector} {
 					${tokens.map((token) => createVariable(token)).join("\n")}
+					${type === "dark" || type === "light" ? `color-scheme: ${type};` : ""}
 			}
 		`;
   });

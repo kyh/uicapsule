@@ -11,6 +11,7 @@ export type Props = {
   attributes?: G.Attributes<"nav", Props>;
 };
 
-export type ItemProps = Partial<
-  Pick<LinkProps, "icon" | "href" | "onClick" | "disabled" | "children">
+export type ItemProps = Pick<
+  LinkProps,
+  "icon" | "href" | "onClick" | "disabled" | "children"
 >;

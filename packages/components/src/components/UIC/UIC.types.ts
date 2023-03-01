@@ -10,7 +10,9 @@ export type Props = {
   children?: React.ReactNode;
   defaultRTL?: boolean;
   defaultColorMode?: GlobalColorModeProps["defaultMode"];
+  defaultViewport?: G.Viewport;
   className?: G.ClassName;
   theme?: NonNullable<ThemeProviderProps["theme"]>;
+  defaultTheme?: NonNullable<ThemeProviderProps["defaultTheme"]>;
   toastOptions?: ToastProviderProps["options"];
 };

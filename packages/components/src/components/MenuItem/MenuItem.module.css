@@ -88,7 +88,7 @@ button.root {
 
 .--selected,
 .--selected:hover {
-  background-color: rgba(var(--uic-color-rgb-background-primary), 0.16);
+  background-color: rgba(var(--uic-color-rgb-background-primary), 0.12);
   color: var(--uic-color-foreground-primary);
   cursor: default;
 

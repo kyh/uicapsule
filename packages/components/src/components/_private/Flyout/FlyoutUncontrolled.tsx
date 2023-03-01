@@ -1,3 +1,5 @@
+"use client";
+
 import React from "react";
 import FlyoutControlled from "./FlyoutControlled";
 import type * as T from "./Flyout.types";

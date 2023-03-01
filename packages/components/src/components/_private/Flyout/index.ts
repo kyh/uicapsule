@@ -1,4 +1,3 @@
-"use client";
 export { default } from "./Flyout";
 export { useFlyoutContext } from "./Flyout.context";
 export {

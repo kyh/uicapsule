@@ -1,3 +1,5 @@
+"use client";
+
 import React from "react";
 import ThemeProvider from "components/Theme";
 import Text from "components/Text";

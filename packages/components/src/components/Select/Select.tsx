@@ -1,3 +1,5 @@
+"use client";
+
 import React from "react";
 import Icon from "components/Icon";
 import { useFormControl } from "components/FormControl";

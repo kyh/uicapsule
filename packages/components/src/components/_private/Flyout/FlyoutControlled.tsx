@@ -1,3 +1,5 @@
+"use client";
+
 import React from "react";
 import { debounce } from "utilities/helpers";
 import { trapFocus } from "utilities/a11y";

@@ -5,7 +5,7 @@ import Icon from "components/Icon";
 import Text from "components/Text";
 import IconZap from "icons/Zap";
 import IconMic from "icons/Mic";
-import AspectRatio from "components/AspectRatio";
+import AspectRatio from "components/_deprecated/AspectRatio";
 
 export default { title: "Utilities/Icon" };
 

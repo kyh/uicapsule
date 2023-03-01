@@ -1,7 +1,7 @@
 import React from "react";
 import { Example, Placeholder } from "utilities/storybook";
 import Button from "components/Button";
-import AspectRatio from "components/AspectRatio";
+import AspectRatio from "components/_deprecated/AspectRatio";
 import View from "components/View";
 import Image from "components/Image";
 import IconZap from "icons/Zap";

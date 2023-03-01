@@ -22,10 +22,6 @@ const Dismissible = (props: T.Props) => {
     hideCloseButton && s["--hide-close"]
   );
 
-  const handleClose = () => {
-    if (onClose) onClose();
-  };
-
   return (
     <div {...attributes} className={rootClassNames}>
       {children}
@@ -36,9 +32,9 @@ const Dismissible = (props: T.Props) => {
             {...(variant === "media"
               ? { color: "black" }
               : { variant: "ghost" })}
-            onClick={handleClose}
+            onClick={onClose}
             attributes={{ "aria-label": closeAriaLabel }}
-            icon={IconClose}
+            startIcon={IconClose}
           />
         </Button.Aligner>
       )}

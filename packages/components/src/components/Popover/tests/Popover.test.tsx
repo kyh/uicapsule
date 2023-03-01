@@ -30,25 +30,14 @@ describe("Components/Popover", () => {
     expect(screen.queryByText(fixtures.content)).not.toBeInTheDocument();
   });
 
-  test("works as controlled", async () => {
-    const handleOpenMock = jest.fn();
+  test("works as controlled, active by default", async () => {
     const handleCloseMock = jest.fn();
+    const handleOpenMock = jest.fn();
+
     const Component = () => {
-      const [active, setActive] = React.useState(true);
-
-      const handleOpen = () => {
-        setActive(true);
-        handleOpenMock();
-      };
-
-      const handleClose = () => {
-        setActive(false);
-        handleCloseMock();
-      };
-
       return (
         <UIC>
-          <Popover active={active} onOpen={handleOpen} onClose={handleClose}>
+          <Popover active onClose={handleCloseMock} onOpen={handleOpenMock}>
             <Popover.Trigger>
               {(attributes) => (
                 <button type="button" {...attributes}>
@@ -77,18 +66,42 @@ describe("Components/Popover", () => {
 
     await waitFor(() => {
       expect(handleCloseMock).toBeCalledTimes(1);
-      expect(screen.queryByText(fixtures.content)).not.toBeInTheDocument();
+      expect(screen.queryByText(fixtures.content)).toBeInTheDocument();
     });
+  });
+
+  test("works as controlled, inactive by default", async () => {
+    const handleOpenMock = jest.fn();
+
+    const Component = () => {
+      return (
+        <UIC>
+          <Popover active={false} onOpen={handleOpenMock}>
+            <Popover.Trigger>
+              {(attributes) => (
+                <button type="button" {...attributes}>
+                  {fixtures.openText}
+                </button>
+              )}
+            </Popover.Trigger>
+            <Popover.Content>{fixtures.content}</Popover.Content>
+          </Popover>
+        </UIC>
+      );
+    };
+
+    render(<Component />);
+
+    const elButton = screen.getByText(fixtures.openText);
+
+    expect(elButton).not.toHaveAttribute("aria-controls");
+    expect(screen.queryByText(fixtures.content)).not.toBeInTheDocument();
 
     await userEvent.click(elButton);
 
-    act(() => {
-      fireEvent.transitionEnd(screen.getByText(fixtures.content));
-    });
-
     await waitFor(() => {
       expect(handleOpenMock).toBeCalledTimes(1);
-      expect(screen.getByText(fixtures.content)).toBeInTheDocument();
+      expect(screen.queryByText(fixtures.content)).not.toBeInTheDocument();
     });
   });
 

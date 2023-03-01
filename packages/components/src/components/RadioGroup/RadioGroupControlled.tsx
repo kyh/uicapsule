@@ -1,3 +1,5 @@
+"use client";
+
 import React from "react";
 import type * as TRadio from "components/Radio/Radio.types";
 import Context from "./RadioGroup.context";

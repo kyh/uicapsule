@@ -115,12 +115,10 @@ class HotkeyStore {
     walkPressedCombinations(pressedMap, (pressedId) => {
       const hotkeyData = this.hotkeyMap[pressedId];
 
-      if (!hotkeyData) return;
+      if (!hotkeyData || hotkeyData.used) return;
 
       if (hotkeyData?.callbacks.size) {
         hotkeyData.callbacks.forEach((callback) => {
-          if (hotkeyData.used) return;
-
           callback(pressedMap[pressedId]);
           this.hotkeyMap[pressedId].used = true;
           hotkeyData.used = true;

@@ -30,7 +30,7 @@
   margin-top: 40px;
 }
 
-.themeToggle {
+.themeToggle.themeToggle {
   position: absolute;
   margin: auto;
   top: 50%;

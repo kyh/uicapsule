@@ -17,6 +17,7 @@ export type Props<TagName extends keyof JSX.IntrinsicElements = "div"> = {
   justify?: G.Responsive<"center" | "start" | "end">;
   height?: G.Responsive<string | number>;
   width?: G.Responsive<string | number>;
+  aspectRatio?: G.Responsive<number>;
   maxHeight?: G.Responsive<string | number>;
   maxWidth?: G.Responsive<string | number>;
   padding?: G.Responsive<Padding>;

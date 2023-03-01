@@ -1,6 +1,6 @@
 import React from "react";
 import { Example, Placeholder } from "utilities/storybook";
-import AspectRatio from "components/AspectRatio";
+import AspectRatio from "components/_deprecated/AspectRatio";
 import Dismissible from "components/Dismissible";
 import Image from "components/Image";
 import View from "components/View";

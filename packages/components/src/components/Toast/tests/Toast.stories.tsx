@@ -4,7 +4,7 @@ import { useToast } from "components/Toast";
 import Button from "components/Button";
 import View from "components/View";
 import Image from "components/Image";
-import AspectRatio from "components/AspectRatio";
+import AspectRatio from "components/_deprecated/AspectRatio";
 import Text from "components/Text";
 import Dismissible from "components/Dismissible";
 import IconZap from "icons/Zap";

@@ -1,4 +1,3 @@
-"use client";
 export { default } from "./ThemeProvider";
 export { default as GlobalColorMode } from "./GlobalColorMode";
 export { useTheme } from "./useTheme";

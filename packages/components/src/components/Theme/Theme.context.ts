@@ -1,3 +1,5 @@
+"use client";
+
 import React from "react";
 import type * as T from "./Theme.types";
 
@@ -5,6 +7,7 @@ import type * as T from "./Theme.types";
 export const ThemeContext = React.createContext<T.ThemeContextData>({
   theme: "",
   colorMode: "light",
+  setTheme: () => {},
 });
 
 /* Context used to globally define mode, used only within the library */

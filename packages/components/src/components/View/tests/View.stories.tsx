@@ -6,7 +6,7 @@ import Text from "components/Text";
 import Tabs from "components/Tabs";
 import Avatar from "components/Avatar";
 import MenuItem from "components/MenuItem";
-import AspectRatio from "components/AspectRatio";
+import AspectRatio from "components/_deprecated/AspectRatio";
 import Button from "components/Button";
 
 export default { title: "Utilities/View" };
@@ -417,6 +417,25 @@ export const size = () => (
         backgroundColor="neutral-faded"
         height={{ s: 25, m: "200px" }}
         width={{ s: 25, m: "200px" }}
+      />
+    </Example.Item>
+  </Example>
+);
+
+export const ratio = () => (
+  <Example>
+    <Example.Item title="ratio: 16 / 9">
+      <View
+        backgroundColor="neutral-faded"
+        aspectRatio={16 / 9}
+        width="200px"
+      />
+    </Example.Item>
+    <Example.Item title={["responsive ratio", "[s] 1/1", "[m+] 16/9"]}>
+      <View
+        backgroundColor="neutral-faded"
+        aspectRatio={{ s: 1, m: 16 / 9 }}
+        width="200px"
       />
     </Example.Item>
   </Example>
