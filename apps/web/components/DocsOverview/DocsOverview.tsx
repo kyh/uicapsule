@@ -130,8 +130,7 @@ const DocsOverview = () => {
       </Text>
 
       <Text variant="featured-3" className={s.intro}>
-        UICapsule implements components from real-world design systems under a
-        single interface.
+        UICapsule is a museum of components from real-world design systems.
       </Text>
 
       <Text variant="body-1" className={s.intro}>
