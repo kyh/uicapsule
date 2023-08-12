@@ -1,2 +1,5 @@
 export { default } from "./View";
-export { Props as ViewProps, ItemProps as ViewItemProps } from "./View.types";
+export type {
+  Props as ViewProps,
+  ItemProps as ViewItemProps,
+} from "./View.types";

@@ -1,8 +1,8 @@
 .root {
-  --uic-focus-shadow: 0 0 0 2px var(--uic-color-background-base),
+  --uic-focus-shadow: 0 0 0 2px var(--uic-color-background-elevation-base),
     0 0 0 4px var(--uic-color-border-primary);
   --uic-focus-inset-shadow: inset 0 0 0 2px var(--uic-color-border-primary),
-    inset 0 0 0 4px var(--uic-color-background-base);
+    inset 0 0 0 4px var(--uic-color-background-elevation-base);
 
   color: var(--uic-color-foreground-neutral);
 }

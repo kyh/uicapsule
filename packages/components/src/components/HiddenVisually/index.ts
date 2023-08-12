@@ -1,2 +1,2 @@
 export { default } from "./HiddenVisually";
-export { Props as HiddenVisuallyProps } from "./HiddenVisually.types";
+export type { Props as HiddenVisuallyProps } from "./HiddenVisually.types";

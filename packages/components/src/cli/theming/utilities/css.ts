@@ -1,16 +1,11 @@
-import { camelToKebab } from "./string";
+import { camelToKebab } from "../../utilities/string";
 import type * as T from "../tokens/types";
 
-export const getVariableName = (
-  tokenName: string,
-  tokenType?: string,
-  options?: { scoped?: boolean; viewport?: string }
-) => {
+export const getVariableName = (tokenName: string, tokenType?: string) => {
   const value = [
     "uic",
     tokenType && camelToKebab(tokenType),
     camelToKebab(tokenName),
-    options?.viewport,
   ]
     .filter(Boolean)
     .join("-");
@@ -19,9 +14,7 @@ export const getVariableName = (
 };
 
 export const createVariable = (token: T.TransformedToken) => {
-  const variableName = getVariableName(token.name, token.tokenType, {
-    viewport: token.viewport,
-  });
+  const variableName = getVariableName(token.name, token.tokenType);
 
   return `${variableName}: ${token.value};`;
 };
@@ -55,13 +48,12 @@ export const variablesTemplate = (
   Object.entries(filteredTokens).forEach(([type, tokens]) => {
     const selector =
       type === "root"
-        ? `[data-uic-theme="${themeName}-light"], [data-uic-theme="${themeName}-dark"]`
-        : `[data-uic-theme="${themeName}-${type}"]`;
+        ? `[data-uic-theme="${themeName}"][data-uic-color-mode="light"], [data-uic-theme="${themeName}"][data-uic-color-mode="dark"]`
+        : `[data-uic-theme="${themeName}"][data-uic-color-mode="${type}"]`;
 
     code += `
 			${selector} {
 					${tokens.map((token) => createVariable(token)).join("\n")}
-					${type === "dark" || type === "light" ? `color-scheme: ${type};` : ""}
 			}
 		`;
   });

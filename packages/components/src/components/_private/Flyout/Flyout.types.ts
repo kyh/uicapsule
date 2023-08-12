@@ -6,26 +6,28 @@ import useFlyout, {
   FlyoutWidth,
 } from "hooks/_private/useFlyout";
 
+export type InstanceRef =
+  | {
+      open: () => void;
+      close: () => void;
+    }
+  | undefined;
+
 type WithUncontrolled = { active?: never; defaultActive?: boolean };
 type WithControlled = { active: boolean; defaultActive?: never };
 
 export type TriggerAttributes = {
-  ref: React.Ref<HTMLButtonElement>;
-  onBlur: (e: React.FocusEvent) => void;
-} & (
-  | {
-      onFocus: () => void;
-      onMouseEnter: () => void;
-      onMouseLeave: () => void;
-      "aria-describedby": string;
-    }
-  | {
-      onClick: () => void;
-      "aria-haspopup": "dialog" | "menu";
-      "aria-expanded": boolean;
-      "aria-controls"?: string;
-    }
-);
+  ref: React.RefObject<HTMLButtonElement>;
+  onBlur?: (e: React.FocusEvent) => void;
+  onFocus?: () => void;
+  onMouseEnter?: () => void;
+  onMouseLeave?: () => void;
+  onClick?: () => void;
+  "aria-describedby"?: string;
+  "aria-haspopup"?: "dialog" | "menu";
+  "aria-expanded"?: boolean;
+  "aria-controls"?: string;
+};
 
 type BaseProps = {
   id?: string;
@@ -37,8 +39,10 @@ type BaseProps = {
   onOpen?: () => void;
   onClose?: () => void;
   width?: FlyoutWidth;
+  contentGap?: number;
   contentClassName?: string;
   contentAttributes?: G.Attributes<"div">;
+  instanceRef?: React.Ref<InstanceRef>;
 };
 
 export type DefaultProps = Required<{
@@ -63,26 +67,21 @@ export type ContentProps = {
 export type ContextProps = {
   id: string;
   flyout: ReturnType<typeof useFlyout>;
-  triggerElRef: React.Ref<HTMLButtonElement>;
+  triggerElRef: React.RefObject<HTMLButtonElement>;
   flyoutElRef: React.RefObject<HTMLDivElement>;
-  handleClose: () => void;
+  handleClose: (options?: { closeParents?: boolean }) => void;
+  handleOpen: () => void;
   handleMouseEnter: () => void;
   handleMouseLeave: () => void;
-  handleTransitionEnd: () => void;
+  handleTransitionEnd: (e: React.TransitionEvent) => void;
   handleClick: () => void;
   handleBlur: (e: React.FocusEvent) => void;
   handleFocus: () => void;
 } & Pick<
   Props,
-  "triggerType" | "contentClassName" | "contentAttributes" | "trapFocusMode"
+  | "triggerType"
+  | "contentClassName"
+  | "contentAttributes"
+  | "trapFocusMode"
+  | "contentGap"
 >;
-
-export type RefProps = { open: () => void; close: () => void };
-export type Ref = React.Ref<RefProps>;
-
-export type Compound = React.ForwardRefExoticComponent<
-  Props & { ref?: Ref }
-> & {
-  Trigger: React.ComponentType<TriggerProps>;
-  Content: React.ComponentType<ContentProps>;
-};

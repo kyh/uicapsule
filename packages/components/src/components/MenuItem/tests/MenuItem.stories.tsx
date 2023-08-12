@@ -10,17 +10,17 @@ export default { title: "Components/MenuItem" };
 export const size = () => (
   <Example>
     <Example.Item title="size: small">
-      <MenuItem size="small" startIcon={IconZap} onClick={() => {}}>
+      <MenuItem size="small" icon={IconZap} onClick={() => {}}>
         Menu item
       </MenuItem>
     </Example.Item>
     <Example.Item title="size: medium">
-      <MenuItem startIcon={IconZap} onClick={() => {}}>
+      <MenuItem icon={IconZap} onClick={() => {}}>
         Menu item
       </MenuItem>
     </Example.Item>
     <Example.Item title="size: large">
-      <MenuItem size="large" startIcon={IconZap} onClick={() => {}}>
+      <MenuItem size="large" icon={IconZap} onClick={() => {}}>
         Menu item
       </MenuItem>
     </Example.Item>
@@ -29,7 +29,7 @@ export const size = () => (
     >
       <MenuItem
         size={{ s: "small", m: "medium", l: "large" }}
-        startIcon={IconZap}
+        icon={IconZap}
         onClick={() => {}}
       >
         Menu item
@@ -38,10 +38,40 @@ export const size = () => (
   </Example>
 );
 
+export const color = () => (
+  <Example>
+    <Example.Item title="color: neutral">
+      <MenuItem color="neutral" icon={IconZap}>
+        Menu item
+      </MenuItem>
+    </Example.Item>
+    <Example.Item title="color: primary">
+      <MenuItem color="primary" icon={IconZap}>
+        Menu item
+      </MenuItem>
+    </Example.Item>
+    <Example.Item title="color: critical">
+      <MenuItem color="critical" icon={IconZap}>
+        Menu item
+      </MenuItem>
+    </Example.Item>
+  </Example>
+);
+
 export const selected = () => (
   <Example>
-    <Example.Item title="selected">
-      <MenuItem selected startIcon={IconZap}>
+    <Example.Item title="selected, color: neutral">
+      <MenuItem color="neutral" selected icon={IconZap}>
+        Menu item
+      </MenuItem>
+    </Example.Item>
+    <Example.Item title="selected, color: primary">
+      <MenuItem color="primary" selected icon={IconZap}>
+        Menu item
+      </MenuItem>
+    </Example.Item>
+    <Example.Item title="selected, color: critical">
+      <MenuItem color="critical" selected icon={IconZap}>
         Menu item
       </MenuItem>
     </Example.Item>
@@ -51,7 +81,7 @@ export const selected = () => (
 export const disabled = () => (
   <Example>
     <Example.Item title="disabled">
-      <MenuItem disabled startIcon={IconZap}>
+      <MenuItem disabled icon={IconZap}>
         Menu item
       </MenuItem>
     </Example.Item>
@@ -61,7 +91,7 @@ export const disabled = () => (
 export const roundedCorners = () => (
   <Example>
     <Example.Item title="roundedCorners">
-      <MenuItem roundedCorners selected startIcon={IconZap}>
+      <MenuItem roundedCorners selected icon={IconZap}>
         Menu item
       </MenuItem>
     </Example.Item>
@@ -69,11 +99,7 @@ export const roundedCorners = () => (
     <Example.Item
       title={["responsive roundedCorners", "[s]: false", "[m+]: true"]}
     >
-      <MenuItem
-        roundedCorners={{ s: false, m: true }}
-        selected
-        startIcon={IconZap}
-      >
+      <MenuItem roundedCorners={{ s: false, m: true }} selected icon={IconZap}>
         Menu item
       </MenuItem>
     </Example.Item>
@@ -98,7 +124,7 @@ export const aligner = () => (
   <Example>
     <Example.Item title="size: small">
       <View gap={2}>
-        <Text variant="title-3">Heading</Text>
+        <Text variant="title-6">Heading</Text>
         <MenuItem.Aligner>
           <MenuItem size="small" selected>
             Menu item
@@ -109,7 +135,7 @@ export const aligner = () => (
 
     <Example.Item title="size: medium">
       <View gap={2}>
-        <Text variant="title-3">Heading</Text>
+        <Text variant="title-6">Heading</Text>
         <MenuItem.Aligner>
           <MenuItem selected>Menu item</MenuItem>
         </MenuItem.Aligner>
@@ -118,7 +144,7 @@ export const aligner = () => (
 
     <Example.Item title="size: large">
       <View gap={2}>
-        <Text variant="title-3">Heading</Text>
+        <Text variant="title-6">Heading</Text>
         <MenuItem.Aligner>
           <MenuItem size="large" selected>
             Menu item

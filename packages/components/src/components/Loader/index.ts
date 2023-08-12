@@ -1,2 +1,2 @@
 export { default } from "./Loader";
-export { Props as LoaderProps } from "./Loader.types";
+export type { Props as LoaderProps } from "./Loader.types";

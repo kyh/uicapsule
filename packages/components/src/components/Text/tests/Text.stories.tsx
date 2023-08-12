@@ -1,20 +1,28 @@
 import React from "react";
 import { Example } from "utilities/storybook";
 import Text from "components/Text";
-import View from "components/View";
 
 export default { title: "Utilities/Text" };
 
 export const variant = () => (
   <Example>
-    <Example.Item title="variant: display-1">
-      <Text variant="display-1">Display 1</Text>
+    <Example.Item title="variant: title-1">
+      <Text variant="title-1">Title 1</Text>
     </Example.Item>
-    <Example.Item title="variant: display-2">
-      <Text variant="display-2">Display 2</Text>
+    <Example.Item title="variant: title-2">
+      <Text variant="title-2">Title 2</Text>
     </Example.Item>
-    <Example.Item title="variant: display-3">
-      <Text variant="display-3">Display 3</Text>
+    <Example.Item title="variant: title-3">
+      <Text variant="title-3">Title 3</Text>
+    </Example.Item>
+    <Example.Item title="variant: title-4">
+      <Text variant="title-4">Title 4</Text>
+    </Example.Item>
+    <Example.Item title="variant: title-5">
+      <Text variant="title-5">Title 5</Text>
+    </Example.Item>
+    <Example.Item title="variant: title-6">
+      <Text variant="title-6">Title 6</Text>
     </Example.Item>
     <Example.Item title="variant: featured-1">
       <Text variant="featured-1">Featured 1</Text>
@@ -25,38 +33,37 @@ export const variant = () => (
     <Example.Item title="variant: featured-3">
       <Text variant="featured-3">Featured 3</Text>
     </Example.Item>
-    <Example.Item title="variant: title-1">
-      <Text variant="title-1">Title 1</Text>
-    </Example.Item>
-    <Example.Item title="variant: title-2">
-      <Text variant="title-2">Title 2</Text>
-    </Example.Item>
-    <Example.Item title="variant: title-3">
-      <Text variant="title-3">Title 3</Text>
-    </Example.Item>
-    <Example.Item title="variant: body-strong-1">
-      <Text variant="body-strong-1">Body strong 1</Text>
-    </Example.Item>
-    <Example.Item title="variant: body-strong-2">
-      <Text variant="body-strong-2">Body strong 2</Text>
-    </Example.Item>
-    <Example.Item title="variant: body-medium-1">
-      <Text variant="body-medium-1">Body medium 1</Text>
-    </Example.Item>
-    <Example.Item title="variant: body-medium-2">
-      <Text variant="body-medium-2">Body medium 2</Text>
-    </Example.Item>
     <Example.Item title="variant: body-1">
       <Text variant="body-1">Body 1</Text>
     </Example.Item>
     <Example.Item title="variant: body-2">
       <Text variant="body-2">Body 2</Text>
     </Example.Item>
+    <Example.Item title="variant: body-3">
+      <Text variant="body-3">Body 3</Text>
+    </Example.Item>
     <Example.Item title="variant: caption-1">
       <Text variant="caption-1">Caption 1</Text>
     </Example.Item>
     <Example.Item title="variant: caption-2">
       <Text variant="caption-2">Caption 2</Text>
+    </Example.Item>
+    <Example.Item title={["responsive variant", "[s] body-3", "[m+] title-4"]}>
+      <Text variant={{ s: "body-3", m: "title-4" }}>Responsive</Text>
+    </Example.Item>
+  </Example>
+);
+
+export const weight = () => (
+  <Example>
+    <Example.Item title="weight: regular">
+      <Text weight="regular">Regular</Text>
+    </Example.Item>
+    <Example.Item title="weight: medium">
+      <Text weight="medium">Medium</Text>
+    </Example.Item>
+    <Example.Item title="weight: bold">
+      <Text weight="bold">Bold</Text>
     </Example.Item>
   </Example>
 );

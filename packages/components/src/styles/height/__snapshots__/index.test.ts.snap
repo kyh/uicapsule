@@ -6,7 +6,7 @@ exports[`Styles/Height handles % value 1`] = `
     "literal",
   ],
   "variables": {
-    "--_uic-h": "50%",
+    "--uic-h-s": "50%",
   },
 }
 `;
@@ -17,7 +17,7 @@ exports[`Styles/Height handles px value 1`] = `
     "literal",
   ],
   "variables": {
-    "--_uic-h": "50px",
+    "--uic-h-s": "50px",
   },
 }
 `;
@@ -29,8 +29,8 @@ exports[`Styles/Height handles responsive value 1`] = `
     "literal--l",
   ],
   "variables": {
-    "--_uic-h": "50px",
-    "--_uic-h-l": "50%",
+    "--uic-h-l": "50%",
+    "--uic-h-s": "50px",
   },
 }
 `;
@@ -43,7 +43,7 @@ exports[`Styles/Height handles unit value 1`] = `
     "unit",
   ],
   "variables": {
-    "--_uic-h": 5,
+    "--uic-h-s": 5,
   },
 }
 `;

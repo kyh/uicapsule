@@ -12,11 +12,11 @@
   width: 100%;
   background: var(--uic-color-background-neutral-faded);
   transition: transform var(--uic-easing-decelerate);
-  transition-duration: var(--_d, var(--uic-duration-slow));
-  transform: translateX(var(--_v));
+  transition-duration: var(--uic-progress-duration, var(--uic-duration-slow));
+  transform: translateX(var(--uic-progress-value));
 
   [dir="rtl"] & {
-    transform: translateX(calc(var(--_v) * -1));
+    transform: translateX(calc(var(--uic-progress-value) * -1));
   }
 }
 
@@ -45,7 +45,7 @@
 }
 
 .--color-white {
-  background: rgba(var(--uic-color-rgb-white), 0.32);
+  background: rgba(var(--uic-color-rgb-white), 32%);
 }
 
 .--color-white .value {

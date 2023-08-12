@@ -16,7 +16,7 @@
 
   &--index-0 {
     /* Show first toast above others to avoid shadow of other toasts shown when animating */
-    z-index: var(--uic-z-index-elevated);
+    z-index: var(--uic-z-index-raised);
   }
 
   &--index-1 {
@@ -55,7 +55,7 @@
   display: flex;
   flex-direction: column;
   margin-top: var(--uic-unit-x2);
-  box-shadow: var(--uic-shadow-elevated);
+  box-shadow: var(--uic-shadow-overlay);
   border-radius: var(--uic-unit-radius-medium);
   overflow: hidden;
   transform-origin: 50% 0;

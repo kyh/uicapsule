@@ -11,7 +11,9 @@ const Demo = (props: any) => {
   return (
     <Popover position={position} {...rest}>
       <Popover.Trigger>
-        {(attributes) => <Button attributes={attributes}>Open</Button>}
+        {(attributes) => (
+          <Button attributes={attributes}>{position || "Open"}</Button>
+        )}
       </Popover.Trigger>
       <Popover.Content>
         <View gap={2} align="start">
@@ -25,44 +27,32 @@ const Demo = (props: any) => {
 
 export const position = () => (
   <Example>
-    <Example.Item title="position: bottom-start">
-      <View align="center">
-        <Demo position="bottom-start" />
-      </View>
-    </Example.Item>
     <Example.Item title="position: bottom">
-      <View align="center">
+      <View align="center" justify="center" gap={8} direction="row">
+        <Demo position="bottom-start" />
         <Demo position="bottom" />
-      </View>
-    </Example.Item>
-    <Example.Item title="position: bottom-end">
-      <View align="center">
         <Demo position="bottom-end" />
       </View>
     </Example.Item>
-    <Example.Item title="position: top-start">
-      <View align="center">
-        <Demo position="top-start" />
-      </View>
-    </Example.Item>
     <Example.Item title="position: top">
-      <View align="center">
+      <View align="center" justify="center" gap={8} direction="row">
+        <Demo position="top-start" />
         <Demo position="top" />
-      </View>
-    </Example.Item>
-    <Example.Item title="position: top-end">
-      <View align="center">
         <Demo position="top-end" />
       </View>
     </Example.Item>
     <Example.Item title="position: start">
-      <View align="center">
+      <View align="center" justify="center" gap={8} direction="row">
+        <Demo position="start-top" />
         <Demo position="start" />
+        <Demo position="start-bottom" />
       </View>
     </Example.Item>
     <Example.Item title="position: end">
-      <View align="center">
+      <View align="center" justify="center" gap={8} direction="row">
+        <Demo position="end-top" />
         <Demo position="end" />
+        <Demo position="end-bottom" />
       </View>
     </Example.Item>
     <Example.Item
@@ -83,8 +73,8 @@ export const width = () => (
     <Example.Item title="width: 400">
       <Demo width="400px" />
     </Example.Item>
-    <Example.Item title="width: full">
-      <Demo width="full" />
+    <Example.Item title="width: 100%">
+      <Demo width="100%" />
     </Example.Item>
   </Example>
 );
@@ -99,6 +89,7 @@ export const variant = () => (
         <Popover.Content>
           <View
             height="100px"
+            width="100px"
             borderColor="primary"
             borderRadius="medium"
             backgroundColor="neutral-faded"
@@ -114,7 +105,7 @@ export const padding = () => (
     <Example.Item title="padding: 0">
       <Demo padding={0} />
     </Example.Item>
-    <Example.Item title="width: full">
+    <Example.Item title="padding: 6">
       <Demo padding={6} />
     </Example.Item>
   </Example>

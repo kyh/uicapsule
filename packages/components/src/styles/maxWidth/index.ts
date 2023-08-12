@@ -4,7 +4,7 @@ import s from "./maxWidth.module.css";
 
 const getMaxWidthStyles: T.DynamicStyleUtility<string | number> = (value) => {
   if (!value) return null;
-  const variables = responsiveVariables("--_uic-mw", value);
+  const variables = responsiveVariables("--uic-max-w", value);
   const classNames = responsiveClassNames(
     s,
     (value) => (typeof value === "number" ? "unit" : "literal"),

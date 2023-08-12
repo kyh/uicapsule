@@ -10,7 +10,7 @@ type Context = {
   isPressed: (key: string) => boolean;
   addHotkeys: (
     hotkeys: Hotkeys,
-    options?: { ref: React.RefObject<HTMLElement | null> }
+    ref: React.RefObject<HTMLElement | null>
   ) => (() => void) | undefined;
 };
 
@@ -19,12 +19,14 @@ type Context = {
  */
 const COMBINATION_DELIMETER = "+";
 const pressedMap: Record<string, KeyboardEvent> = {};
+const modifiedKeys: string[] = [];
 
 const formatHotkey = (hotkey: string) => {
   if (hotkey === " ") return hotkey;
   return hotkey.replace(/\s/g, "").toLowerCase();
 };
 
+// Normalize passed key combinations to turn them into a consistent ids
 const getHotkeyId = (hotkey: string) => {
   return formatHotkey(hotkey)
     .split(COMBINATION_DELIMETER)
@@ -41,15 +43,21 @@ const getEventKey = (e: KeyboardEvent) => {
   return e.key.toLowerCase();
 };
 
-const getCombinations = (items: string[]) => {
+const getCombinations = (pressedKeys: string[]) => {
   const result: string[] = [];
+  const hotkey = pressedKeys.join(COMBINATION_DELIMETER);
+  const id = getHotkeyId(hotkey);
+  const sortedKeys = id.split(COMBINATION_DELIMETER);
+
   const f = (prefix: string, items: string[]) => {
     items.forEach((item, i) => {
-      result.push(prefix ? `${prefix}+${item}` : item);
-      f(prefix + item, items.slice(i + 1));
+      const nextId = prefix ? `${prefix}+${item}` : item;
+      result.push(nextId);
+      f(nextId, items.slice(i + 1));
     });
   };
-  f("", items);
+
+  f("", sortedKeys);
   return result;
 };
 
@@ -61,10 +69,7 @@ const walkPressedCombinations = (
 
   if (!pressedKeys.length) return;
 
-  const hotkey = pressedKeys.join(COMBINATION_DELIMETER);
-  const id = getHotkeyId(hotkey);
-
-  getCombinations(id.split(COMBINATION_DELIMETER)).forEach((pressedId) => {
+  getCombinations(pressedKeys).forEach((pressedId) => {
     cb(pressedId);
   });
 };
@@ -83,45 +88,70 @@ const walkHotkeys = <T extends unknown>(
   });
 };
 
-class HotkeyStore {
-  hotkeyMap: Record<string, { callbacks: Set<Callback>; used: boolean }> = {};
+export class HotkeyStore {
+  hotkeyMap: Record<
+    string,
+    {
+      data: Set<{
+        callback: Callback;
+        ref: React.RefObject<HTMLElement | null>;
+      }>;
+      used: boolean;
+    }
+  > = {};
 
   getSize = () => Object.keys(this.hotkeyMap).length;
 
-  bindHotkeys = (hotkeys: Hotkeys) => {
+  bindHotkeys = (
+    hotkeys: Hotkeys,
+    ref: React.RefObject<HTMLElement | null>
+  ) => {
     walkHotkeys(hotkeys, (id, hotkeyData) => {
       if (!hotkeyData) return;
 
       if (!this.hotkeyMap[id]) {
-        this.hotkeyMap[id] = { callbacks: new Set(), used: false };
+        this.hotkeyMap[id] = { data: new Set(), used: false };
       }
 
-      this.hotkeyMap[id].callbacks.add(hotkeyData);
+      this.hotkeyMap[id].data.add({ callback: hotkeyData, ref });
     });
   };
 
   unbindHotkeys = (hotkeys: Hotkeys) => {
     walkHotkeys(hotkeys, (id, hotkeyCallback) => {
       if (!hotkeyCallback) return;
-      this.hotkeyMap[id]?.callbacks.delete(hotkeyCallback);
 
-      if (!this.hotkeyMap[id]?.callbacks.size) {
+      this.hotkeyMap[id]?.data.forEach((data) => {
+        if (data.callback === hotkeyCallback) {
+          this.hotkeyMap[id].data.delete(data);
+        }
+      });
+
+      if (!this.hotkeyMap[id]?.data.size) {
         delete this.hotkeyMap[id];
       }
     });
   };
 
-  handleKeyDown = (pressedMap: PressedKeys) => {
+  handleKeyDown = (pressedMap: PressedKeys, e: KeyboardEvent) => {
     walkPressedCombinations(pressedMap, (pressedId) => {
       const hotkeyData = this.hotkeyMap[pressedId];
-
       if (!hotkeyData || hotkeyData.used) return;
 
-      if (hotkeyData?.callbacks.size) {
-        hotkeyData.callbacks.forEach((callback) => {
-          callback(pressedMap[pressedId]);
+      if (hotkeyData?.data.size) {
+        hotkeyData.data.forEach((data) => {
+          if (
+            data.ref?.current &&
+            !(
+              e.target === data.ref.current ||
+              data.ref.current.contains(e.target as Node)
+            )
+          ) {
+            return;
+          }
+
+          data.callback(pressedMap[pressedId]);
           this.hotkeyMap[pressedId].used = true;
-          hotkeyData.used = true;
         });
       }
     });
@@ -161,7 +191,22 @@ export const SingletonHotkeysProvider = (props: {
       const eventKey = getEventKey(e);
 
       pressedMap[eventKey] = e;
+
+      if (eventKey === "meta" || eventKey === "control") {
+        pressedMap.mod = e;
+      }
+
       setTriggerCount(Object.keys(pressedMap).length);
+
+      // Key up won't trigger for other keys while Meta is pressed so we need to cache them
+      // and remove on Meta keyup
+      if (eventKey === "meta") {
+        modifiedKeys.push(...Object.keys(pressedMap));
+      }
+
+      if (pressedMap.Meta) {
+        modifiedKeys.push(eventKey);
+      }
     },
     [hooksCount]
   );
@@ -173,6 +218,16 @@ export const SingletonHotkeysProvider = (props: {
       const eventKey = getEventKey(e);
 
       delete pressedMap[eventKey];
+      if (eventKey === "meta" || eventKey === "control") {
+        delete pressedMap.mod;
+      }
+
+      if (eventKey === "meta") {
+        modifiedKeys.forEach((key) => {
+          delete pressedMap[key];
+        });
+      }
+
       setTriggerCount(Object.keys(pressedMap).length);
     },
     [hooksCount]
@@ -186,41 +241,13 @@ export const SingletonHotkeysProvider = (props: {
   };
 
   const addHotkeys: Context["addHotkeys"] = React.useCallback(
-    (hotkeys, options) => {
-      const ref = options?.ref;
-      const localHotkeyStore = ref?.current ? new HotkeyStore() : null;
-
-      const handleRefKeyDown = (e: KeyboardEvent) => {
-        if (!localHotkeyStore) return;
-
-        const nextHotkeyId = getHotkeyId(e.key);
-        const nextPressed = { ...pressedMap, [nextHotkeyId]: e };
-
-        localHotkeyStore.handleKeyDown(nextPressed);
-      };
-
-      const handleRefKeyUp = (e: KeyboardEvent) => {
-        localHotkeyStore?.handleKeyUp(e);
-      };
-
+    (hotkeys, ref) => {
       setHooksCount((prev) => prev + 1);
-      if (localHotkeyStore && ref?.current) {
-        localHotkeyStore?.bindHotkeys(hotkeys);
-        ref.current.addEventListener("keydown", handleRefKeyDown);
-        ref.current.addEventListener("keyup", handleRefKeyUp);
-      } else {
-        globalHotkeyStore.bindHotkeys(hotkeys);
-      }
+      globalHotkeyStore.bindHotkeys(hotkeys, ref);
 
       return () => {
         setHooksCount((prev) => prev - 1);
-        if (ref?.current && localHotkeyStore) {
-          localHotkeyStore?.unbindHotkeys(hotkeys);
-          ref.current.removeEventListener("keydown", handleRefKeyDown);
-          ref.current.removeEventListener("keyup", handleRefKeyUp);
-        } else {
-          globalHotkeyStore.unbindHotkeys(hotkeys);
-        }
+        globalHotkeyStore.unbindHotkeys(hotkeys);
       };
     },
     []
@@ -229,7 +256,7 @@ export const SingletonHotkeysProvider = (props: {
   const handleWindowKeyDown = React.useCallback(
     (e: KeyboardEvent) => {
       addPressedKey(e);
-      globalHotkeyStore.handleKeyDown(pressedMap);
+      globalHotkeyStore.handleKeyDown(pressedMap, e);
     },
     [addPressedKey]
   );

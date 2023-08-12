@@ -9,6 +9,8 @@ const HiddenInput = (props: T.Props) => {
     value,
     type,
     onChange,
+    onFocus,
+    onBlur,
     checked,
     defaultChecked,
     disabled,
@@ -28,6 +30,8 @@ const HiddenInput = (props: T.Props) => {
       defaultChecked={defaultChecked}
       disabled={disabled}
       onChange={onChange}
+      onFocus={onFocus || attributes?.onFocus}
+      onBlur={onBlur || attributes?.onBlur}
     />
   );
 };

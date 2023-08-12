@@ -77,26 +77,26 @@ export const colors = () => (
     <Example.Item title="color: neutral">
       <Avatar color="neutral" icon={IconZap} />
     </Example.Item>
-    <Example.Item title="color: neutral-faded">
-      <Avatar color="neutral-faded" icon={IconZap} />
+    <Example.Item title="color: neutral, variant: faded">
+      <Avatar color="neutral" variant="faded" icon={IconZap} />
     </Example.Item>
     <Example.Item title="color: primary">
       <Avatar color="primary" icon={IconZap} />
     </Example.Item>
-    <Example.Item title="color: primary-faded">
-      <Avatar color="primary-faded" icon={IconZap} />
+    <Example.Item title="color: primary, variant: faded">
+      <Avatar color="primary" variant="faded" icon={IconZap} />
     </Example.Item>
     <Example.Item title="color: positive">
       <Avatar color="positive" icon={IconZap} />
     </Example.Item>
-    <Example.Item title="color: positive-faded">
-      <Avatar color="positive-faded" icon={IconZap} />
+    <Example.Item title="color: positive, variant: faded">
+      <Avatar color="positive" variant="faded" icon={IconZap} />
     </Example.Item>
     <Example.Item title="color: critical">
       <Avatar color="critical" icon={IconZap} />
     </Example.Item>
-    <Example.Item title="color: critical-faded">
-      <Avatar color="critical-faded" icon={IconZap} />
+    <Example.Item title="color: critical, variant: faded">
+      <Avatar color="critical" variant="faded" icon={IconZap} />
     </Example.Item>
   </Example>
 );

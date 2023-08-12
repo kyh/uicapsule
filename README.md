@@ -1,44 +1,12 @@
-# Turborepo Design System Starter
-
-This guide explains how to use a React design system starter powered by:
-
-- 🏎 [Turborepo](https://turbo.build/repo) — High-performance build system for Monorepos
-- 🚀 [React](https://reactjs.org/) — JavaScript library for user interfaces
-- 🛠 [Tsup](https://github.com/egoist/tsup) — TypeScript bundler powered by esbuild
-- 📖 [Storybook](https://storybook.js.org/) — UI component environment powered by Vite
-
-As well as a few others tools preconfigured:
-
-- [TypeScript](https://www.typescriptlang.org/) for static type checking
-- [ESLint](https://eslint.org/) for code linting
-- [Prettier](https://prettier.io) for code formatting
-- [Changesets](https://github.com/changesets/changesets) for managing versioning and changelogs
-- [GitHub Actions](https://github.com/changesets/action) for fully automated package publishing
-
-## Using this example
-
-Clone the design system example locally or [from GitHub](https://github.com/vercel/turbo/tree/main/examples/design-system):
-
-```bash
-npx degit vercel/turbo/examples/design-system design-system
-cd design-system
-pnpm install
-git init . && git add . && git commit -m "Init"
-```
+# UICapsule
 
 ### Useful Commands
 
-- `yarn build` - Build all packages including the Storybook site
-- `yarn dev` - Run all packages locally and preview with Storybook
-- `yarn lint` - Lint all packages
-- `yarn changeset` - Generate a changeset
-- `yarn clean` - Clean up all `node_modules` and `dist` folders (runs each package's clean script)
-
-## Turborepo
-
-[Turborepo](https://turbo.build/repo) is a high-performance build system for JavaScript and TypeScript codebases. It was designed after the workflows used by massive software engineering organizations to ship code at scale. Turborepo abstracts the complex configuration needed for monorepos and provides fast, incremental builds with zero-configuration remote caching.
-
-Using Turborepo simplifes managing your design system monorepo, as you can have a single lint, build, test, and release process for all packages. [Learn more](https://vercel.com/blog/monorepos-are-changing-how-teams-build-software) about how monorepos improve your development workflow.
+- `npm build` - Build all packages including the Storybook site
+- `npm dev` - Run all packages locally and preview with Storybook
+- `npm lint` - Lint all packages
+- `npm changeset` - Generate a changeset
+- `npm clean` - Clean up all `node_modules` and `dist` folders (runs each package's clean script)
 
 ## Apps & Packages
 
@@ -197,10 +165,4 @@ To publish packages to a private npm organization scope, **remove** the followin
 ### Updating steps
 
 - replace `packages/components/src`
-- run `npm run format`
-- replace `--rs` with `--uic`
-- replace `_rs` with `_uic`
-- replace `data-rs-theme` with `data-uic-theme`
-- replace `reshaped` with `uicapsule`
-- replace `Reshaped` with `UIC`
-- replace `uicapsule.so` with `uicapsule.com`
+- run `npm run updated`

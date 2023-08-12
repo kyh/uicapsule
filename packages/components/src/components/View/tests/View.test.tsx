@@ -26,10 +26,28 @@ describe("Utilities/View", () => {
 
   test("applies className and attributes", () => {
     const { container } = render(
-      <View className={fixtures.className} attributes={{ id: fixtures.id }} />
+      <View
+        className={fixtures.className}
+        attributes={{ id: fixtures.id, style: { padding: 20 } }}
+      />
     );
 
     expect(container.firstChild).toHaveClass(fixtures.className);
     expect(container.firstChild).toHaveAttribute("id", fixtures.id);
+  });
+
+  test("applies className and attributes to View.Item", () => {
+    const { container } = render(
+      <View.Item
+        className={fixtures.className}
+        attributes={{ id: fixtures.id, style: { padding: 20 } }}
+      />
+    );
+
+    expect(container.firstChild).toHaveClass(fixtures.className);
+    expect(container.firstChild).toHaveAttribute("id", fixtures.id);
+    expect(
+      container.firstElementChild?.getAttribute("style")
+    ).toMatchSnapshot();
   });
 });

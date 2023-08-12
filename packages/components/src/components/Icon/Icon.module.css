@@ -17,8 +17,8 @@
   min-width: 100%;
 }
 
-@each $color in (neutral-faded, primary, positive, critical) {
-  .--color-$color {
-    color: var(--uic-color-foreground-$color);
+@each $color in neutral, neutral-faded, primary, positive, critical, disabled {
+  .--color-$(color) {
+    color: var(--uic-color-foreground-$(color));
   }
 }

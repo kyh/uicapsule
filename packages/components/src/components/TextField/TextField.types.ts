@@ -11,18 +11,19 @@ type BaseProps = {
   size?: Size;
   disabled?: boolean;
   placeholder?: string;
-  startIcon?: SlotProps["icon"];
+  icon?: SlotProps["icon"];
   endIcon?: SlotProps["icon"];
   startSlot?: SlotProps["slot"];
   endSlot?: SlotProps["slot"];
+  prefix?: React.ReactNode;
+  suffix?: React.ReactNode;
+  variant?: "outline" | "faded" | "headless";
   onChange?: G.ChangeHandler<string>;
+  onFocus?: (e: React.FocusEvent) => void;
+  onBlur?: (e: React.FocusEvent) => void;
   className?: G.ClassName;
   attributes?: G.Attributes<"div", Props>;
   inputAttributes?: G.Attributes<"input">;
-  /** @deprecated use startIcon/endIcon instead */
-  icon?: SlotProps["icon"];
-  /** @deprecated Use startIcon/endIcon instead */
-  iconPosition?: "start" | "end";
 } & Pick<FormControlProps, "hasError">;
 
 export type ControlledProps = BaseProps & {
@@ -39,4 +40,6 @@ export type SlotProps = {
   slot?: React.ReactNode;
   icon?: IconProps["svg"];
   size: Size;
+  affix?: React.ReactNode;
+  position: "start" | "end";
 };

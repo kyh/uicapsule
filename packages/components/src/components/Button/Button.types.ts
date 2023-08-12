@@ -14,9 +14,9 @@ type BaseProps = {
     | "positive"
     | "neutral"
     | "inherit";
-  variant?: "solid" | "outline" | "ghost";
+  variant?: "solid" | "outline" | "ghost" | "faded";
   elevated?: boolean;
-  startIcon?: IconProps["svg"];
+  icon?: IconProps["svg"];
   endIcon?: IconProps["svg"];
   size?: G.Responsive<Size>;
   rounded?: boolean;
@@ -25,10 +25,6 @@ type BaseProps = {
   highlighted?: boolean;
   children?: React.ReactNode;
   className?: G.ClassName;
-  /** @deprecated Use startIcon/endIcon instead */
-  icon?: IconProps["svg"];
-  /** @deprecated Use startIcon/endIcon instead */
-  iconPosition?: "start" | "end";
 };
 
 export type Props = Omit<ActionableProps, keyof BaseProps> & BaseProps;

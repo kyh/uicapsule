@@ -1,47 +1,26 @@
 import type * as TUnit from "../unit/unit.types";
 import type * as TFontWeight from "../fontWeight/fontWeight.types";
 import type * as TFontFamily from "../fontFamily/fontFamily.types";
-import type * as TViewport from "../viewport/viewport.types";
 
 export type Name =
-  | "display1"
-  | "display2"
-  | "display3"
-  | "featured1"
-  | "featured2"
-  | "featured3"
   | "title1"
   | "title2"
   | "title3"
-  | "bodyStrong1"
-  | "bodyStrong2"
-  | "bodyMedium1"
-  | "bodyMedium2"
+  | "title4"
+  | "title5"
+  | "title6"
+  | "featured1"
+  | "featured2"
+  | "featured3"
   | "body1"
   | "body2"
+  | "body3"
   | "caption1"
   | "caption2";
 
-export type TokenBase = {
+export type Token = {
   fontSize: TUnit.Token;
   lineHeight: TUnit.Token;
-  fontWeightToken: TFontWeight.Name;
-  fontFamilyToken: TFontFamily.Name;
-};
-
-type FontViewport = TViewport.Name;
-
-export type Token = TokenBase & {
-  responsive?: Partial<Record<FontViewport, Partial<TokenBase>>>;
-};
-
-type ResolvedTokenForViewport = Pick<Token, "fontSize" | "lineHeight"> & {
-  fontWeight: TFontWeight.Token;
-  fontFamily: TFontFamily.Token;
-};
-
-export type ResolvedToken = ResolvedTokenForViewport & {
-  responsive?: Partial<
-    Record<TViewport.Name, Partial<ResolvedTokenForViewport>>
-  >;
+  fontFamilyToken?: TFontFamily.Name;
+  fontWeightToken?: TFontWeight.Name;
 };

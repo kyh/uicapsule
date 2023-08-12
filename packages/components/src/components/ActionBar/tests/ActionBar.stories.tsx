@@ -1,8 +1,6 @@
 import React from "react";
 import { Placeholder, Example } from "utilities/storybook";
 import ActionBar from "components/ActionBar";
-import Card from "components/Card";
-import View from "components/View";
 
 export default { title: "Components/ActionBar" };
 
@@ -38,16 +36,16 @@ export const elevated = () => (
   </Example>
 );
 
-export const size = () => (
+export const padding = () => (
   <Example>
-    <Example.Item title="size: medium">
-      <ActionBar>
+    <Example.Item title="padding: 6">
+      <ActionBar padding={6}>
         <Placeholder />
       </ActionBar>
     </Example.Item>
 
-    <Example.Item title="size: large">
-      <ActionBar size="large">
+    <Example.Item title={["padding: responsive", "[s] 4", "[m+] 6"]}>
+      <ActionBar padding={{ s: 4, m: 6 }}>
         <Placeholder />
       </ActionBar>
     </Example.Item>

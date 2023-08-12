@@ -4,7 +4,6 @@ import { useToast } from "components/Toast";
 import Button from "components/Button";
 import View from "components/View";
 import Image from "components/Image";
-import AspectRatio from "components/_deprecated/AspectRatio";
 import Text from "components/Text";
 import Dismissible from "components/Dismissible";
 import IconZap from "icons/Zap";
@@ -340,24 +339,24 @@ const Slots = () => {
             const id = toast.show({
               children: (
                 <View gap={3} direction="row">
-                  <AspectRatio>
+                  <View aspectRatio={1}>
                     <Image
                       height="100px"
                       src="https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?ixlib=rb-1.2.1&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=400&q=80"
                       borderRadius="medium"
                     />
-                  </AspectRatio>
+                  </View>
                   <View.Item grow>
                     <View gap={1}>
                       <Dismissible
                         closeAriaLabel="Close notification"
                         onClose={() => toast.hide(id)}
                       >
-                        <Text variant="body-strong-1">
+                        <Text variant="body-2" weight="bold">
                           Look at this gradient!
                         </Text>
                       </Dismissible>
-                      <Text variant="body-2">
+                      <Text variant="body-3">
                         If you start using more gradients, your product will
                         become even more succesful.
                       </Text>

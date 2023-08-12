@@ -8,9 +8,12 @@ type BaseProps = {
   id?: string;
   name: string;
   size?: Size;
+  variant?: "outline" | "faded" | "headless";
   disabled?: boolean;
   placeholder?: string;
   onChange?: G.ChangeHandler<string, React.ChangeEvent<HTMLTextAreaElement>>;
+  onFocus?: (e: React.FocusEvent) => void;
+  onBlur?: (e: React.FocusEvent) => void;
   className?: G.ClassName;
   attributes?: G.Attributes<"div", Props>;
   inputAttributes?: G.Attributes<"textarea", Omit<Props, "id">>;

@@ -4,7 +4,7 @@ import s from "./aspectRatio.module.css";
 
 const getAspectRatioStyles: T.DynamicStyleUtility<number> = (value) => {
   if (!value) return null;
-  const variables = responsiveVariables("--_uic-ar", value);
+  const variables = responsiveVariables("--uic-ratio", value);
 
   return { classNames: s.root, variables };
 };

@@ -4,22 +4,21 @@
 
 .input {
   display: block;
-  border: none;
   outline: none;
   position: relative;
   z-index: 1;
-  background: none;
   flex-grow: 1;
   width: 100%;
   box-sizing: border-box;
   padding: calc(var(--uic-text-area-padding) - 1px);
   color: var(--uic-color-foreground-neutral);
-  background: var(--uic-color-background-base);
+  background: var(--uic-color-background-elevation-base);
   border: 1px solid var(--uic-color-border-neutral);
   border-radius: var(--uic-unit-radius-small);
+  font-weight: var(--uic-font-weight-regular);
+  font-family: var(--uic-font-family-body);
 
-  &:focus,
-  &:active {
+  &:focus {
     border-color: var(--uic-color-border-primary);
     box-shadow: 0 0 0 1px var(--uic-color-border-primary);
   }
@@ -32,79 +31,63 @@
   }
 }
 
-.root.--size-medium {
-  --uic-text-area-padding: var(--uic-unit-x2);
-  border-radius: var(--uic-unit-radius-small);
+@responsive .--size {
+  @value medium {
+    --uic-text-area-padding: var(--uic-unit-x2);
 
-  & .input {
-    font-size: var(--uic-font-size-body-2);
-    line-height: var(--uic-line-height-body-2);
-    font-weight: var(--uic-font-weight-body-2);
-    font-family: var(--uic-font-family-body-2);
+    border-radius: var(--uic-unit-radius-small);
+
+    & .input {
+      font-size: var(--uic-font-size-body-3);
+      line-height: var(--uic-line-height-body-3);
+    }
+  }
+
+  @value large {
+    --uic-text-area-padding: var(--uic-unit-x3);
+
+    border-radius: var(--uic-unit-radius-medium);
+
+    & .input {
+      font-size: var(--uic-font-size-body-2);
+      line-height: var(--uic-line-height-body-2);
+    }
+  }
+
+  @value xlarge {
+    --uic-text-area-padding: var(--uic-unit-x4);
+
+    border-radius: var(--uic-unit-radius-medium);
+
+    & .input {
+      font-size: var(--uic-font-size-body-2);
+      line-height: var(--uic-line-height-body-2);
+    }
   }
 }
 
-.root.--size-large {
-  --uic-text-area-padding: var(--uic-unit-x3);
-  border-radius: var(--uic-unit-radius-medium);
-
+.root.--variant-faded {
   & .input {
-    font-size: var(--uic-font-size-body-2);
-    line-height: var(--uic-line-height-body-2);
-    font-weight: var(--uic-font-weight-body-2);
-    font-family: var(--uic-font-family-body-2);
+    background: var(--uic-color-background-neutral-faded);
+    border-color: transparent;
+  }
+
+  & .input:focus {
+    border-color: var(--uic-color-border-primary);
   }
 }
 
-.root.--size-xlarge {
-  --uic-text-area-padding: var(--uic-unit-x4);
-  border-radius: var(--uic-unit-radius-medium);
-
+.root.--variant-headless {
   & .input {
-    font-size: var(--uic-font-size-body-1);
-    line-height: var(--uic-line-height-body-1);
-    font-weight: var(--uic-font-weight-body-1);
-    font-family: var(--uic-font-family-body-1);
+    background: transparent;
+    border-color: transparent;
   }
-}
 
-@each $viewport in m, l, xl {
-  @media (--uic-viewport-$viewport) {
-    .root.--size-medium--$viewport {
-      --uic-text-area-padding: var(--uic-unit-x2);
-      border-radius: var(--uic-unit-radius-small);
-
-      & .input {
-        font-size: var(--uic-font-size-body-2);
-        line-height: var(--uic-line-height-body-2);
-        font-weight: var(--uic-font-weight-body-2);
-        font-family: var(--uic-font-family-body-2);
-      }
-    }
-
-    .root.--size-large--$viewport {
-      --uic-text-area-padding: var(--uic-unit-x3);
-      border-radius: var(--uic-unit-radius-medium);
-
-      & .input {
-        font-size: var(--uic-font-size-body-2);
-        line-height: var(--uic-line-height-body-2);
-        font-weight: var(--uic-font-weight-body-2);
-        font-family: var(--uic-font-family-body-2);
-      }
-    }
-
-    .root.--size-xlarge--$viewport {
-      --uic-text-area-padding: var(--uic-unit-x4);
-      border-radius: var(--uic-unit-radius-medium);
-
-      & .input {
-        font-size: var(--uic-font-size-body-1);
-        line-height: var(--uic-line-height-body-1);
-        font-weight: var(--uic-font-weight-body-1);
-        font-family: var(--uic-font-family-body-1);
-      }
-    }
+  & .input:focus,
+  &.--status-error .input,
+  &.--status-error .input:focus {
+    border-color: transparent;
+    box-shadow: none;
   }
 }
 
@@ -122,6 +105,6 @@
 
 @media (--uic-viewport-s) and (hover: none) {
   .input {
-    font-size: var(--uic-font-size-body-1) !important;
+    font-size: var(--uic-font-size-body-2) !important;
   }
 }

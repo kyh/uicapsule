@@ -6,7 +6,7 @@ exports[`Styles/Padding handles positive value 1`] = `
 {
   "classNames": "root",
   "variables": {
-    "--_uic-p": 4,
+    "--uic-p-s": 4,
   },
 }
 `;
@@ -15,9 +15,9 @@ exports[`Styles/Padding handles responsive value 1`] = `
 {
   "classNames": "root",
   "variables": {
-    "--_uic-p": 4,
-    "--_uic-p-l": 2,
-    "--_uic-p-m": 0,
+    "--uic-p-l": 2,
+    "--uic-p-m": 0,
+    "--uic-p-s": 4,
   },
 }
 `;

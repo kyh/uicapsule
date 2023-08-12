@@ -13,7 +13,7 @@ type TrapOptions = {
 type Trap = Release | null;
 
 export const isKeyboardMode = () =>
-  document.body.hasAttribute(keyboardModeAttribute);
+  document.documentElement.hasAttribute(keyboardModeAttribute);
 
 export const focusableSelector =
   'a,button,input:not([type="hidden"]),textarea,select,details,[tabindex]:not([tabindex="-1"])';
@@ -39,24 +39,34 @@ const getFocusableElements = (
   return filteredElements;
 };
 
-const getFocusData = (
-  root: HTMLElement,
-  direction: "next" | "prev" | "first" | "last",
-  extraElement?: HTMLButtonElement
-) => {
+const getFocusData = (args: {
+  root: HTMLElement;
+  target: "next" | "prev" | "first" | "last";
+  mode?: TrapMode;
+  extraElement?: HTMLButtonElement;
+}) => {
+  const { root, extraElement, target, mode } = args;
   const focusable = getFocusableElements(root, extraElement);
   const focusableLimit = focusable.length - 1;
   const currentElement = getActiveElement();
   const currentIndex = focusable.indexOf(currentElement);
-  let nextIndex = {
+  const positions = {
     next: currentIndex + 1,
     prev: currentIndex - 1,
     first: 0,
     last: focusableLimit,
-  }[direction];
+  };
+  let nextIndex = positions[target];
 
   const isOverflow = nextIndex > focusableLimit || nextIndex < 0;
-  if (isOverflow) nextIndex = direction === "prev" ? focusableLimit : 0;
+  if (isOverflow) {
+    // Disable circular navigation for action menus
+    if (mode === "action-menu") {
+      nextIndex = target === "prev" ? positions.first : positions.last;
+    } else {
+      nextIndex = target === "prev" ? positions.last : positions.first;
+    }
+  }
 
   return { overflow: isOverflow, el: focusable[nextIndex] };
 };
@@ -65,7 +75,7 @@ const focusElement = (
   root: HTMLElement,
   target: "next" | "prev" | "first" | "last"
 ) => {
-  const data = getFocusData(root, target);
+  const data = getFocusData({ root, target });
   if (data.el) data.el.focus();
 };
 
@@ -122,7 +132,11 @@ const trapScreenReader = (() => {
 export const trapFocus = (() => {
   let resetListeners: null | (() => void) = null;
   let srTrap: ReturnType<typeof trapScreenReader> | null = null;
-  const chain = new Chain<{ root: HTMLElement; trigger: HTMLButtonElement }>();
+  const chain = new Chain<{
+    root: HTMLElement;
+    trigger: HTMLButtonElement;
+    options: TrapOptions;
+  }>();
 
   return (root: HTMLElement, options: TrapOptions = {}): Trap => {
     const { mode = "dialog", onNavigateOutside, includeTrigger } = options;
@@ -135,33 +149,27 @@ export const trapFocus = (() => {
 
     const release: Release = (releaseOptions = {}) => {
       const { withoutFocusReturn } = releaseOptions;
-      const keepFocusTrapped = !chain.isLast(chainId);
 
-      if (keepFocusTrapped) return;
+      chain.removePreviousTill(chainId, (item) =>
+        document.body.contains(item.data.trigger)
+      );
 
-      // We're keeping items in the chain when focus was preserver to have access to the original trigger later
-      const releaseChainItem = chainId
-        ? chain.removePreviousTill(chainId, (item) =>
-            document.body.contains(item.data.trigger)
-          )
-        : undefined;
-      const releaseTargetTrigger = releaseChainItem?.trigger || triggerElement;
-
-      if (releaseTargetTrigger) {
-        releaseTargetTrigger.focus({
+      if (triggerElement) {
+        triggerElement.focus({
           preventScroll: withoutFocusReturn || !isKeyboardMode(),
         });
       }
 
-      if (!resetListeners) return;
+      if (resetListeners) {
+        resetListeners();
+        if (srTrap) srTrap.release();
+        resetListeners = null;
+        srTrap = null;
+      }
 
-      resetListeners();
-      if (srTrap) srTrap.release();
-      resetListeners = null;
-      srTrap = null;
-
-      if (!chain.isEmpty && releaseChainItem?.root) {
-        trapFocus(releaseChainItem.root);
+      const previousItem = chain.tailId && chain.get(chain.tailId);
+      if (previousItem) {
+        trapFocus(previousItem.data.root, previousItem.data.options);
       }
     };
 
@@ -174,11 +182,12 @@ export const trapFocus = (() => {
       const isDown = isArrowsMode && key === DOWN;
       const isPrev = (isBackTab && isTabMode) || isUp;
       const isNext = (isNextTab && isTabMode) || isDown;
-      const focusData = getFocusData(
+      const focusData = getFocusData({
         root,
-        isPrev ? "prev" : "next",
-        includeTrigger ? triggerElement : undefined
-      );
+        target: isPrev ? "prev" : "next",
+        extraElement: includeTrigger ? triggerElement : undefined,
+        mode,
+      });
 
       // Release the trap when tab is used in navigation modes that support arrows
       const hasNavigatedOutside =
@@ -186,12 +195,12 @@ export const trapFocus = (() => {
         (isContentMenu && isTab && focusData.overflow);
 
       if (hasNavigatedOutside) {
-        // if (mode !== "content-menu") {
-        // event.preventDefault();
-        // }
+        // Prevent shift + tab event to avoid focus moving after the trap release
+        if (isBackTab && getActiveElement() !== triggerElement)
+          event.preventDefault();
 
         release();
-        if (onNavigateOutside) onNavigateOutside();
+        onNavigateOutside?.();
         return;
       }
 
@@ -213,9 +222,12 @@ export const trapFocus = (() => {
 
     if (!focusable.length) return null;
 
-    chainId = chain.add({ root, trigger: triggerElement });
-
-    focusable[0].focus();
+    // Don't add back to the chain if we're traversing back
+    const tailItem = chain.tailId && chain.get(chain.tailId);
+    if (!tailItem || root !== tailItem.data.root) {
+      chainId = chain.add({ root, trigger: triggerElement, options });
+      focusable[0].focus();
+    }
 
     document.addEventListener("keydown", handleKeyDown);
     resetListeners = () =>

@@ -2,6 +2,7 @@
   position: absolute;
   top: 0;
   left: 0;
+
   /* Trap focus should be able to find this element with 1px height */
   width: 1px;
   height: 1px;

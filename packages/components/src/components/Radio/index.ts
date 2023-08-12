@@ -1,2 +1,2 @@
 export { default } from "./Radio";
-export { Props as RadioProps } from "./Radio.types";
+export type { Props as RadioProps } from "./Radio.types";

@@ -103,8 +103,8 @@ const Carousel = (props: T.Props) => {
       {...attributes}
       className={rootClassNames}
       style={{
-        ...responsiveVariables("--_i", visibleItems),
-        ...responsiveVariables("--_b", bleed),
+        ...responsiveVariables("--uic-carousel-items", visibleItems),
+        ...responsiveVariables("--uic-carousel-bleed", bleed),
       }}
     >
       {navigationDisplay !== "hidden" && (

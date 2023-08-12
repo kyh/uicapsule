@@ -8,21 +8,19 @@ import { useTheme, useGlobalColorMode } from "./useTheme";
 import * as T from "./Theme.types";
 import s from "./Theme.module.css";
 
-const ThemeProvider = (props: T.Props) => {
-  const { theme, defaultTheme, colorMode, children, className } = props;
-  const [stateTheme, setStateTheme] = React.useState(defaultTheme);
+const Theme = (props: T.Props) => {
+  const { name, defaultName, colorMode, children, className } = props;
+  const [stateTheme, setStateTheme] = React.useState(defaultName);
   const globalColorMode = useGlobalColorMode();
   const parentTheme = useTheme();
   const isRootProvider = !parentTheme.theme;
-  const usedTheme = theme || stateTheme || parentTheme.theme;
+  const usedTheme = name || stateTheme || parentTheme.theme;
   const parentColorMode = isRootProvider
     ? globalColorMode
     : parentTheme.colorMode;
   const invertedColorMode = parentColorMode === "light" ? "dark" : "light";
   const usedColorMode =
     colorMode === "inverted" ? invertedColorMode : colorMode || parentColorMode;
-  const themeAttribute =
-    usedColorMode === "dark" ? `${usedTheme}-dark` : `${usedTheme}-light`;
   const rootClassNames = classNames(s.root, className);
 
   const setTheme = (theme: string) => {
@@ -31,12 +29,14 @@ const ThemeProvider = (props: T.Props) => {
 
   useIsomorphicLayoutEffect(() => {
     if (!document || !isRootProvider) return;
-    document.body.setAttribute("data-uic-theme", themeAttribute);
+    document.documentElement.setAttribute("data-uic-theme", usedTheme);
+    document.documentElement.setAttribute("data-uic-color-mode", usedColorMode);
 
     return () => {
-      document.body.removeAttribute("data-uic-theme");
+      document.documentElement.removeAttribute("data-uic-theme");
+      document.documentElement.removeAttribute("data-uic-color-mode");
     };
-  }, [themeAttribute, isRootProvider]);
+  }, [usedTheme, usedColorMode, isRootProvider]);
 
   return (
     <ThemeContext.Provider
@@ -48,7 +48,8 @@ const ThemeProvider = (props: T.Props) => {
     >
       <div
         className={rootClassNames}
-        data-uic-theme={isRootProvider ? undefined : themeAttribute}
+        data-uic-theme={isRootProvider ? undefined : usedTheme}
+        data-uic-color-mode={isRootProvider ? undefined : usedColorMode}
       >
         {children}
       </div>
@@ -56,4 +57,4 @@ const ThemeProvider = (props: T.Props) => {
   );
 };
 
-export default ThemeProvider;
+export default Theme;

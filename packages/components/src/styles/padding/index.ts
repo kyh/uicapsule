@@ -4,7 +4,7 @@ import s from "./padding.module.css";
 
 const getPaddingStyles: T.DynamicStyleUtility<number> = (value) => {
   if (!value) return null;
-  const variables = responsiveVariables("--_uic-p", value);
+  const variables = responsiveVariables("--uic-p", value);
 
   return { classNames: s.root, variables };
 };

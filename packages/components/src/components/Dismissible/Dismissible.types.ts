@@ -7,6 +7,7 @@ export type CloseProps = WithClose | WithoutClose;
 
 export type Props = CloseProps & {
   variant?: "media";
+  align?: "top" | "center";
   children?: React.ReactNode;
   onClose?: () => void;
   className?: G.ClassName;

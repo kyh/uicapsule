@@ -1,2 +1,2 @@
 export { default } from "./TextArea";
-export { Props as TextAreaProps } from "./TextArea.types";
+export type { Props as TextAreaProps } from "./TextArea.types";

@@ -11,3 +11,7 @@
 .item + .item {
   margin-top: var(--uic-unit-x1);
 }
+
+[dir="rtl"] .arrow {
+  transform: scaleX(-1);
+}

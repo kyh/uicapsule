@@ -1,12 +1,13 @@
 .root {
   display: inline-flex;
+  gap: var(--uic-unit-x2);
   vertical-align: top;
   align-items: center;
   cursor: pointer;
   user-select: none;
 }
 
-.root:hover .input:not(:checked):not(:indeterminate) + .decorator {
+.root:hover .decorator {
   background: var(--uic-color-background-neutral-faded);
 }
 
@@ -15,11 +16,11 @@
 }
 
 .decorator {
-  width: var(--uic-unit-x5);
-  height: var(--uic-unit-x5);
+  width: var(--uic-line-height-body-3);
+  height: var(--uic-line-height-body-3);
   border-radius: var(--uic-unit-radius-small);
   border: 1px solid var(--uic-color-border-neutral);
-  background: var(--uic-color-background-base);
+  background: var(--uic-color-background-elevation-base);
 }
 
 .icon {
@@ -30,17 +31,18 @@
   opacity: 0;
 }
 
-[data-rs-keyboard] .input:focus + .decorator {
+[data-uic-keyboard] .input:focus + .decorator {
   box-shadow: var(--uic-focus-shadow);
 }
 
 .input:indeterminate + .decorator,
+.root:hover .input:indeterminate + .decorator,
 .root.--error .input:indeterminate + .decorator,
 .root.--error:hover .input:indeterminate + .decorator {
   border-color: var(--uic-color-background-primary);
   background: var(--uic-color-background-primary);
 
-  &:before {
+  &::before {
     content: "";
     position: absolute;
     top: 50%;
@@ -54,6 +56,7 @@
 }
 
 .input:checked + .decorator,
+.root:hover .input:checked + .decorator,
 .root.--error .input:checked + .decorator,
 .root.--error:hover .input:checked + .decorator {
   border-color: var(--uic-color-background-primary);
@@ -65,13 +68,8 @@
   }
 }
 
-.text {
-  margin-inline-start: var(--uic-unit-x2);
-}
-
 .root.--error {
-  & .decorator,
-  &:hover .input + .decorator {
+  & .decorator {
     border-color: var(--uic-color-border-critical);
   }
 }
@@ -81,23 +79,27 @@
   color: var(--uic-color-foreground-disabled);
 
   & .decorator,
+  &:hover .decorator,
   & .input:checked + .decorator,
-  &:hover .input + .decorator {
+  &:hover .input:checked + .decorator {
     background: var(--uic-color-background-disabled-faded);
     border-color: var(--uic-color-border-disabled);
     color: var(--uic-color-foreground-disabled);
   }
 
   & .input:checked + .decorator,
-  & .input:indeterminate + .decorator {
+  &:hover .input:checked + .decorator,
+  & .input:indeterminate + .decorator,
+  &:hover .input:indeterminate + .decorator {
+    background: var(--uic-color-background-disabled);
     border-color: transparent;
   }
 
-  & .input:indeterminate + .decorator:before {
+  & .input:indeterminate + .decorator::before {
     background: var(--uic-color-foreground-disabled);
   }
 
-  & .input:checked + .decorator:after {
+  & .input:checked + .decorator::after {
     background: var(--uic-color-border-disabled);
   }
 }

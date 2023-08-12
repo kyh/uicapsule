@@ -18,6 +18,7 @@ const FlyoutContent = (props: T.ContentProps) => {
     triggerType,
     handleMouseEnter,
     handleMouseLeave,
+    contentGap,
     contentClassName,
     contentAttributes,
     trapFocusMode,
@@ -51,14 +52,16 @@ const FlyoutContent = (props: T.ContentProps) => {
   const content = (
     <div
       className={contentClassNames}
-      style={styles}
+      style={
+        { ...styles, "--uic-flyout-gap": contentGap } as React.CSSProperties
+      }
       ref={flyoutElRef}
       id={id}
       role={role}
       aria-modal={triggerType === "click"}
       onTransitionEnd={handleTransitionEnd}
-      onMouseEnter={handleMouseEnter}
-      onMouseLeave={handleMouseLeave}
+      onMouseEnter={triggerType === "hover" ? handleMouseEnter : undefined}
+      onMouseLeave={triggerType === "hover" ? handleMouseLeave : undefined}
     >
       <div
         {...attributes}

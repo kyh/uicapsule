@@ -28,7 +28,7 @@ export const useSingletonRTL = (defaultRTL?: boolean) => {
       });
     });
 
-    observer.observe(document.body, { attributes: true });
+    observer.observe(document.documentElement, { attributes: true });
     return () => observer.disconnect();
   }, [isRTL]);
 
@@ -36,7 +36,7 @@ export const useSingletonRTL = (defaultRTL?: boolean) => {
    * Handle setRTL usage
    */
   useIsomorphicLayoutEffect(() => {
-    document.body.setAttribute("dir", isRTL ? "rtl" : "ltr");
+    document.documentElement.setAttribute("dir", isRTL ? "rtl" : "ltr");
   }, [isRTL]);
 
   return state;

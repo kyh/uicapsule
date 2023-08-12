@@ -13,10 +13,11 @@ import s from "./MenuItem.module.css";
 
 const MenuItemBase = (props: T.Props, ref: ActionableRef) => {
   const {
-    startIcon,
+    icon,
     startSlot,
     endSlot,
     children,
+    color = "primary",
     selected,
     disabled,
     onClick,
@@ -25,22 +26,21 @@ const MenuItemBase = (props: T.Props, ref: ActionableRef) => {
     roundedCorners,
     className,
     attributes,
-    icon,
   } = props;
   const rootClassNames = classNames(
     s.root,
     className,
     responsiveClassNames(s, "--size", size),
     responsiveClassNames(s, "--rounded-corners", roundedCorners),
+    color && s[`--color-${color}`],
     selected && s["--selected"],
     disabled && s["--disabled"]
   );
-  const gapSize = responsivePropDependency(size, (size) => {
-    const map = { large: 4, medium: 3, small: 2 };
-    return map[size];
-  });
+  const gapSize = responsivePropDependency(size, (size) =>
+    size === "large" ? 3 : 2
+  );
   const iconSize = responsivePropDependency(size, (size) =>
-    size === "small" ? 4 : 5
+    size === "large" ? 5 : 4
   );
 
   return (
@@ -53,11 +53,13 @@ const MenuItemBase = (props: T.Props, ref: ActionableRef) => {
       ref={ref}
     >
       <View direction="row" gap={gapSize} align="center">
-        {(startIcon || icon) && (
-          <Icon svg={(startIcon || icon)!} className={s.icon} size={iconSize} />
+        {icon && <Icon svg={icon} className={s.icon} size={iconSize} />}
+        {!icon && startSlot}
+        {children && (
+          <View.Item grow className={s.content}>
+            {children}
+          </View.Item>
         )}
-        {!startIcon && !icon && startSlot}
-        {children && <View.Item grow>{children}</View.Item>}
         {endSlot}
       </View>
     </Actionable>

@@ -28,10 +28,11 @@ const Actionable = (props: T.Props, ref: T.Ref) => {
     fullWidth && s["--full-width"]
   );
   const rootAttributes: T.Props["attributes"] = { ...attributes };
-  const clickHandler = onClick || (attributes?.onClick as T.Props["onClick"]);
-  const focusHandler = attributes?.onFocus || attributes?.onBlur;
+  const hasClickHandler =
+    onClick || (attributes?.onClick as T.Props["onClick"]);
+  const hasFocusHandler = attributes?.onFocus || attributes?.onBlur;
   const isLink = Boolean(href || attributes?.href);
-  const isButton = Boolean(clickHandler || focusHandler || type);
+  const isButton = Boolean(hasClickHandler || hasFocusHandler || type);
   let TagName: any;
 
   if (isLink) {
@@ -43,7 +44,7 @@ const Actionable = (props: T.Props, ref: T.Ref) => {
     rootAttributes.disabled = disabled || attributes?.disabled;
   } else if (isButton) {
     const isFocusable = as === "label";
-    const simulateButton = !isFocusable || clickHandler || focusHandler;
+    const simulateButton = !isFocusable || hasClickHandler || hasFocusHandler;
 
     TagName = as || "span";
     rootAttributes.role = simulateButton ? "button" : undefined;
@@ -53,7 +54,10 @@ const Actionable = (props: T.Props, ref: T.Ref) => {
   }
 
   const handlePress: T.Props["onClick"] = (event) => {
-    if (clickHandler && !disabled) clickHandler(event);
+    if (disabled) return;
+
+    onClick?.(event);
+    attributes?.onClick?.(event as any);
   };
 
   const handleClick = (event: React.MouseEvent<HTMLElement>) =>

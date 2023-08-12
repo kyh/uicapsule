@@ -6,7 +6,5 @@ export type Props = {
   visibility?: boolean;
   as?: keyof JSX.IntrinsicElements;
   displayStyle?: "inline" | "flex";
-  /** @deprecated Use displayStyle instead */
-  inline?: boolean;
   children: ((className: string) => React.ReactNode) | React.ReactNode;
 };

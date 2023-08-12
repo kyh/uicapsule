@@ -1,2 +1,2 @@
 export { default } from "./DropdownMenu";
-export { Props as DropdownMenuProps } from "./DropdownMenu.types";
+export type { Props as DropdownMenuProps } from "./DropdownMenu.types";

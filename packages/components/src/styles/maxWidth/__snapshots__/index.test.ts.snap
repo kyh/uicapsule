@@ -6,7 +6,7 @@ exports[`Styles/MaxWidth handles % value 1`] = `
     "literal",
   ],
   "variables": {
-    "--_uic-mw": "50%",
+    "--uic-max-w-s": "50%",
   },
 }
 `;
@@ -17,7 +17,7 @@ exports[`Styles/MaxWidth handles px value 1`] = `
     "literal",
   ],
   "variables": {
-    "--_uic-mw": "50px",
+    "--uic-max-w-s": "50px",
   },
 }
 `;
@@ -29,8 +29,8 @@ exports[`Styles/MaxWidth handles responsive value 1`] = `
     "literal--l",
   ],
   "variables": {
-    "--_uic-mw": "50px",
-    "--_uic-mw-l": "50%",
+    "--uic-max-w-l": "50%",
+    "--uic-max-w-s": "50px",
   },
 }
 `;
@@ -43,7 +43,7 @@ exports[`Styles/MaxWidth handles unit value 1`] = `
     "unit",
   ],
   "variables": {
-    "--_uic-mw": 5,
+    "--uic-max-w-s": 5,
   },
 }
 `;

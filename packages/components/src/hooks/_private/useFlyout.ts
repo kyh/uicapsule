@@ -7,17 +7,21 @@ import { onNextFrame } from "utilities/animation";
  * Typings
  */
 export type FlyoutPosition =
-  | "bottom-end"
   | "bottom"
   | "bottom-start"
-  | "top-end"
+  | "bottom-end"
   | "top"
   | "top-start"
+  | "top-end"
   | "start"
-  | "end";
-export type FlyoutWidth = "full" | string;
+  | "start-top"
+  | "start-bottom"
+  | "end"
+  | "end-top"
+  | "end-bottom";
+export type FlyoutWidth = "trigger" | string;
 type ElementRef = React.RefObject<HTMLElement>;
-type FlyoutOrderKey = "top" | "bottom" | "start" | "end";
+type FlyoutOrderKey = "bottom" | "top" | "end" | "start";
 type PassedFlyoutOptions = {
   width?: FlyoutWidth;
   position?: FlyoutPosition;
@@ -84,8 +88,8 @@ const SCREEN_OFFSET = 16;
 
 const topPos: FlyoutPosition[] = ["top-start", "top", "top-end"];
 const bottomPos: FlyoutPosition[] = ["bottom-start", "bottom", "bottom-end"];
-const startPos: FlyoutPosition[] = ["start"];
-const endPos: FlyoutPosition[] = ["end"];
+const startPos: FlyoutPosition[] = ["start", "start-bottom", "start-top"];
+const endPos: FlyoutPosition[] = ["end", "end-bottom", "end-top"];
 const order: Record<FlyoutOrderKey, FlyoutPosition[]> = {
   top: [...topPos, ...bottomPos, ...endPos, ...startPos],
   bottom: [...bottomPos, ...topPos, ...endPos, ...startPos],
@@ -93,13 +97,12 @@ const order: Record<FlyoutOrderKey, FlyoutPosition[]> = {
   end: [...endPos, ...startPos, ...topPos, ...bottomPos],
 };
 
-const rtlMap: { [key in FlyoutPosition]?: FlyoutPosition } = {
-  start: "end",
-  end: "start",
-  "top-start": "top-end",
-  "top-end": "top-start",
-  "bottom-end": "bottom-start",
-  "bottom-start": "bottom-end",
+const getRTLPosition = (position: FlyoutPosition) => {
+  if (position.includes("start"))
+    return position.replace("start", "end") as FlyoutPosition;
+  if (position.includes("end"))
+    return position.replace("end", "start") as FlyoutPosition;
+  return position;
 };
 
 /**
@@ -149,8 +152,10 @@ const calculatePosition: CalculatePosition = (
   let top = 0;
 
   let position = passedPosition;
-  if (rtl) position = rtlMap[position] || position;
-  if (width === "full") position = position.includes("top") ? "top" : "bottom";
+  if (rtl) position = getRTLPosition(position);
+  if (width === "full" || width === "trigger") {
+    position = position.includes("top") ? "top" : "bottom";
+  }
 
   switch (position) {
     case "bottom":
@@ -161,10 +166,14 @@ const calculatePosition: CalculatePosition = (
       break;
 
     case "start":
+    case "start-top":
+    case "start-bottom":
       left = originBounds.left - targetBounds.width;
       break;
 
     case "end":
+    case "end-top":
+    case "end-bottom":
       left = originBounds.right;
       break;
 
@@ -202,6 +211,16 @@ const calculatePosition: CalculatePosition = (
         originBounds.top;
       break;
 
+    case "start-top":
+    case "end-top":
+      top = originBounds.top;
+      break;
+
+    case "start-bottom":
+    case "end-bottom":
+      top = originBounds.bottom - targetBounds.height;
+      break;
+
     default:
       break;
   }
@@ -219,6 +238,8 @@ const calculatePosition: CalculatePosition = (
   if (width === "full") {
     left = SCREEN_OFFSET;
     widthStyle = window.innerWidth - SCREEN_OFFSET * 2;
+  } else if (width === "trigger") {
+    widthStyle = originBounds.width;
   }
 
   const styles = { left, top, width: widthStyle, height };
@@ -255,6 +276,7 @@ const resetStyles: FlyoutStyles = {
 const flyout: Flyout = (origin, target, options) => {
   const { position, forcePosition, width } = options;
   const targetClone = target.cloneNode(true) as any;
+  const originBounds = origin.getBoundingClientRect();
 
   // Reset all styles applied on the previous hook execution
   targetClone.style = "";
@@ -264,13 +286,16 @@ const flyout: Flyout = (origin, target, options) => {
     targetClone.style[key as any] = value!.toString();
   });
 
-  if (width && width !== "full") {
-    if (typeof width === "string") targetClone.style.width = width;
+  if (width) {
+    if (width === "trigger") {
+      targetClone.style.width = `${originBounds.width}px`;
+    } else if (width !== "full") {
+      targetClone.style.width = width;
+    }
   }
 
   document.body.appendChild(targetClone);
 
-  const originBounds = origin.getBoundingClientRect();
   const targetBounds = targetClone.getBoundingClientRect();
   let calculated = calculatePosition(originBounds, targetBounds, options);
 
@@ -288,10 +313,9 @@ const flyout: Flyout = (origin, target, options) => {
       testOrder.some((currentPosition) => {
         const calculateOptions = {
           ...options,
+          width: fullWidth ? "full" : options.width,
           position: currentPosition,
         };
-
-        if (fullWidth) calculateOptions.width = "full";
 
         const tested = calculatePosition(
           originBounds,

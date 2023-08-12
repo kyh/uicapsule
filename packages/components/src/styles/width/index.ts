@@ -4,7 +4,7 @@ import s from "./width.module.css";
 
 const getWidthStyles: T.DynamicStyleUtility<string | number> = (value) => {
   if (!value) return null;
-  const variables = responsiveVariables("--_uic-w", value);
+  const variables = responsiveVariables("--uic-w", value);
   const classNames = responsiveClassNames(
     s,
     (value) => (typeof value === "number" ? "unit" : "literal"),

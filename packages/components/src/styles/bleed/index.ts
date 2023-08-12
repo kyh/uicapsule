@@ -20,7 +20,7 @@ const getBleedStyles: T.DynamicStyleUtility<number> = (value) => {
       )
     ),
   ];
-  const variables = responsiveVariables("--_uic-bleed", value);
+  const variables = responsiveVariables("--uic-bleed", value);
 
   return { classNames, variables };
 };

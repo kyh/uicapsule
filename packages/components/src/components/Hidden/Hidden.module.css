@@ -5,38 +5,20 @@
 
 .root {
   --uic-hidden-display: block;
+
   display: var(--uic-hidden-display) !important;
 }
 
-.--display {
-  &-inline {
-    --uic-hidden-display: inline;
-  }
-
-  &-flex {
-    --uic-hidden-display: flex;
-  }
+.--display-inline {
+  --uic-hidden-display: inline;
 }
 
-.--hidden {
-  display: none !important;
-
-  &.--visibility {
-    display: var(--uic-hidden-display) !important;
-    visibility: hidden;
-  }
+.--display-flex {
+  --uic-hidden-display: flex;
 }
 
-@media (--uic-viewport-m) {
-  .--hidden-false--m {
-    display: var(--uic-hidden-display) !important;
-
-    &.--visibility {
-      visibility: visible;
-    }
-  }
-
-  .--hidden-true--m {
+@responsive .--hidden {
+  @value true {
     display: none !important;
 
     &.--visibility {
@@ -44,42 +26,12 @@
       visibility: hidden;
     }
   }
-}
 
-@media (--uic-viewport-l) {
-  .--hidden-false--l {
+  @value false {
     display: var(--uic-hidden-display) !important;
 
     &.--visibility {
       visibility: visible;
-    }
-  }
-
-  .--hidden-true--l {
-    display: none !important;
-
-    &.--visibility {
-      display: var(--uic-hidden-display) !important;
-      visibility: hidden;
-    }
-  }
-}
-
-@media (--uic-viewport-xl) {
-  .--hidden-false--xl {
-    display: var(--uic-hidden-display) !important;
-
-    &.--visibility {
-      visibility: visible;
-    }
-  }
-
-  .--hidden-true--xl {
-    display: none !important;
-
-    &.--visibility {
-      display: var(--uic-hidden-display) !important;
-      visibility: hidden;
     }
   }
 }

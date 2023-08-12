@@ -2,7 +2,7 @@
 
 import React from "react";
 import { classNames } from "utilities/helpers";
-import ThemeProvider, { GlobalColorMode } from "components/Theme";
+import Theme, { GlobalColorMode } from "components/Theme";
 import { ToastProvider } from "components/Toast";
 import useSingletonKeyboardMode from "hooks/_private/useSingletonKeyboardMode";
 import {
@@ -42,13 +42,9 @@ const UIC = (props: T.Props) => {
 
   return (
     <GlobalColorMode defaultMode={defaultColorMode}>
-      <ThemeProvider
-        theme={theme}
-        defaultTheme={defaultTheme}
-        className={rootClassNames}
-      >
+      <Theme name={theme} defaultName={defaultTheme} className={rootClassNames}>
         <UICInner {...props}>{props.children}</UICInner>
-      </ThemeProvider>
+      </Theme>
     </GlobalColorMode>
   );
 };

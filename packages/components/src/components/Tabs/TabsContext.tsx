@@ -3,13 +3,7 @@
 import React from "react";
 import type * as T from "./Tabs.types";
 
-const Context = React.createContext<T.Context>({
-  value: undefined,
-  name: undefined,
-  onChange: () => {},
-  setDefaultValue: () => {},
-  id: "",
-});
+const Context = React.createContext({} as T.Context);
 
 export const TabsProvider = Context.Provider;
 

@@ -83,7 +83,7 @@ export const bleed = () => (
     </Example.Item>
 
     <Example.Item
-      title={["responsive bleed, visibleItems: 3", "[s] 4, [m+] 0"]}
+      title={["responsive bleed, visibleItems: 3", "[s] 4, [l+] 0"]}
     >
       <Carousel visibleItems={3} bleed={{ s: 4, l: 0 }}>
         <Placeholder h={100} />

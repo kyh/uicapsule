@@ -1,41 +1,41 @@
-.root {
-  --_uic-i: ;
-  --_uic-i-m: var(--_uic-i);
-  --_uic-i-l: var(--_uic-i-m);
-  --_uic-i-xl: var(--_uic-i-l);
-  --_uic-i-responsive: var(--_uic-i);
-
-  inset: calc(var(--_uic-i-responsive) * var(--uic-unit-x1));
+.--inset {
+  inset: calc(var(--uic-inset) * var(--uic-unit-x1));
 }
 
-@each $viewport in m, l, xl {
-  @media (--uic-viewport-$viewport) {
-    .root {
-      --_uic-i-responsive: var(--_uic-i-$(viewport));
-    }
+@responsive .--inset {
+  @value end {
+    inset-inline-end: calc(var(--uic-inset-end) * var(--uic-unit-x1));
+  }
+
+  @value start {
+    inset-inline-start: calc(var(--uic-inset-start) * var(--uic-unit-x1));
+  }
+
+  @value top {
+    inset-block-start: calc(var(--uic-inset-top) * var(--uic-unit-x1));
+  }
+
+  @value bottom {
+    inset-block-end: calc(var(--uic-inset-bottom) * var(--uic-unit-x1));
   }
 }
 
-@each $side, $property in (start, end, top, bottom),
-  (inline-start, inline-end, block-start, block-bottom)
-{
-  .root-$(side) {
-    --_uic-i-$(side): ;
-    --_uic-i-$(side)-m: var(--_uic-$(side)-i);
-    --_uic-i-$(side)-l: var(--_uic-$(side)-i-m);
-    --_uic-i-$(side)-xl: var(--_uic-$(side)-i-l);
-    --_uic-i-$(side)-responsive: var(--_uic-i-$(side));
+@responsive .--inset {
+  @variable --uic-inset 0;
+}
 
-    inset-$(property): calc(
-      var(--_uic-i-$(side)-responsive) * var(--uic-unit-x1)
-    );
-  }
+@responsive .--inset-end {
+  @variable --uic-inset-end 0;
+}
 
-  @each $viewport in m, l, xl {
-    @media (--uic-viewport-$(viewport)) {
-      .root-$(side)--$(viewport) {
-        --_uic-i-$(side)-responsive: var(--_uic-i-$(side)-$(viewport));
-      }
-    }
-  }
+@responsive .--inset-start {
+  @variable --uic-inset-start 0;
+}
+
+@responsive .--inset-top {
+  @variable --uic-inset-top 0;
+}
+
+@responsive .--inset-bottom {
+  @variable --uic-inset-bottom 0;
 }

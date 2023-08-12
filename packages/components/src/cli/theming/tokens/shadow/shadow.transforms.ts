@@ -1,4 +1,4 @@
-import { hexToRgbString } from "../../utilities/color";
+import { hexToRgbString } from "../../../utilities/color";
 import type * as T from "./shadow.types";
 import { Transformer } from "../types";
 

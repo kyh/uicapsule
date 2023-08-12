@@ -3,72 +3,137 @@
   transition: color var(--uic-duration-fast) var(--uic-easing-standard);
 }
 
-@each $value in start, center, end {
-  .--align-$(value) {
-    text-align: $value;
-  }
-}
-
-@each $viewport in m, l, xl {
-  @media (--uic-viewport-$viewport) {
-    @each $value in start, center, end {
-      .--align-$(value)--$(viewport) {
-        text-align: $value;
-      }
-    }
-  }
-}
-
 .--clamp {
   display: -webkit-box;
   -webkit-box-orient: vertical;
-  -webkit-line-clamp: var(--_ml);
+  -webkit-line-clamp: var(--uic-text-lines);
   overflow: hidden;
 }
 
-@each $variant in display-1, display-2, display-3, featured-1, featured-2,
-  featured-3, title-1, title-2, title-3, body-strong-1, body-strong-2,
-  body-medium-1, body-medium-2, body-1, body-2, caption-1, caption-2
-{
-  .--variant-$(variant) {
-    font-size: var(--uic-font-size-$(variant));
-    line-height: var(--uic-line-height-$(variant));
-    font-weight: var(--uic-font-weight-$(variant));
-    font-family: var(--uic-font-family-$(variant));
+@responsive .--align {
+  @value start {
+    text-align: start;
+  }
 
-    @each $viewport in m, l, xl {
-      @media (--uic-viewport-$(viewport)) {
-        font-size: var(--uic-font-size-$(variant)-$(viewport));
-        line-height: var(--uic-line-height-$(variant)-$(viewport));
-        font-weight: var(--uic-font-weight-$(variant)-$(viewport));
-        font-family: var(--uic-font-family-$(variant)-$(viewport));
-      }
-    }
+  @value center {
+    text-align: center;
+  }
+
+  @value end {
+    text-align: end;
   }
 }
 
-.--color-neutral {
-  color: var(--uic-color-foreground-neutral);
+@responsive .--variant {
+  @value title-1 {
+    font-size: var(--uic-font-size-title-1);
+    line-height: var(--uic-line-height-title-1);
+    font-weight: var(--uic-font-weight-title-1);
+    font-family: var(--uic-font-family-title-1);
+  }
+
+  @value title-2 {
+    font-size: var(--uic-font-size-title-2);
+    line-height: var(--uic-line-height-title-2);
+    font-weight: var(--uic-font-weight-title-2);
+    font-family: var(--uic-font-family-title-2);
+  }
+
+  @value title-3 {
+    font-size: var(--uic-font-size-title-3);
+    line-height: var(--uic-line-height-title-3);
+    font-weight: var(--uic-font-weight-title-3);
+    font-family: var(--uic-font-family-title-3);
+  }
+
+  @value title-4 {
+    font-size: var(--uic-font-size-title-4);
+    line-height: var(--uic-line-height-title-4);
+    font-weight: var(--uic-font-weight-title-4);
+    font-family: var(--uic-font-family-title-4);
+  }
+
+  @value title-5 {
+    font-size: var(--uic-font-size-title-5);
+    line-height: var(--uic-line-height-title-5);
+    font-weight: var(--uic-font-weight-title-5);
+    font-family: var(--uic-font-family-title-5);
+  }
+
+  @value title-6 {
+    font-size: var(--uic-font-size-title-6);
+    line-height: var(--uic-line-height-title-6);
+    font-weight: var(--uic-font-weight-title-6);
+    font-family: var(--uic-font-family-title-6);
+  }
+
+  @value featured-1 {
+    font-size: var(--uic-font-size-featured-1);
+    line-height: var(--uic-line-height-featured-1);
+    font-weight: var(--uic-font-weight-featured-1);
+    font-family: var(--uic-font-family-featured-1);
+  }
+
+  @value featured-2 {
+    font-size: var(--uic-font-size-featured-2);
+    line-height: var(--uic-line-height-featured-2);
+    font-weight: var(--uic-font-weight-featured-2);
+    font-family: var(--uic-font-family-featured-2);
+  }
+
+  @value featured-3 {
+    font-size: var(--uic-font-size-featured-3);
+    line-height: var(--uic-line-height-featured-3);
+    font-weight: var(--uic-font-weight-featured-3);
+    font-family: var(--uic-font-family-featured-3);
+  }
+
+  @value body-1 {
+    font-size: var(--uic-font-size-body-1);
+    line-height: var(--uic-line-height-body-1);
+    font-weight: var(--uic-font-weight-body-1);
+    font-family: var(--uic-font-family-body-1);
+  }
+
+  @value body-2 {
+    font-size: var(--uic-font-size-body-2);
+    line-height: var(--uic-line-height-body-2);
+    font-weight: var(--uic-font-weight-body-2);
+    font-family: var(--uic-font-family-body-2);
+  }
+
+  @value body-3 {
+    font-size: var(--uic-font-size-body-3);
+    line-height: var(--uic-line-height-body-3);
+    font-weight: var(--uic-font-weight-body-3);
+    font-family: var(--uic-font-family-body-3);
+  }
+
+  @value caption-1 {
+    font-size: var(--uic-font-size-caption-1);
+    line-height: var(--uic-line-height-caption-1);
+    font-weight: var(--uic-font-weight-caption-1);
+    font-family: var(--uic-font-family-caption-1);
+  }
+
+  @value caption-2 {
+    font-size: var(--uic-font-size-caption-2);
+    line-height: var(--uic-line-height-caption-2);
+    font-weight: var(--uic-font-weight-caption-2);
+    font-family: var(--uic-font-family-caption-2);
+  }
 }
 
-.--color-neutral-faded {
-  color: var(--uic-color-foreground-neutral-faded);
+@each $weight in regular, medium, bold {
+  .--weight-$(weight) {
+    font-weight: var(--uic-font-weight-$(weight)) !important;
+  }
 }
 
-.--color-positive {
-  color: var(--uic-color-foreground-positive);
-}
-
-.--color-critical {
-  color: var(--uic-color-foreground-critical);
-}
-
-.--color-primary {
-  color: var(--uic-color-foreground-primary);
-}
-
-.--color-disabled {
-  color: var(--uic-color-foreground-disabled);
+@each $color in neutral, neutral-faded, primary, positive, critical, disabled {
+  .--color-$(color) {
+    color: var(--uic-color-foreground-$(color));
+  }
 }
 
 .--decoration-line-through {

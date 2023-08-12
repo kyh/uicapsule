@@ -3,14 +3,13 @@ import Card from "components/Card";
 import Button from "components/Button";
 import View from "components/View";
 import MenuItem from "components/MenuItem";
-import ThemeProvider, { useTheme } from "components/Theme";
+import Theme, { useTheme } from "components/Theme";
 import { Example } from "utilities/storybook";
 
 export default { title: "Utilities/Theme" };
 
 const UncontrolledDemo = () => {
   const { setTheme, theme } = useTheme();
-  console.log(theme);
 
   return (
     <Button
@@ -43,9 +42,9 @@ const Demo = () => {
 
       <Card>Default card</Card>
 
-      <ThemeProvider colorMode="inverted">
+      <Theme colorMode="inverted">
         <Card>Inverted card</Card>
-      </ThemeProvider>
+      </Theme>
     </View>
   );
 };

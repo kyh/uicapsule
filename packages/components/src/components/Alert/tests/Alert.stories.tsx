@@ -12,10 +12,12 @@ export const color = () => (
       <Alert
         title="Alert title goes here"
         icon={IconZap}
-        actionsSlot={[
-          <Link variant="plain">View now</Link>,
-          <Link variant="plain">Dismiss</Link>,
-        ]}
+        actionsSlot={
+          <>
+            <Link variant="plain">View now</Link>
+            <Link variant="plain">Dismiss</Link>
+          </>
+        }
       >
         Lorem Ipsum is simply dummy text of the printing and typesetting
         industry. Lorem Ipsum has been the industry's standard
@@ -27,10 +29,12 @@ export const color = () => (
         color="primary"
         title="Alert title goes here"
         icon={IconZap}
-        actionsSlot={[
-          <Link variant="plain">View now</Link>,
-          <Link variant="plain">Dismiss</Link>,
-        ]}
+        actionsSlot={
+          <>
+            <Link variant="plain">View now</Link>
+            <Link variant="plain">Dismiss</Link>
+          </>
+        }
       >
         Lorem Ipsum is simply dummy text of the printing and typesetting
         industry. Lorem Ipsum has been the industry's standard
@@ -42,10 +46,16 @@ export const color = () => (
         color="critical"
         title="Alert title goes here"
         icon={IconZap}
-        actionsSlot={[
-          <Link variant="plain">View now</Link>,
-          <Link variant="plain">Dismiss</Link>,
-        ]}
+        actionsSlot={
+          <>
+            <Link variant="plain" color="critical">
+              View now
+            </Link>
+            <Link variant="plain" color="critical">
+              Dismiss
+            </Link>
+          </>
+        }
       >
         Lorem Ipsum is simply dummy text of the printing and typesetting
         industry. Lorem Ipsum has been the industry's standard
@@ -57,10 +67,16 @@ export const color = () => (
         color="positive"
         title="Alert title goes here"
         icon={IconZap}
-        actionsSlot={[
-          <Link variant="plain">View now</Link>,
-          <Link variant="plain">Dismiss</Link>,
-        ]}
+        actionsSlot={
+          <>
+            <Link variant="plain" color="positive">
+              View now
+            </Link>
+            <Link variant="plain" color="positive">
+              Dismiss
+            </Link>
+          </>
+        }
       >
         Lorem Ipsum is simply dummy text of the printing and typesetting
         industry. Lorem Ipsum has been the industry's standard
@@ -76,10 +92,12 @@ export const inline = () => (
         inline
         title="Alert title goes here"
         icon={IconZap}
-        actionsSlot={[
-          <Link variant="plain">View now</Link>,
-          <Link variant="plain">Dismiss</Link>,
-        ]}
+        actionsSlot={
+          <>
+            <Link variant="plain">View now</Link>
+            <Link variant="plain">Dismiss</Link>
+          </>
+        }
       >
         Lorem Ipsum is simply dummy text of the printing and typesetting
         industry. Lorem Ipsum has been the industry's standard

@@ -1,5 +1,4 @@
 .root {
-  cursor: pointer;
   display: inline-block;
   vertical-align: top;
   text-decoration: none;
@@ -8,7 +7,6 @@
   font-size: inherit;
   font-weight: inherit;
   text-align: initial;
-  border: none;
   padding: 0;
   border: 0;
   margin: 0;
@@ -17,8 +15,13 @@
 
   &:focus {
     outline: none;
-    z-index: var(--uic-z-index-elevated);
+    z-index: var(--uic-z-index-raised);
   }
+}
+
+button.root,
+[role="button"].root {
+  cursor: pointer;
 }
 
 .root.--disabled,
@@ -34,15 +37,15 @@
   width: 100%;
 }
 
-[data-rs-keyboard] .root:focus {
+[data-uic-keyboard] .root:focus {
   box-shadow: var(--uic-focus-shadow);
 }
 
-[data-rs-keyboard] .root.--inset:focus {
+[data-uic-keyboard] .root.--inset:focus {
   box-shadow: var(--uic-focus-inset-shadow);
 }
 
-[data-rs-keyboard] .root.--radius-inherit {
+[data-uic-keyboard] .root.--radius-inherit {
   &:focus {
     box-shadow: none;
   }

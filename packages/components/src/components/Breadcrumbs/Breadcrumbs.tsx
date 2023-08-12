@@ -16,7 +16,7 @@ const BreadcrumbsItem = (props: T.ItemProps) => {
 
   if (!href && !onClick && !disabled) {
     return (
-      <Text variant="body-medium-2" color="neutral">
+      <Text variant="body-3" weight="medium" color="neutral">
         {children}
       </Text>
     );
@@ -42,6 +42,7 @@ const Breadcrumbs = (props: T.Props) => {
     separator,
     color,
     defaultVisibleItems,
+    ariaLabel,
     className,
     attributes,
   } = props;
@@ -59,7 +60,11 @@ const Breadcrumbs = (props: T.Props) => {
   };
 
   return (
-    <nav {...attributes} className={rootClassNames}>
+    <nav
+      {...attributes}
+      aria-label={ariaLabel || attributes?.["aria-label"]}
+      className={rootClassNames}
+    >
       <View as="ol" direction="row" gap={2} align="center">
         {React.Children.map(children, (child, index) => {
           if (!child) return null;
@@ -82,7 +87,7 @@ const Breadcrumbs = (props: T.Props) => {
                 <Button
                   variant="ghost"
                   size="small"
-                  startIcon={IconDotsHorizontal}
+                  icon={IconDotsHorizontal}
                   onClick={handleExpand}
                 />
               </Button.Aligner>
@@ -92,24 +97,19 @@ const Breadcrumbs = (props: T.Props) => {
           if (itemNode === null) return null;
 
           return (
-            <React.Fragment key={index}>
+            <View as="li" key={index} gap={2} direction="row" align="center">
               {index > 0 && (isDisplayed || isCollapseButton) && (
-                <Text
-                  as="li"
-                  attributes={{ role: "presentation" }}
-                  color="neutral-faded"
-                >
+                <Text color="neutral-faded">
                   {separator || <Icon svg={IconChevronRight} size={3} />}
                 </Text>
               )}
               <Text
-                variant="body-2"
+                variant="body-3"
                 color={color === "primary" ? "primary" : "neutral-faded"}
-                as="li"
               >
                 {itemNode}
               </Text>
-            </React.Fragment>
+            </View>
           );
         })}
       </View>

@@ -11,9 +11,15 @@ import * as T from "./Accordion.types";
 import s from "./Accordion.module.css";
 
 const AccordionTrigger = (props: T.TriggerProps) => {
-  const { children, iconSize } = props;
-  const { active, onToggle, triggerId, contentId } =
-    React.useContext(AccordionContext);
+  const { children } = props;
+  const {
+    active,
+    onToggle,
+    triggerId,
+    contentId,
+    iconPosition = "end",
+    iconSize,
+  } = React.useContext(AccordionContext);
   const iconClassNames = classNames(s.icon, active && s["icon--active"]);
 
   const handleClick = () => {
@@ -32,7 +38,11 @@ const AccordionTrigger = (props: T.TriggerProps) => {
 
   return (
     <Actionable onClick={handleClick} fullWidth attributes={attributes}>
-      <View gap={4} direction="row" align="center">
+      <View
+        gap={2}
+        direction={iconPosition === "start" ? "row-reverse" : "row"}
+        align="center"
+      >
         <View.Item grow>{children}</View.Item>
         <Icon
           size={iconSize || 4}

@@ -5,7 +5,6 @@ import Icon from "components/Icon";
 import Text from "components/Text";
 import IconZap from "icons/Zap";
 import IconMic from "icons/Mic";
-import AspectRatio from "components/_deprecated/AspectRatio";
 
 export default { title: "Utilities/Icon" };
 
@@ -26,7 +25,7 @@ export const size = () => (
       <Icon svg={IconZap} size={{ s: 5, m: 10 }} />
     </Example.Item>
     <Example.Item title="size: inherit from font">
-      <Text variant="display-1">
+      <Text variant="title-6">
         <View direction="row" align="center" gap={2}>
           <Icon svg={IconZap} />
           <View.Item>UIC</View.Item>
@@ -39,7 +38,7 @@ export const size = () => (
 export const color = () => (
   <Example>
     <Example.Item title="color: neutral">
-      <Icon svg={IconZap} />
+      <Icon svg={IconZap} color="neutral" />
     </Example.Item>
     <Example.Item title="color: neutral-faded">
       <Icon svg={IconZap} color="neutral-faded" />
@@ -52,6 +51,9 @@ export const color = () => (
     </Example.Item>
     <Example.Item title="color: positive">
       <Icon svg={IconZap} color="positive" />
+    </Example.Item>
+    <Example.Item title="color: disabled">
+      <Icon svg={IconZap} color="disabled" />
     </Example.Item>
     <Example.Item title="color: inherit">
       <div style={{ color: "tomato" }}>

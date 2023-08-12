@@ -16,6 +16,8 @@ const Checkbox = (props: T.Props) => {
     children,
     value,
     onChange,
+    onFocus,
+    onBlur,
     indeterminate,
     className,
     attributes,
@@ -67,6 +69,8 @@ const Checkbox = (props: T.Props) => {
           disabled={disabled}
           value={value}
           onChange={handleChange}
+          onFocus={onFocus}
+          onBlur={onBlur}
           attributes={{
             ...inputAttributes,
             ref: inputRef,

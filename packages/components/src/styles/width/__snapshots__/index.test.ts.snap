@@ -6,7 +6,7 @@ exports[`Styles/Width handles % value 1`] = `
     "literal",
   ],
   "variables": {
-    "--_uic-w": "50%",
+    "--uic-w-s": "50%",
   },
 }
 `;
@@ -17,7 +17,7 @@ exports[`Styles/Width handles px value 1`] = `
     "literal",
   ],
   "variables": {
-    "--_uic-w": "50px",
+    "--uic-w-s": "50px",
   },
 }
 `;
@@ -29,8 +29,8 @@ exports[`Styles/Width handles responsive value 1`] = `
     "literal--l",
   ],
   "variables": {
-    "--_uic-w": "50px",
-    "--_uic-w-l": "50%",
+    "--uic-w-l": "50%",
+    "--uic-w-s": "50px",
   },
 }
 `;
@@ -43,7 +43,7 @@ exports[`Styles/Width handles unit value 1`] = `
     "unit",
   ],
   "variables": {
-    "--_uic-w": 5,
+    "--uic-w-s": 5,
   },
 }
 `;

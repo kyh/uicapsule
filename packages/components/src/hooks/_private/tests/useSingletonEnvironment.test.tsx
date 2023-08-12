@@ -19,15 +19,15 @@ describe("hooks/_private/useSingletonEnvironment", () => {
 
     const button = screen.getByRole("button");
     await userEvent.click(button);
-    expect(document.body).toHaveAttribute("dir", "rtl");
+    expect(document.documentElement).toHaveAttribute("dir", "rtl");
     await userEvent.click(button);
-    expect(document.body).toHaveAttribute("dir", "ltr");
+    expect(document.documentElement).toHaveAttribute("dir", "ltr");
   });
 
   it("updates state on attribute manual change", async () => {
     render(<Test />);
 
-    document.body.setAttribute("dir", "rtl");
+    document.documentElement.setAttribute("dir", "rtl");
     await waitFor(() => {
       expect(screen.queryByText("RTL")).toBeInTheDocument();
     });

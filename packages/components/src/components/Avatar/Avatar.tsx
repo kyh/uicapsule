@@ -7,8 +7,9 @@ import type * as T from "./Avatar.types";
 import s from "./Avatar.module.css";
 
 const Avatar = (props: T.Props) => {
-  const { color = "neutral-faded" } = props;
   const {
+    color = "neutral",
+    variant,
     src,
     size = 12,
     squared,
@@ -30,11 +31,20 @@ const Avatar = (props: T.Props) => {
     s.root,
     className,
     heightStyles?.classNames,
-    color && s[`--color-${color}`]
+    color && s[`--color-${color}`],
+    variant && s[`--variant-${variant}`]
   );
 
   const renderContent = () => {
-    if (src) return <img src={src} alt={alt} className={s.img} />;
+    if (src)
+      return (
+        <img
+          role={!initials ? "presentation" : undefined}
+          src={src}
+          alt={alt}
+          className={s.img}
+        />
+      );
     if (icon)
       return (
         <Icon
@@ -49,7 +59,7 @@ const Avatar = (props: T.Props) => {
     <View
       borderRadius={radius}
       attributes={{ ...attributes, style: { ...heightStyles?.variables } }}
-      backgroundColor={color}
+      backgroundColor={variant === "faded" ? `${color}-${variant}` : color}
       className={rootClassNames}
     >
       {renderContent()}

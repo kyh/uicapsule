@@ -24,15 +24,8 @@ type WithContent = WithImage | WithInitials | WithIcon;
 
 export type Props = WithContent & {
   squared?: boolean;
-  color?:
-    | "neutral"
-    | "neutral-faded"
-    | "critical"
-    | "critical-faded"
-    | "positive"
-    | "positive-faded"
-    | "primary"
-    | "primary-faded";
+  variant?: "solid" | "faded";
+  color?: "neutral" | "critical" | "positive" | "primary";
   size?: G.Responsive<number>;
   className?: G.ClassName;
   attributes?: G.Attributes<"div", Props>;

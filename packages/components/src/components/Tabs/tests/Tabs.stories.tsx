@@ -50,6 +50,50 @@ export const variant = () => (
   </Example>
 );
 
+export const size = () => (
+  <Example>
+    <Example.Item title="variant: default, size: large">
+      <Tabs size="large">
+        <Tabs.List>
+          <Tabs.Item value="0">Item 1</Tabs.Item>
+          <Tabs.Item value="1">Long item 2</Tabs.Item>
+          <Tabs.Item value="2">Very long item 3</Tabs.Item>
+        </Tabs.List>
+      </Tabs>
+    </Example.Item>
+
+    <Example.Item title="variant: pills, size: large">
+      <Tabs variant="pills" size="large">
+        <Tabs.List>
+          <Tabs.Item value="0">Item 1</Tabs.Item>
+          <Tabs.Item value="1">Long item 2</Tabs.Item>
+          <Tabs.Item value="2">Very long item 3</Tabs.Item>
+        </Tabs.List>
+      </Tabs>
+    </Example.Item>
+
+    <Example.Item title="variant: pills-elevated, size: large">
+      <Tabs variant="pills-elevated" size="large">
+        <Tabs.List>
+          <Tabs.Item value="0">Item 1</Tabs.Item>
+          <Tabs.Item value="1">Long item 2</Tabs.Item>
+          <Tabs.Item value="2">Very long item 3</Tabs.Item>
+        </Tabs.List>
+      </Tabs>
+    </Example.Item>
+
+    <Example.Item title="variant: borderless, size: large">
+      <Tabs variant="borderless" size="large">
+        <Tabs.List>
+          <Tabs.Item value="0">Item 1</Tabs.Item>
+          <Tabs.Item value="1">Long item 2</Tabs.Item>
+          <Tabs.Item value="2">Very long item 3</Tabs.Item>
+        </Tabs.List>
+      </Tabs>
+    </Example.Item>
+  </Example>
+);
+
 export const direction = () => (
   <Example>
     <Example.Item title="direction: column, variant: underline">
@@ -118,8 +162,16 @@ export const icon = () => (
     <Example.Item title="icon only">
       <Tabs variant="pills-elevated">
         <Tabs.List>
-          <Tabs.Item value="0" icon={IconZap} />
-          <Tabs.Item value="1" icon={IconZap} />
+          <Tabs.Item
+            value="0"
+            icon={IconZap}
+            attributes={{ "aria-label": "Tab 1" }}
+          />
+          <Tabs.Item
+            value="1"
+            icon={IconZap}
+            attributes={{ "aria-label": "Tab 2" }}
+          />
         </Tabs.List>
       </Tabs>
     </Example.Item>

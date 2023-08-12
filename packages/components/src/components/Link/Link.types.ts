@@ -12,6 +12,6 @@ export type Props = Pick<
   | "type"
 > & {
   icon?: IconProps["svg"];
-  color?: "inherit" | "critical" | "primary";
+  color?: "inherit" | "critical" | "primary" | "positive";
   variant?: "plain" | "underline";
 };

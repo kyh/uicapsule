@@ -23,32 +23,35 @@ function Example() {
       borderRadius="small"
     >
       <View
-        padding={[2, 4]}
+        paddingInline={4}
+        paddingBlock={2}
         borderRadius="small"
         borderColor="neutral-faded"
         animated
-        backgroundColor={shiftActive ? "neutral-faded" : "base"}
-        shadow={shiftActive ? undefined : "base"}
+        backgroundColor={shiftActive ? "neutral-faded" : "elevation-raised"}
+        shadow={shiftActive ? undefined : "raised"}
       >
         Shift
       </View>
       <View
-        padding={[2, 4]}
+        paddingInline={4}
+        paddingBlock={2}
         borderRadius="small"
         borderColor="neutral-faded"
         animated
-        backgroundColor={bActive ? "neutral-faded" : "base"}
-        shadow={bActive ? undefined : "base"}
+        backgroundColor={bActive ? "neutral-faded" : "elevation-raised"}
+        shadow={bActive ? undefined : "raised"}
       >
         b
       </View>
       <View
-        padding={[2, 4]}
+        paddingInline={4}
+        paddingBlock={2}
         borderRadius="small"
         borderColor="neutral-faded"
         animated
-        backgroundColor={nActive ? "neutral-faded" : "base"}
-        shadow={nActive ? undefined : "base"}
+        backgroundColor={nActive ? "neutral-faded" : "elevation-raised"}
+        shadow={nActive ? undefined : "raised"}
       >
         n
       </View>

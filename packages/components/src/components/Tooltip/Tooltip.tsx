@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import ThemeProvider from "components/Theme";
+import Theme from "components/Theme";
 import Text from "components/Text";
 import Flyout from "components/_private/Flyout";
 import type * as T from "./Tooltip.types";
@@ -29,11 +29,11 @@ const Tooltip = (props: T.Props) => {
     >
       <Flyout.Trigger>{children}</Flyout.Trigger>
       <Flyout.Content>
-        <ThemeProvider colorMode="inverted">
+        <Theme colorMode="inverted">
           <Text variant="caption-1" className={s.root}>
             {text}
           </Text>
-        </ThemeProvider>
+        </Theme>
       </Flyout.Content>
     </Flyout>
   );

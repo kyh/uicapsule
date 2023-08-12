@@ -22,12 +22,12 @@ describe("useRTL", () => {
       </UIC>
     );
 
-    expect(document.body).toHaveAttribute("dir", "rtl");
+    expect(document.documentElement).toHaveAttribute("dir", "rtl");
   });
 
   test("defaults to RTL", () => {
     render(<UIC theme="uicapsule" defaultRTL />);
 
-    expect(document.body).toHaveAttribute("dir", "rtl");
+    expect(document.documentElement).toHaveAttribute("dir", "rtl");
   });
 });

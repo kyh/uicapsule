@@ -1,2 +1,2 @@
 export { default } from "./HiddenInput";
-export { Props as HiddenInputProps } from "./HiddenInput.types";
+export type { Props as HiddenInputProps } from "./HiddenInput.types";

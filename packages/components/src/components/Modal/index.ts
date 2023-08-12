@@ -1,2 +1,2 @@
 export { default } from "./Modal";
-export { Props as ModalProps } from "./Modal.types";
+export type { Props as ModalProps } from "./Modal.types";

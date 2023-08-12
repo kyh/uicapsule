@@ -13,13 +13,22 @@ import type * as T from "./TextField.types";
 import s from "./TextField.module.css";
 
 const TextFieldSlot = (props: T.SlotProps) => {
-  const { slot, icon, size } = props;
+  const { slot, icon, size, affix, position } = props;
 
-  if (!icon && !slot) return null;
+  if (!icon && !slot && !affix) return null;
 
-  if (icon) {
-    return (
-      <div className={s.icon}>
+  const attachmentClassNames = classNames(
+    s.attachment,
+    s[`attachment--position-${position}`]
+  );
+  const content = [
+    slot && (
+      <div className={s.slot} key="slot">
+        {slot}
+      </div>
+    ),
+    icon && (
+      <div className={s.icon} key="icon">
         <Icon
           size={responsivePropDependency(size, (size) => {
             if (size === "large") return 5;
@@ -29,28 +38,40 @@ const TextFieldSlot = (props: T.SlotProps) => {
           svg={icon}
         />
       </div>
-    );
-  }
+    ),
+    affix && (
+      <div className={s.affix} key="affix">
+        {affix}
+      </div>
+    ),
+  ].filter(Boolean);
 
-  return <div className={s.slot}>{slot}</div>;
+  return (
+    <span className={attachmentClassNames}>
+      {position === "end" ? content.reverse() : content}
+    </span>
+  );
 };
 
 const TextField = (props: T.Props) => {
   const {
     onChange,
+    onFocus,
+    onBlur,
     name,
     value,
     defaultValue,
     placeholder,
-    startIcon,
+    icon,
     endIcon,
     startSlot,
     endSlot,
+    prefix,
+    suffix,
     size = "medium",
+    variant = "outline",
     className,
     attributes,
-    icon,
-    iconPosition = "start",
   } = props;
   const formControl = useFormControl();
   const id = useElementId(props.id);
@@ -69,7 +90,8 @@ const TextField = (props: T.Props) => {
     className,
     size && responsiveClassNames(s, "--size", size),
     hasError && s["--status-error"],
-    disabled && s["--disabled"]
+    disabled && s["--disabled"],
+    variant && s[`--variant-${variant}`]
   );
 
   const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -80,9 +102,11 @@ const TextField = (props: T.Props) => {
   return (
     <div {...attributes} className={rootClassName}>
       <TextFieldSlot
-        icon={icon && iconPosition === "start" ? icon : startIcon}
+        position="start"
+        icon={icon}
         slot={startSlot}
         size={size}
+        affix={prefix}
       />
 
       <input
@@ -94,13 +118,17 @@ const TextField = (props: T.Props) => {
         value={value}
         defaultValue={defaultValue}
         onChange={handleChange}
+        onFocus={onFocus || inputAttributes?.onFocus}
+        onBlur={onBlur || inputAttributes?.onBlur}
         id={inputId}
       />
 
       <TextFieldSlot
-        icon={icon && iconPosition === "end" ? icon : endIcon}
+        position="end"
+        icon={endIcon}
         slot={endSlot}
         size={size}
+        affix={suffix}
       />
     </div>
   );

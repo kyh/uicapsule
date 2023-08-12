@@ -1,6 +1,6 @@
 .root {
   border: 1px solid var(--uic-color-border-neutral-faded);
-  background: var(--uic-color-background-base);
+  background: var(--uic-color-background-elevation-base);
   color: var(--uic-color-foreground-neutral);
   display: block;
   position: relative;
@@ -10,7 +10,7 @@
 
 .content {
   position: relative;
-  z-index: var(--uic-z-index-elevated);
+  z-index: var(--uic-z-index-raised);
 }
 
 .--selected {
@@ -19,8 +19,8 @@
 }
 
 .--elevated {
-  background: var(--uic-color-background-base);
-  box-shadow: var(--uic-shadow-base);
+  background: var(--uic-color-background-elevation-raised);
+  box-shadow: var(--uic-shadow-raised);
 }
 
 .--actionable:not(.--selected) {
@@ -29,21 +29,21 @@
   text-decoration: none;
   color: inherit;
 
-  [data-rs-keyboard] &:focus {
+  [data-uic-keyboard] &:focus {
     box-shadow: var(--uic-focus-shadow);
   }
 
-  &:before {
+  &::before {
     content: "";
     position: absolute;
     inset: 0;
-    background: rgba(var(--uic-color-rgb-background-neutral-faded), 0.4);
+    background: rgba(var(--uic-color-rgb-background-neutral-faded), 40%);
     opacity: 0;
     pointer-events: none;
     transition: opacity var(--uic-duration-fast) var(--uic-easing-standard);
   }
 
-  &:hover:before {
+  &:hover::before {
     opacity: 1;
   }
 }

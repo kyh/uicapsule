@@ -8,10 +8,7 @@ export default { title: "Utilities/Actionable" };
 export const role = () => (
   <Example>
     <Example.Item title="rendered as link">
-      <Actionable
-        href="https://uicapsule.com"
-        attributes={{ target: "_blank" }}
-      >
+      <Actionable href="https://uicapsule.com" attributes={{ target: "_blank" }}>
         Actionable
       </Actionable>
     </Example.Item>
@@ -52,7 +49,9 @@ export const disabled = () => (
 export const fullWidth = () => (
   <Example>
     <Example.Item title="fullWidth">
-      <Actionable fullWidth>Actionable</Actionable>
+      <Actionable fullWidth href="https://uicapsule.com">
+        Actionable
+      </Actionable>
     </Example.Item>
   </Example>
 );
@@ -64,7 +63,7 @@ export const focusRing = () => (
         Actionable
       </Actionable>
     </Example.Item>
-    <Example.Item title="inheritChildRadius">
+    <Example.Item title="radius: inherit">
       <Actionable borderRadius="inherit" onClick={() => {}}>
         <View borderRadius="large">Actionable</View>
       </Actionable>

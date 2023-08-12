@@ -1,19 +1,36 @@
 .root {
-  padding: calc(var(--uic-unit-x1) - 1px) calc(var(--uic-unit-x2) - 1px);
-  /* TODO: Min width equals to height, can we have a non-private variable solution here? */
-  min-width: calc(var(--uic-line-height-caption-1) + var(--uic-unit-x1) * 2);
+  padding: var(--uic-badge-p-v) var(--uic-badge-p-h);
+  border: 1px solid var(--uic-color-background-neutral);
+  min-width: calc(
+    var(--uic-badge-line-height) + 2px + (var(--uic-badge-p-v) * 2)
+  );
   display: inline-flex;
+  align-items: center;
   justify-content: center;
+  gap: var(--uic-badge-gap);
   vertical-align: top;
   border-radius: var(--uic-unit-radius-small);
   background: var(--uic-color-background-neutral);
-  border: 1px solid var(--uic-color-background-neutral);
   color: var(--uic-color-foreground-neutral);
   box-sizing: border-box;
+
   /* GPU for container positioning */
   backface-visibility: hidden;
   transition: var(--uic-duration-medium) var(--uic-easing-standard);
   transition-property: transform, opacity;
+}
+
+.dismiss {
+  transition: var(--uic-duration-fast) var(--uic-easing-standard);
+  transition-property: opacity;
+}
+
+.root.--actionable:hover {
+  opacity: 0.8;
+}
+
+.root .dismiss:hover {
+  opacity: 0.72;
 }
 
 .root.--variant {
@@ -25,7 +42,7 @@
 
   &-outline {
     background: none;
-    border-color: var(--uic-color-border-neutral);
+    border-color: var(--uic-color-border-neutral-faded);
   }
 }
 
@@ -89,9 +106,30 @@
   }
 }
 
-.root.--size-small {
-  padding: 0 var(--uic-unit-x1);
-  min-width: calc(var(--uic-line-height-caption-1) + 2px);
+.root.--size {
+  &-small {
+    --uic-badge-p-v: 0px;
+    --uic-badge-p-h: var(--uic-unit-x1);
+    --uic-badge-line-height: var(--uic-line-height-caption-1);
+    --uic-badge-empty-size: var(--uic-unit-x2);
+    --uic-badge-gap: calc(var(--uic-unit-x1) / 2);
+  }
+
+  &-medium {
+    --uic-badge-p-v: calc(var(--uic-unit-x1) - 1px);
+    --uic-badge-p-h: calc(var(--uic-unit-x2) - 1px);
+    --uic-badge-line-height: var(--uic-line-height-caption-1);
+    --uic-badge-empty-size: var(--uic-unit-x3);
+    --uic-badge-gap: var(--uic-unit-x1);
+  }
+
+  &-large {
+    --uic-badge-p-v: calc(var(--uic-unit-x1) - 1px);
+    --uic-badge-p-h: calc(var(--uic-unit-x2) - 1px);
+    --uic-badge-line-height: var(--uic-line-height-body-3);
+    --uic-badge-empty-size: var(--uic-unit-x4);
+    --uic-badge-gap: var(--uic-unit-x1);
+  }
 }
 
 .root.--rounded {
@@ -100,15 +138,10 @@
 }
 
 .root:empty {
-  width: var(--uic-unit-x3);
-  height: var(--uic-unit-x3);
+  width: var(--uic-badge-empty-size);
+  height: var(--uic-badge-empty-size);
   min-width: auto;
   padding: 0;
-}
-
-.root.--size-small:empty {
-  width: var(--uic-unit-x2);
-  height: var(--uic-unit-x2);
 }
 
 .root.--hidden {
@@ -128,17 +161,17 @@
   position: absolute;
   z-index: 10;
   inset-inline-end: 0;
-  transform: translate(50%, var(--_t)) scale(1);
+  transform: translate(50%, var(--uic-badge-translate-y)) scale(1);
 
   &.--hidden {
-    transform: translate(50%, var(--_t)) scale(0.2);
+    transform: translate(50%, var(--uic-badge-translate-y)) scale(0.2);
   }
 
   [dir="rtl"] & {
-    transform: translate(-50%, var(--_t)) scale(1);
+    transform: translate(-50%, var(--uic-badge-translate-y)) scale(1);
 
     &.--hidden {
-      transform: translate(-50%, var(--_t)) scale(0.2);
+      transform: translate(-50%, var(--uic-badge-translate-y)) scale(0.2);
     }
   }
 }
@@ -149,7 +182,8 @@
 
 .--container-position-top-end {
   & .root {
-    --_t: -50%;
+    --uic-badge-translate-y: -50%;
+
     top: 0;
   }
 
@@ -160,7 +194,8 @@
 
 .--container-position-bottom-end {
   & .root {
-    --_t: 50%;
+    --uic-badge-translate-y: 50%;
+
     bottom: 0;
   }
 

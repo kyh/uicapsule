@@ -8,9 +8,11 @@ type BaseProps = {
   hasError?: boolean;
   value: string;
   onChange?: G.ChangeHandler<boolean>;
+  onFocus?: (e: React.FocusEvent) => void;
+  onBlur?: (e: React.FocusEvent) => void;
   className?: G.ClassName;
   attributes?: G.Attributes<"label", Props>;
-  inputAttributes?: G.Attributes<"input", Props>;
+  inputAttributes?: G.Attributes<"input">;
 };
 
 export type ControlledProps = BaseProps & {

@@ -5,25 +5,18 @@ import FlyoutTrigger from "./FlyoutTrigger";
 import FlyoutContent from "./FlyoutContent";
 import type * as T from "./Flyout.types";
 
-const FlyoutBase = (props: T.Props, ref: T.Ref) => {
+const Flyout = (props: T.Props) => {
   const { active } = props;
 
   if (typeof active === "boolean")
     return (
-      <FlyoutControlled
-        {...(props as T.ControlledProps & T.DefaultProps)}
-        ref={ref}
-      />
+      <FlyoutControlled {...(props as T.ControlledProps & T.DefaultProps)} />
     );
   return (
-    <FlyoutUncontrolled
-      {...(props as T.UncontrolledProps & T.DefaultProps)}
-      ref={ref}
-    />
+    <FlyoutUncontrolled {...(props as T.UncontrolledProps & T.DefaultProps)} />
   );
 };
 
-const Flyout = React.forwardRef(FlyoutBase) as T.Compound;
 Flyout.Trigger = FlyoutTrigger;
 Flyout.Content = FlyoutContent;
 

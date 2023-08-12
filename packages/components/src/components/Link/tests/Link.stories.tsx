@@ -30,6 +30,9 @@ export const color = () => (
     <Example.Item title="color: critical">
       <Link color="critical">Link</Link>
     </Example.Item>
+    <Example.Item title="color: positive">
+      <Link color="positive">Link</Link>
+    </Example.Item>
     <Example.Item title="color: inherit">
       <Link color="inherit">Link</Link>
     </Example.Item>
@@ -60,7 +63,7 @@ export const withIcon = () => (
         "should inherit display-1 size from the parent",
       ]}
     >
-      <Text variant="display-1">
+      <Text variant="title-3">
         <Link icon={IconZap} variant="underline">
           Instant delivery
         </Link>

@@ -1,6 +1,6 @@
 import React from "react";
 import { classNames } from "utilities/helpers";
-import Flyout, { FlyoutRefProps } from "components/_private/Flyout";
+import Flyout from "components/_private/Flyout";
 import type * as T from "./Popover.types";
 import s from "./Popover.module.css";
 import getPaddingStyles from "styles/padding";
@@ -15,12 +15,13 @@ const Popover = (props: T.Props) => {
     defaultActive,
     children,
     width,
+    contentGap,
     variant = "elevated",
     triggerType = "click",
     position = "bottom",
+    instanceRef,
   } = props;
   const padding = props.padding ?? (variant === "headless" ? 0 : 4);
-  const flyoutRef = React.useRef<FlyoutRefProps | null>(null);
   const trapFocusMode =
     props.trapFocusMode ||
     (triggerType === "hover" ? "content-menu" : undefined);
@@ -36,7 +37,7 @@ const Popover = (props: T.Props) => {
     // @ts-ignore
     <Flyout
       id={id}
-      ref={flyoutRef}
+      instanceRef={instanceRef}
       position={position}
       forcePosition={forcePosition}
       onOpen={onOpen}
@@ -46,6 +47,7 @@ const Popover = (props: T.Props) => {
       active={active}
       defaultActive={defaultActive}
       width={width}
+      contentGap={contentGap}
       contentClassName={contentClassName}
       contentAttributes={{ style: { ...paddingStyles?.variables } }}
     >
@@ -54,6 +56,7 @@ const Popover = (props: T.Props) => {
   );
 };
 
-Popover.Content = Flyout.Content;
 Popover.Trigger = Flyout.Trigger;
+Popover.Content = Flyout.Content;
+
 export default Popover;

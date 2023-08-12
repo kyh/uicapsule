@@ -12,10 +12,10 @@ import useFlyout from "hooks/_private/useFlyout";
 import useOnClickOutside from "hooks/_private/useOnClickOutside";
 import useRTL from "hooks/useRTL";
 import { checkTransitions } from "utilities/animation";
-import { Provider } from "./Flyout.context";
+import { Provider, useFlyoutContext } from "./Flyout.context";
 import type * as T from "./Flyout.types";
 
-const FlyoutRoot = (props: T.ControlledProps & T.DefaultProps, ref: T.Ref) => {
+const FlyoutRoot = (props: T.ControlledProps & T.DefaultProps) => {
   const {
     triggerType = "click",
     onOpen,
@@ -24,11 +24,13 @@ const FlyoutRoot = (props: T.ControlledProps & T.DefaultProps, ref: T.Ref) => {
     forcePosition,
     trapFocusMode,
     width,
+    contentGap,
     contentClassName,
     contentAttributes,
     position: passedPosition,
     active: passedActive,
     id: passedId,
+    instanceRef,
   } = props;
   const [isRTL] = useRTL();
   const triggerElRef = React.useRef<HTMLButtonElement | null>(null);
@@ -46,6 +48,7 @@ const FlyoutRoot = (props: T.ControlledProps & T.DefaultProps, ref: T.Ref) => {
     defaultActive: passedActive,
     forcePosition,
   });
+  const parentFlyoutContext = useFlyoutContext();
   const { status, updatePosition, render, hide, remove } = flyout;
   // Don't create dismissible queue for hover flyout because they close all together on mouseout
   const isDismissible = useIsDismissible(
@@ -63,60 +66,72 @@ const FlyoutRoot = (props: T.ControlledProps & T.DefaultProps, ref: T.Ref) => {
    * Called from the internal actions
    */
   const handleOpen = React.useCallback(() => {
-    if (lockedRef.current) return;
-    if (status === "idle") onOpen?.();
+    const canOpen = !lockedRef.current && status === "idle";
+
+    if (!canOpen) return;
+    onOpen?.();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [status]);
 
-  const handleClose = React.useCallback(() => {
-    const canClose = triggerType !== "click" || isDismissible();
+  const handleClose = React.useCallback<T.ContextProps["handleClose"]>(
+    (options) => {
+      const isLocked = triggerType === "click" && !isDismissible();
+      const canClose = !isLocked && status !== "idle";
 
-    if (!canClose) return;
-    if (status !== "idle") onClose?.();
+      if (!canClose) return;
+      onClose?.();
+
+      if (options?.closeParents) {
+        parentFlyoutContext?.handleClose?.();
+      }
+    },
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [status, isDismissible, triggerType]);
+    [status, isDismissible, triggerType]
+  );
 
   /**
    * Trigger event handlers
    */
   const handleBlur = React.useCallback(
     (e: React.FocusEvent) => {
-      // Empty flyouts don't move the focus so they have to be closed on blur
       const focusedContent = flyoutElRef.current?.contains(
         e.relatedTarget as Node
       );
-      if (triggerType === "click" && focusedContent) return;
+
+      if (
+        // Empty flyouts don't move the focus so they have to be closed on blur
+        focusedContent ||
+        // Content menu keeps the focus on the original trigger so moving the focus away from it shouldn't close it
+        (triggerType === "hover" && trapFocusMode === "content-menu")
+      ) {
+        return;
+      }
+
       handleClose();
     },
-    [handleClose, triggerType]
+    [handleClose, triggerType, trapFocusMode]
   );
 
   const handleFocus = React.useCallback(() => {
-    if (triggerType !== "hover") return;
     handleOpen();
-  }, [handleOpen, triggerType]);
+  }, [handleOpen]);
 
   const handleMouseEnter = React.useCallback(() => {
-    if (triggerType !== "hover") return;
-
     clearTimer();
     timerRef.current = setTimeout(handleOpen, timeouts.mouseEnter);
-  }, [clearTimer, timerRef, handleOpen, triggerType]);
+  }, [clearTimer, timerRef, handleOpen]);
 
   const handleMouseLeave = React.useCallback(() => {
-    if (triggerType !== "hover") return;
-
     clearTimer();
-    timerRef.current = setTimeout(handleClose, timeouts.mouseLeave);
-  }, [clearTimer, timerRef, handleClose, triggerType]);
+    timerRef.current = setTimeout(() => handleClose(), timeouts.mouseLeave);
+  }, [clearTimer, timerRef, handleClose]);
 
   const handleTriggerClick = React.useCallback(() => {
-    if (status !== "idle") {
+    if (status === "idle") {
+      handleOpen();
+    } else {
       handleClose();
-      return;
     }
-
-    handleOpen();
   }, [status, handleOpen, handleClose]);
 
   /**
@@ -130,14 +145,23 @@ const FlyoutRoot = (props: T.ControlledProps & T.DefaultProps, ref: T.Ref) => {
 
     if (checkTransitions()) {
       hide();
+      // In case transitions are disabled globally - remove from the DOM immediately
     } else {
       remove();
     }
   }, [passedActive, render, hide]);
 
-  const handleTransitionEnd = React.useCallback(() => {
-    if (status === "hidden") remove();
-  }, [remove, status]);
+  const handleTransitionEnd = React.useCallback(
+    (e: React.TransitionEvent) => {
+      if (
+        flyoutElRef.current !== e.currentTarget ||
+        e.propertyName !== "transform"
+      )
+        return;
+      if (status === "hidden") remove();
+    },
+    [remove, status]
+  );
 
   /**
    * Handle focus trap
@@ -154,7 +178,8 @@ const FlyoutRoot = (props: T.ControlledProps & T.DefaultProps, ref: T.Ref) => {
     releaseFocusRef.current = trapFocus(flyoutElRef.current!, {
       mode: trapFocusMode,
       // TODO: Turn includeTrigger on for input text and textarea
-      includeTrigger: triggerType === "hover",
+      includeTrigger:
+        triggerType === "hover" && trapFocusMode === "content-menu",
       onNavigateOutside: () => {
         releaseFocusRef.current = null;
         handleClose();
@@ -209,7 +234,7 @@ const FlyoutRoot = (props: T.ControlledProps & T.DefaultProps, ref: T.Ref) => {
    * Imperative methods for controlling Flyout
    */
   React.useImperativeHandle(
-    ref,
+    instanceRef,
     () => ({
       open: handleOpen,
       close: handleClose,
@@ -217,7 +242,7 @@ const FlyoutRoot = (props: T.ControlledProps & T.DefaultProps, ref: T.Ref) => {
     [handleOpen, handleClose]
   );
 
-  useHotkeys({ Escape: handleClose }, [handleClose]);
+  useHotkeys({ Escape: () => handleClose() }, [handleClose]);
 
   useOnClickOutside([flyoutElRef, triggerElRef], () => {
     // Clicking outside changes focused element so we don't need to set it back ourselves
@@ -233,6 +258,7 @@ const FlyoutRoot = (props: T.ControlledProps & T.DefaultProps, ref: T.Ref) => {
         triggerElRef,
         flyoutElRef,
         handleClose,
+        handleOpen,
         handleFocus,
         handleBlur,
         handleMouseEnter,
@@ -241,6 +267,7 @@ const FlyoutRoot = (props: T.ControlledProps & T.DefaultProps, ref: T.Ref) => {
         handleClick: handleTriggerClick,
         triggerType,
         trapFocusMode,
+        contentGap,
         contentClassName,
         contentAttributes,
       }}
@@ -250,4 +277,4 @@ const FlyoutRoot = (props: T.ControlledProps & T.DefaultProps, ref: T.Ref) => {
   );
 };
 
-export default React.forwardRef(FlyoutRoot);
+export default FlyoutRoot;

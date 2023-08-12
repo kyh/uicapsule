@@ -11,8 +11,12 @@
   color: var(--uic-color-foreground-critical);
 }
 
+.root.--color-positive {
+  color: var(--uic-color-foreground-positive);
+}
+
 .root.--color-inherit {
-  color: currentColor;
+  color: currentcolor;
 }
 
 .root.--variant-plain {
@@ -27,7 +31,7 @@
 
 .root.--variant-underline {
   text-decoration: underline;
-  text-decoration-color: currentColor;
+  text-decoration-color: currentcolor;
   transition: text-decoration-color var(--uic-duration-fast)
     var(--uic-easing-standard);
 

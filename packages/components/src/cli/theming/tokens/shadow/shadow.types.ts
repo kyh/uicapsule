@@ -1,6 +1,6 @@
 import type * as TColor from "../color/color.types";
 
-export type Name = "base" | "elevated";
+export type Name = "raised" | "overlay";
 
 export type Token = Array<{
   offsetX: number;

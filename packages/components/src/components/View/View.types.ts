@@ -4,7 +4,6 @@ import type * as TStyles from "styles/types";
 
 type Columns = 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12 | "auto";
 export type Direction = "row" | "column" | "row-reverse" | "column-reverse";
-export type Padding = number | [number, number];
 
 export type Props<TagName extends keyof JSX.IntrinsicElements = "div"> = {
   children?: React.ReactNode;
@@ -20,11 +19,13 @@ export type Props<TagName extends keyof JSX.IntrinsicElements = "div"> = {
   aspectRatio?: G.Responsive<number>;
   maxHeight?: G.Responsive<string | number>;
   maxWidth?: G.Responsive<string | number>;
-  padding?: G.Responsive<Padding>;
+  padding?: G.Responsive<number>;
   paddingTop?: G.Responsive<number>;
   paddingBottom?: G.Responsive<number>;
   paddingStart?: G.Responsive<number>;
   paddingEnd?: G.Responsive<number>;
+  paddingInline?: G.Responsive<number>;
+  paddingBlock?: G.Responsive<number>;
   bleed?: G.Responsive<number>;
   textAlign?: "center" | "start" | "end";
   backgroundColor?:
@@ -36,8 +37,9 @@ export type Props<TagName extends keyof JSX.IntrinsicElements = "div"> = {
     | "positive-faded"
     | "primary"
     | "primary-faded"
-    | "base"
-    | "elevated"
+    | "elevation-base"
+    | "elevation-raised"
+    | "elevation-overlay"
     | "page"
     | "page-faded"
     | "disabled"
@@ -62,12 +64,12 @@ export type Props<TagName extends keyof JSX.IntrinsicElements = "div"> = {
   insetTop?: G.Responsive<number>;
   insetBottom?: G.Responsive<number>;
   zIndex?: number;
-  shadow?: "base" | "elevated";
+  shadow?: "raised" | "overlay";
   overflow?: "hidden";
   animated?: boolean;
   className?: G.ClassName;
   attributes?: G.Attributes<TagName>;
-};
+} & Pick<ItemProps, "grow">;
 
 export type ItemProps<TagName extends keyof JSX.IntrinsicElements = "div"> = {
   order?: G.Responsive<number>;

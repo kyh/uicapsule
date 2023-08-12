@@ -1,2 +1,2 @@
 export { default } from "./Popover";
-export { Props as PopoverProps } from "./Popover.types";
+export type { Props as PopoverProps } from "./Popover.types";

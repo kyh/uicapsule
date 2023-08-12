@@ -6,7 +6,7 @@ exports[`Styles/AspectRatio handles positive value 1`] = `
 {
   "classNames": "root",
   "variables": {
-    "--_uic-ar": 0.5,
+    "--uic-ratio-s": 0.5,
   },
 }
 `;
@@ -15,9 +15,9 @@ exports[`Styles/AspectRatio handles responsive value 1`] = `
 {
   "classNames": "root",
   "variables": {
-    "--_uic-ar": 4,
-    "--_uic-ar-l": 2,
-    "--_uic-ar-m": 0,
+    "--uic-ratio-l": 2,
+    "--uic-ratio-m": 0,
+    "--uic-ratio-s": 4,
   },
 }
 `;

@@ -9,9 +9,9 @@ const getInsetStyles: (
 ) => T.DynamicStyleUtilityResult = (value, side) => {
   if (value === undefined) return null;
   const suffix = side ? `-${side}` : "";
-  const variableName = `--_uic-i${suffix}` as const;
+  const variableName = `--uic-inset${suffix}` as const;
   const variables = responsiveVariables(variableName, value);
-  const classNames = responsiveClassNames(s, `root${suffix}`, value, {
+  const classNames = responsiveClassNames(s, `--inset${suffix}`, value, {
     excludeValueFromClassName: true,
   });
 

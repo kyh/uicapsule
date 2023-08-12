@@ -7,7 +7,15 @@ import AccordionContext from "./Accordion.context";
 import * as T from "./Accordion.types";
 
 const AccordionControlled = (props: T.ControlledProps) => {
-  const { children, onToggle, active, className, attributes } = props;
+  const {
+    children,
+    onToggle,
+    active,
+    iconPosition,
+    iconSize,
+    className,
+    attributes,
+  } = props;
   const rootClassNames = classNames(className);
   const id = useElementId();
 
@@ -17,6 +25,8 @@ const AccordionControlled = (props: T.ControlledProps) => {
       contentId: `${id}-content`,
       active,
       onToggle,
+      iconPosition,
+      iconSize,
     }),
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [active]

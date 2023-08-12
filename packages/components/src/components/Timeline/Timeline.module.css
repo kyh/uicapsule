@@ -13,7 +13,7 @@
     padding-bottom: var(--uic-unit-x4);
     margin-bottom: 0;
 
-    &:after {
+    &::after {
       content: "";
       width: 1px;
       background: var(--uic-color-border-neutral);
@@ -26,7 +26,7 @@
     &:last-child {
       padding-bottom: 0;
 
-      &:after {
+      &::after {
         content: none;
       }
     }
@@ -37,7 +37,7 @@
   position: relative;
 }
 
-.marker:empty:before {
+.marker:empty::before {
   content: "";
   display: block;
   background: var(--uic-color-border-neutral);
@@ -46,7 +46,7 @@
   border-radius: 50%;
 }
 
-.marker:after {
+.marker::after {
   content: "";
   width: 1px;
   transform: translate(-50%, var(--uic-unit-x1));

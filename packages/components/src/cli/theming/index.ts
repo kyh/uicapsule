@@ -8,47 +8,35 @@ import {
   TransformedToken,
 } from "./tokens/types";
 import {
-  Name as SemanticColorName,
   GeneratedOnName as GeneratedOnColorName,
   GeneratedRGBName as GeneratedRGBColorName,
 } from "./tokens/color/color.types";
 import { GeneratedName as GeneratedUnitName } from "./tokens/unit/unit.types";
 import * as transforms from "./tokens/transforms";
 import mergeDefinitions from "./utilities/mergeDefinitions";
-import { getOnColor, hexToRgbString } from "./utilities/color";
-import { capitalize } from "./utilities/string";
+import { getOnColor, hexToRgbString } from "../utilities/color";
+import { capitalize } from "../utilities/string";
 import { variablesTemplate, mediaTemplate } from "./utilities/css";
-import uicapsuleDefinition from "./definitions/uic";
+import uicapsuleDefinition from "./definitions/uicapsule";
 import baseDefinition from "./definitions/base";
 import type * as T from "./types";
 
 const generateBackgroundColors = (
-  definition: T.PartialDeep<FullThemeDefinition>
+  definition: T.PartialDeep<FullThemeDefinition>,
+  themeOptions?: T.PublicOptions["themeOptions"]
 ) => {
-  const bgWithDynamicForeground: SemanticColorName[] = [
-    "backgroundNeutral",
-    "backgroundNeutralHighlighted",
-    "backgroundPrimary",
-    "backgroundPrimaryHighlighted",
-    "backgroundCritical",
-    "backgroundCriticalHighlighted",
-    "backgroundPositive",
-    "backgroundPositiveHighlighted",
-  ];
-
   if (!definition.color) return;
 
   Object.keys(definition.color).forEach((tokenName) => {
-    const bgToken = definition.color?.[tokenName as SemanticColorName];
+    const bgToken = definition.color?.[tokenName];
     const generatedForegroundName = `on${capitalize(
       tokenName
     )}` as GeneratedOnColorName;
     const generatedRGBName = `rgb${capitalize(
       tokenName
     )}` as GeneratedRGBColorName;
-    const needsDynamicForeground = bgWithDynamicForeground.includes(
-      tokenName as SemanticColorName
-    );
+    const needsDynamicForeground =
+      themeOptions?.generateOnColorsFor?.includes(tokenName);
     const needsRGB =
       tokenName.startsWith("background") ||
       tokenName.endsWith("black") ||
@@ -57,10 +45,24 @@ const generateBackgroundColors = (
     if (!bgToken) return;
 
     if (needsDynamicForeground) {
+      const hex = getOnColor({
+        bgHexColor: bgToken.hex!,
+        mode: "light",
+        lightHexColor: definition?.color?.white?.hex,
+        darkHexColor: definition?.color?.black?.hex,
+      });
+
+      const hexDark = getOnColor({
+        bgHexColor: bgToken.hexDark || bgToken.hex!,
+        mode: "dark",
+        lightHexColor: definition?.color?.white?.hex,
+        darkHexColor: definition?.color?.black?.hex,
+      });
+
       // eslint-disable-next-line no-param-reassign
       definition.color![generatedForegroundName] = {
-        hex: getOnColor(bgToken.hex!),
-        hexDark: bgToken.hexDark && getOnColor(bgToken.hexDark),
+        hex,
+        hexDark: hex !== hexDark ? hexDark : undefined,
       };
     }
 
@@ -97,7 +99,7 @@ const transformDefinition = (
 ) => {
   const { outputPath, isPrivate, isFragment } = options;
 
-  generateBackgroundColors(definition);
+  generateBackgroundColors(definition, options.themeOptions);
   generateUnits(definition);
 
   const transformedStorage: Record<

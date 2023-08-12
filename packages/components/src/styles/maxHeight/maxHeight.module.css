@@ -1,19 +1,19 @@
 .literal {
-  max-height: var(--_uic-mh, auto);
+  max-height: var(--uic-max-h-s, auto);
 }
 
 .unit {
-  max-height: calc(var(--_uic-mh) * var(--uic-unit-x1));
+  max-height: calc(var(--uic-max-h-s) * var(--uic-unit-x1));
 }
 
 @each $viewport in m, l, xl {
   @media (--uic-viewport-$viewport) {
     .literal--$viewport {
-      max-height: var(--_uic-mh-$viewport);
+      max-height: var(--uic-max-h-$viewport);
     }
 
     .unit--$viewport {
-      max-height: calc(var(--_uic-mh-$viewport) * var(--uic-unit-x1));
+      max-height: calc(var(--uic-max-h-$viewport) * var(--uic-unit-x1));
     }
   }
 }

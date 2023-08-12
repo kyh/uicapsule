@@ -1,5 +1,5 @@
 import React from "react";
-import { classNames, responsivePropDependency } from "utilities/helpers";
+import { classNames } from "utilities/helpers";
 import View from "components/View";
 import type * as T from "./Container.types";
 import s from "./Container.module.css";
@@ -12,7 +12,7 @@ const Container = (props: T.Props) => {
     <View
       attributes={attributes}
       className={rootClassNames}
-      padding={responsivePropDependency(padding, (value) => [0, value])}
+      paddingInline={padding}
       width={width}
       maxWidth="100%"
     >

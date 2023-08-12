@@ -5,6 +5,7 @@ import { classNames } from "utilities/helpers";
 import HiddenInput from "components/_private/HiddenInput";
 import Actionable from "components/Actionable";
 import Icon from "components/Icon";
+import Text from "components/Text";
 import { useTabs } from "./TabsContext";
 import type * as T from "./Tabs.types";
 import s from "./Tabs.module.css";
@@ -14,7 +15,7 @@ const TabsItem = (
   ref: React.Ref<HTMLDivElement>
 ) => {
   const { value, children, icon, active, visuallySelected, attributes } = props;
-  const { onChange, panelId, name } = useTabs(value);
+  const { onChange, panelId, name, size } = useTabs(value);
   const itemClassNames = classNames(
     s.item,
     visuallySelected && s["--item-active"]
@@ -55,7 +56,11 @@ const TabsItem = (
         )}
         <span className={s.buttonContent}>
           {icon && <Icon svg={icon} className={s.icon} size={4} />}
-          {children && <span>{children}</span>}
+          {children && (
+            <Text variant={size === "large" ? "body-2" : "body-3"}>
+              {children}
+            </Text>
+          )}
         </span>
       </Actionable>
     </div>

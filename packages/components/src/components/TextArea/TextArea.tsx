@@ -7,14 +7,17 @@ import useElementId from "hooks/useElementId";
 import type * as T from "./TextArea.types";
 import s from "./TextArea.module.css";
 
-const InputText = (props: T.Props) => {
+const TextArea = (props: T.Props) => {
   const {
     onChange,
+    onFocus,
+    onBlur,
     name,
     value,
     defaultValue,
     placeholder,
     size = "medium",
+    variant = "outline",
     className,
     attributes,
   } = props;
@@ -35,6 +38,7 @@ const InputText = (props: T.Props) => {
     size && responsiveClassNames(s, "--size", size),
     hasError && s["--status-error"],
     disabled && s["--disabled"],
+    variant && s[`--variant-${variant}`],
     className
   );
 
@@ -55,10 +59,12 @@ const InputText = (props: T.Props) => {
         value={value}
         defaultValue={defaultValue}
         onChange={handleChange}
+        onFocus={onFocus || inputAttributes?.onFocus}
+        onBlur={onBlur || inputAttributes?.onBlur}
         id={inputId}
       />
     </div>
   );
 };
 
-export default InputText;
+export default TextArea;

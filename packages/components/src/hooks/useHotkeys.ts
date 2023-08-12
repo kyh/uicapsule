@@ -5,23 +5,21 @@ import useSingletonHotkey from "./_private/useSingletonHotkeys";
 
 const useHotkeys = <Element extends HTMLElement>(
   hotkeys: Record<string, ((e: KeyboardEvent) => void) | null>,
-  deps: unknown[] = []
+  deps: unknown[] = [],
+  options?: { ref?: React.RefObject<Element> }
 ) => {
-  const context = useSingletonHotkey();
-  const { addHotkeys } = context;
-  const elementRef = React.useRef<Element | null>(null);
-  const normalizedHotkeys = typeof hotkeys === "string" ? [hotkeys] : hotkeys;
+  const { addHotkeys, isPressed } = useSingletonHotkey();
+  const generatedRef = React.useRef<Element | null>(null);
+  const elementRef = options?.ref || generatedRef;
 
   React.useEffect(() => {
-    const remove = addHotkeys(hotkeys, { ref: elementRef });
+    const remove = addHotkeys(hotkeys, elementRef);
 
-    return () => {
-      remove?.();
-    };
+    return () => remove?.();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [addHotkeys, normalizedHotkeys.toString(), ...deps]);
+  }, [addHotkeys, Object.keys(hotkeys).join(","), ...deps]);
 
-  return { ref: elementRef, checkHotkeyState: context.isPressed };
+  return { ref: elementRef, checkHotkeyState: isPressed };
 };
 
 export default useHotkeys;

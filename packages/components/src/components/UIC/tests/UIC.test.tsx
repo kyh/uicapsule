@@ -29,31 +29,39 @@ describe("Utilities/UIC", () => {
   it("applies RTL to html", () => {
     render(<UIC theme="uicapsule" defaultRTL />);
 
-    expect(document.body).toHaveAttribute("dir", "rtl");
+    expect(document.documentElement).toHaveAttribute("dir", "rtl");
   });
 
   it("applies light theme", () => {
     render(<UIC theme="uicapsule" />);
 
-    const theme = document.body.getAttribute("data-uic-theme");
-    expect(theme).toEqual("uicapsule-light");
+    const theme = document.documentElement.getAttribute("data-uic-theme");
+    const colorMode =
+      document.documentElement.getAttribute("data-uic-color-mode");
+
+    expect(theme).toEqual("uicapsule");
+    expect(colorMode).toEqual("light");
   });
 
   it("applies dark theme", () => {
     render(<UIC theme="uicapsule" defaultColorMode="dark" />);
 
-    const theme = document.body.getAttribute("data-uic-theme");
-    expect(theme).toEqual("uicapsule-dark");
+    const theme = document.documentElement.getAttribute("data-uic-theme");
+    const colorMode =
+      document.documentElement.getAttribute("data-uic-color-mode");
+
+    expect(theme).toEqual("uicapsule");
+    expect(colorMode).toEqual("dark");
   });
 
   it("applies keyboard mode", async () => {
-    const attribute = "data-rs-keyboard";
+    const attribute = "data-uic-keyboard";
     render(<UIC theme="uicapsule" />);
 
-    expect(document.body).not.toHaveAttribute(attribute);
+    expect(document.documentElement).not.toHaveAttribute(attribute);
     await userEvent.keyboard("{Tab}");
-    expect(document.body).toHaveAttribute(attribute);
+    expect(document.documentElement).toHaveAttribute(attribute);
     await userEvent.click(document.body);
-    expect(document.body).not.toHaveAttribute(attribute);
+    expect(document.documentElement).not.toHaveAttribute(attribute);
   });
 });

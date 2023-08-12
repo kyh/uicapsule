@@ -15,6 +15,7 @@ const TabsControlled = (props: T.PrivateControlledProps) => {
     variant,
     name,
     direction = "row",
+    size = "medium",
   } = props;
   const id = useElementId();
 
@@ -28,6 +29,7 @@ const TabsControlled = (props: T.PrivateControlledProps) => {
       value={{
         value,
         name,
+        size,
         direction,
         itemWidth,
         variant,

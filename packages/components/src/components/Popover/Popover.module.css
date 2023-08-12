@@ -4,10 +4,10 @@
 
 .content--variant-elevated {
   border-radius: var(--uic-unit-radius-medium);
-  background: var(--uic-color-background-elevated);
+  background: var(--uic-color-background-elevation-overlay);
   color: var(--uic-color-foreground-neutral);
   border: 1px solid var(--uic-color-border-neutral-faded);
-  box-shadow: var(--uic-shadow-elevated);
+  box-shadow: var(--uic-shadow-overlay);
   overflow: hidden;
   min-width: 220px;
 }

@@ -40,8 +40,8 @@ const Progress = (props: T.Props) => {
         className={s.value}
         style={
           {
-            "--_v": translate,
-            "--_d": duration ? `${duration}ms` : undefined,
+            "--uic-progress-value": translate,
+            "--uic-progress-duration": duration ? `${duration}ms` : undefined,
           } as React.CSSProperties
         }
       />

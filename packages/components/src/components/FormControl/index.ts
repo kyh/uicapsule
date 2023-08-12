@@ -1,3 +1,3 @@
 export { default } from "./FormControl";
 export { useFormControl } from "./FormControl.context";
-export { Props as FormControlProps } from "./FormControl.types";
+export type { Props as FormControlProps } from "./FormControl.types";

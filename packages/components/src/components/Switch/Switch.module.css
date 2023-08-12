@@ -1,5 +1,7 @@
 .root {
   display: inline-flex;
+  align-items: center;
+  gap: var(--uic-unit-x2);
   position: relative;
   vertical-align: top;
 }
@@ -8,6 +10,7 @@
   position: absolute;
   top: 0;
   left: 0;
+
   /* Trap focus should be able to find this element with 1px height */
   width: 1px;
   height: 1px;
@@ -16,7 +19,7 @@
   outline: none;
 
   &:checked + .area {
-    background: var(--uic-color-border-primary);
+    background: var(--uic-color-background-primary);
     border-color: transparent;
 
     & .thumb {
@@ -28,21 +31,26 @@
     }
   }
 
-  [data-rs-keyboard] &:focus + .area {
+  [data-uic-keyboard] &:focus + .area {
     box-shadow: var(--uic-focus-shadow);
   }
 
   &[disabled] + .area {
     cursor: not-allowed;
     background: var(--uic-color-background-disabled);
-  }
 
-  &[disabled] + .thumb {
-    background: var(--uic-color-background-disabled-faded);
+    & .thumb {
+      opacity: 0.8;
+    }
   }
 
   &[disabled]:checked + .area {
-    background: rgba(var(--uic-color-rgb-background-primary), 0.5);
+    background: var(--uic-color-background-primary);
+    opacity: 0.4;
+
+    & .thumb {
+      opacity: 1;
+    }
   }
 }
 
@@ -55,7 +63,7 @@
   box-sizing: border-box;
   display: flex;
   align-items: center;
-  background: var(--uic-color-border-neutral);
+  background: var(--uic-color-background-neutral);
   transition: var(--uic-duration-fast) var(--uic-easing-standard);
   transition-property: background, border;
 }
@@ -63,9 +71,33 @@
 .thumb {
   height: var(--uic-unit-x4);
   width: var(--uic-unit-x4);
-  background: var(--uic-color-on-background-primary);
+  background: var(--uic-color-white);
   border-radius: 50%;
   transition: var(--uic-duration-fast) var(--uic-easing-standard);
   transition-property: transform;
-  box-shadow: var(--uic-shadow-base);
+  box-shadow: var(--uic-shadow-raised);
+}
+
+.root--size-small {
+  & .area {
+    height: calc(var(--uic-unit-x1) * 4);
+    width: calc(var(--uic-unit-x1) * 6);
+  }
+
+  & .thumb {
+    height: var(--uic-unit-x3);
+    width: var(--uic-unit-x3);
+  }
+
+  & .input:checked + .area .thumb {
+    transform: translateX(var(--uic-unit-x2));
+
+    [dir="rtl"] & {
+      transform: translateX(calc(var(--uic-unit-x2) * -1));
+    }
+  }
+}
+
+.root--reversed {
+  flex-direction: row-reverse;
 }

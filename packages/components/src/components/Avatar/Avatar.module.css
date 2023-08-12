@@ -2,8 +2,9 @@
   display: flex;
   align-items: center;
   justify-content: center;
+
   /* Depends on getHeightStyles */
-  font-size: calc(var(--_uic-h) * var(--uic-unit-x1) / 3);
+  font-size: calc(var(--uic-h) / 3);
   font-weight: bold;
   aspect-ratio: 1;
   line-height: 100%;
@@ -16,44 +17,20 @@
   border-radius: inherit;
 }
 
-.root.--color {
-  &-neutral {
-    background-color: var(--uic-color-background-neutral);
+.--variant-faded {
+  &.--color-neutral {
     color: var(--uic-color-foreground-neutral);
   }
 
-  &-neutral-faded {
-    background-color: var(--uic-color-background-neutral-faded);
-    color: var(--uic-color-foreground-neutral);
-  }
-
-  &-critical {
-    background: var(--uic-color-background-critical);
-    color: var(--uic-color-on-background-critical);
-  }
-
-  &-critical-faded {
-    background: var(--uic-color-background-critical-faded);
+  &.--color-critical {
     color: var(--uic-color-foreground-critical);
   }
 
-  &-positive {
-    background: var(--uic-color-background-positive);
-    color: var(--uic-color-on-background-positive);
-  }
-
-  &-positive-faded {
-    background: var(--uic-color-background-positive-faded);
+  &.--color-positive {
     color: var(--uic-color-foreground-positive);
   }
 
-  &-primary {
-    background: var(--uic-color-background-primary);
-    color: var(--uic-color-on-background-primary);
-  }
-
-  &-primary-faded {
-    background: var(--uic-color-background-primary-faded);
+  &.--color-primary {
     color: var(--uic-color-foreground-primary);
   }
 }

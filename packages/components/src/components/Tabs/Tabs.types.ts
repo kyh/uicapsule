@@ -40,6 +40,7 @@ export type BaseProps = {
   direction?: "column" | "row";
   itemWidth?: "equal";
   variant?: "bordered" | "borderless" | "pills" | "pills-elevated";
+  size?: "medium" | "large";
   name?: string;
   onChange?: (args: { value: string; name?: string }) => void;
 };
@@ -64,6 +65,7 @@ export type Context = Pick<
   BaseProps,
   "itemWidth" | "onChange" | "variant" | "name" | "direction"
 > & {
+  size: NonNullable<BaseProps["size"]>;
   value?: string;
   setDefaultValue: (value: string) => void;
   id: string;

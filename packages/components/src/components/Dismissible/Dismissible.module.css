@@ -1,6 +1,6 @@
 .root {
   position: relative;
-  padding-inline-end: var(--uic-unit-x9);
+  padding-inline-end: var(--uic-unit-x7);
   min-height: var(--uic-unit-x6);
 }
 
@@ -11,13 +11,17 @@
   z-index: 5;
 }
 
-.root.--variant-media,
-.root.--hide-close {
+.--variant-media,
+.--hide-close {
   padding: 0;
 }
 
-.root.--variant-media .close {
-  inset-block-start: var(--uic-unit-x4);
-  inset-inline-end: var(--uic-unit-x4);
-  color: var(--uic-color-white);
+.--variant-media .close {
+  inset-block-start: var(--uic-unit-x2);
+  inset-inline-end: var(--uic-unit-x2);
+}
+
+.--align-center .close {
+  inset-block-start: 50%;
+  transform: translateY(-50%);
 }

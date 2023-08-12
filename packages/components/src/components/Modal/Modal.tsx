@@ -7,7 +7,7 @@ import {
   responsiveClassNames,
 } from "utilities/helpers";
 import Text from "components/Text";
-import Backdrop from "components/Backdrop";
+import Overlay from "components/Overlay";
 import useElementId from "hooks/useElementId";
 import type * as T from "./Modal.types";
 import s from "./Modal.module.css";
@@ -32,7 +32,7 @@ const ModalTitle = (props: T.TitleProps) => {
   }, [setTitleMounted]);
 
   return (
-    <Text variant="title-3" attributes={{ id: `${id}-title` }}>
+    <Text variant="featured-3" weight="bold" attributes={{ id: `${id}-title` }}>
       {children}
     </Text>
   );
@@ -49,7 +49,7 @@ const ModalSubtitle = (props: T.SubtitleProps) => {
 
   return (
     <Text
-      variant="body-2"
+      variant="body-3"
       color="neutral-faded"
       attributes={{ id: `${id}-subtitle` }}
     >
@@ -66,7 +66,7 @@ const Modal = (props: T.Props) => {
     size,
     padding = 4,
     position = "center",
-    transparentBackdrop,
+    transparentOverlay,
     className,
     attributes,
   } = props;
@@ -87,11 +87,7 @@ const Modal = (props: T.Props) => {
   );
 
   return (
-    <Backdrop
-      onClose={onClose}
-      active={active}
-      transparent={transparentBackdrop}
-    >
+    <Overlay onClose={onClose} active={active} transparent={transparentOverlay}>
       {({ active }) => {
         const rootClassNames = classNames(
           s.root,
@@ -107,7 +103,7 @@ const Modal = (props: T.Props) => {
               {...attributes}
               style={{
                 ...paddingStyles?.variables,
-                ...responsiveVariables("--_s", size),
+                ...responsiveVariables("--uic-modal-size", size),
               }}
               aria-labelledby={titleMounted ? `${id}-title` : undefined}
               aria-describedby={subtitleMounted ? `${id}-subtitle` : undefined}
@@ -120,7 +116,7 @@ const Modal = (props: T.Props) => {
           </Context.Provider>
         );
       }}
-    </Backdrop>
+    </Overlay>
   );
 };
 

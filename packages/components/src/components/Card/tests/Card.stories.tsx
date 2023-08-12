@@ -2,6 +2,7 @@ import React from "react";
 import { Example, Placeholder } from "utilities/storybook";
 import Card from "components/Card";
 import View from "components/View";
+import TextField from "components/TextField";
 
 export default { title: "Components/Card" };
 
@@ -36,12 +37,12 @@ export const padding = () => (
 export const actionable = () => (
   <Example>
     <Example.Item title="button role">
-      <Card onClick={() => {}}>
+      <Card onClick={() => {}} attributes={{ "aria-label": "action" }}>
         <Placeholder />
       </Card>
     </Example.Item>
     <Example.Item title="link role">
-      <Card href="#">
+      <Card href="#" attributes={{ "aria-label": "action" }}>
         <Placeholder />
       </Card>
     </Example.Item>
@@ -79,6 +80,14 @@ export const bleed = () => (
       <Card bleed={{ s: 4, m: 0 }}>
         <Placeholder />
       </Card>
+    </Example.Item>
+  </Example>
+);
+
+export const height = () => (
+  <Example>
+    <Example.Item title="height: 200px">
+      <Card height="200px" />
     </Example.Item>
   </Example>
 );

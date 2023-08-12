@@ -5,11 +5,11 @@ const useSingletonKeyboardMode = () => {
   React.useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.metaKey || e.altKey || e.ctrlKey) return;
-      document.body.setAttribute(keyboardModeAttribute, "true");
+      document.documentElement.setAttribute(keyboardModeAttribute, "true");
     };
 
     const handleClick = () => {
-      document.body.removeAttribute(keyboardModeAttribute);
+      document.documentElement.removeAttribute(keyboardModeAttribute);
     };
 
     window.addEventListener("keydown", handleKeyDown);

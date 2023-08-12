@@ -11,10 +11,26 @@ export const value = () => (
       <TextArea name="Name" placeholder="Enter your name" />
     </Example.Item>
     <Example.Item title="value, uncontrolled">
-      <TextArea name="Name" placeholder="Enter your name" defaultValue="UIC" />
+      <TextArea
+        name="Name"
+        placeholder="Enter your name"
+        defaultValue="UIC"
+      />
     </Example.Item>
     <Example.Item title="value, controlled">
       <TextArea name="Name" placeholder="Enter your name" value="UIC" />
+    </Example.Item>
+  </Example>
+);
+
+export const variants = () => (
+  <Example>
+    <Example.Item title="variant: faded">
+      <TextArea variant="faded" name="Name" placeholder="Enter your name" />
+    </Example.Item>
+
+    <Example.Item title="variant: headless">
+      <TextArea variant="headless" name="Name" placeholder="Enter your name" />
     </Example.Item>
   </Example>
 );

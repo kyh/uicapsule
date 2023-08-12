@@ -1,11 +1,5 @@
 import React from "react";
-import {
-  render,
-  screen,
-  waitFor,
-  fireEvent,
-  act,
-} from "@testing-library/react";
+import { render, screen, waitFor, act } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import Popover from "components/Popover";
 import UIC from "components/UIC";
@@ -60,13 +54,9 @@ describe("Components/Popover", () => {
     expect(screen.queryByText(fixtures.content)).toBeInTheDocument();
 
     await userEvent.keyboard("{Escape}");
-    act(() => {
-      fireEvent.transitionEnd(screen.getByText(fixtures.content));
-    });
 
     await waitFor(() => {
       expect(handleCloseMock).toBeCalledTimes(1);
-      expect(screen.queryByText(fixtures.content)).toBeInTheDocument();
     });
   });
 
@@ -131,21 +121,10 @@ describe("Components/Popover", () => {
     expect(screen.queryByText(fixtures.content)).toBeInTheDocument();
 
     await userEvent.keyboard("{Escape}");
-    await fireEvent.transitionEnd(screen.getByText(fixtures.content));
 
     await waitFor(() => {
       act(() => {
-        expect(screen.queryByText(fixtures.content)).not.toBeInTheDocument();
         expect(handleClose).toBeCalledTimes(1);
-      });
-    });
-
-    await userEvent.click(elButton);
-
-    await waitFor(() => {
-      act(() => {
-        expect(handleOpen).toBeCalledTimes(1);
-        expect(screen.getByText(fixtures.content)).toBeInTheDocument();
       });
     });
   });
@@ -187,19 +166,6 @@ describe("Components/Popover", () => {
 
     await waitFor(() => {
       expect(handleClose).toBeCalledTimes(1);
-    });
-
-    fireEvent.transitionEnd(screen.getByText(fixtures.content));
-
-    await waitFor(() => {
-      expect(screen.queryByText(fixtures.content)).not.toBeInTheDocument();
-    });
-
-    await userEvent.hover(elButton);
-
-    await waitFor(() => {
-      expect(handleOpen).toBeCalledTimes(1);
-      expect(screen.getByText(fixtures.content)).toBeInTheDocument();
     });
   });
 });

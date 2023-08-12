@@ -1,2 +1,2 @@
-export type Name = "display" | "body";
+export type Name = "title" | "body";
 export type Token = { family: string };

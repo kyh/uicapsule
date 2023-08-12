@@ -1,6 +1,7 @@
 .root {
-  --demo-bg: var(--uic-color-background-base);
-  --dot-color: var(--uic-color-background-neutral);
+  --demo-bg: var(--uic-color-background-elevation-base);
+  --dot-color: var(--uic-color-border-neutral-faded);
+
   background: linear-gradient(90deg, var(--demo-bg) 10px, transparent 1%) center,
     linear-gradient(var(--demo-bg) 10px, transparent 1%) center,
     var(--dot-color);

@@ -8,6 +8,7 @@ import s from "./Dismissible.module.css";
 const Dismissible = (props: T.Props) => {
   const {
     children,
+    align,
     onClose,
     hideCloseButton,
     variant,
@@ -19,24 +20,26 @@ const Dismissible = (props: T.Props) => {
     s.root,
     className,
     variant && s[`--variant-${variant}`],
+    align && s[`--align-${align}`],
     hideCloseButton && s["--hide-close"]
   );
+  const WrapperTag = variant === "media" ? "div" : Button.Aligner;
 
   return (
     <div {...attributes} className={rootClassNames}>
       {children}
       {!hideCloseButton && (
-        <Button.Aligner className={s.close}>
+        <WrapperTag className={s.close}>
           <Button
             size="small"
             {...(variant === "media"
-              ? { color: "black" }
+              ? { color: "black", variant: "faded" }
               : { variant: "ghost" })}
             onClick={onClose}
-            attributes={{ "aria-label": closeAriaLabel }}
-            startIcon={IconClose}
+            attributes={{ "aria-label": onClose ? closeAriaLabel : undefined }}
+            icon={IconClose}
           />
-        </Button.Aligner>
+        </WrapperTag>
       )}
     </div>
   );

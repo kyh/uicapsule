@@ -10,7 +10,7 @@ export const behavior = () => (
   <Example>
     <Example.Item title="uncontrolled">
       <Accordion>
-        <Accordion.Trigger>Accordion trigger</Accordion.Trigger>
+        <Accordion.Trigger>Uncontrolled accordion</Accordion.Trigger>
         <Accordion.Content>
           <View paddingTop={2}>
             <Placeholder />
@@ -21,7 +21,7 @@ export const behavior = () => (
     </Example.Item>
     <Example.Item title="active, uncontrolled">
       <Accordion defaultActive>
-        <Accordion.Trigger>Accordion trigger</Accordion.Trigger>
+        <Accordion.Trigger>Action uncontrolled</Accordion.Trigger>
         <Accordion.Content>
           <View paddingTop={2}>
             <Placeholder />
@@ -31,7 +31,7 @@ export const behavior = () => (
     </Example.Item>
     <Example.Item title="active, controlled">
       <Accordion active>
-        <Accordion.Trigger>Accordion trigger</Accordion.Trigger>
+        <Accordion.Trigger>Active controlled</Accordion.Trigger>
         <Accordion.Content>
           <View paddingTop={2}>
             <Placeholder />
@@ -45,8 +45,18 @@ export const behavior = () => (
 export const icon = () => (
   <Example>
     <Example.Item title="iconSize">
-      <Accordion>
-        <Accordion.Trigger iconSize={6}>Accordion trigger</Accordion.Trigger>
+      <Accordion iconSize={6}>
+        <Accordion.Trigger>Accordion trigger</Accordion.Trigger>
+        <Accordion.Content>
+          <View paddingTop={2}>
+            <Placeholder />
+          </View>
+        </Accordion.Content>
+      </Accordion>
+    </Example.Item>
+    <Example.Item title="iconPosition">
+      <Accordion iconPosition="start">
+        <Accordion.Trigger>Accordion trigger</Accordion.Trigger>
         <Accordion.Content>
           <View paddingTop={2}>
             <Placeholder />
@@ -85,11 +95,12 @@ const DemoMultiple = () => {
     <View gap={2}>
       {[1, 2, 3].map((i) => (
         <View
-          backgroundColor={activeValue === i ? "base" : undefined}
+          key={i}
+          backgroundColor={activeValue === i ? "elevation-base" : undefined}
           animated
           borderRadius="medium"
           borderColor={activeValue === i ? "neutral-faded" : "transparent"}
-          shadow={activeValue === i ? "base" : undefined}
+          shadow={activeValue === i ? "raised" : undefined}
           padding={2}
         >
           <Accordion

@@ -1,6 +1,5 @@
 .root {
-  background: var(--uic-color-background-base);
-  padding: var(--uic-unit-x3) var(--uic-unit-x4);
+  background: var(--uic-color-background-elevation-base);
   position: relative;
 }
 
@@ -17,10 +16,10 @@
 .--elevated {
   border: none;
   overflow-x: clip;
-  background-color: var(--uic-color-background-elevated);
+  background-color: var(--uic-color-background-elevation-raised);
 }
 
-.--elevated:after {
+.--elevated::after {
   content: "";
   position: absolute;
   display: block;
@@ -28,15 +27,9 @@
   height: 100%;
   left: 0;
   right: 0;
-  box-shadow: var(--uic-shadow-base);
+  box-shadow: var(--uic-shadow-raised);
 
   .--position-bottom& {
     transform: rotateX(180deg);
-  }
-}
-
-@media (--uic-viewport-l) {
-  .--size-large {
-    padding: var(--uic-unit-x5) var(--uic-unit-x6);
   }
 }

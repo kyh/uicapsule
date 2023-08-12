@@ -23,6 +23,12 @@ export const color = () => (
     <Example.Item title="color: primary">
       <Loader />
     </Example.Item>
+    <Example.Item title="color: critical">
+      <Loader color="critical" />
+    </Example.Item>
+    <Example.Item title="color: positive">
+      <Loader color="positive" />
+    </Example.Item>
     <Example.Item title="color: inherit">
       <Loader color="inherit" />
     </Example.Item>

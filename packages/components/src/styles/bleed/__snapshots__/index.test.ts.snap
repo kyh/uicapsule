@@ -7,7 +7,7 @@ exports[`Styles/Bleed handles 0 value 1`] = `
     "--bleed-false",
   ],
   "variables": {
-    "--_uic-bleed": 0,
+    "--uic-bleed-s": 0,
   },
 }
 `;
@@ -19,7 +19,7 @@ exports[`Styles/Bleed handles positive value 1`] = `
     "--bleed",
   ],
   "variables": {
-    "--_uic-bleed": 4,
+    "--uic-bleed-s": 4,
   },
 }
 `;
@@ -33,9 +33,9 @@ exports[`Styles/Bleed handles responsive value 1`] = `
     "--bleed-true--l",
   ],
   "variables": {
-    "--_uic-bleed": 4,
-    "--_uic-bleed-l": 2,
-    "--_uic-bleed-m": 0,
+    "--uic-bleed-l": 2,
+    "--uic-bleed-m": 0,
+    "--uic-bleed-s": 4,
   },
 }
 `;

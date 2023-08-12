@@ -21,7 +21,7 @@ import s from "./Tabs.module.css";
 
 const TabsList = (props: T.ListProps) => {
   const { children, className, attributes } = props;
-  const { value, setDefaultValue, itemWidth, variant, name, direction } =
+  const { value, setDefaultValue, itemWidth, variant, name, direction, size } =
     useTabs();
   const [rtl] = useRTL();
   const elScrollableRef = React.useRef<HTMLDivElement | null>(null);
@@ -39,6 +39,7 @@ const TabsList = (props: T.ListProps) => {
   >(null);
   const rootClassNames = classNames(
     s.root,
+    size && s[`--size-${size}`],
     direction && s[`--direction-${direction}`],
     itemWidth && s[`--item-width-${itemWidth}`],
     variant && s[`--variant-${variant}`],
@@ -202,10 +203,10 @@ const TabsList = (props: T.ListProps) => {
             className={selectorClassNames}
             style={
               {
-                "--_translateX": selection.left,
-                "--_translateY": selection.top,
-                "--_scaleX": selection.scaleX,
-                "--_scaleY": selection.scaleY,
+                "--uic-tab-selection-x": selection.left,
+                "--uic-tab-selection-y": selection.top,
+                "--uic-tab-selection-scale-x": selection.scaleX,
+                "--uic-tab-selection-scale-y": selection.scaleY,
               } as React.CSSProperties
             }
           />
@@ -217,7 +218,7 @@ const TabsList = (props: T.ListProps) => {
           <Button
             onClick={handlePrevClick}
             size="small"
-            startIcon={IconChevronLeft}
+            icon={IconChevronLeft}
             rounded
             attributes={{ "aria-hidden": true, tabIndex: -1 }}
           />
@@ -229,7 +230,7 @@ const TabsList = (props: T.ListProps) => {
           <Button
             onClick={handleNextClick}
             size="small"
-            startIcon={IconChevronRight}
+            icon={IconChevronRight}
             rounded
             attributes={{ "aria-hidden": true, tabIndex: -1 }}
           />

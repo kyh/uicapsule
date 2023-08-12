@@ -15,13 +15,13 @@
 }
 
 .decorator {
-  width: var(--uic-unit-x5);
-  height: var(--uic-unit-x5);
+  width: var(--uic-line-height-body-3);
+  height: var(--uic-line-height-body-3);
   border-radius: 50%;
   border: 1px solid var(--uic-color-border-neutral);
-  background: var(--uic-color-background-base);
+  background: var(--uic-color-background-elevation-base);
 
-  &:after {
+  &::after {
     content: "";
     position: absolute;
     height: var(--uic-unit-x2);
@@ -35,7 +35,7 @@
   }
 }
 
-[data-rs-keyboard] .input:focus + .decorator {
+[data-uic-keyboard] .input:focus + .decorator {
   box-shadow: var(--uic-focus-shadow);
 }
 
@@ -46,7 +46,7 @@
   border-color: var(--uic-color-background-primary);
   background: var(--uic-color-background-primary);
 
-  &:after {
+  &::after {
     opacity: 1;
     transform: translate(-50%, -50%);
   }
@@ -78,7 +78,7 @@
     border-color: transparent;
   }
 
-  & .input:checked + .decorator:after {
+  & .input:checked + .decorator::after {
     background: var(--uic-color-border-disabled);
   }
 }

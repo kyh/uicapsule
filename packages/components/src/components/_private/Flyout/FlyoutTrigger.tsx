@@ -19,29 +19,31 @@ const FlyoutTrigger = (props: T.TriggerProps) => {
     trapFocusMode,
   } = useFlyoutContext();
 
-  let childrenAttributes: T.TriggerAttributes;
+  let childrenAttributes: Partial<T.TriggerAttributes> = {
+    onClick: handleClick,
+    onBlur: handleBlur,
+    ref: triggerElRef,
+  };
 
   if (triggerType === "hover") {
-    childrenAttributes = {
-      onBlur: handleBlur,
-      ref: triggerElRef,
-      onFocus: handleFocus,
-      onMouseEnter: handleMouseEnter,
-      onMouseLeave: handleMouseLeave,
-      "aria-describedby": id,
-    };
-  } else {
-    childrenAttributes = {
-      onBlur: handleBlur,
-      ref: triggerElRef,
-      onClick: handleClick,
-      "aria-haspopup": trapFocusMode === "dialog" ? "dialog" : "menu",
-      "aria-expanded": flyout.status !== "idle",
-      "aria-controls": flyout.status !== "idle" ? id : undefined,
-    };
+    childrenAttributes.onMouseEnter = handleMouseEnter;
+    childrenAttributes.onMouseLeave = handleMouseLeave;
   }
 
-  return <>{children(childrenAttributes)}</>;
+  if (triggerType === "hover" && trapFocusMode !== "action-menu") {
+    childrenAttributes.onFocus = handleFocus;
+    childrenAttributes["aria-describedby"] = id;
+  }
+
+  if (triggerType === "click" || trapFocusMode === "action-menu") {
+    childrenAttributes["aria-haspopup"] =
+      trapFocusMode === "dialog" ? "dialog" : "menu";
+    childrenAttributes["aria-expanded"] = flyout.status !== "idle";
+    childrenAttributes["aria-controls"] =
+      flyout.status !== "idle" ? id : undefined;
+  }
+
+  return <>{children(childrenAttributes as T.TriggerAttributes)}</>;
 };
 
 export default FlyoutTrigger;

@@ -1,2 +1,2 @@
 export { default } from "./Container";
-export { Props as ContainerProps } from "./Container.types";
+export type { Props as ContainerProps } from "./Container.types";

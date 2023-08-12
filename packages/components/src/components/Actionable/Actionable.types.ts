@@ -12,13 +12,12 @@ export type Props = {
   fullWidth?: boolean;
   insetFocus?: boolean;
   borderRadius?: "inherit";
-  inheritChildRadius?: boolean;
   as?: keyof JSX.IntrinsicElements;
   className?: G.ClassName;
   // Props are not ommited from attributes since we support all of them
   attributes?: Omit<G.Attributes<"button">, "ref"> &
     Omit<JSX.IntrinsicElements["a"], keyof G.Attributes<"button">> & {
-      ref?: React.Ref<HTMLButtonElement | HTMLAnchorElement>;
+      ref?: React.RefObject<HTMLButtonElement | HTMLAnchorElement>;
     };
 };
 

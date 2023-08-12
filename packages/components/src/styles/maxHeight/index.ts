@@ -4,7 +4,7 @@ import s from "./maxHeight.module.css";
 
 const getMaxHeightStyles: T.DynamicStyleUtility<string | number> = (value) => {
   if (!value) return null;
-  const variables = responsiveVariables("--_uic-mh", value);
+  const variables = responsiveVariables("--uic-max-h", value);
   const classNames = responsiveClassNames(
     s,
     (value) => (typeof value === "number" ? "unit" : "literal"),

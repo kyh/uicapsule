@@ -1,8 +1,5 @@
 import type React from "react";
-import type {
-  GlobalColorModeProps,
-  ThemeProviderProps,
-} from "components/Theme";
+import type { GlobalColorModeProps, ThemeProps } from "components/Theme";
 import type { ToastProviderProps } from "components/Toast";
 import type * as G from "types/global";
 
@@ -12,7 +9,7 @@ export type Props = {
   defaultColorMode?: GlobalColorModeProps["defaultMode"];
   defaultViewport?: G.Viewport;
   className?: G.ClassName;
-  theme?: NonNullable<ThemeProviderProps["theme"]>;
-  defaultTheme?: NonNullable<ThemeProviderProps["defaultTheme"]>;
+  theme?: NonNullable<ThemeProps["name"]>;
+  defaultTheme?: NonNullable<ThemeProps["defaultName"]>;
   toastOptions?: ToastProviderProps["options"];
 };

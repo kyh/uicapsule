@@ -4,6 +4,7 @@ import userEvent from "@testing-library/user-event";
 import Switch from "components/Switch";
 
 const fixtures = {
+  label: "Label",
   name: "animal",
   className: "test-className",
   id: "test-id",
@@ -12,11 +13,14 @@ const fixtures = {
 
 describe("Components/Switch", () => {
   test("renders checkbox", () => {
-    render(<Switch name={fixtures.name} />);
+    render(<Switch name={fixtures.name}>{fixtures.label}</Switch>);
 
     const input = screen.getByRole("checkbox");
+    const text = screen.getByText(fixtures.label);
 
     expect(input).toBeInTheDocument();
+    expect(text).toBeInTheDocument();
+
     expect(input).not.toBeChecked();
   });
 

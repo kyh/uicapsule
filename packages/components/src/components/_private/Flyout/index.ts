@@ -1,7 +1,8 @@
 export { default } from "./Flyout";
 export { useFlyoutContext } from "./Flyout.context";
-export {
+export type {
   Props as FlyoutProps,
+  InstanceRef as FlyoutInstanceRef,
   TriggerProps as FlyoutTriggerProps,
-  RefProps as FlyoutRefProps,
+  ContentProps as FlyoutContentProps,
 } from "./Flyout.types";

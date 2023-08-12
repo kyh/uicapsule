@@ -1,2 +1,2 @@
 export { default } from "./Link";
-export { Props as LinkProps } from "./Link.types";
+export type { Props as LinkProps } from "./Link.types";

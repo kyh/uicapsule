@@ -23,13 +23,13 @@ const Alert = (props: T.Props) => {
       return (
         <>
           {title && (
-            <Text variant="body-medium-2" as="span">
+            <Text variant="body-3" weight="medium" as="span">
               {title}
             </Text>
           )}
           {title && children && " "}
           {children && (
-            <Text variant="body-2" as="span">
+            <Text variant="body-3" as="span">
               {children}
             </Text>
           )}
@@ -39,8 +39,12 @@ const Alert = (props: T.Props) => {
 
     return (
       <View gap={1}>
-        {title && <Text variant="body-medium-2">{title}</Text>}
-        {children && <Text variant="body-2">{children}</Text>}
+        {title && (
+          <Text variant="body-3" weight="medium">
+            {title}
+          </Text>
+        )}
+        {children && <Text variant="body-3">{children}</Text>}
       </View>
     );
   };
@@ -52,7 +56,7 @@ const Alert = (props: T.Props) => {
       <View gap={2} direction={inline ? "row" : "column"}>
         {inline ? <View.Item grow>{content}</View.Item> : content}
         {actionsSlot && (
-          <Text variant="body-medium-2">
+          <Text variant="body-3" weight="medium">
             <View direction="row" gap={3}>
               {actionsSlot}
             </View>

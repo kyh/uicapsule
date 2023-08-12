@@ -6,6 +6,7 @@ import s from "./Card.module.css";
 import getRadiusStyles from "styles/radius";
 import getBleedStyles from "styles/bleed";
 import getPaddingStyles from "styles/padding";
+import getHeightStyles from "styles/height";
 
 const Card = <As extends keyof JSX.IntrinsicElements = "div">(
   props: T.Props<As>,
@@ -16,6 +17,7 @@ const Card = <As extends keyof JSX.IntrinsicElements = "div">(
     selected,
     elevated,
     bleed,
+    height,
     onClick,
     href,
     children,
@@ -31,12 +33,14 @@ const Card = <As extends keyof JSX.IntrinsicElements = "div">(
   const radiusStyles = getRadiusStyles("medium");
   const bleedStyles = getBleedStyles(bleed);
   const paddingStyles = getPaddingStyles(padding);
+  const heightStyles = getHeightStyles(height);
 
   const rootClassNames = classNames(
     s.root,
     radiusStyles?.classNames,
     bleedStyles?.classNames,
     paddingStyles?.classNames,
+    heightStyles?.classNames,
     isActionable && s["--actionable"],
     elevated && s["--elevated"],
     selected && s["--selected"],
@@ -47,6 +51,7 @@ const Card = <As extends keyof JSX.IntrinsicElements = "div">(
     ...attributes?.style,
     ...bleedStyles?.variables,
     ...paddingStyles?.variables,
+    ...heightStyles?.variables,
   };
 
   if (isActionable) {

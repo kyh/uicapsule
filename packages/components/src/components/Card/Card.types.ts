@@ -1,5 +1,6 @@
 import React from "react";
-import { ActionableProps } from "components/Actionable";
+import type { ActionableProps } from "components/Actionable";
+import type { ViewProps } from "components/View";
 import type * as G from "types/global";
 
 export type Props<TagName extends keyof JSX.IntrinsicElements = "div"> = {
@@ -13,4 +14,4 @@ export type Props<TagName extends keyof JSX.IntrinsicElements = "div"> = {
   as?: TagName;
   className?: G.ClassName;
   attributes?: G.Attributes<TagName, Props> & ActionableProps["attributes"];
-};
+} & Pick<ViewProps, "height">;

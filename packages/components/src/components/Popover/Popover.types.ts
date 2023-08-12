@@ -12,6 +12,8 @@ export type Props = Pick<
   | "trapFocusMode"
   | "active"
   | "defaultActive"
+  | "contentGap"
+  | "instanceRef"
 > & {
   children?: React.ReactNode;
   triggerType?: "click" | "hover";

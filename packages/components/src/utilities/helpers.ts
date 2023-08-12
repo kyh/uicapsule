@@ -112,18 +112,16 @@ export const responsiveVariables = <V extends Value = Value>(
   value?: G.Responsive<V>
 ): Record<G.CSSVariable, V> => {
   if (value === undefined) return {};
-  if (typeof value !== "object") return { [variableName]: value };
+  if (typeof value !== "object") return { [`${variableName}-s`]: value };
 
   return Object.keys(value).reduce<Record<G.CSSVariable, V>>((acc, key) => {
-    const isBase = key === "s";
-    const suffix = isBase ? "" : `-${key}`;
     const viewportValue = value[key as G.Viewport];
 
     if (viewportValue === undefined) return acc;
     if (viewportValue === false) return acc;
     return {
       ...acc,
-      [`${variableName}${suffix}`]: viewportValue,
+      [`${variableName}-${key}`]: viewportValue,
     };
   }, {});
 };

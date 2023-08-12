@@ -1,4 +1,4 @@
-@custom-media --uic-viewport-s (max-width: 660px);
-@custom-media --uic-viewport-m (min-width: 661px);
+@custom-media --uic-viewport-s (max-width: 659px);
+@custom-media --uic-viewport-m (min-width: 660px);
 @custom-media --uic-viewport-l (min-width: 900px);
 @custom-media --uic-viewport-xl (min-width: 1280px);

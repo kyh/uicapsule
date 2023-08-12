@@ -1,18 +1,12 @@
 .root {
   display: block;
   transition: var(--uic-duration-fast) var(--uic-easing-standard);
-  transition-property: background-color, color, transform;
+  transition-property: background-color, transform;
   padding: var(--uic-menu-item-padding-v) var(--uic-menu-item-padding-h);
-
-  /* TODO: Replace with font utilities when they become available */
-  font-size: var(--uic-font-size-body-medium-2);
-  line-height: var(--uic-line-height-body-medium-2);
-  font-family: var(--uic-font-family-body-medium-2);
-  font-weight: var(--uic-font-weight-body-medium-2);
-
-  &:hover {
-    background-color: rgba(var(--uic-color-rgb-background-neutral), 0.4);
-  }
+  font-family: var(--uic-font-family-body);
+  font-weight: var(--uic-font-weight-medium);
+  color: var(--uic-menu-item-color);
+  background-color: var(--uic-menu-item-bg-color);
 }
 
 /* Apply only to button so it works correctly in stack */
@@ -21,90 +15,97 @@ button.root {
 }
 
 .icon {
-  color: var(--uic-color-foreground-neutral-faded);
+  color: var(--uic-menu-item-icon-color, inherit);
+}
+
+.icon,
+.content {
   transition: var(--uic-duration-fast) var(--uic-easing-standard);
   transition-property: color;
 }
 
-.--rounded-corners {
-  border-radius: var(--uic-menu-item-radius);
-}
+@responsive .--rounded-corners {
+  @value true {
+    border-radius: var(--uic-menu-item-radius);
+  }
 
-@each $viewport in m, l, xl {
-  @media (--uic-viewport-$(viewport)) {
-    .--rounded-corners-true--$viewport {
-      border-radius: var(--uic-menu-item-radius);
-    }
-
-    .--rounded-corners-false--$viewport {
-      border-radius: 0;
-    }
+  @value false {
+    border-radius: 0;
   }
 }
 
-.--size {
-  &-small {
+@responsive .--size {
+  @value small {
+    --uic-menu-item-padding-v: var(--uic-unit-x1);
+    --uic-menu-item-padding-h: var(--uic-unit-x2);
+    --uic-menu-item-radius: var(--uic-unit-radius-small);
+
+    font-size: var(--uic-font-size-body-3);
+    line-height: var(--uic-line-height-body-3);
+  }
+
+  @value medium {
     --uic-menu-item-padding-v: var(--uic-unit-x2);
     --uic-menu-item-padding-h: var(--uic-unit-x3);
-    --uic-menu-item-radius: var(--uic-unit-radius-small);
+    --uic-menu-item-radius: var(--uic-unit-radius-medium);
+
+    font-size: var(--uic-font-size-body-3);
+    line-height: var(--uic-line-height-body-3);
   }
 
-  &-medium {
+  @value large {
     --uic-menu-item-padding-v: var(--uic-unit-x3);
     --uic-menu-item-padding-h: var(--uic-unit-x4);
     --uic-menu-item-radius: var(--uic-unit-radius-medium);
-  }
 
-  &-large {
-    --uic-menu-item-padding-v: var(--uic-unit-x4);
-    --uic-menu-item-padding-h: var(--uic-unit-x6);
-    --uic-menu-item-radius: var(--uic-unit-radius-medium);
+    font-size: var(--uic-font-size-body-2);
+    line-height: var(--uic-line-height-body-2);
   }
 }
 
-@each $viewport in m, l, xl {
-  @media (--uic-viewport-$(viewport)) {
-    .--size {
-      &-small--$viewport {
-        --uic-menu-item-padding-v: var(--uic-unit-x2);
-        --uic-menu-item-padding-h: var(--uic-unit-x3);
-        --uic-menu-item-radius: var(--uic-unit-radius-small);
-      }
+.--color-neutral {
+  --uic-menu-item-icon-color: var(--uic-color-foreground-neutral-faded);
 
-      &-medium--$viewport {
-        --uic-menu-item-padding-v: var(--uic-unit-x3);
-        --uic-menu-item-padding-h: var(--uic-unit-x4);
-        --uic-menu-item-radius: var(--uic-unit-radius-medium);
-      }
+  &:hover,
+  &.--selected {
+    --uic-menu-item-bg-color: rgba(var(--uic-color-rgb-background-neutral), 40%);
+  }
+}
 
-      &-large--$viewport {
-        --uic-menu-item-padding-v: var(--uic-unit-x4);
-        --uic-menu-item-padding-h: var(--uic-unit-x6);
-        --uic-menu-item-radius: var(--uic-unit-radius-medium);
-      }
-    }
+.--color-critical {
+  --uic-menu-item-color: var(--uic-color-foreground-critical);
+
+  &:hover,
+  &.--selected {
+    --uic-menu-item-bg-color: rgba(var(--uic-color-rgb-background-critical), 12%);
+  }
+}
+
+.--color-primary {
+  --uic-menu-item-icon-color: var(--uic-color-foreground-neutral-faded);
+
+  &:hover {
+    --uic-menu-item-bg-color: rgba(var(--uic-color-rgb-background-neutral), 40%);
+  }
+
+  &.--selected,
+  &.--selected:hover {
+    --uic-menu-item-bg-color: rgba(var(--uic-color-rgb-background-primary), 12%);
+    --uic-menu-item-color: var(--uic-color-foreground-primary);
+    --uic-menu-item-icon-color: var(--uic-color-foreground-primary);
   }
 }
 
 .--selected,
 .--selected:hover {
-  background-color: rgba(var(--uic-color-rgb-background-primary), 0.12);
-  color: var(--uic-color-foreground-primary);
   cursor: default;
-
-  & .icon {
-    color: inherit;
-  }
 }
 
 .--disabled,
 .--disabled:hover {
-  color: var(--uic-color-foreground-disabled);
-  background: none;
-
-  & .icon {
-    color: var(--uic-color-foreground-disabled);
-  }
+  --uic-menu-item-color: var(--uic-color-foreground-disabled);
+  --uic-menu-item-bg-color: none;
+  --uic-menu-item-icon-color: var(--uic-color-foreground-disabled);
 }
 
 /* Aligner */

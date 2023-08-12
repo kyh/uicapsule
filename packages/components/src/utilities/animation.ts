@@ -4,16 +4,16 @@ export const onNextFrame = (cb: () => void) => {
   });
 };
 
-const transitionAttribute = "data-uicapsule-no-transition";
+const transitionAttribute = "data-uic-no-transition";
 
 export const disableTransitions = () => {
-  document.body.setAttribute(transitionAttribute, "true");
+  document.documentElement.setAttribute(transitionAttribute, "true");
 };
 
 export const enableTransitions = () => {
-  document.body.removeAttribute(transitionAttribute);
+  document.documentElement.removeAttribute(transitionAttribute);
 };
 
 export const checkTransitions = () => {
-  return !document.body.hasAttribute(transitionAttribute);
+  return !document.documentElement.hasAttribute(transitionAttribute);
 };

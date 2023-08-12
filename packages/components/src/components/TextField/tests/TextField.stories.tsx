@@ -9,15 +9,31 @@ export default { title: "Components/TextField" };
 export const value = () => (
   <Example>
     <Example.Item title="no value, placeholder">
-      <TextField name="Name" placeholder="Enter your name" />
+      <TextField name="Name" placeholder="Enter your name" icon={IconZap} />
     </Example.Item>
 
     <Example.Item title="value, uncontrolled">
-      <TextField name="Name" defaultValue="UIC" placeholder="Enter your name" />
+      <TextField
+        name="Name"
+        defaultValue="UIC"
+        placeholder="Enter your name"
+      />
     </Example.Item>
 
     <Example.Item title="value, controlled">
       <TextField name="Name" value="UIC" placeholder="Enter your name" />
+    </Example.Item>
+  </Example>
+);
+
+export const variants = () => (
+  <Example>
+    <Example.Item title="variant: faded">
+      <TextField variant="faded" name="Name" placeholder="Enter your name" />
+    </Example.Item>
+
+    <Example.Item title="variant: headless">
+      <TextField variant="headless" name="Name" placeholder="Enter your name" />
     </Example.Item>
   </Example>
 );
@@ -48,12 +64,12 @@ export const error = () => (
 
 export const icon = () => (
   <Example>
-    <Example.Item title="startIcon">
+    <Example.Item title="icon">
       <TextField
         name="Name"
         placeholder="Enter your name"
         value="UIC"
-        startIcon={IconZap}
+        icon={IconZap}
       />
     </Example.Item>
     <Example.Item title="endIcon">
@@ -74,7 +90,7 @@ export const size = () => (
         name="Name"
         placeholder="Enter your name"
         size="medium"
-        startIcon={IconZap}
+        icon={IconZap}
       />
     </Example.Item>
 
@@ -83,7 +99,7 @@ export const size = () => (
         name="Name"
         placeholder="Enter your name"
         size="large"
-        startIcon={IconZap}
+        icon={IconZap}
       />
     </Example.Item>
 
@@ -92,7 +108,7 @@ export const size = () => (
         name="Name"
         placeholder="Enter your name"
         size="xlarge"
-        startIcon={IconZap}
+        icon={IconZap}
       />
     </Example.Item>
 
@@ -101,7 +117,29 @@ export const size = () => (
         name="Name"
         placeholder="Enter your name"
         size={{ s: "xlarge", m: "medium" }}
-        startIcon={IconZap}
+        icon={IconZap}
+      />
+    </Example.Item>
+  </Example>
+);
+
+export const affixes = () => (
+  <Example>
+    <Example.Item title="prefix">
+      <TextField
+        name="phone"
+        placeholder="Enter your phone number"
+        value="UIC"
+        prefix="+31"
+      />
+    </Example.Item>
+
+    <Example.Item title="suffix">
+      <TextField
+        name="area"
+        placeholder="Enter your room ara"
+        value="25"
+        suffix="m2"
       />
     </Example.Item>
   </Example>
@@ -127,32 +165,6 @@ export const slots = () => (
         placeholder="Enter your name"
         value="UIC"
         endSlot={<Placeholder h={28} />}
-      />
-    </Example.Item>
-    <Example.Item
-      title={[
-        "startSlot, text",
-        "horizontal padding aligned with the opposite padding",
-      ]}
-    >
-      <TextField
-        name="Name"
-        placeholder="Enter your name"
-        value="UIC"
-        startSlot="text slot"
-      />
-    </Example.Item>
-    <Example.Item
-      title={[
-        "endSlot, text",
-        "horizontal padding aligned with the opposite padding",
-      ]}
-    >
-      <TextField
-        name="Name"
-        placeholder="Enter your name"
-        value="UIC"
-        endSlot="text slot"
       />
     </Example.Item>
   </Example>

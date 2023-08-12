@@ -1,27 +1,28 @@
 import React from "react";
 import View from "components/View";
-import ThemeProvider from "components/Theme";
+import Theme from "components/Theme";
 import Button from "components/Button";
-import Flyout, { FlyoutRefProps } from "components/_private/Flyout";
+import Flyout from "components/_private/Flyout";
 
 export default { title: "Utilities/Internal/Flyout" };
 
 const Demo = (props: any) => {
   const { position = "bottom-start", children, ...rest } = props;
-  const ref = React.useRef<FlyoutRefProps>(null);
 
   return (
-    <Flyout triggerType="click" ref={ref} position={position} {...rest}>
+    <Flyout triggerType="click" position={position} {...rest}>
       <Flyout.Trigger>
         {(attributes) => <button {...attributes}>{position}</button>}
       </Flyout.Trigger>
       <Flyout.Content>
         <div
           style={{
-            background: "#fefefe",
-            padding: 8,
-            height: 200,
-            border: "1px solid #dedede",
+            background: "var(--uic-color-background-elevation-overlay)",
+            padding: "var(--uic-unit-x4)",
+            height: 100,
+            width: 160,
+            borderRadius: "var(--uic-unit-radius-medium)",
+            border: "1px solid var(--uic-color-border-neutral-faded)",
             boxSizing: "border-box",
           }}
         >
@@ -43,8 +44,13 @@ export const positions = () => (
       <Demo position="top-end" />
       <Demo position="top" />
 
-      <Demo position="start" />
       <Demo position="end" />
+      <Demo position="end-top" />
+      <Demo position="end-bottom" />
+
+      <Demo position="start" />
+      <Demo position="start-top" />
+      <Demo position="start-bottom" />
     </View>
   </div>
 );
@@ -116,10 +122,29 @@ export const testWidthOverflowOnMobile = () => (
   </Demo>
 );
 
+export const widthTrigger = () => (
+  <Flyout triggerType="click" width="trigger" position="bottom">
+    <Flyout.Trigger>
+      {(attributes) => <button {...attributes}>Trigger with long text</button>}
+    </Flyout.Trigger>
+    <Flyout.Content>
+      <div
+        style={{
+          background: "var(--uic-color-background-elevation-overlay)",
+          padding: "var(--uic-unit-x4)",
+          borderRadius: "var(--uic-unit-radius-medium)",
+          border: "1px solid var(--uic-color-border-neutral-faded)",
+          boxSizing: "border-box",
+        }}
+      ></div>
+    </Flyout.Content>
+  </Flyout>
+);
+
 export const scopedTheming = () => (
   <View gap={3} align="start">
     <Button color="primary">UIC button</Button>
-    <ThemeProvider theme="twitter">
+    <Theme name="twitter">
       <Flyout triggerType="click" active position="bottom-start">
         <Flyout.Trigger>
           {(attributes) => (
@@ -131,9 +156,9 @@ export const scopedTheming = () => (
         <Flyout.Content>
           <div
             style={{
-              background: "#fefefe",
+              background: "var(--uic-color-background-elevation-overlay)",
               padding: 8,
-              border: "1px solid #dedede",
+              border: "1px solid var(--uic-color-border-neutral-faded)",
               boxSizing: "border-box",
             }}
           >
@@ -144,6 +169,6 @@ export const scopedTheming = () => (
           </div>
         </Flyout.Content>
       </Flyout>
-    </ThemeProvider>
+    </Theme>
   </View>
 );

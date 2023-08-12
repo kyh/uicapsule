@@ -4,7 +4,7 @@ import React from "react";
 import View, { ViewProps } from "components/View";
 import Button, { ButtonProps } from "components/Button";
 import Icon from "components/Icon";
-import ThemeProvider from "components/Theme";
+import Theme from "components/Theme";
 import Text from "components/Text";
 import type * as T from "./Toast.types";
 import s from "./Toast.module.css";
@@ -23,8 +23,9 @@ const Toast = (props: T.Props & { collapsed: boolean }) => {
     attributes,
   } = props;
   let backgroundColor: ViewProps["backgroundColor"] =
-    color === "inverted" || color === "neutral" ? "elevated" : color;
-  if (color === "neutral") backgroundColor = collapsed ? "neutral" : "elevated";
+    color === "inverted" || color === "neutral" ? "elevation-overlay" : color;
+  if (color === "neutral")
+    backgroundColor = collapsed ? "neutral" : "elevation-overlay";
   const borderColor = color === "neutral" ? "neutral-faded" : "transparent";
   const textTagName = size === "small" ? "span" : "div";
   const isLarge = size === "large";
@@ -37,11 +38,11 @@ const Toast = (props: T.Props & { collapsed: boolean }) => {
   const textContent = (title || text) && (
     <>
       {title && (
-        <Text variant="body-strong-2" as={textTagName}>
+        <Text variant="body-3" weight="bold" as={textTagName}>
           {title}{" "}
         </Text>
       )}
-      <Text variant="body-2" as={textTagName}>
+      <Text variant="body-3" as={textTagName}>
         {text}
       </Text>
     </>
@@ -112,7 +113,7 @@ const Toast = (props: T.Props & { collapsed: boolean }) => {
   );
 
   if (color === "inverted") {
-    return <ThemeProvider colorMode="inverted">{toastNode}</ThemeProvider>;
+    return <Theme colorMode="inverted">{toastNode}</Theme>;
   }
 
   return toastNode;

@@ -3,7 +3,6 @@ import { Example } from "utilities/storybook";
 import View from "components/View";
 import Icon from "components/Icon";
 import IconZap from "icons/Zap";
-import AspectRatio from "components/_deprecated/AspectRatio";
 import Image from "../Image";
 
 export default { title: "Utilities/Image" };
@@ -40,7 +39,7 @@ export const radius = () => (
         <Image src={imgUrl} borderRadius="medium" />
       </View>
     </Example.Item>
-    <Example.Item title="radius: small">
+    <Example.Item title="radius: large">
       <View width="300px">
         <Image src={imgUrl} borderRadius="large" />
       </View>
@@ -62,14 +61,14 @@ export const displayMode = () => (
 export const ratio = () => (
   <Example>
     <Example.Item title="ratio: 16/9">
-      <AspectRatio ratio={16 / 9}>
+      <View aspectRatio={16 / 9}>
         <Image src={imgUrl} />
-      </AspectRatio>
+      </View>
     </Example.Item>
     <Example.Item title="ratio: 16/9, displayMode: contain">
-      <AspectRatio ratio={16 / 9}>
+      <View aspectRatio={16 / 9}>
         <Image src={imgUrl} displayMode="contain" />
-      </AspectRatio>
+      </View>
     </Example.Item>
   </Example>
 );
@@ -78,31 +77,31 @@ export const fallback = () => (
   <Example>
     <Example.Item title="fallback, background, on error">
       <View width="300px">
-        <AspectRatio ratio={16 / 9}>
+        <View aspectRatio={16 / 9}>
           <Image src="error" fallback />
-        </AspectRatio>
+        </View>
       </View>
     </Example.Item>
     <Example.Item title="fallback, image, on error">
       <View width="300px">
-        <AspectRatio ratio={16 / 9}>
+        <View aspectRatio={16 / 9}>
           <Image src="error" fallback={imgUrl} />
-        </AspectRatio>
+        </View>
       </View>
     </Example.Item>
 
     <Example.Item title="fallback, icon, on error">
       <View width="300px">
-        <AspectRatio ratio={16 / 9}>
+        <View aspectRatio={16 / 9}>
           <Image src="error" fallback={<Icon svg={IconZap} size={10} />} />
-        </AspectRatio>
+        </View>
       </View>
     </Example.Item>
     <Example.Item title="fallback, icon, no url">
       <View width="300px">
-        <AspectRatio ratio={16 / 9}>
+        <View aspectRatio={16 / 9}>
           <Image fallback={<Icon svg={IconZap} size={10} />} />
-        </AspectRatio>
+        </View>
       </View>
     </Example.Item>
   </Example>

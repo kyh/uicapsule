@@ -1,7 +1,6 @@
 import React from "react";
 import { Example, Placeholder } from "utilities/storybook";
 import Button from "components/Button";
-import AspectRatio from "components/_deprecated/AspectRatio";
 import View from "components/View";
 import Image from "components/Image";
 import IconZap from "icons/Zap";
@@ -14,115 +13,104 @@ const imgUrl =
 export const variant = () => (
   <Example>
     <Example.Item title="variant: solid">
-      <Button onClick={() => {}}>Button</Button>
+      <View gap={4} direction="row">
+        <Button onClick={() => {}}>Button</Button>
+        <Button onClick={() => {}} color="primary">
+          Button
+        </Button>
+        <Button onClick={() => {}} color="critical">
+          Button
+        </Button>
+        <Button onClick={() => {}} color="positive">
+          Button
+        </Button>
+        <Button onClick={() => {}} color="black">
+          Button
+        </Button>
+        <Button onClick={() => {}} color="white">
+          Button
+        </Button>
+      </View>
+    </Example.Item>
+    <Example.Item title="variant: faded">
+      <View direction="row" gap={4}>
+        <Button onClick={() => {}} variant="faded">
+          Button
+        </Button>
+        <Button onClick={() => {}} color="primary" variant="faded">
+          Button
+        </Button>
+        <Button onClick={() => {}} color="critical" variant="faded">
+          Button
+        </Button>
+        <Button onClick={() => {}} color="positive" variant="faded">
+          Button
+        </Button>
+        <Button onClick={() => {}} color="black" variant="faded">
+          Button
+        </Button>
+        <Button onClick={() => {}} color="white" variant="faded">
+          Button
+        </Button>
+        <div style={{ color: "#029CFD" }}>
+          <Button onClick={() => {}} color="inherit" variant="faded">
+            Inherit
+          </Button>
+        </div>
+      </View>
     </Example.Item>
     <Example.Item title="variant: outline">
-      <Button onClick={() => {}} variant="outline">
-        Button
-      </Button>
+      <View direction="row" gap={4}>
+        <Button onClick={() => {}} variant="outline">
+          Button
+        </Button>
+        <Button onClick={() => {}} color="primary" variant="outline">
+          Button
+        </Button>
+        <Button onClick={() => {}} color="critical" variant="outline">
+          Button
+        </Button>
+        <Button onClick={() => {}} color="positive" variant="outline">
+          Button
+        </Button>
+        <Button onClick={() => {}} color="black" variant="outline">
+          Button
+        </Button>
+        <Button onClick={() => {}} color="white" variant="outline">
+          Button
+        </Button>
+        <div style={{ color: "#029CFD" }}>
+          <Button onClick={() => {}} color="inherit" variant="outline">
+            Inherit
+          </Button>
+        </div>
+      </View>
     </Example.Item>
     <Example.Item title="variant: ghost">
-      <Button onClick={() => {}} variant="ghost">
-        Button
-      </Button>
-    </Example.Item>
-  </Example>
-);
-
-export const color = () => (
-  <Example>
-    <Example.Item title="color: primary, all variants">
-      <View gap={3} direction="row">
-        <Button color="primary">Button</Button>
-        <Button color="primary" variant="outline">
+      <View direction="row" gap={4}>
+        <Button onClick={() => {}} variant="ghost">
           Button
         </Button>
-        <Button color="primary" variant="ghost">
+        <Button onClick={() => {}} color="primary" variant="ghost">
           Button
         </Button>
-      </View>
-    </Example.Item>
-    <Example.Item title="color: critical, all variants">
-      <View gap={3} direction="row">
-        <Button color="critical">Button</Button>
-        <Button color="critical" variant="outline">
+        <Button onClick={() => {}} color="critical" variant="ghost">
           Button
         </Button>
-        <Button color="critical" variant="ghost">
+        <Button onClick={() => {}} color="positive" variant="ghost">
           Button
         </Button>
-      </View>
-    </Example.Item>
-
-    <Example.Item title="color: positive, all variants">
-      <View gap={3} direction="row">
-        <Button color="positive">Button</Button>
-        <Button color="positive" variant="outline">
+        <Button onClick={() => {}} color="black" variant="ghost">
           Button
         </Button>
-        <Button color="positive" variant="ghost">
+        <Button onClick={() => {}} color="white" variant="ghost">
           Button
         </Button>
-      </View>
-    </Example.Item>
-
-    <Example.Item
-      title={["color: inherit, variant: ghost", "renders as white"]}
-    >
-      <View padding={4} backgroundColor="primary" borderRadius="small">
-        <Button color="inherit" variant="ghost">
-          Button
-        </Button>
-      </View>
-    </Example.Item>
-
-    <Example.Item
-      title={[
-        "color: inherit, variant: ghost",
-        "renders as black in light mode",
-        "renders as white in dark mode",
-      ]}
-    >
-      <View padding={4} backgroundColor="neutral" borderRadius="small">
-        <Button color="inherit" variant="ghost">
-          Button
-        </Button>
-      </View>
-    </Example.Item>
-    <Example.Item title="color: black, variant: solid and ghost">
-      <View
-        padding={4}
-        gap={3}
-        direction="row"
-        backgroundColor="white"
-        borderRadius="small"
-        borderColor="neutral-faded"
-      >
-        <Button color="black">Button</Button>
-        {/* <Button color="black" variant="outline">
-					Inherit
-				</Button> */}
-        <Button color="black" variant="ghost">
-          Button
-        </Button>
-      </View>
-    </Example.Item>
-    <Example.Item title="color: white, variant: solid and ghost">
-      <View
-        padding={4}
-        gap={3}
-        direction="row"
-        backgroundColor="black"
-        borderRadius="small"
-        borderColor="neutral-faded"
-      >
-        <Button color="white">Button</Button>
-        {/* <Button color="white" variant="outline">
-					Inherit
-				</Button> */}
-        <Button color="white" variant="ghost">
-          Button
-        </Button>
+        <div style={{ color: "#029CFD" }}>
+          <Button onClick={() => {}} color="inherit" variant="ghost">
+            Inherit
+          </Button>
+        </div>
       </View>
     </Example.Item>
   </Example>
@@ -131,7 +119,7 @@ export const color = () => (
 export const icon = () => (
   <Example>
     <Example.Item title="icon: start">
-      <Button onClick={() => {}} startIcon={IconZap}>
+      <Button onClick={() => {}} icon={IconZap}>
         Button
       </Button>
     </Example.Item>
@@ -142,13 +130,17 @@ export const icon = () => (
     </Example.Item>
 
     <Example.Item title="icon: start and end">
-      <Button onClick={() => {}} startIcon={IconZap} endIcon={IconZap}>
+      <Button onClick={() => {}} icon={IconZap} endIcon={IconZap}>
         Button
       </Button>
     </Example.Item>
 
     <Example.Item title="icon only">
-      <Button onClick={() => {}} startIcon={IconZap} />
+      <Button
+        onClick={() => {}}
+        icon={IconZap}
+        attributes={{ "aria-label": "Action" }}
+      />
     </Example.Item>
   </Example>
 );
@@ -196,13 +188,13 @@ export const size = () => (
   <Example>
     <Example.Item title="size: small, all variants">
       <View gap={3} direction="row">
-        <Button size="small" startIcon={IconZap}>
+        <Button size="small" icon={IconZap}>
           Button
         </Button>
-        <Button size="small" variant="outline" startIcon={IconZap}>
+        <Button size="small" variant="outline" icon={IconZap}>
           Button
         </Button>
-        <Button size="small" variant="ghost" startIcon={IconZap}>
+        <Button size="small" variant="ghost" icon={IconZap}>
           Button
         </Button>
       </View>
@@ -210,11 +202,11 @@ export const size = () => (
 
     <Example.Item title="size: medium, all variants">
       <View gap={3} direction="row">
-        <Button startIcon={IconZap}>Button</Button>
-        <Button variant="outline" startIcon={IconZap}>
+        <Button icon={IconZap}>Button</Button>
+        <Button variant="outline" icon={IconZap}>
           Button
         </Button>
-        <Button variant="ghost" startIcon={IconZap}>
+        <Button variant="ghost" icon={IconZap}>
           Button
         </Button>
       </View>
@@ -222,13 +214,13 @@ export const size = () => (
 
     <Example.Item title="size: large, all variants">
       <View gap={3} direction="row">
-        <Button size="large" startIcon={IconZap}>
+        <Button size="large" icon={IconZap}>
           Button
         </Button>
-        <Button size="large" variant="outline" startIcon={IconZap}>
+        <Button size="large" variant="outline" icon={IconZap}>
           Button
         </Button>
-        <Button size="large" variant="ghost" startIcon={IconZap}>
+        <Button size="large" variant="ghost" icon={IconZap}>
           Button
         </Button>
       </View>
@@ -236,20 +228,20 @@ export const size = () => (
 
     <Example.Item title="size: xlarge, all variants">
       <View gap={3} direction="row">
-        <Button size="xlarge" startIcon={IconZap}>
+        <Button size="xlarge" icon={IconZap}>
           Button
         </Button>
-        <Button size="xlarge" variant="outline" startIcon={IconZap}>
+        <Button size="xlarge" variant="outline" icon={IconZap}>
           Button
         </Button>
-        <Button size="xlarge" variant="ghost" startIcon={IconZap}>
+        <Button size="xlarge" variant="ghost" icon={IconZap}>
           Button
         </Button>
       </View>
     </Example.Item>
 
     <Example.Item title={["responsive size", "[s] large", "[m+] medium"]}>
-      <Button size={{ s: "large", m: "medium" }} startIcon={IconZap}>
+      <Button size={{ s: "large", m: "medium" }} icon={IconZap}>
         Button
       </Button>
     </Example.Item>
@@ -299,9 +291,9 @@ export const rounded = () => (
     </Example.Item>
     <Example.Item title="rounded, icon only, all sizes">
       <View gap={3} direction="row">
-        <Button rounded size="small" startIcon={IconZap} />
-        <Button rounded startIcon={IconZap} />
-        <Button rounded size="large" startIcon={IconZap} />
+        <Button rounded size="small" icon={IconZap} />
+        <Button rounded icon={IconZap} />
+        <Button rounded size="large" icon={IconZap} />
       </View>
     </Example.Item>
   </Example>
@@ -312,11 +304,14 @@ export const fullWidth = () => (
     <Example.Item title="fullWidth, all variants">
       <View gap={3}>
         <Button fullWidth>Neutral</Button>
+        <Button fullWidth variant="faded">
+          Faded
+        </Button>
         <Button fullWidth variant="outline">
-          Neutral
+          Outline
         </Button>
         <Button fullWidth variant="ghost">
-          Neutral
+          Ghost
         </Button>
       </View>
     </Example.Item>
@@ -332,6 +327,9 @@ export const loading = () => (
     <Example.Item title="loading, color: neutral, all variants">
       <View gap={3} direction="row">
         <Button loading>Button</Button>
+        <Button loading variant="faded">
+          Button
+        </Button>
         <Button loading variant="outline">
           Button
         </Button>
@@ -343,6 +341,9 @@ export const loading = () => (
     <Example.Item title="loading, color critical, all variants">
       <View gap={3} direction="row">
         <Button loading color="critical">
+          Button
+        </Button>
+        <Button loading color="critical" variant="faded">
           Button
         </Button>
         <Button loading color="critical" variant="outline">
@@ -358,6 +359,9 @@ export const loading = () => (
         <Button loading color="positive">
           Button
         </Button>
+        <Button loading color="positive" variant="faded">
+          Button
+        </Button>
         <Button loading color="positive" variant="outline">
           Button
         </Button>
@@ -368,7 +372,7 @@ export const loading = () => (
     </Example.Item>
 
     <Example.Item title="loading, color: black and white">
-      <AspectRatio ratio={16 / 9}>
+      <View aspectRatio={16 / 9}>
         <Image src={imgUrl} />
 
         <div style={{ position: "absolute", top: 16, left: 16 }}>
@@ -384,7 +388,7 @@ export const loading = () => (
             </Button>
           </View>
         </div>
-      </AspectRatio>
+      </View>
     </Example.Item>
 
     <Example.Item
@@ -398,7 +402,7 @@ export const loading = () => (
     <Example.Item
       title={["loading, icon only", "button keep square 1/1 ratio"]}
     >
-      <Button startIcon={IconZap} rounded loading />
+      <Button icon={IconZap} rounded loading />
     </Example.Item>
   </Example>
 );
@@ -408,6 +412,9 @@ export const highlighted = () => (
     <Example.Item title="highlighted, color: neutral, all variants">
       <View gap={3} direction="row">
         <Button highlighted icon={IconZap}>
+          Button
+        </Button>
+        <Button highlighted variant="faded" icon={IconZap}>
           Button
         </Button>
         <Button highlighted variant="outline" icon={IconZap}>
@@ -423,6 +430,9 @@ export const highlighted = () => (
         <Button highlighted color="critical" icon={IconZap}>
           Button
         </Button>
+        <Button highlighted color="critical" variant="faded" icon={IconZap}>
+          Button
+        </Button>
         <Button highlighted color="critical" variant="outline" icon={IconZap}>
           Button
         </Button>
@@ -434,6 +444,9 @@ export const highlighted = () => (
     <Example.Item title="highlighted, color: positive, all variants">
       <View gap={3} direction="row">
         <Button highlighted color="positive" icon={IconZap}>
+          Button
+        </Button>
+        <Button highlighted color="positive" variant="faded" icon={IconZap}>
           Button
         </Button>
         <Button highlighted color="positive" variant="outline" icon={IconZap}>
@@ -454,6 +467,9 @@ export const disabled = () => (
         <Button disabled icon={IconZap}>
           Button
         </Button>
+        <Button disabled variant="faded" icon={IconZap}>
+          Button
+        </Button>
         <Button disabled variant="outline" icon={IconZap}>
           Button
         </Button>
@@ -465,6 +481,9 @@ export const disabled = () => (
     <Example.Item title="disabled, color: critical, all variants">
       <View gap={3} direction="row">
         <Button disabled color="critical" icon={IconZap}>
+          Button
+        </Button>
+        <Button disabled color="critical" variant="faded" icon={IconZap}>
           Button
         </Button>
         <Button disabled color="critical" variant="outline" icon={IconZap}>
@@ -480,6 +499,9 @@ export const disabled = () => (
         <Button disabled color="positive" icon={IconZap}>
           Button
         </Button>
+        <Button disabled color="positive" variant="faded" icon={IconZap}>
+          Button
+        </Button>
         <Button disabled color="positive" variant="outline" icon={IconZap}>
           Button
         </Button>
@@ -490,7 +512,7 @@ export const disabled = () => (
     </Example.Item>
 
     <Example.Item title="disabled, color: black and white">
-      <AspectRatio ratio={16 / 9}>
+      <View aspectRatio={16 / 9}>
         <Image src={imgUrl} />
 
         <div style={{ position: "absolute", top: 16, left: 16 }}>
@@ -506,7 +528,7 @@ export const disabled = () => (
             </Button>
           </View>
         </div>
-      </AspectRatio>
+      </View>
     </Example.Item>
   </Example>
 );

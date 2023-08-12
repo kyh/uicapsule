@@ -6,7 +6,7 @@ exports[`Styles/MaxHeight handles % value 1`] = `
     "literal",
   ],
   "variables": {
-    "--_uic-mh": "50%",
+    "--uic-max-h-s": "50%",
   },
 }
 `;
@@ -17,7 +17,7 @@ exports[`Styles/MaxHeight handles px value 1`] = `
     "literal",
   ],
   "variables": {
-    "--_uic-mh": "50px",
+    "--uic-max-h-s": "50px",
   },
 }
 `;
@@ -29,8 +29,8 @@ exports[`Styles/MaxHeight handles responsive value 1`] = `
     "literal--l",
   ],
   "variables": {
-    "--_uic-mh": "50px",
-    "--_uic-mh-l": "50%",
+    "--uic-max-h-l": "50%",
+    "--uic-max-h-s": "50px",
   },
 }
 `;
@@ -43,7 +43,7 @@ exports[`Styles/MaxHeight handles unit value 1`] = `
     "unit",
   ],
   "variables": {
-    "--_uic-mh": 5,
+    "--uic-max-h-s": 5,
   },
 }
 `;

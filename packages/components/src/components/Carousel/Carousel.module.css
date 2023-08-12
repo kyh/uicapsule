@@ -11,7 +11,7 @@
   transform-origin: 50%;
   transform: translate(-50%, -50%) scale(0.75);
   display: none;
-  z-index: var(--uic-z-index-elevated);
+  z-index: var(--uic-z-index-raised);
 }
 
 .--control-prev {
@@ -22,22 +22,15 @@
   left: 100%;
 }
 
-.--control-visible > * {
-  pointer-events: none;
-}
-
 .--control-visible {
   opacity: 1;
   transform: translate(-50%, -50%) scale(1);
 }
 
-.--control-visible > * {
-  pointer-events: all;
-}
-
 .scroll {
   overflow: auto;
   -ms-overflow-style: none;
+  /* stylelint-disable-next-line declaration-block-no-duplicate-properties */
   overflow: -moz-scrollbars-none;
   -webkit-overflow-scrolling: touch;
   backface-visibility: hidden;
@@ -59,9 +52,10 @@
 
 .item {
   --uic-carousel-item-width: calc(
-    100% / var(--uic-carousel-items) - var(--uic-view-gap) *
+    100% / var(--uic-carousel-items) - var(--uic-view-gap-value) *
       (var(--uic-carousel-items) - 1) / var(--uic-carousel-items)
   );
+
   scroll-snap-align: start;
   width: var(--uic-carousel-item-width);
   position: relative;
@@ -75,9 +69,7 @@
 
 @media (hover: none) {
   .--bleed .item {
-    width: calc(
-      var(--uic-carousel-item-width) - 10% / var(--uic-carousel-items)
-    );
+    width: calc(var(--uic-carousel-item-width) - 10% / var(--uic-carousel-items));
   }
 }
 
@@ -95,38 +87,7 @@
   }
 }
 
-/* Variables */
-.root {
-  --_i: unset;
-  --_i-m: var(--_i);
-  --_i-l: var(--_i-m);
-  --_i-xl: var(--_i-l);
-  --uic-carousel-items: var(--_i);
-
-  --_b: 0;
-  --_b-m: var(--_b);
-  --_b-l: var(--_b-m);
-  --_b-xl: var(--_b-l);
-  --uic-carousel-bleed: var(--_b);
-}
-
-@media (--uic-viewport-m) {
-  .root {
-    --uic-carousel-items: var(--_i-m);
-    --uic-carousel-bleed: var(--_b-m);
-  }
-}
-
-@media (--uic-viewport-l) {
-  .root {
-    --uic-carousel-items: var(--_i-l);
-    --uic-carousel-bleed: var(--_b-l);
-  }
-}
-
-@media (--uic-viewport-xl) {
-  .root {
-    --uic-carousel-items: var(--_i-xl);
-    --uic-carousel-bleed: var(--_b-xl);
-  }
+@responsive .root {
+  @variable --uic-carousel-items unset;
+  @variable --uic-carousel-bleed 0;
 }

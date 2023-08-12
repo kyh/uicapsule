@@ -76,6 +76,43 @@ export const sections = () => (
   </Example>
 );
 
+export const submenu = () => (
+  <Example>
+    <Example.Item title="submenu">
+      <DropdownMenu>
+        <DropdownMenu.Trigger>
+          {(attributes) => <Button attributes={attributes}>Open</Button>}
+        </DropdownMenu.Trigger>
+        <DropdownMenu.Content>
+          <DropdownMenu.Item onClick={() => {}}>Item 1</DropdownMenu.Item>
+          <DropdownMenu.SubMenu>
+            <DropdownMenu.SubTrigger>Item 2</DropdownMenu.SubTrigger>
+            <DropdownMenu.Content>
+              <DropdownMenu.Item onClick={() => {}}>
+                SubItem 1
+              </DropdownMenu.Item>
+              <DropdownMenu.Item onClick={() => {}}>
+                SubItem 2
+              </DropdownMenu.Item>
+            </DropdownMenu.Content>
+          </DropdownMenu.SubMenu>
+          <DropdownMenu.SubMenu>
+            <DropdownMenu.SubTrigger>Item 3</DropdownMenu.SubTrigger>
+            <DropdownMenu.Content>
+              <DropdownMenu.Item onClick={() => {}}>
+                SubItem 2-1
+              </DropdownMenu.Item>
+              <DropdownMenu.Item onClick={() => {}}>
+                SubItem 2-2
+              </DropdownMenu.Item>
+            </DropdownMenu.Content>
+          </DropdownMenu.SubMenu>
+        </DropdownMenu.Content>
+      </DropdownMenu>
+    </Example.Item>
+  </Example>
+);
+
 export const state = () => (
   <Example>
     <Example.Item title="defaultActive">

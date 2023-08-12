@@ -2,7 +2,6 @@ import React from "react";
 import * as G from "types/global";
 
 export type ColorMode = "light" | "dark";
-// export type Theme = { light: string; dark: string };
 
 export type GlobalColorModeContextData = {
   mode: ColorMode;
@@ -17,8 +16,8 @@ export type ThemeContextData = {
 };
 
 export type Props = {
-  theme?: string;
-  defaultTheme?: string;
+  name?: string;
+  defaultName?: string;
   colorMode?: ColorMode | "inverted";
   className?: G.ClassName;
   children?: React.ReactNode;

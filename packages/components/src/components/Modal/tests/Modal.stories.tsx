@@ -117,10 +117,10 @@ export const composition = () => (
   </Example>
 );
 
-export const backdrop = () => (
+export const overlay = () => (
   <Example>
-    <Example.Item title="transparentBackdrop, doesn't lock scroll">
-      <Demo transparentBackdrop />
+    <Example.Item title="transparentOverlay, doesn't lock scroll">
+      <Demo transparentOverlay />
       <View height="1000px" />
     </Example.Item>
   </Example>

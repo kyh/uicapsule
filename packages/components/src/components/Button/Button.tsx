@@ -13,7 +13,7 @@ import s from "./Button.module.css";
 
 const ButtonBase = (props: T.Props, ref: ActionableRef) => {
   const {
-    variant,
+    variant = "solid",
     color = "neutral",
     elevated,
     highlighted,
@@ -28,12 +28,10 @@ const ButtonBase = (props: T.Props, ref: ActionableRef) => {
     rounded,
     attributes,
     onClick,
-    startIcon,
-    endIcon,
     icon,
-    iconPosition = "start",
+    endIcon,
   } = props;
-  const iconOnly = (startIcon || endIcon || icon) && !children;
+  const iconOnly = (icon || endIcon) && !children;
   const rootClassName = classNames(
     s.root,
     className,
@@ -50,17 +48,9 @@ const ButtonBase = (props: T.Props, ref: ActionableRef) => {
   );
 
   const renderIcon = (position: "start" | "end") => {
-    const isStartValid = position === "start" && startIcon;
-    const isStartValidOld =
-      position === "start" && icon && iconPosition === "start";
+    const isStartValid = position === "start" && icon;
     const isEndValid = position === "end" && endIcon;
-    const isEndValidOld = position === "end" && icon && iconPosition === "end";
-    const isInvalid = !(
-      isStartValid ||
-      isStartValidOld ||
-      isEndValid ||
-      isEndValidOld
-    );
+    const isInvalid = !(isStartValid || isEndValid);
 
     if (isInvalid) return null;
 
@@ -77,7 +67,7 @@ const ButtonBase = (props: T.Props, ref: ActionableRef) => {
     return (
       <Icon
         className={iconClassName}
-        svg={(position === "start" ? startIcon || icon : endIcon || icon)!}
+        svg={(position === "start" ? icon : endIcon)!}
         size={iconSize}
         autoWidth
       />

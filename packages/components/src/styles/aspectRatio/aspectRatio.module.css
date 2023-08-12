@@ -1,27 +1,15 @@
-.root {
-  --_uic-ar: 0;
-  --_uic-ar-m: var(--_uic-ar);
-  --_uic-ar-l: var(--_uic-ar-m);
-  --_uic-ar-xl: var(--_uic-ar-l);
-  --_uic-ar-responsive: var(--_uic-ar);
-}
-
 .root:empty {
-  aspect-ratio: var(--_uic-ar-responsive);
+  aspect-ratio: var(--uic-ratio);
 }
 
 .root:not(:empty) > * {
-  aspect-ratio: var(--_uic-ar-responsive);
+  aspect-ratio: var(--uic-ratio);
 }
 
 .root > img {
   object-fit: cover;
 }
 
-@each $viewport in m, l, xl {
-  @media (--uic-viewport-$viewport) {
-    .root {
-      --_uic-ar-responsive: var(--_uic-ar-$(viewport));
-    }
-  }
+@responsive .root {
+  @variable --uic-ratio 0;
 }

@@ -3,6 +3,8 @@ import type { IconProps } from "components/Icon";
 import * as G from "types/global";
 
 export type BaseProps = {
+  iconSize?: IconProps["size"];
+  iconPosition?: "start" | "end";
   children?: React.ReactNode;
   onToggle?: (active: boolean) => void;
   className?: G.ClassName;
@@ -21,7 +23,6 @@ export type TriggerProps = {
         props: { active: boolean }
       ) => React.ReactNode)
     | React.ReactNode;
-  iconSize?: IconProps["size"];
 };
 
 export type ContentProps = {
@@ -38,7 +39,7 @@ export type UncontrolledProps = BaseProps & {
 };
 export type Props = ControlledProps | UncontrolledProps;
 
-export type ContextProps = {
+export type ContextProps = Pick<BaseProps, "iconSize" | "iconPosition"> & {
   triggerId: string;
   contentId: string;
   active: boolean;

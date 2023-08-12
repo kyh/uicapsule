@@ -4,7 +4,7 @@ import s from "./height.module.css";
 
 const getHeightStyles: T.DynamicStyleUtility<string | number> = (value) => {
   if (!value) return null;
-  const variables = responsiveVariables("--_uic-h", value);
+  const variables = responsiveVariables("--uic-h", value);
   const classNames = responsiveClassNames(
     s,
     (value) => (typeof value === "number" ? "unit" : "literal"),

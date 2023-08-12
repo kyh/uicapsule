@@ -23,7 +23,7 @@ export type Props = {
   size?: G.Responsive<string>;
   padding?: G.Responsive<number>;
   active?: boolean;
-  transparentBackdrop?: boolean;
+  transparentOverlay?: boolean;
   onClose?: () => void;
   className?: G.ClassName;
   attributes?: G.Attributes<"div", Props>;

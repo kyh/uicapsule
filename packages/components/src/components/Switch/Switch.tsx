@@ -3,14 +3,31 @@
 import React from "react";
 import { classNames } from "utilities/helpers";
 import { useFormControl } from "components/FormControl";
+import Text from "components/Text";
 import useElementId from "hooks/useElementId";
 import type * as T from "./Switch.types";
 import s from "./Switch.module.css";
 
 const Switch = (props: T.Props) => {
-  const { name, checked, defaultChecked, onChange, className, attributes } =
-    props;
-  const rootClassNames = classNames(s.root, className);
+  const {
+    children,
+    name,
+    checked,
+    size,
+    reversed,
+    defaultChecked,
+    onChange,
+    onFocus,
+    onBlur,
+    className,
+    attributes,
+  } = props;
+  const rootClassNames = classNames(
+    s.root,
+    size && s[`root--size-${size}`],
+    reversed && s["root--reversed"],
+    className
+  );
   const formControl = useFormControl();
   const id = useElementId(
     formControl?.attributes.id ||
@@ -43,11 +60,18 @@ const Switch = (props: T.Props) => {
         defaultChecked={defaultChecked}
         disabled={disabled}
         onChange={handleChange}
+        onFocus={onFocus || inputAttributes?.onFocus}
+        onBlur={onBlur || inputAttributes?.onBlur}
         id={id}
       />
       <span className={s.area} aria-hidden="true">
         <span className={s.thumb} />
       </span>
+      {children && (
+        <Text variant="body-3" weight="medium">
+          {children}
+        </Text>
+      )}
     </label>
   );
 };

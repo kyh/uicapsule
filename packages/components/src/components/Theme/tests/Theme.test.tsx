@@ -1,6 +1,6 @@
 import React from "react";
 import { render, screen } from "@testing-library/react";
-import ThemeProvider, { useTheme } from "components/Theme";
+import Theme, { useTheme } from "components/Theme";
 
 const Component = () => {
   const { colorMode } = useTheme();
@@ -11,9 +11,9 @@ const Component = () => {
 describe("Utilities/Theme", () => {
   test("renders light mode", () => {
     render(
-      <ThemeProvider theme="uicapsule">
+      <Theme name="uicapsule">
         <Component />
-      </ThemeProvider>
+      </Theme>
     );
 
     expect(screen.getByText("light")).toBeInTheDocument();
@@ -21,9 +21,9 @@ describe("Utilities/Theme", () => {
 
   test("renders dark mode", () => {
     render(
-      <ThemeProvider theme="uicapsule" colorMode="dark">
+      <Theme name="uicapsule" colorMode="dark">
         <Component />
-      </ThemeProvider>
+      </Theme>
     );
 
     expect(screen.getByText("dark")).toBeInTheDocument();
@@ -31,9 +31,9 @@ describe("Utilities/Theme", () => {
 
   test("renders inverted mode", () => {
     render(
-      <ThemeProvider theme="uicapsule" colorMode="inverted">
+      <Theme name="uicapsule" colorMode="inverted">
         <Component />
-      </ThemeProvider>
+      </Theme>
     );
 
     expect(screen.getByText("dark")).toBeInTheDocument();

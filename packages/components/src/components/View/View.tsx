@@ -3,7 +3,6 @@ import {
   classNames,
   responsiveClassNames,
   responsiveVariables,
-  responsivePropDependency,
 } from "utilities/helpers";
 import Divider, { DividerProps } from "components/Divider";
 import Hidden from "components/Hidden";
@@ -43,12 +42,16 @@ const ViewItem = <As extends keyof JSX.IntrinsicElements = "div">(
   );
 
   const itemVariables = {
-    ...responsiveVariables("--_o", order),
-    ...responsiveVariables("--_gi", gapBefore),
+    ...responsiveVariables("--uic-view-item-order", order),
+    ...responsiveVariables("--uic-view-item-gap-before", gapBefore),
   };
 
   return (
-    <TagName {...attributes} style={itemVariables} className={itemClassNames}>
+    <TagName
+      {...attributes}
+      style={{ ...attributes?.style, ...itemVariables }}
+      className={itemClassNames}
+    >
       {children}
     </TagName>
   );
@@ -71,6 +74,8 @@ const View = <As extends keyof JSX.IntrinsicElements = "div">(
     maxHeight,
     maxWidth,
     padding,
+    paddingInline,
+    paddingBlock,
     paddingBottom,
     paddingEnd,
     paddingStart,
@@ -94,6 +99,11 @@ const View = <As extends keyof JSX.IntrinsicElements = "div">(
     insetStart,
     insetEnd,
     zIndex,
+
+    /**
+     * Item prop
+     */
+    grow,
 
     /**
      * Using any here to let TS save on type resolving, otherwise TS throws an error due to the type complexity
@@ -151,7 +161,7 @@ const View = <As extends keyof JSX.IntrinsicElements = "div">(
 
     return (
       <div className={dividerClassName} key={`${key}-divider`}>
-        <Divider vertical={isDividerVertical} />
+        <Divider vertical={isDividerVertical} blank />
       </div>
     );
   };
@@ -238,7 +248,11 @@ const View = <As extends keyof JSX.IntrinsicElements = "div">(
     shadow && s[`--shadow-${shadow}`],
     overflow && s[`--overflow-${overflow}`],
     animated && s["--animated"],
-    padding !== undefined && s["--padding"],
+    divided && s["--divided"],
+    (padding !== undefined ||
+      paddingInline !== undefined ||
+      paddingBlock !== undefined) &&
+      s["--padding"],
     paddingBottom !== undefined && s["--padding-bottom"],
     paddingEnd !== undefined && s["--padding-end"],
     paddingStart !== undefined && s["--padding-start"],
@@ -249,30 +263,20 @@ const View = <As extends keyof JSX.IntrinsicElements = "div">(
     ...responsiveClassNames(s, "--justify", justify),
     // Wrap and nowrap are separate here because inverting any of them could result into a false value which will be ignored by classNames
     ...responsiveClassNames(s, "--nowrap", nowrap || wrap === false),
-    ...responsiveClassNames(s, "--wrap", wrap)
+    ...responsiveClassNames(s, "--wrap", wrap),
+    // Item classnames
+    ...responsiveClassNames(s, "item--grow", grow)
   );
 
   const rootVariables = {
     ...attributes?.style,
-    ...responsiveVariables("--_g", gap),
-    ...responsiveVariables(
-      "--_pv",
-      padding &&
-        responsivePropDependency(padding, (value) =>
-          typeof value === "number" ? value : value[0]
-        )
-    ),
-    ...responsiveVariables(
-      "--_ph",
-      padding &&
-        responsivePropDependency(padding, (value) =>
-          typeof value === "number" ? value : value[1]
-        )
-    ),
-    ...responsiveVariables("--_pb", paddingBottom),
-    ...responsiveVariables("--_pt", paddingTop),
-    ...responsiveVariables("--_ps", paddingStart),
-    ...responsiveVariables("--_pe", paddingEnd),
+    ...responsiveVariables("--uic-view-gap", gap),
+    ...responsiveVariables("--uic-view-p-vertical", paddingBlock || padding),
+    ...responsiveVariables("--uic-view-p-horizontal", paddingInline || padding),
+    ...responsiveVariables("--uic-view-p-bottom", paddingBottom),
+    ...responsiveVariables("--uic-view-p-top", paddingTop),
+    ...responsiveVariables("--uic-view-p-start", paddingStart),
+    ...responsiveVariables("--uic-view-p-end", paddingEnd),
     ...bleedStyles?.variables,
     ...widthStyles?.variables,
     ...heightStyles?.variables,
@@ -284,7 +288,7 @@ const View = <As extends keyof JSX.IntrinsicElements = "div">(
     ...insetBottomStyles?.variables,
     ...insetStartStyles?.variables,
     ...insetEndStyles?.variables,
-    ...(zIndex ? { "--_z": zIndex } : {}),
+    ...(zIndex ? { "--uic-view-z": zIndex } : {}),
   };
 
   return (

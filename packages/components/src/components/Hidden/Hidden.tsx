@@ -10,14 +10,12 @@ const Hidden = (props: T.Props) => {
     visibility,
     hide,
     displayStyle,
-    inline,
   } = props;
   const rootClassNames = classNames(
     s.root,
     ...responsiveClassNames(s, "--hidden", hide),
     visibility && s["--visibility"],
-    displayStyle && s[`--display-${displayStyle}`],
-    inline && s["--display-inline"]
+    displayStyle && s[`--display-${displayStyle}`]
   );
 
   if (typeof children === "function") return <>{children(rootClassNames)}</>;

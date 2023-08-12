@@ -9,8 +9,16 @@ import type * as T from "./Radio.types";
 import s from "./Radio.module.css";
 
 const Radio = (props: T.Props) => {
-  const { children, value, onChange, className, attributes, inputAttributes } =
-    props;
+  const {
+    children,
+    value,
+    onChange,
+    onFocus,
+    onBlur,
+    className,
+    attributes,
+    inputAttributes,
+  } = props;
   const formControl = useFormControl();
   const radioGroup = useRadioGroup();
   const hasError =
@@ -50,6 +58,8 @@ const Radio = (props: T.Props) => {
           disabled={disabled}
           value={value}
           onChange={handleChange}
+          onFocus={onFocus}
+          onBlur={onBlur}
           attributes={inputAttributes}
         />
         <div className={s.decorator} />

@@ -20,10 +20,13 @@ const Example = (props: {
       {props.title && (
         <View
           bleed={4}
-          padding={[3, 4]}
+          paddingInline={4}
+          paddingBlock={3}
           backgroundColor="neutral-faded"
           borderColor="neutral-faded"
-          attributes={{ style: { position: "sticky", top: 0, zIndex: 100 } }}
+          position="sticky"
+          insetTop={0}
+          zIndex={100}
         >
           {props.title}
         </View>
@@ -39,11 +42,11 @@ const ExampleItem = (props: Props) => {
 
   return (
     <View borderColor="neutral-faded" borderRadius="medium" overflow="hidden">
-      <View padding={[3, 4]} backgroundColor="neutral-faded">
+      <View paddingInline={4} paddingBlock={3} backgroundColor="neutral-faded">
         {title &&
           title.map((line, index) => (
             <Text
-              variant="body-2"
+              variant="body-3"
               color={index > 0 ? "neutral-faded" : "neutral"}
               key={index}
             >

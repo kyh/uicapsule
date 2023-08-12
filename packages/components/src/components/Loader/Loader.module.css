@@ -1,4 +1,4 @@
-@keyframes uicapsule-loader {
+@keyframes rs-uicapsule-loader {
   0% {
     transform: rotate(0deg);
   }
@@ -13,17 +13,16 @@
 }
 
 .root {
-  --uic-loader-color: var(--uic-color-border-primary);
   position: relative;
   display: block;
-  animation: uicapsule-loader 2.2s infinite
+  animation: rs-uicapsule-loader 2.2s infinite
     cubic-bezier(0.445, 0.05, 0.55, 0.95);
   width: var(--uic-loader-size);
   height: var(--uic-loader-size);
 }
 
-.root:before,
-.root:after {
+.root::before,
+.root::after {
   content: "";
   background: var(--uic-loader-color);
   border-radius: 50%;
@@ -35,16 +34,16 @@
   top: 50%;
 }
 
-.root:before {
+.root::before {
   left: 0;
 }
 
-.root:after {
+.root::after {
   right: 0;
 }
 
-.inner:after,
-.inner:before {
+.inner::after,
+.inner::before {
   content: "";
   position: absolute;
   inset: 0;
@@ -52,40 +51,40 @@
   border-radius: 50%;
 }
 
-.inner:before {
+.inner::before {
   opacity: 0.3;
 }
 
-.inner:after {
+.inner::after {
   border-bottom-color: transparent;
   border-left-color: transparent;
   transform: rotate(-45deg);
 }
 
-.root.--color-inherit {
-  --uic-loader-color: currentColor;
+.--color-inherit {
+  --uic-loader-color: currentcolor;
 }
 
-.--size-small {
-  --uic-loader-size: var(--uic-unit-x4);
-  --uic-loader-stroke: 2px;
+.--color-primary {
+  --uic-loader-color: var(--uic-color-border-primary);
 }
 
-.--size-medium {
-  --uic-loader-size: var(--uic-unit-x6);
-  --uic-loader-stroke: 3px;
+.--color-positive {
+  --uic-loader-color: var(--uic-color-border-positive);
 }
 
-@each $viewport in m, l, xl {
-  @media (--uic-viewport-$(viewport)) {
-    .--size-small--$viewport {
-      --uic-loader-size: var(--uic-unit-x4);
-      --uic-loader-stroke: 2px;
-    }
+.--color-critical {
+  --uic-loader-color: var(--uic-color-border-critical);
+}
 
-    .--size-medium--$viewport {
-      --uic-loader-size: var(--uic-unit-x6);
-      --uic-loader-stroke: 3px;
-    }
+@responsive .--size {
+  @value small {
+    --uic-loader-size: var(--uic-unit-x4);
+    --uic-loader-stroke: 2px;
+  }
+
+  @value medium {
+    --uic-loader-size: var(--uic-unit-x6);
+    --uic-loader-stroke: 3px;
   }
 }

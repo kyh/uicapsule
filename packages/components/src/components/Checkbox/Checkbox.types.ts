@@ -9,6 +9,8 @@ type BaseProps = {
   value?: string;
   indeterminate?: boolean;
   onChange?: G.ChangeHandler<boolean>;
+  onFocus?: (e: React.FocusEvent) => void;
+  onBlur?: (e: React.FocusEvent) => void;
   className?: G.ClassName;
   attributes?: G.Attributes<"label", Props>;
   inputAttributes?: G.Attributes<"input", Props>;

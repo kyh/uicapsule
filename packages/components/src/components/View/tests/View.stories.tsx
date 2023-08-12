@@ -6,7 +6,6 @@ import Text from "components/Text";
 import Tabs from "components/Tabs";
 import Avatar from "components/Avatar";
 import MenuItem from "components/MenuItem";
-import AspectRatio from "components/_deprecated/AspectRatio";
 import Button from "components/Button";
 
 export default { title: "Utilities/View" };
@@ -29,7 +28,7 @@ export const padding = () => (
       </View>
     </Example.Item>
     <Example.Item title="padding: vertical 2, horizontal 4">
-      <View padding={[2, 4]} borderColor="neutral">
+      <View paddingInline={4} paddingBlock={2} borderColor="neutral">
         <Placeholder />
       </View>
     </Example.Item>
@@ -60,7 +59,11 @@ export const padding = () => (
         "[m+] vertical 4, horizontal 8",
       ]}
     >
-      <View padding={{ s: [2, 4], m: [4, 8] }} borderColor="neutral">
+      <View
+        paddingInline={{ s: 4, m: 8 }}
+        paddingBlock={{ s: 2, m: 4 }}
+        borderColor="neutral"
+      >
         <Placeholder />
       </View>
     </Example.Item>
@@ -80,9 +83,9 @@ export const padding = () => (
         <Placeholder />
       </View>
     </Example.Item>
-    <Example.Item title="nested padding, child view should have no padding">
+    <Example.Item title="nested padding, child view should have no horizontal padding">
       <View paddingStart={4} borderColor="neutral">
-        <View borderColor="primary" padding={[4, 0]}>
+        <View borderColor="primary" paddingBlock={4}>
           <Placeholder />
         </View>
       </View>
@@ -225,6 +228,19 @@ export const divided = () => (
         <Placeholder />
       </View>
     </Example.Item>
+    <Example.Item title="direction: row, columns">
+      <View divided gap={3} direction="row">
+        <View.Item columns={2}>
+          <Placeholder>Item 1</Placeholder>
+        </View.Item>
+        <View.Item columns={8}>
+          <Placeholder>Item 2</Placeholder>
+        </View.Item>
+        <View.Item columns={2}>
+          <Placeholder>Item 3</Placeholder>
+        </View.Item>
+      </View>
+    </Example.Item>
   </Example>
 );
 
@@ -293,7 +309,7 @@ export const align = () => (
     <Example.Item title="align: baseline, direction: row">
       <View align="baseline" direction="row" gap={3}>
         <Placeholder />
-        <Text variant="title-1">Content</Text>
+        <Text variant="title-6">Content</Text>
       </View>
     </Example.Item>
 
@@ -317,24 +333,13 @@ export const align = () => (
     </Example.Item>
     <Example.Item
       title={[
-        "align: stretch, direction: row",
+        "align: stretch, direction: column",
         "1st item uses its own width, 2nd item is stretched to full width",
       ]}
     >
       <View align="stretch" direction="column" gap={3}>
         <Placeholder w={100} />
         <Placeholder w="auto" />
-      </View>
-    </Example.Item>
-    <Example.Item
-      title={[
-        "align: baseline, direction: row",
-        "Should have no visible effect",
-      ]}
-    >
-      <View align="baseline" direction="column" gap={3}>
-        <Placeholder />
-        <Text variant="title-1">Content</Text>
       </View>
     </Example.Item>
   </Example>
@@ -498,13 +503,26 @@ export const background = () => (
         Content
       </View>
     </Example.Item>
-    <Example.Item title={["bg: base", "base elevation in dark mode"]}>
-      <View backgroundColor="base" borderColor="neutral" padding={4}>
+    <Example.Item title="bg: elevation-base">
+      <View backgroundColor="elevation-base" borderColor="neutral" padding={4}>
         Content
       </View>
     </Example.Item>
-    <Example.Item title={["bg: elevated", "elevated in dark mode"]}>
-      <View backgroundColor="elevated" borderColor="neutral" padding={4}>
+    <Example.Item title="bg: elevation-raised">
+      <View
+        backgroundColor="elevation-raised"
+        borderColor="neutral"
+        padding={4}
+      >
+        Content
+      </View>
+    </Example.Item>
+    <Example.Item title="bg: elevation-overlay">
+      <View
+        backgroundColor="elevation-overlay"
+        borderColor="neutral"
+        padding={4}
+      >
         Content
       </View>
     </Example.Item>
@@ -643,22 +661,22 @@ export const radius = () => (
 
 export const shadow = () => (
   <Example>
-    <Example.Item title="shadow: base, radius: medium">
+    <Example.Item title="shadow: raised, radius: medium">
       <View
         height="100px"
         width="100px"
-        shadow="base"
+        shadow="raised"
         borderRadius="medium"
-        backgroundColor="base"
+        backgroundColor="elevation-raised"
       />
     </Example.Item>
-    <Example.Item title="shadow: elevated, radius: medium">
+    <Example.Item title="shadow: overlay, radius: medium">
       <View
         height="100px"
         width="100px"
-        shadow="elevated"
+        shadow="overlay"
         borderRadius="medium"
-        backgroundColor="elevated"
+        backgroundColor="elevation-overlay"
       />
     </Example.Item>
   </Example>
@@ -675,7 +693,7 @@ export const overflow = () => (
       <View
         height="100px"
         width="100px"
-        shadow="base"
+        shadow="raised"
         borderRadius="medium"
         overflow="hidden"
       >
@@ -736,6 +754,64 @@ export const position = () => (
         </View>
         <Placeholder h={1000} />
       </div>
+    </Example.Item>
+  </Example>
+);
+
+export const inset = () => (
+  <Example>
+    <Example.Item title="inset: 4">
+      <View backgroundColor="neutral-faded" width={25} height={25}>
+        <View backgroundColor="neutral" position="absolute" inset={4} />
+      </View>
+    </Example.Item>
+
+    <Example.Item title="insetTop: 4">
+      <View backgroundColor="neutral-faded" width={25} height={25}>
+        <View
+          backgroundColor="neutral"
+          position="absolute"
+          insetTop={4}
+          height={10}
+          width={10}
+        />
+      </View>
+    </Example.Item>
+
+    <Example.Item title="insetStart: 4">
+      <View backgroundColor="neutral-faded" width={25} height={25}>
+        <View
+          backgroundColor="neutral"
+          position="absolute"
+          insetStart={4}
+          height={10}
+          width={10}
+        />
+      </View>
+    </Example.Item>
+
+    <Example.Item title="insetEnd: 4">
+      <View backgroundColor="neutral-faded" width={25} height={25}>
+        <View
+          backgroundColor="neutral"
+          position="absolute"
+          insetEnd={4}
+          height={10}
+          width={10}
+        />
+      </View>
+    </Example.Item>
+
+    <Example.Item title="insetBottom: 4">
+      <View backgroundColor="neutral-faded" width={25} height={25}>
+        <View
+          backgroundColor="neutral"
+          position="absolute"
+          insetBottom={4}
+          height={10}
+          width={10}
+        />
+      </View>
     </Example.Item>
   </Example>
 );
@@ -905,6 +981,14 @@ export const itemGrow = () => (
         </View.Item>
       </View>
     </Example.Item>
+    <Example.Item title="direction: row, 2nd item grow, applied to View">
+      <View direction="row" gap={3}>
+        <Placeholder w={200} />
+        <View grow>
+          <Placeholder />
+        </View>
+      </View>
+    </Example.Item>
     <Example.Item
       title={[
         "responsive item grow, direction: row",
@@ -1005,7 +1089,7 @@ export const itemColumns = () => (
       </View>
     </Example.Item>
 
-    <Example.Item title="columns 6, 6, 9, gap: 4, 3nd item gapBefore: 20">
+    <Example.Item title="columns 6, 6, 9, gap: 4, 2nd item gapBefore: 20">
       <View direction="row" gap={4}>
         <View.Item columns={6}>
           <Placeholder>Item 1</Placeholder>
@@ -1160,7 +1244,7 @@ export const testComposition = () => (
   <Example>
     <Example.Item
       title={[
-        "View.Item, MenuItem, AspectRatio",
+        "View.Item, MenuItem, Aspect ratio",
         "ratio should increase height on viewport change",
       ]}
     >
@@ -1172,9 +1256,9 @@ export const testComposition = () => (
           Menu
         </MenuItem>
         <View.Item grow>
-          <AspectRatio ratio={16 / 9}>
+          <View aspectRatio={16 / 9}>
             <Placeholder h="100%" />
-          </AspectRatio>
+          </View>
         </View.Item>
       </View>
     </Example.Item>
