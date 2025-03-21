@@ -2,27 +2,54 @@
 
 # dependencies
 node_modules
+.pnp
+.pnp.js
 
 # testing
 coverage
 
-# cache
-.vercel
-.next
+# next.js
+.next/
+out/
+next-env.d.ts
+
+# nitro
+.nitro/
+.output/
+
+# expo
+.expo/
+dist/
+expo-env.d.ts
+apps/expo/.gitignore
 
 # production
-build
-dist
-releases
-out
-bin
+packages/mdx/.content-collections/cache
 
 # misc
 .DS_Store
-.env*
+*.pem
 
 # debug
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
-*.log
+.pnpm-debug.log*
+
+# local env files
+.env
+.env*.local
+
+# vercel
+.vercel
+
+# typescript
+*.tsbuildinfo
+.cache
+
+# turbo
+.turbo
+
+# Supabase
+.branches
+.temp

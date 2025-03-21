@@ -1,7 +1,0 @@
-.root {
-  padding: calc(var(--uic-p) * var(--uic-unit-x1));
-}
-
-@responsive .root {
-  @variable --uic-p 0;
-}

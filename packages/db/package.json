@@ -1,0 +1,53 @@
+{
+  "name": "@init/db",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts",
+    "./*": "./src/*.ts"
+  },
+  "scripts": {
+    "build": "tsc",
+    "clean": "git clean -xdf .cache .turbo dist node_modules",
+    "dev": "tsc",
+    "format": "prettier --check . --ignore-path ../../.gitignore",
+    "lint": "eslint",
+    "typecheck": "tsc --noEmit --emitDeclarationOnly false",
+    "supabase": "pnpm with-env supabase",
+    "drizzle-kit": "pnpm with-env drizzle-kit",
+    "seed": "pnpm with-env tsx src/seed/initial.ts",
+    "start": "pnpm with-env supabase status || supabase start",
+    "stop": "pnpm with-env supabase stop",
+    "reset": "pnpm with-env supabase db reset && pnpm push",
+    "status": "pnpm with-env supabase status",
+    "test": "pnpm with-env supabase db test",
+    "typegen": "pnpm with-env supabase gen types typescript --local > src/types/database.types.ts",
+    "push": "pnpm with-env drizzle-kit push",
+    "push-remote": "dotenv -e ../../.env.production.local -- drizzle-kit push",
+    "studio": "pnpm with-env drizzle-kit studio",
+    "with-env": "dotenv -e ../../.env --"
+  },
+  "dependencies": {
+    "@supabase/ssr": "^0.5.2",
+    "@supabase/supabase-js": "^2.49.1",
+    "drizzle-orm": "^0.40.0",
+    "next": "catalog:",
+    "postgres": "^3.4.5",
+    "react": "catalog:",
+    "zod": "catalog:"
+  },
+  "devDependencies": {
+    "@faker-js/faker": "^9.6.0",
+    "@kyh/eslint-config": "catalog:",
+    "@kyh/prettier-config": "catalog:",
+    "@kyh/tsconfig": "catalog:",
+    "@types/react": "catalog:",
+    "drizzle-kit": "^0.30.5",
+    "eslint": "catalog:",
+    "prettier": "catalog:",
+    "supabase": "^2.15.8",
+    "typescript": "catalog:"
+  },
+  "prettier": "@kyh/prettier-config"
+}

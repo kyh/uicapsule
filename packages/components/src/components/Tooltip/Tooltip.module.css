@@ -1,8 +1,0 @@
-.root {
-  color: var(--uic-color-foreground-neutral);
-  background: var(--uic-color-background-elevation-overlay);
-  box-shadow: var(--uic-shadow-overlay);
-  border-radius: var(--uic-unit-radius-small);
-  padding: var(--uic-unit-x1) var(--uic-unit-x2);
-  max-width: 360px;
-}

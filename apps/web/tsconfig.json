@@ -1,8 +1,0 @@
-{
-  "extends": "@uicapsule/config/tsconfig/nextjs.json",
-  "compilerOptions": {
-    "baseUrl": "."
-  },
-  "include": ["."],
-  "exclude": ["dist", "build", "node_modules"]
-}

@@ -1,8 +1,0 @@
-{
-  "extends": "@uicapsule/config/tsconfig/react-library.json",
-  "compilerOptions": {
-    "baseUrl": "src"
-  },
-  "include": ["."],
-  "exclude": ["dist", "build", "node_modules"]
-}
