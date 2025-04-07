@@ -2,7 +2,7 @@ import React from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { MDXContent as RootMDXContent } from "@content-collections/mdx/react";
-import { cn } from "@init/ui/utils";
+import { cn } from "@kyh/ui/utils";
 
 type MDXContentProps = React.ComponentProps<typeof RootMDXContent>;
 

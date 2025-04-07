@@ -1,5 +1,5 @@
 {
-  "name": "@init/mdx",
+  "name": "@kyh/mdx",
   "private": true,
   "version": "0.1.0",
   "type": "module",
@@ -19,7 +19,7 @@
     "typecheck": "tsc --noEmit --emitDeclarationOnly false"
   },
   "dependencies": {
-    "@init/ui": "workspace:^"
+    "@kyh/ui": "workspace:^"
   },
   "devDependencies": {
     "@content-collections/cli": "^0.1.6",

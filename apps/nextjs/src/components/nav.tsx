@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { usePathname } from "next/navigation";
-import { Logo } from "@init/ui/logo";
+import { Logo } from "@kyh/ui/logo";
 import cn from "clsx";
 import { ArrowLeft } from "lucide-react";
 
