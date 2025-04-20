@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import cn from "clsx";
+import { cn } from "@kyh/ui/utils";
 import { Facebook, Instagram, Twitter } from "lucide-react";
 
 type FooterIconProps = {

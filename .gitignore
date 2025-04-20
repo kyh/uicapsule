@@ -24,7 +24,7 @@ expo-env.d.ts
 apps/expo/.gitignore
 
 # production
-packages/mdx/.content-collections/cache
+packages/content/.content-collections/cache
 
 # misc
 .DS_Store

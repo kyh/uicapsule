@@ -1,4 +1,4 @@
-import cn from "clsx";
+import { cn } from "@kyh/ui/utils";
 import { SearchIcon } from "lucide-react";
 
 type Button = {

@@ -13,11 +13,12 @@
     "typecheck": "tsc --noEmit",
     "with-env": "dotenv -e ../../.env --"
   },
+  "prettier": "@kyh/prettier-config",
   "dependencies": {
     "@edge-csrf/nextjs": "2.5.3-cloudflare-rc1",
     "@kyh/api": "workspace:^",
+    "@kyh/content": "workspace:^",
     "@kyh/db": "workspace:^",
-    "@kyh/mdx": "workspace:^",
     "@kyh/ui": "workspace:^",
     "@tanstack/react-query": "catalog:",
     "@trpc/client": "catalog:",
@@ -45,6 +46,5 @@
     "prettier": "catalog:",
     "tailwindcss": "^4.1.4",
     "typescript": "catalog:"
-  },
-  "prettier": "@kyh/prettier-config"
+  }
 }

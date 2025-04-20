@@ -1,116 +1,76 @@
 "use client";
 
-import { useState } from "react";
+import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Logo } from "@kyh/ui/logo";
-import cn from "clsx";
+import { cn } from "@kyh/ui/utils";
 import { ArrowLeft } from "lucide-react";
 
-import { NavLink } from "./nav-link";
+const links = [
+  { href: "/", label: "Products" },
+  { href: "/about", label: "About" },
+  { href: "/faq", label: "FAQ" },
+  { href: "/contact", label: "Contact" },
+];
 
 export const Nav = () => {
-  const [isOpen, setIsOpen] = useState(false);
   const pathname = usePathname();
 
-  const toggleMenu = () => {
-    setIsOpen(!isOpen);
-  };
-
-  const links = [
-    { href: "/", label: "Products" },
-    { href: "/about", label: "About" },
-    { href: "/faq", label: "FAQ" },
-    { href: "/contact", label: "Contact" },
-  ];
-
   return (
-    <nav className="sticky top-0 z-10 w-full">
-      <div className="border-border relative z-10 flex h-20 w-full items-center justify-between border-b max-md:px-6 md:pr-6">
-        <div className="flex h-full flex-row gap-px pr-px max-md:hidden">
-          <>
-            {pathname === "/products" ? (
-              <NavLink href="/" setIsOpen={setIsOpen} isActive={false}>
-                <ArrowLeft className="h-6 w-6" />
-                Back
+    <nav className="border-border sticky top-0 flex h-16 w-full items-center justify-between border-b">
+      <div className="flex">
+        <>
+          {pathname.includes("/ui") ? (
+            <NavLink href="/" isActive={false}>
+              <ArrowLeft className="h-6 w-6" />
+              Back
+            </NavLink>
+          ) : (
+            links.map((link) => (
+              <NavLink
+                key={link.href}
+                href={link.href}
+                isActive={pathname === link.href}
+              >
+                {link.label}
               </NavLink>
-            ) : (
-              links.map((link) => (
-                <NavLink
-                  key={link.href}
-                  href={link.href}
-                  setIsOpen={setIsOpen}
-                  isActive={pathname === link.href}
-                >
-                  {link.label}
-                </NavLink>
-              ))
-            )}
-          </>
-        </div>
-        <div className="md:hidden">
-          <button
-            onClick={toggleMenu}
-            className="text-black focus:outline-hidden"
-          >
-            <svg
-              className="h-6 w-6"
-              fill="none"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth="2"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              {isOpen ? (
-                <path d="M6 18L18 6M6 6l12 12"></path>
-              ) : (
-                <path d="M4 6h16M4 12h16M4 18h16"></path>
-              )}
-            </svg>
-          </button>
-        </div>
-        <Logo />
+            ))
+          )}
+        </>
       </div>
-      <MobileMenu
-        isOpen={isOpen}
-        setIsOpen={setIsOpen}
-        links={links}
-        pathname={pathname}
-      />
+      <Logo />
     </nav>
   );
 };
 
-type MobileMenuProps = {
-  isOpen: boolean;
-  setIsOpen: (isOpen: boolean) => void;
-  links: { href: string; label: string }[];
-  pathname: string;
+type NavLinkProps = {
+  href: string;
+  children: React.ReactNode;
+  isActive: boolean;
 };
 
-const MobileMenu = ({
-  isOpen,
-  setIsOpen,
-  links,
-  pathname,
-}: MobileMenuProps) => {
+export const NavLink = ({ href, children, isActive }: NavLinkProps) => {
   return (
-    <div
+    <Link
+      href={href}
       className={cn(
-        "absolute top-0 left-0 flex h-screen w-full flex-col border-b-2 pt-24 transition-all duration-500 ease-in-out md:hidden",
-        isOpen ? "translate-y-0" : "-translate-y-full",
+        "group relative flex items-center gap-2 px-9 py-6 text-lg leading-none hover:text-black md:justify-center",
+        isActive ? "text-black" : "text-[#6b6b6b]",
       )}
     >
-      {links.map((link) => (
-        <NavLink
-          key={link.href}
-          href={link.href}
-          setIsOpen={setIsOpen}
-          isActive={pathname === link.href}
-        >
-          {link.label}
-        </NavLink>
-      ))}
-    </div>
+      <div
+        className={cn(
+          "aspect-square h-1 rotate-45 bg-black max-md:hidden",
+          isActive ? "block" : "hidden",
+        )}
+      />
+      <div
+        className={cn(
+          "absolute bottom-0 h-1 w-full duration-200 ease-in group-hover:bg-gray-200 max-md:hidden",
+          isActive && "bg-black group-hover:bg-black!",
+        )}
+      />
+      {children}
+    </Link>
   );
 };

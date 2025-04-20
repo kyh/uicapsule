@@ -1,0 +1,38 @@
+{
+  "name": "@kyh/content",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.tsx",
+    "./content": {
+      "types": "./.content-collections/generated/index.d.ts",
+      "default": "./.content-collections/generated/index.js"
+    }
+  },
+  "scripts": {
+    "build": "content-collections build && pnpm generate",
+    "clean": "git clean -xdf .cache .turbo dist node_modules",
+    "dev": "content-collections watch",
+    "generate": "tsx scripts/generate-components-index.ts",
+    "format": "prettier --check . --ignore-path ../../.gitignore",
+    "lint": "eslint",
+    "typecheck": "tsc --noEmit --emitDeclarationOnly false"
+  },
+  "prettier": "@kyh/prettier-config",
+  "dependencies": {
+    "@kyh/ui": "workspace:^",
+    "@number-flow/react": "^0.5.9",
+    "framer-motion": "^12.7.4"
+  },
+  "devDependencies": {
+    "@content-collections/cli": "^0.1.6",
+    "@content-collections/core": "^0.8.2",
+    "@kyh/eslint-config": "catalog:",
+    "@kyh/prettier-config": "catalog:",
+    "@kyh/tsconfig": "catalog:",
+    "eslint": "catalog:",
+    "prettier": "catalog:",
+    "typescript": "catalog:"
+  }
+}

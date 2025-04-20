@@ -1,6 +1,6 @@
 export const productsGridData = [
   {
-    id: 1,
+    slug: "theyre-radio-p77",
     name: "They're Radio P77",
     price: 179,
     image: "/cms/01.webp",
@@ -10,7 +10,7 @@ export const productsGridData = [
     },
   },
   {
-    id: 2,
+    slug: "radion-t28",
     name: "Radion T28",
     price: 129,
     image: "/cms/02.webp",
@@ -20,7 +20,7 @@ export const productsGridData = [
     },
   },
   {
-    id: 3,
+    slug: "ther-radio-0x-yp",
     name: "Ther Radio 0X-YP",
     price: 399,
     image: "/cms/03.webp",
@@ -30,7 +30,7 @@ export const productsGridData = [
     },
   },
   {
-    id: 4,
+    slug: "radion-y-01",
     name: "Radion Y-01",
     price: 199,
     image: "/cms/04.webp",
@@ -40,7 +40,7 @@ export const productsGridData = [
     },
   },
   {
-    id: 5,
+    slug: "proto-t-52",
     name: "Proto T 52",
     price: 99,
     image: "/cms/05.webp",
@@ -50,7 +50,7 @@ export const productsGridData = [
     },
   },
   {
-    id: 6,
+    slug: "radiot-p52",
     name: "Radiot P52",
     price: 299,
     image: "/cms/06.webp",
@@ -60,7 +60,7 @@ export const productsGridData = [
     },
   },
   {
-    id: 7,
+    slug: "ax-34-deck",
     name: "AX-34 Deck",
     price: 159,
     image: "/cms/07.webp",
@@ -70,7 +70,7 @@ export const productsGridData = [
     },
   },
   {
-    id: 8,
+    slug: "pocket-play-x-rp",
     name: "Pocket Play X-RP",
     price: 279,
     image: "/cms/08.webp",
@@ -80,7 +80,7 @@ export const productsGridData = [
     },
   },
   {
-    id: 9,
+    slug: "sp-4-radio",
     name: "SP-4 Radio",
     price: 149,
     image: "/cms/09.webp",
@@ -90,7 +90,7 @@ export const productsGridData = [
     },
   },
   {
-    id: 10,
+    slug: "sonicwave-x1",
     name: "SonicWave X1",
     price: 199,
     image: "/cms/10.webp",
@@ -100,7 +100,7 @@ export const productsGridData = [
     },
   },
   {
-    id: 11,
+    slug: "calc-9000",
     name: "Calc 9000",
     price: 79,
     image: "/cms/11.webp",
@@ -110,7 +110,7 @@ export const productsGridData = [
     },
   },
   {
-    id: 12,
+    slug: "neo-chrono-console",
     name: "NeoChrono Console",
     price: 399,
     image: "/cms/12.webp",
@@ -120,7 +120,7 @@ export const productsGridData = [
     },
   },
   {
-    id: 13,
+    slug: "recordio-zt-1",
     name: "Recordio ZT 1",
     price: 99,
     image: "/cms/13.webp",
@@ -130,7 +130,7 @@ export const productsGridData = [
     },
   },
   {
-    id: 14,
+    slug: "gamebrot-0xr",
     name: "Gamebrot 0XR",
     price: 189,
     image: "/cms/14.webp",
@@ -140,7 +140,7 @@ export const productsGridData = [
     },
   },
   {
-    id: 15,
+    slug: "headset-x28",
     name: "Headset x28",
     price: 189,
     image: "/cms/15.webp",
@@ -150,7 +150,7 @@ export const productsGridData = [
     },
   },
   {
-    id: 16,
+    slug: "peeuriva-24-t4",
     name: "Peeuriva 24-T4",
     price: 189,
     image: "/cms/16.webp",
