@@ -70,7 +70,7 @@ export const ProductsGrid = ({ products = productsGridData }) => {
 
 export const RelatedProducts = ({ products = productsGridData }) => {
   return (
-    <div className="bg-border grid gap-px md:grid-cols-2 2xl:grid-cols-4 2xl:*:h-96">
+    <div className="bg-border grid gap-px md:grid-cols-2 lg:grid-cols-4">
       {products.slice(0, 4).map((product, key) => (
         <ProductItem {...product} key={key} />
       ))}

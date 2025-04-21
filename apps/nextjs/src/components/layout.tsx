@@ -52,7 +52,7 @@ import { useTRPC } from "@/trpc/react";
 
 export const Nav = () => {
   return (
-    <nav className="bg-background sticky top-0 grid h-16 w-full grid-cols-3 items-center gap-2 border-b px-6">
+    <nav className="bg-background sticky top-0 z-10 grid h-16 w-full grid-cols-3 items-center gap-2 border-b px-6">
       <div className="flex items-center justify-start gap-2">
         <Link href="/">
           <Logo />

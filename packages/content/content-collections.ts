@@ -45,7 +45,7 @@ const componentsMeta = defineCollection({
 
     for (const doc of docs) {
       const componentName = toCamelCase(doc.slug, { pascalCase: true });
-      imports.push(`import * as ${componentName} from "./${doc.meta.path}";`);
+      imports.push(`import ${componentName} from "./${doc.meta.path}";`);
       exports.push(`  "${doc.slug}": ${componentName}`);
     }
 
