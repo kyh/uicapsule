@@ -1,10 +1,10 @@
-import { NavSearch } from "@/components/nav-search";
+import { SubNav } from "@/components/layout";
 import { ProductsGrid } from "@/components/products-grid";
 
 const Page = () => {
   return (
     <main>
-      <NavSearch />
+      <SubNav />
       <ProductsGrid />
     </main>
   );

@@ -43,21 +43,21 @@ export const AvatarFallback = ({
 );
 
 type ProfileAvatarProps = {
+  src?: string | null;
   className?: string;
   displayName?: string | null;
-  avatarUrl?: string | null;
 };
 
 export const ProfileAvatar = ({
+  src,
   className,
   displayName,
-  avatarUrl,
 }: ProfileAvatarProps) => {
   const initials = displayName?.slice(0, 1);
 
   return (
     <Avatar className={cn("size-9", className)}>
-      <AvatarImage src={avatarUrl ?? undefined} />
+      <AvatarImage src={src ?? undefined} />
       <AvatarFallback className="animate-in fade-in uppercase">
         {initials}
       </AvatarFallback>

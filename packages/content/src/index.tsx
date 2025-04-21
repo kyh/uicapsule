@@ -1,5 +1,5 @@
-import likeButton from "./buttons/like-button";
-
+import * as LikeButton from "./buttons/like-button";
+  
 export default {
-  "like-button": likeButton,
+  "like-button": LikeButton
 };

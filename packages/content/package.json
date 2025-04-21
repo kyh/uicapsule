@@ -14,7 +14,6 @@
     "build": "content-collections build && pnpm generate",
     "clean": "git clean -xdf .cache .turbo dist node_modules",
     "dev": "content-collections watch",
-    "generate": "tsx scripts/generate-components-index.ts",
     "format": "prettier --check . --ignore-path ../../.gitignore",
     "lint": "eslint",
     "typecheck": "tsc --noEmit --emitDeclarationOnly false"
