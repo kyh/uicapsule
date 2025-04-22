@@ -1,4 +1,5 @@
-"use client";
+export default {
+  "like-button": `"use client";
 
 import { useRef, useState } from "react";
 import NumberFlow from "@number-flow/react";
@@ -202,7 +203,7 @@ const LikeButton = () => {
           </motion.svg>
         ) : (
           <svg
-            className={`${isLiked ? "text-red-500" : "text-inherit"}`}
+            className={\`\${isLiked ? "text-red-500" : "text-inherit"}\`}
             width="16"
             height="16"
             viewBox="0 0 24 24"
@@ -229,3 +230,5 @@ const Usage = () => {
 };
 
 export default Usage;
+`
+};
