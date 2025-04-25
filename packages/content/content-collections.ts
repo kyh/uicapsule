@@ -17,21 +17,25 @@ const componentsMeta = defineCollection({
     tags: z.array(z.string()).optional(),
   }),
   onSuccess: async (docs) => {
-    await writeIndex(docs);
-    await writeSourceCode(docs);
+    await generatePreview(docs);
+    // await generateSourceCode(docs);
   },
 });
 
 type Doc = Schema<"frontmatter", any>;
 
-const writeIndex = async (docs: Doc[]) => {
+const generatePreview = async (docs: Doc[]) => {
   const imports: string[] = [];
   const exports: string[] = [];
 
   for (const doc of docs) {
-    const slug = doc._meta.fileName.replace(extension, "");
+    const slug = getSlug(doc._meta.filePath);
     const componentName = toCamelCase(slug, { pascalCase: true });
-    imports.push(`import ${componentName} from "./${doc._meta.path}";`);
+    const previewPath = doc._meta.filePath
+      .replace("meta", "preview")
+      .replace(extension, "");
+
+    imports.push(`import ${componentName} from "./${previewPath}";`);
     exports.push(`  "${slug}": ${componentName}`);
   }
 
@@ -43,17 +47,18 @@ ${exports.join(",\n")}
 };
   `.trim();
 
-  const outputFile = path.join(process.cwd(), "src", "index.tsx");
+  const outputFile = path.join(process.cwd(), "src", "preview.tsx");
 
   await fs.writeFile(outputFile, content);
 };
 
-const writeSourceCode = async (docs: Doc[]) => {
+const generateSourceCode = async (docs: Doc[]) => {
   const exports: string[] = [];
 
   for (const doc of docs) {
-    const slug = doc._meta.fileName.replace(extension, "");
-    const sourcePath = `src/${doc._meta.filePath.replace(extension, ".tsx")}`;
+    const slug = getSlug(doc._meta.filePath);
+    const sourcePath = `src/${doc._meta.filePath.replace("meta", "source").replace(extension, ".tsx")}`;
+
     const sourceCode = await fs.readFile(sourcePath, "utf-8");
     exports.push(`  "${slug}": \`${escape(sourceCode)}\``);
   }
@@ -67,6 +72,10 @@ ${exports.join(",\n")}
   const outputFile = path.join(process.cwd(), "src", "source.tsx");
 
   await fs.writeFile(outputFile, content);
+};
+
+const getSlug = (filePath: string): string => {
+  return path.basename(path.dirname(filePath));
 };
 
 const escape = (str: string): string => {

@@ -1,5 +1,4 @@
-export default {
-  "like-button": `"use client";
+"use client";
 
 import { useRef, useState } from "react";
 import NumberFlow from "@number-flow/react";
@@ -153,7 +152,7 @@ const Particle = ({
   );
 };
 
-const LikeButton = () => {
+export const LikeButton = () => {
   const [likeCount, setLikeCount] = useState(0);
   const [isLiked, setIsLiked] = useState(false);
   const [isAnimating, setIsAnimating] = useState(false);
@@ -203,7 +202,7 @@ const LikeButton = () => {
           </motion.svg>
         ) : (
           <svg
-            className={\`\${isLiked ? "text-red-500" : "text-inherit"}\`}
+            className={`${isLiked ? "text-red-500" : "text-inherit"}`}
             width="16"
             height="16"
             viewBox="0 0 24 24"
@@ -223,12 +222,4 @@ const LikeButton = () => {
       </span>
     </button>
   );
-};
-
-const Usage = () => {
-  return <LikeButton />;
-};
-
-export default Usage;
-`
 };
