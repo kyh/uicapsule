@@ -1,4 +1,4 @@
-import { Timeline } from "./source";
+import { Timeline } from "@kyh/content/timeline/source";
 
 const Preview = () => {
   return <Timeline />;

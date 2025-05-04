@@ -1,4 +1,4 @@
-import { readFile } from "node:fs/promises";
+import { readdir, readFile } from "node:fs/promises";
 import { join } from "node:path";
 
 const contentSourceDir = join(
@@ -10,36 +10,61 @@ const contentSourceDir = join(
   "src",
 );
 
-export const getSourceCode = async (slug: string) => {
+export const getComponentSourceCode = async (slug: string): Promise<string> => {
   const sourceCode = await readFile(
-    join(join(contentSourceDir, slug), "source.tsx"),
+    join(contentSourceDir, slug, "source.tsx"),
     "utf-8",
   );
 
   return sourceCode;
 };
 
-export const getPreviewCode = async (slug: string) => {
-  const previewCode = await readFile(
-    join(join(contentSourceDir, slug), "preview.tsx"),
-    "utf-8",
-  );
-  return previewCode;
-};
-
-type ComponentMeta = {
-  title: string;
+type ComponentMetadata = {
+  slug: string;
+  name: string;
   description: string;
   tags: string[];
 };
 
-export const getComponentMeta = async (
+export const getComponentMetadata = async (
   slug: string,
-): Promise<ComponentMeta> => {
-  const componentMeta = await readFile(
-    join(join(contentSourceDir, slug), "meta.json"),
+): Promise<ComponentMetadata> => {
+  const componentMetadata = await readFile(
+    join(contentSourceDir, slug, "meta.json"),
     "utf-8",
   );
 
-  return JSON.parse(componentMeta) as ComponentMeta;
+  return JSON.parse(componentMetadata) as ComponentMetadata;
+};
+
+export const listContentComponents = async (): Promise<ComponentMetadata[]> => {
+  const files = await readdir(contentSourceDir);
+
+  const contentComponents = await Promise.all(
+    files.map(async (file) => {
+      const metadata = await getComponentMetadata(file);
+      return { ...metadata, slug: file };
+    }),
+  );
+
+  return contentComponents;
+};
+
+export const getPreviewSourceCode = async (slug: string): Promise<string> => {
+  const previewCode = await readFile(
+    join(process.cwd(), "src", "preview", `${slug}.tsx`),
+    "utf-8",
+  );
+
+  return previewCode;
+};
+
+export const getPreviewComponent = async (
+  slug: string,
+): Promise<React.ComponentType> => {
+  const Component = (await import(`../preview/${slug}.tsx`).then(
+    (module) => module.default,
+  )) as React.ComponentType;
+
+  return Component;
 };

@@ -1,4 +1,4 @@
-import { GridHighlightTooltip } from "./source";
+import { GridHighlightTooltip } from "@kyh/content/grid-highlight-tooltip/source";
 
 const Preview = () => {
   return <GridHighlightTooltip />;

@@ -1,4 +1,4 @@
-import { IosHeaderMenu } from "./source";
+import { IosHeaderMenu } from "@kyh/content/ios-header-menu/source";
 
 const Preview = () => {
   return <IosHeaderMenu />;

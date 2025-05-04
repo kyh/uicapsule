@@ -345,37 +345,6 @@ export const ProfileButton = () => {
   );
 };
 
-const categories = [
-  "All",
-  "Calculator",
-  "Clock",
-  "Gaming",
-  "Radio",
-  "Recorder",
-  "Speaker",
-];
-
-export const SubNav = () => {
-  return (
-    <div className="flex h-16 items-center justify-between border-b">
-      <div className="flex h-full flex-1 items-center gap-3 overflow-y-hidden pl-6">
-        {categories.map((category) => (
-          <Button key={category} variant="outline">
-            {category}
-          </Button>
-        ))}
-      </div>
-      <Button
-        variant="ghost"
-        size="icon"
-        className="h-full w-20 rounded-none border-l"
-      >
-        <SearchIcon />
-      </Button>
-    </div>
-  );
-};
-
 export const Footer = () => {
   return (
     <div className="text-muted-foreground flex flex-col items-center justify-center gap-5 border-t pt-5 lg:flex-row lg:pt-0">

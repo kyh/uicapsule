@@ -1,4 +1,4 @@
-import { CardStack } from "./source";
+import { CardStack } from "@kyh/content/card-stack/source";
 
 const Preview = () => {
   return <CardStack />;

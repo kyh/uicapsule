@@ -1,4 +1,4 @@
-import { RadialSlider } from "./source";
+import { RadialSlider } from "@kyh/content/radial-slider/source";
 
 const Preview = () => {
   return <RadialSlider />;

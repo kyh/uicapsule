@@ -1,4 +1,4 @@
-import { AsciiRenderer } from "./source";
+import { AsciiRenderer } from "@kyh/content/ascii-renderer/source";
 
 const Preview = () => {
   return <AsciiRenderer />;
