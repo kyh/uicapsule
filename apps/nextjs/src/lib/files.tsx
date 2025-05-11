@@ -62,7 +62,7 @@ export const getPreviewSourceCode = async (slug: string): Promise<string> => {
 export const getPreviewComponent = async (
   slug: string,
 ): Promise<React.ComponentType> => {
-  const Component = (await import(`../preview/${slug}.tsx`).then(
+  const Component = (await import(`../preview/${slug}`).then(
     (module) => module.default,
   )) as React.ComponentType;
 

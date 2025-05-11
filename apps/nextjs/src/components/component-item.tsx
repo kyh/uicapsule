@@ -18,10 +18,7 @@ export const ComponentItem = ({ slug, name }: ComponentItemProps) => {
       </div>
       <div className="flex justify-between">
         <p className="group-hover:underline">{name}</p>
-        <ArrowRight
-          size={24}
-          className="-translate-x-2 opacity-0 transition-all duration-500 group-hover:translate-x-0 group-hover:opacity-100"
-        />
+        <ArrowRight size={24} />
       </div>
     </Link>
   );

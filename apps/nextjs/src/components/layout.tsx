@@ -355,7 +355,6 @@ export const Footer = () => {
         <FooterLink href="/about">About</FooterLink>
         <FooterLink href="/privacy">Privacy</FooterLink>
         <FooterLink href="/terms">Terms</FooterLink>
-        <FooterLink href="/contact">Contact</FooterLink>
       </div>
       <div className="grid w-full grid-cols-3 border-t lg:flex lg:w-auto lg:border-t-0">
         <FooterIcon href="https://github.com/kyh">

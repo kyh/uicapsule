@@ -18,7 +18,11 @@
   "dependencies": {
     "@kyh/ui": "workspace:^",
     "@number-flow/react": "^0.5.9",
-    "framer-motion": "^12.7.4"
+    "@react-three/drei": "^10.0.7",
+    "@react-three/fiber": "^9.1.2",
+    "framer-motion": "^12.7.4",
+    "three": "^0.176.0",
+    "three-stdlib": "^2.36.0"
   },
   "devDependencies": {
     "@kyh/eslint-config": "catalog:",

@@ -19,7 +19,7 @@ const Page = async () => {
 
   return (
     <main>
-      <div className="flex h-16 items-center justify-between border-b">
+      <div className="flex h-16 items-center justify-between border-b bg-[image:var(--background-stripe)] bg-[size:10px_10px] bg-fixed">
         <div className="flex h-full flex-1 items-center gap-3 overflow-y-hidden pl-6">
           {categories.map((category) => (
             <Button key={category} variant="outline">
@@ -30,7 +30,7 @@ const Page = async () => {
         <Button
           variant="ghost"
           size="icon"
-          className="h-full w-20 rounded-none border-l"
+          className="bg-background h-full w-20 rounded-none border-l"
         >
           <SearchIcon />
         </Button>
