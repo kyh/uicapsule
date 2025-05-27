@@ -1,7 +1,7 @@
 {
   "name": "init",
   "private": true,
-  "packageManager": "pnpm@10.8.1",
+  "packageManager": "pnpm@10.11.0",
   "scripts": {
     "build": "turbo run build",
     "clean": "git clean -xdf node_modules",
