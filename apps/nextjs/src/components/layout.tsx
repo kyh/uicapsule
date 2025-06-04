@@ -62,7 +62,6 @@ export const Nav = () => {
         <SearchButton />
       </div>
       <div className="flex items-center justify-end gap-2">
-        <Button className="hidden sm:block">Get PRO</Button>
         <ProfileButton />
       </div>
     </nav>

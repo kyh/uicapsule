@@ -1,5 +1,6 @@
 "use client";
 
+import type { Mesh } from "three";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { OrbitControls, useCursor } from "@react-three/drei";
 import { Canvas, useFrame, useThree } from "@react-three/fiber";
@@ -19,14 +20,15 @@ export const AsciiRenderer = () => {
 };
 
 const Torusknot = (props: any) => {
-  const ref = useRef(null);
+  const ref = useRef<Mesh>(null);
   const [clicked, click] = useState(false);
   const [hovered, hover] = useState(false);
   useCursor(hovered);
-  useFrame(
-    (state, delta) =>
-      (ref.current.rotation.x = ref.current.rotation.y += delta / 2),
-  );
+  useFrame((state, delta) => {
+    if (ref.current) {
+      ref.current.rotation.x = ref.current.rotation.y += delta / 2;
+    }
+  });
   return (
     <mesh
       {...props}
@@ -64,8 +66,10 @@ const Renderer = ({
 
   // Append on mount, remove on unmount
   useEffect(() => {
-    gl.domElement.parentNode.appendChild(effect.domElement);
-    return () => gl.domElement.parentNode.removeChild(effect.domElement);
+    gl.domElement.parentNode?.appendChild(effect.domElement);
+    return () => {
+      gl.domElement.parentNode?.removeChild(effect.domElement);
+    };
   }, [effect]);
 
   // Set size

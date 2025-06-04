@@ -1,12 +1,6 @@
 import { BoxIcon, TruckIcon } from "lucide-react";
 
-import { ComponentItem } from "@/components/component-item";
-import {
-  getComponentMetadata,
-  getComponentSourceCode,
-  getPreviewComponent,
-  getPreviewSourceCode,
-} from "@/lib/files";
+import { getContentComponent, getPreviewComponent } from "@/lib/files";
 
 type Props = {
   params: Promise<{
@@ -16,19 +10,15 @@ type Props = {
 
 const Page = async ({ params }: Props) => {
   const { slug } = await params;
-
-  const componentMeta = await getComponentMetadata(slug);
-  const sourceCode = await getComponentSourceCode(slug);
-
-  const previewCode = await getPreviewSourceCode(slug);
-  const PreviewComponent = await getPreviewComponent(slug);
+  const contentComponent = await getContentComponent(slug);
+  const { Component } = await getPreviewComponent(slug);
 
   return (
     <>
       <div className="grid border-b xl:grid-cols-2">
         <div className="border-b xl:border-r xl:border-b-0">
           <div className="sticky top-16 mx-auto w-3/5 py-20 md:py-10 xl:w-2/3">
-            <PreviewComponent />
+            <Component />
           </div>
         </div>
 
@@ -36,7 +26,7 @@ const Page = async ({ params }: Props) => {
           <div className="p-7 text-base md:p-12">
             <div className="flex flex-col gap-4 leading-loose">
               <h1 className="text-xl font-medium md:text-3xl">
-                {componentMeta.name}
+                {contentComponent.name}
               </h1>
               <p className="text-base md:text-2xl">$179</p>
             </div>

@@ -1,8 +1,7 @@
 import { Button } from "@kyh/ui/button";
-import { SearchIcon } from "lucide-react";
 
 import { ComponentItem } from "@/components/component-item";
-import { listContentComponents } from "@/lib/files";
+import { getContentComponents } from "@/lib/files";
 
 const categories = [
   "All",
@@ -15,7 +14,7 @@ const categories = [
 ];
 
 const Page = async () => {
-  const content = await listContentComponents();
+  const content = Object.values(await getContentComponents());
 
   return (
     <main>
@@ -27,13 +26,6 @@ const Page = async () => {
             </Button>
           ))}
         </div>
-        <Button
-          variant="ghost"
-          size="icon"
-          className="bg-background h-full w-20 rounded-none border-l"
-        >
-          <SearchIcon />
-        </Button>
       </div>
       <div className="bg-border grid gap-px md:grid-cols-2 lg:h-auto lg:grid-cols-10 lg:grid-rows-2 lg:*:col-span-2 md:[&>*:first-child]:col-span-2 md:[&>*:first-child]:h-auto lg:[&>*:first-child]:col-span-4 lg:[&>*:first-child]:row-span-2 lg:[&>*:first-child]:h-auto">
         {content.slice(0, 7).map((c, key) => (

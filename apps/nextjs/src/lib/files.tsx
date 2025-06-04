@@ -1,5 +1,6 @@
 import { readdir, readFile } from "node:fs/promises";
 import { join } from "node:path";
+import { cache } from "react";
 
 const contentSourceDir = join(
   process.cwd(),
@@ -10,61 +11,68 @@ const contentSourceDir = join(
   "src",
 );
 
-export const getComponentSourceCode = async (slug: string): Promise<string> => {
-  const sourceCode = await readFile(
-    join(contentSourceDir, slug, "source.tsx"),
-    "utf-8",
-  );
-
-  return sourceCode;
-};
-
-type ComponentMetadata = {
+type ContentComponent = {
   slug: string;
   name: string;
   description: string;
   tags: string[];
+  sourceCode: string;
 };
 
-export const getComponentMetadata = async (
-  slug: string,
-): Promise<ComponentMetadata> => {
-  const componentMetadata = await readFile(
-    join(contentSourceDir, slug, "meta.json"),
-    "utf-8",
-  );
+export const getContentComponents = cache(
+  async (): Promise<Record<"string", ContentComponent>> => {
+    const slugs = (await readdir(contentSourceDir)).filter(
+      (slug) => !slug.startsWith("."),
+    );
 
-  return JSON.parse(componentMetadata) as ComponentMetadata;
+    const contentComponents = await Promise.all(
+      slugs.map(async (slug) => {
+        const metadata = JSON.parse(
+          await readFile(join(contentSourceDir, slug, "meta.json"), "utf-8"),
+        ) as ContentComponent;
+
+        const sourceCode = await readFile(
+          join(contentSourceDir, slug, "source.tsx"),
+          "utf-8",
+        );
+
+        return { ...metadata, slug, sourceCode };
+      }),
+    );
+
+    return contentComponents.reduce(
+      (acc, component) => {
+        acc[component.slug] = component;
+        return acc;
+      },
+      {} as Record<string, ContentComponent>,
+    );
+  },
+);
+
+export const getContentComponent = cache(
+  async (slug: string): Promise<ContentComponent> => {
+    const content = await getContentComponents();
+    return content[slug as keyof typeof content];
+  },
+);
+
+type PreviewComponent = {
+  sourceCode: string;
+  Component: React.ComponentType;
 };
 
-export const listContentComponents = async (): Promise<ComponentMetadata[]> => {
-  const files = await readdir(contentSourceDir);
+export const getPreviewComponent = cache(
+  async (slug: string): Promise<PreviewComponent> => {
+    const sourceCode = await readFile(
+      join(process.cwd(), "src", "preview", `${slug}.tsx`),
+      "utf-8",
+    );
 
-  const contentComponents = await Promise.all(
-    files.map(async (file) => {
-      const metadata = await getComponentMetadata(file);
-      return { ...metadata, slug: file };
-    }),
-  );
+    const Component = (await import(`../preview/${slug}`).then(
+      (module) => module.default,
+    )) as React.ComponentType;
 
-  return contentComponents;
-};
-
-export const getPreviewSourceCode = async (slug: string): Promise<string> => {
-  const previewCode = await readFile(
-    join(process.cwd(), "src", "preview", `${slug}.tsx`),
-    "utf-8",
-  );
-
-  return previewCode;
-};
-
-export const getPreviewComponent = async (
-  slug: string,
-): Promise<React.ComponentType> => {
-  const Component = (await import(`../preview/${slug}`).then(
-    (module) => module.default,
-  )) as React.ComponentType;
-
-  return Component;
-};
+    return { sourceCode, Component };
+  },
+);
