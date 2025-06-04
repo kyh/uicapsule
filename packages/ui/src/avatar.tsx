@@ -59,7 +59,7 @@ export const ProfileAvatar = ({
     <Avatar className={cn("size-9", className)}>
       <AvatarImage src={src ?? undefined} />
       <AvatarFallback className="animate-in fade-in uppercase">
-        {initials}
+        {initials ?? "UI"}
       </AvatarFallback>
     </Avatar>
   );

@@ -249,7 +249,7 @@ export const ProfileButton = () => {
     },
     {
       id: "about",
-      condition: !isDesktop,
+      condition: true,
       wrap: true,
       content: (
         <Link
@@ -264,7 +264,7 @@ export const ProfileButton = () => {
     },
     {
       id: "privacy",
-      condition: !isDesktop,
+      condition: true,
       wrap: true,
       content: (
         <Link
@@ -279,7 +279,7 @@ export const ProfileButton = () => {
     },
     {
       id: "terms",
-      condition: !isDesktop,
+      condition: true,
       wrap: true,
       content: (
         <Link
