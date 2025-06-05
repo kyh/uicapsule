@@ -20,7 +20,7 @@
     "@number-flow/react": "^0.5.9",
     "@react-three/drei": "^10.1.2",
     "@react-three/fiber": "^9.1.2",
-    "framer-motion": "^12.15.0",
+    "framer-motion": "^12.16.0",
     "three": "^0.176.0",
     "three-stdlib": "^2.36.0"
   },
