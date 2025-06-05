@@ -1,4 +1,4 @@
-import { PromptAnimation } from "@kyh/content/prompt-animation/source";
+import { PromptAnimation } from "@repo/content/prompt-animation/source";
 
 const Preview = () => {
   return <PromptAnimation />;

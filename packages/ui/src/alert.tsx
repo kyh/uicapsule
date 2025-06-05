@@ -1,10 +1,10 @@
 import type { VariantProps } from "class-variance-authority";
 import * as React from "react";
-import { cn } from "@kyh/ui/utils";
+import { cn } from "@repo/ui/utils";
 import { cva } from "class-variance-authority";
 
 export const alertVariants = cva(
-  "[&>svg]:text-foreground relative w-full rounded-lg border bg-linear-to-r px-4 py-3 text-sm [&>svg]:absolute [&>svg]:top-4 [&>svg]:left-4 [&>svg+div]:translate-y-[-3px] [&>svg~*]:pl-7",
+  "[&>svg]:text-foreground bg-linear-to-r relative w-full rounded-lg border px-4 py-3 text-sm [&>svg+div]:translate-y-[-3px] [&>svg]:absolute [&>svg]:left-4 [&>svg]:top-4 [&>svg~*]:pl-7",
   {
     variants: {
       variant: {
@@ -39,7 +39,7 @@ type AlertTitleProps = React.HTMLAttributes<HTMLHeadingElement>;
 
 export const AlertTitle = ({ className, ...props }: AlertTitleProps) => (
   <h5
-    className={cn("mb-1 leading-none font-bold tracking-tight", className)}
+    className={cn("mb-1 font-bold leading-none tracking-tight", className)}
     {...props}
   />
 );

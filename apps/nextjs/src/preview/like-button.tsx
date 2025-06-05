@@ -1,4 +1,4 @@
-import { LikeButton } from "@kyh/content/like-button/source";
+import { LikeButton } from "@repo/content/like-button/source";
 
 const Preview = () => {
   return <LikeButton />;

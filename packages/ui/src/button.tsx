@@ -1,8 +1,8 @@
 import type { VariantProps } from "class-variance-authority";
 import * as React from "react";
-import { cn } from "@kyh/ui/utils";
-import { Slot, Slottable } from "@radix-ui/react-slot";
+import { cn } from "@repo/ui/utils";
 import { cva } from "class-variance-authority";
+import { Slot } from "radix-ui";
 
 import { Spinner } from "./spinner";
 
@@ -74,7 +74,7 @@ export const Button = ({
   disabled,
   ...props
 }: ButtonProps) => {
-  const Comp = asChild ? Slot : "button";
+  const Comp = asChild ? Slot.Root : "button";
   return (
     <Comp
       className={cn(buttonVariants({ variant, size, loading, className }))}
@@ -84,7 +84,7 @@ export const Button = ({
       <span className="pointer-events-none absolute inset-0 grid place-items-center rounded-full opacity-0 transition">
         <Spinner className="size-4" />
       </span>
-      <Slottable>{children}</Slottable>
+      <Slot.Slottable>{children}</Slot.Slottable>
     </Comp>
   );
 };

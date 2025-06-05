@@ -3,8 +3,8 @@
 import { Fragment, useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { ProfileAvatar } from "@kyh/ui/avatar";
-import { Button } from "@kyh/ui/button";
+import { ProfileAvatar } from "@repo/ui/avatar";
+import { Button } from "@repo/ui/button";
 import {
   CommandDialog,
   CommandEmpty,
@@ -14,7 +14,7 @@ import {
   CommandList,
   CommandSeparator,
   CommandShortcut,
-} from "@kyh/ui/command";
+} from "@repo/ui/command";
 import {
   Drawer,
   DrawerContent,
@@ -22,7 +22,7 @@ import {
   DrawerHeader,
   DrawerTitle,
   DrawerTrigger,
-} from "@kyh/ui/drawer";
+} from "@repo/ui/drawer";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -30,9 +30,9 @@ import {
   dropdownMenuItemVariants,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "@kyh/ui/dropdown-menu";
-import { Logo } from "@kyh/ui/logo";
-import { cn, useMediaQuery } from "@kyh/ui/utils";
+} from "@repo/ui/dropdown-menu";
+import { Logo } from "@repo/ui/logo";
+import { cn, useMediaQuery } from "@repo/ui/utils";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import {
   ArrowUpRightIcon,
@@ -230,22 +230,6 @@ export const ProfileButton = () => {
       condition: true,
       wrap: false,
       content: <DropdownMenuSeparator />,
-    },
-    {
-      id: "support",
-      condition: true,
-      wrap: true,
-      content: (
-        <Link
-          className={menuItemClassName}
-          href={`mailto:kai@kyh.io?subject=Support: ${user?.id}`}
-          target="_blank"
-          onClick={() => setOpen(false)}
-        >
-          <HelpCircleIcon aria-hidden="true" className="size-4" />
-          Support
-        </Link>
-      ),
     },
     {
       id: "about",

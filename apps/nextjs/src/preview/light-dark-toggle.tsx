@@ -1,4 +1,4 @@
-import { LightDarkToggle } from "@kyh/content/light-dark-toggle/source";
+import { LightDarkToggle } from "@repo/content/light-dark-toggle/source";
 
 const Preview = () => {
   return <LightDarkToggle />;

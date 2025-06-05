@@ -28,7 +28,12 @@ const getRemotePatterns = () => {
       ];
 };
 
-const transpilePackages = ["@kyh/api", "@kyh/db", "@kyh/ui", "@kyh/content"];
+const transpilePackages = [
+  "@repo/api",
+  "@repo/db",
+  "@repo/ui",
+  "@repo/content",
+];
 
 /** @type {import("next").NextConfig} */
 const config = {

@@ -1,12 +1,12 @@
 "use client";
 
-import { cn } from "@kyh/ui/utils";
 import {
   Accordion,
   AccordionContent,
   AccordionItem,
   AccordionTrigger,
 } from "@radix-ui/react-accordion";
+import { cn } from "@repo/ui/utils";
 import { PlusIcon } from "lucide-react";
 
 const Page = () => {

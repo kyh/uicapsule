@@ -1,4 +1,4 @@
-import { cn } from "@kyh/ui/utils";
+import { cn } from "@repo/ui/utils";
 import { BookOpen, Globe, Pencil, Shrink } from "lucide-react";
 
 const Page = () => {

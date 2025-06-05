@@ -1,4 +1,4 @@
-import { InfiniteGrid } from "@kyh/content/infinite-grid/source";
+import { InfiniteGrid } from "@repo/content/infinite-grid/source";
 
 const Preview = () => {
   return <InfiniteGrid />;

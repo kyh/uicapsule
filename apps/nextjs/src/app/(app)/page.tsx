@@ -1,4 +1,4 @@
-import { Button } from "@kyh/ui/button";
+import { Button } from "@repo/ui/button";
 
 import { ComponentItem } from "@/components/component-item";
 import { getContentComponents } from "@/lib/files";

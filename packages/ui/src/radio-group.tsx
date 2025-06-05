@@ -1,9 +1,9 @@
 "use client";
 
 import * as React from "react";
-import { cn } from "@kyh/ui/utils";
-import * as RadioGroupPrimitive from "@radix-ui/react-radio-group";
+import { cn } from "@repo/ui/utils";
 import { CheckIcon } from "lucide-react";
+import { RadioGroup as RadioGroupPrimitive } from "radix-ui";
 
 export const RadioGroup = ({
   className,
@@ -24,7 +24,7 @@ export const RadioGroupItem = ({
   return (
     <RadioGroupPrimitive.Item
       className={cn(
-        "border-primary text-primary focus-visible:ring-ring aspect-square h-4 w-4 rounded-full border shadow-sm focus:outline-hidden focus-visible:ring-1 disabled:cursor-not-allowed disabled:opacity-50",
+        "border-primary text-primary focus-visible:ring-ring focus:outline-hidden aspect-square h-4 w-4 rounded-full border shadow-sm focus-visible:ring-1 disabled:cursor-not-allowed disabled:opacity-50",
         className,
       )}
       {...props}

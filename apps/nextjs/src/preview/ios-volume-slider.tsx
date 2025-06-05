@@ -1,4 +1,4 @@
-import { IosVolumeSlider } from "@kyh/content/ios-volume-slider/source";
+import { IosVolumeSlider } from "@repo/content/ios-volume-slider/source";
 
 const Preview = () => {
   return <IosVolumeSlider />;

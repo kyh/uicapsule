@@ -1,4 +1,4 @@
-import { Covid19Map } from "@kyh/content/covid-19-map/source";
+import { Covid19Map } from "@repo/content/covid-19-map/source";
 
 const Preview = () => {
   return <Covid19Map />;

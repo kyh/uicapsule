@@ -1,5 +1,5 @@
 {
-  "name": "@kyh/content",
+  "name": "@repo/content",
   "version": "0.1.0",
   "private": true,
   "type": "module",
@@ -16,10 +16,10 @@
   },
   "prettier": "@kyh/prettier-config",
   "dependencies": {
-    "@kyh/ui": "workspace:^",
     "@number-flow/react": "^0.5.9",
     "@react-three/drei": "^10.1.2",
     "@react-three/fiber": "^9.1.2",
+    "@repo/ui": "workspace:^",
     "framer-motion": "^12.16.0",
     "three": "^0.176.0",
     "three-stdlib": "^2.36.0"

@@ -1,4 +1,4 @@
-import { Globe } from "@kyh/content/globe/source";
+import { Globe } from "@repo/content/globe/source";
 
 const Preview = () => {
   return <Globe />;
