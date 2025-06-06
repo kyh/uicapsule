@@ -1,3 +1,4 @@
+import { Button } from "@repo/ui/button";
 import { BoxIcon, TruckIcon } from "lucide-react";
 
 import { getContentComponent, getPreviewComponent } from "@/lib/files";
@@ -54,9 +55,7 @@ const Page = async ({ params }: Props) => {
               <ListItem>built-in table stand</ListItem>
             </ul>
 
-            <button className="bg-primary mt-8 h-16 w-full rounded-full p-3 text-lg leading-none font-medium text-white">
-              Buy Now
-            </button>
+            <Button>Download</Button>
           </div>
 
           <div className="border-border flex gap-3 border-t p-6">

@@ -42,7 +42,6 @@ import {
   FolderPlusIcon,
   GlobeLockIcon,
   HandshakeIcon,
-  HelpCircleIcon,
   SearchIcon,
   SettingsIcon,
   UserIcon,
