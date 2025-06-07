@@ -15,7 +15,7 @@ const Layout = (props: LayoutProps) => (
     <div className="bg-muted relative hidden h-full flex-col px-8 py-4 text-white md:py-10 lg:flex dark:border-r">
       <div className="absolute inset-0 bg-zinc-900" />
       <Link className="relative z-20 flex items-center" href="/">
-        Init.
+        UICapsule.
       </Link>
       <div className="relative z-20 mt-auto">
         <blockquote className="space-y-2">

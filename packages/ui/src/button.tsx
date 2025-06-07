@@ -7,7 +7,7 @@ import { Slot } from "radix-ui";
 import { Spinner } from "./spinner";
 
 export const buttonVariants = cva(
-  "focus-visible:ring-ring relative inline-flex cursor-pointer items-center justify-center gap-2 rounded-full text-sm font-medium whitespace-nowrap transition focus-visible:ring-1 focus-visible:outline-hidden disabled:pointer-events-none",
+  "focus-visible:ring-ring relative inline-flex cursor-pointer items-center justify-center gap-2 rounded-full text-sm font-medium whitespace-nowrap transition disabled:pointer-events-none",
   {
     variants: {
       variant: {
