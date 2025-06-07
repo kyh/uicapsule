@@ -16,7 +16,10 @@ type ContentComponent = {
   name: string;
   description: string;
   tags: string[];
+  // Below are all props for the Sandpack component
   sourceCode: string;
+  previewCode: string;
+  dependencies: Record<string, string>;
 };
 
 export const getContentComponents = cache(
@@ -28,15 +31,23 @@ export const getContentComponents = cache(
     const contentComponents = await Promise.all(
       slugs.map(async (slug) => {
         const metadata = JSON.parse(
-          await readFile(join(contentSourceDir, slug, "meta.json"), "utf-8"),
+          await readFile(
+            join(contentSourceDir, slug, "meta.json"),
+            "utf-8",
+          ).catch(() => ""),
         ) as ContentComponent;
 
         const sourceCode = await readFile(
           join(contentSourceDir, slug, "source.tsx"),
           "utf-8",
-        );
+        ).catch(() => "");
 
-        return { ...metadata, slug, sourceCode };
+        const previewCode = await readFile(
+          join(contentSourceDir, slug, "preview.tsx"),
+          "utf-8",
+        ).catch(() => "");
+
+        return { ...metadata, slug, sourceCode, previewCode };
       }),
     );
 
@@ -54,25 +65,5 @@ export const getContentComponent = cache(
   async (slug: string): Promise<ContentComponent> => {
     const content = await getContentComponents();
     return content[slug as keyof typeof content];
-  },
-);
-
-type PreviewComponent = {
-  sourceCode: string;
-  Component: React.ComponentType;
-};
-
-export const getPreviewComponent = cache(
-  async (slug: string): Promise<PreviewComponent> => {
-    const sourceCode = await readFile(
-      join(process.cwd(), "src", "preview", `${slug}.tsx`),
-      "utf-8",
-    );
-
-    const Component = (await import(`../preview/${slug}`).then(
-      (module) => module.default,
-    )) as React.ComponentType;
-
-    return { sourceCode, Component };
   },
 );

@@ -329,7 +329,7 @@ export const ProfileButton = () => {
 
 export const Footer = () => {
   return (
-    <div className="text-muted-foreground flex flex-col items-center justify-center gap-5 border-t pt-5 lg:flex-row lg:pt-0">
+    <div className="text-muted-foreground flex flex-col items-center justify-center gap-5 border-t pt-5 lg:h-16 lg:flex-row lg:pt-0">
       <p className="text-sm whitespace-nowrap lg:px-6">
         ©{new Date().getFullYear()} Kyh LLC
       </p>

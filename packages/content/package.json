@@ -7,29 +7,6 @@
     "./*": "./src/*.tsx"
   },
   "scripts": {
-    "build": "tsc",
-    "clean": "git clean -xdf .cache .turbo dist node_modules",
-    "dev": "tsc",
-    "format": "prettier --check . --ignore-path ../../.gitignore",
-    "lint": "eslint",
-    "typecheck": "tsc --noEmit --emitDeclarationOnly false"
-  },
-  "prettier": "@kyh/prettier-config",
-  "dependencies": {
-    "@number-flow/react": "^0.5.9",
-    "@react-three/drei": "^10.1.2",
-    "@react-three/fiber": "^9.1.2",
-    "@repo/ui": "workspace:^",
-    "framer-motion": "^12.16.0",
-    "three": "^0.176.0",
-    "three-stdlib": "^2.36.0"
-  },
-  "devDependencies": {
-    "@kyh/eslint-config": "catalog:",
-    "@kyh/prettier-config": "catalog:",
-    "@kyh/tsconfig": "catalog:",
-    "eslint": "catalog:",
-    "prettier": "catalog:",
-    "typescript": "catalog:"
+    "clean": "git clean -xdf .cache .turbo dist node_modules"
   }
 }
