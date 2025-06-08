@@ -1,4 +1,6 @@
-import { PromptAnimation } from "@repo/content/prompt-animation/source";
+import React from "react";
+
+import { PromptAnimation } from "./source";
 
 const Preview = () => {
   return <PromptAnimation />;

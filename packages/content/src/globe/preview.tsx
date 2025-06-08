@@ -1,4 +1,6 @@
-import { Globe } from "@repo/content/globe/source";
+import React from "react";
+
+import { Globe } from "./source";
 
 const Preview = () => {
   return <Globe />;

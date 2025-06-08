@@ -1,4 +1,6 @@
-import { GridHighlightTooltip } from "@repo/content/grid-highlight-tooltip/source";
+import React from "react";
+
+import { GridHighlightTooltip } from "./source";
 
 const Preview = () => {
   return <GridHighlightTooltip />;

@@ -49,9 +49,14 @@ import {
 
 import { useTRPC } from "@/trpc/react";
 
-export const Nav = () => {
+export const Nav = ({ className }: { className?: string }) => {
   return (
-    <nav className="bg-background sticky top-0 z-10 grid h-16 w-full grid-cols-3 items-center gap-2 border-b px-6">
+    <nav
+      className={cn(
+        "grid h-16 w-full grid-cols-3 items-center gap-2 px-6",
+        className,
+      )}
+    >
       <div className="flex items-center justify-start gap-2">
         <Link href="/">
           <Logo />
@@ -327,9 +332,14 @@ export const ProfileButton = () => {
   );
 };
 
-export const Footer = () => {
+export const Footer = ({ className }: { className?: string }) => {
   return (
-    <div className="text-muted-foreground flex flex-col items-center justify-center gap-5 border-t pt-5 lg:h-16 lg:flex-row lg:pt-0">
+    <div
+      className={cn(
+        "text-muted-foreground flex flex-col items-center justify-center gap-5 border-t pt-5 lg:h-16 lg:flex-row lg:pt-0",
+        className,
+      )}
+    >
       <p className="text-sm whitespace-nowrap lg:px-6">
         ©{new Date().getFullYear()} Kyh LLC
       </p>

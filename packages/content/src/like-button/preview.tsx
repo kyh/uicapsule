@@ -1,4 +1,6 @@
-import { LikeButton } from "@repo/content/like-button/source";
+import React from "react";
+
+import { LikeButton } from "./source";
 
 const Preview = () => {
   return <LikeButton />;

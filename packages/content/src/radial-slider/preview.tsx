@@ -1,4 +1,6 @@
-import { RadialSlider } from "@repo/content/radial-slider/source";
+import React from "react";
+
+import { RadialSlider } from "./source";
 
 const Preview = () => {
   return <RadialSlider />;

@@ -1,4 +1,6 @@
-import { Covid19Map } from "@repo/content/covid-19-map/source";
+import React from "react";
+
+import { Covid19Map } from "./source";
 
 const Preview = () => {
   return <Covid19Map />;

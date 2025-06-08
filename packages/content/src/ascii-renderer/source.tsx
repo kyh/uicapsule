@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import { OrbitControls, useCursor } from "@react-three/drei";
 import { Canvas, useFrame, useThree } from "@react-three/fiber";
 import { AsciiEffect } from "three-stdlib";

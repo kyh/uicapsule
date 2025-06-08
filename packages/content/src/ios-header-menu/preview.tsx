@@ -1,4 +1,6 @@
-import { IosHeaderMenu } from "@repo/content/ios-header-menu/source";
+import React from "react";
+
+import { IosHeaderMenu } from "./source";
 
 const Preview = () => {
   return <IosHeaderMenu />;

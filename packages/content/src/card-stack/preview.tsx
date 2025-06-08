@@ -1,4 +1,6 @@
-import { CardStack } from "@repo/content/card-stack/source";
+import React from "react";
+
+import { CardStack } from "./source";
 
 const Preview = () => {
   return <CardStack />;

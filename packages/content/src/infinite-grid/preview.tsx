@@ -1,4 +1,6 @@
-import { InfiniteGrid } from "@repo/content/infinite-grid/source";
+import React from "react";
+
+import { InfiniteGrid } from "./source";
 
 const Preview = () => {
   return <InfiniteGrid />;

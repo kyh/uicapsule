@@ -1,4 +1,6 @@
-import { Timeline } from "@repo/content/timeline/source";
+import React from "react";
+
+import { Timeline } from "./source";
 
 const Preview = () => {
   return <Timeline />;

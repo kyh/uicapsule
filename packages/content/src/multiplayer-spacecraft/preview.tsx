@@ -1,4 +1,6 @@
-import { MultiplayerSpacecraft } from "@repo/content/multiplayer-spacecraft/source";
+import React from "react";
+
+import { MultiplayerSpacecraft } from "./source";
 
 const Preview = () => {
   return <MultiplayerSpacecraft />;

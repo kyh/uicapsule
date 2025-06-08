@@ -1,4 +1,6 @@
-import { LightDarkToggle } from "@repo/content/light-dark-toggle/source";
+import React from "react";
+
+import { LightDarkToggle } from "./source";
 
 const Preview = () => {
   return <LightDarkToggle />;

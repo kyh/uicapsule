@@ -1,4 +1,6 @@
-import { IosVolumeSlider } from "@repo/content/ios-volume-slider/source";
+import React from "react";
+
+import { IosVolumeSlider } from "./source";
 
 const Preview = () => {
   return <IosVolumeSlider />;
