@@ -341,7 +341,7 @@ export const Footer = ({ className }: { className?: string }) => {
       )}
     >
       <p className="text-sm whitespace-nowrap lg:px-6">
-        ©{new Date().getFullYear()} Kyh LLC
+        ©{new Date().getFullYear()} Kaiyu Hsu
       </p>
       <div className="flex flex-wrap justify-center px-6 lg:w-full">
         <FooterLink href="/about">About</FooterLink>
