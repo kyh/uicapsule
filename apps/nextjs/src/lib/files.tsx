@@ -67,3 +67,14 @@ export const getContentComponent = cache(
     return content[slug as keyof typeof content];
   },
 );
+
+export const getContentCategories = cache(async (): Promise<string[]> => {
+  const content = await getContentComponents();
+  return [
+    ...new Set(
+      Object.values(content)
+        .map((c) => c.tags)
+        .flat(),
+    ),
+  ];
+});

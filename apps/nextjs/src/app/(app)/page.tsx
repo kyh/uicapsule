@@ -1,20 +1,11 @@
 import { Button } from "@repo/ui/button";
 
 import { ComponentItem } from "@/components/component-item";
-import { getContentComponents } from "@/lib/files";
-
-const categories = [
-  "All",
-  "Calculator",
-  "Clock",
-  "Gaming",
-  "Radio",
-  "Recorder",
-  "Speaker",
-];
+import { getContentCategories, getContentComponents } from "@/lib/files";
 
 const Page = async () => {
   const content = Object.values(await getContentComponents());
+  const categories = await getContentCategories();
 
   return (
     <main>

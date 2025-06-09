@@ -1,7 +1,7 @@
 {
   "name": "ASCII Renderer",
   "description": "A component that renders text as ASCII art",
-  "tags": [],
+  "tags": ["3D"],
   "dependencies": {
     "react": "18.0.0",
     "react-dom": "18.0.0",
