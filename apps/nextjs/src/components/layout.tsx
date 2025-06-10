@@ -28,12 +28,10 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
   dropdownMenuItemVariants,
-  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@repo/ui/dropdown-menu";
 import { Logo } from "@repo/ui/logo";
 import { cn, useMediaQuery } from "@repo/ui/utils";
-import { useQuery } from "@tanstack/react-query";
 import {
   ArrowUpRightIcon,
   BookCheckIcon,
@@ -43,11 +41,7 @@ import {
   GlobeLockIcon,
   HandshakeIcon,
   SearchIcon,
-  SettingsIcon,
-  UserIcon,
 } from "lucide-react";
-
-import { useTRPC } from "@/trpc/react";
 
 export const Nav = ({ className }: { className?: string }) => {
   return (
@@ -171,9 +165,6 @@ const SearchButton = () => {
 };
 
 export const ProfileButton = () => {
-  const trpc = useTRPC();
-  const { data } = useQuery(trpc.auth.workspace.queryOptions());
-  const user = data?.user;
   const isDesktop = useMediaQuery();
 
   const [open, setOpen] = useState(false);
@@ -183,57 +174,6 @@ export const ProfileButton = () => {
   });
 
   const menuItems = [
-    {
-      id: "profile",
-      condition: user,
-      wrap: true,
-      content: (
-        <Link
-          className={menuItemClassName}
-          href={`/profile/${user?.id}`}
-          onClick={() => setOpen(false)}
-        >
-          <UserIcon aria-hidden="true" className="size-4" />
-          Profile
-        </Link>
-      ),
-    },
-    {
-      id: "settings",
-      condition: user,
-      wrap: true,
-      content: (
-        <Link
-          className={menuItemClassName}
-          href="/settings"
-          onClick={() => setOpen(false)}
-        >
-          <SettingsIcon aria-hidden="true" className="size-4" />
-          Settings
-        </Link>
-      ),
-    },
-    {
-      id: "login",
-      condition: !user,
-      wrap: true,
-      content: (
-        <Link
-          className={menuItemClassName}
-          href="/auth/sign-in"
-          onClick={() => setOpen(false)}
-        >
-          <UserIcon aria-hidden="true" className="size-4" />
-          Login
-        </Link>
-      ),
-    },
-    {
-      id: "separator-1",
-      condition: true,
-      wrap: false,
-      content: <DropdownMenuSeparator />,
-    },
     {
       id: "about",
       condition: true,
