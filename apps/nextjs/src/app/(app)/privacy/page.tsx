@@ -1,7 +1,7 @@
-export default function ReturnsPage() {
+const Page = () => {
   return (
     <div className="flex flex-col gap-10 p-8 md:p-20">
-      <h1 className=" text-3xl leading-snug lg:text-5xl">Returns Policy</h1>
+      <h1 className="text-3xl leading-snug lg:text-5xl">Returns Policy</h1>
       <div className="flex flex-col gap-5 text-base leading-loose">
         <p>
           {`Thank you for shopping at [Your E-commerce Website Name]. We
@@ -73,4 +73,6 @@ export default function ReturnsPage() {
       </div>
     </div>
   );
-}
+};
+
+export default Page;

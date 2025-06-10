@@ -17,7 +17,6 @@
   "dependencies": {
     "@codesandbox/sandpack-react": "^2.20.0",
     "@repo/api": "workspace:^",
-    "@repo/content": "workspace:^",
     "@repo/db": "workspace:^",
     "@repo/ui": "workspace:^",
     "@tanstack/react-query": "catalog:",

@@ -33,7 +33,7 @@ import {
 } from "@repo/ui/dropdown-menu";
 import { Logo } from "@repo/ui/logo";
 import { cn, useMediaQuery } from "@repo/ui/utils";
-import { useSuspenseQuery } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 import {
   ArrowUpRightIcon,
   BookCheckIcon,
@@ -172,9 +172,8 @@ const SearchButton = () => {
 
 export const ProfileButton = () => {
   const trpc = useTRPC();
-  const {
-    data: { user },
-  } = useSuspenseQuery(trpc.auth.workspace.queryOptions());
+  const { data } = useQuery(trpc.auth.workspace.queryOptions());
+  const user = data?.user;
   const isDesktop = useMediaQuery();
 
   const [open, setOpen] = useState(false);

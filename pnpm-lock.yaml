@@ -95,9 +95,6 @@ importers:
       '@repo/api':
         specifier: workspace:^
         version: link:../../packages/api
-      '@repo/content':
-        specifier: workspace:^
-        version: link:../../packages/content
       '@repo/db':
         specifier: workspace:^
         version: link:../../packages/db
