@@ -1,6 +1,7 @@
 packages:
   - apps/*
   - packages/*
+  - content/*
 
 catalog:
   # Dev tooling

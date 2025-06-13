@@ -2,14 +2,7 @@ import { readdir, readFile } from "node:fs/promises";
 import { join } from "node:path";
 import { cache } from "react";
 
-const contentSourceDir = join(
-  process.cwd(),
-  "..",
-  "..",
-  "packages",
-  "content",
-  "src",
-);
+const contentSourceDir = join(process.cwd(), "..", "..", "content");
 
 type ContentComponent = {
   slug: string;
@@ -37,6 +30,13 @@ export const getContentComponents = cache(
           ).catch(() => ""),
         ) as ContentComponent;
 
+        const packageJson = JSON.parse(
+          await readFile(
+            join(contentSourceDir, slug, "package.json"),
+            "utf-8",
+          ).catch(() => ""),
+        ) as ContentComponent;
+
         const sourceCode = await readFile(
           join(contentSourceDir, slug, "source.tsx"),
           "utf-8",
@@ -47,7 +47,13 @@ export const getContentComponents = cache(
           "utf-8",
         ).catch(() => "");
 
-        return { ...metadata, slug, sourceCode, previewCode };
+        return {
+          ...metadata,
+          slug,
+          dependencies: packageJson.dependencies,
+          sourceCode,
+          previewCode,
+        };
       }),
     );
 
