@@ -38,9 +38,9 @@ import {
   CircleFadingPlusIcon,
   FileInputIcon,
   FolderPlusIcon,
-  GlobeLockIcon,
-  HandshakeIcon,
+  GithubIcon,
   SearchIcon,
+  TwitterIcon,
 } from "lucide-react";
 
 export const Nav = ({ className }: { className?: string }) => {
@@ -196,11 +196,12 @@ export const ProfileButton = () => {
       content: (
         <Link
           className={menuItemClassName}
-          href="/privacy"
+          href="https://github.com/uicapsule"
+          target="_blank"
           onClick={() => setOpen(false)}
         >
-          <GlobeLockIcon aria-hidden="true" className="size-4" />
-          Privacy
+          <GithubIcon aria-hidden="true" className="size-4" />
+          GitHub
         </Link>
       ),
     },
@@ -211,11 +212,12 @@ export const ProfileButton = () => {
       content: (
         <Link
           className={menuItemClassName}
-          href="/terms"
+          href="https://x.com/kaiyuhsu"
+          target="_blank"
           onClick={() => setOpen(false)}
         >
-          <HandshakeIcon aria-hidden="true" className="size-4" />
-          Terms
+          <TwitterIcon aria-hidden="true" className="size-4" />
+          Twitter
         </Link>
       ),
     },
