@@ -1,0 +1,124 @@
+"use client";
+
+import type React from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { cn } from "@repo/ui/utils";
+
+type ResizableProps = {
+  children: React.ReactNode;
+  initialWidth?: number;
+  minWidth?: number;
+  maxWidth?: number;
+  className?: string;
+  onResize?: (width: number) => void;
+};
+
+export const Resizable = ({
+  children,
+  initialWidth = 360,
+  minWidth = 360,
+  maxWidth = 800,
+  className,
+  onResize,
+}: ResizableProps) => {
+  const [width, setWidth] = useState(initialWidth);
+  const [isDragging, setIsDragging] = useState(false);
+
+  // Use refs to avoid stale closure issues
+  const dragStateRef = useRef({
+    isDragging: false,
+    dragHandle: null as "left" | "right" | null,
+    startX: 0,
+    startWidth: 0,
+  });
+
+  const handleMouseDown = useCallback(
+    (e: React.MouseEvent, handle: "left" | "right") => {
+      e.preventDefault();
+
+      dragStateRef.current = {
+        isDragging: true,
+        dragHandle: handle,
+        startX: e.clientX,
+        startWidth: width,
+      };
+
+      setIsDragging(true);
+
+      // Add event listeners to document
+      document.addEventListener("mousemove", handleMouseMove);
+      document.addEventListener("mouseup", handleMouseUp);
+      document.body.style.cursor = "ew-resize";
+      document.body.style.userSelect = "none";
+    },
+    [width],
+  );
+
+  const handleMouseMove = useCallback(
+    (e: MouseEvent) => {
+      const dragState = dragStateRef.current;
+      if (!dragState.isDragging) return;
+
+      const deltaX = e.clientX - dragState.startX;
+      // For symmetrical resize, we double the delta since we're expanding/contracting from center
+      const symmetricalDelta = deltaX * 2;
+
+      // For left handle, we invert the delta to maintain intuitive behavior
+      const adjustedDelta =
+        dragState.dragHandle === "left" ? -symmetricalDelta : symmetricalDelta;
+
+      const newWidth = Math.max(
+        minWidth,
+        Math.min(maxWidth, dragState.startWidth + adjustedDelta),
+      );
+
+      setWidth(newWidth);
+      onResize?.(newWidth);
+    },
+    [minWidth, maxWidth, onResize],
+  );
+
+  const handleMouseUp = useCallback(() => {
+    dragStateRef.current.isDragging = false;
+    dragStateRef.current.dragHandle = null;
+
+    setIsDragging(false);
+
+    // Remove event listeners and reset cursor
+    document.removeEventListener("mousemove", handleMouseMove);
+    document.removeEventListener("mouseup", handleMouseUp);
+    document.body.style.cursor = "";
+    document.body.style.userSelect = "";
+  }, [handleMouseMove]);
+
+  // Cleanup on unmount
+  useEffect(() => {
+    return () => {
+      document.removeEventListener("mousemove", handleMouseMove);
+      document.removeEventListener("mouseup", handleMouseUp);
+      document.body.style.cursor = "";
+      document.body.style.userSelect = "";
+    };
+  }, [handleMouseMove, handleMouseUp]);
+
+  return (
+    <div
+      className={cn("relative", isDragging && "select-none", className)}
+      style={{ width: `${width}px` }}
+    >
+      <button
+        className="bg-muted-foreground/20 hover:bg-muted-foreground/50 absolute top-1/2 -left-3 h-[100px] w-2 -translate-x-1/2 -translate-y-1/2 cursor-ew-resize rounded-full transition"
+        onMouseDown={(e) => handleMouseDown(e, "left")}
+      />
+
+      <div className="h-full w-full" style={{ width: `${width}px` }}>
+        {children}
+      </div>
+
+      <button
+        className="bg-muted-foreground/20 hover:bg-muted-foreground/50 absolute top-1/2 -right-3 h-[100px] w-2 translate-x-1/2 -translate-y-1/2 cursor-ew-resize rounded-full transition"
+        onMouseDown={(e) => handleMouseDown(e, "right")}
+      />
+    </div>
+  );
+};

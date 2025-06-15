@@ -7,7 +7,7 @@ export const Card = ({
 }: React.HTMLAttributes<HTMLDivElement>) => (
   <div
     className={cn(
-      "bg-card flex flex-col gap-3 overflow-hidden border p-5",
+      "bg-card flex flex-col gap-3 overflow-hidden border p-3",
       className,
     )}
     {...props}
