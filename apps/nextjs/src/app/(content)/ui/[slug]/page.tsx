@@ -25,11 +25,11 @@ const Page = async ({ params }: Props) => {
         "/styles.css": defaultPreviewStyles,
       }}
     >
-      <main className="flex min-h-[calc(100dvh-theme(spacing.32))] justify-center">
+      <main className="relative flex h-[calc(100dvh-theme(spacing.16))] justify-center">
         <div className="flex p-4">
           <Preview />
         </div>
-        <div className="fixed right-0 h-[calc(100dvh-theme(spacing.16))] p-4">
+        <div className="absolute right-0 h-full py-4 pr-6">
           <UiCard
             name={contentComponent.name}
             description={contentComponent.description}

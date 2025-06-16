@@ -18,7 +18,7 @@ export const Resizable = ({
   children,
   width,
   setWidth,
-  minWidth = 360,
+  minWidth = 300,
   maxWidth = 800,
   className,
   onResize,
