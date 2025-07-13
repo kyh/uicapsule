@@ -1,5 +1,5 @@
 import { relations } from "drizzle-orm";
-import { pgEnum, pgSchema, pgTable, primaryKey } from "drizzle-orm/pg-core";
+import { pgSchema, pgTable, primaryKey } from "drizzle-orm/pg-core";
 
 /* ------------------------------ auth schema; ------------------------------ */
 const auth = pgSchema("auth");
@@ -107,12 +107,9 @@ export const invitationsRelations = relations(invitations, ({ one }) => ({
   }),
 }));
 
-export const waitlistType = pgEnum("waitlist_type", ["app"]);
-
 export const waitlist = pgTable("waitlist", (t) => ({
   id: t.uuid().notNull().primaryKey().defaultRandom(),
   userId: t.uuid().references(() => authUsers.id),
-  type: waitlistType().default("app").notNull(),
   source: t.text(),
   email: t.text(),
 }));
