@@ -1,3 +1,3 @@
 # UICapsule
 
-A curated collection of components 🧱
+A curated collection of components
