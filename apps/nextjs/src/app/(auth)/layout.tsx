@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { Logo } from "@repo/ui/logo";
 
 export const metadata: Metadata = {
   title: "Authentication",
@@ -15,7 +16,7 @@ const Layout = (props: LayoutProps) => (
     <div className="bg-muted relative hidden h-full flex-col px-8 py-4 text-white md:py-10 lg:flex dark:border-r">
       <div className="absolute inset-0 bg-zinc-900" />
       <Link className="relative z-20 flex items-center" href="/">
-        UICapsule.
+        <Logo />
       </Link>
       <div className="relative z-20 mt-auto">
         <blockquote className="space-y-2">

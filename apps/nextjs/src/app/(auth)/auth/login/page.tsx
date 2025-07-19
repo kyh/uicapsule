@@ -1,11 +1,10 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 
 import { AuthForm } from "@/app/(auth)/_components/auth-form";
 
-export const generateMetadata = () => {
-  return {
-    title: "Sign In",
-  };
+export const metadata: Metadata = {
+  title: "Login",
 };
 
 const Page = () => {
@@ -14,11 +13,11 @@ const Page = () => {
       <div className="flex flex-col text-center">
         <h1 className="text-lg font-light">Welcome back</h1>
       </div>
-      <AuthForm type="signin" />
-      <p className="px-8 text-center text-sm text-muted-foreground">
+      <AuthForm type="login" />
+      <p className="text-muted-foreground px-8 text-center text-sm">
         Don't have an account?{" "}
-        <Link href="/auth/sign-up" className="underline">
-          Sign up
+        <Link href="/auth/register" className="underline">
+          Register
         </Link>
       </p>
     </div>
