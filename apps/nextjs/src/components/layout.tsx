@@ -43,11 +43,11 @@ import {
   TwitterIcon,
 } from "lucide-react";
 
-export const Nav = ({ className }: { className?: string }) => {
+export const Header = ({ className }: { className?: string }) => {
   return (
     <nav
       className={cn(
-        "grid h-16 w-full grid-cols-3 items-center gap-2 px-6",
+        "flex h-16 w-full grid-cols-3 items-center gap-2 px-6 sm:grid",
         className,
       )}
     >
@@ -56,7 +56,7 @@ export const Nav = ({ className }: { className?: string }) => {
           <Logo />
         </Link>
       </div>
-      <div className="flex items-center justify-center gap-2">
+      <div className="flex flex-1 items-center justify-center gap-2">
         <SearchButton />
       </div>
       <div className="flex items-center justify-end gap-2">
