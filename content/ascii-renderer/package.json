@@ -7,11 +7,10 @@
     "clean": "git clean -xdf .cache .turbo dist node_modules"
   },
   "dependencies": {
-    "@react-three/drei": "9.4.2",
-    "@react-three/fiber": "8.0.10",
-    "react": "18.0.0",
-    "react-dom": "18.0.0",
-    "react-scripts": "5.0.1",
-    "three": "0.139.2"
+    "@react-three/drei": "10.6.1",
+    "@react-three/fiber": "9.3.0",
+    "react": "*",
+    "react-dom": "*",
+    "three": "0.178.0"
   }
 }

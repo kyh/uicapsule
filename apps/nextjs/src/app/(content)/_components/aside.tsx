@@ -4,7 +4,7 @@ import { Button } from "@repo/ui/button";
 import { Card } from "@repo/ui/card";
 import { ArrowLeftIcon, ArrowRightIcon } from "lucide-react";
 
-type UiCardProps = {
+type AsideProps = {
   name: string;
   description: string;
   tags?: string[];
@@ -13,14 +13,14 @@ type UiCardProps = {
   asSeenOn?: { name: string; url: string; avatarUrl: string }[];
 };
 
-export const UiCard = ({
+export const Aside = ({
   name,
   description,
   tags,
   dependencies,
   authors,
   asSeenOn,
-}: UiCardProps) => {
+}: AsideProps) => {
   return (
     <Card className="h-full">
       <h1 className="text-xl">{name}</h1>

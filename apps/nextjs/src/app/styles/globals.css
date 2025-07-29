@@ -1,6 +1,5 @@
 @import "tailwindcss" source("../../../../../");
 @import "./animations.css";
-@import "./shiki.css";
 
 @plugin "@tailwindcss/typography";
 

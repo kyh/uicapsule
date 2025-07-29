@@ -1,84 +1,74 @@
 "use client";
 
-import React, { useEffect, useMemo, useRef, useState } from "react";
-import { OrbitControls, useCursor } from "@react-three/drei";
+import React, { useEffect, useRef } from "react";
+import { OrbitControls } from "@react-three/drei";
 import { Canvas, useFrame, useThree } from "@react-three/fiber";
-import { AsciiEffect } from "three-stdlib";
+import { AsciiEffect } from "three/examples/jsm/effects/AsciiEffect.js";
 
 export const AsciiRenderer = () => {
   return (
     <Canvas>
-      <color attach="background" args={["black"]} />
-      <spotLight position={[10, 10, 10]} angle={0.15} penumbra={1} />
-      <pointLight position={[-10, -10, -10]} />
+      <ambientLight intensity={0.5} />
+      <pointLight position={[10, 10, 10]} intensity={1} />
+      <directionalLight position={[-10, -10, -5]} intensity={1} />
       <Torusknot />
       <OrbitControls />
-      <Renderer invert />
+      <Renderer />
     </Canvas>
   );
 };
 
-const Torusknot = (props: any) => {
-  const ref = useRef<any>(null);
-  const [clicked, click] = useState(false);
-  const [hovered, hover] = useState(false);
-  useCursor(hovered);
+const Torusknot = () => {
+  const meshRef = useRef<any>(null);
+
   useFrame(
     (state, delta) =>
-      (ref.current.rotation.x = ref.current.rotation.y += delta / 2),
+      (meshRef.current.rotation.x = meshRef.current.rotation.y += delta / 2),
   );
+
   return (
-    <mesh
-      {...props}
-      ref={ref}
-      scale={clicked ? 1.5 : 1.25}
-      onClick={() => click(!clicked)}
-      onPointerOver={() => hover(true)}
-      onPointerOut={() => hover(false)}
-    >
+    <mesh ref={meshRef} scale={1.25}>
       <torusKnotGeometry args={[1, 0.2, 128, 32]} />
-      <meshStandardMaterial color="orange" />
+      <meshStandardMaterial color="#ffffff" />
     </mesh>
   );
 };
 
-const Renderer = ({
-  renderIndex = 1,
-  characters = " .:-+*=%@#",
-  ...options
-}: any) => {
-  // Reactive state
-  const { size, gl, scene, camera } = useThree();
+const Renderer = () => {
+  const { gl, scene, camera, size } = useThree();
+  const effectRef = useRef<AsciiEffect>(null);
 
-  // Create effect
-  const effect = useMemo(() => {
-    const effect = new AsciiEffect(gl, characters, options);
+  useEffect(() => {
+    const effect = new AsciiEffect(gl, " .:-+*=%@#");
+
     effect.domElement.style.position = "absolute";
     effect.domElement.style.top = "0px";
     effect.domElement.style.left = "0px";
     effect.domElement.style.color = "white";
     effect.domElement.style.backgroundColor = "black";
     effect.domElement.style.pointerEvents = "none";
-    return effect;
-  }, [characters, options.invert]);
 
-  // Append on mount, remove on unmount
-  useEffect(() => {
-    gl.domElement.parentNode?.appendChild(effect.domElement);
-    return () => {
-      gl.domElement.parentNode?.removeChild(effect.domElement);
-    };
-  }, [effect]);
-
-  // Set size
-  useEffect(() => {
     effect.setSize(size.width, size.height);
-  }, [effect, size]);
 
-  // Take over render-loop (that is what the index is for)
-  useFrame((state) => {
-    effect.render(scene, camera);
-  }, renderIndex);
+    const container = gl.domElement.parentNode;
+    if (container) {
+      container.replaceChild(effect.domElement, gl.domElement);
+    }
+
+    effectRef.current = effect;
+
+    return () => {
+      if (container && effect.domElement.parentNode) {
+        container.replaceChild(gl.domElement, effect.domElement);
+      }
+    };
+  }, [gl, size]);
+
+  useFrame(() => {
+    if (effectRef.current) {
+      effectRef.current.render(scene, camera);
+    }
+  }, 1);
 
   return null;
 };

@@ -1,5 +1,5 @@
 {
-  "name": "Multiplayer Spacecraft",
-  "description": "A component that displays a multiplayer spacecraft",
-  "tags": ["Animation"]
+  "name": "Spacecraft",
+  "description": "A spacecraft which follows your mouse pointer",
+  "tags": ["Background"]
 }

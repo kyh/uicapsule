@@ -1,4 +1,5 @@
 import type { Metadata, Viewport } from "next";
+import localFont from "next/font/local";
 import { GlobalAlertDialog } from "@repo/ui/alert-dialog";
 import { GlobalToaster } from "@repo/ui/toast";
 import { TooltipProvider } from "@repo/ui/tooltip";
@@ -7,6 +8,11 @@ import { siteConfig } from "@/lib/site-config";
 import { TRPCReactProvider } from "@/trpc/react";
 
 import "./styles/globals.css";
+
+const monoFont = localFont({
+  src: "./styles/mono.woff2",
+  variable: "--font-mono",
+});
 
 export const metadata: Metadata = {
   metadataBase: new URL(siteConfig.url),
@@ -87,7 +93,7 @@ type LayoutProps = {
 
 const RootLayout = (props: LayoutProps) => {
   return (
-    <html lang="en" suppressHydrationWarning>
+    <html lang="en" className={monoFont.variable} suppressHydrationWarning>
       <body className="bg-background text-foreground font-sans antialiased">
         <TooltipProvider>
           <TRPCReactProvider>{props.children}</TRPCReactProvider>

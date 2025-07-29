@@ -47,7 +47,7 @@ export const Header = ({ className }: { className?: string }) => {
   return (
     <nav
       className={cn(
-        "flex h-16 w-full grid-cols-3 items-center gap-2 px-6 sm:grid",
+        "flex h-16 w-full grid-cols-3 items-center gap-2 px-3 sm:grid sm:px-6",
         className,
       )}
     >
@@ -196,7 +196,7 @@ export const ProfileButton = () => {
       content: (
         <Link
           className={menuItemClassName}
-          href="https://github.com/uicapsule"
+          href="https://github.com/kyh/uicapsule"
           target="_blank"
           onClick={() => setOpen(false)}
         >
@@ -286,8 +286,7 @@ export const Footer = ({ className }: { className?: string }) => {
       </p>
       <div className="flex flex-wrap justify-center px-6 lg:w-full">
         <FooterLink href="/about">About</FooterLink>
-        <FooterLink href="/privacy">Privacy</FooterLink>
-        <FooterLink href="/terms">Terms</FooterLink>
+        <FooterLink href="/inspo">Inspiration</FooterLink>
       </div>
       <div className="grid w-full grid-cols-3 border-t lg:flex lg:w-auto lg:border-t-0">
         <FooterIcon href="https://github.com/kyh">

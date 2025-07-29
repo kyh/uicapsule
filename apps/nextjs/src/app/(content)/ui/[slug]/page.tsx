@@ -1,7 +1,7 @@
 import { SandpackProvider } from "@codesandbox/sandpack-react";
 
+import { Aside } from "@/app/(content)/_components/aside";
 import { Preview } from "@/app/(content)/_components/preview";
-import { UiCard } from "@/app/(content)/_components/ui-card";
 import { getContentComponent } from "@/lib/files";
 
 type Props = {
@@ -26,11 +26,11 @@ const Page = async ({ params }: Props) => {
       }}
     >
       <main className="relative flex h-[calc(100dvh-theme(spacing.16))] justify-center">
-        <div className="flex p-4">
+        <div className="flex md:p-4">
           <Preview />
         </div>
-        <div className="absolute right-0 hidden h-full py-4 pr-6 md:block">
-          <UiCard
+        <aside className="absolute right-0 hidden h-full py-4 pr-6 md:block">
+          <Aside
             name={contentComponent.name}
             description={contentComponent.description}
             tags={contentComponent.tags}
@@ -38,7 +38,7 @@ const Page = async ({ params }: Props) => {
             authors={contentComponent.authors}
             asSeenOn={contentComponent.asSeenOn}
           />
-        </div>
+        </aside>
       </main>
     </SandpackProvider>
   );

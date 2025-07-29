@@ -1,26 +1,27 @@
 import Image from "next/image";
 import Link from "next/link";
-import { ArrowRight } from "lucide-react";
 
-export type ComponentItemProps = {
+export type ContentComponentPreviewProps = {
   slug: string;
   name: string;
+  index: number;
   coverUrl?: string;
   coverType?: "image" | "video";
 };
 
-export const ComponentItem = ({
+export const ContentComponentPreview = ({
   slug,
   name,
+  index,
   coverUrl,
   coverType,
-}: ComponentItemProps) => {
+}: ContentComponentPreviewProps) => {
   return (
     <Link
-      className="group bg-background flex flex-col justify-between p-6 text-lg"
+      className="bg-background flex flex-col justify-between gap-3 p-3 text-lg transition group-hover:opacity-80 hover:opacity-100 sm:p-6"
       href={`/ui/${slug}`}
     >
-      <div className="p-5">
+      <div>
         {coverUrl && coverType === "image" && (
           <Image src={coverUrl} fill alt="" className="object-contain" />
         )}
@@ -30,9 +31,11 @@ export const ComponentItem = ({
           </video>
         )}
       </div>
-      <div className="flex justify-between">
-        <p className="group-hover:underline">{name}</p>
-        <ArrowRight size={24} />
+      <div className="flex justify-between font-mono text-xs">
+        <p>{name}</p>
+        <p className="text-muted-foreground">
+          {String(index).padStart(3, "0")}
+        </p>
       </div>
     </Link>
   );
