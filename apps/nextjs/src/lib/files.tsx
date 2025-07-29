@@ -8,7 +8,11 @@ type ContentComponent = {
   slug: string;
   name: string;
   description: string;
+  coverUrl: string;
+  coverType: "image" | "video";
   tags: string[];
+  authors: { name: string; url: string; avatarUrl: string }[];
+  asSeenOn: { name: string; url: string; avatarUrl: string }[];
   // Below are all props for the Sandpack component
   sourceCode: string;
   previewCode: string;

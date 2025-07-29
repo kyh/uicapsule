@@ -1,5 +1,8 @@
 {
   "name": "ASCII Renderer",
   "description": "A component that renders text as ASCII art",
-  "tags": ["3D"]
+  "coverUrl": "https://zmdrwswxugswzmcokvff.supabase.co/storage/v1/object/public/uicapsule//ascii.mp4",
+  "coverType": "video",
+  "tags": ["3D"],
+  "authors": [{ "name": "Kaiyu Hsu", "url": "https://x.com/kaiyuhsu" }]
 }

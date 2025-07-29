@@ -1,9 +1,9 @@
-import { Nav } from "@/components/layout";
+import { Header } from "@/components/layout";
 
 const Layout = ({ children }: { children: React.ReactNode }) => {
   return (
     <section className="mx-auto max-w-[1440px]">
-      <Nav />
+      <Header />
       {children}
     </section>
   );

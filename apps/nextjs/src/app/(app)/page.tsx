@@ -19,13 +19,25 @@ const Page = async () => {
         </div>
       </div>
       <div className="bg-border grid gap-px md:grid-cols-2 lg:h-auto lg:grid-cols-10 lg:grid-rows-2 lg:*:col-span-2 md:[&>*:first-child]:col-span-2 md:[&>*:first-child]:h-auto lg:[&>*:first-child]:col-span-4 lg:[&>*:first-child]:row-span-2 lg:[&>*:first-child]:h-auto">
-        {content.slice(0, 7).map((c, key) => (
-          <ComponentItem slug={c.slug} name={c.name} key={key} />
+        {content.slice(0, 7).map((c) => (
+          <ComponentItem
+            key={c.name}
+            slug={c.slug}
+            name={c.name}
+            coverUrl={c.coverUrl}
+            coverType={c.coverType}
+          />
         ))}
       </div>
       <div className="bg-border grid gap-px border-t md:grid-cols-2 lg:grid-cols-3 lg:*:h-auto">
-        {content.slice(7).map((c, key) => (
-          <ComponentItem slug={c.slug} name={c.name} key={key} />
+        {content.slice(7).map((c) => (
+          <ComponentItem
+            key={c.name}
+            slug={c.slug}
+            name={c.name}
+            coverUrl={c.coverUrl}
+            coverType={c.coverType}
+          />
         ))}
       </div>
     </main>

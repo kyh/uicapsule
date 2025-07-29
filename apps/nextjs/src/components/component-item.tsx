@@ -5,16 +5,30 @@ import { ArrowRight } from "lucide-react";
 export type ComponentItemProps = {
   slug: string;
   name: string;
+  coverUrl?: string;
+  coverType?: "image" | "video";
 };
 
-export const ComponentItem = ({ slug, name }: ComponentItemProps) => {
+export const ComponentItem = ({
+  slug,
+  name,
+  coverUrl,
+  coverType,
+}: ComponentItemProps) => {
   return (
     <Link
       className="group bg-background flex flex-col justify-between p-6 text-lg"
       href={`/ui/${slug}`}
     >
-      <div className="relative aspect-square h-1/2 w-full overflow-hidden">
-        {/* <Image src={image} fill alt="" className="object-contain" /> */}
+      <div className="p-5">
+        {coverUrl && coverType === "image" && (
+          <Image src={coverUrl} fill alt="" className="object-contain" />
+        )}
+        {coverUrl && coverType === "video" && (
+          <video className="object-contain" autoPlay loop muted playsInline>
+            <source src={coverUrl} type="video/mp4" />
+          </video>
+        )}
       </div>
       <div className="flex justify-between">
         <p className="group-hover:underline">{name}</p>

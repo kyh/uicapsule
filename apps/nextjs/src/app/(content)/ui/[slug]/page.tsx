@@ -29,10 +29,14 @@ const Page = async ({ params }: Props) => {
         <div className="flex p-4">
           <Preview />
         </div>
-        <div className="absolute right-0 h-full py-4 pr-6">
+        <div className="absolute right-0 hidden h-full py-4 pr-6 md:block">
           <UiCard
             name={contentComponent.name}
             description={contentComponent.description}
+            tags={contentComponent.tags}
+            dependencies={contentComponent.dependencies}
+            authors={contentComponent.authors}
+            asSeenOn={contentComponent.asSeenOn}
           />
         </div>
       </main>
