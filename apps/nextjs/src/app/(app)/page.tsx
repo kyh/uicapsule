@@ -18,7 +18,7 @@ const Page = async () => {
           ))}
         </div>
       </div>
-      <div className="bg-border grid gap-px border-b md:grid-cols-2 lg:h-auto lg:grid-cols-10 lg:grid-rows-2 lg:*:col-span-2 md:[&>*:first-child]:col-span-2 md:[&>*:first-child]:h-auto lg:[&>*:first-child]:col-span-4 lg:[&>*:first-child]:row-span-2 lg:[&>*:first-child]:h-auto">
+      <div className="bg-border grid gap-px border-b md:h-auto md:grid-cols-10 md:grid-rows-2 md:*:col-span-2 md:[&>*:nth-child(10n+1)]:col-span-4 md:[&>*:nth-child(10n+1)]:row-span-2 md:[&>*:nth-child(10n+1)]:h-auto">
         {content.map((c, index) => (
           <ContentComponentPreview
             slug={c.slug}
