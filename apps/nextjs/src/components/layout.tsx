@@ -28,6 +28,7 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
   dropdownMenuItemVariants,
+  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@repo/ui/dropdown-menu";
 import { Logo } from "@repo/ui/logo";
@@ -40,6 +41,7 @@ import {
   FolderPlusIcon,
   GithubIcon,
   SearchIcon,
+  StarsIcon,
   TwitterIcon,
 } from "lucide-react";
 
@@ -84,7 +86,7 @@ const SearchButton = () => {
   return (
     <>
       <button
-        className="border-input bg-muted flex h-9 w-full rounded-full border px-3 py-2 shadow-xs transition"
+        className="border-input bg-muted flex h-9 w-full cursor-pointer rounded-full border px-3 py-2 shadow-xs transition"
         onClick={() => setSearchOpen(true)}
       >
         <span className="flex grow items-center gap-1">
@@ -94,7 +96,7 @@ const SearchButton = () => {
           />
           <span className="text-muted-foreground text-sm">Search</span>
         </span>
-        <kbd className="bg-background text-muted-foreground inline-flex h-full items-center rounded border px-1 text-xs font-medium">
+        <kbd className="bg-background text-muted-foreground inline-flex h-full items-center rounded border px-1 font-sans text-xs">
           ⌘K
         </kbd>
       </button>
@@ -170,8 +172,11 @@ export const ProfileButton = () => {
   const [open, setOpen] = useState(false);
 
   const menuItemClassName = dropdownMenuItemVariants({
-    className: "w-full justify-start h-10",
+    className: "group w-full justify-start",
   });
+
+  const menuItemIconClassName =
+    "text-muted-foreground size-4 group-hover:text-foreground transition";
 
   const menuItems = [
     {
@@ -184,10 +189,31 @@ export const ProfileButton = () => {
           href="/about"
           onClick={() => setOpen(false)}
         >
-          <BookCheckIcon aria-hidden="true" className="size-4" />
+          <BookCheckIcon aria-hidden="true" className={menuItemIconClassName} />
           About
         </Link>
       ),
+    },
+    {
+      id: "inspiration",
+      condition: true,
+      wrap: true,
+      content: (
+        <Link
+          className={menuItemClassName}
+          href="/inspiration"
+          onClick={() => setOpen(false)}
+        >
+          <StarsIcon aria-hidden="true" className={menuItemIconClassName} />
+          Inspiration
+        </Link>
+      ),
+    },
+    {
+      id: "separator",
+      condition: true,
+      wrap: false,
+      content: <DropdownMenuSeparator />,
     },
     {
       id: "privacy",
@@ -200,7 +226,7 @@ export const ProfileButton = () => {
           target="_blank"
           onClick={() => setOpen(false)}
         >
-          <GithubIcon aria-hidden="true" className="size-4" />
+          <GithubIcon aria-hidden="true" className={menuItemIconClassName} />
           GitHub
         </Link>
       ),
@@ -216,7 +242,7 @@ export const ProfileButton = () => {
           target="_blank"
           onClick={() => setOpen(false)}
         >
-          <TwitterIcon aria-hidden="true" className="size-4" />
+          <TwitterIcon aria-hidden="true" className={menuItemIconClassName} />
           Twitter
         </Link>
       ),
@@ -286,7 +312,7 @@ export const Footer = ({ className }: { className?: string }) => {
       </p>
       <div className="flex flex-wrap justify-center px-6 lg:w-full">
         <FooterLink href="/about">About</FooterLink>
-        <FooterLink href="/inspo">Inspiration</FooterLink>
+        <FooterLink href="/inspiration">Inspiration</FooterLink>
       </div>
       <div className="grid w-full grid-cols-3 border-t lg:flex lg:w-auto lg:border-t-0">
         <FooterIcon href="https://github.com/kyh">
@@ -332,7 +358,7 @@ const FooterLink = ({
     >
       <div
         className={cn(
-          "absolute left-3 aspect-square h-1 rotate-45 bg-black",
+          "bg-primary absolute left-3 aspect-square h-1 rotate-45",
           usePathname() === href ? "block" : "hidden",
         )}
       />

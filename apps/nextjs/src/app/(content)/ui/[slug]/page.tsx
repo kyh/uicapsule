@@ -29,15 +29,8 @@ const Page = async ({ params }: Props) => {
         <div className="flex md:p-4">
           <Preview />
         </div>
-        <aside className="absolute right-0 hidden h-full py-4 pr-6 md:block">
-          <Aside
-            name={contentComponent.name}
-            description={contentComponent.description}
-            tags={contentComponent.tags}
-            dependencies={contentComponent.dependencies}
-            authors={contentComponent.authors}
-            asSeenOn={contentComponent.asSeenOn}
-          />
+        <aside className="absolute right-0 z-10 hidden h-full max-w-80 py-4 pr-6 md:block">
+          <Aside contentComponent={contentComponent} />
         </aside>
       </main>
     </SandpackProvider>

@@ -47,11 +47,11 @@ export const Preview = ({ defaultSize = "desktop" }: PreviewProps) => {
         }
       >
         <TabsList>
-          <TabsTrigger value="mobile" className="px-2 py-2">
-            <SmartphoneIcon size={16} aria-hidden="true" />
-          </TabsTrigger>
           <TabsTrigger value="desktop" className="px-2 py-2">
             <LaptopIcon size={16} aria-hidden="true" />
+          </TabsTrigger>
+          <TabsTrigger value="mobile" className="px-2 py-2">
+            <SmartphoneIcon size={16} aria-hidden="true" />
           </TabsTrigger>
         </TabsList>
       </Tabs>

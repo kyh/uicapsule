@@ -4,19 +4,21 @@ import { cache } from "react";
 
 const contentSourceDir = join(process.cwd(), "..", "..", "content");
 
-type ContentComponent = {
+export type ContentComponent = {
   slug: string;
   name: string;
-  description: string;
-  coverUrl: string;
-  coverType: "image" | "video";
-  tags: string[];
-  authors: { name: string; url: string; avatarUrl: string }[];
-  asSeenOn: { name: string; url: string; avatarUrl: string }[];
+  description?: string;
+  coverUrl?: string;
+  coverType?: "image" | "video";
+  tags?: string[];
+  authors?: { name: string; url: string; avatarUrl: string }[];
+  asSeenOn?: { name: string; url: string; avatarUrl: string }[];
   // Below are all props for the Sandpack component
   sourceCode: string;
   previewCode: string;
   dependencies: Record<string, string>;
+  previousSlug?: string;
+  nextSlug?: string;
 };
 
 export const getContentComponents = cache(
@@ -26,7 +28,7 @@ export const getContentComponents = cache(
     );
 
     const contentComponents = await Promise.all(
-      slugs.map(async (slug) => {
+      slugs.map(async (slug, index) => {
         const metadata = JSON.parse(
           await readFile(
             join(contentSourceDir, slug, "meta.json"),
@@ -57,6 +59,8 @@ export const getContentComponents = cache(
           dependencies: packageJson.dependencies,
           sourceCode,
           previewCode,
+          previousSlug: slugs[index - 1],
+          nextSlug: slugs[index + 1],
         };
       }),
     );
@@ -83,7 +87,7 @@ export const getContentCategories = cache(async (): Promise<string[]> => {
   return [
     ...new Set(
       Object.values(content)
-        .map((c) => c.tags)
+        .map((c) => c.tags ?? [])
         .flat(),
     ),
   ];
