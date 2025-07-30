@@ -5,6 +5,7 @@ import { Badge } from "@repo/ui/badge";
 import { Button, buttonVariants } from "@repo/ui/button";
 import { Card } from "@repo/ui/card";
 import { Dialog, DialogContent, DialogTrigger } from "@repo/ui/dialog";
+import { DrawerDescription, DrawerHeader, DrawerTitle } from "@repo/ui/drawer";
 import { ArrowLeftIcon, ArrowRightIcon } from "lucide-react";
 
 import type { ContentComponent } from "@/lib/files";
@@ -25,6 +26,10 @@ export const Aside = ({ contentComponent }: AsideProps) => {
           View Source
         </DialogTrigger>
         <DialogContent>
+          <DrawerHeader className="sr-only">
+            <DrawerTitle>Source Code</DrawerTitle>
+            <DrawerDescription>Component source code</DrawerDescription>
+          </DrawerHeader>
           <SandpackCodeEditor />
         </DialogContent>
       </Dialog>
