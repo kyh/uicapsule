@@ -1,0 +1,50 @@
+:root {
+  --sp-space-1: 4px;
+  --sp-space-2: 8px;
+  --sp-space-3: 12px;
+  --sp-space-4: 16px;
+  --sp-space-5: 20px;
+  --sp-space-6: 24px;
+  --sp-space-7: 28px;
+  --sp-space-8: 32px;
+  --sp-space-9: 36px;
+  --sp-space-10: 40px;
+  --sp-space-11: 44px;
+  --sp-border-radius: 4px;
+  --sp-layout-height: 300px;
+  --sp-layout-headerHeight: 40px;
+  --sp-transitions-default: 150ms ease;
+  --sp-zIndices-base: 1;
+  --sp-zIndices-overlay: 2;
+  --sp-zIndices-top: 3;
+  --sp-colors-surface1: #151515;
+  --sp-colors-surface2: #252525;
+  --sp-colors-surface3: #2f2f2f;
+  --sp-colors-disabled: #4d4d4d;
+  --sp-colors-base: #808080;
+  --sp-colors-clickable: #999999;
+  --sp-colors-hover: #c5c5c5;
+  --sp-colors-accent: #90e86f;
+  --sp-colors-error: #e1cff8;
+  --sp-colors-errorSurface: #b08df8;
+  --sp-colors-warning: #e7c400;
+  --sp-colors-warningSurface: #3a3000;
+  --sp-font-body:
+    -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial,
+    sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
+  --sp-font-mono:
+    "Fira Mono", "DejaVu Sans Mono", Menlo, Consolas, "Liberation Mono", Monaco,
+    "Lucida Console", monospace;
+  --sp-font-size: 13px;
+  --sp-font-lineHeight: 20px;
+  --sp-syntax-color-plain: #f0fdaf;
+  --sp-syntax-color-comment: #757575;
+  --sp-syntax-fontStyle-comment: italic;
+  --sp-syntax-color-keyword: #e5fd78;
+  --sp-syntax-color-tag: #f0fdaf;
+  --sp-syntax-color-punctuation: #ffffff;
+  --sp-syntax-color-definition: #eeeeee;
+  --sp-syntax-color-property: #90e86f;
+  --sp-syntax-color-static: #ffffff;
+  --sp-syntax-color-string: #dafecf;
+}

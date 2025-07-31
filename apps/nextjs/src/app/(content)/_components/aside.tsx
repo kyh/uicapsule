@@ -25,43 +25,24 @@ type AsideProps = {
 };
 
 export const Aside = ({ contentComponent }: AsideProps) => {
-  const isDesktop = useMediaQuery();
-
-  const viewSourceContent = isDesktop ? (
-    <Dialog>
-      <DialogTrigger className={buttonVariants({ variant: "outline" })}>
-        View Source
-      </DialogTrigger>
-      <DialogContent>
-        <DrawerHeader className="sr-only">
-          <DrawerTitle>Source Code</DrawerTitle>
-          <DrawerDescription>Component source code</DrawerDescription>
-        </DrawerHeader>
-        <SandpackCodeEditor />
-      </DialogContent>
-    </Dialog>
-  ) : (
-    <Drawer>
-      <DrawerTrigger className={buttonVariants({ variant: "outline" })}>
-        View Source
-      </DrawerTrigger>
-      <DrawerContent>
-        <DrawerHeader className="sr-only">
-          <DrawerTitle>Source Code</DrawerTitle>
-          <DrawerDescription>Component source code</DrawerDescription>
-        </DrawerHeader>
-        <SandpackCodeEditor />
-      </DrawerContent>
-    </Drawer>
-  );
-
   return (
     <Card className="h-full">
       <h1 className="text-xl">{contentComponent.name}</h1>
       <p className="text-muted-foreground text-sm">
         {contentComponent.description}
       </p>
-      {viewSourceContent}
+      <Drawer>
+        <DrawerTrigger className={buttonVariants({ variant: "outline" })}>
+          View Source
+        </DrawerTrigger>
+        <DrawerContent className="bg-[var(--sp-colors-surface1)] text-sm">
+          <DrawerHeader className="sr-only">
+            <DrawerTitle>Source Code</DrawerTitle>
+            <DrawerDescription>Component source code</DrawerDescription>
+          </DrawerHeader>
+          <SandpackCodeEditor />
+        </DrawerContent>
+      </Drawer>
       {contentComponent.asSeenOn && (
         <div className="-mx-3 flex flex-col gap-2 border-t px-3 pt-3">
           <h2>As seen on</h2>

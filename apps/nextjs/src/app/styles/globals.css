@@ -1,5 +1,6 @@
 @import "tailwindcss" source("../../../../../");
 @import "./animations.css";
+@import "./sandpack.css";
 
 @plugin "@tailwindcss/typography";
 
