@@ -1,26 +1,46 @@
 "use client";
 
-import { useCallback, useState } from "react";
-import { SandpackLayout, SandpackPreview } from "@codesandbox/sandpack-react";
+import { useCallback, useEffect, useState } from "react";
+import {
+  SandpackLayout,
+  SandpackPreview,
+  useSandpack,
+} from "@codesandbox/sandpack-react";
 import { Tabs, TabsList, TabsTrigger } from "@repo/ui/tabs";
 import { useMediaQuery } from "@repo/ui/utils";
 import { LaptopIcon, SmartphoneIcon } from "lucide-react";
 
+import type { ContentComponent } from "@/lib/files";
 import { Resizable } from "./resizable";
 
 type PreviewProps = {
-  defaultSize?: "mobile" | "desktop";
+  contentComponent: ContentComponent;
 };
 
-export const Preview = ({ defaultSize = "desktop" }: PreviewProps) => {
-  const isMobile = useMediaQuery("(max-width: 768px)");
-  const [width, setWidth] = useState(defaultSize === "mobile" ? 360 : 720);
-  const [size, setSize] = useState(defaultSize);
+export const Preview = ({ contentComponent }: PreviewProps) => {
+  const isDesktop = useMediaQuery();
+  const { sandpack } = useSandpack();
+  const [initialized, setInitialized] = useState(false);
+  const [width, setWidth] = useState(
+    contentComponent.defaultSize === "mobile" ? 360 : 720,
+  );
+  const [size, setSize] = useState(contentComponent.defaultSize ?? "desktop");
 
   const handleSetWidth = useCallback((width: number) => {
     setWidth(width);
     setSize(width <= 360 ? "mobile" : "desktop");
   }, []);
+
+  useEffect(() => {
+    if (sandpack.status === "idle" && !initialized) {
+      void sandpack.runSandpack();
+    }
+    setInitialized(true);
+  }, [sandpack, initialized]);
+
+  useEffect(() => {
+    setInitialized(false);
+  }, [isDesktop]);
 
   const sandpackContent = (
     <SandpackLayout className="h-full rounded-xl! shadow-[0_5px_100px_1px_#0000001a]">
@@ -30,14 +50,14 @@ export const Preview = ({ defaultSize = "desktop" }: PreviewProps) => {
 
   return (
     <div className="flex flex-col gap-2">
-      {isMobile ? (
-        <div className="w-[calc(100dvw-theme(spacing.3))] flex-1 pb-2">
-          {sandpackContent}
-        </div>
-      ) : (
+      {isDesktop ? (
         <Resizable className="flex-1" width={width} setWidth={handleSetWidth}>
           {sandpackContent}
         </Resizable>
+      ) : (
+        <div className="w-[calc(100dvw-theme(spacing.3))] flex-1 pb-2">
+          {sandpackContent}
+        </div>
       )}
       <Tabs
         className="hidden justify-center md:flex"

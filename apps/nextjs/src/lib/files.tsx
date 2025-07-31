@@ -8,6 +8,7 @@ export type ContentComponent = {
   slug: string;
   name: string;
   description?: string;
+  defaultSize?: "desktop" | "mobile";
   coverUrl?: string;
   coverType?: "image" | "video";
   tags?: string[];

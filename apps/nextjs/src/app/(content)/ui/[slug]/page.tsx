@@ -27,7 +27,7 @@ const Page = async ({ params }: Props) => {
     >
       <main className="relative flex h-[calc(100dvh-theme(spacing.16))] justify-center">
         <div className="flex md:p-4">
-          <Preview />
+          <Preview contentComponent={contentComponent} />
           <AsideMobile contentComponent={contentComponent} />
         </div>
         <AsideDesktop contentComponent={contentComponent} />
