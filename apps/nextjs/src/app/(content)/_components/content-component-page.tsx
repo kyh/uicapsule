@@ -1,19 +1,18 @@
+"use client";
+
 import { SandpackProvider } from "@codesandbox/sandpack-react";
 
-import { AsideDesktop, AsideMobile } from "@/app/(content)/_components/aside";
-import { Preview } from "@/app/(content)/_components/preview";
-import { getContentComponent } from "@/lib/files";
+import type { ContentComponent } from "@/lib/files";
+import { AsideDesktop, AsideMobile } from "./aside";
+import { Preview } from "./preview";
 
-type Props = {
-  params: Promise<{
-    slug: string;
-  }>;
+type ContentComponentPageProps = {
+  contentComponent: ContentComponent;
 };
 
-const Page = async ({ params }: Props) => {
-  const { slug } = await params;
-  const contentComponent = await getContentComponent(slug);
-
+export const ContentComponentPage = ({
+  contentComponent,
+}: ContentComponentPageProps) => {
   return (
     <SandpackProvider
       template="react-ts"
@@ -50,5 +49,3 @@ body,
   padding: 0;
 }
 `;
-
-export default Page;
