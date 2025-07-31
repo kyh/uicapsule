@@ -1,7 +1,10 @@
 "use client";
 
 import Link from "next/link";
-import { SandpackCodeEditor } from "@codesandbox/sandpack-react";
+import {
+  SandpackCodeEditor,
+  SandpackFileExplorer,
+} from "@codesandbox/sandpack-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@repo/ui/avatar";
 import { Badge } from "@repo/ui/badge";
 import { Button, buttonVariants } from "@repo/ui/button";
@@ -35,12 +38,15 @@ export const Aside = ({ contentComponent }: AsideProps) => {
         <DrawerTrigger className={buttonVariants({ variant: "outline" })}>
           View Source
         </DrawerTrigger>
-        <DrawerContent className="bg-[var(--sp-colors-surface1)] text-sm">
+        <DrawerContent className="border-[var(--sp-colors-surface1)] bg-[var(--sp-colors-surface1)] text-sm">
           <DrawerHeader className="sr-only">
             <DrawerTitle>Source Code</DrawerTitle>
             <DrawerDescription>Component source code</DrawerDescription>
           </DrawerHeader>
-          <SandpackCodeEditor />
+          <div className="flex h-[90dvh] overflow-auto">
+            <SandpackFileExplorer className="w-48! border-r border-[var(--sp-colors-surface2)]" />
+            <SandpackCodeEditor showLineNumbers showInlineErrors />
+          </div>
         </DrawerContent>
       </Drawer>
       {contentComponent.asSeenOn && (
