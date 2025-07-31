@@ -1,6 +1,6 @@
 import { SandpackProvider } from "@codesandbox/sandpack-react";
 
-import { AsideDesktop, AsideMobile } from "@/app/(content)/_components/aside";
+import { ResponsiveAside } from "@/app/(content)/_components/aside";
 import { Preview } from "@/app/(content)/_components/preview";
 import { getContentComponent } from "@/lib/files";
 
@@ -26,11 +26,8 @@ const Page = async ({ params }: Props) => {
       }}
     >
       <main className="relative flex h-[calc(100dvh-theme(spacing.16))] justify-center">
-        <div className="flex md:p-4">
-          <Preview contentComponent={contentComponent} />
-          <AsideMobile contentComponent={contentComponent} />
-        </div>
-        <AsideDesktop contentComponent={contentComponent} />
+        <Preview contentComponent={contentComponent} />
+        <ResponsiveAside contentComponent={contentComponent} />
       </main>
     </SandpackProvider>
   );

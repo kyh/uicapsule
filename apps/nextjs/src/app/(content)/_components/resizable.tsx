@@ -19,7 +19,7 @@ export const Resizable = ({
   width,
   setWidth,
   minWidth = 300,
-  maxWidth = 800,
+  maxWidth = 1300,
   className,
   onResize,
 }: ResizableProps) => {

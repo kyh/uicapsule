@@ -32,8 +32,12 @@ export const Preview = ({ contentComponent }: PreviewProps) => {
   }, []);
 
   useEffect(() => {
+    // Hacks to ensure the Sandpack runs.
     if (sandpack.status === "idle" && !initialized) {
-      void sandpack.runSandpack();
+      sandpack.runSandpack().catch(console.error);
+    }
+    if (sandpack.status === "running") {
+      document.querySelector(".sp-loading")?.setAttribute("hidden", "true");
     }
     setInitialized(true);
   }, [sandpack, initialized]);
@@ -49,7 +53,7 @@ export const Preview = ({ contentComponent }: PreviewProps) => {
   );
 
   return (
-    <div className="flex flex-col gap-2">
+    <div className="flex h-full flex-col gap-2 pb-2">
       {isDesktop ? (
         <Resizable className="flex-1" width={width} setWidth={handleSetWidth}>
           {sandpackContent}

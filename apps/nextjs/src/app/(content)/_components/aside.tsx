@@ -9,7 +9,6 @@ import { Avatar, AvatarFallback, AvatarImage } from "@repo/ui/avatar";
 import { Badge } from "@repo/ui/badge";
 import { Button, buttonVariants } from "@repo/ui/button";
 import { Card } from "@repo/ui/card";
-import { Dialog, DialogContent, DialogTrigger } from "@repo/ui/dialog";
 import {
   Drawer,
   DrawerContent,
@@ -27,7 +26,7 @@ type AsideProps = {
   contentComponent: ContentComponent;
 };
 
-export const Aside = ({ contentComponent }: AsideProps) => {
+const Aside = ({ contentComponent }: AsideProps) => {
   return (
     <Card className="h-full">
       <h1 className="text-xl">{contentComponent.name}</h1>
@@ -131,10 +130,15 @@ export const Aside = ({ contentComponent }: AsideProps) => {
   );
 };
 
-export const AsideMobile = ({ contentComponent }: AsideProps) => {
+export const ResponsiveAside = ({ contentComponent }: AsideProps) => {
   const isDesktop = useMediaQuery();
 
-  if (isDesktop) return null;
+  if (isDesktop)
+    return (
+      <aside className="absolute right-0 z-10 h-full w-80 pr-6 pb-13">
+        <Aside contentComponent={contentComponent} />
+      </aside>
+    );
 
   return (
     <div className="absolute top-2 right-4">
@@ -155,17 +159,5 @@ export const AsideMobile = ({ contentComponent }: AsideProps) => {
         </DrawerContent>
       </Drawer>
     </div>
-  );
-};
-
-export const AsideDesktop = ({ contentComponent }: AsideProps) => {
-  const isDesktop = useMediaQuery();
-
-  if (!isDesktop) return null;
-
-  return (
-    <aside className="absolute right-0 z-10 h-full max-w-80 py-4 pr-6">
-      <Aside contentComponent={contentComponent} />
-    </aside>
   );
 };
