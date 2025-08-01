@@ -11,6 +11,7 @@ export type ContentComponent = {
   defaultSize?: "desktop" | "mobile";
   coverUrl?: string;
   coverType?: "image" | "video";
+  category?: "marketing" | "application" | "mobile";
   tags?: string[];
   authors?: { name: string; url: string; avatarUrl: string }[];
   asSeenOn?: { name: string; url: string; avatarUrl: string }[];
