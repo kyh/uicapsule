@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import localFont from "next/font/local";
 import { GlobalAlertDialog } from "@repo/ui/alert-dialog";
+import { ThemeProvider } from "@repo/ui/theme";
 import { GlobalToaster } from "@repo/ui/toast";
 import { TooltipProvider } from "@repo/ui/tooltip";
 
@@ -95,11 +96,18 @@ const RootLayout = (props: LayoutProps) => {
   return (
     <html lang="en" className={monoFont.variable} suppressHydrationWarning>
       <body className="bg-background text-foreground font-sans antialiased">
-        <TooltipProvider>
-          <TRPCReactProvider>{props.children}</TRPCReactProvider>
-          <GlobalToaster />
-          <GlobalAlertDialog />
-        </TooltipProvider>
+        <ThemeProvider
+          attribute="class"
+          defaultTheme="system"
+          enableSystem
+          disableTransitionOnChange
+        >
+          <TooltipProvider>
+            <TRPCReactProvider>{props.children}</TRPCReactProvider>
+            <GlobalToaster />
+            <GlobalAlertDialog />
+          </TooltipProvider>
+        </ThemeProvider>
       </body>
     </html>
   );

@@ -32,6 +32,8 @@ import {
   DropdownMenuTrigger,
 } from "@repo/ui/dropdown-menu";
 import { Logo } from "@repo/ui/logo";
+import { Tabs, TabsList, TabsTrigger } from "@repo/ui/tabs";
+import { useTheme } from "@repo/ui/theme";
 import { cn, useMediaQuery } from "@repo/ui/utils";
 import {
   ArrowUpRightIcon,
@@ -40,8 +42,11 @@ import {
   FileInputIcon,
   FolderPlusIcon,
   GithubIcon,
+  MoonIcon,
   SearchIcon,
   StarsIcon,
+  SunIcon,
+  SunMoonIcon,
   TwitterIcon,
 } from "lucide-react";
 
@@ -168,6 +173,7 @@ const SearchButton = () => {
 
 export const ProfileButton = () => {
   const isDesktop = useMediaQuery();
+  const { resolvedTheme, setTheme } = useTheme();
 
   const [open, setOpen] = useState(false);
 
@@ -210,7 +216,7 @@ export const ProfileButton = () => {
       ),
     },
     {
-      id: "separator",
+      id: "separator1",
       condition: true,
       wrap: false,
       content: <DropdownMenuSeparator />,
@@ -245,6 +251,56 @@ export const ProfileButton = () => {
           <TwitterIcon aria-hidden="true" className={menuItemIconClassName} />
           Twitter
         </Link>
+      ),
+    },
+    {
+      id: "separator2",
+      condition: true,
+      wrap: false,
+      content: <DropdownMenuSeparator />,
+    },
+    {
+      id: "theme-toggle",
+      condition: true,
+      wrap: false,
+      content: (
+        <div className="flex items-center gap-2 rounded-sm px-2 py-1.5 text-sm">
+          <span className="flex-1">Theme</span>
+          <Tabs
+            defaultValue={resolvedTheme === "dark" ? "dark" : "light"}
+            onValueChange={(value) => setTheme(value)}
+          >
+            <TabsList className="bg-background flex h-fit items-center gap-0.5 overflow-hidden rounded-full border p-0 focus-within:overflow-visible [&>[role=tab]]:size-6 [&>[role=tab]>.absolute]:-inset-px [&>[role=tab]>.absolute]:rounded-full [&>[role=tab]>.absolute]:border [&>[role=tab]>.absolute]:bg-transparent">
+              <TabsTrigger
+                value="system"
+                className="text-muted-foreground data-[state=active]:bg-accent relative inline-flex h-[28px] items-center justify-center gap-1.5 rounded-full px-2 has-[>svg]:pl-1.5 [&>svg]:pointer-events-none"
+                aria-label="System theme"
+              >
+                <div>
+                  <SunMoonIcon className="size-3 flex-shrink-0" />
+                </div>
+              </TabsTrigger>
+              <TabsTrigger
+                value="light"
+                className="text-muted-foreground data-[state=active]:bg-accent relative inline-flex h-[28px] items-center justify-center gap-1.5 rounded-full px-2 has-[>svg]:pl-1.5 [&>svg]:pointer-events-none"
+                aria-label="Light theme"
+              >
+                <div>
+                  <SunIcon className="size-3 flex-shrink-0" />
+                </div>
+              </TabsTrigger>
+              <TabsTrigger
+                value="dark"
+                className="text-muted-foreground data-[state=active]:bg-accent relative inline-flex h-[28px] items-center justify-center gap-1.5 rounded-full px-2 has-[>svg]:pl-1.5 [&>svg]:pointer-events-none"
+                aria-label="Dark theme"
+              >
+                <div>
+                  <MoonIcon className="size-3 flex-shrink-0" />
+                </div>
+              </TabsTrigger>
+            </TabsList>
+          </Tabs>
+        </div>
       ),
     },
   ];
@@ -323,14 +379,6 @@ export const Footer = ({ className }: { className?: string }) => {
             />
           </svg>
         </FooterIcon>
-        <FooterIcon href="https://dribbble.com/kaiyuhsu">
-          <svg width="20" height="20" viewBox="0 0 32 32">
-            <path
-              className="fill-current"
-              d="M0 16q0-4.352 2.144-8.032t5.824-5.824 8.032-2.144 8.032 2.144 5.824 5.824 2.144 8.032-2.144 8.032-5.824 5.824-8.032 2.144-8.032-2.144-5.824-5.824-2.144-8.032zM2.656 16q0 4.992 3.36 8.8 1.536-3.008 4.864-5.728t6.496-3.424q-0.48-1.12-0.928-2.016-5.504 1.76-11.904 1.76-1.248 0-1.856-0.032 0 0.128 0 0.32t-0.032 0.32zM3.072 12.704q0.704 0.064 2.080 0.064 5.344 0 10.144-1.44-2.432-4.32-5.344-7.2-2.528 1.28-4.32 3.552t-2.56 5.024zM7.84 26.528q3.616 2.816 8.16 2.816 2.368 0 4.704-0.896-0.64-5.472-2.496-10.592-2.944 0.64-5.92 3.232t-4.448 5.44zM12.736 3.104q2.816 2.912 5.216 7.264 4.352-1.824 6.56-4.64-3.712-3.072-8.512-3.072-1.632 0-3.264 0.448zM19.104 12.64q0.48 1.024 1.088 2.592 2.368-0.224 5.152-0.224 1.984 0 3.936 0.096-0.256-4.352-3.136-7.744-2.080 3.104-7.040 5.28zM20.992 17.472q1.632 4.736 2.208 9.728 2.528-1.632 4.128-4.192t1.92-5.536q-2.336-0.16-4.256-0.16-1.76 0-4 0.16z"
-            />
-          </svg>
-        </FooterIcon>
         <FooterIcon href="https://x.com/kaiyuhsu">
           <svg width="20" height="20" viewBox="0 0 39 32">
             <path
@@ -354,7 +402,7 @@ const FooterLink = ({
   return (
     <Link
       href={href}
-      className="relative flex items-center px-6 py-2 transition hover:text-black lg:py-0"
+      className="hover:text-primary relative flex items-center px-6 py-2 text-sm transition lg:py-0"
     >
       <div
         className={cn(
