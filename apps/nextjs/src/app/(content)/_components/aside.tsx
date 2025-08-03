@@ -39,8 +39,8 @@ const Aside = ({ contentComponent }: AsideProps) => {
             <DrawerTitle>Source Code</DrawerTitle>
             <DrawerDescription>Component source code</DrawerDescription>
           </DrawerHeader>
-          <div className="flex h-[90dvh] overflow-auto mt-4 border-t">
-            <SandpackFileExplorer className="border-border w-48! border-r" />
+          <div className="mt-4 flex h-[90dvh] overflow-auto border-t">
+            <SandpackFileExplorer />
             <SandpackCodeEditor showLineNumbers showInlineErrors />
           </div>
         </DrawerContent>

@@ -24,7 +24,7 @@
   --sp-colors-base: #808080;
   --sp-colors-clickable: #999999;
   --sp-colors-hover: #c5c5c5;
-  --sp-colors-accent: #90e86f;
+  --sp-colors-accent: hsl(14 100% 58%);
   --sp-colors-error: #e1cff8;
   --sp-colors-errorSurface: #b08df8;
   --sp-colors-warning: #e7c400;
@@ -37,16 +37,16 @@
     "Lucida Console", monospace;
   --sp-font-size: 13px;
   --sp-font-lineHeight: 20px;
-  --sp-syntax-color-plain: #f0fdaf;
+  --sp-syntax-color-plain: #ffe5b4;
   --sp-syntax-color-comment: #757575;
   --sp-syntax-fontStyle-comment: italic;
-  --sp-syntax-color-keyword: #e5fd78;
-  --sp-syntax-color-tag: #f0fdaf;
+  --sp-syntax-color-keyword: #ffb86b; /* lighter orange for keywords */
+  --sp-syntax-color-tag: #ff9800; /* vibrant orange for tags */
   --sp-syntax-color-punctuation: #ffffff;
   --sp-syntax-color-definition: #eeeeee;
-  --sp-syntax-color-property: #90e86f;
   --sp-syntax-color-static: #ffffff;
-  --sp-syntax-color-string: #dafecf;
+  --sp-syntax-color-string: #ffd699; /* soft orange for strings */
+  --sp-syntax-color-property: hsl(14 100% 58%);
 }
 
 .sp-layout {
@@ -78,6 +78,12 @@
 .sp-loading + div {
   position: absolute;
   inset: 0;
+  font-family: var(--font-mono);
+  color: var(--primary);
+  background: var(--background-highlight);
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .sp-editor {
@@ -89,7 +95,7 @@
 }
 
 .sp-tabs-scrollable-container {
-  padding: 0 var(--sp-space-2);
+  padding: 0 8px;
   overflow: auto;
   display: flex;
   flex-wrap: nowrap;
@@ -108,43 +114,62 @@
 }
 
 .sp-tab-button {
-  padding: 0 var(--sp-space-2);
-  height: var(--sp-layout-headerHeight);
+  padding: 0 8px;
+  height: 40px;
   white-space: nowrap;
 
   &[data-active="true"] {
-    color: var(--sp-colors-accent);
+    color: var(--primary);
   }
+}
+
+.sp-file-explorer {
+  border-right: 1px solid var(--border);
+  width: 200px;
+  position: sticky;
+  top: 0;
+}
+
+.sp-file-explorer-list {
+  padding: 8px;
 }
 
 .sp-explorer {
   display: flex;
+  gap: 4px;
+  padding: 4px 0;
+  width: 100%;
+  align-items: center;
+}
+
+.sp-code-editor {
+  font-family: var(--sp-font-mono);
 }
 
 .sp-syntax-plain {
-  color: #f0fdaf;
+  color: var(--sp-syntax-color-plain);
 }
 .sp-syntax-comment {
-  color: #757575;
+  color: var(--sp-syntax-color-comment);
 }
 .sp-syntax-keyword {
-  color: #e5fd78;
+  color: var(--sp-syntax-color-keyword);
 }
 .sp-syntax-tag {
-  color: #f0fdaf;
+  color: var(--sp-syntax-color-tag);
 }
 .sp-syntax-punctuation {
-  color: #ffffff;
+  color: var(--sp-syntax-color-punctuation);
 }
 .sp-syntax-definition {
-  color: #eeeeee;
+  color: var(--sp-syntax-color-definition);
 }
 .sp-syntax-property {
-  color: #90e86f;
+  color: var(--sp-syntax-color-property);
 }
 .sp-syntax-static {
-  color: #ffffff;
+  color: var(--sp-syntax-color-static);
 }
 .sp-syntax-string {
-  color: #dafecf;
+  color: var(--sp-syntax-color-string);
 }
