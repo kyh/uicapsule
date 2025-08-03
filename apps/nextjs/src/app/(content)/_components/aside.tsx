@@ -1,10 +1,6 @@
 "use client";
 
 import Link from "next/link";
-import {
-  SandpackCodeEditor,
-  SandpackFileExplorer,
-} from "@codesandbox/sandpack-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@repo/ui/avatar";
 import { Badge } from "@repo/ui/badge";
 import { Button, buttonVariants } from "@repo/ui/button";
@@ -21,6 +17,7 @@ import { useMediaQuery } from "@repo/ui/utils";
 import { ArrowLeftIcon, ArrowRightIcon, InfoIcon } from "lucide-react";
 
 import type { ContentComponent } from "@/lib/files";
+import { SandpackCodeEditor, SandpackFileExplorer } from "./sandpack";
 
 type AsideProps = {
   contentComponent: ContentComponent;
@@ -37,13 +34,13 @@ const Aside = ({ contentComponent }: AsideProps) => {
         <DrawerTrigger className={buttonVariants({ variant: "outline" })}>
           View Source
         </DrawerTrigger>
-        <DrawerContent className="border-[var(--sp-colors-surface1)] bg-[var(--sp-colors-surface1)] text-sm">
+        <DrawerContent className="border-border bg-background text-sm">
           <DrawerHeader className="sr-only">
             <DrawerTitle>Source Code</DrawerTitle>
             <DrawerDescription>Component source code</DrawerDescription>
           </DrawerHeader>
-          <div className="flex h-[90dvh] overflow-auto">
-            <SandpackFileExplorer className="w-48! border-r border-[var(--sp-colors-surface2)]" />
+          <div className="flex h-[90dvh] overflow-auto mt-4 border-t">
+            <SandpackFileExplorer className="border-border w-48! border-r" />
             <SandpackCodeEditor showLineNumbers showInlineErrors />
           </div>
         </DrawerContent>

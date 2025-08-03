@@ -1,17 +1,13 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import {
-  SandpackLayout,
-  SandpackPreview,
-  useSandpack,
-} from "@codesandbox/sandpack-react";
 import { Tabs, TabsList, TabsTrigger } from "@repo/ui/tabs";
 import { useMediaQuery } from "@repo/ui/utils";
 import { LaptopIcon, SmartphoneIcon } from "lucide-react";
 
 import type { ContentComponent } from "@/lib/files";
 import { Resizable } from "./resizable";
+import { SandpackLayout, SandpackPreview, useSandpack } from "./sandpack";
 
 type PreviewProps = {
   contentComponent: ContentComponent;
@@ -47,7 +43,7 @@ export const Preview = ({ contentComponent }: PreviewProps) => {
   }, [isDesktop]);
 
   const sandpackContent = (
-    <SandpackLayout className="h-full rounded-xl! shadow-[0_5px_100px_1px_#0000001a]">
+    <SandpackLayout>
       <SandpackPreview className="h-full!" />
     </SandpackLayout>
   );

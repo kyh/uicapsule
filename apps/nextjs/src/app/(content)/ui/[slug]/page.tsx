@@ -1,7 +1,6 @@
-import { SandpackProvider } from "@codesandbox/sandpack-react";
-
 import { ResponsiveAside } from "@/app/(content)/_components/aside";
 import { Preview } from "@/app/(content)/_components/preview";
+import { SandpackProvider } from "@/app/(content)/_components/sandpack";
 import { getContentComponent } from "@/lib/files";
 
 type Props = {
