@@ -1,6 +1,6 @@
 import { Button } from "@repo/ui/button";
 
-import { getContentCategories, getContentComponents } from "@/lib/files";
+import { getContentCategories, getContentComponents } from "@/lib/content";
 import { ContentComponentPreview } from "./_components/content-component-preview";
 
 const Page = async () => {

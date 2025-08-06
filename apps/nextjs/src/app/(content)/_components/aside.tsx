@@ -16,7 +16,7 @@ import {
 import { useMediaQuery } from "@repo/ui/utils";
 import { ArrowLeftIcon, ArrowRightIcon, InfoIcon } from "lucide-react";
 
-import type { ContentComponent } from "@/lib/files";
+import type { ContentComponent } from "@/lib/content";
 import { SandpackCodeEditor, SandpackFileExplorer } from "./sandpack";
 
 type AsideProps = {

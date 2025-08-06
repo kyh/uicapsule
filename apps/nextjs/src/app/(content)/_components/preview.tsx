@@ -5,7 +5,7 @@ import { Tabs, TabsList, TabsTrigger } from "@repo/ui/tabs";
 import { useMediaQuery } from "@repo/ui/utils";
 import { LaptopIcon, SmartphoneIcon } from "lucide-react";
 
-import type { ContentComponent } from "@/lib/files";
+import type { ContentComponent } from "@/lib/content";
 import { Resizable } from "./resizable";
 import { SandpackLayout, SandpackPreview, useSandpack } from "./sandpack";
 

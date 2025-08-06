@@ -1,7 +1,7 @@
 import { ResponsiveAside } from "@/app/(content)/_components/aside";
 import { Preview } from "@/app/(content)/_components/preview";
 import { SandpackProvider } from "@/app/(content)/_components/sandpack";
-import { getContentComponent } from "@/lib/files";
+import { getContentComponent } from "@/lib/content";
 
 type Props = {
   params: Promise<{
