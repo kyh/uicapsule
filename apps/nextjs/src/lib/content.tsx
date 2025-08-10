@@ -24,7 +24,9 @@ export type ContentComponent = {
 };
 
 export const getContentComponents = cache(
-  async (): Promise<Record<"string", ContentComponent>> => {
+  async (
+    filterTags?: string[],
+  ): Promise<Record<"string", ContentComponent>> => {
     const slugs = (await readdir(contentSourceDir)).filter(
       (slug) => !slug.startsWith("."),
     );
@@ -69,6 +71,13 @@ export const getContentComponents = cache(
 
     return contentComponents.reduce(
       (acc, component) => {
+        if (
+          filterTags &&
+          filterTags.length > 0 &&
+          !filterTags.some((tag) => component.tags?.includes(tag))
+        ) {
+          return acc; // Skip components that don't match the filter tags
+        }
         acc[component.slug] = component;
         return acc;
       },
