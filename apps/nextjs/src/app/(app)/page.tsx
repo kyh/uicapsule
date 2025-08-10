@@ -16,17 +16,17 @@ const Page = async () => {
     <main>
       <div className="flex h-14 items-center justify-between border-b bg-[image:var(--background-stripe)] bg-[size:10px_10px] bg-fixed sm:h-16">
         <div className="flex h-full flex-1 items-center gap-3 px-3 sm:px-6">
+          <FilterComboBox filterKey="element" filterOptions={contentElements}>
+            Elements <ChevronDownIcon className="size-4" />
+          </FilterComboBox>
+          <FilterComboBox filterKey="style" filterOptions={contentStyles}>
+            Styles <ChevronDownIcon className="size-4" />
+          </FilterComboBox>
           <FilterComboBox
             filterKey="category"
             filterOptions={contentCategories}
           >
             Categories <ChevronDownIcon className="size-4" />
-          </FilterComboBox>
-          <FilterComboBox filterKey="style" filterOptions={contentStyles}>
-            Styles <ChevronDownIcon className="size-4" />
-          </FilterComboBox>
-          <FilterComboBox filterKey="element" filterOptions={contentElements}>
-            Elements <ChevronDownIcon className="size-4" />
           </FilterComboBox>
         </div>
       </div>
