@@ -67,10 +67,18 @@ export const Preview = ({ contentComponent }: PreviewProps) => {
         }
       >
         <TabsList>
-          <TabsTrigger value="desktop" className="px-2 py-2">
+          <TabsTrigger
+            value="desktop"
+            className="px-2 py-2"
+            isSelected={size === "desktop"}
+          >
             <LaptopIcon size={16} aria-hidden="true" />
           </TabsTrigger>
-          <TabsTrigger value="mobile" className="px-2 py-2">
+          <TabsTrigger
+            value="mobile"
+            className="px-2 py-2"
+            isSelected={size === "mobile"}
+          >
             <SmartphoneIcon size={16} aria-hidden="true" />
           </TabsTrigger>
         </TabsList>

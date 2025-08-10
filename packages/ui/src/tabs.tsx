@@ -2,6 +2,7 @@
 
 import * as React from "react";
 import { cn } from "@repo/ui/utils";
+import { AnimatePresence, motion } from "motion/react";
 import { Tabs as TabsPrimitive } from "radix-ui";
 
 export const Tabs = TabsPrimitive.Root;
@@ -21,16 +22,35 @@ export const TabsList = ({
 
 export const TabsTrigger = ({
   className,
+  isSelected,
+  children,
   ...props
-}: React.ComponentProps<typeof TabsPrimitive.Trigger>) => (
-  <TabsPrimitive.Trigger
-    className={cn(
-      "ring-offset-background focus-visible:ring-ring data-[state=active]:bg-background data-[state=active]:text-foreground focus-visible:outline-hidden inline-flex items-center justify-center whitespace-nowrap rounded-md px-3 py-1 text-sm font-medium transition-all focus-visible:ring-2 focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 data-[state=active]:shadow-sm",
-      className,
-    )}
-    {...props}
-  />
-);
+}: React.ComponentProps<typeof TabsPrimitive.Trigger> & {
+  isSelected?: boolean;
+}) => {
+  return (
+    <TabsPrimitive.Trigger
+      className={cn(
+        "ring-offset-background focus-visible:ring-ring data-[state=active]:text-foreground relative inline-flex items-center justify-center rounded-md px-3 py-1 text-sm font-medium whitespace-nowrap transition-all focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-hidden disabled:pointer-events-none disabled:opacity-50",
+        className,
+      )}
+      {...props}
+    >
+      <AnimatePresence initial={false}>
+        {isSelected && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="bg-background pointer-events-none absolute inset-0 rounded-md shadow-sm"
+            layoutId="selected-indicator"
+          />
+        )}
+      </AnimatePresence>
+      <div className="relative">{children}</div>
+    </TabsPrimitive.Trigger>
+  );
+};
 
 export const TabsContent = ({
   className,
@@ -38,7 +58,7 @@ export const TabsContent = ({
 }: React.ComponentProps<typeof TabsPrimitive.Content>) => (
   <TabsPrimitive.Content
     className={cn(
-      "ring-offset-background focus-visible:ring-ring focus-visible:outline-hidden mt-2 focus-visible:ring-2 focus-visible:ring-offset-2",
+      "ring-offset-background focus-visible:ring-ring mt-2 focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-hidden",
       className,
     )}
     {...props}

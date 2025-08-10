@@ -2,8 +2,6 @@ import { readdir, readFile } from "node:fs/promises";
 import { join } from "node:path";
 import { cache } from "react";
 
-import Page from "@/app/(app)/page";
-
 const contentSourceDir = join(process.cwd(), "..", "..", "content");
 
 export type ContentComponent = {
@@ -86,104 +84,132 @@ export const getContentComponent = cache(
   },
 );
 
-const contentCategories = [
+export type ContentFilter = {
+  name: string;
+  slug: string;
+  subcategories?: { name: string; slug: string }[];
+};
+
+export const contentApps: ContentFilter[] = [];
+
+export const contentCategories: ContentFilter[] = [
+  { name: "AI", slug: "ai" },
+  { name: "Productivity", slug: "productivity" },
+  { name: "Social", slug: "social" },
+  { name: "Entertainment", slug: "entertainment" },
+  { name: "Education", slug: "education" },
+  { name: "Finance", slug: "finance" },
+  { name: "Health & Fitness", slug: "health-fitness" },
+  { name: "Design", slug: "design" },
+  { name: "Business", slug: "business" },
+  { name: "Games", slug: "games" },
+  { name: "Utilities", slug: "utilities" },
+];
+
+export const contentStyles: ContentFilter[] = [
+  { name: "Minimal", slug: "minimal" },
+  { name: "Skeuomorphism", slug: "skeuomorphism" },
+  { name: "Colorful", slug: "colorful" },
+  { name: "Monochrome", slug: "monochrome" },
+  { name: "Cyberpunk", slug: "cyberpunk" },
+  { name: "Typographic", slug: "typographic" },
+  { name: "Geometric", slug: "geometric" },
+  { name: "Retro", slug: "retro" },
+  { name: "Silly", slug: "silly" },
+  { name: "Pixel Art", slug: "pixel-art" },
+];
+
+export const contentElements: ContentFilter[] = [
   {
-    name: "Headings",
-    slug: "headings",
+    name: "Control",
+    slug: "control",
     subcategories: [
-      { name: "Page Headings", slug: "page-headings" },
-      { name: "Card Headings", slug: "card-headings" },
-      { name: "Section Headings", slug: "section-headings" },
-    ],
-  },
-  {
-    name: "Data Display",
-    slug: "data-display",
-    subcategories: [
-      { name: "Description Lists", slug: "description-lists" },
-      { name: "Stats", slug: "stats" },
-      { name: "Calendars", slug: "calendars" },
-      { name: "Lists", slug: "lists" },
-      { name: "Stacked Lists", slug: "stacked-lists" },
-      { name: "Tables", slug: "tables" },
-      { name: "Grid Lists", slug: "grid-lists" },
-      { name: "Feeds", slug: "feeds" },
-    ],
-  },
-  {
-    name: "Forms",
-    slug: "forms",
-    subcategories: [
-      { name: "Form Layouts", slug: "form-layouts" },
-      { name: "Input Groups", slug: "input-groups" },
-      { name: "Select Menus", slug: "select-menus" },
-      { name: "Sign-in and Registration", slug: "sign-in-and-registration" },
-      { name: "Textareas", slug: "textareas" },
-      { name: "Radio Groups", slug: "radio-groups" },
-      { name: "Checkboxes", slug: "checkboxes" },
-      { name: "Toggles", slug: "toggles" },
-      { name: "Comboboxes", slug: "comboboxes" },
-    ],
-  },
-  {
-    name: "Feedback",
-    slug: "feedback",
-    subcategories: [
-      { name: "Alerts", slug: "alerts" },
-      { name: "Empty States", slug: "empty-states" },
-    ],
-  },
-  {
-    name: "Navigation",
-    slug: "navigation",
-    subcategories: [
-      { name: "Navbars", slug: "navbars" },
-      { name: "Pagination", slug: "pagination" },
-      { name: "Tabs", slug: "tabs" },
-      { name: "Vertical Navigation", slug: "vertical-navigation" },
-      { name: "Sidebar Navigation", slug: "sidebar-navigation" },
+      { name: "Accordion", slug: "accordion" },
       { name: "Breadcrumbs", slug: "breadcrumbs" },
-      { name: "Progress Bars", slug: "progress-bars" },
-      { name: "Command Palettes", slug: "command-palettes" },
+      { name: "Button", slug: "button" },
+      { name: "Checkbox", slug: "checkbox" },
+      { name: "Color Picker", slug: "color-picker" },
+      { name: "Combobox", slug: "combobox" },
+      { name: "Date Picker", slug: "date-picker" },
+      { name: "Editable Text", slug: "editable-text" },
+      { name: "File Upload", slug: "file-upload" },
+      { name: "Floating Action Button", slug: "floating-action-button" },
+      { name: "Link", slug: "link" },
+      { name: "Pagination", slug: "pagination" },
+      { name: "Radio Button", slug: "radio-button" },
+      { name: "Rating Control", slug: "rating-control" },
+      { name: "Search Bar", slug: "search-bar" },
+      { name: "Segmented Control", slug: "segmented-control" },
+      { name: "Select", slug: "select" },
+      { name: "Slider", slug: "slider" },
+      { name: "Stepper", slug: "stepper" },
+      { name: "Switch", slug: "switch" },
+      { name: "Tab", slug: "tab" },
+      { name: "Text Field", slug: "text-field" },
+      { name: "Tile", slug: "tile" },
+      { name: "Time Picker", slug: "time-picker" },
     ],
   },
   {
-    name: "Overlays",
-    slug: "overlays",
+    name: "View",
+    slug: "view",
     subcategories: [
-      { name: "Modal Dialogs", slug: "modal-dialogs" },
-      { name: "Drawers", slug: "drawers" },
-      { name: "Notifications", slug: "notifications" },
+      { name: "Badge", slug: "badge" },
+      { name: "Banner", slug: "banner" },
+      { name: "Card", slug: "card" },
+      { name: "Carousel", slug: "carousel" },
+      { name: "Chip", slug: "chip" },
+      { name: "Divider", slug: "divider" },
+      { name: "Gallery", slug: "gallery" },
+      { name: "Grid List", slug: "grid-list" },
+      { name: "Keyboard Key", slug: "keyboard-key" },
+      { name: "Loading Indicator", slug: "loading-indicator" },
+      { name: "Map Pin", slug: "map-pin" },
+      { name: "Progress Indicator", slug: "progress-indicator" },
+      { name: "Side Navigation", slug: "side-navigation" },
+      { name: "Skeleton", slug: "skeleton" },
+      { name: "Stacked List", slug: "stacked-list" },
+      { name: "Status Dot", slug: "status-dot" },
+      { name: "Table", slug: "table" },
+      { name: "Table of Contents", slug: "table-of-contents" },
+      { name: "Toolbar", slug: "toolbar" },
+      { name: "Top Navigation Bar", slug: "top-navigation-bar" },
+      { name: "Tree", slug: "tree" },
+      { name: "Trial Bar", slug: "trial-bar" },
     ],
   },
   {
-    name: "Elements",
-    slug: "elements",
+    name: "Overlay",
+    slug: "overlay",
     subcategories: [
-      { name: "Avatars", slug: "avatars" },
-      { name: "Badges", slug: "badges" },
-      { name: "Dropdowns", slug: "dropdowns" },
-      { name: "Buttons", slug: "buttons" },
-      { name: "Button Groups", slug: "button-groups" },
+      { name: "Context Menu", slug: "context-menu" },
+      { name: "Dialog", slug: "dialog" },
+      { name: "Drawer", slug: "drawer" },
+      { name: "Dropdown Menu", slug: "dropdown-menu" },
+      { name: "Full-Screen Overlay", slug: "full-screen-overlay" },
+      { name: "Navigation Menu", slug: "navigation-menu" },
+      { name: "Popover", slug: "popover" },
+      { name: "Toast", slug: "toast" },
+      { name: "Tooltip", slug: "tooltip" },
     ],
   },
+  // {
+  //   name: "Imagery",
+  //   slug: "imagery",
+  //   subcategories: [
+  //     { name: "Avatar", slug: "avatar" },
+  //     { name: "Icon", slug: "icon" },
+  //     { name: "Illustration", slug: "illustration" },
+  //     { name: "Logo", slug: "logo" },
+  //     { name: "Photo", slug: "photo" },
+  //   ],
+  // },
   {
-    name: "Page Examples",
-    slug: "page-examples",
+    name: "Templates",
+    slug: "templates",
     subcategories: [
       { name: "Landing Pages", slug: "landing-pages" },
       { name: "Dashboard Pages", slug: "dashboard-pages" },
     ],
   },
 ];
-
-export const getContentCategories = cache(async (): Promise<string[]> => {
-  const content = await getContentComponents();
-  return [
-    ...new Set(
-      Object.values(content)
-        .map((c) => c.tags ?? [])
-        .flat(),
-    ),
-  ];
-});
