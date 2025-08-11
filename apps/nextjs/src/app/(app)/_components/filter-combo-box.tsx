@@ -1,6 +1,6 @@
 "use client";
 
-import * as React from "react";
+import { useCallback, useMemo, useState } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { Button } from "@repo/ui/button";
 import { Checkbox } from "@repo/ui/checkbox";
@@ -14,7 +14,7 @@ import {
 } from "@repo/ui/command";
 import { Drawer, DrawerContent, DrawerTrigger } from "@repo/ui/drawer";
 import { Popover, PopoverContent, PopoverTrigger } from "@repo/ui/popover";
-import { useMediaQuery } from "@repo/ui/utils";
+import { cn, useMediaQuery } from "@repo/ui/utils";
 
 import type { ContentFilter } from "@/lib/content";
 
@@ -22,21 +22,27 @@ type FilterComboBoxProps = {
   children: React.ReactNode;
   filterKey: string;
   filterOptions: ContentFilter[];
+  highlighted?: boolean;
 };
 
 export const FilterComboBox = ({
   children,
   filterKey,
   filterOptions,
+  highlighted = false,
 }: FilterComboBoxProps) => {
-  const [open, setOpen] = React.useState(false);
+  const [open, setOpen] = useState(false);
   const isDesktop = useMediaQuery("(min-width: 768px)");
+  const triggerClassname = cn(
+    "justify-start capitalize",
+    highlighted && "border-foreground",
+  );
 
   if (isDesktop) {
     return (
       <Popover open={open} onOpenChange={setOpen}>
         <PopoverTrigger asChild>
-          <Button variant="outline" className="justify-start" size="sm">
+          <Button variant="outline" className={triggerClassname} size="sm">
             {children}
           </Button>
         </PopoverTrigger>
@@ -53,7 +59,7 @@ export const FilterComboBox = ({
   return (
     <Drawer open={open} onOpenChange={setOpen}>
       <DrawerTrigger asChild>
-        <Button variant="outline" className="justify-start" size="sm">
+        <Button variant="outline" className={triggerClassname} size="sm">
           {children}
         </Button>
       </DrawerTrigger>
@@ -82,7 +88,7 @@ const FilterOptionsList = ({
   const pathname = usePathname();
   const searchParams = useSearchParams();
 
-  const selectedSet = React.useMemo(() => {
+  const selectedSet = useMemo(() => {
     const currentRaw = searchParams.get(filterKey) ?? "";
     return new Set(
       currentRaw
@@ -92,7 +98,7 @@ const FilterOptionsList = ({
     );
   }, [filterKey, searchParams]);
 
-  const handleSelect = React.useCallback(
+  const handleSelect = useCallback(
     (slug: string) => {
       const currentRaw = searchParams.get(filterKey) ?? "";
       const current = new Set(
@@ -123,7 +129,7 @@ const FilterOptionsList = ({
   );
 
   const { optionsWithSub, optionsWithoutSub, hasAnySubcategories } =
-    React.useMemo(() => {
+    useMemo(() => {
       const withSub = filterOptions.filter(
         (option) =>
           Array.isArray(option.subcategories) &&
@@ -139,7 +145,7 @@ const FilterOptionsList = ({
       } as const;
     }, [filterOptions]);
 
-  const renderFlatOptions = React.useCallback(
+  const renderFlatOptions = useCallback(
     (options: ContentFilter[]) => (
       <CommandGroup>
         {options.map((option) => (
@@ -160,7 +166,7 @@ const FilterOptionsList = ({
     [handleSelect, selectedSet],
   );
 
-  const renderGroupedOptions = React.useCallback(
+  const renderGroupedOptions = useCallback(
     (parents: ContentFilter[], singles: ContentFilter[]) => (
       <>
         {parents.map((parent) => (

@@ -37,6 +37,7 @@
 }
 
 @theme inline {
+  --color-background-highlight: var(--background-highlight);
   --color-background: var(--background);
   --color-foreground: var(--foreground);
 

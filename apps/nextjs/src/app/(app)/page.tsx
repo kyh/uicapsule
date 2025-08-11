@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { Badge } from "@repo/ui/badge";
 import { Button } from "@repo/ui/button";
 import { ChevronDownIcon } from "lucide-react";
 
@@ -17,28 +18,36 @@ type PageProps = {
 
 const Page = async ({ searchParams }: PageProps) => {
   const allSearchParams = await searchParams;
-  const filters = [
-    allSearchParams.element?.toString().split(",") ?? [],
-    allSearchParams.style?.toString().split(",") ?? [],
-    allSearchParams.category?.toString().split(",") ?? [],
-  ].flat();
+  const elementFilter = allSearchParams.element?.toString().split(",") ?? [];
+  const styleFilter = allSearchParams.style?.toString().split(",") ?? [];
+  const categoryFilter = allSearchParams.category?.toString().split(",") ?? [];
+  const filters = [elementFilter, styleFilter, categoryFilter].flat();
   const content = Object.values(await getContentComponents(filters));
 
   return (
     <main>
       <div className="flex h-14 items-center justify-between border-b bg-[image:var(--background-stripe)] bg-[size:10px_10px] bg-fixed sm:h-16">
         <div className="flex h-full flex-1 items-center gap-3 px-3 sm:px-6">
-          <FilterComboBox filterKey="element" filterOptions={contentElements}>
-            Elements <ChevronDownIcon className="size-4" />
+          <FilterComboBox
+            filterKey="element"
+            filterOptions={contentElements}
+            highlighted={elementFilter.length > 0}
+          >
+            <FilterTriggerLabel label="Elements" values={elementFilter} />
           </FilterComboBox>
-          <FilterComboBox filterKey="style" filterOptions={contentStyles}>
-            Styles <ChevronDownIcon className="size-4" />
+          <FilterComboBox
+            filterKey="style"
+            filterOptions={contentStyles}
+            highlighted={styleFilter.length > 0}
+          >
+            <FilterTriggerLabel label="Styles" values={styleFilter} />
           </FilterComboBox>
           <FilterComboBox
             filterKey="category"
             filterOptions={contentCategories}
+            highlighted={categoryFilter.length > 0}
           >
-            Categories <ChevronDownIcon className="size-4" />
+            <FilterTriggerLabel label="Categories" values={categoryFilter} />
           </FilterComboBox>
         </div>
       </div>
@@ -69,3 +78,30 @@ const Page = async ({ searchParams }: PageProps) => {
 };
 
 export default Page;
+
+const FilterTriggerLabel = ({
+  label,
+  values,
+}: {
+  label: string;
+  values: string[];
+}) => {
+  if (values.length === 1) {
+    return (
+      <>
+        {values[0]?.replace("-", " ")} <ChevronDownIcon className="size-4" />
+      </>
+    );
+  }
+
+  return (
+    <>
+      {label}{" "}
+      {values.length > 1 ? (
+        <Badge variant="secondary">{values.length}</Badge>
+      ) : (
+        <ChevronDownIcon className="size-4" />
+      )}
+    </>
+  );
+};
