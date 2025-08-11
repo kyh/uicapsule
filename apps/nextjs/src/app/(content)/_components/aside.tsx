@@ -13,8 +13,14 @@ import {
   DrawerTitle,
   DrawerTrigger,
 } from "@repo/ui/drawer";
+import { toast } from "@repo/ui/toast";
 import { useMediaQuery } from "@repo/ui/utils";
-import { ArrowLeftIcon, ArrowRightIcon, InfoIcon } from "lucide-react";
+import {
+  ArrowLeftIcon,
+  ArrowRightIcon,
+  ClipboardCheckIcon,
+  InfoIcon,
+} from "lucide-react";
 
 import type { ContentComponent } from "@/lib/content";
 import { SandpackCodeEditor, SandpackFileExplorer } from "./sandpack";
@@ -24,6 +30,38 @@ type AsideProps = {
 };
 
 const Aside = ({ contentComponent }: AsideProps) => {
+  const sectionClassname =
+    "-mx-3 flex flex-col gap-2.5 border-t px-3 pt-3 pb-1";
+
+  const handleInstallClick = () => {
+    const command = `npx shadcn@latest add https://uicapsule.com/registry/${contentComponent.slug}.json`;
+
+    navigator.clipboard.writeText(command).catch((err) => {
+      console.error("Failed to copy command to clipboard:", err);
+      toast.error("Failed to copy command to clipboard.", {
+        description: (
+          <code className="bg-muted mt-1 block rounded p-2 font-[monospace]">
+            {command}
+          </code>
+        ),
+      });
+    });
+
+    toast(
+      <div className="flex items-center gap-1">
+        <ClipboardCheckIcon className="size-4" />
+        Installation command copied to clipboard
+      </div>,
+      {
+        description: (
+          <code className="bg-muted mt-1 block rounded p-2 font-[monospace]">
+            {command}
+          </code>
+        ),
+      },
+    );
+  };
+
   return (
     <Card className="h-full">
       <h1 className="text-xl">{contentComponent.name}</h1>
@@ -31,9 +69,19 @@ const Aside = ({ contentComponent }: AsideProps) => {
         {contentComponent.description}
       </p>
       <Drawer>
-        <DrawerTrigger className={buttonVariants({ variant: "outline" })}>
-          View Source
-        </DrawerTrigger>
+        <div className="flex flex-col gap-1.5">
+          <DrawerTrigger className={buttonVariants({ variant: "outline" })}>
+            View Source
+          </DrawerTrigger>
+          <span className="text-muted-foreground text-center text-xs">
+            <button
+              className="cursor-pointer underline decoration-dotted"
+              onClick={handleInstallClick}
+            >
+              Install via shadcn CLI
+            </button>
+          </span>
+        </div>
         <DrawerContent className="border-border bg-background text-sm">
           <DrawerHeader className="sr-only">
             <DrawerTitle>Source Code</DrawerTitle>
@@ -41,12 +89,12 @@ const Aside = ({ contentComponent }: AsideProps) => {
           </DrawerHeader>
           <div className="mt-4 flex h-[90dvh] overflow-auto border-t">
             <SandpackFileExplorer />
-            <SandpackCodeEditor showLineNumbers showInlineErrors />
+            <SandpackCodeEditor showLineNumbers showInlineErrors wrapContent />
           </div>
         </DrawerContent>
       </Drawer>
       {contentComponent.asSeenOn && (
-        <div className="-mx-3 flex flex-col gap-2 border-t px-3 pt-3">
+        <div className={sectionClassname}>
           <h2>As seen on</h2>
           <div className="flex flex-wrap gap-2">
             {contentComponent.asSeenOn.map((item) => (
@@ -63,7 +111,7 @@ const Aside = ({ contentComponent }: AsideProps) => {
         </div>
       )}
       {contentComponent.tags && (
-        <div className="-mx-3 flex flex-col gap-2 border-t px-3 pt-3">
+        <div className={sectionClassname}>
           <h2>Tags</h2>
           <div className="flex flex-wrap gap-2">
             {contentComponent.tags.map((tag) => (
@@ -75,7 +123,7 @@ const Aside = ({ contentComponent }: AsideProps) => {
         </div>
       )}
       {contentComponent.dependencies && (
-        <div className="-mx-3 flex flex-col gap-2 border-t px-3 pt-3">
+        <div className={sectionClassname}>
           <h2>Packages</h2>
           <div className="flex flex-wrap gap-2">
             {Object.keys(contentComponent.dependencies).map((dep) => (
@@ -87,7 +135,7 @@ const Aside = ({ contentComponent }: AsideProps) => {
         </div>
       )}
       {contentComponent.authors && (
-        <div className="-mx-3 flex flex-col gap-2 border-t px-3 pt-3">
+        <div className={sectionClassname}>
           <h2>Author</h2>
           <div className="*:data-[slot=avatar]:ring-background flex -space-x-2 *:data-[slot=avatar]:ring-2 *:data-[slot=avatar]:grayscale">
             {contentComponent.authors.map((author) => (

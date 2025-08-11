@@ -18,7 +18,8 @@ export type ContentComponent = {
   // Below are all props for the Sandpack component
   sourceCode: string;
   previewCode: string;
-  dependencies: Record<string, string>;
+  dependencies?: Record<string, string>;
+  devDependencies?: Record<string, string>;
   previousSlug?: string;
   nextSlug?: string;
 };
@@ -60,7 +61,8 @@ export const getContentComponents = cache(
         return {
           ...metadata,
           slug,
-          dependencies: packageJson.dependencies,
+          dependencies: packageJson.dependencies ?? {},
+          devDependencies: packageJson.devDependencies ?? {},
           sourceCode,
           previewCode,
           previousSlug: slugs[index - 1],
@@ -222,3 +224,42 @@ export const contentElements: ContentFilter[] = [
     ],
   },
 ];
+
+export const getContentComponentPackage = cache(async (slug: string) => {
+  const contentComponent = await getContentComponent(slug);
+
+  const uicapsuleDependencies = Object.keys(
+    contentComponent.dependencies ?? {},
+  ).filter((dep) => dep.startsWith("@repo") && dep !== "@repo/shadcn-ui");
+
+  const dependencies = Object.keys(contentComponent.dependencies ?? {}).filter(
+    (dep) => !["react", "react-dom", ...uicapsuleDependencies].includes(dep),
+  );
+
+  const devDependencies = Object.keys(
+    contentComponent.devDependencies ?? {},
+  ).filter(
+    (dep) => !["@types/react", "@types/react-dom", "typescript"].includes(dep),
+  );
+
+  const response = {
+    $schema: "https://ui.shadcn.com/schema/registry.json",
+    homepage: `https://uicapsule.com/ui/${slug}`,
+    name: slug,
+    type: "registry:ui",
+    author: "Kaiyu Hsu <uicapsule@kyh.io>",
+    dependencies,
+    devDependencies,
+    registryDependencies: [],
+    files: [
+      {
+        type: "registry:ui",
+        path: slug,
+        content: contentComponent.sourceCode,
+        target: `components/ui/uicapsule/${slug}.tsx`,
+      },
+    ],
+  };
+
+  return response;
+});
