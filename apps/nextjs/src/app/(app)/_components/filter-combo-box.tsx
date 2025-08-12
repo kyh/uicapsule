@@ -166,7 +166,7 @@ const FilterOptionsList = ({
   const renderFlatOptions = useCallback(
     (options: ContentFilter[]) => (
       <>
-        {selectedFlatOptions.length > 0 && (
+        {selectedFlatOptions.length > 0 && options.length > 20 && (
           <CommandGroup heading="Selected">
             {selectedFlatOptions.map((option) => (
               <CommandItem
