@@ -16,8 +16,8 @@ export type ContentComponent = {
   authors?: { name: string; url: string; avatarUrl: string }[];
   asSeenOn?: { name: string; url: string; avatarUrl: string }[];
   // Below are all props for the Sandpack component
-  sourceCode: string;
   previewCode: string;
+  sourceCode: Record<string, string>; // File path -> source code
   dependencies?: Record<string, string>;
   devDependencies?: Record<string, string>;
   previousSlug?: string;
@@ -48,15 +48,38 @@ export const getContentComponents = cache(
           ).catch(() => ""),
         ) as ContentComponent;
 
-        const sourceCode = await readFile(
-          join(contentSourceDir, slug, "source.tsx"),
-          "utf-8",
-        ).catch(() => "");
-
         const previewCode = await readFile(
           join(contentSourceDir, slug, "preview.tsx"),
           "utf-8",
         ).catch(() => "");
+
+        // Read all files in the component's directory except preview.tsx, package.json, and meta.json, and create a sourceCode map
+        const files = await readdir(join(contentSourceDir, slug)).catch(
+          () => [],
+        );
+        const sourceCode: Record<string, string> = {};
+
+        await Promise.all(
+          files
+            .filter(
+              (file) =>
+                !["preview.tsx", "package.json", "meta.json"].includes(file),
+            )
+            .map(async (file) => {
+              const filePath = join(contentSourceDir, slug, file);
+              try {
+                // Only include files, skip directories (using fs.promises.stat)
+                const stat = await import("fs/promises").then((fs) =>
+                  fs.stat(filePath),
+                );
+                if (stat.isFile()) {
+                  sourceCode[`/${file}`] = await readFile(filePath, "utf-8");
+                }
+              } catch {
+                // Ignore errors for individual files
+              }
+            }),
+        );
 
         return {
           ...metadata,
@@ -252,12 +275,14 @@ export const getContentComponentPackage = cache(async (slug: string) => {
     devDependencies,
     registryDependencies: [],
     files: [
-      {
-        type: "registry:ui",
-        path: slug,
-        content: contentComponent.sourceCode,
-        target: `components/ui/uicapsule/${slug}.tsx`,
-      },
+      ...Object.entries(contentComponent.sourceCode).map(
+        ([filePath, sourceCode]) => ({
+          type: "registry:ui",
+          path: filePath,
+          content: sourceCode,
+          target: `components/ui/uicapsule/${slug}.tsx`,
+        }),
+      ),
     ],
   };
 

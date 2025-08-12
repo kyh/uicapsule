@@ -20,8 +20,8 @@ const Page = async ({ params }: Props) => {
       options={{ externalResources: ["https://cdn.tailwindcss.com"] }}
       files={{
         "/App.tsx": contentComponent.previewCode,
-        "/source.tsx": contentComponent.sourceCode,
         "/styles.css": defaultPreviewStyles,
+        ...contentComponent.sourceCode,
       }}
     >
       <main className="relative flex h-[calc(100dvh-theme(spacing.16))] justify-center">
