@@ -1,6 +1,6 @@
 import React from "react";
 
-import { AsciiRenderer } from "./source";
+import { AsciiRenderer } from "./ascii-renderer";
 
 const Preview = () => {
   return <AsciiRenderer />;
