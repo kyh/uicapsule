@@ -1,9 +1,9 @@
 import React from "react";
 
-import { Globe } from "./source";
+import { Sphere } from "./source";
 
 const Preview = () => {
-  return <Globe />;
+  return <Sphere />;
 };
 
 export default Preview;
