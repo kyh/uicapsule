@@ -1,5 +1,5 @@
 {
-  "name": "Card Stack",
-  "description": "A component that displays a stack of cards",
-  "tags": ["Layout"]
+  "name": "Scrollable Card Stack",
+  "description": "An infinite stack of cards placed with perspective one on top of another.",
+  "tags": []
 }

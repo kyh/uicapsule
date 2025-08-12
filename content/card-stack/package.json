@@ -5,5 +5,8 @@
   "type": "module",
   "scripts": {
     "clean": "git clean -xdf .cache .turbo dist node_modules"
+  },
+  "dependencies": {
+    "gsap": "3.13.0"
   }
 }
