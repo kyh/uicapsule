@@ -145,30 +145,100 @@ const FilterOptionsList = ({
       } as const;
     }, [filterOptions]);
 
+  const selectedFlatOptions = useMemo(
+    () => filterOptions.filter((o) => selectedSet.has(o.slug)),
+    [filterOptions, selectedSet],
+  );
+
+  const selectedGroupedSubItems = useMemo(
+    () =>
+      optionsWithSub
+        .flatMap((parent) => parent.subcategories ?? [])
+        .filter((sub) => selectedSet.has(sub.slug)),
+    [optionsWithSub, selectedSet],
+  );
+
+  const selectedGroupedSingles = useMemo(
+    () => optionsWithoutSub.filter((s) => selectedSet.has(s.slug)),
+    [optionsWithoutSub, selectedSet],
+  );
+
   const renderFlatOptions = useCallback(
     (options: ContentFilter[]) => (
-      <CommandGroup>
-        {options.map((option) => (
-          <CommandItem
-            key={option.slug}
-            value={option.slug}
-            onSelect={handleSelect}
-          >
-            <Checkbox
-              checked={selectedSet.has(option.slug)}
-              className="pointer-events-none"
-            />
-            <span>{option.name}</span>
-          </CommandItem>
-        ))}
-      </CommandGroup>
+      <>
+        {selectedFlatOptions.length > 0 && (
+          <CommandGroup heading="Selected">
+            {selectedFlatOptions.map((option) => (
+              <CommandItem
+                key={option.slug}
+                value={option.slug}
+                onSelect={handleSelect}
+              >
+                <Checkbox
+                  checked={selectedSet.has(option.slug)}
+                  className="pointer-events-none"
+                />
+                <span>{option.name}</span>
+              </CommandItem>
+            ))}
+          </CommandGroup>
+        )}
+        {options.length > 0 && (
+          <CommandGroup>
+            {options.map((option) => (
+              <CommandItem
+                key={option.slug}
+                value={option.slug}
+                onSelect={handleSelect}
+              >
+                <Checkbox
+                  checked={selectedSet.has(option.slug)}
+                  className="pointer-events-none"
+                />
+                <span>{option.name}</span>
+              </CommandItem>
+            ))}
+          </CommandGroup>
+        )}
+      </>
     ),
-    [handleSelect, selectedSet],
+    [handleSelect, selectedFlatOptions, selectedSet],
   );
 
   const renderGroupedOptions = useCallback(
     (parents: ContentFilter[], singles: ContentFilter[]) => (
       <>
+        {(selectedGroupedSubItems.length > 0 ||
+          selectedGroupedSingles.length > 0) && (
+          <CommandGroup heading="Selected">
+            {selectedGroupedSubItems.map((sub) => (
+              <CommandItem
+                key={sub.slug}
+                value={sub.slug}
+                onSelect={handleSelect}
+              >
+                <Checkbox
+                  checked={selectedSet.has(sub.slug)}
+                  className="pointer-events-none"
+                />
+                <span>{sub.name}</span>
+              </CommandItem>
+            ))}
+            {selectedGroupedSingles.map((option) => (
+              <CommandItem
+                key={option.slug}
+                value={option.slug}
+                onSelect={handleSelect}
+              >
+                <Checkbox
+                  checked={selectedSet.has(option.slug)}
+                  className="pointer-events-none"
+                />
+                <span>{option.name}</span>
+              </CommandItem>
+            ))}
+          </CommandGroup>
+        )}
         {parents.map((parent) => (
           <CommandGroup key={parent.slug} heading={parent.name}>
             {parent.subcategories?.map((sub) => (
@@ -205,7 +275,12 @@ const FilterOptionsList = ({
         )}
       </>
     ),
-    [handleSelect, selectedSet],
+    [
+      handleSelect,
+      selectedGroupedSingles,
+      selectedGroupedSubItems,
+      selectedSet,
+    ],
   );
 
   return (
