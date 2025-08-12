@@ -20,8 +20,6 @@ export const CardStack = ({ cards }: CardStackProps) => {
       return;
     }
 
-    console.log("slides", slides);
-
     const deltaObject = { delta: 0 };
 
     const baseDuration = slides.length / 2;
@@ -32,7 +30,7 @@ export const CardStack = ({ cards }: CardStackProps) => {
       duration: 0.8,
       ease: "power1",
       onUpdate: () => {
-        tl.time(deltaObject.delta);
+        tl.totalTime(deltaObject.delta);
       },
     });
     const rotY = gsap.quickTo(root, "rotationY", {
@@ -44,17 +42,28 @@ export const CardStack = ({ cards }: CardStackProps) => {
       ease: "power3",
     });
 
-    const tl = gsap.timeline({ paused: true });
-    tl.from(slides, {
-      y: "-15vw",
-      z: "-60vw",
-      ease: "none",
-      duration: baseDuration,
-      stagger: {
-        each: staggerEach,
-        repeat: -1,
+    const tl = gsap.timeline({ paused: true, smoothChildTiming: true });
+    tl.fromTo(
+      slides,
+      {
+        y: "-15vw",
+        z: "-60vw",
+        force3D: true,
       },
-    });
+      {
+        y: "0vw",
+        z: "0vw",
+        ease: "none",
+        force3D: true,
+        immediateRender: false,
+        duration: baseDuration,
+        stagger: {
+          each: staggerEach,
+          repeat: -1,
+          repeatDelay: 0,
+        },
+      },
+    );
 
     tl.fromTo(
       slideContent,
@@ -101,7 +110,7 @@ export const CardStack = ({ cards }: CardStackProps) => {
 
     const beginDistance = slides.length * 100;
 
-    tl.time(beginDistance);
+    tl.totalTime(beginDistance);
 
     deltaTo(beginDistance + 0.01, beginDistance);
 
