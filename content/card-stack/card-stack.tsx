@@ -143,7 +143,7 @@ export const CardStack = ({ cards }: CardStackProps) => {
         {cards.map((card) => (
           <a
             key={card.src}
-            className="slide absolute top-[calc(50%-14vw)] left-[calc(50%-30vw)] block [aspect-ratio:1.75] w-[56vw]"
+            className="slide absolute top-[calc(50%-5vw)] left-[calc(50%-20vw)] block [aspect-ratio:1.75] w-[40vw]"
             href={card.href}
             target="_blank"
           >
