@@ -1,8 +1,8 @@
 "use client";
 
-import { useRef, useState } from "react";
+import React, { useRef, useState } from "react";
 import NumberFlow from "@number-flow/react";
-import { motion } from "framer-motion";
+import { motion } from "motion/react";
 
 const CircleAnimation = () => {
   const CIRCLE_RADIUS = 20;

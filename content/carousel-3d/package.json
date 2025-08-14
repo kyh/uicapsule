@@ -1,5 +1,5 @@
 {
-  "name": "@uicapsule/like-button",
+  "name": "@uicapsule/carousel-3d",
   "version": "0.1.0",
   "private": true,
   "type": "module",
@@ -7,9 +7,10 @@
     "clean": "git clean -xdf .cache .turbo dist node_modules"
   },
   "dependencies": {
-    "@number-flow/react": "0.5.10",
-    "motion": "^12.23.12",
+    "@react-three/drei": "10.6.1",
+    "@react-three/fiber": "9.3.0",
     "react": "*",
-    "react-dom": "*"
+    "react-dom": "*",
+    "three": "0.179.0"
   }
 }

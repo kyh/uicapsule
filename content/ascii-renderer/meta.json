@@ -1,7 +1,7 @@
 {
   "name": "ASCII Renderer",
   "description": "Take any 3D model and render it as ASCII art",
-  "coverUrl": "https://zmdrwswxugswzmcokvff.supabase.co/storage/v1/object/public/uicapsule/ascii.mp4",
+  "coverUrl": "https://zmdrwswxugswzmcokvff.supabase.co/storage/v1/object/public/uicapsule/ascii/ascii.mp4",
   "coverType": "video",
   "tags": [],
   "authors": [{ "name": "Kaiyu Hsu", "url": "https://x.com/kaiyuhsu" }]

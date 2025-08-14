@@ -65,9 +65,11 @@ const Aside = ({ contentComponent }: AsideProps) => {
   return (
     <Card className="h-full">
       <h1 className="text-xl">{contentComponent.name}</h1>
-      <p className="text-muted-foreground text-sm">
-        {contentComponent.description}
-      </p>
+      {contentComponent.description && (
+        <p className="text-muted-foreground text-sm">
+          {contentComponent.description}
+        </p>
+      )}
       <Drawer>
         <div className="flex flex-col gap-1.5">
           <DrawerTrigger className={buttonVariants({ variant: "outline" })}>

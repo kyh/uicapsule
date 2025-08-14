@@ -1,0 +1,82 @@
+/* CSS custom properties and animations for SnailTimer */
+:root {
+  --snail-move-duration: 45s;
+  --snail-eye-duration: 1s;
+  --snail-scale-duration: 1s;
+  --snail-dust-duration: 1s;
+}
+
+@keyframes snail-move {
+  from {
+    transform: translateX(100vw);
+  }
+  to {
+    transform: translateX(0);
+  }
+}
+
+@keyframes snail-scale {
+  0% {
+    transform: scaleX(1);
+  }
+  50% {
+    transform: scaleX(0.95);
+  }
+  100% {
+    transform: scaleX(1);
+  }
+}
+
+@keyframes snail-eye {
+  0% {
+    transform: translate(0);
+  }
+  50% {
+    transform: translate(3px, 0);
+  }
+  100% {
+    transform: translate(0);
+  }
+}
+
+@keyframes snail-dust {
+  100% {
+    background-position-x: right;
+  }
+}
+
+.snail-timer__track {
+  animation: snail-move var(--snail-move-duration) linear 1 both;
+}
+
+.snail .right-eye {
+  animation: snail-eye var(--snail-eye-duration) ease infinite;
+  animation-delay: 0.1s;
+}
+
+.snail .body {
+  animation: snail-scale var(--snail-scale-duration) ease infinite;
+  animation-delay: 0.1s;
+}
+
+.snail .shell {
+  animation: snail-scale var(--snail-scale-duration) ease infinite;
+}
+
+.snail-timer__dust {
+  width: 197px;
+  height: 66px;
+  background-image: url("https://zmdrwswxugswzmcokvff.supabase.co/storage/v1/object/public/uicapsule/snail-timer/dust.svg");
+  background-size: 5910px 67px;
+  animation: snail-dust var(--snail-dust-duration) steps(29) infinite forwards;
+  transform: translate(-20px, 10px);
+}
+
+/* Pause all animations when not started */
+.snail-timer.is-paused .snail-timer__track,
+.snail-timer.is-paused .snail .right-eye,
+.snail-timer.is-paused .snail .body,
+.snail-timer.is-paused .snail .shell,
+.snail-timer.is-paused .snail-timer__dust {
+  animation-play-state: paused !important;
+}
