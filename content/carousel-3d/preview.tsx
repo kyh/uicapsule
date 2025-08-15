@@ -2,22 +2,24 @@ import React from "react";
 
 import { ImageCarousel, ImageCarouselCanvas } from "./source";
 
-const sampleImages = [
-  "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=800&h=1000&fit=crop",
-  "https://images.unsplash.com/photo-1519904981063-b0cf448d479e?w=800&h=1000&fit=crop",
-  "https://images.unsplash.com/photo-1441974231531-c6227db76b6e?w=800&h=1000&fit=crop",
-  "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=800&h=1000&fit=crop&sat=-100",
-  "https://images.unsplash.com/photo-1447752875215-b2761acb3c5d?w=800&h=1000&fit=crop",
-  "https://images.unsplash.com/photo-1518837695005-2083093ee35b?w=800&h=1000&fit=crop",
-  "https://images.unsplash.com/photo-1472214103451-9374bd1c798e?w=800&h=1000&fit=crop",
-  "https://images.unsplash.com/photo-1469474968028-56623f02e42e?w=800&h=1000&fit=crop",
-  "https://images.unsplash.com/photo-1501594907352-04cda38ebc29?w=800&h=1000&fit=crop",
+const rootUrl =
+  "https://zmdrwswxugswzmcokvff.supabase.co/storage/v1/object/public/uicapsule/card-stack-1";
+
+const cards = [
+  { src: `${rootUrl}/uic.webp`, href: "https://uicapsule.com" },
+  { src: `${rootUrl}/kyh.webp`, href: "https://kyh.io" },
+  { src: `${rootUrl}/tc.webp`, href: "https://tc.kyh.io" },
+  { src: `${rootUrl}/vg.webp`, href: "https://vibedgames.com" },
+  { src: `${rootUrl}/found.webp`, href: "https://founding.so" },
+  { src: `${rootUrl}/init.webp`, href: "https://init.kyh.io" },
+  { src: `${rootUrl}/data.webp`, href: "https://dataembed.com`" },
+  { src: `${rootUrl}/ys.webp`, href: "https://yourssincerely.org" },
 ];
 
 const Preview = () => {
   return (
     <ImageCarouselCanvas>
-      <ImageCarousel images={sampleImages} />
+      <ImageCarousel images={cards.map((card) => card.src)} />
     </ImageCarouselCanvas>
   );
 };

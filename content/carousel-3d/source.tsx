@@ -64,7 +64,6 @@ type ImageCarouselProps = {
   images?: string[];
   radius?: number;
   imageWidth?: number;
-  imageHeight?: number;
   cornerRadius?: number;
   bendAmount?: number;
   centerOpacity?: number;
@@ -74,22 +73,25 @@ type ImageCarouselProps = {
   wheelSensitivity?: number;
   dragSensitivity?: number;
   enableSnapping?: boolean;
+  autorotate?: boolean;
+  autorotateSpeed?: number;
 };
 
 export const ImageCarousel = ({
   images = [],
   radius = 5,
   imageWidth = 3,
-  imageHeight = 4,
   cornerRadius = 0.15,
   bendAmount = 0.1,
   centerOpacity = 1.0,
-  adjacentOpacity = 0.7,
-  farOpacity = 0.3,
+  adjacentOpacity = 1.0,
+  farOpacity = 1.0,
   friction = 0.95,
   wheelSensitivity = 0.002,
   dragSensitivity = 0.0003,
   enableSnapping = true,
+  autorotate = true,
+  autorotateSpeed = 0.02,
 }: ImageCarouselProps) => {
   const groupRef = useRef<Group | null>(null);
   const { gl, viewport } = useThree();
@@ -102,6 +104,11 @@ export const ImageCarousel = ({
   const lastMouseX = useRef(0);
   const targetRotationRef = useRef(0);
   const isSnapping = useRef(false);
+
+  // Animation state for fade-in and spin-in
+  const [isAnimatingIn, setIsAnimatingIn] = useState(true);
+  const animationProgress = useRef(0);
+  const initialRotation = useRef(-Math.PI * 0.5); // Start rotated 90 degrees
 
   const textures = useLoader(TextureLoader, images, (loader) => {
     loader.crossOrigin = "anonymous";
@@ -193,7 +200,7 @@ export const ImageCarousel = ({
   }, [gl.domElement]);
 
   // Compute responsive image plane size from viewport
-  const baseAspect = imageWidth > 0 ? imageHeight / imageWidth : 1;
+  const baseAspect = 9 / 16; // 16:9 aspect ratio (height/width)
   // Scale down images on smaller viewports, keep original size on large screens
   const sizeScale = Math.min(1, viewport.width / 10);
   const planeWidth = imageWidth * sizeScale;
@@ -203,6 +210,38 @@ export const ImageCarousel = ({
   useFrame((state, delta) => {
     if (!images.length) return;
     if (groupRef.current) {
+      // Handle entrance animation
+      if (isAnimatingIn) {
+        animationProgress.current += delta * 0.5; // 2 seconds duration
+
+        if (animationProgress.current >= 1) {
+          animationProgress.current = 1;
+          setIsAnimatingIn(false);
+        }
+
+        // Smooth easing function
+        const easedProgress = 1 - Math.pow(1 - animationProgress.current, 3);
+
+        // Apply entrance animation
+        groupRef.current.rotation.y =
+          initialRotation.current +
+          (rotationRef.current - initialRotation.current) * easedProgress;
+
+        // Set opacity for fade-in effect
+        groupRef.current.children.forEach((child: any) => {
+          if (child.material) {
+            child.material.opacity = easedProgress;
+          }
+        });
+
+        return; // Skip normal rotation logic during entrance
+      }
+
+      // Handle autorotate
+      if (autorotate && !isDragging.current && !isSnapping.current) {
+        velocityRef.current += autorotateSpeed * delta;
+      }
+
       const velocityThreshold = 0.002;
 
       // Apply friction using delta time for frame-rate independence
@@ -308,6 +347,9 @@ export const ImageCarousel = ({
     const x = Math.sin(angle) * radius;
     const z = Math.cos(angle) * radius;
 
+    // Use fixed 16:9 aspect ratio for consistent appearance
+    const planeHeightForImage = planeWidth * (9 / 16);
+
     // Calculate image position relative to current center
     const getImagePosition = () => {
       const totalImages = images.length;
@@ -323,9 +365,19 @@ export const ImageCarousel = ({
 
     const getOpacity = () => {
       const position = getImagePosition();
-      if (position === 0) return centerOpacity; // Center image
-      if (position === 1) return adjacentOpacity; // Adjacent images
-      return farOpacity; // Far images
+
+      // Smooth opacity transitions between positions
+      if (position === 0) {
+        return centerOpacity; // Center image
+      } else if (position === 1) {
+        return adjacentOpacity; // Adjacent images
+      } else {
+        // Smooth interpolation for positions beyond adjacent
+        const maxPosition = Math.ceil(images.length / 2);
+        const normalizedPosition = Math.min(position, maxPosition);
+        const t = (normalizedPosition - 1) / (maxPosition - 1);
+        return adjacentOpacity + (farOpacity - adjacentOpacity) * t;
+      }
     };
 
     useFrame(() => {
@@ -351,6 +403,7 @@ export const ImageCarousel = ({
       material.positionNode = vec4(position.x, position.y, bentZ, position.w);
 
       const uvCoords = uv();
+
       const imageColor = texture(imageTexture, uvCoords);
 
       // Calculate distance from center for rounded rectangle
@@ -368,26 +421,21 @@ export const ImageCarousel = ({
       material.side = DoubleSide;
 
       return material;
-    }, [imageTexture, cornerRadius, bendAmount, planeWidth]);
+    }, [
+      imageTexture,
+      cornerRadius,
+      bendAmount,
+      planeWidth,
+      planeHeightForImage,
+    ]);
 
     // Update opacity based on position
     roundedCornersMaterial.opacity = getOpacity();
 
-    // Respect actual image aspect when available
-    const textureAspect = useMemo(() => {
-      const img: any = (imageTexture as any).image;
-      if (
-        img &&
-        typeof img.width === "number" &&
-        typeof img.height === "number" &&
-        img.width > 0
-      ) {
-        return img.height / img.width;
-      }
-      return baseAspect;
-    }, [imageTexture, baseAspect]);
-
-    const planeHeightForImage = planeWidth * textureAspect;
+    // Apply entrance animation opacity if still animating in
+    if (isAnimatingIn) {
+      roundedCornersMaterial.opacity = 0; // Start fully transparent
+    }
 
     return (
       <mesh

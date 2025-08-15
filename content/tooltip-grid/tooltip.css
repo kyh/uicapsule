@@ -1,0 +1,100 @@
+.tooltip {
+  --colors-panel: #020617;
+  --colors-shadowLight: hsl(206 22% 7% / 35%);
+  --colors-shadowDark: hsl(206 22% 7% / 20%);
+
+  background-color: var(--colors-panel);
+  box-shadow:
+    var(--colors-shadowLight) 0px 10px 38px -10px,
+    var(--colors-shadowDark) 0px 10px 20px -15px;
+  border-radius: 4px;
+}
+
+.tooltip.block {
+  background-color: transparent;
+  box-shadow: none;
+}
+
+.tooltip.block .content {
+  position: relative;
+}
+
+.line {
+  --mask-background: #ffffff;
+  --fade-stop: 90%;
+  --border-color: #334155;
+
+  position: absolute;
+  pointer-events: none;
+  top: 0;
+  mask-composite: exclude;
+}
+
+.lineV {
+  width: 1px;
+  height: 100%;
+
+  background: linear-gradient(
+    to bottom,
+    var(--border-color),
+    var(--border-color) 50%,
+    transparent 0,
+    transparent
+  );
+  background-size: 1px 5px;
+
+  -webkit-mask:
+    linear-gradient(
+      to top,
+      var(--mask-background) var(--fade-stop),
+      transparent
+    ),
+    linear-gradient(
+      to bottom,
+      var(--mask-background) var(--fade-stop),
+      transparent
+    ),
+    linear-gradient(black, black);
+}
+
+.lineH {
+  width: 100%;
+  height: 1px;
+
+  background: linear-gradient(
+    to right,
+    var(--border-color),
+    var(--border-color) 50%,
+    transparent 0,
+    transparent
+  );
+  background-size: 5px 1px;
+
+  -webkit-mask:
+    linear-gradient(
+      to left,
+      var(--mask-background) var(--fade-stop),
+      transparent
+    ),
+    linear-gradient(
+      to right,
+      var(--mask-background) var(--fade-stop),
+      transparent
+    ),
+    linear-gradient(black, black);
+}
+
+.blocksContainer {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  display: grid;
+  grid-template-columns: repeat(var(--cols), 1fr);
+  grid-template-rows: repeat(var(--rows), 1fr);
+}
+
+.block {
+  background-color: var(--colors-panel);
+}
