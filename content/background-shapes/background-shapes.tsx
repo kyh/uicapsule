@@ -131,14 +131,41 @@ interface ShapeConfig {
   weight: number;
 }
 
+const shapesConfig: ShapeConfig[] = [
+  { shape: Cell1, weight: 1 },
+  { shape: Cell2, weight: 1 },
+  { shape: Cell3, weight: 1 },
+  { shape: Cell4, weight: 1 },
+  { shape: Cell5, weight: 1 },
+  { shape: Cell6, weight: 5 },
+  { shape: Cell7, weight: 3 },
+];
+
+// Create weighted selector
+const createWeightedSelector = (
+  items: ShapeConfig[],
+  seededRandom: () => number,
+) => {
+  const weightedArray: ShapeConfig[] = [];
+
+  for (const item of items) {
+    for (let i = 0; i < item.weight; i++) {
+      weightedArray.push(item);
+    }
+  }
+
+  return () => weightedArray[Math.floor(seededRandom() * weightedArray.length)];
+};
+
 interface BackgroundShapesProps {
   width?: number;
   height?: number;
   cellSize?: number;
   strokeWidth?: number;
   colors?: string[];
-  seed?: number;
+  initialSeed?: number;
   className?: string;
+  interval?: number;
 }
 
 export const BackgroundShapes = ({
@@ -147,40 +174,23 @@ export const BackgroundShapes = ({
   cellSize = 20,
   strokeWidth = 10,
   colors = ["white"],
-  seed = 668,
+  initialSeed = 668,
   className = "",
+  interval = 3000,
 }: BackgroundShapesProps) => {
+  const [seed, setSeed] = React.useState(initialSeed);
   const [shapes, setShapes] = useState<React.ReactNode[]>([]);
-
-  const shapesConfig: ShapeConfig[] = [
-    { shape: Cell1, weight: 1 },
-    { shape: Cell2, weight: 1 },
-    { shape: Cell3, weight: 1 },
-    { shape: Cell4, weight: 1 },
-    { shape: Cell5, weight: 1 },
-    { shape: Cell6, weight: 5 },
-    { shape: Cell7, weight: 3 },
-  ];
-
-  // Create weighted selector
-  const createWeightedSelector = (
-    items: ShapeConfig[],
-    seededRandom: () => number,
-  ) => {
-    const weightedArray: ShapeConfig[] = [];
-
-    for (const item of items) {
-      for (let i = 0; i < item.weight; i++) {
-        weightedArray.push(item);
-      }
-    }
-
-    return () =>
-      weightedArray[Math.floor(seededRandom() * weightedArray.length)];
-  };
-
   const borderSize = cellSize * 2;
   const scale = 0.2;
+
+  React.useEffect(() => {
+    if (interval === 0) return;
+    const intervalId = setInterval(() => {
+      setSeed(Math.floor(Math.random() * 1000));
+    }, interval);
+
+    return () => clearInterval(intervalId);
+  }, [interval]);
 
   useEffect(() => {
     // Create seeded random function
@@ -221,17 +231,7 @@ export const BackgroundShapes = ({
     }
 
     setShapes(newShapes);
-  }, [
-    width,
-    height,
-    cellSize,
-    strokeWidth,
-    colors,
-    seed,
-    borderSize,
-    scale,
-    shapesConfig,
-  ]);
+  }, [width, height, cellSize, strokeWidth, colors, seed, borderSize, scale]);
 
   return (
     <svg
