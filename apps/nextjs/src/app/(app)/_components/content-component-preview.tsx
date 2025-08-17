@@ -21,7 +21,7 @@ export const ContentComponentPreview = ({
       className="bg-background group flex flex-col justify-between gap-3 p-3 text-lg sm:p-6"
       href={`/ui/${slug}`}
     >
-      <div className="aspect-video">
+      <div className="aspect-video overflow-hidden">
         {coverUrl && coverType === "image" && (
           <Image src={coverUrl} fill alt="" className="object-contain" />
         )}

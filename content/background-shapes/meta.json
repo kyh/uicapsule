@@ -1,6 +1,8 @@
 {
   "name": "Background Shapes",
   "description": "",
+  "coverUrl": "https://zmdrwswxugswzmcokvff.supabase.co/storage/v1/object/public/uicapsule/background-shapes/background-shapes.mp4",
+  "coverType": "video",
   "tags": [],
   "authors": [{ "name": "Kaiyu Hsu", "url": "https://x.com/kaiyuhsu" }]
 }
