@@ -1,4 +1,5 @@
-import React, { useEffect } from "react";
+import React from "react";
+import { useGSAP } from "@gsap/react";
 import gsap from "gsap";
 
 type CardStackProps = {
@@ -9,7 +10,7 @@ type CardStackProps = {
 export const CardStack = ({ cards }: CardStackProps) => {
   const rootRef = React.useRef<HTMLDivElement>(null);
 
-  useEffect(() => {
+  useGSAP(() => {
     let incr = 0;
 
     const root = rootRef.current;
@@ -135,7 +136,7 @@ export const CardStack = ({ cards }: CardStackProps) => {
       window.removeEventListener("wheel", handleWheel);
       root?.removeEventListener("mousemove", handleMouseMove);
     };
-  }, []);
+  });
 
   return (
     <section className="effect h-screen overflow-hidden bg-[#121212] text-[#f1f1f1] [perspective:150vw]">
