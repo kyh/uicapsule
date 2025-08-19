@@ -2,6 +2,7 @@
 
 import { useCallback, useMemo, useState } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { Badge } from "@repo/ui/badge";
 import { Button } from "@repo/ui/button";
 import { Checkbox } from "@repo/ui/checkbox";
 import {
@@ -15,20 +16,21 @@ import {
 import { Drawer, DrawerContent, DrawerTrigger } from "@repo/ui/drawer";
 import { Popover, PopoverContent, PopoverTrigger } from "@repo/ui/popover";
 import { cn, useMediaQuery } from "@repo/ui/utils";
+import { ChevronDownIcon } from "lucide-react";
 
 import type { ContentFilter } from "@/lib/content";
 
 type FilterComboBoxProps = {
-  children: React.ReactNode;
   filterKey: string;
   filterOptions: ContentFilter[];
+  defaultLabel: string;
   highlighted?: boolean;
 };
 
 export const FilterComboBox = ({
-  children,
   filterKey,
   filterOptions,
+  defaultLabel,
   highlighted = false,
 }: FilterComboBoxProps) => {
   const [open, setOpen] = useState(false);
@@ -43,7 +45,11 @@ export const FilterComboBox = ({
       <Popover open={open} onOpenChange={setOpen}>
         <PopoverTrigger asChild>
           <Button variant="outline" className={triggerClassname} size="sm">
-            {children}
+            <FilterTriggerLabel
+              defaultLabel={defaultLabel}
+              filterKey={filterKey}
+              filterOptions={filterOptions}
+            />
           </Button>
         </PopoverTrigger>
         <PopoverContent className="p-0" align="start">
@@ -60,7 +66,11 @@ export const FilterComboBox = ({
     <Drawer open={open} onOpenChange={setOpen}>
       <DrawerTrigger asChild>
         <Button variant="outline" className={triggerClassname} size="sm">
-          {children}
+          <FilterTriggerLabel
+            defaultLabel={defaultLabel}
+            filterKey={filterKey}
+            filterOptions={filterOptions}
+          />
         </Button>
       </DrawerTrigger>
       <DrawerContent>
@@ -145,44 +155,9 @@ const FilterOptionsList = ({
       } as const;
     }, [filterOptions]);
 
-  const selectedFlatOptions = useMemo(
-    () => filterOptions.filter((o) => selectedSet.has(o.slug)),
-    [filterOptions, selectedSet],
-  );
-
-  const selectedGroupedSubItems = useMemo(
-    () =>
-      optionsWithSub
-        .flatMap((parent) => parent.subcategories ?? [])
-        .filter((sub) => selectedSet.has(sub.slug)),
-    [optionsWithSub, selectedSet],
-  );
-
-  const selectedGroupedSingles = useMemo(
-    () => optionsWithoutSub.filter((s) => selectedSet.has(s.slug)),
-    [optionsWithoutSub, selectedSet],
-  );
-
   const renderFlatOptions = useCallback(
     (options: ContentFilter[]) => (
       <>
-        {selectedFlatOptions.length > 0 && options.length > 20 && (
-          <CommandGroup heading="Selected">
-            {selectedFlatOptions.map((option) => (
-              <CommandItem
-                key={option.slug}
-                value={option.slug}
-                onSelect={handleSelect}
-              >
-                <Checkbox
-                  checked={selectedSet.has(option.slug)}
-                  className="pointer-events-none"
-                />
-                <span>{option.name}</span>
-              </CommandItem>
-            ))}
-          </CommandGroup>
-        )}
         {options.length > 0 && (
           <CommandGroup>
             {options.map((option) => (
@@ -202,43 +177,12 @@ const FilterOptionsList = ({
         )}
       </>
     ),
-    [handleSelect, selectedFlatOptions, selectedSet],
+    [handleSelect, selectedSet],
   );
 
   const renderGroupedOptions = useCallback(
     (parents: ContentFilter[], singles: ContentFilter[]) => (
       <>
-        {(selectedGroupedSubItems.length > 0 ||
-          selectedGroupedSingles.length > 0) && (
-          <CommandGroup heading="Selected">
-            {selectedGroupedSubItems.map((sub) => (
-              <CommandItem
-                key={sub.slug}
-                value={sub.slug}
-                onSelect={handleSelect}
-              >
-                <Checkbox
-                  checked={selectedSet.has(sub.slug)}
-                  className="pointer-events-none"
-                />
-                <span>{sub.name}</span>
-              </CommandItem>
-            ))}
-            {selectedGroupedSingles.map((option) => (
-              <CommandItem
-                key={option.slug}
-                value={option.slug}
-                onSelect={handleSelect}
-              >
-                <Checkbox
-                  checked={selectedSet.has(option.slug)}
-                  className="pointer-events-none"
-                />
-                <span>{option.name}</span>
-              </CommandItem>
-            ))}
-          </CommandGroup>
-        )}
         {parents.map((parent) => (
           <CommandGroup key={parent.slug} heading={parent.name}>
             {parent.subcategories?.map((sub) => (
@@ -275,12 +219,7 @@ const FilterOptionsList = ({
         )}
       </>
     ),
-    [
-      handleSelect,
-      selectedGroupedSingles,
-      selectedGroupedSubItems,
-      selectedSet,
-    ],
+    [handleSelect, selectedSet],
   );
 
   return (
@@ -293,5 +232,66 @@ const FilterOptionsList = ({
           : renderFlatOptions(filterOptions)}
       </CommandList>
     </Command>
+  );
+};
+
+const FilterTriggerLabel = ({
+  defaultLabel,
+  filterKey,
+  filterOptions,
+}: FilterOptionsListProps & {
+  defaultLabel: string;
+}) => {
+  const searchParams = useSearchParams();
+
+  const selectedSet = useMemo(() => {
+    const currentRaw = searchParams.get(filterKey) ?? "";
+    return new Set(
+      currentRaw
+        .split(",")
+        .map((s) => s.trim())
+        .filter(Boolean),
+    );
+  }, [filterKey, searchParams]);
+
+  const labels = useMemo(() => {
+    const selectedLabels: string[] = [];
+
+    // Check top-level options
+    filterOptions.forEach((option) => {
+      if (selectedSet.has(option.slug)) {
+        selectedLabels.push(option.name);
+      }
+
+      // Check subcategories
+      if (option.subcategories) {
+        option.subcategories.forEach((sub) => {
+          if (selectedSet.has(sub.slug)) {
+            selectedLabels.push(sub.name);
+          }
+        });
+      }
+    });
+
+    return selectedLabels;
+  }, [filterOptions, selectedSet]);
+
+  if (labels.length === 1) {
+    return (
+      <>
+        {labels[0]} <ChevronDownIcon className="size-4" />
+      </>
+    );
+  }
+
+  return (
+    <>
+      {defaultLabel}{" "}
+      {labels.length > 1 ? (
+        <Badge variant="secondary">{labels.length}</Badge>
+      ) : (
+        <ChevronDownIcon className="size-4" />
+      )}
+    </>
   );
 };

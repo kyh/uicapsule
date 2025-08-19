@@ -159,12 +159,7 @@ export const contentElements: ContentFilter[] = [
     slug: "control",
     subcategories: [
       { name: "Buttons and Links", slug: "buttons-and-links" },
-      { name: "Form", slug: "form" },
-      { name: "Picker", slug: "picker" },
-      { name: "Combobox", slug: "combobox" },
-      { name: "Slider", slug: "slider" },
-      { name: "Tab", slug: "tab" },
-      { name: "Date and Time Picker", slug: "date-time-picker" },
+      { name: "Inputs", slug: "inputs" }, // Text, Number, Slider, Pickers, Combobox, etc.
       { name: "Video & Audio", slug: "video-audio" },
     ],
   },
@@ -172,15 +167,14 @@ export const contentElements: ContentFilter[] = [
     name: "View",
     slug: "view",
     subcategories: [
-      { name: "Card", slug: "card" },
-      { name: "Carousel", slug: "carousel" },
-      { name: "Grid", slug: "grid" },
-      { name: "Navigation", slug: "navigation" },
-      { name: "Table", slug: "table" },
-      { name: "Toolbar", slug: "toolbar" }, // Filter/Sort
-      { name: "Tree", slug: "tree" },
-      { name: "Backgrounds", slug: "backgrounds" },
-      { name: "Other", slug: "other" },
+      { name: "Cards", slug: "cards" },
+      { name: "Carousels", slug: "carousels" },
+      { name: "Grids", slug: "grids" },
+      { name: "Navigation", slug: "navigation" }, // Sidebar, Tabs, etc.
+      { name: "Tables", slug: "tables" },
+      { name: "Toolbars", slug: "toolbars" }, // Filter/Sort
+      { name: "Trees", slug: "trees" },
+      { name: "Effects", slug: "effects" },
     ],
   },
   {

@@ -1,7 +1,5 @@
 import Link from "next/link";
-import { Badge } from "@repo/ui/badge";
 import { Button } from "@repo/ui/button";
-import { ChevronDownIcon } from "lucide-react";
 
 import {
   contentCategories,
@@ -32,23 +30,20 @@ const Page = async ({ searchParams }: PageProps) => {
             filterKey="element"
             filterOptions={contentElements}
             highlighted={elementFilter.length > 0}
-          >
-            <FilterTriggerLabel label="Elements" values={elementFilter} />
-          </FilterComboBox>
+            defaultLabel="Elements"
+          />
           <FilterComboBox
             filterKey="style"
             filterOptions={contentStyles}
             highlighted={styleFilter.length > 0}
-          >
-            <FilterTriggerLabel label="Styles" values={styleFilter} />
-          </FilterComboBox>
+            defaultLabel="Styles"
+          />
           <FilterComboBox
             filterKey="category"
             filterOptions={contentCategories}
             highlighted={categoryFilter.length > 0}
-          >
-            <FilterTriggerLabel label="Categories" values={categoryFilter} />
-          </FilterComboBox>
+            defaultLabel="Categories"
+          />
         </div>
       </div>
       <div className="bg-border grid gap-px border-b md:h-auto md:grid-cols-10 md:grid-rows-2 md:*:col-span-2 md:[&>*:nth-child(10n+1)]:col-span-4 md:[&>*:nth-child(10n+1)]:row-span-2 md:[&>*:nth-child(10n+1)]:h-auto">
@@ -78,30 +73,3 @@ const Page = async ({ searchParams }: PageProps) => {
 };
 
 export default Page;
-
-const FilterTriggerLabel = ({
-  label,
-  values,
-}: {
-  label: string;
-  values: string[];
-}) => {
-  if (values.length === 1) {
-    return (
-      <>
-        {values[0]?.replace("-", " ")} <ChevronDownIcon className="size-4" />
-      </>
-    );
-  }
-
-  return (
-    <>
-      {label}{" "}
-      {values.length > 1 ? (
-        <Badge variant="secondary">{values.length}</Badge>
-      ) : (
-        <ChevronDownIcon className="size-4" />
-      )}
-    </>
-  );
-};
