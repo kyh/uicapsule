@@ -3,17 +3,17 @@ import React from "react";
 import { ImageCarousel, ImageCarouselCanvas } from "./source";
 
 const rootUrl =
-  "https://zmdrwswxugswzmcokvff.supabase.co/storage/v1/object/public/uicapsule/card-stack-1";
+  "https://zmdrwswxugswzmcokvff.supabase.co/storage/v1/object/public/uicapsule/carousel-3d";
 
 const cards = [
-  { src: `${rootUrl}/uic.webp`, href: "https://uicapsule.com" },
-  { src: `${rootUrl}/kyh.webp`, href: "https://kyh.io" },
-  { src: `${rootUrl}/tc.webp`, href: "https://tc.kyh.io" },
-  { src: `${rootUrl}/vg.webp`, href: "https://vibedgames.com" },
-  { src: `${rootUrl}/found.webp`, href: "https://founding.so" },
-  { src: `${rootUrl}/init.webp`, href: "https://init.kyh.io" },
-  { src: `${rootUrl}/data.webp`, href: "https://dataembed.com`" },
-  { src: `${rootUrl}/ys.webp`, href: "https://yourssincerely.org" },
+  { src: `${rootUrl}/1.webp` },
+  { src: `${rootUrl}/2.webp` },
+  { src: `${rootUrl}/3.webp` },
+  { src: `${rootUrl}/4.webp` },
+  { src: `${rootUrl}/5.webp` },
+  { src: `${rootUrl}/6.webp` },
+  { src: `${rootUrl}/7.webp` },
+  { src: `${rootUrl}/8.webp` },
 ];
 
 const Preview = () => {

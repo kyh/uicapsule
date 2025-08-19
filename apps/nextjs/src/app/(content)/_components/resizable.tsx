@@ -12,6 +12,8 @@ type ResizableProps = {
   maxWidth?: number;
   className?: string;
   onResize?: (width: number) => void;
+  onResizeStart?: () => void;
+  onResizeEnd?: () => void;
 };
 
 export const Resizable = ({
@@ -22,6 +24,8 @@ export const Resizable = ({
   maxWidth = 1300,
   className,
   onResize,
+  onResizeStart,
+  onResizeEnd,
 }: ResizableProps) => {
   const [isDragging, setIsDragging] = useState(false);
 
@@ -59,12 +63,12 @@ export const Resizable = ({
     dragStateRef.current.dragHandle = null;
 
     setIsDragging(false);
-
+    onResizeEnd?.();
     document.removeEventListener("mousemove", handleMouseMove);
     document.removeEventListener("mouseup", handleMouseUp);
     document.body.style.cursor = "";
     document.body.style.userSelect = "";
-  }, [handleMouseMove]);
+  }, [handleMouseMove, onResizeEnd]);
 
   const handleMouseDown = useCallback(
     (e: React.MouseEvent, handle: "left" | "right") => {
@@ -78,13 +82,13 @@ export const Resizable = ({
       };
 
       setIsDragging(true);
-
+      onResizeStart?.();
       document.addEventListener("mousemove", handleMouseMove);
       document.addEventListener("mouseup", handleMouseUp);
       document.body.style.cursor = "ew-resize";
       document.body.style.userSelect = "none";
     },
-    [width, handleMouseMove, handleMouseUp],
+    [width, handleMouseMove, handleMouseUp, onResizeStart],
   );
 
   useEffect(() => {

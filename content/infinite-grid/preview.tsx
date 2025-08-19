@@ -21,7 +21,11 @@ const Cell = ({ gridIndex }: GridItemConfig) => (
 );
 
 const Preview = () => {
-  return <InfiniteGrid gridSize={150} renderItem={Cell} />;
+  return (
+    <div className="h-screen w-screen bg-blue-50">
+      <InfiniteGrid gridSize={150} renderItem={Cell} />
+    </div>
+  );
 };
 
 export default Preview;

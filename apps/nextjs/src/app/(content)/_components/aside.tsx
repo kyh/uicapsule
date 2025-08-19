@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import Link from "next/link";
 import { Avatar, AvatarFallback, AvatarImage } from "@repo/ui/avatar";
 import { Badge } from "@repo/ui/badge";
@@ -178,12 +179,21 @@ const Aside = ({ contentComponent }: AsideProps) => {
 };
 
 export const ResponsiveAside = ({ contentComponent }: AsideProps) => {
+  const [isOpen, setIsOpen] = useState(true);
   const isDesktop = useMediaQuery();
 
   if (isDesktop)
     return (
       <aside className="absolute right-0 z-10 h-full w-80 pr-6 pb-13">
-        <Aside contentComponent={contentComponent} />
+        <Button
+          className="absolute top-4 right-8 z-10 size-5"
+          variant="secondary"
+          size="icon"
+          onClick={() => setIsOpen((prev) => !prev)}
+        >
+          <InfoIcon className="text-muted-foreground size-4" />
+        </Button>
+        {isOpen && <Aside contentComponent={contentComponent} />}
       </aside>
     );
 

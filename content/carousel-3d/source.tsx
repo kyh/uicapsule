@@ -35,8 +35,10 @@ declare module "@react-three/fiber" {
 extend(THREE as any);
 
 export const ImageCarouselCanvas = ({
+  backgroundColor = "#6F6D66",
   children,
 }: {
+  backgroundColor?: string;
   children: React.ReactNode;
 }) => {
   const [frameloop, setFrameloop] = useState<Frameloop>("never");
@@ -54,7 +56,7 @@ export const ImageCarouselCanvas = ({
         return renderer;
       }}
     >
-      <color attach="background" args={["#333"]} />
+      <color attach="background" args={[backgroundColor]} />
       {children}
     </Canvas>
   );
