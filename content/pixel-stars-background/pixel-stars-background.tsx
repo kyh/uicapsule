@@ -62,7 +62,7 @@ type StartPoint = {
   angle: number;
 };
 
-export const BackgroundPixelStars = memo(
+export const PixelStarsBackground = memo(
   () => {
     const canvasRef = useRef<HTMLCanvasElement | null>(null);
     const animationFrameRef = useRef<number | null>(null);

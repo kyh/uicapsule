@@ -1,5 +1,5 @@
 {
-  "name": "@uicapsule/background-shapes",
+  "name": "@uicapsule/expanding-header-menu",
   "version": "0.1.0",
   "private": true,
   "type": "module",
@@ -7,8 +7,11 @@
     "clean": "git clean -xdf .cache .turbo dist node_modules"
   },
   "dependencies": {
+    "class-variance-authority": "^0.7.1",
+    "lucide-react": "^0.540.0",
     "motion": "^12.23.12",
     "react": "*",
-    "react-dom": "*"
+    "react-dom": "*",
+    "tailwind-merge": "^3.3.1"
   }
 }

@@ -184,27 +184,6 @@ importers:
         specifier: 0.179.0
         version: 0.179.0
 
-  content/background-pixel-stars:
-    dependencies:
-      react:
-        specifier: '*'
-        version: 19.1.1
-      react-dom:
-        specifier: '*'
-        version: 19.1.1(react@19.1.1)
-
-  content/background-shapes:
-    dependencies:
-      motion:
-        specifier: ^12.23.12
-        version: 12.23.12(react-dom@19.1.1(react@19.1.1))(react@19.1.1)
-      react:
-        specifier: '*'
-        version: 19.1.1
-      react-dom:
-        specifier: '*'
-        version: 19.1.1(react@19.1.1)
-
   content/card-stack:
     dependencies:
       '@gsap/react':
@@ -238,6 +217,27 @@ importers:
         specifier: 0.179.0
         version: 0.179.0
 
+  content/expanding-header-menu:
+    dependencies:
+      class-variance-authority:
+        specifier: ^0.7.1
+        version: 0.7.1
+      lucide-react:
+        specifier: ^0.540.0
+        version: 0.540.0(react@19.1.1)
+      motion:
+        specifier: ^12.23.12
+        version: 12.23.12(react-dom@19.1.1(react@19.1.1))(react@19.1.1)
+      react:
+        specifier: '*'
+        version: 19.1.1
+      react-dom:
+        specifier: '*'
+        version: 19.1.1(react@19.1.1)
+      tailwind-merge:
+        specifier: ^3.3.1
+        version: 3.3.1
+
   content/infinite-grid:
     dependencies:
       motion:
@@ -249,8 +249,6 @@ importers:
       react-dom:
         specifier: '*'
         version: 19.1.1(react@19.1.1)
-
-  content/ios-header-menu: {}
 
   content/ios-volume-slider: {}
 
@@ -273,9 +271,30 @@ importers:
 
   content/line-chart: {}
 
+  content/pixel-stars-background:
+    dependencies:
+      react:
+        specifier: '*'
+        version: 19.1.1
+      react-dom:
+        specifier: '*'
+        version: 19.1.1(react@19.1.1)
+
   content/prompt-animation: {}
 
   content/radial-slider: {}
+
+  content/shapes-background:
+    dependencies:
+      motion:
+        specifier: ^12.23.12
+        version: 12.23.12(react-dom@19.1.1(react@19.1.1))(react@19.1.1)
+      react:
+        specifier: '*'
+        version: 19.1.1
+      react-dom:
+        specifier: '*'
+        version: 19.1.1(react@19.1.1)
 
   content/snail-timer: {}
 
@@ -415,8 +434,8 @@ importers:
         specifier: ^4.1.0
         version: 4.1.0
       lucide-react:
-        specifier: ^0.535.0
-        version: 0.535.0(react@19.1.1)
+        specifier: ^0.540.0
+        version: 0.540.0(react@19.1.1)
       motion:
         specifier: ^12.23.12
         version: 12.23.12(react-dom@19.1.1(react@19.1.1))(react@19.1.1)
@@ -3398,8 +3417,8 @@ packages:
     resolution: {integrity: sha512-lyuxPGr/Wfhrlem2CL/UcnUc1zcqKAImBDzukY7Y5F/yQiNdko6+fRLevlw1HgMySw7f611UIY408EtxRSoK3Q==}
     hasBin: true
 
-  lucide-react@0.535.0:
-    resolution: {integrity: sha512-2E3+YWGLpjZ8ejIYrdqxVjWMSMiRQHmU6xZYE9xA2SC5j2m0NeB4/acjhRdhxbfniBKoNEukDDQnmShTxwOQ4g==}
+  lucide-react@0.540.0:
+    resolution: {integrity: sha512-armkCAqQvO62EIX4Hq7hqX/q11WSZu0Jd23cnnqx0/49yIxGXyL/zyZfBxNN9YDx0ensPTb4L+DjTh3yQXUxtQ==}
     peerDependencies:
       react: ^16.5.1 || ^17.0.0 || ^18.0.0 || ^19.0.0
 
@@ -7388,7 +7407,7 @@ snapshots:
     dependencies:
       js-tokens: 4.0.0
 
-  lucide-react@0.535.0(react@19.1.1):
+  lucide-react@0.540.0(react@19.1.1):
     dependencies:
       react: 19.1.1
 

@@ -1,9 +1,14 @@
 {
-  "name": "@uicapsule/ios-header-menu",
+  "name": "@uicapsule/shapes-background",
   "version": "0.1.0",
   "private": true,
   "type": "module",
   "scripts": {
     "clean": "git clean -xdf .cache .turbo dist node_modules"
+  },
+  "dependencies": {
+    "motion": "^12.23.12",
+    "react": "*",
+    "react-dom": "*"
   }
 }
