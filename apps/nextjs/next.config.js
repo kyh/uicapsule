@@ -29,6 +29,17 @@ const getRemotePatterns = () => {
   return remotePatterns;
 };
 
+const getLocalPatterns = () => {
+  /** @type {import('next').NextConfig['localPatterns']} */
+  const localPatterns = [
+    {
+      pathname: "/assets/**",
+    },
+  ];
+
+  return localPatterns;
+};
+
 const transpilePackages = ["@repo/api", "@repo/db", "@repo/ui"];
 
 /** @type {import("next").NextConfig} */
@@ -37,6 +48,7 @@ const config = {
   transpilePackages,
   images: {
     remotePatterns: getRemotePatterns(),
+    localPatterns: getLocalPatterns(),
   },
   /** We already do linting and typechecking as separate tasks in CI */
   eslint: { ignoreDuringBuilds: true },
