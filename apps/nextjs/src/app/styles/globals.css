@@ -1,8 +1,7 @@
 @import "tailwindcss" source("../../../../../");
-@import "./animations.css";
 @import "./sandpack.css";
 
-@plugin "@tailwindcss/typography";
+@import "tw-animate-css";
 
 :root {
   --background-highlight: hsl(0 0 100%);
