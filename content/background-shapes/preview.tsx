@@ -1,11 +1,11 @@
 import React from "react";
 
-import { ShapesBackground } from "./shapes-background";
+import { BackgroundShapes } from "./background-shapes";
 
 const Preview = () => {
   return (
     <div className="h-full w-full bg-[#2164D6]">
-      <ShapesBackground width={window.innerWidth} height={window.innerHeight} />
+      <BackgroundShapes width={window.innerWidth} height={window.innerHeight} />
     </div>
   );
 };

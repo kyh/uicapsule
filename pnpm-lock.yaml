@@ -184,6 +184,27 @@ importers:
         specifier: 0.179.0
         version: 0.179.0
 
+  content/background-pixel-stars:
+    dependencies:
+      react:
+        specifier: '*'
+        version: 19.1.1
+      react-dom:
+        specifier: '*'
+        version: 19.1.1(react@19.1.1)
+
+  content/background-shapes:
+    dependencies:
+      motion:
+        specifier: ^12.23.12
+        version: 12.23.12(react-dom@19.1.1(react@19.1.1))(react@19.1.1)
+      react:
+        specifier: '*'
+        version: 19.1.1
+      react-dom:
+        specifier: '*'
+        version: 19.1.1(react@19.1.1)
+
   content/card-stack:
     dependencies:
       '@gsap/react':
@@ -271,23 +292,15 @@ importers:
 
   content/line-chart: {}
 
-  content/pixel-stars-background:
-    dependencies:
-      react:
-        specifier: '*'
-        version: 19.1.1
-      react-dom:
-        specifier: '*'
-        version: 19.1.1(react@19.1.1)
-
   content/prompt-animation: {}
 
-  content/radial-slider: {}
-
-  content/shapes-background:
+  content/radial-slider:
     dependencies:
-      motion:
-        specifier: ^12.23.12
+      '@number-flow/react':
+        specifier: 0.5.10
+        version: 0.5.10(react-dom@19.1.1(react@19.1.1))(react@19.1.1)
+      framer-motion:
+        specifier: 12.23.12
         version: 12.23.12(react-dom@19.1.1(react@19.1.1))(react@19.1.1)
       react:
         specifier: '*'

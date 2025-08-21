@@ -157,7 +157,7 @@ const createWeightedSelector = (
   return () => weightedArray[Math.floor(seededRandom() * weightedArray.length)];
 };
 
-interface ShapesBackgroundProps {
+interface BackgroundShapesProps {
   width?: number;
   height?: number;
   cellSize?: number;
@@ -168,7 +168,7 @@ interface ShapesBackgroundProps {
   interval?: number;
 }
 
-export const ShapesBackground = ({
+export const BackgroundShapes = ({
   width = 500,
   height = 500,
   cellSize = 20,
@@ -177,7 +177,7 @@ export const ShapesBackground = ({
   initialSeed = 668,
   className = "",
   interval = 3000,
-}: ShapesBackgroundProps) => {
+}: BackgroundShapesProps) => {
   const [seed, setSeed] = React.useState(initialSeed);
   const [shapes, setShapes] = useState<React.ReactNode[]>([]);
   const borderSize = cellSize * 2;
