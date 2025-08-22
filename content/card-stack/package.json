@@ -7,8 +7,8 @@
     "clean": "git clean -xdf .cache .turbo dist node_modules"
   },
   "dependencies": {
-    "@gsap/react": "2.1.2",
-    "gsap": "3.13.0",
+    "@gsap/react": "^2.1.2",
+    "gsap": "^3.13.0",
     "react": "*",
     "react-dom": "*"
   }

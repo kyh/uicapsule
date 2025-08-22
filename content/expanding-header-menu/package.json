@@ -8,7 +8,7 @@
   },
   "dependencies": {
     "class-variance-authority": "^0.7.1",
-    "lucide-react": "^0.540.0",
+    "lucide-react": "^0.541.0",
     "motion": "^12.23.12",
     "react": "*",
     "react-dom": "*",

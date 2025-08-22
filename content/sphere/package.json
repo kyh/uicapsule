@@ -9,6 +9,6 @@
   "dependencies": {
     "react": "*",
     "react-dom": "*",
-    "three": "0.179.0"
+    "three": "^0.179.1"
   }
 }
