@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 
 // Cell shape functions that return JSX instead of SVG strings
 const Cell1 = ({ colors }: { colors: string[]; strokeWidth: number }) => (
@@ -157,15 +157,83 @@ const createWeightedSelector = (
   return () => weightedArray[Math.floor(seededRandom() * weightedArray.length)];
 };
 
+// Individual shape component that manages its own interval
+interface ShapeProps {
+  x: number;
+  y: number;
+  colors: string[];
+  strokeWidth: number;
+  scale: number;
+  shapeId: string;
+  minInterval?: number;
+  maxInterval?: number;
+}
+
+const Shape = ({
+  x,
+  y,
+  colors,
+  strokeWidth,
+  scale,
+  shapeId,
+  minInterval = 0,
+  maxInterval = 5000,
+}: ShapeProps) => {
+  const [currentShape, setCurrentShape] = useState<ShapeConfig>(() => {
+    // Initialize with a random shape
+    const seededRandom = seedPRNG(Math.random() * 1000);
+    const pickShape = createWeightedSelector(shapesConfig, seededRandom);
+    return pickShape();
+  });
+
+  useEffect(() => {
+    const getRandomInterval = () =>
+      Math.random() * (maxInterval - minInterval) + minInterval;
+
+    const updateShape = () => {
+      const seededRandom = seedPRNG(Math.random() * 1000);
+      const pickShape = createWeightedSelector(shapesConfig, seededRandom);
+      setCurrentShape(pickShape());
+    };
+
+    // Set initial random interval
+    let timeoutId = setTimeout(() => {
+      updateShape();
+
+      // Set up recurring random intervals
+      const setNextTimeout = () => {
+        timeoutId = setTimeout(() => {
+          updateShape();
+          setNextTimeout();
+        }, getRandomInterval());
+      };
+
+      setNextTimeout();
+    }, getRandomInterval());
+
+    return () => clearTimeout(timeoutId);
+  }, [minInterval, maxInterval]);
+
+  const ShapeComponent = currentShape.shape;
+
+  return (
+    <g transform={`translate(${x} ${y})`}>
+      <g transform={`scale(${scale})`}>
+        <ShapeComponent colors={colors} strokeWidth={strokeWidth} />
+      </g>
+    </g>
+  );
+};
+
 interface BackgroundShapesProps {
   width?: number;
   height?: number;
   cellSize?: number;
   strokeWidth?: number;
   colors?: string[];
-  initialSeed?: number;
   className?: string;
-  interval?: number;
+  minInterval?: number;
+  maxInterval?: number;
 }
 
 export const BackgroundShapes = ({
@@ -174,64 +242,64 @@ export const BackgroundShapes = ({
   cellSize = 20,
   strokeWidth = 10,
   colors = ["white"],
-  initialSeed = 668,
   className = "",
-  interval = 3000,
+  minInterval = 1000,
+  maxInterval = 5000,
 }: BackgroundShapesProps) => {
-  const [seed, setSeed] = React.useState(initialSeed);
   const [shapes, setShapes] = useState<React.ReactNode[]>([]);
   const borderSize = cellSize * 2;
   const scale = 0.2;
 
-  React.useEffect(() => {
-    if (interval === 0) return;
-    const intervalId = setInterval(() => {
-      setSeed(Math.floor(Math.random() * 1000));
-    }, interval);
-
-    return () => clearInterval(intervalId);
-  }, [interval]);
-
   useEffect(() => {
-    // Create seeded random function
-    const seededRandom = seedPRNG(seed);
-
-    // Create weighted selector with seeded random
-    const pickShape = createWeightedSelector(shapesConfig, seededRandom);
-
     const newShapes: React.ReactNode[] = [];
 
     // Generate shapes for each cell
     for (let x = borderSize; x < width / 2; x += cellSize) {
       for (let y = borderSize; y < height - borderSize; y += cellSize) {
-        const shapeChoice = pickShape();
-        const ShapeComponent = shapeChoice.shape;
-
         // Left side
         newShapes.push(
-          <g key={`left-${x}-${y}`} transform={`translate(${x} ${y})`}>
-            <g transform={`scale(${scale})`}>
-              <ShapeComponent colors={colors} strokeWidth={strokeWidth} />
-            </g>
-          </g>,
+          <Shape
+            key={`left-${x}-${y}`}
+            x={x}
+            y={y}
+            colors={colors}
+            strokeWidth={strokeWidth}
+            scale={scale}
+            shapeId={`left-${x}-${y}`}
+            minInterval={minInterval}
+            maxInterval={maxInterval}
+          />,
         );
 
         // Right side (mirrored)
         newShapes.push(
-          <g
+          <Shape
             key={`right-${x}-${y}`}
-            transform={`translate(${width - cellSize - x} ${y})`}
-          >
-            <g transform={`scale(${scale})`}>
-              <ShapeComponent colors={colors} strokeWidth={strokeWidth} />
-            </g>
-          </g>,
+            x={width - cellSize - x}
+            y={y}
+            colors={colors}
+            strokeWidth={strokeWidth}
+            scale={scale}
+            shapeId={`right-${x}-${y}`}
+            minInterval={minInterval}
+            maxInterval={maxInterval}
+          />,
         );
       }
     }
 
     setShapes(newShapes);
-  }, [width, height, cellSize, strokeWidth, colors, seed, borderSize, scale]);
+  }, [
+    width,
+    height,
+    cellSize,
+    strokeWidth,
+    colors,
+    borderSize,
+    scale,
+    minInterval,
+    maxInterval,
+  ]);
 
   return (
     <svg
