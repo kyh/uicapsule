@@ -1,5 +1,7 @@
 {
   "name": "Light/Dark Toggle",
   "description": "Toggle between light and dark mode",
+  "coverUrl": "https://zmdrwswxugswzmcokvff.supabase.co/storage/v1/object/public/uicapsule/light-dark-toggle/light-dark-toggle.mp4",
+  "coverType": "video",
   "tags": []
 }

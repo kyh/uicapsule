@@ -276,7 +276,17 @@ importers:
 
   content/ios-volume-slider: {}
 
-  content/light-dark-toggle: {}
+  content/light-dark-toggle:
+    dependencies:
+      motion:
+        specifier: ^12.23.12
+        version: 12.23.12(react-dom@19.1.1(react@19.1.1))(react@19.1.1)
+      react:
+        specifier: '*'
+        version: 19.1.1
+      react-dom:
+        specifier: '*'
+        version: 19.1.1(react@19.1.1)
 
   content/like-button:
     dependencies:
