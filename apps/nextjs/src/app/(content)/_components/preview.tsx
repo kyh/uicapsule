@@ -60,7 +60,7 @@ export const Preview = ({ contentComponent }: PreviewProps) => {
         </div>
       )}
       <Tabs
-        className="hidden justify-center md:flex"
+        className="hidden items-center md:flex"
         value={size}
         onValueChange={(value) =>
           handleSetWidth(value === "mobile" ? 360 : 720)
