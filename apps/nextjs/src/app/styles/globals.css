@@ -111,6 +111,15 @@
   }
 }
 
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
+}
+
 @utility container {
   @media (width >= --theme(--breakpoint-2xl)) {
     max-width: none;
