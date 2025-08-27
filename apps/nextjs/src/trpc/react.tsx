@@ -2,7 +2,6 @@
 
 import { useState } from "react";
 import { QueryClientProvider } from "@tanstack/react-query";
-import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
 import {
   createTRPCClient,
   httpBatchStreamLink,
@@ -56,7 +55,6 @@ export const TRPCReactProvider = (props: { children: React.ReactNode }) => {
     <QueryClientProvider client={queryClient}>
       <TRPCProvider trpcClient={trpcClient} queryClient={queryClient}>
         {props.children}
-        <ReactQueryDevtools initialIsOpen={false} />
       </TRPCProvider>
     </QueryClientProvider>
   );
