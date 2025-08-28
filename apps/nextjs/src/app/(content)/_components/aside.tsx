@@ -15,7 +15,7 @@ import {
   DrawerTrigger,
 } from "@repo/ui/drawer";
 import { toast } from "@repo/ui/toast";
-import { useMediaQuery } from "@repo/ui/utils";
+import { cn, useMediaQuery } from "@repo/ui/utils";
 import {
   ArrowLeftIcon,
   ArrowRightIcon,
@@ -184,9 +184,17 @@ export const ResponsiveAside = ({ contentComponent }: AsideProps) => {
 
   if (isDesktop)
     return (
-      <aside className="absolute right-0 z-10 h-full w-80 pr-6 pb-13">
+      <aside
+        className={cn(
+          "absolute right-0 z-10 h-full w-80 pr-6 pb-13",
+          !isOpen && "pointer-events-none",
+        )}
+      >
         <Button
-          className="absolute top-4 right-8 z-10 size-5"
+          className={cn(
+            "absolute top-4 right-8 z-10 size-5",
+            !isOpen && "pointer-events-auto",
+          )}
           variant="secondary"
           size="icon"
           onClick={() => setIsOpen((prev) => !prev)}

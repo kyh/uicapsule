@@ -191,9 +191,9 @@ const FilterIcon = ({
     case FilterType.UPDATED_DATE:
       return <CalendarSync className="size-3.5" />;
     case Status.BACKLOG:
-      return <CircleDashed className="size-3.5 text-gray-500" />;
+      return <CircleDashed className="size-3.5 text-gray-600" />;
     case Status.TODO:
-      return <Circle className="size-3.5 text-blue-600" />;
+      return <Circle className="size-3.5 text-gray-800" />;
     case Status.IN_PROGRESS:
       return <CircleDotDashed className="size-3.5 text-yellow-400" />;
     case Status.IN_REVIEW:
@@ -201,7 +201,7 @@ const FilterIcon = ({
     case Status.DONE:
       return <CircleCheck className="size-3.5 text-blue-400" />;
     case Status.CANCELLED:
-      return <CircleX className="size-3.5 text-gray-500" />;
+      return <CircleX className="size-3.5 text-gray-600" />;
     case Priority.URGENT:
       return <CircleAlert className="size-3.5" />;
     case Priority.HIGH:
@@ -355,7 +355,7 @@ const FilterOperatorDropdown = ({
   const operators = filterOperators({ filterType, filterValues });
   return (
     <DropdownMenu>
-      <DropdownMenuTrigger className="shrink-0 bg-gray-100 px-1.5 py-1 text-gray-500 transition hover:bg-gray-50 hover:text-blue-600">
+      <DropdownMenuTrigger className="shrink-0 bg-gray-50 px-1.5 py-1 text-gray-600 transition hover:bg-gray-100 hover:text-gray-800">
         {operator}
       </DropdownMenuTrigger>
       <DropdownMenuContent align="start" className="w-fit min-w-fit">
@@ -399,7 +399,7 @@ const FilterValueCombobox = ({
         }
       }}
     >
-      <PopoverTrigger className="shrink-0 rounded-none bg-gray-100 px-1.5 py-1 text-gray-500 transition hover:bg-gray-50 hover:text-blue-600">
+      <PopoverTrigger className="shrink-0 rounded-none bg-gray-50 px-1.5 py-1 text-gray-600 transition hover:bg-gray-100 hover:text-gray-800">
         <div className="flex items-center gap-1.5">
           {filterType !== FilterType.PRIORITY && (
             <div
@@ -487,7 +487,7 @@ const FilterValueCombobox = ({
                         {filter.icon}
                         <span className="text-gray-900">{filter.name}</span>
                         {filter.label && (
-                          <span className="ml-auto text-xs text-gray-500">
+                          <span className="ml-auto text-xs text-gray-600">
                             {filter.label}
                           </span>
                         )}
@@ -528,7 +528,7 @@ const FilterValueDateCombobox = ({
         }
       }}
     >
-      <PopoverTrigger className="shrink-0 rounded-none bg-gray-100 px-1.5 py-1 text-gray-500 transition hover:bg-gray-50 hover:text-blue-600">
+      <PopoverTrigger className="shrink-0 rounded-none bg-gray-50 px-1.5 py-1 text-gray-600 transition hover:bg-gray-100 hover:text-gray-800">
         {filterValues?.[0]}
       </PopoverTrigger>
       <PopoverContent className="w-fit p-0">
@@ -594,7 +594,7 @@ export default function Filters({
         .filter((filter) => filter.value?.length > 0)
         .map((filter) => (
           <div key={filter.id} className="flex items-center gap-[1px] text-xs">
-            <div className="flex shrink-0 items-center gap-1.5 rounded-l bg-gray-100 px-1.5 py-1">
+            <div className="flex shrink-0 items-center gap-1.5 rounded-l bg-gray-50 px-1.5 py-1">
               <FilterIcon type={filter.type} />
               {filter.type}
             </div>
@@ -643,7 +643,7 @@ export default function Filters({
               onClick={() => {
                 setFilters((prev) => prev.filter((f) => f.id !== filter.id));
               }}
-              className="h-6 w-6 shrink-0 rounded-l-none rounded-r-sm bg-gray-100 text-gray-500 transition hover:bg-gray-50 hover:text-blue-600"
+              className="h-6 w-6 shrink-0 rounded-l-none rounded-r-sm bg-gray-50 text-gray-600 transition hover:bg-gray-100 hover:text-gray-800"
             >
               <X className="size-3" />
             </Button>
