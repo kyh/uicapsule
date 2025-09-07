@@ -9,11 +9,11 @@ import type { ContentComponent } from "@/lib/content";
 import { Resizable } from "./resizable";
 import { SandpackLayout, SandpackPreview, useSandpack } from "./sandpack";
 
-type PreviewProps = {
+type ContentRendererProps = {
   contentComponent: ContentComponent;
 };
 
-export const Preview = ({ contentComponent }: PreviewProps) => {
+export const ContentRenderer = ({ contentComponent }: ContentRendererProps) => {
   const isDesktop = useMediaQuery();
   const { sandpack } = useSandpack();
   const [initialized, setInitialized] = useState(false);
@@ -42,7 +42,7 @@ export const Preview = ({ contentComponent }: PreviewProps) => {
     setInitialized(false);
   }, [isDesktop]);
 
-  const sandpackContent = (
+  const content = (
     <SandpackLayout>
       <SandpackPreview className="h-full!" />
     </SandpackLayout>
@@ -52,11 +52,11 @@ export const Preview = ({ contentComponent }: PreviewProps) => {
     <div className="flex h-full flex-col gap-2 pb-2">
       {isDesktop ? (
         <Resizable className="flex-1" width={width} setWidth={handleSetWidth}>
-          {sandpackContent}
+          {content}
         </Resizable>
       ) : (
         <div className="w-[calc(100dvw-theme(spacing.3))] flex-1 pb-2">
-          {sandpackContent}
+          {content}
         </div>
       )}
       <Tabs

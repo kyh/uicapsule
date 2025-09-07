@@ -7,7 +7,7 @@ import {
   contentStyles,
   getContentComponents,
 } from "@/lib/content";
-import { ContentComponentPreview } from "./_components/content-component-preview";
+import { ContentPreview } from "./_components/content-preview";
 import { FilterComboBox } from "./_components/filter-combo-box";
 
 type PageProps = {
@@ -58,7 +58,7 @@ const Page = async ({ searchParams }: PageProps) => {
           </div>
         )}
         {content.map((c, index) => (
-          <ContentComponentPreview
+          <ContentPreview
             key={c.slug}
             slug={c.slug}
             name={c.name}

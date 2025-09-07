@@ -5,6 +5,26 @@ import React, {
   useRef,
   useState,
 } from "react";
+import { Avatar, AvatarFallback } from "@repo/ui/avatar";
+import { Button } from "@repo/ui/button";
+import { Checkbox } from "@repo/ui/checkbox";
+import {
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+  CommandSeparator,
+} from "@repo/ui/command";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@repo/ui/dropdown-menu";
+import { Popover, PopoverContent, PopoverTrigger } from "@repo/ui/popover";
+import { cn } from "@repo/ui/utils";
 import {
   Calendar,
   CalendarPlus,
@@ -25,27 +45,6 @@ import {
   X,
 } from "lucide-react";
 import { AnimatePresence, motion } from "motion/react";
-
-import { Avatar, AvatarFallback } from "./avatar";
-import { Button } from "./button";
-import { Checkbox } from "./checkbox";
-import {
-  Command,
-  CommandEmpty,
-  CommandGroup,
-  CommandInput,
-  CommandItem,
-  CommandList,
-  CommandSeparator,
-} from "./command";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "./dropdown-menu";
-import { Popover, PopoverContent, PopoverTrigger } from "./popover";
-import { cn } from "./utils";
 
 interface AnimateChangeInHeightProps {
   children: React.ReactNode;

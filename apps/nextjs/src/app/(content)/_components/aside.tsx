@@ -24,7 +24,7 @@ import {
 } from "lucide-react";
 
 import type { ContentComponent } from "@/lib/content";
-import { SandpackCodeEditor, SandpackFileExplorer } from "./sandpack";
+import { CodeEditor, SandpackFileExplorer } from "./sandpack";
 
 type AsideProps = {
   contentComponent: ContentComponent;
@@ -92,7 +92,7 @@ const Aside = ({ contentComponent }: AsideProps) => {
           </DrawerHeader>
           <div className="mt-4 flex h-[90dvh] overflow-auto border-t">
             <SandpackFileExplorer />
-            <SandpackCodeEditor showLineNumbers showInlineErrors wrapContent />
+            <CodeEditor />
           </div>
         </DrawerContent>
       </Drawer>
@@ -120,18 +120,6 @@ const Aside = ({ contentComponent }: AsideProps) => {
             {contentComponent.tags.map((tag) => (
               <Badge key={tag} variant="secondary">
                 {tag}
-              </Badge>
-            ))}
-          </div>
-        </div>
-      )}
-      {contentComponent.dependencies && (
-        <div className={sectionClassname}>
-          <h2>Packages</h2>
-          <div className="flex flex-wrap gap-2">
-            {Object.keys(contentComponent.dependencies).map((dep) => (
-              <Badge key={dep} variant="secondary">
-                {dep}
               </Badge>
             ))}
           </div>

@@ -1,8 +1,9 @@
-import { readdir, readFile } from "node:fs/promises";
+import { readdir, readFile, stat } from "node:fs/promises";
 import { join } from "node:path";
 import { cache } from "react";
 
 const contentSourceDir = join(process.cwd(), "..", "..", "content");
+const uiSourceDir = join(process.cwd(), "..", "..", "packages", "ui");
 
 export type ContentComponent = {
   slug: string;
@@ -34,60 +35,9 @@ export const getContentComponents = cache(
 
     const contentComponents = await Promise.all(
       slugs.map(async (slug, index) => {
-        const metadata = JSON.parse(
-          await readFile(
-            join(contentSourceDir, slug, "meta.json"),
-            "utf-8",
-          ).catch(() => ""),
-        ) as ContentComponent;
-
-        const packageJson = JSON.parse(
-          await readFile(
-            join(contentSourceDir, slug, "package.json"),
-            "utf-8",
-          ).catch(() => ""),
-        ) as ContentComponent;
-
-        const previewCode = await readFile(
-          join(contentSourceDir, slug, "preview.tsx"),
-          "utf-8",
-        ).catch(() => "");
-
-        // Read all files in the component's directory except preview.tsx, package.json, and meta.json, and create a sourceCode map
-        const files = await readdir(join(contentSourceDir, slug)).catch(
-          () => [],
-        );
-        const sourceCode: Record<string, string> = {};
-
-        await Promise.all(
-          files
-            .filter(
-              (file) =>
-                !["preview.tsx", "package.json", "meta.json"].includes(file),
-            )
-            .map(async (file) => {
-              const filePath = join(contentSourceDir, slug, file);
-              try {
-                // Only include files, skip directories (using fs.promises.stat)
-                const stat = await import("fs/promises").then((fs) =>
-                  fs.stat(filePath),
-                );
-                if (stat.isFile()) {
-                  sourceCode[`/${file}`] = await readFile(filePath, "utf-8");
-                }
-              } catch {
-                // Ignore errors for individual files
-              }
-            }),
-        );
-
+        const cc = await readContentComponent(slug);
         return {
-          ...metadata,
-          slug,
-          dependencies: packageJson.dependencies ?? {},
-          devDependencies: packageJson.devDependencies ?? {},
-          sourceCode,
-          previewCode,
+          ...cc,
           previousSlug: slugs[index - 1],
           nextSlug: slugs[index + 1],
         };
@@ -110,6 +60,117 @@ export const getContentComponents = cache(
     );
   },
 );
+
+const readContentComponent = async (slug: string) => {
+  const metadata = JSON.parse(
+    await readFile(join(contentSourceDir, slug, "meta.json"), "utf-8").catch(
+      () => "",
+    ),
+  ) as ContentComponent;
+
+  const packageJson = JSON.parse(
+    await readFile(join(contentSourceDir, slug, "package.json"), "utf-8").catch(
+      () => "",
+    ),
+  ) as ContentComponent;
+
+  let previewCode = await readFile(
+    join(contentSourceDir, slug, "preview.tsx"),
+    "utf-8",
+  ).catch(() => "");
+
+  let sourceCode = await readContentComponents(slug);
+
+  // If the package.json has "@repo/ui" as a dependency, remove it.
+  // Instead, we want to inline all the dependencies as source files under the ui directory in the sandpack setup
+  if (packageJson.dependencies?.["@repo/ui"]) {
+    // Handle package.json stuff
+    delete packageJson.dependencies["@repo/ui"];
+    const uiPackageJson = JSON.parse(
+      await readFile(join(uiSourceDir, "package.json"), "utf-8").catch(
+        () => "",
+      ),
+    ) as ContentComponent;
+    packageJson.dependencies = {
+      ...packageJson.dependencies,
+      ...uiPackageJson.dependencies,
+    };
+
+    // Handle source code
+    sourceCode = {
+      ...Object.entries(sourceCode).reduce(
+        (acc, [key, value]) => {
+          acc[key] = value.replaceAll("@repo/ui", "./ui");
+          return acc;
+        },
+        {} as Record<string, string>,
+      ),
+      ...(await readUIComponents()),
+    };
+
+    // Handle preview code
+    previewCode = previewCode.replaceAll("@repo/ui", "./ui");
+  }
+
+  return {
+    ...metadata,
+    slug,
+    dependencies: packageJson.dependencies ?? {},
+    devDependencies: packageJson.devDependencies ?? {},
+    sourceCode,
+    previewCode,
+  };
+};
+
+const readContentComponents = cache(async (slug: string) => {
+  // Read all files in the component's directory except preview.tsx, package.json, and meta.json, and create a sourceCode map
+  const files = await readdir(join(contentSourceDir, slug)).catch(() => []);
+  const sourceCode: Record<string, string> = {};
+
+  await Promise.all(
+    files
+      .filter(
+        (file) => !["preview.tsx", "package.json", "meta.json"].includes(file),
+      )
+      .map(async (file) => {
+        const filePath = join(contentSourceDir, slug, file);
+        try {
+          // Only include files, skip directories (using fs.promises.stat)
+          const s = await stat(filePath);
+          if (s.isFile()) {
+            sourceCode[`/${file}`] = await readFile(filePath, "utf-8");
+          }
+        } catch {
+          // Ignore errors for individual files
+        }
+      }),
+  );
+
+  return sourceCode;
+});
+
+const readUIComponents = cache(async () => {
+  const files = await readdir(join(uiSourceDir, "src")).catch(() => []);
+  const sourceCode: Record<string, string> = {};
+
+  await Promise.all(
+    files
+      .filter((file) => file.endsWith(".tsx") || file.endsWith(".ts"))
+      .map(async (file) => {
+        const filePath = join(uiSourceDir, "src", file);
+        try {
+          const s = await stat(filePath);
+          if (s.isFile()) {
+            sourceCode[`/ui/${file}`] = await readFile(filePath, "utf-8");
+          }
+        } catch {
+          // Ignore errors for individual files
+        }
+      }),
+  );
+
+  return sourceCode;
+});
 
 export const getContentComponent = cache(
   async (slug: string): Promise<ContentComponent> => {

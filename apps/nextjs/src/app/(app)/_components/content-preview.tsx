@@ -1,7 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
 
-export type ContentComponentPreviewProps = {
+export type ContentPreviewProps = {
   slug: string;
   name: string;
   index: number;
@@ -9,13 +9,13 @@ export type ContentComponentPreviewProps = {
   coverType?: "image" | "video";
 };
 
-export const ContentComponentPreview = ({
+export const ContentPreview = ({
   slug,
   name,
   index,
   coverUrl,
   coverType,
-}: ContentComponentPreviewProps) => {
+}: ContentPreviewProps) => {
   return (
     <Link
       className="bg-background group flex flex-col justify-between gap-3 p-3 text-lg sm:p-6"
