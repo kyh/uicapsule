@@ -1,9 +1,72 @@
 import { readdir, readFile, stat } from "node:fs/promises";
-import { join } from "node:path";
+import { join, relative } from "node:path";
 import { cache } from "react";
 
 const contentSourceDir = join(process.cwd(), "..", "..", "content");
 const uiSourceDir = join(process.cwd(), "..", "..", "packages", "ui");
+
+const GITIGNORE_PATTERNS = ["node_modules", "dist", ".DS_Store"];
+
+// Check if a file should be ignored based on gitignore patterns
+const shouldIgnoreFile = (filePath: string, baseDir: string): boolean => {
+  const relativePath = relative(baseDir, filePath);
+
+  // Always ignore these specific files
+  if (["preview.tsx", "package.json", "meta.json"].includes(relativePath)) {
+    return true;
+  }
+
+  // Check against gitignore patterns
+  return GITIGNORE_PATTERNS.some((pattern) => {
+    if (pattern.includes("*")) {
+      // Handle wildcard patterns
+      const regex = new RegExp(pattern.replace(/\*/g, ".*"));
+      return regex.test(relativePath);
+    }
+    return relativePath.includes(pattern);
+  });
+};
+
+// Recursively read directory structure
+const readDirectoryRecursively = async (
+  dirPath: string,
+  baseDir: string,
+  sourceCode: Record<string, string>,
+): Promise<void> => {
+  try {
+    const entries = await readdir(dirPath);
+
+    await Promise.all(
+      entries.map(async (entry) => {
+        const fullPath = join(dirPath, entry);
+        const fileStat = await stat(fullPath);
+
+        if (fileStat.isDirectory()) {
+          // Recursively read subdirectories
+          await readDirectoryRecursively(fullPath, baseDir, sourceCode);
+        } else if (fileStat.isFile()) {
+          // Check if file should be ignored
+          if (!shouldIgnoreFile(fullPath, baseDir)) {
+            const relativePath = relative(baseDir, fullPath);
+            const fileContent = await readFile(fullPath, "utf-8");
+            sourceCode[`/${relativePath}`] = fileContent;
+          }
+        }
+      }),
+    );
+  } catch {
+    // Ignore errors for individual directories
+  }
+};
+
+export const readContentComponents = cache(async (slug: string) => {
+  const componentDir = join(contentSourceDir, slug);
+  const sourceCode: Record<string, string> = {};
+
+  await readDirectoryRecursively(componentDir, componentDir, sourceCode);
+
+  return sourceCode;
+});
 
 export type ContentComponent = {
   slug: string;
@@ -100,7 +163,13 @@ const readContentComponent = async (slug: string) => {
     sourceCode = {
       ...Object.entries(sourceCode).reduce(
         (acc, [key, value]) => {
-          acc[key] = value.replaceAll("@repo/ui", "./ui");
+          // Calculate relative path from source file to UI directory
+          // Key format: /path/to/file.tsx
+          // UI directory is at /ui/
+          const pathDepth = key.split("/").length - 2; // -2 because key starts with / and we don't count the filename
+          const relativePath =
+            pathDepth === 0 ? "./ui" : "../".repeat(pathDepth) + "ui";
+          acc[key] = value.replaceAll("@repo/ui", relativePath);
           return acc;
         },
         {} as Record<string, string>,
@@ -109,6 +178,7 @@ const readContentComponent = async (slug: string) => {
     };
 
     // Handle preview code
+    // Preview code is at the root level, so UI is at ./ui
     previewCode = previewCode.replaceAll("@repo/ui", "./ui");
   }
 
@@ -121,33 +191,6 @@ const readContentComponent = async (slug: string) => {
     previewCode,
   };
 };
-
-const readContentComponents = cache(async (slug: string) => {
-  // Read all files in the component's directory except preview.tsx, package.json, and meta.json, and create a sourceCode map
-  const files = await readdir(join(contentSourceDir, slug)).catch(() => []);
-  const sourceCode: Record<string, string> = {};
-
-  await Promise.all(
-    files
-      .filter(
-        (file) => !["preview.tsx", "package.json", "meta.json"].includes(file),
-      )
-      .map(async (file) => {
-        const filePath = join(contentSourceDir, slug, file);
-        try {
-          // Only include files, skip directories (using fs.promises.stat)
-          const s = await stat(filePath);
-          if (s.isFile()) {
-            sourceCode[`/${file}`] = await readFile(filePath, "utf-8");
-          }
-        } catch {
-          // Ignore errors for individual files
-        }
-      }),
-  );
-
-  return sourceCode;
-});
 
 const readUIComponents = cache(async () => {
   const files = await readdir(join(uiSourceDir, "src")).catch(() => []);
