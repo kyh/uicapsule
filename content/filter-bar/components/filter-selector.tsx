@@ -325,18 +325,7 @@ function __QuickSearchFilters<TData>({
                         {column.displayName}
                       </span>
                       <ChevronRightIcon className="text-muted-foreground/75 size-3.5" />
-                      <span>
-                        {v.label}
-                        <sup
-                          className={cn(
-                            !optionsCount && "hidden",
-                            "text-muted-foreground ml-0.5 tracking-tight tabular-nums",
-                            count === 0 && "slashed-zero",
-                          )}
-                        >
-                          {count < 100 ? count : "100+"}
-                        </sup>
-                      </span>
+                      <span>{v.label}</span>
                     </div>
                   </div>
                 </CommandItem>

@@ -714,11 +714,6 @@ const OptionItem = memo(function OptionItem({
           {label}
         </span>
       </div>
-      {count && (
-        <span className="text-muted-foreground text-xs tracking-tight tabular-nums">
-          {new Intl.NumberFormat().format(count)}
-        </span>
-      )}
     </CommandItem>
   );
 });
