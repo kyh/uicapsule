@@ -1,6 +1,6 @@
 import React, { isValidElement } from "react";
 
-import type { Column, ColumnDataType } from "../../filter-bar";
+import type { Column, ColumnDataType } from "../filter-package";
 
 interface FilterSubjectProps<TData, TType extends ColumnDataType> {
   column: Column<TData, TType>;

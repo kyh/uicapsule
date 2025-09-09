@@ -5,14 +5,14 @@ import type {
   FilterOperations,
   FiltersState,
   OptionBasedColumnDataType,
-} from "../core/types";
-import { DEFAULT_OPERATORS, determineNewOperator } from "../core/operators";
+} from "./types";
 import { addUniq, removeUniq, uniq } from "../lib/array";
 import {
   createBigIntFilterValue,
   createDateFilterValue,
   createNumberFilterValue,
 } from "../lib/helpers";
+import { DEFAULT_OPERATORS, determineNewOperator } from "./operators";
 
 export const filterOperations: FilterOperations = {
   addFilterValue<TData, TType extends OptionBasedColumnDataType>(

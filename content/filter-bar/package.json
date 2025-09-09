@@ -7,11 +7,8 @@
     "clean": "git clean -xdf .cache .turbo dist node_modules"
   },
   "dependencies": {
-    "@ndaidong/txtgen": "^4.0.1",
     "@repo/ui": "workspace:^",
-    "nanoid": "^5.1.5",
     "react": "*",
-    "react-dom": "*",
-    "remeda": "^2.30.0"
+    "react-dom": "*"
   }
 }

@@ -27,8 +27,8 @@ import type {
   DataTableFilterActions,
   FiltersState,
   FilterStrategy,
-} from "../../filter-bar";
-import { getColumn, isAnyOf } from "../../filter-bar";
+} from "../filter-package";
+import { getColumn, isAnyOf } from "../filter-package";
 import { FilterValueController } from "./filter-value";
 
 interface FilterSelectorProps<TData> {

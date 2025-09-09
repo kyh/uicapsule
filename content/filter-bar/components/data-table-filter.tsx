@@ -8,7 +8,7 @@ import type {
   DataTableFilterActions,
   FiltersState,
   FilterStrategy,
-} from "../../filter-bar";
+} from "../filter-package";
 import { ActiveFilters, ActiveFiltersMobileContainer } from "./active-filters";
 import { FilterActions } from "./filter-actions";
 import { FilterSelector } from "./filter-selector";

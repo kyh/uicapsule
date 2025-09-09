@@ -16,7 +16,7 @@ import type {
   DataTableFilterActions,
   FilterModel,
   FilterOperators,
-} from "../../filter-bar";
+} from "../filter-package";
 import {
   booleanFilterOperators,
   dateFilterOperators,
@@ -25,7 +25,7 @@ import {
   numberFilterOperators,
   optionFilterOperators,
   textFilterOperators,
-} from "../../filter-bar";
+} from "../filter-package";
 
 interface FilterOperatorProps<TData, TType extends ColumnDataType> {
   column: Column<TData, TType>;

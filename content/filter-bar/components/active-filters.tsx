@@ -10,8 +10,8 @@ import type {
   FilterModel,
   FiltersState,
   FilterStrategy,
-} from "../../filter-bar";
-import { getColumn } from "../../filter-bar";
+} from "../filter-package";
+import { getColumn } from "../filter-package";
 import { FilterOperator } from "./filter-operator";
 import { FilterSubject } from "./filter-subject";
 import { FilterValue } from "./filter-value";

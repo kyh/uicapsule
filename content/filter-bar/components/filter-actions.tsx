@@ -3,7 +3,7 @@ import { Button } from "@repo/ui/button";
 import { cn } from "@repo/ui/utils";
 import { FilterXIcon } from "lucide-react";
 
-import type { DataTableFilterActions } from "../../filter-bar";
+import type { DataTableFilterActions } from "../filter-package";
 
 interface FilterActionsProps {
   hasFilters: boolean;
