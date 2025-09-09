@@ -309,7 +309,6 @@ function __FilterValue<TData, TType extends ColumnDataType>({
 
   return (
     <Popover>
-      <PopoverAnchor className="h-full" />
       <PopoverTrigger asChild>
         <Button
           variant="ghost"

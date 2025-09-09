@@ -14,12 +14,14 @@ export const FilterActions = memo(__FilterActions);
 function __FilterActions({ hasFilters, actions }: FilterActionsProps) {
   return (
     <Button
-      className={cn("h-7 !px-2", !hasFilters && "hidden")}
-      variant="destructive"
+      className={cn(
+        "text-muted-foreground h-7 px-2 font-normal",
+        !hasFilters && "hidden",
+      )}
+      variant="ghost"
       onClick={actions?.removeAllFilters}
     >
-      <FilterXIcon />
-      <span className="hidden md:block">clear</span>
+      clear
     </Button>
   );
 }

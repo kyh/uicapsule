@@ -32,15 +32,12 @@ export function DataTableFilter<TData>({
   if (isMobile) {
     return (
       <div className="flex w-full items-start justify-between gap-2">
-        <div className="flex gap-1">
-          <FilterSelector
-            columns={columns}
-            filters={filters}
-            actions={actions}
-            strategy={strategy}
-          />
-          <FilterActions hasFilters={filters.length > 0} actions={actions} />
-        </div>
+        <FilterSelector
+          columns={columns}
+          filters={filters}
+          actions={actions}
+          strategy={strategy}
+        />
         <ActiveFiltersMobileContainer>
           <ActiveFilters
             columns={columns}
@@ -49,6 +46,7 @@ export function DataTableFilter<TData>({
             strategy={strategy}
             entityName={entityName}
           />
+          <FilterActions hasFilters={filters.length > 0} actions={actions} />
         </ActiveFiltersMobileContainer>
       </div>
     );
@@ -70,8 +68,8 @@ export function DataTableFilter<TData>({
           strategy={strategy}
           entityName={entityName}
         />
+        <FilterActions hasFilters={filters.length > 0} actions={actions} />
       </div>
-      <FilterActions hasFilters={filters.length > 0} actions={actions} />
     </div>
   );
 }

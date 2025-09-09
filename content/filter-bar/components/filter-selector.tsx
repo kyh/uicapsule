@@ -19,7 +19,12 @@ import {
 } from "@repo/ui/command";
 import { Popover, PopoverContent, PopoverTrigger } from "@repo/ui/popover";
 import { cn } from "@repo/ui/utils";
-import { ArrowRightIcon, ChevronRightIcon, FilterIcon } from "lucide-react";
+import {
+  ArrowLeftIcon,
+  ArrowRightIcon,
+  ChevronRightIcon,
+  FilterIcon,
+} from "lucide-react";
 
 import type {
   Column,
@@ -80,16 +85,37 @@ function __FilterSelector<TData>({
     if (!open) setTimeout(() => setValue(""), 150);
   }, [open]);
 
-  // biome-ignore lint/correctness/useExhaustiveDependencies: need filters to be updated
   const content = useMemo(
     () =>
       property && column && column.type !== "boolean" ? (
-        <FilterValueController
-          filter={filter!}
-          column={column as Column<TData, ColumnDataType>}
-          actions={actions}
-          strategy={strategy}
-        />
+        <div className="flex flex-col">
+          <div className="flex h-9 items-center gap-2 border-b px-2">
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => setProperty(undefined)}
+              className="h-6 w-6 p-0"
+            >
+              <ArrowLeftIcon className="size-4" />
+              <span className="sr-only">Back</span>
+            </Button>
+            <div className="flex items-center gap-1.5 text-sm">
+              {column.icon &&
+                (isValidElement(column.icon) ? (
+                  column.icon
+                ) : (
+                  <column.icon className="size-4 stroke-[2.25px]" />
+                ))}
+              <span className="font-medium">{column.displayName}</span>
+            </div>
+          </div>
+          <FilterValueController
+            filter={filter!}
+            column={column as Column<TData, ColumnDataType>}
+            actions={actions}
+            strategy={strategy}
+          />
+        </div>
       ) : (
         <Command
           loop
@@ -115,6 +141,7 @@ function __FilterSelector<TData>({
                   column={column}
                   setProperty={setProperty}
                   actions={actions}
+                  filters={visibleFilters}
                 />
               ))}
               <QuickSearchFilters
@@ -163,15 +190,22 @@ export function FilterableColumn<TData, TType extends ColumnDataType, TVal>({
   column,
   setProperty,
   actions,
+  filters,
 }: {
   column: Column<TData, TType, TVal>;
   setProperty: (value: string) => void;
   actions: DataTableFilterActions;
+  filters: FiltersState;
 }) {
   const itemRef = useRef<HTMLDivElement>(null);
 
   const { icon: Icon } = column;
   const hasIcon = !!Icon;
+
+  // Check if this column is being filtered
+  const isFiltered = filters.some(
+    (filter) => filter.columnId === column.id && filter.values.length > 0,
+  );
 
   const prefetch = useCallback(() => {
     column.prefetchValues();
@@ -233,12 +267,21 @@ export function FilterableColumn<TData, TType extends ColumnDataType, TVal>({
     >
       <div className="flex w-full items-center justify-between">
         <div className="inline-flex items-center gap-1.5">
-          {hasIcon &&
-            (isValidElement(Icon) ? (
-              Icon
-            ) : (
-              <Icon className="size-4 stroke-[2.25px]" />
-            ))}
+          {hasIcon && (
+            <div className="relative">
+              {isValidElement(Icon) ? (
+                Icon
+              ) : (
+                <Icon className="size-4 stroke-[2.25px]" />
+              )}
+              {isFiltered && (
+                <div className="absolute -right-0.5 -bottom-0.5 h-2 w-2 rounded-full bg-green-500" />
+              )}
+            </div>
+          )}
+          {!hasIcon && isFiltered && (
+            <div className="h-2 w-2 rounded-full bg-green-500" />
+          )}
           <span>{column.displayName}</span>
         </div>
         {column.type !== "boolean" && (
@@ -284,7 +327,6 @@ function __QuickSearchFilters<TData>({
       {cols.map((column) => {
         const filter = filters.find((f) => f.columnId === column.id);
         const options = column.getOptions();
-        const optionsCount = column.getFacetedUniqueValues();
 
         function handleOptionSelect(value: string, check: boolean) {
           if (check) actions.addFilterValue(column, [value]);
@@ -295,7 +337,6 @@ function __QuickSearchFilters<TData>({
           <React.Fragment key={column.id}>
             {options.map((v) => {
               const checked = Boolean(filter?.values.includes(v.value));
-              const count = optionsCount?.get(v.value) ?? 0;
 
               return (
                 <CommandItem
