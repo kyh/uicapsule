@@ -72,7 +72,7 @@ export type ContentComponent = {
   slug: string;
   name: string;
   description?: string;
-  defaultSize?: "desktop" | "mobile";
+  defaultSize?: "full" | "md" | "sm";
   coverUrl?: string;
   coverType?: "image" | "video";
   category?: "marketing" | "application" | "mobile";

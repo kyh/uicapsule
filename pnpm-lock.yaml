@@ -241,6 +241,18 @@ importers:
         specifier: ^0.179.1
         version: 0.179.1
 
+  content/emerald-template:
+    dependencies:
+      '@repo/ui':
+        specifier: workspace:^
+        version: link:../../packages/ui
+      react:
+        specifier: '*'
+        version: 19.1.1
+      react-dom:
+        specifier: '*'
+        version: 19.1.1(react@19.1.1)
+
   content/expanding-header-menu:
     dependencies:
       class-variance-authority:

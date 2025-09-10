@@ -1,0 +1,230 @@
+:root {
+  --background: hsl(240 10% 3.9%);
+  --foreground: hsl(0 0% 98%);
+  --card: hsl(240 10% 3.9%);
+  --card-foreground: hsl(0 0% 98%);
+  --popover: hsl(240 10% 3.9%);
+  --popover-foreground: hsl(0 0% 98%);
+  --primary: hsl(0 0% 98%);
+  --primary-foreground: hsl(240 5.9% 10%);
+  --secondary: hsl(240 3.7% 15.9%);
+  --secondary-foreground: hsl(0 0% 98%);
+  --muted: hsl(240 3.7% 15.9%);
+  --muted-foreground: hsl(240 5% 64.9%);
+  --accent: hsl(240 3.7% 15.9%);
+  --accent-foreground: hsl(0 0% 98%);
+  --destructive: hsl(0 62.8% 30.6%);
+  --destructive-foreground: hsl(0 0% 98%);
+  --border: hsl(240 3.7% 15.9%);
+  --input: hsl(240 3.7% 15.9%);
+  --ring: hsl(240 4.9% 83.9%);
+  --radius: 0.3rem;
+}
+
+.contained-page {
+  --viewport-padding: 16px;
+
+  display: grid;
+  grid-template-columns:
+    1fr
+    min(1024px, calc(100% - var(--viewport-padding) * 2))
+    1fr;
+  gap: 0 var(--viewport-padding);
+}
+
+.contained-page > * {
+  grid-column: 2;
+}
+
+.full-bleed {
+  width: 100%;
+  grid-column: 1 / 4;
+}
+
+@keyframes tilt {
+  0%,
+  50%,
+  100% {
+    transform: rotate(0deg);
+  }
+  25% {
+    transform: rotate(2deg);
+  }
+  75% {
+    transform: rotate(-2deg);
+  }
+}
+
+@keyframes disco {
+  from {
+    transform: translateY(-50%) rotate(0deg);
+  }
+  to {
+    transform: translateY(-50%) rotate(360deg);
+  }
+}
+
+@keyframes slide-across {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-100%);
+  }
+}
+
+.animate-tilt {
+  animation: tilt 6s linear infinite;
+}
+
+.animate-disco {
+  animation: disco 6s linear infinite;
+}
+
+.animate-slide-across {
+  animation: slide-across linear infinite;
+}
+
+.container {
+  --border-radius: 12px;
+  --height: 400px;
+
+  text-align: start;
+  position: relative;
+}
+
+.container::before {
+  position: absolute;
+  top: -1px;
+  left: -1px;
+  z-index: -1;
+  width: calc(100% + 2px);
+  height: calc(100% + 2px);
+  background: linear-gradient(hsla(0, 0%, 100%, 0.1), transparent);
+  border-radius: var(--border-radius);
+  content: "";
+}
+
+.window {
+  position: relative;
+  width: 100%;
+  overflow: hidden;
+  background: linear-gradient(hsla(0, 0%, 100%, 0.06), transparent), #000;
+  border-radius: var(--border-radius);
+}
+
+.input {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  height: 86px;
+  padding: 0 32px;
+  color: #fff;
+  background-image: linear-gradient(transparent, rgba(0, 0, 0, 0.75));
+}
+
+.input::before {
+  position: absolute;
+  top: -10px;
+  left: 10%;
+  z-index: -1;
+  width: 80%;
+  height: 20px;
+  background-color: #16413d;
+  border-radius: 50%;
+  filter: blur(40px);
+  content: "";
+}
+
+.loading {
+  position: relative;
+  width: 100%;
+  height: 1px;
+  background: linear-gradient(hsla(0, 0%, 100%, 0.25), hsla(0, 0%, 100%, 0.05));
+}
+
+.loading::before,
+.loading::after {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  background: linear-gradient(
+    90deg,
+    rgba(144, 224, 196, 0),
+    rgba(162, 183, 231, 0.5) 41%,
+    #059669 91%,
+    #6ee7b7 122%
+  );
+  transform-origin: 0 50%;
+  opacity: 0;
+  content: "";
+}
+
+.loading::before {
+  height: 4px;
+  filter: blur(4px) saturate(1.5);
+}
+
+.loading::after {
+  height: 1px;
+}
+
+.loading.active::before,
+.loading.active::after {
+  animation-name: loading;
+  animation-duration: 1.4s;
+  animation-timing-function: ease-in-out;
+  animation-fill-mode: forwards;
+}
+
+@keyframes loading {
+  0% {
+    transform: scaleX(0) translateX(-50%);
+    opacity: 1;
+  }
+  100% {
+    transform: scaleX(1) translateX(100%);
+  }
+}
+
+.output {
+  height: var(--height);
+  padding: 24px 32px;
+}
+
+.outputText {
+  min-height: calc(100% - 32px);
+  max-height: calc(100% - 32px);
+  overflow: hidden;
+  -webkit-mask-image: linear-gradient(0deg, transparent 0, #000 20%);
+  mask-image: linear-gradient(0deg, transparent 0, #000 20%);
+  white-space: pre-wrap;
+}
+
+.outputFooter {
+  position: absolute;
+  right: 32px;
+  bottom: 24px;
+  left: 32px;
+  display: flex;
+  justify-content: space-between;
+}
+
+.cursor {
+  animation: cursor 1s infinite;
+  margin-left: 1px;
+}
+
+@keyframes cursor {
+  0% {
+    opacity: 0;
+  }
+  50% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+  }
+}

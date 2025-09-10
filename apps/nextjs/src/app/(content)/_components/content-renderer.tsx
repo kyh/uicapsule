@@ -18,9 +18,15 @@ export const ContentRenderer = ({ contentComponent }: ContentRendererProps) => {
   const { sandpack } = useSandpack();
   const [initialized, setInitialized] = useState(false);
   const [width, setWidth] = useState(
-    contentComponent.defaultSize === "mobile" ? 360 : 720,
+    contentComponent.defaultSize === "sm"
+      ? 360
+      : contentComponent.defaultSize === "full"
+        ? 1392
+        : 720,
   );
-  const [size, setSize] = useState(contentComponent.defaultSize ?? "desktop");
+  const [size, setSize] = useState<"mobile" | "desktop">(
+    contentComponent.defaultSize === "sm" ? "mobile" : "desktop",
+  );
 
   const handleSetWidth = useCallback((width: number) => {
     setWidth(width);
