@@ -3,7 +3,7 @@
 import React, { useState } from "react";
 
 import type { FiltersState } from "./filter-package/core/types";
-import { DataTableFilter } from "./components/data-table-filter";
+import { DataTableFilter } from "./_components/data-table-filter";
 import { createTypedDataTableFilters } from "./filter-package";
 import { columnsConfig } from "./filters";
 

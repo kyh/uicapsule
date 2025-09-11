@@ -63,6 +63,7 @@ const Page = async ({ searchParams }: PageProps) => {
             slug={c.slug}
             name={c.name}
             index={index}
+            tags={c.tags ?? []}
             coverUrl={c.coverUrl}
             coverType={c.coverType}
           />

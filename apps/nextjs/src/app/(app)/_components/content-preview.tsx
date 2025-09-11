@@ -1,10 +1,12 @@
 import Image from "next/image";
 import Link from "next/link";
+import { Badge } from "@repo/ui/badge";
 
 export type ContentPreviewProps = {
   slug: string;
   name: string;
   index: number;
+  tags: string[];
   coverUrl?: string;
   coverType?: "image" | "video";
 };
@@ -13,6 +15,7 @@ export const ContentPreview = ({
   slug,
   name,
   index,
+  tags,
   coverUrl,
   coverType,
 }: ContentPreviewProps) => {
@@ -32,9 +35,18 @@ export const ContentPreview = ({
         )}
       </div>
       <div className="flex justify-between font-mono text-xs">
-        <p className="group-hover:text-primary transition">{name}</p>
+        <p className="group-hover:text-primary flex items-center gap-1 transition">
+          {name}{" "}
+        </p>
         <p className="text-muted-foreground/50 group-hover:text-primary/50 transition">
-          {String(index).padStart(3, "0")}
+          {tags.includes("landing-pages") ||
+          tags.includes("dashboard-pages") ? (
+            <Badge className="group-hover:text-primary" variant="secondary">
+              Landing Page
+            </Badge>
+          ) : (
+            String(index).padStart(3, "0")
+          )}
         </p>
       </div>
     </Link>
