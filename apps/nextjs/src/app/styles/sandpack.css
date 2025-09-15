@@ -80,6 +80,13 @@
   flex-shrink: 0;
   overflow: auto;
   height: 90dvh;
+  display: none;
+}
+
+@media (min-width: 768px) {
+  .sp-file-explorer {
+    display: block;
+  }
 }
 
 .sp-file-explorer-list {
@@ -92,4 +99,14 @@
   padding: 4px 0;
   width: 100%;
   align-items: center;
+
+  > svg {
+    flex-shrink: 0;
+  }
+
+  > span {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
 }

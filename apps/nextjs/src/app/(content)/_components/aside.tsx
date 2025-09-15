@@ -16,15 +16,18 @@ import {
 } from "@repo/ui/drawer";
 import { toast } from "@repo/ui/toast";
 import { cn, useMediaQuery } from "@repo/ui/utils";
+import JSZip from "jszip";
 import {
   ArrowLeftIcon,
   ArrowRightIcon,
+  CheckIcon,
   ClipboardCheckIcon,
+  DownloadIcon,
   InfoIcon,
 } from "lucide-react";
 
 import type { ContentComponent } from "@/lib/content";
-import { CodeEditor, SandpackFileExplorer } from "./sandpack";
+import { CodeEditor, FileExplorer } from "./sandpack";
 
 type AsideProps = {
   contentComponent: ContentComponent;
@@ -63,6 +66,73 @@ const Aside = ({ contentComponent }: AsideProps) => {
     );
   };
 
+  const handleDownloadClick = async () => {
+    const toastId = toast.loading("Download started", {
+      icon: <DownloadIcon className="size-4" />,
+      description: `${contentComponent.slug}.zip is being downloaded`,
+    });
+    try {
+      const zip = new JSZip();
+
+      // Add all source files to the zip
+      Object.entries(contentComponent.sourceCode).forEach(
+        ([filePath, content]) => {
+          // Remove leading slash from filePath for cleaner zip structure
+          const cleanPath = filePath.startsWith("/")
+            ? filePath.slice(1)
+            : filePath;
+          zip.file(cleanPath, content);
+        },
+      );
+
+      // Add preview.tsx if it exists
+      if (contentComponent.previewCode) {
+        zip.file("preview.tsx", contentComponent.previewCode);
+      }
+
+      // Add package.json if dependencies exist
+      if (contentComponent.dependencies || contentComponent.devDependencies) {
+        const packageJson = {
+          name: contentComponent.slug,
+          version: "0.1.0",
+          private: true,
+          ...(contentComponent.dependencies && {
+            dependencies: contentComponent.dependencies,
+          }),
+          ...(contentComponent.devDependencies && {
+            devDependencies: contentComponent.devDependencies,
+          }),
+        };
+        zip.file("package.json", JSON.stringify(packageJson, null, 2));
+      }
+
+      // Generate the zip file
+      const zipBlob = await zip.generateAsync({ type: "blob" });
+
+      // Create download link
+      const url = URL.createObjectURL(zipBlob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = `${contentComponent.slug}.zip`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+
+      toast.success("Download completed", {
+        icon: <CheckIcon className="size-4" />,
+        description: `${contentComponent.slug}.zip has been downloaded`,
+        id: toastId,
+      });
+    } catch (error) {
+      console.error("Failed to create zip file:", error);
+      toast.error("Failed to create zip file", {
+        description: "Please try again later",
+        id: toastId,
+      });
+    }
+  };
+
   return (
     <Card className="h-full">
       <h1 className="text-xl">{contentComponent.name}</h1>
@@ -73,9 +143,25 @@ const Aside = ({ contentComponent }: AsideProps) => {
       )}
       <Drawer>
         <div className="flex flex-col gap-1.5">
-          <DrawerTrigger className={buttonVariants({ variant: "outline" })}>
-            View Source
-          </DrawerTrigger>
+          <div className="flex -space-x-px rounded-full shadow-xs">
+            <DrawerTrigger
+              className={buttonVariants({
+                variant: "outline",
+                className:
+                  "flex-1 rounded-none rounded-s-full pl-12 shadow-none focus-visible:z-10",
+              })}
+            >
+              View Source
+            </DrawerTrigger>
+            <Button
+              variant="outline"
+              className="rounded-none rounded-e-full shadow-none focus-visible:z-10"
+              onClick={handleDownloadClick}
+            >
+              <span className="sr-only">Download</span>
+              <DownloadIcon className="size-4" />
+            </Button>
+          </div>
           <span className="text-muted-foreground text-center text-xs">
             <button
               className="cursor-pointer underline decoration-dotted"
@@ -91,7 +177,7 @@ const Aside = ({ contentComponent }: AsideProps) => {
             <DrawerDescription>Component source code</DrawerDescription>
           </DrawerHeader>
           <div className="mt-4 flex h-[90dvh] overflow-auto border-t">
-            <SandpackFileExplorer />
+            <FileExplorer />
             <CodeEditor />
           </div>
         </DrawerContent>

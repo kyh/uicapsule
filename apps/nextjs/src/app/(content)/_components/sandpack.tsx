@@ -140,7 +140,7 @@ const CodeEditor = () => {
   const language = getLanguage(sandpack.activeFile);
 
   return (
-    <div className="flex w-[calc(100dvw-200px)] flex-col">
+    <div className="flex w-dvw flex-col md:w-[calc(100dvw-200px)]">
       <FileTabs />
       <MonacoEditor
         key={sandpack.activeFile}
@@ -309,10 +309,14 @@ const defaultPreviewStyles = `
 }
 `;
 
+const FileExplorer = () => {
+  return <SandpackFileExplorer />;
+};
+
 export {
   SandpackLayout,
   SandpackPreview,
-  SandpackFileExplorer,
+  FileExplorer,
   useSandpack,
   ContentProvider,
   CodeEditor,
