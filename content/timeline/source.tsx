@@ -1,5 +1,5 @@
 import React from "react";
 
-export const Timeline: React.FC = () => {
-  return <div>Timeline Component</div>;
+export const Timeline = () => {
+  return <div>Timeline Component coming soon</div>;
 };
