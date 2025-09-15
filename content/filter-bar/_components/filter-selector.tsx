@@ -167,12 +167,8 @@ function __FilterSelector<TData>({
       }}
     >
       <PopoverTrigger asChild>
-        <Button
-          variant="outline"
-          className={cn("h-7", hasVisibleFilters && "w-fit !px-2")}
-        >
+        <Button variant="ghost" size="icon" className="size-7 p-0">
           <FilterIcon className="size-4" />
-          {!hasVisibleFilters && <span>filter</span>}
         </Button>
       </PopoverTrigger>
       <PopoverContent

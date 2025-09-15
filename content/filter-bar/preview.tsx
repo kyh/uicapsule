@@ -23,7 +23,7 @@ export default function Preview() {
     });
 
   return (
-    <div className="h-screen p-10">
+    <div className="flex h-screen items-center bg-stone-100 p-10">
       <DataTableFilter
         filters={filters}
         columns={columns}

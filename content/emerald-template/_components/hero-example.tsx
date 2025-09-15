@@ -1,8 +1,18 @@
 "use client";
 
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import { Badge } from "@repo/ui/badge";
 import { cn } from "@repo/ui/utils";
+import {
+  BarChart3,
+  BookOpen,
+  CheckCircle,
+  FileText,
+  GitBranch,
+  Search,
+  Shield,
+  Users,
+} from "lucide-react";
 import {
   AnimatePresence,
   motion,
@@ -11,6 +21,13 @@ import {
   useScroll,
   useTransform,
 } from "motion/react";
+
+import {
+  ChainOfThought,
+  ChainOfThoughtContent,
+  ChainOfThoughtHeader,
+  ChainOfThoughtStep,
+} from "./chain-of-thought";
 
 const scrollYProgressMap = [0, 0.1];
 
@@ -70,6 +87,21 @@ const samples = [
     input:
       "Can you provide a changelog of everything shipped in Dataembed this week?",
     output: {
+      reasoning: [
+        {
+          text: "Searching through Asana tickets for this week...",
+          icon: Search,
+        },
+        {
+          text: "Checking GitHub commits and pull requests...",
+          icon: GitBranch,
+        },
+        {
+          text: "Analyzing version releases and deployments...",
+          icon: BarChart3,
+        },
+        { text: "Compiling changelog information...", icon: FileText },
+      ],
       text: `
 According to Asana and Github commits, the following things were completed this week:
 
@@ -88,6 +120,18 @@ Version 1.1.2 launch - ${new Date().toLocaleDateString()}:
   {
     input: "Who is responsible for the new landing experience?",
     output: {
+      reasoning: [
+        {
+          text: "Looking up project ownership in team directory...",
+          icon: Users,
+        },
+        { text: "Checking project documentation and specs...", icon: BookOpen },
+        {
+          text: "Finding team lead and stakeholder information...",
+          icon: Search,
+        },
+        { text: "Gathering project context and background...", icon: FileText },
+      ],
       text: `
 The team responsible for "Project Neue", the new landing page, is the Grow team. It is an initiative launched by Kevin Wu to showcase our free training and resources programs, to help people acquire the digital skills they need to succeed in the modern economy.
 
@@ -105,10 +149,19 @@ The Grow team collaborates with various partners, including educational institut
   {
     input: "Whats our HR policy on working from home?",
     output: {
+      reasoning: [
+        { text: "Searching HR policy documents...", icon: Search },
+        {
+          text: "Checking employee handbook for remote work...",
+          icon: BookOpen,
+        },
+        { text: "Looking up recent policy updates...", icon: Shield },
+        { text: "Verifying current guidelines...", icon: CheckCircle },
+      ],
       text: "According to the latest onboarding docs, we have a flexible work policy. You can work from home as long as you get your work done and are available for meetings.",
       references: [
         { source: "ppt", content: "Onboarding 101" },
-        { source: "person", content: "Emily Lin (HR)" },
+        { source: "person", content: "Patty (HR)" },
       ],
     },
   },
@@ -127,13 +180,114 @@ const wait = (delay: number) => {
   };
 };
 
+const AnimatedIcon = React.memo(
+  ({
+    stepIndex,
+    staticIcon,
+    currentStepIndex,
+  }: {
+    stepIndex: number;
+    staticIcon: any;
+    currentStepIndex: number;
+  }) => {
+    const status =
+      stepIndex < currentStepIndex
+        ? "complete"
+        : stepIndex === currentStepIndex
+          ? "active"
+          : "pending";
+
+    return (
+      <AnimatePresence mode="wait">
+        {status === "active" ? (
+          <motion.div
+            key="spinner"
+            initial={{ scale: 0.8, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            exit={{ scale: 0.8, opacity: 0 }}
+            transition={{
+              duration: 0.2,
+              ease: "easeOut",
+            }}
+          >
+            <Spinner />
+          </motion.div>
+        ) : status === "complete" && staticIcon ? (
+          <motion.div
+            key="icon"
+            initial={{ scale: 0.9, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            transition={{
+              duration: 0.3,
+              ease: "easeOut",
+            }}
+          >
+            {React.createElement(staticIcon, { size: 16 })}
+          </motion.div>
+        ) : (
+          <motion.div
+            key="pending"
+            initial={{ scale: 1, opacity: 0.3 }}
+            animate={{ scale: 1, opacity: 0.3 }}
+          >
+            {staticIcon && React.createElement(staticIcon, { size: 16 })}
+          </motion.div>
+        )}
+      </AnimatePresence>
+    );
+  },
+);
+
+const MemoizedChainOfThoughtStep = React.memo(
+  ({
+    stepIndex,
+    staticIcon,
+    label,
+    currentStepIndex,
+  }: {
+    stepIndex: number;
+    staticIcon: any;
+    label: string;
+    currentStepIndex: number;
+  }) => {
+    const status =
+      stepIndex < currentStepIndex
+        ? "complete"
+        : stepIndex === currentStepIndex
+          ? "active"
+          : "pending";
+
+    return (
+      <ChainOfThoughtStep
+        icon={() => (
+          <AnimatedIcon
+            stepIndex={stepIndex}
+            staticIcon={staticIcon}
+            currentStepIndex={currentStepIndex}
+          />
+        )}
+        label={label}
+        status={status}
+      />
+    );
+  },
+);
+
 export const ExampleChat = ({ start }: { start: boolean }) => {
   const promisesRef = useRef<any[]>([]);
   const [currentSampleIndex, setCurrentSampleIndex] = useState(0);
   const [showQuestion, setShowQuestion] = useState(true);
   const [showLoading, setShowLoading] = useState(false);
+  const [showChainOfThought, setShowChainOfThought] = useState(false);
+  const [chainOfThoughtOpen, setChainOfThoughtOpen] = useState(true);
   const [showAnswer, setShowAnswer] = useState(false);
   const [showFooter, setShowFooter] = useState(false);
+  const [currentStepIndex, setCurrentStepIndex] = useState(-1);
+  const [thinkingStartTime, setThinkingStartTime] = useState<number | null>(
+    null,
+  );
+  const [thinkingDuration, setThinkingDuration] = useState<number | null>(null);
+  const [isThinkingComplete, setIsThinkingComplete] = useState(false);
 
   useEffect(() => {
     if (!start) {
@@ -148,8 +302,13 @@ export const ExampleChat = ({ start }: { start: boolean }) => {
   const clearAll = () => {
     setShowQuestion(false);
     setShowLoading(false);
+    setShowChainOfThought(false);
+    setChainOfThoughtOpen(true);
     setShowAnswer(false);
     setShowFooter(false);
+    setThinkingStartTime(null);
+    setThinkingDuration(null);
+    setIsThinkingComplete(false);
   };
 
   const showResults = async () => {
@@ -157,6 +316,35 @@ export const ExampleChat = ({ start }: { start: boolean }) => {
     const afterShowLoading = wait(1000);
     promisesRef.current.push(afterShowLoading.cancel);
     await afterShowLoading.promise;
+
+    const startTime = Date.now();
+    setThinkingStartTime(startTime);
+    setShowChainOfThought(true);
+    setChainOfThoughtOpen(true);
+    setCurrentStepIndex(-1);
+    setIsThinkingComplete(false);
+
+    const currentSample = samples[currentSampleIndex];
+    for (let i = 0; i < currentSample.output.reasoning.length; i++) {
+      setCurrentStepIndex(i);
+      const stepDelay = wait(800); // Each step takes 800ms
+      promisesRef.current.push(stepDelay.cancel);
+      await stepDelay.promise;
+    }
+
+    const afterAllSteps = wait(500);
+    promisesRef.current.push(afterAllSteps.cancel);
+    await afterAllSteps.promise;
+
+    const endTime = Date.now();
+    const duration = Math.round((endTime - startTime) / 1000);
+    setThinkingDuration(duration);
+    setIsThinkingComplete(true);
+
+    setChainOfThoughtOpen(false);
+    const afterCollapse = wait(300); // Wait for collapse animation
+    promisesRef.current.push(afterCollapse.cancel);
+    await afterCollapse.promise;
 
     setShowAnswer(true);
     const afterShowAnswer = wait(1000);
@@ -168,7 +356,6 @@ export const ExampleChat = ({ start }: { start: boolean }) => {
     promisesRef.current.push(afterShowFooter.cancel);
     await afterShowFooter.promise;
 
-    // Reset
     clearAll();
     const afterClearAll = wait(1000);
     promisesRef.current.push(afterClearAll.cancel);
@@ -180,10 +367,29 @@ export const ExampleChat = ({ start }: { start: boolean }) => {
 
   const currentSample = samples[currentSampleIndex];
 
+  const chainOfThoughtHeaderText = useMemo(() => {
+    if (isThinkingComplete && thinkingDuration !== null) {
+      return `Thought for ${thinkingDuration} second${thinkingDuration !== 1 ? "s" : ""}`;
+    }
+    return "Thinking...";
+  }, [isThinkingComplete, thinkingDuration]);
+
+  const reasoningSteps = useMemo(() => {
+    return currentSample?.output.reasoning.map((step, index) => (
+      <MemoizedChainOfThoughtStep
+        key={index}
+        stepIndex={index}
+        staticIcon={step.icon}
+        label={step.text}
+        currentStepIndex={currentStepIndex}
+      />
+    ));
+  }, [currentSample?.output.reasoning, currentStepIndex]);
+
   return (
-    <section className={"container"}>
-      <section className={"window"}>
-        <div className={"input"}>
+    <section className={`container shadow-2xl shadow-emerald-900/50`}>
+      <section className="window">
+        <div className="input">
           <Typewriter
             start={start && showQuestion}
             text={currentSample?.input ?? ""}
@@ -191,11 +397,30 @@ export const ExampleChat = ({ start }: { start: boolean }) => {
           />
         </div>
         <div className={cn("loading", showLoading && "active")} />
-        <div className={"output"}>
+        <div className="output">
+          <AnimatePresence>
+            {start && showChainOfThought && (
+              <motion.div
+                className="chainOfThought"
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: 20 }}
+              >
+                <ChainOfThought open={chainOfThoughtOpen}>
+                  <ChainOfThoughtHeader>
+                    {chainOfThoughtHeaderText}
+                  </ChainOfThoughtHeader>
+                  <ChainOfThoughtContent>
+                    {reasoningSteps}
+                  </ChainOfThoughtContent>
+                </ChainOfThought>
+              </motion.div>
+            )}
+          </AnimatePresence>
           <AnimatePresence>
             {start && showAnswer && (
               <motion.div
-                className={"outputText"}
+                className="outputText"
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: 20 }}
@@ -212,7 +437,7 @@ export const ExampleChat = ({ start }: { start: boolean }) => {
           <AnimatePresence>
             {start && showFooter && (
               <motion.footer
-                className={"outputFooter"}
+                className="outputFooter"
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 exit={{ opacity: 0 }}
@@ -302,7 +527,28 @@ const Typewriter = ({
   return (
     <div>
       <span ref={textContainerRef} />
-      {!hideCursor && <span className={"cursor"}>|</span>}
+      {!hideCursor && <span className="cursor">|</span>}
     </div>
   );
 };
+
+const Spinner = (props: React.SVGProps<SVGSVGElement>) => (
+  <svg
+    width="16"
+    height="16"
+    viewBox="0 0 24 24"
+    xmlns="http://www.w3.org/2000/svg"
+    fill="currentColor"
+    {...props}
+  >
+    <path d="M2,12A10.94,10.94,0,0,1,5,4.65c-.21-.19-.42-.36-.62-.55h0A11,11,0,0,0,12,23c.34,0,.67,0,1-.05C6,23,2,17.74,2,12Z">
+      <animateTransform
+        attributeName="transform"
+        type="rotate"
+        dur="0.6s"
+        values="0 12 12;360 12 12"
+        repeatCount="indefinite"
+      />
+    </path>
+  </svg>
+);
