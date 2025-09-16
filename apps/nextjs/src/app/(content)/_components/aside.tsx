@@ -27,7 +27,7 @@ import {
 } from "lucide-react";
 
 import type { ContentComponent } from "@/lib/content";
-import { CodeEditor, FileExplorer } from "./sandpack";
+import { CodeEditor, FileExplorer, OpenInCodeSandboxButton } from "./sandpack";
 
 type AsideProps = {
   contentComponent: ContentComponent;
@@ -135,7 +135,10 @@ const Aside = ({ contentComponent }: AsideProps) => {
 
   return (
     <Card className="h-full">
-      <h1 className="text-xl">{contentComponent.name}</h1>
+      <h1 className="flex items-center gap-1 text-xl">
+        {contentComponent.name}
+        <OpenInCodeSandboxButton />
+      </h1>
       {contentComponent.description && (
         <p className="text-muted-foreground text-sm">
           {contentComponent.description}

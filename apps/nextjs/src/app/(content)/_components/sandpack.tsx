@@ -2,12 +2,14 @@
 
 import {
   FileTabs,
+  OpenInCodeSandboxButton,
   SandpackFileExplorer,
   SandpackLayout,
   SandpackPreview,
   SandpackProvider,
   useActiveCode,
   useSandpack,
+  useSandpackNavigation,
 } from "@codesandbox/sandpack-react/unstyled";
 import MonacoEditor from "@monaco-editor/react";
 import { useTheme } from "@repo/ui/theme";
@@ -318,6 +320,8 @@ export {
   SandpackPreview,
   FileExplorer,
   useSandpack,
+  useSandpackNavigation,
+  OpenInCodeSandboxButton,
   ContentProvider,
   CodeEditor,
 };

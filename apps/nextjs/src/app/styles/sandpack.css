@@ -110,3 +110,11 @@
     white-space: nowrap;
   }
 }
+
+.sp-icon-standalone {
+  cursor: pointer;
+
+  > span {
+    display: none;
+  }
+}
