@@ -308,6 +308,9 @@ const defaultPreviewStyles = `
   body {
     @apply bg-background text-foreground;
   }
+  html, body, #root {
+    height: 100%;
+  }
 }
 `;
 
