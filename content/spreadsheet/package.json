@@ -1,0 +1,16 @@
+{
+  "name": "@uicapsule/spreadsheet",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "clean": "git clean -xdf .cache .turbo dist node_modules"
+  },
+  "dependencies": {
+    "@repo/ui": "workspace:^",
+    "@tanstack/react-table": "^8.21.3",
+    "@tanstack/react-virtual": "^3.13.12",
+    "react": "*",
+    "react-dom": "*"
+  }
+}
