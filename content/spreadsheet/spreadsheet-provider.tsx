@@ -40,10 +40,6 @@ interface SpreadsheetContextType {
   setDragStartCell: React.Dispatch<
     React.SetStateAction<{ rowIndex: number; columnId: string } | null>
   >;
-  dragEndCell: { rowIndex: number; columnId: string } | null;
-  setDragEndCell: React.Dispatch<
-    React.SetStateAction<{ rowIndex: number; columnId: string } | null>
-  >;
 
   // Column Management
   columnWidths: Record<string, number>;
@@ -136,10 +132,6 @@ export const SpreadsheetProvider: React.FC<SpreadsheetProviderProps> = ({
     rowIndex: number;
     columnId: string;
   } | null>(null);
-  const [dragEndCell, setDragEndCell] = useState<{
-    rowIndex: number;
-    columnId: string;
-  } | null>(null);
   const [columnWidths, setColumnWidths] = useState<Record<string, number>>({
     linkedinUrl: 250,
     firstName: 120,
@@ -169,7 +161,11 @@ export const SpreadsheetProvider: React.FC<SpreadsheetProviderProps> = ({
     [],
   );
 
-  const { isEnriching, startEnrichment } = useEnrichment(data, updateData);
+  const { isEnriching, startEnrichment } = useEnrichment(
+    data,
+    updateData,
+    selectedCells,
+  );
 
   const addRow = useCallback(() => {
     const newRow: Person = {
@@ -199,8 +195,6 @@ export const SpreadsheetProvider: React.FC<SpreadsheetProviderProps> = ({
     setIsDragging,
     dragStartCell,
     setDragStartCell,
-    dragEndCell,
-    setDragEndCell,
     columnWidths,
     setColumnWidths,
     isEnriching,

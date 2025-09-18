@@ -15,6 +15,7 @@ type Person = {
 export function useEnrichment(
   data: Person[],
   updateData: (rowIndex: number, columnId: string, value: any) => void,
+  selectedCells?: Set<string>,
 ) {
   const [isEnriching, setIsEnriching] = useState(false);
   const [enrichmentQueue, setEnrichmentQueue] = useState<
@@ -211,16 +212,37 @@ export function useEnrichment(
 
     // First, set all empty cells to "Queued"
     const emptyCells: Array<{ rowIndex: number; columnId: string }> = [];
-    data.forEach((row, rowIndex) => {
-      ["firstName", "lastName", "email", "company", "role"].forEach(
-        (columnId) => {
-          if (!row[columnId as keyof Person]) {
-            emptyCells.push({ rowIndex, columnId });
-            updateData(rowIndex, columnId, "Queued");
-          }
-        },
-      );
-    });
+
+    if (selectedCells && selectedCells.size > 0) {
+      // Only enrich selected cells
+      selectedCells.forEach((cellKey) => {
+        const [rowIndexStr, columnId] = cellKey.split("-");
+        const rowIndex = Number.parseInt(rowIndexStr);
+
+        // Only enrich if it's an enrichable column and the cell is empty
+        if (
+          ["firstName", "lastName", "email", "company", "role"].includes(
+            columnId,
+          ) &&
+          !data[rowIndex]?.[columnId as keyof Person]
+        ) {
+          emptyCells.push({ rowIndex, columnId });
+          updateData(rowIndex, columnId, "Queued");
+        }
+      });
+    } else {
+      // No selection, enrich all empty cells
+      data.forEach((row, rowIndex) => {
+        ["firstName", "lastName", "email", "company", "role"].forEach(
+          (columnId) => {
+            if (!row[columnId as keyof Person]) {
+              emptyCells.push({ rowIndex, columnId });
+              updateData(rowIndex, columnId, "Queued");
+            }
+          },
+        );
+      });
+    }
 
     setEnrichmentQueue(emptyCells);
 
@@ -228,7 +250,7 @@ export function useEnrichment(
     setTimeout(() => {
       processEnrichmentQueue(emptyCells);
     }, 500);
-  }, [data, isEnriching, processEnrichmentQueue, updateData]);
+  }, [data, isEnriching, processEnrichmentQueue, updateData, selectedCells]);
 
   return {
     isEnriching,

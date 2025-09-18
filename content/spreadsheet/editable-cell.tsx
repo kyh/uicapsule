@@ -76,14 +76,14 @@ export const EditableCell = ({
         onChange={(e) => setValue(e.target.value)}
         onBlur={onBlur}
         onKeyDown={onKeyDown}
-        className="focus:ring-primary text-foreground h-8 w-full rounded-none border-0 bg-transparent p-1 text-sm focus:ring-1"
+        className="h-8 w-full rounded-none border-0 bg-transparent p-1 text-sm focus-visible:ring-blue-600/20"
         style={{ minWidth: "120px" }}
       />
     );
   }
 
   return (
-    <div className="hover:bg-muted/50 h-8 w-full p-1 transition-colors">
+    <div className="h-8 w-full p-1">
       <div className="flex items-center">
         {getStatusDot()}
         <span className="text-foreground block truncate text-sm" title={value}>

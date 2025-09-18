@@ -9,6 +9,7 @@ import { MoreVerticalIcon } from "lucide-react";
 interface MemoizedTableBodyProps {
   virtualItems: any[];
   table: any;
+  data: any[];
   selectedCells: Set<string>;
   getRowCells: (rowIndex: number) => string[];
   handleMouseDown: (
@@ -28,6 +29,7 @@ export const MemoizedTableBody = React.memo(
   ({
     virtualItems,
     table,
+    data,
     selectedCells,
     getRowCells,
     handleMouseDown,
@@ -67,17 +69,15 @@ export const MemoizedTableBody = React.memo(
                 {rowIndex + 1}
               </div>
               {row.getVisibleCells().map((cell) => {
-                const isCellSelected = selectedCells.has(
-                  `${rowIndex}-${cell.column.id}`,
-                );
+                const cellKey = `${rowIndex}-${cell.column.id}`;
+                const isCellSelected = selectedCells.has(cellKey);
 
                 return (
                   <div
                     key={cell.id}
                     className={cn(
-                      "border-border relative flex h-9 cursor-cell items-center border-r border-b",
-                      isCellSelected &&
-                        "bg-muted ring-border ring-1 ring-inset",
+                      "border-border relative flex h-9 cursor-cell items-center border-r border-b transition-colors",
+                      isCellSelected && "bg-blue-50",
                     )}
                     style={{
                       width: `calc(var(--col-${cell.column.id}-size) * 1px)`,
@@ -108,6 +108,7 @@ export const MemoizedTableBody = React.memo(
   (prevProps, nextProps) => {
     return (
       prevProps.virtualItems === nextProps.virtualItems &&
+      prevProps.data === nextProps.data &&
       prevProps.selectedCells === nextProps.selectedCells &&
       prevProps.getRowCells === nextProps.getRowCells &&
       prevProps.handleMouseDown === nextProps.handleMouseDown &&

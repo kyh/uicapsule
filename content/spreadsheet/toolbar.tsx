@@ -7,7 +7,7 @@ import { Download, Plus, Upload } from "lucide-react";
 import { useSpreadsheet } from "./spreadsheet-provider";
 
 export const Toolbar = () => {
-  const { isEnriching, startEnrichment, addRow } = useSpreadsheet();
+  const { isEnriching, startEnrichment } = useSpreadsheet();
 
   return (
     <div className="flex items-center gap-2 p-2">

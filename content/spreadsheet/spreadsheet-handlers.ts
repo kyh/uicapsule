@@ -18,16 +18,13 @@ interface UseSpreadsheetHandlersProps {
   data: any[];
   columns: ColumnInfo[];
   selectedCells: Set<string>;
-  setSelectedCells: (
-    cells: Set<string> | ((prev: Set<string>) => Set<string>),
-  ) => void;
+  setSelectedCells: React.Dispatch<React.SetStateAction<Set<string>>>;
   editingCell: CellPosition | null;
-  setEditingCell: (cell: CellPosition | null) => void;
+  setEditingCell: React.Dispatch<React.SetStateAction<CellPosition | null>>;
   isDragging: boolean;
-  setIsDragging: (dragging: boolean) => void;
-  setDragStartCell: (cell: CellPosition | null) => void;
-  setDragEndCell: (cell: CellPosition | null) => void;
+  setIsDragging: React.Dispatch<React.SetStateAction<boolean>>;
   dragStartCell: CellPosition | null;
+  setDragStartCell: React.Dispatch<React.SetStateAction<CellPosition | null>>;
 }
 
 export const useSpreadsheetHandlers = ({
@@ -39,9 +36,8 @@ export const useSpreadsheetHandlers = ({
   setEditingCell,
   isDragging,
   setIsDragging,
-  setDragStartCell,
-  setDragEndCell,
   dragStartCell,
+  setDragStartCell,
 }: UseSpreadsheetHandlersProps) => {
   // Mouse down handler for all interactions
   const handleMouseDown = useCallback(
@@ -154,8 +150,7 @@ export const useSpreadsheetHandlers = ({
           editingCell?.columnId === columnId;
         const isCurrentlySelected =
           selectedCells.has(cellKey) && selectedCells.size === 1;
-        console.log("isCurrentlyEditing", isCurrentlyEditing);
-        console.log("isCurrentlySelected", isCurrentlySelected);
+
         if (isCurrentlyEditing) {
           // If clicking on the cell that's currently being edited, stop editing
           setEditingCell(null);
@@ -173,7 +168,6 @@ export const useSpreadsheetHandlers = ({
       // Start drag selection for potential dragging
       setIsDragging(true);
       setDragStartCell({ rowIndex, columnId });
-      setDragEndCell({ rowIndex, columnId });
     },
     [
       selectedCells,
@@ -183,15 +177,12 @@ export const useSpreadsheetHandlers = ({
       setEditingCell,
       setIsDragging,
       setDragStartCell,
-      setDragEndCell,
     ],
   );
 
   const handleMouseMove = useCallback(
     (e: React.MouseEvent, rowIndex: number, columnId: string) => {
       if (!isDragging || !dragStartCell) return;
-
-      setDragEndCell({ rowIndex, columnId });
 
       // Update selection based on drag range
       const rangeCells = getRangeCells(
@@ -216,7 +207,6 @@ export const useSpreadsheetHandlers = ({
       columns,
       data.length,
       editingCell,
-      setDragEndCell,
       setSelectedCells,
       setEditingCell,
     ],
@@ -225,8 +215,7 @@ export const useSpreadsheetHandlers = ({
   const handleMouseUp = useCallback(() => {
     setIsDragging(false);
     setDragStartCell(null);
-    setDragEndCell(null);
-  }, [setIsDragging, setDragStartCell, setDragEndCell]);
+  }, [setIsDragging, setDragStartCell]);
 
   const handleKeyDown = useCallback(
     (e: React.KeyboardEvent) => {
@@ -327,6 +316,17 @@ export const useSpreadsheetHandlers = ({
           if (nextPosition) {
             const newCellKey = `${nextPosition.rowIndex}-${nextPosition.columnId}`;
             setSelectedCells(new Set([newCellKey]));
+          }
+          break;
+        }
+        case "Escape": {
+          e.preventDefault();
+          if (editingCell) {
+            // If editing, stop editing
+            setEditingCell(null);
+          } else {
+            // If not editing, deselect everything
+            setSelectedCells(new Set());
           }
           break;
         }

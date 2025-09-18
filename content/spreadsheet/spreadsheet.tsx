@@ -31,8 +31,6 @@ export const Spreadsheet: React.FC = () => {
     setIsDragging,
     dragStartCell,
     setDragStartCell,
-    dragEndCell,
-    setDragEndCell,
     columnWidths,
     setColumnWidths,
     updateData,
@@ -198,7 +196,6 @@ export const Spreadsheet: React.FC = () => {
       isDragging,
       setIsDragging,
       setDragStartCell,
-      setDragEndCell,
       dragStartCell,
     });
 
@@ -310,6 +307,7 @@ export const Spreadsheet: React.FC = () => {
           <MemoizedTableBody
             virtualItems={rowVirtualizer.getVirtualItems()}
             table={table}
+            data={data}
             selectedCells={selectedCells}
             getRowCells={getRowCellsHelper}
             handleMouseDown={handleMouseDown}
