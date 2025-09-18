@@ -27,19 +27,23 @@ interface SpreadsheetContextType {
 
   // UI State
   selectedCells: Set<string>;
-  setSelectedCells: (cells: Set<string>) => void;
+  setSelectedCells: React.Dispatch<React.SetStateAction<Set<string>>>;
   editingCell: { rowIndex: number; columnId: string } | null;
-  setEditingCell: (cell: { rowIndex: number; columnId: string } | null) => void;
+  setEditingCell: React.Dispatch<
+    React.SetStateAction<{ rowIndex: number; columnId: string } | null>
+  >;
 
   // Drag Selection
   isDragging: boolean;
-  setIsDragging: (dragging: boolean) => void;
+  setIsDragging: React.Dispatch<React.SetStateAction<boolean>>;
   dragStartCell: { rowIndex: number; columnId: string } | null;
-  setDragStartCell: (
-    cell: { rowIndex: number; columnId: string } | null,
-  ) => void;
+  setDragStartCell: React.Dispatch<
+    React.SetStateAction<{ rowIndex: number; columnId: string } | null>
+  >;
   dragEndCell: { rowIndex: number; columnId: string } | null;
-  setDragEndCell: (cell: { rowIndex: number; columnId: string } | null) => void;
+  setDragEndCell: React.Dispatch<
+    React.SetStateAction<{ rowIndex: number; columnId: string } | null>
+  >;
 
   // Column Management
   columnWidths: Record<string, number>;

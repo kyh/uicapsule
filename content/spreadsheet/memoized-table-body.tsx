@@ -1,0 +1,117 @@
+"use client";
+
+import React from "react";
+import { Button } from "@repo/ui/button";
+import { cn } from "@repo/ui/utils";
+import { flexRender } from "@tanstack/react-table";
+import { MoreVerticalIcon } from "lucide-react";
+
+interface MemoizedTableBodyProps {
+  virtualItems: any[];
+  table: any;
+  selectedCells: Set<string>;
+  getRowCells: (rowIndex: number) => string[];
+  handleMouseDown: (
+    e: React.MouseEvent,
+    rowIndex: number,
+    columnId: string,
+  ) => void;
+  handleMouseMove: (
+    e: React.MouseEvent,
+    rowIndex: number,
+    columnId: string,
+  ) => void;
+  deleteRow: (rowIndex: number) => void;
+}
+
+export const MemoizedTableBody = React.memo(
+  ({
+    virtualItems,
+    table,
+    selectedCells,
+    getRowCells,
+    handleMouseDown,
+    handleMouseMove,
+    deleteRow,
+  }: MemoizedTableBodyProps) => (
+    <>
+      {virtualItems.map((virtualRow) => {
+        const row = table.getRowModel().rows[virtualRow.index];
+        const rowIndex = virtualRow.index;
+        const rowCells = getRowCells(rowIndex);
+        const isRowSelected = rowCells.every((cell) => selectedCells.has(cell));
+
+        return (
+          <div
+            key={row.id}
+            className={cn(
+              "hover:bg-muted/30 absolute top-0 left-0 w-full transition-colors",
+              isRowSelected && "bg-muted/50",
+            )}
+            style={{
+              height: `${virtualRow.size}px`,
+              transform: `translateY(${virtualRow.start}px)`,
+            }}
+          >
+            <div className="flex h-full">
+              {/* Row number */}
+              <div
+                data-row-number
+                className={cn(
+                  "border-border bg-muted/30 text-muted-foreground hover:bg-muted/50 flex h-9 w-12 cursor-pointer items-center justify-center border-r border-b font-mono text-xs transition-colors",
+                  isRowSelected && "bg-muted",
+                )}
+                onMouseDown={(e) => handleMouseDown(e, rowIndex, "")}
+                onMouseMove={(e) => handleMouseMove(e, rowIndex, "")}
+              >
+                {rowIndex + 1}
+              </div>
+              {row.getVisibleCells().map((cell) => {
+                const isCellSelected = selectedCells.has(
+                  `${rowIndex}-${cell.column.id}`,
+                );
+
+                return (
+                  <div
+                    key={cell.id}
+                    className={cn(
+                      "border-border relative flex h-9 cursor-cell items-center border-r border-b",
+                      isCellSelected &&
+                        "bg-muted ring-border ring-1 ring-inset",
+                    )}
+                    style={{
+                      width: `calc(var(--col-${cell.column.id}-size) * 1px)`,
+                    }}
+                    onMouseDown={(e) =>
+                      handleMouseDown(e, rowIndex, cell.column.id)
+                    }
+                    onMouseMove={(e) =>
+                      handleMouseMove(e, rowIndex, cell.column.id)
+                    }
+                  >
+                    {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                  </div>
+                );
+              })}
+              {/* Delete button */}
+              <div className="border-border flex h-9 w-12 items-center justify-center border-b">
+                <Button size="icon" variant="ghost">
+                  <MoreVerticalIcon className="h-3 w-3" />
+                </Button>
+              </div>
+            </div>
+          </div>
+        );
+      })}
+    </>
+  ),
+  (prevProps, nextProps) => {
+    return (
+      prevProps.virtualItems === nextProps.virtualItems &&
+      prevProps.selectedCells === nextProps.selectedCells &&
+      prevProps.getRowCells === nextProps.getRowCells &&
+      prevProps.handleMouseDown === nextProps.handleMouseDown &&
+      prevProps.handleMouseMove === nextProps.handleMouseMove
+    );
+  },
+);
