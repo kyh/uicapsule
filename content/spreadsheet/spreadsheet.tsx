@@ -36,7 +36,7 @@ interface EditableCellProps {
   onStopEdit: () => void;
 }
 
-const EditableCell: React.FC<EditableCellProps> = ({
+const EditableCell = ({
   getValue,
   row,
   column,
@@ -45,7 +45,7 @@ const EditableCell: React.FC<EditableCellProps> = ({
   isEditing,
   onStartEdit,
   onStopEdit,
-}) => {
+}: EditableCellProps) => {
   const initialValue = getValue();
   const [value, setValue] = useState(initialValue);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -106,7 +106,7 @@ const EditableCell: React.FC<EditableCellProps> = ({
 
   return (
     <div className="hover:bg-muted/50 h-8 w-full p-1 transition-colors">
-      <div className="flex items-center select-none">
+      <div className="flex items-center">
         {getStatusDot()}
         <span className="text-foreground block truncate text-sm" title={value}>
           {value}
@@ -784,7 +784,10 @@ export const Spreadsheet: React.FC = () => {
   });
 
   return (
-    <div className="flex flex-col" style={columnSizeVars}>
+    <div
+      className={cn("flex flex-col", isDragging && "select-none")}
+      style={columnSizeVars}
+    >
       <div
         ref={dragLineRef}
         className={cn(
