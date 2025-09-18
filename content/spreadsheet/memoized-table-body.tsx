@@ -60,7 +60,7 @@ export const MemoizedTableBody = React.memo(
               <div
                 data-row-number
                 className={cn(
-                  "border-border bg-muted/30 text-muted-foreground hover:bg-muted/50 flex h-9 w-12 cursor-pointer items-center justify-center border-r border-b font-mono text-xs transition-colors",
+                  "border-border bg-muted/30 text-muted-foreground hover:bg-muted/50 flex h-9 w-12 cursor-default items-center justify-center border-r border-b font-mono text-xs transition-colors",
                   isRowSelected && "bg-muted",
                 )}
                 onMouseDown={(e) => handleMouseDown(e, rowIndex, "")}
@@ -76,7 +76,7 @@ export const MemoizedTableBody = React.memo(
                   <div
                     key={cell.id}
                     className={cn(
-                      "border-border relative flex h-9 cursor-cell items-center border-r border-b transition-colors",
+                      "border-border relative flex h-9 cursor-default items-center border-r border-b transition-colors",
                       isCellSelected && "bg-blue-50",
                     )}
                     style={{

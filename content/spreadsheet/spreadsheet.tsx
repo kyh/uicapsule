@@ -274,7 +274,7 @@ export const Spreadsheet: React.FC = () => {
             key={header.id}
             data-column-id={header.column.id}
             data-column-header
-            className="border-border bg-muted text-muted-foreground hover:bg-muted/80 relative flex h-10 cursor-pointer items-center border-r pl-1 text-left text-xs font-medium transition-colors"
+            className="border-border bg-muted text-muted-foreground hover:bg-muted/80 relative flex h-10 cursor-default items-center border-r pl-1 text-left text-xs font-medium transition-colors"
             style={{
               width: `calc(var(--col-${header.column.id}-size) * 1px)`,
             }}
