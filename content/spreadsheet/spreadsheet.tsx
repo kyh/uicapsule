@@ -50,6 +50,17 @@ const EditableCell: React.FC<EditableCellProps> = ({
   const [value, setValue] = useState(initialValue);
   const inputRef = useRef<HTMLInputElement>(null);
 
+  useEffect(() => {
+    setValue(initialValue);
+  }, [initialValue]);
+
+  useEffect(() => {
+    if (isEditing && inputRef.current) {
+      inputRef.current.focus();
+      inputRef.current.select();
+    }
+  }, [isEditing]);
+
   const onBlur = () => {
     onStopEdit();
     table.options.meta?.updateData(row.index, column.id, value);
@@ -65,16 +76,19 @@ const EditableCell: React.FC<EditableCellProps> = ({
     e.stopPropagation();
   };
 
-  useEffect(() => {
-    setValue(initialValue);
-  }, [initialValue]);
-
-  useEffect(() => {
-    if (isEditing && inputRef.current) {
-      inputRef.current.focus();
-      inputRef.current.select();
+  const getStatusDot = () => {
+    if (value === "Queued") {
+      return (
+        <div className="mr-2 h-2 w-2 flex-shrink-0 rounded-full bg-yellow-500" />
+      );
     }
-  }, [isEditing]);
+    if (value === "Researching...") {
+      return (
+        <div className="mr-2 h-2 w-2 flex-shrink-0 rounded-full bg-green-500" />
+      );
+    }
+    return null;
+  };
 
   if (isEditing) {
     return (
@@ -90,23 +104,9 @@ const EditableCell: React.FC<EditableCellProps> = ({
     );
   }
 
-  const getStatusDot = () => {
-    if (value === "Queued") {
-      return (
-        <div className="mr-2 h-2 w-2 flex-shrink-0 rounded-full bg-yellow-500" />
-      );
-    }
-    if (value === "Researching...") {
-      return (
-        <div className="mr-2 h-2 w-2 flex-shrink-0 rounded-full bg-green-500" />
-      );
-    }
-    return null;
-  };
-
   return (
     <div className="hover:bg-muted/50 h-8 w-full p-1 transition-colors">
-      <div className="flex items-center">
+      <div className="flex items-center select-none">
         {getStatusDot()}
         <span className="text-foreground block truncate text-sm" title={value}>
           {value}
