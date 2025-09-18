@@ -11,6 +11,6 @@
     "@react-three/fiber": "^9.3.0",
     "react": "*",
     "react-dom": "*",
-    "three": "^0.179.1"
+    "three": "^0.180.0"
   }
 }
