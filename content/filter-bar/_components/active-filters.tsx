@@ -22,6 +22,8 @@ interface ActiveFiltersProps<TData> {
   actions: DataTableFilterActions;
   strategy: FilterStrategy;
   entityName?: string;
+  aiGenerating?: boolean;
+  aiSkeletonCount?: number;
 }
 
 export function ActiveFilters<TData>({
@@ -30,9 +32,15 @@ export function ActiveFilters<TData>({
   actions,
   strategy,
   entityName,
+  aiGenerating,
+  aiSkeletonCount,
 }: ActiveFiltersProps<TData>) {
   return (
     <>
+      {aiGenerating &&
+        Array.from({ length: aiSkeletonCount ?? 0 }).map((_, index) => (
+          <ActiveFilterSkeleton key={`ai-skeleton-${index}`} />
+        ))}
       {filters.map((filter) => {
         const id = filter.columnId;
 
@@ -53,6 +61,17 @@ export function ActiveFilters<TData>({
         );
       })}
     </>
+  );
+}
+
+function ActiveFilterSkeleton() {
+  return (
+    <div className="border-border bg-muted/60 text-muted-foreground flex h-7 items-center gap-2 rounded-2xl border px-3 text-xs shadow-xs">
+      <div className="flex items-center gap-2">
+        <span className="bg-muted-foreground/60 block h-2 w-10 animate-pulse rounded" />
+        <span className="bg-muted-foreground/40 block h-2 w-6 animate-pulse rounded" />
+      </div>
+    </div>
   );
 }
 
