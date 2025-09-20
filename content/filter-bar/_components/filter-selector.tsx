@@ -62,7 +62,7 @@ function __FilterSelector<TData>({
   const [value, setValue] = useState("");
   const [property, setProperty] = useState<string | undefined>(undefined);
   const [mode, setMode] = useState<"list" | "ai">("list");
-  const [aiPrompt, setAiPrompt] = useState("");
+  const aiPromptRef = useRef<HTMLTextAreaElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
   const visibleColumns = useMemo(
@@ -94,24 +94,20 @@ function __FilterSelector<TData>({
     if (!open) setTimeout(() => setValue(""), 150);
   }, [open]);
 
-  useEffect(() => {
-    if (!open) {
-      setMode("list");
-      setAiPrompt("");
-    }
-  }, [open]);
-
   const handleAiSubmit = useCallback(
     (event: FormEvent<HTMLFormElement>) => {
       event.preventDefault();
-      if (!aiPrompt.trim() || !onAIFilterSubmit) return;
+      const prompt = aiPromptRef.current?.value.trim();
+      if (!prompt || !onAIFilterSubmit) return;
 
-      onAIFilterSubmit(aiPrompt.trim());
+      onAIFilterSubmit(prompt);
       setOpen(false);
       setMode("list");
-      setAiPrompt("");
+      if (aiPromptRef.current) {
+        aiPromptRef.current.value = "";
+      }
     },
-    [aiPrompt, onAIFilterSubmit],
+    [onAIFilterSubmit],
   );
 
   const content = useMemo(
@@ -135,14 +131,13 @@ function __FilterSelector<TData>({
             </div>
           </div>
           <Textarea
-            value={aiPrompt}
-            onChange={(event) => setAiPrompt(event.target.value)}
+            ref={aiPromptRef}
             placeholder="Describe what you're looking for..."
             className="min-h-[120px] resize-none text-sm"
           />
           <Button
             type="submit"
-            disabled={!aiPrompt.trim().length || aiGenerating}
+            disabled={aiGenerating}
             className="w-full"
           >
             {aiGenerating ? "Generating..." : "Generate filters"}
@@ -234,7 +229,6 @@ function __FilterSelector<TData>({
       mode,
       handleAiSubmit,
       aiGenerating,
-      aiPrompt,
       property,
       column,
       filter,
@@ -251,7 +245,13 @@ function __FilterSelector<TData>({
       open={open}
       onOpenChange={async (value) => {
         setOpen(value);
-        if (!value) setTimeout(() => setProperty(undefined), 100);
+        if (!value) {
+          setMode("list");
+          if (aiPromptRef.current) {
+            aiPromptRef.current.value = "";
+          }
+          setTimeout(() => setProperty(undefined), 100);
+        }
       }}
     >
       <PopoverTrigger asChild>
