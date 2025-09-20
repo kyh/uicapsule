@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import { Button } from "@repo/ui/button";
 import { Separator } from "@repo/ui/separator";
 import { X } from "lucide-react";
@@ -23,7 +23,7 @@ interface ActiveFiltersProps<TData> {
   strategy: FilterStrategy;
   entityName?: string;
   aiGenerating?: boolean;
-  aiSkeletonCount?: number;
+  aiPendingColumnIds?: string[];
 }
 
 export function ActiveFilters<TData>({
@@ -33,15 +33,42 @@ export function ActiveFilters<TData>({
   strategy,
   entityName,
   aiGenerating,
-  aiSkeletonCount,
+  aiPendingColumnIds,
 }: ActiveFiltersProps<TData>) {
+  const pendingIds = aiPendingColumnIds ?? [];
+  const pendingIdSet = useMemo(
+    () => new Set(pendingIds),
+    [pendingIds],
+  );
+
+  const pendingItems = pendingIds.map((columnId) => {
+    const filter = filters.find((item) => item.columnId === columnId);
+
+    if (filter && filter.values) {
+      const column = getColumn(columns, columnId);
+      return (
+        <ActiveFilter
+          key={`active-filter-${filter.columnId}`}
+          filter={filter}
+          column={column}
+          actions={actions}
+          strategy={strategy}
+          entityName={entityName}
+        />
+      );
+    }
+
+    return <ActiveFilterSkeleton key={`ai-skeleton-${columnId}`} />;
+  });
+
+  const remainingFilters = filters.filter(
+    (filter) => !pendingIdSet.has(filter.columnId),
+  );
+
   return (
     <>
-      {aiGenerating &&
-        Array.from({ length: aiSkeletonCount ?? 0 }).map((_, index) => (
-          <ActiveFilterSkeleton key={`ai-skeleton-${index}`} />
-        ))}
-      {filters.map((filter) => {
+      {aiGenerating && pendingItems}
+      {remainingFilters.map((filter) => {
         const id = filter.columnId;
 
         const column = getColumn(columns, id);
