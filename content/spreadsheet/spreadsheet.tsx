@@ -24,13 +24,9 @@ export const Spreadsheet: React.FC = () => {
   const {
     data,
     selectedCells,
-    setSelectedCells,
     editingCell,
     setEditingCell,
     isDragging,
-    setIsDragging,
-    dragStartCell,
-    setDragStartCell,
     columnWidths,
     setColumnWidths,
     updateData,
@@ -187,16 +183,7 @@ export const Spreadsheet: React.FC = () => {
   // Get event handlers
   const { handleMouseDown, handleMouseMove, handleMouseUp, handleKeyDown } =
     useSpreadsheetHandlers({
-      data,
       columns,
-      selectedCells,
-      setSelectedCells,
-      editingCell,
-      setEditingCell,
-      isDragging,
-      setIsDragging,
-      setDragStartCell,
-      dragStartCell,
     });
 
   const handleColumnResize = useCallback(

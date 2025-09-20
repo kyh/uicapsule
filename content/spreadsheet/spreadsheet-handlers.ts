@@ -1,6 +1,7 @@
 import { useCallback } from "react";
 
 import type { CellPosition, ColumnInfo } from "./spreadsheet-utils";
+import { useSpreadsheet } from "./spreadsheet-provider";
 import {
   getColumnCells,
   getFirstSelectedCell,
@@ -15,30 +16,24 @@ import {
 } from "./spreadsheet-utils";
 
 interface UseSpreadsheetHandlersProps {
-  data: any[];
   columns: ColumnInfo[];
-  selectedCells: Set<string>;
-  setSelectedCells: React.Dispatch<React.SetStateAction<Set<string>>>;
-  editingCell: CellPosition | null;
-  setEditingCell: React.Dispatch<React.SetStateAction<CellPosition | null>>;
-  isDragging: boolean;
-  setIsDragging: React.Dispatch<React.SetStateAction<boolean>>;
-  dragStartCell: CellPosition | null;
-  setDragStartCell: React.Dispatch<React.SetStateAction<CellPosition | null>>;
 }
 
 export const useSpreadsheetHandlers = ({
-  data,
   columns,
-  selectedCells,
-  setSelectedCells,
-  editingCell,
-  setEditingCell,
-  isDragging,
-  setIsDragging,
-  dragStartCell,
-  setDragStartCell,
 }: UseSpreadsheetHandlersProps) => {
+  const {
+    data,
+    selectedCells,
+    setSelectedCells,
+    editingCell,
+    setEditingCell,
+    isDragging,
+    setIsDragging,
+    dragStartCell,
+    setDragStartCell,
+    clearSelectedCells,
+  } = useSpreadsheet();
   // Mouse down handler for all interactions
   const handleMouseDown = useCallback(
     (e: React.MouseEvent, rowIndex: number, columnId: string) => {
@@ -153,12 +148,10 @@ export const useSpreadsheetHandlers = ({
 
         if (isCurrentlyEditing) {
           // If clicking on the cell that's currently being edited, stop editing
-          setEditingCell(null);
+          setTimeout(() => setEditingCell(null), 0);
         } else if (isCurrentlySelected) {
           // If clicking on the cell that's already selected (but not editing), start editing
-          setTimeout(() => {
-            setEditingCell({ rowIndex, columnId });
-          }, 0);
+          setTimeout(() => setEditingCell({ rowIndex, columnId }), 0);
         } else {
           // Select this cell and enter edit mode
           setSelectedCells(new Set([cellKey]));
@@ -173,6 +166,7 @@ export const useSpreadsheetHandlers = ({
       selectedCells,
       columns,
       data.length,
+      editingCell,
       setSelectedCells,
       setEditingCell,
       setIsDragging,
@@ -330,6 +324,14 @@ export const useSpreadsheetHandlers = ({
           }
           break;
         }
+        case "Delete":
+        case "Backspace": {
+          e.preventDefault();
+          if (selectedCells.size > 0) {
+            clearSelectedCells();
+          }
+          break;
+        }
       }
     },
     [
@@ -339,6 +341,7 @@ export const useSpreadsheetHandlers = ({
       editingCell,
       setEditingCell,
       setSelectedCells,
+      clearSelectedCells,
     ],
   );
 

@@ -53,6 +53,7 @@ interface SpreadsheetContextType {
   addRow: () => void;
   deleteRow: (rowIndex: number) => void;
   updateData: (rowIndex: number, columnId: string, value: any) => void;
+  clearSelectedCells: () => void;
 
   // Refs
   tableContainerRef: React.RefObject<HTMLDivElement | null>;
@@ -184,6 +185,25 @@ export const SpreadsheetProvider: React.FC<SpreadsheetProviderProps> = ({
     setData((old) => old.filter((_, index) => index !== rowIndex));
   }, []);
 
+  const clearSelectedCells = useCallback(() => {
+    if (selectedCells.size === 0) return;
+
+    setData((old) => {
+      const newData = [...old];
+      selectedCells.forEach((cellKey) => {
+        const [rowIndexStr, columnId] = cellKey.split("-");
+        const rowIndex = Number.parseInt(rowIndexStr);
+        if (rowIndex >= 0 && rowIndex < newData.length) {
+          newData[rowIndex] = {
+            ...newData[rowIndex],
+            [columnId]: "",
+          };
+        }
+      });
+      return newData;
+    });
+  }, [selectedCells]);
+
   const value: SpreadsheetContextType = {
     data,
     setData,
@@ -202,6 +222,7 @@ export const SpreadsheetProvider: React.FC<SpreadsheetProviderProps> = ({
     addRow,
     deleteRow,
     updateData,
+    clearSelectedCells,
     tableContainerRef,
     dragLineRef,
     dragLineVisible,

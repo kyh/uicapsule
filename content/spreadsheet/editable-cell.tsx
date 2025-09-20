@@ -40,13 +40,14 @@ export const EditableCell = ({
   }, [isEditing]);
 
   const onBlur = () => {
-    onStopEdit();
     table.options.meta?.updateData(row.index, column.id, value);
+    onStopEdit();
   };
 
   const onKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === "Enter") {
-      onBlur();
+      table.options.meta?.updateData(row.index, column.id, value);
+      onStopEdit();
     } else if (e.key === "Escape") {
       setValue(initialValue);
       onStopEdit();
