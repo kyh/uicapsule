@@ -1,11 +1,173 @@
 import { readdir, readFile, stat } from "node:fs/promises";
-import { join, relative } from "node:path";
+import { dirname, extname, join, relative } from "node:path";
 import { cache } from "react";
 
 const contentSourceDir = join(process.cwd(), "..", "..", "content");
 const uiSourceDir = join(process.cwd(), "..", "..", "packages", "ui");
 
 const GITIGNORE_PATTERNS = ["node_modules", "dist", ".DS_Store"];
+
+const UI_IMPORT_PREFIX = "@repo/ui/";
+const UI_FILE_EXTENSIONS = [".tsx", ".ts"] as const;
+
+const STATIC_IMPORT_SPECIFIER_REGEX = /from\s+["'`]([^"'`]+)["'`]/g;
+const BARE_IMPORT_SPECIFIER_REGEX = /import\s+["'`]([^"'`]+)["'`]/g;
+const DYNAMIC_IMPORT_SPECIFIER_REGEX = /import\(\s*["'`]([^"'`]+)["'`]\s*\)/g;
+
+const extractModuleSpecifiers = (source: string): string[] => {
+  const specifiers = new Set<string>();
+
+  const addMatches = (regex: RegExp) => {
+    regex.lastIndex = 0;
+    let match: RegExpExecArray | null;
+    while ((match = regex.exec(source)) !== null) {
+      specifiers.add(match[1]);
+    }
+  };
+
+  addMatches(STATIC_IMPORT_SPECIFIER_REGEX);
+  addMatches(BARE_IMPORT_SPECIFIER_REGEX);
+  addMatches(DYNAMIC_IMPORT_SPECIFIER_REGEX);
+
+  return [...specifiers];
+};
+
+const collectUiImportSpecifiers = (
+  sourceCode: Record<string, string>,
+  previewCode: string,
+): Set<string> => {
+  const specifiers = new Set<string>();
+
+  const collect = (code: string | undefined) => {
+    if (!code) return;
+    for (const specifier of extractModuleSpecifiers(code)) {
+      if (specifier.startsWith(UI_IMPORT_PREFIX)) {
+        specifiers.add(specifier);
+      }
+    }
+  };
+
+  Object.values(sourceCode).forEach(collect);
+  collect(previewCode);
+
+  return specifiers;
+};
+
+const uiFileCache = new Map<string, string>();
+
+const readUiFile = async (
+  modulePath: string,
+): Promise<{ relativePath: string; fileContent: string } | null> => {
+  if (!modulePath) return null;
+
+  const normalizedModulePath = modulePath
+    .replace(/^\.\//, "")
+    .replace(/\\/g, "/");
+
+  if (normalizedModulePath.startsWith("../")) {
+    return null;
+  }
+
+  const extension = extname(normalizedModulePath);
+  const candidates = extension
+    ? [normalizedModulePath]
+    : UI_FILE_EXTENSIONS.map((ext) => `${normalizedModulePath}${ext}`);
+
+  for (const candidate of candidates) {
+    const cachedContent = uiFileCache.get(candidate);
+    if (cachedContent) {
+      return { relativePath: candidate, fileContent: cachedContent };
+    }
+
+    try {
+      const fileContent = await readFile(
+        join(uiSourceDir, "src", candidate),
+        "utf-8",
+      );
+      uiFileCache.set(candidate, fileContent);
+      return { relativePath: candidate, fileContent };
+    } catch {
+      // Try next candidate
+    }
+  }
+
+  return null;
+};
+
+const resolveRelativeImportPath = (
+  fromFile: string,
+  specifier: string,
+): string | null => {
+  const resolved = join(dirname(fromFile), specifier).replace(/\\/g, "/");
+  if (resolved.startsWith("../")) {
+    return null;
+  }
+
+  return resolved.replace(/^\.\//, "");
+};
+
+const replaceUiModuleSpecifiers = (filePath: string, code: string): string => {
+  const pathSegments = filePath.split("/").filter(Boolean);
+  const pathDepth = Math.max(pathSegments.length - 1, 0);
+  const relativePathToUi =
+    pathDepth === 0 ? "./ui" : `${"../".repeat(pathDepth)}ui`;
+
+  return code.replaceAll("@repo/ui", relativePathToUi);
+};
+
+const readRequiredUiComponents = async (
+  importSpecifiers: Set<string>,
+): Promise<Record<string, string>> => {
+  if (importSpecifiers.size === 0) {
+    return {};
+  }
+
+  const queue = [...importSpecifiers].map((specifier) =>
+    specifier.startsWith(UI_IMPORT_PREFIX)
+      ? specifier.slice(UI_IMPORT_PREFIX.length)
+      : specifier,
+  );
+
+  const sourceCode: Record<string, string> = {};
+  const visited = new Set<string>();
+
+  while (queue.length > 0) {
+    const modulePath = queue.pop();
+    if (!modulePath) {
+      continue;
+    }
+
+    const file = await readUiFile(modulePath);
+    if (!file) {
+      continue;
+    }
+
+    const { relativePath, fileContent } = file;
+
+    if (visited.has(relativePath)) {
+      continue;
+    }
+    visited.add(relativePath);
+
+    sourceCode[`/ui/${relativePath}`] = replaceUiModuleSpecifiers(
+      `/ui/${relativePath}`,
+      fileContent,
+    );
+
+    for (const specifier of extractModuleSpecifiers(fileContent)) {
+      if (specifier.startsWith(UI_IMPORT_PREFIX)) {
+        queue.push(specifier.slice(UI_IMPORT_PREFIX.length));
+      } else if (specifier.startsWith(".")) {
+        const resolved = resolveRelativeImportPath(relativePath, specifier);
+        if (resolved) {
+          queue.push(resolved);
+        }
+      }
+    }
+  }
+
+  return sourceCode;
+};
 
 // Check if a file should be ignored based on gitignore patterns
 const shouldIgnoreFile = (filePath: string, baseDir: string): boolean => {
@@ -160,21 +322,24 @@ const readContentComponent = async (slug: string) => {
     };
 
     // Handle source code
+    const uiImportSpecifiers = collectUiImportSpecifiers(
+      sourceCode,
+      previewCode,
+    );
+
+    const updatedSourceCode = Object.entries(sourceCode).reduce(
+      (acc, [key, value]) => {
+        acc[key] = replaceUiModuleSpecifiers(key, value);
+        return acc;
+      },
+      {} as Record<string, string>,
+    );
+
+    const uiSourceCode = await readRequiredUiComponents(uiImportSpecifiers);
+
     sourceCode = {
-      ...Object.entries(sourceCode).reduce(
-        (acc, [key, value]) => {
-          // Calculate relative path from source file to UI directory
-          // Key format: /path/to/file.tsx
-          // UI directory is at /ui/
-          const pathDepth = key.split("/").length - 2; // -2 because key starts with / and we don't count the filename
-          const relativePath =
-            pathDepth === 0 ? "./ui" : "../".repeat(pathDepth) + "ui";
-          acc[key] = value.replaceAll("@repo/ui", relativePath);
-          return acc;
-        },
-        {} as Record<string, string>,
-      ),
-      ...(await readUIComponents()),
+      ...updatedSourceCode,
+      ...uiSourceCode,
     };
 
     // Handle preview code
@@ -191,29 +356,6 @@ const readContentComponent = async (slug: string) => {
     previewCode,
   };
 };
-
-const readUIComponents = cache(async () => {
-  const files = await readdir(join(uiSourceDir, "src")).catch(() => []);
-  const sourceCode: Record<string, string> = {};
-
-  await Promise.all(
-    files
-      .filter((file) => file.endsWith(".tsx") || file.endsWith(".ts"))
-      .map(async (file) => {
-        const filePath = join(uiSourceDir, "src", file);
-        try {
-          const s = await stat(filePath);
-          if (s.isFile()) {
-            sourceCode[`/ui/${file}`] = await readFile(filePath, "utf-8");
-          }
-        } catch {
-          // Ignore errors for individual files
-        }
-      }),
-  );
-
-  return sourceCode;
-});
 
 export const getContentComponent = cache(
   async (slug: string): Promise<ContentComponent> => {
