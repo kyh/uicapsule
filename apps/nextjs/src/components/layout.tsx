@@ -1,8 +1,8 @@
 "use client";
 
-import { Fragment, useEffect, useState } from "react";
+import { Fragment, useCallback, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { ProfileAvatar } from "@repo/ui/avatar";
 import { Button } from "@repo/ui/button";
 import {
@@ -12,7 +12,6 @@ import {
   CommandInput,
   CommandItem,
   CommandList,
-  CommandSeparator,
   CommandShortcut,
 } from "@repo/ui/command";
 import {
@@ -38,9 +37,6 @@ import { cn, useMediaQuery } from "@repo/ui/utils";
 import {
   ArrowUpRightIcon,
   BookCheckIcon,
-  CircleFadingPlusIcon,
-  FileInputIcon,
-  FolderPlusIcon,
   GithubIcon,
   MoonIcon,
   SearchIcon,
@@ -49,6 +45,21 @@ import {
   SunMoonIcon,
   TwitterIcon,
 } from "lucide-react";
+
+import { searchIndex } from "@/lib/search";
+import type {
+  SearchGroupKey,
+  SearchSectionItem,
+  SearchTaxonomyItem,
+  SearchTrendingItem,
+} from "@/lib/search";
+
+const searchNavigation: { key: SearchGroupKey; label: string }[] = [
+  { key: "trending", label: "Trending" },
+  { key: "categories", label: "Categories" },
+  { key: "sections", label: "Sections" },
+  { key: "styles", label: "Styles" },
+];
 
 export const Header = ({ className }: { className?: string }) => {
   return (
@@ -74,7 +85,10 @@ export const Header = ({ className }: { className?: string }) => {
 };
 
 const SearchButton = () => {
+  const router = useRouter();
   const [searchOpen, setSearchOpen] = useState(false);
+  const [activeGroup, setActiveGroup] = useState<SearchGroupKey>("categories");
+  const [searchQuery, setSearchQuery] = useState("");
 
   useEffect(() => {
     const down = (e: KeyboardEvent) => {
@@ -88,11 +102,207 @@ const SearchButton = () => {
     return () => document.removeEventListener("keydown", down);
   }, []);
 
+  useEffect(() => {
+    if (!searchOpen) {
+      setSearchQuery("");
+      setActiveGroup("categories");
+    }
+  }, [searchOpen]);
+
+  const trendingMatches = useMemo<SearchTrendingItem[]>(() => {
+    const query = searchQuery.trim().toLowerCase();
+    if (!query) {
+      return searchIndex.trending;
+    }
+
+    return searchIndex.trending.filter((item) => {
+      const name = item.name.toLowerCase();
+      const slug = item.slug.toLowerCase();
+      const description = item.description?.toLowerCase() ?? "";
+      const tags = item.tags.map((tag) => tag.toLowerCase());
+
+      return (
+        name.includes(query) ||
+        slug.includes(query) ||
+        description.includes(query) ||
+        tags.some((tag) => tag.includes(query))
+      );
+    });
+  }, [searchQuery]);
+
+  const filterTaxonomy = useCallback(
+    <T extends SearchTaxonomyItem | SearchSectionItem>(items: T[]) => {
+      const query = searchQuery.trim().toLowerCase();
+      if (!query) {
+        return items;
+      }
+
+      return items.filter((item) => {
+        const matchesBase =
+          item.name.toLowerCase().includes(query) ||
+          item.slug.toLowerCase().includes(query);
+
+        if (matchesBase) {
+          return true;
+        }
+
+        if ("parent" in item && item.parent) {
+          return item.parent.toLowerCase().includes(query);
+        }
+
+        return false;
+      });
+    },
+    [searchQuery],
+  );
+
+  const categoryMatches = useMemo(
+    () => filterTaxonomy(searchIndex.categories),
+    [filterTaxonomy],
+  );
+
+  const sectionMatches = useMemo(
+    () => filterTaxonomy(searchIndex.sections),
+    [filterTaxonomy],
+  );
+
+  const styleMatches = useMemo(
+    () => filterTaxonomy(searchIndex.styles),
+    [filterTaxonomy],
+  );
+
+  const navMatchCounts = useMemo(
+    () => ({
+      trending: trendingMatches.length,
+      categories: categoryMatches.length,
+      sections: sectionMatches.length,
+      styles: styleMatches.length,
+    }),
+    [categoryMatches, sectionMatches, styleMatches, trendingMatches],
+  );
+
+  const navTotalCounts = useMemo(
+    () => ({
+      trending: searchIndex.trending.length,
+      categories: searchIndex.categories.length,
+      sections: searchIndex.sections.length,
+      styles: searchIndex.styles.length,
+    }),
+    [],
+  );
+
+  const activeItems = useMemo(() => {
+    if (activeGroup === "trending") {
+      return trendingMatches;
+    }
+    if (activeGroup === "categories") {
+      return categoryMatches;
+    }
+    if (activeGroup === "sections") {
+      return sectionMatches;
+    }
+    return styleMatches;
+  }, [activeGroup, categoryMatches, sectionMatches, styleMatches, trendingMatches]);
+
+  const activeHeading = useMemo(() => {
+    const current = searchNavigation.find((item) => item.key === activeGroup);
+    return current?.label ?? "Search";
+  }, [activeGroup]);
+
+  const headingMeta = useMemo(() => {
+    const queryActive = searchQuery.trim().length > 0;
+    const counts = queryActive ? navMatchCounts : navTotalCounts;
+    const count = counts[activeGroup];
+
+    const nounBase =
+      activeGroup === "trending"
+        ? "component"
+        : activeGroup === "categories"
+          ? "category"
+          : activeGroup === "sections"
+            ? "section"
+            : "style";
+
+    const noun = count === 1 ? nounBase : `${nounBase}s`;
+
+    return `${count} ${noun}`;
+  }, [activeGroup, navMatchCounts, navTotalCounts, searchQuery]);
+
+  const handleSelect = useCallback(
+    (href: string) => {
+      setSearchOpen(false);
+      router.push(href);
+    },
+    [router],
+  );
+
+  const renderTrendingItems = () => {
+    if (activeGroup !== "trending") {
+      return null;
+    }
+
+    return (
+      <CommandGroup className="p-0">
+        {trendingMatches.map((item) => (
+          <CommandItem
+            key={item.slug}
+            value={`${item.name} ${item.slug} ${item.description ?? ""} ${item.tags.join(" ")}`}
+            className="flex items-center gap-3 rounded-lg px-3 py-2"
+            onSelect={() => handleSelect(item.href)}
+          >
+            <div className="min-w-0 flex-1">
+              <p className="text-sm font-medium leading-tight">{item.name}</p>
+              <p className="text-muted-foreground truncate text-xs">
+                {item.description ?? item.slug.replaceAll("-", " ")}
+              </p>
+            </div>
+            <ArrowUpRightIcon className="text-muted-foreground size-4 shrink-0" />
+          </CommandItem>
+        ))}
+      </CommandGroup>
+    );
+  };
+
+  const renderTaxonomyItems = () => {
+    if (activeGroup === "trending") {
+      return null;
+    }
+
+    const items = activeItems as (SearchTaxonomyItem | SearchSectionItem)[];
+
+    return (
+      <CommandGroup className="p-0">
+        {items.map((item) => (
+          <CommandItem
+            key={item.slug}
+            value={`${item.name} ${item.slug} ${"parent" in item ? item.parent ?? "" : ""}`}
+            className="flex items-center gap-3 rounded-lg px-3 py-2"
+            onSelect={() => handleSelect(item.href)}
+          >
+            <div className="min-w-0 flex-1">
+              <p className="text-sm font-medium leading-tight">{item.name}</p>
+              {"parent" in item && item.parent ? (
+                <p className="text-muted-foreground truncate text-xs">{item.parent}</p>
+              ) : null}
+            </div>
+            <div className="flex items-center gap-2">
+              <CommandShortcut className="text-sm font-medium tabular-nums">
+                {item.count}
+              </CommandShortcut>
+              <ArrowUpRightIcon className="text-muted-foreground size-4 shrink-0" />
+            </div>
+          </CommandItem>
+        ))}
+      </CommandGroup>
+    );
+  };
+
   return (
     <>
       <button
         className="border-input bg-muted flex h-9 w-full cursor-pointer rounded-full border px-3 py-2 shadow-xs transition"
         onClick={() => setSearchOpen(true)}
+        type="button"
       >
         <span className="flex grow items-center gap-1">
           <SearchIcon
@@ -105,67 +315,68 @@ const SearchButton = () => {
           ⌘K
         </kbd>
       </button>
-      <CommandDialog open={searchOpen} onOpenChange={setSearchOpen}>
-        <CommandInput placeholder="Type a command or search..." />
-        <CommandList>
-          <CommandEmpty>No results found.</CommandEmpty>
-          <CommandGroup heading="Quick start">
-            <CommandItem>
-              <FolderPlusIcon
-                size={16}
-                className="opacity-60"
-                aria-hidden="true"
-              />
-              <span>New folder</span>
-              <CommandShortcut className="justify-center">⌘N</CommandShortcut>
-            </CommandItem>
-            <CommandItem>
-              <FileInputIcon
-                size={16}
-                className="opacity-60"
-                aria-hidden="true"
-              />
-              <span>Import document</span>
-              <CommandShortcut className="justify-center">⌘I</CommandShortcut>
-            </CommandItem>
-            <CommandItem>
-              <CircleFadingPlusIcon
-                size={16}
-                className="opacity-60"
-                aria-hidden="true"
-              />
-              <span>Add block</span>
-              <CommandShortcut className="justify-center">⌘B</CommandShortcut>
-            </CommandItem>
-          </CommandGroup>
-          <CommandSeparator />
-          <CommandGroup heading="Navigation">
-            <CommandItem>
-              <ArrowUpRightIcon
-                size={16}
-                className="opacity-60"
-                aria-hidden="true"
-              />
-              <span>Go to dashboard</span>
-            </CommandItem>
-            <CommandItem>
-              <ArrowUpRightIcon
-                size={16}
-                className="opacity-60"
-                aria-hidden="true"
-              />
-              <span>Go to apps</span>
-            </CommandItem>
-            <CommandItem>
-              <ArrowUpRightIcon
-                size={16}
-                className="opacity-60"
-                aria-hidden="true"
-              />
-              <span>Go to connections</span>
-            </CommandItem>
-          </CommandGroup>
-        </CommandList>
+      <CommandDialog
+        open={searchOpen}
+        onOpenChange={setSearchOpen}
+        className="max-w-3xl"
+      >
+        <CommandInput
+          value={searchQuery}
+          onValueChange={setSearchQuery}
+          placeholder="Search sites, categories, sections or styles..."
+        />
+        <div className="flex flex-col gap-0 md:flex-row">
+          <nav className="border-border text-sm md:w-48 md:border-r">
+            <div className="grid grid-cols-2 gap-1 border-b px-3 py-2 md:grid-cols-1 md:border-b-0 md:px-2 md:py-3">
+              {searchNavigation.map((item) => {
+                const count = searchQuery
+                  ? navMatchCounts[item.key]
+                  : navTotalCounts[item.key];
+                const isActive = activeGroup === item.key;
+
+                return (
+                  <button
+                    key={item.key}
+                    type="button"
+                    onClick={() => setActiveGroup(item.key)}
+                    className={cn(
+                      "flex items-center justify-between gap-2 rounded-md px-2 py-2 text-left transition",
+                      isActive
+                        ? "bg-muted text-foreground"
+                        : "text-muted-foreground hover:bg-muted/70",
+                    )}
+                  >
+                    <span className="truncate text-sm font-medium">
+                      {item.label}
+                    </span>
+                    <span className="text-muted-foreground text-xs tabular-nums">
+                      {count}
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
+          </nav>
+          <div className="flex min-h-[280px] flex-1 flex-col">
+            <div className="border-border flex items-center justify-between border-b px-4 py-3">
+              <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+                {activeHeading}
+              </p>
+              <span className="text-muted-foreground text-xs tabular-nums">
+                {headingMeta}
+              </span>
+            </div>
+            <CommandList className="max-h-[360px] flex-1 overflow-y-auto">
+              {activeItems.length === 0 && (
+                <CommandEmpty>No results found.</CommandEmpty>
+              )}
+              <>
+                {renderTrendingItems()}
+                {renderTaxonomyItems()}
+              </>
+            </CommandList>
+          </div>
+        </div>
       </CommandDialog>
     </>
   );
