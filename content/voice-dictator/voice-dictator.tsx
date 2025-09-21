@@ -1,0 +1,457 @@
+"use client";
+
+import React, { useCallback, useEffect, useRef, useState } from "react";
+
+const PROMPT_LIBRARY = [
+  "Create a mystical, fantasy-style warrior standing on a cliff during sunset.",
+  "Design a cinematic establishing shot for a neon city wrapped in fog.",
+  "Illustrate an ancient forest temple awakening under moonlit rain.",
+  "Sketch a futuristic research lab surrounded by holographic diagrams.",
+  "Visualize an astronaut discovering a luminous cavern on an alien planet.",
+] as const;
+
+const TRANSCRIPT_LIBRARY = [
+  "The warrior should be cloaked in obsidian armor with faint runes pulsing across each plate, wind tearing through the cape as petals scatter around the scene.",
+  "Let's add a soft volumetric glow behind the subject to carve out the silhouette and make the cliff edge feel like it's dissolving into the clouds below.",
+  "Scatter bright motes of dust around the character so it feels like the air is alive, and make the sunset bleed into saturated oranges and violets.",
+  "Bring in a shallow depth of field with a wide cinematic crop, keeping the focus on the warrior's profile while the background blurs into abstract shapes.",
+  "Introduce a faint aurora stretching across the horizon to hint at ancient magic awakening right behind the hero.",
+] as const;
+
+type WebGLResources = {
+  gl: WebGLRenderingContext;
+  program: WebGLProgram;
+  uniforms: {
+    time: WebGLUniformLocation | null;
+    amplitude: WebGLUniformLocation | null;
+    resolution: WebGLUniformLocation | null;
+  };
+};
+
+type TimeoutHandle = ReturnType<typeof setTimeout> | null;
+
+const pickRandom = <T,>(items: readonly T[], exclude?: T) => {
+  if (items.length === 0) {
+    throw new Error("Cannot pick from an empty collection");
+  }
+
+  if (items.length === 1) {
+    return items[0]!;
+  }
+
+  let candidate = items[Math.floor(Math.random() * items.length)]!;
+  if (exclude !== undefined) {
+    let safety = 0;
+    while (candidate === exclude && safety < 10) {
+      candidate = items[Math.floor(Math.random() * items.length)]!;
+      safety += 1;
+    }
+  }
+
+  return candidate;
+};
+
+export const VoiceDictator: React.FC = () => {
+  const canvasRef = useRef<HTMLCanvasElement | null>(null);
+  const buttonRef = useRef<HTMLButtonElement | null>(null);
+  const webglRef = useRef<WebGLResources | null>(null);
+  const animationFrameRef = useRef<number | null>(null);
+
+  const amplitudeRef = useRef(0.08);
+  const targetAmplitudeRef = useRef(0.08);
+
+  const [prompt, setPrompt] = useState<string>(() => pickRandom(PROMPT_LIBRARY));
+  const [isListening, setIsListening] = useState(false);
+  const [status, setStatus] = useState("Tap the orb to start dictating");
+  const [transcript, setTranscript] = useState("Generate expressive prompts by speaking naturally. We will render a faux transcript here.");
+
+  const listeningRef = useRef(false);
+  const scriptRef = useRef<string[]>([]);
+  const wordIndexRef = useRef(0);
+  const wordTimeoutRef = useRef<TimeoutHandle>(null);
+  const pulseTimeoutRef = useRef<TimeoutHandle>(null);
+
+  const initialiseWebGL = useCallback(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+
+    const gl = canvas.getContext("webgl", {
+      antialias: false,
+      premultipliedAlpha: false,
+      preserveDrawingBuffer: false,
+    });
+
+    if (!gl) return;
+
+    const vertexShaderSource = `
+      attribute vec2 aPosition;
+
+      void main() {
+        gl_Position = vec4(aPosition, 0.0, 1.0);
+      }
+    `;
+
+    const fragmentShaderSource = `
+      precision highp float;
+
+      uniform float uTime;
+      uniform float uAmplitude;
+      uniform vec2 uResolution;
+
+      float bayerDither(vec2 coord) {
+        vec2 p = floor(mod(coord, 8.0));
+        float x = p.x;
+        float y = p.y;
+
+        float index =
+          1.0 * mod(x, 2.0) +
+          2.0 * mod(y, 2.0) +
+          4.0 * mod(floor(x / 2.0), 2.0) +
+          8.0 * mod(floor(y / 2.0), 2.0) +
+          16.0 * mod(floor(x / 4.0), 2.0) +
+          32.0 * mod(floor(y / 4.0), 2.0);
+
+        return (index + 0.5) / 64.0;
+      }
+
+      void main() {
+        vec2 normalized = gl_FragCoord.xy / uResolution;
+        vec2 uv = normalized * 2.0 - 1.0;
+        uv.x *= uResolution.x / uResolution.y;
+
+        float time = uTime * 0.5;
+        float amplitude = clamp(uAmplitude, 0.0, 1.2);
+
+        float radius = 0.35 + amplitude * 0.18 + sin(time * 0.9) * 0.02;
+        float thickness = 0.12 + amplitude * 0.08 + sin(time * 0.63) * 0.015;
+
+        float dist = length(uv);
+        float ring = smoothstep(radius + thickness, radius, dist) - smoothstep(radius, radius - thickness, dist);
+        float glow = exp(-14.0 * abs(dist - radius));
+        float halo = exp(-6.5 * dist * (1.0 + amplitude * 0.35));
+
+        float intensity = clamp(ring * 0.75 + glow * 0.5 + halo * 0.08, 0.0, 1.0);
+
+        float threshold = bayerDither(gl_FragCoord.xy);
+        float shade = step(threshold, intensity);
+
+        gl_FragColor = vec4(vec3(shade), 1.0);
+      }
+    `;
+
+    const createShader = (type: GLenum, source: string) => {
+      const shader = gl.createShader(type);
+      if (!shader) throw new Error("Unable to create shader");
+      gl.shaderSource(shader, source);
+      gl.compileShader(shader);
+      const compiled = gl.getShaderParameter(shader, gl.COMPILE_STATUS);
+      if (!compiled) {
+        const info = gl.getShaderInfoLog(shader);
+        gl.deleteShader(shader);
+        throw new Error(info ?? "Unknown shader compilation error");
+      }
+      return shader;
+    };
+
+    const vertexShader = createShader(gl.VERTEX_SHADER, vertexShaderSource);
+    const fragmentShader = createShader(gl.FRAGMENT_SHADER, fragmentShaderSource);
+
+    const program = gl.createProgram();
+    if (!program) throw new Error("Unable to create WebGL program");
+
+    gl.attachShader(program, vertexShader);
+    gl.attachShader(program, fragmentShader);
+    gl.linkProgram(program);
+
+    const linked = gl.getProgramParameter(program, gl.LINK_STATUS);
+    if (!linked) {
+      const info = gl.getProgramInfoLog(program);
+      gl.deleteProgram(program);
+      gl.deleteShader(vertexShader);
+      gl.deleteShader(fragmentShader);
+      throw new Error(info ?? "Unknown WebGL linking error");
+    }
+
+    gl.deleteShader(vertexShader);
+    gl.deleteShader(fragmentShader);
+
+    const buffer = gl.createBuffer();
+    gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
+    const vertices = new Float32Array([
+      -1, -1,
+      1, -1,
+      -1, 1,
+      -1, 1,
+      1, -1,
+      1, 1,
+    ]);
+    gl.bufferData(gl.ARRAY_BUFFER, vertices, gl.STATIC_DRAW);
+
+    const positionLocation = gl.getAttribLocation(program, "aPosition");
+    gl.enableVertexAttribArray(positionLocation);
+    gl.vertexAttribPointer(positionLocation, 2, gl.FLOAT, false, 0, 0);
+
+    gl.useProgram(program);
+    gl.disable(gl.DEPTH_TEST);
+    gl.disable(gl.CULL_FACE);
+    gl.enable(gl.BLEND);
+    gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
+
+    const uniforms = {
+      time: gl.getUniformLocation(program, "uTime"),
+      amplitude: gl.getUniformLocation(program, "uAmplitude"),
+      resolution: gl.getUniformLocation(program, "uResolution"),
+    };
+
+    webglRef.current = { gl, program, uniforms };
+
+    const resize = () => {
+      if (!canvas) return;
+      const rect = canvas.getBoundingClientRect();
+      const pixelRatio = window.devicePixelRatio || 1;
+      const width = Math.round(rect.width * pixelRatio);
+      const height = Math.round(rect.height * pixelRatio);
+      if (canvas.width !== width || canvas.height !== height) {
+        canvas.width = width;
+        canvas.height = height;
+      }
+      gl.viewport(0, 0, width, height);
+    };
+
+    resize();
+
+    const render = (time: number) => {
+      animationFrameRef.current = requestAnimationFrame(render);
+      const resources = webglRef.current;
+      if (!resources) return;
+      const { gl: context, program: shaderProgram, uniforms: shaderUniforms } = resources;
+
+      resize();
+      context.useProgram(shaderProgram);
+      context.clearColor(0, 0, 0, 1);
+      context.clear(context.COLOR_BUFFER_BIT);
+
+      const smoothing = 1 - Math.pow(0.08, Math.min(1.0, (context.drawingBufferWidth + context.drawingBufferHeight) * 0.00015));
+      const amplitude =
+        amplitudeRef.current + (targetAmplitudeRef.current - amplitudeRef.current) * smoothing;
+      amplitudeRef.current = amplitude;
+
+      if (shaderUniforms.time) {
+        context.uniform1f(shaderUniforms.time, time * 0.001);
+      }
+      if (shaderUniforms.amplitude) {
+        context.uniform1f(shaderUniforms.amplitude, amplitude);
+      }
+      if (shaderUniforms.resolution) {
+        context.uniform2f(
+          shaderUniforms.resolution,
+          context.drawingBufferWidth,
+          context.drawingBufferHeight,
+        );
+      }
+
+      const button = buttonRef.current;
+      if (button) {
+        const scale = 1 + amplitude * 0.12;
+        const glow = 12 + amplitude * 80;
+        const opacity = 0.08 + amplitude * 0.22;
+        button.style.transform = `scale(${scale})`;
+        button.style.boxShadow = `0 0 ${glow.toFixed(1)}px rgba(255, 255, 255, ${opacity.toFixed(3)})`;
+      }
+
+      context.drawArrays(context.TRIANGLES, 0, 6);
+    };
+
+    render(0);
+
+    return () => {
+      if (animationFrameRef.current) {
+        cancelAnimationFrame(animationFrameRef.current);
+      }
+      animationFrameRef.current = null;
+    };
+  }, []);
+
+  useEffect(() => {
+    try {
+      const cleanup = initialiseWebGL();
+      return () => {
+        if (cleanup) cleanup();
+        webglRef.current = null;
+      };
+    } catch (error) {
+      // eslint-disable-next-line no-console
+      console.error(error);
+    }
+  }, [initialiseWebGL]);
+
+  useEffect(() => {
+    listeningRef.current = isListening;
+  }, [isListening]);
+
+  const stopDictation = useCallback(
+    (completed = false) => {
+      listeningRef.current = false;
+      setIsListening(false);
+      setStatus(
+        completed
+          ? "Dictation captured — tap to redo"
+          : "Tap the orb to start dictating",
+      );
+      targetAmplitudeRef.current = completed ? 0.12 : 0.06;
+    },
+    [],
+  );
+
+  useEffect(() => {
+    if (!isListening) {
+      if (pulseTimeoutRef.current) {
+        clearTimeout(pulseTimeoutRef.current);
+        pulseTimeoutRef.current = null;
+      }
+      targetAmplitudeRef.current = 0.06;
+      return;
+    }
+
+    const pump = () => {
+      if (!listeningRef.current) return;
+      targetAmplitudeRef.current = 0.25 + Math.random() * 0.7;
+      const delay = 90 + Math.random() * 110;
+      pulseTimeoutRef.current = setTimeout(pump, delay);
+    };
+
+    pump();
+
+    return () => {
+      if (pulseTimeoutRef.current) {
+        clearTimeout(pulseTimeoutRef.current);
+        pulseTimeoutRef.current = null;
+      }
+    };
+  }, [isListening]);
+
+  useEffect(() => {
+    if (!isListening) {
+      if (wordTimeoutRef.current) {
+        clearTimeout(wordTimeoutRef.current);
+        wordTimeoutRef.current = null;
+      }
+      return;
+    }
+
+    const transcriptScript = pickRandom(TRANSCRIPT_LIBRARY);
+    scriptRef.current = transcriptScript.split(" ");
+    wordIndexRef.current = 0;
+    setTranscript("");
+    setStatus("Listening…");
+
+    const deliver = () => {
+      if (!listeningRef.current) return;
+      if (wordIndexRef.current >= scriptRef.current.length) {
+        stopDictation(true);
+        return;
+      }
+
+      const nextWord = scriptRef.current[wordIndexRef.current];
+      if (nextWord) {
+        wordIndexRef.current += 1;
+        setTranscript((previous) =>
+          previous.length > 0 ? `${previous} ${nextWord}` : nextWord,
+        );
+        targetAmplitudeRef.current = 0.32 + Math.random() * 0.6;
+      }
+
+      const delay = 140 + Math.random() * 240;
+      wordTimeoutRef.current = setTimeout(deliver, delay);
+    };
+
+    const initialDelay = 220 + Math.random() * 220;
+    wordTimeoutRef.current = setTimeout(deliver, initialDelay);
+
+    return () => {
+      if (wordTimeoutRef.current) {
+        clearTimeout(wordTimeoutRef.current);
+        wordTimeoutRef.current = null;
+      }
+    };
+  }, [isListening, stopDictation]);
+
+  useEffect(() => {
+    return () => {
+      if (wordTimeoutRef.current) {
+        clearTimeout(wordTimeoutRef.current);
+      }
+      if (pulseTimeoutRef.current) {
+        clearTimeout(pulseTimeoutRef.current);
+      }
+      if (animationFrameRef.current) {
+        cancelAnimationFrame(animationFrameRef.current);
+      }
+    };
+  }, []);
+
+  const handleToggle = useCallback(() => {
+    if (listeningRef.current) {
+      stopDictation(false);
+      return;
+    }
+
+    const nextPrompt = pickRandom(PROMPT_LIBRARY, prompt);
+    setPrompt(nextPrompt);
+    listeningRef.current = true;
+    setIsListening(true);
+  }, [prompt, stopDictation]);
+
+  return (
+    <div className="relative flex h-dvh w-dvw flex-col items-center justify-center overflow-hidden bg-black text-white">
+      <canvas ref={canvasRef} className="absolute inset-0 h-full w-full" />
+
+      <div className="relative z-10 flex h-full w-full flex-col items-center justify-center gap-12 px-6 py-12">
+        <div className="flex flex-col items-center gap-2 text-center">
+          <span className="text-xs uppercase tracking-[0.4em] text-white/40">
+            Voice Dictator
+          </span>
+          <h1 className="max-w-xl text-balance text-center text-2xl font-medium text-white/90 sm:text-3xl">
+            {prompt}
+          </h1>
+        </div>
+
+        <button
+          ref={buttonRef}
+          type="button"
+          onClick={handleToggle}
+          className="relative flex h-48 w-48 items-center justify-center rounded-full border border-white/20 bg-white/[0.04] transition-transform duration-200 ease-out"
+        >
+          <span className="absolute inset-0 rounded-full bg-gradient-to-br from-white/10 via-white/5 to-transparent" />
+          <span className="relative flex h-20 w-20 items-center justify-center rounded-full bg-white/10">
+            <span
+              className={`h-12 w-12 rounded-full bg-white/80 transition-opacity duration-300 ${
+                isListening ? "opacity-90" : "opacity-60"
+              }`}
+            />
+          </span>
+        </button>
+
+        <div className="flex flex-col items-center gap-4 text-center">
+          <div
+            className={`flex items-center gap-2 text-sm font-medium uppercase tracking-[0.3em] ${
+              isListening ? "text-emerald-300" : "text-white/50"
+            }`}
+          >
+            <span
+              className={`inline-block h-1.5 w-1.5 rounded-full ${
+                isListening ? "bg-emerald-300 animate-pulse" : "bg-white/40"
+              }`}
+            />
+            {status}
+          </div>
+          <p className="max-w-2xl text-pretty text-base leading-7 text-white/70 sm:text-lg">
+            {transcript}
+          </p>
+        </div>
+      </div>
+
+      <div className="pointer-events-none absolute inset-x-0 bottom-0 z-10 h-48 bg-gradient-to-t from-black via-black/40 to-transparent" />
+    </div>
+  );
+};
