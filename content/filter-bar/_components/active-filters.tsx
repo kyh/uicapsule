@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import { Button } from "@repo/ui/button";
 import { Separator } from "@repo/ui/separator";
 import { X } from "lucide-react";
@@ -22,6 +22,7 @@ interface ActiveFiltersProps<TData> {
   actions: DataTableFilterActions;
   strategy: FilterStrategy;
   entityName?: string;
+  aiGenerating?: boolean;
 }
 
 export function ActiveFilters<TData>({
@@ -30,6 +31,7 @@ export function ActiveFilters<TData>({
   actions,
   strategy,
   entityName,
+  aiGenerating,
 }: ActiveFiltersProps<TData>) {
   return (
     <>
@@ -52,7 +54,19 @@ export function ActiveFilters<TData>({
           />
         );
       })}
+      {aiGenerating && <ActiveFilterSkeleton />}
     </>
+  );
+}
+
+function ActiveFilterSkeleton() {
+  return (
+    <div className="border-border bg-muted/60 text-muted-foreground flex h-7 items-center gap-2 rounded-2xl border px-3 text-xs shadow-xs">
+      <div className="flex items-center gap-2">
+        <span className="bg-muted-foreground/60 block h-2 w-10 animate-pulse rounded" />
+        <span className="bg-muted-foreground/40 block h-2 w-6 animate-pulse rounded" />
+      </div>
+    </div>
   );
 }
 

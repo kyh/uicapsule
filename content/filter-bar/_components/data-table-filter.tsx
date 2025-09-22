@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { useMemo } from "react";
 import { useIsMobile } from "@repo/ui/utils";
 
 import type {
@@ -9,9 +9,11 @@ import type {
   FiltersState,
   FilterStrategy,
 } from "../filter-package";
+import { isAnyOf } from "../filter-package";
 import { ActiveFilters, ActiveFiltersMobileContainer } from "./active-filters";
 import { FilterActions } from "./filter-actions";
 import { FilterSelector } from "./filter-selector";
+import { useAiFilterSimulation } from "./use-ai-filter-simulation";
 
 interface DataTableFilterProps<TData> {
   columns: Column<TData>[];
@@ -29,15 +31,33 @@ export function DataTableFilter<TData>({
   entityName,
 }: DataTableFilterProps<TData>) {
   const isMobile = useIsMobile();
+
+  const visibleOptionColumns = useMemo(
+    () =>
+      columns.filter(
+        (column) =>
+          !column.hidden && isAnyOf(column.type, ["option", "multiOption"]),
+      ),
+    [columns],
+  );
+  const { aiGenerating, handleAiFilterSubmit } = useAiFilterSimulation({
+    visibleOptionColumns,
+    actions,
+  });
+
+  const selectorProps = {
+    columns,
+    filters,
+    actions,
+    strategy,
+    onAIFilterSubmit: handleAiFilterSubmit,
+    aiGenerating,
+  } as const;
+
   if (isMobile) {
     return (
       <div className="flex w-full items-start justify-between gap-2">
-        <FilterSelector
-          columns={columns}
-          filters={filters}
-          actions={actions}
-          strategy={strategy}
-        />
+        <FilterSelector {...selectorProps} />
         <ActiveFiltersMobileContainer>
           <ActiveFilters
             columns={columns}
@@ -45,6 +65,7 @@ export function DataTableFilter<TData>({
             actions={actions}
             strategy={strategy}
             entityName={entityName}
+            aiGenerating={aiGenerating}
           />
           <FilterActions hasFilters={filters.length > 0} actions={actions} />
         </ActiveFiltersMobileContainer>
@@ -55,18 +76,14 @@ export function DataTableFilter<TData>({
   return (
     <div className="flex w-full items-start justify-between gap-2">
       <div className="flex w-full flex-1 gap-2 md:flex-wrap">
-        <FilterSelector
-          columns={columns}
-          filters={filters}
-          actions={actions}
-          strategy={strategy}
-        />
+        <FilterSelector {...selectorProps} />
         <ActiveFilters
           columns={columns}
           filters={filters}
           actions={actions}
           strategy={strategy}
           entityName={entityName}
+          aiGenerating={aiGenerating}
         />
         <FilterActions hasFilters={filters.length > 0} actions={actions} />
       </div>
