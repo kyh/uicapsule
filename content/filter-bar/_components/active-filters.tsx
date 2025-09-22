@@ -23,7 +23,6 @@ interface ActiveFiltersProps<TData> {
   strategy: FilterStrategy;
   entityName?: string;
   aiGenerating?: boolean;
-  aiPendingColumnIds?: string[];
 }
 
 export function ActiveFilters<TData>({
@@ -33,42 +32,10 @@ export function ActiveFilters<TData>({
   strategy,
   entityName,
   aiGenerating,
-  aiPendingColumnIds,
 }: ActiveFiltersProps<TData>) {
-  const pendingIds = aiPendingColumnIds ?? [];
-  const pendingIdSet = useMemo(
-    () => new Set(pendingIds),
-    [pendingIds],
-  );
-
-  const pendingItems = pendingIds.map((columnId) => {
-    const filter = filters.find((item) => item.columnId === columnId);
-
-    if (filter && filter.values) {
-      const column = getColumn(columns, columnId);
-      return (
-        <ActiveFilter
-          key={`active-filter-${filter.columnId}`}
-          filter={filter}
-          column={column}
-          actions={actions}
-          strategy={strategy}
-          entityName={entityName}
-        />
-      );
-    }
-
-    return <ActiveFilterSkeleton key={`ai-skeleton-${columnId}`} />;
-  });
-
-  const remainingFilters = filters.filter(
-    (filter) => !pendingIdSet.has(filter.columnId),
-  );
-
   return (
     <>
-      {aiGenerating && pendingItems}
-      {remainingFilters.map((filter) => {
+      {filters.map((filter) => {
         const id = filter.columnId;
 
         const column = getColumn(columns, id);
@@ -87,6 +54,7 @@ export function ActiveFilters<TData>({
           />
         );
       })}
+      {aiGenerating && <ActiveFilterSkeleton />}
     </>
   );
 }

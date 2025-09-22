@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 import type { Column, DataTableFilterActions } from "../filter-package";
 import { isAnyOf } from "../filter-package";
@@ -10,7 +10,6 @@ interface UseAiFilterSimulationParams<TData> {
 
 interface UseAiFilterSimulationResult {
   aiGenerating: boolean;
-  pendingColumnIds: string[];
   handleAiFilterSubmit: (prompt: string) => void;
 }
 
@@ -19,7 +18,6 @@ export function useAiFilterSimulation<TData>(
 ): UseAiFilterSimulationResult {
   const { visibleOptionColumns, actions } = params;
   const [aiGenerating, setAiGenerating] = useState(false);
-  const [pendingColumnIds, setPendingColumnIds] = useState<string[]>([]);
   const aiTimeoutsRef = useRef<Array<ReturnType<typeof setTimeout>>>([]);
 
   const clearAiTimeouts = useCallback(() => {
@@ -29,86 +27,80 @@ export function useAiFilterSimulation<TData>(
 
   useEffect(() => clearAiTimeouts, [clearAiTimeouts]);
 
-  const optionColumns = useMemo(
-    () =>
-      visibleOptionColumns.filter((column) =>
-        isAnyOf(column.type, ["option", "multiOption"]),
-      ),
-    [visibleOptionColumns],
+  const optionColumns = visibleOptionColumns.filter((column) =>
+    isAnyOf(column.type, ["option", "multiOption"]),
   );
 
   const handleAiFilterSubmit = useCallback(
     (prompt: string) => {
       if (!prompt.trim()) return;
-
       clearAiTimeouts();
+      const [column1, column2] = optionColumns.slice(0, 2);
 
-      const availableColumns = [...optionColumns];
-      for (let i = availableColumns.length - 1; i > 0; i -= 1) {
-        const j = Math.floor(Math.random() * (i + 1));
-        [availableColumns[i], availableColumns[j]] = [
-          availableColumns[j],
-          availableColumns[i],
-        ];
-      }
-
-      const maxFilters = Math.min(availableColumns.length, 3);
-      if (maxFilters === 0) {
-        setPendingColumnIds([]);
+      if (!column1) {
         setAiGenerating(false);
         return;
       }
 
-      const filtersToGenerate =
-        Math.floor(Math.random() * maxFilters) + 1 /* 1..maxFilters */;
-      const selectedColumns = availableColumns.slice(0, filtersToGenerate);
-
+      actions.removeAllFilters();
       setAiGenerating(true);
-      setPendingColumnIds(selectedColumns.map((column) => column.id));
 
-      let remaining = selectedColumns.length;
+      // Generate random delays for more natural feel
+      const firstDelay = 800 + Math.floor(Math.random() * 600); // 800-1400ms
+      const secondDelay = firstDelay + 600 + Math.floor(Math.random() * 600); // 1400-2600ms
 
-      const finishIfComplete = () => {
-        remaining -= 1;
-        if (remaining > 0) return;
-
-        const finishTimeout = setTimeout(() => {
-          setAiGenerating(false);
-          setPendingColumnIds([]);
-        }, 300);
-        aiTimeoutsRef.current.push(finishTimeout);
-      };
-
-      selectedColumns.forEach((column, index) => {
-        const options = column.getOptions();
-        if (!options || options.length === 0) {
-          setPendingColumnIds((prev) => prev.filter((id) => id !== column.id));
-          finishIfComplete();
-          return;
+      // Apply first filter after random delay
+      const timeout1 = setTimeout(() => {
+        if (column1) {
+          const options1 = column1.getOptions();
+          if (options1 && options1.length > 0) {
+            const option1 = options1[0];
+            actions.setFilterValue(
+              column1 as Column<TData, any>,
+              [option1.value] as any,
+            );
+          }
         }
+      }, firstDelay);
 
-        const option = options[Math.floor(Math.random() * options.length)];
-        const delay = 900 + index * 600 + Math.floor(Math.random() * 400);
+      // Apply both filters together after second random delay
+      const timeout2 = setTimeout(() => {
+        actions.batch((batchActions) => {
+          // Set first filter
+          if (column1) {
+            const options1 = column1.getOptions();
+            if (options1 && options1.length > 0) {
+              const option1 = options1[0];
+              batchActions.setFilterValue(
+                column1 as Column<TData, any>,
+                [option1.value] as any,
+              );
+            }
+          }
 
-        const timeout = setTimeout(() => {
-          actions.setFilterValue(column as Column<TData, any>, [
-            option.value,
-          ] as any);
-          setPendingColumnIds((prev) =>
-            prev.filter((columnId) => columnId !== column.id),
-          );
-          finishIfComplete();
-        }, delay);
+          // Set second filter
+          if (column2) {
+            const options2 = column2.getOptions();
+            if (options2 && options2.length > 0) {
+              const option2 = options2[0];
+              batchActions.setFilterValue(
+                column2 as Column<TData, any>,
+                [option2.value] as any,
+              );
+            }
+          }
 
-        aiTimeoutsRef.current.push(timeout);
-      });
+          setAiGenerating(false);
+        });
+      }, secondDelay);
+
+      aiTimeoutsRef.current.push(timeout1, timeout2);
     },
     [actions, clearAiTimeouts, optionColumns],
   );
 
   return {
     aiGenerating,
-    pendingColumnIds,
     handleAiFilterSubmit,
   };
 }

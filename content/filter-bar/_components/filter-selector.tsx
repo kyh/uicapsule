@@ -110,10 +110,31 @@ function __FilterSelector<TData>({
     [onAIFilterSubmit],
   );
 
+  const handleKeyDown = useCallback(
+    (event: React.KeyboardEvent<HTMLTextAreaElement>) => {
+      if (event.key === "Enter" && (event.metaKey || event.ctrlKey)) {
+        event.preventDefault();
+        const prompt = aiPromptRef.current?.value.trim();
+        if (!prompt || !onAIFilterSubmit) return;
+
+        onAIFilterSubmit(prompt);
+        setOpen(false);
+        setMode("list");
+        if (aiPromptRef.current) {
+          aiPromptRef.current.value = "";
+        }
+      }
+    },
+    [onAIFilterSubmit],
+  );
+
   const content = useMemo(
     () =>
       mode === "ai" ? (
-        <form className="flex w-[280px] flex-col gap-3 p-3" onSubmit={handleAiSubmit}>
+        <form
+          className="flex w-[280px] flex-col gap-3 p-3"
+          onSubmit={handleAiSubmit}
+        >
           <div className="flex items-center gap-2">
             <Button
               variant="ghost"
@@ -130,18 +151,25 @@ function __FilterSelector<TData>({
               AI Filter
             </div>
           </div>
-          <Textarea
-            ref={aiPromptRef}
-            placeholder="Describe what you're looking for..."
-            className="min-h-[120px] resize-none text-sm"
-          />
-          <Button
-            type="submit"
-            disabled={aiGenerating}
-            className="w-full"
-          >
-            {aiGenerating ? "Generating..." : "Generate filters"}
-          </Button>
+          <div className="relative">
+            <Textarea
+              ref={aiPromptRef}
+              placeholder="Describe what you're looking for..."
+              className="min-h-[120px] resize-none text-sm"
+              onKeyDown={handleKeyDown}
+              autoFocus
+            />
+            <Button
+              variant="secondary"
+              size="sm"
+              className="absolute right-2 bottom-2 h-7 gap-1 px-2 text-xs"
+              loading={aiGenerating}
+              type="submit"
+            >
+              <span>⌘</span>
+              <kbd>Generate filters</kbd>
+            </Button>
+          </div>
         </form>
       ) : property && column && column.type !== "boolean" ? (
         <div className="flex flex-col">

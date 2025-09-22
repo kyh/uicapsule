@@ -40,11 +40,10 @@ export function DataTableFilter<TData>({
       ),
     [columns],
   );
-  const { aiGenerating, pendingColumnIds, handleAiFilterSubmit } =
-    useAiFilterSimulation({
-      visibleOptionColumns,
-      actions,
-    });
+  const { aiGenerating, handleAiFilterSubmit } = useAiFilterSimulation({
+    visibleOptionColumns,
+    actions,
+  });
 
   const selectorProps = {
     columns,
@@ -67,7 +66,6 @@ export function DataTableFilter<TData>({
             strategy={strategy}
             entityName={entityName}
             aiGenerating={aiGenerating}
-            aiPendingColumnIds={pendingColumnIds}
           />
           <FilterActions hasFilters={filters.length > 0} actions={actions} />
         </ActiveFiltersMobileContainer>
@@ -86,7 +84,6 @@ export function DataTableFilter<TData>({
           strategy={strategy}
           entityName={entityName}
           aiGenerating={aiGenerating}
-          aiPendingColumnIds={pendingColumnIds}
         />
         <FilterActions hasFilters={filters.length > 0} actions={actions} />
       </div>
