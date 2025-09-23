@@ -2,5 +2,5 @@
   "name": "Light/Dark Toggle",
   "coverUrl": "https://zmdrwswxugswzmcokvff.supabase.co/storage/v1/object/public/uicapsule/light-dark-toggle/light-dark-toggle.mp4",
   "coverType": "video",
-  "tags": []
+  "tags": ["utilities", "minimal", "inputs"]
 }
