@@ -41,7 +41,10 @@ const collectUiImportSpecifiers = (
   const collect = (code: string | undefined) => {
     if (!code) return;
     for (const specifier of extractModuleSpecifiers(code)) {
-      if (specifier.startsWith(UI_IMPORT_PREFIX)) {
+      if (
+        specifier === "@repo/ui" ||
+        specifier.startsWith(UI_IMPORT_PREFIX)
+      ) {
         specifiers.add(specifier);
       }
     }
@@ -53,45 +56,114 @@ const collectUiImportSpecifiers = (
   return specifiers;
 };
 
-const uiFileCache = new Map<string, string>();
+type UiSourceMap = {
+  filesByPath: Map<string, { relativePath: string; code: string }>;
+  lookup: Map<string, string>;
+};
 
-const readUiFile = async (
-  modulePath: string,
-): Promise<{ relativePath: string; fileContent: string } | null> => {
-  if (!modulePath) return null;
+const createUiLookupKeys = (relativePath: string): string[] => {
+  const normalizedPath = relativePath.replace(/\\/g, "/");
+  const extension = extname(normalizedPath);
+  const withoutExtension = extension
+    ? normalizedPath.slice(0, -extension.length)
+    : normalizedPath;
 
-  const normalizedModulePath = modulePath
-    .replace(/^\.\//, "")
-    .replace(/\\/g, "/");
+  const keys = new Set<string>([normalizedPath, withoutExtension]);
 
-  if (normalizedModulePath.startsWith("../")) {
-    return null;
+  if (withoutExtension === "index") {
+    keys.add("");
+  } else if (withoutExtension.endsWith("/index")) {
+    keys.add(withoutExtension.slice(0, -"/index".length));
   }
 
-  const extension = extname(normalizedModulePath);
-  const candidates = extension
-    ? [normalizedModulePath]
-    : UI_FILE_EXTENSIONS.map((ext) => `${normalizedModulePath}${ext}`);
+  return [...keys];
+};
 
-  for (const candidate of candidates) {
-    const cachedContent = uiFileCache.get(candidate);
-    if (cachedContent) {
-      return { relativePath: candidate, fileContent: cachedContent };
-    }
+const readUiSourceMap = cache(async (): Promise<UiSourceMap> => {
+  const filesByPath = new Map<string, { relativePath: string; code: string }>();
+  const lookup = new Map<string, string>();
+  const uiSrcDir = join(uiSourceDir, "src");
 
-    try {
-      const fileContent = await readFile(
-        join(uiSourceDir, "src", candidate),
-        "utf-8",
-      );
-      uiFileCache.set(candidate, fileContent);
-      return { relativePath: candidate, fileContent };
-    } catch {
-      // Try next candidate
-    }
+  const walkDirectory = async (dir: string): Promise<void> => {
+    const entries = await readdir(dir).catch(() => [] as string[]);
+
+    await Promise.all(
+      entries.map(async (entry) => {
+        const fullPath = join(dir, entry);
+        const fileStat = await stat(fullPath).catch(() => null);
+
+        if (!fileStat) {
+          return;
+        }
+
+        if (fileStat.isDirectory()) {
+          await walkDirectory(fullPath);
+          return;
+        }
+
+        if (!fileStat.isFile()) {
+          return;
+        }
+
+        const relativePath = relative(uiSrcDir, fullPath).replace(/\\/g, "/");
+        const extension = extname(relativePath) as typeof UI_FILE_EXTENSIONS[number];
+
+        if (!UI_FILE_EXTENSIONS.includes(extension)) {
+          return;
+        }
+
+        const code = await readFile(fullPath, "utf-8");
+        filesByPath.set(relativePath, { relativePath, code });
+
+        for (const key of createUiLookupKeys(relativePath)) {
+          lookup.set(key, relativePath);
+        }
+      }),
+    );
+  };
+
+  await walkDirectory(uiSrcDir);
+
+  return { filesByPath, lookup };
+});
+
+const getUiLookupKeyFromSpecifier = (specifier: string): string | null => {
+  if (specifier === "@repo/ui") {
+    return "";
+  }
+
+  if (specifier.startsWith(UI_IMPORT_PREFIX)) {
+    return specifier.slice(UI_IMPORT_PREFIX.length);
   }
 
   return null;
+};
+
+const createUiLookupCandidatesFromImportPath = (importPath: string): string[] => {
+  const normalized = importPath.replace(/\\/g, "/").replace(/^\.\//, "");
+  const extension = extname(normalized);
+  const candidates = new Set<string>([normalized]);
+
+  if (extension) {
+    const withoutExtension = normalized.slice(0, -extension.length);
+    candidates.add(withoutExtension);
+
+    if (withoutExtension.endsWith("/index")) {
+      candidates.add(withoutExtension.slice(0, -"/index".length));
+    }
+  } else {
+    candidates.add(`${normalized}/index`);
+    for (const ext of UI_FILE_EXTENSIONS) {
+      candidates.add(`${normalized}${ext}`);
+      candidates.add(`${normalized}/index${ext}`);
+    }
+  }
+
+  if (normalized.endsWith("/index")) {
+    candidates.add(normalized.slice(0, -"/index".length));
+  }
+
+  return [...candidates];
 };
 
 const resolveRelativeImportPath = (
@@ -107,12 +179,18 @@ const resolveRelativeImportPath = (
 };
 
 const replaceUiModuleSpecifiers = (filePath: string, code: string): string => {
-  const pathSegments = filePath.split("/").filter(Boolean);
-  const pathDepth = Math.max(pathSegments.length - 1, 0);
-  const relativePathToUi =
-    pathDepth === 0 ? "./ui" : `${"../".repeat(pathDepth)}ui`;
+  const normalizedFilePath = filePath.replace(/\\/g, "/");
+  const directory = dirname(normalizedFilePath);
+  const relativePathToUi = relative(directory || ".", "/ui").replace(/\\/g, "/");
 
-  return code.replaceAll("@repo/ui", relativePathToUi);
+  const normalizedRelativePath =
+    relativePathToUi === ""
+      ? "."
+      : relativePathToUi.startsWith(".")
+        ? relativePathToUi
+        : `./${relativePathToUi}`;
+
+  return code.replaceAll("@repo/ui", normalizedRelativePath);
 };
 
 const readRequiredUiComponents = async (
@@ -122,45 +200,66 @@ const readRequiredUiComponents = async (
     return {};
   }
 
-  const queue = [...importSpecifiers].map((specifier) =>
-    specifier.startsWith(UI_IMPORT_PREFIX)
-      ? specifier.slice(UI_IMPORT_PREFIX.length)
-      : specifier,
-  );
+  const { filesByPath, lookup } = await readUiSourceMap();
 
+  const queue: string[] = [];
+  const visitedPaths = new Set<string>();
   const sourceCode: Record<string, string> = {};
-  const visited = new Set<string>();
 
-  while (queue.length > 0) {
-    const modulePath = queue.pop();
-    if (!modulePath) {
+  for (const specifier of importSpecifiers) {
+    const lookupKey = getUiLookupKeyFromSpecifier(specifier);
+    if (lookupKey === null) {
       continue;
     }
 
-    const file = await readUiFile(modulePath);
+    const relativePath = lookup.get(lookupKey);
+    if (relativePath) {
+      queue.push(relativePath);
+    }
+  }
+
+  while (queue.length > 0) {
+    const relativePath = queue.pop();
+    if (!relativePath || visitedPaths.has(relativePath)) {
+      continue;
+    }
+
+    visitedPaths.add(relativePath);
+
+    const file = filesByPath.get(relativePath);
     if (!file) {
       continue;
     }
 
-    const { relativePath, fileContent } = file;
-
-    if (visited.has(relativePath)) {
-      continue;
-    }
-    visited.add(relativePath);
-
-    sourceCode[`/ui/${relativePath}`] = replaceUiModuleSpecifiers(
-      `/ui/${relativePath}`,
-      fileContent,
+    const sandpackPath = `/ui/${relativePath}`;
+    sourceCode[sandpackPath] = replaceUiModuleSpecifiers(
+      sandpackPath,
+      file.code,
     );
 
-    for (const specifier of extractModuleSpecifiers(fileContent)) {
-      if (specifier.startsWith(UI_IMPORT_PREFIX)) {
-        queue.push(specifier.slice(UI_IMPORT_PREFIX.length));
+    for (const specifier of extractModuleSpecifiers(file.code)) {
+      if (specifier === "@repo/ui" || specifier.startsWith(UI_IMPORT_PREFIX)) {
+        const lookupKey = getUiLookupKeyFromSpecifier(specifier);
+        if (lookupKey === null) {
+          continue;
+        }
+
+        const dependencyPath = lookup.get(lookupKey);
+        if (dependencyPath && !visitedPaths.has(dependencyPath)) {
+          queue.push(dependencyPath);
+        }
       } else if (specifier.startsWith(".")) {
         const resolved = resolveRelativeImportPath(relativePath, specifier);
-        if (resolved) {
-          queue.push(resolved);
+        if (!resolved) {
+          continue;
+        }
+
+        for (const candidate of createUiLookupCandidatesFromImportPath(resolved)) {
+          const dependencyPath = lookup.get(candidate);
+          if (dependencyPath && !visitedPaths.has(dependencyPath)) {
+            queue.push(dependencyPath);
+            break;
+          }
         }
       }
     }
