@@ -292,11 +292,11 @@ const GlobalStyles = memo(() => (
     }
   }
 
-  .ai-textarea .sending {
+  .prompt-inout .sending {
     filter: drop-shadow(0 0 40px rgba(102, 140, 255, 0.35));
   }
 
-  .ai-textarea .sending input {
+  .prompt-inout .sending input {
     letter-spacing: 0.01em;
   }
 `}</style>
@@ -372,7 +372,7 @@ const ChevronDownIcon = () => (
   </svg>
 );
 
-export const AiTextarea: React.FC = () => {
+export const PromptInout: React.FC = () => {
   const [message, setMessage] = useState("");
   const [isSending, setIsSending] = useState(false);
   const glowTriggerRef = useRef<(() => void) | null>(null);
@@ -392,7 +392,7 @@ export const AiTextarea: React.FC = () => {
   };
 
   return (
-    <div className="ai-textarea relative flex min-h-[500px] items-center justify-center overflow-hidden rounded-[32px] bg-[#090b13] px-6 py-16 text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.04)]">
+    <div className="prompt-inout relative flex min-h-[500px] items-center justify-center overflow-hidden rounded-[32px] bg-[#090b13] px-6 py-16 text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.04)]">
       <GlobalStyles />
       <GlowCanvas triggerRef={glowTriggerRef} />
       <BackgroundDecor />
@@ -450,4 +450,4 @@ export const AiTextarea: React.FC = () => {
   );
 };
 
-export default AiTextarea;
+export default PromptInout;

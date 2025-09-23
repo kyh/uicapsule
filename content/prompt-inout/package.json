@@ -1,5 +1,5 @@
 {
-  "name": "@uicapsule/ai-textarea",
+  "name": "@uicapsule/prompt-inout",
   "version": "0.1.0",
   "private": true,
   "type": "module",

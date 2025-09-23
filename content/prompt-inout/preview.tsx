@@ -1,11 +1,11 @@
 import React from "react";
 
-import { AiTextarea } from "./ai-textarea";
+import { PromptInout } from "./prompt-inout";
 
 const Preview = () => {
   return (
     <div className="flex h-dvh w-dvw items-center justify-center bg-[#05060c]">
-      <AiTextarea />
+      <PromptInout />
     </div>
   );
 };
