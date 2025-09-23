@@ -35,9 +35,16 @@ export function useAiFilterSimulation<TData>(
     (prompt: string) => {
       if (!prompt.trim()) return;
       clearAiTimeouts();
-      const [column1, column2] = optionColumns.slice(0, 2);
 
-      if (!column1) {
+      // Find the skills and department columns
+      const skillsColumn = visibleOptionColumns.find(
+        (col) => col.id === "skills",
+      );
+      const departmentColumn = visibleOptionColumns.find(
+        (col) => col.id === "department",
+      );
+
+      if (!skillsColumn || !departmentColumn) {
         setAiGenerating(false);
         return;
       }
@@ -49,46 +56,46 @@ export function useAiFilterSimulation<TData>(
       const firstDelay = 800 + Math.floor(Math.random() * 600); // 800-1400ms
       const secondDelay = firstDelay + 600 + Math.floor(Math.random() * 600); // 1400-2600ms
 
-      // Apply first filter after random delay
+      // Apply first filter (skills) after random delay
       const timeout1 = setTimeout(() => {
-        if (column1) {
-          const options1 = column1.getOptions();
-          if (options1 && options1.length > 0) {
-            const option1 = options1[0];
-            actions.setFilterValue(
-              column1 as Column<TData, any>,
-              [option1.value] as any,
-            );
-          }
-        }
+        actions.setFilterValue(
+          skillsColumn as Column<TData, any>,
+          [
+            "javascript",
+            "typescript",
+            "react",
+            "nodejs",
+            "python",
+            "java",
+            "go",
+            "rust",
+          ] as any,
+        );
       }, firstDelay);
 
       // Apply both filters together after second random delay
       const timeout2 = setTimeout(() => {
         actions.batch((batchActions) => {
-          // Set first filter
-          if (column1) {
-            const options1 = column1.getOptions();
-            if (options1 && options1.length > 0) {
-              const option1 = options1[0];
-              batchActions.setFilterValue(
-                column1 as Column<TData, any>,
-                [option1.value] as any,
-              );
-            }
-          }
+          // Set skills filter (multiOption)
+          batchActions.setFilterValue(
+            skillsColumn as Column<TData, any>,
+            [
+              "javascript",
+              "typescript",
+              "react",
+              "nodejs",
+              "python",
+              "java",
+              "go",
+              "rust",
+            ] as any,
+          );
 
-          // Set second filter
-          if (column2) {
-            const options2 = column2.getOptions();
-            if (options2 && options2.length > 0) {
-              const option2 = options2[0];
-              batchActions.setFilterValue(
-                column2 as Column<TData, any>,
-                [option2.value] as any,
-              );
-            }
-          }
+          // Set department filter (option)
+          batchActions.setFilterValue(
+            departmentColumn as Column<TData, any>,
+            ["design"] as any,
+          );
 
           setAiGenerating(false);
         });
@@ -96,7 +103,7 @@ export function useAiFilterSimulation<TData>(
 
       aiTimeoutsRef.current.push(timeout1, timeout2);
     },
-    [actions, clearAiTimeouts, optionColumns],
+    [actions, clearAiTimeouts, visibleOptionColumns],
   );
 
   return {

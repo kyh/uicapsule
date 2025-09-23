@@ -1,5 +1,4 @@
 import React, {
-  FormEvent,
   isValidElement,
   memo,
   useCallback,
@@ -12,20 +11,17 @@ import { Button } from "@repo/ui/button";
 import { Checkbox } from "@repo/ui/checkbox";
 import {
   Command,
-  CommandEmpty,
   CommandGroup,
   CommandInput,
   CommandItem,
   CommandList,
 } from "@repo/ui/command";
 import { Popover, PopoverContent, PopoverTrigger } from "@repo/ui/popover";
-import { Textarea } from "@repo/ui/textarea";
-import { cn } from "@repo/ui/utils";
 import {
   ArrowLeftIcon,
   ArrowRightIcon,
   ChevronRightIcon,
-  FilterIcon,
+  ListFilterIcon,
   SparklesIcon,
 } from "lucide-react";
 
@@ -61,8 +57,6 @@ function __FilterSelector<TData>({
   const [open, setOpen] = useState(false);
   const [value, setValue] = useState("");
   const [property, setProperty] = useState<string | undefined>(undefined);
-  const [mode, setMode] = useState<"list" | "ai">("list");
-  const aiPromptRef = useRef<HTMLTextAreaElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
   const visibleColumns = useMemo(
@@ -81,8 +75,6 @@ function __FilterSelector<TData>({
     ? visibleFilters.find((f) => f.columnId === property)
     : undefined;
 
-  const hasVisibleFilters = visibleFilters.length > 0;
-
   useEffect(() => {
     if (property && inputRef) {
       inputRef.current?.focus();
@@ -94,84 +86,9 @@ function __FilterSelector<TData>({
     if (!open) setTimeout(() => setValue(""), 150);
   }, [open]);
 
-  const handleAiSubmit = useCallback(
-    (event: FormEvent<HTMLFormElement>) => {
-      event.preventDefault();
-      const prompt = aiPromptRef.current?.value.trim();
-      if (!prompt || !onAIFilterSubmit) return;
-
-      onAIFilterSubmit(prompt);
-      setOpen(false);
-      setMode("list");
-      if (aiPromptRef.current) {
-        aiPromptRef.current.value = "";
-      }
-    },
-    [onAIFilterSubmit],
-  );
-
-  const handleKeyDown = useCallback(
-    (event: React.KeyboardEvent<HTMLTextAreaElement>) => {
-      if (event.key === "Enter" && (event.metaKey || event.ctrlKey)) {
-        event.preventDefault();
-        const prompt = aiPromptRef.current?.value.trim();
-        if (!prompt || !onAIFilterSubmit) return;
-
-        onAIFilterSubmit(prompt);
-        setOpen(false);
-        setMode("list");
-        if (aiPromptRef.current) {
-          aiPromptRef.current.value = "";
-        }
-      }
-    },
-    [onAIFilterSubmit],
-  );
-
   const content = useMemo(
     () =>
-      mode === "ai" ? (
-        <form
-          className="flex w-[280px] flex-col gap-3 p-3"
-          onSubmit={handleAiSubmit}
-        >
-          <div className="flex items-center gap-2">
-            <Button
-              variant="ghost"
-              size="icon"
-              type="button"
-              onClick={() => setMode("list")}
-              className="h-6 w-6 p-0"
-            >
-              <ArrowLeftIcon className="size-4" />
-              <span className="sr-only">Back</span>
-            </Button>
-            <div className="flex items-center gap-1.5 text-sm font-medium">
-              <SparklesIcon className="size-4" />
-              AI Filter
-            </div>
-          </div>
-          <div className="relative">
-            <Textarea
-              ref={aiPromptRef}
-              placeholder="Describe what you're looking for..."
-              className="min-h-[120px] resize-none text-sm"
-              onKeyDown={handleKeyDown}
-              autoFocus
-            />
-            <Button
-              variant="secondary"
-              size="sm"
-              className="absolute right-2 bottom-2 h-7 gap-1 px-2 text-xs"
-              loading={aiGenerating}
-              type="submit"
-            >
-              <span>⌘</span>
-              <kbd>Generate filters</kbd>
-            </Button>
-          </div>
-        </form>
-      ) : property && column && column.type !== "boolean" ? (
+      property && column && column.type !== "boolean" ? (
         <div className="flex flex-col">
           <div className="flex h-9 items-center gap-2 border-b px-2">
             <Button
@@ -214,23 +131,35 @@ function __FilterSelector<TData>({
             value={value}
             onValueChange={setValue}
             ref={inputRef}
-            placeholder="search"
+            placeholder="Search or ask AI"
           />
-          <CommandEmpty>No results</CommandEmpty>
           <CommandList className="max-h-fit">
             <CommandGroup>
               <CommandItem
-                value="ai-filter"
-                keywords={["ai", "smart", "generate"]}
+                value={value}
+                disabled={!onAIFilterSubmit || aiGenerating}
                 onSelect={() => {
-                  setMode("ai");
-                  setProperty(undefined);
-                  setValue("");
+                  const prompt = value.trim();
+                  if (!prompt || !onAIFilterSubmit) return;
+
+                  onAIFilterSubmit(prompt);
+                  setOpen(false);
+                  setTimeout(() => {
+                    setValue("");
+                    setProperty(undefined);
+                  }, 100);
                 }}
               >
-                <div className="flex w-full items-center gap-2">
-                  <SparklesIcon className="size-4" />
-                  <span>AI Filter</span>
+                <div className="flex w-full items-center justify-between gap-2">
+                  <div className="flex items-center gap-2">
+                    <SparklesIcon className="size-4" />
+                    <span>Ask AI</span>
+                  </div>
+                  <span className="text-muted-foreground truncate text-xs">
+                    {value.trim().length > 0
+                      ? `"${value.trim()}"`
+                      : "Type a prompt"}
+                  </span>
                 </div>
               </CommandItem>
               {visibleColumns.map((column) => (
@@ -254,8 +183,6 @@ function __FilterSelector<TData>({
         </Command>
       ),
     [
-      mode,
-      handleAiSubmit,
       aiGenerating,
       property,
       column,
@@ -265,6 +192,7 @@ function __FilterSelector<TData>({
       actions,
       value,
       strategy,
+      onAIFilterSubmit,
     ],
   );
 
@@ -274,17 +202,13 @@ function __FilterSelector<TData>({
       onOpenChange={async (value) => {
         setOpen(value);
         if (!value) {
-          setMode("list");
-          if (aiPromptRef.current) {
-            aiPromptRef.current.value = "";
-          }
           setTimeout(() => setProperty(undefined), 100);
         }
       }}
     >
       <PopoverTrigger asChild>
         <Button variant="ghost" size="icon" className="size-7 p-0">
-          <FilterIcon className="size-4" />
+          <ListFilterIcon className="size-4" />
         </Button>
       </PopoverTrigger>
       <PopoverContent
