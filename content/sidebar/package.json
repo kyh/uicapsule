@@ -1,0 +1,14 @@
+{
+  "name": "@uicapsule/sidebar",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "clean": "git clean -xdf .cache .turbo dist node_modules"
+  },
+  "dependencies": {
+    "lucide-react": "^0.544.0",
+    "react": "*",
+    "react-dom": "*"
+  }
+}
