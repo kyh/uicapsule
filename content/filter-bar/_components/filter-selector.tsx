@@ -75,8 +75,6 @@ function __FilterSelector<TData>({
     ? visibleFilters.find((f) => f.columnId === property)
     : undefined;
 
-  const hasVisibleFilters = visibleFilters.length > 0;
-
   useEffect(() => {
     if (property && inputRef) {
       inputRef.current?.focus();
@@ -123,8 +121,6 @@ function __FilterSelector<TData>({
         <Command
           loop
           filter={(value, search, keywords) => {
-            if (value === "ai-filter") return 1;
-
             const extendValue = `${value} ${keywords?.join(" ")}`;
             return extendValue.toLowerCase().includes(search.toLowerCase())
               ? 1
@@ -140,7 +136,6 @@ function __FilterSelector<TData>({
           <CommandList className="max-h-fit">
             <CommandGroup>
               <CommandItem
-                key={value}
                 value={value}
                 disabled={!onAIFilterSubmit || aiGenerating}
                 onSelect={() => {
