@@ -11,19 +11,17 @@ import { Button } from "@repo/ui/button";
 import { Checkbox } from "@repo/ui/checkbox";
 import {
   Command,
-  CommandEmpty,
   CommandGroup,
   CommandInput,
   CommandItem,
   CommandList,
 } from "@repo/ui/command";
 import { Popover, PopoverContent, PopoverTrigger } from "@repo/ui/popover";
-import { cn } from "@repo/ui/utils";
 import {
   ArrowLeftIcon,
   ArrowRightIcon,
   ChevronRightIcon,
-  FilterIcon,
+  ListFilterIcon,
   SparklesIcon,
 } from "lucide-react";
 
@@ -137,12 +135,11 @@ function __FilterSelector<TData>({
             ref={inputRef}
             placeholder="Search or ask AI"
           />
-          <CommandEmpty>No results</CommandEmpty>
           <CommandList className="max-h-fit">
             <CommandGroup>
               <CommandItem
-                value="ai-filter"
-                keywords={["ai", "smart", "generate", value]}
+                key={value}
+                value={value}
                 disabled={!onAIFilterSubmit || aiGenerating}
                 onSelect={() => {
                   const prompt = value.trim();
@@ -159,9 +156,9 @@ function __FilterSelector<TData>({
                 <div className="flex w-full items-center justify-between gap-2">
                   <div className="flex items-center gap-2">
                     <SparklesIcon className="size-4" />
-                    <span>Ask AI to generate filters</span>
+                    <span>Ask AI</span>
                   </div>
-                  <span className="truncate text-xs text-muted-foreground">
+                  <span className="text-muted-foreground truncate text-xs">
                     {value.trim().length > 0
                       ? `"${value.trim()}"`
                       : "Type a prompt"}
@@ -214,7 +211,7 @@ function __FilterSelector<TData>({
     >
       <PopoverTrigger asChild>
         <Button variant="ghost" size="icon" className="size-7 p-0">
-          <FilterIcon className="size-4" />
+          <ListFilterIcon className="size-4" />
         </Button>
       </PopoverTrigger>
       <PopoverContent
