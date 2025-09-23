@@ -123,6 +123,8 @@ function __FilterSelector<TData>({
         <Command
           loop
           filter={(value, search, keywords) => {
+            if (value === "ai-filter") return 1;
+
             const extendValue = `${value} ${keywords?.join(" ")}`;
             return extendValue.toLowerCase().includes(search.toLowerCase())
               ? 1
