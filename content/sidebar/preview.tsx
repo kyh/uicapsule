@@ -1,11 +1,16 @@
 import React from "react";
 
-import { SidebarDemo } from "./source";
+import { Dashboard } from "./dashboard";
+import { Sidebar } from "./sidebar";
 
 const Preview = () => {
   return (
-    <div className="main flex h-dvh items-center justify-center bg-gradient-to-br from-[#05060a] via-[#0b0f18] to-[#05060a] p-6">
-      <SidebarDemo />
+    <div
+      className="relative grid h-full w-full overflow-hidden"
+      style={{ gridTemplateColumns: "var(--sidebar-width, 280px) 1fr" }}
+    >
+      <Sidebar />
+      <Dashboard />
     </div>
   );
 };
