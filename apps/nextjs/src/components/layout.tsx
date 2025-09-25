@@ -1,19 +1,16 @@
 "use client";
 
-import { Fragment, useEffect, useState } from "react";
+import { Fragment, useCallback, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { ProfileAvatar } from "@repo/ui/avatar";
 import { Button } from "@repo/ui/button";
 import {
   CommandDialog,
-  CommandEmpty,
   CommandGroup,
   CommandInput,
   CommandItem,
   CommandList,
-  CommandSeparator,
-  CommandShortcut,
 } from "@repo/ui/command";
 import {
   Drawer,
@@ -35,22 +32,40 @@ import { Logo } from "@repo/ui/logo";
 import { Tabs, TabsList, TabsTrigger } from "@repo/ui/tabs";
 import { useTheme } from "@repo/ui/theme";
 import { cn, useMediaQuery } from "@repo/ui/utils";
+import type { LucideIcon } from "lucide-react";
 import {
-  ArrowUpRightIcon,
   BookCheckIcon,
-  CircleFadingPlusIcon,
-  FileInputIcon,
-  FolderPlusIcon,
+  BookmarkIcon,
   GithubIcon,
+  LayoutGridIcon,
   MoonIcon,
+  PaletteIcon,
   SearchIcon,
   StarsIcon,
   SunIcon,
   SunMoonIcon,
   TwitterIcon,
 } from "lucide-react";
+import {
+  contentCategories,
+  contentElements,
+  contentStyles,
+} from "@/lib/content";
 
-export const Header = ({ className }: { className?: string }) => {
+type SearchEntry = {
+  slug: string;
+  name: string;
+  description: string;
+  tags: string[];
+};
+
+export const Header = ({
+  className,
+  searchEntries = [],
+}: {
+  className?: string;
+  searchEntries?: SearchEntry[];
+}) => {
   return (
     <nav
       className={cn(
@@ -64,7 +79,7 @@ export const Header = ({ className }: { className?: string }) => {
         </Link>
       </div>
       <div className="flex flex-1 items-center justify-center gap-2">
-        <SearchButton />
+        <SearchButton entries={searchEntries} />
       </div>
       <div className="flex items-center justify-end gap-2">
         <ProfileButton />
@@ -73,8 +88,16 @@ export const Header = ({ className }: { className?: string }) => {
   );
 };
 
-const SearchButton = () => {
+const SearchButton = ({ entries }: { entries: SearchEntry[] }) => {
+  type SearchView = "trending" | "categories" | "sections" | "styles";
+
   const [searchOpen, setSearchOpen] = useState(false);
+  const [query, setQuery] = useState("");
+  const [activeView, setActiveView] = useState<SearchView>("categories");
+
+  const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
 
   useEffect(() => {
     const down = (e: KeyboardEvent) => {
@@ -87,6 +110,416 @@ const SearchButton = () => {
     document.addEventListener("keydown", down);
     return () => document.removeEventListener("keydown", down);
   }, []);
+
+  useEffect(() => {
+    if (!searchOpen) {
+      setQuery("");
+    }
+  }, [searchOpen]);
+
+  const tagCounts = useMemo(() => {
+    return entries.reduce((acc, entry) => {
+      entry.tags.forEach((tag) => {
+        acc[tag] = (acc[tag] ?? 0) + 1;
+      });
+      return acc;
+    }, {} as Record<string, number>);
+  }, [entries]);
+
+  const navigationItems = useMemo(
+    () =>
+      [
+        {
+          id: "trending" satisfies SearchView,
+          label: "Trending",
+          description: "Popular UI capsules",
+          icon: StarsIcon,
+        },
+        {
+          id: "categories" satisfies SearchView,
+          label: "Categories",
+          description: "Product verticals",
+          icon: BookmarkIcon,
+        },
+        {
+          id: "sections" satisfies SearchView,
+          label: "Sections",
+          description: "Interface building blocks",
+          icon: LayoutGridIcon,
+        },
+        {
+          id: "styles" satisfies SearchView,
+          label: "Styles",
+          description: "Visual directions",
+          icon: PaletteIcon,
+        },
+      ] as { id: SearchView; label: string; description: string; icon: LucideIcon }[],
+    [],
+  );
+
+  const categories = useMemo(
+    () =>
+      contentCategories
+        .map((category) => ({
+          ...category,
+          count: tagCounts[category.slug] ?? 0,
+        }))
+        .filter((category) => category.count > 0)
+        .sort((a, b) => {
+          if (b.count === a.count) {
+            return a.name.localeCompare(b.name);
+          }
+          return b.count - a.count;
+        }),
+    [tagCounts],
+  );
+
+  const styles = useMemo(
+    () =>
+      contentStyles
+        .map((style) => ({
+          ...style,
+          count: tagCounts[style.slug] ?? 0,
+        }))
+        .filter((style) => style.count > 0)
+        .sort((a, b) => {
+          if (b.count === a.count) {
+            return a.name.localeCompare(b.name);
+          }
+          return b.count - a.count;
+        }),
+    [tagCounts],
+  );
+
+  const sections = useMemo(() => {
+    const allSections = contentElements.flatMap((element) =>
+      (element.subcategories ?? []).map((sub) => ({
+        ...sub,
+        parent: element.name,
+        count: tagCounts[sub.slug] ?? 0,
+      })),
+    );
+
+    return allSections
+      .filter((section) => section.count > 0)
+      .sort((a, b) => {
+        if (b.count === a.count) {
+          return a.name.localeCompare(b.name);
+        }
+        return b.count - a.count;
+      });
+  }, [tagCounts]);
+
+  const trending = useMemo(() => entries.slice(0, 8), [entries]);
+
+  const normalizedQuery = query.trim().toLowerCase();
+  const hasQuery = normalizedQuery.length > 0;
+
+  const componentMatches = useMemo(() => {
+    if (!hasQuery) {
+      return [];
+    }
+
+    return entries
+      .filter((entry) => {
+        const inName = entry.name.toLowerCase().includes(normalizedQuery);
+        const inDescription = entry.description
+          .toLowerCase()
+          .includes(normalizedQuery);
+        const inTags = entry.tags.some((tag) =>
+          tag.toLowerCase().includes(normalizedQuery),
+        );
+        return inName || inDescription || inTags;
+      })
+      .slice(0, 12);
+  }, [entries, hasQuery, normalizedQuery]);
+
+  const categoryMatches = useMemo(() => {
+    if (!hasQuery) {
+      return [];
+    }
+
+    return categories.filter((category) => {
+      return (
+        category.name.toLowerCase().includes(normalizedQuery) ||
+        category.slug.includes(normalizedQuery)
+      );
+    });
+  }, [categories, hasQuery, normalizedQuery]);
+
+  const sectionMatches = useMemo(() => {
+    if (!hasQuery) {
+      return [];
+    }
+
+    return sections.filter((section) => {
+      return (
+        section.name.toLowerCase().includes(normalizedQuery) ||
+        section.slug.includes(normalizedQuery) ||
+        section.parent.toLowerCase().includes(normalizedQuery)
+      );
+    });
+  }, [hasQuery, normalizedQuery, sections]);
+
+  const styleMatches = useMemo(() => {
+    if (!hasQuery) {
+      return [];
+    }
+
+    return styles.filter((style) => {
+      return (
+        style.name.toLowerCase().includes(normalizedQuery) ||
+        style.slug.includes(normalizedQuery)
+      );
+    });
+  }, [hasQuery, normalizedQuery, styles]);
+
+  const totalMatches =
+    componentMatches.length +
+    categoryMatches.length +
+    sectionMatches.length +
+    styleMatches.length;
+
+  const handleOpenChange = useCallback((open: boolean) => {
+    setSearchOpen(open);
+    if (open) {
+      setActiveView("categories");
+    }
+  }, []);
+
+  const handleNavigateToContent = useCallback(
+    (slug: string) => {
+      router.push(`/ui/${slug}`);
+      setSearchOpen(false);
+    },
+    [router],
+  );
+
+  const handleToggleFilter = useCallback(
+    (filterKey: "category" | "style" | "element", slug: string) => {
+      const currentRaw = searchParams.get(filterKey) ?? "";
+      const current = new Set(
+        currentRaw
+          .split(",")
+          .map((s) => s.trim())
+          .filter(Boolean),
+      );
+
+      if (current.has(slug)) {
+        current.delete(slug);
+      } else {
+        current.add(slug);
+      }
+
+      const nextParams = new URLSearchParams(searchParams.toString());
+      if (current.size > 0) {
+        nextParams.set(filterKey, Array.from(current).join(","));
+      } else {
+        nextParams.delete(filterKey);
+      }
+
+      const next = nextParams.toString();
+      router.push(`${pathname}${next ? `?${next}` : ""}`, { scroll: false });
+      setSearchOpen(false);
+    },
+    [pathname, router, searchParams],
+  );
+
+  const renderCategories = () => (
+    <CommandGroup heading="Categories">
+      {categories.map((category) => (
+        <CommandItem
+          key={category.slug}
+          value={`${category.name} ${category.slug}`}
+          onSelect={() => handleToggleFilter("category", category.slug)}
+        >
+          <span className="flex flex-col">
+            <span>{category.name}</span>
+            <span className="text-muted-foreground text-xs">
+              /{category.slug}
+            </span>
+          </span>
+          <span className="text-muted-foreground ml-auto text-xs">
+            {category.count}
+          </span>
+        </CommandItem>
+      ))}
+    </CommandGroup>
+  );
+
+  const renderSections = () => (
+    <CommandGroup heading="Sections">
+      {sections.map((section) => (
+        <CommandItem
+          key={section.slug}
+          value={`${section.name} ${section.parent} ${section.slug}`}
+          onSelect={() => handleToggleFilter("element", section.slug)}
+        >
+          <span className="flex flex-col">
+            <span>{section.name}</span>
+            <span className="text-muted-foreground text-xs">
+              {section.parent}
+            </span>
+          </span>
+          <span className="text-muted-foreground ml-auto text-xs">
+            {section.count}
+          </span>
+        </CommandItem>
+      ))}
+    </CommandGroup>
+  );
+
+  const renderStyles = () => (
+    <CommandGroup heading="Styles">
+      {styles.map((style) => (
+        <CommandItem
+          key={style.slug}
+          value={`${style.name} ${style.slug}`}
+          onSelect={() => handleToggleFilter("style", style.slug)}
+        >
+          <span className="flex flex-col">
+            <span>{style.name}</span>
+            <span className="text-muted-foreground text-xs">
+              /{style.slug}
+            </span>
+          </span>
+          <span className="text-muted-foreground ml-auto text-xs">
+            {style.count}
+          </span>
+        </CommandItem>
+      ))}
+    </CommandGroup>
+  );
+
+  const renderTrending = () => (
+    <CommandGroup heading="Trending">
+      {trending.map((entry) => (
+        <CommandItem
+          key={entry.slug}
+          value={`${entry.name} ${entry.slug}`}
+          onSelect={() => handleNavigateToContent(entry.slug)}
+        >
+          <span className="flex flex-col">
+            <span>{entry.name}</span>
+            <span className="text-muted-foreground text-xs">
+              /ui/{entry.slug}
+            </span>
+          </span>
+          <span className="text-muted-foreground ml-auto text-xs">
+            {entry.tags[0] ?? ""}
+          </span>
+        </CommandItem>
+      ))}
+    </CommandGroup>
+  );
+
+  const renderQueryResults = () => (
+    <>
+      {componentMatches.length > 0 && (
+        <CommandGroup heading="Components">
+          {componentMatches.map((entry) => (
+            <CommandItem
+              key={entry.slug}
+              value={`${entry.name} ${entry.slug}`}
+              onSelect={() => handleNavigateToContent(entry.slug)}
+            >
+              <span className="flex flex-col">
+                <span>{entry.name}</span>
+                <span className="text-muted-foreground text-xs">
+                  /ui/{entry.slug}
+                </span>
+              </span>
+              <span className="text-muted-foreground ml-auto text-xs">
+                {entry.tags.slice(0, 2).join(", ")}
+              </span>
+            </CommandItem>
+          ))}
+        </CommandGroup>
+      )}
+      {categoryMatches.length > 0 && (
+        <CommandGroup heading="Categories">
+          {categoryMatches.map((category) => (
+            <CommandItem
+              key={category.slug}
+              value={`${category.name} ${category.slug}`}
+              onSelect={() => handleToggleFilter("category", category.slug)}
+            >
+              <span className="flex flex-col">
+                <span>{category.name}</span>
+                <span className="text-muted-foreground text-xs">
+                  /{category.slug}
+                </span>
+              </span>
+              <span className="text-muted-foreground ml-auto text-xs">
+                {category.count}
+              </span>
+            </CommandItem>
+          ))}
+        </CommandGroup>
+      )}
+      {sectionMatches.length > 0 && (
+        <CommandGroup heading="Sections">
+          {sectionMatches.map((section) => (
+            <CommandItem
+              key={section.slug}
+              value={`${section.name} ${section.parent} ${section.slug}`}
+              onSelect={() => handleToggleFilter("element", section.slug)}
+            >
+              <span className="flex flex-col">
+                <span>{section.name}</span>
+                <span className="text-muted-foreground text-xs">
+                  {section.parent}
+                </span>
+              </span>
+              <span className="text-muted-foreground ml-auto text-xs">
+                {section.count}
+              </span>
+            </CommandItem>
+          ))}
+        </CommandGroup>
+      )}
+      {styleMatches.length > 0 && (
+        <CommandGroup heading="Styles">
+          {styleMatches.map((style) => (
+            <CommandItem
+              key={style.slug}
+              value={`${style.name} ${style.slug}`}
+              onSelect={() => handleToggleFilter("style", style.slug)}
+            >
+              <span className="flex flex-col">
+                <span>{style.name}</span>
+                <span className="text-muted-foreground text-xs">
+                  /{style.slug}
+                </span>
+              </span>
+              <span className="text-muted-foreground ml-auto text-xs">
+                {style.count}
+              </span>
+            </CommandItem>
+          ))}
+        </CommandGroup>
+      )}
+      {hasQuery && totalMatches === 0 && (
+        <div className="text-muted-foreground flex flex-1 items-center justify-center px-4 py-12 text-sm">
+          No results found.
+        </div>
+      )}
+    </>
+  );
+
+  const renderActiveView = () => {
+    switch (activeView) {
+      case "trending":
+        return renderTrending();
+      case "sections":
+        return renderSections();
+      case "styles":
+        return renderStyles();
+      case "categories":
+      default:
+        return renderCategories();
+    }
+  };
 
   return (
     <>
@@ -105,67 +538,74 @@ const SearchButton = () => {
           ⌘K
         </kbd>
       </button>
-      <CommandDialog open={searchOpen} onOpenChange={setSearchOpen}>
-        <CommandInput placeholder="Type a command or search..." />
-        <CommandList>
-          <CommandEmpty>No results found.</CommandEmpty>
-          <CommandGroup heading="Quick start">
-            <CommandItem>
-              <FolderPlusIcon
-                size={16}
-                className="opacity-60"
-                aria-hidden="true"
-              />
-              <span>New folder</span>
-              <CommandShortcut className="justify-center">⌘N</CommandShortcut>
-            </CommandItem>
-            <CommandItem>
-              <FileInputIcon
-                size={16}
-                className="opacity-60"
-                aria-hidden="true"
-              />
-              <span>Import document</span>
-              <CommandShortcut className="justify-center">⌘I</CommandShortcut>
-            </CommandItem>
-            <CommandItem>
-              <CircleFadingPlusIcon
-                size={16}
-                className="opacity-60"
-                aria-hidden="true"
-              />
-              <span>Add block</span>
-              <CommandShortcut className="justify-center">⌘B</CommandShortcut>
-            </CommandItem>
-          </CommandGroup>
-          <CommandSeparator />
-          <CommandGroup heading="Navigation">
-            <CommandItem>
-              <ArrowUpRightIcon
-                size={16}
-                className="opacity-60"
-                aria-hidden="true"
-              />
-              <span>Go to dashboard</span>
-            </CommandItem>
-            <CommandItem>
-              <ArrowUpRightIcon
-                size={16}
-                className="opacity-60"
-                aria-hidden="true"
-              />
-              <span>Go to apps</span>
-            </CommandItem>
-            <CommandItem>
-              <ArrowUpRightIcon
-                size={16}
-                className="opacity-60"
-                aria-hidden="true"
-              />
-              <span>Go to connections</span>
-            </CommandItem>
-          </CommandGroup>
-        </CommandList>
+      <CommandDialog open={searchOpen} onOpenChange={handleOpenChange}>
+        <div className="md:flex md:h-[540px]">
+          <div className="border-border/60 hidden w-56 flex-none flex-col gap-1 border-r bg-muted/10 p-3 md:flex">
+            <p className="text-muted-foreground mb-2 text-xs uppercase tracking-wide">
+              Browse
+            </p>
+            {navigationItems.map((item) => {
+              const Icon = item.icon;
+              const isActive = activeView === item.id && !hasQuery;
+              return (
+                <button
+                  key={item.id}
+                  className={cn(
+                    "text-left text-sm transition",
+                    "rounded-md px-3 py-2",
+                    isActive
+                      ? "bg-background shadow-xs"
+                      : "hover:bg-background/40",
+                  )}
+                  onClick={() => setActiveView(item.id)}
+                  type="button"
+                >
+                  <div className="flex items-center gap-2">
+                    <Icon className="text-muted-foreground size-4" />
+                    <span>{item.label}</span>
+                  </div>
+                  <p className="text-muted-foreground mt-1 text-xs">
+                    {item.description}
+                  </p>
+                </button>
+              );
+            })}
+          </div>
+          <div className="flex min-w-0 flex-1 flex-col">
+            <CommandInput
+              value={query}
+              onValueChange={setQuery}
+              placeholder="Search sites, categories, sections or styles..."
+            />
+            <div className="border-border/60 md:hidden">
+              <div className="flex gap-2 overflow-x-auto px-3 py-2">
+                {navigationItems.map((item) => {
+                  const Icon = item.icon;
+                  const isActive = activeView === item.id && !hasQuery;
+                  return (
+                    <button
+                      key={item.id}
+                      className={cn(
+                        "flex items-center gap-2 rounded-full border px-3 py-1 text-xs",
+                        isActive
+                          ? "border-foreground"
+                          : "border-transparent bg-muted",
+                      )}
+                      onClick={() => setActiveView(item.id)}
+                      type="button"
+                    >
+                      <Icon className="size-3.5" />
+                      {item.label}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+            <CommandList className="flex-1 overflow-y-auto p-2 md:px-4 md:py-3">
+              {hasQuery ? renderQueryResults() : renderActiveView()}
+            </CommandList>
+          </div>
+        </div>
       </CommandDialog>
     </>
   );

@@ -1,9 +1,20 @@
-import { Header } from "@/components/layout";
+import type { ReactNode } from "react";
 
-const Layout = ({ children }: { children: React.ReactNode }) => {
+import { Header } from "@/components/layout";
+import { getContentComponents } from "@/lib/content";
+
+const Layout = async ({ children }: { children: ReactNode }) => {
+  const content = Object.values(await getContentComponents());
+  const searchEntries = content.map((component) => ({
+    slug: component.slug,
+    name: component.name,
+    description: component.description ?? "",
+    tags: component.tags ?? [],
+  }));
+
   return (
     <section className="mx-auto max-w-[1440px]">
-      <Header />
+      <Header searchEntries={searchEntries} />
       {children}
     </section>
   );
