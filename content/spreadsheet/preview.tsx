@@ -1,14 +1,10 @@
 import React, { useMemo } from "react";
 import { createColumnHelper } from "@tanstack/react-table";
 
+import type { Person } from "./use-enrichment";
 import { EditableCell } from "./editable-cell";
 import { Spreadsheet } from "./spreadsheet";
 import { SpreadsheetProvider } from "./spreadsheet-provider";
-import {
-  generateSamplePeople,
-  sampleEnrichmentHandler,
-  type Person,
-} from "./use-enrichment";
 import {
   StatusBar,
   StatusBarMessage,
@@ -22,9 +18,14 @@ import {
   ToolbarExportButton,
   ToolbarImportButton,
 } from "./toolbar";
+import {
+  generateSamplePeople,
+  sampleEnrichmentHandler,
+} from "./use-enrichment";
+
+const columnHelper = createColumnHelper<Person>();
 
 const Preview = () => {
-  const columnHelper = useMemo(() => createColumnHelper<Person>(), []);
   const columns = useMemo(
     () => [
       columnHelper.accessor("linkedinUrl", {
@@ -56,7 +57,7 @@ const Preview = () => {
   );
 
   return (
-    <SpreadsheetProvider<Person>
+    <SpreadsheetProvider
       columns={columns}
       initialData={generateSamplePeople(30)}
       initialColumnWidths={{

@@ -32,25 +32,26 @@ interface StatusBarSectionProps extends React.HTMLAttributes<HTMLDivElement> {}
 export const StatusBarSection = React.forwardRef<
   HTMLDivElement,
   StatusBarSectionProps
->(
-  ({ className, ...props }, ref) => (
-    <div
-      ref={ref}
-      className={cn("flex flex-1 items-center gap-2", className)}
-      {...props}
-    />
-  ),
-);
+>(({ className, ...props }, ref) => (
+  <div
+    ref={ref}
+    className={cn("flex flex-1 items-center gap-2", className)}
+    {...props}
+  />
+));
 StatusBarSection.displayName = "StatusBarSection";
 
 export const StatusBarMessage: React.FC = () => {
-  const { editingCell, selectedCells } = useSpreadsheet();
+  const { editingCell, selectedCells, data } = useSpreadsheet();
   const selectedCellsCount = selectedCells.size;
 
   if (editingCell) {
+    const rowIndex = data.findIndex((row) => row.id === editingCell.rowId);
+    const displayRowNumber = rowIndex !== -1 ? rowIndex + 1 : "?";
+
     return (
       <span>
-        Editing row {editingCell.rowIndex + 1}, column {editingCell.columnId}
+        Editing row {displayRowNumber}, column {editingCell.columnId}
       </span>
     );
   }

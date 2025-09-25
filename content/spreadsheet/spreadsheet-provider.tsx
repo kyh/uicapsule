@@ -9,10 +9,10 @@ import React, {
   useRef,
   useState,
 } from "react";
-import type { ColumnDef, Table } from "@tanstack/react-table";
 import { getCoreRowModel, useReactTable } from "@tanstack/react-table";
 
 import type { ColumnInfo } from "./spreadsheet-utils";
+import type { ColumnDef, Table } from "@tanstack/react-table";
 
 type SpreadsheetRow = Record<string, any>;
 
@@ -34,15 +34,15 @@ interface SpreadsheetContextType<TData extends SpreadsheetRow> {
   columnMeta: ColumnInfo[];
   selectedCells: Set<string>;
   setSelectedCells: React.Dispatch<React.SetStateAction<Set<string>>>;
-  editingCell: { rowIndex: number; columnId: string } | null;
+  editingCell: { rowId: string; columnId: string } | null;
   setEditingCell: React.Dispatch<
-    React.SetStateAction<{ rowIndex: number; columnId: string } | null>
+    React.SetStateAction<{ rowId: string; columnId: string } | null>
   >;
   isDragging: boolean;
   setIsDragging: React.Dispatch<React.SetStateAction<boolean>>;
-  dragStartCell: { rowIndex: number; columnId: string } | null;
+  dragStartCell: { rowId: string; columnId: string } | null;
   setDragStartCell: React.Dispatch<
-    React.SetStateAction<{ rowIndex: number; columnId: string } | null>
+    React.SetStateAction<{ rowId: string; columnId: string } | null>
   >;
   columnWidths: Record<string, number>;
   setColumnWidths: React.Dispatch<React.SetStateAction<Record<string, number>>>;
@@ -50,8 +50,8 @@ interface SpreadsheetContextType<TData extends SpreadsheetRow> {
   startEnrichment: () => void;
   canEnrich: boolean;
   addRow: () => void;
-  deleteRow: (rowIndex: number) => void;
-  updateData: (rowIndex: number, columnId: string, value: any) => void;
+  deleteRow: (rowId: string) => void;
+  updateData: (rowId: string, columnId: string, value: any) => void;
   clearSelectedCells: () => void;
   tableContainerRef: React.RefObject<HTMLDivElement | null>;
   dragLineRef: React.RefObject<HTMLDivElement | null>;
@@ -59,8 +59,9 @@ interface SpreadsheetContextType<TData extends SpreadsheetRow> {
   setDragLineVisible: React.Dispatch<React.SetStateAction<boolean>>;
 }
 
-const SpreadsheetContext =
-  createContext<SpreadsheetContextType<SpreadsheetRow> | undefined>(undefined);
+const SpreadsheetContext = createContext<
+  SpreadsheetContextType<SpreadsheetRow> | undefined
+>(undefined);
 
 const getColumnId = <TData extends SpreadsheetRow>(
   column: ColumnDef<TData, any>,
@@ -68,8 +69,11 @@ const getColumnId = <TData extends SpreadsheetRow>(
   if (typeof column.id === "string" && column.id) {
     return column.id;
   }
-  if (typeof column.accessorKey === "string" && column.accessorKey) {
-    return column.accessorKey;
+  if (
+    typeof (column as any).accessorKey === "string" &&
+    (column as any).accessorKey
+  ) {
+    return (column as any).accessorKey;
   }
   return "";
 };
@@ -100,24 +104,26 @@ export function SpreadsheetProvider<TData extends SpreadsheetRow>({
   const [data, setData] = useState<TData[]>(() => initialData ?? []);
   const [selectedCells, setSelectedCells] = useState<Set<string>>(new Set());
   const [editingCell, setEditingCell] = useState<{
-    rowIndex: number;
+    rowId: string;
     columnId: string;
   } | null>(null);
   const [isDragging, setIsDragging] = useState(false);
   const [dragStartCell, setDragStartCell] = useState<{
-    rowIndex: number;
+    rowId: string;
     columnId: string;
   } | null>(null);
-  const [columnWidths, setColumnWidths] = useState<Record<string, number>>(() => {
-    const initialWidths: Record<string, number> = {};
-    columns.forEach((column) => {
-      const id = getColumnId(column);
-      if (id) {
-        initialWidths[id] = initialColumnWidths?.[id] ?? 150;
-      }
-    });
-    return initialWidths;
-  });
+  const [columnWidths, setColumnWidths] = useState<Record<string, number>>(
+    () => {
+      const initialWidths: Record<string, number> = {};
+      columns.forEach((column) => {
+        const id = getColumnId(column);
+        if (id) {
+          initialWidths[id] = initialColumnWidths?.[id] ?? 150;
+        }
+      });
+      return initialWidths;
+    },
+  );
   const [dragLineVisible, setDragLineVisible] = useState(false);
   const [isEnriching, setIsEnriching] = useState(false);
   const canEnrich = Boolean(onEnrich);
@@ -125,10 +131,10 @@ export function SpreadsheetProvider<TData extends SpreadsheetRow>({
   const dragLineRef = useRef<HTMLDivElement>(null);
 
   const updateData = useCallback(
-    (rowIndex: number, columnId: string, value: any) => {
+    (rowId: string, columnId: string, value: any) => {
       setData((old) =>
-        old.map((row, index) => {
-          if (index === rowIndex) {
+        old.map((row) => {
+          if (row.id === rowId) {
             return {
               ...row,
               [columnId]: value,
@@ -146,7 +152,12 @@ export function SpreadsheetProvider<TData extends SpreadsheetRow>({
     columns,
     getCoreRowModel: getCoreRowModel(),
     meta: {
-      updateData,
+      updateData: (rowIndex: number, columnId: string, value: any) => {
+        const row = data[rowIndex];
+        if (row) {
+          updateData(row.id, columnId, value);
+        }
+      },
     },
   });
 
@@ -154,8 +165,8 @@ export function SpreadsheetProvider<TData extends SpreadsheetRow>({
     return table.getAllLeafColumns().map((column) => ({
       id: column.id,
       accessorKey:
-        typeof column.columnDef.accessorKey === "string"
-          ? column.columnDef.accessorKey
+        typeof (column.columnDef as any).accessorKey === "string"
+          ? (column.columnDef as any).accessorKey
           : column.id,
     }));
   }, [table]);
@@ -164,7 +175,9 @@ export function SpreadsheetProvider<TData extends SpreadsheetRow>({
     setColumnWidths((prev) => {
       const next: Record<string, number> = {};
       columnMeta.forEach(({ id }) => {
-        next[id] = prev[id] ?? initialColumnWidths?.[id] ?? 150;
+        if (id) {
+          next[id] = prev[id] ?? initialColumnWidths?.[id] ?? 150;
+        }
       });
       return next;
     });
@@ -177,8 +190,8 @@ export function SpreadsheetProvider<TData extends SpreadsheetRow>({
     });
   }, [createRow]);
 
-  const deleteRow = useCallback((rowIndex: number) => {
-    setData((old) => old.filter((_, index) => index !== rowIndex));
+  const deleteRow = useCallback((rowId: string) => {
+    setData((old) => old.filter((row) => row.id !== rowId));
   }, []);
 
   const clearSelectedCells = useCallback(() => {
@@ -187,8 +200,8 @@ export function SpreadsheetProvider<TData extends SpreadsheetRow>({
     setData((old) => {
       const newData = [...old];
       selectedCells.forEach((cellKey) => {
-        const [rowIndexStr, columnId] = cellKey.split("-");
-        const rowIndex = Number.parseInt(rowIndexStr, 10);
+        const [rowId, columnId] = cellKey.split(":");
+        const rowIndex = newData.findIndex((row) => row.id === rowId);
 
         if (rowIndex >= 0 && rowIndex < newData.length) {
           const currentRow = newData[rowIndex];
@@ -215,7 +228,12 @@ export function SpreadsheetProvider<TData extends SpreadsheetRow>({
     Promise.resolve(
       onEnrich({
         data,
-        updateData,
+        updateData: (rowIndex: number, columnId: string, value: any) => {
+          const row = data[rowIndex];
+          if (row) {
+            updateData(row.id, columnId, value);
+          }
+        },
         selectedCells,
         setData,
       }),
@@ -251,7 +269,7 @@ export function SpreadsheetProvider<TData extends SpreadsheetRow>({
   };
 
   return (
-    <SpreadsheetContext.Provider value={value}>
+    <SpreadsheetContext.Provider value={value as any}>
       {children}
     </SpreadsheetContext.Provider>
   );
@@ -265,9 +283,4 @@ export const useSpreadsheet = <TData extends SpreadsheetRow>() => {
   return context as SpreadsheetContextType<TData>;
 };
 
-export type {
-  SpreadsheetRow,
-  SpreadsheetProviderProps,
-  SpreadsheetEnrichmentHandler,
-  EnrichmentHandlerParams,
-};
+export type { SpreadsheetRow, SpreadsheetProviderProps };

@@ -51,8 +51,8 @@ export const Spreadsheet = React.forwardRef<HTMLDivElement, SpreadsheetProps>(
     );
 
     const getRowCellsHelper = useCallback(
-      (rowIndex: number) => {
-        return getRowCells(rowIndex, columnMeta);
+      (rowId: string) => {
+        return getRowCells(rowId, columnMeta);
       },
       [columnMeta],
     );
@@ -109,8 +109,8 @@ export const Spreadsheet = React.forwardRef<HTMLDivElement, SpreadsheetProps>(
               style={{
                 width: `calc(var(--col-${header.column.id}-size) * 1px)`,
               }}
-              onMouseDown={(e) => handleMouseDown(e, 0, header.column.id)}
-              onMouseMove={(e) => handleMouseMove(e, 0, header.column.id)}
+              onMouseDown={(e) => handleMouseDown(e, "", header.column.id)}
+              onMouseMove={(e) => handleMouseMove(e, "", header.column.id)}
             >
               {header.isPlaceholder
                 ? null

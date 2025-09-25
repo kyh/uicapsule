@@ -12,13 +12,19 @@ interface EditableCellProps {
   table: any;
 }
 
-export const EditableCell = ({ getValue, row, column, table }: EditableCellProps) => {
+export const EditableCell = ({
+  getValue,
+  row,
+  column,
+  table,
+}: EditableCellProps) => {
   const initialValue = getValue();
   const [value, setValue] = useState(initialValue);
   const inputRef = useRef<HTMLInputElement>(null);
   const { editingCell, setEditingCell } = useSpreadsheet();
   const isEditing =
-    editingCell?.rowIndex === row.index && editingCell?.columnId === column.id;
+    editingCell?.rowId === row.original.id &&
+    editingCell?.columnId === column.id;
 
   useEffect(() => {
     setValue(initialValue);
