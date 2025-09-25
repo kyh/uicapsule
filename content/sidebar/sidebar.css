@@ -1,0 +1,11 @@
+/* CSS Variables for Resizable Sidebar */
+:root {
+  --sidebar-width: 280px; /* Default sidebar width */
+}
+
+/* Ensure the sidebar takes full height */
+.sidebar-container {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}

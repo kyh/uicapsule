@@ -1,0 +1,7 @@
+{
+  "name": "Resizable Sidebar",
+  "description": "A shadcn-inspired application sidebar with a draggable resize handle.",
+  "coverUrl": "",
+  "coverType": "video",
+  "tags": ["layout", "sidebar"]
+}
