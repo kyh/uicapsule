@@ -3,15 +3,13 @@
 import React, { useEffect, useRef, useState } from "react";
 import { Input } from "@repo/ui/input";
 
+import { useSpreadsheet } from "./spreadsheet-provider";
+
 interface EditableCellProps {
   getValue: () => any;
   row: any;
   column: any;
   table: any;
-  isSelected: boolean;
-  isEditing: boolean;
-  onStartEdit: () => void;
-  onStopEdit: () => void;
 }
 
 export const EditableCell = ({
@@ -19,14 +17,14 @@ export const EditableCell = ({
   row,
   column,
   table,
-  isSelected,
-  isEditing,
-  onStartEdit,
-  onStopEdit,
 }: EditableCellProps) => {
   const initialValue = getValue();
   const [value, setValue] = useState(initialValue);
   const inputRef = useRef<HTMLInputElement>(null);
+  const { editingCell, setEditingCell } = useSpreadsheet();
+  const isEditing =
+    editingCell?.rowId === row.original.id &&
+    editingCell?.columnId === column.id;
 
   useEffect(() => {
     setValue(initialValue);
@@ -41,32 +39,18 @@ export const EditableCell = ({
 
   const onBlur = () => {
     table.options.meta?.updateData(row.index, column.id, value);
-    onStopEdit();
+    setEditingCell(null);
   };
 
   const onKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === "Enter") {
       table.options.meta?.updateData(row.index, column.id, value);
-      onStopEdit();
+      setEditingCell(null);
     } else if (e.key === "Escape") {
       setValue(initialValue);
-      onStopEdit();
+      setEditingCell(null);
     }
     e.stopPropagation();
-  };
-
-  const getStatusDot = () => {
-    if (value === "Queued") {
-      return (
-        <div className="mr-2 h-2 w-2 flex-shrink-0 rounded-full bg-yellow-500" />
-      );
-    }
-    if (value === "Researching...") {
-      return (
-        <div className="mr-2 h-2 w-2 flex-shrink-0 rounded-full bg-green-500" />
-      );
-    }
-    return null;
   };
 
   if (isEditing) {
@@ -85,12 +69,9 @@ export const EditableCell = ({
 
   return (
     <div className="h-8 w-full p-1">
-      <div className="flex items-center">
-        {getStatusDot()}
-        <span className="text-foreground block truncate text-sm" title={value}>
-          {value}
-        </span>
-      </div>
+      <span className="text-foreground block truncate text-sm" title={value}>
+        {value}
+      </span>
     </div>
   );
 };

@@ -4,154 +4,139 @@ import React, {
   createContext,
   useCallback,
   useContext,
+  useEffect,
+  useMemo,
   useRef,
   useState,
 } from "react";
+import { getCoreRowModel, useReactTable } from "@tanstack/react-table";
 
-import { useEnrichment } from "./use-enrichment";
+import type { ColumnInfo } from "./spreadsheet-utils";
+import type { ColumnDef, Table } from "@tanstack/react-table";
 
-type Person = {
-  id: string;
-  linkedinUrl: string;
-  firstName: string;
-  lastName: string;
-  email: string;
-  company: string;
-  role: string;
-};
+type SpreadsheetRow = Record<string, any>;
 
-interface SpreadsheetContextType {
-  // Data
-  data: Person[];
-  setData: (data: Person[]) => void;
+export interface EnrichmentHandlerParams<TData extends SpreadsheetRow> {
+  data: TData[];
+  updateData: (rowIndex: number, columnId: string, value: any) => void;
+  selectedCells: Set<string>;
+  setData: React.Dispatch<React.SetStateAction<TData[]>>;
+}
 
-  // UI State
+export type SpreadsheetEnrichmentHandler<TData extends SpreadsheetRow> = (
+  params: EnrichmentHandlerParams<TData>,
+) => Promise<void> | void;
+
+interface SpreadsheetContextType<TData extends SpreadsheetRow> {
+  data: TData[];
+  setData: React.Dispatch<React.SetStateAction<TData[]>>;
+  table: Table<TData>;
+  columnMeta: ColumnInfo[];
   selectedCells: Set<string>;
   setSelectedCells: React.Dispatch<React.SetStateAction<Set<string>>>;
-  editingCell: { rowIndex: number; columnId: string } | null;
+  editingCell: { rowId: string; columnId: string } | null;
   setEditingCell: React.Dispatch<
-    React.SetStateAction<{ rowIndex: number; columnId: string } | null>
+    React.SetStateAction<{ rowId: string; columnId: string } | null>
   >;
-
-  // Drag Selection
   isDragging: boolean;
   setIsDragging: React.Dispatch<React.SetStateAction<boolean>>;
-  dragStartCell: { rowIndex: number; columnId: string } | null;
+  dragStartCell: { rowId: string; columnId: string } | null;
   setDragStartCell: React.Dispatch<
-    React.SetStateAction<{ rowIndex: number; columnId: string } | null>
+    React.SetStateAction<{ rowId: string; columnId: string } | null>
   >;
-
-  // Column Management
   columnWidths: Record<string, number>;
   setColumnWidths: React.Dispatch<React.SetStateAction<Record<string, number>>>;
-
-  // Enrichment
   isEnriching: boolean;
   startEnrichment: () => void;
-
-  // Actions
+  canEnrich: boolean;
   addRow: () => void;
-  deleteRow: (rowIndex: number) => void;
-  updateData: (rowIndex: number, columnId: string, value: any) => void;
+  deleteRow: (rowId: string) => void;
+  updateData: (rowId: string, columnId: string, value: any) => void;
   clearSelectedCells: () => void;
-
-  // Refs
   tableContainerRef: React.RefObject<HTMLDivElement | null>;
   dragLineRef: React.RefObject<HTMLDivElement | null>;
   dragLineVisible: boolean;
   setDragLineVisible: React.Dispatch<React.SetStateAction<boolean>>;
 }
 
-const SpreadsheetContext = createContext<SpreadsheetContextType | undefined>(
-  undefined,
-);
+const SpreadsheetContext = createContext<
+  SpreadsheetContextType<SpreadsheetRow> | undefined
+>(undefined);
 
-const generateSampleData = (count: number): Person[] => {
-  const linkedinUrls = [
-    "https://linkedin.com/in/john-smith-tech",
-    "https://linkedin.com/in/sarah-johnson-marketing",
-    "https://linkedin.com/in/michael-brown-sales",
-    "https://linkedin.com/in/emily-davis-hr",
-    "https://linkedin.com/in/david-wilson-finance",
-    "https://linkedin.com/in/jessica-garcia-product",
-    "https://linkedin.com/in/robert-miller-engineering",
-    "https://linkedin.com/in/amanda-taylor-design",
-    "https://linkedin.com/in/christopher-anderson-ops",
-    "https://linkedin.com/in/michelle-thomas-strategy",
-    "https://linkedin.com/in/james-jackson-consulting",
-    "https://linkedin.com/in/lisa-white-analytics",
-    "https://linkedin.com/in/daniel-harris-growth",
-    "https://linkedin.com/in/jennifer-martin-content",
-    "https://linkedin.com/in/matthew-thompson-dev",
-    "https://linkedin.com/in/ashley-clark-partnerships",
-    "https://linkedin.com/in/andrew-rodriguez-security",
-    "https://linkedin.com/in/stephanie-lewis-legal",
-    "https://linkedin.com/in/joshua-lee-research",
-    "https://linkedin.com/in/nicole-walker-customer",
-    "https://linkedin.com/in/ryan-hall-innovation",
-    "https://linkedin.com/in/rachel-allen-communications",
-    "https://linkedin.com/in/brandon-young-infrastructure",
-    "https://linkedin.com/in/samantha-king-quality",
-    "https://linkedin.com/in/kevin-wright-business",
-    "https://linkedin.com/in/lauren-lopez-training",
-    "https://linkedin.com/in/tyler-hill-compliance",
-    "https://linkedin.com/in/megan-green-procurement",
-    "https://linkedin.com/in/jonathan-adams-logistics",
-    "https://linkedin.com/in/brittany-baker-relations",
-  ];
-
-  return Array.from({ length: count }, (_, i) => ({
-    id: `${i + 1}`,
-    linkedinUrl: linkedinUrls[i] || `https://linkedin.com/in/user-${i + 1}`,
-    firstName: "",
-    lastName: "",
-    email: "",
-    company: "",
-    role: "",
-  }));
+const getColumnId = <TData extends SpreadsheetRow>(
+  column: ColumnDef<TData, any>,
+) => {
+  if (typeof column.id === "string" && column.id) {
+    return column.id;
+  }
+  if (
+    typeof (column as any).accessorKey === "string" &&
+    (column as any).accessorKey
+  ) {
+    return (column as any).accessorKey;
+  }
+  return "";
 };
 
-interface SpreadsheetProviderProps {
+interface SpreadsheetProviderProps<TData extends SpreadsheetRow> {
   children: React.ReactNode;
-  initialData?: Person[];
+  columns: ColumnDef<TData, any>[];
+  initialData?: TData[];
+  initialColumnWidths?: Record<string, number>;
+  createRow?: (rowIndex: number) => TData;
+  clearCellValue?: (options: {
+    row: TData;
+    columnId: string;
+    value: any;
+  }) => any;
+  onEnrich?: SpreadsheetEnrichmentHandler<TData>;
 }
 
-export const SpreadsheetProvider: React.FC<SpreadsheetProviderProps> = ({
+export function SpreadsheetProvider<TData extends SpreadsheetRow>({
   children,
+  columns,
   initialData,
-}) => {
-  const [data, setData] = useState<Person[]>(
-    () => initialData || generateSampleData(30),
-  );
+  initialColumnWidths,
+  createRow,
+  clearCellValue,
+  onEnrich,
+}: SpreadsheetProviderProps<TData>) {
+  const [data, setData] = useState<TData[]>(() => initialData ?? []);
   const [selectedCells, setSelectedCells] = useState<Set<string>>(new Set());
   const [editingCell, setEditingCell] = useState<{
-    rowIndex: number;
+    rowId: string;
     columnId: string;
   } | null>(null);
   const [isDragging, setIsDragging] = useState(false);
   const [dragStartCell, setDragStartCell] = useState<{
-    rowIndex: number;
+    rowId: string;
     columnId: string;
   } | null>(null);
-  const [columnWidths, setColumnWidths] = useState<Record<string, number>>({
-    linkedinUrl: 250,
-    firstName: 120,
-    lastName: 120,
-    email: 180,
-    company: 150,
-    role: 150,
-  });
+  const [columnWidths, setColumnWidths] = useState<Record<string, number>>(
+    () => {
+      const initialWidths: Record<string, number> = {};
+      columns.forEach((column) => {
+        const id = getColumnId(column);
+        if (id) {
+          initialWidths[id] = initialColumnWidths?.[id] ?? 150;
+        }
+      });
+      return initialWidths;
+    },
+  );
   const [dragLineVisible, setDragLineVisible] = useState(false);
+  const [isEnriching, setIsEnriching] = useState(false);
+  const canEnrich = Boolean(onEnrich);
   const tableContainerRef = useRef<HTMLDivElement>(null);
   const dragLineRef = useRef<HTMLDivElement>(null);
 
   const updateData = useCallback(
-    (rowIndex: number, columnId: string, value: any) => {
+    (rowId: string, columnId: string, value: any) => {
       setData((old) =>
-        old.map((row, index) => {
-          if (index === rowIndex) {
+        old.map((row) => {
+          if (row.id === rowId) {
             return {
-              ...old[rowIndex],
+              ...row,
               [columnId]: value,
             };
           }
@@ -162,27 +147,51 @@ export const SpreadsheetProvider: React.FC<SpreadsheetProviderProps> = ({
     [],
   );
 
-  const { isEnriching, startEnrichment } = useEnrichment(
+  const table = useReactTable({
     data,
-    updateData,
-    selectedCells,
-  );
+    columns,
+    getCoreRowModel: getCoreRowModel(),
+    meta: {
+      updateData: (rowIndex: number, columnId: string, value: any) => {
+        const row = data[rowIndex];
+        if (row) {
+          updateData(row.id, columnId, value);
+        }
+      },
+    },
+  });
+
+  const columnMeta = useMemo<ColumnInfo[]>(() => {
+    return table.getAllLeafColumns().map((column) => ({
+      id: column.id,
+      accessorKey:
+        typeof (column.columnDef as any).accessorKey === "string"
+          ? (column.columnDef as any).accessorKey
+          : column.id,
+    }));
+  }, [table]);
+
+  useEffect(() => {
+    setColumnWidths((prev) => {
+      const next: Record<string, number> = {};
+      columnMeta.forEach(({ id }) => {
+        if (id) {
+          next[id] = prev[id] ?? initialColumnWidths?.[id] ?? 150;
+        }
+      });
+      return next;
+    });
+  }, [columnMeta, initialColumnWidths]);
 
   const addRow = useCallback(() => {
-    const newRow: Person = {
-      id: `${data.length + 1}`,
-      linkedinUrl: "",
-      firstName: "",
-      lastName: "",
-      email: "",
-      company: "",
-      role: "",
-    };
-    setData((old) => [...old, newRow]);
-  }, [data.length]);
+    setData((old) => {
+      const nextRow = createRow?.(old.length) ?? ({} as TData);
+      return [...old, nextRow];
+    });
+  }, [createRow]);
 
-  const deleteRow = useCallback((rowIndex: number) => {
-    setData((old) => old.filter((_, index) => index !== rowIndex));
+  const deleteRow = useCallback((rowId: string) => {
+    setData((old) => old.filter((row) => row.id !== rowId));
   }, []);
 
   const clearSelectedCells = useCallback(() => {
@@ -191,22 +200,51 @@ export const SpreadsheetProvider: React.FC<SpreadsheetProviderProps> = ({
     setData((old) => {
       const newData = [...old];
       selectedCells.forEach((cellKey) => {
-        const [rowIndexStr, columnId] = cellKey.split("-");
-        const rowIndex = Number.parseInt(rowIndexStr);
+        const [rowId, columnId] = cellKey.split(":");
+        const rowIndex = newData.findIndex((row) => row.id === rowId);
+
         if (rowIndex >= 0 && rowIndex < newData.length) {
+          const currentRow = newData[rowIndex];
           newData[rowIndex] = {
-            ...newData[rowIndex],
-            [columnId]: "",
+            ...currentRow,
+            [columnId]: clearCellValue
+              ? clearCellValue({
+                  row: currentRow,
+                  columnId,
+                  value: currentRow?.[columnId],
+                })
+              : "",
           };
         }
       });
       return newData;
     });
-  }, [selectedCells]);
+  }, [clearCellValue, selectedCells]);
 
-  const value: SpreadsheetContextType = {
+  const startEnrichment = useCallback(() => {
+    if (!onEnrich) return;
+
+    setIsEnriching(true);
+    Promise.resolve(
+      onEnrich({
+        data,
+        updateData: (rowIndex: number, columnId: string, value: any) => {
+          const row = data[rowIndex];
+          if (row) {
+            updateData(row.id, columnId, value);
+          }
+        },
+        selectedCells,
+        setData,
+      }),
+    ).finally(() => setIsEnriching(false));
+  }, [data, onEnrich, selectedCells, updateData]);
+
+  const value: SpreadsheetContextType<TData> = {
     data,
     setData,
+    table,
+    columnMeta,
     selectedCells,
     setSelectedCells,
     editingCell,
@@ -219,6 +257,7 @@ export const SpreadsheetProvider: React.FC<SpreadsheetProviderProps> = ({
     setColumnWidths,
     isEnriching,
     startEnrichment,
+    canEnrich,
     addRow,
     deleteRow,
     updateData,
@@ -230,18 +269,18 @@ export const SpreadsheetProvider: React.FC<SpreadsheetProviderProps> = ({
   };
 
   return (
-    <SpreadsheetContext.Provider value={value}>
+    <SpreadsheetContext.Provider value={value as any}>
       {children}
     </SpreadsheetContext.Provider>
   );
-};
+}
 
-export const useSpreadsheet = () => {
+export const useSpreadsheet = <TData extends SpreadsheetRow>() => {
   const context = useContext(SpreadsheetContext);
   if (context === undefined) {
     throw new Error("useSpreadsheet must be used within a SpreadsheetProvider");
   }
-  return context;
+  return context as SpreadsheetContextType<TData>;
 };
 
-export type { Person };
+export type { SpreadsheetRow, SpreadsheetProviderProps };

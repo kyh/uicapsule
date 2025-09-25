@@ -10,21 +10,27 @@ interface ResizeHandleProps {
   tableContainerRef: React.RefObject<HTMLDivElement | null>;
   dragLineRef: React.RefObject<HTMLDivElement | null>;
   setDragLineVisible: (visible: boolean) => void;
+  className?: string;
 }
 
-export const ResizeHandle = ({
-  columnId,
-  columnWidths,
-  handleColumnResize,
-  tableContainerRef,
-  dragLineRef,
-  setDragLineVisible,
-}: ResizeHandleProps) => {
-  const [isResizing, setIsResizing] = useState(false);
-  const startXRef = useRef(0);
-  const startWidthRef = useRef(0);
-  const columnStartXRef = useRef(0);
-  const currentMouseXRef = useRef(0);
+export const ResizeHandle = React.forwardRef<HTMLDivElement, ResizeHandleProps>(
+  (
+    {
+      columnId,
+      columnWidths,
+      handleColumnResize,
+      tableContainerRef,
+      dragLineRef,
+      setDragLineVisible,
+      className,
+    },
+    ref,
+  ) => {
+    const [isResizing, setIsResizing] = useState(false);
+    const startXRef = useRef(0);
+    const startWidthRef = useRef(0);
+    const columnStartXRef = useRef(0);
+    const currentMouseXRef = useRef(0);
 
   const handleMouseDown = (e: React.MouseEvent) => {
     e.preventDefault();
@@ -75,13 +81,18 @@ export const ResizeHandle = ({
     document.addEventListener("mouseup", handleMouseUp);
   };
 
-  return (
-    <div
-      className={cn(
-        "hover:bg-primary/50 absolute top-0 right-0 h-full w-1 cursor-col-resize transition-colors",
-        isResizing && "bg-primary",
-      )}
-      onMouseDown={handleMouseDown}
-    />
-  );
-};
+    return (
+      <div
+        ref={ref}
+        className={cn(
+          "hover:bg-primary/50 absolute top-0 right-0 h-full w-1 cursor-col-resize transition-colors",
+          isResizing && "bg-primary",
+          className,
+        )}
+        onMouseDown={handleMouseDown}
+      />
+    );
+  },
+);
+
+ResizeHandle.displayName = "ResizeHandle";
