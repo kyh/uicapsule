@@ -12,6 +12,14 @@ export interface ColumnInfo {
   id?: string;
 }
 
+export interface NavigationMap {
+  up: string | null;
+  down: string | null;
+  left: string | null;
+  right: string | null;
+  tab: string | null;
+}
+
 /**
  * Get all cells in a row
  */
@@ -211,7 +219,67 @@ export const shouldAllowEditing = (
 };
 
 /**
- * Get next cell position for navigation
+ * Create a navigation map for all cells in the spreadsheet
+ */
+export const createNavigationMap = (
+  data: any[],
+  columns: ColumnInfo[],
+): Map<string, NavigationMap> => {
+  const navigationMap = new Map<string, NavigationMap>();
+  const columnIds = columns.map((col) => col.accessorKey || col.id || "");
+
+  data.forEach((row, rowIndex) => {
+    columnIds.forEach((columnId, colIndex) => {
+      const cellKey = `${row.id}:${columnId}`;
+
+      const navigation: NavigationMap = {
+        up: rowIndex > 0 ? `${data[rowIndex - 1].id}:${columnId}` : null,
+        down:
+          rowIndex < data.length - 1
+            ? `${data[rowIndex + 1].id}:${columnId}`
+            : null,
+        left: colIndex > 0 ? `${row.id}:${columnIds[colIndex - 1]}` : null,
+        right:
+          colIndex < columnIds.length - 1
+            ? `${row.id}:${columnIds[colIndex + 1]}`
+            : null,
+        tab: null, // Will be calculated below
+      };
+
+      // Calculate tab navigation
+      if (colIndex < columnIds.length - 1) {
+        navigation.tab = `${row.id}:${columnIds[colIndex + 1]}`;
+      } else if (rowIndex < data.length - 1) {
+        navigation.tab = `${data[rowIndex + 1].id}:${columnIds[0]}`;
+      }
+
+      navigationMap.set(cellKey, navigation);
+    });
+  });
+
+  return navigationMap;
+};
+
+/**
+ * Get next cell position for navigation using pre-calculated map
+ */
+export const getNextCellPositionFromMap = (
+  cellKey: string,
+  direction: "up" | "down" | "left" | "right" | "tab",
+  navigationMap: Map<string, NavigationMap>,
+): CellPosition | null => {
+  const navigation = navigationMap.get(cellKey);
+  if (!navigation) return null;
+
+  const nextCellKey = navigation[direction];
+  if (!nextCellKey) return null;
+
+  const [rowId, columnId] = nextCellKey.split(":");
+  return { rowId, columnId };
+};
+
+/**
+ * Get next cell position for navigation (legacy function for backward compatibility)
  */
 export const getNextCellPosition = (
   currentRowId: string,

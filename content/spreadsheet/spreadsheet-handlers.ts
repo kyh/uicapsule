@@ -6,6 +6,7 @@ import {
   getColumnCells,
   getFirstSelectedCell,
   getNextCellPosition,
+  getNextCellPositionFromMap,
   getRangeCells,
   getRowCells,
   isWithinDataAttribute,
@@ -33,6 +34,7 @@ export const useSpreadsheetHandlers = ({
     dragStartCell,
     setDragStartCell,
     clearSelectedCells,
+    navigationMap,
   } = useSpreadsheet();
   // Mouse down handler for all interactions
   const handleMouseDown = useCallback(
@@ -238,12 +240,11 @@ export const useSpreadsheetHandlers = ({
           break;
         case "ArrowUp": {
           e.preventDefault();
-          const nextPosition = getNextCellPosition(
-            rowId,
-            columnId,
-            columns,
-            data,
+          const currentCellKey = `${rowId}:${columnId}`;
+          const nextPosition = getNextCellPositionFromMap(
+            currentCellKey,
             "up",
+            navigationMap,
           );
           if (nextPosition) {
             const newCellKey = `${nextPosition.rowId}:${nextPosition.columnId}`;
@@ -253,12 +254,11 @@ export const useSpreadsheetHandlers = ({
         }
         case "ArrowDown": {
           e.preventDefault();
-          const nextPosition = getNextCellPosition(
-            rowId,
-            columnId,
-            columns,
-            data,
+          const currentCellKey = `${rowId}:${columnId}`;
+          const nextPosition = getNextCellPositionFromMap(
+            currentCellKey,
             "down",
+            navigationMap,
           );
           if (nextPosition) {
             const newCellKey = `${nextPosition.rowId}:${nextPosition.columnId}`;
@@ -268,12 +268,11 @@ export const useSpreadsheetHandlers = ({
         }
         case "ArrowLeft": {
           e.preventDefault();
-          const nextPosition = getNextCellPosition(
-            rowId,
-            columnId,
-            columns,
-            data,
+          const currentCellKey = `${rowId}:${columnId}`;
+          const nextPosition = getNextCellPositionFromMap(
+            currentCellKey,
             "left",
+            navigationMap,
           );
           if (nextPosition) {
             const newCellKey = `${nextPosition.rowId}:${nextPosition.columnId}`;
@@ -283,12 +282,11 @@ export const useSpreadsheetHandlers = ({
         }
         case "ArrowRight": {
           e.preventDefault();
-          const nextPosition = getNextCellPosition(
-            rowId,
-            columnId,
-            columns,
-            data,
+          const currentCellKey = `${rowId}:${columnId}`;
+          const nextPosition = getNextCellPositionFromMap(
+            currentCellKey,
             "right",
+            navigationMap,
           );
           if (nextPosition) {
             const newCellKey = `${nextPosition.rowId}:${nextPosition.columnId}`;
@@ -298,12 +296,11 @@ export const useSpreadsheetHandlers = ({
         }
         case "Tab": {
           e.preventDefault();
-          const nextPosition = getNextCellPosition(
-            rowId,
-            columnId,
-            columns,
-            data,
+          const currentCellKey = `${rowId}:${columnId}`;
+          const nextPosition = getNextCellPositionFromMap(
+            currentCellKey,
             "tab",
+            navigationMap,
           );
           if (nextPosition) {
             const newCellKey = `${nextPosition.rowId}:${nextPosition.columnId}`;
@@ -340,6 +337,7 @@ export const useSpreadsheetHandlers = ({
       setEditingCell,
       setSelectedCells,
       clearSelectedCells,
+      navigationMap,
     ],
   );
 

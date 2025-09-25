@@ -11,8 +11,9 @@ import React, {
 } from "react";
 import { getCoreRowModel, useReactTable } from "@tanstack/react-table";
 
-import type { ColumnInfo } from "./spreadsheet-utils";
+import type { ColumnInfo, NavigationMap } from "./spreadsheet-utils";
 import type { ColumnDef, Table } from "@tanstack/react-table";
+import { createNavigationMap } from "./spreadsheet-utils";
 
 type SpreadsheetRow = Record<string, any>;
 
@@ -57,6 +58,7 @@ interface SpreadsheetContextType<TData extends SpreadsheetRow> {
   dragLineRef: React.RefObject<HTMLDivElement | null>;
   dragLineVisible: boolean;
   setDragLineVisible: React.Dispatch<React.SetStateAction<boolean>>;
+  navigationMap: Map<string, NavigationMap>;
 }
 
 const SpreadsheetContext = createContext<
@@ -171,6 +173,10 @@ export function SpreadsheetProvider<TData extends SpreadsheetRow>({
     }));
   }, [table]);
 
+  const navigationMap = useMemo(() => {
+    return createNavigationMap(data, columnMeta);
+  }, [data, columnMeta]);
+
   useEffect(() => {
     setColumnWidths((prev) => {
       const next: Record<string, number> = {};
@@ -266,6 +272,7 @@ export function SpreadsheetProvider<TData extends SpreadsheetRow>({
     dragLineRef,
     dragLineVisible,
     setDragLineVisible,
+    navigationMap,
   };
 
   return (
