@@ -1,38 +1,38 @@
 import * as React from "react";
-
 import {
-  AutomationIcon,
-  BarChartIcon,
-  BellIcon,
-  BuildingIcon,
-  CheckSquareIcon,
-  ChevronDownIcon,
-  CompanyIcon,
-  DollarIcon,
-  FileIcon,
-  GridIcon,
-  LinkIcon,
-  MailIcon,
-  PeopleIcon,
-  SequenceIcon,
-  WorkflowIcon,
-} from "./icons";
+  BarChart3,
+  Bell,
+  Building,
+  Building2,
+  CheckSquare,
+  ChevronDown,
+  DollarSign,
+  FileText,
+  GitBranch,
+  Grid3X3,
+  Link,
+  Mail,
+  Settings,
+  Users,
+  Workflow,
+} from "lucide-react";
+
 import { useResizableSidebar } from "./use-resizable-sidebar";
 
 // Navigation data structure
 const navigationItems = [
-  { id: "notifications", label: "Notifications", icon: <BellIcon /> },
-  { id: "tasks", label: "Tasks", icon: <CheckSquareIcon /> },
-  { id: "emails", label: "Emails", icon: <MailIcon /> },
-  { id: "reports", label: "Reports", icon: <BarChartIcon /> },
+  { id: "notifications", label: "Notifications", icon: <Bell size={14} /> },
+  { id: "tasks", label: "Tasks", icon: <CheckSquare size={14} /> },
+  { id: "emails", label: "Emails", icon: <Mail size={14} /> },
+  { id: "reports", label: "Reports", icon: <BarChart3 size={14} /> },
   {
     id: "automations",
     label: "Automations",
-    icon: <AutomationIcon />,
+    icon: <Settings size={14} />,
     hasSubItems: true,
     subItems: [
-      { id: "workflows", label: "Workflows", icon: <WorkflowIcon /> },
-      { id: "sequences", label: "Sequences", icon: <SequenceIcon /> },
+      { id: "workflows", label: "Workflows", icon: <Workflow size={14} /> },
+      { id: "sequences", label: "Sequences", icon: <GitBranch size={14} /> },
     ],
   },
 ];
@@ -44,21 +44,29 @@ const favoritesItems = [
     icon: "🌟",
     isSpecial: true,
   },
-  { id: "top-of-funnel", label: "Top of funnel", icon: <BuildingIcon /> },
-  { id: "revops-workflows", label: "RevOps workflows", icon: <FileIcon /> },
+  {
+    id: "top-of-funnel",
+    label: "Top of funnel",
+    icon: <Building2 size={14} />,
+  },
+  {
+    id: "revops-workflows",
+    label: "RevOps workflows",
+    icon: <FileText size={14} />,
+  },
 ];
 
 const recordsItems = [
   {
     id: "companies",
     label: "Companies",
-    icon: <CompanyIcon />,
+    icon: <Building size={14} />,
     isActive: true,
   },
-  { id: "people", label: "People", icon: <PeopleIcon /> },
-  { id: "deals", label: "Deals", icon: <DollarIcon /> },
-  { id: "workspaces", label: "Workspaces", icon: <GridIcon /> },
-  { id: "partnerships", label: "Partnerships", icon: <LinkIcon /> },
+  { id: "people", label: "People", icon: <Users size={14} /> },
+  { id: "deals", label: "Deals", icon: <DollarSign size={14} /> },
+  { id: "workspaces", label: "Workspaces", icon: <Grid3X3 size={14} /> },
+  { id: "partnerships", label: "Partnerships", icon: <Link size={14} /> },
 ];
 
 const listsItems = [
@@ -124,7 +132,7 @@ const NavigationItem = ({
       <span className="min-w-0 flex-1 truncate text-[14px] leading-5 font-medium tracking-[-0.28px]">
         {item.label}
       </span>
-      {item.hasSubItems && <ChevronDownIcon />}
+      {item.hasSubItems && <ChevronDown size={14} />}
     </div>
     {item.hasSubItems && item.subItems && (
       <div className="flex flex-col gap-y-px py-px">
@@ -151,7 +159,7 @@ const NavigationSection = ({
 }) => (
   <div className="flex flex-col">
     <div className="flex min-w-0 items-center gap-x-1.5 px-2 py-1.5">
-      <ChevronDownIcon />
+      <ChevronDown size={14} />
       <span className="min-w-0 flex-1 truncate text-[12px] leading-4 font-medium tracking-normal text-[#75777C]">
         {title}
       </span>
@@ -182,9 +190,9 @@ export const Sidebar = () => {
             decoding="async"
             data-nimg="1"
             className="size-6 flex-shrink-0"
-            src="/_next/image?url=%2F_next%2Fstatic%2Fmedia%2Fhome-ui-layout-sidebar-header-avatar.14e2ff59.png&amp;w=256&amp;q=75"
+            src=""
           />
-          <div className="text-secondary-foreground ml-2 min-w-0 flex-1 truncate text-[16px] leading-5 font-semibold tracking-[-0.32px]">
+          <div className="text-secondary-foreground ml-2 min-w-0 truncate text-[16px] leading-5 font-semibold tracking-[-0.32px]">
             Basepoint
           </div>
           <svg
