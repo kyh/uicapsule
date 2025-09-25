@@ -1,7 +1,7 @@
 import { useCallback } from "react";
 
 import type { CellPosition, ColumnInfo } from "./spreadsheet-utils";
-import { useSpreadsheet } from "./spreadsheet-provider";
+import { useSpreadsheet } from "../components/spreadsheet-provider";
 import {
   getColumnCells,
   getFirstSelectedCell,

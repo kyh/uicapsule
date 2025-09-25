@@ -1,27 +1,27 @@
 import React, { useMemo } from "react";
 import { createColumnHelper } from "@tanstack/react-table";
 
-import type { Person } from "./use-enrichment";
-import { EditableCell } from "./editable-cell";
-import { Spreadsheet } from "./spreadsheet";
-import { SpreadsheetProvider } from "./spreadsheet-provider";
+import type { Person } from "./lib/use-enrichment";
+import { EditableCell } from "./components/editable-cell";
+import { Spreadsheet } from "./components/spreadsheet";
+import { SpreadsheetProvider } from "./components/spreadsheet-provider";
 import {
   StatusBar,
   StatusBarMessage,
   StatusBarSection,
   StatusBarSummary,
-} from "./status-bar";
+} from "./components/status-bar";
 import {
   Toolbar,
   ToolbarAddRowButton,
   ToolbarEnrichButton,
   ToolbarExportButton,
   ToolbarImportButton,
-} from "./toolbar";
+} from "./components/toolbar";
 import {
   generateSamplePeople,
   sampleEnrichmentHandler,
-} from "./use-enrichment";
+} from "./lib/use-enrichment";
 
 const columnHelper = createColumnHelper<Person>();
 

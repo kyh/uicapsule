@@ -2,7 +2,7 @@
 
 import { useCallback, useState } from "react";
 
-import type { EnrichmentHandlerParams } from "./spreadsheet-provider";
+import type { EnrichmentHandlerParams } from "../components/spreadsheet-provider";
 
 export type Person = {
   id: string;
@@ -132,7 +132,13 @@ const SAMPLE_DATA = {
     "Adams",
     "Baker",
   ],
-  email: ["@gmail.com", "@outlook.com", "@company.com", "@yahoo.com", "@hotmail.com"],
+  email: [
+    "@gmail.com",
+    "@outlook.com",
+    "@company.com",
+    "@yahoo.com",
+    "@hotmail.com",
+  ],
   company: [
     "TechCorp",
     "InnovateLabs",
@@ -291,53 +297,53 @@ export function useEnrichment(
 
       shuffledQueue.forEach((cell, index) => {
         // Stagger the start times
-          setTimeout(() => {
-            // Set to "Researching..."
-            updateData(cell.rowIndex, cell.columnId, "Researching...");
+        setTimeout(() => {
+          // Set to "Researching..."
+          updateData(cell.rowIndex, cell.columnId, "Researching...");
 
-            // After research delay, set the actual value
-            setTimeout(
-              () => {
-                let value = "";
-                const { rowIndex, columnId } = cell;
+          // After research delay, set the actual value
+          setTimeout(
+            () => {
+              let value = "";
+              const { rowIndex, columnId } = cell;
 
-                switch (columnId) {
-                  case "firstName":
-                    value =
-                      SAMPLE_DATA.firstName[
-                        Math.floor(Math.random() * SAMPLE_DATA.firstName.length)
-                      ];
-                    break;
-                  case "lastName":
-                    value =
-                      SAMPLE_DATA.lastName[
-                        Math.floor(Math.random() * SAMPLE_DATA.lastName.length)
-                      ];
-                    break;
-                  case "email":
-                    const firstName = data[rowIndex].firstName || "user";
-                    const lastName =
-                      data[rowIndex].lastName ||
-                      Math.random().toString(36).substring(7);
-                    const domain =
-                      SAMPLE_DATA.email[
-                        Math.floor(Math.random() * SAMPLE_DATA.email.length)
-                      ];
-                    value = `${firstName.toLowerCase()}.${lastName.toLowerCase()}${domain}`;
-                    break;
-                  case "company":
-                    value =
-                      SAMPLE_DATA.company[
-                        Math.floor(Math.random() * SAMPLE_DATA.company.length)
-                      ];
-                    break;
-                  case "role":
-                    value =
-                      SAMPLE_DATA.role[
-                        Math.floor(Math.random() * SAMPLE_DATA.role.length)
-                      ];
-                    break;
-                }
+              switch (columnId) {
+                case "firstName":
+                  value =
+                    SAMPLE_DATA.firstName[
+                      Math.floor(Math.random() * SAMPLE_DATA.firstName.length)
+                    ];
+                  break;
+                case "lastName":
+                  value =
+                    SAMPLE_DATA.lastName[
+                      Math.floor(Math.random() * SAMPLE_DATA.lastName.length)
+                    ];
+                  break;
+                case "email":
+                  const firstName = data[rowIndex].firstName || "user";
+                  const lastName =
+                    data[rowIndex].lastName ||
+                    Math.random().toString(36).substring(7);
+                  const domain =
+                    SAMPLE_DATA.email[
+                      Math.floor(Math.random() * SAMPLE_DATA.email.length)
+                    ];
+                  value = `${firstName.toLowerCase()}.${lastName.toLowerCase()}${domain}`;
+                  break;
+                case "company":
+                  value =
+                    SAMPLE_DATA.company[
+                      Math.floor(Math.random() * SAMPLE_DATA.company.length)
+                    ];
+                  break;
+                case "role":
+                  value =
+                    SAMPLE_DATA.role[
+                      Math.floor(Math.random() * SAMPLE_DATA.role.length)
+                    ];
+                  break;
+              }
 
               updateData(cell.rowIndex, cell.columnId, value);
 

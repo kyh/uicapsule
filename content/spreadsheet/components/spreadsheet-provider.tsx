@@ -11,9 +11,9 @@ import React, {
 } from "react";
 import { getCoreRowModel, useReactTable } from "@tanstack/react-table";
 
-import type { ColumnInfo, NavigationMap } from "./spreadsheet-utils";
+import type { ColumnInfo, NavigationMap } from "../lib/spreadsheet-utils";
 import type { ColumnDef, Table } from "@tanstack/react-table";
-import { createNavigationMap } from "./spreadsheet-utils";
+import { createNavigationMap } from "../lib/spreadsheet-utils";
 
 type SpreadsheetRow = Record<string, any>;
 
@@ -289,5 +289,4 @@ export const useSpreadsheet = <TData extends SpreadsheetRow>() => {
   }
   return context as SpreadsheetContextType<TData>;
 };
-
 export type { SpreadsheetRow, SpreadsheetProviderProps };

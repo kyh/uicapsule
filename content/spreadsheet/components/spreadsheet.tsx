@@ -5,11 +5,11 @@ import { cn } from "@repo/ui/utils";
 import { flexRender } from "@tanstack/react-table";
 import { useVirtualizer } from "@tanstack/react-virtual";
 
+import { getColumnSizeVars, getRowCells } from "../lib/spreadsheet-utils";
+import { useSpreadsheetHandlers } from "../lib/use-spreadsheet-handlers";
 import { MemoizedTableBody } from "./memoized-table-body";
 import { ResizeHandle } from "./resize-handle";
-import { useSpreadsheetHandlers } from "./spreadsheet-handlers";
 import { useSpreadsheet } from "./spreadsheet-provider";
-import { getColumnSizeVars, getRowCells } from "./spreadsheet-utils";
 
 interface SpreadsheetProps extends React.HTMLAttributes<HTMLDivElement> {}
 
