@@ -3,6 +3,7 @@
 import { Fragment, useCallback, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { useQuery } from "@tanstack/react-query";
 import { ProfileAvatar } from "@repo/ui/avatar";
 import { Button } from "@repo/ui/button";
 import {
@@ -51,21 +52,9 @@ import {
   contentElements,
   contentStyles,
 } from "@/lib/content";
+import type { SearchEntry } from "@/lib/search";
 
-type SearchEntry = {
-  slug: string;
-  name: string;
-  description: string;
-  tags: string[];
-};
-
-export const Header = ({
-  className,
-  searchEntries = [],
-}: {
-  className?: string;
-  searchEntries?: SearchEntry[];
-}) => {
+export const Header = ({ className }: { className?: string }) => {
   return (
     <nav
       className={cn(
@@ -79,7 +68,7 @@ export const Header = ({
         </Link>
       </div>
       <div className="flex flex-1 items-center justify-center gap-2">
-        <SearchButton entries={searchEntries} />
+        <SearchButton />
       </div>
       <div className="flex items-center justify-end gap-2">
         <ProfileButton />
@@ -88,7 +77,7 @@ export const Header = ({
   );
 };
 
-const SearchButton = ({ entries }: { entries: SearchEntry[] }) => {
+const SearchButton = () => {
   type SearchView = "trending" | "categories" | "sections" | "styles";
 
   const [searchOpen, setSearchOpen] = useState(false);
@@ -98,6 +87,31 @@ const SearchButton = ({ entries }: { entries: SearchEntry[] }) => {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
+
+  const {
+    data,
+    status,
+    isError,
+  } = useQuery<SearchEntry[]>({
+    queryKey: ["search", "entries"],
+    queryFn: async () => {
+      const response = await fetch("/api/search", {
+        method: "GET",
+        cache: "no-store",
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to load search entries");
+      }
+
+      return (await response.json()) as SearchEntry[];
+    },
+    enabled: searchOpen,
+    staleTime: 1000 * 60 * 10,
+  });
+
+  const entries = useMemo(() => data ?? [], [data]);
+  const isInitialLoading = status === "pending";
 
   useEffect(() => {
     const down = (e: KeyboardEvent) => {
@@ -602,7 +616,18 @@ const SearchButton = ({ entries }: { entries: SearchEntry[] }) => {
               </div>
             </div>
             <CommandList className="flex-1 overflow-y-auto p-2 md:px-4 md:py-3">
-              {hasQuery ? renderQueryResults() : renderActiveView()}
+              {isInitialLoading && (
+                <div className="text-muted-foreground flex flex-1 items-center justify-center px-4 py-12 text-sm">
+                  Loading search data...
+                </div>
+              )}
+              {isError && !isInitialLoading && (
+                <div className="text-destructive flex flex-1 items-center justify-center px-4 py-12 text-sm">
+                  Unable to load search data.
+                </div>
+              )}
+              {!isInitialLoading && !isError &&
+                (hasQuery ? renderQueryResults() : renderActiveView())}
             </CommandList>
           </div>
         </div>
