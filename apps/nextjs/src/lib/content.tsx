@@ -1,9 +1,23 @@
-import { readdir, readFile, stat } from "node:fs/promises";
-import { dirname, extname, join, relative } from "node:path";
+import { readdir, readFile } from "node:fs/promises";
+import { dirname, extname, join, posix, relative } from "node:path";
 import { cache } from "react";
+
+type SourceCodeMap = Record<string, string>;
+
+type UiModule = {
+  relativePath: string;
+  sandpackPath: string;
+  code: string;
+};
+
+type UiModuleLookup = {
+  byPath: Map<string, UiModule>;
+  bySpecifier: Map<string, UiModule>;
+};
 
 const contentSourceDir = join(process.cwd(), "..", "..", "content");
 const uiSourceDir = join(process.cwd(), "..", "..", "packages", "ui");
+const uiSourceRoot = join(uiSourceDir, "src");
 
 const GITIGNORE_PATTERNS = ["node_modules", "dist", ".DS_Store"];
 
@@ -32,27 +46,8 @@ const extractModuleSpecifiers = (source: string): string[] => {
   return [...specifiers];
 };
 
-const createRelativeUiSpecifier = (
-  fromPath: string,
-  toPath: string,
-): string => {
-  const normalizedFrom = fromPath.replace(/\\/g, "/");
-  const normalizedTo = toPath.replace(/\\/g, "/");
-  const fromDir = dirname(normalizedFrom);
-  const relativePath = relative(fromDir, normalizedTo).replace(
-    /\\/g,
-    "/",
-  );
-
-  if (relativePath === "") {
-    return "./";
-  }
-
-  return relativePath.startsWith(".") ? relativePath : `./${relativePath}`;
-};
-
 const normalizeModulePath = (modulePath: string): string =>
-  modulePath.replace(/\\/g, "/").replace(/^\.\//, "").replace(/^\//, "");
+  modulePath.replace(/\\/g, "/").replace(/^\.\//, "");
 
 const createUiCandidatePaths = (modulePath: string): string[] => {
   const normalized = normalizeModulePath(modulePath);
@@ -70,139 +65,237 @@ const createUiCandidatePaths = (modulePath: string): string[] => {
     candidates.add(`${basePath}/index.ts`);
   }
 
-  return [...candidates].map((candidate) => candidate.replace(/\\/g, "/"));
+  return [...candidates];
 };
 
-const createUiInliner = () => {
-  const uiSourceRoot = join(uiSourceDir, "src");
-  const processedFiles = new Map<string, Promise<void>>();
-  const uiSourceCode = new Map<string, string>();
-  const specifierResolutionCache = new Map<string, string | null>();
-  const modulePathResolutionCache = new Map<string, string | null>();
+const toSandpackPath = (relativePath: string) => `/ui/${normalizeModulePath(relativePath)}`;
 
-  const resolveModulePath = async (modulePath: string): Promise<string | null> => {
-    const normalizedPath = normalizeModulePath(modulePath);
-    if (modulePathResolutionCache.has(normalizedPath)) {
-      return modulePathResolutionCache.get(normalizedPath) ?? null;
-    }
+const createRelativeUiSpecifier = (fromPath: string, toPath: string): string => {
+  const fromDir = posix.dirname(normalizeModulePath(fromPath.startsWith("/") ? fromPath.slice(1) : fromPath));
+  const target = normalizeModulePath(toPath.startsWith("/") ? toPath.slice(1) : toPath);
+  const relativePath = posix.relative(fromDir === "" ? "." : fromDir, target);
 
-    for (const candidate of createUiCandidatePaths(normalizedPath)) {
-      try {
-        const candidatePath = join(uiSourceRoot, candidate);
-        const stats = await stat(candidatePath);
-        if (stats.isFile()) {
-          modulePathResolutionCache.set(normalizedPath, candidate);
-          return candidate;
-        }
-      } catch {
-        // ignore
-      }
-    }
+  if (relativePath === "") {
+    return "./";
+  }
 
-    modulePathResolutionCache.set(normalizedPath, null);
+  return relativePath.startsWith(".") ? relativePath : `./${relativePath}`;
+};
+
+async function readJsonFile<T>(filePath: string): Promise<T | null> {
+  try {
+    const content = await readFile(filePath, "utf-8");
+    return JSON.parse(content) as T;
+  } catch {
     return null;
-  };
+  }
+}
 
-  const resolveUiSpecifier = async (specifier: string): Promise<string | null> => {
-    if (specifier === "@repo/ui") {
-      return "ui";
+const shouldIgnoreFile = (relativePath: string): boolean => {
+  if (["preview.tsx", "package.json", "meta.json"].includes(relativePath)) {
+    return true;
+  }
+
+  return GITIGNORE_PATTERNS.some((pattern) => {
+    if (pattern.includes("*")) {
+      const regex = new RegExp(pattern.replace(/\*/g, ".*"));
+      return regex.test(relativePath);
     }
 
-    if (!specifier.startsWith(UI_IMPORT_PREFIX)) {
-      return null;
-    }
+    return relativePath.includes(pattern);
+  });
+};
 
-    if (specifierResolutionCache.has(specifier)) {
-      return specifierResolutionCache.get(specifier) ?? null;
-    }
+const readDirectoryRecursively = async (
+  directory: string,
+  baseDir: string,
+  sourceCode: SourceCodeMap,
+) => {
+  const entries = await readdir(directory, { withFileTypes: true }).catch(() => []);
 
-    const modulePath = specifier.slice(UI_IMPORT_PREFIX.length);
-    const resolved = await resolveModulePath(modulePath);
-    specifierResolutionCache.set(specifier, resolved);
-    return resolved;
-  };
+  await Promise.all(
+    entries.map(async (entry) => {
+      const fullPath = join(directory, entry.name);
 
-  const ensureUiFile = async (relativePath: string | null): Promise<void> => {
-    if (!relativePath) {
-      return;
-    }
+      if (entry.isDirectory()) {
+        await readDirectoryRecursively(fullPath, baseDir, sourceCode);
+        return;
+      }
 
-    if (relativePath === "ui") {
-      return;
-    }
+      if (!entry.isFile()) {
+        return;
+      }
 
-    const normalizedPath = normalizeModulePath(relativePath);
+      const relativePath = normalizeModulePath(relative(baseDir, fullPath));
+      if (shouldIgnoreFile(relativePath)) {
+        return;
+      }
 
-    if (processedFiles.has(normalizedPath)) {
-      await processedFiles.get(normalizedPath);
-      return;
-    }
+      const content = await readFile(fullPath, "utf-8");
+      sourceCode[`/${relativePath}`] = content;
+    }),
+  );
+};
 
-    const promise = (async () => {
-      const absolutePath = join(uiSourceRoot, normalizedPath);
-      const code = await readFile(absolutePath, "utf-8");
+const isUiSourceFile = (fileName: string) =>
+  UI_FILE_EXTENSIONS.includes(extname(fileName) as (typeof UI_FILE_EXTENSIONS)[number]);
 
-      const specifierReplacements = new Map<string, string>();
+const readUiModules = async (): Promise<UiModuleLookup> => {
+  const byPath = new Map<string, UiModule>();
+  const bySpecifier = new Map<string, UiModule>();
 
-      for (const specifier of extractModuleSpecifiers(code)) {
-        if (specifier === "@repo/ui" || specifier.startsWith(UI_IMPORT_PREFIX)) {
-          const resolved = await resolveUiSpecifier(specifier);
-          await ensureUiFile(resolved);
-          if (resolved && resolved !== "ui") {
-            const replacement = createRelativeUiSpecifier(
-              `/ui/${normalizedPath}`,
-              `/ui/${normalizeModulePath(resolved)}`,
-            );
-            specifierReplacements.set(specifier, replacement);
-          } else if (resolved === "ui") {
-            const replacement = createRelativeUiSpecifier(
-              `/ui/${normalizedPath}`,
-              "/ui",
-            );
-            specifierReplacements.set(specifier, replacement);
-          }
-        } else if (specifier.startsWith(".")) {
-          const dependencyPath = await resolveModulePath(
-            join(dirname(normalizedPath), specifier),
-          );
-          await ensureUiFile(dependencyPath);
+  const walk = async (directory: string) => {
+    const entries = await readdir(directory, { withFileTypes: true }).catch(() => []);
+
+    await Promise.all(
+      entries.map(async (entry) => {
+        const fullPath = join(directory, entry.name);
+
+        if (entry.isDirectory()) {
+          await walk(fullPath);
+          return;
         }
-      }
 
-      let updatedCode = code;
-      for (const [original, replacement] of specifierReplacements) {
-        updatedCode = updatedCode.replaceAll(original, replacement);
-      }
+        if (!entry.isFile() || !isUiSourceFile(entry.name)) {
+          return;
+        }
 
-      uiSourceCode.set(`/ui/${normalizedPath}`, updatedCode);
-    })();
+        const relativePath = normalizeModulePath(relative(uiSourceRoot, fullPath));
+        const code = await readFile(fullPath, "utf-8");
+        const uiModule: UiModule = {
+          relativePath,
+          sandpackPath: toSandpackPath(relativePath),
+          code,
+        };
 
-    processedFiles.set(normalizedPath, promise);
-    await promise;
+        byPath.set(relativePath, uiModule);
+
+        const pathWithoutExtension = relativePath.replace(/\.tsx?$/i, "");
+        const specifier = `${UI_IMPORT_PREFIX}${pathWithoutExtension}`.replace(/\/$/, "");
+        bySpecifier.set(specifier, uiModule);
+        bySpecifier.set(`${UI_IMPORT_PREFIX}${relativePath}`, uiModule);
+
+        if (pathWithoutExtension === "index") {
+          bySpecifier.set("@repo/ui", uiModule);
+        }
+      }),
+    );
   };
 
-  const replaceUiSpecifiers = async (
-    sandpackPath: string,
-    code: string,
-  ): Promise<string> => {
+  await walk(uiSourceRoot);
+
+  return { byPath, bySpecifier };
+};
+
+const uiModules = cache(readUiModules);
+
+const findUiModuleBySpecifier = (
+  specifier: string,
+  lookup: UiModuleLookup,
+): UiModule | null => {
+  if (specifier === "@repo/ui") {
+    return lookup.bySpecifier.get("@repo/ui") ?? null;
+  }
+
+  if (!specifier.startsWith(UI_IMPORT_PREFIX)) {
+    return null;
+  }
+
+  const modulePath = specifier.slice(UI_IMPORT_PREFIX.length);
+  for (const candidate of createUiCandidatePaths(modulePath)) {
+    const uiModule = lookup.byPath.get(candidate);
+    if (uiModule) {
+      return uiModule;
+    }
+  }
+
+  return null;
+};
+
+const findUiModuleByRelativeImport = (
+  fromModule: UiModule,
+  specifier: string,
+  lookup: UiModuleLookup,
+): UiModule | null => {
+  const resolvedPath = normalizeModulePath(
+    join(dirname(fromModule.relativePath), specifier),
+  );
+
+  for (const candidate of createUiCandidatePaths(resolvedPath)) {
+    const uiModule = lookup.byPath.get(candidate);
+    if (uiModule) {
+      return uiModule;
+    }
+  }
+
+  return null;
+};
+
+const inlineUiDependencies = async (
+  sourceCode: SourceCodeMap,
+  previewCode: string,
+): Promise<{ sourceCode: SourceCodeMap; previewCode: string }> => {
+  const lookup = await uiModules();
+  const embeddedUiSources = new Map<string, string>();
+  const processed = new Set<string>();
+
+  const ensureUiModule = (uiModule: UiModule) => {
+    if (processed.has(uiModule.relativePath)) {
+      return;
+    }
+
+    processed.add(uiModule.relativePath);
+
+    const replacements = new Map<string, string>();
+
+    for (const specifier of extractModuleSpecifiers(uiModule.code)) {
+      if (specifier.startsWith(UI_IMPORT_PREFIX) || specifier === "@repo/ui") {
+        const dependency = findUiModuleBySpecifier(specifier, lookup);
+        if (!dependency) {
+          continue;
+        }
+
+        ensureUiModule(dependency);
+        const replacement = createRelativeUiSpecifier(
+          uiModule.sandpackPath,
+          dependency.sandpackPath,
+        );
+        replacements.set(specifier, replacement);
+      } else if (specifier.startsWith(".")) {
+        const dependency = findUiModuleByRelativeImport(uiModule, specifier, lookup);
+        if (!dependency) {
+          continue;
+        }
+
+        ensureUiModule(dependency);
+        const replacement = createRelativeUiSpecifier(
+          uiModule.sandpackPath,
+          dependency.sandpackPath,
+        );
+        replacements.set(specifier, replacement);
+      }
+    }
+
+    let updatedCode = uiModule.code;
+    for (const [original, replacement] of replacements) {
+      updatedCode = updatedCode.replaceAll(original, replacement);
+    }
+
+    embeddedUiSources.set(uiModule.sandpackPath, updatedCode);
+  };
+
+  const rewriteCode = (filePath: string, code: string): string => {
     const replacements = new Map<string, string>();
 
     for (const specifier of extractModuleSpecifiers(code)) {
-      if (specifier === "@repo/ui" || specifier.startsWith(UI_IMPORT_PREFIX)) {
-        const resolved = await resolveUiSpecifier(specifier);
-        await ensureUiFile(resolved);
-
-        if (resolved && resolved !== "ui") {
-          const replacement = createRelativeUiSpecifier(
-            sandpackPath,
-            `/ui/${normalizeModulePath(resolved)}`,
-          );
-          replacements.set(specifier, replacement);
-        } else if (resolved === "ui") {
-          const replacement = createRelativeUiSpecifier(sandpackPath, "/ui");
-          replacements.set(specifier, replacement);
-        }
+      const dependency = findUiModuleBySpecifier(specifier, lookup);
+      if (!dependency) {
+        continue;
       }
+
+      ensureUiModule(dependency);
+      const replacement = createRelativeUiSpecifier(filePath, dependency.sandpackPath);
+      replacements.set(specifier, replacement);
     }
 
     let updatedCode = code;
@@ -213,72 +306,30 @@ const createUiInliner = () => {
     return updatedCode;
   };
 
-  const getUiSourceCode = (): Record<string, string> => {
-    return Object.fromEntries(uiSourceCode.entries());
+  const rewrittenSourceEntries = Object.entries(sourceCode).map(([filePath, code]) => [
+    filePath,
+    rewriteCode(filePath, code),
+  ] as const);
+
+  const rewrittenPreview = rewriteCode("/preview.tsx", previewCode);
+
+  const updatedSourceCode: SourceCodeMap = {
+    ...Object.fromEntries(rewrittenSourceEntries),
   };
+
+  for (const [path, code] of embeddedUiSources.entries()) {
+    updatedSourceCode[path] = code;
+  }
 
   return {
-    ensureUiFile,
-    replaceUiSpecifiers,
-    getUiSourceCode,
+    sourceCode: updatedSourceCode,
+    previewCode: rewrittenPreview,
   };
-};
-
-// Check if a file should be ignored based on gitignore patterns
-const shouldIgnoreFile = (filePath: string, baseDir: string): boolean => {
-  const relativePath = relative(baseDir, filePath);
-
-  // Always ignore these specific files
-  if (["preview.tsx", "package.json", "meta.json"].includes(relativePath)) {
-    return true;
-  }
-
-  // Check against gitignore patterns
-  return GITIGNORE_PATTERNS.some((pattern) => {
-    if (pattern.includes("*")) {
-      // Handle wildcard patterns
-      const regex = new RegExp(pattern.replace(/\*/g, ".*"));
-      return regex.test(relativePath);
-    }
-    return relativePath.includes(pattern);
-  });
-};
-
-// Recursively read directory structure
-const readDirectoryRecursively = async (
-  dirPath: string,
-  baseDir: string,
-  sourceCode: Record<string, string>,
-): Promise<void> => {
-  try {
-    const entries = await readdir(dirPath);
-
-    await Promise.all(
-      entries.map(async (entry) => {
-        const fullPath = join(dirPath, entry);
-        const fileStat = await stat(fullPath);
-
-        if (fileStat.isDirectory()) {
-          // Recursively read subdirectories
-          await readDirectoryRecursively(fullPath, baseDir, sourceCode);
-        } else if (fileStat.isFile()) {
-          // Check if file should be ignored
-          if (!shouldIgnoreFile(fullPath, baseDir)) {
-            const relativePath = relative(baseDir, fullPath);
-            const fileContent = await readFile(fullPath, "utf-8");
-            sourceCode[`/${relativePath}`] = fileContent;
-          }
-        }
-      }),
-    );
-  } catch {
-    // Ignore errors for individual directories
-  }
 };
 
 export const readContentComponents = cache(async (slug: string) => {
   const componentDir = join(contentSourceDir, slug);
-  const sourceCode: Record<string, string> = {};
+  const sourceCode: SourceCodeMap = {};
 
   await readDirectoryRecursively(componentDir, componentDir, sourceCode);
 
@@ -342,17 +393,16 @@ export const getContentComponents = cache(
 );
 
 const readContentComponent = async (slug: string) => {
-  const metadata = JSON.parse(
-    await readFile(join(contentSourceDir, slug, "meta.json"), "utf-8").catch(
-      () => "",
-    ),
-  ) as ContentComponent;
+  const metadata =
+    (await readJsonFile<ContentComponent>(
+      join(contentSourceDir, slug, "meta.json"),
+    )) ?? ({} as ContentComponent);
 
-  const packageJson = JSON.parse(
-    await readFile(join(contentSourceDir, slug, "package.json"), "utf-8").catch(
-      () => "",
-    ),
-  ) as ContentComponent;
+  const packageJson =
+    (await readJsonFile<{
+      dependencies?: Record<string, string>;
+      devDependencies?: Record<string, string>;
+    }>(join(contentSourceDir, slug, "package.json"))) ?? {};
 
   let previewCode = await readFile(
     join(contentSourceDir, slug, "preview.tsx"),
@@ -361,44 +411,23 @@ const readContentComponent = async (slug: string) => {
 
   let sourceCode = await readContentComponents(slug);
 
-  // If the package.json has "@repo/ui" as a dependency, remove it.
-  // Instead, we want to inline all the dependencies as source files under the ui directory in the sandpack setup
   if (packageJson.dependencies?.["@repo/ui"]) {
-    // Handle package.json stuff
-    delete packageJson.dependencies["@repo/ui"];
-    const uiPackageJson = JSON.parse(
-      await readFile(join(uiSourceDir, "package.json"), "utf-8").catch(
-        () => "",
-      ),
-    ) as ContentComponent;
+    const uiPackageJson =
+      (await readJsonFile<{
+        dependencies?: Record<string, string>;
+      }>(join(uiSourceDir, "package.json"))) ?? {};
+
+    const existingDependencies = packageJson.dependencies ?? {};
+    delete existingDependencies["@repo/ui"];
+
     packageJson.dependencies = {
-      ...packageJson.dependencies,
-      ...uiPackageJson.dependencies,
+      ...existingDependencies,
+      ...(uiPackageJson.dependencies ?? {}),
     };
 
-    const uiInliner = createUiInliner();
-
-    const updatedSourceEntries = await Promise.all(
-      Object.entries(sourceCode).map(async ([filePath, fileCode]) => {
-        const updatedCode = await uiInliner.replaceUiSpecifiers(
-          filePath,
-          fileCode,
-        );
-        return [filePath, updatedCode] as const;
-      }),
-    );
-
-    sourceCode = Object.fromEntries(updatedSourceEntries);
-
-    previewCode = await uiInliner.replaceUiSpecifiers(
-      "/preview.tsx",
-      previewCode,
-    );
-
-    sourceCode = {
-      ...sourceCode,
-      ...uiInliner.getUiSourceCode(),
-    };
+    const inlineResult = await inlineUiDependencies(sourceCode, previewCode);
+    sourceCode = inlineResult.sourceCode;
+    previewCode = inlineResult.previewCode;
   }
 
   return {
