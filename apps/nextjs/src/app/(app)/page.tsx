@@ -1,12 +1,12 @@
 import Link from "next/link";
 import { Button } from "@repo/ui/button";
 
+import { getContentComponents } from "@/lib/content";
 import {
   contentCategories,
   contentElements,
   contentStyles,
-  getContentComponents,
-} from "@/lib/content";
+} from "@/lib/content-categories";
 import { ContentPreview } from "./_components/content-preview";
 import { FilterComboBox } from "./_components/filter-combo-box";
 
