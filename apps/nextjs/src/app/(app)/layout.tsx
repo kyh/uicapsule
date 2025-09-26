@@ -3,6 +3,8 @@ import type { ReactNode } from "react";
 import { Footer, Header } from "@/components/layout";
 import { getContentComponents } from "@/lib/content";
 
+export const runtime = "nodejs";
+
 const Layout = async ({ children }: { children: ReactNode }) => {
   const content = Object.values(await getContentComponents());
   const searchEntries = content.map((component) => ({
