@@ -1,11 +1,7 @@
-import type { ReactNode } from "react";
-
 import { Footer, Header } from "@/components/layout";
 import { getSearchEntries } from "@/lib/search";
 
-export const runtime = "nodejs";
-
-const Layout = async ({ children }: { children: ReactNode }) => {
+const Layout = async ({ children }: { children: React.ReactNode }) => {
   const searchEntries = await getSearchEntries();
 
   return (
