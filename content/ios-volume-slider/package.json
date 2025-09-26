@@ -8,7 +8,7 @@
   },
   "dependencies": {
     "@radix-ui/react-slider": "^1.3.6",
-    "framer-motion": "^12.23.18",
+    "framer-motion": "^12.23.22",
     "react": "*",
     "react-dom": "*"
   }

@@ -7,7 +7,7 @@
     "clean": "git clean -xdf .cache .turbo dist node_modules"
   },
   "dependencies": {
-    "framer-motion": "^12.23.16",
+    "framer-motion": "^12.23.22",
     "react": "*",
     "react-dom": "*"
   }
