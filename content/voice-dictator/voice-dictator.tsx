@@ -115,8 +115,8 @@ export const VoiceDictator: React.FC = () => {
         float time = uTime * 0.5;
         float amplitude = clamp(uAmplitude, 0.0, 1.2);
 
-        float radius = 0.35 + amplitude * 0.18 + sin(time * 0.9) * 0.02;
-        float thickness = 0.12 + amplitude * 0.08 + sin(time * 0.63) * 0.015;
+        float radius = 0.21 + amplitude * 0.11 + sin(time * 0.9) * 0.012;
+        float thickness = 0.07 + amplitude * 0.05 + sin(time * 0.63) * 0.009;
 
         float dist = length(uv);
         float ring = smoothstep(radius + thickness, radius, dist) - smoothstep(radius, radius - thickness, dist);
