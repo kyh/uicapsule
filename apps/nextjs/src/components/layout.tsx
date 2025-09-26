@@ -2,7 +2,7 @@
 
 import { Fragment, useCallback, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
-import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { usePathname } from "next/navigation";
 import { ProfileAvatar } from "@repo/ui/avatar";
 import { Button } from "@repo/ui/button";
 import {
@@ -32,7 +32,6 @@ import { Logo } from "@repo/ui/logo";
 import { Tabs, TabsList, TabsTrigger } from "@repo/ui/tabs";
 import { useTheme } from "@repo/ui/theme";
 import { cn, useMediaQuery } from "@repo/ui/utils";
-import type { LucideIcon } from "lucide-react";
 import {
   BookCheckIcon,
   BookmarkIcon,
@@ -47,8 +46,12 @@ import {
   TwitterIcon,
 } from "lucide-react";
 
-import { contentCategories, contentElements, contentStyles } from "@/lib/content";
 import type { SearchEntry } from "@/lib/search";
+import {
+  contentCategories,
+  contentElements,
+  contentStyles,
+} from "@/lib/content-categories";
 
 export const Header = ({
   className,
@@ -86,10 +89,6 @@ const SearchButton = ({ entries }: { entries: SearchEntry[] }) => {
   const [query, setQuery] = useState("");
   const [activeView, setActiveView] = useState<SearchView>("categories");
 
-  const router = useRouter();
-  const pathname = usePathname();
-  const searchParams = useSearchParams();
-
   useEffect(() => {
     const down = (e: KeyboardEvent) => {
       if (e.key === "k" && (e.metaKey || e.ctrlKey)) {
@@ -109,42 +108,44 @@ const SearchButton = ({ entries }: { entries: SearchEntry[] }) => {
   }, [searchOpen]);
 
   const tagCounts = useMemo(() => {
-    return entries.reduce((acc, entry) => {
-      entry.tags.forEach((tag) => {
-        acc[tag] = (acc[tag] ?? 0) + 1;
-      });
-      return acc;
-    }, {} as Record<string, number>);
+    return entries.reduce(
+      (acc, entry) => {
+        entry.tags.forEach((tag) => {
+          acc[tag] = (acc[tag] ?? 0) + 1;
+        });
+        return acc;
+      },
+      {} as Record<string, number>,
+    );
   }, [entries]);
 
   const navigationItems = useMemo(
-    () =>
-      [
-        {
-          id: "trending" satisfies SearchView,
-          label: "Trending",
-          description: "Popular UI capsules",
-          icon: StarsIcon,
-        },
-        {
-          id: "categories" satisfies SearchView,
-          label: "Categories",
-          description: "Product verticals",
-          icon: BookmarkIcon,
-        },
-        {
-          id: "sections" satisfies SearchView,
-          label: "Sections",
-          description: "Interface building blocks",
-          icon: LayoutGridIcon,
-        },
-        {
-          id: "styles" satisfies SearchView,
-          label: "Styles",
-          description: "Visual directions",
-          icon: PaletteIcon,
-        },
-      ] as { id: SearchView; label: string; description: string; icon: LucideIcon }[],
+    () => [
+      {
+        id: "trending" satisfies SearchView,
+        label: "Trending",
+        description: "Popular UI capsules",
+        icon: StarsIcon,
+      },
+      {
+        id: "categories" satisfies SearchView,
+        label: "Categories",
+        description: "Product verticals",
+        icon: BookmarkIcon,
+      },
+      {
+        id: "sections" satisfies SearchView,
+        label: "Sections",
+        description: "Interface building blocks",
+        icon: LayoutGridIcon,
+      },
+      {
+        id: "styles" satisfies SearchView,
+        label: "Styles",
+        description: "Visual directions",
+        icon: PaletteIcon,
+      },
+    ],
     [],
   );
 
@@ -279,43 +280,9 @@ const SearchButton = ({ entries }: { entries: SearchEntry[] }) => {
     }
   }, []);
 
-  const handleNavigateToContent = useCallback(
-    (slug: string) => {
-      router.push(`/ui/${slug}`);
-      setSearchOpen(false);
-    },
-    [router],
-  );
-
-  const handleToggleFilter = useCallback(
-    (filterKey: "category" | "style" | "element", slug: string) => {
-      const currentRaw = searchParams.get(filterKey) ?? "";
-      const current = new Set(
-        currentRaw
-          .split(",")
-          .map((s) => s.trim())
-          .filter(Boolean),
-      );
-
-      if (current.has(slug)) {
-        current.delete(slug);
-      } else {
-        current.add(slug);
-      }
-
-      const nextParams = new URLSearchParams(searchParams.toString());
-      if (current.size > 0) {
-        nextParams.set(filterKey, Array.from(current).join(","));
-      } else {
-        nextParams.delete(filterKey);
-      }
-
-      const next = nextParams.toString();
-      router.push(`${pathname}${next ? `?${next}` : ""}`, { scroll: false });
-      setSearchOpen(false);
-    },
-    [pathname, router, searchParams],
-  );
+  const handleCloseSearch = useCallback(() => {
+    setSearchOpen(false);
+  }, []);
 
   const renderCategories = () => (
     <CommandGroup heading="Categories">
@@ -323,17 +290,22 @@ const SearchButton = ({ entries }: { entries: SearchEntry[] }) => {
         <CommandItem
           key={category.slug}
           value={`${category.name} ${category.slug}`}
-          onSelect={() => handleToggleFilter("category", category.slug)}
+          asChild
         >
-          <span className="flex flex-col">
-            <span>{category.name}</span>
-            <span className="text-muted-foreground text-xs">
-              /{category.slug}
+          <Link
+            href={`/?category=${category.slug}`}
+            onClick={handleCloseSearch}
+          >
+            <span className="flex flex-col">
+              <span>{category.name}</span>
+              <span className="text-muted-foreground text-xs">
+                /{category.slug}
+              </span>
             </span>
-          </span>
-          <span className="text-muted-foreground ml-auto text-xs">
-            {category.count}
-          </span>
+            <span className="text-muted-foreground ml-auto text-xs">
+              {category.count}
+            </span>
+          </Link>
         </CommandItem>
       ))}
     </CommandGroup>
@@ -345,17 +317,19 @@ const SearchButton = ({ entries }: { entries: SearchEntry[] }) => {
         <CommandItem
           key={section.slug}
           value={`${section.name} ${section.parent} ${section.slug}`}
-          onSelect={() => handleToggleFilter("element", section.slug)}
+          asChild
         >
-          <span className="flex flex-col">
-            <span>{section.name}</span>
-            <span className="text-muted-foreground text-xs">
-              {section.parent}
+          <Link href={`/?element=${section.slug}`} onClick={handleCloseSearch}>
+            <span className="flex flex-col">
+              <span>{section.name}</span>
+              <span className="text-muted-foreground text-xs">
+                {section.parent}
+              </span>
             </span>
-          </span>
-          <span className="text-muted-foreground ml-auto text-xs">
-            {section.count}
-          </span>
+            <span className="text-muted-foreground ml-auto text-xs">
+              {section.count}
+            </span>
+          </Link>
         </CommandItem>
       ))}
     </CommandGroup>
@@ -367,17 +341,19 @@ const SearchButton = ({ entries }: { entries: SearchEntry[] }) => {
         <CommandItem
           key={style.slug}
           value={`${style.name} ${style.slug}`}
-          onSelect={() => handleToggleFilter("style", style.slug)}
+          asChild
         >
-          <span className="flex flex-col">
-            <span>{style.name}</span>
-            <span className="text-muted-foreground text-xs">
-              /{style.slug}
+          <Link href={`/?style=${style.slug}`} onClick={handleCloseSearch}>
+            <span className="flex flex-col">
+              <span>{style.name}</span>
+              <span className="text-muted-foreground text-xs">
+                /{style.slug}
+              </span>
             </span>
-          </span>
-          <span className="text-muted-foreground ml-auto text-xs">
-            {style.count}
-          </span>
+            <span className="text-muted-foreground ml-auto text-xs">
+              {style.count}
+            </span>
+          </Link>
         </CommandItem>
       ))}
     </CommandGroup>
@@ -389,17 +365,19 @@ const SearchButton = ({ entries }: { entries: SearchEntry[] }) => {
         <CommandItem
           key={entry.slug}
           value={`${entry.name} ${entry.slug}`}
-          onSelect={() => handleNavigateToContent(entry.slug)}
+          asChild
         >
-          <span className="flex flex-col">
-            <span>{entry.name}</span>
-            <span className="text-muted-foreground text-xs">
-              /ui/{entry.slug}
+          <Link href={`/ui/${entry.slug}`} onClick={handleCloseSearch}>
+            <span className="flex flex-col">
+              <span>{entry.name}</span>
+              <span className="text-muted-foreground text-xs">
+                /ui/{entry.slug}
+              </span>
             </span>
-          </span>
-          <span className="text-muted-foreground ml-auto text-xs">
-            {entry.tags[0] ?? ""}
-          </span>
+            <span className="text-muted-foreground ml-auto text-xs">
+              {entry.tags[0] ?? ""}
+            </span>
+          </Link>
         </CommandItem>
       ))}
     </CommandGroup>
@@ -413,17 +391,19 @@ const SearchButton = ({ entries }: { entries: SearchEntry[] }) => {
             <CommandItem
               key={entry.slug}
               value={`${entry.name} ${entry.slug}`}
-              onSelect={() => handleNavigateToContent(entry.slug)}
+              asChild
             >
-              <span className="flex flex-col">
-                <span>{entry.name}</span>
-                <span className="text-muted-foreground text-xs">
-                  /ui/{entry.slug}
+              <Link href={`/ui/${entry.slug}`} onClick={handleCloseSearch}>
+                <span className="flex flex-col">
+                  <span>{entry.name}</span>
+                  <span className="text-muted-foreground text-xs">
+                    /ui/{entry.slug}
+                  </span>
                 </span>
-              </span>
-              <span className="text-muted-foreground ml-auto text-xs">
-                {entry.tags.slice(0, 2).join(", ")}
-              </span>
+                <span className="text-muted-foreground ml-auto text-xs">
+                  {entry.tags.slice(0, 2).join(", ")}
+                </span>
+              </Link>
             </CommandItem>
           ))}
         </CommandGroup>
@@ -434,17 +414,22 @@ const SearchButton = ({ entries }: { entries: SearchEntry[] }) => {
             <CommandItem
               key={category.slug}
               value={`${category.name} ${category.slug}`}
-              onSelect={() => handleToggleFilter("category", category.slug)}
+              asChild
             >
-              <span className="flex flex-col">
-                <span>{category.name}</span>
-                <span className="text-muted-foreground text-xs">
-                  /{category.slug}
+              <Link
+                href={`/?category=${category.slug}`}
+                onClick={handleCloseSearch}
+              >
+                <span className="flex flex-col">
+                  <span>{category.name}</span>
+                  <span className="text-muted-foreground text-xs">
+                    /{category.slug}
+                  </span>
                 </span>
-              </span>
-              <span className="text-muted-foreground ml-auto text-xs">
-                {category.count}
-              </span>
+                <span className="text-muted-foreground ml-auto text-xs">
+                  {category.count}
+                </span>
+              </Link>
             </CommandItem>
           ))}
         </CommandGroup>
@@ -455,17 +440,22 @@ const SearchButton = ({ entries }: { entries: SearchEntry[] }) => {
             <CommandItem
               key={section.slug}
               value={`${section.name} ${section.parent} ${section.slug}`}
-              onSelect={() => handleToggleFilter("element", section.slug)}
+              asChild
             >
-              <span className="flex flex-col">
-                <span>{section.name}</span>
-                <span className="text-muted-foreground text-xs">
-                  {section.parent}
+              <Link
+                href={`/?element=${section.slug}`}
+                onClick={handleCloseSearch}
+              >
+                <span className="flex flex-col">
+                  <span>{section.name}</span>
+                  <span className="text-muted-foreground text-xs">
+                    {section.parent}
+                  </span>
                 </span>
-              </span>
-              <span className="text-muted-foreground ml-auto text-xs">
-                {section.count}
-              </span>
+                <span className="text-muted-foreground ml-auto text-xs">
+                  {section.count}
+                </span>
+              </Link>
             </CommandItem>
           ))}
         </CommandGroup>
@@ -476,17 +466,19 @@ const SearchButton = ({ entries }: { entries: SearchEntry[] }) => {
             <CommandItem
               key={style.slug}
               value={`${style.name} ${style.slug}`}
-              onSelect={() => handleToggleFilter("style", style.slug)}
+              asChild
             >
-              <span className="flex flex-col">
-                <span>{style.name}</span>
-                <span className="text-muted-foreground text-xs">
-                  /{style.slug}
+              <Link href={`/?style=${style.slug}`} onClick={handleCloseSearch}>
+                <span className="flex flex-col">
+                  <span>{style.name}</span>
+                  <span className="text-muted-foreground text-xs">
+                    /{style.slug}
+                  </span>
                 </span>
-              </span>
-              <span className="text-muted-foreground ml-auto text-xs">
-                {style.count}
-              </span>
+                <span className="text-muted-foreground ml-auto text-xs">
+                  {style.count}
+                </span>
+              </Link>
             </CommandItem>
           ))}
         </CommandGroup>
@@ -532,8 +524,8 @@ const SearchButton = ({ entries }: { entries: SearchEntry[] }) => {
       </button>
       <CommandDialog open={searchOpen} onOpenChange={handleOpenChange}>
         <div className="md:flex md:h-[540px]">
-          <div className="border-border/60 hidden w-56 flex-none flex-col gap-1 border-r bg-muted/10 p-3 md:flex">
-            <p className="text-muted-foreground mb-2 text-xs uppercase tracking-wide">
+          <div className="border-border/60 bg-muted/10 hidden w-56 flex-none flex-col gap-1 border-r p-3 md:flex">
+            <p className="text-muted-foreground mb-2 text-xs tracking-wide uppercase">
               Browse
             </p>
             {navigationItems.map((item) => {
@@ -549,7 +541,7 @@ const SearchButton = ({ entries }: { entries: SearchEntry[] }) => {
                       ? "bg-background shadow-xs"
                       : "hover:bg-background/40",
                   )}
-                  onClick={() => setActiveView(item.id)}
+                  onClick={() => setActiveView(item.id as SearchView)}
                   type="button"
                 >
                   <div className="flex items-center gap-2">
@@ -581,9 +573,9 @@ const SearchButton = ({ entries }: { entries: SearchEntry[] }) => {
                         "flex items-center gap-2 rounded-full border px-3 py-1 text-xs",
                         isActive
                           ? "border-foreground"
-                          : "border-transparent bg-muted",
+                          : "bg-muted border-transparent",
                       )}
-                      onClick={() => setActiveView(item.id)}
+                      onClick={() => setActiveView(item.id as SearchView)}
                       type="button"
                     >
                       <Icon className="size-3.5" />
