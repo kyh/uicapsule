@@ -11,18 +11,18 @@ interface MemoizedTableBodyProps {
   table: any;
   data: any[];
   selectedCells: Set<string>;
-  getRowCells: (rowIndex: number) => string[];
+  getRowCells: (rowId: string) => string[];
   handleMouseDown: (
     e: React.MouseEvent,
-    rowIndex: number,
+    rowId: string,
     columnId: string,
   ) => void;
   handleMouseMove: (
     e: React.MouseEvent,
-    rowIndex: number,
+    rowId: string,
     columnId: string,
   ) => void;
-  deleteRow: (rowIndex: number) => void;
+  deleteRow: (rowId: string) => void;
 }
 
 export const MemoizedTableBody = React.memo(
@@ -40,7 +40,10 @@ export const MemoizedTableBody = React.memo(
       {virtualItems.map((virtualRow) => {
         const row = table.getRowModel().rows[virtualRow.index];
         const rowIndex = virtualRow.index;
-        const rowCells = getRowCells(rowIndex);
+        const rowId = data[rowIndex]?.id;
+        if (!rowId) return null;
+
+        const rowCells = getRowCells(rowId);
         const isRowSelected = rowCells.every((cell) => selectedCells.has(cell));
 
         return (
@@ -63,13 +66,13 @@ export const MemoizedTableBody = React.memo(
                   "border-border bg-muted/30 text-muted-foreground hover:bg-muted/50 flex h-9 w-12 cursor-default items-center justify-center border-r border-b font-mono text-xs transition-colors",
                   isRowSelected && "bg-muted",
                 )}
-                onMouseDown={(e) => handleMouseDown(e, rowIndex, "")}
-                onMouseMove={(e) => handleMouseMove(e, rowIndex, "")}
+                onMouseDown={(e) => handleMouseDown(e, rowId, "")}
+                onMouseMove={(e) => handleMouseMove(e, rowId, "")}
               >
                 {rowIndex + 1}
               </div>
               {row.getVisibleCells().map((cell) => {
-                const cellKey = `${rowIndex}-${cell.column.id}`;
+                const cellKey = `${rowId}:${cell.column.id}`;
                 const isCellSelected = selectedCells.has(cellKey);
 
                 return (
@@ -83,10 +86,10 @@ export const MemoizedTableBody = React.memo(
                       width: `calc(var(--col-${cell.column.id}-size) * 1px)`,
                     }}
                     onMouseDown={(e) =>
-                      handleMouseDown(e, rowIndex, cell.column.id)
+                      handleMouseDown(e, rowId, cell.column.id)
                     }
                     onMouseMove={(e) =>
-                      handleMouseMove(e, rowIndex, cell.column.id)
+                      handleMouseMove(e, rowId, cell.column.id)
                     }
                   >
                     {flexRender(cell.column.columnDef.cell, cell.getContext())}

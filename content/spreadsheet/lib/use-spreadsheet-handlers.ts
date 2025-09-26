@@ -1,11 +1,12 @@
 import { useCallback } from "react";
 
 import type { CellPosition, ColumnInfo } from "./spreadsheet-utils";
-import { useSpreadsheet } from "./spreadsheet-provider";
+import { useSpreadsheet } from "../components/spreadsheet-provider";
 import {
   getColumnCells,
   getFirstSelectedCell,
   getNextCellPosition,
+  getNextCellPositionFromMap,
   getRangeCells,
   getRowCells,
   isWithinDataAttribute,
@@ -33,23 +34,24 @@ export const useSpreadsheetHandlers = ({
     dragStartCell,
     setDragStartCell,
     clearSelectedCells,
+    navigationMap,
   } = useSpreadsheet();
   // Mouse down handler for all interactions
   const handleMouseDown = useCallback(
-    (e: React.MouseEvent, rowIndex: number, columnId: string) => {
+    (e: React.MouseEvent, rowId: string, columnId: string) => {
       if (e.button !== 0) return; // Only left mouse button
 
-      const cellKey = `${rowIndex}-${columnId}`;
+      const cellKey = `${rowId}:${columnId}`;
 
       // Handle row selection (click on row number)
       if (isWithinDataAttribute(e.target, "row-number")) {
-        const rowCells = getRowCells(rowIndex, columns);
+        const rowCells = getRowCells(rowId, columns);
 
         if (e.ctrlKey || e.metaKey) {
           // Toggle row selection
           setSelectedCells((currentSelectedCells) => {
             const newSelection = toggleRowSelection(
-              rowIndex,
+              rowId,
               currentSelectedCells,
               columns,
             );
@@ -73,7 +75,7 @@ export const useSpreadsheetHandlers = ({
 
       // Handle column selection (click on column header)
       if (isWithinDataAttribute(e.target, "column-header")) {
-        const columnCells = getColumnCells(columnId, data.length);
+        const columnCells = getColumnCells(columnId, data);
 
         if (e.ctrlKey || e.metaKey) {
           // Toggle column selection
@@ -81,7 +83,7 @@ export const useSpreadsheetHandlers = ({
             const newSelection = toggleColumnSelection(
               columnId,
               currentSelectedCells,
-              data.length,
+              data,
             );
             // Exit edit mode if multiple cells are selected
             if (newSelection.size > 1 && editingCell) {
@@ -121,15 +123,14 @@ export const useSpreadsheetHandlers = ({
           if (currentSelectedCells.size === 0) return new Set([cellKey]);
 
           const firstSelectedCell = Array.from(currentSelectedCells)[0];
-          const [firstRowStr, firstCol] = firstSelectedCell.split("-");
-          const firstRow = Number.parseInt(firstRowStr);
+          const [firstRowId, firstCol] = firstSelectedCell.split(":");
           const rangeCells = getRangeCells(
-            firstRow,
+            firstRowId,
             firstCol,
-            rowIndex,
+            rowId,
             columnId,
             columns,
-            data.length,
+            data,
           );
           const newSelection = new Set(rangeCells);
           // Exit edit mode if multiple cells are selected
@@ -141,8 +142,7 @@ export const useSpreadsheetHandlers = ({
       } else {
         // Single cell selection
         const isCurrentlyEditing =
-          editingCell?.rowIndex === rowIndex &&
-          editingCell?.columnId === columnId;
+          editingCell?.rowId === rowId && editingCell?.columnId === columnId;
         const isCurrentlySelected =
           selectedCells.has(cellKey) && selectedCells.size === 1;
 
@@ -151,7 +151,7 @@ export const useSpreadsheetHandlers = ({
           setTimeout(() => setEditingCell(null), 0);
         } else if (isCurrentlySelected) {
           // If clicking on the cell that's already selected (but not editing), start editing
-          setTimeout(() => setEditingCell({ rowIndex, columnId }), 0);
+          setTimeout(() => setEditingCell({ rowId, columnId }), 0);
         } else {
           // Select this cell and enter edit mode
           setSelectedCells(new Set([cellKey]));
@@ -160,12 +160,12 @@ export const useSpreadsheetHandlers = ({
 
       // Start drag selection for potential dragging
       setIsDragging(true);
-      setDragStartCell({ rowIndex, columnId });
+      setDragStartCell({ rowId, columnId });
     },
     [
       selectedCells,
       columns,
-      data.length,
+      data,
       editingCell,
       setSelectedCells,
       setEditingCell,
@@ -175,17 +175,17 @@ export const useSpreadsheetHandlers = ({
   );
 
   const handleMouseMove = useCallback(
-    (e: React.MouseEvent, rowIndex: number, columnId: string) => {
+    (e: React.MouseEvent, rowId: string, columnId: string) => {
       if (!isDragging || !dragStartCell) return;
 
       // Update selection based on drag range
       const rangeCells = getRangeCells(
-        dragStartCell.rowIndex,
+        dragStartCell.rowId,
         dragStartCell.columnId,
-        rowIndex,
+        rowId,
         columnId,
         columns,
-        data.length,
+        data,
       );
       const newSelection = new Set(rangeCells);
       setSelectedCells(newSelection);
@@ -199,7 +199,7 @@ export const useSpreadsheetHandlers = ({
       isDragging,
       dragStartCell,
       columns,
-      data.length,
+      data,
       editingCell,
       setSelectedCells,
       setEditingCell,
@@ -216,7 +216,7 @@ export const useSpreadsheetHandlers = ({
       const firstSelectedCell = getFirstSelectedCell(selectedCells);
       if (!firstSelectedCell) return;
 
-      const { rowIndex, columnId } = firstSelectedCell;
+      const { rowId, columnId } = firstSelectedCell;
 
       const activeElement = document.activeElement;
       if (activeElement && activeElement.tagName === "INPUT") {
@@ -227,88 +227,83 @@ export const useSpreadsheetHandlers = ({
         case "Enter":
           e.preventDefault();
           if (
-            editingCell?.rowIndex === rowIndex &&
+            editingCell?.rowId === rowId &&
             editingCell?.columnId === columnId
           ) {
             setEditingCell(null);
           } else if (
-            shouldAllowEditing(selectedCells, `${rowIndex}-${columnId}`)
+            shouldAllowEditing(selectedCells, `${rowId}:${columnId}`)
           ) {
             // Only allow editing if exactly one cell is selected
-            setEditingCell({ rowIndex, columnId });
+            setEditingCell({ rowId, columnId });
           }
           break;
         case "ArrowUp": {
           e.preventDefault();
-          const nextPosition = getNextCellPosition(
-            rowIndex,
-            columnId,
-            columns,
-            data.length,
+          const currentCellKey = `${rowId}:${columnId}`;
+          const nextPosition = getNextCellPositionFromMap(
+            currentCellKey,
             "up",
+            navigationMap,
           );
           if (nextPosition) {
-            const newCellKey = `${nextPosition.rowIndex}-${nextPosition.columnId}`;
+            const newCellKey = `${nextPosition.rowId}:${nextPosition.columnId}`;
             setSelectedCells(new Set([newCellKey]));
           }
           break;
         }
         case "ArrowDown": {
           e.preventDefault();
-          const nextPosition = getNextCellPosition(
-            rowIndex,
-            columnId,
-            columns,
-            data.length,
+          const currentCellKey = `${rowId}:${columnId}`;
+          const nextPosition = getNextCellPositionFromMap(
+            currentCellKey,
             "down",
+            navigationMap,
           );
           if (nextPosition) {
-            const newCellKey = `${nextPosition.rowIndex}-${nextPosition.columnId}`;
+            const newCellKey = `${nextPosition.rowId}:${nextPosition.columnId}`;
             setSelectedCells(new Set([newCellKey]));
           }
           break;
         }
         case "ArrowLeft": {
           e.preventDefault();
-          const nextPosition = getNextCellPosition(
-            rowIndex,
-            columnId,
-            columns,
-            data.length,
+          const currentCellKey = `${rowId}:${columnId}`;
+          const nextPosition = getNextCellPositionFromMap(
+            currentCellKey,
             "left",
+            navigationMap,
           );
           if (nextPosition) {
-            const newCellKey = `${nextPosition.rowIndex}-${nextPosition.columnId}`;
+            const newCellKey = `${nextPosition.rowId}:${nextPosition.columnId}`;
             setSelectedCells(new Set([newCellKey]));
           }
           break;
         }
         case "ArrowRight": {
           e.preventDefault();
-          const nextPosition = getNextCellPosition(
-            rowIndex,
-            columnId,
-            columns,
-            data.length,
+          const currentCellKey = `${rowId}:${columnId}`;
+          const nextPosition = getNextCellPositionFromMap(
+            currentCellKey,
             "right",
+            navigationMap,
           );
           if (nextPosition) {
-            const newCellKey = `${nextPosition.rowIndex}-${nextPosition.columnId}`;
+            const newCellKey = `${nextPosition.rowId}:${nextPosition.columnId}`;
             setSelectedCells(new Set([newCellKey]));
           }
           break;
         }
         case "Tab": {
           e.preventDefault();
-          const nextPosition = getNextCellPosition(
-            rowIndex,
-            columnId,
-            columns,
-            data.length,
+          const currentCellKey = `${rowId}:${columnId}`;
+          const nextPosition = getNextCellPositionFromMap(
+            currentCellKey,
             "tab",
+            navigationMap,
           );
           if (nextPosition) {
-            const newCellKey = `${nextPosition.rowIndex}-${nextPosition.columnId}`;
+            const newCellKey = `${nextPosition.rowId}:${nextPosition.columnId}`;
             setSelectedCells(new Set([newCellKey]));
           }
           break;
@@ -337,11 +332,12 @@ export const useSpreadsheetHandlers = ({
     [
       selectedCells,
       columns,
-      data.length,
+      data,
       editingCell,
       setEditingCell,
       setSelectedCells,
       clearSelectedCells,
+      navigationMap,
     ],
   );
 

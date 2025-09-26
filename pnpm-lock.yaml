@@ -367,6 +367,18 @@ importers:
         specifier: '*'
         version: 19.1.1(react@19.1.1)
 
+  content/sidebar:
+    dependencies:
+      lucide-react:
+        specifier: ^0.544.0
+        version: 0.544.0(react@19.1.1)
+      react:
+        specifier: '*'
+        version: 19.1.1
+      react-dom:
+        specifier: '*'
+        version: 19.1.1(react@19.1.1)
+
   content/snail-timer:
     dependencies:
       react:
@@ -423,6 +435,18 @@ importers:
       motion:
         specifier: ^12.23.18
         version: 12.23.18(react-dom@19.1.1(react@19.1.1))(react@19.1.1)
+      react:
+        specifier: '*'
+        version: 19.1.1
+      react-dom:
+        specifier: '*'
+        version: 19.1.1(react@19.1.1)
+
+  content/voice-dictator:
+    dependencies:
+      framer-motion:
+        specifier: ^12.23.16
+        version: 12.23.16(react-dom@19.1.1(react@19.1.1))(react@19.1.1)
       react:
         specifier: '*'
         version: 19.1.1

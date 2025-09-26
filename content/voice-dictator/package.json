@@ -1,0 +1,14 @@
+{
+  "name": "@uicapsule/voice-dictator",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "clean": "git clean -xdf .cache .turbo dist node_modules"
+  },
+  "dependencies": {
+    "framer-motion": "^12.23.16",
+    "react": "*",
+    "react-dom": "*"
+  }
+}
