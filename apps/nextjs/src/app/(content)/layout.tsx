@@ -1,11 +1,16 @@
 import type { ReactNode } from "react";
 
 import { Header } from "@/components/layout";
+import { getSearchEntries } from "@/lib/search";
 
-const Layout = ({ children }: { children: ReactNode }) => {
+export const runtime = "nodejs";
+
+const Layout = async ({ children }: { children: ReactNode }) => {
+  const searchEntries = await getSearchEntries();
+
   return (
     <section className="mx-auto max-w-[1440px]">
-      <Header />
+      <Header searchEntries={searchEntries} />
       {children}
     </section>
   );
