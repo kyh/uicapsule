@@ -1,14 +1,7 @@
 "use client";
 
 import React, { useCallback, useEffect, useRef, useState } from "react";
-
-const PROMPT_LIBRARY = [
-  "Create a mystical, fantasy-style warrior standing on a cliff during sunset.",
-  "Design a cinematic establishing shot for a neon city wrapped in fog.",
-  "Illustrate an ancient forest temple awakening under moonlit rain.",
-  "Sketch a futuristic research lab surrounded by holographic diagrams.",
-  "Visualize an astronaut discovering a luminous cavern on an alien planet.",
-] as const;
+import { motion } from "framer-motion";
 
 const TRANSCRIPT_LIBRARY = [
   "The warrior should be cloaked in obsidian armor with faint runes pulsing across each plate, wind tearing through the cape as petals scatter around the scene.",
@@ -60,10 +53,10 @@ export const VoiceDictator: React.FC = () => {
   const amplitudeRef = useRef(0.08);
   const targetAmplitudeRef = useRef(0.08);
 
-  const [prompt, setPrompt] = useState<string>(() => pickRandom(PROMPT_LIBRARY));
   const [isListening, setIsListening] = useState(false);
-  const [status, setStatus] = useState("Tap the orb to start dictating");
-  const [transcript, setTranscript] = useState("Generate expressive prompts by speaking naturally. We will render a faux transcript here.");
+  const [transcript, setTranscript] = useState(
+    "Generate expressive prompts by speaking naturally. We will render a faux transcript here.",
+  );
 
   const listeningRef = useRef(false);
   const scriptRef = useRef<string[]>([]);
@@ -154,7 +147,10 @@ export const VoiceDictator: React.FC = () => {
     };
 
     const vertexShader = createShader(gl.VERTEX_SHADER, vertexShaderSource);
-    const fragmentShader = createShader(gl.FRAGMENT_SHADER, fragmentShaderSource);
+    const fragmentShader = createShader(
+      gl.FRAGMENT_SHADER,
+      fragmentShaderSource,
+    );
 
     const program = gl.createProgram();
     if (!program) throw new Error("Unable to create WebGL program");
@@ -178,12 +174,7 @@ export const VoiceDictator: React.FC = () => {
     const buffer = gl.createBuffer();
     gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
     const vertices = new Float32Array([
-      -1, -1,
-      1, -1,
-      -1, 1,
-      -1, 1,
-      1, -1,
-      1, 1,
+      -1, -1, 1, -1, -1, 1, -1, 1, 1, -1, 1, 1,
     ]);
     gl.bufferData(gl.ARRAY_BUFFER, vertices, gl.STATIC_DRAW);
 
@@ -224,16 +215,21 @@ export const VoiceDictator: React.FC = () => {
       animationFrameRef.current = requestAnimationFrame(render);
       const resources = webglRef.current;
       if (!resources) return;
-      const { gl: context, program: shaderProgram, uniforms: shaderUniforms } = resources;
+      const {
+        gl: context,
+        program: shaderProgram,
+        uniforms: shaderUniforms,
+      } = resources;
 
       resize();
       context.useProgram(shaderProgram);
       context.clearColor(0, 0, 0, 1);
       context.clear(context.COLOR_BUFFER_BIT);
 
-      const smoothing = 1 - Math.pow(0.08, Math.min(1.0, (context.drawingBufferWidth + context.drawingBufferHeight) * 0.00015));
+      const smoothing = 0.95; // Increased smoothing for smoother animations
       const amplitude =
-        amplitudeRef.current + (targetAmplitudeRef.current - amplitudeRef.current) * smoothing;
+        amplitudeRef.current +
+        (targetAmplitudeRef.current - amplitudeRef.current) * (1 - smoothing);
       amplitudeRef.current = amplitude;
 
       if (shaderUniforms.time) {
@@ -289,19 +285,11 @@ export const VoiceDictator: React.FC = () => {
     listeningRef.current = isListening;
   }, [isListening]);
 
-  const stopDictation = useCallback(
-    (completed = false) => {
-      listeningRef.current = false;
-      setIsListening(false);
-      setStatus(
-        completed
-          ? "Dictation captured — tap to redo"
-          : "Tap the orb to start dictating",
-      );
-      targetAmplitudeRef.current = completed ? 0.12 : 0.06;
-    },
-    [],
-  );
+  const stopDictation = useCallback((completed = false) => {
+    listeningRef.current = false;
+    setIsListening(false);
+    targetAmplitudeRef.current = completed ? 0.12 : 0.06;
+  }, []);
 
   useEffect(() => {
     if (!isListening) {
@@ -316,7 +304,7 @@ export const VoiceDictator: React.FC = () => {
     const pump = () => {
       if (!listeningRef.current) return;
       targetAmplitudeRef.current = 0.25 + Math.random() * 0.7;
-      const delay = 90 + Math.random() * 110;
+      const delay = 120 + Math.random() * 80; // More consistent timing
       pulseTimeoutRef.current = setTimeout(pump, delay);
     };
 
@@ -343,7 +331,6 @@ export const VoiceDictator: React.FC = () => {
     scriptRef.current = transcriptScript.split(" ");
     wordIndexRef.current = 0;
     setTranscript("");
-    setStatus("Listening…");
 
     const deliver = () => {
       if (!listeningRef.current) return;
@@ -361,7 +348,7 @@ export const VoiceDictator: React.FC = () => {
         targetAmplitudeRef.current = 0.32 + Math.random() * 0.6;
       }
 
-      const delay = 140 + Math.random() * 240;
+      const delay = 160 + Math.random() * 200; // More consistent word timing
       wordTimeoutRef.current = setTimeout(deliver, delay);
     };
 
@@ -396,62 +383,56 @@ export const VoiceDictator: React.FC = () => {
       return;
     }
 
-    const nextPrompt = pickRandom(PROMPT_LIBRARY, prompt);
-    setPrompt(nextPrompt);
     listeningRef.current = true;
     setIsListening(true);
-  }, [prompt, stopDictation]);
+  }, [stopDictation]);
 
   return (
     <div className="relative flex h-dvh w-dvw flex-col items-center justify-center overflow-hidden bg-black text-white">
       <canvas ref={canvasRef} className="absolute inset-0 h-full w-full" />
 
-      <div className="relative z-10 flex h-full w-full flex-col items-center justify-center gap-12 px-6 py-12">
-        <div className="flex flex-col items-center gap-2 text-center">
-          <span className="text-xs uppercase tracking-[0.4em] text-white/40">
-            Voice Dictator
-          </span>
-          <h1 className="max-w-xl text-balance text-center text-2xl font-medium text-white/90 sm:text-3xl">
-            {prompt}
-          </h1>
-        </div>
+      <motion.button
+        ref={buttonRef}
+        type="button"
+        onClick={handleToggle}
+        className="absolute top-1/2 left-1/2 h-8 w-8 -translate-x-1/2 -translate-y-1/2 rounded-full bg-white/80"
+        animate={{
+          scale: isListening ? [1, 1.1, 1] : 1,
+          opacity: isListening ? 0.9 : 0.6,
+        }}
+        transition={{
+          scale: {
+            duration: 0.6,
+            repeat: isListening ? Infinity : 0,
+            ease: "easeInOut",
+          },
+          opacity: {
+            duration: 0.3,
+            ease: "easeInOut",
+          },
+        }}
+        whileHover={{ scale: 1.05 }}
+        whileTap={{ scale: 0.95 }}
+      />
 
-        <button
-          ref={buttonRef}
-          type="button"
-          onClick={handleToggle}
-          className="relative flex h-48 w-48 items-center justify-center rounded-full border border-white/20 bg-white/[0.04] transition-transform duration-200 ease-out"
-        >
-          <span className="absolute inset-0 rounded-full bg-gradient-to-br from-white/10 via-white/5 to-transparent" />
-          <span className="relative flex h-20 w-20 items-center justify-center rounded-full bg-white/10">
-            <span
-              className={`h-12 w-12 rounded-full bg-white/80 transition-opacity duration-300 ${
-                isListening ? "opacity-90" : "opacity-60"
-              }`}
-            />
-          </span>
-        </button>
+      <motion.p
+        className="absolute bottom-20 z-10 max-w-2xl text-base leading-7 text-pretty text-white/70 sm:text-lg"
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{
+          duration: 0.4,
+          ease: "easeInOut",
+        }}
+      >
+        {transcript}
+      </motion.p>
 
-        <div className="flex flex-col items-center gap-4 text-center">
-          <div
-            className={`flex items-center gap-2 text-sm font-medium uppercase tracking-[0.3em] ${
-              isListening ? "text-emerald-300" : "text-white/50"
-            }`}
-          >
-            <span
-              className={`inline-block h-1.5 w-1.5 rounded-full ${
-                isListening ? "bg-emerald-300 animate-pulse" : "bg-white/40"
-              }`}
-            />
-            {status}
-          </div>
-          <p className="max-w-2xl text-pretty text-base leading-7 text-white/70 sm:text-lg">
-            {transcript}
-          </p>
-        </div>
-      </div>
-
-      <div className="pointer-events-none absolute inset-x-0 bottom-0 z-10 h-48 bg-gradient-to-t from-black via-black/40 to-transparent" />
+      <motion.div
+        className="pointer-events-none absolute inset-x-0 bottom-0 z-10 h-48 bg-gradient-to-t from-black via-black/40 to-transparent"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ duration: 0.5 }}
+      />
     </div>
   );
 };

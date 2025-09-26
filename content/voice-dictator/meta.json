@@ -1,6 +1,4 @@
 {
   "name": "Voice Dictator",
-  "coverUrl": "https://zmdrwswxugswzmcokvff.supabase.co/storage/v1/object/public/uicapsule/voice-dictator/voice-dictator.png",
-  "coverType": "image",
   "tags": ["webgl", "audio"]
 }

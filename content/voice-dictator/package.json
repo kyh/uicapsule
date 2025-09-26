@@ -8,6 +8,7 @@
   },
   "dependencies": {
     "react": "*",
-    "react-dom": "*"
+    "react-dom": "*",
+    "framer-motion": "^11.0.0"
   }
 }

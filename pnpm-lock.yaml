@@ -430,6 +430,15 @@ importers:
         specifier: '*'
         version: 19.1.1(react@19.1.1)
 
+  content/voice-dictator:
+    dependencies:
+      react:
+        specifier: '*'
+        version: 19.1.1
+      react-dom:
+        specifier: '*'
+        version: 19.1.1(react@19.1.1)
+
   packages/api:
     dependencies:
       '@better-auth/expo':
