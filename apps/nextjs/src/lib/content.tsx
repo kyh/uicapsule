@@ -192,7 +192,7 @@ const readContentComponent = async (slug: string) => {
   };
 };
 
-const readUIComponents = async () => {
+const readUIComponents = cache(async () => {
   const files = await readdir(join(uiSourceDir, "src")).catch(() => []);
   const sourceCode: Record<string, string> = {};
 
@@ -214,7 +214,7 @@ const readUIComponents = async () => {
   );
 
   return sourceCode;
-};
+});
 
 export const getContentComponent = cache(
   async (slug: string): Promise<ContentComponent> => {
