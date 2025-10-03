@@ -194,7 +194,15 @@ const readContentComponent = async (slug: string) => {
 
 const readUIComponents = cache(async () => {
   const files = await readdir(join(uiSourceDir, "src")).catch(() => []);
-  const sourceCode: Record<string, string> = {};
+  const sourceCode: Record<string, string> = {
+    // For some reason, the source code for the utils package is not being read in production
+    "/ui/utils.tsx": `
+import { cx } from "class-variance-authority";
+import { twMerge } from "tailwind-merge";
+
+export const cn = (...inputs: CxOptions) => twMerge(cx(inputs));
+`,
+  };
 
   await Promise.all(
     files
