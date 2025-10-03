@@ -1,4 +1,6 @@
 {
   "name": "Voice Dictator",
+  "coverUrl": "https://zmdrwswxugswzmcokvff.supabase.co/storage/v1/object/public/uicapsule/voice-dictator/voice-dictator.mp4",
+  "coverType": "video",
   "tags": ["webgl", "audio"]
 }
