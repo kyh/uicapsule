@@ -184,10 +184,11 @@ export const sampleEnrichmentHandler = ({
 
   if (selectedCells.size > 0) {
     selectedCells.forEach((cellKey) => {
-      const [rowIndexStr, columnId] = cellKey.split("-");
-      const rowIndex = Number.parseInt(rowIndexStr, 10);
+      const [rowId, columnId] = cellKey.split(":");
+      const rowIndex = data.findIndex((row) => row.id === rowId);
 
       if (
+        rowIndex >= 0 &&
         ENRICHABLE_COLUMNS.includes(columnId) &&
         !data[rowIndex]?.[columnId as keyof Person]
       ) {
@@ -371,11 +372,12 @@ export function useEnrichment(
     if (selectedCells && selectedCells.size > 0) {
       // Only enrich selected cells
       selectedCells.forEach((cellKey) => {
-        const [rowIndexStr, columnId] = cellKey.split("-");
-        const rowIndex = Number.parseInt(rowIndexStr);
+        const [rowId, columnId] = cellKey.split(":");
+        const rowIndex = data.findIndex((row) => row.id === rowId);
 
         // Only enrich if it's an enrichable column and the cell is empty
         if (
+          rowIndex >= 0 &&
           ENRICHABLE_COLUMNS.includes(columnId) &&
           !data[rowIndex]?.[columnId as keyof Person]
         ) {
