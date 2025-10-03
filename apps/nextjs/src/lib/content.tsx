@@ -206,8 +206,9 @@ const readUIComponents = cache(async () => {
           if (s.isFile()) {
             sourceCode[`/ui/${file}`] = await readFile(filePath, "utf-8");
           }
-        } catch {
+        } catch (error) {
           // Ignore errors for individual files
+          console.error(`Error reading UI component: ${file}`, error);
         }
       }),
   );
