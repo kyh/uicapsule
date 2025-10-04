@@ -34,6 +34,8 @@
   "prettier": "@kyh/prettier-config",
   "pnpm": {
     "onlyBuiltDependencies": [
+      "@tailwindcss/oxide",
+      "es5-ext",
       "esbuild",
       "sharp",
       "supabase"
