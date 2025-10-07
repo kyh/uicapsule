@@ -32,6 +32,7 @@
     "zod": "catalog:"
   },
   "devDependencies": {
+    "@repo/content-builder": "workspace:^",
     "@kyh/eslint-config": "catalog:",
     "@kyh/prettier-config": "catalog:",
     "@kyh/tsconfig": "catalog:",
