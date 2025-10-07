@@ -1,4 +1,4 @@
-import { readdir, readFile, writeFile, mkdir } from "node:fs/promises";
+import { mkdir, readdir, readFile, writeFile } from "node:fs/promises";
 import { dirname, extname, join, posix, relative } from "node:path";
 import { fileURLToPath } from "node:url";
 import chokidar from "chokidar";
@@ -9,14 +9,7 @@ const repoRoot = join(packageRoot, "..", "..");
 const contentSourceDir = join(repoRoot, "content");
 const uiSourceDir = join(repoRoot, "packages", "ui");
 const uiSourceRoot = join(uiSourceDir, "src");
-const outputDir = join(
-  repoRoot,
-  "apps",
-  "nextjs",
-  "src",
-  "lib",
-  "generated",
-);
+const outputDir = join(repoRoot, "apps", "nextjs", "src", "lib");
 const outputFile = join(outputDir, "content-components.ts");
 
 const GITIGNORE_PATTERNS = ["node_modules", "dist", ".DS_Store"];
@@ -110,7 +103,9 @@ const createRelativeUiSpecifier = (
   toPath: string,
 ): string => {
   const fromDir = posix.dirname(
-    normalizeModulePath(fromPath.startsWith("/") ? fromPath.slice(1) : fromPath),
+    normalizeModulePath(
+      fromPath.startsWith("/") ? fromPath.slice(1) : fromPath,
+    ),
   );
   const target = normalizeModulePath(
     toPath.startsWith("/") ? toPath.slice(1) : toPath,
@@ -153,7 +148,9 @@ const readDirectoryRecursively = async (
   baseDir: string,
   sourceCode: SourceCodeMap,
 ) => {
-  const entries = await readdir(directory, { withFileTypes: true }).catch(() => []);
+  const entries = await readdir(directory, { withFileTypes: true }).catch(
+    () => [],
+  );
 
   await Promise.all(
     entries.map(async (entry) => {
@@ -180,14 +177,18 @@ const readDirectoryRecursively = async (
 };
 
 const isUiSourceFile = (fileName: string) =>
-  UI_FILE_EXTENSIONS.includes(extname(fileName) as (typeof UI_FILE_EXTENSIONS)[number]);
+  UI_FILE_EXTENSIONS.includes(
+    extname(fileName) as (typeof UI_FILE_EXTENSIONS)[number],
+  );
 
 const readUiModules = async (): Promise<UiModuleLookup> => {
   const byPath = new Map<string, UiModule>();
   const bySpecifier = new Map<string, UiModule>();
 
   const walk = async (directory: string) => {
-    const entries = await readdir(directory, { withFileTypes: true }).catch(() => []);
+    const entries = await readdir(directory, { withFileTypes: true }).catch(
+      () => [],
+    );
 
     await Promise.all(
       entries.map(async (entry) => {
@@ -202,7 +203,9 @@ const readUiModules = async (): Promise<UiModuleLookup> => {
           return;
         }
 
-        const relativePath = normalizeModulePath(relative(uiSourceRoot, fullPath));
+        const relativePath = normalizeModulePath(
+          relative(uiSourceRoot, fullPath),
+        );
         const code = await readFile(fullPath, "utf-8");
         const uiModule: UiModule = {
           relativePath,
@@ -213,7 +216,10 @@ const readUiModules = async (): Promise<UiModuleLookup> => {
         byPath.set(relativePath, uiModule);
 
         const pathWithoutExtension = relativePath.replace(/\.tsx?$/i, "");
-        const specifier = `${UI_IMPORT_PREFIX}${pathWithoutExtension}`.replace(/\/$/, "");
+        const specifier = `${UI_IMPORT_PREFIX}${pathWithoutExtension}`.replace(
+          /\/$/,
+          "",
+        );
         bySpecifier.set(specifier, uiModule);
         bySpecifier.set(`${UI_IMPORT_PREFIX}${relativePath}`, uiModule);
 
@@ -257,7 +263,9 @@ const findUiModuleByRelativeImport = (
   specifier: string,
   lookup: UiModuleLookup,
 ): UiModule | null => {
-  const resolvedPath = normalizeModulePath(join(dirname(fromModule.relativePath), specifier));
+  const resolvedPath = normalizeModulePath(
+    join(dirname(fromModule.relativePath), specifier),
+  );
 
   for (const candidate of createUiCandidatePaths(resolvedPath)) {
     const uiModule = lookup.byPath.get(candidate);
@@ -300,7 +308,11 @@ const inlineUiDependencies = async (
         );
         replacements.set(specifier, replacement);
       } else if (specifier.startsWith(".")) {
-        const dependency = findUiModuleByRelativeImport(uiModule, specifier, lookup);
+        const dependency = findUiModuleByRelativeImport(
+          uiModule,
+          specifier,
+          lookup,
+        );
         if (!dependency) {
           continue;
         }
@@ -332,7 +344,10 @@ const inlineUiDependencies = async (
       }
 
       ensureUiModule(dependency);
-      const replacement = createRelativeUiSpecifier(filePath, dependency.sandpackPath);
+      const replacement = createRelativeUiSpecifier(
+        filePath,
+        dependency.sandpackPath,
+      );
       replacements.set(specifier, replacement);
     }
 
@@ -344,10 +359,9 @@ const inlineUiDependencies = async (
     return updatedCode;
   };
 
-  const rewrittenSourceEntries = Object.entries(sourceCode).map(([filePath, code]) => [
-    filePath,
-    rewriteCode(filePath, code),
-  ] as const);
+  const rewrittenSourceEntries = Object.entries(sourceCode).map(
+    ([filePath, code]) => [filePath, rewriteCode(filePath, code)] as const,
+  );
 
   const rewrittenPreview = rewriteCode("/preview.tsx", previewCode);
 
@@ -365,7 +379,9 @@ const inlineUiDependencies = async (
   };
 };
 
-const readContentComponentSources = async (slug: string): Promise<SourceCodeMap> => {
+const readContentComponentSources = async (
+  slug: string,
+): Promise<SourceCodeMap> => {
   const componentDir = join(contentSourceDir, slug);
   const sourceCode: SourceCodeMap = {};
 
@@ -374,10 +390,13 @@ const readContentComponentSources = async (slug: string): Promise<SourceCodeMap>
   return sourceCode;
 };
 
-const readContentComponent = async (slug: string): Promise<ContentComponent> => {
+const readContentComponent = async (
+  slug: string,
+): Promise<ContentComponent> => {
   const metadata =
-    (await readJsonFile<ContentComponent>(join(contentSourceDir, slug, "meta.json"))) ??
-    ({} as ContentComponent);
+    (await readJsonFile<ContentComponent>(
+      join(contentSourceDir, slug, "meta.json"),
+    )) ?? ({} as ContentComponent);
 
   const packageJson =
     (await readJsonFile<{
@@ -385,9 +404,10 @@ const readContentComponent = async (slug: string): Promise<ContentComponent> => 
       devDependencies?: Record<string, string>;
     }>(join(contentSourceDir, slug, "package.json"))) ?? {};
 
-  let previewCode = await readFile(join(contentSourceDir, slug, "preview.tsx"), "utf-8").catch(
-    () => "",
-  );
+  let previewCode = await readFile(
+    join(contentSourceDir, slug, "preview.tsx"),
+    "utf-8",
+  ).catch(() => "");
 
   let sourceCode = await readContentComponentSources(slug);
 
@@ -424,7 +444,9 @@ const getAllContentComponents = async (): Promise<{
   slugs: string[];
   components: Record<string, ContentComponent>;
 }> => {
-  const slugs = (await readdir(contentSourceDir)).filter((slug) => !slug.startsWith("."));
+  const slugs = (await readdir(contentSourceDir)).filter(
+    (slug) => !slug.startsWith("."),
+  );
 
   const contents = await Promise.all(
     slugs.map(async (slug, index) => {
@@ -449,7 +471,8 @@ const createGeneratedFileContents = (
   slugs: string[],
   components: Record<string, ContentComponent>,
 ) => {
-  const header = `// This file is generated by @repo/content-builder.\n` +
+  const header =
+    `// This file is generated by @repo/builder.\n` +
     `// Do not edit this file directly.\n\n`;
 
   const slugsLiteral = JSON.stringify(slugs, null, 2);
@@ -510,6 +533,7 @@ const watch = () => {
     }
 
     building = true;
+
     try {
       await build();
     } catch (error) {
@@ -524,7 +548,9 @@ const watch = () => {
   };
 
   watcher.on("all", (_event, path) => {
-    console.log(`\u26a0\ufe0f Change detected in ${relative(repoRoot, path)}. Rebuilding...`);
+    console.log(
+      `\u26a0\ufe0f Change detected in ${relative(repoRoot, path)}. Rebuilding...`,
+    );
     void runBuild();
   });
 

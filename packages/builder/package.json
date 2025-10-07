@@ -1,5 +1,5 @@
 {
-  "name": "@repo/content-builder",
+  "name": "@repo/builder",
   "version": "0.1.0",
   "private": true,
   "type": "module",

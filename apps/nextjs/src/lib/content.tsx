@@ -1,19 +1,14 @@
 import { cache } from "react";
 
-import {
-  contentComponents,
-  contentComponentSlugs,
-  type ContentComponent,
-} from "./generated/content-components";
+import type { ContentComponent } from "./content-components";
+import { contentComponents, contentComponentSlugs } from "./content-components";
 
 const loadContentComponents = cache(async () => contentComponents);
 
 export type { ContentComponent };
 
 export const getContentComponents = cache(
-  async (
-    filterTags?: string[],
-  ): Promise<Record<string, ContentComponent>> => {
+  async (filterTags?: string[]): Promise<Record<string, ContentComponent>> => {
     const all = await loadContentComponents();
     const filtered: Record<string, ContentComponent> = {};
 
@@ -41,7 +36,7 @@ export const getContentComponents = cache(
 export const getContentComponent = cache(
   async (slug: string): Promise<ContentComponent> => {
     const all = await loadContentComponents();
-    const component = all[slug as keyof typeof all];
+    const component = all[slug];
 
     if (!component) {
       throw new Error(`Content component not found: ${slug}`);
