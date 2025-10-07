@@ -1,53 +1,45 @@
-import { cache } from "react";
-
 import type { ContentComponent } from "./content-components";
 import { contentComponents, contentComponentSlugs } from "./content-components";
 
-const loadContentComponents = cache(async () => contentComponents);
-
 export type { ContentComponent };
 
-export const getContentComponents = cache(
-  async (filterTags?: string[]): Promise<Record<string, ContentComponent>> => {
-    const all = await loadContentComponents();
-    const filtered: Record<string, ContentComponent> = {};
+export const getContentComponents = (
+  filterTags?: string[],
+): Record<string, ContentComponent> => {
+  const filtered: Record<string, ContentComponent> = {};
 
-    for (const slug of contentComponentSlugs) {
-      const component = all[slug as keyof typeof all];
-      if (!component) {
-        continue;
-      }
-
-      if (
-        filterTags &&
-        filterTags.length > 0 &&
-        !filterTags.some((tag) => component.tags?.includes(tag))
-      ) {
-        continue;
-      }
-
-      filtered[component.slug] = component;
-    }
-
-    return filtered;
-  },
-);
-
-export const getContentComponent = cache(
-  async (slug: string): Promise<ContentComponent> => {
-    const all = await loadContentComponents();
-    const component = all[slug];
-
+  for (const slug of contentComponentSlugs) {
+    const component = contentComponents[slug as keyof typeof contentComponents];
     if (!component) {
-      throw new Error(`Content component not found: ${slug}`);
+      continue;
     }
 
-    return component;
-  },
-);
+    if (
+      filterTags &&
+      filterTags.length > 0 &&
+      !filterTags.some((tag) => component.tags?.includes(tag))
+    ) {
+      continue;
+    }
 
-export const getContentComponentPackage = cache(async (slug: string) => {
-  const contentComponent = await getContentComponent(slug);
+    filtered[component.slug] = component;
+  }
+
+  return filtered;
+};
+
+export const getContentComponent = (slug: string): ContentComponent => {
+  const component = contentComponents[slug];
+
+  if (!component) {
+    throw new Error(`Content component not found: ${slug}`);
+  }
+
+  return component;
+};
+
+export const getContentComponentPackage = (slug: string) => {
+  const contentComponent = getContentComponent(slug);
 
   const dependencyKeys = Object.keys(contentComponent.dependencies ?? {});
   const devDependencyKeys = Object.keys(contentComponent.devDependencies ?? {});
@@ -82,4 +74,4 @@ export const getContentComponentPackage = cache(async (slug: string) => {
       }),
     ),
   };
-});
+};
