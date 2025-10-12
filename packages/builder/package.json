@@ -9,7 +9,7 @@
     "clean": "git clean -xdf .cache .turbo node_modules"
   },
   "dependencies": {
-    "chokidar": "^3.6.0"
+    "chokidar": "^4.0.3"
   },
   "devDependencies": {
     "@kyh/eslint-config": "catalog:",
