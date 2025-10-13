@@ -1,4 +1,3 @@
-import { resolve } from "node:path";
 import type { Config } from "drizzle-kit";
 
 export default {
