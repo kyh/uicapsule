@@ -26,8 +26,10 @@ import {
   InfoIcon,
 } from "lucide-react";
 
-import type { ContentComponent } from "@/lib/content";
+import type { RouterOutputs } from "@repo/api";
 import { CodeEditor, FileExplorer, OpenInCodeSandboxButton } from "./sandpack";
+
+type ContentComponent = RouterOutputs["content"]["getOne"];
 
 type AsideProps = {
   contentComponent: ContentComponent;
@@ -221,7 +223,7 @@ const Aside = ({ contentComponent }: AsideProps) => {
             {contentComponent.authors.map((author) => (
               <a href={author.url} key={author.name} target="_blank">
                 <Avatar key={author.name}>
-                  <AvatarImage src={author.avatarUrl} />
+                  <AvatarImage src={author.url} />
                   <AvatarFallback>{author.name.charAt(0)}</AvatarFallback>
                 </Avatar>
               </a>

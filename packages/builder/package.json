@@ -5,11 +5,14 @@
   "type": "module",
   "scripts": {
     "build": "tsx src/index.ts",
-    "dev": "tsx src/index.ts --watch",
-    "clean": "git clean -xdf .cache .turbo node_modules"
+    "dev": "pnpm with-env tsx src/index.ts --watch",
+    "clean": "git clean -xdf .cache .turbo node_modules",
+    "push-remote": "dotenv -e ../../.env.production.local -- tsx src/index.ts",
+    "with-env": "dotenv -e ../../.env --"
   },
   "dependencies": {
-    "chokidar": "^3.6.0"
+    "@repo/db": "workspace:*",
+    "chokidar": "^4.0.3"
   },
   "devDependencies": {
     "@kyh/eslint-config": "catalog:",

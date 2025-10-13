@@ -1,17 +1,15 @@
 {
   "name": "uicapsule",
   "private": true,
-  "packageManager": "pnpm@10.18.0",
+  "packageManager": "pnpm@10.18.2",
   "scripts": {
     "build": "turbo run build",
     "clean": "git clean -xdf node_modules",
     "clean:workspaces": "turbo run clean",
-    "db:supabase": "pnpm -F db supabase",
-    "db:start": "pnpm -F db start",
-    "db:stop": "pnpm -F db stop",
-    "db:reset": "pnpm -F db reset",
     "db:push": "pnpm -F db push",
-    "db:push-remote": "pnpm -F db push-remote",
+    "db:seed": "pnpm -F db seed",
+    "db:studio": "pnpm -F db studio",
+    "db:push-remote": "pnpm -F db push-remote && pnpm -F builder push-remote",
     "dev": "turbo watch dev --continue",
     "dev:nextjs": "turbo watch dev -F @repo/nextjs...",
     "format": "turbo run format --continue -- --cache --cache-location .cache/.prettiercache",
@@ -31,14 +29,5 @@
     "turbo": "^2.5.8",
     "typescript": "catalog:"
   },
-  "prettier": "@kyh/prettier-config",
-  "pnpm": {
-    "onlyBuiltDependencies": [
-      "@tailwindcss/oxide",
-      "es5-ext",
-      "esbuild",
-      "sharp",
-      "supabase"
-    ]
-  }
+  "prettier": "@kyh/prettier-config"
 }
