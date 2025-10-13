@@ -19,7 +19,7 @@
     "with-env": "dotenv -e ../../.env --"
   },
   "dependencies": {
-    "better-sqlite3": "^9.6.0",
+    "better-sqlite3": "^12.4.1",
     "drizzle-orm": "^0.44.6",
     "next": "catalog:",
     "react": "catalog:",

@@ -18,7 +18,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@repo/ui/popover";
 import { cn, useMediaQuery } from "@repo/ui/utils";
 import { ChevronDownIcon } from "lucide-react";
 
-import type { ContentFilter } from "@/lib/content-categories";
+import type { ContentFilter } from "@repo/api/content/content-categories";
 
 type FilterComboBoxProps = {
   filterKey: string;

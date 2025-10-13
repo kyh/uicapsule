@@ -1,7 +1,7 @@
 import { ResponsiveAside } from "@/app/(content)/_components/aside";
 import { ContentRenderer } from "@/app/(content)/_components/content-renderer";
 import { ContentProvider } from "@/app/(content)/_components/sandpack";
-import { getContentComponent } from "@/lib/content";
+import { caller } from "@/trpc/server";
 
 type Props = {
   params: Promise<{
@@ -11,7 +11,7 @@ type Props = {
 
 const Page = async ({ params }: Props) => {
   const { slug } = await params;
-  const contentComponent = await getContentComponent(slug);
+  const contentComponent = await caller.content.getOne({ slug });
 
   return (
     <ContentProvider contentComponent={contentComponent}>

@@ -9,6 +9,7 @@
     "clean": "git clean -xdf .cache .turbo node_modules"
   },
   "dependencies": {
+    "@repo/db": "workspace:*",
     "chokidar": "^4.0.3"
   },
   "devDependencies": {

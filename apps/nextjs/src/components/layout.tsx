@@ -3,6 +3,11 @@
 import { Fragment, useCallback, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import {
+  contentCategories,
+  contentElements,
+  contentStyles,
+} from "@repo/api/content/content-categories";
 import { ProfileAvatar } from "@repo/ui/avatar";
 import { Button } from "@repo/ui/button";
 import {
@@ -32,6 +37,7 @@ import { Logo } from "@repo/ui/logo";
 import { Tabs, TabsList, TabsTrigger } from "@repo/ui/tabs";
 import { useTheme } from "@repo/ui/theme";
 import { cn, useMediaQuery } from "@repo/ui/utils";
+import { useQuery } from "@tanstack/react-query";
 import {
   BookCheckIcon,
   BookmarkIcon,
@@ -46,20 +52,16 @@ import {
   TwitterIcon,
 } from "lucide-react";
 
-import type { SearchEntry } from "@/lib/search";
-import {
-  contentCategories,
-  contentElements,
-  contentStyles,
-} from "@/lib/content-categories";
+import { useTRPC } from "@/trpc/react";
 
-export const Header = ({
-  className,
-  searchEntries,
-}: {
-  className?: string;
-  searchEntries: SearchEntry[];
-}) => {
+type SearchEntry = {
+  slug: string;
+  name: string;
+  description: string;
+  tags: string[];
+};
+
+export const Header = ({ className }: { className?: string }) => {
   return (
     <nav
       className={cn(
@@ -73,7 +75,7 @@ export const Header = ({
         </Link>
       </div>
       <div className="flex flex-1 items-center justify-center gap-2">
-        <SearchButton entries={searchEntries} />
+        <SearchButton />
       </div>
       <div className="flex items-center justify-end gap-2">
         <ProfileButton />
@@ -82,12 +84,30 @@ export const Header = ({
   );
 };
 
-const SearchButton = ({ entries }: { entries: SearchEntry[] }) => {
+const SearchButton = () => {
   type SearchView = "trending" | "categories" | "sections" | "styles";
 
   const [searchOpen, setSearchOpen] = useState(false);
   const [query, setQuery] = useState("");
   const [activeView, setActiveView] = useState<SearchView>("categories");
+
+  const api = useTRPC();
+  const { data: searchData, isLoading } = useQuery(
+    api.content.search.queryOptions(
+      { query, limit: 12 },
+      { enabled: searchOpen },
+    ),
+  );
+
+  const tagCounts = useMemo(() => searchData?.tagCounts ?? {}, [searchData]);
+  const trending = useMemo(
+    () => (searchData?.trending ?? []) as SearchEntry[],
+    [searchData],
+  );
+  const componentMatches = useMemo(
+    () => (searchData?.components ?? []) as SearchEntry[],
+    [searchData],
+  );
 
   useEffect(() => {
     const down = (e: KeyboardEvent) => {
@@ -106,18 +126,6 @@ const SearchButton = ({ entries }: { entries: SearchEntry[] }) => {
       setQuery("");
     }
   }, [searchOpen]);
-
-  const tagCounts = useMemo(() => {
-    return entries.reduce(
-      (acc, entry) => {
-        entry.tags.forEach((tag) => {
-          acc[tag] = (acc[tag] ?? 0) + 1;
-        });
-        return acc;
-      },
-      {} as Record<string, number>,
-    );
-  }, [entries]);
 
   const navigationItems = useMemo(
     () => [
@@ -202,30 +210,9 @@ const SearchButton = ({ entries }: { entries: SearchEntry[] }) => {
       });
   }, [tagCounts]);
 
-  const trending = useMemo(() => entries.slice(0, 8), [entries]);
-
   const normalizedQuery = query.trim().toLowerCase();
   const hasQuery = normalizedQuery.length > 0;
-  const hasEntries = entries.length > 0;
-
-  const componentMatches = useMemo(() => {
-    if (!hasQuery) {
-      return [];
-    }
-
-    return entries
-      .filter((entry) => {
-        const inName = entry.name.toLowerCase().includes(normalizedQuery);
-        const inDescription = entry.description
-          .toLowerCase()
-          .includes(normalizedQuery);
-        const inTags = entry.tags.some((tag) =>
-          tag.toLowerCase().includes(normalizedQuery),
-        );
-        return inName || inDescription || inTags;
-      })
-      .slice(0, 12);
-  }, [entries, hasQuery, normalizedQuery]);
+  const hasData = !isLoading && searchData !== undefined;
 
   const categoryMatches = useMemo(() => {
     if (!hasQuery) {
@@ -586,7 +573,11 @@ const SearchButton = ({ entries }: { entries: SearchEntry[] }) => {
               </div>
             </div>
             <CommandList className="flex-1 overflow-y-auto p-2 md:px-4 md:py-3">
-              {!hasEntries ? (
+              {isLoading ? (
+                <div className="text-muted-foreground flex flex-1 items-center justify-center px-4 py-12 text-sm">
+                  Loading...
+                </div>
+              ) : !hasData ? (
                 <div className="text-muted-foreground flex flex-1 items-center justify-center px-4 py-12 text-sm">
                   Search is unavailable right now.
                 </div>

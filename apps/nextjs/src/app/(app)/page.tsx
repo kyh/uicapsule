@@ -1,12 +1,12 @@
 import Link from "next/link";
-import { Button } from "@repo/ui/button";
-
-import { getContentComponents } from "@/lib/content";
 import {
   contentCategories,
   contentElements,
   contentStyles,
-} from "@/lib/content-categories";
+} from "@repo/api/content/content-categories";
+import { Button } from "@repo/ui/button";
+
+import { caller } from "@/trpc/server";
 import { ContentPreview } from "./_components/content-preview";
 import { FilterComboBox } from "./_components/filter-combo-box";
 
@@ -20,7 +20,7 @@ const Page = async ({ searchParams }: PageProps) => {
   const styleFilter = allSearchParams.style?.toString().split(",") ?? [];
   const categoryFilter = allSearchParams.category?.toString().split(",") ?? [];
   const filters = [elementFilter, styleFilter, categoryFilter].flat();
-  const content = Object.values(await getContentComponents(filters));
+  const content = await caller.content.getAll({ filterTags: filters });
 
   return (
     <main>
