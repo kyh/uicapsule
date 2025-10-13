@@ -28,14 +28,5 @@
     "turbo": "^2.5.8",
     "typescript": "catalog:"
   },
-  "prettier": "@kyh/prettier-config",
-  "pnpm": {
-    "onlyBuiltDependencies": [
-      "@tailwindcss/oxide",
-      "better-sqlite3",
-      "es5-ext",
-      "esbuild",
-      "sharp"
-    ]
-  }
+  "prettier": "@kyh/prettier-config"
 }
