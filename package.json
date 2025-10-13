@@ -9,6 +9,7 @@
     "db:push": "pnpm -F db push",
     "db:seed": "pnpm -F db seed",
     "db:studio": "pnpm -F db studio",
+    "db:push-remote": "pnpm -F db push-remote && pnpm -F builder push-remote",
     "dev": "turbo watch dev --continue",
     "dev:nextjs": "turbo watch dev -F @repo/nextjs...",
     "format": "turbo run format --continue -- --cache --cache-location .cache/.prettiercache",

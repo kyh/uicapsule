@@ -16,6 +16,7 @@
     "push": "pnpm with-env drizzle-kit push",
     "studio": "pnpm with-env drizzle-kit studio",
     "generate-auth-schema": "pnpm with-env pnpx @better-auth/cli generate --config ../api/src/auth/auth.ts --output ./src/drizzle-schema-auth.ts",
+    "push-remote": "dotenv -e ../../.env.production.local -- drizzle-kit push",
     "with-env": "dotenv -e ../../.env --"
   },
   "dependencies": {

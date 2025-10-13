@@ -7,6 +7,7 @@
     "build": "tsx src/index.ts",
     "dev": "pnpm with-env tsx src/index.ts --watch",
     "clean": "git clean -xdf .cache .turbo node_modules",
+    "push-remote": "dotenv -e ../../.env.production.local -- tsx src/index.ts",
     "with-env": "dotenv -e ../../.env --"
   },
   "dependencies": {

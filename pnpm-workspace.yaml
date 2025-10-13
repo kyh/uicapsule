@@ -4,16 +4,16 @@ packages:
   - content/*
 
 catalog:
-  "@kyh/eslint-config": ^1.1.8
-  "@kyh/prettier-config": ^1.1.8
-  "@kyh/tsconfig": ^1.1.8
-  "@tanstack/react-query": ^5.90.2
-  "@trpc/client": ^11.6.0
-  "@trpc/server": ^11.6.0
-  "@trpc/tanstack-react-query": ^11.6.0
-  "@types/node": ^24.7.2
-  "@types/react": ^19.2.2
-  "@types/react-dom": ^19.2.1
+  '@kyh/eslint-config': ^1.1.8
+  '@kyh/prettier-config': ^1.1.8
+  '@kyh/tsconfig': ^1.1.8
+  '@tanstack/react-query': ^5.90.2
+  '@trpc/client': ^11.6.0
+  '@trpc/server': ^11.6.0
+  '@trpc/tanstack-react-query': ^11.6.0
+  '@types/node': ^24.7.2
+  '@types/react': ^19.2.2
+  '@types/react-dom': ^19.2.1
   eslint: ^9.37.0
   next: ^15.5.4
   prettier: ^3.6.2
@@ -23,11 +23,13 @@ catalog:
   typescript: ^5.9.3
   zod: ^4.1.12
 
-onlyBuiltDependencies:
-  - "@tailwindcss/oxide"
-  - "es5-ext"
-  - "esbuild"
-  - "sharp"
+linkWorkspacePackages: true
 
 nodeLinker: hoisted
-linkWorkspacePackages: true
+
+onlyBuiltDependencies:
+  - '@tailwindcss/oxide'
+  - better-sqlite3
+  - es5-ext
+  - esbuild
+  - sharp
