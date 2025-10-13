@@ -5,8 +5,9 @@
   "type": "module",
   "scripts": {
     "build": "tsx src/index.ts",
-    "dev": "tsx src/index.ts --watch",
-    "clean": "git clean -xdf .cache .turbo node_modules"
+    "dev": "pnpm with-env tsx src/index.ts --watch",
+    "clean": "git clean -xdf .cache .turbo node_modules",
+    "with-env": "dotenv -e ../../.env --"
   },
   "dependencies": {
     "@repo/db": "workspace:*",

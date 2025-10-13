@@ -33,7 +33,7 @@
       "cache": false
     }
   },
-  "globalEnv": ["DATABASE_URL", "AUTH_SECRET", "PORT"],
+  "globalEnv": ["TURSO_DATABASE_URL", "TURSO_AUTH_TOKEN", "PORT"],
   "globalPassThroughEnv": [
     "NODE_ENV",
     "CI",
