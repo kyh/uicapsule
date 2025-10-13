@@ -20,10 +20,10 @@ const baseUrl =
 
 export const auth: ReturnType<typeof betterAuth> = betterAuth({
   database: drizzleAdapter(db, {
-    provider: "pg",
+    provider: "sqlite",
   }),
   baseURL: baseUrl,
-  secret: process.env.SUPABASE_SERVICE_ROLE_KEY ?? "",
+  secret: process.env.AUTH_SECRET ?? "",
   plugins: [
     oAuthProxy({
       currentURL: baseUrl,
