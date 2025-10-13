@@ -19,7 +19,7 @@
     "with-env": "dotenv -e ../../.env --"
   },
   "dependencies": {
-    "better-sqlite3": "^12.4.1",
+    "@libsql/client": "^0.15.15",
     "drizzle-orm": "^0.44.6",
     "next": "catalog:",
     "react": "catalog:",
@@ -29,7 +29,6 @@
     "@kyh/eslint-config": "catalog:",
     "@kyh/prettier-config": "catalog:",
     "@kyh/tsconfig": "catalog:",
-    "@types/better-sqlite3": "^7.6.13",
     "@types/react": "catalog:",
     "drizzle-kit": "^0.31.5",
     "eslint": "catalog:",
