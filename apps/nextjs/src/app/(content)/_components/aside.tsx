@@ -26,10 +26,8 @@ import {
   InfoIcon,
 } from "lucide-react";
 
-import type { RouterOutputs } from "@repo/api";
+import type { ContentComponent } from "@repo/api/content/content-data";
 import { CodeEditor, FileExplorer, OpenInCodeSandboxButton } from "./sandpack";
-
-type ContentComponent = RouterOutputs["content"]["getOne"];
 
 type AsideProps = {
   contentComponent: ContentComponent;

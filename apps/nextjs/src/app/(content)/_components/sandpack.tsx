@@ -14,9 +14,7 @@ import {
 import MonacoEditor from "@monaco-editor/react";
 import { useTheme } from "@repo/ui/theme";
 
-import type { RouterOutputs } from "@repo/api";
-
-type ContentComponent = RouterOutputs["content"]["getOne"];
+import type { ContentComponent } from "@repo/api/content/content-data";
 
 const getLanguage = (file: string) => {
   const language = file.split(".").pop();

@@ -5,11 +5,9 @@ import { Tabs, TabsList, TabsTrigger } from "@repo/ui/tabs";
 import { useMediaQuery } from "@repo/ui/utils";
 import { LaptopIcon, SmartphoneIcon } from "lucide-react";
 
-import type { RouterOutputs } from "@repo/api";
+import type { ContentComponent } from "@repo/api/content/content-data";
 import { Resizable } from "./resizable";
 import { SandpackLayout, SandpackPreview, useSandpack } from "./sandpack";
-
-type ContentComponent = RouterOutputs["content"]["getOne"];
 
 type ContentRendererProps = {
   contentComponent: ContentComponent;
