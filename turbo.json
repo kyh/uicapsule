@@ -41,7 +41,13 @@
       "cache": false
     }
   },
-  "globalEnv": ["TURSO_DATABASE_URL", "TURSO_AUTH_TOKEN", "PORT"],
+  "globalEnv": [
+    "TURSO_DATABASE_URL",
+    "TURSO_AUTH_TOKEN",
+    "AUTH_SECRET",
+    "PORT",
+    "VERCEL_PROJECT_PRODUCTION_URL"
+  ],
   "globalPassThroughEnv": [
     "NODE_ENV",
     "CI",
