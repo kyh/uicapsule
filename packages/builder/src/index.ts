@@ -3,6 +3,12 @@ import { dirname, extname, join, posix, relative } from "node:path";
 import { fileURLToPath } from "node:url";
 import chokidar from "chokidar";
 
+import type {
+  ContentComponent,
+  ContentComponentBase,
+  LocalContentComponent,
+} from "@repo/api/content/content-schema";
+
 const __dirname = fileURLToPath(new URL(".", import.meta.url));
 const packageRoot = join(__dirname, "..");
 const repoRoot = join(packageRoot, "..", "..");
@@ -31,24 +37,15 @@ type UiModuleLookup = {
   bySpecifier: Map<string, UiModule>;
 };
 
-export type ContentComponent = {
-  slug: string;
-  name: string;
-  description?: string;
-  defaultSize?: "full" | "md" | "sm";
-  coverUrl?: string;
-  coverType?: "image" | "video";
-  category?: "marketing" | "application" | "mobile";
-  tags?: string[];
-  authors?: { name: string; url: string; avatarUrl: string }[];
-  asSeenOn?: { name: string; url: string; avatarUrl: string }[];
-  previewCode: string;
-  sourceCode: Record<string, string>;
-  dependencies?: Record<string, string>;
-  devDependencies?: Record<string, string>;
-  previousSlug?: string;
-  nextSlug?: string;
+type ContentMetadata = Omit<ContentComponentBase, "slug" | "type"> & {
+  type?: "local" | "remote";
+  iframeUrl?: string;
+  sourceUrl?: string;
 };
+
+const isLocalContentComponent = (
+  component: ContentComponent,
+): component is LocalContentComponent => component.type === "local";
 
 const extractModuleSpecifiers = (source: string): string[] => {
   const specifiers = new Set<string>();
@@ -392,9 +389,44 @@ const readContentComponent = async (
   slug: string,
 ): Promise<ContentComponent> => {
   const metadata =
-    (await readJsonFile<ContentComponent>(
+    (await readJsonFile<ContentMetadata>(
       join(contentSourceDir, slug, "meta.json"),
-    )) ?? ({} as ContentComponent);
+    )) ?? ({} as ContentMetadata);
+
+  const {
+    type: metadataType,
+    iframeUrl,
+    sourceUrl,
+    ...restMetadata
+  } = metadata;
+  const componentType: ContentComponent["type"] =
+    metadataType === "remote" ? "remote" : "local";
+
+  const baseComponent: ContentComponentBase = {
+    ...restMetadata,
+    slug,
+    type: componentType,
+  };
+
+  if (componentType === "remote") {
+    if (!iframeUrl) {
+      throw new Error(
+        `Remote content "${slug}" is missing "iframeUrl" in meta.json`,
+      );
+    }
+    if (!sourceUrl) {
+      throw new Error(
+        `Remote content "${slug}" is missing "sourceUrl" in meta.json`,
+      );
+    }
+
+    return {
+      ...baseComponent,
+      type: "remote",
+      iframeUrl,
+      sourceUrl,
+    };
+  }
 
   const packageJson =
     (await readJsonFile<{
@@ -429,8 +461,8 @@ const readContentComponent = async (
   }
 
   return {
-    ...metadata,
-    slug,
+    ...baseComponent,
+    type: "local",
     dependencies: packageJson.dependencies ?? {},
     devDependencies: packageJson.devDependencies ?? {},
     sourceCode,
@@ -487,44 +519,51 @@ const loadDbDependencies = async () => {
 const syncComponentToDb = async (component: ContentComponent) => {
   const { db, contentComponent } = await loadDbDependencies();
 
-  await db
-    .insert(contentComponent)
-    .values({
-      slug: component.slug,
-      name: component.name,
-      description: component.description ?? null,
-      defaultSize: component.defaultSize ?? null,
-      coverUrl: component.coverUrl ?? null,
-      coverType: component.coverType ?? null,
-      category: component.category ?? null,
-      tags: serializeField(component.tags),
-      authors: serializeField(component.authors),
-      asSeenOn: serializeField(component.asSeenOn),
-      previewCode: component.previewCode,
-      sourceCode: JSON.stringify(component.sourceCode),
-      dependencies: serializeField(component.dependencies),
-      devDependencies: serializeField(component.devDependencies),
-      previousSlug: component.previousSlug ?? null,
-      nextSlug: component.nextSlug ?? null,
-    })
-    .onConflictDoUpdate({
-      target: contentComponent.slug,
-      set: {
-        name: component.name,
-        description: component.description ?? null,
-        defaultSize: component.defaultSize ?? null,
-        coverUrl: component.coverUrl ?? null,
-        coverType: component.coverType ?? null,
-        category: component.category ?? null,
-        tags: serializeField(component.tags),
-        authors: serializeField(component.authors),
-        asSeenOn: serializeField(component.asSeenOn),
+  const commonValues = {
+    slug: component.slug,
+    type: component.type,
+    name: component.name,
+    description: component.description ?? null,
+    defaultSize: component.defaultSize ?? null,
+    coverUrl: component.coverUrl ?? null,
+    coverType: component.coverType ?? null,
+    category: component.category ?? null,
+    tags: serializeField(component.tags),
+    authors: serializeField(component.authors),
+    asSeenOn: serializeField(component.asSeenOn),
+    previousSlug: component.previousSlug ?? null,
+    nextSlug: component.nextSlug ?? null,
+  };
+
+  const localValues = isLocalContentComponent(component)
+    ? {
         previewCode: component.previewCode,
         sourceCode: JSON.stringify(component.sourceCode),
         dependencies: serializeField(component.dependencies),
         devDependencies: serializeField(component.devDependencies),
-        previousSlug: component.previousSlug ?? null,
-        nextSlug: component.nextSlug ?? null,
+        iframeUrl: null,
+        sourceUrl: null,
+      }
+    : {
+        previewCode: null,
+        sourceCode: null,
+        dependencies: null,
+        devDependencies: null,
+        iframeUrl: component.iframeUrl,
+        sourceUrl: component.sourceUrl,
+      };
+
+  await db
+    .insert(contentComponent)
+    .values({
+      ...commonValues,
+      ...localValues,
+    })
+    .onConflictDoUpdate({
+      target: contentComponent.slug,
+      set: {
+        ...commonValues,
+        ...localValues,
       },
     });
 };
@@ -534,32 +573,6 @@ const generateTypeScriptExport = (
   components: Record<string, ContentComponent>,
 ): string => {
   const lines: string[] = [];
-
-  lines.push(
-    "// This file is auto-generated by the builder. Do not edit manually.",
-  );
-  lines.push("");
-  lines.push("export type ContentComponent = {");
-  lines.push("  slug: string;");
-  lines.push("  name: string;");
-  lines.push("  description?: string;");
-  lines.push('  defaultSize?: "full" | "md" | "sm";');
-  lines.push("  coverUrl?: string;");
-  lines.push('  coverType?: "image" | "video";');
-  lines.push('  category?: "marketing" | "application" | "mobile";');
-  lines.push("  tags?: string[];");
-  lines.push("  authors?: { name: string; url: string; avatarUrl: string }[];");
-  lines.push(
-    "  asSeenOn?: { name: string; url: string; avatarUrl: string }[];",
-  );
-  lines.push("  previewCode: string;");
-  lines.push("  sourceCode: Record<string, string>;");
-  lines.push("  dependencies?: Record<string, string>;");
-  lines.push("  devDependencies?: Record<string, string>;");
-  lines.push("  previousSlug?: string;");
-  lines.push("  nextSlug?: string;");
-  lines.push("};");
-  lines.push("");
 
   lines.push(
     "export const contentSlugs = " +
@@ -623,8 +636,21 @@ const exportToFile = async () => {
   await mkdir(apiContentDir, { recursive: true });
 
   const outputPath = join(apiContentDir, "content-data.ts");
-  const code = generateTypeScriptExport(slugs, components);
 
+  // Generate the file with imports from content-schema
+  const lines: string[] = [];
+  lines.push(
+    "// This file is auto-generated by the builder. Do not edit manually.",
+  );
+  lines.push("");
+  lines.push('import type { ContentComponent } from "./content-schema";');
+  lines.push("");
+
+  // Add the generated data exports
+  const dataCode = generateTypeScriptExport(slugs, components);
+  lines.push(dataCode);
+
+  const code = lines.join("\n");
   await writeFile(outputPath, code, "utf-8");
 
   console.log(
@@ -790,7 +816,7 @@ const hasWatch = args.includes("--watch");
 
 // Parse --mode argument
 const modeIndex = args.indexOf("--mode");
-let mode: "db" | "export" = "export"; // default to export
+let mode: "db" | "export" = "db"; // default to syncing to database
 if (modeIndex !== -1 && args[modeIndex + 1]) {
   const modeArg = args[modeIndex + 1];
   if (modeArg === "db" || modeArg === "export") {

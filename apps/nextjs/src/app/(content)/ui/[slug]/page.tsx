@@ -1,9 +1,7 @@
-import { notFound } from "next/navigation";
-import { getContentComponent } from "@repo/api/content/content-data";
-
 import { ResponsiveAside } from "@/app/(content)/_components/aside";
 import { ContentRenderer } from "@/app/(content)/_components/content-renderer";
 import { ContentProvider } from "@/app/(content)/_components/sandpack";
+import { caller } from "@/trpc/server";
 
 type Props = {
   params: Promise<{
@@ -13,11 +11,7 @@ type Props = {
 
 const Page = async ({ params }: Props) => {
   const { slug } = await params;
-  const contentComponent = getContentComponent(slug);
-
-  if (!contentComponent) {
-    notFound();
-  }
+  const contentComponent = await caller.content.bySlug({ slug });
 
   return (
     <ContentProvider contentComponent={contentComponent}>

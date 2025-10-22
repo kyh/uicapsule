@@ -26,7 +26,11 @@ import {
   InfoIcon,
 } from "lucide-react";
 
-import type { ContentComponent } from "@repo/api/content/content-data";
+import {
+  isLocalContentComponent,
+  isRemoteContentComponent,
+  type ContentComponent,
+} from "@repo/api/content/content-data";
 import { CodeEditor, FileExplorer, OpenInCodeSandboxButton } from "./sandpack";
 
 type AsideProps = {
@@ -38,6 +42,10 @@ const Aside = ({ contentComponent }: AsideProps) => {
     "-mx-3 flex flex-col gap-2.5 border-t px-3 pt-3 pb-1";
 
   const handleInstallClick = () => {
+    if (!isLocalContentComponent(contentComponent)) {
+      return;
+    }
+
     const command = `npx shadcn@latest add https://uicapsule.com/registry/${contentComponent.slug}.json`;
 
     navigator.clipboard.writeText(command).catch((err) => {
@@ -67,6 +75,10 @@ const Aside = ({ contentComponent }: AsideProps) => {
   };
 
   const handleDownloadClick = async () => {
+    if (!isLocalContentComponent(contentComponent)) {
+      return;
+    }
+
     const toastId = toast.loading("Download started", {
       icon: <DownloadIcon className="size-4" />,
       description: `${contentComponent.slug}.zip is being downloaded`,
@@ -137,54 +149,79 @@ const Aside = ({ contentComponent }: AsideProps) => {
     <Card className="h-full">
       <h1 className="flex items-center gap-1 text-xl">
         {contentComponent.name}
-        <OpenInCodeSandboxButton />
+        {isLocalContentComponent(contentComponent) && (
+          <OpenInCodeSandboxButton />
+        )}
       </h1>
       {contentComponent.description && (
         <p className="text-muted-foreground text-sm">
           {contentComponent.description}
         </p>
       )}
-      <Drawer>
-        <div className="flex flex-col gap-1.5">
-          <div className="flex -space-x-px rounded-full shadow-xs">
-            <DrawerTrigger
-              className={buttonVariants({
-                variant: "outline",
-                className:
-                  "flex-1 rounded-none rounded-s-full pl-12 shadow-none focus-visible:z-10",
-              })}
-            >
-              View Source
-            </DrawerTrigger>
+      {isLocalContentComponent(contentComponent) ? (
+        <Drawer>
+          <div className="flex flex-col gap-1.5">
+            <div className="flex -space-x-px rounded-full shadow-xs">
+              <DrawerTrigger
+                className={buttonVariants({
+                  variant: "outline",
+                  className:
+                    "flex-1 rounded-none rounded-s-full pl-12 shadow-none focus-visible:z-10",
+                })}
+              >
+                View Source
+              </DrawerTrigger>
+              <Button
+                variant="outline"
+                className="rounded-none rounded-e-full shadow-none focus-visible:z-10"
+                onClick={handleDownloadClick}
+              >
+                <span className="sr-only">Download</span>
+                <DownloadIcon className="size-4" />
+              </Button>
+            </div>
+            <span className="text-muted-foreground text-center text-xs">
+              <button
+                className="cursor-pointer underline decoration-dotted"
+                onClick={handleInstallClick}
+              >
+                Install via shadcn CLI
+              </button>
+            </span>
+          </div>
+          <DrawerContent className="border-border bg-background text-sm">
+            <DrawerHeader className="sr-only">
+              <DrawerTitle>Source Code</DrawerTitle>
+              <DrawerDescription>Component source code</DrawerDescription>
+            </DrawerHeader>
+            <div className="mt-4 flex h-[90dvh] overflow-auto border-t">
+              <FileExplorer />
+              <CodeEditor />
+            </div>
+          </DrawerContent>
+        </Drawer>
+      ) : (
+        isRemoteContentComponent(contentComponent) && (
+          <div className="flex flex-col items-center gap-1.5">
             <Button
+              asChild
               variant="outline"
-              className="rounded-none rounded-e-full shadow-none focus-visible:z-10"
-              onClick={handleDownloadClick}
+              className="w-full rounded-full shadow-none focus-visible:z-10"
             >
-              <span className="sr-only">Download</span>
-              <DownloadIcon className="size-4" />
+              <a
+                href={contentComponent.sourceUrl}
+                target="_blank"
+                rel="noreferrer"
+              >
+                View Source on GitHub
+              </a>
             </Button>
+            <span className="text-muted-foreground text-center text-xs">
+              Opens in a new tab
+            </span>
           </div>
-          <span className="text-muted-foreground text-center text-xs">
-            <button
-              className="cursor-pointer underline decoration-dotted"
-              onClick={handleInstallClick}
-            >
-              Install via shadcn CLI
-            </button>
-          </span>
-        </div>
-        <DrawerContent className="border-border bg-background text-sm">
-          <DrawerHeader className="sr-only">
-            <DrawerTitle>Source Code</DrawerTitle>
-            <DrawerDescription>Component source code</DrawerDescription>
-          </DrawerHeader>
-          <div className="mt-4 flex h-[90dvh] overflow-auto border-t">
-            <FileExplorer />
-            <CodeEditor />
-          </div>
-        </DrawerContent>
-      </Drawer>
+        )
+      )}
       {contentComponent.asSeenOn && (
         <div className={sectionClassname}>
           <h2>As seen on</h2>

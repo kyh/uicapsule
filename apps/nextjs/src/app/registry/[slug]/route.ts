@@ -18,7 +18,7 @@ export const GET = async (_: NextRequest, { params }: RegistryParams) => {
   }
 
   try {
-    const pkg = await caller.content.getShadcnPackage({
+    const pkg = await caller.content.shadcnPackage({
       slug: slug.replace(".json", ""),
     });
 

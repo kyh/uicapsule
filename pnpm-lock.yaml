@@ -499,6 +499,9 @@ importers:
 
   packages/builder:
     dependencies:
+      '@repo/api':
+        specifier: workspace:*
+        version: link:../api
       '@repo/db':
         specifier: workspace:*
         version: link:../db

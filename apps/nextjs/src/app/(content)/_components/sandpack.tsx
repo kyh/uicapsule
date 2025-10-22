@@ -14,7 +14,10 @@ import {
 import MonacoEditor from "@monaco-editor/react";
 import { useTheme } from "@repo/ui/theme";
 
-import type { ContentComponent } from "@repo/api/content/content-data";
+import {
+  isLocalContentComponent,
+  type ContentComponent,
+} from "@repo/api/content/content-data";
 
 const getLanguage = (file: string) => {
   const language = file.split(".").pop();
@@ -168,6 +171,10 @@ const ContentProvider = ({
   contentComponent: ContentComponent;
   children: React.ReactNode;
 }) => {
+  if (!isLocalContentComponent(contentComponent)) {
+    return <>{children}</>;
+  }
+
   return (
     <SandpackProvider
       template="react-ts"
