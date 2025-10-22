@@ -120,27 +120,6 @@
   }
 }
 
-@utility container {
-  @media (width >= --theme(--breakpoint-2xl)) {
-    max-width: none;
-  }
-  @media (width >= 100%) {
-    max-width: 100%;
-  }
-  @media (width >= 100%) {
-    max-width: 100%;
-  }
-  @media (width >= 100%) {
-    max-width: 100%;
-  }
-  @media (width >= 100%) {
-    max-width: 100%;
-  }
-  @media (width >= 1440px) {
-    max-width: 1440px;
-  }
-}
-
 .btn-primary {
   --gradient-opacity: 0.17;
   --white: 0 0% 100%;

@@ -12,12 +12,10 @@ import {
   useSandpackNavigation,
 } from "@codesandbox/sandpack-react/unstyled";
 import MonacoEditor from "@monaco-editor/react";
+import { isLocalContentComponent } from "@repo/api/content/content-schema";
 import { useTheme } from "@repo/ui/theme";
 
-import {
-  isLocalContentComponent,
-  type ContentComponent,
-} from "@repo/api/content/content-data";
+import type { ContentComponent } from "@repo/api/content/content-schema";
 
 const getLanguage = (file: string) => {
   const language = file.split(".").pop();

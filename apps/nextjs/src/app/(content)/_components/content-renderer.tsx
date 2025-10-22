@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import { isRemoteContentComponent } from "@repo/api/content/content-data";
+import { isRemoteContentComponent } from "@repo/api/content/content-schema";
 import { Tabs, TabsList, TabsTrigger } from "@repo/ui/tabs";
 import { useMediaQuery } from "@repo/ui/utils";
 import { LaptopIcon, SmartphoneIcon } from "lucide-react";
@@ -10,7 +10,7 @@ import type {
   ContentComponent,
   LocalContentComponent,
   RemoteContentComponent,
-} from "@repo/api/content/content-data";
+} from "@repo/api/content/content-schema";
 import { Resizable } from "./resizable";
 import { SandpackLayout, SandpackPreview, useSandpack } from "./sandpack";
 

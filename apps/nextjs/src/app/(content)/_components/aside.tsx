@@ -2,6 +2,10 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import {
+  isLocalContentComponent,
+  isRemoteContentComponent,
+} from "@repo/api/content/content-schema";
 import { Avatar, AvatarFallback, AvatarImage } from "@repo/ui/avatar";
 import { Badge } from "@repo/ui/badge";
 import { Button, buttonVariants } from "@repo/ui/button";
@@ -26,11 +30,7 @@ import {
   InfoIcon,
 } from "lucide-react";
 
-import {
-  isLocalContentComponent,
-  isRemoteContentComponent,
-  type ContentComponent,
-} from "@repo/api/content/content-data";
+import type { ContentComponent } from "@repo/api/content/content-schema";
 import { CodeEditor, FileExplorer, OpenInCodeSandboxButton } from "./sandpack";
 
 type AsideProps = {

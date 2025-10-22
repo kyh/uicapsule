@@ -8,6 +8,7 @@
     "./*": "./src/*.ts"
   },
   "scripts": {
+    "build": "tsc",
     "clean": "git clean -xdf .cache .turbo dist node_modules",
     "dev": "tsc",
     "format": "prettier --check . --ignore-path ../../.gitignore",
@@ -15,10 +16,10 @@
     "typecheck": "tsc --noEmit --emitDeclarationOnly false"
   },
   "dependencies": {
-    "@better-auth/expo": "^1.3.27",
+    "@better-auth/expo": "^1.3.28",
     "@repo/db": "workspace:^",
     "@trpc/server": "catalog:",
-    "better-auth": "^1.3.27",
+    "better-auth": "^1.3.28",
     "drizzle-zod": "^0.8.3",
     "superjson": "catalog:",
     "zod": "catalog:"
