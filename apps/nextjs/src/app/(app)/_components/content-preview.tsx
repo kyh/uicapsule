@@ -52,3 +52,19 @@ export const ContentPreview = ({
     </Link>
   );
 };
+
+export const ContentPreviewSkeleton = () => {
+  return (
+    <div className="bg-background group flex flex-col justify-between gap-3 p-3 sm:p-6">
+      <div className="aspect-video overflow-hidden">
+        <div className="bg-muted h-full w-full animate-pulse rounded" />
+      </div>
+      <div className="flex justify-between font-mono text-xs">
+        <div className="flex items-center gap-1">
+          <div className="bg-muted h-4 w-24 animate-pulse rounded" />
+        </div>
+        <div className="bg-muted h-4 w-8 animate-pulse rounded" />
+      </div>
+    </div>
+  );
+};

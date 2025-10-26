@@ -42,6 +42,7 @@ const transpilePackages = ["@repo/api", "@repo/db", "@repo/ui"];
 
 /** @type {import("next").NextConfig} */
 const config = {
+  cacheComponents: true,
   pageExtensions: ["js", "jsx", "md", "mdx", "ts", "tsx"],
   transpilePackages,
   images: {

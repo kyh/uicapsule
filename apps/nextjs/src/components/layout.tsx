@@ -693,14 +693,14 @@ export const ProfileButton = () => {
             defaultValue={resolvedTheme === "dark" ? "dark" : "light"}
             onValueChange={(value) => setTheme(value)}
           >
-            <TabsList className="bg-background flex h-fit items-center gap-0.5 overflow-hidden rounded-full border p-0 focus-within:overflow-visible [&>[role=tab]]:size-6 [&>[role=tab]>.absolute]:-inset-px [&>[role=tab]>.absolute]:rounded-full [&>[role=tab]>.absolute]:border [&>[role=tab]>.absolute]:bg-transparent">
+            <TabsList className="bg-background flex h-fit items-center gap-0.5 overflow-hidden rounded-full border p-0 focus-within:overflow-visible *:[[role=tab]]:size-6 [&>[role=tab]>.absolute]:-inset-px [&>[role=tab]>.absolute]:rounded-full [&>[role=tab]>.absolute]:border [&>[role=tab]>.absolute]:bg-transparent">
               <TabsTrigger
                 value="system"
                 className="text-muted-foreground data-[state=active]:bg-accent relative inline-flex h-[28px] items-center justify-center gap-1.5 rounded-full px-2 has-[>svg]:pl-1.5 [&>svg]:pointer-events-none"
                 aria-label="System theme"
               >
                 <div>
-                  <SunMoonIcon className="size-3 flex-shrink-0" />
+                  <SunMoonIcon className="size-3 shrink-0" />
                 </div>
               </TabsTrigger>
               <TabsTrigger
@@ -709,7 +709,7 @@ export const ProfileButton = () => {
                 aria-label="Light theme"
               >
                 <div>
-                  <SunIcon className="size-3 flex-shrink-0" />
+                  <SunIcon className="size-3 shrink-0" />
                 </div>
               </TabsTrigger>
               <TabsTrigger
@@ -718,7 +718,7 @@ export const ProfileButton = () => {
                 aria-label="Dark theme"
               >
                 <div>
-                  <MoonIcon className="size-3 flex-shrink-0" />
+                  <MoonIcon className="size-3 shrink-0" />
                 </div>
               </TabsTrigger>
             </TabsList>
@@ -786,9 +786,7 @@ export const Footer = ({ className }: { className?: string }) => {
         className,
       )}
     >
-      <p className="text-sm whitespace-nowrap lg:px-6">
-        ©{new Date().getFullYear()} Kaiyu Hsu
-      </p>
+      <p className="text-sm whitespace-nowrap lg:px-6">©2025 Kaiyu Hsu</p>
       <div className="flex flex-wrap justify-center px-6 lg:w-full">
         <FooterLink href="/about">About</FooterLink>
         <FooterLink href="/inspiration">Inspiration</FooterLink>

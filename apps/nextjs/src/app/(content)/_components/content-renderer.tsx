@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { isRemoteContentComponent } from "@repo/api/content/content-schema";
 import { Tabs, TabsList, TabsTrigger } from "@repo/ui/tabs";
 import { useMediaQuery } from "@repo/ui/utils";
@@ -52,7 +52,7 @@ const PreviewScaffold = ({
         {children}
       </Resizable>
     ) : (
-      <div className="w-[calc(100dvw-theme(spacing.3))] flex-1 pb-2">
+      <div className="w-[calc(100dvw-(--spacing(3)))] flex-1 pb-2">
         {children}
       </div>
     )}
@@ -113,13 +113,7 @@ const LocalContentRenderer = ({
 
   useEffect(() => {
     setInitialized(false);
-  }, [isDesktop, contentComponent.slug]);
-
-  const content = (
-    <SandpackLayout>
-      <SandpackPreview className="h-full!" />
-    </SandpackLayout>
-  );
+  }, [contentComponent.slug]);
 
   return (
     <PreviewScaffold
@@ -128,7 +122,9 @@ const LocalContentRenderer = ({
       size={size}
       onWidthChange={handleSetWidth}
     >
-      {content}
+      <SandpackLayout>
+        <SandpackPreview className="h-full!" />
+      </SandpackLayout>
     </PreviewScaffold>
   );
 };
@@ -151,8 +147,13 @@ const RemoteContentRenderer = ({
     setSize(nextWidth <= 360 ? "mobile" : "desktop");
   }, []);
 
-  const content = (
-    <SandpackLayout>
+  return (
+    <PreviewScaffold
+      isDesktop={isDesktop}
+      width={width}
+      size={size}
+      onWidthChange={handleSetWidth}
+    >
       <div className="border-border bg-background h-full w-full overflow-hidden rounded-md border">
         <iframe
           src={contentComponent.iframeUrl}
@@ -163,17 +164,6 @@ const RemoteContentRenderer = ({
           referrerPolicy="strict-origin-when-cross-origin"
         />
       </div>
-    </SandpackLayout>
-  );
-
-  return (
-    <PreviewScaffold
-      isDesktop={isDesktop}
-      width={width}
-      size={size}
-      onWidthChange={handleSetWidth}
-    >
-      {content}
     </PreviewScaffold>
   );
 };
@@ -184,4 +174,17 @@ export const ContentRenderer = ({ contentComponent }: ContentRendererProps) => {
   }
 
   return <LocalContentRenderer contentComponent={contentComponent} />;
+};
+
+export const ContentRendererSkeleton = () => {
+  return (
+    <PreviewScaffold
+      isDesktop={false}
+      width={360}
+      size="mobile"
+      onWidthChange={() => {}}
+    >
+      <div className="bg-muted mx-auto h-full w-full max-w-[720px] animate-pulse rounded-md" />
+    </PreviewScaffold>
+  );
 };
