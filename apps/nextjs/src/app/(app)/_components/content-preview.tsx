@@ -59,7 +59,7 @@ export const ContentPreviewSkeleton = () => {
       <div className="aspect-video overflow-hidden">
         <div className="bg-muted h-full w-full animate-pulse rounded" />
       </div>
-      <div className="flex justify-between font-mono text-xs">
+      <div className="flex justify-between text-xs">
         <div className="flex items-center gap-1">
           <div className="bg-muted h-4 w-24 animate-pulse rounded" />
         </div>

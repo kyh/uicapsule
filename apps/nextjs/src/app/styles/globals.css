@@ -1,5 +1,4 @@
 @import "tailwindcss" source("../../../../../");
-@import "./sandpack.css";
 
 @import "tw-animate-css";
 
@@ -117,6 +116,14 @@
   }
   body {
     @apply bg-background text-foreground;
+  }
+  code,
+  kbd,
+  samp,
+  pre {
+    font-family:
+      ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono",
+      "Courier New", monospace;
   }
 }
 

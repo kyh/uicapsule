@@ -31,7 +31,7 @@ import {
 } from "lucide-react";
 
 import type { ContentComponent } from "@repo/api/content/content-schema";
-import { CodeEditor, FileExplorer, OpenInCodeSandboxButton } from "./sandpack";
+import { CodePreview } from "./code-preview";
 
 type AsideProps = {
   contentComponent: ContentComponent;
@@ -149,9 +149,9 @@ const Aside = ({ contentComponent }: AsideProps) => {
     <Card className="h-full">
       <h1 className="flex items-center gap-1 text-xl">
         {contentComponent.name}
-        {isLocalContentComponent(contentComponent) && (
+        {/* {isLocalContentComponent(contentComponent) && (
           <OpenInCodeSandboxButton />
-        )}
+        )} */}
       </h1>
       {contentComponent.description && (
         <p className="text-muted-foreground text-sm">
@@ -194,10 +194,7 @@ const Aside = ({ contentComponent }: AsideProps) => {
               <DrawerTitle>Source Code</DrawerTitle>
               <DrawerDescription>Component source code</DrawerDescription>
             </DrawerHeader>
-            <div className="mt-4 flex h-[90dvh] overflow-auto border-t">
-              <FileExplorer />
-              <CodeEditor />
-            </div>
+            <CodePreview contentComponent={contentComponent} />
           </DrawerContent>
         </Drawer>
       ) : (

@@ -1,199 +1,10 @@
 "use client";
 
-import {
-  FileTabs,
-  OpenInCodeSandboxButton,
-  SandpackFileExplorer,
-  SandpackLayout,
-  SandpackPreview,
-  SandpackProvider,
-  useActiveCode,
-  useSandpack,
-  useSandpackNavigation,
-} from "@codesandbox/sandpack-react/unstyled";
-import MonacoEditor from "@monaco-editor/react";
-import { isLocalContentComponent } from "@repo/api/content/content-schema";
-import { useTheme } from "@repo/ui/theme";
+import { loadSandpackClient } from "@codesandbox/sandpack-client";
 
-import type { ContentComponent } from "@repo/api/content/content-schema";
+import type { LocalContentComponent } from "@repo/api/content/content-schema";
 
-const getLanguage = (file: string) => {
-  const language = file.split(".").pop();
-  switch (language) {
-    case "js":
-    case "mjs":
-    case "cjs":
-    case "javascript":
-      return "javascript";
-    case "ts":
-    case "typescript":
-      return "typescript";
-    case "tsx":
-      return "typescript";
-    case "jsx":
-      return "javascript";
-    case "json":
-      return "json";
-    case "css":
-      return "css";
-    case "scss":
-      return "scss";
-    case "less":
-      return "less";
-    case "html":
-    case "htm":
-      return "html";
-    case "md":
-    case "markdown":
-      return "markdown";
-    case "xml":
-      return "xml";
-    case "yaml":
-    case "yml":
-      return "yaml";
-    case "sh":
-    case "bash":
-      return "shell";
-    case "py":
-    case "python":
-      return "python";
-    case "go":
-      return "go";
-    case "rs":
-    case "rust":
-      return "rust";
-    case "php":
-      return "php";
-    case "java":
-      return "java";
-    case "c":
-      return "c";
-    case "cpp":
-    case "c++":
-    case "cc":
-    case "cxx":
-      return "cpp";
-    case "cs":
-    case "csharp":
-      return "csharp";
-    case "swift":
-      return "swift";
-    case "dart":
-      return "dart";
-    case "sql":
-      return "sql";
-    case "r":
-      return "r";
-    case "ruby":
-    case "rb":
-      return "ruby";
-    case "perl":
-    case "pl":
-      return "perl";
-    case "kotlin":
-    case "kt":
-      return "kotlin";
-    case "scala":
-      return "scala";
-    case "lua":
-      return "lua";
-    case "dockerfile":
-      return "dockerfile";
-    case "ini":
-      return "ini";
-    case "toml":
-      return "toml";
-    case "makefile":
-      return "makefile";
-    case "powershell":
-    case "ps1":
-      return "powershell";
-    case "plaintext":
-    case "txt":
-      return "plaintext";
-    default:
-      return language ?? "plaintext";
-  }
-};
-
-function beforeMount(monaco: typeof import("monaco-editor")) {
-  // Disable TypeScript diagnostics (squiggles)
-  monaco.languages.typescript.typescriptDefaults.setDiagnosticsOptions({
-    noSemanticValidation: true,
-    noSyntaxValidation: true,
-  });
-
-  // If you also use JavaScript models, disable those too
-  monaco.languages.typescript.javascriptDefaults.setDiagnosticsOptions({
-    noSemanticValidation: true,
-    noSyntaxValidation: true,
-  });
-
-  // Optional: reduce TS worker involvement further
-  monaco.languages.typescript.typescriptDefaults.setCompilerOptions({
-    noLib: true,
-    allowNonTsExtensions: true,
-  });
-}
-
-const CodeEditor = () => {
-  const { resolvedTheme } = useTheme();
-  const { code, updateCode } = useActiveCode();
-  const { sandpack } = useSandpack();
-  const language = getLanguage(sandpack.activeFile);
-
-  return (
-    <div className="flex w-dvw flex-col md:w-[calc(100dvw-200px)]">
-      <FileTabs />
-      <MonacoEditor
-        key={sandpack.activeFile}
-        width="100%"
-        height="100%"
-        language={language}
-        theme={resolvedTheme === "dark" ? "vs-dark" : "vs-light"}
-        beforeMount={beforeMount}
-        defaultValue={code}
-        onChange={(value) => updateCode(value ?? "")}
-        options={{
-          quickSuggestions: false,
-        }}
-      />
-    </div>
-  );
-};
-
-const ContentProvider = ({
-  contentComponent,
-  children,
-}: {
-  contentComponent: ContentComponent;
-  children: React.ReactNode;
-}) => {
-  if (!isLocalContentComponent(contentComponent)) {
-    return <>{children}</>;
-  }
-
-  return (
-    <SandpackProvider
-      template="react-ts"
-      customSetup={{ dependencies: contentComponent.dependencies }}
-      options={{
-        externalResources: [
-          "https://zmdrwswxugswzmcokvff.supabase.co/storage/v1/object/public/uicapsule/tailwind.js",
-        ],
-      }}
-      files={{
-        "/App.tsx": contentComponent.previewCode,
-        "/styles.css": defaultPreviewStyles,
-        ...contentComponent.sourceCode,
-      }}
-    >
-      {children}
-    </SandpackProvider>
-  );
-};
-
-const defaultPreviewStyles = `
+export const defaultPreviewStyles = `
 @custom-variant dark (&:is(.dark *));
  
 :root {
@@ -319,17 +130,100 @@ const defaultPreviewStyles = `
 }
 `;
 
-const FileExplorer = () => {
-  return <SandpackFileExplorer />;
+const getTsConfigJson = () => ({
+  include: ["./**/*"],
+  compilerOptions: {
+    strict: true,
+    esModuleInterop: true,
+    lib: ["dom", "es2015"],
+    jsx: "react-jsx",
+  },
+});
+
+const getIndexTsx = () => `import React, { StrictMode } from "react";
+import { createRoot } from "react-dom/client";
+import "./styles.css";
+
+import App from "./App";
+
+const root = createRoot(document.getElementById("root"));
+root.render(
+  <StrictMode>
+    <App />
+  </StrictMode>
+);`;
+
+const getIndexHtml = () => `<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+  </head>
+  <body>
+    <div id="root"></div>
+  </body>
+</html>`;
+
+const getPackageJson = (
+  dependencies: Record<string, string>,
+  devDependencies: Record<string, string>,
+) => ({ main: "/index.tsx", dependencies, devDependencies });
+
+const getSourceCode = (sourceCode: Record<string, string>) => {
+  return Object.entries(sourceCode).reduce(
+    (acc, [key, value]) => {
+      acc[key] = { code: value };
+      return acc;
+    },
+    {} as Record<string, { code: string }>,
+  );
 };
 
-export {
-  SandpackLayout,
-  SandpackPreview,
-  FileExplorer,
-  useSandpack,
-  useSandpackNavigation,
-  OpenInCodeSandboxButton,
-  ContentProvider,
-  CodeEditor,
+export const getFiles = (
+  contentComponent: LocalContentComponent,
+): Record<string, { code: string }> => {
+  return {
+    "/public/index.html": { code: getIndexHtml() },
+    ...getSourceCode(contentComponent.sourceCode),
+    "/App.tsx": { code: contentComponent.previewCode },
+    "/index.tsx": { code: getIndexTsx() },
+    "/styles.css": { code: defaultPreviewStyles },
+    "/package.json": {
+      code: JSON.stringify(
+        getPackageJson(
+          contentComponent.dependencies ?? {},
+          contentComponent.devDependencies ?? {},
+        ),
+        null,
+        4,
+      ),
+    },
+    "/tsconfig.json": { code: JSON.stringify(getTsConfigJson(), null, 2) },
+  };
+};
+
+export const initializeSandpack = async (
+  iframe: HTMLIFrameElement,
+  contentComponent: LocalContentComponent,
+) => {
+  const files = getFiles(contentComponent);
+
+  const client = await loadSandpackClient(
+    iframe,
+    {
+      entry: "/App.tsx",
+      template: "create-react-app-typescript",
+      files,
+    },
+    {
+      externalResources: [
+        "https://zmdrwswxugswzmcokvff.supabase.co/storage/v1/object/public/uicapsule/tailwind.js",
+      ],
+      showLoadingScreen: true,
+      showOpenInCodeSandbox: false,
+    },
+  );
+
+  return client;
 };

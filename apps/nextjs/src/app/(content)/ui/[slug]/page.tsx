@@ -5,7 +5,6 @@ import {
   ContentRenderer,
   ContentRendererSkeleton,
 } from "@/app/(content)/_components/content-renderer";
-import { ContentProvider } from "@/app/(content)/_components/sandpack";
 import { caller } from "@/trpc/server";
 
 type Props = {
@@ -16,15 +15,11 @@ type Props = {
 
 const Page = ({ params }: Props) => {
   return (
-    <Suspense
-      fallback={
-        <main className="relative flex h-[calc(100dvh-(--spacing(16)))] justify-center">
-          <ContentRendererSkeleton />
-        </main>
-      }
-    >
-      <Content params={params} />
-    </Suspense>
+    <main className="relative flex h-[calc(100dvh-(--spacing(16)))] justify-center">
+      <Suspense fallback={<ContentRendererSkeleton />}>
+        <Content params={params} />
+      </Suspense>
+    </main>
   );
 };
 
@@ -35,11 +30,9 @@ const Content = async ({ params }: { params: Promise<{ slug: string }> }) => {
   const contentComponent = await caller.content.bySlug({ slug });
 
   return (
-    <ContentProvider contentComponent={contentComponent}>
-      <main className="relative flex h-[calc(100dvh-(--spacing(16)))] justify-center">
-        <ContentRenderer contentComponent={contentComponent} />
-        <ResponsiveAside contentComponent={contentComponent} />
-      </main>
-    </ContentProvider>
+    <>
+      <ContentRenderer contentComponent={contentComponent} />
+      <ResponsiveAside contentComponent={contentComponent} />
+    </>
   );
 };
