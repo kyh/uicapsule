@@ -13,6 +13,7 @@ import {
   Link,
   Mail,
   Settings,
+  Star,
   Users,
   Workflow,
 } from "lucide-react";
@@ -41,8 +42,7 @@ const favoritesItems = [
   {
     id: "onboarding-pipeline",
     label: "Onboarding pipeline",
-    icon: "🌟",
-    isSpecial: true,
+    icon: <Star size={14} />,
   },
   {
     id: "top-of-funnel",
@@ -96,37 +96,6 @@ const NavigationItem = ({
           </span>
         ) : (
           item.icon
-        )}
-        {item.isSpecial && (
-          <div className="absolute right-[-4px] bottom-[-11px]">
-            <svg width="14" height="14" fill="none">
-              <rect
-                x="1"
-                y="1"
-                width="12"
-                height="12"
-                rx="3.5"
-                fill="#FD9038"
-                stroke="#FBFBFB"
-              />
-              <rect
-                x="3.625"
-                y="3.625"
-                width="2.761"
-                height="6.75"
-                rx=".92"
-                fill="#fff"
-              />
-              <rect
-                x="7.614"
-                y="3.625"
-                width="2.761"
-                height="4.295"
-                rx=".92"
-                fill="#fff"
-              />
-            </svg>
-          </div>
         )}
       </div>
       <span className="min-w-0 flex-1 truncate text-[14px] leading-5 font-medium tracking-[-0.28px]">

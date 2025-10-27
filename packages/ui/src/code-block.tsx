@@ -233,7 +233,7 @@ export type CodeBlockDownloadButtonProps = ComponentProps<"button"> & {
   onError?: (error: Error) => void;
 };
 
-const languageExtensionMap: Partial<Record<BundledLanguage, string>> = {
+const languageToExtensionMap: Partial<Record<BundledLanguage, string>> = {
   "1c": "1c",
   "1c-query": "1cq",
   abap: "abap",
@@ -542,6 +542,13 @@ const languageExtensionMap: Partial<Record<BundledLanguage, string>> = {
   文言: "wy",
 };
 
+export const extensionToLanguageMap: Partial<Record<string, BundledLanguage>> =
+  Object.fromEntries(
+    (Object.entries(languageToExtensionMap) as [BundledLanguage, string][]).map(
+      ([language, extension]) => [extension, language],
+    ),
+  );
+
 export const CodeBlockDownloadButton = ({
   onDownload,
   onError,
@@ -557,8 +564,8 @@ export const CodeBlockDownloadButton = ({
   const { code: contextCode } = useContext(CodeBlockContext);
   const code = propCode ?? contextCode;
   const extension =
-    language && language in languageExtensionMap
-      ? languageExtensionMap[language]
+    language && language in languageToExtensionMap
+      ? languageToExtensionMap[language]
       : "txt";
   const filename = `file.${extension}`;
   const mimeType = "text/plain";

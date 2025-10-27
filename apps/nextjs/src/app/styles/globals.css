@@ -125,6 +125,10 @@
       ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono",
       "Courier New", monospace;
   }
+
+  [data-code-block] * {
+    user-select: text !important;
+  }
 }
 
 .btn-primary {

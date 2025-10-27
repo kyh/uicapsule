@@ -13,7 +13,7 @@ import {
   RiImageLine,
   RiReactjsLine,
 } from "@remixicon/react";
-import { CodeBlock } from "@repo/ui/code-block";
+import { CodeBlock, extensionToLanguageMap } from "@repo/ui/code-block";
 import { Tree, TreeItem, TreeItemLabel } from "@repo/ui/tree";
 
 import type { LocalContentComponent } from "@repo/api/content/content-schema";
@@ -32,33 +32,7 @@ type Item = {
 // Detect language from file path
 const getLanguageFromPath = (path: string): BundledLanguage => {
   const ext = path.split(".").pop()?.toLowerCase();
-  const extMap: Record<string, BundledLanguage> = {
-    tsx: "tsx",
-    ts: "ts",
-    jsx: "jsx",
-    js: "js",
-    css: "css",
-    scss: "scss",
-    sass: "sass",
-    json: "json",
-    md: "md",
-    html: "html",
-    vue: "vue",
-    py: "py",
-    java: "java",
-    cpp: "cpp",
-    c: "c",
-    cs: "cs",
-    php: "php",
-    rb: "rb",
-    go: "go",
-    rs: "rust",
-    sh: "bash",
-    yaml: "yaml",
-    yml: "yaml",
-  };
-
-  return extMap[ext ?? ""] ?? "tsx";
+  return extensionToLanguageMap[ext ?? ""] ?? ("txt" as BundledLanguage);
 };
 
 function getFileIcon(
@@ -92,65 +66,63 @@ const buildFileTree = (
   files: Record<string, { code: string }>,
 ): Record<string, Item> => {
   const tree: Record<string, Item> = {};
-  const pathSet = new Set<string>();
-  const rootChildren: string[] = [];
+  const rootChildren = new Set<string>();
 
-  // Add all paths to the set, including parent directories
+  // Process each file path
   for (const filePath of Object.keys(files)) {
-    // Normalize path: remove leading slash and filter out empty parts
+    // Normalize path: remove leading slash and split into parts
     const normalizedPath = filePath.startsWith("/")
       ? filePath.slice(1)
       : filePath;
-    const parts = normalizedPath.split("/").filter((part) => part !== "");
-    let currentPath = "";
+    const parts = normalizedPath.split("/").filter(Boolean);
+
+    if (parts.length === 0) continue;
+
+    let parentPath = "";
 
     for (let i = 0; i < parts.length; i++) {
       const part = parts[i];
       if (!part) continue;
 
-      const previousPath = currentPath;
-      currentPath = currentPath ? `${currentPath}/${part}` : part;
+      const currentPath = parentPath ? `${parentPath}/${part}` : part;
+      const isFile = i === parts.length - 1;
 
-      if (!pathSet.has(currentPath)) {
-        pathSet.add(currentPath);
-
-        // If it's the last part, it's a file
-        const isLastPart = i === parts.length - 1;
-
-        // Track root-level items (only items without a parent should be in rootChildren)
-        if (!previousPath && !rootChildren.includes(currentPath)) {
-          rootChildren.push(currentPath);
-        }
-
-        if (previousPath) {
-          tree[previousPath] ??= {
-            name: previousPath.split("/").pop() ?? previousPath,
-            path: previousPath,
-            isFolder: true,
-            children: [],
-          };
-
-          if (!tree[previousPath].children?.includes(currentPath)) {
-            tree[previousPath].children?.push(currentPath);
-          }
-        }
-
+      // Create node if it doesn't exist
+      if (!(currentPath in tree)) {
         tree[currentPath] = {
           name: part,
           path: currentPath,
-          isFolder: !isLastPart,
-          children: isLastPart ? undefined : [],
+          isFolder: !isFile,
+          children: !isFile ? [] : undefined,
         };
+
+        // Track root-level items
+        if (!parentPath) {
+          rootChildren.add(currentPath);
+        }
       }
+
+      // Add to parent's children if parent exists
+      if (parentPath) {
+        const parent = tree[parentPath];
+        if (parent?.children) {
+          const children = parent.children;
+          if (!children.includes(currentPath)) {
+            children.push(currentPath);
+          }
+        }
+      }
+
+      parentPath = currentPath;
     }
   }
 
-  // Create a dummy root folder that contains all root-level items
+  // Create root node
   tree["."] = {
     name: "root",
     path: ".",
     isFolder: true,
-    children: rootChildren,
+    children: Array.from(rootChildren),
   };
 
   return tree;
@@ -176,7 +148,13 @@ export const CodePreview = ({ contentComponent }: CodePreviewProps) => {
     getItemName: (item) => item.getItemData().name,
     isItemFolder: (item) => item.getItemData().isFolder,
     dataLoader: {
-      getItem: (itemId) => items[itemId]!,
+      getItem: (itemId) =>
+        items[itemId] ?? {
+          name: "",
+          path: itemId,
+          isFolder: true,
+          children: [],
+        },
       getChildren: (itemId) => items[itemId]?.children ?? [],
     },
     features: [syncDataLoaderFeature, hotkeysCoreFeature],
@@ -216,7 +194,7 @@ export const CodePreview = ({ contentComponent }: CodePreviewProps) => {
                 className="rounded-none py-1"
                 onClick={() => handleItemClick(itemData)}
               >
-                <span className="flex items-center gap-2">
+                <span className="flex items-center gap-2 truncate">
                   {!item.isFolder() &&
                     getFileIcon(
                       itemData.path.split(".").pop()?.toLowerCase(),

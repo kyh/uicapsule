@@ -56,7 +56,7 @@ export const ContentRenderer = ({ contentComponent }: ContentRendererProps) => {
     <>
       {loadingMessage && (
         <div className="bg-background absolute flex h-full w-full items-center justify-center">
-          <p className="text-primary font-mono text-sm">{loadingMessage}</p>
+          <p className="text-primary font-mono text-sm">{loadingMessage}...</p>
         </div>
       )}
       <iframe className="h-full w-full" ref={setIframe} />

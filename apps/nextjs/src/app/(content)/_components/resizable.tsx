@@ -65,9 +65,8 @@ export const Resizable = ({
     setIsDragging(false);
     onResizeEnd?.();
     document.removeEventListener("mousemove", handleMouseMove);
-    document.removeEventListener("mouseup", handleMouseUp);
     document.body.style.cursor = "";
-    document.body.style.userSelect = "";
+    document.body.style.userSelect = "auto";
   }, [handleMouseMove, onResizeEnd]);
 
   const handleMouseDown = useCallback(
@@ -94,11 +93,10 @@ export const Resizable = ({
   useEffect(() => {
     return () => {
       document.removeEventListener("mousemove", handleMouseMove);
-      document.removeEventListener("mouseup", handleMouseUp);
       document.body.style.cursor = "";
-      document.body.style.userSelect = "";
+      document.body.style.userSelect = "auto";
     };
-  }, [handleMouseMove, handleMouseUp]);
+  }, [handleMouseMove]);
 
   return (
     <div
