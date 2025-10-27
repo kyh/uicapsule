@@ -109,7 +109,7 @@ export const Resizable = ({
         className="bg-muted-foreground/20 hover:bg-muted-foreground/50 absolute top-1/2 -left-3 h-[100px] w-2 -translate-x-1/2 -translate-y-1/2 cursor-ew-resize rounded-full transition"
         onMouseDown={(e) => handleMouseDown(e, "left")}
       />
-      <div className="h-full w-full" style={{ width: `${width}px` }}>
+      <div className="relative h-full w-full" style={{ width: `${width}px` }}>
         {children}
       </div>
       <button

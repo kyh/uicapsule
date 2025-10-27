@@ -220,7 +220,6 @@ export const initializeSandpack = async (
       externalResources: [
         "https://zmdrwswxugswzmcokvff.supabase.co/storage/v1/object/public/uicapsule/tailwind.js",
       ],
-      showLoadingScreen: true,
       showOpenInCodeSandbox: false,
     },
   );

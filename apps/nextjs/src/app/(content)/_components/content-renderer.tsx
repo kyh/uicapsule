@@ -16,6 +16,9 @@ type ContentRendererProps = {
 
 export const ContentRenderer = ({ contentComponent }: ContentRendererProps) => {
   const [iframe, setIframe] = useState<HTMLIFrameElement | null>(null);
+  const [loadingMessage, setLoadingMessage] = useState<string | null>(
+    "initializing",
+  );
   const isDesktop = useMediaQuery();
 
   const [width, setWidth] = useState(() =>
@@ -33,12 +36,32 @@ export const ContentRenderer = ({ contentComponent }: ContentRendererProps) => {
   useEffect(() => {
     if (!iframe) return;
     if (!isLocalContentComponent(contentComponent)) return;
-    initializeSandpack(iframe, contentComponent).catch((error) => {
-      console.error(error);
-    });
+    initializeSandpack(iframe, contentComponent)
+      .then((client) => {
+        client.listen((message) => {
+          if (message.type === "status") {
+            setLoadingMessage(message.status);
+          }
+          if (message.type === "done") {
+            setLoadingMessage(null);
+          }
+        });
+      })
+      .catch((error) => {
+        console.error(error);
+      });
   }, [iframe, contentComponent]);
 
-  const content = <iframe className="h-full w-full" ref={setIframe} />;
+  const content = (
+    <>
+      {loadingMessage && (
+        <div className="bg-background absolute flex h-full w-full items-center justify-center">
+          <p className="text-primary font-mono text-sm">{loadingMessage}</p>
+        </div>
+      )}
+      <iframe className="h-full w-full" ref={setIframe} />
+    </>
+  );
 
   return (
     <div className="flex h-full flex-col gap-2 pb-2">
@@ -47,7 +70,7 @@ export const ContentRenderer = ({ contentComponent }: ContentRendererProps) => {
           {content}
         </Resizable>
       ) : (
-        <div className="w-[calc(100dvw-(--spacing(3)))] flex-1 pb-2">
+        <div className="relative w-[calc(100dvw-(--spacing(3)))] flex-1 pb-2">
           {content}
         </div>
       )}
