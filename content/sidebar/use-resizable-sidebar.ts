@@ -11,7 +11,6 @@ export const useResizableSidebar = ({
   minWidth = 100,
   maxWidth = 300,
 }: UseResizableSidebarOptions = {}) => {
-  const sidebarRef = useRef<HTMLDivElement>(null);
   const startXRef = useRef<number>(0);
   const startWidthRef = useRef<number>(0);
   const isResizingRef = useRef<boolean>(false);
@@ -80,7 +79,6 @@ export const useResizableSidebar = ({
   }, [defaultWidth, minWidth, maxWidth]);
 
   return {
-    sidebarRef,
     handleMouseDown,
   };
 };

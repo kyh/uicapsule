@@ -142,13 +142,10 @@ const NavigationSection = ({
 );
 
 export const Sidebar = () => {
-  const { sidebarRef, handleMouseDown } = useResizableSidebar();
+  const { handleMouseDown } = useResizableSidebar();
 
   return (
-    <div
-      ref={sidebarRef}
-      className="sidebar-container relative border-r border-[#EEEFF1] bg-[#FBFBFB]"
-    >
+    <div className="sidebar-container relative border-r border-[#EEEFF1] bg-[#FBFBFB]">
       <div className="flex items-center justify-between gap-x-6 border-r border-b border-[#EEEFF1] bg-[#FBFBFB] pt-3 pr-[15px] pb-[11px] pl-3">
         <div className="flex min-w-0 flex-1 items-center">
           <img
@@ -158,18 +155,13 @@ export const Sidebar = () => {
             height="96"
             decoding="async"
             data-nimg="1"
-            className="size-6 flex-shrink-0"
+            className="size-6 shrink-0"
             src=""
           />
           <div className="text-secondary-foreground ml-2 min-w-0 truncate text-[16px] leading-5 font-semibold tracking-[-0.32px]">
             Basepoint
           </div>
-          <svg
-            className="ml-[5px] flex-shrink-0"
-            width="18"
-            height="18"
-            fill="none"
-          >
+          <svg className="ml-[5px] shrink-0" width="18" height="18" fill="none">
             <path
               d="M5.25 7.125 9 10.875l3.75-3.75"
               stroke="#5C5E63"
@@ -199,7 +191,7 @@ export const Sidebar = () => {
       <div className="relative row-span-2 block border-r border-[#EEEFF1] bg-[#FBFBFB] pt-[10px] pr-[7px] pl-2">
         <div className="flex min-w-0 flex-1 items-center justify-between rounded-sm bg-white py-1 pr-1 pl-1.5 shadow-[0px_0px_2px_0px_#E0E0E0,0px_2px_4px_-2px_rgba(24,39,75,0.02),0px_4px_4px_-2px_rgba(24,39,75,0.06)]">
           <div className="flex min-w-0 flex-1 items-center gap-x-1">
-            <svg width="14" height="14" fill="none" className="flex-shrink-0">
+            <svg width="14" height="14" fill="none" className="shrink-0">
               <rect
                 x="2"
                 y="1"
@@ -234,7 +226,7 @@ export const Sidebar = () => {
               Quick actions
             </span>
           </div>
-          <div className="flex min-w-[20px] flex-shrink-0 justify-center rounded-md border border-[#E6E7EA] p-[3px]">
+          <div className="flex min-w-[20px] shrink-0 justify-center rounded-md border border-[#E6E7EA] p-[3px]">
             <span className="text-center text-[11px] leading-3 font-normal tracking-[0.22px] text-[#75777C]">
               ⌘K
             </span>

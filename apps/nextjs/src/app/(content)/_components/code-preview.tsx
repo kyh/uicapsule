@@ -2,7 +2,7 @@
 
 import type { ReactNode } from "react";
 import type { BundledLanguage } from "shiki";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { hotkeysCoreFeature, syncDataLoaderFeature } from "@headless-tree/core";
 import { AssistiveTreeDescription, useTree } from "@headless-tree/react";
 import {
@@ -15,6 +15,7 @@ import {
 } from "@remixicon/react";
 import { CodeBlock, extensionToLanguageMap } from "@repo/ui/code-block";
 import { Tree, TreeItem, TreeItemLabel } from "@repo/ui/tree";
+import { cn } from "@repo/ui/utils";
 
 import type { LocalContentComponent } from "@repo/api/content/content-schema";
 import { getFiles } from "./sandpack";
@@ -133,6 +134,7 @@ type CodePreviewProps = {
 };
 
 export const CodePreview = ({ contentComponent }: CodePreviewProps) => {
+  const { handleMouseDown } = useResizableSidebar();
   const [selectedPath, setSelectedPath] = useState<string | null>(null);
 
   // Build all files for code lookup
@@ -182,31 +184,43 @@ export const CodePreview = ({ contentComponent }: CodePreviewProps) => {
   );
 
   return (
-    <div className="mt-4 grid h-[90dvh] grid-cols-[200px_1fr] border-t">
-      <Tree className="overflow-auto border-r" indent={INDENT} tree={tree}>
-        <AssistiveTreeDescription tree={tree} />
-        {tree.getItems().map((item) => {
-          const itemData = item.getItemData();
+    <div
+      className="mt-4 grid h-[90dvh] border-t"
+      style={{ gridTemplateColumns: "var(--sidebar-width, 280px) 1fr" }}
+    >
+      <div className="relative flex">
+        <Tree className="flex-1 overflow-auto" indent={INDENT} tree={tree}>
+          <AssistiveTreeDescription tree={tree} />
+          {tree.getItems().map((item) => {
+            const itemData = item.getItemData();
 
-          return (
-            <TreeItem key={item.getId()} item={item} className="pb-0!">
-              <TreeItemLabel
-                className="rounded-none py-1"
-                onClick={() => handleItemClick(itemData)}
-              >
-                <span className="flex items-center gap-2 truncate">
-                  {!item.isFolder() &&
-                    getFileIcon(
-                      itemData.path.split(".").pop()?.toLowerCase(),
-                      "text-muted-foreground pointer-events-none size-4",
-                    )}
-                  {item.getItemName()}
-                </span>
-              </TreeItemLabel>
-            </TreeItem>
-          );
-        })}
-      </Tree>
+            return (
+              <TreeItem key={item.getId()} item={item} className="pb-0!">
+                <TreeItemLabel
+                  className={cn(
+                    "rounded-none py-1",
+                    selectedPath === itemData.path && "text-primary",
+                  )}
+                  onClick={() => handleItemClick(itemData)}
+                >
+                  <span className="flex items-center gap-2 truncate">
+                    {!item.isFolder() &&
+                      getFileIcon(
+                        itemData.path.split(".").pop()?.toLowerCase(),
+                        "text-muted-foreground pointer-events-none size-4",
+                      )}
+                    {item.getItemName()}
+                  </span>
+                </TreeItemLabel>
+              </TreeItem>
+            );
+          })}
+        </Tree>
+        <div
+          className="hover:bg-primary/50 active:bg-primary/80 absolute top-0 -right-0.5 h-full w-1 cursor-col-resize bg-transparent transition-colors duration-200"
+          onMouseDown={handleMouseDown}
+        />
+      </div>
       <CodeBlock
         code={selectedCode}
         language={codeLanguage}
@@ -215,4 +229,87 @@ export const CodePreview = ({ contentComponent }: CodePreviewProps) => {
       />
     </div>
   );
+};
+
+type UseResizableSidebarOptions = {
+  defaultWidth?: number;
+  minWidth?: number;
+  maxWidth?: number;
+};
+
+export const useResizableSidebar = ({
+  defaultWidth = 240,
+  minWidth = 100,
+  maxWidth = 300,
+}: UseResizableSidebarOptions = {}) => {
+  const startXRef = useRef<number>(0);
+  const startWidthRef = useRef<number>(0);
+  const isResizingRef = useRef<boolean>(false);
+
+  const handleMouseDown = (e: React.MouseEvent) => {
+    e.preventDefault();
+    isResizingRef.current = true;
+    startXRef.current = e.clientX;
+    // Get current width from CSS variable
+    const currentWidth = parseInt(
+      getComputedStyle(document.documentElement)
+        .getPropertyValue("--sidebar-width")
+        .replace("px", "") || defaultWidth.toString(),
+    );
+    startWidthRef.current = currentWidth;
+  };
+
+  useEffect(() => {
+    // Set initial CSS variable value
+    document.documentElement.style.setProperty(
+      "--sidebar-width",
+      `${defaultWidth}px`,
+    );
+
+    const handleMouseMove = (e: MouseEvent) => {
+      if (!isResizingRef.current) return;
+
+      const deltaX = e.clientX - startXRef.current;
+      const newWidth = startWidthRef.current + deltaX;
+      const clampedWidth = Math.min(Math.max(newWidth, minWidth), maxWidth);
+
+      // Set CSS variable directly
+      document.documentElement.style.setProperty(
+        "--sidebar-width",
+        `${clampedWidth}px`,
+      );
+    };
+
+    const handleMouseUp = () => {
+      if (isResizingRef.current) {
+        isResizingRef.current = false;
+        document.body.style.cursor = "";
+        document.body.style.userSelect = "";
+      }
+    };
+
+    const handleMouseDownGlobal = () => {
+      if (isResizingRef.current) {
+        document.body.style.cursor = "col-resize";
+        document.body.style.userSelect = "none";
+      }
+    };
+
+    // Add event listeners
+    document.addEventListener("mousemove", handleMouseMove);
+    document.addEventListener("mouseup", handleMouseUp);
+    document.addEventListener("mousedown", handleMouseDownGlobal);
+
+    return () => {
+      document.removeEventListener("mousemove", handleMouseMove);
+      document.removeEventListener("mouseup", handleMouseUp);
+      document.removeEventListener("mousedown", handleMouseDownGlobal);
+      document.body.style.cursor = "";
+      document.body.style.userSelect = "";
+    };
+  }, [defaultWidth, minWidth, maxWidth]);
+
+  return {
+    handleMouseDown,
+  };
 };
