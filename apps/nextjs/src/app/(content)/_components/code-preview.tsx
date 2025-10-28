@@ -13,6 +13,7 @@ import {
   RiImageLine,
   RiReactjsLine,
 } from "@remixicon/react";
+import { Button } from "@repo/ui/button";
 import {
   CodeBlock,
   CodeBlockCopyButton,
@@ -189,10 +190,10 @@ export const CodePreview = ({ contentComponent }: CodePreviewProps) => {
 
   return (
     <div
-      className="mt-4 grid h-[90dvh] border-t"
+      className="mt-4 flex h-[90dvh] flex-col border-t md:grid"
       style={{ gridTemplateColumns: "var(--sidebar-width, 280px) 1fr" }}
     >
-      <div className="relative flex">
+      <div className="relative hidden md:flex">
         <Tree
           className="flex-1 overflow-auto border-r"
           indent={INDENT}
@@ -229,10 +230,23 @@ export const CodePreview = ({ contentComponent }: CodePreviewProps) => {
           onMouseDown={handleMouseDown}
         />
       </div>
+      <div className="flex overflow-x-auto border-b md:hidden">
+        {Object.keys(allFiles).map((path) => (
+          <Button
+            className={cn("shrink-0", selectedPath === path && "text-primary")}
+            variant="ghost"
+            size="sm"
+            key={path}
+            onClick={() => setSelectedPath(path)}
+          >
+            {path}
+          </Button>
+        ))}
+      </div>
       <CodeBlock
         code={selectedCode}
         language={codeLanguage}
-        containerClassName="overflow-auto [&>*]:h-full"
+        containerClassName="overflow-auto [&>*]:h-full flex-1"
         preClassName="py-3 px-2 min-h-full"
       />
       <CodeBlockCopyButton

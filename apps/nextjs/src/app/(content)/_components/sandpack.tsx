@@ -196,7 +196,7 @@ export const getFiles = (
           contentComponent.devDependencies ?? {},
         ),
         null,
-        4,
+        2,
       ),
     },
     "/tsconfig.json": { code: JSON.stringify(getTsConfigJson(), null, 2) },
