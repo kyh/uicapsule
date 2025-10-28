@@ -13,7 +13,12 @@ import {
   RiImageLine,
   RiReactjsLine,
 } from "@remixicon/react";
-import { CodeBlock, extensionToLanguageMap } from "@repo/ui/code-block";
+import {
+  CodeBlock,
+  CodeBlockCopyButton,
+  extensionToLanguageMap,
+} from "@repo/ui/code-block";
+import { toast } from "@repo/ui/toast";
 import { Tree, TreeItem, TreeItemLabel } from "@repo/ui/tree";
 import { cn } from "@repo/ui/utils";
 
@@ -135,9 +140,8 @@ type CodePreviewProps = {
 
 export const CodePreview = ({ contentComponent }: CodePreviewProps) => {
   const { handleMouseDown } = useResizableSidebar();
-  const [selectedPath, setSelectedPath] = useState<string | null>(null);
+  const [selectedPath, setSelectedPath] = useState("App.tsx");
 
-  // Build all files for code lookup
   const allFiles = useMemo(
     () => getFiles(contentComponent),
     [contentComponent],
@@ -189,7 +193,11 @@ export const CodePreview = ({ contentComponent }: CodePreviewProps) => {
       style={{ gridTemplateColumns: "var(--sidebar-width, 280px) 1fr" }}
     >
       <div className="relative flex">
-        <Tree className="flex-1 overflow-auto" indent={INDENT} tree={tree}>
+        <Tree
+          className="flex-1 overflow-auto border-r"
+          indent={INDENT}
+          tree={tree}
+        >
           <AssistiveTreeDescription tree={tree} />
           {tree.getItems().map((item) => {
             const itemData = item.getItemData();
@@ -225,7 +233,14 @@ export const CodePreview = ({ contentComponent }: CodePreviewProps) => {
         code={selectedCode}
         language={codeLanguage}
         containerClassName="overflow-auto [&>*]:h-full"
-        preClassName="p-4 min-h-full"
+        preClassName="py-3 px-2 min-h-full"
+      />
+      <CodeBlockCopyButton
+        code={selectedCode}
+        className="absolute top-2 right-3"
+        onCopy={() => {
+          toast.success("Copied to clipboard");
+        }}
       />
     </div>
   );

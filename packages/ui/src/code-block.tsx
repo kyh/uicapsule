@@ -4,6 +4,7 @@ import type { ComponentProps, HTMLAttributes } from "react";
 import type { BundledLanguage, BundledTheme, SpecialLanguage } from "shiki";
 import { createContext, useContext, useEffect, useRef, useState } from "react";
 import { CheckIcon, CopyIcon, DownloadIcon } from "lucide-react";
+import { AnimatePresence, motion } from "motion/react";
 import { bundledLanguages, createHighlighter } from "shiki";
 import { createJavaScriptRegexEngine } from "shiki/engine/javascript";
 
@@ -11,7 +12,7 @@ import { cn } from "./utils";
 
 const ShikiThemeContext = createContext<[BundledTheme, BundledTheme]>([
   "github-light" as BundledTheme,
-  "github-dark" as BundledTheme,
+  "github-dark-high-contrast" as BundledTheme,
 ]);
 
 const PRE_TAG_REGEX = /<pre(\s|>)/;
@@ -173,7 +174,6 @@ export const CodeBlock = ({
   code,
   language,
   className,
-  children,
   preClassName,
   containerClassName,
   ...rest
@@ -186,7 +186,7 @@ export const CodeBlock = ({
   useEffect(() => {
     mounted.current = true;
 
-    highlighterManager
+    void highlighterManager
       .highlightCode(code, language, [lightTheme, darkTheme], preClassName)
       .then(([light, dark]) => {
         if (mounted.current) {
@@ -610,7 +610,7 @@ export const CodeBlockCopyButton = ({
   const code = propCode ?? contextCode;
 
   const copyToClipboard = async () => {
-    if (typeof window === "undefined" || !navigator?.clipboard?.writeText) {
+    if (typeof window === "undefined") {
       onError?.(new Error("Clipboard API not available"));
       return;
     }
@@ -641,14 +641,25 @@ export const CodeBlockCopyButton = ({
   return (
     <button
       className={cn(
-        "text-muted-foreground hover:text-foreground cursor-pointer p-1 transition-all disabled:cursor-not-allowed disabled:opacity-50",
+        "text-muted-foreground hover:text-foreground grid cursor-pointer p-1 transition-all disabled:cursor-not-allowed disabled:opacity-50",
         className,
       )}
       onClick={copyToClipboard}
       type="button"
       {...props}
     >
-      {children ?? <Icon size={14} />}
+      <AnimatePresence mode="wait">
+        <motion.span
+          className="col-span-full row-span-full"
+          key={isCopied ? "check" : "copy"}
+          initial={{ scale: 0.7, opacity: 0 }}
+          animate={{ scale: 1, opacity: 1 }}
+          exit={{ scale: 0.7, opacity: 0 }}
+          transition={{ duration: 0.15, ease: "easeOut" }}
+        >
+          {children ?? <Icon size={14} />}
+        </motion.span>
+      </AnimatePresence>
     </button>
   );
 };
