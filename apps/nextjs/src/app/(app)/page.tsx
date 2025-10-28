@@ -49,7 +49,7 @@ const Page = ({ searchParams }: PageProps) => {
 export default Page;
 
 const Filters = async ({ searchParams }: PageProps) => {
-  "use cache: remote";
+  "use cache: private";
 
   const { elementFilter, styleFilter, categoryFilter } =
     await getFilters(searchParams);
