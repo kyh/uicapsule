@@ -26,6 +26,8 @@ const Page = ({ params }: Props) => {
 export default Page;
 
 const Content = async ({ params }: { params: Promise<{ slug: string }> }) => {
+  "use cache: private";
+
   const { slug } = await params;
   const contentComponent = await caller.content.bySlug({ slug });
 
