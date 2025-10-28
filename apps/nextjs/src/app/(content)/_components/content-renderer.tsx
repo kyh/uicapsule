@@ -1,7 +1,10 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import { isLocalContentComponent } from "@repo/api/content/content-schema";
+import {
+  isLocalContentComponent,
+  isRemoteContentComponent,
+} from "@repo/api/content/content-schema";
 import { Tabs, TabsList, TabsTrigger } from "@repo/ui/tabs";
 import { useMediaQuery } from "@repo/ui/utils";
 import { LaptopIcon, SmartphoneIcon } from "lucide-react";
@@ -59,7 +62,21 @@ export const ContentRenderer = ({ contentComponent }: ContentRendererProps) => {
           <p className="text-primary font-mono text-sm">{loadingMessage}...</p>
         </div>
       )}
-      <iframe className="h-full w-full" ref={setIframe} />
+      <iframe
+        className="h-full w-full"
+        ref={setIframe}
+        {...(isRemoteContentComponent(contentComponent) && {
+          title: contentComponent.name,
+          src: contentComponent.iframeUrl,
+          onLoad: () => {
+            setLoadingMessage(null);
+          },
+          onError: (error) => {
+            console.error(error);
+            setLoadingMessage("error loading iframe");
+          },
+        })}
+      />
     </>
   );
 

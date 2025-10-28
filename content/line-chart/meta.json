@@ -2,5 +2,9 @@
   "name": "Line Chart",
   "coverUrl": "https://zmdrwswxugswzmcokvff.supabase.co/storage/v1/object/public/uicapsule/line-chart/line-chart.mp4",
   "coverType": "video",
-  "tags": ["finance", "minimal", "effects"]
+  "tags": ["finance", "minimal", "effects"],
+  "defaultSize": "full",
+  "type": "remote",
+  "iframeUrl": "https://covid-19.kyh.io",
+  "sourceUrl": "https://github.com/kyh/kyh.io/tree/main/apps/covid-19"
 }

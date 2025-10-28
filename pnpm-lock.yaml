@@ -352,14 +352,7 @@ importers:
         specifier: '*'
         version: 19.2.0(react@19.2.0)
 
-  content/line-chart:
-    dependencies:
-      react:
-        specifier: '*'
-        version: 19.2.0
-      react-dom:
-        specifier: '*'
-        version: 19.2.0(react@19.2.0)
+  content/line-chart: {}
 
   content/radial-slider:
     dependencies:
