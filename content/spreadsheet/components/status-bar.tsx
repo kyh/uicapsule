@@ -40,7 +40,6 @@ export const StatusBarSection = React.forwardRef<
 StatusBarSection.displayName = "StatusBarSection";
 
 export const StatusBarMessage: React.FC = () => {
-  // Use individual selectors - combined selectors cause infinite loops due to new object refs
   const editingCell = useSpreadsheetStore((state) => state.editingCell);
   const selectedCells = useSpreadsheetStore((state) => state.selectedCells);
   const data = useSpreadsheetStore((state) => state.data);

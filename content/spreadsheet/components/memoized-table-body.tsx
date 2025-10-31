@@ -4,10 +4,13 @@ import React from "react";
 import { cn } from "@repo/ui/utils";
 import { flexRender } from "@tanstack/react-table";
 
-interface MemoizedTableBodyProps {
-  virtualItems: any[];
-  table: any;
-  data: any[];
+import type { SpreadsheetRow } from "../lib/spreadsheet-store";
+import type { Table } from "@tanstack/react-table";
+import type { VirtualItem } from "@tanstack/react-virtual";
+
+interface MemoizedTableBodyProps<TRow extends SpreadsheetRow> {
+  virtualItems: VirtualItem[];
+  table: Table<TRow>;
   selectedCells: Set<string>;
   getRowCells: (rowId: string) => string[];
   handleMouseDown: (
@@ -20,26 +23,23 @@ interface MemoizedTableBodyProps {
     rowId: string,
     columnId: string,
   ) => void;
-  deleteRow: (rowId: string) => void;
   showRowNumbers?: boolean;
   renderRowNumber?: (rowIndex: number) => React.ReactNode;
-  renderRowActions?: (row: any, rowIndex: number) => React.ReactNode;
+  renderRowActions?: (row: TRow, rowIndex: number) => React.ReactNode;
 }
 
-export const MemoizedTableBody = React.memo(
-  ({
-    virtualItems,
-    table,
-    data,
-    selectedCells,
-    getRowCells,
-    handleMouseDown,
-    handleMouseMove,
-    deleteRow,
-    showRowNumbers = true,
-    renderRowNumber,
-    renderRowActions,
-  }: MemoizedTableBodyProps) => (
+function MemoizedTableBodyInner<TRow extends SpreadsheetRow>({
+  virtualItems,
+  table,
+  selectedCells,
+  getRowCells,
+  handleMouseDown,
+  handleMouseMove,
+  showRowNumbers = true,
+  renderRowNumber,
+  renderRowActions,
+}: MemoizedTableBodyProps<TRow>) {
+  return (
     <>
       {virtualItems.map((virtualRow) => {
         const row = table.getRowModel().rows[virtualRow.index];
@@ -77,7 +77,7 @@ export const MemoizedTableBody = React.memo(
                   {renderRowNumber ? renderRowNumber(rowIndex) : rowIndex + 1}
                 </div>
               )}
-              {row.getVisibleCells().map((cell: any) => {
+              {row.getVisibleCells().map((cell) => {
                 const cellKey = `${rowId}:${cell.column.id}`;
                 const isCellSelected = selectedCells.has(cellKey);
 
@@ -113,15 +113,22 @@ export const MemoizedTableBody = React.memo(
         );
       })}
     </>
-  ),
+  );
+}
+
+export const MemoizedTableBody = React.memo(
+  MemoizedTableBodyInner,
   (prevProps, nextProps) => {
     return (
       prevProps.virtualItems === nextProps.virtualItems &&
-      prevProps.data === nextProps.data &&
       prevProps.selectedCells === nextProps.selectedCells &&
       prevProps.getRowCells === nextProps.getRowCells &&
       prevProps.handleMouseDown === nextProps.handleMouseDown &&
       prevProps.handleMouseMove === nextProps.handleMouseMove
     );
   },
-);
+) as <TRow extends SpreadsheetRow>(
+  props: MemoizedTableBodyProps<TRow>,
+) => React.ReactElement;
+
+MemoizedTableBodyInner.displayName = "MemoizedTableBodyInner";

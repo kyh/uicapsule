@@ -1,13 +1,13 @@
 import { create } from "zustand";
 
-type SpreadsheetRow = Record<string, any>;
+export type SpreadsheetRow = Record<string, any>;
 
-interface SpreadsheetStore {
+export interface SpreadsheetStore<
+  TRow extends SpreadsheetRow = SpreadsheetRow,
+> {
   // Data state
-  data: SpreadsheetRow[];
-  setData: (
-    data: SpreadsheetRow[] | ((prev: SpreadsheetRow[]) => SpreadsheetRow[]),
-  ) => void;
+  data: TRow[];
+  setData: (data: TRow[] | ((prev: TRow[]) => TRow[])) => void;
 
   // Selection state
   selectedCells: Set<string>;
@@ -43,15 +43,15 @@ interface SpreadsheetStore {
   clearProcessedToolCalls: () => void;
 
   // Actions
-  updateData: (rowId: string, columnId: string, value: any) => void;
-  addRow: (onCreateRow?: (rowIndex: number) => SpreadsheetRow) => void;
+  updateData: (rowId: string, columnId: string, value: unknown) => void;
+  addRow: (onCreateRow?: (rowIndex: number) => TRow) => void;
   deleteRow: (rowId: string, onDeleteRow?: (rowId: string) => void) => void;
   clearSelectedCells: (
     onClearCellValue?: (options: {
-      row: SpreadsheetRow;
+      row: TRow;
       columnId: string;
-      value: any;
-    }) => any,
+      value: unknown;
+    }) => unknown,
   ) => void;
 }
 
@@ -154,5 +154,3 @@ export const useSpreadsheetStore = create<SpreadsheetStore>((set, get) => ({
     });
   },
 }));
-
-export type { SpreadsheetRow };

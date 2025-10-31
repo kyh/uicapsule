@@ -35,24 +35,13 @@ export const EditableCell = <TData extends SpreadsheetRow = SpreadsheetRow>({
   column,
   table,
 }: EditableCellProps<TData>) => {
-  const currentValue = getValue();
-  const inputRef = useRef<HTMLInputElement>(null);
   const editingCell = useSpreadsheetStore((state) => state.editingCell);
   const setEditingCell = useSpreadsheetStore((state) => state.setEditingCell);
   const updateData = useSpreadsheetStore((state) => state.updateData);
+  const value = getValue() as string;
   const isEditing =
     editingCell?.rowId === row.original.id &&
     editingCell?.columnId === column.id;
-
-  // Focus and select when editing starts
-  useEffect(() => {
-    if (isEditing) {
-      requestAnimationFrame(() => {
-        inputRef.current?.focus();
-        inputRef.current?.select();
-      });
-    }
-  }, [isEditing]);
 
   const onChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     updateData(row.original.id, column.id, e.target.value);
@@ -72,25 +61,20 @@ export const EditableCell = <TData extends SpreadsheetRow = SpreadsheetRow>({
   if (isEditing) {
     return (
       <Input
-        ref={inputRef}
-        value={String(currentValue ?? "")}
+        value={value}
         onChange={onChange}
         onBlur={onBlur}
         onKeyDown={onKeyDown}
         className="h-8 w-full rounded-none border-0 bg-transparent p-1 text-sm focus-visible:ring-blue-600/20 dark:focus-visible:ring-blue-400/30"
-        style={{ minWidth: "120px" }}
+        autoFocus
       />
     );
   }
 
-  const displayValue = String(currentValue ?? "");
   return (
     <div className="h-8 w-full p-1">
-      <span
-        className="text-foreground block truncate text-sm"
-        title={displayValue}
-      >
-        {displayValue}
+      <span className="text-foreground block truncate text-sm" title={value}>
+        {value}
       </span>
     </div>
   );

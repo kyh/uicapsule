@@ -1,5 +1,21 @@
 import type { UIMessage } from "@ai-sdk/react";
 
+export type UpdateCellTool = {
+  updateCell: {
+    parameters: {
+      rowId: string;
+      columnId: string;
+      value: string;
+    };
+    result: {
+      success: boolean;
+      rowId: string;
+      columnId: string;
+      value: string;
+    };
+  };
+};
+
 // Generate fake enriched data for a cell based on its column
 const generateFakeValue = (
   columnId: string,
@@ -71,13 +87,13 @@ const generateFakeValue = (
 export const generateFakeToolCalls = (
   selectedCells: Set<string>,
   data?: Record<string, unknown>[],
-): UIMessage => {
+): UIMessage<UpdateCellTool> => {
   if (selectedCells.size === 0) {
     return {
       id: `assistant-${Date.now()}`,
-      role: "assistant",
+      role: "assistant" as const,
       parts: [],
-    };
+    } satisfies UIMessage<UpdateCellTool>;
   }
 
   // Group selected cells by row
@@ -117,22 +133,8 @@ export const generateFakeToolCalls = (
 
   // Create tool parts for each cell update
   // We'll create them with input-available state first, then they'll transition to output-available
-  const toolParts: Array<{
-    type: `tool-updateCell`;
-    toolCallId: string;
-    state: "input-available" | "output-available";
-    input: {
-      rowId: string;
-      columnId: string;
-      value: string;
-    };
-    output?: {
-      success: boolean;
-      rowId: string;
-      columnId: string;
-      value: string;
-    };
-  }> = [];
+  type ToolPart = UIMessage<UpdateCellTool>["parts"][number];
+  const toolParts: ToolPart[] = [];
 
   const timestamp = Date.now();
   updatesByRow.forEach((updates, rowId) => {
@@ -141,9 +143,9 @@ export const generateFakeToolCalls = (
 
       // First add input-available state (tool call started)
       toolParts.push({
-        type: `tool-updateCell` as const,
+        type: "tool-updateCell",
         toolCallId,
-        state: "input-available" as const,
+        state: "input-available",
         input: {
           rowId,
           columnId: update.columnId,
@@ -153,9 +155,9 @@ export const generateFakeToolCalls = (
 
       // Then add output-available state (tool call completed)
       toolParts.push({
-        type: `tool-updateCell` as const,
+        type: "tool-updateCell",
         toolCallId,
-        state: "output-available" as const,
+        state: "output-available",
         input: {
           rowId,
           columnId: update.columnId,
@@ -172,10 +174,10 @@ export const generateFakeToolCalls = (
   });
 
   // Create assistant message with tool parts
-  const assistantMessage: UIMessage = {
+  const assistantMessage: UIMessage<UpdateCellTool> = {
     id: `assistant-${Date.now()}`,
     role: "assistant",
-    parts: toolParts as any, // Type assertion needed as tool parts structure matches ToolUIPart but types don't align perfectly
+    parts: toolParts,
   };
 
   return assistantMessage;

@@ -20,6 +20,8 @@ import {
   Upload,
 } from "lucide-react";
 
+import type { UpdateCellTool } from "./lib/fake-generator";
+import type { UIMessage } from "@ai-sdk/react";
 import { EditableCell } from "./components/editable-cell";
 import { Spreadsheet } from "./components/spreadsheet";
 import {
@@ -98,6 +100,69 @@ const RowActions = ({ row }: { row: Person }) => {
   );
 };
 
+const transport = new StaticChatTransport({
+  async resolveMessages({
+    messages,
+  }: {
+    messages: UIMessage<UpdateCellTool>[];
+  }) {
+    // Get current values directly from zustand store at call time
+    const store = useSpreadsheetStore.getState();
+    const currentSelectedCells = store.selectedCells;
+    const currentData = store.data;
+    const currentSetData = store.setData;
+
+    // Set all selected cells to "Generating..." immediately when enrichment starts
+    const cellsToGenerate = new Set<string>();
+    currentSelectedCells.forEach((cellKey) => {
+      const [rowId, columnId] = cellKey.split(":");
+      if (rowId && columnId && columnId !== "linkedinUrl") {
+        cellsToGenerate.add(cellKey);
+      }
+    });
+
+    // Batch all "Generating..." updates in a single state update
+    if (cellsToGenerate.size > 0) {
+      const rowUpdatesMap = new Map<string, Set<string>>();
+      cellsToGenerate.forEach((cellKey) => {
+        const [rowId, columnId] = cellKey.split(":");
+        if (rowId && columnId) {
+          if (!rowUpdatesMap.has(rowId)) {
+            rowUpdatesMap.set(rowId, new Set());
+          }
+          rowUpdatesMap.get(rowId)!.add(columnId);
+        }
+      });
+
+      currentSetData((oldData) => {
+        if (!oldData || oldData.length === 0) {
+          return oldData;
+        }
+
+        return oldData.map((row) => {
+          const columnsToUpdate = rowUpdatesMap.get(row.id);
+          if (!columnsToUpdate || columnsToUpdate.size === 0) {
+            return row;
+          }
+
+          const updates: Record<string, string> = {};
+          columnsToUpdate.forEach((columnId) => {
+            updates[columnId] = "Generating...";
+          });
+
+          return { ...row, ...updates };
+        });
+      });
+    }
+
+    return [
+      ...messages,
+      generateFakeToolCalls(currentSelectedCells, currentData),
+    ];
+  },
+  chunkDelayMs: 200,
+});
+
 const ToolbarButtons = () => {
   const addRow = useCallback(() => {
     useSpreadsheetStore.getState().addRow((index) => ({
@@ -110,70 +175,6 @@ const ToolbarButtons = () => {
       role: "",
     }));
   }, []);
-
-  // Memoize transport to avoid recreating on every render
-  const transport = useMemo(
-    () =>
-      new StaticChatTransport({
-        async resolveMessages({ messages }: { messages: any[] }) {
-          // Get current values directly from zustand store at call time
-          const store = useSpreadsheetStore.getState();
-          const currentSelectedCells = store.selectedCells;
-          const currentData = store.data;
-          const currentSetData = store.setData;
-
-          // Set all selected cells to "Generating..." immediately when enrichment starts
-          const cellsToGenerate = new Set<string>();
-          currentSelectedCells.forEach((cellKey) => {
-            const [rowId, columnId] = cellKey.split(":");
-            if (rowId && columnId && columnId !== "linkedinUrl") {
-              cellsToGenerate.add(cellKey);
-            }
-          });
-
-          // Batch all "Generating..." updates in a single state update
-          if (cellsToGenerate.size > 0) {
-            const rowUpdatesMap = new Map<string, Set<string>>();
-            cellsToGenerate.forEach((cellKey) => {
-              const [rowId, columnId] = cellKey.split(":");
-              if (rowId && columnId) {
-                if (!rowUpdatesMap.has(rowId)) {
-                  rowUpdatesMap.set(rowId, new Set());
-                }
-                rowUpdatesMap.get(rowId)!.add(columnId);
-              }
-            });
-
-            currentSetData((oldData) => {
-              if (!oldData || oldData.length === 0) {
-                return oldData;
-              }
-
-              return oldData.map((row) => {
-                const columnsToUpdate = rowUpdatesMap.get(row.id);
-                if (!columnsToUpdate || columnsToUpdate.size === 0) {
-                  return row;
-                }
-
-                const updates: Record<string, string> = {};
-                columnsToUpdate.forEach((columnId) => {
-                  updates[columnId] = "Generating...";
-                });
-
-                return { ...row, ...updates };
-              });
-            });
-          }
-
-          return [
-            ...messages,
-            generateFakeToolCalls(currentSelectedCells, currentData),
-          ];
-        },
-        chunkDelayMs: 200,
-      }),
-    [],
-  );
 
   const { sendMessage } = useChat({
     transport,
