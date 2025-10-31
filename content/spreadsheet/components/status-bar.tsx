@@ -3,20 +3,18 @@
 import React from "react";
 import { cn } from "@repo/ui/utils";
 
-import { useSpreadsheet } from "./spreadsheet-provider";
+import { useSpreadsheetStore } from "../lib/spreadsheet-store";
 
 export interface StatusBarProps extends React.HTMLAttributes<HTMLDivElement> {
   children?: React.ReactNode;
 }
-
-const COLUMN_COUNT = 6; // LinkedIn URL, First Name, Last Name, Email, Company, Role
 
 export const StatusBar = React.forwardRef<HTMLDivElement, StatusBarProps>(
   ({ children, className, ...props }, ref) => (
     <div
       ref={ref}
       className={cn(
-        "text-muted-foreground bg-background sticky bottom-0 flex items-center justify-between border-t p-2 text-xs",
+        "text-muted-foreground bg-background dark:bg-background/95 sticky bottom-0 flex items-center justify-between border-t p-2 text-xs",
         className,
       )}
       {...props}
@@ -42,7 +40,10 @@ export const StatusBarSection = React.forwardRef<
 StatusBarSection.displayName = "StatusBarSection";
 
 export const StatusBarMessage: React.FC = () => {
-  const { editingCell, selectedCells, data } = useSpreadsheet();
+  // Use individual selectors - combined selectors cause infinite loops due to new object refs
+  const editingCell = useSpreadsheetStore((state) => state.editingCell);
+  const selectedCells = useSpreadsheetStore((state) => state.selectedCells);
+  const data = useSpreadsheetStore((state) => state.data);
   const selectedCellsCount = selectedCells.size;
 
   if (editingCell) {
@@ -69,12 +70,12 @@ export const StatusBarMessage: React.FC = () => {
 };
 
 export const StatusBarSummary: React.FC = () => {
-  const { data } = useSpreadsheet();
+  const data = useSpreadsheetStore((state) => state.data);
   const rowCount = data.length;
 
   return (
     <span>
-      {rowCount} rows × {COLUMN_COUNT} columns
+      {rowCount} rows × {data[0]?.length} columns
     </span>
   );
 };

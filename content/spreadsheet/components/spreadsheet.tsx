@@ -1,34 +1,100 @@
 "use client";
 
-import React, { useCallback, useEffect, useMemo } from "react";
+import React, { useCallback, useEffect, useMemo, useRef } from "react";
 import { cn } from "@repo/ui/utils";
-import { flexRender } from "@tanstack/react-table";
+import {
+  flexRender,
+  getCoreRowModel,
+  useReactTable,
+} from "@tanstack/react-table";
 import { useVirtualizer } from "@tanstack/react-virtual";
 
-import { getColumnSizeVars, getRowCells } from "../lib/spreadsheet-utils";
+import type { ColumnInfo } from "../lib/spreadsheet-utils";
+import type { ColumnDef } from "@tanstack/react-table";
+import { useSpreadsheetStore } from "../lib/spreadsheet-store";
+import {
+  createNavigationMap,
+  getColumnSizeVars,
+  getRowCells,
+} from "../lib/spreadsheet-utils";
 import { useSpreadsheetHandlers } from "../lib/use-spreadsheet-handlers";
 import { MemoizedTableBody } from "./memoized-table-body";
 import { ResizeHandle } from "./resize-handle";
-import { useSpreadsheet } from "./spreadsheet-provider";
 
-interface SpreadsheetProps extends React.HTMLAttributes<HTMLDivElement> {}
+interface SpreadsheetProps extends React.HTMLAttributes<HTMLDivElement> {
+  columns: ColumnDef<any, unknown>[];
+  showRowNumbers?: boolean;
+  renderRowNumber?: (rowIndex: number) => React.ReactNode;
+  renderRowActions?: (row: any, rowIndex: number) => React.ReactNode;
+}
 
 export const Spreadsheet = React.forwardRef<HTMLDivElement, SpreadsheetProps>(
-  ({ className, style, ...props }, ref) => {
-    const {
+  (
+    {
+      className,
+      style,
+      columns,
+      showRowNumbers = true,
+      renderRowNumber,
+      renderRowActions,
+      ...props
+    },
+    ref,
+  ) => {
+    // Use individual selectors - combined selectors cause infinite loops due to new object refs
+    const data = useSpreadsheetStore((state) => state.data);
+    const selectedCells = useSpreadsheetStore((state) => state.selectedCells);
+    const isDragging = useSpreadsheetStore((state) => state.isDragging);
+    const columnWidths = useSpreadsheetStore((state) => state.columnWidths);
+    const setColumnWidths = useSpreadsheetStore(
+      (state) => state.setColumnWidths,
+    );
+    const deleteRow = useSpreadsheetStore((state) => state.deleteRow);
+    const dragLineVisible = useSpreadsheetStore(
+      (state) => state.dragLineVisible,
+    );
+    const setDragLineVisible = useSpreadsheetStore(
+      (state) => state.setDragLineVisible,
+    );
+    const updateData = useSpreadsheetStore((state) => state.updateData);
+
+    // Create refs locally - no need to store in Zustand
+    const tableContainerRef = useRef<HTMLDivElement>(null);
+    const dragLineRef = useRef<HTMLDivElement>(null);
+
+    // Create table
+    const table = useReactTable({
       data,
-      selectedCells,
-      isDragging,
-      columnWidths,
-      setColumnWidths,
-      deleteRow,
-      tableContainerRef,
-      dragLineRef,
-      dragLineVisible,
-      setDragLineVisible,
-      table,
-      columnMeta,
-    } = useSpreadsheet();
+      columns,
+      getCoreRowModel: getCoreRowModel(),
+      meta: {
+        updateData: (rowIndex: number, columnId: string, value: any) => {
+          const row = data[rowIndex];
+          if (row) {
+            updateData(row.id, columnId, value);
+          }
+        },
+      },
+    });
+
+    // Compute column meta locally - no need to store in Zustand
+    const columnMeta = useMemo<ColumnInfo[]>(() => {
+      return table.getAllLeafColumns().map((column) => ({
+        id: column.id,
+        accessorKey:
+          typeof (column.columnDef as any).accessorKey === "string"
+            ? (column.columnDef as any).accessorKey
+            : column.id,
+      }));
+    }, [table]);
+
+    // Compute navigation map locally - no need to store in Zustand
+    const navigationMap = useMemo(() => {
+      if (columnMeta.length > 0) {
+        return createNavigationMap(data, columnMeta);
+      }
+      return new Map();
+    }, [data, columnMeta]);
 
     const columnSizeVars = useMemo(
       () => getColumnSizeVars(columnWidths),
@@ -38,6 +104,7 @@ export const Spreadsheet = React.forwardRef<HTMLDivElement, SpreadsheetProps>(
     const { handleMouseDown, handleMouseMove, handleMouseUp, handleKeyDown } =
       useSpreadsheetHandlers({
         columns: columnMeta,
+        navigationMap,
       });
 
     const handleColumnResize = useCallback(
@@ -57,22 +124,17 @@ export const Spreadsheet = React.forwardRef<HTMLDivElement, SpreadsheetProps>(
       [columnMeta],
     );
 
+    // Mouseup should be global to handle drag ending outside the spreadsheet
     useEffect(() => {
-      const handleGlobalKeyDown = (e: KeyboardEvent) => {
-        handleKeyDown(e as any);
-      };
-
       const handleGlobalMouseUp = () => {
         handleMouseUp();
       };
 
-      document.addEventListener("keydown", handleGlobalKeyDown);
       document.addEventListener("mouseup", handleGlobalMouseUp);
       return () => {
-        document.removeEventListener("keydown", handleGlobalKeyDown);
         document.removeEventListener("mouseup", handleGlobalMouseUp);
       };
-    }, [handleKeyDown, handleMouseUp]);
+    }, [handleMouseUp]);
 
     const rowVirtualizer = useVirtualizer({
       count: table.getRowModel().rows.length,
@@ -84,8 +146,14 @@ export const Spreadsheet = React.forwardRef<HTMLDivElement, SpreadsheetProps>(
     return (
       <div
         ref={ref}
-        className={cn("flex flex-col", isDragging && "select-none", className)}
+        className={cn(
+          "relative flex flex-col",
+          isDragging && "select-none",
+          className,
+        )}
         style={{ ...columnSizeVars, ...style }}
+        tabIndex={0}
+        onKeyDown={handleKeyDown}
         {...props}
       >
         <div
@@ -96,16 +164,18 @@ export const Spreadsheet = React.forwardRef<HTMLDivElement, SpreadsheetProps>(
           )}
         />
 
-        <div className="bg-muted/50 border-border sticky top-0 z-1 flex border-y">
-          <div className="border-border bg-muted text-muted-foreground flex h-10 w-12 items-center justify-center border-r text-xs font-medium">
-            #
-          </div>
+        <div className="bg-muted border-border sticky top-0 z-1 flex border-y">
+          {showRowNumbers && (
+            <div className="border-border bg-muted text-muted-foreground flex h-10 w-12 shrink-0 items-center justify-center border-r text-xs font-medium">
+              #
+            </div>
+          )}
           {table.getHeaderGroups()[0].headers.map((header) => (
             <div
               key={header.id}
               data-column-id={header.column.id}
               data-column-header
-              className="border-border bg-muted text-muted-foreground hover:bg-muted/80 relative flex h-10 cursor-default items-center border-r pl-1 text-left text-xs font-medium transition-colors"
+              className="border-border bg-muted text-muted-foreground relative flex h-10 shrink-0 cursor-default items-center border-r pl-1 text-left text-xs font-medium transition-colors"
               style={{
                 width: `calc(var(--col-${header.column.id}-size) * 1px)`,
               }}
@@ -128,9 +198,12 @@ export const Spreadsheet = React.forwardRef<HTMLDivElement, SpreadsheetProps>(
               />
             </div>
           ))}
+          {showRowNumbers && (
+            <div className="border-border bg-muted text-muted-foreground flex h-10 w-12 shrink-0 items-center justify-center border-r text-xs font-medium" />
+          )}
         </div>
 
-        <div ref={tableContainerRef} className="flex-1 overflow-auto">
+        <div ref={tableContainerRef} className="flex-1">
           <div
             style={{
               height: `${rowVirtualizer.getTotalSize()}px`,
@@ -146,6 +219,9 @@ export const Spreadsheet = React.forwardRef<HTMLDivElement, SpreadsheetProps>(
               handleMouseDown={handleMouseDown}
               handleMouseMove={handleMouseMove}
               deleteRow={deleteRow}
+              showRowNumbers={showRowNumbers}
+              renderRowNumber={renderRowNumber}
+              renderRowActions={renderRowActions}
             />
           </div>
         </div>

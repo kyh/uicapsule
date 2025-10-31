@@ -1,53 +1,69 @@
 "use client";
 
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useRef } from "react";
 import { Input } from "@repo/ui/input";
 
-import { useSpreadsheet } from "./spreadsheet-provider";
+import type {
+  Cell,
+  Column,
+  Row,
+  Table,
+  TableMeta,
+} from "@tanstack/react-table";
+import { useSpreadsheetStore } from "../lib/spreadsheet-store";
 
-interface EditableCellProps {
-  getValue: () => any;
-  row: any;
-  column: any;
-  table: any;
+interface SpreadsheetRow {
+  id: string;
+  [key: string]: unknown;
 }
 
-export const EditableCell = ({
+interface SpreadsheetTableMeta<TData extends SpreadsheetRow>
+  extends TableMeta<TData> {
+  updateData?: (rowIndex: number, columnId: string, value: unknown) => void;
+}
+
+interface EditableCellProps<TData extends SpreadsheetRow = SpreadsheetRow> {
+  getValue: () => unknown;
+  row: Row<TData>;
+  column: Column<TData, unknown>;
+  table: Table<TData>;
+}
+
+export const EditableCell = <TData extends SpreadsheetRow = SpreadsheetRow>({
   getValue,
   row,
   column,
   table,
-}: EditableCellProps) => {
-  const initialValue = getValue();
-  const [value, setValue] = useState(initialValue);
+}: EditableCellProps<TData>) => {
+  const currentValue = getValue();
   const inputRef = useRef<HTMLInputElement>(null);
-  const { editingCell, setEditingCell } = useSpreadsheet();
+  const editingCell = useSpreadsheetStore((state) => state.editingCell);
+  const setEditingCell = useSpreadsheetStore((state) => state.setEditingCell);
+  const updateData = useSpreadsheetStore((state) => state.updateData);
   const isEditing =
     editingCell?.rowId === row.original.id &&
     editingCell?.columnId === column.id;
 
+  // Focus and select when editing starts
   useEffect(() => {
-    setValue(initialValue);
-  }, [initialValue]);
-
-  useEffect(() => {
-    if (isEditing && inputRef.current) {
-      inputRef.current.focus();
-      inputRef.current.select();
+    if (isEditing) {
+      requestAnimationFrame(() => {
+        inputRef.current?.focus();
+        inputRef.current?.select();
+      });
     }
   }, [isEditing]);
 
+  const onChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    updateData(row.original.id, column.id, e.target.value);
+  };
+
   const onBlur = () => {
-    table.options.meta?.updateData(row.index, column.id, value);
     setEditingCell(null);
   };
 
   const onKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === "Enter") {
-      table.options.meta?.updateData(row.index, column.id, value);
-      setEditingCell(null);
-    } else if (e.key === "Escape") {
-      setValue(initialValue);
+    if (e.key === "Enter" || e.key === "Escape") {
       setEditingCell(null);
     }
     e.stopPropagation();
@@ -57,20 +73,24 @@ export const EditableCell = ({
     return (
       <Input
         ref={inputRef}
-        value={value}
-        onChange={(e) => setValue(e.target.value)}
+        value={String(currentValue ?? "")}
+        onChange={onChange}
         onBlur={onBlur}
         onKeyDown={onKeyDown}
-        className="h-8 w-full rounded-none border-0 bg-transparent p-1 text-sm focus-visible:ring-blue-600/20"
+        className="h-8 w-full rounded-none border-0 bg-transparent p-1 text-sm focus-visible:ring-blue-600/20 dark:focus-visible:ring-blue-400/30"
         style={{ minWidth: "120px" }}
       />
     );
   }
 
+  const displayValue = String(currentValue ?? "");
   return (
     <div className="h-8 w-full p-1">
-      <span className="text-foreground block truncate text-sm" title={value}>
-        {value}
+      <span
+        className="text-foreground block truncate text-sm"
+        title={displayValue}
+      >
+        {displayValue}
       </span>
     </div>
   );

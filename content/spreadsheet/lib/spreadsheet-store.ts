@@ -1,0 +1,158 @@
+import { create } from "zustand";
+
+type SpreadsheetRow = Record<string, any>;
+
+interface SpreadsheetStore {
+  // Data state
+  data: SpreadsheetRow[];
+  setData: (
+    data: SpreadsheetRow[] | ((prev: SpreadsheetRow[]) => SpreadsheetRow[]),
+  ) => void;
+
+  // Selection state
+  selectedCells: Set<string>;
+  setSelectedCells: (
+    cells: Set<string> | ((prev: Set<string>) => Set<string>),
+  ) => void;
+
+  // Editing state
+  editingCell: { rowId: string; columnId: string } | null;
+  setEditingCell: (cell: { rowId: string; columnId: string } | null) => void;
+
+  // Drag state
+  isDragging: boolean;
+  setIsDragging: (dragging: boolean) => void;
+  dragStartCell: { rowId: string; columnId: string } | null;
+  setDragStartCell: (cell: { rowId: string; columnId: string } | null) => void;
+
+  // Column widths
+  columnWidths: Record<string, number>;
+  setColumnWidths: (
+    widths:
+      | Record<string, number>
+      | ((prev: Record<string, number>) => Record<string, number>),
+  ) => void;
+
+  // Drag line
+  dragLineVisible: boolean;
+  setDragLineVisible: (visible: boolean) => void;
+
+  // Tool call tracking
+  processedToolCalls: Set<string>;
+  addProcessedToolCall: (toolCallId: string) => void;
+  clearProcessedToolCalls: () => void;
+
+  // Actions
+  updateData: (rowId: string, columnId: string, value: any) => void;
+  addRow: (onCreateRow?: (rowIndex: number) => SpreadsheetRow) => void;
+  deleteRow: (rowId: string, onDeleteRow?: (rowId: string) => void) => void;
+  clearSelectedCells: (
+    onClearCellValue?: (options: {
+      row: SpreadsheetRow;
+      columnId: string;
+      value: any;
+    }) => any,
+  ) => void;
+}
+
+export const useSpreadsheetStore = create<SpreadsheetStore>((set, get) => ({
+  // Initial state
+  data: [],
+  selectedCells: new Set(),
+  editingCell: null,
+  isDragging: false,
+  dragStartCell: null,
+  columnWidths: {},
+  dragLineVisible: false,
+  processedToolCalls: new Set(),
+
+  // Setters
+  setData: (data) => {
+    set((state) => ({
+      data: typeof data === "function" ? data(state.data) : data,
+    }));
+  },
+
+  setSelectedCells: (cells) => {
+    set((state) => ({
+      selectedCells:
+        typeof cells === "function" ? cells(state.selectedCells) : cells,
+    }));
+  },
+
+  setEditingCell: (cell) => set({ editingCell: cell }),
+  setIsDragging: (dragging) => set({ isDragging: dragging }),
+  setDragStartCell: (cell) => set({ dragStartCell: cell }),
+
+  setColumnWidths: (widths) => {
+    set((state) => ({
+      columnWidths:
+        typeof widths === "function" ? widths(state.columnWidths) : widths,
+    }));
+  },
+
+  setDragLineVisible: (visible) => set({ dragLineVisible: visible }),
+  addProcessedToolCall: (toolCallId) => {
+    set((state) => ({
+      processedToolCalls: new Set(state.processedToolCalls).add(toolCallId),
+    }));
+  },
+  clearProcessedToolCalls: () => set({ processedToolCalls: new Set() }),
+
+  // Actions
+  updateData: (rowId, columnId, value) => {
+    set((state) => ({
+      data: state.data.map((row) => {
+        if (row.id === rowId) {
+          return { ...row, [columnId]: value };
+        }
+        return row;
+      }),
+    }));
+  },
+
+  addRow: (onCreateRow) => {
+    set((state) => {
+      const nextRow =
+        onCreateRow?.(state.data.length) ?? ({} as SpreadsheetRow);
+      return { data: [...state.data, nextRow] };
+    });
+  },
+
+  deleteRow: (rowId, onDeleteRow) => {
+    set((state) => {
+      onDeleteRow?.(rowId);
+      return { data: state.data.filter((row) => row.id !== rowId) };
+    });
+  },
+
+  clearSelectedCells: (onClearCellValue) => {
+    const state = get();
+    if (state.selectedCells.size === 0) return;
+
+    set((state) => {
+      const newData = [...state.data];
+      state.selectedCells.forEach((cellKey) => {
+        const [rowId, columnId] = cellKey.split(":");
+        const rowIndex = newData.findIndex((row) => row.id === rowId);
+
+        if (rowIndex >= 0 && rowIndex < newData.length) {
+          const currentRow = newData[rowIndex];
+          newData[rowIndex] = {
+            ...currentRow,
+            [columnId]: onClearCellValue
+              ? onClearCellValue({
+                  row: currentRow,
+                  columnId,
+                  value: currentRow?.[columnId],
+                })
+              : undefined,
+          };
+        }
+      });
+      return { data: newData };
+    });
+  },
+}));
+
+export type { SpreadsheetRow };

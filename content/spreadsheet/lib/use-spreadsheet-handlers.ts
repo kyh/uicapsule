@@ -1,11 +1,10 @@
 import { useCallback } from "react";
 
-import type { CellPosition, ColumnInfo } from "./spreadsheet-utils";
-import { useSpreadsheet } from "../components/spreadsheet-provider";
+import type { ColumnInfo } from "./spreadsheet-utils";
+import { useSpreadsheetStore } from "./spreadsheet-store";
 import {
   getColumnCells,
   getFirstSelectedCell,
-  getNextCellPosition,
   getNextCellPositionFromMap,
   getRangeCells,
   getRowCells,
@@ -18,24 +17,30 @@ import {
 
 interface UseSpreadsheetHandlersProps {
   columns: ColumnInfo[];
+  navigationMap: Map<string, any>;
 }
 
 export const useSpreadsheetHandlers = ({
   columns,
+  navigationMap,
 }: UseSpreadsheetHandlersProps) => {
-  const {
-    data,
-    selectedCells,
-    setSelectedCells,
-    editingCell,
-    setEditingCell,
-    isDragging,
-    setIsDragging,
-    dragStartCell,
-    setDragStartCell,
-    clearSelectedCells,
-    navigationMap,
-  } = useSpreadsheet();
+  const data = useSpreadsheetStore((state) => state.data);
+  const selectedCells = useSpreadsheetStore((state) => state.selectedCells);
+  const setSelectedCells = useSpreadsheetStore(
+    (state) => state.setSelectedCells,
+  );
+  const editingCell = useSpreadsheetStore((state) => state.editingCell);
+  const setEditingCell = useSpreadsheetStore((state) => state.setEditingCell);
+  const isDragging = useSpreadsheetStore((state) => state.isDragging);
+  const setIsDragging = useSpreadsheetStore((state) => state.setIsDragging);
+  const dragStartCell = useSpreadsheetStore((state) => state.dragStartCell);
+  const setDragStartCell = useSpreadsheetStore(
+    (state) => state.setDragStartCell,
+  );
+  const clearSelectedCells = useSpreadsheetStore(
+    (state) => state.clearSelectedCells,
+  );
+  // Note: navigationMap is now passed as a prop, not from store
   // Mouse down handler for all interactions
   const handleMouseDown = useCallback(
     (e: React.MouseEvent, rowId: string, columnId: string) => {
