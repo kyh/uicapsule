@@ -37,8 +37,8 @@ export const useSpreadsheetHandlers = ({
   const setDragStartCell = useSpreadsheetStore(
     (state) => state.setDragStartCell,
   );
-  const clearSelectedCells = useSpreadsheetStore(
-    (state) => state.clearSelectedCells,
+  const updateSelectedCellsData = useSpreadsheetStore(
+    (state) => state.updateSelectedCellsData,
   );
   // Note: navigationMap is now passed as a prop, not from store
   // Mouse down handler for all interactions
@@ -328,7 +328,7 @@ export const useSpreadsheetHandlers = ({
         case "Backspace": {
           e.preventDefault();
           if (selectedCells.size > 0) {
-            clearSelectedCells();
+            updateSelectedCellsData(undefined);
           }
           break;
         }
@@ -341,7 +341,7 @@ export const useSpreadsheetHandlers = ({
       editingCell,
       setEditingCell,
       setSelectedCells,
-      clearSelectedCells,
+      updateSelectedCellsData,
       navigationMap,
     ],
   );

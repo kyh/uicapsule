@@ -1,8 +1,6 @@
 "use client";
 
 import React, { useCallback, useMemo } from "react";
-import { useChat } from "@ai-sdk/react";
-import { StaticChatTransport } from "@loremllm/transport";
 import { Button } from "@repo/ui/button";
 import {
   DropdownMenu,
@@ -20,8 +18,6 @@ import {
   Upload,
 } from "lucide-react";
 
-import type { UpdateCellTool } from "./lib/fake-generator";
-import type { UIMessage } from "@ai-sdk/react";
 import { EditableCell } from "./components/editable-cell";
 import { Spreadsheet } from "./components/spreadsheet";
 import {
@@ -31,8 +27,8 @@ import {
   StatusBarSummary,
 } from "./components/status-bar";
 import { Toolbar, ToolbarButton } from "./components/toolbar";
-import { generateFakeToolCalls } from "./lib/fake-generator";
 import { useSpreadsheetStore } from "./lib/spreadsheet-store";
+import { useAiEnrichment } from "./lib/use-ai-enrichment";
 
 type Person = {
   id: string;
@@ -100,69 +96,6 @@ const RowActions = ({ row }: { row: Person }) => {
   );
 };
 
-const transport = new StaticChatTransport({
-  async resolveMessages({
-    messages,
-  }: {
-    messages: UIMessage<UpdateCellTool>[];
-  }) {
-    // Get current values directly from zustand store at call time
-    const store = useSpreadsheetStore.getState();
-    const currentSelectedCells = store.selectedCells;
-    const currentData = store.data;
-    const currentSetData = store.setData;
-
-    // Set all selected cells to "Generating..." immediately when enrichment starts
-    const cellsToGenerate = new Set<string>();
-    currentSelectedCells.forEach((cellKey) => {
-      const [rowId, columnId] = cellKey.split(":");
-      if (rowId && columnId && columnId !== "linkedinUrl") {
-        cellsToGenerate.add(cellKey);
-      }
-    });
-
-    // Batch all "Generating..." updates in a single state update
-    if (cellsToGenerate.size > 0) {
-      const rowUpdatesMap = new Map<string, Set<string>>();
-      cellsToGenerate.forEach((cellKey) => {
-        const [rowId, columnId] = cellKey.split(":");
-        if (rowId && columnId) {
-          if (!rowUpdatesMap.has(rowId)) {
-            rowUpdatesMap.set(rowId, new Set());
-          }
-          rowUpdatesMap.get(rowId)!.add(columnId);
-        }
-      });
-
-      currentSetData((oldData) => {
-        if (!oldData || oldData.length === 0) {
-          return oldData;
-        }
-
-        return oldData.map((row) => {
-          const columnsToUpdate = rowUpdatesMap.get(row.id);
-          if (!columnsToUpdate || columnsToUpdate.size === 0) {
-            return row;
-          }
-
-          const updates: Record<string, string> = {};
-          columnsToUpdate.forEach((columnId) => {
-            updates[columnId] = "Generating...";
-          });
-
-          return { ...row, ...updates };
-        });
-      });
-    }
-
-    return [
-      ...messages,
-      generateFakeToolCalls(currentSelectedCells, currentData),
-    ];
-  },
-  chunkDelayMs: 200,
-});
-
 const ToolbarButtons = () => {
   const addRow = useCallback(() => {
     useSpreadsheetStore.getState().addRow((index) => ({
@@ -176,59 +109,7 @@ const ToolbarButtons = () => {
     }));
   }, []);
 
-  const { sendMessage } = useChat({
-    transport,
-    onToolCall: ({ toolCall }) => {
-      const store = useSpreadsheetStore.getState();
-
-      const toolPart = toolCall as unknown as {
-        type: string;
-        toolCallId: string;
-        input?: {
-          rowId: string;
-          columnId: string;
-          value?: string;
-        };
-        output?: {
-          rowId?: string;
-          columnId?: string;
-          value?: string;
-        };
-      };
-
-      // Extract rowId and columnId from either input or output
-      const rowId = toolPart.input?.rowId || toolPart.output?.rowId;
-      const columnId = toolPart.input?.columnId || toolPart.output?.columnId;
-
-      if (!rowId || !columnId) {
-        return;
-      }
-
-      // Handle tool-input-available - tool call is starting
-      if (toolPart.type === "tool-input-available" && toolPart.input) {
-        // Skip if we've already processed this tool call
-        if (store.processedToolCalls.has(toolPart.toolCallId)) {
-          return;
-        }
-
-        // If the input already contains the value, use it
-        if (toolPart.input.value) {
-          store.addProcessedToolCall(toolPart.toolCallId);
-          store.updateData(rowId, columnId, toolPart.input.value);
-        }
-      }
-
-      // Handle tool-output-available - tool call completed
-      if (toolPart.type === "tool-output-available") {
-        const value = toolPart.output?.value || toolPart.input?.value;
-
-        if (value && !store.processedToolCalls.has(toolPart.toolCallId)) {
-          store.addProcessedToolCall(toolPart.toolCallId);
-          store.updateData(rowId, columnId, value);
-        }
-      }
-    },
-  });
+  const { handleEnrich } = useAiEnrichment();
 
   return (
     <>
@@ -236,11 +117,7 @@ const ToolbarButtons = () => {
         <Plus className="size-4" />
         Add Row
       </ToolbarButton>
-      <ToolbarButton
-        onClick={() => {
-          void sendMessage({ text: "enrich" });
-        }}
-      >
+      <ToolbarButton onClick={handleEnrich}>
         <Sparkles className="size-4" />
         Enrich
       </ToolbarButton>

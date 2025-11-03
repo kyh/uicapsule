@@ -37,22 +37,19 @@ export interface SpreadsheetStore<
   dragLineVisible: boolean;
   setDragLineVisible: (visible: boolean) => void;
 
-  // Tool call tracking
-  processedToolCalls: Set<string>;
-  addProcessedToolCall: (toolCallId: string) => void;
-  clearProcessedToolCalls: () => void;
-
   // Actions
   updateData: (rowId: string, columnId: string, value: unknown) => void;
+  updateSelectedCellsData: (
+    value:
+      | unknown
+      | ((options: {
+          row: SpreadsheetRow;
+          columnId: string;
+          currentValue: unknown;
+        }) => unknown),
+  ) => void;
   addRow: (onCreateRow?: (rowIndex: number) => TRow) => void;
   deleteRow: (rowId: string, onDeleteRow?: (rowId: string) => void) => void;
-  clearSelectedCells: (
-    onClearCellValue?: (options: {
-      row: TRow;
-      columnId: string;
-      value: unknown;
-    }) => unknown,
-  ) => void;
 }
 
 export const useSpreadsheetStore = create<SpreadsheetStore>((set, get) => ({
@@ -64,7 +61,6 @@ export const useSpreadsheetStore = create<SpreadsheetStore>((set, get) => ({
   dragStartCell: null,
   columnWidths: {},
   dragLineVisible: false,
-  processedToolCalls: new Set(),
 
   // Setters
   setData: (data) => {
@@ -92,12 +88,6 @@ export const useSpreadsheetStore = create<SpreadsheetStore>((set, get) => ({
   },
 
   setDragLineVisible: (visible) => set({ dragLineVisible: visible }),
-  addProcessedToolCall: (toolCallId) => {
-    set((state) => ({
-      processedToolCalls: new Set(state.processedToolCalls).add(toolCallId),
-    }));
-  },
-  clearProcessedToolCalls: () => set({ processedToolCalls: new Set() }),
 
   // Actions
   updateData: (rowId, columnId, value) => {
@@ -109,6 +99,43 @@ export const useSpreadsheetStore = create<SpreadsheetStore>((set, get) => ({
         return row;
       }),
     }));
+  },
+
+  updateSelectedCellsData: (value) => {
+    const state = get();
+    if (state.selectedCells.size === 0) return;
+
+    set((state) => {
+      const newData = [...state.data];
+      state.selectedCells.forEach((cellKey) => {
+        const [rowId, columnId] = cellKey.split(":");
+        const rowIndex = newData.findIndex((row) => row.id === rowId);
+
+        if (rowIndex >= 0 && rowIndex < newData.length) {
+          const currentRow = newData[rowIndex];
+          const newValue =
+            typeof value === "function"
+              ? (
+                  value as (options: {
+                    row: SpreadsheetRow;
+                    columnId: string;
+                    currentValue: unknown;
+                  }) => unknown
+                )({
+                  row: currentRow,
+                  columnId,
+                  currentValue: currentRow?.[columnId],
+                })
+              : value;
+
+          newData[rowIndex] = {
+            ...currentRow,
+            [columnId]: newValue,
+          };
+        }
+      });
+      return { data: newData };
+    });
   },
 
   addRow: (onCreateRow) => {
@@ -123,34 +150,6 @@ export const useSpreadsheetStore = create<SpreadsheetStore>((set, get) => ({
     set((state) => {
       onDeleteRow?.(rowId);
       return { data: state.data.filter((row) => row.id !== rowId) };
-    });
-  },
-
-  clearSelectedCells: (onClearCellValue) => {
-    const state = get();
-    if (state.selectedCells.size === 0) return;
-
-    set((state) => {
-      const newData = [...state.data];
-      state.selectedCells.forEach((cellKey) => {
-        const [rowId, columnId] = cellKey.split(":");
-        const rowIndex = newData.findIndex((row) => row.id === rowId);
-
-        if (rowIndex >= 0 && rowIndex < newData.length) {
-          const currentRow = newData[rowIndex];
-          newData[rowIndex] = {
-            ...currentRow,
-            [columnId]: onClearCellValue
-              ? onClearCellValue({
-                  row: currentRow,
-                  columnId,
-                  value: currentRow?.[columnId],
-                })
-              : undefined,
-          };
-        }
-      });
-      return { data: newData };
     });
   },
 }));

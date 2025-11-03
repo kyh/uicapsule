@@ -9,7 +9,6 @@ import type {
   FiltersState,
   FilterStrategy,
 } from "../filter-package";
-import { isAnyOf } from "../filter-package";
 import { ActiveFilters, ActiveFiltersMobileContainer } from "./active-filters";
 import { FilterActions } from "./filter-actions";
 import { FilterSelector } from "./filter-selector";
@@ -32,16 +31,8 @@ export function DataTableFilter<TData>({
 }: DataTableFilterProps<TData>) {
   const isMobile = useIsMobile();
 
-  const visibleOptionColumns = useMemo(
-    () =>
-      columns.filter(
-        (column) =>
-          !column.hidden && isAnyOf(column.type, ["option", "multiOption"]),
-      ),
-    [columns],
-  );
   const { aiGenerating, handleAiFilterSubmit } = useAiFilterSimulation({
-    visibleOptionColumns,
+    columns,
     actions,
   });
 
