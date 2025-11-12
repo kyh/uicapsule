@@ -7,8 +7,8 @@
     "clean": "git clean -xdf .cache .turbo dist node_modules"
   },
   "dependencies": {
-    "@ai-sdk/react": "^2.0.86",
-    "@loremllm/transport": "^0.4.3",
+    "@ai-sdk/react": "^2.0.92",
+    "@loremllm/transport": "^0.4.6",
     "@repo/ui": "workspace:^",
     "react": "*",
     "react-dom": "*",
