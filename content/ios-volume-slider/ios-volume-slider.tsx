@@ -6,7 +6,7 @@ import {
   useMotionValue,
   useMotionValueEvent,
   useTransform,
-} from "framer-motion";
+} from "motion/react";
 
 function decay(value: number, max: number) {
   let entry = value / max;

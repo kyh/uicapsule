@@ -5,7 +5,7 @@ import {
   motion,
   useMotionValue,
   useMotionValueEvent,
-} from "framer-motion";
+} from "motion/react";
 
 interface RadialSliderProps {
   value: number;

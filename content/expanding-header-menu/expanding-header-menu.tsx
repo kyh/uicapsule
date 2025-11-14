@@ -1,6 +1,5 @@
 import React from "react";
 import { cx, CxOptions } from "class-variance-authority";
-import { AnimatePresence, motion, MotionConfig } from "framer-motion";
 import {
   ChevronDown,
   ChevronLeft,
@@ -17,6 +16,7 @@ import {
   UserRoundPlus,
   X,
 } from "lucide-react";
+import { AnimatePresence, motion, MotionConfig } from "motion/react";
 import { twMerge } from "tailwind-merge";
 
 interface HeaderMenuProps {
