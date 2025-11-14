@@ -188,8 +188,7 @@ export const buildShadcnRegistryItem = (component: LocalContentComponent) => {
   );
 
   const devDependencies = devDependencyKeys.filter(
-    (dep) =>
-      !["@types/react", "@types/react-dom", "typescript"].includes(dep),
+    (dep) => !["@types/react", "@types/react-dom", "typescript"].includes(dep),
   );
 
   return {
@@ -203,7 +202,7 @@ export const buildShadcnRegistryItem = (component: LocalContentComponent) => {
     registryDependencies: [],
     files: Object.entries(component.sourceCode).map(
       ([filePath, sourceCode]) => ({
-        type: "registry:ui" as const,
+        type: "registry:file" as const,
         path: filePath,
         content: sourceCode,
         target: `components/ui/uicapsule/${component.slug}.tsx`,

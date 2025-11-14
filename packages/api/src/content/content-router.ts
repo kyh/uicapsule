@@ -177,9 +177,14 @@ export const contentRouter = createTRPCRouter({
     const localComponents = components.filter(isLocalContentComponent);
 
     // Build registry items using the same helper as shadcnRegistryItem
-    const items = localComponents.map((component) =>
-      buildShadcnRegistryItem(component),
-    );
+    const items = localComponents.map((component) => {
+      const item = buildShadcnRegistryItem(component);
+      // Remove content from files for registry index
+      return {
+        ...item,
+        files: item.files.map(({ content: _content, ...file }) => file),
+      };
+    });
 
     return {
       $schema: "https://ui.shadcn.com/schema/registry.json",
