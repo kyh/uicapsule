@@ -792,7 +792,7 @@ export const Footer = ({ className }: { className?: string }) => {
         <FooterLink href="/inspiration">Inspiration</FooterLink>
       </div>
       <div className="grid w-full grid-cols-3 border-t lg:flex lg:w-auto lg:border-t-0">
-        <FooterIcon href="https://github.com/kyh">
+        <FooterIcon href="https://github.com/kyh/uicapsule">
           <svg width="20" height="20" viewBox="0 0 32 32">
             <path
               className="fill-current"
