@@ -205,7 +205,7 @@ export const buildShadcnRegistryItem = (component: LocalContentComponent) => {
         type: "registry:file" as const,
         path: filePath,
         content: sourceCode,
-        target: `components/ui/uicapsule/${component.slug}.tsx`,
+        target: `components/uicapsule${filePath}`,
       }),
     ),
   };
