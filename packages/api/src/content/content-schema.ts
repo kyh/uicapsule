@@ -179,8 +179,8 @@ export const buildShadcnRegistryItem = (component: LocalContentComponent) => {
   const dependencyKeys = Object.keys(component.dependencies ?? {});
   const devDependencyKeys = Object.keys(component.devDependencies ?? {});
 
-  const uicapsuleDependencies = dependencyKeys.filter(
-    (dep) => dep.startsWith("@repo") && dep !== "@repo/shadcn-ui",
+  const uicapsuleDependencies = dependencyKeys.filter((dep) =>
+    dep.startsWith("@repo"),
   );
 
   const dependencies = dependencyKeys.filter(
@@ -205,7 +205,7 @@ export const buildShadcnRegistryItem = (component: LocalContentComponent) => {
         type: "registry:file" as const,
         path: filePath,
         content: sourceCode,
-        target: `components/uicapsule${filePath}`,
+        target: `/uicapsule/${component.slug}${filePath}`,
       }),
     ),
   };
