@@ -173,3 +173,41 @@ export const mapRowToComponent = (
       safeParseJson<Record<string, string>>(row.devDependencies) ?? {},
   } as ContentComponent;
 };
+
+// Shadcn registry helper
+export const buildShadcnRegistryItem = (component: LocalContentComponent) => {
+  const dependencyKeys = Object.keys(component.dependencies ?? {});
+  const devDependencyKeys = Object.keys(component.devDependencies ?? {});
+
+  const uicapsuleDependencies = dependencyKeys.filter(
+    (dep) => dep.startsWith("@repo") && dep !== "@repo/shadcn-ui",
+  );
+
+  const dependencies = dependencyKeys.filter(
+    (dep) => !["react", "react-dom", ...uicapsuleDependencies].includes(dep),
+  );
+
+  const devDependencies = devDependencyKeys.filter(
+    (dep) =>
+      !["@types/react", "@types/react-dom", "typescript"].includes(dep),
+  );
+
+  return {
+    $schema: "https://ui.shadcn.com/schema/registry.json",
+    homepage: `https://uicapsule.com/ui/${component.slug}`,
+    name: component.slug,
+    type: "registry:block" as const,
+    author: "Kaiyu Hsu <uicapsule@kyh.io>",
+    dependencies,
+    devDependencies,
+    registryDependencies: [],
+    files: Object.entries(component.sourceCode).map(
+      ([filePath, sourceCode]) => ({
+        type: "registry:ui" as const,
+        path: filePath,
+        content: sourceCode,
+        target: `components/ui/uicapsule/${component.slug}.tsx`,
+      }),
+    ),
+  };
+};

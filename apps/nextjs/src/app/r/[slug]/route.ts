@@ -27,7 +27,7 @@ export const GET = async (_: NextRequest, { params }: RegistryParams) => {
     }
 
     // Handle individual component
-    const pkg = await caller.content.shadcnPackage({
+    const pkg = await caller.content.shadcnRegistryItem({
       slug: slugWithoutExtension,
     });
     return NextResponse.json(pkg);

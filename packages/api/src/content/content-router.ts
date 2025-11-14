@@ -4,6 +4,7 @@ import { TRPCError } from "@trpc/server";
 
 import { createTRPCRouter, publicProcedure } from "../trpc";
 import {
+  buildShadcnRegistryItem,
   getContentComponentInput,
   getContentComponentsInput,
   isLocalContentComponent,
@@ -167,7 +168,28 @@ export const contentRouter = createTRPCRouter({
       };
     }),
 
-  shadcnPackage: publicProcedure
+  shadcnRegistry: publicProcedure.query(async ({ ctx }) => {
+    const rows = await ctx.db.query.contentComponent.findMany({
+      orderBy: asc(contentComponent.slug),
+    });
+
+    const components = rows.map(mapRowToComponent);
+    const localComponents = components.filter(isLocalContentComponent);
+
+    // Build registry items using the same helper as shadcnRegistryItem
+    const items = localComponents.map((component) =>
+      buildShadcnRegistryItem(component),
+    );
+
+    return {
+      $schema: "https://ui.shadcn.com/schema/registry.json",
+      name: "uicapsule",
+      homepage: "https://uicapsule.com",
+      items,
+    };
+  }),
+
+  shadcnRegistryItem: publicProcedure
     .input(getContentComponentInput)
     .query(async ({ ctx, input }) => {
       const { slug } = input;
@@ -191,67 +213,6 @@ export const contentRouter = createTRPCRouter({
         });
       }
 
-      const dependencyKeys = Object.keys(component.dependencies ?? {});
-      const devDependencyKeys = Object.keys(component.devDependencies ?? {});
-
-      const uicapsuleDependencies = dependencyKeys.filter(
-        (dep) => dep.startsWith("@repo") && dep !== "@repo/shadcn-ui",
-      );
-
-      const dependencies = dependencyKeys.filter(
-        (dep) =>
-          !["react", "react-dom", ...uicapsuleDependencies].includes(dep),
-      );
-
-      const devDependencies = devDependencyKeys.filter(
-        (dep) =>
-          !["@types/react", "@types/react-dom", "typescript"].includes(dep),
-      );
-
-      return {
-        $schema: "https://ui.shadcn.com/schema/registry.json",
-        homepage: `https://uicapsule.com/ui/${slug}`,
-        name: slug,
-        type: "registry:ui",
-        author: "Kaiyu Hsu <uicapsule@kyh.io>",
-        dependencies,
-        devDependencies,
-        registryDependencies: [],
-        files: Object.entries(component.sourceCode).map(
-          ([filePath, sourceCode]) => ({
-            type: "registry:ui" as const,
-            path: filePath,
-            content: sourceCode,
-            target: `components/ui/uicapsule/${slug}.tsx`,
-          }),
-        ),
-      };
+      return buildShadcnRegistryItem(component);
     }),
-
-  shadcnRegistry: publicProcedure.query(async ({ ctx }) => {
-    const rows = await ctx.db.query.contentComponent.findMany({
-      orderBy: asc(contentComponent.slug),
-    });
-
-    const components = rows.map(mapRowToComponent);
-    const localComponents = components.filter(isLocalContentComponent);
-
-    return {
-      $schema: "https://ui.shadcn.com/schema/registry.json",
-      name: "uicapsule",
-      homepage: "https://uicapsule.com",
-      items: localComponents.map((component) => ({
-        name: component.slug,
-        type: "registry:component" as const,
-        title: component.name,
-        description: component.description ?? "",
-        files: [
-          {
-            path: `r/${component.slug}.json`,
-            type: "registry:component" as const,
-          },
-        ],
-      })),
-    };
-  }),
 });
