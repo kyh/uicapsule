@@ -227,4 +227,31 @@ export const contentRouter = createTRPCRouter({
         ),
       };
     }),
+
+  shadcnRegistry: publicProcedure.query(async ({ ctx }) => {
+    const rows = await ctx.db.query.contentComponent.findMany({
+      orderBy: asc(contentComponent.slug),
+    });
+
+    const components = rows.map(mapRowToComponent);
+    const localComponents = components.filter(isLocalContentComponent);
+
+    return {
+      $schema: "https://ui.shadcn.com/schema/registry.json",
+      name: "uicapsule",
+      homepage: "https://uicapsule.com",
+      items: localComponents.map((component) => ({
+        name: component.slug,
+        type: "registry:component" as const,
+        title: component.name,
+        description: component.description ?? "",
+        files: [
+          {
+            path: `r/${component.slug}.json`,
+            type: "registry:component" as const,
+          },
+        ],
+      })),
+    };
+  }),
 });

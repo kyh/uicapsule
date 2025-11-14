@@ -17,15 +17,31 @@ export const GET = async (_: NextRequest, { params }: RegistryParams) => {
     );
   }
 
-  try {
-    const pkg = await caller.content.shadcnPackage({
-      slug: slug.replace(".json", ""),
-    });
+  const slugWithoutExtension = slug.replace(".json", "");
 
+  try {
+    // Handle registry index
+    if (slugWithoutExtension === "registry") {
+      const registry = await caller.content.shadcnRegistry();
+      return NextResponse.json(registry);
+    }
+
+    // Handle individual component
+    const pkg = await caller.content.shadcnPackage({
+      slug: slugWithoutExtension,
+    });
     return NextResponse.json(pkg);
   } catch (error) {
+    const errorMessage =
+      slugWithoutExtension === "registry"
+        ? "Failed to get registry"
+        : "Failed to get package";
+
     return NextResponse.json(
-      { error: "Failed to get package", details: error },
+      {
+        error: errorMessage,
+        details: error instanceof Error ? error.message : String(error),
+      },
       { status: 500 },
     );
   }
