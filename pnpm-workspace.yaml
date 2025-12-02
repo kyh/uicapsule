@@ -15,8 +15,8 @@ catalog:
   "@types/react": ^19.2.7
   "@types/react-dom": ^19.2.3
   eslint: ^9.39.1
-  next: ^16.0.5
-  prettier: ^3.7.1
+  next: ^16.0.6
+  prettier: ^3.7.3
   react: ^19.2.0
   react-dom: ^19.2.0
   superjson: ^2.2.6
