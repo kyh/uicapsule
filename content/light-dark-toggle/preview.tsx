@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 
-import { LightDarkToggle } from "./source";
+import { LightDarkToggle } from "./light-dark-toggle";
 
 const Preview = () => {
   const [isLight, setIsLight] = useState(true);

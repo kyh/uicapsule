@@ -1,6 +1,6 @@
 import React from "react";
 
-import { ImageCarousel, ImageCarouselCanvas } from "./source";
+import { ImageCarousel, ImageCarouselCanvas } from "./carousel-3d";
 
 const rootUrl =
   "https://zmdrwswxugswzmcokvff.supabase.co/storage/v1/object/public/uicapsule/carousel-3d";

@@ -1,6 +1,6 @@
 import React from "react";
 
-import { LikeButton } from "./source";
+import { LikeButton } from "./like-button";
 
 const Preview = () => {
   return (

@@ -1,7 +1,7 @@
 import React from "react";
 import { motion } from "motion/react";
 
-import { GridItemConfig, InfiniteGrid } from "./source";
+import { GridItemConfig, InfiniteGrid } from "./infinite-grid";
 
 const Cell = ({ gridIndex }: GridItemConfig) => (
   <motion.div

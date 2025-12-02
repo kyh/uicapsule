@@ -1,6 +1,6 @@
 import React from "react";
 
-import { Volume } from "./source";
+import { Volume } from "./ios-volume-slider";
 
 const Preview = () => {
   return (

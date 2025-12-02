@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 
-import { HeaderMenu } from "./source";
+import { HeaderMenu } from "./expanding-header-menu";
 
 const Preview = () => {
   const [isOpen, setIsOpen] = useState(false);

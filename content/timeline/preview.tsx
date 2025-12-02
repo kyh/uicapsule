@@ -1,6 +1,6 @@
 import React from "react";
 
-import { Timeline } from "./source";
+import { Timeline } from "./timeline";
 
 const Preview = () => {
   return <Timeline />;

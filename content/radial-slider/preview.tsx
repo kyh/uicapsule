@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import NumberFlow from "@number-flow/react";
 
-import { RadialSlider } from "./source";
+import { RadialSlider } from "./radial-slider";
 
 const Preview = () => {
   const [value, setValue] = useState(0);
