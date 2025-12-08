@@ -30,7 +30,7 @@
     "next": "catalog:",
     "react": "catalog:",
     "react-dom": "catalog:",
-    "shiki": "^3.18.0",
+    "shiki": "^3.19.0",
     "superjson": "catalog:",
     "zod": "catalog:"
   },
