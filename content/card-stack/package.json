@@ -8,7 +8,7 @@
   },
   "dependencies": {
     "@gsap/react": "^2.1.2",
-    "gsap": "^3.13.0",
+    "gsap": "^3.14.1",
     "react": "*",
     "react-dom": "*"
   }

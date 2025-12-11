@@ -8,7 +8,7 @@
   },
   "dependencies": {
     "@number-flow/react": "^0.5.10",
-    "motion": "^12.23.25",
+    "motion": "^12.23.26",
     "react": "*",
     "react-dom": "*"
   }

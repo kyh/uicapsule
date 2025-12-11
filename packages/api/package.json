@@ -16,10 +16,10 @@
     "typecheck": "tsc --noEmit --emitDeclarationOnly false"
   },
   "dependencies": {
-    "@better-auth/expo": "^1.4.5",
+    "@better-auth/expo": "^1.4.6",
     "@repo/db": "workspace:^",
     "@trpc/server": "catalog:",
-    "better-auth": "^1.4.5",
+    "better-auth": "^1.4.6",
     "drizzle-zod": "^0.8.3",
     "superjson": "catalog:",
     "zod": "catalog:"
