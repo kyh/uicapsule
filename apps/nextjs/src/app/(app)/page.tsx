@@ -49,8 +49,6 @@ const Page = ({ searchParams }: PageProps) => {
 export default Page;
 
 const Filters = async ({ searchParams }: PageProps) => {
-  "use cache: private";
-
   const { elementFilter, styleFilter, categoryFilter } =
     await getFilters(searchParams);
 
@@ -79,8 +77,6 @@ const Filters = async ({ searchParams }: PageProps) => {
 };
 
 const ContentList = async ({ searchParams }: PageProps) => {
-  "use cache: private";
-
   const { elementFilter, styleFilter, categoryFilter } =
     await getFilters(searchParams);
   const filters = [elementFilter, styleFilter, categoryFilter].flat();
