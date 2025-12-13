@@ -816,7 +816,7 @@ const hasWatch = args.includes("--watch");
 
 // Parse --mode argument
 const modeIndex = args.indexOf("--mode");
-let mode: "db" | "export" = "db"; // default to syncing to database
+let mode: "db" | "export" = "export"; // default to exporting to file
 if (modeIndex !== -1 && args[modeIndex + 1]) {
   const modeArg = args[modeIndex + 1];
   if (modeArg === "db" || modeArg === "export") {

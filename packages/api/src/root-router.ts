@@ -1,4 +1,4 @@
-import { contentRouter } from "./content/content-router";
+import { contentRouter } from "./content/content-router-local";
 import { organizationRouter } from "./organization/organization-router";
 import { createTRPCRouter } from "./trpc";
 
