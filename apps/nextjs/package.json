@@ -16,8 +16,8 @@
   "prettier": "@kyh/prettier-config",
   "dependencies": {
     "@codesandbox/sandpack-client": "^2.19.8",
-    "@headless-tree/core": "^1.6.0",
-    "@headless-tree/react": "^1.6.0",
+    "@headless-tree/core": "^1.6.1",
+    "@headless-tree/react": "^1.6.1",
     "@remixicon/react": "^4.7.0",
     "@repo/api": "workspace:^",
     "@repo/db": "workspace:^",
