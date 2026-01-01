@@ -18,7 +18,7 @@
     "@codesandbox/sandpack-client": "^2.19.8",
     "@headless-tree/core": "^1.6.1",
     "@headless-tree/react": "^1.6.1",
-    "@remixicon/react": "^4.7.0",
+    "@remixicon/react": "^4.8.0",
     "@repo/api": "workspace:^",
     "@repo/db": "workspace:^",
     "@repo/ui": "workspace:^",
