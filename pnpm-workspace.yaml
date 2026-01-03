@@ -5,9 +5,9 @@ packages:
 catalog:
   "@better-auth/cli": ^1.4.10
   "@better-auth/expo": ^1.4.10
-  "@kyh/eslint-config": ^1.1.10
-  "@kyh/prettier-config": ^1.1.10
-  "@kyh/tsconfig": ^1.1.10
+  "@kyh/eslint-config": ^1.1.11
+  "@kyh/prettier-config": ^1.1.11
+  "@kyh/tsconfig": ^1.1.11
   "@tailwindcss/postcss": ^4.1.18
   "@tailwindcss/vite": ^4.1.18
   "@tanstack/react-form": ^1.27.7
