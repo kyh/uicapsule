@@ -6,8 +6,8 @@
   "scripts": {
     "build": "tsx src/index.ts",
     "dev": "pnpm with-env tsx src/index.ts --watch",
-    "dev:db": "pnpm with-env tsx src/index.ts --watch --mode db",
-    "dev:export": "pnpm with-env tsx src/index.ts --watch --mode export",
+    "dev-db": "pnpm with-env tsx src/index.ts --watch --mode db",
+    "dev-export": "pnpm with-env tsx src/index.ts --watch --mode export",
     "clean": "git clean -xdf .cache .turbo node_modules",
     "push-remote": "dotenv -e ../../.env.production.local -- tsx src/index.ts --mode db",
     "with-env": "dotenv -e ../../.env --"

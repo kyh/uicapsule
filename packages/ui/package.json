@@ -12,7 +12,7 @@
     "format": "prettier --check . --ignore-path ../../.gitignore",
     "lint": "eslint",
     "typecheck": "tsc --noEmit --emitDeclarationOnly false",
-    "gen:ui": "pnpm dlx shadcn@latest add && prettier src --write --list-different"
+    "gen-ui": "pnpm dlx shadcn@latest add && prettier src --write --list-different"
   },
   "dependencies": {
     "@headless-tree/core": "^1.6.1",
