@@ -1,0 +1,14 @@
+{
+  "name": "@uicapsule/spinner-pixel-grid",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "clean": "git clean -xdf .cache .turbo dist node_modules"
+  },
+  "dependencies": {
+    "@repo/ui": "workspace:^",
+    "react": "*",
+    "react-dom": "*"
+  }
+}
