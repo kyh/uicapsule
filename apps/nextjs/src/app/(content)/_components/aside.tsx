@@ -46,7 +46,7 @@ const Aside = ({ contentComponent }: AsideProps) => {
       return;
     }
 
-    const command = `npx shadcn@latest add https://uicapsule.com/r/${contentComponent.slug}.json`;
+    const command = `npx shadcn@latest add @uicapsule/${contentComponent.slug}`;
 
     navigator.clipboard.writeText(command).catch((err) => {
       console.error("Failed to copy command to clipboard:", err);
