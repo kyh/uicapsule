@@ -27,6 +27,7 @@
     "@trpc/client": "catalog:",
     "@trpc/server": "catalog:",
     "@trpc/tanstack-react-query": "catalog:",
+    "@vercel/analytics": "^1.6.1",
     "better-auth": "catalog:",
     "cmdk": "^1.1.1",
     "jszip": "^3.10.1",
