@@ -3,11 +3,11 @@ packages:
   - packages/*
 
 catalog:
-  '@better-auth/cli': ^1.4.16
-  '@better-auth/expo': ^1.4.16
-  '@kyh/eslint-config': ^1.1.12
-  '@kyh/prettier-config': ^1.1.12
-  '@kyh/tsconfig': ^1.1.12
+  '@better-auth/cli': ^1.4.17
+  '@better-auth/expo': ^1.4.17
+  '@kyh/eslint-config': ^1.1.13
+  '@kyh/prettier-config': ^1.1.13
+  '@kyh/tsconfig': ^1.1.13
   '@tailwindcss/postcss': ^4.1.18
   '@tailwindcss/vite': ^4.1.18
   '@tanstack/react-form': ^1.27.7
@@ -19,10 +19,10 @@ catalog:
   '@types/react': ^19.2.9
   '@types/react-dom': ^19.2.3
   '@vitejs/plugin-react': ^5.1.2
-  better-auth: ^1.4.16
+  better-auth: ^1.4.17
   eslint: ^9.39.2
   next: ^16.1.4
-  prettier: ^3.8.0
+  prettier: ^3.8.1
   react: ^19.2.3
   react-dom: ^19.2.3
   superjson: ^2.2.6

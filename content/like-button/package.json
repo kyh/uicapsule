@@ -7,8 +7,8 @@
     "clean": "git clean -xdf .cache .turbo dist node_modules"
   },
   "dependencies": {
-    "@number-flow/react": "^0.5.10",
-    "motion": "^12.27.5",
+    "@number-flow/react": "^0.5.11",
+    "motion": "^12.28.1",
     "react": "*",
     "react-dom": "*"
   }
