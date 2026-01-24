@@ -786,7 +786,7 @@ export const Footer = ({ className }: { className?: string }) => {
         className,
       )}
     >
-      <p className="text-sm whitespace-nowrap lg:px-6">©2025 Kaiyu Hsu</p>
+      <p className="text-sm whitespace-nowrap lg:px-6">©2026 Kaiyu Hsu</p>
       <div className="flex flex-wrap justify-center px-6 lg:w-full">
         <FooterLink href="/about">About</FooterLink>
         <FooterLink href="/inspiration">Inspiration</FooterLink>
