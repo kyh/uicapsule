@@ -4,8 +4,8 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "build": "tsx src/index.ts",
-    "dev": "pnpm with-env tsx src/index.ts --watch",
+    "build": "tsx src/index.ts --mode export",
+    "dev": "pnpm with-env tsx src/index.ts --watch --mode export",
     "dev-db": "pnpm with-env tsx src/index.ts --watch --mode db",
     "dev-export": "pnpm with-env tsx src/index.ts --watch --mode export",
     "clean": "git clean -xdf .cache .turbo node_modules",

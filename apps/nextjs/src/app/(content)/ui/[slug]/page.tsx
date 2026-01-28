@@ -1,4 +1,5 @@
 import { Suspense } from "react";
+import { cacheLife, cacheTag } from "next/cache";
 
 import { ResponsiveAside } from "@/app/(content)/_components/aside";
 import {
@@ -26,9 +27,10 @@ const Page = ({ params }: Props) => {
 export default Page;
 
 const Content = async ({ params }: { params: Promise<{ slug: string }> }) => {
-  "use cache: private";
-
+  "use cache";
   const { slug } = await params;
+  cacheTag(`content-${slug}`);
+  cacheLife("days");
   const contentComponent = await caller.content.bySlug({ slug });
 
   return (

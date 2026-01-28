@@ -8,7 +8,7 @@
     "clean-workspaces": "turbo run clean",
     "db-push": "pnpm -F db push",
     "db-push-remote": "pnpm -F db push-remote && pnpm -F builder push-remote",
-    "dev": "turbo watch db studio dev --continue",
+    "dev": "turbo watch dev --continue",
     "dev-nextjs": "turbo watch dev -F @repo/nextjs...",
     "format": "turbo run format --continue -- --cache --cache-location .cache/.prettiercache",
     "format-fix": "turbo run format --continue -- --write --cache --cache-location .cache/.prettiercache",
@@ -24,7 +24,7 @@
     "dotenv-cli": "^11.0.0",
     "prettier": "catalog:",
     "tsx": "^4.21.0",
-    "turbo": "^2.7.6",
+    "turbo": "^2.8.0",
     "typescript": "catalog:"
   },
   "prettier": "@kyh/prettier-config"
