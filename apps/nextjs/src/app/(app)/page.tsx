@@ -1,6 +1,5 @@
 import { Suspense } from "react";
 import Link from "next/link";
-import { cacheLife, cacheTag } from "next/cache";
 import {
   contentCategories,
   contentElements,
@@ -50,8 +49,6 @@ const Page = ({ searchParams }: PageProps) => {
 export default Page;
 
 const Filters = async ({ searchParams }: PageProps) => {
-  "use cache";
-  cacheLife("days");
   const { elementFilter, styleFilter, categoryFilter } =
     await getFilters(searchParams);
 
@@ -80,9 +77,6 @@ const Filters = async ({ searchParams }: PageProps) => {
 };
 
 const ContentList = async ({ searchParams }: PageProps) => {
-  "use cache";
-  cacheLife("days");
-  cacheTag("content-list");
   const { elementFilter, styleFilter, categoryFilter } =
     await getFilters(searchParams);
   const filters = [elementFilter, styleFilter, categoryFilter].flat();

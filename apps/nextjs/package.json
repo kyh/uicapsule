@@ -19,7 +19,7 @@
     "@headless-tree/core": "^1.6.3",
     "@headless-tree/react": "^1.6.3",
     "@hookform/resolvers": "^5.2.2",
-    "@remixicon/react": "^4.8.0",
+    "@remixicon/react": "^4.9.0",
     "@repo/api": "workspace:^",
     "@repo/db": "workspace:^",
     "@repo/ui": "workspace:^",

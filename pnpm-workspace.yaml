@@ -3,8 +3,8 @@ packages:
   - packages/*
 
 catalog:
-  '@better-auth/cli': ^1.4.17
-  '@better-auth/expo': ^1.4.17
+  '@better-auth/cli': ^1.4.18
+  '@better-auth/expo': ^1.4.18
   '@kyh/eslint-config': ^1.1.13
   '@kyh/prettier-config': ^1.1.13
   '@kyh/tsconfig': ^1.1.13
@@ -19,7 +19,7 @@ catalog:
   '@types/react': ^19.2.10
   '@types/react-dom': ^19.2.3
   '@vitejs/plugin-react': ^5.1.2
-  better-auth: ^1.4.17
+  better-auth: ^1.4.18
   eslint: ^9.39.2
   next: ^16.1.6
   prettier: ^3.8.1
