@@ -12,6 +12,6 @@
     "motion": "^12.34.0",
     "react": "*",
     "react-dom": "*",
-    "tailwind-merge": "^3.4.0"
+    "tailwind-merge": "^3.4.1"
   }
 }
