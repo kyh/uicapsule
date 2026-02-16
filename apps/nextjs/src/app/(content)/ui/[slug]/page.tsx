@@ -6,7 +6,7 @@ import {
   ContentRenderer,
   ContentRendererSkeleton,
 } from "@/app/(content)/_components/content-renderer";
-import { caller } from "@/trpc/server";
+import { publicCaller } from "@/trpc/server";
 
 type Props = {
   params: Promise<{
@@ -31,7 +31,7 @@ const Content = async ({ params }: { params: Promise<{ slug: string }> }) => {
   const { slug } = await params;
   cacheTag(`content-${slug}`);
   cacheLife("days");
-  const contentComponent = await caller.content.bySlug({ slug });
+  const contentComponent = await publicCaller.content.bySlug({ slug });
 
   return (
     <>

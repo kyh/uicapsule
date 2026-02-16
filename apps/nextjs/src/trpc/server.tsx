@@ -53,3 +53,11 @@ export function prefetch<T extends ReturnType<TRPCQueryOptions<any>>>(
 }
 
 export const caller = appRouter.createCaller(createContext);
+
+/**
+ * Caller for public procedures that don't need auth/headers.
+ * Safe to use inside "use cache" scopes since it avoids dynamic `headers()`.
+ */
+export const publicCaller = appRouter.createCaller(() =>
+  createTRPCContext({ headers: new Headers() }),
+);
