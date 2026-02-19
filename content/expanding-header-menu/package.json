@@ -9,9 +9,9 @@
   "dependencies": {
     "class-variance-authority": "^0.7.1",
     "lucide-react": "^0.544.0",
-    "motion": "^12.34.0",
+    "motion": "^12.34.2",
     "react": "*",
     "react-dom": "*",
-    "tailwind-merge": "^3.4.1"
+    "tailwind-merge": "^3.5.0"
   }
 }

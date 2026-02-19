@@ -7,8 +7,8 @@
     "clean": "git clean -xdf .cache .turbo dist node_modules"
   },
   "dependencies": {
-    "@floating-ui/react": "^0.27.17",
-    "motion": "^12.34.0",
+    "@floating-ui/react": "^0.27.18",
+    "motion": "^12.34.2",
     "react": "*",
     "react-dom": "*"
   }
