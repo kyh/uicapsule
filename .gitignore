@@ -54,3 +54,4 @@ yarn-error.log*
 .branches
 .temp
 local.*
+.superset
