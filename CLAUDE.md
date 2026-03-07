@@ -8,7 +8,7 @@
 
 ```
 apps/
-  nextjs/        # Next.js 16 app (main frontend)
+  web/           # Next.js 16 app (main frontend)
 packages/
   api/           # tRPC API + better-auth
   db/            # Drizzle ORM + Turso (libSQL)
@@ -28,7 +28,7 @@ packages/
 
 ```bash
 pnpm dev              # Start all (db, studio, dev)
-pnpm dev-nextjs       # Just Next.js app
+pnpm dev-web          # Just Next.js app
 pnpm build            # Build all
 pnpm typecheck        # Type check all
 pnpm lint             # Lint all
