@@ -34,16 +34,12 @@ export class ColumnConfigBuilder<
   }
 
   private clone(): ColumnConfigBuilder<TData, TType, TVal, TId> {
-    const newInstance = new ColumnConfigBuilder<TData, TType, TVal, TId>(
-      this.config.type as TType,
-    );
+    const newInstance = new ColumnConfigBuilder<TData, TType, TVal, TId>(this.config.type as TType);
     newInstance.config = { ...this.config };
     return newInstance;
   }
 
-  id<TNewId extends string>(
-    value: TNewId,
-  ): ColumnConfigBuilder<TData, TType, TVal, TNewId> {
+  id<TNewId extends string>(value: TNewId): ColumnConfigBuilder<TData, TType, TVal, TNewId> {
     const newInstance = this.clone() as ColumnConfigBuilder<any, any, any, any>;
     newInstance.config.id = value;
     return newInstance as ColumnConfigBuilder<TData, TType, TVal, TNewId>;
@@ -76,25 +72,13 @@ export class ColumnConfigBuilder<
   }
 
   // Number-specific methods
-  min(
-    value: TType extends "number"
-      ? number
-      : TType extends "bigint"
-        ? bigint
-        : never,
-  ): this {
+  min(value: TType extends "number" ? number : TType extends "bigint" ? bigint : never): this {
     this.validateType(["number", "bigint"], "min()");
     this.config.min = value as any;
     return this;
   }
 
-  max(
-    value: TType extends "number"
-      ? number
-      : TType extends "bigint"
-        ? bigint
-        : never,
-  ): this {
+  max(value: TType extends "number" ? number : TType extends "bigint" ? bigint : never): this {
     this.validateType(["number", "bigint"], "max()");
     this.config.max = value as any;
     return this;
@@ -135,15 +119,9 @@ export class ColumnConfigBuilder<
     const orderFnsToApply: TOrderFns = [];
 
     // Handle the case where first two args are built-in name and direction
-    if (
-      args.length === 2 &&
-      isBuiltInOrderFnName(args[0]) &&
-      isOrderDirection(args[1])
-    ) {
+    if (args.length === 2 && isBuiltInOrderFnName(args[0]) && isOrderDirection(args[1])) {
       const [name, direction] = args;
-      orderFnsToApply.push((a: ColumnOption, b: ColumnOption) =>
-        orderFns[name](a, b, direction),
-      );
+      orderFnsToApply.push((a: ColumnOption, b: ColumnOption) => orderFns[name](a, b, direction));
     } else if (args.length === 1 && isCustomOrderFn(args[0])) {
       orderFnsToApply.push(args[0]);
     } else {
@@ -170,16 +148,9 @@ export class ColumnConfigBuilder<
 
   toggledStateName(
     value: string,
-  ): ColumnConfigBuilder<
-    TData,
-    TType extends "boolean" ? TType : never,
-    TVal,
-    TId
-  > {
+  ): ColumnConfigBuilder<TData, TType extends "boolean" ? TType : never, TVal, TId> {
     if (this.config.type !== "boolean")
-      throw new Error(
-        "toggledStateName() is only applicable to boolean columns",
-      );
+      throw new Error("toggledStateName() is only applicable to boolean columns");
 
     const newInstance = this.clone() as ColumnConfigBuilder<any, any, any, any>;
     newInstance.config.toggledStateName = value;
@@ -192,13 +163,8 @@ export class ColumnConfigBuilder<
     return newInstance;
   }
 
-  private validateType(
-    expectedTypes: ColumnDataType | ColumnDataType[],
-    methodName: string,
-  ) {
-    const types = Array.isArray(expectedTypes)
-      ? expectedTypes
-      : [expectedTypes];
+  private validateType(expectedTypes: ColumnDataType | ColumnDataType[], methodName: string) {
+    const types = Array.isArray(expectedTypes) ? expectedTypes : [expectedTypes];
     if (!isAnyOf(this.config.type, types)) {
       throw new Error(
         `[Column config builder] ${methodName} is only applicable to ${types.join(" or ")} columns`,
@@ -230,18 +196,14 @@ interface FluentColumnConfigHelper<TData> {
 }
 
 // Factory function remains mostly the same
-export function createColumnConfigHelper<
-  TData,
->(): FluentColumnConfigHelper<TData> {
+export function createColumnConfigHelper<TData>(): FluentColumnConfigHelper<TData> {
   return {
     text: () => new ColumnConfigBuilder<TData, "text", string>("text"),
     number: () => new ColumnConfigBuilder<TData, "number", number>("number"),
     bigint: () => new ColumnConfigBuilder<TData, "bigint", bigint>("bigint"),
     date: () => new ColumnConfigBuilder<TData, "date", Date>("date"),
-    boolean: () =>
-      new ColumnConfigBuilder<TData, "boolean", boolean>("boolean"),
+    boolean: () => new ColumnConfigBuilder<TData, "boolean", boolean>("boolean"),
     option: () => new ColumnConfigBuilder<TData, "option", string>("option"),
-    multiOption: () =>
-      new ColumnConfigBuilder<TData, "multiOption", string[]>("multiOption"),
+    multiOption: () => new ColumnConfigBuilder<TData, "multiOption", string[]>("multiOption"),
   };
 }

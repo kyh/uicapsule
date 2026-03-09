@@ -192,11 +192,7 @@ export const Tooltip = ({
 }: { children: React.ReactNode } & TooltipOptions) => {
   const tooltip = useTooltip(options);
 
-  return (
-    <TooltipContext.Provider value={tooltip}>
-      {children}
-    </TooltipContext.Provider>
-  );
+  return <TooltipContext.Provider value={tooltip}>{children}</TooltipContext.Provider>;
 };
 
 export const TooltipTrigger = React.forwardRef<
@@ -245,8 +241,7 @@ export const TooltipContent = React.forwardRef<
 >(({ className, type = "default", ...props }, propRef) => {
   const context = useTooltipContext();
   const ref = useMergeRefs([context.refs.setFloating, propRef]);
-  const { children: floatingPropsChildren, ...floatingProps } =
-    context.getFloatingProps(props);
+  const { children: floatingPropsChildren, ...floatingProps } = context.getFloatingProps(props);
   const children = floatingPropsChildren as React.ReactNode;
   const blockType = type === "block";
 
@@ -265,9 +260,7 @@ export const TooltipContent = React.forwardRef<
         animate: {
           opacity: 1,
           transition: {
-            delay: context.hoverDirection.includes("top")
-              ? totalDelay * 2
-              : totalDelay,
+            delay: context.hoverDirection.includes("top") ? totalDelay * 2 : totalDelay,
           },
         },
         exit: { opacity: 0 },
@@ -293,9 +286,7 @@ export const TooltipContent = React.forwardRef<
         )}
       </AnimatePresence>
       {blockType && (
-        <AnimatePresence>
-          {context.open && <TooltipLines context={context} />}
-        </AnimatePresence>
+        <AnimatePresence>{context.open && <TooltipLines context={context} />}</AnimatePresence>
       )}
     </FloatingPortal>
   );
@@ -366,8 +357,7 @@ const duration = 0.07;
 const baseDelay = duration / 2;
 const blocks = Array.from({ length: cols * rows }, (_, i) => i);
 
-const calculateDelay = (n: number) =>
-  baseDelay * Math.floor(n / cols) + baseDelay * (n % cols);
+const calculateDelay = (n: number) => baseDelay * Math.floor(n / cols) + baseDelay * (n % cols);
 
 // Calculate total delay for the default top direction
 const totalDelay = calculateDelay(cols * rows);
@@ -395,9 +385,7 @@ const TooltipBlocks = ({ context }: { context: ContextType }) => {
         // Animate from bottom-center outward
         const bottomCenterCol = Math.floor(cols / 2);
         const distanceFromBottomCenter = Math.abs(col - bottomCenterCol);
-        return (
-          baseDelay * (rows - 1 - row) + baseDelay * distanceFromBottomCenter
-        );
+        return baseDelay * (rows - 1 - row) + baseDelay * distanceFromBottomCenter;
       case "top-left":
         // Animate from top-left outward
         return baseDelay * row + baseDelay * col;

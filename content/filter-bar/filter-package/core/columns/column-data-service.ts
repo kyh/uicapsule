@@ -119,9 +119,9 @@ export class ColumnDataService<TData> {
       (deps) =>
         (deps[0] ?? [])
           .flatMap(column.accessor)
-          .filter(
-            (v): v is NonNullable<TVal> => v !== undefined && v !== null,
-          ) as ElementType<NonNullable<TVal>>[],
+          .filter((v): v is NonNullable<TVal> => v !== undefined && v !== null) as ElementType<
+          NonNullable<TVal>
+        >[],
       { key: `accessor-${column.id}` },
     );
 
@@ -134,9 +134,7 @@ export class ColumnDataService<TData> {
     if (column.options) {
       return raw
         .map((v) => column.options?.find((o) => o.value === v)?.value)
-        .filter((v) => v !== undefined && v !== null) as ElementType<
-        NonNullable<TVal>
-      >[];
+        .filter((v) => v !== undefined && v !== null) as ElementType<NonNullable<TVal>>[];
     }
 
     if (column.transformValueToOptionFn) {
@@ -144,10 +142,7 @@ export class ColumnDataService<TData> {
         () => [raw],
         (deps) =>
           (deps[0] ?? []).map(
-            (v) =>
-              column.transformValueToOptionFn!(v) as ElementType<
-                NonNullable<TVal>
-              >,
+            (v) => column.transformValueToOptionFn!(v) as ElementType<NonNullable<TVal>>,
           ),
         { key: `transform-values-${column.id}` },
       );
@@ -232,14 +227,10 @@ export class ColumnDataService<TData> {
 
     // Filter to ensure type consistency
     if (column.type === "number") {
-      const numberValues = rawValues.filter(
-        (v): v is number => typeof v === "number",
-      );
+      const numberValues = rawValues.filter((v): v is number => typeof v === "number");
       return minMax(numberValues) as MinMaxReturn<TType>;
     }
-    const bigintValues = rawValues.filter(
-      (v): v is bigint => typeof v === "bigint",
-    );
+    const bigintValues = rawValues.filter((v): v is bigint => typeof v === "bigint");
     return minMax(bigintValues) as MinMaxReturn<TType>;
   }
 }

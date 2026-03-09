@@ -17,12 +17,7 @@ export const Sphere = () => {
 
     const { width: initialWidth, height: initialHeight } = getSize();
 
-    const camera = new THREE.PerspectiveCamera(
-      75,
-      initialWidth / initialHeight,
-      0.1,
-      1000,
-    );
+    const camera = new THREE.PerspectiveCamera(75, initialWidth / initialHeight, 0.1, 1000);
     camera.position.z = 3;
 
     const renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true });
@@ -119,10 +114,8 @@ function setupPointsShader(
     shader.uniforms.particleSizeMax = { value: particleSizeMax } as {
       value: number;
     };
-    shader.vertexShader =
-      "uniform float particleSizeMax;\n" + shader.vertexShader;
-    shader.vertexShader =
-      "uniform float particleSizeMin;\n" + shader.vertexShader;
+    shader.vertexShader = "uniform float particleSizeMax;\n" + shader.vertexShader;
+    shader.vertexShader = "uniform float particleSizeMin;\n" + shader.vertexShader;
     shader.vertexShader = "uniform float radius;\n" + shader.vertexShader;
     shader.vertexShader = "uniform float time;\n" + shader.vertexShader;
     shader.vertexShader = webGlNoise + "\n" + shader.vertexShader;
@@ -139,10 +132,7 @@ function setupPointsShader(
           vec3 transformed = vec3( p.x, p.y, p.z );
         `,
     );
-    shader.vertexShader = shader.vertexShader.replace(
-      "gl_PointSize = size;",
-      "gl_PointSize = s;",
-    );
+    shader.vertexShader = shader.vertexShader.replace("gl_PointSize = size;", "gl_PointSize = s;");
 
     (material as any).userData.shader = shader;
   };

@@ -27,16 +27,11 @@ StatusBar.displayName = "StatusBar";
 
 interface StatusBarSectionProps extends React.HTMLAttributes<HTMLDivElement> {}
 
-export const StatusBarSection = React.forwardRef<
-  HTMLDivElement,
-  StatusBarSectionProps
->(({ className, ...props }, ref) => (
-  <div
-    ref={ref}
-    className={cn("flex flex-1 items-center gap-2", className)}
-    {...props}
-  />
-));
+export const StatusBarSection = React.forwardRef<HTMLDivElement, StatusBarSectionProps>(
+  ({ className, ...props }, ref) => (
+    <div ref={ref} className={cn("flex flex-1 items-center gap-2", className)} {...props} />
+  ),
+);
 StatusBarSection.displayName = "StatusBarSection";
 
 export const StatusBarMessage: React.FC = () => {

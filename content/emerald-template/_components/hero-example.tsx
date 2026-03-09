@@ -84,8 +84,7 @@ export const HeroExample = () => {
 
 const samples = [
   {
-    input:
-      "Can you provide a changelog of everything shipped in Dataembed this week?",
+    input: "Can you provide a changelog of everything shipped in Dataembed this week?",
     output: {
       reasoning: [
         {
@@ -283,9 +282,7 @@ export const ExampleChat = ({ start }: { start: boolean }) => {
   const [showAnswer, setShowAnswer] = useState(false);
   const [showFooter, setShowFooter] = useState(false);
   const [currentStepIndex, setCurrentStepIndex] = useState(-1);
-  const [thinkingStartTime, setThinkingStartTime] = useState<number | null>(
-    null,
-  );
+  const [thinkingStartTime, setThinkingStartTime] = useState<number | null>(null);
   const [thinkingDuration, setThinkingDuration] = useState<number | null>(null);
   const [isThinkingComplete, setIsThinkingComplete] = useState(false);
 
@@ -407,12 +404,8 @@ export const ExampleChat = ({ start }: { start: boolean }) => {
                 exit={{ opacity: 0, y: 20 }}
               >
                 <ChainOfThought open={chainOfThoughtOpen}>
-                  <ChainOfThoughtHeader>
-                    {chainOfThoughtHeaderText}
-                  </ChainOfThoughtHeader>
-                  <ChainOfThoughtContent>
-                    {reasoningSteps}
-                  </ChainOfThoughtContent>
+                  <ChainOfThoughtHeader>{chainOfThoughtHeaderText}</ChainOfThoughtHeader>
+                  <ChainOfThoughtContent>{reasoningSteps}</ChainOfThoughtContent>
                 </ChainOfThought>
               </motion.div>
             )}
@@ -484,9 +477,7 @@ const Typewriter = ({
       if (!textContainerRef.current || finishedRef.current) return;
       if (i < splitText.length) {
         animatingRef.current = true;
-        textContainerRef.current.innerHTML = splitText
-          .slice(0, i + 1)
-          .join(splitBy);
+        textContainerRef.current.innerHTML = splitText.slice(0, i + 1).join(splitBy);
         i++;
         setTimeout(write, 25);
       } else {
@@ -501,9 +492,7 @@ const Typewriter = ({
       if (!textContainerRef.current || !finishedRef.current) return;
       if (i < splitText.length) {
         animatingRef.current = true;
-        textContainerRef.current.innerHTML = splitText
-          .slice(0, text.length - i)
-          .join(splitBy);
+        textContainerRef.current.innerHTML = splitText.slice(0, text.length - i).join(splitBy);
         i++;
         setTimeout(clear, 5);
       } else {

@@ -148,10 +148,7 @@ export const CardStack = ({ cards }: CardStackProps) => {
             href={card.href}
             target="_blank"
           >
-            <img
-              className="content h-full w-full rounded-[12px] object-cover"
-              src={card.src}
-            />
+            <img className="content h-full w-full rounded-[12px] object-cover" src={card.src} />
           </a>
         ))}
       </div>

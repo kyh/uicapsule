@@ -147,10 +147,7 @@ export const VoiceDictator: React.FC = () => {
     };
 
     const vertexShader = createShader(gl.VERTEX_SHADER, vertexShaderSource);
-    const fragmentShader = createShader(
-      gl.FRAGMENT_SHADER,
-      fragmentShaderSource,
-    );
+    const fragmentShader = createShader(gl.FRAGMENT_SHADER, fragmentShaderSource);
 
     const program = gl.createProgram();
     if (!program) throw new Error("Unable to create WebGL program");
@@ -173,9 +170,7 @@ export const VoiceDictator: React.FC = () => {
 
     const buffer = gl.createBuffer();
     gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
-    const vertices = new Float32Array([
-      -1, -1, 1, -1, -1, 1, -1, 1, 1, -1, 1, 1,
-    ]);
+    const vertices = new Float32Array([-1, -1, 1, -1, -1, 1, -1, 1, 1, -1, 1, 1]);
     gl.bufferData(gl.ARRAY_BUFFER, vertices, gl.STATIC_DRAW);
 
     const positionLocation = gl.getAttribLocation(program, "aPosition");
@@ -215,11 +210,7 @@ export const VoiceDictator: React.FC = () => {
       animationFrameRef.current = requestAnimationFrame(render);
       const resources = webglRef.current;
       if (!resources) return;
-      const {
-        gl: context,
-        program: shaderProgram,
-        uniforms: shaderUniforms,
-      } = resources;
+      const { gl: context, program: shaderProgram, uniforms: shaderUniforms } = resources;
 
       resize();
       context.useProgram(shaderProgram);
@@ -342,9 +333,7 @@ export const VoiceDictator: React.FC = () => {
       const nextWord = scriptRef.current[wordIndexRef.current];
       if (nextWord) {
         wordIndexRef.current += 1;
-        setTranscript((previous) =>
-          previous.length > 0 ? `${previous} ${nextWord}` : nextWord,
-        );
+        setTranscript((previous) => (previous.length > 0 ? `${previous} ${nextWord}` : nextWord));
         targetAmplitudeRef.current = 0.32 + Math.random() * 0.6;
       }
 

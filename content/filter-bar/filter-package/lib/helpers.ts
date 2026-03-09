@@ -20,27 +20,21 @@ export function getColumn<TData>(columns: Column<TData>[], id: string) {
   return column;
 }
 
-export function createNumberFilterValue(
-  values: number[] | undefined,
-): number[] {
+export function createNumberFilterValue(values: number[] | undefined): number[] {
   if (!values || values.length === 0 || values[0] === undefined) return [];
   if (values.length === 1) return [values[0]];
   if (values.length === 2) return createNumberRange(values);
   return [values[0], values[1]!];
 }
 
-export function createBigIntFilterValue(
-  values: bigint[] | undefined,
-): bigint[] {
+export function createBigIntFilterValue(values: bigint[] | undefined): bigint[] {
   if (!values || values.length === 0 || values[0] === undefined) return [];
   if (values.length === 1) return [values[0]];
   if (values.length === 2) return createBigIntRange(values);
   throw new Error("Cannot create bigint filter value from more than 2 values");
 }
 
-export function createDateFilterValue(
-  values: [Date, Date] | [Date] | [] | undefined,
-) {
+export function createDateFilterValue(values: [Date, Date] | [Date] | [] | undefined) {
   if (!values || values.length === 0) return [];
   if (values.length === 1) return [values[0]];
   if (values.length === 2) return createDateRange(values);
@@ -89,12 +83,7 @@ export function createBigIntRange(values: bigint[] | undefined) {
 }
 
 export function isColumnOption(value: unknown): value is ColumnOption {
-  return (
-    typeof value === "object" &&
-    value !== null &&
-    "value" in value &&
-    "label" in value
-  );
+  return typeof value === "object" && value !== null && "value" in value && "label" in value;
 }
 
 export function isColumnOptionArray(value: unknown): value is ColumnOption[] {
@@ -105,9 +94,7 @@ export function isStringArray(value: unknown): value is string[] {
   return Array.isArray(value) && value.every((v) => typeof v === "string");
 }
 
-export function isColumnOptionMap(
-  value: unknown,
-): value is Map<string, number> {
+export function isColumnOptionMap(value: unknown): value is Map<string, number> {
   if (!(value instanceof Map)) {
     return false;
   }
@@ -193,9 +180,6 @@ export function filterRow(row: any, filters: FiltersState) {
   return true;
 }
 
-export function filterData<TData>(
-  data: TData[],
-  filters: FiltersState,
-): TData[] {
+export function filterData<TData>(data: TData[], filters: FiltersState): TData[] {
   return data.filter((row) => filterRow(row, filters));
 }

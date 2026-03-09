@@ -8,14 +8,7 @@ export type GridPatternProps = {
   squares?: number[][];
 } & React.SVGProps<SVGSVGElement>;
 
-export const GridPattern = ({
-  width,
-  height,
-  x,
-  y,
-  squares,
-  ...props
-}: GridPatternProps) => {
+export const GridPattern = ({ width, height, x, y, squares, ...props }: GridPatternProps) => {
   const patternId = useId();
 
   return (
@@ -32,12 +25,7 @@ export const GridPattern = ({
           <path d={`M.5 ${height}V.5H${width}`} fill="none" />
         </pattern>
       </defs>
-      <rect
-        width="100%"
-        height="100%"
-        strokeWidth={0}
-        fill={`url(#${patternId})`}
-      />
+      <rect width="100%" height="100%" strokeWidth={0} fill={`url(#${patternId})`} />
       {squares && (
         <svg x={x} y={y} className="overflow-visible">
           {squares.map(([x, y]) => (

@@ -155,13 +155,7 @@ export const dateFilterOperators = {
     value: "is not",
     target: "single",
     singularOf: "is not between",
-    relativeOf: [
-      "is",
-      "is before",
-      "is on or after",
-      "is after",
-      "is on or before",
-    ],
+    relativeOf: ["is", "is before", "is on or after", "is after", "is on or before"],
     isNegated: true,
     negationOf: "is",
   },
@@ -170,13 +164,7 @@ export const dateFilterOperators = {
     value: "is before",
     target: "single",
     singularOf: "is between",
-    relativeOf: [
-      "is",
-      "is not",
-      "is on or after",
-      "is after",
-      "is on or before",
-    ],
+    relativeOf: ["is", "is not", "is on or after", "is after", "is on or before"],
     isNegated: false,
     negation: "is on or after",
   },
@@ -194,13 +182,7 @@ export const dateFilterOperators = {
     value: "is after",
     target: "single",
     singularOf: "is between",
-    relativeOf: [
-      "is",
-      "is not",
-      "is before",
-      "is on or after",
-      "is on or before",
-    ],
+    relativeOf: ["is", "is not", "is before", "is on or after", "is on or before"],
     isNegated: false,
     negation: "is on or before",
   },
@@ -305,13 +287,7 @@ export const numberFilterOperators = {
     value: "is greater than or equal to",
     target: "single",
     singularOf: "is between",
-    relativeOf: [
-      "is",
-      "is not",
-      "is greater than",
-      "is less than or equal to",
-      "is less than",
-    ],
+    relativeOf: ["is", "is not", "is greater than", "is less than or equal to", "is less than"],
     isNegated: false,
     negation: "is less than or equal to",
   },
@@ -335,13 +311,7 @@ export const numberFilterOperators = {
     value: "is less than or equal to",
     target: "single",
     singularOf: "is between",
-    relativeOf: [
-      "is",
-      "is not",
-      "is greater than",
-      "is less than",
-      "is greater than or equal to",
-    ],
+    relativeOf: ["is", "is not", "is greater than", "is less than", "is greater than or equal to"],
     isNegated: false,
     negation: "is greater than or equal to",
   },
@@ -365,8 +335,7 @@ export const numberFilterOperators = {
   },
 } as const satisfies FilterDetails<"number">;
 
-export const bigIntFilterOperators =
-  numberFilterOperators satisfies FilterDetails<"bigint">;
+export const bigIntFilterOperators = numberFilterOperators satisfies FilterDetails<"bigint">;
 
 export const booleanFilterOperators = {
   is: {
@@ -417,18 +386,13 @@ export function determineNewOperator<TType extends ColumnDataType>(
   currentOperator: FilterOperators[TType],
 ): FilterOperators[TType] {
   const a =
-    Array.isArray(oldVals) && Array.isArray(oldVals[0])
-      ? oldVals[0].length
-      : oldVals.length;
+    Array.isArray(oldVals) && Array.isArray(oldVals[0]) ? oldVals[0].length : oldVals.length;
   const b =
-    Array.isArray(nextVals) && Array.isArray(nextVals[0])
-      ? nextVals[0].length
-      : nextVals.length;
+    Array.isArray(nextVals) && Array.isArray(nextVals[0]) ? nextVals[0].length : nextVals.length;
 
   // If filter size has not transitioned from single to multiple (or vice versa)
   // or is unchanged, return the current operator.
-  if (a === b || (a >= 2 && b >= 2) || (a <= 1 && b <= 1))
-    return currentOperator;
+  if (a === b || (a >= 2 && b >= 2) || (a <= 1 && b <= 1)) return currentOperator;
 
   const opDetails = filterTypeOperatorDetails[type][currentOperator];
 

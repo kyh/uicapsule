@@ -5,11 +5,7 @@ import type { ComponentProps } from "react";
 import React, { createContext, memo, useContext } from "react";
 import { useControllableState } from "@radix-ui/react-use-controllable-state";
 import { Badge } from "@repo/ui/badge";
-import {
-  Collapsible,
-  CollapsibleContent,
-  CollapsibleTrigger,
-} from "@repo/ui/collapsible";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@repo/ui/collapsible";
 import { cn } from "@repo/ui/utils";
 import { BrainIcon, DotIcon } from "lucide-react";
 
@@ -18,16 +14,12 @@ type ChainOfThoughtContextValue = {
   setIsOpen: (open: boolean) => void;
 };
 
-const ChainOfThoughtContext = createContext<ChainOfThoughtContextValue | null>(
-  null,
-);
+const ChainOfThoughtContext = createContext<ChainOfThoughtContextValue | null>(null);
 
 const useChainOfThought = () => {
   const context = useContext(ChainOfThoughtContext);
   if (!context) {
-    throw new Error(
-      "ChainOfThought components must be used within ChainOfThought",
-    );
+    throw new Error("ChainOfThought components must be used within ChainOfThought");
   }
   return context;
 };
@@ -55,10 +47,7 @@ export const ChainOfThought = memo(
 
     return (
       <ChainOfThoughtContext.Provider value={{ isOpen, setIsOpen }}>
-        <div
-          className={cn("not-prose max-w-prose space-y-4", className)}
-          {...props}
-        >
+        <div className={cn("not-prose max-w-prose space-y-4", className)} {...props}>
           {children}
         </div>
       </ChainOfThoughtContext.Provider>
@@ -66,9 +55,7 @@ export const ChainOfThought = memo(
   },
 );
 
-export type ChainOfThoughtHeaderProps = ComponentProps<
-  typeof CollapsibleTrigger
->;
+export type ChainOfThoughtHeaderProps = ComponentProps<typeof CollapsibleTrigger>;
 
 export const ChainOfThoughtHeader = memo(
   ({ className, children, ...props }: ChainOfThoughtHeaderProps) => {
@@ -84,9 +71,7 @@ export const ChainOfThoughtHeader = memo(
           {...props}
         >
           <BrainIcon className="size-4" />
-          <span className="flex-1 text-left">
-            {children ?? "Chain of Thought"}
-          </span>
+          <span className="flex-1 text-left">{children ?? "Chain of Thought"}</span>
         </CollapsibleTrigger>
       </Collapsible>
     );
@@ -132,9 +117,7 @@ export const ChainOfThoughtStep = memo(
         </div>
         <div className="flex-1 space-y-2">
           <div>{label}</div>
-          {description && (
-            <div className="text-muted-foreground text-xs">{description}</div>
-          )}
+          {description && <div className="text-muted-foreground text-xs">{description}</div>}
           {children}
         </div>
       </div>
@@ -164,9 +147,7 @@ export const ChainOfThoughtSearchResult = memo(
   ),
 );
 
-export type ChainOfThoughtContentProps = ComponentProps<
-  typeof CollapsibleContent
->;
+export type ChainOfThoughtContentProps = ComponentProps<typeof CollapsibleContent>;
 
 export const ChainOfThoughtContent = memo(
   ({ className, children, ...props }: ChainOfThoughtContentProps) => {

@@ -19,14 +19,10 @@ type ContentRendererProps = {
 
 export const ContentRenderer = ({ contentComponent }: ContentRendererProps) => {
   const [iframe, setIframe] = useState<HTMLIFrameElement | null>(null);
-  const [loadingMessage, setLoadingMessage] = useState<string | null>(
-    "initializing",
-  );
+  const [loadingMessage, setLoadingMessage] = useState<string | null>("initializing");
   const isDesktop = useMediaQuery();
 
-  const [width, setWidth] = useState(() =>
-    getInitialWidth(contentComponent.defaultSize),
-  );
+  const [width, setWidth] = useState(() => getInitialWidth(contentComponent.defaultSize));
   const [size, setSize] = useState<"mobile" | "desktop">(() =>
     getInitialSize(contentComponent.defaultSize),
   );
@@ -87,30 +83,18 @@ export const ContentRenderer = ({ contentComponent }: ContentRendererProps) => {
           {content}
         </Resizable>
       ) : (
-        <div className="relative w-[calc(100dvw-(--spacing(3)))] flex-1 pb-2">
-          {content}
-        </div>
+        <div className="relative w-[calc(100dvw-(--spacing(3)))] flex-1 pb-2">{content}</div>
       )}
       <Tabs
         className="hidden items-center md:flex"
         value={size}
-        onValueChange={(value) =>
-          handleSetWidth(value === "mobile" ? 360 : 720)
-        }
+        onValueChange={(value) => handleSetWidth(value === "mobile" ? 360 : 720)}
       >
         <TabsList>
-          <TabsTrigger
-            value="desktop"
-            className="px-2 py-2"
-            isSelected={size === "desktop"}
-          >
+          <TabsTrigger value="desktop" className="px-2 py-2" isSelected={size === "desktop"}>
             <LaptopIcon size={16} aria-hidden="true" />
           </TabsTrigger>
-          <TabsTrigger
-            value="mobile"
-            className="px-2 py-2"
-            isSelected={size === "mobile"}
-          >
+          <TabsTrigger value="mobile" className="px-2 py-2" isSelected={size === "mobile"}>
             <SmartphoneIcon size={16} aria-hidden="true" />
           </TabsTrigger>
         </TabsList>

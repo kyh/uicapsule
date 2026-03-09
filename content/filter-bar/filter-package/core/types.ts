@@ -79,10 +79,7 @@ export type ColumnDataType =
 /*
  * Represents the data type (kind) of option and multi-option columns.
  */
-export type OptionBasedColumnDataType = Extract<
-  ColumnDataType,
-  "option" | "multiOption"
->;
+export type OptionBasedColumnDataType = Extract<ColumnDataType, "option" | "multiOption">;
 
 /*
  * Maps a ColumnDataType to it's primitive type (i.e. string, number, etc.).
@@ -101,9 +98,7 @@ export type ColumnDataNativeMap = {
  * Represents the value of a column filter.
  * Contigent on the filtered column's data type.
  */
-export type FilterValues<T extends ColumnDataType> = Array<
-  ElementType<ColumnDataNativeMap[T]>
->;
+export type FilterValues<T extends ColumnDataType> = Array<ElementType<ColumnDataNativeMap[T]>>;
 
 /*
  * An accessor function for a column's data.
@@ -131,9 +126,7 @@ export type TBuiltInOrderFn = (
   direction: OrderDirection,
 ) => number;
 
-export type TOrderFnArg =
-  | [TBuiltInOrderFnName, OrderDirection]
-  | TCustomOrderFn;
+export type TOrderFnArg = [TBuiltInOrderFnName, OrderDirection] | TCustomOrderFn;
 
 /*
  * Used by `option` and `multiOption` columns.
@@ -166,54 +159,31 @@ export type ColumnConfig<
   type: TType;
   hidden?: boolean;
   options?: TType extends OptionBasedColumnDataType ? ColumnOption[] : never;
-  facetedOptions?: TType extends OptionBasedColumnDataType
-    ? Map<string, number>
-    : never;
-  min?: TType extends "number"
-    ? number
-    : TType extends "bigint"
-      ? bigint
-      : never;
-  max?: TType extends "number"
-    ? number
-    : TType extends "bigint"
-      ? bigint
-      : never;
+  facetedOptions?: TType extends OptionBasedColumnDataType ? Map<string, number> : never;
+  min?: TType extends "number" ? number : TType extends "bigint" ? bigint : never;
+  max?: TType extends "number" ? number : TType extends "bigint" ? bigint : never;
   transformValueToOptionFn?: TType extends OptionBasedColumnDataType
     ? TTransformValueToOptionFn<TVal>
     : never;
   orderFn?: TType extends OptionBasedColumnDataType ? TOrderFns : never;
-  transformOptionsFn?: TType extends OptionBasedColumnDataType
-    ? TTransformOptionsFn
-    : never;
+  transformOptionsFn?: TType extends OptionBasedColumnDataType ? TTransformOptionsFn : never;
   toggledStateName?: TType extends "boolean" ? string : never;
   meta?: ColumnMeta;
 };
 
 export type OptionColumnId<T> =
-  T extends ColumnConfig<
-    infer TData,
-    "option" | "multiOption",
-    infer TVal,
-    infer TId
-  >
+  T extends ColumnConfig<infer TData, "option" | "multiOption", infer TVal, infer TId>
     ? TId
     : never;
 
-export type OptionColumnIds<
-  T extends ReadonlyArray<ColumnConfig<any, any, any, any>>,
-> = {
+export type OptionColumnIds<T extends ReadonlyArray<ColumnConfig<any, any, any, any>>> = {
   [K in keyof T]: OptionColumnId<T[K]>;
 }[number];
 
 export type NumberColumnId<T> =
-  T extends ColumnConfig<infer TData, "number", infer TVal, infer TId>
-    ? TId
-    : never;
+  T extends ColumnConfig<infer TData, "number", infer TVal, infer TId> ? TId : never;
 
-export type NumberColumnIds<
-  T extends ReadonlyArray<ColumnConfig<any, any, any, any>>,
-> = {
+export type NumberColumnIds<T extends ReadonlyArray<ColumnConfig<any, any, any, any>>> = {
   [K in keyof T]: NumberColumnId<T[K]>;
 }[number];
 
@@ -260,11 +230,11 @@ export type ColumnPrivateProperties<TData, TVal> = {
   _prefetchedFacetedMinMaxValuesCache: [number, number] | null;
 };
 
-export type Column<
+export type Column<TData, TType extends ColumnDataType = any, TVal = unknown> = ColumnConfig<
   TData,
-  TType extends ColumnDataType = any,
-  TVal = unknown,
-> = ColumnConfig<TData, TType, TVal> &
+  TType,
+  TVal
+> &
   ColumnProperties<TData, TType, TVal> &
   ColumnPrivateProperties<TData, TVal>;
 
@@ -443,10 +413,7 @@ export type FilterDetails<T extends ColumnDataType> = {
 
 export type FilterOperatorTarget = "single" | "multiple";
 
-export type FilterOperatorDetailsBase<
-  OperatorValue,
-  T extends ColumnDataType,
-> = {
+export type FilterOperatorDetailsBase<OperatorValue, T extends ColumnDataType> = {
   /* The display text for the operator. */
   key: string;
   /* The operator value. Usually the string representation of the operator. */
@@ -506,9 +473,7 @@ export interface DataTableFiltersOptions<
   onFiltersChange?:
     | React.Dispatch<React.SetStateAction<FiltersState>>
     | FiltersStateUpdaterFn<TContext>;
-  options?: Partial<
-    Record<OptionColumnIds<TColumns>, ColumnOption[] | undefined>
-  >;
+  options?: Partial<Record<OptionColumnIds<TColumns>, ColumnOption[] | undefined>>;
   faceted?: Partial<
     | Record<OptionColumnIds<TColumns>, Map<string, number> | undefined>
     | Record<NumberColumnIds<TColumns>, [number, number] | undefined>
@@ -516,11 +481,7 @@ export interface DataTableFiltersOptions<
   entityName?: string;
 }
 
-export interface DataTableFiltersInstance<
-  TData,
-  TStrategy extends FilterStrategy,
-  TContext,
-> {
+export interface DataTableFiltersInstance<TData, TStrategy extends FilterStrategy, TContext> {
   columns: Column<TData>[];
   filters: FiltersState;
   actions: DataTableFilterActions<TContext>;

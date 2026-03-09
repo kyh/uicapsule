@@ -2,28 +2,22 @@
 
 import React, { useCallback, useEffect, useMemo, useRef } from "react";
 import { cn } from "@repo/ui/utils";
-import {
-  flexRender,
-  getCoreRowModel,
-  useReactTable,
-} from "@tanstack/react-table";
+import { flexRender, getCoreRowModel, useReactTable } from "@tanstack/react-table";
 import { useVirtualizer } from "@tanstack/react-virtual";
 
 import type { SpreadsheetRow } from "../lib/spreadsheet-store";
 import type { ColumnInfo } from "../lib/spreadsheet-utils";
 import type { ColumnDef } from "@tanstack/react-table";
 import { useSpreadsheetStore } from "../lib/spreadsheet-store";
-import {
-  createNavigationMap,
-  getColumnSizeVars,
-  getRowCells,
-} from "../lib/spreadsheet-utils";
+import { createNavigationMap, getColumnSizeVars, getRowCells } from "../lib/spreadsheet-utils";
 import { useSpreadsheetHandlers } from "../lib/use-spreadsheet-handlers";
 import { MemoizedTableBody } from "./memoized-table-body";
 import { ResizeHandle } from "./resize-handle";
 
-interface SpreadsheetProps<TRow extends SpreadsheetRow, TValue = unknown>
-  extends React.HTMLAttributes<HTMLDivElement> {
+interface SpreadsheetProps<
+  TRow extends SpreadsheetRow,
+  TValue = unknown,
+> extends React.HTMLAttributes<HTMLDivElement> {
   columns: ColumnDef<TRow, TValue>[];
   showRowNumbers?: boolean;
   renderRowNumber?: (rowIndex: number) => React.ReactNode;
@@ -49,9 +43,7 @@ function SpreadsheetInner<TRow extends SpreadsheetRow, TValue = unknown>(
   const setColumnWidths = useSpreadsheetStore((state) => state.setColumnWidths);
   const deleteRow = useSpreadsheetStore((state) => state.deleteRow);
   const dragLineVisible = useSpreadsheetStore((state) => state.dragLineVisible);
-  const setDragLineVisible = useSpreadsheetStore(
-    (state) => state.setDragLineVisible,
-  );
+  const setDragLineVisible = useSpreadsheetStore((state) => state.setDragLineVisible);
 
   const tableContainerRef = useRef<HTMLDivElement>(null);
   const dragLineRef = useRef<HTMLDivElement>(null);
@@ -81,16 +73,14 @@ function SpreadsheetInner<TRow extends SpreadsheetRow, TValue = unknown>(
     return new Map();
   }, [data, columnMeta]);
 
-  const columnSizeVars = useMemo(
-    () => getColumnSizeVars(columnWidths),
-    [columnWidths],
-  );
+  const columnSizeVars = useMemo(() => getColumnSizeVars(columnWidths), [columnWidths]);
 
-  const { handleMouseDown, handleMouseMove, handleMouseUp, handleKeyDown } =
-    useSpreadsheetHandlers({
+  const { handleMouseDown, handleMouseMove, handleMouseUp, handleKeyDown } = useSpreadsheetHandlers(
+    {
       columns: columnMeta,
       navigationMap,
-    });
+    },
+  );
 
   const handleColumnResize = useCallback(
     (columnId: string, width: number) => {
@@ -131,11 +121,7 @@ function SpreadsheetInner<TRow extends SpreadsheetRow, TValue = unknown>(
   return (
     <div
       ref={ref}
-      className={cn(
-        "relative flex flex-col",
-        isDragging && "select-none",
-        className,
-      )}
+      className={cn("relative flex flex-col", isDragging && "select-none", className)}
       style={{ ...columnSizeVars, ...style }}
       tabIndex={0}
       onKeyDown={handleKeyDown}

@@ -35,10 +35,8 @@ function deepHash(value: any, cache = new WeakMap<object, string>()): string {
       hash = `array:[${value.map((v) => deepHash(v, cache)).join(",")}]`;
     } else {
       // For objects, sort keys to ensure the representation is stable.
-      const keys = Object.keys(value).sort();
-      const props = keys
-        .map((k) => `${k}:${deepHash(value[k], cache)}`)
-        .join(",");
+      const keys = Object.keys(value).toSorted();
+      const props = keys.map((k) => `${k}:${deepHash(value[k], cache)}`).join(",");
       hash = `object:{${props}}`;
     }
     cache.set(value, hash);
@@ -58,8 +56,7 @@ function deepEqual(a: any, b: any): boolean {
   if (a === b) return true;
   // If types differ, they’re not equal.
   if (typeof a !== typeof b) return false;
-  if (a === null || b === null || a === undefined || b === undefined)
-    return false;
+  if (a === null || b === null || a === undefined || b === undefined) return false;
 
   // Check arrays.
   if (Array.isArray(a)) {
@@ -73,8 +70,8 @@ function deepEqual(a: any, b: any): boolean {
   // Check objects.
   if (typeof a === "object") {
     if (typeof b !== "object") return false;
-    const aKeys = Object.keys(a).sort();
-    const bKeys = Object.keys(b).sort();
+    const aKeys = Object.keys(a).toSorted();
+    const bKeys = Object.keys(b).toSorted();
     if (aKeys.length !== bKeys.length) return false;
     for (let i = 0; i < aKeys.length; i++) {
       if (aKeys[i] !== bKeys[i]) return false;
@@ -175,9 +172,7 @@ export function max(values: readonly number[]): number;
  * max([])           // => -Infinity
  */
 export function max(values: readonly bigint[]): bigint;
-export function max(
-  values: readonly number[] | readonly bigint[],
-): number | bigint {
+export function max(values: readonly number[] | readonly bigint[]): number | bigint {
   let found = false;
 
   // Check if we're dealing with numbers or bigints by looking at the first valid value
@@ -248,9 +243,7 @@ export function min(values: readonly number[]): number;
  * min([])           // => Infinity
  */
 export function min(values: readonly bigint[]): bigint;
-export function min(
-  values: readonly number[] | readonly bigint[],
-): number | bigint {
+export function min(values: readonly number[] | readonly bigint[]): number | bigint {
   let found = false;
 
   // Check if we're dealing with numbers or bigints by looking at the first valid value
@@ -355,9 +348,7 @@ export function minMax(
       }
     }
 
-    return found
-      ? [minVal, maxVal]
-      : [Number.POSITIVE_INFINITY, Number.NEGATIVE_INFINITY];
+    return found ? [minVal, maxVal] : [Number.POSITIVE_INFINITY, Number.NEGATIVE_INFINITY];
   }
 
   // BigInt array

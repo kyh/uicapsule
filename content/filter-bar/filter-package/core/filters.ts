@@ -41,12 +41,7 @@ export const filterOperations: FilterOperations = {
 
       const oldValues = filter.values;
       const newValues = addUniq(filter.values, values);
-      const newOperator = determineNewOperator(
-        "option",
-        oldValues,
-        newValues,
-        filter.operator,
-      );
+      const newOperator = determineNewOperator("option", oldValues, newValues, filter.operator);
 
       return filters.map((f) =>
         f.columnId === column.id
@@ -104,9 +99,7 @@ export const filterOperations: FilterOperations = {
       );
     }
 
-    throw new Error(
-      "[data-table-filter] addFilterValue() is only supported for option columns",
-    );
+    throw new Error("[data-table-filter] addFilterValue() is only supported for option columns");
   },
 
   removeFilterValue<TData, TType extends OptionBasedColumnDataType>(
@@ -124,12 +117,7 @@ export const filterOperations: FilterOperations = {
 
       const newValues = removeUniq(filter.values, value);
       const oldValues = filter.values;
-      const newOperator = determineNewOperator(
-        column.type,
-        oldValues,
-        newValues,
-        filter.operator,
-      );
+      const newOperator = determineNewOperator(column.type, oldValues, newValues, filter.operator);
 
       if (newValues.length === 0) {
         return filters.filter((f) => f.columnId !== column.id);
@@ -147,9 +135,7 @@ export const filterOperations: FilterOperations = {
       );
     }
 
-    throw new Error(
-      "[data-table-filter] removeFilterValue() is only supported for option columns",
-    );
+    throw new Error("[data-table-filter] removeFilterValue() is only supported for option columns");
   },
 
   setFilterValue<TData, TType extends ColumnDataType>(
@@ -166,9 +152,7 @@ export const filterOperations: FilterOperations = {
         : column.type === "bigint"
           ? createBigIntFilterValue(values as bigint[])
           : column.type === "date"
-            ? createDateFilterValue(
-                values as [Date, Date] | [Date] | [] | undefined,
-              )
+            ? createDateFilterValue(values as [Date, Date] | [Date] | [] | undefined)
             : uniq(values);
 
     if (newValues.length === 0) return filters;
@@ -189,12 +173,7 @@ export const filterOperations: FilterOperations = {
     }
 
     const oldValues = filter.values;
-    const newOperator = determineNewOperator(
-      column.type,
-      oldValues,
-      newValues,
-      filter.operator,
-    );
+    const newOperator = determineNewOperator(column.type, oldValues, newValues, filter.operator);
 
     const newFilter = {
       columnId: column.id,
@@ -211,9 +190,7 @@ export const filterOperations: FilterOperations = {
     columnId: string,
     operator: FilterModel<TType>["operator"],
   ): FiltersState {
-    return filters.map((f) =>
-      f.columnId === columnId ? { ...f, operator } : f,
-    );
+    return filters.map((f) => (f.columnId === columnId ? { ...f, operator } : f));
   },
 
   removeFilter(filters: FiltersState, columnId: string): FiltersState {

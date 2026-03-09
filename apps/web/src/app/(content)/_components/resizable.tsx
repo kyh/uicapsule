@@ -44,13 +44,9 @@ export const Resizable = ({
       const deltaX = e.clientX - dragState.startX;
       const symmetricalDelta = deltaX * 2;
 
-      const adjustedDelta =
-        dragState.dragHandle === "left" ? -symmetricalDelta : symmetricalDelta;
+      const adjustedDelta = dragState.dragHandle === "left" ? -symmetricalDelta : symmetricalDelta;
 
-      const newWidth = Math.max(
-        minWidth,
-        Math.min(maxWidth, dragState.startWidth + adjustedDelta),
-      );
+      const newWidth = Math.max(minWidth, Math.min(maxWidth, dragState.startWidth + adjustedDelta));
 
       setWidth(newWidth);
       onResize?.(newWidth);

@@ -226,8 +226,7 @@ export const ImageCarousel = ({
 
         // Apply entrance animation
         groupRef.current.rotation.y =
-          initialRotation.current +
-          (rotationRef.current - initialRotation.current) * easedProgress;
+          initialRotation.current + (rotationRef.current - initialRotation.current) * easedProgress;
 
         // Set opacity for fade-in effect
         groupRef.current.children.forEach((child: any) => {
@@ -263,8 +262,7 @@ export const ImageCarousel = ({
 
         // Simple and reliable snapping logic
         const currentAngle = -currentRotation; // Convert back to positive angle
-        const normalizedAngle =
-          ((currentAngle % (Math.PI * 2)) + Math.PI * 2) % (Math.PI * 2);
+        const normalizedAngle = ((currentAngle % (Math.PI * 2)) + Math.PI * 2) % (Math.PI * 2);
 
         // Find which image we're closest to
         const imageFloat = normalizedAngle / anglePerImage;
@@ -322,10 +320,8 @@ export const ImageCarousel = ({
       // Update current index based on rotation
       const anglePerImage = (Math.PI * 2) / images.length;
       const currentAngle = -rotationRef.current;
-      const normalizedAngle =
-        ((currentAngle % (Math.PI * 2)) + Math.PI * 2) % (Math.PI * 2);
-      const newIndex =
-        Math.round(normalizedAngle / anglePerImage) % images.length;
+      const normalizedAngle = ((currentAngle % (Math.PI * 2)) + Math.PI * 2) % (Math.PI * 2);
+      const newIndex = Math.round(normalizedAngle / anglePerImage) % images.length;
 
       if (newIndex !== currentIndex) {
         setCurrentIndex(newIndex);
@@ -423,13 +419,7 @@ export const ImageCarousel = ({
       material.side = DoubleSide;
 
       return material;
-    }, [
-      imageTexture,
-      cornerRadius,
-      bendAmount,
-      planeWidth,
-      planeHeightForImage,
-    ]);
+    }, [imageTexture, bendAmount, planeWidth, planeHeightForImage]);
 
     // Update opacity based on position
     roundedCornersMaterial.opacity = getOpacity();
@@ -440,11 +430,7 @@ export const ImageCarousel = ({
     }
 
     return (
-      <mesh
-        ref={meshRef}
-        position={[x, 0, z]}
-        material={roundedCornersMaterial}
-      >
+      <mesh ref={meshRef} position={[x, 0, z]} material={roundedCornersMaterial}>
         <planeGeometry args={[planeWidth, planeHeightForImage, 32, 32]} />
       </mesh>
     );

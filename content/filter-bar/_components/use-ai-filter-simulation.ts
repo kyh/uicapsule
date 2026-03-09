@@ -41,10 +41,7 @@ type UseAiFilterSimulationParams = {
   actions: DataTableFilterActions;
 };
 
-export const useAiFilterSimulation = ({
-  columns,
-  actions,
-}: UseAiFilterSimulationParams) => {
+export const useAiFilterSimulation = ({ columns, actions }: UseAiFilterSimulationParams) => {
   const batchResultsRef = useRef<
     {
       column: Column<any>;

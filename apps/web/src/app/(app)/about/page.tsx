@@ -8,9 +8,8 @@ const Page = () => {
       </h1>
       <div className="text-muted-foreground flex flex-col gap-4 border-t pt-4 leading-relaxed">
         <p>
-          Over the years I've built and collected UI pieces that are
-          thoughtfully crafted, interactive concepts that feel natural, and
-          creative design experiments.
+          Over the years I've built and collected UI pieces that are thoughtfully crafted,
+          interactive concepts that feel natural, and creative design experiments.
         </p>
         <p>This is that collection as open source, copy paste-able code.</p>
         <Signature className="text-foreground/50 mt-5 w-36" />

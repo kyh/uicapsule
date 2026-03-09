@@ -1,27 +1,15 @@
 import type { Column, FilterModel, FiltersState } from "../../core/types";
 import type { ColumnDef, ColumnFiltersState } from "@tanstack/react-table";
 import { multiOptionFilterFn, optionFilterFn } from "../../lib/filter-fns";
-import {
-  isColumnOption,
-  isColumnOptionArray,
-  isStringArray,
-} from "../../lib/helpers";
-import {
-  booleanFilterFn,
-  dateFilterFn,
-  numberFilterFn,
-  textFilterFn,
-} from "./filter-fns";
+import { isColumnOption, isColumnOptionArray, isStringArray } from "../../lib/helpers";
+import { booleanFilterFn, dateFilterFn, numberFilterFn, textFilterFn } from "./filter-fns";
 
 interface CreateTSTColumns<TData> {
   columns: ColumnDef<TData, any>[];
   configs: Column<TData>[];
 }
 
-export function createTSTColumns<TData>({
-  columns,
-  configs,
-}: CreateTSTColumns<TData>) {
+export function createTSTColumns<TData>({ columns, configs }: CreateTSTColumns<TData>) {
   const _cols: ColumnDef<TData>[] = [];
 
   for (const col of columns) {
@@ -79,11 +67,7 @@ export function createTSTColumns<TData>({
     }
 
     if (config.type === "multiOption") {
-      col.filterFn = (
-        row,
-        columnId,
-        filterValue: FilterModel<"multiOption">,
-      ) => {
+      col.filterFn = (row, columnId, filterValue: FilterModel<"multiOption">) => {
         const value = row.getValue(columnId);
 
         if (!value) return false;
@@ -99,9 +83,7 @@ export function createTSTColumns<TData>({
           );
         }
 
-        const sanitizedValue = (value as never[]).map((v) =>
-          config.transformValueToOptionFn!(v),
-        );
+        const sanitizedValue = (value as never[]).map((v) => config.transformValueToOptionFn!(v));
 
         return multiOptionFilterFn(
           sanitizedValue.map((v) => v.value),

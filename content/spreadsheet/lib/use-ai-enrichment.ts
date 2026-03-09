@@ -20,29 +20,11 @@ type CustomUIMessage = UIMessage<
 const generateFakeValue = (columnId: string): string => {
   const fakeData: Record<string, () => string> = {
     firstName: () => {
-      const names = [
-        "John",
-        "Jane",
-        "Michael",
-        "Sarah",
-        "David",
-        "Emily",
-        "James",
-        "Emma",
-      ];
+      const names = ["John", "Jane", "Michael", "Sarah", "David", "Emily", "James", "Emma"];
       return names[Math.floor(Math.random() * names.length)];
     },
     lastName: () => {
-      const names = [
-        "Smith",
-        "Johnson",
-        "Williams",
-        "Brown",
-        "Jones",
-        "Garcia",
-        "Miller",
-        "Davis",
-      ];
+      const names = ["Smith", "Johnson", "Williams", "Brown", "Jones", "Garcia", "Miller", "Davis"];
       return names[Math.floor(Math.random() * names.length)];
     },
     email: () => {
@@ -83,7 +65,7 @@ const createTransport = () => {
     async *mockResponse() {
       const store = useSpreadsheetStore.getState();
       const { selectedCells } = store;
-      const cells = Array.from(selectedCells).sort(() => Math.random() - 0.5);
+      const cells = Array.from(selectedCells).toSorted(() => Math.random() - 0.5);
 
       for (const cellKey of cells) {
         const [rowId, columnId] = cellKey.split(":");

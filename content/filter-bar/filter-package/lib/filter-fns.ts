@@ -1,21 +1,11 @@
-import {
-  endOfDay,
-  isAfter,
-  isBefore,
-  isSameDay,
-  isWithinInterval,
-  startOfDay,
-} from "date-fns";
+import { endOfDay, isAfter, isBefore, isSameDay, isWithinInterval, startOfDay } from "date-fns";
 
 import type { FilterModel } from "../core/types";
 import { dateFilterOperators } from "../core/operators";
 import { intersection } from "./array";
 import { getValidBigInt, getValidNumber, isValidNumber } from "./helpers";
 
-export function optionFilterFn(
-  inputData: string,
-  filterValue: FilterModel<"option">,
-) {
+export function optionFilterFn(inputData: string, filterValue: FilterModel<"option">) {
   if (!inputData) return false;
   if (filterValue.values.length === 0) return true;
 
@@ -33,10 +23,7 @@ export function optionFilterFn(
   }
 }
 
-export function multiOptionFilterFn(
-  inputData: string[],
-  filterValue: FilterModel<"multiOption">,
-) {
+export function multiOptionFilterFn(inputData: string[], filterValue: FilterModel<"multiOption">) {
   if (!inputData) return false;
 
   if (
@@ -60,16 +47,11 @@ export function multiOptionFilterFn(
     case "include all of":
       return intersection(values, filterValues).length === filterValues.length;
     case "exclude if all":
-      return !(
-        intersection(values, filterValues).length === filterValues.length
-      );
+      return !(intersection(values, filterValues).length === filterValues.length);
   }
 }
 
-export function dateFilterFn(
-  inputData: Date,
-  filterValue: FilterModel<"date">,
-) {
+export function dateFilterFn(inputData: Date, filterValue: FilterModel<"date">) {
   if (!filterValue || filterValue.values.length === 0) return true;
 
   if (
@@ -78,10 +60,7 @@ export function dateFilterFn(
   )
     throw new Error("Singular operators require at most one filter value");
 
-  if (
-    filterValue.operator in ["is between", "is not between"] &&
-    filterValue.values.length !== 2
-  )
+  if (filterValue.operator in ["is between", "is not between"] && filterValue.values.length !== 2)
     throw new Error("Plural operators require two filter values");
 
   const filterVals = filterValue.values;
@@ -116,10 +95,7 @@ export function dateFilterFn(
   }
 }
 
-export function textFilterFn(
-  inputData: string,
-  filterValue: FilterModel<"text">,
-) {
+export function textFilterFn(inputData: string, filterValue: FilterModel<"text">) {
   if (!filterValue || filterValue.values.length === 0) return true;
 
   const value = inputData.toLowerCase().trim();
@@ -137,10 +113,7 @@ export function textFilterFn(
   }
 }
 
-export function numberFilterFn(
-  inputData: number,
-  filterValue: FilterModel<"number">,
-): boolean {
+export function numberFilterFn(inputData: number, filterValue: FilterModel<"number">): boolean {
   // Early exit conditions
   if (!filterValue || !filterValue.values || filterValue.values.length === 0) {
     return true;
@@ -174,20 +147,17 @@ export function numberFilterFn(
       return value > filterVal;
 
     case "is greater than or equal to":
-      if (filterVal === Number.POSITIVE_INFINITY)
-        return value === Number.POSITIVE_INFINITY; // Only Infinity >= Infinity
+      if (filterVal === Number.POSITIVE_INFINITY) return value === Number.POSITIVE_INFINITY; // Only Infinity >= Infinity
       if (filterVal === Number.NEGATIVE_INFINITY) return true; // Everything >= -Infinity
       return value >= filterVal;
 
     case "is less than":
       if (filterVal === Number.NEGATIVE_INFINITY) return false; // Nothing is less than -Infinity
-      if (filterVal === Number.POSITIVE_INFINITY)
-        return value !== Number.POSITIVE_INFINITY; // Everything except Infinity < Infinity
+      if (filterVal === Number.POSITIVE_INFINITY) return value !== Number.POSITIVE_INFINITY; // Everything except Infinity < Infinity
       return value < filterVal;
 
     case "is less than or equal to":
-      if (filterVal === Number.NEGATIVE_INFINITY)
-        return value === Number.NEGATIVE_INFINITY; // Only -Infinity <= -Infinity
+      if (filterVal === Number.NEGATIVE_INFINITY) return value === Number.NEGATIVE_INFINITY; // Only -Infinity <= -Infinity
       if (filterVal === Number.POSITIVE_INFINITY) return true; // Everything <= Infinity
       return value <= filterVal;
 
@@ -205,16 +175,10 @@ export function numberFilterFn(
       const actualUpper = Math.max(lowerBound, upperBound);
 
       // Special handling for infinite bounds
-      if (
-        actualLower === Number.NEGATIVE_INFINITY &&
-        actualUpper === Number.POSITIVE_INFINITY
-      ) {
+      if (actualLower === Number.NEGATIVE_INFINITY && actualUpper === Number.POSITIVE_INFINITY) {
         return true; // Everything is between -∞ and +∞
       }
-      if (
-        actualLower === Number.POSITIVE_INFINITY ||
-        actualUpper === Number.NEGATIVE_INFINITY
-      ) {
+      if (actualLower === Number.POSITIVE_INFINITY || actualUpper === Number.NEGATIVE_INFINITY) {
         return false; // Invalid range
       }
 
@@ -235,16 +199,10 @@ export function numberFilterFn(
       const actualUpper = Math.max(lowerBound, upperBound);
 
       // Special handling for infinite bounds
-      if (
-        actualLower === Number.NEGATIVE_INFINITY &&
-        actualUpper === Number.POSITIVE_INFINITY
-      ) {
+      if (actualLower === Number.NEGATIVE_INFINITY && actualUpper === Number.POSITIVE_INFINITY) {
         return false; // Nothing is outside -∞ to +∞
       }
-      if (
-        actualLower === Number.POSITIVE_INFINITY ||
-        actualUpper === Number.NEGATIVE_INFINITY
-      ) {
+      if (actualLower === Number.POSITIVE_INFINITY || actualUpper === Number.NEGATIVE_INFINITY) {
         return true; // Invalid range means everything is "not between"
       }
 
@@ -256,10 +214,7 @@ export function numberFilterFn(
   }
 }
 
-export function bigIntFilterFn(
-  inputData: bigint,
-  filterValue: FilterModel<"bigint">,
-): boolean {
+export function bigIntFilterFn(inputData: bigint, filterValue: FilterModel<"bigint">): boolean {
   // Early exit conditions
   if (!filterValue || !filterValue.values || filterValue.values.length === 0) {
     return true;
@@ -328,10 +283,7 @@ export function bigIntFilterFn(
   }
 }
 
-export function booleanFilterFn(
-  inputData: boolean,
-  filterValue: FilterModel<"boolean">,
-) {
+export function booleanFilterFn(inputData: boolean, filterValue: FilterModel<"boolean">) {
   if (!filterValue || filterValue.values.length === 0) return true;
 
   if (filterValue.values.some((v) => typeof v === "undefined"))

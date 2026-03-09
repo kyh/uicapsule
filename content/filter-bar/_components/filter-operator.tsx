@@ -55,9 +55,7 @@ export function FilterOperator<TData, TType extends ColumnDataType>({
             if (column.type !== "boolean") return;
             e.preventDefault();
             const opDetails =
-              filterTypeOperatorDetails.boolean[
-                filter.operator as FilterOperators["boolean"]
-              ];
+              filterTypeOperatorDetails.boolean[filter.operator as FilterOperators["boolean"]];
 
             actions.setFilterOperator(
               column.id,
@@ -225,10 +223,7 @@ function FilterOperatorMultiOptionController<TData>({
   );
 
   const changeOperator = (value: string) => {
-    actions?.setFilterOperator(
-      column.id,
-      value as FilterOperators["multiOption"],
-    );
+    actions?.setFilterOperator(column.id, value as FilterOperators["multiOption"]);
     closeController();
   };
 
@@ -326,11 +321,7 @@ function FilterOperatorNumberController<TData>({
     <div>
       <CommandGroup heading="operators">
         {relatedFilters.map((r) => (
-          <CommandItem
-            onSelect={() => changeOperator(r.value)}
-            value={r.value}
-            key={r.value}
-          >
+          <CommandItem onSelect={() => changeOperator(r.value)} value={r.value} key={r.value}>
             {r.key}
           </CommandItem>
         ))}
@@ -360,11 +351,7 @@ function FilterOperatorBooleanController<TData>({
     <div>
       <CommandGroup heading="operators">
         {relatedFilters.map((r) => (
-          <CommandItem
-            onSelect={() => changeOperator(r.value)}
-            value={r.value}
-            key={r.value}
-          >
+          <CommandItem onSelect={() => changeOperator(r.value)} value={r.value} key={r.value}>
             {r.key}
           </CommandItem>
         ))}

@@ -111,11 +111,7 @@ export function ActiveFilter<TData, TType extends ColumnDataType>({
   );
 }
 
-export function ActiveFiltersMobileContainer({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+export function ActiveFiltersMobileContainer({ children }: { children: React.ReactNode }) {
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const [showLeftBlur, setShowLeftBlur] = useState(false);
   const [showRightBlur, setShowRightBlur] = useState(true);
@@ -123,8 +119,7 @@ export function ActiveFiltersMobileContainer({
   // Check if there's content to scroll and update blur states
   const checkScroll = () => {
     if (scrollContainerRef.current) {
-      const { scrollLeft, scrollWidth, clientWidth } =
-        scrollContainerRef.current;
+      const { scrollLeft, scrollWidth, clientWidth } = scrollContainerRef.current;
 
       // Show left blur if scrolled to the right
       setShowLeftBlur(scrollLeft > 0);

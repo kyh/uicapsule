@@ -46,9 +46,7 @@ export const Footer = () => {
         </div>
         <div className="flex flex-col justify-between gap-5 border-t border-white/10 py-8 md:flex-row">
           <div className="w-full md:w-[30%]">
-            <p>
-              Subscribe to receive our latest updates right to your inbox 🚀
-            </p>
+            <p>Subscribe to receive our latest updates right to your inbox 🚀</p>
           </div>
           <div className="flex items-center gap-2 md:ml-auto">
             <WaitlistForm />

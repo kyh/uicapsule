@@ -2,18 +2,14 @@ import { create } from "zustand";
 
 export type SpreadsheetRow = Record<string, any>;
 
-export interface SpreadsheetStore<
-  TRow extends SpreadsheetRow = SpreadsheetRow,
-> {
+export interface SpreadsheetStore<TRow extends SpreadsheetRow = SpreadsheetRow> {
   // Data state
   data: TRow[];
   setData: (data: TRow[] | ((prev: TRow[]) => TRow[])) => void;
 
   // Selection state
   selectedCells: Set<string>;
-  setSelectedCells: (
-    cells: Set<string> | ((prev: Set<string>) => Set<string>),
-  ) => void;
+  setSelectedCells: (cells: Set<string> | ((prev: Set<string>) => Set<string>)) => void;
 
   // Editing state
   editingCell: { rowId: string; columnId: string } | null;
@@ -28,9 +24,7 @@ export interface SpreadsheetStore<
   // Column widths
   columnWidths: Record<string, number>;
   setColumnWidths: (
-    widths:
-      | Record<string, number>
-      | ((prev: Record<string, number>) => Record<string, number>),
+    widths: Record<string, number> | ((prev: Record<string, number>) => Record<string, number>),
   ) => void;
 
   // Drag line
@@ -42,11 +36,7 @@ export interface SpreadsheetStore<
   updateSelectedCellsData: (
     value:
       | unknown
-      | ((options: {
-          row: SpreadsheetRow;
-          columnId: string;
-          currentValue: unknown;
-        }) => unknown),
+      | ((options: { row: SpreadsheetRow; columnId: string; currentValue: unknown }) => unknown),
   ) => void;
   addRow: (onCreateRow?: (rowIndex: number) => TRow) => void;
   deleteRow: (rowId: string, onDeleteRow?: (rowId: string) => void) => void;
@@ -71,8 +61,7 @@ export const useSpreadsheetStore = create<SpreadsheetStore>((set, get) => ({
 
   setSelectedCells: (cells) => {
     set((state) => ({
-      selectedCells:
-        typeof cells === "function" ? cells(state.selectedCells) : cells,
+      selectedCells: typeof cells === "function" ? cells(state.selectedCells) : cells,
     }));
   },
 
@@ -82,8 +71,7 @@ export const useSpreadsheetStore = create<SpreadsheetStore>((set, get) => ({
 
   setColumnWidths: (widths) => {
     set((state) => ({
-      columnWidths:
-        typeof widths === "function" ? widths(state.columnWidths) : widths,
+      columnWidths: typeof widths === "function" ? widths(state.columnWidths) : widths,
     }));
   },
 
@@ -140,8 +128,7 @@ export const useSpreadsheetStore = create<SpreadsheetStore>((set, get) => ({
 
   addRow: (onCreateRow) => {
     set((state) => {
-      const nextRow =
-        onCreateRow?.(state.data.length) ?? ({} as SpreadsheetRow);
+      const nextRow = onCreateRow?.(state.data.length) ?? ({} as SpreadsheetRow);
       return { data: [...state.data, nextRow] };
     });
   },

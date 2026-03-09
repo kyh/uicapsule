@@ -14,11 +14,7 @@ import {
   RiReactjsLine,
 } from "@remixicon/react";
 import { Button } from "@repo/ui/button";
-import {
-  CodeBlock,
-  CodeBlockCopyButton,
-  extensionToLanguageMap,
-} from "@repo/ui/code-block";
+import { CodeBlock, CodeBlockCopyButton, extensionToLanguageMap } from "@repo/ui/code-block";
 import { toast } from "@repo/ui/toast";
 import { Tree, TreeItem, TreeItemLabel } from "@repo/ui/tree";
 import { cn } from "@repo/ui/utils";
@@ -42,10 +38,7 @@ const getLanguageFromPath = (path: string): BundledLanguage => {
   return extensionToLanguageMap[ext ?? ""] ?? ("txt" as BundledLanguage);
 };
 
-function getFileIcon(
-  extension: string | undefined,
-  className: string,
-): ReactNode {
+function getFileIcon(extension: string | undefined, className: string): ReactNode {
   switch (extension) {
     case "tsx":
     case "jsx":
@@ -69,18 +62,14 @@ function getFileIcon(
 }
 
 // Convert sourceCode record into a tree structure
-const buildFileTree = (
-  files: Record<string, { code: string }>,
-): Record<string, Item> => {
+const buildFileTree = (files: Record<string, { code: string }>): Record<string, Item> => {
   const tree: Record<string, Item> = {};
   const rootChildren = new Set<string>();
 
   // Process each file path
   for (const filePath of Object.keys(files)) {
     // Normalize path: remove leading slash and split into parts
-    const normalizedPath = filePath.startsWith("/")
-      ? filePath.slice(1)
-      : filePath;
+    const normalizedPath = filePath.startsWith("/") ? filePath.slice(1) : filePath;
     const parts = normalizedPath.split("/").filter(Boolean);
 
     if (parts.length === 0) continue;
@@ -143,10 +132,7 @@ export const CodePreview = ({ contentComponent }: CodePreviewProps) => {
   const { handleMouseDown } = useResizableSidebar();
   const [selectedPath, setSelectedPath] = useState("App.tsx");
 
-  const allFiles = useMemo(
-    () => getFiles(contentComponent),
-    [contentComponent],
-  );
+  const allFiles = useMemo(() => getFiles(contentComponent), [contentComponent]);
   const items = useMemo(() => buildFileTree(allFiles), [allFiles]);
 
   const tree = useTree<Item>({
@@ -194,11 +180,7 @@ export const CodePreview = ({ contentComponent }: CodePreviewProps) => {
       style={{ gridTemplateColumns: "var(--sidebar-width, 280px) 1fr" }}
     >
       <div className="relative hidden md:flex">
-        <Tree
-          className="flex-1 overflow-auto border-r"
-          indent={INDENT}
-          tree={tree}
-        >
+        <Tree className="flex-1 overflow-auto border-r" indent={INDENT} tree={tree}>
           <AssistiveTreeDescription tree={tree} />
           {tree.getItems().map((item) => {
             const itemData = item.getItemData();
@@ -290,10 +272,7 @@ export const useResizableSidebar = ({
 
   useEffect(() => {
     // Set initial CSS variable value
-    document.documentElement.style.setProperty(
-      "--sidebar-width",
-      `${defaultWidth}px`,
-    );
+    document.documentElement.style.setProperty("--sidebar-width", `${defaultWidth}px`);
 
     const handleMouseMove = (e: MouseEvent) => {
       if (!isResizingRef.current) return;
@@ -303,10 +282,7 @@ export const useResizableSidebar = ({
       const clampedWidth = Math.min(Math.max(newWidth, minWidth), maxWidth);
 
       // Set CSS variable directly
-      document.documentElement.style.setProperty(
-        "--sidebar-width",
-        `${clampedWidth}px`,
-      );
+      document.documentElement.style.setProperty("--sidebar-width", `${clampedWidth}px`);
     };
 
     const handleMouseUp = () => {

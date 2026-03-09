@@ -1,12 +1,6 @@
 import React, { useRef, useState } from "react";
 import * as Slider from "@radix-ui/react-slider";
-import {
-  animate,
-  motion,
-  useMotionValue,
-  useMotionValueEvent,
-  useTransform,
-} from "motion/react";
+import { animate, motion, useMotionValue, useMotionValueEvent, useTransform } from "motion/react";
 
 function decay(value: number, max: number) {
   let entry = value / max;
@@ -18,9 +12,7 @@ function decay(value: number, max: number) {
 
 export function Volume() {
   const [value, setValue] = useState([0]);
-  const [position, setPosition] = useState<"top" | "middle" | "bottom">(
-    "middle",
-  );
+  const [position, setPosition] = useState<"top" | "middle" | "bottom">("middle");
 
   const clientY = useMotionValue(0);
   const y = useMotionValue(1);
@@ -60,11 +52,7 @@ export function Volume() {
           style={{
             scaleY: useTransform(() => (200 - y.get()) / 200),
             transformOrigin:
-              position === "top"
-                ? "bottom"
-                : position === "bottom"
-                  ? "bottom"
-                  : "center",
+              position === "top" ? "bottom" : position === "bottom" ? "bottom" : "center",
           }}
           onPointerMove={(events) => {
             if (events.buttons > 0) {
@@ -84,8 +72,7 @@ export function Volume() {
       <div className="flex w-96 flex-col items-center gap-1">
         <span className="text-neutral-300">value: {value[0]}</span>
         <span className="text-neutral-300">
-          y:{" "}
-          <motion.span>{useTransform(() => Math.floor(y.get()))}</motion.span>
+          y: <motion.span>{useTransform(() => Math.floor(y.get()))}</motion.span>
         </span>
       </div>
     </div>

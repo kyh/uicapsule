@@ -40,16 +40,13 @@ export const ResizeHandle = React.forwardRef<HTMLDivElement, ResizeHandleProps>(
       startXRef.current = e.clientX;
       startWidthRef.current = columnWidths[columnId];
 
-      const headerElement = e.currentTarget.closest(
-        "[data-column-id]",
-      ) as HTMLElement;
+      const headerElement = e.currentTarget.closest("[data-column-id]") as HTMLElement;
       if (headerElement) {
         const rect = headerElement.getBoundingClientRect();
         const tableRect = tableContainerRef.current?.getBoundingClientRect();
         if (tableRect) {
           columnStartXRef.current = rect.left - tableRect.left;
-          const initialDragX =
-            columnStartXRef.current + startWidthRef.current - 2; // -2px to center on the 4px wide handle
+          const initialDragX = columnStartXRef.current + startWidthRef.current - 2; // -2px to center on the 4px wide handle
           if (dragLineRef.current) {
             dragLineRef.current.style.left = `${initialDragX}px`;
           }

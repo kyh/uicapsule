@@ -10,9 +10,7 @@ import { Logo } from "./logo";
 const baseContainerClassName = "sticky top-0 z-40 w-full bg-transparent";
 
 export const Header = () => {
-  const [containerClassName, setContainerClassName] = useState(
-    baseContainerClassName,
-  );
+  const [containerClassName, setContainerClassName] = useState(baseContainerClassName);
 
   const { scrollY } = useScroll();
 

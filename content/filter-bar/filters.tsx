@@ -300,14 +300,7 @@ export const columnsConfig = [
       PERSON_SKILLS.map((s) => ({
         value: s.id,
         label: s.name,
-        icon: (
-          <div
-            className={cn(
-              "size-2.5 rounded-full",
-              LABEL_STYLES_BG[s.color as TW_COLOR],
-            )}
-          />
-        ),
+        icon: <div className={cn("size-2.5 rounded-full", LABEL_STYLES_BG[s.color as TW_COLOR])} />,
       })),
     )
     .build(),

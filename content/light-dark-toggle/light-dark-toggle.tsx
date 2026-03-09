@@ -14,12 +14,7 @@ export const LightDarkToggle = ({ isLight }: LightDarkToggleProps) => {
     >
       <mask id="moon-mask-main-nav">
         <rect x="0" y="0" width="18" height="18" fill="#FFF" />
-        <motion.circle
-          animate={{ cx: isLight ? 25 : 10 }}
-          cy="2"
-          r="8"
-          fill="black"
-        />
+        <motion.circle animate={{ cx: isLight ? 25 : 10 }} cy="2" r="8" fill="black" />
       </mask>
       <motion.circle
         cx="9"

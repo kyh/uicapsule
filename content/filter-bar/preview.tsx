@@ -12,15 +12,14 @@ const usePeopleTableFilters = createTypedDataTableFilters();
 export default function Preview() {
   const [filtersState, setFiltersState] = useState<FiltersState>([]);
 
-  const { columns, filters, actions, strategy, entityName } =
-    usePeopleTableFilters({
-      strategy: "client",
-      data: [],
-      entityName: "Person",
-      columnsConfig,
-      filters: filtersState,
-      onFiltersChange: setFiltersState,
-    });
+  const { columns, filters, actions, strategy, entityName } = usePeopleTableFilters({
+    strategy: "client",
+    data: [],
+    entityName: "Person",
+    columnsConfig,
+    filters: filtersState,
+    onFiltersChange: setFiltersState,
+  });
 
   return (
     <div className="flex h-screen items-center bg-stone-100 p-10">

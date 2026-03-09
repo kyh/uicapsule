@@ -78,13 +78,7 @@ const listsItems = [
 ];
 
 // Navigation item component
-const NavigationItem = ({
-  item,
-  isSubItem = false,
-}: {
-  item: any;
-  isSubItem?: boolean;
-}) => (
+const NavigationItem = ({ item, isSubItem = false }: { item: any; isSubItem?: boolean }) => (
   <div className="flex w-full flex-col">
     <div
       className={`flex min-w-0 items-center gap-x-1.5 rounded-[9px] px-2 py-1 transition-colors duration-500 [transition-timing-function:cubic-bezier(0.65,0,0.35,1)] ${item.isActive ? "bg-[#F4F5F6]" : ""}`}
@@ -119,13 +113,7 @@ const NavigationItem = ({
 );
 
 // Section component
-const NavigationSection = ({
-  title,
-  items,
-}: {
-  title: string;
-  items: any[];
-}) => (
+const NavigationSection = ({ title, items }: { title: string; items: any[] }) => (
   <div className="flex flex-col">
     <div className="flex min-w-0 items-center gap-x-1.5 px-2 py-1.5">
       <ChevronDown size={14} />
@@ -171,12 +159,7 @@ export const Sidebar = () => {
             ></path>
           </svg>
         </div>
-        <svg
-          width="18"
-          height="18"
-          fill="none"
-          xmlns="http://www.w3.org/2000/svg"
-        >
+        <svg width="18" height="18" fill="none" xmlns="http://www.w3.org/2000/svg">
           <g stroke="#75777C" stroke-width="1.2">
             <rect x="1.5" y="2.5" width="15" height="13" rx="3"></rect>
             <path d="M7.8 2.725v12.5"></path>

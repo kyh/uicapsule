@@ -44,47 +44,41 @@ const messages: Message[] = [
     name: "Kai",
     message:
       "Lorem ipsum dolor sit amet consectetur adipisicing elit. Tempora aperiam dignissimos iure nisi fugit eius aliquam, commodi iste placeat ducimus voluptatum, ut similique sunt corrupti fugiat itaque iusto, suscipit quae?",
-    avatar_url:
-      "https://pbs.twimg.com/profile_images/1760212439944278016/6cTEMery_400x400.jpg",
+    avatar_url: "https://pbs.twimg.com/profile_images/1760212439944278016/6cTEMery_400x400.jpg",
   },
   {
     date: "2:45 PM",
     name: "Kai",
     message:
       "Lorem ipsum dolor sit amet consectetur adipisicing elit. Tempora aperiam dignissimos iure nisi fugit eius aliquam, commodi iste placeat ducimus voluptatum, ut similique sunt corrupti fugiat itaque iusto, suscipit quae?",
-    avatar_url:
-      "https://pbs.twimg.com/profile_images/1760212439944278016/6cTEMery_400x400.jpg",
+    avatar_url: "https://pbs.twimg.com/profile_images/1760212439944278016/6cTEMery_400x400.jpg",
   },
   {
     date: "4:30 PM",
     name: "Kai",
     message:
       "Lorem ipsum dolor sit amet consectetur adipisicing elit. Tempora aperiam dignissimos iure nisi fugit eius aliquam, commodi iste placeat ducimus voluptatum, ut similique sunt corrupti fugiat itaque iusto, suscipit quae?",
-    avatar_url:
-      "https://pbs.twimg.com/profile_images/1760212439944278016/6cTEMery_400x400.jpg",
+    avatar_url: "https://pbs.twimg.com/profile_images/1760212439944278016/6cTEMery_400x400.jpg",
   },
   {
     date: "4:32 PM",
     name: "Kai",
     message:
       "Lorem ipsum dolor sit amet consectetur adipisicing elit. Tempora aperiam dignissimos iure nisi fugit eius aliquam, commodi iste placeat ducimus voluptatum, ut similique sunt corrupti fugiat itaque iusto, suscipit quae?",
-    avatar_url:
-      "https://pbs.twimg.com/profile_images/1760212439944278016/6cTEMery_400x400.jpg",
+    avatar_url: "https://pbs.twimg.com/profile_images/1760212439944278016/6cTEMery_400x400.jpg",
   },
   {
     date: "4:40 PM",
     name: "Kai",
     message:
       "Lorem ipsum dolor sit amet consectetur adipisicing elit. Tempora aperiam dignissimos iure nisi fugit eius aliquam, commodi iste placeat ducimus voluptatum, ut similique sunt corrupti fugiat itaque iusto, suscipit quae?",
-    avatar_url:
-      "https://pbs.twimg.com/profile_images/1760212439944278016/6cTEMery_400x400.jpg",
+    avatar_url: "https://pbs.twimg.com/profile_images/1760212439944278016/6cTEMery_400x400.jpg",
   },
   {
     date: "4:44 PM",
     name: "Kai",
     message:
       "Lorem ipsum dolor sit amet consectetur adipisicing elit. Tempora aperiam dignissimos iure nisi fugit eius aliquam, commodi iste placeat ducimus voluptatum, ut similique sunt corrupti fugiat itaque iusto, suscipit quae?",
-    avatar_url:
-      "https://pbs.twimg.com/profile_images/1760212439944278016/6cTEMery_400x400.jpg",
+    avatar_url: "https://pbs.twimg.com/profile_images/1760212439944278016/6cTEMery_400x400.jpg",
   },
 ];

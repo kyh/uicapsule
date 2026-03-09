@@ -41,9 +41,7 @@ export const InfiniteLooper = ({
     const instanceWidth = width / innerRef.current.children.length;
 
     if (widthDeficit) {
-      setLooperInstances(
-        looperInstances + Math.ceil(widthDeficit / instanceWidth) + 1,
-      );
+      setLooperInstances(looperInstances + Math.ceil(widthDeficit / instanceWidth) + 1);
     }
 
     resetAnimation();
@@ -60,14 +58,8 @@ export const InfiniteLooper = ({
   }, [looperInstances, setupInstances]);
 
   return (
-    <div
-      className={cn("w-full overflow-hidden", containerClassName)}
-      ref={outerRef}
-    >
-      <div
-        className={cn("flex w-fit justify-center", className)}
-        ref={innerRef}
-      >
+    <div className={cn("w-full overflow-hidden", containerClassName)} ref={outerRef}>
+      <div className={cn("flex w-fit justify-center", className)} ref={innerRef}>
         {[...Array(looperInstances)].map((_, index) => (
           <div
             key={index}

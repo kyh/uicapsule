@@ -79,9 +79,7 @@ const HomeCard = ({
       >
         <div className="flex min-w-[300px] shrink-0 flex-col gap-2 lg:gap-5">
           <h3 className="text-xl font-semibold sm:text-2xl">{title}</h3>
-          <div className="text-start text-sm text-zinc-300 sm:text-base">
-            {description}
-          </div>
+          <div className="text-start text-sm text-zinc-300 sm:text-base">{description}</div>
         </div>
         {children}
       </div>
@@ -99,12 +97,7 @@ const HomeCardDescriptionList = ({ points }: { points: React.ReactNode[] }) => (
           viewBox="0 0 24 24"
           stroke="currentColor"
         >
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            strokeWidth={2}
-            d="M5 13l4 4L19 7"
-          />
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
         </svg>
         {point}
       </li>

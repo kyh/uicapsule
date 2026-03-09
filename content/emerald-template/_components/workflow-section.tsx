@@ -131,11 +131,7 @@ const Lines = ({
         >
           <stop stopColor={"oklch(0.696 0.17 162.48)"} stopOpacity="0" />
           <stop stopColor={"oklch(0.696 0.17 162.48)"} stopOpacity="0.4" />
-          <stop
-            offset="1"
-            stopColor={"oklch(0.696 0.17 162.48)"}
-            stopOpacity="0"
-          />
+          <stop offset="1" stopColor={"oklch(0.696 0.17 162.48)"} stopOpacity="0" />
         </motion.linearGradient>
       </defs>
     </svg>
@@ -178,9 +174,7 @@ const HomeCard = ({
       >
         <div className="flex min-w-[300px] shrink-0 flex-col gap-2 lg:gap-5">
           <h3 className="text-xl font-semibold sm:text-2xl">{title}</h3>
-          <div className="text-start text-sm text-zinc-300 sm:text-base">
-            {description}
-          </div>
+          <div className="text-start text-sm text-zinc-300 sm:text-base">{description}</div>
         </div>
         {children}
       </div>
@@ -202,8 +196,7 @@ export const WorkflowSection = () => {
         return;
       }
 
-      const sourcesContainerRect =
-        sourcesContainerRef.current?.getBoundingClientRect();
+      const sourcesContainerRect = sourcesContainerRef.current?.getBoundingClientRect();
 
       const width = sourcesContainerRect?.width || 0;
       const height = sourcesContainerRect?.height || 0;
@@ -214,8 +207,7 @@ export const WorkflowSection = () => {
       });
     });
 
-    sourcesContainerRef.current &&
-      observer.observe(sourcesContainerRef.current);
+    sourcesContainerRef.current && observer.observe(sourcesContainerRef.current);
 
     return () => {
       observer.disconnect();
@@ -232,27 +224,25 @@ export const WorkflowSection = () => {
         title="Plug 'n Play"
         description={
           <ol className="ml-5 flex list-decimal flex-col gap-1">
-            {[
-              "Connect your data source",
-              "Build your app",
-              "One click deploy",
-            ].map((item, index) => {
-              return (
-                <li
-                  className="relative leading-9"
-                  onMouseEnter={() => setHighlighted(index)}
-                  key={item}
-                >
-                  {highlighted === index && (
-                    <motion.div
-                      layoutId="about-card-active"
-                      className="pointer-events-none absolute top-0 -left-7 h-full w-full rounded bg-black/50"
-                    />
-                  )}
-                  <span className="relative">{item}</span>
-                </li>
-              );
-            })}
+            {["Connect your data source", "Build your app", "One click deploy"].map(
+              (item, index) => {
+                return (
+                  <li
+                    className="relative leading-9"
+                    onMouseEnter={() => setHighlighted(index)}
+                    key={item}
+                  >
+                    {highlighted === index && (
+                      <motion.div
+                        layoutId="about-card-active"
+                        className="pointer-events-none absolute top-0 -left-7 h-full w-full rounded bg-black/50"
+                      />
+                    )}
+                    <span className="relative">{item}</span>
+                  </li>
+                );
+              },
+            )}
           </ol>
         }
       >
@@ -261,9 +251,7 @@ export const WorkflowSection = () => {
             className="max-h-[254px] transition duration-500 ease-in-out"
             style={{
               transform: `translateY(${
-                hightlightedTransform[
-                  highlighted as keyof typeof hightlightedTransform
-                ]
+                hightlightedTransform[highlighted as keyof typeof hightlightedTransform]
               }px)`,
             }}
           >

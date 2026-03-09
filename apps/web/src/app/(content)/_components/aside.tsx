@@ -38,8 +38,7 @@ type AsideProps = {
 };
 
 const Aside = ({ contentComponent }: AsideProps) => {
-  const sectionClassname =
-    "-mx-3 flex flex-col gap-2.5 border-t px-3 pt-3 pb-1";
+  const sectionClassname = "-mx-3 flex flex-col gap-2.5 border-t px-3 pt-3 pb-1";
 
   const handleInstallClick = () => {
     if (!isLocalContentComponent(contentComponent)) {
@@ -52,9 +51,7 @@ const Aside = ({ contentComponent }: AsideProps) => {
       console.error("Failed to copy command to clipboard:", err);
       toast.error("Failed to copy command to clipboard.", {
         description: (
-          <code className="bg-muted mt-1 block rounded p-2 font-[monospace]">
-            {command}
-          </code>
+          <code className="bg-muted mt-1 block rounded p-2 font-[monospace]">{command}</code>
         ),
       });
     });
@@ -66,9 +63,7 @@ const Aside = ({ contentComponent }: AsideProps) => {
       </div>,
       {
         description: (
-          <code className="bg-muted mt-1 block rounded p-2 font-[monospace]">
-            {command}
-          </code>
+          <code className="bg-muted mt-1 block rounded p-2 font-[monospace]">{command}</code>
         ),
       },
     );
@@ -87,15 +82,11 @@ const Aside = ({ contentComponent }: AsideProps) => {
       const zip = new JSZip();
 
       // Add all source files to the zip
-      Object.entries(contentComponent.sourceCode).forEach(
-        ([filePath, content]) => {
-          // Remove leading slash from filePath for cleaner zip structure
-          const cleanPath = filePath.startsWith("/")
-            ? filePath.slice(1)
-            : filePath;
-          zip.file(cleanPath, content);
-        },
-      );
+      Object.entries(contentComponent.sourceCode).forEach(([filePath, content]) => {
+        // Remove leading slash from filePath for cleaner zip structure
+        const cleanPath = filePath.startsWith("/") ? filePath.slice(1) : filePath;
+        zip.file(cleanPath, content);
+      });
 
       // Add preview.tsx if it exists
       if (contentComponent.previewCode) {
@@ -154,9 +145,7 @@ const Aside = ({ contentComponent }: AsideProps) => {
         )} */}
       </h1>
       {contentComponent.description && (
-        <p className="text-muted-foreground text-sm">
-          {contentComponent.description}
-        </p>
+        <p className="text-muted-foreground text-sm">{contentComponent.description}</p>
       )}
       {isLocalContentComponent(contentComponent) ? (
         <Drawer>
@@ -205,17 +194,11 @@ const Aside = ({ contentComponent }: AsideProps) => {
               variant="outline"
               className="w-full rounded-full shadow-none focus-visible:z-10"
             >
-              <a
-                href={contentComponent.sourceUrl}
-                target="_blank"
-                rel="noreferrer"
-              >
+              <a href={contentComponent.sourceUrl} target="_blank" rel="noreferrer">
                 View Source on GitHub
               </a>
             </Button>
-            <span className="text-muted-foreground text-center text-xs">
-              Opens in a new tab
-            </span>
+            <span className="text-muted-foreground text-center text-xs">Opens in a new tab</span>
           </div>
         )
       )}
@@ -302,10 +285,7 @@ export const ResponsiveAside = ({ contentComponent }: AsideProps) => {
         )}
       >
         <Button
-          className={cn(
-            "absolute top-4 right-8 z-10 size-5",
-            !isOpen && "pointer-events-auto",
-          )}
+          className={cn("absolute top-4 right-8 z-10 size-5", !isOpen && "pointer-events-auto")}
           variant="secondary"
           size="icon"
           onClick={() => setIsOpen((prev) => !prev)}

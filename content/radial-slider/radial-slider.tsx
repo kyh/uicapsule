@@ -1,11 +1,6 @@
 import React, { useRef, useState } from "react";
 import NumberFlow from "@number-flow/react";
-import {
-  animate,
-  motion,
-  useMotionValue,
-  useMotionValueEvent,
-} from "motion/react";
+import { animate, motion, useMotionValue, useMotionValueEvent } from "motion/react";
 
 interface RadialSliderProps {
   value: number;
@@ -13,10 +8,7 @@ interface RadialSliderProps {
   maxValue?: number;
 }
 
-export const RadialSlider = ({
-  onChange,
-  maxValue = 100,
-}: RadialSliderProps) => {
+export const RadialSlider = ({ onChange, maxValue = 100 }: RadialSliderProps) => {
   const motionX = useMotionValue(0);
   const rotate = useMotionValue(0);
   const accumulatedRotation = useRef(0);
@@ -39,8 +31,7 @@ export const RadialSlider = ({
           const snapAngle = 360 / maxValue;
           let normalizedRotation = currentRotation;
           normalizedRotation = ((normalizedRotation % 360) + 360) % 360;
-          const nearestMultiple =
-            Math.round(normalizedRotation / snapAngle) * snapAngle;
+          const nearestMultiple = Math.round(normalizedRotation / snapAngle) * snapAngle;
 
           const topIndex = (maxValue - nearestMultiple / snapAngle) % maxValue;
           onChange(Math.floor(topIndex));
@@ -51,8 +42,7 @@ export const RadialSlider = ({
           const snapAngle = 360 / maxValue;
           let normalizedRotation = currentRotation;
           normalizedRotation = ((normalizedRotation % 360) + 360) % 360;
-          const nearestMultiple =
-            Math.round(normalizedRotation / snapAngle) * snapAngle;
+          const nearestMultiple = Math.round(normalizedRotation / snapAngle) * snapAngle;
 
           const fullRotations = Math.floor(currentRotation / 360) * 360;
           const finalRotation = fullRotations + nearestMultiple;

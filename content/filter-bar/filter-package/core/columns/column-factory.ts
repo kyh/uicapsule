@@ -1,10 +1,4 @@
-import type {
-  Column,
-  ColumnConfig,
-  ColumnDataType,
-  ElementType,
-  FilterStrategy,
-} from "../types";
+import type { Column, ColumnConfig, ColumnDataType, ElementType, FilterStrategy } from "../types";
 import { memo } from "../../lib/memo";
 import { ColumnDataService } from "./column-data-service";
 
@@ -13,9 +7,7 @@ export function createColumns<TData>(
   columnConfigs: ReadonlyArray<ColumnConfig<TData, any, any, any>>,
   strategy: FilterStrategy,
 ): Column<TData>[] {
-  return columnConfigs.map((columnConfig) =>
-    createColumn(columnConfig, data, strategy),
-  );
+  return columnConfigs.map((columnConfig) => createColumn(columnConfig, data, strategy));
 }
 
 export function createColumn<TData>(
@@ -28,19 +20,11 @@ export function createColumn<TData>(
 
   // Create memoized functions
   const getValues = createMemoizedValues(columnConfig, dataService);
-  const getUniqueValues = createMemoizedUniqueValues(
-    columnConfig,
-    dataService,
-    getValues,
-  );
+  const getUniqueValues = createMemoizedUniqueValues(columnConfig, dataService, getValues);
   const getMinMaxValues = createMemoizedMinMaxValues(columnConfig, dataService);
 
   // Create the main getOptions function that handles all transforms
-  const getOptions = createMemoizedOptions(
-    columnConfig,
-    dataService,
-    getValues,
-  );
+  const getOptions = createMemoizedOptions(columnConfig, dataService, getValues);
 
   // Create the Column instance
   const column: Column<TData> = {
@@ -116,8 +100,7 @@ function createMemoizedUniqueValues<TData>(
 ) {
   return memo(
     () => [getValues(), dataService],
-    ([values, dataService]) =>
-      dataService.computeFacetedUniqueValues(columnConfig, values as any),
+    ([values, dataService]) => dataService.computeFacetedUniqueValues(columnConfig, values as any),
     { key: `faceted-${columnConfig.id}` },
   );
 }
@@ -170,8 +153,7 @@ function setupPrefetchMethods<TData>(
     if (!column._prefetchedFacetedUniqueValuesCache) {
       await new Promise((resolve) =>
         setTimeout(() => {
-          column._prefetchedFacetedUniqueValuesCache =
-            getUniqueValues() ?? null;
+          column._prefetchedFacetedUniqueValuesCache = getUniqueValues() ?? null;
           resolve(undefined);
         }, 0),
       );
@@ -182,8 +164,7 @@ function setupPrefetchMethods<TData>(
     if (!column._prefetchedFacetedMinMaxValuesCache) {
       await new Promise((resolve) =>
         setTimeout(() => {
-          column._prefetchedFacetedMinMaxValuesCache =
-            getMinMaxValues() ?? null;
+          column._prefetchedFacetedMinMaxValuesCache = getMinMaxValues() ?? null;
           resolve(undefined);
         }, 0),
       );

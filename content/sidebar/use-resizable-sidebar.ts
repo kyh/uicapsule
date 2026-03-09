@@ -30,10 +30,7 @@ export const useResizableSidebar = ({
 
   useEffect(() => {
     // Set initial CSS variable value
-    document.documentElement.style.setProperty(
-      "--sidebar-width",
-      `${defaultWidth}px`,
-    );
+    document.documentElement.style.setProperty("--sidebar-width", `${defaultWidth}px`);
 
     const handleMouseMove = (e: MouseEvent) => {
       if (!isResizingRef.current) return;
@@ -43,10 +40,7 @@ export const useResizableSidebar = ({
       const clampedWidth = Math.min(Math.max(newWidth, minWidth), maxWidth);
 
       // Set CSS variable directly
-      document.documentElement.style.setProperty(
-        "--sidebar-width",
-        `${clampedWidth}px`,
-      );
+      document.documentElement.style.setProperty("--sidebar-width", `${clampedWidth}px`);
     };
 
     const handleMouseUp = () => {

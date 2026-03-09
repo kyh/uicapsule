@@ -30,9 +30,7 @@ type TreeProps = {
 
 const Tree = ({ indent = 20, tree, className, ...props }: TreeProps) => {
   const containerProps =
-    tree && typeof tree.getContainerProps === "function"
-      ? tree.getContainerProps()
-      : {};
+    tree && typeof tree.getContainerProps === "function" ? tree.getContainerProps() : {};
   const mergedProps = { ...props, ...containerProps };
 
   // Extract style from mergedProps to merge with our custom styles
@@ -94,30 +92,16 @@ function TreeItem<T = any>({
           "z-10 ps-(--tree-padding) outline-hidden select-none not-last:pb-0.5 focus:z-20 data-[disabled]:pointer-events-none data-[disabled]:opacity-50",
           className,
         )}
-        data-focus={
-          typeof item.isFocused === "function"
-            ? item.isFocused() || false
-            : undefined
-        }
-        data-folder={
-          typeof item.isFolder === "function"
-            ? item.isFolder() || false
-            : undefined
-        }
+        data-focus={typeof item.isFocused === "function" ? item.isFocused() || false : undefined}
+        data-folder={typeof item.isFolder === "function" ? item.isFolder() || false : undefined}
         data-selected={
-          typeof item.isSelected === "function"
-            ? item.isSelected() || false
-            : undefined
+          typeof item.isSelected === "function" ? item.isSelected() || false : undefined
         }
         data-drag-target={
-          typeof item.isDragTarget === "function"
-            ? item.isDragTarget() || false
-            : undefined
+          typeof item.isDragTarget === "function" ? item.isDragTarget() || false : undefined
         }
         data-search-match={
-          typeof item.isMatchingSearch === "function"
-            ? item.isMatchingSearch() || false
-            : undefined
+          typeof item.isMatchingSearch === "function" ? item.isMatchingSearch() || false : undefined
         }
         aria-expanded={item.isExpanded()}
         {...otherProps}
@@ -158,16 +142,12 @@ function TreeItemLabel<T = any>({
       {item.isFolder() && (
         <ChevronDownIcon className="text-muted-foreground size-4 in-aria-[expanded=false]:-rotate-90" />
       )}
-      {children ||
-        (typeof item.getItemName === "function" ? item.getItemName() : null)}
+      {children || (typeof item.getItemName === "function" ? item.getItemName() : null)}
     </span>
   );
 }
 
-const TreeDragLine = ({
-  className,
-  ...props
-}: React.HTMLAttributes<HTMLDivElement>) => {
+const TreeDragLine = ({ className, ...props }: React.HTMLAttributes<HTMLDivElement>) => {
   const { tree } = useTreeContext();
 
   if (!tree || typeof tree.getDragLineStyle !== "function") {

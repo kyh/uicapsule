@@ -8,10 +8,7 @@ const FRICTION = 0.9;
 const VELOCITY_THRESHOLD = 0.3;
 
 // Custom debounce implementation
-function debounce<T extends (...args: unknown[]) => unknown>(
-  func: T,
-  wait: number,
-) {
+function debounce<T extends (...args: unknown[]) => unknown>(func: T, wait: number) {
   let timeoutId: ReturnType<typeof setTimeout> | undefined = undefined;
 
   const debouncedFn = function (...args: Parameters<T>) {
@@ -143,14 +140,10 @@ export class InfiniteGrid extends Component<InfiniteGridProps, State> {
     this.animationFrame = null;
     this.isComponentMounted = false;
     this.lastUpdateTime = 0;
-    this.debouncedUpdateGridItems = throttle(
-      this.updateGridItems,
-      UPDATE_INTERVAL,
-      {
-        leading: true,
-        trailing: true,
-      },
-    );
+    this.debouncedUpdateGridItems = throttle(this.updateGridItems, UPDATE_INTERVAL, {
+      leading: true,
+      trailing: true,
+    });
   }
 
   componentDidMount() {
@@ -162,11 +155,9 @@ export class InfiniteGrid extends Component<InfiniteGridProps, State> {
       this.containerRef.current.addEventListener("wheel", this.handleWheel, {
         passive: false,
       });
-      this.containerRef.current.addEventListener(
-        "touchmove",
-        this.handleTouchMove,
-        { passive: false },
-      );
+      this.containerRef.current.addEventListener("touchmove", this.handleTouchMove, {
+        passive: false,
+      });
     }
   }
 
@@ -180,10 +171,7 @@ export class InfiniteGrid extends Component<InfiniteGridProps, State> {
     // Remove event listeners
     if (this.containerRef.current) {
       this.containerRef.current.removeEventListener("wheel", this.handleWheel);
-      this.containerRef.current.removeEventListener(
-        "touchmove",
-        this.handleTouchMove,
-      );
+      this.containerRef.current.removeEventListener("touchmove", this.handleTouchMove);
     }
   }
 
@@ -287,9 +275,7 @@ export class InfiniteGrid extends Component<InfiniteGridProps, State> {
 
     if (deltaTime >= UPDATE_INTERVAL) {
       const { velocity } = this.state;
-      const speed = Math.sqrt(
-        velocity.x * velocity.x + velocity.y * velocity.y,
-      );
+      const speed = Math.sqrt(velocity.x * velocity.x + velocity.y * velocity.y);
 
       if (speed < MIN_VELOCITY) {
         this.setState({ velocity: { x: 0, y: 0 } });

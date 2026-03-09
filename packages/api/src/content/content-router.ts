@@ -14,117 +14,64 @@ import {
 } from "./content-schema";
 
 export const contentRouter = createTRPCRouter({
-  bySlug: publicProcedure
-    .input(getContentComponentInput)
-    .query(async ({ ctx, input }) => {
-      const row = await ctx.db.query.contentComponent.findFirst({
-        where: eq(contentComponent.slug, input.slug),
+  bySlug: publicProcedure.input(getContentComponentInput).query(async ({ ctx, input }) => {
+    const row = await ctx.db.query.contentComponent.findFirst({
+      where: eq(contentComponent.slug, input.slug),
+    });
+
+    if (!row) {
+      throw new TRPCError({
+        code: "NOT_FOUND",
+        message: `Component not found: ${input.slug}`,
       });
+    }
 
-      if (!row) {
-        throw new TRPCError({
-          code: "NOT_FOUND",
-          message: `Component not found: ${input.slug}`,
-        });
-      }
+    return mapRowToComponent(row);
+  }),
 
-      return mapRowToComponent(row);
-    }),
+  list: publicProcedure.input(getContentComponentsInput).query(async ({ ctx, input }) => {
+    const filterTags = input?.filterTags;
 
-  list: publicProcedure
-    .input(getContentComponentsInput)
-    .query(async ({ ctx, input }) => {
-      const filterTags = input?.filterTags;
-
-      if (!filterTags || filterTags.length === 0) {
-        const rows = await ctx.db.query.contentComponent.findMany({
-          orderBy: asc(contentComponent.slug),
-        });
-
-        return rows.map(mapRowToComponent);
-      }
-
-      const normalizedFilters = filterTags
-        .map((tag) => tag.trim().toLowerCase())
-        .filter(Boolean);
-
-      if (normalizedFilters.length === 0) {
-        // If all filter tags were empty/whitespace, return no results
-        return [];
-      }
-
-      // Use SQL JSON functions to filter by tags at database level
-      const tagConditions = normalizedFilters.map(
-        (tag) =>
-          sql`json_extract(${contentComponent.tags}, '$') LIKE ${`%"${tag}"%`}`,
-      );
-
+    if (!filterTags || filterTags.length === 0) {
       const rows = await ctx.db.query.contentComponent.findMany({
-        where: or(...tagConditions),
         orderBy: asc(contentComponent.slug),
       });
 
       return rows.map(mapRowToComponent);
-    }),
+    }
 
-  search: publicProcedure
-    .input(searchContentInput)
-    .query(async ({ ctx, input }) => {
-      const { query, limit } = input;
-      const normalizedQuery = query?.trim().toLowerCase();
+    const normalizedFilters = filterTags.map((tag) => tag.trim().toLowerCase()).filter(Boolean);
 
-      if (!normalizedQuery) {
-        // Return trending components when no query
-        const rows = await ctx.db.query.contentComponent.findMany({
-          orderBy: asc(contentComponent.slug),
-          limit: 8,
-        });
+    if (normalizedFilters.length === 0) {
+      // If all filter tags were empty/whitespace, return no results
+      return [];
+    }
 
-        const trending = rows.map((c) => ({
-          slug: c.slug,
-          name: c.name,
-          description: c.description ?? "",
-          tags: safeParseJson<string[]>(c.tags) ?? [],
-        }));
+    // Use SQL JSON functions to filter by tags at database level
+    const tagConditions = normalizedFilters.map(
+      (tag) => sql`json_extract(${contentComponent.tags}, '$') LIKE ${`%"${tag}"%`}`,
+    );
 
-        // Get tag counts for all components
-        const allRows = await ctx.db.query.contentComponent.findMany({
-          orderBy: asc(contentComponent.slug),
-        });
+    const rows = await ctx.db.query.contentComponent.findMany({
+      where: or(...tagConditions),
+      orderBy: asc(contentComponent.slug),
+    });
 
-        const tagCounts = allRows.reduce(
-          (acc, component) => {
-            const tags = safeParseJson<string[]>(component.tags) ?? [];
-            tags.forEach((tag) => {
-              acc[tag] = (acc[tag] ?? 0) + 1;
-            });
-            return acc;
-          },
-          {} as Record<string, number>,
-        );
+    return rows.map(mapRowToComponent);
+  }),
 
-        return {
-          components: [],
-          tagCounts,
-          trending,
-          totalMatches: 0,
-        };
-      }
+  search: publicProcedure.input(searchContentInput).query(async ({ ctx, input }) => {
+    const { query, limit } = input;
+    const normalizedQuery = query?.trim().toLowerCase();
 
-      // Use SQL LIKE for text search across name, description, and tags
-      const searchPattern = `%${normalizedQuery}%`;
-
+    if (!normalizedQuery) {
+      // Return trending components when no query
       const rows = await ctx.db.query.contentComponent.findMany({
-        where: or(
-          like(contentComponent.name, searchPattern),
-          like(contentComponent.description, searchPattern),
-          sql`json_extract(${contentComponent.tags}, '$') LIKE ${searchPattern}`,
-        ),
         orderBy: asc(contentComponent.slug),
-        limit,
+        limit: 8,
       });
 
-      const matchingComponents = rows.map((c) => ({
+      const trending = rows.map((c) => ({
         slug: c.slug,
         name: c.name,
         description: c.description ?? "",
@@ -147,26 +94,70 @@ export const contentRouter = createTRPCRouter({
         {} as Record<string, number>,
       );
 
-      // Get trending components
-      const trendingRows = await ctx.db.query.contentComponent.findMany({
-        orderBy: asc(contentComponent.slug),
-        limit: 8,
-      });
-
-      const trending = trendingRows.map((c) => ({
-        slug: c.slug,
-        name: c.name,
-        description: c.description ?? "",
-        tags: safeParseJson<string[]>(c.tags) ?? [],
-      }));
-
       return {
-        components: matchingComponents,
+        components: [],
         tagCounts,
         trending,
-        totalMatches: matchingComponents.length,
+        totalMatches: 0,
       };
-    }),
+    }
+
+    // Use SQL LIKE for text search across name, description, and tags
+    const searchPattern = `%${normalizedQuery}%`;
+
+    const rows = await ctx.db.query.contentComponent.findMany({
+      where: or(
+        like(contentComponent.name, searchPattern),
+        like(contentComponent.description, searchPattern),
+        sql`json_extract(${contentComponent.tags}, '$') LIKE ${searchPattern}`,
+      ),
+      orderBy: asc(contentComponent.slug),
+      limit,
+    });
+
+    const matchingComponents = rows.map((c) => ({
+      slug: c.slug,
+      name: c.name,
+      description: c.description ?? "",
+      tags: safeParseJson<string[]>(c.tags) ?? [],
+    }));
+
+    // Get tag counts for all components
+    const allRows = await ctx.db.query.contentComponent.findMany({
+      orderBy: asc(contentComponent.slug),
+    });
+
+    const tagCounts = allRows.reduce(
+      (acc, component) => {
+        const tags = safeParseJson<string[]>(component.tags) ?? [];
+        tags.forEach((tag) => {
+          acc[tag] = (acc[tag] ?? 0) + 1;
+        });
+        return acc;
+      },
+      {} as Record<string, number>,
+    );
+
+    // Get trending components
+    const trendingRows = await ctx.db.query.contentComponent.findMany({
+      orderBy: asc(contentComponent.slug),
+      limit: 8,
+    });
+
+    const trending = trendingRows.map((c) => ({
+      slug: c.slug,
+      name: c.name,
+      description: c.description ?? "",
+      tags: safeParseJson<string[]>(c.tags) ?? [],
+    }));
+
+    return {
+      components: matchingComponents,
+      tagCounts,
+      trending,
+      totalMatches: matchingComponents.length,
+    };
+  }),
 
   shadcnRegistry: publicProcedure.query(async ({ ctx }) => {
     const rows = await ctx.db.query.contentComponent.findMany({

@@ -49,21 +49,14 @@ export const SnailTimer = ({
           </div>
           <div className="snail-timer__dust" aria-hidden="true" />
         </div>
-        <div className="text-muted-foreground mt-1 ml-2 text-xs">
-          {seconds} seconds remaining
-        </div>
+        <div className="text-muted-foreground mt-1 ml-2 text-xs">{seconds} seconds remaining</div>
       </div>
     </div>
   );
 };
 
 const SnailSvg = () => (
-  <svg
-    xmlns="http://www.w3.org/2000/svg"
-    width="138"
-    height="67"
-    viewBox="0 0 138 67"
-  >
+  <svg xmlns="http://www.w3.org/2000/svg" width="138" height="67" viewBox="0 0 138 67">
     <g fill="none" fillRule="evenodd" transform="translate(2 2)">
       <g className="left-eye">
         <g transform="translate(0 17.101)">

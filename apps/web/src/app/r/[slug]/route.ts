@@ -11,10 +11,7 @@ export const GET = async (_: NextRequest, { params }: RegistryParams) => {
   const { slug } = await params;
 
   if (!slug.endsWith(".json")) {
-    return NextResponse.json(
-      { error: "Component must end with .json" },
-      { status: 400 },
-    );
+    return NextResponse.json({ error: "Component must end with .json" }, { status: 400 });
   }
 
   const slugWithoutExtension = slug.replace(".json", "");
@@ -33,9 +30,7 @@ export const GET = async (_: NextRequest, { params }: RegistryParams) => {
     return NextResponse.json(pkg);
   } catch (error) {
     const errorMessage =
-      slugWithoutExtension === "registry"
-        ? "Failed to get registry"
-        : "Failed to get package";
+      slugWithoutExtension === "registry" ? "Failed to get registry" : "Failed to get package";
 
     return NextResponse.json(
       {

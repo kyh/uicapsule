@@ -53,9 +53,7 @@ export const getContentComponentsInput = z
     filterTags: z.array(z.string()).optional(),
   })
   .optional();
-export type GetContentComponentsInput = z.infer<
-  typeof getContentComponentsInput
->;
+export type GetContentComponentsInput = z.infer<typeof getContentComponentsInput>;
 
 export const searchContentInput = z.object({
   query: z.string().optional(),
@@ -67,15 +65,8 @@ export type SearchContentInput = z.infer<typeof searchContentInput>;
 export type ContentComponentRow = typeof contentComponent.$inferSelect;
 
 // Validation constants
-export const VALID_DEFAULT_SIZES = new Set<ContentComponent["defaultSize"]>([
-  "full",
-  "md",
-  "sm",
-]);
-export const VALID_COVER_TYPES = new Set<ContentComponent["coverType"]>([
-  "image",
-  "video",
-]);
+export const VALID_DEFAULT_SIZES = new Set<ContentComponent["defaultSize"]>(["full", "md", "sm"]);
+export const VALID_COVER_TYPES = new Set<ContentComponent["coverType"]>(["image", "video"]);
 export const VALID_CATEGORIES = new Set<ContentComponent["category"]>([
   "marketing",
   "application",
@@ -97,40 +88,28 @@ export const uniq = <T>(items: T[] | undefined): T[] | undefined => {
   return Array.from(new Set(items));
 };
 
-export const normalizeDefaultSize = (
-  value: string | null,
-): ContentComponent["defaultSize"] =>
+export const normalizeDefaultSize = (value: string | null): ContentComponent["defaultSize"] =>
   value && VALID_DEFAULT_SIZES.has(value as ContentComponent["defaultSize"])
     ? (value as ContentComponent["defaultSize"])
     : undefined;
 
-export const normalizeCoverType = (
-  value: string | null,
-): ContentComponent["coverType"] =>
+export const normalizeCoverType = (value: string | null): ContentComponent["coverType"] =>
   value && VALID_COVER_TYPES.has(value as ContentComponent["coverType"])
     ? (value as ContentComponent["coverType"])
     : undefined;
 
-export const normalizeCategory = (
-  value: string | null,
-): ContentComponent["category"] =>
+export const normalizeCategory = (value: string | null): ContentComponent["category"] =>
   value && VALID_CATEGORIES.has(value as ContentComponent["category"])
     ? (value as ContentComponent["category"])
     : undefined;
 
 // Database row to component mapping
-export const mapRowToComponent = (
-  row: ContentComponentRow,
-): ContentComponent => {
+export const mapRowToComponent = (row: ContentComponentRow): ContentComponent => {
   const componentType = row.type === "remote" ? "remote" : "local";
 
   const tags = uniq(safeParseJson<string[]>(row.tags));
-  const authors = safeParseJson<
-    { name: string; url: string; avatarUrl: string }[]
-  >(row.authors);
-  const asSeenOn = safeParseJson<
-    { name: string; url: string; avatarUrl: string }[]
-  >(row.asSeenOn);
+  const authors = safeParseJson<{ name: string; url: string; avatarUrl: string }[]>(row.authors);
+  const asSeenOn = safeParseJson<{ name: string; url: string; avatarUrl: string }[]>(row.asSeenOn);
 
   const base = {
     slug: row.slug,
@@ -150,9 +129,7 @@ export const mapRowToComponent = (
 
   if (componentType === "remote") {
     if (!row.iframeUrl || !row.sourceUrl) {
-      throw new Error(
-        `Remote content "${row.slug}" is missing iframe/source URLs in the database`,
-      );
+      throw new Error(`Remote content "${row.slug}" is missing iframe/source URLs in the database`);
     }
 
     return {
@@ -169,8 +146,7 @@ export const mapRowToComponent = (
     previewCode: row.previewCode ?? "",
     sourceCode: safeParseJson<Record<string, string>>(row.sourceCode) ?? {},
     dependencies: safeParseJson<Record<string, string>>(row.dependencies) ?? {},
-    devDependencies:
-      safeParseJson<Record<string, string>>(row.devDependencies) ?? {},
+    devDependencies: safeParseJson<Record<string, string>>(row.devDependencies) ?? {},
   } as ContentComponent;
 };
 
@@ -179,9 +155,7 @@ export const buildShadcnRegistryItem = (component: LocalContentComponent) => {
   const dependencyKeys = Object.keys(component.dependencies ?? {});
   const devDependencyKeys = Object.keys(component.devDependencies ?? {});
 
-  const uicapsuleDependencies = dependencyKeys.filter((dep) =>
-    dep.startsWith("@repo"),
-  );
+  const uicapsuleDependencies = dependencyKeys.filter((dep) => dep.startsWith("@repo"));
 
   const dependencies = dependencyKeys.filter(
     (dep) => !["react", "react-dom", ...uicapsuleDependencies].includes(dep),
@@ -200,13 +174,11 @@ export const buildShadcnRegistryItem = (component: LocalContentComponent) => {
     dependencies,
     devDependencies,
     registryDependencies: [],
-    files: Object.entries(component.sourceCode).map(
-      ([filePath, sourceCode]) => ({
-        type: "registry:file" as const,
-        path: filePath,
-        content: sourceCode,
-        target: `uicapsule/${component.slug}${filePath}`,
-      }),
-    ),
+    files: Object.entries(component.sourceCode).map(([filePath, sourceCode]) => ({
+      type: "registry:file" as const,
+      path: filePath,
+      content: sourceCode,
+      target: `uicapsule/${component.slug}${filePath}`,
+    })),
   };
 };

@@ -124,8 +124,8 @@
   samp,
   pre {
     font-family:
-      ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono",
-      "Courier New", monospace;
+      ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New",
+      monospace;
   }
 
   [data-code-block] * {
@@ -155,11 +155,7 @@
   position: relative;
   color: var(--primary-foreground);
   background:
-    linear-gradient(
-      180deg,
-      hsl(var(--white) / var(--gradient-opacity)),
-      hsl(var(--white) / 0)
-    ),
+    linear-gradient(180deg, hsl(var(--white) / var(--gradient-opacity)), hsl(var(--white) / 0)),
     var(--primary);
   box-shadow:
     0 0 0 1px var(--primary),
@@ -177,8 +173,7 @@
     border-color: transparent;
     mix-blend-mode: soft-light;
     content: "";
-    background: border-box
-      linear-gradient(180deg, hsl(var(--white)), hsl(var(--white) / 0));
+    background: border-box linear-gradient(180deg, hsl(var(--white)), hsl(var(--white) / 0));
     -webkit-mask:
       linear-gradient(#fff 0 0) padding-box,
       linear-gradient(#fff 0 0);

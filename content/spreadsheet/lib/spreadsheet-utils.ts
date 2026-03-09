@@ -29,10 +29,7 @@ export const getRowCells = (rowId: string, columns: ColumnInfo[]): string[] => {
 /**
  * Get all cells in a column
  */
-export const getColumnCells = (
-  columnId: string,
-  data: Record<string, unknown>[]
-): string[] => {
+export const getColumnCells = (columnId: string, data: Record<string, unknown>[]): string[] => {
   return data.map((row) => `${row.id}:${columnId}`);
 };
 
@@ -45,7 +42,7 @@ export const getRangeCells = (
   endRowId: string,
   endColId: string,
   columns: ColumnInfo[],
-  data: Record<string, unknown>[]
+  data: Record<string, unknown>[],
 ): string[] => {
   const columnIds = columns.map((col) => col.accessorKey || col.id || "");
   const startColIndex = columnIds.indexOf(startColId);
@@ -78,7 +75,7 @@ export const getRangeCells = (
 export const toggleRowSelection = (
   rowId: string,
   selectedCells: Set<string>,
-  columns: ColumnInfo[]
+  columns: ColumnInfo[],
 ): Set<string> => {
   const rowCells = getRowCells(rowId, columns);
   const isRowFullySelected = rowCells.every((cell) => selectedCells.has(cell));
@@ -100,12 +97,10 @@ export const toggleRowSelection = (
 export const toggleColumnSelection = (
   columnId: string,
   selectedCells: Set<string>,
-  data: Record<string, unknown>[]
+  data: Record<string, unknown>[],
 ): Set<string> => {
   const columnCells = getColumnCells(columnId, data);
-  const isColumnFullySelected = columnCells.every((cell) =>
-    selectedCells.has(cell)
-  );
+  const isColumnFullySelected = columnCells.every((cell) => selectedCells.has(cell));
 
   const newSelectedCells = new Set(selectedCells);
   if (isColumnFullySelected) {
@@ -121,10 +116,7 @@ export const toggleColumnSelection = (
 /**
  * Toggle single cell selection
  */
-export const toggleCellSelection = (
-  cellKey: string,
-  selectedCells: Set<string>
-): Set<string> => {
+export const toggleCellSelection = (cellKey: string, selectedCells: Set<string>): Set<string> => {
   const newSelectedCells = new Set(selectedCells);
   if (newSelectedCells.has(cellKey)) {
     newSelectedCells.delete(cellKey);
@@ -137,9 +129,7 @@ export const toggleCellSelection = (
 /**
  * Get the first selected cell position
  */
-export const getFirstSelectedCell = (
-  selectedCells: Set<string>
-): CellPosition | null => {
+export const getFirstSelectedCell = (selectedCells: Set<string>): CellPosition | null => {
   const firstSelectedCell = Array.from(selectedCells)[0];
   if (!firstSelectedCell) return null;
 
@@ -153,9 +143,7 @@ export const getFirstSelectedCell = (
 /**
  * Get column size CSS variables
  */
-export const getColumnSizeVars = (
-  columnWidths: Record<string, number>
-): Record<string, number> => {
+export const getColumnSizeVars = (columnWidths: Record<string, number>): Record<string, number> => {
   const colSizes: { [key: string]: number } = {};
   Object.entries(columnWidths).forEach(([columnId, width]) => {
     colSizes[`--col-${columnId}-size`] = width;
@@ -166,22 +154,14 @@ export const getColumnSizeVars = (
 /**
  * Check if a target element is within a specific data attribute
  */
-export const isWithinDataAttribute = (
-  target: EventTarget | null,
-  attribute: string
-): boolean => {
-  return (
-    target instanceof HTMLElement && !!target.closest(`[data-${attribute}]`)
-  );
+export const isWithinDataAttribute = (target: EventTarget | null, attribute: string): boolean => {
+  return target instanceof HTMLElement && !!target.closest(`[data-${attribute}]`);
 };
 
 /**
  * Check if editing should be allowed based on current selection
  */
-export const shouldAllowEditing = (
-  selectedCells: Set<string>,
-  cellKey: string
-): boolean => {
+export const shouldAllowEditing = (selectedCells: Set<string>, cellKey: string): boolean => {
   return selectedCells.has(cellKey) && selectedCells.size === 1;
 };
 
@@ -190,7 +170,7 @@ export const shouldAllowEditing = (
  */
 export const createNavigationMap = (
   data: Record<string, unknown>[],
-  columns: ColumnInfo[]
+  columns: ColumnInfo[],
 ): Map<string, NavigationMap> => {
   const navigationMap = new Map<string, NavigationMap>();
   const columnIds = columns.map((col) => col.accessorKey || col.id || "");
@@ -201,15 +181,9 @@ export const createNavigationMap = (
 
       const navigation: NavigationMap = {
         up: rowIndex > 0 ? `${data[rowIndex - 1].id}:${columnId}` : null,
-        down:
-          rowIndex < data.length - 1
-            ? `${data[rowIndex + 1].id}:${columnId}`
-            : null,
+        down: rowIndex < data.length - 1 ? `${data[rowIndex + 1].id}:${columnId}` : null,
         left: colIndex > 0 ? `${row.id}:${columnIds[colIndex - 1]}` : null,
-        right:
-          colIndex < columnIds.length - 1
-            ? `${row.id}:${columnIds[colIndex + 1]}`
-            : null,
+        right: colIndex < columnIds.length - 1 ? `${row.id}:${columnIds[colIndex + 1]}` : null,
         tab: null, // Will be calculated below
       };
 
@@ -233,7 +207,7 @@ export const createNavigationMap = (
 export const getNextCellPositionFromMap = (
   cellKey: string,
   direction: "up" | "down" | "left" | "right" | "tab",
-  navigationMap: Map<string, NavigationMap>
+  navigationMap: Map<string, NavigationMap>,
 ): CellPosition | null => {
   const navigation = navigationMap.get(cellKey);
   if (!navigation) return null;

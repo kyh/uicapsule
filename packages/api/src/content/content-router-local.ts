@@ -31,9 +31,7 @@ export const contentRouter = createTRPCRouter({
       return getAllContentComponents();
     }
 
-    const normalizedFilters = filterTags
-      .map((tag) => tag.trim().toLowerCase())
-      .filter(Boolean);
+    const normalizedFilters = filterTags.map((tag) => tag.trim().toLowerCase()).filter(Boolean);
 
     if (normalizedFilters.length === 0) {
       // If all filter tags were empty/whitespace, return no results
@@ -83,12 +81,8 @@ export const contentRouter = createTRPCRouter({
     // Filter components by search query (name, description, or tags)
     const matchingComponents = allComponents
       .filter((component) => {
-        const nameMatch = component.name
-          .toLowerCase()
-          .includes(normalizedQuery);
-        const descriptionMatch = component.description
-          ?.toLowerCase()
-          .includes(normalizedQuery);
+        const nameMatch = component.name.toLowerCase().includes(normalizedQuery);
+        const descriptionMatch = component.description?.toLowerCase().includes(normalizedQuery);
         const tagsMatch = component.tags?.some((tag) =>
           tag.toLowerCase().includes(normalizedQuery),
         );
@@ -133,26 +127,24 @@ export const contentRouter = createTRPCRouter({
     };
   }),
 
-  shadcnRegistryItem: publicProcedure
-    .input(getContentComponentInput)
-    .query(({ input }) => {
-      const { slug } = input;
-      const component = getContentComponent(slug);
+  shadcnRegistryItem: publicProcedure.input(getContentComponentInput).query(({ input }) => {
+    const { slug } = input;
+    const component = getContentComponent(slug);
 
-      if (!component) {
-        throw new TRPCError({
-          code: "NOT_FOUND",
-          message: `Component not found: ${slug}`,
-        });
-      }
+    if (!component) {
+      throw new TRPCError({
+        code: "NOT_FOUND",
+        message: `Component not found: ${slug}`,
+      });
+    }
 
-      if (!isLocalContentComponent(component)) {
-        throw new TRPCError({
-          code: "BAD_REQUEST",
-          message: `Component "${slug}" does not support shadcn registry exports.`,
-        });
-      }
+    if (!isLocalContentComponent(component)) {
+      throw new TRPCError({
+        code: "BAD_REQUEST",
+        message: `Component "${slug}" does not support shadcn registry exports.`,
+      });
+    }
 
-      return buildShadcnRegistryItem(component);
-    }),
+    return buildShadcnRegistryItem(component);
+  }),
 });

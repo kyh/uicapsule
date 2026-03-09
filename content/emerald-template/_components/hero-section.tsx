@@ -35,8 +35,8 @@ export const HeroSection = () => {
           <span>on your organization data</span>
         </h1>
         <p className="mx-auto mt-6 max-w-md text-base whitespace-pre-line text-zinc-400">
-          Everyone on your team should be able to build software to automate
-          their own day to day workflows
+          Everyone on your team should be able to build software to automate their own day to day
+          workflows
         </p>
         <div className="mt-8 grid items-start justify-center gap-4">
           <a className="group relative text-xs" href="">

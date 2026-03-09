@@ -8,10 +8,7 @@ import {
 import { Button } from "@repo/ui/button";
 
 import { caller } from "@/trpc/server";
-import {
-  ContentPreview,
-  ContentPreviewSkeleton,
-} from "./_components/content-preview";
+import { ContentPreview, ContentPreviewSkeleton } from "./_components/content-preview";
 import { FilterComboBox } from "./_components/filter-combo-box";
 
 type PageProps = {
@@ -49,8 +46,7 @@ const Page = ({ searchParams }: PageProps) => {
 export default Page;
 
 const Filters = async ({ searchParams }: PageProps) => {
-  const { elementFilter, styleFilter, categoryFilter } =
-    await getFilters(searchParams);
+  const { elementFilter, styleFilter, categoryFilter } = await getFilters(searchParams);
 
   return (
     <div className="flex h-full flex-1 items-center gap-3 px-3 sm:px-6">
@@ -77,8 +73,7 @@ const Filters = async ({ searchParams }: PageProps) => {
 };
 
 const ContentList = async ({ searchParams }: PageProps) => {
-  const { elementFilter, styleFilter, categoryFilter } =
-    await getFilters(searchParams);
+  const { elementFilter, styleFilter, categoryFilter } = await getFilters(searchParams);
   const filters = [elementFilter, styleFilter, categoryFilter].flat();
   const content = await caller.content.list({
     filterTags: filters,
@@ -110,9 +105,7 @@ const ContentList = async ({ searchParams }: PageProps) => {
   ));
 };
 
-const getFilters = async (
-  searchParams: Promise<Record<string, string | string[] | undefined>>,
-) => {
+const getFilters = async (searchParams: Promise<Record<string, string | string[] | undefined>>) => {
   const allSearchParams = await searchParams;
   const elementFilter = allSearchParams.element?.toString().split(",") ?? [];
   const styleFilter = allSearchParams.style?.toString().split(",") ?? [];

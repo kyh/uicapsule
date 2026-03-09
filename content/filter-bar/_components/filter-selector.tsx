@@ -9,13 +9,7 @@ import React, {
 } from "react";
 import { Button } from "@repo/ui/button";
 import { Checkbox } from "@repo/ui/checkbox";
-import {
-  Command,
-  CommandGroup,
-  CommandInput,
-  CommandItem,
-  CommandList,
-} from "@repo/ui/command";
+import { Command, CommandGroup, CommandInput, CommandItem, CommandList } from "@repo/ui/command";
 import { Popover, PopoverContent, PopoverTrigger } from "@repo/ui/popover";
 import {
   ArrowLeftIcon,
@@ -59,21 +53,15 @@ function __FilterSelector<TData>({
   const [property, setProperty] = useState<string | undefined>(undefined);
   const inputRef = useRef<HTMLInputElement>(null);
 
-  const visibleColumns = useMemo(
-    () => columns.filter((c) => !c.hidden),
-    [columns],
-  );
+  const visibleColumns = useMemo(() => columns.filter((c) => !c.hidden), [columns]);
 
   const visibleFilters = useMemo(
-    () =>
-      filters.filter((f) => visibleColumns.find((c) => c.id === f.columnId)),
+    () => filters.filter((f) => visibleColumns.find((c) => c.id === f.columnId)),
     [filters, visibleColumns],
   );
 
   const column = property ? getColumn(visibleColumns, property) : undefined;
-  const filter = property
-    ? visibleFilters.find((f) => f.columnId === property)
-    : undefined;
+  const filter = property ? visibleFilters.find((f) => f.columnId === property) : undefined;
 
   useEffect(() => {
     if (property && inputRef) {
@@ -122,9 +110,7 @@ function __FilterSelector<TData>({
           loop
           filter={(value, search, keywords) => {
             const extendValue = `${value} ${keywords?.join(" ")}`;
-            return extendValue.toLowerCase().includes(search.toLowerCase())
-              ? 1
-              : 0;
+            return extendValue.toLowerCase().includes(search.toLowerCase()) ? 1 : 0;
           }}
         >
           <CommandInput
@@ -156,9 +142,7 @@ function __FilterSelector<TData>({
                     <span>Ask AI</span>
                   </div>
                   <span className="text-muted-foreground truncate text-xs">
-                    {value.trim().length > 0
-                      ? `"${value.trim()}"`
-                      : "Type a prompt"}
+                    {value.trim().length > 0 ? `"${value.trim()}"` : "Type a prompt"}
                   </span>
                 </div>
               </CommandItem>
@@ -305,19 +289,13 @@ export function FilterableColumn<TData, TType extends ColumnDataType, TVal>({
         <div className="inline-flex items-center gap-1.5">
           {hasIcon && (
             <div className="relative">
-              {isValidElement(Icon) ? (
-                Icon
-              ) : (
-                <Icon className="size-4 stroke-[2.25px]" />
-              )}
+              {isValidElement(Icon) ? Icon : <Icon className="size-4 stroke-[2.25px]" />}
               {isFiltered && (
                 <div className="absolute -right-0.5 -bottom-0.5 h-2 w-2 rounded-full bg-green-500" />
               )}
             </div>
           )}
-          {!hasIcon && isFiltered && (
-            <div className="h-2 w-2 rounded-full bg-green-500" />
-          )}
+          {!hasIcon && isFiltered && <div className="h-2 w-2 rounded-full bg-green-500" />}
           <span>{column.displayName}</span>
         </div>
         {column.type !== "boolean" && (
@@ -336,9 +314,7 @@ interface QuickSearchFiltersProps<TData> {
   strategy: FilterStrategy;
 }
 
-export const QuickSearchFilters = memo(
-  __QuickSearchFilters,
-) as typeof __QuickSearchFilters;
+export const QuickSearchFilters = memo(__QuickSearchFilters) as typeof __QuickSearchFilters;
 
 function __QuickSearchFilters<TData>({
   search,
@@ -351,10 +327,7 @@ function __QuickSearchFilters<TData>({
 
   // biome-ignore lint/correctness/useHookAtTopLevel: its okay
   const cols = useMemo(
-    () =>
-      columns.filter((c) =>
-        isAnyOf<ColumnDataType>(c.type, ["option", "multiOption"]),
-      ),
+    () => columns.filter((c) => isAnyOf<ColumnDataType>(c.type, ["option", "multiOption"])),
     [columns],
   );
 
@@ -398,9 +371,7 @@ function __QuickSearchFilters<TData>({
                         ))}
                     </div>
                     <div className="flex items-center gap-0.5">
-                      <span className="text-muted-foreground">
-                        {column.displayName}
-                      </span>
+                      <span className="text-muted-foreground">{column.displayName}</span>
                       <ChevronRightIcon className="text-muted-foreground/75 size-3.5" />
                       <span>{v.label}</span>
                     </div>

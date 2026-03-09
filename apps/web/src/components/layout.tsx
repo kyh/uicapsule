@@ -93,17 +93,11 @@ const SearchButton = () => {
 
   const api = useTRPC();
   const { data: searchData, isLoading } = useQuery(
-    api.content.search.queryOptions(
-      { query, limit: 12 },
-      { enabled: searchOpen },
-    ),
+    api.content.search.queryOptions({ query, limit: 12 }, { enabled: searchOpen }),
   );
 
   const tagCounts = useMemo(() => searchData?.tagCounts ?? {}, [searchData]);
-  const trending = useMemo(
-    () => (searchData?.trending ?? []) as SearchEntry[],
-    [searchData],
-  );
+  const trending = useMemo(() => (searchData?.trending ?? []) as SearchEntry[], [searchData]);
   const componentMatches = useMemo(
     () => (searchData?.components ?? []) as SearchEntry[],
     [searchData],
@@ -202,7 +196,7 @@ const SearchButton = () => {
 
     return allSections
       .filter((section) => section.count > 0)
-      .sort((a, b) => {
+      .toSorted((a, b) => {
         if (b.count === a.count) {
           return a.name.localeCompare(b.name);
         }
@@ -248,17 +242,13 @@ const SearchButton = () => {
 
     return styles.filter((style) => {
       return (
-        style.name.toLowerCase().includes(normalizedQuery) ||
-        style.slug.includes(normalizedQuery)
+        style.name.toLowerCase().includes(normalizedQuery) || style.slug.includes(normalizedQuery)
       );
     });
   }, [hasQuery, normalizedQuery, styles]);
 
   const totalMatches =
-    componentMatches.length +
-    categoryMatches.length +
-    sectionMatches.length +
-    styleMatches.length;
+    componentMatches.length + categoryMatches.length + sectionMatches.length + styleMatches.length;
 
   const handleOpenChange = useCallback((open: boolean) => {
     setSearchOpen(open);
@@ -274,24 +264,13 @@ const SearchButton = () => {
   const renderCategories = () => (
     <CommandGroup heading="Categories">
       {categories.map((category) => (
-        <CommandItem
-          key={category.slug}
-          value={`${category.name} ${category.slug}`}
-          asChild
-        >
-          <Link
-            href={`/?category=${category.slug}`}
-            onClick={handleCloseSearch}
-          >
+        <CommandItem key={category.slug} value={`${category.name} ${category.slug}`} asChild>
+          <Link href={`/?category=${category.slug}`} onClick={handleCloseSearch}>
             <span className="flex flex-col">
               <span>{category.name}</span>
-              <span className="text-muted-foreground text-xs">
-                /{category.slug}
-              </span>
+              <span className="text-muted-foreground text-xs">/{category.slug}</span>
             </span>
-            <span className="text-muted-foreground ml-auto text-xs">
-              {category.count}
-            </span>
+            <span className="text-muted-foreground ml-auto text-xs">{category.count}</span>
           </Link>
         </CommandItem>
       ))}
@@ -309,13 +288,9 @@ const SearchButton = () => {
           <Link href={`/?element=${section.slug}`} onClick={handleCloseSearch}>
             <span className="flex flex-col">
               <span>{section.name}</span>
-              <span className="text-muted-foreground text-xs">
-                {section.parent}
-              </span>
+              <span className="text-muted-foreground text-xs">{section.parent}</span>
             </span>
-            <span className="text-muted-foreground ml-auto text-xs">
-              {section.count}
-            </span>
+            <span className="text-muted-foreground ml-auto text-xs">{section.count}</span>
           </Link>
         </CommandItem>
       ))}
@@ -325,21 +300,13 @@ const SearchButton = () => {
   const renderStyles = () => (
     <CommandGroup heading="Styles">
       {styles.map((style) => (
-        <CommandItem
-          key={style.slug}
-          value={`${style.name} ${style.slug}`}
-          asChild
-        >
+        <CommandItem key={style.slug} value={`${style.name} ${style.slug}`} asChild>
           <Link href={`/?style=${style.slug}`} onClick={handleCloseSearch}>
             <span className="flex flex-col">
               <span>{style.name}</span>
-              <span className="text-muted-foreground text-xs">
-                /{style.slug}
-              </span>
+              <span className="text-muted-foreground text-xs">/{style.slug}</span>
             </span>
-            <span className="text-muted-foreground ml-auto text-xs">
-              {style.count}
-            </span>
+            <span className="text-muted-foreground ml-auto text-xs">{style.count}</span>
           </Link>
         </CommandItem>
       ))}
@@ -349,21 +316,13 @@ const SearchButton = () => {
   const renderTrending = () => (
     <CommandGroup heading="Trending">
       {trending.map((entry) => (
-        <CommandItem
-          key={entry.slug}
-          value={`${entry.name} ${entry.slug}`}
-          asChild
-        >
+        <CommandItem key={entry.slug} value={`${entry.name} ${entry.slug}`} asChild>
           <Link href={`/ui/${entry.slug}`} onClick={handleCloseSearch}>
             <span className="flex flex-col">
               <span>{entry.name}</span>
-              <span className="text-muted-foreground text-xs">
-                /ui/{entry.slug}
-              </span>
+              <span className="text-muted-foreground text-xs">/ui/{entry.slug}</span>
             </span>
-            <span className="text-muted-foreground ml-auto text-xs">
-              {entry.tags[0] ?? ""}
-            </span>
+            <span className="text-muted-foreground ml-auto text-xs">{entry.tags[0] ?? ""}</span>
           </Link>
         </CommandItem>
       ))}
@@ -375,17 +334,11 @@ const SearchButton = () => {
       {componentMatches.length > 0 && (
         <CommandGroup heading="Components">
           {componentMatches.map((entry) => (
-            <CommandItem
-              key={entry.slug}
-              value={`${entry.name} ${entry.slug}`}
-              asChild
-            >
+            <CommandItem key={entry.slug} value={`${entry.name} ${entry.slug}`} asChild>
               <Link href={`/ui/${entry.slug}`} onClick={handleCloseSearch}>
                 <span className="flex flex-col">
                   <span>{entry.name}</span>
-                  <span className="text-muted-foreground text-xs">
-                    /ui/{entry.slug}
-                  </span>
+                  <span className="text-muted-foreground text-xs">/ui/{entry.slug}</span>
                 </span>
                 <span className="text-muted-foreground ml-auto text-xs">
                   {entry.tags.slice(0, 2).join(", ")}
@@ -398,24 +351,13 @@ const SearchButton = () => {
       {categoryMatches.length > 0 && (
         <CommandGroup heading="Categories">
           {categoryMatches.map((category) => (
-            <CommandItem
-              key={category.slug}
-              value={`${category.name} ${category.slug}`}
-              asChild
-            >
-              <Link
-                href={`/?category=${category.slug}`}
-                onClick={handleCloseSearch}
-              >
+            <CommandItem key={category.slug} value={`${category.name} ${category.slug}`} asChild>
+              <Link href={`/?category=${category.slug}`} onClick={handleCloseSearch}>
                 <span className="flex flex-col">
                   <span>{category.name}</span>
-                  <span className="text-muted-foreground text-xs">
-                    /{category.slug}
-                  </span>
+                  <span className="text-muted-foreground text-xs">/{category.slug}</span>
                 </span>
-                <span className="text-muted-foreground ml-auto text-xs">
-                  {category.count}
-                </span>
+                <span className="text-muted-foreground ml-auto text-xs">{category.count}</span>
               </Link>
             </CommandItem>
           ))}
@@ -429,19 +371,12 @@ const SearchButton = () => {
               value={`${section.name} ${section.parent} ${section.slug}`}
               asChild
             >
-              <Link
-                href={`/?element=${section.slug}`}
-                onClick={handleCloseSearch}
-              >
+              <Link href={`/?element=${section.slug}`} onClick={handleCloseSearch}>
                 <span className="flex flex-col">
                   <span>{section.name}</span>
-                  <span className="text-muted-foreground text-xs">
-                    {section.parent}
-                  </span>
+                  <span className="text-muted-foreground text-xs">{section.parent}</span>
                 </span>
-                <span className="text-muted-foreground ml-auto text-xs">
-                  {section.count}
-                </span>
+                <span className="text-muted-foreground ml-auto text-xs">{section.count}</span>
               </Link>
             </CommandItem>
           ))}
@@ -450,21 +385,13 @@ const SearchButton = () => {
       {styleMatches.length > 0 && (
         <CommandGroup heading="Styles">
           {styleMatches.map((style) => (
-            <CommandItem
-              key={style.slug}
-              value={`${style.name} ${style.slug}`}
-              asChild
-            >
+            <CommandItem key={style.slug} value={`${style.name} ${style.slug}`} asChild>
               <Link href={`/?style=${style.slug}`} onClick={handleCloseSearch}>
                 <span className="flex flex-col">
                   <span>{style.name}</span>
-                  <span className="text-muted-foreground text-xs">
-                    /{style.slug}
-                  </span>
+                  <span className="text-muted-foreground text-xs">/{style.slug}</span>
                 </span>
-                <span className="text-muted-foreground ml-auto text-xs">
-                  {style.count}
-                </span>
+                <span className="text-muted-foreground ml-auto text-xs">{style.count}</span>
               </Link>
             </CommandItem>
           ))}
@@ -499,10 +426,7 @@ const SearchButton = () => {
         onClick={() => setSearchOpen(true)}
       >
         <span className="flex grow items-center gap-1">
-          <SearchIcon
-            className="text-muted-foreground size-4"
-            aria-hidden="true"
-          />
+          <SearchIcon className="text-muted-foreground size-4" aria-hidden="true" />
           <span className="text-muted-foreground text-sm">Search</span>
         </span>
         <kbd className="bg-background text-muted-foreground inline-flex h-full items-center rounded border px-1 font-sans text-xs">
@@ -512,9 +436,7 @@ const SearchButton = () => {
       <CommandDialog open={searchOpen} onOpenChange={handleOpenChange}>
         <div className="md:flex md:h-[540px]">
           <div className="border-border/60 bg-muted/10 hidden w-56 flex-none flex-col gap-1 border-r p-3 md:flex">
-            <p className="text-muted-foreground mb-2 text-xs tracking-wide uppercase">
-              Browse
-            </p>
+            <p className="text-muted-foreground mb-2 text-xs tracking-wide uppercase">Browse</p>
             {navigationItems.map((item) => {
               const Icon = item.icon;
               const isActive = activeView === item.id && !hasQuery;
@@ -524,9 +446,7 @@ const SearchButton = () => {
                   className={cn(
                     "text-left text-sm transition",
                     "rounded-md px-3 py-2",
-                    isActive
-                      ? "bg-background shadow-xs"
-                      : "hover:bg-background/40",
+                    isActive ? "bg-background shadow-xs" : "hover:bg-background/40",
                   )}
                   onClick={() => setActiveView(item.id as SearchView)}
                   type="button"
@@ -535,9 +455,7 @@ const SearchButton = () => {
                     <Icon className="text-muted-foreground size-4" />
                     <span>{item.label}</span>
                   </div>
-                  <p className="text-muted-foreground mt-1 text-xs">
-                    {item.description}
-                  </p>
+                  <p className="text-muted-foreground mt-1 text-xs">{item.description}</p>
                 </button>
               );
             })}
@@ -558,9 +476,7 @@ const SearchButton = () => {
                       key={item.id}
                       className={cn(
                         "flex items-center gap-2 rounded-full border px-3 py-1 text-xs",
-                        isActive
-                          ? "border-foreground"
-                          : "bg-muted border-transparent",
+                        isActive ? "border-foreground" : "bg-muted border-transparent",
                       )}
                       onClick={() => setActiveView(item.id as SearchView)}
                       type="button"
@@ -613,11 +529,7 @@ export const ProfileButton = () => {
       condition: true,
       wrap: true,
       content: (
-        <Link
-          className={menuItemClassName}
-          href="/about"
-          onClick={() => setOpen(false)}
-        >
+        <Link className={menuItemClassName} href="/about" onClick={() => setOpen(false)}>
           <BookCheckIcon aria-hidden="true" className={menuItemIconClassName} />
           About
         </Link>
@@ -628,11 +540,7 @@ export const ProfileButton = () => {
       condition: true,
       wrap: true,
       content: (
-        <Link
-          className={menuItemClassName}
-          href="/inspiration"
-          onClick={() => setOpen(false)}
-        >
+        <Link className={menuItemClassName} href="/inspiration" onClick={() => setOpen(false)}>
           <StarsIcon aria-hidden="true" className={menuItemIconClassName} />
           Inspiration
         </Link>
@@ -813,13 +721,7 @@ export const Footer = ({ className }: { className?: string }) => {
   );
 };
 
-const FooterLink = ({
-  href,
-  children,
-}: {
-  href: string;
-  children: React.ReactNode;
-}) => {
+const FooterLink = ({ href, children }: { href: string; children: React.ReactNode }) => {
   return (
     <Link
       href={href}
@@ -836,13 +738,7 @@ const FooterLink = ({
   );
 };
 
-const FooterIcon = ({
-  href,
-  children,
-}: {
-  href: string;
-  children: React.ReactNode;
-}) => {
+const FooterIcon = ({ href, children }: { href: string; children: React.ReactNode }) => {
   return (
     <Button
       variant="ghost"

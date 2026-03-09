@@ -116,10 +116,8 @@ export const BackgroundPixelStars = memo(
 
       for (let i = 0; i < numStars; i++) {
         const shouldTwinkle = Math.random() < twinkleProbability;
-        const gridX =
-          Math.floor(Math.random() * (canvas.width / pixelSize)) * pixelSize;
-        const gridY =
-          Math.floor(Math.random() * (canvas.height / pixelSize)) * pixelSize;
+        const gridX = Math.floor(Math.random() * (canvas.width / pixelSize)) * pixelSize;
+        const gridY = Math.floor(Math.random() * (canvas.height / pixelSize)) * pixelSize;
         const colorIndex = Math.floor(Math.random() * STAR_COLORS.length);
         const baseOpacity = Math.random() * 0.5 + 0.5;
 
@@ -130,9 +128,7 @@ export const BackgroundPixelStars = memo(
           baseOpacity,
           currentOpacity: baseOpacity,
           twinkle: shouldTwinkle,
-          twinkleSpeed:
-            minTwinkleSpeed +
-            Math.random() * (maxTwinkleSpeed - minTwinkleSpeed),
+          twinkleSpeed: minTwinkleSpeed + Math.random() * (maxTwinkleSpeed - minTwinkleSpeed),
           twinkleDirection: -1, // -1 fading out, 1 fading in
           twinkleTimer: 0,
         });
@@ -150,16 +146,12 @@ export const BackgroundPixelStars = memo(
       );
 
       for (let i = 0; i < numToRegenerate; i++) {
-        const randomIndex = Math.floor(
-          Math.random() * backgroundStarsRef.current.length,
-        );
+        const randomIndex = Math.floor(Math.random() * backgroundStarsRef.current.length);
 
         // Replace with a new star
         const shouldTwinkle = Math.random() < twinkleProbability;
-        const gridX =
-          Math.floor(Math.random() * (canvas.width / pixelSize)) * pixelSize;
-        const gridY =
-          Math.floor(Math.random() * (canvas.height / pixelSize)) * pixelSize;
+        const gridX = Math.floor(Math.random() * (canvas.width / pixelSize)) * pixelSize;
+        const gridY = Math.floor(Math.random() * (canvas.height / pixelSize)) * pixelSize;
         const colorIndex = Math.floor(Math.random() * STAR_COLORS.length);
         const baseOpacity = Math.random() * 0.5 + 0.5;
 
@@ -170,9 +162,7 @@ export const BackgroundPixelStars = memo(
           baseOpacity,
           currentOpacity: baseOpacity,
           twinkle: shouldTwinkle,
-          twinkleSpeed:
-            minTwinkleSpeed +
-            Math.random() * (maxTwinkleSpeed - minTwinkleSpeed),
+          twinkleSpeed: minTwinkleSpeed + Math.random() * (maxTwinkleSpeed - minTwinkleSpeed),
           twinkleDirection: -1,
           twinkleTimer: 0,
         };
@@ -226,14 +216,10 @@ export const BackgroundPixelStars = memo(
             const progress = star.twinkleTimer / star.twinkleSpeed;
             if (progress < 0.5) {
               star.currentOpacity =
-                star.twinkleDirection < 0
-                  ? star.baseOpacity
-                  : star.baseOpacity * 0.3;
+                star.twinkleDirection < 0 ? star.baseOpacity : star.baseOpacity * 0.3;
             } else {
               star.currentOpacity =
-                star.twinkleDirection < 0
-                  ? star.baseOpacity * 0.3
-                  : star.baseOpacity;
+                star.twinkleDirection < 0 ? star.baseOpacity * 0.3 : star.baseOpacity;
             }
           }
         });
@@ -243,10 +229,8 @@ export const BackgroundPixelStars = memo(
           shootingStarsRef.current = shootingStarsRef.current
             .map((star) => {
               // Calculate new position
-              const newX =
-                star.x + star.speed * Math.cos((star.angle * Math.PI) / 180);
-              const newY =
-                star.y + star.speed * Math.sin((star.angle * Math.PI) / 180);
+              const newX = star.x + star.speed * Math.cos((star.angle * Math.PI) / 180);
+              const newY = star.y + star.speed * Math.sin((star.angle * Math.PI) / 180);
               const newDistance = star.distance + star.speed;
 
               // Add current position to trail
@@ -293,12 +277,7 @@ export const BackgroundPixelStars = memo(
               ctx.translate(-point.x, -point.y);
 
               ctx.fillStyle = `rgba(180, 242, 255, ${point.opacity})`;
-              ctx.fillRect(
-                point.x,
-                point.y,
-                shootingStarPixelSize,
-                shootingStarPixelSize,
-              );
+              ctx.fillRect(point.x, point.y, shootingStarPixelSize, shootingStarPixelSize);
 
               ctx.restore();
             });
@@ -366,10 +345,7 @@ export const BackgroundPixelStars = memo(
       createShootingStar();
 
       // Set up regeneration interval for background stars
-      const regenerationInterval = setInterval(
-        regenerateBackgroundStars,
-        starRegenerationInterval,
-      );
+      const regenerationInterval = setInterval(regenerateBackgroundStars, starRegenerationInterval);
 
       // Handle window resize
       const handleResize = (): void => {
@@ -390,16 +366,9 @@ export const BackgroundPixelStars = memo(
         clearInterval(regenerationInterval);
         window.removeEventListener("resize", handleResize);
       };
-    }, [
-      animateCanvas,
-      createNewShootingStar,
-      initBackgroundStars,
-      regenerateBackgroundStars,
-    ]);
+    }, [animateCanvas, createNewShootingStar, initBackgroundStars, regenerateBackgroundStars]);
 
-    return (
-      <canvas ref={canvasRef} className="pointer-events-none fixed inset-0" />
-    );
+    return <canvas ref={canvasRef} className="pointer-events-none fixed inset-0" />;
   },
   () => true,
 );

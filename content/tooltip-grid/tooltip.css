@@ -44,16 +44,8 @@
   background-size: 1px 5px;
 
   -webkit-mask:
-    linear-gradient(
-      to top,
-      var(--mask-background) var(--fade-stop),
-      transparent
-    ),
-    linear-gradient(
-      to bottom,
-      var(--mask-background) var(--fade-stop),
-      transparent
-    ),
+    linear-gradient(to top, var(--mask-background) var(--fade-stop), transparent),
+    linear-gradient(to bottom, var(--mask-background) var(--fade-stop), transparent),
     linear-gradient(black, black);
 }
 
@@ -71,16 +63,8 @@
   background-size: 5px 1px;
 
   -webkit-mask:
-    linear-gradient(
-      to left,
-      var(--mask-background) var(--fade-stop),
-      transparent
-    ),
-    linear-gradient(
-      to right,
-      var(--mask-background) var(--fade-stop),
-      transparent
-    ),
+    linear-gradient(to left, var(--mask-background) var(--fade-stop), transparent),
+    linear-gradient(to right, var(--mask-background) var(--fade-stop), transparent),
     linear-gradient(black, black);
 }
 

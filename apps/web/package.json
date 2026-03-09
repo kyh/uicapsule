@@ -11,7 +11,6 @@
     "typecheck": "tsc --noEmit",
     "with-env": "dotenv -e ../../.env --"
   },
-  "prettier": "@kyh/prettier-config",
   "dependencies": {
     "@codesandbox/sandpack-client": "^2.19.8",
     "@headless-tree/core": "^1.6.3",
@@ -52,5 +51,6 @@
     "postcss": "^8.5.8",
     "tailwindcss": "^4.2.1",
     "typescript": "catalog:"
-  }
+  },
+  "prettier": "@kyh/prettier-config"
 }

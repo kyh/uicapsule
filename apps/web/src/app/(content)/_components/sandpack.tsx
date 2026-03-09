@@ -191,10 +191,7 @@ export const getFiles = (
     "/styles.css": { code: defaultPreviewStyles },
     "/package.json": {
       code: JSON.stringify(
-        getPackageJson(
-          contentComponent.dependencies ?? {},
-          contentComponent.devDependencies ?? {},
-        ),
+        getPackageJson(contentComponent.dependencies ?? {}, contentComponent.devDependencies ?? {}),
         null,
         2,
       ),

@@ -95,11 +95,8 @@ export const orderFns = {
  * const sorted = applyOrderFns(orderFunctions, options)
  * ```
  */
-export function applyOrderFns(
-  orderFns: TOrderFns,
-  options: ColumnOption[],
-): ColumnOption[] {
-  return options.sort((a, b) => {
+export function applyOrderFns(orderFns: TOrderFns, options: ColumnOption[]): ColumnOption[] {
+  return options.toSorted((a, b) => {
     for (const orderFn of orderFns) {
       const result = orderFn(a, b);
       if (result !== 0) {
@@ -125,9 +122,7 @@ export function applyOrderFns(
  * }
  * ```
  */
-export function isBuiltInOrderFnName(
-  value: unknown,
-): value is TBuiltInOrderFnName {
+export function isBuiltInOrderFnName(value: unknown): value is TBuiltInOrderFnName {
   return typeof value === "string" && value in orderFns;
 }
 

@@ -43,9 +43,8 @@ type ContentMetadata = Omit<ContentComponentBase, "slug" | "type"> & {
   sourceUrl?: string;
 };
 
-const isLocalContentComponent = (
-  component: ContentComponent,
-): component is LocalContentComponent => component.type === "local";
+const isLocalContentComponent = (component: ContentComponent): component is LocalContentComponent =>
+  component.type === "local";
 
 const extractModuleSpecifiers = (source: string): string[] => {
   const specifiers = new Set<string>();
@@ -90,21 +89,13 @@ const createUiCandidatePaths = (modulePath: string): string[] => {
   return [...candidates];
 };
 
-const toSandpackPath = (relativePath: string) =>
-  `/ui/${normalizeModulePath(relativePath)}`;
+const toSandpackPath = (relativePath: string) => `/ui/${normalizeModulePath(relativePath)}`;
 
-const createRelativeUiSpecifier = (
-  fromPath: string,
-  toPath: string,
-): string => {
+const createRelativeUiSpecifier = (fromPath: string, toPath: string): string => {
   const fromDir = posix.dirname(
-    normalizeModulePath(
-      fromPath.startsWith("/") ? fromPath.slice(1) : fromPath,
-    ),
+    normalizeModulePath(fromPath.startsWith("/") ? fromPath.slice(1) : fromPath),
   );
-  const target = normalizeModulePath(
-    toPath.startsWith("/") ? toPath.slice(1) : toPath,
-  );
+  const target = normalizeModulePath(toPath.startsWith("/") ? toPath.slice(1) : toPath);
   const relativePath = posix.relative(fromDir === "" ? "." : fromDir, target);
 
   if (relativePath === "") {
@@ -143,9 +134,7 @@ const readDirectoryRecursively = async (
   baseDir: string,
   sourceCode: SourceCodeMap,
 ) => {
-  const entries = await readdir(directory, { withFileTypes: true }).catch(
-    () => [],
-  );
+  const entries = await readdir(directory, { withFileTypes: true }).catch(() => []);
 
   await Promise.all(
     entries.map(async (entry) => {
@@ -172,18 +161,14 @@ const readDirectoryRecursively = async (
 };
 
 const isUiSourceFile = (fileName: string) =>
-  UI_FILE_EXTENSIONS.includes(
-    extname(fileName) as (typeof UI_FILE_EXTENSIONS)[number],
-  );
+  UI_FILE_EXTENSIONS.includes(extname(fileName) as (typeof UI_FILE_EXTENSIONS)[number]);
 
 const readUiModules = async (): Promise<UiModuleLookup> => {
   const byPath = new Map<string, UiModule>();
   const bySpecifier = new Map<string, UiModule>();
 
   const walk = async (directory: string) => {
-    const entries = await readdir(directory, { withFileTypes: true }).catch(
-      () => [],
-    );
+    const entries = await readdir(directory, { withFileTypes: true }).catch(() => []);
 
     await Promise.all(
       entries.map(async (entry) => {
@@ -198,9 +183,7 @@ const readUiModules = async (): Promise<UiModuleLookup> => {
           return;
         }
 
-        const relativePath = normalizeModulePath(
-          relative(uiSourceRoot, fullPath),
-        );
+        const relativePath = normalizeModulePath(relative(uiSourceRoot, fullPath));
         const code = await readFile(fullPath, "utf-8");
         const uiModule: UiModule = {
           relativePath,
@@ -211,10 +194,7 @@ const readUiModules = async (): Promise<UiModuleLookup> => {
         byPath.set(relativePath, uiModule);
 
         const pathWithoutExtension = relativePath.replace(/\.tsx?$/i, "");
-        const specifier = `${UI_IMPORT_PREFIX}${pathWithoutExtension}`.replace(
-          /\/$/,
-          "",
-        );
+        const specifier = `${UI_IMPORT_PREFIX}${pathWithoutExtension}`.replace(/\/$/, "");
         bySpecifier.set(specifier, uiModule);
         bySpecifier.set(`${UI_IMPORT_PREFIX}${relativePath}`, uiModule);
 
@@ -230,10 +210,7 @@ const readUiModules = async (): Promise<UiModuleLookup> => {
   return { byPath, bySpecifier };
 };
 
-const findUiModuleBySpecifier = (
-  specifier: string,
-  lookup: UiModuleLookup,
-): UiModule | null => {
+const findUiModuleBySpecifier = (specifier: string, lookup: UiModuleLookup): UiModule | null => {
   if (specifier === "@repo/ui") {
     return lookup.bySpecifier.get("@repo/ui") ?? null;
   }
@@ -258,9 +235,7 @@ const findUiModuleByRelativeImport = (
   specifier: string,
   lookup: UiModuleLookup,
 ): UiModule | null => {
-  const resolvedPath = normalizeModulePath(
-    join(dirname(fromModule.relativePath), specifier),
-  );
+  const resolvedPath = normalizeModulePath(join(dirname(fromModule.relativePath), specifier));
 
   for (const candidate of createUiCandidatePaths(resolvedPath)) {
     const uiModule = lookup.byPath.get(candidate);
@@ -303,11 +278,7 @@ const inlineUiDependencies = async (
         );
         replacements.set(specifier, replacement);
       } else if (specifier.startsWith(".")) {
-        const dependency = findUiModuleByRelativeImport(
-          uiModule,
-          specifier,
-          lookup,
-        );
+        const dependency = findUiModuleByRelativeImport(uiModule, specifier, lookup);
         if (!dependency) {
           continue;
         }
@@ -339,10 +310,7 @@ const inlineUiDependencies = async (
       }
 
       ensureUiModule(dependency);
-      const replacement = createRelativeUiSpecifier(
-        filePath,
-        dependency.sandpackPath,
-      );
+      const replacement = createRelativeUiSpecifier(filePath, dependency.sandpackPath);
       replacements.set(specifier, replacement);
     }
 
@@ -360,9 +328,7 @@ const inlineUiDependencies = async (
 
   const rewrittenPreview = rewriteCode("/preview.tsx", previewCode);
 
-  const updatedSourceCode: SourceCodeMap = {
-    ...Object.fromEntries(rewrittenSourceEntries),
-  };
+  const updatedSourceCode: SourceCodeMap = Object.fromEntries(rewrittenSourceEntries);
 
   for (const [path, code] of embeddedUiSources.entries()) {
     updatedSourceCode[path] = code;
@@ -374,9 +340,7 @@ const inlineUiDependencies = async (
   };
 };
 
-const readContentComponentSources = async (
-  slug: string,
-): Promise<SourceCodeMap> => {
+const readContentComponentSources = async (slug: string): Promise<SourceCodeMap> => {
   const componentDir = join(contentSourceDir, slug);
   const sourceCode: SourceCodeMap = {};
 
@@ -385,22 +349,13 @@ const readContentComponentSources = async (
   return sourceCode;
 };
 
-const readContentComponent = async (
-  slug: string,
-): Promise<ContentComponent> => {
+const readContentComponent = async (slug: string): Promise<ContentComponent> => {
   const metadata =
-    (await readJsonFile<ContentMetadata>(
-      join(contentSourceDir, slug, "meta.json"),
-    )) ?? ({} as ContentMetadata);
+    (await readJsonFile<ContentMetadata>(join(contentSourceDir, slug, "meta.json"))) ??
+    ({} as ContentMetadata);
 
-  const {
-    type: metadataType,
-    iframeUrl,
-    sourceUrl,
-    ...restMetadata
-  } = metadata;
-  const componentType: ContentComponent["type"] =
-    metadataType === "remote" ? "remote" : "local";
+  const { type: metadataType, iframeUrl, sourceUrl, ...restMetadata } = metadata;
+  const componentType: ContentComponent["type"] = metadataType === "remote" ? "remote" : "local";
 
   const baseComponent: ContentComponentBase = {
     ...restMetadata,
@@ -410,14 +365,10 @@ const readContentComponent = async (
 
   if (componentType === "remote") {
     if (!iframeUrl) {
-      throw new Error(
-        `Remote content "${slug}" is missing "iframeUrl" in meta.json`,
-      );
+      throw new Error(`Remote content "${slug}" is missing "iframeUrl" in meta.json`);
     }
     if (!sourceUrl) {
-      throw new Error(
-        `Remote content "${slug}" is missing "sourceUrl" in meta.json`,
-      );
+      throw new Error(`Remote content "${slug}" is missing "sourceUrl" in meta.json`);
     }
 
     return {
@@ -434,10 +385,9 @@ const readContentComponent = async (
       devDependencies?: Record<string, string>;
     }>(join(contentSourceDir, slug, "package.json"))) ?? {};
 
-  let previewCode = await readFile(
-    join(contentSourceDir, slug, "preview.tsx"),
-    "utf-8",
-  ).catch(() => "");
+  let previewCode = await readFile(join(contentSourceDir, slug, "preview.tsx"), "utf-8").catch(
+    () => "",
+  );
 
   let sourceCode = await readContentComponentSources(slug);
 
@@ -452,7 +402,7 @@ const readContentComponent = async (
 
     packageJson.dependencies = {
       ...existingDependencies,
-      ...(uiPackageJson.dependencies ?? {}),
+      ...uiPackageJson.dependencies,
     };
 
     const inlineResult = await inlineUiDependencies(sourceCode, previewCode);
@@ -474,9 +424,7 @@ const getAllContentComponents = async (): Promise<{
   slugs: string[];
   components: Record<string, ContentComponent>;
 }> => {
-  const slugs = (await readdir(contentSourceDir)).filter(
-    (slug) => !slug.startsWith("."),
-  );
+  const slugs = (await readdir(contentSourceDir)).filter((slug) => !slug.startsWith("."));
 
   const contents = await Promise.all(
     slugs.map(async (slug, index) => {
@@ -505,9 +453,7 @@ const serializeField = <T>(value: T | undefined): string | null => {
 };
 
 const getAllSlugs = async (): Promise<string[]> => {
-  return (await readdir(contentSourceDir)).filter(
-    (slug) => !slug.startsWith("."),
-  );
+  return (await readdir(contentSourceDir)).filter((slug) => !slug.startsWith("."));
 };
 
 const loadDbDependencies = async () => {
@@ -574,16 +520,10 @@ const generateTypeScriptExport = (
 ): string => {
   const lines: string[] = [];
 
-  lines.push(
-    "export const contentSlugs = " +
-      JSON.stringify(slugs, null, 2) +
-      " as const;",
-  );
+  lines.push("export const contentSlugs = " + JSON.stringify(slugs, null, 2) + " as const;");
   lines.push("");
 
-  lines.push(
-    "export const contentComponents: Record<string, ContentComponent> = {",
-  );
+  lines.push("export const contentComponents: Record<string, ContentComponent> = {");
 
   for (const slug of slugs) {
     const component = components[slug];
@@ -639,9 +579,7 @@ const exportToFile = async () => {
 
   // Generate the file with imports from content-schema
   const lines: string[] = [];
-  lines.push(
-    "// This file is auto-generated by the builder. Do not edit manually.",
-  );
+  lines.push("// This file is auto-generated by the builder. Do not edit manually.");
   lines.push("");
   lines.push('import type { ContentComponent } from "./content-schema";');
   lines.push("");
@@ -719,10 +657,7 @@ const watch = (mode: "db" | "export") => {
     ignored: (path: string) => {
       return GITIGNORE_PATTERNS.some((pattern) => {
         const normalized = path.replace(/\\/g, "/");
-        return (
-          normalized.includes(`/${pattern}/`) ||
-          normalized.endsWith(`/${pattern}`)
-        );
+        return normalized.includes(`/${pattern}/`) || normalized.endsWith(`/${pattern}`);
       });
     },
   });
@@ -763,8 +698,7 @@ const watch = (mode: "db" | "export") => {
 
   watcher.on("all", (_event, path) => {
     const relativePath = relative(repoRoot, path);
-    const action =
-      mode === "export" ? "Exporting to file..." : "Syncing to database...";
+    const action = mode === "export" ? "Exporting to file..." : "Syncing to database...";
     console.log(`⚠️ Change detected in ${relativePath}. ${action}`);
 
     void (async () => {
@@ -772,9 +706,7 @@ const watch = (mode: "db" | "export") => {
       if (path.startsWith(uiSourceRoot)) {
         const affectedComponents = await getComponentsUsingUi();
         if (affectedComponents.length > 0) {
-          console.log(
-            `   Rebuilding ${affectedComponents.length} component(s) that use @repo/ui`,
-          );
+          console.log(`   Rebuilding ${affectedComponents.length} component(s) that use @repo/ui`);
           void runBuild(new Set(affectedComponents));
         }
         return;

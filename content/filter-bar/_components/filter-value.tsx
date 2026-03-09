@@ -22,12 +22,7 @@ import {
   CommandSeparator,
 } from "@repo/ui/command";
 import { Input } from "@repo/ui/input";
-import {
-  Popover,
-  PopoverAnchor,
-  PopoverContent,
-  PopoverTrigger,
-} from "@repo/ui/popover";
+import { Popover, PopoverAnchor, PopoverContent, PopoverTrigger } from "@repo/ui/popover";
 import { Slider } from "@repo/ui/slider";
 import { Switch } from "@repo/ui/switch";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@repo/ui/tabs";
@@ -44,11 +39,7 @@ import type {
   FilterStrategy,
   MinMaxReturn,
 } from "../filter-package";
-import {
-  createNumberRange,
-  numberFilterOperators,
-  take,
-} from "../filter-package";
+import { createNumberRange, numberFilterOperators, take } from "../filter-package";
 
 type ControlFunctions = {
   cancel: () => void;
@@ -161,10 +152,7 @@ function debounce<T extends (...args: any[]) => any>(
     );
   }
 
-  function startTimer(
-    pendingFunc: () => void,
-    waitTime: number,
-  ): NodeJS.Timeout {
+  function startTimer(pendingFunc: () => void, waitTime: number): NodeJS.Timeout {
     return setTimeout(pendingFunc, waitTime);
   }
 
@@ -202,10 +190,7 @@ function debounce<T extends (...args: any[]) => any>(
     return result;
   }
 
-  function debounced(
-    this: any,
-    ...args: Parameters<T>
-  ): ReturnType<T> | undefined {
+  function debounced(this: any, ...args: Parameters<T>): ReturnType<T> | undefined {
     const time = Date.now();
     const isInvoking = shouldInvoke(time);
 
@@ -430,12 +415,7 @@ export function FilterValueOptionDisplay<TData>({
     const hasIcon = !!Icon;
     return (
       <span className="inline-flex items-center gap-1">
-        {hasIcon &&
-          (isValidElement(Icon) ? (
-            Icon
-          ) : (
-            <Icon className="text-primary size-4" />
-          ))}
+        {hasIcon && (isValidElement(Icon) ? Icon : <Icon className="text-primary size-4" />)}
         <span>{label}</span>
       </span>
     );
@@ -451,11 +431,7 @@ export function FilterValueOptionDisplay<TData>({
       {hasOptionIcons &&
         take(selected, 3).map(({ value, icon }) => {
           const Icon = icon!;
-          return isValidElement(Icon) ? (
-            Icon
-          ) : (
-            <Icon key={value} className="size-4" />
-          );
+          return isValidElement(Icon) ? Icon : <Icon key={value} className="size-4" />;
         })}
       <span className={cn(hasOptionIcons && "ml-1.5")}>
         {selected.length} {pluralName}
@@ -477,12 +453,7 @@ export function FilterValueMultiOptionDisplay<TData>({
     const hasIcon = !!Icon;
     return (
       <span className="inline-flex items-center gap-1.5">
-        {hasIcon &&
-          (isValidElement(Icon) ? (
-            Icon
-          ) : (
-            <Icon className="text-primary size-4" />
-          ))}
+        {hasIcon && (isValidElement(Icon) ? Icon : <Icon className="text-primary size-4" />)}
 
         <span>{label}</span>
       </span>
@@ -544,10 +515,7 @@ export function FilterValueDateDisplay<TData>({
     return <span>{formattedDateStr}</span>;
   }
   if (filter.values.length === 2 && filter.values[0] && filter.values[1]) {
-    const formattedRangeStr = formatDateRange(
-      filter.values[0],
-      filter.values[1],
-    );
+    const formattedRangeStr = formatDateRange(filter.values[0], filter.values[1]);
 
     return <span>{formattedRangeStr}</span>;
   }
@@ -561,10 +529,7 @@ export function FilterValueTextDisplay<TData>({
   actions,
 }: FilterValueDisplayProps<TData, "text">) {
   if (!filter) return null;
-  if (
-    filter.values.length === 0 ||
-    (filter.values[0] && filter.values[0].trim() === "")
-  )
+  if (filter.values.length === 0 || (filter.values[0] && filter.values[0].trim() === ""))
     return <Ellipsis className="size-4" />;
 
   const value = filter.values[0];
@@ -579,10 +544,7 @@ export function FilterValueNumberDisplay<TData>({
 }: FilterValueDisplayProps<TData, "number">) {
   if (!filter || !filter.values || filter.values.length === 0) return null;
 
-  if (
-    filter.operator === "is between" ||
-    filter.operator === "is not between"
-  ) {
+  if (filter.operator === "is between" || filter.operator === "is not between") {
     const minValue = filter.values[0];
     const maxValue = filter.values[1];
 
@@ -681,10 +643,7 @@ interface OptionItemProps {
 }
 
 // Memoized option item to prevent re-renders unless its own props change
-const OptionItem = memo(function OptionItem({
-  option,
-  onToggle,
-}: OptionItemProps) {
+const OptionItem = memo(function OptionItem({ option, onToggle }: OptionItemProps) {
   const { value, label, icon: Icon, selected, count } = option;
   const handleSelect = useCallback(() => {
     onToggle(value, !selected);
@@ -702,16 +661,9 @@ const OptionItem = memo(function OptionItem({
           className="dark:border-ring mr-1 shrink-0 opacity-0 group-data-[selected=true]:opacity-100 data-[state=checked]:opacity-100"
         />
         <div className="shrink-0">
-          {Icon &&
-            (isValidElement(Icon) ? (
-              Icon
-            ) : (
-              <Icon className="text-primary size-4" />
-            ))}
+          {Icon && (isValidElement(Icon) ? Icon : <Icon className="text-primary size-4" />)}
         </div>
-        <span className="overflow-x-hidden overflow-ellipsis whitespace-nowrap">
-          {label}
-        </span>
+        <span className="overflow-x-hidden overflow-ellipsis whitespace-nowrap">{label}</span>
       </div>
     </CommandItem>
   );
@@ -723,10 +675,7 @@ export function FilterValueOptionController<TData>({
   actions,
 }: FilterValueControllerProps<TData, "option">) {
   // Derive the initial selected values on mount
-  const initialSelectedValues = useMemo(
-    () => new Set(filter?.values || []),
-    [],
-  );
+  const initialSelectedValues = useMemo(() => new Set(filter?.values || []), []);
 
   // Separate the selected and unselected options
   const { selectedOptions, unselectedOptions } = useMemo(() => {
@@ -740,12 +689,8 @@ export function FilterValueOptionController<TData>({
       };
     });
 
-    const selected = allOptions.filter((o) =>
-      initialSelectedValues.has(o.value),
-    );
-    const unselected = allOptions.filter(
-      (o) => !initialSelectedValues.has(o.value),
-    );
+    const selected = allOptions.filter((o) => initialSelectedValues.has(o.value));
+    const unselected = allOptions.filter((o) => !initialSelectedValues.has(o.value));
     return { selectedOptions: selected, unselectedOptions: unselected };
   }, [column, filter?.values, initialSelectedValues]);
 
@@ -764,29 +709,18 @@ export function FilterValueOptionController<TData>({
       <CommandList>
         <CommandGroup className={cn(selectedOptions.length === 0 && "hidden")}>
           {selectedOptions.map((option) => (
-            <OptionItem
-              key={option.value}
-              option={option}
-              onToggle={handleToggle}
-            />
+            <OptionItem key={option.value} option={option} onToggle={handleToggle} />
           ))}
         </CommandGroup>
         {/* Only show separator if there are both selected AND unselected options */}
         <CommandSeparator
           className={cn(
-            (unselectedOptions.length === 0 || selectedOptions.length === 0) &&
-              "hidden",
+            (unselectedOptions.length === 0 || selectedOptions.length === 0) && "hidden",
           )}
         />
-        <CommandGroup
-          className={cn(unselectedOptions.length === 0 && "hidden")}
-        >
+        <CommandGroup className={cn(unselectedOptions.length === 0 && "hidden")}>
           {unselectedOptions.map((option) => (
-            <OptionItem
-              key={option.value}
-              option={option}
-              onToggle={handleToggle}
-            />
+            <OptionItem key={option.value} option={option} onToggle={handleToggle} />
           ))}
         </CommandGroup>
       </CommandList>
@@ -800,10 +734,7 @@ export function FilterValueMultiOptionController<TData>({
   actions,
 }: FilterValueControllerProps<TData, "multiOption">) {
   // Derive the initial selected values on mount
-  const initialSelectedValues = useMemo(
-    () => new Set(filter?.values || []),
-    [],
-  );
+  const initialSelectedValues = useMemo(() => new Set(filter?.values || []), []);
 
   // Separate the selected and unselected options
   const { selectedOptions, unselectedOptions } = useMemo(() => {
@@ -817,12 +748,8 @@ export function FilterValueMultiOptionController<TData>({
       };
     });
 
-    const selected = allOptions.filter((o) =>
-      initialSelectedValues.has(o.value),
-    );
-    const unselected = allOptions.filter(
-      (o) => !initialSelectedValues.has(o.value),
-    );
+    const selected = allOptions.filter((o) => initialSelectedValues.has(o.value));
+    const unselected = allOptions.filter((o) => !initialSelectedValues.has(o.value));
     return { selectedOptions: selected, unselectedOptions: unselected };
   }, [column, filter?.values, initialSelectedValues]);
 
@@ -841,29 +768,18 @@ export function FilterValueMultiOptionController<TData>({
       <CommandList>
         <CommandGroup className={cn(selectedOptions.length === 0 && "hidden")}>
           {selectedOptions.map((option) => (
-            <OptionItem
-              key={option.value}
-              option={option}
-              onToggle={handleToggle}
-            />
+            <OptionItem key={option.value} option={option} onToggle={handleToggle} />
           ))}
         </CommandGroup>
         {/* Only show separator if there are both selected AND unselected options */}
         <CommandSeparator
           className={cn(
-            (unselectedOptions.length === 0 || selectedOptions.length === 0) &&
-              "hidden",
+            (unselectedOptions.length === 0 || selectedOptions.length === 0) && "hidden",
           )}
         />
-        <CommandGroup
-          className={cn(unselectedOptions.length === 0 && "hidden")}
-        >
+        <CommandGroup className={cn(unselectedOptions.length === 0 && "hidden")}>
           {unselectedOptions.map((option) => (
-            <OptionItem
-              key={option.value}
-              option={option}
-              onToggle={handleToggle}
-            />
+            <OptionItem key={option.value} option={option} onToggle={handleToggle} />
           ))}
         </CommandGroup>
       </CommandList>
@@ -883,10 +799,7 @@ export function FilterValueDateController<TData>({
 
   function changeDateRange(value: DateRange | undefined) {
     const start = value?.from;
-    const end =
-      start && value && value.to && !isEqual(start, value.to)
-        ? value.to
-        : undefined;
+    const end = start && value && value.to && !isEqual(start, value.to) ? value.to : undefined;
 
     setDate({ from: start, to: end });
 
@@ -948,14 +861,8 @@ export function FilterValueNumberController<TData>({
   column,
   actions,
 }: FilterValueControllerProps<TData, "number">) {
-  const minMax = useMemo(
-    () => column.getFacetedMinMaxValues() as MinMaxReturn<"number">,
-    [column],
-  );
-  const [sliderMin, sliderMax] = [
-    minMax ? minMax[0] : 0,
-    minMax ? minMax[1] : 0,
-  ];
+  const minMax = useMemo(() => column.getFacetedMinMaxValues() as MinMaxReturn<"number">, [column]);
+  const [sliderMin, sliderMax] = [minMax ? minMax[0] : 0, minMax ? minMax[1] : 0];
 
   // Local state for values
   const [values, setValues] = useState(filter?.values ?? [0, 0]);
@@ -975,14 +882,8 @@ export function FilterValueNumberController<TData>({
     // filter && values.length === 2
     filter && numberFilterOperators[filter.operator].target === "multiple";
 
-  const setFilterOperatorDebounced = useDebounceCallback(
-    actions.setFilterOperator,
-    500,
-  );
-  const setFilterValueDebounced = useDebounceCallback(
-    actions.setFilterValue,
-    500,
-  );
+  const setFilterOperatorDebounced = useDebounceCallback(actions.setFilterOperator, 500);
+  const setFilterValueDebounced = useDebounceCallback(actions.setFilterValue, 500);
 
   const changeNumber = (value: number[]) => {
     setValues(value);
@@ -1006,8 +907,7 @@ export function FilterValueNumberController<TData>({
       let newValues: number[] = [];
       if (type === "single")
         newValues = [values[0]!]; // Keep the first value for single mode
-      else if (!minMax)
-        newValues = createNumberRange([values[0]!, values[1] ?? 0]);
+      else if (!minMax) newValues = createNumberRange([values[0]!, values[1] ?? 0]);
       else {
         const value = values[0]!;
         newValues =
@@ -1118,10 +1018,7 @@ export function FilterValueBooleanController<TData>({
       <CommandList className="max-h-fit">
         <CommandGroup>
           <CommandItem>
-            <Switch
-              checked={filter?.values[0] ?? false}
-              onCheckedChange={handleChange}
-            />
+            <Switch checked={filter?.values[0] ?? false} onCheckedChange={handleChange} />
           </CommandItem>
         </CommandGroup>
       </CommandList>

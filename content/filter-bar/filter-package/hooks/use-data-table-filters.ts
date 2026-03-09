@@ -21,11 +21,7 @@ import type {
 } from "../core/types";
 import { createColumns } from "../core/columns/index";
 import { filterOperations } from "../core/filters";
-import {
-  isColumnOptionArray,
-  isColumnOptionMap,
-  isMinMaxTuple,
-} from "../lib/helpers";
+import { isColumnOptionArray, isColumnOptionMap, isMinMaxTuple } from "../lib/helpers";
 
 export function useDataTableFilters<
   TData,
@@ -42,35 +38,25 @@ export function useDataTableFilters<
   options,
   faceted,
   entityName,
-}: DataTableFiltersOptions<
+}: DataTableFiltersOptions<TData, TColumns, TStrategy, TContext>): DataTableFiltersInstance<
   TData,
-  TColumns,
   TStrategy,
   TContext
->): DataTableFiltersInstance<TData, TStrategy, TContext> {
-  const [internalFilters, setInternalFilters] = useState<FiltersState>(
-    defaultFilters ?? [],
-  );
+> {
+  const [internalFilters, setInternalFilters] = useState<FiltersState>(defaultFilters ?? []);
 
-  if (
-    (externalFilters && !onFiltersChange) ||
-    (!externalFilters && onFiltersChange)
-  ) {
+  if ((externalFilters && !onFiltersChange) || (!externalFilters && onFiltersChange)) {
     throw new Error(
       "If using controlled state, you must specify both filters and onFiltersChange.",
     );
   }
 
-  const isControlled =
-    externalFilters !== undefined && onFiltersChange !== undefined;
+  const isControlled = externalFilters !== undefined && onFiltersChange !== undefined;
 
   const filters = isControlled ? externalFilters : internalFilters;
 
   const setFilters = useCallback(
-    (
-      nextFilters: FiltersState | ((prev: FiltersState) => FiltersState),
-      context?: TContext,
-    ) => {
+    (nextFilters: FiltersState | ((prev: FiltersState) => FiltersState), context?: TContext) => {
       // Handle change for controlled mode
       if (isControlled) {
         // For controlled mode, we need to resolve the function and call the handler
@@ -111,10 +97,7 @@ export function useDataTableFilters<
       let final = config;
 
       // Set options, if exists
-      if (
-        options &&
-        (config.type === "option" || config.type === "multiOption")
-      ) {
+      if (options && (config.type === "option" || config.type === "multiOption")) {
         const optionsInput = options[config.id as OptionColumnIds<TColumns>];
         if (!optionsInput || !isColumnOptionArray(optionsInput)) return config;
 
@@ -122,14 +105,9 @@ export function useDataTableFilters<
       }
 
       // Set faceted options, if exists
-      if (
-        faceted &&
-        (config.type === "option" || config.type === "multiOption")
-      ) {
-        const facetedOptionsInput =
-          faceted[config.id as OptionColumnIds<TColumns>];
-        if (!facetedOptionsInput || !isColumnOptionMap(facetedOptionsInput))
-          return config;
+      if (faceted && (config.type === "option" || config.type === "multiOption")) {
+        const facetedOptionsInput = faceted[config.id as OptionColumnIds<TColumns>];
+        if (!facetedOptionsInput || !isColumnOptionMap(facetedOptionsInput)) return config;
 
         final = { ...final, facetedOptions: facetedOptionsInput };
       }
@@ -159,10 +137,7 @@ export function useDataTableFilters<
         values: FilterModel<TType>["values"],
         context?: TContext,
       ) {
-        setFilters(
-          (prev) => filterOperations.addFilterValue(prev, column, values),
-          context,
-        );
+        setFilters((prev) => filterOperations.addFilterValue(prev, column, values), context);
       },
 
       removeFilterValue<TData, TType extends OptionBasedColumnDataType>(
@@ -170,10 +145,7 @@ export function useDataTableFilters<
         value: FilterModel<TType>["values"],
         context?: TContext,
       ) {
-        setFilters(
-          (prev) => filterOperations.removeFilterValue(prev, column, value),
-          context,
-        );
+        setFilters((prev) => filterOperations.removeFilterValue(prev, column, value), context);
       },
 
       setFilterValue<TData, TType extends ColumnDataType>(
@@ -181,10 +153,7 @@ export function useDataTableFilters<
         values: FilterModel<TType>["values"],
         context?: TContext,
       ) {
-        setFilters(
-          (prev) => filterOperations.setFilterValue(prev, column, values),
-          context,
-        );
+        setFilters((prev) => filterOperations.setFilterValue(prev, column, values), context);
       },
 
       setFilterOperator<TType extends ColumnDataType>(
@@ -192,28 +161,18 @@ export function useDataTableFilters<
         operator: FilterModel<TType>["operator"],
         context?: TContext,
       ) {
-        setFilters(
-          (prev) =>
-            filterOperations.setFilterOperator(prev, columnId, operator),
-          context,
-        );
+        setFilters((prev) => filterOperations.setFilterOperator(prev, columnId, operator), context);
       },
 
       removeFilter(columnId: string, context?: TContext) {
-        setFilters(
-          (prev) => filterOperations.removeFilter(prev, columnId),
-          context,
-        );
+        setFilters((prev) => filterOperations.removeFilter(prev, columnId), context);
       },
 
       removeAllFilters(context?: TContext) {
         setFilters((prev) => filterOperations.removeAllFilters(prev), context);
       },
 
-      batch(
-        callback: (batchActions: DataTableFilterBatchActions) => void,
-        context?: TContext,
-      ) {
+      batch(callback: (batchActions: DataTableFilterBatchActions) => void, context?: TContext) {
         setFilters((prevFilters) => {
           // Start with current state
           let transactionFilters = prevFilters;
@@ -265,15 +224,11 @@ export function useDataTableFilters<
             },
 
             removeFilter(columnId: string) {
-              transactionFilters = filterOperations.removeFilter(
-                transactionFilters,
-                columnId,
-              );
+              transactionFilters = filterOperations.removeFilter(transactionFilters, columnId);
             },
 
             removeAllFilters() {
-              transactionFilters =
-                filterOperations.removeAllFilters(transactionFilters);
+              transactionFilters = filterOperations.removeAllFilters(transactionFilters);
             },
           };
 

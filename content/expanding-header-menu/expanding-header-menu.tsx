@@ -67,14 +67,9 @@ export const HeaderMenu = ({ isOpen, setIsOpen }: HeaderMenuProps) => {
                     <X strokeWidth={1.5} size={20} />
                   </motion.button>
                 </div>
-                <motion.div
-                  layoutId="wrapper-user-info"
-                  className="-space-y-px"
-                >
+                <motion.div layoutId="wrapper-user-info" className="-space-y-px">
                   <h2 className="text-left text-sm font-bold">Kai</h2>
-                  <p className="flex items-center text-xs text-[#ABABB0]">
-                    3 tabs
-                  </p>
+                  <p className="flex items-center text-xs text-[#ABABB0]">3 tabs</p>
                 </motion.div>
                 <button className="ml-auto flex h-8 w-8 items-center justify-center">
                   <Ellipsis strokeWidth={1.5} size={20} />
@@ -94,10 +89,7 @@ export const HeaderMenu = ({ isOpen, setIsOpen }: HeaderMenuProps) => {
         >
           <div className="flex items-center gap-2">
             <div className="relative isolate h-8 w-8">
-              <motion.div
-                layoutId="wrapper-avatar"
-                className="relative isolate h-8 w-8"
-              >
+              <motion.div layoutId="wrapper-avatar" className="relative isolate h-8 w-8">
                 <img
                   src="https://pbs.twimg.com/profile_images/1760212439944278016/6cTEMery_400x400.jpg"
                   alt="logo"
@@ -133,14 +125,8 @@ export const HeaderMenu = ({ isOpen, setIsOpen }: HeaderMenuProps) => {
 const WrapperMenu = ({ className }: { className?: string }) => {
   return (
     <AnimatePresence>
-      <motion.div
-        layoutId="wrapper-menu"
-        className={cn("mt-1 text-[#C7C9CD]", className)}
-      >
-        <motion.div
-          layout
-          className="mb-2 grid grid-cols-3 gap-2 px-3 text-white"
-        >
+      <motion.div layoutId="wrapper-menu" className={cn("mt-1 text-[#C7C9CD]", className)}>
+        <motion.div layout className="mb-2 grid grid-cols-3 gap-2 px-3 text-white">
           <button className="flex h-9 items-center justify-center gap-1 rounded-lg border border-[#313538] px-1 text-sm">
             <UserRoundPlus strokeWidth={1.5} size={16} />
             Add

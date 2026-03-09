@@ -3,13 +3,7 @@
 import React, { useEffect, useRef } from "react";
 import { Input } from "@repo/ui/input";
 
-import type {
-  Cell,
-  Column,
-  Row,
-  Table,
-  TableMeta,
-} from "@tanstack/react-table";
+import type { Cell, Column, Row, Table, TableMeta } from "@tanstack/react-table";
 import { useSpreadsheetStore } from "../lib/spreadsheet-store";
 
 interface SpreadsheetRow {
@@ -17,8 +11,7 @@ interface SpreadsheetRow {
   [key: string]: unknown;
 }
 
-interface SpreadsheetTableMeta<TData extends SpreadsheetRow>
-  extends TableMeta<TData> {
+interface SpreadsheetTableMeta<TData extends SpreadsheetRow> extends TableMeta<TData> {
   updateData?: (rowIndex: number, columnId: string, value: unknown) => void;
 }
 
@@ -39,9 +32,7 @@ export const EditableCell = <TData extends SpreadsheetRow = SpreadsheetRow>({
   const setEditingCell = useSpreadsheetStore((state) => state.setEditingCell);
   const updateData = useSpreadsheetStore((state) => state.updateData);
   const value = getValue() as string;
-  const isEditing =
-    editingCell?.rowId === row.original.id &&
-    editingCell?.columnId === column.id;
+  const isEditing = editingCell?.rowId === row.original.id && editingCell?.columnId === column.id;
 
   const onChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     updateData(row.original.id, column.id, e.target.value);

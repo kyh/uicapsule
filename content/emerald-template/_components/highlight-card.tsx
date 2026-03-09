@@ -64,11 +64,7 @@ export const HighlightCard = ({
   const mouseX = useMotionValue(0);
   const mouseY = useMotionValue(0);
 
-  const onMouseMove = ({
-    currentTarget,
-    clientX,
-    clientY,
-  }: React.MouseEvent) => {
+  const onMouseMove = ({ currentTarget, clientX, clientY }: React.MouseEvent) => {
     const { left, top } = currentTarget.getBoundingClientRect();
     mouseX.set(clientX - left);
     mouseY.set(clientY - top);
@@ -76,10 +72,7 @@ export const HighlightCard = ({
 
   return (
     <Card
-      className={cn(
-        "group shadow-highlight relative rounded-2xl bg-zinc-900/90",
-        className,
-      )}
+      className={cn("group shadow-highlight relative rounded-2xl bg-zinc-900/90", className)}
       onMouseMove={onMouseMove}
       {...props}
     >
@@ -91,16 +84,10 @@ export const HighlightCard = ({
   );
 };
 
-const Card = ({
-  className,
-  ...props
-}: React.HTMLAttributes<HTMLDivElement>) => (
+const Card = ({ className, ...props }: React.HTMLAttributes<HTMLDivElement>) => (
   <div
     data-slot="card"
-    className={cn(
-      "bg-card flex flex-col gap-3 overflow-hidden border p-3",
-      className,
-    )}
+    className={cn("bg-card flex flex-col gap-3 overflow-hidden border p-3", className)}
     {...props}
   />
 );

@@ -5,75 +5,22 @@ const Cell1 = ({ colors }: { colors: string[]; strokeWidth: number }) => (
   <circle cx="50" cy="50" r="9.44" fill={colors[0]} fillRule="evenodd" />
 );
 
-const Cell2 = ({
-  colors,
-  strokeWidth,
-}: {
-  colors: string[];
-  strokeWidth: number;
-}) => (
+const Cell2 = ({ colors, strokeWidth }: { colors: string[]; strokeWidth: number }) => (
   <>
-    <line
-      x1="25"
-      x2="75"
-      y1="25"
-      y2="25"
-      stroke={colors[0]}
-      strokeWidth={strokeWidth}
-    />
-    <line
-      x1="25"
-      x2="75"
-      y1="50"
-      y2="50"
-      stroke={colors[0]}
-      strokeWidth={strokeWidth}
-    />
-    <line
-      x1="25"
-      x2="75"
-      y1="75"
-      y2="75"
-      stroke={colors[0]}
-      strokeWidth={strokeWidth}
-    />
+    <line x1="25" x2="75" y1="25" y2="25" stroke={colors[0]} strokeWidth={strokeWidth} />
+    <line x1="25" x2="75" y1="50" y2="50" stroke={colors[0]} strokeWidth={strokeWidth} />
+    <line x1="25" x2="75" y1="75" y2="75" stroke={colors[0]} strokeWidth={strokeWidth} />
   </>
 );
 
-const Cell3 = ({
-  colors,
-  strokeWidth,
-}: {
-  colors: string[];
-  strokeWidth: number;
-}) => (
+const Cell3 = ({ colors, strokeWidth }: { colors: string[]; strokeWidth: number }) => (
   <>
-    <line
-      x1="25"
-      x2="75"
-      y1="25"
-      y2="75"
-      stroke={colors[0]}
-      strokeWidth={strokeWidth}
-    />
-    <line
-      x1="25"
-      x2="75"
-      y1="75"
-      y2="25"
-      stroke={colors[0]}
-      strokeWidth={strokeWidth}
-    />
+    <line x1="25" x2="75" y1="25" y2="75" stroke={colors[0]} strokeWidth={strokeWidth} />
+    <line x1="25" x2="75" y1="75" y2="25" stroke={colors[0]} strokeWidth={strokeWidth} />
   </>
 );
 
-const Cell4 = ({
-  colors,
-  strokeWidth,
-}: {
-  colors: string[];
-  strokeWidth: number;
-}) => (
+const Cell4 = ({ colors, strokeWidth }: { colors: string[]; strokeWidth: number }) => (
   <rect
     width="50"
     height="50"
@@ -85,29 +32,13 @@ const Cell4 = ({
   />
 );
 
-const Cell5 = ({
-  colors,
-  strokeWidth,
-}: {
-  colors: string[];
-  strokeWidth: number;
-}) => (
-  <line
-    x1="25"
-    x2="75"
-    y1="75"
-    y2="25"
-    fill="none"
-    stroke={colors[0]}
-    strokeWidth={strokeWidth}
-  />
+const Cell5 = ({ colors, strokeWidth }: { colors: string[]; strokeWidth: number }) => (
+  <line x1="25" x2="75" y1="75" y2="25" fill="none" stroke={colors[0]} strokeWidth={strokeWidth} />
 );
 
 const Cell6 = () => null;
 
-const Cell7 = () => (
-  <rect width="75" height="75" x="12.5" y="12.5" fill="rgba(255,255,255,0.1)" />
-);
+const Cell7 = () => <rect width="75" height="75" x="12.5" y="12.5" fill="rgba(255,255,255,0.1)" />;
 
 // Simple seeded random number generator
 const seedPRNG = (seed: number) => {
@@ -142,10 +73,7 @@ const shapesConfig: ShapeConfig[] = [
 ];
 
 // Create weighted selector
-const createWeightedSelector = (
-  items: ShapeConfig[],
-  seededRandom: () => number,
-) => {
+const createWeightedSelector = (items: ShapeConfig[], seededRandom: () => number) => {
   const weightedArray: ShapeConfig[] = [];
 
   for (const item of items) {
@@ -187,8 +115,7 @@ const Shape = ({
   });
 
   useEffect(() => {
-    const getRandomInterval = () =>
-      Math.random() * (maxInterval - minInterval) + minInterval;
+    const getRandomInterval = () => Math.random() * (maxInterval - minInterval) + minInterval;
 
     const updateShape = () => {
       const seededRandom = seedPRNG(Math.random() * 1000);
@@ -289,25 +216,10 @@ export const BackgroundShapes = ({
     }
 
     setShapes(newShapes);
-  }, [
-    width,
-    height,
-    cellSize,
-    strokeWidth,
-    colors,
-    borderSize,
-    scale,
-    minInterval,
-    maxInterval,
-  ]);
+  }, [width, height, cellSize, strokeWidth, colors, borderSize, scale, minInterval, maxInterval]);
 
   return (
-    <svg
-      width={width}
-      height={height}
-      viewBox={`0 0 ${width} ${height}`}
-      className={className}
-    >
+    <svg width={width} height={height} viewBox={`0 0 ${width} ${height}`} className={className}>
       {shapes}
     </svg>
   );

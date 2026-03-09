@@ -19,11 +19,7 @@ export function FilterSubject<TData, TType extends ColumnDataType>({
   return (
     <span className="flex items-center gap-1 px-2 font-medium whitespace-nowrap select-none">
       {hasIcon &&
-        (isValidElement(Icon) ? (
-          Icon
-        ) : (
-          <Icon className="text-primary size-4 stroke-[2.25px]" />
-        ))}
+        (isValidElement(Icon) ? Icon : <Icon className="text-primary size-4 stroke-[2.25px]" />)}
 
       <span>{subject}</span>
     </span>

@@ -9,14 +9,7 @@ import {
   DropdownMenuTrigger,
 } from "@repo/ui/dropdown-menu";
 import { createColumnHelper } from "@tanstack/react-table";
-import {
-  Download,
-  MoreVerticalIcon,
-  Plus,
-  Sparkles,
-  TrashIcon,
-  Upload,
-} from "lucide-react";
+import { Download, MoreVerticalIcon, Plus, Sparkles, TrashIcon, Upload } from "lucide-react";
 
 import { EditableCell } from "./components/editable-cell";
 import { Spreadsheet } from "./components/spreadsheet";
@@ -84,10 +77,7 @@ const RowActions = ({ row }: { row: Person }) => {
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end">
-        <DropdownMenuItem
-          onClick={() => deleteRow(row.id)}
-          className="text-destructive"
-        >
+        <DropdownMenuItem onClick={() => deleteRow(row.id)} className="text-destructive">
           <TrashIcon className="size-4" />
           Delete
         </DropdownMenuItem>
