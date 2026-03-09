@@ -10,8 +10,6 @@
     "dev": "turbo watch dev --continue",
     "dev-web": "turbo watch dev -F @repo/web...",
     "lint": "oxlint --report-unused-disable-directives",
-    "lint-ws": "pnpm dlx sherif@latest",
-    "postinstall": "pnpm lint-ws",
     "typecheck": "turbo run typecheck",
     "gen-ui": "pnpm -F ui gen-ui",
     "format": "oxfmt",
