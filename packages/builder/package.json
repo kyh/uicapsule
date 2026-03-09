@@ -18,10 +18,7 @@
     "chokidar": "^5.0.0"
   },
   "devDependencies": {
-    "@kyh/eslint-config": "catalog:",
-    "@kyh/prettier-config": "catalog:",
     "@kyh/tsconfig": "catalog:",
-    "prettier": "catalog:",
     "tsx": "^4.21.0",
     "typescript": "catalog:"
   },
