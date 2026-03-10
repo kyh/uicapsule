@@ -1,3 +1,5 @@
+"use client"
+
 import { useEffect, useRef } from "react"
 import * as THREE from "three"
 
@@ -11,8 +13,8 @@ export const ParticleOrb = () => {
     const scene = new THREE.Scene()
 
     const getSize = () => ({
-      width: container.clientWidth || window.innerWidth,
-      height: container.clientHeight || window.innerHeight,
+      width: container.clientWidth,
+      height: container.clientHeight,
     })
 
     const { width: initialWidth, height: initialHeight } = getSize()
@@ -48,6 +50,7 @@ export const ParticleOrb = () => {
     const animate = (timeMs: number) => {
       const time = timeMs * 0.001
       points.rotation.set(0, time * 0.2, 0)
+      // onBeforeCompile stashes the compiled shader on userData (see setupPointsShader)
       const shader = (material as any).userData?.shader
       if (shader) shader.uniforms.time.value = time
       renderer.render(scene, camera)
@@ -55,17 +58,17 @@ export const ParticleOrb = () => {
     }
     animationFrameId = requestAnimationFrame(animate)
 
-    const handleResize = () => {
+    const resizeObserver = new ResizeObserver(() => {
       const { width, height } = getSize()
       camera.aspect = width / height
       camera.updateProjectionMatrix()
       renderer.setSize(width, height)
-    }
-    window.addEventListener("resize", handleResize)
+    })
+    resizeObserver.observe(container)
 
     return () => {
       cancelAnimationFrame(animationFrameId)
-      window.removeEventListener("resize", handleResize)
+      resizeObserver.disconnect()
       scene.remove(points)
       geometry.dispose()
       material.dispose()

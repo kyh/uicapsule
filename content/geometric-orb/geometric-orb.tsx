@@ -107,6 +107,13 @@ function LatitudeLine({
     }
   }, [materials, geometries])
 
+  // Update resolution when canvas size changes, not every frame
+  useEffect(() => {
+    for (const mat of materials) {
+      mat.resolution.set(size.width, size.height)
+    }
+  }, [materials, size.width, size.height])
+
   useFrame((state) => {
     if (!groupRef.current) return
 
@@ -116,11 +123,15 @@ function LatitudeLine({
     const circleRadius = Math.sin(latitude) * config.radius
     const yPosition = Math.cos(latitude) * config.radius
 
+    // Use actual camera direction for depth-fade so it works with OrbitControls
+    const camDir = state.camera.position.clone().normalize()
+
     for (let g = 0; g < config.segmentGroups; g++) {
       const positions: number[] = []
       const startAngle = (g / config.segmentGroups) * Math.PI * 2
       const endAngle = ((g + 1) / config.segmentGroups) * Math.PI * 2
       let avgX = 0
+      let avgY = 0
       let avgZ = 0
 
       for (let i = 0; i <= config.segmentsPerGroup; i++) {
@@ -131,25 +142,30 @@ function LatitudeLine({
         const ySquiggle = Math.sin(angle * config.squiggleFrequency * 0.7 + time * config.squiggleSpeed * 1.2) * config.squiggleAmount * 0.4
 
         const x = Math.cos(angle) * displacedRadius
+        const y = yPosition + ySquiggle * circleRadius
         const z = Math.sin(angle) * displacedRadius
-        positions.push(x, yPosition + ySquiggle * circleRadius, z)
+        positions.push(x, y, z)
         avgX += x
+        avgY += y
         avgZ += z
       }
 
       const count = config.segmentsPerGroup + 1
       avgX /= count
+      avgY /= count
       avgZ /= count
 
-      // Rotate segment center into world space to determine camera-facing depth
-      const rotatedZ = avgZ * Math.cos(longitudeRotation) +
-        avgX * Math.sin(longitudeRotation)
-      const depthFactor = (rotatedZ / config.radius + 1) / 2
+      // Transform segment center to world space, then project onto camera direction
+      const cosR = Math.cos(longitudeRotation)
+      const sinR = Math.sin(longitudeRotation)
+      const worldX = avgX * cosR + avgZ * sinR
+      const worldZ = -avgX * sinR + avgZ * cosR
+      const dot = worldX * camDir.x + avgY * camDir.y + worldZ * camDir.z
+      const depthFactor = (dot / config.radius + 1) / 2
       const opacity = Math.pow(depthFactor, 1.5) * 0.95 + 0.05
 
       geometries[g].setPositions(positions)
       materials[g].opacity = opacity
-      materials[g].resolution.set(size.width, size.height)
     }
 
     groupRef.current.rotation.y = longitudeRotation
@@ -187,7 +203,11 @@ export function GeometricOrb({
   config?: GeometricOrbConfig
   className?: string
 }) {
-  const config = { ...defaults, ...configOverrides }
+  const config = useMemo(
+    () => ({ ...defaults, ...configOverrides }),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [...Object.values(configOverrides ?? {})],
+  )
 
   return (
     <div className={`w-full h-full ${className}`} style={{ background: config.background }}>

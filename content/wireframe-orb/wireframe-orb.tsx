@@ -1,7 +1,7 @@
 "use client"
 
 import { useRef, useMemo, useEffect } from "react"
-import { Canvas, useFrame, useThree } from "@react-three/fiber"
+import { Canvas, useFrame } from "@react-three/fiber"
 import { OrbitControls } from "@react-three/drei"
 import { EffectComposer, Bloom } from "@react-three/postprocessing"
 import * as THREE from "three"
@@ -17,7 +17,7 @@ export type WireframeOrbConfig = {
   background?: string
   /** Animation speed multiplier. @default 20 */
   speed?: number
-  /** Grid resolution per side. Total vertices = gridSize^2. @default 300 */
+  /** Grid resolution per side. Total vertices = gridSize². Consider 150–200 on mobile. @default 200 */
   gridSize?: number
   /** Curl noise density — higher values produce tighter noise. @default 0.7 */
   noiseDensity?: number
@@ -47,7 +47,7 @@ const defaults: Required<WireframeOrbConfig> = {
   color: "#c0ebfc",
   background: "#0a0a0a",
   speed: 20,
-  gridSize: 300,
+  gridSize: 200,
   noiseDensity: 0.7,
   noiseScale: 3.0,
   minAlpha: 0.01,
@@ -209,7 +209,6 @@ const fragmentShader = /* glsl */ `
 /** Internal scene component for the wireframe line strip. */
 function WireframeScene({ config }: { config: Required<WireframeOrbConfig> }) {
   const materialRef = useRef<THREE.ShaderMaterial>(null)
-  const { size } = useThree()
 
   const geometry = useMemo(() => {
     const n = config.gridSize
@@ -241,7 +240,7 @@ function WireframeScene({ config }: { config: Required<WireframeOrbConfig> }) {
       uSpeed: { value: config.speed * 0.005 },
       uDensity: { value: config.noiseDensity },
       uScale: { value: config.noiseScale },
-      uColor: { value: new THREE.Vector3(col.r, col.g, col.b) },
+      uColor: { value: col },
       uMinAlpha: { value: config.minAlpha },
       uMaxAlpha: { value: config.maxAlpha },
       uAlphaSpeed: { value: config.speed * 0.025 },
@@ -251,10 +250,6 @@ function WireframeScene({ config }: { config: Required<WireframeOrbConfig> }) {
   useFrame((state) => {
     if (!materialRef.current) return
     materialRef.current.uniforms.time.value = state.clock.elapsedTime
-
-    if (size.width !== 0 && size.height !== 0) {
-      materialRef.current.uniforms.uScale.value = config.noiseScale
-    }
   })
 
   return (
@@ -289,7 +284,11 @@ export function WireframeOrb({
   config?: WireframeOrbConfig
   className?: string
 }) {
-  const config = { ...defaults, ...configOverrides }
+  const config = useMemo(
+    () => ({ ...defaults, ...configOverrides }),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [...Object.values(configOverrides ?? {})],
+  )
 
   return (
     <div className={`w-full h-full ${className}`} style={{ background: config.background }}>

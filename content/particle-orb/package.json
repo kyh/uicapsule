@@ -8,7 +8,6 @@
   },
   "dependencies": {
     "react": "*",
-    "react-dom": "*",
     "three": "^0.180.0"
   }
 }

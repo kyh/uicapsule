@@ -278,12 +278,16 @@ export function GradientOrb({
   config?: GradientOrbConfig
   className?: string
 }) {
-  const config = { ...defaults, ...configOverrides }
+  const config = useMemo(
+    () => ({ ...defaults, ...configOverrides }),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [...Object.values(configOverrides ?? {})],
+  )
 
   return (
     <div className={`w-full h-full ${className}`} style={{ background: config.background }}>
+      {/* Camera is unused — the vertex shader outputs clip-space positions directly */}
       <Canvas
-        camera={{ position: [0, 0, 4], fov: 45 }}
         gl={{ antialias: true, alpha: false }}
       >
         <color attach="background" args={[config.background]} />
