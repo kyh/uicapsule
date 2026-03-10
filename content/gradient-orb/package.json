@@ -1,5 +1,5 @@
 {
-  "name": "@uicapsule/globe",
+  "name": "@uicapsule/gradient-orb",
   "version": "0.1.0",
   "private": true,
   "type": "module",
@@ -7,8 +7,9 @@
     "clean": "git clean -xdf .cache .turbo dist node_modules"
   },
   "dependencies": {
+    "@react-three/drei": "^10.0.0",
+    "@react-three/fiber": "^9.0.0",
     "react": "*",
-    "react-dom": "*",
-    "three": "^0.180.0"
+    "three": "^0.175.0"
   }
 }

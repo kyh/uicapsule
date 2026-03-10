@@ -1,0 +1,5 @@
+{
+  "name": "Wireframe Orb",
+  "description": "Curl-noise-displaced particle cloud rendered as a continuous line strip with bloom",
+  "tags": ["3d", "animation", "avatar", "shader"]
+}
