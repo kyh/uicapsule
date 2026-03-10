@@ -611,8 +611,6 @@ export const CodeBlockCopyButton = ({
     };
   }, []);
 
-  const Icon = isCopied ? CheckIcon : CopyIcon;
-
   return (
     <button
       className={cn(
@@ -623,16 +621,20 @@ export const CodeBlockCopyButton = ({
       type="button"
       {...props}
     >
-      <AnimatePresence mode="wait">
+      <AnimatePresence mode="popLayout" initial={false}>
         <motion.span
           className="col-span-full row-span-full"
           key={isCopied ? "check" : "copy"}
-          initial={{ scale: 0.7, opacity: 0 }}
-          animate={{ scale: 1, opacity: 1 }}
-          exit={{ scale: 0.7, opacity: 0 }}
-          transition={{ duration: 0.15, ease: "easeOut" }}
+          initial={{ opacity: 0, scale: 0.25, filter: "blur(4px)" }}
+          animate={{ opacity: 1, scale: 1, filter: "blur(0px)" }}
+          exit={{ opacity: 0, scale: 0.25, filter: "blur(4px)" }}
+          transition={{
+            type: "spring",
+            duration: 0.3,
+            bounce: 0,
+          }}
         >
-          {children ?? <Icon size={14} />}
+          {children ?? (isCopied ? <CheckIcon size={14} /> : <CopyIcon size={14} />)}
         </motion.span>
       </AnimatePresence>
     </button>
