@@ -1,5 +1,5 @@
 {
-  "name": "@uicapsule/orb-avatar",
+  "name": "@uicapsule/orb-gradient",
   "version": "0.1.0",
   "private": true,
   "type": "module",
@@ -9,8 +9,6 @@
   "dependencies": {
     "@react-three/drei": "^10.0.0",
     "@react-three/fiber": "^9.0.0",
-    "@react-three/postprocessing": "^3.0.4",
-    "postprocessing": "^6.38.3",
     "react": "*",
     "react-dom": "*",
     "three": "^0.175.0"

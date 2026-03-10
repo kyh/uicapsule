@@ -1,10 +1,65 @@
 "use client"
 
 import { useRef, useMemo } from "react"
-import { useFrame, useThree } from "@react-three/fiber"
+import { Canvas, useFrame, useThree } from "@react-three/fiber"
+import { OrbitControls } from "@react-three/drei"
+import { EffectComposer, Bloom } from "@react-three/postprocessing"
 import * as THREE from "three"
 
-import type { OrbConfig } from "./orb-types"
+/**
+ * Configuration options for the wireframe orb.
+ * All fields are optional and fall back to sensible defaults.
+ */
+export type OrbWireframeConfig = {
+  /** CSS color string for the lines. @default "#c0ebfc" */
+  color?: string
+  /** CSS color string for the canvas background. @default "#0a0a0a" */
+  background?: string
+  /** Animation speed multiplier. @default 20 */
+  speed?: number
+  /** Grid resolution per side. Total vertices = gridSize^2. @default 300 */
+  gridSize?: number
+  /** Curl noise density — higher values produce tighter noise. @default 0.7 */
+  noiseDensity?: number
+  /** Scale of the noise displacement in world units. @default 3.0 */
+  noiseScale?: number
+  /** Minimum line alpha in the pulsing animation. @default 0.01 */
+  minAlpha?: number
+  /** Maximum line alpha in the pulsing animation. @default 0.45 */
+  maxAlpha?: number
+  /** Bloom post-processing intensity. Set to 0 to disable. @default 1.5 */
+  bloomIntensity?: number
+  /** Bloom luminance threshold — pixels brighter than this glow. @default 0.0 */
+  bloomThreshold?: number
+  /** Bloom blur radius in pixels. @default 0.85 */
+  bloomRadius?: number
+  /** Whether scroll-to-zoom is enabled. @default true */
+  enableZoom?: boolean
+  /** Whether click-and-drag panning is enabled. @default false */
+  enablePan?: boolean
+  /** Minimum camera distance (closest zoom). @default 2 */
+  minDistance?: number
+  /** Maximum camera distance (farthest zoom). @default 8 */
+  maxDistance?: number
+}
+
+const defaults: Required<OrbWireframeConfig> = {
+  color: "#c0ebfc",
+  background: "#0a0a0a",
+  speed: 20,
+  gridSize: 300,
+  noiseDensity: 0.7,
+  noiseScale: 3.0,
+  minAlpha: 0.01,
+  maxAlpha: 0.45,
+  bloomIntensity: 1.5,
+  bloomThreshold: 0.0,
+  bloomRadius: 0.85,
+  enableZoom: true,
+  enablePan: false,
+  minDistance: 2,
+  maxDistance: 8,
+}
 
 /**
  * GLSL vertex shader for the wireframe orb.
@@ -12,18 +67,8 @@ import type { OrbConfig } from "./orb-types"
  * Takes a 2D UV grid attribute (`aUv`) and displaces each vertex in 3D space
  * using curl noise derived from simplex noise. The result is an organic,
  * continuously flowing cloud of connected line segments.
- *
- * Varyings passed to the fragment shader:
- * - `vUv`        — original grid UV for alpha animation
- * - `vPositionZ` — z-component of the noise vector, used for depth-based alpha
- *
- * Uniforms:
- * - `time`         — elapsed time in seconds (drives animation)
- * - `uSpeed`       — rate at which the noise field scrolls
- * - `uDensity`     — frequency multiplier for the curl noise input
- * - `uScale`       — world-space scale of the displaced positions
  */
-const wireframeVertexShader = /* glsl */ `
+const vertexShader = /* glsl */ `
   attribute vec2 aUv;
 
   uniform float time;
@@ -129,14 +174,9 @@ const wireframeVertexShader = /* glsl */ `
 
   void main() {
     vUv = aUv;
-
-    // Spread UVs into [-1, 1] range, scroll with time for animation
     vec3 pos = vec3(aUv * 2.0 - 1.0, 0.0) + time * uSpeed;
-
-    // Displace via curl noise
     vec3 noise = curlNoise(pos * uDensity);
     pos = noise * uScale;
-
     vPositionZ = noise.z;
     gl_Position = projectionMatrix * modelViewMatrix * vec4(pos, 1.0);
   }
@@ -145,19 +185,9 @@ const wireframeVertexShader = /* glsl */ `
 /**
  * GLSL fragment shader for the wireframe orb.
  *
- * Produces a pulsing alpha effect by mixing between `uMinAlpha` and `uMaxAlpha`
- * using a sine wave driven by the horizontal UV coordinate and time.
- * The alpha is further modulated by `vPositionZ` (curl noise depth) so that
- * lines closer to the viewer appear slightly brighter.
- *
- * Uniforms:
- * - `time`      — elapsed time in seconds
- * - `uColor`    — RGB line color
- * - `uMinAlpha` — floor alpha value
- * - `uMaxAlpha` — ceiling alpha value
- * - `uAlphaSpeed` — speed of the alpha oscillation
+ * Produces a pulsing alpha effect modulated by depth (curl noise z-component).
  */
-const wireframeFragmentShader = /* glsl */ `
+const fragmentShader = /* glsl */ `
   uniform float time;
   uniform vec3 uColor;
   uniform float uMinAlpha;
@@ -170,26 +200,14 @@ const wireframeFragmentShader = /* glsl */ `
   const float PI2 = 6.2831853;
 
   void main() {
-    // Pulsing alpha driven by horizontal UV position + time
     float cAlpha = mix(uMinAlpha, uMaxAlpha, (sin(vUv.x * PI2 + time * uAlphaSpeed) + 1.0) * 0.5);
-
-    // Depth modulation: lines with higher noise-z appear brighter
     cAlpha *= mix(0.8, 1.0, vPositionZ);
-
     gl_FragColor = vec4(uColor, cAlpha);
   }
 `
 
-/**
- * Wireframe orb rendered as a single LINE_STRIP through a curl-noise-displaced grid.
- *
- * The geometry is a flat UV grid (gridSize x gridSize) where each vertex is
- * displaced in 3D by curl noise in the vertex shader. The continuous line strip
- * snakes row-by-row through the grid, creating an organic wireframe cloud.
- *
- * A bloom post-processing pass is applied via `<EffectComposer>` in the parent.
- */
-export function WireframeOrb({ config }: { config: Required<OrbConfig> }) {
+/** Internal scene component for the wireframe line strip. */
+function WireframeScene({ config }: { config: Required<OrbWireframeConfig> }) {
   const materialRef = useRef<THREE.ShaderMaterial>(null)
   const { size } = useThree()
 
@@ -202,7 +220,6 @@ export function WireframeOrb({ config }: { config: Required<OrbConfig> }) {
     for (let j = 0; j < n; j++) {
       for (let i = 0; i < n; i++) {
         uvs.push(i / maxI, 1 - j / maxI)
-        // Placeholder positions — the vertex shader computes real positions
         positions.push(0, 0, 0)
       }
     }
@@ -231,7 +248,6 @@ export function WireframeOrb({ config }: { config: Required<OrbConfig> }) {
     if (!materialRef.current) return
     materialRef.current.uniforms.time.value = state.clock.elapsedTime
 
-    // Keep resolution in sync on resize
     if (size.width !== 0 && size.height !== 0) {
       materialRef.current.uniforms.uScale.value = config.noiseScale
     }
@@ -241,13 +257,60 @@ export function WireframeOrb({ config }: { config: Required<OrbConfig> }) {
     <line geometry={geometry}>
       <shaderMaterial
         ref={materialRef}
-        vertexShader={wireframeVertexShader}
-        fragmentShader={wireframeFragmentShader}
+        vertexShader={vertexShader}
+        fragmentShader={fragmentShader}
         uniforms={uniforms}
         transparent
         depthWrite={false}
         blending={THREE.AdditiveBlending}
       />
     </line>
+  )
+}
+
+/**
+ * Curl-noise-displaced particle cloud rendered as a continuous line strip
+ * with pulsing alpha and a bloom post-processing glow.
+ *
+ * @example
+ * ```tsx
+ * <OrbWireframe />
+ * <OrbWireframe config={{ color: "#ff66aa", bloomIntensity: 2.0 }} />
+ * ```
+ */
+export function OrbWireframe({
+  config: configOverrides,
+  className = "",
+}: {
+  config?: OrbWireframeConfig
+  className?: string
+}) {
+  const config = { ...defaults, ...configOverrides }
+
+  return (
+    <div className={`w-full h-full bg-[${config.background}] ${className}`}>
+      <Canvas
+        camera={{ position: [0, 0, 4], fov: 45 }}
+        gl={{ antialias: true, alpha: false }}
+      >
+        <color attach="background" args={[config.background]} />
+        <WireframeScene config={config} />
+        {config.bloomIntensity > 0 && (
+          <EffectComposer>
+            <Bloom
+              intensity={config.bloomIntensity}
+              luminanceThreshold={config.bloomThreshold}
+              radius={config.bloomRadius}
+            />
+          </EffectComposer>
+        )}
+        <OrbitControls
+          enablePan={config.enablePan}
+          enableZoom={config.enableZoom}
+          minDistance={config.minDistance}
+          maxDistance={config.maxDistance}
+        />
+      </Canvas>
+    </div>
   )
 }

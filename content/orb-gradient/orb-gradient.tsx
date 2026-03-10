@@ -1,19 +1,39 @@
 "use client"
 
 import { useRef, useMemo } from "react"
-import { useFrame, useThree } from "@react-three/fiber"
+import { Canvas, useFrame, useThree } from "@react-three/fiber"
 import * as THREE from "three"
 
-import type { OrbConfig } from "./orb-types"
+/**
+ * Configuration options for the gradient orb.
+ * All fields are optional and fall back to sensible defaults.
+ */
+export type OrbGradientConfig = {
+  /** CSS color string for the canvas background. @default "#0a0a0a" */
+  background?: string
+  /** Hue rotation in degrees applied to all gradient colors. @default 0 */
+  hue?: number
+  /** Constant rotation speed of the orb (radians/sec). @default 0.3 */
+  rotationSpeed?: number
+  /** Scale of the noise pattern inside the orb. @default 0.65 */
+  noiseScale?: number
+  /** Inner radius of the orb glow (0–1). @default 0.1 */
+  innerRadius?: number
+}
+
+const defaults: Required<OrbGradientConfig> = {
+  background: "#0a0a0a",
+  hue: 0,
+  rotationSpeed: 0.3,
+  noiseScale: 0.65,
+  innerRadius: 0.1,
+}
 
 /**
- * GLSL vertex shader for the gradient orb.
- *
- * A simple pass-through that outputs clip-space positions directly from the
- * geometry attribute (a single fullscreen triangle in NDC). Passes UV to the
- * fragment shader for resolution-independent coordinate mapping.
+ * GLSL vertex shader — pass-through that outputs clip-space positions
+ * directly from a fullscreen triangle in NDC.
  */
-const gradientVertexShader = /* glsl */ `
+const vertexShader = /* glsl */ `
   varying vec2 vUv;
 
   void main() {
@@ -23,21 +43,10 @@ const gradientVertexShader = /* glsl */ `
 `
 
 /**
- * GLSL fragment shader for the gradient orb.
- *
- * Renders a glowing orb with three noise-mixed colors, hue rotation, a subtle
- * breathing pulse, and constant rotation. The orb has a soft radial falloff
- * with light attenuation functions for the glow.
- *
- * Uniforms:
- * - `iTime`       — elapsed time in seconds
- * - `iResolution` — vec3(width, height, aspect)
- * - `hue`         — hue rotation in degrees
- * - `rot`         — current rotation angle in radians
- * - `noiseScale`  — frequency of the interior noise pattern
- * - `innerRadius` — inner radius of the orb glow
+ * GLSL fragment shader — renders a glowing orb with three noise-mixed colors,
+ * hue rotation, breathing pulse, and constant rotation.
  */
-const gradientFragmentShader = /* glsl */ `
+const fragmentShader = /* glsl */ `
   precision highp float;
 
   uniform float iTime;
@@ -134,7 +143,6 @@ const gradientFragmentShader = /* glsl */ `
     float len = length(uv);
     float invLen = len > 0.0 ? 1.0 / len : 0.0;
 
-    // Subtle breathing pulse
     float pulse = sin(iTime * 1.5) * 0.02;
 
     float n0 = snoise3(vec3(uv * noiseScale, iTime * 0.5)) * 0.5 + 0.5;
@@ -169,7 +177,6 @@ const gradientFragmentShader = /* glsl */ `
     float size = min(iResolution.x, iResolution.y);
     vec2 uv = (vUv * iResolution.xy - center) / size * 2.0;
 
-    // Apply rotation
     float s = sin(rot);
     float c = cos(rot);
     uv = vec2(c * uv.x - s * uv.y, s * uv.x + c * uv.y);
@@ -179,17 +186,8 @@ const gradientFragmentShader = /* glsl */ `
   }
 `
 
-/**
- * Gradient orb rendered as a fullscreen shader quad.
- *
- * Uses a single oversized triangle in clip space so the fragment shader runs
- * on every pixel. The shader produces a glowing orb with three noise-mixed
- * colors, hue shifting, a breathing pulse, and constant rotation — all on GPU.
- *
- * No 3D geometry or camera interaction is needed; OrbitControls are disabled
- * for this type by the parent `OrbAvatar`.
- */
-export function GradientOrb({ config }: { config: Required<OrbConfig> }) {
+/** Internal scene component for the gradient fullscreen shader. */
+function GradientScene({ config }: { config: Required<OrbGradientConfig> }) {
   const materialRef = useRef<THREE.ShaderMaterial>(null)
   const { size, viewport } = useThree()
   const rotRef = useRef(0)
@@ -197,7 +195,6 @@ export function GradientOrb({ config }: { config: Required<OrbConfig> }) {
 
   const geometry = useMemo(() => {
     const geo = new THREE.BufferGeometry()
-    // Fullscreen triangle in NDC (covers [-1,1] quad with a single tri)
     geo.setAttribute(
       "position",
       new THREE.Float32BufferAttribute([-1, -1, 0, 3, -1, 0, -1, 3, 0], 3),
@@ -215,10 +212,9 @@ export function GradientOrb({ config }: { config: Required<OrbConfig> }) {
       iResolution: { value: new THREE.Vector3(size.width, size.height, 1) },
       hue: { value: config.hue },
       rot: { value: 0 },
-      noiseScale: { value: config.gradientNoiseScale },
+      noiseScale: { value: config.noiseScale },
       innerRadius: { value: config.innerRadius },
     }),
-    // Intentionally only depend on config — resolution is updated per-frame
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [config],
   )
@@ -230,7 +226,6 @@ export function GradientOrb({ config }: { config: Required<OrbConfig> }) {
     const dt = t - lastTimeRef.current
     lastTimeRef.current = t
 
-    // Accumulate rotation
     rotRef.current += dt * config.rotationSpeed
 
     const u = materialRef.current.uniforms
@@ -248,13 +243,46 @@ export function GradientOrb({ config }: { config: Required<OrbConfig> }) {
     <mesh geometry={geometry} frustumCulled={false}>
       <shaderMaterial
         ref={materialRef}
-        vertexShader={gradientVertexShader}
-        fragmentShader={gradientFragmentShader}
+        vertexShader={vertexShader}
+        fragmentShader={fragmentShader}
         uniforms={uniforms}
         transparent
         depthWrite={false}
         depthTest={false}
       />
     </mesh>
+  )
+}
+
+/**
+ * Glowing shader orb with noise-based 3-color mixing, YIQ hue rotation,
+ * breathing pulse, and constant rotation — all rendered on GPU as a single
+ * fullscreen triangle.
+ *
+ * @example
+ * ```tsx
+ * <OrbGradient />
+ * <OrbGradient config={{ hue: 120, rotationSpeed: 0.5 }} />
+ * ```
+ */
+export function OrbGradient({
+  config: configOverrides,
+  className = "",
+}: {
+  config?: OrbGradientConfig
+  className?: string
+}) {
+  const config = { ...defaults, ...configOverrides }
+
+  return (
+    <div className={`w-full h-full bg-[${config.background}] ${className}`}>
+      <Canvas
+        camera={{ position: [0, 0, 4], fov: 45 }}
+        gl={{ antialias: true, alpha: false }}
+      >
+        <color attach="background" args={[config.background]} />
+        <GradientScene config={config} />
+      </Canvas>
+    </div>
   )
 }

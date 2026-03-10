@@ -1,15 +1,69 @@
 "use client"
 
 import { useRef, useMemo } from "react"
-import { useFrame, extend } from "@react-three/fiber"
+import { Canvas, useFrame, extend } from "@react-three/fiber"
+import { OrbitControls } from "@react-three/drei"
 import * as THREE from "three"
 import { Line2 } from "three/examples/jsm/lines/Line2.js"
 import { LineMaterial } from "three/examples/jsm/lines/LineMaterial.js"
 import { LineGeometry } from "three/examples/jsm/lines/LineGeometry.js"
 
-import type { OrbConfig } from "./orb-types"
-
 extend({ Line2, LineMaterial, LineGeometry })
+
+/**
+ * Configuration options for the geometric orb.
+ * All fields are optional and fall back to sensible defaults.
+ */
+export type OrbGeometricConfig = {
+  /** Number of latitude lines rendered on the sphere. @default 20 */
+  numLines?: number
+  /** Radius of the sphere in world units. @default 1.5 */
+  radius?: number
+  /** Duration in seconds for a full pole-to-pole animation cycle. @default 20 */
+  speed?: number
+  /** Thickness of each line in pixels. @default 3.5 */
+  lineWidth?: number
+  /** CSS color string for the lines. @default "#eeeeee" */
+  color?: string
+  /** CSS color string for the canvas background. @default "#0a0a0a" */
+  background?: string
+  /** Intensity of the squiggle displacement on each line. @default 0.06 */
+  squiggleAmount?: number
+  /** Wave frequency of the squiggle effect. Higher = more waves. @default 6 */
+  squiggleFrequency?: number
+  /** Animation speed of the squiggle oscillation. @default 3 */
+  squiggleSpeed?: number
+  /** Number of arc segments per line. Higher = finer depth-fade granularity. @default 32 */
+  segmentGroups?: number
+  /** Number of points per arc segment. Higher = smoother curves. @default 3 */
+  segmentsPerGroup?: number
+  /** Whether scroll-to-zoom is enabled. @default true */
+  enableZoom?: boolean
+  /** Whether click-and-drag panning is enabled. @default false */
+  enablePan?: boolean
+  /** Minimum camera distance (closest zoom). @default 2 */
+  minDistance?: number
+  /** Maximum camera distance (farthest zoom). @default 8 */
+  maxDistance?: number
+}
+
+const defaults: Required<OrbGeometricConfig> = {
+  numLines: 20,
+  radius: 1.5,
+  speed: 20,
+  lineWidth: 3.5,
+  color: "#eeeeee",
+  background: "#0a0a0a",
+  squiggleAmount: 0.06,
+  squiggleFrequency: 6,
+  squiggleSpeed: 3,
+  segmentGroups: 32,
+  segmentsPerGroup: 3,
+  enableZoom: true,
+  enablePan: false,
+  minDistance: 2,
+  maxDistance: 8,
+}
 
 /**
  * A single animated latitude line that travels pole-to-pole on the sphere.
@@ -21,7 +75,7 @@ function LatitudeLine({
   config,
 }: {
   index: number
-  config: Required<OrbConfig>
+  config: Required<OrbGeometricConfig>
 }) {
   const groupRef = useRef<THREE.Group>(null)
   const longitudeRotation = (index / config.numLines) * Math.PI
@@ -102,13 +156,47 @@ function LatitudeLine({
   )
 }
 
-/** Renders all latitude lines distributed evenly around the sphere's longitude. */
-export function GeometricOrb({ config }: { config: Required<OrbConfig> }) {
+/**
+ * 3D animated orb with flowing latitude lines and depth-based opacity.
+ *
+ * Lines travel pole-to-pole across a sphere surface with subtle squiggle
+ * displacement, split into arc segments with independent opacity based on
+ * camera-facing depth for a volumetric wireframe look.
+ *
+ * @example
+ * ```tsx
+ * <OrbGeometric />
+ * <OrbGeometric config={{ color: "#4af", numLines: 30, speed: 10 }} />
+ * ```
+ */
+export function OrbGeometric({
+  config: configOverrides,
+  className = "",
+}: {
+  config?: OrbGeometricConfig
+  className?: string
+}) {
+  const config = { ...defaults, ...configOverrides }
+
   return (
-    <group>
-      {Array.from({ length: config.numLines }, (_, i) => (
-        <LatitudeLine key={i} index={i} config={config} />
-      ))}
-    </group>
+    <div className={`w-full h-full bg-[${config.background}] ${className}`}>
+      <Canvas
+        camera={{ position: [0, 0, 4], fov: 45 }}
+        gl={{ antialias: true, alpha: false }}
+      >
+        <color attach="background" args={[config.background]} />
+        <group>
+          {Array.from({ length: config.numLines }, (_, i) => (
+            <LatitudeLine key={i} index={i} config={config} />
+          ))}
+        </group>
+        <OrbitControls
+          enablePan={config.enablePan}
+          enableZoom={config.enableZoom}
+          minDistance={config.minDistance}
+          maxDistance={config.maxDistance}
+        />
+      </Canvas>
+    </div>
   )
 }

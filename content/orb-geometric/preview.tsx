@@ -1,10 +1,10 @@
 import React from "react"
-import { OrbAvatar } from "./orb-avatar"
+import { OrbGeometric } from "./orb-geometric"
 
 const Preview = () => {
   return (
     <div className="h-screen w-full">
-      <OrbAvatar type="geometric" />
+      <OrbGeometric />
     </div>
   )
 }
