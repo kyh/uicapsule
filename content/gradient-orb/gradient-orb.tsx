@@ -278,11 +278,9 @@ export function GradientOrb({
   config?: GradientOrbConfig
   className?: string
 }) {
-  const config = useMemo(
-    () => ({ ...defaults, ...configOverrides }),
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [...Object.values(configOverrides ?? {})],
-  )
+  const configKey = JSON.stringify(configOverrides)
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  const config = useMemo(() => ({ ...defaults, ...configOverrides }), [configKey])
 
   return (
     <div className={`w-full h-full ${className}`} style={{ background: config.background }}>

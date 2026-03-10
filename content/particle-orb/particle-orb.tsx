@@ -3,6 +3,11 @@
 import { useEffect, useRef } from "react"
 import * as THREE from "three"
 
+/** Extended PointsMaterial with compiled shader stashed on userData by onBeforeCompile. */
+interface PointsMaterialWithShader extends THREE.PointsMaterial {
+  userData: { shader?: THREE.Shader }
+}
+
 export const ParticleOrb = () => {
   const rootRef = useRef<HTMLDivElement>(null)
 
@@ -50,8 +55,7 @@ export const ParticleOrb = () => {
     const animate = (timeMs: number) => {
       const time = timeMs * 0.001
       points.rotation.set(0, time * 0.2, 0)
-      // onBeforeCompile stashes the compiled shader on userData (see setupPointsShader)
-      const shader = (material as any).userData?.shader
+      const shader = (material as PointsMaterialWithShader).userData.shader
       if (shader) shader.uniforms.time.value = time
       renderer.render(scene, camera)
       animationFrameId = requestAnimationFrame(animate)
@@ -137,7 +141,7 @@ function setupPointsShader(
     )
     shader.vertexShader = shader.vertexShader.replace("gl_PointSize = size;", "gl_PointSize = s;")
 
-    ;(material as any).userData.shader = shader
+    ;(material as PointsMaterialWithShader).userData.shader = shader
   }
 }
 

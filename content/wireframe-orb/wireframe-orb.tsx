@@ -206,12 +206,22 @@ const fragmentShader = /* glsl */ `
   }
 `
 
+/** Detect low-end devices for adaptive grid sizing. */
+function getAdaptiveGridSize(requested: number): number {
+  if (typeof navigator === "undefined") return requested
+  const cores = navigator.hardwareConcurrency ?? 4
+  if (cores <= 4 || window.devicePixelRatio >= 3) {
+    return Math.min(requested, 150)
+  }
+  return requested
+}
+
 /** Internal scene component for the wireframe line strip. */
 function WireframeScene({ config }: { config: Required<WireframeOrbConfig> }) {
   const materialRef = useRef<THREE.ShaderMaterial>(null)
 
   const geometry = useMemo(() => {
-    const n = config.gridSize
+    const n = getAdaptiveGridSize(config.gridSize)
     const maxI = n - 1
     const uvs: number[] = []
     const positions: number[] = []
@@ -284,11 +294,9 @@ export function WireframeOrb({
   config?: WireframeOrbConfig
   className?: string
 }) {
-  const config = useMemo(
-    () => ({ ...defaults, ...configOverrides }),
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [...Object.values(configOverrides ?? {})],
-  )
+  const configKey = JSON.stringify(configOverrides)
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  const config = useMemo(() => ({ ...defaults, ...configOverrides }), [configKey])
 
   return (
     <div className={`w-full h-full ${className}`} style={{ background: config.background }}>

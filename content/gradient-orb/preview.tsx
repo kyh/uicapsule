@@ -1,4 +1,3 @@
-import React from "react"
 import { GradientOrb } from "./gradient-orb"
 
 const Preview = () => {

@@ -8,6 +8,6 @@
   },
   "dependencies": {
     "react": "*",
-    "three": "^0.180.0"
+    "three": "^0.175.0"
   }
 }

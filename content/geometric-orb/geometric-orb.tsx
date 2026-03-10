@@ -78,6 +78,7 @@ function LatitudeLine({
   config: Required<GeometricOrbConfig>
 }) {
   const groupRef = useRef<THREE.Group>(null)
+  const camDirRef = useRef(new THREE.Vector3())
   const longitudeRotation = (index / config.numLines) * Math.PI
   const timeOffset = (index / config.numLines) * config.speed
   const { size } = useThree()
@@ -91,10 +92,10 @@ function LatitudeLine({
         linewidth: config.lineWidth,
         transparent: true,
         opacity: 1,
-        resolution: new THREE.Vector2(1, 1),
+        resolution: new THREE.Vector2(size.width, size.height),
       })
     )
-  }, [colorInt, config.segmentGroups, config.lineWidth])
+  }, [colorInt, config.segmentGroups, config.lineWidth, size.width, size.height])
 
   const geometries = useMemo(() => {
     return Array.from({ length: config.segmentGroups }, () => new LineGeometry())
@@ -123,8 +124,8 @@ function LatitudeLine({
     const circleRadius = Math.sin(latitude) * config.radius
     const yPosition = Math.cos(latitude) * config.radius
 
-    // Use actual camera direction for depth-fade so it works with OrbitControls
-    const camDir = state.camera.position.clone().normalize()
+    // Reuse a single Vector3 to avoid heap allocation every frame per line
+    const camDir = camDirRef.current.copy(state.camera.position).normalize()
 
     for (let g = 0; g < config.segmentGroups; g++) {
       const positions: number[] = []
@@ -203,11 +204,9 @@ export function GeometricOrb({
   config?: GeometricOrbConfig
   className?: string
 }) {
-  const config = useMemo(
-    () => ({ ...defaults, ...configOverrides }),
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [...Object.values(configOverrides ?? {})],
-  )
+  const configKey = JSON.stringify(configOverrides)
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  const config = useMemo(() => ({ ...defaults, ...configOverrides }), [configKey])
 
   return (
     <div className={`w-full h-full ${className}`} style={{ background: config.background }}>
