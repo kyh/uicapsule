@@ -1,6 +1,6 @@
 "use client"
 
-import { useRef, useMemo } from "react"
+import { useRef, useMemo, useEffect } from "react"
 import { Canvas, useFrame, useThree } from "@react-three/fiber"
 import { OrbitControls } from "@react-three/drei"
 import { EffectComposer, Bloom } from "@react-three/postprocessing"
@@ -230,6 +230,10 @@ function WireframeScene({ config }: { config: Required<WireframeOrbConfig> }) {
     return geo
   }, [config.gridSize])
 
+  useEffect(() => {
+    return () => geometry.dispose()
+  }, [geometry])
+
   const uniforms = useMemo(() => {
     const col = new THREE.Color(config.color)
     return {
@@ -288,7 +292,7 @@ export function WireframeOrb({
   const config = { ...defaults, ...configOverrides }
 
   return (
-    <div className={`w-full h-full bg-[${config.background}] ${className}`}>
+    <div className={`w-full h-full ${className}`} style={{ background: config.background }}>
       <Canvas
         camera={{ position: [0, 0, 4], fov: 45 }}
         gl={{ antialias: true, alpha: false }}

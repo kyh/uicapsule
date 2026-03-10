@@ -1,9 +1,7 @@
-import React from "react";
-
-import { ParticleOrb } from "./particle-orb";
+import { ParticleOrb } from "./particle-orb"
 
 const Preview = () => {
-  return <ParticleOrb />;
-};
+  return <ParticleOrb />
+}
 
-export default Preview;
+export default Preview

@@ -1,7 +1,7 @@
 "use client"
 
-import { useRef, useMemo } from "react"
-import { Canvas, useFrame, extend } from "@react-three/fiber"
+import { useRef, useMemo, useEffect } from "react"
+import { Canvas, useFrame, useThree, extend } from "@react-three/fiber"
 import { OrbitControls } from "@react-three/drei"
 import * as THREE from "three"
 import { Line2 } from "three/examples/jsm/lines/Line2.js"
@@ -80,6 +80,7 @@ function LatitudeLine({
   const groupRef = useRef<THREE.Group>(null)
   const longitudeRotation = (index / config.numLines) * Math.PI
   const timeOffset = (index / config.numLines) * config.speed
+  const { size } = useThree()
 
   const colorInt = useMemo(() => new THREE.Color(config.color).getHex(), [config.color])
 
@@ -90,7 +91,7 @@ function LatitudeLine({
         linewidth: config.lineWidth,
         transparent: true,
         opacity: 1,
-        resolution: new THREE.Vector2(window.innerWidth, window.innerHeight),
+        resolution: new THREE.Vector2(1, 1),
       })
     )
   }, [colorInt, config.segmentGroups, config.lineWidth])
@@ -98,6 +99,13 @@ function LatitudeLine({
   const geometries = useMemo(() => {
     return Array.from({ length: config.segmentGroups }, () => new LineGeometry())
   }, [config.segmentGroups])
+
+  useEffect(() => {
+    return () => {
+      for (const mat of materials) mat.dispose()
+      for (const geo of geometries) geo.dispose()
+    }
+  }, [materials, geometries])
 
   useFrame((state) => {
     if (!groupRef.current) return
@@ -112,6 +120,7 @@ function LatitudeLine({
       const positions: number[] = []
       const startAngle = (g / config.segmentGroups) * Math.PI * 2
       const endAngle = ((g + 1) / config.segmentGroups) * Math.PI * 2
+      let avgX = 0
       let avgZ = 0
 
       for (let i = 0; i <= config.segmentsPerGroup; i++) {
@@ -121,24 +130,26 @@ function LatitudeLine({
         const displacedRadius = circleRadius + (squiggle + radiusSquiggle) * circleRadius
         const ySquiggle = Math.sin(angle * config.squiggleFrequency * 0.7 + time * config.squiggleSpeed * 1.2) * config.squiggleAmount * 0.4
 
-        positions.push(
-          Math.cos(angle) * displacedRadius,
-          yPosition + ySquiggle * circleRadius,
-          Math.sin(angle) * displacedRadius,
-        )
-        avgZ += Math.sin(angle) * displacedRadius
+        const x = Math.cos(angle) * displacedRadius
+        const z = Math.sin(angle) * displacedRadius
+        positions.push(x, yPosition + ySquiggle * circleRadius, z)
+        avgX += x
+        avgZ += z
       }
 
-      avgZ /= config.segmentsPerGroup + 1
+      const count = config.segmentsPerGroup + 1
+      avgX /= count
+      avgZ /= count
 
+      // Rotate segment center into world space to determine camera-facing depth
       const rotatedZ = avgZ * Math.cos(longitudeRotation) +
-        (positions[0] || 0) * Math.sin(longitudeRotation)
+        avgX * Math.sin(longitudeRotation)
       const depthFactor = (rotatedZ / config.radius + 1) / 2
       const opacity = Math.pow(depthFactor, 1.5) * 0.95 + 0.05
 
       geometries[g].setPositions(positions)
       materials[g].opacity = opacity
-      materials[g].resolution.set(window.innerWidth, window.innerHeight)
+      materials[g].resolution.set(size.width, size.height)
     }
 
     groupRef.current.rotation.y = longitudeRotation
@@ -179,7 +190,7 @@ export function GeometricOrb({
   const config = { ...defaults, ...configOverrides }
 
   return (
-    <div className={`w-full h-full bg-[${config.background}] ${className}`}>
+    <div className={`w-full h-full ${className}`} style={{ background: config.background }}>
       <Canvas
         camera={{ position: [0, 0, 4], fov: 45 }}
         gl={{ antialias: true, alpha: false }}

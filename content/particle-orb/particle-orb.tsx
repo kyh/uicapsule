@@ -1,124 +1,124 @@
-import React, { useEffect } from "react";
-import * as THREE from "three";
+import { useEffect, useRef } from "react"
+import * as THREE from "three"
 
 export const ParticleOrb = () => {
-  const rootRef = React.useRef<HTMLDivElement>(null);
+  const rootRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
-    const container = rootRef.current;
-    if (!container) return;
+    const container = rootRef.current
+    if (!container) return
 
-    const scene = new THREE.Scene();
+    const scene = new THREE.Scene()
 
     const getSize = () => ({
       width: container.clientWidth || window.innerWidth,
       height: container.clientHeight || window.innerHeight,
-    });
+    })
 
-    const { width: initialWidth, height: initialHeight } = getSize();
+    const { width: initialWidth, height: initialHeight } = getSize()
 
-    const camera = new THREE.PerspectiveCamera(75, initialWidth / initialHeight, 0.1, 1000);
-    camera.position.z = 3;
+    const camera = new THREE.PerspectiveCamera(75, initialWidth / initialHeight, 0.1, 1000)
+    camera.position.z = 3
 
-    const renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true });
-    renderer.setPixelRatio(window.devicePixelRatio);
-    renderer.setSize(initialWidth, initialHeight);
-    container.appendChild(renderer.domElement);
+    const renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true })
+    renderer.setPixelRatio(window.devicePixelRatio)
+    renderer.setSize(initialWidth, initialHeight)
+    container.appendChild(renderer.domElement)
 
-    const radius = 1.5;
-    const detail = 40;
-    const particleSizeMin = 0.01;
-    const particleSizeMax = 0.08;
+    const radius = 1.5
+    const detail = 40
+    const particleSizeMin = 0.01
+    const particleSizeMax = 0.08
 
-    const geometry = new THREE.IcosahedronGeometry(1, detail);
-    const texture = createDotTexture(32, "#FFFFFF");
+    const geometry = new THREE.IcosahedronGeometry(1, detail)
+    const texture = createDotTexture(32, "#FFFFFF")
     const material = new THREE.PointsMaterial({
       map: texture,
       blending: THREE.AdditiveBlending,
       color: 0x101a88,
       depthTest: false,
-    });
+    })
 
-    setupPointsShader(material, { radius, particleSizeMin, particleSizeMax });
+    setupPointsShader(material, { radius, particleSizeMin, particleSizeMax })
 
-    const points = new THREE.Points(geometry, material);
-    scene.add(points);
+    const points = new THREE.Points(geometry, material)
+    scene.add(points)
 
-    let animationFrameId = 0;
+    let animationFrameId = 0
     const animate = (timeMs: number) => {
-      const time = timeMs * 0.001;
-      points.rotation.set(0, time * 0.2, 0);
-      const shader = (material as any).userData?.shader;
-      if (shader) shader.uniforms.time.value = time;
-      renderer.render(scene, camera);
-      animationFrameId = requestAnimationFrame(animate);
-    };
-    animationFrameId = requestAnimationFrame(animate);
+      const time = timeMs * 0.001
+      points.rotation.set(0, time * 0.2, 0)
+      const shader = (material as any).userData?.shader
+      if (shader) shader.uniforms.time.value = time
+      renderer.render(scene, camera)
+      animationFrameId = requestAnimationFrame(animate)
+    }
+    animationFrameId = requestAnimationFrame(animate)
 
     const handleResize = () => {
-      const { width, height } = getSize();
-      camera.aspect = width / height;
-      camera.updateProjectionMatrix();
-      renderer.setSize(width, height);
-    };
-    window.addEventListener("resize", handleResize);
+      const { width, height } = getSize()
+      camera.aspect = width / height
+      camera.updateProjectionMatrix()
+      renderer.setSize(width, height)
+    }
+    window.addEventListener("resize", handleResize)
 
     return () => {
-      cancelAnimationFrame(animationFrameId);
-      window.removeEventListener("resize", handleResize);
-      scene.remove(points);
-      geometry.dispose();
-      material.dispose();
-      texture.dispose();
-      renderer.dispose();
+      cancelAnimationFrame(animationFrameId)
+      window.removeEventListener("resize", handleResize)
+      scene.remove(points)
+      geometry.dispose()
+      material.dispose()
+      texture.dispose()
+      renderer.dispose()
       if (renderer.domElement.parentElement === container) {
-        container.removeChild(renderer.domElement);
+        container.removeChild(renderer.domElement)
       }
-    };
-  }, []);
+    }
+  }, [])
 
   return (
     <div
       ref={rootRef}
       className="h-full w-full bg-[radial-gradient(circle_farthest-corner,_#060a33,_#000000)]"
     />
-  );
-};
+  )
+}
 
 function createDotTexture(size = 32, color = "#FFFFFF"): THREE.CanvasTexture {
-  const radius = size * 0.5;
-  const canvas = document.createElement("canvas");
-  canvas.width = canvas.height = size;
-  const ctx = canvas.getContext("2d");
-  if (!ctx) throw new Error("2D canvas context not available");
+  const radius = size * 0.5
+  const canvas = document.createElement("canvas")
+  canvas.width = canvas.height = size
+  const ctx = canvas.getContext("2d")
+  if (!ctx) throw new Error("2D canvas context not available")
 
-  const circle = new Path2D();
-  circle.arc(radius, radius, radius, 0, 2 * Math.PI);
-  ctx.fillStyle = color;
-  ctx.fill(circle);
+  const circle = new Path2D()
+  circle.arc(radius, radius, radius, 0, 2 * Math.PI)
+  ctx.fillStyle = color
+  ctx.fill(circle)
 
-  return new THREE.CanvasTexture(canvas);
+  return new THREE.CanvasTexture(canvas)
 }
 
 function setupPointsShader(
   material: THREE.PointsMaterial,
   opts: { radius: number; particleSizeMin: number; particleSizeMax: number },
 ) {
-  const { radius, particleSizeMin, particleSizeMax } = opts;
+  const { radius, particleSizeMin, particleSizeMax } = opts
   material.onBeforeCompile = (shader: any) => {
-    shader.uniforms.time = { value: 0 } as { value: number };
-    shader.uniforms.radius = { value: radius } as { value: number };
+    shader.uniforms.time = { value: 0 } as { value: number }
+    shader.uniforms.radius = { value: radius } as { value: number }
     shader.uniforms.particleSizeMin = { value: particleSizeMin } as {
-      value: number;
-    };
+      value: number
+    }
     shader.uniforms.particleSizeMax = { value: particleSizeMax } as {
-      value: number;
-    };
-    shader.vertexShader = "uniform float particleSizeMax;\n" + shader.vertexShader;
-    shader.vertexShader = "uniform float particleSizeMin;\n" + shader.vertexShader;
-    shader.vertexShader = "uniform float radius;\n" + shader.vertexShader;
-    shader.vertexShader = "uniform float time;\n" + shader.vertexShader;
-    shader.vertexShader = webGlNoise + "\n" + shader.vertexShader;
+      value: number
+    }
+    shader.vertexShader = "uniform float particleSizeMax;\n" + shader.vertexShader
+    shader.vertexShader = "uniform float particleSizeMin;\n" + shader.vertexShader
+    shader.vertexShader = "uniform float radius;\n" + shader.vertexShader
+    shader.vertexShader = "uniform float time;\n" + shader.vertexShader
+    shader.vertexShader = webGlNoise + "\n" + shader.vertexShader
     shader.vertexShader = shader.vertexShader.replace(
       "#include <begin_vertex>",
       `
@@ -131,11 +131,11 @@ function setupPointsShader(
           float s = mix(particleSizeMin, particleSizeMax, n);
           vec3 transformed = vec3( p.x, p.y, p.z );
         `,
-    );
-    shader.vertexShader = shader.vertexShader.replace("gl_PointSize = size;", "gl_PointSize = s;");
+    )
+    shader.vertexShader = shader.vertexShader.replace("gl_PointSize = size;", "gl_PointSize = s;")
 
-    (material as any).userData.shader = shader;
-  };
+    ;(material as any).userData.shader = shader
+  }
 }
 
 const webGlNoise = `
@@ -230,4 +230,4 @@ vec4 taylorInvSqrt(vec4 r)
   return 105.0 * dot( m*m, vec4( dot(p0,x0), dot(p1,x1),
                                 dot(p2,x2), dot(p3,x3) ) );
 }
-`;
+`

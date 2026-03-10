@@ -1,6 +1,6 @@
 "use client"
 
-import { useRef, useMemo } from "react"
+import { useRef, useMemo, useEffect } from "react"
 import { Canvas, useFrame, useThree } from "@react-three/fiber"
 import * as THREE from "three"
 
@@ -206,6 +206,10 @@ function GradientScene({ config }: { config: Required<GradientOrbConfig> }) {
     return geo
   }, [])
 
+  useEffect(() => {
+    return () => geometry.dispose()
+  }, [geometry])
+
   const uniforms = useMemo(
     () => ({
       iTime: { value: 0 },
@@ -215,6 +219,8 @@ function GradientScene({ config }: { config: Required<GradientOrbConfig> }) {
       noiseScale: { value: config.noiseScale },
       innerRadius: { value: config.innerRadius },
     }),
+    // Resolution is intentionally omitted — it is mutated in-place each frame
+    // via useFrame rather than triggering a uniform object re-creation.
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [config],
   )
@@ -275,7 +281,7 @@ export function GradientOrb({
   const config = { ...defaults, ...configOverrides }
 
   return (
-    <div className={`w-full h-full bg-[${config.background}] ${className}`}>
+    <div className={`w-full h-full ${className}`} style={{ background: config.background }}>
       <Canvas
         camera={{ position: [0, 0, 4], fov: 45 }}
         gl={{ antialias: true, alpha: false }}
