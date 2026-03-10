@@ -1,7 +1,7 @@
 import React, { useEffect } from "react";
 import * as THREE from "three";
 
-export const Sphere = () => {
+export const ParticleOrb = () => {
   const rootRef = React.useRef<HTMLDivElement>(null);
 
   useEffect(() => {

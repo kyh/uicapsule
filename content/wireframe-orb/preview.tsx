@@ -1,10 +1,10 @@
 import React from "react"
-import { OrbGradient } from "./orb-gradient"
+import { WireframeOrb } from "./wireframe-orb"
 
 const Preview = () => {
   return (
     <div className="h-screen w-full">
-      <OrbGradient />
+      <WireframeOrb />
     </div>
   )
 }

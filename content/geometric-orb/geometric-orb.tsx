@@ -14,7 +14,7 @@ extend({ Line2, LineMaterial, LineGeometry })
  * Configuration options for the geometric orb.
  * All fields are optional and fall back to sensible defaults.
  */
-export type OrbGeometricConfig = {
+export type GeometricOrbConfig = {
   /** Number of latitude lines rendered on the sphere. @default 20 */
   numLines?: number
   /** Radius of the sphere in world units. @default 1.5 */
@@ -47,7 +47,7 @@ export type OrbGeometricConfig = {
   maxDistance?: number
 }
 
-const defaults: Required<OrbGeometricConfig> = {
+const defaults: Required<GeometricOrbConfig> = {
   numLines: 20,
   radius: 1.5,
   speed: 20,
@@ -75,7 +75,7 @@ function LatitudeLine({
   config,
 }: {
   index: number
-  config: Required<OrbGeometricConfig>
+  config: Required<GeometricOrbConfig>
 }) {
   const groupRef = useRef<THREE.Group>(null)
   const longitudeRotation = (index / config.numLines) * Math.PI
@@ -165,15 +165,15 @@ function LatitudeLine({
  *
  * @example
  * ```tsx
- * <OrbGeometric />
- * <OrbGeometric config={{ color: "#4af", numLines: 30, speed: 10 }} />
+ * <GeometricOrb />
+ * <GeometricOrb config={{ color: "#4af", numLines: 30, speed: 10 }} />
  * ```
  */
-export function OrbGeometric({
+export function GeometricOrb({
   config: configOverrides,
   className = "",
 }: {
-  config?: OrbGeometricConfig
+  config?: GeometricOrbConfig
   className?: string
 }) {
   const config = { ...defaults, ...configOverrides }

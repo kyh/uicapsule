@@ -1,9 +1,9 @@
 import React from "react";
 
-import { Sphere } from "./sphere";
+import { ParticleOrb } from "./particle-orb";
 
 const Preview = () => {
-  return <Sphere />;
+  return <ParticleOrb />;
 };
 
 export default Preview;

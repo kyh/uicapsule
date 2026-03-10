@@ -10,7 +10,7 @@ import * as THREE from "three"
  * Configuration options for the wireframe orb.
  * All fields are optional and fall back to sensible defaults.
  */
-export type OrbWireframeConfig = {
+export type WireframeOrbConfig = {
   /** CSS color string for the lines. @default "#c0ebfc" */
   color?: string
   /** CSS color string for the canvas background. @default "#0a0a0a" */
@@ -43,7 +43,7 @@ export type OrbWireframeConfig = {
   maxDistance?: number
 }
 
-const defaults: Required<OrbWireframeConfig> = {
+const defaults: Required<WireframeOrbConfig> = {
   color: "#c0ebfc",
   background: "#0a0a0a",
   speed: 20,
@@ -207,7 +207,7 @@ const fragmentShader = /* glsl */ `
 `
 
 /** Internal scene component for the wireframe line strip. */
-function WireframeScene({ config }: { config: Required<OrbWireframeConfig> }) {
+function WireframeScene({ config }: { config: Required<WireframeOrbConfig> }) {
   const materialRef = useRef<THREE.ShaderMaterial>(null)
   const { size } = useThree()
 
@@ -274,15 +274,15 @@ function WireframeScene({ config }: { config: Required<OrbWireframeConfig> }) {
  *
  * @example
  * ```tsx
- * <OrbWireframe />
- * <OrbWireframe config={{ color: "#ff66aa", bloomIntensity: 2.0 }} />
+ * <WireframeOrb />
+ * <WireframeOrb config={{ color: "#ff66aa", bloomIntensity: 2.0 }} />
  * ```
  */
-export function OrbWireframe({
+export function WireframeOrb({
   config: configOverrides,
   className = "",
 }: {
-  config?: OrbWireframeConfig
+  config?: WireframeOrbConfig
   className?: string
 }) {
   const config = { ...defaults, ...configOverrides }

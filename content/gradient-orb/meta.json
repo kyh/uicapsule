@@ -1,5 +1,5 @@
 {
-  "name": "Orb Gradient",
+  "name": "Gradient Orb",
   "description": "Glowing shader orb with noise-based color mixing, hue rotation, and breathing pulse",
   "tags": ["3d", "animation", "avatar", "shader"]
 }

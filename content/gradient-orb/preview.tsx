@@ -1,10 +1,10 @@
 import React from "react"
-import { OrbGeometric } from "./orb-geometric"
+import { GradientOrb } from "./gradient-orb"
 
 const Preview = () => {
   return (
     <div className="h-screen w-full">
-      <OrbGeometric />
+      <GradientOrb />
     </div>
   )
 }

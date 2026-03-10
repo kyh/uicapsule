@@ -8,7 +8,7 @@ import * as THREE from "three"
  * Configuration options for the gradient orb.
  * All fields are optional and fall back to sensible defaults.
  */
-export type OrbGradientConfig = {
+export type GradientOrbConfig = {
   /** CSS color string for the canvas background. @default "#0a0a0a" */
   background?: string
   /** Hue rotation in degrees applied to all gradient colors. @default 0 */
@@ -21,7 +21,7 @@ export type OrbGradientConfig = {
   innerRadius?: number
 }
 
-const defaults: Required<OrbGradientConfig> = {
+const defaults: Required<GradientOrbConfig> = {
   background: "#0a0a0a",
   hue: 0,
   rotationSpeed: 0.3,
@@ -187,7 +187,7 @@ const fragmentShader = /* glsl */ `
 `
 
 /** Internal scene component for the gradient fullscreen shader. */
-function GradientScene({ config }: { config: Required<OrbGradientConfig> }) {
+function GradientScene({ config }: { config: Required<GradientOrbConfig> }) {
   const materialRef = useRef<THREE.ShaderMaterial>(null)
   const { size, viewport } = useThree()
   const rotRef = useRef(0)
@@ -261,15 +261,15 @@ function GradientScene({ config }: { config: Required<OrbGradientConfig> }) {
  *
  * @example
  * ```tsx
- * <OrbGradient />
- * <OrbGradient config={{ hue: 120, rotationSpeed: 0.5 }} />
+ * <GradientOrb />
+ * <GradientOrb config={{ hue: 120, rotationSpeed: 0.5 }} />
  * ```
  */
-export function OrbGradient({
+export function GradientOrb({
   config: configOverrides,
   className = "",
 }: {
-  config?: OrbGradientConfig
+  config?: GradientOrbConfig
   className?: string
 }) {
   const config = { ...defaults, ...configOverrides }
