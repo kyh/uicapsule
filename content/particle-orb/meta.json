@@ -3,5 +3,5 @@
   "description": "Noise-displaced particle sphere with additive-blended dots and custom vertex shader",
   "coverUrl": "https://zmdrwswxugswzmcokvff.supabase.co/storage/v1/object/public/uicapsule/particle-orb/particle-orb.mp4",
   "coverType": "video",
-  "tags": ["3d", "animation", "avatar", "shader"]
+  "tags": ["effects", "geometric", "design"]
 }
