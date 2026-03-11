@@ -58,7 +58,7 @@ const defaults: Required<WireframeOrbConfig> = {
   enableZoom: true,
   enablePan: false,
   minDistance: 2,
-  maxDistance: 8,
+  maxDistance: 20,
 }
 
 /**
@@ -301,7 +301,7 @@ export function WireframeOrb({
   return (
     <div className={`w-full h-full ${className}`} style={{ background: config.background }}>
       <Canvas
-        camera={{ position: [0, 0, 4], fov: 45 }}
+        camera={{ position: [0, 0, 12], fov: 45 }}
         gl={{ antialias: true, alpha: false }}
       >
         <color attach="background" args={[config.background]} />

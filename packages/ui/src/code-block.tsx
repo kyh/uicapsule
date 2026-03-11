@@ -614,29 +614,30 @@ export const CodeBlockCopyButton = ({
   return (
     <button
       className={cn(
-        "text-muted-foreground hover:text-foreground grid cursor-pointer p-1 transition-all disabled:cursor-not-allowed disabled:opacity-50",
+        "text-muted-foreground hover:text-foreground cursor-pointer p-1 transition-all disabled:cursor-not-allowed disabled:opacity-50",
         className,
       )}
       onClick={copyToClipboard}
       type="button"
       {...props}
     >
-      <AnimatePresence mode="popLayout" initial={false}>
-        <motion.span
-          className="col-span-full row-span-full"
-          key={isCopied ? "check" : "copy"}
-          initial={{ opacity: 0, scale: 0.25, filter: "blur(4px)" }}
-          animate={{ opacity: 1, scale: 1, filter: "blur(0px)" }}
-          exit={{ opacity: 0, scale: 0.25, filter: "blur(4px)" }}
-          transition={{
-            type: "spring",
-            duration: 0.3,
-            bounce: 0,
-          }}
-        >
-          {children ?? (isCopied ? <CheckIcon size={14} /> : <CopyIcon size={14} />)}
-        </motion.span>
-      </AnimatePresence>
+      <span className="relative flex items-center justify-center">
+        <AnimatePresence mode="popLayout" initial={false}>
+          <motion.span
+            key={isCopied ? "check" : "copy"}
+            initial={{ opacity: 0, scale: 0.25, filter: "blur(4px)" }}
+            animate={{ opacity: 1, scale: 1, filter: "blur(0px)" }}
+            exit={{ opacity: 0, scale: 0.25, filter: "blur(4px)" }}
+            transition={{
+              type: "spring",
+              duration: 0.3,
+              bounce: 0,
+            }}
+          >
+            {children ?? (isCopied ? <CheckIcon size={14} /> : <CopyIcon size={14} />)}
+          </motion.span>
+        </AnimatePresence>
+      </span>
     </button>
   );
 };

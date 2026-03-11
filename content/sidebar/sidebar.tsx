@@ -137,17 +137,17 @@ export const Sidebar = () => {
       <div className="flex items-center justify-between gap-x-6 border-r border-b border-[#EEEFF1] bg-[#FBFBFB] pt-3 pr-[15px] pb-[11px] pl-3">
         <div className="flex min-w-0 flex-1 items-center">
           <img
-            alt="Basepoint"
+            alt="Dataembed"
             loading="lazy"
             width="96"
             height="96"
             decoding="async"
             data-nimg="1"
-            className="size-6 shrink-0"
-            src=""
+            className="size-6 shrink-0 rounded"
+            src="https://www.dataembed.com/favicon/web-app-manifest-512x512.png"
           />
           <div className="text-secondary-foreground ml-2 min-w-0 truncate text-[16px] leading-5 font-semibold tracking-[-0.32px]">
-            Basepoint
+            Dataembed
           </div>
           <svg className="ml-[5px] shrink-0" width="18" height="18" fill="none">
             <path

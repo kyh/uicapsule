@@ -33,10 +33,8 @@ export type GeometricOrbConfig = {
   squiggleFrequency?: number
   /** Animation speed of the squiggle oscillation. @default 3 */
   squiggleSpeed?: number
-  /** Number of arc segments per line. Higher = finer depth-fade granularity. @default 32 */
-  segmentGroups?: number
-  /** Number of points per arc segment. Higher = smoother curves. @default 3 */
-  segmentsPerGroup?: number
+  /** Number of points around the full circle. Higher = smoother curves + finer depth-fade. @default 96 */
+  pointsPerLine?: number
   /** Whether scroll-to-zoom is enabled. @default true */
   enableZoom?: boolean
   /** Whether click-and-drag panning is enabled. @default false */
@@ -51,55 +49,60 @@ const defaults: Required<GeometricOrbConfig> = {
   numLines: 20,
   radius: 1.5,
   speed: 20,
-  lineWidth: 3.5,
+  lineWidth: 2,
   color: "#eeeeee",
   background: "#0a0a0a",
-  squiggleAmount: 0.06,
-  squiggleFrequency: 6,
-  squiggleSpeed: 3,
-  segmentGroups: 32,
-  segmentsPerGroup: 3,
+  squiggleAmount: 0.04,
+  squiggleFrequency: 4,
+  squiggleSpeed: 2,
+  pointsPerLine: 96,
   enableZoom: true,
   enablePan: false,
   minDistance: 2,
-  maxDistance: 8,
+  maxDistance: 20,
 }
 
 /**
- * A single animated latitude line that travels pole-to-pole on the sphere.
- * Each line is split into arc segments with independent opacity based on
- * camera-facing depth, creating a 3D wireframe illusion without a mesh.
+ * All latitude lines rendered with a single useFrame callback.
+ * Each line is one Line2 with per-vertex colors encoding depth-based opacity,
+ * reducing draw calls from numLines×segmentGroups to just numLines.
  */
-function LatitudeLine({
-  index,
-  config,
-}: {
-  index: number
-  config: Required<GeometricOrbConfig>
-}) {
-  const groupRef = useRef<THREE.Group>(null)
+function LatitudeLines({ config }: { config: Required<GeometricOrbConfig> }) {
+  const groupRefs = useRef<(THREE.Group | null)[]>([])
   const camDirRef = useRef(new THREE.Vector3())
-  const longitudeRotation = (index / config.numLines) * Math.PI
-  const timeOffset = (index / config.numLines) * config.speed
   const { size } = useThree()
 
   const colorInt = useMemo(() => new THREE.Color(config.color).getHex(), [config.color])
 
-  const materials = useMemo(() => {
-    return Array.from({ length: config.segmentGroups }, () =>
+  const lineConstants = useMemo(() =>
+    Array.from({ length: config.numLines }, (_, i) => ({
+      longitudeRotation: (i / config.numLines) * Math.PI,
+      timeOffset: (i / config.numLines) * config.speed,
+      cosR: Math.cos((i / config.numLines) * Math.PI),
+      sinR: Math.sin((i / config.numLines) * Math.PI),
+    })),
+    [config.numLines, config.speed],
+  )
+
+  // One material per line with vertexColors enabled
+  const materials = useMemo(() =>
+    Array.from({ length: config.numLines }, () =>
       new LineMaterial({
         color: colorInt,
         linewidth: config.lineWidth,
         transparent: true,
         opacity: 1,
-        resolution: new THREE.Vector2(size.width, size.height),
+        vertexColors: true,
       })
-    )
-  }, [colorInt, config.segmentGroups, config.lineWidth, size.width, size.height])
+    ),
+    [colorInt, config.numLines, config.lineWidth],
+  )
 
-  const geometries = useMemo(() => {
-    return Array.from({ length: config.segmentGroups }, () => new LineGeometry())
-  }, [config.segmentGroups])
+  // One geometry per line
+  const geometries = useMemo(() =>
+    Array.from({ length: config.numLines }, () => new LineGeometry()),
+    [config.numLines],
+  )
 
   useEffect(() => {
     return () => {
@@ -108,36 +111,45 @@ function LatitudeLine({
     }
   }, [materials, geometries])
 
-  // Update resolution when canvas size changes, not every frame
   useEffect(() => {
     for (const mat of materials) {
       mat.resolution.set(size.width, size.height)
     }
   }, [materials, size.width, size.height])
 
+  // Pre-allocate reusable buffers (+1 vertex to close the loop)
+  const vertexCount = config.pointsPerLine + 1
+  const positionBuffer = useMemo(
+    () => new Float32Array(vertexCount * 3),
+    [vertexCount],
+  )
+  const colorBuffer = useMemo(
+    () => new Float32Array(vertexCount * 3),
+    [vertexCount],
+  )
+
+  const baseColor = useMemo(() => new THREE.Color(config.color), [config.color])
+
   useFrame((state) => {
-    if (!groupRef.current) return
-
     const time = state.clock.elapsedTime
-    const progress = ((time + timeOffset) % config.speed) / config.speed
-    const latitude = progress * Math.PI
-    const circleRadius = Math.sin(latitude) * config.radius
-    const yPosition = Math.cos(latitude) * config.radius
-
-    // Reuse a single Vector3 to avoid heap allocation every frame per line
     const camDir = camDirRef.current.copy(state.camera.position).normalize()
+    const r = baseColor.r
+    const g = baseColor.g
+    const b = baseColor.b
 
-    for (let g = 0; g < config.segmentGroups; g++) {
-      const positions: number[] = []
-      const startAngle = (g / config.segmentGroups) * Math.PI * 2
-      const endAngle = ((g + 1) / config.segmentGroups) * Math.PI * 2
-      let avgX = 0
-      let avgY = 0
-      let avgZ = 0
+    for (let lineIdx = 0; lineIdx < config.numLines; lineIdx++) {
+      const group = groupRefs.current[lineIdx]
+      if (!group) continue
 
-      for (let i = 0; i <= config.segmentsPerGroup; i++) {
-        const angle = startAngle + (i / config.segmentsPerGroup) * (endAngle - startAngle)
-        const squiggle = Math.sin(angle * config.squiggleFrequency + time * config.squiggleSpeed + index * 0.5) * config.squiggleAmount
+      const { timeOffset, longitudeRotation, cosR, sinR } = lineConstants[lineIdx]
+      const progress = ((time + timeOffset) % config.speed) / config.speed
+      const latitude = progress * Math.PI
+      const circleRadius = Math.sin(latitude) * config.radius
+      const yPosition = Math.cos(latitude) * config.radius
+
+      for (let i = 0; i < config.pointsPerLine; i++) {
+        const angle = (i / config.pointsPerLine) * Math.PI * 2
+        const squiggle = Math.sin(angle * config.squiggleFrequency + time * config.squiggleSpeed + lineIdx * 0.5) * config.squiggleAmount
         const radiusSquiggle = Math.cos(angle * config.squiggleFrequency * 1.3 + time * config.squiggleSpeed * 0.8) * config.squiggleAmount * 0.5
         const displacedRadius = circleRadius + (squiggle + radiusSquiggle) * circleRadius
         const ySquiggle = Math.sin(angle * config.squiggleFrequency * 0.7 + time * config.squiggleSpeed * 1.2) * config.squiggleAmount * 0.4
@@ -145,42 +157,53 @@ function LatitudeLine({
         const x = Math.cos(angle) * displacedRadius
         const y = yPosition + ySquiggle * circleRadius
         const z = Math.sin(angle) * displacedRadius
-        positions.push(x, y, z)
-        avgX += x
-        avgY += y
-        avgZ += z
+
+        const offset = i * 3
+        positionBuffer[offset] = x
+        positionBuffer[offset + 1] = y
+        positionBuffer[offset + 2] = z
+
+        // Smooth depth-fade via vertex color brightness
+        const worldX = x * cosR + z * sinR
+        const worldZ = -x * sinR + z * cosR
+        const dot = worldX * camDir.x + y * camDir.y + worldZ * camDir.z
+        const depthFactor = (dot / config.radius + 1) / 2
+        const opacity = depthFactor * 0.85 + 0.15
+
+        colorBuffer[offset] = r * opacity
+        colorBuffer[offset + 1] = g * opacity
+        colorBuffer[offset + 2] = b * opacity
       }
 
-      const count = config.segmentsPerGroup + 1
-      avgX /= count
-      avgY /= count
-      avgZ /= count
+      // Close the loop: copy first vertex exactly to avoid floating-point gaps
+      const last = config.pointsPerLine * 3
+      positionBuffer[last] = positionBuffer[0]
+      positionBuffer[last + 1] = positionBuffer[1]
+      positionBuffer[last + 2] = positionBuffer[2]
+      colorBuffer[last] = colorBuffer[0]
+      colorBuffer[last + 1] = colorBuffer[1]
+      colorBuffer[last + 2] = colorBuffer[2]
 
-      // Transform segment center to world space, then project onto camera direction
-      const cosR = Math.cos(longitudeRotation)
-      const sinR = Math.sin(longitudeRotation)
-      const worldX = avgX * cosR + avgZ * sinR
-      const worldZ = -avgX * sinR + avgZ * cosR
-      const dot = worldX * camDir.x + avgY * camDir.y + worldZ * camDir.z
-      const depthFactor = (dot / config.radius + 1) / 2
-      const opacity = Math.pow(depthFactor, 1.5) * 0.95 + 0.05
-
-      geometries[g].setPositions(positions)
-      materials[g].opacity = opacity
+      geometries[lineIdx].setPositions(positionBuffer)
+      geometries[lineIdx].setColors(colorBuffer)
+      group.rotation.y = longitudeRotation
     }
-
-    groupRef.current.rotation.y = longitudeRotation
   })
 
   return (
-    <group ref={groupRef}>
-      {geometries.map((geo, i) => (
-        <line2 key={i}>
-          <primitive object={geo} attach="geometry" />
-          <primitive object={materials[i]} attach="material" />
-        </line2>
+    <>
+      {Array.from({ length: config.numLines }, (_, lineIdx) => (
+        <group
+          key={lineIdx}
+          ref={(el) => { groupRefs.current[lineIdx] = el }}
+        >
+          <line2>
+            <primitive object={geometries[lineIdx]} attach="geometry" />
+            <primitive object={materials[lineIdx]} attach="material" />
+          </line2>
+        </group>
       ))}
-    </group>
+    </>
   )
 }
 
@@ -188,8 +211,8 @@ function LatitudeLine({
  * 3D animated orb with flowing latitude lines and depth-based opacity.
  *
  * Lines travel pole-to-pole across a sphere surface with subtle squiggle
- * displacement, split into arc segments with independent opacity based on
- * camera-facing depth for a volumetric wireframe look.
+ * displacement. Per-vertex colors encode camera-facing depth for a
+ * volumetric wireframe look.
  *
  * @example
  * ```tsx
@@ -211,15 +234,11 @@ export function GeometricOrb({
   return (
     <div className={`w-full h-full ${className}`} style={{ background: config.background }}>
       <Canvas
-        camera={{ position: [0, 0, 4], fov: 45 }}
+        camera={{ position: [0, 0, 8], fov: 45 }}
         gl={{ antialias: true, alpha: false }}
       >
         <color attach="background" args={[config.background]} />
-        <group>
-          {Array.from({ length: config.numLines }, (_, i) => (
-            <LatitudeLine key={i} index={i} config={config} />
-          ))}
-        </group>
+        <LatitudeLines config={config} />
         <OrbitControls
           enablePan={config.enablePan}
           enableZoom={config.enableZoom}

@@ -12,6 +12,7 @@
     "@react-three/postprocessing": "^3.0.4",
     "postprocessing": "^6.38.3",
     "react": "*",
+    "react-dom": "*",
     "three": "^0.175.0"
   }
 }

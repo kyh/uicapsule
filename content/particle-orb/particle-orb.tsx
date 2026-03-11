@@ -112,15 +112,11 @@ function setupPointsShader(
   opts: { radius: number; particleSizeMin: number; particleSizeMax: number },
 ) {
   const { radius, particleSizeMin, particleSizeMax } = opts
-  material.onBeforeCompile = (shader: any) => {
-    shader.uniforms.time = { value: 0 } as { value: number }
-    shader.uniforms.radius = { value: radius } as { value: number }
-    shader.uniforms.particleSizeMin = { value: particleSizeMin } as {
-      value: number
-    }
-    shader.uniforms.particleSizeMax = { value: particleSizeMax } as {
-      value: number
-    }
+  material.onBeforeCompile = (shader: THREE.Shader) => {
+    shader.uniforms.time = { value: 0 }
+    shader.uniforms.radius = { value: radius }
+    shader.uniforms.particleSizeMin = { value: particleSizeMin }
+    shader.uniforms.particleSizeMax = { value: particleSizeMax }
     shader.vertexShader = "uniform float particleSizeMax;\n" + shader.vertexShader
     shader.vertexShader = "uniform float particleSizeMin;\n" + shader.vertexShader
     shader.vertexShader = "uniform float radius;\n" + shader.vertexShader

@@ -1,7 +1,7 @@
 {
   "name": "Resizable Sidebar",
   "description": "A shadcn-inspired application sidebar with a draggable resize handle.",
-  "coverUrl": "",
+  "coverUrl": "https://zmdrwswxugswzmcokvff.supabase.co/storage/v1/object/public/uicapsule/resizable-sidebar/resizable-sidebar.mp4",
   "coverType": "video",
   "tags": ["layout", "sidebar"]
 }

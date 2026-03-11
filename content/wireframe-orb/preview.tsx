@@ -1,3 +1,4 @@
+import React from "react"
 import { WireframeOrb } from "./wireframe-orb"
 
 const Preview = () => {

@@ -77,7 +77,7 @@ const fragmentShader = /* glsl */ `
   }
 
   vec3 adjustHue(vec3 color, float hueDeg) {
-    float hueRad = hueDeg * 3.14159265 / 180.0;
+    float hueRad = radians(hueDeg);
     vec3 yiq = rgb2yiq(color);
     float cosA = cos(hueRad);
     float sinA = sin(hueRad);
