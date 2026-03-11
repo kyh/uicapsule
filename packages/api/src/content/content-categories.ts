@@ -58,6 +58,7 @@ export const contentElements: ContentFilter[] = [
       { name: "Tables", slug: "tables" },
       { name: "Toolbars", slug: "toolbars" }, // Filter/Sort
       { name: "Trees", slug: "trees" },
+      { name: "Charts", slug: "charts" },
       { name: "Effects", slug: "effects" },
     ],
   },
