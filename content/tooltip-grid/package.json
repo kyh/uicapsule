@@ -8,7 +8,7 @@
   },
   "dependencies": {
     "@floating-ui/react": "^0.27.19",
-    "motion": "^12.35.2",
+    "motion": "^12.36.0",
     "react": "*",
     "react-dom": "*"
   }
