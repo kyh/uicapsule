@@ -1,8 +1,8 @@
-"use client"
+"use client";
 
-import { useRef, useMemo, useEffect } from "react"
-import { Canvas, useFrame, useThree } from "@react-three/fiber"
-import * as THREE from "three"
+import { useRef, useMemo, useEffect } from "react";
+import { Canvas, useFrame, useThree } from "@react-three/fiber";
+import * as THREE from "three";
 
 /**
  * Configuration options for the gradient orb.
@@ -10,16 +10,16 @@ import * as THREE from "three"
  */
 export type GradientOrbConfig = {
   /** CSS color string for the canvas background. @default "#0a0a0a" */
-  background?: string
+  background?: string;
   /** Hue rotation in degrees applied to all gradient colors. @default 0 */
-  hue?: number
+  hue?: number;
   /** Constant rotation speed of the orb (radians/sec). @default 0.3 */
-  rotationSpeed?: number
+  rotationSpeed?: number;
   /** Scale of the noise pattern inside the orb. @default 0.65 */
-  noiseScale?: number
+  noiseScale?: number;
   /** Inner radius of the orb glow (0–1). @default 0.1 */
-  innerRadius?: number
-}
+  innerRadius?: number;
+};
 
 const defaults: Required<GradientOrbConfig> = {
   background: "#0a0a0a",
@@ -27,7 +27,7 @@ const defaults: Required<GradientOrbConfig> = {
   rotationSpeed: 0.3,
   noiseScale: 0.65,
   innerRadius: 0.1,
-}
+};
 
 /**
  * GLSL vertex shader — pass-through that outputs clip-space positions
@@ -40,7 +40,7 @@ const vertexShader = /* glsl */ `
     vUv = uv;
     gl_Position = vec4(position.xy, 0.0, 1.0);
   }
-`
+`;
 
 /**
  * GLSL fragment shader — renders a glowing orb with three noise-mixed colors,
@@ -184,31 +184,28 @@ const fragmentShader = /* glsl */ `
     vec4 col = draw(uv);
     gl_FragColor = vec4(col.rgb * col.a, col.a);
   }
-`
+`;
 
 /** Internal scene component for the gradient fullscreen shader. */
 function GradientScene({ config }: { config: Required<GradientOrbConfig> }) {
-  const materialRef = useRef<THREE.ShaderMaterial>(null)
-  const { size, viewport } = useThree()
-  const rotRef = useRef(0)
-  const lastTimeRef = useRef(0)
+  const materialRef = useRef<THREE.ShaderMaterial>(null);
+  const { size, viewport } = useThree();
+  const rotRef = useRef(0);
+  const lastTimeRef = useRef(0);
 
   const geometry = useMemo(() => {
-    const geo = new THREE.BufferGeometry()
+    const geo = new THREE.BufferGeometry();
     geo.setAttribute(
       "position",
       new THREE.Float32BufferAttribute([-1, -1, 0, 3, -1, 0, -1, 3, 0], 3),
-    )
-    geo.setAttribute(
-      "uv",
-      new THREE.Float32BufferAttribute([0, 0, 2, 0, 0, 2], 2),
-    )
-    return geo
-  }, [])
+    );
+    geo.setAttribute("uv", new THREE.Float32BufferAttribute([0, 0, 2, 0, 0, 2], 2));
+    return geo;
+  }, []);
 
   useEffect(() => {
-    return () => geometry.dispose()
-  }, [geometry])
+    return () => geometry.dispose();
+  }, [geometry]);
 
   const uniforms = useMemo(
     () => ({
@@ -223,27 +220,27 @@ function GradientScene({ config }: { config: Required<GradientOrbConfig> }) {
     // via useFrame rather than triggering a uniform object re-creation.
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [config],
-  )
+  );
 
   useFrame((state) => {
-    if (!materialRef.current) return
+    if (!materialRef.current) return;
 
-    const t = state.clock.elapsedTime
-    const dt = t - lastTimeRef.current
-    lastTimeRef.current = t
+    const t = state.clock.elapsedTime;
+    const dt = t - lastTimeRef.current;
+    lastTimeRef.current = t;
 
-    rotRef.current += dt * config.rotationSpeed
+    rotRef.current += dt * config.rotationSpeed;
 
-    const u = materialRef.current.uniforms
-    u.iTime.value = t
-    u.hue.value = config.hue
-    u.rot.value = rotRef.current
+    const u = materialRef.current.uniforms;
+    u.iTime.value = t;
+    u.hue.value = config.hue;
+    u.rot.value = rotRef.current;
     u.iResolution.value.set(
       size.width * viewport.dpr,
       size.height * viewport.dpr,
       size.width / size.height,
-    )
-  })
+    );
+  });
 
   return (
     <mesh geometry={geometry} frustumCulled={false}>
@@ -257,7 +254,7 @@ function GradientScene({ config }: { config: Required<GradientOrbConfig> }) {
         depthTest={false}
       />
     </mesh>
-  )
+  );
 }
 
 /**
@@ -275,22 +272,20 @@ export function GradientOrb({
   config: configOverrides,
   className = "",
 }: {
-  config?: GradientOrbConfig
-  className?: string
+  config?: GradientOrbConfig;
+  className?: string;
 }) {
-  const configKey = JSON.stringify(configOverrides)
+  const configKey = JSON.stringify(configOverrides);
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  const config = useMemo(() => ({ ...defaults, ...configOverrides }), [configKey])
+  const config = useMemo(() => ({ ...defaults, ...configOverrides }), [configKey]);
 
   return (
     <div className={`w-full h-full ${className}`} style={{ background: config.background }}>
       {/* Camera is unused — the vertex shader outputs clip-space positions directly */}
-      <Canvas
-        gl={{ antialias: true, alpha: false }}
-      >
+      <Canvas gl={{ antialias: true, alpha: false }}>
         <color attach="background" args={[config.background]} />
         <GradientScene config={config} />
       </Canvas>
     </div>
-  )
+  );
 }

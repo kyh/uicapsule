@@ -43,20 +43,15 @@ const Preview = () => {
           <FeedLabel>2023 - Present</FeedLabel>
           <FeedTitle>Web Designer & Web Developer</FeedTitle>
           <FeedDescription>
-            The company has high expectations and using OKRs there is a mutual
-            understanding of expectations and performance.
+            The company has high expectations and using OKRs there is a mutual understanding of
+            expectations and performance.
           </FeedDescription>
           <FeedList>
+            <FeedListItem>Designed template UIs and design systems in Figma.</FeedListItem>
             <FeedListItem>
-              Designed template UIs and design systems in Figma.
+              Converted UIs into responsive HTML and CSS with a mobile-first approach.
             </FeedListItem>
-            <FeedListItem>
-              Converted UIs into responsive HTML and CSS with a mobile-first
-              approach.
-            </FeedListItem>
-            <FeedListItem>
-              Created custom illustrations and item description banners.
-            </FeedListItem>
+            <FeedListItem>Created custom illustrations and item description banners.</FeedListItem>
             <FeedListItem>
               Provided detailed documentation and customer support on GitHub.
             </FeedListItem>
@@ -72,9 +67,9 @@ const Preview = () => {
           <FeedLabel>2021 - 2023</FeedLabel>
           <FeedTitle>Senior Software Engineer at Mailchimp</FeedTitle>
           <FeedDescription>
-            This is an excellent company and they reward their employees.
-            It&apos;s becoming a big company but it&apos;s still private, so the
-            culture is as good as it gets at 1,000+ employees if you ask me.
+            This is an excellent company and they reward their employees. It&apos;s becoming a big
+            company but it&apos;s still private, so the culture is as good as it gets at 1,000+
+            employees if you ask me.
           </FeedDescription>
           <div className="mt-3">
             <a
@@ -89,12 +84,10 @@ const Preview = () => {
                 />
                 <div className="ms-32 grow p-4 sm:ms-48">
                   <div className="flex min-h-24 flex-col justify-center">
-                    <h3 className="text-sm font-semibold text-foreground">
-                      Studio by Mailchimp
-                    </h3>
+                    <h3 className="text-sm font-semibold text-foreground">Studio by Mailchimp</h3>
                     <p className="mt-1 text-sm text-muted-foreground-2">
-                      Produce professional, reliable streams easily leveraging
-                      Mailchimp&apos;s innovative broadcast studio.
+                      Produce professional, reliable streams easily leveraging Mailchimp&apos;s
+                      innovative broadcast studio.
                     </p>
                   </div>
                 </div>
@@ -112,9 +105,8 @@ const Preview = () => {
           <FeedLabel>2011 - 2021</FeedLabel>
           <FeedTitle>Junior Software Engineer at Slack</FeedTitle>
           <FeedDescription>
-            Work in Slack is one of the beautiful experience I can do in my
-            entire life. There are a lot of interesting thing to learn and
-            manager respect your time and your personality.
+            Work in Slack is one of the beautiful experience I can do in my entire life. There are a
+            lot of interesting thing to learn and manager respect your time and your personality.
           </FeedDescription>
         </FeedContent>
       </FeedItem>
@@ -128,17 +120,16 @@ const Preview = () => {
           <FeedTitle>Freelance Graphic Designer</FeedTitle>
           <FeedList>
             <FeedListItem>
-              Worked with a diverse range of clients, delivering tailored design
-              solutions.
+              Worked with a diverse range of clients, delivering tailored design solutions.
             </FeedListItem>
             <FeedListItem>
-              Developed and maintained strong client relationships through
-              effective communication and project management.
+              Developed and maintained strong client relationships through effective communication
+              and project management.
             </FeedListItem>
             <FeedListItem>
-              Utilized tools such as Notion for project tracking, Mailchimp for
-              email marketing designs, Slack for team collaboration, and GitHub
-              for version control and project sharing.
+              Utilized tools such as Notion for project tracking, Mailchimp for email marketing
+              designs, Slack for team collaboration, and GitHub for version control and project
+              sharing.
             </FeedListItem>
           </FeedList>
         </FeedContent>

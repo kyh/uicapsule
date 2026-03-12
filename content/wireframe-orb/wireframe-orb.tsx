@@ -1,10 +1,10 @@
-"use client"
+"use client";
 
-import { useRef, useMemo, useEffect } from "react"
-import { Canvas, useFrame } from "@react-three/fiber"
-import { OrbitControls } from "@react-three/drei"
-import { EffectComposer, Bloom } from "@react-three/postprocessing"
-import * as THREE from "three"
+import { useRef, useMemo, useEffect } from "react";
+import { Canvas, useFrame } from "@react-three/fiber";
+import { OrbitControls } from "@react-three/drei";
+import { EffectComposer, Bloom } from "@react-three/postprocessing";
+import * as THREE from "three";
 
 /**
  * Configuration options for the wireframe orb.
@@ -12,36 +12,36 @@ import * as THREE from "three"
  */
 export type WireframeOrbConfig = {
   /** CSS color string for the lines. @default "#c0ebfc" */
-  color?: string
+  color?: string;
   /** CSS color string for the canvas background. @default "#0a0a0a" */
-  background?: string
+  background?: string;
   /** Animation speed multiplier. @default 20 */
-  speed?: number
+  speed?: number;
   /** Grid resolution per side. Total vertices = gridSize². Consider 150–200 on mobile. @default 200 */
-  gridSize?: number
+  gridSize?: number;
   /** Curl noise density — higher values produce tighter noise. @default 0.7 */
-  noiseDensity?: number
+  noiseDensity?: number;
   /** Scale of the noise displacement in world units. @default 3.0 */
-  noiseScale?: number
+  noiseScale?: number;
   /** Minimum line alpha in the pulsing animation. @default 0.01 */
-  minAlpha?: number
+  minAlpha?: number;
   /** Maximum line alpha in the pulsing animation. @default 0.45 */
-  maxAlpha?: number
+  maxAlpha?: number;
   /** Bloom post-processing intensity. Set to 0 to disable. @default 1.5 */
-  bloomIntensity?: number
+  bloomIntensity?: number;
   /** Bloom luminance threshold — pixels brighter than this glow. @default 0.0 */
-  bloomThreshold?: number
+  bloomThreshold?: number;
   /** Bloom blur radius in pixels. @default 0.85 */
-  bloomRadius?: number
+  bloomRadius?: number;
   /** Whether scroll-to-zoom is enabled. @default true */
-  enableZoom?: boolean
+  enableZoom?: boolean;
   /** Whether click-and-drag panning is enabled. @default false */
-  enablePan?: boolean
+  enablePan?: boolean;
   /** Minimum camera distance (closest zoom). @default 2 */
-  minDistance?: number
+  minDistance?: number;
   /** Maximum camera distance (farthest zoom). @default 8 */
-  maxDistance?: number
-}
+  maxDistance?: number;
+};
 
 const defaults: Required<WireframeOrbConfig> = {
   color: "#c0ebfc",
@@ -59,7 +59,7 @@ const defaults: Required<WireframeOrbConfig> = {
   enablePan: false,
   minDistance: 2,
   maxDistance: 20,
-}
+};
 
 /**
  * GLSL vertex shader for the wireframe orb.
@@ -180,7 +180,7 @@ const vertexShader = /* glsl */ `
     vPositionZ = noise.z;
     gl_Position = projectionMatrix * modelViewMatrix * vec4(pos, 1.0);
   }
-`
+`;
 
 /**
  * GLSL fragment shader for the wireframe orb.
@@ -204,47 +204,47 @@ const fragmentShader = /* glsl */ `
     cAlpha *= mix(0.8, 1.0, vPositionZ);
     gl_FragColor = vec4(uColor, cAlpha);
   }
-`
+`;
 
 /** Detect low-end devices for adaptive grid sizing. */
 function getAdaptiveGridSize(requested: number): number {
-  if (typeof navigator === "undefined") return requested
-  const cores = navigator.hardwareConcurrency ?? 4
+  if (typeof navigator === "undefined") return requested;
+  const cores = navigator.hardwareConcurrency ?? 4;
   if (cores <= 4 || window.devicePixelRatio >= 3) {
-    return Math.min(requested, 150)
+    return Math.min(requested, 150);
   }
-  return requested
+  return requested;
 }
 
 /** Internal scene component for the wireframe line strip. */
 function WireframeScene({ config }: { config: Required<WireframeOrbConfig> }) {
-  const materialRef = useRef<THREE.ShaderMaterial>(null)
+  const materialRef = useRef<THREE.ShaderMaterial>(null);
 
   const geometry = useMemo(() => {
-    const n = getAdaptiveGridSize(config.gridSize)
-    const maxI = n - 1
-    const uvs: number[] = []
-    const positions: number[] = []
+    const n = getAdaptiveGridSize(config.gridSize);
+    const maxI = n - 1;
+    const uvs: number[] = [];
+    const positions: number[] = [];
 
     for (let j = 0; j < n; j++) {
       for (let i = 0; i < n; i++) {
-        uvs.push(i / maxI, 1 - j / maxI)
-        positions.push(0, 0, 0)
+        uvs.push(i / maxI, 1 - j / maxI);
+        positions.push(0, 0, 0);
       }
     }
 
-    const geo = new THREE.BufferGeometry()
-    geo.setAttribute("position", new THREE.Float32BufferAttribute(positions, 3))
-    geo.setAttribute("aUv", new THREE.Float32BufferAttribute(uvs, 2))
-    return geo
-  }, [config.gridSize])
+    const geo = new THREE.BufferGeometry();
+    geo.setAttribute("position", new THREE.Float32BufferAttribute(positions, 3));
+    geo.setAttribute("aUv", new THREE.Float32BufferAttribute(uvs, 2));
+    return geo;
+  }, [config.gridSize]);
 
   useEffect(() => {
-    return () => geometry.dispose()
-  }, [geometry])
+    return () => geometry.dispose();
+  }, [geometry]);
 
   const uniforms = useMemo(() => {
-    const col = new THREE.Color(config.color)
+    const col = new THREE.Color(config.color);
     return {
       time: { value: 0 },
       uSpeed: { value: config.speed * 0.005 },
@@ -254,13 +254,13 @@ function WireframeScene({ config }: { config: Required<WireframeOrbConfig> }) {
       uMinAlpha: { value: config.minAlpha },
       uMaxAlpha: { value: config.maxAlpha },
       uAlphaSpeed: { value: config.speed * 0.025 },
-    }
-  }, [config])
+    };
+  }, [config]);
 
   useFrame((state) => {
-    if (!materialRef.current) return
-    materialRef.current.uniforms.time.value = state.clock.elapsedTime
-  })
+    if (!materialRef.current) return;
+    materialRef.current.uniforms.time.value = state.clock.elapsedTime;
+  });
 
   return (
     <line geometry={geometry}>
@@ -274,7 +274,7 @@ function WireframeScene({ config }: { config: Required<WireframeOrbConfig> }) {
         blending={THREE.AdditiveBlending}
       />
     </line>
-  )
+  );
 }
 
 /**
@@ -291,19 +291,16 @@ export function WireframeOrb({
   config: configOverrides,
   className = "",
 }: {
-  config?: WireframeOrbConfig
-  className?: string
+  config?: WireframeOrbConfig;
+  className?: string;
 }) {
-  const configKey = JSON.stringify(configOverrides)
+  const configKey = JSON.stringify(configOverrides);
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  const config = useMemo(() => ({ ...defaults, ...configOverrides }), [configKey])
+  const config = useMemo(() => ({ ...defaults, ...configOverrides }), [configKey]);
 
   return (
     <div className={`w-full h-full ${className}`} style={{ background: config.background }}>
-      <Canvas
-        camera={{ position: [0, 0, 12], fov: 45 }}
-        gl={{ antialias: true, alpha: false }}
-      >
+      <Canvas camera={{ position: [0, 0, 12], fov: 45 }} gl={{ antialias: true, alpha: false }}>
         <color attach="background" args={[config.background]} />
         <WireframeScene config={config} />
         {config.bloomIntensity > 0 && (
@@ -323,5 +320,5 @@ export function WireframeOrb({
         />
       </Canvas>
     </div>
-  )
+  );
 }

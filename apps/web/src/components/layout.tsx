@@ -196,7 +196,7 @@ const SearchButton = () => {
 
     return allSections
       .filter((section) => section.count > 0)
-      .toSorted((a, b) => {
+      .sort((a, b) => {
         if (b.count === a.count) {
           return a.name.localeCompare(b.name);
         }

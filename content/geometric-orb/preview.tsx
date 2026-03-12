@@ -1,12 +1,12 @@
-import React from "react"
-import { GeometricOrb } from "./geometric-orb"
+import React from "react";
+import { GeometricOrb } from "./geometric-orb";
 
 const Preview = () => {
   return (
     <div className="h-screen w-full">
       <GeometricOrb />
     </div>
-  )
-}
+  );
+};
 
-export default Preview
+export default Preview;

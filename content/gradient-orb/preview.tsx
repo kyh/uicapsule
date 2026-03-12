@@ -1,12 +1,12 @@
-import React from "react"
-import { GradientOrb } from "./gradient-orb"
+import React from "react";
+import { GradientOrb } from "./gradient-orb";
 
 const Preview = () => {
   return (
     <div className="h-screen w-full">
       <GradientOrb />
     </div>
-  )
-}
+  );
+};
 
-export default Preview
+export default Preview;
