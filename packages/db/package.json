@@ -19,7 +19,7 @@
     "with-env": "dotenv -e ../../.env --"
   },
   "dependencies": {
-    "@libsql/client": "^0.17.0",
+    "@libsql/client": "^0.17.2",
     "drizzle-orm": "^0.45.1",
     "next": "catalog:",
     "react": "catalog:",
@@ -28,7 +28,7 @@
   "devDependencies": {
     "@kyh/tsconfig": "catalog:",
     "@types/react": "catalog:",
-    "drizzle-kit": "^0.31.9",
+    "drizzle-kit": "^0.31.10",
     "typescript": "catalog:"
   },
   "prettier": "@kyh/prettier-config"
