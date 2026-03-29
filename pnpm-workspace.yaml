@@ -7,7 +7,7 @@ catalog:
   "@better-auth/expo": ^1.5.6
   "@kyh/eslint-config": ^1.1.13
   "@kyh/prettier-config": ^1.1.13
-  "@kyh/tsconfig": ^1.1.13
+  "@kyh/tsconfig": ^1.1.14
   "@tailwindcss/postcss": ^4.2.2
   "@tailwindcss/vite": ^4.2.2
   "@tanstack/react-form": ^1.28.5
