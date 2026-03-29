@@ -30,6 +30,5 @@
     "@types/react": "catalog:",
     "drizzle-kit": "^0.31.10",
     "typescript": "catalog:"
-  },
-  "prettier": "@kyh/prettier-config"
+  }
 }

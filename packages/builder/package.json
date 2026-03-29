@@ -21,6 +21,5 @@
     "@kyh/tsconfig": "catalog:",
     "tsx": "^4.21.0",
     "typescript": "catalog:"
-  },
-  "prettier": "@kyh/prettier-config"
+  }
 }

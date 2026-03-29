@@ -51,6 +51,5 @@
     "postcss": "^8.5.8",
     "tailwindcss": "catalog:",
     "typescript": "catalog:"
-  },
-  "prettier": "@kyh/prettier-config"
+  }
 }
