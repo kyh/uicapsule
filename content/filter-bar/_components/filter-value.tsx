@@ -316,7 +316,7 @@ function __FilterValue<TData, TType extends ColumnDataType>({
       <PopoverContent
         align="start"
         side="bottom"
-        className="w-fit origin-(--radix-popover-content-transform-origin) p-0"
+        className="w-fit origin-(--transform-origin) p-0"
       >
         <FilterValueController
           filter={filter}

@@ -70,7 +70,7 @@ export function FilterOperator<TData, TType extends ColumnDataType>({
       </PopoverTrigger>
       <PopoverContent
         align="start"
-        className="w-fit origin-(--radix-popover-content-transform-origin) p-0"
+        className="w-fit origin-(--transform-origin) p-0"
       >
         <Command loop>
           <CommandInput placeholder="search" />
