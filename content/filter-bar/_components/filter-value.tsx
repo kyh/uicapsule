@@ -9,9 +9,9 @@ import React, {
   useRef,
   useState,
 } from "react";
-import { Button } from "@repo/ui/button";
-import { Calendar } from "@repo/ui/calendar";
-import { Checkbox } from "@repo/ui/checkbox";
+import { Button } from "@repo/ui/components/button";
+import { Calendar } from "@repo/ui/components/calendar";
+import { Checkbox } from "@repo/ui/components/checkbox";
 import {
   Command,
   CommandEmpty,
@@ -20,13 +20,13 @@ import {
   CommandItem,
   CommandList,
   CommandSeparator,
-} from "@repo/ui/command";
-import { Input } from "@repo/ui/input";
-import { Popover, PopoverAnchor, PopoverContent, PopoverTrigger } from "@repo/ui/popover";
-import { Slider } from "@repo/ui/slider";
-import { Switch } from "@repo/ui/switch";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@repo/ui/tabs";
-import { cn } from "@repo/ui/utils";
+} from "@repo/ui/components/command";
+import { Input } from "@repo/ui/components/input";
+import { Popover, PopoverAnchor, PopoverContent, PopoverTrigger } from "@repo/ui/components/popover";
+import { Slider } from "@repo/ui/components/slider";
+import { Switch } from "@repo/ui/components/switch";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@repo/ui/components/tabs";
+import { cn } from "@repo/ui/lib/utils";
 import { format, isEqual } from "date-fns";
 import { Ellipsis } from "lucide-react";
 
@@ -294,22 +294,24 @@ function __FilterValue<TData, TType extends ColumnDataType>({
 
   return (
     <Popover>
-      <PopoverTrigger asChild>
-        <Button
-          variant="ghost"
-          className={cn(
-            "m-0 h-full w-fit rounded-none p-0 px-2 text-xs whitespace-nowrap",
-            column.type === "boolean" && "hover:bg-inherit",
-          )}
-          onClick={handleClick}
-        >
-          <FilterValueDisplay
-            filter={filter}
-            column={column}
-            actions={actions}
-            entityName={entityName}
+      <PopoverTrigger
+        render={
+          <Button
+            variant="ghost"
+            className={cn(
+              "m-0 h-full w-fit rounded-none p-0 px-2 text-xs whitespace-nowrap",
+              column.type === "boolean" && "hover:bg-inherit",
+            )}
+            onClick={handleClick}
           />
-        </Button>
+        }
+      >
+        <FilterValueDisplay
+          filter={filter}
+          column={column}
+          actions={actions}
+          entityName={entityName}
+        />
       </PopoverTrigger>
       <PopoverContent
         align="start"

@@ -7,10 +7,10 @@ import React, {
   useRef,
   useState,
 } from "react";
-import { Button } from "@repo/ui/button";
-import { Checkbox } from "@repo/ui/checkbox";
-import { Command, CommandGroup, CommandInput, CommandItem, CommandList } from "@repo/ui/command";
-import { Popover, PopoverContent, PopoverTrigger } from "@repo/ui/popover";
+import { Button } from "@repo/ui/components/button";
+import { Checkbox } from "@repo/ui/components/checkbox";
+import { Command, CommandGroup, CommandInput, CommandItem, CommandList } from "@repo/ui/components/command";
+import { Popover, PopoverContent, PopoverTrigger } from "@repo/ui/components/popover";
 import {
   ArrowLeftIcon,
   ArrowRightIcon,
@@ -190,10 +190,8 @@ function __FilterSelector<TData>({
         }
       }}
     >
-      <PopoverTrigger asChild>
-        <Button variant="ghost" size="icon" className="size-7 p-0">
-          <ListFilterIcon className="size-4" />
-        </Button>
+      <PopoverTrigger render={<Button variant="ghost" size="icon" className="size-7 p-0" />}>
+        <ListFilterIcon className="size-4" />
       </PopoverTrigger>
       <PopoverContent
         align="start"

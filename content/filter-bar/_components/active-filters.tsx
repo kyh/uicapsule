@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
-import { Button } from "@repo/ui/button";
-import { Separator } from "@repo/ui/separator";
+import { Button } from "@repo/ui/components/button";
+import { Separator } from "@repo/ui/components/separator";
 import { X } from "lucide-react";
 
 import type {

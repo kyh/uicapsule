@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useEffect, useRef } from "react";
-import { Input } from "@repo/ui/input";
+import { Input } from "@repo/ui/components/input";
 
 import type { Cell, Column, Row, Table, TableMeta } from "@tanstack/react-table";
 import { useSpreadsheetStore } from "../lib/spreadsheet-store";

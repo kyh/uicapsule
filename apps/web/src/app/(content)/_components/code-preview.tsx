@@ -13,11 +13,11 @@ import {
   RiImageLine,
   RiReactjsLine,
 } from "@remixicon/react";
-import { Button } from "@repo/ui/button";
-import { CodeBlock, CodeBlockCopyButton, extensionToLanguageMap } from "@repo/ui/code-block";
-import { toast } from "@repo/ui/toast";
-import { Tree, TreeItem, TreeItemLabel } from "@repo/ui/tree";
-import { cn } from "@repo/ui/utils";
+import { Button } from "@repo/ui/components/button";
+import { CodeBlock, CodeBlockCopyButton, extensionToLanguageMap } from "@repo/ui/components/code-block";
+import { toast } from "@repo/ui/components/sonner";
+import { Tree, TreeItem, TreeItemLabel } from "@repo/ui/components/tree";
+import { cn } from "@repo/ui/lib/utils";
 
 import type { LocalContentComponent } from "@repo/api/content/content-schema";
 import { getFiles } from "./sandpack";

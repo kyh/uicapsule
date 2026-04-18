@@ -1,8 +1,8 @@
 "use client";
 
 import React, { useEffect, useMemo, useRef, useState } from "react";
-import { Badge } from "@repo/ui/badge";
-import { cn } from "@repo/ui/utils";
+import { Badge } from "@repo/ui/components/badge";
+import { cn } from "@repo/ui/lib/utils";
 import {
   BarChart3,
   BookOpen,

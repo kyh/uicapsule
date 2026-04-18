@@ -1,10 +1,10 @@
 "use client";
 
 import React from "react";
-import { Button } from "@repo/ui/button";
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@repo/ui/form";
-import { toast } from "@repo/ui/toast";
-import { cn } from "@repo/ui/utils";
+import { Button } from "@repo/ui/components/button";
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@repo/ui/components/form";
+import { toast } from "@repo/ui/components/sonner";
+import { cn } from "@repo/ui/lib/utils";
 import { useForm } from "react-hook-form";
 
 export const WaitlistForm = () => {

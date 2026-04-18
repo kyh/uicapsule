@@ -3,11 +3,11 @@
 import { useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Button } from "@repo/ui/button";
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@repo/ui/form";
-import { Input } from "@repo/ui/input";
-import { toast } from "@repo/ui/toast";
-import { cn } from "@repo/ui/utils";
+import { Button } from "@repo/ui/components/button";
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@repo/ui/components/form";
+import { Input } from "@repo/ui/components/input";
+import { toast } from "@repo/ui/components/sonner";
+import { cn } from "@repo/ui/lib/utils";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 

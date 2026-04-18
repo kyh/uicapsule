@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { Logo } from "@repo/ui/logo";
+import { Logo } from "@repo/ui/components/logo";
 
 export const metadata: Metadata = {
   title: "Authentication",

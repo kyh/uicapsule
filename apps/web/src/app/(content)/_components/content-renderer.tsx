@@ -5,8 +5,8 @@ import {
   isLocalContentComponent,
   isRemoteContentComponent,
 } from "@repo/api/content/content-schema";
-import { Tabs, TabsList, TabsTrigger } from "@repo/ui/tabs";
-import { useMediaQuery } from "@repo/ui/utils";
+import { Tabs, TabsList, TabsTrigger } from "@repo/ui/components/tabs";
+import { useMediaQuery } from "@repo/ui/hooks/use-media-query";
 import { LaptopIcon, SmartphoneIcon } from "lucide-react";
 
 import type { ContentComponent } from "@repo/api/content/content-schema";

@@ -1,8 +1,8 @@
 "use client";
 
 import React from "react";
-import { Button } from "@repo/ui/button";
-import { cn } from "@repo/ui/utils";
+import { Button } from "@repo/ui/components/button";
+import { cn } from "@repo/ui/lib/utils";
 
 export interface ToolbarProps extends React.HTMLAttributes<HTMLDivElement> {
   children?: React.ReactNode;

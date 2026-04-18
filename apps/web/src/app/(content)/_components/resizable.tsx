@@ -2,7 +2,7 @@
 
 import type React from "react";
 import { useCallback, useEffect, useRef, useState } from "react";
-import { cn } from "@repo/ui/utils";
+import { cn } from "@repo/ui/lib/utils";
 
 type ResizableProps = {
   children: React.ReactNode;

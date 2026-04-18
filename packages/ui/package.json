@@ -4,7 +4,11 @@
   "private": true,
   "type": "module",
   "exports": {
-    "./*": "./src/*.tsx"
+    "./globals.css": "./src/styles/globals.css",
+    "./postcss.config": "./postcss.config.mjs",
+    "./lib/*": "./src/lib/*.ts",
+    "./components/*": "./src/components/*.tsx",
+    "./hooks/*": "./src/hooks/*.ts"
   },
   "scripts": {
     "clean": "git clean -xdf .cache .turbo dist node_modules",
@@ -12,11 +16,13 @@
     "typecheck": "tsc --noEmit --emitDeclarationOnly false"
   },
   "dependencies": {
+    "@base-ui/react": "catalog:",
     "@headless-tree/core": "^1.6.3",
     "@headless-tree/react": "^1.6.3",
     "@hookform/resolvers": "^5.2.2",
     "@tanstack/react-table": "^8.21.3",
     "class-variance-authority": "^0.7.1",
+    "clsx": "^2.1.1",
     "cmdk": "^1.1.1",
     "date-fns": "^4.1.0",
     "lucide-react": "^1.7.0",
@@ -33,7 +39,9 @@
   },
   "devDependencies": {
     "@kyh/tsconfig": "catalog:",
+    "@tailwindcss/postcss": "catalog:",
     "@types/react": "catalog:",
+    "tailwindcss": "catalog:",
     "typescript": "catalog:"
   },
   "peerDependencies": {

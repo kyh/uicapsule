@@ -3,6 +3,7 @@ packages:
   - packages/*
 
 catalog:
+  "@base-ui/react": ^1.4.0
   "@better-auth/cli": ^1.4.21
   "@better-auth/expo": ^1.5.6
   "@kyh/tsconfig": ^1.1.14

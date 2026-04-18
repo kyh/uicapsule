@@ -8,15 +8,15 @@ import {
   contentElements,
   contentStyles,
 } from "@repo/api/content/content-categories";
-import { ProfileAvatar } from "@repo/ui/avatar";
-import { Button } from "@repo/ui/button";
+import { ProfileAvatar } from "@repo/ui/components/avatar";
+import { Button } from "@repo/ui/components/button";
 import {
   CommandDialog,
   CommandGroup,
   CommandInput,
   CommandItem,
   CommandList,
-} from "@repo/ui/command";
+} from "@repo/ui/components/command";
 import {
   Drawer,
   DrawerContent,
@@ -24,7 +24,7 @@ import {
   DrawerHeader,
   DrawerTitle,
   DrawerTrigger,
-} from "@repo/ui/drawer";
+} from "@repo/ui/components/drawer";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -32,11 +32,12 @@ import {
   dropdownMenuItemVariants,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "@repo/ui/dropdown-menu";
-import { Logo } from "@repo/ui/logo";
-import { Tabs, TabsList, TabsTrigger } from "@repo/ui/tabs";
-import { useTheme } from "@repo/ui/theme";
-import { cn, useMediaQuery } from "@repo/ui/utils";
+} from "@repo/ui/components/dropdown-menu";
+import { Logo } from "@repo/ui/components/logo";
+import { Tabs, TabsList, TabsTrigger } from "@repo/ui/components/tabs";
+import { useTheme } from "next-themes";
+import { cn } from "@repo/ui/lib/utils";
+import { useMediaQuery } from "@repo/ui/hooks/use-media-query";
 import { useQuery } from "@tanstack/react-query";
 import {
   BookCheckIcon,
@@ -521,7 +522,12 @@ export const ProfileButton = () => {
   const menuItemIconClassName =
     "text-muted-foreground size-4 group-hover:text-foreground transition";
 
-  const menuItems = [
+  const menuItems: {
+    id: string;
+    condition: boolean;
+    wrap: boolean;
+    content: React.ReactElement;
+  }[] = [
     {
       id: "about",
       condition: true,
@@ -637,10 +643,8 @@ export const ProfileButton = () => {
   if (isDesktop) {
     return (
       <DropdownMenu open={open} onOpenChange={setOpen}>
-        <DropdownMenuTrigger asChild>
-          <Button variant="ghost" size="icon">
-            <ProfileAvatar className="size-8" />
-          </Button>
+        <DropdownMenuTrigger render={<Button variant="ghost" size="icon" />}>
+          <ProfileAvatar className="size-8" />
         </DropdownMenuTrigger>
         <DropdownMenuContent className="w-40" align="end">
           {menuItems.map((item) => {
@@ -651,9 +655,7 @@ export const ProfileButton = () => {
               return <Fragment key={item.id}>{item.content}</Fragment>;
             }
             return (
-              <DropdownMenuItem key={item.id} asChild>
-                {item.content}
-              </DropdownMenuItem>
+              <DropdownMenuItem key={item.id} render={item.content} nativeButton={false} />
             );
           })}
         </DropdownMenuContent>
@@ -742,11 +744,10 @@ const FooterIcon = ({ href, children }: { href: string; children: React.ReactNod
       variant="ghost"
       size="icon"
       className="h-16 w-full rounded-none border-l lg:w-16"
-      asChild
+      render={<Link href={href} target="_blank" />}
+      nativeButton={false}
     >
-      <Link href={href} target="_blank">
-        {children}
-      </Link>
+      {children}
     </Button>
   );
 };

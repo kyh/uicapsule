@@ -5,7 +5,7 @@ import {
   contentElements,
   contentStyles,
 } from "@repo/api/content/content-categories";
-import { Button } from "@repo/ui/button";
+import { Button } from "@repo/ui/components/button";
 
 import { caller } from "@/trpc/server";
 import { ContentPreview, ContentPreviewSkeleton } from "./_components/content-preview";
@@ -84,8 +84,8 @@ const ContentList = async ({ searchParams }: PageProps) => {
       <div className="bg-background text-muted-foreground col-span-full! flex min-h-[calc(100dvh-(--spacing(48)))] items-center justify-center">
         <div className="flex flex-col items-center gap-4">
           <h1>No content found with the selected filters.</h1>
-          <Button variant="outline" asChild>
-            <Link href="/">Reset Filters</Link>
+          <Button variant="outline" render={<Link href="/" />} nativeButton={false}>
+            Reset Filters
           </Button>
         </div>
       </div>

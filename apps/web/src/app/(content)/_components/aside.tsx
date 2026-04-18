@@ -6,10 +6,10 @@ import {
   isLocalContentComponent,
   isRemoteContentComponent,
 } from "@repo/api/content/content-schema";
-import { Avatar, AvatarFallback, AvatarImage } from "@repo/ui/avatar";
-import { Badge } from "@repo/ui/badge";
-import { Button, buttonVariants } from "@repo/ui/button";
-import { Card } from "@repo/ui/card";
+import { Avatar, AvatarFallback, AvatarImage } from "@repo/ui/components/avatar";
+import { Badge } from "@repo/ui/components/badge";
+import { Button, buttonVariants } from "@repo/ui/components/button";
+import { Card } from "@repo/ui/components/card";
 import {
   Drawer,
   DrawerContent,
@@ -17,9 +17,10 @@ import {
   DrawerHeader,
   DrawerTitle,
   DrawerTrigger,
-} from "@repo/ui/drawer";
-import { toast } from "@repo/ui/toast";
-import { cn, useMediaQuery } from "@repo/ui/utils";
+} from "@repo/ui/components/drawer";
+import { toast } from "@repo/ui/components/sonner";
+import { cn } from "@repo/ui/lib/utils";
+import { useMediaQuery } from "@repo/ui/hooks/use-media-query";
 import JSZip from "jszip";
 import {
   ArrowLeftIcon,
@@ -190,13 +191,14 @@ const Aside = ({ contentComponent }: AsideProps) => {
         isRemoteContentComponent(contentComponent) && (
           <div className="flex flex-col items-center gap-1.5">
             <Button
-              asChild
+              render={
+                <a href={contentComponent.sourceUrl} target="_blank" rel="noreferrer" />
+              }
+              nativeButton={false}
               variant="outline"
               className="w-full rounded-full shadow-none focus-visible:z-10"
             >
-              <a href={contentComponent.sourceUrl} target="_blank" rel="noreferrer">
-                View Source on GitHub
-              </a>
+              View Source on GitHub
             </Button>
             <span className="text-muted-foreground text-center text-xs">Opens in a new tab</span>
           </div>
@@ -248,21 +250,27 @@ const Aside = ({ contentComponent }: AsideProps) => {
       )}
       <div className="text-muted-foreground/70 -mx-3 mt-auto -mb-3 flex justify-between gap-4 border-t px-3 py-3">
         {contentComponent.previousSlug ? (
-          <Button variant="ghost" size="icon" asChild>
-            <Link href={`/ui/${contentComponent.previousSlug}`}>
-              <ArrowLeftIcon className="size-4" />
-              <span className="sr-only">Previous</span>
-            </Link>
+          <Button
+            variant="ghost"
+            size="icon"
+            render={<Link href={`/ui/${contentComponent.previousSlug}`} />}
+            nativeButton={false}
+          >
+            <ArrowLeftIcon className="size-4" />
+            <span className="sr-only">Previous</span>
           </Button>
         ) : (
           <div />
         )}
         {contentComponent.nextSlug ? (
-          <Button variant="ghost" size="icon" asChild>
-            <Link href={`/ui/${contentComponent.nextSlug}`}>
-              <span className="sr-only">Next</span>
-              <ArrowRightIcon className="size-4" />
-            </Link>
+          <Button
+            variant="ghost"
+            size="icon"
+            render={<Link href={`/ui/${contentComponent.nextSlug}`} />}
+            nativeButton={false}
+          >
+            <span className="sr-only">Next</span>
+            <ArrowRightIcon className="size-4" />
           </Button>
         ) : (
           <div />

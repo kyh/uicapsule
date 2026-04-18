@@ -1,13 +1,13 @@
 "use client";
 
 import React, { useCallback, useMemo } from "react";
-import { Button } from "@repo/ui/button";
+import { Button } from "@repo/ui/components/button";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-} from "@repo/ui/dropdown-menu";
+} from "@repo/ui/components/dropdown-menu";
 import { createColumnHelper } from "@tanstack/react-table";
 import { Download, MoreVerticalIcon, Plus, Sparkles, TrashIcon, Upload } from "lucide-react";
 
