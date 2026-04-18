@@ -674,7 +674,7 @@ export const ProfileButton = () => {
               return <Fragment key={item.id}>{item.content}</Fragment>;
             }
             return (
-              <DropdownMenuItem key={item.id} render={item.link} nativeButton={false}>
+              <DropdownMenuItem key={item.id} render={item.link}>
                 {item.body}
               </DropdownMenuItem>
             );
