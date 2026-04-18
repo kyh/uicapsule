@@ -71,10 +71,8 @@ const RowActions = ({ row }: { row: Person }) => {
 
   return (
     <DropdownMenu>
-      <DropdownMenuTrigger asChild>
-        <Button size="icon" variant="ghost" className="h-8 w-8">
-          <MoreVerticalIcon className="h-3 w-3" />
-        </Button>
+      <DropdownMenuTrigger render={<Button size="icon" variant="ghost" className="h-8 w-8" />}>
+        <MoreVerticalIcon className="h-3 w-3" />
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end">
         <DropdownMenuItem onClick={() => deleteRow(row.id)} className="text-destructive">
