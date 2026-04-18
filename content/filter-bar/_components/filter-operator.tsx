@@ -46,15 +46,20 @@ export function FilterOperator<TData, TType extends ColumnDataType>({
   const close = () => setOpen(false);
 
   return (
-    <Popover open={open} onOpenChange={setOpen}>
+    <Popover
+      open={open}
+      onOpenChange={(next) => {
+        if (column.type === "boolean") return;
+        setOpen(next);
+      }}
+    >
       <PopoverTrigger
         render={
           <Button
             variant="ghost"
             className="m-0 h-full w-fit rounded-none p-0 px-2 text-xs whitespace-nowrap"
-            onClick={(e) => {
+            onClick={() => {
               if (column.type !== "boolean") return;
-              e.preventDefault();
               const opDetails =
                 filterTypeOperatorDetails.boolean[filter.operator as FilterOperators["boolean"]];
 

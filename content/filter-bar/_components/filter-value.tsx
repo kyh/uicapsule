@@ -286,14 +286,16 @@ function __FilterValue<TData, TType extends ColumnDataType>({
   strategy,
   entityName,
 }: FilterValueProps<TData, TType>) {
-  // Don't open the value controller for boolean columns
-  // We can toggle the filter operator instead
-  function handleClick(e: React.MouseEvent<HTMLButtonElement>) {
-    if (column.type === "boolean") e.preventDefault();
-  }
+  const [open, setOpen] = useState(false);
 
   return (
-    <Popover>
+    <Popover
+      open={open}
+      onOpenChange={(next) => {
+        if (column.type === "boolean") return;
+        setOpen(next);
+      }}
+    >
       <PopoverTrigger
         render={
           <Button
@@ -302,7 +304,6 @@ function __FilterValue<TData, TType extends ColumnDataType>({
               "m-0 h-full w-fit rounded-none p-0 px-2 text-xs whitespace-nowrap",
               column.type === "boolean" && "hover:bg-inherit",
             )}
-            onClick={handleClick}
           />
         }
       >
