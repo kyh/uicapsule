@@ -9,8 +9,7 @@
   "scripts": {
     "clean": "git clean -xdf .cache .turbo dist node_modules",
     "dev": "tsc",
-    "typecheck": "tsc --noEmit --emitDeclarationOnly false",
-    "gen-ui": "pnpm dlx shadcn@latest add && prettier src --write --list-different"
+    "typecheck": "tsc --noEmit --emitDeclarationOnly false"
   },
   "dependencies": {
     "@headless-tree/core": "^1.6.3",
