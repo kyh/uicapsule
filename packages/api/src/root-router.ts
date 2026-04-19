@@ -1,12 +1,12 @@
 // =============================================================================
-// CONTENT LOADING MODE: Direct import (no DB required)
+// CONTENT LOADING MODE: Database (Turso / libSQL)
 // =============================================================================
-// To switch to database mode:
-//   1. Change import below to: import { contentRouter } from "./content/content-router";
-//   2. In packages/builder/package.json: change --mode export to --mode db
-//   3. In root package.json dev script: change to "turbo watch db studio dev --continue"
+// To switch to direct-import mode (no DB required):
+//   1. Change import below to: import { contentRouter } from "./content/content-router-local";
+//   2. In packages/builder/package.json: change --mode db to --mode export
+//   3. In root package.json dev script: change to "turbo watch dev --continue"
 // =============================================================================
-import { contentRouter } from "./content/content-router-local";
+import { contentRouter } from "./content/content-router";
 import { organizationRouter } from "./organization/organization-router";
 import { createTRPCRouter } from "./trpc";
 
@@ -15,5 +15,4 @@ export const appRouter = createTRPCRouter({
   organization: organizationRouter,
 });
 
-// export type definition of API
 export type AppRouter = typeof appRouter;

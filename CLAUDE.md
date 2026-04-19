@@ -28,14 +28,13 @@ packages/
 
 ```bash
 pnpm dev              # Start all (db, studio, dev)
-pnpm dev-web          # Just Next.js app
+pnpm dev:web          # Just Next.js app
 pnpm build            # Build all
 pnpm typecheck        # Type check all
 pnpm lint             # Lint all
-pnpm lint-fix         # Lint + fix
+pnpm lint:fix         # Lint + fix
 pnpm format           # Check formatting
-pnpm format-fix       # Fix formatting
-pnpm db-push          # Push local db schema
-pnpm db-push-remote   # Push to production Turso
-pnpm gen-ui           # Add shadcn components
+pnpm format:fix       # Fix formatting
+pnpm db:push          # Push local db schema
+pnpm db:push-remote   # Push to production Turso
 ```

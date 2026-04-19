@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { cn } from "@repo/ui/utils";
+import { cn } from "@repo/ui/lib/utils";
 
 import { useSpreadsheetStore } from "../lib/spreadsheet-store";
 

@@ -5,8 +5,8 @@ import {
   isLocalContentComponent,
   isRemoteContentComponent,
 } from "@repo/api/content/content-schema";
-import { Tabs, TabsList, TabsTrigger } from "@repo/ui/tabs";
-import { useMediaQuery } from "@repo/ui/utils";
+import { Tabs, TabsIndicator, TabsList, TabsTrigger } from "@repo/ui/components/tabs";
+import { useMediaQuery } from "@repo/ui/hooks/use-media-query";
 import { LaptopIcon, SmartphoneIcon } from "lucide-react";
 
 import type { ContentComponent } from "@repo/api/content/content-schema";
@@ -91,10 +91,11 @@ export const ContentRenderer = ({ contentComponent }: ContentRendererProps) => {
         onValueChange={(value) => handleSetWidth(value === "mobile" ? 360 : 720)}
       >
         <TabsList>
-          <TabsTrigger value="desktop" className="px-2 py-2" isSelected={size === "desktop"}>
+          <TabsIndicator />
+          <TabsTrigger value="desktop" className="px-2 py-2">
             <LaptopIcon size={16} aria-hidden="true" />
           </TabsTrigger>
-          <TabsTrigger value="mobile" className="px-2 py-2" isSelected={size === "mobile"}>
+          <TabsTrigger value="mobile" className="px-2 py-2">
             <SmartphoneIcon size={16} aria-hidden="true" />
           </TabsTrigger>
         </TabsList>

@@ -1,13 +1,13 @@
 "use client";
 
 import React, { useCallback, useMemo } from "react";
-import { Button } from "@repo/ui/button";
+import { Button } from "@repo/ui/components/button";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-} from "@repo/ui/dropdown-menu";
+} from "@repo/ui/components/dropdown-menu";
 import { createColumnHelper } from "@tanstack/react-table";
 import { Download, MoreVerticalIcon, Plus, Sparkles, TrashIcon, Upload } from "lucide-react";
 
@@ -71,10 +71,8 @@ const RowActions = ({ row }: { row: Person }) => {
 
   return (
     <DropdownMenu>
-      <DropdownMenuTrigger asChild>
-        <Button size="icon" variant="ghost" className="h-8 w-8">
-          <MoreVerticalIcon className="h-3 w-3" />
-        </Button>
+      <DropdownMenuTrigger render={<Button size="icon" variant="ghost" className="h-8 w-8" />}>
+        <MoreVerticalIcon className="h-3 w-3" />
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end">
         <DropdownMenuItem onClick={() => deleteRow(row.id)} className="text-destructive">

@@ -4,12 +4,12 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "build": "tsx src/index.ts --mode export",
-    "dev": "pnpm with-env tsx src/index.ts --watch --mode export",
-    "dev-db": "pnpm with-env tsx src/index.ts --watch --mode db",
-    "dev-export": "pnpm with-env tsx src/index.ts --watch --mode export",
+    "build": "tsx src/index.ts --mode db",
+    "dev": "pnpm with-env tsx src/index.ts --watch --mode db",
+    "dev:db": "pnpm with-env tsx src/index.ts --watch --mode db",
+    "dev:export": "pnpm with-env tsx src/index.ts --watch --mode export",
     "clean": "git clean -xdf .cache .turbo node_modules",
-    "push-remote": "dotenv -e ../../.env.production.local -- tsx src/index.ts --mode db",
+    "push:remote": "dotenv -e ../../.env.production.local -- tsx src/index.ts --mode db",
     "with-env": "dotenv -e ../../.env --"
   },
   "dependencies": {
@@ -21,6 +21,5 @@
     "@kyh/tsconfig": "catalog:",
     "tsx": "^4.21.0",
     "typescript": "catalog:"
-  },
-  "prettier": "@kyh/prettier-config"
+  }
 }

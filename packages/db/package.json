@@ -14,8 +14,8 @@
     "db": "turso dev --db-file local.db",
     "studio": "pnpm with-env drizzle-kit studio",
     "push": "pnpm with-env drizzle-kit push",
-    "generate-auth-schema": "pnpm with-env pnpx @better-auth/cli generate --config ../api/src/auth/auth.ts --output ./src/drizzle-schema-auth.ts",
-    "push-remote": "dotenv -e ../../.env.production.local -- drizzle-kit push",
+    "generate:auth-schema": "pnpm with-env pnpx @better-auth/cli generate --config ../api/src/auth/auth.ts --output ./src/drizzle-schema-auth.ts",
+    "push:remote": "dotenv -e ../../.env.production.local -- drizzle-kit push",
     "with-env": "dotenv -e ../../.env --"
   },
   "dependencies": {
@@ -30,6 +30,5 @@
     "@types/react": "catalog:",
     "drizzle-kit": "^0.31.10",
     "typescript": "catalog:"
-  },
-  "prettier": "@kyh/prettier-config"
+  }
 }

@@ -3,11 +3,10 @@ packages:
   - packages/*
 
 catalog:
+  "@base-ui/react": ^1.4.0
   "@better-auth/cli": ^1.4.21
   "@better-auth/expo": ^1.5.6
-  "@kyh/eslint-config": ^1.1.13
-  "@kyh/prettier-config": ^1.1.13
-  "@kyh/tsconfig": ^1.1.13
+  "@kyh/tsconfig": ^1.1.14
   "@tailwindcss/postcss": ^4.2.2
   "@tailwindcss/vite": ^4.2.2
   "@tanstack/react-form": ^1.28.5
@@ -20,14 +19,12 @@ catalog:
   "@types/react-dom": ^19.2.3
   "@vitejs/plugin-react": ^5.2.0
   better-auth: ^1.5.6
-  eslint: ^9.39.4
   next: ^16.2.1
-  prettier: ^3.8.1
   react: ^19.2.4
   react-dom: ^19.2.4
   superjson: ^2.2.6
   tailwindcss: ^4.2.2
-  typescript: ^5.9.3
+  typescript: ^6.0.2
   vite: ^7.3.1
   zod: ^4.3.6
 
@@ -39,7 +36,3 @@ onlyBuiltDependencies:
   - es5-ext
   - esbuild
   - sharp
-
-publicHoistPattern:
-  - "@ianvs/prettier-plugin-sort-imports"
-  - prettier-plugin-tailwindcss

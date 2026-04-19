@@ -1,11 +1,11 @@
 import type { Metadata, Viewport } from "next";
 import localFont from "next/font/local";
 import { Analytics } from "@vercel/analytics/next";
-import { GlobalAlertDialog } from "@repo/ui/alert-dialog";
-import { ThemeProvider } from "@repo/ui/theme";
-import { GlobalToaster } from "@repo/ui/toast";
-import { TooltipProvider } from "@repo/ui/tooltip";
+import { GlobalAlertDialog } from "@repo/ui/components/alert-dialog";
+import { Toaster } from "@repo/ui/components/sonner";
+import { TooltipProvider } from "@repo/ui/components/tooltip";
 
+import { ThemeProvider } from "@/components/theme-provider";
 import { siteConfig } from "@/lib/site-config";
 import { TRPCReactProvider } from "@/trpc/react";
 
@@ -105,7 +105,7 @@ const RootLayout = (props: LayoutProps) => {
         >
           <TooltipProvider>
             <TRPCReactProvider>{props.children}</TRPCReactProvider>
-            <GlobalToaster />
+            <Toaster />
             <GlobalAlertDialog />
           </TooltipProvider>
         </ThemeProvider>

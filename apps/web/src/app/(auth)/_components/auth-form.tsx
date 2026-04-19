@@ -3,11 +3,11 @@
 import { useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Button } from "@repo/ui/button";
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@repo/ui/form";
-import { Input } from "@repo/ui/input";
-import { toast } from "@repo/ui/toast";
-import { cn } from "@repo/ui/utils";
+import { Button } from "@repo/ui/components/button";
+import { Field, FieldError, FieldLabel } from "@repo/ui/components/field";
+import { Input } from "@repo/ui/components/input";
+import { toast } from "@repo/ui/components/sonner";
+import { cn } from "@repo/ui/lib/utils";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 
@@ -34,6 +34,11 @@ export const AuthForm = ({ className, type, ...props }: AuthFormProps) => {
       password: "",
     },
   });
+
+  const {
+    register,
+    formState: { errors, isSubmitting },
+  } = form;
 
   const handleAuthWithGithub = async () => {
     setSubmittingGithub(true);
@@ -105,57 +110,45 @@ export const AuthForm = ({ className, type, ...props }: AuthFormProps) => {
           <span className="bg-background text-muted-foreground px-2">Or</span>
         </div>
       </div>
-      <Form {...form}>
-        <form className="grid gap-2" onSubmit={handleAuthWithPassword}>
-          <FormField
-            control={form.control}
-            name="email"
-            render={({ field }) => (
-              <FormItem className="grid gap-1 space-y-0">
-                <FormLabel className="sr-only">Email</FormLabel>
-                <FormControl>
-                  <Input
-                    data-test="email-input"
-                    required
-                    type="email"
-                    placeholder="name@example.com"
-                    autoCapitalize="none"
-                    autoComplete="email"
-                    autoCorrect="off"
-                    {...field}
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
+      <form className="grid gap-2" onSubmit={handleAuthWithPassword}>
+        <Field>
+          <FieldLabel className="sr-only" htmlFor="email">
+            Email
+          </FieldLabel>
+          <Input
+            id="email"
+            data-test="email-input"
+            required
+            type="email"
+            placeholder="name@example.com"
+            autoCapitalize="none"
+            autoComplete="email"
+            autoCorrect="off"
+            aria-invalid={errors.email ? true : undefined}
+            {...register("email")}
           />
-          <FormField
-            control={form.control}
-            name="password"
-            render={({ field }) => (
-              <FormItem className="grid gap-1 space-y-0">
-                <FormLabel className="sr-only">Password</FormLabel>
-                <FormControl>
-                  <Input
-                    data-test="password-input"
-                    required
-                    type="password"
-                    placeholder="******"
-                    autoCapitalize="none"
-                    autoComplete="current-password"
-                    autoCorrect="off"
-                    {...field}
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
+          <FieldError errors={errors.email ? [errors.email] : undefined} />
+        </Field>
+        <Field>
+          <FieldLabel className="sr-only" htmlFor="password">
+            Password
+          </FieldLabel>
+          <Input
+            id="password"
+            data-test="password-input"
+            required
+            type="password"
+            placeholder="******"
+            autoCapitalize="none"
+            autoComplete="current-password"
+            autoCorrect="off"
+            aria-invalid={errors.password ? true : undefined}
+            {...register("password")}
           />
-          <Button loading={form.formState.isSubmitting}>
-            {type === "login" ? "Login" : "Register"}
-          </Button>
-        </form>
-      </Form>
+          <FieldError errors={errors.password ? [errors.password] : undefined} />
+        </Field>
+        <Button loading={isSubmitting}>{type === "login" ? "Login" : "Register"}</Button>
+      </form>
     </div>
   );
 };
@@ -172,6 +165,11 @@ export const RequestPasswordResetForm = () => {
     },
   });
 
+  const {
+    register,
+    formState: { errors, isSubmitting, isSubmitSuccessful },
+  } = form;
+
   const handlePasswordReset = form.handleSubmit(async (data) => {
     await authClient.requestPasswordReset({
       email: data.email,
@@ -186,7 +184,7 @@ export const RequestPasswordResetForm = () => {
     });
   });
 
-  if (form.formState.isSubmitSuccessful) {
+  if (isSubmitSuccessful) {
     return (
       <div className="space-y-4 text-center">
         <div className="rounded-md bg-green-50 p-4 dark:bg-green-900/20">
@@ -200,32 +198,26 @@ export const RequestPasswordResetForm = () => {
   }
 
   return (
-    <Form {...form}>
-      <form className="grid gap-4" onSubmit={handlePasswordReset}>
-        <FormField
-          control={form.control}
-          name="email"
-          render={({ field }) => (
-            <FormItem className="grid gap-1 space-y-0">
-              <FormLabel className="sr-only">Email</FormLabel>
-              <FormControl>
-                <Input
-                  required
-                  type="email"
-                  placeholder="name@example.com"
-                  autoCapitalize="none"
-                  autoComplete="email"
-                  autoCorrect="off"
-                  {...field}
-                />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
+    <form className="grid gap-4" onSubmit={handlePasswordReset}>
+      <Field>
+        <FieldLabel className="sr-only" htmlFor="reset-email">
+          Email
+        </FieldLabel>
+        <Input
+          id="reset-email"
+          required
+          type="email"
+          placeholder="name@example.com"
+          autoCapitalize="none"
+          autoComplete="email"
+          autoCorrect="off"
+          aria-invalid={errors.email ? true : undefined}
+          {...register("email")}
         />
-        <Button loading={form.formState.isSubmitting}>Request Password Reset</Button>
-      </form>
-    </Form>
+        <FieldError errors={errors.email ? [errors.email] : undefined} />
+      </Field>
+      <Button loading={isSubmitting}>Request Password Reset</Button>
+    </form>
   );
 };
 
@@ -250,6 +242,11 @@ export const UpdatePasswordForm = () => {
     },
   });
 
+  const {
+    register,
+    formState: { errors, isSubmitting },
+  } = form;
+
   const handleUpdatePassword = form.handleSubmit(async (data) => {
     await authClient.resetPassword({
       newPassword: data.password,
@@ -266,52 +263,42 @@ export const UpdatePasswordForm = () => {
   });
 
   return (
-    <Form {...form}>
-      <form className="grid gap-4" onSubmit={handleUpdatePassword}>
-        <FormField
-          control={form.control}
-          name="password"
-          render={({ field }) => (
-            <FormItem className="grid gap-1 space-y-0">
-              <FormLabel className="sr-only">New Password</FormLabel>
-              <FormControl>
-                <Input
-                  required
-                  type="password"
-                  placeholder="Enter new password"
-                  autoCapitalize="none"
-                  autoComplete="new-password"
-                  autoCorrect="off"
-                  {...field}
-                />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
+    <form className="grid gap-4" onSubmit={handleUpdatePassword}>
+      <Field>
+        <FieldLabel className="sr-only" htmlFor="new-password">
+          New Password
+        </FieldLabel>
+        <Input
+          id="new-password"
+          required
+          type="password"
+          placeholder="Enter new password"
+          autoCapitalize="none"
+          autoComplete="new-password"
+          autoCorrect="off"
+          aria-invalid={errors.password ? true : undefined}
+          {...register("password")}
         />
-        <FormField
-          control={form.control}
-          name="confirmPassword"
-          render={({ field }) => (
-            <FormItem className="grid gap-1 space-y-0">
-              <FormLabel className="sr-only">Confirm New Password</FormLabel>
-              <FormControl>
-                <Input
-                  required
-                  type="password"
-                  placeholder="Confirm new password"
-                  autoCapitalize="none"
-                  autoComplete="new-password"
-                  autoCorrect="off"
-                  {...field}
-                />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
+        <FieldError errors={errors.password ? [errors.password] : undefined} />
+      </Field>
+      <Field>
+        <FieldLabel className="sr-only" htmlFor="confirm-password">
+          Confirm New Password
+        </FieldLabel>
+        <Input
+          id="confirm-password"
+          required
+          type="password"
+          placeholder="Confirm new password"
+          autoCapitalize="none"
+          autoComplete="new-password"
+          autoCorrect="off"
+          aria-invalid={errors.confirmPassword ? true : undefined}
+          {...register("confirmPassword")}
         />
-        <Button loading={form.formState.isSubmitting}>Update Password</Button>
-      </form>
-    </Form>
+        <FieldError errors={errors.confirmPassword ? [errors.confirmPassword] : undefined} />
+      </Field>
+      <Button loading={isSubmitting}>Update Password</Button>
+    </form>
   );
 };

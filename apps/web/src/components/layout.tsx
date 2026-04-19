@@ -1,6 +1,6 @@
 "use client";
 
-import { Fragment, useCallback, useEffect, useMemo, useState } from "react";
+import { cloneElement, Fragment, useCallback, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
@@ -8,15 +8,15 @@ import {
   contentElements,
   contentStyles,
 } from "@repo/api/content/content-categories";
-import { ProfileAvatar } from "@repo/ui/avatar";
-import { Button } from "@repo/ui/button";
+import { Avatar, AvatarFallback } from "@repo/ui/components/avatar";
+import { Button } from "@repo/ui/components/button";
 import {
   CommandDialog,
   CommandGroup,
   CommandInput,
   CommandItem,
   CommandList,
-} from "@repo/ui/command";
+} from "@repo/ui/components/command";
 import {
   Drawer,
   DrawerContent,
@@ -24,24 +24,23 @@ import {
   DrawerHeader,
   DrawerTitle,
   DrawerTrigger,
-} from "@repo/ui/drawer";
+} from "@repo/ui/components/drawer";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
-  dropdownMenuItemVariants,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "@repo/ui/dropdown-menu";
-import { Logo } from "@repo/ui/logo";
-import { Tabs, TabsList, TabsTrigger } from "@repo/ui/tabs";
-import { useTheme } from "@repo/ui/theme";
-import { cn, useMediaQuery } from "@repo/ui/utils";
+} from "@repo/ui/components/dropdown-menu";
+import { Logo } from "@repo/ui/components/logo";
+import { Tabs, TabsIndicator, TabsList, TabsTrigger } from "@repo/ui/components/tabs";
+import { useTheme } from "next-themes";
+import { cn } from "@repo/ui/lib/utils";
+import { useMediaQuery } from "@repo/ui/hooks/use-media-query";
 import { useQuery } from "@tanstack/react-query";
 import {
   BookCheckIcon,
   BookmarkIcon,
-  GithubIcon,
   LayoutGridIcon,
   MoonIcon,
   PaletteIcon,
@@ -49,7 +48,6 @@ import {
   StarsIcon,
   SunIcon,
   SunMoonIcon,
-  TwitterIcon,
 } from "lucide-react";
 
 import { useTRPC } from "@/trpc/react";
@@ -516,34 +514,50 @@ export const ProfileButton = () => {
 
   const [open, setOpen] = useState(false);
 
-  const menuItemClassName = dropdownMenuItemVariants({
-    className: "group w-full justify-start",
-  });
+  const menuItemClassName = "group w-full justify-start";
 
   const menuItemIconClassName =
     "text-muted-foreground size-4 group-hover:text-foreground transition";
 
-  const menuItems = [
+  type WrappedMenuItem = {
+    id: string;
+    condition: boolean;
+    wrap: true;
+    link: React.ReactElement;
+    body: React.ReactNode;
+  };
+  type UnwrappedMenuItem = {
+    id: string;
+    condition: boolean;
+    wrap: false;
+    content: React.ReactElement;
+  };
+
+  const menuItems: (WrappedMenuItem | UnwrappedMenuItem)[] = [
     {
       id: "about",
       condition: true,
       wrap: true,
-      content: (
-        <Link className={menuItemClassName} href="/about" onClick={() => setOpen(false)}>
+      link: <Link className={menuItemClassName} href="/about" onClick={() => setOpen(false)} />,
+      body: (
+        <>
           <BookCheckIcon aria-hidden="true" className={menuItemIconClassName} />
           About
-        </Link>
+        </>
       ),
     },
     {
       id: "inspiration",
       condition: true,
       wrap: true,
-      content: (
-        <Link className={menuItemClassName} href="/inspiration" onClick={() => setOpen(false)}>
+      link: (
+        <Link className={menuItemClassName} href="/inspiration" onClick={() => setOpen(false)} />
+      ),
+      body: (
+        <>
           <StarsIcon aria-hidden="true" className={menuItemIconClassName} />
           Inspiration
-        </Link>
+        </>
       ),
     },
     {
@@ -556,32 +570,38 @@ export const ProfileButton = () => {
       id: "privacy",
       condition: true,
       wrap: true,
-      content: (
+      link: (
         <Link
           className={menuItemClassName}
           href="https://github.com/kyh/uicapsule"
           target="_blank"
           onClick={() => setOpen(false)}
-        >
-          <GithubIcon aria-hidden="true" className={menuItemIconClassName} />
+        />
+      ),
+      body: (
+        <>
+          <svg aria-hidden="true" className={menuItemIconClassName} viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.531 1.032 1.531 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z"/></svg>
           GitHub
-        </Link>
+        </>
       ),
     },
     {
       id: "terms",
       condition: true,
       wrap: true,
-      content: (
+      link: (
         <Link
           className={menuItemClassName}
           href="https://x.com/kaiyuhsu"
           target="_blank"
           onClick={() => setOpen(false)}
-        >
-          <TwitterIcon aria-hidden="true" className={menuItemIconClassName} />
+        />
+      ),
+      body: (
+        <>
+          <svg aria-hidden="true" className={menuItemIconClassName} viewBox="0 0 24 24" fill="currentColor"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
           Twitter
-        </Link>
+        </>
       ),
     },
     {
@@ -601,10 +621,11 @@ export const ProfileButton = () => {
             defaultValue={resolvedTheme === "dark" ? "dark" : "light"}
             onValueChange={(value) => setTheme(value)}
           >
-            <TabsList className="bg-background flex h-fit items-center gap-0.5 overflow-hidden rounded-full border p-0 focus-within:overflow-visible *:[[role=tab]]:size-6 [&>[role=tab]>.absolute]:-inset-px [&>[role=tab]>.absolute]:rounded-full [&>[role=tab]>.absolute]:border [&>[role=tab]>.absolute]:bg-transparent">
+            <TabsList className="bg-background relative flex h-fit items-center gap-0.5 rounded-full border p-0 *:[[role=tab]]:size-6">
+              <TabsIndicator className="rounded-full bg-accent" />
               <TabsTrigger
                 value="system"
-                className="text-muted-foreground data-[state=active]:bg-accent relative inline-flex h-[28px] items-center justify-center gap-1.5 rounded-full px-2 has-[>svg]:pl-1.5 [&>svg]:pointer-events-none"
+                className="text-muted-foreground data-active:text-foreground relative inline-flex h-[28px] items-center justify-center gap-1.5 rounded-full px-2 has-[>svg]:pl-1.5 [&>svg]:pointer-events-none"
                 aria-label="System theme"
               >
                 <div>
@@ -613,7 +634,7 @@ export const ProfileButton = () => {
               </TabsTrigger>
               <TabsTrigger
                 value="light"
-                className="text-muted-foreground data-[state=active]:bg-accent relative inline-flex h-[28px] items-center justify-center gap-1.5 rounded-full px-2 has-[>svg]:pl-1.5 [&>svg]:pointer-events-none"
+                className="text-muted-foreground data-active:text-foreground relative inline-flex h-[28px] items-center justify-center gap-1.5 rounded-full px-2 has-[>svg]:pl-1.5 [&>svg]:pointer-events-none"
                 aria-label="Light theme"
               >
                 <div>
@@ -622,7 +643,7 @@ export const ProfileButton = () => {
               </TabsTrigger>
               <TabsTrigger
                 value="dark"
-                className="text-muted-foreground data-[state=active]:bg-accent relative inline-flex h-[28px] items-center justify-center gap-1.5 rounded-full px-2 has-[>svg]:pl-1.5 [&>svg]:pointer-events-none"
+                className="text-muted-foreground data-active:text-foreground relative inline-flex h-[28px] items-center justify-center gap-1.5 rounded-full px-2 has-[>svg]:pl-1.5 [&>svg]:pointer-events-none"
                 aria-label="Dark theme"
               >
                 <div>
@@ -639,10 +660,10 @@ export const ProfileButton = () => {
   if (isDesktop) {
     return (
       <DropdownMenu open={open} onOpenChange={setOpen}>
-        <DropdownMenuTrigger asChild>
-          <Button variant="ghost" size="icon">
-            <ProfileAvatar className="size-8" />
-          </Button>
+        <DropdownMenuTrigger render={<Button variant="ghost" size="icon" />}>
+          <Avatar className="size-8">
+            <AvatarFallback />
+          </Avatar>
         </DropdownMenuTrigger>
         <DropdownMenuContent className="w-40" align="end">
           {menuItems.map((item) => {
@@ -653,8 +674,8 @@ export const ProfileButton = () => {
               return <Fragment key={item.id}>{item.content}</Fragment>;
             }
             return (
-              <DropdownMenuItem key={item.id} asChild>
-                {item.content}
+              <DropdownMenuItem key={item.id} render={item.link}>
+                {item.body}
               </DropdownMenuItem>
             );
           })}
@@ -667,7 +688,9 @@ export const ProfileButton = () => {
     <Drawer open={open} onOpenChange={setOpen}>
       <DrawerTrigger asChild>
         <Button variant="ghost" size="icon">
-          <ProfileAvatar className="size-8" />
+          <Avatar className="size-8">
+            <AvatarFallback />
+          </Avatar>
         </Button>
       </DrawerTrigger>
       <DrawerContent>
@@ -679,7 +702,12 @@ export const ProfileButton = () => {
           if (!item.condition) {
             return null;
           }
-          return <Fragment key={item.id}>{item.content}</Fragment>;
+          if (!item.wrap) {
+            return <Fragment key={item.id}>{item.content}</Fragment>;
+          }
+          return (
+            <Fragment key={item.id}>{cloneElement(item.link, {}, item.body)}</Fragment>
+          );
         })}
       </DrawerContent>
     </Drawer>
@@ -744,11 +772,10 @@ const FooterIcon = ({ href, children }: { href: string; children: React.ReactNod
       variant="ghost"
       size="icon"
       className="h-16 w-full rounded-none border-l lg:w-16"
-      asChild
+      render={<Link href={href} target="_blank" />}
+      nativeButton={false}
     >
-      <Link href={href} target="_blank">
-        {children}
-      </Link>
+      {children}
     </Button>
   );
 };

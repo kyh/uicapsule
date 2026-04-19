@@ -1,6 +1,6 @@
 import Image from "next/image";
 import Link from "next/link";
-import { Badge } from "@repo/ui/badge";
+import { Badge } from "@repo/ui/components/badge";
 
 export type ContentPreviewProps = {
   slug: string;

@@ -2,9 +2,9 @@
 
 import { useCallback, useMemo, useState } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { Badge } from "@repo/ui/badge";
-import { Button } from "@repo/ui/button";
-import { Checkbox } from "@repo/ui/checkbox";
+import { Badge } from "@repo/ui/components/badge";
+import { Button } from "@repo/ui/components/button";
+import { Checkbox } from "@repo/ui/components/checkbox";
 import {
   Command,
   CommandEmpty,
@@ -12,10 +12,11 @@ import {
   CommandInput,
   CommandItem,
   CommandList,
-} from "@repo/ui/command";
-import { Drawer, DrawerContent, DrawerTrigger } from "@repo/ui/drawer";
-import { Popover, PopoverContent, PopoverTrigger } from "@repo/ui/popover";
-import { cn, useMediaQuery } from "@repo/ui/utils";
+} from "@repo/ui/components/command";
+import { Drawer, DrawerContent, DrawerTrigger } from "@repo/ui/components/drawer";
+import { Popover, PopoverContent, PopoverTrigger } from "@repo/ui/components/popover";
+import { cn } from "@repo/ui/lib/utils";
+import { useMediaQuery } from "@repo/ui/hooks/use-media-query";
 import { ChevronDownIcon } from "lucide-react";
 
 import type { ContentFilter } from "@repo/api/content/content-categories";
@@ -40,14 +41,14 @@ export const FilterComboBox = ({
   if (isDesktop) {
     return (
       <Popover open={open} onOpenChange={setOpen}>
-        <PopoverTrigger asChild>
-          <Button variant="outline" className={triggerClassname} size="sm">
-            <FilterTriggerLabel
-              defaultLabel={defaultLabel}
-              filterKey={filterKey}
-              filterOptions={filterOptions}
-            />
-          </Button>
+        <PopoverTrigger
+          render={<Button variant="outline" className={triggerClassname} size="sm" />}
+        >
+          <FilterTriggerLabel
+            defaultLabel={defaultLabel}
+            filterKey={filterKey}
+            filterOptions={filterOptions}
+          />
         </PopoverTrigger>
         <PopoverContent className="p-0" align="start">
           <FilterOptionsList filterKey={filterKey} filterOptions={filterOptions} />

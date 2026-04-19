@@ -4,9 +4,9 @@ import type { LucideIcon } from "lucide-react";
 import type { ComponentProps } from "react";
 import React, { createContext, memo, useContext } from "react";
 import { useControllableState } from "@radix-ui/react-use-controllable-state";
-import { Badge } from "@repo/ui/badge";
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@repo/ui/collapsible";
-import { cn } from "@repo/ui/utils";
+import { Badge } from "@repo/ui/components/badge";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@repo/ui/components/collapsible";
+import { cn } from "@repo/ui/lib/utils";
 import { BrainIcon, DotIcon } from "lucide-react";
 
 type ChainOfThoughtContextValue = {

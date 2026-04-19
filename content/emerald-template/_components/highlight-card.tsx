@@ -1,6 +1,6 @@
 import type { MotionValue } from "motion/react";
 import React from "react";
-import { cn } from "@repo/ui/utils";
+import { cn } from "@repo/ui/lib/utils";
 import { motion, useMotionTemplate, useMotionValue } from "motion/react";
 
 import type { GridPatternProps } from "./grid-pattern";

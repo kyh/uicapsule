@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { cn } from "@repo/ui/utils";
+import { cn } from "@repo/ui/lib/utils";
 import { flexRender } from "@tanstack/react-table";
 
 import type { SpreadsheetRow } from "../lib/spreadsheet-store";

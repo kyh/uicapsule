@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Button } from "@repo/ui/button";
+import { Button } from "@repo/ui/components/button";
 import {
   Command,
   CommandEmpty,
@@ -7,8 +7,8 @@ import {
   CommandInput,
   CommandItem,
   CommandList,
-} from "@repo/ui/command";
-import { Popover, PopoverContent, PopoverTrigger } from "@repo/ui/popover";
+} from "@repo/ui/components/command";
+import { Popover, PopoverContent, PopoverTrigger } from "@repo/ui/components/popover";
 
 import type {
   Column,
@@ -46,29 +46,36 @@ export function FilterOperator<TData, TType extends ColumnDataType>({
   const close = () => setOpen(false);
 
   return (
-    <Popover open={open} onOpenChange={setOpen}>
-      <PopoverTrigger asChild>
-        <Button
-          variant="ghost"
-          className="m-0 h-full w-fit rounded-none p-0 px-2 text-xs whitespace-nowrap"
-          onClick={(e) => {
-            if (column.type !== "boolean") return;
-            e.preventDefault();
-            const opDetails =
-              filterTypeOperatorDetails.boolean[filter.operator as FilterOperators["boolean"]];
+    <Popover
+      open={open}
+      onOpenChange={(next) => {
+        if (column.type === "boolean") return;
+        setOpen(next);
+      }}
+    >
+      <PopoverTrigger
+        render={
+          <Button
+            variant="ghost"
+            className="m-0 h-full w-fit rounded-none p-0 px-2 text-xs whitespace-nowrap"
+            onClick={() => {
+              if (column.type !== "boolean") return;
+              const opDetails =
+                filterTypeOperatorDetails.boolean[filter.operator as FilterOperators["boolean"]];
 
-            actions.setFilterOperator(
-              column.id,
-              opDetails.isNegated ? opDetails.negationOf : opDetails.negation,
-            );
-          }}
-        >
-          <FilterOperatorDisplay filter={filter} columnType={column.type} />
-        </Button>
+              actions.setFilterOperator(
+                column.id,
+                opDetails.isNegated ? opDetails.negationOf : opDetails.negation,
+              );
+            }}
+          />
+        }
+      >
+        <FilterOperatorDisplay filter={filter} columnType={column.type} />
       </PopoverTrigger>
       <PopoverContent
         align="start"
-        className="w-fit origin-(--radix-popover-content-transform-origin) p-0"
+        className="w-fit origin-(--transform-origin) p-0"
       >
         <Command loop>
           <CommandInput placeholder="search" />

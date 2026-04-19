@@ -1,8 +1,8 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import { buttonVariants } from "@repo/ui/button";
-import { cn } from "@repo/ui/utils";
+import { buttonVariants } from "@repo/ui/components/button";
+import { cn } from "@repo/ui/lib/utils";
 import { useScroll } from "motion/react";
 
 import { Logo } from "./logo";
