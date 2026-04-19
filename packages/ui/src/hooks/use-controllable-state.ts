@@ -17,27 +17,28 @@ export const useControllableState = <T,>({
   const isControlled = prop !== undefined;
   const value = isControlled ? prop : uncontrolled;
 
+  const valueRef = useRef(value);
+  valueRef.current = value;
   const onChangeRef = useRef(onChange);
   onChangeRef.current = onChange;
+  const isControlledRef = useRef(isControlled);
+  isControlledRef.current = isControlled;
 
-  const setValue = useCallback(
-    (next: T | SetStateFn<T>) => {
-      const resolve = (prev: T) =>
-        typeof next === "function" ? (next as SetStateFn<T>)(prev) : next;
+  const setValue = useCallback((next: T | SetStateFn<T>) => {
+    const resolve = (prev: T) =>
+      typeof next === "function" ? (next as SetStateFn<T>)(prev) : next;
 
-      if (isControlled) {
-        const resolved = resolve(prop as T);
-        if (resolved !== prop) onChangeRef.current?.(resolved);
-      } else {
-        setUncontrolled((prev) => {
-          const resolved = resolve(prev);
-          if (resolved !== prev) onChangeRef.current?.(resolved);
-          return resolved;
-        });
-      }
-    },
-    [isControlled, prop],
-  );
+    if (isControlledRef.current) {
+      const resolved = resolve(valueRef.current);
+      if (resolved !== valueRef.current) onChangeRef.current?.(resolved);
+    } else {
+      setUncontrolled((prev) => {
+        const resolved = resolve(prev);
+        if (resolved !== prev) onChangeRef.current?.(resolved);
+        return resolved;
+      });
+    }
+  }, []);
 
   return [value, setValue];
 };

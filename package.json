@@ -7,7 +7,7 @@
     "clean:workspaces": "turbo run clean",
     "db:push": "pnpm -F db push",
     "db:push-remote": "pnpm -F db push:remote && pnpm -F builder push:remote",
-    "dev": "turbo watch dev --continue",
+    "dev": "turbo watch db studio dev --continue",
     "dev:web": "turbo watch dev -F @repo/web...",
     "lint": "oxlint --report-unused-disable-directives",
     "typecheck": "turbo run typecheck",
