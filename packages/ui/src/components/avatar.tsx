@@ -91,20 +91,3 @@ function AvatarGroupCount({ className, ...props }: React.ComponentProps<"div">) 
 }
 
 export { Avatar, AvatarImage, AvatarFallback, AvatarGroup, AvatarGroupCount, AvatarBadge };
-
-type ProfileAvatarProps = {
-  className?: string;
-  displayName?: string | null;
-  avatarUrl?: string | null;
-};
-
-export const ProfileAvatar = ({ className, displayName, avatarUrl }: ProfileAvatarProps) => {
-  const initials = displayName?.slice(0, 1);
-
-  return (
-    <Avatar className={cn("size-9", className)}>
-      <AvatarImage src={avatarUrl ?? undefined} />
-      <AvatarFallback className="animate-in fade-in uppercase">{initials}</AvatarFallback>
-    </Avatar>
-  );
-};

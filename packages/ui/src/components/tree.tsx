@@ -1,8 +1,8 @@
 "use client";
 
 import * as React from "react";
+import { useRender } from "@base-ui/react/use-render";
 import { ChevronDownIcon } from "lucide-react";
-import { Slot } from "radix-ui";
 
 import type { ItemInstance } from "@headless-tree/core";
 import { cn } from "@repo/ui/lib/utils";
@@ -55,13 +55,13 @@ const Tree = ({ indent = 20, tree, className, ...props }: TreeProps) => {
 type TreeItemProps<T = any> = {
   item: ItemInstance<T>;
   indent?: number;
-  asChild?: boolean;
+  render?: useRender.RenderProp<React.HTMLAttributes<HTMLElement>>;
 } & React.HTMLAttributes<HTMLButtonElement>;
 
 function TreeItem<T = any>({
   item,
   className,
-  asChild,
+  render,
   children,
   ...props
 }: Omit<TreeItemProps<T>, "indent">) {
@@ -77,34 +77,33 @@ function TreeItem<T = any>({
     "--tree-padding": `${item.getItemMeta().level * indent}px`,
   } as React.CSSProperties;
 
-  const Comp = asChild ? Slot.Root : "button";
+  const element = useRender({
+    render: render ?? <button type="button" />,
+    props: {
+      "data-slot": "tree-item",
+      style: mergedStyle,
+      className: cn(
+        "z-10 ps-(--tree-padding) outline-hidden select-none not-last:pb-0.5 focus:z-20 data-[disabled]:pointer-events-none data-[disabled]:opacity-50",
+        className,
+      ),
+      "data-focus": typeof item.isFocused === "function" ? item.isFocused() || false : undefined,
+      "data-folder": typeof item.isFolder === "function" ? item.isFolder() || false : undefined,
+      "data-selected":
+        typeof item.isSelected === "function" ? item.isSelected() || false : undefined,
+      "data-drag-target":
+        typeof item.isDragTarget === "function" ? item.isDragTarget() || false : undefined,
+      "data-search-match":
+        typeof item.isMatchingSearch === "function"
+          ? item.isMatchingSearch() || false
+          : undefined,
+      "aria-expanded": item.isExpanded(),
+      children,
+      ...otherProps,
+    },
+  });
 
   return (
-    <TreeContext.Provider value={{ indent, currentItem: item }}>
-      <Comp
-        data-slot="tree-item"
-        style={mergedStyle}
-        className={cn(
-          "z-10 ps-(--tree-padding) outline-hidden select-none not-last:pb-0.5 focus:z-20 data-[disabled]:pointer-events-none data-[disabled]:opacity-50",
-          className,
-        )}
-        data-focus={typeof item.isFocused === "function" ? item.isFocused() || false : undefined}
-        data-folder={typeof item.isFolder === "function" ? item.isFolder() || false : undefined}
-        data-selected={
-          typeof item.isSelected === "function" ? item.isSelected() || false : undefined
-        }
-        data-drag-target={
-          typeof item.isDragTarget === "function" ? item.isDragTarget() || false : undefined
-        }
-        data-search-match={
-          typeof item.isMatchingSearch === "function" ? item.isMatchingSearch() || false : undefined
-        }
-        aria-expanded={item.isExpanded()}
-        {...otherProps}
-      >
-        {children}
-      </Comp>
-    </TreeContext.Provider>
+    <TreeContext.Provider value={{ indent, currentItem: item }}>{element}</TreeContext.Provider>
   );
 }
 

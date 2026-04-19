@@ -8,7 +8,7 @@ import {
   contentElements,
   contentStyles,
 } from "@repo/api/content/content-categories";
-import { ProfileAvatar } from "@repo/ui/components/avatar";
+import { Avatar, AvatarFallback } from "@repo/ui/components/avatar";
 import { Button } from "@repo/ui/components/button";
 import {
   CommandDialog,
@@ -29,12 +29,11 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
-  dropdownMenuItemVariants,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@repo/ui/components/dropdown-menu";
 import { Logo } from "@repo/ui/components/logo";
-import { Tabs, TabsList, TabsTrigger } from "@repo/ui/components/tabs";
+import { Tabs, TabsIndicator, TabsList, TabsTrigger } from "@repo/ui/components/tabs";
 import { useTheme } from "next-themes";
 import { cn } from "@repo/ui/lib/utils";
 import { useMediaQuery } from "@repo/ui/hooks/use-media-query";
@@ -515,9 +514,7 @@ export const ProfileButton = () => {
 
   const [open, setOpen] = useState(false);
 
-  const menuItemClassName = dropdownMenuItemVariants({
-    className: "group w-full justify-start",
-  });
+  const menuItemClassName = "group w-full justify-start";
 
   const menuItemIconClassName =
     "text-muted-foreground size-4 group-hover:text-foreground transition";
@@ -624,10 +621,11 @@ export const ProfileButton = () => {
             defaultValue={resolvedTheme === "dark" ? "dark" : "light"}
             onValueChange={(value) => setTheme(value)}
           >
-            <TabsList className="bg-background flex h-fit items-center gap-0.5 overflow-hidden rounded-full border p-0 focus-within:overflow-visible *:[[role=tab]]:size-6 [&>[role=tab]>.absolute]:-inset-px [&>[role=tab]>.absolute]:rounded-full [&>[role=tab]>.absolute]:border [&>[role=tab]>.absolute]:bg-transparent">
+            <TabsList className="bg-background relative flex h-fit items-center gap-0.5 rounded-full border p-0 *:[[role=tab]]:size-6">
+              <TabsIndicator className="rounded-full bg-accent" />
               <TabsTrigger
                 value="system"
-                className="text-muted-foreground data-[state=active]:bg-accent relative inline-flex h-[28px] items-center justify-center gap-1.5 rounded-full px-2 has-[>svg]:pl-1.5 [&>svg]:pointer-events-none"
+                className="text-muted-foreground data-active:text-foreground relative inline-flex h-[28px] items-center justify-center gap-1.5 rounded-full px-2 has-[>svg]:pl-1.5 [&>svg]:pointer-events-none"
                 aria-label="System theme"
               >
                 <div>
@@ -636,7 +634,7 @@ export const ProfileButton = () => {
               </TabsTrigger>
               <TabsTrigger
                 value="light"
-                className="text-muted-foreground data-[state=active]:bg-accent relative inline-flex h-[28px] items-center justify-center gap-1.5 rounded-full px-2 has-[>svg]:pl-1.5 [&>svg]:pointer-events-none"
+                className="text-muted-foreground data-active:text-foreground relative inline-flex h-[28px] items-center justify-center gap-1.5 rounded-full px-2 has-[>svg]:pl-1.5 [&>svg]:pointer-events-none"
                 aria-label="Light theme"
               >
                 <div>
@@ -645,7 +643,7 @@ export const ProfileButton = () => {
               </TabsTrigger>
               <TabsTrigger
                 value="dark"
-                className="text-muted-foreground data-[state=active]:bg-accent relative inline-flex h-[28px] items-center justify-center gap-1.5 rounded-full px-2 has-[>svg]:pl-1.5 [&>svg]:pointer-events-none"
+                className="text-muted-foreground data-active:text-foreground relative inline-flex h-[28px] items-center justify-center gap-1.5 rounded-full px-2 has-[>svg]:pl-1.5 [&>svg]:pointer-events-none"
                 aria-label="Dark theme"
               >
                 <div>
@@ -663,7 +661,9 @@ export const ProfileButton = () => {
     return (
       <DropdownMenu open={open} onOpenChange={setOpen}>
         <DropdownMenuTrigger render={<Button variant="ghost" size="icon" />}>
-          <ProfileAvatar className="size-8" />
+          <Avatar className="size-8">
+            <AvatarFallback />
+          </Avatar>
         </DropdownMenuTrigger>
         <DropdownMenuContent className="w-40" align="end">
           {menuItems.map((item) => {
@@ -688,7 +688,9 @@ export const ProfileButton = () => {
     <Drawer open={open} onOpenChange={setOpen}>
       <DrawerTrigger asChild>
         <Button variant="ghost" size="icon">
-          <ProfileAvatar className="size-8" />
+          <Avatar className="size-8">
+            <AvatarFallback />
+          </Avatar>
         </Button>
       </DrawerTrigger>
       <DrawerContent>

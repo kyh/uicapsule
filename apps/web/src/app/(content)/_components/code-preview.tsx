@@ -14,7 +14,13 @@ import {
   RiReactjsLine,
 } from "@remixicon/react";
 import { Button } from "@repo/ui/components/button";
-import { CodeBlock, CodeBlockCopyButton, extensionToLanguageMap } from "@repo/ui/components/code-block";
+import {
+  CodeBlock,
+  CodeBlockBody,
+  CodeBlockContent,
+  CodeBlockCopyButton,
+  CodeBlockItem,
+} from "@repo/ui/components/code-block";
 import { toast } from "@repo/ui/components/sonner";
 import { Tree, TreeItem, TreeItemLabel } from "@repo/ui/components/tree";
 import { cn } from "@repo/ui/lib/utils";
@@ -32,7 +38,25 @@ type Item = {
   children?: string[];
 };
 
-// Detect language from file path
+const extensionToLanguageMap: Record<string, BundledLanguage> = {
+  tsx: "tsx",
+  ts: "typescript",
+  jsx: "jsx",
+  js: "javascript",
+  mjs: "javascript",
+  cjs: "javascript",
+  json: "json",
+  css: "css",
+  scss: "scss",
+  html: "html",
+  md: "markdown",
+  mdx: "mdx",
+  svg: "xml",
+  yaml: "yaml",
+  yml: "yaml",
+  sh: "bash",
+};
+
 const getLanguageFromPath = (path: string): BundledLanguage => {
   const ext = path.split(".").pop()?.toLowerCase();
   return extensionToLanguageMap[ext ?? ""] ?? ("txt" as BundledLanguage);
@@ -226,18 +250,26 @@ export const CodePreview = ({ contentComponent }: CodePreviewProps) => {
         ))}
       </div>
       <CodeBlock
-        code={selectedCode}
-        language={codeLanguage}
-        containerClassName="overflow-auto [&>*]:h-full flex-1"
-        preClassName="py-3 px-2 min-h-full"
-      />
-      <CodeBlockCopyButton
-        code={selectedCode}
-        className="absolute top-2 right-3"
-        onCopy={() => {
-          toast.success("Copied to clipboard");
-        }}
-      />
+        data={[{ language: codeLanguage, filename: selectedPath, code: selectedCode }]}
+        value={codeLanguage}
+        className="relative flex-1 overflow-auto [&>*]:h-full"
+      >
+        <CodeBlockBody>
+          {(item) => (
+            <CodeBlockItem key={item.language} value={item.language}>
+              <CodeBlockContent language={item.language as BundledLanguage}>
+                {item.code}
+              </CodeBlockContent>
+            </CodeBlockItem>
+          )}
+        </CodeBlockBody>
+        <CodeBlockCopyButton
+          className="absolute top-2 right-3"
+          onCopy={() => {
+            toast.success("Copied to clipboard");
+          }}
+        />
+      </CodeBlock>
     </div>
   );
 };
