@@ -2,7 +2,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { Badge } from "@repo/ui/components/badge";
 
-export type ContentPreviewProps = {
+type ContentPreviewProps = {
   slug: string;
   name: string;
   index: number;
@@ -24,14 +24,32 @@ export const ContentPreview = ({
       className="bg-background group flex flex-col justify-between gap-3 p-3 text-lg sm:p-6"
       href={`/ui/${slug}`}
     >
-      <div className="aspect-video overflow-hidden">
+      <div className="relative aspect-video overflow-hidden">
         {coverUrl && coverType === "image" && (
-          <Image src={coverUrl} fill alt="" className="object-contain" />
+          <>
+            <div
+              aria-hidden
+              className="bg-muted absolute inset-0 animate-pulse rounded"
+            />
+            <Image src={coverUrl} fill alt="" className="object-contain" />
+          </>
         )}
         {coverUrl && coverType === "video" && (
-          <video className="object-contain" autoPlay loop muted playsInline>
-            <source src={coverUrl} type="video/mp4" />
-          </video>
+          <>
+            <div
+              aria-hidden
+              className="bg-muted absolute inset-0 animate-pulse rounded"
+            />
+            <video
+              className="absolute inset-0 h-full w-full object-contain"
+              autoPlay
+              loop
+              muted
+              playsInline
+            >
+              <source src={coverUrl} type="video/mp4" />
+            </video>
+          </>
         )}
       </div>
       <div className="flex justify-between font-mono text-xs">

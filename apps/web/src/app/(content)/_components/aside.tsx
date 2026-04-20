@@ -139,24 +139,19 @@ const Aside = ({ contentComponent }: AsideProps) => {
 
   return (
     <Card className="h-full">
-      <h1 className="flex items-center gap-1 text-xl">
-        {contentComponent.name}
-        {/* {isLocalContentComponent(contentComponent) && (
-          <OpenInCodeSandboxButton />
-        )} */}
-      </h1>
+      <h1 className="flex items-center gap-1 text-xl">{contentComponent.name}</h1>
       {contentComponent.description && (
         <p className="text-muted-foreground text-sm">{contentComponent.description}</p>
       )}
       {isLocalContentComponent(contentComponent) ? (
         <Drawer>
           <div className="flex flex-col gap-1.5">
-            <div className="flex -space-x-px rounded-full shadow-xs">
+            <div className="flex rounded-full shadow-xs">
               <DrawerTrigger
                 className={buttonVariants({
                   variant: "outline",
                   className:
-                    "flex-1 rounded-none rounded-s-full pl-12 shadow-none focus-visible:z-10",
+                    "flex-1 rounded-none rounded-s-full border-e-0 pl-12 shadow-none focus-visible:z-10",
                 })}
               >
                 View Source

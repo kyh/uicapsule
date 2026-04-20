@@ -510,7 +510,7 @@ const SearchButton = () => {
 
 export const ProfileButton = () => {
   const isDesktop = useMediaQuery();
-  const { resolvedTheme, setTheme } = useTheme();
+  const { theme, setTheme } = useTheme();
 
   const [open, setOpen] = useState(false);
 
@@ -617,10 +617,7 @@ export const ProfileButton = () => {
       content: (
         <div className="flex items-center gap-2 rounded-sm px-2 py-1.5 text-sm">
           <span className="flex-1">Theme</span>
-          <Tabs
-            defaultValue={resolvedTheme === "dark" ? "dark" : "light"}
-            onValueChange={(value) => setTheme(value)}
-          >
+          <Tabs value={theme ?? "system"} onValueChange={(value) => setTheme(value)}>
             <TabsList className="bg-background relative flex h-fit items-center gap-0.5 rounded-full border p-0 *:[[role=tab]]:size-6">
               <TabsIndicator className="rounded-full bg-accent" />
               <TabsTrigger
@@ -662,7 +659,7 @@ export const ProfileButton = () => {
       <DropdownMenu open={open} onOpenChange={setOpen}>
         <DropdownMenuTrigger render={<Button variant="ghost" size="icon" />}>
           <Avatar className="size-8">
-            <AvatarFallback />
+            <AvatarFallback>UI</AvatarFallback>
           </Avatar>
         </DropdownMenuTrigger>
         <DropdownMenuContent className="w-40" align="end">
@@ -689,7 +686,7 @@ export const ProfileButton = () => {
       <DrawerTrigger asChild>
         <Button variant="ghost" size="icon">
           <Avatar className="size-8">
-            <AvatarFallback />
+            <AvatarFallback>UI</AvatarFallback>
           </Avatar>
         </Button>
       </DrawerTrigger>

@@ -1,14 +1,8 @@
-/**
- * Represents a filter category for content components
- */
 export type ContentFilter = {
   name: string;
   slug: string;
   subcategories?: { name: string; slug: string }[];
 };
-
-// Filter categories for organizing content components
-export const contentApps: ContentFilter[] = [];
 
 export const contentCategories: ContentFilter[] = [
   { name: "AI", slug: "ai" },

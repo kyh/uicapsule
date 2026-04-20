@@ -85,7 +85,6 @@ import { codeToHtml } from "shiki";
 
 import type { IconType } from "@icons-pack/react-simple-icons";
 import { Button } from "./button";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./select";
 import { useControllableState } from "@repo/ui/hooks/use-controllable-state";
 import { cn } from "@repo/ui/lib/utils";
 
@@ -352,41 +351,6 @@ export const CodeBlockFilename = ({
     </div>
   );
 };
-export type CodeBlockSelectProps = ComponentProps<typeof Select>;
-export const CodeBlockSelect = (props: CodeBlockSelectProps) => {
-  const { value, onValueChange } = useContext(CodeBlockContext);
-  return (
-    <Select
-      onValueChange={(v) => {
-        if (typeof v === "string") onValueChange?.(v);
-      }}
-      value={value}
-      {...props}
-    />
-  );
-};
-export type CodeBlockSelectTriggerProps = ComponentProps<typeof SelectTrigger>;
-export const CodeBlockSelectTrigger = ({ className, ...props }: CodeBlockSelectTriggerProps) => (
-  <SelectTrigger
-    className={cn("text-muted-foreground w-fit border-none text-xs shadow-none", className)}
-    {...props}
-  />
-);
-export type CodeBlockSelectValueProps = ComponentProps<typeof SelectValue>;
-export const CodeBlockSelectValue = (props: CodeBlockSelectValueProps) => (
-  <SelectValue {...props} />
-);
-export type CodeBlockSelectContentProps = Omit<ComponentProps<typeof SelectContent>, "children"> & {
-  children: (item: CodeBlockData) => ReactNode;
-};
-export const CodeBlockSelectContent = ({ children, ...props }: CodeBlockSelectContentProps) => {
-  const { data } = useContext(CodeBlockContext);
-  return <SelectContent {...props}>{data.map(children)}</SelectContent>;
-};
-export type CodeBlockSelectItemProps = ComponentProps<typeof SelectItem>;
-export const CodeBlockSelectItem = ({ className, ...props }: CodeBlockSelectItemProps) => (
-  <SelectItem className={cn("text-sm", className)} {...props} />
-);
 export type CodeBlockCopyButtonProps = ComponentProps<typeof Button> & {
   onCopy?: () => void;
   onError?: (error: Error) => void;
@@ -413,7 +377,6 @@ export const CodeBlockCopyButton = ({
       setTimeout(() => setIsCopied(false), timeout);
     }, onError);
   };
-  const Icon = isCopied ? CheckIcon : CopyIcon;
   return (
     <Button
       className={cn("shrink-0", className)}
@@ -422,7 +385,24 @@ export const CodeBlockCopyButton = ({
       variant="ghost"
       {...props}
     >
-      {children ?? <Icon className="text-muted-foreground" size={14} />}
+      {children ?? (
+        <span className="text-muted-foreground relative inline-block size-3.5">
+          <CopyIcon
+            size={14}
+            className={cn(
+              "absolute inset-0 transition-all duration-300 ease-out",
+              isCopied ? "scale-25 opacity-0 blur-[4px]" : "scale-100 opacity-100 blur-0",
+            )}
+          />
+          <CheckIcon
+            size={14}
+            className={cn(
+              "absolute inset-0 transition-all duration-300 ease-out",
+              isCopied ? "scale-100 opacity-100 blur-0" : "scale-25 opacity-0 blur-[4px]",
+            )}
+          />
+        </span>
+      )}
     </Button>
   );
 };

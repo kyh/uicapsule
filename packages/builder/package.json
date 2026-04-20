@@ -4,12 +4,10 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "build": "tsx src/index.ts --mode db",
-    "dev": "pnpm with-env tsx src/index.ts --watch --mode db",
-    "dev:db": "pnpm with-env tsx src/index.ts --watch --mode db",
-    "dev:export": "pnpm with-env tsx src/index.ts --watch --mode export",
+    "build": "pnpm with-env tsx src/index.ts",
+    "dev": "pnpm with-env tsx src/index.ts --watch",
     "clean": "git clean -xdf .cache .turbo node_modules",
-    "push:remote": "dotenv -e ../../.env.production.local -- tsx src/index.ts --mode db",
+    "push:remote": "dotenv -e ../../.env.production.local -- tsx src/index.ts",
     "with-env": "dotenv -e ../../.env --"
   },
   "dependencies": {

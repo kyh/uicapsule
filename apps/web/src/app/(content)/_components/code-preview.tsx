@@ -252,7 +252,7 @@ export const CodePreview = ({ contentComponent }: CodePreviewProps) => {
       <CodeBlock
         data={[{ language: codeLanguage, filename: selectedPath, code: selectedCode }]}
         value={codeLanguage}
-        className="relative flex-1 overflow-auto [&>*]:h-full"
+        className="relative flex-1 overflow-auto rounded-none border-0 [&>div]:h-full"
       >
         <CodeBlockBody>
           {(item) => (
