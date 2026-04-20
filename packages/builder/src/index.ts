@@ -15,6 +15,45 @@ const repoRoot = join(packageRoot, "..", "..");
 const contentSourceDir = join(repoRoot, "content");
 const uiSourceDir = join(repoRoot, "packages", "ui");
 const uiSourceRoot = join(uiSourceDir, "src");
+const workspaceYamlPath = join(repoRoot, "pnpm-workspace.yaml");
+
+let catalogCache: Record<string, string> | null = null;
+
+const readWorkspaceCatalog = async (): Promise<Record<string, string>> => {
+  if (catalogCache) return catalogCache;
+  const raw = await readFile(workspaceYamlPath, "utf-8").catch(() => "");
+  const catalog: Record<string, string> = {};
+  const lines = raw.split("\n");
+  let inCatalog = false;
+  for (const line of lines) {
+    if (/^catalog:\s*$/.test(line)) {
+      inCatalog = true;
+      continue;
+    }
+    if (inCatalog) {
+      if (/^\S/.test(line)) break;
+      const match = line.match(/^\s{2,}"?([^"\s:]+)"?:\s*(\S+)/);
+      if (match) {
+        const [, name, version] = match;
+        if (name && version) catalog[name] = version;
+      }
+    }
+  }
+  catalogCache = catalog;
+  return catalog;
+};
+
+const resolveCatalogDependencies = async (
+  dependencies: Record<string, string>,
+): Promise<Record<string, string>> => {
+  const catalog = await readWorkspaceCatalog();
+  return Object.fromEntries(
+    Object.entries(dependencies).map(([name, version]) => [
+      name,
+      version === "catalog:" ? (catalog[name] ?? "*") : version,
+    ]),
+  );
+};
 
 const GITIGNORE_PATTERNS = ["node_modules", "dist", ".DS_Store", ".turbo"];
 const UI_IMPORT_PREFIX = "@repo/ui/";
@@ -400,10 +439,10 @@ const readContentComponent = async (slug: string): Promise<ContentComponent> => 
     const existingDependencies = packageJson.dependencies ?? {};
     delete existingDependencies["@repo/ui"];
 
-    packageJson.dependencies = {
+    packageJson.dependencies = await resolveCatalogDependencies({
       ...existingDependencies,
       ...uiPackageJson.dependencies,
-    };
+    });
 
     const inlineResult = await inlineUiDependencies(sourceCode, previewCode);
     sourceCode = inlineResult.sourceCode;
@@ -413,8 +452,8 @@ const readContentComponent = async (slug: string): Promise<ContentComponent> => 
   return {
     ...baseComponent,
     type: "local",
-    dependencies: packageJson.dependencies ?? {},
-    devDependencies: packageJson.devDependencies ?? {},
+    dependencies: await resolveCatalogDependencies(packageJson.dependencies ?? {}),
+    devDependencies: await resolveCatalogDependencies(packageJson.devDependencies ?? {}),
     sourceCode,
     previewCode,
   };
