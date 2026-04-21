@@ -1,6 +1,5 @@
 import { Suspense } from "react";
 import Link from "next/link";
-import { cacheLife, cacheTag } from "next/cache";
 import {
   contentCategories,
   contentElements,
@@ -11,13 +10,6 @@ import { Button } from "@repo/ui/components/button";
 import { publicCaller } from "@/trpc/server";
 import { ContentPreview, ContentPreviewSkeleton } from "./_components/content-preview";
 import { FilterComboBox } from "./_components/filter-combo-box";
-
-const getFilteredContent = async (filterTags: string[]) => {
-  "use cache";
-  cacheTag("content-list");
-  cacheLife("days");
-  return publicCaller.content.list({ filterTags });
-};
 
 type PageProps = {
   searchParams: Promise<Record<string, string | string[] | undefined>>;
@@ -83,7 +75,7 @@ const Filters = async ({ searchParams }: PageProps) => {
 const ContentList = async ({ searchParams }: PageProps) => {
   const { elementFilter, styleFilter, categoryFilter } = await getFilters(searchParams);
   const filters = [elementFilter, styleFilter, categoryFilter].flat();
-  const content = await getFilteredContent(filters);
+  const content = await publicCaller.content.list({ filterTags: filters });
 
   if (content.length === 0) {
     return (
