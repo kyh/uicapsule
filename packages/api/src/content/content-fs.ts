@@ -18,6 +18,17 @@ type RawMeta = Omit<ContentComponentBase, "slug" | "type"> & {
 };
 
 const IGNORED_SOURCE_SEGMENTS = new Set(["node_modules", "dist", ".turbo", ".cache"]);
+const SOURCE_FILE_EXTENSIONS = new Set([
+  ".ts",
+  ".tsx",
+  ".js",
+  ".jsx",
+  ".mjs",
+  ".css",
+  ".json",
+  ".md",
+]);
+const IGNORED_SOURCE_FILES = new Set(["meta.json", "package-lock.json", "pnpm-lock.yaml"]);
 
 const readJson = async <T>(path: string): Promise<T | null> => {
   try {
@@ -44,7 +55,9 @@ const readSourceFiles = async (
           return;
         }
         if (!entry.isFile()) return;
-        if (entry.name === "meta.json") return;
+        if (IGNORED_SOURCE_FILES.has(entry.name)) return;
+        const ext = entry.name.slice(entry.name.lastIndexOf("."));
+        if (!SOURCE_FILE_EXTENSIONS.has(ext)) return;
         const code = await readFile(full, "utf-8");
         files.push({ path: `/${relative(root, full).replaceAll("\\", "/")}`, code });
       }),

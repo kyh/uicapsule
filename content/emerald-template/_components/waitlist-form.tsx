@@ -35,7 +35,7 @@ export const WaitlistForm = () => {
         value={email}
         onChange={(event) => setEmail(event.target.value)}
       />
-      <Button className={cn("text-xs hover:bg-transparent")} variant="ghost">
+      <Button type="submit" className={cn("text-xs hover:bg-transparent")} variant="ghost">
         Join Waitlist
       </Button>
     </form>

@@ -16,13 +16,6 @@ import {
   type ReactElement,
 } from "react";
 import type { DateRange } from "react-day-picker";
-
-type IconLike = ReactElement | ReactElementType;
-const renderIcon = (icon: IconLike, props: { className?: string; key?: Key } = {}) => {
-  if (isValidElement(icon)) return icon;
-  const IconComp = icon as ComponentType<{ className?: string }>;
-  return <IconComp {...props} />;
-};
 import { Button } from "@repo/ui/components/button";
 import { Calendar } from "@repo/ui/components/calendar";
 import { Checkbox } from "@repo/ui/components/checkbox";
@@ -54,6 +47,13 @@ import type {
   MinMaxReturn,
 } from "../filter-package";
 import { createNumberRange, numberFilterOperators, take } from "../filter-package";
+
+type IconLike = ReactElement<{ className?: string; key?: Key }> | ReactElementType;
+const renderIcon = (icon: IconLike, props: { className?: string; key?: Key } = {}) => {
+  if (isValidElement(icon)) return cloneElement(icon, props);
+  const IconComp = icon as ComponentType<{ className?: string }>;
+  return <IconComp {...props} />;
+};
 
 type ControlFunctions = {
   cancel: () => void;
