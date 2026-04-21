@@ -1,4 +1,4 @@
-import { readdir, readFile, stat } from "node:fs/promises";
+import { readdir, readFile } from "node:fs/promises";
 import { join, relative, resolve } from "node:path";
 import { cache } from "react";
 
@@ -84,16 +84,13 @@ const buildComponent = async (
     } satisfies RemoteContentComponent;
   }
 
-  const previewPath = join(contentRoot, slug, "preview.tsx");
-  const hasPreview = await stat(previewPath)
-    .then((s) => s.isFile())
-    .catch(() => false);
-  if (!hasPreview) return null;
+  const sourceFiles = await readSourceFiles(slug);
+  if (!sourceFiles.some((f) => f.path === "/preview.tsx")) return null;
 
   return {
     ...base,
     type: "local",
-    sourceFiles: await readSourceFiles(slug),
+    sourceFiles,
   } satisfies LocalContentComponent;
 };
 
@@ -104,19 +101,21 @@ export const readContentIndex = cache(async (): Promise<ContentComponent[]> => {
     .map((entry) => entry.name)
     .sort();
 
-  const components: ContentComponent[] = [];
-  for (const slug of slugs) {
-    const meta = await readJson<RawMeta>(join(contentRoot, slug, "meta.json"));
-    if (!meta) continue;
-    const component = await buildComponent(slug, meta);
-    if (component) components.push(component);
-  }
+  const built = await Promise.all(
+    slugs.map(async (slug) => {
+      const meta = await readJson<RawMeta>(join(contentRoot, slug, "meta.json"));
+      if (!meta) return null;
+      return buildComponent(slug, meta);
+    }),
+  );
+
+  const components = built.filter((c): c is ContentComponent => c !== null);
 
   return components.map((component, index) => ({
     ...component,
     previousSlug: index > 0 ? components[index - 1]?.slug : undefined,
     nextSlug: index < components.length - 1 ? components[index + 1]?.slug : undefined,
-  })) as ContentComponent[];
+  }));
 });
 
 export const readContentBySlug = cache(

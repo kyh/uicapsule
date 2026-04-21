@@ -1,11 +1,13 @@
 import { z } from "zod";
 
+export type DefaultSize = "full" | "md" | "sm";
+
 export type ContentComponentBase = {
   slug: string;
   type: "local" | "remote";
   name: string;
   description?: string;
-  defaultSize?: "full" | "md" | "sm";
+  defaultSize?: DefaultSize;
   coverUrl?: string;
   coverType?: "image" | "video";
   category?: "marketing" | "application" | "mobile";

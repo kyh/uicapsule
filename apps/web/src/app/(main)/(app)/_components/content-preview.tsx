@@ -25,31 +25,22 @@ export const ContentPreview = ({
       href={`/ui/${slug}`}
     >
       <div className="relative aspect-video overflow-hidden">
+        {coverUrl && (
+          <div aria-hidden className="bg-muted absolute inset-0 animate-pulse rounded" />
+        )}
         {coverUrl && coverType === "image" && (
-          <>
-            <div
-              aria-hidden
-              className="bg-muted absolute inset-0 animate-pulse rounded"
-            />
-            <Image src={coverUrl} fill alt="" className="object-contain" />
-          </>
+          <Image src={coverUrl} fill alt="" className="object-contain" />
         )}
         {coverUrl && coverType === "video" && (
-          <>
-            <div
-              aria-hidden
-              className="bg-muted absolute inset-0 animate-pulse rounded"
-            />
-            <video
-              className="absolute inset-0 h-full w-full object-cover"
-              autoPlay
-              loop
-              muted
-              playsInline
-            >
-              <source src={coverUrl} type="video/mp4" />
-            </video>
-          </>
+          <video
+            className="absolute inset-0 h-full w-full object-cover"
+            autoPlay
+            loop
+            muted
+            playsInline
+          >
+            <source src={coverUrl} type="video/mp4" />
+          </video>
         )}
       </div>
       <div className="flex justify-between font-mono text-xs">

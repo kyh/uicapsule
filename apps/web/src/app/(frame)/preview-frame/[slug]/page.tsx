@@ -1,7 +1,7 @@
 import { Suspense } from "react";
 import { notFound } from "next/navigation";
 
-import type { ComponentType, ReactNode } from "react";
+import type { ComponentType } from "react";
 
 type Props = {
   params: Promise<{ slug: string }>;
@@ -18,19 +18,17 @@ const loadPreview = async (slug: string): Promise<ComponentType | null> => {
   }
 };
 
-const PreviewFramePage = ({ params }: Props) => {
-  return (
-    <Suspense fallback={<div className="bg-muted h-full w-full animate-pulse" />}>
-      <PreviewContent params={params} />
-    </Suspense>
-  );
-};
-
-const PreviewContent = async ({ params }: Props): Promise<ReactNode> => {
+const PreviewContent = async ({ params }: Props) => {
   const { slug } = await params;
   const Preview = await loadPreview(slug);
   if (!Preview) notFound();
   return <Preview />;
 };
+
+const PreviewFramePage = ({ params }: Props) => (
+  <Suspense fallback={<div className="bg-muted h-full w-full animate-pulse" />}>
+    <PreviewContent params={params} />
+  </Suspense>
+);
 
 export default PreviewFramePage;
