@@ -1,5 +1,12 @@
-import React, { Component } from "react";
 
+import {
+  Component,
+  createRef,
+  type MouseEvent as ReactMouseEvent,
+  type ReactNode,
+  type RefObject,
+  type TouchEvent as ReactTouchEvent,
+} from "react";
 // Grid physics constants
 const MIN_VELOCITY = 0.2;
 const UPDATE_INTERVAL = 16;
@@ -108,13 +115,13 @@ export type GridItemConfig = {
 
 export type InfiniteGridProps = {
   gridSize: number;
-  renderItem: (itemConfig: GridItemConfig) => React.ReactNode;
+  renderItem: (itemConfig: GridItemConfig) => ReactNode;
   className?: string;
   initialPosition?: Position;
 };
 
 export class InfiniteGrid extends Component<InfiniteGridProps, State> {
-  private containerRef: React.RefObject<HTMLElement | null>;
+  private containerRef: RefObject<HTMLElement | null>;
   private lastPos: Position;
   private animationFrame: number | null;
   private isComponentMounted: boolean;
@@ -135,7 +142,7 @@ export class InfiniteGrid extends Component<InfiniteGridProps, State> {
       lastMoveTime: 0,
       velocityHistory: [],
     };
-    this.containerRef = React.createRef();
+    this.containerRef = createRef();
     this.lastPos = { x: 0, y: 0 };
     this.animationFrame = null;
     this.isComponentMounted = false;
@@ -372,14 +379,14 @@ export class InfiniteGrid extends Component<InfiniteGridProps, State> {
     this.animationFrame = requestAnimationFrame(this.animate);
   };
 
-  private handleMouseDown = (e: React.MouseEvent) => {
+  private handleMouseDown = (e: ReactMouseEvent) => {
     this.handleDown({
       x: e.clientX,
       y: e.clientY,
     });
   };
 
-  private handleMouseMove = (e: React.MouseEvent) => {
+  private handleMouseMove = (e: ReactMouseEvent) => {
     e.preventDefault();
     this.handleMove({
       x: e.clientX,
@@ -391,7 +398,7 @@ export class InfiniteGrid extends Component<InfiniteGridProps, State> {
     this.handleUp();
   };
 
-  private handleTouchStart = (e: React.TouchEvent) => {
+  private handleTouchStart = (e: ReactTouchEvent) => {
     const touch = e.touches[0];
 
     if (!touch) return;
@@ -448,7 +455,7 @@ export class InfiniteGrid extends Component<InfiniteGridProps, State> {
 
     return (
       <div
-        ref={this.containerRef as React.RefObject<HTMLDivElement>}
+        ref={this.containerRef as RefObject<HTMLDivElement>}
         className={className}
         style={{
           position: "absolute",

@@ -1,5 +1,6 @@
+import { type ComponentProps, type HTMLAttributes, type MouseEvent, type ReactNode } from "react";
 import type { MotionValue } from "motion/react";
-import React from "react";
+
 import { cn } from "@repo/ui/lib/utils";
 import { motion, useMotionTemplate, useMotionValue } from "motion/react";
 
@@ -58,13 +59,13 @@ export const HighlightCard = ({
 }: {
   className?: string;
   gridProps?: Omit<GridPatternProps, "width" | "height">;
-  pattern?: React.ReactNode;
-  children?: React.ReactNode;
-} & React.ComponentProps<typeof Card>) => {
+  pattern?: ReactNode;
+  children?: ReactNode;
+} & ComponentProps<typeof Card>) => {
   const mouseX = useMotionValue(0);
   const mouseY = useMotionValue(0);
 
-  const onMouseMove = ({ currentTarget, clientX, clientY }: React.MouseEvent) => {
+  const onMouseMove = ({ currentTarget, clientX, clientY }: MouseEvent) => {
     const { left, top } = currentTarget.getBoundingClientRect();
     mouseX.set(clientX - left);
     mouseY.set(clientY - top);
@@ -84,7 +85,7 @@ export const HighlightCard = ({
   );
 };
 
-const Card = ({ className, ...props }: React.HTMLAttributes<HTMLDivElement>) => (
+const Card = ({ className, ...props }: HTMLAttributes<HTMLDivElement>) => (
   <div
     data-slot="card"
     className={cn("bg-card flex flex-col gap-3 overflow-hidden border p-3", className)}

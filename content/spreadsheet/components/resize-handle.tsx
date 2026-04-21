@@ -1,19 +1,25 @@
 "use client";
 
-import React, { useRef, useState } from "react";
+import {
+  forwardRef,
+  useRef,
+  useState,
+  type MouseEvent as ReactMouseEvent,
+  type RefObject,
+} from "react";
 import { cn } from "@repo/ui/lib/utils";
 
 interface ResizeHandleProps {
   columnId: string;
   columnWidths: Record<string, number>;
   handleColumnResize: (columnId: string, width: number) => void;
-  tableContainerRef: React.RefObject<HTMLDivElement | null>;
-  dragLineRef: React.RefObject<HTMLDivElement | null>;
+  tableContainerRef: RefObject<HTMLDivElement | null>;
+  dragLineRef: RefObject<HTMLDivElement | null>;
   setDragLineVisible: (visible: boolean) => void;
   className?: string;
 }
 
-export const ResizeHandle = React.forwardRef<HTMLDivElement, ResizeHandleProps>(
+export const ResizeHandle = forwardRef<HTMLDivElement, ResizeHandleProps>(
   (
     {
       columnId,
@@ -32,13 +38,13 @@ export const ResizeHandle = React.forwardRef<HTMLDivElement, ResizeHandleProps>(
     const columnStartXRef = useRef(0);
     const currentMouseXRef = useRef(0);
 
-    const handleMouseDown = (e: React.MouseEvent) => {
+    const handleMouseDown = (e: ReactMouseEvent) => {
       e.preventDefault();
       e.stopPropagation();
       setIsResizing(true);
       setDragLineVisible(true);
       startXRef.current = e.clientX;
-      startWidthRef.current = columnWidths[columnId];
+      startWidthRef.current = columnWidths[columnId] ?? 0;
 
       const headerElement = e.currentTarget.closest("[data-column-id]") as HTMLElement;
       if (headerElement) {

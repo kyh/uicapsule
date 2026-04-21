@@ -1,3 +1,4 @@
+import { type Dispatch, type ElementType as ReactElementType, type ReactElement, type SetStateAction } from "react";
 import type { orderFns } from "../lib/order-fns";
 
 /*
@@ -49,7 +50,7 @@ export interface ColumnOption {
   /* The internal value of the option. */
   value: string;
   /* An optional icon to display next to the label. */
-  icon?: React.ReactElement | React.ElementType;
+  icon?: ReactElement | ReactElementType;
   /* The count of this option in the data (automatically populated from faceted data). */
   count?: number;
 }
@@ -155,7 +156,7 @@ export type ColumnConfig<
   id: TId;
   accessor: TAccessorFn<TData, TVal>;
   displayName: string;
-  icon?: React.ReactElement | React.ElementType;
+  icon?: ReactElement | ReactElementType;
   type: TType;
   hidden?: boolean;
   options?: TType extends OptionBasedColumnDataType ? ColumnOption[] : never;
@@ -471,7 +472,7 @@ export interface DataTableFiltersOptions<
   defaultFilters?: FiltersState;
   filters?: FiltersState;
   onFiltersChange?:
-    | React.Dispatch<React.SetStateAction<FiltersState>>
+    | Dispatch<SetStateAction<FiltersState>>
     | FiltersStateUpdaterFn<TContext>;
   options?: Partial<Record<OptionColumnIds<TColumns>, ColumnOption[] | undefined>>;
   faceted?: Partial<

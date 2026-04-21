@@ -10,8 +10,19 @@
     "@ai-sdk/react": "^2.0.163",
     "@loremllm/transport": "^0.5.1",
     "@repo/ui": "workspace:^",
-    "react": "*",
-    "react-dom": "*",
-    "zod": "*"
+    "@tanstack/react-table": "^8.21.3",
+    "date-fns": "^4.1.0",
+    "lucide-react": "^1.8.0",
+    "react": "catalog:",
+    "react-day-picker": "^9.14.0",
+    "react-dom": "catalog:",
+    "zod": "catalog:"
+  },
+  "exports": {
+    "./preview": "./preview.tsx"
+  },
+  "devDependencies": {
+    "@types/react": "catalog:",
+    "@types/react-dom": "catalog:"
   }
 }

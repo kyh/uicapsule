@@ -259,10 +259,13 @@ function WireframeScene({ config }: { config: Required<WireframeOrbConfig> }) {
 
   useFrame((state) => {
     if (!materialRef.current) return;
-    materialRef.current.uniforms.time.value = state.clock.elapsedTime;
+    const timeUniform = materialRef.current.uniforms.time;
+    if (!timeUniform) return;
+    timeUniform.value = state.clock.elapsedTime;
   });
 
   return (
+    // @ts-expect-error R3F's <line> conflicts with SVG <line> in JSX
     <line geometry={geometry}>
       <shaderMaterial
         ref={materialRef}

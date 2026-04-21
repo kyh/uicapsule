@@ -1,4 +1,5 @@
-import React from "react";
+"use client";
+
 import { motion } from "motion/react";
 
 import { GridItemConfig, InfiniteGrid } from "./infinite-grid";

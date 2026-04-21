@@ -1,7 +1,6 @@
 "use client";
 
-import * as React from "react";
-
+import { forwardRef, type CSSProperties, type HTMLAttributes } from "react";
 import { cn } from "@repo/ui/lib/utils";
 
 import "./spinner-pixel-grid.css";
@@ -19,7 +18,7 @@ const variants = [
 
 type SpinnerVariant = (typeof variants)[number];
 
-type SpinnerProps = React.HTMLAttributes<HTMLDivElement> & {
+type SpinnerProps = HTMLAttributes<HTMLDivElement> & {
   size?: number;
   gridSize?: number;
   variant?: SpinnerVariant;
@@ -175,7 +174,7 @@ const shouldShowPixel = (
   return true;
 };
 
-export const SpinnerPixelGrid = React.forwardRef<HTMLDivElement, SpinnerProps>(
+export const SpinnerPixelGrid = forwardRef<HTMLDivElement, SpinnerProps>(
   ({ className, size = 8, gridSize = 3, variant = "default", ...props }, ref) => {
     const squareSize = `${size}px`;
     const gridArray = Array.from({ length: gridSize }, (_, i) => i);
@@ -184,7 +183,7 @@ export const SpinnerPixelGrid = React.forwardRef<HTMLDivElement, SpinnerProps>(
       <div
         ref={ref}
         className={cn("inline-flex flex-col gap-0", className)}
-        style={{ "--square-size": squareSize } as React.CSSProperties}
+        style={{ "--square-size": squareSize } as CSSProperties}
         {...props}
       >
         {gridArray.map((y) => (

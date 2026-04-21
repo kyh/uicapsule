@@ -1,4 +1,4 @@
-import React from "react";
+"use client";
 
 import { VoiceDictator } from "./voice-dictator";
 

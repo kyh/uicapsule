@@ -16,44 +16,35 @@ type CustomUIMessage = UIMessage<
   }
 >;
 
-// Generate fake enriched data for a cell based on its column
+const pick = <T>(list: readonly T[]): T => list[Math.floor(Math.random() * list.length)] as T;
+
 const generateFakeValue = (columnId: string): string => {
   const fakeData: Record<string, () => string> = {
-    firstName: () => {
-      const names = ["John", "Jane", "Michael", "Sarah", "David", "Emily", "James", "Emma"];
-      return names[Math.floor(Math.random() * names.length)];
-    },
-    lastName: () => {
-      const names = ["Smith", "Johnson", "Williams", "Brown", "Jones", "Garcia", "Miller", "Davis"];
-      return names[Math.floor(Math.random() * names.length)];
-    },
+    firstName: () => pick(["John", "Jane", "Michael", "Sarah", "David", "Emily", "James", "Emma"]),
+    lastName: () =>
+      pick(["Smith", "Johnson", "Williams", "Brown", "Jones", "Garcia", "Miller", "Davis"]),
     email: () => {
-      const domains = ["example.com", "demo.org", "test.io"];
-      const domain = domains[Math.floor(Math.random() * domains.length)];
+      const domain = pick(["example.com", "demo.org", "test.io"]);
       return `${Math.random().toString(36).substring(2, 15)}@${domain}`;
     },
-    company: () => {
-      const companies = [
+    company: () =>
+      pick([
         "Acme Corp",
         "Tech Solutions",
         "Global Industries",
         "Digital Ventures",
         "Innovation Labs",
         "Future Systems",
-      ];
-      return companies[Math.floor(Math.random() * companies.length)];
-    },
-    role: () => {
-      const roles = [
+      ]),
+    role: () =>
+      pick([
         "Software Engineer",
         "Product Manager",
         "Data Scientist",
         "Designer",
         "Marketing Director",
         "Sales Executive",
-      ];
-      return roles[Math.floor(Math.random() * roles.length)];
-    },
+      ]),
   };
 
   const generator = fakeData[columnId];
@@ -69,6 +60,7 @@ const createTransport = () => {
 
       for (const cellKey of cells) {
         const [rowId, columnId] = cellKey.split(":");
+        if (!rowId || !columnId) continue;
         const value = generateFakeValue(columnId);
 
         yield {

@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState, type FC } from "react";
 import { motion } from "motion/react";
 
 const TRANSCRIPT_LIBRARY = [
@@ -44,7 +44,7 @@ const pickRandom = <T,>(items: readonly T[], exclude?: T) => {
   return candidate;
 };
 
-export const VoiceDictator: React.FC = () => {
+export const VoiceDictator: FC = () => {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const buttonRef = useRef<HTMLButtonElement | null>(null);
   const webglRef = useRef<WebGLResources | null>(null);

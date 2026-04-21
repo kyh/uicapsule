@@ -1,4 +1,4 @@
-import React, { useRef, useState } from "react";
+import { useRef, useState } from "react";
 import * as Slider from "@radix-ui/react-slider";
 import { animate, motion, useMotionValue, useMotionValueEvent, useTransform } from "motion/react";
 

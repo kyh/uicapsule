@@ -97,10 +97,11 @@ export const useSpreadsheetStore = create<SpreadsheetStore>((set, get) => ({
       const newData = [...state.data];
       state.selectedCells.forEach((cellKey) => {
         const [rowId, columnId] = cellKey.split(":");
+        if (!rowId || !columnId) return;
         const rowIndex = newData.findIndex((row) => row.id === rowId);
 
-        if (rowIndex >= 0 && rowIndex < newData.length) {
-          const currentRow = newData[rowIndex];
+        const currentRow = newData[rowIndex];
+        if (rowIndex >= 0 && rowIndex < newData.length && currentRow) {
           const newValue =
             typeof value === "function"
               ? (
@@ -112,7 +113,7 @@ export const useSpreadsheetStore = create<SpreadsheetStore>((set, get) => ({
                 )({
                   row: currentRow,
                   columnId,
-                  currentValue: currentRow?.[columnId],
+                  currentValue: currentRow[columnId],
                 })
               : value;
 

@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useMemo, useRef, useState } from "react";
+import { createElement, memo, useEffect, useMemo, useRef, useState, type SVGProps } from "react";
 import { Badge } from "@repo/ui/components/badge";
 import { cn } from "@repo/ui/lib/utils";
 import {
@@ -179,7 +179,7 @@ const wait = (delay: number) => {
   };
 };
 
-const AnimatedIcon = React.memo(
+const AnimatedIcon = memo(
   ({
     stepIndex,
     staticIcon,
@@ -221,7 +221,7 @@ const AnimatedIcon = React.memo(
               ease: "easeOut",
             }}
           >
-            {React.createElement(staticIcon, { size: 16 })}
+            {createElement(staticIcon, { size: 16 })}
           </motion.div>
         ) : (
           <motion.div
@@ -229,7 +229,7 @@ const AnimatedIcon = React.memo(
             initial={{ scale: 1, opacity: 0.3 }}
             animate={{ scale: 1, opacity: 0.3 }}
           >
-            {staticIcon && React.createElement(staticIcon, { size: 16 })}
+            {staticIcon && createElement(staticIcon, { size: 16 })}
           </motion.div>
         )}
       </AnimatePresence>
@@ -237,7 +237,7 @@ const AnimatedIcon = React.memo(
   },
 );
 
-const MemoizedChainOfThoughtStep = React.memo(
+const MemoizedChainOfThoughtStep = memo(
   ({
     stepIndex,
     staticIcon,
@@ -521,7 +521,7 @@ const Typewriter = ({
   );
 };
 
-const Spinner = (props: React.SVGProps<SVGSVGElement>) => (
+const Spinner = (props: SVGProps<SVGSVGElement>) => (
   <svg
     width="16"
     height="16"

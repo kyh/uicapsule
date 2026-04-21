@@ -11,8 +11,16 @@
     "@react-three/fiber": "^9.5.0",
     "@react-three/postprocessing": "^3.0.4",
     "postprocessing": "^6.39.0",
-    "react": "*",
-    "react-dom": "*",
+    "react": "catalog:",
+    "react-dom": "catalog:",
     "three": "^0.175.0"
+  },
+  "exports": {
+    "./preview": "./preview.tsx"
+  },
+  "devDependencies": {
+    "@types/react": "catalog:",
+    "@types/react-dom": "catalog:",
+    "@types/three": "^0.180.0"
   }
 }

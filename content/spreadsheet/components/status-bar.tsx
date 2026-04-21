@@ -1,15 +1,15 @@
 "use client";
 
-import React from "react";
+import { forwardRef, type FC, type HTMLAttributes, type ReactNode } from "react";
 import { cn } from "@repo/ui/lib/utils";
 
 import { useSpreadsheetStore } from "../lib/spreadsheet-store";
 
-export interface StatusBarProps extends React.HTMLAttributes<HTMLDivElement> {
-  children?: React.ReactNode;
+export interface StatusBarProps extends HTMLAttributes<HTMLDivElement> {
+  children?: ReactNode;
 }
 
-export const StatusBar = React.forwardRef<HTMLDivElement, StatusBarProps>(
+export const StatusBar = forwardRef<HTMLDivElement, StatusBarProps>(
   ({ children, className, ...props }, ref) => (
     <div
       ref={ref}
@@ -25,16 +25,16 @@ export const StatusBar = React.forwardRef<HTMLDivElement, StatusBarProps>(
 );
 StatusBar.displayName = "StatusBar";
 
-interface StatusBarSectionProps extends React.HTMLAttributes<HTMLDivElement> {}
+interface StatusBarSectionProps extends HTMLAttributes<HTMLDivElement> {}
 
-export const StatusBarSection = React.forwardRef<HTMLDivElement, StatusBarSectionProps>(
+export const StatusBarSection = forwardRef<HTMLDivElement, StatusBarSectionProps>(
   ({ className, ...props }, ref) => (
     <div ref={ref} className={cn("flex flex-1 items-center gap-2", className)} {...props} />
   ),
 );
 StatusBarSection.displayName = "StatusBarSection";
 
-export const StatusBarMessage: React.FC = () => {
+export const StatusBarMessage: FC = () => {
   const editingCell = useSpreadsheetStore((state) => state.editingCell);
   const selectedCells = useSpreadsheetStore((state) => state.selectedCells);
   const data = useSpreadsheetStore((state) => state.data);
@@ -63,7 +63,7 @@ export const StatusBarMessage: React.FC = () => {
   return <span>Click a cell to select</span>;
 };
 
-export const StatusBarSummary: React.FC = () => {
+export const StatusBarSummary: FC = () => {
   const data = useSpreadsheetStore((state) => state.data);
   const rowCount = data.length;
 

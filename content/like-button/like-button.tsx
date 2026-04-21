@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useRef, useState } from "react";
+import { useRef, useState } from "react";
 import NumberFlow from "@number-flow/react";
 import { motion } from "motion/react";
 

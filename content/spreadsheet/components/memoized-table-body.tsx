@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import { memo, type MouseEvent, type ReactElement, type ReactNode } from "react";
 import { cn } from "@repo/ui/lib/utils";
 import { flexRender } from "@tanstack/react-table";
 
@@ -13,11 +13,11 @@ interface MemoizedTableBodyProps<TRow extends SpreadsheetRow> {
   table: Table<TRow>;
   selectedCells: Set<string>;
   getRowCells: (rowId: string) => string[];
-  handleMouseDown: (e: React.MouseEvent, rowId: string, columnId: string) => void;
-  handleMouseMove: (e: React.MouseEvent, rowId: string, columnId: string) => void;
+  handleMouseDown: (e: MouseEvent, rowId: string, columnId: string) => void;
+  handleMouseMove: (e: MouseEvent, rowId: string, columnId: string) => void;
   showRowNumbers?: boolean;
-  renderRowNumber?: (rowIndex: number) => React.ReactNode;
-  renderRowActions?: (row: TRow, rowIndex: number) => React.ReactNode;
+  renderRowNumber?: (rowIndex: number) => ReactNode;
+  renderRowActions?: (row: TRow, rowIndex: number) => ReactNode;
 }
 
 function MemoizedTableBodyInner<TRow extends SpreadsheetRow>({
@@ -104,7 +104,7 @@ function MemoizedTableBodyInner<TRow extends SpreadsheetRow>({
   );
 }
 
-export const MemoizedTableBody = React.memo(MemoizedTableBodyInner, (prevProps, nextProps) => {
+export const MemoizedTableBody = memo(MemoizedTableBodyInner, (prevProps, nextProps) => {
   return (
     prevProps.virtualItems === nextProps.virtualItems &&
     prevProps.selectedCells === nextProps.selectedCells &&
@@ -112,6 +112,6 @@ export const MemoizedTableBody = React.memo(MemoizedTableBodyInner, (prevProps, 
     prevProps.handleMouseDown === nextProps.handleMouseDown &&
     prevProps.handleMouseMove === nextProps.handleMouseMove
   );
-}) as <TRow extends SpreadsheetRow>(props: MemoizedTableBodyProps<TRow>) => React.ReactElement;
+}) as <TRow extends SpreadsheetRow>(props: MemoizedTableBodyProps<TRow>) => ReactElement;
 
 MemoizedTableBodyInner.displayName = "MemoizedTableBodyInner";

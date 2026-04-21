@@ -1,6 +1,6 @@
 "use client";
 
-import { cloneElement, Fragment, useCallback, useEffect, useMemo, useState } from "react";
+import { Fragment, cloneElement, useCallback, useEffect, useMemo, useState, type ReactElement, type ReactNode } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
@@ -523,14 +523,14 @@ export const ProfileButton = () => {
     id: string;
     condition: boolean;
     wrap: true;
-    link: React.ReactElement;
-    body: React.ReactNode;
+    link: ReactElement;
+    body: ReactNode;
   };
   type UnwrappedMenuItem = {
     id: string;
     condition: boolean;
     wrap: false;
-    content: React.ReactElement;
+    content: ReactElement;
   };
 
   const menuItems: (WrappedMenuItem | UnwrappedMenuItem)[] = [
@@ -746,7 +746,7 @@ export const Footer = ({ className }: { className?: string }) => {
   );
 };
 
-const FooterLink = ({ href, children }: { href: string; children: React.ReactNode }) => {
+const FooterLink = ({ href, children }: { href: string; children: ReactNode }) => {
   return (
     <Link
       href={href}
@@ -763,7 +763,7 @@ const FooterLink = ({ href, children }: { href: string; children: React.ReactNod
   );
 };
 
-const FooterIcon = ({ href, children }: { href: string; children: React.ReactNode }) => {
+const FooterIcon = ({ href, children }: { href: string; children: ReactNode }) => {
   return (
     <Button
       variant="ghost"

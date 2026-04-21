@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useCallback, useEffect, useMemo, useRef } from "react";
+import { forwardRef, useCallback, useEffect, useMemo, useRef, type HTMLAttributes, type ReactElement, type ReactNode, type Ref } from "react";
 import { cn } from "@repo/ui/lib/utils";
 import { flexRender, getCoreRowModel, useReactTable } from "@tanstack/react-table";
 import { useVirtualizer } from "@tanstack/react-virtual";
@@ -17,11 +17,11 @@ import { ResizeHandle } from "./resize-handle";
 interface SpreadsheetProps<
   TRow extends SpreadsheetRow,
   TValue = unknown,
-> extends React.HTMLAttributes<HTMLDivElement> {
+> extends HTMLAttributes<HTMLDivElement> {
   columns: ColumnDef<TRow, TValue>[];
   showRowNumbers?: boolean;
-  renderRowNumber?: (rowIndex: number) => React.ReactNode;
-  renderRowActions?: (row: TRow, rowIndex: number) => React.ReactNode;
+  renderRowNumber?: (rowIndex: number) => ReactNode;
+  renderRowActions?: (row: TRow, rowIndex: number) => ReactNode;
 }
 
 function SpreadsheetInner<TRow extends SpreadsheetRow, TValue = unknown>(
@@ -34,7 +34,7 @@ function SpreadsheetInner<TRow extends SpreadsheetRow, TValue = unknown>(
     renderRowActions,
     ...props
   }: SpreadsheetProps<TRow, TValue>,
-  ref: React.Ref<HTMLDivElement>,
+  ref: Ref<HTMLDivElement>,
 ) {
   const data = useSpreadsheetStore((state) => state.data);
   const selectedCells = useSpreadsheetStore((state) => state.selectedCells);
@@ -141,7 +141,7 @@ function SpreadsheetInner<TRow extends SpreadsheetRow, TValue = unknown>(
             #
           </div>
         )}
-        {table.getHeaderGroups()[0].headers.map((header) => (
+        {(table.getHeaderGroups()[0]?.headers ?? []).map((header) => (
           <div
             key={header.id}
             data-column-id={header.column.id}
@@ -197,11 +197,11 @@ function SpreadsheetInner<TRow extends SpreadsheetRow, TValue = unknown>(
 
 SpreadsheetInner.displayName = "SpreadsheetInner";
 
-export const Spreadsheet = React.forwardRef(SpreadsheetInner) as <
+export const Spreadsheet = forwardRef(SpreadsheetInner) as <
   TRow extends SpreadsheetRow,
   TValue = unknown,
 >(
-  props: SpreadsheetProps<TRow, TValue> & { ref?: React.Ref<HTMLDivElement> },
-) => React.ReactElement;
+  props: SpreadsheetProps<TRow, TValue> & { ref?: Ref<HTMLDivElement> },
+) => ReactElement;
 
 (Spreadsheet as unknown as { displayName: string }).displayName = "Spreadsheet";

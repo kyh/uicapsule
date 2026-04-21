@@ -1,4 +1,5 @@
-import React, { useCallback, useEffect, useRef, useState } from "react";
+
+import { useCallback, useEffect, useRef, useState, type ReactNode } from "react";
 import { cn } from "@repo/ui/lib/utils";
 
 export const InfiniteLooper = ({
@@ -10,7 +11,7 @@ export const InfiniteLooper = ({
 }: {
   speed?: number;
   direction?: "right" | "left";
-  children: React.ReactNode;
+  children: ReactNode;
   className?: string;
   containerClassName?: string;
 }) => {

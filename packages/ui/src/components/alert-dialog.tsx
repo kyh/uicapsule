@@ -1,6 +1,6 @@
 "use client";
 
-import * as React from "react";
+import { useState, useSyncExternalStore, type ComponentProps, type ReactNode } from "react";
 import { AlertDialog as AlertDialogPrimitive } from "@base-ui/react/alert-dialog";
 
 import { cn } from "@repo/ui/lib/utils";
@@ -54,7 +54,7 @@ function AlertDialogContent({
   );
 }
 
-function AlertDialogHeader({ className, ...props }: React.ComponentProps<"div">) {
+function AlertDialogHeader({ className, ...props }: ComponentProps<"div">) {
   return (
     <div
       data-slot="alert-dialog-header"
@@ -67,7 +67,7 @@ function AlertDialogHeader({ className, ...props }: React.ComponentProps<"div">)
   );
 }
 
-function AlertDialogFooter({ className, ...props }: React.ComponentProps<"div">) {
+function AlertDialogFooter({ className, ...props }: ComponentProps<"div">) {
   return (
     <div
       data-slot="alert-dialog-footer"
@@ -80,7 +80,7 @@ function AlertDialogFooter({ className, ...props }: React.ComponentProps<"div">)
   );
 }
 
-function AlertDialogMedia({ className, ...props }: React.ComponentProps<"div">) {
+function AlertDialogMedia({ className, ...props }: ComponentProps<"div">) {
   return (
     <div
       data-slot="alert-dialog-media"
@@ -96,7 +96,7 @@ function AlertDialogMedia({ className, ...props }: React.ComponentProps<"div">) 
 function AlertDialogTitle({
   className,
   ...props
-}: React.ComponentProps<typeof AlertDialogPrimitive.Title>) {
+}: ComponentProps<typeof AlertDialogPrimitive.Title>) {
   return (
     <AlertDialogPrimitive.Title
       data-slot="alert-dialog-title"
@@ -112,7 +112,7 @@ function AlertDialogTitle({
 function AlertDialogDescription({
   className,
   ...props
-}: React.ComponentProps<typeof AlertDialogPrimitive.Description>) {
+}: ComponentProps<typeof AlertDialogPrimitive.Description>) {
   return (
     <AlertDialogPrimitive.Description
       data-slot="alert-dialog-description"
@@ -131,7 +131,7 @@ function AlertDialogCancel({
   size = "default",
   ...props
 }: AlertDialogPrimitive.Close.Props &
-  Pick<React.ComponentProps<typeof Button>, "variant" | "size">) {
+  Pick<ComponentProps<typeof Button>, "variant" | "size">) {
   return (
     <AlertDialogPrimitive.Close
       data-slot="alert-dialog-cancel"
@@ -162,16 +162,16 @@ export {
  */
 export type AlertState = {
   open: boolean;
-  title: React.ReactNode;
-  description?: React.ReactNode;
+  title: ReactNode;
+  description?: ReactNode;
   action?: {
     hidden?: boolean;
-    label?: React.ReactNode;
+    label?: ReactNode;
     onClick?: () => void | Promise<unknown>;
   };
   cancel?: {
     hidden?: boolean;
-    label?: React.ReactNode;
+    label?: ReactNode;
     onClick?: () => void | Promise<unknown>;
   };
 };
@@ -194,7 +194,7 @@ const alertDialogStore = {
 };
 
 export const alertDialog = {
-  open: (title: React.ReactNode, options: Omit<AlertState, "open" | "title">) => {
+  open: (title: ReactNode, options: Omit<AlertState, "open" | "title">) => {
     alertDialogStore.state = { open: true, title, ...options };
     alertDialogStore.emitChange();
   },
@@ -205,9 +205,9 @@ export const alertDialog = {
 };
 
 export const GlobalAlertDialog = () => {
-  const [pendingAction, setPendingAction] = React.useState(false);
-  const [pendingCancel, setPendingCancel] = React.useState(false);
-  const alertState = React.useSyncExternalStore(
+  const [pendingAction, setPendingAction] = useState(false);
+  const [pendingCancel, setPendingCancel] = useState(false);
+  const alertState = useSyncExternalStore(
     alertDialogStore.subscribe,
     alertDialogStore.getSnapshot,
     alertDialogStore.getSnapshot,

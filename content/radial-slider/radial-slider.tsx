@@ -1,4 +1,4 @@
-import React, { useRef, useState } from "react";
+import { useRef, useState } from "react";
 import NumberFlow from "@number-flow/react";
 import { animate, motion, useMotionValue, useMotionValueEvent } from "motion/react";
 

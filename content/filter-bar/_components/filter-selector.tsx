@@ -1,12 +1,5 @@
-import React, {
-  isValidElement,
-  memo,
-  useCallback,
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-} from "react";
+
+import { Fragment, isValidElement, memo, useCallback, useEffect, useMemo, useRef, useState, type ComponentType } from "react";
 import { Button } from "@repo/ui/components/button";
 import { Checkbox } from "@repo/ui/components/checkbox";
 import { Command, CommandGroup, CommandInput, CommandItem, CommandList } from "@repo/ui/components/command";
@@ -92,9 +85,10 @@ function __FilterSelector<TData>({
               {column.icon &&
                 (isValidElement(column.icon) ? (
                   column.icon
-                ) : (
-                  <column.icon className="size-4 stroke-[2.25px]" />
-                ))}
+                ) : (() => {
+                  const Icon = column.icon as ComponentType<{ className?: string }>;
+                  return <Icon className="size-4 stroke-[2.25px]" />;
+                })())}
               <span className="font-medium">{column.displayName}</span>
             </div>
           </div>
@@ -287,7 +281,12 @@ export function FilterableColumn<TData, TType extends ColumnDataType, TVal>({
         <div className="inline-flex items-center gap-1.5">
           {hasIcon && (
             <div className="relative">
-              {isValidElement(Icon) ? Icon : <Icon className="size-4 stroke-[2.25px]" />}
+              {isValidElement(Icon) ? (
+                Icon
+              ) : (() => {
+                const IconComp = Icon as ComponentType<{ className?: string }>;
+                return <IconComp className="size-4 stroke-[2.25px]" />;
+              })()}
               {isFiltered && (
                 <div className="absolute -right-0.5 -bottom-0.5 h-2 w-2 rounded-full bg-green-500" />
               )}
@@ -341,7 +340,7 @@ function __QuickSearchFilters<TData>({
         }
 
         return (
-          <React.Fragment key={column.id}>
+          <Fragment key={column.id}>
             {options.map((v) => {
               const checked = Boolean(filter?.values.includes(v.value));
 
@@ -364,9 +363,10 @@ function __QuickSearchFilters<TData>({
                       {v.icon &&
                         (isValidElement(v.icon) ? (
                           v.icon
-                        ) : (
-                          <v.icon className="text-primary size-4" />
-                        ))}
+                        ) : (() => {
+                          const Icon = v.icon as ComponentType<{ className?: string }>;
+                          return <Icon className="text-primary size-4" />;
+                        })())}
                     </div>
                     <div className="flex items-center gap-0.5">
                       <span className="text-muted-foreground">{column.displayName}</span>
@@ -377,7 +377,7 @@ function __QuickSearchFilters<TData>({
                 </CommandItem>
               );
             })}
-          </React.Fragment>
+          </Fragment>
         );
       })}
     </>

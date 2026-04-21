@@ -1,4 +1,3 @@
-import React from "react";
 import { cx, CxOptions } from "class-variance-authority";
 import {
   ChevronDown,
@@ -81,11 +80,19 @@ export const HeaderMenu = ({ isOpen, setIsOpen }: HeaderMenuProps) => {
         )}
       </AnimatePresence>
       <header className="sticky top-0 z-50 flex h-12 items-center gap-1 border-b border-b-[#27292E] bg-[#1C1D22] px-2">
-        <motion.button
+        <motion.div
           layoutId="wrapper"
-          className="relative grow overflow-hidden bg-[#232429] p-0.5"
+          role="button"
+          tabIndex={0}
+          className="relative grow cursor-pointer overflow-hidden bg-[#232429] p-0.5"
           style={{ borderRadius: 8 }}
           onClick={() => setIsOpen(true)}
+          onKeyDown={(e) => {
+            if (e.key === "Enter" || e.key === " ") {
+              e.preventDefault();
+              setIsOpen(true);
+            }
+          }}
         >
           <div className="flex items-center gap-2">
             <div className="relative isolate h-8 w-8">
@@ -96,13 +103,13 @@ export const HeaderMenu = ({ isOpen, setIsOpen }: HeaderMenuProps) => {
                   className="rounded-lg"
                 />
               </motion.div>
-              <motion.button
+              <motion.span
                 layoutId="wrapper-close-button"
+                aria-hidden
                 className="absolute top-0 left-0 -z-10 flex h-8 w-8 items-center justify-center"
-                onClick={() => setIsOpen(false)}
               >
                 <X strokeWidth={1.5} />
-              </motion.button>
+              </motion.span>
             </div>
             <motion.div layoutId="wrapper-user-info" className="-space-y-0.5">
               <h2 className="text-left text-sm font-bold">Kai</h2>
@@ -113,7 +120,7 @@ export const HeaderMenu = ({ isOpen, setIsOpen }: HeaderMenuProps) => {
             </motion.div>
           </div>
           <WrapperMenu className="pointer-events-none absolute top-0 right-0 left-0 opacity-0" />
-        </motion.button>
+        </motion.div>
         <button className="flex h-8 w-8 items-center justify-center">
           <Headphones strokeWidth={1.7} size={20} />
         </button>

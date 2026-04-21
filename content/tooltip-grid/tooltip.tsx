@@ -1,10 +1,11 @@
+"use client";
+
+import { cloneElement, createContext, forwardRef, isValidElement, useContext, useEffect, useMemo, useState, type CSSProperties, type HTMLProps, type ReactNode } from "react";
 /* eslint-disable @typescript-eslint/no-unsafe-argument */
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 /* eslint-disable @typescript-eslint/no-explicit-any */
-"use client";
 
-import * as React from "react";
 import {
   autoUpdate,
   flip,
@@ -38,8 +39,8 @@ export const useTooltip = ({
   open: controlledOpen,
   onOpenChange: setControlledOpen,
 }: TooltipOptions = {}) => {
-  const [uncontrolledOpen, setUncontrolledOpen] = React.useState(initialOpen);
-  const [hoverDirection, setHoverDirection] = React.useState<
+  const [uncontrolledOpen, setUncontrolledOpen] = useState(initialOpen);
+  const [hoverDirection, setHoverDirection] = useState<
     | "top-left"
     | "top-center"
     | "top-right"
@@ -154,13 +155,13 @@ export const useTooltip = ({
   const interactions = useInteractions([hover, focus, dismiss, role]);
 
   // Reset direction when tooltip closes
-  React.useEffect(() => {
+  useEffect(() => {
     if (!open) {
       setHoverDirection("top-center");
     }
   }, [open]);
 
-  return React.useMemo(
+  return useMemo(
     () => ({
       open,
       setOpen,
@@ -174,10 +175,10 @@ export const useTooltip = ({
 
 type ContextType = ReturnType<typeof useTooltip> | null;
 
-const TooltipContext = React.createContext<ContextType>(null);
+const TooltipContext = createContext<ContextType>(null);
 
 export const useTooltipContext = () => {
-  const context = React.useContext(TooltipContext);
+  const context = useContext(TooltipContext);
 
   if (context == null) {
     throw new Error("Tooltip components must be wrapped in <Tooltip />");
@@ -189,23 +190,23 @@ export const useTooltipContext = () => {
 export const Tooltip = ({
   children,
   ...options
-}: { children: React.ReactNode } & TooltipOptions) => {
+}: { children: ReactNode } & TooltipOptions) => {
   const tooltip = useTooltip(options);
 
   return <TooltipContext.Provider value={tooltip}>{children}</TooltipContext.Provider>;
 };
 
-export const TooltipTrigger = React.forwardRef<
+export const TooltipTrigger = forwardRef<
   HTMLElement,
-  React.HTMLProps<HTMLElement> & { asChild?: boolean }
+  HTMLProps<HTMLElement> & { asChild?: boolean }
 >(({ children, asChild = false, ...props }, propRef) => {
   const context = useTooltipContext();
   const childrenRef = (children as any).ref;
   const ref = useMergeRefs([context.refs.setReference, propRef, childrenRef]);
 
   // `asChild` allows the user to pass any element as the anchor
-  if (asChild && React.isValidElement(children)) {
-    return React.cloneElement(
+  if (asChild && isValidElement(children)) {
+    return cloneElement(
       children,
       context.getReferenceProps({
         ref,
@@ -233,16 +234,16 @@ export const TooltipTrigger = React.forwardRef<
 
 TooltipTrigger.displayName = "TooltipTrigger";
 
-export const TooltipContent = React.forwardRef<
+export const TooltipContent = forwardRef<
   HTMLDivElement,
-  React.HTMLProps<HTMLDivElement> & {
+  HTMLProps<HTMLDivElement> & {
     type?: "default" | "block";
   }
 >(({ className, type = "default", ...props }, propRef) => {
   const context = useTooltipContext();
   const ref = useMergeRefs([context.refs.setFloating, propRef]);
   const { children: floatingPropsChildren, ...floatingProps } = context.getFloatingProps(props);
-  const children = floatingPropsChildren as React.ReactNode;
+  const children = floatingPropsChildren as ReactNode;
   const blockType = type === "block";
 
   const tooltipMotionProps = blockType
@@ -409,7 +410,7 @@ const TooltipBlocks = ({ context }: { context: ContextType }) => {
   return (
     <div
       className={`${"blocksContainer"}`}
-      style={{ "--cols": cols, "--rows": rows } as React.CSSProperties}
+      style={{ "--cols": cols, "--rows": rows } as CSSProperties}
     >
       {blocks.map((i) => (
         <motion.div

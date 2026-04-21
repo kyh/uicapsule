@@ -1,56 +1,43 @@
 "use client";
 
-import React from "react";
+import { useState, type FormEvent } from "react";
 import { Button } from "@repo/ui/components/button";
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@repo/ui/components/form";
 import { toast } from "@repo/ui/components/sonner";
 import { cn } from "@repo/ui/lib/utils";
-import { useForm } from "react-hook-form";
 
 export const WaitlistForm = () => {
-  const form = useForm({
-    defaultValues: {
-      email: "",
-    },
-  });
+  const [email, setEmail] = useState("");
 
-  const handleJoinWaitlist = form.handleSubmit((values) => {
+  const handleJoinWaitlist = (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    if (!email) return;
     toast.success("Waitlist joined!");
-  });
+    setEmail("");
+  };
 
   return (
-    <Form {...form}>
-      <form
-        className="border-border flex max-w-sm items-center gap-2 rounded-full border shadow-lg"
-        onSubmit={handleJoinWaitlist}
-      >
-        <FormField
-          control={form.control}
-          name="email"
-          render={({ field }) => (
-            <FormItem className="min-w-0 flex-1 space-y-0">
-              <FormLabel className="sr-only">Email</FormLabel>
-              <FormControl>
-                <input
-                  className="w-full border-none bg-transparent py-2 pl-4 text-sm placeholder-white/50 focus:placeholder-white/75 focus:ring-0 focus:outline-hidden"
-                  required
-                  type="email"
-                  placeholder="name@example.com"
-                  autoCapitalize="none"
-                  autoComplete="email"
-                  autoCorrect="off"
-                  {...field}
-                  value={field.value ?? ""}
-                />
-              </FormControl>
-              <FormMessage className="absolute pt-1" />
-            </FormItem>
-          )}
-        />
-        <Button className={cn("text-xs hover:bg-transparent")} variant="ghost">
-          Join Waitlist
-        </Button>
-      </form>
-    </Form>
+    <form
+      className="border-border flex max-w-sm items-center gap-2 rounded-full border shadow-lg"
+      onSubmit={handleJoinWaitlist}
+    >
+      <label htmlFor="waitlist-email" className="sr-only">
+        Email
+      </label>
+      <input
+        id="waitlist-email"
+        className="w-full min-w-0 flex-1 border-none bg-transparent py-2 pl-4 text-sm placeholder-white/50 focus:placeholder-white/75 focus:ring-0 focus:outline-hidden"
+        required
+        type="email"
+        placeholder="name@example.com"
+        autoCapitalize="none"
+        autoComplete="email"
+        autoCorrect="off"
+        value={email}
+        onChange={(event) => setEmail(event.target.value)}
+      />
+      <Button className={cn("text-xs hover:bg-transparent")} variant="ghost">
+        Join Waitlist
+      </Button>
+    </form>
   );
 };

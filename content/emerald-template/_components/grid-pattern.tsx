@@ -1,12 +1,12 @@
-import React, { useId } from "react";
 
+import { useId, type SVGProps } from "react";
 export type GridPatternProps = {
   width: number;
   height: number;
   x?: number | string;
   y?: number | string;
   squares?: number[][];
-} & React.SVGProps<SVGSVGElement>;
+} & SVGProps<SVGSVGElement>;
 
 export const GridPattern = ({ width, height, x, y, squares, ...props }: GridPatternProps) => {
   const patternId = useId();

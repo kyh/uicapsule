@@ -1,4 +1,4 @@
-import React from "react";
+"use client";
 
 import { FeaturesSection } from "./_components/features-section";
 import { Footer } from "./_components/footer";
