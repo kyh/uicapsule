@@ -20,7 +20,7 @@ const loadPreview = async (slug: string): Promise<ComponentType | null> => {
 
 const PreviewFramePage = ({ params }: Props) => {
   return (
-    <Suspense fallback={null}>
+    <Suspense fallback={<div className="bg-muted h-full w-full animate-pulse" />}>
       <PreviewContent params={params} />
     </Suspense>
   );

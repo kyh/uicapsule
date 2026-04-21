@@ -41,7 +41,7 @@ export const ContentPreview = ({
               className="bg-muted absolute inset-0 animate-pulse rounded"
             />
             <video
-              className="absolute inset-0 h-full w-full object-contain"
+              className="absolute inset-0 h-full w-full object-cover"
               autoPlay
               loop
               muted

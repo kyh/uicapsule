@@ -1,4 +1,4 @@
-:root {
+.emerald-template {
   --background: hsl(240 10% 3.9%);
   --foreground: hsl(0 0% 98%);
   --card: hsl(240 10% 3.9%);
@@ -19,6 +19,8 @@
   --input: hsl(240 3.7% 15.9%);
   --ring: hsl(240 4.9% 83.9%);
   --radius: 0.3rem;
+  background: var(--background);
+  color: var(--foreground);
 }
 
 .contained-page {
