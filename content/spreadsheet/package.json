@@ -12,9 +12,17 @@
     "@repo/ui": "workspace:^",
     "@tanstack/react-table": "^8.21.3",
     "@tanstack/react-virtual": "^3.13.23",
-    "react": "*",
-    "react-dom": "*",
-    "zod": "*",
+    "lucide-react": "^1.8.0",
+    "react": "catalog:",
+    "react-dom": "catalog:",
+    "zod": "catalog:",
     "zustand": "^5.0.12"
+  },
+  "exports": {
+    "./preview": "./preview.tsx"
+  },
+  "devDependencies": {
+    "@types/react": "catalog:",
+    "@types/react-dom": "catalog:"
   }
 }

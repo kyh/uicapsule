@@ -1,181 +1,111 @@
-import { asc, eq, like, or, sql } from "@repo/db";
-import { contentComponent } from "@repo/db/drizzle-schema";
 import { TRPCError } from "@trpc/server";
 
 import { createTRPCRouter, publicProcedure } from "../trpc";
 import {
   buildShadcnRegistryItem,
+  readContentBySlug,
+  readContentIndex,
+} from "./content-fs";
+import {
   getContentComponentInput,
   getContentComponentsInput,
   isLocalContentComponent,
-  mapRowToComponent,
-  safeParseJson,
   searchContentInput,
 } from "./content-schema";
 
-export const contentRouter = createTRPCRouter({
-  bySlug: publicProcedure.input(getContentComponentInput).query(async ({ ctx, input }) => {
-    const row = await ctx.db.query.contentComponent.findFirst({
-      where: eq(contentComponent.slug, input.slug),
-    });
+import type { ContentComponent } from "./content-schema";
 
-    if (!row) {
+type TagSummary = {
+  slug: string;
+  name: string;
+  description: string;
+  tags: string[];
+};
+
+const toSummary = (component: ContentComponent): TagSummary => ({
+  slug: component.slug,
+  name: component.name,
+  description: component.description ?? "",
+  tags: component.tags ?? [],
+});
+
+const computeTagCounts = (components: ContentComponent[]): Record<string, number> => {
+  const counts: Record<string, number> = {};
+  for (const component of components) {
+    for (const tag of component.tags ?? []) {
+      counts[tag] = (counts[tag] ?? 0) + 1;
+    }
+  }
+  return counts;
+};
+
+export const contentRouter = createTRPCRouter({
+  bySlug: publicProcedure.input(getContentComponentInput).query(async ({ input }) => {
+    const component = await readContentBySlug(input.slug);
+    if (!component) {
       throw new TRPCError({
         code: "NOT_FOUND",
         message: `Component not found: ${input.slug}`,
       });
     }
-
-    return mapRowToComponent(row);
+    return component;
   }),
 
-  list: publicProcedure.input(getContentComponentsInput).query(async ({ ctx, input }) => {
+  list: publicProcedure.input(getContentComponentsInput).query(async ({ input }) => {
+    const all = await readContentIndex();
     const filterTags = input?.filterTags;
 
     if (!filterTags || filterTags.length === 0) {
-      const rows = await ctx.db.query.contentComponent.findMany({
-        orderBy: asc(contentComponent.slug),
-      });
-
-      return rows.map(mapRowToComponent);
+      return all;
     }
 
     const normalizedFilters = filterTags.map((tag) => tag.trim().toLowerCase()).filter(Boolean);
+    if (normalizedFilters.length === 0) return [];
 
-    if (normalizedFilters.length === 0) {
-      // If all filter tags were empty/whitespace, return no results
-      return [];
-    }
-
-    // Use SQL JSON functions to filter by tags at database level
-    const tagConditions = normalizedFilters.map(
-      (tag) => sql`json_extract(${contentComponent.tags}, '$') LIKE ${`%"${tag}"%`}`,
-    );
-
-    const rows = await ctx.db.query.contentComponent.findMany({
-      where: or(...tagConditions),
-      orderBy: asc(contentComponent.slug),
+    return all.filter((component) => {
+      const tags = component.tags ?? [];
+      return normalizedFilters.some((filter) => tags.includes(filter));
     });
-
-    return rows.map(mapRowToComponent);
   }),
 
-  search: publicProcedure.input(searchContentInput).query(async ({ ctx, input }) => {
+  search: publicProcedure.input(searchContentInput).query(async ({ input }) => {
+    const all = await readContentIndex();
     const { query, limit } = input;
-    const normalizedQuery = query?.trim().toLowerCase();
+    const normalizedQuery = query?.trim().toLowerCase() ?? "";
+
+    const trending = all.slice(0, 8).map(toSummary);
+    const tagCounts = computeTagCounts(all);
 
     if (!normalizedQuery) {
-      // Return trending components when no query
-      const rows = await ctx.db.query.contentComponent.findMany({
-        orderBy: asc(contentComponent.slug),
-        limit: 8,
-      });
-
-      const trending = rows.map((c) => ({
-        slug: c.slug,
-        name: c.name,
-        description: c.description ?? "",
-        tags: safeParseJson<string[]>(c.tags) ?? [],
-      }));
-
-      // Get tag counts for all components
-      const allRows = await ctx.db.query.contentComponent.findMany({
-        orderBy: asc(contentComponent.slug),
-      });
-
-      const tagCounts = allRows.reduce(
-        (acc, component) => {
-          const tags = safeParseJson<string[]>(component.tags) ?? [];
-          tags.forEach((tag) => {
-            acc[tag] = (acc[tag] ?? 0) + 1;
-          });
-          return acc;
-        },
-        {} as Record<string, number>,
-      );
-
-      return {
-        components: [],
-        tagCounts,
-        trending,
-        totalMatches: 0,
-      };
+      return { components: [], tagCounts, trending, totalMatches: 0 };
     }
 
-    // Use SQL LIKE for text search across name, description, and tags
-    const searchPattern = `%${normalizedQuery}%`;
-
-    const rows = await ctx.db.query.contentComponent.findMany({
-      where: or(
-        like(contentComponent.name, searchPattern),
-        like(contentComponent.description, searchPattern),
-        sql`json_extract(${contentComponent.tags}, '$') LIKE ${searchPattern}`,
-      ),
-      orderBy: asc(contentComponent.slug),
-      limit,
+    const matches = all.filter((component) => {
+      const haystacks = [
+        component.name,
+        component.description ?? "",
+        ...(component.tags ?? []),
+      ];
+      return haystacks.some((field) => field.toLowerCase().includes(normalizedQuery));
     });
 
-    const matchingComponents = rows.map((c) => ({
-      slug: c.slug,
-      name: c.name,
-      description: c.description ?? "",
-      tags: safeParseJson<string[]>(c.tags) ?? [],
-    }));
-
-    // Get tag counts for all components
-    const allRows = await ctx.db.query.contentComponent.findMany({
-      orderBy: asc(contentComponent.slug),
-    });
-
-    const tagCounts = allRows.reduce(
-      (acc, component) => {
-        const tags = safeParseJson<string[]>(component.tags) ?? [];
-        tags.forEach((tag) => {
-          acc[tag] = (acc[tag] ?? 0) + 1;
-        });
-        return acc;
-      },
-      {} as Record<string, number>,
-    );
-
-    // Get trending components
-    const trendingRows = await ctx.db.query.contentComponent.findMany({
-      orderBy: asc(contentComponent.slug),
-      limit: 8,
-    });
-
-    const trending = trendingRows.map((c) => ({
-      slug: c.slug,
-      name: c.name,
-      description: c.description ?? "",
-      tags: safeParseJson<string[]>(c.tags) ?? [],
-    }));
-
-    return {
-      components: matchingComponents,
-      tagCounts,
-      trending,
-      totalMatches: matchingComponents.length,
-    };
+    const components = matches.slice(0, limit).map(toSummary);
+    return { components, tagCounts, trending, totalMatches: matches.length };
   }),
 
-  shadcnRegistry: publicProcedure.query(async ({ ctx }) => {
-    const rows = await ctx.db.query.contentComponent.findMany({
-      orderBy: asc(contentComponent.slug),
-    });
+  shadcnRegistry: publicProcedure.query(async () => {
+    const all = await readContentIndex();
+    const locals = all.filter(isLocalContentComponent);
 
-    const components = rows.map(mapRowToComponent);
-    const localComponents = components.filter(isLocalContentComponent);
-
-    // Build registry items using the same helper as shadcnRegistryItem
-    const items = localComponents.map((component) => {
-      const item = buildShadcnRegistryItem(component);
-      // Remove content from files for registry index
-      return {
-        ...item,
-        files: item.files.map(({ content: _content, ...file }) => file),
-      };
-    });
+    const items = await Promise.all(
+      locals.map(async (component) => {
+        const item = await buildShadcnRegistryItem(component);
+        return {
+          ...item,
+          files: item.files.map(({ content: _content, ...rest }) => rest),
+        };
+      }),
+    );
 
     return {
       $schema: "https://ui.shadcn.com/schema/registry.json",
@@ -187,28 +117,17 @@ export const contentRouter = createTRPCRouter({
 
   shadcnRegistryItem: publicProcedure
     .input(getContentComponentInput)
-    .query(async ({ ctx, input }) => {
-      const { slug } = input;
-      const row = await ctx.db.query.contentComponent.findFirst({
-        where: eq(contentComponent.slug, slug),
-      });
-
-      if (!row) {
-        throw new TRPCError({
-          code: "NOT_FOUND",
-          message: `Component not found: ${slug}`,
-        });
+    .query(async ({ input }) => {
+      const component = await readContentBySlug(input.slug);
+      if (!component) {
+        throw new TRPCError({ code: "NOT_FOUND", message: `Component not found: ${input.slug}` });
       }
-
-      const component = mapRowToComponent(row);
-
       if (!isLocalContentComponent(component)) {
         throw new TRPCError({
           code: "BAD_REQUEST",
-          message: `Component "${slug}" does not support shadcn registry exports.`,
+          message: `Component "${input.slug}" does not support shadcn registry exports.`,
         });
       }
-
       return buildShadcnRegistryItem(component);
     }),
 });

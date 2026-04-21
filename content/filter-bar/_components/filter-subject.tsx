@@ -1,5 +1,5 @@
-import React, { isValidElement } from "react";
 
+import { isValidElement, type ComponentType } from "react";
 import type { Column, ColumnDataType } from "../filter-package";
 
 interface FilterSubjectProps<TData, TType extends ColumnDataType> {
@@ -19,7 +19,12 @@ export function FilterSubject<TData, TType extends ColumnDataType>({
   return (
     <span className="flex items-center gap-1 px-2 font-medium whitespace-nowrap select-none">
       {hasIcon &&
-        (isValidElement(Icon) ? Icon : <Icon className="text-primary size-4 stroke-[2.25px]" />)}
+        (isValidElement(Icon) ? (
+          Icon
+        ) : (() => {
+          const IconComp = Icon as ComponentType<{ className?: string }>;
+          return <IconComp className="text-primary size-4 stroke-[2.25px]" />;
+        })())}
 
       <span>{subject}</span>
     </span>

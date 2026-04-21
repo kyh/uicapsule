@@ -1,6 +1,6 @@
-import React from "react";
 
-export const Logo = (props: React.SVGProps<SVGSVGElement>) => (
+import { type SVGProps } from "react";
+export const Logo = (props: SVGProps<SVGSVGElement>) => (
   <svg
     width="32"
     height="32"

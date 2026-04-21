@@ -1,4 +1,4 @@
-import React from "react";
+"use client";
 
 import { BackgroundPixelStars } from "./background-pixel-stars";
 

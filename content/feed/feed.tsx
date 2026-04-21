@@ -1,24 +1,24 @@
-import React from "react";
 
+import { forwardRef, type ComponentPropsWithoutRef } from "react";
 function cn(...classes: (string | undefined | null | false)[]) {
   return classes.filter(Boolean).join(" ");
 }
 
-const Feed = React.forwardRef<HTMLDivElement, React.ComponentPropsWithoutRef<"div">>(
+const Feed = forwardRef<HTMLDivElement, ComponentPropsWithoutRef<"div">>(
   ({ className, ...props }, ref) => (
     <div ref={ref} className={cn("space-y-0", className)} {...props} />
   ),
 );
 Feed.displayName = "Feed";
 
-const FeedItem = React.forwardRef<HTMLDivElement, React.ComponentPropsWithoutRef<"div">>(
+const FeedItem = forwardRef<HTMLDivElement, ComponentPropsWithoutRef<"div">>(
   ({ className, ...props }, ref) => (
     <div ref={ref} className={cn("group relative flex gap-x-5", className)} {...props} />
   ),
 );
 FeedItem.displayName = "FeedItem";
 
-const FeedIndicator = React.forwardRef<HTMLDivElement, React.ComponentPropsWithoutRef<"div">>(
+const FeedIndicator = forwardRef<HTMLDivElement, ComponentPropsWithoutRef<"div">>(
   ({ className, children, ...props }, ref) => (
     <div
       ref={ref}
@@ -34,42 +34,42 @@ const FeedIndicator = React.forwardRef<HTMLDivElement, React.ComponentPropsWitho
 );
 FeedIndicator.displayName = "FeedIndicator";
 
-const FeedContent = React.forwardRef<HTMLDivElement, React.ComponentPropsWithoutRef<"div">>(
+const FeedContent = forwardRef<HTMLDivElement, ComponentPropsWithoutRef<"div">>(
   ({ className, ...props }, ref) => (
     <div ref={ref} className={cn("grow pb-8 group-last:pb-0", className)} {...props} />
   ),
 );
 FeedContent.displayName = "FeedContent";
 
-const FeedLabel = React.forwardRef<HTMLParagraphElement, React.ComponentPropsWithoutRef<"p">>(
+const FeedLabel = forwardRef<HTMLParagraphElement, ComponentPropsWithoutRef<"p">>(
   ({ className, ...props }, ref) => (
     <p ref={ref} className={cn("mb-1 text-xs text-muted-foreground-2", className)} {...props} />
   ),
 );
 FeedLabel.displayName = "FeedLabel";
 
-const FeedTitle = React.forwardRef<HTMLParagraphElement, React.ComponentPropsWithoutRef<"p">>(
+const FeedTitle = forwardRef<HTMLParagraphElement, ComponentPropsWithoutRef<"p">>(
   ({ className, ...props }, ref) => (
     <p ref={ref} className={cn("text-sm font-semibold text-foreground", className)} {...props} />
   ),
 );
 FeedTitle.displayName = "FeedTitle";
 
-const FeedDescription = React.forwardRef<HTMLParagraphElement, React.ComponentPropsWithoutRef<"p">>(
+const FeedDescription = forwardRef<HTMLParagraphElement, ComponentPropsWithoutRef<"p">>(
   ({ className, ...props }, ref) => (
     <p ref={ref} className={cn("mt-1 text-sm text-muted-foreground-2", className)} {...props} />
   ),
 );
 FeedDescription.displayName = "FeedDescription";
 
-const FeedList = React.forwardRef<HTMLUListElement, React.ComponentPropsWithoutRef<"ul">>(
+const FeedList = forwardRef<HTMLUListElement, ComponentPropsWithoutRef<"ul">>(
   ({ className, ...props }, ref) => (
     <ul ref={ref} className={cn("ms-6 mt-3 list-disc space-y-1.5", className)} {...props} />
   ),
 );
 FeedList.displayName = "FeedList";
 
-const FeedListItem = React.forwardRef<HTMLLIElement, React.ComponentPropsWithoutRef<"li">>(
+const FeedListItem = forwardRef<HTMLLIElement, ComponentPropsWithoutRef<"li">>(
   ({ className, ...props }, ref) => (
     <li ref={ref} className={cn("ps-1 text-sm text-muted-foreground-2", className)} {...props} />
   ),

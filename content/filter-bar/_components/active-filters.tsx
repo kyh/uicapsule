@@ -1,4 +1,5 @@
-import React, { useEffect, useMemo, useRef, useState } from "react";
+
+import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { Button } from "@repo/ui/components/button";
 import { Separator } from "@repo/ui/components/separator";
 import { X } from "lucide-react";
@@ -111,7 +112,7 @@ export function ActiveFilter<TData, TType extends ColumnDataType>({
   );
 }
 
-export function ActiveFiltersMobileContainer({ children }: { children: React.ReactNode }) {
+export function ActiveFiltersMobileContainer({ children }: { children: ReactNode }) {
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const [showLeftBlur, setShowLeftBlur] = useState(false);
   const [showRightBlur, setShowRightBlur] = useState(true);

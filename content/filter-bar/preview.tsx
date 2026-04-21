@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import { useState } from "react";
 
 import type { FiltersState } from "./filter-package/core/types";
 import { DataTableFilter } from "./_components/data-table-filter";

@@ -1,5 +1,5 @@
-import { useEffect, useRef } from "react";
 
+import { useEffect, useRef, type MouseEvent as ReactMouseEvent } from "react";
 interface UseResizableSidebarOptions {
   defaultWidth?: number;
   minWidth?: number;
@@ -15,7 +15,7 @@ export const useResizableSidebar = ({
   const startWidthRef = useRef<number>(0);
   const isResizingRef = useRef<boolean>(false);
 
-  const handleMouseDown = (e: React.MouseEvent) => {
+  const handleMouseDown = (e: ReactMouseEvent) => {
     e.preventDefault();
     isResizingRef.current = true;
     startXRef.current = e.clientX;

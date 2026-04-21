@@ -1,6 +1,6 @@
 "use client";
 
-import * as React from "react";
+import { createContext, useContext, type CSSProperties, type HTMLAttributes } from "react";
 import { useRender } from "@base-ui/react/use-render";
 import { ChevronDownIcon } from "lucide-react";
 
@@ -13,20 +13,20 @@ type TreeContextValue<T = any> = {
   tree?: any;
 };
 
-const TreeContext = React.createContext<TreeContextValue>({
+const TreeContext = createContext<TreeContextValue>({
   indent: 20,
   currentItem: undefined,
   tree: undefined,
 });
 
 function useTreeContext<T = any>() {
-  return React.useContext(TreeContext) as TreeContextValue<T>;
+  return useContext(TreeContext) as TreeContextValue<T>;
 }
 
 type TreeProps = {
   indent?: number;
   tree?: any;
-} & React.HTMLAttributes<HTMLDivElement>;
+} & HTMLAttributes<HTMLDivElement>;
 
 const Tree = ({ indent = 20, tree, className, ...props }: TreeProps) => {
   const containerProps =
@@ -38,7 +38,7 @@ const Tree = ({ indent = 20, tree, className, ...props }: TreeProps) => {
   const mergedStyle = {
     ...propStyle,
     "--tree-indent": `${indent}px`,
-  } as React.CSSProperties;
+  } as CSSProperties;
 
   return (
     <TreeContext.Provider value={{ indent, tree }}>
@@ -55,8 +55,8 @@ const Tree = ({ indent = 20, tree, className, ...props }: TreeProps) => {
 type TreeItemProps<T = any> = {
   item: ItemInstance<T>;
   indent?: number;
-  render?: useRender.RenderProp<React.HTMLAttributes<HTMLElement>>;
-} & React.HTMLAttributes<HTMLButtonElement>;
+  render?: useRender.RenderProp<HTMLAttributes<HTMLElement>>;
+} & HTMLAttributes<HTMLButtonElement>;
 
 function TreeItem<T = any>({
   item,
@@ -75,7 +75,7 @@ function TreeItem<T = any>({
   const mergedStyle = {
     ...propStyle,
     "--tree-padding": `${item.getItemMeta().level * indent}px`,
-  } as React.CSSProperties;
+  } as CSSProperties;
 
   const element = useRender({
     render: render ?? <button type="button" />,
@@ -109,7 +109,7 @@ function TreeItem<T = any>({
 
 type TreeItemLabelProps<T = any> = {
   item?: ItemInstance<T>;
-} & React.HTMLAttributes<HTMLSpanElement>;
+} & HTMLAttributes<HTMLSpanElement>;
 
 function TreeItemLabel<T = any>({
   item: propItem,
@@ -142,7 +142,7 @@ function TreeItemLabel<T = any>({
   );
 }
 
-const TreeDragLine = ({ className, ...props }: React.HTMLAttributes<HTMLDivElement>) => {
+const TreeDragLine = ({ className, ...props }: HTMLAttributes<HTMLDivElement>) => {
   const { tree } = useTreeContext();
 
   if (!tree || typeof tree.getDragLineStyle !== "function") {

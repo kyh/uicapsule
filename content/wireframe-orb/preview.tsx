@@ -1,4 +1,5 @@
-import React from "react";
+"use client";
+
 import { WireframeOrb } from "./wireframe-orb";
 
 const Preview = () => {

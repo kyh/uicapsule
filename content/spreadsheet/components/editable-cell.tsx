@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useRef } from "react";
+import { useEffect, useRef, type ChangeEvent, type KeyboardEvent } from "react";
 import { Input } from "@repo/ui/components/input";
 
 import type { Cell, Column, Row, Table, TableMeta } from "@tanstack/react-table";
@@ -34,7 +34,7 @@ export const EditableCell = <TData extends SpreadsheetRow = SpreadsheetRow>({
   const value = getValue() as string;
   const isEditing = editingCell?.rowId === row.original.id && editingCell?.columnId === column.id;
 
-  const onChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const onChange = (e: ChangeEvent<HTMLInputElement>) => {
     updateData(row.original.id, column.id, e.target.value);
   };
 
@@ -42,7 +42,7 @@ export const EditableCell = <TData extends SpreadsheetRow = SpreadsheetRow>({
     setEditingCell(null);
   };
 
-  const onKeyDown = (e: React.KeyboardEvent) => {
+  const onKeyDown = (e: KeyboardEvent) => {
     if (e.key === "Enter" || e.key === "Escape") {
       setEditingCell(null);
     }

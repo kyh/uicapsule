@@ -1,5 +1,5 @@
-import React from "react";
 
+import { Fragment } from "react";
 export const Dashboard = () => {
   return (
     <div>
@@ -103,7 +103,7 @@ export const Dashboard = () => {
 
               {/* Data Rows - Generate multiple skeleton rows */}
               {Array.from({ length: 20 }).map((_, index) => (
-                <React.Fragment key={index}>
+                <Fragment key={index}>
                   <div className="bg-white-100 overflow-hidden border-r border-b border-[#EEEFF1]">
                     <div className="flex h-full w-full items-center justify-between gap-x-1.5 pr-[4.5px] pl-2">
                       <div className="bg-white-100 flex items-center gap-x-2.5 overflow-hidden">
@@ -138,7 +138,7 @@ export const Dashboard = () => {
                       <div className="h-5 w-18 rounded bg-gray-200"></div>
                     </div>
                   </div>
-                </React.Fragment>
+                </Fragment>
               ))}
             </div>
           </div>

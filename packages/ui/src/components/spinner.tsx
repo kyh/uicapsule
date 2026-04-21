@@ -1,4 +1,5 @@
-export const Spinner = (props: React.SVGProps<SVGSVGElement>) => (
+import { type SVGProps } from "react";
+export const Spinner = (props: SVGProps<SVGSVGElement>) => (
   <svg
     width="24"
     height="24"

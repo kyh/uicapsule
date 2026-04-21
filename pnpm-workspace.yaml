@@ -1,6 +1,7 @@
 packages:
   - apps/*
   - packages/*
+  - content/*
 
 catalog:
   "@base-ui/react": ^1.4.0

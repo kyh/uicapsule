@@ -1,4 +1,4 @@
-import React from "react";
+"use client";
 
 import { Dashboard } from "./dashboard";
 import { Sidebar } from "./sidebar";

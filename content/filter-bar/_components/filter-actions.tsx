@@ -1,4 +1,4 @@
-import React, { memo } from "react";
+import { memo } from "react";
 import { Button } from "@repo/ui/components/button";
 import { cn } from "@repo/ui/lib/utils";
 import { FilterXIcon } from "lucide-react";

@@ -1,4 +1,4 @@
-import React from "react";
+"use client";
 
 import { FeaturesSection } from "./_components/features-section";
 import { Footer } from "./_components/footer";
@@ -11,7 +11,7 @@ import "./preview.css";
 
 const Preview = () => {
   return (
-    <div className="font-sans antialiased">
+    <div className="emerald-template font-sans antialiased">
       <Header />
       <main className="contained-page text-center">
         <HeroSection />

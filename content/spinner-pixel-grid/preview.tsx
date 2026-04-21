@@ -1,4 +1,4 @@
-import React from "react";
+"use client";
 
 import { SpinnerPixelGrid, spinnerVariants } from "./spinner-pixel-grid";
 

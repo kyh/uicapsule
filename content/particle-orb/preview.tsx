@@ -1,4 +1,5 @@
-import React from "react";
+"use client";
+
 import { ParticleOrb } from "./particle-orb";
 
 const Preview = () => {

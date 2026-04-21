@@ -1,6 +1,6 @@
 "use client";
 
-import * as React from "react";
+import { useMemo } from "react";
 import { Slider as SliderPrimitive } from "@base-ui/react/slider";
 
 import { cn } from "@repo/ui/lib/utils";
@@ -13,7 +13,7 @@ const Slider = ({
   max = 100,
   ...props
 }: SliderPrimitive.Root.Props) => {
-  const thumbCount = React.useMemo(() => {
+  const thumbCount = useMemo(() => {
     if (Array.isArray(value)) return value.length;
     if (Array.isArray(defaultValue)) return defaultValue.length;
     return 1;

@@ -7,8 +7,20 @@
     "clean": "git clean -xdf .cache .turbo dist node_modules"
   },
   "dependencies": {
+    "@icons-pack/react-simple-icons": "^13.13.0",
+    "@radix-ui/react-use-controllable-state": "^1.2.2",
     "@repo/ui": "workspace:^",
-    "react": "*",
-    "react-dom": "*"
+    "lucide-react": "^1.8.0",
+    "motion": "^12.38.0",
+    "react": "catalog:",
+    "react-dom": "catalog:",
+    "react-hook-form": "^7.72.0"
+  },
+  "exports": {
+    "./preview": "./preview.tsx"
+  },
+  "devDependencies": {
+    "@types/react": "catalog:",
+    "@types/react-dom": "catalog:"
   }
 }

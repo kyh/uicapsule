@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useCallback, useMemo } from "react";
+import { useCallback, useMemo } from "react";
 import { Button } from "@repo/ui/components/button";
 import {
   DropdownMenu,

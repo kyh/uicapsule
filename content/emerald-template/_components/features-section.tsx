@@ -1,4 +1,5 @@
-import React from "react";
+
+import { type JSXElementConstructor, type ReactNode } from "react";
 import { cn } from "@repo/ui/lib/utils";
 import {
   ClipboardCheckIcon,
@@ -18,7 +19,7 @@ const SourceIcon = ({
   id,
   className,
 }: {
-  Icon?: React.JSXElementConstructor<any>;
+  Icon?: JSXElementConstructor<any>;
   id?: string;
   className?: string;
 }) => {
@@ -52,11 +53,11 @@ const HomeCard = ({
   children,
 }: {
   className?: string;
-  title?: React.ReactNode;
-  description?: React.ReactNode;
+  title?: ReactNode;
+  description?: ReactNode;
   inline?: boolean;
-  pattern?: React.ReactNode;
-  children?: React.ReactNode;
+  pattern?: ReactNode;
+  children?: ReactNode;
 }) => {
   return (
     <HighlightCard
@@ -87,7 +88,7 @@ const HomeCard = ({
   );
 };
 
-const HomeCardDescriptionList = ({ points }: { points: React.ReactNode[] }) => (
+const HomeCardDescriptionList = ({ points }: { points: ReactNode[] }) => (
   <ul className="flex flex-col gap-1">
     {points.map((point, index) => (
       <li className="flex items-start gap-2.5" key={index}>

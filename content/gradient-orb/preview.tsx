@@ -1,4 +1,5 @@
-import React from "react";
+"use client";
+
 import { GradientOrb } from "./gradient-orb";
 
 const Preview = () => {

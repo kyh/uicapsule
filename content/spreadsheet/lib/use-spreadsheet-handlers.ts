@@ -1,5 +1,5 @@
-import { useCallback } from "react";
 
+import { useCallback, type KeyboardEvent, type MouseEvent } from "react";
 import type { ColumnInfo } from "./spreadsheet-utils";
 import { useSpreadsheetStore } from "./spreadsheet-store";
 import {
@@ -34,7 +34,7 @@ export const useSpreadsheetHandlers = ({ columns, navigationMap }: UseSpreadshee
   // Note: navigationMap is now passed as a prop, not from store
   // Mouse down handler for all interactions
   const handleMouseDown = useCallback(
-    (e: React.MouseEvent, rowId: string, columnId: string) => {
+    (e: MouseEvent, rowId: string, columnId: string) => {
       if (e.button !== 0) return; // Only left mouse button
 
       const cellKey = `${rowId}:${columnId}`;
@@ -108,7 +108,9 @@ export const useSpreadsheetHandlers = ({ columns, navigationMap }: UseSpreadshee
           if (currentSelectedCells.size === 0) return new Set([cellKey]);
 
           const firstSelectedCell = Array.from(currentSelectedCells)[0];
+          if (!firstSelectedCell) return new Set([cellKey]);
           const [firstRowId, firstCol] = firstSelectedCell.split(":");
+          if (!firstRowId || !firstCol) return new Set([cellKey]);
           const rangeCells = getRangeCells(firstRowId, firstCol, rowId, columnId, columns, data);
           const newSelection = new Set(rangeCells);
           // Exit edit mode if multiple cells are selected
@@ -152,7 +154,7 @@ export const useSpreadsheetHandlers = ({ columns, navigationMap }: UseSpreadshee
   );
 
   const handleMouseMove = useCallback(
-    (e: React.MouseEvent, rowId: string, columnId: string) => {
+    (e: MouseEvent, rowId: string, columnId: string) => {
       if (!isDragging || !dragStartCell) return;
 
       // Update selection based on drag range
@@ -181,7 +183,7 @@ export const useSpreadsheetHandlers = ({ columns, navigationMap }: UseSpreadshee
   }, [setIsDragging, setDragStartCell]);
 
   const handleKeyDown = useCallback(
-    (e: React.KeyboardEvent) => {
+    (e: KeyboardEvent) => {
       const firstSelectedCell = getFirstSelectedCell(selectedCells);
       if (!firstSelectedCell) return;
 

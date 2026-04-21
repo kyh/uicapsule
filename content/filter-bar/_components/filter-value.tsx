@@ -1,5 +1,4 @@
-import type { DateRange } from "react-day-picker";
-import React, {
+import {
   cloneElement,
   isValidElement,
   memo,
@@ -8,7 +7,15 @@ import React, {
   useMemo,
   useRef,
   useState,
+  type Attributes,
+  type ChangeEvent,
+  type ComponentType,
+  type ElementType as ReactElementType,
+  type InputHTMLAttributes,
+  type Key,
+  type ReactElement,
 } from "react";
+import type { DateRange } from "react-day-picker";
 import { Button } from "@repo/ui/components/button";
 import { Calendar } from "@repo/ui/components/calendar";
 import { Checkbox } from "@repo/ui/components/checkbox";
@@ -22,7 +29,7 @@ import {
   CommandSeparator,
 } from "@repo/ui/components/command";
 import { Input } from "@repo/ui/components/input";
-import { Popover, PopoverAnchor, PopoverContent, PopoverTrigger } from "@repo/ui/components/popover";
+import { Popover, PopoverContent, PopoverTrigger } from "@repo/ui/components/popover";
 import { Slider } from "@repo/ui/components/slider";
 import { Switch } from "@repo/ui/components/switch";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@repo/ui/components/tabs";
@@ -40,6 +47,13 @@ import type {
   MinMaxReturn,
 } from "../filter-package";
 import { createNumberRange, numberFilterOperators, take } from "../filter-package";
+
+type IconLike = ReactElement<{ className?: string; key?: Key }> | ReactElementType;
+const renderIcon = (icon: IconLike, props: { className?: string; key?: Key } = {}) => {
+  if (isValidElement(icon)) return cloneElement(icon, props);
+  const IconComp = icon as ComponentType<{ className?: string }>;
+  return <IconComp {...props} />;
+};
 
 type ControlFunctions = {
   cancel: () => void;
@@ -244,7 +258,7 @@ export function DebouncedInput({
   value: string | number;
   onChange: (value: string | number) => void;
   debounceMs?: number;
-} & Omit<React.InputHTMLAttributes<HTMLInputElement>, "onChange">) {
+} & Omit<InputHTMLAttributes<HTMLInputElement>, "onChange">) {
   const [value, setValue] = useState(initialValue);
 
   // Sync with initialValue when it changes
@@ -260,7 +274,7 @@ export function DebouncedInput({
     [debounceMs, onChange], // Dependencies
   );
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
     const newValue = e.target.value;
     setValue(newValue); // Update local state immediately
     debouncedOnChange(newValue); // Call debounced version
@@ -418,7 +432,7 @@ export function FilterValueOptionDisplay<TData>({
     const hasIcon = !!Icon;
     return (
       <span className="inline-flex items-center gap-1">
-        {hasIcon && (isValidElement(Icon) ? Icon : <Icon className="text-primary size-4" />)}
+        {hasIcon && renderIcon(Icon, { className: "text-primary size-4" })}
         <span>{label}</span>
       </span>
     );
@@ -434,7 +448,7 @@ export function FilterValueOptionDisplay<TData>({
       {hasOptionIcons &&
         take(selected, 3).map(({ value, icon }) => {
           const Icon = icon!;
-          return isValidElement(Icon) ? Icon : <Icon key={value} className="size-4" />;
+          return renderIcon(Icon, { key: value, className: "size-4" });
         })}
       <span className={cn(hasOptionIcons && "ml-1.5")}>
         {selected.length} {pluralName}
@@ -456,7 +470,7 @@ export function FilterValueMultiOptionDisplay<TData>({
     const hasIcon = !!Icon;
     return (
       <span className="inline-flex items-center gap-1.5">
-        {hasIcon && (isValidElement(Icon) ? Icon : <Icon className="text-primary size-4" />)}
+        {hasIcon && renderIcon(Icon, { className: "text-primary size-4" })}
 
         <span>{label}</span>
       </span>
@@ -473,11 +487,9 @@ export function FilterValueMultiOptionDisplay<TData>({
         <div key="icons" className="inline-flex items-center gap-0.5">
           {take(selected, 3).map(({ value, icon }) => {
             const Icon = icon!;
-            return isValidElement(Icon) ? (
-              cloneElement(Icon, { key: value })
-            ) : (
-              <Icon key={value} className="size-4" />
-            );
+            return isValidElement(Icon)
+              ? cloneElement(Icon, { key: value } as Attributes)
+              : renderIcon(Icon, { key: value, className: "size-4" });
           })}
         </div>
       )}
@@ -664,7 +676,7 @@ const OptionItem = memo(function OptionItem({ option, onToggle }: OptionItemProp
           className="dark:border-ring mr-1 shrink-0 opacity-0 group-data-[selected=true]:opacity-100 data-[state=checked]:opacity-100"
         />
         <div className="shrink-0">
-          {Icon && (isValidElement(Icon) ? Icon : <Icon className="text-primary size-4" />)}
+          {Icon && renderIcon(Icon, { className: "text-primary size-4" })}
         </div>
         <span className="overflow-x-hidden overflow-ellipsis whitespace-nowrap">{label}</span>
       </div>
@@ -952,7 +964,9 @@ export function FilterValueNumberController<TData>({
                 {minMax && (
                   <Slider
                     value={[values[0]!]}
-                    onValueChange={(value) => changeNumber(value)}
+                    onValueChange={(value) =>
+                      changeNumber(Array.isArray(value) ? [...value] : [value])
+                    }
                     min={sliderMin}
                     max={sliderMax}
                     step={1}
@@ -973,7 +987,9 @@ export function FilterValueNumberController<TData>({
                 {minMax && (
                   <Slider
                     value={values} // Use values directly
-                    onValueChange={changeNumber}
+                    onValueChange={(value) =>
+                      changeNumber(Array.isArray(value) ? [...value] : [value])
+                    }
                     min={sliderMin}
                     max={sliderMax}
                     step={1}

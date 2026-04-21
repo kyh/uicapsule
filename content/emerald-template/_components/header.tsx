@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { buttonVariants } from "@repo/ui/components/button";
 import { cn } from "@repo/ui/lib/utils";
 import { useScroll } from "motion/react";

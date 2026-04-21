@@ -1,5 +1,6 @@
+import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import type { Group, Mesh, Texture } from "three";
-import React, { useEffect, useMemo, useRef, useState } from "react";
+
 import {
   Canvas,
   extend,
@@ -39,7 +40,7 @@ export const ImageCarouselCanvas = ({
   children,
 }: {
   backgroundColor?: string;
-  children: React.ReactNode;
+  children: ReactNode;
 }) => {
   const [frameloop, setFrameloop] = useState<Frameloop>("never");
 
@@ -121,31 +122,27 @@ export const ImageCarousel = ({
     texture.colorSpace = SRGBColorSpace;
   });
 
-  // Mouse wheel handler
-  const handleWheel = (event) => {
+  const handleWheel = (event: WheelEvent) => {
     event.preventDefault();
-    // Apply wheel sensitivity properly scaled
     const wheelForce = event.deltaY * wheelSensitivity;
     velocityRef.current += wheelForce;
-    isSnapping.current = false; // Stop snapping when user interacts
+    isSnapping.current = false;
   };
 
-  // Mouse drag handlers
-  const handleMouseDown = (event) => {
+  const handleMouseDown = (event: MouseEvent) => {
     isDragging.current = true;
     lastMouseX.current = event.clientX;
     gl.domElement.style.cursor = "grabbing";
   };
 
-  const handleMouseMove = (event) => {
+  const handleMouseMove = (event: MouseEvent) => {
     if (!isDragging.current) return;
 
     const deltaX = event.clientX - lastMouseX.current;
-    // Apply drag sensitivity properly scaled
     const dragForce = deltaX * dragSensitivity;
     velocityRef.current += dragForce;
     lastMouseX.current = event.clientX;
-    isSnapping.current = false; // Stop snapping when user drags
+    isSnapping.current = false;
   };
 
   const handleMouseUp = () => {
@@ -153,20 +150,22 @@ export const ImageCarousel = ({
     gl.domElement.style.cursor = "grab";
   };
 
-  // Touch handlers for mobile
-  const handleTouchStart = (event) => {
+  const handleTouchStart = (event: TouchEvent) => {
+    const touch = event.touches[0];
+    if (!touch) return;
     isDragging.current = true;
-    lastMouseX.current = event.touches[0].clientX;
+    lastMouseX.current = touch.clientX;
   };
 
-  const handleTouchMove = (event) => {
+  const handleTouchMove = (event: TouchEvent) => {
     if (!isDragging.current) return;
+    const touch = event.touches[0];
+    if (!touch) return;
 
-    const deltaX = event.touches[0].clientX - lastMouseX.current;
-    // Apply drag sensitivity properly scaled
+    const deltaX = touch.clientX - lastMouseX.current;
     const dragForce = deltaX * dragSensitivity;
     velocityRef.current += dragForce;
-    lastMouseX.current = event.touches[0].clientX;
+    lastMouseX.current = touch.clientX;
   };
 
   const handleTouchEnd = () => {
@@ -440,14 +439,18 @@ export const ImageCarousel = ({
 
   return (
     <group ref={groupRef}>
-      {images.map((image, index) => (
-        <ImagePlane
-          key={`${image}-${index}`}
-          texture={textures[index]}
-          index={index}
-          total={images.length}
-        />
-      ))}
+      {images.map((image, index) => {
+        const texture = textures[index];
+        if (!texture) return null;
+        return (
+          <ImagePlane
+            key={`${image}-${index}`}
+            texture={texture}
+            index={index}
+            total={images.length}
+          />
+        );
+      })}
       <pointLight position={[0, 2, 0]} intensity={0.5} />
       <ambientLight intensity={0.3} />
     </group>

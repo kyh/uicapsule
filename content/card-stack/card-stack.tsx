@@ -1,4 +1,5 @@
-import React from "react";
+
+import { useRef } from "react";
 import { useGSAP } from "@gsap/react";
 import gsap from "gsap";
 
@@ -8,7 +9,7 @@ type CardStackProps = {
 };
 
 export const CardStack = ({ cards }: CardStackProps) => {
-  const rootRef = React.useRef<HTMLDivElement>(null);
+  const rootRef = useRef<HTMLDivElement>(null);
 
   useGSAP(() => {
     let incr = 0;
@@ -79,8 +80,8 @@ export const CardStack = ({ cards }: CardStackProps) => {
           each: staggerEach,
           repeat: -1,
           repeatDelay: repeatDelay,
-          onRepeat() {
-            this.targets()[0].style.transform = "translateY(100vh)";
+          onRepeat(this: gsap.core.Tween) {
+            (this.targets()[0] as HTMLElement).style.transform = "translateY(100vh)";
           },
         },
       },
@@ -101,8 +102,8 @@ export const CardStack = ({ cards }: CardStackProps) => {
           each: staggerEach,
           repeat: -1,
           repeatDelay: repeatDelay,
-          onRepeat() {
-            this.targets()[0].style.transform = "translateY(0vh)";
+          onRepeat(this: gsap.core.Tween) {
+            (this.targets()[0] as HTMLElement).style.transform = "translateY(0vh)";
           },
         },
       },

@@ -62,8 +62,12 @@ export const getRangeCells = (
 
   const cells: string[] = [];
   for (let rowIndex = minRowIndex; rowIndex <= maxRowIndex; rowIndex++) {
+    const row = data[rowIndex];
+    if (!row) continue;
     for (let colIndex = minColIndex; colIndex <= maxColIndex; colIndex++) {
-      cells.push(`${data[rowIndex].id}:${columnIds[colIndex]}`);
+      const colId = columnIds[colIndex];
+      if (!colId) continue;
+      cells.push(`${row.id}:${colId}`);
     }
   }
   return cells;
@@ -134,10 +138,8 @@ export const getFirstSelectedCell = (selectedCells: Set<string>): CellPosition |
   if (!firstSelectedCell) return null;
 
   const [rowId, columnId] = firstSelectedCell.split(":");
-  return {
-    rowId,
-    columnId,
-  };
+  if (!rowId || !columnId) return null;
+  return { rowId, columnId };
 };
 
 /**
@@ -178,20 +180,24 @@ export const createNavigationMap = (
   data.forEach((row, rowIndex) => {
     columnIds.forEach((columnId, colIndex) => {
       const cellKey = `${row.id}:${columnId}`;
+      const prevRowId = data[rowIndex - 1]?.id;
+      const nextRowId = data[rowIndex + 1]?.id;
+      const prevColId = columnIds[colIndex - 1];
+      const nextColId = columnIds[colIndex + 1];
+      const firstColId = columnIds[0];
 
       const navigation: NavigationMap = {
-        up: rowIndex > 0 ? `${data[rowIndex - 1].id}:${columnId}` : null,
-        down: rowIndex < data.length - 1 ? `${data[rowIndex + 1].id}:${columnId}` : null,
-        left: colIndex > 0 ? `${row.id}:${columnIds[colIndex - 1]}` : null,
-        right: colIndex < columnIds.length - 1 ? `${row.id}:${columnIds[colIndex + 1]}` : null,
-        tab: null, // Will be calculated below
+        up: prevRowId ? `${prevRowId}:${columnId}` : null,
+        down: nextRowId ? `${nextRowId}:${columnId}` : null,
+        left: prevColId ? `${row.id}:${prevColId}` : null,
+        right: nextColId ? `${row.id}:${nextColId}` : null,
+        tab: null,
       };
 
-      // Calculate tab navigation
-      if (colIndex < columnIds.length - 1) {
-        navigation.tab = `${row.id}:${columnIds[colIndex + 1]}`;
-      } else if (rowIndex < data.length - 1) {
-        navigation.tab = `${data[rowIndex + 1].id}:${columnIds[0]}`;
+      if (nextColId) {
+        navigation.tab = `${row.id}:${nextColId}`;
+      } else if (nextRowId && firstColId) {
+        navigation.tab = `${nextRowId}:${firstColId}`;
       }
 
       navigationMap.set(cellKey, navigation);
@@ -216,5 +222,6 @@ export const getNextCellPositionFromMap = (
   if (!nextCellKey) return null;
 
   const [rowId, columnId] = nextCellKey.split(":");
+  if (!rowId || !columnId) return null;
   return { rowId, columnId };
 };

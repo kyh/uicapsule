@@ -1,4 +1,3 @@
-import React from "react";
 
 import { GridPattern } from "./grid-pattern";
 import { HeroExample } from "./hero-example";

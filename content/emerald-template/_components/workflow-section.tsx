@@ -1,12 +1,13 @@
-import React, { useEffect, useRef, useState } from "react";
+
+import { useEffect, useRef, useState, type JSXElementConstructor, type ReactNode } from "react";
 import { cn } from "@repo/ui/lib/utils";
+import { SiGithub } from "@icons-pack/react-simple-icons";
 import {
   ApertureIcon,
   AppWindowIcon,
   BracesIcon,
   DatabaseIcon,
   FileSpreadsheetIcon,
-  GithubIcon,
   GlobeIcon,
   UploadIcon,
 } from "lucide-react";
@@ -26,7 +27,7 @@ const SourceIcon = ({
   id,
   className,
 }: {
-  Icon?: React.JSXElementConstructor<any>;
+  Icon?: JSXElementConstructor<any>;
   id?: string;
   className?: string;
 }) => {
@@ -147,11 +148,11 @@ const HomeCard = ({
   children,
 }: {
   className?: string;
-  title?: React.ReactNode;
-  description?: React.ReactNode;
+  title?: ReactNode;
+  description?: ReactNode;
   inline?: boolean;
-  pattern?: React.ReactNode;
-  children?: React.ReactNode;
+  pattern?: ReactNode;
+  children?: ReactNode;
 }) => {
   return (
     <HighlightCard
@@ -261,7 +262,7 @@ export const WorkflowSection = () => {
               <SourceIcon id="drive" />
               <SourceIcon id="linear" />
               <SourceIcon Icon={GlobeIcon} />
-              <SourceIcon Icon={GithubIcon} />
+              <SourceIcon Icon={SiGithub} />
               <SourceIcon id="markdown" />
               <SourceIcon Icon={UploadIcon} />
             </div>

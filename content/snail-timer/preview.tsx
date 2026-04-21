@@ -1,9 +1,10 @@
-import React from "react";
+"use client";
 
+import { useState } from "react";
 import { SnailTimer } from "./snail-timer";
 
 const Preview = () => {
-  const [started, setStarted] = React.useState(false);
+  const [started, setStarted] = useState(false);
 
   const handleToggleStarted = () => {
     setStarted((prev) => !prev);

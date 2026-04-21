@@ -1,5 +1,6 @@
-import React, { useCallback, useEffect, useState } from "react";
+"use client";
 
+import { useEffect, useMemo, useState, type ReactElement, type ReactNode } from "react";
 // Cell shape functions that return JSX instead of SVG strings
 const Cell1 = ({ colors }: { colors: string[]; strokeWidth: number }) => (
   <circle cx="50" cy="50" r="9.44" fill={colors[0]} fillRule="evenodd" />
@@ -58,7 +59,7 @@ interface ShapeConfig {
   }: {
     colors: string[];
     strokeWidth: number;
-  }) => React.ReactElement | null;
+  }) => ReactElement | null;
   weight: number;
 }
 
@@ -82,7 +83,8 @@ const createWeightedSelector = (items: ShapeConfig[], seededRandom: () => number
     }
   }
 
-  return () => weightedArray[Math.floor(seededRandom() * weightedArray.length)];
+  return (): ShapeConfig =>
+    weightedArray[Math.floor(seededRandom() * weightedArray.length)] ?? items[0]!;
 };
 
 // Individual shape component that manages its own interval
@@ -173,18 +175,15 @@ export const BackgroundShapes = ({
   minInterval = 1000,
   maxInterval = 5000,
 }: BackgroundShapesProps) => {
-  const [shapes, setShapes] = useState<React.ReactNode[]>([]);
   const borderSize = cellSize * 2;
   const scale = 0.2;
+  const colorsKey = colors.join("|");
 
-  useEffect(() => {
-    const newShapes: React.ReactNode[] = [];
-
-    // Generate shapes for each cell
+  const shapes = useMemo<ReactNode[]>(() => {
+    const list: ReactNode[] = [];
     for (let x = borderSize; x < width / 2; x += cellSize) {
       for (let y = borderSize; y < height - borderSize; y += cellSize) {
-        // Left side
-        newShapes.push(
+        list.push(
           <Shape
             key={`left-${x}-${y}`}
             x={x}
@@ -196,10 +195,6 @@ export const BackgroundShapes = ({
             minInterval={minInterval}
             maxInterval={maxInterval}
           />,
-        );
-
-        // Right side (mirrored)
-        newShapes.push(
           <Shape
             key={`right-${x}-${y}`}
             x={width - cellSize - x}
@@ -214,9 +209,10 @@ export const BackgroundShapes = ({
         );
       }
     }
-
-    setShapes(newShapes);
-  }, [width, height, cellSize, strokeWidth, colors, borderSize, scale, minInterval, maxInterval]);
+    return list;
+    // colors identity may change per-render; use a stable join key instead.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [width, height, cellSize, strokeWidth, colorsKey, borderSize, minInterval, maxInterval]);
 
   return (
     <svg width={width} height={height} viewBox={`0 0 ${width} ${height}`} className={className}>

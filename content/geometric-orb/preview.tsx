@@ -1,4 +1,5 @@
-import React from "react";
+"use client";
+
 import { GeometricOrb } from "./geometric-orb";
 
 const Preview = () => {

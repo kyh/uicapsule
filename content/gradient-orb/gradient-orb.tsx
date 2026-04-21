@@ -232,6 +232,7 @@ function GradientScene({ config }: { config: Required<GradientOrbConfig> }) {
     rotRef.current += dt * config.rotationSpeed;
 
     const u = materialRef.current.uniforms;
+    if (!u.iTime || !u.hue || !u.rot || !u.iResolution) return;
     u.iTime.value = t;
     u.hue.value = config.hue;
     u.rot.value = rotRef.current;

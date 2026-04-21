@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useRef } from "react";
+import { useEffect, useRef } from "react";
 import { OrbitControls } from "@react-three/drei";
 import { Canvas, useFrame, useThree } from "@react-three/fiber";
 import { AsciiEffect } from "three/examples/jsm/effects/AsciiEffect.js";
@@ -22,7 +22,8 @@ const Torusknot = () => {
   const meshRef = useRef<any>(null);
 
   useFrame(
-    (state, delta) => (meshRef.current.rotation.x = meshRef.current.rotation.y += delta / 2),
+    (state, delta) =>
+      (meshRef.current.rotation.x = meshRef.current.rotation.y += delta / 2),
   );
 
   return (

@@ -139,7 +139,10 @@ function LatitudeLines({ config }: { config: Required<GeometricOrbConfig> }) {
       const group = groupRefs.current[lineIdx];
       if (!group) continue;
 
-      const { timeOffset, longitudeRotation, cosR, sinR } = lineConstants[lineIdx];
+      const constants = lineConstants[lineIdx];
+      const geometry = geometries[lineIdx];
+      if (!constants || !geometry) continue;
+      const { timeOffset, longitudeRotation, cosR, sinR } = constants;
       const progress = ((time + timeOffset) % config.speed) / config.speed;
       const latitude = progress * Math.PI;
       const circleRadius = Math.sin(latitude) * config.radius;
@@ -183,34 +186,41 @@ function LatitudeLines({ config }: { config: Required<GeometricOrbConfig> }) {
 
       // Close the loop: copy first vertex exactly to avoid floating-point gaps
       const last = config.pointsPerLine * 3;
-      positionBuffer[last] = positionBuffer[0];
-      positionBuffer[last + 1] = positionBuffer[1];
-      positionBuffer[last + 2] = positionBuffer[2];
-      colorBuffer[last] = colorBuffer[0];
-      colorBuffer[last + 1] = colorBuffer[1];
-      colorBuffer[last + 2] = colorBuffer[2];
+      positionBuffer[last] = positionBuffer[0]!;
+      positionBuffer[last + 1] = positionBuffer[1]!;
+      positionBuffer[last + 2] = positionBuffer[2]!;
+      colorBuffer[last] = colorBuffer[0]!;
+      colorBuffer[last + 1] = colorBuffer[1]!;
+      colorBuffer[last + 2] = colorBuffer[2]!;
 
-      geometries[lineIdx].setPositions(positionBuffer);
-      geometries[lineIdx].setColors(colorBuffer);
+      geometry.setPositions(positionBuffer);
+      geometry.setColors(colorBuffer);
       group.rotation.y = longitudeRotation;
     }
   });
 
   return (
     <>
-      {Array.from({ length: config.numLines }, (_, lineIdx) => (
-        <group
-          key={lineIdx}
-          ref={(el) => {
-            groupRefs.current[lineIdx] = el;
-          }}
-        >
-          <line2>
-            <primitive object={geometries[lineIdx]} attach="geometry" />
-            <primitive object={materials[lineIdx]} attach="material" />
-          </line2>
-        </group>
-      ))}
+      {Array.from({ length: config.numLines }, (_, lineIdx) => {
+        const geometry = geometries[lineIdx];
+        const material = materials[lineIdx];
+        if (!geometry || !material) return null;
+        return (
+          <group
+            key={lineIdx}
+            ref={(el) => {
+              groupRefs.current[lineIdx] = el;
+            }}
+          >
+            {/* @ts-expect-error line2 is an R3F extension registered via extend() */}
+            <line2>
+              <primitive object={geometry} attach="geometry" />
+              <primitive object={material} attach="material" />
+              {/* @ts-expect-error line2 is an R3F extension registered via extend() */}
+            </line2>
+          </group>
+        );
+      })}
     </>
   );
 }

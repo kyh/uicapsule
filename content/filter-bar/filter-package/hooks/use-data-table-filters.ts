@@ -1,7 +1,7 @@
 "use client";
 
+import { useCallback, useMemo, useState, type Dispatch, type SetStateAction } from "react";
 import type React from "react";
-import { useCallback, useMemo, useState } from "react";
 
 import type {
   BatchFilterOperations,
@@ -69,8 +69,8 @@ export function useDataTableFilters<
         // Detect handler type by function length and call appropriately
         if (onFiltersChange.length <= 1) {
           // React Dispatch style
-          const dispatchHandler = onFiltersChange as React.Dispatch<
-            React.SetStateAction<FiltersState>
+          const dispatchHandler = onFiltersChange as Dispatch<
+            SetStateAction<FiltersState>
           >;
           dispatchHandler(resolvedNextFilters);
         } else {

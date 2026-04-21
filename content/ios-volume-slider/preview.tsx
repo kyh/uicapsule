@@ -1,4 +1,4 @@
-import React from "react";
+"use client";
 
 import { Volume } from "./ios-volume-slider";
 

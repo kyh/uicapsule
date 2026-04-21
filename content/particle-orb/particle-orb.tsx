@@ -5,7 +5,7 @@ import * as THREE from "three";
 
 /** Extended PointsMaterial with compiled shader stashed on userData by onBeforeCompile. */
 interface PointsMaterialWithShader extends THREE.PointsMaterial {
-  userData: { shader?: THREE.Shader };
+  userData: { shader?: THREE.WebGLProgramParametersWithUniforms };
 }
 
 export const ParticleOrb = () => {
@@ -56,7 +56,7 @@ export const ParticleOrb = () => {
       const time = timeMs * 0.001;
       points.rotation.set(0, time * 0.2, 0);
       const shader = (material as PointsMaterialWithShader).userData.shader;
-      if (shader) shader.uniforms.time.value = time;
+      if (shader?.uniforms.time) shader.uniforms.time.value = time;
       renderer.render(scene, camera);
       animationFrameId = requestAnimationFrame(animate);
     };
@@ -112,7 +112,7 @@ function setupPointsShader(
   opts: { radius: number; particleSizeMin: number; particleSizeMax: number },
 ) {
   const { radius, particleSizeMin, particleSizeMax } = opts;
-  material.onBeforeCompile = (shader: THREE.Shader) => {
+  material.onBeforeCompile = (shader: THREE.WebGLProgramParametersWithUniforms) => {
     shader.uniforms.time = { value: 0 };
     shader.uniforms.radius = { value: radius };
     shader.uniforms.particleSizeMin = { value: particleSizeMin };

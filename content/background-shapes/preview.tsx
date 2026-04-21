@@ -1,4 +1,4 @@
-import React from "react";
+"use client";
 
 import { BackgroundShapes } from "./background-shapes";
 

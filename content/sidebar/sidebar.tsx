@@ -1,4 +1,4 @@
-import * as React from "react";
+
 import {
   BarChart3,
   Bell,
@@ -153,20 +153,20 @@ export const Sidebar = () => {
             <path
               d="M5.25 7.125 9 10.875l3.75-3.75"
               stroke="#5C5E63"
-              stroke-width="1.2"
-              stroke-linecap="round"
-              stroke-linejoin="round"
+              strokeWidth="1.2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
             ></path>
           </svg>
         </div>
         <svg width="18" height="18" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <g stroke="#75777C" stroke-width="1.2">
+          <g stroke="#75777C" strokeWidth="1.2">
             <rect x="1.5" y="2.5" width="15" height="13" rx="3"></rect>
             <path d="M7.8 2.725v12.5"></path>
             <path
               d="M3.975 5.425h1.35M3.975 7.674h1.35"
-              stroke-linecap="round"
-              stroke-linejoin="round"
+              strokeLinecap="round"
+              strokeLinejoin="round"
             ></path>
           </g>
         </svg>
@@ -182,9 +182,9 @@ export const Sidebar = () => {
                 height="12"
                 rx="2.5"
                 stroke="#232529"
-                stroke-width="1.1"
-                stroke-linecap="round"
-                stroke-linejoin="round"
+                strokeWidth="1.1"
+                strokeLinecap="round"
+                strokeLinejoin="round"
               ></rect>
               <rect
                 x="2"
@@ -193,16 +193,16 @@ export const Sidebar = () => {
                 height="9"
                 rx="2.5"
                 stroke="#232529"
-                stroke-width="1.1"
-                stroke-linecap="round"
-                stroke-linejoin="round"
+                strokeWidth="1.1"
+                strokeLinecap="round"
+                strokeLinejoin="round"
               ></rect>
               <path
                 d="M5.333 3.166v4.667m0-1.667 1.053-1m0 0 2.105-2m-2.105 2 2.28 2.667"
                 stroke="#232529"
-                stroke-width="1.1"
-                stroke-linecap="round"
-                stroke-linejoin="round"
+                strokeWidth="1.1"
+                strokeLinecap="round"
+                strokeLinejoin="round"
               ></path>
             </svg>
             <span className="min-w-0 flex-1 truncate text-[14px] leading-5 font-medium tracking-[-0.28px]">
