@@ -10,11 +10,11 @@
     "@icons-pack/react-simple-icons": "^13.13.0",
     "@radix-ui/react-use-controllable-state": "^1.2.2",
     "@repo/ui": "workspace:^",
-    "lucide-react": "^1.8.0",
+    "lucide-react": "^1.14.0",
     "motion": "^12.38.0",
     "react": "catalog:",
     "react-dom": "catalog:",
-    "react-hook-form": "^7.72.0"
+    "react-hook-form": "^7.75.0"
   },
   "exports": {
     "./preview": "./preview.tsx"

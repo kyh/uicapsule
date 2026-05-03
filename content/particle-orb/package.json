@@ -9,7 +9,7 @@
   "dependencies": {
     "react": "catalog:",
     "react-dom": "catalog:",
-    "three": "^0.175.0"
+    "three": "^0.184.0"
   },
   "exports": {
     "./preview": "./preview.tsx"
@@ -17,6 +17,6 @@
   "devDependencies": {
     "@types/react": "catalog:",
     "@types/react-dom": "catalog:",
-    "@types/three": "^0.180.0"
+    "@types/three": "^0.184.0"
   }
 }
