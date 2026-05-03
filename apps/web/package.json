@@ -28,6 +28,7 @@
     "@uicapsule/background-shapes": "workspace:*",
     "@uicapsule/card-stack": "workspace:*",
     "@uicapsule/carousel-3d": "workspace:*",
+    "@uicapsule/dynamic-island": "workspace:*",
     "@uicapsule/expanding-header-menu": "workspace:*",
     "@uicapsule/feed": "workspace:*",
     "@uicapsule/filter-bar": "workspace:*",

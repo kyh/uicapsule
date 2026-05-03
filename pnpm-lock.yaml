@@ -134,6 +134,9 @@ importers:
       '@uicapsule/carousel-3d':
         specifier: workspace:*
         version: link:../../content/carousel-3d
+      '@uicapsule/dynamic-island':
+        specifier: workspace:*
+        version: link:../../content/dynamic-island
       '@uicapsule/expanding-header-menu':
         specifier: workspace:*
         version: link:../../content/expanding-header-menu
@@ -368,6 +371,28 @@ importers:
       '@types/three':
         specifier: ^0.180.0
         version: 0.180.0
+
+  content/dynamic-island:
+    dependencies:
+      framer-motion:
+        specifier: ^12.38.0
+        version: 12.38.0(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
+      motion:
+        specifier: ^12.38.0
+        version: 12.38.0(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
+      react:
+        specifier: 'catalog:'
+        version: 19.2.4
+      react-dom:
+        specifier: 'catalog:'
+        version: 19.2.4(react@19.2.4)
+    devDependencies:
+      '@types/react':
+        specifier: 'catalog:'
+        version: 19.2.14
+      '@types/react-dom':
+        specifier: 'catalog:'
+        version: 19.2.3(@types/react@19.2.14)
 
   content/emerald-template:
     dependencies:
