@@ -1004,9 +1004,12 @@ importers:
       vaul:
         specifier: ^1.1.2
         version: 1.1.2(@types/react-dom@19.2.3(@types/react@19.2.14))(@types/react@19.2.14)(react-dom@19.2.5(react@19.2.5))(react@19.2.5)
+      web-haptics:
+        specifier: ^0.0.6
+        version: 0.0.6(react-dom@19.2.5(react@19.2.5))(react@19.2.5)
       zod:
         specifier: 'catalog:'
-        version: 4.4.3
+        version: 3.25.76
     devDependencies:
       '@kyh/tsconfig':
         specifier: 'catalog:'
@@ -7425,9 +7428,6 @@ packages:
 
   zod@4.4.2:
     resolution: {integrity: sha512-IynmDyxsEsb9RKzO3J9+4SxXnl2FTFSzNBaKKaMV6tsSk0rw9gYw9gs+JFCq/qk2LCZ78KDwyj+Z289TijSkUw==}
-
-  zod@4.4.3:
-    resolution: {integrity: sha512-ytENFjIJFl2UwYglde2jchW2Hwm4GJFLDiSXWdTrJQBIN9Fcyp7n4DhxJEiWNAJMV1/BqWfW/kkg71UDcHJyTQ==}
 
   zustand@4.5.7:
     resolution: {integrity: sha512-CHOUy7mu3lbD6o6LJLfllpjkzhHXSBlX8B9+qPddUsIfeF5S/UZ5q0kmCsnRqT1UHFQZchNFDDzMbQsuesHWlw==}
@@ -14475,8 +14475,6 @@ snapshots:
   zod@3.25.76: {}
 
   zod@4.4.2: {}
-
-  zod@4.4.3: {}
 
   zustand@4.5.7(@types/react@19.2.14)(react@19.2.5):
     dependencies:

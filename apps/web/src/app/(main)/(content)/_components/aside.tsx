@@ -30,7 +30,6 @@ import {
   DownloadIcon,
   InfoIcon,
 } from "lucide-react";
-import { useWebHaptics } from "web-haptics/react";
 
 import type { ContentComponent } from "@repo/api/content/content-schema";
 import { CodePreview } from "./code-preview";
@@ -41,7 +40,6 @@ type AsideProps = {
 
 const Aside = ({ contentComponent }: AsideProps) => {
   const sectionClassname = "-mx-3 flex flex-col gap-2.5 border-t px-3 pt-3 pb-1";
-  const { trigger } = useWebHaptics();
 
   const handleInstallClick = () => {
     if (!isLocalContentComponent(contentComponent)) {
@@ -228,7 +226,6 @@ const Aside = ({ contentComponent }: AsideProps) => {
             size="icon"
             render={<Link href={`/ui/${contentComponent.previousSlug}`} />}
             nativeButton={false}
-            onClick={() => trigger("medium")}
           >
             <ArrowLeftIcon className="size-4" />
             <span className="sr-only">Previous</span>
@@ -242,7 +239,6 @@ const Aside = ({ contentComponent }: AsideProps) => {
             size="icon"
             render={<Link href={`/ui/${contentComponent.nextSlug}`} />}
             nativeButton={false}
-            onClick={() => trigger("medium")}
           >
             <span className="sr-only">Next</span>
             <ArrowRightIcon className="size-4" />

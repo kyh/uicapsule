@@ -1,5 +1,8 @@
+"use client";
+
 import { Button as ButtonPrimitive } from "@base-ui/react/button";
 import { cva, type VariantProps } from "class-variance-authority";
+import { useWebHaptics } from "web-haptics/react";
 
 import { Spinner } from "@repo/ui/components/spinner";
 import { cn } from "@repo/ui/lib/utils";
@@ -64,13 +67,19 @@ function Button({
   loading,
   disabled,
   children,
+  onClick,
   ...props
 }: ButtonProps) {
+  const { trigger } = useWebHaptics();
   return (
     <ButtonPrimitive
       data-slot="button"
       className={cn(buttonVariants({ variant, size, loading, className }))}
       disabled={loading || disabled}
+      onClick={(event) => {
+        trigger(variant === "destructive" ? "warning" : "selection");
+        onClick?.(event);
+      }}
       {...props}
     >
       {loading && (
