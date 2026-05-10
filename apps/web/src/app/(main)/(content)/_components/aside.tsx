@@ -226,6 +226,7 @@ const Aside = ({ contentComponent }: AsideProps) => {
             size="icon"
             render={<Link href={`/ui/${contentComponent.previousSlug}`} />}
             nativeButton={false}
+            haptic="medium"
           >
             <ArrowLeftIcon className="size-4" />
             <span className="sr-only">Previous</span>
@@ -239,6 +240,7 @@ const Aside = ({ contentComponent }: AsideProps) => {
             size="icon"
             render={<Link href={`/ui/${contentComponent.nextSlug}`} />}
             nativeButton={false}
+            haptic="medium"
           >
             <span className="sr-only">Next</span>
             <ArrowRightIcon className="size-4" />

@@ -58,6 +58,7 @@ const buttonVariants = cva(
 type ButtonProps = ButtonPrimitive.Props &
   VariantProps<typeof buttonVariants> & {
     loading?: boolean;
+    haptic?: "selection" | "warning" | "medium";
   };
 
 function Button({
@@ -68,6 +69,7 @@ function Button({
   disabled,
   children,
   onClick,
+  haptic,
   ...props
 }: ButtonProps) {
   const { trigger } = useWebHaptics();
@@ -77,7 +79,9 @@ function Button({
       className={cn(buttonVariants({ variant, size, loading, className }))}
       disabled={loading || disabled}
       onClick={(event) => {
-        trigger(variant === "destructive" ? "warning" : "selection");
+        if (haptic) {
+          trigger(haptic);
+        }
         onClick?.(event);
       }}
       {...props}
