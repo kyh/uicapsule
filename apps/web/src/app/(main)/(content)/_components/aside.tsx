@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import Link from "next/link";
 import {
   isLocalContentComponent,
   isRemoteContentComponent,
@@ -36,9 +35,11 @@ import { CodePreview } from "./code-preview";
 
 type AsideProps = {
   contentComponent: ContentComponent;
+  onPrev?: () => void;
+  onNext?: () => void;
 };
 
-const Aside = ({ contentComponent }: AsideProps) => {
+const Aside = ({ contentComponent, onPrev, onNext }: AsideProps) => {
   const sectionClassname = "-mx-3 flex flex-col gap-2.5 border-t px-3 pt-3 pb-1";
 
   const handleInstallClick = () => {
@@ -220,26 +221,16 @@ const Aside = ({ contentComponent }: AsideProps) => {
         </div>
       )}
       <div className="text-muted-foreground/70 -mx-3 mt-auto -mb-3 flex justify-between gap-4 border-t px-3 py-3">
-        {contentComponent.previousSlug ? (
-          <Button
-            variant="ghost"
-            size="icon"
-            render={<Link href={`/ui/${contentComponent.previousSlug}`} />}
-            nativeButton={false}
-          >
+        {onPrev ? (
+          <Button variant="ghost" size="icon" onClick={onPrev}>
             <ArrowLeftIcon className="size-4" />
             <span className="sr-only">Previous</span>
           </Button>
         ) : (
           <div />
         )}
-        {contentComponent.nextSlug ? (
-          <Button
-            variant="ghost"
-            size="icon"
-            render={<Link href={`/ui/${contentComponent.nextSlug}`} />}
-            nativeButton={false}
-          >
+        {onNext ? (
+          <Button variant="ghost" size="icon" onClick={onNext}>
             <span className="sr-only">Next</span>
             <ArrowRightIcon className="size-4" />
           </Button>
@@ -251,7 +242,7 @@ const Aside = ({ contentComponent }: AsideProps) => {
   );
 };
 
-export const ResponsiveAside = ({ contentComponent }: AsideProps) => {
+export const ResponsiveAside = ({ contentComponent, onPrev, onNext }: AsideProps) => {
   const [isOpen, setIsOpen] = useState(true);
   const isDesktop = useMediaQuery();
 
@@ -271,7 +262,9 @@ export const ResponsiveAside = ({ contentComponent }: AsideProps) => {
         >
           <InfoIcon className="text-muted-foreground size-4" />
         </Button>
-        {isOpen && <Aside contentComponent={contentComponent} />}
+        {isOpen && (
+          <Aside contentComponent={contentComponent} onPrev={onPrev} onNext={onNext} />
+        )}
       </aside>
     );
 
@@ -289,7 +282,7 @@ export const ResponsiveAside = ({ contentComponent }: AsideProps) => {
             <DrawerDescription>Settings options</DrawerDescription>
           </DrawerHeader>
           <div className="pt-5">
-            <Aside contentComponent={contentComponent} />
+            <Aside contentComponent={contentComponent} onPrev={onPrev} onNext={onNext} />
           </div>
         </DrawerContent>
       </Drawer>

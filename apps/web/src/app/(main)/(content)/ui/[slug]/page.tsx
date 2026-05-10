@@ -1,10 +1,8 @@
 import { Suspense } from "react";
+import { notFound } from "next/navigation";
 
-import { ResponsiveAside } from "@/app/(main)/(content)/_components/aside";
-import {
-  ContentRenderer,
-  ContentRendererSkeleton,
-} from "@/app/(main)/(content)/_components/content-renderer";
+import { ContentFeed } from "@/app/(main)/(content)/_components/content-feed";
+import { ContentRendererSkeleton } from "@/app/(main)/(content)/_components/content-renderer";
 import { publicCaller } from "@/trpc/server";
 
 type Props = {
@@ -25,12 +23,10 @@ export default Page;
 
 const Content = async ({ params }: Props) => {
   const { slug } = await params;
-  const contentComponent = await publicCaller.content.bySlug({ slug });
+  const feed = await publicCaller.content.list();
+  if (!feed.some((c) => c.slug === slug)) {
+    notFound();
+  }
 
-  return (
-    <>
-      <ContentRenderer contentComponent={contentComponent} />
-      <ResponsiveAside contentComponent={contentComponent} />
-    </>
-  );
+  return <ContentFeed initialSlug={slug} feed={feed} />;
 };
