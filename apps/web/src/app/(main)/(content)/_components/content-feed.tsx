@@ -171,7 +171,6 @@ const FeedItem = ({ ref, component, shouldRender }: FeedItemProps) => {
             className="bg-background h-full w-full"
             title={component.name}
             src={src}
-            loading="lazy"
           />
         ) : (
           <div className="bg-muted h-full w-full animate-pulse" />
