@@ -30,6 +30,10 @@ export const ContentFeed = ({ initialSlug, feed }: ContentFeedProps) => {
   const itemRefs = useRef<(HTMLElement | null)[]>([]);
   const [activeIndex, setActiveIndex] = useState(initialIndex);
 
+  useEffect(() => {
+    setActiveIndex(initialIndex);
+  }, [initialIndex]);
+
   useLayoutEffect(() => {
     const container = containerRef.current;
     const target = itemRefs.current[initialIndex];
