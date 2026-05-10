@@ -88,6 +88,10 @@ export const ContentFeed = ({ initialSlug, feed }: ContentFeedProps) => {
         return;
       }
 
+      if (document.querySelector('[role="dialog"], [role="alertdialog"]')) {
+        return;
+      }
+
       if (e.key === "ArrowDown" || e.key === "j") {
         if (activeIndex < feed.length - 1) {
           e.preventDefault();
