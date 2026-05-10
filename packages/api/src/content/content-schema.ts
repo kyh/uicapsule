@@ -31,6 +31,12 @@ export type RemoteContentComponent = ContentComponentBase & {
 
 export type ContentComponent = LocalContentComponent | RemoteContentComponent;
 
+export type LocalContentComponentSummary = Omit<LocalContentComponent, "sourceFiles">;
+export type RemoteContentComponentSummary = RemoteContentComponent;
+export type ContentComponentSummary =
+  | LocalContentComponentSummary
+  | RemoteContentComponentSummary;
+
 export const isLocalContentComponent = (
   component: ContentComponent,
 ): component is LocalContentComponent => component.type === "local";
@@ -38,6 +44,14 @@ export const isLocalContentComponent = (
 export const isRemoteContentComponent = (
   component: ContentComponent,
 ): component is RemoteContentComponent => component.type === "remote";
+
+export const isLocalContentComponentSummary = (
+  component: ContentComponentSummary,
+): component is LocalContentComponentSummary => component.type === "local";
+
+export const isRemoteContentComponentSummary = (
+  component: ContentComponentSummary,
+): component is RemoteContentComponentSummary => component.type === "remote";
 
 export const getContentComponentInput = z.object({
   slug: z.string(),

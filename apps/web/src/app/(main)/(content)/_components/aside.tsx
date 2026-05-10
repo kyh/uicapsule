@@ -2,8 +2,8 @@
 
 import { useState } from "react";
 import {
-  isLocalContentComponent,
-  isRemoteContentComponent,
+  isLocalContentComponentSummary,
+  isRemoteContentComponentSummary,
 } from "@repo/api/content/content-schema";
 import { Avatar, AvatarFallback, AvatarImage } from "@repo/ui/components/avatar";
 import { Badge } from "@repo/ui/components/badge";
@@ -20,6 +20,7 @@ import {
 import { toast } from "@repo/ui/components/sonner";
 import { cn } from "@repo/ui/lib/utils";
 import { useMediaQuery } from "@repo/ui/hooks/use-media-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import JSZip from "jszip";
 import {
   ArrowLeftIcon,
@@ -30,20 +31,23 @@ import {
   InfoIcon,
 } from "lucide-react";
 
-import type { ContentComponent } from "@repo/api/content/content-schema";
+import type { ContentComponentSummary } from "@repo/api/content/content-schema";
+import { useTRPC } from "@/trpc/react";
 import { CodePreview } from "./code-preview";
 
 type AsideProps = {
-  contentComponent: ContentComponent;
+  contentComponent: ContentComponentSummary;
   onPrev?: () => void;
   onNext?: () => void;
 };
 
 const Aside = ({ contentComponent, onPrev, onNext }: AsideProps) => {
   const sectionClassname = "-mx-3 flex flex-col gap-2.5 border-t px-3 pt-3 pb-1";
+  const trpc = useTRPC();
+  const queryClient = useQueryClient();
 
   const handleInstallClick = () => {
-    if (!isLocalContentComponent(contentComponent)) {
+    if (!isLocalContentComponentSummary(contentComponent)) {
       return;
     }
 
@@ -72,7 +76,7 @@ const Aside = ({ contentComponent, onPrev, onNext }: AsideProps) => {
   };
 
   const handleDownloadClick = async () => {
-    if (!isLocalContentComponent(contentComponent)) {
+    if (!isLocalContentComponentSummary(contentComponent)) {
       return;
     }
 
@@ -81,16 +85,22 @@ const Aside = ({ contentComponent, onPrev, onNext }: AsideProps) => {
       description: `${contentComponent.slug}.zip is being downloaded`,
     });
     try {
-      const zip = new JSZip();
+      const full = await queryClient.fetchQuery(
+        trpc.content.bySlug.queryOptions({ slug: contentComponent.slug }),
+      );
+      if (full.type !== "local") {
+        toast.error("Source files unavailable", { id: toastId });
+        return;
+      }
 
-      for (const { path, code } of contentComponent.sourceFiles) {
+      const zip = new JSZip();
+      for (const { path, code } of full.sourceFiles) {
         const cleanPath = path.startsWith("/") ? path.slice(1) : path;
         zip.file(cleanPath, code);
       }
 
       const zipBlob = await zip.generateAsync({ type: "blob" });
 
-      // Create download link
       const url = URL.createObjectURL(zipBlob);
       const link = document.createElement("a");
       link.href = url;
@@ -120,7 +130,7 @@ const Aside = ({ contentComponent, onPrev, onNext }: AsideProps) => {
       {contentComponent.description && (
         <p className="text-muted-foreground text-sm">{contentComponent.description}</p>
       )}
-      {isLocalContentComponent(contentComponent) ? (
+      {isLocalContentComponentSummary(contentComponent) ? (
         <Drawer>
           <div className="flex flex-col gap-1.5">
             <div className="flex rounded-full shadow-xs">
@@ -156,11 +166,11 @@ const Aside = ({ contentComponent, onPrev, onNext }: AsideProps) => {
               <DrawerTitle>Source Code</DrawerTitle>
               <DrawerDescription>Component source code</DrawerDescription>
             </DrawerHeader>
-            <CodePreview contentComponent={contentComponent} />
+            <LazyCodePreview slug={contentComponent.slug} />
           </DrawerContent>
         </Drawer>
       ) : (
-        isRemoteContentComponent(contentComponent) && (
+        isRemoteContentComponentSummary(contentComponent) && (
           <div className="flex flex-col items-center gap-1.5">
             <Button
               render={
@@ -240,6 +250,23 @@ const Aside = ({ contentComponent, onPrev, onNext }: AsideProps) => {
       </div>
     </Card>
   );
+};
+
+const LazyCodePreview = ({ slug }: { slug: string }) => {
+  const trpc = useTRPC();
+  const { data, isLoading } = useQuery(trpc.content.bySlug.queryOptions({ slug }));
+
+  if (isLoading) {
+    return (
+      <div className="text-muted-foreground p-6 text-sm">Loading source files…</div>
+    );
+  }
+  if (!data || data.type !== "local") {
+    return (
+      <div className="text-muted-foreground p-6 text-sm">Source files unavailable.</div>
+    );
+  }
+  return <CodePreview contentComponent={data} />;
 };
 
 export const ResponsiveAside = ({ contentComponent, onPrev, onNext }: AsideProps) => {

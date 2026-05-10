@@ -3,24 +3,21 @@
 import {
   useCallback,
   useEffect,
+  useLayoutEffect,
   useMemo,
   useRef,
   useState,
   type Ref,
 } from "react";
-import { isRemoteContentComponent } from "@repo/api/content/content-schema";
+import { isRemoteContentComponentSummary } from "@repo/api/content/content-schema";
 
-import type { ContentComponent, DefaultSize } from "@repo/api/content/content-schema";
+import type { ContentComponentSummary } from "@repo/api/content/content-schema";
 import { ResponsiveAside } from "./aside";
-
-const WIDTH_BY_SIZE = { sm: 360, md: 720, full: 1392 } as const satisfies Record<
-  DefaultSize,
-  number
->;
+import { WIDTH_BY_SIZE } from "./widths";
 
 type ContentFeedProps = {
   initialSlug: string;
-  feed: ContentComponent[];
+  feed: ContentComponentSummary[];
 };
 
 export const ContentFeed = ({ initialSlug, feed }: ContentFeedProps) => {
@@ -33,7 +30,7 @@ export const ContentFeed = ({ initialSlug, feed }: ContentFeedProps) => {
   const itemRefs = useRef<(HTMLElement | null)[]>([]);
   const [activeIndex, setActiveIndex] = useState(initialIndex);
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     const container = containerRef.current;
     const target = itemRefs.current[initialIndex];
     if (!container || !target) return;
@@ -140,12 +137,12 @@ export const ContentFeed = ({ initialSlug, feed }: ContentFeedProps) => {
 
 type FeedItemProps = {
   ref?: Ref<HTMLElement>;
-  component: ContentComponent;
+  component: ContentComponentSummary;
   shouldRender: boolean;
 };
 
 const FeedItem = ({ ref, component, shouldRender }: FeedItemProps) => {
-  const src = isRemoteContentComponent(component)
+  const src = isRemoteContentComponentSummary(component)
     ? component.iframeUrl
     : `/preview-frame/${component.slug}`;
 

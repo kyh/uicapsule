@@ -6,13 +6,10 @@ import { Tabs, TabsIndicator, TabsList, TabsTrigger } from "@repo/ui/components/
 import { useMediaQuery } from "@repo/ui/hooks/use-media-query";
 import { LaptopIcon, SmartphoneIcon } from "lucide-react";
 
-import type { ContentComponent, DefaultSize } from "@repo/api/content/content-schema";
+import type { ContentComponent } from "@repo/api/content/content-schema";
 import { Resizable } from "./resizable";
+import { WIDTH_BY_SIZE } from "./widths";
 
-const WIDTH_BY_SIZE = { sm: 360, md: 720, full: 1392 } as const satisfies Record<
-  DefaultSize,
-  number
->;
 const MOBILE_MAX_WIDTH = WIDTH_BY_SIZE.sm;
 const MOBILE_WIDTH = WIDTH_BY_SIZE.sm;
 const DESKTOP_WIDTH = WIDTH_BY_SIZE.md;

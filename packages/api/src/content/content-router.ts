@@ -13,7 +13,15 @@ import {
   searchContentInput,
 } from "./content-schema";
 
-import type { ContentComponent } from "./content-schema";
+import type { ContentComponent, ContentComponentSummary } from "./content-schema";
+
+const toFeedSummary = (component: ContentComponent): ContentComponentSummary => {
+  if (component.type === "local") {
+    const { sourceFiles: _sourceFiles, ...summary } = component;
+    return summary;
+  }
+  return component;
+};
 
 type TagSummary = {
   slug: string;
@@ -66,6 +74,11 @@ export const contentRouter = createTRPCRouter({
       const tags = component.tags ?? [];
       return normalizedFilters.some((filter) => tags.includes(filter));
     });
+  }),
+
+  feedList: publicProcedure.query(async () => {
+    const all = await readContentIndex();
+    return all.map(toFeedSummary);
   }),
 
   search: publicProcedure.input(searchContentInput).query(async ({ input }) => {

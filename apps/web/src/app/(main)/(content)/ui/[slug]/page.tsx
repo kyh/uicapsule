@@ -23,7 +23,7 @@ export default Page;
 
 const Content = async ({ params }: Props) => {
   const { slug } = await params;
-  const feed = await publicCaller.content.list();
+  const feed = await publicCaller.content.feedList();
   if (!feed.some((c) => c.slug === slug)) {
     notFound();
   }
