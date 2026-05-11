@@ -22,8 +22,6 @@ import { useMediaQuery } from "@repo/ui/hooks/use-media-query";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import JSZip from "jszip";
 import {
-  ArrowLeftIcon,
-  ArrowRightIcon,
   CheckIcon,
   ChevronDownIcon,
   ChevronUpIcon,
@@ -38,11 +36,14 @@ import { CodePreview } from "./code-preview";
 
 type AsideProps = {
   contentComponent: ContentComponentSummary;
+};
+
+type ResponsiveAsideProps = AsideProps & {
   onPrev?: () => void;
   onNext?: () => void;
 };
 
-const Aside = ({ contentComponent, onPrev, onNext }: AsideProps) => {
+const Aside = ({ contentComponent }: AsideProps) => {
   const sectionClassname = "-mx-3 flex flex-col gap-2.5 border-t px-3 pt-3 pb-1";
   const trpc = useTRPC();
   const queryClient = useQueryClient();
@@ -231,24 +232,6 @@ const Aside = ({ contentComponent, onPrev, onNext }: AsideProps) => {
           </div>
         </div>
       )}
-      <div className="text-muted-foreground/70 -mx-3 mt-auto -mb-3 flex justify-between gap-4 border-t px-3 py-3">
-        {onPrev ? (
-          <Button variant="ghost" size="icon" onClick={onPrev}>
-            <ArrowLeftIcon className="size-4" />
-            <span className="sr-only">Previous</span>
-          </Button>
-        ) : (
-          <div />
-        )}
-        {onNext ? (
-          <Button variant="ghost" size="icon" onClick={onNext}>
-            <span className="sr-only">Next</span>
-            <ArrowRightIcon className="size-4" />
-          </Button>
-        ) : (
-          <div />
-        )}
-      </div>
     </Card>
   );
 };
@@ -270,7 +253,7 @@ const LazyCodePreview = ({ slug }: { slug: string }) => {
   return <CodePreview contentComponent={data} />;
 };
 
-export const ResponsiveAside = ({ contentComponent, onPrev, onNext }: AsideProps) => {
+export const ResponsiveAside = ({ contentComponent, onPrev, onNext }: ResponsiveAsideProps) => {
   const isDesktop = useMediaQuery();
   const direction = isDesktop ? "right" : "bottom";
 
@@ -314,7 +297,7 @@ export const ResponsiveAside = ({ contentComponent, onPrev, onNext }: AsideProps
           <DrawerDescription>Component details</DrawerDescription>
         </DrawerHeader>
         <div className={cn(isDesktop ? "h-full p-2" : "pt-5")}>
-          <Aside contentComponent={contentComponent} onPrev={onPrev} onNext={onNext} />
+          <Aside contentComponent={contentComponent} />
         </div>
       </DrawerContent>
     </Drawer>
