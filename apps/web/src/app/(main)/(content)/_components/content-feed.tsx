@@ -10,9 +10,23 @@ import {
 } from "react";
 import { isRemoteContentComponent } from "@repo/api/content/content-schema";
 
-import type { ContentComponentSummary } from "@repo/api/content/content-schema";
+import type {
+  ContentComponentSummary,
+  DefaultSize,
+} from "@repo/api/content/content-schema";
 import { ResponsiveAside } from "./aside";
-import { WIDTH_BY_SIZE } from "./widths";
+
+const WIDTH_BY_SIZE = { sm: 360, md: 720, full: 1392 } as const satisfies Record<
+  DefaultSize,
+  number
+>;
+
+const KEY_DELTA: Record<string, 1 | -1> = {
+  ArrowDown: 1,
+  j: 1,
+  ArrowUp: -1,
+  k: -1,
+};
 
 type ContentFeedProps = {
   initialSlug: string;
@@ -63,14 +77,14 @@ export const ContentFeed = ({ initialSlug, feed }: ContentFeedProps) => {
     };
   }, [feed.length]);
 
+  const activeSlug = feed[activeIndex]?.slug;
   useEffect(() => {
-    const active = feed[activeIndex];
-    if (!active) return;
-    const path = `/ui/${active.slug}`;
+    if (!activeSlug) return;
+    const path = `/ui/${activeSlug}`;
     if (window.location.pathname !== path) {
       window.history.replaceState(null, "", path);
     }
-  }, [activeIndex, feed]);
+  }, [activeSlug]);
 
   const scrollToIndex = useCallback((idx: number) => {
     const container = containerRef.current;
@@ -91,17 +105,9 @@ export const ContentFeed = ({ initialSlug, feed }: ContentFeedProps) => {
         return;
       }
 
-      if (document.querySelector('[role="dialog"], [role="alertdialog"]')) {
-        return;
-      }
-
-      const delta =
-        e.key === "ArrowDown" || e.key === "j"
-          ? 1
-          : e.key === "ArrowUp" || e.key === "k"
-            ? -1
-            : 0;
+      const delta = KEY_DELTA[e.key];
       if (!delta) return;
+      if (document.querySelector('[role="dialog"], [role="alertdialog"]')) return;
 
       const next = activeIndex + delta;
       if (next < 0 || next >= feed.length) return;

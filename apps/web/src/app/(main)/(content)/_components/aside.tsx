@@ -1,9 +1,6 @@
 "use client";
 
-import {
-  isLocalContentComponent,
-  isRemoteContentComponent,
-} from "@repo/api/content/content-schema";
+import { isLocalContentComponent } from "@repo/api/content/content-schema";
 import { Avatar, AvatarFallback, AvatarImage } from "@repo/ui/components/avatar";
 import { Badge } from "@repo/ui/components/badge";
 import { Button, buttonVariants } from "@repo/ui/components/button";
@@ -36,6 +33,7 @@ import { useTRPC } from "@/trpc/react";
 import { CodePreview } from "./code-preview";
 
 const FLOATING_BUTTON_CLASS = "size-9 rounded-full shadow-sm";
+const SECTION_CLASS = "-mx-3 flex flex-col gap-2.5 border-t px-3 pt-3 pb-1";
 
 type AsideProps = {
   contentComponent: ContentComponentSummary;
@@ -47,7 +45,6 @@ type ResponsiveAsideProps = AsideProps & {
 };
 
 const Aside = ({ contentComponent }: AsideProps) => {
-  const sectionClassname = "-mx-3 flex flex-col gap-2.5 border-t px-3 pt-3 pb-1";
   const trpc = useTRPC();
   const queryClient = useQueryClient();
 
@@ -89,7 +86,7 @@ const Aside = ({ contentComponent }: AsideProps) => {
       const full = await queryClient.fetchQuery(
         trpc.content.bySlug.queryOptions({ slug: contentComponent.slug }),
       );
-      if (full.type !== "local") {
+      if (!isLocalContentComponent(full)) {
         toast.error("Source files unavailable", { id: toastId });
         return;
       }
@@ -171,24 +168,20 @@ const Aside = ({ contentComponent }: AsideProps) => {
           </DrawerContent>
         </NestedDrawer>
       ) : (
-        isRemoteContentComponent(contentComponent) && (
-          <div className="flex flex-col items-center gap-1.5">
-            <Button
-              render={
-                <a href={contentComponent.sourceUrl} target="_blank" rel="noreferrer" />
-              }
-              nativeButton={false}
-              variant="outline"
-              className="w-full rounded-full shadow-none focus-visible:z-10"
-            >
-              View Source on GitHub
-            </Button>
-            <span className="text-muted-foreground text-center text-xs">Opens in a new tab</span>
-          </div>
-        )
+        <div className="flex flex-col items-center gap-1.5">
+          <Button
+            render={<a href={contentComponent.sourceUrl} target="_blank" rel="noreferrer" />}
+            nativeButton={false}
+            variant="outline"
+            className="w-full rounded-full shadow-none focus-visible:z-10"
+          >
+            View Source on GitHub
+          </Button>
+          <span className="text-muted-foreground text-center text-xs">Opens in a new tab</span>
+        </div>
       )}
       {contentComponent.asSeenOn && (
-        <div className={sectionClassname}>
+        <div className={SECTION_CLASS}>
           <h2>As seen on</h2>
           <div className="flex flex-wrap gap-2">
             {contentComponent.asSeenOn.map((item) => (
@@ -205,7 +198,7 @@ const Aside = ({ contentComponent }: AsideProps) => {
         </div>
       )}
       {contentComponent.tags && (
-        <div className={sectionClassname}>
+        <div className={SECTION_CLASS}>
           <h2>Tags</h2>
           <div className="flex flex-wrap gap-2">
             {contentComponent.tags.map((tag) => (
@@ -217,12 +210,12 @@ const Aside = ({ contentComponent }: AsideProps) => {
         </div>
       )}
       {contentComponent.authors && (
-        <div className={sectionClassname}>
+        <div className={SECTION_CLASS}>
           <h2>Author</h2>
           <div className="*:data-[slot=avatar]:ring-background flex -space-x-2 *:data-[slot=avatar]:ring-2 *:data-[slot=avatar]:grayscale">
             {contentComponent.authors.map((author) => (
               <a href={author.url} key={author.name} target="_blank">
-                <Avatar key={author.name}>
+                <Avatar>
                   <AvatarImage src={author.url} />
                   <AvatarFallback>{author.name.charAt(0)}</AvatarFallback>
                 </Avatar>
@@ -242,7 +235,7 @@ const LazyCodePreview = ({ slug }: { slug: string }) => {
   if (isLoading) {
     return <div className="text-muted-foreground p-6 text-sm">Loading source files…</div>;
   }
-  if (!data || data.type !== "local") {
+  if (!data || !isLocalContentComponent(data)) {
     return <div className="text-muted-foreground p-6 text-sm">Source files unavailable.</div>;
   }
   return <CodePreview contentComponent={data} />;
