@@ -1,6 +1,5 @@
 "use client";
 
-import { useState } from "react";
 import {
   isLocalContentComponentSummary,
   isRemoteContentComponentSummary,
@@ -26,6 +25,8 @@ import {
   ArrowLeftIcon,
   ArrowRightIcon,
   CheckIcon,
+  ChevronDownIcon,
+  ChevronUpIcon,
   ClipboardCheckIcon,
   DownloadIcon,
   InfoIcon,
@@ -270,49 +271,52 @@ const LazyCodePreview = ({ slug }: { slug: string }) => {
 };
 
 export const ResponsiveAside = ({ contentComponent, onPrev, onNext }: AsideProps) => {
-  const [isOpen, setIsOpen] = useState(true);
   const isDesktop = useMediaQuery();
-
-  if (isDesktop)
-    return (
-      <aside
-        className={cn(
-          "absolute right-0 z-10 h-full w-80 pr-6 pb-13",
-          !isOpen && "pointer-events-none",
-        )}
-      >
-        <Button
-          className={cn("absolute top-4 right-8 z-10 size-5", !isOpen && "pointer-events-auto")}
-          variant="secondary"
-          size="icon"
-          onClick={() => setIsOpen((prev) => !prev)}
-        >
-          <InfoIcon className="text-muted-foreground size-4" />
-        </Button>
-        {isOpen && (
-          <Aside contentComponent={contentComponent} onPrev={onPrev} onNext={onNext} />
-        )}
-      </aside>
-    );
+  const direction = isDesktop ? "right" : "bottom";
 
   return (
-    <div className="absolute top-2 right-4">
-      <Drawer>
+    <Drawer direction={direction}>
+      <div className="absolute right-4 bottom-4 z-10 flex flex-col gap-2">
+        <Button
+          variant="secondary"
+          size="icon"
+          className="size-9 rounded-full shadow-sm"
+          onClick={onPrev}
+          disabled={!onPrev}
+        >
+          <ChevronUpIcon className="size-4" />
+          <span className="sr-only">Previous</span>
+        </Button>
         <DrawerTrigger asChild>
-          <Button className="size-7" variant="secondary" size="icon">
-            <InfoIcon className="text-muted-foreground size-4" />
+          <Button
+            variant="secondary"
+            size="icon"
+            className="size-9 rounded-full shadow-sm"
+          >
+            <InfoIcon className="size-4" />
+            <span className="sr-only">Info</span>
           </Button>
         </DrawerTrigger>
-        <DrawerContent>
-          <DrawerHeader className="sr-only">
-            <DrawerTitle>Settings</DrawerTitle>
-            <DrawerDescription>Settings options</DrawerDescription>
-          </DrawerHeader>
-          <div className="pt-5">
-            <Aside contentComponent={contentComponent} onPrev={onPrev} onNext={onNext} />
-          </div>
-        </DrawerContent>
-      </Drawer>
-    </div>
+        <Button
+          variant="secondary"
+          size="icon"
+          className="size-9 rounded-full shadow-sm"
+          onClick={onNext}
+          disabled={!onNext}
+        >
+          <ChevronDownIcon className="size-4" />
+          <span className="sr-only">Next</span>
+        </Button>
+      </div>
+      <DrawerContent>
+        <DrawerHeader className="sr-only">
+          <DrawerTitle>Component info</DrawerTitle>
+          <DrawerDescription>Component details</DrawerDescription>
+        </DrawerHeader>
+        <div className={cn(isDesktop ? "h-full p-2" : "pt-5")}>
+          <Aside contentComponent={contentComponent} onPrev={onPrev} onNext={onNext} />
+        </div>
+      </DrawerContent>
+    </Drawer>
   );
 };
