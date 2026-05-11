@@ -14,8 +14,6 @@ export type ContentComponentBase = {
   tags?: string[];
   authors?: { name: string; url: string; avatarUrl: string }[];
   asSeenOn?: { name: string; url: string; avatarUrl: string }[];
-  previousSlug?: string;
-  nextSlug?: string;
 };
 
 export type LocalContentComponent = ContentComponentBase & {
@@ -32,26 +30,15 @@ export type RemoteContentComponent = ContentComponentBase & {
 export type ContentComponent = LocalContentComponent | RemoteContentComponent;
 
 export type LocalContentComponentSummary = Omit<LocalContentComponent, "sourceFiles">;
-export type RemoteContentComponentSummary = RemoteContentComponent;
-export type ContentComponentSummary =
-  | LocalContentComponentSummary
-  | RemoteContentComponentSummary;
+export type ContentComponentSummary = LocalContentComponentSummary | RemoteContentComponent;
 
-export const isLocalContentComponent = (
-  component: ContentComponent,
-): component is LocalContentComponent => component.type === "local";
+export const isLocalContentComponent = <T extends { type: "local" | "remote" }>(
+  component: T,
+): component is Extract<T, { type: "local" }> => component.type === "local";
 
-export const isRemoteContentComponent = (
-  component: ContentComponent,
-): component is RemoteContentComponent => component.type === "remote";
-
-export const isLocalContentComponentSummary = (
-  component: ContentComponentSummary,
-): component is LocalContentComponentSummary => component.type === "local";
-
-export const isRemoteContentComponentSummary = (
-  component: ContentComponentSummary,
-): component is RemoteContentComponentSummary => component.type === "remote";
+export const isRemoteContentComponent = <T extends { type: "local" | "remote" }>(
+  component: T,
+): component is Extract<T, { type: "remote" }> => component.type === "remote";
 
 export const getContentComponentInput = z.object({
   slug: z.string(),

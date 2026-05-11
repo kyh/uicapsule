@@ -124,11 +124,7 @@ export const readContentIndex = cache(async (): Promise<ContentComponent[]> => {
 
   const components = built.filter((c): c is ContentComponent => c !== null);
 
-  return components.map((component, index) => ({
-    ...component,
-    previousSlug: index > 0 ? components[index - 1]?.slug : undefined,
-    nextSlug: index < components.length - 1 ? components[index + 1]?.slug : undefined,
-  }));
+  return components;
 });
 
 export const readContentBySlug = cache(

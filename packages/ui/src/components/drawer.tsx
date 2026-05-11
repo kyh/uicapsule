@@ -9,6 +9,10 @@ function Drawer({ ...props }: ComponentProps<typeof DrawerPrimitive.Root>) {
   return <DrawerPrimitive.Root data-slot="drawer" {...props} />;
 }
 
+function NestedDrawer({ ...props }: ComponentProps<typeof DrawerPrimitive.NestedRoot>) {
+  return <DrawerPrimitive.NestedRoot data-slot="drawer" {...props} />;
+}
+
 function DrawerTrigger({ ...props }: ComponentProps<typeof DrawerPrimitive.Trigger>) {
   return <DrawerPrimitive.Trigger data-slot="drawer-trigger" {...props} />;
 }
@@ -108,6 +112,7 @@ function DrawerDescription({
 
 export {
   Drawer,
+  NestedDrawer,
   DrawerPortal,
   DrawerOverlay,
   DrawerTrigger,

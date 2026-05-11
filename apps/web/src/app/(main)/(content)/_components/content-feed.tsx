@@ -4,12 +4,11 @@ import {
   useCallback,
   useEffect,
   useLayoutEffect,
-  useMemo,
   useRef,
   useState,
   type Ref,
 } from "react";
-import { isRemoteContentComponentSummary } from "@repo/api/content/content-schema";
+import { isRemoteContentComponent } from "@repo/api/content/content-schema";
 
 import type { ContentComponentSummary } from "@repo/api/content/content-schema";
 import { ResponsiveAside } from "./aside";
@@ -21,10 +20,10 @@ type ContentFeedProps = {
 };
 
 export const ContentFeed = ({ initialSlug, feed }: ContentFeedProps) => {
-  const initialIndex = useMemo(() => {
-    const idx = feed.findIndex((c) => c.slug === initialSlug);
-    return idx === -1 ? 0 : idx;
-  }, [feed, initialSlug]);
+  const initialIndex = Math.max(
+    0,
+    feed.findIndex((c) => c.slug === initialSlug),
+  );
 
   const containerRef = useRef<HTMLDivElement>(null);
   const itemRefs = useRef<(HTMLElement | null)[]>([]);
@@ -96,23 +95,24 @@ export const ContentFeed = ({ initialSlug, feed }: ContentFeedProps) => {
         return;
       }
 
-      if (e.key === "ArrowDown" || e.key === "j") {
-        if (activeIndex < feed.length - 1) {
-          e.preventDefault();
-          scrollToIndex(activeIndex + 1);
-        }
-      } else if (e.key === "ArrowUp" || e.key === "k") {
-        if (activeIndex > 0) {
-          e.preventDefault();
-          scrollToIndex(activeIndex - 1);
-        }
-      }
+      const delta =
+        e.key === "ArrowDown" || e.key === "j"
+          ? 1
+          : e.key === "ArrowUp" || e.key === "k"
+            ? -1
+            : 0;
+      if (!delta) return;
+
+      const next = activeIndex + delta;
+      if (next < 0 || next >= feed.length) return;
+      e.preventDefault();
+      scrollToIndex(next);
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
   }, [activeIndex, feed.length, scrollToIndex]);
 
-  const active = feed[activeIndex] ?? feed[0];
+  const active = feed[activeIndex];
   if (!active) return null;
 
   return (
@@ -150,7 +150,7 @@ type FeedItemProps = {
 };
 
 const FeedItem = ({ ref, component, shouldRender }: FeedItemProps) => {
-  const src = isRemoteContentComponentSummary(component)
+  const src = isRemoteContentComponent(component)
     ? component.iframeUrl
     : `/preview-frame/${component.slug}`;
 

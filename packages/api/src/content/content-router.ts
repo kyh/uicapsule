@@ -16,11 +16,9 @@ import {
 import type { ContentComponent, ContentComponentSummary } from "./content-schema";
 
 const toFeedSummary = (component: ContentComponent): ContentComponentSummary => {
-  if (component.type === "local") {
-    const { sourceFiles: _sourceFiles, ...summary } = component;
-    return summary;
-  }
-  return component;
+  if (component.type === "remote") return component;
+  const { sourceFiles: _sourceFiles, ...summary } = component;
+  return summary;
 };
 
 type TagSummary = {

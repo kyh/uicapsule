@@ -2,7 +2,6 @@ import { Suspense } from "react";
 import { notFound } from "next/navigation";
 
 import { ContentFeed } from "@/app/(main)/(content)/_components/content-feed";
-import { ContentRendererSkeleton } from "@/app/(main)/(content)/_components/content-renderer";
 import { publicCaller } from "@/trpc/server";
 
 type Props = {
@@ -12,7 +11,7 @@ type Props = {
 const Page = ({ params }: Props) => {
   return (
     <main className="relative flex h-[calc(100dvh-(--spacing(16)))] justify-center">
-      <Suspense fallback={<ContentRendererSkeleton />}>
+      <Suspense fallback={<ContentFeedSkeleton />}>
         <Content params={params} />
       </Suspense>
     </main>
@@ -30,3 +29,9 @@ const Content = async ({ params }: Props) => {
 
   return <ContentFeed initialSlug={slug} feed={feed} />;
 };
+
+const ContentFeedSkeleton = () => (
+  <div className="flex h-full w-full flex-col gap-2 pb-2">
+    <div className="bg-muted mx-auto h-full w-full max-w-[720px] animate-pulse rounded-md" />
+  </div>
+);

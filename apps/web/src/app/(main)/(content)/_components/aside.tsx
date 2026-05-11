@@ -1,8 +1,8 @@
 "use client";
 
 import {
-  isLocalContentComponentSummary,
-  isRemoteContentComponentSummary,
+  isLocalContentComponent,
+  isRemoteContentComponent,
 } from "@repo/api/content/content-schema";
 import { Avatar, AvatarFallback, AvatarImage } from "@repo/ui/components/avatar";
 import { Badge } from "@repo/ui/components/badge";
@@ -15,6 +15,7 @@ import {
   DrawerHeader,
   DrawerTitle,
   DrawerTrigger,
+  NestedDrawer,
 } from "@repo/ui/components/drawer";
 import { toast } from "@repo/ui/components/sonner";
 import { cn } from "@repo/ui/lib/utils";
@@ -34,6 +35,8 @@ import type { ContentComponentSummary } from "@repo/api/content/content-schema";
 import { useTRPC } from "@/trpc/react";
 import { CodePreview } from "./code-preview";
 
+const FLOATING_BUTTON_CLASS = "size-9 rounded-full shadow-sm";
+
 type AsideProps = {
   contentComponent: ContentComponentSummary;
 };
@@ -49,9 +52,7 @@ const Aside = ({ contentComponent }: AsideProps) => {
   const queryClient = useQueryClient();
 
   const handleInstallClick = () => {
-    if (!isLocalContentComponentSummary(contentComponent)) {
-      return;
-    }
+    if (!isLocalContentComponent(contentComponent)) return;
 
     const command = `npx shadcn@latest add @uicapsule/${contentComponent.slug}`;
 
@@ -78,9 +79,7 @@ const Aside = ({ contentComponent }: AsideProps) => {
   };
 
   const handleDownloadClick = async () => {
-    if (!isLocalContentComponentSummary(contentComponent)) {
-      return;
-    }
+    if (!isLocalContentComponent(contentComponent)) return;
 
     const toastId = toast.loading("Download started", {
       icon: <DownloadIcon className="size-4" />,
@@ -132,8 +131,8 @@ const Aside = ({ contentComponent }: AsideProps) => {
       {contentComponent.description && (
         <p className="text-muted-foreground text-sm">{contentComponent.description}</p>
       )}
-      {isLocalContentComponentSummary(contentComponent) ? (
-        <Drawer>
+      {isLocalContentComponent(contentComponent) ? (
+        <NestedDrawer>
           <div className="flex flex-col gap-1.5">
             <div className="flex rounded-full shadow-xs">
               <DrawerTrigger
@@ -170,9 +169,9 @@ const Aside = ({ contentComponent }: AsideProps) => {
             </DrawerHeader>
             <LazyCodePreview slug={contentComponent.slug} />
           </DrawerContent>
-        </Drawer>
+        </NestedDrawer>
       ) : (
-        isRemoteContentComponentSummary(contentComponent) && (
+        isRemoteContentComponent(contentComponent) && (
           <div className="flex flex-col items-center gap-1.5">
             <Button
               render={
@@ -241,14 +240,10 @@ const LazyCodePreview = ({ slug }: { slug: string }) => {
   const { data, isLoading } = useQuery(trpc.content.bySlug.queryOptions({ slug }));
 
   if (isLoading) {
-    return (
-      <div className="text-muted-foreground p-6 text-sm">Loading source files…</div>
-    );
+    return <div className="text-muted-foreground p-6 text-sm">Loading source files…</div>;
   }
   if (!data || data.type !== "local") {
-    return (
-      <div className="text-muted-foreground p-6 text-sm">Source files unavailable.</div>
-    );
+    return <div className="text-muted-foreground p-6 text-sm">Source files unavailable.</div>;
   }
   return <CodePreview contentComponent={data} />;
 };
@@ -263,7 +258,7 @@ export const ResponsiveAside = ({ contentComponent, onPrev, onNext }: Responsive
         <Button
           variant="secondary"
           size="icon"
-          className="size-9 rounded-full shadow-sm"
+          className={FLOATING_BUTTON_CLASS}
           onClick={onPrev}
           disabled={!onPrev}
         >
@@ -271,11 +266,7 @@ export const ResponsiveAside = ({ contentComponent, onPrev, onNext }: Responsive
           <span className="sr-only">Previous</span>
         </Button>
         <DrawerTrigger asChild>
-          <Button
-            variant="secondary"
-            size="icon"
-            className="size-9 rounded-full shadow-sm"
-          >
+          <Button variant="secondary" size="icon" className={FLOATING_BUTTON_CLASS}>
             <InfoIcon className="size-4" />
             <span className="sr-only">Info</span>
           </Button>
@@ -283,7 +274,7 @@ export const ResponsiveAside = ({ contentComponent, onPrev, onNext }: Responsive
         <Button
           variant="secondary"
           size="icon"
-          className="size-9 rounded-full shadow-sm"
+          className={FLOATING_BUTTON_CLASS}
           onClick={onNext}
           disabled={!onNext}
         >
