@@ -1,6 +1,9 @@
+"use client";
+
 import Image from "next/image";
 import Link from "next/link";
 import { Badge } from "@repo/ui/components/badge";
+import { useWebHaptics } from "web-haptics/react";
 
 type ContentPreviewProps = {
   slug: string;
@@ -19,10 +22,12 @@ export const ContentPreview = ({
   coverUrl,
   coverType,
 }: ContentPreviewProps) => {
+  const { trigger } = useWebHaptics();
   return (
     <Link
       className="bg-background group flex flex-col justify-between gap-3 p-3 text-lg sm:p-6"
       href={`/ui/${slug}`}
+      onClick={() => trigger("selection")}
     >
       <div className="relative aspect-video overflow-hidden">
         {coverUrl && (
