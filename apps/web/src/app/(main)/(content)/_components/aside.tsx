@@ -1,11 +1,6 @@
 "use client";
 
-import { useState } from "react";
-import Link from "next/link";
-import {
-  isLocalContentComponent,
-  isRemoteContentComponent,
-} from "@repo/api/content/content-schema";
+import { isLocalContentComponent } from "@repo/api/content/content-schema";
 import { Avatar, AvatarFallback, AvatarImage } from "@repo/ui/components/avatar";
 import { Badge } from "@repo/ui/components/badge";
 import { Button, buttonVariants } from "@repo/ui/components/button";
@@ -17,34 +12,44 @@ import {
   DrawerHeader,
   DrawerTitle,
   DrawerTrigger,
+  NestedDrawer,
 } from "@repo/ui/components/drawer";
 import { toast } from "@repo/ui/components/sonner";
 import { cn } from "@repo/ui/lib/utils";
 import { useMediaQuery } from "@repo/ui/hooks/use-media-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import JSZip from "jszip";
 import {
-  ArrowLeftIcon,
-  ArrowRightIcon,
   CheckIcon,
+  ChevronDownIcon,
+  ChevronUpIcon,
   ClipboardCheckIcon,
   DownloadIcon,
   InfoIcon,
 } from "lucide-react";
 
-import type { ContentComponent } from "@repo/api/content/content-schema";
+import type { ContentComponentSummary } from "@repo/api/content/content-schema";
+import { useTRPC } from "@/trpc/react";
 import { CodePreview } from "./code-preview";
 
+const FLOATING_BUTTON_CLASS = "size-9 rounded-full shadow-sm";
+const SECTION_CLASS = "-mx-3 flex flex-col gap-2.5 border-t px-3 pt-3 pb-1";
+
 type AsideProps = {
-  contentComponent: ContentComponent;
+  contentComponent: ContentComponentSummary;
+};
+
+type ResponsiveAsideProps = AsideProps & {
+  onPrev?: () => void;
+  onNext?: () => void;
 };
 
 const Aside = ({ contentComponent }: AsideProps) => {
-  const sectionClassname = "-mx-3 flex flex-col gap-2.5 border-t px-3 pt-3 pb-1";
+  const trpc = useTRPC();
+  const queryClient = useQueryClient();
 
   const handleInstallClick = () => {
-    if (!isLocalContentComponent(contentComponent)) {
-      return;
-    }
+    if (!isLocalContentComponent(contentComponent)) return;
 
     const command = `npx shadcn@latest add @uicapsule/${contentComponent.slug}`;
 
@@ -71,25 +76,29 @@ const Aside = ({ contentComponent }: AsideProps) => {
   };
 
   const handleDownloadClick = async () => {
-    if (!isLocalContentComponent(contentComponent)) {
-      return;
-    }
+    if (!isLocalContentComponent(contentComponent)) return;
 
     const toastId = toast.loading("Download started", {
       icon: <DownloadIcon className="size-4" />,
       description: `${contentComponent.slug}.zip is being downloaded`,
     });
     try {
-      const zip = new JSZip();
+      const full = await queryClient.fetchQuery(
+        trpc.content.bySlug.queryOptions({ slug: contentComponent.slug }),
+      );
+      if (!isLocalContentComponent(full)) {
+        toast.error("Source files unavailable", { id: toastId });
+        return;
+      }
 
-      for (const { path, code } of contentComponent.sourceFiles) {
+      const zip = new JSZip();
+      for (const { path, code } of full.sourceFiles) {
         const cleanPath = path.startsWith("/") ? path.slice(1) : path;
         zip.file(cleanPath, code);
       }
 
       const zipBlob = await zip.generateAsync({ type: "blob" });
 
-      // Create download link
       const url = URL.createObjectURL(zipBlob);
       const link = document.createElement("a");
       link.href = url;
@@ -120,7 +129,7 @@ const Aside = ({ contentComponent }: AsideProps) => {
         <p className="text-muted-foreground text-sm">{contentComponent.description}</p>
       )}
       {isLocalContentComponent(contentComponent) ? (
-        <Drawer>
+        <NestedDrawer>
           <div className="flex flex-col gap-1.5">
             <div className="flex rounded-full shadow-xs">
               <DrawerTrigger
@@ -155,28 +164,24 @@ const Aside = ({ contentComponent }: AsideProps) => {
               <DrawerTitle>Source Code</DrawerTitle>
               <DrawerDescription>Component source code</DrawerDescription>
             </DrawerHeader>
-            <CodePreview contentComponent={contentComponent} />
+            <LazyCodePreview slug={contentComponent.slug} />
           </DrawerContent>
-        </Drawer>
+        </NestedDrawer>
       ) : (
-        isRemoteContentComponent(contentComponent) && (
-          <div className="flex flex-col items-center gap-1.5">
-            <Button
-              render={
-                <a href={contentComponent.sourceUrl} target="_blank" rel="noreferrer" />
-              }
-              nativeButton={false}
-              variant="outline"
-              className="w-full rounded-full shadow-none focus-visible:z-10"
-            >
-              View Source on GitHub
-            </Button>
-            <span className="text-muted-foreground text-center text-xs">Opens in a new tab</span>
-          </div>
-        )
+        <div className="flex flex-col items-center gap-1.5">
+          <Button
+            render={<a href={contentComponent.sourceUrl} target="_blank" rel="noreferrer" />}
+            nativeButton={false}
+            variant="outline"
+            className="w-full rounded-full shadow-none focus-visible:z-10"
+          >
+            View Source on GitHub
+          </Button>
+          <span className="text-muted-foreground text-center text-xs">Opens in a new tab</span>
+        </div>
       )}
       {contentComponent.asSeenOn && (
-        <div className={sectionClassname}>
+        <div className={SECTION_CLASS}>
           <h2>As seen on</h2>
           <div className="flex flex-wrap gap-2">
             {contentComponent.asSeenOn.map((item) => (
@@ -193,7 +198,7 @@ const Aside = ({ contentComponent }: AsideProps) => {
         </div>
       )}
       {contentComponent.tags && (
-        <div className={sectionClassname}>
+        <div className={SECTION_CLASS}>
           <h2>Tags</h2>
           <div className="flex flex-wrap gap-2">
             {contentComponent.tags.map((tag) => (
@@ -205,12 +210,12 @@ const Aside = ({ contentComponent }: AsideProps) => {
         </div>
       )}
       {contentComponent.authors && (
-        <div className={sectionClassname}>
+        <div className={SECTION_CLASS}>
           <h2>Author</h2>
           <div className="*:data-[slot=avatar]:ring-background flex -space-x-2 *:data-[slot=avatar]:ring-2 *:data-[slot=avatar]:grayscale">
             {contentComponent.authors.map((author) => (
               <a href={author.url} key={author.name} target="_blank">
-                <Avatar key={author.name}>
+                <Avatar>
                   <AvatarImage src={author.url} />
                   <AvatarFallback>{author.name.charAt(0)}</AvatarFallback>
                 </Avatar>
@@ -219,80 +224,66 @@ const Aside = ({ contentComponent }: AsideProps) => {
           </div>
         </div>
       )}
-      <div className="text-muted-foreground/70 -mx-3 mt-auto -mb-3 flex justify-between gap-4 border-t px-3 py-3">
-        {contentComponent.previousSlug ? (
-          <Button
-            variant="ghost"
-            size="icon"
-            render={<Link href={`/ui/${contentComponent.previousSlug}`} />}
-            nativeButton={false}
-          >
-            <ArrowLeftIcon className="size-4" />
-            <span className="sr-only">Previous</span>
-          </Button>
-        ) : (
-          <div />
-        )}
-        {contentComponent.nextSlug ? (
-          <Button
-            variant="ghost"
-            size="icon"
-            render={<Link href={`/ui/${contentComponent.nextSlug}`} />}
-            nativeButton={false}
-          >
-            <span className="sr-only">Next</span>
-            <ArrowRightIcon className="size-4" />
-          </Button>
-        ) : (
-          <div />
-        )}
-      </div>
     </Card>
   );
 };
 
-export const ResponsiveAside = ({ contentComponent }: AsideProps) => {
-  const [isOpen, setIsOpen] = useState(true);
-  const isDesktop = useMediaQuery();
+const LazyCodePreview = ({ slug }: { slug: string }) => {
+  const trpc = useTRPC();
+  const { data, isLoading } = useQuery(trpc.content.bySlug.queryOptions({ slug }));
 
-  if (isDesktop)
-    return (
-      <aside
-        className={cn(
-          "absolute right-0 z-10 h-full w-80 pr-6 pb-13",
-          !isOpen && "pointer-events-none",
-        )}
-      >
-        <Button
-          className={cn("absolute top-4 right-8 z-10 size-5", !isOpen && "pointer-events-auto")}
-          variant="secondary"
-          size="icon"
-          onClick={() => setIsOpen((prev) => !prev)}
-        >
-          <InfoIcon className="text-muted-foreground size-4" />
-        </Button>
-        {isOpen && <Aside contentComponent={contentComponent} />}
-      </aside>
-    );
+  if (isLoading) {
+    return <div className="text-muted-foreground p-6 text-sm">Loading source files…</div>;
+  }
+  if (!data || !isLocalContentComponent(data)) {
+    return <div className="text-muted-foreground p-6 text-sm">Source files unavailable.</div>;
+  }
+  return <CodePreview contentComponent={data} />;
+};
+
+export const ResponsiveAside = ({ contentComponent, onPrev, onNext }: ResponsiveAsideProps) => {
+  const isDesktop = useMediaQuery();
+  const direction = isDesktop ? "right" : "bottom";
 
   return (
-    <div className="absolute top-2 right-4">
-      <Drawer>
+    <Drawer direction={direction}>
+      <div className="absolute right-4 bottom-4 z-10 flex flex-col gap-2">
+        <Button
+          variant="secondary"
+          size="icon"
+          className={FLOATING_BUTTON_CLASS}
+          onClick={onPrev}
+          disabled={!onPrev}
+        >
+          <ChevronUpIcon className="size-4" />
+          <span className="sr-only">Previous</span>
+        </Button>
         <DrawerTrigger asChild>
-          <Button className="size-7" variant="secondary" size="icon">
-            <InfoIcon className="text-muted-foreground size-4" />
+          <Button variant="secondary" size="icon" className={FLOATING_BUTTON_CLASS}>
+            <InfoIcon className="size-4" />
+            <span className="sr-only">Info</span>
           </Button>
         </DrawerTrigger>
-        <DrawerContent>
-          <DrawerHeader className="sr-only">
-            <DrawerTitle>Settings</DrawerTitle>
-            <DrawerDescription>Settings options</DrawerDescription>
-          </DrawerHeader>
-          <div className="pt-5">
-            <Aside contentComponent={contentComponent} />
-          </div>
-        </DrawerContent>
-      </Drawer>
-    </div>
+        <Button
+          variant="secondary"
+          size="icon"
+          className={FLOATING_BUTTON_CLASS}
+          onClick={onNext}
+          disabled={!onNext}
+        >
+          <ChevronDownIcon className="size-4" />
+          <span className="sr-only">Next</span>
+        </Button>
+      </div>
+      <DrawerContent>
+        <DrawerHeader className="sr-only">
+          <DrawerTitle>Component info</DrawerTitle>
+          <DrawerDescription>Component details</DrawerDescription>
+        </DrawerHeader>
+        <div className={cn(isDesktop ? "h-full p-2" : "pt-5")}>
+          <Aside contentComponent={contentComponent} />
+        </div>
+      </DrawerContent>
+    </Drawer>
   );
 };

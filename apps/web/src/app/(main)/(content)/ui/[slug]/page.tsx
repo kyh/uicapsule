@@ -1,10 +1,7 @@
 import { Suspense } from "react";
+import { notFound } from "next/navigation";
 
-import { ResponsiveAside } from "@/app/(main)/(content)/_components/aside";
-import {
-  ContentRenderer,
-  ContentRendererSkeleton,
-} from "@/app/(main)/(content)/_components/content-renderer";
+import { ContentFeed } from "@/app/(main)/(content)/_components/content-feed";
 import { publicCaller } from "@/trpc/server";
 
 type Props = {
@@ -14,7 +11,7 @@ type Props = {
 const Page = ({ params }: Props) => {
   return (
     <main className="relative flex h-[calc(100dvh-(--spacing(16)))] justify-center">
-      <Suspense fallback={<ContentRendererSkeleton />}>
+      <Suspense fallback={<ContentFeedSkeleton />}>
         <Content params={params} />
       </Suspense>
     </main>
@@ -25,12 +22,16 @@ export default Page;
 
 const Content = async ({ params }: Props) => {
   const { slug } = await params;
-  const contentComponent = await publicCaller.content.bySlug({ slug });
+  const feed = await publicCaller.content.feedList();
+  if (!feed.some((c) => c.slug === slug)) {
+    notFound();
+  }
 
-  return (
-    <>
-      <ContentRenderer contentComponent={contentComponent} />
-      <ResponsiveAside contentComponent={contentComponent} />
-    </>
-  );
+  return <ContentFeed initialSlug={slug} feed={feed} />;
 };
+
+const ContentFeedSkeleton = () => (
+  <div className="flex h-full w-full flex-col gap-2 pb-2">
+    <div className="bg-muted mx-auto h-full w-full max-w-[720px] animate-pulse rounded-md" />
+  </div>
+);
