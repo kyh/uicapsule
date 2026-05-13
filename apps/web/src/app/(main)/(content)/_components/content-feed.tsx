@@ -97,6 +97,20 @@ export const ContentFeed = ({ initialSlug, feed }: ContentFeedProps) => {
     container.scrollTo({ top: target.offsetTop, behavior: "smooth" });
   }, []);
 
+  const scrollByDelta = useCallback(
+    (delta: 1 | -1) => {
+      const container = containerRef.current;
+      if (!container) return;
+      const itemHeight = container.clientHeight;
+      if (itemHeight === 0) return;
+      const currentIdx = Math.round(container.scrollTop / itemHeight);
+      const next = currentIdx + delta;
+      if (next < 0 || next >= feed.length) return;
+      scrollToIndex(next);
+    },
+    [feed.length, scrollToIndex],
+  );
+
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       const target = e.target;
@@ -113,19 +127,12 @@ export const ContentFeed = ({ initialSlug, feed }: ContentFeedProps) => {
       if (!delta) return;
       if (document.querySelector('[role="dialog"], [role="alertdialog"]')) return;
 
-      const container = containerRef.current;
-      if (!container) return;
-      const itemHeight = container.clientHeight;
-      if (itemHeight === 0) return;
-      const currentIdx = Math.round(container.scrollTop / itemHeight);
-      const next = currentIdx + delta;
-      if (next < 0 || next >= feed.length) return;
       e.preventDefault();
-      scrollToIndex(next);
+      scrollByDelta(delta);
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [feed.length, scrollToIndex]);
+  }, [scrollByDelta]);
 
   const itemRefSetters = useMemo(
     () =>
@@ -158,10 +165,8 @@ export const ContentFeed = ({ initialSlug, feed }: ContentFeedProps) => {
       </div>
       <ResponsiveAside
         contentComponent={active}
-        onPrev={activeIndex > 0 ? () => scrollToIndex(activeIndex - 1) : undefined}
-        onNext={
-          activeIndex < feed.length - 1 ? () => scrollToIndex(activeIndex + 1) : undefined
-        }
+        onPrev={activeIndex > 0 ? () => scrollByDelta(-1) : undefined}
+        onNext={activeIndex < feed.length - 1 ? () => scrollByDelta(1) : undefined}
       />
     </>
   );
