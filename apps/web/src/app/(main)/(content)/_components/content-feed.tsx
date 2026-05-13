@@ -1,9 +1,11 @@
 "use client";
 
 import {
+  memo,
   useCallback,
   useEffect,
   useLayoutEffect,
+  useMemo,
   useRef,
   useState,
   type Ref,
@@ -125,6 +127,17 @@ export const ContentFeed = ({ initialSlug, feed }: ContentFeedProps) => {
     return () => window.removeEventListener("keydown", onKey);
   }, [feed.length, scrollToIndex]);
 
+  const itemRefSetters = useMemo(
+    () =>
+      Array.from(
+        { length: feed.length },
+        (_, idx) => (el: HTMLElement | null) => {
+          itemRefs.current[idx] = el;
+        },
+      ),
+    [feed.length],
+  );
+
   const active = feed[activeIndex];
   if (!active) return null;
 
@@ -137,9 +150,7 @@ export const ContentFeed = ({ initialSlug, feed }: ContentFeedProps) => {
         {feed.map((item, idx) => (
           <FeedItem
             key={item.slug}
-            ref={(el) => {
-              itemRefs.current[idx] = el;
-            }}
+            ref={itemRefSetters[idx]}
             component={item}
             shouldRender={Math.abs(idx - activeIndex) <= 1}
           />
@@ -162,7 +173,7 @@ type FeedItemProps = {
   shouldRender: boolean;
 };
 
-const FeedItem = ({ ref, component, shouldRender }: FeedItemProps) => {
+const FeedItem = memo(function FeedItem({ ref, component, shouldRender }: FeedItemProps) {
   const src = isRemoteContentComponent(component)
     ? component.iframeUrl
     : `/preview-frame/${component.slug}`;
@@ -191,4 +202,4 @@ const FeedItem = ({ ref, component, shouldRender }: FeedItemProps) => {
       </div>
     </section>
   );
-};
+});
