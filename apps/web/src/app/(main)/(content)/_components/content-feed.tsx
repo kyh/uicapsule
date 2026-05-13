@@ -42,10 +42,12 @@ export const ContentFeed = ({ initialSlug, feed }: ContentFeedProps) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const itemRefs = useRef<(HTMLElement | null)[]>([]);
   const [activeIndex, setActiveIndex] = useState(initialIndex);
+  const [prevInitialSlug, setPrevInitialSlug] = useState(initialSlug);
 
-  useEffect(() => {
+  if (prevInitialSlug !== initialSlug) {
+    setPrevInitialSlug(initialSlug);
     setActiveIndex(initialIndex);
-  }, [initialIndex]);
+  }
 
   useLayoutEffect(() => {
     const container = containerRef.current;
@@ -109,14 +111,19 @@ export const ContentFeed = ({ initialSlug, feed }: ContentFeedProps) => {
       if (!delta) return;
       if (document.querySelector('[role="dialog"], [role="alertdialog"]')) return;
 
-      const next = activeIndex + delta;
+      const container = containerRef.current;
+      if (!container) return;
+      const itemHeight = container.clientHeight;
+      if (itemHeight === 0) return;
+      const currentIdx = Math.round(container.scrollTop / itemHeight);
+      const next = currentIdx + delta;
       if (next < 0 || next >= feed.length) return;
       e.preventDefault();
       scrollToIndex(next);
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [activeIndex, feed.length, scrollToIndex]);
+  }, [feed.length, scrollToIndex]);
 
   const active = feed[activeIndex];
   if (!active) return null;
