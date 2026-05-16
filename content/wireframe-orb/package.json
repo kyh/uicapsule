@@ -21,6 +21,6 @@
   "devDependencies": {
     "@types/react": "catalog:",
     "@types/react-dom": "catalog:",
-    "@types/three": "^0.184.0"
+    "@types/three": "^0.184.1"
   }
 }

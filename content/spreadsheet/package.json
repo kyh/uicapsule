@@ -7,16 +7,16 @@
     "clean": "git clean -xdf .cache .turbo dist node_modules"
   },
   "dependencies": {
-    "@ai-sdk/react": "^3.0.176",
+    "@ai-sdk/react": "^3.0.185",
     "@loremllm/transport": "^0.6.1",
     "@repo/ui": "workspace:^",
     "@tanstack/react-table": "^8.21.3",
     "@tanstack/react-virtual": "^3.13.24",
-    "lucide-react": "^1.14.0",
+    "lucide-react": "^1.16.0",
     "react": "catalog:",
     "react-dom": "catalog:",
     "zod": "catalog:",
-    "zustand": "^5.0.12"
+    "zustand": "^5.0.13"
   },
   "exports": {
     "./preview": "./preview.tsx"

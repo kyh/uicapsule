@@ -6,12 +6,12 @@ packages:
 catalog:
   "@base-ui/react": ^1.4.1
   "@better-auth/cli": ^1.4.21
-  "@better-auth/expo": ^1.6.9
+  "@better-auth/expo": ^1.6.11
   "@kyh/tsconfig": ^1.1.14
-  "@tailwindcss/postcss": ^4.2.4
+  "@tailwindcss/postcss": ^4.3.0
   "@tailwindcss/vite": ^4.2.2
   "@tanstack/react-form": ^1.28.5
-  "@tanstack/react-query": ^5.100.8
+  "@tanstack/react-query": ^5.100.10
   "@trpc/client": ^11.17.0
   "@trpc/server": ^11.17.0
   "@trpc/tanstack-react-query": ^11.17.0
@@ -19,15 +19,15 @@ catalog:
   "@types/react": ^19.2.14
   "@types/react-dom": ^19.2.3
   "@vitejs/plugin-react": ^5.2.0
-  better-auth: ^1.6.9
-  next: ^16.2.4
-  react: ^19.2.5
-  react-dom: ^19.2.5
+  better-auth: ^1.6.11
+  next: ^16.2.6
+  react: ^19.2.6
+  react-dom: ^19.2.6
   superjson: ^2.2.6
-  tailwindcss: ^4.2.4
+  tailwindcss: ^4.3.0
   typescript: ^6.0.3
   vite: ^7.3.1
-  zod: ^4.4.2
+  zod: ^4.4.3
 
 linkWorkspacePackages: true
 
