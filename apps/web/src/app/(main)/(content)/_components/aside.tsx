@@ -14,7 +14,7 @@ import {
   DrawerTrigger,
   NestedDrawer,
 } from "@repo/ui/components/drawer";
-import { toast } from "@repo/ui/components/sonner";
+import { toast } from "@repo/ui/components/toast";
 import { useMediaQuery } from "@repo/ui/hooks/use-media-query";
 import { cn } from "@repo/ui/lib/utils";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
