@@ -119,6 +119,7 @@ export const CardStack = ({ cards }: CardStackProps) => {
     const snap = gsap.utils.snap(baseDuration / slides.length);
 
     const handleWheel = (e: WheelEvent) => {
+      e.preventDefault();
       incr -= e.deltaY / 1000;
       deltaTo(snap(incr + beginDistance));
     };
@@ -130,11 +131,12 @@ export const CardStack = ({ cards }: CardStackProps) => {
       rotY(valY);
     };
 
-    window.addEventListener("wheel", handleWheel, { passive: true });
+    const target = root ?? window;
+    target.addEventListener("wheel", handleWheel as EventListener, { passive: false });
     root?.addEventListener("mousemove", handleMouseMove);
 
     return () => {
-      window.removeEventListener("wheel", handleWheel);
+      target.removeEventListener("wheel", handleWheel as EventListener);
       root?.removeEventListener("mousemove", handleMouseMove);
     };
   });

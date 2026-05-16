@@ -15,8 +15,8 @@ import {
   NestedDrawer,
 } from "@repo/ui/components/drawer";
 import { toast } from "@repo/ui/components/sonner";
-import { cn } from "@repo/ui/lib/utils";
 import { useMediaQuery } from "@repo/ui/hooks/use-media-query";
+import { cn } from "@repo/ui/lib/utils";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import JSZip from "jszip";
 import {
@@ -247,7 +247,7 @@ export const ResponsiveAside = ({ contentComponent, onPrev, onNext }: Responsive
 
   return (
     <Drawer direction={direction}>
-      <div className="absolute right-4 bottom-4 z-10 flex flex-col gap-2">
+      <div className="absolute right-4 bottom-4 z-10 flex flex-col gap-2 sm:top-1/2 sm:right-6 sm:bottom-auto sm:-translate-y-1/2">
         <Button
           variant="secondary"
           size="icon"
