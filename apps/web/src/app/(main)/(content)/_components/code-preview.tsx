@@ -22,7 +22,7 @@ import {
   CodeBlockCopyButton,
   CodeBlockItem,
 } from "@repo/ui/components/code-block";
-import { toast } from "@repo/ui/components/toast";
+import { toast } from "@repo/ui/components/sonner";
 import { Tree, TreeItem, TreeItemLabel } from "@repo/ui/components/tree";
 import { cn } from "@repo/ui/lib/utils";
 
