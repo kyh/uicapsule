@@ -12,12 +12,11 @@ import {
   DrawerHeader,
   DrawerTitle,
   DrawerTrigger,
-  NestedDrawer,
 } from "@repo/ui/components/drawer";
 import { toast } from "@repo/ui/components/sonner";
 import { useMediaQuery } from "@repo/ui/hooks/use-media-query";
 import { cn } from "@repo/ui/lib/utils";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useQueryClient, useSuspenseQuery } from "@tanstack/react-query";
 import JSZip from "jszip";
 import {
   CheckIcon,
@@ -27,6 +26,7 @@ import {
   DownloadIcon,
   InfoIcon,
 } from "lucide-react";
+import { Suspense, useEffect } from "react";
 
 import type { ContentComponentSummary } from "@repo/api/content/content-schema";
 import { useTRPC } from "@/trpc/react";
@@ -47,6 +47,13 @@ type ResponsiveAsideProps = AsideProps & {
 const Aside = ({ contentComponent }: AsideProps) => {
   const trpc = useTRPC();
   const queryClient = useQueryClient();
+
+  useEffect(() => {
+    if (!isLocalContentComponent(contentComponent)) return;
+    void queryClient.prefetchQuery(
+      trpc.content.bySlug.queryOptions({ slug: contentComponent.slug }),
+    );
+  }, [contentComponent, queryClient, trpc.content.bySlug]);
 
   const handleInstallClick = () => {
     if (!isLocalContentComponent(contentComponent)) return;
@@ -129,7 +136,7 @@ const Aside = ({ contentComponent }: AsideProps) => {
         <p className="text-muted-foreground text-sm">{contentComponent.description}</p>
       )}
       {isLocalContentComponent(contentComponent) ? (
-        <NestedDrawer>
+        <Drawer>
           <div className="flex flex-col gap-1.5">
             <div className="flex rounded-full shadow-xs">
               <DrawerTrigger
@@ -164,9 +171,15 @@ const Aside = ({ contentComponent }: AsideProps) => {
               <DrawerTitle>Source Code</DrawerTitle>
               <DrawerDescription>Component source code</DrawerDescription>
             </DrawerHeader>
-            <LazyCodePreview slug={contentComponent.slug} />
+            <Suspense
+              fallback={
+                <div className="text-muted-foreground p-6 text-sm">Loading source files…</div>
+              }
+            >
+              <SourceCodePreview slug={contentComponent.slug} />
+            </Suspense>
           </DrawerContent>
-        </NestedDrawer>
+        </Drawer>
       ) : (
         <div className="flex flex-col items-center gap-1.5">
           <Button
@@ -228,14 +241,11 @@ const Aside = ({ contentComponent }: AsideProps) => {
   );
 };
 
-const LazyCodePreview = ({ slug }: { slug: string }) => {
+const SourceCodePreview = ({ slug }: { slug: string }) => {
   const trpc = useTRPC();
-  const { data, isLoading } = useQuery(trpc.content.bySlug.queryOptions({ slug }));
+  const { data } = useSuspenseQuery(trpc.content.bySlug.queryOptions({ slug }));
 
-  if (isLoading) {
-    return <div className="text-muted-foreground p-6 text-sm">Loading source files…</div>;
-  }
-  if (!data || !isLocalContentComponent(data)) {
+  if (!isLocalContentComponent(data)) {
     return <div className="text-muted-foreground p-6 text-sm">Source files unavailable.</div>;
   }
   return <CodePreview contentComponent={data} />;
@@ -280,7 +290,7 @@ export const ResponsiveAside = ({ contentComponent, onPrev, onNext }: Responsive
           <DrawerTitle>Component info</DrawerTitle>
           <DrawerDescription>Component details</DrawerDescription>
         </DrawerHeader>
-        <div className={cn(isDesktop ? "h-full p-2" : "pt-5")}>
+        <div className={cn(isDesktop ? "h-full [&_[data-slot=card]]:h-full" : "pt-5")}>
           <Aside contentComponent={contentComponent} />
         </div>
       </DrawerContent>
