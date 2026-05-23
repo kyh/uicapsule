@@ -7,11 +7,11 @@
     "clean": "git clean -xdf .cache .turbo dist node_modules"
   },
   "dependencies": {
-    "@ai-sdk/react": "^3.0.185",
+    "@ai-sdk/react": "^3.0.193",
     "@loremllm/transport": "^0.6.1",
     "@repo/ui": "workspace:^",
     "@tanstack/react-table": "^8.21.3",
-    "@tanstack/react-virtual": "^3.13.24",
+    "@tanstack/react-virtual": "^3.13.25",
     "lucide-react": "^1.16.0",
     "react": "catalog:",
     "react-dom": "catalog:",

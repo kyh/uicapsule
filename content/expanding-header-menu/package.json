@@ -9,7 +9,7 @@
   "dependencies": {
     "class-variance-authority": "^0.7.1",
     "lucide-react": "^1.16.0",
-    "motion": "^12.38.0",
+    "motion": "^12.40.0",
     "react": "catalog:",
     "react-dom": "catalog:",
     "tailwind-merge": "^3.6.0"

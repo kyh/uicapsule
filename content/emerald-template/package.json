@@ -11,7 +11,7 @@
     "@radix-ui/react-use-controllable-state": "^1.2.2",
     "@repo/ui": "workspace:^",
     "lucide-react": "^1.16.0",
-    "motion": "^12.38.0",
+    "motion": "^12.40.0",
     "react": "catalog:",
     "react-dom": "catalog:",
     "react-hook-form": "^7.76.0"
