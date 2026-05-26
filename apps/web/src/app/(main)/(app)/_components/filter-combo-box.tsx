@@ -37,7 +37,7 @@ export const FilterComboBox = ({
   const [open, setOpen] = useState(false);
   const isDesktop = useMediaQuery("(min-width: 768px)");
   const triggerClassname = cn(
-    "bg-background hover:bg-muted justify-start capitalize dark:bg-background dark:hover:bg-muted",
+    "justify-start capitalize",
     highlighted && "border-foreground",
   );
 
