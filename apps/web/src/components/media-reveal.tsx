@@ -43,7 +43,7 @@ export const MediaReveal = ({ className, borderRadius = 0, image, video }: Media
     <div className={cn("relative overflow-hidden", className)}>
       <ImageGeneration
         ref={handle}
-        className="absolute inset-0 transition-opacity duration-700"
+        className="absolute! inset-0 transition-opacity duration-700"
         style={{ opacity: videoRevealed ? 0 : 1 }}
         preset="pixels-organic"
         theme="auto"
