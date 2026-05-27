@@ -95,7 +95,7 @@ export const MediaReveal = ({ className, image, video, iframe }: MediaRevealProp
       {inView && (
         <ImageGeneration
           ref={handle}
-          className="absolute! inset-0 transition-opacity duration-700"
+          className="pointer-events-none absolute! inset-0 transition-opacity duration-700"
           style={{ opacity: fadeOut ? 0 : 1 }}
           preset="pixels-organic"
           theme="auto"
