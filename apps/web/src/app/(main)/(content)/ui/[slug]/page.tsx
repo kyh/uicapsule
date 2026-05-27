@@ -2,6 +2,7 @@ import { Suspense } from "react";
 import { notFound } from "next/navigation";
 
 import { ContentFeed } from "@/app/(main)/(content)/_components/content-feed";
+import { MediaReveal } from "@/components/media-reveal";
 import { publicCaller } from "@/trpc/server";
 
 type Props = {
@@ -32,6 +33,6 @@ const Content = async ({ params }: Props) => {
 
 const ContentFeedSkeleton = () => (
   <div className="flex h-full w-full flex-col gap-2 pb-2">
-    <div className="bg-muted mx-auto h-full w-full max-w-[720px] animate-pulse rounded-md" />
+    <MediaReveal className="mx-auto h-full w-full max-w-[720px] rounded-md" borderRadius={6} />
   </div>
 );

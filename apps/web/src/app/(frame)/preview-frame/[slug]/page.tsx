@@ -1,6 +1,8 @@
 import { Suspense } from "react";
 import { notFound } from "next/navigation";
 
+import { MediaReveal } from "@/components/media-reveal";
+
 import type { ComponentType } from "react";
 
 type Props = {
@@ -29,7 +31,7 @@ const PreviewContent = async ({ params }: Props) => {
 };
 
 const PreviewFramePage = ({ params }: Props) => (
-  <Suspense fallback={<div className="bg-muted h-full w-full animate-pulse" />}>
+  <Suspense fallback={<MediaReveal className="h-full w-full" />}>
     <PreviewContent params={params} />
   </Suspense>
 );

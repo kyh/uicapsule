@@ -16,6 +16,7 @@ import type {
   ContentComponentSummary,
   DefaultSize,
 } from "@repo/api/content/content-schema";
+import { MediaReveal } from "@/components/media-reveal";
 import { ResponsiveAside } from "./aside";
 
 const WIDTH_BY_SIZE = { sm: 360, md: 720, full: 1392 } as const satisfies Record<
@@ -202,7 +203,7 @@ const FeedItem = memo(function FeedItem({ ref, component, shouldRender }: FeedIt
             src={src}
           />
         ) : (
-          <div className="bg-muted h-full w-full animate-pulse" />
+          <MediaReveal className="h-full w-full" />
         )}
       </div>
     </section>
