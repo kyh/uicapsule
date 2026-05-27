@@ -196,15 +196,10 @@ const FeedItem = memo(function FeedItem({ ref, component, shouldRender }: FeedIt
         className="bg-background h-full w-full overflow-hidden rounded-md border"
         style={{ maxWidth: `${width}px` }}
       >
-        {shouldRender ? (
-          <iframe
-            className="bg-background h-full w-full"
-            title={component.name}
-            src={src}
-          />
-        ) : (
-          <MediaReveal className="h-full w-full" />
-        )}
+        <MediaReveal
+          className="h-full w-full"
+          iframe={shouldRender ? { src, title: component.name } : undefined}
+        />
       </div>
     </section>
   );
