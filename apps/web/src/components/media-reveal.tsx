@@ -27,6 +27,9 @@ export const MediaReveal = ({ className, image, video, iframe }: MediaRevealProp
   const videoRef = useRef<HTMLVideoElement>(null);
   const [inView, setInView] = useState(false);
   const [revealed, setRevealed] = useState(false);
+  // Set once the shader has faded out, to drop it from the DOM (and free its
+  // WebGL instance + observers) since it has nothing left to show.
+  const [retired, setRetired] = useState(false);
 
   useEffect(() => {
     const el = rootRef.current;
@@ -51,6 +54,7 @@ export const MediaReveal = ({ className, image, video, iframe }: MediaRevealProp
   // Fall back to the skeleton when the source changes or is removed.
   useEffect(() => {
     setRevealed(false);
+    setRetired(false);
   }, [image, video, iframe?.src]);
 
   useEffect(() => {
@@ -92,7 +96,7 @@ export const MediaReveal = ({ className, image, video, iframe }: MediaRevealProp
           onLoad={() => setRevealed(true)}
         />
       )}
-      {inView && (
+      {inView && !retired && (
         <ImageGeneration
           ref={handle}
           className="pointer-events-none absolute! inset-0 transition-opacity duration-700"
@@ -101,6 +105,9 @@ export const MediaReveal = ({ className, image, video, iframe }: MediaRevealProp
           theme="auto"
           images={image}
           paused={fadeOut}
+          onTransitionEnd={(e) => {
+            if (e.propertyName === "opacity" && fadeOut) setRetired(true);
+          }}
         >
           <div style={{ width: "100%", height: "100%" }} />
         </ImageGeneration>
