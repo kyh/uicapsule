@@ -1,9 +1,59 @@
 "use client";
 
-import Image from "next/image";
+import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { Badge } from "@repo/ui/components/badge";
+import { ImageGeneration, type ImageGenerationHandle } from "img-fx";
 import { useWebHaptics } from "web-haptics/react";
+
+// img-fx WebGL "generation" shader acts as the loading skeleton. For image
+// covers it reveals the image natively; for video covers it cross-fades out
+// once the video has data, then pauses to free the renderer.
+const CoverReveal = ({ src, type }: { src: string; type: "image" | "video" }) => {
+  const handle = useRef<ImageGenerationHandle>(null);
+  const [revealed, setRevealed] = useState(false);
+
+  useEffect(() => {
+    if (type !== "image") return;
+    const id = window.setTimeout(() => {
+      handle.current?.triggerReveal({ hold: "manual" });
+      setRevealed(true);
+    }, 600);
+    return () => window.clearTimeout(id);
+  }, [type, src]);
+
+  const videoRevealed = type === "video" && revealed;
+
+  return (
+    <>
+      <ImageGeneration
+        ref={handle}
+        className="absolute inset-0 transition-opacity duration-700"
+        style={{ opacity: videoRevealed ? 0 : 1 }}
+        preset="pixels-organic"
+        theme="auto"
+        images={type === "image" ? src : undefined}
+        paused={videoRevealed}
+        borderRadius={0}
+      >
+        <div style={{ width: "100%", height: "100%" }} />
+      </ImageGeneration>
+      {type === "video" && (
+        <video
+          className="absolute inset-0 h-full w-full object-cover transition-opacity duration-700"
+          style={{ opacity: revealed ? 1 : 0 }}
+          autoPlay
+          loop
+          muted
+          playsInline
+          onLoadedData={() => setRevealed(true)}
+        >
+          <source src={src} type="video/mp4" />
+        </video>
+      )}
+    </>
+  );
+};
 
 type ContentPreviewProps = {
   slug: string;
@@ -30,23 +80,7 @@ export const ContentPreview = ({
       onClick={() => trigger("selection")}
     >
       <div className="relative aspect-video overflow-hidden">
-        {coverUrl && (
-          <div aria-hidden className="bg-muted absolute inset-0 animate-pulse rounded" />
-        )}
-        {coverUrl && coverType === "image" && (
-          <Image src={coverUrl} fill alt="" className="object-contain" />
-        )}
-        {coverUrl && coverType === "video" && (
-          <video
-            className="absolute inset-0 h-full w-full object-cover"
-            autoPlay
-            loop
-            muted
-            playsInline
-          >
-            <source src={coverUrl} type="video/mp4" />
-          </video>
-        )}
+        {coverUrl && coverType && <CoverReveal src={coverUrl} type={coverType} />}
       </div>
       <div className="flex justify-between font-mono text-xs">
         <p className="group-hover:text-primary flex items-center gap-1 transition">{name} </p>
