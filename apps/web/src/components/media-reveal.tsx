@@ -4,6 +4,11 @@ import { useEffect, useRef, useState } from "react";
 import { ImageGeneration, type ImageGenerationHandle } from "img-fx";
 import { cn } from "@repo/ui/lib/utils";
 
+// Minimum time the generative shader stays on screen before the media is
+// revealed, so the effect is actually perceptible even when the media is
+// cached and loads instantly.
+const MIN_SHADER_MS = 1800;
+
 type MediaRevealProps = {
   className?: string;
   borderRadius?: number;
@@ -17,19 +22,22 @@ type MediaRevealProps = {
 // the animated skeleton, a drop-in replacement for a pulsing placeholder.
 export const MediaReveal = ({ className, borderRadius = 0, image, video }: MediaRevealProps) => {
   const handle = useRef<ImageGenerationHandle>(null);
-  const [revealed, setRevealed] = useState(false);
+  const [minElapsed, setMinElapsed] = useState(false);
+  const [videoLoaded, setVideoLoaded] = useState(false);
 
   useEffect(() => {
-    if (!image) return;
-    const id = window.setTimeout(() => {
-      handle.current?.triggerReveal({ hold: "manual" });
-    }, 600);
+    const id = window.setTimeout(() => setMinElapsed(true), MIN_SHADER_MS);
     return () => window.clearTimeout(id);
-  }, [image]);
+  }, []);
+
+  useEffect(() => {
+    if (!image || !minElapsed) return;
+    handle.current?.triggerReveal({ hold: "manual" });
+  }, [image, minElapsed]);
 
   // Only video uses a separate overlay; an image is painted by the shader's own
   // reveal canvas, so the shader layer stays in place for it.
-  const videoRevealed = Boolean(video) && revealed;
+  const videoRevealed = Boolean(video) && videoLoaded && minElapsed;
 
   return (
     <div className={cn("relative overflow-hidden", className)}>
@@ -48,12 +56,12 @@ export const MediaReveal = ({ className, borderRadius = 0, image, video }: Media
       {video && (
         <video
           className="absolute inset-0 h-full w-full object-cover transition-opacity duration-700"
-          style={{ opacity: revealed ? 1 : 0 }}
+          style={{ opacity: videoRevealed ? 1 : 0 }}
           autoPlay
           loop
           muted
           playsInline
-          onLoadedData={() => setRevealed(true)}
+          onLoadedData={() => setVideoLoaded(true)}
         >
           <source src={video} type="video/mp4" />
         </video>
