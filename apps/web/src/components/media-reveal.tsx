@@ -6,7 +6,6 @@ import { cn } from "@repo/ui/lib/utils";
 
 type MediaRevealProps = {
   className?: string;
-  borderRadius?: number;
   image?: string;
   video?: string;
 };
@@ -15,7 +14,8 @@ type MediaRevealProps = {
 // dissolves away to reveal the media underneath. For an image, img-fx paints
 // and holds it on its own canvas, so the shader layer stays in place. With no
 // media it is just the animated skeleton, a drop-in for a pulsing placeholder.
-export const MediaReveal = ({ className, borderRadius = 0, image, video }: MediaRevealProps) => {
+// The corner radius is auto-detected from the container's border-radius.
+export const MediaReveal = ({ className, image, video }: MediaRevealProps) => {
   const handle = useRef<ImageGenerationHandle>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
   const [revealed, setRevealed] = useState(false);
@@ -61,7 +61,6 @@ export const MediaReveal = ({ className, borderRadius = 0, image, video }: Media
         theme="auto"
         images={image}
         paused={shaderPaused}
-        borderRadius={borderRadius}
         onTransitionEnd={() => {
           if (fadeOut) setShaderPaused(true);
         }}

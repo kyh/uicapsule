@@ -33,6 +33,6 @@ const Content = async ({ params }: Props) => {
 
 const ContentFeedSkeleton = () => (
   <div className="flex h-full w-full flex-col gap-2 pb-2">
-    <MediaReveal className="mx-auto h-full w-full max-w-[720px] rounded-md" borderRadius={6} />
+    <MediaReveal className="mx-auto h-full w-full max-w-[720px] rounded-md" />
   </div>
 );
