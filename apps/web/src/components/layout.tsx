@@ -35,6 +35,7 @@ import {
 import { Logo } from "@repo/ui/components/logo";
 import { Tabs, TabsIndicator, TabsList, TabsTrigger } from "@repo/ui/components/tabs";
 import { useTheme } from "next-themes";
+import { useWebHaptics } from "web-haptics/react";
 import { cn } from "@repo/ui/lib/utils";
 import { useMediaQuery } from "@repo/ui/hooks/use-media-query";
 import { useQuery } from "@tanstack/react-query";
@@ -60,6 +61,7 @@ type SearchEntry = {
 };
 
 export const Header = ({ className }: { className?: string }) => {
+  const { trigger } = useWebHaptics();
   return (
     <nav
       className={cn(
@@ -68,7 +70,7 @@ export const Header = ({ className }: { className?: string }) => {
       )}
     >
       <div className="flex items-center justify-start gap-2">
-        <Link href="/">
+        <Link href="/" onClick={() => trigger("selection")}>
           <Logo />
         </Link>
       </div>

@@ -1,9 +1,10 @@
 "use client";
 
-import Image from "next/image";
 import Link from "next/link";
 import { Badge } from "@repo/ui/components/badge";
 import { useWebHaptics } from "web-haptics/react";
+
+import { MediaReveal } from "@/components/media-reveal";
 
 type ContentPreviewProps = {
   slug: string;
@@ -29,25 +30,11 @@ export const ContentPreview = ({
       href={`/ui/${slug}`}
       onClick={() => trigger("selection")}
     >
-      <div className="relative aspect-video overflow-hidden">
-        {coverUrl && (
-          <div aria-hidden className="bg-muted absolute inset-0 animate-pulse rounded" />
-        )}
-        {coverUrl && coverType === "image" && (
-          <Image src={coverUrl} fill alt="" className="object-contain" />
-        )}
-        {coverUrl && coverType === "video" && (
-          <video
-            className="absolute inset-0 h-full w-full object-cover"
-            autoPlay
-            loop
-            muted
-            playsInline
-          >
-            <source src={coverUrl} type="video/mp4" />
-          </video>
-        )}
-      </div>
+      <MediaReveal
+        className="aspect-video w-full"
+        image={coverType === "image" ? coverUrl : undefined}
+        video={coverType === "video" ? coverUrl : undefined}
+      />
       <div className="flex justify-between font-mono text-xs">
         <p className="group-hover:text-primary flex items-center gap-1 transition">{name} </p>
         <p className="text-muted-foreground/50 group-hover:text-primary/50 transition">
@@ -67,14 +54,12 @@ export const ContentPreview = ({
 export const ContentPreviewSkeleton = () => {
   return (
     <div className="bg-background group flex flex-col justify-between gap-3 p-3 sm:p-6">
-      <div className="aspect-video overflow-hidden">
-        <div className="bg-muted h-full w-full animate-pulse rounded" />
-      </div>
+      <MediaReveal className="aspect-video w-full" />
       <div className="flex justify-between text-xs">
         <div className="flex items-center gap-1">
-          <div className="bg-muted h-4 w-24 animate-pulse rounded" />
+          <div className="bg-muted h-4 w-24 rounded" />
         </div>
-        <div className="bg-muted h-4 w-8 animate-pulse rounded" />
+        <div className="bg-muted h-4 w-8 rounded" />
       </div>
     </div>
   );

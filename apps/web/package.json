@@ -49,6 +49,7 @@
     "@uicapsule/wireframe-orb": "workspace:*",
     "@vercel/analytics": "^2.0.1",
     "better-auth": "catalog:",
+    "img-fx": "^0.3.1",
     "jszip": "^3.10.1",
     "lucide-react": "^1.16.0",
     "motion": "^12.40.0",
@@ -59,6 +60,7 @@
     "react-hook-form": "^7.76.0",
     "shiki": "^4.1.0",
     "superjson": "catalog:",
+    "three": "^0.184.0",
     "web-haptics": "^0.0.6",
     "zod": "catalog:"
   },
