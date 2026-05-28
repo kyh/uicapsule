@@ -8,33 +8,14 @@ import { cn } from "@repo/ui/lib/utils";
 // extra fragment cost of retina resolution isn't worth it across many cards.
 if (typeof window !== "undefined") setMaxDpr(1);
 
-type MediaRevealProps = {
-  className?: string;
-  image?: string;
-  video?: string;
-  iframe?: { src: string; title: string };
-};
-
-// An img-fx "generation" shader acts as the loading skeleton and dissolves away
-// to reveal the media underneath once it is ready (image via img-fx's own
-// reveal, video on first frame, iframe on load). With no media it is just the
-// animated skeleton. The shader and video only initialise once the element
-// nears the viewport so a long grid/feed doesn't spin up dozens of WebGL
-// contexts on first paint.
-export const MediaReveal = ({ className, image, video, iframe }: MediaRevealProps) => {
-  const handle = useRef<ImageGenerationHandle>(null);
-  const rootRef = useRef<HTMLDivElement>(null);
-  const videoRef = useRef<HTMLVideoElement>(null);
+// Latches true once the element first scrolls near the viewport, so the heavy
+// work (WebGL shader, video loading) is deferred until then.
+const useInView = (rootMargin = "200px") => {
+  const ref = useRef<HTMLDivElement>(null);
   const [inView, setInView] = useState(false);
-  const [revealed, setRevealed] = useState(false);
-  // Set once the shader has faded out, to drop it from the DOM (and free its
-  // WebGL instance + observers) since it has nothing left to show.
-  const [retired, setRetired] = useState(false);
-
   useEffect(() => {
-    const el = rootRef.current;
-    if (!el) return;
-    if (typeof IntersectionObserver === "undefined") {
+    const el = ref.current;
+    if (!el || typeof IntersectionObserver === "undefined") {
       setInView(true);
       return;
     }
@@ -45,30 +26,45 @@ export const MediaReveal = ({ className, image, video, iframe }: MediaRevealProp
           io.disconnect();
         }
       },
-      { rootMargin: "200px" },
+      { rootMargin },
     );
     io.observe(el);
     return () => io.disconnect();
-  }, []);
+  }, [rootMargin]);
+  return [ref, inView] as const;
+};
 
-  // Fall back to the skeleton when the source changes or is removed.
-  useEffect(() => {
+type MediaRevealProps = {
+  className?: string;
+  image?: string;
+  video?: string;
+  iframe?: { src: string; title: string };
+};
+
+// An img-fx "generation" shader acts as the loading skeleton and dissolves away
+// to reveal the media underneath once it is ready (image via img-fx's own
+// reveal, video on first frame, iframe on load), then drops from the DOM to
+// free its WebGL instance. With no media it is just the animated skeleton.
+export const MediaReveal = ({ className, image, video, iframe }: MediaRevealProps) => {
+  const handle = useRef<ImageGenerationHandle>(null);
+  const [rootRef, inView] = useInView();
+  const [revealed, setRevealed] = useState(false);
+  const [retired, setRetired] = useState(false);
+
+  // Reset to the skeleton when the source changes or is removed (e.g. a feed
+  // item scrolled away and back) — derived during render, no Effect needed.
+  const source = iframe?.src ?? video ?? image ?? null;
+  const [prevSource, setPrevSource] = useState(source);
+  if (source !== prevSource) {
+    setPrevSource(source);
     setRevealed(false);
     setRetired(false);
-  }, [image, video, iframe?.src]);
+  }
 
+  // Reveal an image once the shader is mounted; img-fx loads the bitmap itself.
   useEffect(() => {
-    if (!image || !inView) return;
-    handle.current?.triggerReveal({ hold: "manual" });
+    if (image && inView) handle.current?.triggerReveal({ hold: "manual" });
   }, [image, inView]);
-
-  // Catch videos that were already buffered (e.g. cached) before the event
-  // listeners attached and so never fire loadeddata/canplay.
-  useEffect(() => {
-    if (!video || !inView) return;
-    const el = videoRef.current;
-    if (el && el.readyState >= 2) setRevealed(true);
-  }, [video, inView]);
 
   const fadeOut = revealed && (Boolean(video) || Boolean(iframe));
 
@@ -76,7 +72,6 @@ export const MediaReveal = ({ className, image, video, iframe }: MediaRevealProp
     <div ref={rootRef} className={cn("bg-muted relative overflow-hidden", className)}>
       {video && inView && (
         <video
-          ref={videoRef}
           className="absolute inset-0 h-full w-full object-cover"
           autoPlay
           loop
