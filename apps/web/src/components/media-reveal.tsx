@@ -51,16 +51,6 @@ export const MediaReveal = ({ className, image, video, iframe }: MediaRevealProp
   const [revealed, setRevealed] = useState(false);
   const [retired, setRetired] = useState(false);
 
-  // Reset to the skeleton when the source changes or is removed (e.g. a feed
-  // item scrolled away and back) — derived during render, no Effect needed.
-  const source = iframe?.src ?? video ?? image ?? null;
-  const [prevSource, setPrevSource] = useState(source);
-  if (source !== prevSource) {
-    setPrevSource(source);
-    setRevealed(false);
-    setRetired(false);
-  }
-
   // Reveal an image once the shader is mounted; img-fx loads the bitmap itself.
   useEffect(() => {
     if (image && inView) handle.current?.triggerReveal({ hold: "manual" });
