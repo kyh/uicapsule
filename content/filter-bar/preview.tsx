@@ -22,7 +22,7 @@ export default function Preview() {
   });
 
   return (
-    <div className="flex h-screen items-center bg-stone-100 p-10">
+    <div className="flex h-screen items-center bg-stone-100 p-10 dark:bg-stone-900">
       <DataTableFilter
         filters={filters}
         columns={columns}
