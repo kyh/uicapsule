@@ -13,7 +13,8 @@
     "typecheck": "turbo run typecheck",
     "format": "oxfmt",
     "lint:fix": "oxlint --fix",
-    "format:fix": "oxfmt --write"
+    "format:fix": "oxfmt --write",
+    "new:content": "tsx scripts/new-content.ts"
   },
   "devDependencies": {
     "dotenv-cli": "^11.0.0",
