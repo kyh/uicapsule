@@ -37,4 +37,5 @@ pnpm format           # Check formatting
 pnpm format:fix       # Fix formatting
 pnpm db:push          # Push local db schema
 pnpm db:push-remote   # Push to production Turso
+pnpm new:content <slug>  # Scaffold a new content component (content/ + web app dep)
 ```
