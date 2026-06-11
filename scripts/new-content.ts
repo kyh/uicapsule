@@ -13,7 +13,7 @@
  */
 import { execSync } from "node:child_process";
 import { existsSync } from "node:fs";
-import { mkdir, readFile, writeFile } from "node:fs/promises";
+import { mkdir, readFile, rm, writeFile } from "node:fs/promises";
 import { join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -112,15 +112,16 @@ export default Preview;
 const componentTsx = (componentName: string, displayName: string) => `"use client";
 
 export const ${componentName} = () => {
-  return <div>${displayName}</div>;
+  return <div>{${JSON.stringify(displayName)}}</div>;
 };
 `;
 
 /**
  * Inserts the dependency in alphabetical position without re-sorting existing
- * keys, so unrelated lines never change.
+ * keys, so unrelated lines never change. Returns the previous file contents
+ * when a change was made, for rollback on failure.
  */
-const addWebDependency = async (slug: string) => {
+const addWebDependency = async (slug: string): Promise<string | null> => {
   const pkgName = `@uicapsule/${slug}`;
   const raw = await readFile(webPackageJsonPath, "utf-8");
   const pkg = JSON.parse(raw) as { dependencies?: Record<string, string> };
@@ -128,7 +129,7 @@ const addWebDependency = async (slug: string) => {
 
   if (dependencies[pkgName]) {
     console.log(`- ${pkgName} already in apps/web/package.json, skipping`);
-    return;
+    return null;
   }
 
   const next: Record<string, string> = {};
@@ -145,6 +146,7 @@ const addWebDependency = async (slug: string) => {
   pkg.dependencies = next;
   await writeFile(webPackageJsonPath, JSON.stringify(pkg, null, 2) + "\n");
   console.log(`- Added ${pkgName} to apps/web/package.json`);
+  return raw;
 };
 
 const main = async () => {
@@ -164,22 +166,33 @@ const main = async () => {
   const displayName = name ?? toTitleCase(slug);
   const componentName = toPascalCase(slug);
 
-  await mkdir(dir, { recursive: true });
-  await Promise.all([
-    writeFile(join(dir, "meta.json"), metaJson(displayName, description ?? "")),
-    writeFile(join(dir, "package.json"), packageJson(slug)),
-    writeFile(join(dir, "preview.tsx"), previewTsx(slug, componentName)),
-    writeFile(join(dir, `${slug}.tsx`), componentTsx(componentName, displayName)),
-  ]);
-  console.log(`- Created content/${slug}`);
+  let webPackageJsonBackup: string | null = null;
+  try {
+    await mkdir(dir, { recursive: true });
+    await Promise.all([
+      writeFile(join(dir, "meta.json"), metaJson(displayName, description ?? "")),
+      writeFile(join(dir, "package.json"), packageJson(slug)),
+      writeFile(join(dir, "preview.tsx"), previewTsx(slug, componentName)),
+      writeFile(join(dir, `${slug}.tsx`), componentTsx(componentName, displayName)),
+    ]);
+    console.log(`- Created content/${slug}`);
 
-  await addWebDependency(slug);
+    webPackageJsonBackup = await addWebDependency(slug);
 
-  if (install) {
-    console.log("- Running pnpm install...");
-    execSync("pnpm install", { cwd: repoRoot, stdio: "inherit" });
-  } else {
-    console.log("- Skipped pnpm install (--no-install)");
+    if (install) {
+      console.log("- Running pnpm install...");
+      execSync("pnpm install", { cwd: repoRoot, stdio: "inherit" });
+    } else {
+      console.log("- Skipped pnpm install (--no-install)");
+    }
+  } catch (error) {
+    // Roll back the partial scaffold so the command can simply be re-run
+    await rm(dir, { recursive: true, force: true });
+    if (webPackageJsonBackup !== null) {
+      await writeFile(webPackageJsonPath, webPackageJsonBackup);
+    }
+    console.error(`Failed — rolled back content/${slug} and apps/web/package.json.`);
+    throw error;
   }
 
   console.log(`
