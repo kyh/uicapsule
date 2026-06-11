@@ -17,6 +17,8 @@
     "new:content": "tsx scripts/new-content.ts"
   },
   "devDependencies": {
+    "citty": "^0.2.2",
+    "consola": "^3.4.2",
     "dotenv-cli": "^11.0.0",
     "oxfmt": "^0.51.0",
     "oxlint": "^1.66.0",

@@ -7,51 +7,20 @@
  *
  * Everything else (the content index, next.config.js transpilePackages, the
  * shadcn registry) discovers components from the content/ directory at runtime.
- *
- * Usage:
- *   pnpm new:content <slug> [--name "Display Name"] [--description "..."] [--no-install]
  */
 import { execSync } from "node:child_process";
 import { existsSync } from "node:fs";
 import { mkdir, readFile, rm, writeFile } from "node:fs/promises";
 import { join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
+import { defineCommand, runMain } from "citty";
+import consola from "consola";
 
 const repoRoot = resolve(fileURLToPath(new URL(".", import.meta.url)), "..");
 const contentRoot = join(repoRoot, "content");
 const webPackageJsonPath = join(repoRoot, "apps", "web", "package.json");
 
-const usage = () => {
-  console.log(
-    'Usage: pnpm new:content <slug> [--name "Display Name"] [--description "..."] [--no-install]',
-  );
-  process.exit(1);
-};
-
-const parseArgs = (argv: string[]) => {
-  let slug: string | undefined;
-  let name: string | undefined;
-  let description: string | undefined;
-  let install = true;
-
-  for (let i = 0; i < argv.length; i++) {
-    const arg = argv[i]!;
-    if (arg === "--name") name = argv[++i];
-    else if (arg === "--description") description = argv[++i];
-    else if (arg === "--no-install") install = false;
-    else if (arg === "--help" || arg === "-h") usage();
-    else if (arg.startsWith("-")) {
-      console.error(`Unknown option: ${arg}`);
-      usage();
-    } else if (slug) {
-      console.error(`Unexpected argument: ${arg}`);
-      usage();
-    } else slug = arg;
-  }
-
-  if (!slug) usage();
-  return { slug: slug!, name, description, install };
-};
+const SLUG_RE = /^[a-z][a-z0-9]*(-[a-z0-9]+)*$/;
 
 const toPascalCase = (slug: string) =>
   slug
@@ -128,7 +97,7 @@ const addWebDependency = async (slug: string): Promise<string | null> => {
   const dependencies = pkg.dependencies ?? {};
 
   if (dependencies[pkgName]) {
-    console.log(`- ${pkgName} already in apps/web/package.json, skipping`);
+    consola.info(`${pkgName} already in apps/web/package.json, skipping`);
     return null;
   }
 
@@ -145,66 +114,92 @@ const addWebDependency = async (slug: string): Promise<string | null> => {
 
   pkg.dependencies = next;
   await writeFile(webPackageJsonPath, JSON.stringify(pkg, null, 2) + "\n");
-  console.log(`- Added ${pkgName} to apps/web/package.json`);
+  consola.info(`Added ${pkgName} to apps/web/package.json`);
   return raw;
 };
 
-const main = async () => {
-  const { slug, name, description, install } = parseArgs(process.argv.slice(2));
-
-  if (!/^[a-z][a-z0-9]*(-[a-z0-9]+)*$/.test(slug)) {
-    console.error(`Invalid slug "${slug}". Use kebab-case, e.g. "my-component".`);
-    process.exit(1);
-  }
-
-  const dir = join(contentRoot, slug);
-  if (existsSync(dir)) {
-    console.error(`content/${slug} already exists.`);
-    process.exit(1);
-  }
-
-  const displayName = name ?? toTitleCase(slug);
-  const componentName = toPascalCase(slug);
-
-  let webPackageJsonBackup: string | null = null;
-  try {
-    await mkdir(dir, { recursive: true });
-    await Promise.all([
-      writeFile(join(dir, "meta.json"), metaJson(displayName, description ?? "")),
-      writeFile(join(dir, "package.json"), packageJson(slug)),
-      writeFile(join(dir, "preview.tsx"), previewTsx(slug, componentName)),
-      writeFile(join(dir, `${slug}.tsx`), componentTsx(componentName, displayName)),
-    ]);
-    console.log(`- Created content/${slug}`);
-
-    webPackageJsonBackup = await addWebDependency(slug);
-
-    if (install) {
-      console.log("- Running pnpm install...");
-      execSync("pnpm install", { cwd: repoRoot, stdio: "inherit" });
-    } else {
-      console.log("- Skipped pnpm install (--no-install)");
+const main = defineCommand({
+  meta: {
+    name: "new:content",
+    description: "Scaffold a new blank content component and register it in the web app.",
+  },
+  args: {
+    slug: {
+      type: "positional",
+      description: 'Lowercase, hyphenated slug — used as the directory name (e.g. "my-component").',
+      required: true,
+    },
+    name: {
+      type: "string",
+      description: "Display name shown in the UI. Defaults to the title-cased slug.",
+    },
+    description: {
+      type: "string",
+      description: "Short description for meta.json.",
+    },
+    install: {
+      type: "boolean",
+      description: "Run pnpm install to link the workspace package (--no-install to skip).",
+      default: true,
+    },
+  },
+  run: async ({ args }) => {
+    const slug = args.slug.trim().toLowerCase();
+    if (!SLUG_RE.test(slug)) {
+      consola.error(`Invalid slug "${args.slug}". Use kebab-case, e.g. "my-component".`);
+      process.exit(1);
     }
-  } catch (error) {
-    // Roll back the partial scaffold so the command can simply be re-run
-    await rm(dir, { recursive: true, force: true });
-    if (webPackageJsonBackup !== null) {
-      await writeFile(webPackageJsonPath, webPackageJsonBackup);
+
+    const dir = join(contentRoot, slug);
+    if (existsSync(dir)) {
+      consola.error(`content/${slug} already exists.`);
+      process.exit(1);
     }
-    console.error(`Failed — rolled back content/${slug} and apps/web/package.json.`);
-    throw error;
-  }
 
-  console.log(`
-Done! Next steps:
-  1. Build your component in content/${slug}/${slug}.tsx
-  2. Stage it in content/${slug}/preview.tsx
-  3. Fill in description/tags (and optional coverUrl) in content/${slug}/meta.json
-  4. View it at http://localhost:3000/ui/${slug} (pnpm dev:web)
-`);
-};
+    const displayName = args.name ?? toTitleCase(slug);
+    const componentName = toPascalCase(slug);
 
-main().catch((error: unknown) => {
-  console.error(error);
-  process.exit(1);
+    consola.start(`Scaffolding content/${slug}`);
+
+    let webPackageJsonBackup: string | null = null;
+    try {
+      await mkdir(dir, { recursive: true });
+      await Promise.all([
+        writeFile(join(dir, "meta.json"), metaJson(displayName, args.description ?? "")),
+        writeFile(join(dir, "package.json"), packageJson(slug)),
+        writeFile(join(dir, "preview.tsx"), previewTsx(slug, componentName)),
+        writeFile(join(dir, `${slug}.tsx`), componentTsx(componentName, displayName)),
+      ]);
+      consola.info(`Created content/${slug}`);
+
+      webPackageJsonBackup = await addWebDependency(slug);
+
+      if (args.install) {
+        consola.info("Running pnpm install...");
+        execSync("pnpm install", { cwd: repoRoot, stdio: "inherit" });
+      } else {
+        consola.info("Skipped pnpm install (--no-install)");
+      }
+    } catch (error) {
+      // Roll back the partial scaffold so the command can simply be re-run
+      await rm(dir, { recursive: true, force: true });
+      if (webPackageJsonBackup !== null) {
+        await writeFile(webPackageJsonPath, webPackageJsonBackup);
+      }
+      consola.error(`Failed — rolled back content/${slug} and apps/web/package.json.`);
+      throw error;
+    }
+
+    consola.success(`Scaffolded content/${slug}`);
+    consola.log("");
+    consola.info("Next steps:");
+    consola.log(`  1. Build your component in content/${slug}/${slug}.tsx`);
+    consola.log(`  2. Stage it in content/${slug}/preview.tsx`);
+    consola.log(
+      `  3. Fill in description/tags (and optional coverUrl) in content/${slug}/meta.json`,
+    );
+    consola.log(`  4. View it at http://localhost:3000/ui/${slug} (pnpm dev:web)`);
+  },
 });
+
+void runMain(main);
