@@ -8,12 +8,24 @@ import "./spinner-pixel-grid.css";
 const variants = [
   "default",
   "wave",
+  "cascade",
   "spiral",
+  "vortex",
   "chase",
+  "frame",
   "rain",
+  "scan",
+  "ripple",
+  "diamond",
   "star",
+  "saltire",
   "crosshair",
+  "corners",
+  "checker",
   "snake",
+  "radar",
+  "pulse",
+  "heart",
 ] as const;
 
 type SpinnerVariant = (typeof variants)[number];
@@ -22,6 +34,14 @@ type SpinnerProps = HTMLAttributes<HTMLDivElement> & {
   size?: number;
   gridSize?: number;
   variant?: SpinnerVariant;
+};
+
+// Heart shape mask via the implicit heart curve, normalized to the grid.
+const isHeartPixel = (x: number, y: number, gridSize: number): boolean => {
+  const center = (gridSize - 1) / 2;
+  const nx = (x - center) / (gridSize * 0.48);
+  const ny = (center - y) / (gridSize * 0.34) + 0.05;
+  return Math.pow(nx * nx + ny * ny - 1, 3) - nx * nx * Math.pow(ny, 3) <= 0;
 };
 
 // Get animation delay based on variant and position
@@ -42,6 +62,10 @@ const getAnimationDelay = (
       // Horizontal wave
       return `${0.1 * x}s`;
 
+    case "cascade":
+      // Vertical wave, top to bottom
+      return `${0.12 * y}s`;
+
     case "spiral": {
       // Spiral from center outward
       const dx = x - center;
@@ -50,6 +74,16 @@ const getAnimationDelay = (
       const angle = Math.atan2(dy, dx);
       const normalizedAngle = (angle + Math.PI) / (2 * Math.PI);
       return `${(distance * 0.15 + normalizedAngle * 0.3).toFixed(2)}s`;
+    }
+
+    case "vortex": {
+      // Rotating arm that also pulses radially
+      const dx = x - center;
+      const dy = y - center;
+      const distance = Math.sqrt(dx * dx + dy * dy);
+      const angle = Math.atan2(dy, dx);
+      const normalizedAngle = (angle + Math.PI) / (2 * Math.PI);
+      return `${(normalizedAngle * 1.2 + distance * 0.1).toFixed(2)}s`;
     }
 
     case "chase": {
@@ -72,9 +106,31 @@ const getAnimationDelay = (
       return `${(order / perimeter) * 0.8}s`;
     }
 
+    case "frame":
+      // Whole border pulses together
+      return "0s";
+
     case "rain":
       // Rain falling from top, each column offset
       return `${y * 0.1 + x * 0.05}s`;
+
+    case "scan":
+      // Sharp scanline sweeping downward
+      return `${y * 0.15}s`;
+
+    case "ripple": {
+      // Concentric rings radiating from the center
+      const dx = x - center;
+      const dy = y - center;
+      const distance = Math.sqrt(dx * dx + dy * dy);
+      return `${(distance * 0.18).toFixed(2)}s`;
+    }
+
+    case "diamond": {
+      // Diamond-shaped rings (manhattan distance) from the center
+      const manhattan = Math.abs(x - center) + Math.abs(y - center);
+      return `${(manhattan * 0.12).toFixed(2)}s`;
+    }
 
     case "star": {
       // Star pattern - radiates outward from center along cross and diagonals
@@ -89,6 +145,13 @@ const getAnimationDelay = (
       return `${dist * 0.12}s`;
     }
 
+    case "saltire": {
+      // Diagonal cross (X) radiating from the center
+      const centerIdx = Math.floor(gridSize / 2);
+      const dist = Math.max(Math.abs(x - centerIdx), Math.abs(y - centerIdx));
+      return `${dist * 0.12}s`;
+    }
+
     case "crosshair": {
       // Center row and column animate outward from center
       const centerIdx = Math.floor(gridSize / 2);
@@ -100,11 +163,47 @@ const getAnimationDelay = (
       return `${distFromCenter * 0.1}s`;
     }
 
+    case "corners": {
+      // Collapse inward from all four corners
+      const last = gridSize - 1;
+      const cornerPoints: [number, number][] = [
+        [0, 0],
+        [last, 0],
+        [0, last],
+        [last, last],
+      ];
+      let nearest = Infinity;
+      for (const [cx, cy] of cornerPoints) {
+        const d = Math.sqrt((x - cx) * (x - cx) + (y - cy) * (y - cy));
+        if (d < nearest) nearest = d;
+      }
+      return `${(nearest * 0.15).toFixed(2)}s`;
+    }
+
+    case "checker":
+      // Alternating checkerboard pulse
+      return `${((x + y) % 2) * 0.5}s`;
+
     case "snake": {
       // Snake pattern (alternating direction per row)
       const effectiveX = y % 2 === 0 ? x : gridSize - 1 - x;
       return `${(y * gridSize + effectiveX) * 0.05}s`;
     }
+
+    case "radar": {
+      // Radar sweep around the center
+      const angle = Math.atan2(y - center, x - center);
+      const normalizedAngle = (angle + Math.PI) / (2 * Math.PI);
+      return `${(normalizedAngle * 1.2).toFixed(2)}s`;
+    }
+
+    case "pulse":
+      // Every dot breathes together
+      return "0s";
+
+    case "heart":
+      // Whole heart beats together
+      return "0s";
 
     default:
       return `${0.05 * (x + y)}s`;
@@ -115,11 +214,17 @@ const getAnimationDelay = (
 const getAnimationName = (variant: SpinnerVariant): string => {
   switch (variant) {
     case "chase":
+    case "frame":
+    case "scan":
+    case "radar":
+    case "vortex":
       return "pixel-chase";
     case "rain":
       return "pixel-rain";
     case "crosshair":
       return "pixel-crosshair";
+    case "heart":
+      return "pixel-beat";
     default:
       return "pixel-scale";
   }
@@ -129,13 +234,18 @@ const getAnimationName = (variant: SpinnerVariant): string => {
 const getAnimationDuration = (variant: SpinnerVariant): string => {
   switch (variant) {
     case "chase":
-      return "0.8s";
     case "rain":
       return "0.8s";
     case "crosshair":
       return "0.6s";
     case "snake":
       return "1.5s";
+    case "scan":
+    case "radar":
+    case "vortex":
+      return "1.2s";
+    case "heart":
+      return "1.2s";
     default:
       return "1s";
   }
@@ -148,7 +258,7 @@ const shouldShowPixel = (
   y: number,
   gridSize: number,
 ): boolean => {
-  if (variant === "chase") {
+  if (variant === "chase" || variant === "frame") {
     const isTop = y === 0;
     const isBottom = y === gridSize - 1;
     const isLeft = x === 0;
@@ -166,9 +276,18 @@ const shouldShowPixel = (
     return (isCross || isDiagonal) && !isCorner;
   }
 
+  if (variant === "saltire") {
+    const centerIdx = Math.floor(gridSize / 2);
+    return Math.abs(x - centerIdx) === Math.abs(y - centerIdx);
+  }
+
   if (variant === "crosshair") {
     const centerIdx = Math.floor(gridSize / 2);
     return x === centerIdx || y === centerIdx;
+  }
+
+  if (variant === "heart") {
+    return isHeartPixel(x, y, gridSize);
   }
 
   return true;
