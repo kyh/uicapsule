@@ -46,6 +46,30 @@
   }
 }
 
+@keyframes pixel-beat {
+  0%,
+  100% {
+    opacity: 0.3;
+    transform: scale(0.7);
+  }
+  15% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  30% {
+    opacity: 0.5;
+    transform: scale(0.85);
+  }
+  45% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  60% {
+    opacity: 0.3;
+    transform: scale(0.7);
+  }
+}
+
 @keyframes hue-rotate {
   from {
     filter: hue-rotate(0deg);
