@@ -11,6 +11,7 @@ import {
 
 const Preview = () => {
   const [glow, setGlow] = useState(true);
+  const [rainbow, setRainbow] = useState(true);
   const [shape, setShape] = useState<SpinnerShape>("square");
 
   return (
@@ -19,6 +20,10 @@ const Preview = () => {
         <label className="flex items-center gap-2 text-sm text-gray-300">
           <input type="checkbox" checked={glow} onChange={(e) => setGlow(e.target.checked)} />
           Glow
+        </label>
+        <label className="flex items-center gap-2 text-sm text-gray-300">
+          <input type="checkbox" checked={rainbow} onChange={(e) => setRainbow(e.target.checked)} />
+          Rainbow
         </label>
         <div className="flex items-center gap-2 text-sm text-gray-300">
           Shape:
@@ -50,9 +55,9 @@ const Preview = () => {
               variant={variant}
               shape={shape}
               glow={glow}
+              rainbow={rainbow}
               size={10}
               gridSize={5}
-              rainbow
             />
             <span className="text-xs text-gray-500">{variant}</span>
           </div>
