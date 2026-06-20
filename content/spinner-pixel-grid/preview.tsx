@@ -26,6 +26,7 @@ const Preview = () => {
             <button
               key={s}
               type="button"
+              aria-pressed={shape === s}
               onClick={() => setShape(s)}
               className={
                 shape === s
