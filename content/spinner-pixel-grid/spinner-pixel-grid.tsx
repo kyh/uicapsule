@@ -87,6 +87,7 @@ const variantConfigs = {
     mask: edgeMask,
     delay: (x, y, g) => {
       const last = g - 1;
+      if (last === 0) return 0;
       let order = 0;
       if (y === 0) order = x;
       else if (x === last) order = last + y;
@@ -188,7 +189,10 @@ const variantConfigs = {
 
 const variants = Object.keys(variantConfigs) as SpinnerVariant[];
 
+const shapes = ["square", "circle"] as const;
+
 type SpinnerVariant = keyof typeof variantConfigs;
+type SpinnerShape = (typeof shapes)[number];
 
 type SpinnerProps = HTMLAttributes<HTMLDivElement> & {
   /** Pixel size of each dot. */
@@ -196,8 +200,12 @@ type SpinnerProps = HTMLAttributes<HTMLDivElement> & {
   /** Number of dots per row/column. */
   gridSize?: number;
   variant?: SpinnerVariant;
+  /** Shape of each dot. */
+  shape?: SpinnerShape;
   /** Dot color. Any CSS color; defaults to the inherited text color. */
   color?: string;
+  /** Render the neon glow around each dot. */
+  glow?: boolean;
   /** Animation speed multiplier. 2 = twice as fast, 0.5 = half speed. */
   speed?: number;
   /** Cycle the hue of every dot for a rainbow effect. */
@@ -232,7 +240,9 @@ export const SpinnerPixelGrid = forwardRef<HTMLDivElement, SpinnerProps>(
       size = 8,
       gridSize = 3,
       variant = "default",
+      shape = "square",
       color = "currentColor",
+      glow = true,
       speed = 1,
       rainbow = false,
       ariaLabel = "Loading",
@@ -271,8 +281,10 @@ export const SpinnerPixelGrid = forwardRef<HTMLDivElement, SpinnerProps>(
                     className="absolute inset-0"
                     style={{
                       backgroundColor: "var(--spinner-color)",
-                      boxShadow:
-                        "0 0 10px var(--spinner-color), 0 0 20px var(--spinner-color), 0 0 40px var(--spinner-color)",
+                      borderRadius: shape === "circle" ? "50%" : undefined,
+                      boxShadow: glow
+                        ? "0 0 10px var(--spinner-color), 0 0 20px var(--spinner-color), 0 0 40px var(--spinner-color)"
+                        : undefined,
                       animation: animate
                         ? `${config.keyframe} ${duration}s linear ${config.delay(x, y, gridSize) / safeSpeed}s infinite${rainbowAnimation}`
                         : undefined,
@@ -290,5 +302,5 @@ export const SpinnerPixelGrid = forwardRef<HTMLDivElement, SpinnerProps>(
 
 SpinnerPixelGrid.displayName = "SpinnerPixelGrid";
 
-export { variants as spinnerVariants };
-export type { SpinnerVariant };
+export { variants as spinnerVariants, shapes as spinnerShapes };
+export type { SpinnerVariant, SpinnerShape };
