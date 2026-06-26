@@ -1,4 +1,4 @@
-import { cx, CxOptions } from "class-variance-authority";
+import { cn } from "cnfast";
 import {
   ChevronDown,
   ChevronLeft,
@@ -16,7 +16,6 @@ import {
   X,
 } from "lucide-react";
 import { AnimatePresence, motion, MotionConfig } from "motion/react";
-import { twMerge } from "tailwind-merge";
 
 interface HeaderMenuProps {
   isOpen: boolean;
@@ -190,5 +189,3 @@ const WrapperMenu = ({ className }: { className?: string }) => {
     </AnimatePresence>
   );
 };
-
-export const cn = (...inputs: CxOptions) => twMerge(cx(inputs));

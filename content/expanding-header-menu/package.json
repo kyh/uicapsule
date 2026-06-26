@@ -7,12 +7,11 @@
     "clean": "git clean -xdf .cache .turbo dist node_modules"
   },
   "dependencies": {
-    "class-variance-authority": "^0.7.1",
+    "cnfast": "^0.0.8",
     "lucide-react": "^1.16.0",
     "motion": "^12.40.0",
     "react": "catalog:",
-    "react-dom": "catalog:",
-    "tailwind-merge": "^3.6.0"
+    "react-dom": "catalog:"
   },
   "exports": {
     "./preview": "./preview.tsx"
