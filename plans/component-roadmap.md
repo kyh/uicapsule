@@ -60,19 +60,19 @@ Each entry: the interaction + the detail that makes it feel real.
 
 ## AI interactions
 
-- [ ] **ghost-text** — Cursor-style inline completion: gray ghost ahead of caret, tab absorbs it word-by-word
-- [ ] **streaming-markdown** — token-by-token render, per-word blur-fade-in, breathing cursor
-- [ ] **transcript-settle** — live dictation: interim words wobble/shimmer until confirmed, then settle solid
-- [ ] **regen-scrubber** — drag a scrubber through N generated variations like scrubbing latent space
-- [ ] **semantic-zoom** — pinch text between abstraction levels: headline ↔ summary ↔ full doc, words morphing
-- [ ] **ai-cursor** — second cursor w/ its own trail edits the doc alongside you, multiplayer-style
-- [ ] **swipe-approvals** — agent tool calls as cards: swipe right approve, left reject, stack physics
-- [ ] **token-confidence** — generated text w/ per-token certainty as opacity/weight; hover a shaky word → alternatives fan out
-- [ ] **citation-beams** — hover a citation → beam draws to source panel, passage highlights
-- [ ] **diffusion-reveal** — image gen loading: noise → coarse blobs → sharp, real denoise feel
-- [ ] **assistant-orb** — orb-family entry: idle / listening / thinking / speaking states w/ distinct motion signatures
-- [ ] **vibe-dial** — temperature knob: turning it live-morphs sample output (type, color, copy get weirder)
-- [ ] **context-chips** — @-mention: file chips fly into composer, squish in as tokens, overflow stacks
+- [x] **ghost-text** — Cursor-style inline completion: gray ghost ahead of caret, tab absorbs it word-by-word
+- [x] **streaming-markdown** — token-by-token render, per-word blur-fade-in, breathing cursor
+- [x] **transcript-settle** — live dictation: interim words wobble/shimmer until confirmed, then settle solid
+- [x] **regen-scrubber** — drag a scrubber through N generated variations like scrubbing latent space
+- [x] **semantic-zoom** — pinch text between abstraction levels: headline ↔ summary ↔ full doc, words morphing
+- [x] **ai-cursor** — second cursor w/ its own trail edits the doc alongside you, multiplayer-style
+- [x] **swipe-approvals** — agent tool calls as cards: swipe right approve, left reject, stack physics
+- [x] **token-confidence** — generated text w/ per-token certainty as opacity/weight; hover a shaky word → alternatives fan out
+- [x] **citation-beams** — hover a citation → beam draws to source panel, passage highlights
+- [x] **diffusion-reveal** — image gen loading: noise → coarse blobs → sharp, real denoise feel
+- [x] **assistant-orb** — orb-family entry: idle / listening / thinking / speaking states w/ distinct motion signatures
+- [x] **vibe-dial** — temperature knob: turning it live-morphs sample output (type, color, copy get weirder)
+- [x] **context-chips** — @-mention: file chips fly into composer, squish in as tokens, overflow stacks
 
 ## Shared infra (before scaling out)
 
