@@ -44,10 +44,10 @@ Each entry: the interaction + the detail that makes it feel real.
 
 ## TV
 
-- [ ] **tv-focus-cards** — Apple TV poster: parallax tilt + specular sheen following focus, arrow-key focus engine, focus sound
-- [ ] **epg-grid** — channel guide: 2D focus nav, now-line creeping, focused cell expands
-- [ ] **seek-filmstrip** — scrubber w/ thumbnail filmstrip fanning under playhead, chapter snaps
-- [ ] **next-episode-card** — countdown ring card slides in, steals focus, ring depletes
+- [x] **tv-focus-cards** — Apple TV poster: parallax tilt + specular sheen following focus, arrow-key focus engine, focus sound
+- [x] **epg-grid** — channel guide: 2D focus nav, now-line creeping, focused cell expands
+- [x] **seek-filmstrip** — scrubber w/ thumbnail filmstrip fanning under playhead, chapter snaps
+- [x] **next-episode-card** — countdown ring card slides in, steals focus, ring depletes
 
 ## Tesla
 
