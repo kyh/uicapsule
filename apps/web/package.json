@@ -46,6 +46,7 @@
     "@uicapsule/spinner-pixel-grid": "workspace:*",
     "@uicapsule/spreadsheet": "workspace:*",
     "@uicapsule/tesla-climate": "workspace:*",
+    "@uicapsule/token-confidence": "workspace:*",
     "@uicapsule/tooltip-grid": "workspace:*",
     "@uicapsule/voice-dictator": "workspace:*",
     "@uicapsule/wireframe-orb": "workspace:*",

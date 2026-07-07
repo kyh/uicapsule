@@ -194,6 +194,9 @@ importers:
       '@uicapsule/tesla-climate':
         specifier: workspace:*
         version: link:../../content/tesla-climate
+      '@uicapsule/token-confidence':
+        specifier: workspace:*
+        version: link:../../content/token-confidence
       '@uicapsule/tooltip-grid':
         specifier: workspace:*
         version: link:../../content/tooltip-grid
@@ -841,6 +844,25 @@ importers:
       lucide-react:
         specifier: ^1.16.0
         version: 1.16.0(react@19.2.6)
+      react:
+        specifier: 'catalog:'
+        version: 19.2.6
+      react-dom:
+        specifier: 'catalog:'
+        version: 19.2.6(react@19.2.6)
+    devDependencies:
+      '@types/react':
+        specifier: 'catalog:'
+        version: 19.2.15
+      '@types/react-dom':
+        specifier: 'catalog:'
+        version: 19.2.3(@types/react@19.2.15)
+
+  content/token-confidence:
+    dependencies:
+      motion:
+        specifier: ^12.40.0
+        version: 12.40.0(react-dom@19.2.6(react@19.2.6))(react@19.2.6)
       react:
         specifier: 'catalog:'
         version: 19.2.6
