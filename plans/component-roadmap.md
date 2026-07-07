@@ -33,14 +33,14 @@ Each entry: the interaction + the detail that makes it feel real.
 
 ## Android
 
-- [ ] **pattern-unlock** — 9-dot draw w/ glowing trail, error flashes red + shakes
-- [ ] **chat-heads** — floating bubble: edge-snap, flick physics, drag to bottom → magnetic X swallows it
-- [ ] **predictive-back** — edge-drag: screen shrinks + peels to reveal previous before commit
-- [ ] **material-you-theming** — drop in image → palette extracted live → whole demo UI re-themes
-- [ ] **overscroll-stretch** — Android 12 squish: content stretches at boundary, no glow
-- [ ] **fingerprint-unlock** — hold sensor spot → ripple expands across screen
-- [ ] **circle-to-search** — scribble circle over anything → lifts off page w/ shimmer, becomes query
-- [ ] **notification-shade** — two-stage pull: peek quick-settings → full expand, M3 Expressive springy tiles
+- [x] **pattern-unlock** — 9-dot draw w/ glowing trail, error flashes red + shakes
+- [x] **chat-heads** — floating bubble: edge-snap, flick physics, drag to bottom → magnetic X swallows it
+- [x] **predictive-back** — edge-drag: screen shrinks + peels to reveal previous before commit
+- [x] **material-you-theming** — drop in image → palette extracted live → whole demo UI re-themes
+- [x] **overscroll-stretch** — Android 12 squish: content stretches at boundary, no glow
+- [x] **fingerprint-unlock** — hold sensor spot → ripple expands across screen
+- [x] **circle-to-search** — scribble circle over anything → lifts off page w/ shimmer, becomes query
+- [x] **notification-shade** — two-stage pull: peek quick-settings → full expand, M3 Expressive springy tiles
 
 ## TV
 
