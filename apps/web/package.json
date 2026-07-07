@@ -47,6 +47,7 @@
     "@uicapsule/spreadsheet": "workspace:*",
     "@uicapsule/tesla-climate": "workspace:*",
     "@uicapsule/tooltip-grid": "workspace:*",
+    "@uicapsule/vibe-dial": "workspace:*",
     "@uicapsule/voice-dictator": "workspace:*",
     "@uicapsule/wireframe-orb": "workspace:*",
     "@vercel/analytics": "^2.0.1",
