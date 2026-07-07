@@ -108,7 +108,6 @@ export const GhostText = () => {
     return () => {
       if (debounceRef.current) clearTimeout(debounceRef.current);
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [typed, accepted]);
 
   const handleKey = (event: React.KeyboardEvent) => {
