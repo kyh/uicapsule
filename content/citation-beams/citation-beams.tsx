@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState, type FC, type ReactNode } from "react";
+import { useRef, useState, type FC } from "react";
 import { AnimatePresence, motion } from "motion/react";
 
 /**
@@ -52,6 +52,26 @@ const SOURCES: Source[] = [
 
 const BEAM_COLOR = "#7dd3fc";
 
+const Cite: FC<{
+  id: number;
+  active: boolean;
+  onActivate: (id: number, marker: HTMLElement) => void;
+  onClear: () => void;
+}> = ({ id, active, onActivate, onClear }) => (
+  <button
+    type="button"
+    onMouseEnter={(event) => onActivate(id, event.currentTarget)}
+    onMouseLeave={onClear}
+    onFocus={(event) => onActivate(id, event.currentTarget)}
+    onBlur={onClear}
+    className={`mx-0.5 inline-flex size-[18px] -translate-y-[2px] items-center justify-center rounded-md text-[10px] font-bold transition-colors ${
+      active ? "bg-[#7dd3fc] text-black" : "bg-white/[0.08] text-[#7dd3fc] hover:bg-white/[0.14]"
+    }`}
+  >
+    {id}
+  </button>
+);
+
 export const CitationBeams = () => {
   const [active, setActive] = useState<number | null>(null);
   const [beam, setBeam] = useState<{ x1: number; y1: number; x2: number; y2: number } | null>(null);
@@ -79,23 +99,6 @@ export const CitationBeams = () => {
     setBeam(null);
   };
 
-  const Cite: FC<{ id: number; children?: ReactNode }> = ({ id }) => (
-    <button
-      type="button"
-      onMouseEnter={(event) => activate(id, event.currentTarget)}
-      onMouseLeave={clear}
-      onFocus={(event) => activate(id, event.currentTarget)}
-      onBlur={clear}
-      className={`mx-0.5 inline-flex size-[18px] -translate-y-[2px] items-center justify-center rounded-md text-[10px] font-bold transition-colors ${
-        active === id
-          ? "bg-[#7dd3fc] text-black"
-          : "bg-white/[0.08] text-[#7dd3fc] hover:bg-white/[0.14]"
-      }`}
-    >
-      {id}
-    </button>
-  );
-
   const path = beam
     ? `M ${String(beam.x1)} ${String(beam.y1)} C ${String(beam.x1 + 70)} ${String(beam.y1)}, ${String(beam.x2 - 70)} ${String(beam.y2)}, ${String(beam.x2)} ${String(beam.y2)}`
     : "";
@@ -113,9 +116,11 @@ export const CitationBeams = () => {
         <p className="text-[14.5px] leading-[1.95] text-white/80">
           Sleep is when memory does its filing. Spindle activity during light sleep tracks how well
           you'll recall new material tomorrow
-          <Cite id={1} />; skip a night entirely and the hippocampus encodes roughly 40% less
-          <Cite id={2} />. Even a half-hour nap claws a surprising amount of that capacity back
-          <Cite id={3} />.
+          <Cite id={1} active={active === 1} onActivate={activate} onClear={clear} />; skip a night
+          entirely and the hippocampus encodes roughly 40% less
+          <Cite id={2} active={active === 2} onActivate={activate} onClear={clear} />. Even a
+          half-hour nap claws a surprising amount of that capacity back
+          <Cite id={3} active={active === 3} onActivate={activate} onClear={clear} />.
         </p>
       </div>
 
