@@ -39,3 +39,9 @@ pnpm db:push          # Push local db schema
 pnpm db:push-remote   # Push to production Turso
 pnpm new:content <slug>  # Scaffold a new content component (content/ + web app dep)
 ```
+
+## Gotchas
+
+- Turbopack's persistent cache freezes the Tailwind `@source` glob: arbitrary classes that
+  exist only in a NEWLY created `content/<slug>` package silently don't generate (styles in
+  DOM but no CSS). Fix: `rm -rf apps/web/.next` and restart `pnpm dev:web`.
