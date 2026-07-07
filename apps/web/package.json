@@ -33,6 +33,7 @@
     "@uicapsule/expanding-header-menu": "workspace:*",
     "@uicapsule/feed": "workspace:*",
     "@uicapsule/filter-bar": "workspace:*",
+    "@uicapsule/fingerprint-unlock": "workspace:*",
     "@uicapsule/geometric-orb": "workspace:*",
     "@uicapsule/gradient-orb": "workspace:*",
     "@uicapsule/infinite-grid": "workspace:*",
