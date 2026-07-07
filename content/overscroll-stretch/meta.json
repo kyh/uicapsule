@@ -1,0 +1,5 @@
+{
+  "name": "Overscroll Stretch",
+  "description": "Android 12's overscroll — the list itself stretches at the boundary and springs back, no glow.",
+  "tags": ["mobile", "effects", "navigation"]
+}

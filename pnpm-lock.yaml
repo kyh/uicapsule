@@ -173,6 +173,9 @@ importers:
       '@uicapsule/like-button':
         specifier: workspace:*
         version: link:../../content/like-button
+      '@uicapsule/overscroll-stretch':
+        specifier: workspace:*
+        version: link:../../content/overscroll-stretch
       '@uicapsule/particle-orb':
         specifier: workspace:*
         version: link:../../content/particle-orb
@@ -694,6 +697,28 @@ importers:
         version: 19.2.3(@types/react@19.2.15)
 
   content/line-chart: {}
+
+  content/overscroll-stretch:
+    dependencies:
+      lucide-react:
+        specifier: ^1.16.0
+        version: 1.16.0(react@19.2.6)
+      motion:
+        specifier: ^12.40.0
+        version: 12.40.0(react-dom@19.2.6(react@19.2.6))(react@19.2.6)
+      react:
+        specifier: 'catalog:'
+        version: 19.2.6
+      react-dom:
+        specifier: 'catalog:'
+        version: 19.2.6(react@19.2.6)
+    devDependencies:
+      '@types/react':
+        specifier: 'catalog:'
+        version: 19.2.15
+      '@types/react-dom':
+        specifier: 'catalog:'
+        version: 19.2.3(@types/react@19.2.15)
 
   content/particle-orb:
     dependencies:
