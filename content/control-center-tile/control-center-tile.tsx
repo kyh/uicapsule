@@ -188,10 +188,17 @@ export const ControlCenterTile = () => {
 
         {/* Small tiles */}
         <div className="grid aspect-square grid-cols-2 gap-3.5">
-          {[Flashlight, Timer, Calculator, Camera].map((Icon, index) => (
+          {(
+            [
+              ["flashlight", Flashlight],
+              ["timer", Timer],
+              ["calculator", Calculator],
+              ["camera", Camera],
+            ] as const
+          ).map(([name, Icon]) => (
             <button
               type="button"
-              key={index}
+              key={name}
               className="grid place-items-center rounded-3xl bg-white/[0.14] text-white/85 backdrop-blur-2xl transition-colors hover:bg-white/[0.2]"
             >
               <Icon className="size-5" />
