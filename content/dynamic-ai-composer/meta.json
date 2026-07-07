@@ -1,5 +1,7 @@
 {
   "name": "Dynamic AI Composer",
+  "coverUrl": "https://zmdrwswxugswzmcokvff.supabase.co/storage/v1/object/public/uicapsule/dynamic-ai-composer/dynamic-ai-composer.mp4",
+  "coverType": "video",
   "description": "A shape-shifting AI input capsule that morphs between text, voice, thinking, and streaming states.",
   "tags": ["ai", "forms", "effects"]
 }

@@ -1,5 +1,7 @@
 {
   "name": "Tesla Climate",
+  "coverUrl": "https://zmdrwswxugswzmcokvff.supabase.co/storage/v1/object/public/uicapsule/tesla-climate/tesla-climate.mp4",
+  "coverType": "video",
   "description": "A replica of Tesla's climate screen — drag the airstream to aim the vents, with live temperature, fan, and seat-heat response.",
   "tags": ["skeuomorphism", "controls", "effects"]
 }
