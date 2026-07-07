@@ -65,7 +65,8 @@ export const AiCursor = () => {
 
     const run = async () => {
       await sleep(1200);
-      while (alive) {
+      for (;;) {
+        if (!alive) return;
         for (const edit of EDITS) {
           if (!alive) return;
           // Locate the phrase in the current doc.
