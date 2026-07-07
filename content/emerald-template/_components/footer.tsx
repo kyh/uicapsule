@@ -1,4 +1,3 @@
-
 import { type ComponentType, type ReactNode, type SVGProps } from "react";
 import { Logo } from "./logo";
 import { WaitlistForm } from "./waitlist-form";

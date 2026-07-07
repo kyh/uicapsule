@@ -1,4 +1,9 @@
-import { type Dispatch, type ElementType as ReactElementType, type ReactElement, type SetStateAction } from "react";
+import {
+  type Dispatch,
+  type ElementType as ReactElementType,
+  type ReactElement,
+  type SetStateAction,
+} from "react";
 import type { orderFns } from "../lib/order-fns";
 
 /*
@@ -471,9 +476,7 @@ export interface DataTableFiltersOptions<
   columnsConfig: TColumns;
   defaultFilters?: FiltersState;
   filters?: FiltersState;
-  onFiltersChange?:
-    | Dispatch<SetStateAction<FiltersState>>
-    | FiltersStateUpdaterFn<TContext>;
+  onFiltersChange?: Dispatch<SetStateAction<FiltersState>> | FiltersStateUpdaterFn<TContext>;
   options?: Partial<Record<OptionColumnIds<TColumns>, ColumnOption[] | undefined>>;
   faceted?: Partial<
     | Record<OptionColumnIds<TColumns>, Map<string, number> | undefined>

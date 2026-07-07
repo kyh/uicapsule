@@ -73,10 +73,7 @@ export function FilterOperator<TData, TType extends ColumnDataType>({
       >
         <FilterOperatorDisplay filter={filter} columnType={column.type} />
       </PopoverTrigger>
-      <PopoverContent
-        align="start"
-        className="w-fit origin-(--transform-origin) p-0"
-      >
+      <PopoverContent align="start" className="w-fit origin-(--transform-origin) p-0">
         <Command loop>
           <CommandInput placeholder="search" />
           <CommandEmpty>No results</CommandEmpty>

@@ -1,4 +1,3 @@
-
 import { useId, type SVGProps } from "react";
 export type GridPatternProps = {
   width: number;

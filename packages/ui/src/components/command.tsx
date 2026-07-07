@@ -44,10 +44,7 @@ function CommandDialog({
   return (
     <Dialog {...props}>
       <DialogContent
-        className={cn(
-          "max-h-[85vh] overflow-hidden rounded-xl! p-0 sm:max-w-3xl",
-          className,
-        )}
+        className={cn("max-h-[85vh] overflow-hidden rounded-xl! p-0 sm:max-w-3xl", className)}
         showCloseButton={showCloseButton}
       >
         <DialogHeader className="sr-only">
@@ -60,10 +57,7 @@ function CommandDialog({
   );
 }
 
-function CommandInput({
-  className,
-  ...props
-}: ComponentProps<typeof CommandPrimitive.Input>) {
+function CommandInput({ className, ...props }: ComponentProps<typeof CommandPrimitive.Input>) {
   return (
     <div data-slot="command-input-wrapper" className="p-1 pb-0">
       <InputGroup className="h-8! rounded-lg! border-input/30 bg-input/30 shadow-none! *:data-[slot=input-group-addon]:pl-2!">
@@ -96,10 +90,7 @@ function CommandList({ className, ...props }: ComponentProps<typeof CommandPrimi
   );
 }
 
-function CommandEmpty({
-  className,
-  ...props
-}: ComponentProps<typeof CommandPrimitive.Empty>) {
+function CommandEmpty({ className, ...props }: ComponentProps<typeof CommandPrimitive.Empty>) {
   return (
     <CommandPrimitive.Empty
       data-slot="command-empty"
@@ -109,10 +100,7 @@ function CommandEmpty({
   );
 }
 
-function CommandGroup({
-  className,
-  ...props
-}: ComponentProps<typeof CommandPrimitive.Group>) {
+function CommandGroup({ className, ...props }: ComponentProps<typeof CommandPrimitive.Group>) {
   return (
     <CommandPrimitive.Group
       data-slot="command-group"
@@ -138,10 +126,7 @@ function CommandSeparator({
   );
 }
 
-function CommandItem({
-  className,
-  ...props
-}: ComponentProps<typeof CommandPrimitive.Item>) {
+function CommandItem({ className, ...props }: ComponentProps<typeof CommandPrimitive.Item>) {
   return (
     <CommandPrimitive.Item
       data-slot="command-item"

@@ -328,11 +328,7 @@ function __FilterValue<TData, TType extends ColumnDataType>({
           entityName={entityName}
         />
       </PopoverTrigger>
-      <PopoverContent
-        align="start"
-        side="bottom"
-        className="w-fit origin-(--transform-origin) p-0"
-      >
+      <PopoverContent align="start" side="bottom" className="w-fit origin-(--transform-origin) p-0">
         <FilterValueController
           filter={filter}
           column={column}

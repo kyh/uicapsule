@@ -1,4 +1,3 @@
-
 import { useCallback, type KeyboardEvent, type MouseEvent } from "react";
 import type { ColumnInfo } from "./spreadsheet-utils";
 import { useSpreadsheetStore } from "./spreadsheet-store";

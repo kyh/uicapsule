@@ -3,6 +3,9 @@
   "version": "0.1.0",
   "private": true,
   "type": "module",
+  "exports": {
+    "./preview": "./preview.tsx"
+  },
   "scripts": {
     "clean": "git clean -xdf .cache .turbo dist node_modules"
   },
@@ -10,9 +13,6 @@
     "react": "catalog:",
     "react-dom": "catalog:",
     "three": "^0.184.0"
-  },
-  "exports": {
-    "./preview": "./preview.tsx"
   },
   "devDependencies": {
     "@types/react": "catalog:",

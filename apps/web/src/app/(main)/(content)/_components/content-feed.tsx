@@ -12,10 +12,7 @@ import {
 } from "react";
 import { isRemoteContentComponent } from "@repo/api/content/content-schema";
 
-import type {
-  ContentComponentSummary,
-  DefaultSize,
-} from "@repo/api/content/content-schema";
+import type { ContentComponentSummary, DefaultSize } from "@repo/api/content/content-schema";
 import { MediaReveal } from "@/components/media-reveal";
 import { ResponsiveAside } from "./aside";
 
@@ -117,9 +114,7 @@ export const ContentFeed = ({ initialSlug, feed }: ContentFeedProps) => {
       const target = e.target;
       if (
         target instanceof HTMLElement &&
-        (target.tagName === "INPUT" ||
-          target.tagName === "TEXTAREA" ||
-          target.isContentEditable)
+        (target.tagName === "INPUT" || target.tagName === "TEXTAREA" || target.isContentEditable)
       ) {
         return;
       }
@@ -137,12 +132,9 @@ export const ContentFeed = ({ initialSlug, feed }: ContentFeedProps) => {
 
   const itemRefSetters = useMemo(
     () =>
-      Array.from(
-        { length: feed.length },
-        (_, idx) => (el: HTMLElement | null) => {
-          itemRefs.current[idx] = el;
-        },
-      ),
+      Array.from({ length: feed.length }, (_, idx) => (el: HTMLElement | null) => {
+        itemRefs.current[idx] = el;
+      }),
     [feed.length],
   );
 

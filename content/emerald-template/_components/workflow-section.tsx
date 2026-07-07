@@ -1,4 +1,3 @@
-
 import { useEffect, useRef, useState, type JSXElementConstructor, type ReactNode } from "react";
 import { cn } from "@repo/ui/lib/utils";
 import { SiGithub } from "@icons-pack/react-simple-icons";

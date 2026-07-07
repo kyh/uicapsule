@@ -93,9 +93,7 @@ function TreeItem<T = any>({
       "data-drag-target":
         typeof item.isDragTarget === "function" ? item.isDragTarget() || false : undefined,
       "data-search-match":
-        typeof item.isMatchingSearch === "function"
-          ? item.isMatchingSearch() || false
-          : undefined,
+        typeof item.isMatchingSearch === "function" ? item.isMatchingSearch() || false : undefined,
       "aria-expanded": item.isExpanded(),
       children,
       ...otherProps,

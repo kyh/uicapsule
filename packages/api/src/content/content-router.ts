@@ -1,11 +1,7 @@
 import { TRPCError } from "@trpc/server";
 
 import { createTRPCRouter, publicProcedure } from "../trpc";
-import {
-  buildShadcnRegistryItem,
-  readContentBySlug,
-  readContentIndex,
-} from "./content-fs";
+import { buildShadcnRegistryItem, readContentBySlug, readContentIndex } from "./content-fs";
 import {
   getContentComponentInput,
   getContentComponentsInput,
@@ -92,11 +88,7 @@ export const contentRouter = createTRPCRouter({
     }
 
     const matches = all.filter((component) => {
-      const haystacks = [
-        component.name,
-        component.description ?? "",
-        ...(component.tags ?? []),
-      ];
+      const haystacks = [component.name, component.description ?? "", ...(component.tags ?? [])];
       return haystacks.some((field) => field.toLowerCase().includes(normalizedQuery));
     });
 
@@ -126,19 +118,17 @@ export const contentRouter = createTRPCRouter({
     };
   }),
 
-  shadcnRegistryItem: publicProcedure
-    .input(getContentComponentInput)
-    .query(async ({ input }) => {
-      const component = await readContentBySlug(input.slug);
-      if (!component) {
-        throw new TRPCError({ code: "NOT_FOUND", message: `Component not found: ${input.slug}` });
-      }
-      if (!isLocalContentComponent(component)) {
-        throw new TRPCError({
-          code: "BAD_REQUEST",
-          message: `Component "${input.slug}" does not support shadcn registry exports.`,
-        });
-      }
-      return buildShadcnRegistryItem(component);
-    }),
+  shadcnRegistryItem: publicProcedure.input(getContentComponentInput).query(async ({ input }) => {
+    const component = await readContentBySlug(input.slug);
+    if (!component) {
+      throw new TRPCError({ code: "NOT_FOUND", message: `Component not found: ${input.slug}` });
+    }
+    if (!isLocalContentComponent(component)) {
+      throw new TRPCError({
+        code: "BAD_REQUEST",
+        message: `Component "${input.slug}" does not support shadcn registry exports.`,
+      });
+    }
+    return buildShadcnRegistryItem(component);
+  }),
 });

@@ -1,6 +1,18 @@
 "use client";
 
-import { cloneElement, createContext, forwardRef, isValidElement, useContext, useEffect, useMemo, useState, type CSSProperties, type HTMLProps, type ReactNode } from "react";
+import {
+  cloneElement,
+  createContext,
+  forwardRef,
+  isValidElement,
+  useContext,
+  useEffect,
+  useMemo,
+  useState,
+  type CSSProperties,
+  type HTMLProps,
+  type ReactNode,
+} from "react";
 /* eslint-disable @typescript-eslint/no-unsafe-argument */
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
@@ -187,10 +199,7 @@ export const useTooltipContext = () => {
   return context;
 };
 
-export const Tooltip = ({
-  children,
-  ...options
-}: { children: ReactNode } & TooltipOptions) => {
+export const Tooltip = ({ children, ...options }: { children: ReactNode } & TooltipOptions) => {
   const tooltip = useTooltip(options);
 
   return <TooltipContext.Provider value={tooltip}>{children}</TooltipContext.Provider>;

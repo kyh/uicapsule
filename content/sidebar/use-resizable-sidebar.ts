@@ -1,4 +1,3 @@
-
 import { useEffect, useRef, type MouseEvent as ReactMouseEvent } from "react";
 interface UseResizableSidebarOptions {
   defaultWidth?: number;

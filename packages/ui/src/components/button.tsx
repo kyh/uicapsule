@@ -32,8 +32,7 @@ const buttonVariants = cva(
         icon: "size-9",
         "icon-xs":
           "size-6 in-data-[slot=button-group]:rounded-full [&_svg:not([class*='size-'])]:size-3",
-        "icon-sm":
-          "size-8 in-data-[slot=button-group]:rounded-full",
+        "icon-sm": "size-8 in-data-[slot=button-group]:rounded-full",
         "icon-lg": "size-10",
       },
       loading: {

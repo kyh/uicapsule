@@ -69,9 +69,7 @@ export function useDataTableFilters<
         // Detect handler type by function length and call appropriately
         if (onFiltersChange.length <= 1) {
           // React Dispatch style
-          const dispatchHandler = onFiltersChange as Dispatch<
-            SetStateAction<FiltersState>
-          >;
+          const dispatchHandler = onFiltersChange as Dispatch<SetStateAction<FiltersState>>;
           dispatchHandler(resolvedNextFilters);
         } else {
           // Custom handler style - pass prev, next, and context

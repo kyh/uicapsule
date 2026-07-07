@@ -38,9 +38,7 @@ const readJson = async <T>(path: string): Promise<T | null> => {
   }
 };
 
-const readSourceFiles = async (
-  slug: string,
-): Promise<{ path: string; code: string }[]> => {
+const readSourceFiles = async (slug: string): Promise<{ path: string; code: string }[]> => {
   const root = join(contentRoot, slug);
   const files: { path: string; code: string }[] = [];
 
@@ -69,10 +67,7 @@ const readSourceFiles = async (
   return files;
 };
 
-const buildComponent = async (
-  slug: string,
-  meta: RawMeta,
-): Promise<ContentComponent | null> => {
+const buildComponent = async (slug: string, meta: RawMeta): Promise<ContentComponent | null> => {
   const base: ContentComponentBase = {
     slug,
     type: meta.type === "remote" ? "remote" : "local",
@@ -127,23 +122,19 @@ export const readContentIndex = cache(async (): Promise<ContentComponent[]> => {
   return components;
 });
 
-export const readContentBySlug = cache(
-  async (slug: string): Promise<ContentComponent | null> => {
-    const all = await readContentIndex();
-    return all.find((component) => component.slug === slug) ?? null;
-  },
-);
+export const readContentBySlug = cache(async (slug: string): Promise<ContentComponent | null> => {
+  const all = await readContentIndex();
+  return all.find((component) => component.slug === slug) ?? null;
+});
 
 type ContentPackageJson = {
   dependencies?: Record<string, string>;
   devDependencies?: Record<string, string>;
 };
 
-const readContentPackageJson = cache(
-  async (slug: string): Promise<ContentPackageJson> => {
-    return (await readJson<ContentPackageJson>(join(contentRoot, slug, "package.json"))) ?? {};
-  },
-);
+const readContentPackageJson = cache(async (slug: string): Promise<ContentPackageJson> => {
+  return (await readJson<ContentPackageJson>(join(contentRoot, slug, "package.json"))) ?? {};
+});
 
 export const buildShadcnRegistryItem = async (component: LocalContentComponent) => {
   const pkg = await readContentPackageJson(component.slug);

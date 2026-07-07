@@ -1,0 +1,80 @@
+# Component Roadmap
+
+OS-grade interactions, in the browser. Capsules organized by platform: iOS / Android / TV / Car / AI.
+Each entry: the interaction + the detail that makes it feel real.
+
+## Flagship
+
+- [ ] **dynamic-ai-composer** — bottom-center capsule input w/ dynamic-island physics: one
+      continuous container morphing between states (radius continuity + blur crossfade).
+  - idle: compact pill, placeholder + mic
+  - text: expands on focus, action row reveals
+  - voice: mic press morphs into listening UI — waveform bars breathing w/ amplitude,
+    ambient glow, cancel/confirm
+  - thinking: contracts to pill, shimmer sweep around border
+  - responding: grows into card, streams tokens w/ blur-in
+  - error: shake, red pulse, springs back
+
+## iOS
+
+- [ ] **jiggle-mode** — long-press grid → icons wobble (per-icon phase offset), minus badges, drag to reorder while others flow around
+- [ ] **context-menu-peek** — long-press: row lifts, page progressively blurs, menu springs from press point. Lift→blur→pop timing is the trick
+- [ ] **drum-picker** — time-picker wheel: 3D cylinder, momentum, detent snap, edge fade. Nobody's nailed it on web
+- [ ] **pinch-grid** — Photos pinch-zoom: column count reflows mid-gesture, cells interpolate between layouts
+- [ ] **swipe-actions** — Mail row: partial swipe reveals buttons, full swipe commits, hysteresis at threshold
+- [ ] **passcode-screen** — keypad ripple, dots fill, wrong code = shake, right code = unlock morph
+- [ ] **imessage-send** — bubble genie-morphs from composer into thread; tapback picker blooms on long-press
+- [ ] **pip-window** — draggable video: flick physics, corner snapping, tuck-to-edge w/ peek tab
+- [ ] **screenshot-capture** — flash, thumbnail flies to corner, lingers, swipe-away
+- [ ] **control-center-tile** — press small tile → expands in place into full panel, siblings stay put
+- [ ] **widget-stack** — Smart Stack vertical page-flip w/ card-roll rotation
+- [ ] **siri-edge-glow** — Apple Intelligence border: animated gradient bleeding from screen edges (composer's listening state, standalone)
+- [ ] **airdrop-radar** — nearby people ripple outward, tap to send w/ progress ring around avatar
+
+## Android
+
+- [ ] **pattern-unlock** — 9-dot draw w/ glowing trail, error flashes red + shakes
+- [ ] **chat-heads** — floating bubble: edge-snap, flick physics, drag to bottom → magnetic X swallows it
+- [ ] **predictive-back** — edge-drag: screen shrinks + peels to reveal previous before commit
+- [ ] **material-you-theming** — drop in image → palette extracted live → whole demo UI re-themes
+- [ ] **overscroll-stretch** — Android 12 squish: content stretches at boundary, no glow
+- [ ] **fingerprint-unlock** — hold sensor spot → ripple expands across screen
+- [ ] **circle-to-search** — scribble circle over anything → lifts off page w/ shimmer, becomes query
+- [ ] **notification-shade** — two-stage pull: peek quick-settings → full expand, M3 Expressive springy tiles
+
+## TV
+
+- [ ] **tv-focus-cards** — Apple TV poster: parallax tilt + specular sheen following focus, arrow-key focus engine, focus sound
+- [ ] **epg-grid** — channel guide: 2D focus nav, now-line creeping, focused cell expands
+- [ ] **seek-filmstrip** — scrubber w/ thumbnail filmstrip fanning under playhead, chapter snaps
+- [ ] **next-episode-card** — countdown ring card slides in, steals focus, ring depletes
+
+## Tesla
+
+- [ ] **tesla-climate** — showpiece replica: temp arc drag + drag-the-airstream vent aiming, flow lines bending live
+- [ ] **car-status** — top-down car: tap door handles on viz → doors open, lights flash, trunk pops
+- [ ] **autopilot-viz** — ambient lane ribbon, neighbor cars drifting as soft blobs, path re-rendering
+- [ ] **hold-to-act** — Summon dead-man switch: runs only while held, progress ring, release = instant halt
+- [ ] **backup-cam** — trajectory guide lines bending w/ steering slider
+- [ ] **charge-screen** — battery fills w/ flowing energy pulse + charge-curve graph drawing itself
+
+## AI interactions
+
+- [ ] **ghost-text** — Cursor-style inline completion: gray ghost ahead of caret, tab absorbs it word-by-word
+- [ ] **streaming-markdown** — token-by-token render, per-word blur-fade-in, breathing cursor
+- [ ] **transcript-settle** — live dictation: interim words wobble/shimmer until confirmed, then settle solid
+- [ ] **regen-scrubber** — drag a scrubber through N generated variations like scrubbing latent space
+- [ ] **semantic-zoom** — pinch text between abstraction levels: headline ↔ summary ↔ full doc, words morphing
+- [ ] **ai-cursor** — second cursor w/ its own trail edits the doc alongside you, multiplayer-style
+- [ ] **swipe-approvals** — agent tool calls as cards: swipe right approve, left reject, stack physics
+- [ ] **token-confidence** — generated text w/ per-token certainty as opacity/weight; hover a shaky word → alternatives fan out
+- [ ] **citation-beams** — hover a citation → beam draws to source panel, passage highlights
+- [ ] **diffusion-reveal** — image gen loading: noise → coarse blobs → sharp, real denoise feel
+- [ ] **assistant-orb** — orb-family entry: idle / listening / thinking / speaking states w/ distinct motion signatures
+- [ ] **vibe-dial** — temperature knob: turning it live-morphs sample output (type, color, copy get weirder)
+- [ ] **context-chips** — @-mention: file chips fly into composer, squish in as tokens, overflow stacks
+
+## Shared infra (before scaling out)
+
+- [ ] `use-sound` util w/ global mute — half of these need clicks/dings
+- [ ] gesture helpers — velocity tracking, hysteresis, detents; the fidelity moat

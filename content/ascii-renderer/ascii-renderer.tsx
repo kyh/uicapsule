@@ -22,8 +22,7 @@ const Torusknot = () => {
   const meshRef = useRef<any>(null);
 
   useFrame(
-    (state, delta) =>
-      (meshRef.current.rotation.x = meshRef.current.rotation.y += delta / 2),
+    (state, delta) => (meshRef.current.rotation.x = meshRef.current.rotation.y += delta / 2),
   );
 
   return (

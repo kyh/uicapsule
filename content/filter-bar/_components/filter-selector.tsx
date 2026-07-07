@@ -1,8 +1,23 @@
-
-import { Fragment, isValidElement, memo, useCallback, useEffect, useMemo, useRef, useState, type ComponentType } from "react";
+import {
+  Fragment,
+  isValidElement,
+  memo,
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  type ComponentType,
+} from "react";
 import { Button } from "@repo/ui/components/button";
 import { Checkbox } from "@repo/ui/components/checkbox";
-import { Command, CommandGroup, CommandInput, CommandItem, CommandList } from "@repo/ui/components/command";
+import {
+  Command,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+} from "@repo/ui/components/command";
 import { Popover, PopoverContent, PopoverTrigger } from "@repo/ui/components/popover";
 import {
   ArrowLeftIcon,
@@ -83,12 +98,12 @@ function __FilterSelector<TData>({
             </Button>
             <div className="flex items-center gap-1.5 text-sm">
               {column.icon &&
-                (isValidElement(column.icon) ? (
-                  column.icon
-                ) : (() => {
-                  const Icon = column.icon as ComponentType<{ className?: string }>;
-                  return <Icon className="size-4 stroke-[2.25px]" />;
-                })())}
+                (isValidElement(column.icon)
+                  ? column.icon
+                  : (() => {
+                      const Icon = column.icon as ComponentType<{ className?: string }>;
+                      return <Icon className="size-4 stroke-[2.25px]" />;
+                    })())}
               <span className="font-medium">{column.displayName}</span>
             </div>
           </div>
@@ -187,11 +202,7 @@ function __FilterSelector<TData>({
       <PopoverTrigger render={<Button variant="ghost" size="icon" className="size-7 p-0" />}>
         <ListFilterIcon className="size-4" />
       </PopoverTrigger>
-      <PopoverContent
-        align="start"
-        side="bottom"
-        className="w-fit origin-(--transform-origin) p-0"
-      >
+      <PopoverContent align="start" side="bottom" className="w-fit origin-(--transform-origin) p-0">
         {content}
       </PopoverContent>
     </Popover>
@@ -281,12 +292,12 @@ export function FilterableColumn<TData, TType extends ColumnDataType, TVal>({
         <div className="inline-flex items-center gap-1.5">
           {hasIcon && (
             <div className="relative">
-              {isValidElement(Icon) ? (
-                Icon
-              ) : (() => {
-                const IconComp = Icon as ComponentType<{ className?: string }>;
-                return <IconComp className="size-4 stroke-[2.25px]" />;
-              })()}
+              {isValidElement(Icon)
+                ? Icon
+                : (() => {
+                    const IconComp = Icon as ComponentType<{ className?: string }>;
+                    return <IconComp className="size-4 stroke-[2.25px]" />;
+                  })()}
               {isFiltered && (
                 <div className="absolute -right-0.5 -bottom-0.5 h-2 w-2 rounded-full bg-green-500" />
               )}
@@ -361,12 +372,12 @@ function __QuickSearchFilters<TData>({
                     />
                     <div className="flex w-4 items-center justify-center">
                       {v.icon &&
-                        (isValidElement(v.icon) ? (
-                          v.icon
-                        ) : (() => {
-                          const Icon = v.icon as ComponentType<{ className?: string }>;
-                          return <Icon className="text-primary size-4" />;
-                        })())}
+                        (isValidElement(v.icon)
+                          ? v.icon
+                          : (() => {
+                              const Icon = v.icon as ComponentType<{ className?: string }>;
+                              return <Icon className="text-primary size-4" />;
+                            })())}
                     </div>
                     <div className="flex items-center gap-0.5">
                       <span className="text-muted-foreground">{column.displayName}</span>

@@ -8,7 +8,7 @@ type UseControllableStateParams<T> = {
 
 type SetStateFn<T> = (prev: T) => T;
 
-export const useControllableState = <T,>({
+export const useControllableState = <T>({
   prop,
   defaultProp,
   onChange,
