@@ -40,6 +40,7 @@
     "@uicapsule/light-dark-toggle": "workspace:*",
     "@uicapsule/like-button": "workspace:*",
     "@uicapsule/particle-orb": "workspace:*",
+    "@uicapsule/pip-window": "workspace:*",
     "@uicapsule/radial-slider": "workspace:*",
     "@uicapsule/sidebar": "workspace:*",
     "@uicapsule/snail-timer": "workspace:*",
