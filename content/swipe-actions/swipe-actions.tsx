@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, type FC } from "react";
-import { Archive, Flag, Trash2 } from "lucide-react";
+import { Flag, Trash2 } from "lucide-react";
 import { AnimatePresence, motion, useAnimation } from "motion/react";
 
 type Email = {
