@@ -1,0 +1,5 @@
+{
+  "name": "EPG Grid",
+  "description": "The TV program guide — vertical focus lands on whatever is airing at the anchored time, not the same cell index, while the timeline auto-scrolls.",
+  "tags": ["navigation", "layout"]
+}
