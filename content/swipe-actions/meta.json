@@ -1,0 +1,5 @@
+{
+  "name": "Swipe Actions",
+  "description": "iOS Mail row swipes — partial swipe pins the action buttons, a full rip commits the delete, right swipe toggles read.",
+  "tags": ["mobile", "navigation", "forms"]
+}
