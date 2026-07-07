@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import { Sparkles } from "lucide-react";
 import { AnimatePresence, motion } from "motion/react";
 
 const GLOW_CONIC =
