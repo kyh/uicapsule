@@ -5,7 +5,7 @@ Each entry: the interaction + the detail that makes it feel real.
 
 ## Flagship
 
-- [ ] **dynamic-ai-composer** — bottom-center capsule input w/ dynamic-island physics: one
+- [x] **dynamic-ai-composer** — bottom-center capsule input w/ dynamic-island physics: one
       continuous container morphing between states (radius continuity + blur crossfade).
   - idle: compact pill, placeholder + mic
   - text: expands on focus, action row reveals
@@ -51,7 +51,7 @@ Each entry: the interaction + the detail that makes it feel real.
 
 ## Tesla
 
-- [ ] **tesla-climate** — showpiece replica: temp arc drag + drag-the-airstream vent aiming, flow lines bending live
+- [x] **tesla-climate** — showpiece replica: temp arc drag + drag-the-airstream vent aiming, flow lines bending live
 - [ ] **car-status** — top-down car: tap door handles on viz → doors open, lights flash, trunk pops
 - [ ] **autopilot-viz** — ambient lane ribbon, neighbor cars drifting as soft blobs, path re-rendering
 - [ ] **hold-to-act** — Summon dead-man switch: runs only while held, progress ring, release = instant halt

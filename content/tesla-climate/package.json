@@ -1,0 +1,22 @@
+{
+  "name": "@uicapsule/tesla-climate",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    "./preview": "./preview.tsx"
+  },
+  "scripts": {
+    "clean": "git clean -xdf .cache .turbo dist node_modules"
+  },
+  "dependencies": {
+    "@number-flow/react": "^0.5.10",
+    "lucide-react": "^1.16.0",
+    "react": "catalog:",
+    "react-dom": "catalog:"
+  },
+  "devDependencies": {
+    "@types/react": "catalog:",
+    "@types/react-dom": "catalog:"
+  }
+}

@@ -1,0 +1,5 @@
+{
+  "name": "Tesla Climate",
+  "description": "A replica of Tesla's climate screen — drag the airstream to aim the vents, with live temperature, fan, and seat-heat response.",
+  "tags": ["skeuomorphism", "controls", "effects"]
+}
