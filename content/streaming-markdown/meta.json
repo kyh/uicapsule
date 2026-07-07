@@ -1,0 +1,5 @@
+{
+  "name": "Streaming Markdown",
+  "description": "The LLM answer render — tokens arrive in jittered bursts, every word blur-fades in, structure assembles live, and a breathing cursor rides the stream head.",
+  "tags": ["ai", "effects"]
+}
