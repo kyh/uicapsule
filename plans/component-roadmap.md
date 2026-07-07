@@ -76,5 +76,5 @@ Each entry: the interaction + the detail that makes it feel real.
 
 ## Shared infra (before scaling out)
 
-- [ ] `use-sound` util w/ global mute — half of these need clicks/dings
-- [ ] gesture helpers — velocity tracking, hysteresis, detents; the fidelity moat
+- [x] `use-sound` util w/ global mute — half of these need clicks/dings
+- [x] gesture helpers — velocity tracking, hysteresis, detents; the fidelity moat
