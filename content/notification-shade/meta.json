@@ -1,0 +1,5 @@
+{
+  "name": "Notification Shade",
+  "description": "Android's two-stage shade — pull for the peek, keep pulling and the tiles inflate into full quick settings.",
+  "tags": ["mobile", "navigation", "effects"]
+}
