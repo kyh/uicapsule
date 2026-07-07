@@ -37,6 +37,7 @@
     "@uicapsule/gradient-orb": "workspace:*",
     "@uicapsule/infinite-grid": "workspace:*",
     "@uicapsule/ios-volume-slider": "workspace:*",
+    "@uicapsule/jiggle-mode": "workspace:*",
     "@uicapsule/light-dark-toggle": "workspace:*",
     "@uicapsule/like-button": "workspace:*",
     "@uicapsule/particle-orb": "workspace:*",
