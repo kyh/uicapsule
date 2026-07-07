@@ -35,6 +35,7 @@ export const PredictiveBack = () => {
       void animate(progress, 1, { type: "spring", duration: 0.4, bounce: 0 }).then(() => {
         setDetailOpen(false);
         progress.set(0);
+        return undefined;
       });
     } else {
       void animate(progress, 0, { type: "spring", duration: 0.45, bounce: 0.25 });
