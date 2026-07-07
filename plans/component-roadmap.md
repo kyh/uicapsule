@@ -17,19 +17,19 @@ Each entry: the interaction + the detail that makes it feel real.
 
 ## iOS
 
-- [ ] **jiggle-mode** — long-press grid → icons wobble (per-icon phase offset), minus badges, drag to reorder while others flow around
-- [ ] **context-menu-peek** — long-press: row lifts, page progressively blurs, menu springs from press point. Lift→blur→pop timing is the trick
-- [ ] **drum-picker** — time-picker wheel: 3D cylinder, momentum, detent snap, edge fade. Nobody's nailed it on web
-- [ ] **pinch-grid** — Photos pinch-zoom: column count reflows mid-gesture, cells interpolate between layouts
-- [ ] **swipe-actions** — Mail row: partial swipe reveals buttons, full swipe commits, hysteresis at threshold
-- [ ] **passcode-screen** — keypad ripple, dots fill, wrong code = shake, right code = unlock morph
-- [ ] **imessage-send** — bubble genie-morphs from composer into thread; tapback picker blooms on long-press
-- [ ] **pip-window** — draggable video: flick physics, corner snapping, tuck-to-edge w/ peek tab
-- [ ] **screenshot-capture** — flash, thumbnail flies to corner, lingers, swipe-away
-- [ ] **control-center-tile** — press small tile → expands in place into full panel, siblings stay put
-- [ ] **widget-stack** — Smart Stack vertical page-flip w/ card-roll rotation
-- [ ] **siri-edge-glow** — Apple Intelligence border: animated gradient bleeding from screen edges (composer's listening state, standalone)
-- [ ] **airdrop-radar** — nearby people ripple outward, tap to send w/ progress ring around avatar
+- [x] **jiggle-mode** — long-press grid → icons wobble (per-icon phase offset), minus badges, drag to reorder while others flow around
+- [x] **context-menu-peek** — long-press: row lifts, page progressively blurs, menu springs from press point. Lift→blur→pop timing is the trick
+- [x] **drum-picker** — time-picker wheel: 3D cylinder, momentum, detent snap, edge fade. Nobody's nailed it on web
+- [x] **pinch-grid** — Photos pinch-zoom: column count reflows mid-gesture, cells interpolate between layouts
+- [x] **swipe-actions** — Mail row: partial swipe reveals buttons, full swipe commits, hysteresis at threshold
+- [x] **passcode-screen** — keypad ripple, dots fill, wrong code = shake, right code = unlock morph
+- [x] **imessage-send** — bubble genie-morphs from composer into thread; tapback picker blooms on long-press
+- [x] **pip-window** — draggable video: flick physics, corner snapping, tuck-to-edge w/ peek tab
+- [x] **screenshot-capture** — flash, thumbnail flies to corner, lingers, swipe-away
+- [x] **control-center-tile** — press small tile → expands in place into full panel, siblings stay put
+- [x] **widget-stack** — Smart Stack vertical page-flip w/ card-roll rotation
+- [x] **siri-edge-glow** — Apple Intelligence border: animated gradient bleeding from screen edges (composer's listening state, standalone)
+- [x] **airdrop-radar** — nearby people ripple outward, tap to send w/ progress ring around avatar
 
 ## Android
 
