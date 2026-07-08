@@ -191,6 +191,9 @@ importers:
       '@uicapsule/spreadsheet':
         specifier: workspace:*
         version: link:../../content/spreadsheet
+      '@uicapsule/streaming-markdown':
+        specifier: workspace:*
+        version: link:../../content/streaming-markdown
       '@uicapsule/tesla-climate':
         specifier: workspace:*
         version: link:../../content/tesla-climate
@@ -825,6 +828,25 @@ importers:
       zustand:
         specifier: ^5.0.13
         version: 5.0.13(@types/react@19.2.15)(react@19.2.6)(use-sync-external-store@1.6.0(react@19.2.6))
+    devDependencies:
+      '@types/react':
+        specifier: 'catalog:'
+        version: 19.2.15
+      '@types/react-dom':
+        specifier: 'catalog:'
+        version: 19.2.3(@types/react@19.2.15)
+
+  content/streaming-markdown:
+    dependencies:
+      motion:
+        specifier: ^12.40.0
+        version: 12.40.0(react-dom@19.2.6(react@19.2.6))(react@19.2.6)
+      react:
+        specifier: 'catalog:'
+        version: 19.2.6
+      react-dom:
+        specifier: 'catalog:'
+        version: 19.2.6(react@19.2.6)
     devDependencies:
       '@types/react':
         specifier: 'catalog:'

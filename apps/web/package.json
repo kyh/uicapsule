@@ -45,6 +45,7 @@
     "@uicapsule/snail-timer": "workspace:*",
     "@uicapsule/spinner-pixel-grid": "workspace:*",
     "@uicapsule/spreadsheet": "workspace:*",
+    "@uicapsule/streaming-markdown": "workspace:*",
     "@uicapsule/tesla-climate": "workspace:*",
     "@uicapsule/tooltip-grid": "workspace:*",
     "@uicapsule/voice-dictator": "workspace:*",
