@@ -2,8 +2,6 @@
 
 import type { ReactNode } from "react";
 import {
-  AudioLines,
-  CircleStop,
   FastForward,
   Headphones,
   Info,
@@ -12,12 +10,11 @@ import {
   PhoneOff,
   Plane,
   Play,
-  Radio,
   Rewind,
   ScreenShare,
-  Square,
   Video,
 } from "lucide-react";
+import { motion } from "motion/react";
 
 export type ExpandedWidgetView = "music" | "call" | "memo" | "recording" | "incoming" | "flight";
 
@@ -35,26 +32,21 @@ export const expandedWidgetOptions: ExpandedWidgetOption[] = [
   { view: "flight", label: "flight" },
 ];
 
-const memoBars = [
-  { id: "memo-0", height: 8 },
-  { id: "memo-1", height: 15 },
-  { id: "memo-2", height: 22 },
-  { id: "memo-3", height: 11 },
-  { id: "memo-4", height: 19 },
-  { id: "memo-5", height: 24 },
-  { id: "memo-6", height: 13 },
-  { id: "memo-7", height: 18 },
-  { id: "memo-8", height: 26 },
-  { id: "memo-9", height: 10 },
-  { id: "memo-10", height: 17 },
-  { id: "memo-11", height: 21 },
-  { id: "memo-12", height: 12 },
-  { id: "memo-13", height: 25 },
-  { id: "memo-14", height: 16 },
-  { id: "memo-15", height: 9 },
-  { id: "memo-16", height: 20 },
-  { id: "memo-17", height: 14 },
-];
+// Tokens from the Figma widget pack (Dynamic island pack → variable defs):
+// bg/black-solid, text/disabled, bg/overlay-alpha-secondary, red/500,
+// text/error-primary, green/500, border/tertiary, pink/500, fuchsia/500.
+const ISLAND_BG = "#0a0a0a";
+const TEXT_MUTED = "#a3a3a3";
+const DARK_BUTTON = "rgba(26,26,26,0.75)";
+const RED = "#ef4444";
+const RED_DEEP = "#dc2626";
+const GREEN = "#16b364";
+const RING = "#e5e5e5";
+const PINK = "#ec4899";
+
+// Label-1 (16/22, -0.18) and Label-3 (12/16, -0.12) from the pack's type ramp.
+const TITLE_CLASS = "truncate text-[16px] leading-[22px] tracking-[-0.18px]";
+const SUBTITLE_CLASS = "truncate text-xs leading-4 tracking-[-0.12px]";
 
 type ExpandedWidgetProps = {
   view: ExpandedWidgetView;
@@ -79,41 +71,83 @@ export function ExpandedWidget({ view }: ExpandedWidgetProps) {
 
 function MusicExpanded() {
   return (
-    <div className="flex w-[375px] max-w-[calc(100vw-40px)] flex-col gap-3 rounded-[32px] bg-[#0a0a0a] p-6 text-white">
+    <div
+      className="flex w-[376px] max-w-[calc(100vw-40px)] flex-col gap-3 rounded-[32px] p-6 text-white"
+      style={{ backgroundColor: ISLAND_BG }}
+    >
       <div className="flex items-center gap-2">
         <AlbumArt />
         <div className="min-w-0 flex-1">
-          <p className="truncate text-base leading-[22px] font-normal">Selfless</p>
-          <p className="truncate text-xs leading-4 font-normal text-[#a3a3a3]">The New Abnormal</p>
+          <p className={TITLE_CLASS}>Selfless</p>
+          <p className={SUBTITLE_CLASS} style={{ color: TEXT_MUTED }}>
+            The New Abnormal
+          </p>
         </div>
-        <AudioLines aria-hidden="true" className="size-[22px] text-[#ec4899]" strokeWidth={1.8} />
+        <Equalizer />
       </div>
       <div className="flex items-center gap-2">
-        <span className="text-xs leading-4 text-[#a3a3a3]">0:44</span>
-        <div className="h-2 flex-1 overflow-hidden rounded-full bg-[rgba(26,26,26,0.75)]">
-          <div className="h-full w-[48%] rounded-full bg-[#ec4899]" />
+        <span className="text-xs tracking-[-0.12px] tabular-nums" style={{ color: TEXT_MUTED }}>
+          0:44
+        </span>
+        <div
+          className="h-2 flex-1 overflow-hidden rounded-full"
+          style={{ backgroundColor: DARK_BUTTON }}
+        >
+          <div className="h-full w-[34.5%] rounded-full" style={{ backgroundColor: PINK }} />
         </div>
-        <span className="text-right text-xs leading-4 text-[#a3a3a3]">-3:00</span>
+        <span className="text-xs tracking-[-0.12px] tabular-nums" style={{ color: TEXT_MUTED }}>
+          -3:00
+        </span>
       </div>
       <div className="flex items-center justify-center gap-6">
-        <Rewind aria-hidden="true" className="size-6" fill="currentColor" strokeWidth={1.8} />
-        <Play aria-hidden="true" className="size-8" fill="currentColor" strokeWidth={1.8} />
-        <FastForward aria-hidden="true" className="size-6" fill="currentColor" strokeWidth={1.8} />
+        <Rewind aria-hidden="true" className="size-6" fill="currentColor" strokeWidth={0} />
+        <Play aria-hidden="true" className="size-8" fill="currentColor" strokeWidth={0} />
+        <FastForward aria-hidden="true" className="size-6" fill="currentColor" strokeWidth={0} />
       </div>
+    </div>
+  );
+}
+
+// Five-bar equalizer fading pink/500 → fuchsia/500 like the pack's glyph.
+const EQ_BARS = [
+  { id: "eq-0", color: "#db2777", height: 10, delay: 0 },
+  { id: "eq-1", color: "#ec4899", height: 18, delay: 0.15 },
+  { id: "eq-2", color: "#ec4899", height: 13, delay: 0.3 },
+  { id: "eq-3", color: "#d946ef", height: 20, delay: 0.1 },
+  { id: "eq-4", color: "#c026d3", height: 12, delay: 0.25 },
+];
+
+function Equalizer() {
+  return (
+    <div aria-hidden className="flex h-[22px] items-center gap-[3px]">
+      {EQ_BARS.map((bar) => (
+        <motion.span
+          key={bar.id}
+          className="w-[3px] rounded-full"
+          style={{ backgroundColor: bar.color, height: bar.height }}
+          animate={{ scaleY: [1, 0.55, 0.85, 1] }}
+          transition={{ duration: 1.1, repeat: Infinity, ease: "easeInOut", delay: bar.delay }}
+        />
+      ))}
     </div>
   );
 }
 
 function OngoingCallExpanded() {
   return (
-    <div className="flex w-[375px] max-w-[calc(100vw-40px)] flex-col gap-3 rounded-[32px] bg-[#0a0a0a] p-6 text-white">
+    <div
+      className="flex w-[376px] max-w-[calc(100vw-40px)] flex-col gap-3 rounded-[32px] p-6 text-white"
+      style={{ backgroundColor: ISLAND_BG }}
+    >
       <div className="flex items-center gap-2">
         <Avatar />
         <div className="min-w-0 flex-1">
-          <p className="truncate text-base leading-[22px] font-normal">Mike Wheeler</p>
-          <p className="truncate text-xs leading-4 font-normal text-[#a3a3a3]">FaceTime Audio</p>
+          <p className={TITLE_CLASS}>Mike Wheeler</p>
+          <p className={SUBTITLE_CLASS} style={{ color: TEXT_MUTED }}>
+            FaceTime Audio
+          </p>
         </div>
-        <Info aria-hidden="true" className="size-[22px]" strokeWidth={1.8} />
+        <Info aria-hidden="true" className="size-[22px]" strokeWidth={1.5} />
       </div>
       <div className="flex items-center justify-between">
         <RoundAction label="Audio route" tone="light">
@@ -136,80 +170,112 @@ function OngoingCallExpanded() {
   );
 }
 
+// Waveform heights straight from the mock; the last bar fades and hands off to
+// a dot trail (red/50 at 40%) for the unrecorded remainder.
+const MEMO_BARS = [25, 20, 16, 20, 25, 20, 14, 10, 16, 22, 27, 15, 19].map((height, index) => ({
+  id: `memo-${index}`,
+  height,
+}));
+const MEMO_DOTS = Array.from({ length: 11 }, (_, index) => `dot-${index}`);
+
 function VoiceMemoExpanded() {
   return (
-    <div className="flex w-[290px] max-w-[calc(100vw-40px)] items-center gap-3 rounded-[32px] bg-[#0a0a0a] px-5 py-4 text-white">
-      <div className="grid size-10 place-items-center rounded-full bg-[#1a1a1a] text-[#ef4444]">
-        <Mic aria-hidden="true" className="size-[22px]" strokeWidth={1.8} />
+    <div
+      className="flex w-[376px] max-w-[calc(100vw-40px)] items-center gap-3 rounded-full p-6 text-white"
+      style={{ backgroundColor: ISLAND_BG }}
+    >
+      <div aria-hidden className="flex h-11 shrink-0 items-center gap-[2px]">
+        {MEMO_BARS.map(({ id, height }, index) => (
+          <motion.span
+            key={id}
+            className="w-[3px] shrink-0 rounded-[4px]"
+            style={{ backgroundColor: RED, height }}
+            animate={{ scaleY: [1, 0.6, 0.9, 1] }}
+            transition={{
+              duration: 0.9 + (index % 4) * 0.12,
+              repeat: Infinity,
+              ease: "easeInOut",
+              delay: (index % 5) * 0.09,
+            }}
+          />
+        ))}
+        <span
+          className="h-3 w-[3px] shrink-0 rounded-[4px] opacity-40"
+          style={{ backgroundColor: RED }}
+        />
+        {MEMO_DOTS.map((id) => (
+          <span key={id} className="size-[3px] shrink-0 rounded-[4px] bg-[#fef2f2] opacity-40" />
+        ))}
       </div>
-      <div className="min-w-0 flex-1">
-        <div className="flex items-center gap-1.5">
-          {memoBars.map((bar) => (
-            <span
-              className="w-1 rounded-full bg-[#ef4444]"
-              key={bar.id}
-              style={{ height: `${bar.height}px` }}
-            />
-          ))}
-        </div>
-      </div>
-      <span className="text-xs text-[#ef4444]">00:09</span>
-      <button
-        aria-label="Stop recording"
-        className="grid size-8 place-items-center rounded-full border border-[#ef4444]"
-        type="button"
+      <span
+        className="min-w-0 flex-1 text-right text-[17px] tabular-nums"
+        style={{ color: RED_DEEP }}
       >
-        <CircleStop aria-hidden="true" className="size-4 text-[#ef4444]" strokeWidth={1.8} />
-      </button>
+        05:00
+      </span>
+      <StopButton label="Stop recording" />
     </div>
   );
 }
 
 function ScreenRecordingExpanded() {
   return (
-    <div className="flex w-[292px] max-w-[calc(100vw-40px)] items-center gap-3 rounded-[32px] bg-[#0a0a0a] px-5 py-4 text-white">
-      <div className="grid size-9 place-items-center rounded-full bg-[rgba(26,26,26,0.75)] text-[#ef4444]">
-        <Radio aria-hidden="true" className="size-5" strokeWidth={1.8} />
-      </div>
-      <span className="flex-1 text-sm">Screen Recording</span>
-      <span className="text-xs text-[#ef4444]">00:23</span>
-      <button
-        aria-label="Stop screen recording"
-        className="grid size-8 place-items-center rounded-full border border-[#ef4444]"
-        type="button"
-      >
-        <Square
-          aria-hidden="true"
-          className="size-3 text-[#ef4444]"
-          fill="currentColor"
-          strokeWidth={1.8}
+    <div
+      className="flex w-[376px] max-w-[calc(100vw-40px)] items-center gap-3 rounded-full p-6 text-white"
+      style={{ backgroundColor: ISLAND_BG }}
+    >
+      <span className={`flex-1 ${TITLE_CLASS}`}>Screen Recording</span>
+      <div className="flex shrink-0 items-center gap-1">
+        <motion.span
+          aria-hidden
+          className="size-2 rounded-full"
+          style={{ backgroundColor: RED }}
+          animate={{ opacity: [1, 0.25, 1] }}
+          transition={{ duration: 1.6, repeat: Infinity, ease: "easeInOut" }}
         />
-      </button>
+        <span className="text-[17px] tabular-nums" style={{ color: RED_DEEP }}>
+          05:00
+        </span>
+      </div>
+      <StopButton label="Stop screen recording" />
     </div>
   );
 }
 
 function IncomingCallExpanded() {
   return (
-    <div className="flex w-[300px] max-w-[calc(100vw-40px)] items-center gap-3 rounded-[32px] bg-[#0a0a0a] px-4 py-3 text-white">
+    <div
+      className="flex w-[376px] max-w-[calc(100vw-40px)] items-center gap-2 rounded-full p-6 text-white"
+      style={{ backgroundColor: ISLAND_BG }}
+    >
       <Avatar />
       <div className="min-w-0 flex-1">
-        <p className="truncate text-sm leading-5">Mike Wheeler</p>
-        <p className="truncate text-xs text-[#a3a3a3]">mobile</p>
+        <p className={`${TITLE_CLASS} font-semibold`}>Mike Wheeler</p>
+        <p className={SUBTITLE_CLASS} style={{ color: TEXT_MUTED }}>
+          Mobile
+        </p>
       </div>
       <button
         aria-label="Decline call"
-        className="grid size-10 place-items-center rounded-full bg-[#dc2626]"
+        className="grid size-11 shrink-0 place-items-center rounded-full transition-transform hover:scale-105 active:scale-95"
+        style={{ backgroundColor: RED_DEEP }}
         type="button"
       >
         <PhoneOff aria-hidden="true" className="size-[22px]" strokeWidth={1.8} />
       </button>
       <button
         aria-label="Accept call"
-        className="grid size-10 place-items-center rounded-full bg-[#16a34a]"
+        className="grid size-11 shrink-0 place-items-center rounded-full transition-transform hover:scale-105 active:scale-95"
+        style={{ backgroundColor: GREEN }}
         type="button"
       >
-        <Phone aria-hidden="true" className="size-[22px]" strokeWidth={1.8} />
+        <motion.span
+          className="grid place-items-center"
+          animate={{ rotate: [0, -14, 12, -9, 7, 0] }}
+          transition={{ duration: 0.9, repeat: Infinity, repeatDelay: 1.4, ease: "easeInOut" }}
+        >
+          <Phone aria-hidden="true" className="size-[22px]" strokeWidth={1.8} />
+        </motion.span>
       </button>
     </div>
   );
@@ -217,33 +283,59 @@ function IncomingCallExpanded() {
 
 function FlightExpanded() {
   return (
-    <div className="flex w-[315px] max-w-[calc(100vw-40px)] flex-col gap-3 rounded-[32px] bg-[#0a0a0a] p-4 text-white">
-      <div className="flex items-center justify-between">
-        <div>
-          <p className="text-sm leading-5">Departure</p>
-          <p className="text-xs text-[#a3a3a3]">On time</p>
+    <div
+      className="flex w-[376px] max-w-[calc(100vw-40px)] flex-col gap-4 rounded-[32px] p-6 text-white"
+      style={{ backgroundColor: ISLAND_BG }}
+    >
+      <div className="flex items-center gap-2">
+        <div
+          className="grid size-12 shrink-0 place-items-center rounded-2xl"
+          style={{ backgroundColor: DARK_BUTTON }}
+        >
+          <Plane aria-hidden="true" className="size-6 text-[#a78bfa]" fill="currentColor" />
         </div>
-        <span className="text-xs text-[#a3a3a3]">TL104</span>
+        <div className="min-w-0 flex-1">
+          <p className={TITLE_CLASS}>Departure</p>
+          <p className={SUBTITLE_CLASS} style={{ color: TEXT_MUTED }}>
+            On time
+          </p>
+        </div>
+        <span className="text-[28px] leading-none font-light tabular-nums">TL104</span>
       </div>
       <div className="flex items-center gap-2">
-        <Plane aria-hidden="true" className="size-5 text-[#22c55e]" fill="currentColor" />
-        <div className="h-2 flex-1 rounded-full bg-[rgba(26,26,26,0.75)]">
-          <div className="h-full w-[72%] rounded-full bg-[#22c55e]" />
-        </div>
-        <span className="text-xs text-[#a3a3a3]">LAX</span>
-      </div>
-      <div className="flex gap-2">
-        <button className="h-8 flex-1 rounded-full bg-[#6d5dfc] text-xs font-medium" type="button">
-          View
-        </button>
-        <button
-          className="h-8 flex-1 rounded-full bg-white text-xs font-medium text-black"
-          type="button"
+        <Plane aria-hidden="true" className="size-5" style={{ color: GREEN }} fill="currentColor" />
+        <div
+          className="h-2 flex-1 overflow-hidden rounded-full"
+          style={{ backgroundColor: DARK_BUTTON }}
         >
-          Route
-        </button>
+          <div className="h-full w-[72%] rounded-full" style={{ backgroundColor: GREEN }} />
+        </div>
+        <span className="text-xs tracking-[-0.12px]" style={{ color: TEXT_MUTED }}>
+          LAX
+        </span>
       </div>
+      <button
+        className="h-12 w-full rounded-full bg-white text-[15px] font-medium text-black transition-transform hover:scale-[1.02] active:scale-[0.98]"
+        type="button"
+      >
+        Show Boarding Pass
+      </button>
     </div>
+  );
+}
+
+// Stop control shared by the recording widgets, straight from the pack:
+// 44px circle with a 1px border/tertiary ring and a rounded red square inside.
+function StopButton({ label }: { label: string }) {
+  return (
+    <button
+      aria-label={label}
+      className="grid size-11 shrink-0 place-items-center rounded-full border transition-transform hover:scale-105 active:scale-95"
+      style={{ borderColor: RING }}
+      type="button"
+    >
+      <span className="size-[18px] rounded-[4px]" style={{ backgroundColor: RED }} />
+    </button>
   );
 }
 
@@ -254,17 +346,18 @@ type RoundActionProps = {
 };
 
 function RoundAction({ children, label, tone }: RoundActionProps) {
-  const className =
+  const style =
     tone === "light"
-      ? "bg-white text-black"
+      ? { backgroundColor: "#ffffff", color: "#000000" }
       : tone === "danger"
-        ? "bg-[#dc2626] text-white"
-        : "bg-[rgba(26,26,26,0.75)] text-white";
+        ? { backgroundColor: RED_DEEP, color: "#ffffff" }
+        : { backgroundColor: DARK_BUTTON, color: "#ffffff" };
 
   return (
     <button
       aria-label={label}
-      className={`grid size-11 place-items-center rounded-full ${className}`}
+      className="grid size-11 place-items-center rounded-full transition-transform hover:scale-105 active:scale-95"
+      style={style}
       type="button"
     >
       {children}
@@ -274,7 +367,7 @@ function RoundAction({ children, label, tone }: RoundActionProps) {
 
 function AlbumArt() {
   return (
-    <div className="size-12 rounded-full bg-[conic-gradient(from_30deg,#38bdf8,#facc15,#f97316,#22c55e,#38bdf8)] p-1">
+    <div className="size-12 shrink-0 rounded-full bg-[conic-gradient(from_30deg,#38bdf8,#facc15,#f97316,#22c55e,#38bdf8)] p-1">
       <div className="size-full rounded-full bg-[radial-gradient(circle_at_35%_35%,#f8fafc_0_10%,#0f172a_11%_42%,#14b8a6_43%_64%,#111827_65%)]" />
     </div>
   );
@@ -282,6 +375,6 @@ function AlbumArt() {
 
 function Avatar() {
   return (
-    <div className="size-12 rounded-full bg-[radial-gradient(circle_at_42%_32%,#f4d4b8_0_16%,#2f241f_17%_38%,#f8fafc_39%_56%,#171717_57%)]" />
+    <div className="size-12 shrink-0 rounded-full bg-[radial-gradient(circle_at_42%_32%,#f4d4b8_0_16%,#2f241f_17%_38%,#f8fafc_39%_56%,#171717_57%)]" />
   );
 }

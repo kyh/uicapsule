@@ -153,6 +153,11 @@ export const DynamicAiComposer = () => {
 
   const isStreamDone = exchange !== null && streamedCount >= exchange.words.length;
 
+  // The gradient glow marks activity: every state change fires one pulse, and
+  // loading states (thinking, streaming a response) keep pulsing until done.
+  const isLoading = mode === "thinking" || (mode === "responding" && !isStreamDone);
+  const glowKey = `${mode}-${isLoading ? "loading" : "settled"}`;
+
   const content = (() => {
     switch (mode) {
       case "idle":
@@ -306,17 +311,15 @@ export const DynamicAiComposer = () => {
   return (
     <div ref={scope} className="relative">
       <AnimatePresence>
-        {mode === "listening" && (
-          <motion.div
-            key="glow"
-            aria-hidden
-            className="absolute -inset-2 rounded-[32px] bg-[conic-gradient(from_0deg,#60a5fa,#a78bfa,#f472b6,#38bdf8,#60a5fa)] blur-xl"
-            initial={{ opacity: 0, scale: 0.9 }}
-            animate={{ opacity: [0, 0.6, 0.35], scale: 1 }}
-            exit={{ opacity: 0, scale: 0.92 }}
-            transition={{ opacity: { duration: 1.2, ease: "easeInOut" } }}
-          />
-        )}
+        <motion.div
+          key={glowKey}
+          aria-hidden
+          className="pointer-events-none absolute -inset-2 rounded-[32px] bg-[conic-gradient(from_0deg,#60a5fa,#a78bfa,#f472b6,#38bdf8,#60a5fa)] blur-xl"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: [0, 0.55, 0] }}
+          exit={{ opacity: 0, transition: { duration: 0.25 } }}
+          transition={{ duration: 1.2, ease: "easeInOut", repeat: isLoading ? Infinity : 0 }}
+        />
       </AnimatePresence>
 
       <motion.div

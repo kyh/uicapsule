@@ -92,7 +92,7 @@ export default function DynamicIsland() {
           {views.map(({ view: v, label }) => (
             <button
               type="button"
-              className="h-8 rounded-full bg-white px-3 py-1.5 text-xs font-medium text-gray-900 capitalize shadow-sm ring-1 ring-gray-300/50 ring-inset hover:bg-gray-50 aria-pressed:bg-[#ec4899] aria-pressed:text-white"
+              className="h-8 rounded-full bg-white px-3 py-1.5 text-xs font-medium text-gray-900 capitalize shadow-sm ring-1 ring-gray-300/50 ring-inset hover:bg-gray-50 aria-pressed:bg-black aria-pressed:text-white aria-pressed:ring-white/20 aria-pressed:hover:bg-black"
               aria-pressed={view === v}
               onClick={() => {
                 setView(v);
