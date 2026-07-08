@@ -146,6 +146,9 @@ importers:
       '@uicapsule/dynamic-island':
         specifier: workspace:*
         version: link:../../content/dynamic-island
+      '@uicapsule/epg-grid':
+        specifier: workspace:*
+        version: link:../../content/epg-grid
       '@uicapsule/expanding-header-menu':
         specifier: workspace:*
         version: link:../../content/expanding-header-menu
@@ -466,6 +469,25 @@ importers:
       react-hook-form:
         specifier: ^7.76.0
         version: 7.76.0(react@19.2.6)
+    devDependencies:
+      '@types/react':
+        specifier: 'catalog:'
+        version: 19.2.15
+      '@types/react-dom':
+        specifier: 'catalog:'
+        version: 19.2.3(@types/react@19.2.15)
+
+  content/epg-grid:
+    dependencies:
+      motion:
+        specifier: ^12.40.0
+        version: 12.40.0(react-dom@19.2.6(react@19.2.6))(react@19.2.6)
+      react:
+        specifier: 'catalog:'
+        version: 19.2.6
+      react-dom:
+        specifier: 'catalog:'
+        version: 19.2.6(react@19.2.6)
     devDependencies:
       '@types/react':
         specifier: 'catalog:'
