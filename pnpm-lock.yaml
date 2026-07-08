@@ -182,6 +182,9 @@ importers:
       '@uicapsule/sidebar':
         specifier: workspace:*
         version: link:../../content/sidebar
+      '@uicapsule/siri-edge-glow':
+        specifier: workspace:*
+        version: link:../../content/siri-edge-glow
       '@uicapsule/snail-timer':
         specifier: workspace:*
         version: link:../../content/snail-timer
@@ -744,6 +747,28 @@ importers:
       lucide-react:
         specifier: ^1.16.0
         version: 1.16.0(react@19.2.6)
+      react:
+        specifier: 'catalog:'
+        version: 19.2.6
+      react-dom:
+        specifier: 'catalog:'
+        version: 19.2.6(react@19.2.6)
+    devDependencies:
+      '@types/react':
+        specifier: 'catalog:'
+        version: 19.2.15
+      '@types/react-dom':
+        specifier: 'catalog:'
+        version: 19.2.3(@types/react@19.2.15)
+
+  content/siri-edge-glow:
+    dependencies:
+      lucide-react:
+        specifier: ^1.16.0
+        version: 1.16.0(react@19.2.6)
+      motion:
+        specifier: ^12.40.0
+        version: 12.40.0(react-dom@19.2.6(react@19.2.6))(react@19.2.6)
       react:
         specifier: 'catalog:'
         version: 19.2.6

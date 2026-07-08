@@ -42,6 +42,7 @@
     "@uicapsule/particle-orb": "workspace:*",
     "@uicapsule/radial-slider": "workspace:*",
     "@uicapsule/sidebar": "workspace:*",
+    "@uicapsule/siri-edge-glow": "workspace:*",
     "@uicapsule/snail-timer": "workspace:*",
     "@uicapsule/spinner-pixel-grid": "workspace:*",
     "@uicapsule/spreadsheet": "workspace:*",
