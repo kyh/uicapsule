@@ -1,0 +1,5 @@
+{
+  "name": "Context Chips",
+  "description": "The @-mention — pick a file and its chip flies out of the picker into the composer rail, squishing in as a token while the context meter fills.",
+  "tags": ["ai", "inputs"]
+}
