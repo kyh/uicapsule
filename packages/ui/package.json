@@ -42,7 +42,8 @@
     "@tailwindcss/postcss": "catalog:",
     "@types/react": "catalog:",
     "tailwindcss": "catalog:",
-    "typescript": "catalog:"
+    "typescript": "catalog:",
+    "vitest": "^4.1.10"
   },
   "peerDependencies": {
     "react": "catalog:",
