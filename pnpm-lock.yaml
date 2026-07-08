@@ -197,6 +197,9 @@ importers:
       '@uicapsule/tooltip-grid':
         specifier: workspace:*
         version: link:../../content/tooltip-grid
+      '@uicapsule/tv-focus-cards':
+        specifier: workspace:*
+        version: link:../../content/tv-focus-cards
       '@uicapsule/voice-dictator':
         specifier: workspace:*
         version: link:../../content/voice-dictator
@@ -860,6 +863,25 @@ importers:
       '@floating-ui/react':
         specifier: ^0.27.19
         version: 0.27.19(react-dom@19.2.6(react@19.2.6))(react@19.2.6)
+      motion:
+        specifier: ^12.40.0
+        version: 12.40.0(react-dom@19.2.6(react@19.2.6))(react@19.2.6)
+      react:
+        specifier: 'catalog:'
+        version: 19.2.6
+      react-dom:
+        specifier: 'catalog:'
+        version: 19.2.6(react@19.2.6)
+    devDependencies:
+      '@types/react':
+        specifier: 'catalog:'
+        version: 19.2.15
+      '@types/react-dom':
+        specifier: 'catalog:'
+        version: 19.2.3(@types/react@19.2.15)
+
+  content/tv-focus-cards:
+    dependencies:
       motion:
         specifier: ^12.40.0
         version: 12.40.0(react-dom@19.2.6(react@19.2.6))(react@19.2.6)
