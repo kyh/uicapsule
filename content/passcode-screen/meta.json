@@ -1,0 +1,5 @@
+{
+  "name": "Passcode Screen",
+  "description": "iOS lock screen passcode — keypad ripple, dots that pop as you type, the wrong-code shake, and an unlock reveal.",
+  "tags": ["mobile", "forms", "skeuomorphism"]
+}
