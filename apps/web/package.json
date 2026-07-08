@@ -23,6 +23,7 @@
     "@trpc/client": "catalog:",
     "@trpc/server": "catalog:",
     "@trpc/tanstack-react-query": "catalog:",
+    "@uicapsule/airdrop-radar": "workspace:*",
     "@uicapsule/ascii-renderer": "workspace:*",
     "@uicapsule/background-pixel-stars": "workspace:*",
     "@uicapsule/background-shapes": "workspace:*",
