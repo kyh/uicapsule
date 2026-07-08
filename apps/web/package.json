@@ -48,6 +48,7 @@
     "@uicapsule/tesla-climate": "workspace:*",
     "@uicapsule/tooltip-grid": "workspace:*",
     "@uicapsule/voice-dictator": "workspace:*",
+    "@uicapsule/widget-stack": "workspace:*",
     "@uicapsule/wireframe-orb": "workspace:*",
     "@vercel/analytics": "^2.0.1",
     "better-auth": "catalog:",
