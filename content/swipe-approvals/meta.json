@@ -1,0 +1,5 @@
+{
+  "name": "Swipe Approvals",
+  "description": "The agent permission queue as a card stack — swipe right to approve a tool call, left to reject; velocity counts and the stamp fades in with the drag.",
+  "tags": ["ai", "gestures"]
+}
