@@ -1,0 +1,5 @@
+{
+  "name": "Pinch Grid",
+  "description": "iOS Photos pinch-zoom — the grid reflows between column counts as every tile springs to its new cell.",
+  "tags": ["mobile", "effects", "navigation"]
+}
