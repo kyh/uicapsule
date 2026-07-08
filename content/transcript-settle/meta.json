@@ -1,0 +1,5 @@
+{
+  "name": "Transcript Settle",
+  "description": "Live dictation — interim words shimmer and wobble while the recognizer rewrites them, then each phrase settles solid. \"sent the dek\" becomes \"send the deck\".",
+  "tags": ["ai", "feedback"]
+}
