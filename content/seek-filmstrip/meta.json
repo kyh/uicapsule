@@ -1,0 +1,5 @@
+{
+  "name": "Seek Filmstrip",
+  "description": "The tvOS scrubber — dragging the timeline raises a filmstrip of preview frames above the playhead, rendered live from a synthetic day-cycle video.",
+  "tags": ["media", "gestures"]
+}

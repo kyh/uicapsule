@@ -41,6 +41,7 @@
     "@uicapsule/like-button": "workspace:*",
     "@uicapsule/particle-orb": "workspace:*",
     "@uicapsule/radial-slider": "workspace:*",
+    "@uicapsule/seek-filmstrip": "workspace:*",
     "@uicapsule/sidebar": "workspace:*",
     "@uicapsule/snail-timer": "workspace:*",
     "@uicapsule/spinner-pixel-grid": "workspace:*",
