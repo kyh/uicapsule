@@ -140,6 +140,9 @@ importers:
       '@uicapsule/carousel-3d':
         specifier: workspace:*
         version: link:../../content/carousel-3d
+      '@uicapsule/citation-beams':
+        specifier: workspace:*
+        version: link:../../content/citation-beams
       '@uicapsule/dynamic-ai-composer':
         specifier: workspace:*
         version: link:../../content/dynamic-ai-composer
@@ -392,6 +395,25 @@ importers:
       '@types/three':
         specifier: ^0.184.1
         version: 0.184.1
+
+  content/citation-beams:
+    dependencies:
+      motion:
+        specifier: ^12.40.0
+        version: 12.40.0(react-dom@19.2.6(react@19.2.6))(react@19.2.6)
+      react:
+        specifier: 'catalog:'
+        version: 19.2.6
+      react-dom:
+        specifier: 'catalog:'
+        version: 19.2.6(react@19.2.6)
+    devDependencies:
+      '@types/react':
+        specifier: 'catalog:'
+        version: 19.2.15
+      '@types/react-dom':
+        specifier: 'catalog:'
+        version: 19.2.3(@types/react@19.2.15)
 
   content/dynamic-ai-composer:
     dependencies:
