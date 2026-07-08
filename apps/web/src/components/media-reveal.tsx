@@ -51,12 +51,33 @@ export const MediaReveal = ({ className, image, video, iframe }: MediaRevealProp
   const [revealed, setRevealed] = useState(false);
   const [retired, setRetired] = useState(false);
 
+  // When the iframe is unloaded and remounted (feed windowing), bring the
+  // skeleton back so the reload doesn't flash an empty box.
+  const [hasIframe, setHasIframe] = useState(Boolean(iframe));
+  if (Boolean(iframe) !== hasIframe) {
+    setHasIframe(Boolean(iframe));
+    if (iframe && revealed) {
+      setRevealed(false);
+      setRetired(false);
+    }
+  }
+
   // Reveal an image once the shader is mounted; img-fx loads the bitmap itself.
   useEffect(() => {
     if (image && inView) handle.current?.triggerReveal({ hold: "manual" });
   }, [image, inView]);
 
   const fadeOut = revealed && (Boolean(video) || Boolean(iframe));
+
+  // Retire the shader (freeing its WebGL context) shortly after the fade-out
+  // starts. transitionend alone is unreliable: media that loads while the
+  // shader is off-screen mounts it already at opacity 0, so the transition —
+  // and the retire — would never fire, leaking a WebGL context per card.
+  useEffect(() => {
+    if (!fadeOut) return;
+    const timeout = setTimeout(() => setRetired(true), 800);
+    return () => clearTimeout(timeout);
+  }, [fadeOut]);
 
   return (
     <div ref={rootRef} className={cn("bg-muted relative overflow-hidden", className)}>
@@ -90,9 +111,6 @@ export const MediaReveal = ({ className, image, video, iframe }: MediaRevealProp
           theme="auto"
           images={image}
           paused={fadeOut}
-          onTransitionEnd={(e) => {
-            if (e.propertyName === "opacity" && fadeOut) setRetired(true);
-          }}
         >
           <div style={{ width: "100%", height: "100%" }} />
         </ImageGeneration>

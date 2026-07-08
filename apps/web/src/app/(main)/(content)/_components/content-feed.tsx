@@ -145,6 +145,7 @@ export const ContentFeed = ({ initialSlug, feed }: ContentFeedProps) => {
     <>
       <div
         ref={containerRef}
+        id="content-feed"
         className="h-full w-full overflow-y-auto snap-y snap-mandatory [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
       >
         {feed.map((item, idx) => (
@@ -153,9 +154,23 @@ export const ContentFeed = ({ initialSlug, feed }: ContentFeedProps) => {
             ref={itemRefSetters[idx]}
             component={item}
             shouldRender={Math.abs(idx - activeIndex) <= 1}
+            keepMounted={Math.abs(idx - activeIndex) <= 2}
           />
         ))}
       </div>
+      {/* Scroll the deep-linked item into place while the static HTML is
+          parsing, before first paint — otherwise the page flashes item 0
+          until hydration runs the layout effect above. The script is wrapped
+          in a hidden div via dangerouslySetInnerHTML because React never
+          executes <script> elements it renders on the client (and warns about
+          them); the browser's HTML parser executes this one on initial load,
+          and client-side navigations are handled by the layout effect. */}
+      <div
+        hidden
+        dangerouslySetInnerHTML={{
+          __html: `<script>(function(){var c=document.getElementById("content-feed");if(!c)return;var t=c.querySelector('[data-slug=${JSON.stringify(initialSlug)}]');if(t)c.scrollTop=t.offsetTop;})();</script>`,
+        }}
+      />
       <ResponsiveAside
         contentComponent={active}
         onPrev={activeIndex > 0 ? () => scrollByDelta(-1) : undefined}
@@ -169,9 +184,22 @@ type FeedItemProps = {
   ref?: Ref<HTMLElement>;
   component: ContentComponentSummary;
   shouldRender: boolean;
+  keepMounted: boolean;
 };
 
-const FeedItem = memo(function FeedItem({ ref, component, shouldRender }: FeedItemProps) {
+const FeedItem = memo(function FeedItem({
+  ref,
+  component,
+  shouldRender,
+  keepMounted,
+}: FeedItemProps) {
+  // Latch once an iframe has rendered so scrolling away one extra item
+  // (shouldRender false, keepMounted true) doesn't unload it — otherwise
+  // scrolling back would reload the preview from scratch.
+  const [everRendered, setEverRendered] = useState(shouldRender);
+  if (shouldRender && !everRendered) setEverRendered(true);
+  const mountIframe = shouldRender || (everRendered && keepMounted);
+
   const src = isRemoteContentComponent(component)
     ? component.iframeUrl
     : `/preview-frame/${component.slug}`;
@@ -190,7 +218,7 @@ const FeedItem = memo(function FeedItem({ ref, component, shouldRender }: FeedIt
       >
         <MediaReveal
           className="h-full w-full"
-          iframe={shouldRender ? { src, title: component.name } : undefined}
+          iframe={mountIframe ? { src, title: component.name } : undefined}
         />
       </div>
     </section>

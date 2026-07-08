@@ -62,6 +62,17 @@ const transpilePackages = ["@repo/api", "@repo/db", "@repo/ui", ...getContentPac
 /** @type {import("next").NextConfig} */
 const config = {
   cacheComponents: true,
+  experimental: {
+    /**
+     * Reuse client-cached page segments for dynamic routes (the filterable
+     * home grid reads searchParams) so navigating back doesn't refetch and
+     * re-show loading skeletons. Content only changes on deploy, so briefly
+     * stale segments are harmless.
+     */
+    staleTimes: {
+      dynamic: 180,
+    },
+  },
   pageExtensions: ["js", "jsx", "md", "mdx", "ts", "tsx"],
   transpilePackages,
   images: {

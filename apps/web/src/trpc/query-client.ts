@@ -9,12 +9,6 @@ export const createQueryClient = () => {
         // above 0 to avoid refetching immediately on the client
         staleTime: 30 * 1000,
       },
-      mutations: {
-        onSuccess: async () => {
-          // Invalidate all queries in the react-query cache:
-          await queryClient.invalidateQueries();
-        },
-      },
       dehydrate: {
         serializeData: SuperJSON.serialize,
         shouldDehydrateQuery: (query) =>

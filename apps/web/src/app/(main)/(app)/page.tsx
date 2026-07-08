@@ -7,7 +7,7 @@ import {
 } from "@repo/api/content/content-categories";
 import { Button } from "@repo/ui/components/button";
 
-import { publicCaller } from "@/trpc/server";
+import { getContentList } from "@/lib/content-data";
 import { ContentPreview, ContentPreviewSkeleton } from "./_components/content-preview";
 import { FilterComboBox } from "./_components/filter-combo-box";
 
@@ -75,7 +75,7 @@ const Filters = async ({ searchParams }: PageProps) => {
 const ContentList = async ({ searchParams }: PageProps) => {
   const { elementFilter, styleFilter, categoryFilter } = await getFilters(searchParams);
   const filters = [elementFilter, styleFilter, categoryFilter].flat();
-  const content = await publicCaller.content.list({ filterTags: filters });
+  const content = await getContentList(filters);
 
   if (content.length === 0) {
     return (

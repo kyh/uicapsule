@@ -312,9 +312,9 @@ export const DynamicAiComposer = () => {
             aria-hidden
             className="absolute -inset-2 rounded-[32px] bg-[conic-gradient(from_0deg,#60a5fa,#a78bfa,#f472b6,#38bdf8,#60a5fa)] blur-xl"
             initial={{ opacity: 0, scale: 0.9 }}
-            animate={{ opacity: [0.35, 0.6, 0.35], scale: 1 }}
+            animate={{ opacity: [0, 0.6, 0.35], scale: 1 }}
             exit={{ opacity: 0, scale: 0.92 }}
-            transition={{ opacity: { duration: 2.4, repeat: Infinity, ease: "easeInOut" } }}
+            transition={{ opacity: { duration: 1.2, ease: "easeInOut" } }}
           />
         )}
       </AnimatePresence>
