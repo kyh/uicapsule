@@ -1,0 +1,5 @@
+{
+  "name": "Token Confidence",
+  "description": "Generated text that shows its work — per-token certainty as opacity and weight, and clicking a shaky word fans out the alternatives the model almost said.",
+  "tags": ["ai", "feedback"]
+}
