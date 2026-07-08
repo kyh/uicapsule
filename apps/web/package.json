@@ -34,6 +34,7 @@
     "@uicapsule/feed": "workspace:*",
     "@uicapsule/filter-bar": "workspace:*",
     "@uicapsule/geometric-orb": "workspace:*",
+    "@uicapsule/ghost-text": "workspace:*",
     "@uicapsule/gradient-orb": "workspace:*",
     "@uicapsule/infinite-grid": "workspace:*",
     "@uicapsule/ios-volume-slider": "workspace:*",

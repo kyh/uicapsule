@@ -1,0 +1,5 @@
+{
+  "name": "Ghost Text",
+  "description": "Cursor-style inline completion — pause and a gray ghost appears ahead of the caret; Tab absorbs it word-by-word, typing through it consumes it.",
+  "tags": ["ai", "inputs"]
+}
