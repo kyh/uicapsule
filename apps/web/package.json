@@ -39,6 +39,7 @@
     "@uicapsule/ios-volume-slider": "workspace:*",
     "@uicapsule/light-dark-toggle": "workspace:*",
     "@uicapsule/like-button": "workspace:*",
+    "@uicapsule/next-episode-card": "workspace:*",
     "@uicapsule/particle-orb": "workspace:*",
     "@uicapsule/radial-slider": "workspace:*",
     "@uicapsule/sidebar": "workspace:*",
