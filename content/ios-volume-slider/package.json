@@ -10,8 +10,8 @@
     "clean": "git clean -xdf .cache .turbo dist node_modules"
   },
   "dependencies": {
-    "@radix-ui/react-slider": "^1.3.6",
-    "motion": "^12.40.0",
+    "@radix-ui/react-slider": "^1.4.3",
+    "motion": "^12.42.2",
     "react": "catalog:",
     "react-dom": "catalog:"
   },

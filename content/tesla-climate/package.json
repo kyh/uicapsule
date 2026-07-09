@@ -10,8 +10,8 @@
     "clean": "git clean -xdf .cache .turbo dist node_modules"
   },
   "dependencies": {
-    "@number-flow/react": "^0.5.10",
-    "lucide-react": "^1.16.0",
+    "@number-flow/react": "^0.6.1",
+    "lucide-react": "^1.24.0",
     "react": "catalog:",
     "react-dom": "catalog:"
   },

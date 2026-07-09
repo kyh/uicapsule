@@ -11,13 +11,13 @@
   },
   "dependencies": {
     "@icons-pack/react-simple-icons": "^13.13.0",
-    "@radix-ui/react-use-controllable-state": "^1.2.2",
+    "@radix-ui/react-use-controllable-state": "^1.2.3",
     "@repo/ui": "workspace:^",
-    "lucide-react": "^1.16.0",
-    "motion": "^12.40.0",
+    "lucide-react": "^1.24.0",
+    "motion": "^12.42.2",
     "react": "catalog:",
     "react-dom": "catalog:",
-    "react-hook-form": "^7.76.0"
+    "react-hook-form": "^7.81.0"
   },
   "devDependencies": {
     "@types/react": "catalog:",

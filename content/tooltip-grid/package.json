@@ -11,7 +11,7 @@
   },
   "dependencies": {
     "@floating-ui/react": "^0.27.19",
-    "motion": "^12.40.0",
+    "motion": "^12.42.2",
     "react": "catalog:",
     "react-dom": "catalog:"
   },
