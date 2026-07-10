@@ -1,0 +1,5 @@
+{
+  "name": "Hold To Confirm",
+  "description": "Press-and-hold button with a progress ring that fills to confirm, snaps back with a shake on early release, and morphs into a success check on completion",
+  "tags": ["buttons-and-links", "controls", "minimal"]
+}

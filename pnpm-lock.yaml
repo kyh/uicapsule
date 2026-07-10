@@ -161,6 +161,9 @@ importers:
       '@uicapsule/gradient-orb':
         specifier: workspace:*
         version: link:../../content/gradient-orb
+      '@uicapsule/hold-to-confirm':
+        specifier: workspace:*
+        version: link:../../content/hold-to-confirm
       '@uicapsule/infinite-grid':
         specifier: workspace:*
         version: link:../../content/infinite-grid
@@ -610,6 +613,25 @@ importers:
       '@types/three':
         specifier: ^0.185.1
         version: 0.185.1
+
+  content/hold-to-confirm:
+    dependencies:
+      motion:
+        specifier: ^12.42.2
+        version: 12.42.2(react-dom@19.2.7(react@19.2.7))(react@19.2.7)
+      react:
+        specifier: 'catalog:'
+        version: 19.2.7
+      react-dom:
+        specifier: 'catalog:'
+        version: 19.2.7(react@19.2.7)
+    devDependencies:
+      '@types/react':
+        specifier: 'catalog:'
+        version: 19.2.17
+      '@types/react-dom':
+        specifier: 'catalog:'
+        version: 19.2.3(@types/react@19.2.17)
 
   content/infinite-grid:
     dependencies:

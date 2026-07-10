@@ -1,0 +1,21 @@
+{
+  "name": "@uicapsule/hold-to-confirm",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "clean": "git clean -xdf .cache .turbo dist node_modules"
+  },
+  "dependencies": {
+    "motion": "^12.42.2",
+    "react": "catalog:",
+    "react-dom": "catalog:"
+  },
+  "exports": {
+    "./preview": "./preview.tsx"
+  },
+  "devDependencies": {
+    "@types/react": "catalog:",
+    "@types/react-dom": "catalog:"
+  }
+}
