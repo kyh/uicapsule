@@ -11,11 +11,9 @@
     "./hooks/*": "./src/hooks/*.ts"
   },
   "scripts": {
-    "build": "tsc",
-    "clean": "git clean -xdf .cache .turbo dist node_modules",
-    "dev": "tsc",
+    "clean": "git clean -xdf .cache .turbo node_modules",
     "test": "vitest run",
-    "typecheck": "tsc --noEmit --emitDeclarationOnly false"
+    "typecheck": "tsc --noEmit"
   },
   "dependencies": {
     "@base-ui/react": "catalog:",
