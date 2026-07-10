@@ -34,16 +34,13 @@ import { CodePreview } from "./code-preview";
 const FLOATING_BUTTON_CLASS = "size-9 rounded-full shadow-sm";
 const SECTION_CLASS = "-mx-3 flex flex-col gap-2.5 border-t px-3 pt-3 pb-1";
 
-// The shadcn registry endpoint already serves every source file with its
-// content, so the drawer and zip download reuse it instead of a dedicated API.
 const sourceFilesQuery = (slug: string) =>
   queryOptions({
     queryKey: ["content-source-files", slug],
     queryFn: async (): Promise<SourceFile[]> => {
-      const res = await fetch(`/r/${slug}.json`);
+      const res = await fetch(`/api/content/${slug}`);
       if (!res.ok) throw new Error(`Failed to load source files for ${slug}`);
-      const item = (await res.json()) as { files: { path: string; content: string }[] };
-      return item.files.map((file) => ({ path: file.path, code: file.content }));
+      return (await res.json()) as SourceFile[];
     },
   });
 

@@ -3,7 +3,11 @@ import { cacheLife } from "next/cache";
 import { buildShadcnRegistryItem, readContentBySlug, readContentIndex } from "./content/content-fs";
 import { isLocalContentComponent } from "./content/content-schema";
 
-import type { ContentComponent, ContentComponentSummary } from "./content/content-schema";
+import type {
+  ContentComponent,
+  ContentComponentSummary,
+  SourceFile,
+} from "./content/content-schema";
 
 // Content ships with the deployment and only changes on redeploy. `use cache`
 // keys include the build ID, so "max" can never serve a previous deploy's
@@ -25,13 +29,11 @@ export const getFeedList = async (): Promise<ContentComponentSummary[]> => {
 export const getContentList = async (filterTags: string[]): Promise<ContentComponentSummary[]> => {
   "use cache";
   cacheLife("max");
-  const all = (await readContentIndex()).map(toSummary);
+  const all = await getFeedList();
 
   if (filterTags.length === 0) return all;
 
   const normalizedFilters = filterTags.map((tag) => tag.trim().toLowerCase()).filter(Boolean);
-  if (normalizedFilters.length === 0) return [];
-
   return all.filter((component) => {
     const tags = component.tags ?? [];
     return normalizedFilters.some((filter) => tags.includes(filter));
@@ -48,13 +50,21 @@ export type SearchEntry = {
 export const getSearchEntries = async (): Promise<SearchEntry[]> => {
   "use cache";
   cacheLife("max");
-  const all = await readContentIndex();
+  const all = await getFeedList();
   return all.map((component) => ({
     slug: component.slug,
     name: component.name,
     description: component.description ?? "",
     tags: component.tags ?? [],
   }));
+};
+
+export const getSourceFiles = async (slug: string): Promise<SourceFile[] | null> => {
+  "use cache";
+  cacheLife("max");
+  const component = await readContentBySlug(slug);
+  if (!component || !isLocalContentComponent(component)) return null;
+  return component.sourceFiles;
 };
 
 export const getShadcnRegistry = async () => {

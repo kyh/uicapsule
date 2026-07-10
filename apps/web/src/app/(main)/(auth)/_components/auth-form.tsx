@@ -13,6 +13,8 @@ import { z } from "zod";
 
 import { authClient } from "@/lib/auth-client";
 
+const POST_AUTH_REDIRECT = "/";
+
 type AuthFormProps = {
   type: "login" | "register";
 } & HTMLAttributes<HTMLDivElement>;
@@ -47,7 +49,7 @@ export const AuthForm = ({ className, type, ...props }: AuthFormProps) => {
         name: emailPrefix ?? "User",
         fetchOptions: {
           onSuccess: () => {
-            router.replace("/");
+            router.replace(POST_AUTH_REDIRECT);
           },
           onError: (ctx) => {
             toast.error(ctx.error.message);
@@ -62,7 +64,7 @@ export const AuthForm = ({ className, type, ...props }: AuthFormProps) => {
         password: credentials.password,
         fetchOptions: {
           onSuccess: () => {
-            router.replace("/");
+            router.replace(POST_AUTH_REDIRECT);
           },
           onError: (ctx) => {
             toast.error(ctx.error.message);
@@ -221,7 +223,7 @@ export const UpdatePasswordForm = () => {
       fetchOptions: {
         onSuccess: () => {
           toast.success("Password updated successfully!");
-          router.push("/");
+          router.push(POST_AUTH_REDIRECT);
         },
         onError: (ctx) => {
           toast.error(ctx.error.message);

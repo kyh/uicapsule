@@ -67,12 +67,13 @@ import { authClient } from "@/lib/auth-client";
 const SEARCH_RESULT_LIMIT = 12;
 const TRENDING_LIMIT = 8;
 
-type HeaderProps = {
+type HeaderNavProps = {
   className?: string;
   searchEntries: SearchEntry[];
 };
 
-export const Header = ({ className, searchEntries }: HeaderProps) => {
+/** Client view for the header — rendered by the server `Header` in header.tsx, which owns the data. */
+export const HeaderNav = ({ className, searchEntries }: HeaderNavProps) => {
   const { trigger } = useWebHaptics();
   return (
     <nav
