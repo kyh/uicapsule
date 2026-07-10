@@ -41,7 +41,7 @@
   "globalEnv": [
     "TURSO_DATABASE_URL",
     "TURSO_AUTH_TOKEN",
-    "AUTH_SECRET",
+    "BETTER_AUTH_SECRET",
     "PORT",
     "VERCEL_PROJECT_PRODUCTION_URL"
   ],
