@@ -11,13 +11,13 @@ import {
   type ReactNode,
 } from "react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import {
   contentCategories,
   contentElements,
   contentStyles,
 } from "@/lib/content/content-categories";
-import { Avatar, AvatarFallback } from "@repo/ui/components/avatar";
+import { Avatar, AvatarFallback, AvatarImage } from "@repo/ui/components/avatar";
 import { Button } from "@repo/ui/components/button";
 import {
   CommandDialog,
@@ -51,6 +51,8 @@ import {
   BookCheckIcon,
   BookmarkIcon,
   LayoutGridIcon,
+  LogInIcon,
+  LogOutIcon,
   MoonIcon,
   PaletteIcon,
   SearchIcon,
@@ -60,6 +62,7 @@ import {
 } from "lucide-react";
 
 import type { SearchEntry } from "@/lib/content-data";
+import { authClient } from "@/lib/auth-client";
 
 const SEARCH_RESULT_LIMIT = 12;
 const TRENDING_LIMIT = 8;
@@ -521,8 +524,31 @@ const SearchButton = ({ searchEntries }: { searchEntries: SearchEntry[] }) => {
 export const ProfileButton = () => {
   const isDesktop = useMediaQuery();
   const { theme, setTheme } = useTheme();
+  const router = useRouter();
+  const { data: session } = authClient.useSession();
+  const user = session?.user;
 
   const [open, setOpen] = useState(false);
+
+  const handleSignOut = () => {
+    void authClient.signOut({
+      fetchOptions: {
+        onSuccess: () => {
+          setOpen(false);
+          router.refresh();
+        },
+      },
+    });
+  };
+
+  const avatar = (
+    <Avatar className="size-8">
+      {user?.image && <AvatarImage src={user.image} />}
+      <AvatarFallback>
+        {user ? (user.name || user.email).slice(0, 2).toUpperCase() : "UI"}
+      </AvatarFallback>
+    </Avatar>
+  );
 
   const menuItemClassName = "group w-full justify-start";
 
@@ -544,6 +570,23 @@ export const ProfileButton = () => {
   };
 
   const menuItems: (WrappedMenuItem | UnwrappedMenuItem)[] = [
+    {
+      id: "account",
+      condition: !!user,
+      wrap: false,
+      content: (
+        <div className="flex flex-col px-2 py-1.5 text-sm">
+          <span className="truncate">{user?.name}</span>
+          <span className="text-muted-foreground truncate text-xs">{user?.email}</span>
+        </div>
+      ),
+    },
+    {
+      id: "account-separator",
+      condition: !!user,
+      wrap: false,
+      content: <DropdownMenuSeparator />,
+    },
     {
       id: "about",
       condition: true,
@@ -676,15 +719,51 @@ export const ProfileButton = () => {
         </div>
       ),
     },
+    {
+      id: "separator3",
+      condition: true,
+      wrap: false,
+      content: <DropdownMenuSeparator />,
+    },
+    {
+      id: "login",
+      condition: !user,
+      wrap: true,
+      link: (
+        <Link className={menuItemClassName} href="/auth/login" onClick={() => setOpen(false)} />
+      ),
+      body: (
+        <>
+          <LogInIcon aria-hidden="true" className={menuItemIconClassName} />
+          Login
+        </>
+      ),
+    },
+    {
+      id: "sign-out",
+      condition: !!user,
+      wrap: true,
+      link: (
+        <button
+          type="button"
+          className={cn(menuItemClassName, "flex items-center gap-2 px-2 py-1.5 text-sm")}
+          onClick={handleSignOut}
+        />
+      ),
+      body: (
+        <>
+          <LogOutIcon aria-hidden="true" className={menuItemIconClassName} />
+          Sign out
+        </>
+      ),
+    },
   ];
 
   if (isDesktop) {
     return (
       <DropdownMenu open={open} onOpenChange={setOpen}>
         <DropdownMenuTrigger render={<Button variant="ghost" size="icon" />}>
-          <Avatar className="size-8">
-            <AvatarFallback>UI</AvatarFallback>
-          </Avatar>
+          {avatar}
         </DropdownMenuTrigger>
         <DropdownMenuContent className="w-40" align="end">
           {menuItems.map((item) => {
@@ -709,9 +788,7 @@ export const ProfileButton = () => {
     <Drawer open={open} onOpenChange={setOpen}>
       <DrawerTrigger asChild>
         <Button variant="ghost" size="icon">
-          <Avatar className="size-8">
-            <AvatarFallback>UI</AvatarFallback>
-          </Avatar>
+          {avatar}
         </Button>
       </DrawerTrigger>
       <DrawerContent>

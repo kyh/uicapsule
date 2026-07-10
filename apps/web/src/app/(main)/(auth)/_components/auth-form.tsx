@@ -1,7 +1,7 @@
 "use client";
 
-import { useState, type HTMLAttributes } from "react";
-import { useParams, useRouter } from "next/navigation";
+import { type HTMLAttributes } from "react";
+import { useRouter } from "next/navigation";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Button } from "@repo/ui/components/button";
 import { Field, FieldError, FieldLabel } from "@repo/ui/components/field";
@@ -19,8 +19,6 @@ type AuthFormProps = {
 
 export const AuthForm = ({ className, type, ...props }: AuthFormProps) => {
   const router = useRouter();
-  const params = useParams<{ nextPath?: string }>();
-  const [submittingGithub, setSubmittingGithub] = useState(false);
 
   const form = useForm({
     resolver: zodResolver(
@@ -40,24 +38,6 @@ export const AuthForm = ({ className, type, ...props }: AuthFormProps) => {
     formState: { errors, isSubmitting },
   } = form;
 
-  const handleAuthWithGithub = async () => {
-    setSubmittingGithub(true);
-    await authClient.signIn.social({
-      provider: "github",
-      fetchOptions: {
-        onSuccess: () => {
-          router.replace(params.nextPath ?? "/dashboard");
-        },
-        onError: (ctx) => {
-          toast.error(ctx.error.message);
-        },
-        onResponse: () => {
-          setSubmittingGithub(false);
-        },
-      },
-    });
-  };
-
   const handleAuthWithPassword = form.handleSubmit(async (credentials) => {
     if (type === "register") {
       const emailPrefix = credentials.email.split("@")[0];
@@ -67,7 +47,7 @@ export const AuthForm = ({ className, type, ...props }: AuthFormProps) => {
         name: emailPrefix ?? "User",
         fetchOptions: {
           onSuccess: () => {
-            router.replace(params.nextPath ?? "/dashboard");
+            router.replace("/");
           },
           onError: (ctx) => {
             toast.error(ctx.error.message);
@@ -82,7 +62,7 @@ export const AuthForm = ({ className, type, ...props }: AuthFormProps) => {
         password: credentials.password,
         fetchOptions: {
           onSuccess: () => {
-            router.replace(params.nextPath ?? "/dashboard");
+            router.replace("/");
           },
           onError: (ctx) => {
             toast.error(ctx.error.message);
@@ -94,22 +74,6 @@ export const AuthForm = ({ className, type, ...props }: AuthFormProps) => {
 
   return (
     <div className={cn("grid gap-6", className)} {...props}>
-      <Button
-        variant="outline"
-        type="button"
-        loading={submittingGithub}
-        onClick={handleAuthWithGithub}
-      >
-        Continue with Github
-      </Button>
-      <div className="relative">
-        <div className="absolute inset-0 flex items-center">
-          <span className="w-full border-t" />
-        </div>
-        <div className="relative flex justify-center text-xs uppercase">
-          <span className="bg-background text-muted-foreground px-2">Or</span>
-        </div>
-      </div>
       <form className="grid gap-2" onSubmit={handleAuthWithPassword}>
         <Field>
           <FieldLabel className="sr-only" htmlFor="email">
@@ -147,7 +111,9 @@ export const AuthForm = ({ className, type, ...props }: AuthFormProps) => {
           />
           <FieldError errors={errors.password ? [errors.password] : undefined} />
         </Field>
-        <Button loading={isSubmitting}>{type === "login" ? "Login" : "Register"}</Button>
+        <Button type="submit" loading={isSubmitting}>
+          {type === "login" ? "Login" : "Register"}
+        </Button>
       </form>
     </div>
   );
@@ -216,7 +182,9 @@ export const RequestPasswordResetForm = () => {
         />
         <FieldError errors={errors.email ? [errors.email] : undefined} />
       </Field>
-      <Button loading={isSubmitting}>Request Password Reset</Button>
+      <Button type="submit" loading={isSubmitting}>
+        Request Password Reset
+      </Button>
     </form>
   );
 };
@@ -253,7 +221,7 @@ export const UpdatePasswordForm = () => {
       fetchOptions: {
         onSuccess: () => {
           toast.success("Password updated successfully!");
-          router.push("/dashboard");
+          router.push("/");
         },
         onError: (ctx) => {
           toast.error(ctx.error.message);
@@ -298,7 +266,9 @@ export const UpdatePasswordForm = () => {
         />
         <FieldError errors={errors.confirmPassword ? [errors.confirmPassword] : undefined} />
       </Field>
-      <Button loading={isSubmitting}>Update Password</Button>
+      <Button type="submit" loading={isSubmitting}>
+        Update Password
+      </Button>
     </form>
   );
 };
