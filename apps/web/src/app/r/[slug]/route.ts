@@ -1,7 +1,7 @@
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 
-import { caller } from "@/trpc/server";
+import { getShadcnRegistry, getShadcnRegistryItem } from "@/lib/content-data";
 
 type RegistryParams = {
   params: Promise<{ slug: string }>;
@@ -16,28 +16,17 @@ export const GET = async (_: NextRequest, { params }: RegistryParams) => {
 
   const slugWithoutExtension = slug.replace(".json", "");
 
-  try {
-    // Handle registry index
-    if (slugWithoutExtension === "registry") {
-      const registry = await caller.content.shadcnRegistry();
-      return NextResponse.json(registry);
-    }
+  if (slugWithoutExtension === "registry") {
+    return NextResponse.json(await getShadcnRegistry());
+  }
 
-    // Handle individual component
-    const pkg = await caller.content.shadcnRegistryItem({
-      slug: slugWithoutExtension,
-    });
-    return NextResponse.json(pkg);
-  } catch (error) {
-    const errorMessage =
-      slugWithoutExtension === "registry" ? "Failed to get registry" : "Failed to get package";
-
+  const item = await getShadcnRegistryItem(slugWithoutExtension);
+  if (!item) {
     return NextResponse.json(
-      {
-        error: errorMessage,
-        details: error instanceof Error ? error.message : String(error),
-      },
-      { status: 500 },
+      { error: `Component not found: ${slugWithoutExtension}` },
+      { status: 404 },
     );
   }
+
+  return NextResponse.json(item);
 };

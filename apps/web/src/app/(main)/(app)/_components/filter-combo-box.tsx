@@ -19,7 +19,7 @@ import { cn } from "@repo/ui/lib/utils";
 import { useMediaQuery } from "@repo/ui/hooks/use-media-query";
 import { ChevronDownIcon } from "lucide-react";
 
-import type { ContentFilter } from "@repo/api/content/content-categories";
+import type { ContentFilter } from "@/lib/content/content-categories";
 
 type FilterComboBoxProps = {
   filterKey: string;

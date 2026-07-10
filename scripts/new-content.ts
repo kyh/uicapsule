@@ -2,15 +2,15 @@
 /**
  * Scaffolds a new content component:
  *   1. Creates content/<slug>/ with meta.json, package.json, preview.tsx, <slug>.tsx
- *   2. Adds @uicapsule/<slug> to apps/web/package.json dependencies
- *   3. Runs pnpm install to link the workspace package
+ *   2. Runs pnpm install to link the workspace package
  *
  * Everything else (the content index, next.config.js transpilePackages, the
- * shadcn registry) discovers components from the content/ directory at runtime.
+ * shadcn registry, the preview iframe) discovers components from the content/
+ * directory at runtime — the web app never depends on content packages by name.
  */
 import { execSync } from "node:child_process";
 import { existsSync } from "node:fs";
-import { mkdir, readFile, rm, writeFile } from "node:fs/promises";
+import { mkdir, rm, writeFile } from "node:fs/promises";
 import { join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { defineCommand, runMain } from "citty";
@@ -18,7 +18,6 @@ import consola from "consola";
 
 const repoRoot = resolve(fileURLToPath(new URL(".", import.meta.url)), "..");
 const contentRoot = join(repoRoot, "content");
-const webPackageJsonPath = join(repoRoot, "apps", "web", "package.json");
 
 const SLUG_RE = /^[a-z][a-z0-9]*(-[a-z0-9]+)*$/;
 
@@ -51,9 +50,6 @@ const packageJson = (slug: string) =>
         react: "catalog:",
         "react-dom": "catalog:",
       },
-      exports: {
-        "./preview": "./preview.tsx",
-      },
       devDependencies: {
         "@types/react": "catalog:",
         "@types/react-dom": "catalog:",
@@ -85,43 +81,10 @@ export const ${componentName} = () => {
 };
 `;
 
-/**
- * Inserts the dependency in alphabetical position without re-sorting existing
- * keys, so unrelated lines never change. Returns the previous file contents
- * when a change was made, for rollback on failure.
- */
-const addWebDependency = async (slug: string): Promise<string | null> => {
-  const pkgName = `@uicapsule/${slug}`;
-  const raw = await readFile(webPackageJsonPath, "utf-8");
-  const pkg = JSON.parse(raw) as { dependencies?: Record<string, string> };
-  const dependencies = pkg.dependencies ?? {};
-
-  if (dependencies[pkgName]) {
-    consola.info(`${pkgName} already in apps/web/package.json, skipping`);
-    return null;
-  }
-
-  const next: Record<string, string> = {};
-  let inserted = false;
-  for (const [key, value] of Object.entries(dependencies)) {
-    if (!inserted && pkgName.localeCompare(key) < 0) {
-      next[pkgName] = "workspace:*";
-      inserted = true;
-    }
-    next[key] = value;
-  }
-  if (!inserted) next[pkgName] = "workspace:*";
-
-  pkg.dependencies = next;
-  await writeFile(webPackageJsonPath, JSON.stringify(pkg, null, 2) + "\n");
-  consola.info(`Added ${pkgName} to apps/web/package.json`);
-  return raw;
-};
-
 const main = defineCommand({
   meta: {
     name: "new:content",
-    description: "Scaffold a new blank content component and register it in the web app.",
+    description: "Scaffold a new blank content component.",
   },
   args: {
     slug: {
@@ -161,7 +124,6 @@ const main = defineCommand({
 
     consola.start(`Scaffolding content/${slug}`);
 
-    let webPackageJsonBackup: string | null = null;
     try {
       await mkdir(dir, { recursive: true });
       await Promise.all([
@@ -172,8 +134,6 @@ const main = defineCommand({
       ]);
       consola.info(`Created content/${slug}`);
 
-      webPackageJsonBackup = await addWebDependency(slug);
-
       if (args.install) {
         consola.info("Running pnpm install...");
         execSync("pnpm install", { cwd: repoRoot, stdio: "inherit" });
@@ -183,10 +143,7 @@ const main = defineCommand({
     } catch (error) {
       // Roll back the partial scaffold so the command can simply be re-run
       await rm(dir, { recursive: true, force: true });
-      if (webPackageJsonBackup !== null) {
-        await writeFile(webPackageJsonPath, webPackageJsonBackup);
-      }
-      consola.error(`Failed — rolled back content/${slug} and apps/web/package.json.`);
+      consola.error(`Failed — rolled back content/${slug}.`);
       throw error;
     }
 

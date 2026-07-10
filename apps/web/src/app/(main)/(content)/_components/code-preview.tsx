@@ -26,7 +26,7 @@ import { toast } from "@repo/ui/components/sonner";
 import { Tree, TreeItem, TreeItemLabel } from "@repo/ui/components/tree";
 import { cn } from "@repo/ui/lib/utils";
 
-import type { LocalContentComponent } from "@repo/api/content/content-schema";
+import type { SourceFile } from "@/lib/content/content-schema";
 
 const ROOT_ID = ".";
 const INDENT = 20;
@@ -149,21 +149,21 @@ const buildFileTree = (files: Record<string, { code: string }>): Record<string, 
 };
 
 type CodePreviewProps = {
-  contentComponent: LocalContentComponent;
+  sourceFiles: SourceFile[];
 };
 
-export const CodePreview = ({ contentComponent }: CodePreviewProps) => {
+export const CodePreview = ({ sourceFiles }: CodePreviewProps) => {
   const { handleMouseDown } = useResizableSidebar();
-  const defaultPath = contentComponent.sourceFiles[0]?.path ?? "";
+  const defaultPath = sourceFiles[0]?.path ?? "";
   const [selectedPath, setSelectedPath] = useState(defaultPath);
 
   const allFiles = useMemo(() => {
     const map: Record<string, { code: string }> = {};
-    for (const file of contentComponent.sourceFiles) {
+    for (const file of sourceFiles) {
       map[file.path] = { code: file.code };
     }
     return map;
-  }, [contentComponent.sourceFiles]);
+  }, [sourceFiles]);
   const items = useMemo(() => buildFileTree(allFiles), [allFiles]);
 
   const tree = useTree<Item>({

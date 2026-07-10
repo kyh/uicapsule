@@ -10,9 +10,9 @@ import {
   useState,
   type Ref,
 } from "react";
-import { isRemoteContentComponent } from "@repo/api/content/content-schema";
+import { isRemoteContentComponent } from "@/lib/content/content-schema";
 
-import type { ContentComponentSummary, DefaultSize } from "@repo/api/content/content-schema";
+import type { ContentComponentSummary, DefaultSize } from "@/lib/content/content-schema";
 import { MediaReveal } from "@/components/media-reveal";
 import { ResponsiveAside } from "./aside";
 

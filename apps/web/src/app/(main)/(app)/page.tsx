@@ -4,7 +4,7 @@ import {
   contentCategories,
   contentElements,
   contentStyles,
-} from "@repo/api/content/content-categories";
+} from "@/lib/content/content-categories";
 import { Button } from "@repo/ui/components/button";
 
 import { getContentList } from "@/lib/content-data";

@@ -1,6 +1,6 @@
 "use client";
 
-import { isLocalContentComponent } from "@repo/api/content/content-schema";
+import { isLocalContentComponent } from "@/lib/content/content-schema";
 import { Avatar, AvatarFallback, AvatarImage } from "@repo/ui/components/avatar";
 import { Badge } from "@repo/ui/components/badge";
 import { Button, buttonVariants } from "@repo/ui/components/button";
@@ -16,7 +16,7 @@ import {
 import { toast } from "@repo/ui/components/sonner";
 import { useMediaQuery } from "@repo/ui/hooks/use-media-query";
 import { cn } from "@repo/ui/lib/utils";
-import { useQueryClient, useSuspenseQuery } from "@tanstack/react-query";
+import { queryOptions, useQueryClient, useSuspenseQuery } from "@tanstack/react-query";
 import JSZip from "jszip";
 import {
   CheckIcon,
@@ -28,12 +28,24 @@ import {
 } from "lucide-react";
 import { Suspense, useEffect } from "react";
 
-import type { ContentComponentSummary } from "@repo/api/content/content-schema";
-import { useTRPC } from "@/trpc/react";
+import type { ContentComponentSummary, SourceFile } from "@/lib/content/content-schema";
 import { CodePreview } from "./code-preview";
 
 const FLOATING_BUTTON_CLASS = "size-9 rounded-full shadow-sm";
 const SECTION_CLASS = "-mx-3 flex flex-col gap-2.5 border-t px-3 pt-3 pb-1";
+
+// The shadcn registry endpoint already serves every source file with its
+// content, so the drawer and zip download reuse it instead of a dedicated API.
+const sourceFilesQuery = (slug: string) =>
+  queryOptions({
+    queryKey: ["content-source-files", slug],
+    queryFn: async (): Promise<SourceFile[]> => {
+      const res = await fetch(`/r/${slug}.json`);
+      if (!res.ok) throw new Error(`Failed to load source files for ${slug}`);
+      const item = (await res.json()) as { files: { path: string; content: string }[] };
+      return item.files.map((file) => ({ path: file.path, code: file.content }));
+    },
+  });
 
 type AsideProps = {
   contentComponent: ContentComponentSummary;
@@ -45,15 +57,12 @@ type ResponsiveAsideProps = AsideProps & {
 };
 
 const Aside = ({ contentComponent }: AsideProps) => {
-  const trpc = useTRPC();
   const queryClient = useQueryClient();
 
   useEffect(() => {
     if (!isLocalContentComponent(contentComponent)) return;
-    void queryClient.prefetchQuery(
-      trpc.content.bySlug.queryOptions({ slug: contentComponent.slug }),
-    );
-  }, [contentComponent, queryClient, trpc.content.bySlug]);
+    void queryClient.prefetchQuery(sourceFilesQuery(contentComponent.slug));
+  }, [contentComponent, queryClient]);
 
   const handleInstallClick = () => {
     if (!isLocalContentComponent(contentComponent)) return;
@@ -90,16 +99,10 @@ const Aside = ({ contentComponent }: AsideProps) => {
       description: `${contentComponent.slug}.zip is being downloaded`,
     });
     try {
-      const full = await queryClient.fetchQuery(
-        trpc.content.bySlug.queryOptions({ slug: contentComponent.slug }),
-      );
-      if (!isLocalContentComponent(full)) {
-        toast.error("Source files unavailable", { id: toastId });
-        return;
-      }
+      const sourceFiles = await queryClient.fetchQuery(sourceFilesQuery(contentComponent.slug));
 
       const zip = new JSZip();
-      for (const { path, code } of full.sourceFiles) {
+      for (const { path, code } of sourceFiles) {
         const cleanPath = path.startsWith("/") ? path.slice(1) : path;
         zip.file(cleanPath, code);
       }
@@ -242,13 +245,8 @@ const Aside = ({ contentComponent }: AsideProps) => {
 };
 
 const SourceCodePreview = ({ slug }: { slug: string }) => {
-  const trpc = useTRPC();
-  const { data } = useSuspenseQuery(trpc.content.bySlug.queryOptions({ slug }));
-
-  if (!isLocalContentComponent(data)) {
-    return <div className="text-muted-foreground p-6 text-sm">Source files unavailable.</div>;
-  }
-  return <CodePreview contentComponent={data} />;
+  const { data: sourceFiles } = useSuspenseQuery(sourceFilesQuery(slug));
+  return <CodePreview sourceFiles={sourceFiles} />;
 };
 
 export const ResponsiveAside = ({ contentComponent, onPrev, onNext }: ResponsiveAsideProps) => {

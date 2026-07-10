@@ -1,5 +1,3 @@
-import { z } from "zod";
-
 export type DefaultSize = "full" | "md" | "sm";
 
 export type ContentComponentBase = {
@@ -16,9 +14,11 @@ export type ContentComponentBase = {
   asSeenOn?: { name: string; url: string; avatarUrl: string }[];
 };
 
+export type SourceFile = { path: string; code: string };
+
 export type LocalContentComponent = ContentComponentBase & {
   type: "local";
-  sourceFiles: { path: string; code: string }[];
+  sourceFiles: SourceFile[];
 };
 
 export type RemoteContentComponent = ContentComponentBase & {
@@ -39,21 +39,3 @@ export const isLocalContentComponent = <T extends { type: "local" | "remote" }>(
 export const isRemoteContentComponent = <T extends { type: "local" | "remote" }>(
   component: T,
 ): component is Extract<T, { type: "remote" }> => component.type === "remote";
-
-export const getContentComponentInput = z.object({
-  slug: z.string(),
-});
-export type GetContentComponentInput = z.infer<typeof getContentComponentInput>;
-
-export const getContentComponentsInput = z
-  .object({
-    filterTags: z.array(z.string()).optional(),
-  })
-  .optional();
-export type GetContentComponentsInput = z.infer<typeof getContentComponentsInput>;
-
-export const searchContentInput = z.object({
-  query: z.string().optional(),
-  limit: z.number().optional().default(12),
-});
-export type SearchContentInput = z.infer<typeof searchContentInput>;

@@ -1,6 +1,6 @@
 import { Suspense } from "react";
 import { notFound } from "next/navigation";
-import { isRemoteContentComponent } from "@repo/api/content/content-schema";
+import { isRemoteContentComponent } from "@/lib/content/content-schema";
 
 import { MediaReveal } from "@/components/media-reveal";
 import { getFeedList } from "@/lib/content-data";

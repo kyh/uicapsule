@@ -16,7 +16,7 @@ import {
   contentCategories,
   contentElements,
   contentStyles,
-} from "@repo/api/content/content-categories";
+} from "@/lib/content/content-categories";
 import { Avatar, AvatarFallback } from "@repo/ui/components/avatar";
 import { Button } from "@repo/ui/components/button";
 import {
@@ -47,7 +47,6 @@ import { useTheme } from "next-themes";
 import { useWebHaptics } from "web-haptics/react";
 import { cn } from "@repo/ui/lib/utils";
 import { useMediaQuery } from "@repo/ui/hooks/use-media-query";
-import { useQuery } from "@tanstack/react-query";
 import {
   BookCheckIcon,
   BookmarkIcon,
@@ -60,16 +59,17 @@ import {
   SunMoonIcon,
 } from "lucide-react";
 
-import { useTRPC } from "@/trpc/react";
+import type { SearchEntry } from "@/lib/content-data";
 
-type SearchEntry = {
-  slug: string;
-  name: string;
-  description: string;
-  tags: string[];
+const SEARCH_RESULT_LIMIT = 12;
+const TRENDING_LIMIT = 8;
+
+type HeaderProps = {
+  className?: string;
+  searchEntries: SearchEntry[];
 };
 
-export const Header = ({ className }: { className?: string }) => {
+export const Header = ({ className, searchEntries }: HeaderProps) => {
   const { trigger } = useWebHaptics();
   return (
     <nav
@@ -84,7 +84,7 @@ export const Header = ({ className }: { className?: string }) => {
         </Link>
       </div>
       <div className="flex flex-1 items-center justify-center gap-2">
-        <SearchButton />
+        <SearchButton searchEntries={searchEntries} />
       </div>
       <div className="flex items-center justify-end gap-2">
         <ProfileButton />
@@ -93,24 +93,23 @@ export const Header = ({ className }: { className?: string }) => {
   );
 };
 
-const SearchButton = () => {
+const SearchButton = ({ searchEntries }: { searchEntries: SearchEntry[] }) => {
   type SearchView = "trending" | "categories" | "sections" | "styles";
 
   const [searchOpen, setSearchOpen] = useState(false);
   const [query, setQuery] = useState("");
   const [activeView, setActiveView] = useState<SearchView>("categories");
 
-  const api = useTRPC();
-  const { data: searchData, isLoading } = useQuery(
-    api.content.search.queryOptions({ query, limit: 12 }, { enabled: searchOpen }),
-  );
-
-  const tagCounts = useMemo(() => searchData?.tagCounts ?? {}, [searchData]);
-  const trending = useMemo(() => (searchData?.trending ?? []) as SearchEntry[], [searchData]);
-  const componentMatches = useMemo(
-    () => (searchData?.components ?? []) as SearchEntry[],
-    [searchData],
-  );
+  const tagCounts = useMemo(() => {
+    const counts: Record<string, number> = {};
+    for (const entry of searchEntries) {
+      for (const tag of entry.tags) {
+        counts[tag] = (counts[tag] ?? 0) + 1;
+      }
+    }
+    return counts;
+  }, [searchEntries]);
+  const trending = useMemo(() => searchEntries.slice(0, TRENDING_LIMIT), [searchEntries]);
 
   useEffect(() => {
     const down = (e: KeyboardEvent) => {
@@ -215,7 +214,19 @@ const SearchButton = () => {
 
   const normalizedQuery = query.trim().toLowerCase();
   const hasQuery = normalizedQuery.length > 0;
-  const hasData = !isLoading && searchData !== undefined;
+
+  const componentMatches = useMemo(() => {
+    if (!hasQuery) {
+      return [];
+    }
+
+    return searchEntries
+      .filter((entry) => {
+        const haystacks = [entry.name, entry.description, ...entry.tags];
+        return haystacks.some((field) => field.toLowerCase().includes(normalizedQuery));
+      })
+      .slice(0, SEARCH_RESULT_LIMIT);
+  }, [hasQuery, normalizedQuery, searchEntries]);
 
   const categoryMatches = useMemo(() => {
     if (!hasQuery) {
@@ -498,19 +509,7 @@ const SearchButton = () => {
               </div>
             </div>
             <CommandList className="flex-1 overflow-y-auto p-2 md:px-4 md:py-3">
-              {isLoading ? (
-                <div className="text-muted-foreground flex flex-1 items-center justify-center px-4 py-12 text-sm">
-                  Loading...
-                </div>
-              ) : !hasData ? (
-                <div className="text-muted-foreground flex flex-1 items-center justify-center px-4 py-12 text-sm">
-                  Search is unavailable right now.
-                </div>
-              ) : hasQuery ? (
-                renderQueryResults()
-              ) : (
-                renderActiveView()
-              )}
+              {hasQuery ? renderQueryResults() : renderActiveView()}
             </CommandList>
           </div>
         </div>

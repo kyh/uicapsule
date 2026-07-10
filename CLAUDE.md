@@ -10,11 +10,25 @@
 apps/
   web/           # Next.js 16 app (main frontend)
 packages/
-  api/           # tRPC API + better-auth
+  api/           # tRPC (auth/organization) + better-auth
   db/            # Drizzle ORM + Turso (libSQL)
   ui/            # shadcn/ui components (radix-ui)
-  builder/       # Content builder (watches /content)
+content/         # Gallery components — one workspace package per slug
 ```
+
+### Content architecture
+
+Content is filesystem-driven; the web app never depends on content packages by name:
+
+- `apps/web/src/lib/content/content-fs.ts` reads `content/*/meta.json` + source files;
+  `content-data.ts` wraps it in `"use cache"` server functions (feed, filters, search
+  index, shadcn registry).
+- `preview-frame/[slug]` renders previews via a relative dynamic import of
+  `content/<slug>/preview.tsx`.
+- `/r/<slug>.json` serves the shadcn registry item; the source-code drawer and zip
+  download on the client reuse it.
+- Content packages exist as workspace packages only so pnpm installs their deps in
+  isolation and the registry can report per-component dependencies.
 
 ### Tech Stack
 
@@ -37,7 +51,7 @@ pnpm format           # Check formatting
 pnpm format:fix       # Fix formatting
 pnpm db:push          # Push local db schema
 pnpm db:push-remote   # Push to production Turso
-pnpm new:content <slug>  # Scaffold a new content component (content/ + web app dep)
+pnpm new:content <slug>  # Scaffold a new content component in content/
 ```
 
 ## Content Curation Philosophy

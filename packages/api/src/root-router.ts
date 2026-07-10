@@ -1,9 +1,7 @@
-import { contentRouter } from "./content/content-router";
 import { organizationRouter } from "./organization/organization-router";
 import { createTRPCRouter } from "./trpc";
 
 export const appRouter = createTRPCRouter({
-  content: contentRouter,
   organization: organizationRouter,
 });
 
