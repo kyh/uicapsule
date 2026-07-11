@@ -4,38 +4,13 @@ import { NavigationMenu as NavigationMenuPrimitive } from "@base-ui/react/naviga
 
 import { cn } from "@repo/ui/lib/utils";
 
-/**
- * Root with the shared popup baked in: sibling triggers open one popup that
- * morphs (position + size) between their contents instead of remounting.
- */
-function NavigationMenu({ className, children, ...props }: NavigationMenuPrimitive.Root.Props) {
+function NavigationMenu({ className, ...props }: NavigationMenuPrimitive.Root.Props) {
   return (
     <NavigationMenuPrimitive.Root
       data-slot="navigation-menu"
       className={cn("relative", className)}
       {...props}
-    >
-      {children}
-      <NavigationMenuPrimitive.Portal>
-        <NavigationMenuPrimitive.Positioner
-          data-slot="navigation-menu-positioner"
-          align="start"
-          sideOffset={4}
-          collisionPadding={8}
-          className="z-50 transition-[top,left] duration-200 ease-out data-instant:transition-none"
-        >
-          <NavigationMenuPrimitive.Popup
-            data-slot="navigation-menu-popup"
-            className="relative h-(--popup-height) w-(--popup-width) origin-(--transform-origin) rounded-md bg-popover text-sm text-popover-foreground shadow-md ring-1 ring-foreground/10 transition-[width,height,opacity,scale] duration-200 ease-out outline-none data-ending-style:scale-95 data-ending-style:opacity-0 data-starting-style:scale-95 data-starting-style:opacity-0"
-          >
-            <NavigationMenuPrimitive.Viewport
-              data-slot="navigation-menu-viewport"
-              className="relative size-full overflow-hidden"
-            />
-          </NavigationMenuPrimitive.Popup>
-        </NavigationMenuPrimitive.Positioner>
-      </NavigationMenuPrimitive.Portal>
-    </NavigationMenuPrimitive.Root>
+    />
   );
 }
 
@@ -63,6 +38,8 @@ function NavigationMenuContent({ className, ...props }: NavigationMenuPrimitive.
       data-slot="navigation-menu-content"
       className={cn(
         "h-full transition-[opacity,translate] duration-200 ease-out",
+        // Exiting content overlays the incoming content instead of stacking below it.
+        "data-ending-style:absolute data-ending-style:inset-x-0 data-ending-style:top-0",
         "data-starting-style:opacity-0 data-ending-style:opacity-0",
         "data-starting-style:data-[activation-direction=left]:-translate-x-1/2",
         "data-starting-style:data-[activation-direction=right]:translate-x-1/2",
@@ -75,10 +52,61 @@ function NavigationMenuContent({ className, ...props }: NavigationMenuPrimitive.
   );
 }
 
+function NavigationMenuPortal({ ...props }: NavigationMenuPrimitive.Portal.Props) {
+  return <NavigationMenuPrimitive.Portal data-slot="navigation-menu-portal" {...props} />;
+}
+
+function NavigationMenuPositioner({
+  className,
+  ...props
+}: NavigationMenuPrimitive.Positioner.Props) {
+  return (
+    <NavigationMenuPrimitive.Positioner
+      data-slot="navigation-menu-positioner"
+      align="start"
+      sideOffset={4}
+      collisionPadding={8}
+      className={cn(
+        "z-50 transition-[top,left] duration-200 ease-out data-instant:transition-none",
+        className,
+      )}
+      {...props}
+    />
+  );
+}
+
+/** Popup that morphs (position + size) between sibling triggers' contents. */
+function NavigationMenuPopup({ className, ...props }: NavigationMenuPrimitive.Popup.Props) {
+  return (
+    <NavigationMenuPrimitive.Popup
+      data-slot="navigation-menu-popup"
+      className={cn(
+        "relative flex h-(--popup-height) w-(--popup-width) origin-(--transform-origin) flex-col overflow-hidden rounded-md bg-popover text-sm text-popover-foreground shadow-md ring-1 ring-foreground/10 transition-[width,height,opacity,scale] duration-200 ease-out outline-none data-ending-style:scale-95 data-ending-style:opacity-0 data-starting-style:scale-95 data-starting-style:opacity-0",
+        className,
+      )}
+      {...props}
+    />
+  );
+}
+
+function NavigationMenuViewport({ className, ...props }: NavigationMenuPrimitive.Viewport.Props) {
+  return (
+    <NavigationMenuPrimitive.Viewport
+      data-slot="navigation-menu-viewport"
+      className={cn("relative w-full flex-1 overflow-hidden", className)}
+      {...props}
+    />
+  );
+}
+
 export {
   NavigationMenu,
   NavigationMenuList,
   NavigationMenuItem,
   NavigationMenuTrigger,
   NavigationMenuContent,
+  NavigationMenuPortal,
+  NavigationMenuPositioner,
+  NavigationMenuPopup,
+  NavigationMenuViewport,
 };
