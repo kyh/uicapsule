@@ -6,6 +6,7 @@ import {
   useCallback,
   useEffect,
   useMemo,
+  useRef,
   useState,
   type ReactElement,
   type ReactNode,
@@ -19,12 +20,7 @@ import {
 } from "@/lib/content/content-categories";
 import { Avatar, AvatarFallback, AvatarImage } from "@repo/ui/components/avatar";
 import { Button } from "@repo/ui/components/button";
-import {
-  Command,
-  CommandInputBare,
-  CommandItem,
-  CommandList,
-} from "@repo/ui/components/command";
+import { Command, CommandInputBare, CommandItem, CommandList } from "@repo/ui/components/command";
 import {
   Dialog,
   DialogContent,
@@ -49,6 +45,7 @@ import {
 } from "@repo/ui/components/dropdown-menu";
 import { Logo } from "@repo/ui/components/logo";
 import { Tabs, TabsIndicator, TabsList, TabsTrigger } from "@repo/ui/components/tabs";
+import { motion } from "motion/react";
 import { useTheme } from "next-themes";
 import { useWebHaptics } from "web-haptics/react";
 import { cn } from "@repo/ui/lib/utils";
@@ -97,6 +94,33 @@ const searchKindIcon: Record<SearchKind, typeof SearchIcon> = {
 };
 
 const componentCountLabel = (count: number) => `${count} component${count === 1 ? "" : "s"}`;
+
+/** Animates its height to follow content size, like Base UI's navigation-menu viewport. */
+const AnimateHeight = ({ children }: { children: ReactNode }) => {
+  const contentRef = useRef<HTMLDivElement | null>(null);
+  const [height, setHeight] = useState<number | "auto">("auto");
+
+  useEffect(() => {
+    const element = contentRef.current;
+    if (!element) {
+      return;
+    }
+    const observer = new ResizeObserver(() => setHeight(element.offsetHeight));
+    observer.observe(element);
+    return () => observer.disconnect();
+  }, []);
+
+  return (
+    <motion.div
+      initial={false}
+      animate={{ height }}
+      transition={{ type: "spring", visualDuration: 0.25, bounce: 0 }}
+      className="overflow-hidden"
+    >
+      <div ref={contentRef}>{children}</div>
+    </motion.div>
+  );
+};
 
 const isSearchKind = (value: unknown): value is SearchKind =>
   value === "component" || value === "category" || value === "section" || value === "style";
@@ -457,7 +481,7 @@ const SearchButton = ({ searchEntries }: { searchEntries: SearchEntry[] }) => {
         <DialogContent
           showCloseButton={false}
           overlayClassName="bg-black/50 supports-backdrop-filter:backdrop-blur-md"
-          className="top-[10vh] translate-y-0 gap-0 overflow-hidden rounded-3xl p-0 sm:max-w-2xl"
+          className="top-[10vh] translate-y-0 gap-0 overflow-hidden rounded-md p-0 sm:max-w-2xl"
         >
           <DialogHeader className="sr-only">
             <DialogTitle>Search</DialogTitle>
@@ -465,7 +489,7 @@ const SearchButton = ({ searchEntries }: { searchEntries: SearchEntry[] }) => {
               Search components, categories, sections and styles
             </DialogDescription>
           </DialogHeader>
-          <Command shouldFilter={false} className="h-auto rounded-3xl! p-0">
+          <Command shouldFilter={false} className="h-auto rounded-md! p-0">
             <div className="flex h-14 shrink-0 items-center gap-3 px-5">
               <SearchIcon className="text-muted-foreground size-4.5 shrink-0" aria-hidden="true" />
               <CommandInputBare
@@ -476,72 +500,74 @@ const SearchButton = ({ searchEntries }: { searchEntries: SearchEntry[] }) => {
                 className="h-full text-base"
               />
             </div>
-            {!hasQuery && recentSearches.length > 0 && (
-              <div className="flex flex-wrap gap-2 px-4 pb-3">
-                {recentSearches.map((recent) => {
-                  const Icon = searchKindIcon[recent.kind];
-                  return (
-                    <Link
-                      key={recent.href}
-                      href={recent.href}
-                      onClick={() => handleSelect(recent)}
-                      className="bg-muted hover:bg-muted/70 flex items-center gap-2 rounded-full px-3.5 py-1.5 text-sm transition"
-                    >
-                      <Icon className="text-muted-foreground size-4" aria-hidden="true" />
-                      {recent.label}
-                    </Link>
-                  );
-                })}
-              </div>
-            )}
-            {hasQuery ? (
-              <CommandList className="h-[min(55vh,440px)] overflow-y-auto px-3 pb-3">
-                {querySuggestions.map(renderSuggestion)}
-                {totalMatches === 0 && (
-                  <div className="text-muted-foreground flex items-center justify-center px-4 py-12 text-sm">
-                    No results found.
-                  </div>
-                )}
-              </CommandList>
-            ) : (
-              <div className="flex min-h-0 flex-col md:flex-row">
-                <div className="flex gap-1 overflow-x-auto px-3 pb-2 md:hidden">
-                  {browseViews.map((view) => (
-                    <button
-                      key={view.id}
-                      type="button"
-                      className={cn(
-                        "flex shrink-0 items-center gap-2 rounded-full px-3 py-1.5 text-xs font-medium transition",
-                        activeView === view.id ? "bg-muted" : "hover:bg-muted/50",
-                      )}
-                      onClick={() => setActiveView(view.id)}
-                    >
-                      <view.icon className="text-muted-foreground size-3.5" aria-hidden="true" />
-                      {view.label}
-                    </button>
-                  ))}
+            <AnimateHeight>
+              {!hasQuery && recentSearches.length > 0 && (
+                <div className="flex flex-wrap gap-2 px-4 pb-3">
+                  {recentSearches.map((recent) => {
+                    const Icon = searchKindIcon[recent.kind];
+                    return (
+                      <Link
+                        key={recent.href}
+                        href={recent.href}
+                        onClick={() => handleSelect(recent)}
+                        className="bg-muted hover:bg-muted/70 flex items-center gap-2 rounded-full px-3.5 py-1.5 text-sm transition"
+                      >
+                        <Icon className="text-muted-foreground size-4" aria-hidden="true" />
+                        {recent.label}
+                      </Link>
+                    );
+                  })}
                 </div>
-                <div className="hidden w-48 shrink-0 flex-col gap-1 p-3 pt-0 md:flex">
-                  {browseViews.map((view) => (
-                    <button
-                      key={view.id}
-                      type="button"
-                      className={cn(
-                        "flex items-center gap-2.5 rounded-xl px-3 py-2.5 text-left text-sm font-medium transition",
-                        activeView === view.id ? "bg-muted" : "hover:bg-muted/50",
-                      )}
-                      onClick={() => setActiveView(view.id)}
-                    >
-                      <view.icon className="text-muted-foreground size-4" aria-hidden="true" />
-                      {view.label}
-                    </button>
-                  ))}
-                </div>
-                <CommandList className="h-[min(55vh,440px)] flex-1 overflow-y-auto px-3 pb-3 md:pl-0">
-                  {viewSuggestions[activeView].map(renderSuggestion)}
+              )}
+              {hasQuery ? (
+                <CommandList className="max-h-[min(55vh,440px)] overflow-y-auto px-3 pb-3">
+                  {querySuggestions.map(renderSuggestion)}
+                  {totalMatches === 0 && (
+                    <div className="text-muted-foreground flex items-center justify-center px-4 py-12 text-sm">
+                      No results found.
+                    </div>
+                  )}
                 </CommandList>
-              </div>
-            )}
+              ) : (
+                <div className="flex min-h-0 flex-col md:flex-row">
+                  <div className="flex gap-1 overflow-x-auto px-3 pb-2 md:hidden">
+                    {browseViews.map((view) => (
+                      <button
+                        key={view.id}
+                        type="button"
+                        className={cn(
+                          "flex shrink-0 items-center gap-2 rounded-full px-3 py-1.5 text-xs font-medium transition",
+                          activeView === view.id ? "bg-muted" : "hover:bg-muted/50",
+                        )}
+                        onClick={() => setActiveView(view.id)}
+                      >
+                        <view.icon className="text-muted-foreground size-3.5" aria-hidden="true" />
+                        {view.label}
+                      </button>
+                    ))}
+                  </div>
+                  <div className="hidden w-48 shrink-0 flex-col gap-1 p-3 pt-0 md:flex">
+                    {browseViews.map((view) => (
+                      <button
+                        key={view.id}
+                        type="button"
+                        className={cn(
+                          "flex items-center gap-2.5 rounded-xl px-3 py-2.5 text-left text-sm font-medium transition",
+                          activeView === view.id ? "bg-muted" : "hover:bg-muted/50",
+                        )}
+                        onClick={() => setActiveView(view.id)}
+                      >
+                        <view.icon className="text-muted-foreground size-4" aria-hidden="true" />
+                        {view.label}
+                      </button>
+                    ))}
+                  </div>
+                  <CommandList className="max-h-[min(55vh,440px)] flex-1 overflow-y-auto px-3 pb-3 md:pl-0">
+                    {viewSuggestions[activeView].map(renderSuggestion)}
+                  </CommandList>
+                </div>
+              )}
+            </AnimateHeight>
           </Command>
         </DialogContent>
       </Dialog>
