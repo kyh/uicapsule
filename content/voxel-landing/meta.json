@@ -1,5 +1,9 @@
 {
   "name": "Voxel Landing",
-  "description": "Voxel hero that assembles from falling blocks, then a landing page you fly through with perspective scroll",
-  "tags": ["landing-pages", "pixel-art", "effects"]
+  "description": "Isometric voxel diorama landing page — scroll pans diagonally through a living world of walkers, marquee signs, and ground-laid typography",
+  "tags": [
+    "landing-pages",
+    "pixel-art",
+    "effects"
+  ]
 }

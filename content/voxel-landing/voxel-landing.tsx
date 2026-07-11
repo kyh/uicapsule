@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 
-// 5x5 pixel font — only the glyphs the stations need.
+// 5x5 pixel font — only the glyphs the sections need.
 const FONT: Record<string, string[]> = {
   A: [".###.", "#...#", "#####", "#...#", "#...#"],
   B: ["####.", "#...#", "####.", "#...#", "####."],
@@ -25,28 +25,20 @@ const FONT: Record<string, string[]> = {
 
 const ACCENTS = ["#e23d2e", "#f0b429", "#3fa945", "#3186d4"] as const;
 
-type Station = {
-  word: string;
-  accent: string;
-  z: number;
-};
+const SECTION_GAP = 60;
+const SECTIONS = [
+  { word: "VOXEL", accent: ACCENTS[0] },
+  { word: "BUILD", accent: ACCENTS[1] },
+  { word: "STACK", accent: ACCENTS[2] },
+  { word: "SHIP", accent: ACCENTS[3] },
+  { word: "START", accent: ACCENTS[0] },
+] as const;
+const WORLD_LEN = SECTION_GAP * (SECTIONS.length - 1);
 
-const STATION_GAP = 70;
-const STATIONS: Station[] = [
-  { word: "VOXEL", accent: ACCENTS[0], z: 0 },
-  { word: "BUILD", accent: ACCENTS[1], z: STATION_GAP },
-  { word: "STACK", accent: ACCENTS[2], z: STATION_GAP * 2 },
-  { word: "SHIP", accent: ACCENTS[3], z: STATION_GAP * 3 },
-  { word: "START", accent: ACCENTS[0], z: STATION_GAP * 4 },
-];
+const TILE = 13; // iso half-width of a unit cube, in px
+const GRASS = ["#2c7a33", "#3fa945", "#57b85e"] as const;
 
-const VIEW_DIST = 45; // camera-to-station distance when a station is "arrived at"
-const TRACK = STATIONS[STATIONS.length - 1]!.z; // camZ travels [-VIEW_DIST, TRACK - VIEW_DIST]
-
-const GRAYS = ["#c9ced3", "#b3bac1", "#d8dce0"] as const;
-const QUANT_STEPS = 6; // assembly/scatter animate in chunky steps, not smoothly
-
-// Deterministic per-voxel randomness so every load (and recording) is identical.
+// Deterministic randomness — every load (and recording) is identical.
 const hash = (n: number) => {
   const s = Math.sin(n * 127.1 + 311.7) * 43758.5453;
   return s - Math.floor(s);
@@ -65,78 +57,234 @@ const shade = (hex: string, factor: number) => {
   return out;
 };
 
+type Kind = "static" | "sign" | "road";
+
 type Voxel = {
-  x: number;
-  y: number;
-  z: number;
-  station: number;
+  x: number; // world tiles, camera travels +x
+  y: number; // up, in tiles
+  z: number; // depth across the corridor
+  size: number; // horizontal scale (1 = full tile)
+  h: number; // vertical scale
+  color: string;
+  alpha: number;
+  kind: Kind;
+  section: number; // for sign marquee cells
   seed: number;
-  accent: boolean;
-  scatterX: number;
-  scatterY: number;
-  dropY: number;
 };
 
-const buildStationVoxels = (): Voxel[] => {
-  const voxels: Voxel[] = [];
-  STATIONS.forEach((station, si) => {
-    const cols = station.word.length * 6 - 1;
-    station.word.split("").forEach((ch, li) => {
-      const glyph = FONT[ch];
-      if (!glyph) return;
-      glyph.forEach((row, gy) => {
-        row.split("").forEach((cell, gx) => {
-          if (cell !== "#") return;
-          const x = li * 6 + gx - cols / 2;
-          const y = gy - 2.5;
-          const seed = voxels.length;
-          const mag = Math.hypot(x, y) || 1;
-          voxels.push({
-            x,
-            y,
-            z: station.z,
-            station: si,
-            seed,
-            accent: hash(seed * 7.3) < 0.14,
-            scatterX: (x / mag + (hash(seed * 3.1) - 0.5) * 1.6) * 30,
-            scatterY: (y / mag + (hash(seed * 5.7) - 0.5) * 1.6) * 30,
-            dropY: -(16 + hash(seed * 2.3) * 14),
-          });
-        });
+const vox = (partial: Partial<Voxel> & Pick<Voxel, "x" | "y" | "z" | "color">): Voxel => ({
+  size: 1,
+  h: 1,
+  alpha: 1,
+  kind: "static",
+  section: -1,
+  seed: 0,
+  ...partial,
+});
+
+// Upright marquee sign: hollow dark frame + floating glyph cells, facing the camera.
+const buildSign = (out: Voxel[], word: string, cx: number, section: number) => {
+  const cols = word.length * 6 - 1;
+  const half = Math.floor(cols / 2) + 2;
+  const zs = -8;
+  for (let x = -half; x <= half; x++) {
+    out.push(vox({ x: cx + x, y: 1, z: zs, color: "#33363b" }));
+    out.push(vox({ x: cx + x, y: 9, z: zs, color: "#33363b" }));
+  }
+  for (let y = 2; y <= 8; y++) {
+    out.push(vox({ x: cx - half, y, z: zs, color: "#33363b" }));
+    out.push(vox({ x: cx + half, y, z: zs, color: "#33363b" }));
+  }
+  word.split("").forEach((ch, li) => {
+    const glyph = FONT[ch];
+    if (!glyph) return;
+    glyph.forEach((row, gy) => {
+      row.split("").forEach((cell, gx) => {
+        if (cell !== "#") return;
+        const x = cx + li * 6 + gx - cols / 2;
+        out.push(
+          vox({ x, y: 7 - gy, z: zs, color: "#62666c", kind: "sign", section, seed: out.length }),
+        );
       });
     });
   });
-  return voxels;
 };
 
-type Confetto = {
-  x: number;
-  y: number;
-  z: number;
-  color: string;
-  seed: number;
-};
-
-const buildConfetti = (): Confetto[] => {
-  const out: Confetto[] = [];
-  for (let i = 0; i < 70; i++) {
-    const colorRoll = hash(i * 11.3);
-    out.push({
-      x: (hash(i * 1.7) - 0.5) * 90,
-      y: (hash(i * 2.9) - 0.5) * 50,
-      z: hash(i * 4.3) * (TRACK + 60) - 25,
-      color: colorRoll < 0.55 ? ACCENTS[Math.floor(colorRoll * 20) % 4]! : GRAYS[1],
-      seed: i,
+// Word laid flat on the ground plane, rows running along z.
+const buildFlatWord = (out: Voxel[], word: string, cx: number, cz: number, accent: string) => {
+  const cols = word.length * 6 - 1;
+  word.split("").forEach((ch, li) => {
+    const glyph = FONT[ch];
+    if (!glyph) return;
+    glyph.forEach((row, gz) => {
+      row.split("").forEach((cell, gx) => {
+        if (cell !== "#") return;
+        const seed = out.length;
+        out.push(
+          vox({
+            x: cx + li * 6 + gx - cols / 2,
+            y: 0,
+            z: cz + gz,
+            h: 0.35,
+            color: hash(seed * 3.7) < 0.09 ? accent : "#8b9096",
+            seed,
+          }),
+        );
+      });
     });
+  });
+};
+
+const buildTree = (out: Voxel[], x: number, z: number, seed: number) => {
+  out.push(vox({ x, y: 0, z, size: 0.5, color: "#7a5a3a" }));
+  out.push(vox({ x, y: 1, z, size: 0.5, color: "#7a5a3a" }));
+  const canopy: [number, number, number][] = [
+    [0, 2, 0],
+    [1, 2, 0],
+    [-1, 2, 0],
+    [0, 2, 1],
+    [0, 2, -1],
+    [0, 3, 0],
+  ];
+  canopy.forEach(([dx, dy, dz], i) => {
+    out.push(vox({ x: x + dx, y: dy, z: z + dz, color: GRASS[(i + seed) % 3] }));
+  });
+};
+
+const buildWorld = (): Voxel[] => {
+  const out: Voxel[] = [];
+
+  buildSign(out, "VOXEL", 0, 0);
+  buildSign(out, "START", WORLD_LEN, 4);
+
+  buildFlatWord(out, "BUILD", SECTION_GAP, 9, ACCENTS[1]);
+  buildFlatWord(out, "STACK", SECTION_GAP * 2, 9, ACCENTS[2]);
+  buildFlatWord(out, "SHIP", SECTION_GAP * 3, 9, ACCENTS[3]);
+
+  // BUILD: a grove behind the word.
+  buildTree(out, SECTION_GAP - 12, -11, 0);
+  buildTree(out, SECTION_GAP - 2, -14, 1);
+  buildTree(out, SECTION_GAP + 9, -10, 2);
+  buildTree(out, SECTION_GAP + 16, -13, 0);
+
+  // STACK: a bar-chart skyline of cube towers.
+  for (let i = 0; i < 12; i++) {
+    const tx = SECTION_GAP * 2 + Math.floor((hash(i * 7.9) - 0.5) * 30);
+    const tz = -8 - Math.floor(hash(i * 3.3) * 8);
+    const height = 2 + Math.floor(hash(i * 5.1) * 5);
+    for (let y = 0; y < height; y++) {
+      const topmost = y === height - 1;
+      out.push(
+        vox({
+          x: tx,
+          y,
+          z: tz,
+          color: topmost ? ACCENTS[i % 4] : y % 2 === 0 ? "#5a5f66" : "#6b7076",
+        }),
+      );
+    }
   }
+
+  // SHIP: pond of flat water tiles.
+  for (let dx = -8; dx <= 8; dx++) {
+    for (let dz = -5; dz <= 5; dz++) {
+      if ((dx / 8) ** 2 + (dz / 5) ** 2 > 1) continue;
+      const seed = out.length;
+      out.push(
+        vox({
+          x: SECTION_GAP * 3 + dx,
+          y: 0,
+          z: -10 + dz,
+          h: 0.18,
+          color: hash(seed * 2.1) < 0.15 ? "#4a9de0" : "#3186d4",
+          seed,
+        }),
+      );
+    }
+  }
+
+  // Winding dash-road tying the whole strip together.
+  for (let x = -14; x <= WORLD_LEN + 14; x++) {
+    if (hash(x * 9.7) < 0.3) continue;
+    const z = Math.round(Math.sin(x * 0.16) * 4);
+    out.push(
+      vox({ x, y: 0, z, size: 0.6, h: 0.12, color: "#4a9de0", kind: "road", seed: x }),
+    );
+  }
+
+  // Flag poles along the road.
+  for (let i = 0; i < 14; i++) {
+    const px = Math.floor(hash(i * 13.7) * (WORLD_LEN + 20)) - 10;
+    const pz = Math.round(Math.sin(px * 0.16) * 4) + (hash(i * 3.9) < 0.5 ? 3 : -3);
+    out.push(vox({ x: px, y: 0, z: pz, size: 0.22, h: 3, color: "#7d838a" }));
+    out.push(vox({ x: px, y: 3, z: pz, size: 0.5, color: ACCENTS[i % 4] }));
+  }
+
+  // Flora scattered across the whole corridor.
+  for (let i = 0; i < 260; i++) {
+    const fx = Math.floor(hash(i * 17.3) * (WORLD_LEN + 36)) - 18;
+    const fz = Math.floor((hash(i * 23.1) - 0.5) * 34);
+    const roll = hash(i * 5.9);
+    if (roll < 0.72) {
+      out.push(vox({ x: fx, y: 0, z: fz, size: 0.4, h: 0.5, color: GRASS[i % 3] }));
+    } else {
+      out.push(vox({ x: fx, y: 0, z: fz, size: 0.16, h: 1, color: "#3fa945" }));
+      out.push(vox({ x: fx, y: 1, z: fz, size: 0.34, color: ACCENTS[i % 4] }));
+    }
+  }
+
   return out;
 };
 
+// Walkers wander around a home point; position is a pure function of time.
+type Walker = { home: [number, number]; radius: number; body: string; id: number };
+
+const buildWalkers = (): Walker[] => {
+  const walkers: Walker[] = [];
+  const add = (hx: number, hz: number, radius: number) => {
+    walkers.push({
+      home: [hx, hz],
+      radius,
+      body: ACCENTS[walkers.length % 4],
+      id: walkers.length,
+    });
+  };
+  for (let i = 0; i < 5; i++) add(Math.floor(hash(i * 3.1) * 24) - 12, 4 + i * 2, 5);
+  add(SECTION_GAP - 8, 2, 6);
+  add(SECTION_GAP + 6, 16, 6);
+  add(SECTION_GAP * 2 + 4, 3, 6);
+  add(SECTION_GAP * 2 - 10, 17, 5);
+  add(SECTION_GAP * 3 - 6, 2, 5);
+  add(SECTION_GAP * 3 + 8, 16, 5);
+  for (let i = 0; i < 9; i++) {
+    add(WORLD_LEN + Math.floor(hash(i * 7.7) * 22) - 11, 2 + Math.floor(hash(i * 4.3) * 10), 4);
+  }
+  return walkers;
+};
+
+const walkerPos = (w: Walker, t: number): [number, number, boolean] => {
+  const epoch = Math.floor(t / 2.6 + hash(w.id * 31.7));
+  const frac = (t / 2.6 + hash(w.id * 31.7)) % 1;
+  const wp = (k: number): [number, number] => [
+    w.home[0] + (hash(w.id * 91.3 + k * 17.1) - 0.5) * 2 * w.radius,
+    w.home[1] + (hash(w.id * 47.9 + k * 29.3) - 0.5) * 2 * w.radius,
+  ];
+  const [ax, az] = wp(epoch);
+  const [bx, bz] = wp(epoch + 1);
+  const ease = frac < 0.7 ? frac / 0.7 : 1; // walk, then idle at the waypoint
+  const x = Math.round((ax + (bx - ax) * ease) * 2) / 2;
+  const z = Math.round((az + (bz - az) * ease) * 2) / 2;
+  return [x, z, frac < 0.7];
+};
+
+type VoxelLandingProps = {
+  autoTour?: boolean;
+};
+
 const clamp01 = (v: number) => Math.min(1, Math.max(0, v));
-const quantize = (v: number) => Math.floor(clamp01(v) * QUANT_STEPS) / QUANT_STEPS;
 const easeInOut = (t: number) => (t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2);
 
-// Auto-tour keyframes: [time, scroll]. Holds at each station, long hold on START, rewind.
+// Auto-tour keyframes: [time, scroll]. Holds at each section, long hold on START, rewind.
 const TOUR: [number, number][] = [
   [0, 0],
   [2.8, 0],
@@ -167,14 +315,10 @@ const tourScroll = (t: number) => {
   return 0;
 };
 
-type VoxelLandingProps = {
-  autoTour?: boolean;
-};
-
 export const VoxelLanding = ({ autoTour = true }: VoxelLandingProps) => {
   const containerRef = useRef<HTMLDivElement | null>(null);
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
-  const [stationIdx, setStationIdx] = useState(0);
+  const [sectionIdx, setSectionIdx] = useState(0);
   const [moved, setMoved] = useState(false);
 
   useEffect(() => {
@@ -184,8 +328,8 @@ export const VoxelLanding = ({ autoTour = true }: VoxelLandingProps) => {
     const ctx = canvas.getContext("2d");
     if (!ctx) return;
 
-    const voxels = buildStationVoxels();
-    const confetti = buildConfetti();
+    const world = buildWorld();
+    const walkers = buildWalkers();
     const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
     let width = 0;
@@ -221,160 +365,162 @@ export const VoxelLanding = ({ autoTour = true }: VoxelLandingProps) => {
     let scroll = 0;
     let target = 0;
     let lastInput = -Infinity;
-    let tourOffset = 0; // keeps the tour resumable after manual input
+    let tourOffset = 0;
     let pausedAt: number | null = null;
-    const triggers: (number | null)[] = STATIONS.map(() => null);
     let raf = 0;
     let last = 0;
-    let shownStation = 0;
+    let shownSection = 0;
     let shownMoved = false;
     const start = performance.now();
+
+    const hw = TILE;
+    const hh = TILE * 0.5;
+    const vy = TILE * 1.05;
+
+    type Drawable = {
+      depth: number;
+      sx: number;
+      sy: number;
+      size: number;
+      h: number;
+      color: string;
+      alpha: number;
+    };
 
     const frame = (nowMs: number) => {
       raf = requestAnimationFrame(frame);
       if (nowMs - last < 1000 / 30) return;
       last = nowMs;
-      const now = (nowMs - start) / 1000;
+      const now = reducedMotion ? 0 : (nowMs - start) / 1000;
 
-      // Auto-tour drives the scroll target unless the user recently intervened.
       if (autoTour && !reducedMotion) {
-        if (now - lastInput < 4) {
-          if (pausedAt === null) pausedAt = now;
+        if ((nowMs - start) / 1000 - lastInput < 4) {
+          if (pausedAt === null) pausedAt = (nowMs - start) / 1000;
         } else {
           if (pausedAt !== null) {
-            tourOffset += now - pausedAt;
+            tourOffset += (nowMs - start) / 1000 - pausedAt;
             pausedAt = null;
           }
-          target = tourScroll(now - tourOffset);
+          target = tourScroll((nowMs - start) / 1000 - tourOffset);
         }
       }
 
       scroll += (target - scroll) * 0.09;
-      const camZ = -VIEW_DIST + scroll * TRACK;
-      const focal = width * 0.95;
-      const cx = width / 2;
-      const cy = height / 2;
+      const camX = scroll * WORLD_LEN;
+      // Camera anchor: keep world point (camX, 0, 0) at a fixed screen spot.
+      const offX = width / 2 - camX * TILE;
+      const offY = height * 0.52 - camX * TILE * 0.5;
 
       ctx.fillStyle = dotPattern ?? "#0f1114";
       ctx.fillRect(0, 0, width, height);
 
-      const nearest = Math.round(scroll * (STATIONS.length - 1));
-      if (nearest !== shownStation) {
-        shownStation = nearest;
-        setStationIdx(nearest);
+      const nearest = Math.round(scroll * (SECTIONS.length - 1));
+      if (nearest !== shownSection) {
+        shownSection = nearest;
+        setSectionIdx(nearest);
       }
       if (!shownMoved && scroll > 0.02) {
         shownMoved = true;
         setMoved(true);
       }
 
-      // Arm/reset per-station assembly timers based on camera proximity.
-      STATIONS.forEach((station, si) => {
-        const d = station.z - camZ;
-        if (d > -20 && d < 110 && triggers[si] === null) triggers[si] = now;
-        if ((d >= 130 || d <= -25) && triggers[si] !== null) triggers[si] = null;
-      });
-
       const pulsePhase = Math.floor(now * 2.5);
-      const atFinale = nearest === STATIONS.length - 1 && Math.abs(scroll - 1) < 0.02;
+      const atFinale = nearest === SECTIONS.length - 1 && Math.abs(scroll - 1) < 0.02;
+      const tick = Math.floor(now / 0.16);
 
-      type Drawable = {
-        x: number;
-        y: number;
-        z: number;
-        size: number;
-        color: string;
-        alpha: number;
-      };
       const drawables: Drawable[] = [];
+      const push = (
+        x: number,
+        y: number,
+        z: number,
+        size: number,
+        h: number,
+        color: string,
+        alpha: number,
+      ) => {
+        const sx = (x - z) * TILE + offX;
+        const sy = (x + z) * hh + offY - y * vy;
+        if (sx < -70 || sx > width + 70 || sy < -90 || sy > height + 90) return;
+        drawables.push({ depth: (x + z) * 1000 + y, sx, sy, size, h, color, alpha });
+      };
 
-      for (const c of confetti) {
-        const twinkle = 0.25 + 0.55 * Math.abs(Math.sin(now * 0.8 + c.seed * 2.1));
-        drawables.push({ x: c.x, y: c.y, z: c.z, size: 0.5, color: c.color, alpha: twinkle });
-      }
-
-      for (const v of voxels) {
-        const station = STATIONS[v.station]!;
-        const d = station.z - camZ;
-        if (d <= 0.4 || d > 130) continue;
-
-        const t0 = triggers[v.station];
-        const stagger = hash(v.seed * 9.1) * 0.9;
-        const timeP = t0 === null || reducedMotion ? 1 : clamp01((now - t0 - stagger) / 1.1);
-        const proxP = clamp01((110 - d) / 45);
-        const assembleQ = quantize(Math.min(timeP, proxP));
-        if (assembleQ <= 0) continue;
-
-        const scatterQ = quantize((22 - d) / 18);
-        const x = v.x + v.scatterX * scatterQ * scatterQ;
-        const y = v.y + v.dropY * (1 - assembleQ) + v.scatterY * scatterQ * scatterQ;
-        const alpha = assembleQ * (1 - clamp01((scatterQ - 0.5) * 2.2));
-        if (alpha <= 0.01) continue;
-
-        let color: string = v.accent ? station.accent : GRAYS[Math.floor(hash(v.seed * 4.7) * 3)]!;
-        if (atFinale && v.station === STATIONS.length - 1) {
-          const lit = hash(v.seed * 13.7 + pulsePhase * 3.3) < 0.3;
-          if (lit) color = ACCENTS[Math.floor(hash(v.seed + pulsePhase) * 4)]!;
+      for (const v of world) {
+        let color = v.color;
+        let alpha = v.alpha;
+        if (v.kind === "sign") {
+          const rate = v.section === 4 && atFinale ? 0.34 : 0.16;
+          if (hash(v.seed * 13.7 + pulsePhase * 3.3) < rate) {
+            color = ACCENTS[Math.floor(hash(v.seed + pulsePhase) * 4)]!;
+          }
+        } else if (v.kind === "road") {
+          alpha = 0.35 + 0.65 * hash(v.seed * 7.1 + Math.floor(now * 3.2));
         }
-
-        drawables.push({ x, y, z: station.z, size: 0.45, color, alpha });
+        push(v.x, v.y, v.z, v.size, v.h, color, alpha);
       }
 
-      drawables.sort((a, b) => b.z - a.z);
+      // Walkers: legs alternate, tiny bob, everything snapped to half tiles.
+      for (const w of walkers) {
+        const [wx, wz, walking] = walkerPos(w, now);
+        const step = walking && (tick + w.id) % 2 === 0;
+        const bob = step ? 0.12 : 0;
+        push(wx, 0, wz, 0.42, step ? 0.85 : 1, "#23304a", 1);
+        push(wx, 1 + bob, wz, 0.62, 1, w.body, 1);
+        push(wx, 2 + bob, wz, 0.5, 0.9, "#dcc9a0", 1);
+      }
 
-      for (const item of drawables) {
-        const df = item.z - camZ - item.size;
-        const db = item.z - camZ + item.size;
-        if (df <= 0.3) continue;
-        const sf = focal / df;
-        const sb = focal / db;
-        const fx = cx + item.x * sf;
-        const fy = cy + item.y * sf;
-        const bx = cx + item.x * sb;
-        const by = cy + item.y * sb;
-        const hf = item.size * sf;
-        const hb = item.size * sb;
-        if (fx + hf < 0 || fx - hf > width || fy + hf < 0 || fy - hf > height) continue;
-        if (hf < 0.75) continue;
+      // Birds crossing the corridor.
+      for (let i = 0; i < 5; i++) {
+        const bx = 20 + hash(i * 19.3) * (WORLD_LEN - 20);
+        const bz = ((now * 2.4 + hash(i * 7.7) * 40) % 44) - 22;
+        const flap = (tick + i) % 2 === 0;
+        push(bx, 6, bz, 0.42, 0.5, "#e8ecef", 1);
+        push(bx + (flap ? 0.5 : -0.5), 6.2, bz, 0.3, 0.35, "#c9ced3", 1);
+      }
 
-        ctx.globalAlpha = item.alpha;
-        const side = shade(item.color, 0.45);
-        const top = shade(item.color, 0.7);
+      // Clouds drifting high above.
+      for (let i = 0; i < 7; i++) {
+        const cx = ((hash(i * 11.1) * (WORLD_LEN + 60) + now * 0.5) % (WORLD_LEN + 60)) - 20;
+        const cz = (hash(i * 5.3) - 0.5) * 26;
+        const qx = Math.round(cx * 4) / 4;
+        for (let p = 0; p < 4; p++) {
+          push(qx + p - 1.5, 12 + (p % 2) * 0.3, cz + (p > 1 ? 0.8 : 0), 0.8, 0.7, "#e8ecef", 0.92);
+        }
+      }
 
-        // Side faces first (overdrawn by the front face where hidden).
-        ctx.fillStyle = side;
+      drawables.sort((a, b) => a.depth - b.depth);
+
+      for (const d of drawables) {
+        const w2 = hw * d.size;
+        const h2 = hh * d.size;
+        const v2 = vy * d.h;
+        ctx.globalAlpha = d.alpha;
+        // top
+        ctx.fillStyle = d.color;
         ctx.beginPath();
-        ctx.moveTo(fx - hf, fy - hf);
-        ctx.lineTo(bx - hb, by - hb);
-        ctx.lineTo(bx - hb, by + hb);
-        ctx.lineTo(fx - hf, fy + hf);
+        ctx.moveTo(d.sx, d.sy - h2);
+        ctx.lineTo(d.sx + w2, d.sy);
+        ctx.lineTo(d.sx, d.sy + h2);
+        ctx.lineTo(d.sx - w2, d.sy);
         ctx.closePath();
         ctx.fill();
+        // left
+        ctx.fillStyle = shade(d.color, 0.62);
         ctx.beginPath();
-        ctx.moveTo(fx + hf, fy - hf);
-        ctx.lineTo(bx + hb, by - hb);
-        ctx.lineTo(bx + hb, by + hb);
-        ctx.lineTo(fx + hf, fy + hf);
+        ctx.moveTo(d.sx - w2, d.sy);
+        ctx.lineTo(d.sx, d.sy + h2);
+        ctx.lineTo(d.sx, d.sy + h2 + v2);
+        ctx.lineTo(d.sx - w2, d.sy + v2);
         ctx.closePath();
         ctx.fill();
-        ctx.fillStyle = top;
+        // right
+        ctx.fillStyle = shade(d.color, 0.4);
         ctx.beginPath();
-        ctx.moveTo(fx - hf, fy - hf);
-        ctx.lineTo(bx - hb, by - hb);
-        ctx.lineTo(bx + hb, by - hb);
-        ctx.lineTo(fx + hf, fy - hf);
+        ctx.moveTo(d.sx + w2, d.sy);
+        ctx.lineTo(d.sx, d.sy + h2);
+        ctx.lineTo(d.sx, d.sy + h2 + v2);
+        ctx.lineTo(d.sx + w2, d.sy + v2);
         ctx.closePath();
         ctx.fill();
-        ctx.beginPath();
-        ctx.moveTo(fx - hf, fy + hf);
-        ctx.lineTo(bx - hb, by + hb);
-        ctx.lineTo(bx + hb, by + hb);
-        ctx.lineTo(fx + hf, fy + hf);
-        ctx.closePath();
-        ctx.fill();
-
-        ctx.fillStyle = item.color;
-        ctx.fillRect(fx - hf, fy - hf, hf * 2, hf * 2);
       }
       ctx.globalAlpha = 1;
     };
@@ -420,7 +566,7 @@ export const VoxelLanding = ({ autoTour = true }: VoxelLandingProps) => {
     };
   }, [autoTour]);
 
-  const accent = STATIONS[stationIdx]?.accent ?? ACCENTS[0];
+  const accent = SECTIONS[sectionIdx]?.accent ?? ACCENTS[0];
 
   return (
     <div
@@ -435,21 +581,21 @@ export const VoxelLanding = ({ autoTour = true }: VoxelLandingProps) => {
           Voxelworks
         </div>
         <div className="absolute right-6 top-5 text-[10px] tracking-[0.3em] text-neutral-500">
-          STN 0{stationIdx + 1} / 0{STATIONS.length}
+          STN 0{sectionIdx + 1} / 0{SECTIONS.length}
         </div>
 
         <div className="absolute bottom-5 left-1/2 flex -translate-x-1/2 gap-2">
-          {STATIONS.map((station, i) => (
+          {SECTIONS.map((section, i) => (
             <span
-              key={station.word}
+              key={section.word}
               className="size-2 border border-neutral-700 transition-colors duration-300"
-              style={i === stationIdx ? { backgroundColor: accent, borderColor: accent } : undefined}
+              style={i === sectionIdx ? { backgroundColor: accent, borderColor: accent } : undefined}
             />
           ))}
         </div>
 
         <div className="absolute bottom-5 right-6 text-[10px] tracking-[0.3em] text-neutral-600">
-          {STATIONS[stationIdx]?.word}
+          {SECTIONS[sectionIdx]?.word}
         </div>
 
         <div
