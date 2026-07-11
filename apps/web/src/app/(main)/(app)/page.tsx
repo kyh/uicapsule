@@ -9,7 +9,7 @@ import { Button } from "@repo/ui/components/button";
 
 import { getContentList } from "@/lib/content-data";
 import { ContentPreview, ContentPreviewSkeleton } from "./_components/content-preview";
-import { FilterComboBox } from "./_components/filter-combo-box";
+import { FilterBar } from "./_components/filter-combo-box";
 
 type PageProps = {
   searchParams: Promise<Record<string, string | string[] | undefined>>;
@@ -50,23 +50,27 @@ const Filters = async ({ searchParams }: PageProps) => {
 
   return (
     <div className="flex h-full flex-1 items-center gap-3 px-3 sm:px-6">
-      <FilterComboBox
-        filterKey="element"
-        filterOptions={contentElements}
-        highlighted={elementFilter.length > 0}
-        defaultLabel="Elements"
-      />
-      <FilterComboBox
-        filterKey="style"
-        filterOptions={contentStyles}
-        highlighted={styleFilter.length > 0}
-        defaultLabel="Styles"
-      />
-      <FilterComboBox
-        filterKey="category"
-        filterOptions={contentCategories}
-        highlighted={categoryFilter.length > 0}
-        defaultLabel="Categories"
+      <FilterBar
+        filters={[
+          {
+            filterKey: "element",
+            filterOptions: contentElements,
+            highlighted: elementFilter.length > 0,
+            defaultLabel: "Elements",
+          },
+          {
+            filterKey: "style",
+            filterOptions: contentStyles,
+            highlighted: styleFilter.length > 0,
+            defaultLabel: "Styles",
+          },
+          {
+            filterKey: "category",
+            filterOptions: contentCategories,
+            highlighted: categoryFilter.length > 0,
+            defaultLabel: "Categories",
+          },
+        ]}
       />
     </div>
   );

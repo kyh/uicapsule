@@ -71,8 +71,6 @@ import { authClient } from "@/lib/auth-client";
 
 const SEARCH_RESULT_LIMIT = 12;
 const TRENDING_LIMIT = 8;
-const RECENT_SEARCH_KEY = "uicapsule.recent-searches";
-const RECENT_SEARCH_LIMIT = 6;
 
 type SearchKind = "component" | "category" | "section" | "style";
 
@@ -83,8 +81,6 @@ type SearchSuggestion = {
   sublabel: string;
   kind: SearchKind;
 };
-
-type RecentSearch = Pick<SearchSuggestion, "href" | "label" | "kind">;
 
 const searchKindIcon: Record<SearchKind, typeof SearchIcon> = {
   component: BoxIcon,
@@ -120,35 +116,6 @@ const AnimateHeight = ({ children }: { children: ReactNode }) => {
       <div ref={contentRef}>{children}</div>
     </motion.div>
   );
-};
-
-const isSearchKind = (value: unknown): value is SearchKind =>
-  value === "component" || value === "category" || value === "section" || value === "style";
-
-/** Parse recent searches from localStorage, dropping anything malformed. */
-const readRecentSearches = (): RecentSearch[] => {
-  try {
-    const raw = window.localStorage.getItem(RECENT_SEARCH_KEY);
-    if (!raw) {
-      return [];
-    }
-    const parsed: unknown = JSON.parse(raw);
-    if (!Array.isArray(parsed)) {
-      return [];
-    }
-    const recents: RecentSearch[] = [];
-    for (const item of parsed) {
-      if (item && typeof item === "object" && "href" in item && "label" in item && "kind" in item) {
-        const { href, label, kind } = item;
-        if (typeof href === "string" && typeof label === "string" && isSearchKind(kind)) {
-          recents.push({ href, label, kind });
-        }
-      }
-    }
-    return recents.slice(0, RECENT_SEARCH_LIMIT);
-  } catch {
-    return [];
-  }
 };
 
 type HeaderNavProps = {
@@ -188,7 +155,6 @@ const SearchButton = ({ searchEntries }: { searchEntries: SearchEntry[] }) => {
   const [searchOpen, setSearchOpen] = useState(false);
   const [query, setQuery] = useState("");
   const [activeView, setActiveView] = useState<SearchView>("trending");
-  const [recentSearches, setRecentSearches] = useState<RecentSearch[]>([]);
 
   const tagCounts = useMemo(() => {
     const counts: Record<string, number> = {};
@@ -216,7 +182,6 @@ const SearchButton = ({ searchEntries }: { searchEntries: SearchEntry[] }) => {
   useEffect(() => {
     if (searchOpen) {
       setActiveView("trending");
-      setRecentSearches(readRecentSearches());
     } else {
       setQuery("");
     }
@@ -334,21 +299,9 @@ const SearchButton = ({ searchEntries }: { searchEntries: SearchEntry[] }) => {
     componentMatches.length + categoryMatches.length + sectionMatches.length + styleMatches.length;
 
   const handleSelect = useCallback(
-    (suggestion: RecentSearch) => {
-      setRecentSearches((prev) => {
-        const next = [
-          suggestion,
-          ...prev.filter((recent) => recent.href !== suggestion.href),
-        ].slice(0, RECENT_SEARCH_LIMIT);
-        try {
-          window.localStorage.setItem(RECENT_SEARCH_KEY, JSON.stringify(next));
-        } catch {
-          // localStorage unavailable (private mode) — recents just don't persist
-        }
-        return next;
-      });
+    (href: string) => {
       setSearchOpen(false);
-      router.push(suggestion.href);
+      router.push(href);
     },
     [router],
   );
@@ -445,11 +398,11 @@ const SearchButton = ({ searchEntries }: { searchEntries: SearchEntry[] }) => {
         key={suggestion.value}
         value={suggestion.value}
         asChild
-        className="rounded-xl px-2.5 py-2"
-        onSelect={() => handleSelect(suggestion)}
+        className="px-2.5 py-2"
+        onSelect={() => handleSelect(suggestion.href)}
       >
-        <Link href={suggestion.href} onClick={() => handleSelect(suggestion)}>
-          <span className="bg-muted flex size-10 shrink-0 items-center justify-center rounded-xl">
+        <Link href={suggestion.href} onClick={() => handleSelect(suggestion.href)}>
+          <span className="bg-muted flex size-10 shrink-0 items-center justify-center rounded-md">
             <Icon className="text-muted-foreground size-4.5" aria-hidden="true" />
           </span>
           <span className="flex min-w-0 flex-col">
@@ -501,24 +454,6 @@ const SearchButton = ({ searchEntries }: { searchEntries: SearchEntry[] }) => {
               />
             </div>
             <AnimateHeight>
-              {!hasQuery && recentSearches.length > 0 && (
-                <div className="flex flex-wrap gap-2 px-4 pb-3">
-                  {recentSearches.map((recent) => {
-                    const Icon = searchKindIcon[recent.kind];
-                    return (
-                      <Link
-                        key={recent.href}
-                        href={recent.href}
-                        onClick={() => handleSelect(recent)}
-                        className="bg-muted hover:bg-muted/70 flex items-center gap-2 rounded-full px-3.5 py-1.5 text-sm transition"
-                      >
-                        <Icon className="text-muted-foreground size-4" aria-hidden="true" />
-                        {recent.label}
-                      </Link>
-                    );
-                  })}
-                </div>
-              )}
               {hasQuery ? (
                 <CommandList className="max-h-[min(55vh,440px)] overflow-y-auto px-3 pb-3">
                   {querySuggestions.map(renderSuggestion)}
@@ -552,7 +487,7 @@ const SearchButton = ({ searchEntries }: { searchEntries: SearchEntry[] }) => {
                         key={view.id}
                         type="button"
                         className={cn(
-                          "flex items-center gap-2.5 rounded-xl px-3 py-2.5 text-left text-sm font-medium transition",
+                          "flex items-center gap-2.5 rounded-md px-3 py-2.5 text-left text-sm font-medium transition",
                           activeView === view.id ? "bg-muted" : "hover:bg-muted/50",
                         )}
                         onClick={() => setActiveView(view.id)}

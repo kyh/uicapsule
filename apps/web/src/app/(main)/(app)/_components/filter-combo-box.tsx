@@ -14,56 +14,87 @@ import {
   CommandList,
 } from "@repo/ui/components/command";
 import { Drawer, DrawerContent, DrawerTrigger } from "@repo/ui/components/drawer";
-import { Popover, PopoverContent, PopoverTrigger } from "@repo/ui/components/popover";
+import {
+  NavigationMenu,
+  NavigationMenuContent,
+  NavigationMenuItem,
+  NavigationMenuList,
+  NavigationMenuTrigger,
+} from "@repo/ui/components/navigation-menu";
 import { cn } from "@repo/ui/lib/utils";
 import { useMediaQuery } from "@repo/ui/hooks/use-media-query";
 import { ChevronDownIcon } from "lucide-react";
 
 import type { ContentFilter } from "@/lib/content/content-categories";
 
-type FilterComboBoxProps = {
+type FilterConfig = {
   filterKey: string;
   filterOptions: ContentFilter[];
   defaultLabel: string;
   highlighted?: boolean;
 };
 
-export const FilterComboBox = ({
-  filterKey,
-  filterOptions,
-  defaultLabel,
-  highlighted = false,
-}: FilterComboBoxProps) => {
-  const [open, setOpen] = useState(false);
+type FilterBarProps = {
+  filters: FilterConfig[];
+};
+
+/** One navigation menu shared by all filters so the popup animates between them. */
+export const FilterBar = ({ filters }: FilterBarProps) => {
   const isDesktop = useMediaQuery("(min-width: 768px)");
-  const triggerClassname = cn(
-    "justify-start capitalize dark:bg-background!",
-    highlighted && "border-foreground",
-  );
 
   if (isDesktop) {
     return (
-      <Popover open={open} onOpenChange={setOpen}>
-        <PopoverTrigger
-          render={<Button variant="outline" className={triggerClassname} size="sm" />}
-        >
-          <FilterTriggerLabel
-            defaultLabel={defaultLabel}
-            filterKey={filterKey}
-            filterOptions={filterOptions}
-          />
-        </PopoverTrigger>
-        <PopoverContent className="p-0" align="start">
-          <FilterOptionsList filterKey={filterKey} filterOptions={filterOptions} />
-        </PopoverContent>
-      </Popover>
+      <NavigationMenu>
+        <NavigationMenuList>
+          {filters.map((filter) => (
+            <NavigationMenuItem key={filter.filterKey} value={filter.filterKey}>
+              <NavigationMenuTrigger
+                render={
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className={triggerClassname(filter.highlighted)}
+                  />
+                }
+              >
+                <FilterTriggerLabel
+                  defaultLabel={filter.defaultLabel}
+                  filterKey={filter.filterKey}
+                  filterOptions={filter.filterOptions}
+                />
+              </NavigationMenuTrigger>
+              <NavigationMenuContent className="w-72">
+                <FilterOptionsList
+                  filterKey={filter.filterKey}
+                  filterOptions={filter.filterOptions}
+                />
+              </NavigationMenuContent>
+            </NavigationMenuItem>
+          ))}
+        </NavigationMenuList>
+      </NavigationMenu>
     );
   }
 
   return (
+    <>
+      {filters.map((filter) => (
+        <FilterDrawer key={filter.filterKey} {...filter} />
+      ))}
+    </>
+  );
+};
+
+const triggerClassname = (highlighted?: boolean) =>
+  cn("justify-start capitalize dark:bg-background!", highlighted && "border-foreground");
+
+const FilterDrawer = ({ filterKey, filterOptions, defaultLabel, highlighted }: FilterConfig) => {
+  const [open, setOpen] = useState(false);
+
+  return (
     <Drawer open={open} onOpenChange={setOpen}>
       <DrawerTrigger asChild>
-        <Button variant="outline" className={triggerClassname} size="sm">
+        <Button variant="outline" className={triggerClassname(highlighted)} size="sm">
           <FilterTriggerLabel
             defaultLabel={defaultLabel}
             filterKey={filterKey}
