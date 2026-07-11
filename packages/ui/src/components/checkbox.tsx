@@ -26,7 +26,7 @@ function Checkbox({ className, ...props }: CheckboxPrimitive.Root.Props) {
       <CheckboxPrimitive.Indicator
         data-slot="checkbox-indicator"
         keepMounted
-        className="absolute inset-0 grid place-content-center text-foreground"
+        className="absolute inset-0 grid place-content-center text-primary"
       >
         <svg
           width={16}

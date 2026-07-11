@@ -37,10 +37,11 @@ function NavigationMenuContent({ className, ...props }: NavigationMenuPrimitive.
     <NavigationMenuPrimitive.Content
       data-slot="navigation-menu-content"
       className={cn(
-        "h-full transition-[opacity,translate] duration-200 ease-out",
+        "h-full transition-[opacity,translate,filter] duration-200 ease-out",
         // Exiting content overlays the incoming content instead of stacking below it.
         "data-ending-style:absolute data-ending-style:inset-x-0 data-ending-style:top-0",
         "data-starting-style:opacity-0 data-ending-style:opacity-0",
+        "data-starting-style:blur-xs data-ending-style:blur-xs",
         "data-starting-style:data-[activation-direction=left]:-translate-x-1/2",
         "data-starting-style:data-[activation-direction=right]:translate-x-1/2",
         "data-ending-style:data-[activation-direction=left]:translate-x-1/2",
