@@ -142,16 +142,14 @@ type FilterInputProps = {
 };
 
 const FilterInput = ({ value, onChange }: FilterInputProps) => (
-  <div className="p-1 pb-0">
-    <div className="border-input/30 bg-input/30 flex h-8 items-center gap-2 rounded-lg border px-2">
-      <SearchIcon className="size-4 shrink-0 opacity-50" aria-hidden="true" />
-      <input
-        value={value}
-        onChange={(event) => onChange(event.target.value)}
-        placeholder="Filter..."
-        className="placeholder:text-muted-foreground w-full bg-transparent text-sm outline-none"
-      />
-    </div>
+  <div className="border-border/60 flex h-10 shrink-0 items-center gap-2.5 border-b px-3">
+    <SearchIcon className="text-muted-foreground size-4 shrink-0" aria-hidden="true" />
+    <input
+      value={value}
+      onChange={(event) => onChange(event.target.value)}
+      placeholder="Filter..."
+      className="placeholder:text-muted-foreground h-full w-full bg-transparent text-sm outline-none"
+    />
   </div>
 );
 
