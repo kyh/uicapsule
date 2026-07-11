@@ -137,6 +137,51 @@ const buildFlatWord = (out: Voxel[], word: string, cx: number, cz: number, accen
   });
 };
 
+// Road centerline; movers follow it smoothly (the drawn tiles are rounded).
+const roadX = (z: number) => Math.sin(z * 0.16) * 4 + 4;
+
+// Torii-style gate straddling the road.
+const buildGate = (out: Voxel[], z: number, color: string) => {
+  const cx = Math.round(roadX(z));
+  for (let y = 0; y < 4; y++) {
+    out.push(vox({ x: cx - 4, y, z, color }));
+    out.push(vox({ x: cx + 4, y, z, color }));
+  }
+  for (let x = cx - 5; x <= cx + 5; x++) {
+    out.push(vox({ x, y: 4, z, color }));
+  }
+  out.push(vox({ x: cx, y: 5, z, size: 0.5, color: "#33363b" }));
+};
+
+// Fountain basin — the jets are animated per-frame.
+const FOUNTAIN = { x: -9, z: 30 };
+const buildFountain = (out: Voxel[]) => {
+  for (let dx = -4; dx <= 4; dx++) {
+    for (let dz = -4; dz <= 4; dz++) {
+      const r = Math.hypot(dx, dz);
+      if (r > 4.2) continue;
+      const seed = out.length;
+      if (r > 3.1) {
+        out.push(
+          vox({ x: FOUNTAIN.x + dx, y: 0, z: FOUNTAIN.z + dz, h: 0.3, color: "#c9ced3", seed }),
+        );
+      } else {
+        out.push(
+          vox({
+            x: FOUNTAIN.x + dx,
+            y: 0,
+            z: FOUNTAIN.z + dz,
+            h: 0.18,
+            color: hash(seed * 2.1) < 0.15 ? "#4a9de0" : "#3186d4",
+            seed,
+          }),
+        );
+      }
+    }
+  }
+  out.push(vox({ x: FOUNTAIN.x, y: 0, z: FOUNTAIN.z, size: 0.7, color: "#9aa0a6" }));
+};
+
 const buildTree = (out: Voxel[], x: number, z: number, seed: number) => {
   out.push(vox({ x, y: 0, z, size: 0.5, color: "#7a5a3a" }));
   out.push(vox({ x, y: 1, z, size: 0.5, color: "#7a5a3a" }));
@@ -158,6 +203,11 @@ const buildWorld = (): Voxel[] => {
 
   buildSign(out, "VOXEL", -8, 0);
   buildSign(out, "START", WORLD_LEN - 8, 4);
+
+  buildFountain(out);
+  buildGate(out, 45, "#e23d2e");
+  buildGate(out, 150, "#f0b429");
+  buildGate(out, 212, "#3fa945");
 
   buildFlatWord(out, "BUILD", -10, SECTION_GAP + 9, ACCENTS[1]);
   buildFlatWord(out, "STACK", -10, SECTION_GAP * 2 + 9, ACCENTS[2]);
@@ -209,7 +259,7 @@ const buildWorld = (): Voxel[] => {
   // Winding dash-road tying the whole strip together.
   for (let z = -14; z <= WORLD_LEN + 14; z++) {
     if (hash(z * 9.7) < 0.3) continue;
-    const x = Math.round(Math.sin(z * 0.16) * 4) + 4;
+    const x = Math.round(roadX(z));
     out.push(vox({ x, y: 0, z, size: 0.6, h: 0.12, color: "#4a9de0", kind: "road", seed: z }));
   }
 
@@ -516,14 +566,72 @@ export const VoxelLanding = ({ autoTour = true }: VoxelLandingProps) => {
         push(bx + (flap ? 0.5 : -0.5), 6.2, bz, 0.3, 0.35, "#c9ced3", 1);
       }
 
-      // Clouds drifting high above.
+      // Clouds drifting high above, upwind (opposite the scroll direction).
+      const cloudSpan = WORLD_LEN + 60;
       for (let i = 0; i < 7; i++) {
-        const cz = ((hash(i * 11.1) * (WORLD_LEN + 60) + now * 0.5) % (WORLD_LEN + 60)) - 20;
+        const cz =
+          ((((hash(i * 11.1) * cloudSpan - now * 0.5) % cloudSpan) + cloudSpan) % cloudSpan) - 20;
         const cx = (hash(i * 5.3) - 0.5) * 26;
         const qz = Math.round(cz * 4) / 4;
         for (let p = 0; p < 4; p++) {
           push(cx + (p > 1 ? 0.8 : 0), 12 + (p % 2) * 0.3, qz + p - 1.5, 0.8, 0.7, "#e8ecef", 0.92);
         }
+      }
+
+      // Fountain jets: chunky water columns rising and collapsing.
+      for (let j = 0; j < 5; j++) {
+        const [jx, jz] = [
+          [0, 0],
+          [1.2, 0],
+          [-1.2, 0],
+          [0, 1.2],
+          [0, -1.2],
+        ][j]!;
+        const jetH = 1 + Math.floor((Math.sin(now * 2.2 + j * 1.7) + 1) * 1.4);
+        for (let y = 1; y <= jetH; y++) {
+          push(FOUNTAIN.x + jx, y * 0.6, FOUNTAIN.z + jz, 0.26, 0.5, "#4a9de0", 0.9);
+        }
+      }
+
+      // Trucks hauling cargo the full length of the road, one each way.
+      const truckSpan = WORLD_LEN + 40;
+      for (let i = 0; i < 2; i++) {
+        const p = (now * (2.8 + i * 0.6) + hash(i * 41.7) * truckSpan) % truckSpan;
+        const tz = i === 0 ? p - 20 : WORLD_LEN + 20 - p;
+        const qz = Math.round(tz * 4) / 4;
+        const tx = Math.round(roadX(qz) * 4) / 4;
+        push(tx, 0, qz + (i === 0 ? 0.7 : -0.7), 0.5, 0.7, "#e8ecef", 1);
+        push(tx, 0, qz - (i === 0 ? 0.5 : -0.5), 0.62, 1, ACCENTS[(i * 2 + 1) % 4]!, 1);
+      }
+
+      // Duck train waddling the road end to end.
+      const duckSpan = WORLD_LEN + 20;
+      const duckLead = (now * 0.8 + 5) % duckSpan;
+      for (let k = 0; k < 4; k++) {
+        const dz = duckLead - k * 1.4 - 10;
+        const qz = Math.round(dz * 4) / 4;
+        const dx = Math.round((roadX(qz) + 1.6) * 4) / 4;
+        const waddle = (tick + k) % 2 === 0 ? 0.06 : 0;
+        const s = k === 0 ? 1 : 0.7;
+        push(dx, waddle, qz, 0.34 * s, 0.45 * s, "#e8ecef", 1);
+        push(dx, 0.45 * s + waddle, qz + 0.22, 0.18 * s, 0.3 * s, "#f0b429", 1);
+      }
+
+      // Snail circling the pond — the slowest thing alive here.
+      const snailA = now * 0.12;
+      const sx = Math.round((12 + Math.cos(snailA) * 6.5) * 4) / 4;
+      const sz = Math.round((SECTION_GAP * 3 + Math.sin(snailA) * 9.5) * 4) / 4;
+      push(sx, 0, sz, 0.32, 0.3, "#b98d4f", 1);
+      push(sx, 0.3, sz - 0.2, 0.26, 0.4, "#f0b429", 1);
+
+      // Hot-air balloons floating clean across the screen.
+      for (let i = 0; i < 2; i++) {
+        const bx = ((now * 1.1 + hash(i * 23.9) * 84) % 84) - 42;
+        const bz = 30 + hash(i * 9.7) * (WORLD_LEN - 40);
+        const qx = Math.round(bx * 4) / 4;
+        const lift = Math.round(Math.sin(now * 0.7 + i * 2.4) * 2) / 4;
+        push(qx, 10.4 + lift, bz, 0.5, 0.5, "#7a5a3a", 1);
+        push(qx, 11.4 + lift, bz, 1.1, 1.1, ACCENTS[(i * 3) % 4]!, 1);
       }
 
       drawables.sort((a, b) => a.depth - b.depth);
