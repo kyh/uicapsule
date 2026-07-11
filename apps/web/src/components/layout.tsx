@@ -138,7 +138,7 @@ export const HeaderNav = ({ className, searchEntries }: HeaderNavProps) => {
   return (
     <nav
       className={cn(
-        "flex h-16 w-full grid-cols-[1fr_minmax(0,2fr)_1fr] items-center gap-2 px-3 sm:grid sm:px-6",
+        "flex h-16 w-full grid-cols-3 items-center gap-2 px-3 sm:grid sm:px-6",
         className,
       )}
     >
@@ -457,7 +457,7 @@ const SearchButton = ({ searchEntries }: { searchEntries: SearchEntry[] }) => {
         <DialogContent
           showCloseButton={false}
           overlayClassName="bg-black/50 supports-backdrop-filter:backdrop-blur-md"
-          className="top-[10vh] translate-y-0 gap-0 overflow-hidden rounded-3xl p-0 sm:max-w-3xl"
+          className="top-[10vh] translate-y-0 gap-0 overflow-hidden rounded-3xl p-0 sm:max-w-2xl"
         >
           <DialogHeader className="sr-only">
             <DialogTitle>Search</DialogTitle>
