@@ -20,12 +20,18 @@ import {
 import { Avatar, AvatarFallback, AvatarImage } from "@repo/ui/components/avatar";
 import { Button } from "@repo/ui/components/button";
 import {
-  CommandDialog,
-  CommandGroup,
-  CommandInput,
+  Command,
+  CommandInputBare,
   CommandItem,
   CommandList,
 } from "@repo/ui/components/command";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@repo/ui/components/dialog";
 import {
   Drawer,
   DrawerContent,
@@ -50,6 +56,7 @@ import { useMediaQuery } from "@repo/ui/hooks/use-media-query";
 import {
   BookCheckIcon,
   BookmarkIcon,
+  BoxIcon,
   LayoutGridIcon,
   LogInIcon,
   LogOutIcon,
@@ -59,6 +66,7 @@ import {
   StarsIcon,
   SunIcon,
   SunMoonIcon,
+  TrendingUpIcon,
 } from "lucide-react";
 
 import type { SearchEntry } from "@/lib/content-data";
@@ -66,6 +74,58 @@ import { authClient } from "@/lib/auth-client";
 
 const SEARCH_RESULT_LIMIT = 12;
 const TRENDING_LIMIT = 8;
+const RECENT_SEARCH_KEY = "uicapsule.recent-searches";
+const RECENT_SEARCH_LIMIT = 6;
+
+type SearchKind = "component" | "category" | "section" | "style";
+
+type SearchSuggestion = {
+  value: string;
+  href: string;
+  label: string;
+  sublabel: string;
+  kind: SearchKind;
+};
+
+type RecentSearch = Pick<SearchSuggestion, "href" | "label" | "kind">;
+
+const searchKindIcon: Record<SearchKind, typeof SearchIcon> = {
+  component: BoxIcon,
+  category: BookmarkIcon,
+  section: LayoutGridIcon,
+  style: PaletteIcon,
+};
+
+const componentCountLabel = (count: number) => `${count} component${count === 1 ? "" : "s"}`;
+
+const isSearchKind = (value: unknown): value is SearchKind =>
+  value === "component" || value === "category" || value === "section" || value === "style";
+
+/** Parse recent searches from localStorage, dropping anything malformed. */
+const readRecentSearches = (): RecentSearch[] => {
+  try {
+    const raw = window.localStorage.getItem(RECENT_SEARCH_KEY);
+    if (!raw) {
+      return [];
+    }
+    const parsed: unknown = JSON.parse(raw);
+    if (!Array.isArray(parsed)) {
+      return [];
+    }
+    const recents: RecentSearch[] = [];
+    for (const item of parsed) {
+      if (item && typeof item === "object" && "href" in item && "label" in item && "kind" in item) {
+        const { href, label, kind } = item;
+        if (typeof href === "string" && typeof label === "string" && isSearchKind(kind)) {
+          recents.push({ href, label, kind });
+        }
+      }
+    }
+    return recents.slice(0, RECENT_SEARCH_LIMIT);
+  } catch {
+    return [];
+  }
+};
 
 type HeaderNavProps = {
   className?: string;
@@ -78,7 +138,7 @@ export const HeaderNav = ({ className, searchEntries }: HeaderNavProps) => {
   return (
     <nav
       className={cn(
-        "flex h-16 w-full grid-cols-3 items-center gap-2 px-3 sm:grid sm:px-6",
+        "flex h-16 w-full grid-cols-[1fr_minmax(0,2fr)_1fr] items-center gap-2 px-3 sm:grid sm:px-6",
         className,
       )}
     >
@@ -100,9 +160,11 @@ export const HeaderNav = ({ className, searchEntries }: HeaderNavProps) => {
 const SearchButton = ({ searchEntries }: { searchEntries: SearchEntry[] }) => {
   type SearchView = "trending" | "categories" | "sections" | "styles";
 
+  const router = useRouter();
   const [searchOpen, setSearchOpen] = useState(false);
   const [query, setQuery] = useState("");
-  const [activeView, setActiveView] = useState<SearchView>("categories");
+  const [activeView, setActiveView] = useState<SearchView>("trending");
+  const [recentSearches, setRecentSearches] = useState<RecentSearch[]>([]);
 
   const tagCounts = useMemo(() => {
     const counts: Record<string, number> = {};
@@ -128,40 +190,13 @@ const SearchButton = ({ searchEntries }: { searchEntries: SearchEntry[] }) => {
   }, []);
 
   useEffect(() => {
-    if (!searchOpen) {
+    if (searchOpen) {
+      setActiveView("trending");
+      setRecentSearches(readRecentSearches());
+    } else {
       setQuery("");
     }
   }, [searchOpen]);
-
-  const navigationItems = useMemo(
-    () => [
-      {
-        id: "trending" satisfies SearchView,
-        label: "Trending",
-        description: "Popular UI capsules",
-        icon: StarsIcon,
-      },
-      {
-        id: "categories" satisfies SearchView,
-        label: "Categories",
-        description: "Product verticals",
-        icon: BookmarkIcon,
-      },
-      {
-        id: "sections" satisfies SearchView,
-        label: "Sections",
-        description: "Interface building blocks",
-        icon: LayoutGridIcon,
-      },
-      {
-        id: "styles" satisfies SearchView,
-        label: "Styles",
-        description: "Visual directions",
-        icon: PaletteIcon,
-      },
-    ],
-    [],
-  );
 
   const categories = useMemo(
     () =>
@@ -274,179 +309,140 @@ const SearchButton = ({ searchEntries }: { searchEntries: SearchEntry[] }) => {
   const totalMatches =
     componentMatches.length + categoryMatches.length + sectionMatches.length + styleMatches.length;
 
-  const handleOpenChange = useCallback((open: boolean) => {
-    setSearchOpen(open);
-    if (open) {
-      setActiveView("categories");
-    }
-  }, []);
-
-  const handleCloseSearch = useCallback(() => {
-    setSearchOpen(false);
-  }, []);
-
-  const renderCategories = () => (
-    <CommandGroup heading="Categories">
-      {categories.map((category) => (
-        <CommandItem key={category.slug} value={`${category.name} ${category.slug}`} asChild>
-          <Link href={`/?category=${category.slug}`} onClick={handleCloseSearch}>
-            <span className="flex flex-col">
-              <span>{category.name}</span>
-              <span className="text-muted-foreground text-xs">/{category.slug}</span>
-            </span>
-            <span className="text-muted-foreground ml-auto text-xs">{category.count}</span>
-          </Link>
-        </CommandItem>
-      ))}
-    </CommandGroup>
+  const handleSelect = useCallback(
+    (suggestion: RecentSearch) => {
+      setRecentSearches((prev) => {
+        const next = [
+          suggestion,
+          ...prev.filter((recent) => recent.href !== suggestion.href),
+        ].slice(0, RECENT_SEARCH_LIMIT);
+        try {
+          window.localStorage.setItem(RECENT_SEARCH_KEY, JSON.stringify(next));
+        } catch {
+          // localStorage unavailable (private mode) — recents just don't persist
+        }
+        return next;
+      });
+      setSearchOpen(false);
+      router.push(suggestion.href);
+    },
+    [router],
   );
 
-  const renderSections = () => (
-    <CommandGroup heading="Sections">
-      {sections.map((section) => (
-        <CommandItem
-          key={section.slug}
-          value={`${section.name} ${section.parent} ${section.slug}`}
-          asChild
-        >
-          <Link href={`/?element=${section.slug}`} onClick={handleCloseSearch}>
-            <span className="flex flex-col">
-              <span>{section.name}</span>
-              <span className="text-muted-foreground text-xs">{section.parent}</span>
-            </span>
-            <span className="text-muted-foreground ml-auto text-xs">{section.count}</span>
-          </Link>
-        </CommandItem>
-      ))}
-    </CommandGroup>
-  );
+  const trendingSuggestions: SearchSuggestion[] = trending.map((entry) => ({
+    value: `trending:${entry.slug}`,
+    href: `/ui/${entry.slug}`,
+    label: entry.name,
+    sublabel: entry.tags.slice(0, 2).join(", ") || "Component",
+    kind: "component",
+  }));
 
-  const renderStyles = () => (
-    <CommandGroup heading="Styles">
-      {styles.map((style) => (
-        <CommandItem key={style.slug} value={`${style.name} ${style.slug}`} asChild>
-          <Link href={`/?style=${style.slug}`} onClick={handleCloseSearch}>
-            <span className="flex flex-col">
-              <span>{style.name}</span>
-              <span className="text-muted-foreground text-xs">/{style.slug}</span>
-            </span>
-            <span className="text-muted-foreground ml-auto text-xs">{style.count}</span>
-          </Link>
-        </CommandItem>
-      ))}
-    </CommandGroup>
-  );
+  const categorySuggestions: SearchSuggestion[] = categories.map((category) => ({
+    value: `category:${category.slug}`,
+    href: `/?category=${category.slug}`,
+    label: category.name,
+    sublabel: componentCountLabel(category.count),
+    kind: "category",
+  }));
 
-  const renderTrending = () => (
-    <CommandGroup heading="Trending">
-      {trending.map((entry) => (
-        <CommandItem key={entry.slug} value={`${entry.name} ${entry.slug}`} asChild>
-          <Link href={`/ui/${entry.slug}`} onClick={handleCloseSearch}>
-            <span className="flex flex-col">
-              <span>{entry.name}</span>
-              <span className="text-muted-foreground text-xs">/ui/{entry.slug}</span>
-            </span>
-            <span className="text-muted-foreground ml-auto text-xs">{entry.tags[0] ?? ""}</span>
-          </Link>
-        </CommandItem>
-      ))}
-    </CommandGroup>
-  );
+  const sectionSuggestions: SearchSuggestion[] = sections.map((section) => ({
+    value: `section:${section.slug}`,
+    href: `/?element=${section.slug}`,
+    label: section.name,
+    sublabel: `${section.parent} · ${componentCountLabel(section.count)}`,
+    kind: "section",
+  }));
 
-  const renderQueryResults = () => (
-    <>
-      {componentMatches.length > 0 && (
-        <CommandGroup heading="Components">
-          {componentMatches.map((entry) => (
-            <CommandItem key={entry.slug} value={`${entry.name} ${entry.slug}`} asChild>
-              <Link href={`/ui/${entry.slug}`} onClick={handleCloseSearch}>
-                <span className="flex flex-col">
-                  <span>{entry.name}</span>
-                  <span className="text-muted-foreground text-xs">/ui/{entry.slug}</span>
-                </span>
-                <span className="text-muted-foreground ml-auto text-xs">
-                  {entry.tags.slice(0, 2).join(", ")}
-                </span>
-              </Link>
-            </CommandItem>
-          ))}
-        </CommandGroup>
-      )}
-      {categoryMatches.length > 0 && (
-        <CommandGroup heading="Categories">
-          {categoryMatches.map((category) => (
-            <CommandItem key={category.slug} value={`${category.name} ${category.slug}`} asChild>
-              <Link href={`/?category=${category.slug}`} onClick={handleCloseSearch}>
-                <span className="flex flex-col">
-                  <span>{category.name}</span>
-                  <span className="text-muted-foreground text-xs">/{category.slug}</span>
-                </span>
-                <span className="text-muted-foreground ml-auto text-xs">{category.count}</span>
-              </Link>
-            </CommandItem>
-          ))}
-        </CommandGroup>
-      )}
-      {sectionMatches.length > 0 && (
-        <CommandGroup heading="Sections">
-          {sectionMatches.map((section) => (
-            <CommandItem
-              key={section.slug}
-              value={`${section.name} ${section.parent} ${section.slug}`}
-              asChild
-            >
-              <Link href={`/?element=${section.slug}`} onClick={handleCloseSearch}>
-                <span className="flex flex-col">
-                  <span>{section.name}</span>
-                  <span className="text-muted-foreground text-xs">{section.parent}</span>
-                </span>
-                <span className="text-muted-foreground ml-auto text-xs">{section.count}</span>
-              </Link>
-            </CommandItem>
-          ))}
-        </CommandGroup>
-      )}
-      {styleMatches.length > 0 && (
-        <CommandGroup heading="Styles">
-          {styleMatches.map((style) => (
-            <CommandItem key={style.slug} value={`${style.name} ${style.slug}`} asChild>
-              <Link href={`/?style=${style.slug}`} onClick={handleCloseSearch}>
-                <span className="flex flex-col">
-                  <span>{style.name}</span>
-                  <span className="text-muted-foreground text-xs">/{style.slug}</span>
-                </span>
-                <span className="text-muted-foreground ml-auto text-xs">{style.count}</span>
-              </Link>
-            </CommandItem>
-          ))}
-        </CommandGroup>
-      )}
-      {hasQuery && totalMatches === 0 && (
-        <div className="text-muted-foreground flex flex-1 items-center justify-center px-4 py-12 text-sm">
-          No results found.
-        </div>
-      )}
-    </>
-  );
+  const styleSuggestions: SearchSuggestion[] = styles.map((style) => ({
+    value: `style:${style.slug}`,
+    href: `/?style=${style.slug}`,
+    label: style.name,
+    sublabel: componentCountLabel(style.count),
+    kind: "style",
+  }));
 
-  const renderActiveView = () => {
-    switch (activeView) {
-      case "trending":
-        return renderTrending();
-      case "sections":
-        return renderSections();
-      case "styles":
-        return renderStyles();
-      case "categories":
-      default:
-        return renderCategories();
-    }
+  const querySuggestions: SearchSuggestion[] = [
+    ...componentMatches.map(
+      (entry): SearchSuggestion => ({
+        value: `component:${entry.slug}`,
+        href: `/ui/${entry.slug}`,
+        label: entry.name,
+        sublabel: "Component",
+        kind: "component",
+      }),
+    ),
+    ...categoryMatches.map(
+      (category): SearchSuggestion => ({
+        value: `category:${category.slug}`,
+        href: `/?category=${category.slug}`,
+        label: category.name,
+        sublabel: "Category",
+        kind: "category",
+      }),
+    ),
+    ...sectionMatches.map(
+      (section): SearchSuggestion => ({
+        value: `section:${section.slug}`,
+        href: `/?element=${section.slug}`,
+        label: section.name,
+        sublabel: "Section",
+        kind: "section",
+      }),
+    ),
+    ...styleMatches.map(
+      (style): SearchSuggestion => ({
+        value: `style:${style.slug}`,
+        href: `/?style=${style.slug}`,
+        label: style.name,
+        sublabel: "Style",
+        kind: "style",
+      }),
+    ),
+  ];
+
+  const browseViews: { id: SearchView; label: string; icon: typeof SearchIcon }[] = [
+    { id: "trending", label: "Trending", icon: TrendingUpIcon },
+    { id: "categories", label: "Categories", icon: BookmarkIcon },
+    { id: "sections", label: "Sections", icon: LayoutGridIcon },
+    { id: "styles", label: "Styles", icon: PaletteIcon },
+  ];
+
+  const viewSuggestions: Record<SearchView, SearchSuggestion[]> = {
+    trending: trendingSuggestions,
+    categories: categorySuggestions,
+    sections: sectionSuggestions,
+    styles: styleSuggestions,
+  };
+
+  const renderSuggestion = (suggestion: SearchSuggestion) => {
+    const Icon = searchKindIcon[suggestion.kind];
+    return (
+      <CommandItem
+        key={suggestion.value}
+        value={suggestion.value}
+        asChild
+        className="rounded-xl px-2.5 py-2"
+        onSelect={() => handleSelect(suggestion)}
+      >
+        <Link href={suggestion.href} onClick={() => handleSelect(suggestion)}>
+          <span className="bg-muted flex size-10 shrink-0 items-center justify-center rounded-xl">
+            <Icon className="text-muted-foreground size-4.5" aria-hidden="true" />
+          </span>
+          <span className="flex min-w-0 flex-col">
+            <span className="truncate font-medium">{suggestion.label}</span>
+            <span className="text-muted-foreground truncate text-xs">{suggestion.sublabel}</span>
+          </span>
+        </Link>
+      </CommandItem>
+    );
   };
 
   return (
     <>
       <button
-        className="border-input bg-muted flex h-9 w-full cursor-pointer rounded-full border px-3 py-2 shadow-xs transition"
+        type="button"
+        aria-expanded={searchOpen}
+        className="border-input bg-muted flex h-9 w-full rounded-full border px-3 py-2 shadow-xs transition"
         onClick={() => setSearchOpen(true)}
       >
         <span className="flex grow items-center gap-1">
@@ -457,67 +453,98 @@ const SearchButton = ({ searchEntries }: { searchEntries: SearchEntry[] }) => {
           ⌘K
         </kbd>
       </button>
-      <CommandDialog open={searchOpen} onOpenChange={handleOpenChange}>
-        <div className="md:flex md:h-[540px]">
-          <div className="border-border/60 bg-muted/10 hidden w-56 flex-none flex-col gap-1 border-r p-3 md:flex">
-            <p className="text-muted-foreground mb-2 text-xs tracking-wide uppercase">Browse</p>
-            {navigationItems.map((item) => {
-              const Icon = item.icon;
-              const isActive = activeView === item.id && !hasQuery;
-              return (
-                <button
-                  key={item.id}
-                  className={cn(
-                    "text-left text-sm transition",
-                    "rounded-md px-3 py-2",
-                    isActive ? "bg-background shadow-xs" : "hover:bg-background/40",
-                  )}
-                  onClick={() => setActiveView(item.id as SearchView)}
-                  type="button"
-                >
-                  <div className="flex items-center gap-2">
-                    <Icon className="text-muted-foreground size-4" />
-                    <span>{item.label}</span>
-                  </div>
-                  <p className="text-muted-foreground mt-1 text-xs">{item.description}</p>
-                </button>
-              );
-            })}
-          </div>
-          <div className="flex min-w-0 flex-1 flex-col">
-            <CommandInput
-              value={query}
-              onValueChange={setQuery}
-              placeholder="Search sites, categories, sections or styles..."
-            />
-            <div className="border-border/60 md:hidden">
-              <div className="flex gap-2 overflow-x-auto px-3 py-2">
-                {navigationItems.map((item) => {
-                  const Icon = item.icon;
-                  const isActive = activeView === item.id && !hasQuery;
+      <Dialog open={searchOpen} onOpenChange={setSearchOpen}>
+        <DialogContent
+          showCloseButton={false}
+          overlayClassName="bg-black/50 supports-backdrop-filter:backdrop-blur-md"
+          className="top-[10vh] translate-y-0 gap-0 overflow-hidden rounded-3xl p-0 sm:max-w-3xl"
+        >
+          <DialogHeader className="sr-only">
+            <DialogTitle>Search</DialogTitle>
+            <DialogDescription>
+              Search components, categories, sections and styles
+            </DialogDescription>
+          </DialogHeader>
+          <Command shouldFilter={false} className="h-auto rounded-3xl! p-0">
+            <div className="flex h-14 shrink-0 items-center gap-3 px-5">
+              <SearchIcon className="text-muted-foreground size-4.5 shrink-0" aria-hidden="true" />
+              <CommandInputBare
+                autoFocus
+                value={query}
+                onValueChange={setQuery}
+                placeholder="Components, categories, sections, styles or keywords..."
+                className="h-full text-base"
+              />
+            </div>
+            {!hasQuery && recentSearches.length > 0 && (
+              <div className="flex flex-wrap gap-2 px-4 pb-3">
+                {recentSearches.map((recent) => {
+                  const Icon = searchKindIcon[recent.kind];
                   return (
-                    <button
-                      key={item.id}
-                      className={cn(
-                        "flex items-center gap-2 rounded-full border px-3 py-1 text-xs",
-                        isActive ? "border-foreground" : "bg-muted border-transparent",
-                      )}
-                      onClick={() => setActiveView(item.id as SearchView)}
-                      type="button"
+                    <Link
+                      key={recent.href}
+                      href={recent.href}
+                      onClick={() => handleSelect(recent)}
+                      className="bg-muted hover:bg-muted/70 flex items-center gap-2 rounded-full px-3.5 py-1.5 text-sm transition"
                     >
-                      <Icon className="size-3.5" />
-                      {item.label}
-                    </button>
+                      <Icon className="text-muted-foreground size-4" aria-hidden="true" />
+                      {recent.label}
+                    </Link>
                   );
                 })}
               </div>
-            </div>
-            <CommandList className="flex-1 overflow-y-auto p-2 md:px-4 md:py-3">
-              {hasQuery ? renderQueryResults() : renderActiveView()}
-            </CommandList>
-          </div>
-        </div>
-      </CommandDialog>
+            )}
+            {hasQuery ? (
+              <CommandList className="h-[min(55vh,440px)] overflow-y-auto px-3 pb-3">
+                {querySuggestions.map(renderSuggestion)}
+                {totalMatches === 0 && (
+                  <div className="text-muted-foreground flex items-center justify-center px-4 py-12 text-sm">
+                    No results found.
+                  </div>
+                )}
+              </CommandList>
+            ) : (
+              <div className="flex min-h-0 flex-col md:flex-row">
+                <div className="flex gap-1 overflow-x-auto px-3 pb-2 md:hidden">
+                  {browseViews.map((view) => (
+                    <button
+                      key={view.id}
+                      type="button"
+                      className={cn(
+                        "flex shrink-0 items-center gap-2 rounded-full px-3 py-1.5 text-xs font-medium transition",
+                        activeView === view.id ? "bg-muted" : "hover:bg-muted/50",
+                      )}
+                      onClick={() => setActiveView(view.id)}
+                    >
+                      <view.icon className="text-muted-foreground size-3.5" aria-hidden="true" />
+                      {view.label}
+                    </button>
+                  ))}
+                </div>
+                <div className="hidden w-48 shrink-0 flex-col gap-1 p-3 pt-0 md:flex">
+                  {browseViews.map((view) => (
+                    <button
+                      key={view.id}
+                      type="button"
+                      className={cn(
+                        "flex items-center gap-2.5 rounded-xl px-3 py-2.5 text-left text-sm font-medium transition",
+                        activeView === view.id ? "bg-muted" : "hover:bg-muted/50",
+                      )}
+                      onClick={() => setActiveView(view.id)}
+                    >
+                      <view.icon className="text-muted-foreground size-4" aria-hidden="true" />
+                      {view.label}
+                    </button>
+                  ))}
+                </div>
+                <CommandList className="h-[min(55vh,440px)] flex-1 overflow-y-auto px-3 pb-3 md:pl-0">
+                  {viewSuggestions[activeView].map(renderSuggestion)}
+                </CommandList>
+              </div>
+            )}
+          </Command>
+        </DialogContent>
+      </Dialog>
     </>
   );
 };

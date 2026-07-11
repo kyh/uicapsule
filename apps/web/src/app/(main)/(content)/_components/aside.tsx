@@ -159,7 +159,7 @@ const Aside = ({ contentComponent }: AsideProps) => {
             </div>
             <span className="text-muted-foreground text-center text-xs">
               <button
-                className="cursor-pointer underline decoration-dotted"
+                className="underline decoration-dotted"
                 onClick={handleInstallClick}
               >
                 Install via shadcn CLI

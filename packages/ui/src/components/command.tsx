@@ -77,6 +77,20 @@ function CommandInput({ className, ...props }: ComponentProps<typeof CommandPrim
   );
 }
 
+/** Unstyled input for custom search layouts that own their surrounding chrome (icon, kbd hints). */
+function CommandInputBare({ className, ...props }: ComponentProps<typeof CommandPrimitive.Input>) {
+  return (
+    <CommandPrimitive.Input
+      data-slot="command-input"
+      className={cn(
+        "placeholder:text-muted-foreground w-full bg-transparent text-sm outline-hidden disabled:cursor-not-allowed disabled:opacity-50",
+        className,
+      )}
+      {...props}
+    />
+  );
+}
+
 function CommandList({ className, ...props }: ComponentProps<typeof CommandPrimitive.List>) {
   return (
     <CommandPrimitive.List
@@ -156,6 +170,7 @@ export {
   Command,
   CommandDialog,
   CommandInput,
+  CommandInputBare,
   CommandList,
   CommandEmpty,
   CommandGroup,
