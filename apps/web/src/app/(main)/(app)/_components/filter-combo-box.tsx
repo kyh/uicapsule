@@ -142,7 +142,7 @@ type FilterInputProps = {
 };
 
 const FilterInput = ({ value, onChange }: FilterInputProps) => (
-  <div className="border-border/60 flex h-10 shrink-0 items-center gap-2.5 border-b px-3">
+  <div className="border-border/60 flex h-9 shrink-0 items-center gap-2 border-b px-3">
     <SearchIcon className="text-muted-foreground size-4 shrink-0" aria-hidden="true" />
     <input
       value={value}
@@ -254,7 +254,7 @@ const FilterOptionsList = ({ filterKey, filterOptions, query }: FilterOptionsLis
     <div className="max-h-72 overflow-y-auto p-1">
       {groups.length === 0 && <div className="py-6 text-center text-sm">No results found.</div>}
       {groups.map((group, index) => (
-        <div key={group.heading || `flat-${index}`} className="p-1">
+        <div key={group.heading || `flat-${index}`}>
           {group.heading && (
             <div className="text-muted-foreground px-2 py-1.5 text-xs font-medium">
               {group.heading}
