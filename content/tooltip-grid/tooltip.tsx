@@ -311,15 +311,15 @@ const easeInOutQuint = (x: number) => {
 const TooltipLines = ({ context }: { context: ContextType }) => {
   const floatingEl = context?.elements.floating;
 
-  if (!floatingEl || !context.x || !context.y) return null;
+  if (!floatingEl || context.x == null || context.y == null) return null;
 
   return (
     <>
       <motion.div
         className={`${"line"} ${"lineH"}`}
-        initial={{ opacity: 0, top: -1 }}
-        animate={{ opacity: 1, top: context.y }}
-        exit={{ opacity: 0, top: -1 }}
+        initial={{ opacity: 0, y: -1 }}
+        animate={{ opacity: 1, y: context.y }}
+        exit={{ opacity: 0, y: -1 }}
         transition={{
           ease: easeInOutQuint,
           duration: 1,
@@ -327,9 +327,9 @@ const TooltipLines = ({ context }: { context: ContextType }) => {
       />
       <motion.div
         className={`${"line"} ${"lineH"}`}
-        initial={{ opacity: 0, top: "100dvh" }}
-        animate={{ opacity: 1, top: context.y + floatingEl.offsetHeight }}
-        exit={{ opacity: 0, top: "100dvh" }}
+        initial={{ opacity: 0, y: "100dvh" }}
+        animate={{ opacity: 1, y: context.y + floatingEl.offsetHeight }}
+        exit={{ opacity: 0, y: "100dvh" }}
         transition={{
           ease: easeInOutQuint,
           duration: 1,
@@ -337,10 +337,9 @@ const TooltipLines = ({ context }: { context: ContextType }) => {
       />
       <motion.div
         className={`${"line"} ${"lineV"}`}
-        style={{ height: document.documentElement.scrollHeight }}
-        initial={{ opacity: 0, left: -1 }}
-        animate={{ opacity: 1, left: context.x }}
-        exit={{ opacity: 0, left: -1 }}
+        initial={{ opacity: 0, x: -1 }}
+        animate={{ opacity: 1, x: context.x }}
+        exit={{ opacity: 0, x: -1 }}
         transition={{
           ease: easeInOutQuint,
           duration: 1,
@@ -348,10 +347,9 @@ const TooltipLines = ({ context }: { context: ContextType }) => {
       />
       <motion.div
         className={`${"line"} ${"lineV"}`}
-        style={{ height: document.documentElement.scrollHeight }}
-        initial={{ opacity: 0, left: "100dvw" }}
-        animate={{ opacity: 1, left: context.x + floatingEl.offsetWidth }}
-        exit={{ opacity: 0, left: "100dvw" }}
+        initial={{ opacity: 0, x: "100dvw" }}
+        animate={{ opacity: 1, x: context.x + floatingEl.offsetWidth }}
+        exit={{ opacity: 0, x: "100dvw" }}
         transition={{
           ease: easeInOutQuint,
           duration: 1,
