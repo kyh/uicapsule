@@ -332,13 +332,15 @@ export const BackgroundPixelStars = memo(
       animationFrameRef.current = requestAnimationFrame(animateCanvas);
 
       // Create shooting stars periodically
+      let shootingStarTimer: ReturnType<typeof setTimeout> | undefined;
+
       const createShootingStar = (): void => {
         const newStar = createNewShootingStar();
         shootingStarsRef.current = [...shootingStarsRef.current, newStar];
 
         // Set a random delay for creating the next star
         const randomDelay = Math.random() * 4000 + 2000; // 2-6 seconds
-        setTimeout(createShootingStar, randomDelay);
+        shootingStarTimer = setTimeout(createShootingStar, randomDelay);
       };
 
       // Create first shooting star
@@ -364,6 +366,7 @@ export const BackgroundPixelStars = memo(
           cancelAnimationFrame(animationFrameRef.current);
         }
         clearInterval(regenerationInterval);
+        if (shootingStarTimer !== undefined) clearTimeout(shootingStarTimer);
         window.removeEventListener("resize", handleResize);
       };
     }, [animateCanvas, createNewShootingStar, initBackgroundStars, regenerateBackgroundStars]);

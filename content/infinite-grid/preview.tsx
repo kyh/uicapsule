@@ -15,6 +15,7 @@ const Cell = ({ gridIndex }: GridItemConfig) => (
     }}
   >
     <img
+      alt=""
       className="pointer-events-none size-20"
       src={`https://zmdrwswxugswzmcokvff.supabase.co/storage/v1/object/public/uicapsule/illustrations/blueprint/%20${(gridIndex % 100) + 1}.svg`}
     />
