@@ -26,7 +26,8 @@ import {
   DownloadIcon,
   InfoIcon,
 } from "lucide-react";
-import { Suspense, useEffect } from "react";
+import { AnimatePresence, motion } from "motion/react";
+import { Suspense, useEffect, useRef, useState } from "react";
 
 import type { ContentComponentSummary, SourceFile } from "@/lib/content/content-schema";
 import { CodePreview } from "./code-preview";
@@ -53,38 +54,43 @@ type ResponsiveAsideProps = AsideProps & {
   onNext?: () => void;
 };
 
+const COPIED_RESET_DELAY = 2000;
+
 const Aside = ({ contentComponent }: AsideProps) => {
   const queryClient = useQueryClient();
+  const [copied, setCopied] = useState(false);
+  const copiedTimerRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
 
   useEffect(() => {
     if (!isLocalContentComponent(contentComponent)) return;
     void queryClient.prefetchQuery(sourceFilesQuery(contentComponent.slug));
   }, [contentComponent, queryClient]);
 
-  const handleInstallClick = () => {
-    if (!isLocalContentComponent(contentComponent)) return;
+  useEffect(() => () => clearTimeout(copiedTimerRef.current), []);
+
+  const handleInstallClick = async () => {
+    if (!isLocalContentComponent(contentComponent) || copied) return;
 
     const command = `npx shadcn@latest add @uicapsule/${contentComponent.slug}`;
 
-    navigator.clipboard.writeText(command).catch((err) => {
+    try {
+      await navigator.clipboard.writeText(command);
+    } catch (err) {
       console.error("Failed to copy command to clipboard:", err);
       toast.error("Failed to copy command to clipboard.", {
         description: (
           <code className="bg-muted mt-1 block rounded p-2 font-[monospace]">{command}</code>
         ),
       });
-    });
+      return;
+    }
+
+    setCopied(true);
+    copiedTimerRef.current = setTimeout(() => setCopied(false), COPIED_RESET_DELAY);
 
     toast(
-      <div className="flex items-center gap-1">
-        <ClipboardCheckIcon className="size-4" />
-        Installation command copied to clipboard
-      </div>,
-      {
-        description: (
-          <code className="bg-muted mt-1 block rounded p-2 font-[monospace]">{command}</code>
-        ),
-      },
+      <code className="bg-muted block rounded p-2 font-[monospace]">{command}</code>,
+      { icon: <ClipboardCheckIcon className="size-4" /> },
     );
   };
 
@@ -157,14 +163,58 @@ const Aside = ({ contentComponent }: AsideProps) => {
                 <DownloadIcon className="size-4" />
               </Button>
             </div>
-            <span className="text-muted-foreground text-center text-xs">
-              <button
-                className="underline decoration-dotted"
-                onClick={handleInstallClick}
+            <div className="flex justify-center">
+              <motion.button
+                layout
+                className={cn(
+                  "text-muted-foreground flex items-center gap-1 text-xs underline decoration-dotted transition-colors",
+                  copied && "text-primary decoration-transparent",
+                )}
+                onClick={() => void handleInstallClick()}
               >
-                Install via shadcn CLI
-              </button>
-            </span>
+                <AnimatePresence mode="popLayout" initial={false}>
+                  <motion.span
+                    key={copied ? "copied" : "install"}
+                    layout="position"
+                    className="flex items-center gap-1"
+                    initial={{ opacity: 0, filter: "blur(4px)" }}
+                    animate={{ opacity: 1, filter: "blur(0px)" }}
+                    exit={{ opacity: 0, filter: "blur(4px)" }}
+                    transition={{ type: "spring", stiffness: 260, damping: 18 }}
+                  >
+                    {copied ? (
+                      <>
+                        <svg
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          stroke="currentColor"
+                          strokeWidth="2.5"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          aria-hidden
+                          className="size-3.5"
+                        >
+                          <motion.path
+                            d="M4 12l5 5L20 6"
+                            initial={{ pathLength: 0 }}
+                            animate={{ pathLength: 1 }}
+                            transition={{
+                              type: "spring",
+                              stiffness: 300,
+                              damping: 25,
+                              delay: 0.1,
+                            }}
+                          />
+                        </svg>
+                        Copied to clipboard
+                      </>
+                    ) : (
+                      "Install via shadcn CLI"
+                    )}
+                  </motion.span>
+                </AnimatePresence>
+              </motion.button>
+            </div>
           </div>
           <DrawerContent className="border-border bg-background text-sm">
             <DrawerHeader className="sr-only">
