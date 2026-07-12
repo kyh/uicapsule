@@ -10,7 +10,6 @@
     "clean": "git clean -xdf .cache .turbo dist node_modules"
   },
   "dependencies": {
-    "motion": "^12.42.2",
     "react": "catalog:",
     "react-dom": "catalog:"
   },

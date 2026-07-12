@@ -1,5 +1,6 @@
 import { type ReactNode } from "react";
 
+import { MotionProvider } from "@/components/motion-provider";
 import { ThemeProvider } from "@/components/theme-provider";
 
 import "../styles/globals.css";
@@ -14,7 +15,7 @@ const FrameLayout = ({ children }: { children: ReactNode }) => {
           enableSystem
           disableTransitionOnChange
         >
-          {children}
+          <MotionProvider>{children}</MotionProvider>
         </ThemeProvider>
       </body>
     </html>
