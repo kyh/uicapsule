@@ -479,7 +479,7 @@ const Typewriter = ({
       if (cancelled || !textContainerRef.current || finishedRef.current) return;
       if (i < splitText.length) {
         animatingRef.current = true;
-        textContainerRef.current.innerHTML = splitText.slice(0, i + 1).join(splitBy);
+        textContainerRef.current.textContent = splitText.slice(0, i + 1).join(splitBy);
         i++;
         timeoutId = setTimeout(write, 25);
       } else {
@@ -494,14 +494,14 @@ const Typewriter = ({
       if (cancelled || !textContainerRef.current || !finishedRef.current) return;
       if (i < splitText.length) {
         animatingRef.current = true;
-        textContainerRef.current.innerHTML = splitText.slice(0, text.length - i).join(splitBy);
+        textContainerRef.current.textContent = splitText.slice(0, text.length - i).join(splitBy);
         i++;
         timeoutId = setTimeout(clear, 5);
       } else {
         animatingRef.current = false;
         finishedRef.current = false;
         i = 0;
-        textContainerRef.current.innerHTML = "";
+        textContainerRef.current.textContent = "";
         onCleared?.();
       }
     };
