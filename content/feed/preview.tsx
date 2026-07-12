@@ -80,7 +80,7 @@ const Preview = () => {
                 <img
                   className="absolute inset-0 h-full w-32 rounded-s-lg object-cover sm:w-48"
                   src="https://images.unsplash.com/photo-1661956600655-e772b2b97db4?q=80&w=560&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
-                  alt="Blog Image"
+                  alt="Mailchimp broadcast studio interface"
                 />
                 <div className="ms-32 grow p-4 sm:ms-48">
                   <div className="flex min-h-24 flex-col justify-center">

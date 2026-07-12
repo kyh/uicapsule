@@ -7,6 +7,7 @@ export function Timer() {
   return (
     <div className="flex w-[284px] items-center gap-2 py-3 pr-5 pl-3.5">
       <motion.button
+        type="button"
         aria-label="Pause timer"
         onClick={() => setIsPaused((p) => !p)}
         whileTap={{ scale: 0.9 }}
@@ -45,6 +46,7 @@ export function Timer() {
         </AnimatePresence>
       </motion.button>
       <button
+        type="button"
         aria-label="Exit"
         className="flex h-10 w-10 items-center justify-center rounded-full bg-[#3C3D3C] text-white transition-colors hover:bg-[#4A4B4A]"
       >
