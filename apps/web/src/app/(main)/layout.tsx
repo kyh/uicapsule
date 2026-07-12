@@ -3,7 +3,7 @@ import type { Metadata, Viewport } from "next";
 import localFont from "next/font/local";
 import { Analytics } from "@vercel/analytics/next";
 import { GlobalAlertDialog } from "@repo/ui/components/alert-dialog";
-import { Toaster } from "@repo/ui/components/sonner";
+import { Toaster } from "@repo/ui/components/toast";
 import { TooltipProvider } from "@repo/ui/components/tooltip";
 
 import { ThemeProvider } from "@/components/theme-provider";

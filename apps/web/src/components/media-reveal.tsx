@@ -1,15 +1,12 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { ImageGeneration, setMaxDpr, type ImageGenerationHandle } from "img-fx";
+import Image from "next/image";
+import { animate, motion, useMotionValue, useTransform } from "motion/react";
 import { cn } from "@repo/ui/lib/utils";
 
-// The shaders are a decorative loading effect, so render them at DPR 1 — the
-// extra fragment cost of retina resolution isn't worth it across many cards.
-if (typeof window !== "undefined") setMaxDpr(1);
-
 // Latches true once the element first scrolls near the viewport, so the heavy
-// work (WebGL shader, video loading) is deferred until then.
+// work (media loading) is deferred until then.
 const useInView = (rootMargin = "200px") => {
   const ref = useRef<HTMLDivElement>(null);
   const [inView, setInView] = useState(false);
@@ -34,6 +31,12 @@ const useInView = (rootMargin = "200px") => {
   return [ref, inView] as const;
 };
 
+const SHIMMER_DURATION = 1.5;
+const WIPE_DURATION = 0.6;
+
+const SHIMMER_HIGHLIGHT = "color-mix(in oklab, var(--color-foreground) 8%, transparent)";
+const SHIMMER_GRADIENT = `linear-gradient(90deg, transparent 25%, ${SHIMMER_HIGHLIGHT} 50%, transparent 75%)`;
+
 type MediaRevealProps = {
   className?: string;
   image?: string;
@@ -41,15 +44,51 @@ type MediaRevealProps = {
   iframe?: { src: string; title: string };
 };
 
-// An img-fx "generation" shader acts as the loading skeleton and dissolves away
-// to reveal the media underneath once it is ready (image via img-fx's own
-// reveal, video on first frame, iframe on load), then drops from the DOM to
-// free its WebGL instance. With no media it is just the animated skeleton.
+// A shimmering skeleton covers the frame and wipes away once the media beneath
+// it is ready (image/video on first frame, iframe on load), then drops from the
+// DOM. With no media it is just the skeleton, shimmering indefinitely.
 export const MediaReveal = ({ className, image, video, iframe }: MediaRevealProps) => {
-  const handle = useRef<ImageGenerationHandle>(null);
   const [rootRef, inView] = useInView();
   const [revealed, setRevealed] = useState(false);
   const [retired, setRetired] = useState(false);
+
+  // At 100 the skeleton fully covers the frame; at -100 it has been wiped off
+  // to the left, uncovering the media beneath.
+  const wipe = useMotionValue(100);
+  const maskImage = useTransform(
+    wipe,
+    (value) => `linear-gradient(to right, black ${value}%, transparent ${value + 100}%)`,
+  );
+
+  // Driven by hand rather than an `animate` prop so the sweep can be halted
+  // mid-cycle: the skeleton freezes where it stands as the wipe takes it away,
+  // the way a snapshotted outgoing layer would.
+  const sweep = useMotionValue(-200);
+  const backgroundPosition = useTransform(sweep, (value) => `${value}% 0`);
+
+  useEffect(() => {
+    if (revealed) return;
+    sweep.set(-200);
+    const controls = animate(sweep, 200, {
+      duration: SHIMMER_DURATION,
+      ease: "easeInOut",
+      repeat: Infinity,
+    });
+    return () => controls.stop();
+  }, [revealed, sweep]);
+
+  useEffect(() => {
+    if (!revealed) {
+      wipe.set(100);
+      return;
+    }
+    const controls = animate(wipe, -100, {
+      duration: WIPE_DURATION,
+      ease: "easeInOut",
+      onComplete: () => setRetired(true),
+    });
+    return () => controls.stop();
+  }, [revealed, wipe]);
 
   // When the iframe is unloaded and remounted (feed windowing), bring the
   // skeleton back so the reload doesn't flash an empty box.
@@ -62,25 +101,18 @@ export const MediaReveal = ({ className, image, video, iframe }: MediaRevealProp
     }
   }
 
-  // Reveal an image once the shader is mounted; img-fx loads the bitmap itself.
-  useEffect(() => {
-    if (image && inView) handle.current?.triggerReveal({ hold: "manual" });
-  }, [image, inView]);
-
-  const fadeOut = revealed && (Boolean(video) || Boolean(iframe));
-
-  // Retire the shader (freeing its WebGL context) shortly after the fade-out
-  // starts. transitionend alone is unreliable: media that loads while the
-  // shader is off-screen mounts it already at opacity 0, so the transition —
-  // and the retire — would never fire, leaking a WebGL context per card.
-  useEffect(() => {
-    if (!fadeOut) return;
-    const timeout = setTimeout(() => setRetired(true), 800);
-    return () => clearTimeout(timeout);
-  }, [fadeOut]);
-
   return (
     <div ref={rootRef} className={cn("bg-muted relative overflow-hidden", className)}>
+      {image && inView && (
+        <Image
+          className="absolute inset-0 h-full w-full object-cover"
+          src={image}
+          alt=""
+          fill
+          sizes="(max-width: 640px) 100vw, 50vw"
+          onLoad={() => setRevealed(true)}
+        />
+      )}
       {video && inView && (
         <video
           className="absolute inset-0 h-full w-full object-cover"
@@ -96,24 +128,27 @@ export const MediaReveal = ({ className, image, video, iframe }: MediaRevealProp
       )}
       {iframe && (
         <iframe
-          className="absolute inset-0 h-full w-full bg-background"
+          className="bg-background absolute inset-0 h-full w-full"
           title={iframe.title}
           src={iframe.src}
           onLoad={() => setRevealed(true)}
         />
       )}
-      {inView && !retired && (
-        <ImageGeneration
-          ref={handle}
-          className="pointer-events-none absolute! inset-0 transition-opacity duration-700"
-          style={{ opacity: fadeOut ? 0 : 1 }}
-          preset="pixels-organic"
-          theme="auto"
-          images={image}
-          paused={fadeOut}
+      {!retired && (
+        <motion.div
+          aria-hidden
+          className="bg-muted pointer-events-none absolute inset-0"
+          style={{ maskImage, WebkitMaskImage: maskImage }}
         >
-          <div style={{ width: "100%", height: "100%" }} />
-        </ImageGeneration>
+          <motion.div
+            className="absolute inset-0"
+            style={{
+              backgroundImage: SHIMMER_GRADIENT,
+              backgroundSize: "200% 100%",
+              backgroundPosition,
+            }}
+          />
+        </motion.div>
       )}
     </div>
   );

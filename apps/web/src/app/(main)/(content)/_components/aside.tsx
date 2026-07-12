@@ -13,7 +13,7 @@ import {
   DrawerTitle,
   DrawerTrigger,
 } from "@repo/ui/components/drawer";
-import { toast } from "@repo/ui/components/sonner";
+import { toast } from "@repo/ui/components/toast";
 import { useMediaQuery } from "@repo/ui/hooks/use-media-query";
 import { cn } from "@repo/ui/lib/utils";
 import { queryOptions, useQueryClient, useSuspenseQuery } from "@tanstack/react-query";
@@ -88,10 +88,9 @@ const Aside = ({ contentComponent }: AsideProps) => {
     setCopied(true);
     copiedTimerRef.current = setTimeout(() => setCopied(false), COPIED_RESET_DELAY);
 
-    toast(
-      <code className="bg-muted block rounded p-2 font-[monospace]">{command}</code>,
-      { icon: <ClipboardCheckIcon className="size-4" /> },
-    );
+    toast(<code className="bg-muted block rounded p-2 font-[monospace]">{command}</code>, {
+      icon: <ClipboardCheckIcon className="size-4" />,
+    });
   };
 
   const handleDownloadClick = async () => {
