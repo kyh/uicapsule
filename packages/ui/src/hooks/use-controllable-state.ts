@@ -17,8 +17,8 @@ export const useControllableState = <T>({
 
   const setValue = useCallback(
     (next: T) => {
-      if (isControlled) {
-        if (next !== value) onChange?.(next);
+      if (prop !== undefined) {
+        if (next !== prop) onChange?.(next);
         return;
       }
 
@@ -27,7 +27,7 @@ export const useControllableState = <T>({
         return next;
       });
     },
-    [isControlled, onChange, value],
+    [onChange, prop],
   );
 
   return [value, setValue];
