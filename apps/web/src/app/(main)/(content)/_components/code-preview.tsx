@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState, type MouseEvent as ReactMouseEvent } from "react";
+import { frame } from "motion/react";
 import type { ReactNode } from "react";
 import type { BundledLanguage } from "shiki";
 
@@ -153,7 +154,7 @@ type CodePreviewProps = {
 };
 
 export const CodePreview = ({ sourceFiles }: CodePreviewProps) => {
-  const { handleMouseDown } = useResizableSidebar();
+  const { containerRef, handleMouseDown } = useResizableSidebar();
   const defaultPath = sourceFiles[0]?.path ?? "";
   const [selectedPath, setSelectedPath] = useState(defaultPath);
 
@@ -207,6 +208,7 @@ export const CodePreview = ({ sourceFiles }: CodePreviewProps) => {
 
   return (
     <div
+      ref={containerRef}
       className="mt-4 flex h-[90dvh] flex-col border-t md:grid"
       style={{ gridTemplateColumns: "var(--sidebar-width, 280px) 1fr" }}
     >
@@ -287,73 +289,68 @@ type UseResizableSidebarOptions = {
   maxWidth?: number;
 };
 
+/**
+ * Drives the sidebar width through --sidebar-width, set on the grid element itself rather
+ * than on :root — an unregistered variable on the document root cascades to every node, so
+ * each mousemove would recalculate styles for the whole page. The variable is registered in
+ * globals.css with `inherits: false` for the same reason, and writes are batched through
+ * Motion's frame loop so a burst of mousemoves collapses into one write per frame.
+ */
 export const useResizableSidebar = ({
   defaultWidth = 240,
   minWidth = 100,
   maxWidth = 300,
 }: UseResizableSidebarOptions = {}) => {
+  const containerRef = useRef<HTMLDivElement>(null);
   const startXRef = useRef<number>(0);
-  const startWidthRef = useRef<number>(0);
+  const startWidthRef = useRef<number>(defaultWidth);
+  const widthRef = useRef<number>(defaultWidth);
   const isResizingRef = useRef<boolean>(false);
 
   const handleMouseDown = (e: ReactMouseEvent) => {
     e.preventDefault();
     isResizingRef.current = true;
     startXRef.current = e.clientX;
-    // Get current width from CSS variable
-    const currentWidth = parseInt(
-      getComputedStyle(document.documentElement)
-        .getPropertyValue("--sidebar-width")
-        .replace("px", "") || defaultWidth.toString(),
-    );
-    startWidthRef.current = currentWidth;
+    // Tracked in a ref, so the drag never has to read layout back out of the DOM.
+    startWidthRef.current = widthRef.current;
+    document.body.style.cursor = "col-resize";
+    document.body.style.userSelect = "none";
   };
 
   useEffect(() => {
-    // Set initial CSS variable value
-    document.documentElement.style.setProperty("--sidebar-width", `${defaultWidth}px`);
+    containerRef.current?.style.setProperty("--sidebar-width", `${widthRef.current}px`);
 
     const handleMouseMove = (e: MouseEvent) => {
       if (!isResizingRef.current) return;
 
       const deltaX = e.clientX - startXRef.current;
-      const newWidth = startWidthRef.current + deltaX;
-      const clampedWidth = Math.min(Math.max(newWidth, minWidth), maxWidth);
+      widthRef.current = Math.min(Math.max(startWidthRef.current + deltaX, minWidth), maxWidth);
 
-      // Set CSS variable directly
-      document.documentElement.style.setProperty("--sidebar-width", `${clampedWidth}px`);
+      frame.update(() => {
+        containerRef.current?.style.setProperty("--sidebar-width", `${widthRef.current}px`);
+      });
     };
 
     const handleMouseUp = () => {
-      if (isResizingRef.current) {
-        isResizingRef.current = false;
-        document.body.style.cursor = "";
-        document.body.style.userSelect = "";
-      }
+      if (!isResizingRef.current) return;
+      isResizingRef.current = false;
+      document.body.style.cursor = "";
+      document.body.style.userSelect = "";
     };
 
-    const handleMouseDownGlobal = () => {
-      if (isResizingRef.current) {
-        document.body.style.cursor = "col-resize";
-        document.body.style.userSelect = "none";
-      }
-    };
-
-    // Add event listeners
     document.addEventListener("mousemove", handleMouseMove);
     document.addEventListener("mouseup", handleMouseUp);
-    document.addEventListener("mousedown", handleMouseDownGlobal);
 
     return () => {
       document.removeEventListener("mousemove", handleMouseMove);
       document.removeEventListener("mouseup", handleMouseUp);
-      document.removeEventListener("mousedown", handleMouseDownGlobal);
       document.body.style.cursor = "";
       document.body.style.userSelect = "";
     };
-  }, [defaultWidth, minWidth, maxWidth]);
+  }, [minWidth, maxWidth]);
 
   return {
+    containerRef,
     handleMouseDown,
   };
 };

@@ -6,6 +6,7 @@ import { GlobalAlertDialog } from "@repo/ui/components/alert-dialog";
 import { Toaster } from "@repo/ui/components/toast";
 import { TooltipProvider } from "@repo/ui/components/tooltip";
 
+import { MotionProvider } from "@/components/motion-provider";
 import { ThemeProvider } from "@/components/theme-provider";
 import { siteConfig } from "@/lib/site-config";
 import { TRPCReactProvider } from "@/trpc/react";
@@ -104,11 +105,13 @@ const RootLayout = (props: LayoutProps) => {
           enableSystem
           disableTransitionOnChange
         >
-          <TooltipProvider>
-            <TRPCReactProvider>{props.children}</TRPCReactProvider>
-            <Toaster />
-            <GlobalAlertDialog />
-          </TooltipProvider>
+          <MotionProvider>
+            <TooltipProvider>
+              <TRPCReactProvider>{props.children}</TRPCReactProvider>
+              <Toaster />
+              <GlobalAlertDialog />
+            </TooltipProvider>
+          </MotionProvider>
         </ThemeProvider>
         <Analytics />
       </body>

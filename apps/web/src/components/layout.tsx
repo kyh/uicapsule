@@ -6,7 +6,6 @@ import {
   useCallback,
   useEffect,
   useMemo,
-  useRef,
   useState,
   type ReactElement,
   type ReactNode,
@@ -92,31 +91,20 @@ const searchKindIcon: Record<SearchKind, typeof SearchIcon> = {
 const componentCountLabel = (count: number) => `${count} component${count === 1 ? "" : "s"}`;
 
 /** Animates its height to follow content size, like Base UI's navigation-menu viewport. */
-const AnimateHeight = ({ children }: { children: ReactNode }) => {
-  const contentRef = useRef<HTMLDivElement | null>(null);
-  const [height, setHeight] = useState<number | "auto">("auto");
-
-  useEffect(() => {
-    const element = contentRef.current;
-    if (!element) {
-      return;
-    }
-    const observer = new ResizeObserver(() => setHeight(element.offsetHeight));
-    observer.observe(element);
-    return () => observer.disconnect();
-  }, []);
-
-  return (
-    <motion.div
-      initial={false}
-      animate={{ height }}
-      transition={{ type: "spring", visualDuration: 0.25, bounce: 0 }}
-      className="overflow-hidden"
-    >
-      <div ref={contentRef}>{children}</div>
-    </motion.div>
-  );
-};
+const AnimateHeight = ({ children }: { children: ReactNode }) => (
+  // `layout` measures once and animates with transforms (FLIP) instead of springing the
+  // height property, which would relayout the whole result list every frame. The inner
+  // `layout` is not redundant: it counter-scales the content, which the outer element's
+  // scale correction would otherwise stretch.
+  <motion.div
+    layout
+    initial={false}
+    transition={{ type: "spring", visualDuration: 0.25, bounce: 0 }}
+    className="overflow-hidden"
+  >
+    <motion.div layout="position">{children}</motion.div>
+  </motion.div>
+);
 
 type HeaderNavProps = {
   className?: string;

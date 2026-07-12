@@ -7,6 +7,40 @@
 @source "../../../../content/**/*.{ts,tsx}";
 @source "../**/*.{ts,tsx}";
 
+/**
+ * The source-drawer resize handle rewrites this on every mousemove. Registering it with
+ * `inherits: false` keeps the change from cascading into every descendant, so a drag
+ * recalculates styles for the grid element alone instead of the whole subtree.
+ */
+@property --sidebar-width {
+  syntax: "<length>";
+  inherits: false;
+  initial-value: 280px;
+}
+
+/**
+ * Covers the CSS-driven animation Motion can't see: tw-animate-css enter/exit keyframes
+ * and vaul's drawer transitions. Durations collapse to ~0 rather than `animation: none`,
+ * because Base UI and vaul wait on animationend/transitionend to unmount — remove the
+ * animation outright and the panels never close.
+ */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  ::before,
+  ::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+
+  /* Spinners are progress feedback, not decoration — a frozen one reads as a hung app. */
+  .animate-spin {
+    animation-duration: 1s !important;
+    animation-iteration-count: infinite !important;
+  }
+}
+
 @theme inline {
   --font-heading: var(--font-sans);
   --font-sans: var(--font-sans);

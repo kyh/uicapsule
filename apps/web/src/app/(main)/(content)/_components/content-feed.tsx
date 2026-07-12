@@ -56,27 +56,30 @@ export const ContentFeed = ({ initialSlug, feed }: ContentFeedProps) => {
     container.scrollTop = target.offsetTop;
   }, [initialIndex]);
 
+  // The active item is found by observation rather than by reading scrollTop on every
+  // scroll frame — those reads force layout, on the one interaction that has to stay
+  // smooth. Items are full-height snap panes, so at a 0.6 threshold exactly one can
+  // ever be intersecting.
   useEffect(() => {
     const container = containerRef.current;
     if (!container) return;
 
-    let frame = 0;
-    const onScroll = () => {
-      cancelAnimationFrame(frame);
-      frame = requestAnimationFrame(() => {
-        const itemHeight = container.clientHeight;
-        if (itemHeight === 0) return;
-        const next = Math.round(container.scrollTop / itemHeight);
-        const clamped = Math.max(0, Math.min(feed.length - 1, next));
-        setActiveIndex((prev) => (prev === clamped ? prev : clamped));
-      });
-    };
+    const observer = new IntersectionObserver(
+      (entries) => {
+        for (const entry of entries) {
+          if (!entry.isIntersecting) continue;
+          const index = itemRefs.current.findIndex((item) => item === entry.target);
+          if (index === -1) continue;
+          setActiveIndex((prev) => (prev === index ? prev : index));
+        }
+      },
+      { root: container, threshold: 0.6 },
+    );
 
-    container.addEventListener("scroll", onScroll, { passive: true });
-    return () => {
-      container.removeEventListener("scroll", onScroll);
-      cancelAnimationFrame(frame);
-    };
+    for (const item of itemRefs.current) {
+      if (item) observer.observe(item);
+    }
+    return () => observer.disconnect();
   }, [feed.length]);
 
   const activeSlug = feed[activeIndex]?.slug;
