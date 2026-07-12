@@ -67,6 +67,7 @@ export const useTooltip = ({
   const setOpen = setControlledOpen ?? setUncontrolledOpen;
 
   const data = useFloating({
+    strategy: "fixed",
     placement,
     open,
     onOpenChange: (isOpen, event) => {
