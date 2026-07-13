@@ -1,4 +1,4 @@
-import { useCallback, useRef, useState } from "react";
+import { useCallback, useLayoutEffect, useRef, useState } from "react";
 
 type UseControllableStateParams<T> = {
   prop?: T | undefined;
@@ -6,38 +6,34 @@ type UseControllableStateParams<T> = {
   onChange?: ((state: T) => void) | undefined;
 };
 
-type SetStateFn<T> = (prev: T) => T;
+/** Direct values only. This keeps callable values unambiguous. */
+type SetValue<T> = (next: T) => void;
 
 export const useControllableState = <T>({
   prop,
   defaultProp,
   onChange,
-}: UseControllableStateParams<T>): [T, (next: T | SetStateFn<T>) => void] => {
+}: UseControllableStateParams<T>): [T, SetValue<T>] => {
   const [uncontrolled, setUncontrolled] = useState(defaultProp);
   const isControlled = prop !== undefined;
   const value = isControlled ? prop : uncontrolled;
+  const currentRef = useRef({ prop, onChange });
 
-  const valueRef = useRef(value);
-  valueRef.current = value;
-  const onChangeRef = useRef(onChange);
-  onChangeRef.current = onChange;
-  const isControlledRef = useRef(isControlled);
-  isControlledRef.current = isControlled;
+  useLayoutEffect(() => {
+    currentRef.current = { prop, onChange };
+  }, [onChange, prop]);
 
-  const setValue = useCallback((next: T | SetStateFn<T>) => {
-    const resolve = (prev: T) =>
-      typeof next === "function" ? (next as SetStateFn<T>)(prev) : next;
-
-    if (isControlledRef.current) {
-      const resolved = resolve(valueRef.current);
-      if (resolved !== valueRef.current) onChangeRef.current?.(resolved);
-    } else {
-      setUncontrolled((prev) => {
-        const resolved = resolve(prev);
-        if (resolved !== prev) onChangeRef.current?.(resolved);
-        return resolved;
-      });
+  const setValue = useCallback((next: T) => {
+    const current = currentRef.current;
+    if (current.prop !== undefined) {
+      if (next !== current.prop) current.onChange?.(next);
+      return;
     }
+
+    setUncontrolled((previous) => {
+      if (next !== previous) current.onChange?.(next);
+      return next;
+    });
   }, []);
 
   return [value, setValue];

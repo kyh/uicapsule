@@ -12,7 +12,9 @@ const Preview = () => {
 
   return (
     <div className="flex h-screen items-center justify-center">
-      <button onClick={handleToggleStarted}>{started ? "Stop Timer" : "Start Countdown"}</button>
+      <button type="button" onClick={handleToggleStarted}>
+        {started ? "Stop Timer" : "Start Countdown"}
+      </button>
       <SnailTimer started={started} />
     </div>
   );

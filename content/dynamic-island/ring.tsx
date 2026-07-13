@@ -20,22 +20,23 @@ export function Ring() {
   return (
     <motion.div
       initial={false}
+      layout
       className="relative flex h-7 items-center justify-between px-2.5"
-      animate={{ width: isSilent ? 148 : 128 }}
+      style={{ width: isSilent ? 148 : 128 }}
       transition={{ type: "spring", bounce: 0.5 }}
     >
       <AnimatePresence>
         {isSilent ? (
           <motion.div
-            initial={{ width: 0, opacity: 0, filter: "blur(4px)" }}
+            initial={{ scaleX: 0, opacity: 0, filter: "blur(4px)" }}
             animate={{
-              width: 40,
+              scaleX: 1,
               opacity: 1,
               filter: "blur(0px)",
             }}
-            exit={{ width: 0, opacity: 0, filter: "blur(4px)" }}
+            exit={{ scaleX: 0, opacity: 0, filter: "blur(4px)" }}
             transition={{ type: "spring", bounce: 0.35 }}
-            className="absolute left-[5px] h-[18px] w-10 rounded-full bg-[#FD4F30]"
+            className="absolute left-[5px] h-[18px] w-10 origin-left rounded-full bg-[#FD4F30]"
           />
         ) : null}
       </AnimatePresence>
@@ -63,13 +64,13 @@ export function Ring() {
         <div className="absolute inset-0">
           <div className="h-5 translate-x-[5.25px] -translate-y-[5px] rotate-[-40deg] overflow-hidden">
             <motion.div
-              animate={{ height: isSilent ? 16 : 0 }}
+              animate={{ scaleY: isSilent ? 1 : 0 }}
               transition={{
                 ease: "easeInOut",
                 duration: isSilent ? 0.125 : 0.05,
                 delay: isSilent ? 0.15 : 0,
               }}
-              className="w-fit rounded-full"
+              className="h-4 w-fit origin-top rounded-full"
             >
               <div className="flex h-full w-[3px] items-center justify-center rounded-full bg-[#FD4F30]">
                 <div className="h-full w-[0.75px] rounded-full bg-white" />

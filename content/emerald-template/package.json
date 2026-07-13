@@ -16,8 +16,7 @@
     "lucide-react": "^1.24.0",
     "motion": "^12.42.2",
     "react": "catalog:",
-    "react-dom": "catalog:",
-    "react-hook-form": "^7.81.0"
+    "react-dom": "catalog:"
   },
   "devDependencies": {
     "@types/react": "catalog:",

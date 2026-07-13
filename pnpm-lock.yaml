@@ -158,9 +158,6 @@ importers:
       superjson:
         specifier: 'catalog:'
         version: 2.2.6
-      three:
-        specifier: ^0.185.1
-        version: 0.185.1
       web-haptics:
         specifier: ^0.0.6
         version: 0.0.6(react-dom@19.2.7(react@19.2.7))(react@19.2.7)
@@ -242,9 +239,6 @@ importers:
 
   content/background-shapes:
     dependencies:
-      motion:
-        specifier: ^12.42.2
-        version: 12.42.2(react-dom@19.2.7(react@19.2.7))(react@19.2.7)
       react:
         specifier: 'catalog:'
         version: 19.2.7
@@ -283,9 +277,6 @@ importers:
 
   content/carousel-3d:
     dependencies:
-      '@react-three/drei':
-        specifier: ^10.7.7
-        version: 10.7.7(c228a5ce859ca7b00353857113b6e4a6)
       '@react-three/fiber':
         specifier: ^9.6.1
         version: 9.6.1(@types/react@19.2.17)(expo-asset@12.0.12(expo@54.0.31(@babel/core@7.29.7)(graphql@16.14.0)(react-native@0.83.1(@babel/core@7.29.7)(@types/react@19.2.17)(react@19.2.7))(react@19.2.7)(typescript@6.0.3))(react-native@0.83.1(@babel/core@7.29.7)(@types/react@19.2.17)(react@19.2.7))(react@19.2.7)(typescript@6.0.3))(expo-file-system@19.0.21(expo@54.0.31(@babel/core@7.29.7)(graphql@16.14.0)(react-native@0.83.1(@babel/core@7.29.7)(@types/react@19.2.17)(react@19.2.7))(react@19.2.7)(typescript@6.0.3))(react-native@0.83.1(@babel/core@7.29.7)(@types/react@19.2.17)(react@19.2.7)))(expo@54.0.31(@babel/core@7.29.7)(graphql@16.14.0)(react-native@0.83.1(@babel/core@7.29.7)(@types/react@19.2.17)(react@19.2.7))(react@19.2.7)(typescript@6.0.3))(react-dom@19.2.7(react@19.2.7))(react-native@0.83.1(@babel/core@7.29.7)(@types/react@19.2.17)(react@19.2.7))(react@19.2.7)(three@0.185.1)
@@ -379,9 +370,6 @@ importers:
       react-dom:
         specifier: 'catalog:'
         version: 19.2.7(react@19.2.7)
-      react-hook-form:
-        specifier: ^7.81.0
-        version: 7.81.0(react@19.2.7)
     devDependencies:
       '@types/react':
         specifier: 'catalog:'
@@ -501,9 +489,6 @@ importers:
 
   content/gradient-orb:
     dependencies:
-      '@react-three/drei':
-        specifier: ^10.7.7
-        version: 10.7.7(c228a5ce859ca7b00353857113b6e4a6)
       '@react-three/fiber':
         specifier: ^9.6.1
         version: 9.6.1(@types/react@19.2.17)(expo-asset@12.0.12(expo@54.0.31(@babel/core@7.29.7)(graphql@16.14.0)(react-native@0.83.1(@babel/core@7.29.7)(@types/react@19.2.17)(react@19.2.7))(react@19.2.7)(typescript@6.0.3))(react-native@0.83.1(@babel/core@7.29.7)(@types/react@19.2.17)(react@19.2.7))(react@19.2.7)(typescript@6.0.3))(expo-file-system@19.0.21(expo@54.0.31(@babel/core@7.29.7)(graphql@16.14.0)(react-native@0.83.1(@babel/core@7.29.7)(@types/react@19.2.17)(react@19.2.7))(react@19.2.7)(typescript@6.0.3))(react-native@0.83.1(@babel/core@7.29.7)(@types/react@19.2.17)(react@19.2.7)))(expo@54.0.31(@babel/core@7.29.7)(graphql@16.14.0)(react-native@0.83.1(@babel/core@7.29.7)(@types/react@19.2.17)(react@19.2.7))(react@19.2.7)(typescript@6.0.3))(react-dom@19.2.7(react@19.2.7))(react-native@0.83.1(@babel/core@7.29.7)(@types/react@19.2.17)(react@19.2.7))(react@19.2.7)(three@0.185.1)
@@ -900,9 +885,6 @@ importers:
       react:
         specifier: 'catalog:'
         version: 19.2.7
-      zod:
-        specifier: 'catalog:'
-        version: 4.4.3
     devDependencies:
       '@kyh/tsconfig':
         specifier: 'catalog:'
@@ -925,9 +907,6 @@ importers:
       '@headless-tree/core':
         specifier: ^1.7.0
         version: 1.7.0
-      '@headless-tree/react':
-        specifier: ^1.7.0
-        version: 1.7.0(@headless-tree/core@1.7.0)(react-dom@19.2.7(react@19.2.7))(react@19.2.7)
       '@icons-pack/react-simple-icons':
         specifier: ^13.13.0
         version: 13.13.0(react@19.2.7)
@@ -952,9 +931,6 @@ importers:
       motion:
         specifier: ^12.42.2
         version: 12.42.2(react-dom@19.2.7(react@19.2.7))(react@19.2.7)
-      next-themes:
-        specifier: ^0.4.6
-        version: 0.4.6(react-dom@19.2.7(react@19.2.7))(react@19.2.7)
       react:
         specifier: 'catalog:'
         version: 19.2.7

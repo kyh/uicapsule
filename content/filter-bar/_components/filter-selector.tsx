@@ -79,7 +79,10 @@ function __FilterSelector<TData>({
   }, [property]);
 
   useEffect(() => {
-    if (!open) setTimeout(() => setValue(""), 150);
+    if (open) return;
+
+    const timeoutId = setTimeout(() => setValue(""), 150);
+    return () => clearTimeout(timeoutId);
   }, [open]);
 
   const content = useMemo(
@@ -331,13 +334,12 @@ function __QuickSearchFilters<TData>({
   actions,
   strategy,
 }: QuickSearchFiltersProps<TData>) {
-  if (!search || search.trim().length < 2) return null;
-
-  // biome-ignore lint/correctness/useHookAtTopLevel: its okay
   const cols = useMemo(
     () => columns.filter((c) => isAnyOf<ColumnDataType>(c.type, ["option", "multiOption"])),
     [columns],
   );
+
+  if (!search || search.trim().length < 2) return null;
 
   return (
     <>

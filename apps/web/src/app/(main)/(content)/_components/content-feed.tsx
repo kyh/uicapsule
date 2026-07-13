@@ -149,6 +149,7 @@ export const ContentFeed = ({ initialSlug, feed }: ContentFeedProps) => {
       <div
         ref={containerRef}
         id="content-feed"
+        data-initial-slug={initialSlug}
         className="h-full w-full overflow-y-auto snap-y snap-mandatory [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
       >
         {feed.map((item, idx) => (
@@ -171,7 +172,8 @@ export const ContentFeed = ({ initialSlug, feed }: ContentFeedProps) => {
       <div
         hidden
         dangerouslySetInnerHTML={{
-          __html: `<script>(function(){var c=document.getElementById("content-feed");if(!c)return;var t=c.querySelector('[data-slug=${JSON.stringify(initialSlug)}]');if(t)c.scrollTop=t.offsetTop;})();</script>`,
+          __html:
+            '<script>(function(){var c=document.getElementById("content-feed");if(!c)return;var s=c.getAttribute("data-initial-slug");var n=c.querySelectorAll("[data-slug]");for(var i=0;i<n.length;i++){if(n[i].getAttribute("data-slug")===s){c.scrollTop=n[i].offsetTop;return;}}})();</script>',
         }}
       />
       <ResponsiveAside

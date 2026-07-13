@@ -21,8 +21,7 @@
     "@libsql/client": "^0.17.4",
     "drizzle-orm": "^0.45.2",
     "next": "catalog:",
-    "react": "catalog:",
-    "zod": "catalog:"
+    "react": "catalog:"
   },
   "devDependencies": {
     "@kyh/tsconfig": "catalog:",

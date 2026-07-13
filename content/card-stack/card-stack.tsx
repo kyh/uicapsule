@@ -3,7 +3,7 @@ import { useGSAP } from "@gsap/react";
 import gsap from "gsap";
 
 type CardStackProps = {
-  cards: { src: string; href: string }[];
+  cards: { src: string; href: string; alt: string }[];
   className?: string;
 };
 
@@ -150,7 +150,11 @@ export const CardStack = ({ cards }: CardStackProps) => {
             href={card.href}
             target="_blank"
           >
-            <img className="content h-full w-full rounded-[12px] object-cover" src={card.src} />
+            <img
+              alt={card.alt}
+              className="content h-full w-full rounded-[12px] object-cover"
+              src={card.src}
+            />
           </a>
         ))}
       </div>
