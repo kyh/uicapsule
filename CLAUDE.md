@@ -22,7 +22,8 @@ Content is filesystem-driven; the web app never depends on content packages by n
 
 - `apps/web/src/lib/content/content-fs.ts` reads `content/*/meta.json` + source files;
   `content-data.ts` wraps it in `"use cache"` server functions (feed, filters, search
-  index, shadcn registry).
+  index, shadcn registry). The `"use cache"` + `cacheLife("max")` pairing is intentional,
+  not an oversight — content only ever changes on deploy.
 - `preview-frame/[slug]` renders previews via a relative dynamic import of
   `content/<slug>/preview.tsx`.
 - `/r/<slug>.json` serves the shadcn registry item; the source-code drawer and zip
@@ -53,6 +54,19 @@ pnpm db:push          # Push local db schema
 pnpm db:push-remote   # Push to production Turso
 pnpm new:content <slug>  # Scaffold a new content component in content/
 ```
+
+## Verification Contract
+
+Every change must leave all four green: `pnpm typecheck`, `pnpm lint` (oxlint),
+`pnpm format` (oxfmt), `pnpm build`. There are **zero tests in the repo today** — don't
+assume a suite has your back.
+
+## Decisions (do not re-litigate)
+
+- **auth + tRPC are kept.** One procedure, zero callers, deliberately retained for a future
+  feature. Make them correct; don't propose deleting them.
+- **Supabase stays.** It hosts every cover video.
+- Settled audit findings that should not be re-raised live in the pinned issue #84.
 
 ## Content Curation Philosophy
 
