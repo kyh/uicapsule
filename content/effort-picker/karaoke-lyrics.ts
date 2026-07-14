@@ -67,10 +67,10 @@ const line = (text: string, timing: LineTiming): LyricLine => {
 };
 
 export const LYRIC_LINES: readonly LyricLine[] = Object.freeze([
-  line("Ten percent luck", {
+  line("This is ten percent luck", {
     percent: 10,
-    percentWordIndex: 0,
-    wordBeats: [0, 0.75, 1.35],
+    percentWordIndex: 2,
+    wordBeats: [0, 0.35, 0.75, 1.25, 1.7],
     durationBeats: 2,
   }),
   line("Twenty percent skill", {
