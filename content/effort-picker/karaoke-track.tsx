@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import { animate, AnimatePresence, motion, useMotionValue } from "motion/react";
+import { animate, AnimatePresence, motion, useMotionValue, useReducedMotion } from "motion/react";
 import { RotateCcwIcon, ZapIcon } from "lucide-react";
 
 import type { MotionValue } from "motion/react";
@@ -15,14 +15,12 @@ import {
   TRACK_TRAVEL,
   TRACK_WIDTH,
 } from "./effort-scale";
-import { averagePercent, FLAT_WORDS, LYRIC_LINES } from "./karaoke-lyrics";
+import { averagePercent, FLAT_WORDS, LYRIC_LINES, VERSE_BEATS } from "./karaoke-lyrics";
 
-/** Beat before the performance kicks off, so the card has a moment to land. */
-const COUNT_IN_MS = 2000;
-/** One word of the verse. */
-const WORD_MS = 220;
-/** Extra breath at the end of each bar. */
-const BAR_REST_MS = 400;
+/** The original track sits at 85 BPM. Every cue below lands on that grid. */
+const BEAT_MS = 60_000 / 85;
+const COUNTDOWN_BEATS = 3;
+const COUNT_IN_MS = BEAT_MS * COUNTDOWN_BEATS;
 /** Beat between the last word and the dial committing. */
 const COMMIT_DELAY_MS = 700;
 
@@ -32,6 +30,11 @@ const COMMIT_SPRING = { type: "spring", stiffness: 180, damping: 18 } as const;
 const percentToX = (percent: number) => (percent / 100) * TRACK_TRAVEL;
 
 type Burst = { id: number; percent: number };
+
+type TakeState =
+  | { status: "countdown"; count: 3 | 2 | 1 }
+  | { status: "singing"; matched: number }
+  | { status: "complete"; level: number };
 
 type KaraokeCardProps = {
   knobX: MotionValue<number>;
@@ -56,10 +59,10 @@ type KaraokeCardProps = {
  * somewhere unremarkable. Try to leave early and it refuses to let you.
  */
 export const KaraokeCard = ({ knobX, scoldNonce, onDone }: KaraokeCardProps) => {
-  const [matched, setMatched] = useState(0);
   const [bursts, setBursts] = useState<Burst[]>([]);
-  const [committed, setCommitted] = useState<number | null>(null);
+  const [take, setTake] = useState<TakeState>({ status: "countdown", count: 3 });
   const [scolding, setScolding] = useState(false);
+  const reduceMotion = useReducedMotion();
 
   const cardShake = useMotionValue(0);
   const burstId = useRef(0);
@@ -73,28 +76,32 @@ export const KaraokeCard = ({ knobX, scoldNonce, onDone }: KaraokeCardProps) => 
     timers.current.push(window.setTimeout(run, ms));
   }, []);
 
-  const currentLineIndex = Math.min(
-    FLAT_WORDS[matched]?.lineIndex ?? LYRIC_LINES.length - 1,
-    LYRIC_LINES.length - 1,
-  );
+  // The line on screen is the one the *last landed word* belongs to, not the one
+  // the next word belongs to. Reading ahead flipped the line the instant a bar's
+  // final word landed, so that word was never seen lit — every bar looked like it
+  // skipped its last word, and the closing bar was cut off entirely by the commit.
+  const matched =
+    take.status === "singing" ? take.matched : take.status === "complete" ? FLAT_WORDS.length : 0;
+  const currentLineIndex =
+    matched === 0 ? 0 : (FLAT_WORDS[matched - 1]?.lineIndex ?? LYRIC_LINES.length - 1);
 
   const run = useCallback(() => {
     clearTimers();
-    setMatched(0);
     setBursts([]);
-    setCommitted(null);
+    setScolding(false);
+    setTake({ status: "countdown", count: 3 });
+    onDone(false);
     void animate(knobX, 0, DIAL_SPRING);
 
-    // The take is scheduled up front rather than driven by a ticking cursor: every
-    // word already knows when it lands, so the timing can't drift mid-verse.
-    let elapsed = COUNT_IN_MS;
-    FLAT_WORDS.forEach((word, index) => {
-      elapsed += WORD_MS;
-      const isLastOfBar = FLAT_WORDS[index + 1]?.lineIndex !== word.lineIndex;
-      if (isLastOfBar) elapsed += BAR_REST_MS;
+    after(BEAT_MS, () => setTake({ status: "countdown", count: 2 }));
+    after(BEAT_MS * 2, () => setTake({ status: "countdown", count: 1 }));
+    after(COUNT_IN_MS, () => setTake({ status: "singing", matched: 0 }));
 
-      after(elapsed, () => {
-        setMatched(index + 1);
+    // Cues are song beats, not a uniform word ticker. Short bars breathe while the
+    // dense final bar runs faster, matching the recorded cadence without drift.
+    FLAT_WORDS.forEach((word, index) => {
+      after(COUNT_IN_MS + word.cueBeat * BEAT_MS, () => {
+        setTake({ status: "singing", matched: index + 1 });
         if (word.percent === undefined) return;
 
         const landed = word.percent;
@@ -106,13 +113,15 @@ export const KaraokeCard = ({ knobX, scoldNonce, onDone }: KaraokeCardProps) => 
       });
     });
 
-    after(elapsed + COMMIT_DELAY_MS, () => {
-      const average = averagePercent(FLAT_WORDS.flatMap((w) => (w.percent ? [w.percent] : [])));
+    after(COUNT_IN_MS + VERSE_BEATS * BEAT_MS + COMMIT_DELAY_MS, () => {
+      const average = averagePercent(
+        FLAT_WORDS.flatMap((word) => (word.percent === undefined ? [] : [word.percent])),
+      );
       // The average is a percentage, but the dial only has notches — so the take
       // settles on the nearest one. That rounding IS the joke: perform six bars of
-      // precise percentages and the machine shrugs them into "High".
+      // precise percentages and the machine shrugs them into "Medium".
       const level = nearestLevel(percentToX(average));
-      setCommitted(level);
+      setTake({ status: "complete", level });
       onDone(true);
       void animate(knobX, notchX(level), COMMIT_SPRING);
 
@@ -125,7 +134,6 @@ export const KaraokeCard = ({ knobX, scoldNonce, onDone }: KaraokeCardProps) => 
   }, [after, clearTimers, knobX, onDone]);
 
   useEffect(() => {
-    onDone(false);
     run();
     return clearTimers;
   }, [run, clearTimers, onDone]);
@@ -143,20 +151,24 @@ export const KaraokeCard = ({ knobX, scoldNonce, onDone }: KaraokeCardProps) => 
 
   const activeLine = LYRIC_LINES[currentLineIndex];
   const lineStart = FLAT_WORDS.findIndex((word) => word.lineIndex === currentLineIndex);
-  const landedLabel = committed === null ? null : labelAt(committed);
+  const landedLabel = take.status === "complete" ? labelAt(take.level) : null;
 
   return (
     <motion.div
       style={{ x: cardShake }}
       className="relative rounded-[28px] border border-white/10 bg-neutral-800/95 p-5 shadow-2xl shadow-black/60"
     >
-      <div className="mb-4 flex h-8 items-center justify-between gap-3">
+      <AnimatePresence>
+        {take.status === "complete" && <CompletionSweep reduceMotion={Boolean(reduceMotion)} />}
+      </AnimatePresence>
+
+      <div className="relative mb-4 flex h-8 items-center justify-between gap-3">
         <p className="text-[15px] font-medium text-neutral-100">Reasoning effort</p>
 
         {/* The right slot carries the state of the take: how far in you are, the
             refusal if you try to bail, and only once it lands, the way to run it back. */}
         <AnimatePresence mode="wait" initial={false}>
-          {committed !== null ? (
+          {take.status === "complete" ? (
             <motion.button
               key="again"
               type="button"
@@ -181,6 +193,16 @@ export const KaraokeCard = ({ knobX, scoldNonce, onDone }: KaraokeCardProps) => 
             >
               Please finish the lyrics.
             </motion.span>
+          ) : take.status === "countdown" ? (
+            <motion.span
+              key="countdown-progress"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="shrink-0 text-[13px] tabular-nums text-violet-300"
+            >
+              Starts in {take.count}
+            </motion.span>
           ) : (
             <motion.span
               key="progress"
@@ -195,15 +217,34 @@ export const KaraokeCard = ({ knobX, scoldNonce, onDone }: KaraokeCardProps) => 
         </AnimatePresence>
       </div>
 
-      <div className="relative mb-4 flex h-16 items-center justify-center overflow-hidden rounded-2xl bg-neutral-900/70 px-4">
+      <div
+        aria-live="polite"
+        className="relative mb-4 flex h-16 items-center justify-center overflow-hidden rounded-2xl bg-neutral-900/70 px-4"
+      >
         <AnimatePresence mode="popLayout">
-          {committed === null ? (
+          {take.status === "countdown" ? (
+            <motion.div
+              key={take.count}
+              initial={reduceMotion ? { opacity: 0 } : { opacity: 0, scale: 0.55, y: 8 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={reduceMotion ? { opacity: 0 } : { opacity: 0, scale: 1.35, y: -6 }}
+              transition={{ duration: reduceMotion ? 0.1 : 0.28, ease: "easeOut" }}
+              className="flex items-baseline gap-2"
+            >
+              <span className="text-[12px] font-medium tracking-[0.16em] text-neutral-500 uppercase">
+                Get ready
+              </span>
+              <span className="text-4xl font-semibold tabular-nums text-violet-200 drop-shadow-[0_0_18px_rgba(167,139,250,0.75)]">
+                {take.count}
+              </span>
+            </motion.div>
+          ) : take.status === "singing" ? (
             <motion.p
               key={currentLineIndex}
-              initial={{ opacity: 0, y: 14 }}
+              initial={false}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -14 }}
-              transition={{ duration: 0.22, ease: [0.4, 0, 0.2, 1] }}
+              transition={{ duration: 0.16, ease: [0.4, 0, 0.2, 1] }}
               className="flex flex-wrap items-center justify-center gap-x-1.5 text-center text-[15px] font-medium"
             >
               {activeLine?.words.map((word, index) => {
@@ -232,18 +273,22 @@ export const KaraokeCard = ({ knobX, scoldNonce, onDone }: KaraokeCardProps) => 
             // because six bars of arithmetic deserve at least a bit of ceremony.
             <motion.div
               key="landed"
-              initial={{ opacity: 0, scale: 0.9 }}
+              initial={reduceMotion ? { opacity: 0 } : { opacity: 0, scale: 0.9 }}
               animate={{ opacity: 1, scale: 1 }}
-              transition={{ type: "spring", stiffness: 320, damping: 20 }}
+              transition={
+                reduceMotion ? { duration: 0.1 } : { type: "spring", stiffness: 320, damping: 20 }
+              }
               className="relative flex items-center justify-center"
             >
-              <motion.span
-                aria-hidden
-                className="absolute size-3 rounded-full bg-violet-500/60 blur-md"
-                initial={{ scale: 0.4, opacity: 0.9 }}
-                animate={{ scale: [0.4, 14, 11], opacity: [0.9, 0.35, 0.18] }}
-                transition={{ duration: 0.9, ease: "easeOut" }}
-              />
+              {!reduceMotion && (
+                <motion.span
+                  aria-hidden
+                  className="absolute size-3 rounded-full bg-violet-500/60 blur-md"
+                  initial={{ scale: 0.4, opacity: 0.9 }}
+                  animate={{ scale: [0.4, 14, 11], opacity: [0.9, 0.35, 0.18] }}
+                  transition={{ duration: 0.9, ease: "easeOut" }}
+                />
+              )}
               <p className="relative flex items-baseline gap-1.5 text-[17px] font-medium">
                 <span className="text-neutral-400">Landed on</span>
                 <span className="text-violet-300">{landedLabel}</span>
@@ -271,6 +316,56 @@ export const KaraokeCard = ({ knobX, scoldNonce, onDone }: KaraokeCardProps) => 
     </motion.div>
   );
 };
+
+const CompletionSweep = ({ reduceMotion }: { reduceMotion: boolean }) => (
+  <motion.div
+    aria-hidden
+    className="pointer-events-none absolute inset-0 z-10 overflow-hidden rounded-[28px]"
+    initial={{ opacity: 0 }}
+    animate={{ opacity: 1 }}
+    exit={{ opacity: 0 }}
+  >
+    {reduceMotion ? (
+      <motion.span
+        className="absolute top-1/2 left-1/2 h-28 w-72 rounded-full bg-violet-400/35 blur-2xl mix-blend-screen"
+        initial={{ transform: "translate(-50%, -50%)", opacity: 0 }}
+        animate={{ opacity: [0, 0.35, 0] }}
+        transition={{ duration: 0.5, times: [0, 0.5, 1] }}
+      />
+    ) : (
+      <>
+        <motion.span
+          className="absolute top-1/2 left-1/2 h-28 w-72 rounded-full bg-violet-400/40 blur-2xl mix-blend-screen"
+          initial={{ transform: "translate(-160%, -50%)", opacity: 0 }}
+          animate={{
+            transform: [
+              "translate(-160%, -50%)",
+              "translate(-70%, -50%)",
+              "translate(10%, -50%)",
+              "translate(60%, -50%)",
+            ],
+            opacity: [0, 0.9, 0.9, 0],
+          }}
+          transition={{ duration: 1.35, times: [0, 0.22, 0.72, 1], ease: "easeInOut" }}
+        />
+        <motion.span
+          className="absolute top-1/2 left-1/2 h-40 w-16 bg-gradient-to-r from-transparent via-white/70 to-transparent blur-lg mix-blend-screen"
+          initial={{ transform: "translate(-420%, -50%) rotate(12deg)", opacity: 0 }}
+          animate={{
+            transform: [
+              "translate(-420%, -50%) rotate(12deg)",
+              "translate(-220%, -50%) rotate(12deg)",
+              "translate(110%, -50%) rotate(12deg)",
+              "translate(320%, -50%) rotate(12deg)",
+            ],
+            opacity: [0, 1, 1, 0],
+          }}
+          transition={{ duration: 1.2, times: [0, 0.2, 0.75, 1], ease: "easeInOut" }}
+        />
+      </>
+    )}
+  </motion.div>
+);
 
 const SPARK_ANGLES = [-140, -110, -75, -45, 45, 75, 110, 140];
 
