@@ -30,11 +30,14 @@ const COMMIT_SPRING = { type: "spring", stiffness: 180, damping: 18 } as const;
 const percentToX = (percent: number) => (percent / 100) * TRACK_TRAVEL;
 
 type Burst = { id: number; percent: number };
+type CountdownCount = 3 | 2 | 1;
 
 type TakeState =
-  | { status: "countdown"; count: 3 | 2 | 1 }
+  | { status: "countdown"; count: CountdownCount }
   | { status: "singing"; matched: number }
   | { status: "complete"; level: number };
+
+const promptForCountdown = (count: CountdownCount) => (count === 1 ? "Let's go!" : "You ready?!");
 
 type KaraokeCardProps = {
   knobX: MotionValue<number>;
@@ -199,9 +202,29 @@ export const KaraokeCard = ({ knobX, scoldNonce, onDone }: KaraokeCardProps) => 
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              className="shrink-0 text-[13px] tabular-nums text-violet-300"
+              className="relative flex h-8 min-w-5 shrink-0 items-center justify-end overflow-hidden"
             >
-              Starts in {take.count}
+              <AnimatePresence mode="popLayout" initial={false}>
+                <motion.span
+                  key={take.count}
+                  aria-label={`Starts in ${take.count}`}
+                  initial={
+                    reduceMotion
+                      ? { opacity: 0 }
+                      : { opacity: 0, transform: "translateY(-7px) scale(1.15)" }
+                  }
+                  animate={{ opacity: 1, transform: "translateY(0) scale(1)" }}
+                  exit={
+                    reduceMotion
+                      ? { opacity: 0 }
+                      : { opacity: 0, transform: "translateY(7px) scale(0.9)" }
+                  }
+                  transition={{ duration: reduceMotion ? 0.1 : 0.18, ease: "easeOut" }}
+                  className="block min-w-5 text-right text-[18px] leading-none font-semibold tabular-nums text-violet-300"
+                >
+                  {take.count}
+                </motion.span>
+              </AnimatePresence>
             </motion.span>
           ) : (
             <motion.span
@@ -223,21 +246,24 @@ export const KaraokeCard = ({ knobX, scoldNonce, onDone }: KaraokeCardProps) => 
       >
         <AnimatePresence mode="popLayout">
           {take.status === "countdown" ? (
-            <motion.div
-              key={take.count}
-              initial={reduceMotion ? { opacity: 0 } : { opacity: 0, scale: 0.55, y: 8 }}
-              animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={reduceMotion ? { opacity: 0 } : { opacity: 0, scale: 1.35, y: -6 }}
-              transition={{ duration: reduceMotion ? 0.1 : 0.28, ease: "easeOut" }}
-              className="flex items-baseline gap-2"
+            <motion.p
+              key={promptForCountdown(take.count)}
+              initial={
+                reduceMotion
+                  ? { opacity: 0 }
+                  : { opacity: 0, transform: "translateY(8px) scale(0.96)" }
+              }
+              animate={{ opacity: 1, transform: "translateY(0) scale(1)" }}
+              exit={
+                reduceMotion
+                  ? { opacity: 0 }
+                  : { opacity: 0, transform: "translateY(-8px) scale(1.03)" }
+              }
+              transition={{ duration: reduceMotion ? 0.1 : 0.2, ease: "easeOut" }}
+              className="text-[17px] font-medium text-neutral-100"
             >
-              <span className="text-[12px] font-medium tracking-[0.16em] text-neutral-500 uppercase">
-                Get ready
-              </span>
-              <span className="text-4xl font-semibold tabular-nums text-violet-200 drop-shadow-[0_0_18px_rgba(167,139,250,0.75)]">
-                {take.count}
-              </span>
-            </motion.div>
+              {promptForCountdown(take.count)}
+            </motion.p>
           ) : take.status === "singing" ? (
             <motion.p
               key={currentLineIndex}
