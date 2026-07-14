@@ -175,10 +175,6 @@ export const KaraokeCard = ({ knobX, scoldNonce, onDone }: KaraokeCardProps) => 
       style={{ x: cardShake }}
       className="relative rounded-[28px] border border-white/10 bg-neutral-800/95 p-5 shadow-2xl shadow-black/60"
     >
-      <AnimatePresence>
-        {take.status === "complete" && <CompletionFinale reduceMotion={Boolean(reduceMotion)} />}
-      </AnimatePresence>
-
       <div className="relative mb-4 flex h-8 items-center justify-between gap-3">
         <p className="text-[15px] font-medium text-neutral-100">Reasoning effort</p>
 
@@ -210,132 +206,165 @@ export const KaraokeCard = ({ knobX, scoldNonce, onDone }: KaraokeCardProps) => 
             >
               Please finish the lyrics.
             </motion.span>
-          ) : take.status === "countdown" ? (
-            <motion.span
-              key="countdown-progress"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              className="relative flex h-8 min-w-5 shrink-0 items-center justify-end overflow-hidden"
-            >
-              <AnimatePresence mode="popLayout" initial={false}>
-                <motion.span
-                  key={take.count}
-                  aria-label={`Starts in ${take.count}`}
-                  initial={
-                    reduceMotion
-                      ? { opacity: 0 }
-                      : { opacity: 0, transform: "translateY(-7px) scale(1.15)" }
-                  }
-                  animate={{ opacity: 1, transform: "translateY(0) scale(1)" }}
-                  exit={
-                    reduceMotion
-                      ? { opacity: 0 }
-                      : { opacity: 0, transform: "translateY(7px) scale(0.9)" }
-                  }
-                  transition={{ duration: reduceMotion ? 0.1 : 0.18, ease: "easeOut" }}
-                  className="block min-w-5 text-right text-[18px] leading-none font-semibold tabular-nums text-violet-300"
-                >
-                  {take.count}
-                </motion.span>
-              </AnimatePresence>
-            </motion.span>
-          ) : (
+          ) : take.status === "countdown" ? null : (
             <motion.span
               key="progress"
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              className="shrink-0 text-[13px] tabular-nums text-neutral-400"
+              className="flex shrink-0 items-center gap-1 text-[13px] tabular-nums text-neutral-400"
             >
-              Bar {currentLineIndex + 1} of {LYRIC_LINES.length}
+              Bar
+              {/* The counter scrolls with the verse: the bar you just finished lifts
+                  away while the one you're on rises to take its place. */}
+              <span className="relative flex h-4 w-2 items-center justify-center overflow-hidden">
+                <AnimatePresence mode="popLayout" initial={false}>
+                  <motion.span
+                    key={currentLineIndex}
+                    initial={reduceMotion ? { opacity: 0 } : { opacity: 0, y: 9 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={reduceMotion ? { opacity: 0 } : { opacity: 0, y: -9 }}
+                    transition={{ duration: reduceMotion ? 0.1 : 0.22, ease: [0.4, 0, 0.2, 1] }}
+                    className="absolute inset-0 flex items-center justify-center"
+                  >
+                    {currentLineIndex + 1}
+                  </motion.span>
+                </AnimatePresence>
+              </span>
+              of {LYRIC_LINES.length}
             </motion.span>
           )}
         </AnimatePresence>
       </div>
 
-      <div
-        aria-live="polite"
-        className="relative mb-4 flex h-16 items-center justify-center overflow-hidden rounded-2xl bg-neutral-900/70 px-4"
-      >
-        <AnimatePresence mode="popLayout">
-          {take.status === "countdown" ? (
-            <motion.p
-              key={promptForCountdown(take.count)}
-              initial={
-                reduceMotion
-                  ? { opacity: 0 }
-                  : { opacity: 0, transform: "translateY(8px) scale(0.96)" }
-              }
-              animate={{ opacity: 1, transform: "translateY(0) scale(1)" }}
-              exit={
-                reduceMotion
-                  ? { opacity: 0 }
-                  : { opacity: 0, transform: "translateY(-8px) scale(1.03)" }
-              }
-              transition={{ duration: reduceMotion ? 0.1 : 0.2, ease: "easeOut" }}
-              className="text-[17px] font-medium text-neutral-100"
-            >
-              {promptForCountdown(take.count)}
-            </motion.p>
-          ) : take.status === "singing" ? (
-            <motion.p
-              key={currentLineIndex}
-              initial={false}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -14 }}
-              transition={{ duration: 0.16, ease: [0.4, 0, 0.2, 1] }}
-              className="flex flex-wrap items-center justify-center gap-x-1.5 text-center text-[15px] font-medium"
-            >
-              {activeLine?.words.map((word, index) => {
-                const done = lineStart + index < matched;
-                const isPercent = word.percent !== undefined;
-                return (
-                  <span
-                    key={`${currentLineIndex}-${lineStart + index}`}
-                    className={
-                      isPercent
-                        ? done
-                          ? "text-violet-400"
-                          : "text-violet-400/30"
-                        : done
-                          ? "text-neutral-100"
-                          : "text-neutral-600"
-                    }
-                  >
-                    {word.text}
-                  </span>
-                );
-              })}
-            </motion.p>
-          ) : (
-            // The verse gives way to the verdict. It arrives with a flare behind it,
-            // because six bars of arithmetic deserve at least a bit of ceremony.
-            <motion.div
-              key="landed"
-              initial={reduceMotion ? { opacity: 0 } : { opacity: 0, scale: 0.9 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={
-                reduceMotion ? { duration: 0.1 } : { type: "spring", stiffness: 320, damping: 20 }
-              }
-              className="relative z-20 flex items-center justify-center"
-            >
-              {!reduceMotion && (
-                <motion.span
-                  aria-hidden
-                  className="absolute size-3 rounded-full bg-violet-500/60 blur-md"
-                  initial={{ scale: 0.4, opacity: 0.9 }}
-                  animate={{ scale: [0.4, 14, 11], opacity: [0.9, 0.35, 0.18] }}
-                  transition={{ duration: 0.9, ease: "easeOut" }}
-                />
-              )}
-              <p className="relative flex items-baseline gap-1.5 text-[17px] font-medium">
-                <span className="text-neutral-400">Landed on</span>
-                <span className="text-violet-300">{landedLabel}</span>
-              </p>
-            </motion.div>
-          )}
+      <div className="relative mb-4 h-16">
+        <AnimatePresence>
+          {take.status === "complete" && <CompletionGlow reduceMotion={Boolean(reduceMotion)} />}
         </AnimatePresence>
+
+        <div
+          aria-live="polite"
+          className="relative z-10 flex h-full items-center justify-center overflow-hidden rounded-2xl bg-neutral-900/70 px-4"
+        >
+          <AnimatePresence>
+            {take.status === "complete" && !reduceMotion && <CompletionShimmer />}
+          </AnimatePresence>
+
+          <AnimatePresence mode="popLayout">
+            {take.status === "countdown" ? (
+              <div
+                key="countdown"
+                className="relative z-20 flex w-full items-center justify-between gap-4"
+              >
+                <AnimatePresence mode="popLayout" initial={false}>
+                  <motion.p
+                    key={promptForCountdown(take.count)}
+                    initial={
+                      reduceMotion
+                        ? { opacity: 0 }
+                        : { opacity: 0, transform: "translateY(8px) scale(0.96)" }
+                    }
+                    animate={{ opacity: 1, transform: "translateY(0) scale(1)" }}
+                    exit={
+                      reduceMotion
+                        ? { opacity: 0 }
+                        : { opacity: 0, transform: "translateY(-8px) scale(1.03)" }
+                    }
+                    transition={{ duration: reduceMotion ? 0.1 : 0.2, ease: "easeOut" }}
+                    className="text-left text-[17px] font-medium text-neutral-100"
+                  >
+                    {promptForCountdown(take.count)}
+                  </motion.p>
+                </AnimatePresence>
+
+                <span className="relative flex h-8 min-w-5 shrink-0 items-center justify-end overflow-hidden">
+                  <AnimatePresence mode="popLayout" initial={false}>
+                    <motion.span
+                      key={take.count}
+                      aria-label={`Starts in ${take.count}`}
+                      initial={
+                        reduceMotion
+                          ? { opacity: 0 }
+                          : { opacity: 0, transform: "translateY(-7px) scale(1.15)" }
+                      }
+                      animate={{ opacity: 1, transform: "translateY(0) scale(1)" }}
+                      exit={
+                        reduceMotion
+                          ? { opacity: 0 }
+                          : { opacity: 0, transform: "translateY(7px) scale(0.9)" }
+                      }
+                      transition={{ duration: reduceMotion ? 0.1 : 0.18, ease: "easeOut" }}
+                      className="block min-w-5 text-right text-[18px] leading-none font-semibold tabular-nums text-violet-300"
+                    >
+                      {take.count}
+                    </motion.span>
+                  </AnimatePresence>
+                </span>
+              </div>
+            ) : take.status === "singing" ? (
+              // Bars scroll like a teleprompter: the outgoing line lifts, blurs and
+              // fades while the next one rises into focus underneath it.
+              <motion.p
+                key={currentLineIndex}
+                initial={reduceMotion ? { opacity: 0 } : { opacity: 0, y: 14, filter: "blur(5px)" }}
+                animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
+                exit={reduceMotion ? { opacity: 0 } : { opacity: 0, y: -14, filter: "blur(5px)" }}
+                transition={{ duration: reduceMotion ? 0.1 : 0.22, ease: [0.4, 0, 0.2, 1] }}
+                // Pinned to the panel rather than laid out in it: popLayout yanks the
+                // outgoing bar out of flow, and a shrink-wrapped bar re-wraps mid-exit.
+                // Same width in, same width out — a bar that wraps, wraps the whole time.
+                className="absolute inset-x-4 inset-y-0 z-20 flex flex-wrap content-center items-center justify-center gap-x-1.5 text-center text-[15px] font-medium"
+              >
+                {activeLine?.words.map((word, index) => {
+                  const done = lineStart + index < matched;
+                  const isPercent = word.percent !== undefined;
+                  return (
+                    <span
+                      key={`${currentLineIndex}-${lineStart + index}`}
+                      className={
+                        isPercent
+                          ? done
+                            ? "text-violet-400"
+                            : "text-violet-400/30"
+                          : done
+                            ? "text-neutral-100"
+                            : "text-neutral-600"
+                      }
+                    >
+                      {word.text}
+                    </span>
+                  );
+                })}
+              </motion.p>
+            ) : (
+              // The verse gives way to the verdict. It arrives with a flare behind it,
+              // because six bars of arithmetic deserve at least a bit of ceremony.
+              <motion.div
+                key="landed"
+                initial={reduceMotion ? { opacity: 0 } : { opacity: 0, scale: 0.9 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={
+                  reduceMotion ? { duration: 0.1 } : { type: "spring", stiffness: 320, damping: 20 }
+                }
+                className="relative z-20 flex items-center justify-center"
+              >
+                {!reduceMotion && (
+                  <motion.span
+                    aria-hidden
+                    className="absolute size-3 rounded-full bg-violet-500/60 blur-md"
+                    initial={{ scale: 0.4, opacity: 0.9 }}
+                    animate={{ scale: [0.4, 14, 11], opacity: [0.9, 0.35, 0.18] }}
+                    transition={{ duration: 0.9, ease: "easeOut" }}
+                  />
+                )}
+                <p className="relative flex items-baseline gap-1.5 text-[17px] font-medium">
+                  <span className="text-neutral-400">Landed on</span>
+                  <span className="text-violet-300">{landedLabel}</span>
+                </p>
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </div>
       </div>
 
       <div className="relative" style={{ width: TRACK_WIDTH, height: KNOB_SIZE }}>
@@ -356,99 +385,88 @@ export const KaraokeCard = ({ knobX, scoldNonce, onDone }: KaraokeCardProps) => 
   );
 };
 
-const CompletionFinale = ({ reduceMotion }: { reduceMotion: boolean }) => (
+/**
+ * The bloom that escapes the lyric panel. It stays close to the edge — a rim of
+ * light leaking out from behind the verdict, not a flare washing over the card.
+ */
+const CompletionGlow = ({ reduceMotion }: { reduceMotion: boolean }) => (
   <motion.div
     aria-hidden
-    className="pointer-events-none absolute inset-0 z-10 overflow-hidden rounded-[28px]"
+    className="pointer-events-none absolute -inset-2 z-0"
     initial={{ opacity: 0 }}
     animate={{ opacity: 1 }}
     exit={{ opacity: 0 }}
   >
-    {reduceMotion ? (
-      <>
-        <motion.span
-          className="absolute top-1/2 left-1/2 h-28 w-72 rounded-full bg-violet-400/35 blur-2xl mix-blend-screen"
-          initial={{ transform: "translate(-50%, -50%)", opacity: 0 }}
-          animate={{ opacity: [0, 0.4, 0] }}
-          transition={{ duration: 0.5, times: [0, 0.5, 1] }}
-        />
-        <motion.span
-          className="absolute inset-px rounded-[27px] border border-violet-300/70"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: [0, 0.65, 0] }}
-          transition={{ duration: 0.5, times: [0, 0.45, 1] }}
-        />
-      </>
-    ) : (
-      <>
-        <motion.span
-          className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,rgba(255,255,255,0.58),rgba(139,92,246,0.3)_42%,transparent_76%)] mix-blend-screen"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: [0, 1, 0] }}
-          transition={{ duration: 0.46, times: [0, 0.28, 1], ease: "easeOut" }}
-        />
-        <motion.span
-          className="absolute inset-px rounded-[27px] border border-violet-200/90 shadow-[inset_0_0_24px_rgba(167,139,250,0.55),0_0_26px_rgba(139,92,246,0.5)]"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: [0, 1, 0.5, 0] }}
-          transition={{ duration: 1.2, times: [0, 0.12, 0.5, 1], ease: "easeOut" }}
-        />
-        <motion.span
-          className="absolute top-1/2 left-1/2 h-px w-3/4 origin-center bg-gradient-to-r from-transparent via-white to-transparent shadow-[0_0_12px_rgba(196,181,253,0.95)] mix-blend-screen"
-          initial={{ transform: "translate(-50%, -50%) scaleX(0)", opacity: 0 }}
-          animate={{
-            transform: [
-              "translate(-50%, -50%) scaleX(0)",
-              "translate(-50%, -50%) scaleX(1.15)",
-              "translate(-50%, -50%) scaleX(0.85)",
-            ],
-            opacity: [0, 1, 0],
-          }}
-          transition={{ duration: 0.9, times: [0, 0.3, 1], ease: "easeOut" }}
-        />
-        <motion.span
-          className="absolute top-1/2 left-1/2 h-28 w-72 rounded-full bg-violet-400/50 blur-2xl mix-blend-screen"
-          initial={{ transform: "translate(-160%, -50%)", opacity: 0 }}
-          animate={{
-            transform: [
-              "translate(-160%, -50%)",
-              "translate(-70%, -50%)",
-              "translate(10%, -50%)",
-              "translate(60%, -50%)",
-            ],
-            opacity: [0, 1, 1, 0],
-          }}
-          transition={{ duration: 1.35, times: [0, 0.22, 0.72, 1], ease: "easeInOut" }}
-        />
-        <motion.span
-          className="absolute top-1/2 left-1/2 h-40 w-14 bg-gradient-to-r from-transparent via-white/90 to-transparent blur-md mix-blend-screen"
-          initial={{ transform: "translate(-420%, -50%) rotate(12deg)", opacity: 0 }}
-          animate={{
-            transform: [
-              "translate(-420%, -50%) rotate(12deg)",
-              "translate(-220%, -50%) rotate(12deg)",
-              "translate(110%, -50%) rotate(12deg)",
-              "translate(320%, -50%) rotate(12deg)",
-            ],
-            opacity: [0, 1, 1, 0],
-          }}
-          transition={{ duration: 1.2, times: [0, 0.2, 0.75, 1], ease: "easeInOut" }}
-        />
-        <FinaleGlints />
-      </>
-    )}
+    <motion.span
+      className="absolute inset-2 rounded-2xl bg-violet-500/40 blur-xl"
+      initial={{ opacity: 0 }}
+      animate={reduceMotion ? { opacity: [0, 0.3, 0.14] } : { opacity: [0, 0.7, 0.22] }}
+      transition={{ duration: reduceMotion ? 0.5 : 1.1, times: [0, 0.24, 1], ease: "easeOut" }}
+    />
   </motion.div>
 );
 
+/**
+ * Everything else is clipped to the lyric panel: the verse burns off, the panel
+ * catches the light for a beat, and a single specular sweep crosses it.
+ */
+const CompletionShimmer = () => (
+  <motion.div
+    aria-hidden
+    className="pointer-events-none absolute inset-0 z-10 overflow-hidden rounded-2xl"
+    initial={{ opacity: 0 }}
+    animate={{ opacity: 1 }}
+    exit={{ opacity: 0 }}
+  >
+    <motion.span
+      className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,rgba(196,181,253,0.32),rgba(139,92,246,0.18)_45%,transparent_75%)] mix-blend-screen"
+      initial={{ opacity: 0 }}
+      animate={{ opacity: [0, 1, 0.35, 0] }}
+      transition={{ duration: 1.1, times: [0, 0.18, 0.55, 1], ease: "easeOut" }}
+    />
+    <motion.span
+      className="absolute inset-px rounded-[15px] border border-violet-300/50 shadow-[inset_0_0_20px_rgba(167,139,250,0.3)]"
+      initial={{ opacity: 0 }}
+      animate={{ opacity: [0, 1, 0.4, 0] }}
+      transition={{ duration: 1.4, times: [0, 0.14, 0.55, 1], ease: "easeOut" }}
+    />
+    <motion.span
+      className="absolute top-1/2 left-1/2 h-px w-2/3 origin-center bg-gradient-to-r from-transparent via-violet-100 to-transparent shadow-[0_0_10px_rgba(196,181,253,0.7)] mix-blend-screen"
+      initial={{ transform: "translate(-50%, -50%) scaleX(0)", opacity: 0 }}
+      animate={{
+        transform: [
+          "translate(-50%, -50%) scaleX(0)",
+          "translate(-50%, -50%) scaleX(1)",
+          "translate(-50%, -50%) scaleX(0.7)",
+        ],
+        opacity: [0, 0.7, 0],
+      }}
+      transition={{ duration: 0.8, times: [0, 0.3, 1], ease: "easeOut" }}
+    />
+    <motion.span
+      className="absolute top-1/2 left-1/2 h-32 w-16 bg-gradient-to-r from-transparent via-white/35 to-transparent blur-md mix-blend-screen"
+      initial={{ transform: "translate(-360%, -50%) rotate(14deg)", opacity: 0 }}
+      animate={{
+        transform: [
+          "translate(-360%, -50%) rotate(14deg)",
+          "translate(-200%, -50%) rotate(14deg)",
+          "translate(120%, -50%) rotate(14deg)",
+          "translate(300%, -50%) rotate(14deg)",
+        ],
+        opacity: [0, 1, 1, 0],
+      }}
+      transition={{ duration: 1.1, times: [0, 0.2, 0.78, 1], ease: "easeInOut" }}
+    />
+    <FinaleGlints />
+  </motion.div>
+);
+
+/** Sparse, panel-bound — a few catches of light, not a firework. */
 const FINALE_GLINTS = [
-  { x: -176, y: -38, delay: 0.08 },
-  { x: -132, y: 36, delay: 0.14 },
-  { x: -76, y: -48, delay: 0.2 },
-  { x: -24, y: 42, delay: 0.27 },
-  { x: 52, y: -46, delay: 0.34 },
-  { x: 104, y: 38, delay: 0.41 },
-  { x: 154, y: -32, delay: 0.48 },
-  { x: 188, y: 18, delay: 0.55 },
+  { x: -148, y: -16, delay: 0.1 },
+  { x: -92, y: 16, delay: 0.18 },
+  { x: 78, y: -18, delay: 0.28 },
+  { x: 142, y: 12, delay: 0.36 },
 ];
 
 const FinaleGlints = () => (
@@ -458,7 +476,7 @@ const FinaleGlints = () => (
       return (
         <motion.span
           key={`${glint.x}-${glint.y}`}
-          className="absolute top-1/2 left-1/2 size-5 mix-blend-screen"
+          className="absolute top-1/2 left-1/2 size-4 mix-blend-screen"
           initial={{ transform: "translate(-50%, -50%) scale(0) rotate(0deg)", opacity: 0 }}
           animate={{
             transform: [
@@ -466,12 +484,12 @@ const FinaleGlints = () => (
               `${destination} scale(1) rotate(45deg)`,
               `${destination} scale(0.2) rotate(90deg)`,
             ],
-            opacity: [0, 1, 0],
+            opacity: [0, 0.85, 0],
           }}
-          transition={{ duration: 0.72, delay: glint.delay, times: [0, 0.45, 1], ease: "easeOut" }}
+          transition={{ duration: 0.66, delay: glint.delay, times: [0, 0.45, 1], ease: "easeOut" }}
         >
-          <span className="absolute top-1/2 inset-x-0 h-px bg-white shadow-[0_0_8px_rgba(221,214,254,1)]" />
-          <span className="absolute left-1/2 inset-y-0 w-px bg-white shadow-[0_0_8px_rgba(221,214,254,1)]" />
+          <span className="absolute top-1/2 inset-x-0 h-px bg-violet-100 shadow-[0_0_6px_rgba(221,214,254,0.8)]" />
+          <span className="absolute left-1/2 inset-y-0 w-px bg-violet-100 shadow-[0_0_6px_rgba(221,214,254,0.8)]" />
         </motion.span>
       );
     })}

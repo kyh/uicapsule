@@ -367,5 +367,3 @@ The remaining 13 scanner errors are triaged: 10 isolated content packages cannot
 ### @uicapsule/wireframe-orb
 
 - 263 · warning · `unused-dependency` · `package.json:0` · **accepted** — required peer of @react-three/postprocessing
-
-
