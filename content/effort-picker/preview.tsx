@@ -10,6 +10,7 @@ import { EffortPicker } from "./effort-picker";
 const VARIANTS: { value: EffortVariant; label: string }[] = [
   { value: "slingshot", label: "Slingshot" },
   { value: "karaoke", label: "Karaoke" },
+  { value: "curls", label: "Curls" },
 ];
 
 const isVariant = (value: string): value is EffortVariant =>

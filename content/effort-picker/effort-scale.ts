@@ -28,6 +28,10 @@ export const notchX = (level: number) => clamp(level, 0, LEVEL_COUNT - 1) * NOTC
 
 export const nearestLevel = (x: number) => clamp(Math.round(x / NOTCH_GAP), 0, LEVEL_COUNT - 1);
 
+/** Both performed variants score in percent and only convert to track-pixels at
+ * the last moment — the dial is the readout, not the unit of measurement. */
+export const percentToX = (percent: number) => (clamp(percent, 0, 100) / 100) * TRACK_TRAVEL;
+
 /** Takes a level *index*, not a track position. */
 export const labelAt = (index: number) =>
   EFFORT_LEVELS[clamp(Math.round(index), 0, LEVEL_COUNT - 1)] ?? EFFORT_LEVELS[0];

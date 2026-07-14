@@ -6,12 +6,13 @@ import { RotateCcwIcon, ZapIcon } from "lucide-react";
 
 import type { MotionValue } from "motion/react";
 
-import { DialTrough } from "./effort-dial";
+import { DialTrough, Sparks } from "./effort-dial";
 import {
   KNOB_SIZE,
   labelAt,
   nearestLevel,
   notchX,
+  percentToX,
   TRACK_TRAVEL,
   TRACK_WIDTH,
 } from "./effort-scale";
@@ -26,8 +27,6 @@ const COMMIT_DELAY_MS = 700;
 
 const DIAL_SPRING = { type: "spring", stiffness: 260, damping: 24 } as const;
 const COMMIT_SPRING = { type: "spring", stiffness: 180, damping: 18 } as const;
-
-const percentToX = (percent: number) => (percent / 100) * TRACK_TRAVEL;
 
 type Burst = { id: number; percent: number };
 type CountdownCount = 3 | 2 | 1;
@@ -494,36 +493,4 @@ const FinaleGlints = () => (
       );
     })}
   </>
-);
-
-const SPARK_ANGLES = [-140, -110, -75, -45, 45, 75, 110, 140];
-
-/** A hit of confetti at the notch the percentage just claimed. */
-const Sparks = ({ percent }: { percent: number }) => (
-  <motion.span
-    aria-hidden
-    className="absolute top-1/2 size-0"
-    style={{ left: percentToX(percent) + KNOB_SIZE / 2 }}
-  >
-    <motion.span
-      className="absolute -translate-x-1/2 -translate-y-1/2 rounded-full border-2 border-violet-400"
-      initial={{ width: 10, height: 10, opacity: 0.9 }}
-      animate={{ width: 64, height: 64, opacity: 0 }}
-      transition={{ duration: 0.55, ease: "easeOut" }}
-    />
-    {SPARK_ANGLES.map((angle) => (
-      <motion.span
-        key={angle}
-        className="absolute size-1 rounded-full bg-violet-300"
-        initial={{ x: 0, y: 0, opacity: 1, scale: 1 }}
-        animate={{
-          x: Math.cos((angle * Math.PI) / 180) * 30,
-          y: Math.sin((angle * Math.PI) / 180) * 26,
-          opacity: 0,
-          scale: 0.4,
-        }}
-        transition={{ duration: 0.6, ease: "easeOut" }}
-      />
-    ))}
-  </motion.span>
 );

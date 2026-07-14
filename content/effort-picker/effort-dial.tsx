@@ -8,6 +8,7 @@ import {
   EFFORT_LEVELS,
   KNOB_SIZE,
   notchX,
+  percentToX,
   TRACK_HEIGHT,
   TRACK_OFFSET_Y,
   TRACK_TRAVEL,
@@ -78,3 +79,37 @@ export const DialTrough = ({ knobX }: DialTroughProps) => {
     </>
   );
 };
+
+const SPARK_ANGLES = [-140, -110, -75, -45, 45, 75, 110, 140];
+
+/** A hit of confetti at the point on the track a percentage just claimed. Both
+ * performed variants throw these — a sung percentage and a completed curl are
+ * the same event as far as the dial is concerned. */
+export const Sparks = ({ percent }: { percent: number }) => (
+  <motion.span
+    aria-hidden
+    className="absolute top-1/2 size-0"
+    style={{ left: percentToX(percent) + KNOB_SIZE / 2 }}
+  >
+    <motion.span
+      className="absolute -translate-x-1/2 -translate-y-1/2 rounded-full border-2 border-violet-400"
+      initial={{ width: 10, height: 10, opacity: 0.9 }}
+      animate={{ width: 64, height: 64, opacity: 0 }}
+      transition={{ duration: 0.55, ease: "easeOut" }}
+    />
+    {SPARK_ANGLES.map((angle) => (
+      <motion.span
+        key={angle}
+        className="absolute size-1 rounded-full bg-violet-300"
+        initial={{ x: 0, y: 0, opacity: 1, scale: 1 }}
+        animate={{
+          x: Math.cos((angle * Math.PI) / 180) * 30,
+          y: Math.sin((angle * Math.PI) / 180) * 26,
+          opacity: 0,
+          scale: 0.4,
+        }}
+        transition={{ duration: 0.6, ease: "easeOut" }}
+      />
+    ))}
+  </motion.span>
+);
