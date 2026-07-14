@@ -143,6 +143,7 @@ export const MediaReveal = ({ className, image, video, iframe }: MediaRevealProp
           className="bg-background absolute inset-0 h-full w-full"
           title={iframe.title}
           src={iframe.src}
+          allow="microphone; camera"
           onLoad={() => setRevealed(true)}
         />
       )}

@@ -347,6 +347,28 @@ importers:
         specifier: 'catalog:'
         version: 19.2.3(@types/react@19.2.17)
 
+  content/effort-picker:
+    dependencies:
+      lucide-react:
+        specifier: ^1.24.0
+        version: 1.24.0(react@19.2.7)
+      motion:
+        specifier: ^12.42.2
+        version: 12.42.2(react-dom@19.2.7(react@19.2.7))(react@19.2.7)
+      react:
+        specifier: 'catalog:'
+        version: 19.2.7
+      react-dom:
+        specifier: 'catalog:'
+        version: 19.2.7(react@19.2.7)
+    devDependencies:
+      '@types/react':
+        specifier: 'catalog:'
+        version: 19.2.17
+      '@types/react-dom':
+        specifier: 'catalog:'
+        version: 19.2.3(@types/react@19.2.17)
+
   content/emerald-template:
     dependencies:
       '@icons-pack/react-simple-icons':

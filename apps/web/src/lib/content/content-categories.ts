@@ -16,7 +16,19 @@ export const contentCategories: ContentFilter[] = [
   { name: "Business", slug: "business" },
   { name: "Games", slug: "games" },
   { name: "Utilities", slug: "utilities" },
+  { name: "Silly", slug: "silly" },
 ];
+
+/**
+ * Tags that opt a component out of the default surfaces. An unlisted component
+ * is hidden from the grid, the scroll feed, and search's trending list, but it
+ * stays fully addressable: it shows up when its tag is explicitly filtered for,
+ * when it's searched by name, and when it's deep-linked or installed.
+ */
+export const unlistedTags: ReadonlySet<string> = new Set(["silly"]);
+
+export const isUnlisted = (tags: string[] | undefined) =>
+  (tags ?? []).some((tag) => unlistedTags.has(tag));
 
 export const contentStyles: ContentFilter[] = [
   { name: "Minimal", slug: "minimal" },
@@ -27,7 +39,6 @@ export const contentStyles: ContentFilter[] = [
   { name: "Typographic", slug: "typographic" },
   { name: "Geometric", slug: "geometric" },
   { name: "Retro", slug: "retro" },
-  { name: "Silly", slug: "silly" },
   { name: "Pixel Art", slug: "pixel-art" },
 ];
 

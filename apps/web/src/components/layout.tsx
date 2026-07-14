@@ -153,7 +153,12 @@ const SearchButton = ({ searchEntries }: { searchEntries: SearchEntry[] }) => {
     }
     return counts;
   }, [searchEntries]);
-  const trending = useMemo(() => searchEntries.slice(0, TRENDING_LIMIT), [searchEntries]);
+  // Unlisted entries stay searchable by name or tag, but never fill the
+  // default suggestion list — you have to go looking for them.
+  const trending = useMemo(
+    () => searchEntries.filter((entry) => !entry.unlisted).slice(0, TRENDING_LIMIT),
+    [searchEntries],
+  );
 
   useEffect(() => {
     const down = (e: KeyboardEvent) => {

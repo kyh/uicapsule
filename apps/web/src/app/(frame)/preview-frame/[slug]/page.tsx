@@ -3,7 +3,7 @@ import { notFound } from "next/navigation";
 import { isRemoteContentComponent } from "@/lib/content/content-schema";
 
 import { MediaReveal } from "@/components/media-reveal";
-import { getFeedList } from "@/lib/content-data";
+import { getAllContent } from "@/lib/content-data";
 
 import type { ComponentType } from "react";
 
@@ -12,8 +12,8 @@ type Props = {
 };
 
 export const generateStaticParams = async () => {
-  const feed = await getFeedList();
-  return feed.filter((c) => !isRemoteContentComponent(c)).map((c) => ({ slug: c.slug }));
+  const all = await getAllContent();
+  return all.filter((c) => !isRemoteContentComponent(c)).map((c) => ({ slug: c.slug }));
 };
 
 const SLUG_PATTERN = /^[a-z0-9][a-z0-9-]*$/;

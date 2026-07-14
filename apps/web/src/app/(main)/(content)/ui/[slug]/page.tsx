@@ -3,15 +3,15 @@ import { notFound } from "next/navigation";
 
 import { ContentFeed } from "@/app/(main)/(content)/_components/content-feed";
 import { MediaReveal } from "@/components/media-reveal";
-import { getFeedList } from "@/lib/content-data";
+import { getAllContent, getFeedList } from "@/lib/content-data";
 
 type Props = {
   params: Promise<{ slug: string }>;
 };
 
 export const generateStaticParams = async () => {
-  const feed = await getFeedList();
-  return feed.map((c) => ({ slug: c.slug }));
+  const all = await getAllContent();
+  return all.map((c) => ({ slug: c.slug }));
 };
 
 const Page = ({ params }: Props) => {
@@ -28,7 +28,7 @@ export default Page;
 
 const Content = async ({ params }: Props) => {
   const { slug } = await params;
-  const feed = await getFeedList();
+  const feed = await getFeedList(slug);
   if (!feed.some((c) => c.slug === slug)) {
     notFound();
   }
