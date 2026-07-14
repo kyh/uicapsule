@@ -1,0 +1,7 @@
+{
+  "name": "Volume Control",
+  "description": "Five volume controls that refuse to just be a slider: tilt, cannon, curling, dot-matrix, and whack-a-mole.",
+  "coverUrl": "https://zmdrwswxugswzmcokvff.supabase.co/storage/v1/object/public/uicapsule/volume-control/volume-control.mp4",
+  "coverType": "video",
+  "tags": ["silly", "skeuomorphism", "video-audio"]
+}
