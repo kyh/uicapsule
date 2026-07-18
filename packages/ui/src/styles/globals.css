@@ -3,7 +3,9 @@
 @import "shadcn/tailwind.css";
 
 @custom-variant dark (&:is(.dark *));
-@source "../../../../apps/**/*.{ts,tsx}";
+/* No apps/** scan here: each app's sources are auto-detected from its own build
+   root, so scanning apps/** from this shared stylesheet would make every app
+   ship every other app's classes. */
 @source "../../../../content/**/*.{ts,tsx}";
 @source "../**/*.{ts,tsx}";
 

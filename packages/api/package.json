@@ -15,8 +15,6 @@
     "@repo/db": "workspace:^",
     "@trpc/server": "catalog:",
     "better-auth": "catalog:",
-    "next": "catalog:",
-    "react": "catalog:",
     "superjson": "catalog:",
     "zod": "catalog:"
   },

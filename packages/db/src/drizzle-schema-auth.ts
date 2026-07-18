@@ -85,6 +85,17 @@ export const verification = sqliteTable(
   (table) => [index("verification_identifier_idx").on(table.identifier)],
 );
 
+// better-auth's database rate-limit store (rateLimit.storage = "database" in
+// auth.ts). Keyed by IP+path; `key` is unique so the counter upsert is a single
+// indexed lookup. Hand-added — the CLI regen (generate:auth-schema) emits this
+// table too, so re-check it after regenerating.
+export const rateLimit = sqliteTable("rate_limit", {
+  id: text("id").primaryKey(),
+  key: text("key").notNull().unique(),
+  count: integer("count").notNull(),
+  lastRequest: integer("last_request").notNull(),
+});
+
 export const userRelations = relations(user, ({ many }) => ({
   sessions: many(session),
   accounts: many(account),

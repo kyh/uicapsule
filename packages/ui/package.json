@@ -12,7 +12,6 @@
   },
   "scripts": {
     "clean": "git clean -xdf .cache .turbo node_modules",
-    "test": "vitest run",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
