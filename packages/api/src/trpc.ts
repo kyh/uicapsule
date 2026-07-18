@@ -11,17 +11,12 @@ import { initTRPC, TRPCError } from "@trpc/server";
 import superjson from "superjson";
 import { ZodError } from "zod";
 
-import { auth } from "./auth/auth";
+import { auth, trustedOrigins } from "./auth/auth";
 
 /**
- * 1. CONTEXT
- *
- * This section defines the "contexts" that are available in the backend API.
- *
- * These allow you to access things when processing a request, like the database, the session, etc.
- *
- * This helper generates the "internals" for a tRPC context. The API handler and RSC clients each
- * wrap this and provides the required context.
+ * Builds the per-request context. Callers supply headers rather than reading
+ * them here, so the same code serves the fetch handler and the in-process RSC
+ * caller, which have no shared request object.
  *
  * @see https://trpc.io/docs/server/context
  */
@@ -33,16 +28,18 @@ export const createTRPCContext = async (opts: { headers: Headers }) => {
   return {
     session,
     db,
+    // Browser-supplied request provenance. Captured here because a tRPC
+    // middleware cannot read raw request headers; read by the mutation origin
+    // guard below. Both null for non-browser callers (server-to-server).
+    origin: opts.headers.get("origin"),
+    secFetchSite: opts.headers.get("sec-fetch-site"),
   };
 };
 
 export type TRPCContext = Awaited<ReturnType<typeof createTRPCContext>>;
 
 /**
- * 2. INITIALIZATION
- *
- * This is where the trpc api is initialized, connecting the context and
- * transformer
+ * Initialize the tRPC API, connecting the context and transformer.
  */
 const t = initTRPC.context<TRPCContext>().create({
   transformer: superjson,
@@ -55,43 +52,58 @@ const t = initTRPC.context<TRPCContext>().create({
   }),
 });
 
-/**
- * Create a server-side caller
- * @see https://trpc.io/docs/server/server-side-calls
- */
+/** @see https://trpc.io/docs/server/server-side-calls */
 export const createCallerFactory = t.createCallerFactory;
 
-/**
- * 3. ROUTER & PROCEDURE (THE IMPORTANT BIT)
- *
- * These are the pieces you use to build your tRPC API. You should import these
- * a lot in the /src/server/api/routers folder
- */
-
-/**
- * This is how you create new routers and subrouters in your tRPC API
- * @see https://trpc.io/docs/router
- */
+/** @see https://trpc.io/docs/router */
 export const createTRPCRouter = t.router;
 
-/**
- * Public (unauthed) procedure
- *
- * This is the base piece you use to build new queries and mutations on your
- * tRPC API. It does not guarantee that a user querying is authorized, but you
- * can still access user session data if they are logged in
- */
-export const publicProcedure = t.procedure;
+const TRUSTED_ORIGINS = new Set(trustedOrigins);
 
 /**
- * Protected (authenticated) procedure
- *
- * If you want a query or mutation to ONLY be accessible to logged in users, use this. It verifies
- * the session is valid and guarantees `ctx.session.user` is not null.
+ * True when a request carries browser provenance that isn't same-origin or an
+ * allow-listed origin. Defence-in-depth CSRF check: better-auth's own Origin
+ * checks only cover /api/auth/*, so this guards /api/trpc. Non-browser callers
+ * send neither header and are left alone; session auth still applies.
+ */
+const isUntrustedOrigin = (origin: string | null, secFetchSite: string | null) => {
+  // Sec-Fetch-Site is set by the browser and cannot be forged from script.
+  if (secFetchSite === "same-origin" || secFetchSite === "none") return false;
+  // No browser provenance at all — not a browser CSRF vector.
+  if (!origin && !secFetchSite) return false;
+  // A cross-site/same-site label, or any Origin, must match the allow-list.
+  // Fail closed: a stripped Origin under a cross-site label is rejected.
+  return origin === null || !TRUSTED_ORIGINS.has(origin);
+};
+
+/**
+ * Rejects state-changing calls whose origin isn't trusted — defence-in-depth
+ * against CSRF, layered under session auth rather than replacing it. Queries are
+ * side-effect-free and pass through untouched.
+ */
+const enforceTrustedOriginOnMutation = t.middleware(({ ctx, type, next }) => {
+  if (type === "mutation" && isUntrustedOrigin(ctx.origin, ctx.secFetchSite)) {
+    throw new TRPCError({
+      code: "FORBIDDEN",
+      message: "Cross-origin request rejected",
+    });
+  }
+  return next();
+});
+
+/**
+ * Unauthenticated procedure. Does not require a session, but `ctx.session` is
+ * still populated when the caller happens to be logged in.
+ */
+export const publicProcedure = t.procedure.use(enforceTrustedOriginOnMutation);
+
+/**
+ * Requires a session, and narrows `ctx.session.user` to non-nullable for the
+ * handler.
  *
  * @see https://trpc.io/docs/procedures
  */
-export const protectedProcedure = t.procedure.use(({ ctx, next }) => {
+export const protectedProcedure = publicProcedure.use(({ ctx, next }) => {
   if (!ctx.session?.user) {
     throw new TRPCError({ code: "UNAUTHORIZED" });
   }

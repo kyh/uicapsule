@@ -1,15 +1,18 @@
-import { cache } from "react";
-import { headers } from "next/headers";
 import { db } from "@repo/db/drizzle-client";
 import { betterAuth } from "better-auth";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
 
-const baseUrl =
+export const baseUrl =
   process.env.VERCEL_ENV === "production"
     ? `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}`
     : process.env.VERCEL_ENV === "preview"
       ? `https://${process.env.VERCEL_URL}`
       : "http://localhost:3000";
+
+// Origins allowed to drive authenticated requests. Only the web app runs
+// same-origin as baseUrl. Consumed by better-auth's own Origin checks and by
+// the tRPC mutation guard (see packages/api/src/trpc.ts).
+export const trustedOrigins = [baseUrl];
 
 export const auth = betterAuth({
   database: drizzleAdapter(db, {
@@ -19,14 +22,18 @@ export const auth = betterAuth({
   emailAndPassword: {
     enabled: true,
   },
+  trustedOrigins,
+  // Persist rate-limit counters in the database. The default in-memory store
+  // keeps per-instance counters, so on serverless (Vercel) the effective limit
+  // multiplies across cold-started instances and resets on every deploy. 10
+  // requests/60s per IP throttles credential-stuffing against the auth routes.
+  rateLimit: {
+    enabled: true,
+    storage: "database",
+    window: 60,
+    max: 10,
+  },
 });
 
 export type Auth = typeof auth;
 export type Session = Auth["$Infer"]["Session"];
-
-/**
- * Cached function to get the current user session
- * Uses React cache to avoid unnecessary re-fetching
- * @returns Promise<Session | null> - The current user session or null if not authenticated
- */
-export const getSession = cache(async () => auth.api.getSession({ headers: await headers() }));
