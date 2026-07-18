@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { buttonVariants } from "@repo/ui/components/button";
+import { Button } from "@repo/ui/components/button";
 
 import "./styles/globals.css";
 
@@ -17,9 +17,7 @@ const NotFound = () => (
             The page you&apos;re looking for doesn&apos;t exist or has moved.
           </p>
         </div>
-        <Link href="/" className={buttonVariants()}>
-          Back home
-        </Link>
+        <Button render={<Link href="/" />}>Back home</Button>
       </main>
     </body>
   </html>
