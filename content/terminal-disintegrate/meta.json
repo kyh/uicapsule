@@ -1,0 +1,6 @@
+{
+  "name": "Terminal Disintegrate",
+  "description": "An ASCII trading terminal drawn from box-drawing glyphs, whose screen burns into drifting embers and reassembles as the next one — scrub backwards and the same debris replays in reverse.",
+  "defaultSize": "full",
+  "tags": ["finance", "pixel-art", "effects"]
+}
