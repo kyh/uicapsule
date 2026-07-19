@@ -1,6 +1,6 @@
 "use client";
 
-import { memo, useCallback, useEffect, useRef } from "react";
+import { memo, useEffect, useRef } from "react";
 
 // 16-bit color palette (reduced color options)
 const STAR_COLORS = [
@@ -25,6 +25,10 @@ const percentToRegenerate = 0.15; // Percentage of stars to regenerate at each i
 // Shooting star configuration
 const shootingStarPixelSize = 2;
 const targetFps = 16; // 16 FPS for that retro feel
+const frameInterval = 1000 / targetFps;
+const shootingStarWidth = 4; // 4 pixels wide
+const shootingStarHeight = 2; // 2 pixels high
+const shootingStarMargin = 30; // How far off-canvas a star travels before it is culled
 
 // Type definitions
 type BackgroundStar = {
@@ -46,332 +50,249 @@ type TrailPoint = {
 };
 
 type ShootingStar = {
-  id: number;
   x: number;
   y: number;
   angle: number;
-  scale: number;
   speed: number;
   distance: number;
   trail: TrailPoint[];
 };
 
-type StartPoint = {
-  x: number;
-  y: number;
-  angle: number;
+const randomStarColor = (): string => {
+  const colorIndex = Math.floor(Math.random() * STAR_COLORS.length);
+  return STAR_COLORS[colorIndex] ?? STAR_COLORS[0];
 };
 
-export const BackgroundPixelStars = memo(
-  () => {
-    const canvasRef = useRef<HTMLCanvasElement | null>(null);
-    const animationFrameRef = useRef<number | null>(null);
+// A background star snapped to the pixel grid, at a random spot on the canvas.
+const createBackgroundStar = (width: number, height: number): BackgroundStar => {
+  const shouldTwinkle = Math.random() < twinkleProbability;
+  const gridX = Math.floor(Math.random() * (width / pixelSize)) * pixelSize;
+  const gridY = Math.floor(Math.random() * (height / pixelSize)) * pixelSize;
+  const color = randomStarColor();
+  const baseOpacity = Math.random() * 0.5 + 0.5;
 
-    // State references
-    const backgroundStarsRef = useRef<BackgroundStar[]>([]);
-    const shootingStarsRef = useRef<ShootingStar[]>([]);
-    const lastRenderTimeRef = useRef<number>(0);
-    const frameInterval: number = 1000 / targetFps;
+  return {
+    x: gridX,
+    y: gridY,
+    color,
+    baseOpacity,
+    currentOpacity: baseOpacity,
+    twinkle: shouldTwinkle,
+    twinkleSpeed: minTwinkleSpeed + Math.random() * (maxTwinkleSpeed - minTwinkleSpeed),
+    twinkleDirection: -1, // -1 fading out, 1 fading in
+    twinkleTimer: 0,
+  };
+};
 
-    // Get random starting point for shooting stars
-    const getRandomStartPoint = useCallback((): StartPoint => {
-      // Start from anywhere along the top edge
-      const x = Math.random() * window.innerWidth;
+// A shooting star entering from anywhere along the top edge. The angle spans
+// 45-135 degrees, where 90 is straight down, 45 down-right and 135 down-left.
+const createShootingStar = (width: number): ShootingStar => ({
+  x: Math.random() * width,
+  y: 0,
+  angle: 45 + Math.random() * 90,
+  speed: Math.random() * 5 + 8,
+  distance: 0,
+  trail: [], // Empty trail initially
+});
 
-      // Randomize the angle with a wider range (45-135 degrees)
-      // 90 degrees is straight down
-      // 45 degrees is down-right, 135 degrees is down-left
-      const angle = 45 + Math.random() * 90;
+export const BackgroundPixelStars = memo(() => {
+  const canvasRef = useRef<HTMLCanvasElement | null>(null);
 
-      return { x, y: 0, angle };
-    }, []);
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
 
-    // Create a new shooting star
-    const createNewShootingStar = useCallback((): ShootingStar => {
-      const { x, y, angle } = getRandomStartPoint();
-      return {
-        id: Date.now(),
-        x,
-        y,
-        angle,
-        scale: 1,
-        speed: Math.random() * 5 + 8,
-        distance: 0,
-        trail: [], // Empty trail initially
-      };
-    }, [getRandomStartPoint]);
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return;
 
-    // Initialize background stars
-    const initBackgroundStars = useCallback((): void => {
-      if (!canvasRef.current) return;
+    let backgroundStars: BackgroundStar[] = [];
+    let shootingStars: ShootingStar[] = [];
 
-      const canvas = canvasRef.current;
-
-      // Clear existing stars
-      backgroundStarsRef.current = [];
-
-      // Generate new stars
+    const initBackgroundStars = (): void => {
       const area = canvas.width * canvas.height;
       const numStars = Math.floor(area * starDensity);
 
+      backgroundStars = [];
       for (let i = 0; i < numStars; i++) {
-        const shouldTwinkle = Math.random() < twinkleProbability;
-        const gridX = Math.floor(Math.random() * (canvas.width / pixelSize)) * pixelSize;
-        const gridY = Math.floor(Math.random() * (canvas.height / pixelSize)) * pixelSize;
-        const colorIndex = Math.floor(Math.random() * STAR_COLORS.length);
-        const baseOpacity = Math.random() * 0.5 + 0.5;
-
-        backgroundStarsRef.current.push({
-          x: gridX,
-          y: gridY,
-          color: STAR_COLORS[colorIndex]!,
-          baseOpacity,
-          currentOpacity: baseOpacity,
-          twinkle: shouldTwinkle,
-          twinkleSpeed: minTwinkleSpeed + Math.random() * (maxTwinkleSpeed - minTwinkleSpeed),
-          twinkleDirection: -1, // -1 fading out, 1 fading in
-          twinkleTimer: 0,
-        });
+        backgroundStars.push(createBackgroundStar(canvas.width, canvas.height));
       }
-    }, []);
+    };
 
-    // Regenerate a portion of background stars
-    const regenerateBackgroundStars = useCallback((): void => {
-      if (!canvasRef.current || backgroundStarsRef.current.length === 0) return;
+    // Swap out a slice of the field so the sky slowly reshuffles.
+    const regenerateBackgroundStars = (): void => {
+      if (backgroundStars.length === 0) return;
 
-      const canvas = canvasRef.current;
-      const numToRegenerate = Math.max(
-        1,
-        Math.floor(backgroundStarsRef.current.length * percentToRegenerate),
-      );
+      const numToRegenerate = Math.max(1, Math.floor(backgroundStars.length * percentToRegenerate));
 
       for (let i = 0; i < numToRegenerate; i++) {
-        const randomIndex = Math.floor(Math.random() * backgroundStarsRef.current.length);
-
-        // Replace with a new star
-        const shouldTwinkle = Math.random() < twinkleProbability;
-        const gridX = Math.floor(Math.random() * (canvas.width / pixelSize)) * pixelSize;
-        const gridY = Math.floor(Math.random() * (canvas.height / pixelSize)) * pixelSize;
-        const colorIndex = Math.floor(Math.random() * STAR_COLORS.length);
-        const baseOpacity = Math.random() * 0.5 + 0.5;
-
-        backgroundStarsRef.current[randomIndex] = {
-          x: gridX,
-          y: gridY,
-          color: STAR_COLORS[colorIndex]!,
-          baseOpacity,
-          currentOpacity: baseOpacity,
-          twinkle: shouldTwinkle,
-          twinkleSpeed: minTwinkleSpeed + Math.random() * (maxTwinkleSpeed - minTwinkleSpeed),
-          twinkleDirection: -1,
-          twinkleTimer: 0,
-        };
+        const randomIndex = Math.floor(Math.random() * backgroundStars.length);
+        backgroundStars[randomIndex] = createBackgroundStar(canvas.width, canvas.height);
       }
-    }, []);
+    };
 
-    // Main animation loop
-    const animateCanvas = useCallback(
-      (timestamp: number): void => {
-        // Skip frames to limit to target FPS
-        if (timestamp - lastRenderTimeRef.current < frameInterval) {
-          animationFrameRef.current = requestAnimationFrame(animateCanvas);
-          return;
+    const drawBackgroundStars = (): void => {
+      for (const star of backgroundStars) {
+        ctx.fillStyle = star.color;
+        ctx.globalAlpha = star.currentOpacity;
+        ctx.fillRect(star.x, star.y, pixelSize, pixelSize);
+
+        if (!star.twinkle) continue;
+
+        star.twinkleTimer += 1 / targetFps;
+
+        if (star.twinkleTimer >= star.twinkleSpeed) {
+          star.twinkleTimer = 0;
+          star.twinkleDirection *= -1; // Reverse direction
         }
 
-        lastRenderTimeRef.current = timestamp;
-
-        if (!canvasRef.current) {
-          animationFrameRef.current = requestAnimationFrame(animateCanvas);
-          return;
+        // Calculate new opacity based on discrete steps
+        const progress = star.twinkleTimer / star.twinkleSpeed;
+        if (progress < 0.5) {
+          star.currentOpacity =
+            star.twinkleDirection < 0 ? star.baseOpacity : star.baseOpacity * 0.3;
+        } else {
+          star.currentOpacity =
+            star.twinkleDirection < 0 ? star.baseOpacity * 0.3 : star.baseOpacity;
         }
+      }
+    };
 
-        const canvas = canvasRef.current;
-        const ctx = canvas.getContext("2d");
+    const updateShootingStars = (): void => {
+      shootingStars = shootingStars
+        .map((star) => {
+          // Calculate new position
+          const newX = star.x + star.speed * Math.cos((star.angle * Math.PI) / 180);
+          const newY = star.y + star.speed * Math.sin((star.angle * Math.PI) / 180);
+          const newDistance = star.distance + star.speed;
 
-        if (!ctx) {
-          animationFrameRef.current = requestAnimationFrame(animateCanvas);
-          return;
-        }
+          const newTrail = [...star.trail];
 
-        // Clear canvas
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-        // 1. Draw and update background stars
-        backgroundStarsRef.current.forEach((star) => {
-          ctx.fillStyle = star.color;
-          ctx.globalAlpha = star.currentOpacity;
-          ctx.fillRect(star.x, star.y, pixelSize, pixelSize);
-
-          // Update twinkling
-          if (star.twinkle) {
-            // Update twinkle timer
-            star.twinkleTimer += 1 / targetFps;
-
-            if (star.twinkleTimer >= star.twinkleSpeed) {
-              star.twinkleTimer = 0;
-              star.twinkleDirection *= -1; // Reverse direction
-            }
-
-            // Calculate new opacity based on discrete steps
-            const progress = star.twinkleTimer / star.twinkleSpeed;
-            if (progress < 0.5) {
-              star.currentOpacity =
-                star.twinkleDirection < 0 ? star.baseOpacity : star.baseOpacity * 0.3;
-            } else {
-              star.currentOpacity =
-                star.twinkleDirection < 0 ? star.baseOpacity * 0.3 : star.baseOpacity;
-            }
-          }
-        });
-
-        // 2. Update shooting stars
-        if (shootingStarsRef.current.length) {
-          shootingStarsRef.current = shootingStarsRef.current
-            .map((star) => {
-              // Calculate new position
-              const newX = star.x + star.speed * Math.cos((star.angle * Math.PI) / 180);
-              const newY = star.y + star.speed * Math.sin((star.angle * Math.PI) / 180);
-              const newDistance = star.distance + star.speed;
-
-              // Add current position to trail
-              const newTrail = [...star.trail];
-
-              // Only add to trail every few frames for pixelated effect
-              if (newDistance % 8 < star.speed) {
-                newTrail.push({
-                  x: star.x,
-                  y: star.y,
-                  opacity: 1.0,
-                });
-              }
-
-              // Update trail opacity and remove old trail pieces
-              const updatedTrail = newTrail
-                .map((point) => ({ ...point, opacity: point.opacity - 0.1 }))
-                .filter((point) => point.opacity > 0);
-
-              return {
-                ...star,
-                x: newX,
-                y: newY,
-                distance: newDistance,
-                trail: updatedTrail,
-              };
-            })
-            .filter(
-              (star) =>
-                // Remove stars that are out of bounds
-                star.x >= -30 &&
-                star.x <= window.innerWidth + 30 &&
-                star.y >= -30 &&
-                star.y <= window.innerHeight + 30,
-            );
-
-          // 3. Draw shooting stars
-          shootingStarsRef.current.forEach((star) => {
-            // Draw trail
-            star.trail.forEach((point) => {
-              ctx.save();
-              ctx.translate(point.x, point.y);
-              ctx.rotate((star.angle * Math.PI) / 180);
-              ctx.translate(-point.x, -point.y);
-
-              ctx.fillStyle = `rgba(180, 242, 255, ${point.opacity})`;
-              ctx.fillRect(point.x, point.y, shootingStarPixelSize, shootingStarPixelSize);
-
-              ctx.restore();
+          // Only add to trail every few frames for pixelated effect
+          if (newDistance % 8 < star.speed) {
+            newTrail.push({
+              x: star.x,
+              y: star.y,
+              opacity: 1.0,
             });
+          }
 
-            // Draw star (pixelated representation)
-            const starWidth = 4; // 4 pixels wide
-            const starHeight = 2; // 2 pixels high
+          // Update trail opacity and remove old trail pieces
+          const updatedTrail = newTrail
+            .map((point) => ({ ...point, opacity: point.opacity - 0.1 }))
+            .filter((point) => point.opacity > 0);
 
-            ctx.save();
-            ctx.translate(star.x, star.y);
-            ctx.rotate((star.angle * Math.PI) / 180);
-            ctx.translate(-star.x, -star.y);
+          return {
+            ...star,
+            x: newX,
+            y: newY,
+            distance: newDistance,
+            trail: updatedTrail,
+          };
+        })
+        .filter(
+          (star) =>
+            // Remove stars that are out of bounds
+            star.x >= -shootingStarMargin &&
+            star.x <= canvas.width + shootingStarMargin &&
+            star.y >= -shootingStarMargin &&
+            star.y <= canvas.height + shootingStarMargin,
+        );
+    };
 
-            ctx.fillStyle = "#ffffff";
-            ctx.globalAlpha = 1.0;
+    const drawShootingStars = (): void => {
+      for (const star of shootingStars) {
+        const radians = (star.angle * Math.PI) / 180;
 
-            for (let y = 0; y < starHeight; y++) {
-              for (let x = 0; x < starWidth; x++) {
-                // Skip some pixels for pixelated look
-                if ((x === 0 && y === 1) || (x === 3 && y === 0)) continue;
+        // Draw trail
+        for (const point of star.trail) {
+          ctx.save();
+          ctx.translate(point.x, point.y);
+          ctx.rotate(radians);
+          ctx.translate(-point.x, -point.y);
 
-                ctx.fillRect(
-                  star.x + x * shootingStarPixelSize,
-                  star.y + y * shootingStarPixelSize,
-                  shootingStarPixelSize,
-                  shootingStarPixelSize,
-                );
-              }
-            }
+          ctx.fillStyle = `rgba(180, 242, 255, ${point.opacity})`;
+          ctx.fillRect(point.x, point.y, shootingStarPixelSize, shootingStarPixelSize);
 
-            ctx.restore();
-          });
+          ctx.restore();
         }
 
-        animationFrameRef.current = requestAnimationFrame(animateCanvas);
-      },
-      [frameInterval],
-    );
+        // Draw star (pixelated representation)
+        ctx.save();
+        ctx.translate(star.x, star.y);
+        ctx.rotate(radians);
+        ctx.translate(-star.x, -star.y);
 
-    // Initialize the component
-    useEffect(() => {
-      if (!canvasRef.current) return;
+        ctx.fillStyle = "#ffffff";
+        ctx.globalAlpha = 1.0;
 
-      // Set canvas dimensions
-      canvasRef.current.width = window.innerWidth;
-      canvasRef.current.height = window.innerHeight;
+        for (let y = 0; y < shootingStarHeight; y++) {
+          for (let x = 0; x < shootingStarWidth; x++) {
+            // Skip some pixels for pixelated look
+            if ((x === 0 && y === 1) || (x === 3 && y === 0)) continue;
 
-      // Initialize background stars
+            ctx.fillRect(
+              star.x + x * shootingStarPixelSize,
+              star.y + y * shootingStarPixelSize,
+              shootingStarPixelSize,
+              shootingStarPixelSize,
+            );
+          }
+        }
+
+        ctx.restore();
+      }
+    };
+
+    let frameId = 0;
+    let lastRenderTime = 0;
+
+    const animateCanvas = (timestamp: number): void => {
+      frameId = requestAnimationFrame(animateCanvas);
+
+      // Skip frames to limit to target FPS
+      if (timestamp - lastRenderTime < frameInterval) return;
+      lastRenderTime = timestamp;
+
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      drawBackgroundStars();
+
+      if (shootingStars.length) {
+        updateShootingStars();
+        drawShootingStars();
+      }
+    };
+
+    const resizeCanvas = (): void => {
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
       initBackgroundStars();
+    };
 
-      // Start animation loop
-      animationFrameRef.current = requestAnimationFrame(animateCanvas);
+    resizeCanvas();
+    frameId = requestAnimationFrame(animateCanvas);
 
-      // Create shooting stars periodically
-      let shootingStarTimer: ReturnType<typeof setTimeout> | undefined;
+    // Spawn shooting stars on a random 2-6 second cadence.
+    let shootingStarTimer: ReturnType<typeof setTimeout> | undefined;
+    const spawnShootingStar = (): void => {
+      shootingStars = [...shootingStars, createShootingStar(canvas.width)];
 
-      const createShootingStar = (): void => {
-        const newStar = createNewShootingStar();
-        shootingStarsRef.current = [...shootingStarsRef.current, newStar];
+      const randomDelay = Math.random() * 4000 + 2000; // 2-6 seconds
+      shootingStarTimer = setTimeout(spawnShootingStar, randomDelay);
+    };
+    spawnShootingStar();
 
-        // Set a random delay for creating the next star
-        const randomDelay = Math.random() * 4000 + 2000; // 2-6 seconds
-        shootingStarTimer = setTimeout(createShootingStar, randomDelay);
-      };
+    const regenerationInterval = setInterval(regenerateBackgroundStars, starRegenerationInterval);
 
-      // Create first shooting star
-      createShootingStar();
+    window.addEventListener("resize", resizeCanvas);
 
-      // Set up regeneration interval for background stars
-      const regenerationInterval = setInterval(regenerateBackgroundStars, starRegenerationInterval);
+    return () => {
+      cancelAnimationFrame(frameId);
+      clearInterval(regenerationInterval);
+      clearTimeout(shootingStarTimer);
+      window.removeEventListener("resize", resizeCanvas);
+    };
+  }, []);
 
-      // Handle window resize
-      const handleResize = (): void => {
-        if (canvasRef.current) {
-          canvasRef.current.width = window.innerWidth;
-          canvasRef.current.height = window.innerHeight;
-          initBackgroundStars();
-        }
-      };
-
-      window.addEventListener("resize", handleResize);
-
-      // Cleanup
-      return () => {
-        if (animationFrameRef.current) {
-          cancelAnimationFrame(animationFrameRef.current);
-        }
-        clearInterval(regenerationInterval);
-        if (shootingStarTimer !== undefined) clearTimeout(shootingStarTimer);
-        window.removeEventListener("resize", handleResize);
-      };
-    }, [animateCanvas, createNewShootingStar, initBackgroundStars, regenerateBackgroundStars]);
-
-    return <canvas ref={canvasRef} className="pointer-events-none fixed inset-0" />;
-  },
-  () => true,
-);
+  return <canvas ref={canvasRef} className="pointer-events-none fixed inset-0" />;
+});

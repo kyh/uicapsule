@@ -48,6 +48,18 @@ const PINK = "#ec4899";
 const TITLE_CLASS = "truncate text-[16px] leading-[22px] tracking-[-0.18px]";
 const SUBTITLE_CLASS = "truncate text-xs leading-4 tracking-[-0.12px]";
 
+// Every expanded widget sits on the same 376px card; only the corner radius and
+// the internal flow (`layout`) differ between them.
+const WIDGET_SHELL_CLASS = "flex w-[376px] max-w-[calc(100vw-40px)] p-6 text-white";
+
+function WidgetShell({ children, layout }: { children: ReactNode; layout: string }) {
+  return (
+    <div className={`${WIDGET_SHELL_CLASS} ${layout}`} style={{ backgroundColor: ISLAND_BG }}>
+      {children}
+    </div>
+  );
+}
+
 type ExpandedWidgetProps = {
   view: ExpandedWidgetView;
 };
@@ -71,10 +83,7 @@ export function ExpandedWidget({ view }: ExpandedWidgetProps) {
 
 function MusicExpanded() {
   return (
-    <div
-      className="flex w-[376px] max-w-[calc(100vw-40px)] flex-col gap-3 rounded-[32px] p-6 text-white"
-      style={{ backgroundColor: ISLAND_BG }}
-    >
+    <WidgetShell layout="flex-col gap-3 rounded-[32px]">
       <div className="flex items-center gap-2">
         <AlbumArt />
         <div className="min-w-0 flex-1">
@@ -104,7 +113,7 @@ function MusicExpanded() {
         <Play aria-hidden="true" className="size-8" fill="currentColor" strokeWidth={0} />
         <FastForward aria-hidden="true" className="size-6" fill="currentColor" strokeWidth={0} />
       </div>
-    </div>
+    </WidgetShell>
   );
 }
 
@@ -135,10 +144,7 @@ function Equalizer() {
 
 function OngoingCallExpanded() {
   return (
-    <div
-      className="flex w-[376px] max-w-[calc(100vw-40px)] flex-col gap-3 rounded-[32px] p-6 text-white"
-      style={{ backgroundColor: ISLAND_BG }}
-    >
+    <WidgetShell layout="flex-col gap-3 rounded-[32px]">
       <div className="flex items-center gap-2">
         <Avatar />
         <div className="min-w-0 flex-1">
@@ -166,7 +172,7 @@ function OngoingCallExpanded() {
           <PhoneOff aria-hidden="true" className="size-[22px]" strokeWidth={1.8} />
         </RoundAction>
       </div>
-    </div>
+    </WidgetShell>
   );
 }
 
@@ -180,10 +186,7 @@ const MEMO_DOTS = Array.from({ length: 11 }, (_, index) => `dot-${index}`);
 
 function VoiceMemoExpanded() {
   return (
-    <div
-      className="flex w-[376px] max-w-[calc(100vw-40px)] items-center gap-3 rounded-full p-6 text-white"
-      style={{ backgroundColor: ISLAND_BG }}
-    >
+    <WidgetShell layout="items-center gap-3 rounded-full">
       <div aria-hidden className="flex h-11 shrink-0 items-center gap-[2px]">
         {MEMO_BARS.map(({ id, height }, index) => (
           <motion.span
@@ -214,16 +217,13 @@ function VoiceMemoExpanded() {
         05:00
       </span>
       <StopButton label="Stop recording" />
-    </div>
+    </WidgetShell>
   );
 }
 
 function ScreenRecordingExpanded() {
   return (
-    <div
-      className="flex w-[376px] max-w-[calc(100vw-40px)] items-center gap-3 rounded-full p-6 text-white"
-      style={{ backgroundColor: ISLAND_BG }}
-    >
+    <WidgetShell layout="items-center gap-3 rounded-full">
       <span className={`flex-1 ${TITLE_CLASS}`}>Screen Recording</span>
       <div className="flex shrink-0 items-center gap-1">
         <motion.span
@@ -238,16 +238,13 @@ function ScreenRecordingExpanded() {
         </span>
       </div>
       <StopButton label="Stop screen recording" />
-    </div>
+    </WidgetShell>
   );
 }
 
 function IncomingCallExpanded() {
   return (
-    <div
-      className="flex w-[376px] max-w-[calc(100vw-40px)] items-center gap-2 rounded-full p-6 text-white"
-      style={{ backgroundColor: ISLAND_BG }}
-    >
+    <WidgetShell layout="items-center gap-2 rounded-full">
       <Avatar />
       <div className="min-w-0 flex-1">
         <p className={`${TITLE_CLASS} font-semibold`}>Mike Wheeler</p>
@@ -277,16 +274,13 @@ function IncomingCallExpanded() {
           <Phone aria-hidden="true" className="size-[22px]" strokeWidth={1.8} />
         </motion.span>
       </button>
-    </div>
+    </WidgetShell>
   );
 }
 
 function FlightExpanded() {
   return (
-    <div
-      className="flex w-[376px] max-w-[calc(100vw-40px)] flex-col gap-4 rounded-[32px] p-6 text-white"
-      style={{ backgroundColor: ISLAND_BG }}
-    >
+    <WidgetShell layout="flex-col gap-4 rounded-[32px]">
       <div className="flex items-center gap-2">
         <div
           className="grid size-12 shrink-0 place-items-center rounded-2xl"
@@ -320,7 +314,7 @@ function FlightExpanded() {
       >
         Show Boarding Pass
       </button>
-    </div>
+    </WidgetShell>
   );
 }
 

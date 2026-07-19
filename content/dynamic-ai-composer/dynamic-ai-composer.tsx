@@ -78,10 +78,16 @@ export const DynamicAiComposer = () => {
   const [scope, animateShake] = useAnimate();
 
   const textareaRef = useRef<HTMLTextAreaElement | null>(null);
-  const timeoutsRef = useRef<ReturnType<typeof setTimeout>[]>([]);
+  const timeoutsRef = useRef(new Set<ReturnType<typeof setTimeout>>());
 
+  // Timers are tracked so unmount can cancel the in-flight stream; each one drops
+  // itself from the set as it fires so a long session cannot accumulate dead ids.
   const queue = useCallback((callback: () => void, delay: number) => {
-    timeoutsRef.current.push(setTimeout(callback, delay));
+    const id = setTimeout(() => {
+      timeoutsRef.current.delete(id);
+      callback();
+    }, delay);
+    timeoutsRef.current.add(id);
   }, []);
 
   useEffect(() => {
@@ -242,7 +248,7 @@ export const DynamicAiComposer = () => {
             </button>
             <ListeningWave />
             <span className="w-8 shrink-0 text-center text-xs tabular-nums text-white/50">
-              0:{String(elapsed).padStart(2, "0")}
+              {Math.floor(elapsed / 60)}:{String(elapsed % 60).padStart(2, "0")}
             </span>
             <button
               type="button"

@@ -150,7 +150,7 @@ export const KaraokeCard = ({ knobX, scoldNonce, onDone }: KaraokeCardProps) => 
   useEffect(() => {
     run();
     return clearTimers;
-  }, [run, clearTimers, onDone]);
+  }, [run, clearTimers]);
 
   // Walking out mid-verse is not a thing you get to do. The shell bumps the nonce
   // when the chip is clicked before the take lands; the card answers by refusing.

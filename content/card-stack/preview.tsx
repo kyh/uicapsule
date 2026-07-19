@@ -12,7 +12,7 @@ const cards = [
   { src: `${rootUrl}/found.webp`, href: "https://founding.so", alt: "Founding" },
   { src: `${rootUrl}/init.webp`, href: "https://init.kyh.io", alt: "Init" },
   { src: `${rootUrl}/tc.webp`, href: "https://tc.kyh.io", alt: "TC" },
-  { src: `${rootUrl}/data.webp`, href: "https://dataembed.com`", alt: "Data Embed" },
+  { src: `${rootUrl}/data.webp`, href: "https://dataembed.com", alt: "Data Embed" },
   { src: `${rootUrl}/ys.webp`, href: "https://yourssincerely.org", alt: "Yours Sincerely" },
 ];
 

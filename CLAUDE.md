@@ -66,6 +66,21 @@ assume a suite has your back.
 - **auth + tRPC are kept.** One procedure, zero callers, deliberately retained for a future
   feature. Make them correct; don't propose deleting them.
 - **Supabase stays.** It hosts every cover video.
+- **Vercel builds on every push — deliberately. Do not add build-skipping.** Both Vercel's
+  "Skip unaffected projects" and an Ignored Build Step / `turbo-ignore` are disabled on the
+  project. Every skip mechanism decides "affected" from the _workspace dependency graph_, and
+  `apps/web` intentionally never depends on `content/*` by name (see Content architecture), so
+  they classify every content-only commit as unaffected and silently cancel the deploy. That
+  ate four real deploys before it was caught. The optimization also isn't worth it: builds run
+  ~44s and 39 of the last 40 commits genuinely needed one. If this repo ever gains a second
+  Vercel project, revisit — until then, always build.
+- **`turbo.json` declares `globalDependencies: ["content/**"]` — do not remove it.** Same
+  root cause as the Vercel note above: `apps/web` reads `content/*` from the filesystem and
+  never imports it, so it is absent from turbo's build-input graph. Without this line a
+  content-only commit is a `FULL TURBO` cache hit that serves the _previous_ build — which
+  both hides content edits and, when a content source file was deleted/renamed, fails the
+  Vercel deploy with `ENOENT` on the stale file in the cached Next.js trace (killed the
+  merge of #86 once). The line makes any content change invalidate the web build.
 - Settled audit findings that should not be re-raised live in the pinned issue #84.
 
 ## Content Curation Philosophy

@@ -91,22 +91,20 @@ export const MacosChrome = ({ volume, open, onToggle, hud }: MacosChromeProps) =
  */
 const SpeakerGlyph = ({ volume }: { volume: MotionValue<number> }) => (
   <span className="relative flex size-[22px] items-center justify-center">
-    {TIERS.map((tier) => {
-      const Icon = TIER_ICON[tier];
-      return <TierIcon key={tier} tier={tier} Icon={Icon} volume={volume} />;
-    })}
+    {TIERS.map((tier) => (
+      <TierIcon key={tier} tier={tier} volume={volume} />
+    ))}
   </span>
 );
 
 const TierIcon = ({
   tier,
-  Icon,
   volume,
 }: {
   tier: (typeof TIERS)[number];
-  Icon: (typeof TIER_ICON)[keyof typeof TIER_ICON];
   volume: MotionValue<number>;
 }) => {
+  const Icon = TIER_ICON[tier];
   const opacity = useTransform(volume, (value) => (speakerTier(value) === tier ? 1 : 0));
   return (
     <motion.span aria-hidden className="absolute inset-0" style={{ opacity }}>

@@ -105,10 +105,10 @@ export const TeslaClimate = () => {
             </button>
             <span className="flex items-center gap-1.5 px-1 text-[13px] font-medium text-[#5b6472]">
               <Fan
-                className="size-4"
+                className={`size-4 ${powerOn ? "animate-spin" : ""}`}
                 style={
                   powerOn
-                    ? { animation: `spin ${(4.4 - fanSpeed * 0.36).toFixed(2)}s linear infinite` }
+                    ? { animationDuration: `${(4.4 - fanSpeed * 0.36).toFixed(2)}s` }
                     : undefined
                 }
               />

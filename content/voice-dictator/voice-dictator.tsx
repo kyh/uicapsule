@@ -11,43 +11,19 @@ const TRANSCRIPT_LIBRARY = [
   "Introduce a faint aurora stretching across the horizon to hint at ancient magic awakening right behind the hero.",
 ] as const;
 
-type WebGLResources = {
-  gl: WebGLRenderingContext;
-  program: WebGLProgram;
-  uniforms: {
-    time: WebGLUniformLocation | null;
-    amplitude: WebGLUniformLocation | null;
-    resolution: WebGLUniformLocation | null;
-  };
-};
+/** Per-frame lerp factor pulling the rendered amplitude toward its target. */
+const AMPLITUDE_SMOOTHING = 0.95;
 
 type TimeoutHandle = ReturnType<typeof setTimeout> | null;
 
-const pickRandom = <T,>(items: readonly T[], exclude?: T) => {
-  if (items.length === 0) {
-    throw new Error("Cannot pick from an empty collection");
-  }
-
-  if (items.length === 1) {
-    return items[0]!;
-  }
-
-  let candidate = items[Math.floor(Math.random() * items.length)]!;
-  if (exclude !== undefined) {
-    let safety = 0;
-    while (candidate === exclude && safety < 10) {
-      candidate = items[Math.floor(Math.random() * items.length)]!;
-      safety += 1;
-    }
-  }
-
-  return candidate;
+const pickTranscript = () => {
+  const index = Math.floor(Math.random() * TRANSCRIPT_LIBRARY.length);
+  return TRANSCRIPT_LIBRARY[index] ?? TRANSCRIPT_LIBRARY[0];
 };
 
 export const VoiceDictator: FC = () => {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const buttonRef = useRef<HTMLButtonElement | null>(null);
-  const webglRef = useRef<WebGLResources | null>(null);
   const animationFrameRef = useRef<number | null>(null);
 
   const amplitudeRef = useRef(0.08);
@@ -189,10 +165,9 @@ export const VoiceDictator: FC = () => {
       resolution: gl.getUniformLocation(program, "uResolution"),
     };
 
-    webglRef.current = { gl, program, uniforms };
-
+    // Sizing is driven by a ResizeObserver rather than read every frame, so the
+    // render loop never forces a synchronous layout.
     const resize = () => {
-      if (!canvas) return;
       const rect = canvas.getBoundingClientRect();
       const pixelRatio = window.devicePixelRatio || 1;
       const width = Math.round(rect.width * pixelRatio);
@@ -205,36 +180,29 @@ export const VoiceDictator: FC = () => {
     };
 
     resize();
+    const resizeObserver = new ResizeObserver(resize);
+    resizeObserver.observe(canvas);
 
     const render = (time: number) => {
       animationFrameRef.current = requestAnimationFrame(render);
-      const resources = webglRef.current;
-      if (!resources) return;
-      const { gl: context, program: shaderProgram, uniforms: shaderUniforms } = resources;
 
-      resize();
-      context.useProgram(shaderProgram);
-      context.clearColor(0, 0, 0, 1);
-      context.clear(context.COLOR_BUFFER_BIT);
+      gl.useProgram(program);
+      gl.clearColor(0, 0, 0, 1);
+      gl.clear(gl.COLOR_BUFFER_BIT);
 
-      const smoothing = 0.95; // Increased smoothing for smoother animations
       const amplitude =
         amplitudeRef.current +
-        (targetAmplitudeRef.current - amplitudeRef.current) * (1 - smoothing);
+        (targetAmplitudeRef.current - amplitudeRef.current) * (1 - AMPLITUDE_SMOOTHING);
       amplitudeRef.current = amplitude;
 
-      if (shaderUniforms.time) {
-        context.uniform1f(shaderUniforms.time, time * 0.001);
+      if (uniforms.time) {
+        gl.uniform1f(uniforms.time, time * 0.001);
       }
-      if (shaderUniforms.amplitude) {
-        context.uniform1f(shaderUniforms.amplitude, amplitude);
+      if (uniforms.amplitude) {
+        gl.uniform1f(uniforms.amplitude, amplitude);
       }
-      if (shaderUniforms.resolution) {
-        context.uniform2f(
-          shaderUniforms.resolution,
-          context.drawingBufferWidth,
-          context.drawingBufferHeight,
-        );
+      if (uniforms.resolution) {
+        gl.uniform2f(uniforms.resolution, gl.drawingBufferWidth, gl.drawingBufferHeight);
       }
 
       const button = buttonRef.current;
@@ -246,7 +214,7 @@ export const VoiceDictator: FC = () => {
         button.style.boxShadow = `0 0 ${glow.toFixed(1)}px rgba(255, 255, 255, ${opacity.toFixed(3)})`;
       }
 
-      context.drawArrays(context.TRIANGLES, 0, 6);
+      gl.drawArrays(gl.TRIANGLES, 0, 6);
     };
 
     render(0);
@@ -256,30 +224,24 @@ export const VoiceDictator: FC = () => {
         cancelAnimationFrame(animationFrameRef.current);
       }
       animationFrameRef.current = null;
+      resizeObserver.disconnect();
+      gl.deleteProgram(program);
+      gl.deleteBuffer(buffer);
     };
   }, []);
 
   useEffect(() => {
     try {
-      const cleanup = initialiseWebGL();
-      return () => {
-        if (cleanup) cleanup();
-        webglRef.current = null;
-      };
+      return initialiseWebGL();
     } catch (error) {
       // eslint-disable-next-line no-console
       console.error(error);
     }
   }, [initialiseWebGL]);
 
-  useEffect(() => {
-    listeningRef.current = isListening;
-  }, [isListening]);
-
-  const stopDictation = useCallback((completed = false) => {
+  const stopDictation = useCallback(() => {
     listeningRef.current = false;
     setIsListening(false);
-    targetAmplitudeRef.current = completed ? 0.12 : 0.06;
   }, []);
 
   useEffect(() => {
@@ -295,7 +257,7 @@ export const VoiceDictator: FC = () => {
     const pump = () => {
       if (!listeningRef.current) return;
       targetAmplitudeRef.current = 0.25 + Math.random() * 0.7;
-      const delay = 120 + Math.random() * 80; // More consistent timing
+      const delay = 120 + Math.random() * 80;
       pulseTimeoutRef.current = setTimeout(pump, delay);
     };
 
@@ -318,15 +280,14 @@ export const VoiceDictator: FC = () => {
       return;
     }
 
-    const transcriptScript = pickRandom(TRANSCRIPT_LIBRARY);
-    scriptRef.current = transcriptScript.split(" ");
+    scriptRef.current = pickTranscript().split(" ");
     wordIndexRef.current = 0;
     setTranscript("");
 
     const deliver = () => {
       if (!listeningRef.current) return;
       if (wordIndexRef.current >= scriptRef.current.length) {
-        stopDictation(true);
+        stopDictation();
         return;
       }
 
@@ -337,7 +298,7 @@ export const VoiceDictator: FC = () => {
         targetAmplitudeRef.current = 0.32 + Math.random() * 0.6;
       }
 
-      const delay = 160 + Math.random() * 200; // More consistent word timing
+      const delay = 160 + Math.random() * 200;
       wordTimeoutRef.current = setTimeout(deliver, delay);
     };
 
@@ -352,23 +313,9 @@ export const VoiceDictator: FC = () => {
     };
   }, [isListening, stopDictation]);
 
-  useEffect(() => {
-    return () => {
-      if (wordTimeoutRef.current) {
-        clearTimeout(wordTimeoutRef.current);
-      }
-      if (pulseTimeoutRef.current) {
-        clearTimeout(pulseTimeoutRef.current);
-      }
-      if (animationFrameRef.current) {
-        cancelAnimationFrame(animationFrameRef.current);
-      }
-    };
-  }, []);
-
   const handleToggle = useCallback(() => {
     if (listeningRef.current) {
-      stopDictation(false);
+      stopDictation();
       return;
     }
 

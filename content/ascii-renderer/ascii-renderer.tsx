@@ -3,6 +3,7 @@
 import { useEffect, useRef } from "react";
 import { OrbitControls } from "@react-three/drei";
 import { Canvas, useFrame, useThree } from "@react-three/fiber";
+import type { Mesh } from "three";
 import { AsciiEffect } from "three/examples/jsm/effects/AsciiEffect.js";
 
 export const AsciiRenderer = () => {
@@ -19,11 +20,14 @@ export const AsciiRenderer = () => {
 };
 
 const Torusknot = () => {
-  const meshRef = useRef<any>(null);
+  const meshRef = useRef<Mesh>(null);
 
-  useFrame(
-    (state, delta) => (meshRef.current.rotation.x = meshRef.current.rotation.y += delta / 2),
-  );
+  useFrame((_state, delta) => {
+    const mesh = meshRef.current;
+    if (!mesh) return;
+    mesh.rotation.y += delta / 2;
+    mesh.rotation.x = mesh.rotation.y;
+  });
 
   return (
     <mesh ref={meshRef} scale={1.25}>
@@ -47,8 +51,6 @@ const Renderer = () => {
     effect.domElement.style.backgroundColor = "black";
     effect.domElement.style.pointerEvents = "none";
 
-    effect.setSize(size.width, size.height);
-
     const container = gl.domElement.parentNode;
     if (container) {
       container.replaceChild(effect.domElement, gl.domElement);
@@ -57,11 +59,18 @@ const Renderer = () => {
     effectRef.current = effect;
 
     return () => {
+      effectRef.current = null;
       if (container && effect.domElement.parentNode) {
         container.replaceChild(gl.domElement, effect.domElement);
       }
     };
-  }, [gl, size]);
+  }, [gl]);
+
+  // Resizing must not tear the effect down: recreating it would detach and
+  // reattach the ASCII <div>, dropping a frame on every resize tick.
+  useEffect(() => {
+    effectRef.current?.setSize(size.width, size.height);
+  }, [size.width, size.height]);
 
   useFrame(() => {
     if (effectRef.current) {

@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, type JSXElementConstructor, type ReactNode } from "react";
+import { useEffect, useRef, useState } from "react";
 import { cn } from "@repo/ui/lib/utils";
 import { SiGithub } from "@icons-pack/react-simple-icons";
 import {
@@ -12,44 +12,14 @@ import {
 } from "lucide-react";
 import { motion } from "motion/react";
 
-import { HighlightCard } from "./highlight-card";
+import { HomeCard } from "./home-card";
 import { Logo } from "./logo";
+import { SourceAssetIcon, SourceIcon } from "./source-icon";
 
-const hightlightedTransform = {
-  0: 0,
-  1: -100,
-  2: -170,
-};
+/** How far the source/output diagram slides up as each workflow step is highlighted. */
+const stepTranslateY = [0, -100, -170];
 
-const SourceIcon = ({
-  Icon,
-  id,
-  className,
-}: {
-  Icon?: JSXElementConstructor<any>;
-  id?: string;
-  className?: string;
-}) => {
-  return (
-    <div
-      className={cn(
-        "inline-flex justify-center rounded-full border border-dashed border-zinc-700 bg-zinc-900 p-3 text-white",
-        className,
-      )}
-    >
-      {Icon && <Icon className="size-5" />}
-      {id && (
-        <img
-          alt={id}
-          width={20}
-          height={20}
-          className="size-5"
-          src={`https://zmdrwswxugswzmcokvff.supabase.co/storage/v1/object/public/uicapsule/emerald-template/${id}.svg`}
-        />
-      )}
-    </div>
-  );
-};
+const workflowSteps = ["Connect your data source", "Build your app", "One click deploy"];
 
 const Lines = ({
   className,
@@ -138,76 +108,19 @@ const Lines = ({
   );
 };
 
-const HomeCard = ({
-  className,
-  title,
-  description,
-  inline,
-  pattern,
-  children,
-}: {
-  className?: string;
-  title?: ReactNode;
-  description?: ReactNode;
-  inline?: boolean;
-  pattern?: ReactNode;
-  children?: ReactNode;
-}) => {
-  return (
-    <HighlightCard
-      // size="lg"
-      className={cn("grow", className)}
-      pattern={pattern}
-      gridProps={{
-        y: -6,
-        squares: [
-          [-1, 2],
-          [1, 3],
-        ],
-      }}
-    >
-      <div
-        className={cn(
-          "flex h-full items-center gap-5 text-center lg:gap-8 lg:text-start",
-          inline ? "flex-col" : "flex-col lg:flex-row",
-        )}
-      >
-        <div className="flex min-w-[300px] shrink-0 flex-col gap-2 lg:gap-5">
-          <h3 className="text-xl font-semibold sm:text-2xl">{title}</h3>
-          <div className="text-start text-sm text-zinc-300 sm:text-base">{description}</div>
-        </div>
-        {children}
-      </div>
-    </HighlightCard>
-  );
-};
-
 export const WorkflowSection = () => {
   const [highlighted, setHighlighted] = useState(0);
   const sourcesContainerRef = useRef<HTMLDivElement>(null);
-  const [sourcesContainerDimensions, setSourcesContainerDimensions] = useState({
-    width: 0,
-    height: 0,
-  });
+  const [sourcesContainerWidth, setSourcesContainerWidth] = useState(0);
 
   useEffect(() => {
+    const container = sourcesContainerRef.current;
+    if (!container) return;
+
     const observer = new ResizeObserver(() => {
-      if (!sourcesContainerRef.current) {
-        return;
-      }
-
-      const sourcesContainerRect = sourcesContainerRef.current?.getBoundingClientRect();
-
-      const width = sourcesContainerRect?.width || 0;
-      const height = sourcesContainerRect?.height || 0;
-
-      setSourcesContainerDimensions({
-        width,
-        height,
-      });
+      setSourcesContainerWidth(container.getBoundingClientRect().width);
     });
-
-    sourcesContainerRef.current && observer.observe(sourcesContainerRef.current);
+    observer.observe(container);
 
     return () => {
       observer.disconnect();
@@ -224,51 +137,43 @@ export const WorkflowSection = () => {
         title="Plug 'n Play"
         description={
           <ol className="ml-5 flex list-decimal flex-col gap-1">
-            {["Connect your data source", "Build your app", "One click deploy"].map(
-              (item, index) => {
-                return (
-                  <li
-                    className="relative leading-9"
-                    onMouseEnter={() => setHighlighted(index)}
-                    key={item}
-                  >
-                    {highlighted === index && (
-                      <motion.div
-                        layoutId="about-card-active"
-                        className="pointer-events-none absolute top-0 -left-7 h-full w-full rounded bg-black/50"
-                      />
-                    )}
-                    <span className="relative">{item}</span>
-                  </li>
-                );
-              },
-            )}
+            {workflowSteps.map((item, index) => (
+              <li
+                className="relative leading-9"
+                onMouseEnter={() => setHighlighted(index)}
+                key={item}
+              >
+                {highlighted === index && (
+                  <motion.div
+                    layoutId="about-card-active"
+                    className="pointer-events-none absolute top-0 -left-7 h-full w-full rounded bg-black/50"
+                  />
+                )}
+                <span className="relative">{item}</span>
+              </li>
+            ))}
           </ol>
         }
       >
         <div className="flex grow items-center justify-center overflow-hidden">
           <div
             className="max-h-[254px] transition duration-500 ease-in-out"
-            style={{
-              transform: `translateY(${
-                hightlightedTransform[highlighted as keyof typeof hightlightedTransform]
-              }px)`,
-            }}
+            style={{ transform: `translateY(${stepTranslateY[highlighted] ?? 0}px)` }}
           >
             <div className="grid grid-cols-4 items-center justify-center gap-4">
               <SourceIcon Icon={DatabaseIcon} />
               <SourceIcon Icon={FileSpreadsheetIcon} />
-              <SourceIcon id="drive" />
-              <SourceIcon id="linear" />
+              <SourceAssetIcon id="drive" />
+              <SourceAssetIcon id="linear" />
               <SourceIcon Icon={GlobeIcon} />
               <SourceIcon Icon={SiGithub} />
-              <SourceIcon id="markdown" />
+              <SourceAssetIcon id="markdown" />
               <SourceIcon Icon={UploadIcon} />
             </div>
             <div className="w-full px-5">
               <div ref={sourcesContainerRef}>
                 <Lines
-                  width={sourcesContainerDimensions.width}
+                  width={sourcesContainerWidth}
                   height={100}
                   radius={5}
                   strokeWidth={1}
@@ -282,7 +187,7 @@ export const WorkflowSection = () => {
                 </div>
               </div>
               <Lines
-                width={sourcesContainerDimensions.width}
+                width={sourcesContainerWidth}
                 height={100}
                 radius={5}
                 strokeWidth={1}
@@ -294,7 +199,7 @@ export const WorkflowSection = () => {
             <div className="grid grid-cols-4 items-center justify-center gap-4">
               <SourceIcon Icon={AppWindowIcon} />
               <SourceIcon Icon={BracesIcon} />
-              <SourceIcon id="slack" />
+              <SourceAssetIcon id="slack" />
               <SourceIcon Icon={ApertureIcon} />
             </div>
           </div>

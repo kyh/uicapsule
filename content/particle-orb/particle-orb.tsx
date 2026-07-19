@@ -3,11 +3,6 @@
 import { useEffect, useRef } from "react";
 import * as THREE from "three";
 
-/** Extended PointsMaterial with compiled shader stashed on userData by onBeforeCompile. */
-interface PointsMaterialWithShader extends THREE.PointsMaterial {
-  userData: { shader?: THREE.WebGLProgramParametersWithUniforms };
-}
-
 export const ParticleOrb = () => {
   const rootRef = useRef<HTMLDivElement>(null);
 
@@ -46,7 +41,11 @@ export const ParticleOrb = () => {
       depthTest: false,
     });
 
-    setupPointsShader(material, { radius, particleSizeMin, particleSizeMax });
+    const setShaderTime = setupPointsShader(material, {
+      radius,
+      particleSizeMin,
+      particleSizeMax,
+    });
 
     const points = new THREE.Points(geometry, material);
     scene.add(points);
@@ -55,8 +54,7 @@ export const ParticleOrb = () => {
     const animate = (timeMs: number) => {
       const time = timeMs * 0.001;
       points.rotation.set(0, time * 0.2, 0);
-      const shader = (material as PointsMaterialWithShader).userData.shader;
-      if (shader?.uniforms.time) shader.uniforms.time.value = time;
+      setShaderTime(time);
       renderer.render(scene, camera);
       animationFrameId = requestAnimationFrame(animate);
     };
@@ -107,21 +105,27 @@ function createDotTexture(size = 32, color = "#FFFFFF"): THREE.CanvasTexture {
   return new THREE.CanvasTexture(canvas);
 }
 
+/**
+ * Injects the noise-displacement vertex shader into a PointsMaterial.
+ * Returns a setter for the `time` uniform — the compiled shader is only available
+ * once WebGL first compiles the program, so the setter is a no-op until then.
+ */
 function setupPointsShader(
   material: THREE.PointsMaterial,
   opts: { radius: number; particleSizeMin: number; particleSizeMax: number },
-) {
+): (time: number) => void {
   const { radius, particleSizeMin, particleSizeMax } = opts;
+  let compiled: THREE.WebGLProgramParametersWithUniforms | null = null;
+
   material.onBeforeCompile = (shader: THREE.WebGLProgramParametersWithUniforms) => {
     shader.uniforms.time = { value: 0 };
     shader.uniforms.radius = { value: radius };
     shader.uniforms.particleSizeMin = { value: particleSizeMin };
     shader.uniforms.particleSizeMax = { value: particleSizeMax };
-    shader.vertexShader = "uniform float particleSizeMax;\n" + shader.vertexShader;
-    shader.vertexShader = "uniform float particleSizeMin;\n" + shader.vertexShader;
-    shader.vertexShader = "uniform float radius;\n" + shader.vertexShader;
-    shader.vertexShader = "uniform float time;\n" + shader.vertexShader;
-    shader.vertexShader = webGlNoise + "\n" + shader.vertexShader;
+    shader.vertexShader =
+      webGlNoise +
+      "\nuniform float time;\nuniform float radius;\nuniform float particleSizeMin;\nuniform float particleSizeMax;\n" +
+      shader.vertexShader;
     shader.vertexShader = shader.vertexShader.replace(
       "#include <begin_vertex>",
       `
@@ -137,7 +141,12 @@ function setupPointsShader(
     );
     shader.vertexShader = shader.vertexShader.replace("gl_PointSize = size;", "gl_PointSize = s;");
 
-    (material as PointsMaterialWithShader).userData.shader = shader;
+    compiled = shader;
+  };
+
+  return (time: number) => {
+    const timeUniform = compiled?.uniforms.time;
+    if (timeUniform) timeUniform.value = time;
   };
 }
 

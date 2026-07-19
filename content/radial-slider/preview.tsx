@@ -16,7 +16,7 @@ const Preview = () => {
           <NumberFlow value={value} className="text-xl" />
         </div>
         <div className="pointer-events-none absolute left-1/2 z-20 h-full w-1 -translate-x-1/2 -translate-y-3 rounded-full bg-white" />
-        <RadialSlider value={value} onChange={setValue} />
+        <RadialSlider onChange={setValue} />
       </div>
     </main>
   );

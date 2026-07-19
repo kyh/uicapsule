@@ -64,7 +64,8 @@ type TiltTrackProps = {
 export const TiltTrack = ({ volume }: TiltTrackProps) => {
   const reduceMotion = useReducedMotion();
   const [tilting, setTilting] = useState(false);
-  const [ariaVolume, setAriaVolume] = useState(() => Math.round(volume.get()));
+
+  const panelRef = useRef<HTMLDivElement>(null);
 
   /** Panel lean, in degrees. Positive = right side down. */
   const tilt = useMotionValue(0);
@@ -85,9 +86,14 @@ export const TiltTrack = ({ volume }: TiltTrackProps) => {
     return unsubscribe;
   }, [x, volume]);
 
+  // A rolling marble moves the volume every frame. Reporting that through state
+  // would re-render the whole panel — detents and all — for each one, so the
+  // slider's value is written straight to the attribute instead.
   useEffect(() => {
-    const unsubscribe = volume.on("change", (next) => setAriaVolume(Math.round(next)));
-    return unsubscribe;
+    const report = (value: number) =>
+      panelRef.current?.setAttribute("aria-valuenow", String(Math.round(value)));
+    report(volume.get());
+    return volume.on("change", report);
   }, [volume]);
 
   useEffect(() => () => cancelAnimationFrame(frame.current), []);
@@ -205,12 +211,12 @@ export const TiltTrack = ({ volume }: TiltTrackProps) => {
           a box far taller than itself once it leans, and without the clearance it would
           scythe straight through the readout above it. */}
       <motion.div
+        ref={panelRef}
         role="slider"
         tabIndex={0}
         aria-label="Volume"
         aria-valuemin={VOLUME_MIN}
         aria-valuemax={VOLUME_MAX}
-        aria-valuenow={ariaVolume}
         onPointerDown={handlePointerDown}
         onPointerMove={handlePointerMove}
         onPointerUp={handlePointerUp}

@@ -1,6 +1,5 @@
 "use client";
 
-import { useCallback, useMemo } from "react";
 import { Button } from "@repo/ui/components/button";
 import {
   DropdownMenu,
@@ -84,24 +83,24 @@ const RowActions = ({ row }: { row: Person }) => {
   );
 };
 
-const ToolbarButtons = () => {
-  const addRow = useCallback(() => {
-    useSpreadsheetStore.getState().addRow((index) => ({
-      id: `${Date.now()}-${index}`,
-      linkedinUrl: "",
-      firstName: "",
-      lastName: "",
-      email: "",
-      company: "",
-      role: "",
-    }));
-  }, []);
+const addRow = () => {
+  useSpreadsheetStore.getState().addRow((index) => ({
+    id: `${Date.now()}-${index}`,
+    linkedinUrl: "",
+    firstName: "",
+    lastName: "",
+    email: "",
+    company: "",
+    role: "",
+  }));
+};
 
+const ToolbarButtons = () => {
   const { handleEnrich } = useAiEnrichment();
 
   return (
     <>
-      <ToolbarButton onClick={() => addRow()}>
+      <ToolbarButton onClick={addRow}>
         <Plus className="size-4" />
         Add Row
       </ToolbarButton>
@@ -121,37 +120,16 @@ const ToolbarButtons = () => {
   );
 };
 
-const Preview = () => {
-  const columns = useMemo(
-    () => [
-      columnHelper.accessor("linkedinUrl", {
-        header: "LinkedIn URL",
-        cell: EditableCell,
-      }),
-      columnHelper.accessor("firstName", {
-        header: "First Name",
-        cell: EditableCell,
-      }),
-      columnHelper.accessor("lastName", {
-        header: "Last Name",
-        cell: EditableCell,
-      }),
-      columnHelper.accessor("email", {
-        header: "Email",
-        cell: EditableCell,
-      }),
-      columnHelper.accessor("company", {
-        header: "Company",
-        cell: EditableCell,
-      }),
-      columnHelper.accessor("role", {
-        header: "Role",
-        cell: EditableCell,
-      }),
-    ],
-    [],
-  );
+const columns = [
+  columnHelper.accessor("linkedinUrl", { header: "LinkedIn URL", cell: EditableCell }),
+  columnHelper.accessor("firstName", { header: "First Name", cell: EditableCell }),
+  columnHelper.accessor("lastName", { header: "Last Name", cell: EditableCell }),
+  columnHelper.accessor("email", { header: "Email", cell: EditableCell }),
+  columnHelper.accessor("company", { header: "Company", cell: EditableCell }),
+  columnHelper.accessor("role", { header: "Role", cell: EditableCell }),
+];
 
+const Preview = () => {
   return (
     <>
       <Toolbar>

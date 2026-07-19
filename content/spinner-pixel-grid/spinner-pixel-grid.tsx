@@ -1,9 +1,10 @@
 "use client";
 
-import { forwardRef, useEffect, useState, type CSSProperties, type HTMLAttributes } from "react";
-import { cn } from "@repo/ui/lib/utils";
+import { useSyncExternalStore, type ComponentProps, type CSSProperties } from "react";
 
 import "./spinner-pixel-grid.css";
+
+const cn = (...classes: (string | undefined | null | false)[]) => classes.filter(Boolean).join(" ");
 
 type CellValue = (x: number, y: number, gridSize: number) => number;
 type CellMask = (x: number, y: number, gridSize: number) => boolean;
@@ -194,7 +195,7 @@ const shapes = ["square", "circle"] as const;
 type SpinnerVariant = keyof typeof variantConfigs;
 type SpinnerShape = (typeof shapes)[number];
 
-type SpinnerProps = HTMLAttributes<HTMLDivElement> & {
+type SpinnerProps = ComponentProps<"div"> & {
   /** Pixel size of each dot. */
   size?: number;
   /** Number of dots per row/column. */
@@ -214,93 +215,98 @@ type SpinnerProps = HTMLAttributes<HTMLDivElement> & {
   ariaLabel?: string;
 };
 
-// Respect the user's reduced-motion preference, read on the first render.
-const usePrefersReducedMotion = (): boolean => {
-  const [prefersReducedMotion, setPrefersReducedMotion] = useState(
-    () =>
-      typeof window !== "undefined" &&
-      window.matchMedia("(prefers-reduced-motion: reduce)").matches,
-  );
+// React's CSSProperties has no index signature for custom properties, so widen it
+// rather than reaching for a type assertion.
+type SpinnerStyle = CSSProperties & Record<`--${string}`, string>;
 
-  useEffect(() => {
-    const query = window.matchMedia("(prefers-reduced-motion: reduce)");
-    const update = () => setPrefersReducedMotion(query.matches);
-    update();
-    query.addEventListener("change", update);
-    return () => query.removeEventListener("change", update);
-  }, []);
+const REDUCED_MOTION_QUERY = "(prefers-reduced-motion: reduce)";
 
-  return prefersReducedMotion;
+const subscribeToReducedMotion = (onChange: () => void) => {
+  const query = window.matchMedia(REDUCED_MOTION_QUERY);
+  query.addEventListener("change", onChange);
+  return () => query.removeEventListener("change", onChange);
 };
 
-export const SpinnerPixelGrid = forwardRef<HTMLDivElement, SpinnerProps>(
-  (
-    {
-      className,
-      size = 8,
-      gridSize = 3,
-      variant = "default",
-      shape = "square",
-      color = "currentColor",
-      glow = true,
-      speed = 1,
-      rainbow = false,
-      ariaLabel = "Loading",
-      ...props
-    },
-    ref,
-  ) => {
-    const animate = !usePrefersReducedMotion();
-    const safeSpeed = speed > 0 ? speed : 1;
-    const range = Array.from({ length: gridSize }, (_, i) => i);
+const getReducedMotion = () => window.matchMedia(REDUCED_MOTION_QUERY).matches;
 
-    const config = variantConfigs[variant];
-    const duration = config.duration / safeSpeed;
-    // Rainbow runs without a delay so every dot cycles hue in sync.
-    const rainbowAnimation = rainbow ? `, hue-rotate ${10 / safeSpeed}s linear infinite` : "";
+// The server cannot know the preference. Reporting "no preference" keeps the
+// server and client markup identical, and React re-renders after hydration if
+// the real preference differs.
+const getServerReducedMotion = () => false;
 
-    return (
-      <div
-        ref={ref}
-        role="status"
-        aria-label={ariaLabel}
-        className={cn("inline-flex flex-col", className)}
-        style={{ "--square-size": `${size}px`, "--spinner-color": color } as CSSProperties}
-        {...props}
-      >
-        {range.map((y) => (
-          <div key={y} className="flex">
-            {range.map((x) => (
-              <div
-                key={x}
-                className="relative"
-                style={{ width: "var(--square-size)", height: "var(--square-size)" }}
-              >
-                {(config.mask?.(x, y, gridSize) ?? true) && (
-                  <div
-                    className="absolute inset-0"
-                    style={{
-                      backgroundColor: "var(--spinner-color)",
-                      borderRadius: shape === "circle" ? "50%" : undefined,
-                      boxShadow: glow
-                        ? "0 0 10px var(--spinner-color), 0 0 20px var(--spinner-color), 0 0 40px var(--spinner-color)"
-                        : undefined,
-                      animation: animate
-                        ? `${config.keyframe} ${duration}s linear ${config.delay(x, y, gridSize) / safeSpeed}s infinite${rainbowAnimation}`
-                        : undefined,
-                    }}
-                  />
-                )}
-              </div>
-            ))}
-          </div>
-        ))}
-      </div>
-    );
-  },
-);
+// Respect the user's reduced-motion preference, kept in sync with the media query.
+const usePrefersReducedMotion = (): boolean =>
+  useSyncExternalStore(subscribeToReducedMotion, getReducedMotion, getServerReducedMotion);
 
-SpinnerPixelGrid.displayName = "SpinnerPixelGrid";
+export const SpinnerPixelGrid = ({
+  className,
+  style,
+  size = 8,
+  gridSize = 3,
+  variant = "default",
+  shape = "square",
+  color = "currentColor",
+  glow = true,
+  speed = 1,
+  rainbow = false,
+  ariaLabel = "Loading",
+  ...props
+}: SpinnerProps) => {
+  const animate = !usePrefersReducedMotion();
+  const safeSpeed = speed > 0 ? speed : 1;
+  const range = Array.from({ length: gridSize }, (_, i) => i);
+
+  const config: VariantConfig = variantConfigs[variant];
+  const duration = config.duration / safeSpeed;
+  // Rainbow runs without a delay so every dot cycles hue in sync.
+  const rainbowAnimation = rainbow ? `, hue-rotate ${10 / safeSpeed}s linear infinite` : "";
+
+  // The custom properties come last so a caller-supplied `style` cannot drop the
+  // two variables every dot depends on.
+  const rootStyle: SpinnerStyle = {
+    ...style,
+    "--square-size": `${size}px`,
+    "--spinner-color": color,
+  };
+
+  return (
+    <div
+      role="status"
+      aria-label={ariaLabel}
+      className={cn("inline-flex flex-col", className)}
+      style={rootStyle}
+      {...props}
+    >
+      {range.map((y) => (
+        <div key={y} className="flex">
+          {range.map((x) => (
+            <div
+              key={x}
+              className="relative"
+              style={{ width: "var(--square-size)", height: "var(--square-size)" }}
+            >
+              {(config.mask?.(x, y, gridSize) ?? true) && (
+                <div
+                  className="absolute inset-0"
+                  style={{
+                    backgroundColor: "var(--spinner-color)",
+                    borderRadius: shape === "circle" ? "50%" : undefined,
+                    boxShadow: glow
+                      ? "0 0 10px var(--spinner-color), 0 0 20px var(--spinner-color), 0 0 40px var(--spinner-color)"
+                      : undefined,
+                    animation: animate
+                      ? `${config.keyframe} ${duration}s linear ${config.delay(x, y, gridSize) / safeSpeed}s infinite${rainbowAnimation}`
+                      : undefined,
+                  }}
+                />
+              )}
+            </div>
+          ))}
+        </div>
+      ))}
+    </div>
+  );
+};
 
 export { variants as spinnerVariants, shapes as spinnerShapes };
 export type { SpinnerVariant, SpinnerShape };

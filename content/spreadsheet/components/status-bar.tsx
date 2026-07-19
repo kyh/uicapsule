@@ -1,40 +1,29 @@
 "use client";
 
-import { forwardRef, type FC, type HTMLAttributes, type ReactNode } from "react";
+import { type ComponentProps } from "react";
 import { cn } from "@repo/ui/lib/utils";
 
 import { useSpreadsheetStore } from "../lib/spreadsheet-store";
 
-export interface StatusBarProps extends HTMLAttributes<HTMLDivElement> {
-  children?: ReactNode;
-}
+export type StatusBarProps = ComponentProps<"div">;
 
-export const StatusBar = forwardRef<HTMLDivElement, StatusBarProps>(
-  ({ children, className, ...props }, ref) => (
-    <div
-      ref={ref}
-      className={cn(
-        "text-muted-foreground bg-background dark:bg-background/95 sticky bottom-0 flex items-center justify-between border-t p-2 text-xs",
-        className,
-      )}
-      {...props}
-    >
-      {children}
-    </div>
-  ),
+export const StatusBar = ({ className, ...props }: StatusBarProps) => (
+  <div
+    className={cn(
+      "text-muted-foreground bg-background dark:bg-background/95 sticky bottom-0 flex items-center justify-between border-t p-2 text-xs",
+      className,
+    )}
+    {...props}
+  />
 );
-StatusBar.displayName = "StatusBar";
 
-interface StatusBarSectionProps extends HTMLAttributes<HTMLDivElement> {}
+export type StatusBarSectionProps = ComponentProps<"div">;
 
-export const StatusBarSection = forwardRef<HTMLDivElement, StatusBarSectionProps>(
-  ({ className, ...props }, ref) => (
-    <div ref={ref} className={cn("flex flex-1 items-center gap-2", className)} {...props} />
-  ),
+export const StatusBarSection = ({ className, ...props }: StatusBarSectionProps) => (
+  <div className={cn("flex flex-1 items-center gap-2", className)} {...props} />
 );
-StatusBarSection.displayName = "StatusBarSection";
 
-export const StatusBarMessage: FC = () => {
+export const StatusBarMessage = () => {
   const editingCell = useSpreadsheetStore((state) => state.editingCell);
   const selectedCells = useSpreadsheetStore((state) => state.selectedCells);
   const data = useSpreadsheetStore((state) => state.data);
@@ -63,13 +52,14 @@ export const StatusBarMessage: FC = () => {
   return <span>Click a cell to select</span>;
 };
 
-export const StatusBarSummary: FC = () => {
+export const StatusBarSummary = () => {
   const data = useSpreadsheetStore((state) => state.data);
-  const rowCount = data.length;
+  // Rows carry an `id` alongside their cell values; only the latter are columns.
+  const columnCount = Object.keys(data[0] ?? {}).filter((key) => key !== "id").length;
 
   return (
     <span>
-      {rowCount} rows × {data[0]?.length} columns
+      {data.length} rows × {columnCount} columns
     </span>
   );
 };

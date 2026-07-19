@@ -1,23 +1,27 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, type CSSProperties } from "react";
 
 import "./snail-timer.css";
 
 type Props = {
   started?: boolean;
   initialSeconds?: number;
-  shouldCallTimeout?: boolean;
   onTimeout?: () => void;
 };
 
-export const SnailTimer = ({
-  started = true,
-  initialSeconds = 45,
-  onTimeout = () => {},
-}: Props) => {
+/** `CSSProperties` widened to accept custom properties without a type assertion. */
+interface CSSVarProperties extends CSSProperties {
+  [key: `--${string}`]: string | number | undefined;
+}
+
+/** Module-level so the default prop keeps a stable identity across renders. */
+const NOOP = () => {};
+
+export const SnailTimer = ({ started = true, initialSeconds = 45, onTimeout = NOOP }: Props) => {
   const [seconds, setSeconds] = useState(initialSeconds);
+  const trackStyle: CSSVarProperties = { "--snail-move-duration": `${initialSeconds}s` };
 
   useEffect(() => {
-    let interval: NodeJS.Timeout;
+    let interval: ReturnType<typeof setInterval> | undefined;
 
     if (started) {
       interval = setInterval(() => {
@@ -39,10 +43,7 @@ export const SnailTimer = ({
         started ? "" : "is-paused"
       }`}
     >
-      <div
-        className="snail-timer__track"
-        style={{ ["--snail-move-duration" as any]: `${initialSeconds}s` }}
-      >
+      <div className="snail-timer__track" style={trackStyle}>
         <div className="flex items-end">
           <div className="snail">
             <SnailSvg />

@@ -1,5 +1,8 @@
-/* CSS custom properties and animations for SnailTimer */
-:root {
+/* CSS custom properties and animations for SnailTimer.
+   Scoped to the component root so a copy-pasted registry item cannot collide
+   with the host app's global custom properties. `--snail-move-duration` is
+   overridden per-instance by an inline style on `.snail-timer__track`. */
+.snail-timer {
   --snail-move-duration: 45s;
   --snail-eye-duration: 1s;
   --snail-scale-duration: 1s;

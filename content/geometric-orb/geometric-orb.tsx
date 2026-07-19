@@ -21,17 +21,17 @@ export type GeometricOrbConfig = {
   radius?: number;
   /** Duration in seconds for a full pole-to-pole animation cycle. @default 20 */
   speed?: number;
-  /** Thickness of each line in pixels. @default 3.5 */
+  /** Thickness of each line in pixels. @default 2 */
   lineWidth?: number;
   /** CSS color string for the lines. @default "#eeeeee" */
   color?: string;
   /** CSS color string for the canvas background. @default "#0a0a0a" */
   background?: string;
-  /** Intensity of the squiggle displacement on each line. @default 0.06 */
+  /** Intensity of the squiggle displacement on each line. @default 0.04 */
   squiggleAmount?: number;
-  /** Wave frequency of the squiggle effect. Higher = more waves. @default 6 */
+  /** Wave frequency of the squiggle effect. Higher = more waves. @default 4 */
   squiggleFrequency?: number;
-  /** Animation speed of the squiggle oscillation. @default 3 */
+  /** Animation speed of the squiggle oscillation. @default 2 */
   squiggleSpeed?: number;
   /** Number of points around the full circle. Higher = smoother curves + finer depth-fade. @default 96 */
   pointsPerLine?: number;
@@ -41,7 +41,7 @@ export type GeometricOrbConfig = {
   enablePan?: boolean;
   /** Minimum camera distance (closest zoom). @default 2 */
   minDistance?: number;
-  /** Maximum camera distance (farthest zoom). @default 8 */
+  /** Maximum camera distance (farthest zoom). @default 20 */
   maxDistance?: number;
 };
 
@@ -68,11 +68,10 @@ const defaults: Required<GeometricOrbConfig> = {
  * reducing draw calls from numLines×segmentGroups to just numLines.
  */
 function LatitudeLines({ config }: { config: Required<GeometricOrbConfig> }) {
-  const groupRefs = useRef<(THREE.Group | null)[]>([]);
   const camDirRef = useRef(new THREE.Vector3());
   const { size } = useThree();
 
-  const colorInt = useMemo(() => new THREE.Color(config.color).getHex(), [config.color]);
+  const baseColor = useMemo(() => new THREE.Color(config.color), [config.color]);
 
   const lineConstants = useMemo(
     () =>
@@ -92,14 +91,14 @@ function LatitudeLines({ config }: { config: Required<GeometricOrbConfig> }) {
         { length: config.numLines },
         () =>
           new LineMaterial({
-            color: colorInt,
+            color: baseColor.getHex(),
             linewidth: config.lineWidth,
             transparent: true,
             opacity: 1,
             vertexColors: true,
           }),
       ),
-    [colorInt, config.numLines, config.lineWidth],
+    [baseColor, config.numLines, config.lineWidth],
   );
 
   // One geometry per line
@@ -126,8 +125,6 @@ function LatitudeLines({ config }: { config: Required<GeometricOrbConfig> }) {
   const positionBuffer = useMemo(() => new Float32Array(vertexCount * 3), [vertexCount]);
   const colorBuffer = useMemo(() => new Float32Array(vertexCount * 3), [vertexCount]);
 
-  const baseColor = useMemo(() => new THREE.Color(config.color), [config.color]);
-
   useFrame((state) => {
     const time = state.clock.elapsedTime;
     const camDir = camDirRef.current.copy(state.camera.position).normalize();
@@ -136,13 +133,10 @@ function LatitudeLines({ config }: { config: Required<GeometricOrbConfig> }) {
     const b = baseColor.b;
 
     for (let lineIdx = 0; lineIdx < config.numLines; lineIdx++) {
-      const group = groupRefs.current[lineIdx];
-      if (!group) continue;
-
       const constants = lineConstants[lineIdx];
       const geometry = geometries[lineIdx];
       if (!constants || !geometry) continue;
-      const { timeOffset, longitudeRotation, cosR, sinR } = constants;
+      const { timeOffset, cosR, sinR } = constants;
       const progress = ((time + timeOffset) % config.speed) / config.speed;
       const latitude = progress * Math.PI;
       const circleRadius = Math.sin(latitude) * config.radius;
@@ -186,16 +180,11 @@ function LatitudeLines({ config }: { config: Required<GeometricOrbConfig> }) {
 
       // Close the loop: copy first vertex exactly to avoid floating-point gaps
       const last = config.pointsPerLine * 3;
-      positionBuffer[last] = positionBuffer[0]!;
-      positionBuffer[last + 1] = positionBuffer[1]!;
-      positionBuffer[last + 2] = positionBuffer[2]!;
-      colorBuffer[last] = colorBuffer[0]!;
-      colorBuffer[last + 1] = colorBuffer[1]!;
-      colorBuffer[last + 2] = colorBuffer[2]!;
+      positionBuffer.copyWithin(last, 0, 3);
+      colorBuffer.copyWithin(last, 0, 3);
 
       geometry.setPositions(positionBuffer);
       geometry.setColors(colorBuffer);
-      group.rotation.y = longitudeRotation;
     }
   });
 
@@ -204,14 +193,12 @@ function LatitudeLines({ config }: { config: Required<GeometricOrbConfig> }) {
       {Array.from({ length: config.numLines }, (_, lineIdx) => {
         const geometry = geometries[lineIdx];
         const material = materials[lineIdx];
-        if (!geometry || !material) return null;
+        const constants = lineConstants[lineIdx];
+        if (!geometry || !material || !constants) return null;
         return (
-          <group
-            key={lineIdx}
-            ref={(el) => {
-              groupRefs.current[lineIdx] = el;
-            }}
-          >
+          // Longitude rotation is constant per line, so it is declared once here
+          // rather than re-written from the frame loop.
+          <group key={lineIdx} rotation-y={constants.longitudeRotation}>
             {/* @ts-expect-error line2 is an R3F extension registered via extend() */}
             <line2>
               <primitive object={geometry} attach="geometry" />
@@ -245,9 +232,9 @@ export function GeometricOrb({
   config?: GeometricOrbConfig;
   className?: string;
 }) {
-  const configKey = JSON.stringify(configOverrides);
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  const config = useMemo(() => ({ ...defaults, ...configOverrides }), [configKey]);
+  // Derived during render: LatitudeLines only memoizes on individual config
+  // fields, so a fresh object identity each render costs nothing.
+  const config = { ...defaults, ...configOverrides };
 
   return (
     <div className={`w-full h-full ${className}`} style={{ background: config.background }}>

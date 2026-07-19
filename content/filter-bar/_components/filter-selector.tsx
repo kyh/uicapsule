@@ -72,10 +72,9 @@ function __FilterSelector<TData>({
   const filter = property ? visibleFilters.find((f) => f.columnId === property) : undefined;
 
   useEffect(() => {
-    if (property && inputRef) {
-      inputRef.current?.focus();
-      setValue("");
-    }
+    if (!property) return;
+    inputRef.current?.focus();
+    setValue("");
   }, [property]);
 
   useEffect(() => {
@@ -172,7 +171,6 @@ function __FilterSelector<TData>({
                 filters={visibleFilters}
                 columns={visibleColumns}
                 actions={actions}
-                strategy={strategy}
               />
             </CommandGroup>
           </CommandList>
@@ -322,7 +320,6 @@ interface QuickSearchFiltersProps<TData> {
   filters: FiltersState;
   columns: Column<TData>[];
   actions: DataTableFilterActions;
-  strategy: FilterStrategy;
 }
 
 export const QuickSearchFilters = memo(__QuickSearchFilters) as typeof __QuickSearchFilters;
@@ -332,7 +329,6 @@ function __QuickSearchFilters<TData>({
   filters,
   columns,
   actions,
-  strategy,
 }: QuickSearchFiltersProps<TData>) {
   const cols = useMemo(
     () => columns.filter((c) => isAnyOf<ColumnDataType>(c.type, ["option", "multiOption"])),

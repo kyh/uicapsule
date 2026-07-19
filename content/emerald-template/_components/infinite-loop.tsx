@@ -19,43 +19,38 @@ export const InfiniteLooper = ({
   const outerRef = useRef<HTMLDivElement>(null);
   const innerRef = useRef<HTMLDivElement>(null);
 
+  const restartTimeoutRef = useRef<ReturnType<typeof setTimeout>>(undefined);
+
   const setupInstances = useCallback(() => {
-    if (!innerRef?.current || !outerRef?.current) return;
+    const inner = innerRef.current;
+    const outer = outerRef.current;
+    if (!inner || !outer) return;
 
-    const resetAnimation = () => {
-      if (innerRef?.current) {
-        setAnimating(false);
-
-        setTimeout(() => {
-          if (innerRef?.current) {
-            setAnimating(true);
-          }
-        }, 10);
-      }
-    };
-
-    const { width } = innerRef.current.getBoundingClientRect();
-    const { width: parentWidth } = outerRef.current.getBoundingClientRect();
+    const { width } = inner.getBoundingClientRect();
+    const { width: parentWidth } = outer.getBoundingClientRect();
 
     const widthDeficit = parentWidth - width;
-    const instanceWidth = width / innerRef.current.children.length;
+    const instanceWidth = width / inner.children.length;
 
     if (widthDeficit) {
       setLooperInstances(looperInstances + Math.ceil(widthDeficit / instanceWidth) + 1);
     }
 
-    resetAnimation();
+    // Drop and re-add the animation class so every instance restarts in phase.
+    setAnimating(false);
+    clearTimeout(restartTimeoutRef.current);
+    restartTimeoutRef.current = setTimeout(() => setAnimating(true), 10);
   }, [looperInstances]);
 
-  useEffect(() => setupInstances(), [setupInstances]);
-
   useEffect(() => {
+    setupInstances();
     window.addEventListener("resize", setupInstances);
 
     return () => {
       window.removeEventListener("resize", setupInstances);
+      clearTimeout(restartTimeoutRef.current);
     };
-  }, [looperInstances, setupInstances]);
+  }, [setupInstances]);
 
   return (
     <div className={cn("w-full overflow-hidden", containerClassName)} ref={outerRef}>

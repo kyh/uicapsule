@@ -1,13 +1,11 @@
 "use client";
 
 import {
-  forwardRef,
   useCallback,
   useEffect,
   useMemo,
   useRef,
   type HTMLAttributes,
-  type ReactElement,
   type ReactNode,
   type Ref,
 } from "react";
@@ -16,10 +14,15 @@ import { flexRender, getCoreRowModel, useReactTable } from "@tanstack/react-tabl
 import { useVirtualizer } from "@tanstack/react-virtual";
 
 import type { SpreadsheetRow } from "../lib/spreadsheet-store";
-import type { ColumnInfo } from "../lib/spreadsheet-utils";
+import type { ColumnInfo, NavigationMap } from "../lib/spreadsheet-utils";
 import type { ColumnDef } from "@tanstack/react-table";
 import { useSpreadsheetStore } from "../lib/spreadsheet-store";
-import { createNavigationMap, getColumnSizeVars, getRowCells } from "../lib/spreadsheet-utils";
+import {
+  createNavigationMap,
+  getColumnSizeVars,
+  getRowCells,
+  MIN_COLUMN_WIDTH,
+} from "../lib/spreadsheet-utils";
 import { useSpreadsheetHandlers } from "../lib/use-spreadsheet-handlers";
 import { MemoizedTableBody } from "./memoized-table-body";
 import { ResizeHandle } from "./resize-handle";
@@ -32,26 +35,32 @@ interface SpreadsheetProps<
   showRowNumbers?: boolean;
   renderRowNumber?: (rowIndex: number) => ReactNode;
   renderRowActions?: (row: TRow, rowIndex: number) => ReactNode;
+  ref?: Ref<HTMLDivElement>;
 }
 
-function SpreadsheetInner<TRow extends SpreadsheetRow, TValue = unknown>(
-  {
-    className,
-    style,
-    columns,
-    showRowNumbers = true,
-    renderRowNumber,
-    renderRowActions,
-    ...props
-  }: SpreadsheetProps<TRow, TValue>,
-  ref: Ref<HTMLDivElement>,
-) {
+/** `accessorKey` is not on the shared `ColumnDef` union, so narrow instead of asserting. */
+const getAccessorKey = (columnDef: object, fallback: string): string => {
+  if ("accessorKey" in columnDef && typeof columnDef.accessorKey === "string") {
+    return columnDef.accessorKey;
+  }
+  return fallback;
+};
+
+export function Spreadsheet<TRow extends SpreadsheetRow, TValue = unknown>({
+  className,
+  style,
+  columns,
+  showRowNumbers = true,
+  renderRowNumber,
+  renderRowActions,
+  ref,
+  ...props
+}: SpreadsheetProps<TRow, TValue>) {
   const data = useSpreadsheetStore((state) => state.data);
   const selectedCells = useSpreadsheetStore((state) => state.selectedCells);
   const isDragging = useSpreadsheetStore((state) => state.isDragging);
   const columnWidths = useSpreadsheetStore((state) => state.columnWidths);
   const setColumnWidths = useSpreadsheetStore((state) => state.setColumnWidths);
-  const deleteRow = useSpreadsheetStore((state) => state.deleteRow);
   const dragLineVisible = useSpreadsheetStore((state) => state.dragLineVisible);
   const setDragLineVisible = useSpreadsheetStore((state) => state.setDragLineVisible);
 
@@ -68,20 +77,15 @@ function SpreadsheetInner<TRow extends SpreadsheetRow, TValue = unknown>(
   const columnMeta = useMemo<ColumnInfo[]>(() => {
     return table.getAllLeafColumns().map((column) => ({
       id: column.id,
-      accessorKey:
-        typeof (column.columnDef as any).accessorKey === "string"
-          ? (column.columnDef as any).accessorKey
-          : column.id,
+      accessorKey: getAccessorKey(column.columnDef, column.id),
     }));
   }, [table]);
 
   // Compute navigation map locally - no need to store in Zustand
-  const navigationMap = useMemo(() => {
-    if (columnMeta.length > 0) {
-      return createNavigationMap(data, columnMeta);
-    }
-    return new Map();
-  }, [data, columnMeta]);
+  const navigationMap = useMemo<Map<string, NavigationMap>>(
+    () => createNavigationMap(data, columnMeta),
+    [data, columnMeta],
+  );
 
   const columnSizeVars = useMemo(() => getColumnSizeVars(columnWidths), [columnWidths]);
 
@@ -96,7 +100,7 @@ function SpreadsheetInner<TRow extends SpreadsheetRow, TValue = unknown>(
     (columnId: string, width: number) => {
       setColumnWidths((prev) => ({
         ...prev,
-        [columnId]: Math.max(60, width),
+        [columnId]: Math.max(MIN_COLUMN_WIDTH, width),
       }));
     },
     [setColumnWidths],
@@ -168,7 +172,7 @@ function SpreadsheetInner<TRow extends SpreadsheetRow, TValue = unknown>(
               : flexRender(header.column.columnDef.header, header.getContext())}
             <ResizeHandle
               columnId={header.column.id}
-              columnWidths={columnWidths}
+              width={columnWidths[header.column.id] ?? 0}
               handleColumnResize={handleColumnResize}
               tableContainerRef={tableContainerRef}
               dragLineRef={dragLineRef}
@@ -204,14 +208,3 @@ function SpreadsheetInner<TRow extends SpreadsheetRow, TValue = unknown>(
     </div>
   );
 }
-
-SpreadsheetInner.displayName = "SpreadsheetInner";
-
-export const Spreadsheet = forwardRef(SpreadsheetInner) as <
-  TRow extends SpreadsheetRow,
-  TValue = unknown,
->(
-  props: SpreadsheetProps<TRow, TValue> & { ref?: Ref<HTMLDivElement> },
-) => ReactElement;
-
-(Spreadsheet as unknown as { displayName: string }).displayName = "Spreadsheet";
