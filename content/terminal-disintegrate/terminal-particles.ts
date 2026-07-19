@@ -1,4 +1,4 @@
-import type { Grid } from "./terminal-grid";
+import type { Cell, Grid } from "./terminal-grid";
 
 import { OUTER_COLS, OUTER_ROWS } from "./terminal-grid";
 
@@ -6,7 +6,7 @@ import { OUTER_COLS, OUTER_ROWS } from "./terminal-grid";
 // Math helpers — all pure and deterministic
 // ---------------------------------------------------------------------------
 
-export const lerp = (a: number, b: number, t: number): number => a + (b - a) * t;
+const lerp = (a: number, b: number, t: number): number => a + (b - a) * t;
 export const clamp01 = (t: number): number => (t < 0 ? 0 : t > 1 ? 1 : t);
 
 export const smoothstep = (t: number): number => {
@@ -14,11 +14,11 @@ export const smoothstep = (t: number): number => {
   return x * x * (3 - 2 * x);
 };
 
-export const easeInOutCubic = (t: number): number =>
+const easeInOutCubic = (t: number): number =>
   t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
 
 // Mulberry32 — seeded, so scrubbing forwards/backwards is identical every time.
-export function seededRng(seed: number): () => number {
+function seededRng(seed: number): () => number {
   let s = seed | 0 || 1;
   return () => {
     s = (s + 0x6d2b79f5) | 0;
@@ -29,10 +29,18 @@ export function seededRng(seed: number): () => number {
   };
 }
 
-export function curl(seed: number, t: number, axis: number): number {
+function curl(seed: number, t: number, axis: number): number {
   const base = seed * 0.0173 + axis * 7.91;
   return Math.sin(base + t * 5.21) * 0.6 + Math.sin(base * 1.6 + t * 11.4) * 0.4;
 }
+
+// Curl is a free-flight wobble, so it has to vanish at both ends of the flight.
+// `curl` itself is ~uniform in [-1,1] at local 0 and 1, but the renderer snaps
+// to the exact endpoints outside [begin, end] — leaving the offset in place put
+// a whole cloud's worth of glyphs up to a full `curlAmp` away from where they
+// land, so they teleported on the frame they arrived. Half a sine window keeps
+// the mid-flight amplitude (the part that is the tuning) and removes the jump.
+const curlWindow = (local: number): number => Math.sin(Math.PI * local);
 
 // ---------------------------------------------------------------------------
 // Cell pixel sizing — the aspect ratio that makes the grid read as an iPhone
@@ -40,7 +48,7 @@ export function curl(seed: number, t: number, axis: number): number {
 
 // A monospace cell is roughly 0.572 as wide as it is tall. Holding that ratio
 // is what turns a 50x60 character grid into a phone-shaped object.
-export const CELL_ASPECT = 0.572;
+const CELL_ASPECT = 0.572;
 
 export type CellMetrics = {
   cellW: number;
@@ -104,6 +112,27 @@ export type RenderOpts = {
 // character can never render as a tofu box inside an otherwise perfect grid.
 const NOISE = [".", ":", "·", "*", "+", "◦", "▪", "▫", "°"];
 
+// A cell is "lit" when it would actually paint. All three builders walk exactly
+// this set in exactly this order — the seeded RNG draws once per lit cell, so
+// the traversal order is part of the deterministic output, not an incidental.
+const LIT_ALPHA_MIN = 0.04;
+
+function forEachLitCell(
+  grid: Grid,
+  visit: (cell: Cell, r: number, c: number, cols: number) => void,
+) {
+  for (let r = 0; r < grid.length; r++) {
+    const row = grid[r];
+    if (!row) continue;
+
+    for (let c = 0; c < row.length; c++) {
+      const cell = row[c];
+      if (!cell || cell.alpha < LIT_ALPHA_MIN || cell.char === " ") continue;
+      visit(cell, r, c, row.length);
+    }
+  }
+}
+
 // Outgoing — every lit source cell lifts off toward a shared convergence zone
 // near the centre of the stage. The wind-facing edge crumbles first.
 export function buildOutgoing(grid: Grid, opts: BuildOpts): Particle[] {
@@ -115,42 +144,33 @@ export function buildOutgoing(grid: Grid, opts: BuildOpts): Particle[] {
 
   const out: Particle[] = [];
 
-  for (let r = 0; r < grid.length; r++) {
-    const row = grid[r];
-    if (!row) continue;
-    const cols = row.length;
+  forEachLitCell(grid, (cell, r, c, cols) => {
+    const x0 = frameX + c * cellW;
+    const y0 = frameY + r * cellH;
 
-    for (let c = 0; c < cols; c++) {
-      const cell = row[c];
-      if (!cell || cell.alpha < 0.04 || cell.char === " ") continue;
+    const spreadX = 60 + rng() * 110;
+    const spreadY = (rng() - 0.5) * 180;
+    const x1 = convergeX + windDir * spreadX * (rng() < 0.5 ? -0.4 : 1);
+    const y1 = convergeY + spreadY;
 
-      const x0 = frameX + c * cellW;
-      const y0 = frameY + r * cellH;
+    const colNorm = c / Math.max(1, cols - 1);
+    const stagger = windDir > 0 ? (1 - colNorm) * 0.55 : colNorm * 0.55;
+    const begin = stagger + rng() * 0.04;
+    const duration = 0.28 + rng() * 0.1;
 
-      const spreadX = 60 + rng() * 110;
-      const spreadY = (rng() - 0.5) * 180;
-      const x1 = convergeX + windDir * spreadX * (rng() < 0.5 ? -0.4 : 1);
-      const y1 = convergeY + spreadY;
-
-      const colNorm = c / Math.max(1, cols - 1);
-      const stagger = windDir > 0 ? (1 - colNorm) * 0.55 : colNorm * 0.55;
-      const begin = stagger + rng() * 0.04;
-      const duration = 0.28 + rng() * 0.1;
-
-      out.push({
-        char: cell.char,
-        x0,
-        y0,
-        x1,
-        y1,
-        a0: cell.alpha,
-        a1: 0,
-        begin,
-        end: Math.min(0.72, begin + duration),
-        seed: Math.floor(rng() * 1e7),
-      });
-    }
-  }
+    out.push({
+      char: cell.char,
+      x0,
+      y0,
+      x1,
+      y1,
+      a0: cell.alpha,
+      a1: 0,
+      begin,
+      end: Math.min(0.72, begin + duration),
+      seed: Math.floor(rng() * 1e7),
+    });
+  });
 
   return out;
 }
@@ -166,42 +186,33 @@ export function buildIncoming(grid: Grid, opts: BuildOpts): Particle[] {
 
   const out: Particle[] = [];
 
-  for (let r = 0; r < grid.length; r++) {
-    const row = grid[r];
-    if (!row) continue;
-    const cols = row.length;
+  forEachLitCell(grid, (cell, r, c, cols) => {
+    const x1 = frameX + c * cellW;
+    const y1 = frameY + r * cellH;
 
-    for (let c = 0; c < cols; c++) {
-      const cell = row[c];
-      if (!cell || cell.alpha < 0.04 || cell.char === " ") continue;
+    const spreadX = 60 + rng() * 110;
+    const spreadY = (rng() - 0.5) * 180;
+    const x0 = convergeX - windDir * spreadX * (rng() < 0.5 ? -0.4 : 1);
+    const y0 = convergeY + spreadY;
 
-      const x1 = frameX + c * cellW;
-      const y1 = frameY + r * cellH;
+    const colNorm = c / Math.max(1, cols - 1);
+    const stagger = windDir > 0 ? colNorm * 0.5 : (1 - colNorm) * 0.5;
+    const begin = 0.35 + stagger + rng() * 0.04;
+    const duration = 0.28 + rng() * 0.1;
 
-      const spreadX = 60 + rng() * 110;
-      const spreadY = (rng() - 0.5) * 180;
-      const x0 = convergeX - windDir * spreadX * (rng() < 0.5 ? -0.4 : 1);
-      const y0 = convergeY + spreadY;
-
-      const colNorm = c / Math.max(1, cols - 1);
-      const stagger = windDir > 0 ? colNorm * 0.5 : (1 - colNorm) * 0.5;
-      const begin = 0.35 + stagger + rng() * 0.04;
-      const duration = 0.28 + rng() * 0.1;
-
-      out.push({
-        char: cell.char,
-        x0,
-        y0,
-        x1,
-        y1,
-        a0: 0,
-        a1: cell.alpha,
-        begin,
-        end: Math.min(0.96, begin + duration),
-        seed: Math.floor(rng() * 1e7),
-      });
-    }
-  }
+    out.push({
+      char: cell.char,
+      x0,
+      y0,
+      x1,
+      y1,
+      a0: 0,
+      a1: cell.alpha,
+      begin,
+      end: Math.min(0.96, begin + duration),
+      seed: Math.floor(rng() * 1e7),
+    });
+  });
 
   return out;
 }
@@ -220,44 +231,36 @@ export function buildEntrance(grid: Grid, opts: Omit<BuildOpts, "windDir">): Par
 
   const out: Particle[] = [];
 
-  for (let r = 0; r < rows; r++) {
-    const row = grid[r];
-    if (!row) continue;
+  forEachLitCell(grid, (cell, r, c) => {
+    const x1 = frameX + c * cellW;
+    const y1 = frameY + r * cellH;
 
-    for (let c = 0; c < cols; c++) {
-      const cell = row[c];
-      if (!cell || cell.alpha < 0.04 || cell.char === " ") continue;
+    const angle = rng() * Math.PI * 2;
+    const distance = Math.min(stageW, stageH) * 0.5 + rng() * 320;
+    const burstX = centerX + (rng() - 0.5) * 220;
+    const burstY = stageH * 0.5 + (rng() - 0.5) * 180;
+    const x0 = burstX + Math.cos(angle) * distance;
+    const y0 = burstY + Math.sin(angle) * distance;
 
-      const x1 = frameX + c * cellW;
-      const y1 = frameY + r * cellH;
+    const dx = x1 - centerX;
+    const dy = y1 - centerY;
+    const distNorm = Math.min(1, Math.hypot(dx, dy) / maxR);
+    const stagger = (1 - distNorm) * 0.5 + rng() * 0.1;
+    const duration = 0.34 + rng() * 0.16;
 
-      const angle = rng() * Math.PI * 2;
-      const distance = Math.min(stageW, stageH) * 0.5 + rng() * 320;
-      const burstX = centerX + (rng() - 0.5) * 220;
-      const burstY = stageH * 0.5 + (rng() - 0.5) * 180;
-      const x0 = burstX + Math.cos(angle) * distance;
-      const y0 = burstY + Math.sin(angle) * distance;
-
-      const dx = x1 - centerX;
-      const dy = y1 - centerY;
-      const distNorm = Math.min(1, Math.hypot(dx, dy) / maxR);
-      const stagger = (1 - distNorm) * 0.5 + rng() * 0.1;
-      const duration = 0.34 + rng() * 0.16;
-
-      out.push({
-        char: cell.char,
-        x0,
-        y0,
-        x1,
-        y1,
-        a0: 0,
-        a1: cell.alpha,
-        begin: stagger,
-        end: Math.min(0.98, stagger + duration),
-        seed: Math.floor(rng() * 1e7),
-      });
-    }
-  }
+    out.push({
+      char: cell.char,
+      x0,
+      y0,
+      x1,
+      y1,
+      a0: 0,
+      a1: cell.alpha,
+      begin: stagger,
+      end: Math.min(0.98, stagger + duration),
+      seed: Math.floor(rng() * 1e7),
+    });
+  });
 
   return out;
 }
@@ -316,8 +319,9 @@ export function renderParticles(
     const local = (t - p.begin) / (p.end - p.begin);
     const eased = easeInOutCubic(local);
 
-    const x = lerp(p.x0, p.x1, eased) + curl(p.seed, local, 0) * curlAmp;
-    const y = lerp(p.y0, p.y1, eased) + curl(p.seed + 1, local, 1) * curlAmp * 0.7;
+    const sway = curlWindow(local);
+    const x = lerp(p.x0, p.x1, eased) + curl(p.seed, local, 0) * curlAmp * sway;
+    const y = lerp(p.y0, p.y1, eased) + curl(p.seed + 1, local, 1) * curlAmp * 0.7 * sway;
 
     let alpha: number;
     if (p.a1 === 0) {

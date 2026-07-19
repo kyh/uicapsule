@@ -8,6 +8,7 @@ import type { Pos } from "./lookbook-data";
 import { DetailPanel, NARROW_BREAKPOINT, usesSideLayout } from "./detail-panel";
 import { LookFigure } from "./look-figure";
 import {
+  BASE_LOOKS,
   CARD_H,
   CARD_W,
   CELL_MARGIN_X,
@@ -15,7 +16,7 @@ import {
   chooseCols,
   layoutPositions,
   LOOKS,
-  lookTotal,
+  wrapOffset,
 } from "./lookbook-data";
 
 /* ── Tunable constants ───────────────────────────────────────────── */
@@ -41,8 +42,8 @@ const PARALLAX_RANGE = 320;
 const PARALLAX_STRENGTH = 9;
 const ENTRANCE_STAGGER = 0.04;
 
-/** One cycle of the four — the only cards that take a tab stop. */
-const KEYBOARD_REACHABLE = LOOKS.length / 4;
+/** One cycle — the only cards that are distinct looks, so the only tab stops. */
+const KEYBOARD_REACHABLE = BASE_LOOKS.length;
 
 /* ── Types ───────────────────────────────────────────────────────── */
 
@@ -52,8 +53,14 @@ interface Dims {
   worldW: number;
   worldH: number;
   baseFit: number;
-  cols: number;
-  rows: number;
+}
+
+/** The exact transform the RAF loop last wrote to a card, in GSAP's own props. */
+interface WrittenTransform {
+  x: number;
+  y: number;
+  rotation: number;
+  scale: number;
 }
 
 interface DragState {
@@ -89,6 +96,47 @@ function clamp(v: number, lo: number, hi: number): number {
 function selectionTarget(w: number, h: number): { x: number; y: number } {
   if (usesSideLayout(w, h)) return { x: 0.34 * w, y: 0.5 * h };
   return { x: 0.5 * w, y: 0.2 * h + 28 };
+}
+
+/** Everything a focused look needs, solved from one layout decision. */
+interface SelectionGeometry {
+  /** Camera scale while the look is open. */
+  cameraScale: number;
+  /** Camera translation that puts the card on `selectionTarget`. */
+  cameraX: number;
+  cameraY: number;
+  /** Extra scale applied to the card itself, on top of the camera's. */
+  cardScale: number;
+  /** Card translation onto the wrapped copy nearest the camera. */
+  tileOffX: number;
+  tileOffY: number;
+}
+
+/**
+ * Solve the open-look geometry for a container size and a camera world centre.
+ *
+ * The card's SIZE and the card's POSITION must come from the same
+ * `usesSideLayout` verdict the detail panel branches on, or a frame that gets
+ * the sheet layout still flies in a card sized for the wide one and the panel
+ * lands on top of the thing it describes. Keeping both in here is what stops
+ * the two from drifting apart — including across a resize, which re-solves.
+ */
+function solveSelection(d: Dims, pos: Pos, worldCx: number, worldCy: number): SelectionGeometry {
+  const narrow = !usesSideLayout(d.w, d.h);
+  const neighbourFraction = narrow ? NEIGHBOUR_HEIGHT_FRACTION_NARROW : NEIGHBOUR_HEIGHT_FRACTION;
+  const selectionFraction = narrow ? SELECTION_HEIGHT_FRACTION_NARROW : SELECTION_HEIGHT_FRACTION;
+  const cameraScale = (d.h * neighbourFraction) / CARD_H;
+  const target = selectionTarget(d.w, d.h);
+  const tileOffX = wrapOffset(pos.x, worldCx, d.worldW);
+  const tileOffY = wrapOffset(pos.y, worldCy, d.worldH);
+  return {
+    cameraScale,
+    cameraX: target.x - (pos.x + tileOffX) * cameraScale,
+    cameraY: target.y - (pos.y + tileOffY) * cameraScale,
+    cardScale: selectionFraction / neighbourFraction,
+    tileOffX,
+    tileOffY,
+  };
 }
 
 /* ── Decorative paper-grain contour lines ────────────────────────── */
@@ -134,6 +182,14 @@ export function LookbookCamera() {
   const detailPanelRef = useRef<HTMLDivElement | null>(null);
   const closeBtnRef = useRef<HTMLButtonElement | null>(null);
   const itemRefs = useRef<(HTMLDivElement | null)[]>([]);
+  /**
+   * Mirror of the transforms the RAF loop writes as raw `style.transform`, which
+   * GSAP's per-target cache never observes. Handing these back to GSAP right
+   * before a tween starts is what keeps a selection from beginning a whole tile
+   * away from where the card actually is. Entries are mutated in place — the
+   * loop touches this every frame for every card.
+   */
+  const lastWrittenRef = useRef<WrittenTransform[]>([]);
 
   const camera = useRef({ scale: 0.5, x: 0, y: 0 });
   const drag = useRef<DragState>({
@@ -155,7 +211,8 @@ export function LookbookCamera() {
   });
   const mouse = useRef({ x: 0, y: 0, inside: false });
   const driftRamp = useRef({ amount: 0 });
-  const preSelectionCamera = useRef({ x: 0, y: 0, scale: 0 });
+  /** Camera to restore on close; null when there is nothing worth restoring. */
+  const preSelectionCamera = useRef<{ x: number; y: number; scale: number } | null>(null);
   const gsapManagedItems = useRef<Set<number>>(new Set());
 
   const dimsRef = useRef<Dims>({
@@ -164,8 +221,6 @@ export function LookbookCamera() {
     worldW: 1,
     worldH: 1,
     baseFit: 1,
-    cols: 1,
-    rows: 1,
   });
   const positionsRef = useRef<Pos[]>([]);
   const rectRef = useRef({ left: 0, top: 0 });
@@ -198,6 +253,19 @@ export function LookbookCamera() {
     return floor / CARD_H;
   }, []);
 
+  /**
+   * The container's viewport offset, cached because pointer/wheel handlers need
+   * it on every event and a `getBoundingClientRect()` there would force layout
+   * against the RAF loop's transform writes. Page scroll moves it without
+   * resizing anything, so scrolling has to refresh it too.
+   */
+  const refreshRect = useCallback(() => {
+    const c = containerRef.current;
+    if (!c) return;
+    const r = c.getBoundingClientRect();
+    rectRef.current = { left: r.left, top: r.top };
+  }, []);
+
   const measure = useCallback(() => {
     const c = containerRef.current;
     if (!c) return;
@@ -206,6 +274,10 @@ export function LookbookCamera() {
     const h = r.height;
     // A ResizeObserver fires once at 0x0 inside a freshly-mounted iframe.
     if (w === 0 || h === 0) return;
+    // Read the camera's world centre against the OLD dims, before they change.
+    const prev = dimsRef.current;
+    const worldCx = (prev.w / 2 - camera.current.x) / camera.current.scale;
+    const worldCy = (prev.h / 2 - camera.current.y) / camera.current.scale;
     const cols = chooseCols(LOOKS.length, w / h);
     const rows = Math.ceil(LOOKS.length / cols);
     const cellW = CARD_W + CELL_MARGIN_X;
@@ -213,11 +285,11 @@ export function LookbookCamera() {
     const worldW = cols * cellW;
     const worldH = rows * cellH;
     const baseFit = Math.min(w / worldW, h / worldH) * 0.94;
-    const d: Dims = { w, h, worldW, worldH, baseFit, cols, rows };
+    const d: Dims = { w, h, worldW, worldH, baseFit };
     const p = layoutPositions(worldW, worldH, cols, LOOKS.length);
     dimsRef.current = d;
     positionsRef.current = p;
-    rectRef.current = { left: r.left, top: r.top };
+    refreshRect();
     setDims(d);
     setPositions(p);
     if (!cameraInitedRef.current) {
@@ -234,8 +306,31 @@ export function LookbookCamera() {
       });
       applyCameraTransform();
       setReady(true);
+      return;
     }
-  }, [applyCameraTransform]);
+
+    // An open look keeps the geometry chosen at click time, so a resize that
+    // flips `usesSideLayout` would leave the card parked where the old layout
+    // put it while the panel re-renders into the new one — landing on top of
+    // it. Re-solve and snap; a resize should not animate. Mid-transition the
+    // in-flight tween owns these values, so leave it alone.
+    const sel = selectedIdxRef.current;
+    const selPos = sel === null ? null : p[sel];
+    if (sel !== null && selPos && !transitioningRef.current) {
+      const g = solveSelection(d, selPos, worldCx, worldCy);
+      camera.current.scale = g.cameraScale;
+      camera.current.x = g.cameraX;
+      camera.current.y = g.cameraY;
+      applyCameraTransform();
+      const el = itemRefs.current[sel];
+      if (el) {
+        gsap.set(el, { x: g.tileOffX, y: g.tileOffY, scale: g.cardScale, rotation: 0 });
+      }
+      // The saved viewport was framed for the old container; restoring it at
+      // the new size would land somewhere arbitrary. Fall back to the fit.
+      preSelectionCamera.current = null;
+    }
+  }, [applyCameraTransform, refreshRect]);
 
   const triggerDragDeselect = useCallback(() => {
     const idx = selectedIdxRef.current;
@@ -298,7 +393,7 @@ export function LookbookCamera() {
       gsapManagedItems.current.clear();
       setSelectedIdx(null);
       transitioningRef.current = false;
-      preSelectionCamera.current = { x: 0, y: 0, scale: 0 };
+      preSelectionCamera.current = null;
       const cont = containerRef.current;
       if (cont) cont.style.cursor = drag.current.active ? "grabbing" : "grab";
     });
@@ -327,12 +422,11 @@ export function LookbookCamera() {
 
     const minScale = effectiveMinScale();
     const saved = preSelectionCamera.current;
-    const hasSaved = saved.scale > 0;
-    const restScale = hasSaved
+    const restScale = saved
       ? Math.max(saved.scale, minScale)
       : Math.max(CAMERA_REST_FACTOR * d.baseFit, minScale);
-    const restX = hasSaved ? saved.x : (d.w - d.worldW * restScale) / 2;
-    const restY = hasSaved ? saved.y : (d.h - d.worldH * restScale) / 2;
+    const restX = saved ? saved.x : (d.w - d.worldW * restScale) / 2;
+    const restY = saved ? saved.y : (d.h - d.worldH * restScale) / 2;
 
     gsap.killTweensOf(camera.current);
     gsap.to(camera.current, {
@@ -348,11 +442,16 @@ export function LookbookCamera() {
           realEl.style.zIndex = "";
           realEl.style.pointerEvents = "";
         }
-        gsapManagedItems.current.delete(idx);
+        // Clear, not delete(idx), for the same reason as triggerDragDeselect.
+        // A chain of re-selections dims — and so kills the tween of — the card
+        // from two selections ago, and that tween carried the only release for
+        // its index. Anything still in the set here is stranded: the close has
+        // settled, so no item tween is in flight that still needs the guard.
+        gsapManagedItems.current.clear();
         selectedIdxRef.current = null;
         setSelectedIdx(null);
         transitioningRef.current = false;
-        preSelectionCamera.current = { x: 0, y: 0, scale: 0 };
+        preSelectionCamera.current = null;
       },
     });
 
@@ -360,11 +459,9 @@ export function LookbookCamera() {
       gsap.killTweensOf(realEl);
       const closeWorldCx = (d.w / 2 - restX) / restScale;
       const closeWorldCy = (d.h / 2 - restY) / restScale;
-      const closeTileOffX = -Math.round((pos.x - closeWorldCx) / d.worldW) * d.worldW;
-      const closeTileOffY = -Math.round((pos.y - closeWorldCy) / d.worldH) * d.worldH;
       gsap.to(realEl, {
-        x: closeTileOffX,
-        y: closeTileOffY,
+        x: wrapOffset(pos.x, closeWorldCx, d.worldW),
+        y: wrapOffset(pos.y, closeWorldCy, d.worldH),
         scale: 1,
         rotation: pos.rot,
         duration: 0.95,
@@ -384,7 +481,6 @@ export function LookbookCamera() {
 
   const handleClickItem = useCallback(
     (idx: number) => {
-      if (drag.current.didMove) return;
       if (!enteredRef.current) return;
 
       const prevIdx = selectedIdxRef.current;
@@ -404,38 +500,20 @@ export function LookbookCamera() {
         return;
       }
 
-      // Same predicate as the landing point above: the card's SIZE and the
-      // card's POSITION have to come from one decision, or a frame that gets
-      // the sheet layout would still fly in a card sized for the wide one.
-      const narrow = !usesSideLayout(d.w, d.h);
-      const neighbourFraction = narrow
-        ? NEIGHBOUR_HEIGHT_FRACTION_NARROW
-        : NEIGHBOUR_HEIGHT_FRACTION;
-      const selectionFraction = narrow
-        ? SELECTION_HEIGHT_FRACTION_NARROW
-        : SELECTION_HEIGHT_FRACTION;
-      const cameraScale = (d.h * neighbourFraction) / CARD_H;
-      const selectedExtraScale = selectionFraction / neighbourFraction;
-      const target = selectionTarget(d.w, d.h);
-
       const preCamX = camera.current.x;
       const preCamY = camera.current.y;
       const preCamS = camera.current.scale;
-      const viewCx = d.w / 2;
-      const viewCy = d.h / 2;
-      const worldCx = (viewCx - preCamX) / preCamS;
-      const worldCy = (viewCy - preCamY) / preCamS;
-      // Fly to the nearest wrapped copy of the card, not the canonical one.
-      const newTileOffX = -Math.round((newPos.x - worldCx) / d.worldW) * d.worldW;
-      const newTileOffY = -Math.round((newPos.y - worldCy) / d.worldH) * d.worldH;
-      const wrappedNewX = newPos.x + newTileOffX;
-      const wrappedNewY = newPos.y + newTileOffY;
-      const targetX = target.x - wrappedNewX * cameraScale;
-      const targetY = target.y - wrappedNewY * cameraScale;
+      const worldCx = (d.w / 2 - preCamX) / preCamS;
+      const worldCy = (d.h / 2 - preCamY) / preCamS;
+      const g = solveSelection(d, newPos, worldCx, worldCy);
 
       if (prevIdx === null) {
         preSelectionCamera.current = { x: preCamX, y: preCamY, scale: preCamS };
       }
+
+      // Read BEFORE the add below: whether the RAF loop or GSAP owned this card
+      // a moment ago decides which of them holds its true transform.
+      const rafOwnedNew = !gsapManagedItems.current.has(idx);
 
       gsapManagedItems.current.add(idx);
       if (prevIdx !== null) gsapManagedItems.current.add(prevIdx);
@@ -447,10 +525,27 @@ export function LookbookCamera() {
       selectedIdxRef.current = idx;
 
       gsap.killTweensOf(newEl);
+      // The RAF loop has been writing this card's `style.transform` raw, which
+      // GSAP's per-target transform cache never sees, so a tween would start
+      // from whatever GSAP last rendered — a whole tile away once the world has
+      // drifted past a wrap boundary — and the card would teleport off screen on
+      // frame one before flying back in. `parseTransform: true` is not enough:
+      // gsap reads `x`'s start value through `_get` with no uncache flag and
+      // only refreshes the cache afterwards, so `x` alone still starts stale.
+      // A zero-duration `set` renders immediately, which makes the cache
+      // authoritative for all four props before the tween samples any of them.
+      //
+      // Only when the RAF loop was the one writing. Re-selecting a card during
+      // the ~0.65s release tween of the look before it lands here with GSAP
+      // still mid-render: its cache is already correct and the RAF mirror is
+      // stale by however far the field has panned since, so replaying it would
+      // reintroduce the very jump this prevents.
+      const lastWritten = rafOwnedNew ? lastWrittenRef.current[idx] : undefined;
+      if (lastWritten) gsap.set(newEl, lastWritten);
       gsap.to(newEl, {
-        x: newTileOffX,
-        y: newTileOffY,
-        scale: selectedExtraScale,
+        x: g.tileOffX,
+        y: g.tileOffY,
+        scale: g.cardScale,
         rotation: 0,
         opacity: 1,
         duration: prevIdx === null ? 1.0 : 0.9,
@@ -461,11 +556,9 @@ export function LookbookCamera() {
 
       if (prevEl && prevPos) {
         gsap.killTweensOf(prevEl);
-        const prevTileOffX = -Math.round((prevPos.x - worldCx) / d.worldW) * d.worldW;
-        const prevTileOffY = -Math.round((prevPos.y - worldCy) / d.worldH) * d.worldH;
         gsap.to(prevEl, {
-          x: prevTileOffX,
-          y: prevTileOffY,
+          x: wrapOffset(prevPos.x, worldCx, d.worldW),
+          y: wrapOffset(prevPos.y, worldCy, d.worldH),
           scale: 1,
           rotation: prevPos.rot,
           opacity: 0.22,
@@ -491,9 +584,9 @@ export function LookbookCamera() {
 
       gsap.killTweensOf(camera.current);
       gsap.to(camera.current, {
-        scale: cameraScale,
-        x: targetX,
-        y: targetY,
+        scale: g.cameraScale,
+        x: g.cameraX,
+        y: g.cameraY,
         duration: prevIdx === null ? 1.05 : 0.95,
         ease: "power3.inOut",
         onUpdate: applyCameraTransform,
@@ -538,6 +631,17 @@ export function LookbookCamera() {
           }
         });
       } else {
+        // Selecting another card DURING a close is a re-selection (the close
+        // has not cleared the index yet), so it lands here — but the close has
+        // already faded the button out and its restore lives on the fresh-open
+        // path above. Without this the look re-opens with no visible close
+        // affordance. On an ordinary re-selection the button is already at
+        // rest, so this is a no-op.
+        const cbNow = closeBtnRef.current;
+        if (cbNow) {
+          gsap.killTweensOf(cbNow);
+          gsap.to(cbNow, { opacity: 1, scale: 1, duration: 0.3, ease: "power3.out" });
+        }
         const dp = detailPanelRef.current;
         if (dp) {
           gsap.killTweensOf(dp);
@@ -691,12 +795,23 @@ export function LookbookCamera() {
       }
     };
 
+    /** The pointer can leave the frame without a final in-bounds `pointermove`
+        (straight off the window edge), which would freeze the parallax on
+        whichever card it was last over. */
+    const onPointerLeave = () => {
+      mouse.current.inside = false;
+    };
+
     const onWheel = (e: WheelEvent) => {
-      if (!enteredRef.current) return;
+      // An open look owns the wheel: the detail panel scrolls. Everything else
+      // is the camera's, so it swallows the event even when it cannot act on
+      // it — otherwise the entrance and every transition let the wheel through
+      // to whatever page has embedded this.
       if (selectedIdxRef.current !== null) return;
+      e.preventDefault();
+      if (!enteredRef.current) return;
       if (transitioningRef.current) return;
       if (drag.current.active && drag.current.didMove) return;
-      e.preventDefault();
       drag.current.inertiaActive = false;
       drag.current.vx = 0;
       drag.current.vy = 0;
@@ -727,10 +842,18 @@ export function LookbookCamera() {
     };
 
     c.addEventListener("pointerdown", onPointerDown);
+    c.addEventListener("pointerleave", onPointerLeave);
     window.addEventListener("pointermove", onPointerMove);
     window.addEventListener("pointerup", onPointerUp);
+    // Without this a cancelled pointer (OS gesture takeover, input redirection)
+    // never ends the drag: `active`/`didMove` stay true, so the camera keeps
+    // being rewritten from a stale anchor and clicks, drift and parallax all
+    // die permanently. `onPointerUp` already filters on the pointer id.
+    window.addEventListener("pointercancel", onPointerUp);
     c.addEventListener("wheel", onWheel, { passive: false });
     window.addEventListener("keydown", onKey);
+    // Capture phase so a scrolling ancestor counts, not just the window.
+    window.addEventListener("scroll", refreshRect, { passive: true, capture: true });
 
     const tick = () => {
       const sel = selectedIdxRef.current;
@@ -776,18 +899,17 @@ export function LookbookCamera() {
         const camS = camera.current.scale;
         const camX = camera.current.x;
         const camY = camera.current.y;
-        const viewCx = d.w / 2;
-        const viewCy = d.h / 2;
         const doParallax =
           atRest && mouse.current.inside && !drag.current.active && !reduceMotionRef.current;
         const mx = mouse.current.x;
         const my = mouse.current.y;
-        const worldCx = (viewCx - camX) / camS;
-        const worldCy = (viewCy - camY) / camS;
+        const worldCx = (d.w / 2 - camX) / camS;
+        const worldCy = (d.h / 2 - camY) / camS;
         const tileW = d.worldW;
         const tileH = d.worldH;
         const managed = gsapManagedItems.current;
         const refs = itemRefs.current;
+        const written = lastWrittenRef.current;
 
         for (let i = 0; i < refs.length; i++) {
           if (managed.has(i)) continue;
@@ -797,8 +919,8 @@ export function LookbookCamera() {
 
           // Re-wrap every card against the camera's world centre, every frame.
           // This is the mechanic: the field has no edges, ever.
-          const tileOffX = -Math.round((p.x - worldCx) / tileW) * tileW;
-          const tileOffY = -Math.round((p.y - worldCy) / tileH) * tileH;
+          const tileOffX = wrapOffset(p.x, worldCx, tileW);
+          const tileOffY = wrapOffset(p.y, worldCy, tileH);
 
           let parLift = 1;
           let extraX = 0;
@@ -821,6 +943,16 @@ export function LookbookCamera() {
           const ox = extraX + tileOffX;
           const oy = extraY + tileOffY;
           el.style.transform = `translate3d(${ox}px, ${oy}px, 0) rotate(${p.rot}deg) scale(${parLift})`;
+
+          const w = written[i];
+          if (w) {
+            w.x = ox;
+            w.y = oy;
+            w.rotation = p.rot;
+            w.scale = parLift;
+          } else {
+            written[i] = { x: ox, y: oy, rotation: p.rot, scale: parLift };
+          }
         }
       }
 
@@ -830,13 +962,16 @@ export function LookbookCamera() {
 
     return () => {
       c.removeEventListener("pointerdown", onPointerDown);
+      c.removeEventListener("pointerleave", onPointerLeave);
       window.removeEventListener("pointermove", onPointerMove);
       window.removeEventListener("pointerup", onPointerUp);
+      window.removeEventListener("pointercancel", onPointerUp);
       c.removeEventListener("wheel", onWheel);
       window.removeEventListener("keydown", onKey);
+      window.removeEventListener("scroll", refreshRect, { capture: true });
       if (animRef.current !== null) cancelAnimationFrame(animRef.current);
     };
-  }, [applyCameraTransform, effectiveMinScale, handleClose, triggerDragDeselect]);
+  }, [applyCameraTransform, effectiveMinScale, handleClose, refreshRect, triggerDragDeselect]);
 
   /* Grid entrance (camera dolly + item de-blur). Fires once the first
      measurement lands. Tween cleanup makes it Strict-Mode safe: a teardown
@@ -920,7 +1055,12 @@ export function LookbookCamera() {
       ref={containerRef}
       data-lookbook-root
       aria-label="Interactive lookbook canvas"
-      className="bg-background relative size-full overflow-hidden select-none"
+      // `text-foreground` is load-bearing, not decoration: the scoped palette
+      // below only reaches utilities that name a token, and the detail panel's
+      // headings, prices and the close icon all inherit `color`. Without an
+      // anchor here they inherit the HOST page's — white, under a dark theme,
+      // on this component's permanently cream glass.
+      className="bg-background text-foreground relative size-full overflow-hidden select-none"
       style={{ touchAction: "none", cursor: "grab" }}
     >
       {/* Scoped palette. uicapsule declares its tokens with `@theme inline`, so
@@ -968,24 +1108,45 @@ export function LookbookCamera() {
         >
           {LOOKS.map((look, i) => {
             const p = positions[i];
+            // 72 cards, 18 distinct looks: the other three cycles are visual
+            // repeats. Exposing them as buttons put 54 unreachable duplicates
+            // in the accessibility tree with labels identical to their twins,
+            // so they are hidden from it entirely — which also means they must
+            // not be focusable at all, not merely untabbable.
+            const isDuplicate = i >= KEYBOARD_REACHABLE;
             return (
               <div
                 key={look.id}
                 ref={(el) => {
                   itemRefs.current[i] = el;
                 }}
-                onClick={() => handleClickItem(i)}
+                onClick={() => {
+                  // Swallow the synthetic click that closes out a pan. The
+                  // keyboard path below deliberately skips this: `didMove`
+                  // survives until the next pointerdown, and gating Enter on it
+                  // left activation dead for as long as that took.
+                  if (drag.current.didMove) return;
+                  handleClickItem(i);
+                }}
                 onKeyDown={(e) => {
                   if (e.key === "Enter" || e.key === " ") {
                     e.preventDefault();
                     handleClickItem(i);
                   }
                 }}
-                role="button"
-                // 72 cards but only 18 distinct looks — the other three cycles
-                // are duplicates, so they stay out of the tab order.
-                tabIndex={i < KEYBOARD_REACHABLE ? 0 : -1}
-                aria-label={`${look.name}, look number ${look.lookNumber}`}
+                role={isDuplicate ? undefined : "button"}
+                tabIndex={isDuplicate ? undefined : 0}
+                aria-hidden={isDuplicate || undefined}
+                // Keyed off look identity, not index: the 54 aria-hidden
+                // duplicates stay mouse-clickable, and opening one has to be
+                // reported by the one real button that names the same look.
+                // `cloneLook` preserves `lookNumber`, so it survives the cycles.
+                aria-expanded={
+                  isDuplicate ? undefined : selectedLook?.lookNumber === look.lookNumber
+                }
+                aria-label={
+                  isDuplicate ? undefined : `${look.name}, look number ${look.lookNumber}`
+                }
                 data-look-card={look.id}
                 className="focus-visible:ring-foreground/40 focus-visible:ring-offset-background absolute cursor-pointer rounded-sm outline-none focus-visible:ring-2 focus-visible:ring-offset-2"
                 style={{
@@ -1032,7 +1193,6 @@ export function LookbookCamera() {
             key={selectedLook.id}
             panelRef={detailPanelRef}
             look={selectedLook}
-            total={lookTotal(selectedLook)}
             containerW={dims.w}
             containerH={dims.h}
           />

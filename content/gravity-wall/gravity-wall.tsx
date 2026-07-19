@@ -1,6 +1,6 @@
 "use client";
 
-import type { FC, RefObject } from "react";
+import type { Dispatch, FC, RefObject, SetStateAction } from "react";
 import { memo, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import gsap from "gsap";
 
@@ -9,6 +9,7 @@ import type { Photo } from "./photos";
 import {
   buildCells,
   CELL_CLASS,
+  CULL_MARGIN,
   MOBILE_BREAKPOINT,
   PAN_LERP,
   RADIUS_LERP,
@@ -75,7 +76,10 @@ interface PhysicsState {
   hovering: boolean;
   pinned: boolean;
   expanded: boolean;
+  /** Index into the *current* cell array. Meaningless across a rebuild. */
   featuredIdx: number;
+  /** Index into `photos`, which survives a rebuild — see the seed step. */
+  featuredPhoto: number;
 }
 
 interface IntroState {
@@ -89,6 +93,18 @@ interface GravityWallProps {
   photos: readonly [Photo, ...Photo[]];
 }
 
+/** Membership toggle for one of the photo-slug sets (liked / saved). */
+function useSlugToggle(setSlugs: Dispatch<SetStateAction<Set<string>>>, slug: string) {
+  return useCallback(() => {
+    setSlugs((prev) => {
+      const next = new Set(prev);
+      if (next.has(slug)) next.delete(slug);
+      else next.add(slug);
+      return next;
+    });
+  }, [setSlugs, slug]);
+}
+
 export const GravityWall: FC<GravityWallProps> = ({ photos }) => {
   const [dims, setDims] = useState<Dims | null>(null);
   const [featuredIdx, setFeaturedIdx] = useState(0);
@@ -100,7 +116,9 @@ export const GravityWall: FC<GravityWallProps> = ({ photos }) => {
   const anchorRef = useRef<HTMLDivElement | null>(null);
   const itemEls = useRef<(HTMLDivElement | null)[]>([]);
   /* Frame origin in client coordinates, so pointer maths stays correct even if
-     the section is not flush with the document origin. */
+     the section is not flush with the document origin. Anything that can move
+     the section relative to the viewport — resize, scroll, pointer entry — has
+     to refresh it, or `onMove` maps the cursor to the wrong world point. */
   const originRef = useRef({ left: 0, top: 0 });
   const reduceMotionRef = useRef(false);
   /* The last dims we handed to `setDims`. The tolerance check has to run
@@ -115,17 +133,17 @@ export const GravityWall: FC<GravityWallProps> = ({ photos }) => {
     voidRadius: 0,
     targetRadius: 0,
     rowOffsets: [],
-    hovering: true,
+    hovering: false,
     pinned: false,
     expanded: false,
     featuredIdx: 0,
+    featuredPhoto: 0,
   });
   const intro = useRef<IntroState>({
     entrance: 0,
     voidEmerge: 0,
     featuredEmerge: 0,
   });
-  const introPlayed = useRef(false);
 
   const built = useMemo(() => (dims ? buildCells(dims, photos) : null), [dims, photos]);
 
@@ -157,6 +175,17 @@ export const GravityWall: FC<GravityWallProps> = ({ photos }) => {
     return () => mq.removeEventListener("change", apply);
   }, []);
 
+  /* Re-reads the section box and republishes the origin. Returns the rect so
+     the caller that also needs the size does not pay for a second layout read. */
+  const refreshOrigin = useCallback((): DOMRect | null => {
+    const section = sectionRef.current;
+    if (!section) return null;
+    const rect = section.getBoundingClientRect();
+    originRef.current.left = rect.left;
+    originRef.current.top = rect.top;
+    return rect;
+  }, []);
+
   /* ── Frame sizing, measured from the section rather than the window ── */
   useEffect(() => {
     const section = sectionRef.current;
@@ -164,9 +193,8 @@ export const GravityWall: FC<GravityWallProps> = ({ photos }) => {
 
     let raf = 0;
     const measure = () => {
-      const rect = section.getBoundingClientRect();
-      originRef.current.left = rect.left;
-      originRef.current.top = rect.top;
+      const rect = refreshOrigin();
+      if (!rect) return;
       const vw = Math.round(rect.width);
       const vh = Math.round(rect.height);
       /* A freshly-mounted iframe reports 0x0 on the first callback. Building
@@ -214,6 +242,17 @@ export const GravityWall: FC<GravityWallProps> = ({ photos }) => {
       cancelAnimationFrame(raf);
       observer.disconnect();
     };
+  }, [refreshOrigin]);
+
+  /* Single writer for "which cell is featured", so the photo identity used to
+     survive rebuilds can never drift out of step with the index. */
+  const setFeatured = useCallback((idx: number, cells: readonly Cell[]) => {
+    const p = physics.current;
+    const cell = cells[idx];
+    if (!cell) return;
+    p.featuredIdx = idx;
+    p.featuredPhoto = cell.photoIndex;
+    setFeaturedIdx(idx);
   }, []);
 
   /* ── Actions ─────────────────────────────────────────────────────── */
@@ -257,34 +296,16 @@ export const GravityWall: FC<GravityWallProps> = ({ photos }) => {
       p.pinned = true;
       p.panTarget.x = dims.vw / 2 - nextWorldX;
       p.panTarget.y = dims.vh / 2 - nextWorldY;
-      p.featuredIdx = newIdx;
-      setFeaturedIdx(newIdx);
+      setFeatured(newIdx, cells);
     },
-    [built, dims],
+    [built, dims, setFeatured],
   );
 
   const next = useCallback(() => navigate(1), [navigate]);
   const prev = useCallback(() => navigate(-1), [navigate]);
 
-  const currentSlug = currentPhoto.slug;
-
-  const toggleLike = useCallback(() => {
-    setLiked((prevSet) => {
-      const set = new Set(prevSet);
-      if (set.has(currentSlug)) set.delete(currentSlug);
-      else set.add(currentSlug);
-      return set;
-    });
-  }, [currentSlug]);
-
-  const toggleSave = useCallback(() => {
-    setSaved((prevSet) => {
-      const set = new Set(prevSet);
-      if (set.has(currentSlug)) set.delete(currentSlug);
-      else set.add(currentSlug);
-      return set;
-    });
-  }, [currentSlug]);
+  const toggleLike = useSlugToggle(setLiked, currentPhoto.slug);
+  const toggleSave = useSlugToggle(setSaved, currentPhoto.slug);
 
   /* ── Pointer / touch / hover listeners ───────────────────────────── */
   useEffect(() => {
@@ -305,9 +326,7 @@ export const GravityWall: FC<GravityWallProps> = ({ photos }) => {
       p.mouse.has = true;
     };
     const onEnter = () => {
-      const rect = section.getBoundingClientRect();
-      originRef.current.left = rect.left;
-      originRef.current.top = rect.top;
+      refreshOrigin();
       p.hovering = true;
     };
     const onLeave = () => {
@@ -318,13 +337,19 @@ export const GravityWall: FC<GravityWallProps> = ({ photos }) => {
     section.addEventListener("touchmove", onTouch, { passive: true });
     section.addEventListener("pointerenter", onEnter);
     section.addEventListener("pointerleave", onLeave);
+    /* Captured, so a scrolling *ancestor* counts too and not just the document:
+       `pointerenter` cannot fire for a cursor already inside the section, and
+       the ResizeObserver does not fire on scroll, so without this the void
+       detaches from the cursor by exactly the scroll delta. */
+    window.addEventListener("scroll", refreshOrigin, { passive: true, capture: true });
     return () => {
       section.removeEventListener("pointermove", onMove);
       section.removeEventListener("touchmove", onTouch);
       section.removeEventListener("pointerenter", onEnter);
       section.removeEventListener("pointerleave", onLeave);
+      window.removeEventListener("scroll", refreshOrigin, { capture: true });
     };
-  }, []);
+  }, [refreshOrigin]);
 
   /* ── Keyboard (only while a detail is open) ──────────────────────── */
   useEffect(() => {
@@ -374,20 +399,27 @@ export const GravityWall: FC<GravityWallProps> = ({ photos }) => {
     p.rowOffsets = Array.from({ length: tile.rows }, () => 0);
     p.pinned = false;
 
-    /* Seed featured with the cell nearest world centre. */
-    let best = 0;
-    let bestD = Infinity;
-    for (let i = 0; i < cells.length; i++) {
-      const cell = cells[i];
-      if (!cell) continue;
-      const d = Math.hypot(cell.baseX, cell.baseY);
-      if (d < bestD) {
-        bestD = d;
-        best = i;
+    /* Seed featured with the cell nearest world centre. While a detail is open
+       the photo on screen has to survive instead: a rebuild reindexes every
+       cell, so holding `featuredIdx` would silently swap the picture being
+       looked at — the open photo is re-found by identity. */
+    if (p.expanded) {
+      const kept = cells.findIndex((cell) => cell.photoIndex === p.featuredPhoto);
+      setFeatured(kept === -1 ? 0 : kept, cells);
+    } else {
+      let best = 0;
+      let bestD = Infinity;
+      for (let i = 0; i < cells.length; i++) {
+        const cell = cells[i];
+        if (!cell) continue;
+        const d = Math.hypot(cell.baseX, cell.baseY);
+        if (d < bestD) {
+          bestD = d;
+          best = i;
+        }
       }
+      setFeatured(best, cells);
     }
-    p.featuredIdx = best;
-    setFeaturedIdx(best);
 
     let raf = 0;
     const tick = () => {
@@ -441,7 +473,6 @@ export const GravityWall: FC<GravityWallProps> = ({ photos }) => {
       const entrance = introVals.entrance;
       const halfDiag = Math.hypot(vw, vh) / 2;
       const revealActive = entrance < 1;
-      const cullMargin = 240;
 
       let nearestIdx = p.featuredIdx;
       let nearestDist = Infinity;
@@ -464,7 +495,9 @@ export const GravityWall: FC<GravityWallProps> = ({ photos }) => {
 
         const dx = effectiveWorldX - vX;
         const dy = effectiveWorldY - vY;
-        const dist = Math.hypot(dx, dy);
+        /* `Math.sqrt` rather than `Math.hypot`: same result for pixel-scale
+           inputs, and this runs ~500 times a frame. */
+        const dist = Math.sqrt(dx * dx + dy * dy);
 
         if (dist < nearestDist) {
           nearestDist = dist;
@@ -473,10 +506,10 @@ export const GravityWall: FC<GravityWallProps> = ({ photos }) => {
 
         const baseScreenX = effectiveWorldX + p.panOff.x;
         const baseScreenY = effectiveWorldY + p.panOff.y;
-        if (baseScreenX + cell.width < -cullMargin) continue;
-        if (baseScreenX > vw + cullMargin) continue;
-        if (baseScreenY + cell.height < -cullMargin) continue;
-        if (baseScreenY > vh + cullMargin) continue;
+        if (baseScreenX + cell.width < -CULL_MARGIN) continue;
+        if (baseScreenX > vw + CULL_MARGIN) continue;
+        if (baseScreenY + cell.height < -CULL_MARGIN) continue;
+        if (baseScreenY > vh + CULL_MARGIN) continue;
 
         let finalWorldX = effectiveWorldX;
         let finalWorldY = effectiveWorldY;
@@ -510,7 +543,7 @@ export const GravityWall: FC<GravityWallProps> = ({ photos }) => {
         let introOffsetX = 0;
         let introOffsetY = 0;
         if (revealActive) {
-          const distFromCenter = Math.hypot(cell.baseX, cell.baseY);
+          const distFromCenter = Math.sqrt(cell.baseX * cell.baseX + cell.baseY * cell.baseY);
           const cellEntrance = entrance * 1.0 - (distFromCenter / halfDiag) * 0.4;
           const entranceAlpha = Math.max(0, Math.min(1, cellEntrance * 1.5));
           alpha = entranceAlpha;
@@ -534,8 +567,7 @@ export const GravityWall: FC<GravityWallProps> = ({ photos }) => {
 
       /* F. featured index update (only on real change, only when closed) */
       if (nearestIdx !== p.featuredIdx && nearestDist < R * 0.9 && !isExpanded) {
-        p.featuredIdx = nearestIdx;
-        setFeaturedIdx(nearestIdx);
+        setFeatured(nearestIdx, cells);
       }
 
       /* G. position the featured anchor */
@@ -560,11 +592,18 @@ export const GravityWall: FC<GravityWallProps> = ({ photos }) => {
 
     raf = requestAnimationFrame(tick);
     return () => cancelAnimationFrame(raf);
-  }, [built, dims]);
+  }, [built, dims, setFeatured]);
 
   /* ── Cinematic intro (runs once, snaps to final on teardown) ─────── */
+  /* Deliberately keyed on *whether* a wall exists rather than on `built`
+     itself: `built` gets a new identity on every resize, and re-running the
+     effect mid-intro would kill the timeline, snap the values to 1 in cleanup
+     and immediately replay the fly-in from 0. `dims` never returns to null
+     once measured, so this runs exactly once per mount — including the second
+     mount of a StrictMode double-invoke, which still replays the intro. */
+  const hasBuilt = built !== null;
   useEffect(() => {
-    if (!built || introPlayed.current) return;
+    if (!hasBuilt) return;
 
     const introVals = intro.current;
 
@@ -572,7 +611,6 @@ export const GravityWall: FC<GravityWallProps> = ({ photos }) => {
       introVals.entrance = 1;
       introVals.voidEmerge = 1;
       introVals.featuredEmerge = 1;
-      introPlayed.current = true;
       return;
     }
 
@@ -582,15 +620,7 @@ export const GravityWall: FC<GravityWallProps> = ({ photos }) => {
     physics.current.voidRadius = 0;
     physics.current.targetRadius = 0;
 
-    /* `introPlayed` latches only once the timeline actually finishes, so a
-       StrictMode double-mount replays the intro rather than swallowing it,
-       while a later resize (which rebuilds `built`) leaves it alone. */
-    const tl = gsap.timeline({
-      delay: 0.1,
-      onComplete: () => {
-        introPlayed.current = true;
-      },
-    });
+    const tl = gsap.timeline({ delay: 0.1 });
     tl.to(introVals, { entrance: 1, duration: 1.7, ease: "power2.inOut" }, 0);
     tl.to(introVals, { voidEmerge: 1, duration: 1.1, ease: "power2.out" }, 0.2);
     tl.to(introVals, { featuredEmerge: 1, duration: 0.8, ease: "back.out(1.4)" }, 0.7);
@@ -603,7 +633,7 @@ export const GravityWall: FC<GravityWallProps> = ({ photos }) => {
       introVals.voidEmerge = 1;
       introVals.featuredEmerge = 1;
     };
-  }, [built]);
+  }, [hasBuilt]);
 
   return (
     <section
@@ -612,7 +642,7 @@ export const GravityWall: FC<GravityWallProps> = ({ photos }) => {
       className="relative isolate h-full w-full touch-none overflow-hidden bg-[#0a0a0a] text-white select-none"
     >
       <div aria-hidden className="absolute inset-0">
-        {built && dims && <Wall cells={built.cells} photos={photos} itemsRef={itemEls} />}
+        {built && <Wall cells={built.cells} photos={photos} itemsRef={itemEls} />}
       </div>
 
       {/* Symmetric vignette — replaces the source's corner gradient, which

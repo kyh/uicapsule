@@ -31,12 +31,15 @@ export const VOID_LERP = 0.25;
 export const PAN_LERP = 0.07;
 export const RADIUS_LERP = 0.07;
 export const SOFT_PUSH_RATIO = 1.3;
+/* Cells this far outside the frame skip their transform write. Generous
+   enough to cover the largest displacement the void can apply. */
+export const CULL_MARGIN = 240;
 
 export const CELL_CLASS =
   "absolute left-0 top-0 select-none overflow-hidden rounded-[3px] pointer-events-none will-change-transform origin-center [backface-visibility:hidden]";
 
 /* ── Deterministic helpers (no Math.random anywhere) ──────────────────── */
-export function hash(n: number): number {
+function hash(n: number): number {
   const x = Math.sin(n * 12.9898 + 78.233) * 43758.5453;
   return x - Math.floor(x);
 }
@@ -103,7 +106,14 @@ export function buildCells(
   const tileH = rows * stepY;
   const firstRowY = -tileH / 2 + cellH / 2 + gap / 2;
 
-  /* Pass 1 — pick photos with anti-collision, record natural row widths. */
+  /* Pass 1 — pick photos with anti-collision, record natural row widths.
+     The left-neighbour half is exact. The above-neighbour half is only
+     best-effort: it tests the un-respaced `rawX` spans, and pass 2 then
+     redistributes the slack per row independently, so the column alignment
+     reasoned about here no longer holds by the time cells are committed.
+     Measured, it cuts vertical repeats to roughly a quarter of chance rather
+     than eliminating them. Making it exact means deferring photo selection to
+     pass 2, which is not worth the restructure at this repeat rate. */
   const rawRows: RawItem[][] = [];
   let maxNaturalWidth = 0;
   let prevRow: RawItem[] | null = null;

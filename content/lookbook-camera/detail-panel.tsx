@@ -6,7 +6,7 @@ import { useCallback, useLayoutEffect, useRef, useState } from "react";
 
 import type { Look } from "./lookbook-data";
 import { LookFigure } from "./look-figure";
-import { fmtPrice } from "./lookbook-data";
+import { fmtPrice, lookTotal } from "./lookbook-data";
 
 /**
  * Below this container width the panel always drops underneath the focused
@@ -60,14 +60,13 @@ const NO_SCROLLBAR =
 
 export interface DetailPanelProps {
   look: Look;
-  total: number;
   /** Measured container box — never `window`, so the panel matches the frame. */
   containerW: number;
   containerH: number;
   panelRef: RefObject<HTMLDivElement | null>;
 }
 
-export function DetailPanel({ look, total, containerW, containerH, panelRef }: DetailPanelProps) {
+export function DetailPanel({ look, containerW, containerH, panelRef }: DetailPanelProps) {
   const [activeIdx, setActiveIdx] = useState(0);
   const [bag, setBag] = useState<ReadonlySet<string>>(new Set<string>());
 
@@ -371,13 +370,16 @@ export function DetailPanel({ look, total, containerW, containerH, panelRef }: D
             <div className="bg-foreground/10 h-px flex-1" />
           </div>
 
-          {/* Running total */}
+          {/* Price of the whole look — the bag counter beside it is progress
+              towards owning it, not a subtotal, so this figure is constant. */}
           <div className="px-5 pb-6" data-detail-anim>
             <div className="mb-2 flex items-baseline justify-between px-0.5">
               <span className="text-[9px] tracking-[0.28em] uppercase opacity-55">
                 Complete look · {bag.size}/{itemsCount} added
               </span>
-              <span className="lbk-display text-[20px] tabular-nums">{fmtPrice(total)}</span>
+              <span className="lbk-display text-[20px] tabular-nums">
+                {fmtPrice(lookTotal(look))}
+              </span>
             </div>
           </div>
         </div>

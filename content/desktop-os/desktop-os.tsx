@@ -52,7 +52,19 @@ const DOCK_CURSOR_LERP = 0.22;
 const MOBILE_ICON_BASE = 72;
 
 const TILE_SIZE = 78;
+/** The springboard grid draws the same tile artwork smaller. */
+const MOBILE_TILE_SIZE = 64;
 const FEATURED_SIZE = 180;
+/** Breathing room kept between a tile's box and the frame edge or the dock. */
+const TILE_EDGE_MARGIN = 4;
+/**
+ * The desktop tile's box when no element is available to measure (the seed pass
+ * runs for both layouts, and the mobile tree renders a different-sized tile):
+ * the wrapper's rendered width, and `TILE_SIZE` plus the 8px gap and the single
+ * 11px/1.25 name label beneath it.
+ */
+const TILE_BOX_W = 96;
+const TILE_BOX_H = TILE_SIZE + 24;
 /** Boot "slot machine" reel. */
 const REEL_FRAME_MS = 100;
 const REEL_DELAY_MS = 250;
@@ -107,10 +119,43 @@ interface DragState {
   moved: boolean;
   pointerId: number;
   el: HTMLDivElement | null;
-  z: number;
+  /** Resolved once per gesture — the frame and dock cannot resize mid-drag. */
+  maxX: number;
+  maxY: number;
   lastX: number;
   lastY: number;
 }
+
+const IDLE_DRAG: DragState = {
+  id: null,
+  startX: 0,
+  startY: 0,
+  originX: 0,
+  originY: 0,
+  moved: false,
+  pointerId: -1,
+  el: null,
+  maxX: 0,
+  maxY: 0,
+  lastX: 0,
+  lastY: 0,
+};
+
+/**
+ * Wipe the gesture back to idle and hand back the element it owned so the caller
+ * can drop its one imperative style. Every exit path routes through here, and it
+ * resets *every* field: a gesture that leaves `lastX`/`moved` behind is what let
+ * a later, unrelated release commit a stale position.
+ */
+const endTileGesture = (drag: DragState, pointerId: number): HTMLDivElement | null => {
+  const el = drag.el;
+  // Reset before releasing: the release schedules a `lostpointercapture` that
+  // routes into the cancel handler, which must find an already-idle gesture.
+  Object.assign(drag, IDLE_DRAG);
+  if (el && el.hasPointerCapture(pointerId)) el.releasePointerCapture(pointerId);
+
+  return el;
+};
 
 interface OpenSpec {
   kind: WindowKind;
@@ -150,19 +195,7 @@ export const DesktopOS = (): ReactNode => {
   const dockSettling = useRef(false);
   const rafId = useRef<number | null>(null);
 
-  const dragRef = useRef<DragState>({
-    id: null,
-    startX: 0,
-    startY: 0,
-    originX: 0,
-    originY: 0,
-    moved: false,
-    pointerId: -1,
-    el: null,
-    z: 0,
-    lastX: 0,
-    lastY: 0,
-  });
+  const dragRef = useRef<DragState>({ ...IDLE_DRAG });
 
   /* ------------------------------------------------------ window manager -- */
 
@@ -206,7 +239,6 @@ export const DesktopOS = (): ReactNode => {
           kind: spec.kind,
           fileId: spec.fileId,
           folderName: spec.folderName,
-          title: spec.folderName ?? "",
           x,
           y,
           w,
@@ -224,6 +256,9 @@ export const DesktopOS = (): ReactNode => {
   const focusWindow = (uid: number): void => {
     setWindows((prev) => {
       const max = prev.reduce((acc, win) => Math.max(acc, win.z), 100);
+      // Every click inside a window asks for focus. Bailing when it is already
+      // frontmost keeps `z` bounded and lets React skip the re-render entirely.
+      if (prev.some((win) => win.uid === uid && win.z === max)) return prev;
 
       return prev.map((win) => (win.uid === uid ? { ...win, z: max + 1 } : win));
     });
@@ -237,7 +272,6 @@ export const DesktopOS = (): ReactNode => {
     isMobile,
     openQuickLook: (fileId) => openWindow({ kind: "quicklook", fileId }),
     openLightbox: (src) => setLightbox(src),
-    closeWindow,
   };
 
   const openTile = (tile: DesktopTile): void => {
@@ -274,13 +308,35 @@ export const DesktopOS = (): ReactNode => {
   /* ------------------------------------------------------ tile positions -- */
 
   /**
+   * How far a tile of the given box size may travel before it leaves the frame
+   * or slides under the dock. Derived from live geometry rather than baked
+   * constants so it holds at any frame size and for any dock height.
+   */
+  const tileBounds = (boxW: number, boxH: number): { maxX: number; maxY: number } => {
+    const sec = sectionRef.current;
+    const vw = sec?.clientWidth ?? 1280;
+    const vh = sec?.clientHeight ?? 800;
+    const dock = dockRef.current;
+    // The dock is the only chrome that overlaps the tile field from below.
+    const floor =
+      sec && dock ? dock.getBoundingClientRect().top - sec.getBoundingClientRect().top : vh;
+
+    return {
+      maxX: Math.max(TILE_EDGE_MARGIN, vw - boxW - TILE_EDGE_MARGIN),
+      maxY: Math.max(TILE_EDGE_MARGIN, floor - boxH - TILE_EDGE_MARGIN),
+    };
+  };
+
+  /**
    * Percentage-seeded layout, re-clamped on every resize so icons can never
-   * leave an arbitrarily-sized frame.
+   * leave an arbitrarily-sized frame. Shares `tileBounds` with the drag so a
+   * resize cannot nudge a tile the user just placed at the edge.
    */
   const seedPositions = (): void => {
     const sec = sectionRef.current;
     const vw = sec?.clientWidth ?? 1280;
     const vh = sec?.clientHeight ?? 800;
+    const bounds = tileBounds(TILE_BOX_W, TILE_BOX_H);
 
     setTilePositions((prev) => {
       const next: Record<string, TilePosition> = {};
@@ -292,8 +348,10 @@ export const DesktopOS = (): ReactNode => {
         const baseX = existing ? existing.x : (seed.xPct / 100) * vw;
         const baseY = existing ? existing.y : (seed.yPct / 100) * vh;
         next[id] = {
-          x: clamp(baseX, 8, Math.max(8, vw - 88)),
-          y: clamp(baseY, 8, Math.max(8, vh - 236)),
+          // Same floor and ceiling the drag enforces, or a resize would nudge a
+          // tile the user had just parked against an edge.
+          x: clamp(baseX, TILE_EDGE_MARGIN, bounds.maxX),
+          y: clamp(baseY, TILE_EDGE_MARGIN, bounds.maxY),
           z: existing ? existing.z : 10 + i,
         };
       });
@@ -687,28 +745,40 @@ export const DesktopOS = (): ReactNode => {
     const id = tileId(tile);
 
     if (isMobileRef.current) {
+      // No capture on mobile, so a finger lifted off the tile never reports
+      // back. Each press simply replaces the last rather than being gated on it.
       dragRef.current = {
-        ...dragRef.current,
+        ...IDLE_DRAG,
         id,
         startX: e.clientX,
         startY: e.clientY,
-        moved: false,
-        el: null,
-        pointerId: -1,
+        pointerId: e.pointerId,
       };
       return;
     }
 
     if (e.button !== 0) return;
+    // Capture guarantees the active gesture reports its own end, so a second
+    // pointer arriving mid-drag is a hijack, not a recovery.
+    if (dragRef.current.id !== null) return;
     e.preventDefault();
     const el = e.currentTarget;
     el.setPointerCapture(e.pointerId);
 
     const pos = tilePositions[id];
-    const newZ =
-      Object.values(tilePositions).reduce((max, entry) => Math.max(max, entry.z), 10) + 1;
-    el.style.zIndex = String(newZ);
+    // The z bump goes through state, so React stays the only writer of every
+    // style the render owns and cannot be raced by the gesture. The new z is
+    // derived inside the updater so two presses in one batch cannot tie.
+    setTilePositions((prev) => {
+      const current = prev[id];
+      if (!current) return prev;
+      const top = Object.values(prev).reduce((max, entry) => Math.max(max, entry.z), 10);
+      if (current.z === top) return prev;
 
+      return { ...prev, [id]: { ...current, z: top + 1 } };
+    });
+
+    const bounds = tileBounds(el.offsetWidth, el.offsetHeight);
     dragRef.current = {
       id,
       startX: e.clientX,
@@ -718,7 +788,8 @@ export const DesktopOS = (): ReactNode => {
       moved: false,
       pointerId: e.pointerId,
       el,
-      z: newZ,
+      maxX: bounds.maxX,
+      maxY: bounds.maxY,
       lastX: pos?.x ?? 0,
       lastY: pos?.y ?? 0,
     };
@@ -727,7 +798,7 @@ export const DesktopOS = (): ReactNode => {
 
   const onTilePointerMove = (e: ReactPointerEvent<HTMLDivElement>): void => {
     const drag = dragRef.current;
-    if (!drag.id) return;
+    if (!drag.id || drag.pointerId !== e.pointerId) return;
 
     const dx = e.clientX - drag.startX;
     const dy = e.clientY - drag.startY;
@@ -736,44 +807,51 @@ export const DesktopOS = (): ReactNode => {
     if (!drag.moved) return;
     if (isMobileRef.current || !drag.el) return;
 
-    const sec = sectionRef.current;
-    if (!sec) return;
-
-    const nx = clamp(drag.originX + dx, 4, Math.max(4, sec.clientWidth - 100));
-    const ny = clamp(drag.originY + dy, 4, Math.max(4, sec.clientHeight - 226));
+    const nx = clamp(drag.originX + dx, TILE_EDGE_MARGIN, drag.maxX);
+    const ny = clamp(drag.originY + dy, TILE_EDGE_MARGIN, drag.maxY);
     drag.lastX = nx;
     drag.lastY = ny;
-    // Written straight to the DOM during the drag; committed to state on up.
-    drag.el.style.transform = `translate3d(${nx}px, ${ny}px, 0)`;
+    // `translate` composes on top of the `transform` React renders from state.
+    // Keeping the two properties separate means an unrelated re-render mid-drag
+    // cannot clobber the gesture, and abandoning the gesture is one reset away.
+    drag.el.style.translate = `${nx - drag.originX}px ${ny - drag.originY}px`;
   };
 
   const onTilePointerUp = (e: ReactPointerEvent<HTMLDivElement>, tile: DesktopTile): void => {
     const drag = dragRef.current;
-    const wasMoved = drag.moved;
+    const id = tileId(tile);
+    // Only the pointer that began this tile's gesture may end it: a secondary
+    // button, or a release that started on the desktop, must not open or move it.
+    if (drag.id !== id || drag.pointerId !== e.pointerId) return;
 
-    if (
-      !isMobileRef.current &&
-      drag.el &&
-      drag.pointerId >= 0 &&
-      drag.el.hasPointerCapture(drag.pointerId)
-    ) {
-      drag.el.releasePointerCapture(drag.pointerId);
-    }
+    // Read the gesture out before ending it — `endTileGesture` wipes it clean.
+    const { moved, lastX, lastY } = drag;
+    const el = endTileGesture(drag, e.pointerId);
 
-    if (!wasMoved) {
-      dragRef.current.id = null;
-      openTile(tile);
-      return;
-    }
+    if (moved && !isMobileRef.current) {
+      setTilePositions((prev) => {
+        const current = prev[id];
+        if (!current) return prev;
 
-    if (!isMobileRef.current) {
-      const id = tileId(tile);
-      setTilePositions((prev) => ({
-        ...prev,
-        [id]: { x: drag.lastX, y: drag.lastY, z: drag.z },
-      }));
+        return { ...prev, [id]: { ...current, x: lastX, y: lastY } };
+      });
     }
-    dragRef.current.id = null;
+    // Cleared after the commit: React flushes this handler's updates before the
+    // next paint, so the tile never renders at its pre-drag position.
+    if (el) el.style.translate = "";
+    if (!moved) openTile(tile);
+  };
+
+  /**
+   * Alt-tab, a context menu or a cancelled touch ends the gesture without a
+   * `pointerup`. Drop it and let the last committed position redraw the tile.
+   */
+  const onTilePointerCancel = (e: ReactPointerEvent<HTMLDivElement>): void => {
+    const drag = dragRef.current;
+    if (!drag.id || drag.pointerId !== e.pointerId) return;
+
+    const el = endTileGesture(drag, e.pointerId);
+    if (el) el.style.translate = "";
   };
 
   const onTileKeyDown = (e: ReactKeyboardEvent<HTMLDivElement>, tile: DesktopTile): void => {
@@ -854,10 +932,12 @@ export const DesktopOS = (): ReactNode => {
         onPointerDown={(e) => onTilePointerDown(e, tile)}
         onPointerMove={onTilePointerMove}
         onPointerUp={(e) => onTilePointerUp(e, tile)}
+        onPointerCancel={onTilePointerCancel}
+        onLostPointerCapture={onTilePointerCancel}
         onKeyDown={(e) => onTileKeyDown(e, tile)}
         className={`absolute z-[4] flex cursor-grab flex-col items-center outline-none select-none active:cursor-grabbing ${entranceDone ? "" : "opacity-0"}`}
         style={{
-          width: 96,
+          width: TILE_BOX_W,
           transform: pos ? `translate3d(${pos.x}px, ${pos.y}px, 0)` : "translate3d(0px, 0px, 0)",
           zIndex: pos?.z ?? 10 + index,
           touchAction: "none",
@@ -881,11 +961,12 @@ export const DesktopOS = (): ReactNode => {
         onPointerDown={(e) => onTilePointerDown(e, tile)}
         onPointerMove={onTilePointerMove}
         onPointerUp={(e) => onTilePointerUp(e, tile)}
+        onPointerCancel={onTilePointerCancel}
         onKeyDown={(e) => onTileKeyDown(e, tile)}
         className={`flex flex-col items-center outline-none select-none ${entranceDone ? "" : "opacity-0"}`}
         style={{ touchAction: "manipulation" }}
       >
-        {renderTileInner(tile, 64)}
+        {renderTileInner(tile, MOBILE_TILE_SIZE)}
       </div>
     );
   };

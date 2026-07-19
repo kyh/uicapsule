@@ -18,6 +18,26 @@ const BREAKPOINT = 900;
 const TOUCH_GAIN = 1.2;
 const ROW_COUNT = N * 2;
 
+/**
+ * Wheel deltas arrive in three units (`WheelEvent.deltaMode`): pixels (0),
+ * lines (1) and pages (2). Chrome and Safari only ever report pixels, but
+ * Firefox on Windows/Linux reports lines, so the accumulator has to convert
+ * to pixels before comparing against `CFG.wheelStep`. This nominal line
+ * height only has to be in the right order of magnitude.
+ */
+const WHEEL_LINE_PX = 16;
+
+/**
+ * A wheel or touch gesture delivers events milliseconds apart, so a gap this
+ * long means the gesture ended and any sub-threshold residue in the
+ * accumulator is stale. Without expiry, 44px of ignored input waits
+ * indefinitely for an unrelated flick minutes later to top it over
+ * `CFG.wheelStep` and steal a row. Not a feel constant: every value well above
+ * a frame and well below human re-engagement behaves identically for real
+ * gestures.
+ */
+const GESTURE_IDLE_MS = 500;
+
 const COLOR_REST = "#636365";
 const COLOR_FOCUS = "#010102";
 
@@ -40,6 +60,9 @@ const CFG = {
   manualStep: 1.2,
   resume: 4,
 };
+
+/** Scale a fully-defocused row shrinks to, relative to the focused row. */
+const FAR_RATIO = CFG.farScale / CFG.centerScale;
 
 const clamp01 = (v: number) => (v < 0 ? 0 : v > 1 ? 1 : v);
 const lerp = (a: number, b: number, t: number) => a + (b - a) * t;
@@ -80,6 +103,10 @@ const applyFit = (num: HTMLElement, col: HTMLElement) => {
   const padL = parseFloat(cs.paddingLeft) || 0;
   const padR = parseFloat(cs.paddingRight) || 0;
   const available = col.clientWidth - padL - padR - 10;
+  // A 0-wide column (hidden panel, freshly-mounted iframe) makes `available`
+  // negative, which the 0.4 floor would silently absorb into a real-looking
+  // shrink. Keep the `1` written above until there is something to fit into.
+  if (available <= 0) return;
   if (natural > 0 && natural > available) {
     num.style.setProperty("--bm-num-fit", String(Math.max(0.4, available / natural)));
   }
@@ -202,13 +229,17 @@ export const StatReel: FC = () => {
     let resumeTimer: ReturnType<typeof setTimeout> | null = null;
     let startTimer: ReturnType<typeof setTimeout> | null = null;
 
-    function onStepDone() {
-      if (modeRef.current !== "auto" || isReduced()) return;
-
+    /** Queues the next auto advance one dwell from now. */
+    const scheduleNextStep = () => {
       dwellTimer = setTimeout(() => {
         targetRef.current += 1;
         autoStep(targetRef.current);
       }, CFG.dwell * 1000);
+    };
+
+    function onStepDone() {
+      if (modeRef.current !== "auto" || isReduced()) return;
+      scheduleNextStep();
     }
 
     const tweenTo = (t: number, duration: number, ease: string) => {
@@ -230,11 +261,7 @@ export const StatReel: FC = () => {
       targetRef.current = Math.round(proxyState.idx);
 
       if (dwellTimer) clearTimeout(dwellTimer);
-
-      dwellTimer = setTimeout(() => {
-        targetRef.current += 1;
-        autoStep(targetRef.current);
-      }, CFG.dwell * 1000);
+      scheduleNextStep();
     };
 
     const stepManual = (dir: number) => {
@@ -258,6 +285,22 @@ export const StatReel: FC = () => {
       }
     };
 
+    let idleTimer: ReturnType<typeof setTimeout> | null = null;
+
+    /**
+     * The single entry point for wheel and touch alike: both feed pixels in,
+     * whole rows come out, and the remainder is dropped once the gesture ends.
+     */
+    const accumulate = (deltaPx: number) => {
+      accumRef.current += deltaPx;
+      drain();
+
+      if (idleTimer) clearTimeout(idleTimer);
+      idleTimer = setTimeout(() => {
+        accumRef.current = 0;
+      }, GESTURE_IDLE_MS);
+    };
+
     let rafId = 0;
     let prevNearest: HTMLDivElement | null = null;
 
@@ -268,7 +311,6 @@ export const StatReel: FC = () => {
       // land offscreen for a frame inside a freshly-mounted iframe.
       if (panelH > 0) {
         const idx = proxyState.idx;
-        const farRatio = CFG.farScale / CFG.centerScale;
         const rows = rowsRef.current;
         const windowH = ROW_COUNT * itemH;
         const halfWin = windowH / 2;
@@ -292,7 +334,7 @@ export const StatReel: FC = () => {
 
           const s = smoothstep(clamp01(Math.abs(off) / falloff));
           if (row.style.opacity !== "1") row.style.opacity = "1";
-          row.style.transform = `translateY(${screenY - itemH / 2}px) scale(${lerp(1, farRatio, s)})`;
+          row.style.transform = `translateY(${screenY - itemH / 2}px) scale(${lerp(1, FAR_RATIO, s)})`;
 
           const a = Math.abs(off);
           if (a < nearestAbs) {
@@ -322,31 +364,76 @@ export const StatReel: FC = () => {
 
     const onWheel = (e: WheelEvent) => {
       e.preventDefault();
-      accumRef.current += e.deltaY;
-      drain();
+      const unit =
+        e.deltaMode === 1 ? WHEEL_LINE_PX : e.deltaMode === 2 ? sizeRef.current.panelH : 1;
+      accumulate(e.deltaY * unit);
     };
 
+    /**
+     * The reel tracks exactly one finger, latched by identifier. Reading
+     * `touches[0]` instead would silently re-anchor onto a different contact
+     * the moment the tracked finger lifts out of a multi-touch gesture,
+     * turning the next 2px move into a jump of a dozen rows.
+     */
+    let activeTouch: number | null = null;
     let touchY = 0;
 
+    const findTouch = (list: TouchList, id: number): Touch | null => {
+      for (let i = 0; i < list.length; i++) {
+        const t = list[i];
+        if (t && t.identifier === id) return t;
+      }
+      return null;
+    };
+
     const onTouchStart = (e: TouchEvent) => {
-      const t = e.touches[0];
-      if (t) touchY = t.clientY;
+      if (activeTouch !== null) return;
+
+      const t = e.changedTouches[0];
+      if (!t) return;
+
+      activeTouch = t.identifier;
+      touchY = t.clientY;
     };
 
     const onTouchMove = (e: TouchEvent) => {
-      const t = e.touches[0];
+      if (activeTouch === null) return;
+
+      const t = findTouch(e.touches, activeTouch);
       if (!t) return;
 
       const dy = touchY - t.clientY;
       touchY = t.clientY;
       e.preventDefault();
-      accumRef.current += dy * TOUCH_GAIN;
-      drain();
+      accumulate(dy * TOUCH_GAIN);
+    };
+
+    const onTouchEnd = (e: TouchEvent) => {
+      if (activeTouch === null) return;
+      if (!findTouch(e.changedTouches, activeTouch)) return;
+
+      // Hand tracking to a finger that is still down rather than going dead
+      // until the next touchstart. Re-anchoring `touchY` to its current
+      // position is what keeps the handover from registering as a jump.
+      const next = e.touches[0];
+      activeTouch = next ? next.identifier : null;
+      if (next) touchY = next.clientY;
+    };
+
+    const onKeyDown = (e: KeyboardEvent) => {
+      const dir = e.key === "ArrowDown" ? 1 : e.key === "ArrowUp" ? -1 : 0;
+      if (dir === 0) return;
+
+      e.preventDefault();
+      stepManual(dir);
     };
 
     section.addEventListener("wheel", onWheel, { passive: false });
     section.addEventListener("touchstart", onTouchStart, { passive: true });
     section.addEventListener("touchmove", onTouchMove, { passive: false });
+    section.addEventListener("touchend", onTouchEnd, { passive: true });
+    section.addEventListener("touchcancel", onTouchEnd, { passive: true });
+    section.addEventListener("keydown", onKeyDown);
 
     const groups = [figure, panel];
     let intro: gsap.core.Timeline | null = null;
@@ -388,10 +475,14 @@ export const StatReel: FC = () => {
       section.removeEventListener("wheel", onWheel);
       section.removeEventListener("touchstart", onTouchStart);
       section.removeEventListener("touchmove", onTouchMove);
+      section.removeEventListener("touchend", onTouchEnd);
+      section.removeEventListener("touchcancel", onTouchEnd);
+      section.removeEventListener("keydown", onKeyDown);
 
       if (dwellTimer) clearTimeout(dwellTimer);
       if (resumeTimer) clearTimeout(resumeTimer);
       if (startTimer) clearTimeout(startTimer);
+      if (idleTimer) clearTimeout(idleTimer);
 
       gsap.killTweensOf(proxyState);
       gsap.killTweensOf(groups);
@@ -452,6 +543,9 @@ export const StatReel: FC = () => {
       style={SECTION_STYLE}
       ref={sectionRef}
       aria-label="Ocean depth statistics"
+      // Wheel and touch already seize the reel; the tab stop is what gives a
+      // keyboard-only user the same arrow-key access to it.
+      tabIndex={0}
     >
       <div
         className="z-[1] flex min-w-0 shrink-0 grow-0 basis-auto flex-col items-center justify-center pt-[clamp(28px,7vw,56px)] pr-4 pb-0 pl-4 text-center min-[900px]:basis-[38%] min-[900px]:items-start min-[900px]:pt-0 min-[900px]:pr-[clamp(12px,1.4vw,28px)] min-[900px]:pl-[clamp(20px,2.6vw,52px)] min-[900px]:text-left"

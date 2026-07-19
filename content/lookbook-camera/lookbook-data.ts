@@ -947,6 +947,19 @@ export interface Pos {
   rot: number;
 }
 
+/**
+ * Offset that moves a world coordinate onto the tiled copy nearest `centre`.
+ *
+ * The world is a torus: every card also exists at `v + k * tile` for every
+ * integer k. Picking the k closest to the camera's world centre is the entire
+ * edgeless mechanic — the RAF loop applies it per card per frame, and a
+ * selection uses it so the camera flies to the copy already on screen rather
+ * than to the canonical one a tile away.
+ */
+export function wrapOffset(v: number, centre: number, tile: number): number {
+  return -Math.round((v - centre) / tile) * tile;
+}
+
 /** Stable pseudo-random in [0, 1) from a numeric seed. */
 function hash(n: number): number {
   const s = Math.sin(n * 12.9898 + 78.233) * 43758.5453;

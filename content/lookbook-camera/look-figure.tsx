@@ -46,7 +46,7 @@ function topCrop(spec: TopSpec): string {
   return `${TOP_CROP_X} ${TOP_CROP_Y} ${TOP_CROP_W} ${bottom - TOP_CROP_Y}`;
 }
 
-export const FULL_VIEW_BOX = `0 0 ${VIEW_W} ${VIEW_H}`;
+const FULL_VIEW_BOX = `0 0 ${VIEW_W} ${VIEW_H}`;
 
 type CollarKind = "notch" | "band" | "open" | "crew";
 
@@ -193,7 +193,7 @@ function heelPostPath(x: number, dir: -1 | 1): string {
   ].join(" ");
 }
 
-function Collar({ kind, colour }: { kind: CollarKind; colour: string }) {
+function Collar({ kind }: { kind: CollarKind }) {
   if (kind === "crew") {
     return (
       <path
@@ -231,7 +231,6 @@ function Collar({ kind, colour }: { kind: CollarKind; colour: string }) {
         strokeWidth={2}
         strokeLinecap="round"
       />
-      <ellipse cx={CX} cy={depth + 4} rx={2.6} ry={2.6} fill={colour} opacity={0.001} />
     </>
   );
 }
@@ -403,7 +402,7 @@ export function LookFigure({ look, crop, fit = "meet", className }: LookFigurePr
         stroke={SHADE}
         strokeWidth={1.8}
       />
-      <Collar kind={spec.collar} colour={palette.top} />
+      <Collar kind={spec.collar} />
 
       {/* Sleeves + hands */}
       <path

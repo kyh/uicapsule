@@ -2,7 +2,7 @@
 
 import type { ReactNode } from "react";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import {
   ChevronLeftIcon,
   ChevronRightIcon,
@@ -455,6 +455,26 @@ const TerminalBody = (): ReactNode => {
 
 /* -------------------------------------------------------------- dispatcher -- */
 
+/**
+ * Sibling of `titleForWindow`: the two functions are the whole mapping from a
+ * window's kind to what the frame shows, and they stay next to each other so a
+ * new kind cannot satisfy one exhaustive switch and miss the other.
+ */
+const bodyForWindow = (win: OpenWindow, ctx: WindowCtx): ReactNode => {
+  switch (win.kind) {
+    case "quicklook":
+      return <QuickLookBody fileId={win.fileId} ctx={ctx} />;
+    case "photos":
+      return <PhotosBody ctx={ctx} />;
+    case "notes":
+      return <NotesBody ctx={ctx} />;
+    case "finder":
+      return <FinderBody win={win} ctx={ctx} />;
+    case "terminal":
+      return <TerminalBody />;
+  }
+};
+
 const titleForWindow = (win: OpenWindow): string => {
   switch (win.kind) {
     case "quicklook":
@@ -481,21 +501,6 @@ export const WindowView = ({
   win: OpenWindow;
   ctx: WindowCtx;
 }): ReactNode => {
-  const body = useMemo((): ReactNode => {
-    switch (win.kind) {
-      case "quicklook":
-        return <QuickLookBody fileId={win.fileId} ctx={ctx} />;
-      case "photos":
-        return <PhotosBody ctx={ctx} />;
-      case "notes":
-        return <NotesBody ctx={ctx} />;
-      case "finder":
-        return <FinderBody win={win} ctx={ctx} />;
-      case "terminal":
-        return <TerminalBody />;
-    }
-  }, [win, ctx]);
-
   return (
     <WindowFrame
       win={win}
@@ -506,7 +511,7 @@ export const WindowView = ({
       onMove={onMove}
       title={titleForWindow(win)}
     >
-      {body}
+      {bodyForWindow(win, ctx)}
     </WindowFrame>
   );
 };

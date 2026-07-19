@@ -3,7 +3,12 @@
  * Each seed's `id` is an Unsplash photo id; both renditions are derived from it
  * at module scope, so the component needs no CMS, no CDN and no local assets.
  * Aspects are only ever 3:4, 1:1 or 3:2 — the wall's row packing relies on that
- * narrow set to keep cell heights uniform. */
+ * narrow set to keep cell heights uniform.
+ *
+ * Title, category and description describe what is actually in the frame. They
+ * deliberately make no claim about *where* a photo was taken: the ids are stock
+ * images, so any place name would be invented, and an invented place name that
+ * contradicts the picture reads as a bug. `year` is flavour, not a claim. */
 
 const FULL_HEIGHT = 900;
 const THUMB_HEIGHT = 300;
@@ -16,27 +21,29 @@ const unsplashUrl = (id: string, aspect: number, height: number) =>
 /* Portrait (3:4) < square (1:1) < landscape (3:2). */
 type Aspect = 0.75 | 1 | 1.5;
 
+/* Closed set, so a typo can't mint a one-off category that appears exactly
+   once in the deck. */
+type Category = "Landscape" | "Nature" | "Forest" | "Water" | "Night" | "Architecture";
+
 interface PhotoSeed {
   id: string;
   title: string;
-  category: string;
+  category: Category;
   description: string;
   aspect: Aspect;
-  location: string;
   year: number;
 }
 
 export interface Photo {
   slug: string;
   title: string;
-  category: string;
+  category: Category;
   description: string;
   aspect: number;
   /** Large rendition — only requested once a card is expanded. */
   imageUrl: string;
   /** Small rendition — every one of the ~500 wall cells uses this. */
   thumbUrl: string;
-  location: string;
   year: number;
 }
 
@@ -46,314 +53,263 @@ const PHOTO_SEEDS: readonly [PhotoSeed, ...PhotoSeed[]] = [
     title: "Granite Light",
     category: "Landscape",
     aspect: 1.5,
-    location: "French Alps",
     year: 2023,
     description:
-      "Morning broke quietly over the alpine ridge — fifteen minutes after sunrise, before the wind picked up.",
+      "Morning broke quietly above the cloud line — fifteen minutes after sunrise, before the wind picked up.",
   },
   {
     id: "1469474968028-56623f02e42e",
     title: "Far Saddle",
     category: "Landscape",
     aspect: 1.5,
-    location: "Aiguille du Midi",
     year: 2022,
     description:
-      "From the bivouac at 3,200 metres the saddle looked closer than it was — three hours' walk, easy.",
+      "A figure on the last outcrop, for scale. The saddle behind looked closer than it was.",
   },
   {
     id: "1518837695005-2083093ee35b",
-    title: "Field of Hours",
-    category: "Nature",
+    title: "Long Water",
+    category: "Water",
     aspect: 1.5,
-    location: "Valensole, Provence",
     year: 2021,
-    description: "Provence in late June — every horizon was the same shade of unrepeatable violet.",
+    description: "Open swell an hour from land — the same shape arriving forever, never twice.",
   },
   {
     id: "1441974231531-c6227db76b6e",
-    title: "October",
-    category: "Landscape",
+    title: "Cathedral",
+    category: "Forest",
     aspect: 1.5,
-    location: "Aspen, Colorado",
     year: 2023,
-    description: "The aspens held their breath for one afternoon, then let it go all at once.",
+    description: "A path between trunks two hundred years older than the path.",
   },
   {
     id: "1470071459604-3b5ec3a7fe05",
     title: "First Breath",
     category: "Landscape",
     aspect: 0.75,
-    location: "Big Sur, California",
     year: 2022,
-    description:
-      "Coastal fog crept up the valley between five and six — by seven the trees were still again.",
+    description: "Cloud came up the valley between five and six — by seven the ridge was clear.",
   },
   {
     id: "1447752875215-b2761acb3c5d",
-    title: "A Slow Window",
-    category: "Landscape",
+    title: "The Crossing",
+    category: "Forest",
     aspect: 1,
-    location: "British Columbia",
     year: 2024,
     description:
-      "Sunlight angled through the cedars for maybe twenty minutes a day in November — this was eight of them.",
+      "A footbridge with nothing on either side but green, and no reason at all to hurry across it.",
   },
   {
     id: "1500964757637-c85e8a162699",
-    title: "Last Pier",
+    title: "Every Ridge",
     category: "Landscape",
     aspect: 1.5,
-    location: "Burleigh Heads, AU",
     year: 2020,
     description:
-      "The old timber pier has been condemned for years. The sunsets don't seem to mind.",
+      "Ridge behind ridge behind ridge, each one a shade paler, until the sky takes over.",
   },
   {
     id: "1501785888041-af3ef285b470",
-    title: "Honey Hour",
-    category: "Landscape",
+    title: "Still Passage",
+    category: "Water",
     aspect: 1.5,
-    location: "Val d'Orcia, Tuscany",
     year: 2023,
-    description: "The valley filled like a cup, slowly, with light the colour of pulled honey.",
+    description: "One boat, one wake, and water clear enough to make the depth a guess.",
   },
   {
     id: "1444080748397-f442aa95c3e5",
-    title: "Silver Bones",
-    category: "Nature",
+    title: "Old Light",
+    category: "Night",
     aspect: 0.75,
-    location: "Hokkaido, Japan",
     year: 2024,
-    description:
-      "A birch grove in February — every trunk a struck match, every shadow a perfect parallel.",
+    description: "Every photon that landed here had been travelling for thousands of years.",
   },
   {
     id: "1431794062232-2a99a5431c6c",
-    title: "Quiet Walk",
-    category: "Nature",
+    title: "The Cut",
+    category: "Landscape",
     aspect: 0.75,
-    location: "Muir Woods, California",
     year: 2021,
     description:
-      "The trail through the redwoods — when you stop walking, the silence becomes its own thing.",
+      "Water found the one soft seam in the rock and spent a few million years widening it.",
   },
   {
     id: "1426604966848-d7adac402bff",
-    title: "Iron Coast",
+    title: "The Big Wall",
     category: "Landscape",
     aspect: 1.5,
-    location: "Reynisfjara, Iceland",
     year: 2022,
-    description:
-      "The northern Atlantic doesn't visit gently. The rocks have been negotiating with it for a hundred million years.",
+    description: "The meadow keeps its own hours. The wall behind it keeps none at all.",
   },
   {
     id: "1490604001847-b712b0c2f967",
-    title: "Field of Old Light",
-    category: "Night",
+    title: "Blue Distance",
+    category: "Landscape",
     aspect: 1.5,
-    location: "Atacama, Chile",
     year: 2023,
-    description:
-      "October new moon — every photon that landed had been travelling for thousands of years.",
+    description: "Distance stacked into layers — you can count them off like rings in a stump.",
   },
   {
     id: "1505144808419-1957a94ca61e",
     title: "The Carve",
-    category: "Landscape",
+    category: "Water",
     aspect: 0.75,
-    location: "Antelope Canyon, Arizona",
     year: 2022,
-    description:
-      "A river cut this with patience. The walls keep score in red and rust and amber bands.",
+    description: "From above, the break stops being a wave and becomes a drawing.",
   },
   {
     id: "1505765050516-f72dcac9c60e",
-    title: "Equatorial Calm",
-    category: "Travel",
+    title: "Above the Weather",
+    category: "Landscape",
     aspect: 1,
-    location: "Bora Bora",
     year: 2024,
-    description:
-      "Late afternoon in the leeward Pacific — the palm fronds rasp like newspaper in a slow wind.",
+    description: "The summit surfaced for about a minute, then the cloud closed over it again.",
   },
   {
     id: "1418065460487-3e41a6c84dc5",
-    title: "Red Patience",
-    category: "Landscape",
+    title: "Low Cloud",
+    category: "Forest",
     aspect: 1.5,
-    location: "Sossusvlei, Namibia",
     year: 2022,
     description:
-      "The Namib at first light — the dunes look painted, but they move five centimetres a year.",
+      "Fog sitting in the trees at the height of a person, which is where fog is strangest.",
   },
   {
     id: "1502082553048-f009c37129b9",
-    title: "After the Rain",
+    title: "The Only Tree",
     category: "Nature",
     aspect: 1,
-    location: "Cotswolds, England",
     year: 2023,
-    description: "Twenty minutes after a brief shower — the petals held more light than the sky.",
+    description: "Two hundred years of growing outward instead of upward, because it could.",
   },
   {
     id: "1495107334309-fcf20504a5ab",
-    title: "Glass Geometry",
-    category: "Architecture",
+    title: "Late Green",
+    category: "Nature",
     aspect: 0.75,
-    location: "Berlin, Germany",
     year: 2020,
-    description:
-      "A façade from the late 1960s, photographed in winter sun — the geometry hadn't aged a day.",
+    description: "Twenty minutes when the field held more light than the sky above it.",
   },
   {
     id: "1472213984618-c79aaec7fef0",
-    title: "Russet Hour",
+    title: "The Stair",
     category: "Landscape",
     aspect: 1,
-    location: "Catskills, New York",
     year: 2022,
-    description: "Late October in the Catskills — the air smelt like apple cider and stone.",
+    description: "The river comes down in steps, and the mountain behind it does the same.",
   },
   {
     id: "1480714378408-67cf0d13bc1b",
-    title: "Held Sky",
-    category: "Landscape",
+    title: "Gridlight",
+    category: "Architecture",
     aspect: 1.5,
-    location: "Moraine Lake, Banff",
     year: 2024,
-    description:
-      "Calm enough that the lake doubled the mountain — for about ninety seconds, before a fish broke the spell.",
+    description: "The grid catches the last of the sun and holds it, one avenue at a time.",
   },
   {
     id: "1449034446853-66c86144b0ad",
-    title: "Weather Bringing",
-    category: "Sky",
+    title: "Red Span",
+    category: "Architecture",
     aspect: 1.5,
-    location: "Isle of Skye, Scotland",
     year: 2023,
-    description:
-      "The first front of October pushing south — twenty-six minutes before the rain arrived.",
+    description: "Steel enough to cross a strait, painted a colour that argues with the sky.",
   },
   {
     id: "1500530855697-b586d89ba3ee",
-    title: "Cold Country",
+    title: "Long Way Round",
     category: "Landscape",
     aspect: 1.5,
-    location: "Torres del Paine",
     year: 2024,
-    description:
-      "Above the treeline, sixty kilometres from the nearest road, an hour before the wind started moving.",
+    description: "Nothing out here but red rock and one road that refuses to go straight.",
   },
   {
     id: "1488972685288-c3fd157d7c7a",
-    title: "White Memory",
+    title: "Fin & Shadow",
     category: "Architecture",
     aspect: 0.75,
-    location: "Cádiz, Andalusia",
     year: 2022,
-    description: "A modernist house on the coast — built in 1962, repainted every spring since.",
+    description: "A façade that is mostly shade — making it is the only job the building has here.",
   },
   {
     id: "1444723121867-7a241cacace9",
-    title: "Spire",
-    category: "Landscape",
+    title: "The Basin",
+    category: "Night",
     aspect: 0.75,
-    location: "Chamonix, France",
     year: 2023,
-    description:
-      "An aiguille in the Mont Blanc massif — climbed in 1881, photographed at sunrise on a clearer Tuesday.",
+    description: "A million rooms, from far enough away that they read as a single thing.",
   },
   {
     id: "1465379944081-7f47de8d74ac",
-    title: "Painted Strand",
-    category: "Travel",
+    title: "Slow Company",
+    category: "Nature",
     aspect: 1,
-    location: "Algarve, Portugal",
     year: 2023,
     description:
-      "A beach hut repainted in slightly different colours every summer, by the same family, for sixty years.",
+      "They had been standing like that long before the fog, and stayed after it lifted.",
   },
   {
     id: "1499002238440-d264edd596ec",
-    title: "A Brief Pink",
-    category: "Still Life",
+    title: "Field of Hours",
+    category: "Nature",
     aspect: 1,
-    location: "Studio",
     year: 2024,
-    description:
-      "Peonies last about three days indoors. This one lasted ten minutes — long enough.",
+    description: "Late June — every horizon the same shade of unrepeatable violet.",
   },
   {
     id: "1483728642387-6c3bdd6c93e5",
-    title: "Stand of Pines",
-    category: "Nature",
+    title: "Cold Mirror",
+    category: "Landscape",
     aspect: 0.75,
-    location: "Black Forest, Germany",
     year: 2023,
-    description:
-      "A grove on the ridge — straight as a question mark, every one of them the same age.",
+    description: "The water gave the mountain back, one stop darker than it was lent.",
   },
   {
     id: "1486325212027-8081e485255e",
-    title: "Soft Modern",
-    category: "Architecture",
+    title: "Night Shift",
+    category: "Night",
     aspect: 0.75,
-    location: "Lisbon, Portugal",
     year: 2023,
-    description:
-      "A residential block, late afternoon — the pink picking up the sky's pink, and giving it back.",
+    description: "Every lit window is somebody deciding not to go home just yet.",
   },
   {
     id: "1494500764479-0c8f2919a3d8",
     title: "Found Water",
-    category: "Nature",
+    category: "Water",
     aspect: 1,
-    location: "Pyrenees",
     year: 2023,
-    description:
-      "A pool nobody mapped — the trail walked past it twice before noticing it was there at all.",
+    description: "A tree that decided to grow where the lake was, and somehow won the argument.",
   },
   {
     id: "1448375240586-882707db888b",
-    title: "Stone & Sky",
-    category: "Landscape",
+    title: "Deep Green",
+    category: "Forest",
     aspect: 1.5,
-    location: "Dolomites, Italy",
     year: 2022,
-    description:
-      "Above the cloud layer at sunrise — the kind of view that doesn't repeat in a season.",
+    description: "Ten metres in, the sound changes before the light does.",
   },
   {
     id: "1487958449943-2429e8be8625",
-    title: "Steel & Sun",
+    title: "White Facets",
     category: "Architecture",
     aspect: 0.75,
-    location: "Chicago",
     year: 2023,
-    description:
-      "A late-modernist office block, photographed in winter at the moment the sun crosses the corner.",
+    description: "Every plane set at an angle that catches a different hour of the day.",
   },
   {
     id: "1486718448742-163732cd1544",
     title: "Spiral",
     category: "Architecture",
     aspect: 0.75,
-    location: "Vienna",
     year: 2022,
-    description:
-      "A staircase in a museum addition, designed by an architect known for exactly one good idea.",
+    description: "Corrugated steel bent into a curve it has no business holding.",
   },
   {
     id: "1470770841072-f978cf4d019e",
-    title: "Drift Country",
-    category: "Landscape",
+    title: "The Boathouse",
+    category: "Water",
     aspect: 1.5,
-    location: "Utah",
     year: 2022,
-    description:
-      "Twilight over the high desert — the sky goes through every colour it knows in twelve minutes.",
+    description: "Somebody's grandfather built it out over the water, and nobody has argued since.",
   },
 ];
 
@@ -365,7 +321,6 @@ const toPhoto = (seed: PhotoSeed): Photo => ({
   aspect: seed.aspect,
   imageUrl: unsplashUrl(seed.id, seed.aspect, FULL_HEIGHT),
   thumbUrl: unsplashUrl(seed.id, seed.aspect, THUMB_HEIGHT),
-  location: seed.location,
   year: seed.year,
 });
 

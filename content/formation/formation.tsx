@@ -8,18 +8,21 @@ import { X } from "lucide-react";
 import type { FmLayout, FormationMode, Pose, Work } from "./formation-poses";
 import {
   clamp,
+  copyPose,
   easeInOut,
+  focusScore,
   getLayout,
   GLASS_NORMAL_MAP,
   HOVER_EASE,
   HOVER_ZOOM,
-  lerp,
+  lerpPose,
   MODES,
   MORPH_DUR,
   MORPH_STAGGER,
   PARALLAX_MAX,
   PERSP,
   poseFor,
+  poseTransform,
   SPRING,
   SWAP_BAND,
   SWAP_FLOOR,
@@ -33,9 +36,12 @@ const SANS =
   'ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif';
 const MONO = 'ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace';
 
-// Narrowest frame that gets the custom lens cursor. Kept in sync with the
-// `min-width` in the scoped `.fm-glass` media query below — the rAF loop must
-// not hide the native cursor for a lens that CSS has set to `display:none`.
+// Narrowest *root* width that gets the custom lens cursor. The lens is also a
+// fine-pointer affordance only — on touch it would freeze at its last known
+// position. Both conditions live in JS (`LoopState.lens`, which also drives the
+// element's `display`) rather than a CSS media query, because a query would test
+// the viewport while every other measurement here is root-relative: embedded
+// narrower than the window, the two disagree.
 const LENS_MIN_W = 640;
 
 interface CustomCSS extends CSSProperties {
@@ -66,6 +72,8 @@ interface LoopState {
   visible: boolean;
   reduced: boolean;
   pointerFine: boolean;
+  /** Is the lens cursor currently rendered? Recomputed on layout, not per frame. */
+  lens: boolean;
   browse: number;
   vel: number;
   morphing: boolean;
@@ -78,7 +86,11 @@ interface LoopState {
   /** Pointer position, root-relative. */
   cursor: { x: number; y: number; inside: boolean };
   glass: { x: number; y: number; scale: number; opacity: number };
-  dragging: boolean;
+  /**
+   * The pointer currently being tracked, if any. `committed` means it has moved
+   * past the tap slop and is now scrubbing — i.e. it *is* the drag state, so
+   * there is no separate `dragging` flag to fall out of sync with it.
+   */
   press: { x: number; y: number; id: number; committed: boolean } | null;
   lastX: number;
   lastY: number;
@@ -103,6 +115,7 @@ const createState = (): LoopState => ({
   visible: true,
   reduced: false,
   pointerFine: false,
+  lens: false,
   browse: 0,
   vel: 0,
   morphing: false,
@@ -114,7 +127,6 @@ const createState = (): LoopState => ({
   curTY: 0,
   cursor: { x: 0, y: 0, inside: false },
   glass: { x: -100, y: -100, scale: 1, opacity: 0 },
-  dragging: false,
   press: null,
   lastX: 0,
   lastY: 0,
@@ -136,6 +148,9 @@ const makeCards = (works: Work[]): CardState[] =>
 
 const pad = (n: number) => String(n).padStart(2, "0");
 
+/** Scrubbing is exactly "a tracked pointer that has passed the tap slop". */
+const isDragging = (s: LoopState) => s.press?.committed === true;
+
 const isUI = (target: EventTarget | null) =>
   target instanceof Element && target.closest("[data-fm-ui]") !== null;
 
@@ -146,7 +161,6 @@ interface FormationProps {
 export const Formation = ({ works }: FormationProps): ReactNode => {
   const [mode, setMode] = useState<FormationMode>("flat");
   const [detail, setDetail] = useState<{ card: CardState } | null>(null);
-  const [mounted, setMounted] = useState(false);
 
   const rawId = useId();
   const filterId = `fm-liquid-${rawId.replace(/[^a-zA-Z0-9]/g, "")}`;
@@ -250,18 +264,13 @@ export const Formation = ({ works }: FormationProps): ReactNode => {
     let best = Infinity;
     for (const card of cards) {
       const p = poseFor(m, card.index, L, 0);
-      const cur = card.cur;
-      cur.x = p.x;
-      cur.y = p.y;
-      cur.z = p.z;
-      cur.s = p.s;
-      cur.o = p.o;
+      copyPose(card.cur, p);
       if (card.outer) {
-        card.outer.style.transform = `translate3d(${p.x}px, ${p.y}px, ${p.z}px) rotateX(${p.rx}deg) rotateY(${p.ry}deg) rotateZ(${p.rz}deg) scale(${p.s})`;
+        card.outer.style.transform = poseTransform(p);
         card.outer.style.opacity = String(p.o);
       }
       card.inner?.style.setProperty("--hv", "0");
-      const score = Math.abs(p.x) + Math.abs(p.y) - p.z;
+      const score = focusScore(p);
       if (score < best) {
         best = score;
         focused = card;
@@ -280,7 +289,6 @@ export const Formation = ({ works }: FormationProps): ReactNode => {
     openRef.current = true;
     openingRef.current = true;
     setDetail({ card });
-    setMounted(true);
   };
 
   const closeDetail = () => {
@@ -292,7 +300,6 @@ export const Formation = ({ works }: FormationProps): ReactNode => {
     }
     if (S.reduced) {
       openRef.current = false;
-      setMounted(false);
       setDetail(null);
       return;
     }
@@ -301,7 +308,6 @@ export const Formation = ({ works }: FormationProps): ReactNode => {
     const tl = gsap.timeline({
       onComplete: () => {
         closingRef.current = false;
-        setMounted(false);
         setDetail(null);
       },
     });
@@ -318,9 +324,13 @@ export const Formation = ({ works }: FormationProps): ReactNode => {
   };
 
   // ── Pointer input (React handlers → latest closures) ─────────────────────
+  // Every handler is gated on the tracked `pointerId`: on touch, a second
+  // contact landing mid-swipe must not hijack the drag (or, worse, be read as a
+  // tap and open the detail view under the finger that is still scrubbing).
   const onPointerDown = (e: ReactPointerEvent<HTMLElement>) => {
     if (openRef.current) return;
     if (isUI(e.target)) return;
+    if (S.press) return;
     const box = boxRef.current;
     const lx = e.clientX - box.left;
     const ly = e.clientY - box.top;
@@ -333,6 +343,8 @@ export const Formation = ({ works }: FormationProps): ReactNode => {
   };
 
   const onPointerMove = (e: ReactPointerEvent<HTMLElement>) => {
+    const press = S.press;
+    if (press && press.id !== e.pointerId) return;
     const box = boxRef.current;
     const lx = e.clientX - box.left;
     const ly = e.clientY - box.top;
@@ -341,14 +353,12 @@ export const Formation = ({ works }: FormationProps): ReactNode => {
     S.cursor.inside = true;
     S.overUI = isUI(e.target);
     if (openRef.current) return;
-    const press = S.press;
     if (press && !S.morphing) {
       if (!press.committed) {
         const dist = Math.hypot(lx - press.x, ly - press.y);
         // 8px of slop, so a click still opens the detail view.
         if (dist > 8) {
           press.committed = true;
-          S.dragging = true;
           try {
             rootRef.current?.setPointerCapture(press.id);
           } catch {
@@ -356,7 +366,7 @@ export const Formation = ({ works }: FormationProps): ReactNode => {
           }
         }
       }
-      if (S.dragging) {
+      if (press.committed) {
         const gain = modeRef.current === "flat" || modeRef.current === "ring" ? 1.4 : 1;
         const d = (lx - S.lastX) * gain;
         S.browse += d;
@@ -367,41 +377,33 @@ export const Formation = ({ works }: FormationProps): ReactNode => {
     S.lastY = ly;
   };
 
-  const onPointerUp = () => {
+  /** `mayTap`: a press that never committed opens the detail view it ended on. */
+  const endPress = (e: ReactPointerEvent<HTMLElement>, mayTap: boolean) => {
     const press = S.press;
-    if (press) {
-      try {
-        rootRef.current?.releasePointerCapture(press.id);
-      } catch {
-        /* noop */
-      }
-      if (!press.committed && !openRef.current) {
-        const card = resolveCardAt(press.x, press.y);
-        if (card) openDetail(card);
-      }
-    }
+    if (!press || press.id !== e.pointerId) return;
+    const root = rootRef.current;
+    if (root?.hasPointerCapture(press.id)) root.releasePointerCapture(press.id);
     S.press = null;
-    S.dragging = false;
+    if (mayTap && !press.committed && !openRef.current) {
+      const card = resolveCardAt(press.x, press.y);
+      if (card) openDetail(card);
+    }
   };
+
+  const onPointerUp = (e: ReactPointerEvent<HTMLElement>) => endPress(e, true);
 
   // The browser can claim a touch gesture mid-drag (vertical scroll on the
   // `pan-y` root). Release the same state as pointerup, but never treat the
   // interrupted press as a tap — that would open the detail view mid-scroll.
-  const onPointerCancel = () => {
-    const press = S.press;
-    if (press) {
-      try {
-        rootRef.current?.releasePointerCapture(press.id);
-      } catch {
-        /* noop */
-      }
-    }
-    S.press = null;
-    S.dragging = false;
-  };
+  const onPointerCancel = (e: ReactPointerEvent<HTMLElement>) => endPress(e, false);
 
   const onPointerLeave = () => {
-    if (S.dragging) return;
+    // An uncommitted press can be released outside the root — no capture has
+    // been taken yet, so its `pointerup` lands elsewhere and never reaches us.
+    // Dropping it here is what stops the next re-entry from resuming a drag
+    // with no button held.
+    if (S.press && !S.press.committed) S.press = null;
+    if (isDragging(S)) return;
     S.cursor.inside = false;
     S.hoverCard = null;
   };
@@ -441,6 +443,10 @@ export const Formation = ({ works }: FormationProps): ReactNode => {
       if (!measure()) return;
       layoutRef.current = getLayout(box.w, box.h, n);
       st.pointerFine = window.matchMedia("(pointer: fine)").matches;
+      // The lens's visibility and the loop's "may I hide the native cursor?"
+      // test are the same decision, made once here, in the same units.
+      st.lens = !st.reduced && st.pointerFine && box.w >= LENS_MIN_W;
+      if (glassRef.current) glassRef.current.style.display = st.lens ? "block" : "none";
       // Seed (or re-seed) the virtual cursor at centre so the parallax rests
       // neutral. The first measure inside a fresh iframe can be 0x0, so this has
       // to live here rather than after a single relayout() call.
@@ -454,20 +460,14 @@ export const Formation = ({ works }: FormationProps): ReactNode => {
 
     relayout();
 
-    if (st.reduced) {
-      if (glassRef.current) glassRef.current.style.display = "none";
-      renderStatic();
-    }
+    if (st.reduced) renderStatic();
 
-    // The lens element is `display:none` below LENS_MIN_W (see the scoped style
-    // tag), so nothing may animate it — or hide the system cursor for it — while
-    // the frame is narrower than that.
-    const updateGlass = (rendered: boolean) => {
+    const updateGlass = () => {
       const el = glassRef.current;
-      if (!el || !rendered) return;
+      if (!el || !st.lens) return;
       st.glass.x += (st.cursor.x - st.glass.x) * 0.22;
       st.glass.y += (st.cursor.y - st.glass.y) * 0.22;
-      const scaleTgt = st.dragging ? 0.78 : st.hoverCard ? 1.5 : 1;
+      const scaleTgt = isDragging(st) ? 0.78 : st.hoverCard ? 1.5 : 1;
       st.glass.scale += (scaleTgt - st.glass.scale) * 0.18;
       const opTgt = st.cursor.inside && !st.overUI && !openRef.current ? 1 : 0;
       const opEase = st.overUI ? 0.3 : 0.18;
@@ -481,8 +481,7 @@ export const Formation = ({ works }: FormationProps): ReactNode => {
       if (!focused) {
         let best = Infinity;
         for (const card of cards) {
-          const p = card.cur;
-          const score = Math.abs(p.x) + Math.abs(p.y) - p.z;
+          const score = focusScore(card.cur);
           if (score < best) {
             best = score;
             focused = card;
@@ -508,21 +507,30 @@ export const Formation = ({ works }: FormationProps): ReactNode => {
       const dt = Math.min(50, now - (st.lastTime || now));
       st.lastTime = now;
       const mode2 = modeRef.current;
+      const dragging = isDragging(st);
 
+      // Measure first, then write. `hoverHit` reads every card's client rect, so
+      // any style write before it forces a synchronous layout every frame.
       // Refresh the root's origin so hit-testing survives the page moving.
       const rr = root.getBoundingClientRect();
       box.left = rr.left;
       box.top = rr.top;
 
-      const lensRendered = st.pointerFine && box.w >= LENS_MIN_W;
-      updateGlass(lensRendered);
+      // Hover hit-test (skipped while the detail view owns the screen, so
+      // `hoverCard` stays as `openDetail` left it).
+      if (!openRef.current) {
+        if (dragging || st.morphing) st.hoverCard = null;
+        else if (st.cursor.inside) st.hoverCard = hoverHit(st.cursor.x, st.cursor.y);
+      }
+
+      updateGlass();
 
       // Only surrender the native cursor when the lens is actually on screen and
       // standing in for it — never at narrow widths, never over the open detail.
       if (openRef.current) root.style.cursor = "auto";
-      else if (lensRendered) root.style.cursor = st.overUI ? "auto" : "none";
+      else if (st.lens) root.style.cursor = st.overUI ? "auto" : "none";
       else
-        root.style.cursor = st.dragging
+        root.style.cursor = dragging
           ? "grabbing"
           : st.hoverCard
             ? "pointer"
@@ -536,7 +544,7 @@ export const Formation = ({ works }: FormationProps): ReactNode => {
       }
 
       // Scrub momentum
-      if (!st.dragging && !st.morphing) {
+      if (!dragging && !st.morphing) {
         st.browse += st.vel;
         st.vel *= 0.92;
         if (Math.abs(st.vel) < 0.02) st.vel = 0;
@@ -551,13 +559,6 @@ export const Formation = ({ works }: FormationProps): ReactNode => {
         parallaxRef.current.style.transform = `rotateX(${st.curTX}deg) rotateY(${st.curTY}deg)`;
       }
 
-      // Hover hit-test
-      if (!st.dragging && !st.morphing && st.cursor.inside) {
-        st.hoverCard = hoverHit(st.cursor.x, st.cursor.y);
-      } else if (st.dragging || st.morphing) {
-        st.hoverCard = null;
-      }
-
       // Pose
       if (st.morphing) {
         st.morphMs += dt;
@@ -569,18 +570,7 @@ export const Formation = ({ works }: FormationProps): ReactNode => {
             1,
           );
           if (p < 1) allDone = false;
-          const pe = easeInOut(p);
-          const t2 = poseFor(mode2, card.index, L, 0);
-          const f = card.from;
-          const cur = card.cur;
-          cur.x = lerp(f.x, t2.x, pe);
-          cur.y = lerp(f.y, t2.y, pe);
-          cur.z = lerp(f.z, t2.z, pe);
-          cur.rx = lerp(f.rx, t2.rx, pe);
-          cur.ry = lerp(f.ry, t2.ry, pe);
-          cur.rz = lerp(f.rz, t2.rz, pe);
-          cur.s = lerp(f.s, t2.s, pe);
-          cur.o = lerp(f.o, t2.o, pe);
+          lerpPose(card.cur, card.from, poseFor(mode2, card.index, L, 0), easeInOut(p));
         }
         if (allDone) st.morphing = false;
       } else {
@@ -588,25 +578,8 @@ export const Formation = ({ works }: FormationProps): ReactNode => {
           const t2 = poseFor(mode2, card.index, L, st.browse);
           const cur = card.cur;
           // Snap on the first frame, and across tilt mode's wrap seam.
-          if (!st.seeded || (mode2 === "tilt" && Math.abs(t2.x - cur.x) > L.W)) {
-            cur.x = t2.x;
-            cur.y = t2.y;
-            cur.z = t2.z;
-            cur.rx = t2.rx;
-            cur.ry = t2.ry;
-            cur.rz = t2.rz;
-            cur.s = t2.s;
-            cur.o = t2.o;
-          } else {
-            cur.x += (t2.x - cur.x) * SPRING;
-            cur.y += (t2.y - cur.y) * SPRING;
-            cur.z += (t2.z - cur.z) * SPRING;
-            cur.rx += (t2.rx - cur.rx) * SPRING;
-            cur.ry += (t2.ry - cur.ry) * SPRING;
-            cur.rz += (t2.rz - cur.rz) * SPRING;
-            cur.s += (t2.s - cur.s) * SPRING;
-            cur.o += (t2.o - cur.o) * SPRING;
-          }
+          if (!st.seeded || (mode2 === "tilt" && Math.abs(t2.x - cur.x) > L.W)) copyPose(cur, t2);
+          else lerpPose(cur, cur, t2, SPRING);
         }
         st.seeded = true;
       }
@@ -642,7 +615,7 @@ export const Formation = ({ works }: FormationProps): ReactNode => {
       for (const card of cards) {
         const cur = card.cur;
         if (card.outer) {
-          card.outer.style.transform = `translate3d(${cur.x}px, ${cur.y}px, ${cur.z}px) rotateX(${cur.rx}deg) rotateY(${cur.ry}deg) rotateZ(${cur.rz}deg) scale(${cur.s})`;
+          card.outer.style.transform = poseTransform(cur);
           card.outer.style.opacity = String(cur.o * (1 - card.swap * (1 - SWAP_FLOOR)));
         }
         card.inner?.style.setProperty("--hv", String(card.hov));
@@ -780,18 +753,7 @@ export const Formation = ({ works }: FormationProps): ReactNode => {
       fnRef.current.renderStatic();
       return;
     }
-    for (const card of cards) {
-      const c = card.cur;
-      const f = card.from;
-      f.x = c.x;
-      f.y = c.y;
-      f.z = c.z;
-      f.rx = c.rx;
-      f.ry = c.ry;
-      f.rz = c.rz;
-      f.s = c.s;
-      f.o = c.o;
-    }
+    for (const card of cards) copyPose(card.from, card.cur);
     S.browse = 0;
     S.vel = 0;
     S.morphing = true;
@@ -803,9 +765,23 @@ export const Formation = ({ works }: FormationProps): ReactNode => {
 
   // Detail open timeline (the eyelid blink).
   useEffect(() => {
-    if (!detail || !mounted) return;
+    if (!detail) return;
     const lids = [lidTopRef.current, lidBotRef.current];
     const reveals = detailBoxRef.current?.querySelectorAll("[data-fm-reveal]");
+    // The dialog is modal (the stage behind it is `inert`), so focus has to move
+    // into it — otherwise Tab lands on controls hidden behind an opaque overlay.
+    const restoreTo = document.activeElement;
+    closeBtnRef.current?.focus({ preventScroll: true });
+
+    // The <h2> ships hidden below its clip mask via `translateY(120%)`, which
+    // GSAP reads back as a *pixel* `y` and would then add the percentage on top
+    // of. Zeroing `y` here hands the offset over to `yPercent` cleanly — the
+    // 120% has to stay height-relative for the tween to land flush.
+    const setTitle = (yPercent: number) => gsap.set(titleRef.current, { y: 0, yPercent });
+
+    const restoreFocus = () => {
+      if (restoreTo instanceof HTMLElement) restoreTo.focus({ preventScroll: true });
+    };
 
     if (S.reduced) {
       gsap.set(lids, { scaleY: 0 });
@@ -814,10 +790,10 @@ export const Formation = ({ works }: FormationProps): ReactNode => {
       });
       gsap.set(imgInnerRef.current, { scale: 1 });
       gsap.set(ruleRef.current, { scaleX: 1 });
-      gsap.set(titleRef.current, { yPercent: 0 });
+      setTitle(0);
       if (reveals) gsap.set(reveals, { y: 0, opacity: 1 });
       openingRef.current = false;
-      return;
+      return restoreFocus;
     }
 
     const tl = gsap.timeline({
@@ -833,7 +809,7 @@ export const Formation = ({ works }: FormationProps): ReactNode => {
     gsap.set(scrimRef.current, { opacity: 0 });
     gsap.set(closeBtnRef.current, { opacity: 0 });
     gsap.set(ruleRef.current, { scaleX: 0 });
-    gsap.set(titleRef.current, { yPercent: 120 });
+    setTitle(120);
     gsap.set(detailBoxRef.current, { autoAlpha: 1 });
     if (reveals) gsap.set(reveals, { y: 26, opacity: 0 });
 
@@ -852,8 +828,9 @@ export const Formation = ({ works }: FormationProps): ReactNode => {
 
     return () => {
       tl.kill();
+      restoreFocus();
     };
-  }, [detail, mounted, S]);
+  }, [detail, S]);
 
   const stageStyle: CustomCSS = {
     touchAction: "pan-y",
@@ -864,7 +841,7 @@ export const Formation = ({ works }: FormationProps): ReactNode => {
     color: "rgba(255,255,255,0.92)",
   };
 
-  const open = mounted && detail !== null;
+  const open = detail !== null;
   const work = detail?.card.work ?? null;
   const detailNo = detail ? `${pad(detail.card.index + 1)} — ${pad(n)}` : "";
 
@@ -879,11 +856,6 @@ export const Formation = ({ works }: FormationProps): ReactNode => {
       onPointerCancel={onPointerCancel}
       onPointerLeave={onPointerLeave}
     >
-      {/* The lens is a fine-pointer affordance only — on touch it would freeze
-          at its last known position. Scoped <style> rather than Tailwind
-          variants so a brand-new package can't miss utility generation. */}
-      <style>{`.fm-glass{display:none}@media (pointer:fine) and (min-width:${LENS_MIN_W}px){.fm-glass{display:block}}`}</style>
-
       {/* Liquid-glass filter: three displacement passes at 33/31/29 recombined
           per channel, which is where the chromatic fringing comes from. */}
       <svg width={0} height={0} aria-hidden className="absolute">
@@ -953,9 +925,11 @@ export const Formation = ({ works }: FormationProps): ReactNode => {
         </filter>
       </svg>
 
-      {/* The 3D stage */}
+      {/* The 3D stage. `inert` while the detail is open so Tab can't reach a
+          card sitting behind an opaque overlay. */}
       <div
         className="absolute inset-0"
+        inert={open}
         style={{ perspective: `${PERSP}px`, perspectiveOrigin: "50% 50%" }}
       >
         <div
@@ -968,6 +942,18 @@ export const Formation = ({ works }: FormationProps): ReactNode => {
               key={card.index}
               ref={(el) => {
                 card.outer = el;
+              }}
+              // Not a <button>: this element's transform is rewritten every
+              // frame and it must stay free of UA box/typography styling. It
+              // carries the button *semantics* instead, so the detail view has a
+              // keyboard entry point to match the pointer one.
+              role="button"
+              tabIndex={0}
+              aria-label={card.work.title}
+              onKeyDown={(e) => {
+                if (e.key !== "Enter" && e.key !== " ") return;
+                e.preventDefault();
+                openDetail(card);
               }}
               className="absolute left-1/2 top-1/2"
               style={{ transformStyle: "preserve-3d", opacity: 0 }}
@@ -1031,7 +1017,10 @@ export const Formation = ({ works }: FormationProps): ReactNode => {
       </footer>
 
       {/* Formation dock */}
-      <div className="pointer-events-none absolute inset-x-0 bottom-0 z-50 flex justify-center px-4 pb-6 sm:inset-x-auto sm:bottom-auto sm:right-0 sm:top-5 sm:justify-end sm:px-0 sm:pr-6">
+      <div
+        inert={open}
+        className="pointer-events-none absolute inset-x-0 bottom-0 z-50 flex justify-center px-4 pb-6 sm:inset-x-auto sm:bottom-auto sm:right-0 sm:top-5 sm:justify-end sm:px-0 sm:pr-6"
+      >
         <div
           role="tablist"
           data-fm-ui
@@ -1072,15 +1061,25 @@ export const Formation = ({ works }: FormationProps): ReactNode => {
       </div>
 
       {/* Detail — eyelid blink */}
-      {open && work && (
-        <div className="absolute inset-0" style={{ zIndex: 5000 }}>
+      {work && (
+        <div
+          role="dialog"
+          aria-modal="true"
+          aria-label={work.title}
+          className="absolute inset-0"
+          style={{ zIndex: 5000 }}
+        >
+          {/* Click-anywhere-to-close: the image plate above this backdrop is
+              full-bleed, so it (and everything decorative inside it) has to stay
+              transparent to pointer events for the backdrop to be reachable at
+              all. The close button opts back in. */}
           <div
             ref={bdRef}
             onClick={closeDetail}
             className="absolute inset-0"
             style={{ background: "#050505", opacity: 0 }}
           />
-          <div className="absolute inset-0 overflow-hidden">
+          <div className="pointer-events-none absolute inset-0 overflow-hidden">
             <div ref={imgWrapRef} className="absolute inset-0" style={{ opacity: 0 }}>
               <div
                 ref={imgInnerRef}
@@ -1184,7 +1183,7 @@ export const Formation = ({ works }: FormationProps): ReactNode => {
               type="button"
               aria-label="Close"
               onClick={closeDetail}
-              className="absolute flex items-center justify-center rounded-full text-white"
+              className="pointer-events-auto absolute flex items-center justify-center rounded-full text-white"
               style={{
                 right: 20,
                 top: 20,
@@ -1228,10 +1227,12 @@ export const Formation = ({ works }: FormationProps): ReactNode => {
       {/* Liquid-glass cursor */}
       <div
         ref={glassRef}
-        className="fm-glass"
         aria-hidden
         style={{
           position: "absolute",
+          // `relayout` owns this — it flips to `block` only where the lens is
+          // both wanted (fine pointer, wide enough root) and animated.
+          display: "none",
           left: 0,
           top: 0,
           zIndex: 6000,

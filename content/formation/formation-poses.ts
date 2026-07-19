@@ -58,14 +58,45 @@ export const SWAP_BAND = 64;
 export const SWAP_SPEED_REF = 1.1;
 export const SWAP_FLOOR = 0.6;
 
-export const DEG = Math.PI / 180;
-export const TWO_PI = Math.PI * 2;
+const DEG = Math.PI / 180;
+const TWO_PI = Math.PI * 2;
 
 // ── Helpers ────────────────────────────────────────────────────────────────
 export const clamp = (v: number, a: number, b: number) => Math.min(b, Math.max(a, v));
 export const lerp = (a: number, b: number, t: number) => a + (b - a) * t;
-export const wrap = (x: number, p: number) => ((((x + p / 2) % p) + p) % p) - p / 2;
+const wrap = (x: number, p: number) => ((((x + p / 2) % p) + p) % p) - p / 2;
 export const easeInOut = (t: number) => (t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2);
+
+// Poses are mutated in place — the engine holds one `cur`/`from` per card for
+// the lifetime of the component, so nothing allocates inside the rAF loop.
+export const copyPose = (dst: Pose, src: Pose): void => {
+  dst.x = src.x;
+  dst.y = src.y;
+  dst.z = src.z;
+  dst.rx = src.rx;
+  dst.ry = src.ry;
+  dst.rz = src.rz;
+  dst.s = src.s;
+  dst.o = src.o;
+};
+
+/** `dst = lerp(a, b, t)`, field by field. `dst` may alias `a` (that's the spring step). */
+export const lerpPose = (dst: Pose, a: Pose, b: Pose, t: number): void => {
+  dst.x = lerp(a.x, b.x, t);
+  dst.y = lerp(a.y, b.y, t);
+  dst.z = lerp(a.z, b.z, t);
+  dst.rx = lerp(a.rx, b.rx, t);
+  dst.ry = lerp(a.ry, b.ry, t);
+  dst.rz = lerp(a.rz, b.rz, t);
+  dst.s = lerp(a.s, b.s, t);
+  dst.o = lerp(a.o, b.o, t);
+};
+
+/** Lower is "more focused": nearest the stage centre, biased toward the front. */
+export const focusScore = (p: Pose): number => Math.abs(p.x) + Math.abs(p.y) - p.z;
+
+export const poseTransform = (p: Pose): string =>
+  `translate3d(${p.x}px, ${p.y}px, ${p.z}px) rotateX(${p.rx}deg) rotateY(${p.ry}deg) rotateZ(${p.rz}deg) scale(${p.s})`;
 
 // ── Layout (recomputed on mount + resize) ───────────────────────────────────
 // The flat ring is not evenly angled: card spacing is solved so the *edge* gap

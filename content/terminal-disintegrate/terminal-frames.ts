@@ -148,7 +148,10 @@ function drawCandles(inner: Grid) {
 
   const lastRow = yOf(last.c);
   for (let c = x0; c < 39; c++) setCell(inner, lastRow, c, "┄", 0.3);
-  drawText(inner, lastRow, 33, "107.4K", 0.95);
+  // Alpha 1 is load-bearing: the last-price row crosses the final candles and
+  // `setCell` drops any write that a brighter cell already occupies, so
+  // anything at or below the 0.98 bull body would come out half-eaten.
+  drawText(inner, lastRow, 33, "107.4K", 1);
 }
 
 function drawOrderBook(inner: Grid) {
@@ -255,7 +258,9 @@ function drawPayoff(inner: Grid) {
 
   const beCol = strikeCol + 6;
   for (let r = top; r <= lossRow; r++) setCell(inner, r, beCol, "┊", 0.22);
-  drawTextRight(inner, top, 39, "+max", 0.5);
+  // Sits on the clamped plateau of the ramp, so it has to outrank the 0.72
+  // slashes to read as a label rather than a stray character.
+  drawTextRight(inner, top, 39, "+max", 0.8);
 }
 
 export function buildGoldFrame(): Grid {
@@ -309,8 +314,11 @@ export function buildGoldFrame(): Grid {
     drawText(inner, r, cPutIv, row.putIv.toFixed(1), 0.45);
     drawText(inner, r, cPutBid, row.putBid.toFixed(2), 0.82);
     if (row.highlight) {
-      setCell(inner, r, cK - 2, "►", 0.9);
-      setCell(inner, r, cK + 5, "◄", 0.9);
+      // Hugging the strike: cK-2 lands on the last digit of the call IV and
+      // cK+4 is the only free column on the put side, so the pair has to sit
+      // tight against the 4-digit strike rather than one cell out.
+      setCell(inner, r, cK - 1, "►", 0.9);
+      setCell(inner, r, cK + 4, "◄", 0.9);
     }
   });
 
@@ -418,11 +426,14 @@ function drawBearChart(inner: Grid) {
   setCell(inner, rowOf(peakV) - 1, colOf(peakI), "▼", 0.6);
   setCell(inner, rowOf(troughV) + 1, colOf(troughI), "▲", 0.6);
 
+  // One row below the trough marker, not level with it: the trough is by
+  // definition the chart floor, so its ▲ always lands on `bottom + 1` and would
+  // swallow whichever tick shares that column.
   const years = ["21", "22", "23", "24", "25"];
   years.forEach((y, i) => {
     const c = x0 + Math.round((i / (years.length - 1)) * w);
-    setCell(inner, bottom + 1, c, "┴", 0.35);
-    drawText(inner, bottom + 2, Math.min(36, c), `'${y}`, 0.4);
+    setCell(inner, bottom + 2, c, "┴", 0.35);
+    drawText(inner, bottom + 3, Math.min(36, c), `'${y}`, 0.4);
   });
 }
 

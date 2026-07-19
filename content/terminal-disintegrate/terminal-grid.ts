@@ -110,7 +110,9 @@ const BIG_DIGITS: Record<string, BigGlyph> = {
   "8": ["╭─╮", "│ │", "├─┤", "│ │", "╰─╯"],
   "9": ["╭─╮", "│ │", "╰─┤", "  │", "╶─╯"],
   ".": ["   ", "   ", "   ", "   ", " ▪ "],
-  ",": ["   ", "   ", "   ", "  ╷", " ╶╯"],
+  // Period and comma are drawn 2 columns wide (see `drawBigNumber`), so their
+  // art has to live in the first two columns — a third column is never read.
+  ",": ["   ", "   ", "   ", " ╷ ", "╶╯ "],
   "-": ["   ", "   ", "╶─╴", "   ", "   "],
   "%": ["▪ ╱", " ╱ ", " ╱ ", "╱  ", "╱ ▪"],
   $: [" ╭╴", "╶┼╮", " │ ", "╶┼╯", " ╰╴"],

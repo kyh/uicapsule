@@ -10,7 +10,6 @@ export interface OpenWindow {
   readonly y: number;
   readonly w: number;
   readonly h: number;
-  readonly title: string;
   /** Quick Look only — which desktop file is being previewed. */
   readonly fileId?: string;
   /** Finder only — which folder the window is showing. */
@@ -30,5 +29,4 @@ export interface WindowCtx {
   readonly isMobile: boolean;
   readonly openQuickLook: (fileId: string) => void;
   readonly openLightbox: (src: string) => void;
-  readonly closeWindow: (uid: number) => void;
 }

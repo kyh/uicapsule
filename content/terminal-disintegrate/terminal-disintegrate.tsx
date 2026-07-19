@@ -199,7 +199,11 @@ export const TerminalDisintegrate = () => {
       canvas.style.width = `${stageW}px`;
       canvas.style.height = `${stageH}px`;
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      // Resizing the backing store wipes the whole 2d state, so the font and
+      // baseline are (re)set here — the only place either can change — rather
+      // than being re-parsed on every frame of the loop.
       ctx.textBaseline = "top";
+      ctx.font = `500 ${m.cellH * 0.92}px ${MONO_FAMILY}`;
 
       // The three frames deliberately sit at two different X positions. The
       // disintegration is a stage traversal — left, right, left — which is what
@@ -267,8 +271,6 @@ export const TerminalDisintegrate = () => {
     function draw() {
       ctx.clearRect(0, 0, layout.w, layout.h);
       ctx.fillStyle = S.fg;
-      ctx.font = `500 ${layout.cellH * 0.92}px ${MONO_FAMILY}`;
-      ctx.textBaseline = "top";
 
       if (!S.entranceDone) {
         renderParticles(ctx, particles.entrance, S.entranceT, ENTRANCE_OPTS);
@@ -295,24 +297,51 @@ export const TerminalDisintegrate = () => {
       }
     }
 
+    // The scalar moves every frame but the chrome derived from it mostly does
+    // not: palette, phase and fade all sit still for hundreds of frames at a
+    // time. Everything below writes to the DOM only when its own value
+    // actually changed, so a steady-state frame costs one transform.
+    let shownFg = "";
+    let shownBg = "";
+    let shownPhase = 0;
+    let shownValueNow = -1;
+    let shownFade = -1;
+
     function applyPalette(p: number) {
       const { fg, bg } = paletteAt(p);
       S.fg = fg;
-      root.style.setProperty("--terminal-fg", fg);
-      if (bgRef.current) bgRef.current.style.background = bg;
+      if (fg !== shownFg) {
+        shownFg = fg;
+        root.style.setProperty("--terminal-fg", fg);
+      }
+      if (bg !== shownBg) {
+        const el = bgRef.current;
+        if (el) {
+          shownBg = bg;
+          el.style.background = bg;
+        }
+      }
     }
 
     function applyChrome(p: number, fade: number) {
       const phase = p < PHASE_2_AT ? 1 : p < PHASE_3_AT ? 2 : 3;
-      root.setAttribute("aria-valuenow", String(Math.round(clamp01(p) * 100)));
-      root.setAttribute("aria-valuetext", `screen ${phase} of 3`);
-      const chip = chipRef.current;
-      if (chip) {
-        chip.style.opacity = String(0.55 * fade);
-        chip.textContent = `terminal · 0${phase} / 03`;
+      const valueNow = Math.round(clamp01(p) * 100);
+
+      if (valueNow !== shownValueNow) {
+        shownValueNow = valueNow;
+        root.setAttribute("aria-valuenow", String(valueNow));
       }
-      if (hintRef.current) hintRef.current.style.opacity = String(0.4 * fade);
-      if (railTrackRef.current) railTrackRef.current.style.opacity = String(0.18 * fade);
+      if (phase !== shownPhase) {
+        shownPhase = phase;
+        root.setAttribute("aria-valuetext", `screen ${phase} of 3`);
+        if (chipRef.current) chipRef.current.textContent = `terminal · 0${phase} / 03`;
+      }
+      if (fade !== shownFade) {
+        shownFade = fade;
+        if (chipRef.current) chipRef.current.style.opacity = String(0.55 * fade);
+        if (hintRef.current) hintRef.current.style.opacity = String(0.4 * fade);
+        if (railTrackRef.current) railTrackRef.current.style.opacity = String(0.18 * fade);
+      }
       if (railFillRef.current) {
         railFillRef.current.style.transform = `scaleY(${clamp01(p)})`;
       }
@@ -340,6 +369,11 @@ export const TerminalDisintegrate = () => {
     function takeOver() {
       S.interacted = true;
       if (idleTimer) window.clearTimeout(idleTimer);
+      idleTimer = 0;
+      // A held pointer that has stopped moving is still a reader holding the
+      // scrubber, not an idle one — so the countdown is armed at release
+      // instead, or the terminal would run away under a stationary cursor.
+      if (dragId !== null) return;
       idleTimer = window.setTimeout(() => {
         idleTimer = 0;
         S.autoElapsed = clamp01(S.targetP) * SWEEP_MS;
@@ -352,6 +386,10 @@ export const TerminalDisintegrate = () => {
       dragId = e.pointerId;
       lastX = e.clientX;
       lastY = e.clientY;
+      // Not a take-over: a press that never moves must leave autoplay alone.
+      // It only has to hold off a resume that an earlier drag already armed.
+      if (idleTimer) window.clearTimeout(idleTimer);
+      idleTimer = 0;
       root.style.cursor = "grabbing";
       root.setPointerCapture(e.pointerId);
     }
@@ -391,6 +429,9 @@ export const TerminalDisintegrate = () => {
       dragId = null;
       root.style.cursor = "grab";
       if (root.hasPointerCapture(e.pointerId)) root.releasePointerCapture(e.pointerId);
+      // Release is where "still" starts counting. A press that never scrubbed
+      // left `interacted` false and must not hand autoplay a fresh countdown.
+      if (S.interacted) takeOver();
     }
 
     // --- Loop ---------------------------------------------------------------
@@ -550,7 +591,10 @@ export const TerminalDisintegrate = () => {
         height: "100%",
         width: "100%",
         overflow: "hidden",
-        touchAction: "none",
+        // Same reasoning as the missing wheel handler: this lives in a
+        // scrolling feed. The browser keeps vertical pans, horizontal drags
+        // still reach the scrubber.
+        touchAction: "pan-y",
         userSelect: "none",
         cursor: "grab",
         background: BG_LIGHT,
