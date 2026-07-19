@@ -8,6 +8,9 @@
     "build": {
       "outputs": [".next/**", "!.next/cache/**"]
     },
+    "//#check:content": {
+      "inputs": ["content/**", "scripts/check-content.ts"]
+    },
     "dev": {
       "cache": false,
       "persistent": true
