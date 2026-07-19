@@ -53,6 +53,7 @@ pnpm format:fix       # Fix formatting
 pnpm db:push          # Push local db schema
 pnpm db:push-remote   # Push to production Turso
 pnpm new:content <slug>  # Scaffold a new content component in content/
+pnpm check:content    # Fail if any content/<slug> is not a loadable component
 ```
 
 ## Verification Contract
@@ -60,6 +61,12 @@ pnpm new:content <slug>  # Scaffold a new content component in content/
 Every change must leave all four green: `pnpm typecheck`, `pnpm lint` (oxlint),
 `pnpm format` (oxfmt), `pnpm build`. There are **zero tests in the repo today** — don't
 assume a suite has your back.
+
+`pnpm build` runs `check:content` first (turbo task `//#check:content`): the gallery loader
+in `content-fs.ts` silently drops a `content/<slug>` that lacks its `meta.json` + `preview.tsx`
+pair (or, for a remote component, `iframeUrl`/`sourceUrl`), so a half-scaffolded stub used to
+vanish with no error and pile up. The guard turns that silence into a failed build — do not
+remove it. Finish the component or delete the directory; scaffold with `pnpm new:content`.
 
 ## Decisions (do not re-litigate)
 
