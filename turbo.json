@@ -31,6 +31,7 @@
       "cache": false
     }
   },
+  "globalDependencies": ["content/**"],
   "globalEnv": [
     "TURSO_DATABASE_URL",
     "TURSO_AUTH_TOKEN",
