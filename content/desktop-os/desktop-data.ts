@@ -258,16 +258,14 @@ export const GROUP_APPS: readonly DockAppId[] = ["preview", "terminal", "trash"]
 /**
  * Pure-CSS wallpaper. The thin conic rays are what makes the boot's
  * `blur(24px) → blur(0)` legible on a gradient.
+ *
+ * Deliberately fixed rather than theme-reactive: the menu bar, dock tooltips
+ * and icon labels are all white (as on macOS, where the wallpaper is chosen by
+ * the user and does not invert with the system theme). A pale wallpaper drops
+ * that chrome to ~1.8:1 contrast, and darkening one far enough to carry white
+ * text just reproduces this gradient.
  */
-export const WALLPAPER_LIGHT = [
-  "repeating-conic-gradient(from 196deg at 50% 118%, rgba(255,255,255,0.07) 0deg 1.6deg, rgba(255,255,255,0) 1.6deg 7deg)",
-  "radial-gradient(120% 82% at 18% 10%, #ffd9a8 0%, rgba(255,217,168,0) 56%)",
-  "radial-gradient(112% 90% at 84% 6%, #ffb0c6 0%, rgba(255,176,198,0) 52%)",
-  "radial-gradient(140% 110% at 50% 116%, #22307a 0%, rgba(34,48,122,0) 62%)",
-  "linear-gradient(158deg, #f6a273 0%, #d96f8e 30%, #7d4fa6 60%, #2c2b68 100%)",
-].join(", ");
-
-export const WALLPAPER_DARK = [
+export const WALLPAPER = [
   "repeating-conic-gradient(from 196deg at 50% 118%, rgba(255,255,255,0.045) 0deg 1.6deg, rgba(255,255,255,0) 1.6deg 7deg)",
   "radial-gradient(120% 82% at 20% 8%, #2b3d74 0%, rgba(43,61,116,0) 58%)",
   "radial-gradient(110% 88% at 82% 4%, #4a2a63 0%, rgba(74,42,99,0) 54%)",

@@ -28,8 +28,7 @@ import {
   MOBILE_PRIMARY,
   TILES,
   VEIL_GRADIENT,
-  WALLPAPER_DARK,
-  WALLPAPER_LIGHT,
+  WALLPAPER,
   tileId,
   tileName,
   tilePos,
@@ -1077,14 +1076,7 @@ export const DesktopOS = (): ReactNode => {
       <style>{SCOPED_CSS}</style>
 
       <div ref={wallpaperWrapRef} className="absolute inset-0 z-0">
-        <div
-          className="absolute inset-0 opacity-100 transition-opacity duration-500 dark:opacity-0"
-          style={{ background: WALLPAPER_LIGHT }}
-        />
-        <div
-          className="absolute inset-0 opacity-0 transition-opacity duration-500 dark:opacity-100"
-          style={{ background: WALLPAPER_DARK }}
-        />
+        <div className="absolute inset-0" style={{ background: WALLPAPER }} />
       </div>
 
       <div
