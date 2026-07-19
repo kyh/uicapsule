@@ -60,7 +60,6 @@ type SlingshotTrackProps = {
   knobX: MotionValue<number>;
   /** Fires whenever the knob starts or stops being a projectile. */
   onPhaseChange?: (phase: TrackPhase) => void;
-  onSettle?: (level: number) => void;
 };
 
 /**
@@ -68,7 +67,7 @@ type SlingshotTrackProps = {
  * against the band and let go: it launches, ricochets off the ends of the track,
  * and settles wherever it ran out of momentum. Aiming is a suggestion.
  */
-export const SlingshotTrack = ({ knobX, onPhaseChange, onSettle }: SlingshotTrackProps) => {
+export const SlingshotTrack = ({ knobX, onPhaseChange }: SlingshotTrackProps) => {
   const [phase, setPhaseState] = useState<TrackPhase>("idle");
 
   const setPhase = (next: TrackPhase) => {
@@ -101,7 +100,6 @@ export const SlingshotTrack = ({ knobX, onPhaseChange, onSettle }: SlingshotTrac
     void animate(knobX, notchX(level), SETTLE_SPRING);
     void animate(speed, 0, SETTLE_SPRING);
     knobOrigin.set(0.5);
-    onSettle?.(level);
   };
 
   /**

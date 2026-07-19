@@ -6,10 +6,8 @@ export type DepthRow = { price: string; size: number };
 export type OptionRow = {
   strike: number;
   callBid: number;
-  callAsk: number;
   callIv: number;
   putBid: number;
-  putAsk: number;
   putIv: number;
   highlight?: boolean;
 };
@@ -54,74 +52,58 @@ export const OPTION_CHAIN: OptionRow[] = [
   {
     strike: 2640,
     callBid: 56.4,
-    callAsk: 56.8,
     callIv: 14.2,
     putBid: 3.05,
-    putAsk: 3.15,
     putIv: 13.8,
   },
   {
     strike: 2650,
     callBid: 48.2,
-    callAsk: 48.5,
     callIv: 13.9,
     putBid: 5.2,
-    putAsk: 5.35,
     putIv: 13.5,
   },
   {
     strike: 2660,
     callBid: 40.4,
-    callAsk: 40.65,
     callIv: 13.6,
     putBid: 8.1,
-    putAsk: 8.25,
     putIv: 13.4,
   },
   {
     strike: 2670,
     callBid: 32.9,
-    callAsk: 33.15,
     callIv: 13.3,
     putBid: 12.3,
-    putAsk: 12.5,
     putIv: 13.6,
   },
   {
     strike: 2680,
     callBid: 25.85,
-    callAsk: 26.05,
     callIv: 13.4,
     putBid: 16.95,
-    putAsk: 17.2,
     putIv: 13.9,
     highlight: true,
   },
   {
     strike: 2690,
     callBid: 19.4,
-    callAsk: 19.6,
     callIv: 13.7,
     putBid: 22.5,
-    putAsk: 22.75,
     putIv: 14.3,
   },
   {
     strike: 2700,
     callBid: 14.05,
-    callAsk: 14.2,
     callIv: 14.2,
     putBid: 29.1,
-    putAsk: 29.35,
     putIv: 14.8,
   },
   {
     strike: 2710,
     callBid: 9.6,
-    callAsk: 9.75,
     callIv: 14.8,
     putBid: 36.95,
-    putAsk: 37.2,
     putIv: 15.4,
   },
 ];

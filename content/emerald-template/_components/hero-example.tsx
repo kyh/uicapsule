@@ -1,6 +1,15 @@
 "use client";
 
-import { createElement, memo, useEffect, useMemo, useRef, useState, type SVGProps } from "react";
+import {
+  createElement,
+  memo,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  type ComponentType,
+  type SVGProps,
+} from "react";
 import { Badge } from "@repo/ui/components/badge";
 import { cn } from "@repo/ui/lib/utils";
 import {
@@ -179,6 +188,16 @@ const wait = (delay: number) => {
   };
 };
 
+type StepIcon = ComponentType<{ size?: number }>;
+
+type StepStatus = "complete" | "active" | "pending";
+
+const stepStatus = (stepIndex: number, currentStepIndex: number): StepStatus => {
+  if (stepIndex < currentStepIndex) return "complete";
+  if (stepIndex === currentStepIndex) return "active";
+  return "pending";
+};
+
 const AnimatedIcon = memo(
   ({
     stepIndex,
@@ -186,15 +205,10 @@ const AnimatedIcon = memo(
     currentStepIndex,
   }: {
     stepIndex: number;
-    staticIcon: any;
+    staticIcon: StepIcon;
     currentStepIndex: number;
   }) => {
-    const status =
-      stepIndex < currentStepIndex
-        ? "complete"
-        : stepIndex === currentStepIndex
-          ? "active"
-          : "pending";
+    const status = stepStatus(stepIndex, currentStepIndex);
 
     return (
       <AnimatePresence mode="wait">
@@ -211,7 +225,7 @@ const AnimatedIcon = memo(
           >
             <Spinner />
           </motion.div>
-        ) : status === "complete" && staticIcon ? (
+        ) : status === "complete" ? (
           <motion.div
             key="icon"
             initial={{ scale: 0.9, opacity: 0 }}
@@ -229,7 +243,7 @@ const AnimatedIcon = memo(
             initial={{ scale: 1, opacity: 0.3 }}
             animate={{ scale: 1, opacity: 0.3 }}
           >
-            {staticIcon && createElement(staticIcon, { size: 16 })}
+            {createElement(staticIcon, { size: 16 })}
           </motion.div>
         )}
       </AnimatePresence>
@@ -245,16 +259,11 @@ const MemoizedChainOfThoughtStep = memo(
     currentStepIndex,
   }: {
     stepIndex: number;
-    staticIcon: any;
+    staticIcon: StepIcon;
     label: string;
     currentStepIndex: number;
   }) => {
-    const status =
-      stepIndex < currentStepIndex
-        ? "complete"
-        : stepIndex === currentStepIndex
-          ? "active"
-          : "pending";
+    const status = stepStatus(stepIndex, currentStepIndex);
 
     return (
       <ChainOfThoughtStep
@@ -273,7 +282,7 @@ const MemoizedChainOfThoughtStep = memo(
 );
 
 export const ExampleChat = ({ start }: { start: boolean }) => {
-  const promisesRef = useRef<any[]>([]);
+  const promisesRef = useRef<(() => void)[]>([]);
   const [currentSampleIndex, setCurrentSampleIndex] = useState(0);
   const [showQuestion, setShowQuestion] = useState(true);
   const [showLoading, setShowLoading] = useState(false);
@@ -282,7 +291,6 @@ export const ExampleChat = ({ start }: { start: boolean }) => {
   const [showAnswer, setShowAnswer] = useState(false);
   const [showFooter, setShowFooter] = useState(false);
   const [currentStepIndex, setCurrentStepIndex] = useState(-1);
-  const [thinkingStartTime, setThinkingStartTime] = useState<number | null>(null);
   const [thinkingDuration, setThinkingDuration] = useState<number | null>(null);
   const [isThinkingComplete, setIsThinkingComplete] = useState(false);
 
@@ -303,7 +311,6 @@ export const ExampleChat = ({ start }: { start: boolean }) => {
     setChainOfThoughtOpen(true);
     setShowAnswer(false);
     setShowFooter(false);
-    setThinkingStartTime(null);
     setThinkingDuration(null);
     setIsThinkingComplete(false);
   };
@@ -315,14 +322,13 @@ export const ExampleChat = ({ start }: { start: boolean }) => {
     await afterShowLoading.promise;
 
     const startTime = Date.now();
-    setThinkingStartTime(startTime);
     setShowChainOfThought(true);
     setChainOfThoughtOpen(true);
     setCurrentStepIndex(-1);
     setIsThinkingComplete(false);
 
-    const currentSample = samples[currentSampleIndex];
-    for (let i = 0; i < currentSample.output.reasoning.length; i++) {
+    const reasoningStepCount = samples[currentSampleIndex]?.output.reasoning.length ?? 0;
+    for (let i = 0; i < reasoningStepCount; i++) {
       setCurrentStepIndex(i);
       const stepDelay = wait(800); // Each step takes 800ms
       promisesRef.current.push(stepDelay.cancel);
@@ -374,7 +380,7 @@ export const ExampleChat = ({ start }: { start: boolean }) => {
   const reasoningSteps = useMemo(() => {
     return currentSample?.output.reasoning.map((step, index) => (
       <MemoizedChainOfThoughtStep
-        key={index}
+        key={step.text}
         stepIndex={index}
         staticIcon={step.icon}
         label={step.text}
@@ -453,19 +459,16 @@ const Typewriter = ({
   start,
   text,
   onTyped,
-  onCleared,
   splitType = "letters",
   hideCursor,
 }: {
   start: boolean;
   text: string;
   onTyped?: () => void;
-  onCleared?: () => void;
   splitType?: "letters" | "words";
   hideCursor?: boolean;
 }) => {
   const textContainerRef = useRef<HTMLDivElement>(null);
-  const animatingRef = useRef(false);
   const finishedRef = useRef(false);
 
   useEffect(() => {
@@ -478,12 +481,10 @@ const Typewriter = ({
     const write = () => {
       if (cancelled || !textContainerRef.current || finishedRef.current) return;
       if (i < splitText.length) {
-        animatingRef.current = true;
         textContainerRef.current.textContent = splitText.slice(0, i + 1).join(splitBy);
         i++;
         timeoutId = setTimeout(write, 25);
       } else {
-        animatingRef.current = false;
         finishedRef.current = true;
         i = 0;
         onTyped?.();
@@ -493,20 +494,15 @@ const Typewriter = ({
     const clear = () => {
       if (cancelled || !textContainerRef.current || !finishedRef.current) return;
       if (i < splitText.length) {
-        animatingRef.current = true;
         textContainerRef.current.textContent = splitText.slice(0, text.length - i).join(splitBy);
         i++;
         timeoutId = setTimeout(clear, 5);
       } else {
-        animatingRef.current = false;
         finishedRef.current = false;
         i = 0;
         textContainerRef.current.textContent = "";
-        onCleared?.();
       }
     };
-
-    if (animatingRef.current) return;
 
     if (start) {
       write();
@@ -516,10 +512,9 @@ const Typewriter = ({
 
     return () => {
       cancelled = true;
-      animatingRef.current = false;
       if (timeoutId !== undefined) clearTimeout(timeoutId);
     };
-  }, [textContainerRef, start, text, onTyped, onCleared, splitType]);
+  }, [start, text, onTyped, splitType]);
 
   return (
     <div>

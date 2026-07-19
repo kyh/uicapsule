@@ -67,7 +67,6 @@ type CurlingTrackProps = {
 export const CurlingTrack = ({ volume }: CurlingTrackProps) => {
   const reduceMotion = useReducedMotion();
   const [phase, setPhase] = useState<"idle" | "drawing" | "sliding">("idle");
-  const [ariaVolume, setAriaVolume] = useState(() => Math.round(volume.get()));
 
   const stoneX = useMotionValue(volumeToStone(volume.get()));
   /** 0–1. How polished the ice under the broom is right now. */
@@ -89,9 +88,13 @@ export const CurlingTrack = ({ volume }: CurlingTrackProps) => {
   // behind the hack would drag the volume to zero on the way, and the throw would
   // start from a lie. The volume only follows a stone that's actually travelling.
 
+  // A travelling stone moves the volume every frame; the attribute is written
+  // directly so none of that turns into a render.
   useEffect(() => {
-    const unsubscribe = volume.on("change", (next) => setAriaVolume(Math.round(next)));
-    return unsubscribe;
+    const report = (value: number) =>
+      sheetRef.current?.setAttribute("aria-valuenow", String(Math.round(value)));
+    report(volume.get());
+    return volume.on("change", report);
   }, [volume]);
 
   useEffect(() => () => cancelAnimationFrame(frame.current), []);
@@ -241,7 +244,6 @@ export const CurlingTrack = ({ volume }: CurlingTrackProps) => {
       aria-label="Volume"
       aria-valuemin={VOLUME_MIN}
       aria-valuemax={VOLUME_MAX}
-      aria-valuenow={ariaVolume}
       onPointerDown={handlePointerDown}
       onPointerMove={handlePointerMove}
       onPointerUp={handlePointerUp}

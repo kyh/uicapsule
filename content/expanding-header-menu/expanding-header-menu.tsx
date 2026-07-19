@@ -1,7 +1,6 @@
 import { cn } from "cnfast";
 import {
   ChevronDown,
-  ChevronLeft,
   ChevronRight,
   Ellipsis,
   FilePlus2,
@@ -131,7 +130,11 @@ export const HeaderMenu = ({ isOpen, setIsOpen }: HeaderMenuProps) => {
           </div>
           <WrapperMenu
             inert
-            className="pointer-events-none absolute top-0 right-0 left-0 opacity-0"
+            // `invisible` (not `opacity-0`): this copy exists only to give the shared
+            // `wrapper-menu` layout animation a geometry target in the collapsed header.
+            // Motion's layout projection writes an inline `opacity` on layoutId nodes,
+            // which would override an opacity class and render this copy visible.
+            className="pointer-events-none invisible absolute top-0 right-0 left-0"
           />
         </motion.div>
         <button
@@ -148,91 +151,89 @@ export const HeaderMenu = ({ isOpen, setIsOpen }: HeaderMenuProps) => {
 
 const WrapperMenu = ({ className, inert = false }: { className?: string; inert?: boolean }) => {
   return (
-    <AnimatePresence>
-      <motion.div
-        layoutId="wrapper-menu"
-        aria-hidden={inert || undefined}
-        inert={inert}
-        className={cn("mt-1 text-[#C7C9CD]", className)}
-      >
-        <motion.div layout className="mb-2 grid grid-cols-3 gap-2 px-3 text-white">
-          <button
-            type="button"
-            className="flex h-9 items-center justify-center gap-1 rounded-lg border border-[#313538] px-1 text-sm"
-          >
-            <UserRoundPlus strokeWidth={1.5} size={16} />
-            Add
-          </button>
-          <button
-            type="button"
-            className="flex h-9 items-center justify-center gap-1 rounded-lg border border-[#313538] px-1 text-sm"
-          >
-            <Star strokeWidth={1.5} size={16} />
-            Move
-          </button>
-          <button
-            type="button"
-            className="flex h-9 items-center justify-center gap-1 rounded-lg border border-[#313538] px-1 text-sm"
-          >
-            <Search strokeWidth={1.5} size={16} />
-            Search
-          </button>
-        </motion.div>
-        <motion.div layout className="flex flex-col px-1">
-          <button
-            type="button"
-            className="flex h-8 items-center gap-1 rounded-lg px-1 text-start text-sm hover:bg-[#313538]"
-          >
-            <div className="flex h-8 w-8 items-center justify-center">
-              <MessagesSquare strokeWidth={1.5} size={16} />
-            </div>
-            Messages
-          </button>
-          <button
-            type="button"
-            className="flex h-8 items-center gap-1 rounded-lg px-1 text-start text-sm hover:bg-[#313538]"
-          >
-            <div className="flex h-8 w-8 items-center justify-center">
-              <FilePlus2 strokeWidth={1.5} size={16} />
-            </div>
-            Add canvas
-          </button>
-          <button
-            type="button"
-            className="flex h-8 items-center gap-1 rounded-lg px-1 text-start text-sm hover:bg-[#313538]"
-          >
-            <div className="flex h-8 w-8 items-center justify-center">
-              <GalleryVerticalEnd strokeWidth={1.5} size={16} />
-            </div>
-            Files
-          </button>
-        </motion.div>
-        <div className="flex h-4 items-center justify-center">
-          <div className="h-px w-full bg-[#23272A]" />
-        </div>
-        <motion.div layout className="flex flex-col px-1">
-          <button
-            type="button"
-            className="flex h-8 items-center gap-1 rounded-lg px-1 text-start text-sm hover:bg-[#313538]"
-          >
-            <div className="flex h-8 w-8 items-center justify-center">
-              <User strokeWidth={1.5} size={16} />
-            </div>
-            <span className="inline-block grow">View Profile</span>
-            <ChevronRight strokeWidth={1.5} size={16} />
-          </button>
-          <button
-            type="button"
-            className="flex h-8 items-center gap-1 rounded-lg px-1 text-start text-sm hover:bg-[#313538]"
-          >
-            <div className="flex h-8 w-8 items-center justify-center">
-              <Settings strokeWidth={1.5} size={16} />
-            </div>
-            <span className="inline-block grow">View Profile</span>
-            <ChevronRight strokeWidth={1.5} size={16} />
-          </button>
-        </motion.div>
+    <motion.div
+      layoutId="wrapper-menu"
+      aria-hidden={inert || undefined}
+      inert={inert}
+      className={cn("mt-1 text-[#C7C9CD]", className)}
+    >
+      <motion.div layout className="mb-2 grid grid-cols-3 gap-2 px-3 text-white">
+        <button
+          type="button"
+          className="flex h-9 items-center justify-center gap-1 rounded-lg border border-[#313538] px-1 text-sm"
+        >
+          <UserRoundPlus strokeWidth={1.5} size={16} />
+          Add
+        </button>
+        <button
+          type="button"
+          className="flex h-9 items-center justify-center gap-1 rounded-lg border border-[#313538] px-1 text-sm"
+        >
+          <Star strokeWidth={1.5} size={16} />
+          Move
+        </button>
+        <button
+          type="button"
+          className="flex h-9 items-center justify-center gap-1 rounded-lg border border-[#313538] px-1 text-sm"
+        >
+          <Search strokeWidth={1.5} size={16} />
+          Search
+        </button>
       </motion.div>
-    </AnimatePresence>
+      <motion.div layout className="flex flex-col px-1">
+        <button
+          type="button"
+          className="flex h-8 items-center gap-1 rounded-lg px-1 text-start text-sm hover:bg-[#313538]"
+        >
+          <div className="flex h-8 w-8 items-center justify-center">
+            <MessagesSquare strokeWidth={1.5} size={16} />
+          </div>
+          Messages
+        </button>
+        <button
+          type="button"
+          className="flex h-8 items-center gap-1 rounded-lg px-1 text-start text-sm hover:bg-[#313538]"
+        >
+          <div className="flex h-8 w-8 items-center justify-center">
+            <FilePlus2 strokeWidth={1.5} size={16} />
+          </div>
+          Add canvas
+        </button>
+        <button
+          type="button"
+          className="flex h-8 items-center gap-1 rounded-lg px-1 text-start text-sm hover:bg-[#313538]"
+        >
+          <div className="flex h-8 w-8 items-center justify-center">
+            <GalleryVerticalEnd strokeWidth={1.5} size={16} />
+          </div>
+          Files
+        </button>
+      </motion.div>
+      <div className="flex h-4 items-center justify-center">
+        <div className="h-px w-full bg-[#23272A]" />
+      </div>
+      <motion.div layout className="flex flex-col px-1">
+        <button
+          type="button"
+          className="flex h-8 items-center gap-1 rounded-lg px-1 text-start text-sm hover:bg-[#313538]"
+        >
+          <div className="flex h-8 w-8 items-center justify-center">
+            <User strokeWidth={1.5} size={16} />
+          </div>
+          <span className="inline-block grow">View Profile</span>
+          <ChevronRight strokeWidth={1.5} size={16} />
+        </button>
+        <button
+          type="button"
+          className="flex h-8 items-center gap-1 rounded-lg px-1 text-start text-sm hover:bg-[#313538]"
+        >
+          <div className="flex h-8 w-8 items-center justify-center">
+            <Settings strokeWidth={1.5} size={16} />
+          </div>
+          <span className="inline-block grow">View Profile</span>
+          <ChevronRight strokeWidth={1.5} size={16} />
+        </button>
+      </motion.div>
+    </motion.div>
   );
 };

@@ -12,17 +12,19 @@ const UPDATE_INTERVAL = 16;
 const VELOCITY_HISTORY_SIZE = 5;
 const FRICTION = 0.9;
 const VELOCITY_THRESHOLD = 0.3;
+// Distance (px) the grid must sit away from its rest position to count as "moving".
+const MOVING_DISTANCE = 5;
+// Idle time (ms) after the last update before the grid settles back to rest.
+const REST_DELAY = 200;
 
 // Custom debounce implementation
-function debounce<T extends (...args: unknown[]) => unknown>(func: T, wait: number) {
+function debounce(func: () => void, wait: number) {
   let timeoutId: ReturnType<typeof setTimeout> | undefined = undefined;
 
-  const debouncedFn = function (...args: Parameters<T>) {
-    if (timeoutId) {
-      clearTimeout(timeoutId);
-    }
+  const debouncedFn = function () {
+    clearTimeout(timeoutId);
     timeoutId = setTimeout(() => {
-      func(...args);
+      func();
       timeoutId = undefined;
     }, wait);
   };
@@ -35,35 +37,25 @@ function debounce<T extends (...args: unknown[]) => unknown>(func: T, wait: numb
   return debouncedFn;
 }
 
-// Custom throttle implementation
-function throttle<T extends (...args: unknown[]) => unknown>(
-  func: T,
-  limit: number,
-  options: { leading?: boolean; trailing?: boolean } = {},
-) {
+// Custom throttle implementation (leading + trailing)
+function throttle(func: () => void, limit: number) {
   let lastCall = 0;
   let timeoutId: ReturnType<typeof setTimeout> | undefined = undefined;
-  const { leading = true, trailing = true } = options;
 
-  const throttledFn = function (...args: Parameters<T>) {
+  const throttledFn = function () {
     const now = Date.now();
-
-    if (!lastCall && !leading) {
-      lastCall = now;
-    }
-
     const remaining = limit - (now - lastCall);
 
     if (remaining <= 0 || remaining > limit) {
       clearTimeout(timeoutId);
       timeoutId = undefined;
       lastCall = now;
-      func(...args);
-    } else if (!timeoutId && trailing) {
+      func();
+    } else if (!timeoutId) {
       timeoutId = setTimeout(() => {
-        lastCall = leading ? Date.now() : 0;
+        lastCall = Date.now();
         timeoutId = undefined;
-        func(...args);
+        func();
       }, remaining);
     }
   };
@@ -102,8 +94,6 @@ type State = {
   velocity: Position;
   gridItems: GridItem[];
   isMoving: boolean;
-  lastMoveTime: number;
-  velocityHistory: Position[];
 };
 
 export type GridItemConfig = {
@@ -120,8 +110,11 @@ export type InfiniteGridProps = {
 };
 
 export class InfiniteGrid extends Component<InfiniteGridProps, State> {
-  private containerRef: RefObject<HTMLElement | null>;
+  private containerRef: RefObject<HTMLDivElement | null>;
+  // Per-gesture scratch: never rendered, so it stays out of state.
   private lastPos: Position;
+  private lastMoveTime: number;
+  private velocityHistory: Position[];
   private animationFrame: number | null;
   private isComponentMounted: boolean;
   private lastUpdateTime: number;
@@ -129,7 +122,7 @@ export class InfiniteGrid extends Component<InfiniteGridProps, State> {
 
   constructor(props: InfiniteGridProps) {
     super(props);
-    const offset = this.props.initialPosition || { x: 0, y: 0 };
+    const offset = props.initialPosition ?? { x: 0, y: 0 };
     this.state = {
       offset: { ...offset },
       restPos: { ...offset },
@@ -138,18 +131,15 @@ export class InfiniteGrid extends Component<InfiniteGridProps, State> {
       isDragging: false,
       gridItems: [],
       isMoving: false,
-      lastMoveTime: 0,
-      velocityHistory: [],
     };
     this.containerRef = createRef();
     this.lastPos = { x: 0, y: 0 };
+    this.lastMoveTime = 0;
+    this.velocityHistory = [];
     this.animationFrame = null;
     this.isComponentMounted = false;
     this.lastUpdateTime = 0;
-    this.debouncedUpdateGridItems = throttle(this.updateGridItems, UPDATE_INTERVAL, {
-      leading: true,
-      trailing: true,
-    });
+    this.debouncedUpdateGridItems = throttle(this.updateGridItems, UPDATE_INTERVAL);
   }
 
   componentDidMount() {
@@ -173,6 +163,7 @@ export class InfiniteGrid extends Component<InfiniteGridProps, State> {
       cancelAnimationFrame(this.animationFrame);
     }
     this.debouncedUpdateGridItems.cancel();
+    this.debouncedStopMoving.cancel();
 
     // Remove event listeners
     if (this.containerRef.current) {
@@ -180,10 +171,6 @@ export class InfiniteGrid extends Component<InfiniteGridProps, State> {
       this.containerRef.current.removeEventListener("touchmove", this.handleTouchMove);
     }
   }
-
-  public publicGetCurrentPosition = () => {
-    return this.state.offset;
-  };
 
   private calculateVisiblePositions = (): Position[] => {
     if (!this.containerRef.current) return [];
@@ -252,7 +239,7 @@ export class InfiniteGrid extends Component<InfiniteGridProps, State> {
 
   private debouncedStopMoving = debounce(() => {
     this.setState({ isMoving: false, restPos: { ...this.state.offset } });
-  }, 200);
+  }, REST_DELAY);
 
   private updateGridItems = () => {
     if (!this.isComponentMounted) return;
@@ -268,7 +255,7 @@ export class InfiniteGrid extends Component<InfiniteGridProps, State> {
 
     const distanceFromRest = getDistance(this.state.offset, this.state.restPos);
 
-    this.setState({ gridItems: newItems, isMoving: distanceFromRest > 5 });
+    this.setState({ gridItems: newItems, isMoving: distanceFromRest > MOVING_DISTANCE });
 
     this.debouncedStopMoving();
   };
@@ -284,7 +271,11 @@ export class InfiniteGrid extends Component<InfiniteGridProps, State> {
       const speed = Math.sqrt(velocity.x * velocity.x + velocity.y * velocity.y);
 
       if (speed < MIN_VELOCITY) {
-        this.setState({ velocity: { x: 0, y: 0 } });
+        this.animationFrame = null;
+        // Only re-render if there was residual velocity left to zero out.
+        if (speed > 0) {
+          this.setState({ velocity: { x: 0, y: 0 } });
+        }
         return;
       }
 
@@ -318,6 +309,7 @@ export class InfiniteGrid extends Component<InfiniteGridProps, State> {
   private handleDown = (p: Position) => {
     if (this.animationFrame) {
       cancelAnimationFrame(this.animationFrame);
+      this.animationFrame = null;
     }
 
     this.setState({
@@ -335,7 +327,7 @@ export class InfiniteGrid extends Component<InfiniteGridProps, State> {
     if (!this.state.isDragging) return;
 
     const currentTime = performance.now();
-    const timeDelta = currentTime - this.state.lastMoveTime;
+    const timeDelta = currentTime - this.lastMoveTime;
 
     // Calculate raw velocity based on position and time
     const rawVelocity = {
@@ -344,7 +336,8 @@ export class InfiniteGrid extends Component<InfiniteGridProps, State> {
     };
 
     // Add to velocity history and maintain fixed size
-    const velocityHistory = [...this.state.velocityHistory, rawVelocity];
+    const velocityHistory = this.velocityHistory;
+    velocityHistory.push(rawVelocity);
     if (velocityHistory.length > VELOCITY_HISTORY_SIZE) {
       velocityHistory.shift();
     }
@@ -365,16 +358,23 @@ export class InfiniteGrid extends Component<InfiniteGridProps, State> {
           x: p.x - this.state.startPos.x,
           y: p.y - this.state.startPos.y,
         },
-        lastMoveTime: currentTime,
-        velocityHistory,
       },
       this.updateGridItems,
     );
 
+    this.lastMoveTime = currentTime;
     this.lastPos = { x: p.x, y: p.y };
   };
   private handleUp = () => {
+    // Also fires on mouseleave/touchcancel, which can arrive without a drag in
+    // flight — bail out so we don't spawn a second animation loop.
+    if (!this.state.isDragging) return;
+
     this.setState({ isDragging: false });
+
+    if (this.animationFrame) {
+      cancelAnimationFrame(this.animationFrame);
+    }
     this.animationFrame = requestAnimationFrame(this.animate);
   };
 
@@ -454,7 +454,7 @@ export class InfiniteGrid extends Component<InfiniteGridProps, State> {
 
     return (
       <div
-        ref={this.containerRef as RefObject<HTMLDivElement>}
+        ref={this.containerRef}
         className={className}
         style={{
           position: "absolute",

@@ -92,6 +92,12 @@ const ROW_STYLE: CSSProperties = {
   fontSize: "calc(var(--bm-base-font) * var(--center-scale))",
 };
 
+/** Breathing room kept between the widest figure and the column's inner edge. */
+const FIT_GUTTER_PX = 10;
+
+/** Smallest fraction of its natural size the figure may be shrunk to. */
+const FIT_FLOOR = 0.4;
+
 /**
  * Shrinks the figure until it fits the left column, down to a 40% floor.
  * Writes `--bm-num-fit`, which the font-size `calc()` multiplies in.
@@ -102,13 +108,13 @@ const applyFit = (num: HTMLElement, col: HTMLElement) => {
   const cs = window.getComputedStyle(col);
   const padL = parseFloat(cs.paddingLeft) || 0;
   const padR = parseFloat(cs.paddingRight) || 0;
-  const available = col.clientWidth - padL - padR - 10;
+  const available = col.clientWidth - padL - padR - FIT_GUTTER_PX;
   // A 0-wide column (hidden panel, freshly-mounted iframe) makes `available`
   // negative, which the 0.4 floor would silently absorb into a real-looking
   // shrink. Keep the `1` written above until there is something to fit into.
   if (available <= 0) return;
   if (natural > 0 && natural > available) {
-    num.style.setProperty("--bm-num-fit", String(Math.max(0.4, available / natural)));
+    num.style.setProperty("--bm-num-fit", String(Math.max(FIT_FLOOR, available / natural)));
   }
 };
 
@@ -501,30 +507,32 @@ export const StatReel: FC = () => {
     };
   }, []);
 
+  // Both halves of a focus change: pop the incoming figure in, then refit it to
+  // the left column now that its digits — and so its natural width — differ.
+  // The entrance timeline owns the figure until it completes, so the pop stays
+  // latched off for the cold open while the fit still has to run.
   useIsoLayoutEffect(() => {
     const figure = figureRef.current;
-    if (!figure || firstFigure.current) return;
 
-    if (reducedRef.current) {
-      gsap.set(figure, { opacity: 1, y: 0, scale: 1 });
-      return;
+    if (figure && !firstFigure.current) {
+      if (reducedRef.current) {
+        gsap.set(figure, { opacity: 1, y: 0, scale: 1 });
+      } else {
+        gsap.fromTo(
+          figure,
+          { y: 14, scale: 0.95, opacity: 0 },
+          {
+            y: 0,
+            scale: 1,
+            opacity: 1,
+            duration: Math.max(0.32, CFG.step * 0.7),
+            ease: "expo.out",
+            overwrite: true,
+          },
+        );
+      }
     }
 
-    gsap.fromTo(
-      figure,
-      { y: 14, scale: 0.95, opacity: 0 },
-      {
-        y: 0,
-        scale: 1,
-        opacity: 1,
-        duration: Math.max(0.32, CFG.step * 0.7),
-        ease: "expo.out",
-        overwrite: true,
-      },
-    );
-  }, [focusedIndex]);
-
-  useIsoLayoutEffect(() => {
     if (numberRef.current && leftRef.current) {
       applyFit(numberRef.current, leftRef.current);
     }

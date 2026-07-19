@@ -60,23 +60,34 @@ export const CannonTrack = ({ volume }: CannonTrackProps) => {
   const reduceMotion = useReducedMotion();
   const [phase, setPhase] = useState<"idle" | "aiming" | "firing">("idle");
   const [wide, setWide] = useState(false);
-  const [ariaVolume, setAriaVolume] = useState(() => Math.round(volume.get()));
 
   const ballX = useMotionValue(MUZZLE.x);
   const ballY = useMotionValue(MUZZLE.y);
-  /** Where the pointer has hauled the ball back to, for the barrel and the band. */
-  const pull = useMotionValue({ x: 0, y: 0 });
+  /** Where the pointer has hauled the ball back to: it aims the barrel and sizes
+   * the band, so it renders — but the shot is read on pointerup, and a render is
+   * not guaranteed to have landed by then, hence the mirror. */
   const [pullVector, setPullVector] = useState({ x: 0, y: 0 });
+  const pull = useRef({ x: 0, y: 0 });
 
   const frame = useRef(0);
+  const wideTimer = useRef(0);
   const boardRef = useRef<HTMLDivElement>(null);
 
+  // Written to the attribute rather than held in state, matching the other
+  // controls: nothing about the reported value needs a render to land.
   useEffect(() => {
-    const unsubscribe = volume.on("change", (next) => setAriaVolume(Math.round(next)));
-    return unsubscribe;
+    const report = (value: number) =>
+      boardRef.current?.setAttribute("aria-valuenow", String(Math.round(value)));
+    report(volume.get());
+    return volume.on("change", report);
   }, [volume]);
 
-  useEffect(() => () => cancelAnimationFrame(frame.current), []);
+  useEffect(() => {
+    return () => {
+      cancelAnimationFrame(frame.current);
+      window.clearTimeout(wideTimer.current);
+    };
+  }, []);
 
   /** One step of ballistics. Shared by the animated flight and the reduced-motion
    * fast-forward, so both land the ball in exactly the same place. */
@@ -100,7 +111,8 @@ export const CannonTrack = ({ volume }: CannonTrackProps) => {
     if (x > BOARD_WIDTH) {
       // Sailed clean off the board. The volume keeps whatever it had.
       setWide(true);
-      window.setTimeout(() => setWide(false), 1600);
+      window.clearTimeout(wideTimer.current);
+      wideTimer.current = window.setTimeout(() => setWide(false), 1600);
       resetBall();
       return;
     }
@@ -168,7 +180,7 @@ export const CannonTrack = ({ volume }: CannonTrackProps) => {
     setPhase("aiming");
     ballX.set(MUZZLE.x);
     ballY.set(MUZZLE.y);
-    pull.set({ x: 0, y: 0 });
+    pull.current = { x: 0, y: 0 };
     setPullVector({ x: 0, y: 0 });
   };
 
@@ -183,7 +195,7 @@ export const CannonTrack = ({ volume }: CannonTrackProps) => {
     const scale = distance > MAX_PULL ? MAX_PULL / distance : 1;
     const vector = { x: dx * scale, y: dy * scale };
 
-    pull.set(vector);
+    pull.current = vector;
     setPullVector(vector);
     ballX.set(MUZZLE.x + vector.x);
     ballY.set(MUZZLE.y + vector.y);
@@ -191,7 +203,7 @@ export const CannonTrack = ({ volume }: CannonTrackProps) => {
 
   const handlePointerUp = () => {
     if (phase !== "aiming") return;
-    const vector = pull.get();
+    const vector = pull.current;
     const distance = Math.hypot(vector.x, vector.y);
     if (distance < MIN_PULL) {
       setPhase("idle");
@@ -232,7 +244,6 @@ export const CannonTrack = ({ volume }: CannonTrackProps) => {
       aria-label="Volume"
       aria-valuemin={VOLUME_MIN}
       aria-valuemax={VOLUME_MAX}
-      aria-valuenow={ariaVolume}
       onPointerDown={handlePointerDown}
       onPointerMove={handlePointerMove}
       onPointerUp={handlePointerUp}

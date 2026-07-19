@@ -15,12 +15,12 @@ import {
 } from "lucide-react";
 
 import type { DesktopFile } from "./desktop-data";
+import type { FrameProps } from "./window-frame";
 import type { OpenWindow, WindowCtx } from "./window-types";
 
 import { AppGlyph } from "./app-icons";
 import { FILES, FIRST_NOTE, NOTES, PHOTOS, findFile } from "./desktop-data";
 import { WindowFrame } from "./window-frame";
-import type { FrameProps } from "./window-frame";
 
 /* -------------------------------------------------------------- Quick Look -- */
 
@@ -418,14 +418,14 @@ const TerminalBody = (): ReactNode => {
       return;
     }
 
+    // The count lives in the closure, not in the updater: React may invoke an
+    // updater twice, and stopping the interval from inside one is a side effect
+    // that has no business running during a re-render.
+    let shown = 0;
     const id = window.setInterval(() => {
-      setVisible((prev) => {
-        if (prev >= TERMINAL_LINES.length) {
-          window.clearInterval(id);
-          return prev;
-        }
-        return prev + 1;
-      });
+      shown += 1;
+      setVisible(shown);
+      if (shown >= TERMINAL_LINES.length) window.clearInterval(id);
     }, 190);
 
     return () => window.clearInterval(id);

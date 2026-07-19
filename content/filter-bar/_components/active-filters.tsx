@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
+import { useCallback, useEffect, useRef, useState, type ReactNode } from "react";
 import { Button } from "@repo/ui/components/button";
 import { Separator } from "@repo/ui/components/separator";
 import { X } from "lucide-react";
@@ -116,44 +116,30 @@ export function ActiveFiltersMobileContainer({ children }: { children: ReactNode
   const [showLeftBlur, setShowLeftBlur] = useState(false);
   const [showRightBlur, setShowRightBlur] = useState(true);
 
-  // Check if there's content to scroll and update blur states
-  const checkScroll = () => {
-    if (scrollContainerRef.current) {
-      const { scrollLeft, scrollWidth, clientWidth } = scrollContainerRef.current;
+  const checkScroll = useCallback(() => {
+    const el = scrollContainerRef.current;
+    if (!el) return;
 
-      // Show left blur if scrolled to the right
-      setShowLeftBlur(scrollLeft > 0);
+    const { scrollLeft, scrollWidth, clientWidth } = el;
 
-      // Show right blur if there's more content to scroll to the right
-      // Add a small buffer (1px) to account for rounding errors
-      setShowRightBlur(scrollLeft + clientWidth < scrollWidth - 1);
-    }
-  };
-
-  // Log blur states for debugging
-  // useEffect(() => {
-  //   console.log('left:', showLeftBlur, '  right:', showRightBlur)
-  // }, [showLeftBlur, showRightBlur])
-
-  // Set up ResizeObserver to monitor container size
-  // biome-ignore lint/correctness/useExhaustiveDependencies: <explanation>
-  useEffect(() => {
-    if (scrollContainerRef.current) {
-      const resizeObserver = new ResizeObserver(() => {
-        checkScroll();
-      });
-      resizeObserver.observe(scrollContainerRef.current);
-      return () => {
-        resizeObserver.disconnect();
-      };
-    }
+    setShowLeftBlur(scrollLeft > 0);
+    // 1px buffer absorbs subpixel rounding so the right blur clears at the end.
+    setShowRightBlur(scrollLeft + clientWidth < scrollWidth - 1);
   }, []);
 
-  // Update blur states when children change
-  // biome-ignore lint/correctness/useExhaustiveDependencies: <explanation>
+  useEffect(() => {
+    const el = scrollContainerRef.current;
+    if (!el) return;
+
+    const resizeObserver = new ResizeObserver(checkScroll);
+    resizeObserver.observe(el);
+    return () => resizeObserver.disconnect();
+  }, [checkScroll]);
+
+  // Children changing can add/remove pills without resizing the container.
   useEffect(() => {
     checkScroll();
-  }, [children]);
+  }, [children, checkScroll]);
 
   return (
     <div className="relative w-full overflow-x-hidden">

@@ -75,8 +75,10 @@ interface PhysicsState {
   rowOffsets: number[];
   hovering: boolean;
   pinned: boolean;
+  /** Mirrors the `expanded` state; written by `open`/`close` beside setState. */
   expanded: boolean;
-  /** Index into the *current* cell array. Meaningless across a rebuild. */
+  /** Index into the *current* cell array. Meaningless across a rebuild.
+   *  Mirrors the `featuredIdx` state; written by `setFeatured` beside setState. */
   featuredIdx: number;
   /** Index into `photos`, which survives a rebuild — see the seed step. */
   featuredPhoto: number;
@@ -154,14 +156,6 @@ export const GravityWall: FC<GravityWallProps> = ({ photos }) => {
   const currentPhoto: Photo = featuredCell
     ? (photos[featuredCell.photoIndex] ?? photos[0])
     : photos[0];
-
-  /* Keep refs mirrored from state so the rAF loop reads fresh values. */
-  useEffect(() => {
-    physics.current.expanded = expanded;
-  }, [expanded]);
-  useEffect(() => {
-    physics.current.featuredIdx = featuredIdx;
-  }, [featuredIdx]);
 
   /* Autonomous motion (row drift + intro) is suppressed under reduced motion;
      the pointer-driven displacement stays, since it is direct feedback. */

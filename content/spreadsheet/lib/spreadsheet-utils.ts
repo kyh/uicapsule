@@ -1,6 +1,10 @@
 /**
  * Pure utility functions for spreadsheet operations
  */
+
+/** Columns never resize below this, both while dragging and once committed. */
+export const MIN_COLUMN_WIDTH = 60;
+
 export interface CellPosition {
   rowId: string;
   columnId: string;
@@ -18,6 +22,8 @@ export interface NavigationMap {
   right: string | null;
   tab: string | null;
 }
+
+export type NavigationDirection = keyof NavigationMap;
 
 /**
  * Get all cells in a row
@@ -212,7 +218,7 @@ export const createNavigationMap = (
  */
 export const getNextCellPositionFromMap = (
   cellKey: string,
-  direction: "up" | "down" | "left" | "right" | "tab",
+  direction: NavigationDirection,
   navigationMap: Map<string, NavigationMap>,
 ): CellPosition | null => {
   const navigation = navigationMap.get(cellKey);

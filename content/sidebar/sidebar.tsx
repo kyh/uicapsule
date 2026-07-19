@@ -1,3 +1,4 @@
+import type { ReactNode } from "react";
 import {
   BarChart3,
   Bell,
@@ -19,8 +20,16 @@ import {
 
 import { useResizableSidebar } from "./use-resizable-sidebar";
 
-// Navigation data structure
-const navigationItems = [
+type NavItem = {
+  id: string;
+  label: string;
+  /** A lucide element, or a plain string to render an emoji glyph instead. */
+  icon: ReactNode;
+  isActive?: boolean;
+  subItems?: NavItem[];
+};
+
+const navigationItems: NavItem[] = [
   { id: "notifications", label: "Notifications", icon: <Bell size={14} /> },
   { id: "tasks", label: "Tasks", icon: <CheckSquare size={14} /> },
   { id: "emails", label: "Emails", icon: <Mail size={14} /> },
@@ -29,7 +38,6 @@ const navigationItems = [
     id: "automations",
     label: "Automations",
     icon: <Settings size={14} />,
-    hasSubItems: true,
     subItems: [
       { id: "workflows", label: "Workflows", icon: <Workflow size={14} /> },
       { id: "sequences", label: "Sequences", icon: <GitBranch size={14} /> },
@@ -37,7 +45,7 @@ const navigationItems = [
   },
 ];
 
-const favoritesItems = [
+const favoritesItems: NavItem[] = [
   {
     id: "onboarding-pipeline",
     label: "Onboarding pipeline",
@@ -55,7 +63,7 @@ const favoritesItems = [
   },
 ];
 
-const recordsItems = [
+const recordsItems: NavItem[] = [
   {
     id: "companies",
     label: "Companies",
@@ -68,7 +76,7 @@ const recordsItems = [
   { id: "partnerships", label: "Partnerships", icon: <Link size={14} /> },
 ];
 
-const listsItems = [
+const listsItems: NavItem[] = [
   {
     id: "strategic-accounts",
     label: "Strategic accounts",
@@ -76,8 +84,7 @@ const listsItems = [
   },
 ];
 
-// Navigation item component
-const NavigationItem = ({ item, isSubItem = false }: { item: any; isSubItem?: boolean }) => (
+const NavigationItem = ({ item }: { item: NavItem }) => (
   <div className="flex w-full flex-col">
     <div
       className={`flex min-w-0 items-center gap-x-1.5 rounded-[9px] px-2 py-1 transition-colors duration-500 [transition-timing-function:cubic-bezier(0.65,0,0.35,1)] ${item.isActive ? "bg-[#F4F5F6]" : ""}`}
@@ -94,16 +101,14 @@ const NavigationItem = ({ item, isSubItem = false }: { item: any; isSubItem?: bo
       <span className="min-w-0 flex-1 truncate text-[14px] leading-5 font-medium tracking-[-0.28px]">
         {item.label}
       </span>
-      {item.hasSubItems && <ChevronDown size={14} />}
+      {item.subItems && <ChevronDown size={14} />}
     </div>
-    {item.hasSubItems && item.subItems && (
+    {item.subItems && (
       <div className="flex flex-col gap-y-px py-px">
-        {item.subItems.map((subItem: any) => (
+        {item.subItems.map((subItem) => (
           <div key={subItem.id} className="relative flex pl-5">
             <div className="absolute left-3.5 h-[32px] w-px -translate-y-[2px] bg-[#D1D3D6] opacity-40" />
-            <div className="flex w-full flex-col">
-              <NavigationItem item={subItem} isSubItem />
-            </div>
+            <NavigationItem item={subItem} />
           </div>
         ))}
       </div>
@@ -111,8 +116,7 @@ const NavigationItem = ({ item, isSubItem = false }: { item: any; isSubItem?: bo
   </div>
 );
 
-// Section component
-const NavigationSection = ({ title, items }: { title: string; items: any[] }) => (
+const NavigationSection = ({ title, items }: { title: string; items: NavItem[] }) => (
   <div className="flex flex-col">
     <div className="flex min-w-0 items-center gap-x-1.5 px-2 py-1.5">
       <ChevronDown size={14} />
@@ -132,7 +136,7 @@ export const Sidebar = () => {
   const { handleMouseDown } = useResizableSidebar();
 
   return (
-    <div className="sidebar-container relative border-r border-[#EEEFF1] bg-[#FBFBFB]">
+    <div className="relative border-r border-[#EEEFF1] bg-[#FBFBFB]">
       <div className="flex items-center justify-between gap-x-6 border-r border-b border-[#EEEFF1] bg-[#FBFBFB] pt-3 pr-[15px] pb-[11px] pl-3">
         <div className="flex min-w-0 flex-1 items-center">
           <img
@@ -141,7 +145,6 @@ export const Sidebar = () => {
             width="96"
             height="96"
             decoding="async"
-            data-nimg="1"
             className="size-6 shrink-0 rounded"
             src="https://www.dataembed.com/favicon/web-app-manifest-512x512.png"
           />
@@ -215,7 +218,6 @@ export const Sidebar = () => {
           </div>
         </div>
         <div className="mt-2.5 flex flex-col gap-[9px]">
-          {/* Main Navigation */}
           <div className="flex flex-col">
             <ul className="flex flex-col gap-px">
               {navigationItems.map((item) => (
@@ -224,13 +226,8 @@ export const Sidebar = () => {
             </ul>
           </div>
 
-          {/* Favorites Section */}
           <NavigationSection title="Favorites" items={favoritesItems} />
-
-          {/* Records Section */}
           <NavigationSection title="Records" items={recordsItems} />
-
-          {/* Lists Section */}
           <NavigationSection title="Lists" items={listsItems} />
         </div>
       </div>

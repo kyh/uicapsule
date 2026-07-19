@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion, AnimatePresence } from "motion/react";
 
 export function Ring() {
   const [isSilent, setIsSilent] = useState(false);
@@ -49,7 +49,6 @@ export function Ring() {
         }}
       >
         <svg
-          className="inset-0"
           width="11.25"
           height="12.75"
           viewBox="0 0 15 17"

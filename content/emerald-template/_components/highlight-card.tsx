@@ -7,14 +7,15 @@ import { motion, useMotionTemplate, useMotionValue } from "motion/react";
 import type { GridPatternProps } from "./grid-pattern";
 import { GridPattern } from "./grid-pattern";
 
+type CardGridProps = Omit<GridPatternProps, "width" | "height">;
+
 const Pattern = ({
   mouseX,
   mouseY,
   ...gridProps
-}: {
-  mouseX: MotionValue<any>;
-  mouseY: MotionValue<any>;
-  gridProps?: Omit<GridPatternProps, "width" | "height">;
+}: CardGridProps & {
+  mouseX: MotionValue<number>;
+  mouseY: MotionValue<number>;
 }) => {
   const maskImage = useMotionTemplate`radial-gradient(1000px at ${mouseX}px ${mouseY}px, rgba(255,255,255,.5), transparent 40%)`;
   const style = { maskImage, WebkitMaskImage: maskImage };
@@ -58,7 +59,7 @@ export const HighlightCard = ({
   ...props
 }: {
   className?: string;
-  gridProps?: Omit<GridPatternProps, "width" | "height">;
+  gridProps?: CardGridProps;
   pattern?: ReactNode;
   children?: ReactNode;
 } & ComponentProps<typeof Card>) => {

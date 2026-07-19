@@ -4,8 +4,13 @@ import gsap from "gsap";
 
 type CardStackProps = {
   cards: { src: string; href: string; alt: string }[];
-  className?: string;
 };
+
+/** Wheel delta (px) required to advance the stack by one timeline second. */
+const WHEEL_PIXELS_PER_SECOND = 1000;
+/** Max tilt (deg) applied across the full height/width of the viewport. */
+const TILT_X_RANGE = 5;
+const TILT_Y_RANGE = 10;
 
 export const CardStack = ({ cards }: CardStackProps) => {
   const rootRef = useRef<HTMLDivElement>(null);
@@ -14,10 +19,14 @@ export const CardStack = ({ cards }: CardStackProps) => {
     let incr = 0;
 
     const root = rootRef.current;
-    const slides = root?.querySelectorAll(".slide");
-    const slideContent = root?.querySelectorAll(".content");
+    if (!root) {
+      return;
+    }
 
-    if (!root || !slides || !slideContent) {
+    const slides = root.querySelectorAll(".slide");
+    const slideContent = root.querySelectorAll(".content");
+
+    if (slides.length === 0) {
       return;
     }
 
@@ -80,7 +89,10 @@ export const CardStack = ({ cards }: CardStackProps) => {
           repeat: -1,
           repeatDelay: repeatDelay,
           onRepeat(this: gsap.core.Tween) {
-            (this.targets()[0] as HTMLElement).style.transform = "translateY(100vh)";
+            const [target] = this.targets();
+            if (target instanceof HTMLElement) {
+              target.style.transform = "translateY(100vh)";
+            }
           },
         },
       },
@@ -102,7 +114,10 @@ export const CardStack = ({ cards }: CardStackProps) => {
           repeat: -1,
           repeatDelay: repeatDelay,
           onRepeat(this: gsap.core.Tween) {
-            (this.targets()[0] as HTMLElement).style.transform = "translateY(0vh)";
+            const [target] = this.targets();
+            if (target instanceof HTMLElement) {
+              target.style.transform = "translateY(0vh)";
+            }
           },
         },
       },
@@ -119,24 +134,23 @@ export const CardStack = ({ cards }: CardStackProps) => {
 
     const handleWheel = (e: WheelEvent) => {
       e.preventDefault();
-      incr -= e.deltaY / 1000;
+      incr -= e.deltaY / WHEEL_PIXELS_PER_SECOND;
       deltaTo(snap(incr + beginDistance));
     };
 
     const handleMouseMove = (e: MouseEvent) => {
-      const valX = (e.clientY / window.innerHeight - 0.5) * 5;
-      const valY = (e.clientX / window.innerWidth - 0.5) * 10;
+      const valX = (e.clientY / window.innerHeight - 0.5) * TILT_X_RANGE;
+      const valY = (e.clientX / window.innerWidth - 0.5) * TILT_Y_RANGE;
       rotX(-valX);
       rotY(valY);
     };
 
-    const target = root ?? window;
-    target.addEventListener("wheel", handleWheel as EventListener, { passive: false });
-    root?.addEventListener("mousemove", handleMouseMove);
+    root.addEventListener("wheel", handleWheel, { passive: false });
+    root.addEventListener("mousemove", handleMouseMove);
 
     return () => {
-      target.removeEventListener("wheel", handleWheel as EventListener);
-      root?.removeEventListener("mousemove", handleMouseMove);
+      root.removeEventListener("wheel", handleWheel);
+      root.removeEventListener("mousemove", handleMouseMove);
     };
   });
 

@@ -94,7 +94,7 @@ const SocialLink = ({
   );
 };
 
-export const SmallPrint = () => {
+const SmallPrint = () => {
   return (
     <div className="flex flex-col items-center justify-between gap-5 border-t border-white/10 pt-8 sm:flex-row">
       <p className="text-xs text-zinc-400">

@@ -92,8 +92,8 @@ interface LoopState {
    * there is no separate `dragging` flag to fall out of sync with it.
    */
   press: { x: number; y: number; id: number; committed: boolean } | null;
+  /** Previous pointer x, root-relative — the scrub delta is measured against it. */
   lastX: number;
-  lastY: number;
   overUI: boolean;
 }
 
@@ -129,7 +129,6 @@ const createState = (): LoopState => ({
   glass: { x: -100, y: -100, scale: 1, opacity: 0 },
   press: null,
   lastX: 0,
-  lastY: 0,
   overUI: false,
 });
 
@@ -338,7 +337,6 @@ export const Formation = ({ works }: FormationProps): ReactNode => {
     S.cursor.y = ly;
     S.cursor.inside = true;
     S.lastX = lx;
-    S.lastY = ly;
     S.press = { x: lx, y: ly, id: e.pointerId, committed: false };
   };
 
@@ -374,7 +372,6 @@ export const Formation = ({ works }: FormationProps): ReactNode => {
       }
     }
     S.lastX = lx;
-    S.lastY = ly;
   };
 
   /** `mayTap`: a press that never committed opens the detail view it ended on. */
@@ -458,9 +455,8 @@ export const Formation = ({ works }: FormationProps): ReactNode => {
       if (st.reduced) renderStatic();
     };
 
+    // Seeds the layout and, under reduced motion, paints the one static frame.
     relayout();
-
-    if (st.reduced) renderStatic();
 
     const updateGlass = () => {
       const el = glassRef.current;

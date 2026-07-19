@@ -1,4 +1,5 @@
 import { useEffect, useRef, type MouseEvent as ReactMouseEvent } from "react";
+
 interface UseResizableSidebarOptions {
   defaultWidth?: number;
   minWidth?: number;
@@ -18,54 +19,40 @@ export const useResizableSidebar = ({
     e.preventDefault();
     isResizingRef.current = true;
     startXRef.current = e.clientX;
-    // Get current width from CSS variable
-    const currentWidth = parseInt(
+    startWidthRef.current = parseInt(
       getComputedStyle(document.documentElement)
         .getPropertyValue("--sidebar-width")
         .replace("px", "") || defaultWidth.toString(),
     );
-    startWidthRef.current = currentWidth;
+    document.body.style.cursor = "col-resize";
+    document.body.style.userSelect = "none";
   };
 
   useEffect(() => {
-    // Set initial CSS variable value
     document.documentElement.style.setProperty("--sidebar-width", `${defaultWidth}px`);
 
+    // The width lives in a CSS variable rather than state so dragging never re-renders.
     const handleMouseMove = (e: MouseEvent) => {
       if (!isResizingRef.current) return;
 
-      const deltaX = e.clientX - startXRef.current;
-      const newWidth = startWidthRef.current + deltaX;
+      const newWidth = startWidthRef.current + (e.clientX - startXRef.current);
       const clampedWidth = Math.min(Math.max(newWidth, minWidth), maxWidth);
-
-      // Set CSS variable directly
       document.documentElement.style.setProperty("--sidebar-width", `${clampedWidth}px`);
     };
 
     const handleMouseUp = () => {
-      if (isResizingRef.current) {
-        isResizingRef.current = false;
-        document.body.style.cursor = "";
-        document.body.style.userSelect = "";
-      }
+      if (!isResizingRef.current) return;
+      isResizingRef.current = false;
+      document.body.style.cursor = "";
+      document.body.style.userSelect = "";
     };
 
-    const handleMouseDownGlobal = () => {
-      if (isResizingRef.current) {
-        document.body.style.cursor = "col-resize";
-        document.body.style.userSelect = "none";
-      }
-    };
-
-    // Add event listeners
     document.addEventListener("mousemove", handleMouseMove);
     document.addEventListener("mouseup", handleMouseUp);
-    document.addEventListener("mousedown", handleMouseDownGlobal);
 
     return () => {
       document.removeEventListener("mousemove", handleMouseMove);
       document.removeEventListener("mouseup", handleMouseUp);
-      document.removeEventListener("mousedown", handleMouseDownGlobal);
       document.body.style.cursor = "";
       document.body.style.userSelect = "";
     };

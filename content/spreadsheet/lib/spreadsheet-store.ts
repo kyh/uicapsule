@@ -1,11 +1,14 @@
 import { create } from "zustand";
 
-export type SpreadsheetRow = Record<string, any>;
+export interface SpreadsheetRow {
+  id: string;
+  [key: string]: unknown;
+}
 
-export interface SpreadsheetStore<TRow extends SpreadsheetRow = SpreadsheetRow> {
+export interface SpreadsheetStore {
   // Data state
-  data: TRow[];
-  setData: (data: TRow[] | ((prev: TRow[]) => TRow[])) => void;
+  data: SpreadsheetRow[];
+  setData: (data: SpreadsheetRow[] | ((prev: SpreadsheetRow[]) => SpreadsheetRow[])) => void;
 
   // Selection state
   selectedCells: Set<string>;
@@ -33,13 +36,9 @@ export interface SpreadsheetStore<TRow extends SpreadsheetRow = SpreadsheetRow> 
 
   // Actions
   updateData: (rowId: string, columnId: string, value: unknown) => void;
-  updateSelectedCellsData: (
-    value:
-      | unknown
-      | ((options: { row: SpreadsheetRow; columnId: string; currentValue: unknown }) => unknown),
-  ) => void;
-  addRow: (onCreateRow?: (rowIndex: number) => TRow) => void;
-  deleteRow: (rowId: string, onDeleteRow?: (rowId: string) => void) => void;
+  updateSelectedCellsData: (value: unknown) => void;
+  addRow: (onCreateRow?: (rowIndex: number) => SpreadsheetRow) => void;
+  deleteRow: (rowId: string) => void;
 }
 
 export const useSpreadsheetStore = create<SpreadsheetStore>((set, get) => ({
@@ -90,8 +89,7 @@ export const useSpreadsheetStore = create<SpreadsheetStore>((set, get) => ({
   },
 
   updateSelectedCellsData: (value) => {
-    const state = get();
-    if (state.selectedCells.size === 0) return;
+    if (get().selectedCells.size === 0) return;
 
     set((state) => {
       const newData = [...state.data];
@@ -99,29 +97,10 @@ export const useSpreadsheetStore = create<SpreadsheetStore>((set, get) => ({
         const [rowId, columnId] = cellKey.split(":");
         if (!rowId || !columnId) return;
         const rowIndex = newData.findIndex((row) => row.id === rowId);
-
         const currentRow = newData[rowIndex];
-        if (rowIndex >= 0 && rowIndex < newData.length && currentRow) {
-          const newValue =
-            typeof value === "function"
-              ? (
-                  value as (options: {
-                    row: SpreadsheetRow;
-                    columnId: string;
-                    currentValue: unknown;
-                  }) => unknown
-                )({
-                  row: currentRow,
-                  columnId,
-                  currentValue: currentRow[columnId],
-                })
-              : value;
+        if (!currentRow) return;
 
-          newData[rowIndex] = {
-            ...currentRow,
-            [columnId]: newValue,
-          };
-        }
+        newData[rowIndex] = { ...currentRow, [columnId]: value };
       });
       return { data: newData };
     });
@@ -129,15 +108,12 @@ export const useSpreadsheetStore = create<SpreadsheetStore>((set, get) => ({
 
   addRow: (onCreateRow) => {
     set((state) => {
-      const nextRow = onCreateRow?.(state.data.length) ?? ({} as SpreadsheetRow);
+      const nextRow = onCreateRow?.(state.data.length) ?? { id: `${Date.now()}` };
       return { data: [...state.data, nextRow] };
     });
   },
 
-  deleteRow: (rowId, onDeleteRow) => {
-    set((state) => {
-      onDeleteRow?.(rowId);
-      return { data: state.data.filter((row) => row.id !== rowId) };
-    });
+  deleteRow: (rowId) => {
+    set((state) => ({ data: state.data.filter((row) => row.id !== rowId) }));
   },
 }));

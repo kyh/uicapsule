@@ -187,7 +187,12 @@ const fragmentShader = /* glsl */ `
 `;
 
 /** Internal scene component for the gradient fullscreen shader. */
-function GradientScene({ config }: { config: Required<GradientOrbConfig> }) {
+function GradientScene({
+  hue,
+  rotationSpeed,
+  noiseScale,
+  innerRadius,
+}: Required<Omit<GradientOrbConfig, "background">>) {
   const materialRef = useRef<THREE.ShaderMaterial>(null);
   const { size, viewport } = useThree();
   const rotRef = useRef(0);
@@ -211,15 +216,15 @@ function GradientScene({ config }: { config: Required<GradientOrbConfig> }) {
     () => ({
       iTime: { value: 0 },
       iResolution: { value: new THREE.Vector3(size.width, size.height, 1) },
-      hue: { value: config.hue },
+      hue: { value: hue },
       rot: { value: 0 },
-      noiseScale: { value: config.noiseScale },
-      innerRadius: { value: config.innerRadius },
+      noiseScale: { value: noiseScale },
+      innerRadius: { value: innerRadius },
     }),
-    // Resolution is intentionally omitted — it is mutated in-place each frame
-    // via useFrame rather than triggering a uniform object re-creation.
+    // `size` is intentionally omitted — iResolution is mutated in-place each
+    // frame via useFrame rather than triggering a uniform object re-creation.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [config],
+    [hue, noiseScale, innerRadius],
   );
 
   useFrame((state) => {
@@ -229,12 +234,12 @@ function GradientScene({ config }: { config: Required<GradientOrbConfig> }) {
     const dt = t - lastTimeRef.current;
     lastTimeRef.current = t;
 
-    rotRef.current += dt * config.rotationSpeed;
+    rotRef.current += dt * rotationSpeed;
 
     const u = materialRef.current.uniforms;
     if (!u.iTime || !u.hue || !u.rot || !u.iResolution) return;
     u.iTime.value = t;
-    u.hue.value = config.hue;
+    u.hue.value = hue;
     u.rot.value = rotRef.current;
     u.iResolution.value.set(
       size.width * viewport.dpr,
@@ -270,22 +275,28 @@ function GradientScene({ config }: { config: Required<GradientOrbConfig> }) {
  * ```
  */
 export function GradientOrb({
-  config: configOverrides,
+  config,
   className = "",
 }: {
   config?: GradientOrbConfig;
   className?: string;
 }) {
-  const configKey = JSON.stringify(configOverrides);
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  const config = useMemo(() => ({ ...defaults, ...configOverrides }), [configKey]);
+  const { background, hue, rotationSpeed, noiseScale, innerRadius } = {
+    ...defaults,
+    ...config,
+  };
 
   return (
-    <div className={`w-full h-full ${className}`} style={{ background: config.background }}>
+    <div className={`w-full h-full ${className}`} style={{ background }}>
       {/* Camera is unused — the vertex shader outputs clip-space positions directly */}
       <Canvas gl={{ antialias: true, alpha: false }}>
-        <color attach="background" args={[config.background]} />
-        <GradientScene config={config} />
+        <color attach="background" args={[background]} />
+        <GradientScene
+          hue={hue}
+          rotationSpeed={rotationSpeed}
+          noiseScale={noiseScale}
+          innerRadius={innerRadius}
+        />
       </Canvas>
     </div>
   );

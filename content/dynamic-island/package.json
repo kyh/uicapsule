@@ -10,7 +10,6 @@
     "clean": "git clean -xdf .cache .turbo dist node_modules"
   },
   "dependencies": {
-    "framer-motion": "^12.42.2",
     "lucide-react": "^1.24.0",
     "motion": "^12.42.2",
     "react": "catalog:",

@@ -1,12 +1,20 @@
 "use client";
 
 import { useEffect, useMemo, useState, type ReactElement, type ReactNode } from "react";
+
+interface CellProps {
+  colors: string[];
+  strokeWidth: number;
+}
+
+type CellComponent = (props: CellProps) => ReactElement | null;
+
 // Cell shape functions that return JSX instead of SVG strings
-const Cell1 = ({ colors }: { colors: string[]; strokeWidth: number }) => (
+const Cell1 = ({ colors }: CellProps) => (
   <circle cx="50" cy="50" r="9.44" fill={colors[0]} fillRule="evenodd" />
 );
 
-const Cell2 = ({ colors, strokeWidth }: { colors: string[]; strokeWidth: number }) => (
+const Cell2 = ({ colors, strokeWidth }: CellProps) => (
   <>
     <line x1="25" x2="75" y1="25" y2="25" stroke={colors[0]} strokeWidth={strokeWidth} />
     <line x1="25" x2="75" y1="50" y2="50" stroke={colors[0]} strokeWidth={strokeWidth} />
@@ -14,14 +22,14 @@ const Cell2 = ({ colors, strokeWidth }: { colors: string[]; strokeWidth: number 
   </>
 );
 
-const Cell3 = ({ colors, strokeWidth }: { colors: string[]; strokeWidth: number }) => (
+const Cell3 = ({ colors, strokeWidth }: CellProps) => (
   <>
     <line x1="25" x2="75" y1="25" y2="75" stroke={colors[0]} strokeWidth={strokeWidth} />
     <line x1="25" x2="75" y1="75" y2="25" stroke={colors[0]} strokeWidth={strokeWidth} />
   </>
 );
 
-const Cell4 = ({ colors, strokeWidth }: { colors: string[]; strokeWidth: number }) => (
+const Cell4 = ({ colors, strokeWidth }: CellProps) => (
   <rect
     width="50"
     height="50"
@@ -33,7 +41,7 @@ const Cell4 = ({ colors, strokeWidth }: { colors: string[]; strokeWidth: number 
   />
 );
 
-const Cell5 = ({ colors, strokeWidth }: { colors: string[]; strokeWidth: number }) => (
+const Cell5 = ({ colors, strokeWidth }: CellProps) => (
   <line x1="25" x2="75" y1="75" y2="25" fill="none" stroke={colors[0]} strokeWidth={strokeWidth} />
 );
 
@@ -41,25 +49,8 @@ const Cell6 = () => null;
 
 const Cell7 = () => <rect width="75" height="75" x="12.5" y="12.5" fill="rgba(255,255,255,0.1)" />;
 
-// Simple seeded random number generator
-const seedPRNG = (seed: number) => {
-  // Simple implementation - in production you might want a more robust seeded RNG
-  // This is a basic seeded RNG implementation
-  let seedValue = seed;
-  return () => {
-    seedValue = (seedValue * 9301 + 49297) % 233280;
-    return seedValue / 233280;
-  };
-};
-
 interface ShapeConfig {
-  shape: ({
-    colors,
-    strokeWidth,
-  }: {
-    colors: string[];
-    strokeWidth: number;
-  }) => ReactElement | null;
+  shape: CellComponent;
   weight: number;
 }
 
@@ -73,19 +64,24 @@ const shapesConfig: ShapeConfig[] = [
   { shape: Cell7, weight: 3 },
 ];
 
-// Create weighted selector
-const createWeightedSelector = (items: ShapeConfig[], seededRandom: () => number) => {
-  const weightedArray: ShapeConfig[] = [];
+// Each config repeated `weight` times, so a uniform draw honours the weights.
+// Built once at module scope: every cell re-rolls on its own timer, so rebuilding
+// this per draw would allocate constantly.
+const weightedShapes: ShapeConfig[] = shapesConfig.flatMap((config) =>
+  Array.from({ length: config.weight }, () => config),
+);
 
-  for (const item of items) {
-    for (let i = 0; i < item.weight; i++) {
-      weightedArray.push(item);
-    }
-  }
+// Unreachable fallback for `noUncheckedIndexedAccess`; the index below is always in range.
+const fallbackShape: ShapeConfig = { shape: Cell1, weight: 1 };
 
-  return (): ShapeConfig =>
-    weightedArray[Math.floor(seededRandom() * weightedArray.length)] ?? items[0]!;
-};
+const pickShape = (): ShapeConfig =>
+  weightedShapes[Math.floor(Math.random() * weightedShapes.length)] ?? fallbackShape;
+
+// Cells are authored in a 100x100 viewBox; this maps one down to a `cellSize` grid slot.
+const CELL_SCALE = 0.2;
+
+// Module scope so the default keeps a stable identity across renders.
+const DEFAULT_COLORS = ["white"];
 
 // Individual shape component that manages its own interval
 interface ShapeProps {
@@ -93,52 +89,24 @@ interface ShapeProps {
   y: number;
   colors: string[];
   strokeWidth: number;
-  scale: number;
-  shapeId: string;
-  minInterval?: number;
-  maxInterval?: number;
+  minInterval: number;
+  maxInterval: number;
 }
 
-const Shape = ({
-  x,
-  y,
-  colors,
-  strokeWidth,
-  scale,
-  shapeId,
-  minInterval = 0,
-  maxInterval = 5000,
-}: ShapeProps) => {
-  const [currentShape, setCurrentShape] = useState<ShapeConfig>(() => {
-    // Initialize with a random shape
-    const seededRandom = seedPRNG(Math.random() * 1000);
-    const pickShape = createWeightedSelector(shapesConfig, seededRandom);
-    return pickShape();
-  });
+const Shape = ({ x, y, colors, strokeWidth, minInterval, maxInterval }: ShapeProps) => {
+  const [currentShape, setCurrentShape] = useState<ShapeConfig>(pickShape);
 
   useEffect(() => {
     const getRandomInterval = () => Math.random() * (maxInterval - minInterval) + minInterval;
 
-    const updateShape = () => {
-      const seededRandom = seedPRNG(Math.random() * 1000);
-      const pickShape = createWeightedSelector(shapesConfig, seededRandom);
-      setCurrentShape(pickShape());
+    let timeoutId: ReturnType<typeof setTimeout>;
+    const scheduleNext = () => {
+      timeoutId = setTimeout(() => {
+        setCurrentShape(pickShape());
+        scheduleNext();
+      }, getRandomInterval());
     };
-
-    // Set initial random interval
-    let timeoutId = setTimeout(() => {
-      updateShape();
-
-      // Set up recurring random intervals
-      const setNextTimeout = () => {
-        timeoutId = setTimeout(() => {
-          updateShape();
-          setNextTimeout();
-        }, getRandomInterval());
-      };
-
-      setNextTimeout();
-    }, getRandomInterval());
+    scheduleNext();
 
     return () => clearTimeout(timeoutId);
   }, [minInterval, maxInterval]);
@@ -147,7 +115,7 @@ const Shape = ({
 
   return (
     <g transform={`translate(${x} ${y})`}>
-      <g transform={`scale(${scale})`}>
+      <g transform={`scale(${CELL_SCALE})`}>
         <ShapeComponent colors={colors} strokeWidth={strokeWidth} />
       </g>
     </g>
@@ -170,13 +138,12 @@ export const BackgroundShapes = ({
   height = 500,
   cellSize = 20,
   strokeWidth = 10,
-  colors = ["white"],
+  colors = DEFAULT_COLORS,
   className = "",
   minInterval = 1000,
   maxInterval = 5000,
 }: BackgroundShapesProps) => {
   const borderSize = cellSize * 2;
-  const scale = 0.2;
   const colorsKey = colors.join("|");
 
   const shapes = useMemo<ReactNode[]>(() => {
@@ -190,8 +157,6 @@ export const BackgroundShapes = ({
             y={y}
             colors={colors}
             strokeWidth={strokeWidth}
-            scale={scale}
-            shapeId={`left-${x}-${y}`}
             minInterval={minInterval}
             maxInterval={maxInterval}
           />,
@@ -201,8 +166,6 @@ export const BackgroundShapes = ({
             y={y}
             colors={colors}
             strokeWidth={strokeWidth}
-            scale={scale}
-            shapeId={`right-${x}-${y}`}
             minInterval={minInterval}
             maxInterval={maxInterval}
           />,

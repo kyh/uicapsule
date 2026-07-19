@@ -36,20 +36,24 @@ const transport = new StaticChatTransport<FilterUIMessage>({
   chunkDelayMs: [600, 1400],
 });
 
-type UseAiFilterSimulationParams = {
-  columns: Column<any>[];
+type UseAiFilterSimulationParams<TData> = {
+  columns: Column<TData>[];
   actions: DataTableFilterActions;
 };
 
-export const useAiFilterSimulation = ({ columns, actions }: UseAiFilterSimulationParams) => {
+export const useAiFilterSimulation = <TData>({
+  columns,
+  actions,
+}: UseAiFilterSimulationParams<TData>) => {
+  // Chunks arrive one column at a time, but `actions` closes over the filter
+  // state as of the render that produced it. Replaying every chunk received so
+  // far inside a single batch keeps earlier filters from being clobbered.
   const batchResultsRef = useRef<
     {
-      column: Column<any>;
+      column: Column<TData>;
       values: unknown[];
     }[]
   >([]);
-
-  console.log("batchResultsRef", batchResultsRef.current);
 
   const { sendMessage, status } = useChat<FilterUIMessage>({
     transport,

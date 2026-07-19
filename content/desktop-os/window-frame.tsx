@@ -15,11 +15,8 @@ export interface FrameProps {
   onClose: (uid: number) => void;
   onFocus: (uid: number) => void;
   onMove: (uid: number, x: number, y: number) => void;
-  title?: string;
-  headerCenter?: ReactNode;
-  headerRight?: ReactNode;
-  headerClassName?: string;
-  bodyClassName?: string;
+  /** Required: it is both the visible header label and the dialog's accessible name. */
+  title: string;
   children: ReactNode;
 }
 
@@ -61,10 +58,6 @@ export const WindowFrame = ({
   onFocus,
   onMove,
   title,
-  headerCenter,
-  headerRight,
-  headerClassName,
-  bodyClassName,
   children,
 }: FrameProps): ReactNode => {
   const frameRef = useRef<HTMLDivElement>(null);
@@ -182,7 +175,7 @@ export const WindowFrame = ({
     <div
       ref={frameRef}
       role="dialog"
-      aria-label={title ?? win.kind}
+      aria-label={title}
       onMouseDown={() => onFocus(win.uid)}
       className="pointer-events-auto absolute flex flex-col overflow-hidden rounded-[12px] border border-black/15 bg-[#fbfaf7] text-[#1a1612] shadow-[0_30px_80px_-20px_rgba(0,0,0,0.45),0_8px_24px_-8px_rgba(0,0,0,0.35)]"
       style={{
@@ -199,9 +192,9 @@ export const WindowFrame = ({
         onPointerUp={onHeaderPointerUp}
         onPointerCancel={onHeaderPointerCancel}
         onLostPointerCapture={onHeaderPointerCancel}
-        className={`flex shrink-0 select-none items-center gap-3 border-b border-black/[0.07] px-3 py-2 ${
+        className={`flex shrink-0 select-none items-center gap-3 border-b border-black/[0.07] bg-[#ecebe6] px-3 py-2 ${
           isMobile ? "cursor-default" : "cursor-grab active:cursor-grabbing"
-        } ${headerClassName ?? "bg-[#ecebe6]"}`}
+        }`}
         style={{ touchAction: "none" }}
       >
         <div data-traffic-light className="flex items-center gap-1.5">
@@ -236,21 +229,20 @@ export const WindowFrame = ({
         </div>
 
         <div className="flex min-w-0 flex-1 items-center justify-center">
-          {headerCenter ?? (
-            <span className="truncate text-[12px] font-medium tracking-tight text-black/70">
-              {title}
-            </span>
-          )}
+          <span className="truncate text-[12px] font-medium tracking-tight text-black/70">
+            {title}
+          </span>
         </div>
 
-        <div className="flex shrink-0 items-center justify-end" style={{ minWidth: 60 }}>
-          {headerRight}
-        </div>
+        {/*
+          Empty on purpose. The traffic lights sit in the row's left slot, so the
+          title only lands optically centred while a same-order counterweight
+          holds the right slot open.
+        */}
+        <div className="shrink-0" style={{ minWidth: 60 }} aria-hidden="true" />
       </div>
 
-      <div className={`relative min-h-0 flex-1 overflow-hidden ${bodyClassName ?? ""}`}>
-        {children}
-      </div>
+      <div className="relative min-h-0 flex-1 overflow-hidden">{children}</div>
     </div>
   );
 };

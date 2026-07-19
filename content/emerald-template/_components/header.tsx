@@ -7,26 +7,25 @@ import { useScroll } from "motion/react";
 
 import { Logo } from "./logo";
 
-const baseContainerClassName = "sticky top-0 z-40 w-full bg-transparent";
+/** Scroll offset past which the header gains its translucent backdrop. */
+const BLUR_SCROLL_THRESHOLD = 100;
 
 export const Header = () => {
-  const [containerClassName, setContainerClassName] = useState(baseContainerClassName);
+  const [isScrolled, setIsScrolled] = useState(false);
 
   const { scrollY } = useScroll();
 
   useEffect(() => {
-    const subscription = scrollY.on("change", () => {
-      if (scrollY.get() > 100) {
-        setContainerClassName(cn(baseContainerClassName, "backdrop-blur"));
-      } else {
-        setContainerClassName(baseContainerClassName);
-      }
+    const unsubscribe = scrollY.on("change", (latest) => {
+      setIsScrolled(latest > BLUR_SCROLL_THRESHOLD);
     });
-    return () => subscription();
+    return unsubscribe;
   }, [scrollY]);
 
   return (
-    <header className={containerClassName}>
+    <header
+      className={cn("sticky top-0 z-40 w-full bg-transparent", isScrolled && "backdrop-blur")}
+    >
       <div className="mx-auto flex h-16 w-full max-w-5xl items-center justify-between gap-4 px-5">
         <div className="flex-1">
           <a href="/">

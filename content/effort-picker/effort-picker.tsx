@@ -21,6 +21,11 @@ type EffortPickerProps = {
 const HEADER_FADE = { duration: 0.18, ease: [0.4, 0, 0.2, 1] } as const;
 const CARD_POP = { type: "spring", stiffness: 380, damping: 30 } as const;
 
+/** Slingshot is a control you operate. The other two are takes you perform: they
+ * start the moment the card opens, they run on their own clock, and they don't
+ * let you leave halfway through. */
+const isPerformance = (variant: EffortVariant) => variant !== "slingshot";
+
 /**
  * The Codex effort picker, rebuilt twice as a machine that resents being aimed.
  *
@@ -30,11 +35,6 @@ const CARD_POP = { type: "spring", stiffness: 380, damping: 30 } as const;
  * The shell owns the knob's position so the composer chip can follow it frame by
  * frame without re-rendering React.
  */
-/** Slingshot is a control you operate. The other two are takes you perform: they
- * start the moment the card opens, they run on their own clock, and they don't
- * let you leave halfway through. */
-const isPerformance = (variant: EffortVariant) => variant !== "slingshot";
-
 export const EffortPicker = ({ variant = "slingshot" }: EffortPickerProps) => {
   const knobX = useMotionValue(notchX(DEFAULT_LEVEL));
   const [phase, setPhase] = useState<TrackPhase>("idle");
@@ -43,23 +43,24 @@ export const EffortPicker = ({ variant = "slingshot" }: EffortPickerProps) => {
   // needs the click before it asks anyone for their camera.
   const [open, setOpen] = useState(!isPerformance(variant));
 
+  // A performance card has no close button, so the chip is the only way out — and
+  // it's barred until the take lands. Clicking it mid-take bumps a nonce that the
+  // card reads as "someone tried to leave", and it shakes them off.
+  const [takeDone, setTakeDone] = useState(false);
+  const [scoldNonce, setScoldNonce] = useState(0);
+
   // Swapping variants on a mounted picker has to re-close the curtain, or karaoke
   // inherits the slingshot's always-open card and starts singing to nobody.
   const [renderedVariant, setRenderedVariant] = useState(variant);
   if (renderedVariant !== variant) {
     setRenderedVariant(variant);
     setOpen(!isPerformance(variant));
+    setTakeDone(false);
   }
 
   // Hold the knob and the panel stops labelling itself and starts labelling the
   // *track* — which end buys you what. It's the only instruction the thing gives.
   const winding = phase !== "idle";
-
-  // A performance card has no close button, so the chip is the only way out — and
-  // it's barred until the take lands. Clicking it mid-take bumps a nonce that the
-  // card reads as "someone tried to leave", and it shakes them off.
-  const [takeDone, setTakeDone] = useState(false);
-  const [scoldNonce, setScoldNonce] = useState(0);
 
   const handleToggle = () => {
     const trappedMidTake = isPerformance(variant) && open && !takeDone;
@@ -67,6 +68,10 @@ export const EffortPicker = ({ variant = "slingshot" }: EffortPickerProps) => {
       setScoldNonce((nonce) => nonce + 1);
       return;
     }
+    // A card that is about to mount has not delivered a take yet. Karaoke says so
+    // itself on mount, but the curls card waits on a camera before it says
+    // anything — without this, a finished take leaves the next card unguarded.
+    if (!open) setTakeDone(false);
     setOpen((was) => !was);
   };
 

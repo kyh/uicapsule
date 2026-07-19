@@ -346,9 +346,6 @@ importers:
 
   content/dynamic-island:
     dependencies:
-      framer-motion:
-        specifier: ^12.42.2
-        version: 12.42.2(react-dom@19.2.7(react@19.2.7))(react@19.2.7)
       lucide-react:
         specifier: ^1.24.0
         version: 1.24.0(react@19.2.7)
@@ -790,9 +787,6 @@ importers:
 
   content/spinner-pixel-grid:
     dependencies:
-      '@repo/ui':
-        specifier: workspace:^
-        version: link:../../packages/ui
       react:
         specifier: 'catalog:'
         version: 19.2.7

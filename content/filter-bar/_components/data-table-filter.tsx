@@ -1,6 +1,5 @@
 "use client";
 
-import { useMemo } from "react";
 import { useIsMobile } from "@repo/ui/hooks/use-is-mobile";
 
 import type {

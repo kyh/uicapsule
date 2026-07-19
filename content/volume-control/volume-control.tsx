@@ -4,6 +4,7 @@ import { useState } from "react";
 import { AnimatePresence, motion, useMotionValue, useTransform } from "motion/react";
 
 import type { MotionValue } from "motion/react";
+import type { ReactNode } from "react";
 
 import { CannonTrack } from "./cannon-track";
 import { CurlingTrack } from "./curling-track";
@@ -29,6 +30,17 @@ const HINTS: Record<VolumeVariant, string> = {
   "plus-minus": "Hit + for louder. Good luck catching it.",
 };
 
+/** Every control takes the volume and nothing else, so the shell can pick one by
+ * name. Keyed by variant rather than branched on it: adding a sixth control makes
+ * this table and HINTS fail to compile until both know about it. */
+const TRACKS: Record<VolumeVariant, (props: { volume: MotionValue<number> }) => ReactNode> = {
+  tilt: TiltTrack,
+  cannon: CannonTrack,
+  curling: CurlingTrack,
+  dots: DotsTrack,
+  "plus-minus": PlusMinusTrack,
+};
+
 /**
  * Five volume controls, none of which will let you simply set the volume.
  *
@@ -51,6 +63,8 @@ export const VolumeControl = ({ variant = "tilt" }: VolumeControlProps) => {
     volume.set(DEFAULT_VOLUME);
   }
 
+  const Track = TRACKS[variant];
+
   const hud = (
     <AnimatePresence>
       {open && (
@@ -64,17 +78,7 @@ export const VolumeControl = ({ variant = "tilt" }: VolumeControlProps) => {
           className="absolute top-full right-0 z-10 mt-2.5"
         >
           <VolumeHud volume={volume} title="Output level" hint={HINTS[variant]}>
-            {variant === "cannon" ? (
-              <CannonTrack volume={volume} />
-            ) : variant === "curling" ? (
-              <CurlingTrack volume={volume} />
-            ) : variant === "dots" ? (
-              <DotsTrack volume={volume} />
-            ) : variant === "plus-minus" ? (
-              <PlusMinusTrack volume={volume} />
-            ) : (
-              <TiltTrack volume={volume} />
-            )}
+            <Track volume={volume} />
           </VolumeHud>
         </motion.div>
       )}

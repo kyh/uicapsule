@@ -2,7 +2,7 @@
 
 import type { CSSProperties, RefObject } from "react";
 import { Check, ChevronLeft, ChevronRight, Plus, X } from "lucide-react";
-import { useCallback, useLayoutEffect, useRef, useState } from "react";
+import { useLayoutEffect, useRef, useState } from "react";
 
 import type { Look } from "./lookbook-data";
 import { LookFigure } from "./look-figure";
@@ -63,38 +63,32 @@ export interface DetailPanelProps {
   /** Measured container box — never `window`, so the panel matches the frame. */
   containerW: number;
   containerH: number;
-  panelRef: RefObject<HTMLDivElement | null>;
+  /** The glass card itself — the host choreographs its entrance and exit. */
+  ref: RefObject<HTMLDivElement | null>;
 }
 
-export function DetailPanel({ look, containerW, containerH, panelRef }: DetailPanelProps) {
+export function DetailPanel({ look, containerW, containerH, ref }: DetailPanelProps) {
   const [activeIdx, setActiveIdx] = useState(0);
   const [bag, setBag] = useState<ReadonlySet<string>>(new Set<string>());
 
   const narrow = !usesSideLayout(containerW, containerH);
 
-  const setCardRef = useCallback(
-    (node: HTMLDivElement | null) => {
-      panelRef.current = node;
-    },
-    [panelRef],
-  );
-
   const firstPaint = useRef(true);
   // Hide before first paint so the open animation never flashes, and so
   // re-renders (thumbnail switches) can't reset opacity mid-view.
   useLayoutEffect(() => {
-    if (firstPaint.current && panelRef.current) {
-      panelRef.current.style.opacity = "0";
+    if (firstPaint.current && ref.current) {
+      ref.current.style.opacity = "0";
     }
     firstPaint.current = false;
     return () => {
       firstPaint.current = true;
     };
-  }, [panelRef]);
+  }, [ref]);
 
-  const [topItem, lowerItem, shoeItem] = look.items;
-  const orderedItems = [topItem, lowerItem, shoeItem];
-  const activeItem = orderedItems[activeIdx] ?? topItem;
+  // Already ordered top -> lower -> shoes by the tuple's own type.
+  const orderedItems = look.items;
+  const activeItem = orderedItems[activeIdx] ?? orderedItems[0];
   const isActiveAdded = bag.has(activeItem.id);
   const itemsCount = orderedItems.length;
   const tag = SLOT_TAG[activeItem.slot];
@@ -163,7 +157,7 @@ export function DetailPanel({ look, containerW, containerH, panelRef }: DetailPa
 
   return (
     <div className="absolute z-40" style={wrapperStyle}>
-      <div ref={setCardRef} className="relative overflow-hidden rounded-[28px]" style={cardStyle}>
+      <div ref={ref} className="relative overflow-hidden rounded-[28px]" style={cardStyle}>
         {/* Top sheen */}
         <div
           aria-hidden

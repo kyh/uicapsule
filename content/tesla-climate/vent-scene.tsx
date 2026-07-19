@@ -14,9 +14,14 @@ const SEGMENTS = 16;
 const SLIT_Y = 0.5;
 const SLIT_WIDTH = 0.46;
 
+// Mirrors the MIN_TEMP/MAX_TEMP range in tesla-climate.tsx; duplicated rather than
+// imported so the tint math stays independent of the control panel.
+const TINT_MIN_TEMP = 60;
+const TINT_TEMP_SPAN = 20;
+
 const tintFor = (tempF: number, acOn: boolean): readonly [number, number, number] => {
   if (!acOn) return [168, 176, 188];
-  const k = Math.min(1, Math.max(0, (tempF - 60) / 20));
+  const k = Math.min(1, Math.max(0, (tempF - TINT_MIN_TEMP) / TINT_TEMP_SPAN));
   const cold: readonly [number, number, number] = [90, 140, 240];
   const mid: readonly [number, number, number] = [150, 178, 226];
   const hot: readonly [number, number, number] = [235, 105, 105];
@@ -38,7 +43,6 @@ const seeded = (index: number, channel: number) => {
 
 export const VentScene: FC<VentSceneProps> = ({ tempF, fanSpeed, powerOn, acOn }) => {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
-  const offscreenRef = useRef<HTMLCanvasElement | null>(null);
   const settingsRef = useRef({ tempF, fanSpeed, powerOn, acOn });
   const steerRef = useRef({ current: 0, target: 0, reach: 1, reachTarget: 1 });
   const intensityRef = useRef(0);
@@ -57,7 +61,6 @@ export const VentScene: FC<VentSceneProps> = ({ tempF, fanSpeed, powerOn, acOn }
     const context = canvas.getContext("2d");
     if (!context) return;
     const offscreen = document.createElement("canvas");
-    offscreenRef.current = offscreen;
     const offContext = offscreen.getContext("2d");
     if (!offContext) return;
 
@@ -253,9 +256,10 @@ export const VentScene: FC<VentSceneProps> = ({ tempF, fanSpeed, powerOn, acOn }
     pointerRef.current.y = py;
     const dx = px - rect.width / 2;
     const dy = py - rect.height * SLIT_Y;
-    if (Math.hypot(dx, dy) < 10) return;
+    const fromSlit = Math.hypot(dx, dy);
+    if (fromSlit < 10) return;
     steerRef.current.target = Math.atan2(dx, dy);
-    const distance = Math.hypot(dx, dy) / (rect.height * 0.52);
+    const distance = fromSlit / (rect.height * 0.52);
     steerRef.current.reachTarget = Math.max(0.35, Math.min(1.3, distance));
   };
 

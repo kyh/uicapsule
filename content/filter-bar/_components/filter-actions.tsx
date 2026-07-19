@@ -1,7 +1,6 @@
 import { memo } from "react";
 import { Button } from "@repo/ui/components/button";
 import { cn } from "@repo/ui/lib/utils";
-import { FilterXIcon } from "lucide-react";
 
 import type { DataTableFilterActions } from "../filter-package";
 

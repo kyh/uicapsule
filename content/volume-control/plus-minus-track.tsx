@@ -58,17 +58,14 @@ export const PlusMinusTrack = ({ volume }: PlusMinusTrackProps) => {
   const timer = useRef(0);
   const lastHole = useRef(-1);
   /** The loop reads the volume, and the volume changes on every hit — so it reads
-   * it from a ref rather than closing over a stale render's copy. */
+   * it from a ref rather than closing over a stale render's copy. `apply` is the
+   * only writer and updates both, so the two never drift. */
   const levelRef = useRef(level);
   /** A hit has to be able to summon the next pop, and it lives outside the effect
    * that defines the loop. This is the doorbell. */
   const popRef = useRef(() => {});
   /** Pops already scored, so an exiting pill can't be scored twice. */
   const whacked = useRef(new Set<number>());
-
-  useEffect(() => {
-    levelRef.current = level;
-  }, [level]);
 
   // Reduced motion gets what it should have had all along: two buttons that stay
   // where you left them.

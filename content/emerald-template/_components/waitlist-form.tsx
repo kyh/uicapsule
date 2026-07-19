@@ -3,7 +3,6 @@
 import { useState, type FormEvent } from "react";
 import { Button } from "@repo/ui/components/button";
 import { toast } from "@repo/ui/components/toast";
-import { cn } from "@repo/ui/lib/utils";
 
 export const WaitlistForm = () => {
   const [email, setEmail] = useState("");
@@ -35,7 +34,7 @@ export const WaitlistForm = () => {
         value={email}
         onChange={(event) => setEmail(event.target.value)}
       />
-      <Button type="submit" className={cn("text-xs hover:bg-transparent")} variant="ghost">
+      <Button type="submit" className="text-xs hover:bg-transparent" variant="ghost">
         Join Waitlist
       </Button>
     </form>

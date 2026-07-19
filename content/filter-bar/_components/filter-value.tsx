@@ -31,7 +31,6 @@ import {
 import { Input } from "@repo/ui/components/input";
 import { Popover, PopoverContent, PopoverTrigger } from "@repo/ui/components/popover";
 import { Slider } from "@repo/ui/components/slider";
-import { Switch } from "@repo/ui/components/switch";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@repo/ui/components/tabs";
 import { cn } from "@repo/ui/lib/utils";
 import { format, isEqual } from "date-fns";
@@ -48,9 +47,11 @@ import type {
 } from "../filter-package";
 import { createNumberRange, numberFilterOperators, take } from "../filter-package";
 
-type IconLike = ReactElement<{ className?: string; key?: Key }> | ReactElementType;
-const renderIcon = (icon: IconLike, props: { className?: string; key?: Key } = {}) => {
-  if (isValidElement(icon)) return cloneElement(icon, props);
+type IconProps = { className?: string; key?: Key };
+type IconLike = ReactElement | ReactElementType;
+
+const renderIcon = (icon: IconLike, props: IconProps = {}) => {
+  if (isValidElement<IconProps>(icon)) return cloneElement(icon, props);
   const IconComp = icon as ComponentType<{ className?: string }>;
   return <IconComp {...props} />;
 };
@@ -130,13 +131,17 @@ type DebounceOptions = {
   maxWait?: number;
 };
 
+// `setTimeout` returns a number in the DOM and a Timeout object in Node; infer
+// it rather than hard-coding `NodeJS.Timeout`, which needs @types/node.
+type TimeoutHandle = ReturnType<typeof setTimeout>;
+
 function debounce<T extends (...args: any[]) => any>(
   func: T,
   wait: number,
   options: DebounceOptions = {},
 ): ((...args: Parameters<T>) => ReturnType<T> | undefined) & ControlFunctions {
   const { leading = false, trailing = true, maxWait } = options;
-  let timeout: NodeJS.Timeout | null = null;
+  let timeout: TimeoutHandle | null = null;
   let lastArgs: Parameters<T> | null = null;
   let lastThis: any;
   let result: ReturnType<T> | undefined;
@@ -168,7 +173,7 @@ function debounce<T extends (...args: any[]) => any>(
     );
   }
 
-  function startTimer(pendingFunc: () => void, waitTime: number): NodeJS.Timeout {
+  function startTimer(pendingFunc: () => void, waitTime: number): TimeoutHandle {
     return setTimeout(pendingFunc, waitTime);
   }
 
@@ -413,7 +418,6 @@ export function FilterValueDisplay<TData, TType extends ColumnDataType>({
 export function FilterValueOptionDisplay<TData>({
   filter,
   column,
-  actions,
 }: FilterValueDisplayProps<TData, "option">) {
   const options = useMemo(() => column.getOptions(), [column]);
   const selected = options.filter((o) => filter?.values.includes(o.value));
@@ -458,7 +462,6 @@ export function FilterValueOptionDisplay<TData>({
 export function FilterValueMultiOptionDisplay<TData>({
   filter,
   column,
-  actions,
 }: FilterValueDisplayProps<TData, "multiOption">) {
   const options = useMemo(() => column.getOptions(), [column]);
   const selected = options.filter((o) => filter.values.includes(o.value));
@@ -513,11 +516,7 @@ function formatDateRange(start: Date, end: Date) {
   return `${format(start, "MMM d, yyyy")} - ${format(end, "MMM d, yyyy")}`;
 }
 
-export function FilterValueDateDisplay<TData>({
-  filter,
-  column,
-  actions,
-}: FilterValueDisplayProps<TData, "date">) {
+export function FilterValueDateDisplay<TData>({ filter }: FilterValueDisplayProps<TData, "date">) {
   if (!filter) return null;
   if (filter.values.length === 0) return <Ellipsis className="size-4" />;
   if (filter.values.length === 1 && filter.values[0]) {
@@ -536,11 +535,7 @@ export function FilterValueDateDisplay<TData>({
   return null;
 }
 
-export function FilterValueTextDisplay<TData>({
-  filter,
-  column,
-  actions,
-}: FilterValueDisplayProps<TData, "text">) {
+export function FilterValueTextDisplay<TData>({ filter }: FilterValueDisplayProps<TData, "text">) {
   if (!filter) return null;
   if (filter.values.length === 0 || (filter.values[0] && filter.values[0].trim() === ""))
     return <Ellipsis className="size-4" />;
@@ -552,8 +547,6 @@ export function FilterValueTextDisplay<TData>({
 
 export function FilterValueNumberDisplay<TData>({
   filter,
-  column,
-  actions,
 }: FilterValueDisplayProps<TData, "number">) {
   if (!filter || !filter.values || filter.values.length === 0) return null;
 
@@ -657,7 +650,7 @@ interface OptionItemProps {
 
 // Memoized option item to prevent re-renders unless its own props change
 const OptionItem = memo(function OptionItem({ option, onToggle }: OptionItemProps) {
-  const { value, label, icon: Icon, selected, count } = option;
+  const { value, label, icon: Icon, selected } = option;
   const handleSelect = useCallback(() => {
     onToggle(value, !selected);
   }, [onToggle, value, selected]);
@@ -828,7 +821,6 @@ export function FilterValueDateController<TData>({
         <CommandGroup>
           <div>
             <Calendar
-              initialFocus
               mode="range"
               defaultMonth={date?.from}
               selected={date}
@@ -1015,28 +1007,6 @@ export function FilterValueNumberController<TData>({
               </TabsContent>
             </Tabs>
           </div>
-        </CommandGroup>
-      </CommandList>
-    </Command>
-  );
-}
-
-export function FilterValueBooleanController<TData>({
-  filter,
-  column,
-  actions,
-}: FilterValueControllerProps<TData, "boolean">) {
-  const handleChange = (value: boolean) => {
-    actions.setFilterValue(column, [value]);
-  };
-
-  return (
-    <Command>
-      <CommandList className="max-h-fit">
-        <CommandGroup>
-          <CommandItem>
-            <Switch checked={filter?.values[0] ?? false} onCheckedChange={handleChange} />
-          </CommandItem>
         </CommandGroup>
       </CommandList>
     </Command>

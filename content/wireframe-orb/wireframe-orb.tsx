@@ -39,7 +39,7 @@ export type WireframeOrbConfig = {
   enablePan?: boolean;
   /** Minimum camera distance (closest zoom). @default 2 */
   minDistance?: number;
-  /** Maximum camera distance (farthest zoom). @default 8 */
+  /** Maximum camera distance (farthest zoom). @default 20 */
   maxDistance?: number;
 };
 
@@ -223,13 +223,17 @@ function WireframeScene({ config }: { config: Required<WireframeOrbConfig> }) {
   const geometry = useMemo(() => {
     const n = getAdaptiveGridSize(config.gridSize);
     const maxI = n - 1;
-    const uvs: number[] = [];
-    const positions: number[] = [];
+    const vertexCount = n * n;
+    const uvs = new Float32Array(vertexCount * 2);
+    // The vertex shader derives every position from `aUv`, so `position` only has to
+    // exist (zero-filled) for three.js to infer the draw range for the line strip.
+    const positions = new Float32Array(vertexCount * 3);
 
     for (let j = 0; j < n; j++) {
       for (let i = 0; i < n; i++) {
-        uvs.push(i / maxI, 1 - j / maxI);
-        positions.push(0, 0, 0);
+        const v = (j * n + i) * 2;
+        uvs[v] = i / maxI;
+        uvs[v + 1] = 1 - j / maxI;
       }
     }
 

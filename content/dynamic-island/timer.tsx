@@ -69,7 +69,7 @@ export function Timer() {
   );
 }
 
-function Counter({ paused }: { paused?: boolean }) {
+function Counter({ paused }: { paused: boolean }) {
   const [count, setCount] = useState(60);
 
   useEffect(() => {

@@ -10,7 +10,6 @@
     "clean": "git clean -xdf .cache .turbo dist node_modules"
   },
   "dependencies": {
-    "@repo/ui": "workspace:^",
     "react": "catalog:",
     "react-dom": "catalog:"
   },

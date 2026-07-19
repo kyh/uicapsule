@@ -110,7 +110,13 @@ export const MemoizedTableBody = memo(MemoizedTableBodyInner, (prevProps, nextPr
     prevProps.selectedCells === nextProps.selectedCells &&
     prevProps.getRowCells === nextProps.getRowCells &&
     prevProps.handleMouseDown === nextProps.handleMouseDown &&
-    prevProps.handleMouseMove === nextProps.handleMouseMove
+    prevProps.handleMouseMove === nextProps.handleMouseMove &&
+    // Cell contents come from `table`, and the row chrome from these three; omitting any of
+    // them lets the body keep rendering stale rows when only they change.
+    prevProps.table === nextProps.table &&
+    prevProps.showRowNumbers === nextProps.showRowNumbers &&
+    prevProps.renderRowNumber === nextProps.renderRowNumber &&
+    prevProps.renderRowActions === nextProps.renderRowActions
   );
 }) as <TRow extends SpreadsheetRow>(props: MemoizedTableBodyProps<TRow>) => ReactElement;
 

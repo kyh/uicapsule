@@ -1191,7 +1191,7 @@ export function LookbookCamera() {
           </button>
           <DetailPanel
             key={selectedLook.id}
-            panelRef={detailPanelRef}
+            ref={detailPanelRef}
             look={selectedLook}
             containerW={dims.w}
             containerH={dims.h}

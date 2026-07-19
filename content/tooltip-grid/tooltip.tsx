@@ -3,20 +3,16 @@
 import {
   cloneElement,
   createContext,
-  forwardRef,
   isValidElement,
-  useContext,
+  use,
   useEffect,
   useMemo,
   useState,
   type CSSProperties,
   type HTMLProps,
   type ReactNode,
+  type Ref,
 } from "react";
-/* eslint-disable @typescript-eslint/no-unsafe-argument */
-/* eslint-disable @typescript-eslint/no-unsafe-assignment */
-/* eslint-disable @typescript-eslint/no-unsafe-member-access */
-/* eslint-disable @typescript-eslint/no-explicit-any */
 
 import {
   autoUpdate,
@@ -38,6 +34,47 @@ import type { Placement } from "@floating-ui/react";
 
 import "./tooltip.css";
 
+type HoverDirection =
+  | "top-left"
+  | "top-center"
+  | "top-right"
+  | "bottom-left"
+  | "bottom-center"
+  | "bottom-right"
+  | "left"
+  | "right";
+
+const DEFAULT_HOVER_DIRECTION: HoverDirection = "top-center";
+
+/**
+ * Which edge/corner of the trigger the pointer crossed on entry. Drives the
+ * direction the block grid wipes in. A pointer that enters within
+ * `EDGE_THRESHOLD_RATIO` of the trigger's centre line on the minor axis counts
+ * as a straight edge entry; anything further out is a corner entry.
+ */
+const EDGE_THRESHOLD_RATIO = 0.25;
+
+const resolveHoverDirection = (
+  rect: Pick<DOMRect, "left" | "top" | "width" | "height">,
+  pointerX: number,
+  pointerY: number,
+): HoverDirection => {
+  const deltaX = pointerX - (rect.left + rect.width / 2);
+  const deltaY = pointerY - (rect.top + rect.height / 2);
+  const thresholdX = rect.width * EDGE_THRESHOLD_RATIO;
+  const thresholdY = rect.height * EDGE_THRESHOLD_RATIO;
+
+  if (Math.abs(deltaX) > Math.abs(deltaY)) {
+    if (Math.abs(deltaY) < thresholdY) return deltaX > 0 ? "right" : "left";
+    if (deltaY < 0) return deltaX > 0 ? "top-right" : "top-left";
+    return deltaX > 0 ? "bottom-right" : "bottom-left";
+  }
+
+  if (Math.abs(deltaX) < thresholdX) return deltaY > 0 ? "bottom-center" : "top-center";
+  if (deltaX < 0) return deltaY > 0 ? "bottom-left" : "top-left";
+  return deltaY > 0 ? "bottom-right" : "top-right";
+};
+
 type TooltipOptions = {
   initialOpen?: boolean;
   placement?: Placement;
@@ -52,16 +89,7 @@ export const useTooltip = ({
   onOpenChange: setControlledOpen,
 }: TooltipOptions = {}) => {
   const [uncontrolledOpen, setUncontrolledOpen] = useState(initialOpen);
-  const [hoverDirection, setHoverDirection] = useState<
-    | "top-left"
-    | "top-center"
-    | "top-right"
-    | "bottom-left"
-    | "bottom-center"
-    | "bottom-right"
-    | "left"
-    | "right"
-  >("top-center");
+  const [hoverDirection, setHoverDirection] = useState<HoverDirection>(DEFAULT_HOVER_DIRECTION);
 
   const open = controlledOpen ?? uncontrolledOpen;
   const setOpen = setControlledOpen ?? setUncontrolledOpen;
@@ -71,73 +99,11 @@ export const useTooltip = ({
     placement,
     open,
     onOpenChange: (isOpen, event) => {
-      if (isOpen && !open && event) {
-        // Tooltip is opening, use the event to determine direction
-        if (data.elements.reference) {
-          console.log("data.elements.reference", data.elements.reference);
-          const rect = data.elements.reference.getBoundingClientRect();
-          const centerX = rect.left + rect.width / 2;
-          const centerY = rect.top + rect.height / 2;
-          const mouseEvent = event as MouseEvent;
-          const mouseX = mouseEvent.clientX;
-          const mouseY = mouseEvent.clientY;
-
-          // Determine which side the mouse entered from with more granular detection
-          const deltaX = mouseX - centerX;
-          const deltaY = mouseY - centerY;
-
-          // Use percentage-based thresholds (25% of trigger dimensions)
-          const thresholdX = rect.width * 0.25;
-          const thresholdY = rect.height * 0.25;
-
-          console.log("Mouse position:", { mouseX, mouseY });
-          console.log("Center position:", { centerX, centerY });
-          console.log("Deltas:", { deltaX, deltaY });
-          console.log("Thresholds:", {
-            absDeltaX: Math.abs(deltaX),
-            absDeltaY: Math.abs(deltaY),
-            thresholdX,
-            thresholdY,
-          });
-
-          if (Math.abs(deltaX) > Math.abs(deltaY)) {
-            // Horizontal entry
-            if (Math.abs(deltaY) < thresholdY) {
-              const direction = deltaX > 0 ? "right" : "left";
-              console.log("Setting horizontal direction:", direction);
-              setHoverDirection(direction);
-            } else {
-              // Corner entry
-              if (deltaY < 0) {
-                const direction = deltaX > 0 ? "top-right" : "top-left";
-                console.log("Setting top corner direction:", direction);
-                setHoverDirection(direction);
-              } else {
-                const direction = deltaX > 0 ? "bottom-right" : "bottom-left";
-                console.log("Setting bottom corner direction:", direction);
-                setHoverDirection(direction);
-              }
-            }
-          } else {
-            // Vertical entry
-            if (Math.abs(deltaX) < thresholdX) {
-              const direction = deltaY > 0 ? "bottom-center" : "top-center";
-              console.log("Setting vertical direction:", direction);
-              setHoverDirection(direction);
-            } else {
-              // Corner entry
-              if (deltaX < 0) {
-                const direction = deltaY > 0 ? "bottom-left" : "top-left";
-                console.log("Setting left corner direction:", direction);
-                setHoverDirection(direction);
-              } else {
-                const direction = deltaY > 0 ? "bottom-right" : "top-right";
-                console.log("Setting right corner direction:", direction);
-                setHoverDirection(direction);
-              }
-            }
-          }
-        }
+      const reference = data.elements.reference;
+      if (isOpen && !open && reference && event instanceof MouseEvent) {
+        setHoverDirection(
+          resolveHoverDirection(reference.getBoundingClientRect(), event.clientX, event.clientY),
+        );
       }
       setOpen(isOpen);
     },
@@ -167,10 +133,10 @@ export const useTooltip = ({
 
   const interactions = useInteractions([hover, focus, dismiss, role]);
 
-  // Reset direction when tooltip closes
+  // Reset direction when tooltip closes so the next open starts from a known state.
   useEffect(() => {
     if (!open) {
-      setHoverDirection("top-center");
+      setHoverDirection(DEFAULT_HOVER_DIRECTION);
     }
   }, [open]);
 
@@ -186,12 +152,12 @@ export const useTooltip = ({
   );
 };
 
-type ContextType = ReturnType<typeof useTooltip> | null;
+type TooltipContextValue = ReturnType<typeof useTooltip>;
 
-const TooltipContext = createContext<ContextType>(null);
+const TooltipContext = createContext<TooltipContextValue | null>(null);
 
 export const useTooltipContext = () => {
-  const context = useContext(TooltipContext);
+  const context = use(TooltipContext);
 
   if (context == null) {
     throw new Error("Tooltip components must be wrapped in <Tooltip />");
@@ -206,13 +172,32 @@ export const Tooltip = ({ children, ...options }: { children: ReactNode } & Tool
   return <TooltipContext.Provider value={tooltip}>{children}</TooltipContext.Provider>;
 };
 
-export const TooltipTrigger = forwardRef<
-  HTMLElement,
-  HTMLProps<HTMLElement> & { asChild?: boolean }
->(({ children, asChild = false, ...props }, propRef) => {
+const isRef = (value: unknown): value is Ref<HTMLElement> =>
+  typeof value === "function" ||
+  (typeof value === "object" && value !== null && "current" in value);
+
+/** React 19 exposes a child element's ref through its props, not `element.ref`. */
+const getChildRef = (child: ReactNode): Ref<HTMLElement> | undefined => {
+  if (!isValidElement(child)) return undefined;
+  const props: unknown = child.props;
+  if (typeof props !== "object" || props === null || !("ref" in props)) return undefined;
+  return isRef(props.ref) ? props.ref : undefined;
+};
+
+export const TooltipTrigger = ({
+  children,
+  asChild = false,
+  ref: propRef,
+  ...props
+}: HTMLProps<HTMLElement> & { asChild?: boolean }) => {
   const context = useTooltipContext();
-  const childrenRef = (children as any).ref;
-  const ref = useMergeRefs([context.refs.setReference, propRef, childrenRef]);
+  const ref = useMergeRefs([context.refs.setReference, propRef, getChildRef(children)]);
+
+  // The user can style the trigger based on the state.
+  const stateProps = {
+    "data-state": context.open ? "open" : "closed",
+    "data-side": context.placement.split("-")[0],
+  };
 
   // `asChild` allows the user to pass any element as the anchor
   if (asChild && isValidElement(children)) {
@@ -222,34 +207,26 @@ export const TooltipTrigger = forwardRef<
         ref,
         ...props,
         ...(children.props as object),
-        // @ts-expect-error data-state and data-side are valid props
-        "data-state": context.open ? "open" : "closed",
-        "data-side": context.placement.split("-")[0],
+        ...stateProps,
       }),
     );
   }
 
   return (
-    <button
-      ref={ref}
-      // The user can style the trigger based on the state
-      data-state={context.open ? "open" : "closed"}
-      data-side={context.placement.split("-")[0]}
-      {...context.getReferenceProps(props)}
-    >
+    <button ref={ref} {...stateProps} {...context.getReferenceProps(props)}>
       {children}
     </button>
   );
-});
+};
 
-TooltipTrigger.displayName = "TooltipTrigger";
-
-export const TooltipContent = forwardRef<
-  HTMLDivElement,
-  HTMLProps<HTMLDivElement> & {
-    type?: "default" | "block";
-  }
->(({ className, type = "default", ...props }, propRef) => {
+export const TooltipContent = ({
+  className,
+  type = "default",
+  ref: propRef,
+  ...props
+}: HTMLProps<HTMLDivElement> & {
+  type?: "default" | "block";
+}) => {
   const context = useTooltipContext();
   const ref = useMergeRefs([context.refs.setFloating, propRef]);
   const { children: floatingPropsChildren, ...floatingProps } = context.getFloatingProps(props);
@@ -283,78 +260,68 @@ export const TooltipContent = forwardRef<
       <AnimatePresence>
         {context.open && (
           <motion.div
-            className={`${"tooltip"} ${blockType ? "block" : ""} ${className ?? ""}`}
+            className={`tooltip ${blockType ? "block" : ""} ${className ?? ""}`}
             ref={ref}
             style={context.floatingStyles}
             {...tooltipMotionProps}
             {...floatingProps}
           >
-            {blockType && <TooltipBlocks context={context} />}
-            <motion.div className={"content"} {...contentMotionProps}>
+            {blockType && <TooltipBlocks />}
+            <motion.div className="content" {...contentMotionProps}>
               {children}
             </motion.div>
           </motion.div>
         )}
       </AnimatePresence>
-      {blockType && (
-        <AnimatePresence>{context.open && <TooltipLines context={context} />}</AnimatePresence>
-      )}
+      {blockType && <AnimatePresence>{context.open && <TooltipLines />}</AnimatePresence>}
     </FloatingPortal>
   );
-});
-
-TooltipContent.displayName = "TooltipContent";
+};
 
 const easeInOutQuint = (x: number) => {
   return x < 0.5 ? 16 * x * x * x * x * x : 1 - Math.pow(-2 * x + 2, 5) / 2;
 };
 
-const TooltipLines = ({ context }: { context: ContextType }) => {
-  const floatingEl = context?.elements.floating;
+const lineTransition = {
+  ease: easeInOutQuint,
+  duration: 1,
+};
+
+const TooltipLines = () => {
+  const context = useTooltipContext();
+  const floatingEl = context.elements.floating;
 
   if (!floatingEl || context.x == null || context.y == null) return null;
 
   return (
     <>
       <motion.div
-        className={`${"line"} ${"lineH"}`}
+        className="line lineH"
         initial={{ opacity: 0, y: -1 }}
         animate={{ opacity: 1, y: context.y }}
         exit={{ opacity: 0, y: -1 }}
-        transition={{
-          ease: easeInOutQuint,
-          duration: 1,
-        }}
+        transition={lineTransition}
       />
       <motion.div
-        className={`${"line"} ${"lineH"}`}
+        className="line lineH"
         initial={{ opacity: 0, y: "100dvh" }}
         animate={{ opacity: 1, y: context.y + floatingEl.offsetHeight }}
         exit={{ opacity: 0, y: "100dvh" }}
-        transition={{
-          ease: easeInOutQuint,
-          duration: 1,
-        }}
+        transition={lineTransition}
       />
       <motion.div
-        className={`${"line"} ${"lineV"}`}
+        className="line lineV"
         initial={{ opacity: 0, x: -1 }}
         animate={{ opacity: 1, x: context.x }}
         exit={{ opacity: 0, x: -1 }}
-        transition={{
-          ease: easeInOutQuint,
-          duration: 1,
-        }}
+        transition={lineTransition}
       />
       <motion.div
-        className={`${"line"} ${"lineV"}`}
+        className="line lineV"
         initial={{ opacity: 0, x: "100dvw" }}
         animate={{ opacity: 1, x: context.x + floatingEl.offsetWidth }}
         exit={{ opacity: 0, x: "100dvw" }}
-        transition={{
-          ease: easeInOutQuint,
-          duration: 1,
-        }}
+        transition={lineTransition}
       />
     </>
   );
@@ -365,71 +332,60 @@ const rows = 8;
 const duration = 0.07;
 const baseDelay = duration / 2;
 const blocks = Array.from({ length: cols * rows }, (_, i) => i);
+const centerCol = Math.floor(cols / 2);
 
 const calculateDelay = (n: number) => baseDelay * Math.floor(n / cols) + baseDelay * (n % cols);
 
 // Calculate total delay for the default top direction
 const totalDelay = calculateDelay(cols * rows);
 
-const TooltipBlocks = ({ context }: { context: ContextType }) => {
-  if (!context?.x || !context?.y) return null;
+/**
+ * Per-block stagger delay: distance (in grid steps) from the entry edge/corner,
+ * scaled by `baseDelay`, so the wipe travels away from where the pointer came in.
+ */
+const getDirectionalDelay = (n: number, direction: HoverDirection) => {
+  const row = Math.floor(n / cols);
+  const col = n % cols;
+  const fromBottom = rows - 1 - row;
+  const fromRight = cols - 1 - col;
 
-  const getDirectionalDelay = (n: number) => {
-    const row = Math.floor(n / cols);
-    const col = n % cols;
+  switch (direction) {
+    case "left":
+      return baseDelay * col + baseDelay * row;
+    case "right":
+      return baseDelay * fromRight + baseDelay * row;
+    case "bottom-center":
+      return baseDelay * fromBottom + baseDelay * Math.abs(col - centerCol);
+    case "top-left":
+      return baseDelay * row + baseDelay * col;
+    case "top-right":
+      return baseDelay * row + baseDelay * fromRight;
+    case "bottom-left":
+      return baseDelay * fromBottom + baseDelay * col;
+    case "bottom-right":
+      return baseDelay * fromBottom + baseDelay * fromRight;
+    case "top-center":
+      return baseDelay * row + baseDelay * Math.abs(col - centerCol);
+  }
+};
 
-    switch (context.hoverDirection) {
-      case "left":
-        // Animate from left edge outward
-        return baseDelay * col + baseDelay * row;
-      case "right":
-        // Animate from right edge outward
-        return baseDelay * (cols - 1 - col) + baseDelay * row;
-      case "top-center":
-        // Animate from top-center outward
-        const centerCol = Math.floor(cols / 2);
-        const distanceFromCenter = Math.abs(col - centerCol);
-        return baseDelay * row + baseDelay * distanceFromCenter;
-      case "bottom-center":
-        // Animate from bottom-center outward
-        const bottomCenterCol = Math.floor(cols / 2);
-        const distanceFromBottomCenter = Math.abs(col - bottomCenterCol);
-        return baseDelay * (rows - 1 - row) + baseDelay * distanceFromBottomCenter;
-      case "top-left":
-        // Animate from top-left outward
-        return baseDelay * row + baseDelay * col;
-      case "top-right":
-        // Animate from top-right outward
-        return baseDelay * row + baseDelay * (cols - 1 - col);
-      case "bottom-left":
-        // Animate from bottom-left outward
-        return baseDelay * (rows - 1 - row) + baseDelay * col;
-      case "bottom-right":
-        // Animate from bottom-right outward
-        return baseDelay * (rows - 1 - row) + baseDelay * (cols - 1 - col);
-      default:
-        // Fallback to top-center behavior
-        const fallbackCenterCol = Math.floor(cols / 2);
-        const fallbackDistanceFromCenter = Math.abs(col - fallbackCenterCol);
-        return baseDelay * row + baseDelay * fallbackDistanceFromCenter;
-    }
-  };
+const TooltipBlocks = () => {
+  const context = useTooltipContext();
+
+  if (context.x == null || context.y == null) return null;
 
   return (
-    <div
-      className={`${"blocksContainer"}`}
-      style={{ "--cols": cols, "--rows": rows } as CSSProperties}
-    >
+    <div className="blocksContainer" style={{ "--cols": cols, "--rows": rows } as CSSProperties}>
       {blocks.map((i) => (
         <motion.div
           key={i}
-          className={`${"block"}`}
+          className="block"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
           transition={{
             duration,
-            delay: getDirectionalDelay(i),
+            delay: getDirectionalDelay(i, context.hoverDirection),
           }}
         />
       ))}

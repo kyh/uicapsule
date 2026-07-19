@@ -135,6 +135,13 @@ const SHADE = "rgba(0,0,0,0.13)";
 const SHADE_SOFT = "rgba(0,0,0,0.07)";
 const LINING = "rgba(255,255,255,0.6)";
 
+/**
+ * A skirt hides the hips, so its bare legs get a fixed splay instead of one
+ * from `LOWER_SPECS`. `Shoes` has to splay by the SAME amount or the shoes
+ * detach from the ankles they are drawn onto.
+ */
+const SKIRT_ANKLE_DX = 11;
+
 /** Ankle x positions, splayed asymmetrically by the look's stance. */
 function ankleXs(ankleDx: number, stance: number): { left: number; right: number } {
   return {
@@ -240,7 +247,7 @@ function Lower({ look }: { look: Look }) {
   const { palette, stance } = look;
 
   if (spec.kind === "skirt") {
-    const legs = ankleXs(11, stance);
+    const legs = ankleXs(SKIRT_ANKLE_DX, stance);
     return (
       <>
         <path
@@ -316,7 +323,7 @@ function Lower({ look }: { look: Look }) {
 function Shoes({ look }: { look: Look }) {
   const spec = SHOE_SPECS[look.forms.shoes];
   const lower = LOWER_SPECS[look.forms.lower];
-  const ankleDx = lower.kind === "skirt" ? 11 : lower.ankleDx;
+  const ankleDx = lower.kind === "skirt" ? SKIRT_ANKLE_DX : lower.ankleDx;
   const { left, right } = ankleXs(ankleDx, look.stance);
   return (
     <>

@@ -1,7 +1,7 @@
 "use client";
 
-import { useMemo, useState } from "react";
-import { AnimatePresence, motion } from "motion/react";
+import { useState } from "react";
+import { AnimatePresence, motion, type Transition } from "motion/react";
 
 import { ExpandedWidget, expandedWidgetOptions, type ExpandedWidgetView } from "./expanded-widgets";
 import { Ring } from "./ring";
@@ -24,40 +24,40 @@ const baseViews: { view: BaseView; label: string }[] = [
 ];
 const views: { view: View; label: string }[] = [...baseViews, ...expandedWidgetOptions];
 
+function viewContent(view: View) {
+  switch (view) {
+    case "ring":
+      return <Ring />;
+    case "timer":
+      return <Timer />;
+    case "idle":
+      return <div className="h-7" />;
+    default:
+      return <ExpandedWidget view={view} />;
+  }
+}
+
 export default function DynamicIsland() {
   const [view, setView] = useState<View>("idle");
   const [variantKey, setVariantKey] = useState<VariantKey>("idle");
 
-  const content = useMemo(() => {
-    switch (view) {
-      case "ring":
-        return <Ring />;
-      case "timer":
-        return <Timer />;
-      case "idle":
-        return <div className="h-7" />;
-      default:
-        return <ExpandedWidget view={view} />;
-    }
-  }, [view]);
+  const content = viewContent(view);
+  const spring: Transition = {
+    type: "spring",
+    bounce: BOUNCE_VARIANTS[variantKey] ?? DEFAULT_BOUNCE,
+  };
 
   return (
     <div className="h-[260px]">
       <div className="relative flex h-full w-full flex-col justify-between">
         <motion.div
           layout
-          transition={{
-            type: "spring",
-            bounce: BOUNCE_VARIANTS[variantKey] ?? 0.4,
-          }}
+          transition={spring}
           style={{ borderRadius: 32 }}
           className="mx-auto w-fit min-w-[100px] overflow-hidden rounded-full bg-black"
         >
           <motion.div
-            transition={{
-              type: "spring",
-              bounce: BOUNCE_VARIANTS[variantKey] ?? 0.4,
-            }}
+            transition={spring}
             initial={{
               scale: 0.9,
               opacity: 0,
@@ -141,6 +141,9 @@ const ANIMATION_VARIANTS: Partial<Record<VariantKey, AnimationVariant>> = {
     bounce: 0.3,
   },
 };
+
+// Fallback for pairs the table below does not name (e.g. expanded ↔ expanded).
+const DEFAULT_BOUNCE = 0.4;
 
 const BOUNCE_VARIANTS: Partial<Record<VariantKey, number>> = {
   idle: 0.5,

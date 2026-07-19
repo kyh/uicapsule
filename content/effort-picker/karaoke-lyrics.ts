@@ -107,7 +107,6 @@ export const LYRIC_LINES: readonly LyricLine[] = Object.freeze([
 
 export type FlatWord = LyricWord & {
   readonly lineIndex: number;
-  readonly wordIndex: number;
   readonly cueBeat: number;
 };
 
@@ -116,8 +115,8 @@ const buildSchedule = (lines: readonly LyricLine[]) => {
   let elapsedBeats = 0;
 
   for (const [lineIndex, lyricLine] of lines.entries()) {
-    for (const [wordIndex, word] of lyricLine.words.entries()) {
-      words.push({ ...word, lineIndex, wordIndex, cueBeat: elapsedBeats + word.beat });
+    for (const word of lyricLine.words) {
+      words.push({ ...word, lineIndex, cueBeat: elapsedBeats + word.beat });
     }
     elapsedBeats += lyricLine.durationBeats;
   }

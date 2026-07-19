@@ -1,5 +1,5 @@
 import { useCallback, type KeyboardEvent, type MouseEvent } from "react";
-import type { ColumnInfo } from "./spreadsheet-utils";
+import type { ColumnInfo, NavigationDirection, NavigationMap } from "./spreadsheet-utils";
 import { useSpreadsheetStore } from "./spreadsheet-store";
 import {
   getColumnCells,
@@ -16,8 +16,17 @@ import {
 
 interface UseSpreadsheetHandlersProps {
   columns: ColumnInfo[];
-  navigationMap: Map<string, any>;
+  navigationMap: Map<string, NavigationMap>;
 }
+
+/** Keys that move the single-cell selection, mapped to their direction in the navigation map. */
+const NAVIGATION_KEYS: Record<string, NavigationDirection | undefined> = {
+  ArrowUp: "up",
+  ArrowDown: "down",
+  ArrowLeft: "left",
+  ArrowRight: "right",
+  Tab: "tab",
+};
 
 export const useSpreadsheetHandlers = ({ columns, navigationMap }: UseSpreadsheetHandlersProps) => {
   const data = useSpreadsheetStore((state) => state.data);
@@ -30,7 +39,18 @@ export const useSpreadsheetHandlers = ({ columns, navigationMap }: UseSpreadshee
   const dragStartCell = useSpreadsheetStore((state) => state.dragStartCell);
   const setDragStartCell = useSpreadsheetStore((state) => state.setDragStartCell);
   const updateSelectedCellsData = useSpreadsheetStore((state) => state.updateSelectedCellsData);
-  // Note: navigationMap is now passed as a prop, not from store
+
+  /** A multi-cell selection has no single edit target, so editing is cancelled. Returns `selection` for chaining. */
+  const exitEditIfMultiple = useCallback(
+    (selection: Set<string>) => {
+      if (selection.size > 1 && editingCell) {
+        setEditingCell(null);
+      }
+      return selection;
+    },
+    [editingCell, setEditingCell],
+  );
+
   // Mouse down handler for all interactions
   const handleMouseDown = useCallback(
     (e: MouseEvent, rowId: string, columnId: string) => {
@@ -40,67 +60,33 @@ export const useSpreadsheetHandlers = ({ columns, navigationMap }: UseSpreadshee
 
       // Handle row selection (click on row number)
       if (isWithinDataAttribute(e.target, "row-number")) {
-        const rowCells = getRowCells(rowId, columns);
-
         if (e.ctrlKey || e.metaKey) {
-          // Toggle row selection
-          setSelectedCells((currentSelectedCells) => {
-            const newSelection = toggleRowSelection(rowId, currentSelectedCells, columns);
-            // Exit edit mode if multiple cells are selected
-            if (newSelection.size > 1 && editingCell) {
-              setEditingCell(null);
-            }
-            return newSelection;
-          });
+          setSelectedCells((currentSelectedCells) =>
+            exitEditIfMultiple(toggleRowSelection(rowId, currentSelectedCells, columns)),
+          );
         } else {
-          // Select entire row
-          const newSelection = new Set(rowCells);
-          setSelectedCells(newSelection);
-          // Exit edit mode if multiple cells are selected
-          if (newSelection.size > 1 && editingCell) {
-            setEditingCell(null);
-          }
+          setSelectedCells(exitEditIfMultiple(new Set(getRowCells(rowId, columns))));
         }
         return;
       }
 
       // Handle column selection (click on column header)
       if (isWithinDataAttribute(e.target, "column-header")) {
-        const columnCells = getColumnCells(columnId, data);
-
         if (e.ctrlKey || e.metaKey) {
-          // Toggle column selection
-          setSelectedCells((currentSelectedCells) => {
-            const newSelection = toggleColumnSelection(columnId, currentSelectedCells, data);
-            // Exit edit mode if multiple cells are selected
-            if (newSelection.size > 1 && editingCell) {
-              setEditingCell(null);
-            }
-            return newSelection;
-          });
+          setSelectedCells((currentSelectedCells) =>
+            exitEditIfMultiple(toggleColumnSelection(columnId, currentSelectedCells, data)),
+          );
         } else {
-          // Select entire column
-          const newSelection = new Set(columnCells);
-          setSelectedCells(newSelection);
-          // Exit edit mode if multiple cells are selected
-          if (newSelection.size > 1 && editingCell) {
-            setEditingCell(null);
-          }
+          setSelectedCells(exitEditIfMultiple(new Set(getColumnCells(columnId, data))));
         }
         return;
       }
 
       // Handle cell selection
       if (e.ctrlKey || e.metaKey) {
-        // Toggle cell selection
-        setSelectedCells((currentSelectedCells) => {
-          const newSelection = toggleCellSelection(cellKey, currentSelectedCells);
-          // Exit edit mode if multiple cells are selected
-          if (newSelection.size > 1 && editingCell) {
-            setEditingCell(null);
-          }
-          return newSelection;
-        });
+        setSelectedCells((currentSelectedCells) =>
+          exitEditIfMultiple(toggleCellSelection(cellKey, currentSelectedCells)),
+        );
       } else if (e.shiftKey) {
         // Range selection
         setSelectedCells((currentSelectedCells) => {
@@ -111,12 +97,7 @@ export const useSpreadsheetHandlers = ({ columns, navigationMap }: UseSpreadshee
           const [firstRowId, firstCol] = firstSelectedCell.split(":");
           if (!firstRowId || !firstCol) return new Set([cellKey]);
           const rangeCells = getRangeCells(firstRowId, firstCol, rowId, columnId, columns, data);
-          const newSelection = new Set(rangeCells);
-          // Exit edit mode if multiple cells are selected
-          if (newSelection.size > 1 && editingCell) {
-            setEditingCell(null);
-          }
-          return newSelection;
+          return exitEditIfMultiple(new Set(rangeCells));
         });
       } else {
         // Single cell selection
@@ -145,6 +126,7 @@ export const useSpreadsheetHandlers = ({ columns, navigationMap }: UseSpreadshee
       columns,
       data,
       editingCell,
+      exitEditIfMultiple,
       setSelectedCells,
       setEditingCell,
       setIsDragging,
@@ -165,15 +147,9 @@ export const useSpreadsheetHandlers = ({ columns, navigationMap }: UseSpreadshee
         columns,
         data,
       );
-      const newSelection = new Set(rangeCells);
-      setSelectedCells(newSelection);
-
-      // Exit edit mode if multiple cells are selected during drag
-      if (newSelection.size > 1 && editingCell) {
-        setEditingCell(null);
-      }
+      setSelectedCells(exitEditIfMultiple(new Set(rangeCells)));
     },
-    [isDragging, dragStartCell, columns, data, editingCell, setSelectedCells, setEditingCell],
+    [isDragging, dragStartCell, columns, data, exitEditIfMultiple, setSelectedCells],
   );
 
   const handleMouseUp = useCallback(() => {
@@ -193,6 +169,20 @@ export const useSpreadsheetHandlers = ({ columns, navigationMap }: UseSpreadshee
         return;
       }
 
+      const direction = NAVIGATION_KEYS[e.key];
+      if (direction) {
+        e.preventDefault();
+        const nextPosition = getNextCellPositionFromMap(
+          `${rowId}:${columnId}`,
+          direction,
+          navigationMap,
+        );
+        if (nextPosition) {
+          setSelectedCells(new Set([`${nextPosition.rowId}:${nextPosition.columnId}`]));
+        }
+        return;
+      }
+
       switch (e.key) {
         case "Enter":
           e.preventDefault();
@@ -203,56 +193,6 @@ export const useSpreadsheetHandlers = ({ columns, navigationMap }: UseSpreadshee
             setEditingCell({ rowId, columnId });
           }
           break;
-        case "ArrowUp": {
-          e.preventDefault();
-          const currentCellKey = `${rowId}:${columnId}`;
-          const nextPosition = getNextCellPositionFromMap(currentCellKey, "up", navigationMap);
-          if (nextPosition) {
-            const newCellKey = `${nextPosition.rowId}:${nextPosition.columnId}`;
-            setSelectedCells(new Set([newCellKey]));
-          }
-          break;
-        }
-        case "ArrowDown": {
-          e.preventDefault();
-          const currentCellKey = `${rowId}:${columnId}`;
-          const nextPosition = getNextCellPositionFromMap(currentCellKey, "down", navigationMap);
-          if (nextPosition) {
-            const newCellKey = `${nextPosition.rowId}:${nextPosition.columnId}`;
-            setSelectedCells(new Set([newCellKey]));
-          }
-          break;
-        }
-        case "ArrowLeft": {
-          e.preventDefault();
-          const currentCellKey = `${rowId}:${columnId}`;
-          const nextPosition = getNextCellPositionFromMap(currentCellKey, "left", navigationMap);
-          if (nextPosition) {
-            const newCellKey = `${nextPosition.rowId}:${nextPosition.columnId}`;
-            setSelectedCells(new Set([newCellKey]));
-          }
-          break;
-        }
-        case "ArrowRight": {
-          e.preventDefault();
-          const currentCellKey = `${rowId}:${columnId}`;
-          const nextPosition = getNextCellPositionFromMap(currentCellKey, "right", navigationMap);
-          if (nextPosition) {
-            const newCellKey = `${nextPosition.rowId}:${nextPosition.columnId}`;
-            setSelectedCells(new Set([newCellKey]));
-          }
-          break;
-        }
-        case "Tab": {
-          e.preventDefault();
-          const currentCellKey = `${rowId}:${columnId}`;
-          const nextPosition = getNextCellPositionFromMap(currentCellKey, "tab", navigationMap);
-          if (nextPosition) {
-            const newCellKey = `${nextPosition.rowId}:${nextPosition.columnId}`;
-            setSelectedCells(new Set([newCellKey]));
-          }
-          break;
-        }
         case "Escape": {
           e.preventDefault();
           if (editingCell) {
@@ -276,8 +216,6 @@ export const useSpreadsheetHandlers = ({ columns, navigationMap }: UseSpreadshee
     },
     [
       selectedCells,
-      columns,
-      data,
       editingCell,
       setEditingCell,
       setSelectedCells,
