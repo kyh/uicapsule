@@ -66,6 +66,14 @@ assume a suite has your back.
 - **auth + tRPC are kept.** One procedure, zero callers, deliberately retained for a future
   feature. Make them correct; don't propose deleting them.
 - **Supabase stays.** It hosts every cover video.
+- **Vercel builds on every push — deliberately. Do not add build-skipping.** Both Vercel's
+  "Skip unaffected projects" and an Ignored Build Step / `turbo-ignore` are disabled on the
+  project. Every skip mechanism decides "affected" from the _workspace dependency graph_, and
+  `apps/web` intentionally never depends on `content/*` by name (see Content architecture), so
+  they classify every content-only commit as unaffected and silently cancel the deploy. That
+  ate four real deploys before it was caught. The optimization also isn't worth it: builds run
+  ~44s and 39 of the last 40 commits genuinely needed one. If this repo ever gains a second
+  Vercel project, revisit — until then, always build.
 - Settled audit findings that should not be re-raised live in the pinned issue #84.
 
 ## Content Curation Philosophy
