@@ -113,7 +113,7 @@ const samples = [
       text: `
 According to Asana and Github commits, the following things were completed this week:
 
-Version 1.1.2 launch - ${new Date().toLocaleDateString()}:
+Version 1.1.2 launch - 3/14/2025:
 - Added a new feature for sentiment analysis, allowing users to analyze the sentiment of text inputs
 - Improved the accuracy of the image recognition module by integrating the Azure deep learning model
 - Fixed a bug that caused the application to crash when processing large datasets

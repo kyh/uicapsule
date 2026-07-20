@@ -11,11 +11,12 @@
     "dev:web": "turbo watch dev -F @repo/web...",
     "lint": "oxlint --report-unused-disable-directives",
     "typecheck": "turbo run typecheck",
-    "format": "oxfmt",
+    "format": "oxfmt --check",
     "lint:fix": "oxlint --fix",
     "format:fix": "oxfmt --write",
     "new:content": "tsx scripts/new-content.ts",
-    "check:content": "tsx scripts/check-content.ts"
+    "check:content": "tsx scripts/check-content.ts",
+    "verify": "pnpm typecheck && pnpm lint && pnpm format && pnpm build"
   },
   "devDependencies": {
     "citty": "^0.2.2",
