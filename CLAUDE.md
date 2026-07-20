@@ -74,11 +74,20 @@ pnpm check:content    # Fail if any content/<slug> is not a loadable component
 
 ## Verification Contract
 
-`pnpm verify` runs all four gates in order: `pnpm typecheck`, `pnpm lint` (oxlint),
+`pnpm verify` runs four steps in order: `pnpm typecheck`, `pnpm lint` (oxlint),
 `pnpm format` (`oxfmt --check` — the checking one; `format:fix` is what rewrites), and
-`pnpm build`. All four must be green. There are **zero tests in the repo today** — don't
-assume a suite has your back, and note `content/*` is typechecked by nothing (see
-`AGENTS.md` → Verify a change end-to-end). `verify` reads `.env`, because `build` does.
+`pnpm build`. Only three of them are gates:
+
+- **typecheck, format, build fail the run.** They must be green.
+- **lint does not.** `.oxlintrc.json` sets every category (`correctness`, `suspicious`,
+  `perf`) to `warn` and root `lint` has no `--deny-warnings`, so `pnpm lint` exits 0
+  whatever it finds — today 96 pre-existing warnings, almost all in `content/*` and
+  upstream shadcn components in `packages/ui`. Turning it into a real gate would fail a
+  clean checkout, so it stays advisory: **read its output, don't just read its exit code.**
+
+There are **zero tests in the repo today** — don't assume a suite has your back, and note
+`content/*` is typechecked by nothing (see `AGENTS.md` → Verify a change end-to-end).
+`verify` reads `.env`, because `build` does.
 
 `pnpm build` runs `check:content` first (turbo task `//#check:content`): the gallery loader
 in `content-fs.ts` silently drops a `content/<slug>` that lacks its `meta.json` + `preview.tsx`

@@ -12,7 +12,7 @@ There is no bootstrap script. Four steps, in order:
 
 ```sh
 pnpm install
-cp .env.example .env              # then fill BETTER_AUTH_SECRET + NEXT_PUBLIC_SUPABASE_URL
+cp .env.example .env              # then fill BETTER_AUTH_SECRET (any random string)
 pnpm -F db db                     # shell 1: turso dev on http://127.0.0.1:8080 (leave running)
 pnpm db:push                      # shell 2: apply the Drizzle schema to that local db
 pnpm dev:web                      # shell 2: http://localhost:3000
@@ -34,18 +34,33 @@ Liveness: `curl -s -o /dev/null -w '%{http_code}' localhost:3000/` → `200`.
 
 **There is no seeded user.** Auth exists and works, but nothing in the gallery is gated by
 it (`packages/api` ships one procedure, `user.me`, with zero callers — see CLAUDE.md
-"Decisions"). Create a login when you need one; sign-up is idempotent per email:
+"Decisions"). Create one the first time you need it:
 
 ```sh
 curl -s -i -X POST localhost:3000/api/auth/sign-up/email \
   -H 'content-type: application/json' \
-  -d '{"email":"dev@uicapsule.local","password":"password","name":"Dev"}' | grep -i set-cookie
+  -d '{"email":"dev@uicapsule.local","password":"password","name":"Dev"}' \
+  | grep -iE 'HTTP/|set-cookie'
 ```
 
-That returns a `better-auth.session_token` cookie you can hand to `curl` or agent-browser.
-Afterwards `/api/auth/sign-in/email` works with the same credentials, and so does the
-`/auth/login` form. Note the auth routes are rate-limited to 10 requests/60s per IP
-(`packages/api/src/auth/auth.ts`) — a tight retry loop will start 429ing.
+A `200` plus a `better-auth.session_token` cookie means the user was created — hand that
+cookie to `curl` or agent-browser.
+
+**Sign-up is not idempotent.** A second call for the same email returns
+`422 USER_ALREADY_EXISTS_USE_ANOTHER_EMAIL` (better-auth throws; it does not return the
+existing session). That is not a failure — it means the user is already there. Sign in
+instead:
+
+```sh
+curl -s -i -X POST localhost:3000/api/auth/sign-in/email \
+  -H 'content-type: application/json' \
+  -d '{"email":"dev@uicapsule.local","password":"password"}' \
+  | grep -iE 'HTTP/|set-cookie'
+```
+
+The same credentials work in the `/auth/login` form. Both routes are rate-limited to 10
+requests/60s per IP (`packages/api/src/auth/auth.ts`), so a tight retry loop starts 429ing
+— always print the status line, or a 422/429 looks like "auth is broken".
 
 ## Verify a change end-to-end
 
@@ -125,9 +140,13 @@ Two committed skills own the full lifecycles and both shell out to `agent-browse
 - `.claude/skills/build-content` — idea → scaffold → build → record → PR
 - `.claude/skills/cover-video` — record, verify, upload to Supabase, wire into `meta.json`
 
-Content packages must stay self-contained: they are copy-pasteable shadcn registry items,
-so they never import from `apps/web` or `packages/*`. Don't factor a shared helper out of
-one.
+Content packages **must not** import from `apps/web` or `packages/*`. The registry serves
+their source verbatim — `content-fs.ts` does no import rewriting and hardcodes
+`registryDependencies: []` — so any `@repo/*` import ships an unresolvable registry item to
+an external `shadcn add` consumer. Three legacy packages violate this
+(`emerald-template`, `filter-bar`, `spreadsheet`, all depending on `@repo/ui`); they render
+fine inside the gallery but are broken outside it. Do not copy them, and don't factor a
+shared helper out of a content package.
 
 ## Platform matrix
 
@@ -149,8 +168,11 @@ Web is the only surface. There is no mobile, desktop, or extension target.
   is the local one.
 - Env vars read at build time must be listed in `turbo.json` `globalEnv`, or turbo's strict
   env mode strips them from the task with no error. `NEXT_PUBLIC_SUPABASE_URL` was missing
-  from it until recently; the symptom is an empty `images.remotePatterns` and every remote
-  cover rejected by `next/image`.
+  from it until recently: `next.config.js` reads it to build `images.remotePatterns`, so
+  without it that list is empty and `next/image` rejects every Supabase-hosted cover. Not
+  yet load-bearing — every cover in the repo today is `coverType: "video"` (28 of 36 slugs;
+  the other 8 have no cover), and video bypasses `next/image` — but it bites the first time
+  a `meta.json` uses `coverType: "image"`.
 
 ## Map
 

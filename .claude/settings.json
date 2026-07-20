@@ -3,8 +3,15 @@
   "prompt": "Read AGENTS.md first — it is the runnable guide. There is no bootstrap script: if `.env` is missing, `cp .env.example .env` and fill it, then run `pnpm -F db db` (its own shell) and `pnpm db:push`. Serve the app on port 3000 or browser sign-in 403s. Gate every change with `pnpm verify`.",
   "permissions": {
     "allow": [
+      "Bash(pnpm install)",
+      "Bash(cp .env.example .env)",
       "Bash(pnpm verify:*)",
+      "Bash(pnpm typecheck:*)",
+      "Bash(pnpm lint:*)",
+      "Bash(pnpm format:*)",
+      "Bash(pnpm build:*)",
       "Bash(pnpm dev:web:*)",
+      "Bash(pnpm -F db db)",
       "Bash(pnpm db:push)",
       "Bash(pnpm new:content:*)",
       "Bash(pnpm check:content:*)",
