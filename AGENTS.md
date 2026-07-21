@@ -58,9 +58,13 @@ curl -s -i -X POST localhost:3000/api/auth/sign-in/email \
   | grep -iE 'HTTP/|set-cookie'
 ```
 
-The same credentials work in the `/auth/login` form. Both routes are rate-limited to 10
-requests/60s per IP (`packages/api/src/auth/auth.ts`), so a tight retry loop starts 429ing
-— always print the status line, or a 422/429 looks like "auth is broken".
+The same credentials work in the `/auth/login` form. Mind the rate limit: better-auth
+applies a built-in rule of **3 requests / 10s per IP** to any `/sign-in*`, `/sign-up*`,
+`/change-password*` or `/change-email*` path, and it *overrides* the `window: 60, max: 10`
+configured in `packages/api/src/auth/auth.ts` (only `rateLimit.customRules` could beat it).
+The configured 10/60 governs the other `/api/auth/*` routes. So a sign-up → sign-in → form
+login sequence already spends the whole budget — one retry inside 10s gets a 429. Always
+print the status line, or a 422/429 looks like "auth is broken".
 
 ## Verify a change end-to-end
 
