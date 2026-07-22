@@ -24,19 +24,11 @@ const FLOOR_RGB = "vec3(0.905, 0.905, 0.912)";
 export const PaperRoll = () => {
   const rootRef = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const counterNumRef = useRef<HTMLDivElement>(null);
-  const meterFillRef = useRef<HTMLDivElement>(null);
-  const hintRef = useRef<HTMLDivElement>(null);
-  const hintTextRef = useRef<HTMLSpanElement>(null);
 
   useEffect(() => {
     const container = rootRef.current;
     const canvas = canvasRef.current;
-    const counterNum = counterNumRef.current;
-    const meterFill = meterFillRef.current;
-    const hintEl = hintRef.current;
-    const hintTextEl = hintTextRef.current;
-    if (!container || !canvas || !counterNum || !meterFill || !hintEl || !hintTextEl) return;
+    if (!container || !canvas) return;
 
     let seed = 7;
     const rand = () => {
@@ -785,42 +777,6 @@ export const PaperRoll = () => {
     let downY = 0;
     let downT = 0;
 
-    const hintTimeouts: ReturnType<typeof setTimeout>[] = [];
-    const clearHintTimeouts = () => {
-      for (const t of hintTimeouts) clearTimeout(t);
-      hintTimeouts.length = 0;
-    };
-
-    const showHint = (text: string, autoHide: number) => {
-      clearHintTimeouts();
-      hintEl.style.display = "flex";
-      hintTextEl.textContent = text;
-      hintEl.style.transitionDuration = "0.35s";
-      hintEl.style.opacity = "1";
-      if (autoHide > 0) {
-        hintTimeouts.push(
-          setTimeout(() => {
-            hintEl.style.transitionDuration = "0.8s";
-            hintEl.style.opacity = "0";
-            hintTimeouts.push(
-              setTimeout(() => {
-                hintEl.style.display = "none";
-              }, 850),
-            );
-          }, autoHide * 1000),
-        );
-      }
-    };
-
-    const setPaused = (p: boolean) => {
-      paused = p;
-      if (paused) {
-        showHint("Paused — click anywhere to resume", 0);
-      } else {
-        showHint("Rolling — click to pause", 2.6);
-      }
-    };
-
     const onPointerDown = (e: PointerEvent) => {
       downX = e.clientX;
       downY = e.clientY;
@@ -830,7 +786,7 @@ export const PaperRoll = () => {
       const dx = e.clientX - downX;
       const dy = e.clientY - downY;
       if (dx * dx + dy * dy < 64 && performance.now() - downT < 450) {
-        setPaused(!paused);
+        paused = !paused;
       }
     };
     container.addEventListener("pointerdown", onPointerDown, { passive: true });
@@ -875,21 +831,6 @@ export const PaperRoll = () => {
       lookAt.lerp(_desired, k);
       camera.position.copy(camPos);
       camera.lookAt(lookAt);
-    };
-
-    // ============================================================
-    // HUD
-    // ============================================================
-    let lastPrinted = -1;
-
-    const updateHUD = () => {
-      const printed = Math.floor(sTotal / CARD_LEN);
-      if (printed !== lastPrinted) {
-        lastPrinted = printed;
-        counterNum.textContent = String(printed).padStart(4, "0");
-      }
-      const frac = (sTotal % CARD_LEN) / CARD_LEN;
-      meterFill.style.width = `${(frac * 100).toFixed(1)}%`;
     };
 
     // ============================================================
@@ -941,7 +882,6 @@ export const PaperRoll = () => {
       }
 
       updateCamera(dt);
-      updateHUD();
 
       renderer.render(scene, camera);
     };
@@ -957,28 +897,8 @@ export const PaperRoll = () => {
     });
     resizeObserver.observe(container);
 
-    // Intro: fade the HUD in with a stagger, then auto-hide the hint
-    const hudEls = Array.from(container.querySelectorAll<HTMLElement>("[data-hud]"));
-    hudEls.forEach((el, i) => {
-      el.style.transitionDelay = `${0.5 + i * 0.12}s`;
-      el.style.opacity = "1";
-    });
-    hintTimeouts.push(
-      setTimeout(() => {
-        hintEl.style.transitionDelay = "0s";
-        hintEl.style.transitionDuration = "0.8s";
-        hintEl.style.opacity = "0";
-        hintTimeouts.push(
-          setTimeout(() => {
-            hintEl.style.display = "none";
-          }, 850),
-        );
-      }, 12000),
-    );
-
     return () => {
       cancelAnimationFrame(animationFrameId);
-      clearHintTimeouts();
       resizeObserver.disconnect();
       container.removeEventListener("pointermove", onPointer);
       container.removeEventListener("pointerdown", onPointer);
@@ -1007,65 +927,9 @@ export const PaperRoll = () => {
   return (
     <div
       ref={rootRef}
-      className="relative size-full cursor-grab touch-none overflow-hidden bg-[#eaeaec] font-sans text-[#141414] antialiased select-none active:cursor-grabbing"
+      className="relative size-full cursor-grab touch-none overflow-hidden bg-[#eaeaec] select-none active:cursor-grabbing"
     >
       <canvas ref={canvasRef} className="absolute inset-0 block" />
-
-      <div
-        data-hud
-        className="pointer-events-none absolute top-[34px] left-10 z-10 flex items-baseline gap-3.5 opacity-0 transition-opacity duration-[1200ms] ease-out"
-      >
-        <div className="text-[30px] font-extrabold tracking-[-0.06em] italic">
-          VX
-          <sup className="align-super text-[10px] font-semibold not-italic tracking-normal">®</sup>
-        </div>
-        <div className="text-[10px] font-semibold tracking-[0.32em] text-[#6a6a6e] uppercase">
-          Press Division
-        </div>
-      </div>
-
-      <div
-        data-hud
-        className="pointer-events-none absolute top-10 right-10 z-10 text-right text-[10px] leading-[1.9] font-semibold tracking-[0.28em] text-[#6a6a6e] uppercase opacity-0 transition-opacity duration-[1200ms] ease-out"
-      >
-        Selected works
-        <br />
-        <b className="text-[#141414]">Edition 2019 — 2026</b>
-      </div>
-
-      <div
-        data-hud
-        className="pointer-events-none absolute right-10 bottom-9 z-10 text-right opacity-0 transition-opacity duration-[1200ms] ease-out"
-      >
-        <div
-          ref={counterNumRef}
-          className="text-[40px] leading-none font-extrabold tracking-[-0.03em] tabular-nums"
-        >
-          0000
-        </div>
-        <div className="mt-1.5 text-[9px] font-semibold tracking-[0.32em] text-[#6a6a6e] uppercase">
-          Pages printed
-        </div>
-      </div>
-
-      <div
-        data-hud
-        className="pointer-events-none absolute right-10 bottom-[108px] z-10 h-0.5 w-[120px] overflow-hidden bg-[rgba(20,20,20,0.12)] opacity-0 transition-opacity duration-[1200ms] ease-out"
-      >
-        <div
-          ref={meterFillRef}
-          className="h-full w-0 bg-[#141414] transition-[width] duration-150 ease-linear"
-        />
-      </div>
-
-      <div
-        ref={hintRef}
-        data-hud
-        className="pointer-events-none absolute bottom-10 left-10 z-10 flex items-center gap-3 text-[10px] font-semibold tracking-[0.28em] text-[#6a6a6e] uppercase opacity-0 transition-opacity duration-[1200ms] ease-out"
-      >
-        <div className="size-[7px] animate-pulse rounded-full bg-[#e4551f] motion-reduce:animate-none" />
-        <span ref={hintTextRef}>Move to steer — click to pause</span>
-      </div>
     </div>
   );
 };
