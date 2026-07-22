@@ -184,7 +184,7 @@ export const PaperRoll = () => {
       const draws: ((f: Frame) => void)[] = [
         // 01 — orange field, dark disc, editorial header
         (f) => {
-          label(f.x + 22, f.y + 36, "VX PRESS", INK, 15);
+          label(f.x + 22, f.y + 36, "KYH PRESS", INK, 15);
           mono(f.x + f.w - 96, f.y + 34, "A/W 26");
           g.fillStyle = ORANGE;
           g.fillRect(f.x + 22, f.y + 54, f.w - 44, f.h - 150);
@@ -208,7 +208,7 @@ export const PaperRoll = () => {
         (f) => {
           g.fillStyle = INK;
           g.font = '800 italic 128px -apple-system, "Segoe UI", Helvetica, Arial, sans-serif';
-          g.fillText("VX", f.x + 26, f.y + 148);
+          g.fillText("KYH", f.x + 26, f.y + 148);
           g.fillStyle = ORANGE;
           g.fillRect(f.x + 30, f.y + 176, 66, 10);
           bars(f.x + 30, f.y + 214, f.w - 90, 7, 22, "#b9b8b2");
