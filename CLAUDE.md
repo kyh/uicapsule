@@ -10,9 +10,9 @@
 apps/
   web/           # Next.js 16 app (main frontend)
 packages/
-  api/           # tRPC (auth/organization) + better-auth
+  api/           # tRPC + better-auth
   db/            # Drizzle ORM + Turso (libSQL)
-  ui/            # shadcn/ui components (radix-ui)
+  ui/            # shadcn-derived components on Base UI
 content/         # Gallery components — one workspace package per slug
 ```
 
@@ -33,17 +33,33 @@ Content is filesystem-driven; the web app never depends on content packages by n
 
 ### Tech Stack
 
-- **Runtime**: pnpm 10, Node, TypeScript 5.9
+- **Runtime**: pnpm 10, Node 24, TypeScript 6 (pinned — TS 7 / tsgo breaks Next 16)
 - **Frontend**: Next.js 16, React 19, Tailwind CSS 4
 - **API**: tRPC, better-auth
 - **Database**: Turso (libSQL), Drizzle ORM
-- **UI**: radix-ui, shadcn, lucide-react, motion
+- **UI**: Base UI, shadcn, lucide-react, motion
+
+## Agent-driven development
+
+`AGENTS.md` is the runnable guide — read it before touching anything. The essentials:
+
+- **Provision**: no bootstrap script. `pnpm install` → `cp .env.example .env` (fill it) →
+  `pnpm -F db db` in one shell → `pnpm db:push` → `pnpm dev:web`.
+- **Port 3000 is mandatory.** `packages/api/src/auth/auth.ts` pins `baseUrl`/`trustedOrigins`
+  to `http://localhost:3000` outside Vercel, so a fallback to 3001 makes every browser
+  sign-in 403 silently.
+- **No seeded login.** Nothing in the gallery is authed. `POST /api/auth/sign-up/email`
+  creates one on demand (see `AGENTS.md` → Login).
+- **Verify**: `pnpm verify` for the static gate, then drive the running app with
+  `agent-browser` — `/`, `/ui/<slug>`, `/preview-frame/<slug>`, `/r/<slug>.json`. Web is
+  the only surface; there is nothing that isn't headlessly verifiable.
 
 ## Common Commands
 
 ```bash
-pnpm dev              # Start all (db, studio, dev)
-pnpm dev:web          # Just Next.js app
+pnpm dev:web          # Next.js app on :3000 (the one you want)
+pnpm -F db db         # Local Turso (turso dev) on :8080 — its own shell; `pnpm dev` does NOT start it
+pnpm verify           # typecheck + lint + format + build (the full gate)
 pnpm build            # Build all
 pnpm typecheck        # Type check all
 pnpm lint             # Lint all
@@ -58,9 +74,20 @@ pnpm check:content    # Fail if any content/<slug> is not a loadable component
 
 ## Verification Contract
 
-Every change must leave all four green: `pnpm typecheck`, `pnpm lint` (oxlint),
-`pnpm format` (oxfmt), `pnpm build`. There are **zero tests in the repo today** — don't
-assume a suite has your back.
+`pnpm verify` runs four steps in order: `pnpm typecheck`, `pnpm lint` (oxlint),
+`pnpm format` (`oxfmt --check` — the checking one; `format:fix` is what rewrites), and
+`pnpm build`. Only three of them are gates:
+
+- **typecheck, format, build fail the run.** They must be green.
+- **lint does not.** `.oxlintrc.json` sets every category (`correctness`, `suspicious`,
+  `perf`) to `warn` and root `lint` has no `--deny-warnings`, so `pnpm lint` exits 0
+  whatever it finds — today 96 pre-existing warnings, almost all in `content/*` and
+  upstream shadcn components in `packages/ui`. Turning it into a real gate would fail a
+  clean checkout, so it stays advisory: **read its output, don't just read its exit code.**
+
+There are **zero tests in the repo today** — don't assume a suite has your back, and note
+`content/*` is typechecked by nothing (see `AGENTS.md` → Verify a change end-to-end).
+`verify` reads `.env`, because `build` does.
 
 `pnpm build` runs `check:content` first (turbo task `//#check:content`): the gallery loader
 in `content-fs.ts` silently drops a `content/<slug>` that lacks its `meta.json` + `preview.tsx`

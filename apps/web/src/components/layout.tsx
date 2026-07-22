@@ -426,8 +426,7 @@ const SearchButton = ({ searchEntries }: { searchEntries: SearchEntry[] }) => {
       <Dialog open={searchOpen} onOpenChange={setSearchOpen}>
         <DialogContent
           showCloseButton={false}
-          overlayClassName="bg-black/50 supports-backdrop-filter:backdrop-blur-md"
-          className="top-[10vh] translate-y-0 gap-0 overflow-hidden rounded-md p-0 sm:max-w-2xl"
+          className="top-[10vh] translate-y-0 gap-0 overflow-hidden rounded-md p-0 ring-0 sm:max-w-2xl"
         >
           <DialogHeader className="sr-only">
             <DialogTitle>Search</DialogTitle>

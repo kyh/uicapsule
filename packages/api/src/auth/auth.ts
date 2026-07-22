@@ -25,8 +25,12 @@ export const auth = betterAuth({
   trustedOrigins,
   // Persist rate-limit counters in the database. The default in-memory store
   // keeps per-instance counters, so on serverless (Vercel) the effective limit
-  // multiplies across cold-started instances and resets on every deploy. 10
-  // requests/60s per IP throttles credential-stuffing against the auth routes.
+  // multiplies across cold-started instances and resets on every deploy.
+  //
+  // This 10/60s is the fallback for auth routes generally — it does NOT govern
+  // the credential endpoints. better-auth applies a built-in rule of 3
+  // requests/10s to /sign-in*, /sign-up*, /change-password* and /change-email*,
+  // which overrides these values (only rateLimit.customRules could raise them).
   rateLimit: {
     enabled: true,
     storage: "database",
