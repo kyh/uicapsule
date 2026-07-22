@@ -706,6 +706,28 @@ importers:
         specifier: 'catalog:'
         version: 19.2.3(@types/react@19.2.17)
 
+  content/paper-roll:
+    dependencies:
+      react:
+        specifier: 'catalog:'
+        version: 19.2.7
+      react-dom:
+        specifier: 'catalog:'
+        version: 19.2.7(react@19.2.7)
+      three:
+        specifier: ^0.185.1
+        version: 0.185.1
+    devDependencies:
+      '@types/react':
+        specifier: 'catalog:'
+        version: 19.2.17
+      '@types/react-dom':
+        specifier: 'catalog:'
+        version: 19.2.3(@types/react@19.2.17)
+      '@types/three':
+        specifier: ^0.185.1
+        version: 0.185.1
+
   content/particle-orb:
     dependencies:
       react:
