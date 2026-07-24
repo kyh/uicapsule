@@ -6,11 +6,11 @@ packages:
 catalog:
   "@base-ui/react": ^1.6.0
   "@better-auth/cli": ^1.4.21
-  "@kyh/tsconfig": ^1.1.14
-  "@tailwindcss/postcss": ^4.3.2
+  "@kyh/tsconfig": ^1.2.0
+  "@tailwindcss/postcss": ^4.3.3
   "@tailwindcss/vite": ^4.2.2
   "@tanstack/react-form": ^1.28.5
-  "@tanstack/react-query": ^5.101.2
+  "@tanstack/react-query": ^5.101.4
   "@trpc/client": ^11.18.0
   "@trpc/server": ^11.18.0
   "@trpc/tanstack-react-query": ^11.18.0
@@ -18,12 +18,12 @@ catalog:
   "@types/react": ^19.2.17
   "@types/react-dom": ^19.2.3
   "@vitejs/plugin-react": ^5.2.0
-  better-auth: ^1.6.23
-  next: ^16.2.10
-  react: ^19.2.7
-  react-dom: ^19.2.7
+  better-auth: ^1.6.25
+  next: ^16.2.11
+  react: ^19.2.8
+  react-dom: ^19.2.8
   superjson: ^2.2.6
-  tailwindcss: ^4.3.2
+  tailwindcss: ^4.3.3
   typescript: ^6.0.3
   vite: ^7.3.1
   zod: ^4.4.3

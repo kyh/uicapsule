@@ -11,9 +11,9 @@
   },
   "dependencies": {
     "@icons-pack/react-simple-icons": "^13.13.0",
-    "@radix-ui/react-use-controllable-state": "^1.2.3",
+    "@radix-ui/react-use-controllable-state": "^1.2.5",
     "@repo/ui": "workspace:^",
-    "lucide-react": "^1.24.0",
+    "lucide-react": "^1.26.0",
     "motion": "^12.42.2",
     "react": "catalog:",
     "react-dom": "catalog:"
