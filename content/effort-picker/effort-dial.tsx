@@ -1,31 +1,30 @@
 "use client";
 
-import { motion, useTransform } from "motion/react";
+import { useRef } from "react";
+import { motion, useMotionValueEvent, useTransform } from "motion/react";
 
 import type { MotionValue } from "motion/react";
 
-import {
-  EFFORT_LEVELS,
-  KNOB_SIZE,
-  notchX,
-  percentToX,
-  TRACK_HEIGHT,
-  TRACK_OFFSET_Y,
-  TRACK_TRAVEL,
-  TRACK_WIDTH,
-} from "./effort-scale";
+import type { EffortTheme } from "./effort-theme";
+
+import { KNOB_SIZE, percentToX, TRACK_TRAVEL, TRACK_WIDTH } from "./effort-scale";
+import { EFFORT_THEMES, labelAt, nearestLevel, notchX } from "./effort-theme";
 
 type DialTroughProps = {
   knobX: MotionValue<number>;
+  theme: EffortTheme;
 };
 
 /**
  * Everything about the dial that is purely a function of the knob's position:
- * the trough, the fill, the notch dots. Both variants render this; each brings
- * its own knob, because a knob you sling and a knob you sing at behave nothing
- * alike even though they sit in the same groove.
+ * the trough, the fill, the notch dots. All three variants render this; each
+ * brings its own knob, because a knob you sling and a knob you sing at behave
+ * nothing alike even though they sit in the same groove.
  */
-export const DialTrough = ({ knobX }: DialTroughProps) => {
+export const DialTrough = ({ knobX, theme }: DialTroughProps) => {
+  const tokens = EFFORT_THEMES[theme];
+  const offsetY = (KNOB_SIZE - tokens.troughHeight) / 2;
+
   // The trough follows the knob out past either cap, so the knob always sits ON
   // the track rather than floating off the end of it.
   const troughLeft = useTransform(knobX, (x) => Math.min(0, x));
@@ -36,47 +35,103 @@ export const DialTrough = ({ knobX }: DialTroughProps) => {
 
   const fillLeft = useTransform(knobX, (x) => Math.min(0, x));
   const fillWidth = useTransform(knobX, (x) => x - Math.min(0, x) + KNOB_SIZE / 2);
-  // Codex blue for most of the track, shifting into violet over the last stretch —
-  // the fill reads as a temperature before any label does. It tops out at violet,
-  // not white: white belongs to the knob and the band.
+  const [rampFrom, rampTo] = tokens.fill;
   const fillColor = useTransform(
     knobX,
     [0, TRACK_TRAVEL * 0.75, TRACK_TRAVEL],
-    ["#3b82f6", "#3b82f6", "#a855f7"],
+    [rampFrom, rampFrom, rampTo],
   );
 
   return (
     <>
       <motion.div
-        className="absolute rounded-full bg-neutral-700/60"
+        className={`absolute ${tokens.trough}`}
         style={{
-          top: TRACK_OFFSET_Y,
-          height: TRACK_HEIGHT,
+          top: offsetY,
+          height: tokens.troughHeight,
+          borderRadius: tokens.troughRadius,
           left: troughLeft,
           width: troughWidth,
         }}
       />
 
       <motion.div
-        className="absolute rounded-full"
+        className="absolute"
         style={{
-          top: TRACK_OFFSET_Y,
+          top: offsetY,
           left: fillLeft,
-          height: TRACK_HEIGHT,
+          height: tokens.troughHeight,
+          borderRadius: tokens.troughRadius,
           width: fillWidth,
           backgroundColor: fillColor,
         }}
       />
 
-      {EFFORT_LEVELS.map((effortLabel, index) => (
+      {tokens.levels.map((effortLabel, index) => (
         <span
           key={effortLabel}
           aria-hidden
-          className="absolute size-1.5 -translate-x-1/2 -translate-y-1/2 rounded-full bg-white/45"
-          style={{ top: "50%", left: KNOB_SIZE / 2 + notchX(index) }}
+          className={`absolute size-1.5 -translate-x-1/2 -translate-y-1/2 rounded-full ${
+            index === tokens.levels.length - 1 ? tokens.dotTop : tokens.dot
+          }`}
+          style={{ top: "50%", left: KNOB_SIZE / 2 + notchX(theme, index) }}
         />
       ))}
     </>
+  );
+};
+
+/**
+ * The visible knob, riding inside the invariant hit box. Sizing it here rather
+ * than on the box is what lets Claude's knob sit down inside its groove while
+ * Codex's caps the track, without either app's paint reaching the physics.
+ */
+export const KnobSkin = ({ theme }: { theme: EffortTheme }) => {
+  const { knob } = EFFORT_THEMES[theme];
+
+  return (
+    <span
+      aria-hidden
+      className={`absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 ${knob.className}`}
+      style={{ width: knob.width, height: knob.height, borderRadius: knob.radius }}
+    />
+  );
+};
+
+/** The hit box every knob is dragged by. Themes paint inside it; nothing about
+ * it changes, because `TRACK_TRAVEL` is measured against it. */
+export const knobBoxStyle = (theme: EffortTheme) => ({
+  top: 0,
+  left: 0,
+  width: KNOB_SIZE,
+  height: KNOB_SIZE,
+  borderRadius: EFFORT_THEMES[theme].knob.radius,
+});
+
+type LevelLabelProps = {
+  knobX: MotionValue<number>;
+  theme: EffortTheme;
+  className?: string;
+};
+
+/**
+ * The dial's word for where it is. The knob moves every frame but the *level*
+ * only changes when it crosses a notch, so the text is written straight to the
+ * DOM rather than re-rendering React — and the same span serves the composer
+ * chip and the card header.
+ */
+export const LevelLabel = ({ knobX, theme, className }: LevelLabelProps) => {
+  const ref = useRef<HTMLSpanElement>(null);
+  useMotionValueEvent(knobX, "change", (x) => {
+    if (ref.current) ref.current.textContent = labelAt(theme, nearestLevel(theme, x));
+  });
+
+  // Reading the knob during render is safe: it only ever seeds the first paint,
+  // and a card that mounts mid-flight should open on the level it can already see.
+  return (
+    <span ref={ref} className={className}>
+      {labelAt(theme, nearestLevel(theme, knobX.get()))}
+    </span>
   );
 };
 

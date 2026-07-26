@@ -6,16 +6,11 @@ import { RotateCcwIcon, ZapIcon } from "lucide-react";
 
 import type { MotionValue } from "motion/react";
 
-import { DialTrough, Sparks } from "./effort-dial";
-import {
-  KNOB_SIZE,
-  labelAt,
-  nearestLevel,
-  notchX,
-  percentToX,
-  TRACK_TRAVEL,
-  TRACK_WIDTH,
-} from "./effort-scale";
+import type { EffortTheme } from "./effort-theme";
+
+import { DialTrough, knobBoxStyle, KnobSkin, Sparks } from "./effort-dial";
+import { KNOB_SIZE, percentToX, TRACK_TRAVEL, TRACK_WIDTH } from "./effort-scale";
+import { EFFORT_THEMES, labelAt, nearestLevel, notchX } from "./effort-theme";
 import { averagePercent, FLAT_WORDS, LYRIC_LINES, VERSE_BEATS } from "./karaoke-lyrics";
 
 /** The original track sits at 85 BPM. Every cue below lands on that grid. */
@@ -40,6 +35,7 @@ const promptForCountdown = (count: CountdownCount) => (count === 1 ? "Let's go!"
 
 type KaraokeCardProps = {
   knobX: MotionValue<number>;
+  theme: EffortTheme;
   /**
    * Bumped by the shell every time the user tries to bail out through the chip
    * mid-verse. There's no close button on the card, so this is the only way the
@@ -60,7 +56,7 @@ type KaraokeCardProps = {
  * every percentage in the verse — perform the entire thing and you still land
  * somewhere unremarkable. Try to leave early and it refuses to let you.
  */
-export const KaraokeCard = ({ knobX, scoldNonce, onDone }: KaraokeCardProps) => {
+export const KaraokeCard = ({ knobX, theme, scoldNonce, onDone }: KaraokeCardProps) => {
   const [bursts, setBursts] = useState<Burst[]>([]);
   const [take, setTake] = useState<TakeState>({ status: "countdown", count: 3 });
   const [scolding, setScolding] = useState(false);
@@ -132,20 +128,20 @@ export const KaraokeCard = ({ knobX, scoldNonce, onDone }: KaraokeCardProps) => 
       // The average is a percentage, but the dial only has notches — so the take
       // settles on the nearest one. That rounding IS the joke: perform six bars of
       // precise percentages and the machine shrugs them into "Medium".
-      const level = nearestLevel(percentToX(average));
+      const level = nearestLevel(theme, percentToX(average));
       setTake({ status: "complete", level });
       onDone(true);
-      if (reduceMotionRef.current) knobX.set(notchX(level));
-      else void animate(knobX, notchX(level), COMMIT_SPRING);
+      if (reduceMotionRef.current) knobX.set(notchX(theme, level));
+      else void animate(knobX, notchX(theme, level), COMMIT_SPRING);
 
       // One last burst, on the notch it actually landed on.
       if (reduceMotionRef.current) return;
       burstId.current += 1;
-      const finale = { id: burstId.current, percent: (notchX(level) / TRACK_TRAVEL) * 100 };
+      const finale = { id: burstId.current, percent: (notchX(theme, level) / TRACK_TRAVEL) * 100 };
       setBursts((current) => [...current, finale]);
       after(900, () => setBursts((current) => current.filter((item) => item.id !== finale.id)));
     });
-  }, [after, clearTimers, knobX, onDone]);
+  }, [after, clearTimers, knobX, onDone, theme]);
 
   useEffect(() => {
     run();
@@ -167,13 +163,10 @@ export const KaraokeCard = ({ knobX, scoldNonce, onDone }: KaraokeCardProps) => 
 
   const activeLine = LYRIC_LINES[currentLineIndex];
   const lineStart = FLAT_WORDS.findIndex((word) => word.lineIndex === currentLineIndex);
-  const landedLabel = take.status === "complete" ? labelAt(take.level) : null;
+  const landedLabel = take.status === "complete" ? labelAt(theme, take.level) : null;
 
   return (
-    <motion.div
-      style={{ x: cardShake }}
-      className="relative rounded-[28px] border border-white/10 bg-neutral-800/95 p-5 shadow-2xl shadow-black/60"
-    >
+    <motion.div style={{ x: cardShake }} className={`relative p-5 ${EFFORT_THEMES[theme].card}`}>
       <div className="relative mb-4 flex h-8 items-center justify-between gap-3">
         <p className="text-[15px] font-medium text-neutral-100">Reasoning effort</p>
 
@@ -367,18 +360,16 @@ export const KaraokeCard = ({ knobX, scoldNonce, onDone }: KaraokeCardProps) => 
       </div>
 
       <div className="relative" style={{ width: TRACK_WIDTH, height: KNOB_SIZE }}>
-        <DialTrough knobX={knobX} />
+        <DialTrough knobX={knobX} theme={theme} />
 
         <AnimatePresence>
           {!reduceMotion &&
             bursts.map((burst) => <Sparks key={burst.id} percent={burst.percent} />)}
         </AnimatePresence>
 
-        <motion.div
-          aria-hidden
-          className="absolute rounded-full bg-white shadow-lg"
-          style={{ top: 0, left: 0, width: KNOB_SIZE, height: KNOB_SIZE, x: knobX }}
-        />
+        <motion.div aria-hidden className="absolute" style={{ ...knobBoxStyle(theme), x: knobX }}>
+          <KnobSkin theme={theme} />
+        </motion.div>
       </div>
     </motion.div>
   );

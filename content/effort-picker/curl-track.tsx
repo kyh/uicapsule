@@ -6,16 +6,11 @@ import { DumbbellIcon, RotateCcwIcon, VideoOffIcon } from "lucide-react";
 
 import type { MotionValue } from "motion/react";
 
-import { DialTrough, Sparks } from "./effort-dial";
-import {
-  clamp,
-  KNOB_SIZE,
-  labelAt,
-  nearestLevel,
-  notchX,
-  percentToX,
-  TRACK_WIDTH,
-} from "./effort-scale";
+import type { EffortTheme } from "./effort-theme";
+
+import { DialTrough, knobBoxStyle, KnobSkin, Sparks } from "./effort-dial";
+import { clamp, KNOB_SIZE, percentToX, TRACK_WIDTH } from "./effort-scale";
+import { EFFORT_THEMES, labelAt, nearestLevel, notchX } from "./effort-theme";
 import { usePoseCurls } from "./use-pose-curls";
 
 /** The whole take, in milliseconds. Long enough to hurt, short enough to redo. */
@@ -47,6 +42,7 @@ const promptForCountdown = (count: CountdownCount) =>
 
 type CurlCardProps = {
   knobX: MotionValue<number>;
+  theme: EffortTheme;
   /** Bumped by the shell when someone tries to leave through the chip mid-set. */
   scoldNonce: number;
   /** True once the set is scored — or once the camera has refused, since holding
@@ -65,7 +61,7 @@ type CurlCardProps = {
  * model gets. Stop curling for two seconds and you have talked yourself down to
  * Light.
  */
-export const CurlCard = ({ knobX, scoldNonce, onDone }: CurlCardProps) => {
+export const CurlCard = ({ knobX, theme, scoldNonce, onDone }: CurlCardProps) => {
   const [take, setTake] = useState<TakeState>({ status: "arming" });
   const [reps, setReps] = useState(0);
   const [bursts, setBursts] = useState<Burst[]>([]);
@@ -182,21 +178,21 @@ export const CurlCard = ({ knobX, scoldNonce, onDone }: CurlCardProps) => {
 
       // Time's up. The dial has notches, not percentages, so the last thing the
       // set does is round away most of what you just earned.
-      const level = nearestLevel(percentToX(effortRef.current));
+      const level = nearestLevel(theme, percentToX(effortRef.current));
       setTake((current) =>
         current.status === "lifting" ? { status: "complete", level } : current,
       );
-      if (reduceMotionRef.current) knobX.set(notchX(level));
+      if (reduceMotionRef.current) knobX.set(notchX(theme, level));
       // The drain writes knobX every frame, so the value arrives at the commit
       // carrying real velocity — a spring that inherits it hurls the knob clean
       // off the end of the track. The take is over; it starts from rest.
-      else void animate(knobX, notchX(level), { ...COMMIT_SPRING, velocity: 0 });
+      else void animate(knobX, notchX(theme, level), { ...COMMIT_SPRING, velocity: 0 });
       onDone(true);
     };
 
     frame = requestAnimationFrame(tick);
     return () => cancelAnimationFrame(frame);
-  }, [take.status, knobX, timerScale, onDone]);
+  }, [take.status, knobX, timerScale, onDone, theme]);
 
   // Walking out mid-set is not a thing you get to do.
   const firstNonce = useRef(scoldNonce);
@@ -210,14 +206,11 @@ export const CurlCard = ({ knobX, scoldNonce, onDone }: CurlCardProps) => {
     return () => window.clearTimeout(timer);
   }, [scoldNonce, cardShake]);
 
-  const landedLabel = take.status === "complete" ? labelAt(take.level) : null;
+  const landedLabel = take.status === "complete" ? labelAt(theme, take.level) : null;
   const live = take.status === "lifting";
 
   return (
-    <motion.div
-      style={{ x: cardShake }}
-      className="relative rounded-[28px] border border-white/10 bg-neutral-800/95 p-5 shadow-2xl shadow-black/60"
-    >
+    <motion.div style={{ x: cardShake }} className={`relative p-5 ${EFFORT_THEMES[theme].card}`}>
       <div className="mb-4 flex h-8 items-center justify-between gap-3">
         <p className="text-[15px] font-medium text-neutral-100">Reasoning effort</p>
 
@@ -366,7 +359,7 @@ export const CurlCard = ({ knobX, scoldNonce, onDone }: CurlCardProps) => {
       </div>
 
       <div className="relative" style={{ width: TRACK_WIDTH, height: KNOB_SIZE }}>
-        <DialTrough knobX={knobX} />
+        <DialTrough knobX={knobX} theme={theme} />
 
         <AnimatePresence>
           {!reduceMotion &&
@@ -377,16 +370,11 @@ export const CurlCard = ({ knobX, scoldNonce, onDone }: CurlCardProps) => {
             your body faster than the drain can undo it. */}
         <motion.div
           aria-hidden
-          className="absolute rounded-full bg-white shadow-lg"
-          style={{
-            top: 0,
-            left: 0,
-            width: KNOB_SIZE,
-            height: KNOB_SIZE,
-            x: knobX,
-            scale: knobScale,
-          }}
-        />
+          className="absolute"
+          style={{ ...knobBoxStyle(theme), x: knobX, scale: knobScale }}
+        >
+          <KnobSkin theme={theme} />
+        </motion.div>
       </div>
     </motion.div>
   );

@@ -1,6 +1,6 @@
 {
   "name": "Effort Picker",
-  "description": "Remake of the Codex effort picker.",
+  "description": "Remake of the Codex effort picker, in ChatGPT's chrome or Claude's.",
   "coverUrl": "https://zmdrwswxugswzmcokvff.supabase.co/storage/v1/object/public/uicapsule/effort-picker/effort-picker.mp4",
   "coverType": "video",
   "tags": ["silly", "minimal", "inputs"]

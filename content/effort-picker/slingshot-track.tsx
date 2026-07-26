@@ -2,21 +2,15 @@
 
 import { useEffect, useId, useRef, useState } from "react";
 import { animate, motion, useMotionValue, useMotionValueEvent, useTransform } from "motion/react";
+import { ChevronRightIcon, CircleHelpIcon, ZapIcon } from "lucide-react";
 
 import type { MotionValue } from "motion/react";
 
-import { DialTrough } from "./effort-dial";
-import {
-  clamp,
-  DEFAULT_LEVEL,
-  KNOB_SIZE,
-  labelAt,
-  LEVEL_COUNT,
-  nearestLevel,
-  notchX,
-  TRACK_TRAVEL,
-  TRACK_WIDTH,
-} from "./effort-scale";
+import type { EffortTheme } from "./effort-theme";
+
+import { DialTrough, knobBoxStyle, KnobSkin, LevelLabel } from "./effort-dial";
+import { clamp, DEFAULT_LEVEL, KNOB_SIZE, TRACK_TRAVEL, TRACK_WIDTH } from "./effort-scale";
+import { EFFORT_THEMES, labelAt, levelCount, nearestLevel, notchX } from "./effort-theme";
 
 /**
  * How far past either cap the band stretches. Tuned by simulating the landing
@@ -58,6 +52,7 @@ type PullOrigin = { anchor: number; pointer: number };
 type SlingshotTrackProps = {
   /** Knob offset in px, owned by the shell so the chrome can follow it. */
   knobX: MotionValue<number>;
+  theme: EffortTheme;
   /** Fires whenever the knob starts or stops being a projectile. */
   onPhaseChange?: (phase: TrackPhase) => void;
 };
@@ -67,7 +62,8 @@ type SlingshotTrackProps = {
  * against the band and let go: it launches, ricochets off the ends of the track,
  * and settles wherever it ran out of momentum. Aiming is a suggestion.
  */
-export const SlingshotTrack = ({ knobX, onPhaseChange }: SlingshotTrackProps) => {
+export const SlingshotTrack = ({ knobX, theme, onPhaseChange }: SlingshotTrackProps) => {
+  const tokens = EFFORT_THEMES[theme];
   const [phase, setPhaseState] = useState<TrackPhase>("idle");
 
   const setPhase = (next: TrackPhase) => {
@@ -85,7 +81,7 @@ export const SlingshotTrack = ({ knobX, onPhaseChange }: SlingshotTrackProps) =>
   /** 0 = left edge, 1 = right edge: which wall the knob is being crushed against. */
   const knobOrigin = useMotionValue(0.5);
   /** Where the band is pinned: the notch the knob is being hauled off of. */
-  const anchorX = useMotionValue(notchX(DEFAULT_LEVEL));
+  const anchorX = useMotionValue(notchX(theme, DEFAULT_LEVEL));
 
   const velocity = useRef(0);
   const frame = useRef(0);
@@ -94,10 +90,10 @@ export const SlingshotTrack = ({ knobX, onPhaseChange }: SlingshotTrackProps) =>
   useEffect(() => () => cancelAnimationFrame(frame.current), []);
 
   const settle = (x: number) => {
-    const level = nearestLevel(x);
+    const level = nearestLevel(theme, x);
     velocity.current = 0;
     setPhase("idle");
-    void animate(knobX, notchX(level), SETTLE_SPRING);
+    void animate(knobX, notchX(theme, level), SETTLE_SPRING);
     void animate(speed, 0, SETTLE_SPRING);
     knobOrigin.set(0.5);
   };
@@ -209,13 +205,13 @@ export const SlingshotTrack = ({ knobX, onPhaseChange }: SlingshotTrackProps) =>
     // Keyboard users get the boring slider. The joke isn't worth locking them out.
     event.preventDefault();
     cancelAnimationFrame(frame.current);
-    settle(notchX(nearestLevel(knobX.get()) + delta));
+    settle(notchX(theme, nearestLevel(theme, knobX.get()) + delta));
   };
 
   // The knob moves every frame, but the *level* changes a handful of times a
   // flight — cheap enough to mirror into React for assistive tech.
-  const level = useTransform(knobX, (x) => nearestLevel(x));
-  const [ariaLevel, setAriaLevel] = useState(() => nearestLevel(knobX.get()));
+  const level = useTransform(knobX, (x) => nearestLevel(theme, x));
+  const [ariaLevel, setAriaLevel] = useState(() => nearestLevel(theme, knobX.get()));
   useMotionValueEvent(level, "change", setAriaLevel);
 
   // The knob deforms only when it's a projectile, and the two deformations run on
@@ -266,7 +262,7 @@ export const SlingshotTrack = ({ knobX, onPhaseChange }: SlingshotTrackProps) =>
         </filter>
       </svg>
 
-      <DialTrough knobX={knobX} />
+      <DialTrough knobX={knobX} theme={theme} />
 
       <motion.span
         aria-hidden
@@ -291,17 +287,14 @@ export const SlingshotTrack = ({ knobX, onPhaseChange }: SlingshotTrackProps) =>
         role="slider"
         aria-label="Reasoning effort"
         aria-valuemin={0}
-        aria-valuemax={LEVEL_COUNT - 1}
+        aria-valuemax={levelCount(theme) - 1}
         aria-valuenow={ariaLevel}
-        aria-valuetext={labelAt(ariaLevel)}
-        className={`absolute rounded-full bg-white shadow-lg outline-none focus-visible:ring-2 focus-visible:ring-white/70 ${
+        aria-valuetext={labelAt(theme, ariaLevel)}
+        className={`absolute outline-none focus-visible:ring-2 ${tokens.ring} ${
           phase === "pulling" ? "cursor-grabbing" : "cursor-grab"
         }`}
         style={{
-          top: 0,
-          left: 0,
-          width: KNOB_SIZE,
-          height: KNOB_SIZE,
+          ...knobBoxStyle(theme),
           x: knobX,
           scaleX: knobScaleX,
           scaleY: knobScaleY,
@@ -314,7 +307,80 @@ export const SlingshotTrack = ({ knobX, onPhaseChange }: SlingshotTrackProps) =>
         onPointerUp={handlePointerUp}
         onPointerCancel={handlePointerUp}
         onKeyDown={handleKeyDown}
-      />
+      >
+        <KnobSkin theme={theme} />
+      </motion.button>
+    </div>
+  );
+};
+
+const HEADER_FADE = { duration: 0.18, ease: [0.4, 0, 0.2, 1] } as const;
+
+type SlingshotCardProps = {
+  knobX: MotionValue<number>;
+  theme: EffortTheme;
+};
+
+/**
+ * The popover the slingshot lives in — and the one place the two apps disagree
+ * about how a control introduces itself. ChatGPT hides the ends of the scale
+ * until you take hold of the knob; Claude states the level and both ends up
+ * front and never moves them. Same track underneath either way.
+ */
+export const SlingshotCard = ({ knobX, theme }: SlingshotCardProps) => {
+  const tokens = EFFORT_THEMES[theme];
+  const [phase, setPhase] = useState<TrackPhase>("idle");
+  // Hold the knob and the ChatGPT panel stops labelling itself and starts
+  // labelling the *track* — which end buys you what. It's the only instruction
+  // the thing gives.
+  const winding = phase !== "idle";
+
+  return (
+    <div className={`p-5 ${tokens.card}`}>
+      {theme === "claude" ? (
+        // 16px between the header and the scale, 8px between the scale's labels
+        // and its track — doubled, like everything else in the scene.
+        <>
+          <div className="mb-8 flex h-9 items-center justify-between gap-2">
+            <span className={`text-[26px] ${tokens.muted}`}>
+              Effort <LevelLabel knobX={knobX} theme={theme} className={tokens.text} />
+            </span>
+            <CircleHelpIcon aria-hidden className={`size-8 ${tokens.faint}`} />
+          </div>
+          <div className={`mb-4 flex items-center justify-between text-[24px] ${tokens.muted}`}>
+            <span>Faster</span>
+            <span>Smarter</span>
+          </div>
+        </>
+      ) : (
+        <div className="relative mb-5 h-6">
+          <motion.div
+            className="absolute inset-0 flex items-center justify-between"
+            animate={{ opacity: winding ? 0 : 1 }}
+            transition={HEADER_FADE}
+          >
+            <span className={`flex items-center gap-0.5 text-[15px] ${tokens.muted}`}>
+              Advanced
+              <ChevronRightIcon className={`size-4 ${tokens.faint}`} />
+            </span>
+            <ZapIcon className={`size-5 ${tokens.faint}`} />
+          </motion.div>
+
+          <motion.div
+            aria-hidden={!winding}
+            className={`absolute inset-0 flex items-center justify-between px-0.5 text-[15px] ${tokens.faint}`}
+            animate={{ opacity: winding ? 1 : 0 }}
+            transition={HEADER_FADE}
+          >
+            <span>Faster</span>
+            <span>Smarter</span>
+          </motion.div>
+        </div>
+      )}
+
+      <div className="flex justify-center">
+        <SlingshotTrack knobX={knobX} theme={theme} onPhaseChange={setPhase} />
+      </div>
     </div>
   );
 };

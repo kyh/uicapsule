@@ -2,23 +2,26 @@
 
 import { useState } from "react";
 import { AnimatePresence, motion, useMotionValue } from "motion/react";
-import { ChevronRightIcon, ZapIcon } from "lucide-react";
 
-import { CHIP_OPEN_WIDTH, ComposerChrome } from "./composer-chrome";
+import type { EffortTheme } from "./effort-theme";
+
+import { ComposerChrome } from "./composer-chrome";
 import { CurlCard } from "./curl-track";
-import { DEFAULT_LEVEL, notchX } from "./effort-scale";
+import { CARD_WIDTH, DEFAULT_LEVEL } from "./effort-scale";
+import { EFFORT_THEMES, nearestLevel, notchX } from "./effort-theme";
 import { KaraokeCard } from "./karaoke-track";
-import { SlingshotTrack } from "./slingshot-track";
-
-import type { TrackPhase } from "./slingshot-track";
+import { SlingshotCard } from "./slingshot-track";
 
 export type EffortVariant = "slingshot" | "karaoke" | "curls";
+export type { EffortTheme };
 
 type EffortPickerProps = {
   variant?: EffortVariant;
+  /** Which app the picker is pretending to live inside. Orthogonal to variant:
+   * the theme paints the chrome, the variant supplies the physics. */
+  theme?: EffortTheme;
 };
 
-const HEADER_FADE = { duration: 0.18, ease: [0.4, 0, 0.2, 1] } as const;
 const CARD_POP = { type: "spring", stiffness: 380, damping: 30 } as const;
 
 /** Slingshot is a control you operate. The other two are takes you perform: they
@@ -27,7 +30,8 @@ const CARD_POP = { type: "spring", stiffness: 380, damping: 30 } as const;
 const isPerformance = (variant: EffortVariant) => variant !== "slingshot";
 
 /**
- * The Codex effort picker, rebuilt twice as a machine that resents being aimed.
+ * The Codex effort picker, rebuilt twice as a machine that resents being aimed —
+ * and reskinned as either of the two apps that ship one.
  *
  * The whole thing is staged as a cropped corner of an app: the composer and the
  * surfaces behind it run wider than the frame and bleed off the edges, so the
@@ -35,9 +39,8 @@ const isPerformance = (variant: EffortVariant) => variant !== "slingshot";
  * The shell owns the knob's position so the composer chip can follow it frame by
  * frame without re-rendering React.
  */
-export const EffortPicker = ({ variant = "slingshot" }: EffortPickerProps) => {
-  const knobX = useMotionValue(notchX(DEFAULT_LEVEL));
-  const [phase, setPhase] = useState<TrackPhase>("idle");
+export const EffortPicker = ({ variant = "slingshot", theme = "chatgpt" }: EffortPickerProps) => {
+  const knobX = useMotionValue(notchX(theme, DEFAULT_LEVEL));
   // The slingshot's popover is up by default — a closed card is a dull first frame.
   // A performance has to be summoned: it needs a curtain, and the curls variant
   // needs the click before it asks anyone for their camera.
@@ -58,9 +61,16 @@ export const EffortPicker = ({ variant = "slingshot" }: EffortPickerProps) => {
     setTakeDone(false);
   }
 
-  // Hold the knob and the panel stops labelling itself and starts labelling the
-  // *track* — which end buys you what. It's the only instruction the thing gives.
-  const winding = phase !== "idle";
+  // The two apps cut a different number of notches into the same track, so a knob
+  // parked on one theme's notch sits between two of the other's. Carry the *level*
+  // across rather than the position — the dial should read the same word after a
+  // reskin as it did before one.
+  const [renderedTheme, setRenderedTheme] = useState(theme);
+  if (renderedTheme !== theme) {
+    const level = nearestLevel(renderedTheme, knobX.get());
+    setRenderedTheme(theme);
+    knobX.set(notchX(theme, level));
+  }
 
   const handleToggle = () => {
     const trappedMidTake = isPerformance(variant) && open && !takeDone;
@@ -79,51 +89,25 @@ export const EffortPicker = ({ variant = "slingshot" }: EffortPickerProps) => {
     <AnimatePresence>
       {open && (
         <motion.div
-          key={variant}
+          // Re-keyed on theme as well as variant: a reskinned card is a different
+          // card, and it should land rather than cross-fade its own chrome.
+          key={`${variant}-${theme}`}
           initial={{ opacity: 0, y: 6, scale: 0.96 }}
           animate={{ opacity: 1, y: 0, scale: 1 }}
           exit={{ opacity: 0, y: 4, scale: 0.96 }}
           transition={CARD_POP}
-          style={{ transformOrigin: "bottom right", width: CHIP_OPEN_WIDTH }}
+          style={{ transformOrigin: "bottom right", width: CARD_WIDTH }}
           // Pinned to the chip's right edge, at its full open width from the first
           // frame: the card doesn't grow with the chip, it lands over where the chip
           // is heading. The chip catches up underneath it.
           className="absolute right-0 bottom-full mb-2.5"
         >
           {variant === "curls" ? (
-            <CurlCard knobX={knobX} scoldNonce={scoldNonce} onDone={setTakeDone} />
+            <CurlCard knobX={knobX} theme={theme} scoldNonce={scoldNonce} onDone={setTakeDone} />
           ) : variant === "karaoke" ? (
-            <KaraokeCard knobX={knobX} scoldNonce={scoldNonce} onDone={setTakeDone} />
+            <KaraokeCard knobX={knobX} theme={theme} scoldNonce={scoldNonce} onDone={setTakeDone} />
           ) : (
-            <div className="rounded-[28px] border border-white/10 bg-neutral-800/95 p-5 shadow-2xl shadow-black/60">
-              <div className="relative mb-5 h-6">
-                <motion.div
-                  className="absolute inset-0 flex items-center justify-between"
-                  animate={{ opacity: winding ? 0 : 1 }}
-                  transition={HEADER_FADE}
-                >
-                  <span className="flex items-center gap-0.5 text-[15px] text-neutral-400">
-                    Advanced
-                    <ChevronRightIcon className="size-4 text-neutral-500" />
-                  </span>
-                  <ZapIcon className="size-5 text-neutral-500" />
-                </motion.div>
-
-                <motion.div
-                  aria-hidden={!winding}
-                  className="absolute inset-0 flex items-center justify-between px-0.5 text-[15px] text-neutral-500"
-                  animate={{ opacity: winding ? 1 : 0 }}
-                  transition={HEADER_FADE}
-                >
-                  <span>Faster</span>
-                  <span>Smarter</span>
-                </motion.div>
-              </div>
-
-              <div className="flex justify-center">
-                <SlingshotTrack knobX={knobX} onPhaseChange={setPhase} />
-              </div>
-            </div>
+            <SlingshotCard knobX={knobX} theme={theme} />
           )}
         </motion.div>
       )}
@@ -131,7 +115,9 @@ export const EffortPicker = ({ variant = "slingshot" }: EffortPickerProps) => {
   );
 
   return (
-    <div className="relative flex h-full w-full items-end justify-end overflow-hidden bg-neutral-950 text-neutral-100">
+    <div
+      className={`relative flex h-full w-full items-end justify-end overflow-hidden ${EFFORT_THEMES[theme].frame}`}
+    >
       {/* We're zoomed into the corner of somebody else's app, where the controls live:
           the composer overhangs the left edge and the frame crops it. The zoom comes
           from intrinsic sizes, never a transform — scaling this subtree would leave the
@@ -142,7 +128,13 @@ export const EffortPicker = ({ variant = "slingshot" }: EffortPickerProps) => {
           composer actually lives — and it's what buys the curls variant the headroom
           for a square camera without shoving its card off the top of the frame. */}
       <div className="w-[calc(100%+180px)] shrink-0 pr-6 pb-8">
-        <ComposerChrome knobX={knobX} open={open} onToggle={handleToggle} popover={popover} />
+        <ComposerChrome
+          knobX={knobX}
+          theme={theme}
+          open={open}
+          onToggle={handleToggle}
+          popover={popover}
+        />
       </div>
     </div>
   );
