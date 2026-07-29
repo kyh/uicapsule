@@ -5,6 +5,7 @@ export type ContentFilter = {
 };
 
 export const contentCategories: ContentFilter[] = [
+  { name: "Silly", slug: "silly" },
   { name: "AI", slug: "ai" },
   { name: "Productivity", slug: "productivity" },
   { name: "Social", slug: "social" },
@@ -16,7 +17,6 @@ export const contentCategories: ContentFilter[] = [
   { name: "Business", slug: "business" },
   { name: "Games", slug: "games" },
   { name: "Utilities", slug: "utilities" },
-  { name: "Silly", slug: "silly" },
 ];
 
 /**
