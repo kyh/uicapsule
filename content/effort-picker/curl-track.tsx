@@ -8,7 +8,7 @@ import type { MotionValue } from "motion/react";
 
 import type { EffortTheme } from "./effort-theme";
 
-import { CurlFanfare, FANFARE_MS } from "./curl-fanfare";
+import { CurlFanfare, fanfarePower, FANFARE_MS } from "./curl-fanfare";
 import { DialTrough, knobBoxStyle, KnobSkin, Sparks } from "./effort-dial";
 import { clamp, KNOB_SIZE, percentToX, TRACK_WIDTH } from "./effort-scale";
 import { EFFORT_THEMES, labelAt, nearestLevel, notchX } from "./effort-theme";
@@ -31,6 +31,11 @@ const KNOB_PUMP = { type: "spring", stiffness: 700, damping: 18 } as const;
 /** Looser than the per-rep pump and thrown from much further out: the landing
  * kick is the one the whole take has been building to. */
 const KNOB_SLAM = { type: "spring", stiffness: 420, damping: 11 } as const;
+
+const lerp = (from: number, to: number, t: number) => from + (to - from) * t;
+/** Power below which the verdict keeps its halo and drops the rest of its
+ * ceremony. Four curls is a result, not an occasion. */
+const SUNBURST_FLOOR = 0.45;
 
 type CountdownCount = 3 | 2 | 1;
 type Burst = { id: number; percent: number };
@@ -214,9 +219,16 @@ export const CurlCard = ({ knobX, theme, scoldNonce, onDone }: CurlCardProps) =>
         // in a single frame, so the spring inherits a velocity of ~33/s. Left to
         // pick that up, this one underdamped spring blew the knob to 36× its own
         // size — a white disc wider than the card, for about a fifth of a second.
-        knobScale.set(1.55);
+        //
+        // How hard it lands is the take's own doing: at the bottom of the track
+        // this is a nudge and the card barely moves, at the top it's a slam.
+        const power = fanfarePower(theme, level);
+        knobScale.set(lerp(1.16, 1.55, power));
         void animate(knobScale, 1, { ...KNOB_SLAM, velocity: 0 });
-        void animate(cardPop, [1, 1.035, 0.995, 1], { duration: 0.6, ease: "easeOut" });
+        void animate(cardPop, [1, lerp(1.008, 1.035, power), 0.997, 1], {
+          duration: 0.6,
+          ease: "easeOut",
+        });
         setCelebrating(true);
       }
       onDone(true);
@@ -239,6 +251,10 @@ export const CurlCard = ({ knobX, theme, scoldNonce, onDone }: CurlCardProps) =>
   }, [scoldNonce, cardShake]);
 
   const landedLabel = take.status === "complete" ? labelAt(theme, take.level) : null;
+  // How much of the ceremony the take earned, 0 at the bottom notch and 1 at the
+  // top. Everything the card itself does for the landing is scaled by it, the
+  // same way `CurlFanfare` scales the fireworks.
+  const power = take.status === "complete" ? fanfarePower(theme, take.level) : 0;
   const live = take.status === "lifting";
 
   return (
@@ -353,39 +369,52 @@ export const CurlCard = ({ knobX, theme, scoldNonce, onDone }: CurlCardProps) =>
                           verdict keeps a light on it for as long as it's up. */}
                       <motion.span
                         aria-hidden
-                        className="absolute top-1/2 left-1/2 size-64 -translate-x-1/2 -translate-y-1/2 rounded-full mix-blend-screen"
+                        className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 rounded-full mix-blend-screen"
                         style={{
+                          width: lerp(140, 256, power),
+                          height: lerp(140, 256, power),
                           backgroundImage:
                             "radial-gradient(circle, rgba(167,139,250,0.75) 0%, rgba(139,92,246,0.4) 34%, rgba(109,40,217,0.16) 56%, transparent 72%)",
                         }}
                         initial={{ scale: 0.25, opacity: 0 }}
-                        animate={{ scale: [0.25, 1.15, 1], opacity: [0, 1, 0.65] }}
+                        animate={{
+                          scale: [0.25, 1.15, 1],
+                          opacity: [0, lerp(0.45, 1, power), lerp(0.3, 0.65, power)],
+                        }}
                         transition={{ duration: 0.85, times: [0, 0.35, 1], ease: "easeOut" }}
                       />
                       {/* A sunburst, turning slowly. It's a repeating conic
                           gradient masked back to a disc — twelve wedges of light
                           behind the word, which is the cheapest way to make a
-                          static label look like it's radiating. */}
-                      <motion.span
-                        aria-hidden
-                        className="absolute top-1/2 left-1/2 size-72 -translate-x-1/2 -translate-y-1/2 rounded-full mix-blend-screen"
-                        style={{
-                          backgroundImage:
-                            "repeating-conic-gradient(rgba(196,181,253,0.34) 0deg 8deg, transparent 8deg 30deg)",
-                          maskImage:
-                            "radial-gradient(circle, #000 0%, rgba(0,0,0,0.55) 42%, transparent 70%)",
-                        }}
-                        initial={{ scale: 0.4, opacity: 0, rotate: -14 }}
-                        animate={{ scale: 1, opacity: [0, 0.9, 0.35], rotate: 12 }}
-                        transition={{ duration: 2.4, times: [0, 0.14, 1], ease: "easeOut" }}
-                      />
-                      {[0, 0.13].map((delay) => (
+                          static label look like it's radiating. Reserved for the
+                          top half of the track: a Light take gets the halo and
+                          nothing to stand in front of. */}
+                      {power >= SUNBURST_FLOOR && (
+                        <motion.span
+                          aria-hidden
+                          className="absolute top-1/2 left-1/2 size-72 -translate-x-1/2 -translate-y-1/2 rounded-full mix-blend-screen"
+                          style={{
+                            backgroundImage:
+                              "repeating-conic-gradient(rgba(196,181,253,0.34) 0deg 8deg, transparent 8deg 30deg)",
+                            maskImage:
+                              "radial-gradient(circle, #000 0%, rgba(0,0,0,0.55) 42%, transparent 70%)",
+                          }}
+                          initial={{ scale: 0.4, opacity: 0, rotate: -14 }}
+                          animate={{ scale: 1, opacity: [0, power, power * 0.4], rotate: 12 }}
+                          transition={{ duration: 2.4, times: [0, 0.14, 1], ease: "easeOut" }}
+                        />
+                      )}
+                      {[0, 0.13].slice(0, power >= SUNBURST_FLOOR ? 2 : 1).map((delay) => (
                         <motion.span
                           key={delay}
                           aria-hidden
                           className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 rounded-full border border-violet-200/70 shadow-[0_0_24px_rgba(167,139,250,0.6)]"
                           initial={{ width: 40, height: 40, opacity: 0 }}
-                          animate={{ width: 300, height: 300, opacity: [0, 0.85, 0] }}
+                          animate={{
+                            width: lerp(150, 300, power),
+                            height: lerp(150, 300, power),
+                            opacity: [0, lerp(0.5, 0.85, power), 0],
+                          }}
                           transition={{
                             duration: 1,
                             delay,
@@ -413,8 +442,14 @@ export const CurlCard = ({ knobX, theme, scoldNonce, onDone }: CurlCardProps) =>
                       }}
                       // White, not violet: the sunburst behind it is violet and
                       // bright, and the word has to stay the lightest thing on
-                      // the card or the ceremony swallows the verdict.
-                      className="text-[30px] leading-none font-semibold text-white drop-shadow-[0_0_26px_rgba(139,92,246,0.95)]"
+                      // the card or the ceremony swallows the verdict. It grows
+                      // with the take as well — Ultra should be a headline and
+                      // Light shouldn't be.
+                      style={{
+                        fontSize: lerp(20, 30, power),
+                        filter: `drop-shadow(0 0 ${lerp(12, 26, power)}px rgba(139,92,246,0.95))`,
+                      }}
+                      className="leading-none font-semibold text-white"
                     >
                       {landedLabel}
                     </motion.span>
@@ -458,7 +493,7 @@ export const CurlCard = ({ knobX, theme, scoldNonce, onDone }: CurlCardProps) =>
             aria-hidden
             className="pointer-events-none absolute inset-0 bg-violet-50 mix-blend-screen"
             initial={{ opacity: 0 }}
-            animate={{ opacity: [0, 0.42, 0] }}
+            animate={{ opacity: [0, lerp(0.1, 0.42, power), 0] }}
             transition={{ duration: 0.55, times: [0, 0.07, 1], ease: "easeOut" }}
           />
         )}
