@@ -8,8 +8,8 @@
  * never a transform: scaling the subtree would leave the slingshot's pointer
  * deltas (screen px) out of step with its physics (local px).
  *
- * How many notches the track has is *not* here — that belongs to the theme, since
- * the two apps disagree about it. See `effort-theme.ts`.
+ * The notches are *not* here — where they fall is a function of the scale, and the
+ * scale is vocabulary, which belongs to the theme. See `effort-theme.ts`.
  */
 
 /** The popover card, and the width the track has to fill inside it. */

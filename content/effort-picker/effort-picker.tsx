@@ -61,10 +61,10 @@ export const EffortPicker = ({ variant = "slingshot", theme = "chatgpt" }: Effor
     setTakeDone(false);
   }
 
-  // The two apps cut a different number of notches into the same track, so a knob
-  // parked on one theme's notch sits between two of the other's. Carry the *level*
-  // across rather than the position — the dial should read the same word after a
-  // reskin as it did before one.
+  // A theme is free to cut its own number of notches into the track, so a knob
+  // parked on one theme's notch need not sit on any of the next one's. Carry the
+  // *level* across rather than the position — the dial should read the same word
+  // after a reskin as it did before one.
   const [renderedTheme, setRenderedTheme] = useState(theme);
   if (renderedTheme !== theme) {
     const level = nearestLevel(renderedTheme, knobX.get());

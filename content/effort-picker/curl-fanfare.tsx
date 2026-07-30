@@ -47,8 +47,8 @@ const STREAK_GAP = 22;
 const FAN_FROM = -205;
 const FAN_TO = 25;
 /** ...and the whole arc leans away from whichever end of the track it landed on,
- * by up to this many degrees. A Light take fires from the left edge and a Max one
- * from the right; without the lean, half of either burst is clipped on the frame
+ * by up to this many degrees. A Light take fires from the left edge and an Ultra
+ * one from the right; without the lean, half of either burst is clipped on the frame
  * it's born. */
 const FAN_LEAN = 30;
 

@@ -1,10 +1,9 @@
 import { clamp, TRACK_TRAVEL } from "./effort-scale";
 
 /**
- * A theme is the *host app* the picker is pretending to live inside: its surfaces,
- * its dial, its own words for the rungs — and how many rungs there are. It is
- * orthogonal to the variant, because the variant owns the physics and the theme
- * owns the paint.
+ * A theme is the *host app* the picker is pretending to live inside: its surfaces
+ * and its dial. It is orthogonal to the variant, because the variant owns the
+ * physics and the theme owns the paint.
  *
  * Every value below was read off the real product with the browser open, then
  * doubled: the scene is staged at 2× (see `effort-scale.ts`), so a 12px radius
@@ -15,6 +14,12 @@ export type EffortTheme = "chatgpt" | "claude";
 /** Positional — the index is the level. Two names minimum so there is always a
  * `levels[0]` to fall back on, and so a notch gap is never a division by zero. */
 type LevelNames = readonly [string, string, ...string[]];
+
+/** The rungs, in order. Both host apps run Codex's scale: a reskin changes what
+ * the dial is made of, not what it can say — and `Ultra` has to mean the end of
+ * the track in every skin, or the verdict names a rung the knob doesn't land on.
+ * Still a theme token, so a third host app can bring its own words. */
+const LEVELS = ["Light", "Medium", "High", "Extra High", "Ultra"] as const;
 
 /** The knob's paint. Sized independently of `KNOB_SIZE`: the hit box drives the
  * physics, this is only what you see riding in it. */
@@ -53,7 +58,7 @@ type ThemeTokens = {
 
 export const EFFORT_THEMES: Record<EffortTheme, ThemeTokens> = {
   chatgpt: {
-    levels: ["Light", "Medium", "High", "Extra High", "Ultra"],
+    levels: LEVELS,
     frame: "bg-neutral-950 text-neutral-100",
     card: "rounded-[28px] border border-white/10 bg-neutral-800/95 shadow-2xl shadow-black/60",
     text: "text-neutral-100",
@@ -74,10 +79,7 @@ export const EFFORT_THEMES: Record<EffortTheme, ThemeTokens> = {
     knob: { width: 38, height: 38, radius: 19, className: "bg-white shadow-lg" },
   },
   claude: {
-    // Six rungs, not five, and the fourth is the one the app calls Extra. Only
-    // that one is quoted from the product — the rest of the vocabulary is a
-    // reading of the shape of the scale.
-    levels: ["Low", "Medium", "High", "Extra", "Ultra", "Max"],
+    levels: LEVELS,
     frame: "bg-[#20201f] text-[#e1e0d9]",
     // No border and no drop shadow: the surface is drawn with a 1px inset stroke
     // (2px here) so the card's edge reads as a lit rim rather than an outline.
