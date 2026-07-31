@@ -60,7 +60,7 @@ curl -s -i -X POST localhost:3000/api/auth/sign-in/email \
 
 The same credentials work in the `/auth/login` form. Mind the rate limit: better-auth
 applies a built-in rule of **3 requests / 10s per IP** to any `/sign-in*`, `/sign-up*`,
-`/change-password*` or `/change-email*` path, and it *overrides* the `window: 60, max: 10`
+`/change-password*` or `/change-email*` path, and it _overrides_ the `window: 60, max: 10`
 configured in `packages/api/src/auth/auth.ts` (only `rateLimit.customRules` could beat it).
 The configured 10/60 governs the other `/api/auth/*` routes. So a sign-up → sign-in → form
 login sequence already spends the whole budget — one retry inside 10s gets a 429. Always

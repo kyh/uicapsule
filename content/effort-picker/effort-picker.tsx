@@ -25,8 +25,7 @@ type EffortPickerProps = {
 const CARD_POP = { type: "spring", stiffness: 380, damping: 30 } as const;
 
 /** Slingshot is a control you operate. The other two are takes you perform: they
- * start the moment the card opens, they run on their own clock, and they don't
- * let you leave halfway through. */
+ * start the moment the card opens and run on their own clock. */
 const isPerformance = (variant: EffortVariant) => variant !== "slingshot";
 
 /**
@@ -46,19 +45,12 @@ export const EffortPicker = ({ variant = "slingshot", theme = "chatgpt" }: Effor
   // needs the click before it asks anyone for their camera.
   const [open, setOpen] = useState(!isPerformance(variant));
 
-  // A performance card has no close button, so the chip is the only way out — and
-  // it's barred until the take lands. Clicking it mid-take bumps a nonce that the
-  // card reads as "someone tried to leave", and it shakes them off.
-  const [takeDone, setTakeDone] = useState(false);
-  const [scoldNonce, setScoldNonce] = useState(0);
-
   // Swapping variants on a mounted picker has to re-close the curtain, or karaoke
   // inherits the slingshot's always-open card and starts singing to nobody.
   const [renderedVariant, setRenderedVariant] = useState(variant);
   if (renderedVariant !== variant) {
     setRenderedVariant(variant);
     setOpen(!isPerformance(variant));
-    setTakeDone(false);
   }
 
   // A theme is free to cut its own number of notches into the track, so a knob
@@ -72,17 +64,16 @@ export const EffortPicker = ({ variant = "slingshot", theme = "chatgpt" }: Effor
     knobX.set(notchX(theme, level));
   }
 
-  const handleToggle = () => {
-    const trappedMidTake = isPerformance(variant) && open && !takeDone;
-    if (trappedMidTake) {
-      setScoldNonce((nonce) => nonce + 1);
-      return;
-    }
-    // A card that is about to mount has not delivered a take yet. Karaoke says so
-    // itself on mount, but the curls card waits on a camera before it says
-    // anything — without this, a finished take leaves the next card unguarded.
-    if (!open) setTakeDone(false);
-    setOpen((was) => !was);
+  const handleToggle = () => setOpen((was) => !was);
+
+  // Clicking anywhere that isn't the chip or the card dismisses the popover, the
+  // way every real popover dies. The chip and card live inside the composer's own
+  // markup, so the frame finds them by attribute rather than holding refs into a
+  // subtree it doesn't render.
+  const handleFramePointerDown = (event: React.PointerEvent) => {
+    if (!open) return;
+    if (event.target instanceof Element && event.target.closest("[data-effort-control]")) return;
+    setOpen(false);
   };
 
   const popover = (
@@ -103,9 +94,9 @@ export const EffortPicker = ({ variant = "slingshot", theme = "chatgpt" }: Effor
           className="absolute right-0 bottom-full mb-2.5"
         >
           {variant === "curls" ? (
-            <CurlCard knobX={knobX} theme={theme} scoldNonce={scoldNonce} onDone={setTakeDone} />
+            <CurlCard knobX={knobX} theme={theme} />
           ) : variant === "karaoke" ? (
-            <KaraokeCard knobX={knobX} theme={theme} scoldNonce={scoldNonce} onDone={setTakeDone} />
+            <KaraokeCard knobX={knobX} theme={theme} />
           ) : (
             <SlingshotCard knobX={knobX} theme={theme} />
           )}
@@ -116,6 +107,7 @@ export const EffortPicker = ({ variant = "slingshot", theme = "chatgpt" }: Effor
 
   return (
     <div
+      onPointerDown={handleFramePointerDown}
       className={`relative flex h-full w-full items-end justify-end overflow-hidden ${EFFORT_THEMES[theme].frame}`}
     >
       {/* We're zoomed into the corner of somebody else's app, where the controls live:

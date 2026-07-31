@@ -18,12 +18,13 @@ import { usePoseCurls } from "./use-pose-curls";
 const SET_MS = 10_000;
 const COUNT_MS = 900;
 /** Effort a completed curl buys you, in percent. One arm is watched, so this is
- * the whole of your income. */
-const CURL_GAIN = 18;
+ * the whole of your income. Just over a full notch, so every rep visibly moves
+ * the verdict — and the ladder it sets against the drain below: five curls in
+ * the set is Medium-ish, eight is Ultra. */
+const CURL_GAIN = 27;
 /** Effort the machine takes back every second, whatever you're doing. Against the
- * gain above, holding a level costs a curl roughly every 1.8 seconds and climbing
- * costs about one a second — anything less and the dial walks backwards while you
- * watch it. */
+ * gain above, holding a level costs a curl every 2.7 seconds — anything less and
+ * the dial walks backwards while you watch it. */
 const DRAIN_PER_SEC = 10;
 
 const COMMIT_SPRING = { type: "spring", stiffness: 180, damping: 18 } as const;
@@ -52,11 +53,6 @@ const promptForCountdown = (count: CountdownCount) =>
 type CurlCardProps = {
   knobX: MotionValue<number>;
   theme: EffortTheme;
-  /** Bumped by the shell when someone tries to leave through the chip mid-set. */
-  scoldNonce: number;
-  /** True once the set is scored — or once the camera has refused, since holding
-   * someone hostage to a permission dialog they already dismissed isn't a bit. */
-  onDone: (done: boolean) => void;
 };
 
 /**
@@ -70,16 +66,14 @@ type CurlCardProps = {
  * model gets. Stop curling for two seconds and you have talked yourself down to
  * Light.
  */
-export const CurlCard = ({ knobX, theme, scoldNonce, onDone }: CurlCardProps) => {
+export const CurlCard = ({ knobX, theme }: CurlCardProps) => {
   const [take, setTake] = useState<TakeState>({ status: "arming" });
   const [reps, setReps] = useState(0);
   const [bursts, setBursts] = useState<Burst[]>([]);
-  const [scolding, setScolding] = useState(false);
   /** The landing fireworks, mounted for exactly as long as they burn. */
   const [celebrating, setCelebrating] = useState(false);
   const reduceMotion = useReducedMotion();
 
-  const cardShake = useMotionValue(0);
   const cardPop = useMotionValue(1);
   const knobScale = useMotionValue(1);
   const timerScale = useMotionValue(1);
@@ -124,26 +118,19 @@ export const CurlCard = ({ knobX, theme, scoldNonce, onDone }: CurlCardProps) =>
   });
 
   const failed = status === "error";
-  // A dead camera is a finished take as far as the shell is concerned: the chip
-  // has to let you back out of a card that can never score you.
-  useEffect(() => {
-    if (failed) onDone(true);
-  }, [failed, onDone]);
 
   const run = useCallback(() => {
     effortRef.current = 0;
     setReps(0);
     setBursts([]);
-    setScolding(false);
     setCelebrating(false);
     setTake({ status: "arming" });
-    onDone(false);
     timerScale.set(1);
     cardPop.set(1);
     knobScale.set(1);
     if (reduceMotionRef.current) knobX.set(0);
     else void animate(knobX, 0, COMMIT_SPRING);
-  }, [knobX, onDone, timerScale, cardPop, knobScale]);
+  }, [knobX, timerScale, cardPop, knobScale]);
 
   // The fireworks tear themselves down. Nothing in `CurlFanfare` loops, so the
   // only reason to keep three dozen animated spans mounted past their last
@@ -231,24 +218,11 @@ export const CurlCard = ({ knobX, theme, scoldNonce, onDone }: CurlCardProps) =>
         });
         setCelebrating(true);
       }
-      onDone(true);
     };
 
     frame = requestAnimationFrame(tick);
     return () => cancelAnimationFrame(frame);
-  }, [take.status, knobX, knobScale, cardPop, timerScale, onDone, theme]);
-
-  // Walking out mid-set is not a thing you get to do.
-  const firstNonce = useRef(scoldNonce);
-  useEffect(() => {
-    if (scoldNonce === firstNonce.current) return;
-    setScolding(true);
-    if (!reduceMotionRef.current) {
-      void animate(cardShake, [0, -9, 8, -6, 4, -2, 0], { duration: 0.45, ease: "easeOut" });
-    }
-    const timer = window.setTimeout(() => setScolding(false), 2200);
-    return () => window.clearTimeout(timer);
-  }, [scoldNonce, cardShake]);
+  }, [take.status, knobX, knobScale, cardPop, timerScale, theme]);
 
   const landedLabel = take.status === "complete" ? labelAt(theme, take.level) : null;
   // How much of the ceremony the take earned, 0 at the bottom notch and 1 at the
@@ -258,10 +232,7 @@ export const CurlCard = ({ knobX, theme, scoldNonce, onDone }: CurlCardProps) =>
   const live = take.status === "lifting";
 
   return (
-    <motion.div
-      style={{ x: cardShake, scale: cardPop }}
-      className={`relative p-5 ${EFFORT_THEMES[theme].card}`}
-    >
+    <motion.div style={{ scale: cardPop }} className={`relative p-5 ${EFFORT_THEMES[theme].card}`}>
       <div className="mb-4 flex h-8 items-center justify-between gap-3">
         <p className="text-[15px] font-medium text-neutral-100">Reasoning effort</p>
 
@@ -280,16 +251,6 @@ export const CurlCard = ({ knobX, theme, scoldNonce, onDone }: CurlCardProps) =>
               <RotateCcwIcon className="size-3.5 text-violet-300" />
               {failed ? "Retry camera" : "Again"}
             </motion.button>
-          ) : scolding ? (
-            <motion.span
-              key="scold"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              className="shrink-0 text-[13px] text-rose-400"
-            >
-              Finish your set.
-            </motion.span>
           ) : live ? (
             <motion.span
               key="reps"

@@ -90,7 +90,7 @@ const CodexComposer = ({ knobX, theme, onToggle, open, popover }: ComposerChrome
           </span>
 
           <div className="ml-auto flex items-center gap-3">
-            <div className="relative">
+            <div className="relative" data-effort-control>
               {popover}
 
               <motion.button
@@ -182,7 +182,7 @@ const ClaudeComposer = ({ knobX, theme, onToggle, open, popover }: ComposerChrom
           {MODEL_NAME}
         </span>
 
-        <div className="relative">
+        <div className="relative" data-effort-control>
           {popover}
 
           <button

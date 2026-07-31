@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import { animate, AnimatePresence, motion, useMotionValue, useReducedMotion } from "motion/react";
+import { animate, AnimatePresence, motion, useReducedMotion } from "motion/react";
 import { RotateCcwIcon, ZapIcon } from "lucide-react";
 
 import type { MotionValue } from "motion/react";
@@ -36,15 +36,6 @@ const promptForCountdown = (count: CountdownCount) => (count === 1 ? "Let's go!"
 type KaraokeCardProps = {
   knobX: MotionValue<number>;
   theme: EffortTheme;
-  /**
-   * Bumped by the shell every time the user tries to bail out through the chip
-   * mid-verse. There's no close button on the card, so this is the only way the
-   * card learns it's being walked out on — and it answers by refusing.
-   */
-  scoldNonce: number;
-  /** True once the verse lands and the average is committed; the shell needs it
-   * to know whether letting the user close is allowed. */
-  onDone: (done: boolean) => void;
 };
 
 /**
@@ -54,15 +45,13 @@ type KaraokeCardProps = {
  * word, each percentage kicking the needle and throwing sparks. Nothing commits
  * until the last bar lands, and the effort you end up with is the *average* of
  * every percentage in the verse — perform the entire thing and you still land
- * somewhere unremarkable. Try to leave early and it refuses to let you.
+ * somewhere unremarkable.
  */
-export const KaraokeCard = ({ knobX, theme, scoldNonce, onDone }: KaraokeCardProps) => {
+export const KaraokeCard = ({ knobX, theme }: KaraokeCardProps) => {
   const [bursts, setBursts] = useState<Burst[]>([]);
   const [take, setTake] = useState<TakeState>({ status: "countdown", count: 3 });
-  const [scolding, setScolding] = useState(false);
   const reduceMotion = useReducedMotion();
 
-  const cardShake = useMotionValue(0);
   const burstId = useRef(0);
   const timers = useRef<number[]>([]);
   const reduceMotionRef = useRef(Boolean(reduceMotion));
@@ -91,9 +80,7 @@ export const KaraokeCard = ({ knobX, theme, scoldNonce, onDone }: KaraokeCardPro
   const run = useCallback(() => {
     clearTimers();
     setBursts([]);
-    setScolding(false);
     setTake({ status: "countdown", count: 3 });
-    onDone(false);
     if (reduceMotionRef.current) knobX.set(0);
     else void animate(knobX, 0, DIAL_SPRING);
 
@@ -130,7 +117,6 @@ export const KaraokeCard = ({ knobX, theme, scoldNonce, onDone }: KaraokeCardPro
       // precise percentages and the machine shrugs them into "Medium".
       const level = nearestLevel(theme, percentToX(average));
       setTake({ status: "complete", level });
-      onDone(true);
       if (reduceMotionRef.current) knobX.set(notchX(theme, level));
       else void animate(knobX, notchX(theme, level), COMMIT_SPRING);
 
@@ -141,37 +127,24 @@ export const KaraokeCard = ({ knobX, theme, scoldNonce, onDone }: KaraokeCardPro
       setBursts((current) => [...current, finale]);
       after(900, () => setBursts((current) => current.filter((item) => item.id !== finale.id)));
     });
-  }, [after, clearTimers, knobX, onDone, theme]);
+  }, [after, clearTimers, knobX, theme]);
 
   useEffect(() => {
     run();
     return clearTimers;
   }, [run, clearTimers]);
 
-  // Walking out mid-verse is not a thing you get to do. The shell bumps the nonce
-  // when the chip is clicked before the take lands; the card answers by refusing.
-  const firstNonce = useRef(scoldNonce);
-  useEffect(() => {
-    if (scoldNonce === firstNonce.current) return;
-    setScolding(true);
-    if (!reduceMotionRef.current) {
-      void animate(cardShake, [0, -9, 8, -6, 4, -2, 0], { duration: 0.45, ease: "easeOut" });
-    }
-    const timer = window.setTimeout(() => setScolding(false), 2200);
-    return () => window.clearTimeout(timer);
-  }, [scoldNonce, cardShake]);
-
   const activeLine = LYRIC_LINES[currentLineIndex];
   const lineStart = FLAT_WORDS.findIndex((word) => word.lineIndex === currentLineIndex);
   const landedLabel = take.status === "complete" ? labelAt(theme, take.level) : null;
 
   return (
-    <motion.div style={{ x: cardShake }} className={`relative p-5 ${EFFORT_THEMES[theme].card}`}>
+    <div className={`relative p-5 ${EFFORT_THEMES[theme].card}`}>
       <div className="relative mb-4 flex h-8 items-center justify-between gap-3">
         <p className="text-[15px] font-medium text-neutral-100">Reasoning effort</p>
 
-        {/* The right slot carries the state of the take: how far in you are, the
-            refusal if you try to bail, and only once it lands, the way to run it back. */}
+        {/* The right slot carries the state of the take: how far in you are, and
+            only once it lands, the way to run it back. */}
         <AnimatePresence mode="wait" initial={false}>
           {take.status === "complete" ? (
             <motion.button
@@ -188,16 +161,6 @@ export const KaraokeCard = ({ knobX, theme, scoldNonce, onDone }: KaraokeCardPro
               Again
               <ZapIcon className="size-3.5 text-violet-300" />
             </motion.button>
-          ) : scolding ? (
-            <motion.span
-              key="scold"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              className="shrink-0 text-[13px] text-rose-400"
-            >
-              Please finish the lyrics.
-            </motion.span>
           ) : take.status === "countdown" ? null : (
             <motion.span
               key="progress"
@@ -371,7 +334,7 @@ export const KaraokeCard = ({ knobX, theme, scoldNonce, onDone }: KaraokeCardPro
           <KnobSkin theme={theme} />
         </motion.div>
       </div>
-    </motion.div>
+    </div>
   );
 };
 
