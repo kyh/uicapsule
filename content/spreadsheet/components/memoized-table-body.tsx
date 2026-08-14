@@ -5,12 +5,13 @@ import { cn } from "@repo/ui/lib/utils";
 import { flexRender } from "@tanstack/react-table";
 
 import type { SpreadsheetRow } from "../lib/spreadsheet-store";
+import type { SpreadsheetFeatures } from "../lib/spreadsheet-utils";
 import type { Table } from "@tanstack/react-table";
 import type { VirtualItem } from "@tanstack/react-virtual";
 
 interface MemoizedTableBodyProps<TRow extends SpreadsheetRow> {
   virtualItems: VirtualItem[];
-  table: Table<TRow>;
+  table: Table<SpreadsheetFeatures, TRow>;
   selectedCells: Set<string>;
   getRowCells: (rowId: string) => string[];
   handleMouseDown: (e: MouseEvent, rowId: string, columnId: string) => void;

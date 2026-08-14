@@ -10,6 +10,7 @@ import {
 import { createColumnHelper } from "@tanstack/react-table";
 import { Download, MoreVerticalIcon, Plus, Sparkles, TrashIcon, Upload } from "lucide-react";
 
+import type { SpreadsheetFeatures } from "./lib/spreadsheet-utils";
 import { EditableCell } from "./components/editable-cell";
 import { Spreadsheet } from "./components/spreadsheet";
 import {
@@ -32,7 +33,7 @@ type Person = {
   role: string;
 };
 
-const columnHelper = createColumnHelper<Person>();
+const columnHelper = createColumnHelper<SpreadsheetFeatures, Person>();
 
 const generateSamplePeople = (count: number): Person[] => {
   return Array.from({ length: count }, (_, i) => ({

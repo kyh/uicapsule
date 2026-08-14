@@ -1,16 +1,19 @@
 import type { Column, FilterModel, FiltersState } from "../../core/types";
-import type { ColumnDef, ColumnFiltersState } from "@tanstack/react-table";
+import type { ColumnDef, ColumnFiltersState, TableFeatures } from "@tanstack/react-table";
 import { multiOptionFilterFn, optionFilterFn } from "../../lib/filter-fns";
 import { isColumnOption, isColumnOptionArray, isStringArray } from "../../lib/helpers";
 import { booleanFilterFn, dateFilterFn, numberFilterFn, textFilterFn } from "./filter-fns";
 
-interface CreateTSTColumns<TData> {
-  columns: ColumnDef<TData, any>[];
+interface CreateTSTColumns<TFeatures extends TableFeatures, TData> {
+  columns: ColumnDef<TFeatures, TData, any>[];
   configs: Column<TData>[];
 }
 
-export function createTSTColumns<TData>({ columns, configs }: CreateTSTColumns<TData>) {
-  const _cols: ColumnDef<TData>[] = [];
+export function createTSTColumns<TFeatures extends TableFeatures, TData>({
+  columns,
+  configs,
+}: CreateTSTColumns<TFeatures, TData>) {
+  const _cols: ColumnDef<TFeatures, TData, any>[] = [];
 
   for (const col of columns) {
     // Get the column filter config for this column

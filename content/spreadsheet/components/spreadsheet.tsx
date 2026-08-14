@@ -10,11 +10,11 @@ import {
   type Ref,
 } from "react";
 import { cn } from "@repo/ui/lib/utils";
-import { flexRender, getCoreRowModel, useReactTable } from "@tanstack/react-table";
+import { flexRender, useTable } from "@tanstack/react-table";
 import { useVirtualizer } from "@tanstack/react-virtual";
 
 import type { SpreadsheetRow } from "../lib/spreadsheet-store";
-import type { ColumnInfo, NavigationMap } from "../lib/spreadsheet-utils";
+import type { ColumnInfo, NavigationMap, SpreadsheetFeatures } from "../lib/spreadsheet-utils";
 import type { ColumnDef } from "@tanstack/react-table";
 import { useSpreadsheetStore } from "../lib/spreadsheet-store";
 import {
@@ -22,6 +22,7 @@ import {
   getColumnSizeVars,
   getRowCells,
   MIN_COLUMN_WIDTH,
+  spreadsheetFeatures,
 } from "../lib/spreadsheet-utils";
 import { useSpreadsheetHandlers } from "../lib/use-spreadsheet-handlers";
 import { MemoizedTableBody } from "./memoized-table-body";
@@ -31,7 +32,7 @@ interface SpreadsheetProps<
   TRow extends SpreadsheetRow,
   TValue = unknown,
 > extends HTMLAttributes<HTMLDivElement> {
-  columns: ColumnDef<TRow, TValue>[];
+  columns: ColumnDef<SpreadsheetFeatures, TRow, TValue>[];
   showRowNumbers?: boolean;
   renderRowNumber?: (rowIndex: number) => ReactNode;
   renderRowActions?: (row: TRow, rowIndex: number) => ReactNode;
@@ -67,10 +68,10 @@ export function Spreadsheet<TRow extends SpreadsheetRow, TValue = unknown>({
   const tableContainerRef = useRef<HTMLDivElement>(null);
   const dragLineRef = useRef<HTMLDivElement>(null);
 
-  const table = useReactTable({
+  const table = useTable({
+    features: spreadsheetFeatures,
     data: data as TRow[],
     columns,
-    getCoreRowModel: getCoreRowModel(),
   });
 
   // Compute column meta locally - no need to store in Zustand

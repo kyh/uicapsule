@@ -1,9 +1,9 @@
 import type { FilterModel } from "../../core/types";
-import type { Row } from "@tanstack/react-table";
+import type { Row, TableFeatures } from "@tanstack/react-table";
 import * as f from "../../lib/filter-fns";
 
-export function dateFilterFn<TData>(
-  row: Row<TData>,
+export function dateFilterFn<TFeatures extends TableFeatures, TData>(
+  row: Row<TFeatures, TData>,
   columnId: string,
   filterValue: FilterModel<"date">,
 ): boolean {
@@ -12,8 +12,8 @@ export function dateFilterFn<TData>(
   return f.dateFilterFn(value, filterValue);
 }
 
-export function textFilterFn<TData>(
-  row: Row<TData>,
+export function textFilterFn<TFeatures extends TableFeatures, TData>(
+  row: Row<TFeatures, TData>,
   columnId: string,
   filterValue: FilterModel<"text">,
 ): boolean {
@@ -22,8 +22,8 @@ export function textFilterFn<TData>(
   return f.textFilterFn(value, filterValue);
 }
 
-export function numberFilterFn<TData>(
-  row: Row<TData>,
+export function numberFilterFn<TFeatures extends TableFeatures, TData>(
+  row: Row<TFeatures, TData>,
   columnId: string,
   filterValue: FilterModel<"number">,
 ): boolean {
@@ -32,8 +32,8 @@ export function numberFilterFn<TData>(
   return f.numberFilterFn(value, filterValue);
 }
 
-export function booleanFilterFn<TData>(
-  row: Row<TData>,
+export function booleanFilterFn<TFeatures extends TableFeatures, TData>(
+  row: Row<TFeatures, TData>,
   columnId: string,
   filterValue: FilterModel<"boolean">,
 ): boolean {

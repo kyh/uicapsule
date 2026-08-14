@@ -2,6 +2,18 @@
  * Pure utility functions for spreadsheet operations
  */
 
+import { columnVisibilityFeature, tableFeatures } from "@tanstack/react-table";
+
+/**
+ * Features every spreadsheet table is built on. Features are opt-in in
+ * react-table v9, and the body renders through `row.getVisibleCells()`, which
+ * column visibility provides. Declared here rather than in `spreadsheet.tsx` so
+ * the body and cell components can type against it without an import cycle.
+ */
+export const spreadsheetFeatures = tableFeatures({ columnVisibilityFeature });
+
+export type SpreadsheetFeatures = typeof spreadsheetFeatures;
+
 /** Columns never resize below this, both while dragging and once committed. */
 export const MIN_COLUMN_WIDTH = 60;
 
