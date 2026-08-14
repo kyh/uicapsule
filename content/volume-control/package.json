@@ -7,8 +7,8 @@
     "clean": "git clean -xdf .cache .turbo dist node_modules"
   },
   "dependencies": {
-    "lucide-react": "^1.26.0",
-    "motion": "^12.42.2",
+    "lucide-react": "^1.31.0",
+    "motion": "^13.1.0",
     "react": "catalog:",
     "react-dom": "catalog:"
   },

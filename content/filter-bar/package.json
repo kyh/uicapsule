@@ -10,12 +10,12 @@
     "clean": "git clean -xdf .cache .turbo dist node_modules"
   },
   "dependencies": {
-    "@ai-sdk/react": "^4.0.40",
+    "@ai-sdk/react": "^4.0.69",
     "@loremllm/transport": "^0.7.0",
     "@repo/ui": "workspace:^",
     "@tanstack/react-table": "^8.21.3",
     "date-fns": "^4.4.0",
-    "lucide-react": "^1.26.0",
+    "lucide-react": "^1.31.0",
     "react": "catalog:",
     "react-day-picker": "^10.0.1",
     "react-dom": "catalog:",
