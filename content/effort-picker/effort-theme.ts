@@ -56,7 +56,7 @@ type ThemeTokens = {
   knob: KnobSkin;
 };
 
-export const EFFORT_THEMES: Record<EffortTheme, ThemeTokens> = {
+export const EFFORT_THEMES = {
   chatgpt: {
     levels: LEVELS,
     frame: "bg-neutral-950 text-neutral-100",
@@ -101,7 +101,7 @@ export const EFFORT_THEMES: Record<EffortTheme, ThemeTokens> = {
     // down inside the groove rather than on top of it.
     knob: { width: 32, height: 40, radius: 12, className: "bg-[#a5a49a]" },
   },
-};
+} satisfies Record<EffortTheme, ThemeTokens>;
 
 export const levelCount = (theme: EffortTheme) => EFFORT_THEMES[theme].levels.length;
 

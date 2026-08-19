@@ -4,13 +4,21 @@ import { createContext, useContext, type CSSProperties, type HTMLAttributes } fr
 import { useRender } from "@base-ui/react/use-render";
 import { ChevronDownIcon } from "lucide-react";
 
-import type { ItemInstance } from "@headless-tree/core";
+import type { ItemInstance, TreeInstance } from "@headless-tree/core";
 import { cn } from "@repo/ui/lib/utils";
+
+// headless-tree's types merge every feature's methods, but a runtime instance
+// only carries the methods of the features the consumer enabled — so feature
+// methods are optional-called instead of assumed present.
+
+// React's CSSProperties has no index signature for custom properties, so widen
+// it rather than reaching for a type assertion.
+type TreeStyle = CSSProperties & Record<`--${string}`, string>;
 
 type TreeContextValue<T = any> = {
   indent: number;
   currentItem?: ItemInstance<T>;
-  tree?: any;
+  tree?: TreeInstance<T>;
 };
 
 const TreeContext = createContext<TreeContextValue>({
@@ -19,26 +27,25 @@ const TreeContext = createContext<TreeContextValue>({
   tree: undefined,
 });
 
-function useTreeContext<T = any>() {
-  return useContext(TreeContext) as TreeContextValue<T>;
+function useTreeContext<T = any>(): TreeContextValue<T> {
+  return useContext(TreeContext);
 }
 
-type TreeProps = {
+type TreeProps<T = any> = {
   indent?: number;
-  tree?: any;
+  tree?: TreeInstance<T>;
 } & HTMLAttributes<HTMLDivElement>;
 
-const Tree = ({ indent = 20, tree, className, ...props }: TreeProps) => {
-  const containerProps =
-    tree && typeof tree.getContainerProps === "function" ? tree.getContainerProps() : {};
+function Tree<T = any>({ indent = 20, tree, className, ...props }: TreeProps<T>) {
+  const containerProps = tree?.getContainerProps?.() ?? {};
   const mergedProps = { ...props, ...containerProps };
 
   const { style: propStyle, ...otherProps } = mergedProps;
 
-  const mergedStyle = {
+  const mergedStyle: TreeStyle = {
     ...propStyle,
     "--tree-indent": `${indent}px`,
-  } as CSSProperties;
+  };
 
   return (
     <TreeContext.Provider value={{ indent, tree }}>
@@ -50,7 +57,7 @@ const Tree = ({ indent = 20, tree, className, ...props }: TreeProps) => {
       />
     </TreeContext.Provider>
   );
-};
+}
 
 type TreeItemProps<T = any> = {
   item: ItemInstance<T>;
@@ -67,15 +74,15 @@ function TreeItem<T = any>({
 }: Omit<TreeItemProps<T>, "indent">) {
   const { indent } = useTreeContext<T>();
 
-  const itemProps = typeof item.getProps === "function" ? item.getProps() : {};
+  const itemProps = item.getProps?.() ?? {};
   const mergedProps = { ...props, ...itemProps };
 
   const { style: propStyle, ...otherProps } = mergedProps;
 
-  const mergedStyle = {
+  const mergedStyle: TreeStyle = {
     ...propStyle,
     "--tree-padding": `${item.getItemMeta().level * indent}px`,
-  } as CSSProperties;
+  };
 
   const element = useRender({
     render: render ?? <button type="button" />,
@@ -86,14 +93,11 @@ function TreeItem<T = any>({
         "z-10 ps-(--tree-padding) outline-hidden select-none not-last:pb-0.5 focus:z-20 data-[disabled]:pointer-events-none data-[disabled]:opacity-50",
         className,
       ),
-      "data-focus": typeof item.isFocused === "function" ? item.isFocused() || false : undefined,
-      "data-folder": typeof item.isFolder === "function" ? item.isFolder() || false : undefined,
-      "data-selected":
-        typeof item.isSelected === "function" ? item.isSelected() || false : undefined,
-      "data-drag-target":
-        typeof item.isDragTarget === "function" ? item.isDragTarget() || false : undefined,
-      "data-search-match":
-        typeof item.isMatchingSearch === "function" ? item.isMatchingSearch() || false : undefined,
+      "data-focus": item.isFocused?.(),
+      "data-folder": item.isFolder?.(),
+      "data-selected": item.isSelected?.(),
+      "data-drag-target": item.isDragTarget?.(),
+      "data-search-match": item.isMatchingSearch?.(),
       "aria-expanded": item.isExpanded(),
       children,
       ...otherProps,
@@ -135,7 +139,7 @@ function TreeItemLabel<T = any>({
       {item.isFolder() && (
         <ChevronDownIcon className="text-muted-foreground size-4 in-aria-[expanded=false]:-rotate-90" />
       )}
-      {children || (typeof item.getItemName === "function" ? item.getItemName() : null)}
+      {children || item.getItemName?.() || null}
     </span>
   );
 }
@@ -143,7 +147,7 @@ function TreeItemLabel<T = any>({
 const TreeDragLine = ({ className, ...props }: HTMLAttributes<HTMLDivElement>) => {
   const { tree } = useTreeContext();
 
-  if (!tree || typeof tree.getDragLineStyle !== "function") {
+  if (!tree?.getDragLineStyle) {
     console.warn(
       "TreeDragLine: No tree provided via context or tree does not have getDragLineStyle method",
     );

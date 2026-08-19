@@ -1,4 +1,4 @@
-import { isValidElement, type ComponentType } from "react";
+import { isValidElement } from "react";
 import type { Column, ColumnDataType } from "../filter-package";
 
 interface FilterSubjectProps<TData, TType extends ColumnDataType> {
@@ -13,15 +13,14 @@ export function FilterSubject<TData, TType extends ColumnDataType>({
   const subject = column.type === "boolean" ? entityName : column.displayName;
 
   const { icon: Icon } = column;
-  const hasIcon = !!Icon;
 
   return (
     <span className="flex items-center gap-1 px-2 font-medium whitespace-nowrap select-none">
-      {hasIcon &&
+      {Icon &&
         (isValidElement(Icon)
           ? Icon
           : (() => {
-              const IconComp = Icon as ComponentType<{ className?: string }>;
+              const IconComp = Icon;
               return <IconComp className="text-primary size-4 stroke-[2.25px]" />;
             })())}
 

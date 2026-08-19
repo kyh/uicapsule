@@ -7,9 +7,7 @@ import {
   useMemo,
   useRef,
   useState,
-  type Attributes,
   type ChangeEvent,
-  type ComponentType,
   type ElementType as ReactElementType,
   type InputHTMLAttributes,
   type Key,
@@ -52,7 +50,7 @@ type IconLike = ReactElement | ReactElementType;
 
 const renderIcon = (icon: IconLike, props: IconProps = {}) => {
   if (isValidElement<IconProps>(icon)) return cloneElement(icon, props);
-  const IconComp = icon as ComponentType<{ className?: string }>;
+  const IconComp = icon;
   return <IconComp {...props} />;
 };
 
@@ -298,7 +296,10 @@ interface FilterValueProps<TData, TType extends ColumnDataType> {
   entityName?: string;
 }
 
-export const FilterValue = memo(__FilterValue) as typeof __FilterValue;
+export const FilterValue =
+  // SAFETY: React.memo erases the generic call signature; the wrapper still
+  // accepts exactly __FilterValue's props.
+  memo(__FilterValue) as typeof __FilterValue;
 
 function __FilterValue<TData, TType extends ColumnDataType>({
   filter,
@@ -362,6 +363,8 @@ export function FilterValueDisplay<TData, TType extends ColumnDataType>({
 }: FilterValueDisplayProps<TData, TType>) {
   switch (column.type) {
     case "option":
+      // SAFETY: column.type fixes TType to "option", and filter always shares
+      // its column's TType.
       return (
         <FilterValueOptionDisplay
           filter={filter as FilterModel<"option">}
@@ -370,6 +373,8 @@ export function FilterValueDisplay<TData, TType extends ColumnDataType>({
         />
       );
     case "multiOption":
+      // SAFETY: column.type fixes TType to "multiOption", and filter always shares
+      // its column's TType.
       return (
         <FilterValueMultiOptionDisplay
           filter={filter as FilterModel<"multiOption">}
@@ -378,6 +383,8 @@ export function FilterValueDisplay<TData, TType extends ColumnDataType>({
         />
       );
     case "date":
+      // SAFETY: column.type fixes TType to "date", and filter always shares
+      // its column's TType.
       return (
         <FilterValueDateDisplay
           filter={filter as FilterModel<"date">}
@@ -386,6 +393,8 @@ export function FilterValueDisplay<TData, TType extends ColumnDataType>({
         />
       );
     case "text":
+      // SAFETY: column.type fixes TType to "text", and filter always shares
+      // its column's TType.
       return (
         <FilterValueTextDisplay
           filter={filter as FilterModel<"text">}
@@ -394,6 +403,8 @@ export function FilterValueDisplay<TData, TType extends ColumnDataType>({
         />
       );
     case "number":
+      // SAFETY: column.type fixes TType to "number", and filter always shares
+      // its column's TType.
       return (
         <FilterValueNumberDisplay
           filter={filter as FilterModel<"number">}
@@ -402,6 +413,8 @@ export function FilterValueDisplay<TData, TType extends ColumnDataType>({
         />
       );
     case "boolean":
+      // SAFETY: column.type fixes TType to "boolean", and filter always shares
+      // its column's TType.
       return (
         <FilterValueBooleanDisplay
           filter={filter as FilterModel<"boolean">}
@@ -488,8 +501,8 @@ export function FilterValueMultiOptionDisplay<TData>({
         <div key="icons" className="inline-flex items-center gap-0.5">
           {take(selected, 3).map(({ value, icon }) => {
             const Icon = icon!;
-            return isValidElement(Icon)
-              ? cloneElement(Icon, { key: value } as Attributes)
+            return isValidElement<IconProps>(Icon)
+              ? cloneElement(Icon, { key: value })
               : renderIcon(Icon, { key: value, className: "size-4" });
           })}
         </div>
@@ -582,9 +595,10 @@ interface FilterValueControllerProps<TData, TType extends ColumnDataType> {
   strategy: FilterStrategy;
 }
 
-export const FilterValueController = memo(
-  __FilterValueController,
-) as typeof __FilterValueController;
+export const FilterValueController =
+  // SAFETY: React.memo erases the generic call signature; the wrapper still
+  // accepts exactly __FilterValueController's props.
+  memo(__FilterValueController) as typeof __FilterValueController;
 
 function __FilterValueController<TData, TType extends ColumnDataType>({
   filter,
@@ -594,6 +608,8 @@ function __FilterValueController<TData, TType extends ColumnDataType>({
 }: FilterValueControllerProps<TData, TType>) {
   switch (column.type) {
     case "option":
+      // SAFETY: column.type fixes TType to "option", and filter always shares
+      // its column's TType.
       return (
         <FilterValueOptionController
           filter={filter as FilterModel<"option">}
@@ -603,6 +619,8 @@ function __FilterValueController<TData, TType extends ColumnDataType>({
         />
       );
     case "multiOption":
+      // SAFETY: column.type fixes TType to "multiOption", and filter always shares
+      // its column's TType.
       return (
         <FilterValueMultiOptionController
           filter={filter as FilterModel<"multiOption">}
@@ -612,6 +630,8 @@ function __FilterValueController<TData, TType extends ColumnDataType>({
         />
       );
     case "date":
+      // SAFETY: column.type fixes TType to "date", and filter always shares
+      // its column's TType.
       return (
         <FilterValueDateController
           filter={filter as FilterModel<"date">}
@@ -621,6 +641,8 @@ function __FilterValueController<TData, TType extends ColumnDataType>({
         />
       );
     case "text":
+      // SAFETY: column.type fixes TType to "text", and filter always shares
+      // its column's TType.
       return (
         <FilterValueTextController
           filter={filter as FilterModel<"text">}
@@ -630,6 +652,8 @@ function __FilterValueController<TData, TType extends ColumnDataType>({
         />
       );
     case "number":
+      // SAFETY: column.type fixes TType to "number", and filter always shares
+      // its column's TType.
       return (
         <FilterValueNumberController
           filter={filter as FilterModel<"number">}
@@ -866,7 +890,7 @@ export function FilterValueNumberController<TData>({
   column,
   actions,
 }: FilterValueControllerProps<TData, "number">) {
-  const minMax = useMemo(() => column.getFacetedMinMaxValues() as MinMaxReturn<"number">, [column]);
+  const minMax = useMemo(() => column.getFacetedMinMaxValues(), [column]);
   const [sliderMin, sliderMax] = [minMax ? minMax[0] : 0, minMax ? minMax[1] : 0];
 
   // Local state for values
@@ -888,23 +912,27 @@ export function FilterValueNumberController<TData>({
     filter && numberFilterOperators[filter.operator].target === "multiple";
 
   const setFilterOperatorDebounced = useDebounceCallback(actions.setFilterOperator, 500);
-  const setFilterValueDebounced = useDebounceCallback(actions.setFilterValue, 500);
+  const setNumberFilterValue = useCallback(
+    (newValues: number[]) => actions.setFilterValue(column, newValues),
+    [actions, column],
+  );
+  const setFilterValueDebounced = useDebounceCallback(setNumberFilterValue, 500);
 
   const changeNumber = (value: number[]) => {
     setValues(value);
-    setFilterValueDebounced(column as any, value);
+    setFilterValueDebounced(value);
   };
 
   const changeMinNumber = (value: number) => {
     const newValues = createNumberRange([value, values[1]!]);
     setValues(newValues);
-    setFilterValueDebounced(column as any, newValues);
+    setFilterValueDebounced(newValues);
   };
 
   const changeMaxNumber = (value: number) => {
     const newValues = createNumberRange([values[0]!, value]);
     setValues(newValues);
-    setFilterValueDebounced(column as any, newValues);
+    setFilterValueDebounced(newValues);
   };
 
   const changeType = useCallback(
@@ -944,7 +972,7 @@ export function FilterValueNumberController<TData>({
           <div className="flex w-full flex-col">
             <Tabs
               value={isNumberRange ? "range" : "single"}
-              onValueChange={(v) => changeType(v as "single" | "range")}
+              onValueChange={(v) => changeType(v === "range" ? "range" : "single")}
             >
               <TabsList className="w-full *:text-xs">
                 <TabsTrigger value="single">single</TabsTrigger>

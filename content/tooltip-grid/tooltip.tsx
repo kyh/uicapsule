@@ -172,16 +172,17 @@ export const Tooltip = ({ children, ...options }: { children: ReactNode } & Tool
   return <TooltipContext.Provider value={tooltip}>{children}</TooltipContext.Provider>;
 };
 
-const isRef = (value: unknown): value is Ref<HTMLElement> =>
-  typeof value === "function" ||
-  (typeof value === "object" && value !== null && "current" in value);
-
 /** React 19 exposes a child element's ref through its props, not `element.ref`. */
 const getChildRef = (child: ReactNode): Ref<HTMLElement> | undefined => {
   if (!isValidElement(child)) return undefined;
-  const props: unknown = child.props;
-  if (typeof props !== "object" || props === null || !("ref" in props)) return undefined;
-  return isRef(props.ref) ? props.ref : undefined;
+  const { props } = child;
+  if (!(props instanceof Object) || !("ref" in props)) return undefined;
+  const { ref } = props;
+  if (!(ref instanceof Function) && !(ref instanceof Object && "current" in ref)) return undefined;
+  // SAFETY: a `ref` prop shaped as a function or `{ current }` object can only
+  // be the element's React ref; React's untyped element props carry no runtime
+  // brand to check beyond this shape.
+  return ref as Ref<HTMLElement>;
 };
 
 export const TooltipTrigger = ({
@@ -201,12 +202,13 @@ export const TooltipTrigger = ({
 
   // `asChild` allows the user to pass any element as the anchor
   if (asChild && isValidElement(children)) {
+    const childProps = children.props instanceof Object ? children.props : {};
     return cloneElement(
       children,
       context.getReferenceProps({
         ref,
         ...props,
-        ...(children.props as object),
+        ...childProps,
         ...stateProps,
       }),
     );
@@ -223,14 +225,16 @@ export const TooltipContent = ({
   className,
   type = "default",
   ref: propRef,
+  children,
   ...props
 }: HTMLProps<HTMLDivElement> & {
   type?: "default" | "block";
 }) => {
   const context = useTooltipContext();
   const ref = useMergeRefs([context.refs.setFloating, propRef]);
-  const { children: floatingPropsChildren, ...floatingProps } = context.getFloatingProps(props);
-  const children = floatingPropsChildren as ReactNode;
+  // Children stay out of `getFloatingProps`, which merges interaction props and
+  // would only hand them back untyped.
+  const floatingProps = context.getFloatingProps(props);
   const blockType = type === "block";
 
   const tooltipMotionProps = blockType
@@ -369,13 +373,19 @@ const getDirectionalDelay = (n: number, direction: HoverDirection) => {
   }
 };
 
+// React's CSSProperties has no index signature for custom properties, so widen
+// it rather than reaching for a type assertion.
+type BlocksContainerStyle = CSSProperties & Record<`--${string}`, number>;
+
+const blocksContainerStyle: BlocksContainerStyle = { "--cols": cols, "--rows": rows };
+
 const TooltipBlocks = () => {
   const context = useTooltipContext();
 
   if (context.x == null || context.y == null) return null;
 
   return (
-    <div className="blocksContainer" style={{ "--cols": cols, "--rows": rows } as CSSProperties}>
+    <div className="blocksContainer" style={blocksContainerStyle}>
       {blocks.map((i) => (
         <motion.div
           key={i}

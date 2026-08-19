@@ -12,7 +12,7 @@ const useInView = (rootMargin = "200px") => {
   const [inView, setInView] = useState(false);
   useEffect(() => {
     const el = ref.current;
-    if (!el || typeof IntersectionObserver === "undefined") {
+    if (!el || !("IntersectionObserver" in window)) {
       setInView(true);
       return;
     }

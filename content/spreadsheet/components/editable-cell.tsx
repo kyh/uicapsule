@@ -4,12 +4,12 @@ import { type ChangeEvent, type KeyboardEvent } from "react";
 import { Input } from "@repo/ui/components/input";
 
 import type { Column, Row } from "@tanstack/react-table";
-import type { SpreadsheetRow } from "../lib/spreadsheet-store";
+import type { CellValue, SpreadsheetRow } from "../lib/spreadsheet-store";
 import type { SpreadsheetFeatures } from "../lib/spreadsheet-utils";
 import { useSpreadsheetStore } from "../lib/spreadsheet-store";
 
 interface EditableCellProps<TData extends SpreadsheetRow = SpreadsheetRow> {
-  getValue: () => unknown;
+  getValue: () => CellValue;
   row: Row<SpreadsheetFeatures, TData>;
   column: Column<SpreadsheetFeatures, TData, unknown>;
 }

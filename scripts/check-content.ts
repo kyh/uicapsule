@@ -27,6 +27,9 @@ type RawMeta = {
 
 const readJson = async (path: string): Promise<RawMeta | null> => {
   try {
+    // SAFETY: every RawMeta field is optional and re-validated by `validate`
+    // below, so a malformed meta.json can only yield fields the checks reject.
+    // zod is not a root workspace dependency, so no schema parse is available here.
     return JSON.parse(await readFile(path, "utf-8")) as RawMeta;
   } catch {
     return null;

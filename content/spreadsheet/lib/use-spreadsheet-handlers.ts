@@ -20,13 +20,13 @@ interface UseSpreadsheetHandlersProps {
 }
 
 /** Keys that move the single-cell selection, mapped to their direction in the navigation map. */
-const NAVIGATION_KEYS: Record<string, NavigationDirection | undefined> = {
-  ArrowUp: "up",
-  ArrowDown: "down",
-  ArrowLeft: "left",
-  ArrowRight: "right",
-  Tab: "tab",
-};
+const NAVIGATION_KEYS = new Map<string, NavigationDirection>([
+  ["ArrowUp", "up"],
+  ["ArrowDown", "down"],
+  ["ArrowLeft", "left"],
+  ["ArrowRight", "right"],
+  ["Tab", "tab"],
+]);
 
 export const useSpreadsheetHandlers = ({ columns, navigationMap }: UseSpreadsheetHandlersProps) => {
   const data = useSpreadsheetStore((state) => state.data);
@@ -169,7 +169,7 @@ export const useSpreadsheetHandlers = ({ columns, navigationMap }: UseSpreadshee
         return;
       }
 
-      const direction = NAVIGATION_KEYS[e.key];
+      const direction = NAVIGATION_KEYS.get(e.key);
       if (direction) {
         e.preventDefault();
         const nextPosition = getNextCellPositionFromMap(

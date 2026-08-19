@@ -105,20 +105,24 @@ function MemoizedTableBodyInner<TRow extends SpreadsheetRow>({
   );
 }
 
-export const MemoizedTableBody = memo(MemoizedTableBodyInner, (prevProps, nextProps) => {
-  return (
-    prevProps.virtualItems === nextProps.virtualItems &&
-    prevProps.selectedCells === nextProps.selectedCells &&
-    prevProps.getRowCells === nextProps.getRowCells &&
-    prevProps.handleMouseDown === nextProps.handleMouseDown &&
-    prevProps.handleMouseMove === nextProps.handleMouseMove &&
-    // Cell contents come from `table`, and the row chrome from these three; omitting any of
-    // them lets the body keep rendering stale rows when only they change.
-    prevProps.table === nextProps.table &&
-    prevProps.showRowNumbers === nextProps.showRowNumbers &&
-    prevProps.renderRowNumber === nextProps.renderRowNumber &&
-    prevProps.renderRowActions === nextProps.renderRowActions
-  );
-}) as <TRow extends SpreadsheetRow>(props: MemoizedTableBodyProps<TRow>) => ReactElement;
+export const MemoizedTableBody =
+  // SAFETY: `memo` erases the wrapped component's generic; the wrapper renders
+  // MemoizedTableBodyInner with untouched props, so the asserted signature is
+  // exactly the inner component's own.
+  memo(MemoizedTableBodyInner, (prevProps, nextProps) => {
+    return (
+      prevProps.virtualItems === nextProps.virtualItems &&
+      prevProps.selectedCells === nextProps.selectedCells &&
+      prevProps.getRowCells === nextProps.getRowCells &&
+      prevProps.handleMouseDown === nextProps.handleMouseDown &&
+      prevProps.handleMouseMove === nextProps.handleMouseMove &&
+      // Cell contents come from `table`, and the row chrome from these three; omitting any of
+      // them lets the body keep rendering stale rows when only they change.
+      prevProps.table === nextProps.table &&
+      prevProps.showRowNumbers === nextProps.showRowNumbers &&
+      prevProps.renderRowNumber === nextProps.renderRowNumber &&
+      prevProps.renderRowActions === nextProps.renderRowActions
+    );
+  }) as <TRow extends SpreadsheetRow>(props: MemoizedTableBodyProps<TRow>) => ReactElement;
 
 MemoizedTableBodyInner.displayName = "MemoizedTableBodyInner";

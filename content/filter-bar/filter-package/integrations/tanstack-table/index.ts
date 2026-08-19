@@ -1,8 +1,15 @@
 import type { Column, FilterModel, FiltersState } from "../../core/types";
 import type { ColumnDef, ColumnFiltersState, TableFeatures } from "@tanstack/react-table";
+import { z } from "zod";
+
 import { multiOptionFilterFn, optionFilterFn } from "../../lib/filter-fns";
-import { isColumnOption, isColumnOptionArray, isStringArray } from "../../lib/helpers";
 import { booleanFilterFn, dateFilterFn, numberFilterFn, textFilterFn } from "./filter-fns";
+
+// Cell values arrive untyped from tanstack rows; parse them at this boundary.
+const optionValueCell = z.string();
+const columnOptionCell = z.object({ value: z.string(), label: z.string() });
+const optionValueListCell = z.array(optionValueCell);
+const columnOptionListCell = z.array(columnOptionCell);
 
 interface CreateTSTColumns<TFeatures extends TableFeatures, TData> {
   columns: ColumnDef<TFeatures, TData, any>[];
@@ -56,14 +63,18 @@ export function createTSTColumns<TFeatures extends TableFeatures, TData>({
 
         if (!value) return false;
 
-        if (typeof value === "string") {
-          return optionFilterFn(value, filterValue);
+        const optionValue = optionValueCell.safeParse(value);
+        if (optionValue.success) {
+          return optionFilterFn(optionValue.data, filterValue);
         }
 
-        if (isColumnOption(value)) {
-          return optionFilterFn(value.value, filterValue);
+        const columnOption = columnOptionCell.safeParse(value);
+        if (columnOption.success) {
+          return optionFilterFn(columnOption.data.value, filterValue);
         }
 
+        // SAFETY: any other cell holds the column's raw accessor value, which
+        // transformValueToOptionFn is defined to accept.
         const sanitizedValue = config.transformValueToOptionFn!(value as never);
         return optionFilterFn(sanitizedValue.value, filterValue);
       };
@@ -75,17 +86,21 @@ export function createTSTColumns<TFeatures extends TableFeatures, TData>({
 
         if (!value) return false;
 
-        if (isStringArray(value)) {
-          return multiOptionFilterFn(value, filterValue);
+        const optionValues = optionValueListCell.safeParse(value);
+        if (optionValues.success) {
+          return multiOptionFilterFn(optionValues.data, filterValue);
         }
 
-        if (isColumnOptionArray(value)) {
+        const columnOptions = columnOptionListCell.safeParse(value);
+        if (columnOptions.success) {
           return multiOptionFilterFn(
-            value.map((v) => v.value),
+            columnOptions.data.map((v) => v.value),
             filterValue,
           );
         }
 
+        // SAFETY: any other cell holds an array of the column's raw accessor
+        // values, which transformValueToOptionFn is defined to accept.
         const sanitizedValue = (value as never[]).map((v) => config.transformValueToOptionFn!(v));
 
         return multiOptionFilterFn(

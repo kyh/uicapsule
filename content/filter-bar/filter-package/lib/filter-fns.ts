@@ -1,4 +1,5 @@
 import { endOfDay, isAfter, isBefore, isSameDay, isWithinInterval, startOfDay } from "date-fns";
+import { z } from "zod";
 
 import type { FilterModel } from "../core/types";
 import { dateFilterOperators } from "../core/operators";
@@ -214,6 +215,8 @@ export function numberFilterFn(inputData: number, filterValue: FilterModel<"numb
   }
 }
 
+const bigintCell = z.bigint();
+
 export function bigIntFilterFn(inputData: bigint, filterValue: FilterModel<"bigint">): boolean {
   // Early exit conditions
   if (!filterValue || !filterValue.values || filterValue.values.length === 0) {
@@ -227,7 +230,8 @@ export function bigIntFilterFn(inputData: bigint, filterValue: FilterModel<"bigi
     return true;
   }
 
-  if (typeof value !== "bigint") {
+  // Rows can carry malformed cells at runtime; only genuine bigints are comparable.
+  if (!bigintCell.safeParse(value).success) {
     return false;
   }
 
@@ -286,7 +290,7 @@ export function bigIntFilterFn(inputData: bigint, filterValue: FilterModel<"bigi
 export function booleanFilterFn(inputData: boolean, filterValue: FilterModel<"boolean">) {
   if (!filterValue || filterValue.values.length === 0) return true;
 
-  if (filterValue.values.some((v) => typeof v === "undefined"))
+  if (filterValue.values.some((v: boolean | undefined) => v === undefined))
     throw new Error("Cannot create boolean filter value from undefined values");
 
   const value = inputData;

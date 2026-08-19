@@ -166,12 +166,12 @@ export type AlertState = {
   action?: {
     hidden?: boolean;
     label?: ReactNode;
-    onClick?: () => void | Promise<unknown>;
+    onClick?: () => void | Promise<void>;
   };
   cancel?: {
     hidden?: boolean;
     label?: ReactNode;
-    onClick?: () => void | Promise<unknown>;
+    onClick?: () => void | Promise<void>;
   };
 };
 
@@ -216,7 +216,7 @@ export const GlobalAlertDialog = () => {
   );
 
   const runAndClose = async (
-    onClick: (() => void | Promise<unknown>) | undefined,
+    onClick: (() => void | Promise<void>) | undefined,
     setPending: (v: boolean) => void,
   ) => {
     setPending(true);

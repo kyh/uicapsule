@@ -16,38 +16,55 @@ type CustomUIMessage = UIMessage<
   }
 >;
 
-const pick = <T>(list: readonly T[]): T => list[Math.floor(Math.random() * list.length)] as T;
+// The random index is always in range; the `?? list[0]` only satisfies
+// `noUncheckedIndexedAccess`, which the non-empty tuple keeps well-typed.
+const pick = <T>(list: readonly [T, ...T[]]): T =>
+  list[Math.floor(Math.random() * list.length)] ?? list[0];
 
 const generateFakeValue = (columnId: string): string => {
-  const fakeData: Record<string, () => string> = {
-    firstName: () => pick(["John", "Jane", "Michael", "Sarah", "David", "Emily", "James", "Emma"]),
-    lastName: () =>
-      pick(["Smith", "Johnson", "Williams", "Brown", "Jones", "Garcia", "Miller", "Davis"]),
-    email: () => {
-      const domain = pick(["example.com", "demo.org", "test.io"]);
-      return `${Math.random().toString(36).substring(2, 15)}@${domain}`;
-    },
-    company: () =>
-      pick([
-        "Acme Corp",
-        "Tech Solutions",
-        "Global Industries",
-        "Digital Ventures",
-        "Innovation Labs",
-        "Future Systems",
-      ]),
-    role: () =>
-      pick([
-        "Software Engineer",
-        "Product Manager",
-        "Data Scientist",
-        "Designer",
-        "Marketing Director",
-        "Sales Executive",
-      ]),
-  };
+  const fakeData = new Map<string, () => string>([
+    [
+      "firstName",
+      () => pick(["John", "Jane", "Michael", "Sarah", "David", "Emily", "James", "Emma"]),
+    ],
+    [
+      "lastName",
+      () => pick(["Smith", "Johnson", "Williams", "Brown", "Jones", "Garcia", "Miller", "Davis"]),
+    ],
+    [
+      "email",
+      () => {
+        const domain = pick(["example.com", "demo.org", "test.io"]);
+        return `${Math.random().toString(36).substring(2, 15)}@${domain}`;
+      },
+    ],
+    [
+      "company",
+      () =>
+        pick([
+          "Acme Corp",
+          "Tech Solutions",
+          "Global Industries",
+          "Digital Ventures",
+          "Innovation Labs",
+          "Future Systems",
+        ]),
+    ],
+    [
+      "role",
+      () =>
+        pick([
+          "Software Engineer",
+          "Product Manager",
+          "Data Scientist",
+          "Designer",
+          "Marketing Director",
+          "Sales Executive",
+        ]),
+    ],
+  ]);
 
-  const generator = fakeData[columnId];
+  const generator = fakeData.get(columnId);
   return generator ? generator() : "";
 };
 

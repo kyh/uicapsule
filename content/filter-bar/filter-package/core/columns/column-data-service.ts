@@ -8,10 +8,14 @@ import type {
   Nullable,
   NumericValue,
 } from "../types";
+import { z } from "zod";
+
 import { isAnyOf, minMax, uniq } from "../../lib/array";
-import { isColumnOptionArray } from "../../lib/helpers";
+import { getValidNumber, isColumnOptionArray } from "../../lib/helpers";
 import { memo } from "../../lib/memo";
 import { applyOrderFns } from "../../lib/order-fns";
+
+const bigintCell = z.bigint();
 
 /**
  * Consolidated service for handling all column data operations including:
@@ -56,9 +60,13 @@ export class ColumnDataService<TData> {
     let columnOptions: ColumnOption[] = [];
 
     // Transform individual values to options
-    if (column.transformValueToOptionFn) {
+    const transformValueToOption = column.transformValueToOptionFn;
+    if (transformValueToOption) {
+      // SAFETY: flatMap flattened array-valued accessors one level, so at
+      // runtime each element is ElementType<NonNullable<TVal>> even though
+      // flatMap's typing reports NonNullable<TVal>.
       columnOptions = uniqueValues.map((m) =>
-        column.transformValueToOptionFn!(m as ElementType<NonNullable<TVal>>),
+        transformValueToOption(m as ElementType<NonNullable<TVal>>),
       );
     }
 
@@ -81,7 +89,12 @@ export class ColumnDataService<TData> {
     const values = this.getValues(column);
 
     // Add counts to base options
-    const facetedData = this.computeFacetedUniqueValues(column, values as any);
+    // SAFETY: option-based columns hold string or ColumnOption values
+    // (ColumnDataNativeMap); computeFacetedUniqueValues guards other types.
+    const facetedData = this.computeFacetedUniqueValues(
+      column,
+      values as string[] | ColumnOption[],
+    );
     const optionsWithCounts = baseOptions.map((option) => ({
       ...option,
       count: facetedData?.get(option.value) || 0,
@@ -114,6 +127,8 @@ export class ColumnDataService<TData> {
     column: ColumnConfig<TData, TType, TVal>,
   ): ElementType<NonNullable<TVal>>[] {
     // Memoize accessor calls
+    // SAFETY: flatMap flattened array-valued accessors one level, so at runtime
+    // the elements are ElementType<NonNullable<TVal>>, not NonNullable<TVal>.
     const memoizedAccessor = memo(
       () => [this.data],
       (deps) =>
@@ -132,18 +147,21 @@ export class ColumnDataService<TData> {
     }
 
     if (column.options) {
+      // SAFETY: option-based columns have string elements (ColumnDataNativeMap),
+      // and matched option values are those same strings.
       return raw
         .map((v) => column.options?.find((o) => o.value === v)?.value)
         .filter((v) => v !== undefined && v !== null) as ElementType<NonNullable<TVal>>[];
     }
 
-    if (column.transformValueToOptionFn) {
+    const transformValueToOption = column.transformValueToOptionFn;
+    if (transformValueToOption) {
+      // SAFETY: transform-based option columns yield ColumnOptions here;
+      // downstream consumers detect that shape via isColumnOptionArray.
       const memoizedTransform = memo(
         () => [raw],
         (deps) =>
-          (deps[0] ?? []).map(
-            (v) => column.transformValueToOptionFn!(v) as ElementType<NonNullable<TVal>>,
-          ),
+          (deps[0] ?? []).map((v) => transformValueToOption(v) as ElementType<NonNullable<TVal>>),
         { key: `transform-values-${column.id}` },
       );
       return memoizedTransform();
@@ -185,8 +203,8 @@ export class ColumnDataService<TData> {
       }
     } else {
       for (const option of values) {
-        const curr = acc.get(option as string) ?? 0;
-        acc.set(option as string, curr + 1);
+        const curr = acc.get(option) ?? 0;
+        acc.set(option, curr + 1);
       }
     }
 
@@ -200,37 +218,46 @@ export class ColumnDataService<TData> {
     column: ColumnConfig<TData, TType, TVal>,
   ): MinMaxReturn<TType> {
     if (!isAnyOf(column.type, ["number", "bigint"])) {
+      // SAFETY: MinMaxReturn resolves to undefined for non-numeric columns.
       return undefined as MinMaxReturn<TType>;
     }
 
     // Check for static min/max values
     if (column.min !== undefined && column.max !== undefined) {
+      // SAFETY: min/max exist only on number/bigint columns, matching
+      // MinMaxReturn for this column's runtime-checked type.
       return [column.min, column.max] as MinMaxReturn<TType>;
     }
 
     if (this.strategy === "server") {
+      // SAFETY: MinMaxReturn admits undefined for number/bigint columns.
       return undefined as MinMaxReturn<TType>;
     }
 
     // Extract values using the accessor
+    // SAFETY: number/bigint columns hold numeric accessor values
+    // (ColumnDataNativeMap); the filter below drops anything else.
     const rawValues = this.data
       .flatMap((row) => column.accessor(row) as Nullable<NumericValue>)
       .filter(
         (v): v is NumericValue =>
-          (typeof v === "number" && !Number.isNaN(v)) || typeof v === "bigint",
+          getValidNumber(v) !== undefined || bigintCell.safeParse(v).success,
       );
 
     if (rawValues.length === 0) {
       const defaultValue = column.type === "bigint" ? [0n, 0n] : [0, 0];
+      // SAFETY: the runtime tag picked the tuple kind matching MinMaxReturn.
       return defaultValue as MinMaxReturn<TType>;
     }
 
     // Filter to ensure type consistency
     if (column.type === "number") {
-      const numberValues = rawValues.filter((v): v is number => typeof v === "number");
+      const numberValues = rawValues.filter((v): v is number => getValidNumber(v) !== undefined);
+      // SAFETY: column.type fixed TType to "number", so MinMaxReturn is [number, number].
       return minMax(numberValues) as MinMaxReturn<TType>;
     }
-    const bigintValues = rawValues.filter((v): v is bigint => typeof v === "bigint");
+    const bigintValues = rawValues.filter((v): v is bigint => bigintCell.safeParse(v).success);
+    // SAFETY: the remaining numeric kind is "bigint", so MinMaxReturn is [bigint, bigint].
     return minMax(bigintValues) as MinMaxReturn<TType>;
   }
 }

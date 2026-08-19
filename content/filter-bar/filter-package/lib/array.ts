@@ -1,3 +1,5 @@
+import { z } from "zod";
+
 import { getValidNumber } from "./helpers";
 
 export function intersection<T>(a: T[], b: T[]): T[] {
@@ -9,26 +11,23 @@ export function intersection<T>(a: T[], b: T[]): T[] {
  * This function recursively builds a string for primitives, arrays, and objects.
  * It uses a cache (WeakMap) to avoid rehashing the same object twice, which is
  * particularly beneficial if an object appears in multiple places.
+ * Values that `deepEqual` considers equal always share a hash; unequal values
+ * may collide, and `uniq` resolves those collisions with `deepEqual`.
  */
 function deepHash(value: any, cache = new WeakMap<object, string>()): string {
   // Handle primitives and null/undefined.
   if (value === null) return "null";
   if (value === undefined) return "undefined";
-  const type = typeof value;
-  if (type === "number" || type === "boolean" || type === "string") {
-    return `${type}:${value.toString()}`;
-  }
-  if (type === "function") {
+  if (value instanceof Function) {
     // Note: using toString for functions.
     return `function:${value.toString()}`;
   }
 
   // For objects and arrays, use caching to avoid repeated work.
-  if (type === "object") {
+  if (value instanceof Object) {
     // If we’ve seen this object before, return the cached hash.
-    if (cache.has(value)) {
-      return cache.get(value)!;
-    }
+    const cached = cache.get(value);
+    if (cached !== undefined) return cached;
     let hash: string;
     if (Array.isArray(value)) {
       // Compute hash for each element in order.
@@ -43,8 +42,8 @@ function deepHash(value: any, cache = new WeakMap<object, string>()): string {
     return hash;
   }
 
-  // Fallback if no case matched.
-  return `${type}:${value.toString()}`;
+  // Remaining primitive kinds share one bucket; deepEqual disambiguates collisions.
+  return `primitive:${String(value)}`;
 }
 
 /**
@@ -54,8 +53,6 @@ function deepHash(value: any, cache = new WeakMap<object, string>()): string {
 function deepEqual(a: any, b: any): boolean {
   // Check strict equality first.
   if (a === b) return true;
-  // If types differ, they’re not equal.
-  if (typeof a !== typeof b) return false;
   if (a === null || b === null || a === undefined || b === undefined) return false;
 
   // Check arrays.
@@ -67,9 +64,9 @@ function deepEqual(a: any, b: any): boolean {
     return true;
   }
 
-  // Check objects.
-  if (typeof a === "object") {
-    if (typeof b !== "object") return false;
+  // Check objects (functions compare by reference only, handled above).
+  if (a instanceof Object && !(a instanceof Function)) {
+    if (!(b instanceof Object) || b instanceof Function) return false;
     const aKeys = Object.keys(a).toSorted();
     const bKeys = Object.keys(b).toSorted();
     if (aKeys.length !== bKeys.length) return false;
@@ -80,7 +77,7 @@ function deepEqual(a: any, b: any): boolean {
     return true;
   }
 
-  // For any other types (should be primitives by now), use strict equality.
+  // For any other types (primitives of differing or equal kinds), use strict equality.
   return false;
 }
 
@@ -142,10 +139,11 @@ export function isAnyOf<T>(value: T, values: T[]): boolean {
   return values.includes(value);
 }
 
-function getValidBigInt(value: any): bigint | undefined {
-  if (value === null || value === undefined) return undefined;
-  if (typeof value !== "bigint") return undefined;
-  return value;
+const bigintValue = z.bigint();
+
+function getValidBigInt(value: number | bigint | undefined): bigint | undefined {
+  const parsed = bigintValue.safeParse(value);
+  return parsed.success ? parsed.data : undefined;
 }
 
 /**
@@ -173,11 +171,8 @@ export function max(values: readonly number[]): number;
  */
 export function max(values: readonly bigint[]): bigint;
 export function max(values: readonly number[] | readonly bigint[]): number | bigint {
-  let found = false;
-
   // Check if we're dealing with numbers or bigints by looking at the first valid value
   let isNumberArray = false;
-  let isBigIntArray = false;
 
   for (let i = 0; i < values.length; i++) {
     const value = values[i];
@@ -186,15 +181,15 @@ export function max(values: readonly number[] | readonly bigint[]): number | big
       break;
     }
     if (getValidBigInt(value) !== undefined) {
-      isBigIntArray = true;
       break;
     }
   }
 
   if (isNumberArray) {
+    let found = false;
     let m = Number.NEGATIVE_INFINITY;
     for (let i = 0; i < values.length; i++) {
-      const v = getValidNumber(values[i] as any);
+      const v = getValidNumber(values[i]);
       if (v !== undefined) {
         if (v > m) m = v;
         found = true;
@@ -204,19 +199,14 @@ export function max(values: readonly number[] | readonly bigint[]): number | big
   }
 
   // BigInt array
-  let m: bigint | number = Number.NEGATIVE_INFINITY;
+  let m: bigint | undefined;
   for (let i = 0; i < values.length; i++) {
-    const v = getValidBigInt(values[i] as any);
-    if (v !== undefined) {
-      if (!found) {
-        m = v;
-        found = true;
-      } else if (typeof m === "bigint" && v > m) {
-        m = v;
-      }
+    const v = getValidBigInt(values[i]);
+    if (v !== undefined && (m === undefined || v > m)) {
+      m = v;
     }
   }
-  return found ? m : Number.NEGATIVE_INFINITY;
+  return m ?? Number.NEGATIVE_INFINITY;
 }
 
 /**
@@ -244,11 +234,8 @@ export function min(values: readonly number[]): number;
  */
 export function min(values: readonly bigint[]): bigint;
 export function min(values: readonly number[] | readonly bigint[]): number | bigint {
-  let found = false;
-
   // Check if we're dealing with numbers or bigints by looking at the first valid value
   let isNumberArray = false;
-  let isBigIntArray = false;
 
   for (let i = 0; i < values.length; i++) {
     const value = values[i];
@@ -257,15 +244,15 @@ export function min(values: readonly number[] | readonly bigint[]): number | big
       break;
     }
     if (getValidBigInt(value) !== undefined) {
-      isBigIntArray = true;
       break;
     }
   }
 
   if (isNumberArray) {
+    let found = false;
     let m = Number.POSITIVE_INFINITY;
     for (let i = 0; i < values.length; i++) {
-      const v = getValidNumber(values[i] as any);
+      const v = getValidNumber(values[i]);
       if (v !== undefined) {
         if (v < m) m = v;
         found = true;
@@ -275,19 +262,14 @@ export function min(values: readonly number[] | readonly bigint[]): number | big
   }
 
   // BigInt array
-  let m: bigint | number = Number.POSITIVE_INFINITY;
+  let m: bigint | undefined;
   for (let i = 0; i < values.length; i++) {
-    const v = getValidBigInt(values[i] as any);
-    if (v !== undefined) {
-      if (!found) {
-        m = v;
-        found = true;
-      } else if (typeof m === "bigint" && v < m) {
-        m = v;
-      }
+    const v = getValidBigInt(values[i]);
+    if (v !== undefined && (m === undefined || v < m)) {
+      m = v;
     }
   }
-  return found ? m : Number.POSITIVE_INFINITY;
+  return m ?? Number.POSITIVE_INFINITY;
 }
 
 /**
@@ -317,11 +299,8 @@ export function minMax(values: readonly bigint[]): [bigint, bigint];
 export function minMax(
   values: readonly number[] | readonly bigint[],
 ): [number, number] | [bigint, bigint] {
-  let found = false;
-
   // Check if we're dealing with numbers or bigints by looking at the first valid value
   let isNumberArray = false;
-  let isBigIntArray = false;
 
   for (let i = 0; i < values.length; i++) {
     const value = values[i];
@@ -330,17 +309,17 @@ export function minMax(
       break;
     }
     if (getValidBigInt(value) !== undefined) {
-      isBigIntArray = true;
       break;
     }
   }
 
   if (isNumberArray) {
+    let found = false;
     let minVal = Number.POSITIVE_INFINITY;
     let maxVal = Number.NEGATIVE_INFINITY;
 
     for (let i = 0; i < values.length; i++) {
-      const v = getValidNumber(values[i] as any);
+      const v = getValidNumber(values[i]);
       if (v !== undefined) {
         if (v < minVal) minVal = v;
         if (v > maxVal) maxVal = v;
@@ -352,24 +331,18 @@ export function minMax(
   }
 
   // BigInt array
-  let minVal: bigint | number = Number.POSITIVE_INFINITY;
-  let maxVal: bigint | number = Number.NEGATIVE_INFINITY;
+  let minVal: bigint | undefined;
+  let maxVal: bigint | undefined;
 
   for (let i = 0; i < values.length; i++) {
-    const v = getValidBigInt(values[i] as any);
+    const v = getValidBigInt(values[i]);
     if (v !== undefined) {
-      if (!found) {
-        minVal = v;
-        maxVal = v;
-        found = true;
-      } else {
-        if (typeof minVal === "bigint" && v < minVal) minVal = v;
-        if (typeof maxVal === "bigint" && v > maxVal) maxVal = v;
-      }
+      if (minVal === undefined || v < minVal) minVal = v;
+      if (maxVal === undefined || v > maxVal) maxVal = v;
     }
   }
 
-  return found
-    ? [minVal as bigint, maxVal as bigint]
+  return minVal !== undefined && maxVal !== undefined
+    ? [minVal, maxVal]
     : [Number.POSITIVE_INFINITY, Number.NEGATIVE_INFINITY];
 }

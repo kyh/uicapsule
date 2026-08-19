@@ -57,7 +57,7 @@ const FG_DARK = "#cff060";
 const MONO_FAMILY =
   '"JetBrains Mono", "Cascadia Mono", "DejaVu Sans Mono", Menlo, Consolas, "Liberation Mono", "Noto Sans Mono", monospace';
 
-function hexToRgb(hex: string): { r: number; g: number; b: number } {
+function hexToRgb(hex: string) {
   const h = hex.replace("#", "");
   return {
     r: parseInt(h.slice(0, 2), 16),
@@ -76,7 +76,7 @@ function mixHex(a: string, b: string, t: number): string {
   return `#${ch(ca.r, cb.r)}${ch(ca.g, cb.g)}${ch(ca.b, cb.b)}`;
 }
 
-function paletteAt(p: number): { fg: string; bg: string } {
+function paletteAt(p: number) {
   if (p <= FLIP_START) return { fg: FG_LIGHT, bg: BG_LIGHT };
   if (p >= FLIP_END) return { fg: FG_DARK, bg: BG_DARK };
   const t = smoothstep((p - FLIP_START) / (FLIP_END - FLIP_START));
@@ -182,7 +182,7 @@ export const TerminalDisintegrate = () => {
     };
 
     const reduce =
-      typeof window.matchMedia === "function" &&
+      window.matchMedia instanceof Function &&
       window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
     if (reduce) {

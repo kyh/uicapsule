@@ -89,10 +89,7 @@ interface RawItem {
 }
 
 /* ── Build the wrapping tile of cells ─────────────────────────────────── */
-export function buildCells(
-  dims: Dims,
-  photos: readonly [Photo, ...Photo[]],
-): { cells: Cell[]; tile: TileSize } {
+export function buildCells(dims: Dims, photos: readonly [Photo, ...Photo[]]) {
   const { vw, vh, isMobile } = dims;
   const cellH = isMobile ? CELL_H_MOBILE : CELL_H_DESKTOP;
   const gap = isMobile ? CELL_GAP_MOBILE : CELL_GAP_DESKTOP;

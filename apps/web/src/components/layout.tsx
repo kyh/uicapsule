@@ -81,12 +81,12 @@ type SearchSuggestion = {
   kind: SearchKind;
 };
 
-const searchKindIcon: Record<SearchKind, typeof SearchIcon> = {
+const searchKindIcon = {
   component: BoxIcon,
   category: BookmarkIcon,
   section: LayoutGridIcon,
   style: PaletteIcon,
-};
+} satisfies Record<SearchKind, typeof SearchIcon>;
 
 const componentCountLabel = (count: number) => `${count} component${count === 1 ? "" : "s"}`;
 
@@ -332,42 +332,34 @@ const SearchButton = ({ searchEntries }: { searchEntries: SearchEntry[] }) => {
   }));
 
   const querySuggestions: SearchSuggestion[] = [
-    ...componentMatches.map(
-      (entry): SearchSuggestion => ({
-        value: `component:${entry.slug}`,
-        href: `/ui/${entry.slug}`,
-        label: entry.name,
-        sublabel: "Component",
-        kind: "component",
-      }),
-    ),
-    ...categoryMatches.map(
-      (category): SearchSuggestion => ({
-        value: `category:${category.slug}`,
-        href: `/?category=${category.slug}`,
-        label: category.name,
-        sublabel: "Category",
-        kind: "category",
-      }),
-    ),
-    ...sectionMatches.map(
-      (section): SearchSuggestion => ({
-        value: `section:${section.slug}`,
-        href: `/?element=${section.slug}`,
-        label: section.name,
-        sublabel: "Section",
-        kind: "section",
-      }),
-    ),
-    ...styleMatches.map(
-      (style): SearchSuggestion => ({
-        value: `style:${style.slug}`,
-        href: `/?style=${style.slug}`,
-        label: style.name,
-        sublabel: "Style",
-        kind: "style",
-      }),
-    ),
+    ...componentMatches.map((entry): SearchSuggestion => ({
+      value: `component:${entry.slug}`,
+      href: `/ui/${entry.slug}`,
+      label: entry.name,
+      sublabel: "Component",
+      kind: "component",
+    })),
+    ...categoryMatches.map((category): SearchSuggestion => ({
+      value: `category:${category.slug}`,
+      href: `/?category=${category.slug}`,
+      label: category.name,
+      sublabel: "Category",
+      kind: "category",
+    })),
+    ...sectionMatches.map((section): SearchSuggestion => ({
+      value: `section:${section.slug}`,
+      href: `/?element=${section.slug}`,
+      label: section.name,
+      sublabel: "Section",
+      kind: "section",
+    })),
+    ...styleMatches.map((style): SearchSuggestion => ({
+      value: `style:${style.slug}`,
+      href: `/?style=${style.slug}`,
+      label: style.name,
+      sublabel: "Style",
+      kind: "style",
+    })),
   ];
 
   const browseViews: { id: SearchView; label: string; icon: typeof SearchIcon }[] = [
@@ -377,12 +369,12 @@ const SearchButton = ({ searchEntries }: { searchEntries: SearchEntry[] }) => {
     { id: "styles", label: "Styles", icon: PaletteIcon },
   ];
 
-  const viewSuggestions: Record<SearchView, SearchSuggestion[]> = {
+  const viewSuggestions = {
     trending: trendingSuggestions,
     categories: categorySuggestions,
     sections: sectionSuggestions,
     styles: styleSuggestions,
-  };
+  } satisfies Record<SearchView, SearchSuggestion[]>;
 
   const renderSuggestion = (suggestion: SearchSuggestion) => {
     const Icon = searchKindIcon[suggestion.kind];

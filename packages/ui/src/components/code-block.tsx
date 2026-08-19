@@ -1,7 +1,7 @@
 "use client";
 
 import type { ComponentProps, HTMLAttributes, ReactNode } from "react";
-import type { BundledLanguage, CodeOptionsMultipleThemes } from "shiki";
+import type { BundledLanguage, CodeOptionsMultipleThemes, SpecialLanguage } from "shiki";
 import { createContext, useContext, useEffect, useState } from "react";
 import {
   SiAstro,
@@ -88,7 +88,7 @@ import { Button } from "./button";
 import { useControllableState } from "@repo/ui/hooks/use-controllable-state";
 import { cn } from "@repo/ui/lib/utils";
 
-export type { BundledLanguage } from "shiki";
+export type { BundledLanguage, SpecialLanguage } from "shiki";
 const filenameIconMap = {
   ".env": SiDotenv,
   "*.astro": SiAstro,
@@ -234,7 +234,7 @@ const codeBlockClassName = cn(
 );
 const highlight = (
   html: string,
-  language?: BundledLanguage,
+  language?: BundledLanguage | SpecialLanguage,
   themes?: CodeOptionsMultipleThemes["themes"],
 ) =>
   codeToHtml(html, {
@@ -335,7 +335,7 @@ export const CodeBlockFilename = ({
     const regex = new RegExp(
       `^${pattern.replace(/\\/g, "\\\\").replace(/\./g, "\\.").replace(/\*/g, ".*")}$`,
     );
-    return regex.test(children as string);
+    return regex.test(String(children));
   })?.[1];
   const Icon = icon ?? defaultIcon;
   if (value !== activeValue) {
@@ -465,7 +465,7 @@ export const CodeBlockItem = ({
 };
 export type CodeBlockContentProps = HTMLAttributes<HTMLDivElement> & {
   themes?: CodeOptionsMultipleThemes["themes"];
-  language?: BundledLanguage;
+  language?: BundledLanguage | SpecialLanguage;
   syntaxHighlighting?: boolean;
   children: string;
 };
@@ -481,7 +481,7 @@ export const CodeBlockContent = ({
     if (!syntaxHighlighting) {
       return;
     }
-    highlight(children as string, language, themes)
+    highlight(children, language, themes)
       .then(setHtml)
       // biome-ignore lint/suspicious/noConsole: "it's fine"
       .catch(console.error);

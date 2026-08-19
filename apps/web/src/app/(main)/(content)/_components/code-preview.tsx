@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useRef, useState, type MouseEvent as ReactMouseEvent } from "react";
 import { frame } from "motion/react";
 import type { ReactNode } from "react";
-import type { BundledLanguage } from "shiki";
+import type { BundledLanguage, SpecialLanguage } from "shiki";
 
 import { hotkeysCoreFeature, syncDataLoaderFeature } from "@headless-tree/core";
 import { AssistiveTreeDescription, useTree } from "@headless-tree/react";
@@ -39,7 +39,7 @@ type Item = {
   children?: string[];
 };
 
-const extensionToLanguageMap: Record<string, BundledLanguage> = {
+const extensionToLanguageMap = {
   tsx: "tsx",
   ts: "typescript",
   jsx: "jsx",
@@ -56,11 +56,14 @@ const extensionToLanguageMap: Record<string, BundledLanguage> = {
   yaml: "yaml",
   yml: "yaml",
   sh: "bash",
-};
+} satisfies Record<string, BundledLanguage>;
 
-const getLanguageFromPath = (path: string): BundledLanguage => {
+const isKnownExtension = (ext: string): ext is keyof typeof extensionToLanguageMap =>
+  ext in extensionToLanguageMap;
+
+const getLanguageFromPath = (path: string): BundledLanguage | SpecialLanguage => {
   const ext = path.split(".").pop()?.toLowerCase();
-  return extensionToLanguageMap[ext ?? ""] ?? ("txt" as BundledLanguage);
+  return ext != null && isKnownExtension(ext) ? extensionToLanguageMap[ext] : "txt";
 };
 
 function getFileIcon(extension: string | undefined, className: string): ReactNode {
@@ -87,7 +90,7 @@ function getFileIcon(extension: string | undefined, className: string): ReactNod
 }
 
 // Convert sourceCode record into a tree structure
-const buildFileTree = (files: Record<string, { code: string }>): Record<string, Item> => {
+const buildFileTree = (files: Record<string, { code: string }>) => {
   const tree: Record<string, Item> = {};
   const rootChildren = new Set<string>();
 
@@ -201,7 +204,7 @@ export const CodePreview = ({ sourceFiles }: CodePreviewProps) => {
     );
   }, [selectedPath, allFiles]);
 
-  const codeLanguage = useMemo<BundledLanguage>(
+  const codeLanguage = useMemo<BundledLanguage | SpecialLanguage>(
     () => (selectedPath ? getLanguageFromPath(selectedPath) : "tsx"),
     [selectedPath],
   );
@@ -266,9 +269,7 @@ export const CodePreview = ({ sourceFiles }: CodePreviewProps) => {
         <CodeBlockBody>
           {(item) => (
             <CodeBlockItem key={item.language} value={item.language}>
-              <CodeBlockContent language={item.language as BundledLanguage}>
-                {item.code}
-              </CodeBlockContent>
+              <CodeBlockContent language={codeLanguage}>{item.code}</CodeBlockContent>
             </CodeBlockItem>
           )}
         </CodeBlockBody>

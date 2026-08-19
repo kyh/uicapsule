@@ -93,7 +93,7 @@ function clamp(v: number, lo: number, hi: number): number {
  * dead band where the panel was positioned beside a card that had already moved
  * to centre — at 800x600 the panel sat on top of the thing it described.
  */
-function selectionTarget(w: number, h: number): { x: number; y: number } {
+function selectionTarget(w: number, h: number) {
   if (usesSideLayout(w, h)) return { x: 0.34 * w, y: 0.5 * h };
   return { x: 0.5 * w, y: 0.2 * h + 28 };
 }

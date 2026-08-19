@@ -44,7 +44,7 @@ export default function DynamicIsland() {
   const content = viewContent(view);
   const spring: Transition = {
     type: "spring",
-    bounce: BOUNCE_VARIANTS[variantKey] ?? DEFAULT_BOUNCE,
+    bounce: BOUNCE_VARIANTS.get(variantKey) ?? DEFAULT_BOUNCE,
   };
 
   return (
@@ -82,7 +82,7 @@ export default function DynamicIsland() {
         </motion.div>
 
         <div className="pointer-events-none absolute top-0 left-1/2 flex h-[200px] w-[300px] -translate-x-1/2 items-start justify-center">
-          <AnimatePresence mode="popLayout" custom={ANIMATION_VARIANTS[variantKey]}>
+          <AnimatePresence mode="popLayout" custom={ANIMATION_VARIANTS.get(variantKey)}>
             <motion.div initial={{ opacity: 0 }} exit="exit" variants={variants} key={view}>
               {content}
             </motion.div>
@@ -119,38 +119,22 @@ const variants = {
   },
 };
 
-const ANIMATION_VARIANTS: Partial<Record<VariantKey, AnimationVariant>> = {
-  "ring-idle": {
-    scale: 0.9,
-    scaleX: 0.9,
-    bounce: 0.5,
-  },
-  "timer-ring": {
-    scale: 0.7,
-    y: -7.5,
-    bounce: 0.35,
-  },
-  "ring-timer": {
-    scale: 1.4,
-    y: 7.5,
-    bounce: 0.35,
-  },
-  "timer-idle": {
-    scale: 0.7,
-    y: -7.5,
-    bounce: 0.3,
-  },
-};
+const ANIMATION_VARIANTS = new Map<VariantKey, AnimationVariant>([
+  ["ring-idle", { scale: 0.9, scaleX: 0.9, bounce: 0.5 }],
+  ["timer-ring", { scale: 0.7, y: -7.5, bounce: 0.35 }],
+  ["ring-timer", { scale: 1.4, y: 7.5, bounce: 0.35 }],
+  ["timer-idle", { scale: 0.7, y: -7.5, bounce: 0.3 }],
+]);
 
 // Fallback for pairs the table below does not name (e.g. expanded ↔ expanded).
 const DEFAULT_BOUNCE = 0.4;
 
-const BOUNCE_VARIANTS: Partial<Record<VariantKey, number>> = {
-  idle: 0.5,
-  "ring-idle": 0.5,
-  "timer-ring": 0.35,
-  "ring-timer": 0.35,
-  "timer-idle": 0.3,
-  "idle-timer": 0.3,
-  "idle-ring": 0.5,
-};
+const BOUNCE_VARIANTS = new Map<VariantKey, number>([
+  ["idle", 0.5],
+  ["ring-idle", 0.5],
+  ["timer-ring", 0.35],
+  ["ring-timer", 0.35],
+  ["timer-idle", 0.3],
+  ["idle-timer", 0.3],
+  ["idle-ring", 0.5],
+]);

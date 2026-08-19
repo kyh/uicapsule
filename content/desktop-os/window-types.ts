@@ -16,14 +16,13 @@ export interface OpenWindow {
   readonly folderName?: string;
 }
 
-export const DEFAULT_WINDOW_SIZES: Record<WindowKind, { readonly w: number; readonly h: number }> =
-  {
-    quicklook: { w: 760, h: 560 },
-    photos: { w: 880, h: 600 },
-    notes: { w: 720, h: 520 },
-    finder: { w: 760, h: 460 },
-    terminal: { w: 640, h: 400 },
-  };
+export const DEFAULT_WINDOW_SIZES = {
+  quicklook: { w: 760, h: 560 },
+  photos: { w: 880, h: 600 },
+  notes: { w: 720, h: 520 },
+  finder: { w: 760, h: 460 },
+  terminal: { w: 640, h: 400 },
+} satisfies Record<WindowKind, { readonly w: number; readonly h: number }>;
 
 export interface WindowCtx {
   readonly isMobile: boolean;

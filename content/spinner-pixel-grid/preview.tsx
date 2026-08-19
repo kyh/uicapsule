@@ -4,15 +4,15 @@ import { useState } from "react";
 
 import {
   SpinnerPixelGrid,
-  spinnerShapes,
+  spinnerDots,
   spinnerVariants,
-  type SpinnerShape,
+  type SpinnerDot,
 } from "./spinner-pixel-grid";
 
 const Preview = () => {
   const [glow, setGlow] = useState(true);
   const [rainbow, setRainbow] = useState(true);
-  const [shape, setShape] = useState<SpinnerShape>("square");
+  const [dot, setDot] = useState<SpinnerDot>("square");
 
   return (
     <div className="min-h-screen bg-black text-yellow-300">
@@ -27,14 +27,14 @@ const Preview = () => {
         </label>
         <div className="flex items-center gap-2 text-sm text-gray-300">
           Shape:
-          {spinnerShapes.map((s) => (
+          {spinnerDots.map((s) => (
             <button
               key={s}
               type="button"
-              aria-pressed={shape === s}
-              onClick={() => setShape(s)}
+              aria-pressed={dot === s}
+              onClick={() => setDot(s)}
               className={
-                shape === s
+                dot === s
                   ? "rounded bg-white/15 px-2 py-1 capitalize"
                   : "rounded px-2 py-1 capitalize text-gray-500 hover:text-gray-300"
               }
@@ -53,7 +53,7 @@ const Preview = () => {
           >
             <SpinnerPixelGrid
               variant={variant}
-              shape={shape}
+              dot={dot}
               glow={glow}
               rainbow={rainbow}
               size={10}

@@ -21,12 +21,12 @@ const WIDTH_BY_SIZE = { sm: 360, md: 720, full: 1392 } as const satisfies Record
   number
 >;
 
-const KEY_DELTA: Record<string, 1 | -1> = {
-  ArrowDown: 1,
-  j: 1,
-  ArrowUp: -1,
-  k: -1,
-};
+const KEY_DELTA = new Map<string, 1 | -1>([
+  ["ArrowDown", 1],
+  ["j", 1],
+  ["ArrowUp", -1],
+  ["k", -1],
+]);
 
 type ContentFeedProps = {
   initialSlug: string;
@@ -122,7 +122,7 @@ export const ContentFeed = ({ initialSlug, feed }: ContentFeedProps) => {
         return;
       }
 
-      const delta = KEY_DELTA[e.key];
+      const delta = KEY_DELTA.get(e.key);
       if (!delta) return;
       if (document.querySelector('[role="dialog"], [role="alertdialog"]')) return;
 

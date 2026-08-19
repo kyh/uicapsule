@@ -48,7 +48,7 @@ const PINWHEEL = [
   { angle: 315, fill: "#b9d34a" },
 ] as const;
 
-const GLYPHS: Record<GlyphId, ReactNode> = {
+const GLYPHS = {
   files: (
     <Squircle background="linear-gradient(165deg, #6fc0ff 0%, #2f7fe6 52%, #1f57b8 100%)">
       <path
@@ -161,7 +161,7 @@ const GLYPHS: Record<GlyphId, ReactNode> = {
       <path d="M3 27h58v3H3z" fill="rgba(255,255,255,0.45)" />
     </svg>
   ),
-};
+} satisfies Record<GlyphId, ReactNode>;
 
 /**
  * Fills its square container edge to edge — the dock magnification lerps the

@@ -62,17 +62,21 @@ export function useDataTableFilters<
         // For controlled mode, we need to resolve the function and call the handler
         const prevFilters = filters;
         const resolvedNextFilters =
-          typeof nextFilters === "function"
+          nextFilters instanceof Function
             ? nextFilters(prevFilters) // If function: call it with prev to get next
             : nextFilters; // If value: use it directly
 
         // Detect handler type by function length and call appropriately
         if (onFiltersChange.length <= 1) {
           // React Dispatch style
+          // SAFETY: an arity of at most 1 identifies the Dispatch form of the
+          // onFiltersChange union; TS cannot discriminate functions by length.
           const dispatchHandler = onFiltersChange as Dispatch<SetStateAction<FiltersState>>;
           dispatchHandler(resolvedNextFilters);
         } else {
           // Custom handler style - pass prev, next, and context
+          // SAFETY: an arity of 2 or more identifies the custom updater form of
+          // the onFiltersChange union; TS cannot discriminate functions by length.
           const customHandler = onFiltersChange as (
             prev: FiltersState,
             next: FiltersState,
@@ -96,6 +100,8 @@ export function useDataTableFilters<
 
       // Set options, if exists
       if (options && (config.type === "option" || config.type === "multiOption")) {
+        // SAFETY: indexing with a non-option column id only yields undefined,
+        // which the guard below rejects.
         const optionsInput = options[config.id as OptionColumnIds<TColumns>];
         if (!optionsInput || !isColumnOptionArray(optionsInput)) return config;
 
@@ -104,6 +110,8 @@ export function useDataTableFilters<
 
       // Set faceted options, if exists
       if (faceted && (config.type === "option" || config.type === "multiOption")) {
+        // SAFETY: indexing with a non-option column id only yields undefined,
+        // which the guard below rejects.
         const facetedOptionsInput = faceted[config.id as OptionColumnIds<TColumns>];
         if (!facetedOptionsInput || !isColumnOptionMap(facetedOptionsInput)) return config;
 
@@ -112,6 +120,8 @@ export function useDataTableFilters<
 
       // Set faceted min/max values, if exists
       if (config.type === "number" && faceted) {
+        // SAFETY: indexing with a non-number column id only yields undefined,
+        // which the guard below rejects.
         const minMaxTuple = faceted[config.id as NumberColumnIds<TColumns>];
         if (!minMaxTuple || !isMinMaxTuple(minMaxTuple)) return config;
 

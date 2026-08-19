@@ -7,10 +7,7 @@ import type {
   FilterValues,
 } from "./types";
 
-export const DEFAULT_OPERATORS: Record<
-  ColumnDataType,
-  Record<FilterOperatorTarget, FilterOperators[ColumnDataType]>
-> = {
+export const DEFAULT_OPERATORS = {
   text: {
     single: "contains",
     multiple: "contains",
@@ -39,7 +36,7 @@ export const DEFAULT_OPERATORS: Record<
     single: "include",
     multiple: "include any of",
   },
-};
+} satisfies Record<ColumnDataType, Record<FilterOperatorTarget, FilterOperators[ColumnDataType]>>;
 
 /* Details for all the filter operators for option data type */
 export const optionFilterOperators = {

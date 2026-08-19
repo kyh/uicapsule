@@ -311,7 +311,7 @@ export const DesktopOS = (): ReactNode => {
    * or slides under the dock. Derived from live geometry rather than baked
    * constants so it holds at any frame size and for any dock height.
    */
-  const tileBounds = (boxW: number, boxH: number): { maxX: number; maxY: number } => {
+  const tileBounds = (boxW: number, boxH: number) => {
     const sec = sectionRef.current;
     const vw = sec?.clientWidth ?? 1280;
     const vh = sec?.clientHeight ?? 800;

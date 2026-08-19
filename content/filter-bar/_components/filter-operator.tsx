@@ -60,6 +60,8 @@ export function FilterOperator<TData, TType extends ColumnDataType>({
             className="m-0 h-full w-fit rounded-none p-0 px-2 text-xs whitespace-nowrap"
             onClick={() => {
               if (column.type !== "boolean") return;
+              // SAFETY: the guard above returned unless column.type is
+              // "boolean", and a filter always shares its column's TType.
               const opDetails =
                 filterTypeOperatorDetails.boolean[filter.operator as FilterOperators["boolean"]];
 
@@ -126,6 +128,8 @@ export function FilterOperatorController<TData, TType extends ColumnDataType>({
 }: FilterOperatorControllerProps<TData, TType>) {
   switch (column.type) {
     case "option":
+      // SAFETY: column.type fixes TType to "option", and filter always shares
+      // its column's TType.
       return (
         <FilterOperatorOptionController
           filter={filter as FilterModel<"option">}
@@ -135,6 +139,8 @@ export function FilterOperatorController<TData, TType extends ColumnDataType>({
         />
       );
     case "multiOption":
+      // SAFETY: column.type fixes TType to "multiOption", and filter always shares
+      // its column's TType.
       return (
         <FilterOperatorMultiOptionController
           filter={filter as FilterModel<"multiOption">}
@@ -144,6 +150,8 @@ export function FilterOperatorController<TData, TType extends ColumnDataType>({
         />
       );
     case "date":
+      // SAFETY: column.type fixes TType to "date", and filter always shares
+      // its column's TType.
       return (
         <FilterOperatorDateController
           filter={filter as FilterModel<"date">}
@@ -153,6 +161,8 @@ export function FilterOperatorController<TData, TType extends ColumnDataType>({
         />
       );
     case "text":
+      // SAFETY: column.type fixes TType to "text", and filter always shares
+      // its column's TType.
       return (
         <FilterOperatorTextController
           filter={filter as FilterModel<"text">}
@@ -162,6 +172,8 @@ export function FilterOperatorController<TData, TType extends ColumnDataType>({
         />
       );
     case "number":
+      // SAFETY: column.type fixes TType to "number", and filter always shares
+      // its column's TType.
       return (
         <FilterOperatorNumberController
           filter={filter as FilterModel<"number">}
@@ -171,6 +183,8 @@ export function FilterOperatorController<TData, TType extends ColumnDataType>({
         />
       );
     case "boolean":
+      // SAFETY: column.type fixes TType to "boolean", and filter always shares
+      // its column's TType.
       return (
         <FilterOperatorBooleanController
           filter={filter as FilterModel<"boolean">}
@@ -197,7 +211,9 @@ function FilterOperatorOptionController<TData>({
   );
 
   const changeOperator = (value: string) => {
-    actions?.setFilterOperator(column.id, value as FilterOperators["option"]);
+    const operator = relatedFilters.find((o) => o.value === value)?.value;
+    if (operator === undefined) return;
+    actions?.setFilterOperator(column.id, operator);
     closeController();
   };
 
@@ -227,7 +243,9 @@ function FilterOperatorMultiOptionController<TData>({
   );
 
   const changeOperator = (value: string) => {
-    actions?.setFilterOperator(column.id, value as FilterOperators["multiOption"]);
+    const operator = relatedFilters.find((o) => o.value === value)?.value;
+    if (operator === undefined) return;
+    actions?.setFilterOperator(column.id, operator);
     closeController();
   };
 
@@ -257,7 +275,9 @@ function FilterOperatorDateController<TData>({
   );
 
   const changeOperator = (value: string) => {
-    actions?.setFilterOperator(column.id, value as FilterOperators["date"]);
+    const operator = relatedFilters.find((o) => o.value === value)?.value;
+    if (operator === undefined) return;
+    actions?.setFilterOperator(column.id, operator);
     closeController();
   };
 
@@ -287,7 +307,9 @@ export function FilterOperatorTextController<TData>({
   );
 
   const changeOperator = (value: string) => {
-    actions?.setFilterOperator(column.id, value as FilterOperators["text"]);
+    const operator = relatedFilters.find((o) => o.value === value)?.value;
+    if (operator === undefined) return;
+    actions?.setFilterOperator(column.id, operator);
     closeController();
   };
 
@@ -317,7 +339,9 @@ function FilterOperatorNumberController<TData>({
   );
 
   const changeOperator = (value: string) => {
-    actions?.setFilterOperator(column.id, value as FilterOperators["number"]);
+    const operator = relatedFilters.find((o) => o.value === value)?.value;
+    if (operator === undefined) return;
+    actions?.setFilterOperator(column.id, operator);
     closeController();
   };
 
@@ -347,7 +371,9 @@ function FilterOperatorBooleanController<TData>({
   );
 
   const changeOperator = (value: string) => {
-    actions?.setFilterOperator(column.id, value as FilterOperators["boolean"]);
+    const operator = relatedFilters.find((o) => o.value === value)?.value;
+    if (operator === undefined) return;
+    actions?.setFilterOperator(column.id, operator);
     closeController();
   };
 

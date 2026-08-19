@@ -1,8 +1,11 @@
 import { create } from "zustand";
 
+/** A cell holds the text typed into it, or `undefined` once cleared by Delete/Backspace. */
+export type CellValue = string | undefined;
+
 export interface SpreadsheetRow {
   id: string;
-  [key: string]: unknown;
+  [key: string]: CellValue;
 }
 
 export interface SpreadsheetStore {
@@ -35,8 +38,8 @@ export interface SpreadsheetStore {
   setDragLineVisible: (visible: boolean) => void;
 
   // Actions
-  updateData: (rowId: string, columnId: string, value: unknown) => void;
-  updateSelectedCellsData: (value: unknown) => void;
+  updateData: (rowId: string, columnId: string, value: CellValue) => void;
+  updateSelectedCellsData: (value: CellValue) => void;
   addRow: (onCreateRow?: (rowIndex: number) => SpreadsheetRow) => void;
   deleteRow: (rowId: string) => void;
 }
@@ -54,13 +57,13 @@ export const useSpreadsheetStore = create<SpreadsheetStore>((set, get) => ({
   // Setters
   setData: (data) => {
     set((state) => ({
-      data: typeof data === "function" ? data(state.data) : data,
+      data: data instanceof Function ? data(state.data) : data,
     }));
   },
 
   setSelectedCells: (cells) => {
     set((state) => ({
-      selectedCells: typeof cells === "function" ? cells(state.selectedCells) : cells,
+      selectedCells: cells instanceof Function ? cells(state.selectedCells) : cells,
     }));
   },
 
@@ -70,7 +73,7 @@ export const useSpreadsheetStore = create<SpreadsheetStore>((set, get) => ({
 
   setColumnWidths: (widths) => {
     set((state) => ({
-      columnWidths: typeof widths === "function" ? widths(state.columnWidths) : widths,
+      columnWidths: widths instanceof Function ? widths(state.columnWidths) : widths,
     }));
   },
 

@@ -1,4 +1,5 @@
 import { isBefore } from "date-fns";
+import { z } from "zod";
 
 import type { Column, ColumnOption, FiltersState } from "../core/types";
 import {
@@ -82,66 +83,59 @@ export function createBigIntRange(values: bigint[] | undefined) {
   return [min, max];
 }
 
-export function isColumnOption(value: unknown): value is ColumnOption {
-  return typeof value === "object" && value !== null && "value" in value && "label" in value;
+export function isColumnOption<T>(value: T | ColumnOption): value is ColumnOption {
+  return value instanceof Object && "value" in value && "label" in value;
 }
 
-export function isColumnOptionArray(value: unknown): value is ColumnOption[] {
-  return Array.isArray(value) && value.every(isColumnOption);
+export function isColumnOptionArray<T>(value: T[] | ColumnOption[]): value is ColumnOption[] {
+  return Array.isArray(value) && value.every((item) => isColumnOption(item));
 }
 
-export function isStringArray(value: unknown): value is string[] {
-  return Array.isArray(value) && value.every((v) => typeof v === "string");
+const stringValue = z.string();
+
+export function isStringArray<T>(value: T[] | string[]): value is string[] {
+  return Array.isArray(value) && value.every((v) => stringValue.safeParse(v).success);
 }
 
-export function isColumnOptionMap(value: unknown): value is Map<string, number> {
-  if (!(value instanceof Map)) {
-    return false;
+/* The faceted input for a column: option counts keyed by value, or a numeric min/max pair. */
+export type FacetedInput = Map<string, number> | [number, number];
+
+export function isColumnOptionMap(value: FacetedInput): value is Map<string, number> {
+  return value instanceof Map;
+}
+
+export function isMinMaxTuple(value: FacetedInput): value is [number, number] {
+  return Array.isArray(value) && value.length === 2;
+}
+
+// z.number() alone rejects the infinities, which are deliberately valid here.
+const numberValue = z.union([
+  z.number(),
+  z.literal(Number.POSITIVE_INFINITY),
+  z.literal(Number.NEGATIVE_INFINITY),
+]);
+
+export function getValidNumber(value: number | bigint | null | undefined): number | undefined {
+  const parsed = numberValue.safeParse(value);
+  return parsed.success ? parsed.data : undefined;
+}
+
+export function isValidNumber(value: number): boolean {
+  return numberValue.safeParse(value).success;
+}
+
+const bigIntInput = z.union([z.bigint(), z.string(), z.number()]);
+
+export function getValidBigInt(
+  value: bigint | number | string | null | undefined,
+): bigint | undefined {
+  const parsed = bigIntInput.safeParse(value);
+  if (!parsed.success) return undefined;
+  try {
+    return BigInt(parsed.data);
+  } catch {
+    return undefined;
   }
-  for (const key of value.keys()) {
-    if (typeof key !== "string") {
-      return false;
-    }
-  }
-  for (const val of value.values()) {
-    if (typeof val !== "number") {
-      return false;
-    }
-  }
-  return true;
-}
-
-export function isMinMaxTuple(value: unknown): value is [number, number] {
-  return (
-    Array.isArray(value) &&
-    value.length === 2 &&
-    typeof value[0] === "number" &&
-    typeof value[1] === "number"
-  );
-}
-export function getValidNumber(value: any): number | undefined {
-  if (value === null || value === undefined) return undefined;
-  if (typeof value !== "number") return undefined;
-  if (Number.isNaN(value)) return undefined;
-
-  return value; // This includes Infinity and -Infinity, which are valid
-}
-
-export function isValidNumber(value: any): value is number {
-  return typeof value === "number" && !Number.isNaN(value);
-}
-
-export function getValidBigInt(value: any): bigint | undefined {
-  if (value === null || value === undefined) return undefined;
-  if (typeof value === "bigint") return value;
-  if (typeof value === "string" || typeof value === "number") {
-    try {
-      return BigInt(value);
-    } catch {
-      return undefined;
-    }
-  }
-  return undefined;
 }
 
 export function filterRow(row: any, filters: FiltersState) {

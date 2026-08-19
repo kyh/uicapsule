@@ -122,8 +122,8 @@ export function applyOrderFns(orderFns: TOrderFns, options: ColumnOption[]): Col
  * }
  * ```
  */
-export function isBuiltInOrderFnName(value: unknown): value is TBuiltInOrderFnName {
-  return typeof value === "string" && value in orderFns;
+export function isBuiltInOrderFnName(value: string): value is TBuiltInOrderFnName {
+  return value in orderFns;
 }
 
 /**
@@ -139,8 +139,8 @@ export function isBuiltInOrderFnName(value: unknown): value is TBuiltInOrderFnNa
  * }
  * ```
  */
-export function isOrderDirection(value: unknown): value is OrderDirection {
-  return typeof value === "string" && (value === "asc" || value === "desc");
+export function isOrderDirection(value: string): value is OrderDirection {
+  return value === "asc" || value === "desc";
 }
 
 /**
@@ -158,8 +158,8 @@ export function isOrderDirection(value: unknown): value is OrderDirection {
  * }
  * ```
  */
-export function isCustomOrderFn(value: unknown): value is TCustomOrderFn {
-  return typeof value === "function" && value.length === 2;
+export function isCustomOrderFn(value: TOrderFnArg): value is TCustomOrderFn {
+  return value instanceof Function && value.length === 2;
 }
 
 /**
@@ -178,7 +178,7 @@ export function isCustomOrderFn(value: unknown): value is TCustomOrderFn {
  * ```
  */
 export function isBuiltInOrderFnTuple(
-  value: unknown,
+  value: TOrderFnArg,
 ): value is [TBuiltInOrderFnName, OrderDirection] {
   return (
     Array.isArray(value) &&
@@ -203,6 +203,6 @@ export function isBuiltInOrderFnTuple(
  * isOrderFnArg('invalid') // false
  * ```
  */
-export function isOrderFnArg(value: unknown): value is TOrderFnArg {
+export function isOrderFnArg(value: TOrderFnArg): boolean {
   return isBuiltInOrderFnTuple(value) || isCustomOrderFn(value);
 }

@@ -188,12 +188,14 @@ const variantConfigs = {
   heart: { keyframe: "pixel-beat", duration: 1.2, mask: heartMask, delay: () => 0 },
 } satisfies Record<string, VariantConfig>;
 
+// SAFETY: `variantConfigs` is a closed object literal, so its runtime keys are
+// exactly `keyof typeof variantConfigs`; Object.keys only widens to string[].
 const variants = Object.keys(variantConfigs) as SpinnerVariant[];
 
-const shapes = ["square", "circle"] as const;
+const dots = ["square", "circle"] as const;
 
 type SpinnerVariant = keyof typeof variantConfigs;
-type SpinnerShape = (typeof shapes)[number];
+type SpinnerDot = (typeof dots)[number];
 
 type SpinnerProps = ComponentProps<"div"> & {
   /** Pixel size of each dot. */
@@ -201,8 +203,8 @@ type SpinnerProps = ComponentProps<"div"> & {
   /** Number of dots per row/column. */
   gridSize?: number;
   variant?: SpinnerVariant;
-  /** Shape of each dot. */
-  shape?: SpinnerShape;
+  /** Geometry of each dot. */
+  dot?: SpinnerDot;
   /** Dot color. Any CSS color; defaults to the inherited text color. */
   color?: string;
   /** Render the neon glow around each dot. */
@@ -244,7 +246,7 @@ export const SpinnerPixelGrid = ({
   size = 8,
   gridSize = 3,
   variant = "default",
-  shape = "square",
+  dot = "square",
   color = "currentColor",
   glow = true,
   speed = 1,
@@ -290,7 +292,7 @@ export const SpinnerPixelGrid = ({
                   className="absolute inset-0"
                   style={{
                     backgroundColor: "var(--spinner-color)",
-                    borderRadius: shape === "circle" ? "50%" : undefined,
+                    borderRadius: dot === "circle" ? "50%" : undefined,
                     boxShadow: glow
                       ? "0 0 10px var(--spinner-color), 0 0 20px var(--spinner-color), 0 0 40px var(--spinner-color)"
                       : undefined,
@@ -308,5 +310,5 @@ export const SpinnerPixelGrid = ({
   );
 };
 
-export { variants as spinnerVariants, shapes as spinnerShapes };
-export type { SpinnerVariant, SpinnerShape };
+export { variants as spinnerVariants, dots as spinnerDots };
+export type { SpinnerVariant, SpinnerDot };

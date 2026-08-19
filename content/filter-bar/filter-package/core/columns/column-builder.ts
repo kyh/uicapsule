@@ -29,28 +29,33 @@ export class ColumnConfigBuilder<
 > {
   private config: Partial<ColumnConfig<TData, TType, TVal, TId>>;
 
-  constructor(type: TType) {
-    this.config = { type } as Partial<ColumnConfig<TData, TType, TVal, TId>>;
+  constructor(private readonly columnType: TType) {
+    this.config = { type: columnType };
   }
 
   private clone(): ColumnConfigBuilder<TData, TType, TVal, TId> {
-    const newInstance = new ColumnConfigBuilder<TData, TType, TVal, TId>(this.config.type as TType);
+    const newInstance = new ColumnConfigBuilder<TData, TType, TVal, TId>(this.columnType);
     newInstance.config = { ...this.config };
     return newInstance;
   }
 
   id<TNewId extends string>(value: TNewId): ColumnConfigBuilder<TData, TType, TVal, TNewId> {
-    const newInstance = this.clone() as ColumnConfigBuilder<any, any, any, any>;
-    newInstance.config.id = value;
-    return newInstance as ColumnConfigBuilder<TData, TType, TVal, TNewId>;
+    const newInstance = new ColumnConfigBuilder<TData, TType, TVal, TNewId>(this.columnType);
+    newInstance.config = { ...this.config, id: value };
+    return newInstance;
   }
 
   accessor<TNewVal>(
     accessor: TAccessorFn<TData, TNewVal>,
   ): ColumnConfigBuilder<TData, TType, TNewVal, TId> {
-    const newInstance = this.clone() as ColumnConfigBuilder<any, any, any, any>;
-    newInstance.config.accessor = accessor;
-    return newInstance as ColumnConfigBuilder<TData, TType, TNewVal, TId>;
+    const newInstance = new ColumnConfigBuilder<TData, TType, TNewVal, TId>(this.columnType);
+    // SAFETY: re-keys the builder's TVal generic. The only carried field
+    // mentioning TVal is transformValueToOptionFn, which the fluent API sets
+    // after accessor(), and validateType guards it at runtime.
+    newInstance.config = { ...this.config, accessor } as Partial<
+      ColumnConfig<TData, TType, TNewVal, TId>
+    >;
+    return newInstance;
   }
 
   displayName(value: string): ColumnConfigBuilder<TData, TType, TVal, TId> {
@@ -74,26 +79,35 @@ export class ColumnConfigBuilder<
   // Number-specific methods
   min(value: TType extends "number" ? number : TType extends "bigint" ? bigint : never): this {
     this.validateType(["number", "bigint"], "min()");
-    this.config.min = value as any;
+    this.config.min = value;
     return this;
   }
 
   max(value: TType extends "number" ? number : TType extends "bigint" ? bigint : never): this {
     this.validateType(["number", "bigint"], "max()");
-    this.config.max = value as any;
+    this.config.max = value;
     return this;
   }
 
   // Option-specific methods
   options(value: ColumnOption[]): this {
     this.validateType(["option", "multiOption"], "options()");
-    this.config.options = value as any;
+    // SAFETY: validateType threw unless this is an option-based column, where
+    // the conditional field type resolves to ColumnOption[].
+    this.config.options = value as ColumnConfig<TData, TType, TVal, TId>["options"];
     return this;
   }
 
   transformValueToOptionFn(fn: TTransformValueToOptionFn<TVal>): this {
     this.validateType(["option", "multiOption"], "transformValueToOptionFn()");
-    this.config.transformValueToOptionFn = fn as any;
+    // SAFETY: validateType threw unless this is an option-based column, where
+    // the conditional field type resolves to TTransformValueToOptionFn<TVal>.
+    this.config.transformValueToOptionFn = fn as ColumnConfig<
+      TData,
+      TType,
+      TVal,
+      TId
+    >["transformValueToOptionFn"];
     return this;
   }
 
@@ -106,7 +120,14 @@ export class ColumnConfigBuilder<
    */
   transformOptionsFn(fn: TTransformOptionsFn): this {
     this.validateType(["option", "multiOption"], "transformOptionsFn()");
-    this.config.transformOptionsFn = fn as any;
+    // SAFETY: validateType threw unless this is an option-based column, where
+    // the conditional field type resolves to TTransformOptionsFn.
+    this.config.transformOptionsFn = fn as ColumnConfig<
+      TData,
+      TType,
+      TVal,
+      TId
+    >["transformOptionsFn"];
     return this;
   }
 
@@ -142,7 +163,9 @@ export class ColumnConfigBuilder<
       }
     }
 
-    this.config.orderFn = orderFnsToApply as any;
+    // SAFETY: validateType threw unless this is an option-based column, where
+    // the conditional field type resolves to TOrderFns.
+    this.config.orderFn = orderFnsToApply as ColumnConfig<TData, TType, TVal, TId>["orderFn"];
     return this;
   }
 
@@ -152,6 +175,8 @@ export class ColumnConfigBuilder<
     if (this.config.type !== "boolean")
       throw new Error("toggledStateName() is only applicable to boolean columns");
 
+    // SAFETY: the guard above threw unless the column type is "boolean";
+    // widening the builder lets the boolean-only conditional field be set.
     const newInstance = this.clone() as ColumnConfigBuilder<any, any, any, any>;
     newInstance.config.toggledStateName = value;
     return newInstance;
@@ -174,6 +199,8 @@ export class ColumnConfigBuilder<
 
   build(): ColumnConfig<TData, TType, TVal, TId> {
     this.validateRequiredFields();
+    // SAFETY: validateRequiredFields threw unless id, accessor, and displayName
+    // are present; type is always set by the constructor.
     return this.config as ColumnConfig<TData, TType, TVal, TId>;
   }
 

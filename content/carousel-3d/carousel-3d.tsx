@@ -34,6 +34,9 @@ declare module "@react-three/fiber" {
   interface ThreeElements extends ThreeToJSXElements<typeof THREE> {}
 }
 
+// SAFETY: the documented r3f v9 WebGPU setup — the `three/tsl` namespace
+// bundles nodes and functions alongside constructables, which r3f's
+// class-only catalogue type cannot ingest; `extend` filters at runtime.
 extend(THREE as any);
 
 /** Cards are laid out on the ring at a fixed 16:9 ratio regardless of source image. */
@@ -72,6 +75,9 @@ export const ImageCarouselCanvas = ({
       camera={{ position: [0, 0, 12], fov: 45 }}
       frameloop={frameloop}
       gl={async (props) => {
+        // SAFETY: r3f hands WebGL-shaped renderer props whose fields
+        // (canvas, antialias, alpha, ...) WebGPURenderer accepts at runtime;
+        // upstream ships no WebGPU-aware `gl` typing yet.
         const renderer = new WebGPURenderer(props as any);
         renderer.init().then(() => {
           setFrameloop("always");

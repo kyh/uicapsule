@@ -24,13 +24,13 @@ const RESPONSES = [
 
 const SPRING: Transition = { type: "spring", duration: 0.55, bounce: 0.3 };
 
-const WIDTHS: Record<Mode, string> = {
+const WIDTHS = {
   idle: "w-[260px]",
   input: "w-[min(400px,calc(100vw-48px))]",
   listening: "w-[300px]",
   thinking: "w-[200px]",
   responding: "w-[min(420px,calc(100vw-48px))]",
-};
+} satisfies Record<Mode, string>;
 
 const pickIndex = (length: number) => Math.floor(Math.random() * length);
 

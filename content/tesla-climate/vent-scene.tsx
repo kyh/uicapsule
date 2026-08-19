@@ -178,7 +178,7 @@ export const VentScene: FC<VentSceneProps> = ({ tempF, fanSpeed, powerOn, acOn }
 
         // Heavy pass = mist body, light pass = fiber detail.
         context.save();
-        if (typeof context.filter === "string") {
+        if ("filter" in CanvasRenderingContext2D.prototype) {
           context.filter = "blur(7px)";
           context.drawImage(offscreen, 0, 0, w, h);
           context.filter = "blur(1.5px)";

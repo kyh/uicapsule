@@ -9,7 +9,7 @@ interface CellProps {
 
 type CellComponent = (props: CellProps) => ReactElement | null;
 
-// Cell shape functions that return JSX instead of SVG strings
+// Cell glyph functions that return JSX instead of SVG strings
 const Cell1 = ({ colors }: CellProps) => (
   <circle cx="50" cy="50" r="9.44" fill={colors[0]} fillRule="evenodd" />
 );
@@ -49,33 +49,33 @@ const Cell6 = () => null;
 
 const Cell7 = () => <rect width="75" height="75" x="12.5" y="12.5" fill="rgba(255,255,255,0.1)" />;
 
-interface ShapeConfig {
-  shape: CellComponent;
+interface CellConfig {
+  glyph: CellComponent;
   weight: number;
 }
 
-const shapesConfig: ShapeConfig[] = [
-  { shape: Cell1, weight: 1 },
-  { shape: Cell2, weight: 1 },
-  { shape: Cell3, weight: 1 },
-  { shape: Cell4, weight: 1 },
-  { shape: Cell5, weight: 1 },
-  { shape: Cell6, weight: 5 },
-  { shape: Cell7, weight: 3 },
+const cellConfigs: CellConfig[] = [
+  { glyph: Cell1, weight: 1 },
+  { glyph: Cell2, weight: 1 },
+  { glyph: Cell3, weight: 1 },
+  { glyph: Cell4, weight: 1 },
+  { glyph: Cell5, weight: 1 },
+  { glyph: Cell6, weight: 5 },
+  { glyph: Cell7, weight: 3 },
 ];
 
 // Each config repeated `weight` times, so a uniform draw honours the weights.
 // Built once at module scope: every cell re-rolls on its own timer, so rebuilding
 // this per draw would allocate constantly.
-const weightedShapes: ShapeConfig[] = shapesConfig.flatMap((config) =>
+const weightedCells: CellConfig[] = cellConfigs.flatMap((config) =>
   Array.from({ length: config.weight }, () => config),
 );
 
 // Unreachable fallback for `noUncheckedIndexedAccess`; the index below is always in range.
-const fallbackShape: ShapeConfig = { shape: Cell1, weight: 1 };
+const fallbackCell: CellConfig = { glyph: Cell1, weight: 1 };
 
-const pickShape = (): ShapeConfig =>
-  weightedShapes[Math.floor(Math.random() * weightedShapes.length)] ?? fallbackShape;
+const pickCell = (): CellConfig =>
+  weightedCells[Math.floor(Math.random() * weightedCells.length)] ?? fallbackCell;
 
 // Cells are authored in a 100x100 viewBox; this maps one down to a `cellSize` grid slot.
 const CELL_SCALE = 0.2;
@@ -83,8 +83,8 @@ const CELL_SCALE = 0.2;
 // Module scope so the default keeps a stable identity across renders.
 const DEFAULT_COLORS = ["white"];
 
-// Individual shape component that manages its own interval
-interface ShapeProps {
+// Individual cell component that manages its own interval
+interface GridCellProps {
   x: number;
   y: number;
   colors: string[];
@@ -93,8 +93,8 @@ interface ShapeProps {
   maxInterval: number;
 }
 
-const Shape = ({ x, y, colors, strokeWidth, minInterval, maxInterval }: ShapeProps) => {
-  const [currentShape, setCurrentShape] = useState<ShapeConfig>(pickShape);
+const GridCell = ({ x, y, colors, strokeWidth, minInterval, maxInterval }: GridCellProps) => {
+  const [currentCell, setCurrentCell] = useState<CellConfig>(pickCell);
 
   useEffect(() => {
     const getRandomInterval = () => Math.random() * (maxInterval - minInterval) + minInterval;
@@ -102,7 +102,7 @@ const Shape = ({ x, y, colors, strokeWidth, minInterval, maxInterval }: ShapePro
     let timeoutId: ReturnType<typeof setTimeout>;
     const scheduleNext = () => {
       timeoutId = setTimeout(() => {
-        setCurrentShape(pickShape());
+        setCurrentCell(pickCell());
         scheduleNext();
       }, getRandomInterval());
     };
@@ -111,18 +111,18 @@ const Shape = ({ x, y, colors, strokeWidth, minInterval, maxInterval }: ShapePro
     return () => clearTimeout(timeoutId);
   }, [minInterval, maxInterval]);
 
-  const ShapeComponent = currentShape.shape;
+  const Glyph = currentCell.glyph;
 
   return (
     <g transform={`translate(${x} ${y})`}>
       <g transform={`scale(${CELL_SCALE})`}>
-        <ShapeComponent colors={colors} strokeWidth={strokeWidth} />
+        <Glyph colors={colors} strokeWidth={strokeWidth} />
       </g>
     </g>
   );
 };
 
-interface BackgroundShapesProps {
+interface BackgroundGlyphsProps {
   width?: number;
   height?: number;
   cellSize?: number;
@@ -133,7 +133,7 @@ interface BackgroundShapesProps {
   maxInterval?: number;
 }
 
-export const BackgroundShapes = ({
+export const BackgroundGlyphs = ({
   width = 500,
   height = 500,
   cellSize = 20,
@@ -142,16 +142,16 @@ export const BackgroundShapes = ({
   className = "",
   minInterval = 1000,
   maxInterval = 5000,
-}: BackgroundShapesProps) => {
+}: BackgroundGlyphsProps) => {
   const borderSize = cellSize * 2;
   const colorsKey = colors.join("|");
 
-  const shapes = useMemo<ReactNode[]>(() => {
+  const cells = useMemo<ReactNode[]>(() => {
     const list: ReactNode[] = [];
     for (let x = borderSize; x < width / 2; x += cellSize) {
       for (let y = borderSize; y < height - borderSize; y += cellSize) {
         list.push(
-          <Shape
+          <GridCell
             key={`left-${x}-${y}`}
             x={x}
             y={y}
@@ -160,7 +160,7 @@ export const BackgroundShapes = ({
             minInterval={minInterval}
             maxInterval={maxInterval}
           />,
-          <Shape
+          <GridCell
             key={`right-${x}-${y}`}
             x={width - cellSize - x}
             y={y}
@@ -179,7 +179,7 @@ export const BackgroundShapes = ({
 
   return (
     <svg width={width} height={height} viewBox={`0 0 ${width} ${height}`} className={className}>
-      {shapes}
+      {cells}
     </svg>
   );
 };

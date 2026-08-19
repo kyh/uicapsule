@@ -1,4 +1,11 @@
-import type { Column, ColumnConfig, ColumnDataType, ElementType, FilterStrategy } from "../types";
+import type {
+  Column,
+  ColumnConfig,
+  ColumnDataType,
+  ColumnOption,
+  ElementType,
+  FilterStrategy,
+} from "../types";
 import { memo } from "../../lib/memo";
 import { ColumnDataService } from "./column-data-service";
 
@@ -100,7 +107,10 @@ function createMemoizedUniqueValues<TData>(
 ) {
   return memo(
     () => [getValues(), dataService],
-    ([values, dataService]) => dataService.computeFacetedUniqueValues(columnConfig, values as any),
+    ([values, dataService]) =>
+      // SAFETY: deps[0] is the getValues() result; option-based columns hold
+      // string or ColumnOption values, and the callee guards other types.
+      dataService.computeFacetedUniqueValues(columnConfig, values as string[] | ColumnOption[]),
     { key: `faceted-${columnConfig.id}` },
   );
 }

@@ -26,7 +26,7 @@ export const PERSON_DEPARTMENTS: PersonDepartment[] = [
   { id: "legal", name: "Legal", color: "violet" },
 ] as const;
 
-export const PERSON_SKILLS: PersonSkill[] = [
+export const PERSON_SKILLS = [
   { id: "javascript", name: "JavaScript", level: "expert", color: "yellow" },
   { id: "typescript", name: "TypeScript", level: "advanced", color: "blue" },
   { id: "react", name: "React", level: "expert", color: "cyan" },
@@ -224,7 +224,7 @@ export const PERSON_SKILLS: PersonSkill[] = [
     level: "beginner",
     color: "blue",
   },
-] as const;
+] as const satisfies readonly PersonSkill[];
 
 export const LABEL_STYLES_BG = {
   red: "bg-red-500",
@@ -299,7 +299,7 @@ export const columnsConfig = [
       PERSON_SKILLS.map((s) => ({
         value: s.id,
         label: s.name,
-        icon: <div className={cn("size-2.5 rounded-full", LABEL_STYLES_BG[s.color as TW_COLOR])} />,
+        icon: <div className={cn("size-2.5 rounded-full", LABEL_STYLES_BG[s.color])} />,
       })),
     )
     .build(),

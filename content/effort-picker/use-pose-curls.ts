@@ -162,9 +162,9 @@ export const usePoseCurls = ({ enabled, onRep }: UsePoseCurlsOptions): UsePoseCu
       setPosed(value);
     };
 
-    const fail = (reason: unknown) => {
+    const fail = (cause: unknown) => {
       if (cancelled) return;
-      setError(reason instanceof Error ? reason.message : String(reason));
+      setError(cause instanceof Error ? cause.message : String(cause));
       setStatus("error");
     };
 

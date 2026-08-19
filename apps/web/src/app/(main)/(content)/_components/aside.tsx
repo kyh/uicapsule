@@ -18,6 +18,7 @@ import { useMediaQuery } from "@repo/ui/hooks/use-media-query";
 import { cn } from "@repo/ui/lib/utils";
 import { queryOptions, useQueryClient, useSuspenseQuery } from "@tanstack/react-query";
 import JSZip from "jszip";
+import { z } from "zod";
 import {
   CheckIcon,
   ChevronDownIcon,
@@ -35,13 +36,15 @@ import { CodePreview } from "./code-preview";
 const FLOATING_BUTTON_CLASS = "size-9 rounded-full shadow-sm";
 const SECTION_CLASS = "-mx-3 flex flex-col gap-2.5 border-t px-3 pt-3 pb-1";
 
+const sourceFilesSchema = z.array(z.object({ path: z.string(), code: z.string() }));
+
 const sourceFilesQuery = (slug: string) =>
   queryOptions({
     queryKey: ["content-source-files", slug],
     queryFn: async (): Promise<SourceFile[]> => {
       const res = await fetch(`/api/content/${slug}`);
       if (!res.ok) throw new Error(`Failed to load source files for ${slug}`);
-      return (await res.json()) as SourceFile[];
+      return sourceFilesSchema.parse(await res.json());
     },
   });
 

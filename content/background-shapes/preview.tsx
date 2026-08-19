@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 
-import { BackgroundShapes } from "./background-shapes";
+import { BackgroundGlyphs } from "./background-shapes";
 
 const Preview = () => {
   const [size, setSize] = useState<{ width: number; height: number } | null>(null);
@@ -16,7 +16,7 @@ const Preview = () => {
 
   return (
     <div className="h-full w-full bg-[#2164D6]">
-      {size && <BackgroundShapes width={size.width} height={size.height} />}
+      {size && <BackgroundGlyphs width={size.width} height={size.height} />}
     </div>
   );
 };

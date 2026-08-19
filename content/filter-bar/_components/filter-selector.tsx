@@ -7,7 +7,8 @@ import {
   useMemo,
   useRef,
   useState,
-  type ComponentType,
+  type ElementType as ReactElementType,
+  type ReactElement,
 } from "react";
 import { Button } from "@repo/ui/components/button";
 import { Checkbox } from "@repo/ui/components/checkbox";
@@ -37,6 +38,12 @@ import type {
 import { getColumn, isAnyOf } from "../filter-package";
 import { FilterValueController } from "./filter-value";
 
+const renderColumnIcon = (icon: ReactElement | ReactElementType, className: string) => {
+  if (isValidElement(icon)) return icon;
+  const IconComp = icon;
+  return <IconComp className={className} />;
+};
+
 interface FilterSelectorProps<TData> {
   filters: FiltersState;
   columns: Column<TData>[];
@@ -46,7 +53,10 @@ interface FilterSelectorProps<TData> {
   aiGenerating?: boolean;
 }
 
-export const FilterSelector = memo(__FilterSelector) as typeof __FilterSelector;
+export const FilterSelector =
+  // SAFETY: React.memo erases the generic call signature; the wrapper still
+  // accepts exactly __FilterSelector's props.
+  memo(__FilterSelector) as typeof __FilterSelector;
 
 function __FilterSelector<TData>({
   filters,
@@ -99,19 +109,13 @@ function __FilterSelector<TData>({
               <span className="sr-only">Back</span>
             </Button>
             <div className="flex items-center gap-1.5 text-sm">
-              {column.icon &&
-                (isValidElement(column.icon)
-                  ? column.icon
-                  : (() => {
-                      const Icon = column.icon as ComponentType<{ className?: string }>;
-                      return <Icon className="size-4 stroke-[2.25px]" />;
-                    })())}
+              {column.icon && renderColumnIcon(column.icon, "size-4 stroke-[2.25px]")}
               <span className="font-medium">{column.displayName}</span>
             </div>
           </div>
           <FilterValueController
             filter={filter!}
-            column={column as Column<TData, ColumnDataType>}
+            column={column}
             actions={actions}
             strategy={strategy}
           />
@@ -224,7 +228,6 @@ export function FilterableColumn<TData, TType extends ColumnDataType, TVal>({
   const itemRef = useRef<HTMLDivElement>(null);
 
   const { icon: Icon } = column;
-  const hasIcon = !!Icon;
 
   // Check if this column is being filtered
   const isFiltered = filters.some(
@@ -273,7 +276,9 @@ export function FilterableColumn<TData, TType extends ColumnDataType, TVal>({
 
   function handleSelect() {
     if (column.type === "boolean") {
-      actions.setFilterValue(column as any, [true]);
+      // SAFETY: the runtime tag fixed TType to "boolean", whose filter values
+      // are booleans; TS cannot relate the tag to the generic.
+      actions.setFilterValue(column as Column<TData, "boolean">, [true]);
       return;
     }
 
@@ -291,20 +296,15 @@ export function FilterableColumn<TData, TType extends ColumnDataType, TVal>({
     >
       <div className="flex w-full items-center justify-between">
         <div className="inline-flex items-center gap-1.5">
-          {hasIcon && (
+          {Icon && (
             <div className="relative">
-              {isValidElement(Icon)
-                ? Icon
-                : (() => {
-                    const IconComp = Icon as ComponentType<{ className?: string }>;
-                    return <IconComp className="size-4 stroke-[2.25px]" />;
-                  })()}
+              {renderColumnIcon(Icon, "size-4 stroke-[2.25px]")}
               {isFiltered && (
                 <div className="absolute -right-0.5 -bottom-0.5 h-2 w-2 rounded-full bg-green-500" />
               )}
             </div>
           )}
-          {!hasIcon && isFiltered && <div className="h-2 w-2 rounded-full bg-green-500" />}
+          {!Icon && isFiltered && <div className="h-2 w-2 rounded-full bg-green-500" />}
           <span>{column.displayName}</span>
         </div>
         {column.type !== "boolean" && (
@@ -322,7 +322,10 @@ interface QuickSearchFiltersProps<TData> {
   actions: DataTableFilterActions;
 }
 
-export const QuickSearchFilters = memo(__QuickSearchFilters) as typeof __QuickSearchFilters;
+export const QuickSearchFilters =
+  // SAFETY: React.memo erases the generic call signature; the wrapper still
+  // accepts exactly __QuickSearchFilters's props.
+  memo(__QuickSearchFilters) as typeof __QuickSearchFilters;
 
 function __QuickSearchFilters<TData>({
   search,
@@ -369,13 +372,7 @@ function __QuickSearchFilters<TData>({
                       className="dark:border-ring mr-1 opacity-0 group-data-[selected=true]:opacity-100 data-[state=checked]:opacity-100"
                     />
                     <div className="flex w-4 items-center justify-center">
-                      {v.icon &&
-                        (isValidElement(v.icon)
-                          ? v.icon
-                          : (() => {
-                              const Icon = v.icon as ComponentType<{ className?: string }>;
-                              return <Icon className="text-primary size-4" />;
-                            })())}
+                      {v.icon && renderColumnIcon(v.icon, "text-primary size-4")}
                     </div>
                     <div className="flex items-center gap-0.5">
                       <span className="text-muted-foreground">{column.displayName}</span>

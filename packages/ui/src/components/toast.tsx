@@ -68,14 +68,14 @@ const toast = Object.assign(
   },
 );
 
-const TYPE_ICONS: Record<ToastType, ReactNode> = {
+const TYPE_ICONS = {
   default: null,
   success: <CircleCheckIcon className="size-4" />,
   error: <OctagonXIcon className="size-4" />,
   warning: <TriangleAlertIcon className="size-4" />,
   info: <InfoIcon className="size-4" />,
   loading: <Loader2Icon className="size-4 animate-spin" />,
-};
+} satisfies Record<ToastType, ReactNode>;
 
 const isToastType = (type: string | undefined): type is ToastType =>
   type != null && type in TYPE_ICONS;

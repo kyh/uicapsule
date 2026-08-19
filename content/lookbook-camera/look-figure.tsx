@@ -143,7 +143,7 @@ const LINING = "rgba(255,255,255,0.6)";
 const SKIRT_ANKLE_DX = 11;
 
 /** Ankle x positions, splayed asymmetrically by the look's stance. */
-function ankleXs(ankleDx: number, stance: number): { left: number; right: number } {
+function ankleXs(ankleDx: number, stance: number) {
   return {
     left: CX - ankleDx * (1 + stance * 0.35),
     right: CX + ankleDx * (1 - stance * 0.35),

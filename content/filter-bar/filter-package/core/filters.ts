@@ -4,6 +4,7 @@ import type {
   FilterModel,
   FilterOperations,
   FiltersState,
+  FilterValues,
   OptionBasedColumnDataType,
 } from "./types";
 import { addUniq, removeUniq, uniq } from "../lib/array";
@@ -146,6 +147,8 @@ export const filterOperations: FilterOperations = {
     const filter = filters.find((f) => f.columnId === column.id);
     const isColumnFiltered = filter && filter.values.length > 0;
 
+    // SAFETY: the runtime tag `column.type` fixes TType, so `values` is the
+    // matching FilterValues kind; TS cannot relate the tag to the generic.
     const newValues =
       column.type === "number"
         ? createNumberFilterValue(values as number[])
@@ -175,11 +178,13 @@ export const filterOperations: FilterOperations = {
     const oldValues = filter.values;
     const newOperator = determineNewOperator(column.type, oldValues, newValues, filter.operator);
 
+    // SAFETY: newValues was built above from the branch matching column.type,
+    // so it is the FilterValues kind for this filter's TType.
     const newFilter = {
       columnId: column.id,
       type: column.type,
       operator: newOperator,
-      values: newValues as any,
+      values: newValues as FilterValues<TType>,
     } satisfies FilterModel<TType>;
 
     return filters.map((f) => (f.columnId === column.id ? newFilter : f));

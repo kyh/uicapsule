@@ -22,24 +22,24 @@ type VolumeControlProps = {
 
 const HUD_POP = { type: "spring", stiffness: 380, damping: 30 } as const;
 
-const HINTS: Record<VolumeVariant, string> = {
+const HINTS = {
   tilt: "Tilt the panel. Roll the marble. Don't overshoot.",
   cannon: "Pull back, let go, and hope.",
   curling: "Throw the stone. Sweep to keep it going.",
   dots: "Draw the number you want. It reads dots, nothing else.",
   "plus-minus": "Hit + for louder. Good luck catching it.",
-};
+} satisfies Record<VolumeVariant, string>;
 
 /** Every control takes the volume and nothing else, so the shell can pick one by
  * name. Keyed by variant rather than branched on it: adding a sixth control makes
  * this table and HINTS fail to compile until both know about it. */
-const TRACKS: Record<VolumeVariant, (props: { volume: MotionValue<number> }) => ReactNode> = {
+const TRACKS = {
   tilt: TiltTrack,
   cannon: CannonTrack,
   curling: CurlingTrack,
   dots: DotsTrack,
   "plus-minus": PlusMinusTrack,
-};
+} satisfies Record<VolumeVariant, (props: { volume: MotionValue<number> }) => ReactNode>;
 
 /**
  * Five volume controls, none of which will let you simply set the volume.

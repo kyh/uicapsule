@@ -98,27 +98,29 @@ type BigGlyph = readonly [string, string, string, string, string];
 
 const BLANK_GLYPH: BigGlyph = ["   ", "   ", "   ", "   ", "   "];
 
-const BIG_DIGITS: Record<string, BigGlyph> = {
-  "0": ["╭─╮", "│ │", "│ │", "│ │", "╰─╯"],
-  "1": ["╶┐ ", " │ ", " │ ", " │ ", "╶┴╴"],
-  "2": ["╭─╮", "  │", "╭─╯", "│  ", "╰─╴"],
-  "3": ["╭─╮", "  │", " ─┤", "  │", "╰─╯"],
-  "4": ["╷ ╷", "│ │", "╰─┤", "  │", "  ╵"],
-  "5": ["╭─╴", "│  ", "╰─╮", "  │", "╰─╯"],
-  "6": ["╭─╴", "│  ", "├─╮", "│ │", "╰─╯"],
-  "7": ["╶─╮", "  │", "  │", "  │", "  ╵"],
-  "8": ["╭─╮", "│ │", "├─┤", "│ │", "╰─╯"],
-  "9": ["╭─╮", "│ │", "╰─┤", "  │", "╶─╯"],
-  ".": ["   ", "   ", "   ", "   ", " ▪ "],
-  // Period and comma are drawn 2 columns wide (see `drawBigNumber`), so their
-  // art has to live in the first two columns — a third column is never read.
-  ",": ["   ", "   ", "   ", " ╷ ", "╶╯ "],
-  "-": ["   ", "   ", "╶─╴", "   ", "   "],
-  "%": ["▪ ╱", " ╱ ", " ╱ ", "╱  ", "╱ ▪"],
-  $: [" ╭╴", "╶┼╮", " │ ", "╶┼╯", " ╰╴"],
-  "+": ["   ", " │ ", "╶┼╴", " │ ", "   "],
-  " ": BLANK_GLYPH,
-};
+const BIG_DIGITS = new Map<string, BigGlyph>(
+  Object.entries({
+    "0": ["╭─╮", "│ │", "│ │", "│ │", "╰─╯"],
+    "1": ["╶┐ ", " │ ", " │ ", " │ ", "╶┴╴"],
+    "2": ["╭─╮", "  │", "╭─╯", "│  ", "╰─╴"],
+    "3": ["╭─╮", "  │", " ─┤", "  │", "╰─╯"],
+    "4": ["╷ ╷", "│ │", "╰─┤", "  │", "  ╵"],
+    "5": ["╭─╴", "│  ", "╰─╮", "  │", "╰─╯"],
+    "6": ["╭─╴", "│  ", "├─╮", "│ │", "╰─╯"],
+    "7": ["╶─╮", "  │", "  │", "  │", "  ╵"],
+    "8": ["╭─╮", "│ │", "├─┤", "│ │", "╰─╯"],
+    "9": ["╭─╮", "│ │", "╰─┤", "  │", "╶─╯"],
+    ".": ["   ", "   ", "   ", "   ", " ▪ "],
+    // Period and comma are drawn 2 columns wide (see `drawBigNumber`), so their
+    // art has to live in the first two columns — a third column is never read.
+    ",": ["   ", "   ", "   ", " ╷ ", "╶╯ "],
+    "-": ["   ", "   ", "╶─╴", "   ", "   "],
+    "%": ["▪ ╱", " ╱ ", " ╱ ", "╱  ", "╱ ▪"],
+    $: [" ╭╴", "╶┼╮", " │ ", "╶┼╯", " ╰╴"],
+    "+": ["   ", " │ ", "╶┼╴", " │ ", "   "],
+    " ": BLANK_GLYPH,
+  } satisfies Record<string, BigGlyph>),
+);
 
 // Walks a string, writing each block glyph. Period and comma consume 2 cols
 // so the number reads as one tight typographic unit. `gap` is the inter-glyph
@@ -127,7 +129,7 @@ export function drawBigNumber(g: Grid, r: number, c: number, text: string, alpha
   let col = c;
 
   for (const ch of text) {
-    const glyph = BIG_DIGITS[ch] ?? BLANK_GLYPH;
+    const glyph = BIG_DIGITS.get(ch) ?? BLANK_GLYPH;
     const w = ch === "." || ch === "," ? 2 : 3;
 
     for (let row = 0; row < 5; row++) {

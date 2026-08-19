@@ -12,6 +12,7 @@ import {
 import { cn } from "@repo/ui/lib/utils";
 import { flexRender, useTable } from "@tanstack/react-table";
 import { useVirtualizer } from "@tanstack/react-virtual";
+import { z } from "zod";
 
 import type { SpreadsheetRow } from "../lib/spreadsheet-store";
 import type { ColumnInfo, NavigationMap, SpreadsheetFeatures } from "../lib/spreadsheet-utils";
@@ -39,12 +40,17 @@ interface SpreadsheetProps<
   ref?: Ref<HTMLDivElement>;
 }
 
-/** `accessorKey` is not on the shared `ColumnDef` union, so narrow instead of asserting. */
-const getAccessorKey = (columnDef: object, fallback: string): string => {
-  if ("accessorKey" in columnDef && typeof columnDef.accessorKey === "string") {
-    return columnDef.accessorKey;
-  }
-  return fallback;
+/** `accessorKey` is not on the shared `ColumnDef` union, so narrow instead of asserting;
+ *  its declared type also admits non-string row keys, so parse before using it. */
+const accessorKeySchema = z.string();
+
+const getAccessorKey = <TRow extends SpreadsheetRow, TValue>(
+  columnDef: ColumnDef<SpreadsheetFeatures, TRow, TValue>,
+  fallback: string,
+): string => {
+  if (!("accessorKey" in columnDef)) return fallback;
+  const parsed = accessorKeySchema.safeParse(columnDef.accessorKey);
+  return parsed.success ? parsed.data : fallback;
 };
 
 export function Spreadsheet<TRow extends SpreadsheetRow, TValue = unknown>({
@@ -70,6 +76,9 @@ export function Spreadsheet<TRow extends SpreadsheetRow, TValue = unknown>({
 
   const table = useTable({
     features: spreadsheetFeatures,
+    // SAFETY: the store holds exactly the rows the caller seeded through
+    // `setData`, so every row is the caller's TRow; the module-scope zustand
+    // store cannot carry that generic, so it is reasserted here.
     data: data as TRow[],
     columns,
   });

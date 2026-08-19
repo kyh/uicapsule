@@ -1,6 +1,7 @@
 import { readdir, readFile } from "node:fs/promises";
 import { join, relative, resolve } from "node:path";
 import { cache } from "react";
+import { z } from "zod";
 
 import type {
   ContentComponent,
@@ -17,6 +18,23 @@ type RawMeta = Omit<ContentComponentBase, "slug" | "type"> & {
   sourceUrl?: string;
 };
 
+const linkedPersonSchema = z.object({ name: z.string(), url: z.string(), avatarUrl: z.string() });
+
+const rawMetaSchema: z.ZodType<RawMeta> = z.object({
+  type: z.enum(["local", "remote"]).optional(),
+  name: z.string(),
+  description: z.string().optional(),
+  defaultSize: z.enum(["full", "md", "sm"]).optional(),
+  coverUrl: z.string().optional(),
+  coverType: z.enum(["image", "video"]).optional(),
+  category: z.enum(["marketing", "application", "mobile"]).optional(),
+  tags: z.array(z.string()).optional(),
+  authors: z.array(linkedPersonSchema).optional(),
+  asSeenOn: z.array(linkedPersonSchema).optional(),
+  iframeUrl: z.string().optional(),
+  sourceUrl: z.string().optional(),
+});
+
 const IGNORED_SOURCE_SEGMENTS = new Set(["node_modules", "dist", ".turbo", ".cache"]);
 const SOURCE_FILE_EXTENSIONS = new Set([
   ".ts",
@@ -30,9 +48,10 @@ const SOURCE_FILE_EXTENSIONS = new Set([
 ]);
 const IGNORED_SOURCE_FILES = new Set(["meta.json", "package-lock.json", "pnpm-lock.yaml"]);
 
-const readJson = async <T>(path: string): Promise<T | null> => {
+const readJson = async <T>(path: string, schema: z.ZodType<T>): Promise<T | null> => {
   try {
-    return JSON.parse(await readFile(path, "utf-8")) as T;
+    const parsed = schema.safeParse(JSON.parse(await readFile(path, "utf-8")));
+    return parsed.success ? parsed.data : null;
   } catch {
     return null;
   }
@@ -111,7 +130,7 @@ export const readContentIndex = cache(async (): Promise<ContentComponent[]> => {
 
   const built = await Promise.all(
     slugs.map(async (slug) => {
-      const meta = await readJson<RawMeta>(join(contentRoot, slug, "meta.json"));
+      const meta = await readJson(join(contentRoot, slug, "meta.json"), rawMetaSchema);
       if (!meta) return null;
       return buildComponent(slug, meta);
     }),
@@ -132,8 +151,13 @@ type ContentPackageJson = {
   devDependencies?: Record<string, string>;
 };
 
+const contentPackageJsonSchema: z.ZodType<ContentPackageJson> = z.object({
+  dependencies: z.record(z.string(), z.string()).optional(),
+  devDependencies: z.record(z.string(), z.string()).optional(),
+});
+
 const readContentPackageJson = cache(async (slug: string): Promise<ContentPackageJson> => {
-  return (await readJson<ContentPackageJson>(join(contentRoot, slug, "package.json"))) ?? {};
+  return (await readJson(join(contentRoot, slug, "package.json"), contentPackageJsonSchema)) ?? {};
 });
 
 export const buildShadcnRegistryItem = async (component: LocalContentComponent) => {

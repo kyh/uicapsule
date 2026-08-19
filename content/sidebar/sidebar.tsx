@@ -76,11 +76,18 @@ const recordsItems: NavItem[] = [
   { id: "partnerships", label: "Partnerships", icon: <Link size={14} /> },
 ];
 
+/** Emoji glyphs need the centring wrapper a component icon draws itself. */
+const EmojiIcon = ({ children }: { children: string }) => (
+  <span className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-[16px] leading-4">
+    {children}
+  </span>
+);
+
 const listsItems: NavItem[] = [
   {
     id: "strategic-accounts",
     label: "Strategic accounts",
-    icon: "🚀",
+    icon: <EmojiIcon>🚀</EmojiIcon>,
   },
 ];
 
@@ -89,15 +96,7 @@ const NavigationItem = ({ item }: { item: NavItem }) => (
     <div
       className={`flex min-w-0 items-center gap-x-1.5 rounded-[9px] px-2 py-1 transition-colors duration-500 [transition-timing-function:cubic-bezier(0.65,0,0.35,1)] ${item.isActive ? "bg-[#F4F5F6]" : ""}`}
     >
-      <div className="relative w-[14px]">
-        {typeof item.icon === "string" ? (
-          <span className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-[16px] leading-4">
-            {item.icon}
-          </span>
-        ) : (
-          item.icon
-        )}
-      </div>
+      <div className="relative w-[14px]">{item.icon}</div>
       <span className="min-w-0 flex-1 truncate text-[14px] leading-5 font-medium tracking-[-0.28px]">
         {item.label}
       </span>

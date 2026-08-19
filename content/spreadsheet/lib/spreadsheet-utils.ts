@@ -4,6 +4,8 @@
 
 import { columnVisibilityFeature, tableFeatures } from "@tanstack/react-table";
 
+import type { SpreadsheetRow } from "./spreadsheet-store";
+
 /**
  * Features every spreadsheet table is built on. Features are opt-in in
  * react-table v9, and the body renders through `row.getVisibleCells()`, which
@@ -47,7 +49,7 @@ export const getRowCells = (rowId: string, columns: ColumnInfo[]): string[] => {
 /**
  * Get all cells in a column
  */
-export const getColumnCells = (columnId: string, data: Record<string, unknown>[]): string[] => {
+export const getColumnCells = (columnId: string, data: SpreadsheetRow[]): string[] => {
   return data.map((row) => `${row.id}:${columnId}`);
 };
 
@@ -60,7 +62,7 @@ export const getRangeCells = (
   endRowId: string,
   endColId: string,
   columns: ColumnInfo[],
-  data: Record<string, unknown>[],
+  data: SpreadsheetRow[],
 ): string[] => {
   const columnIds = columns.map((col) => col.accessorKey || col.id || "");
   const startColIndex = columnIds.indexOf(startColId);
@@ -119,7 +121,7 @@ export const toggleRowSelection = (
 export const toggleColumnSelection = (
   columnId: string,
   selectedCells: Set<string>,
-  data: Record<string, unknown>[],
+  data: SpreadsheetRow[],
 ): Set<string> => {
   const columnCells = getColumnCells(columnId, data);
   const isColumnFullySelected = columnCells.every((cell) => selectedCells.has(cell));
@@ -163,7 +165,7 @@ export const getFirstSelectedCell = (selectedCells: Set<string>): CellPosition |
 /**
  * Get column size CSS variables
  */
-export const getColumnSizeVars = (columnWidths: Record<string, number>): Record<string, number> => {
+export const getColumnSizeVars = (columnWidths: Record<string, number>) => {
   const colSizes: { [key: string]: number } = {};
   Object.entries(columnWidths).forEach(([columnId, width]) => {
     colSizes[`--col-${columnId}-size`] = width;
@@ -189,7 +191,7 @@ export const shouldAllowEditing = (selectedCells: Set<string>, cellKey: string):
  * Create a navigation map for all cells in the spreadsheet
  */
 export const createNavigationMap = (
-  data: Record<string, unknown>[],
+  data: SpreadsheetRow[],
   columns: ColumnInfo[],
 ): Map<string, NavigationMap> => {
   const navigationMap = new Map<string, NavigationMap>();
