@@ -19,7 +19,7 @@
     "verify": "pnpm typecheck && pnpm lint && pnpm format && pnpm build"
   },
   "devDependencies": {
-    "@oxlint/plugins": "1.78.0",
+    "@kyh/oxlint": "^0.1.2",
     "citty": "^0.2.2",
     "consola": "^3.4.2",
     "dotenv-cli": "^11.0.0",

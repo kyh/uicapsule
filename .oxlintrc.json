@@ -13,11 +13,10 @@
     "out",
     ".claude",
     ".codex",
-    ".superset",
-    "tools/oxlint/anti-slop"
+    ".superset"
   ],
   "plugins": ["eslint", "typescript", "unicorn", "react", "nextjs", "oxc", "node", "promise"],
-  "jsPlugins": [{ "name": "anti-slop", "specifier": "./tools/oxlint/anti-slop/index.ts" }],
+  "jsPlugins": [{ "name": "anti-slop", "specifier": "@kyh/oxlint/anti-slop" }],
   "categories": {
     "correctness": "warn",
     "suspicious": "warn",
