@@ -9,7 +9,7 @@ export function Ring() {
     const id = setTimeout(
       () => {
         setFirstTime(false);
-        setIsSilent((s) => !s);
+        setIsSilent(!isSilent);
       },
       firstTime ? 1000 : 2000,
     );

@@ -5,7 +5,6 @@ import {
   createContext,
   isValidElement,
   use,
-  useEffect,
   useMemo,
   useState,
   type CSSProperties,
@@ -105,6 +104,8 @@ export const useTooltip = ({
           resolveHoverDirection(reference.getBoundingClientRect(), event.clientX, event.clientY),
         );
       }
+      // Reset direction on close so the next open starts from a known state.
+      if (!isOpen) setHoverDirection(DEFAULT_HOVER_DIRECTION);
       setOpen(isOpen);
     },
     whileElementsMounted: autoUpdate,
@@ -132,13 +133,6 @@ export const useTooltip = ({
   const role = useRole(context, { role: "tooltip" });
 
   const interactions = useInteractions([hover, focus, dismiss, role]);
-
-  // Reset direction when tooltip closes so the next open starts from a known state.
-  useEffect(() => {
-    if (!open) {
-      setHoverDirection(DEFAULT_HOVER_DIRECTION);
-    }
-  }, [open]);
 
   return useMemo(
     () => ({

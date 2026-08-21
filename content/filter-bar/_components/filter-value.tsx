@@ -265,18 +265,20 @@ export function DebouncedInput({
   debounceMs?: number;
 } & Omit<InputHTMLAttributes<HTMLInputElement>, "onChange">) {
   const [value, setValue] = useState(initialValue);
+  const [prevInitialValue, setPrevInitialValue] = useState(initialValue);
 
   // Sync with initialValue when it changes
-  useEffect(() => {
+  if (prevInitialValue !== initialValue) {
+    setPrevInitialValue(initialValue);
     setValue(initialValue);
-  }, [initialValue]);
+  }
 
-  // Define the debounced function with useCallback
-  const debouncedOnChange = useCallback(
-    debounce((newValue: string | number) => {
-      onChange(newValue);
-    }, debounceMs), // Pass the wait time here
-    [debounceMs, onChange], // Dependencies
+  const debouncedOnChange = useMemo(
+    () =>
+      debounce((newValue: string | number) => {
+        onChange(newValue);
+      }, debounceMs),
+    [debounceMs, onChange],
   );
 
   const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
@@ -705,7 +707,7 @@ export function FilterValueOptionController<TData>({
   actions,
 }: FilterValueControllerProps<TData, "option">) {
   // Derive the initial selected values on mount
-  const initialSelectedValues = useMemo(() => new Set(filter?.values || []), []);
+  const [initialSelectedValues] = useState(() => new Set(filter?.values || []));
 
   // Separate the selected and unselected options
   const { selectedOptions, unselectedOptions } = useMemo(() => {
@@ -764,7 +766,7 @@ export function FilterValueMultiOptionController<TData>({
   actions,
 }: FilterValueControllerProps<TData, "multiOption">) {
   // Derive the initial selected values on mount
-  const initialSelectedValues = useMemo(() => new Set(filter?.values || []), []);
+  const [initialSelectedValues] = useState(() => new Set(filter?.values || []));
 
   // Separate the selected and unselected options
   const { selectedOptions, unselectedOptions } = useMemo(() => {
@@ -962,7 +964,7 @@ export function FilterValueNumberController<TData>({
       actions.setFilterOperator(column.id, newOperator);
       actions.setFilterValue(column, newValues);
     },
-    [values, column, actions, minMax],
+    [values, column, actions, minMax, setFilterOperatorDebounced, setFilterValueDebounced],
   );
 
   return (

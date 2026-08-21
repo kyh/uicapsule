@@ -50,8 +50,12 @@ type MediaRevealProps = {
 export const MediaReveal = ({ className, image, video, iframe }: MediaRevealProps) => {
   const [rootRef, inView] = useInView();
   const [revealed, setRevealed] = useState(false);
-  const [retired, setRetired] = useState(false);
+  const [wiped, setWiped] = useState(false);
   const prefersReducedMotion = useReducedMotion();
+
+  // Reduced motion still needs the skeleton to get out of the way — it just
+  // shouldn't travel to do it, so it retires the moment the media is ready.
+  const retired = wiped || (revealed && Boolean(prefersReducedMotion));
 
   // At 100 the skeleton fully covers the frame; at -100 it has been wiped off
   // to the left, uncovering the media beneath.
@@ -88,16 +92,11 @@ export const MediaReveal = ({ className, image, video, iframe }: MediaRevealProp
       wipe.set(100);
       return;
     }
-    // Reduced motion still needs the skeleton to get out of the way — it just shouldn't
-    // travel to do it.
-    if (prefersReducedMotion) {
-      setRetired(true);
-      return;
-    }
+    if (prefersReducedMotion) return;
     const controls = animate(wipe, -100, {
       duration: WIPE_DURATION,
       ease: "easeInOut",
-      onComplete: () => setRetired(true),
+      onComplete: () => setWiped(true),
     });
     return () => controls.stop();
   }, [revealed, wipe, prefersReducedMotion]);
@@ -109,7 +108,7 @@ export const MediaReveal = ({ className, image, video, iframe }: MediaRevealProp
     setHasIframe(Boolean(iframe));
     if (iframe && revealed) {
       setRevealed(false);
-      setRetired(false);
+      setWiped(false);
     }
   }
 

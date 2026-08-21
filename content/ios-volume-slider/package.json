@@ -11,7 +11,7 @@
   },
   "dependencies": {
     "@radix-ui/react-slider": "^1.4.7",
-    "motion": "^13.1.0",
+    "motion": "^13.1.1",
     "react": "catalog:",
     "react-dom": "catalog:"
   },

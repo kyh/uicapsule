@@ -3,6 +3,7 @@
 import {
   createElement,
   memo,
+  useCallback,
   useEffect,
   useMemo,
   useRef,
@@ -294,17 +295,7 @@ export const ExampleChat = ({ start }: { start: boolean }) => {
   const [thinkingDuration, setThinkingDuration] = useState<number | null>(null);
   const [isThinkingComplete, setIsThinkingComplete] = useState(false);
 
-  useEffect(() => {
-    if (!start) {
-      promisesRef.current.forEach((cancel) => cancel());
-      promisesRef.current = [];
-      clearAll();
-    } else {
-      setShowQuestion(true);
-    }
-  }, [start]);
-
-  const clearAll = () => {
+  const clearAll = useCallback(() => {
     setShowQuestion(false);
     setShowLoading(false);
     setShowChainOfThought(false);
@@ -313,7 +304,17 @@ export const ExampleChat = ({ start }: { start: boolean }) => {
     setShowFooter(false);
     setThinkingDuration(null);
     setIsThinkingComplete(false);
-  };
+  }, []);
+
+  useEffect(() => {
+    if (!start) {
+      promisesRef.current.forEach((cancel) => cancel());
+      promisesRef.current = [];
+      clearAll();
+    } else {
+      setShowQuestion(true);
+    }
+  }, [start, clearAll]);
 
   const showResults = async () => {
     setShowLoading(true);

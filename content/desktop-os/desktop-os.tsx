@@ -6,7 +6,7 @@ import type {
   ReactNode,
 } from "react";
 
-import { Fragment, useEffect, useRef, useState } from "react";
+import { Fragment, useCallback, useEffect, useRef, useState } from "react";
 import { gsap } from "gsap";
 
 import type { DesktopTile, DockAppId } from "./desktop-data";
@@ -248,9 +248,9 @@ export const DesktopOS = (): ReactNode => {
     });
   };
 
-  const closeWindow = (uid: number): void => {
+  const closeWindow = useCallback((uid: number): void => {
     setWindows((prev) => prev.filter((win) => win.uid !== uid));
-  };
+  }, []);
 
   const focusWindow = (uid: number): void => {
     setWindows((prev) => {
@@ -311,7 +311,7 @@ export const DesktopOS = (): ReactNode => {
    * or slides under the dock. Derived from live geometry rather than baked
    * constants so it holds at any frame size and for any dock height.
    */
-  const tileBounds = (boxW: number, boxH: number) => {
+  const tileBounds = useCallback((boxW: number, boxH: number) => {
     const sec = sectionRef.current;
     const vw = sec?.clientWidth ?? 1280;
     const vh = sec?.clientHeight ?? 800;
@@ -324,14 +324,14 @@ export const DesktopOS = (): ReactNode => {
       maxX: Math.max(TILE_EDGE_MARGIN, vw - boxW - TILE_EDGE_MARGIN),
       maxY: Math.max(TILE_EDGE_MARGIN, floor - boxH - TILE_EDGE_MARGIN),
     };
-  };
+  }, []);
 
   /**
    * Percentage-seeded layout, re-clamped on every resize so icons can never
    * leave an arbitrarily-sized frame. Shares `tileBounds` with the drag so a
    * resize cannot nudge a tile the user just placed at the edge.
    */
-  const seedPositions = (): void => {
+  const seedPositions = useCallback((): void => {
     const sec = sectionRef.current;
     const vw = sec?.clientWidth ?? 1280;
     const vh = sec?.clientHeight ?? 800;
@@ -358,7 +358,7 @@ export const DesktopOS = (): ReactNode => {
       return next;
     });
     setSeeded(true);
-  };
+  }, [tileBounds]);
 
   /* ------------------------------------------------------ mount + resize -- */
 
@@ -397,7 +397,7 @@ export const DesktopOS = (): ReactNode => {
       mq.removeEventListener("change", onChange);
       window.removeEventListener("resize", onResize);
     };
-  }, [mounted]);
+  }, [mounted, seedPositions]);
 
   // Mirror positions into a ref so the boot timeline can read them without
   // taking `tilePositions` as a dependency — a tile drag must not replay boot.
@@ -736,7 +736,7 @@ export const DesktopOS = (): ReactNode => {
 
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [lightbox, groupPanelOpen, windows, selectedId]);
+  }, [lightbox, groupPanelOpen, windows, selectedId, closeWindow]);
 
   /* ----------------------------------------------------------- tile drag -- */
 

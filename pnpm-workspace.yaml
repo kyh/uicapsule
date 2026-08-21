@@ -18,13 +18,17 @@ catalog:
   "@types/react": ^19.2.18
   "@types/react-dom": ^19.2.4
   "@vitejs/plugin-react": ^5.2.0
-  better-auth: ^1.6.29
+  # better-auth 1.7 adds a REQUIRED account.issuer column + unique (issuer, accountId)
+  # index. Adopting it needs a schema regen, a db:push, and an identity backfill, and
+  # @better-auth/cli is stuck at 1.4.21 (emits no issuer, strips hand-added indexes).
+  # Tilde, not caret, so a fresh resolve cannot float back into 1.7.
+  better-auth: ~1.6.30
   next: ^16.3.1
   react: ^19.2.8
   react-dom: ^19.2.8
   superjson: ^2.2.6
   tailwindcss: ^4.3.3
-  typescript: ^6.0.3
+  typescript: ^7.0.2
   vite: ^7.3.1
   zod: ^4.4.3
 

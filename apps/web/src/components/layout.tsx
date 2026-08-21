@@ -160,25 +160,31 @@ const SearchButton = ({ searchEntries }: { searchEntries: SearchEntry[] }) => {
     [searchEntries],
   );
 
+  const resetSearch = useCallback(() => {
+    setActiveView("trending");
+    setQuery("");
+  }, []);
+
+  const changeSearchOpen = useCallback(
+    (open: boolean) => {
+      setSearchOpen(open);
+      resetSearch();
+    },
+    [resetSearch],
+  );
+
   useEffect(() => {
     const down = (e: KeyboardEvent) => {
       if (e.key === "k" && (e.metaKey || e.ctrlKey)) {
         e.preventDefault();
         setSearchOpen((open) => !open);
+        resetSearch();
       }
     };
 
     document.addEventListener("keydown", down);
     return () => document.removeEventListener("keydown", down);
-  }, []);
-
-  useEffect(() => {
-    if (searchOpen) {
-      setActiveView("trending");
-    } else {
-      setQuery("");
-    }
-  }, [searchOpen]);
+  }, [resetSearch]);
 
   const categories = useMemo(
     () =>
@@ -293,10 +299,10 @@ const SearchButton = ({ searchEntries }: { searchEntries: SearchEntry[] }) => {
 
   const handleSelect = useCallback(
     (href: string) => {
-      setSearchOpen(false);
+      changeSearchOpen(false);
       router.push(href);
     },
-    [router],
+    [changeSearchOpen, router],
   );
 
   const trendingSuggestions: SearchSuggestion[] = trending.map((entry) => ({
@@ -405,7 +411,7 @@ const SearchButton = ({ searchEntries }: { searchEntries: SearchEntry[] }) => {
         type="button"
         aria-expanded={searchOpen}
         className="border-input bg-muted flex h-9 w-full rounded-full border px-3 py-2 shadow-xs transition"
-        onClick={() => setSearchOpen(true)}
+        onClick={() => changeSearchOpen(true)}
       >
         <span className="flex grow items-center gap-1">
           <SearchIcon className="text-muted-foreground size-4" aria-hidden="true" />
@@ -415,7 +421,7 @@ const SearchButton = ({ searchEntries }: { searchEntries: SearchEntry[] }) => {
           ⌘K
         </kbd>
       </button>
-      <Dialog open={searchOpen} onOpenChange={setSearchOpen}>
+      <Dialog open={searchOpen} onOpenChange={changeSearchOpen}>
         <DialogContent
           showCloseButton={false}
           className="top-[10vh] translate-y-0 gap-0 overflow-hidden rounded-md p-0 ring-0 sm:max-w-2xl"

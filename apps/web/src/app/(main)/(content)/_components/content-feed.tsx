@@ -76,7 +76,7 @@ export const ContentFeed = ({ initialSlug, feed }: ContentFeedProps) => {
       { root: container, threshold: 0.6 },
     );
 
-    for (const item of itemRefs.current) {
+    for (const item of itemRefs.current.slice(0, feed.length)) {
       if (item) observer.observe(item);
     }
     return () => observer.disconnect();

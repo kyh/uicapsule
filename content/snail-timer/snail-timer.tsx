@@ -35,7 +35,7 @@ export const SnailTimer = ({ started = true, initialSeconds = 45, onTimeout = NO
     }
 
     return () => clearInterval(interval);
-  }, [started, seconds]);
+  }, [started, seconds, onTimeout]);
 
   return (
     <div
