@@ -1,5 +1,5 @@
 import { relations, sql } from "drizzle-orm";
-import { sqliteTable, text, integer, index } from "drizzle-orm/sqlite-core";
+import { sqliteTable, text, integer, index, uniqueIndex } from "drizzle-orm/sqlite-core";
 
 export const user = sqliteTable("user", {
   id: text("id").primaryKey(),
@@ -41,6 +41,10 @@ export const account = sqliteTable(
   "account",
   {
     id: text("id").primaryKey(),
+    // Account identity is scoped by (issuer, accountId) since better-auth 1.7:
+    // credential accounts use "local:credential", OAuth providers without a real
+    // issuer use "local:oauth:<providerId>".
+    issuer: text("issuer").notNull(),
     accountId: text("account_id").notNull(),
     providerId: text("provider_id").notNull(),
     userId: text("user_id")
@@ -64,7 +68,10 @@ export const account = sqliteTable(
       .$onUpdate(() => /* @__PURE__ */ new Date())
       .notNull(),
   },
-  (table) => [index("account_userId_idx").on(table.userId)],
+  (table) => [
+    index("account_userId_idx").on(table.userId),
+    uniqueIndex("account_issuer_accountId_uidx").on(table.issuer, table.accountId),
+  ],
 );
 
 export const verification = sqliteTable(
