@@ -31,6 +31,32 @@ Content is filesystem-driven; the web app never depends on content packages by n
 - Content packages exist as workspace packages only so pnpm installs their deps in
   isolation and the registry can report per-component dependencies.
 
+### Agent-readable surfaces
+
+`apps/web/src/lib/agent/` is the machine-readable layer, and it is deliberately pure — no
+Next imports, no filesystem — so it can be unit-tested without a runtime. The routes and
+`src/proxy.ts` only feed it data.
+
+- **One source per page.** `site-pages.ts` holds the prose for `/about`, `/contact` and
+  `/privacy`; the JSX page and the Markdown representation both render from it. Never edit
+  the copy in only one of the two.
+- **Markdown content negotiation** (acceptmarkdown.com): `src/proxy.ts` parses `Accept` and
+  rewrites Markdown-preferring requests to `/api/markdown/*`. `/<path>.md` (and `/index.md`
+  for the home page) serves the same thing without an `Accept` header. `406` is reserved
+  for a client that accepts neither representation — a missing or wildcard `Accept` means
+  "no constraint" and gets HTML.
+- **`Vary: Accept` does not reach prerendered app pages.** Next replays a prerender's
+  stored headers on send and `vary` is one of them, so neither the proxy nor
+  `next.config.js` `headers()` can add to it. The config entry is still there and does
+  apply to every route handler. Retest on a Next upgrade before deleting the comment.
+- **The homepage's text layer** (`_components/gallery-outline.tsx`) is `sr-only` and
+  outside any `<Suspense>` on purpose: the grid is covers and hover states, which reads as
+  an empty page without JavaScript, and only unsuspended cached data lands in the static
+  shell. Anything added to it costs roughly 2.5× its size in HTML, because a server
+  component's markup is duplicated in the RSC flight payload.
+- Runtime gate: `pnpm check:agent-endpoints` against a running server. `pnpm verify`
+  cannot see status codes or headers.
+
 ### Tech Stack
 
 - **Runtime**: pnpm 10, Node 24, TypeScript 6 (pinned — TS 7 / tsgo breaks Next 16)
@@ -50,7 +76,8 @@ Content is filesystem-driven; the web app never depends on content packages by n
   sign-in 403 silently.
 - **No seeded login.** Nothing in the gallery is authed. `POST /api/auth/sign-up/email`
   creates one on demand (see `AGENTS.md` → Login).
-- **Verify**: `pnpm verify` for the static gate, then drive the running app with
+- **Verify**: `pnpm verify` for the static gate, `pnpm check:agent-endpoints` for the
+  machine-readable surfaces (needs a running server), then drive the running app with
   `agent-browser` — `/`, `/ui/<slug>`, `/preview-frame/<slug>`, `/r/<slug>.json`. Web is
   the only surface; there is nothing that isn't headlessly verifiable.
 
@@ -59,7 +86,7 @@ Content is filesystem-driven; the web app never depends on content packages by n
 ```bash
 pnpm dev:web          # Next.js app on :3000 (the one you want)
 pnpm -F db db         # Local Turso (turso dev) on :8080 — its own shell; `pnpm dev` does NOT start it
-pnpm verify           # typecheck + lint + format + build (the full gate)
+pnpm verify           # typecheck + lint + format + test + build (the full gate)
 pnpm build            # Build all
 pnpm typecheck        # Type check all
 pnpm lint             # Lint all
@@ -70,23 +97,26 @@ pnpm db:push          # Push local db schema
 pnpm db:push-remote   # Push to production Turso
 pnpm new:content <slug>  # Scaffold a new content component in content/
 pnpm check:content    # Fail if any content/<slug> is not a loadable component
+pnpm test             # vitest — the agent-surface unit tests in apps/web/src/lib/agent
+pnpm check:agent-endpoints  # Runtime check of the agent surfaces (needs a running server)
 ```
 
 ## Verification Contract
 
-`pnpm verify` runs four steps in order: `pnpm typecheck`, `pnpm lint` (oxlint),
-`pnpm format` (`oxfmt --check` — the checking one; `format:fix` is what rewrites), and
-`pnpm build`. Only three of them are gates:
+`pnpm verify` runs five steps in order: `pnpm typecheck`, `pnpm lint` (oxlint),
+`pnpm format` (`oxfmt --check` — the checking one; `format:fix` is what rewrites),
+`pnpm test` (vitest) and `pnpm build`. Only four of them are gates:
 
-- **typecheck, format, build fail the run.** They must be green.
+- **typecheck, format, test, build fail the run.** They must be green.
 - **lint does not.** `.oxlintrc.json` sets every category (`correctness`, `suspicious`,
   `perf`) to `warn` and root `lint` has no `--deny-warnings`, so `pnpm lint` exits 0
   whatever it finds — today 96 pre-existing warnings, almost all in `content/*` and
   upstream shadcn components in `packages/ui`. Turning it into a real gate would fail a
   clean checkout, so it stays advisory: **read its output, don't just read its exit code.**
 
-There are **zero tests in the repo today** — don't assume a suite has your back, and note
-`content/*` is typechecked by nothing (see `AGENTS.md` → Verify a change end-to-end).
+The only tests are the agent-surface unit tests in `apps/web/src/lib/agent/*.test.ts` —
+don't assume a suite has your back anywhere else, and note `content/*` is typechecked by
+nothing (see `AGENTS.md` → Verify a change end-to-end).
 `verify` reads `.env`, because `build` does.
 
 `pnpm build` runs `check:content` first (turbo task `//#check:content`): the gallery loader

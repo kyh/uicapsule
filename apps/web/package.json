@@ -9,7 +9,9 @@
     "dev": "pnpm with-env next dev",
     "start": "pnpm with-env next start",
     "typecheck": "tsc --noEmit",
-    "with-env": "dotenv -e ../../.env --"
+    "with-env": "dotenv -e ../../.env --",
+    "test": "vitest run",
+    "test:watch": "vitest"
   },
   "dependencies": {
     "@headless-tree/core": "^1.7.0",
@@ -47,6 +49,7 @@
     "@types/react-dom": "catalog:",
     "postcss": "^8.5.26",
     "tailwindcss": "catalog:",
-    "typescript": "catalog:"
+    "typescript": "catalog:",
+    "vitest": "^4.1.11"
   }
 }

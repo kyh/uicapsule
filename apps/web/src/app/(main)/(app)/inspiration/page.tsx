@@ -1,12 +1,28 @@
-const Page = () => {
-  return (
-    <main className="flex min-h-[calc(100dvh-(--spacing(32)))] max-w-3xl flex-col gap-4 p-8 lg:p-20">
-      <h1 className="text-3xl leading-snug lg:text-4xl">Other inspirations</h1>
-      <div className="text-muted-foreground flex flex-col gap-4 border-t pt-4 leading-relaxed">
-        <p>[IN PROGRESS]</p>
-      </div>
-    </main>
-  );
+import { JsonLd } from "@/components/json-ld";
+import { canonicalAlternates, pageOpenGraph } from "@/lib/agent/page-metadata";
+import { inspirationPage } from "@/lib/agent/site-pages";
+import { buildProsePageGraph } from "@/lib/agent/structured-data";
+
+import { ProsePageView } from "../_components/prose-page";
+
+import type { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: inspirationPage.title,
+  description: inspirationPage.description,
+  alternates: canonicalAlternates(inspirationPage.path),
+  openGraph: pageOpenGraph(
+    inspirationPage.path,
+    inspirationPage.title,
+    inspirationPage.description,
+  ),
 };
+
+const Page = () => (
+  <>
+    <JsonLd node={buildProsePageGraph(inspirationPage)} />
+    <ProsePageView page={inspirationPage} />
+  </>
+);
 
 export default Page;

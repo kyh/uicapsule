@@ -71,14 +71,17 @@ print the status line, or a 422/429 looks like "auth is broken".
 Static gate:
 
 ```sh
-pnpm verify           # typecheck · lint · format · build
+pnpm verify           # typecheck · lint · format · test · build
 ```
 
 `verify` needs `.env` (it runs `build`, which is `dotenv -e ../../.env -- next build`). It
 does _not_ need the database. Two things it deliberately does not cover:
 
-- **There are zero tests in this repo.** Nothing has your back but the gate and your own
-  runtime check.
+- **The only tests are the agent-surface unit tests** (`apps/web/src/lib/agent/*.test.ts`,
+  vitest, `pnpm test`). They cover Accept negotiation, the Markdown/llms.txt/sitemap
+  renderers and the JSON-LD builders — everything under `src/lib/agent` is pure so it can
+  be tested without a Next runtime. Nothing else in the repo has a test; the gate and your
+  own runtime check are still what stands behind a UI or content change.
 - **`content/*` is not typechecked.** `apps/web/tsconfig.json` excludes `../../content/**`,
   no content package has a `typecheck` script, and `next.config.js` sets
   `typescript.ignoreBuildErrors`. `pnpm lint` (oxlint) is the only static tool that reads
@@ -88,6 +91,21 @@ does _not_ need the database. Two things it deliberately does not cover:
 `pnpm build` runs `//#check:content` first — it fails the build if any `content/<slug>` is
 missing its `meta.json` + `preview.tsx` pair, because the gallery loader would otherwise
 drop it silently. Do not remove that guard.
+
+Agent surfaces — the response codes, `Content-Type`/`Vary` headers, JSON-LD and Markdown
+negotiation that `verify` structurally cannot see — have their own runtime gate. It needs a
+server already running:
+
+```sh
+pnpm check:agent-endpoints                  # defaults to http://localhost:3000
+pnpm check:agent-endpoints https://uicapsule.com
+```
+
+57 assertions: homepage `h1` + text-without-JavaScript + content efficiency + JSON-LD,
+`Accept: text/markdown` on every page shape, `406` on an unsatisfiable Accept, q-value
+handling, the Markdown and HTML 404 bodies, `/sitemap.xml`, `/llms.txt`, `/robots.txt`, and
+the three trust-anchor pages. Run it after touching anything in `apps/web/src/lib/agent`,
+`src/proxy.ts`, or page metadata.
 
 Runtime — drive the real UI with [agent-browser](https://github.com/vercel-labs/agent-browser)
 (installed globally: `npm i -g agent-browser && agent-browser install`):
@@ -114,15 +132,18 @@ agent-browser network requests --filter sign-in   # expect 200; a 403 means you'
 
 The routes worth checking, and what each proves:
 
-| Route                    | Proves                                                |
-| ------------------------ | ----------------------------------------------------- |
-| `/`                      | gallery grid, filters, search (`⌘K`)                  |
-| `/ui/<slug>`             | detail page, live preview iframe, source-code drawer  |
-| `/preview-frame/<slug>`  | the bare preview — what the cover-video skill records |
-| `/r/<slug>.json`         | shadcn registry item (external CLI contract)          |
-| `/r/registry.json`       | the full registry index                               |
-| `/api/content/<slug>`    | source payload behind the drawer + zip download       |
-| `/about`, `/inspiration` | static pages                                          |
+| Route                                            | Proves                                                |
+| ------------------------------------------------ | ----------------------------------------------------- |
+| `/`                                              | gallery grid, filters, search (`⌘K`)                  |
+| `/ui/<slug>`                                     | detail page, live preview iframe, source-code drawer  |
+| `/preview-frame/<slug>`                          | the bare preview — what the cover-video skill records |
+| `/r/<slug>.json`                                 | shadcn registry item (external CLI contract)          |
+| `/r/registry.json`                               | the full registry index                               |
+| `/api/content/<slug>`                            | source payload behind the drawer + zip download       |
+| `/about`, `/contact`, `/privacy`, `/inspiration` | prose pages (trust anchors)                           |
+| `/llms.txt`                                      | llmstxt.org index — overview + full component catalog |
+| `/sitemap.xml`                                   | every indexable URL, with `lastmod`                   |
+| `/index.md`, `/<path>.md`                        | the Markdown representation of any page               |
 
 **Before reporting a visual bug in a brand-new component, clear the Turbopack cache.** Its
 persistent cache freezes the Tailwind `@source` glob, so classes that exist only in a newly
@@ -182,6 +203,10 @@ Web is the only surface. There is no mobile, desktop, or extension target.
 
 - `apps/web` — the Next.js app. `src/lib/content/content-fs.ts` reads `content/`;
   `src/lib/content-data.ts` wraps it in `"use cache"` server functions.
+- `apps/web/src/lib/agent` — the machine-readable layer: Accept negotiation, Markdown
+  rendering, `llms.txt`, sitemap entries, JSON-LD, and the prose-page definitions that
+  `/about`, `/contact` and `/privacy` render from. Pure and unit-tested; `src/proxy.ts` and
+  the routes only feed it data.
 - `packages/ui` — Base UI + shadcn-derived components · `packages/db` — Drizzle + Turso ·
   `packages/api` — tRPC + better-auth
 - `content/<slug>/` — one workspace package per component
