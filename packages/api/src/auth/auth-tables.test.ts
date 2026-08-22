@@ -1,7 +1,9 @@
+import assert from "node:assert/strict";
+import { describe, test } from "node:test";
+
 import * as drizzleSchema from "@repo/db/drizzle-schema-auth";
 import { getAuthTables } from "better-auth/db";
 import { getTableColumns, is, Table } from "drizzle-orm";
-import { describe, expect, it } from "vitest";
 
 import { auth } from "./auth";
 
@@ -15,6 +17,10 @@ import { auth } from "./auth";
  * The drizzle adapter resolves `schema[modelName]` and then `table[fieldName]`,
  * so both sides are matched on the *export key* and the *property name* — not on
  * the physical table/column names, which may differ (`accountId` -> "account_id").
+ *
+ * Importing `auth` reaches @repo/db, which builds its libsql client at module
+ * scope and rejects an empty URL — hence the placeholder on the `test` script.
+ * Nothing connects until a query runs; these tests never run one.
  */
 
 const authTables = getAuthTables(auth.options);
@@ -28,46 +34,51 @@ const drizzleTables = new Map<string, Table>(
 const fieldNamesOf = (authTable: (typeof authTables)[string]) =>
   Object.entries(authTable.fields).map(([key, field]) => field.fieldName ?? key);
 
-describe.each(Object.keys(authTables))("%s", (key) => {
-  const authTable = authTables[key];
+for (const key of Object.keys(authTables)) {
+  describe(key, () => {
+    const authTable = authTables[key];
 
-  it("is exported from the Drizzle schema", () => {
-    expect({
-      model: authTable?.modelName,
-      found: drizzleTables.has(authTable?.modelName ?? ""),
-    }).toEqual({ model: authTable?.modelName, found: true });
-  });
+    test("is exported from the Drizzle schema", () => {
+      assert.deepEqual(
+        {
+          model: authTable?.modelName,
+          found: drizzleTables.has(authTable?.modelName ?? ""),
+        },
+        { model: authTable?.modelName, found: true },
+      );
+    });
 
-  it("declares every field better-auth requires", () => {
-    const table = drizzleTables.get(authTable?.modelName ?? "");
-    if (!authTable || !table) return;
-    const properties = new Set(Object.keys(getTableColumns(table)));
-    const missing = fieldNamesOf(authTable).filter((fieldName) => !properties.has(fieldName));
-    expect(missing).toEqual([]);
-  });
+    test("declares every field better-auth requires", () => {
+      const table = drizzleTables.get(authTable?.modelName ?? "");
+      if (!authTable || !table) return;
+      const properties = new Set(Object.keys(getTableColumns(table)));
+      const missing = fieldNamesOf(authTable).filter((fieldName) => !properties.has(fieldName));
+      assert.deepEqual(missing, []);
+    });
 
-  it("does not declare fields better-auth does not know about", () => {
-    const table = drizzleTables.get(authTable?.modelName ?? "");
-    if (!authTable || !table) return;
-    const known = new Set([...fieldNamesOf(authTable), "id"]);
-    const extra = Object.keys(getTableColumns(table)).filter((property) => !known.has(property));
-    expect(extra).toEqual([]);
-  });
+    test("does not declare fields better-auth does not know about", () => {
+      const table = drizzleTables.get(authTable?.modelName ?? "");
+      if (!authTable || !table) return;
+      const known = new Set([...fieldNamesOf(authTable), "id"]);
+      const extra = Object.keys(getTableColumns(table)).filter((property) => !known.has(property));
+      assert.deepEqual(extra, []);
+    });
 
-  it("matches better-auth on which fields are NOT NULL", () => {
-    const table = drizzleTables.get(authTable?.modelName ?? "");
-    if (!authTable || !table) return;
-    const columns = getTableColumns(table);
-    const mismatched = Object.entries(authTable.fields)
-      .map(([key, field]) => ({
-        fieldName: field.fieldName ?? key,
-        required: field.required === true,
-      }))
-      .filter(({ fieldName, required }) => {
-        const column = columns[fieldName];
-        return column !== undefined && column.notNull !== required;
-      })
-      .map(({ fieldName, required }) => `${fieldName}: expected notNull=${required}`);
-    expect(mismatched).toEqual([]);
+    test("matches better-auth on which fields are NOT NULL", () => {
+      const table = drizzleTables.get(authTable?.modelName ?? "");
+      if (!authTable || !table) return;
+      const columns = getTableColumns(table);
+      const mismatched = Object.entries(authTable.fields)
+        .map(([key, field]) => ({
+          fieldName: field.fieldName ?? key,
+          required: field.required === true,
+        }))
+        .filter(({ fieldName, required }) => {
+          const column = columns[fieldName];
+          return column !== undefined && column.notNull !== required;
+        })
+        .map(({ fieldName, required }) => `${fieldName}: expected notNull=${required}`);
+      assert.deepEqual(mismatched, []);
+    });
   });
-});
+}
