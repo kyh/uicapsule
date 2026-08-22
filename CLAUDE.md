@@ -97,7 +97,7 @@ pnpm db:push          # Push local db schema
 pnpm db:push-remote   # Push to production Turso
 pnpm new:content <slug>  # Scaffold a new content component in content/
 pnpm check:content    # Fail if any content/<slug> is not a loadable component
-pnpm test             # vitest — the agent-surface unit tests in apps/web/src/lib/agent
+pnpm test             # node:test — the auth-schema guard + the agent-surface unit tests
 pnpm check:agent-endpoints  # Runtime check of the agent surfaces (needs a running server)
 ```
 
@@ -105,7 +105,7 @@ pnpm check:agent-endpoints  # Runtime check of the agent surfaces (needs a runni
 
 `pnpm verify` runs five steps in order: `pnpm typecheck`, `pnpm lint` (oxlint),
 `pnpm format` (`oxfmt --check` — the checking one; `format:fix` is what rewrites),
-`pnpm test` (vitest) and `pnpm build`. Only four of them are gates:
+`pnpm test` (node:test) and `pnpm build`. Only four of them are gates:
 
 - **typecheck, format, test, build fail the run.** They must be green.
 - **lint does not.** `.oxlintrc.json` sets every category (`correctness`, `suspicious`,
@@ -114,9 +114,10 @@ pnpm check:agent-endpoints  # Runtime check of the agent surfaces (needs a runni
   upstream shadcn components in `packages/ui`. Turning it into a real gate would fail a
   clean checkout, so it stays advisory: **read its output, don't just read its exit code.**
 
-The only tests are the agent-surface unit tests in `apps/web/src/lib/agent/*.test.ts` —
-don't assume a suite has your back anywhere else, and note `content/*` is typechecked by
-nothing (see `AGENTS.md` → Verify a change end-to-end).
+The only tests are the auth-schema guard in `packages/api` and the agent-surface unit
+tests in `apps/web/src/lib/agent/*.test.ts` — don't assume a suite has your back anywhere
+else, and note `content/*` is typechecked by nothing (see `AGENTS.md` → Verify a change
+end-to-end).
 `verify` reads `.env`, because `build` does.
 
 `pnpm build` runs `check:content` first (turbo task `//#check:content`): the gallery loader

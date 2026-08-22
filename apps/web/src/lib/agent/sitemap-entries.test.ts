@@ -1,4 +1,5 @@
-import { describe, expect, it } from "vitest";
+import assert from "node:assert/strict";
+import { describe, test } from "node:test";
 
 import { buildSitemapEntries } from "./sitemap-entries";
 import { prosePages } from "./site-pages";
@@ -8,38 +9,53 @@ const entries = buildSitemapEntries(["dynamic-island", "feed"], lastModified);
 const urls = entries.map((entry) => entry.url);
 
 describe("buildSitemapEntries", () => {
-  it("leads with the home page at the highest priority", () => {
-    expect(entries[0]?.url).toBe("https://uicapsule.com/");
-    expect(entries[0]?.priority).toBe(1);
+  test("leads with the home page at the highest priority", () => {
+    assert.equal(entries[0]?.url, "https://uicapsule.com/");
+    assert.equal(entries[0]?.priority, 1);
   });
 
-  it("includes every prose page and every component page", () => {
+  test("includes every prose page and every component page", () => {
     for (const page of prosePages) {
-      expect(urls).toContain(`https://uicapsule.com${page.path}`);
+      assert.ok(
+        urls.includes(`https://uicapsule.com${page.path}`),
+        "should contain `https://uicapsule.com${page.path}`",
+      );
     }
-    expect(urls).toContain("https://uicapsule.com/ui/dynamic-island");
-    expect(urls).toContain("https://uicapsule.com/ui/feed");
+    assert.ok(
+      urls.includes("https://uicapsule.com/ui/dynamic-island"),
+      'should contain "https://uicapsule.com/ui/dynamic-island"',
+    );
+    assert.ok(
+      urls.includes("https://uicapsule.com/ui/feed"),
+      'should contain "https://uicapsule.com/ui/feed"',
+    );
   });
 
-  it("leaves the auth screens out — they are not indexable content", () => {
-    expect(urls.some((url) => url.includes("/auth/"))).toBe(false);
+  test("leaves the auth screens out — they are not indexable content", () => {
+    assert.equal(
+      urls.some((url) => url.includes("/auth/")),
+      false,
+    );
   });
 
-  it("emits only absolute https URLs, with no duplicates", () => {
-    for (const url of urls) expect(url.startsWith("https://uicapsule.com/")).toBe(true);
-    expect(new Set(urls).size).toBe(urls.length);
+  test("emits only absolute https URLs, with no duplicates", () => {
+    for (const url of urls) assert.equal(url.startsWith("https://uicapsule.com/"), true);
+    assert.equal(new Set(urls).size, urls.length);
   });
 
-  it("stamps every entry with the supplied lastmod and a valid changefreq", () => {
+  test("stamps every entry with the supplied lastmod and a valid changefreq", () => {
     for (const entry of entries) {
-      expect(entry.lastModified).toBe(lastModified);
-      expect(["weekly", "monthly"]).toContain(entry.changeFrequency);
-      expect(entry.priority).toBeGreaterThan(0);
-      expect(entry.priority).toBeLessThanOrEqual(1);
+      assert.equal(entry.lastModified, lastModified);
+      assert.ok(
+        ["weekly", "monthly"].includes(entry.changeFrequency ?? ""),
+        `${entry.url} has changefreq ${entry.changeFrequency}`,
+      );
+      const priority = entry.priority ?? 0;
+      assert.ok(priority > 0 && priority <= 1, `${entry.url} has priority ${priority}`);
     }
   });
 
-  it("is deterministic for a given content set", () => {
-    expect(buildSitemapEntries(["dynamic-island", "feed"], lastModified)).toEqual(entries);
+  test("is deterministic for a given content set", () => {
+    assert.deepEqual(buildSitemapEntries(["dynamic-island", "feed"], lastModified), entries);
   });
 });

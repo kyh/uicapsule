@@ -19,7 +19,7 @@
   },
   "dependencies": {
     "@libsql/client": "^0.17.4",
-    "drizzle-orm": "^0.45.2",
+    "drizzle-orm": "catalog:",
     "next": "catalog:",
     "react": "catalog:"
   },

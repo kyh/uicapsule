@@ -1,4 +1,5 @@
-import { describe, expect, it } from "vitest";
+import assert from "node:assert/strict";
+import { describe, test } from "node:test";
 
 import {
   absoluteUrl,
@@ -37,43 +38,49 @@ const remoteComponent: ContentComponentSummary = {
 };
 
 describe("absoluteUrl", () => {
-  it("leaves absolute and mailto URLs alone", () => {
-    expect(absoluteUrl("https://example.com/x")).toBe("https://example.com/x");
-    expect(absoluteUrl("mailto:a@b.c")).toBe("mailto:a@b.c");
+  test("leaves absolute and mailto URLs alone", () => {
+    assert.equal(absoluteUrl("https://example.com/x"), "https://example.com/x");
+    assert.equal(absoluteUrl("mailto:a@b.c"), "mailto:a@b.c");
   });
 
-  it("prefixes site-relative paths with the site origin", () => {
-    expect(absoluteUrl("/about")).toMatch(/^https?:\/\/[^/]+\/about$/);
+  test("prefixes site-relative paths with the site origin", () => {
+    assert.match(absoluteUrl("/about"), /^https?:\/\/[^/]+\/about$/);
   });
 });
 
 describe("renderProsePageMarkdown", () => {
-  it("opens with a single H1 and a blockquote summary", () => {
+  test("opens with a single H1 and a blockquote summary", () => {
     const body = renderProsePageMarkdown(aboutPage);
-    expect(body.startsWith(`# ${aboutPage.heading}\n`)).toBe(true);
-    expect(body.match(/^# /gm)).toHaveLength(1);
-    expect(body).toContain(`> ${aboutPage.description}`);
+    assert.equal(body.startsWith(`# ${aboutPage.heading}\n`), true);
+    assert.deepEqual(body.match(/^# /gm), ["# "]);
+    assert.ok(
+      body.includes(`> ${aboutPage.description}`),
+      "should contain `> ${aboutPage.description}`",
+    );
   });
 
-  it("renders headings, paragraphs and linked list items", () => {
+  test("renders headings, paragraphs and linked list items", () => {
     const body = renderProsePageMarkdown(contactPage);
-    expect(body).toContain("## Channels");
-    expect(body).toContain("[uicapsule@kyh.io](mailto:uicapsule@kyh.io)");
-    expect(body).toContain("GitHub issues");
+    assert.ok(body.includes("## Channels"), 'should contain "## Channels"');
+    assert.ok(
+      body.includes("[uicapsule@kyh.io](mailto:uicapsule@kyh.io)"),
+      'should contain "[uicapsule@kyh.io](mailto:uicapsule@kyh.io)"',
+    );
+    assert.ok(body.includes("GitHub issues"), 'should contain "GitHub issues"');
   });
 
-  it("ends with a newline and links back to the discovery surfaces", () => {
+  test("ends with a newline and links back to the discovery surfaces", () => {
     const body = renderProsePageMarkdown(privacyPage);
-    expect(body.endsWith("\n")).toBe(true);
-    expect(body).toContain("/llms.txt");
-    expect(body).toContain("/sitemap.xml");
+    assert.equal(body.endsWith("\n"), true);
+    assert.ok(body.includes("/llms.txt"), 'should contain "/llms.txt"');
+    assert.ok(body.includes("/sitemap.xml"), 'should contain "/sitemap.xml"');
   });
 
-  it("gives every registered page a non-trivial body", () => {
+  test("gives every registered page a non-trivial body", () => {
     for (const page of [...prosePages, ...utilityPages]) {
       const body = renderProsePageMarkdown(page);
-      expect(body).toContain(`# ${page.heading}`);
-      expect(body.length).toBeGreaterThan(100);
+      assert.ok(body.includes(`# ${page.heading}`), "should contain `# ${page.heading}`");
+      assert.ok(body.length > 100, "expected > 100");
     }
   });
 });
@@ -90,78 +97,98 @@ describe("trust anchor pages", () => {
       )
       .join(" ").length;
 
-  it.each([aboutPage, contactPage, privacyPage])("$path carries real content", (page) => {
-    expect(textLength(page)).toBeGreaterThan(500);
-  });
+  for (const page of [aboutPage, contactPage, privacyPage]) {
+    test(`${page.path} carries real content`, () => {
+      assert.ok(
+        textLength(page) > 500,
+        `${page.path} has only ${textLength(page)} characters of prose`,
+      );
+    });
+  }
 });
 
 describe("renderHomeMarkdown", () => {
   const body = renderHomeMarkdown([localComponent, bareComponent]);
 
-  it("carries the when-to-use guidance an agent needs to route to this site", () => {
-    expect(body).toContain("## When to use this");
-    expect(body).toContain("Not a fit");
+  test("carries the when-to-use guidance an agent needs to route to this site", () => {
+    assert.ok(body.includes("## When to use this"), 'should contain "## When to use this"');
+    assert.ok(body.includes("Not a fit"), 'should contain "Not a fit"');
   });
 
-  it("advertises the machine-readable endpoints", () => {
-    expect(body).toContain("/r/registry.json");
-    expect(body).toContain("Accept: text/markdown");
+  test("advertises the machine-readable endpoints", () => {
+    assert.ok(body.includes("/r/registry.json"), 'should contain "/r/registry.json"');
+    assert.ok(body.includes("Accept: text/markdown"), 'should contain "Accept: text/markdown"');
   });
 
-  it("lists every component with a link, description and tags", () => {
-    expect(body).toContain("## Components (2)");
-    expect(body).toContain("[Dynamic Island](");
-    expect(body).toContain("A springy Dynamic Island interaction");
-    expect(body).toContain("tags: overlay, minimal");
-    expect(body).toContain("[Feed](");
+  test("lists every component with a link, description and tags", () => {
+    assert.ok(body.includes("## Components (2)"), 'should contain "## Components (2)"');
+    assert.ok(body.includes("[Dynamic Island]("), 'should contain "[Dynamic Island]("');
+    assert.ok(
+      body.includes("A springy Dynamic Island interaction"),
+      'should contain "A springy Dynamic Island interaction"',
+    );
+    assert.ok(body.includes("tags: overlay, minimal"), 'should contain "tags: overlay, minimal"');
+    assert.ok(body.includes("[Feed]("), 'should contain "[Feed]("');
   });
 
-  it("exposes the filter taxonomy so an agent can build a filtered URL", () => {
-    expect(body).toContain("**Elements**");
-    expect(body).toContain("**Styles**");
-    expect(body).toContain("**Categories**");
-    expect(body).toContain("?element=inputs&style=skeuomorphism");
+  test("exposes the filter taxonomy so an agent can build a filtered URL", () => {
+    assert.ok(body.includes("**Elements**"), 'should contain "**Elements**"');
+    assert.ok(body.includes("**Styles**"), 'should contain "**Styles**"');
+    assert.ok(body.includes("**Categories**"), 'should contain "**Categories**"');
+    assert.ok(
+      body.includes("?element=inputs&style=skeuomorphism"),
+      'should contain "?element=inputs&style=skeuomorphism"',
+    );
   });
 });
 
 describe("renderComponentMarkdown", () => {
-  it("describes a local component and how to install it", () => {
+  test("describes a local component and how to install it", () => {
     const body = renderComponentMarkdown(localComponent, ["/preview.tsx", "/dynamic-island.tsx"]);
-    expect(body).toContain("# Dynamic Island");
-    expect(body).toContain("npx shadcn@latest add");
-    expect(body).toContain("/r/dynamic-island.json");
-    expect(body).toContain("## Files (2)");
-    expect(body).toContain("`/preview.tsx`");
-    expect(body).toContain("[Kaiyu Hsu](https://kyh.io)");
+    assert.ok(body.includes("# Dynamic Island"), 'should contain "# Dynamic Island"');
+    assert.ok(body.includes("npx shadcn@latest add"), 'should contain "npx shadcn@latest add"');
+    assert.ok(body.includes("/r/dynamic-island.json"), 'should contain "/r/dynamic-island.json"');
+    assert.ok(body.includes("## Files (2)"), 'should contain "## Files (2)"');
+    assert.ok(body.includes("`/preview.tsx`"), 'should contain "`/preview.tsx`"');
+    assert.ok(
+      body.includes("[Kaiyu Hsu](https://kyh.io)"),
+      'should contain "[Kaiyu Hsu](https://kyh.io)"',
+    );
   });
 
-  it("falls back to a generic summary when a component has no description", () => {
+  test("falls back to a generic summary when a component has no description", () => {
     const body = renderComponentMarkdown(bareComponent, []);
-    expect(body).toContain("> ");
-    expect(body).not.toContain("## Files");
+    assert.ok(body.includes("> "), 'should contain "> "');
+    assert.ok(!body.includes("## Files"), 'should not contain "## Files"');
   });
 
-  it("points a remote component at its original author", () => {
+  test("points a remote component at its original author", () => {
     const body = renderComponentMarkdown(remoteComponent, []);
-    expect(body).toContain("https://example.com/embed");
-    expect(body).toContain("https://example.com/source");
-    expect(body).not.toContain("npx shadcn");
+    assert.ok(
+      body.includes("https://example.com/embed"),
+      'should contain "https://example.com/embed"',
+    );
+    assert.ok(
+      body.includes("https://example.com/source"),
+      'should contain "https://example.com/source"',
+    );
+    assert.ok(!body.includes("npx shadcn"), 'should not contain "npx shadcn"');
   });
 });
 
 describe("renderNotFoundMarkdown", () => {
   const body = renderNotFoundMarkdown("/does-not-exist");
 
-  it("names the path that failed", () => {
-    expect(body).toContain("# 404");
-    expect(body).toContain("`/does-not-exist`");
+  test("names the path that failed", () => {
+    assert.ok(body.includes("# 404"), 'should contain "# 404"');
+    assert.ok(body.includes("`/does-not-exist`"), 'should contain "`/does-not-exist`"');
   });
 
-  it("hands the agent every recovery surface", () => {
+  test("hands the agent every recovery surface", () => {
     for (const link of notFoundRecoveryLinks) {
-      expect(body).toContain(link.label);
+      assert.ok(body.includes(link.label), "should contain link.label");
     }
-    expect(body).toContain("/llms.txt");
-    expect(body).toContain("/sitemap.xml");
+    assert.ok(body.includes("/llms.txt"), 'should contain "/llms.txt"');
+    assert.ok(body.includes("/sitemap.xml"), 'should contain "/sitemap.xml"');
   });
 });

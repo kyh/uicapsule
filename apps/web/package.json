@@ -10,8 +10,7 @@
     "start": "pnpm with-env next start",
     "typecheck": "tsc --noEmit",
     "with-env": "dotenv -e ../../.env --",
-    "test": "vitest run",
-    "test:watch": "vitest"
+    "test": "node --import tsx --test 'src/**/*.test.ts'"
   },
   "dependencies": {
     "@headless-tree/core": "^1.7.0",
@@ -49,7 +48,7 @@
     "@types/react-dom": "catalog:",
     "postcss": "^8.5.26",
     "tailwindcss": "catalog:",
-    "typescript": "catalog:",
-    "vitest": "^4.1.11"
+    "tsx": "catalog:",
+    "typescript": "catalog:"
   }
 }

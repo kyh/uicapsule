@@ -9,6 +9,7 @@
   },
   "scripts": {
     "clean": "git clean -xdf .cache .turbo node_modules",
+    "test": "TURSO_DATABASE_URL=http://127.0.0.1:8080 node --import tsx --test 'src/**/*.test.ts'",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
@@ -23,6 +24,8 @@
     "@types/node": "^26.2.0",
     "@types/react": "catalog:",
     "@types/react-dom": "catalog:",
+    "drizzle-orm": "catalog:",
+    "tsx": "catalog:",
     "typescript": "catalog:"
   }
 }

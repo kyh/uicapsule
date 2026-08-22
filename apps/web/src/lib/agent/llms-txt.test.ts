@@ -1,4 +1,5 @@
-import { describe, expect, it } from "vitest";
+import assert from "node:assert/strict";
+import { describe, test } from "node:test";
 
 import { renderLlmsTxt } from "./llms-txt";
 
@@ -19,63 +20,81 @@ const body = renderLlmsTxt(components);
 const lines = body.split("\n");
 
 describe("renderLlmsTxt — llmstxt.org format", () => {
-  it("starts with a single H1 naming the project", () => {
-    expect(lines[0]).toBe("# UICapsule");
-    expect(lines.filter((line) => line.startsWith("# "))).toHaveLength(1);
+  test("starts with a single H1 naming the project", () => {
+    assert.equal(lines[0], "# UICapsule");
+    assert.equal(lines.filter((line) => line.startsWith("# ")).length, 1);
   });
 
-  it("follows the H1 with a blockquote summary", () => {
-    expect(lines[1]).toBe("");
-    expect(lines[2]?.startsWith("> ")).toBe(true);
+  test("follows the H1 with a blockquote summary", () => {
+    assert.equal(lines[1], "");
+    assert.equal(lines[2]?.startsWith("> "), true);
   });
 
-  it("keeps every H2 section a link list", () => {
+  test("keeps every H2 section a link list", () => {
     // The spec reserves H2 sections for file lists: a markdown list whose items
     // each open with a link or a bold label. Prose belongs above the first H2.
     const sections = body.split(/^## /m).slice(1);
-    expect(sections.length).toBeGreaterThan(0);
+    assert.ok(sections.length > 0, "expected > 0");
     for (const section of sections) {
       const items = section
         .split("\n")
         .slice(1)
         .filter((line) => line.trim().length > 0);
-      expect(items.length).toBeGreaterThan(0);
+      assert.ok(items.length > 0, "expected > 0");
       for (const item of items) {
-        expect(item.startsWith("- ")).toBe(true);
+        assert.equal(item.startsWith("- "), true);
       }
     }
   });
 
-  it("puts the when-to-use guidance above the first H2, where free prose is allowed", () => {
+  test("puts the when-to-use guidance above the first H2, where free prose is allowed", () => {
     const beforeFirstHeading = body.slice(0, body.indexOf("\n## "));
-    expect(beforeFirstHeading).toContain("**When to use this:**");
-    expect(beforeFirstHeading).toContain("How to call it:");
-    expect(beforeFirstHeading).toContain("Reading it as an agent:");
-    expect(beforeFirstHeading).toContain("Licensing and support:");
-    expect(beforeFirstHeading).toContain("Not a fit");
-  });
-
-  it("names concrete jobs rather than marketing copy", () => {
-    expect(body).toContain("shadcn registry item");
-    expect(body).toContain("npx shadcn@latest add");
-    expect(body).toContain("no account required");
-  });
-
-  it("lists every component as an absolute link with notes", () => {
-    expect(body).toContain(
-      "- [Dynamic Island](https://uicapsule.com/ui/dynamic-island): A springy Dynamic Island interaction with ring and timer states. — tags: overlay, minimal",
+    assert.ok(
+      beforeFirstHeading.includes("**When to use this:**"),
+      'should contain "**When to use this:**"',
     );
-    expect(body).toContain("- [Feed](https://uicapsule.com/ui/feed)");
+    assert.ok(beforeFirstHeading.includes("How to call it:"), 'should contain "How to call it:"');
+    assert.ok(
+      beforeFirstHeading.includes("Reading it as an agent:"),
+      'should contain "Reading it as an agent:"',
+    );
+    assert.ok(
+      beforeFirstHeading.includes("Licensing and support:"),
+      'should contain "Licensing and support:"',
+    );
+    assert.ok(beforeFirstHeading.includes("Not a fit"), 'should contain "Not a fit"');
   });
 
-  it("links the trust anchor pages and the machine-readable endpoints", () => {
+  test("names concrete jobs rather than marketing copy", () => {
+    assert.ok(body.includes("shadcn registry item"), 'should contain "shadcn registry item"');
+    assert.ok(body.includes("npx shadcn@latest add"), 'should contain "npx shadcn@latest add"');
+    assert.ok(body.includes("no account required"), 'should contain "no account required"');
+  });
+
+  test("lists every component as an absolute link with notes", () => {
+    assert.ok(
+      body.includes(
+        "- [Dynamic Island](https://uicapsule.com/ui/dynamic-island): A springy Dynamic Island interaction with ring and timer states. — tags: overlay, minimal",
+      ),
+      'should contain "- [Dynamic Island](https://uicapsule.com/ui/dyn…',
+    );
+    assert.ok(
+      body.includes("- [Feed](https://uicapsule.com/ui/feed)"),
+      'should contain "- [Feed](https://uicapsule.com/ui/feed)"',
+    );
+  });
+
+  test("links the trust anchor pages and the machine-readable endpoints", () => {
     for (const path of ["/about", "/contact", "/privacy", "/sitemap.xml", "/robots.txt"]) {
-      expect(body).toContain(`https://uicapsule.com${path}`);
+      assert.ok(
+        body.includes(`https://uicapsule.com${path}`),
+        "should contain `https://uicapsule.com${path}`",
+      );
     }
   });
 
-  it("ends with exactly one trailing newline", () => {
-    expect(body.endsWith("\n")).toBe(true);
-    expect(body.endsWith("\n\n")).toBe(false);
+  test("ends with exactly one trailing newline", () => {
+    assert.equal(body.endsWith("\n"), true);
+    assert.equal(body.endsWith("\n\n"), false);
   });
 });

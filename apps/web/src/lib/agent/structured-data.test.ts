@@ -1,4 +1,5 @@
-import { describe, expect, it } from "vitest";
+import assert from "node:assert/strict";
+import { describe, test } from "node:test";
 
 import { privacyPage } from "./site-pages";
 import {
@@ -32,30 +33,30 @@ const bare: ContentComponentSummary = { slug: "feed", type: "local", name: "Feed
 describe("buildOrganization", () => {
   const organization = buildOrganization();
 
-  it("carries the identity fields an agent resolves an entity by", () => {
-    expect(organization["@type"]).toBe("Organization");
-    expect(organization.name).toBe("UICapsule");
-    expect(organization.url).toBe("https://uicapsule.com");
-    expect(organization.description.length).toBeGreaterThan(40);
-    expect(organization.sameAs).toEqual([
+  test("carries the identity fields an agent resolves an entity by", () => {
+    assert.equal(organization["@type"], "Organization");
+    assert.equal(organization.name, "UICapsule");
+    assert.equal(organization.url, "https://uicapsule.com");
+    assert.ok(organization.description.length > 40, "expected > 40");
+    assert.deepEqual(organization.sameAs, [
       "https://github.com/kyh/uicapsule",
       "https://x.com/kaiyuhsu",
     ]);
   });
 
-  it("exposes reachable contactPoints, each with an email and a contactType", () => {
-    expect(organization.contactPoint.length).toBeGreaterThan(0);
+  test("exposes reachable contactPoints, each with an email and a contactType", () => {
+    assert.ok(organization.contactPoint.length > 0, "expected > 0");
     for (const point of organization.contactPoint) {
-      expect(point["@type"]).toBe("ContactPoint");
-      expect(point.email).toBe("uicapsule@kyh.io");
-      expect(point.contactType.length).toBeGreaterThan(0);
+      assert.equal(point["@type"], "ContactPoint");
+      assert.equal(point.email, "uicapsule@kyh.io");
+      assert.ok(point.contactType.length > 0, "expected > 0");
     }
   });
 
-  it("omits address rather than inventing one", () => {
+  test("omits address rather than inventing one", () => {
     // UICapsule is a personal open-source project with no business premises.
     // A fabricated PostalAddress would be worse than none.
-    expect(Object.keys(organization)).not.toContain("address");
+    assert.ok(!Object.keys(organization).includes("address"), 'should not contain "address"');
   });
 });
 
@@ -67,35 +68,41 @@ describe("buildHomeGraph", () => {
   const application = buildSoftwareApplication(components.length);
   const page = buildCollectionPage(components);
 
-  it("declares the schema.org context once, at the root", () => {
-    expect(graph["@context"]).toBe("https://schema.org");
+  test("declares the schema.org context once, at the root", () => {
+    assert.equal(graph["@context"], "https://schema.org");
     for (const node of graph["@graph"]) {
-      expect(Object.keys(node)).not.toContain("@context");
+      assert.ok(!Object.keys(node).includes("@context"), 'should not contain "@context"');
     }
   });
 
-  it("carries the four identity nodes an agent resolves the site by", () => {
-    expect(graph["@graph"].map((node) => node["@type"])).toEqual([
-      "Organization",
-      "WebSite",
-      "SoftwareApplication",
-      "CollectionPage",
-    ]);
+  test("carries the four identity nodes an agent resolves the site by", () => {
+    assert.deepEqual(
+      graph["@graph"].map((node) => node["@type"]),
+      ["Organization", "WebSite", "SoftwareApplication", "CollectionPage"],
+    );
   });
 
-  it("describes the site as a free, MIT-licensed developer application", () => {
-    expect(application["@type"]).toBe("SoftwareApplication");
-    expect(application.applicationCategory).toBe("DeveloperApplication");
-    expect(application.isAccessibleForFree).toBe(true);
-    expect(application.license).toContain("MIT");
-    expect(application.offers).toMatchObject({ price: "0", priceCurrency: "USD" });
-    expect(application.featureList[0]).toContain("2 live");
+  test("describes the site as a free, MIT-licensed developer application", () => {
+    assert.equal(application["@type"], "SoftwareApplication");
+    assert.equal(application.applicationCategory, "DeveloperApplication");
+    assert.equal(application.isAccessibleForFree, true);
+    assert.ok(application.license.includes("MIT"), 'should contain "MIT"');
+    assert.deepEqual(application.offers, {
+      "@type": "Offer",
+      price: "0",
+      priceCurrency: "USD",
+      availability: "https://schema.org/InStock",
+    });
+    assert.ok(
+      application.featureList.some((feature) => feature.includes("2 live")),
+      `featureList does not report the component count: ${application.featureList.join(" | ")}`,
+    );
   });
 
-  it("lists every component in an ItemList", () => {
-    expect(page["@type"]).toBe("CollectionPage");
-    expect(page.mainEntity.numberOfItems).toBe(2);
-    expect(page.mainEntity.itemListElement).toEqual([
+  test("lists every component in an ItemList", () => {
+    assert.equal(page["@type"], "CollectionPage");
+    assert.equal(page.mainEntity.numberOfItems, 2);
+    assert.deepEqual(page.mainEntity.itemListElement, [
       {
         "@type": "ListItem",
         position: 1,
@@ -111,10 +118,10 @@ describe("buildHomeGraph", () => {
     ]);
   });
 
-  it("points every node back at the one Organization node", () => {
-    expect(website.publisher).toEqual({ "@id": organization["@id"] });
-    expect(application.publisher).toEqual({ "@id": organization["@id"] });
-    expect(page.isPartOf).toEqual({ "@id": website["@id"] });
+  test("points every node back at the one Organization node", () => {
+    assert.deepEqual(website.publisher, { "@id": organization["@id"] });
+    assert.deepEqual(application.publisher, { "@id": organization["@id"] });
+    assert.deepEqual(page.isPartOf, { "@id": website["@id"] });
   });
 });
 
@@ -122,66 +129,65 @@ describe("buildComponentGraph", () => {
   const source = buildSoftwareSourceCode(withDescription);
   const breadcrumb = buildComponentBreadcrumb(withDescription);
 
-  it("is an Organization, the source code, and a breadcrumb", () => {
-    expect(buildComponentGraph(withDescription)["@graph"].map((node) => node["@type"])).toEqual([
-      "Organization",
-      "SoftwareSourceCode",
-      "BreadcrumbList",
-    ]);
+  test("is an Organization, the source code, and a breadcrumb", () => {
+    assert.deepEqual(
+      buildComponentGraph(withDescription)["@graph"].map((node) => node["@type"]),
+      ["Organization", "SoftwareSourceCode", "BreadcrumbList"],
+    );
   });
 
-  it("describes the component as source code", () => {
-    expect(source["@type"]).toBe("SoftwareSourceCode");
-    expect(source.name).toBe("Dynamic Island");
-    expect(source.url).toBe("https://uicapsule.com/ui/dynamic-island");
-    expect(source.programmingLanguage).toBe("TypeScript");
-    expect(source.keywords).toBe("overlay");
+  test("describes the component as source code", () => {
+    assert.equal(source["@type"], "SoftwareSourceCode");
+    assert.equal(source.name, "Dynamic Island");
+    assert.equal(source.url, "https://uicapsule.com/ui/dynamic-island");
+    assert.equal(source.programmingLanguage, "TypeScript");
+    assert.equal(source.keywords, "overlay");
   });
 
-  it("puts the component under the site in a breadcrumb", () => {
-    expect(breadcrumb["@type"]).toBe("BreadcrumbList");
-    expect(breadcrumb.itemListElement.map((item) => item.name)).toEqual([
-      "UICapsule",
-      "Dynamic Island",
-    ]);
+  test("puts the component under the site in a breadcrumb", () => {
+    assert.equal(breadcrumb["@type"], "BreadcrumbList");
+    assert.deepEqual(
+      breadcrumb.itemListElement.map((item) => item.name),
+      ["UICapsule", "Dynamic Island"],
+    );
   });
 
-  it("falls back to the site author, and drops empty optional fields", () => {
+  test("falls back to the site author, and drops empty optional fields", () => {
     const bareSource = buildSoftwareSourceCode(bare);
-    expect(bareSource.author).toEqual([
+    assert.deepEqual(bareSource.author, [
       { "@type": "Person", name: "Kaiyu Hsu", url: "https://kyh.io" },
     ]);
-    expect(bareSource.description).toBeUndefined();
-    expect(bareSource.keywords).toBeUndefined();
+    assert.equal(bareSource.description, undefined);
+    assert.equal(bareSource.keywords, undefined);
     // `undefined` is how an optional field is omitted — JSON.stringify drops it.
-    expect(serializeJsonLd(bareSource)).not.toContain("keywords");
+    assert.ok(!serializeJsonLd(bareSource).includes("keywords"), 'should not contain "keywords"');
   });
 });
 
 describe("buildProsePageGraph", () => {
-  it("describes the page and links it to the organization", () => {
+  test("describes the page and links it to the organization", () => {
     const page = buildWebPage(privacyPage);
-    expect(page.url).toBe("https://uicapsule.com/privacy");
-    expect(page.name).toBe("Privacy");
-    expect(page.about).toEqual({ "@id": buildOrganization()["@id"] });
-    expect(buildProsePageGraph(privacyPage)["@graph"].map((node) => node["@type"])).toEqual([
-      "Organization",
-      "WebPage",
-    ]);
+    assert.equal(page.url, "https://uicapsule.com/privacy");
+    assert.equal(page.name, "Privacy");
+    assert.deepEqual(page.about, { "@id": buildOrganization()["@id"] });
+    assert.deepEqual(
+      buildProsePageGraph(privacyPage)["@graph"].map((node) => node["@type"]),
+      ["Organization", "WebPage"],
+    );
   });
 });
 
 describe("serializeJsonLd", () => {
-  it("round-trips through JSON.parse", () => {
+  test("round-trips through JSON.parse", () => {
     const graph = buildHomeGraph([withDescription, bare]);
     const parsed: JsonLdValue = JSON.parse(serializeJsonLd(graph));
-    expect(parsed).toEqual(JSON.parse(JSON.stringify(graph)));
+    assert.deepEqual(parsed, JSON.parse(JSON.stringify(graph)));
   });
 
-  it("escapes < so a value can never close the script tag", () => {
+  test("escapes < so a value can never close the script tag", () => {
     const serialized = serializeJsonLd({ name: "</script><img src=x onerror=alert(1)>" });
-    expect(serialized).not.toContain("</script>");
-    expect(serialized).toContain("\\u003c");
-    expect(JSON.parse(serialized)).toEqual({ name: "</script><img src=x onerror=alert(1)>" });
+    assert.ok(!serialized.includes("</script>"), 'should not contain "</script>"');
+    assert.ok(serialized.includes("\\u003c"), 'should contain "\\\\u003c"');
+    assert.deepEqual(JSON.parse(serialized), { name: "</script><img src=x onerror=alert(1)>" });
   });
 });
