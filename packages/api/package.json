@@ -9,6 +9,7 @@
   },
   "scripts": {
     "clean": "git clean -xdf .cache .turbo node_modules",
+    "test": "vitest run",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
@@ -23,6 +24,8 @@
     "@types/node": "^26.2.0",
     "@types/react": "catalog:",
     "@types/react-dom": "catalog:",
-    "typescript": "catalog:"
+    "drizzle-orm": "catalog:",
+    "typescript": "catalog:",
+    "vitest": "catalog:"
   }
 }

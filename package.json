@@ -10,13 +10,14 @@
     "dev": "turbo watch dev --continue",
     "dev:web": "turbo watch dev -F @repo/web...",
     "lint": "oxlint --report-unused-disable-directives",
+    "test": "turbo run test",
     "typecheck": "turbo run typecheck",
     "format": "oxfmt --check",
     "lint:fix": "oxlint --fix",
     "format:fix": "oxfmt --write",
     "new:content": "tsx scripts/new-content.ts",
     "check:content": "tsx scripts/check-content.ts",
-    "verify": "pnpm typecheck && pnpm lint && pnpm format && pnpm build"
+    "verify": "pnpm typecheck && pnpm lint && pnpm format && pnpm test && pnpm build"
   },
   "devDependencies": {
     "@kyh/oxlint": "^0.2.0",
