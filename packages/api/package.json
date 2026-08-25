@@ -13,10 +13,9 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
+    "@orpc/server": "catalog:",
     "@repo/db": "workspace:^",
-    "@trpc/server": "catalog:",
     "better-auth": "catalog:",
-    "superjson": "catalog:",
     "zod": "catalog:"
   },
   "devDependencies": {

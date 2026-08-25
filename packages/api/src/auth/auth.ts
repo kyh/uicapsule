@@ -10,9 +10,10 @@ export const baseUrl =
       : "http://localhost:3000";
 
 // Origins allowed to drive authenticated requests. Only the web app runs
-// same-origin as baseUrl. Consumed by better-auth's own Origin checks and by
-// the tRPC mutation guard (see packages/api/src/trpc.ts).
-export const trustedOrigins = [baseUrl];
+// same-origin as baseUrl. Consumed by better-auth's own Origin checks; the RPC
+// endpoint is guarded by oRPC's SimpleCsrfProtection plugin instead (see
+// apps/web/src/app/api/orpc/[[...rest]]/route.ts).
+const trustedOrigins = [baseUrl];
 
 export const auth = betterAuth({
   database: drizzleAdapter(db, {

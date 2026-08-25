@@ -59,9 +59,7 @@ The remaining 13 scanner errors are triaged: 10 isolated content packages cannot
 - 031 · warning · `js-set-map-lookups` · `src/lib/content-data.ts:39` · **deferred** — measure bundle/runtime impact before changing
 - 032 · warning · `js-combine-iterations` · `src/lib/content/content-fs.ts:107` · **deferred** — measure bundle/runtime impact before changing
 - 033 · warning · `js-set-map-lookups` · `src/lib/content/content-fs.ts:146` · **deferred** — measure bundle/runtime impact before changing
-- 034 · warning · `unused-export` · `src/trpc/react.tsx:24` · **deferred** — separate public-API or component-boundary refactor
-- 035 · warning · `unused-export` · `src/trpc/react.tsx:24` · **deferred** — separate public-API or component-boundary refactor
-- 036 · warning · `unused-export` · `src/trpc/react.tsx:24` · **deferred** — separate public-API or component-boundary refactor
+- 034–036 · warning · `unused-export` · `src/orpc/react.tsx` · **fixed** — the unused RPC context exports are gone; the module now exports only what the app imports
 
 ### @repo/db
 

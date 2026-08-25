@@ -7,13 +7,13 @@ catalog:
   "@base-ui/react": ^1.7.0
   "@better-auth/cli": ^1.4.21
   "@kyh/tsconfig": ^1.2.0
+  "@orpc/client": ^1.15.0
+  "@orpc/server": ^1.15.0
+  "@orpc/tanstack-query": ^1.15.0
   "@tailwindcss/postcss": ^4.3.3
   "@tailwindcss/vite": ^4.2.2
   "@tanstack/react-form": ^1.28.5
   "@tanstack/react-query": ^5.101.4
-  "@trpc/client": ^11.18.0
-  "@trpc/server": ^11.18.0
-  "@trpc/tanstack-react-query": ^11.18.0
   "@types/node": ^24.12.0
   "@types/react": ^19.2.18
   "@types/react-dom": ^19.2.4
@@ -23,7 +23,6 @@ catalog:
   next: ^16.3.1
   react: ^19.2.8
   react-dom: ^19.2.8
-  superjson: ^2.2.6
   tailwindcss: ^4.3.3
   tsx: ^4.23.12
   typescript: ^7.0.2

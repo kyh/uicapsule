@@ -71,14 +71,15 @@ print the status line, or a 422/429 looks like "auth is broken".
 Static gate:
 
 ```sh
-pnpm verify           # typecheck · lint · format · build
+pnpm verify           # typecheck · lint · format · test · build
 ```
 
 `verify` needs `.env` (it runs `build`, which is `dotenv -e ../../.env -- next build`). It
 does _not_ need the database. Two things it deliberately does not cover:
 
-- **There are zero tests in this repo.** Nothing has your back but the gate and your own
-  runtime check.
+- **Tests are thin.** Only a better-auth schema guard (`packages/api`) and the oRPC
+  query-key hashing + route CSRF tests (`apps/web`) exist. Nothing else has your back but
+  the gate and your own runtime check.
 - **`content/*` is not typechecked.** `apps/web/tsconfig.json` excludes `../../content/**`,
   no content package has a `typecheck` script, and `next.config.js` sets
   `typescript.ignoreBuildErrors`. `pnpm lint` (oxlint) is the only static tool that reads
@@ -183,7 +184,7 @@ Web is the only surface. There is no mobile, desktop, or extension target.
 - `apps/web` — the Next.js app. `src/lib/content/content-fs.ts` reads `content/`;
   `src/lib/content-data.ts` wraps it in `"use cache"` server functions.
 - `packages/ui` — Base UI + shadcn-derived components · `packages/db` — Drizzle + Turso ·
-  `packages/api` — tRPC + better-auth
+  `packages/api` — oRPC + better-auth
 - `content/<slug>/` — one workspace package per component
 - `CLAUDE.md` — conventions, settled decisions, curation philosophy
 - `plans/component-roadmap.md` — the component backlog
