@@ -85,9 +85,10 @@ pnpm check:content    # Fail if any content/<slug> is not a loadable component
   upstream shadcn components in `packages/ui`. Turning it into a real gate would fail a
   clean checkout, so it stays advisory: **read its output, don't just read its exit code.**
 
-Tests are thin — a better-auth schema guard in `packages/api`, query-key hashing and RPC
-route CSRF wiring in `apps/web` — so don't assume a suite has your back, and note
-`content/*` is typechecked by nothing (see `AGENTS.md` → Verify a change end-to-end).
+Tests are thin — a better-auth schema guard in `packages/api` is the only suite. `apps/web`
+keeps its `test` script with nothing to run, so it reports green while proving nothing; the
+harness is wired so a test added there is picked up. Don't assume a suite has your back, and
+note `content/*` is typechecked by nothing (see `AGENTS.md` → Verify a change end-to-end).
 `verify` reads `.env`, because `build` does.
 
 `pnpm build` runs `check:content` first (turbo task `//#check:content`): the gallery loader
