@@ -5,17 +5,13 @@ import { createORPCContext } from "./orpc";
 
 /**
  * Inference helpers for input types
- * @example
- * type PostByIdInput = RouterInputs['post']['byId']
- *      ^? { id: number }
  **/
 type RouterInputs = InferRouterInputs<AppRouter>;
 
 /**
  * Inference helpers for output types
  * @example
- * type AllPostsOutput = RouterOutputs['post']['all']
- *      ^? Post[]
+ * type MeOutput = RouterOutputs['user']['me']
  **/
 type RouterOutputs = InferRouterOutputs<AppRouter>;
 

@@ -15,8 +15,7 @@
   "dependencies": {
     "@orpc/server": "catalog:",
     "@repo/db": "workspace:^",
-    "better-auth": "catalog:",
-    "zod": "catalog:"
+    "better-auth": "catalog:"
   },
   "devDependencies": {
     "@kyh/tsconfig": "catalog:",
