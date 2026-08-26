@@ -10,7 +10,7 @@
 apps/
   web/           # Next.js 16 app (main frontend)
 packages/
-  api/           # tRPC + better-auth
+  api/           # oRPC + better-auth
   db/            # Drizzle ORM + Turso (libSQL)
   ui/            # shadcn-derived components on Base UI
 content/         # Gallery components — one workspace package per slug
@@ -35,7 +35,7 @@ Content is filesystem-driven; the web app never depends on content packages by n
 
 - **Runtime**: pnpm 10, Node 24, TypeScript 6 (pinned — TS 7 / tsgo breaks Next 16)
 - **Frontend**: Next.js 16, React 19, Tailwind CSS 4
-- **API**: tRPC, better-auth
+- **API**: oRPC, better-auth
 - **Database**: Turso (libSQL), Drizzle ORM
 - **UI**: Base UI, shadcn, lucide-react, motion
 
@@ -59,7 +59,7 @@ Content is filesystem-driven; the web app never depends on content packages by n
 ```bash
 pnpm dev:web          # Next.js app on :3000 (the one you want)
 pnpm -F db db         # Local Turso (turso dev) on :8080 — its own shell; `pnpm dev` does NOT start it
-pnpm verify           # typecheck + lint + format + build (the full gate)
+pnpm verify           # typecheck + lint + format + test + build (the full gate)
 pnpm build            # Build all
 pnpm typecheck        # Type check all
 pnpm lint             # Lint all
@@ -74,18 +74,22 @@ pnpm check:content    # Fail if any content/<slug> is not a loadable component
 
 ## Verification Contract
 
-`pnpm verify` runs four steps in order: `pnpm typecheck`, `pnpm lint` (oxlint),
-`pnpm format` (`oxfmt --check` — the checking one; `format:fix` is what rewrites), and
-`pnpm build`. Only three of them are gates:
+`pnpm verify` runs five steps in order: `pnpm typecheck`, `pnpm lint` (oxlint),
+`pnpm format` (`oxfmt --check` — the checking one; `format:fix` is what rewrites),
+`pnpm test`, and `pnpm build`. All but lint are gates:
 
-- **typecheck, format, build fail the run.** They must be green.
+- **typecheck, format, test, build fail the run.** They must be green.
 - **lint does not.** `.oxlintrc.json` sets every category (`correctness`, `suspicious`,
   `perf`) to `warn` and root `lint` has no `--deny-warnings`, so `pnpm lint` exits 0
   whatever it finds — today 96 pre-existing warnings, almost all in `content/*` and
   upstream shadcn components in `packages/ui`. Turning it into a real gate would fail a
   clean checkout, so it stays advisory: **read its output, don't just read its exit code.**
 
-There are **zero tests in the repo today** — don't assume a suite has your back, and note
+Tests are thin — a better-auth schema + session-cookie guard in `packages/api`, and the RPC
+route's transport guards in `apps/web`. Both pin things typecheck cannot see, notably
+`/api/orpc`'s cross-origin defense: `SameSite=Lax` keys on _site_, so it stops a cross-SITE
+POST only, and the route's own Origin check covers the same-site cross-origin case (a
+sibling subdomain, another localhost port). Don't assume a suite has your back, and note
 `content/*` is typechecked by nothing (see `AGENTS.md` → Verify a change end-to-end).
 `verify` reads `.env`, because `build` does.
 
@@ -97,7 +101,7 @@ remove it. Finish the component or delete the directory; scaffold with `pnpm new
 
 ## Decisions (do not re-litigate)
 
-- **auth + tRPC are kept.** One procedure, zero callers, deliberately retained for a future
+- **auth + oRPC are kept.** One procedure, zero callers, deliberately retained for a future
   feature. Make them correct; don't propose deleting them.
 - **Supabase stays.** It hosts every cover video.
 - **Vercel builds on every push — deliberately. Do not add build-skipping.** Both Vercel's

@@ -8,6 +8,7 @@
     "clean": "git clean -xdf .cache .next .turbo node_modules",
     "dev": "pnpm with-env next dev",
     "start": "pnpm with-env next start",
+    "test": "TURSO_DATABASE_URL=http://127.0.0.1:8080 node --import tsx --test 'src/**/*.test.ts'",
     "typecheck": "tsc --noEmit",
     "with-env": "dotenv -e ../../.env --"
   },
@@ -15,14 +16,14 @@
     "@headless-tree/core": "^1.7.0",
     "@headless-tree/react": "^1.7.0",
     "@hookform/resolvers": "^5.9.1",
+    "@orpc/client": "catalog:",
+    "@orpc/server": "catalog:",
+    "@orpc/tanstack-query": "catalog:",
     "@remixicon/react": "^4.9.0",
     "@repo/api": "workspace:^",
     "@repo/db": "workspace:^",
     "@repo/ui": "workspace:^",
     "@tanstack/react-query": "catalog:",
-    "@trpc/client": "catalog:",
-    "@trpc/server": "catalog:",
-    "@trpc/tanstack-react-query": "catalog:",
     "@vercel/analytics": "^2.0.1",
     "better-auth": "catalog:",
     "jszip": "^3.10.1",
@@ -34,7 +35,6 @@
     "react-dom": "catalog:",
     "react-hook-form": "^7.85.0",
     "shiki": "^4.4.3",
-    "superjson": "catalog:",
     "web-haptics": "^0.0.6",
     "zod": "catalog:"
   },
@@ -47,6 +47,7 @@
     "@types/react-dom": "catalog:",
     "postcss": "^8.5.26",
     "tailwindcss": "catalog:",
+    "tsx": "catalog:",
     "typescript": "catalog:"
   }
 }

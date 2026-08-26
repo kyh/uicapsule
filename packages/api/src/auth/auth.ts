@@ -10,9 +10,14 @@ export const baseUrl =
       : "http://localhost:3000";
 
 // Origins allowed to drive authenticated requests. Only the web app runs
-// same-origin as baseUrl. Consumed by better-auth's own Origin checks and by
-// the tRPC mutation guard (see packages/api/src/trpc.ts).
-export const trustedOrigins = [baseUrl];
+// same-origin as baseUrl. Consumed by better-auth's own Origin checks, which
+// cover /api/auth/* only; the RPC endpoint pairs the session cookie's
+// SameSite=Lax with its own Origin check, because SameSite keys on site rather
+// than origin and so covers the cross-SITE half only
+// (see apps/web/src/app/api/orpc/[[...rest]]/route.ts). Lax is better-auth's
+// default and nothing here sets `advanced.defaultCookieAttributes`; loosening
+// it to "none" would re-open cross-site CSRF app-wide.
+const trustedOrigins = [baseUrl];
 
 export const auth = betterAuth({
   database: drizzleAdapter(db, {
