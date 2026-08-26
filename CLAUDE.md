@@ -85,10 +85,12 @@ pnpm check:content    # Fail if any content/<slug> is not a loadable component
   upstream shadcn components in `packages/ui`. Turning it into a real gate would fail a
   clean checkout, so it stays advisory: **read its output, don't just read its exit code.**
 
-Tests are thin — a better-auth schema guard in `packages/api` is the only suite. `apps/web`
-keeps its `test` script with nothing to run, so it reports green while proving nothing; the
-harness is wired so a test added there is picked up. Don't assume a suite has your back, and
-note `content/*` is typechecked by nothing (see `AGENTS.md` → Verify a change end-to-end).
+Tests are thin — a better-auth schema + session-cookie guard in `packages/api`, and the RPC
+route's transport guards in `apps/web`. Both pin things typecheck cannot see, notably
+`/api/orpc`'s cross-origin defense: `SameSite=Lax` keys on _site_, so it stops a cross-SITE
+POST only, and the route's own Origin check covers the same-site cross-origin case (a
+sibling subdomain, another localhost port). Don't assume a suite has your back, and note
+`content/*` is typechecked by nothing (see `AGENTS.md` → Verify a change end-to-end).
 `verify` reads `.env`, because `build` does.
 
 `pnpm build` runs `check:content` first (turbo task `//#check:content`): the gallery loader

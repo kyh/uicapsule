@@ -4,12 +4,9 @@ import { onError, ORPCError } from "@orpc/server";
 import { RPCHandler } from "@orpc/server/fetch";
 
 // No CORS headers, and none belong here: the web app is the only client and it
-// reaches this route same-origin. Cross-site protection is the session cookie's
-// SameSite=Lax (better-auth's default, see packages/api/src/auth/auth.ts) — a
-// forged cross-site POST executes with no session and does nothing.
-// Credentialed CORS headers would hand a cross-origin page authenticated access
-// and undo that. GET, the one method a cookie-bearing navigation can reach, is
-// refused by the handler's default `allowMethods`.
+// reaches this route same-origin. Credentialed CORS headers would hand a
+// cross-origin page authenticated access. GET, the one method a cookie-bearing
+// navigation can reach, is refused by the handler's default `allowMethods`.
 const handler = new RPCHandler(appRouter, {
   clientInterceptors: [
     onError((error) => {
@@ -21,7 +18,36 @@ const handler = new RPCHandler(appRouter, {
   ],
 });
 
+/**
+ * The session cookie's `SameSite=Lax` only covers half of this. `SameSite` keys
+ * on *site*, not origin, so a sibling subdomain of the deploy's registrable
+ * domain — or merely another port on the same host in development — is
+ * same-site: the browser DOES attach the session cookie to a plain
+ * `<form method=POST>` served from there, and the mutation runs authenticated
+ * with no preflight to stop it. oRPC ships nothing for this, and CORS is not
+ * CSRF protection — a form POST needs no preflight.
+ *
+ * Browsers set `Origin` on every POST and page script cannot forge it, so an
+ * `Origin` that isn't ours is the signal.
+ *
+ * Absent `Origin` passes: that is a non-browser caller, which authenticates by
+ * an explicit header rather than by an ambiently-attached cookie and so has
+ * nothing to forge.
+ *
+ * Checked at the route boundary rather than in a handler plugin so it runs once
+ * on the real request, not on client-authored sub-requests should batching ever
+ * be added.
+ */
+const isCrossOrigin = (request: Request) => {
+  const origin = request.headers.get("origin");
+  return origin !== null && origin !== new URL(request.url).origin;
+};
+
 const handleRequest = async (req: NextRequest) => {
+  if (isCrossOrigin(req)) {
+    return new Response("Cross-origin request blocked.", { status: 403 });
+  }
+
   const { response } = await handler.handle(req, {
     prefix: "/api/orpc",
     context: await createORPCContext({ headers: req.headers }),

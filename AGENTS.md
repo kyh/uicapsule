@@ -77,9 +77,9 @@ pnpm verify           # typecheck · lint · format · test · build
 `verify` needs `.env` (it runs `build`, which is `dotenv -e ../../.env -- next build`). It
 does _not_ need the database. Two things it deliberately does not cover:
 
-- **Tests are thin.** Only a better-auth schema guard (`packages/api`) exists. `apps/web`'s
-  `test` script matches no file today, so it passes without asserting anything. Nothing else
-  has your back but the gate and your own runtime check.
+- **Tests are thin.** Two suites: a better-auth schema + session-cookie guard in
+  `packages/api`, and the RPC route's transport guards (Origin check, GET refusal, no CORS)
+  in `apps/web`. Nothing else has your back but the gate and your own runtime check.
 - **`content/*` is not typechecked.** `apps/web/tsconfig.json` excludes `../../content/**`,
   no content package has a `typecheck` script, and `next.config.js` sets
   `typescript.ignoreBuildErrors`. `pnpm lint` (oxlint) is the only static tool that reads

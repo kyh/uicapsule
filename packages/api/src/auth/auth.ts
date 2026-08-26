@@ -11,10 +11,12 @@ export const baseUrl =
 
 // Origins allowed to drive authenticated requests. Only the web app runs
 // same-origin as baseUrl. Consumed by better-auth's own Origin checks, which
-// cover /api/auth/* only; the RPC endpoint relies on the session cookie being
-// SameSite=Lax instead. That is better-auth's default and nothing here sets
-// `advanced.defaultCookieAttributes` — loosening it to "none" would re-open
-// CSRF app-wide (see apps/web/src/app/api/orpc/[[...rest]]/route.ts).
+// cover /api/auth/* only; the RPC endpoint pairs the session cookie's
+// SameSite=Lax with its own Origin check, because SameSite keys on site rather
+// than origin and so covers the cross-SITE half only
+// (see apps/web/src/app/api/orpc/[[...rest]]/route.ts). Lax is better-auth's
+// default and nothing here sets `advanced.defaultCookieAttributes`; loosening
+// it to "none" would re-open cross-site CSRF app-wide.
 const trustedOrigins = [baseUrl];
 
 export const auth = betterAuth({
