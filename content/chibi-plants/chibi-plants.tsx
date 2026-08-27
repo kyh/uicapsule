@@ -68,33 +68,35 @@ export type ChibiPlantsProps = {
 };
 
 /** Morphable SDF + face parameters. Every key is spring-lerped, so any two
- * variants (or user tweaks) blend as one continuous surface deformation. */
-type PlantParams = {
-  bodyR: number;
-  squash: number;
-  stemH: number;
-  l0s: number;
-  l0yaw: number;
-  l0tilt: number;
-  l0len: number;
-  l0wid: number;
-  l1s: number;
-  l1yaw: number;
-  l1tilt: number;
-  l1len: number;
-  l1wid: number;
-  l2s: number;
-  l2yaw: number;
-  l2tilt: number;
-  l2len: number;
-  l2wid: number;
-  armS: number;
-  eyeR: number;
-  eyeSep: number;
-  eyeY: number;
-  mouthW: number;
-  cheek: number;
-};
+ * variants (or user tweaks) blend as one continuous surface deformation.
+ * The key list is the single source of truth: PlantParams derives from it. */
+const PARAM_KEYS = [
+  "bodyR",
+  "squash",
+  "stemH",
+  "l0s",
+  "l0yaw",
+  "l0tilt",
+  "l0len",
+  "l0wid",
+  "l1s",
+  "l1yaw",
+  "l1tilt",
+  "l1len",
+  "l1wid",
+  "l2s",
+  "l2yaw",
+  "l2tilt",
+  "l2len",
+  "l2wid",
+  "armS",
+  "eyeR",
+  "eyeSep",
+  "eyeY",
+  "mouthW",
+  "cheek",
+] as const;
+type PlantParams = Record<(typeof PARAM_KEYS)[number], number>;
 
 type Palette = { body: string; leaf: string; pot: string };
 type VariantDef = { label: string; params: PlantParams; palette: Palette };
@@ -222,9 +224,6 @@ export const VARIANTS = {
   },
 } satisfies Record<ChibiVariant, VariantDef>;
 
-// SAFETY: Object.keys over the PlantParams literal yields exactly its own keys.
-const PARAM_KEYS = Object.keys(VARIANTS.pip.params) as (keyof PlantParams)[];
-
 const DEFAULT_BG: [string, string] = ["#2e2a33", "#0b0a0e"];
 
 const POT_H = 0.36;
@@ -284,6 +283,18 @@ export const ChibiPlants = ({
     renderer.domElement.style.height = "100%";
     renderer.domElement.style.display = "block";
 
+    // Start from the requested variant and colors — the morph springs are for
+    // later changes, not the initial mount.
+    const initialTuning = tuningRef.current;
+    const initialVariant = VARIANTS[initialTuning.variant] ?? VARIANTS.pip;
+    const initialParams = {
+      ...initialVariant.params,
+      eyeR: initialVariant.params.eyeR * initialTuning.eyeScale,
+    } satisfies PlantParams;
+    const initialBody = initialTuning.bodyColor ?? initialVariant.palette.body;
+    const initialLeaf = initialTuning.leafColor ?? initialVariant.palette.leaf;
+    const initialPot = initialTuning.potColor ?? initialVariant.palette.pot;
+
     // ---- uniforms ----------------------------------------------------------
     const uTime = uniform(0);
     const uLook = uniform(new THREE.Vector2(0, 0));
@@ -294,15 +305,14 @@ export const ChibiPlants = ({
     const uRes = uniform(new THREE.Vector2(1, 1));
     const uBg1 = uniform(new THREE.Color(background[0]));
     const uBg2 = uniform(new THREE.Color(background[1]));
-    const uBodyC = uniform(new THREE.Color(VARIANTS.pip.palette.body));
-    const uLeafC = uniform(new THREE.Color(VARIANTS.pip.palette.leaf));
-    const uPotC = uniform(new THREE.Color(VARIANTS.pip.palette.pot));
+    const uBodyC = uniform(new THREE.Color(initialBody));
+    const uLeafC = uniform(new THREE.Color(initialLeaf));
+    const uPotC = uniform(new THREE.Color(initialPot));
     const uCheekC = uniform(new THREE.Color(cheekColor));
 
-    // SAFETY: built from PARAM_KEYS, so every PlantParams key is present.
-    const uParams = Object.fromEntries(
-      PARAM_KEYS.map((k) => [k, uniform(VARIANTS.pip.params[k])]),
-    ) as Record<keyof PlantParams, ReturnType<typeof uniform>>;
+    const uParams: Record<string, ReturnType<typeof uniform>> = Object.fromEntries(
+      PARAM_KEYS.map((k) => [k, uniform(initialParams[k])]),
+    );
 
     // ---- TSL node helpers --------------------------------------------------
     type N = ReturnType<typeof float>;
@@ -654,14 +664,14 @@ export const ChibiPlants = ({
     const vel: Record<string, number> = {};
     const target: Record<string, number> = {};
     for (const k of PARAM_KEYS) {
-      cur[k] = VARIANTS.pip.params[k];
+      cur[k] = initialParams[k];
       vel[k] = 0;
       target[k] = cur[k];
     }
     const curCol = {
-      body: new THREE.Color(VARIANTS.pip.palette.body),
-      leaf: new THREE.Color(VARIANTS.pip.palette.leaf),
-      pot: new THREE.Color(VARIANTS.pip.palette.pot),
+      body: new THREE.Color(initialBody),
+      leaf: new THREE.Color(initialLeaf),
+      pot: new THREE.Color(initialPot),
     };
     const tgtCol = { body: new THREE.Color(), leaf: new THREE.Color(), pot: new THREE.Color() };
 

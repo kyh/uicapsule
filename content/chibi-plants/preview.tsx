@@ -56,8 +56,8 @@ const Preview = () => {
         move your cursor — they&apos;re watching
       </p>
 
-      <div className="absolute bottom-6 left-1/2 flex -translate-x-1/2 flex-col items-center gap-3 rounded-2xl border border-white/10 bg-white/[0.06] px-5 py-4 backdrop-blur-md">
-        <div className="flex gap-2">
+      <div className="absolute bottom-6 left-1/2 flex w-max max-w-[calc(100vw-2rem)] -translate-x-1/2 flex-col items-center gap-3 rounded-2xl border border-white/10 bg-white/[0.06] px-5 py-4 backdrop-blur-md">
+        <div className="flex flex-wrap justify-center gap-2">
           {CHIBI_VARIANTS.map((v) => (
             <button
               key={v}
@@ -78,7 +78,7 @@ const Preview = () => {
             </button>
           ))}
         </div>
-        <div className="flex items-center gap-5">
+        <div className="flex flex-wrap items-center justify-center gap-x-5 gap-y-2">
           <Slider label="eyes" value={eyeScale} min={0.5} max={1.6} onChange={setEyeScale} />
           <Slider label="wobble" value={wobble} min={0} max={2} onChange={setWobble} />
           <Slider label="gaze" value={gaze} min={0} max={1.5} onChange={setGaze} />
