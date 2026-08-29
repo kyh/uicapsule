@@ -59,7 +59,7 @@ catalogs:
       version: 7.0.2
     zod:
       specifier: ^4.4.3
-      version: 3.25.76
+      version: 4.4.3
 
 importers:
 
