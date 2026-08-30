@@ -13,7 +13,7 @@
     "@icons-pack/react-simple-icons": "^13.15.1",
     "@radix-ui/react-use-controllable-state": "^1.2.6",
     "@repo/ui": "workspace:^",
-    "lucide-react": "^1.33.0",
+    "lucide-react": "^1.35.0",
     "motion": "^13.1.1",
     "react": "catalog:",
     "react-dom": "catalog:"

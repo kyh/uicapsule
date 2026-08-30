@@ -8,7 +8,7 @@
   },
   "dependencies": {
     "@mediapipe/tasks-vision": "^1.0.1",
-    "lucide-react": "^1.33.0",
+    "lucide-react": "^1.35.0",
     "motion": "^13.1.1",
     "react": "catalog:",
     "react-dom": "catalog:"

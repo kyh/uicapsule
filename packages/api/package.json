@@ -19,7 +19,7 @@
   },
   "devDependencies": {
     "@kyh/tsconfig": "catalog:",
-    "@types/node": "^26.2.0",
+    "@types/node": "^26.4.0",
     "@types/react": "catalog:",
     "@types/react-dom": "catalog:",
     "drizzle-orm": "catalog:",
