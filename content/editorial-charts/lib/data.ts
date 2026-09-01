@@ -8,6 +8,8 @@ export type MixRow = { plan: string; share: number };
 
 export type Scene = {
   quarter: string;
+  /** $k MRR per plan. Keep every value divisible by 2: one rung = $2k, and the
+   * rung-bars ladder must count exactly to its label. */
   plans: PlanRow[];
   days: DayRow[];
   channels: ChannelRow[];
@@ -35,7 +37,7 @@ export const SCENES: Scene[] = [
     quarter: "Q1",
     plans: [
       { plan: "FREE", value: 38 },
-      { plan: "STARTER", value: 27 },
+      { plan: "STARTER", value: 28 },
       { plan: "PRO", value: 22 },
       { plan: "TEAM", value: 16 },
       { plan: "SCALE", value: 10 },
@@ -59,10 +61,10 @@ export const SCENES: Scene[] = [
     quarter: "Q2",
     plans: [
       { plan: "FREE", value: 44 },
-      { plan: "STARTER", value: 31 },
+      { plan: "STARTER", value: 32 },
       { plan: "PRO", value: 26 },
-      { plan: "TEAM", value: 21 },
-      { plan: "SCALE", value: 13 },
+      { plan: "TEAM", value: 20 },
+      { plan: "SCALE", value: 14 },
     ],
     days: days(2, 42, 1.15),
     channels: [
