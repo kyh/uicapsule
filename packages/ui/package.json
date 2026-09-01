@@ -23,7 +23,7 @@
     "cmdk": "^1.1.1",
     "cnfast": "^0.1.0",
     "date-fns": "^4.4.0",
-    "lucide-react": "^1.35.0",
+    "lucide-react": "^1.38.0",
     "motion": "^13.1.1",
     "react-day-picker": "^10.0.1",
     "shiki": "^4.4.3",
@@ -35,7 +35,7 @@
     "@kyh/tsconfig": "catalog:",
     "@tailwindcss/postcss": "catalog:",
     "@types/react": "catalog:",
-    "shadcn": "^4.19.0",
+    "shadcn": "^4.19.1",
     "tailwindcss": "catalog:",
     "typescript": "catalog:"
   },
