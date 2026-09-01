@@ -11,7 +11,7 @@
   },
   "dependencies": {
     "@number-flow/react": "^0.6.2",
-    "lucide-react": "^1.37.0",
+    "lucide-react": "^1.38.0",
     "react": "catalog:",
     "react-dom": "catalog:"
   },

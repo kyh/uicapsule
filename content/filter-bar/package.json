@@ -15,7 +15,7 @@
     "@repo/ui": "workspace:^",
     "@tanstack/react-table": "^9.2.4",
     "date-fns": "^4.4.0",
-    "lucide-react": "^1.37.0",
+    "lucide-react": "^1.38.0",
     "react": "catalog:",
     "react-day-picker": "^10.0.1",
     "react-dom": "catalog:",
