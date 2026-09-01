@@ -12,18 +12,22 @@ import { DARK, FAINT, INK, LADDER, MUTED, PAPER } from "./lib/tokens";
 const CYCLE_MS = 4600;
 
 const useCountUp = (target: number, ms = 950) => {
-  const [shown, setShown] = useState(target);
-  const prev = useRef(0);
+  // Starts at 0 (matching the not-yet-inked charts around it) and always
+  // resumes from the last painted value, so neither SSR nor a Strict Mode
+  // remount can flash the final count or skip the entrance.
+  const [shown, setShown] = useState(0);
+  const painted = useRef(0);
   useEffect(() => {
-    const from = prev.current;
-    prev.current = target;
+    const from = painted.current;
     if (from === target) return;
     let raf = 0;
     const t0 = performance.now();
     const step = (t: number) => {
       const p = Math.min(1, (t - t0) / ms);
       const eased = 1 - (1 - p) ** 3;
-      setShown(Math.round(from + (target - from) * eased));
+      const value = Math.round(from + (target - from) * eased);
+      painted.current = value;
+      setShown(value);
       if (p < 1) raf = requestAnimationFrame(step);
     };
     raf = requestAnimationFrame(step);
