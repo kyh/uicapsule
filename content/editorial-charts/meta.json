@@ -1,0 +1,6 @@
+{
+  "name": "Editorial Charts",
+  "description": "A four-card editorial chart set — rung bars, a hairline dot-line, a tick-ring dial, and a dot waffle — drawn ink-on-paper by TanStack Charts, with spring-staggered entrances and quarterly data that morphs on a loop.",
+  "tags": ["charts", "minimal", "business"],
+  "defaultSize": "full"
+}
