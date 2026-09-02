@@ -75,6 +75,27 @@ const config = {
       dynamic: 180,
     },
   },
+  /**
+   * `Vary: Accept` for the Markdown content negotiation in src/proxy.ts, so a
+   * shared cache keys the two representations of a URL separately.
+   *
+   * Applies to the route handlers (`/llms.txt`, `/sitemap.xml`, `/r/*.json`,
+   * `/api/markdown/*`) and to the 406 the proxy returns directly. It does NOT
+   * reach prerendered app *pages*: Next replays a prerender's stored headers
+   * over the response on send, and `vary` is one of them, so both this and a
+   * value set on `NextResponse.next()` are overwritten with Next's own RSC vary
+   * tokens. Verified again against Next 16.3.3 — retest when upgrading.
+   *
+   * Harmless in the meantime: the proxy rewrites Markdown requests to a
+   * different route before any cache lookup, so the HTML and Markdown variants
+   * of a URL never share a cache key to begin with.
+   */
+  headers: async () => [
+    {
+      source: "/((?!_next/|_vercel/).*)",
+      headers: [{ key: "Vary", value: "Accept" }],
+    },
+  ],
   pageExtensions: ["js", "jsx", "md", "mdx", "ts", "tsx"],
   transpilePackages,
   images: {

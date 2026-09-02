@@ -1,7 +1,12 @@
 import { cacheLife } from "next/cache";
 
 import { isUnlisted, unlistedTags } from "./content/content-categories";
-import { buildShadcnRegistryItem, readContentBySlug, readContentIndex } from "./content/content-fs";
+import {
+  buildShadcnRegistryItem,
+  readContentBySlug,
+  readContentIndex,
+  readContentLastModified,
+} from "./content/content-fs";
 import { isLocalContentComponent } from "./content/content-schema";
 
 import type {
@@ -66,6 +71,13 @@ export const getContentList = async (filterTags: string[]): Promise<ContentCompo
     if (!revealsUnlisted && isUnlisted(tags)) return false;
     return normalizedFilters.some((filter) => tags.includes(filter));
   });
+};
+
+/** Newest mtime in the content tree — the sitemap's `lastmod`. */
+export const getContentLastModified = async (): Promise<Date> => {
+  "use cache";
+  cacheLife("max");
+  return readContentLastModified();
 };
 
 export type SearchEntry = {

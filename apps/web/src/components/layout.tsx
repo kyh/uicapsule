@@ -801,6 +801,8 @@ export const Footer = ({ className }: { className?: string }) => {
       <div className="flex flex-wrap justify-center px-6 lg:w-full">
         <FooterLink href="/about">About</FooterLink>
         <FooterLink href="/inspiration">Inspiration</FooterLink>
+        <FooterLink href="/contact">Contact</FooterLink>
+        <FooterLink href="/privacy">Privacy</FooterLink>
       </div>
       <div className="grid w-full grid-cols-3 border-t lg:flex lg:w-auto lg:border-t-0">
         <FooterIcon href="https://github.com/kyh/uicapsule">

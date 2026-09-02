@@ -8,6 +8,7 @@ import { TooltipProvider } from "@repo/ui/components/tooltip";
 
 import { MotionProvider } from "@/components/motion-provider";
 import { ThemeProvider } from "@/components/theme-provider";
+import { pageOpenGraph } from "@/lib/agent/page-metadata";
 import { siteConfig } from "@/lib/site-config";
 import { ORPCReactProvider } from "@/orpc/react";
 
@@ -25,21 +26,21 @@ export const metadata: Metadata = {
     template: `%s | ${siteConfig.name}`,
   },
   description: siteConfig.description,
-  openGraph: {
-    locale: "en-US",
-    type: "website",
-    url: siteConfig.url,
-    title: siteConfig.name,
-    description: siteConfig.description,
-    siteName: siteConfig.name,
-    images: [
-      {
-        url: `${siteConfig.url}/og.jpg`,
-        width: 1920,
-        height: 1080,
-      },
-    ],
-  },
+  applicationName: siteConfig.name,
+  authors: [{ name: siteConfig.author.name, url: siteConfig.author.url }],
+  creator: siteConfig.author.name,
+  publisher: siteConfig.name,
+  category: "technology",
+  keywords: [
+    "React components",
+    "UI components",
+    "shadcn registry",
+    "Tailwind CSS",
+    "interaction design",
+    "motion design",
+    "open source",
+  ],
+  openGraph: pageOpenGraph("/"),
   twitter: {
     card: "summary_large_image",
     title: siteConfig.name,
