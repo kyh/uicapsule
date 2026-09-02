@@ -1,5 +1,5 @@
 {
-  "name": "@uicapsule/wireframe-orb",
+  "name": "@uicapsule/liquid-orb",
   "version": "0.1.0",
   "private": true,
   "type": "module",
@@ -10,17 +10,11 @@
     "clean": "git clean -xdf .cache .turbo dist node_modules"
   },
   "dependencies": {
-    "@react-three/drei": "^10.7.8",
-    "@react-three/fiber": "^9.7.0",
-    "@react-three/postprocessing": "^3.1.1",
-    "postprocessing": "^6.39.4",
     "react": "catalog:",
-    "react-dom": "catalog:",
-    "three": "^0.185.1"
+    "react-dom": "catalog:"
   },
   "devDependencies": {
     "@types/react": "catalog:",
-    "@types/react-dom": "catalog:",
-    "@types/three": "^0.185.4"
+    "@types/react-dom": "catalog:"
   }
 }

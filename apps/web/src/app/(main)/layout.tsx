@@ -10,7 +10,7 @@ import { MotionProvider } from "@/components/motion-provider";
 import { ThemeProvider } from "@/components/theme-provider";
 import { pageOpenGraph } from "@/lib/agent/page-metadata";
 import { siteConfig } from "@/lib/site-config";
-import { TRPCReactProvider } from "@/trpc/react";
+import { ORPCReactProvider } from "@/orpc/react";
 
 import "../styles/globals.css";
 
@@ -108,7 +108,7 @@ const RootLayout = (props: LayoutProps) => {
         >
           <MotionProvider>
             <TooltipProvider>
-              <TRPCReactProvider>{props.children}</TRPCReactProvider>
+              <ORPCReactProvider>{props.children}</ORPCReactProvider>
               <Toaster />
               <GlobalAlertDialog />
             </TooltipProvider>

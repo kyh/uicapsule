@@ -10,7 +10,7 @@
 apps/
   web/           # Next.js 16 app (main frontend)
 packages/
-  api/           # tRPC + better-auth
+  api/           # oRPC + better-auth
   db/            # Drizzle ORM + Turso (libSQL)
   ui/            # shadcn-derived components on Base UI
 content/         # Gallery components — one workspace package per slug
@@ -61,7 +61,7 @@ Next imports, no filesystem — so it can be unit-tested without a runtime. The 
 
 - **Runtime**: pnpm 10, Node 24, TypeScript 6 (pinned — TS 7 / tsgo breaks Next 16)
 - **Frontend**: Next.js 16, React 19, Tailwind CSS 4
-- **API**: tRPC, better-auth
+- **API**: oRPC, better-auth
 - **Database**: Turso (libSQL), Drizzle ORM
 - **UI**: Base UI, shadcn, lucide-react, motion
 
@@ -97,7 +97,7 @@ pnpm db:push          # Push local db schema
 pnpm db:push-remote   # Push to production Turso
 pnpm new:content <slug>  # Scaffold a new content component in content/
 pnpm check:content    # Fail if any content/<slug> is not a loadable component
-pnpm test             # node:test — the auth-schema guard + the agent-surface unit tests
+pnpm test             # node:test — auth + RPC transport guards + the agent-surface tests
 pnpm check:agent-endpoints  # Runtime check of the agent surfaces (needs a running server)
 ```
 
@@ -105,7 +105,7 @@ pnpm check:agent-endpoints  # Runtime check of the agent surfaces (needs a runni
 
 `pnpm verify` runs five steps in order: `pnpm typecheck`, `pnpm lint` (oxlint),
 `pnpm format` (`oxfmt --check` — the checking one; `format:fix` is what rewrites),
-`pnpm test` (node:test) and `pnpm build`. Only four of them are gates:
+`pnpm test`, and `pnpm build`. All but lint are gates:
 
 - **typecheck, format, test, build fail the run.** They must be green.
 - **lint does not.** `.oxlintrc.json` sets every category (`correctness`, `suspicious`,
@@ -114,10 +114,13 @@ pnpm check:agent-endpoints  # Runtime check of the agent surfaces (needs a runni
   upstream shadcn components in `packages/ui`. Turning it into a real gate would fail a
   clean checkout, so it stays advisory: **read its output, don't just read its exit code.**
 
-The only tests are the auth-schema guard in `packages/api` and the agent-surface unit
-tests in `apps/web/src/lib/agent/*.test.ts` — don't assume a suite has your back anywhere
-else, and note `content/*` is typechecked by nothing (see `AGENTS.md` → Verify a change
-end-to-end).
+Tests are thin — a better-auth schema + session-cookie guard in `packages/api`, and the RPC
+route's transport guards plus the agent-surface unit tests (`src/lib/agent/*.test.ts`) in
+`apps/web`. They pin things typecheck cannot see, notably `/api/orpc`'s cross-origin
+defense: `SameSite=Lax` keys on _site_, so it stops a cross-SITE POST only, and the route's
+own Origin check covers the same-site cross-origin case (a sibling subdomain, another
+localhost port). Don't assume a suite has your back anywhere else, and note `content/*` is
+typechecked by nothing (see `AGENTS.md` → Verify a change end-to-end).
 `verify` reads `.env`, because `build` does.
 
 `pnpm build` runs `check:content` first (turbo task `//#check:content`): the gallery loader
@@ -128,7 +131,7 @@ remove it. Finish the component or delete the directory; scaffold with `pnpm new
 
 ## Decisions (do not re-litigate)
 
-- **auth + tRPC are kept.** One procedure, zero callers, deliberately retained for a future
+- **auth + oRPC are kept.** One procedure, zero callers, deliberately retained for a future
   feature. Make them correct; don't propose deleting them.
 - **Supabase stays.** It hosts every cover video.
 - **Vercel builds on every push — deliberately. Do not add build-skipping.** Both Vercel's

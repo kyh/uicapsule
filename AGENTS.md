@@ -77,13 +77,12 @@ pnpm verify           # typecheck · lint · format · test · build
 `verify` needs `.env` (it runs `build`, which is `dotenv -e ../../.env -- next build`). It
 does _not_ need the database. Two things it deliberately does not cover:
 
-- **There are two test suites, both narrow** (`pnpm test`, Node's built-in runner via
-  `node --import tsx --test`). `packages/api/src/auth/auth-tables.test.ts` checks the
-  Drizzle schema against better-auth's table shapes; `apps/web/src/lib/agent/*.test.ts`
-  covers Accept negotiation, the Markdown/llms.txt/sitemap renderers and the JSON-LD
-  builders — everything under `src/lib/agent` is pure, so it runs without a Next runtime.
-  Nothing else in the repo has a test; the gate and your own runtime check are still what
-  stands behind a UI or content change.
+- **Tests are thin** (`pnpm test`, Node's built-in runner via `node --import tsx --test`).
+  `packages/api` holds a better-auth schema + session-cookie guard; `apps/web` holds the
+  RPC route's transport guards (Origin check, GET refusal, no CORS) and
+  `src/lib/agent/*.test.ts`, which covers Accept negotiation, the Markdown/llms.txt/sitemap
+  renderers and the JSON-LD builders — everything under `src/lib/agent` is pure, so it runs
+  without a Next runtime. Nothing else has your back but the gate and your own runtime check.
 - **`content/*` is not typechecked.** `apps/web/tsconfig.json` excludes `../../content/**`,
   no content package has a `typecheck` script, and `next.config.js` sets
   `typescript.ignoreBuildErrors`. `pnpm lint` (oxlint) is the only static tool that reads
@@ -210,7 +209,7 @@ Web is the only surface. There is no mobile, desktop, or extension target.
   `/about`, `/contact` and `/privacy` render from. Pure and unit-tested; `src/proxy.ts` and
   the routes only feed it data.
 - `packages/ui` — Base UI + shadcn-derived components · `packages/db` — Drizzle + Turso ·
-  `packages/api` — tRPC + better-auth
+  `packages/api` — oRPC + better-auth
 - `content/<slug>/` — one workspace package per component
 - `CLAUDE.md` — conventions, settled decisions, curation philosophy
 - `plans/component-roadmap.md` — the component backlog

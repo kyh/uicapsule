@@ -9,7 +9,6 @@ import { Button } from "@repo/ui/components/button";
 
 import { canonicalAlternates, pageOpenGraph } from "@/lib/agent/page-metadata";
 import { getContentList } from "@/lib/content-data";
-import { siteConfig } from "@/lib/site-config";
 import { ContentPreview, ContentPreviewSkeleton } from "./_components/content-preview";
 import { FilterBar } from "./_components/filter-combo-box";
 import { GalleryOutline, GalleryStructuredData } from "./_components/gallery-outline";

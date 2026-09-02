@@ -59,9 +59,7 @@ The remaining 13 scanner errors are triaged: 10 isolated content packages cannot
 - 031 · warning · `js-set-map-lookups` · `src/lib/content-data.ts:39` · **deferred** — measure bundle/runtime impact before changing
 - 032 · warning · `js-combine-iterations` · `src/lib/content/content-fs.ts:107` · **deferred** — measure bundle/runtime impact before changing
 - 033 · warning · `js-set-map-lookups` · `src/lib/content/content-fs.ts:146` · **deferred** — measure bundle/runtime impact before changing
-- 034 · warning · `unused-export` · `src/trpc/react.tsx:24` · **deferred** — separate public-API or component-boundary refactor
-- 035 · warning · `unused-export` · `src/trpc/react.tsx:24` · **deferred** — separate public-API or component-boundary refactor
-- 036 · warning · `unused-export` · `src/trpc/react.tsx:24` · **deferred** — separate public-API or component-boundary refactor
+- 034–036 · warning · `unused-export` · `src/orpc/react.tsx` · **fixed** — the anchored RPC context exports are deleted; the successor module's `orpc` utils export still has zero callers, a deliberate keep (CLAUDE.md → Decisions), so a rescan may raise a fresh finding there
 
 ### @repo/db
 

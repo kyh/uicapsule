@@ -1,5 +1,5 @@
-import { createTRPCRouter, protectedProcedure } from "../trpc";
+import { protectedProcedure } from "../orpc";
 
-export const userRouter = createTRPCRouter({
-  me: protectedProcedure.query(({ ctx }) => ctx.session.user),
-});
+export const userRouter = {
+  me: protectedProcedure.handler(({ context }) => context.session.user),
+};

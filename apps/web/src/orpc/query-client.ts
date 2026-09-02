@@ -1,5 +1,10 @@
+import { RPCSerializer } from "@orpc/client";
 import { defaultShouldDehydrateQuery, QueryClient } from "@tanstack/react-query";
-import SuperJSON from "superjson";
+
+// oRPC's own serializer, so dehydrated data round-trips every type the RPC
+// protocol supports (Date, Map, Set, BigInt, URL, RegExp) — plain JSON would
+// hand the client a string where the server had a Date.
+const serializer = new RPCSerializer();
 
 export const createQueryClient = () => {
   const queryClient = new QueryClient({
@@ -10,7 +15,9 @@ export const createQueryClient = () => {
         staleTime: 30 * 1000,
       },
       dehydrate: {
-        serializeData: SuperJSON.serialize,
+        // FormData cannot ride the hydration payload into the browser, so keep
+        // blobs inline in the JSON.
+        serializeData: (data) => serializer.serialize(data, { useFormDataForBlobFields: false }),
         shouldDehydrateQuery: (query) =>
           defaultShouldDehydrateQuery(query) || query.state.status === "pending",
         shouldRedactErrors: () => {
@@ -23,7 +30,7 @@ export const createQueryClient = () => {
         },
       },
       hydrate: {
-        deserializeData: SuperJSON.deserialize,
+        deserializeData: (data) => serializer.deserialize(data),
       },
     },
   });
