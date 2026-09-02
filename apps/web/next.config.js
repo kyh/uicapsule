@@ -84,7 +84,7 @@ const config = {
    * reach prerendered app *pages*: Next replays a prerender's stored headers
    * over the response on send, and `vary` is one of them, so both this and a
    * value set on `NextResponse.next()` are overwritten with Next's own RSC vary
-   * tokens. Verified against Next 16.3.1 — retest when upgrading.
+   * tokens. Verified again against Next 16.3.3 — retest when upgrading.
    *
    * Harmless in the meantime: the proxy rewrites Markdown requests to a
    * different route before any cache lookup, so the HTML and Markdown variants
