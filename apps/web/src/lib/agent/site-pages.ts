@@ -16,6 +16,24 @@ export type ProseListItem = {
   text?: string;
 };
 
+/**
+ * Whether an href has to be a plain `<a>` rather than a `next/link`.
+ *
+ * True for anything off-site, and for the on-site URLs that are route handlers
+ * rather than App Router pages — `/llms.txt`, `/sitemap.xml`, `/r/*.json`, any
+ * `.md`. The client router would fetch an RSC payload for those, get Markdown,
+ * XML or JSON back, and have to fall back to a full page load; prefetch on
+ * hover would pull the whole file down for nothing.
+ *
+ * A trailing file extension is the test, because that is exactly what separates
+ * this site's route handlers from its pages.
+ */
+export const rendersOutsideRouter = (href: string): boolean => {
+  if (!href.startsWith("/")) return true;
+  const lastSegment = href.split(/[?#]/)[0]?.split("/").pop() ?? "";
+  return lastSegment.includes(".");
+};
+
 export type ProseBlock =
   | { kind: "paragraph"; text: string }
   | { kind: "heading"; text: string }

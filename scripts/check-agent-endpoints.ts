@@ -148,6 +148,21 @@ const checkMarkdownNegotiation = async () => {
     `status ${notAcceptable.status}`,
   );
 
+  // React's own transport must never be negotiated: a Server Action sends
+  // `Accept: text/x-component`, which no representation of this site satisfies.
+  for (const [name, headers] of [
+    ["a client-side navigation", { rsc: "1" }],
+    ["a prefetch", { rsc: "1", "next-router-prefetch": "1" }],
+    ["a Server Action", { accept: "text/x-component", "next-action": "abc123" }],
+  ] as const) {
+    const response = await fetch(`${baseUrl}/about`, { headers, redirect: "manual" });
+    expect(
+      `${name} is not answered with 406`,
+      response.status !== 406,
+      `status ${response.status}`,
+    );
+  }
+
   const { response: rejected } = await fetchWith("/about", "text/html;q=0, text/markdown");
   expect(
     "q=0 on text/html selects markdown",

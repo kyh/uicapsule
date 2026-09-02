@@ -21,6 +21,9 @@ import type { NextRequest } from "next/server";
 
 const MARKDOWN_ROUTE_PREFIX = "/api/markdown";
 
+/** `RSC_CONTENT_TYPE_HEADER` in `next/dist/client/components/app-router-headers`. */
+const RSC_MEDIA_TYPE = "text/x-component";
+
 const markdownRewrite = (request: NextRequest, pathname: string) => {
   const url = request.nextUrl.clone();
   url.pathname = `${MARKDOWN_ROUTE_PREFIX}${pathname}`;
@@ -33,8 +36,26 @@ const applyVary = (response: NextResponse): NextResponse => {
   return response;
 };
 
+/**
+ * React's own transport, not a representation of the page. A Server Action
+ * sends `Accept: text/x-component` with a `Next-Action` header; negotiating
+ * that would answer it `406`, because the site produces no `text/x-component`.
+ *
+ * `Accept` is the load-bearing test, not the `RSC: 1` header a client-side
+ * navigation sends — Next strips `RSC` before the proxy runs (verified: the
+ * proxy sees only `accept`, `host`, `user-agent` and the `x-forwarded-*` set).
+ * `Next-Action` does survive, and is kept as a second signal.
+ */
+const isFlightRequest = (request: NextRequest) =>
+  (request.headers.get("accept") ?? "").toLowerCase().includes(RSC_MEDIA_TYPE) ||
+  request.headers.has("next-action");
+
 export const proxy = (request: NextRequest) => {
   const { pathname } = request.nextUrl;
+
+  if (isFlightRequest(request)) {
+    return applyVary(NextResponse.next());
+  }
 
   // An explicit `.md` URL is Markdown regardless of Accept: it is what the
   // `Link: rel="alternate"` header points at, and a crawler following that link

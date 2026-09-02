@@ -1,6 +1,8 @@
 import { Fragment, type ReactNode } from "react";
 import Link from "next/link";
 
+import { rendersOutsideRouter } from "@/lib/agent/site-pages";
+
 import type { ProseBlock, ProseListItem, ProsePage } from "@/lib/agent/site-pages";
 
 /**
@@ -21,13 +23,21 @@ const withInlineCode = (text: string): ReactNode =>
     ),
   );
 
-const isExternal = (href: string) => href.startsWith("http") || href.startsWith("mailto:");
+const isOffSite = (href: string) => href.startsWith("http") || href.startsWith("mailto:");
 
 const ProseLink = ({ href, children }: { href: string; children: ReactNode }) => {
   const className = "text-foreground hover:text-primary underline underline-offset-4 transition";
-  if (isExternal(href)) {
+  if (rendersOutsideRouter(href)) {
+    // Only a genuinely off-site link opens in a new tab; `/llms.txt` and friends
+    // are this site's own files and stay in place.
+    const offSite = isOffSite(href);
     return (
-      <a className={className} href={href} rel="noreferrer" target="_blank">
+      <a
+        className={className}
+        href={href}
+        rel={offSite ? "noreferrer" : undefined}
+        target={offSite ? "_blank" : undefined}
+      >
         {children}
       </a>
     );

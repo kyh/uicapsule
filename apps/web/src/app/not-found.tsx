@@ -2,6 +2,7 @@ import Link from "next/link";
 import { Button } from "@repo/ui/components/button";
 
 import { notFoundRecoveryLinks } from "@/lib/agent/markdown";
+import { rendersOutsideRouter } from "@/lib/agent/site-pages";
 
 import "./styles/globals.css";
 
@@ -29,17 +30,27 @@ const NotFound = () => (
         <nav aria-label="Where to look next" className="w-full border-t pt-6">
           <h2 className="text-muted-foreground mb-3 text-sm font-medium">Try one of these</h2>
           <ul className="text-muted-foreground flex flex-col gap-2 text-left text-sm">
-            {notFoundRecoveryLinks.map((item) => (
-              <li key={item.href}>
-                <Link
-                  className="text-foreground hover:text-primary underline underline-offset-4 transition"
-                  href={item.href ?? "/"}
-                >
-                  {item.label}
-                </Link>
-                {item.text ? ` — ${item.text}` : null}
-              </li>
-            ))}
+            {notFoundRecoveryLinks.map((item) => {
+              const href = item.href ?? "/";
+              const className =
+                "text-foreground hover:text-primary underline underline-offset-4 transition";
+              return (
+                <li key={item.href}>
+                  {/* `/llms.txt` and `/sitemap.xml` are route handlers, not
+                      pages — the client router cannot navigate to them. */}
+                  {rendersOutsideRouter(href) ? (
+                    <a className={className} href={href}>
+                      {item.label}
+                    </a>
+                  ) : (
+                    <Link className={className} href={href}>
+                      {item.label}
+                    </Link>
+                  )}
+                  {item.text ? ` — ${item.text}` : null}
+                </li>
+              );
+            })}
           </ul>
         </nav>
         <Button render={<Link href="/" />}>Back home</Button>

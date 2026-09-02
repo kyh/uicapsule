@@ -12,6 +12,7 @@ import {
   siteUsageParagraphs,
   whenToUse,
 } from "@/lib/agent/site-overview";
+import { rendersOutsideRouter } from "@/lib/agent/site-pages";
 import { buildHomeGraph } from "@/lib/agent/structured-data";
 import { getContentList } from "@/lib/content-data";
 import { siteConfig } from "@/lib/site-config";
@@ -43,11 +44,21 @@ const filterItems = (filters: ContentFilter[], key: string): ProseListItem[] =>
     })),
   ]);
 
+/**
+ * `/llms.txt` and `/r/registry.json` are route handlers, not pages — the client
+ * router cannot navigate to them, so they need a plain anchor.
+ */
+const OutlineLink = ({ item }: { item: ProseListItem }) => {
+  if (!item.href) return item.label;
+  if (rendersOutsideRouter(item.href)) return <a href={item.href}>{item.label}</a>;
+  return <Link href={item.href}>{item.label}</Link>;
+};
+
 const OutlineList = ({ items }: { items: ProseListItem[] }) => (
   <ul>
     {items.map((item) => (
       <li key={`${item.label}-${item.href ?? ""}`}>
-        {item.href?.startsWith("/") ? <Link href={item.href}>{item.label}</Link> : item.label}
+        <OutlineLink item={item} />
         {item.text ? ` — ${item.text}` : null}
       </li>
     ))}
