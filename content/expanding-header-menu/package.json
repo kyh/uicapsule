@@ -10,7 +10,7 @@
     "clean": "git clean -xdf .cache .turbo dist node_modules"
   },
   "dependencies": {
-    "cnfast": "^0.1.0",
+    "cn": "^0.2.3",
     "lucide-react": "^1.35.0",
     "motion": "^13.1.1",
     "react": "catalog:",
