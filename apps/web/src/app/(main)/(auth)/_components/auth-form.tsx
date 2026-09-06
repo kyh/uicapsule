@@ -7,7 +7,7 @@ import { Button } from "@repo/ui/components/button";
 import { Field, FieldError, FieldLabel } from "@repo/ui/components/field";
 import { Input } from "@repo/ui/components/input";
 import { toast } from "@repo/ui/components/toast";
-import { cn } from "@repo/ui/lib/utils";
+import { cn } from "cn";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 

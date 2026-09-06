@@ -1,5 +1,5 @@
 import { type HTMLAttributes } from "react";
-import { cn } from "@repo/ui/lib/utils";
+import { cn } from "cn";
 
 export const Card = ({ className, ...props }: HTMLAttributes<HTMLDivElement>) => (
   <div

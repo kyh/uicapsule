@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import Image from "next/image";
 import { animate, motion, useMotionValue, useReducedMotion, useTransform } from "motion/react";
-import { cn } from "@repo/ui/lib/utils";
+import { cn } from "cn";
 
 // Latches true once the element first scrolls near the viewport, so the heavy
 // work (media loading) is deferred until then.

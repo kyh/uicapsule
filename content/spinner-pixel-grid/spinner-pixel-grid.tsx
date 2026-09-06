@@ -3,8 +3,7 @@
 import { useSyncExternalStore, type ComponentProps, type CSSProperties } from "react";
 
 import "./spinner-pixel-grid.css";
-
-const cn = (...classes: (string | undefined | null | false)[]) => classes.filter(Boolean).join(" ");
+import { cn } from "cn";
 
 type CellValue = (x: number, y: number, gridSize: number) => number;
 type CellMask = (x: number, y: number, gridSize: number) => boolean;

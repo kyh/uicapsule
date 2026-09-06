@@ -3,7 +3,7 @@
 import { useState, useSyncExternalStore, type ComponentProps, type ReactNode } from "react";
 import { AlertDialog as AlertDialogPrimitive } from "@base-ui/react/alert-dialog";
 
-import { cn } from "@repo/ui/lib/utils";
+import { cn } from "cn";
 import { Button } from "@repo/ui/components/button";
 
 function AlertDialog({ ...props }: AlertDialogPrimitive.Root.Props) {

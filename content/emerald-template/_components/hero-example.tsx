@@ -12,7 +12,7 @@ import {
   type SVGProps,
 } from "react";
 import { Badge } from "@repo/ui/components/badge";
-import { cn } from "@repo/ui/lib/utils";
+import { cn } from "cn";
 import {
   BarChart3,
   BookOpen,

@@ -17,7 +17,7 @@ import {
   NavigationMenuTrigger,
   NavigationMenuViewport,
 } from "@repo/ui/components/navigation-menu";
-import { cn } from "@repo/ui/lib/utils";
+import { cn } from "cn";
 import { useMediaQuery } from "@repo/ui/hooks/use-media-query";
 import { ChevronDownIcon, SearchIcon } from "lucide-react";
 

@@ -3,7 +3,7 @@
 import { type ComponentProps } from "react";
 import { Popover as PopoverPrimitive } from "@base-ui/react/popover";
 
-import { cn } from "@repo/ui/lib/utils";
+import { cn } from "cn";
 
 function Popover({ ...props }: PopoverPrimitive.Root.Props) {
   return <PopoverPrimitive.Root data-slot="popover" {...props} />;

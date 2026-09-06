@@ -1,5 +1,5 @@
 import { type ReactNode } from "react";
-import { cn } from "@repo/ui/lib/utils";
+import { cn } from "cn";
 
 import { HighlightCard } from "./highlight-card";
 

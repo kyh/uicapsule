@@ -5,7 +5,7 @@ import { useRender } from "@base-ui/react/use-render";
 import { ChevronDownIcon } from "lucide-react";
 
 import type { ItemInstance, TreeInstance } from "@headless-tree/core";
-import { cn } from "@repo/ui/lib/utils";
+import { cn } from "cn";
 
 // headless-tree's types merge every feature's methods, but a runtime instance
 // only carries the methods of the features the consumer enabled — so feature

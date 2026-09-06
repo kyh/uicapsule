@@ -1,5 +1,5 @@
 import { type ComponentProps } from "react";
-import { cn } from "@repo/ui/lib/utils";
+import { cn } from "cn";
 
 function Textarea({ className, ...props }: ComponentProps<"textarea">) {
   return (

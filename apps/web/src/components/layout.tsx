@@ -47,7 +47,7 @@ import { Tabs, TabsIndicator, TabsList, TabsTrigger } from "@repo/ui/components/
 import { motion } from "motion/react";
 import { useTheme } from "next-themes";
 import { useWebHaptics } from "web-haptics/react";
-import { cn } from "@repo/ui/lib/utils";
+import { cn } from "cn";
 import { useMediaQuery } from "@repo/ui/hooks/use-media-query";
 import {
   BookCheckIcon,

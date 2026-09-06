@@ -1,7 +1,7 @@
 "use client";
 
 import { memo, type MouseEvent, type ReactElement, type ReactNode } from "react";
-import { cn } from "@repo/ui/lib/utils";
+import { cn } from "cn";
 import { flexRender } from "@tanstack/react-table";
 
 import type { SpreadsheetRow } from "../lib/spreadsheet-store";

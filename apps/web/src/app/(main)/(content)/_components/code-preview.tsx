@@ -25,7 +25,7 @@ import {
 } from "@repo/ui/components/code-block";
 import { toast } from "@repo/ui/components/toast";
 import { Tree, TreeItem, TreeItemLabel } from "@repo/ui/components/tree";
-import { cn } from "@repo/ui/lib/utils";
+import { cn } from "cn";
 
 import type { SourceFile } from "@/lib/content/content-schema";
 

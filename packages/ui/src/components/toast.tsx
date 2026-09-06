@@ -12,7 +12,7 @@ import {
   XIcon,
 } from "lucide-react";
 
-import { cn } from "@repo/ui/lib/utils";
+import { cn } from "cn";
 
 /**
  * Toasts stack bottom-center: the newest sits in front, older ones peek out

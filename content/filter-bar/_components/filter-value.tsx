@@ -30,7 +30,7 @@ import { Input } from "@repo/ui/components/input";
 import { Popover, PopoverContent, PopoverTrigger } from "@repo/ui/components/popover";
 import { Slider } from "@repo/ui/components/slider";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@repo/ui/components/tabs";
-import { cn } from "@repo/ui/lib/utils";
+import { cn } from "cn";
 import { format, isEqual } from "date-fns";
 import { Ellipsis } from "lucide-react";
 
