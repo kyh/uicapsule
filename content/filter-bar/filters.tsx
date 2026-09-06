@@ -9,7 +9,7 @@ import {
 } from "lucide-react";
 
 import type { Person, PersonDepartment, PersonSkill } from "./types";
-import { createColumnConfigHelper } from "./filter-package";
+import type { ColumnConfig } from "./filter-package";
 
 export const PERSON_DEPARTMENTS: PersonDepartment[] = [
   { id: "engineering", name: "Engineering", color: "blue" },
@@ -249,77 +249,60 @@ export const LABEL_STYLES_BG = {
 
 export type TW_COLOR = keyof typeof LABEL_STYLES_BG;
 
-const dtf = createColumnConfigHelper<Person>();
-
-export const columnsConfig = [
-  // Text column - Name (most important identifier)
-  dtf
-    .text()
-    .id("name")
-    .accessor((row) => `${row.firstName} ${row.lastName}`)
-    .displayName("Name")
-    .icon(UserIcon)
-    .build(),
-
-  // Option column - Department (categorical data)
-  dtf
-    .option()
-    .accessor((row) => row.department.id)
-    .id("department")
-    .displayName("Department")
-    .icon(BuildingIcon)
-    .options(
-      PERSON_DEPARTMENTS.map((d) => ({
-        value: d.id,
-        label: d.name,
-        icon: BuildingIcon,
-      })),
-    )
-    .build(),
-
-  // Number column - Salary (quantitative data)
-  dtf
-    .number()
-    .accessor((row) => row.salary)
-    .id("salary")
-    .displayName("Salary")
-    .icon(DollarSignIcon)
-    .min(20000)
-    .max(300000)
-    .build(),
-
-  // Multi-option column - Skills (tags/categories)
-  dtf
-    .multiOption()
-    .accessor((row) => row.skills)
-    .id("skills")
-    .displayName("Skills")
-    .icon(TargetIcon)
-    .options(
-      PERSON_SKILLS.map((s) => ({
-        value: s.id,
-        label: s.name,
-        icon: <div className={cn("size-2.5 rounded-full", LABEL_STYLES_BG[s.color])} />,
-      })),
-    )
-    .build(),
-
-  // Date column - Start Date (temporal data)
-  dtf
-    .date()
-    .accessor((row) => row.startDate)
-    .id("startDate")
-    .displayName("Start Date")
-    .icon(CalendarArrowUpIcon)
-    .build(),
-
-  // Boolean column - Active Status (yes/no data)
-  dtf
-    .boolean()
-    .id("isActive")
-    .accessor((row) => row.isActive)
-    .displayName("Active employees")
-    .toggledStateName("active")
-    .icon(UserCheckIcon)
-    .build(),
-] as const;
+export const columnsConfig: readonly ColumnConfig<Person>[] = [
+  {
+    type: "text",
+    id: "name",
+    accessor: (row) => `${row.firstName} ${row.lastName}`,
+    displayName: "Name",
+    icon: UserIcon,
+  },
+  {
+    type: "option",
+    id: "department",
+    accessor: (row) => row.department.id,
+    displayName: "Department",
+    icon: BuildingIcon,
+    options: PERSON_DEPARTMENTS.map((department) => ({
+      value: department.id,
+      label: department.name,
+      icon: BuildingIcon,
+    })),
+  },
+  {
+    type: "number",
+    id: "salary",
+    accessor: (row) => row.salary,
+    displayName: "Salary",
+    icon: DollarSignIcon,
+    min: 20000,
+    max: 300000,
+  },
+  {
+    type: "multiOption",
+    id: "skills",
+    accessor: (row) => row.skills?.map((skill) => skill.id),
+    displayName: "Skills",
+    icon: TargetIcon,
+    options: PERSON_SKILLS.map((skill) => ({
+      value: skill.id,
+      label: skill.name,
+      icon: <div className={cn("size-2.5 rounded-full", LABEL_STYLES_BG[skill.color])} />,
+    })),
+  },
+  {
+    type: "date",
+    id: "startDate",
+    accessor: (row) => row.startDate,
+    displayName: "Start Date",
+    icon: CalendarArrowUpIcon,
+  },
+  {
+    type: "boolean",
+    id: "isActive",
+    accessor: (row) => row.isActive,
+    displayName: "Active employees",
+    toggledStateName: "active",
+    icon: UserCheckIcon,
+  },
+];

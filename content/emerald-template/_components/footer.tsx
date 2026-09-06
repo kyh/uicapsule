@@ -12,7 +12,7 @@ export const Footer = () => {
           </div>
           <div className="flex w-full justify-between md:w-auto md:gap-20">
             <ul className="flex flex-col gap-2">
-              <p className="text-muted-foreground">Resources</p>
+              <p className="text-(--muted-foreground)">Resources</p>
               <li>
                 <a href="/docs">Documentation</a>
               </li>
@@ -21,7 +21,7 @@ export const Footer = () => {
               </li>
             </ul>
             <ul className="flex flex-col gap-2">
-              <p className="text-muted-foreground">Company</p>
+              <p className="text-(--muted-foreground)">Company</p>
               <li>
                 <a href="/about">About</a>
               </li>
@@ -33,7 +33,7 @@ export const Footer = () => {
               </li>
             </ul>
             <ul className="flex flex-col gap-2">
-              <p className="text-muted-foreground">Support</p>
+              <p className="text-(--muted-foreground)">Support</p>
               <li>
                 <a href="/help">Help center</a>
               </li>

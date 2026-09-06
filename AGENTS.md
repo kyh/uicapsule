@@ -21,10 +21,8 @@ pnpm dev:web                      # shell 2: http://localhost:3000
 - `.env` is **required**, not optional: `apps/web`'s `dev` and `build` both run through
   `dotenv -e ../../.env --`, so a clone without it fails outright.
 - `TURSO_AUTH_TOKEN` stays empty locally — `turso dev` requires no auth.
-- **The dev server must be on port 3000.** `packages/api/src/auth/auth.ts` pins `baseUrl`
-  and `trustedOrigins` to `http://localhost:3000` outside Vercel. If Next falls back to
-  3001 because 3000 is taken, every browser sign-in returns 403 with no visible error —
-  the form just sits there. Free the port before blaming the code.
+- Auth defaults to `http://localhost:3000`. For another port, set `BETTER_AUTH_URL` to
+  that origin and start Next on the matching port. Vercel uses its deployment origin.
 - The gallery itself is entirely public. Only `/auth/*` needs the database at all, so
   `pnpm dev:web` alone is enough to work on content, the grid, or the detail page.
 
@@ -74,21 +72,20 @@ Static gate:
 pnpm verify           # typecheck · lint · format · test · build
 ```
 
-`verify` needs `.env` (it runs `build`, which is `dotenv -e ../../.env -- next build`). It
-does _not_ need the database. Two things it deliberately does not cover:
+`verify` needs `.env` because it runs the production build. It does not need a database.
+CI runs the same gate on every push and pull request using local test configuration.
 
-- **Tests are focused.** Auth schema + session-cookie guards in `packages/api`; RPC
-  transport guards and content filesystem/registry contracts in `apps/web`. Visual behavior
-  still needs a runtime check.
-- **`content/*` is not typechecked.** `apps/web/tsconfig.json` excludes `../../content/**`,
-  no content package has a `typecheck` script, and `next.config.js` sets
-  `typescript.ignoreBuildErrors`. `pnpm lint` (oxlint) is the only static tool that reads
-  content, and it reports warnings without failing. Content correctness is proven at
-  runtime, not by the gate.
+- Typecheck covers the app, packages, scripts, and each of the 39 code-bearing content
+  packages independently, including each preview's default export. Previews must render
+  without required props. `pnpm typecheck:content <slug>` checks one component.
+- Lint warnings fail the gate. Explicit `any`, non-null assertions, and type casts fail too.
+  Next.js-only rules apply to the app; content stays portable.
+- Tests cover auth schema/cookies/reset, RPC transport, content filesystem/registry behavior,
+  and the standalone-content guard. Changed visual behavior still needs a browser check.
 
-`pnpm build` runs `//#check:content` first — it fails the build if any `content/<slug>` is
-missing its `meta.json` + `preview.tsx` pair, because the gallery loader would otherwise
-drop it silently. Do not remove that guard.
+`pnpm build` runs `//#check:content` first. It validates metadata, local preview files,
+package manifests, and imports. Private workspace imports and paths escaping the component
+fail the build. Do not remove this guard.
 
 Runtime — drive the real UI with [agent-browser](https://github.com/vercel-labs/agent-browser)
 (installed globally: `npm i -g agent-browser && agent-browser install`):
@@ -110,7 +107,7 @@ agent-browser snapshot                        # → email @e6, password @e7, Log
 agent-browser fill @e6 dev@uicapsule.local
 agent-browser fill @e7 password
 agent-browser click @e4                       # redirects to /
-agent-browser network requests --filter sign-in   # expect 200; a 403 means you're not on :3000
+agent-browser network requests --filter sign-in   # expect 200; a 403 means the Origin does not match BETTER_AUTH_URL
 ```
 
 The routes worth checking, and what each proves:
@@ -148,10 +145,9 @@ Two committed skills own the full lifecycles and both shell out to `agent-browse
 Content packages **must not** import from `apps/web` or `packages/*`. The registry serves
 their source verbatim — `content-fs.ts` does no import rewriting and hardcodes
 `registryDependencies: []` — so any `@repo/*` import ships an unresolvable registry item to
-an external `shadcn add` consumer. Three legacy packages violate this
-(`emerald-template`, `filter-bar`, `spreadsheet`, all depending on `@repo/ui`); they render
-fine inside the gallery but are broken outside it. Do not copy them, and don't factor a
-shared helper out of a content package.
+an external `shadcn add` consumer. All content packages now use public dependencies and
+package-local helpers. Keep them self-contained, including styles: gallery theme variables
+and base CSS are not present in a clean consumer.
 
 ## Platform matrix
 

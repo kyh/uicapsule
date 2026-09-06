@@ -8,7 +8,7 @@ import { Line2 } from "three/examples/jsm/lines/Line2.js";
 import { LineMaterial } from "three/examples/jsm/lines/LineMaterial.js";
 import { LineGeometry } from "three/examples/jsm/lines/LineGeometry.js";
 
-extend({ Line2, LineMaterial, LineGeometry });
+const OrbLine = extend(Line2);
 
 /**
  * Configuration options for the geometric orb.
@@ -84,7 +84,6 @@ function LatitudeLines({ config }: { config: Required<GeometricOrbConfig> }) {
     [config.numLines, config.speed],
   );
 
-  // One material per line with vertexColors enabled
   const materials = useMemo(
     () =>
       Array.from(
@@ -101,18 +100,23 @@ function LatitudeLines({ config }: { config: Required<GeometricOrbConfig> }) {
     [baseColor, config.numLines, config.lineWidth],
   );
 
-  // One geometry per line
   const geometries = useMemo(
     () => Array.from({ length: config.numLines }, () => new LineGeometry()),
     [config.numLines],
   );
 
-  useEffect(() => {
-    return () => {
-      for (const mat of materials) mat.dispose();
-      for (const geo of geometries) geo.dispose();
-    };
-  }, [materials, geometries]);
+  useEffect(
+    () => () => {
+      for (const material of materials) material.dispose();
+    },
+    [materials],
+  );
+  useEffect(
+    () => () => {
+      for (const geometry of geometries) geometry.dispose();
+    },
+    [geometries],
+  );
 
   useEffect(() => {
     for (const mat of materials) {
@@ -120,12 +124,23 @@ function LatitudeLines({ config }: { config: Required<GeometricOrbConfig> }) {
     }
   }, [materials, size.width, size.height]);
 
-  // Pre-allocate reusable buffers (+1 vertex to close the loop)
+  // Reuse buffers across frames; the extra vertex closes the loop.
   const vertexCount = config.pointsPerLine + 1;
-  const positionBuffer = useMemo(() => new Float32Array(vertexCount * 3), [vertexCount]);
-  const colorBuffer = useMemo(() => new Float32Array(vertexCount * 3), [vertexCount]);
+  const buffersRef = useRef<{
+    vertexCount: number;
+    positions: Float32Array;
+    colors: Float32Array;
+  } | null>(null);
 
   useFrame((state) => {
+    if (buffersRef.current?.vertexCount !== vertexCount) {
+      buffersRef.current = {
+        vertexCount,
+        positions: new Float32Array(vertexCount * 3),
+        colors: new Float32Array(vertexCount * 3),
+      };
+    }
+    const { positions: positionBuffer, colors: colorBuffer } = buffersRef.current;
     const time = state.clock.elapsedTime;
     const camDir = camDirRef.current.copy(state.camera.position).normalize();
     const r = baseColor.r;
@@ -199,12 +214,10 @@ function LatitudeLines({ config }: { config: Required<GeometricOrbConfig> }) {
           // Longitude rotation is constant per line, so it is declared once here
           // rather than re-written from the frame loop.
           <group key={lineIdx} rotation-y={constants.longitudeRotation}>
-            {/* @ts-expect-error line2 is an R3F extension registered via extend() */}
-            <line2>
+            <OrbLine>
               <primitive object={geometry} attach="geometry" />
               <primitive object={material} attach="material" />
-              {/* @ts-expect-error line2 is an R3F extension registered via extend() */}
-            </line2>
+            </OrbLine>
           </group>
         );
       })}

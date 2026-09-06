@@ -3,14 +3,14 @@
 import {
   cloneElement,
   createContext,
-  isValidElement,
   use,
+  useCallback,
   useMemo,
   useState,
   type CSSProperties,
   type HTMLProps,
+  type ReactElement,
   type ReactNode,
-  type Ref,
 } from "react";
 
 import {
@@ -91,7 +91,13 @@ export const useTooltip = ({
   const [hoverDirection, setHoverDirection] = useState<HoverDirection>(DEFAULT_HOVER_DIRECTION);
 
   const open = controlledOpen ?? uncontrolledOpen;
-  const setOpen = setControlledOpen ?? setUncontrolledOpen;
+  const setOpen = useCallback(
+    (nextOpen: boolean) => {
+      if (controlledOpen === undefined) setUncontrolledOpen(nextOpen);
+      setControlledOpen?.(nextOpen);
+    },
+    [controlledOpen, setControlledOpen],
+  );
 
   const data = useFloating({
     strategy: "fixed",
@@ -166,46 +172,33 @@ export const Tooltip = ({ children, ...options }: { children: ReactNode } & Tool
   return <TooltipContext.Provider value={tooltip}>{children}</TooltipContext.Provider>;
 };
 
-/** React 19 exposes a child element's ref through its props, not `element.ref`. */
-const getChildRef = (child: ReactNode): Ref<HTMLElement> | undefined => {
-  if (!isValidElement(child)) return undefined;
-  const { props } = child;
-  if (!(props instanceof Object) || !("ref" in props)) return undefined;
-  const { ref } = props;
-  if (!(ref instanceof Function) && !(ref instanceof Object && "current" in ref)) return undefined;
-  // SAFETY: a `ref` prop shaped as a function or `{ current }` object can only
-  // be the element's React ref; React's untyped element props carry no runtime
-  // brand to check beyond this shape.
-  return ref as Ref<HTMLElement>;
-};
+type TooltipTriggerProps = HTMLProps<HTMLElement> &
+  (
+    | { asChild: true; children: ReactElement<HTMLProps<HTMLElement>> }
+    | { asChild?: false; children: ReactNode }
+  );
 
 export const TooltipTrigger = ({
   children,
-  asChild = false,
+  asChild,
   ref: propRef,
   ...props
-}: HTMLProps<HTMLElement> & { asChild?: boolean }) => {
+}: TooltipTriggerProps) => {
   const context = useTooltipContext();
-  const ref = useMergeRefs([context.refs.setReference, propRef, getChildRef(children)]);
+  const { ref: childRef, ...childProps } = asChild ? children.props : {};
+  const ref = useMergeRefs([context.refs.setReference, propRef, childRef]);
 
-  // The user can style the trigger based on the state.
   const stateProps = {
     "data-state": context.open ? "open" : "closed",
     "data-side": context.placement.split("-")[0],
   };
 
-  // `asChild` allows the user to pass any element as the anchor
-  if (asChild && isValidElement(children)) {
-    const childProps = children.props instanceof Object ? children.props : {};
-    return cloneElement(
-      children,
-      context.getReferenceProps({
-        ref,
-        ...props,
-        ...childProps,
-        ...stateProps,
-      }),
-    );
+  if (asChild) {
+    // eslint-disable-next-line react/refs -- cloneElement forwards the merged ref without reading ref.current.
+    return cloneElement(children, {
+      ...context.getReferenceProps({ ...props, ...childProps, ...stateProps }),
+      ref,
+    });
   }
 
   return (

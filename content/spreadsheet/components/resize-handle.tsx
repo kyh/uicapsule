@@ -87,8 +87,8 @@ export const ResizeHandle = ({
     <div
       ref={ref}
       className={cn(
-        "hover:bg-primary/50 dark:hover:bg-primary/60 absolute top-0 right-0 h-full w-1 cursor-col-resize transition-colors",
-        isResizing && "bg-primary dark:bg-primary/80",
+        "hover:bg-(--primary)/50 dark:hover:bg-(--primary)/60 absolute top-0 right-0 h-full w-1 cursor-col-resize transition-colors",
+        isResizing && "bg-(--primary) dark:bg-(--primary)/80",
         className,
       )}
       onMouseDown={handleMouseDown}

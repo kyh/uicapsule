@@ -14,6 +14,9 @@ const Page = () => {
         <h1 className="text-lg font-light">Welcome back</h1>
       </div>
       <AuthForm type="login" />
+      <Link href="/auth/password-reset" className="text-center text-sm underline">
+        Forgot password?
+      </Link>
       <p className="text-muted-foreground px-8 text-center text-sm">
         Don't have an account?{" "}
         <Link href="/auth/register" className="underline">

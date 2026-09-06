@@ -100,6 +100,7 @@ function createDotTexture(size = 32, color = "#FFFFFF"): THREE.CanvasTexture {
   const circle = new Path2D();
   circle.arc(radius, radius, radius, 0, 2 * Math.PI);
   ctx.fillStyle = color;
+  // eslint-disable-next-line unicorn/no-array-fill-with-reference-type -- Canvas fills a path, not an array.
   ctx.fill(circle);
 
   return new THREE.CanvasTexture(canvas);

@@ -178,7 +178,7 @@ export const BackgroundPixelStars = memo(() => {
 
           // Update trail opacity and remove old trail pieces
           const updatedTrail = newTrail
-            .map((point) => ({ ...point, opacity: point.opacity - 0.1 }))
+            .map((point) => ({ x: point.x, y: point.y, opacity: point.opacity - 0.1 }))
             .filter((point) => point.opacity > 0);
 
           return {

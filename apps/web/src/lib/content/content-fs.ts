@@ -3,7 +3,7 @@ import { join, relative, resolve } from "node:path";
 import { cache } from "react";
 import { z } from "zod";
 
-import { contentMetaSchema } from "./content-schema";
+import { contentMetaSchema, contentPackageSchema } from "./content-schema";
 
 import type {
   ContentComponentSummary,
@@ -62,8 +62,7 @@ export const readSourceFiles = async (
   };
 
   await walk(root);
-  files.sort((a, b) => a.path.localeCompare(b.path));
-  return files;
+  return files.toSorted((a, b) => a.path.localeCompare(b.path));
 };
 
 export const readContentIndex = cache(async (): Promise<ContentComponentSummary[]> => {
@@ -71,7 +70,7 @@ export const readContentIndex = cache(async (): Promise<ContentComponentSummary[
   const slugs = entries
     .filter((entry) => entry.isDirectory() && !entry.name.startsWith("."))
     .map((entry) => entry.name)
-    .sort();
+    .toSorted();
 
   const components = await Promise.all(
     slugs.map(async (slug): Promise<ContentComponentSummary | null> => {
@@ -81,7 +80,7 @@ export const readContentIndex = cache(async (): Promise<ContentComponentSummary[
         const preview = await stat(join(contentRoot, slug, "preview.tsx")).catch(() => null);
         if (!preview?.isFile()) return null;
       }
-      return { ...meta, slug };
+      return Object.assign(meta, { slug });
     }),
   );
 
@@ -93,19 +92,17 @@ export const readContentBySlug = async (slug: string): Promise<ContentComponentS
   return all.find((component) => component.slug === slug) ?? null;
 };
 
-const contentPackageJsonSchema = z.object({
-  dependencies: z.record(z.string(), z.string()).optional(),
-  devDependencies: z.record(z.string(), z.string()).optional(),
-});
-
 export const buildShadcnRegistryItem = async (component: LocalContentComponentSummary) => {
   const [pkg, sourceFiles] = await Promise.all([
-    readJson(join(contentRoot, component.slug, "package.json"), contentPackageJsonSchema),
+    readJson(join(contentRoot, component.slug, "package.json"), contentPackageSchema),
     readSourceFiles(component),
   ]);
-  const dependencies = Object.keys(pkg?.dependencies ?? {}).filter(
-    (dep) => dep !== "react" && dep !== "react-dom" && !dep.startsWith("@repo/"),
-  );
+  const dependencies = [
+    ...new Set([
+      ...Object.keys(pkg?.dependencies ?? {}),
+      ...Object.keys(pkg?.peerDependencies ?? {}),
+    ]),
+  ].filter((dependency) => dependency !== "react" && dependency !== "react-dom");
   const devDependencies = Object.keys(pkg?.devDependencies ?? {}).filter(
     (dep) => !["@types/react", "@types/react-dom", "typescript"].includes(dep),
   );

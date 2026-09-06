@@ -1,7 +1,7 @@
 "use client";
 
 import { type ComponentProps } from "react";
-import { Button } from "@repo/ui/components/button";
+import { Button } from "./ui";
 import { cn } from "cn";
 
 export type ToolbarProps = ComponentProps<"div">;

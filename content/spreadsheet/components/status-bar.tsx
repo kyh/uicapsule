@@ -10,7 +10,7 @@ export type StatusBarProps = ComponentProps<"div">;
 export const StatusBar = ({ className, ...props }: StatusBarProps) => (
   <div
     className={cn(
-      "text-muted-foreground bg-background dark:bg-background/95 sticky bottom-0 flex items-center justify-between border-t p-2 text-xs",
+      "text-(--muted-foreground) bg-(--background) dark:bg-(--background)/95 sticky bottom-0 flex items-center justify-between border-t p-2 text-xs",
       className,
     )}
     {...props}

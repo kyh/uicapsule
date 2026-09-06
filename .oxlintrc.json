@@ -15,8 +15,13 @@
     ".codex",
     ".superset"
   ],
-  "plugins": ["eslint", "typescript", "unicorn", "react", "nextjs", "oxc", "node", "promise"],
-  "jsPlugins": [{ "name": "anti-slop", "specifier": "@kyh/oxlint/anti-slop" }],
+  "plugins": ["eslint", "typescript", "unicorn", "react", "oxc", "node", "promise"],
+  "jsPlugins": [
+    {
+      "name": "anti-slop",
+      "specifier": "@kyh/oxlint/anti-slop"
+    }
+  ],
   "categories": {
     "correctness": "warn",
     "suspicious": "warn",
@@ -40,6 +45,25 @@
     "anti-slop/no-unknown-type-aliases": "error",
     "anti-slop/no-unsafe-dictionary-type": "error",
     "anti-slop/no-widen-then-assert": "error",
-    "anti-slop/require-safety-comment-for-type-assertion": "error"
+    "anti-slop/require-safety-comment-for-type-assertion": "error",
+    "typescript/no-explicit-any": "error",
+    "typescript/no-non-null-assertion": "error",
+    "typescript/consistent-type-assertions": [
+      "error",
+      {
+        "assertionStyle": "never"
+      }
+    ]
+  },
+  "overrides": [
+    {
+      "files": ["apps/web/**"],
+      "plugins": ["eslint", "typescript", "unicorn", "react", "nextjs", "oxc", "node", "promise"]
+    }
+  ],
+  "settings": {
+    "next": {
+      "rootDir": "apps/web/"
+    }
   }
 }

@@ -1,6 +1,6 @@
 "use client";
 
-import { memo, type MouseEvent, type ReactElement, type ReactNode } from "react";
+import { type MouseEvent, type ReactNode } from "react";
 import { cn } from "cn";
 import { flexRender } from "@tanstack/react-table";
 
@@ -9,19 +9,19 @@ import type { SpreadsheetFeatures } from "../lib/spreadsheet-utils";
 import type { Table } from "@tanstack/react-table";
 import type { VirtualItem } from "@tanstack/react-virtual";
 
-interface MemoizedTableBodyProps<TRow extends SpreadsheetRow> {
+interface TableBodyProps {
   virtualItems: VirtualItem[];
-  table: Table<SpreadsheetFeatures, TRow>;
+  table: Table<SpreadsheetFeatures, SpreadsheetRow>;
   selectedCells: Set<string>;
   getRowCells: (rowId: string) => string[];
   handleMouseDown: (e: MouseEvent, rowId: string, columnId: string) => void;
   handleMouseMove: (e: MouseEvent, rowId: string, columnId: string) => void;
   showRowNumbers?: boolean;
   renderRowNumber?: (rowIndex: number) => ReactNode;
-  renderRowActions?: (row: TRow, rowIndex: number) => ReactNode;
+  renderRowActions?: (row: SpreadsheetRow, rowIndex: number) => ReactNode;
 }
 
-function MemoizedTableBodyInner<TRow extends SpreadsheetRow>({
+export function TableBody({
   virtualItems,
   table,
   selectedCells,
@@ -31,7 +31,7 @@ function MemoizedTableBodyInner<TRow extends SpreadsheetRow>({
   showRowNumbers = true,
   renderRowNumber,
   renderRowActions,
-}: MemoizedTableBodyProps<TRow>) {
+}: TableBodyProps) {
   return (
     <>
       {virtualItems.map((virtualRow) => {
@@ -47,8 +47,8 @@ function MemoizedTableBodyInner<TRow extends SpreadsheetRow>({
           <div
             key={row.id}
             className={cn(
-              "hover:bg-muted/30 dark:hover:bg-muted/20 absolute top-0 left-0 w-full transition-colors",
-              isRowSelected && "bg-muted/50 dark:bg-muted/40",
+              "hover:bg-(--muted)/30 dark:hover:bg-(--muted)/20 absolute top-0 left-0 w-full transition-colors",
+              isRowSelected && "bg-(--muted)/50 dark:bg-(--muted)/40",
             )}
             style={{
               height: `${virtualRow.size}px`,
@@ -56,13 +56,12 @@ function MemoizedTableBodyInner<TRow extends SpreadsheetRow>({
             }}
           >
             <div className="flex h-full">
-              {/* Row number */}
               {showRowNumbers && (
                 <div
                   data-row-number
                   className={cn(
-                    "border-border bg-muted/30 text-muted-foreground hover:bg-muted/50 dark:hover:bg-muted/40 flex h-9 w-12 shrink-0 cursor-default items-center justify-center border-r border-b font-mono text-xs transition-colors",
-                    isRowSelected && "bg-muted dark:bg-muted/80",
+                    "border-(--border) bg-(--muted)/30 text-(--muted-foreground) hover:bg-(--muted)/50 dark:hover:bg-(--muted)/40 flex h-9 w-12 shrink-0 cursor-default items-center justify-center border-r border-b font-mono text-xs transition-colors",
+                    isRowSelected && "bg-(--muted) dark:bg-(--muted)/80",
                   )}
                   onMouseDown={(e) => handleMouseDown(e, rowId, "")}
                   onMouseMove={(e) => handleMouseMove(e, rowId, "")}
@@ -78,7 +77,7 @@ function MemoizedTableBodyInner<TRow extends SpreadsheetRow>({
                   <div
                     key={cell.id}
                     className={cn(
-                      "border-border relative flex h-9 shrink-0 cursor-default items-center border-r border-b transition-colors",
+                      "border-(--border) relative flex h-9 shrink-0 cursor-default items-center border-r border-b transition-colors",
                       isCellSelected && "bg-blue-50 dark:bg-blue-950/50",
                     )}
                     style={{
@@ -91,9 +90,8 @@ function MemoizedTableBodyInner<TRow extends SpreadsheetRow>({
                   </div>
                 );
               })}
-              {/* Row actions */}
               {renderRowActions && (
-                <div className="border-border flex h-9 shrink-0 items-center justify-center border-b">
+                <div className="border-(--border) flex h-9 shrink-0 items-center justify-center border-b">
                   {renderRowActions(row.original, rowIndex)}
                 </div>
               )}
@@ -104,25 +102,3 @@ function MemoizedTableBodyInner<TRow extends SpreadsheetRow>({
     </>
   );
 }
-
-export const MemoizedTableBody =
-  // SAFETY: `memo` erases the wrapped component's generic; the wrapper renders
-  // MemoizedTableBodyInner with untouched props, so the asserted signature is
-  // exactly the inner component's own.
-  memo(MemoizedTableBodyInner, (prevProps, nextProps) => {
-    return (
-      prevProps.virtualItems === nextProps.virtualItems &&
-      prevProps.selectedCells === nextProps.selectedCells &&
-      prevProps.getRowCells === nextProps.getRowCells &&
-      prevProps.handleMouseDown === nextProps.handleMouseDown &&
-      prevProps.handleMouseMove === nextProps.handleMouseMove &&
-      // Cell contents come from `table`, and the row chrome from these three; omitting any of
-      // them lets the body keep rendering stale rows when only they change.
-      prevProps.table === nextProps.table &&
-      prevProps.showRowNumbers === nextProps.showRowNumbers &&
-      prevProps.renderRowNumber === nextProps.renderRowNumber &&
-      prevProps.renderRowActions === nextProps.renderRowActions
-    );
-  }) as <TRow extends SpreadsheetRow>(props: MemoizedTableBodyProps<TRow>) => ReactElement;
-
-MemoizedTableBodyInner.displayName = "MemoizedTableBodyInner";

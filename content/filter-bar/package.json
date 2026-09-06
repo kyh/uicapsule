@@ -11,16 +11,15 @@
   },
   "dependencies": {
     "@ai-sdk/react": "^4.0.87",
+    "@base-ui/react": "catalog:",
     "@loremllm/transport": "^0.7.0",
-    "@repo/ui": "workspace:^",
-    "@tanstack/react-table": "^9.2.4",
-    "cn": "^0.2.5",
+    "cmdk": "^1.1.1",
+    "cn": "catalog:",
     "date-fns": "^4.4.0",
     "lucide-react": "^1.35.0",
     "react": "catalog:",
     "react-day-picker": "^10.0.1",
-    "react-dom": "catalog:",
-    "zod": "catalog:"
+    "react-dom": "catalog:"
   },
   "devDependencies": {
     "@types/react": "catalog:",

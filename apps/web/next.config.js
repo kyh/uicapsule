@@ -5,8 +5,8 @@ import { fileURLToPath } from "node:url";
 const IS_PRODUCTION = process.env.NODE_ENV === "production";
 const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL;
 
-const __dirname = fileURLToPath(new URL(".", import.meta.url));
-const contentRoot = join(__dirname, "..", "..", "content");
+const appRoot = fileURLToPath(new URL(".", import.meta.url));
+const contentRoot = join(appRoot, "..", "..", "content");
 
 const getContentPackages = () => {
   try {
@@ -66,8 +66,6 @@ const config = {
     remotePatterns: getRemotePatterns(),
     localPatterns: [{ pathname: "/assets/**" }],
   },
-  // Typecheck runs separately in pnpm verify.
-  typescript: { ignoreBuildErrors: true },
 };
 
 export default config;

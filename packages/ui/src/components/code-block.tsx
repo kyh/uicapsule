@@ -2,7 +2,7 @@
 
 import type { ComponentProps, HTMLAttributes, ReactNode } from "react";
 import type { BundledLanguage, CodeOptionsMultipleThemes, SpecialLanguage } from "shiki";
-import { createContext, useContext, useEffect, useRef, useState } from "react";
+import { createContext, useContext, useEffect, useMemo, useRef, useState } from "react";
 import {
   SiAstro,
   SiBiome,
@@ -295,8 +295,9 @@ export const CodeBlock = ({
     prop: controlledValue,
     onChange: controlledOnValueChange,
   });
+  const context = useMemo(() => ({ value, onValueChange, data }), [value, onValueChange, data]);
   return (
-    <CodeBlockContext.Provider value={{ value, onValueChange, data }}>
+    <CodeBlockContext.Provider value={context}>
       <div className={cn("size-full overflow-hidden rounded-md border", className)} {...props} />
     </CodeBlockContext.Provider>
   );
@@ -422,8 +423,9 @@ const CodeBlockFallback = ({ children, ...props }: CodeBlockFallbackProps) => (
         {children
           ?.toString()
           .split("\n")
-          .map((line, i) => (
-            <span className="line" key={i}>
+          .map((line, lineNumber) => (
+            // eslint-disable-next-line react/no-array-index-key -- Lines are positional, stateless source text.
+            <span className="line" key={lineNumber}>
               {line}
             </span>
           ))}
@@ -495,11 +497,15 @@ export const CodeBlockContent = ({
       return;
     }
     let active = true;
-    highlight(children, language, themes)
-      .then((result) => {
-        if (active) setHighlighted({ html: result, source: children, language, themes });
-      })
-      .catch(console.error);
+    const updateHighlight = async () => {
+      try {
+        const html = await highlight(children, language, themes);
+        if (active) setHighlighted({ html, source: children, language, themes });
+      } catch (error) {
+        console.error(error);
+      }
+    };
+    void updateHighlight();
     return () => {
       active = false;
     };

@@ -5,29 +5,29 @@ import Image from "next/image";
 import { animate, motion, useMotionValue, useReducedMotion, useTransform } from "motion/react";
 import { cn } from "cn";
 
-// Latch visibility so loaded media stays mounted after scrolling away.
+// Keep loaded media mounted; pause video once it leaves the viewport buffer.
 const useInView = (rootMargin = "200px") => {
   const ref = useRef<HTMLDivElement>(null);
-  const [inView, setInView] = useState(false);
+  const [visibility, setVisibility] = useState<"hidden" | "visible" | "seen">("hidden");
   useEffect(() => {
     const el = ref.current;
     if (!el || !("IntersectionObserver" in window)) {
-      setInView(true);
+      setVisibility("visible");
       return;
     }
     const io = new IntersectionObserver(
       (entries) => {
-        if (entries.some((entry) => entry.isIntersecting)) {
-          setInView(true);
-          io.disconnect();
-        }
+        const visible = entries.some((entry) => entry.isIntersecting);
+        setVisibility((previous) =>
+          visible ? "visible" : previous === "hidden" ? "hidden" : "seen",
+        );
       },
       { rootMargin },
     );
     io.observe(el);
     return () => io.disconnect();
   }, [rootMargin]);
-  return { ref, inView };
+  return { ref, visible: visibility === "visible", loaded: visibility !== "hidden" };
 };
 
 const SHIMMER_DURATION = 1.5;
@@ -40,11 +40,12 @@ type MediaRevealProps = {
   className?: string;
   image?: string;
   video?: string;
-  iframe?: { src: string; title: string };
+  iframe?: { src: string; title: string; type: "local" | "remote" };
 };
 
 export const MediaReveal = ({ className, image, video, iframe }: MediaRevealProps) => {
-  const { ref: rootRef, inView } = useInView();
+  const { ref: rootRef, visible, loaded } = useInView();
+  const videoRef = useRef<HTMLVideoElement>(null);
   const [revealed, setRevealed] = useState(false);
   const [wiped, setWiped] = useState(false);
   const prefersReducedMotion = useReducedMotion();
@@ -62,7 +63,19 @@ export const MediaReveal = ({ className, image, video, iframe }: MediaRevealProp
   const sweep = useMotionValue(-50);
   const sweepX = useTransform(sweep, (value) => `${value}%`);
 
-  const shimmering = inView && !revealed && !prefersReducedMotion;
+  const shimmering = visible && !revealed && !prefersReducedMotion;
+
+  useEffect(() => {
+    const element = videoRef.current;
+    if (!element) return;
+    if (visible && !prefersReducedMotion) {
+      void element.play().catch(() => {
+        /* Playback can be interrupted by scrolling. */
+      });
+    } else {
+      element.pause();
+    }
+  }, [visible, prefersReducedMotion]);
 
   useEffect(() => {
     if (!shimmering) return;
@@ -101,7 +114,7 @@ export const MediaReveal = ({ className, image, video, iframe }: MediaRevealProp
 
   return (
     <div ref={rootRef} className={cn("bg-muted relative overflow-hidden", className)}>
-      {image && inView && (
+      {image && loaded && (
         <Image
           className="absolute inset-0 h-full w-full object-cover"
           src={image}
@@ -111,10 +124,11 @@ export const MediaReveal = ({ className, image, video, iframe }: MediaRevealProp
           onLoad={() => setRevealed(true)}
         />
       )}
-      {video && inView && (
+      {video && loaded && (
         <video
+          ref={videoRef}
+          preload="auto"
           className="absolute inset-0 h-full w-full object-cover"
-          autoPlay
           loop
           muted
           playsInline
@@ -124,12 +138,16 @@ export const MediaReveal = ({ className, image, video, iframe }: MediaRevealProp
           <source src={video} type="video/mp4" />
         </video>
       )}
-      {iframe && (
+      {/* Mount after hydration so cached iframe loads cannot beat the onLoad handler. */}
+      {iframe && loaded && (
         <iframe
           className="bg-background absolute inset-0 h-full w-full"
           title={iframe.title}
           src={iframe.src}
-          allow="microphone; camera"
+          // Remote previews run on separate origins and need storage; local previews are trusted code.
+          sandbox={iframe.type === "remote" ? "allow-scripts allow-same-origin" : undefined}
+          allow={iframe.type === "local" ? "microphone; camera" : undefined}
+          referrerPolicy="no-referrer"
           onLoad={() => setRevealed(true)}
         />
       )}

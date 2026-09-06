@@ -21,6 +21,7 @@ import type { OpenWindow, WindowCtx } from "./window-types";
 import { AppGlyph } from "./app-icons";
 import { FILES, FIRST_NOTE, NOTES, PHOTOS, findFile } from "./desktop-data";
 import { WindowFrame } from "./window-frame";
+import { useReducedMotion } from "./use-reduced-motion";
 
 /* -------------------------------------------------------------- Quick Look -- */
 
@@ -411,12 +412,10 @@ const TERMINAL_LINES: readonly TerminalLine[] = [
 
 const TerminalBody = (): ReactNode => {
   const [visible, setVisible] = useState(0);
+  const reducedMotion = useReducedMotion();
 
   useEffect(() => {
-    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
-      setVisible(TERMINAL_LINES.length);
-      return;
-    }
+    if (reducedMotion) return;
 
     // The count lives in the closure, not in the updater: React may invoke an
     // updater twice, and stopping the interval from inside one is a side effect
@@ -429,11 +428,11 @@ const TerminalBody = (): ReactNode => {
     }, 190);
 
     return () => window.clearInterval(id);
-  }, []);
+  }, [reducedMotion]);
 
   return (
     <div className="dos-scroll dos-scroll-dark h-full overflow-y-auto bg-[#101014] px-4 py-3 font-mono text-[12px] leading-[1.7] text-[#d6d6da]">
-      {TERMINAL_LINES.slice(0, visible).map((line) => (
+      {TERMINAL_LINES.slice(0, reducedMotion ? TERMINAL_LINES.length : visible).map((line) => (
         <div key={line.text} className="flex gap-2">
           {line.prompt && <span className="text-[#5fd0a0]">~ %</span>}
           <span

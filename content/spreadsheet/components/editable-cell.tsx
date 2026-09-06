@@ -1,30 +1,22 @@
 "use client";
 
 import { type ChangeEvent, type KeyboardEvent } from "react";
-import { Input } from "@repo/ui/components/input";
+import { Input } from "./ui";
 
-import type { Column, Row } from "@tanstack/react-table";
-import type { CellValue, SpreadsheetRow } from "../lib/spreadsheet-store";
-import type { SpreadsheetFeatures } from "../lib/spreadsheet-utils";
+import type { SpreadsheetRow } from "../lib/spreadsheet-store";
 import { useSpreadsheetStore } from "../lib/spreadsheet-store";
 
-interface EditableCellProps<TData extends SpreadsheetRow = SpreadsheetRow> {
-  getValue: () => CellValue;
-  row: Row<SpreadsheetFeatures, TData>;
-  column: Column<SpreadsheetFeatures, TData, unknown>;
+interface EditableCellProps {
+  row: { original: SpreadsheetRow };
+  column: { id: string };
 }
 
-export const EditableCell = <TData extends SpreadsheetRow = SpreadsheetRow>({
-  getValue,
-  row,
-  column,
-}: EditableCellProps<TData>) => {
+export const EditableCell = ({ row, column }: EditableCellProps) => {
   const editingCell = useSpreadsheetStore((state) => state.editingCell);
   const setEditingCell = useSpreadsheetStore((state) => state.setEditingCell);
   const updateData = useSpreadsheetStore((state) => state.updateData);
   // Cells are cleared to `undefined` by Delete/Backspace; coerce so <Input> stays controlled.
-  const raw = getValue();
-  const value = raw == null ? "" : String(raw);
+  const value = row.original[column.id] ?? "";
   const isEditing = editingCell?.rowId === row.original.id && editingCell?.columnId === column.id;
 
   const onChange = (e: ChangeEvent<HTMLInputElement>) => {
@@ -57,7 +49,7 @@ export const EditableCell = <TData extends SpreadsheetRow = SpreadsheetRow>({
 
   return (
     <div className="h-8 w-full p-1">
-      <span className="text-foreground block truncate text-sm" title={value}>
+      <span className="text-(--foreground) block truncate text-sm" title={value}>
         {value}
       </span>
     </div>

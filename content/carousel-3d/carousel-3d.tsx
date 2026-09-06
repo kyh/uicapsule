@@ -1,15 +1,7 @@
-import { useEffect, useMemo, useRef, useState, type ReactNode, type RefObject } from "react";
-import type { Group, Mesh as MeshType, Texture } from "three";
+import { useEffect, useMemo, useRef, type ReactNode, type RefObject } from "react";
+import type { BufferGeometry, Group, Mesh as MeshType, Texture } from "three";
 
-import {
-  Canvas,
-  extend,
-  Frameloop,
-  ThreeToJSXElements,
-  useFrame,
-  useLoader,
-  useThree,
-} from "@react-three/fiber";
+import { Canvas, useFrame, useLoader, useThree } from "@react-three/fiber";
 import { DoubleSide, Mesh, SRGBColorSpace, TextureLoader } from "three";
 import {
   abs,
@@ -27,17 +19,7 @@ import {
   vec3,
   vec4,
 } from "three/tsl";
-import * as THREE from "three/tsl";
 import { NodeMaterial, WebGPURenderer } from "three/webgpu";
-
-declare module "@react-three/fiber" {
-  interface ThreeElements extends ThreeToJSXElements<typeof THREE> {}
-}
-
-// SAFETY: the documented r3f v9 WebGPU setup — the `three/tsl` namespace
-// bundles nodes and functions alongside constructables, which r3f's
-// class-only catalogue type cannot ingest; `extend` filters at runtime.
-extend(THREE as any);
 
 /** Cards are laid out on the ring at a fixed 16:9 ratio regardless of source image. */
 const IMAGE_ASPECT = 9 / 16;
@@ -67,21 +49,23 @@ export const ImageCarouselCanvas = ({
   backgroundColor?: string;
   children: ReactNode;
 }) => {
-  const [frameloop, setFrameloop] = useState<Frameloop>("never");
-
   return (
     <Canvas
       shadows
       camera={{ position: [0, 0, 12], fov: 45 }}
-      frameloop={frameloop}
+      className="cursor-grab active:cursor-grabbing"
       gl={async (props) => {
-        // SAFETY: r3f hands WebGL-shaped renderer props whose fields
-        // (canvas, antialias, alpha, ...) WebGPURenderer accepts at runtime;
-        // upstream ships no WebGPU-aware `gl` typing yet.
-        const renderer = new WebGPURenderer(props as any);
-        renderer.init().then(() => {
-          setFrameloop("always");
+        if (!(props.canvas instanceof HTMLCanvasElement)) {
+          throw new Error("ImageCarouselCanvas requires an HTML canvas");
+        }
+        const renderer = new WebGPURenderer({
+          canvas: props.canvas,
+          antialias: props.antialias,
+          alpha: props.alpha,
+          depth: props.depth,
+          stencil: props.stencil,
         });
+        await renderer.init();
         return renderer;
       }}
     >
@@ -119,26 +103,22 @@ const ImagePlane = ({
   farOpacity,
   currentIndexRef,
 }: ImagePlaneProps) => {
-  const meshRef = useRef<MeshType | null>(null);
+  const meshRef = useRef<MeshType<BufferGeometry, NodeMaterial> | null>(null);
 
   const angle = (index * TAU) / total;
   const x = Math.sin(angle) * radius;
   const z = Math.cos(angle) * radius;
   const planeHeight = planeWidth * IMAGE_ASPECT;
 
-  // Create TSL material with rounded corners and cylindrical bending
   const roundedCornersMaterial = useMemo(() => {
     const material = new NodeMaterial();
 
-    // Individual plane cylindrical bending
     const position = positionLocal;
 
-    // Bend each plane individually to look curved
-    // The bend should curve the plane inward toward the carousel center (like a cylinder segment)
     const bendStrength = mul(bendAmount, BEND_MULTIPLIER);
-    const normalizedX = div(position.x, planeWidth * 0.5); // Normalize to half-width for better curve
+    const normalizedX = div(position.x, planeWidth * 0.5);
     const curvature = mul(mul(normalizedX, normalizedX), bendStrength);
-    const bentZ = add(position.z, curvature); // Changed from sub to add for inward curve
+    const bentZ = add(position.z, curvature);
 
     material.positionNode = vec3(position.x, position.y, bentZ);
 
@@ -146,18 +126,15 @@ const ImagePlane = ({
 
     const imageColor = texture(imageTexture, uvCoords);
 
-    // Calculate distance from center for rounded rectangle
     const center = sub(uvCoords, 0.5);
     const d = length(max(sub(abs(center), 0.5 - cornerRadius), 0.0));
 
-    // Create smooth mask for rounded corners
     const mask = smoothstep(
       cornerRadius + CORNER_MASK_FEATHER,
       cornerRadius - CORNER_MASK_FEATHER,
       d,
     );
 
-    // Mix transparent and image color based on mask
     const finalColor = mix(vec4(0, 0, 0, 0), imageColor, mask);
 
     material.colorNode = finalColor;
@@ -180,17 +157,17 @@ const ImagePlane = ({
     const distance = rawDistance > total / 2 ? total - rawDistance : rawDistance;
 
     if (distance === 0) {
-      roundedCornersMaterial.opacity = centerOpacity;
+      mesh.material.opacity = centerOpacity;
       return;
     }
     if (distance === 1) {
-      roundedCornersMaterial.opacity = adjacentOpacity;
+      mesh.material.opacity = adjacentOpacity;
       return;
     }
     // Smooth interpolation for positions beyond adjacent
     const maxDistance = Math.ceil(total / 2);
     const t = maxDistance > 1 ? (Math.min(distance, maxDistance) - 1) / (maxDistance - 1) : 0;
-    roundedCornersMaterial.opacity = adjacentOpacity + (farOpacity - adjacentOpacity) * t;
+    mesh.material.opacity = adjacentOpacity + (farOpacity - adjacentOpacity) * t;
   });
 
   return (
@@ -199,6 +176,8 @@ const ImagePlane = ({
     </mesh>
   );
 };
+
+const EMPTY_IMAGES: string[] = [];
 
 type ImageCarouselProps = {
   images?: string[];
@@ -218,7 +197,7 @@ type ImageCarouselProps = {
 };
 
 export const ImageCarousel = ({
-  images = [],
+  images = EMPTY_IMAGES,
   radius = 5,
   imageWidth = 3,
   cornerRadius = 0.15,
@@ -236,7 +215,6 @@ export const ImageCarousel = ({
   const groupRef = useRef<Group | null>(null);
   const { gl, viewport } = useThree();
 
-  // Smooth rotation state
   const rotationRef = useRef(0);
   const velocityRef = useRef(0);
   const isDragging = useRef(false);
@@ -245,20 +223,30 @@ export const ImageCarousel = ({
   const isSnapping = useRef(false);
   const currentIndexRef = useRef(0);
 
-  // Animation state for fade-in and spin-in
   const isAnimatingIn = useRef(true);
   const animationProgress = useRef(0);
 
-  const textures = useLoader(TextureLoader, images, (loader) => {
+  const sourceTextures = useLoader(TextureLoader, images, (loader) => {
     loader.crossOrigin = "anonymous";
   });
 
-  // Set correct colorSpace for all textures
-  textures.forEach((texture) => {
-    texture.colorSpace = SRGBColorSpace;
-  });
+  const textures = useMemo(
+    () =>
+      sourceTextures.map((source) => {
+        const texture = source.clone();
+        texture.colorSpace = SRGBColorSpace;
+        return texture;
+      }),
+    [sourceTextures],
+  );
 
-  // Event listeners setup
+  useEffect(
+    () => () => {
+      for (const texture of textures) texture.dispose();
+    },
+    [textures],
+  );
+
   useEffect(() => {
     const canvas = gl.domElement;
 
@@ -282,7 +270,6 @@ export const ImageCarousel = ({
 
     const handleMouseDown = (event: MouseEvent) => {
       startDrag(event.clientX);
-      canvas.style.cursor = "grabbing";
     };
 
     const handleMouseMove = (event: MouseEvent) => {
@@ -291,7 +278,6 @@ export const ImageCarousel = ({
 
     const handleMouseUp = () => {
       isDragging.current = false;
-      canvas.style.cursor = "grab";
     };
 
     const handleTouchStart = (event: TouchEvent) => {
@@ -308,14 +294,12 @@ export const ImageCarousel = ({
       isDragging.current = false;
     };
 
-    canvas.style.cursor = "grab";
     canvas.addEventListener("wheel", handleWheel, { passive: false });
     canvas.addEventListener("mousedown", handleMouseDown);
     canvas.addEventListener("mousemove", handleMouseMove);
     canvas.addEventListener("mouseup", handleMouseUp);
     canvas.addEventListener("mouseleave", handleMouseUp);
 
-    // Touch events
     canvas.addEventListener("touchstart", handleTouchStart, { passive: true });
     canvas.addEventListener("touchmove", handleTouchMove, { passive: true });
     canvas.addEventListener("touchend", handleTouchEnd);
@@ -337,13 +321,11 @@ export const ImageCarousel = ({
   const sizeScale = Math.min(1, viewport.width / FULL_SIZE_VIEWPORT_WIDTH);
   const planeWidth = imageWidth * sizeScale;
 
-  // Smooth animation with friction and snapping
   useFrame((state, delta) => {
     if (!images.length) return;
     const group = groupRef.current;
     if (!group) return;
 
-    // Handle entrance animation
     if (isAnimatingIn.current) {
       animationProgress.current = Math.min(
         1,
@@ -353,10 +335,8 @@ export const ImageCarousel = ({
         isAnimatingIn.current = false;
       }
 
-      // Smooth easing function
       const easedProgress = 1 - Math.pow(1 - animationProgress.current, 3);
 
-      // Apply entrance animation
       group.rotation.y =
         INITIAL_ROTATION + (rotationRef.current - INITIAL_ROTATION) * easedProgress;
 
@@ -367,10 +347,9 @@ export const ImageCarousel = ({
         }
       }
 
-      return; // Skip normal rotation logic during entrance
+      return;
     }
 
-    // Handle autorotate
     if (autorotate && !isDragging.current && !isSnapping.current) {
       velocityRef.current += autorotateSpeed * delta;
     }
@@ -380,7 +359,6 @@ export const ImageCarousel = ({
 
     const anglePerImage = TAU / images.length;
 
-    // Check if we should start snapping
     if (
       enableSnapping &&
       !isDragging.current &&
@@ -389,7 +367,6 @@ export const ImageCarousel = ({
     ) {
       const currentRotation = rotationRef.current;
 
-      // Find which image we're closest to
       const normalizedAngle = ((-currentRotation % TAU) + TAU) % TAU;
       const nearestImageIndex = Math.round(normalizedAngle / anglePerImage) % images.length;
 
@@ -413,7 +390,6 @@ export const ImageCarousel = ({
       velocityRef.current = 0;
     }
 
-    // Handle snapping animation
     if (isSnapping.current) {
       let diff = targetRotationRef.current - rotationRef.current;
 
@@ -429,14 +405,11 @@ export const ImageCarousel = ({
         rotationRef.current += diff * SNAP_SPEED;
       }
     } else {
-      // Update rotation normally with delta time
       rotationRef.current += velocityRef.current * delta * REFERENCE_FPS;
     }
 
-    // Apply smooth rotation to the group
     group.rotation.y = rotationRef.current;
 
-    // Update current index based on rotation
     const normalizedAngle = ((-rotationRef.current % TAU) + TAU) % TAU;
     currentIndexRef.current = Math.round(normalizedAngle / anglePerImage) % images.length;
   });
@@ -445,26 +418,22 @@ export const ImageCarousel = ({
 
   return (
     <group ref={groupRef}>
-      {images.map((image, index) => {
-        const imageTexture = textures[index];
-        if (!imageTexture) return null;
-        return (
-          <ImagePlane
-            key={`${image}-${index}`}
-            texture={imageTexture}
-            index={index}
-            total={images.length}
-            radius={radius}
-            planeWidth={planeWidth}
-            cornerRadius={cornerRadius}
-            bendAmount={bendAmount}
-            centerOpacity={centerOpacity}
-            adjacentOpacity={adjacentOpacity}
-            farOpacity={farOpacity}
-            currentIndexRef={currentIndexRef}
-          />
-        );
-      })}
+      {textures.map((imageTexture, index) => (
+        <ImagePlane
+          key={imageTexture.uuid}
+          texture={imageTexture}
+          index={index}
+          total={images.length}
+          radius={radius}
+          planeWidth={planeWidth}
+          cornerRadius={cornerRadius}
+          bendAmount={bendAmount}
+          centerOpacity={centerOpacity}
+          adjacentOpacity={adjacentOpacity}
+          farOpacity={farOpacity}
+          currentIndexRef={currentIndexRef}
+        />
+      ))}
       <pointLight position={[0, 2, 0]} intensity={0.5} />
       <ambientLight intensity={0.3} />
     </group>

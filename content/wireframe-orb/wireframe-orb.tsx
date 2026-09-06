@@ -1,10 +1,12 @@
 "use client";
 
 import { useRef, useMemo, useEffect } from "react";
-import { Canvas, useFrame } from "@react-three/fiber";
+import { Canvas, extend, useFrame } from "@react-three/fiber";
 import { OrbitControls } from "@react-three/drei";
 import { EffectComposer, Bloom } from "@react-three/postprocessing";
 import * as THREE from "three";
+
+const ThreeLine = extend(THREE.Line);
 
 /**
  * Configuration options for the wireframe orb.
@@ -269,8 +271,7 @@ function WireframeScene({ config }: { config: Required<WireframeOrbConfig> }) {
   });
 
   return (
-    // @ts-expect-error R3F's <line> conflicts with SVG <line> in JSX
-    <line geometry={geometry}>
+    <ThreeLine geometry={geometry}>
       <shaderMaterial
         ref={materialRef}
         vertexShader={vertexShader}
@@ -280,7 +281,7 @@ function WireframeScene({ config }: { config: Required<WireframeOrbConfig> }) {
         depthWrite={false}
         blending={THREE.AdditiveBlending}
       />
-    </line>
+    </ThreeLine>
   );
 }
 

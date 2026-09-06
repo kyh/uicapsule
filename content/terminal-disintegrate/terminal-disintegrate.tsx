@@ -181,9 +181,7 @@ export const TerminalDisintegrate = () => {
       fg: FG_LIGHT,
     };
 
-    const reduce =
-      window.matchMedia instanceof Function &&
-      window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
     if (reduce) {
       S.entranceDone = true;

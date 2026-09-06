@@ -3,7 +3,6 @@ import { Fragment } from "react";
 export const Dashboard = () => {
   return (
     <div>
-      {/* Header Section */}
       <div className="border-b border-[#EEEFF1]">
         <div className="flex items-center justify-between pt-3 pr-[19px] pb-[11px] pl-4">
           <div className="flex items-center gap-x-[7px]">
@@ -29,8 +28,6 @@ export const Dashboard = () => {
           </div>
         </div>
       </div>
-
-      {/* Filter Section */}
       <div className="border-b border-[#EEEFF1]">
         <div className="flex items-center justify-between px-3 pt-2.5 pb-[9px]">
           <div className="h-5 w-24 rounded bg-gray-200"></div>
@@ -44,11 +41,8 @@ export const Dashboard = () => {
           </div>
         </div>
       </div>
-
-      {/* Main Content */}
       <div className="h-full w-full overflow-hidden">
         <div className="flex h-full w-full flex-col">
-          {/* Table Controls */}
           <div className="flex h-[49px] shrink-0 items-center gap-x-[7px] border-b border-[#EEEFF1] px-3">
             <div className="flex h-7 items-center gap-x-1.5 rounded-lg border border-[#E6E7EA] bg-[#FBFBFB] pr-[4.5px] pl-[2.5px]">
               <div className="h-5 w-32 rounded bg-gray-200"></div>
@@ -62,11 +56,8 @@ export const Dashboard = () => {
               <div className="size-4 rounded bg-gray-200"></div>
             </div>
           </div>
-
-          {/* Data Table */}
           <div className="relative h-full w-full flex-1">
             <div className="grid auto-rows-[40px] grid-cols-[204px_minmax(136px,1fr)_minmax(204px,1.5fr)_minmax(136px,1fr)_204px_204px]">
-              {/* Header Row */}
               <div className="overflow-hidden border-r border-b border-[#EEEFF1]">
                 <div className="flex h-full w-full items-center justify-between gap-x-1.5 pr-[4.5px] pl-2">
                   <div className="flex items-center gap-x-2.5 overflow-hidden">
@@ -100,9 +91,7 @@ export const Dashboard = () => {
                   <div className="h-5 w-16 rounded bg-gray-200"></div>
                 </div>
               </div>
-
-              {/* Data Rows - Generate multiple skeleton rows */}
-              {Array.from({ length: 20 }).map((_, index) => (
+              {Array.from({ length: 20 }, (_, index) => (
                 <Fragment key={index}>
                   <div className="overflow-hidden border-r border-b border-[#EEEFF1]">
                     <div className="flex h-full w-full items-center justify-between gap-x-1.5 pr-[4.5px] pl-2">

@@ -257,7 +257,20 @@ export const ChibiPlants = ({
     wobble,
     speed,
   });
-  tuningRef.current = {
+  useEffect(() => {
+    tuningRef.current = {
+      variant,
+      potColor,
+      bodyColor,
+      leafColor,
+      cheekColor,
+      background,
+      eyeScale,
+      gaze,
+      wobble,
+      speed,
+    };
+  }, [
     variant,
     potColor,
     bodyColor,
@@ -268,7 +281,7 @@ export const ChibiPlants = ({
     gaze,
     wobble,
     speed,
-  };
+  ]);
   const stepsRef = useRef(raySteps);
 
   useEffect(() => {
@@ -303,20 +316,44 @@ export const ChibiPlants = ({
     const uGaze = uniform(1);
     const uWobble = uniform(1);
     const uRes = uniform(new THREE.Vector2(1, 1));
-    const uBg1 = uniform(new THREE.Color(background[0]));
-    const uBg2 = uniform(new THREE.Color(background[1]));
+    const uBg1 = uniform(new THREE.Color(initialTuning.background[0]));
+    const uBg2 = uniform(new THREE.Color(initialTuning.background[1]));
     const uBodyC = uniform(new THREE.Color(initialBody));
     const uLeafC = uniform(new THREE.Color(initialLeaf));
     const uPotC = uniform(new THREE.Color(initialPot));
-    const uCheekC = uniform(new THREE.Color(cheekColor));
+    const uCheekC = uniform(new THREE.Color(initialTuning.cheekColor));
 
-    const uParams: Record<string, ReturnType<typeof uniform>> = Object.fromEntries(
-      PARAM_KEYS.map((k) => [k, uniform(initialParams[k])]),
-    );
+    const uParams = {
+      bodyR: uniform(initialParams.bodyR),
+      squash: uniform(initialParams.squash),
+      stemH: uniform(initialParams.stemH),
+      l0s: uniform(initialParams.l0s),
+      l0yaw: uniform(initialParams.l0yaw),
+      l0tilt: uniform(initialParams.l0tilt),
+      l0len: uniform(initialParams.l0len),
+      l0wid: uniform(initialParams.l0wid),
+      l1s: uniform(initialParams.l1s),
+      l1yaw: uniform(initialParams.l1yaw),
+      l1tilt: uniform(initialParams.l1tilt),
+      l1len: uniform(initialParams.l1len),
+      l1wid: uniform(initialParams.l1wid),
+      l2s: uniform(initialParams.l2s),
+      l2yaw: uniform(initialParams.l2yaw),
+      l2tilt: uniform(initialParams.l2tilt),
+      l2len: uniform(initialParams.l2len),
+      l2wid: uniform(initialParams.l2wid),
+      armS: uniform(initialParams.armS),
+      eyeR: uniform(initialParams.eyeR),
+      eyeSep: uniform(initialParams.eyeSep),
+      eyeY: uniform(initialParams.eyeY),
+      mouthW: uniform(initialParams.mouthW),
+      cheek: uniform(initialParams.cheek),
+    };
 
     // ---- TSL node helpers --------------------------------------------------
-    type N = ReturnType<typeof float>;
-    const smin = (a: N, b: N, k: number) => {
+    type Scalar = THREE.Node<"float">;
+    type Point = THREE.Node<"vec3">;
+    const smin = (a: Scalar, b: Scalar, k: number) => {
       const h = clamp(
         b
           .sub(a)
@@ -327,21 +364,21 @@ export const ChibiPlants = ({
       );
       return mix(b, a, h).sub(h.mul(h.oneMinus()).mul(k));
     };
-    const sdEllipsoid = (p: N, r: N) => {
+    const sdEllipsoid = (p: Point, r: Point) => {
       const k0 = length(p.div(r));
       const k1 = length(p.div(r.mul(r)));
       return k0.mul(k0.sub(1)).div(k1.add(1e-6));
     };
-    const sdVCapsule = (p: N, h: N, r: N) =>
+    const sdVCapsule = (p: Point, h: Scalar, r: Scalar) =>
       length(vec3(p.x, p.y.sub(clamp(p.y, 0, h)), p.z)).sub(r);
     // Rotate about Y / X by angle a (applied to sample points; negate a to
     // rotate the object by +a).
-    const rotY = (p: N, a: N) => {
+    const rotY = (p: Point, a: Scalar) => {
       const c = cos(a);
       const s = sin(a);
       return vec3(p.x.mul(c).add(p.z.mul(s)), p.y, p.x.negate().mul(s).add(p.z.mul(c)));
     };
-    const rotX = (p: N, a: N) => {
+    const rotX = (p: Point, a: Scalar) => {
       const c = cos(a);
       const s = sin(a);
       return vec3(p.x, p.y.mul(c).sub(p.z.mul(s)), p.y.mul(s).add(p.z.mul(c)));
@@ -363,12 +400,12 @@ export const ChibiPlants = ({
     // at origin, un-rotated). Face painting and every above-pot SDF use this.
     const bodyCenterY = () => uParams.bodyR.mul(uParams.squash).mul(0.55).add(POT_H).toVar();
 
-    const toPlantLocal = (p: N, yaw: N, pitch: N) => {
+    const toPlantLocal = (p: Point, yaw: Scalar, pitch: Scalar) => {
       const q = vec3(p.x, p.y.sub(bodyCenterY()), p.z).toVar();
       return rotX(rotY(q, yaw), pitch).toVar();
     };
 
-    const sdPot = (p: N) => {
+    const sdPot = (p: Point) => {
       const py = p.y.sub(POT_H * 0.5);
       const ra = float(POT_R).mul(p.y.div(POT_H).sub(0.5).mul(0.3).add(1));
       const dx = length(vec2(p.x, p.z)).sub(ra).add(0.03);
@@ -382,7 +419,15 @@ export const ChibiPlants = ({
     };
 
     // One leaf slot: yaw around the stem, tilt outward, ellipsoid blade.
-    const sdLeaf = (q: N, baseY: N, s: N, lyaw: N, tilt: N, len: N, wid: N) => {
+    const sdLeaf = (
+      q: Point,
+      baseY: Scalar,
+      s: Scalar,
+      lyaw: Scalar,
+      tilt: Scalar,
+      len: Scalar,
+      wid: Scalar,
+    ) => {
       const ll = len.mul(s).toVar();
       const ww = wid.mul(s).toVar();
       const lq = rotX(rotY(vec3(q.x, q.y.sub(baseY), q.z), lyaw), tilt.negate()).toVar();
@@ -394,7 +439,7 @@ export const ChibiPlants = ({
 
     // Part distances in plant-local space; combined by map(), re-queried at the
     // hit point for smooth part-color weights (the "one continuous surface" look).
-    const plantParts = (q: N) => {
+    const plantParts = (q: Point) => {
       const br = breathe();
       const rB = uParams.bodyR.mul(br.mul(-0.012).add(1)).toVar();
       const sq = uParams.squash.mul(br.mul(0.02).add(1)).toVar();
@@ -450,7 +495,7 @@ export const ChibiPlants = ({
       return { dBody, dGreen, dArm };
     };
 
-    const sceneSdf = (p: N, yaw: N, pitch: N) => {
+    const sceneSdf = (p: Point, yaw: Scalar, pitch: Scalar) => {
       const dPot = sdPot(p);
       const q = toPlantLocal(p, yaw, pitch);
       const { dBody, dGreen, dArm } = plantParts(q);
@@ -460,12 +505,12 @@ export const ChibiPlants = ({
       return d.toVar();
     };
 
-    const mapFn = Fn(([p]: [N]) => {
+    const mapFn = Fn(([p]: [Point]) => {
       const { yaw, pitch } = headAngles();
       return sceneSdf(p, yaw, pitch);
     });
 
-    const calcNormal = (p: N) => {
+    const calcNormal = (p: Point) => {
       const h = 0.0045;
       const e1 = vec3(1, -1, -1);
       const e2 = vec3(-1, -1, 1);
@@ -505,7 +550,7 @@ export const ChibiPlants = ({
 
       // Background: radial dusk gradient + soft contact shadow on the floor.
       const bgT = smoothstep(0.05, 1.25, length(vec2(nx, ndc.y.mul(1.15).add(0.12))));
-      const col = mix(vec3(uBg1), vec3(uBg2), bgT).toVar();
+      const col = mix(uBg1.rgb, uBg2.rgb, bgT).toVar();
       const tg = ro.y.sub(0.001).div(max(rd.y.negate(), 1e-4)).toVar();
       const gp = ro.add(rd.mul(tg)).toVar();
       const shadowR = length(vec2(gp.x, gp.z.mul(1.35)));
@@ -556,11 +601,11 @@ export const ChibiPlants = ({
           const wGreen = exp(dGreen.div(-0.028)).toVar();
           const wArm = exp(dArm.div(-0.028)).toVar();
           const wSum = wPot.add(wBody).add(wGreen).add(wArm).toVar();
-          const albedo = vec3(uPotC)
+          const albedo = uPotC.rgb
             .mul(wPot)
-            .add(vec3(uBodyC).mul(wBody))
-            .add(vec3(uLeafC).mul(wGreen))
-            .add(vec3(uBodyC).mul(0.92).mul(wArm))
+            .add(uBodyC.rgb.mul(wBody))
+            .add(uLeafC.rgb.mul(wGreen))
+            .add(uBodyC.rgb.mul(0.92).mul(wArm))
             .div(wSum)
             .toVar();
           const bodyW = wBody.div(wSum).toVar();
@@ -618,9 +663,7 @@ export const ChibiPlants = ({
             );
           }
 
-          albedo.assign(
-            mix(albedo, vec3(uCheekC), cheekMask.mul(uParams.cheek).mul(0.5).mul(front)),
-          );
+          albedo.assign(mix(albedo, uCheekC.rgb, cheekMask.mul(uParams.cheek).mul(0.5).mul(front)));
           albedo.assign(mix(albedo, vec3(0.16, 0.11, 0.09), eyeMask.mul(front)));
           albedo.assign(mix(albedo, vec3(0.28, 0.13, 0.11), mouthMask.mul(front)));
           albedo.assign(mix(albedo, vec3(0.95, 0.95, 0.97), hlMask.mul(front)));
@@ -642,7 +685,7 @@ export const ChibiPlants = ({
           lit.assign(
             lit
               .add(vec3(1, 0.98, 0.95).mul(spec))
-              .add(mix(vec3(uBg1), vec3(0.6, 0.62, 0.7), 0.5).mul(fres)),
+              .add(mix(uBg1.rgb, vec3(0.6, 0.62, 0.7), 0.5).mul(fres)),
           );
 
           col.assign(lit);
@@ -660,14 +703,10 @@ export const ChibiPlants = ({
     const camera = new THREE.OrthographicCamera(-1, 1, 1, -1, 0, 1);
 
     // ---- animation state ---------------------------------------------------
-    const cur: Record<string, number> = {};
-    const vel: Record<string, number> = {};
-    const target: Record<string, number> = {};
-    for (const k of PARAM_KEYS) {
-      cur[k] = initialParams[k];
-      vel[k] = 0;
-      target[k] = cur[k];
-    }
+    const cur = { ...initialParams };
+    const vel = { ...initialParams };
+    const target = { ...initialParams };
+    for (const key of PARAM_KEYS) vel[key] = 0;
     const curCol = {
       body: new THREE.Color(initialBody),
       leaf: new THREE.Color(initialLeaf),
@@ -803,7 +842,6 @@ export const ChibiPlants = ({
       renderer.dispose();
     };
     // The shader graph is built once; live values flow through uniforms/refs.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   return <div ref={containerRef} className={className ?? "h-full w-full"} />;

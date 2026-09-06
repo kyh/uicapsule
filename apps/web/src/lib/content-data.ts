@@ -88,8 +88,15 @@ export const getShadcnRegistry = async () => {
     locals.map(async (component) => {
       const item = await buildShadcnRegistryItem(component);
       return {
-        ...item,
-        files: item.files.map(({ content: _content, ...rest }) => rest),
+        $schema: item.$schema,
+        homepage: item.homepage,
+        name: item.name,
+        type: item.type,
+        author: item.author,
+        dependencies: item.dependencies,
+        devDependencies: item.devDependencies,
+        registryDependencies: item.registryDependencies,
+        files: item.files.map(({ type, path, target }) => ({ type, path, target })),
       };
     }),
   );

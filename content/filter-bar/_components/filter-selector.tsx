@@ -1,8 +1,18 @@
 import {
+  Button,
+  Checkbox,
+  Command,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "./ui";
+import {
   Fragment,
   isValidElement,
-  memo,
-  useCallback,
   useEffect,
   useMemo,
   useRef,
@@ -10,16 +20,6 @@ import {
   type ElementType as ReactElementType,
   type ReactElement,
 } from "react";
-import { Button } from "@repo/ui/components/button";
-import { Checkbox } from "@repo/ui/components/checkbox";
-import {
-  Command,
-  CommandGroup,
-  CommandInput,
-  CommandItem,
-  CommandList,
-} from "@repo/ui/components/command";
-import { Popover, PopoverContent, PopoverTrigger } from "@repo/ui/components/popover";
 import {
   ArrowLeftIcon,
   ArrowRightIcon,
@@ -35,7 +35,7 @@ import type {
   FiltersState,
   FilterStrategy,
 } from "../filter-package";
-import { getColumn, isAnyOf } from "../filter-package";
+import { getColumn, bindFilter } from "../filter-package";
 import { FilterValueController } from "./filter-value";
 
 const renderColumnIcon = (icon: ReactElement | ReactElementType, className: string) => {
@@ -44,28 +44,23 @@ const renderColumnIcon = (icon: ReactElement | ReactElementType, className: stri
   return <IconComp className={className} />;
 };
 
-interface FilterSelectorProps<TData> {
+interface FilterSelectorProps {
   filters: FiltersState;
-  columns: Column<TData>[];
+  columns: Column[];
   actions: DataTableFilterActions;
   strategy: FilterStrategy;
   onAIFilterSubmit?: (prompt: string) => void;
   aiGenerating?: boolean;
 }
 
-export const FilterSelector =
-  // SAFETY: React.memo erases the generic call signature; the wrapper still
-  // accepts exactly __FilterSelector's props.
-  memo(__FilterSelector) as typeof __FilterSelector;
-
-function __FilterSelector<TData>({
+export function FilterSelector({
   filters,
   columns,
   actions,
   strategy,
   onAIFilterSubmit,
   aiGenerating,
-}: FilterSelectorProps<TData>) {
+}: FilterSelectorProps) {
   const [open, setOpen] = useState(false);
   const [value, setValue] = useState("");
   const [property, setProperty] = useState<string | undefined>(undefined);
@@ -84,7 +79,6 @@ function __FilterSelector<TData>({
   useEffect(() => {
     if (!property) return;
     inputRef.current?.focus();
-    setValue("");
   }, [property]);
 
   useEffect(() => {
@@ -114,8 +108,7 @@ function __FilterSelector<TData>({
             </div>
           </div>
           <FilterValueController
-            filter={filter!}
-            column={column}
+            binding={bindFilter(column, filter)}
             actions={actions}
             strategy={strategy}
           />
@@ -156,7 +149,7 @@ function __FilterSelector<TData>({
                     <SparklesIcon className="size-4" />
                     <span>Ask AI</span>
                   </div>
-                  <span className="text-muted-foreground truncate text-xs">
+                  <span className="text-(--muted-foreground) truncate text-xs">
                     {value.trim().length > 0 ? `"${value.trim()}"` : "Type a prompt"}
                   </span>
                 </div>
@@ -165,7 +158,10 @@ function __FilterSelector<TData>({
                 <FilterableColumn
                   key={column.id}
                   column={column}
-                  setProperty={setProperty}
+                  setProperty={(value) => {
+                    setValue("");
+                    setProperty(value);
+                  }}
                   actions={actions}
                   filters={visibleFilters}
                 />
@@ -197,14 +193,17 @@ function __FilterSelector<TData>({
   return (
     <Popover
       open={open}
-      onOpenChange={async (value) => {
+      onOpenChange={(value) => {
         setOpen(value);
         if (!value) {
           setTimeout(() => setProperty(undefined), 100);
         }
       }}
     >
-      <PopoverTrigger render={<Button variant="ghost" size="icon" className="size-7 p-0" />}>
+      <PopoverTrigger
+        aria-label="Add filter"
+        render={<Button variant="ghost" size="icon" className="size-7 p-0" />}
+      >
         <ListFilterIcon className="size-4" />
       </PopoverTrigger>
       <PopoverContent align="start" side="bottom" className="w-fit origin-(--transform-origin) p-0">
@@ -214,71 +213,25 @@ function __FilterSelector<TData>({
   );
 }
 
-export function FilterableColumn<TData, TType extends ColumnDataType, TVal>({
+export function FilterableColumn<TType extends ColumnDataType>({
   column,
   setProperty,
   actions,
   filters,
 }: {
-  column: Column<TData, TType, TVal>;
+  column: Column<TType>;
   setProperty: (value: string) => void;
   actions: DataTableFilterActions;
   filters: FiltersState;
 }) {
-  const itemRef = useRef<HTMLDivElement>(null);
-
   const { icon: Icon } = column;
-
-  // Check if this column is being filtered
   const isFiltered = filters.some(
     (filter) => filter.columnId === column.id && filter.values.length > 0,
   );
 
-  const prefetch = useCallback(() => {
-    column.prefetchValues();
-
-    // Only prefetch options and faceted values for option and multi-option columns
-    if (isAnyOf(column.type, ["option", "multiOption"])) {
-      column.prefetchOptions();
-      column.prefetchFacetedUniqueValues();
-    }
-
-    // Only prefetch min/max values for number columns
-    if (column.type === "number") {
-      column.prefetchFacetedMinMaxValues();
-    }
-  }, [column]);
-
-  useEffect(() => {
-    const target = itemRef.current;
-
-    if (!target) return;
-
-    // Set up MutationObserver
-    const observer = new MutationObserver((mutations) => {
-      for (const mutation of mutations) {
-        if (mutation.type === "attributes") {
-          const isSelected = target.getAttribute("data-selected") === "true";
-          if (isSelected) prefetch();
-        }
-      }
-    });
-
-    // Set up observer
-    observer.observe(target, {
-      attributes: true,
-      attributeFilter: ["data-selected"],
-    });
-
-    // Cleanup on unmount
-    return () => observer.disconnect();
-  }, [prefetch]);
-
   function handleSelect() {
     if (column.type === "boolean") {
-      // SAFETY: the runtime tag fixed TType to "boolean", whose filter values
-      // are booleans; TS cannot relate the tag to the generic.
-      actions.setFilterValue(column as Column<TData, "boolean">, [true]);
+      actions.setFilterValue({ type: "boolean", columnId: column.id, values: [true] });
       return;
     }
 
@@ -287,12 +240,10 @@ export function FilterableColumn<TData, TType extends ColumnDataType, TVal>({
 
   return (
     <CommandItem
-      ref={itemRef}
       value={column.id}
       keywords={[column.displayName]}
       onSelect={handleSelect}
       className="group"
-      onMouseEnter={prefetch}
     >
       <div className="flex w-full items-center justify-between">
         <div className="inline-flex items-center gap-1.5">
@@ -315,26 +266,16 @@ export function FilterableColumn<TData, TType extends ColumnDataType, TVal>({
   );
 }
 
-interface QuickSearchFiltersProps<TData> {
+interface QuickSearchFiltersProps {
   search?: string;
   filters: FiltersState;
-  columns: Column<TData>[];
+  columns: Column[];
   actions: DataTableFilterActions;
 }
 
-export const QuickSearchFilters =
-  // SAFETY: React.memo erases the generic call signature; the wrapper still
-  // accepts exactly __QuickSearchFilters's props.
-  memo(__QuickSearchFilters) as typeof __QuickSearchFilters;
-
-function __QuickSearchFilters<TData>({
-  search,
-  filters,
-  columns,
-  actions,
-}: QuickSearchFiltersProps<TData>) {
+export function QuickSearchFilters({ search, filters, columns, actions }: QuickSearchFiltersProps) {
   const cols = useMemo(
-    () => columns.filter((c) => isAnyOf<ColumnDataType>(c.type, ["option", "multiOption"])),
+    () => columns.filter((column) => column.type === "option" || column.type === "multiOption"),
     [columns],
   );
 
@@ -344,7 +285,7 @@ function __QuickSearchFilters<TData>({
     <>
       {cols.map((column) => {
         const filter = filters.find((f) => f.columnId === column.id);
-        const options = column.getOptions();
+        const options = column.options;
 
         function handleOptionSelect(value: string, check: boolean) {
           if (check) actions.addFilterValue(column, [value]);
@@ -354,7 +295,9 @@ function __QuickSearchFilters<TData>({
         return (
           <Fragment key={column.id}>
             {options.map((v) => {
-              const checked = Boolean(filter?.values.includes(v.value));
+              const checked =
+                (filter?.type === "option" || filter?.type === "multiOption") &&
+                filter.values.includes(v.value);
 
               return (
                 <CommandItem
@@ -369,14 +312,14 @@ function __QuickSearchFilters<TData>({
                   <div className="group flex items-center gap-1.5">
                     <Checkbox
                       checked={checked}
-                      className="dark:border-ring mr-1 opacity-0 group-data-[selected=true]:opacity-100 data-[state=checked]:opacity-100"
+                      className="dark:border-(--ring) mr-1 opacity-0 group-data-[selected=true]:opacity-100 data-checked:opacity-100"
                     />
                     <div className="flex w-4 items-center justify-center">
-                      {v.icon && renderColumnIcon(v.icon, "text-primary size-4")}
+                      {v.icon && renderColumnIcon(v.icon, "text-(--primary) size-4")}
                     </div>
                     <div className="flex items-center gap-0.5">
-                      <span className="text-muted-foreground">{column.displayName}</span>
-                      <ChevronRightIcon className="text-muted-foreground/75 size-3.5" />
+                      <span className="text-(--muted-foreground)">{column.displayName}</span>
+                      <ChevronRightIcon className="text-(--muted-foreground)/75 size-3.5" />
                       <span>{v.label}</span>
                     </div>
                   </div>

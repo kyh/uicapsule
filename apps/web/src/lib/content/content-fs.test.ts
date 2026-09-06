@@ -8,8 +8,9 @@ const fixture = await mkdtemp(join(tmpdir(), "uicapsule-content-"));
 const contentRoot = join(fixture, "content");
 const webRoot = join(fixture, "apps", "web");
 const packageSource = JSON.stringify({
-  dependencies: { react: "19", "react-dom": "19", "@repo/ui": "workspace:*", motion: "13" },
+  dependencies: { react: "19", "react-dom": "19", motion: "13" },
   devDependencies: { "@types/react": "19", "@types/react-dom": "19", typescript: "7", sass: "1" },
+  peerDependencies: { react: "19", motion: "13", "date-fns": "4" },
 });
 const sourceFiles = [
   { path: "/nested/a.ts", code: "export const value = 1;" },
@@ -87,7 +88,7 @@ test("source and registry downloads preserve consumer files and dependencies", a
   const registry = await buildShadcnRegistryItem(component);
   assert.equal(registry.type, "registry:block");
   assert.equal(registry.name, "local");
-  assert.deepEqual(registry.dependencies, ["motion"]);
+  assert.deepEqual(registry.dependencies, ["motion", "date-fns"]);
   assert.deepEqual(registry.devDependencies, ["sass"]);
   assert.deepEqual(registry.registryDependencies, []);
   assert.deepEqual(

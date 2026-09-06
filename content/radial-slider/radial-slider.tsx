@@ -24,12 +24,12 @@ export const RadialSlider = ({ onChange, maxValue = 100 }: RadialSliderProps) =>
 
   const ticks = useMemo(
     () =>
-      Array.from({ length: maxValue }).map((_, i) => (
+      Array.from({ length: maxValue }, (_, tick) => tick * (360 / maxValue)).map((angle) => (
         <div
-          key={i}
+          key={angle}
           className="absolute inset-0 flex justify-center overflow-hidden rounded-full"
           style={{
-            transform: `rotate(${i * (360 / maxValue)}deg)`,
+            transform: `rotate(${angle}deg)`,
           }}
         >
           <div className="absolute h-8 w-0.5 bg-gray-200" />

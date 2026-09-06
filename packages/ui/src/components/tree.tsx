@@ -1,6 +1,6 @@
 "use client";
 
-import { createContext, useContext, type CSSProperties, type HTMLAttributes } from "react";
+import { createContext, useContext, useMemo, type CSSProperties, type HTMLAttributes } from "react";
 import { useRender } from "@base-ui/react/use-render";
 import { ChevronDownIcon } from "lucide-react";
 
@@ -28,6 +28,7 @@ type TreeProps<T = unknown> = {
 } & HTMLAttributes<HTMLDivElement>;
 
 function Tree<T = unknown>({ indent = 20, tree, className, ...props }: TreeProps<T>) {
+  const context = useMemo(() => ({ indent, tree }), [indent, tree]);
   const containerProps = tree?.getContainerProps?.() ?? {};
   const mergedProps = { ...props, ...containerProps };
 
@@ -39,7 +40,7 @@ function Tree<T = unknown>({ indent = 20, tree, className, ...props }: TreeProps
   };
 
   return (
-    <TreeContext.Provider value={{ indent, tree }}>
+    <TreeContext.Provider value={context}>
       <div
         data-slot="tree"
         style={mergedStyle}
@@ -57,6 +58,7 @@ type TreeItemProps<T = unknown> = {
 
 function TreeItem<T = unknown>({ item, className, render, children, ...props }: TreeItemProps<T>) {
   const { indent } = useContext(TreeContext);
+  const context = useMemo(() => ({ indent, currentItem: item }), [indent, item]);
 
   const itemProps = item.getProps?.() ?? {};
   const mergedProps = { ...props, ...itemProps };
@@ -88,9 +90,7 @@ function TreeItem<T = unknown>({ item, className, render, children, ...props }: 
     },
   });
 
-  return (
-    <TreeContext.Provider value={{ indent, currentItem: item }}>{element}</TreeContext.Provider>
-  );
+  return <TreeContext.Provider value={context}>{element}</TreeContext.Provider>;
 }
 
 type TreeItemLabelProps<T = unknown> = {

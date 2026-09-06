@@ -89,22 +89,25 @@ function Counter({ paused }: { paused: boolean }) {
     };
   }, [paused]);
 
-  const countArray = count.toString().padStart(2, "0").split("");
+  const digits = [
+    { place: "tens", value: Math.floor(count / 10) },
+    { place: "ones", value: count % 10 },
+  ];
 
   return (
     <div className="relative w-[64px] overflow-hidden text-3xl font-light whitespace-nowrap">
       0:
       <AnimatePresence initial={false} mode="popLayout">
-        {countArray.map((n, i) => (
+        {digits.map((digit) => (
           <motion.div
             className="inline-block tabular-nums"
-            key={n + i}
+            key={`${digit.place}-${digit.value}`}
             initial={{ y: "12px", filter: "blur(2px)", opacity: 0 }}
             animate={{ y: "0", filter: "blur(0px)", opacity: 1 }}
             exit={{ y: "-12px", filter: "blur(2px)", opacity: 0 }}
             transition={{ type: "spring", bounce: 0.35 }}
           >
-            {n}
+            {digit.value}
           </motion.div>
         ))}
       </AnimatePresence>

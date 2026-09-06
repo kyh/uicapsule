@@ -58,18 +58,21 @@ const PARTICLE_COLOR_PAIRS = [
   { from: "#87E9C6", to: "#A635D9" },
   { from: "#9EC9F5", to: "#9ED8C6" },
   { from: "#91D3F7", to: "#9AE4CF" },
-];
+].map((colors, index, pairs) => ({
+  from: colors.from,
+  to: colors.to,
+  angle: (index / pairs.length) * 360 + 45,
+}));
 
 const BurstAnimation = () => {
   return (
     <div className="pointer-events-none absolute -top-3 -left-3 grid size-10 place-items-center">
-      {PARTICLE_COLOR_PAIRS.map((colors, index) => (
+      {PARTICLE_COLOR_PAIRS.map((colors) => (
         <Particle
-          key={index}
+          key={colors.angle}
           fromColor={colors.from}
           toColor={colors.to}
-          index={index}
-          totalParticles={PARTICLE_COLOR_PAIRS.length}
+          angle={colors.angle}
         />
       ))}
     </div>
@@ -83,16 +86,12 @@ const PATH_SCALE_FACTOR = 0.8;
 const Particle = ({
   fromColor,
   toColor,
-  index,
-  totalParticles,
+  angle,
 }: {
   fromColor: string;
   toColor: string;
-  index: number;
-  totalParticles: number;
+  angle: number;
 }) => {
-  // Calculate angle based on index with 45 degree offset
-  const angle = (index / totalParticles) * 360 + 45;
   const radians = (angle * Math.PI) / 180;
 
   // Rolled once per mount rather than per render: a re-render mid-flight (e.g. the

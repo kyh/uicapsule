@@ -2,19 +2,20 @@
 
 import { useState } from "react";
 
+import type { Person } from "./types";
 import type { FiltersState } from "./filter-package/core/types";
 import { DataTableFilter } from "./_components/data-table-filter";
-import { createTypedDataTableFilters } from "./filter-package";
+import { useDataTableFilters } from "./filter-package";
 import { columnsConfig } from "./filters";
 
-const usePeopleTableFilters = createTypedDataTableFilters();
+const people: Person[] = [];
 
 export default function Preview() {
   const [filtersState, setFiltersState] = useState<FiltersState>([]);
 
-  const { columns, filters, actions, strategy, entityName } = usePeopleTableFilters({
+  const { columns, filters, actions, strategy, entityName } = useDataTableFilters({
     strategy: "client",
-    data: [],
+    data: people,
     entityName: "Person",
     columnsConfig,
     filters: filtersState,

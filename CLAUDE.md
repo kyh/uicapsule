@@ -76,30 +76,25 @@ pnpm check:content    # Fail if any content/<slug> is not a loadable component
 
 ## Verification Contract
 
-`pnpm verify` runs five steps in order: `pnpm typecheck`, `pnpm lint` (oxlint),
-`pnpm format` (`oxfmt --check` — the checking one; `format:fix` is what rewrites),
-`pnpm test`, and `pnpm build`. Every command fails on errors; lint warnings stay advisory:
+`pnpm verify` runs typecheck, lint, formatting, tests, and build. Every step must pass;
+lint warnings also fail. CI runs it on every push and pull request.
 
-- **typecheck, format, test, build fail the run.** They must be green.
-- **Lint warnings do not fail.** `.oxlintrc.json` sets every category (`correctness`, `suspicious`,
-  `perf`) to `warn` and root `lint` has no `--deny-warnings`, so `pnpm lint` exits 0
-  on warnings. Explicit error rules still fail. Most warnings concern `content/*` and
-  upstream shadcn components in `packages/ui`: **read output, not just the exit code.**
+Typecheck covers the app, shared packages, scripts, and every code-bearing content package
+independently. Content remains excluded from the app's TypeScript project because independent
+checks preserve its distribution boundary. Use `pnpm typecheck:content <slug>` for one package.
 
-Tests cover the auth schema/session cookie, RPC transport guards, and real content filesystem
-fixtures (metadata-only reads, source packaging, slug lookup). They pin things typecheck cannot
-see, notably
-`/api/orpc`'s cross-origin defense: `SameSite=Lax` keys on _site_, so it stops a cross-SITE
-POST only, and the route's own Origin check covers the same-site cross-origin case (a
-sibling subdomain, another localhost port). Don't assume a suite has your back, and note
-`content/*` is typechecked by nothing (see `AGENTS.md` → Verify a change end-to-end).
-`verify` reads `.env`, because `build` does.
+Tests cover auth schema/cookies/reset, RPC Origin guards, filesystem/registry contracts, and
+standalone-content validation. Keep tests that pin observable behavior; check visual changes
+in the browser. `verify` reads `.env` for the build but requires no running database.
 
-`pnpm build` runs `check:content` first (turbo task `//#check:content`): the gallery loader
-in `content-fs.ts` silently drops a `content/<slug>` that lacks its `meta.json` + `preview.tsx`
-pair or fails the shared metadata schema (remote entries require `iframeUrl`/`sourceUrl`).
-A half-scaffolded stub used to vanish with no error and pile up. The guard turns that silence into a failed build — do not
-remove it. Finish the component or delete the directory; scaffold with `pnpm new:content`.
+The build's `check:content` guard validates metadata, preview files, manifests, and imports.
+It rejects private workspace dependencies and paths escaping a component directory. Do not
+remove it. Scaffold with `pnpm new:content`; finish a component or remove its directory.
+
+Password reset uses Resend. Configure `RESEND_API_KEY` and `AUTH_EMAIL_FROM` with a verified
+sender to enable it. Without both, Better Auth returns `RESET_PASSWORD_DISABLED`. Configured
+requests keep account existence private; provider failures are logged. Request acceptance
+does not prove delivery. Reset tokens expire after one hour and revoke existing sessions.
 
 ## Decisions (do not re-litigate)
 

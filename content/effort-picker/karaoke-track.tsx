@@ -130,8 +130,11 @@ export const KaraokeCard = ({ knobX, theme }: KaraokeCardProps) => {
   }, [after, clearTimers, knobX, theme]);
 
   useEffect(() => {
-    run();
-    return clearTimers;
+    const frame = requestAnimationFrame(run);
+    return () => {
+      cancelAnimationFrame(frame);
+      clearTimers();
+    };
   }, [run, clearTimers]);
 
   const activeLine = LYRIC_LINES[currentLineIndex];

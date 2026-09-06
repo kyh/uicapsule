@@ -9,6 +9,8 @@ import type {
 import { Fragment, useCallback, useEffect, useRef, useState } from "react";
 import { gsap } from "gsap";
 
+import { useReducedMotion } from "./use-reduced-motion";
+
 import type { DesktopTile, DockAppId } from "./desktop-data";
 import type { OpenWindow, WindowCtx, WindowKind } from "./window-types";
 
@@ -168,7 +170,9 @@ export const DesktopOS = (): ReactNode => {
   const [seeded, setSeeded] = useState(false);
   const [tilePositions, setTilePositions] = useState<Record<string, TilePosition>>({});
   const [selectedId, setSelectedId] = useState<string | null>(null);
-  const [entranceDone, setEntranceDone] = useState(false);
+  const reducedMotion = useReducedMotion();
+  const [animatedEntranceDone, setEntranceDone] = useState(false);
+  const entranceDone = reducedMotion || animatedEntranceDone;
   const [windows, setWindows] = useState<readonly OpenWindow[]>([]);
   const [lightbox, setLightbox] = useState<string | null>(null);
   const [groupPanelOpen, setGroupPanelOpen] = useState(false);
@@ -427,15 +431,11 @@ export const DesktopOS = (): ReactNode => {
     let reelInterval: number | null = null;
     let capTimeout: number | null = null;
 
-    const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-
-    if (reduced) {
+    if (reducedMotion) {
       if (wrap) gsap.set(wrap, { opacity: 1, scale: 1, filter: "none" });
       if (menu) gsap.set(menu, { opacity: 1, y: 0 });
       if (dock) gsap.set(dock, { opacity: 1, y: 0 });
       tileRefs.current.forEach((el) => gsap.set(el, { opacity: 1 }));
-      setEntranceDone(true);
-
       return () => {
         entranceStartedRef.current = false;
       };
@@ -609,7 +609,7 @@ export const DesktopOS = (): ReactNode => {
       if (reelInterval !== null) window.clearInterval(reelInterval);
       if (capTimeout !== null) window.clearTimeout(capTimeout);
     };
-  }, [mounted, seeded]);
+  }, [mounted, seeded, reducedMotion]);
 
   /* -------------------------------------------------- dock magnification -- */
 

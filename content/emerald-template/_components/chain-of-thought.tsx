@@ -3,13 +3,13 @@
 import type { ComponentProps, ReactNode } from "react";
 import { createContext, memo, use, useMemo } from "react";
 import { useControllableState } from "@radix-ui/react-use-controllable-state";
-import {
-  Collapsible,
-  CollapsibleContent,
-  CollapsibleTrigger,
-} from "@repo/ui/components/collapsible";
+import { Collapsible as CollapsiblePrimitive } from "@base-ui/react/collapsible";
 import { cn } from "cn";
 import { BrainIcon, DotIcon } from "lucide-react";
+
+const Collapsible = CollapsiblePrimitive.Root;
+const CollapsibleTrigger = CollapsiblePrimitive.Trigger;
+const CollapsibleContent = CollapsiblePrimitive.Panel;
 
 type ChainOfThoughtContextValue = {
   isOpen: boolean;
@@ -69,7 +69,7 @@ export const ChainOfThoughtHeader = memo(
       <Collapsible onOpenChange={setIsOpen} open={isOpen}>
         <CollapsibleTrigger
           className={cn(
-            "text-muted-foreground flex w-full items-center gap-2 text-sm transition-colors",
+            "text-(--muted-foreground) flex w-full items-center gap-2 text-sm transition-colors",
             className,
           )}
           {...props}
@@ -83,9 +83,9 @@ export const ChainOfThoughtHeader = memo(
 );
 
 const stepStatusStyles = {
-  complete: "text-muted-foreground",
+  complete: "text-(--muted-foreground)",
   active: "text-emerald-600",
-  pending: "text-muted-foreground/50",
+  pending: "text-(--muted-foreground)/50",
 };
 
 export type ChainOfThoughtStepProps = ComponentProps<"div"> & {
@@ -97,7 +97,7 @@ export type ChainOfThoughtStepProps = ComponentProps<"div"> & {
 export const ChainOfThoughtStep = memo(
   ({
     className,
-    icon = <DotIcon className="size-4" />,
+    icon,
     label,
     status = "complete",
     children,
@@ -113,8 +113,8 @@ export const ChainOfThoughtStep = memo(
       {...props}
     >
       <div className="relative mt-0.5">
-        {icon}
-        <div className="bg-border absolute top-7 bottom-0 left-1/2 -mx-px w-px" />
+        {icon ?? <DotIcon className="size-4" />}
+        <div className="bg-(--border) absolute top-7 bottom-0 left-1/2 -mx-px w-px" />
       </div>
       <div className="flex-1 space-y-2">
         <div>{label}</div>
@@ -135,7 +135,7 @@ export const ChainOfThoughtContent = memo(
         <CollapsibleContent
           className={cn(
             "mt-2 space-y-3",
-            "data-[state=closed]:fade-out-0 data-[state=closed]:slide-out-to-top-2 data-[state=open]:slide-in-from-top-2 text-popover-foreground data-[state=closed]:animate-out data-[state=open]:animate-in outline-none",
+            "data-[state=closed]:fade-out-0 data-[state=closed]:slide-out-to-top-2 data-[state=open]:slide-in-from-top-2 text-(--popover-foreground) data-[state=closed]:animate-out data-[state=open]:animate-in outline-none",
             className,
           )}
           {...props}

@@ -10,10 +10,10 @@
     "clean": "git clean -xdf .cache .turbo dist node_modules"
   },
   "dependencies": {
+    "@base-ui/react": "catalog:",
     "@icons-pack/react-simple-icons": "^13.15.1",
     "@radix-ui/react-use-controllable-state": "^1.2.6",
-    "@repo/ui": "workspace:^",
-    "cn": "^0.2.5",
+    "cn": "catalog:",
     "lucide-react": "^1.35.0",
     "motion": "^13.1.1",
     "react": "catalog:",

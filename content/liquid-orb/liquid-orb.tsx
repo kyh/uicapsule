@@ -1009,6 +1009,7 @@ export const LiquidOrb = ({
         gl.deleteShader(fs);
         if (gl.getProgramParameter(program, gl.LINK_STATUS)) {
           const loc = (name: string) => gl.getUniformLocation(program, name);
+          // eslint-disable-next-line react/hooks -- WebGL method, not a React hook.
           gl.useProgram(program);
           gl.uniform1f(loc("uGlass"), glass ? 1 : 0);
           gl.uniform1f(loc("uGlow"), Math.max(glow, 0));
@@ -1090,7 +1091,10 @@ export const LiquidOrb = ({
           if (holdT >= holdDuration) {
             morphing = true;
             morphT = 0;
-            onPresetChangeRef.current?.(order[next]!);
+            const targetPreset = order[next];
+            if (targetPreset === undefined)
+              throw new RangeError("Liquid orb preset index is out of bounds");
+            onPresetChangeRef.current?.(targetPreset);
           }
         } else {
           morphT += dt / Math.max(morphDuration, 0.001);
@@ -1112,10 +1116,18 @@ export const LiquidOrb = ({
       const b = presetVecs.get(nextPreset);
       if (!a || !b) return;
       for (let i = 0; i < VEC_SIZE; i++) {
-        mixed[i] = a[i]! + (b[i]! - a[i]!) * k;
+        const from = a[i];
+        const to = b[i];
+        if (from === undefined || to === undefined) {
+          throw new RangeError("Liquid orb preset buffer is incomplete");
+        }
+        mixed[i] = from + (to - from) * k;
       }
 
-      phase += dt * mixed[0]! * speed;
+      const phaseSpeed = mixed[0];
+      if (phaseSpeed === undefined)
+        throw new Error("Liquid orb preset buffer is missing its speed");
+      phase += dt * phaseSpeed * speed;
 
       const styleA = styleIndex[currentPreset];
       const styleB = styleIndex[nextPreset];
@@ -1128,17 +1140,17 @@ export const LiquidOrb = ({
         getProgram(styleB, styleB);
       }
 
+      // eslint-disable-next-line react/hooks -- WebGL method, not a React hook.
       gl.useProgram(entry.program);
       gl.uniform2f(entry.uSize, canvas.width, canvas.height);
       gl.uniform1f(entry.uTime, phase);
       gl.uniform1f(entry.uStyleMix, k);
-      for (let i = 0; i < entry.scalars.length; i++) {
-        gl.uniform1f(entry.scalars[i]!, mixed[i + 1]!);
-      }
-      for (let i = 0; i < entry.colors.length; i++) {
-        const o = COLOR_BASE + i * 3;
-        gl.uniform3f(entry.colors[i]!, mixed[o]!, mixed[o + 1]!, mixed[o + 2]!);
-      }
+      entry.scalars.forEach((location, i) => {
+        gl.uniform1fv(location, mixed, i + 1, 1);
+      });
+      entry.colors.forEach((location, i) => {
+        gl.uniform3fv(location, mixed, COLOR_BASE + i * 3, 3);
+      });
       gl.drawArrays(gl.TRIANGLES, 0, 3);
     };
     frame = requestAnimationFrame(draw);

@@ -15,6 +15,8 @@ type PageProps = {
   searchParams: Promise<Record<string, string | string[] | undefined>>;
 };
 
+const skeletonIds = Array.from({ length: 14 }, (_, index) => `placeholder-${index}`);
+
 const Page = ({ searchParams }: PageProps) => {
   const contentContainerClassname =
     "bg-border grid gap-px md:h-auto md:grid-cols-10 md:grid-rows-2 md:*:col-span-2 md:[&>*:nth-child(10n+1)]:col-span-4 md:[&>*:nth-child(10n+1)]:row-span-2 md:[&>*:nth-child(10n+1)]:h-auto";
@@ -29,8 +31,8 @@ const Page = ({ searchParams }: PageProps) => {
       <Suspense
         fallback={
           <div className={contentContainerClassname}>
-            {Array.from({ length: 14 }).map((_, index) => (
-              <ContentPreviewSkeleton key={index} />
+            {skeletonIds.map((id) => (
+              <ContentPreviewSkeleton key={id} />
             ))}
           </div>
         }

@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { buttonVariants } from "@repo/ui/components/button";
 import { cn } from "cn";
 import { useScroll } from "motion/react";
 
@@ -44,10 +43,7 @@ export const Header = () => {
         </nav>
         <div className="flex flex-1 justify-end">
           <a
-            className={cn(
-              buttonVariants({ variant: "secondary", size: "sm" }),
-              "ml-4 w-24 rounded-full px-5",
-            )}
+            className="ml-4 inline-flex h-8 w-24 items-center justify-center rounded-full bg-(--secondary) px-5 text-sm font-medium text-(--secondary-foreground) transition-colors hover:bg-(--secondary)/80 focus-visible:ring-2 focus-visible:ring-(--ring)"
             href="/auth/login"
           >
             Login

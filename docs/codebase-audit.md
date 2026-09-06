@@ -1,60 +1,51 @@
 # Codebase cleanup — 2026-09-05
 
-Surveyed the web app, API, database, shared UI, scripts/configuration, and all 40 content
-packages. Inspected dependencies and callers before removing code. Runtime checks target
-changed interactions; this is not exhaustive animation or accessibility certification.
+Reviewed the app, API, database, shared UI, scripts/configuration, and all 40 content packages.
+The architecture remains: filesystem metadata → cached server reads → isolated previews.
+Source downloads and registry output have their own boundary. Auth/oRPC and Supabase stay.
 
-The core architecture is sound: filesystem metadata feeds cached server reads; previews stay
-isolated; source downloads have their own contract. Keep those seams. The waste was mostly
-copied utility features, indirect UI configuration, repeated schemas, and dead package surfaces.
+| Area                 | Result                                                                                                                                                                                                                                 |
+| -------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Content loading      | One metadata schema and inferred types. Index reads avoid source bodies. Source/ZIP code loads on demand.                                                                                                                              |
+| App composition      | Replaced the 856-line layout with header navigation, search, profile, and footer components. Removed descriptor/cloning indirection.                                                                                                   |
+| Shared UI            | Narrow context APIs, preserve controlled callbacks, cancel stale highlighting, stabilize calendar overrides, and remove duplicated hooks.                                                                                              |
+| Filter package       | Explicit column/filter variants replace the fluent builder and erased generic types. Remove unused row filtering, duplicate caches, and controller wrappers. Preserve option counts, operators, controlled updates, and pending edits. |
+| Spreadsheet          | Instance-scoped stores replace the singleton. Remove ineffective memoization and fake import/export buttons. Preserve edits and existing values during enrichment.                                                                     |
+| Registry portability | Filter Bar, Spreadsheet, and Emerald use public dependencies, local primitives, and scoped CSS. No private imports or gallery-theme requirements.                                                                                      |
+| Rendering/lifecycle  | Correct Three/TSL types and resource cleanup. Fix camera cancellation/retry, tooltip refs, reduced motion, and stale effects. Pause offscreen videos; mount frames after hydration so cached loads cannot leave their cover stuck.     |
+| Auth                 | Handle returned/network errors, pass reset tokens, reject reused tokens, revoke old sessions, link password recovery, and replace placeholder copy. Resend delivery is configured through server environment variables.                |
+| Verification         | Strict checks cover all code-bearing content packages independently, including preview export contracts. Lint warnings fail. Next builds no longer ignore type errors. CI runs the full gate on every push and PR.                     |
 
-| Area              | Change                                                                                                                                                                                             |
-| ----------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Content loading   | One metadata parser with inferred local/remote types. Indexing no longer reads source bodies. The build guard uses the same parser.                                                                |
-| Header            | Split the 856-line layout into header navigation, search, profile, and footer. Replaced menu descriptors and element cloning with JSX composition.                                                 |
-| Source drawer     | Normalize paths once. Reset file selection per component. Load viewer and ZIP code on demand. Fix author avatar source.                                                                            |
-| Shared UI         | Narrow tree context capabilities; remove `any`. Consolidate responsive hooks. Move controlled-state notifications outside React updaters. Stabilize calendar overrides. Cancel stale highlighting. |
-| Content utilities | Remove unused debounce modes, tuple overloads, array helpers, unused memo options, and explanatory noise. Fix pending-edit handling and nested icon remounts.                                      |
-| API/database      | Remove unused context data, inference exports, procedure aliases, SQL barrel, empty schema, and five unused dependencies. Retain auth and RPC.                                                     |
-| Tests/docs        | Consolidate schema checks without losing field/nullability assertions. Keep cookie and transport guards. Add real filesystem/registry regressions. Update agent maps and remove stale guidance.    |
+Kept cache wrappers, UI primitives, and cohesive highlighting code: they encapsulate behavior.
+Removed copied utility features and unused abstractions. Comments explain constraints and
+invariants; repeated implementation narration was trimmed. Narrow lint exceptions cover
+verified native-API/ref false positives and fixed positional rendering, with local reasons.
 
-The cache wrappers, shared UI primitives, and cohesive syntax-highlighting module remain.
-They encapsulate actual policy or behavior. Content packages remain independent units;
-extracting shared helpers from them would break the registry contract.
+Validation:
 
-Verified:
+- `pnpm verify`: strict typecheck, zero-warning lint, formatting, 22 tests, production build.
+- AST scan: no explicit `any`, non-null assertions, or type casts. Literal `as const` remains.
+- 39 code-bearing content packages pass independent checks; the remaining entry is remote.
+- The content guard validates all 40 entries and rejects private imports, relative escapes,
+  and workspace-only dependencies. Tests use real filesystem fixtures.
+- Filter Bar, Spreadsheet, and Emerald registry responses were installed, typechecked,
+  built, and exercised in a clean Vite/React/Tailwind consumer outside the monorepo.
+- Two spreadsheet instances retain independent state. Filter edits/operators, spreadsheet
+  edit/add/delete/enrichment, and Emerald interactions were checked in a browser.
+- Browser checks cover gallery search/filter/theme/source/ZIP flows, frame loading, paused
+  offscreen/reduced-motion covers, and changed animation interactions.
+- Password reset was exercised against a temporary local database; the new password signs
+  in. Memory-adapter integration tests verify callback, token consumption, session revocation,
+  and missing configuration. Provider boundary tests cover HTTP/network failures.
 
-- `pnpm verify`: typecheck, lint, formatting, 15 tests, production build.
-- Metadata guard: 40 valid entries; registry index: 39 local entries.
-- Desktop/mobile search, theme menu, filters, feed navigation, source selection, ZIP download.
-- Source/registry success and missing-slug responses. Downloaded ZIP matches source bytes.
-- Browser checks used port 3001 because another project owns port 3000. Auth sign-in was not
-  exercised there. Session lookup used an isolated temporary local database.
+Operational setup remains: production has no `RESEND_API_KEY` or `AUTH_EMAIL_FROM`. Set both
+with a verified Resend sender to enable reset email. Without them, reset requests fail
+explicitly. Configured requests keep account existence private; delivery failures are logged,
+and request acceptance does not prove delivery. No real email was sent during verification.
 
-Remaining work, ranked:
+Camera permission-denied/retry paths were checked; live pose tracking requires camera access.
+This review is not exhaustive animation or accessibility certification.
 
-1. **Check content packages independently in the normal gate.** They remain excluded from
-   `pnpm typecheck`. Independent strict checks pass 31/39 TypeScript packages; the remaining
-   package is remote-only. Four packages have substantive failures: `chibi-plants` (101 TSL
-   vector diagnostics), `filter-bar` (18 TanStack type diagnostics), `carousel-3d` (8 Three.js
-   augmentation diagnostics), and `spreadsheet` (7 column/cell variance diagnostics). Four
-   others only lack CSS side-effect declarations: `emerald-template`, `snail-timer`,
-   `spinner-pixel-grid`, `tooltip-grid`. These are 138 diagnostics, not 138 separate bugs.
-   Fix the contracts and CSS declarations before adding the gate.
-2. **Repair three external registry packages.** `emerald-template`, `filter-bar`, and
-   `spreadsheet` still import private `@repo/ui` modules. Their gallery previews work; clean
-   consumers cannot resolve those imports. Choose minimal package-local implementations
-   rather than copying the entire shared UI package.
-3. **Finish password reset.** The form can show success on a returned API error; the update
-   form never supplies the URL token; the server has no reset-email delivery callback.
-   This requires completing the feature, including choosing/configuring email delivery.
-4. **Automate the existing gate.** `.github/workflows` runs the Claude integration only;
-   no PR workflow runs `pnpm verify`. Preserve Vercel's every-push build and Turbo's content
-   dependency declaration.
-
-The gate reports 114 advisory lint warnings, down from 133; errors fell from 6 to 0. This cleanup removes actual errors and unnecessary code.
-Warning suppression or deleting valuable contract tests would give a misleading clean result.
-
-The lazy import changes follow [Next.js guidance](https://nextjs.org/docs/app/guides/lazy-loading).
-Schema inference follows [Zod's schema API](https://zod.dev/api).
-Previously settled tradeoffs were checked against [the pinned audit](https://github.com/kyh/uicapsule/issues/84).
+My take: preserve the filesystem/preview/distribution boundaries. Keep new component APIs
+small and local. The main source of complexity was general-purpose machinery copied into
+examples; a small typed domain model is easier to extend and review.

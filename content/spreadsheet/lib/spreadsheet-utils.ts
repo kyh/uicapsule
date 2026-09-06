@@ -1,7 +1,3 @@
-/**
- * Pure utility functions for spreadsheet operations
- */
-
 import { columnVisibilityFeature, tableFeatures } from "@tanstack/react-table";
 
 import type { SpreadsheetRow } from "./spreadsheet-store";
@@ -25,8 +21,7 @@ export interface CellPosition {
 }
 
 export interface ColumnInfo {
-  accessorKey?: string;
-  id?: string;
+  id: string;
 }
 
 export interface NavigationMap {
@@ -39,23 +34,14 @@ export interface NavigationMap {
 
 export type NavigationDirection = keyof NavigationMap;
 
-/**
- * Get all cells in a row
- */
 export const getRowCells = (rowId: string, columns: ColumnInfo[]): string[] => {
-  return columns.map((col) => `${rowId}:${col.accessorKey || col.id || ""}`);
+  return columns.map((col) => `${rowId}:${col.id}`);
 };
 
-/**
- * Get all cells in a column
- */
 export const getColumnCells = (columnId: string, data: SpreadsheetRow[]): string[] => {
   return data.map((row) => `${row.id}:${columnId}`);
 };
 
-/**
- * Get cells in a range between two positions
- */
 export const getRangeCells = (
   startRowId: string,
   startColId: string,
@@ -64,18 +50,18 @@ export const getRangeCells = (
   columns: ColumnInfo[],
   data: SpreadsheetRow[],
 ): string[] => {
-  const columnIds = columns.map((col) => col.accessorKey || col.id || "");
+  const columnIds = columns.map((col) => col.id);
   const startColIndex = columnIds.indexOf(startColId);
   const endColIndex = columnIds.indexOf(endColId);
 
   const minColIndex = Math.min(startColIndex, endColIndex);
   const maxColIndex = Math.max(startColIndex, endColIndex);
 
-  // Find the row indices for the start and end rows
   const startRowIndex = data.findIndex((row) => row.id === startRowId);
   const endRowIndex = data.findIndex((row) => row.id === endRowId);
 
-  if (startRowIndex === -1 || endRowIndex === -1) return [];
+  if (startRowIndex === -1 || endRowIndex === -1 || startColIndex === -1 || endColIndex === -1)
+    return [];
 
   const minRowIndex = Math.min(startRowIndex, endRowIndex);
   const maxRowIndex = Math.max(startRowIndex, endRowIndex);
@@ -93,9 +79,6 @@ export const getRangeCells = (
   return cells;
 };
 
-/**
- * Toggle row selection
- */
 export const toggleRowSelection = (
   rowId: string,
   selectedCells: Set<string>,
@@ -106,18 +89,13 @@ export const toggleRowSelection = (
 
   const newSelectedCells = new Set(selectedCells);
   if (isRowFullySelected) {
-    // Deselect all cells in this row
     rowCells.forEach((cell) => newSelectedCells.delete(cell));
   } else {
-    // Select all cells in this row
     rowCells.forEach((cell) => newSelectedCells.add(cell));
   }
   return newSelectedCells;
 };
 
-/**
- * Toggle column selection
- */
 export const toggleColumnSelection = (
   columnId: string,
   selectedCells: Set<string>,
@@ -128,18 +106,13 @@ export const toggleColumnSelection = (
 
   const newSelectedCells = new Set(selectedCells);
   if (isColumnFullySelected) {
-    // Deselect all cells in this column
     columnCells.forEach((cell) => newSelectedCells.delete(cell));
   } else {
-    // Select all cells in this column
     columnCells.forEach((cell) => newSelectedCells.add(cell));
   }
   return newSelectedCells;
 };
 
-/**
- * Toggle single cell selection
- */
 export const toggleCellSelection = (cellKey: string, selectedCells: Set<string>): Set<string> => {
   const newSelectedCells = new Set(selectedCells);
   if (newSelectedCells.has(cellKey)) {
@@ -150,9 +123,6 @@ export const toggleCellSelection = (cellKey: string, selectedCells: Set<string>)
   return newSelectedCells;
 };
 
-/**
- * Get the first selected cell position
- */
 export const getFirstSelectedCell = (selectedCells: Set<string>): CellPosition | null => {
   const firstSelectedCell = Array.from(selectedCells)[0];
   if (!firstSelectedCell) return null;
@@ -162,9 +132,6 @@ export const getFirstSelectedCell = (selectedCells: Set<string>): CellPosition |
   return { rowId, columnId };
 };
 
-/**
- * Get column size CSS variables
- */
 export const getColumnSizeVars = (columnWidths: Record<string, number>) => {
   const colSizes: { [key: string]: number } = {};
   Object.entries(columnWidths).forEach(([columnId, width]) => {
@@ -173,29 +140,20 @@ export const getColumnSizeVars = (columnWidths: Record<string, number>) => {
   return colSizes;
 };
 
-/**
- * Check if a target element is within a specific data attribute
- */
 export const isWithinDataAttribute = (target: EventTarget | null, attribute: string): boolean => {
   return target instanceof HTMLElement && !!target.closest(`[data-${attribute}]`);
 };
 
-/**
- * Check if editing should be allowed based on current selection
- */
 export const shouldAllowEditing = (selectedCells: Set<string>, cellKey: string): boolean => {
   return selectedCells.has(cellKey) && selectedCells.size === 1;
 };
 
-/**
- * Create a navigation map for all cells in the spreadsheet
- */
 export const createNavigationMap = (
   data: SpreadsheetRow[],
   columns: ColumnInfo[],
 ): Map<string, NavigationMap> => {
   const navigationMap = new Map<string, NavigationMap>();
-  const columnIds = columns.map((col) => col.accessorKey || col.id || "");
+  const columnIds = columns.map((col) => col.id);
 
   data.forEach((row, rowIndex) => {
     columnIds.forEach((columnId, colIndex) => {
@@ -227,9 +185,6 @@ export const createNavigationMap = (
   return navigationMap;
 };
 
-/**
- * Get next cell position for navigation using pre-calculated map
- */
 export const getNextCellPositionFromMap = (
   cellKey: string,
   direction: NavigationDirection,

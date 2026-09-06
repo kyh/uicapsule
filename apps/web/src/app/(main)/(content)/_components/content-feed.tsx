@@ -208,7 +208,7 @@ const FeedItem = memo(function FeedItem({
       >
         <MediaReveal
           className="h-full w-full"
-          iframe={mountIframe ? { src, title: component.name } : undefined}
+          iframe={mountIframe ? { src, title: component.name, type: component.type } : undefined}
         />
       </div>
     </section>

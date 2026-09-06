@@ -43,7 +43,7 @@ export const HeroSection = () => {
               Start Building &rarr;
             </div>
           </a>
-          <span className="text-muted-foreground text-sm">See samples</span>
+          <span className="text-(--muted-foreground) text-sm">See samples</span>
         </div>
       </section>
       <div className="full-bleed relative">

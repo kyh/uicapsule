@@ -49,6 +49,31 @@ const heartMask: CellMask = (x, y, g) => {
   return Math.pow(nx * nx + ny * ny - 1, 3) - nx * nx * Math.pow(ny, 3) <= 0;
 };
 
+const variants = [
+  "default",
+  "wave",
+  "cascade",
+  "spiral",
+  "vortex",
+  "chase",
+  "frame",
+  "rain",
+  "scan",
+  "ripple",
+  "diamond",
+  "star",
+  "saltire",
+  "crosshair",
+  "corners",
+  "checker",
+  "snake",
+  "radar",
+  "pulse",
+  "heart",
+] as const;
+
+type SpinnerVariant = (typeof variants)[number];
+
 // Per-variant configuration. Delay functions only run for dots the mask keeps
 // visible, so they never need to guard against out-of-pattern positions.
 const variantConfigs = {
@@ -185,15 +210,10 @@ const variantConfigs = {
   pulse: { keyframe: "pixel-scale", duration: 1, delay: () => 0 },
   // Whole heart beats together
   heart: { keyframe: "pixel-beat", duration: 1.2, mask: heartMask, delay: () => 0 },
-} satisfies Record<string, VariantConfig>;
-
-// SAFETY: `variantConfigs` is a closed object literal, so its runtime keys are
-// exactly `keyof typeof variantConfigs`; Object.keys only widens to string[].
-const variants = Object.keys(variantConfigs) as SpinnerVariant[];
+} satisfies Record<SpinnerVariant, VariantConfig>;
 
 const dots = ["square", "circle"] as const;
 
-type SpinnerVariant = keyof typeof variantConfigs;
 type SpinnerDot = (typeof dots)[number];
 
 type SpinnerProps = ComponentProps<"div"> & {

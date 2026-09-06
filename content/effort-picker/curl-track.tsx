@@ -141,13 +141,10 @@ export const CurlCard = ({ knobX, theme }: CurlCardProps) => {
     return () => window.clearTimeout(timer);
   }, [celebrating]);
 
-  // The count-in waits for the camera to actually find a pair of arms. Counting
-  // "3, 2, 1" at an empty room and then scoring the empty room is a bug wearing
-  // a bit's clothing.
-  useEffect(() => {
-    if (take.status !== "arming" || status !== "tracking" || !posed) return;
+  // Start the count-in only after the camera detects an arm.
+  if (take.status === "arming" && status === "tracking" && posed) {
     setTake({ status: "countdown", count: 3 });
-  }, [take.status, status, posed]);
+  }
 
   useEffect(() => {
     if (take.status !== "countdown") return;

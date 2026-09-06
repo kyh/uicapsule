@@ -1,0 +1,43 @@
+.spreadsheet {
+  --background: #fff;
+  --foreground: #18181b;
+  --primary: #f66b2c;
+  --primary-foreground: #fff;
+  --secondary: #f4f4f5;
+  --secondary-foreground: #27272a;
+  --muted: #f4f4f5;
+  --muted-foreground: #71717a;
+  --accent: #f4f4f5;
+  --accent-foreground: #27272a;
+  --popover: #fff;
+  --popover-foreground: #18181b;
+  --border: #e4e4e7;
+  --input: #e4e4e7;
+  --ring: #a1a1aa;
+  --destructive: #dc2626;
+  color: var(--foreground);
+}
+
+.dark .spreadsheet {
+  --background: #18181b;
+  --foreground: #fafafa;
+  --primary-foreground: #27272a;
+  --secondary: #27272a;
+  --secondary-foreground: #fafafa;
+  --muted: #27272a;
+  --muted-foreground: #a1a1aa;
+  --accent: #27272a;
+  --accent-foreground: #fafafa;
+  --popover: #27272a;
+  --popover-foreground: #fafafa;
+  --border: #ffffff1a;
+  --input: #ffffff26;
+  --ring: #71717a;
+  --destructive: #f87171;
+}
+
+@layer base {
+  :where(.spreadsheet, .spreadsheet *) {
+    border-color: var(--border);
+  }
+}

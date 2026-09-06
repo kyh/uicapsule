@@ -8,7 +8,7 @@ type Mode = "idle" | "input" | "listening" | "thinking" | "responding";
 
 type Exchange = {
   prompt: string;
-  words: string[];
+  words: { id: string; text: string }[];
 };
 
 const VOICE_PROMPTS = [
@@ -105,7 +105,6 @@ export const DynamicAiComposer = () => {
 
   useEffect(() => {
     if (mode !== "listening") return;
-    setElapsed(0);
     const interval = setInterval(() => {
       setElapsed((previous) => previous + 1);
     }, 1000);
@@ -116,7 +115,7 @@ export const DynamicAiComposer = () => {
     (prompt: string) => {
       const response = RESPONSES[pickIndex(RESPONSES.length)];
       if (!response) return;
-      const words = response.split(" ");
+      const words = response.split(" ").map((text) => ({ id: crypto.randomUUID(), text }));
       setExchange({ prompt, words });
       setStreamedCount(0);
       setMode("thinking");
@@ -180,7 +179,10 @@ export const DynamicAiComposer = () => {
             <button
               type="button"
               aria-label="Start voice input"
-              onClick={() => setMode("listening")}
+              onClick={() => {
+                setElapsed(0);
+                setMode("listening");
+              }}
               className="grid size-8 place-items-center rounded-full text-white/60 transition-colors hover:bg-white/10 hover:text-white"
             >
               <Mic className="size-4" />
@@ -219,7 +221,10 @@ export const DynamicAiComposer = () => {
               <button
                 type="button"
                 aria-label="Start voice input"
-                onClick={() => setMode("listening")}
+                onClick={() => {
+                  setElapsed(0);
+                  setMode("listening");
+                }}
                 className="grid size-8 place-items-center rounded-full text-white/50 transition-colors hover:bg-white/10 hover:text-white"
               >
                 <Mic className="size-4" />
@@ -281,14 +286,14 @@ export const DynamicAiComposer = () => {
               <span className="truncate">{exchange?.prompt}</span>
             </p>
             <p className="min-h-12 text-sm leading-6 text-white/90">
-              {exchange?.words.slice(0, streamedCount).map((word, index) => (
+              {exchange?.words.slice(0, streamedCount).map((word) => (
                 <motion.span
-                  key={index}
+                  key={word.id}
                   initial={{ opacity: 0, filter: "blur(4px)" }}
                   animate={{ opacity: 1, filter: "blur(0px)" }}
                   transition={{ duration: 0.3 }}
                 >
-                  {word}{" "}
+                  {word.text}{" "}
                 </motion.span>
               ))}
             </p>

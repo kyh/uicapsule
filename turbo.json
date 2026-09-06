@@ -12,7 +12,8 @@
       "inputs": [
         "content/**",
         "scripts/check-content.ts",
-        "apps/web/src/lib/content/content-schema.ts"
+        "apps/web/src/lib/content/content-schema.ts",
+        "scripts/content-validation.ts"
       ]
     },
     "dev": {
@@ -47,9 +48,12 @@
     "TURSO_DATABASE_URL",
     "TURSO_AUTH_TOKEN",
     "BETTER_AUTH_SECRET",
+    "BETTER_AUTH_URL",
     "NEXT_PUBLIC_SUPABASE_URL",
     "PORT",
-    "VERCEL_PROJECT_PRODUCTION_URL"
+    "VERCEL_PROJECT_PRODUCTION_URL",
+    "RESEND_API_KEY",
+    "AUTH_EMAIL_FROM"
   ],
   "globalPassThroughEnv": [
     "NODE_ENV",

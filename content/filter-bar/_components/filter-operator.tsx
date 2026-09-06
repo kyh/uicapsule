@@ -1,56 +1,91 @@
 import { useState } from "react";
-import { Button } from "@repo/ui/components/button";
 import {
+  Button,
   Command,
   CommandEmpty,
   CommandGroup,
   CommandInput,
   CommandItem,
   CommandList,
-} from "@repo/ui/components/command";
-import { Popover, PopoverContent, PopoverTrigger } from "@repo/ui/components/popover";
-
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "./ui";
 import type {
-  Column,
   ColumnDataType,
   DataTableFilterActions,
   FilterModel,
+  FilterOperatorDetails,
   FilterOperators,
+  FilterOperatorUpdate,
 } from "../filter-package";
-import {
-  booleanFilterOperators,
-  dateFilterOperators,
-  filterTypeOperatorDetails,
-  multiOptionFilterOperators,
-  numberFilterOperators,
-  optionFilterOperators,
-  textFilterOperators,
-} from "../filter-package";
+import { filterTypeOperatorDetails } from "../filter-package";
 
-interface FilterOperatorProps<TData, TType extends ColumnDataType> {
-  column: Column<TData, TType>;
-  filter: FilterModel<TType>;
-  actions: DataTableFilterActions;
+function operatorDetails<K extends ColumnDataType>(
+  type: K,
+  operator: FilterOperators[K],
+): { key: string; target: "single" | "multiple" } {
+  return filterTypeOperatorDetails[type][operator];
 }
 
-// Renders the filter operator display and menu for a given column filter
-// The filter operator display is the label and icon for the filter operator
-// The filter operator menu is the dropdown menu for the filter operator
-export function FilterOperator<TData, TType extends ColumnDataType>({
-  column,
+function relatedOperators<K extends ColumnDataType>(type: K, operator: FilterOperators[K]) {
+  const current = operatorDetails(type, operator);
+  const details: FilterOperatorDetails<FilterOperators[K], K>[] = Object.values(
+    filterTypeOperatorDetails[type],
+  );
+  return details.filter((detail) => detail.target === current.target);
+}
+
+function operatorChoices(filter: FilterModel): { label: string; update: FilterOperatorUpdate }[] {
+  const columnId = filter.columnId;
+  switch (filter.type) {
+    case "text":
+      return relatedOperators("text", filter.operator).map((detail) => ({
+        label: detail.key,
+        update: { type: "text", columnId, operator: detail.value },
+      }));
+    case "number":
+      return relatedOperators("number", filter.operator).map((detail) => ({
+        label: detail.key,
+        update: { type: "number", columnId, operator: detail.value },
+      }));
+    case "date":
+      return relatedOperators("date", filter.operator).map((detail) => ({
+        label: detail.key,
+        update: { type: "date", columnId, operator: detail.value },
+      }));
+    case "boolean":
+      return relatedOperators("boolean", filter.operator).map((detail) => ({
+        label: detail.key,
+        update: { type: "boolean", columnId, operator: detail.value },
+      }));
+    case "option":
+      return relatedOperators("option", filter.operator).map((detail) => ({
+        label: detail.key,
+        update: { type: "option", columnId, operator: detail.value },
+      }));
+    case "multiOption":
+      return relatedOperators("multiOption", filter.operator).map((detail) => ({
+        label: detail.key,
+        update: { type: "multiOption", columnId, operator: detail.value },
+      }));
+  }
+}
+
+export function FilterOperator({
   filter,
   actions,
-}: FilterOperatorProps<TData, TType>) {
-  const [open, setOpen] = useState<boolean>(false);
-
-  const close = () => setOpen(false);
-
+}: {
+  filter: FilterModel;
+  actions: DataTableFilterActions;
+}) {
+  const [open, setOpen] = useState(false);
+  const current = operatorDetails(filter.type, filter.operator);
   return (
     <Popover
       open={open}
       onOpenChange={(next) => {
-        if (column.type === "boolean") return;
-        setOpen(next);
+        if (filter.type !== "boolean") setOpen(next);
       }}
     >
       <PopoverTrigger
@@ -59,333 +94,40 @@ export function FilterOperator<TData, TType extends ColumnDataType>({
             variant="ghost"
             className="m-0 h-full w-fit rounded-none p-0 px-2 text-xs whitespace-nowrap"
             onClick={() => {
-              if (column.type !== "boolean") return;
-              // SAFETY: the guard above returned unless column.type is
-              // "boolean", and a filter always shares its column's TType.
-              const opDetails =
-                filterTypeOperatorDetails.boolean[filter.operator as FilterOperators["boolean"]];
-
-              actions.setFilterOperator(
-                column.id,
-                opDetails.isNegated ? opDetails.negationOf : opDetails.negation,
-              );
+              if (filter.type !== "boolean") return;
+              actions.setFilterOperator({
+                type: "boolean",
+                columnId: filter.columnId,
+                operator: filter.operator === "is" ? "is not" : "is",
+              });
             }}
           />
         }
       >
-        <FilterOperatorDisplay filter={filter} columnType={column.type} />
+        <span className="text-(--muted-foreground)">{current.key}</span>
       </PopoverTrigger>
       <PopoverContent align="start" className="w-fit origin-(--transform-origin) p-0">
         <Command loop>
           <CommandInput placeholder="search" />
           <CommandEmpty>No results</CommandEmpty>
           <CommandList className="max-h-fit">
-            <FilterOperatorController
-              filter={filter}
-              column={column}
-              actions={actions}
-              closeController={close}
-            />
+            <CommandGroup heading={filter.type === "date" ? undefined : "operators"}>
+              {operatorChoices(filter).map(({ label, update }) => (
+                <CommandItem
+                  key={update.operator}
+                  value={update.operator}
+                  onSelect={() => {
+                    actions.setFilterOperator(update);
+                    setOpen(false);
+                  }}
+                >
+                  {label}
+                </CommandItem>
+              ))}
+            </CommandGroup>
           </CommandList>
         </Command>
       </PopoverContent>
     </Popover>
-  );
-}
-
-interface FilterOperatorDisplayProps<TType extends ColumnDataType> {
-  filter: FilterModel<TType>;
-  columnType: TType;
-}
-
-export function FilterOperatorDisplay<TType extends ColumnDataType>({
-  filter,
-  columnType,
-}: FilterOperatorDisplayProps<TType>) {
-  const operator = filterTypeOperatorDetails[columnType][filter.operator];
-  const label = operator.key;
-
-  return <span className="text-muted-foreground">{label}</span>;
-}
-
-interface FilterOperatorControllerProps<TData, TType extends ColumnDataType> {
-  filter: FilterModel<TType>;
-  column: Column<TData, TType>;
-  actions: DataTableFilterActions;
-  closeController: () => void;
-}
-
-/*
- *
- * TODO: Reduce into a single component. Each data type does not need it's own controller.
- *
- */
-export function FilterOperatorController<TData, TType extends ColumnDataType>({
-  filter,
-  column,
-  actions,
-  closeController,
-}: FilterOperatorControllerProps<TData, TType>) {
-  switch (column.type) {
-    case "option":
-      // SAFETY: column.type fixes TType to "option", and filter always shares
-      // its column's TType.
-      return (
-        <FilterOperatorOptionController
-          filter={filter as FilterModel<"option">}
-          column={column as Column<TData, "option">}
-          actions={actions}
-          closeController={closeController}
-        />
-      );
-    case "multiOption":
-      // SAFETY: column.type fixes TType to "multiOption", and filter always shares
-      // its column's TType.
-      return (
-        <FilterOperatorMultiOptionController
-          filter={filter as FilterModel<"multiOption">}
-          column={column as Column<TData, "multiOption">}
-          actions={actions}
-          closeController={closeController}
-        />
-      );
-    case "date":
-      // SAFETY: column.type fixes TType to "date", and filter always shares
-      // its column's TType.
-      return (
-        <FilterOperatorDateController
-          filter={filter as FilterModel<"date">}
-          column={column as Column<TData, "date">}
-          actions={actions}
-          closeController={closeController}
-        />
-      );
-    case "text":
-      // SAFETY: column.type fixes TType to "text", and filter always shares
-      // its column's TType.
-      return (
-        <FilterOperatorTextController
-          filter={filter as FilterModel<"text">}
-          column={column as Column<TData, "text">}
-          actions={actions}
-          closeController={closeController}
-        />
-      );
-    case "number":
-      // SAFETY: column.type fixes TType to "number", and filter always shares
-      // its column's TType.
-      return (
-        <FilterOperatorNumberController
-          filter={filter as FilterModel<"number">}
-          column={column as Column<TData, "number">}
-          actions={actions}
-          closeController={closeController}
-        />
-      );
-    case "boolean":
-      // SAFETY: column.type fixes TType to "boolean", and filter always shares
-      // its column's TType.
-      return (
-        <FilterOperatorBooleanController
-          filter={filter as FilterModel<"boolean">}
-          column={column as Column<TData, "boolean">}
-          actions={actions}
-          closeController={closeController}
-        />
-      );
-    default:
-      return null;
-  }
-}
-
-function FilterOperatorOptionController<TData>({
-  filter,
-  column,
-  actions,
-  closeController,
-}: FilterOperatorControllerProps<TData, "option">) {
-  const filterDetails = optionFilterOperators[filter.operator];
-
-  const relatedFilters = Object.values(optionFilterOperators).filter(
-    (o) => o.target === filterDetails.target,
-  );
-
-  const changeOperator = (value: string) => {
-    const operator = relatedFilters.find((o) => o.value === value)?.value;
-    if (operator === undefined) return;
-    actions?.setFilterOperator(column.id, operator);
-    closeController();
-  };
-
-  return (
-    <CommandGroup heading="operators">
-      {relatedFilters.map((r) => {
-        return (
-          <CommandItem onSelect={changeOperator} value={r.value} key={r.value}>
-            {r.key}
-          </CommandItem>
-        );
-      })}
-    </CommandGroup>
-  );
-}
-
-function FilterOperatorMultiOptionController<TData>({
-  filter,
-  column,
-  actions,
-  closeController,
-}: FilterOperatorControllerProps<TData, "multiOption">) {
-  const filterDetails = multiOptionFilterOperators[filter.operator];
-
-  const relatedFilters = Object.values(multiOptionFilterOperators).filter(
-    (o) => o.target === filterDetails.target,
-  );
-
-  const changeOperator = (value: string) => {
-    const operator = relatedFilters.find((o) => o.value === value)?.value;
-    if (operator === undefined) return;
-    actions?.setFilterOperator(column.id, operator);
-    closeController();
-  };
-
-  return (
-    <CommandGroup heading="operators">
-      {relatedFilters.map((r) => {
-        return (
-          <CommandItem onSelect={changeOperator} value={r.value} key={r.value}>
-            {r.key}
-          </CommandItem>
-        );
-      })}
-    </CommandGroup>
-  );
-}
-
-function FilterOperatorDateController<TData>({
-  filter,
-  column,
-  actions,
-  closeController,
-}: FilterOperatorControllerProps<TData, "date">) {
-  const filterDetails = dateFilterOperators[filter.operator];
-
-  const relatedFilters = Object.values(dateFilterOperators).filter(
-    (o) => o.target === filterDetails.target,
-  );
-
-  const changeOperator = (value: string) => {
-    const operator = relatedFilters.find((o) => o.value === value)?.value;
-    if (operator === undefined) return;
-    actions?.setFilterOperator(column.id, operator);
-    closeController();
-  };
-
-  return (
-    <CommandGroup>
-      {relatedFilters.map((r) => {
-        return (
-          <CommandItem onSelect={changeOperator} value={r.value} key={r.value}>
-            {r.key}
-          </CommandItem>
-        );
-      })}
-    </CommandGroup>
-  );
-}
-
-export function FilterOperatorTextController<TData>({
-  filter,
-  column,
-  actions,
-  closeController,
-}: FilterOperatorControllerProps<TData, "text">) {
-  const filterDetails = textFilterOperators[filter.operator];
-
-  const relatedFilters = Object.values(textFilterOperators).filter(
-    (o) => o.target === filterDetails.target,
-  );
-
-  const changeOperator = (value: string) => {
-    const operator = relatedFilters.find((o) => o.value === value)?.value;
-    if (operator === undefined) return;
-    actions?.setFilterOperator(column.id, operator);
-    closeController();
-  };
-
-  return (
-    <CommandGroup heading="operators">
-      {relatedFilters.map((r) => {
-        return (
-          <CommandItem onSelect={changeOperator} value={r.value} key={r.value}>
-            {r.key}
-          </CommandItem>
-        );
-      })}
-    </CommandGroup>
-  );
-}
-
-function FilterOperatorNumberController<TData>({
-  filter,
-  column,
-  actions,
-  closeController,
-}: FilterOperatorControllerProps<TData, "number">) {
-  const filterDetails = numberFilterOperators[filter.operator];
-
-  const relatedFilters = Object.values(numberFilterOperators).filter(
-    (o) => o.target === filterDetails.target,
-  );
-
-  const changeOperator = (value: string) => {
-    const operator = relatedFilters.find((o) => o.value === value)?.value;
-    if (operator === undefined) return;
-    actions?.setFilterOperator(column.id, operator);
-    closeController();
-  };
-
-  return (
-    <div>
-      <CommandGroup heading="operators">
-        {relatedFilters.map((r) => (
-          <CommandItem onSelect={() => changeOperator(r.value)} value={r.value} key={r.value}>
-            {r.key}
-          </CommandItem>
-        ))}
-      </CommandGroup>
-    </div>
-  );
-}
-
-function FilterOperatorBooleanController<TData>({
-  filter,
-  column,
-  actions,
-  closeController,
-}: FilterOperatorControllerProps<TData, "boolean">) {
-  const filterDetails = booleanFilterOperators[filter.operator];
-
-  const relatedFilters = Object.values(booleanFilterOperators).filter(
-    (o) => o.target === filterDetails.target,
-  );
-
-  const changeOperator = (value: string) => {
-    const operator = relatedFilters.find((o) => o.value === value)?.value;
-    if (operator === undefined) return;
-    actions?.setFilterOperator(column.id, operator);
-    closeController();
-  };
-
-  return (
-    <div>
-      <CommandGroup heading="operators">
-        {relatedFilters.map((r) => (
-          <CommandItem onSelect={() => changeOperator(r.value)} value={r.value} key={r.value}>
-            {r.key}
-          </CommandItem>
-        ))}
-      </CommandGroup>
-    </div>
   );
 }

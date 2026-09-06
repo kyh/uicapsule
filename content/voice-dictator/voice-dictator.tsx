@@ -153,6 +153,7 @@ export const VoiceDictator: FC = () => {
     gl.enableVertexAttribArray(positionLocation);
     gl.vertexAttribPointer(positionLocation, 2, gl.FLOAT, false, 0, 0);
 
+    // eslint-disable-next-line react/hooks -- WebGL method, not a React hook.
     gl.useProgram(program);
     gl.disable(gl.DEPTH_TEST);
     gl.disable(gl.CULL_FACE);
@@ -186,6 +187,7 @@ export const VoiceDictator: FC = () => {
     const render = (time: number) => {
       animationFrameRef.current = requestAnimationFrame(render);
 
+      // eslint-disable-next-line react/hooks -- WebGL method, not a React hook.
       gl.useProgram(program);
       gl.clearColor(0, 0, 0, 1);
       gl.clear(gl.COLOR_BUFFER_BIT);
@@ -234,7 +236,6 @@ export const VoiceDictator: FC = () => {
     try {
       return initialiseWebGL();
     } catch (error) {
-      // eslint-disable-next-line no-console
       console.error(error);
     }
   }, [initialiseWebGL]);
@@ -282,7 +283,6 @@ export const VoiceDictator: FC = () => {
 
     scriptRef.current = pickTranscript().split(" ");
     wordIndexRef.current = 0;
-    setTranscript("");
 
     const deliver = () => {
       if (!listeningRef.current) return;
@@ -320,6 +320,7 @@ export const VoiceDictator: FC = () => {
     }
 
     listeningRef.current = true;
+    setTranscript("");
     setIsListening(true);
   }, [stopDictation]);
 
@@ -330,6 +331,8 @@ export const VoiceDictator: FC = () => {
       <motion.button
         ref={buttonRef}
         type="button"
+        aria-label={isListening ? "Stop dictation" : "Start dictation"}
+        aria-pressed={isListening}
         onClick={handleToggle}
         className="absolute top-1/2 left-1/2 h-8 w-8 -translate-x-1/2 -translate-y-1/2 rounded-full bg-white/80"
         animate={{

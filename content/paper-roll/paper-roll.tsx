@@ -41,7 +41,7 @@ export const PaperRoll = () => {
     renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
     renderer.setSize(container.clientWidth, container.clientHeight);
     renderer.shadowMap.enabled = true;
-    renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+    renderer.shadowMap.type = THREE.PCFShadowMap;
 
     const scene = new THREE.Scene();
     scene.background = new THREE.Color(0xeaeaec);
@@ -96,7 +96,8 @@ export const PaperRoll = () => {
       const cv = document.createElement("canvas");
       cv.width = CELL * ATLAS_N;
       cv.height = CELL;
-      const g = cv.getContext("2d")!;
+      const g = cv.getContext("2d");
+      if (!g) throw new Error("PaperRoll requires a 2D canvas context");
 
       const INK = "#161616";
       const PAPER = "#fbfaf7";
@@ -228,11 +229,11 @@ export const PaperRoll = () => {
           ];
           const gw = (f.w - 44 - 24) / 3;
           const gh = (f.h - 170) / 2;
-          for (let i = 0; i < 6; i++) {
+          tints.forEach((tint, i) => {
             const gx = f.x + 22 + (i % 3) * (gw + 12);
             const gy = f.y + 56 + Math.floor(i / 3) * (gh + 12);
-            photo(gx, gy, gw, gh, tints[i]!);
-          }
+            photo(gx, gy, gw, gh, tint);
+          });
           bars(f.x + 22, f.y + f.h - 84, f.w * 0.6, 3, 15);
         },
         // 05 — amber arcs
@@ -311,11 +312,13 @@ export const PaperRoll = () => {
         },
       ];
 
-      for (let c = 0; c < ATLAS_N; c++) {
+      if (draws.length !== ATLAS_N)
+        throw new Error("Paper atlas page count does not match its layout");
+      draws.forEach((draw, c) => {
         const frame = cardFrame(c * CELL);
-        draws[c]!(frame);
+        draw(frame);
         indexTag(frame, c + 1);
-      }
+      });
 
       const tex = new THREE.CanvasTexture(cv);
       tex.wrapS = THREE.RepeatWrapping;
@@ -331,7 +334,8 @@ export const PaperRoll = () => {
       const cv = document.createElement("canvas");
       cv.width = S;
       cv.height = S;
-      const g = cv.getContext("2d")!;
+      const g = cv.getContext("2d");
+      if (!g) throw new Error("PaperRoll requires a 2D canvas context");
       const cx = S / 2;
       const innerPx = (INNER_R / ROLL_R) * (S / 2);
 
@@ -389,7 +393,8 @@ export const PaperRoll = () => {
       const cv = document.createElement("canvas");
       cv.width = S;
       cv.height = S;
-      const g = cv.getContext("2d")!;
+      const g = cv.getContext("2d");
+      if (!g) throw new Error("PaperRoll requires a 2D canvas context");
       const gr = g.createRadialGradient(S / 2, S / 2, 6, S / 2, S / 2, S / 2);
       gr.addColorStop(0, "rgba(20,20,22,0.34)");
       gr.addColorStop(0.55, "rgba(20,20,22,0.14)");
@@ -564,9 +569,15 @@ export const PaperRoll = () => {
     const getPt = (i: number, out: Pt) => {
       // i = 0 oldest … count-1 newest
       const k = (head - (count - 1) + i + MAX_PTS * 2) % MAX_PTS;
-      out.x = hx[k]!;
-      out.z = hz[k]!;
-      out.s = hs[k]!;
+      const x = hx[k];
+      const z = hz[k];
+      const s = hs[k];
+      if (x === undefined || z === undefined || s === undefined) {
+        throw new RangeError("Paper path sample is outside its ring buffer");
+      }
+      out.x = x;
+      out.z = z;
+      out.s = s;
     };
 
     pushPoint(0, 0, 0);
@@ -578,27 +589,30 @@ export const PaperRoll = () => {
       return a + d * t;
     };
 
-    const _acc = new THREE.Vector2();
-    const _dp = new THREE.Vector2();
+    const acceleration = new THREE.Vector2();
+    const positionDelta = new THREE.Vector2();
 
     const stepMotion = (dt: number) => {
-      _acc.copy(target).sub(pos).multiplyScalar(SPRING);
-      _acc.addScaledVector(vel, -DAMP);
-      vel.addScaledVector(_acc, dt);
+      acceleration.copy(target).sub(pos).multiplyScalar(SPRING);
+      acceleration.addScaledVector(vel, -DAMP);
+      vel.addScaledVector(acceleration, dt);
       const sp = vel.length();
       if (sp > MAX_SPEED) vel.multiplyScalar(MAX_SPEED / sp);
-      _dp.copy(vel).multiplyScalar(dt);
-      const ds = _dp.length();
+      positionDelta.copy(vel).multiplyScalar(dt);
+      const ds = positionDelta.length();
       if (ds > 1e-6) {
-        pos.add(_dp);
+        pos.add(positionDelta);
         sTotal += ds;
         if (sp > 0.06) {
           const ty = Math.atan2(vel.x, vel.y); // vel.y is world z
           yaw = angleLerp(yaw, ty, 1 - Math.exp(-7 * dt));
         }
         // sample the path by distance, never by time
-        const lx = hx[head]!;
-        const lz = hz[head]!;
+        const lx = hx[head];
+        const lz = hz[head];
+        if (lx === undefined || lz === undefined) {
+          throw new RangeError("Paper path head is outside its ring buffer");
+        }
         const ddx = pos.x - lx;
         const ddz = pos.y - lz;
         if (ddx * ddx + ddz * ddz >= STEP * STEP) {
@@ -610,9 +624,9 @@ export const PaperRoll = () => {
     // ============================================================
     // Ribbon rebuild — zero allocations
     // ============================================================
-    const _a: Pt = { x: 0, z: 0, s: 0 };
-    const _b: Pt = { x: 0, z: 0, s: 0 };
-    const _c: Pt = { x: 0, z: 0, s: 0 };
+    const springStart: Pt = { x: 0, z: 0, s: 0 };
+    const springMiddle: Pt = { x: 0, z: 0, s: 0 };
+    const springEnd: Pt = { x: 0, z: 0, s: 0 };
     const CURL_MAX = 0.85; // radians of peel wrapped onto the barrel
 
     const writeVert = (
@@ -647,8 +661,8 @@ export const PaperRoll = () => {
         return;
       }
 
-      getPt(0, _a);
-      const sTail = _a.s;
+      getPt(0, springStart);
+      const sTail = springStart.s;
       const half = RIBBON_W / 2;
       let vi = 0;
       const uSpan = CARD_LEN * ATLAS_N;
@@ -665,7 +679,7 @@ export const PaperRoll = () => {
       let ptz = 0;
       let hasPrev = false;
       for (let i = 0; i < n; i++) {
-        getPt(i, _b);
+        getPt(i, springMiddle);
         let tx: number;
         let tz: number;
         if (i === n - 1) {
@@ -675,10 +689,10 @@ export const PaperRoll = () => {
         } else {
           const i0 = i > 0 ? i - 1 : 0;
           const i1 = i + 1;
-          getPt(i0, _a);
-          getPt(i1, _c);
-          tx = _c.x - _a.x;
-          tz = _c.z - _a.z;
+          getPt(i0, springStart);
+          getPt(i1, springEnd);
+          tx = springEnd.x - springStart.x;
+          tz = springEnd.z - springStart.z;
         }
         const tl = Math.sqrt(tx * tx + tz * tz);
         if (tl < 1e-4) {
@@ -702,17 +716,39 @@ export const PaperRoll = () => {
 
         // width taper at the tail so recycling is invisible
         let w = half;
-        const fromTail = _b.s - sTail;
+        const fromTail = springMiddle.s - sTail;
         if (fromTail < 3.0) w *= fromTail / 3.0;
 
         // newer paper lies on top; the head gets an extra ramp so fresh paper
         // laid over a just-reversed spot never z-fights with itself
-        let y = 0.012 + (_b.s - sTail) * 0.0008;
-        const headBlend = 1 - (sTotal - _b.s) / 1.5;
+        let y = 0.012 + (springMiddle.s - sTail) * 0.0008;
+        const headBlend = 1 - (sTotal - springMiddle.s) / 1.5;
         if (headBlend > 0) y += 0.0035 * headBlend;
-        const u = (_b.s - uBase) / uSpan;
-        writeVert(vi++, _b.x + sx * w, y, _b.z + sz * w, 0, 1, 0, u, 0, _b.s - uBase);
-        writeVert(vi++, _b.x - sx * w, y, _b.z - sz * w, 0, 1, 0, u, 1, _b.s - uBase);
+        const u = (springMiddle.s - uBase) / uSpan;
+        writeVert(
+          vi++,
+          springMiddle.x + sx * w,
+          y,
+          springMiddle.z + sz * w,
+          0,
+          1,
+          0,
+          u,
+          0,
+          springMiddle.s - uBase,
+        );
+        writeVert(
+          vi++,
+          springMiddle.x - sx * w,
+          y,
+          springMiddle.z - sz * w,
+          0,
+          1,
+          0,
+          u,
+          1,
+          springMiddle.s - uBase,
+        );
       }
 
       // ---- bridge to the live contact point ----
@@ -812,7 +848,7 @@ export const PaperRoll = () => {
     const camOffset = new THREE.Vector3(7.6, 8.8, 10.8);
     const camPos = new THREE.Vector3();
     const lookAt = new THREE.Vector3(0, 0.6, 0);
-    const _desired = new THREE.Vector3();
+    const desiredPosition = new THREE.Vector3();
     const INTRO_DUR = 2.2;
     let introT = 0;
 
@@ -824,11 +860,11 @@ export const PaperRoll = () => {
     };
 
     const updateCamera = (dt: number) => {
-      _desired.set(pos.x, 0, pos.y).addScaledVector(camOffset, introZoom());
+      desiredPosition.set(pos.x, 0, pos.y).addScaledVector(camOffset, introZoom());
       const k = 1 - Math.exp(-2.6 * dt);
-      camPos.lerp(_desired, k);
-      _desired.set(pos.x, 0.55, pos.y);
-      lookAt.lerp(_desired, k);
+      camPos.lerp(desiredPosition, k);
+      desiredPosition.set(pos.x, 0.55, pos.y);
+      lookAt.lerp(desiredPosition, k);
       camera.position.copy(camPos);
       camera.lookAt(lookAt);
     };
@@ -849,15 +885,17 @@ export const PaperRoll = () => {
     // ============================================================
     // Main loop — fixed order, no allocations
     // ============================================================
-    const clock = new THREE.Clock();
+    const timer = new THREE.Timer();
+    timer.connect(document);
     let elapsed = 0;
     let animationFrameId = 0;
 
-    const frame = () => {
+    const frame = (now: number) => {
       animationFrameId = requestAnimationFrame(frame);
+      timer.update(now);
       // sub-step the spring solver so slow renderers stay real-time instead of
       // going slow-motion; each sub-step is small enough to keep Euler stable
-      const dt = Math.min(clock.getDelta(), 1 / 8);
+      const dt = Math.min(timer.getDelta(), 1 / 8);
       elapsed += dt;
       introT += dt;
 
@@ -899,6 +937,7 @@ export const PaperRoll = () => {
 
     return () => {
       cancelAnimationFrame(animationFrameId);
+      timer.dispose();
       resizeObserver.disconnect();
       container.removeEventListener("pointermove", onPointer);
       container.removeEventListener("pointerdown", onPointer);

@@ -1,6 +1,6 @@
 "use client";
 
-import { type HTMLAttributes } from "react";
+import { useState, type HTMLAttributes } from "react";
 import { useRouter } from "next/navigation";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Button } from "@repo/ui/components/button";
@@ -13,7 +13,15 @@ import { z } from "zod";
 
 import { authClient } from "@/lib/auth-client";
 
-const POST_AUTH_REDIRECT = "/";
+const emailSchema = z.object({ email: z.email("Invalid email address") });
+const loginSchema = emailSchema.extend({ password: z.string().min(1, "Password is required") });
+const registerSchema = emailSchema.extend({ password: z.string().min(8).max(128) });
+const passwordSchema = z
+  .object({ password: z.string().min(8).max(128), confirmPassword: z.string() })
+  .refine((data) => data.password === data.confirmPassword, {
+    message: "Passwords don't match",
+    path: ["confirmPassword"],
+  });
 
 type AuthFormProps = {
   type: "login" | "register";
@@ -23,12 +31,7 @@ export const AuthForm = ({ className, type, ...props }: AuthFormProps) => {
   const router = useRouter();
 
   const form = useForm({
-    resolver: zodResolver(
-      z.object({
-        email: z.email("Invalid email address"),
-        password: z.string().min(1, "Password is required"),
-      }),
-    ),
+    resolver: zodResolver(type === "register" ? registerSchema : loginSchema),
     defaultValues: {
       email: "",
       password: "",
@@ -41,36 +44,21 @@ export const AuthForm = ({ className, type, ...props }: AuthFormProps) => {
   } = form;
 
   const handleAuthWithPassword = form.handleSubmit(async (credentials) => {
-    if (type === "register") {
-      const emailPrefix = credentials.email.split("@")[0];
-      await authClient.signUp.email({
-        email: credentials.email,
-        password: credentials.password,
-        name: emailPrefix ?? "User",
-        fetchOptions: {
-          onSuccess: () => {
-            router.replace(POST_AUTH_REDIRECT);
-          },
-          onError: (ctx) => {
-            toast.error(ctx.error.message);
-          },
-        },
-      });
-    }
-
-    if (type === "login") {
-      await authClient.signIn.email({
-        email: credentials.email,
-        password: credentials.password,
-        fetchOptions: {
-          onSuccess: () => {
-            router.replace(POST_AUTH_REDIRECT);
-          },
-          onError: (ctx) => {
-            toast.error(ctx.error.message);
-          },
-        },
-      });
+    try {
+      const result =
+        type === "register"
+          ? await authClient.signUp.email({
+              ...credentials,
+              name: credentials.email.split("@")[0] ?? "User",
+            })
+          : await authClient.signIn.email(credentials);
+      if (result.error) {
+        form.setError("root", { message: result.error.message ?? "Unable to sign in. Try again." });
+        return;
+      }
+      router.replace("/");
+    } catch {
+      form.setError("root", { message: "Unable to connect. Try again." });
     }
   });
 
@@ -106,13 +94,14 @@ export const AuthForm = ({ className, type, ...props }: AuthFormProps) => {
             type="password"
             placeholder="******"
             autoCapitalize="none"
-            autoComplete="current-password"
+            autoComplete={type === "register" ? "new-password" : "current-password"}
             autoCorrect="off"
             aria-invalid={errors.password ? true : undefined}
             {...register("password")}
           />
           <FieldError errors={errors.password ? [errors.password] : undefined} />
         </Field>
+        <FieldError errors={errors.root ? [errors.root] : undefined} />
         <Button type="submit" loading={isSubmitting}>
           {type === "login" ? "Login" : "Register"}
         </Button>
@@ -122,12 +111,9 @@ export const AuthForm = ({ className, type, ...props }: AuthFormProps) => {
 };
 
 export const RequestPasswordResetForm = () => {
+  const [requested, setRequested] = useState(false);
   const form = useForm({
-    resolver: zodResolver(
-      z.object({
-        email: z.email("Invalid email address"),
-      }),
-    ),
+    resolver: zodResolver(emailSchema),
     defaultValues: {
       email: "",
     },
@@ -135,30 +121,36 @@ export const RequestPasswordResetForm = () => {
 
   const {
     register,
-    formState: { errors, isSubmitting, isSubmitSuccessful },
+    formState: { errors, isSubmitting },
   } = form;
 
   const handlePasswordReset = form.handleSubmit(async (data) => {
-    await authClient.requestPasswordReset({
-      email: data.email,
-      fetchOptions: {
-        onSuccess: () => {
-          toast.success("Password reset email sent successfully!");
-        },
-        onError: (ctx) => {
-          toast.error(ctx.error.message);
-        },
-      },
-    });
+    try {
+      const { error } = await authClient.requestPasswordReset({
+        email: data.email,
+        redirectTo: "/auth/password-update",
+      });
+      if (error) {
+        form.setError("root", {
+          message:
+            error.code === "RESET_PASSWORD_DISABLED"
+              ? "Password reset is temporarily unavailable. Try again later."
+              : (error.message ?? "Unable to request a reset. Try again."),
+        });
+        return;
+      }
+      setRequested(true);
+    } catch {
+      form.setError("root", { message: "Unable to connect. Try again." });
+    }
   });
 
-  if (isSubmitSuccessful) {
+  if (requested) {
     return (
       <div className="space-y-4 text-center">
         <div className="rounded-md bg-green-50 p-4 dark:bg-green-900/20">
           <p className="text-sm text-green-800 dark:text-green-200">
-            Password reset email sent! Check your inbox and follow the instructions to reset your
-            password.
+            If an account exists for that email, you'll receive a password reset link.
           </p>
         </div>
       </div>
@@ -184,6 +176,7 @@ export const RequestPasswordResetForm = () => {
         />
         <FieldError errors={errors.email ? [errors.email] : undefined} />
       </Field>
+      <FieldError errors={errors.root ? [errors.root] : undefined} />
       <Button type="submit" loading={isSubmitting}>
         Request Password Reset
       </Button>
@@ -191,21 +184,11 @@ export const RequestPasswordResetForm = () => {
   );
 };
 
-export const UpdatePasswordForm = () => {
+export const UpdatePasswordForm = ({ token }: { token: string }) => {
   const router = useRouter();
 
   const form = useForm({
-    resolver: zodResolver(
-      z
-        .object({
-          password: z.string().min(8, "Password must be at least 8 characters"),
-          confirmPassword: z.string(),
-        })
-        .refine((data) => data.password === data.confirmPassword, {
-          message: "Passwords don't match",
-          path: ["confirmPassword"],
-        }),
-    ),
+    resolver: zodResolver(passwordSchema),
     defaultValues: {
       password: "",
       confirmPassword: "",
@@ -218,18 +201,19 @@ export const UpdatePasswordForm = () => {
   } = form;
 
   const handleUpdatePassword = form.handleSubmit(async (data) => {
-    await authClient.resetPassword({
-      newPassword: data.password,
-      fetchOptions: {
-        onSuccess: () => {
-          toast.success("Password updated successfully!");
-          router.push(POST_AUTH_REDIRECT);
-        },
-        onError: (ctx) => {
-          toast.error(ctx.error.message);
-        },
-      },
-    });
+    try {
+      const { error } = await authClient.resetPassword({ token, newPassword: data.password });
+      if (error) {
+        form.setError("root", {
+          message: error.message ?? "Unable to reset your password. Try again.",
+        });
+        return;
+      }
+      toast.success("Password updated. Sign in with your new password.");
+      router.replace("/auth/login");
+    } catch {
+      form.setError("root", { message: "Unable to connect. Try again." });
+    }
   });
 
   return (
@@ -268,6 +252,7 @@ export const UpdatePasswordForm = () => {
         />
         <FieldError errors={errors.confirmPassword ? [errors.confirmPassword] : undefined} />
       </Field>
+      <FieldError errors={errors.root ? [errors.root] : undefined} />
       <Button type="submit" loading={isSubmitting}>
         Update Password
       </Button>

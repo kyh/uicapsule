@@ -20,12 +20,10 @@ const SLUG_PATTERN = /^[a-z0-9][a-z0-9-]*$/;
 const loadPreview = async (slug: string): Promise<ComponentType | null> => {
   if (!SLUG_PATTERN.test(slug)) return null;
   try {
-    // SAFETY: the slug pattern keeps the specifier inside content/, and
-    // scripts/check-content.ts fails the build unless every local
-    // content/<slug>/preview.tsx default-exports a preview component.
-    const mod = (await import(`../../../../../../../content/${slug}/preview.tsx`)) as {
-      default: ComponentType;
-    };
+    // Independent content checks verify each default export accepts empty preview props.
+    const mod: { default: ComponentType } = await import(
+      `../../../../../../../content/${slug}/preview.tsx`
+    );
     return mod.default;
   } catch {
     return null;

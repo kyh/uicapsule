@@ -11,7 +11,7 @@ import {
   type ComponentType,
   type SVGProps,
 } from "react";
-import { Badge } from "@repo/ui/components/badge";
+import { Badge } from "./ui";
 import { cn } from "cn";
 import {
   BarChart3,
@@ -306,15 +306,21 @@ export const ExampleChat = ({ start }: { start: boolean }) => {
     setIsThinkingComplete(false);
   }, []);
 
+  const [previousStart, setPreviousStart] = useState(start);
+  if (previousStart !== start) {
+    setPreviousStart(start);
+    clearAll();
+    setShowQuestion(start);
+  }
+
   useEffect(() => {
-    if (!start) {
-      promisesRef.current.forEach((cancel) => cancel());
-      promisesRef.current = [];
-      clearAll();
-    } else {
-      setShowQuestion(true);
-    }
-  }, [start, clearAll]);
+    if (!start) return;
+    const pending = promisesRef.current;
+    return () => {
+      pending.forEach((cancel) => cancel());
+      pending.length = 0;
+    };
+  }, [start]);
 
   const showResults = async () => {
     setShowLoading(true);
@@ -331,7 +337,7 @@ export const ExampleChat = ({ start }: { start: boolean }) => {
     const reasoningStepCount = samples[currentSampleIndex]?.output.reasoning.length ?? 0;
     for (let i = 0; i < reasoningStepCount; i++) {
       setCurrentStepIndex(i);
-      const stepDelay = wait(800); // Each step takes 800ms
+      const stepDelay = wait(800);
       promisesRef.current.push(stepDelay.cancel);
       await stepDelay.promise;
     }
@@ -346,7 +352,7 @@ export const ExampleChat = ({ start }: { start: boolean }) => {
     setIsThinkingComplete(true);
 
     setChainOfThoughtOpen(false);
-    const afterCollapse = wait(300); // Wait for collapse animation
+    const afterCollapse = wait(300);
     promisesRef.current.push(afterCollapse.cancel);
     await afterCollapse.promise;
 
@@ -410,7 +416,7 @@ export const ExampleChat = ({ start }: { start: boolean }) => {
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: 20 }}
               >
-                <ChainOfThought open={chainOfThoughtOpen}>
+                <ChainOfThought open={chainOfThoughtOpen} onOpenChange={setChainOfThoughtOpen}>
                   <ChainOfThoughtHeader>{chainOfThoughtHeaderText}</ChainOfThoughtHeader>
                   <ChainOfThoughtContent>{reasoningSteps}</ChainOfThoughtContent>
                 </ChainOfThought>

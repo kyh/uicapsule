@@ -1,208 +1,127 @@
 import type {
-  Column,
-  ColumnDataType,
   FilterModel,
-  FilterOperations,
   FiltersState,
-  FilterValues,
+  FilterValueUpdate,
+  FilterOperatorUpdate,
+  Column,
   OptionBasedColumnDataType,
 } from "./types";
-import { addUniq, removeUniq, uniq } from "../lib/array";
-import {
-  createBigIntFilterValue,
-  createDateFilterValue,
-  createNumberFilterValue,
-} from "../lib/helpers";
 import { DEFAULT_OPERATORS, determineNewOperator } from "./operators";
 
-export const filterOperations: FilterOperations = {
-  addFilterValue<TData, TType extends OptionBasedColumnDataType>(
-    filters: FiltersState,
-    column: Column<TData, TType>,
-    values: FilterModel<TType>["values"],
-  ): FiltersState {
-    if (column.type === "option") {
-      const filter = filters.find((f) => f.columnId === column.id);
-      const isColumnFiltered = filter && filter.values.length > 0;
+function replaceFilter(filters: FiltersState, next: FilterModel): FiltersState {
+  if (next.values.length === 0)
+    return filters.filter((filter) => filter.columnId !== next.columnId);
+  return filters.some((filter) => filter.columnId === next.columnId)
+    ? filters.map((filter) => (filter.columnId === next.columnId ? next : filter))
+    : [...filters, next];
+}
 
-      if (!isColumnFiltered) {
-        return [
-          ...filters,
-          {
-            columnId: column.id,
-            type: column.type,
-            operator:
-              values.length > 1
-                ? DEFAULT_OPERATORS[column.type]!.multiple
-                : DEFAULT_OPERATORS[column.type]!.single,
-            values,
-          },
-        ];
-      }
-
-      const oldValues = filter.values;
-      const newValues = addUniq(filter.values, values);
-      const newOperator = determineNewOperator("option", oldValues, newValues, filter.operator);
-
-      return filters.map((f) =>
-        f.columnId === column.id
-          ? {
-              columnId: column.id,
-              type: column.type,
-              operator: newOperator,
-              values: newValues,
-            }
-          : f,
-      );
+export function setFilterValue(filters: FiltersState, update: FilterValueUpdate): FiltersState {
+  const current = filters.find((filter) => filter.columnId === update.columnId);
+  const columnId = update.columnId;
+  switch (update.type) {
+    case "text": {
+      const values = [...new Set(update.values)].filter((value) => value.trim().length > 0);
+      return replaceFilter(filters, {
+        columnId,
+        type: "text",
+        values,
+        operator: current?.type === "text" ? current.operator : "contains",
+      });
     }
-
-    if (column.type === "multiOption") {
-      const filter = filters.find((f) => f.columnId === column.id);
-      const isColumnFiltered = filter && filter.values.length > 0;
-
-      if (!isColumnFiltered) {
-        return [
-          ...filters,
-          {
-            columnId: column.id,
-            type: column.type,
-            operator:
-              values.length > 1
-                ? DEFAULT_OPERATORS[column.type]!.multiple
-                : DEFAULT_OPERATORS[column.type]!.single,
-            values,
-          },
-        ];
-      }
-
-      const oldValues = filter.values;
-      const newValues = addUniq(filter.values, values);
-      const newOperator = determineNewOperator(
-        "multiOption",
-        oldValues,
-        newValues,
-        filter.operator,
-      );
-
-      if (newValues.length === 0) {
-        return filters.filter((f) => f.columnId !== column.id);
-      }
-
-      return filters.map((f) =>
-        f.columnId === column.id
-          ? {
-              columnId: column.id,
-              type: column.type,
-              operator: newOperator,
-              values: newValues,
-            }
-          : f,
-      );
+    case "boolean": {
+      const values = update.values.slice(0, 1);
+      return replaceFilter(filters, {
+        columnId,
+        type: "boolean",
+        values,
+        operator: current?.type === "boolean" ? current.operator : "is",
+      });
     }
-
-    throw new Error("[data-table-filter] addFilterValue() is only supported for option columns");
-  },
-
-  removeFilterValue<TData, TType extends OptionBasedColumnDataType>(
-    filters: FiltersState,
-    column: Column<TData, TType>,
-    value: FilterModel<TType>["values"],
-  ): FiltersState {
-    if (column.type === "option" || column.type === "multiOption") {
-      const filter = filters.find((f) => f.columnId === column.id);
-      const isColumnFiltered = filter && filter.values.length > 0;
-
-      if (!isColumnFiltered) {
-        return filters;
-      }
-
-      const newValues = removeUniq(filter.values, value);
-      const oldValues = filter.values;
-      const newOperator = determineNewOperator(column.type, oldValues, newValues, filter.operator);
-
-      if (newValues.length === 0) {
-        return filters.filter((f) => f.columnId !== column.id);
-      }
-
-      return filters.map((f) =>
-        f.columnId === column.id
-          ? {
-              columnId: column.id,
-              type: column.type,
-              operator: newOperator,
-              values: newValues,
-            }
-          : f,
-      );
+    case "number": {
+      const values = update.values
+        .filter(Number.isFinite)
+        .slice(0, 2)
+        .toSorted((a, b) => a - b);
+      const operator =
+        current?.type === "number"
+          ? determineNewOperator("number", current.values, values, current.operator)
+          : values.length > 1
+            ? "is between"
+            : "is";
+      return replaceFilter(filters, { columnId, type: "number", values, operator });
     }
-
-    throw new Error("[data-table-filter] removeFilterValue() is only supported for option columns");
-  },
-
-  setFilterValue<TData, TType extends ColumnDataType>(
-    filters: FiltersState,
-    column: Column<TData, TType>,
-    values: FilterModel<TType>["values"],
-  ): FiltersState {
-    const filter = filters.find((f) => f.columnId === column.id);
-    const isColumnFiltered = filter && filter.values.length > 0;
-
-    // SAFETY: the runtime tag `column.type` fixes TType, so `values` is the
-    // matching FilterValues kind; TS cannot relate the tag to the generic.
-    const newValues =
-      column.type === "number"
-        ? createNumberFilterValue(values as number[])
-        : column.type === "bigint"
-          ? createBigIntFilterValue(values as bigint[])
-          : column.type === "date"
-            ? createDateFilterValue(values as [Date, Date] | [Date] | [] | undefined)
-            : uniq(values);
-
-    if (newValues.length === 0) return filters;
-
-    if (!isColumnFiltered) {
-      return [
-        ...filters,
-        {
-          columnId: column.id,
-          type: column.type,
-          operator:
-            values.length > 1
-              ? DEFAULT_OPERATORS[column.type]!.multiple
-              : DEFAULT_OPERATORS[column.type]!.single,
-          values: newValues,
-        },
-      ];
+    case "date": {
+      const values = update.values
+        .filter((value) => Number.isFinite(value.getTime()))
+        .slice(0, 2)
+        .toSorted((a, b) => a.getTime() - b.getTime());
+      const operator =
+        current?.type === "date"
+          ? determineNewOperator("date", current.values, values, current.operator)
+          : values.length > 1
+            ? "is between"
+            : "is";
+      return replaceFilter(filters, { columnId, type: "date", values, operator });
     }
+    case "option": {
+      const values = [...new Set(update.values)];
+      const operator =
+        current?.type === "option"
+          ? determineNewOperator("option", current.values, values, current.operator)
+          : values.length > 1
+            ? DEFAULT_OPERATORS.option.multiple
+            : DEFAULT_OPERATORS.option.single;
+      return replaceFilter(filters, { columnId, type: "option", values, operator });
+    }
+    case "multiOption": {
+      const values = [...new Set(update.values)];
+      const operator =
+        current?.type === "multiOption"
+          ? determineNewOperator("multiOption", current.values, values, current.operator)
+          : values.length > 1
+            ? DEFAULT_OPERATORS.multiOption.multiple
+            : DEFAULT_OPERATORS.multiOption.single;
+      return replaceFilter(filters, { columnId, type: "multiOption", values, operator });
+    }
+  }
+}
 
-    const oldValues = filter.values;
-    const newOperator = determineNewOperator(column.type, oldValues, newValues, filter.operator);
+export function setFilterOperator(
+  filters: FiltersState,
+  update: FilterOperatorUpdate,
+): FiltersState {
+  return filters.map((filter) => {
+    if (filter.columnId !== update.columnId) return filter;
+    switch (update.type) {
+      case "text":
+        return filter.type === "text" ? { ...filter, operator: update.operator } : filter;
+      case "number":
+        return filter.type === "number" ? { ...filter, operator: update.operator } : filter;
+      case "date":
+        return filter.type === "date" ? { ...filter, operator: update.operator } : filter;
+      case "boolean":
+        return filter.type === "boolean" ? { ...filter, operator: update.operator } : filter;
+      case "option":
+        return filter.type === "option" ? { ...filter, operator: update.operator } : filter;
+      case "multiOption":
+        return filter.type === "multiOption" ? { ...filter, operator: update.operator } : filter;
+    }
+  });
+}
 
-    // SAFETY: newValues was built above from the branch matching column.type,
-    // so it is the FilterValues kind for this filter's TType.
-    const newFilter = {
-      columnId: column.id,
-      type: column.type,
-      operator: newOperator,
-      values: newValues as FilterValues<TType>,
-    } satisfies FilterModel<TType>;
-
-    return filters.map((f) => (f.columnId === column.id ? newFilter : f));
-  },
-
-  setFilterOperator<TType extends ColumnDataType>(
-    filters: FiltersState,
-    columnId: string,
-    operator: FilterModel<TType>["operator"],
-  ): FiltersState {
-    return filters.map((f) => (f.columnId === columnId ? { ...f, operator } : f));
-  },
-
-  removeFilter(filters: FiltersState, columnId: string): FiltersState {
-    return filters.filter((f) => f.columnId !== columnId);
-  },
-
-  removeAllFilters(): FiltersState {
-    return [];
-  },
-};
+export function toggleFilterValues(
+  filters: FiltersState,
+  column: Column<OptionBasedColumnDataType>,
+  values: string[],
+  add: boolean,
+): FiltersState {
+  const current = filters.find((filter) => filter.columnId === column.id);
+  const existing =
+    current?.type === "option" || current?.type === "multiOption" ? current.values : [];
+  return setFilterValue(filters, {
+    columnId: column.id,
+    type: column.type,
+    values: add ? [...existing, ...values] : existing.filter((value) => !values.includes(value)),
+  });
+}

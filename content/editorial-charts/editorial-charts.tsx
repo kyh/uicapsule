@@ -106,13 +106,17 @@ export const EditorialCharts = () => {
   // entrance instead of a server-rendered final state.
   const [inked, setInked] = useState(false);
   useEffect(() => {
-    setInked(true);
+    const frame = requestAnimationFrame(() => setInked(true));
     const t = setInterval(() => setScene((s) => (s + 1) % SCENES.length), CYCLE_MS);
-    return () => clearInterval(t);
+    return () => {
+      cancelAnimationFrame(frame);
+      clearInterval(t);
+    };
   }, []);
 
   const reveal = useReveal(inked, 1500);
-  const s = SCENES[scene] ?? SCENES[0]!;
+  const s = SCENES[scene];
+  if (!s) throw new RangeError("Editorial chart scene index is out of bounds");
   const sessions = useCountUp(s.sessions);
 
   return (

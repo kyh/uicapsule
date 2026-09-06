@@ -1,22 +1,22 @@
 "use client";
 
 import { useState, type FormEvent } from "react";
-import { Button } from "@repo/ui/components/button";
-import { toast } from "@repo/ui/components/toast";
+import { Button } from "./ui";
 
 export const WaitlistForm = () => {
   const [email, setEmail] = useState("");
+  const [submitted, setSubmitted] = useState(false);
 
   const handleJoinWaitlist = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     if (!email) return;
-    toast.success("Waitlist joined!");
+    setSubmitted(true);
     setEmail("");
   };
 
   return (
     <form
-      className="border-border flex max-w-sm items-center gap-2 rounded-full border shadow-lg"
+      className="border-(--border) relative flex max-w-sm items-center gap-2 rounded-full border shadow-lg"
       onSubmit={handleJoinWaitlist}
     >
       <label htmlFor="waitlist-email" className="sr-only">
@@ -32,11 +32,17 @@ export const WaitlistForm = () => {
         autoComplete="email"
         autoCorrect="off"
         value={email}
-        onChange={(event) => setEmail(event.target.value)}
+        onChange={(event) => {
+          setEmail(event.target.value);
+          setSubmitted(false);
+        }}
       />
-      <Button type="submit" className="text-xs hover:bg-transparent" variant="ghost">
+      <Button type="submit" className="text-xs hover:bg-transparent">
         Join Waitlist
       </Button>
+      <span role="status" className="absolute top-full left-4 mt-2 text-xs text-emerald-400">
+        {submitted ? "Waitlist joined!" : ""}
+      </span>
     </form>
   );
 };

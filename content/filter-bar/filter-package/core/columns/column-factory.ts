@@ -1,179 +1,105 @@
-import type {
-  Column,
-  ColumnConfig,
-  ColumnDataType,
-  ColumnOption,
-  ElementType,
-  FilterStrategy,
-} from "../types";
-import { memo } from "../../lib/memo";
-import { ColumnDataService } from "./column-data-service";
+import type { Column, ColumnConfig, ColumnOption, FilterStrategy } from "../types";
 
-export function createColumns<TData>(
-  data: TData[],
-  columnConfigs: ReadonlyArray<ColumnConfig<TData, any, any, any>>,
+function prepareOptions(
+  values: (string | ColumnOption)[],
+  configured: ColumnOption[] | undefined,
   strategy: FilterStrategy,
-): Column<TData>[] {
-  return columnConfigs.map((columnConfig) => createColumn(columnConfig, data, strategy));
-}
-
-export function createColumn<TData>(
-  columnConfig: ColumnConfig<TData, any, any, any>,
-  data: TData[],
-  strategy: FilterStrategy,
-): Column<TData> {
-  // Create the centralized data service
-  const dataService = new ColumnDataService(data, strategy);
-
-  // Create memoized functions
-  const getValues = createMemoizedValues(columnConfig, dataService);
-  const getUniqueValues = createMemoizedUniqueValues(columnConfig, dataService, getValues);
-  const getMinMaxValues = createMemoizedMinMaxValues(columnConfig, dataService);
-
-  // Create the main getOptions function that handles all transforms
-  const getOptions = createMemoizedOptions(columnConfig, dataService, getValues);
-
-  // Create the Column instance
-  const column: Column<TData> = {
-    ...columnConfig,
-    getOptions, // This now returns fully processed options
-    getValues,
-    getFacetedUniqueValues: getUniqueValues,
-    getFacetedMinMaxValues: getMinMaxValues,
-    // Prefetch methods will be added below
-    prefetchOptions: async () => {}, // Placeholder, defined below
-    prefetchValues: async () => {},
-    prefetchFacetedUniqueValues: async () => {},
-    prefetchFacetedMinMaxValues: async () => {},
-    _prefetchedOptionsCache: null, // Initialize private cache
-    _prefetchedValuesCache: null,
-    _prefetchedFacetedUniqueValuesCache: null,
-    _prefetchedFacetedMinMaxValuesCache: null,
-  };
-
-  if (strategy === "client") {
-    // Define prefetch methods with access to the column instance
-    setupPrefetchMethods(column, {
-      getOptions,
-      getValues,
-      getUniqueValues,
-      getMinMaxValues,
-    });
+) {
+  if (strategy === "server" && !configured) {
+    throw new Error("Server filters require explicit column options");
   }
-
-  return column;
-}
-
-/**
- * Creates the main getOptions function that returns fully processed options.
- * This includes all transforms and post-processing, plus automatic count population.
- */
-function createMemoizedOptions<TData>(
-  columnConfig: ColumnConfig<TData, any, any, any>,
-  dataService: ColumnDataService<TData>,
-  getValues: () => ElementType<NonNullable<any>>[],
-) {
-  return memo(
-    () => [
-      dataService,
-      columnConfig.options,
-      columnConfig.transformValueToOptionFn,
-      columnConfig.transformOptionsFn,
-      columnConfig.orderFn,
-      getValues(), // Include values as dependency for reactivity
-    ],
-    () => {
-      return dataService.computeTransformedOptions(columnConfig);
-    },
+  const entries = values.map((value) =>
+    // eslint-disable-next-line anti-slop/no-runtime-typeof -- Discriminates the typed string | ColumnOption config union.
+    typeof value === "string" ? { value, label: value } : value,
   );
+  const unique = new Map<string, ColumnOption>();
+  for (const option of configured ?? entries) {
+    if (!unique.has(option.value)) unique.set(option.value, option);
+  }
+  const counts = new Map<string, number>();
+  for (const entry of entries) {
+    counts.set(entry.value, (counts.get(entry.value) ?? 0) + 1);
+  }
+  return {
+    values: entries.filter((entry) => unique.has(entry.value)).map((entry) => entry.value),
+    options: Array.from(unique.values(), (option) => ({
+      ...option,
+      count: strategy === "server" ? option.count : (counts.get(option.value) ?? 0),
+    })),
+  };
 }
 
-function createMemoizedValues<TData>(
-  columnConfig: ColumnConfig<TData, any, any, any>,
-  dataService: ColumnDataService<TData>,
-) {
-  return memo(
-    () => [dataService],
-    ([dataService]) => dataService.getValues(columnConfig),
-  );
-}
-
-function createMemoizedUniqueValues<TData>(
-  columnConfig: ColumnConfig<TData, any, any, any>,
-  dataService: ColumnDataService<TData>,
-  getValues: () => ElementType<NonNullable<any>>[],
-) {
-  return memo(
-    () => [getValues(), dataService],
-    ([values, dataService]) =>
-      // SAFETY: deps[0] is the getValues() result; option-based columns hold
-      // string or ColumnOption values, and the callee guards other types.
-      dataService.computeFacetedUniqueValues(columnConfig, values as string[] | ColumnOption[]),
-  );
-}
-
-function createMemoizedMinMaxValues<TData, TType extends ColumnDataType>(
-  columnConfig: ColumnConfig<TData, TType, any, any>,
-  dataService: ColumnDataService<TData>,
-) {
-  return memo(
-    () => [dataService],
-    ([dataService]) => dataService.computeFacetedMinMaxValues(columnConfig),
-  );
-}
-
-function setupPrefetchMethods<TData>(
-  column: Column<TData>,
-  methods: {
-    getOptions: () => any;
-    getValues: () => any;
-    getUniqueValues: () => any;
-    getMinMaxValues: () => any;
-  },
-) {
-  const { getOptions, getValues, getUniqueValues, getMinMaxValues } = methods;
-
-  column.prefetchOptions = async (): Promise<void> => {
-    if (!column._prefetchedOptionsCache) {
-      await new Promise((resolve) =>
-        setTimeout(() => {
-          column._prefetchedOptionsCache = getOptions();
-          resolve(undefined);
-        }, 0),
-      );
+export function createColumns<Row>(
+  data: Row[],
+  configs: readonly ColumnConfig<Row>[],
+  strategy: FilterStrategy,
+): Column[] {
+  return configs.map((config): Column => {
+    const common = {
+      id: config.id,
+      displayName: config.displayName,
+      icon: config.icon,
+      hidden: config.hidden,
+    };
+    switch (config.type) {
+      case "text":
+        return {
+          ...common,
+          type: "text",
+          values: data.map(config.accessor).filter((value) => value != null),
+        };
+      case "date":
+        return {
+          ...common,
+          type: "date",
+          values: data.map(config.accessor).filter((value) => value != null),
+        };
+      case "boolean":
+        return {
+          ...common,
+          type: "boolean",
+          toggledStateName: config.toggledStateName,
+          values: data.map(config.accessor).filter((value) => value != null),
+        };
+      case "number": {
+        const values = data
+          .map(config.accessor)
+          .filter((value) => value != null)
+          .filter(Number.isFinite);
+        let min = values[0] ?? 0;
+        let max = min;
+        for (const value of values) {
+          min = Math.min(min, value);
+          max = Math.max(max, value);
+        }
+        return {
+          ...common,
+          type: "number",
+          values,
+          min: config.min ?? min,
+          max: config.max ?? max,
+        };
+      }
+      case "option":
+        return {
+          ...common,
+          type: "option",
+          ...prepareOptions(
+            data.map(config.accessor).filter((value) => value != null),
+            config.options,
+            strategy,
+          ),
+        };
+      case "multiOption":
+        return {
+          ...common,
+          type: "multiOption",
+          ...prepareOptions(
+            data.flatMap((row) => config.accessor(row) ?? []),
+            config.options,
+            strategy,
+          ),
+        };
     }
-  };
-
-  column.prefetchValues = async (): Promise<void> => {
-    if (!column._prefetchedValuesCache) {
-      await new Promise((resolve) =>
-        setTimeout(() => {
-          column._prefetchedValuesCache = getValues();
-          resolve(undefined);
-        }, 0),
-      );
-    }
-  };
-
-  column.prefetchFacetedUniqueValues = async (): Promise<void> => {
-    if (!column._prefetchedFacetedUniqueValuesCache) {
-      await new Promise((resolve) =>
-        setTimeout(() => {
-          column._prefetchedFacetedUniqueValuesCache = getUniqueValues() ?? null;
-          resolve(undefined);
-        }, 0),
-      );
-    }
-  };
-
-  column.prefetchFacetedMinMaxValues = async (): Promise<void> => {
-    if (!column._prefetchedFacetedMinMaxValuesCache) {
-      await new Promise((resolve) =>
-        setTimeout(() => {
-          column._prefetchedFacetedMinMaxValuesCache = getMinMaxValues() ?? null;
-          resolve(undefined);
-        }, 0),
-      );
-    }
-  };
+  });
 }

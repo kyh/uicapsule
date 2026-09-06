@@ -27,3 +27,9 @@ export type ContentComponentSummary = z.infer<typeof contentMetaSchema> & { slug
 export type LocalContentComponentSummary = Extract<ContentComponentSummary, { type: "local" }>;
 export type DefaultSize = NonNullable<ContentComponentSummary["defaultSize"]>;
 export type SourceFile = { path: string; code: string };
+
+export const contentPackageSchema = z.object({
+  dependencies: z.record(z.string(), z.string()).optional(),
+  devDependencies: z.record(z.string(), z.string()).optional(),
+  peerDependencies: z.record(z.string(), z.string()).optional(),
+});

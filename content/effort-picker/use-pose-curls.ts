@@ -85,7 +85,12 @@ const SMOOTHING = 0.35;
  * dropped detection is a blink, not an exit — and `posed` gates the count-in. */
 const POSE_LOST_FRAMES = 12;
 
-export type PoseStatus = "idle" | "loading" | "tracking" | "error";
+type PoseState =
+  | { status: "idle" | "loading" }
+  | { status: "tracking"; posed: boolean }
+  | { status: "error"; error: string };
+
+export type PoseStatus = PoseState["status"];
 
 type UsePoseCurlsOptions = {
   /** The camera only spins up when the card is on screen — this is the switch. */
@@ -110,10 +115,15 @@ type UsePoseCurls = {
 export const usePoseCurls = ({ enabled, onRep }: UsePoseCurlsOptions): UsePoseCurls => {
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const [status, setStatus] = useState<PoseStatus>("idle");
-  const [error, setError] = useState<string | null>(null);
-  const [posed, setPosed] = useState(false);
   const [attempt, setAttempt] = useState(0);
+  const request = enabled ? attempt : null;
+  const [activeRequest, setActiveRequest] = useState(request);
+  const [pose, setPose] = useState<PoseState>({ status: enabled ? "loading" : "idle" });
+
+  if (activeRequest !== request) {
+    setActiveRequest(request);
+    setPose({ status: request === null ? "idle" : "loading" });
+  }
 
   // The detection loop outlives every render it starts in, so it reads the rep
   // handler through a ref rather than closing over a stale one.
@@ -125,11 +135,7 @@ export const usePoseCurls = ({ enabled, onRep }: UsePoseCurlsOptions): UsePoseCu
   const retry = useCallback(() => setAttempt((count) => count + 1), []);
 
   useEffect(() => {
-    if (!enabled) {
-      setStatus("idle");
-      setPosed(false);
-      return;
-    }
+    if (request === null) return;
 
     let cancelled = false;
     let frame = 0;
@@ -152,40 +158,47 @@ export const usePoseCurls = ({ enabled, onRep }: UsePoseCurlsOptions): UsePoseCu
      * frames a second where the answer hasn't changed. */
     let reported = false;
 
-    setStatus("loading");
-    setError(null);
-    setPosed(false);
-
     const report = (value: boolean) => {
       if (value === reported) return;
       reported = value;
-      setPosed(value);
+      setPose({ status: "tracking", posed: value });
     };
 
     const fail = (cause: unknown) => {
       if (cancelled) return;
-      setError(cause instanceof Error ? cause.message : String(cause));
-      setStatus("error");
+      cancelAnimationFrame(frame);
+      landmarker?.close();
+      landmarker = null;
+      if (stream) for (const track of stream.getTracks()) track.stop();
+      setPose({ status: "error", error: cause instanceof Error ? cause.message : String(cause) });
     };
 
     const start = async () => {
       // The model is a few MB of wasm — it's dynamically imported so it only
       // costs anything for the people who actually open this variant.
       const { FilesetResolver, PoseLandmarker } = await import("@mediapipe/tasks-vision");
+      if (cancelled) return;
 
       stream = await navigator.mediaDevices.getUserMedia({
         video: { facingMode: "user", width: 640, height: 480 },
         audio: false,
       });
-      if (cancelled) return;
+      if (cancelled) {
+        for (const track of stream.getTracks()) track.stop();
+        return;
+      }
 
       const video = videoRef.current;
-      if (!video) return;
+      if (!video) {
+        for (const track of stream.getTracks()) track.stop();
+        return;
+      }
       video.srcObject = stream;
       await video.play();
       if (cancelled) return;
 
       const vision = await FilesetResolver.forVisionTasks(WASM_BASE_URL);
+      if (cancelled) return;
       landmarker = await PoseLandmarker.createFromOptions(vision, {
         baseOptions: { modelAssetPath: MODEL_URL, delegate: "GPU" },
         runningMode: "VIDEO",
@@ -196,7 +209,7 @@ export const usePoseCurls = ({ enabled, onRep }: UsePoseCurlsOptions): UsePoseCu
         return;
       }
 
-      setStatus("tracking");
+      setPose({ status: "tracking", posed: false });
 
       let lastVideoTime = -1;
       let lastTimestamp = 0;
@@ -311,9 +324,16 @@ export const usePoseCurls = ({ enabled, onRep }: UsePoseCurlsOptions): UsePoseCu
       landmarker?.close();
       if (stream) for (const track of stream.getTracks()) track.stop();
     };
-  }, [enabled, attempt]);
+  }, [request]);
 
-  return { videoRef, canvasRef, status, error, posed, retry };
+  return {
+    videoRef,
+    canvasRef,
+    status: pose.status,
+    error: pose.status === "error" ? pose.error : null,
+    posed: pose.status === "tracking" && pose.posed,
+    retry,
+  };
 };
 
 type Point2 = { x: number; y: number };
