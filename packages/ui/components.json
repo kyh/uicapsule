@@ -12,7 +12,7 @@
   "iconLibrary": "lucide",
   "aliases": {
     "components": "@repo/ui/components",
-    "utils": "@repo/ui/lib/utils",
+    "utils": "cn",
     "hooks": "@repo/ui/hooks",
     "lib": "@repo/ui/lib",
     "ui": "@repo/ui/components"
