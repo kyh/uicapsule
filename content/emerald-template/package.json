@@ -13,8 +13,8 @@
     "@icons-pack/react-simple-icons": "^13.15.1",
     "@radix-ui/react-use-controllable-state": "^1.2.6",
     "@repo/ui": "workspace:^",
-    "lucide-react": "^1.38.0",
-    "motion": "^13.1.1",
+    "lucide-react": "^1.41.0",
+    "motion": "^13.2.0",
     "react": "catalog:",
     "react-dom": "catalog:"
   },
