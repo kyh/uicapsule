@@ -1,6 +1,5 @@
 "use client";
 
-import { useMemo } from "react";
 import { Slider as SliderPrimitive } from "@base-ui/react/slider";
 
 import { cn } from "@repo/ui/lib/utils";
@@ -13,11 +12,8 @@ const Slider = ({
   max = 100,
   ...props
 }: SliderPrimitive.Root.Props) => {
-  const thumbCount = useMemo(() => {
-    if (Array.isArray(value)) return value.length;
-    if (Array.isArray(defaultValue)) return defaultValue.length;
-    return 1;
-  }, [value, defaultValue]);
+  const values = value ?? defaultValue;
+  const thumbCount = Array.isArray(values) ? values.length : 1;
 
   return (
     <SliderPrimitive.Root
@@ -38,15 +34,11 @@ const Slider = ({
       >
         <SliderPrimitive.Track
           data-slot="slider-track"
-          className={cn(
-            "bg-muted relative grow overflow-hidden rounded-full data-[orientation=horizontal]:h-1.5 data-[orientation=horizontal]:w-full data-[orientation=vertical]:h-full data-[orientation=vertical]:w-1.5",
-          )}
+          className="bg-muted relative grow overflow-hidden rounded-full data-[orientation=horizontal]:h-1.5 data-[orientation=horizontal]:w-full data-[orientation=vertical]:h-full data-[orientation=vertical]:w-1.5"
         >
           <SliderPrimitive.Indicator
             data-slot="slider-indicator"
-            className={cn(
-              "bg-primary absolute data-[orientation=horizontal]:h-full data-[orientation=vertical]:w-full",
-            )}
+            className="bg-primary absolute data-[orientation=horizontal]:h-full data-[orientation=vertical]:w-full"
           />
         </SliderPrimitive.Track>
         {Array.from({ length: thumbCount }, (_, index) => (

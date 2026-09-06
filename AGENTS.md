@@ -1,7 +1,7 @@
 # AGENTS.md
 
 **uicapsule** is a curated gallery of UI components — a pnpm/Turborepo monorepo with one
-Next.js 16 app (`apps/web`) that renders 36 self-contained component packages under
+Next.js 16 app (`apps/web`) that renders 40 self-contained component packages under
 `content/`. This is the tool-agnostic guide for coding agents; it is meant to be _run_, not
 just read. Claude also reads `CLAUDE.md` (conventions, curation philosophy, decisions that
 are settled) — this file is the runnable half.
@@ -77,9 +77,9 @@ pnpm verify           # typecheck · lint · format · test · build
 `verify` needs `.env` (it runs `build`, which is `dotenv -e ../../.env -- next build`). It
 does _not_ need the database. Two things it deliberately does not cover:
 
-- **Tests are thin.** Two suites: a better-auth schema + session-cookie guard in
-  `packages/api`, and the RPC route's transport guards (Origin check, GET refusal, no CORS)
-  in `apps/web`. Nothing else has your back but the gate and your own runtime check.
+- **Tests are focused.** Auth schema + session-cookie guards in `packages/api`; RPC
+  transport guards and content filesystem/registry contracts in `apps/web`. Visual behavior
+  still needs a runtime check.
 - **`content/*` is not typechecked.** `apps/web/tsconfig.json` excludes `../../content/**`,
   no content package has a `typecheck` script, and `next.config.js` sets
   `typescript.ignoreBuildErrors`. `pnpm lint` (oxlint) is the only static tool that reads
@@ -175,14 +175,16 @@ Web is the only surface. There is no mobile, desktop, or extension target.
   env mode strips them from the task with no error. `NEXT_PUBLIC_SUPABASE_URL` was missing
   from it until recently: `next.config.js` reads it to build `images.remotePatterns`, so
   without it that list is empty and `next/image` rejects every Supabase-hosted cover. Not
-  yet load-bearing — every cover in the repo today is `coverType: "video"` (28 of 36 slugs;
-  the other 8 have no cover), and video bypasses `next/image` — but it bites the first time
+  yet load-bearing — every cover in the repo today is `coverType: "video"` (28 of 40 slugs;
+  the other 12 have no cover), and video bypasses `next/image` — but it bites the first time
   a `meta.json` uses `coverType: "image"`.
 
 ## Map
 
-- `apps/web` — the Next.js app. `src/lib/content/content-fs.ts` reads `content/`;
-  `src/lib/content-data.ts` wraps it in `"use cache"` server functions.
+- `apps/web` — the Next.js app. `src/lib/content/content-fs.ts` indexes metadata and reads
+  source on demand; `src/lib/content-data.ts` adds `"use cache"`. `content-schema.ts` owns
+  metadata validation for the loader and build guard. Header, search, profile, and footer
+  live in separate files under `src/components/`.
 - `packages/ui` — Base UI + shadcn-derived components · `packages/db` — Drizzle + Turso ·
   `packages/api` — oRPC + better-auth
 - `content/<slug>/` — one workspace package per component

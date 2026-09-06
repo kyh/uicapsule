@@ -5,8 +5,7 @@ import Image from "next/image";
 import { animate, motion, useMotionValue, useReducedMotion, useTransform } from "motion/react";
 import { cn } from "@repo/ui/lib/utils";
 
-// Latches true once the element first scrolls near the viewport, so the heavy
-// work (media loading) is deferred until then.
+// Latch visibility so loaded media stays mounted after scrolling away.
 const useInView = (rootMargin = "200px") => {
   const ref = useRef<HTMLDivElement>(null);
   const [inView, setInView] = useState(false);
@@ -28,7 +27,7 @@ const useInView = (rootMargin = "200px") => {
     io.observe(el);
     return () => io.disconnect();
   }, [rootMargin]);
-  return [ref, inView] as const;
+  return { ref, inView };
 };
 
 const SHIMMER_DURATION = 1.5;
@@ -44,36 +43,25 @@ type MediaRevealProps = {
   iframe?: { src: string; title: string };
 };
 
-// A shimmering skeleton covers the frame and wipes away once the media beneath
-// it is ready (image/video on first frame, iframe on load), then drops from the
-// DOM. With no media it is just the skeleton, shimmering while it is on screen.
 export const MediaReveal = ({ className, image, video, iframe }: MediaRevealProps) => {
-  const [rootRef, inView] = useInView();
+  const { ref: rootRef, inView } = useInView();
   const [revealed, setRevealed] = useState(false);
   const [wiped, setWiped] = useState(false);
   const prefersReducedMotion = useReducedMotion();
 
-  // Reduced motion still needs the skeleton to get out of the way — it just
-  // shouldn't travel to do it, so it retires the moment the media is ready.
   const retired = wiped || (revealed && Boolean(prefersReducedMotion));
 
-  // At 100 the skeleton fully covers the frame; at -100 it has been wiped off
-  // to the left, uncovering the media beneath.
+  // 100 covers the frame; -100 uncovers it.
   const wipe = useMotionValue(100);
   const maskImage = useTransform(
     wipe,
     (value) => `linear-gradient(to right, black ${value}%, transparent ${value + 100}%)`,
   );
 
-  // The sweep is a translating gradient rather than an animated background-position:
-  // transform is a compositor value, so the shimmer never repaints the card. Driven by
-  // hand rather than an `animate` prop so it can be halted mid-cycle — the skeleton
-  // freezes where it stands as the wipe takes it away.
+  // A transform avoids repainting; manual controls freeze the shimmer during the wipe.
   const sweep = useMotionValue(-50);
   const sweepX = useTransform(sweep, (value) => `${value}%`);
 
-  // Only shimmer what someone can actually see: a feed mounts dozens of these, and an
-  // unthrottled loop per off-screen card is pure waste.
   const shimmering = inView && !revealed && !prefersReducedMotion;
 
   useEffect(() => {
@@ -101,8 +89,7 @@ export const MediaReveal = ({ className, image, video, iframe }: MediaRevealProp
     return () => controls.stop();
   }, [revealed, wipe, prefersReducedMotion]);
 
-  // When the iframe is unloaded and remounted (feed windowing), bring the
-  // skeleton back so the reload doesn't flash an empty box.
+  // Feed windowing remounts iframes; cover the frame while they reload.
   const [hasIframe, setHasIframe] = useState(Boolean(iframe));
   if (Boolean(iframe) !== hasIframe) {
     setHasIframe(Boolean(iframe));

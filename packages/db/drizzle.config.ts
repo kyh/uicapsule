@@ -2,7 +2,7 @@ import type { Config } from "drizzle-kit";
 
 export default {
   dialect: "turso",
-  schema: ["./src/drizzle-schema-auth.ts", "./src/drizzle-schema.ts"],
+  schema: "./src/drizzle-schema-auth.ts",
   out: "./drizzle",
   casing: "snake_case",
   dbCredentials: {

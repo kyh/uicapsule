@@ -85,7 +85,6 @@ function createMemoizedOptions<TData>(
     () => {
       return dataService.computeTransformedOptions(columnConfig);
     },
-    { key: `final-options-${columnConfig.id}` },
   );
 }
 
@@ -96,7 +95,6 @@ function createMemoizedValues<TData>(
   return memo(
     () => [dataService],
     ([dataService]) => dataService.getValues(columnConfig),
-    { key: `values-${columnConfig.id}` },
   );
 }
 
@@ -111,7 +109,6 @@ function createMemoizedUniqueValues<TData>(
       // SAFETY: deps[0] is the getValues() result; option-based columns hold
       // string or ColumnOption values, and the callee guards other types.
       dataService.computeFacetedUniqueValues(columnConfig, values as string[] | ColumnOption[]),
-    { key: `faceted-${columnConfig.id}` },
   );
 }
 
@@ -122,7 +119,6 @@ function createMemoizedMinMaxValues<TData, TType extends ColumnDataType>(
   return memo(
     () => [dataService],
     ([dataService]) => dataService.computeFacetedMinMaxValues(columnConfig),
-    { key: `minmax-${columnConfig.id}` },
   );
 }
 

@@ -9,16 +9,6 @@ export const baseUrl =
       ? `https://${process.env.VERCEL_URL}`
       : "http://localhost:3000";
 
-// Origins allowed to drive authenticated requests. Only the web app runs
-// same-origin as baseUrl. Consumed by better-auth's own Origin checks, which
-// cover /api/auth/* only; the RPC endpoint pairs the session cookie's
-// SameSite=Lax with its own Origin check, because SameSite keys on site rather
-// than origin and so covers the cross-SITE half only
-// (see apps/web/src/app/api/orpc/[[...rest]]/route.ts). Lax is better-auth's
-// default and nothing here sets `advanced.defaultCookieAttributes`; loosening
-// it to "none" would re-open cross-site CSRF app-wide.
-const trustedOrigins = [baseUrl];
-
 export const auth = betterAuth({
   database: drizzleAdapter(db, {
     provider: "sqlite",
@@ -27,15 +17,8 @@ export const auth = betterAuth({
   emailAndPassword: {
     enabled: true,
   },
-  trustedOrigins,
-  // Persist rate-limit counters in the database. The default in-memory store
-  // keeps per-instance counters, so on serverless (Vercel) the effective limit
-  // multiplies across cold-started instances and resets on every deploy.
-  //
-  // This 10/60s is the fallback for auth routes generally — it does NOT govern
-  // the credential endpoints. better-auth applies a built-in rule of 3
-  // requests/10s to /sign-in*, /sign-up*, /change-password* and /change-email*,
-  // which overrides these values (only rateLimit.customRules could raise them).
+  trustedOrigins: [baseUrl],
+  // Share counters across serverless instances. Credential routes use better-auth's stricter limit.
   rateLimit: {
     enabled: true,
     storage: "database",
@@ -43,6 +26,3 @@ export const auth = betterAuth({
     max: 10,
   },
 });
-
-export type Auth = typeof auth;
-export type Session = Auth["$Infer"]["Session"];

@@ -9,7 +9,11 @@
       "outputs": [".next/**", "!.next/cache/**"]
     },
     "//#check:content": {
-      "inputs": ["content/**", "scripts/check-content.ts"]
+      "inputs": [
+        "content/**",
+        "scripts/check-content.ts",
+        "apps/web/src/lib/content/content-schema.ts"
+      ]
     },
     "dev": {
       "cache": false,

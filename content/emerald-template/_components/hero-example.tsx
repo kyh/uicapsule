@@ -268,13 +268,13 @@ const MemoizedChainOfThoughtStep = memo(
 
     return (
       <ChainOfThoughtStep
-        icon={() => (
+        icon={
           <AnimatedIcon
             stepIndex={stepIndex}
             staticIcon={staticIcon}
             currentStepIndex={currentStepIndex}
           />
-        )}
+        }
         label={label}
         status={status}
       />

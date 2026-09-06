@@ -1,6 +1,6 @@
 "use client";
 
-import type { ComponentProps, ComponentType } from "react";
+import type { ComponentProps, ReactNode } from "react";
 import { createContext, memo, use, useMemo } from "react";
 import { useControllableState } from "@radix-ui/react-use-controllable-state";
 import {
@@ -89,8 +89,7 @@ const stepStatusStyles = {
 };
 
 export type ChainOfThoughtStepProps = ComponentProps<"div"> & {
-  /** Any component that accepts a `className` — a lucide icon, or a custom animated one. */
-  icon?: ComponentType<{ className?: string }>;
+  icon?: ReactNode;
   label: string;
   status?: keyof typeof stepStatusStyles;
 };
@@ -98,7 +97,7 @@ export type ChainOfThoughtStepProps = ComponentProps<"div"> & {
 export const ChainOfThoughtStep = memo(
   ({
     className,
-    icon: Icon = DotIcon,
+    icon = <DotIcon className="size-4" />,
     label,
     status = "complete",
     children,
@@ -114,7 +113,7 @@ export const ChainOfThoughtStep = memo(
       {...props}
     >
       <div className="relative mt-0.5">
-        <Icon className="size-4" />
+        {icon}
         <div className="bg-border absolute top-7 bottom-0 left-1/2 -mx-px w-px" />
       </div>
       <div className="flex-1 space-y-2">

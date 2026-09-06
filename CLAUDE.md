@@ -20,20 +20,22 @@ content/         # Gallery components — one workspace package per slug
 
 Content is filesystem-driven; the web app never depends on content packages by name:
 
-- `apps/web/src/lib/content/content-fs.ts` reads `content/*/meta.json` + source files;
+- `apps/web/src/lib/content/content-fs.ts` indexes `content/*/meta.json` and reads source
+  only for downloads/registry requests. `content-schema.ts` supplies the shared metadata
+  parser and inferred types for the loader and build guard;
   `content-data.ts` wraps it in `"use cache"` server functions (feed, filters, search
   index, shadcn registry). The `"use cache"` + `cacheLife("max")` pairing is intentional,
   not an oversight — content only ever changes on deploy.
 - `preview-frame/[slug]` renders previews via a relative dynamic import of
   `content/<slug>/preview.tsx`.
-- `/r/<slug>.json` serves the shadcn registry item; the source-code drawer and zip
-  download on the client reuse it.
+- `/r/<slug>.json` serves the shadcn registry item. The source drawer and zip download
+  use `/api/content/<slug>`; the viewer and zip library load on demand.
 - Content packages exist as workspace packages only so pnpm installs their deps in
   isolation and the registry can report per-component dependencies.
 
 ### Tech Stack
 
-- **Runtime**: pnpm 10, Node 24, TypeScript 6 (pinned — TS 7 / tsgo breaks Next 16)
+- **Runtime**: pnpm 12, Node 24, TypeScript 7 (versions in package.json / pnpm-workspace.yaml)
 - **Frontend**: Next.js 16, React 19, Tailwind CSS 4
 - **API**: oRPC, better-auth
 - **Database**: Turso (libSQL), Drizzle ORM
@@ -76,17 +78,17 @@ pnpm check:content    # Fail if any content/<slug> is not a loadable component
 
 `pnpm verify` runs five steps in order: `pnpm typecheck`, `pnpm lint` (oxlint),
 `pnpm format` (`oxfmt --check` — the checking one; `format:fix` is what rewrites),
-`pnpm test`, and `pnpm build`. All but lint are gates:
+`pnpm test`, and `pnpm build`. Every command fails on errors; lint warnings stay advisory:
 
 - **typecheck, format, test, build fail the run.** They must be green.
-- **lint does not.** `.oxlintrc.json` sets every category (`correctness`, `suspicious`,
+- **Lint warnings do not fail.** `.oxlintrc.json` sets every category (`correctness`, `suspicious`,
   `perf`) to `warn` and root `lint` has no `--deny-warnings`, so `pnpm lint` exits 0
-  whatever it finds — today 96 pre-existing warnings, almost all in `content/*` and
-  upstream shadcn components in `packages/ui`. Turning it into a real gate would fail a
-  clean checkout, so it stays advisory: **read its output, don't just read its exit code.**
+  on warnings. Explicit error rules still fail. Most warnings concern `content/*` and
+  upstream shadcn components in `packages/ui`: **read output, not just the exit code.**
 
-Tests are thin — a better-auth schema + session-cookie guard in `packages/api`, and the RPC
-route's transport guards in `apps/web`. Both pin things typecheck cannot see, notably
+Tests cover the auth schema/session cookie, RPC transport guards, and real content filesystem
+fixtures (metadata-only reads, source packaging, slug lookup). They pin things typecheck cannot
+see, notably
 `/api/orpc`'s cross-origin defense: `SameSite=Lax` keys on _site_, so it stops a cross-SITE
 POST only, and the route's own Origin check covers the same-site cross-origin case (a
 sibling subdomain, another localhost port). Don't assume a suite has your back, and note
@@ -95,8 +97,8 @@ sibling subdomain, another localhost port). Don't assume a suite has your back, 
 
 `pnpm build` runs `check:content` first (turbo task `//#check:content`): the gallery loader
 in `content-fs.ts` silently drops a `content/<slug>` that lacks its `meta.json` + `preview.tsx`
-pair (or, for a remote component, `iframeUrl`/`sourceUrl`), so a half-scaffolded stub used to
-vanish with no error and pile up. The guard turns that silence into a failed build — do not
+pair or fails the shared metadata schema (remote entries require `iframeUrl`/`sourceUrl`).
+A half-scaffolded stub used to vanish with no error and pile up. The guard turns that silence into a failed build — do not
 remove it. Finish the component or delete the directory; scaffold with `pnpm new:content`.
 
 ## Decisions (do not re-litigate)

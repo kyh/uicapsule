@@ -19,12 +19,7 @@ export const contentCategories: ContentFilter[] = [
   { name: "Utilities", slug: "utilities" },
 ];
 
-/**
- * Tags that opt a component out of the default surfaces. An unlisted component
- * is hidden from the grid, the scroll feed, and search's trending list, but it
- * stays fully addressable: it shows up when its tag is explicitly filtered for,
- * when it's searched by name, and when it's deep-linked or installed.
- */
+// Hidden by default; still reachable through explicit filters, search, links, and installs.
 export const unlistedTags: ReadonlySet<string> = new Set(["silly"]);
 
 export const isUnlisted = (tags: string[] | undefined) =>
@@ -48,7 +43,7 @@ export const contentElements: ContentFilter[] = [
     slug: "control",
     subcategories: [
       { name: "Buttons and Links", slug: "buttons-and-links" },
-      { name: "Inputs", slug: "inputs" }, // Text, Number, Slider, Pickers, Combobox, etc.
+      { name: "Inputs", slug: "inputs" },
       { name: "Video & Audio", slug: "video-audio" },
     ],
   },
@@ -59,9 +54,9 @@ export const contentElements: ContentFilter[] = [
       { name: "Cards", slug: "cards" },
       { name: "Carousels", slug: "carousels" },
       { name: "Grids", slug: "grids" },
-      { name: "Navigation", slug: "navigation" }, // Sidebar, Tabs, etc.
+      { name: "Navigation", slug: "navigation" },
       { name: "Tables", slug: "tables" },
-      { name: "Toolbars", slug: "toolbars" }, // Filter/Sort
+      { name: "Toolbars", slug: "toolbars" },
       { name: "Trees", slug: "trees" },
       { name: "Charts", slug: "charts" },
       { name: "Effects", slug: "effects" },

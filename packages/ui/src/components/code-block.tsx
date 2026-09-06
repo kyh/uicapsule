@@ -2,7 +2,7 @@
 
 import type { ComponentProps, HTMLAttributes, ReactNode } from "react";
 import type { BundledLanguage, CodeOptionsMultipleThemes, SpecialLanguage } from "shiki";
-import { createContext, useContext, useEffect, useState } from "react";
+import { createContext, useContext, useEffect, useRef, useState } from "react";
 import {
   SiAstro,
   SiBiome,
@@ -343,7 +343,10 @@ export const CodeBlockFilename = ({
   }
   return (
     <div
-      className="bg-secondary text-muted-foreground flex items-center gap-2 px-4 py-1.5 text-xs"
+      className={cn(
+        "bg-secondary text-muted-foreground flex items-center gap-2 px-4 py-1.5 text-xs",
+        className,
+      )}
       {...props}
     >
       {Icon && <Icon className="h-4 w-4 shrink-0" />}
@@ -365,17 +368,21 @@ export const CodeBlockCopyButton = ({
   ...props
 }: CodeBlockCopyButtonProps) => {
   const [isCopied, setIsCopied] = useState(false);
+  const resetTimeout = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
+  useEffect(() => () => clearTimeout(resetTimeout.current), []);
   const { data, value } = useContext(CodeBlockContext);
   const code = data.find((item) => item.language === value)?.code;
-  const copyToClipboard = () => {
-    if (typeof window === "undefined" || !navigator.clipboard.writeText || !code) {
-      return;
-    }
-    navigator.clipboard.writeText(code).then(() => {
+  const copyToClipboard = async () => {
+    if (!navigator.clipboard?.writeText || code === undefined) return;
+    try {
+      await navigator.clipboard.writeText(code);
       setIsCopied(true);
       onCopy?.();
-      setTimeout(() => setIsCopied(false), timeout);
-    }, onError);
+      clearTimeout(resetTimeout.current);
+      resetTimeout.current = setTimeout(() => setIsCopied(false), timeout);
+    } catch (error) {
+      onError?.(error instanceof Error ? error : new Error(String(error)));
+    }
   };
   return (
     <Button
@@ -383,6 +390,7 @@ export const CodeBlockCopyButton = ({
       onClick={copyToClipboard}
       size="icon"
       variant="ghost"
+      aria-label={isCopied ? "Copied" : "Copy code"}
       {...props}
     >
       {children ?? (
@@ -476,24 +484,34 @@ export const CodeBlockContent = ({
   syntaxHighlighting = true,
   ...props
 }: CodeBlockContentProps) => {
-  const [html, setHtml] = useState<string | null>(null);
+  const [highlighted, setHighlighted] = useState<{
+    html: string;
+    source: string;
+    language: CodeBlockContentProps["language"];
+    themes: CodeBlockContentProps["themes"];
+  } | null>(null);
   useEffect(() => {
     if (!syntaxHighlighting) {
       return;
     }
+    let active = true;
     highlight(children, language, themes)
-      .then(setHtml)
-      // biome-ignore lint/suspicious/noConsole: "it's fine"
+      .then((result) => {
+        if (active) setHighlighted({ html: result, source: children, language, themes });
+      })
       .catch(console.error);
+    return () => {
+      active = false;
+    };
   }, [children, themes, syntaxHighlighting, language]);
+  const html =
+    highlighted?.source === children &&
+    highlighted.language === language &&
+    highlighted.themes === themes
+      ? highlighted.html
+      : null;
   if (!(syntaxHighlighting && html)) {
-    return <CodeBlockFallback>{children}</CodeBlockFallback>;
+    return <CodeBlockFallback {...props}>{children}</CodeBlockFallback>;
   }
-  return (
-    <div
-      // biome-ignore lint/security/noDangerouslySetInnerHtml: "Kinda how Shiki works"
-      dangerouslySetInnerHTML={{ __html: html }}
-      {...props}
-    />
-  );
+  return <div dangerouslySetInnerHTML={{ __html: html }} {...props} />;
 };

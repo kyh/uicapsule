@@ -1,11 +1,18 @@
 "use client";
 
-import { useCallback, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { Badge } from "@repo/ui/components/badge";
 import { Button } from "@repo/ui/components/button";
 import { Checkbox } from "@repo/ui/components/checkbox";
-import { Drawer, DrawerContent, DrawerTrigger } from "@repo/ui/components/drawer";
+import {
+  Drawer,
+  DrawerContent,
+  DrawerDescription,
+  DrawerHeader,
+  DrawerTitle,
+  DrawerTrigger,
+} from "@repo/ui/components/drawer";
 import {
   NavigationMenu,
   NavigationMenuContent,
@@ -34,10 +41,7 @@ type FilterBarProps = {
   filters: FilterConfig[];
 };
 
-/**
- * One navigation menu shared by all filters: the popup morphs between
- * triggers while the filter input stays put and only the option list swaps.
- */
+// Share one popup so it can animate between filters without remounting the input.
 export const FilterBar = ({ filters }: FilterBarProps) => {
   const isDesktop = useMediaQuery("(min-width: 768px)");
   const [query, setQuery] = useState("");
@@ -127,6 +131,10 @@ const FilterDrawer = ({ filterKey, filterOptions, defaultLabel, highlighted }: F
         </Button>
       </DrawerTrigger>
       <DrawerContent>
+        <DrawerHeader className="sr-only">
+          <DrawerTitle>{defaultLabel}</DrawerTitle>
+          <DrawerDescription>Select filters</DrawerDescription>
+        </DrawerHeader>
         <div className="mt-4 border-t">
           <FilterInput value={query} onChange={setQuery} />
           <FilterOptionsList filterKey={filterKey} filterOptions={filterOptions} query={query} />
@@ -148,6 +156,7 @@ const FilterInput = ({ value, onChange }: FilterInputProps) => (
       value={value}
       onChange={(event) => onChange(event.target.value)}
       placeholder="Filter..."
+      aria-label="Filter options"
       className="placeholder:text-muted-foreground h-full w-full bg-transparent text-sm outline-none"
     />
   </div>
@@ -167,59 +176,33 @@ const FilterOptionsList = ({ filterKey, filterOptions, query }: FilterOptionsLis
   const pathname = usePathname();
   const searchParams = useSearchParams();
 
-  const selectedSet = useMemo(() => {
-    const currentRaw = searchParams.get(filterKey) ?? "";
-    return new Set(
-      currentRaw
-        .split(",")
-        .map((s) => s.trim())
-        .filter(Boolean),
-    );
-  }, [filterKey, searchParams]);
+  const selectedSet = parseSelection(searchParams.get(filterKey));
 
-  const handleSelect = useCallback(
-    (slug: string) => {
-      const currentRaw = searchParams.get(filterKey) ?? "";
-      const current = new Set(
-        currentRaw
-          .split(",")
-          .map((s) => s.trim())
-          .filter(Boolean),
-      );
+  const handleSelect = (slug: string) => {
+    const current = new Set(selectedSet);
+    if (current.has(slug)) {
+      current.delete(slug);
+    } else {
+      current.add(slug);
+    }
 
-      if (current.has(slug)) {
-        current.delete(slug);
-      } else {
-        current.add(slug);
-      }
+    const nextParams = new URLSearchParams(searchParams.toString());
+    if (current.size > 0) {
+      nextParams.set(filterKey, Array.from(current).join(","));
+    } else {
+      nextParams.delete(filterKey);
+    }
 
-      const nextParams = new URLSearchParams(searchParams.toString());
-      if (current.size > 0) {
-        nextParams.set(filterKey, Array.from(current).join(","));
-      } else {
-        nextParams.delete(filterKey);
-      }
-
-      const next = nextParams.toString();
-      const url = `${pathname}${next ? `?${next}` : ""}`;
-      router.push(url, { scroll: false });
-    },
-    [filterKey, pathname, router, searchParams],
-  );
+    const next = nextParams.toString();
+    router.push(`${pathname}${next ? `?${next}` : ""}`, { scroll: false });
+  };
 
   const normalizedQuery = query.trim().toLowerCase();
-  const matchesQuery = useCallback(
-    (option: { name: string; slug: string }) =>
-      normalizedQuery.length === 0 ||
-      option.name.toLowerCase().includes(normalizedQuery) ||
-      option.slug.includes(normalizedQuery),
-    [normalizedQuery],
-  );
 
   const groups = useMemo(() => {
-    const withSub = filterOptions.filter(
-      (option) => Array.isArray(option.subcategories) && option.subcategories.length > 0,
-    );
+    const matchesQuery = (option: { name: string; slug: string }) =>
+      option.name.toLowerCase().includes(normalizedQuery) || option.slug.includes(normalizedQuery);
+    const withSub = filterOptions.filter((option) => (option.subcategories?.length ?? 0) > 0);
     const withoutSub = filterOptions.filter(
       (option) => !option.subcategories || option.subcategories.length === 0,
     );
@@ -236,18 +219,16 @@ const FilterOptionsList = ({ filterKey, filterOptions, query }: FilterOptionsLis
       grouped.push({ heading: "", options: flat });
     }
     return grouped;
-  }, [filterOptions, matchesQuery]);
+  }, [filterOptions, normalizedQuery]);
 
   const renderOption = (option: { name: string; slug: string }) => (
-    <button
-      key={option.slug}
-      type="button"
-      className={optionRowClassname}
-      onClick={() => handleSelect(option.slug)}
-    >
-      <Checkbox checked={selectedSet.has(option.slug)} className="pointer-events-none" />
+    <label key={option.slug} className={optionRowClassname}>
+      <Checkbox
+        checked={selectedSet.has(option.slug)}
+        onCheckedChange={() => handleSelect(option.slug)}
+      />
       <span>{option.name}</span>
-    </button>
+    </label>
   );
 
   return (
@@ -276,37 +257,12 @@ const FilterTriggerLabel = ({
 }) => {
   const searchParams = useSearchParams();
 
-  const selectedSet = useMemo(() => {
-    const currentRaw = searchParams.get(filterKey) ?? "";
-    return new Set(
-      currentRaw
-        .split(",")
-        .map((s) => s.trim())
-        .filter(Boolean),
-    );
-  }, [filterKey, searchParams]);
+  const selectedSet = parseSelection(searchParams.get(filterKey));
 
-  const labels = useMemo(() => {
-    const selectedLabels: string[] = [];
-
-    // Check top-level options
-    filterOptions.forEach((option) => {
-      if (selectedSet.has(option.slug)) {
-        selectedLabels.push(option.name);
-      }
-
-      // Check subcategories
-      if (option.subcategories) {
-        option.subcategories.forEach((sub) => {
-          if (selectedSet.has(sub.slug)) {
-            selectedLabels.push(sub.name);
-          }
-        });
-      }
-    });
-
-    return selectedLabels;
-  }, [filterOptions, selectedSet]);
+  const labels = filterOptions
+    .flatMap((option) => [option, ...(option.subcategories ?? [])])
+    .filter((option) => selectedSet.has(option.slug))
+    .map((option) => option.name);
 
   if (labels.length === 1) {
     return (
@@ -327,3 +283,11 @@ const FilterTriggerLabel = ({
     </>
   );
 };
+
+const parseSelection = (value: string | null) =>
+  new Set(
+    (value ?? "")
+      .split(",")
+      .map((slug) => slug.trim())
+      .filter(Boolean),
+  );

@@ -18,7 +18,7 @@ export type LiquidOrbPreset =
   | "plasma";
 
 /** Display names for each preset, for captions and controls. */
-export const presetLabel: Record<LiquidOrbPreset, string> = {
+export const presetLabel = {
   siri: "Siri",
   chrome: "Chrome",
   aurora: "Aurora",
@@ -26,7 +26,7 @@ export const presetLabel: Record<LiquidOrbPreset, string> = {
   blueDrop: "Blue Drop",
   opal: "Opal",
   plasma: "Plasma",
-};
+} satisfies Record<LiquidOrbPreset, string>;
 
 /** Cycle order — adjacent presets are chosen for maximum material contrast. */
 export const presetOrder: readonly LiquidOrbPreset[] = [
@@ -60,16 +60,6 @@ export type LiquidOrbConfig = {
   glow?: number;
   /** Fired when a morph toward a new preset begins. */
   onPresetChange?: (preset: LiquidOrbPreset) => void;
-};
-
-const defaults = {
-  preset: "siri" as LiquidOrbPreset,
-  cycle: true,
-  holdDuration: 1.8,
-  morphDuration: 1.25,
-  speed: 1,
-  glass: true,
-  glow: 0.55,
 };
 
 type PresetSpec = {
@@ -111,7 +101,7 @@ const base = {
   specColor: "#DCEAFF",
 };
 
-const presets: Record<LiquidOrbPreset, PresetSpec> = {
+const presets = {
   siri: {
     ...base,
     speed: 0.82,
@@ -287,10 +277,10 @@ const presets: Record<LiquidOrbPreset, PresetSpec> = {
     canvasColor: "#020105",
     glowColor: "#0099FF",
   },
-};
+} satisfies Record<LiquidOrbPreset, PresetSpec>;
 
 // Style indices the shader dispatches on — must match presetFluid() below.
-const styleIndex: Record<LiquidOrbPreset, number> = {
+const styleIndex = {
   siri: 0,
   aurora: 1,
   plasma: 2,
@@ -298,7 +288,7 @@ const styleIndex: Record<LiquidOrbPreset, number> = {
   opal: 4,
   blueDrop: 5,
   violetEmber: 6,
-};
+} satisfies Record<LiquidOrbPreset, number>;
 
 const scalarKeys = [
   "speed",
@@ -387,9 +377,7 @@ const presetVec = (spec: PresetSpec): Float32Array => {
   return out;
 };
 
-const presetVecs = Object.fromEntries(
-  (Object.keys(presets) as LiquidOrbPreset[]).map((name) => [name, presetVec(presets[name])]),
-) as Record<LiquidOrbPreset, Float32Array>;
+const presetVecs = new Map(presetOrder.map((name) => [name, presetVec(presets[name])]));
 
 const vertexSrc = `#version 300 es
 void main() {
@@ -952,18 +940,20 @@ const compileShader = (gl: WebGL2RenderingContext, type: number, source: string)
 const easeInOut = (x: number) => x * x * (3 - 2 * x);
 
 export const LiquidOrb = ({
-  preset = defaults.preset,
-  cycle = defaults.cycle,
-  holdDuration = defaults.holdDuration,
-  morphDuration = defaults.morphDuration,
-  speed = defaults.speed,
-  glass = defaults.glass,
-  glow = defaults.glow,
+  preset = "siri",
+  cycle = true,
+  holdDuration = 1.8,
+  morphDuration = 1.25,
+  speed = 1,
+  glass = true,
+  glow = 0.55,
   onPresetChange,
 }: LiquidOrbConfig = {}) => {
   const rootRef = useRef<HTMLDivElement>(null);
   const onPresetChangeRef = useRef(onPresetChange);
-  onPresetChangeRef.current = onPresetChange;
+  useEffect(() => {
+    onPresetChangeRef.current = onPresetChange;
+  }, [onPresetChange]);
 
   useEffect(() => {
     const container = rootRef.current;
@@ -1115,16 +1105,20 @@ export const LiquidOrb = ({
       }
 
       const k = morphing ? easeInOut(Math.min(morphT, 1)) : 0;
-      const a = presetVecs[order[current]!]!;
-      const b = presetVecs[order[next]!]!;
+      const currentPreset = order[current];
+      const nextPreset = order[next];
+      if (!currentPreset || !nextPreset) return;
+      const a = presetVecs.get(currentPreset);
+      const b = presetVecs.get(nextPreset);
+      if (!a || !b) return;
       for (let i = 0; i < VEC_SIZE; i++) {
         mixed[i] = a[i]! + (b[i]! - a[i]!) * k;
       }
 
       phase += dt * mixed[0]! * speed;
 
-      const styleA = styleIndex[order[current]!];
-      const styleB = styleIndex[order[next]!];
+      const styleA = styleIndex[currentPreset];
+      const styleB = styleIndex[nextPreset];
       const entry = morphing ? getProgram(styleA, styleB) : getProgram(styleA, styleA);
       if (!entry) return;
       // Warm the next segment's program mid-segment so switches don't hitch.

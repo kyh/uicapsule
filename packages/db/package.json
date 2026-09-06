@@ -4,7 +4,6 @@
   "private": true,
   "type": "module",
   "exports": {
-    ".": "./src/index.ts",
     "./*": "./src/*.ts"
   },
   "scripts": {
@@ -19,13 +18,10 @@
   },
   "dependencies": {
     "@libsql/client": "^0.17.4",
-    "drizzle-orm": "catalog:",
-    "next": "catalog:",
-    "react": "catalog:"
+    "drizzle-orm": "catalog:"
   },
   "devDependencies": {
     "@kyh/tsconfig": "catalog:",
-    "@types/react": "catalog:",
     "drizzle-kit": "^0.31.10",
     "typescript": "catalog:"
   }

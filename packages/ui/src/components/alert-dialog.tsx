@@ -207,8 +207,7 @@ export const alertDialog = {
 };
 
 export const GlobalAlertDialog = () => {
-  const [pendingAction, setPendingAction] = useState(false);
-  const [pendingCancel, setPendingCancel] = useState(false);
+  const [pending, setPending] = useState<"action" | "cancel" | null>(null);
   const alertState = useSyncExternalStore(
     alertDialogStore.subscribe,
     alertDialogStore.getSnapshot,
@@ -217,26 +216,27 @@ export const GlobalAlertDialog = () => {
 
   const runAndClose = async (
     onClick: (() => void | Promise<void>) | undefined,
-    setPending: (v: boolean) => void,
+    action: "action" | "cancel",
   ) => {
-    setPending(true);
+    if (pending) return;
+    setPending(action);
     try {
       await onClick?.();
     } finally {
-      setPending(false);
+      setPending(null);
       alertDialog.close();
     }
   };
 
   const onOpenChange = (open: boolean) => {
-    if (pendingAction || pendingCancel) return;
+    if (pending) return;
     if (!open) {
-      void runAndClose(alertState.cancel?.onClick, setPendingCancel);
+      void runAndClose(alertState.cancel?.onClick, "cancel");
     }
   };
 
   const onConfirm = () => {
-    void runAndClose(alertState.action?.onClick, setPendingAction);
+    void runAndClose(alertState.action?.onClick, "action");
   };
 
   return (
@@ -250,12 +250,21 @@ export const GlobalAlertDialog = () => {
         )}
         <AlertDialogFooter>
           {!alertState.action?.hidden && (
-            <Button onClick={onConfirm} loading={pendingAction}>
+            <Button
+              onClick={onConfirm}
+              loading={pending === "action"}
+              disabled={pending === "cancel"}
+            >
               {alertState.action?.label ?? "Confirm"}
             </Button>
           )}
           {!alertState.cancel?.hidden && (
-            <Button variant="secondary" onClick={() => onOpenChange(false)} loading={pendingCancel}>
+            <Button
+              variant="secondary"
+              onClick={() => onOpenChange(false)}
+              loading={pending === "cancel"}
+              disabled={pending === "action"}
+            >
               {alertState.cancel?.label ?? "Close"}
             </Button>
           )}

@@ -1,7 +1,6 @@
 "use client";
 
 import { useCallback, useMemo, useState, type Dispatch, type SetStateAction } from "react";
-import type React from "react";
 
 import type {
   BatchFilterOperations,
