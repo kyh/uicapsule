@@ -2,7 +2,7 @@
 
 import { type ComponentProps } from "react";
 import { Button } from "@repo/ui/components/button";
-import { cn } from "@repo/ui/lib/utils";
+import { cn } from "cn";
 
 export type ToolbarProps = ComponentProps<"div">;
 

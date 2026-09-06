@@ -5,7 +5,7 @@ import { useRender } from "@base-ui/react/use-render";
 import { ChevronDownIcon } from "lucide-react";
 
 import type { ItemInstance, TreeInstance } from "@headless-tree/core";
-import { cn } from "@repo/ui/lib/utils";
+import { cn } from "cn";
 
 // Feature methods only exist when the consumer enables their headless-tree feature.
 type TreeStyle = CSSProperties & Record<`--${string}`, string>;

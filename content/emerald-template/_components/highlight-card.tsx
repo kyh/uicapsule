@@ -1,7 +1,7 @@
 import { type ComponentProps, type HTMLAttributes, type MouseEvent, type ReactNode } from "react";
 import type { MotionValue } from "motion/react";
 
-import { cn } from "@repo/ui/lib/utils";
+import { cn } from "cn";
 import { motion, useMotionTemplate, useMotionValue } from "motion/react";
 
 import type { GridPatternProps } from "./grid-pattern";

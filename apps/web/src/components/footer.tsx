@@ -4,7 +4,7 @@ import type { ReactNode } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Button } from "@repo/ui/components/button";
-import { cn } from "@repo/ui/lib/utils";
+import { cn } from "cn";
 
 export const Footer = ({ className }: { className?: string }) => {
   return (

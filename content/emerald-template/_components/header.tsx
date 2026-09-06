@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { buttonVariants } from "@repo/ui/components/button";
-import { cn } from "@repo/ui/lib/utils";
+import { cn } from "cn";
 import { useScroll } from "motion/react";
 
 import { Logo } from "./logo";

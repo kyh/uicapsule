@@ -1,8 +1,5 @@
 import type { ComponentProps } from "react";
-
-function cn(...classes: (string | undefined | null | false)[]) {
-  return classes.filter(Boolean).join(" ");
-}
+import { cn } from "cn";
 
 const Feed = ({ className, ...props }: ComponentProps<"div">) => (
   <div className={cn("space-y-0", className)} {...props} />

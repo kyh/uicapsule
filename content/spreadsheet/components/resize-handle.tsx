@@ -1,7 +1,7 @@
 "use client";
 
 import { useRef, useState, type MouseEvent as ReactMouseEvent, type RefObject } from "react";
-import { cn } from "@repo/ui/lib/utils";
+import { cn } from "cn";
 
 import type { Ref } from "react";
 import { MIN_COLUMN_WIDTH } from "../lib/spreadsheet-utils";

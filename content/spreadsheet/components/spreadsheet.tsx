@@ -9,7 +9,7 @@ import {
   type ReactNode,
   type Ref,
 } from "react";
-import { cn } from "@repo/ui/lib/utils";
+import { cn } from "cn";
 import { flexRender, useTable } from "@tanstack/react-table";
 import { useVirtualizer } from "@tanstack/react-virtual";
 import { z } from "zod";

@@ -32,7 +32,7 @@ import {
 } from "@repo/ui/components/dropdown-menu";
 import { Tabs, TabsIndicator, TabsList, TabsTrigger } from "@repo/ui/components/tabs";
 import { useMediaQuery } from "@repo/ui/hooks/use-media-query";
-import { cn } from "@repo/ui/lib/utils";
+import { cn } from "cn";
 import { authClient } from "@/lib/auth-client";
 
 const menuItemIconClassName = "text-muted-foreground size-4 group-hover:text-foreground transition";

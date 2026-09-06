@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import Image from "next/image";
 import { animate, motion, useMotionValue, useReducedMotion, useTransform } from "motion/react";
-import { cn } from "@repo/ui/lib/utils";
+import { cn } from "cn";
 
 // Latch visibility so loaded media stays mounted after scrolling away.
 const useInView = (rootMargin = "200px") => {

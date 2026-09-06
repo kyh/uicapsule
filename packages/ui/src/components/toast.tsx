@@ -12,7 +12,7 @@ import {
   XIcon,
 } from "lucide-react";
 
-import { cn } from "@repo/ui/lib/utils";
+import { cn } from "cn";
 
 // Hidden toasts stay mounted so promotion into the visible stack animates.
 const MAX_VISIBLE = 3;

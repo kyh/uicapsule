@@ -1,6 +1,6 @@
 import { memo } from "react";
 import { Button } from "@repo/ui/components/button";
-import { cn } from "@repo/ui/lib/utils";
+import { cn } from "cn";
 
 import type { DataTableFilterActions } from "../filter-package";
 

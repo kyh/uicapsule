@@ -86,7 +86,7 @@ import { codeToHtml } from "shiki";
 import type { IconType } from "@icons-pack/react-simple-icons";
 import { Button } from "./button";
 import { useControllableState } from "@repo/ui/hooks/use-controllable-state";
-import { cn } from "@repo/ui/lib/utils";
+import { cn } from "cn";
 
 export type { BundledLanguage, SpecialLanguage } from "shiki";
 const filenameIconMap = {

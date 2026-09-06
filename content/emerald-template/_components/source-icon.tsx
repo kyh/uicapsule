@@ -1,5 +1,5 @@
 import { type ComponentType, type SVGProps } from "react";
-import { cn } from "@repo/ui/lib/utils";
+import { cn } from "cn";
 
 const ICON_ASSET_BASE =
   "https://zmdrwswxugswzmcokvff.supabase.co/storage/v1/object/public/uicapsule/emerald-template";

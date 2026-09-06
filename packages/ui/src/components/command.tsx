@@ -3,7 +3,7 @@
 import { type ComponentProps, type ReactNode } from "react";
 import { Command as CommandPrimitive } from "cmdk";
 
-import { cn } from "@repo/ui/lib/utils";
+import { cn } from "cn";
 import {
   Dialog,
   DialogContent,
