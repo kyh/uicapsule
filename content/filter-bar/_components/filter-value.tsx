@@ -3,9 +3,7 @@ import {
   isValidElement,
   memo,
   useCallback,
-  useEffect,
   useMemo,
-  useRef,
   useState,
   type ChangeEvent,
   type ElementType as ReactElementType,
@@ -41,223 +39,25 @@ import type {
   DataTableFilterActions,
   FilterModel,
   FilterStrategy,
-  MinMaxReturn,
 } from "../filter-package";
-import { createNumberRange, numberFilterOperators, take } from "../filter-package";
+import { createNumberRange, numberFilterOperators } from "../filter-package";
+import { useDebouncedCallback } from "./use-debounced-callback";
 
 type IconProps = { className?: string; key?: Key };
 type IconLike = ReactElement | ReactElementType;
 
 const renderIcon = (icon: IconLike, props: IconProps = {}) => {
-  if (isValidElement<IconProps>(icon)) return cloneElement(icon, props);
+  if (isValidElement(icon)) return cloneElement(icon, props);
   const IconComp = icon;
   return <IconComp {...props} />;
 };
 
-type ControlFunctions = {
-  cancel: () => void;
-  flush: () => void;
-  isPending: () => boolean;
-};
-
-export type DebouncedState<T extends (...args: any) => ReturnType<T>> = ((
-  ...args: Parameters<T>
-) => ReturnType<T> | undefined) &
-  ControlFunctions;
-
-export function useDebounceCallback<T extends (...args: any) => ReturnType<T>>(
-  func: T,
-  delay = 500,
-  options?: DebounceOptions,
-): DebouncedState<T> {
-  const debouncedFunc = useRef<ReturnType<typeof debounce>>(null);
-
-  useUnmount(() => {
-    if (debouncedFunc.current) {
-      debouncedFunc.current.cancel();
-    }
-  });
-
-  const debounced = useMemo(() => {
-    const debouncedFuncInstance = debounce(func, delay, options);
-
-    const wrappedFunc: DebouncedState<T> = (...args: Parameters<T>) => {
-      return debouncedFuncInstance(...args);
-    };
-
-    wrappedFunc.cancel = () => {
-      debouncedFuncInstance.cancel();
-    };
-
-    wrappedFunc.isPending = () => {
-      return !!debouncedFunc.current;
-    };
-
-    wrappedFunc.flush = () => {
-      return debouncedFuncInstance.flush();
-    };
-
-    return wrappedFunc;
-  }, [func, delay, options]);
-
-  // Update the debounced function ref whenever func, wait, or options change
-  useEffect(() => {
-    debouncedFunc.current = debounce(func, delay, options);
-  }, [func, delay, options]);
-
-  return debounced;
-}
-
-function useUnmount(func: () => void) {
-  const funcRef = useRef(func);
-
-  useEffect(() => {
-    funcRef.current = func;
-  }, [func]);
-
-  useEffect(
-    () => () => {
-      funcRef.current();
-    },
-    [],
-  );
-}
-
-type DebounceOptions = {
-  leading?: boolean;
-  trailing?: boolean;
-  maxWait?: number;
-};
-
-// `setTimeout` returns a number in the DOM and a Timeout object in Node; infer
-// it rather than hard-coding `NodeJS.Timeout`, which needs @types/node.
-type TimeoutHandle = ReturnType<typeof setTimeout>;
-
-function debounce<T extends (...args: any[]) => any>(
-  func: T,
-  wait: number,
-  options: DebounceOptions = {},
-): ((...args: Parameters<T>) => ReturnType<T> | undefined) & ControlFunctions {
-  const { leading = false, trailing = true, maxWait } = options;
-  let timeout: TimeoutHandle | null = null;
-  let lastArgs: Parameters<T> | null = null;
-  let lastThis: any;
-  let result: ReturnType<T> | undefined;
-  let lastCallTime: number | null = null;
-  let lastInvokeTime = 0;
-
-  const maxWaitTime = maxWait !== undefined ? Math.max(wait, maxWait) : null;
-
-  function invokeFunc(time: number): ReturnType<T> | undefined {
-    if (lastArgs === null) return undefined;
-    const args = lastArgs;
-    const thisArg = lastThis;
-    lastArgs = null;
-    lastThis = null;
-    lastInvokeTime = time;
-    result = func.apply(thisArg, args);
-    return result;
-  }
-
-  function shouldInvoke(time: number): boolean {
-    if (lastCallTime === null) return false;
-    const timeSinceLastCall = time - lastCallTime;
-    const timeSinceLastInvoke = time - lastInvokeTime;
-    return (
-      lastCallTime === null ||
-      timeSinceLastCall >= wait ||
-      timeSinceLastCall < 0 ||
-      (maxWaitTime !== null && timeSinceLastInvoke >= maxWaitTime)
-    );
-  }
-
-  function startTimer(pendingFunc: () => void, waitTime: number): TimeoutHandle {
-    return setTimeout(pendingFunc, waitTime);
-  }
-
-  function remainingWait(time: number): number {
-    if (lastCallTime === null) return wait;
-    const timeSinceLastCall = time - lastCallTime;
-    const timeSinceLastInvoke = time - lastInvokeTime;
-    const timeWaiting = wait - timeSinceLastCall;
-    return maxWaitTime !== null
-      ? Math.min(timeWaiting, maxWaitTime - timeSinceLastInvoke)
-      : timeWaiting;
-  }
-
-  function timerExpired() {
-    const time = Date.now();
-    if (shouldInvoke(time)) {
-      return trailingEdge(time);
-    }
-    timeout = startTimer(timerExpired, remainingWait(time));
-  }
-
-  function leadingEdge(time: number): ReturnType<T> | undefined {
-    lastInvokeTime = time;
-    timeout = startTimer(timerExpired, wait);
-    return leading ? invokeFunc(time) : undefined;
-  }
-
-  function trailingEdge(time: number): ReturnType<T> | undefined {
-    timeout = null;
-    if (trailing && lastArgs) {
-      return invokeFunc(time);
-    }
-    lastArgs = null;
-    lastThis = null;
-    return result;
-  }
-
-  function debounced(this: any, ...args: Parameters<T>): ReturnType<T> | undefined {
-    const time = Date.now();
-    const isInvoking = shouldInvoke(time);
-
-    lastArgs = args;
-    lastThis = this;
-    lastCallTime = time;
-
-    if (isInvoking) {
-      if (timeout === null) {
-        return leadingEdge(lastCallTime);
-      }
-      if (maxWaitTime !== null) {
-        timeout = startTimer(timerExpired, wait);
-        return invokeFunc(lastCallTime);
-      }
-    }
-    if (timeout === null) {
-      timeout = startTimer(timerExpired, wait);
-    }
-    return result;
-  }
-
-  debounced.cancel = () => {
-    if (timeout !== null) {
-      clearTimeout(timeout);
-    }
-    lastInvokeTime = 0;
-    lastArgs = null;
-    lastThis = null;
-    lastCallTime = null;
-    timeout = null;
-  };
-
-  debounced.flush = () => {
-    return timeout === null ? result : trailingEdge(Date.now());
-  };
-
-  debounced.isPending = () => {
-    return timeout !== null;
-  };
-
-  return debounced;
-}
-
 export function DebouncedInput({
   value: initialValue,
   onChange,
-  debounceMs = 500, // This is the wait time, not the function
+  debounceMs = 500,
+  onBlur,
+  onKeyDown,
   ...props
 }: {
   value: string | number;
@@ -267,27 +67,34 @@ export function DebouncedInput({
   const [value, setValue] = useState(initialValue);
   const [prevInitialValue, setPrevInitialValue] = useState(initialValue);
 
-  // Sync with initialValue when it changes
   if (prevInitialValue !== initialValue) {
     setPrevInitialValue(initialValue);
     setValue(initialValue);
   }
 
-  const debouncedOnChange = useMemo(
-    () =>
-      debounce((newValue: string | number) => {
-        onChange(newValue);
-      }, debounceMs),
-    [debounceMs, onChange],
-  );
+  const { schedule: debouncedOnChange, flush } = useDebouncedCallback(onChange, debounceMs);
 
   const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
     const newValue = e.target.value;
-    setValue(newValue); // Update local state immediately
-    debouncedOnChange(newValue); // Call debounced version
+    setValue(newValue);
+    debouncedOnChange(newValue);
   };
 
-  return <Input {...props} value={value} onChange={handleChange} />;
+  return (
+    <Input
+      {...props}
+      value={value}
+      onChange={handleChange}
+      onBlur={(event) => {
+        flush();
+        onBlur?.(event);
+      }}
+      onKeyDown={(event) => {
+        onKeyDown?.(event);
+        if (!event.defaultPrevented && (event.key === "Enter" || event.key === "Escape")) flush();
+      }}
+    />
+  );
 }
 
 interface FilterValueProps<TData, TType extends ColumnDataType> {
@@ -463,7 +270,7 @@ export function FilterValueOptionDisplay<TData>({
   return (
     <div className="inline-flex items-center gap-0.5">
       {hasOptionIcons &&
-        take(selected, 3).map(({ value, icon }) => {
+        selected.slice(0, 3).map(({ value, icon }) => {
           const Icon = icon!;
           return renderIcon(Icon, { key: value, className: "size-4" });
         })}
@@ -501,7 +308,7 @@ export function FilterValueMultiOptionDisplay<TData>({
     <div className="inline-flex items-center gap-1.5">
       {hasOptionIcons && (
         <div key="icons" className="inline-flex items-center gap-0.5">
-          {take(selected, 3).map(({ value, icon }) => {
+          {selected.slice(0, 3).map(({ value, icon }) => {
             const Icon = icon!;
             return isValidElement<IconProps>(Icon)
               ? cloneElement(Icon, { key: value })
@@ -895,46 +702,46 @@ export function FilterValueNumberController<TData>({
   const minMax = useMemo(() => column.getFacetedMinMaxValues(), [column]);
   const [sliderMin, sliderMax] = [minMax ? minMax[0] : 0, minMax ? minMax[1] : 0];
 
-  // Local state for values
   const [values, setValues] = useState(filter?.values ?? [0, 0]);
+  const [previousFilterValues, setPreviousFilterValues] = useState(filter?.values);
 
-  // Sync with parent filter changes
-  useEffect(() => {
-    if (
-      filter?.values &&
-      filter.values.length === values.length &&
-      filter.values.every((v, i) => v === values[i])
-    ) {
-      setValues(filter.values);
-    }
-  }, [filter?.values, values]);
+  if (previousFilterValues !== filter?.values) {
+    setPreviousFilterValues(filter?.values);
+    setValues(filter?.values ?? [0, 0]);
+  }
 
-  const isNumberRange =
-    // filter && values.length === 2
-    filter && numberFilterOperators[filter.operator].target === "multiple";
+  const isNumberRange = filter && numberFilterOperators[filter.operator].target === "multiple";
 
-  const setFilterOperatorDebounced = useDebounceCallback(actions.setFilterOperator, 500);
   const setNumberFilterValue = useCallback(
     (newValues: number[]) => actions.setFilterValue(column, newValues),
     [actions, column],
   );
-  const setFilterValueDebounced = useDebounceCallback(setNumberFilterValue, 500);
+  const {
+    schedule: setFilterValueDebounced,
+    cancel: cancelFilterValueUpdate,
+    flush: flushFilterValueUpdate,
+  } = useDebouncedCallback(setNumberFilterValue, 500);
 
   const changeNumber = (value: number[]) => {
+    cancelFilterValueUpdate();
     setValues(value);
-    setFilterValueDebounced(value);
+    setNumberFilterValue(value);
+  };
+
+  const changeSlider = (value: number | readonly number[]) => {
+    const nextValues = Array.isArray(value) ? [...value] : [value];
+    setValues(nextValues);
+    setFilterValueDebounced(nextValues);
   };
 
   const changeMinNumber = (value: number) => {
     const newValues = createNumberRange([value, values[1]!]);
-    setValues(newValues);
-    setFilterValueDebounced(newValues);
+    changeNumber(newValues);
   };
 
   const changeMaxNumber = (value: number) => {
     const newValues = createNumberRange([values[0]!, value]);
-    setValues(newValues);
-    setFilterValueDebounced(newValues);
+    changeNumber(newValues);
   };
 
   const changeType = useCallback(
@@ -953,22 +760,24 @@ export function FilterValueNumberController<TData>({
 
       const newOperator = type === "single" ? "is" : "is between";
 
-      // Update local state
       setValues(newValues);
 
-      // Cancel in-flight debounced calls to prevent flicker/race conditions
-      setFilterOperatorDebounced.cancel();
-      setFilterValueDebounced.cancel();
+      // Cancel the old value before changing operators.
+      cancelFilterValueUpdate();
 
-      // Update global filter state atomically
       actions.setFilterOperator(column.id, newOperator);
       actions.setFilterValue(column, newValues);
     },
-    [values, column, actions, minMax, setFilterOperatorDebounced, setFilterValueDebounced],
+    [values, column, actions, minMax, cancelFilterValueUpdate],
   );
 
   return (
-    <Command>
+    <Command
+      onBlur={flushFilterValueUpdate}
+      onKeyDown={(event) => {
+        if (event.key === "Escape") flushFilterValueUpdate();
+      }}
+    >
       <CommandList className="w-[300px] px-2 py-2">
         <CommandGroup>
           <div className="flex w-full flex-col">
@@ -984,9 +793,8 @@ export function FilterValueNumberController<TData>({
                 {minMax && (
                   <Slider
                     value={[values[0]!]}
-                    onValueChange={(value) =>
-                      changeNumber(Array.isArray(value) ? [...value] : [value])
-                    }
+                    onValueChange={changeSlider}
+                    onValueCommitted={flushFilterValueUpdate}
                     min={sliderMin}
                     max={sliderMax}
                     step={1}
@@ -998,7 +806,7 @@ export function FilterValueNumberController<TData>({
                   <DebouncedInput
                     id="single"
                     type="number"
-                    value={values[0]!.toString()} // Use values[0] directly
+                    value={values[0]!.toString()}
                     onChange={(v) => changeNumber([Number(v)])}
                   />
                 </div>
@@ -1006,10 +814,9 @@ export function FilterValueNumberController<TData>({
               <TabsContent value="range" className="mt-4 flex flex-col gap-4">
                 {minMax && (
                   <Slider
-                    value={values} // Use values directly
-                    onValueChange={(value) =>
-                      changeNumber(Array.isArray(value) ? [...value] : [value])
-                    }
+                    value={values}
+                    onValueChange={changeSlider}
+                    onValueCommitted={flushFilterValueUpdate}
                     min={sliderMin}
                     max={sliderMax}
                     step={1}

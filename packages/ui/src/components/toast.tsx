@@ -2,7 +2,7 @@
 
 import { type ComponentProps, type ReactNode } from "react";
 import { Toast as ToastPrimitive } from "@base-ui/react/toast";
-import { AnimatePresence, motion } from "motion/react";
+import { AnimatePresence, motion, type Transition } from "motion/react";
 import {
   CircleCheckIcon,
   InfoIcon,
@@ -14,22 +14,16 @@ import {
 
 import { cn } from "cn";
 
-/**
- * Toasts stack bottom-center: the newest sits in front, older ones peek out
- * behind it, each nudged up, scaled down and faded. Past MAX_VISIBLE they are
- * fully transparent but still mounted, so promoting one back into view springs
- * rather than pops.
- */
+// Hidden toasts stay mounted so promotion into the visible stack animates.
 const MAX_VISIBLE = 3;
 const STACK_OFFSET_Y = 10;
 const STACK_SCALE = 0.06;
 const STACK_OPACITY = 0.2;
 const STAGGER_INTERVAL = 0.02;
-const TOAST_SPRING = { type: "spring", stiffness: 400, damping: 30 } as const;
+const TOAST_SPRING = { type: "spring", stiffness: 400, damping: 30 } satisfies Transition;
 
 type ToastType = "default" | "success" | "error" | "warning" | "info" | "loading";
 
-/** Anything not modelled by Base UI's toast object rides along in `data`. */
 type ToastData = {
   icon?: ReactNode;
 };

@@ -1,41 +1,29 @@
-export type DefaultSize = "full" | "md" | "sm";
+import { z } from "zod";
 
-export type ContentComponentBase = {
-  slug: string;
-  type: "local" | "remote";
-  name: string;
-  description?: string;
-  defaultSize?: DefaultSize;
-  coverUrl?: string;
-  coverType?: "image" | "video";
-  category?: "marketing" | "application" | "mobile";
-  tags?: string[];
-  authors?: { name: string; url: string; avatarUrl: string }[];
-  asSeenOn?: { name: string; url: string; avatarUrl: string }[];
+const linkedPersonSchema = z.object({ name: z.string(), url: z.string(), avatarUrl: z.string() });
+const metadataFields = {
+  name: z.string(),
+  description: z.string().optional(),
+  defaultSize: z.enum(["full", "md", "sm"]).optional(),
+  coverUrl: z.string().optional(),
+  coverType: z.enum(["image", "video"]).optional(),
+  category: z.enum(["marketing", "application", "mobile"]).optional(),
+  tags: z.array(z.string()).optional(),
+  authors: z.array(linkedPersonSchema).optional(),
+  asSeenOn: z.array(linkedPersonSchema).optional(),
 };
 
+export const contentMetaSchema = z.discriminatedUnion("type", [
+  z.object({ ...metadataFields, type: z.literal("local").default("local") }),
+  z.object({
+    ...metadataFields,
+    type: z.literal("remote"),
+    iframeUrl: z.string().min(1),
+    sourceUrl: z.string().min(1),
+  }),
+]);
+
+export type ContentComponentSummary = z.infer<typeof contentMetaSchema> & { slug: string };
+export type LocalContentComponentSummary = Extract<ContentComponentSummary, { type: "local" }>;
+export type DefaultSize = NonNullable<ContentComponentSummary["defaultSize"]>;
 export type SourceFile = { path: string; code: string };
-
-export type LocalContentComponent = ContentComponentBase & {
-  type: "local";
-  sourceFiles: SourceFile[];
-};
-
-export type RemoteContentComponent = ContentComponentBase & {
-  type: "remote";
-  iframeUrl: string;
-  sourceUrl: string;
-};
-
-export type ContentComponent = LocalContentComponent | RemoteContentComponent;
-
-export type LocalContentComponentSummary = Omit<LocalContentComponent, "sourceFiles">;
-export type ContentComponentSummary = LocalContentComponentSummary | RemoteContentComponent;
-
-export const isLocalContentComponent = <T extends { type: "local" | "remote" }>(
-  component: T,
-): component is Extract<T, { type: "local" }> => component.type === "local";
-
-export const isRemoteContentComponent = <T extends { type: "local" | "remote" }>(
-  component: T,
-): component is Extract<T, { type: "remote" }> => component.type === "remote";

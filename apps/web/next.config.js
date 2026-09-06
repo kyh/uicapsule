@@ -47,16 +47,6 @@ const getRemotePatterns = () => {
   return remotePatterns;
 };
 
-const getLocalPatterns = () => {
-  const localPatterns = [
-    {
-      pathname: "/assets/**",
-    },
-  ];
-
-  return localPatterns;
-};
-
 const transpilePackages = ["@repo/api", "@repo/db", "@repo/ui", ...getContentPackages()];
 
 /** @type {import("next").NextConfig} */
@@ -65,12 +55,7 @@ const config = {
   agentRules: false,
   cacheComponents: true,
   experimental: {
-    /**
-     * Reuse client-cached page segments for dynamic routes (the filterable
-     * home grid reads searchParams) so navigating back doesn't refetch and
-     * re-show loading skeletons. Content only changes on deploy, so briefly
-     * stale segments are harmless.
-     */
+    // Avoid replaying grid skeletons on back navigation; content changes only on deploy.
     staleTimes: {
       dynamic: 180,
     },
@@ -79,9 +64,9 @@ const config = {
   transpilePackages,
   images: {
     remotePatterns: getRemotePatterns(),
-    localPatterns: getLocalPatterns(),
+    localPatterns: [{ pathname: "/assets/**" }],
   },
-  /** We already do linting and typechecking as separate tasks in CI */
+  // Typecheck runs separately in pnpm verify.
   typescript: { ignoreBuildErrors: true },
 };
 

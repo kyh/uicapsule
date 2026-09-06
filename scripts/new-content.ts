@@ -1,13 +1,4 @@
 #!/usr/bin/env tsx
-/**
- * Scaffolds a new content component:
- *   1. Creates content/<slug>/ with meta.json, package.json, preview.tsx, <slug>.tsx
- *   2. Runs pnpm install to link the workspace package
- *
- * Everything else (the content index, next.config.js transpilePackages, the
- * shadcn registry, the preview iframe) discovers components from the content/
- * directory at runtime — the web app never depends on content packages by name.
- */
 import { execSync } from "node:child_process";
 import { existsSync } from "node:fs";
 import { mkdir, rm, writeFile } from "node:fs/promises";
@@ -20,21 +11,6 @@ const repoRoot = resolve(fileURLToPath(new URL(".", import.meta.url)), "..");
 const contentRoot = join(repoRoot, "content");
 
 const SLUG_RE = /^[a-z][a-z0-9]*(-[a-z0-9]+)*$/;
-
-const toPascalCase = (slug: string) =>
-  slug
-    .split("-")
-    .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
-    .join("");
-
-const toTitleCase = (slug: string) =>
-  slug
-    .split("-")
-    .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
-    .join(" ");
-
-const metaJson = (name: string, description: string) =>
-  JSON.stringify({ name, description, tags: [] }, null, 2) + "\n";
 
 const packageJson = (slug: string) =>
   JSON.stringify(
@@ -119,15 +95,23 @@ const main = defineCommand({
       process.exit(1);
     }
 
-    const displayName = args.name ?? toTitleCase(slug);
-    const componentName = toPascalCase(slug);
+    const words = slug.split("-").map((part) => part.charAt(0).toUpperCase() + part.slice(1));
+    const displayName = args.name ?? words.join(" ");
+    const componentName = words.join("");
 
     consola.start(`Scaffolding content/${slug}`);
 
     try {
       await mkdir(dir, { recursive: true });
       await Promise.all([
-        writeFile(join(dir, "meta.json"), metaJson(displayName, args.description ?? "")),
+        writeFile(
+          join(dir, "meta.json"),
+          JSON.stringify(
+            { name: displayName, description: args.description ?? "", tags: [] },
+            null,
+            2,
+          ) + "\n",
+        ),
         writeFile(join(dir, "package.json"), packageJson(slug)),
         writeFile(join(dir, "preview.tsx"), previewTsx(slug, componentName)),
         writeFile(join(dir, `${slug}.tsx`), componentTsx(componentName, displayName)),
@@ -141,7 +125,6 @@ const main = defineCommand({
         consola.info("Skipped pnpm install (--no-install)");
       }
     } catch (error) {
-      // Roll back the partial scaffold so the command can simply be re-run
       await rm(dir, { recursive: true, force: true });
       consola.error(`Failed — rolled back content/${slug}.`);
       throw error;

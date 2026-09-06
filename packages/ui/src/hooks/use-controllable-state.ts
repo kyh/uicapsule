@@ -14,26 +14,24 @@ export const useControllableState = <T>({
   defaultProp,
   onChange,
 }: UseControllableStateParams<T>): [T, SetValue<T>] => {
-  const [uncontrolled, setUncontrolled] = useState(defaultProp);
+  const [uncontrolled, setUncontrolled] = useState(() => defaultProp);
   const isControlled = prop !== undefined;
   const value = isControlled ? prop : uncontrolled;
-  const currentRef = useRef({ prop, onChange });
+  const currentRef = useRef({ value, isControlled, onChange });
 
   useLayoutEffect(() => {
-    currentRef.current = { prop, onChange };
-  }, [onChange, prop]);
+    currentRef.current = { value, isControlled, onChange };
+  }, [value, isControlled, onChange]);
 
   const setValue = useCallback((next: T) => {
     const current = currentRef.current;
-    if (current.prop !== undefined) {
-      if (next !== current.prop) current.onChange?.(next);
-      return;
-    }
+    if (Object.is(next, current.value)) return;
 
-    setUncontrolled((previous) => {
-      if (next !== previous) current.onChange?.(next);
-      return next;
-    });
+    if (!current.isControlled) {
+      current.value = next;
+      setUncontrolled(() => next);
+    }
+    current.onChange?.(next);
   }, []);
 
   return [value, setValue];

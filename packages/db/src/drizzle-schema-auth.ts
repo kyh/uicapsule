@@ -41,9 +41,7 @@ export const account = sqliteTable(
   "account",
   {
     id: text("id").primaryKey(),
-    // Account identity is scoped by (issuer, accountId) since better-auth 1.7:
-    // credential accounts use "local:credential", OAuth providers without a real
-    // issuer use "local:oauth:<providerId>".
+    // better-auth scopes account identity by (issuer, accountId), including credentials.
     issuer: text("issuer").notNull(),
     accountId: text("account_id").notNull(),
     providerId: text("provider_id").notNull(),
@@ -92,10 +90,7 @@ export const verification = sqliteTable(
   (table) => [index("verification_identifier_idx").on(table.identifier)],
 );
 
-// better-auth's database rate-limit store (rateLimit.storage = "database" in
-// auth.ts). Keyed by IP+path; `key` is unique so the counter upsert is a single
-// indexed lookup. Hand-added — the CLI regen (generate:auth-schema) emits this
-// table too, so re-check it after regenerating.
+// Shared auth rate-limit counters, keyed by IP and request path.
 export const rateLimit = sqliteTable("rate_limit", {
   id: text("id").primaryKey(),
   key: text("key").notNull().unique(),

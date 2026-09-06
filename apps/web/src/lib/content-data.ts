@@ -1,39 +1,23 @@
 import { cacheLife } from "next/cache";
 
 import { isUnlisted, unlistedTags } from "./content/content-categories";
-import { buildShadcnRegistryItem, readContentBySlug, readContentIndex } from "./content/content-fs";
-import { isLocalContentComponent } from "./content/content-schema";
+import {
+  buildShadcnRegistryItem,
+  readContentBySlug,
+  readContentIndex,
+  readSourceFiles,
+} from "./content/content-fs";
 
-import type {
-  ContentComponent,
-  ContentComponentSummary,
-  SourceFile,
-} from "./content/content-schema";
+import type { ContentComponentSummary, SourceFile } from "./content/content-schema";
 
-// Content ships with the deployment and only changes on redeploy. `use cache`
-// keys include the build ID, so "max" can never serve a previous deploy's
-// content — it just avoids re-reading the content tree on every request.
-
-const toSummary = (component: ContentComponent): ContentComponentSummary => {
-  if (component.type === "remote") return component;
-  const { sourceFiles: _sourceFiles, ...summary } = component;
-  return summary;
-};
-
-/** Every component, unlisted ones included. Routing and packaging surfaces use
- * this — an unlisted component is hidden, not absent. */
+// Content changes only on deploy; cache keys include the build ID.
 export const getAllContent = async (): Promise<ContentComponentSummary[]> => {
   "use cache";
   cacheLife("max");
-  const all = await readContentIndex();
-  return all.map(toSummary);
+  return readContentIndex();
 };
 
-/**
- * The scroll feed for `/ui/<slug>`. Unlisted components aren't part of it, but
- * deep-linking one splices it in at the front so the URL still resolves and
- * scrolling carries on into the listed content.
- */
+// Deep-linked unlisted entries lead the otherwise listed feed.
 export const getFeedList = async (initialSlug?: string): Promise<ContentComponentSummary[]> => {
   "use cache";
   cacheLife("max");
@@ -56,9 +40,7 @@ export const getContentList = async (filterTags: string[]): Promise<ContentCompo
     return all.filter((component) => !isUnlisted(component.tags));
   }
 
-  // Filters are OR'd, so an unlisted component would otherwise leak in through
-  // any tag it happens to share with listed content. It surfaces only when an
-  // unlisted tag is one of the things actually being asked for.
+  // OR filters reveal unlisted content only when its unlisted tag is requested.
   const revealsUnlisted = normalizedFilters.some((filter) => unlistedTags.has(filter));
 
   return all.filter((component) => {
@@ -93,14 +75,14 @@ export const getSourceFiles = async (slug: string): Promise<SourceFile[] | null>
   "use cache";
   cacheLife("max");
   const component = await readContentBySlug(slug);
-  if (!component || !isLocalContentComponent(component)) return null;
-  return component.sourceFiles;
+  if (!component || component.type !== "local") return null;
+  return readSourceFiles(component);
 };
 
 export const getShadcnRegistry = async () => {
   "use cache";
   cacheLife("max");
-  const locals = (await readContentIndex()).filter(isLocalContentComponent);
+  const locals = (await readContentIndex()).filter((component) => component.type === "local");
 
   const items = await Promise.all(
     locals.map(async (component) => {
@@ -124,6 +106,6 @@ export const getShadcnRegistryItem = async (slug: string) => {
   "use cache";
   cacheLife("max");
   const component = await readContentBySlug(slug);
-  if (!component || !isLocalContentComponent(component)) return null;
+  if (!component || component.type !== "local") return null;
   return buildShadcnRegistryItem(component);
 };

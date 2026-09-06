@@ -1220,12 +1220,6 @@ importers:
       '@types/node':
         specifier: ^26.4.0
         version: 26.4.0
-      '@types/react':
-        specifier: 'catalog:'
-        version: 19.2.18
-      '@types/react-dom':
-        specifier: 'catalog:'
-        version: 19.2.5(@types/react@19.2.18)
       drizzle-orm:
         specifier: 'catalog:'
         version: 0.45.2(@libsql/client@0.17.4)(kysely@0.29.5)
@@ -1244,19 +1238,10 @@ importers:
       drizzle-orm:
         specifier: 'catalog:'
         version: 0.45.2(@libsql/client@0.17.4)(kysely@0.29.5)
-      next:
-        specifier: 'catalog:'
-        version: 16.3.3(@babel/core@7.29.7)(@types/node@26.4.0)(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
-      react:
-        specifier: 'catalog:'
-        version: 19.2.8
     devDependencies:
       '@kyh/tsconfig':
         specifier: 'catalog:'
         version: 1.2.0
-      '@types/react':
-        specifier: 'catalog:'
-        version: 19.2.18
       drizzle-kit:
         specifier: ^0.31.10
         version: 0.31.10

@@ -1,6 +1,5 @@
 "use client";
 
-import { isLocalContentComponent } from "@/lib/content/content-schema";
 import { Avatar, AvatarFallback, AvatarImage } from "@repo/ui/components/avatar";
 import { Badge } from "@repo/ui/components/badge";
 import { Button, buttonVariants } from "@repo/ui/components/button";
@@ -17,7 +16,6 @@ import { toast } from "@repo/ui/components/toast";
 import { useMediaQuery } from "@repo/ui/hooks/use-media-query";
 import { cn } from "cn";
 import { queryOptions, useQueryClient, useSuspenseQuery } from "@tanstack/react-query";
-import JSZip from "jszip";
 import { z } from "zod";
 import {
   CheckIcon,
@@ -31,7 +29,9 @@ import { AnimatePresence, motion } from "motion/react";
 import { Suspense, useEffect, useRef, useState } from "react";
 
 import type { ContentComponentSummary, SourceFile } from "@/lib/content/content-schema";
-import { CodePreview } from "./code-preview";
+import dynamic from "next/dynamic";
+
+const CodePreview = dynamic(() => import("./code-preview").then((module) => module.CodePreview));
 
 const FLOATING_BUTTON_CLASS = "size-9 rounded-full shadow-sm";
 const SECTION_CLASS = "-mx-3 flex flex-col gap-2.5 border-t px-3 pt-3 pb-1";
@@ -65,14 +65,14 @@ const Aside = ({ contentComponent }: AsideProps) => {
   const copiedTimerRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
 
   useEffect(() => {
-    if (!isLocalContentComponent(contentComponent)) return;
+    if (contentComponent.type !== "local") return;
     void queryClient.prefetchQuery(sourceFilesQuery(contentComponent.slug));
   }, [contentComponent, queryClient]);
 
   useEffect(() => () => clearTimeout(copiedTimerRef.current), []);
 
   const handleInstallClick = async () => {
-    if (!isLocalContentComponent(contentComponent) || copied) return;
+    if (contentComponent.type !== "local" || copied) return;
 
     const command = `npx shadcn@latest add @uicapsule/${contentComponent.slug}`;
 
@@ -97,7 +97,7 @@ const Aside = ({ contentComponent }: AsideProps) => {
   };
 
   const handleDownloadClick = async () => {
-    if (!isLocalContentComponent(contentComponent)) return;
+    if (contentComponent.type !== "local") return;
 
     const toastId = toast.loading("Download started", {
       icon: <DownloadIcon className="size-4" />,
@@ -106,6 +106,7 @@ const Aside = ({ contentComponent }: AsideProps) => {
     try {
       const sourceFiles = await queryClient.fetchQuery(sourceFilesQuery(contentComponent.slug));
 
+      const { default: JSZip } = await import("jszip");
       const zip = new JSZip();
       for (const { path, code } of sourceFiles) {
         const cleanPath = path.startsWith("/") ? path.slice(1) : path;
@@ -143,7 +144,7 @@ const Aside = ({ contentComponent }: AsideProps) => {
       {contentComponent.description && (
         <p className="text-muted-foreground text-sm">{contentComponent.description}</p>
       )}
-      {isLocalContentComponent(contentComponent) ? (
+      {contentComponent.type === "local" ? (
         <Drawer>
           <div className="flex flex-col gap-1.5">
             <div className="flex rounded-full shadow-xs">
@@ -281,7 +282,7 @@ const Aside = ({ contentComponent }: AsideProps) => {
             {contentComponent.authors.map((author) => (
               <a href={author.url} key={author.name} target="_blank">
                 <Avatar>
-                  <AvatarImage src={author.url} />
+                  <AvatarImage src={author.avatarUrl} alt={author.name} />
                   <AvatarFallback>{author.name.charAt(0)}</AvatarFallback>
                 </Avatar>
               </a>
@@ -295,7 +296,7 @@ const Aside = ({ contentComponent }: AsideProps) => {
 
 const SourceCodePreview = ({ slug }: { slug: string }) => {
   const { data: sourceFiles } = useSuspenseQuery(sourceFilesQuery(slug));
-  return <CodePreview sourceFiles={sourceFiles} />;
+  return <CodePreview key={slug} sourceFiles={sourceFiles} />;
 };
 
 export const ResponsiveAside = ({ contentComponent, onPrev, onNext }: ResponsiveAsideProps) => {
@@ -338,7 +339,7 @@ export const ResponsiveAside = ({ contentComponent, onPrev, onNext }: Responsive
           <DrawerDescription>Component details</DrawerDescription>
         </DrawerHeader>
         <div className={cn(isDesktop ? "h-full [&_[data-slot=card]]:h-full" : "pt-5")}>
-          <Aside contentComponent={contentComponent} />
+          <Aside key={contentComponent.slug} contentComponent={contentComponent} />
         </div>
       </DrawerContent>
     </Drawer>

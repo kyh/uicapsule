@@ -10,16 +10,12 @@ import {
   useState,
   type Ref,
 } from "react";
-import { isRemoteContentComponent } from "@/lib/content/content-schema";
 
 import type { ContentComponentSummary, DefaultSize } from "@/lib/content/content-schema";
 import { MediaReveal } from "@/components/media-reveal";
 import { ResponsiveAside } from "./aside";
 
-const WIDTH_BY_SIZE = { sm: 360, md: 720, full: 1392 } as const satisfies Record<
-  DefaultSize,
-  number
->;
+const WIDTH_BY_SIZE = { sm: 360, md: 720, full: 1392 } satisfies Record<DefaultSize, number>;
 
 const KEY_DELTA = new Map<string, 1 | -1>([
   ["ArrowDown", 1],
@@ -56,10 +52,7 @@ export const ContentFeed = ({ initialSlug, feed }: ContentFeedProps) => {
     container.scrollTop = target.offsetTop;
   }, [initialIndex]);
 
-  // The active item is found by observation rather than by reading scrollTop on every
-  // scroll frame — those reads force layout, on the one interaction that has to stay
-  // smooth. Items are full-height snap panes, so at a 0.6 threshold exactly one can
-  // ever be intersecting.
+  // Full-height snap panes ensure only one crosses the 0.6 threshold.
   useEffect(() => {
     const container = containerRef.current;
     if (!container) return;
@@ -70,7 +63,7 @@ export const ContentFeed = ({ initialSlug, feed }: ContentFeedProps) => {
           if (!entry.isIntersecting) continue;
           const index = itemRefs.current.findIndex((item) => item === entry.target);
           if (index === -1) continue;
-          setActiveIndex((prev) => (prev === index ? prev : index));
+          setActiveIndex(index);
         }
       },
       { root: container, threshold: 0.6 },
@@ -162,13 +155,8 @@ export const ContentFeed = ({ initialSlug, feed }: ContentFeedProps) => {
           />
         ))}
       </div>
-      {/* Scroll the deep-linked item into place while the static HTML is
-          parsing, before first paint — otherwise the page flashes item 0
-          until hydration runs the layout effect above. The script is wrapped
-          in a hidden div via dangerouslySetInnerHTML because React never
-          executes <script> elements it renders on the client (and warns about
-          them); the browser's HTML parser executes this one on initial load,
-          and client-side navigations are handled by the layout effect. */}
+      {/* Align deep links before first paint. HTML parsing runs this script;
+          client navigation uses the layout effect because React-created scripts don't run. */}
       <div
         hidden
         dangerouslySetInnerHTML={{
@@ -198,16 +186,13 @@ const FeedItem = memo(function FeedItem({
   shouldRender,
   keepMounted,
 }: FeedItemProps) {
-  // Latch once an iframe has rendered so scrolling away one extra item
-  // (shouldRender false, keepMounted true) doesn't unload it — otherwise
-  // scrolling back would reload the preview from scratch.
+  // Keep visited neighbors mounted so scrolling back preserves preview state.
   const [everRendered, setEverRendered] = useState(shouldRender);
   if (shouldRender && !everRendered) setEverRendered(true);
   const mountIframe = shouldRender || (everRendered && keepMounted);
 
-  const src = isRemoteContentComponent(component)
-    ? component.iframeUrl
-    : `/preview-frame/${component.slug}`;
+  const src =
+    component.type === "remote" ? component.iframeUrl : `/preview-frame/${component.slug}`;
 
   const width = WIDTH_BY_SIZE[component.defaultSize ?? "md"];
 

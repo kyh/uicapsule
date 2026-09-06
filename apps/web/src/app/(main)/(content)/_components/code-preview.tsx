@@ -32,12 +32,10 @@ import type { SourceFile } from "@/lib/content/content-schema";
 const ROOT_ID = ".";
 const INDENT = 20;
 
-type Item = {
-  name: string;
-  path: string;
-  isFolder: boolean;
-  children?: string[];
-};
+type Item = { name: string; path: string } & (
+  | { isFolder: true; children: string[] }
+  | { isFolder: false }
+);
 
 const extensionToLanguageMap = {
   tsx: "tsx",
@@ -89,16 +87,12 @@ function getFileIcon(extension: string | undefined, className: string): ReactNod
   }
 }
 
-// Convert sourceCode record into a tree structure
-const buildFileTree = (files: Record<string, { code: string }>) => {
+const buildFileTree = (files: SourceFile[]) => {
   const tree: Record<string, Item> = {};
   const rootChildren = new Set<string>();
 
-  // Process each file path
-  for (const filePath of Object.keys(files)) {
-    // Normalize path: remove leading slash and split into parts
-    const normalizedPath = filePath.startsWith("/") ? filePath.slice(1) : filePath;
-    const parts = normalizedPath.split("/").filter(Boolean);
+  for (const { path } of files) {
+    const parts = path.split("/").filter(Boolean);
 
     if (parts.length === 0) continue;
 
@@ -111,25 +105,19 @@ const buildFileTree = (files: Record<string, { code: string }>) => {
       const currentPath = parentPath ? `${parentPath}/${part}` : part;
       const isFile = i === parts.length - 1;
 
-      // Create node if it doesn't exist
       if (!(currentPath in tree)) {
-        tree[currentPath] = {
-          name: part,
-          path: currentPath,
-          isFolder: !isFile,
-          children: !isFile ? [] : undefined,
-        };
+        tree[currentPath] = isFile
+          ? { name: part, path: currentPath, isFolder: false }
+          : { name: part, path: currentPath, isFolder: true, children: [] };
 
-        // Track root-level items
         if (!parentPath) {
           rootChildren.add(currentPath);
         }
       }
 
-      // Add to parent's children if parent exists
       if (parentPath) {
         const parent = tree[parentPath];
-        if (parent?.children) {
+        if (parent?.isFolder) {
           const children = parent.children;
           if (!children.includes(currentPath)) {
             children.push(currentPath);
@@ -141,7 +129,6 @@ const buildFileTree = (files: Record<string, { code: string }>) => {
     }
   }
 
-  // Create root node
   tree["."] = {
     name: "root",
     path: ".",
@@ -158,17 +145,12 @@ type CodePreviewProps = {
 
 export const CodePreview = ({ sourceFiles }: CodePreviewProps) => {
   const { containerRef, handleMouseDown } = useResizableSidebar();
-  const defaultPath = sourceFiles[0]?.path ?? "";
-  const [selectedPath, setSelectedPath] = useState(defaultPath);
-
-  const allFiles = useMemo(() => {
-    const map: Record<string, { code: string }> = {};
-    for (const file of sourceFiles) {
-      map[file.path] = { code: file.code };
-    }
-    return map;
-  }, [sourceFiles]);
-  const items = useMemo(() => buildFileTree(allFiles), [allFiles]);
+  const files = useMemo(
+    () => sourceFiles.map((file) => ({ ...file, path: file.path.replace(/^\/+/, "") })),
+    [sourceFiles],
+  );
+  const [selectedPath, setSelectedPath] = useState(files[0]?.path ?? "");
+  const items = useMemo(() => buildFileTree(files), [files]);
 
   const tree = useTree<Item>({
     indent: INDENT,
@@ -183,37 +165,23 @@ export const CodePreview = ({ sourceFiles }: CodePreviewProps) => {
           isFolder: true,
           children: [],
         },
-      getChildren: (itemId) => items[itemId]?.children ?? [],
+      getChildren: (itemId) => {
+        const item = items[itemId];
+        return item?.isFolder ? item.children : [];
+      },
     },
     features: [syncDataLoaderFeature, hotkeysCoreFeature],
   });
 
-  const handleItemClick = (item: Item) => {
-    if (!item.isFolder) {
-      setSelectedPath(item.path);
-    }
-  };
-
-  const selectedCode = useMemo(() => {
-    if (!selectedPath) return "";
-    return (
-      allFiles[selectedPath]?.code ??
-      allFiles[`/${selectedPath}`]?.code ??
-      allFiles[selectedPath.replace(/^\//, "")]?.code ??
-      ""
-    );
-  }, [selectedPath, allFiles]);
-
-  const codeLanguage = useMemo<BundledLanguage | SpecialLanguage>(
-    () => (selectedPath ? getLanguageFromPath(selectedPath) : "tsx"),
-    [selectedPath],
-  );
+  const selectedFile = files.find((file) => file.path === selectedPath) ?? files[0];
+  const selectedCode = selectedFile?.code ?? "";
+  const codeLanguage = getLanguageFromPath(selectedFile?.path ?? "");
 
   return (
     <div
       ref={containerRef}
       className="mt-4 flex h-[90dvh] flex-col border-t md:grid"
-      style={{ gridTemplateColumns: "var(--sidebar-width, 280px) 1fr" }}
+      style={{ gridTemplateColumns: "var(--sidebar-width, 240px) 1fr" }}
     >
       <div className="relative hidden md:flex">
         <Tree className="flex-1 overflow-auto border-r" indent={INDENT} tree={tree}>
@@ -228,7 +196,9 @@ export const CodePreview = ({ sourceFiles }: CodePreviewProps) => {
                     "rounded-none py-1",
                     selectedPath === itemData.path && "text-primary",
                   )}
-                  onClick={() => handleItemClick(itemData)}
+                  onClick={() => {
+                    if (!itemData.isFolder) setSelectedPath(itemData.path);
+                  }}
                 >
                   <span className="flex items-center gap-2 truncate">
                     {!item.isFolder() &&
@@ -249,7 +219,7 @@ export const CodePreview = ({ sourceFiles }: CodePreviewProps) => {
         />
       </div>
       <div className="flex overflow-x-auto border-b md:hidden">
-        {Object.keys(allFiles).map((path) => (
+        {files.map(({ path }) => (
           <Button
             className={cn("shrink-0", selectedPath === path && "text-primary")}
             variant="ghost"
@@ -284,36 +254,15 @@ export const CodePreview = ({ sourceFiles }: CodePreviewProps) => {
   );
 };
 
-type UseResizableSidebarOptions = {
-  defaultWidth?: number;
-  minWidth?: number;
-  maxWidth?: number;
-};
-
-/**
- * Drives the sidebar width through --sidebar-width, set on the grid element itself rather
- * than on :root — an unregistered variable on the document root cascades to every node, so
- * each mousemove would recalculate styles for the whole page. The variable is registered in
- * globals.css with `inherits: false` for the same reason, and writes are batched through
- * Motion's frame loop so a burst of mousemoves collapses into one write per frame.
- */
-export const useResizableSidebar = ({
-  defaultWidth = 240,
-  minWidth = 100,
-  maxWidth = 300,
-}: UseResizableSidebarOptions = {}) => {
+// Keep width local to the grid; updating :root would restyle the whole page during a drag.
+const useResizableSidebar = () => {
   const containerRef = useRef<HTMLDivElement>(null);
-  const startXRef = useRef<number>(0);
-  const startWidthRef = useRef<number>(defaultWidth);
-  const widthRef = useRef<number>(defaultWidth);
-  const isResizingRef = useRef<boolean>(false);
+  const dragRef = useRef<{ startX: number; startWidth: number } | null>(null);
+  const widthRef = useRef(240);
 
   const handleMouseDown = (e: ReactMouseEvent) => {
     e.preventDefault();
-    isResizingRef.current = true;
-    startXRef.current = e.clientX;
-    // Tracked in a ref, so the drag never has to read layout back out of the DOM.
-    startWidthRef.current = widthRef.current;
+    dragRef.current = { startX: e.clientX, startWidth: widthRef.current };
     document.body.style.cursor = "col-resize";
     document.body.style.userSelect = "none";
   };
@@ -322,10 +271,9 @@ export const useResizableSidebar = ({
     containerRef.current?.style.setProperty("--sidebar-width", `${widthRef.current}px`);
 
     const handleMouseMove = (e: MouseEvent) => {
-      if (!isResizingRef.current) return;
-
-      const deltaX = e.clientX - startXRef.current;
-      widthRef.current = Math.min(Math.max(startWidthRef.current + deltaX, minWidth), maxWidth);
+      const drag = dragRef.current;
+      if (!drag) return;
+      widthRef.current = Math.min(Math.max(drag.startWidth + e.clientX - drag.startX, 100), 300);
 
       frame.update(() => {
         containerRef.current?.style.setProperty("--sidebar-width", `${widthRef.current}px`);
@@ -333,8 +281,8 @@ export const useResizableSidebar = ({
     };
 
     const handleMouseUp = () => {
-      if (!isResizingRef.current) return;
-      isResizingRef.current = false;
+      if (!dragRef.current) return;
+      dragRef.current = null;
       document.body.style.cursor = "";
       document.body.style.userSelect = "";
     };
@@ -348,7 +296,7 @@ export const useResizableSidebar = ({
       document.body.style.cursor = "";
       document.body.style.userSelect = "";
     };
-  }, [minWidth, maxWidth]);
+  }, []);
 
   return {
     containerRef,

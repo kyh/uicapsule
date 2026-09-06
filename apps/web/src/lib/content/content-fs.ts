@@ -1,39 +1,17 @@
-import { readdir, readFile } from "node:fs/promises";
+import { readdir, readFile, stat } from "node:fs/promises";
 import { join, relative, resolve } from "node:path";
 import { cache } from "react";
 import { z } from "zod";
 
+import { contentMetaSchema } from "./content-schema";
+
 import type {
-  ContentComponent,
-  ContentComponentBase,
-  LocalContentComponent,
-  RemoteContentComponent,
+  ContentComponentSummary,
+  LocalContentComponentSummary,
+  SourceFile,
 } from "./content-schema";
 
 const contentRoot = resolve(process.cwd(), "..", "..", "content");
-
-type RawMeta = Omit<ContentComponentBase, "slug" | "type"> & {
-  type?: "local" | "remote";
-  iframeUrl?: string;
-  sourceUrl?: string;
-};
-
-const linkedPersonSchema = z.object({ name: z.string(), url: z.string(), avatarUrl: z.string() });
-
-const rawMetaSchema: z.ZodType<RawMeta> = z.object({
-  type: z.enum(["local", "remote"]).optional(),
-  name: z.string(),
-  description: z.string().optional(),
-  defaultSize: z.enum(["full", "md", "sm"]).optional(),
-  coverUrl: z.string().optional(),
-  coverType: z.enum(["image", "video"]).optional(),
-  category: z.enum(["marketing", "application", "mobile"]).optional(),
-  tags: z.array(z.string()).optional(),
-  authors: z.array(linkedPersonSchema).optional(),
-  asSeenOn: z.array(linkedPersonSchema).optional(),
-  iframeUrl: z.string().optional(),
-  sourceUrl: z.string().optional(),
-});
 
 const IGNORED_SOURCE_SEGMENTS = new Set(["node_modules", "dist", ".turbo", ".cache"]);
 const SOURCE_FILE_EXTENSIONS = new Set([
@@ -57,12 +35,14 @@ const readJson = async <T>(path: string, schema: z.ZodType<T>): Promise<T | null
   }
 };
 
-const readSourceFiles = async (slug: string): Promise<{ path: string; code: string }[]> => {
-  const root = join(contentRoot, slug);
-  const files: { path: string; code: string }[] = [];
+export const readSourceFiles = async (
+  component: LocalContentComponentSummary,
+): Promise<SourceFile[]> => {
+  const root = join(contentRoot, component.slug);
+  const files: SourceFile[] = [];
 
   const walk = async (dir: string) => {
-    const entries = await readdir(dir, { withFileTypes: true }).catch(() => []);
+    const entries = await readdir(dir, { withFileTypes: true });
     await Promise.all(
       entries.map(async (entry) => {
         if (IGNORED_SOURCE_SEGMENTS.has(entry.name)) return;
@@ -86,90 +66,47 @@ const readSourceFiles = async (slug: string): Promise<{ path: string; code: stri
   return files;
 };
 
-const buildComponent = async (slug: string, meta: RawMeta): Promise<ContentComponent | null> => {
-  const base: ContentComponentBase = {
-    slug,
-    type: meta.type === "remote" ? "remote" : "local",
-    name: meta.name,
-    description: meta.description,
-    defaultSize: meta.defaultSize,
-    coverUrl: meta.coverUrl,
-    coverType: meta.coverType,
-    category: meta.category,
-    tags: meta.tags,
-    authors: meta.authors,
-    asSeenOn: meta.asSeenOn,
-  };
-
-  if (meta.type === "remote") {
-    if (!meta.iframeUrl || !meta.sourceUrl) return null;
-    return {
-      ...base,
-      type: "remote",
-      iframeUrl: meta.iframeUrl,
-      sourceUrl: meta.sourceUrl,
-    } satisfies RemoteContentComponent;
-  }
-
-  const sourceFiles = await readSourceFiles(slug);
-  if (!sourceFiles.some((f) => f.path === "/preview.tsx")) return null;
-
-  return {
-    ...base,
-    type: "local",
-    sourceFiles,
-  } satisfies LocalContentComponent;
-};
-
-export const readContentIndex = cache(async (): Promise<ContentComponent[]> => {
-  const entries = await readdir(contentRoot, { withFileTypes: true }).catch(() => []);
+export const readContentIndex = cache(async (): Promise<ContentComponentSummary[]> => {
+  const entries = await readdir(contentRoot, { withFileTypes: true });
   const slugs = entries
     .filter((entry) => entry.isDirectory() && !entry.name.startsWith("."))
     .map((entry) => entry.name)
     .sort();
 
-  const built = await Promise.all(
-    slugs.map(async (slug) => {
-      const meta = await readJson(join(contentRoot, slug, "meta.json"), rawMetaSchema);
+  const components = await Promise.all(
+    slugs.map(async (slug): Promise<ContentComponentSummary | null> => {
+      const meta = await readJson(join(contentRoot, slug, "meta.json"), contentMetaSchema);
       if (!meta) return null;
-      return buildComponent(slug, meta);
+      if (meta.type === "local") {
+        const preview = await stat(join(contentRoot, slug, "preview.tsx")).catch(() => null);
+        if (!preview?.isFile()) return null;
+      }
+      return { ...meta, slug };
     }),
   );
 
-  const components = built.filter((c): c is ContentComponent => c !== null);
-
-  return components;
+  return components.filter((component) => component !== null);
 });
 
-export const readContentBySlug = cache(async (slug: string): Promise<ContentComponent | null> => {
+export const readContentBySlug = async (slug: string): Promise<ContentComponentSummary | null> => {
   const all = await readContentIndex();
   return all.find((component) => component.slug === slug) ?? null;
-});
-
-type ContentPackageJson = {
-  dependencies?: Record<string, string>;
-  devDependencies?: Record<string, string>;
 };
 
-const contentPackageJsonSchema: z.ZodType<ContentPackageJson> = z.object({
+const contentPackageJsonSchema = z.object({
   dependencies: z.record(z.string(), z.string()).optional(),
   devDependencies: z.record(z.string(), z.string()).optional(),
 });
 
-const readContentPackageJson = cache(async (slug: string): Promise<ContentPackageJson> => {
-  return (await readJson(join(contentRoot, slug, "package.json"), contentPackageJsonSchema)) ?? {};
-});
-
-export const buildShadcnRegistryItem = async (component: LocalContentComponent) => {
-  const pkg = await readContentPackageJson(component.slug);
-  const dependencyKeys = Object.keys(pkg.dependencies ?? {});
-  const devDependencyKeys = Object.keys(pkg.devDependencies ?? {});
-
-  const repoScoped = dependencyKeys.filter((dep) => dep.startsWith("@repo"));
-  const dependencies = dependencyKeys.filter(
-    (dep) => !["react", "react-dom", ...repoScoped].includes(dep),
+export const buildShadcnRegistryItem = async (component: LocalContentComponentSummary) => {
+  const [pkg, sourceFiles] = await Promise.all([
+    readJson(join(contentRoot, component.slug, "package.json"), contentPackageJsonSchema),
+    readSourceFiles(component),
+  ]);
+  const dependencies = Object.keys(pkg?.dependencies ?? {}).filter(
+    (dep) => dep !== "react" && dep !== "react-dom" && !dep.startsWith("@repo/"),
   );
-  const devDependencies = devDependencyKeys.filter(
+  const devDependencies = Object.keys(pkg?.devDependencies ?? {}).filter(
     (dep) => !["@types/react", "@types/react-dom", "typescript"].includes(dep),
   );
 
@@ -182,7 +119,7 @@ export const buildShadcnRegistryItem = async (component: LocalContentComponent) 
     dependencies,
     devDependencies,
     registryDependencies: [],
-    files: component.sourceFiles.map(({ path, code }) => ({
+    files: sourceFiles.map(({ path, code }) => ({
       type: "registry:file" as const,
       path,
       content: code,

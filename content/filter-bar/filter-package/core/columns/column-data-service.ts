@@ -137,7 +137,6 @@ export class ColumnDataService<TData> {
           .filter((v): v is NonNullable<TVal> => v !== undefined && v !== null) as ElementType<
           NonNullable<TVal>
         >[],
-      { key: `accessor-${column.id}` },
     );
 
     const raw = memoizedAccessor();
@@ -162,7 +161,6 @@ export class ColumnDataService<TData> {
         () => [raw],
         (deps) =>
           (deps[0] ?? []).map((v) => transformValueToOption(v) as ElementType<NonNullable<TVal>>),
-        { key: `transform-values-${column.id}` },
       );
       return memoizedTransform();
     }
