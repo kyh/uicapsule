@@ -19,7 +19,7 @@
   },
   "devDependencies": {
     "@kyh/tsconfig": "catalog:",
-    "@types/node": "^26.4.0",
+    "@types/node": "^26.4.1",
     "drizzle-orm": "catalog:",
     "tsx": "catalog:",
     "typescript": "catalog:"
