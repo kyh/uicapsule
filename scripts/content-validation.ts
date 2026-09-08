@@ -20,7 +20,7 @@ import {
   contentPackageSchema,
 } from "../apps/web/src/lib/content/content-schema";
 
-const ignoredDirectories = new Set(["node_modules", "dist", ".cache", ".turbo"]);
+export const ignoredDirectories = new Set(["node_modules", "dist", ".cache", ".turbo"]);
 const codeExtensions = new Set([".ts", ".tsx", ".js", ".jsx", ".mts", ".cts", ".mjs", ".cjs"]);
 
 const staticSpecifier = (node: Node | null | undefined): string | undefined => {
