@@ -220,9 +220,6 @@ export const RequestForm = ({ className }: { className?: string }) => {
             <div className="text-muted-foreground flex flex-col items-center gap-2 px-6 text-center">
               <UploadIcon className="size-4" aria-hidden />
               <span className="text-sm">Drop a recording or screenshot</span>
-              <span className="font-mono text-[10px] tracking-wider uppercase">
-                png · gif · mp4 · mov · {MAX_MB} MB · {ATTACHMENT_MAX_COUNT} files
-              </span>
             </div>
           )}
           <input
