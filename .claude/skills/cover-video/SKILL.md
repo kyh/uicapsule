@@ -10,7 +10,7 @@ Pipeline: stage → record → convert → frame-check → upload → update met
 
 Target spec (matches existing covers + the `aspect-video` gallery card):
 
-- 16:9, 1600×900
+- 16:9, 1600×900, 60fps
 - 8–15 seconds, h264 mp4, yuv420p, no audio, `-movflags +faststart`
 - Shows the component's most flattering interaction loop, ending near the starting state so
   the loop reads cleanly
@@ -28,17 +28,18 @@ curl -s -o /dev/null -w "%{http_code}" http://localhost:3000/preview-frame/<slug
 - Read the component source and script a choreography: 3–5 beats covering the component's
   states, ~10–13s total, ending near idle.
 
-## 2. Stage the recording tab (two agent-browser gotchas live here)
+## 2. Stage the recording tab
 
-**Gotcha A — `record start` opens a NEW tab** at the default viewport (1280×634). Anything you
-set on the current tab (viewport, overlay removal) does NOT apply, and coordinates measured
-there will miss. **Gotcha B — capture size locks when recording begins**, so the tab must
-already be 1600×900 when the real recording starts. The recipe that handles both:
+Requires agent-browser ≥ 0.37 (`agent-browser --version`; upgrade with
+`npm i -g agent-browser@latest`) and ffmpeg on PATH (`agent-browser doctor`). Recording
+captures the tab you already have open — no new tab, no navigation — so stage everything
+first, then arm capture. **Capture size locks when recording begins**, so the viewport must
+already be 1600×900 before `record start`.
 
 ```bash
 agent-browser close                                          # fresh session, window foregrounded
-agent-browser record start <scratch>/setup.webm http://localhost:3000/preview-frame/<slug>
-agent-browser set viewport 1600 900                          # applies to the recording tab
+agent-browser open http://localhost:3000/preview-frame/<slug>
+agent-browser set viewport 1600 900
 sleep 3
 agent-browser eval "document.querySelector('nextjs-portal')?.remove(); document.querySelectorAll('[data-nextjs-toast],[data-next-badge-root]').forEach(e => e.remove()); document.visibilityState + ' ' + window.innerWidth + 'x' + window.innerHeight"
 # MUST print "visible 1600x900". "hidden" → the window is occluded; rAF freezes and the video
@@ -47,14 +48,26 @@ agent-browser screenshot <scratch>/stage.png                 # Read it: layout o
                                                              # measure your click coordinates HERE
 ```
 
-`setup.webm` is a throwaway. When the stage looks right:
+Coordinates measured on `stage.png` are the coordinates the recording sees — same tab, same
+viewport.
+
+## 3. Record: `--fps 60`, ONE batch call
 
 ```bash
-agent-browser record restart <scratch>/<slug>.webm           # re-arms capture on the SAME tab,
-                                                             # now at 1600×900 — discards setup footage
+agent-browser eval "document.visibilityState"                # final occlusion check
+agent-browser record start <scratch>/<slug>.webm --fps 60
+agent-browser batch < <scratch>/batch.json
+agent-browser record stop
+sleep 2
+ffprobe -v error -show_entries stream=avg_frame_rate,width,height:format=duration -of default=nw=1 <scratch>/<slug>.webm
+# expect 60/1, 1600, 900, duration ≥ 8
 ```
 
-## 3. Drive the choreography with ONE batch call
+- **Always pass `--fps 60`.** The default is 30, which visibly stutters springs, drags and
+  particle motion on the gallery card. 60 is the ceiling.
+- Record `.webm`, not `.mp4`: agent-browser's native mp4 comes out full-range `yuvj420p`
+  with `moov` after `mdat` (no faststart), which breaks the cover spec. Convert in step 4.
+- A 0-byte or sub-second webm is a known intermittent failure — re-record.
 
 Individual CLI calls cost ~0.4s each — a 20-action take balloons from 12s to 27s. Write the
 whole choreography as a batch file instead (timing lives in `wait` entries):
@@ -69,15 +82,9 @@ whole choreography as a batch file instead (timing lives in `wait` entries):
  ["keyboard","type","hello"], ...]
 ```
 
-```bash
-agent-browser eval "document.visibilityState"    # final occlusion check
-agent-browser batch < <scratch>/batch.json
-agent-browser record stop
-```
-
 - Coordinate clicks are move/down/up triads — `click` only takes selectors/@refs.
 - Drags need several intermediate `mouse move` steps with 80–120ms waits or they read as
-  teleports.
+  teleports. At 60fps every step is visible, so use more, smaller steps rather than fewer.
 - The OS cursor is not captured — favor components whose feedback is visible (touch
   indicators, hover states, motion). Verify state-dependent coordinates (buttons that only
   exist mid-flow) from an earlier interactive session on `/ui/<slug>`.
@@ -88,14 +95,14 @@ agent-browser record stop
 ffmpeg -y -i <slug>.webm -c:v libx264 -crf 18 -preset slow -pix_fmt yuv420p -an -movflags +faststart <slug>.mp4
 ```
 
-(Recording is already 1600×900 — no scale filter needed. If size is off, you staged wrong; go
-back to step 2 rather than upscaling.)
+(Recording is already 1600×900 at 60fps — no scale or fps filter needed; the mp4 keeps 60.
+If size is off, you staged wrong; go back to step 2 rather than upscaling.)
 
 ## 5. Frame-check (do not skip, do not upload on failure)
 
 ```bash
 DUR=$(ffprobe -v quiet -show_entries format=duration -of csv=p=0 <slug>.mp4)
-ffprobe -v quiet -show_entries stream=width,height,codec_name -of csv=p=0 <slug>.mp4
+ffprobe -v quiet -show_entries stream=width,height,codec_name,avg_frame_rate -of csv=p=0 <slug>.mp4
 for p in 8 30 55 80 92; do
   ffmpeg -y -v error -ss $(python3 -c "print($DUR*$p/100)") -i <slug>.mp4 -frames:v 1 frame_$p.png
 done
@@ -107,7 +114,7 @@ Read every frame as an image and check ALL of:
 2. Frames DIFFER and match the planned beats. All-identical frames = interactions missed
    (wrong tab/coords) or rAF frozen (occlusion). Fix the cause, rerecord.
 3. No dev overlays (Next.js badge bottom-left), no error toasts.
-4. Duration 8–15s, 1600×900, h264.
+4. Duration 8–15s, 1600×900, h264, 60fps.
 
 ## 6. Upload
 

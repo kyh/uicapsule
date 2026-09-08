@@ -88,15 +88,14 @@ Screenshot `/preview-frame/<slug>` and actually look at it before recording.
 
 ## 4. Record
 
-The staging recipe and its two gotchas (`record start` opens a NEW tab; capture size
-locks when recording begins) plus the occlusion check live in
+The staging recipe (viewport locks at `record start`; occlusion check) lives in
 `../cover-video/SKILL.md` §2–3 — follow that recipe, with these differences:
 
 - Viewport **1280×800** (PR gif, not gallery cover) — so the eval check must print
   `visible 1280x800`, not the `1600x900` the cover-video recipe shows.
-- Record `http://localhost:3000/preview-frame/<slug>`.
-- `record restart <file>` prints "Recording saved to <file>" immediately, before
-  anything is captured — it's re-arming, not saving. Ignore that line.
+- Open and stage `http://localhost:3000/preview-frame/<slug>`, then
+  `record start <scratch>/<slug>.webm --fps 60`. Always `--fps 60` — the GIF downsamples,
+  but a 30fps source aliases drags and springs before the GIF ever sees them.
 - 10–15s choreography as ONE `agent-browser batch` call: ~3s settle, then the beats
   you designed in step 2 (drags need intermediate `mouse move` steps with 80–120ms
   waits), then ~3s settle so the loop reads cleanly.
