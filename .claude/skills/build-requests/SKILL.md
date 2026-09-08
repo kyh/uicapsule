@@ -63,15 +63,51 @@ build, verify, record, PR). Differences:
 ## 4. Cover
 
 Run `../cover-video/SKILL.md` on the same branch before opening the PR, so the PR
-ships with `coverUrl`/`coverType` already wired. A request build is only done when it
-would render correctly on the gallery grid the moment it merges.
+ships with `coverUrl`/`coverType` already wired. Follow it exactly — dedicated
+`--session covers`, native `.mp4` at `--fps 60`, 1600×900, frame-check, Supabase
+upload, gallery confirm. Every shortcut it warns about has already cost a take.
 
-## 5. Hand off
+## 5. Done gate — every line must pass before `gh pr create`
+
+Nothing here is optional. A request build that fails one of these is not done; fix it
+or fail the issue (§6). Print each result in the run log.
+
+```bash
+# 1. static gate
+pnpm verify
+
+# 2. PR recording exists and is a real take
+ffprobe -v error -show_entries format=duration -of csv=p=0 <scratch>/<slug>.raw.mp4   # ≥ 8
+curl -s -o /dev/null -w "%{http_code} %{content_type}\n" \
+  https://raw.githubusercontent.com/kyh/uicapsule/kyh/pr-preview-assets/<slug>.gif      # 200 image/gif
+
+# 3. cover is 60fps, 1600×900, h264, 8–15s
+ffprobe -v error -show_entries stream=codec_name,width,height,avg_frame_rate:format=duration \
+  -of default=nw=1 <scratch>/<slug>.mp4    # h264 / 1600 / 900 / 60/1 / 8–15
+
+# 4. cover is live and typed correctly
+curl -s -o /dev/null -w "%{http_code} %{content_type}\n" \
+  "https://zmdrwswxugswzmcokvff.supabase.co/storage/v1/object/public/uicapsule/<slug>/<slug>.mp4"   # 200 video/mp4
+
+# 5. meta.json carries everything the gallery + detail page need
+python3 -c "import json; m=json.load(open('content/<slug>/meta.json')); \
+  assert m['coverType']=='video' and m['coverUrl'].endswith('/<slug>/<slug>.mp4'); \
+  assert m['addedAt'] and m['tags'] and m['inspiredBy']; print('meta ok')"
+
+# 6. the card actually plays on the grid
+agent-browser --session covers open http://localhost:3000/ && \
+agent-browser --session covers screenshot <scratch>/grid.png   # Read it: <slug>'s card shows video, not blank
+```
+
+Also Read the cover frame-check images (cover-video §5) one more time here: the frames
+must differ and show the climax beat. A lively-but-pointless loop is a failed cover.
+
+## 6. Hand off
 
 Success: `gh issue comment <n> --body "Built in <pr url>"` and leave `building` on —
 the PR merge closes the issue.
 
-Failure (can't reproduce the reference, verify fails, recording dead after 2 tries):
+Failure (can't reproduce the reference, a done-gate line fails after 2 attempts):
 
 ```bash
 gh issue edit <n> --remove-label building
@@ -80,7 +116,7 @@ gh issue comment <n> --body "Build attempt failed: <one paragraph — what broke
 
 Never leave `ready` on a failed issue — the next scheduled run would loop on it.
 
-## 6. Report
+## 7. Report
 
 One line per issue: number, outcome, PR URL or the failure reason. Then your take on
 which built components are strong and which need a human pass before merge.
