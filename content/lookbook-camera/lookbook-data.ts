@@ -5,16 +5,13 @@
  * cycle permutations that expand them into 72 unique cards, the card/cell
  * geometry, and the deterministic grid layout helpers.
  *
- * The garments are drawn, not photographed — every look describes a figure by
- * silhouette + palette and `look-figure.tsx` turns that into SVG. There are no
- * image URLs anywhere: the whole gallery is self-contained vector art.
+ * Every look is one photograph, generated to a fixed framing (full body, model
+ * centred, small margin above the head and below the shoes) so
+ * `look-figure.tsx` can crop any piece out of any look with one set of boxes.
  */
 
-/* ── Garment silhouettes ─────────────────────────────────────────── */
-
-export type TopForm = "coat" | "blazer" | "jacket" | "shirt" | "knit";
-export type LowerForm = "trouser" | "wide" | "skirt";
-export type ShoeForm = "boot" | "sneaker" | "loafer" | "heel";
+const LOOK_IMAGE_BASE =
+  "https://zmdrwswxugswzmcokvff.supabase.co/storage/v1/object/public/uicapsule/lookbook-camera/looks";
 
 export type ItemCategory = "Outerwear" | "Knitwear" | "Tops" | "Trousers" | "Skirt" | "Footwear";
 
@@ -38,30 +35,13 @@ export type ShoeItem = ItemBase & { slot: "shoes" };
 export type ClothingItem = TopItem | LowerItem | ShoeItem;
 export type ItemSlot = ClothingItem["slot"];
 
-export interface LookPalette {
-  skin: string;
-  hair: string;
-  top: string;
-  lower: string;
-  shoes: string;
-}
-
-export interface LookForms {
-  top: TopForm;
-  lower: LowerForm;
-  shoes: ShoeForm;
-}
-
 export interface Look {
   id: string;
   lookNumber: string;
   name: string;
   season: string;
   accent: string;
-  palette: LookPalette;
-  forms: LookForms;
-  /** -1 .. 1 — leans the stance so repeated silhouettes never read identical. */
-  stance: number;
+  imageUrl: string;
   items: [TopItem, LowerItem, ShoeItem];
 }
 
@@ -70,22 +50,13 @@ const AW = "Autumn / Winter";
 const RESORT = "Resort";
 const PREFALL = "Pre-Fall";
 
-export const BASE_LOOKS: Look[] = [
+const RAW_LOOKS: Omit<Look, "imageUrl">[] = [
   {
     id: "look-01",
     lookNumber: "01",
     name: "Off-Hour Tailoring",
     season: SS,
     accent: "#4a4540",
-    palette: {
-      skin: "#d9bfa6",
-      hair: "#3a2c22",
-      top: "#4c4a46",
-      lower: "#b7ac99",
-      shoes: "#8a6a4a",
-    },
-    forms: { top: "blazer", lower: "trouser", shoes: "loafer" },
-    stance: 0.2,
     items: [
       {
         slot: "top",
@@ -122,15 +93,6 @@ export const BASE_LOOKS: Look[] = [
     name: "Studio Black",
     season: SS,
     accent: "#1b1b1f",
-    palette: {
-      skin: "#c9a184",
-      hair: "#141212",
-      top: "#1d1d20",
-      lower: "#26262a",
-      shoes: "#f1efe9",
-    },
-    forms: { top: "jacket", lower: "trouser", shoes: "sneaker" },
-    stance: -0.35,
     items: [
       {
         slot: "top",
@@ -167,15 +129,6 @@ export const BASE_LOOKS: Look[] = [
     name: "Northern Wool",
     season: AW,
     accent: "#6c7257",
-    palette: {
-      skin: "#e0c3a4",
-      hair: "#8a6a3c",
-      top: "#78805e",
-      lower: "#5c4b3a",
-      shoes: "#4a3a2c",
-    },
-    forms: { top: "knit", lower: "trouser", shoes: "boot" },
-    stance: 0.55,
     items: [
       {
         slot: "top",
@@ -212,15 +165,6 @@ export const BASE_LOOKS: Look[] = [
     name: "Velvet Hour",
     season: RESORT,
     accent: "#5b2434",
-    palette: {
-      skin: "#c08e6a",
-      hair: "#20161a",
-      top: "#6b2b3c",
-      lower: "#221c20",
-      shoes: "#141013",
-    },
-    forms: { top: "blazer", lower: "trouser", shoes: "loafer" },
-    stance: -0.1,
     items: [
       {
         slot: "top",
@@ -257,15 +201,6 @@ export const BASE_LOOKS: Look[] = [
     name: "Concrete Stone",
     season: SS,
     accent: "#8a8783",
-    palette: {
-      skin: "#dcb894",
-      hair: "#4a3b2e",
-      top: "#9a968e",
-      lower: "#c8bda6",
-      shoes: "#eae5da",
-    },
-    forms: { top: "jacket", lower: "wide", shoes: "sneaker" },
-    stance: 0.4,
     items: [
       {
         slot: "top",
@@ -302,15 +237,6 @@ export const BASE_LOOKS: Look[] = [
     name: "Spring Field",
     season: SS,
     accent: "#a3b18a",
-    palette: {
-      skin: "#e6c9a8",
-      hair: "#b28a4e",
-      top: "#adba92",
-      lower: "#efe7d6",
-      shoes: "#c69a68",
-    },
-    forms: { top: "shirt", lower: "wide", shoes: "loafer" },
-    stance: -0.5,
     items: [
       {
         slot: "top",
@@ -347,15 +273,6 @@ export const BASE_LOOKS: Look[] = [
     name: "Rain Coat",
     season: AW,
     accent: "#2c3a4a",
-    palette: {
-      skin: "#cfa87f",
-      hair: "#2a2019",
-      top: "#3c4e62",
-      lower: "#242c36",
-      shoes: "#17191c",
-    },
-    forms: { top: "coat", lower: "trouser", shoes: "boot" },
-    stance: 0.15,
     items: [
       {
         slot: "top",
@@ -392,15 +309,6 @@ export const BASE_LOOKS: Look[] = [
     name: "Sand Dune",
     season: RESORT,
     accent: "#b5896a",
-    palette: {
-      skin: "#e2c2a0",
-      hair: "#6b4a2c",
-      top: "#c39a72",
-      lower: "#e3d6bd",
-      shoes: "#a2764c",
-    },
-    forms: { top: "coat", lower: "trouser", shoes: "boot" },
-    stance: -0.25,
     items: [
       {
         slot: "top",
@@ -437,15 +345,6 @@ export const BASE_LOOKS: Look[] = [
     name: "Midnight Cut",
     season: PREFALL,
     accent: "#1a1a2c",
-    palette: {
-      skin: "#b8845c",
-      hair: "#15131a",
-      top: "#1f2033",
-      lower: "#1f2033",
-      shoes: "#0f0f14",
-    },
-    forms: { top: "blazer", lower: "trouser", shoes: "loafer" },
-    stance: 0.05,
     items: [
       {
         slot: "top",
@@ -482,15 +381,6 @@ export const BASE_LOOKS: Look[] = [
     name: "Garden Party",
     season: SS,
     accent: "#b08bb8",
-    palette: {
-      skin: "#e8cbae",
-      hair: "#4e3a2e",
-      top: "#c39cca",
-      lower: "#d8c3dd",
-      shoes: "#9a6f9f",
-    },
-    forms: { top: "shirt", lower: "wide", shoes: "heel" },
-    stance: -0.6,
     items: [
       {
         slot: "top",
@@ -527,15 +417,6 @@ export const BASE_LOOKS: Look[] = [
     name: "Workwear",
     season: AW,
     accent: "#7a6448",
-    palette: {
-      skin: "#d3a97f",
-      hair: "#3d2c1e",
-      top: "#8d7350",
-      lower: "#b0a077",
-      shoes: "#6b3a2c",
-    },
-    forms: { top: "jacket", lower: "wide", shoes: "boot" },
-    stance: 0.65,
     items: [
       {
         slot: "top",
@@ -572,15 +453,6 @@ export const BASE_LOOKS: Look[] = [
     name: "Evening Glow",
     season: RESORT,
     accent: "#b5953a",
-    palette: {
-      skin: "#c99a70",
-      hair: "#241a12",
-      top: "#c9a545",
-      lower: "#e6d9b2",
-      shoes: "#a8862c",
-    },
-    forms: { top: "jacket", lower: "wide", shoes: "heel" },
-    stance: -0.2,
     items: [
       {
         slot: "top",
@@ -617,15 +489,6 @@ export const BASE_LOOKS: Look[] = [
     name: "Linen Hours",
     season: SS,
     accent: "#c8b9a0",
-    palette: {
-      skin: "#e4c4a2",
-      hair: "#7c5c38",
-      top: "#ded2bb",
-      lower: "#eee6d5",
-      shoes: "#bfa274",
-    },
-    forms: { top: "blazer", lower: "wide", shoes: "loafer" },
-    stance: 0.3,
     items: [
       {
         slot: "top",
@@ -662,15 +525,6 @@ export const BASE_LOOKS: Look[] = [
     name: "Slate Tailoring",
     season: AW,
     accent: "#3f4855",
-    palette: {
-      skin: "#cba482",
-      hair: "#2b2620",
-      top: "#4e5866",
-      lower: "#4e5866",
-      shoes: "#1a1a1c",
-    },
-    forms: { top: "blazer", lower: "trouser", shoes: "loafer" },
-    stance: -0.05,
     items: [
       {
         slot: "top",
@@ -707,15 +561,6 @@ export const BASE_LOOKS: Look[] = [
     name: "Track Side",
     season: PREFALL,
     accent: "#4a5c3a",
-    palette: {
-      skin: "#d6ab82",
-      hair: "#332721",
-      top: "#5a6f45",
-      lower: "#3e4c32",
-      shoes: "#c8c4ba",
-    },
-    forms: { top: "jacket", lower: "trouser", shoes: "sneaker" },
-    stance: 0.45,
     items: [
       {
         slot: "top",
@@ -752,15 +597,6 @@ export const BASE_LOOKS: Look[] = [
     name: "Library",
     season: AW,
     accent: "#7c5a3a",
-    palette: {
-      skin: "#dfba95",
-      hair: "#54371f",
-      top: "#8d6440",
-      lower: "#b6a68d",
-      shoes: "#7a4a2a",
-    },
-    forms: { top: "blazer", lower: "trouser", shoes: "loafer" },
-    stance: -0.4,
     items: [
       {
         slot: "top",
@@ -797,15 +633,6 @@ export const BASE_LOOKS: Look[] = [
     name: "Maritime",
     season: RESORT,
     accent: "#1f3a5f",
-    palette: {
-      skin: "#e0bd9a",
-      hair: "#241d16",
-      top: "#26456e",
-      lower: "#eae3d4",
-      shoes: "#1b2b40",
-    },
-    forms: { top: "coat", lower: "trouser", shoes: "loafer" },
-    stance: 0.1,
     items: [
       {
         slot: "top",
@@ -842,15 +669,6 @@ export const BASE_LOOKS: Look[] = [
     name: "Powder Rose",
     season: SS,
     accent: "#c98a8a",
-    palette: {
-      skin: "#eccdb0",
-      hair: "#8a5a34",
-      top: "#dba0a0",
-      lower: "#e8bdbd",
-      shoes: "#f0dcd4",
-    },
-    forms: { top: "jacket", lower: "skirt", shoes: "heel" },
-    stance: -0.15,
     items: [
       {
         slot: "top",
@@ -899,6 +717,10 @@ const CYCLE_ORDERS: number[][] = [
 ];
 
 const CYCLE_SUFFIXES = ["", "b", "c", "d"];
+
+export const BASE_LOOKS: Look[] = RAW_LOOKS.map((look) =>
+  Object.assign(look, { imageUrl: `${LOOK_IMAGE_BASE}/${look.id}.jpg` }),
+);
 
 function cloneLook(look: Look, suffix: string): Look {
   const [top, lower, shoes] = look.items;
