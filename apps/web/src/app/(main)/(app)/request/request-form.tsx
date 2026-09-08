@@ -173,10 +173,10 @@ export const RequestForm = ({ className }: { className?: string }) => {
 
   return (
     <form
-      className={cn("grid gap-8 lg:grid-cols-[minmax(0,5fr)_minmax(0,6fr)] lg:gap-12", className)}
+      className={cn("grid gap-8 lg:grid-cols-[minmax(0,6fr)_minmax(0,5fr)] lg:gap-12", className)}
       onSubmit={handleSubmit}
     >
-      <div className="flex flex-col gap-3 lg:sticky lg:top-24 lg:self-start">
+      <div className="flex flex-col gap-3 max-lg:order-first lg:sticky lg:top-24 lg:self-start lg:order-last">
         <div
           role="button"
           tabIndex={filed ? -1 : 0}

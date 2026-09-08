@@ -2,7 +2,8 @@
 
 ## Project Overview
 
-**uicapsule** - pnpm monorepo with Turborepo
+**uicapsule** — a UI factory where a designer and AI build the interactions the web doesn't
+have yet. pnpm monorepo with Turborepo.
 
 ### Structure
 

@@ -17,7 +17,6 @@ export const Footer = ({ className }: { className?: string }) => {
       <p className="text-sm whitespace-nowrap lg:px-6">©2026 Kaiyu Hsu</p>
       <div className="flex flex-wrap justify-center px-6 lg:w-full">
         <FooterLink href="/about">About</FooterLink>
-        <FooterLink href="/inspiration">Inspiration</FooterLink>
         <FooterLink href="/request">Request</FooterLink>
       </div>
       <div className="grid w-full grid-cols-3 border-t lg:flex lg:w-auto lg:border-t-0">

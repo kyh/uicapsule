@@ -21,8 +21,8 @@ const Layout = (props: LayoutProps) => (
       </Link>
       <div className="relative z-20 mt-auto">
         <p className="max-w-md text-lg">
-          A curated collection of UI components. Explore the details, read the source, make them
-          yours.
+          A UI factory. A designer and an AI build the interactions the web doesn't have yet. Read
+          the source, make them yours.
         </p>
       </div>
     </div>

@@ -1,6 +1,7 @@
 # AGENTS.md
 
-**uicapsule** is a curated gallery of UI components — a pnpm/Turborepo monorepo with one
+**uicapsule** is a UI factory: a designer and AI build polished components together, shown
+in a public gallery — a pnpm/Turborepo monorepo with one
 Next.js 16 app (`apps/web`) that renders 40 self-contained component packages under
 `content/`. This is the tool-agnostic guide for coding agents; it is meant to be _run_, not
 just read. Claude also reads `CLAUDE.md` (conventions, curation philosophy, decisions that
@@ -112,15 +113,15 @@ agent-browser network requests --filter sign-in   # expect 200; a 403 means the 
 
 The routes worth checking, and what each proves:
 
-| Route                    | Proves                                                |
-| ------------------------ | ----------------------------------------------------- |
-| `/`                      | gallery grid, filters, search (`⌘K`)                  |
-| `/ui/<slug>`             | detail page, live preview iframe, source-code drawer  |
-| `/preview-frame/<slug>`  | the bare preview — what the cover-video skill records |
-| `/r/<slug>.json`         | shadcn registry item (external CLI contract)          |
-| `/r/registry.json`       | the full registry index                               |
-| `/api/content/<slug>`    | source payload behind the drawer + zip download       |
-| `/about`, `/inspiration` | static pages                                          |
+| Route                   | Proves                                                |
+| ----------------------- | ----------------------------------------------------- |
+| `/`                     | gallery grid, filters, search (`⌘K`)                  |
+| `/ui/<slug>`            | detail page, live preview iframe, source-code drawer  |
+| `/preview-frame/<slug>` | the bare preview — what the cover-video skill records |
+| `/r/<slug>.json`        | shadcn registry item (external CLI contract)          |
+| `/r/registry.json`      | the full registry index                               |
+| `/api/content/<slug>`   | source payload behind the drawer + zip download       |
+| `/about`, `/request`    | static page; request form → GitHub issue              |
 
 **Before reporting a visual bug in a brand-new component, clear the Turbopack cache.** Its
 persistent cache freezes the Tailwind `@source` glob, so classes that exist only in a newly
