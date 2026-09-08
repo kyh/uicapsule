@@ -2,7 +2,7 @@
 
 ## Project Overview
 
-**uicapsule** — A curated collection of components that spark joy, by a Human & AI. pnpm monorepo with Turborepo.
+**uicapsule** - pnpm monorepo with Turborepo
 
 ### Structure
 

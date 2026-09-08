@@ -8,13 +8,14 @@ const Page = () => {
       </h1>
       <div className="text-muted-foreground flex flex-col gap-4 border-t pt-4 leading-relaxed">
         <p>
-          Each one starts as a designer's brief and gets built with an AI. The two go back and forth
-          until it's polished enough to ship: recorded, documented, pasteable.
+          Over the years I've built and collected UI pieces that are thoughtfully crafted,
+          interactive concepts that feel natural, and creative design experiments.
         </p>
         <p>
-          The brief is always an interaction the web doesn't have yet: hardware gestures, OS motion,
-          physical mechanisms. All of it is open source.
+          These days I build them with an AI. I set the brief and hold the taste; it does the heavy
+          lifting; we go back and forth until it feels right.
         </p>
+        <p>This is that collection as open source, copy paste-able code.</p>
         <Signature className="text-foreground/50 mt-5 w-36" />
       </div>
     </main>
