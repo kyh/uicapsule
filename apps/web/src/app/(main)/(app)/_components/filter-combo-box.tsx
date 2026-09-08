@@ -4,6 +4,7 @@ import { useMemo, useState } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { Badge } from "@repo/ui/components/badge";
 import { Button } from "@repo/ui/components/button";
+import { ButtonGroup } from "@repo/ui/components/button-group";
 import { Checkbox } from "@repo/ui/components/checkbox";
 import {
   Drawer,
@@ -55,7 +56,7 @@ export const FilterBar = ({ filters }: FilterBarProps) => {
           }
         }}
       >
-        <NavigationMenuList>
+        <ButtonGroup render={<NavigationMenuList className="gap-0" />}>
           {filters.map((filter) => (
             <NavigationMenuItem key={filter.filterKey} value={filter.filterKey}>
               <NavigationMenuTrigger
@@ -82,7 +83,7 @@ export const FilterBar = ({ filters }: FilterBarProps) => {
               </NavigationMenuContent>
             </NavigationMenuItem>
           ))}
-        </NavigationMenuList>
+        </ButtonGroup>
         <NavigationMenuPortal>
           <NavigationMenuPositioner>
             <NavigationMenuPopup>
@@ -96,16 +97,19 @@ export const FilterBar = ({ filters }: FilterBarProps) => {
   }
 
   return (
-    <>
+    <ButtonGroup>
       {filters.map((filter) => (
         <FilterDrawer key={filter.filterKey} {...filter} />
       ))}
-    </>
+    </ButtonGroup>
   );
 };
 
 const triggerClassname = (highlighted?: boolean) =>
-  cn("justify-start capitalize dark:bg-background!", highlighted && "border-foreground");
+  cn(
+    "justify-start capitalize dark:bg-background!",
+    highlighted && "border-foreground relative z-10",
+  );
 
 const FilterDrawer = ({ filterKey, filterOptions, defaultLabel, highlighted }: FilterConfig) => {
   const [open, setOpen] = useState(false);
