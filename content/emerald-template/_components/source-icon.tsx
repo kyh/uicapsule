@@ -1,4 +1,4 @@
-import { type ComponentType, type SVGProps } from "react";
+import type { ComponentType, SVGProps } from "react";
 import { cn } from "cn";
 
 const ICON_ASSET_BASE =

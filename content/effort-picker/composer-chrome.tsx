@@ -26,13 +26,13 @@ import { EFFORT_THEMES } from "./effort-theme";
  * leftward until it lines up under the card. Claude's chip doesn't grow — the
  * card just arrives above it. */
 const CHIP_CLOSED_WIDTH = 200;
-const CHIP_MORPH = { type: "spring", stiffness: 420, damping: 36 } as const;
+const CHIP_MORPH = { damping: 36, stiffness: 420, type: "spring" } as const;
 
 /** The cost estimate doesn't move with the dial — only the level beside it does. */
 const STATIC_SOL = "5.6 Sol";
 const MODEL_NAME = "Fable 5";
 
-type ComposerChromeProps = {
+interface ComposerChromeProps {
   /** Knob offset in px. The effort chip reads whatever the dial settles on. */
   knobX: MotionValue<number>;
   theme: EffortTheme;
@@ -41,16 +41,7 @@ type ComposerChromeProps = {
   open: boolean;
   /** The card, anchored to the chip's right edge so the two line up. */
   popover: ReactNode;
-};
-
-/**
- * The composer the picker lives in. Each theme gets its own shell rather than one
- * shell wearing two coats: the two apps don't just paint their controls
- * differently, they *put them in different places* — ChatGPT keeps the effort chip
- * inside the prompt box, Claude parks it on a rail underneath.
- */
-export const ComposerChrome = (props: ComposerChromeProps) =>
-  props.theme === "claude" ? <ClaudeComposer {...props} /> : <CodexComposer {...props} />;
+}
 
 /**
  * The prompt box never moves — the trick is in the chip: opening the card widens
@@ -62,7 +53,7 @@ const CodexComposer = ({ knobX, theme, onToggle, open, popover }: ComposerChrome
 
   return (
     <div className="select-none">
-      <div aria-hidden className={`flex items-center gap-7 px-4 pb-4 text-[17px] text-neutral-300`}>
+      <div aria-hidden className="flex items-center gap-7 px-4 pb-4 text-[17px] text-neutral-300">
         <span className="flex items-center gap-2.5">
           <FolderIcon className={`size-5 ${tokens.muted}`} />
           loremllm
@@ -204,3 +195,12 @@ const ClaudeComposer = ({ knobX, theme, onToggle, open, popover }: ComposerChrom
     </div>
   );
 };
+
+/**
+ * The composer the picker lives in. Each theme gets its own shell rather than one
+ * shell wearing two coats: the two apps don't just paint their controls
+ * differently, they *put them in different places* — ChatGPT keeps the effort chip
+ * inside the prompt box, Claude parks it on a rail underneath.
+ */
+export const ComposerChrome = (props: ComposerChromeProps) =>
+  props.theme === "claude" ? <ClaudeComposer {...props} /> : <CodexComposer {...props} />;

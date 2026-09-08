@@ -11,41 +11,24 @@ import { getContentList } from "@/lib/content-data";
 import { ContentPreview, ContentPreviewSkeleton } from "./_components/content-preview";
 import { FilterBar } from "./_components/filter-combo-box";
 
-type PageProps = {
+interface PageProps {
   searchParams: Promise<Record<string, string | string[] | undefined>>;
-};
+}
 
 const skeletonIds = Array.from({ length: 14 }, (_, index) => `placeholder-${index}`);
 
-const Page = ({ searchParams }: PageProps) => {
-  const contentContainerClassname =
-    "bg-border grid gap-px md:h-auto md:grid-cols-10 md:grid-rows-2 md:*:col-span-2 md:[&>*:nth-child(10n+1)]:col-span-4 md:[&>*:nth-child(10n+1)]:row-span-2 md:[&>*:nth-child(10n+1)]:h-auto";
+const getFilters = async (searchParams: Promise<Record<string, string | string[] | undefined>>) => {
+  const allSearchParams = await searchParams;
+  const elementFilter = allSearchParams.element?.toString().split(",") ?? [];
+  const styleFilter = allSearchParams.style?.toString().split(",") ?? [];
+  const categoryFilter = allSearchParams.category?.toString().split(",") ?? [];
 
-  return (
-    <main>
-      <div className="flex h-14 items-center justify-between border-b bg-(image:--background-stripe) bg-size-[10px_10px] bg-fixed sm:h-16">
-        <Suspense>
-          <Filters searchParams={searchParams} />
-        </Suspense>
-      </div>
-      <Suspense
-        fallback={
-          <div className={contentContainerClassname}>
-            {skeletonIds.map((id) => (
-              <ContentPreviewSkeleton key={id} />
-            ))}
-          </div>
-        }
-      >
-        <div className={contentContainerClassname}>
-          <ContentList searchParams={searchParams} />
-        </div>
-      </Suspense>
-    </main>
-  );
+  return {
+    categoryFilter,
+    elementFilter,
+    styleFilter,
+  };
 };
-
-export default Page;
 
 const Filters = async ({ searchParams }: PageProps) => {
   const { elementFilter, styleFilter, categoryFilter } = await getFilters(searchParams);
@@ -55,22 +38,22 @@ const Filters = async ({ searchParams }: PageProps) => {
       <FilterBar
         filters={[
           {
+            defaultLabel: "Elements",
             filterKey: "element",
             filterOptions: contentElements,
             highlighted: elementFilter.length > 0,
-            defaultLabel: "Elements",
           },
           {
+            defaultLabel: "Styles",
             filterKey: "style",
             filterOptions: contentStyles,
             highlighted: styleFilter.length > 0,
-            defaultLabel: "Styles",
           },
           {
+            defaultLabel: "Categories",
             filterKey: "category",
             filterOptions: contentCategories,
             highlighted: categoryFilter.length > 0,
-            defaultLabel: "Categories",
           },
         ]}
       />
@@ -110,15 +93,32 @@ const ContentList = async ({ searchParams }: PageProps) => {
   ));
 };
 
-const getFilters = async (searchParams: Promise<Record<string, string | string[] | undefined>>) => {
-  const allSearchParams = await searchParams;
-  const elementFilter = allSearchParams.element?.toString().split(",") ?? [];
-  const styleFilter = allSearchParams.style?.toString().split(",") ?? [];
-  const categoryFilter = allSearchParams.category?.toString().split(",") ?? [];
+const Page = ({ searchParams }: PageProps) => {
+  const contentContainerClassname =
+    "bg-border grid gap-px md:h-auto md:grid-cols-10 md:grid-rows-2 md:*:col-span-2 md:[&>*:nth-child(10n+1)]:col-span-4 md:[&>*:nth-child(10n+1)]:row-span-2 md:[&>*:nth-child(10n+1)]:h-auto";
 
-  return {
-    elementFilter,
-    styleFilter,
-    categoryFilter,
-  };
+  return (
+    <main>
+      <div className="flex h-14 items-center justify-between border-b bg-(image:--background-stripe) bg-size-[10px_10px] bg-fixed sm:h-16">
+        <Suspense>
+          <Filters searchParams={searchParams} />
+        </Suspense>
+      </div>
+      <Suspense
+        fallback={
+          <div className={contentContainerClassname}>
+            {skeletonIds.map((id) => (
+              <ContentPreviewSkeleton key={id} />
+            ))}
+          </div>
+        }
+      >
+        <div className={contentContainerClassname}>
+          <ContentList searchParams={searchParams} />
+        </div>
+      </Suspense>
+    </main>
+  );
 };
+
+export default Page;

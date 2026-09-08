@@ -14,6 +14,8 @@ import { clamp, KNOB_SIZE, percentToX, TRACK_WIDTH } from "./effort-scale";
 import { EFFORT_THEMES, labelAt, nearestLevel, notchX } from "./effort-theme";
 import { usePoseCurls } from "./use-pose-curls";
 
+import type { PoseStatus } from "./use-pose-curls";
+
 /** The whole take, in milliseconds. Long enough to hurt, short enough to redo. */
 const SET_MS = 10_000;
 const COUNT_MS = 900;
@@ -27,11 +29,11 @@ const CURL_GAIN = 27;
  * the dial walks backwards while you watch it. */
 const DRAIN_PER_SEC = 10;
 
-const COMMIT_SPRING = { type: "spring", stiffness: 180, damping: 18 } as const;
-const KNOB_PUMP = { type: "spring", stiffness: 700, damping: 18 } as const;
+const COMMIT_SPRING = { damping: 18, stiffness: 180, type: "spring" } as const;
+const KNOB_PUMP = { damping: 18, stiffness: 700, type: "spring" } as const;
 /** Looser than the per-rep pump and thrown from much further out: the landing
  * kick is the one the whole take has been building to. */
-const KNOB_SLAM = { type: "spring", stiffness: 420, damping: 11 } as const;
+const KNOB_SLAM = { damping: 11, stiffness: 420, type: "spring" } as const;
 
 const lerp = (from: number, to: number, t: number) => from + (to - from) * t;
 /** Power below which the verdict keeps its halo and drops the rest of its
@@ -39,7 +41,10 @@ const lerp = (from: number, to: number, t: number) => from + (to - from) * t;
 const SUNBURST_FLOOR = 0.45;
 
 type CountdownCount = 3 | 2 | 1;
-type Burst = { id: number; percent: number };
+interface Burst {
+  id: number;
+  percent: number;
+}
 
 type TakeState =
   | { status: "arming" }
@@ -47,13 +52,194 @@ type TakeState =
   | { status: "lifting" }
   | { status: "complete"; level: number };
 
-const promptForCountdown = (count: CountdownCount) =>
-  count === 3 ? "Get in frame" : count === 2 ? "Arm down" : "Curl!";
+const COUNTDOWN_PROMPTS: Record<CountdownCount, string> = {
+  1: "Curl!",
+  2: "Arm down",
+  3: "Get in frame",
+};
 
-type CurlCardProps = {
+const Overlay = ({ children }: { children: React.ReactNode }) => (
+  <motion.div
+    initial={{ opacity: 0 }}
+    animate={{ opacity: 1 }}
+    exit={{ opacity: 0 }}
+    transition={{ duration: 0.18 }}
+    className="absolute inset-0 flex flex-col items-center justify-center gap-2 bg-neutral-950/45 px-4 backdrop-blur-[2px]"
+  >
+    {children}
+  </motion.div>
+);
+
+interface VerdictProps {
+  label: string;
+  power: number;
+  reduceMotion: boolean;
+  reps: number;
+}
+
+const Verdict = ({ label, power, reduceMotion, reps }: VerdictProps) => (
+  <motion.div
+    initial={reduceMotion ? { opacity: 0 } : { opacity: 0, scale: 0.9 }}
+    animate={{ opacity: 1, scale: 1 }}
+    transition={reduceMotion ? { duration: 0.1 } : { damping: 20, stiffness: 320, type: "spring" }}
+    className="relative flex flex-col items-center gap-1.5"
+  >
+    {!reduceMotion && (
+      <>
+        {/* A halo that blows open and then stays, dimmed — the
+            verdict keeps a light on it for as long as it's up. */}
+        <motion.span
+          aria-hidden
+          className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 rounded-full mix-blend-screen"
+          style={{
+            backgroundImage:
+              "radial-gradient(circle, rgba(167,139,250,0.75) 0%, rgba(139,92,246,0.4) 34%, rgba(109,40,217,0.16) 56%, transparent 72%)",
+            height: lerp(140, 256, power),
+            width: lerp(140, 256, power),
+          }}
+          initial={{ opacity: 0, scale: 0.25 }}
+          animate={{
+            opacity: [0, lerp(0.45, 1, power), lerp(0.3, 0.65, power)],
+            scale: [0.25, 1.15, 1],
+          }}
+          transition={{ duration: 0.85, ease: "easeOut", times: [0, 0.35, 1] }}
+        />
+        {/* A sunburst, turning slowly. It's a repeating conic
+            gradient masked back to a disc — twelve wedges of light
+            behind the word, which is the cheapest way to make a
+            static label look like it's radiating. Reserved for the
+            top half of the track: a Light take gets the halo and
+            nothing to stand in front of. */}
+        {power >= SUNBURST_FLOOR && (
+          <motion.span
+            aria-hidden
+            className="absolute top-1/2 left-1/2 size-72 -translate-x-1/2 -translate-y-1/2 rounded-full mix-blend-screen"
+            style={{
+              backgroundImage:
+                "repeating-conic-gradient(rgba(196,181,253,0.34) 0deg 8deg, transparent 8deg 30deg)",
+              maskImage: "radial-gradient(circle, #000 0%, rgba(0,0,0,0.55) 42%, transparent 70%)",
+            }}
+            initial={{ opacity: 0, rotate: -14, scale: 0.4 }}
+            animate={{ opacity: [0, power, power * 0.4], rotate: 12, scale: 1 }}
+            transition={{ duration: 2.4, ease: "easeOut", times: [0, 0.14, 1] }}
+          />
+        )}
+        {[0, 0.13].slice(0, power >= SUNBURST_FLOOR ? 2 : 1).map((delay) => (
+          <motion.span
+            key={delay}
+            aria-hidden
+            className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 rounded-full border border-violet-200/70 shadow-[0_0_24px_rgba(167,139,250,0.6)]"
+            initial={{ height: 40, opacity: 0, width: 40 }}
+            animate={{
+              height: lerp(150, 300, power),
+              opacity: [0, lerp(0.5, 0.85, power), 0],
+              width: lerp(150, 300, power),
+            }}
+            transition={{
+              delay,
+              duration: 1,
+              ease: [0.16, 1, 0.3, 1],
+              times: [0, 0.12, 1],
+            }}
+          />
+        ))}
+      </>
+    )}
+    <p className="relative flex flex-col items-center gap-0.5">
+      <span className="text-[13px] tracking-wide text-neutral-400 uppercase">Landed on</span>
+      {/* The word itself gets the pop, a beat behind the card's:
+          the fireworks announce it, then it arrives. */}
+      <motion.span
+        initial={reduceMotion ? false : { opacity: 0, scale: 0.6 }}
+        animate={{ opacity: 1, scale: 1 }}
+        transition={{
+          damping: 13,
+          delay: reduceMotion ? 0 : 0.08,
+          stiffness: 520,
+          type: "spring",
+        }}
+        // White, not violet: the sunburst behind it is violet and
+        // bright, and the word has to stay the lightest thing on
+        // the card or the ceremony swallows the verdict. It grows
+        // with the take as well — Ultra should be a headline and
+        // Light shouldn't be.
+        style={{
+          filter: `drop-shadow(0 0 ${lerp(12, 26, power)}px rgba(139,92,246,0.95))`,
+          fontSize: lerp(20, 30, power),
+        }}
+        className="leading-none font-semibold text-white"
+      >
+        {label}
+      </motion.span>
+    </p>
+    <p className="relative text-[13px] tabular-nums text-neutral-400">
+      {reps} {reps === 1 ? "curl" : "curls"} in 10 seconds
+    </p>
+  </motion.div>
+);
+
+interface CameraOverlaysProps {
+  error: string | null;
+  failed: boolean;
+  power: number;
+  reduceMotion: boolean;
+  reps: number;
+  status: PoseStatus;
+  take: TakeState;
+  theme: EffortTheme;
+}
+
+const CameraOverlays = ({
+  error,
+  failed,
+  power,
+  reduceMotion,
+  reps,
+  status,
+  take,
+  theme,
+}: CameraOverlaysProps) => (
+  <AnimatePresence mode="wait" initial={false}>
+    {failed && (
+      <Overlay key="error">
+        <VideoOffIcon className="size-6 text-rose-400" />
+        <p className="max-w-[280px] text-center text-[13px] text-neutral-300">
+          {error ?? "The camera said no."} Effort cannot be verified.
+        </p>
+      </Overlay>
+    )}
+    {!failed && take.status === "arming" && (
+      <Overlay key="arming">
+        <p className="text-[15px] font-medium text-neutral-100">
+          {status === "tracking" ? "Show me an arm" : "Waking the camera…"}
+        </p>
+      </Overlay>
+    )}
+    {!failed && take.status === "countdown" && (
+      <Overlay key="countdown">
+        <span className="text-[44px] leading-none font-semibold tabular-nums text-violet-300 drop-shadow-[0_2px_12px_rgba(139,92,246,0.55)]">
+          {take.count}
+        </span>
+        <p className="text-[15px] font-medium text-neutral-100">{COUNTDOWN_PROMPTS[take.count]}</p>
+      </Overlay>
+    )}
+    {!failed && take.status === "complete" && (
+      <Overlay key="landed">
+        <Verdict
+          label={labelAt(theme, take.level)}
+          power={power}
+          reduceMotion={reduceMotion}
+          reps={reps}
+        />
+      </Overlay>
+    )}
+  </AnimatePresence>
+);
+
+interface CurlCardProps {
   knobX: MotionValue<number>;
   theme: EffortTheme;
-};
+}
 
 /**
  * The effort picker as a physical exam. There is no knob to drag — there's a
@@ -72,7 +258,7 @@ export const CurlCard = ({ knobX, theme }: CurlCardProps) => {
   const [bursts, setBursts] = useState<Burst[]>([]);
   /** The landing fireworks, mounted for exactly as long as they burn. */
   const [celebrating, setCelebrating] = useState(false);
-  const reduceMotion = useReducedMotion();
+  const reduceMotion = Boolean(useReducedMotion());
 
   const cardPop = useMotionValue(1);
   const knobScale = useMotionValue(1);
@@ -83,22 +269,26 @@ export const CurlCard = ({ knobX, theme }: CurlCardProps) => {
   /** The rep handler is called from the detection loop, which knows nothing about
    * React's render cycle — it reads the phase through a ref. */
   const phaseRef = useRef<TakeState["status"]>("arming");
-  const reduceMotionRef = useRef(Boolean(reduceMotion));
+  const reduceMotionRef = useRef(reduceMotion);
 
   useEffect(() => {
     phaseRef.current = take.status;
   }, [take.status]);
   useEffect(() => {
-    reduceMotionRef.current = Boolean(reduceMotion);
+    reduceMotionRef.current = reduceMotion;
   }, [reduceMotion]);
 
   const handleRep = useCallback(() => {
-    if (phaseRef.current !== "lifting") return;
+    if (phaseRef.current !== "lifting") {
+      return;
+    }
     effortRef.current = clamp(effortRef.current + CURL_GAIN, 0, 100);
     knobX.set(percentToX(effortRef.current));
     setReps((count) => count + 1);
 
-    if (reduceMotionRef.current) return;
+    if (reduceMotionRef.current) {
+      return;
+    }
     // The knob takes the hit: a kick on every rep, settling back while the drain
     // quietly walks it left again.
     knobScale.set(1.18);
@@ -128,30 +318,40 @@ export const CurlCard = ({ knobX, theme }: CurlCardProps) => {
     timerScale.set(1);
     cardPop.set(1);
     knobScale.set(1);
-    if (reduceMotionRef.current) knobX.set(0);
-    else void animate(knobX, 0, COMMIT_SPRING);
+    if (reduceMotionRef.current) {
+      knobX.set(0);
+    } else {
+      void animate(knobX, 0, COMMIT_SPRING);
+    }
   }, [knobX, timerScale, cardPop, knobScale]);
 
   // The fireworks tear themselves down. Nothing in `CurlFanfare` loops, so the
   // only reason to keep three dozen animated spans mounted past their last
   // frame would be forgetting to unmount them.
   useEffect(() => {
-    if (!celebrating) return;
+    if (!celebrating) {
+      return;
+    }
     const timer = window.setTimeout(() => setCelebrating(false), FANFARE_MS);
     return () => window.clearTimeout(timer);
   }, [celebrating]);
 
   // Start the count-in only after the camera detects an arm.
   if (take.status === "arming" && status === "tracking" && posed) {
-    setTake({ status: "countdown", count: 3 });
+    setTake({ count: 3, status: "countdown" });
   }
 
   useEffect(() => {
-    if (take.status !== "countdown") return;
+    if (take.status !== "countdown") {
+      return;
+    }
     const { count } = take;
     const timer = window.setTimeout(() => {
-      if (count === 1) setTake({ status: "lifting" });
-      else setTake({ status: "countdown", count: count === 3 ? 2 : 1 });
+      if (count === 1) {
+        setTake({ status: "lifting" });
+      } else {
+        setTake({ count: count === 3 ? 2 : 1, status: "countdown" });
+      }
     }, COUNT_MS);
     return () => window.clearTimeout(timer);
   }, [take]);
@@ -161,7 +361,9 @@ export const CurlCard = ({ knobX, theme }: CurlCardProps) => {
   // re-renders the card sixty times a second would be a strange way to spend a
   // frame budget the pose model is already using.
   useEffect(() => {
-    if (take.status !== "lifting") return;
+    if (take.status !== "lifting") {
+      return;
+    }
 
     let frame = 0;
     const startedAt = performance.now();
@@ -177,7 +379,9 @@ export const CurlCard = ({ knobX, theme }: CurlCardProps) => {
 
       const remaining = Math.max(0, SET_MS - elapsed);
       timerScale.set(remaining / SET_MS);
-      if (timerRef.current) timerRef.current.textContent = (remaining / 1000).toFixed(1);
+      if (timerRef.current) {
+        timerRef.current.textContent = (remaining / 1000).toFixed(1);
+      }
 
       if (remaining > 0) {
         frame = requestAnimationFrame(tick);
@@ -188,10 +392,11 @@ export const CurlCard = ({ knobX, theme }: CurlCardProps) => {
       // set does is round away most of what you just earned.
       const level = nearestLevel(theme, percentToX(effortRef.current));
       setTake((current) =>
-        current.status === "lifting" ? { status: "complete", level } : current,
+        current.status === "lifting" ? { level, status: "complete" } : current,
       );
-      if (reduceMotionRef.current) knobX.set(notchX(theme, level));
-      else {
+      if (reduceMotionRef.current) {
+        knobX.set(notchX(theme, level));
+      } else {
         // The drain writes knobX every frame, so the value arrives at the commit
         // carrying real velocity — a spring that inherits it hurls the knob clean
         // off the end of the track. The take is over; it starts from rest.
@@ -221,7 +426,6 @@ export const CurlCard = ({ knobX, theme }: CurlCardProps) => {
     return () => cancelAnimationFrame(frame);
   }, [take.status, knobX, knobScale, cardPop, timerScale, theme]);
 
-  const landedLabel = take.status === "complete" ? labelAt(theme, take.level) : null;
   // How much of the ceremony the take earned, 0 at the bottom notch and 1 at the
   // top. Everything the card itself does for the landing is scaled by it, the
   // same way `CurlFanfare` scales the fireworks.
@@ -234,7 +438,7 @@ export const CurlCard = ({ knobX, theme }: CurlCardProps) => {
         <p className="text-[15px] font-medium text-neutral-100">Reasoning effort</p>
 
         <AnimatePresence mode="wait" initial={false}>
-          {take.status === "complete" || failed ? (
+          {(take.status === "complete" || failed) && (
             <motion.button
               key="again"
               type="button"
@@ -248,7 +452,8 @@ export const CurlCard = ({ knobX, theme }: CurlCardProps) => {
               <RotateCcwIcon className="size-3.5 text-violet-300" />
               {failed ? "Retry camera" : "Again"}
             </motion.button>
-          ) : live ? (
+          )}
+          {live && !failed && (
             <motion.span
               key="reps"
               initial={{ opacity: 0 }}
@@ -259,7 +464,7 @@ export const CurlCard = ({ knobX, theme }: CurlCardProps) => {
               <DumbbellIcon className="size-3.5 text-violet-300" />
               {reps} {reps === 1 ? "rep" : "reps"}
             </motion.span>
-          ) : null}
+          )}
         </AnimatePresence>
       </div>
 
@@ -286,139 +491,16 @@ export const CurlCard = ({ knobX, theme }: CurlCardProps) => {
         />
 
         <div aria-live="polite" className="absolute inset-0">
-          <AnimatePresence mode="wait" initial={false}>
-            {failed ? (
-              <Overlay key="error">
-                <VideoOffIcon className="size-6 text-rose-400" />
-                <p className="max-w-[280px] text-center text-[13px] text-neutral-300">
-                  {error ?? "The camera said no."} Effort cannot be verified.
-                </p>
-              </Overlay>
-            ) : take.status === "arming" ? (
-              <Overlay key="arming">
-                <p className="text-[15px] font-medium text-neutral-100">
-                  {status === "tracking" ? "Show me an arm" : "Waking the camera…"}
-                </p>
-              </Overlay>
-            ) : take.status === "countdown" ? (
-              <Overlay key="countdown">
-                <span className="text-[44px] leading-none font-semibold tabular-nums text-violet-300 drop-shadow-[0_2px_12px_rgba(139,92,246,0.55)]">
-                  {take.count}
-                </span>
-                <p className="text-[15px] font-medium text-neutral-100">
-                  {promptForCountdown(take.count)}
-                </p>
-              </Overlay>
-            ) : take.status === "complete" ? (
-              <Overlay key="landed">
-                <motion.div
-                  initial={reduceMotion ? { opacity: 0 } : { opacity: 0, scale: 0.9 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  transition={
-                    reduceMotion
-                      ? { duration: 0.1 }
-                      : { type: "spring", stiffness: 320, damping: 20 }
-                  }
-                  className="relative flex flex-col items-center gap-1.5"
-                >
-                  {!reduceMotion && (
-                    <>
-                      {/* A halo that blows open and then stays, dimmed — the
-                          verdict keeps a light on it for as long as it's up. */}
-                      <motion.span
-                        aria-hidden
-                        className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 rounded-full mix-blend-screen"
-                        style={{
-                          width: lerp(140, 256, power),
-                          height: lerp(140, 256, power),
-                          backgroundImage:
-                            "radial-gradient(circle, rgba(167,139,250,0.75) 0%, rgba(139,92,246,0.4) 34%, rgba(109,40,217,0.16) 56%, transparent 72%)",
-                        }}
-                        initial={{ scale: 0.25, opacity: 0 }}
-                        animate={{
-                          scale: [0.25, 1.15, 1],
-                          opacity: [0, lerp(0.45, 1, power), lerp(0.3, 0.65, power)],
-                        }}
-                        transition={{ duration: 0.85, times: [0, 0.35, 1], ease: "easeOut" }}
-                      />
-                      {/* A sunburst, turning slowly. It's a repeating conic
-                          gradient masked back to a disc — twelve wedges of light
-                          behind the word, which is the cheapest way to make a
-                          static label look like it's radiating. Reserved for the
-                          top half of the track: a Light take gets the halo and
-                          nothing to stand in front of. */}
-                      {power >= SUNBURST_FLOOR && (
-                        <motion.span
-                          aria-hidden
-                          className="absolute top-1/2 left-1/2 size-72 -translate-x-1/2 -translate-y-1/2 rounded-full mix-blend-screen"
-                          style={{
-                            backgroundImage:
-                              "repeating-conic-gradient(rgba(196,181,253,0.34) 0deg 8deg, transparent 8deg 30deg)",
-                            maskImage:
-                              "radial-gradient(circle, #000 0%, rgba(0,0,0,0.55) 42%, transparent 70%)",
-                          }}
-                          initial={{ scale: 0.4, opacity: 0, rotate: -14 }}
-                          animate={{ scale: 1, opacity: [0, power, power * 0.4], rotate: 12 }}
-                          transition={{ duration: 2.4, times: [0, 0.14, 1], ease: "easeOut" }}
-                        />
-                      )}
-                      {[0, 0.13].slice(0, power >= SUNBURST_FLOOR ? 2 : 1).map((delay) => (
-                        <motion.span
-                          key={delay}
-                          aria-hidden
-                          className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 rounded-full border border-violet-200/70 shadow-[0_0_24px_rgba(167,139,250,0.6)]"
-                          initial={{ width: 40, height: 40, opacity: 0 }}
-                          animate={{
-                            width: lerp(150, 300, power),
-                            height: lerp(150, 300, power),
-                            opacity: [0, lerp(0.5, 0.85, power), 0],
-                          }}
-                          transition={{
-                            duration: 1,
-                            delay,
-                            times: [0, 0.12, 1],
-                            ease: [0.16, 1, 0.3, 1],
-                          }}
-                        />
-                      ))}
-                    </>
-                  )}
-                  <p className="relative flex flex-col items-center gap-0.5">
-                    <span className="text-[13px] tracking-wide text-neutral-400 uppercase">
-                      Landed on
-                    </span>
-                    {/* The word itself gets the pop, a beat behind the card's:
-                        the fireworks announce it, then it arrives. */}
-                    <motion.span
-                      initial={reduceMotion ? false : { scale: 0.6, opacity: 0 }}
-                      animate={{ scale: 1, opacity: 1 }}
-                      transition={{
-                        type: "spring",
-                        stiffness: 520,
-                        damping: 13,
-                        delay: reduceMotion ? 0 : 0.08,
-                      }}
-                      // White, not violet: the sunburst behind it is violet and
-                      // bright, and the word has to stay the lightest thing on
-                      // the card or the ceremony swallows the verdict. It grows
-                      // with the take as well — Ultra should be a headline and
-                      // Light shouldn't be.
-                      style={{
-                        fontSize: lerp(20, 30, power),
-                        filter: `drop-shadow(0 0 ${lerp(12, 26, power)}px rgba(139,92,246,0.95))`,
-                      }}
-                      className="leading-none font-semibold text-white"
-                    >
-                      {landedLabel}
-                    </motion.span>
-                  </p>
-                  <p className="relative text-[13px] tabular-nums text-neutral-400">
-                    {reps} {reps === 1 ? "curl" : "curls"} in 10 seconds
-                  </p>
-                </motion.div>
-              </Overlay>
-            ) : null}
-          </AnimatePresence>
+          <CameraOverlays
+            error={error}
+            failed={failed}
+            power={power}
+            reduceMotion={reduceMotion}
+            reps={reps}
+            status={status}
+            take={take}
+            theme={theme}
+          />
         </div>
 
         {/* The clock: a bar that empties, and the number it's emptying towards. */}
@@ -452,12 +534,12 @@ export const CurlCard = ({ knobX, theme }: CurlCardProps) => {
             className="pointer-events-none absolute inset-0 bg-violet-50 mix-blend-screen"
             initial={{ opacity: 0 }}
             animate={{ opacity: [0, lerp(0.1, 0.42, power), 0] }}
-            transition={{ duration: 0.55, times: [0, 0.07, 1], ease: "easeOut" }}
+            transition={{ duration: 0.55, ease: "easeOut", times: [0, 0.07, 1] }}
           />
         )}
       </div>
 
-      <div className="relative" style={{ width: TRACK_WIDTH, height: KNOB_SIZE }}>
+      <div className="relative" style={{ height: KNOB_SIZE, width: TRACK_WIDTH }}>
         <DialTrough knobX={knobX} theme={theme} />
 
         <AnimatePresence>
@@ -470,7 +552,7 @@ export const CurlCard = ({ knobX, theme }: CurlCardProps) => {
         <motion.div
           aria-hidden
           className="absolute"
-          style={{ ...knobBoxStyle(theme), x: knobX, scale: knobScale }}
+          style={{ ...knobBoxStyle(theme), scale: knobScale, x: knobX }}
         >
           <KnobSkin theme={theme} />
         </motion.div>
@@ -486,15 +568,3 @@ export const CurlCard = ({ knobX, theme }: CurlCardProps) => {
     </motion.div>
   );
 };
-
-const Overlay = ({ children }: { children: React.ReactNode }) => (
-  <motion.div
-    initial={{ opacity: 0 }}
-    animate={{ opacity: 1 }}
-    exit={{ opacity: 0 }}
-    transition={{ duration: 0.18 }}
-    className="absolute inset-0 flex flex-col items-center justify-center gap-2 bg-neutral-950/45 px-4 backdrop-blur-[2px]"
-  >
-    {children}
-  </motion.div>
-);

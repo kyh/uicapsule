@@ -1,17 +1,7 @@
 "use client";
 
-import {
-  cloneElement,
-  createContext,
-  use,
-  useCallback,
-  useMemo,
-  useState,
-  type CSSProperties,
-  type HTMLProps,
-  type ReactElement,
-  type ReactNode,
-} from "react";
+import { cloneElement, createContext, use, useCallback, useMemo, useState } from "react";
+import type { CSSProperties, HTMLProps, ReactElement, ReactNode } from "react";
 
 import {
   autoUpdate,
@@ -64,22 +54,30 @@ const resolveHoverDirection = (
   const thresholdY = rect.height * EDGE_THRESHOLD_RATIO;
 
   if (Math.abs(deltaX) > Math.abs(deltaY)) {
-    if (Math.abs(deltaY) < thresholdY) return deltaX > 0 ? "right" : "left";
-    if (deltaY < 0) return deltaX > 0 ? "top-right" : "top-left";
+    if (Math.abs(deltaY) < thresholdY) {
+      return deltaX > 0 ? "right" : "left";
+    }
+    if (deltaY < 0) {
+      return deltaX > 0 ? "top-right" : "top-left";
+    }
     return deltaX > 0 ? "bottom-right" : "bottom-left";
   }
 
-  if (Math.abs(deltaX) < thresholdX) return deltaY > 0 ? "bottom-center" : "top-center";
-  if (deltaX < 0) return deltaY > 0 ? "bottom-left" : "top-left";
+  if (Math.abs(deltaX) < thresholdX) {
+    return deltaY > 0 ? "bottom-center" : "top-center";
+  }
+  if (deltaX < 0) {
+    return deltaY > 0 ? "bottom-left" : "top-left";
+  }
   return deltaY > 0 ? "bottom-right" : "top-right";
 };
 
-type TooltipOptions = {
+interface TooltipOptions {
   initialOpen?: boolean;
   placement?: Placement;
   open?: boolean;
   onOpenChange?: (open: boolean) => void;
-};
+}
 
 export const useTooltip = ({
   initialOpen = false,
@@ -93,28 +91,15 @@ export const useTooltip = ({
   const open = controlledOpen ?? uncontrolledOpen;
   const setOpen = useCallback(
     (nextOpen: boolean) => {
-      if (controlledOpen === undefined) setUncontrolledOpen(nextOpen);
+      if (controlledOpen === undefined) {
+        setUncontrolledOpen(nextOpen);
+      }
       setControlledOpen?.(nextOpen);
     },
     [controlledOpen, setControlledOpen],
   );
 
   const data = useFloating({
-    strategy: "fixed",
-    placement,
-    open,
-    onOpenChange: (isOpen, event) => {
-      const reference = data.elements.reference;
-      if (isOpen && !open && reference && event instanceof MouseEvent) {
-        setHoverDirection(
-          resolveHoverDirection(reference.getBoundingClientRect(), event.clientX, event.clientY),
-        );
-      }
-      // Reset direction on close so the next open starts from a known state.
-      if (!isOpen) setHoverDirection(DEFAULT_HOVER_DIRECTION);
-      setOpen(isOpen);
-    },
-    whileElementsMounted: autoUpdate,
     middleware: [
       offset(5),
       flip({
@@ -123,17 +108,34 @@ export const useTooltip = ({
       }),
       shift({ padding: 5 }),
     ],
+    onOpenChange: (isOpen, event) => {
+      const { reference } = data.elements;
+      if (isOpen && !open && reference && event instanceof MouseEvent) {
+        setHoverDirection(
+          resolveHoverDirection(reference.getBoundingClientRect(), event.clientX, event.clientY),
+        );
+      }
+      // Reset direction on close so the next open starts from a known state.
+      if (!isOpen) {
+        setHoverDirection(DEFAULT_HOVER_DIRECTION);
+      }
+      setOpen(isOpen);
+    },
+    open,
+    placement,
+    strategy: "fixed",
+    whileElementsMounted: autoUpdate,
   });
 
-  const context = data.context;
+  const { context } = data;
 
   const hover = useHover(context, {
+    enabled: controlledOpen === undefined,
     move: false,
-    enabled: controlledOpen == null,
   });
 
   const focus = useFocus(context, {
-    enabled: controlledOpen == null,
+    enabled: controlledOpen === undefined,
   });
   const dismiss = useDismiss(context);
   const role = useRole(context, { role: "tooltip" });
@@ -142,9 +144,9 @@ export const useTooltip = ({
 
   return useMemo(
     () => ({
+      hoverDirection,
       open,
       setOpen,
-      hoverDirection,
       ...interactions,
       ...data,
     }),
@@ -154,12 +156,17 @@ export const useTooltip = ({
 
 type TooltipContextValue = ReturnType<typeof useTooltip>;
 
+/** Floating UI reports the position as numbers, but they are not meaningful
+ * until the floating element has been measured. */
+const isPlaced = ({ x, y }: Pick<TooltipContextValue, "x" | "y">) =>
+  x !== null && x !== undefined && y !== null && y !== undefined;
+
 const TooltipContext = createContext<TooltipContextValue | null>(null);
 
 export const useTooltipContext = () => {
   const context = use(TooltipContext);
 
-  if (context == null) {
+  if (context === null) {
     throw new Error("Tooltip components must be wrapped in <Tooltip />");
   }
 
@@ -189,12 +196,12 @@ export const TooltipTrigger = ({
   const ref = useMergeRefs([context.refs.setReference, propRef, childRef]);
 
   const stateProps = {
-    "data-state": context.open ? "open" : "closed",
     "data-side": context.placement.split("-")[0],
+    "data-state": context.open ? "open" : "closed",
   };
 
   if (asChild) {
-    // eslint-disable-next-line react/refs -- cloneElement forwards the merged ref without reading ref.current.
+    // oxlint-disable-next-line react/refs, react/no-clone-element -- asChild: the trigger props and merged ref are grafted onto the caller's element, never reading ref.current
     return cloneElement(children, {
       ...context.getReferenceProps({ ...props, ...childProps, ...stateProps }),
       ref,
@@ -202,87 +209,27 @@ export const TooltipTrigger = ({
   }
 
   return (
-    <button ref={ref} {...stateProps} {...context.getReferenceProps(props)}>
+    <button type="button" ref={ref} {...stateProps} {...context.getReferenceProps(props)}>
       {children}
     </button>
   );
 };
 
-export const TooltipContent = ({
-  className,
-  type = "default",
-  ref: propRef,
-  children,
-  ...props
-}: HTMLProps<HTMLDivElement> & {
-  type?: "default" | "block";
-}) => {
-  const context = useTooltipContext();
-  const ref = useMergeRefs([context.refs.setFloating, propRef]);
-  // Children stay out of `getFloatingProps`, which merges interaction props and
-  // would only hand them back untyped.
-  const floatingProps = context.getFloatingProps(props);
-  const blockType = type === "block";
-
-  const tooltipMotionProps = blockType
-    ? {}
-    : {
-        initial: { opacity: 0 },
-        animate: { opacity: 1 },
-        exit: { opacity: 0 },
-        transition: { duration: 0.23 },
-      };
-
-  const contentMotionProps = blockType
-    ? {
-        initial: { opacity: 0 },
-        animate: {
-          opacity: 1,
-          transition: {
-            delay: context.hoverDirection.includes("top") ? totalDelay * 2 : totalDelay,
-          },
-        },
-        exit: { opacity: 0 },
-      }
-    : {};
-
-  return (
-    <FloatingPortal>
-      <AnimatePresence>
-        {context.open && (
-          <motion.div
-            className={`tooltip ${blockType ? "block" : ""} ${className ?? ""}`}
-            ref={ref}
-            style={context.floatingStyles}
-            {...tooltipMotionProps}
-            {...floatingProps}
-          >
-            {blockType && <TooltipBlocks />}
-            <motion.div className="content" {...contentMotionProps}>
-              {children}
-            </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-      {blockType && <AnimatePresence>{context.open && <TooltipLines />}</AnimatePresence>}
-    </FloatingPortal>
-  );
-};
-
-const easeInOutQuint = (x: number) => {
-  return x < 0.5 ? 16 * x * x * x * x * x : 1 - Math.pow(-2 * x + 2, 5) / 2;
-};
+const easeInOutQuint = (x: number) =>
+  x < 0.5 ? 16 * x * x * x * x * x : 1 - (-2 * x + 2) ** 5 / 2;
 
 const lineTransition = {
-  ease: easeInOutQuint,
   duration: 1,
+  ease: easeInOutQuint,
 };
 
 const TooltipLines = () => {
   const context = useTooltipContext();
   const floatingEl = context.elements.floating;
 
-  if (!floatingEl || context.x == null || context.y == null) return null;
+  if (!floatingEl || !isPlaced(context)) {
+    return null;
+  }
 
   return (
     <>
@@ -341,22 +288,33 @@ const getDirectionalDelay = (n: number, direction: HoverDirection) => {
   const fromRight = cols - 1 - col;
 
   switch (direction) {
-    case "left":
+    case "left": {
       return baseDelay * col + baseDelay * row;
-    case "right":
+    }
+    case "right": {
       return baseDelay * fromRight + baseDelay * row;
-    case "bottom-center":
+    }
+    case "bottom-center": {
       return baseDelay * fromBottom + baseDelay * Math.abs(col - centerCol);
-    case "top-left":
+    }
+    case "top-left": {
       return baseDelay * row + baseDelay * col;
-    case "top-right":
+    }
+    case "top-right": {
       return baseDelay * row + baseDelay * fromRight;
-    case "bottom-left":
+    }
+    case "bottom-left": {
       return baseDelay * fromBottom + baseDelay * col;
-    case "bottom-right":
+    }
+    case "bottom-right": {
       return baseDelay * fromBottom + baseDelay * fromRight;
-    case "top-center":
+    }
+    case "top-center": {
       return baseDelay * row + baseDelay * Math.abs(col - centerCol);
+    }
+    default: {
+      return 0;
+    }
   }
 };
 
@@ -369,7 +327,9 @@ const blocksContainerStyle: BlocksContainerStyle = { "--cols": cols, "--rows": r
 const TooltipBlocks = () => {
   const context = useTooltipContext();
 
-  if (context.x == null || context.y == null) return null;
+  if (!isPlaced(context)) {
+    return null;
+  }
 
   return (
     <div className="blocksContainer" style={blocksContainerStyle}>
@@ -381,11 +341,72 @@ const TooltipBlocks = () => {
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
           transition={{
-            duration,
             delay: getDirectionalDelay(i, context.hoverDirection),
+            duration,
           }}
         />
       ))}
     </div>
+  );
+};
+
+export const TooltipContent = ({
+  className,
+  type = "default",
+  ref: propRef,
+  children,
+  ...props
+}: HTMLProps<HTMLDivElement> & {
+  type?: "default" | "block";
+}) => {
+  const context = useTooltipContext();
+  const ref = useMergeRefs([context.refs.setFloating, propRef]);
+  // Children stay out of `getFloatingProps`, which merges interaction props and
+  // would only hand them back untyped.
+  const floatingProps = context.getFloatingProps(props);
+  const blockType = type === "block";
+
+  const tooltipMotionProps = blockType
+    ? {}
+    : {
+        animate: { opacity: 1 },
+        exit: { opacity: 0 },
+        initial: { opacity: 0 },
+        transition: { duration: 0.23 },
+      };
+
+  const contentMotionProps = blockType
+    ? {
+        animate: {
+          opacity: 1,
+          transition: {
+            delay: context.hoverDirection.includes("top") ? totalDelay * 2 : totalDelay,
+          },
+        },
+        exit: { opacity: 0 },
+        initial: { opacity: 0 },
+      }
+    : {};
+
+  return (
+    <FloatingPortal>
+      <AnimatePresence>
+        {context.open && (
+          <motion.div
+            className={`tooltip ${blockType ? "block" : ""} ${className ?? ""}`}
+            ref={ref}
+            style={context.floatingStyles}
+            {...tooltipMotionProps}
+            {...floatingProps}
+          >
+            {blockType && <TooltipBlocks />}
+            <motion.div className="content" {...contentMotionProps}>
+              {children}
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+      {blockType && <AnimatePresence>{context.open && <TooltipLines />}</AnimatePresence>}
+    </FloatingPortal>
   );
 };

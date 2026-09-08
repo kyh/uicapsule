@@ -2,8 +2,6 @@
 
 import { VoiceDictator } from "./voice-dictator";
 
-const Preview = () => {
-  return <VoiceDictator />;
-};
+const Preview = () => <VoiceDictator />;
 
 export default Preview;

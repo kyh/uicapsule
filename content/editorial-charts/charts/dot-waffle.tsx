@@ -9,9 +9,14 @@ import { useMemo } from "react";
 import type { MixRow } from "../lib/data";
 import { SPRING } from "../lib/tokens";
 
-const renderer = motion({ transition: SPRING, initial: "always" });
+const renderer = motion({ initial: "always", transition: SPRING });
 
-type Cell = { id: string; col: number; row: number; plan: string };
+interface Cell {
+  id: string;
+  col: number;
+  row: number;
+  plan: string;
+}
 
 // A hundred dots, one per percent. Cells fill left to right, top to bottom;
 // keys carry the plan so a shifted percent pops out and back in.
@@ -41,19 +46,19 @@ export const DotWaffle = ({
       const plan = mix[slot === -1 ? mix.length - 1 : slot]?.plan ?? "";
       // Fill left → right, top → bottom, so the darkest plan starts where the
       // legend starts reading.
-      return { id: `${i}:${plan}`, col: i % 10, row: 9 - Math.floor(i / 10), plan };
+      return { col: i % 10, id: `${i}:${plan}`, plan, row: 9 - Math.floor(i / 10) };
     });
     return defineChart({
+      color: { domain: mix.map((m) => m.plan), range: [...ladder] },
       guides: false,
       margin: 0,
-      color: { domain: mix.map((m) => m.plan), range: [...ladder] },
       marks: [
         dot(cells, {
+          color: "plan",
+          key: "id",
+          r: size / 30,
           x: "col",
           y: "row",
-          key: "id",
-          color: "plan",
-          r: size / 30,
         }),
       ],
       scales: {

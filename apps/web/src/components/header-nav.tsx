@@ -8,10 +8,10 @@ import type { SearchEntry } from "@/lib/content-data";
 import { SearchButton } from "@/components/search-button";
 import { ProfileButton } from "@/components/profile-button";
 
-type HeaderNavProps = {
+interface HeaderNavProps {
   className?: string;
   searchEntries: SearchEntry[];
-};
+}
 
 export const HeaderNav = ({ className, searchEntries }: HeaderNavProps) => {
   const { trigger } = useWebHaptics();

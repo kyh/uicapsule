@@ -78,7 +78,7 @@ CI runs the same gate on every push and pull request using local test configurat
 - Typecheck covers the app, packages, scripts, and each of the 39 code-bearing content
   packages independently, including each preview's default export. Previews must render
   without required props. `pnpm typecheck:content <slug>` checks one component.
-- Lint warnings fail the gate. Explicit `any`, non-null assertions, and type casts fail too.
+- Lint is a clean gate. `oxlint.config.ts` extends the ultracite presets (`ultracite/oxlint/core`, `react`, `next`, `anti-slop`); every rule is an error, including explicit `any`, non-null assertions, and type casts. `no-await-in-loop` is the one deliberate override. Prefer fixing code over `oxlint-disable` comments; when a rule is genuinely wrong for a line, disable that line with a `-- reason`.
   Next.js-only rules apply to the app; content stays portable.
 - Tests cover auth schema/cookies/reset, RPC transport, content filesystem/registry behavior,
   and the standalone-content guard. Changed visual behavior still needs a browser check.

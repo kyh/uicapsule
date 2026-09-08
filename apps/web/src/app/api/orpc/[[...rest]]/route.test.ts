@@ -10,9 +10,9 @@ const APP_ORIGIN = "http://localhost:3000";
 const post = (headers: Record<string, string> = {}) =>
   route.POST(
     new NextRequest(`${APP_ORIGIN}/api/orpc/user/me`, {
-      method: "POST",
-      headers: { "content-type": "application/json", ...headers },
       body: JSON.stringify({ json: {} }),
+      headers: { "content-type": "application/json", ...headers },
+      method: "POST",
     }),
   );
 
@@ -25,13 +25,13 @@ describe("rpc endpoint", () => {
   test("allows a POST whose Origin is the app itself", async () => {
     const response = await post({ origin: APP_ORIGIN });
     assert.strictEqual(response.status, 401);
-    assert.match(await response.text(), /UNAUTHORIZED/);
+    assert.match(await response.text(), /UNAUTHORIZED/u);
   });
 
   test("allows a POST with no Origin at all", async () => {
     const response = await post();
     assert.strictEqual(response.status, 401);
-    assert.match(await response.text(), /UNAUTHORIZED/);
+    assert.match(await response.text(), /UNAUTHORIZED/u);
   });
 
   test("refuses GET, so a cross-site navigation cannot invoke a procedure", async () => {

@@ -2,12 +2,8 @@
 
 import { useState } from "react";
 
-import {
-  SpinnerPixelGrid,
-  spinnerDots,
-  spinnerVariants,
-  type SpinnerDot,
-} from "./spinner-pixel-grid";
+import { SpinnerPixelGrid, spinnerDots, spinnerVariants } from "./spinner-pixel-grid";
+import type { SpinnerDot } from "./spinner-pixel-grid";
 
 const Preview = () => {
   const [glow, setGlow] = useState(true);

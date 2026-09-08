@@ -1,7 +1,7 @@
 import { readdir } from "node:fs/promises";
-import { join } from "node:path";
+import path from "node:path";
 import { fileURLToPath } from "node:url";
-import consola from "consola";
+import { consola } from "consola";
 
 import { validateContentDirectory } from "./content-validation";
 
@@ -15,9 +15,13 @@ const main = async () => {
     .toSorted();
   let failures = 0;
   for (const slug of slugs) {
-    const issues = await validateContentDirectory(join(contentRoot, slug));
-    for (const issue of issues) consola.error(`content/${slug}: ${issue}`);
-    if (issues.length > 0) failures += 1;
+    const issues = await validateContentDirectory(path.join(contentRoot, slug));
+    for (const issue of issues) {
+      consola.error(`content/${slug}: ${issue}`);
+    }
+    if (issues.length > 0) {
+      failures += 1;
+    }
   }
   if (failures > 0) {
     consola.error(`${failures} content packages failed validation.`);
@@ -27,7 +31,9 @@ const main = async () => {
   consola.success(`Validated ${slugs.length} standalone content packages.`);
 };
 
-main().catch((error) => {
+try {
+  await main();
+} catch (error) {
   consola.error(error);
   process.exitCode = 1;
-});
+}

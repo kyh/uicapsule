@@ -1,6 +1,7 @@
 {
   "name": "uicapsule",
   "private": true,
+  "type": "module",
   "scripts": {
     "build": "turbo run build",
     "clean": "git clean -xdf node_modules",
@@ -9,7 +10,7 @@
     "db:push-remote": "pnpm -F db push:remote",
     "dev": "turbo watch dev --continue",
     "dev:web": "turbo watch dev -F @repo/web...",
-    "lint": "oxlint --deny-warnings --report-unused-disable-directives",
+    "lint": "oxlint --report-unused-disable-directives",
     "test": "turbo run test && node --import tsx --test 'scripts/**/*.test.ts'",
     "typecheck": "turbo run typecheck && pnpm typecheck:scripts && pnpm typecheck:content",
     "format": "oxfmt --check",
@@ -24,7 +25,6 @@
   "devDependencies": {
     "@babel/parser": "^7.29.8",
     "@babel/types": "^7.29.8",
-    "@kyh/oxlint": "^0.2.0",
     "@kyh/tsconfig": "catalog:",
     "@types/node": "catalog:",
     "citty": "^0.2.2",
@@ -34,7 +34,8 @@
     "oxlint": "^1.80.0",
     "tsx": "catalog:",
     "turbo": "^2.10.12",
-    "typescript": "catalog:"
+    "typescript": "catalog:",
+    "ultracite": "^7.11.0"
   },
   "engines": {
     "node": "24.x"

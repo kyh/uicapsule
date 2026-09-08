@@ -1,16 +1,24 @@
 import { useRef } from "react";
 import { useGSAP } from "@gsap/react";
-import gsap from "gsap";
+import { gsap } from "gsap";
 
-type CardStackProps = {
+interface CardStackProps {
   cards: { src: string; href: string; alt: string }[];
-};
+}
 
 /** Wheel delta (px) required to advance the stack by one timeline second. */
 const WHEEL_PIXELS_PER_SECOND = 1000;
 /** Max tilt (deg) applied across the full height/width of the viewport. */
 const TILT_X_RANGE = 5;
 const TILT_Y_RANGE = 10;
+
+const setContentTransformOnRepeat = (transform: string) =>
+  function onRepeat(this: gsap.core.Tween) {
+    const [target] = this.targets();
+    if (target instanceof HTMLElement) {
+      target.style.transform = transform;
+    }
+  };
 
 export const CardStack = ({ cards }: CardStackProps) => {
   const rootRef = useRef<HTMLDivElement>(null);
@@ -36,6 +44,8 @@ export const CardStack = ({ cards }: CardStackProps) => {
     const staggerEach = 0.5;
     const repeatDelay = baseDuration - staggerEach;
 
+    const tl = gsap.timeline({ paused: true, smoothChildTiming: true });
+
     const deltaTo = gsap.quickTo(deltaObject, "delta", {
       duration: 0.8,
       ease: "power1",
@@ -52,26 +62,25 @@ export const CardStack = ({ cards }: CardStackProps) => {
       ease: "power3",
     });
 
-    const tl = gsap.timeline({ paused: true, smoothChildTiming: true });
     tl.fromTo(
       slides,
       {
+        force3D: true,
         y: "-15vw",
         z: "-60vw",
-        force3D: true,
       },
       {
-        y: "0vw",
-        z: "0vw",
+        duration: baseDuration,
         ease: "none",
         force3D: true,
         immediateRender: false,
-        duration: baseDuration,
         stagger: {
           each: staggerEach,
           repeat: -1,
           repeatDelay: 0,
         },
+        y: "0vw",
+        z: "0vw",
       },
     );
 
@@ -81,20 +90,15 @@ export const CardStack = ({ cards }: CardStackProps) => {
         y: "10vh",
       },
       {
-        y: 0,
-        ease: "back.out(1.05)",
         duration: staggerEach,
+        ease: "back.out(1.05)",
         stagger: {
           each: staggerEach,
+          onRepeat: setContentTransformOnRepeat("translateY(100vh)"),
           repeat: -1,
-          repeatDelay: repeatDelay,
-          onRepeat(this: gsap.core.Tween) {
-            const [target] = this.targets();
-            if (target instanceof HTMLElement) {
-              target.style.transform = "translateY(100vh)";
-            }
-          },
+          repeatDelay,
         },
+        y: 0,
       },
       "<",
     );
@@ -105,21 +109,16 @@ export const CardStack = ({ cards }: CardStackProps) => {
         y: 0,
       },
       {
-        y: "200vh",
-        ease: "power3.in",
-        duration: staggerEach,
         delay: repeatDelay,
+        duration: staggerEach,
+        ease: "power3.in",
         stagger: {
           each: staggerEach,
+          onRepeat: setContentTransformOnRepeat("translateY(0vh)"),
           repeat: -1,
-          repeatDelay: repeatDelay,
-          onRepeat(this: gsap.core.Tween) {
-            const [target] = this.targets();
-            if (target instanceof HTMLElement) {
-              target.style.transform = "translateY(0vh)";
-            }
-          },
+          repeatDelay,
         },
+        y: "200vh",
       },
       "<",
     );

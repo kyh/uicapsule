@@ -16,17 +16,19 @@ export const sendPasswordResetEmail = async (
 
   try {
     const response = await send("https://api.resend.com/emails", {
-      method: "POST",
-      headers: { Authorization: `Bearer ${apiKey}`, "Content-Type": "application/json" },
       body: JSON.stringify({
         from,
-        to: [to],
         subject: "Reset your UICapsule password",
         text: `Reset your password using this link:\n\n${url}\n\nThis link expires in one hour. If you didn't request it, ignore this email.`,
+        to: [to],
       }),
+      headers: { Authorization: `Bearer ${apiKey}`, "Content-Type": "application/json" },
+      method: "POST",
       signal: AbortSignal.timeout(10_000),
     });
-    if (response.ok) return;
+    if (response.ok) {
+      return;
+    }
   } catch {
     // Better Auth logs delivery errors while keeping reset responses private.
   }

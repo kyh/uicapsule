@@ -3,9 +3,9 @@ import { NextResponse } from "next/server";
 
 import { getSourceFiles } from "@/lib/content-data";
 
-type SourceParams = {
+interface SourceParams {
   params: Promise<{ slug: string }>;
-};
+}
 
 // Keep the drawer/zip payload independent of shadcn's external registry format.
 export const GET = async (_: NextRequest, { params }: SourceParams) => {

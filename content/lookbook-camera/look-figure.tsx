@@ -19,9 +19,9 @@ const FULL_VIEW_BOX = `0 0 ${VIEW_W} ${VIEW_H}`;
 
 /** Slot -> the region of the photograph that piece occupies. */
 const CROPS = {
-  top: "30 10 140 175",
   lower: "40 125 120 140",
   shoes: "45 240 110 55",
+  top: "30 10 140 175",
 } as const satisfies Record<ItemSlot, string>;
 
 export interface LookFigureProps {
@@ -33,7 +33,7 @@ export interface LookFigureProps {
   className?: string;
 }
 
-export function LookFigure({ look, crop, fit = "meet", className }: LookFigureProps) {
+export const LookFigure = ({ look, crop, fit = "meet", className }: LookFigureProps) => {
   const viewBox = crop === undefined ? FULL_VIEW_BOX : CROPS[crop];
 
   return (
@@ -53,4 +53,4 @@ export function LookFigure({ look, crop, fit = "meet", className }: LookFigurePr
       />
     </svg>
   );
-}
+};

@@ -58,6 +58,49 @@ const GLYPHS = {
       <path d="M11 32h42v12a3 3 0 0 1-3 3H14a3 3 0 0 1-3-3V32Z" fill="rgba(255,255,255,0.72)" />
     </Squircle>
   ),
+  folder: (
+    <svg viewBox="0 0 64 64" className="size-full" aria-hidden="true">
+      <path
+        d="M6 16h18l5 6h29a3 3 0 0 1 3 3v24a3 3 0 0 1-3 3H6a3 3 0 0 1-3-3V19a3 3 0 0 1 3-3Z"
+        fill="#5aa7ef"
+      />
+      <path d="M3 27h58v22a3 3 0 0 1-3 3H6a3 3 0 0 1-3-3V27Z" fill="#82c2f8" />
+      <path d="M3 27h58v3H3z" fill="rgba(255,255,255,0.45)" />
+    </svg>
+  ),
+  notes: (
+    <Squircle background="linear-gradient(165deg, #fff0b0 0%, #f7d24a 46%, #eab61f 100%)">
+      <rect x="12" y="12" width="40" height="10" rx="2" fill="rgba(255,255,255,0.85)" />
+      {[29, 36, 43, 50].map((y) => (
+        <rect
+          key={y}
+          x="17"
+          y={y}
+          width={y === 50 ? 20 : 30}
+          height="2.6"
+          rx="1.3"
+          fill="rgba(0,0,0,0.24)"
+        />
+      ))}
+    </Squircle>
+  ),
+  photos: (
+    <Squircle background="linear-gradient(165deg, #ffffff 0%, #e9e6df 100%)">
+      {PINWHEEL.map((petal) => (
+        <ellipse
+          key={petal.angle}
+          cx="32"
+          cy="21"
+          rx="6.5"
+          ry="12"
+          fill={petal.fill}
+          opacity="0.88"
+          transform={`rotate(${petal.angle} 32 32)`}
+        />
+      ))}
+      <circle cx="32" cy="32" r="4.2" fill="rgba(255,255,255,0.85)" />
+    </Squircle>
+  ),
   preview: (
     <Squircle background="linear-gradient(165deg, #f6f4ee 0%, #d9d5cb 100%)">
       <rect
@@ -81,39 +124,6 @@ const GLYPHS = {
         strokeWidth="3"
       />
       <path d="M48 47l6.5 6.5" stroke="#2f6fd0" strokeWidth="4" strokeLinecap="round" />
-    </Squircle>
-  ),
-  photos: (
-    <Squircle background="linear-gradient(165deg, #ffffff 0%, #e9e6df 100%)">
-      {PINWHEEL.map((petal) => (
-        <ellipse
-          key={petal.angle}
-          cx="32"
-          cy="21"
-          rx="6.5"
-          ry="12"
-          fill={petal.fill}
-          opacity="0.88"
-          transform={`rotate(${petal.angle} 32 32)`}
-        />
-      ))}
-      <circle cx="32" cy="32" r="4.2" fill="rgba(255,255,255,0.85)" />
-    </Squircle>
-  ),
-  notes: (
-    <Squircle background="linear-gradient(165deg, #fff0b0 0%, #f7d24a 46%, #eab61f 100%)">
-      <rect x="12" y="12" width="40" height="10" rx="2" fill="rgba(255,255,255,0.85)" />
-      {[29, 36, 43, 50].map((y) => (
-        <rect
-          key={y}
-          x="17"
-          y={y}
-          width={y === 50 ? 20 : 30}
-          height="2.6"
-          rx="1.3"
-          fill="rgba(0,0,0,0.24)"
-        />
-      ))}
     </Squircle>
   ),
   terminal: (
@@ -150,16 +160,6 @@ const GLYPHS = {
         />
       ))}
     </Squircle>
-  ),
-  folder: (
-    <svg viewBox="0 0 64 64" className="size-full" aria-hidden="true">
-      <path
-        d="M6 16h18l5 6h29a3 3 0 0 1 3 3v24a3 3 0 0 1-3 3H6a3 3 0 0 1-3-3V19a3 3 0 0 1 3-3Z"
-        fill="#5aa7ef"
-      />
-      <path d="M3 27h58v22a3 3 0 0 1-3 3H6a3 3 0 0 1-3-3V27Z" fill="#82c2f8" />
-      <path d="M3 27h58v3H3z" fill="rgba(255,255,255,0.45)" />
-    </svg>
   ),
 } satisfies Record<GlyphId, ReactNode>;
 

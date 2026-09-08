@@ -14,12 +14,14 @@ export const POST = async (req: NextRequest) => {
 
   const form = await req.formData().catch(() => null);
   const file = form?.get("file");
-  if (!(file instanceof File)) return Response.json({ message: "No file." }, { status: 400 });
+  if (!(file instanceof File)) {
+    return Response.json({ message: "No file." }, { status: 400 });
+  }
 
   const meta = attachmentMetaSchema.safeParse({
     name: file.name,
-    type: file.type,
     size: file.size,
+    type: file.type,
   });
   if (!meta.success) {
     return Response.json({ message: "Unsupported file type or size." }, { status: 400 });

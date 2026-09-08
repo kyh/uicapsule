@@ -26,20 +26,49 @@ export const HUD_INNER_WIDTH = HUD_WIDTH - 40;
 const TIERS = ["muted", "low", "mid", "high"] as const;
 
 const TIER_ICON = {
-  muted: VolumeOffIcon,
+  high: Volume2Icon,
   low: VolumeIcon,
   mid: Volume1Icon,
-  high: Volume2Icon,
+  muted: VolumeOffIcon,
 } as const;
 
-type MacosChromeProps = {
+const TierIcon = ({
+  tier,
+  volume,
+}: {
+  tier: (typeof TIERS)[number];
+  volume: MotionValue<number>;
+}) => {
+  const Icon = TIER_ICON[tier];
+  const opacity = useTransform(volume, (value) => (speakerTier(value) === tier ? 1 : 0));
+  return (
+    <motion.span aria-hidden className="absolute inset-0" style={{ opacity }}>
+      <Icon className="size-[22px] text-neutral-100" />
+    </motion.span>
+  );
+};
+
+/**
+ * Four glyphs stacked, cross-fading on the volume value. A tier change is an icon
+ * swap, and an icon swap is a re-render — so instead the icons all stay mounted
+ * and opacity does the work, off the motion value, on the compositor.
+ */
+const SpeakerGlyph = ({ volume }: { volume: MotionValue<number> }) => (
+  <span className="relative flex size-[22px] items-center justify-center">
+    {TIERS.map((tier) => (
+      <TierIcon key={tier} tier={tier} volume={volume} />
+    ))}
+  </span>
+);
+
+interface MacosChromeProps {
   /** Volume 0–100, owned by the shell. The menu bar follows it frame by frame. */
   volume: MotionValue<number>;
   open: boolean;
   onToggle: () => void;
   /** The HUD, anchored under the speaker icon. */
   hud: ReactNode;
-};
+}
 
 /**
  * The desktop the controls live on: a menu bar running off the left edge of the
@@ -84,43 +113,14 @@ export const MacosChrome = ({ volume, open, onToggle, hud }: MacosChromeProps) =
   </div>
 );
 
-/**
- * Four glyphs stacked, cross-fading on the volume value. A tier change is an icon
- * swap, and an icon swap is a re-render — so instead the icons all stay mounted
- * and opacity does the work, off the motion value, on the compositor.
- */
-const SpeakerGlyph = ({ volume }: { volume: MotionValue<number> }) => (
-  <span className="relative flex size-[22px] items-center justify-center">
-    {TIERS.map((tier) => (
-      <TierIcon key={tier} tier={tier} volume={volume} />
-    ))}
-  </span>
-);
-
-const TierIcon = ({
-  tier,
-  volume,
-}: {
-  tier: (typeof TIERS)[number];
-  volume: MotionValue<number>;
-}) => {
-  const Icon = TIER_ICON[tier];
-  const opacity = useTransform(volume, (value) => (speakerTier(value) === tier ? 1 : 0));
-  return (
-    <motion.span aria-hidden className="absolute inset-0" style={{ opacity }}>
-      <Icon className="size-[22px] text-neutral-100" />
-    </motion.span>
-  );
-};
-
-type VolumeHudProps = {
+interface VolumeHudProps {
   volume: MotionValue<number>;
   /** What the HUD calls the control it's showing. */
   title: string;
   /** A line of instruction under the title — the only help you get. */
   hint: string;
   children: ReactNode;
-};
+}
 
 /**
  * The HUD itself: a readout that reports whatever the control below it decides,
@@ -131,7 +131,9 @@ type VolumeHudProps = {
 export const VolumeHud = ({ volume, title, hint, children }: VolumeHudProps) => {
   const readoutRef = useRef<HTMLSpanElement>(null);
   useMotionValueEvent(volume, "change", (value) => {
-    if (readoutRef.current) readoutRef.current.textContent = String(Math.round(value));
+    if (readoutRef.current) {
+      readoutRef.current.textContent = String(Math.round(value));
+    }
   });
   const meterScale = useTransform(volume, (value) => clampVolume(value) / VOLUME_MAX);
 

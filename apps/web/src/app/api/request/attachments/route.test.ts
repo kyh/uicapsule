@@ -9,9 +9,9 @@ const APP_ORIGIN = "http://localhost:3000";
 const post = (body: FormData | null, headers: Record<string, string> = {}) =>
   POST(
     new NextRequest(`${APP_ORIGIN}/api/request/attachments`, {
-      method: "POST",
-      headers,
       body,
+      headers,
+      method: "POST",
     }),
   );
 
@@ -21,17 +21,21 @@ test("refuses cross-origin uploads", async () => {
 });
 
 test("rejects a missing file and an unsupported type before touching GitHub", async () => {
-  assert.equal((await post(new FormData(), { origin: APP_ORIGIN })).status, 400);
+  const missing = await post(new FormData(), { origin: APP_ORIGIN });
+  assert.equal(missing.status, 400);
   const form = new FormData();
   form.set("file", new File(["x"], "a.exe", { type: "application/x-msdownload" }));
-  assert.equal((await post(form, { origin: APP_ORIGIN })).status, 400);
+  const unsupported = await post(form, { origin: APP_ORIGIN });
+  assert.equal(unsupported.status, 400);
 });
 
 test("reports unavailability without a token", async (t) => {
   const previous = process.env.GITHUB_ISSUES_TOKEN;
   delete process.env.GITHUB_ISSUES_TOKEN;
   t.after(() => {
-    if (previous !== undefined) process.env.GITHUB_ISSUES_TOKEN = previous;
+    if (previous !== undefined) {
+      process.env.GITHUB_ISSUES_TOKEN = previous;
+    }
   });
   const form = new FormData();
   form.set("file", new File(["x"], "a.png", { type: "image/png" }));

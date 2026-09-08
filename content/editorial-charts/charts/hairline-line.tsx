@@ -9,7 +9,7 @@ import { useMemo } from "react";
 import type { DayRow } from "../lib/data";
 import { FAINT, INK, MUTED, PAPER, SPRING } from "../lib/tokens";
 
-const renderer = motion({ transition: SPRING, initial: "always" });
+const renderer = motion({ initial: "always", transition: SPRING });
 
 // One dot = one day, hollow = weekend, barcode floor keeps the calendar
 // honest. Days land dot by dot; the hairline threads them once the month is
@@ -35,69 +35,76 @@ export const HairlineLine = ({
     const complete = revealed >= days.length;
     const weekdays = shown.filter((d) => !d.weekend);
     const weekends = shown.filter((d) => d.weekend);
-    const peak = days.reduce((a, b) => (b.value > a.value ? b : a));
-    const last = days[days.length - 1];
+    let [peak] = days;
+    for (const d of days) {
+      if (peak === undefined || d.value > peak.value) {
+        peak = d;
+      }
+    }
+    const last = days.at(-1);
     // Two callouts crowd each other when the peak already sits near day 30.
-    const callouts = !complete
-      ? []
-      : last === undefined || last.day === peak.day || peak.day >= 26
-        ? [peak]
-        : [peak, last];
+    const callouts: DayRow[] = [];
+    if (complete && peak !== undefined) {
+      callouts.push(peak);
+      if (last !== undefined && last.day !== peak.day && peak.day < 26) {
+        callouts.push(last);
+      }
+    }
     return defineChart({
       guides: false,
       margin: 0,
-      motion: { path: "morph" },
       marks: [
         tickX(shown, {
-          x: "day",
-          y: () => 0,
-          length: 8,
           key: "day",
+          length: 8,
           stroke: FAINT,
           strokeWidth: 1,
+          x: "day",
+          y: () => 0,
         }),
         ...(complete
           ? [
               lineY(days, {
-                x: "day",
-                y: "value",
                 key: "day",
                 stroke: INK,
                 strokeWidth: 1.25,
+                x: "day",
+                y: "value",
               }),
             ]
           : []),
         dot(weekdays, {
+          fill: INK,
           id: "weekday-dots",
-          x: "day",
-          y: "value",
           key: "day",
           r: 2.4,
-          fill: INK,
+          x: "day",
+          y: "value",
         }),
         dot(weekends, {
+          fill: PAPER,
           id: "weekend-dots",
-          x: "day",
-          y: "value",
           key: "day",
           r: 2.6,
-          fill: PAPER,
           stroke: INK,
           strokeWidth: 1.1,
-        }),
-        text(callouts, {
           x: "day",
           y: "value",
-          key: "day",
-          text: (d) => `${d.value}`,
+        }),
+        text(callouts, {
           anchor: (d) => (d.day >= 27 ? "end" : "middle"),
           dx: (d) => (d.day >= 27 ? 3 : 0),
           dy: -13,
           fill: INK,
           fontSize: 11.5,
           fontWeight: 800,
+          key: "day",
+          text: (d) => `${d.value}`,
+          x: "day",
+          y: "value",
         }),
       ],
+      motion: { path: "morph" },
       scales: {
         x: { scale: scaleLinear().domain([1, 30]) },
         y: { scale: scaleLinear().domain([0, yMax * 1.2]) },

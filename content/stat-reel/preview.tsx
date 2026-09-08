@@ -2,8 +2,6 @@
 
 import { StatReel } from "./stat-reel";
 
-const Preview = () => {
-  return <StatReel />;
-};
+const Preview = () => <StatReel />;
 
 export default Preview;

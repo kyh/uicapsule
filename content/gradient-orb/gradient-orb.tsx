@@ -8,7 +8,7 @@ import * as THREE from "three";
  * Configuration options for the gradient orb.
  * All fields are optional and fall back to sensible defaults.
  */
-export type GradientOrbConfig = {
+export interface GradientOrbConfig {
   /** CSS color string for the canvas background. @default "#0a0a0a" */
   background?: string;
   /** Hue rotation in degrees applied to all gradient colors. @default 0 */
@@ -19,21 +19,21 @@ export type GradientOrbConfig = {
   noiseScale?: number;
   /** Inner radius of the orb glow (0–1). @default 0.1 */
   innerRadius?: number;
-};
+}
 
 const defaults: Required<GradientOrbConfig> = {
   background: "#0a0a0a",
   hue: 0,
-  rotationSpeed: 0.3,
-  noiseScale: 0.65,
   innerRadius: 0.1,
+  noiseScale: 0.65,
+  rotationSpeed: 0.3,
 };
 
 /**
  * GLSL vertex shader — pass-through that outputs clip-space positions
  * directly from a fullscreen triangle in NDC.
  */
-const vertexShader = /* glsl */ `
+const vertexShader = `
   varying vec2 vUv;
 
   void main() {
@@ -46,7 +46,7 @@ const vertexShader = /* glsl */ `
  * GLSL fragment shader — renders a glowing orb with three noise-mixed colors,
  * hue rotation, breathing pulse, and constant rotation.
  */
-const fragmentShader = /* glsl */ `
+const fragmentShader = `
   precision highp float;
 
   uniform float iTime;
@@ -187,12 +187,12 @@ const fragmentShader = /* glsl */ `
 `;
 
 /** Internal scene component for the gradient fullscreen shader. */
-function GradientScene({
+const GradientScene = ({
   hue,
   rotationSpeed,
   noiseScale,
   innerRadius,
-}: Required<Omit<GradientOrbConfig, "background">>) {
+}: Required<Omit<GradientOrbConfig, "background">>) => {
   const materialRef = useRef<THREE.ShaderMaterial>(null);
   const { size, viewport } = useThree();
   const rotRef = useRef(0);
@@ -208,27 +208,24 @@ function GradientScene({
     return geo;
   }, []);
 
-  useEffect(() => {
-    return () => geometry.dispose();
-  }, [geometry]);
+  useEffect(() => () => geometry.dispose(), [geometry]);
 
   const uniforms = useMemo(
     () => ({
-      iTime: { value: 0 },
-      iResolution: { value: new THREE.Vector3(size.width, size.height, 1) },
       hue: { value: hue },
-      rot: { value: 0 },
-      noiseScale: { value: noiseScale },
+      iResolution: { value: new THREE.Vector3(1, 1, 1) },
+      iTime: { value: 0 },
       innerRadius: { value: innerRadius },
+      noiseScale: { value: noiseScale },
+      rot: { value: 0 },
     }),
-    // `size` is intentionally omitted — iResolution is mutated in-place each
-    // frame via useFrame rather than triggering a uniform object re-creation.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
     [hue, noiseScale, innerRadius],
   );
 
   useFrame((state) => {
-    if (!materialRef.current) return;
+    if (!materialRef.current) {
+      return;
+    }
 
     const t = state.clock.elapsedTime;
     const dt = t - lastTimeRef.current;
@@ -237,7 +234,9 @@ function GradientScene({
     rotRef.current += dt * rotationSpeed;
 
     const u = materialRef.current.uniforms;
-    if (!u.iTime || !u.hue || !u.rot || !u.iResolution) return;
+    if (!u.iTime || !u.hue || !u.rot || !u.iResolution) {
+      return;
+    }
     u.iTime.value = t;
     u.hue.value = hue;
     u.rot.value = rotRef.current;
@@ -261,7 +260,7 @@ function GradientScene({
       />
     </mesh>
   );
-}
+};
 
 /**
  * Glowing shader orb with noise-based 3-color mixing, YIQ hue rotation,
@@ -274,13 +273,13 @@ function GradientScene({
  * <GradientOrb config={{ hue: 120, rotationSpeed: 0.5 }} />
  * ```
  */
-export function GradientOrb({
+export const GradientOrb = ({
   config,
   className = "",
 }: {
   config?: GradientOrbConfig;
   className?: string;
-}) {
+}) => {
   const { background, hue, rotationSpeed, noiseScale, innerRadius } = {
     ...defaults,
     ...config,
@@ -289,7 +288,7 @@ export function GradientOrb({
   return (
     <div className={`w-full h-full ${className}`} style={{ background }}>
       {/* Camera is unused — the vertex shader outputs clip-space positions directly */}
-      <Canvas gl={{ antialias: true, alpha: false }}>
+      <Canvas gl={{ alpha: false, antialias: true }}>
         <color attach="background" args={[background]} />
         <GradientScene
           hue={hue}
@@ -300,4 +299,4 @@ export function GradientOrb({
       </Canvas>
     </div>
   );
-}
+};

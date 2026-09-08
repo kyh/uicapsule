@@ -1,18 +1,17 @@
 import { readdirSync, existsSync } from "node:fs";
-import { join } from "node:path";
-import { fileURLToPath } from "node:url";
+import path from "node:path";
 
 const IS_PRODUCTION = process.env.NODE_ENV === "production";
 const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL;
 
-const appRoot = fileURLToPath(new URL(".", import.meta.url));
-const contentRoot = join(appRoot, "..", "..", "content");
+const appRoot = import.meta.dirname;
+const contentRoot = path.join(appRoot, "..", "..", "content");
 
 const getContentPackages = () => {
   try {
     return readdirSync(contentRoot)
       .filter((slug) => !slug.startsWith("."))
-      .filter((slug) => existsSync(join(contentRoot, slug, "package.json")))
+      .filter((slug) => existsSync(path.join(contentRoot, slug, "package.json")))
       .map((slug) => `@uicapsule/${slug}`);
   } catch {
     return [];
@@ -24,24 +23,25 @@ const getRemotePatterns = () => {
   const remotePatterns = [];
 
   if (SUPABASE_URL) {
-    const hostname = new URL(SUPABASE_URL).hostname;
+    const { hostname } = new URL(SUPABASE_URL);
 
     remotePatterns.push({
-      protocol: "https",
       hostname,
+      protocol: "https",
     });
   }
 
   if (!IS_PRODUCTION) {
-    remotePatterns.push({
-      protocol: "http",
-      hostname: "127.0.0.1",
-    });
-
-    remotePatterns.push({
-      protocol: "http",
-      hostname: "localhost",
-    });
+    remotePatterns.push(
+      {
+        hostname: "127.0.0.1",
+        protocol: "http",
+      },
+      {
+        hostname: "localhost",
+        protocol: "http",
+      },
+    );
   }
 
   return remotePatterns;
@@ -53,21 +53,21 @@ const transpilePackages = ["@repo/api", "@repo/db", "@repo/ui", ...getContentPac
 const config = {
   /** next dev rewrites AGENTS.md/CLAUDE.md when it detects an agent; we own those files */
   agentRules: false,
+  cacheComponents: true,
   /** cover/PR recordings capture cold navigations; the badge can't be stripped in time */
   devIndicators: false,
-  cacheComponents: true,
   experimental: {
     // Avoid replaying grid skeletons on back navigation; content changes only on deploy.
     staleTimes: {
       dynamic: 180,
     },
   },
+  images: {
+    localPatterns: [{ pathname: "/assets/**" }],
+    remotePatterns: getRemotePatterns(),
+  },
   pageExtensions: ["js", "jsx", "md", "mdx", "ts", "tsx"],
   transpilePackages,
-  images: {
-    remotePatterns: getRemotePatterns(),
-    localPatterns: [{ pathname: "/assets/**" }],
-  },
 };
 
 export default config;

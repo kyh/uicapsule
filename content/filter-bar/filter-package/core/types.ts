@@ -22,23 +22,23 @@ interface ColumnBase {
   hidden?: boolean;
 }
 
-type ColumnValues = {
+interface ColumnValues {
   text: string[];
   number: number[];
   date: Date[];
   boolean: boolean[];
   option: string[];
   multiOption: string[];
-};
+}
 
-type ColumnDetails = {
-  text: {};
+interface ColumnDetails {
+  text: object;
   number: { min: number; max: number };
-  date: {};
+  date: object;
   boolean: { toggledStateName?: string };
   option: { options: ColumnOption[] };
   multiOption: { options: ColumnOption[] };
-};
+}
 
 export type Column<K extends ColumnDataType = ColumnDataType> = {
   [Type in K]: ColumnBase & { type: Type; values: ColumnValues[Type] } & ColumnDetails[Type];
@@ -46,7 +46,7 @@ export type Column<K extends ColumnDataType = ColumnDataType> = {
 
 type OptionValue = string | ColumnOption;
 
-type ColumnInputs<Row> = {
+interface ColumnInputs<Row> {
   text: { accessor: (row: Row) => string | null | undefined };
   number: { accessor: (row: Row) => number | null | undefined; min?: number; max?: number };
   date: { accessor: (row: Row) => Date | null | undefined };
@@ -56,7 +56,7 @@ type ColumnInputs<Row> = {
     accessor: (row: Row) => readonly OptionValue[] | null | undefined;
     options?: ColumnOption[];
   };
-};
+}
 
 export type ColumnConfig<Row> = {
   [Type in ColumnDataType]: ColumnBase & { type: Type } & ColumnInputs<Row>[Type];
@@ -96,14 +96,14 @@ export type MultiOptionFilterOperator =
   | "exclude if any of"
   | "exclude if all";
 
-export type FilterOperators = {
+export interface FilterOperators {
   text: TextFilterOperator;
   number: NumberFilterOperator;
   date: DateFilterOperator;
   boolean: BooleanFilterOperator;
   option: OptionFilterOperator;
   multiOption: MultiOptionFilterOperator;
-};
+}
 
 export type FilterValues<K extends ColumnDataType> = ColumnValues[K];
 
@@ -136,13 +136,13 @@ export interface DataTableFilterActions {
 }
 
 export type FilterOperatorTarget = "single" | "multiple";
-export type FilterOperatorDetails<Operator, K extends ColumnDataType> = {
+export interface FilterOperatorDetails<Operator, K extends ColumnDataType> {
   key: string;
   value: Operator;
   target: FilterOperatorTarget;
   multiple?: FilterOperators[K];
   single?: FilterOperators[K];
-};
+}
 
 export type FilterDetails<K extends ColumnDataType> = {
   [Operator in FilterOperators[K]]: FilterOperatorDetails<Operator, K>;
