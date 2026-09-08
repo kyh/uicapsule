@@ -1,6 +1,6 @@
 # AGENTS.md
 
-**uicapsule** is a curated collection of UI components built together by a designer and AI, shown in a public gallery — a pnpm/Turborepo monorepo with one
+**uicapsule** is a curated collection of UI components by a Human & AI, shown in a public gallery — a pnpm/Turborepo monorepo with one
 Next.js 16 app (`apps/web`) that renders 40 self-contained component packages under
 `content/`. This is the tool-agnostic guide for coding agents; it is meant to be _run_, not
 just read. Claude also reads `CLAUDE.md` (conventions, curation philosophy, decisions that

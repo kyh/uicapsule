@@ -1,6 +1,6 @@
 # UICapsule
 
-A curated collection of components that spark joy, built together by a designer and AI.
+A curated collection of components that spark joy, by a Human & AI.
 
 Every component starts as a designer's brief, gets built with an AI, and goes back and forth
 until it's polished: recorded, documented, and pasteable. Open source, shadcn-installable.
