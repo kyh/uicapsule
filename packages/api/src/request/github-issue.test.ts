@@ -8,6 +8,10 @@ const request = componentRequestSchema.parse({
   name: "Shutter button @claude",
   description: "A camera shutter that ripples on press.\nSecond line @claude",
   references: ["https://x.com/someone/status/1"],
+  attachments: [
+    "https://github.com/user-attachments/assets/aaa-111",
+    "https://github.com/user-attachments/assets/bbb-222",
+  ],
   credit: { name: "Ada", url: "https://github.com/ada" },
 });
 
@@ -42,6 +46,10 @@ test("files a labelled issue with mentions neutralized", async (t) => {
   assert.ok(!buildIssueBody(request).includes("@"));
   assert.match(buildIssueBody(request), /> A camera shutter[\s\S]*> Second line/);
   assert.match(buildIssueBody(request), /\[Ada\]\(https:\/\/github\.com\/ada\)/);
+  assert.match(
+    buildIssueBody(request),
+    /### Attachments\n\nhttps:\/\/github\.com\/user-attachments\/assets\/aaa-111\n\nhttps:\/\/github\.com\/user-attachments\/assets\/bbb-222\n/,
+  );
 });
 
 test("credit falls back to anonymous and references to none", () => {
@@ -50,11 +58,12 @@ test("credit falls back to anonymous and references to none", () => {
       name: "Latch",
       description: "A latch that snaps shut with a visible overshoot.",
       references: [],
+      attachments: [],
       credit: { name: "", url: "" },
     }),
   );
   assert.match(body, /_anonymous_/);
-  assert.match(body, /_none_/);
+  assert.equal(body.match(/_none_/g)?.length, 2);
 });
 
 const unavailable = { code: "SERVICE_UNAVAILABLE" };
@@ -84,6 +93,7 @@ test("credit link requires a name", () => {
     name: "Latch",
     description: "A latch that snaps shut with a visible overshoot.",
     references: [],
+    attachments: [],
     credit: { name: "", url: "https://github.com/ada" },
   });
   assert.ok(!result.success);

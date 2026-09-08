@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { useTheme } from "next-themes";
 import {
   BookCheckIcon,
+  LightbulbIcon,
   LogInIcon,
   LogOutIcon,
   MoonIcon,
@@ -89,6 +90,10 @@ export const ProfileButton = () => {
       <ProfileLink isDesktop={isDesktop} href="/inspiration" onClick={close}>
         <StarsIcon aria-hidden="true" className={menuItemIconClassName} />
         Inspiration
+      </ProfileLink>
+      <ProfileLink isDesktop={isDesktop} href="/request" onClick={close}>
+        <LightbulbIcon aria-hidden="true" className={menuItemIconClassName} />
+        Request
       </ProfileLink>
       <DropdownMenuSeparator />
       <ProfileLink

@@ -25,6 +25,14 @@ export const buildIssueBody = (request: ComponentRequest) => {
     request.references.length > 0
       ? request.references.map((url) => `- ${neutralizeMentions(url)}`).join("\n")
       : "_none_";
+  const attachments =
+    request.attachments.length > 0
+      ? request.attachments
+          // GitHub renders an attachment image inline and a bare asset URL as a video player;
+          // the extension is not in the URL, so every asset gets the bare form.
+          .map((url) => neutralizeMentions(url))
+          .join("\n\n")
+      : "_none_";
   const credit = request.credit.name
     ? request.credit.url
       ? `[${neutralizeMentions(request.credit.name)}](${neutralizeMentions(request.credit.url)})`
@@ -39,6 +47,10 @@ export const buildIssueBody = (request: ComponentRequest) => {
     "### References",
     "",
     references,
+    "",
+    "### Attachments",
+    "",
+    attachments,
     "",
     "### Credit",
     "",

@@ -39,8 +39,10 @@ Content is filesystem-driven; the web app never depends on content packages by n
 ### Component requests
 
 `/request` → oRPC `request.create` → GitHub issue labelled `request` (needs
-`GITHUB_ISSUES_TOKEN`; the `component-request.yml` issue template is the file-upload
-fallback). Visitor text has `@` neutralized so it can't trigger the `@claude` workflow.
+`GITHUB_ISSUES_TOKEN`). Attachments go through `/api/request/attachments` to GitHub's own
+`uploads.github.com/user-attachments/assets` store (the endpoint `gh --attach` uses; fine-grained
+PATs allowed, repo write access required), capped at 4MB by Vercel's request-body limit.
+Visitor text has `@` neutralized so it can't trigger the `@claude` workflow.
 Triage is manual: apply `ready` to accept, close as not-planned to decline. The
 `build-requests` skill drains `ready` issues into PRs (run locally, on a schedule).
 
