@@ -2,6 +2,8 @@
   "name": "Paper Roll",
   "description": "An endless strip of paper unrolls behind a heavy roll, printing a portfolio in its wake",
   "addedAt": "2026-07-22",
+  "coverUrl": "https://zmdrwswxugswzmcokvff.supabase.co/storage/v1/object/public/uicapsule/paper-roll/paper-roll.mp4",
+  "coverType": "video",
   "tags": ["effects", "skeuomorphism", "design"],
   "inspiredBy": [
     {

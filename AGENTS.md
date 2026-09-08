@@ -88,7 +88,7 @@ package manifests, and imports. Private workspace imports and paths escaping the
 fail the build. Do not remove this guard.
 
 Runtime — drive the real UI with [agent-browser](https://github.com/vercel-labs/agent-browser)
-(installed globally: `npm i -g agent-browser && agent-browser install`):
+(installed globally: `npm i -g agent-browser && agent-browser install`; ≥ 0.37 for `record --fps 60`):
 
 ```sh
 agent-browser open http://localhost:3000/

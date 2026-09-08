@@ -53,6 +53,8 @@ const transpilePackages = ["@repo/api", "@repo/db", "@repo/ui", ...getContentPac
 const config = {
   /** next dev rewrites AGENTS.md/CLAUDE.md when it detects an agent; we own those files */
   agentRules: false,
+  /** cover/PR recordings capture cold navigations; the badge can't be stripped in time */
+  devIndicators: false,
   cacheComponents: true,
   experimental: {
     // Avoid replaying grid skeletons on back navigation; content changes only on deploy.
