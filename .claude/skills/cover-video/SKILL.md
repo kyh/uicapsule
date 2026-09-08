@@ -153,11 +153,8 @@ curl -s -o /dev/null -w "%{http_code} %{content_type}" \
 # expect: 200 video/mp4
 ```
 
-`cp` never overwrites — an existing object fails with `409 KeyAlreadyExists`. Replacing a
-cover means `supabase storage rm ss:///uicapsule/<slug>/<slug>.mp4 --experimental --yes`
-first (without `--yes` the confirm prompt ignores piped stdin and silently does nothing).
-Storage sits behind a CDN (~1h cache) — a replaced cover can serve stale for a while;
-mention that when overwriting.
+Storage sits behind a CDN (~1h cache) — replacing an existing cover can serve stale for a
+while; mention that when overwriting.
 
 ## 7. Wire up + confirm
 

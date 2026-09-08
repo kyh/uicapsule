@@ -1,8 +1,9 @@
 "use client";
 
 import type { CSSProperties, PointerEvent as ReactPointerEvent, ReactNode } from "react";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useId, useRef, useState } from "react";
 import gsap from "gsap";
+import { X } from "lucide-react";
 
 import type { FmLayout, FormationMode, Pose, Work } from "./formation-poses";
 import {
@@ -11,6 +12,7 @@ import {
   easeInOut,
   focusScore,
   getLayout,
+  GLASS_NORMAL_MAP,
   HOVER_EASE,
   HOVER_ZOOM,
   lerpPose,
@@ -33,6 +35,14 @@ import {
 const SANS =
   'ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif';
 const MONO = 'ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace';
+
+// Narrowest *root* width that gets the custom lens cursor. The lens is also a
+// fine-pointer affordance only — on touch it would freeze at its last known
+// position. Both conditions live in JS (`LoopState.lens`, which also drives the
+// element's `display`) rather than a CSS media query, because a query would test
+// the viewport while every other measurement here is root-relative: embedded
+// narrower than the window, the two disagree.
+const LENS_MIN_W = 640;
 
 interface CustomCSS extends CSSProperties {
   [key: `--${string}`]: string | number | undefined;
@@ -61,6 +71,9 @@ interface LoopState {
   onScreen: boolean;
   visible: boolean;
   reduced: boolean;
+  pointerFine: boolean;
+  /** Is the lens cursor currently rendered? Recomputed on layout, not per frame. */
+  lens: boolean;
   browse: number;
   vel: number;
   morphing: boolean;
@@ -72,6 +85,7 @@ interface LoopState {
   curTY: number;
   /** Pointer position, root-relative. */
   cursor: { x: number; y: number; inside: boolean };
+  glass: { x: number; y: number; scale: number; opacity: number };
   /**
    * The pointer currently being tracked, if any. `committed` means it has moved
    * past the tap slop and is now scrubbing — i.e. it *is* the drag state, so
@@ -80,6 +94,7 @@ interface LoopState {
   press: { x: number; y: number; id: number; committed: boolean } | null;
   /** Previous pointer x, root-relative — the scrub delta is measured against it. */
   lastX: number;
+  overUI: boolean;
 }
 
 const zeroPose = (): Pose => ({
@@ -99,6 +114,8 @@ const createState = (): LoopState => ({
   onScreen: true,
   visible: true,
   reduced: false,
+  pointerFine: false,
+  lens: false,
   browse: 0,
   vel: 0,
   morphing: false,
@@ -109,8 +126,10 @@ const createState = (): LoopState => ({
   curTX: 0,
   curTY: 0,
   cursor: { x: 0, y: 0, inside: false },
+  glass: { x: -100, y: -100, scale: 1, opacity: 0 },
   press: null,
   lastX: 0,
+  overUI: false,
 });
 
 const makeCards = (works: Work[]): CardState[] =>
@@ -140,10 +159,27 @@ interface FormationProps {
 
 export const Formation = ({ works }: FormationProps): ReactNode => {
   const [mode, setMode] = useState<FormationMode>("flat");
+  const [detail, setDetail] = useState<{ card: CardState } | null>(null);
+
+  const rawId = useId();
+  const filterId = `fm-liquid-${rawId.replace(/[^a-zA-Z0-9]/g, "")}`;
 
   const rootRef = useRef<HTMLElement | null>(null);
   const parallaxRef = useRef<HTMLDivElement | null>(null);
+  const glassRef = useRef<HTMLDivElement | null>(null);
   const counterRef = useRef<HTMLSpanElement | null>(null);
+
+  // Detail-overlay refs
+  const bdRef = useRef<HTMLDivElement | null>(null);
+  const imgWrapRef = useRef<HTMLDivElement | null>(null);
+  const imgInnerRef = useRef<HTMLDivElement | null>(null);
+  const scrimRef = useRef<HTMLDivElement | null>(null);
+  const detailBoxRef = useRef<HTMLDivElement | null>(null);
+  const titleRef = useRef<HTMLHeadingElement | null>(null);
+  const ruleRef = useRef<HTMLSpanElement | null>(null);
+  const closeBtnRef = useRef<HTMLButtonElement | null>(null);
+  const lidTopRef = useRef<HTMLDivElement | null>(null);
+  const lidBotRef = useRef<HTMLDivElement | null>(null);
 
   // Mutable engine state (never triggers a re-render)
   const sRef = useRef<LoopState | null>(null);
@@ -164,8 +200,16 @@ export const Formation = ({ works }: FormationProps): ReactNode => {
   /** Root's live client box — pointer coords are converted against it. */
   const boxRef = useRef({ left: 0, top: 0, w: 0, h: 0 });
   const modeRef = useRef<FormationMode>("flat");
+  const openRef = useRef(false);
+  const openingRef = useRef(false);
+  const closingRef = useRef(false);
+  const openTlRef = useRef<gsap.core.Timeline | null>(null);
+  const closeTlRef = useRef<gsap.core.Timeline | null>(null);
   const firstMode = useRef(true);
-  const renderStaticRef = useRef<() => void>(() => {});
+  const fnRef = useRef<{ closeDetail: () => void; renderStatic: () => void }>({
+    closeDetail: () => {},
+    renderStatic: () => {},
+  });
 
   // ── Geometry helpers (read refs only — safe to capture once) ─────────────
   const applyCardSizes = () => {
@@ -182,7 +226,7 @@ export const Formation = ({ works }: FormationProps): ReactNode => {
   };
 
   /** Painter's-algorithm hit test in root-relative space; highest z wins. */
-  const hoverHit = (px: number, py: number) => {
+  const rectHit = (px: number, py: number, sticky: boolean) => {
     const box = boxRef.current;
     const inRect = (el: HTMLDivElement) => {
       const r = el.getBoundingClientRect();
@@ -192,7 +236,7 @@ export const Formation = ({ works }: FormationProps): ReactNode => {
     };
     const stickyCard = S.hoverCard;
     // Bias toward whatever is already hovered so a hairline overlap can't flicker.
-    if (stickyCard && stickyCard.cur.o >= 0.5 && stickyCard.outer) {
+    if (sticky && stickyCard && stickyCard.cur.o >= 0.5 && stickyCard.outer) {
       if (inRect(stickyCard.outer)) return stickyCard;
     }
     let best: CardState | null = null;
@@ -208,6 +252,8 @@ export const Formation = ({ works }: FormationProps): ReactNode => {
     }
     return best;
   };
+  const hoverHit = (px: number, py: number) => rectHit(px, py, true);
+  const resolveCardAt = (px: number, py: number) => rectHit(px, py, false);
 
   const renderStatic = () => {
     const L = layoutRef.current;
@@ -235,10 +281,53 @@ export const Formation = ({ works }: FormationProps): ReactNode => {
     }
   };
 
+  // ── Detail open / close ──────────────────────────────────────────────────
+  const openDetail = (card: CardState) => {
+    if (openingRef.current || closingRef.current || openRef.current) return;
+    S.hoverCard = null;
+    openRef.current = true;
+    openingRef.current = true;
+    setDetail({ card });
+  };
+
+  const closeDetail = () => {
+    if (closingRef.current || !openRef.current) return;
+    // A close can interrupt the (long) open blink rather than waiting it out.
+    if (openingRef.current) {
+      openTlRef.current?.kill();
+      openingRef.current = false;
+    }
+    if (S.reduced) {
+      openRef.current = false;
+      setDetail(null);
+      return;
+    }
+    closingRef.current = true;
+    const lids = [lidTopRef.current, lidBotRef.current];
+    const tl = gsap.timeline({
+      onComplete: () => {
+        closingRef.current = false;
+        setDetail(null);
+      },
+    });
+    closeTlRef.current = tl;
+    tl.to(detailBoxRef.current, { autoAlpha: 0, duration: 0.28, ease: "power2.in" }, 0)
+      .to(lids, { scaleY: 1, duration: 0.6, ease: "power2.inOut" }, 0.05)
+      .add(() => {
+        openRef.current = false;
+        gsap.set([imgWrapRef.current, scrimRef.current, bdRef.current, closeBtnRef.current], {
+          opacity: 0,
+        });
+      }, 0.66)
+      .to(lids, { scaleY: 0, duration: 0.95, ease: "power3.out" }, 0.74);
+  };
+
   // ── Pointer input (React handlers → latest closures) ─────────────────────
   // Every handler is gated on the tracked `pointerId`: on touch, a second
-  // contact landing mid-swipe must not hijack the drag.
+  // contact landing mid-swipe must not hijack the drag (or, worse, be read as a
+  // tap and open the detail view under the finger that is still scrubbing).
   const onPointerDown = (e: ReactPointerEvent<HTMLElement>) => {
+    if (openRef.current) return;
     if (isUI(e.target)) return;
     if (S.press) return;
     const box = boxRef.current;
@@ -260,10 +349,12 @@ export const Formation = ({ works }: FormationProps): ReactNode => {
     S.cursor.x = lx;
     S.cursor.y = ly;
     S.cursor.inside = true;
+    S.overUI = isUI(e.target);
+    if (openRef.current) return;
     if (press && !S.morphing) {
       if (!press.committed) {
         const dist = Math.hypot(lx - press.x, ly - press.y);
-        // 8px of slop so a jittery tap on touch doesn't nudge the carousel.
+        // 8px of slop, so a click still opens the detail view.
         if (dist > 8) {
           press.committed = true;
           try {
@@ -283,13 +374,25 @@ export const Formation = ({ works }: FormationProps): ReactNode => {
     S.lastX = lx;
   };
 
-  const endPress = (e: ReactPointerEvent<HTMLElement>) => {
+  /** `mayTap`: a press that never committed opens the detail view it ended on. */
+  const endPress = (e: ReactPointerEvent<HTMLElement>, mayTap: boolean) => {
     const press = S.press;
     if (!press || press.id !== e.pointerId) return;
     const root = rootRef.current;
     if (root?.hasPointerCapture(press.id)) root.releasePointerCapture(press.id);
     S.press = null;
+    if (mayTap && !press.committed && !openRef.current) {
+      const card = resolveCardAt(press.x, press.y);
+      if (card) openDetail(card);
+    }
   };
+
+  const onPointerUp = (e: ReactPointerEvent<HTMLElement>) => endPress(e, true);
+
+  // The browser can claim a touch gesture mid-drag (vertical scroll on the
+  // `pan-y` root). Release the same state as pointerup, but never treat the
+  // interrupted press as a tap — that would open the detail view mid-scroll.
+  const onPointerCancel = (e: ReactPointerEvent<HTMLElement>) => endPress(e, false);
 
   const onPointerLeave = () => {
     // An uncommitted press can be released outside the root — no capture has
@@ -302,9 +405,9 @@ export const Formation = ({ works }: FormationProps): ReactNode => {
     S.hoverCard = null;
   };
 
-  // Keep the mode effect's reduced-motion path on the latest closure.
+  // Keep listener-bound callbacks fresh.
   useEffect(() => {
-    renderStaticRef.current = renderStatic;
+    fnRef.current = { closeDetail, renderStatic };
   });
 
   // ── Mount: layout, engine loop, lifecycle ────────────────────────────────
@@ -314,6 +417,7 @@ export const Formation = ({ works }: FormationProps): ReactNode => {
     const st = S;
 
     st.reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    st.pointerFine = window.matchMedia("(pointer: fine)").matches;
 
     const box = boxRef.current;
 
@@ -335,6 +439,11 @@ export const Formation = ({ works }: FormationProps): ReactNode => {
     const relayout = () => {
       if (!measure()) return;
       layoutRef.current = getLayout(box.w, box.h, n);
+      st.pointerFine = window.matchMedia("(pointer: fine)").matches;
+      // The lens's visibility and the loop's "may I hide the native cursor?"
+      // test are the same decision, made once here, in the same units.
+      st.lens = !st.reduced && st.pointerFine && box.w >= LENS_MIN_W;
+      if (glassRef.current) glassRef.current.style.display = st.lens ? "block" : "none";
       // Seed (or re-seed) the virtual cursor at centre so the parallax rests
       // neutral. The first measure inside a fresh iframe can be 0x0, so this has
       // to live here rather than after a single relayout() call.
@@ -348,6 +457,20 @@ export const Formation = ({ works }: FormationProps): ReactNode => {
 
     // Seeds the layout and, under reduced motion, paints the one static frame.
     relayout();
+
+    const updateGlass = () => {
+      const el = glassRef.current;
+      if (!el || !st.lens) return;
+      st.glass.x += (st.cursor.x - st.glass.x) * 0.22;
+      st.glass.y += (st.cursor.y - st.glass.y) * 0.22;
+      const scaleTgt = isDragging(st) ? 0.78 : st.hoverCard ? 1.5 : 1;
+      st.glass.scale += (scaleTgt - st.glass.scale) * 0.18;
+      const opTgt = st.cursor.inside && !st.overUI && !openRef.current ? 1 : 0;
+      const opEase = st.overUI ? 0.3 : 0.18;
+      st.glass.opacity += (opTgt - st.glass.opacity) * opEase;
+      el.style.transform = `translate3d(${st.glass.x - 28}px, ${st.glass.y - 28}px, 0) scale(${st.glass.scale})`;
+      el.style.opacity = String(st.glass.opacity);
+    };
 
     const updateCounter = () => {
       let focused = st.hoverCard;
@@ -389,10 +512,32 @@ export const Formation = ({ works }: FormationProps): ReactNode => {
       box.left = rr.left;
       box.top = rr.top;
 
-      if (dragging || st.morphing) st.hoverCard = null;
-      else if (st.cursor.inside) st.hoverCard = hoverHit(st.cursor.x, st.cursor.y);
+      // Hover hit-test (skipped while the detail view owns the screen, so
+      // `hoverCard` stays as `openDetail` left it).
+      if (!openRef.current) {
+        if (dragging || st.morphing) st.hoverCard = null;
+        else if (st.cursor.inside) st.hoverCard = hoverHit(st.cursor.x, st.cursor.y);
+      }
 
-      root.style.cursor = dragging ? "grabbing" : "grab";
+      updateGlass();
+
+      // Only surrender the native cursor when the lens is actually on screen and
+      // standing in for it — never at narrow widths, never over the open detail.
+      if (openRef.current) root.style.cursor = "auto";
+      else if (st.lens) root.style.cursor = st.overUI ? "auto" : "none";
+      else
+        root.style.cursor = dragging
+          ? "grabbing"
+          : st.hoverCard
+            ? "pointer"
+            : mode2 === "flat"
+              ? "default"
+              : "grab";
+
+      if (openRef.current) {
+        st.raf = requestAnimationFrame(frame);
+        return;
+      }
 
       // Scrub momentum
       if (!dragging && !st.morphing) {
@@ -517,7 +662,7 @@ export const Formation = ({ works }: FormationProps): ReactNode => {
 
     const onWheel = (e: WheelEvent) => {
       if (isUI(e.target)) return;
-      if (st.reduced) return;
+      if (openRef.current || st.reduced) return;
       e.preventDefault();
       if (st.morphing) return;
       const gain = modeRef.current === "flat" || modeRef.current === "ring" ? 0.6 : 0.8;
@@ -528,6 +673,11 @@ export const Formation = ({ works }: FormationProps): ReactNode => {
     };
     root.addEventListener("wheel", onWheel, { passive: false });
 
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape" && openRef.current) fnRef.current.closeDetail();
+    };
+    window.addEventListener("keydown", onKey);
+
     if (!st.reduced) start();
 
     return () => {
@@ -537,6 +687,9 @@ export const Formation = ({ works }: FormationProps): ReactNode => {
       document.removeEventListener("visibilitychange", onVis);
       window.removeEventListener("resize", relayout);
       root.removeEventListener("wheel", onWheel);
+      window.removeEventListener("keydown", onKey);
+      closeTlRef.current?.kill();
+      closeTlRef.current = null;
       // Let a StrictMode remount re-seed poses from scratch, and re-arm the
       // "first mode" short-circuit so the remount doesn't morph from a zero pose.
       st.seeded = false;
@@ -593,7 +746,7 @@ export const Formation = ({ works }: FormationProps): ReactNode => {
       return;
     }
     if (S.reduced) {
-      renderStaticRef.current();
+      fnRef.current.renderStatic();
       return;
     }
     for (const card of cards) copyPose(card.from, card.cur);
@@ -606,6 +759,75 @@ export const Formation = ({ works }: FormationProps): ReactNode => {
     // lives in the engine effect's cleanup, which only runs on unmount.
   }, [mode, cards, S]);
 
+  // Detail open timeline (the eyelid blink).
+  useEffect(() => {
+    if (!detail) return;
+    const lids = [lidTopRef.current, lidBotRef.current];
+    const reveals = detailBoxRef.current?.querySelectorAll("[data-fm-reveal]");
+    // The dialog is modal (the stage behind it is `inert`), so focus has to move
+    // into it — otherwise Tab lands on controls hidden behind an opaque overlay.
+    const restoreTo = document.activeElement;
+    closeBtnRef.current?.focus({ preventScroll: true });
+
+    // The <h2> ships hidden below its clip mask via `translateY(120%)`, which
+    // GSAP reads back as a *pixel* `y` and would then add the percentage on top
+    // of. Zeroing `y` here hands the offset over to `yPercent` cleanly — the
+    // 120% has to stay height-relative for the tween to land flush.
+    const setTitle = (yPercent: number) => gsap.set(titleRef.current, { y: 0, yPercent });
+
+    const restoreFocus = () => {
+      if (restoreTo instanceof HTMLElement) restoreTo.focus({ preventScroll: true });
+    };
+
+    if (S.reduced) {
+      gsap.set(lids, { scaleY: 0 });
+      gsap.set([bdRef.current, imgWrapRef.current, scrimRef.current, closeBtnRef.current], {
+        opacity: 1,
+      });
+      gsap.set(imgInnerRef.current, { scale: 1 });
+      gsap.set(ruleRef.current, { scaleX: 1 });
+      setTitle(0);
+      if (reveals) gsap.set(reveals, { y: 0, opacity: 1 });
+      openingRef.current = false;
+      return restoreFocus;
+    }
+
+    const tl = gsap.timeline({
+      onComplete: () => {
+        openingRef.current = false;
+      },
+    });
+    openTlRef.current = tl;
+    gsap.set(lids, { scaleY: 0 });
+    gsap.set(bdRef.current, { opacity: 0 });
+    gsap.set(imgWrapRef.current, { opacity: 0 });
+    gsap.set(imgInnerRef.current, { scale: 1.4 });
+    gsap.set(scrimRef.current, { opacity: 0 });
+    gsap.set(closeBtnRef.current, { opacity: 0 });
+    gsap.set(ruleRef.current, { scaleX: 0 });
+    setTitle(120);
+    gsap.set(detailBoxRef.current, { autoAlpha: 1 });
+    if (reveals) gsap.set(reveals, { y: 26, opacity: 0 });
+
+    tl.to(lids, { scaleY: 1, duration: 0.6, ease: "power2.inOut" }, 0)
+      .add(() => {
+        gsap.set(bdRef.current, { opacity: 1 });
+        gsap.set(imgWrapRef.current, { opacity: 1 });
+      }, 0.62)
+      .to(imgInnerRef.current, { scale: 1, duration: 2.2, ease: "power2.out" }, 0.62)
+      .to(lids, { scaleY: 0, duration: 1.0, ease: "power3.out" }, 0.7)
+      .to(scrimRef.current, { opacity: 1, duration: 0.7 }, 1.1)
+      .to(closeBtnRef.current, { opacity: 1, duration: 0.5 }, 1.45)
+      .to(ruleRef.current, { scaleX: 1, duration: 0.6 }, 1.45)
+      .to(titleRef.current, { yPercent: 0, duration: 0.95, ease: "power4.out" }, 1.5)
+      .to(reveals ?? [], { y: 0, opacity: 1, duration: 0.7, stagger: 0.1 }, 1.62);
+
+    return () => {
+      tl.kill();
+      restoreFocus();
+    };
+  }, [detail, S]);
+
   const stageStyle: CustomCSS = {
     touchAction: "pan-y",
     fontFamily: SANS,
@@ -615,6 +837,10 @@ export const Formation = ({ works }: FormationProps): ReactNode => {
     color: "rgba(255,255,255,0.92)",
   };
 
+  const open = detail !== null;
+  const work = detail?.card.work ?? null;
+  const detailNo = detail ? `${pad(detail.card.index + 1)} — ${pad(n)}` : "";
+
   return (
     <section
       ref={rootRef}
@@ -622,12 +848,84 @@ export const Formation = ({ works }: FormationProps): ReactNode => {
       style={stageStyle}
       onPointerDown={onPointerDown}
       onPointerMove={onPointerMove}
-      onPointerUp={endPress}
-      onPointerCancel={endPress}
+      onPointerUp={onPointerUp}
+      onPointerCancel={onPointerCancel}
       onPointerLeave={onPointerLeave}
     >
+      {/* Liquid-glass filter: three displacement passes at 33/31/29 recombined
+          per channel, which is where the chromatic fringing comes from. */}
+      <svg width={0} height={0} aria-hidden className="absolute">
+        <filter
+          id={filterId}
+          x="-50%"
+          y="-50%"
+          width="200%"
+          height="200%"
+          colorInterpolationFilters="sRGB"
+        >
+          <feImage
+            href={GLASS_NORMAL_MAP}
+            x="0"
+            y="0"
+            width="56"
+            height="56"
+            preserveAspectRatio="none"
+            result="map"
+          />
+          <feGaussianBlur in="SourceGraphic" stdDeviation="0.9" result="src" />
+          <feDisplacementMap
+            in="src"
+            in2="map"
+            scale="33"
+            xChannelSelector="R"
+            yChannelSelector="G"
+            result="d1"
+          />
+          <feDisplacementMap
+            in="src"
+            in2="map"
+            scale="31"
+            xChannelSelector="R"
+            yChannelSelector="G"
+            result="d2"
+          />
+          <feDisplacementMap
+            in="src"
+            in2="map"
+            scale="29"
+            xChannelSelector="R"
+            yChannelSelector="G"
+            result="d3"
+          />
+          <feColorMatrix
+            in="d1"
+            type="matrix"
+            values="1 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 1 0"
+            result="cr"
+          />
+          <feColorMatrix
+            in="d2"
+            type="matrix"
+            values="0 0 0 0 0  0 1 0 0 0  0 0 0 0 0  0 0 0 1 0"
+            result="cg"
+          />
+          <feColorMatrix
+            in="d3"
+            type="matrix"
+            values="0 0 0 0 0  0 0 0 0 0  0 0 1 0 0  0 0 0 1 0"
+            result="cb"
+          />
+          <feBlend in="cr" in2="cg" mode="screen" result="crg" />
+          <feBlend in="crg" in2="cb" mode="screen" result="crgb" />
+          <feGaussianBlur in="crgb" stdDeviation="0.5" />
+        </filter>
+      </svg>
+
+      {/* The 3D stage. `inert` while the detail is open so Tab can't reach a
+          card sitting behind an opaque overlay. */}
       <div
         className="absolute inset-0"
+        inert={open}
         style={{ perspective: `${PERSP}px`, perspectiveOrigin: "50% 50%" }}
       >
         <div
@@ -641,8 +939,18 @@ export const Formation = ({ works }: FormationProps): ReactNode => {
               ref={(el) => {
                 card.outer = el;
               }}
-              role="img"
+              // Not a <button>: this element's transform is rewritten every
+              // frame and it must stay free of UA box/typography styling. It
+              // carries the button *semantics* instead, so the detail view has a
+              // keyboard entry point to match the pointer one.
+              role="button"
+              tabIndex={0}
               aria-label={card.work.title}
+              onKeyDown={(e) => {
+                if (e.key !== "Enter" && e.key !== " ") return;
+                e.preventDefault();
+                openDetail(card);
+              }}
               className="absolute left-1/2 top-1/2"
               style={{ transformStyle: "preserve-3d", opacity: 0 }}
             >
@@ -705,7 +1013,10 @@ export const Formation = ({ works }: FormationProps): ReactNode => {
       </footer>
 
       {/* Formation dock */}
-      <div className="pointer-events-none absolute inset-x-0 bottom-0 z-50 flex justify-center px-4 pb-6 sm:inset-x-auto sm:bottom-auto sm:right-0 sm:top-5 sm:justify-end sm:px-0 sm:pr-6">
+      <div
+        inert={open}
+        className="pointer-events-none absolute inset-x-0 bottom-0 z-50 flex justify-center px-4 pb-6 sm:inset-x-auto sm:bottom-auto sm:right-0 sm:top-5 sm:justify-end sm:px-0 sm:pr-6"
+      >
         <div
           role="tablist"
           data-fm-ui
@@ -744,6 +1055,198 @@ export const Formation = ({ works }: FormationProps): ReactNode => {
           })}
         </div>
       </div>
+
+      {/* Detail — eyelid blink */}
+      {work && (
+        <div
+          role="dialog"
+          aria-modal="true"
+          aria-label={work.title}
+          className="absolute inset-0"
+          style={{ zIndex: 5000 }}
+        >
+          {/* Click-anywhere-to-close: the image plate above this backdrop is
+              full-bleed, so it (and everything decorative inside it) has to stay
+              transparent to pointer events for the backdrop to be reachable at
+              all. The close button opts back in. */}
+          <div
+            ref={bdRef}
+            onClick={closeDetail}
+            className="absolute inset-0"
+            style={{ background: "#050505", opacity: 0 }}
+          />
+          <div className="pointer-events-none absolute inset-0 overflow-hidden">
+            <div ref={imgWrapRef} className="absolute inset-0" style={{ opacity: 0 }}>
+              <div
+                ref={imgInnerRef}
+                className="absolute inset-0"
+                style={{ transformOrigin: "center", transform: "scale(1.4)" }}
+              >
+                <div
+                  className="absolute inset-0"
+                  style={{
+                    backgroundImage: `url(${work.image})`,
+                    backgroundColor: "#0a0a0a",
+                    backgroundSize: "cover",
+                    backgroundPosition: "center",
+                    filter: "saturate(0.98) contrast(1.03)",
+                  }}
+                />
+              </div>
+            </div>
+
+            <div
+              ref={scrimRef}
+              className="pointer-events-none absolute inset-0"
+              style={{
+                opacity: 0,
+                background:
+                  "linear-gradient(90deg, rgba(0,0,0,0.8) 0%, rgba(0,0,0,0.42) 36%, rgba(0,0,0,0) 64%), linear-gradient(0deg, rgba(0,0,0,0.62) 0%, rgba(0,0,0,0) 44%)",
+              }}
+            />
+
+            <div
+              ref={detailBoxRef}
+              className="absolute text-white"
+              style={{
+                left: "6vw",
+                right: "6vw",
+                bottom: "8vh",
+                maxWidth: 760,
+              }}
+            >
+              <div
+                data-fm-reveal
+                className="mb-4 flex items-center gap-3 uppercase"
+                style={{
+                  fontFamily: MONO,
+                  fontSize: "0.72rem",
+                  letterSpacing: "0.24em",
+                  opacity: 0,
+                }}
+              >
+                <span
+                  ref={ruleRef}
+                  style={{
+                    display: "inline-block",
+                    width: 32,
+                    height: 2,
+                    background: work.accent,
+                    transformOrigin: "left center",
+                    transform: "scaleX(0)",
+                  }}
+                />
+                {work.category}
+              </div>
+
+              <div className="overflow-hidden">
+                <h2
+                  ref={titleRef}
+                  style={{
+                    fontFamily: SANS,
+                    fontWeight: 800,
+                    fontSize: "clamp(2.6rem, 6.4vw, 5.4rem)",
+                    lineHeight: 0.97,
+                    letterSpacing: "-0.04em",
+                    transform: "translateY(120%)",
+                  }}
+                >
+                  {work.title}
+                </h2>
+              </div>
+
+              <div
+                data-fm-reveal
+                className="mt-6 inline-flex items-baseline gap-3 pt-4 uppercase"
+                style={{
+                  fontFamily: MONO,
+                  fontSize: "0.62rem",
+                  letterSpacing: "0.2em",
+                  fontVariantNumeric: "tabular-nums",
+                  borderTop: "1px solid rgba(255,255,255,0.22)",
+                  opacity: 0,
+                  transform: "translateY(26px)",
+                }}
+              >
+                <span style={{ opacity: 0.55 }}>№</span>
+                <span>{detailNo}</span>
+              </div>
+            </div>
+
+            <button
+              ref={closeBtnRef}
+              data-fm-ui
+              type="button"
+              aria-label="Close"
+              onClick={closeDetail}
+              className="pointer-events-auto absolute flex items-center justify-center rounded-full text-white"
+              style={{
+                right: 20,
+                top: 20,
+                width: 44,
+                height: 44,
+                background: "rgba(255,255,255,0.12)",
+                backdropFilter: "blur(6px)",
+                WebkitBackdropFilter: "blur(6px)",
+                opacity: 0,
+              }}
+            >
+              <X className="size-5" />
+            </button>
+
+            <div
+              ref={lidTopRef}
+              className="absolute inset-x-0 top-0"
+              style={{
+                height: "51%",
+                background: "#050505",
+                transformOrigin: "top",
+                transform: "scaleY(0)",
+                zIndex: 20,
+              }}
+            />
+            <div
+              ref={lidBotRef}
+              className="absolute inset-x-0 bottom-0"
+              style={{
+                height: "51%",
+                background: "#050505",
+                transformOrigin: "bottom",
+                transform: "scaleY(0)",
+                zIndex: 20,
+              }}
+            />
+          </div>
+        </div>
+      )}
+
+      {/* Liquid-glass cursor */}
+      <div
+        ref={glassRef}
+        aria-hidden
+        style={{
+          position: "absolute",
+          // `relayout` owns this — it flips to `block` only where the lens is
+          // both wanted (fine pointer, wide enough root) and animated.
+          display: "none",
+          left: 0,
+          top: 0,
+          zIndex: 6000,
+          width: 56,
+          height: 56,
+          borderRadius: 9999,
+          pointerEvents: "none",
+          opacity: 0,
+          willChange: "transform",
+          transform: "translate3d(-100px, -100px, 0)",
+          backdropFilter: `url(#${filterId}) saturate(1.5) brightness(1.05)`,
+          WebkitBackdropFilter: `url(#${filterId}) saturate(1.5) brightness(1.05)`,
+          background:
+            "radial-gradient(circle at 34% 28%, rgba(255,255,255,0.5), rgba(255,255,255,0.04) 44%, rgba(255,255,255,0) 70%)",
+          boxShadow:
+            "inset 0 1px 2px rgba(255,255,255,0.85), inset 0 0 0 1px rgba(255,255,255,0.3), inset 0 -12px 18px rgba(0,0,0,0.16), inset 0 12px 18px rgba(255,255,255,0.12), 0 12px 30px -8px rgba(0,0,0,0.4)",
+        }}
+      />
     </section>
   );
 };

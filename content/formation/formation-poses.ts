@@ -5,6 +5,9 @@ export type FormationMode = "flat" | "tilt" | "ring" | "gallery";
 
 export interface Work {
   title: string;
+  category: string;
+  /** Accent used for the rule under the detail title. */
+  accent: string;
   image: string;
 }
 
@@ -262,3 +265,16 @@ export const poseFor = (mode: FormationMode, i: number, L: FmLayout, browse: num
   if (mode === "ring") return ringPose(i, L, browse);
   return galleryPose(i, L, browse);
 };
+
+// The liquid-glass normal map — a glass bead: clear in the centre, bending at the rim.
+export const GLASS_NORMAL_MAP =
+  "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='100' height='100'><defs>" +
+  "<linearGradient id='r' x1='0' y1='0' x2='1' y2='0'><stop offset='0' stop-color='rgb(0,0,0)'/>" +
+  "<stop offset='1' stop-color='rgb(255,0,0)'/></linearGradient>" +
+  "<linearGradient id='g' x1='0' y1='0' x2='0' y2='1'><stop offset='0' stop-color='rgb(0,0,0)'/>" +
+  "<stop offset='1' stop-color='rgb(0,255,0)'/></linearGradient>" +
+  "<radialGradient id='n'><stop offset='0.32' stop-color='rgb(128,128,128)' stop-opacity='1'/>" +
+  "<stop offset='1' stop-color='rgb(128,128,128)' stop-opacity='0'/></radialGradient></defs>" +
+  "<rect width='100' height='100' fill='url(%23r)'/>" +
+  "<rect width='100' height='100' fill='url(%23g)' style='mix-blend-mode:screen'/>" +
+  "<rect width='100' height='100' fill='url(%23n)'/></svg>";
