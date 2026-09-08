@@ -2,6 +2,8 @@
   "name": "Lookbook Camera",
   "description": "A camera drifts forever across an edgeless field of fashion figures — scroll to zoom at the cursor, drag to fling, click one and it flies in while every other card dims and a glass panel slides out.",
   "addedAt": "2026-07-18",
+  "coverUrl": "https://zmdrwswxugswzmcokvff.supabase.co/storage/v1/object/public/uicapsule/lookbook-camera/lookbook-camera.mp4",
+  "coverType": "video",
   "tags": ["grids", "design", "effects", "cards"],
   "defaultSize": "full"
 }

@@ -1,5 +1,7 @@
 {
   "name": "Feed",
   "addedAt": "2025-05-03",
+  "coverUrl": "https://zmdrwswxugswzmcokvff.supabase.co/storage/v1/object/public/uicapsule/feed/feed.png",
+  "coverType": "image",
   "tags": ["education", "minimal", "cards"]
 }
