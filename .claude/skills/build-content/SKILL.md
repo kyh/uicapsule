@@ -14,7 +14,7 @@ description: >
 # Build Content
 
 Idea → branch → scaffold → build → verify → record → PR with embedded recording.
-Use the session scratchpad for all intermediate files (webm, gif, frames, batch json).
+Use the session scratchpad for all intermediate files (raw mp4, gif, frames, batch json).
 
 ## 0. No idea given? Pitch, then ask
 
@@ -94,14 +94,15 @@ The staging recipe (viewport locks at `record start`; occlusion check) lives in
 - Viewport **1280×800** (PR gif, not gallery cover) — so the eval check must print
   `visible 1280x800`, not the `1600x900` the cover-video recipe shows.
 - Open and stage `http://localhost:3000/preview-frame/<slug>`, then
-  `record start <scratch>/<slug>.webm --fps 60`. Always `--fps 60` — the GIF downsamples,
-  but a 30fps source aliases drags and springs before the GIF ever sees them.
+  `record start <scratch>/<slug>.raw.mp4 --fps 60`. Always `--fps 60` — the GIF
+  downsamples, but a 30fps source aliases drags and springs before the GIF ever sees
+  them. Always `.mp4` — see the cover-video skill for why webm takes die early.
 - 10–15s choreography as ONE `agent-browser batch` call: ~3s settle, then the beats
   you designed in step 2 (drags need intermediate `mouse move` steps with 80–120ms
   waits), then ~3s settle so the loop reads cleanly.
 - The OS cursor is not captured — favor beats with visible feedback.
 
-After `record stop`, verify the webm: non-zero size AND duration ≥ 8s
+After `record stop`, verify the file: non-zero size AND duration ≥ 8s
 (`ffprobe -v error -show_entries format=duration -of csv=p=0 <file>`). A 0-byte or
 sub-second file is a known intermittent agent-browser failure — re-record, waiting
 2s after `record stop` before checking.
@@ -109,7 +110,7 @@ sub-second file is a known intermittent agent-browser failure — re-record, wai
 ## 5. Convert, frame-check, publish the GIF
 
 ```bash
-.claude/skills/build-content/scripts/publish-recording.sh <slug> <scratch>/<slug>.webm
+.claude/skills/build-content/scripts/publish-recording.sh <slug> <scratch>/<slug>.raw.mp4
 ```
 
 Converts to an 800px 12fps GIF, uploads it to the `kyh/pr-preview-assets` orphan
@@ -157,7 +158,7 @@ finishes; the gif renders immediately.)
 
 ## 7. Wrap up
 
-- Delete scratch webm/gif/frames/batch files.
+- Delete scratch mp4/gif/frames/batch files.
 - Report the PR URL and your take on the component.
 - Offer, don't do: gallery cover via the `cover-video` skill (separate 1600×900 mp4
   pipeline + Supabase), typically after the PR merges.
