@@ -619,25 +619,6 @@ importers:
         specifier: 'catalog:'
         version: 19.2.5(@types/react@19.2.18)
 
-  content/feed:
-    dependencies:
-      cn:
-        specifier: ^0.2.5
-        version: 0.2.5
-      react:
-        specifier: 'catalog:'
-        version: 19.2.8
-      react-dom:
-        specifier: 'catalog:'
-        version: 19.2.8(react@19.2.8)
-    devDependencies:
-      '@types/react':
-        specifier: 'catalog:'
-        version: 19.2.18
-      '@types/react-dom':
-        specifier: 'catalog:'
-        version: 19.2.5(@types/react@19.2.18)
-
   content/filter-bar:
     dependencies:
       '@ai-sdk/react':
