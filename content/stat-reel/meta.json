@@ -1,6 +1,7 @@
 {
   "name": "Stat Reel",
   "description": "An endless wheel of labels glides past a fixed center line while a giant gradient-filled figure swaps in beside it; scroll to seize the reel and it resumes on its own after four seconds.",
+  "addedAt": "2026-07-18",
   "tags": ["business", "charts", "minimal"],
   "defaultSize": "full"
 }

@@ -63,8 +63,11 @@ the workspace dep in `apps/web/package.json`, and runs `pnpm install`.
 - The component must demo itself: either it auto-animates, or the preview wires up an
   auto-tour + visible controls. A recording of a static component is worthless, so
   design the "flattering loop" now, not at recording time.
-- `meta.json`: scaffold already filled `name` + `description`; add `tags`, reusing
-  the existing vocabulary:
+- `meta.json`: scaffold already filled `name`, `description`, `addedAt`; add `tags`,
+  reusing the existing vocabulary. If the idea came from somewhere specific (a tweet,
+  an app, a video), add `inspiredBy: [{ label, url }]` — provenance is part of the
+  entry, not a nicety. `requestedBy: { name, url }` only when someone asked for it
+  (see `../build-requests/SKILL.md`). Tag vocabulary:
   `python3 -c "import json,glob,collections; print(collections.Counter(t for f in glob.glob('content/*/meta.json') for t in json.load(open(f)).get('tags',[])).most_common(30))"`
 
 ## 3. Verify locally

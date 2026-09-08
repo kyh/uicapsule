@@ -141,6 +141,11 @@ Two committed skills own the full lifecycles and both shell out to `agent-browse
 
 - `.claude/skills/build-content` — idea → scaffold → build → record → PR
 - `.claude/skills/cover-video` — record, verify, upload to Supabase, wire into `meta.json`
+- `.claude/skills/build-requests` — drain `ready`-labelled request issues through both of
+  the above, one PR per issue, `Closes #n`. Meant for a local daily schedule.
+
+Requests arrive as GitHub issues labelled `request`, from `/request` (oRPC → GitHub API,
+`GITHUB_ISSUES_TOKEN`) or the `component-request.yml` template. Apply `ready` to accept.
 
 Content packages **must not** import from `apps/web` or `packages/*`. The registry serves
 their source verbatim — `content-fs.ts` does no import rewriting and hardcodes

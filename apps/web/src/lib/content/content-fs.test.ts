@@ -20,7 +20,7 @@ const sourceFiles = [
   { path: "/README.md", code: "Example component" },
 ];
 const fixtureFiles: [string, string][] = [
-  ["local/meta.json", JSON.stringify({ name: "Local" })],
+  ["local/meta.json", JSON.stringify({ name: "Local", addedAt: "2026-01-01" })],
   ...sourceFiles.map((file): [string, string] => [`local${file.path}`, file.code]),
   ["local/node_modules/dep/index.ts", "ignored"],
   ["local/dist/index.js", "ignored"],
@@ -33,6 +33,7 @@ const fixtureFiles: [string, string][] = [
     "remote/meta.json",
     JSON.stringify({
       name: "Remote",
+      addedAt: "2026-01-02",
       type: "remote",
       iframeUrl: "https://example.com/preview",
       sourceUrl: "https://example.com/source",
@@ -41,8 +42,8 @@ const fixtureFiles: [string, string][] = [
   ["broken-json/meta.json", "{"],
   ["bad-metadata/meta.json", JSON.stringify({ name: 42 })],
   ["bad-metadata/preview.tsx", "export default function Preview() {}"],
-  ["missing-preview/meta.json", JSON.stringify({ name: "Missing preview" })],
-  [".hidden/meta.json", JSON.stringify({ name: "Hidden" })],
+  ["missing-preview/meta.json", JSON.stringify({ name: "Missing preview", addedAt: "2026-01-01" })],
+  [".hidden/meta.json", JSON.stringify({ name: "Hidden", addedAt: "2026-01-01" })],
   [".hidden/preview.tsx", "export default function Preview() {}"],
 ];
 await mkdir(webRoot, { recursive: true });
@@ -66,14 +67,15 @@ test("indexes loadable metadata without reading component source", async () => {
   await chmod(sourcePath, 0);
   try {
     assert.deepEqual(await readContentIndex(), [
-      { slug: "local", name: "Local", type: "local" },
       {
         slug: "remote",
         name: "Remote",
+        addedAt: "2026-01-02",
         type: "remote",
         iframeUrl: "https://example.com/preview",
         sourceUrl: "https://example.com/source",
       },
+      { slug: "local", name: "Local", addedAt: "2026-01-01", type: "local" },
     ]);
   } finally {
     await chmod(sourcePath, 0o600);

@@ -10,7 +10,7 @@ const fixture = async (context: TestContext, files: [string, string][]) => {
   const directory = await mkdtemp(join(tmpdir(), "uicapsule-registry-"));
   context.after(() => rm(directory, { recursive: true, force: true }));
   const defaults: [string, string][] = [
-    ["meta.json", JSON.stringify({ name: "Example" })],
+    ["meta.json", JSON.stringify({ name: "Example", addedAt: "2026-01-01" })],
     ["package.json", JSON.stringify({ dependencies: { react: "catalog:" } })],
     ["preview.tsx", "export default function Preview() { return null; }"],
   ];
@@ -78,7 +78,10 @@ test("rejects workspace-only dependencies in every dependency group", async (con
 test("requires valid metadata and a real preview before publishing local content", async (context) => {
   const directory = await fixture(context, [["meta.json", JSON.stringify({ name: 42 })]]);
   assert.ok((await validateContentDirectory(directory)).some((issue) => issue.startsWith("name:")));
-  await writeFile(join(directory, "meta.json"), JSON.stringify({ name: "Example" }));
+  await writeFile(
+    join(directory, "meta.json"),
+    JSON.stringify({ name: "Example", addedAt: "2026-01-01" }),
+  );
   await rm(join(directory, "preview.tsx"));
   assert.deepEqual(await validateContentDirectory(directory), ["missing preview.tsx"]);
 });

@@ -11,6 +11,7 @@ type ContentPreviewProps = {
   name: string;
   index: number;
   tags: string[];
+  isNew: boolean;
   coverUrl?: string;
   coverType?: "image" | "video";
 };
@@ -20,6 +21,7 @@ export const ContentPreview = ({
   name,
   index,
   tags,
+  isNew,
   coverUrl,
   coverType,
 }: ContentPreviewProps) => {
@@ -36,7 +38,14 @@ export const ContentPreview = ({
         video={coverType === "video" ? coverUrl : undefined}
       />
       <div className="flex justify-between font-mono text-xs">
-        <p className="group-hover:text-primary flex items-center gap-1 transition">{name} </p>
+        <p className="group-hover:text-primary flex items-center gap-2 transition">
+          {name}
+          {isNew && (
+            <Badge className="group-hover:text-primary" variant="secondary">
+              New
+            </Badge>
+          )}
+        </p>
         <p className="text-muted-foreground/50 group-hover:text-primary/50 transition">
           {tags.includes("landing-pages") || tags.includes("dashboard-pages") ? (
             <Badge className="group-hover:text-primary" variant="secondary">

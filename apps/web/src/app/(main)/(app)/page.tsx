@@ -103,6 +103,7 @@ const ContentList = async ({ searchParams }: PageProps) => {
       name={c.name}
       index={index}
       tags={c.tags ?? []}
+      isNew={c.isNew}
       coverUrl={c.coverUrl}
       coverType={c.coverType}
     />

@@ -1225,6 +1225,9 @@ importers:
       better-auth:
         specifier: 'catalog:'
         version: 1.7.2(drizzle-kit@0.31.10)(drizzle-orm@0.45.2(@libsql/client@0.17.4)(kysely@0.29.5))(next@16.3.3(@babel/core@7.29.7)(@types/node@26.4.0)(react-dom@19.2.8(react@19.2.8))(react@19.2.8))(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
+      zod:
+        specifier: 'catalog:'
+        version: 4.5.2
     devDependencies:
       '@kyh/tsconfig':
         specifier: 'catalog:'

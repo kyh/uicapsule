@@ -1,5 +1,12 @@
 {
   "name": "Dynamic Island",
   "description": "A springy Dynamic Island interaction with ring and timer states.",
-  "tags": ["mobile", "skeuomorphism", "navigation"]
+  "addedAt": "2026-05-02",
+  "tags": ["mobile", "skeuomorphism", "navigation"],
+  "inspiredBy": [
+    {
+      "label": "Apple Dynamic Island",
+      "url": "https://developer.apple.com/design/human-interface-guidelines/live-activities"
+    }
+  ]
 }

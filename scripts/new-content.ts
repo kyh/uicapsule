@@ -107,7 +107,12 @@ const main = defineCommand({
         writeFile(
           join(dir, "meta.json"),
           JSON.stringify(
-            { name: displayName, description: args.description ?? "", tags: [] },
+            {
+              name: displayName,
+              description: args.description ?? "",
+              addedAt: new Date().toISOString().slice(0, 10),
+              tags: [],
+            },
             null,
             2,
           ) + "\n",

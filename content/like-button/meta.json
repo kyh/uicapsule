@@ -1,7 +1,14 @@
 {
   "name": "Like Button",
   "description": "Twitter style like button",
+  "addedAt": "2025-05-03",
   "coverUrl": "https://zmdrwswxugswzmcokvff.supabase.co/storage/v1/object/public/uicapsule/like-button/like-button.mp4",
   "coverType": "video",
-  "tags": ["social", "colorful", "buttons-and-links"]
+  "tags": ["social", "colorful", "buttons-and-links"],
+  "inspiredBy": [
+    {
+      "label": "Twitter like button",
+      "url": "https://x.com"
+    }
+  ]
 }

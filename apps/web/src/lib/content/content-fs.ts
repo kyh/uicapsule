@@ -84,7 +84,9 @@ export const readContentIndex = cache(async (): Promise<ContentComponentSummary[
     }),
   );
 
-  return components.filter((component) => component !== null);
+  return components
+    .filter((component) => component !== null)
+    .toSorted((a, b) => b.addedAt.localeCompare(a.addedAt) || a.slug.localeCompare(b.slug));
 });
 
 export const readContentBySlug = async (slug: string): Promise<ContentComponentSummary | null> => {

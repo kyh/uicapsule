@@ -1,6 +1,7 @@
 {
   "name": "Gravity Wall",
   "description": "A drifting wall of photos bends away from the cursor like a gravity well, promoting whichever picture sits in the clearing — click and the whole wall pans to bring it to center.",
+  "addedAt": "2026-07-18",
   "tags": ["design", "grids", "carousels"],
   "defaultSize": "full"
 }

@@ -1,6 +1,5 @@
 "use client";
 
-import { Avatar, AvatarFallback, AvatarImage } from "@repo/ui/components/avatar";
 import { Badge } from "@repo/ui/components/badge";
 import { Button, buttonVariants } from "@repo/ui/components/button";
 import { Card } from "@repo/ui/components/card";
@@ -31,10 +30,14 @@ import { Suspense, useEffect, useRef, useState } from "react";
 import type { ContentComponentSummary, SourceFile } from "@/lib/content/content-schema";
 import dynamic from "next/dynamic";
 
+import { PersonAvatar } from "./person-avatar";
+
 const CodePreview = dynamic(() => import("./code-preview").then((module) => module.CodePreview));
 
 const FLOATING_BUTTON_CLASS = "size-9 rounded-full shadow-sm";
 const SECTION_CLASS = "-mx-3 flex flex-col gap-2.5 border-t px-3 pt-3 pb-1";
+const AVATAR_ROW_CLASS =
+  "*:data-[slot=avatar]:ring-background flex -space-x-2 *:data-[slot=avatar]:ring-2 *:data-[slot=avatar]:grayscale";
 
 const sourceFilesSchema = z.array(z.object({ path: z.string(), code: z.string() }));
 
@@ -58,6 +61,14 @@ type ResponsiveAsideProps = AsideProps & {
 };
 
 const COPIED_RESET_DELAY = 2000;
+
+const formatAddedAt = (isoDate: string) =>
+  new Date(`${isoDate}T00:00:00Z`).toLocaleDateString("en-US", {
+    year: "numeric",
+    month: "short",
+    day: "numeric",
+    timeZone: "UTC",
+  });
 
 const Aside = ({ contentComponent }: AsideProps) => {
   const queryClient = useQueryClient();
@@ -246,23 +257,6 @@ const Aside = ({ contentComponent }: AsideProps) => {
           <span className="text-muted-foreground text-center text-xs">Opens in a new tab</span>
         </div>
       )}
-      {contentComponent.asSeenOn && (
-        <div className={SECTION_CLASS}>
-          <h2>As seen on</h2>
-          <div className="flex flex-wrap gap-2">
-            {contentComponent.asSeenOn.map((item) => (
-              <a
-                href={item.url}
-                key={item.name}
-                target="_blank"
-                className="text-blue-600 hover:underline"
-              >
-                {item.name}
-              </a>
-            ))}
-          </div>
-        </div>
-      )}
       {contentComponent.tags && (
         <div className={SECTION_CLASS}>
           <h2>Tags</h2>
@@ -278,18 +272,52 @@ const Aside = ({ contentComponent }: AsideProps) => {
       {contentComponent.authors && (
         <div className={SECTION_CLASS}>
           <h2>Author</h2>
-          <div className="*:data-[slot=avatar]:ring-background flex -space-x-2 *:data-[slot=avatar]:ring-2 *:data-[slot=avatar]:grayscale">
+          <div className={AVATAR_ROW_CLASS}>
             {contentComponent.authors.map((author) => (
-              <a href={author.url} key={author.name} target="_blank">
-                <Avatar>
-                  <AvatarImage src={author.avatarUrl} alt={author.name} />
-                  <AvatarFallback>{author.name.charAt(0)}</AvatarFallback>
-                </Avatar>
-              </a>
+              <PersonAvatar key={author.url} person={author} />
             ))}
           </div>
         </div>
       )}
+      {contentComponent.inspiredBy && (
+        <div className={SECTION_CLASS}>
+          <h2>Inspired by</h2>
+          <ul className="flex flex-col gap-1 text-sm">
+            {contentComponent.inspiredBy.map((link) => (
+              <li key={link.url}>
+                <a
+                  href={link.url}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="text-muted-foreground hover:text-primary underline decoration-dotted transition-colors"
+                >
+                  {link.label}
+                </a>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+      {contentComponent.requestedBy && (
+        <div className={SECTION_CLASS}>
+          <h2>Requested by</h2>
+          <div className="flex items-center gap-2 text-sm">
+            <PersonAvatar person={contentComponent.requestedBy} />
+            <a
+              href={contentComponent.requestedBy.url}
+              target="_blank"
+              rel="noreferrer"
+              className="text-muted-foreground hover:text-primary underline decoration-dotted transition-colors"
+            >
+              {contentComponent.requestedBy.name}
+            </a>
+          </div>
+        </div>
+      )}
+      <p className="text-muted-foreground -mx-3 border-t px-3 pt-3 text-xs">
+        Added{" "}
+        <time dateTime={contentComponent.addedAt}>{formatAddedAt(contentComponent.addedAt)}</time>
+      </p>
     </Card>
   );
 };

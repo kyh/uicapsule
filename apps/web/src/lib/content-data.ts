@@ -30,24 +30,38 @@ export const getFeedList = async (initialSlug?: string): Promise<ContentComponen
   return unlistedInitial ? [unlistedInitial, ...listed] : listed;
 };
 
-export const getContentList = async (filterTags: string[]): Promise<ContentComponentSummary[]> => {
+export type GalleryEntry = ContentComponentSummary & { isNew: boolean };
+
+const NEW_FOR_DAYS = 30;
+
+// "New" is judged at cache time, like everything else here: it refreshes on deploy.
+const markNew = (components: ContentComponentSummary[]): GalleryEntry[] => {
+  const newSince = new Date(Date.now() - NEW_FOR_DAYS * 24 * 60 * 60 * 1000)
+    .toISOString()
+    .slice(0, 10);
+  return components.map((component) => ({ ...component, isNew: component.addedAt >= newSince }));
+};
+
+export const getContentList = async (filterTags: string[]): Promise<GalleryEntry[]> => {
   "use cache";
   cacheLife("max");
   const all = await getAllContent();
 
   const normalizedFilters = filterTags.map((tag) => tag.trim().toLowerCase()).filter(Boolean);
   if (normalizedFilters.length === 0) {
-    return all.filter((component) => !isUnlisted(component.tags));
+    return markNew(all.filter((component) => !isUnlisted(component.tags)));
   }
 
   // OR filters reveal unlisted content only when its unlisted tag is requested.
   const revealsUnlisted = normalizedFilters.some((filter) => unlistedTags.has(filter));
 
-  return all.filter((component) => {
-    const tags = component.tags ?? [];
-    if (!revealsUnlisted && isUnlisted(tags)) return false;
-    return normalizedFilters.some((filter) => tags.includes(filter));
-  });
+  return markNew(
+    all.filter((component) => {
+      const tags = component.tags ?? [];
+      if (!revealsUnlisted && isUnlisted(tags)) return false;
+      return normalizedFilters.some((filter) => tags.includes(filter));
+    }),
+  );
 };
 
 export type SearchEntry = {

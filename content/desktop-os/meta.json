@@ -1,6 +1,7 @@
 {
   "name": "Desktop OS",
   "description": "A desktop boots itself — one card riffles through every thumbnail, icons burst out from centre, then the dock magnifies under the cursor and windows drag, stack and pop.",
+  "addedAt": "2026-07-18",
   "tags": ["skeuomorphism", "effects", "productivity"],
   "defaultSize": "full"
 }

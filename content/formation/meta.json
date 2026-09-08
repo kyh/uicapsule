@@ -1,6 +1,7 @@
 {
   "name": "Formation",
   "description": "Sixteen photo cards regroup between four spatial formations — a solved ellipse, an arc conveyor, a tilted ring and a swelling orbit — while a refracting glass lens tracks the cursor and clicking a card blinks it open behind closing eyelids.",
+  "addedAt": "2026-07-18",
   "tags": ["effects", "cards", "design", "minimal"],
   "defaultSize": "full"
 }

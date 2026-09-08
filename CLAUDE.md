@@ -32,6 +32,17 @@ Content is filesystem-driven; the web app never depends on content packages by n
   use `/api/content/<slug>`; the viewer and zip library load on demand.
 - Content packages exist as workspace packages only so pnpm installs their deps in
   isolation and the registry can report per-component dependencies.
+- `meta.json` carries provenance: `addedAt` (required, stamped by `new:content`, drives
+  gallery order newest-first), `inspiredBy` (where the idea came from), `requestedBy`
+  (who asked for it). Keep them honest — they render on the detail page.
+
+### Component requests
+
+`/request` → oRPC `request.create` → GitHub issue labelled `request` (needs
+`GITHUB_ISSUES_TOKEN`; the `component-request.yml` issue template is the file-upload
+fallback). Visitor text has `@` neutralized so it can't trigger the `@claude` workflow.
+Triage is manual: apply `ready` to accept, close as not-planned to decline. The
+`build-requests` skill drains `ready` issues into PRs (run locally, on a schedule).
 
 ### Tech Stack
 

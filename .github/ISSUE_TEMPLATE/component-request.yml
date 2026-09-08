@@ -1,0 +1,25 @@
+name: 🧩 Component request
+description: Ask for an interaction to be built into the gallery
+title: "Request: "
+labels: ["request"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        The best entries import an interaction from outside the web (hardware, OS motion, instruments, physical mechanisms) and read from motion alone. A nicer dropdown won't make it. Accepted requests get a `ready` label, then get built, recorded, and credited to you.
+  - type: textarea
+    attributes:
+      label: What it does
+      description: Describe the motion and the states. What happens on press, on release, at rest?
+    validations:
+      required: true
+  - type: textarea
+    attributes:
+      label: References
+      description: Where you saw it. Links, or drag a screen recording in here.
+    validations:
+      required: true
+  - type: input
+    attributes:
+      label: Credit
+      description: How you'd like to be credited on the component (name + link). Leave empty to stay anonymous.
