@@ -1,5 +1,5 @@
 name: 🧩 Component request
-description: Ask the UI Factory for an interaction the web doesn't have yet
+description: Ask for an interaction the web doesn't have yet
 title: "Request: "
 labels: ["request"]
 body:
