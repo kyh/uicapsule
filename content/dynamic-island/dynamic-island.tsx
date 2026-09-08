@@ -1,50 +1,84 @@
 "use client";
 
 import { useState } from "react";
-import { AnimatePresence, motion, type Transition } from "motion/react";
+import { AnimatePresence, motion } from "motion/react";
+import type { Transition } from "motion/react";
 
-import { ExpandedWidget, expandedWidgetOptions, type ExpandedWidgetView } from "./expanded-widgets";
+import { ExpandedWidget, expandedWidgetOptions } from "./expanded-widgets";
+import type { ExpandedWidgetView } from "./expanded-widgets";
 import { Ring } from "./ring";
 import { Timer } from "./timer";
 
 type BaseView = "idle" | "ring" | "timer";
 type View = BaseView | ExpandedWidgetView;
 type VariantKey = View | `${View}-${View}`;
-type AnimationVariant = {
+interface AnimationVariant {
   scale?: number;
   scaleX?: number;
   y?: number;
   bounce?: number;
-};
+}
 
 const baseViews: { view: BaseView; label: string }[] = [
-  { view: "idle", label: "idle" },
-  { view: "ring", label: "ring" },
-  { view: "timer", label: "timer" },
+  { label: "idle", view: "idle" },
+  { label: "ring", view: "ring" },
+  { label: "timer", view: "timer" },
 ];
 const views: { view: View; label: string }[] = [...baseViews, ...expandedWidgetOptions];
 
-function viewContent(view: View) {
-  switch (view) {
-    case "ring":
-      return <Ring />;
-    case "timer":
-      return <Timer />;
-    case "idle":
-      return <div className="h-7" />;
-    default:
-      return <ExpandedWidget view={view} />;
-  }
-}
+const variants = {
+  exit: (transition: AnimationVariant = {}) => ({
+    ...transition,
+    filter: "blur(5px)",
+    opacity: [1, 0],
+  }),
+};
 
-export default function DynamicIsland() {
+const ANIMATION_VARIANTS = new Map<VariantKey, AnimationVariant>([
+  ["ring-idle", { bounce: 0.5, scale: 0.9, scaleX: 0.9 }],
+  ["timer-ring", { bounce: 0.35, scale: 0.7, y: -7.5 }],
+  ["ring-timer", { bounce: 0.35, scale: 1.4, y: 7.5 }],
+  ["timer-idle", { bounce: 0.3, scale: 0.7, y: -7.5 }],
+]);
+
+// Fallback for pairs the table below does not name (e.g. expanded ↔ expanded).
+const DEFAULT_BOUNCE = 0.4;
+
+const BOUNCE_VARIANTS = new Map<VariantKey, number>([
+  ["idle", 0.5],
+  ["ring-idle", 0.5],
+  ["timer-ring", 0.35],
+  ["ring-timer", 0.35],
+  ["timer-idle", 0.3],
+  ["idle-timer", 0.3],
+  ["idle-ring", 0.5],
+]);
+
+const viewContent = (view: View) => {
+  switch (view) {
+    case "ring": {
+      return <Ring />;
+    }
+    case "timer": {
+      return <Timer />;
+    }
+    case "idle": {
+      return <div className="h-7" />;
+    }
+    default: {
+      return <ExpandedWidget view={view} />;
+    }
+  }
+};
+
+const DynamicIsland = () => {
   const [view, setView] = useState<View>("idle");
   const [variantKey, setVariantKey] = useState<VariantKey>("idle");
 
   const content = viewContent(view);
   const spring: Transition = {
-    type: "spring",
     bounce: BOUNCE_VARIANTS.get(variantKey) ?? DEFAULT_BOUNCE,
+    type: "spring",
   };
 
   return (
@@ -59,18 +93,18 @@ export default function DynamicIsland() {
           <motion.div
             transition={spring}
             initial={{
-              scale: 0.9,
-              opacity: 0,
               filter: "blur(5px)",
+              opacity: 0,
               originX: 0.5,
               originY: 0.5,
+              scale: 0.9,
             }}
             animate={{
-              scale: 1,
-              opacity: 1,
               filter: "blur(0px)",
+              opacity: 1,
               originX: 0.5,
               originY: 0.5,
+              scale: 1,
               transition: {
                 delay: 0.05,
               },
@@ -107,34 +141,6 @@ export default function DynamicIsland() {
       </div>
     </div>
   );
-}
-
-const variants = {
-  exit: (transition: AnimationVariant = {}) => {
-    return {
-      ...transition,
-      opacity: [1, 0],
-      filter: "blur(5px)",
-    };
-  },
 };
 
-const ANIMATION_VARIANTS = new Map<VariantKey, AnimationVariant>([
-  ["ring-idle", { scale: 0.9, scaleX: 0.9, bounce: 0.5 }],
-  ["timer-ring", { scale: 0.7, y: -7.5, bounce: 0.35 }],
-  ["ring-timer", { scale: 1.4, y: 7.5, bounce: 0.35 }],
-  ["timer-idle", { scale: 0.7, y: -7.5, bounce: 0.3 }],
-]);
-
-// Fallback for pairs the table below does not name (e.g. expanded ↔ expanded).
-const DEFAULT_BOUNCE = 0.4;
-
-const BOUNCE_VARIANTS = new Map<VariantKey, number>([
-  ["idle", 0.5],
-  ["ring-idle", 0.5],
-  ["timer-ring", 0.35],
-  ["ring-timer", 0.35],
-  ["timer-idle", 0.3],
-  ["idle-timer", 0.3],
-  ["idle-ring", 0.5],
-]);
+export default DynamicIsland;

@@ -2,8 +2,6 @@
 
 import { AsciiRenderer } from "./ascii-renderer";
 
-const Preview = () => {
-  return <AsciiRenderer />;
-};
+const Preview = () => <AsciiRenderer />;
 
 export default Preview;

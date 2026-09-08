@@ -19,25 +19,25 @@ interface DataTableFilterProps {
   entityName?: string;
 }
 
-export function DataTableFilter({
+export const DataTableFilter = ({
   columns,
   filters,
   actions,
   strategy,
   entityName,
-}: DataTableFilterProps) {
+}: DataTableFilterProps) => {
   const { aiGenerating, handleAiFilterSubmit } = useAiFilterSimulation({
-    columns,
     actions,
+    columns,
   });
 
   const selectorProps = {
+    actions,
+    aiGenerating,
     columns,
     filters,
-    actions,
-    strategy,
     onAIFilterSubmit: handleAiFilterSubmit,
-    aiGenerating,
+    strategy,
   } as const;
 
   return (
@@ -56,4 +56,4 @@ export function DataTableFilter({
       </ActiveFiltersContainer>
     </div>
   );
-}
+};

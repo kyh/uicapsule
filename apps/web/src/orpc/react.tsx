@@ -19,15 +19,28 @@ const getQueryClient = () => {
   return (browserQueryClient ??= createQueryClient());
 };
 
+const getBaseUrl = () => {
+  if (typeof window !== "undefined") {
+    return window.location.origin;
+  }
+  if (process.env.VERCEL_URL) {
+    return `https://${process.env.VERCEL_URL}`;
+  }
+  return `http://localhost:${process.env.PORT ?? 3000}`;
+};
+
 const link = new RPCLink({
-  origin: getBaseUrl,
-  url: "/api/orpc",
   headers: () => ({ "x-orpc-source": "nextjs-react" }),
   interceptors: [
+    // oxlint-disable-next-line promise/prefer-await-to-callbacks -- oRPC interceptor API, not a Node callback
     onError((error) => {
-      if (process.env.NODE_ENV === "development") console.error(error);
+      if (process.env.NODE_ENV === "development") {
+        console.error(error);
+      }
     }),
   ],
+  origin: getBaseUrl,
+  url: "/api/orpc",
 });
 
 const client: RouterClient<AppRouter> = createORPCClient(link);
@@ -39,9 +52,3 @@ export const ORPCReactProvider = (props: { children: ReactNode }) => {
 
   return <QueryClientProvider client={queryClient}>{props.children}</QueryClientProvider>;
 };
-
-function getBaseUrl() {
-  if (typeof window !== "undefined") return window.location.origin;
-  if (process.env.VERCEL_URL) return `https://${process.env.VERCEL_URL}`;
-  return `http://localhost:${process.env.PORT ?? 3000}`;
-}

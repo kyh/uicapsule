@@ -25,5 +25,26 @@ export const snapVolume = (value: number) =>
 export type SpeakerTier = "muted" | "low" | "mid" | "high";
 
 /** Which speaker glyph the menu bar wears. */
-export const speakerTier = (volume: number): SpeakerTier =>
-  volume <= 0 ? "muted" : volume < 34 ? "low" : volume < 67 ? "mid" : "high";
+export const speakerTier = (volume: number): SpeakerTier => {
+  if (volume <= 0) {
+    return "muted";
+  }
+  if (volume < 34) {
+    return "low";
+  }
+  if (volume < 67) {
+    return "mid";
+  }
+  return "high";
+};
+
+/** One detent per arrow key: right/up louder, left/down quieter, anything else nothing. */
+export const arrowDelta = (key: string) => {
+  if (key === "ArrowRight" || key === "ArrowUp") {
+    return DETENT_STEP;
+  }
+  if (key === "ArrowLeft" || key === "ArrowDown") {
+    return -DETENT_STEP;
+  }
+  return 0;
+};

@@ -1,8 +1,8 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState, type MouseEvent as ReactMouseEvent } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import type { MouseEvent as ReactMouseEvent, ReactNode } from "react";
 import { frame } from "motion/react";
-import type { ReactNode } from "react";
 import type { BundledLanguage, SpecialLanguage } from "shiki";
 
 import { hotkeysCoreFeature, syncDataLoaderFeature } from "@headless-tree/core";
@@ -38,22 +38,22 @@ type Item = { name: string; path: string } & (
 );
 
 const extensionToLanguageMap = {
-  tsx: "tsx",
-  ts: "typescript",
-  jsx: "jsx",
-  js: "javascript",
-  mjs: "javascript",
   cjs: "javascript",
-  json: "json",
   css: "css",
-  scss: "scss",
   html: "html",
+  js: "javascript",
+  json: "json",
+  jsx: "jsx",
   md: "markdown",
   mdx: "mdx",
+  mjs: "javascript",
+  scss: "scss",
+  sh: "bash",
   svg: "xml",
+  ts: "typescript",
+  tsx: "tsx",
   yaml: "yaml",
   yml: "yaml",
-  sh: "bash",
 } satisfies Record<string, BundledLanguage>;
 
 const isKnownExtension = (ext: string): ext is keyof typeof extensionToLanguageMap =>
@@ -61,31 +61,37 @@ const isKnownExtension = (ext: string): ext is keyof typeof extensionToLanguageM
 
 const getLanguageFromPath = (path: string): BundledLanguage | SpecialLanguage => {
   const ext = path.split(".").pop()?.toLowerCase();
-  return ext != null && isKnownExtension(ext) ? extensionToLanguageMap[ext] : "txt";
+  return ext !== undefined && isKnownExtension(ext) ? extensionToLanguageMap[ext] : "txt";
 };
 
-function getFileIcon(extension: string | undefined, className: string): ReactNode {
+const getFileIcon = (extension: string | undefined, className: string): ReactNode => {
   switch (extension) {
     case "tsx":
-    case "jsx":
+    case "jsx": {
       return <RiReactjsLine className={className} />;
+    }
     case "ts":
     case "js":
-    case "mjs":
+    case "mjs": {
       return <RiCodeSSlashLine className={className} />;
-    case "json":
+    }
+    case "json": {
       return <RiBracesLine className={className} />;
+    }
     case "svg":
     case "ico":
     case "png":
-    case "jpg":
+    case "jpg": {
       return <RiImageLine className={className} />;
-    case "md":
+    }
+    case "md": {
       return <RiFileTextLine className={className} />;
-    default:
+    }
+    default: {
       return <RiFileLine className={className} />;
+    }
   }
-}
+};
 
 const buildFileTree = (files: SourceFile[]) => {
   const tree: Record<string, Item> = {};
@@ -94,21 +100,25 @@ const buildFileTree = (files: SourceFile[]) => {
   for (const { path } of files) {
     const parts = path.split("/").filter(Boolean);
 
-    if (parts.length === 0) continue;
+    if (parts.length === 0) {
+      continue;
+    }
 
     let parentPath = "";
 
-    for (let i = 0; i < parts.length; i++) {
+    for (let i = 0; i < parts.length; i += 1) {
       const part = parts[i];
-      if (!part) continue;
+      if (!part) {
+        continue;
+      }
 
       const currentPath = parentPath ? `${parentPath}/${part}` : part;
       const isFile = i === parts.length - 1;
 
       if (!(currentPath in tree)) {
         tree[currentPath] = isFile
-          ? { name: part, path: currentPath, isFolder: false }
-          : { name: part, path: currentPath, isFolder: true, children: [] };
+          ? { isFolder: false, name: part, path: currentPath }
+          : { children: [], isFolder: true, name: part, path: currentPath };
 
         if (!parentPath) {
           rootChildren.add(currentPath);
@@ -118,7 +128,7 @@ const buildFileTree = (files: SourceFile[]) => {
       if (parentPath) {
         const parent = tree[parentPath];
         if (parent?.isFolder) {
-          const children = parent.children;
+          const { children } = parent;
           if (!children.includes(currentPath)) {
             children.push(currentPath);
           }
@@ -130,47 +140,101 @@ const buildFileTree = (files: SourceFile[]) => {
   }
 
   tree["."] = {
+    children: [...rootChildren],
+    isFolder: true,
     name: "root",
     path: ".",
-    isFolder: true,
-    children: Array.from(rootChildren),
   };
 
   return tree;
 };
 
-type CodePreviewProps = {
-  sourceFiles: SourceFile[];
+// Keep width local to the grid; updating :root would restyle the whole page during a drag.
+const useResizableSidebar = () => {
+  const containerRef = useRef<HTMLDivElement>(null);
+  const dragRef = useRef<{ startX: number; startWidth: number } | null>(null);
+  const widthRef = useRef(240);
+
+  const handleMouseDown = (e: ReactMouseEvent) => {
+    e.preventDefault();
+    dragRef.current = { startWidth: widthRef.current, startX: e.clientX };
+    document.body.style.cursor = "col-resize";
+    document.body.style.userSelect = "none";
+  };
+
+  useEffect(() => {
+    containerRef.current?.style.setProperty("--sidebar-width", `${widthRef.current}px`);
+
+    const handleMouseMove = (e: MouseEvent) => {
+      const drag = dragRef.current;
+      if (!drag) {
+        return;
+      }
+      widthRef.current = Math.min(Math.max(drag.startWidth + e.clientX - drag.startX, 100), 300);
+
+      frame.update(() => {
+        containerRef.current?.style.setProperty("--sidebar-width", `${widthRef.current}px`);
+      });
+    };
+
+    const handleMouseUp = () => {
+      if (!dragRef.current) {
+        return;
+      }
+      dragRef.current = null;
+      document.body.style.cursor = "";
+      document.body.style.userSelect = "";
+    };
+
+    document.addEventListener("mousemove", handleMouseMove);
+    document.addEventListener("mouseup", handleMouseUp);
+
+    return () => {
+      document.removeEventListener("mousemove", handleMouseMove);
+      document.removeEventListener("mouseup", handleMouseUp);
+      document.body.style.cursor = "";
+      document.body.style.userSelect = "";
+    };
+  }, []);
+
+  return {
+    containerRef,
+    handleMouseDown,
+  };
 };
+
+interface CodePreviewProps {
+  sourceFiles: SourceFile[];
+}
 
 export const CodePreview = ({ sourceFiles }: CodePreviewProps) => {
   const { containerRef, handleMouseDown } = useResizableSidebar();
   const files = useMemo(
-    () => sourceFiles.map((file) => ({ ...file, path: file.path.replace(/^\/+/, "") })),
+    () => sourceFiles.map((file) => ({ ...file, path: file.path.replace(/^\/+/u, "") })),
     [sourceFiles],
   );
   const [selectedPath, setSelectedPath] = useState(files[0]?.path ?? "");
   const items = useMemo(() => buildFileTree(files), [files]);
 
   const tree = useTree<Item>({
-    indent: INDENT,
-    rootItemId: ROOT_ID,
-    getItemName: (item) => item.getItemData().name,
-    isItemFolder: (item) => item.getItemData().isFolder,
     dataLoader: {
-      getItem: (itemId) =>
-        items[itemId] ?? {
-          name: "",
-          path: itemId,
-          isFolder: true,
-          children: [],
-        },
       getChildren: (itemId) => {
         const item = items[itemId];
         return item?.isFolder ? item.children : [];
       },
+      getItem: (itemId) =>
+        items[itemId] ?? {
+          children: [],
+          isFolder: true,
+          name: "",
+          path: itemId,
+        },
     },
     features: [syncDataLoaderFeature, hotkeysCoreFeature],
+    getItemName: (item) => item.getItemData().name,
+    indent: INDENT,
+    isItemFolder: (item) => item.getItemData().isFolder,
+    rootItemId: ROOT_ID,
   });
 
   const selectedFile = files.find((file) => file.path === selectedPath) ?? files[0];
@@ -197,7 +261,9 @@ export const CodePreview = ({ sourceFiles }: CodePreviewProps) => {
                     selectedPath === itemData.path && "text-primary",
                   )}
                   onClick={() => {
-                    if (!itemData.isFolder) setSelectedPath(itemData.path);
+                    if (!itemData.isFolder) {
+                      setSelectedPath(itemData.path);
+                    }
                   }}
                 >
                   <span className="flex items-center gap-2 truncate">
@@ -213,6 +279,7 @@ export const CodePreview = ({ sourceFiles }: CodePreviewProps) => {
             );
           })}
         </Tree>
+        {/* oxlint-disable-next-line jsx-a11y/no-static-element-interactions -- mouse-only drag handle; the tree stays usable at its default width */}
         <div
           className="hover:bg-primary/50 active:bg-primary/80 absolute top-0 -right-0.5 h-full w-1 cursor-col-resize bg-transparent transition-colors duration-200"
           onMouseDown={handleMouseDown}
@@ -232,7 +299,7 @@ export const CodePreview = ({ sourceFiles }: CodePreviewProps) => {
         ))}
       </div>
       <CodeBlock
-        data={[{ language: codeLanguage, filename: selectedPath, code: selectedCode }]}
+        data={[{ code: selectedCode, filename: selectedPath, language: codeLanguage }]}
         value={codeLanguage}
         className="relative flex-1 overflow-auto rounded-none border-0 [&>div]:h-full"
       >
@@ -252,54 +319,4 @@ export const CodePreview = ({ sourceFiles }: CodePreviewProps) => {
       </CodeBlock>
     </div>
   );
-};
-
-// Keep width local to the grid; updating :root would restyle the whole page during a drag.
-const useResizableSidebar = () => {
-  const containerRef = useRef<HTMLDivElement>(null);
-  const dragRef = useRef<{ startX: number; startWidth: number } | null>(null);
-  const widthRef = useRef(240);
-
-  const handleMouseDown = (e: ReactMouseEvent) => {
-    e.preventDefault();
-    dragRef.current = { startX: e.clientX, startWidth: widthRef.current };
-    document.body.style.cursor = "col-resize";
-    document.body.style.userSelect = "none";
-  };
-
-  useEffect(() => {
-    containerRef.current?.style.setProperty("--sidebar-width", `${widthRef.current}px`);
-
-    const handleMouseMove = (e: MouseEvent) => {
-      const drag = dragRef.current;
-      if (!drag) return;
-      widthRef.current = Math.min(Math.max(drag.startWidth + e.clientX - drag.startX, 100), 300);
-
-      frame.update(() => {
-        containerRef.current?.style.setProperty("--sidebar-width", `${widthRef.current}px`);
-      });
-    };
-
-    const handleMouseUp = () => {
-      if (!dragRef.current) return;
-      dragRef.current = null;
-      document.body.style.cursor = "";
-      document.body.style.userSelect = "";
-    };
-
-    document.addEventListener("mousemove", handleMouseMove);
-    document.addEventListener("mouseup", handleMouseUp);
-
-    return () => {
-      document.removeEventListener("mousemove", handleMouseMove);
-      document.removeEventListener("mouseup", handleMouseUp);
-      document.body.style.cursor = "";
-      document.body.style.userSelect = "";
-    };
-  }, []);
-
-  return {
-    containerRef,
-    handleMouseDown,
-  };
 };

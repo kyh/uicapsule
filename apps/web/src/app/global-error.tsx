@@ -2,10 +2,10 @@
 
 import { useEffect } from "react";
 
-type GlobalErrorProps = {
+interface GlobalErrorProps {
   error: Error & { digest?: string };
   reset: () => void;
-};
+}
 
 // Catches errors thrown by a root layout itself, so it replaces the layout
 // entirely and must render its own <html>/<body>. Kept dependency-free — the

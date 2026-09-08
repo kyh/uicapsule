@@ -34,13 +34,11 @@ export interface NavigationMap {
 
 export type NavigationDirection = keyof NavigationMap;
 
-export const getRowCells = (rowId: string, columns: ColumnInfo[]): string[] => {
-  return columns.map((col) => `${rowId}:${col.id}`);
-};
+export const getRowCells = (rowId: string, columns: ColumnInfo[]): string[] =>
+  columns.map((col) => `${rowId}:${col.id}`);
 
-export const getColumnCells = (columnId: string, data: SpreadsheetRow[]): string[] => {
-  return data.map((row) => `${row.id}:${columnId}`);
-};
+export const getColumnCells = (columnId: string, data: SpreadsheetRow[]): string[] =>
+  data.map((row) => `${row.id}:${columnId}`);
 
 export const getRangeCells = (
   startRowId: string,
@@ -60,19 +58,24 @@ export const getRangeCells = (
   const startRowIndex = data.findIndex((row) => row.id === startRowId);
   const endRowIndex = data.findIndex((row) => row.id === endRowId);
 
-  if (startRowIndex === -1 || endRowIndex === -1 || startColIndex === -1 || endColIndex === -1)
+  if (startRowIndex === -1 || endRowIndex === -1 || startColIndex === -1 || endColIndex === -1) {
     return [];
+  }
 
   const minRowIndex = Math.min(startRowIndex, endRowIndex);
   const maxRowIndex = Math.max(startRowIndex, endRowIndex);
 
   const cells: string[] = [];
-  for (let rowIndex = minRowIndex; rowIndex <= maxRowIndex; rowIndex++) {
+  for (let rowIndex = minRowIndex; rowIndex <= maxRowIndex; rowIndex += 1) {
     const row = data[rowIndex];
-    if (!row) continue;
-    for (let colIndex = minColIndex; colIndex <= maxColIndex; colIndex++) {
+    if (!row) {
+      continue;
+    }
+    for (let colIndex = minColIndex; colIndex <= maxColIndex; colIndex += 1) {
       const colId = columnIds[colIndex];
-      if (!colId) continue;
+      if (!colId) {
+        continue;
+      }
       cells.push(`${row.id}:${colId}`);
     }
   }
@@ -88,10 +91,12 @@ export const toggleRowSelection = (
   const isRowFullySelected = rowCells.every((cell) => selectedCells.has(cell));
 
   const newSelectedCells = new Set(selectedCells);
-  if (isRowFullySelected) {
-    rowCells.forEach((cell) => newSelectedCells.delete(cell));
-  } else {
-    rowCells.forEach((cell) => newSelectedCells.add(cell));
+  for (const cell of rowCells) {
+    if (isRowFullySelected) {
+      newSelectedCells.delete(cell);
+    } else {
+      newSelectedCells.add(cell);
+    }
   }
   return newSelectedCells;
 };
@@ -105,10 +110,12 @@ export const toggleColumnSelection = (
   const isColumnFullySelected = columnCells.every((cell) => selectedCells.has(cell));
 
   const newSelectedCells = new Set(selectedCells);
-  if (isColumnFullySelected) {
-    columnCells.forEach((cell) => newSelectedCells.delete(cell));
-  } else {
-    columnCells.forEach((cell) => newSelectedCells.add(cell));
+  for (const cell of columnCells) {
+    if (isColumnFullySelected) {
+      newSelectedCells.delete(cell);
+    } else {
+      newSelectedCells.add(cell);
+    }
   }
   return newSelectedCells;
 };
@@ -124,29 +131,31 @@ export const toggleCellSelection = (cellKey: string, selectedCells: Set<string>)
 };
 
 export const getFirstSelectedCell = (selectedCells: Set<string>): CellPosition | null => {
-  const firstSelectedCell = Array.from(selectedCells)[0];
-  if (!firstSelectedCell) return null;
+  const [firstSelectedCell] = [...selectedCells];
+  if (!firstSelectedCell) {
+    return null;
+  }
 
   const [rowId, columnId] = firstSelectedCell.split(":");
-  if (!rowId || !columnId) return null;
-  return { rowId, columnId };
+  if (!rowId || !columnId) {
+    return null;
+  }
+  return { columnId, rowId };
 };
 
 export const getColumnSizeVars = (columnWidths: Record<string, number>) => {
   const colSizes: { [key: string]: number } = {};
-  Object.entries(columnWidths).forEach(([columnId, width]) => {
+  for (const [columnId, width] of Object.entries(columnWidths)) {
     colSizes[`--col-${columnId}-size`] = width;
-  });
+  }
   return colSizes;
 };
 
-export const isWithinDataAttribute = (target: EventTarget | null, attribute: string): boolean => {
-  return target instanceof HTMLElement && !!target.closest(`[data-${attribute}]`);
-};
+export const isWithinDataAttribute = (target: EventTarget | null, attribute: string): boolean =>
+  target instanceof HTMLElement && !!target.closest(`[data-${attribute}]`);
 
-export const shouldAllowEditing = (selectedCells: Set<string>, cellKey: string): boolean => {
-  return selectedCells.has(cellKey) && selectedCells.size === 1;
-};
+export const shouldAllowEditing = (selectedCells: Set<string>, cellKey: string): boolean =>
+  selectedCells.has(cellKey) && selectedCells.size === 1;
 
 export const createNavigationMap = (
   data: SpreadsheetRow[],
@@ -155,21 +164,21 @@ export const createNavigationMap = (
   const navigationMap = new Map<string, NavigationMap>();
   const columnIds = columns.map((col) => col.id);
 
-  data.forEach((row, rowIndex) => {
-    columnIds.forEach((columnId, colIndex) => {
+  for (const [rowIndex, row] of data.entries()) {
+    for (const [colIndex, columnId] of columnIds.entries()) {
       const cellKey = `${row.id}:${columnId}`;
       const prevRowId = data[rowIndex - 1]?.id;
       const nextRowId = data[rowIndex + 1]?.id;
       const prevColId = columnIds[colIndex - 1];
       const nextColId = columnIds[colIndex + 1];
-      const firstColId = columnIds[0];
+      const [firstColId] = columnIds;
 
       const navigation: NavigationMap = {
-        up: prevRowId ? `${prevRowId}:${columnId}` : null,
         down: nextRowId ? `${nextRowId}:${columnId}` : null,
         left: prevColId ? `${row.id}:${prevColId}` : null,
         right: nextColId ? `${row.id}:${nextColId}` : null,
         tab: null,
+        up: prevRowId ? `${prevRowId}:${columnId}` : null,
       };
 
       if (nextColId) {
@@ -179,8 +188,8 @@ export const createNavigationMap = (
       }
 
       navigationMap.set(cellKey, navigation);
-    });
-  });
+    }
+  }
 
   return navigationMap;
 };
@@ -191,12 +200,18 @@ export const getNextCellPositionFromMap = (
   navigationMap: Map<string, NavigationMap>,
 ): CellPosition | null => {
   const navigation = navigationMap.get(cellKey);
-  if (!navigation) return null;
+  if (!navigation) {
+    return null;
+  }
 
   const nextCellKey = navigation[direction];
-  if (!nextCellKey) return null;
+  if (!nextCellKey) {
+    return null;
+  }
 
   const [rowId, columnId] = nextCellKey.split(":");
-  if (!rowId || !columnId) return null;
-  return { rowId, columnId };
+  if (!rowId || !columnId) {
+    return null;
+  }
+  return { columnId, rowId };
 };

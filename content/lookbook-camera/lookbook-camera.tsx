@@ -1,6 +1,6 @@
 "use client";
 
-import gsap from "gsap";
+import { gsap } from "gsap";
 import { X } from "lucide-react";
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
 
@@ -22,7 +22,7 @@ import {
 /* ── Tunable constants ───────────────────────────────────────────── */
 
 const CAMERA_INTRO_FACTOR = 0.52;
-const CAMERA_REST_FACTOR = 1.0;
+const CAMERA_REST_FACTOR = 1;
 
 const NEIGHBOUR_HEIGHT_FRACTION = 0.3;
 const NEIGHBOUR_HEIGHT_FRACTION_NARROW = 0.15;
@@ -32,7 +32,7 @@ const POST_DESELECT_HEIGHT_FRACTION = 0.375;
 
 const DRAG_THRESHOLD_PX = 6;
 const WHEEL_SENSITIVITY = 0.0018;
-const MAX_CAMERA_SCALE = 6.0;
+const MAX_CAMERA_SCALE = 6;
 const DEFAULT_MIN_ZOOM_CARD_HEIGHT = 240;
 const DEFAULT_MIN_ZOOM_CARD_HEIGHT_NARROW = 200;
 const DEFAULT_INERTIA_FRICTION = 0.93;
@@ -81,9 +81,7 @@ interface DragState {
   inertiaActive: boolean;
 }
 
-function clamp(v: number, lo: number, hi: number): number {
-  return Math.min(hi, Math.max(lo, v));
-}
+const clamp = (v: number, lo: number, hi: number): number => Math.min(hi, Math.max(lo, v));
 
 /**
  * Where the focused card's centre lands in container space.
@@ -93,10 +91,12 @@ function clamp(v: number, lo: number, hi: number): number {
  * dead band where the panel was positioned beside a card that had already moved
  * to centre — at 800x600 the panel sat on top of the thing it described.
  */
-function selectionTarget(w: number, h: number) {
-  if (usesSideLayout(w, h)) return { x: 0.34 * w, y: 0.5 * h };
+const selectionTarget = (w: number, h: number) => {
+  if (usesSideLayout(w, h)) {
+    return { x: 0.34 * w, y: 0.5 * h };
+  }
   return { x: 0.5 * w, y: 0.2 * h + 28 };
-}
+};
 
 /** Everything a focused look needs, solved from one layout decision. */
 interface SelectionGeometry {
@@ -121,7 +121,7 @@ interface SelectionGeometry {
  * lands on top of the thing it describes. Keeping both in here is what stops
  * the two from drifting apart — including across a resize, which re-solves.
  */
-function solveSelection(d: Dims, pos: Pos, worldCx: number, worldCy: number): SelectionGeometry {
+const solveSelection = (d: Dims, pos: Pos, worldCx: number, worldCy: number): SelectionGeometry => {
   const narrow = !usesSideLayout(d.w, d.h);
   const neighbourFraction = narrow ? NEIGHBOUR_HEIGHT_FRACTION_NARROW : NEIGHBOUR_HEIGHT_FRACTION;
   const selectionFraction = narrow ? SELECTION_HEIGHT_FRACTION_NARROW : SELECTION_HEIGHT_FRACTION;
@@ -137,7 +137,50 @@ function solveSelection(d: Dims, pos: Pos, worldCx: number, worldCy: number): Se
     tileOffX,
     tileOffY,
   };
-}
+};
+
+/** Fade every card except the one opening and the one it replaces. */
+const dimOtherCards = (
+  refs: (HTMLDivElement | null)[],
+  idx: number,
+  prevIdx: number | null,
+): void => {
+  for (let i = 0; i < LOOKS.length; i += 1) {
+    if (i === idx || i === prevIdx) {
+      continue;
+    }
+    const el = refs[i];
+    if (!el) {
+      continue;
+    }
+    gsap.killTweensOf(el);
+    gsap.to(el, { duration: 0.55, ease: "power2.out", opacity: 0.22 });
+  }
+};
+
+const restoreCloseButton = (btn: HTMLButtonElement | null): void => {
+  if (btn) {
+    gsap.killTweensOf(btn);
+    gsap.to(btn, { duration: 0.3, ease: "power3.out", opacity: 1, scale: 1 });
+  }
+};
+
+const PARALLAX_REST = { extraX: 0, extraY: 0, lift: 1 };
+
+/** Cursor repulsion for a card `ddx, ddy` away from the pointer. */
+const cursorParallax = (ddx: number, ddy: number) => {
+  const dist = Math.hypot(ddx, ddy);
+  const falloff = Math.max(0, 1 - dist / PARALLAX_RANGE);
+  const cEased = falloff * falloff * (3 - 2 * falloff);
+  if (dist <= 0.5) {
+    return { extraX: 0, extraY: 0, lift: 1 + cEased * 0.04 };
+  }
+  return {
+    extraX: (ddx / dist) * PARALLAX_STRENGTH * cEased,
+    extraY: (ddy / dist) * PARALLAX_STRENGTH * cEased,
+    lift: 1 + cEased * 0.04,
+  };
+};
 
 /* ── Decorative paper-grain contour lines ────────────────────────── */
 
@@ -147,31 +190,29 @@ const CONTOUR_PATHS: string[] = Array.from({ length: 14 }, (_, i) => {
   return `M0 ${y} Q25 ${y - 6} 50 ${y} T100 ${y}`;
 });
 
-function BackgroundLines() {
-  return (
-    <svg
-      className="text-foreground pointer-events-none absolute inset-0 size-full opacity-[0.06]"
-      preserveAspectRatio="none"
-      viewBox="0 0 100 100"
-      aria-hidden
-    >
-      {CONTOUR_PATHS.map((d) => (
-        <path
-          key={d}
-          d={d}
-          stroke="currentColor"
-          strokeWidth="0.06"
-          fill="none"
-          vectorEffect="non-scaling-stroke"
-        />
-      ))}
-    </svg>
-  );
-}
+const BackgroundLines = () => (
+  <svg
+    className="text-foreground pointer-events-none absolute inset-0 size-full opacity-[0.06]"
+    preserveAspectRatio="none"
+    viewBox="0 0 100 100"
+    aria-hidden
+  >
+    {CONTOUR_PATHS.map((d) => (
+      <path
+        key={d}
+        d={d}
+        stroke="currentColor"
+        strokeWidth="0.06"
+        fill="none"
+        vectorEffect="non-scaling-stroke"
+      />
+    ))}
+  </svg>
+);
 
 /* ── Host component ──────────────────────────────────────────────── */
 
-export function LookbookCamera() {
+export const LookbookCamera = () => {
   const [selectedIdx, setSelectedIdx] = useState<number | null>(null);
   const [dims, setDims] = useState<Dims | null>(null);
   const [positions, setPositions] = useState<Pos[]>([]);
@@ -195,32 +236,32 @@ export function LookbookCamera() {
   const drag = useRef<DragState>({
     active: false,
     didMove: false,
-    pointerId: -1,
-    startClientX: 0,
-    startClientY: 0,
+    inertiaActive: false,
     lastSx: 0,
     lastSy: 0,
+    pointerId: -1,
     prevSx: 0,
     prevSy: 0,
+    startClientX: 0,
+    startClientY: 0,
     vt: 0,
     vx: 0,
     vy: 0,
     worldAnchorX: 0,
     worldAnchorY: 0,
-    inertiaActive: false,
   });
-  const mouse = useRef({ x: 0, y: 0, inside: false });
+  const mouse = useRef({ inside: false, x: 0, y: 0 });
   const driftRamp = useRef({ amount: 0 });
   /** Camera to restore on close; null when there is nothing worth restoring. */
   const preSelectionCamera = useRef<{ x: number; y: number; scale: number } | null>(null);
   const gsapManagedItems = useRef<Set<number>>(new Set());
 
   const dimsRef = useRef<Dims>({
-    w: 1,
-    h: 1,
-    worldW: 1,
-    worldH: 1,
     baseFit: 1,
+    h: 1,
+    w: 1,
+    worldH: 1,
+    worldW: 1,
   });
   const positionsRef = useRef<Pos[]>([]);
   const rectRef = useRef({ left: 0, top: 0 });
@@ -241,13 +282,15 @@ export function LookbookCamera() {
       camera.current.y = drag.current.lastSy - drag.current.worldAnchorY * camera.current.scale;
     }
     const c = cameraRef.current;
-    if (!c) return;
+    if (!c) {
+      return;
+    }
     const { scale, x, y } = camera.current;
     c.style.transform = `translate3d(${x}px, ${y}px, 0) scale(${scale})`;
   }, []);
 
   const effectiveMinScale = useCallback(() => {
-    const w = dimsRef.current.w;
+    const { w } = dimsRef.current;
     const floor =
       w < NARROW_BREAKPOINT ? DEFAULT_MIN_ZOOM_CARD_HEIGHT_NARROW : DEFAULT_MIN_ZOOM_CARD_HEIGHT;
     return floor / CARD_H;
@@ -261,19 +304,25 @@ export function LookbookCamera() {
    */
   const refreshRect = useCallback(() => {
     const c = containerRef.current;
-    if (!c) return;
+    if (!c) {
+      return;
+    }
     const r = c.getBoundingClientRect();
     rectRef.current = { left: r.left, top: r.top };
   }, []);
 
   const measure = useCallback(() => {
     const c = containerRef.current;
-    if (!c) return;
+    if (!c) {
+      return;
+    }
     const r = c.getBoundingClientRect();
     const w = r.width;
     const h = r.height;
     // A ResizeObserver fires once at 0x0 inside a freshly-mounted iframe.
-    if (w === 0 || h === 0) return;
+    if (w === 0 || h === 0) {
+      return;
+    }
     // Read the camera's world centre against the OLD dims, before they change.
     const prev = dimsRef.current;
     const worldCx = (prev.w / 2 - camera.current.x) / camera.current.scale;
@@ -285,7 +334,7 @@ export function LookbookCamera() {
     const worldW = cols * cellW;
     const worldH = rows * cellH;
     const baseFit = Math.min(w / worldW, h / worldH) * 0.94;
-    const d: Dims = { w, h, worldW, worldH, baseFit };
+    const d: Dims = { baseFit, h, w, worldH, worldW };
     const p = layoutPositions(worldW, worldH, cols, LOOKS.length);
     dimsRef.current = d;
     positionsRef.current = p;
@@ -298,12 +347,12 @@ export function LookbookCamera() {
       camera.current.scale = introScale;
       camera.current.x = (w - worldW * introScale) / 2;
       camera.current.y = (h - worldH * introScale) / 2;
-      itemRefs.current.forEach((el) => {
+      for (const el of itemRefs.current) {
         if (el) {
           el.style.opacity = "0";
           el.style.filter = "blur(8px)";
         }
-      });
+      }
       applyCameraTransform();
       setReady(true);
       return;
@@ -324,7 +373,7 @@ export function LookbookCamera() {
       applyCameraTransform();
       const el = itemRefs.current[sel];
       if (el) {
-        gsap.set(el, { x: g.tileOffX, y: g.tileOffY, scale: g.cardScale, rotation: 0 });
+        gsap.set(el, { rotation: 0, scale: g.cardScale, x: g.tileOffX, y: g.tileOffY });
       }
       // The saved viewport was framed for the old container; restoring it at
       // the new size would land somewhere arbitrary. Fall back to the fit.
@@ -334,9 +383,13 @@ export function LookbookCamera() {
 
   const triggerDragDeselect = useCallback(() => {
     const idx = selectedIdxRef.current;
-    if (idx === null) return;
+    if (idx === null) {
+      return;
+    }
     const realEl = itemRefs.current[idx];
-    if (!realEl) return;
+    if (!realEl) {
+      return;
+    }
 
     selectedIdxRef.current = null;
     transitioningRef.current = true;
@@ -350,29 +403,33 @@ export function LookbookCamera() {
     const targetScale = Math.max((d.h * POST_DESELECT_HEIGHT_FRACTION) / CARD_H, minScaleDeselect);
 
     gsap.to(camera.current, {
-      scale: targetScale,
       duration: 0.4,
       ease: "power2.out",
       onUpdate: applyCameraTransform,
+      scale: targetScale,
     });
 
     realEl.style.pointerEvents = "";
     gsap.to(realEl, {
-      scale: 1,
-      rotation: pos[idx]?.rot ?? 0,
       duration: 0.4,
       ease: "power2.out",
       onComplete: () => {
         realEl.style.zIndex = "";
       },
+      rotation: pos[idx]?.rot ?? 0,
+      scale: 1,
     });
 
-    for (let i = 0; i < LOOKS.length; i++) {
-      if (i === idx) continue;
+    for (let i = 0; i < LOOKS.length; i += 1) {
+      if (i === idx) {
+        continue;
+      }
       const el = itemRefs.current[i];
-      if (!el) continue;
+      if (!el) {
+        continue;
+      }
       gsap.killTweensOf(el);
-      gsap.to(el, { opacity: 1, duration: 0.35, ease: "power2.out" });
+      gsap.to(el, { duration: 0.35, ease: "power2.out", opacity: 1 });
     }
 
     const dp = detailPanelRef.current;
@@ -381,9 +438,11 @@ export function LookbookCamera() {
       // A re-selection's fade-out may still be running with an onComplete that
       // re-opens the panel. GSAP does not overwrite by default, so kill it.
       gsap.killTweensOf(dp);
-      gsap.to(dp, { opacity: 0, x: 24, duration: 0.3, ease: "power2.in" });
+      gsap.to(dp, { duration: 0.3, ease: "power2.in", opacity: 0, x: 24 });
     }
-    if (cb) gsap.to(cb, { opacity: 0, duration: 0.25, ease: "power2.in" });
+    if (cb) {
+      gsap.to(cb, { duration: 0.25, ease: "power2.in", opacity: 0 });
+    }
 
     deselectCallRef.current = gsap.delayedCall(0.4, () => {
       deselectCallRef.current = null;
@@ -395,14 +454,20 @@ export function LookbookCamera() {
       transitioningRef.current = false;
       preSelectionCamera.current = null;
       const cont = containerRef.current;
-      if (cont) cont.style.cursor = drag.current.active ? "grabbing" : "grab";
+      if (cont) {
+        cont.style.cursor = drag.current.active ? "grabbing" : "grab";
+      }
     });
   }, [applyCameraTransform, effectiveMinScale]);
 
   const handleClose = useCallback(() => {
     const idx = selectedIdxRef.current;
-    if (idx === null) return;
-    if (transitioningRef.current) return;
+    if (idx === null) {
+      return;
+    }
+    if (transitioningRef.current) {
+      return;
+    }
     transitioningRef.current = true;
 
     const d = dimsRef.current;
@@ -416,9 +481,11 @@ export function LookbookCamera() {
       // would otherwise let that fade-out's onComplete re-open the panel
       // partway through the close.
       gsap.killTweensOf(dp);
-      gsap.to(dp, { opacity: 0, x: 36, duration: 0.35, ease: "power2.in" });
+      gsap.to(dp, { duration: 0.35, ease: "power2.in", opacity: 0, x: 36 });
     }
-    if (cb) gsap.to(cb, { opacity: 0, scale: 0.85, duration: 0.3, ease: "power2.in" });
+    if (cb) {
+      gsap.to(cb, { duration: 0.3, ease: "power2.in", opacity: 0, scale: 0.85 });
+    }
 
     const minScale = effectiveMinScale();
     const saved = preSelectionCamera.current;
@@ -430,13 +497,9 @@ export function LookbookCamera() {
 
     gsap.killTweensOf(camera.current);
     gsap.to(camera.current, {
-      scale: restScale,
-      x: restX,
-      y: restY,
-      duration: 0.95,
       delay: 0.18,
+      duration: 0.95,
       ease: "power3.inOut",
-      onUpdate: applyCameraTransform,
       onComplete: () => {
         if (realEl) {
           realEl.style.zIndex = "";
@@ -453,6 +516,10 @@ export function LookbookCamera() {
         transitioningRef.current = false;
         preSelectionCamera.current = null;
       },
+      onUpdate: applyCameraTransform,
+      scale: restScale,
+      x: restX,
+      y: restY,
     });
 
     if (realEl && pos) {
@@ -460,32 +527,42 @@ export function LookbookCamera() {
       const closeWorldCx = (d.w / 2 - restX) / restScale;
       const closeWorldCy = (d.h / 2 - restY) / restScale;
       gsap.to(realEl, {
+        delay: 0.18,
+        duration: 0.95,
+        ease: "power3.inOut",
+        rotation: pos.rot,
+        scale: 1,
         x: wrapOffset(pos.x, closeWorldCx, d.worldW),
         y: wrapOffset(pos.y, closeWorldCy, d.worldH),
-        scale: 1,
-        rotation: pos.rot,
-        duration: 0.95,
-        delay: 0.18,
-        ease: "power3.inOut",
       });
     }
 
-    for (let i = 0; i < LOOKS.length; i++) {
-      if (i === idx) continue;
+    for (let i = 0; i < LOOKS.length; i += 1) {
+      if (i === idx) {
+        continue;
+      }
       const el = itemRefs.current[i];
-      if (!el) continue;
+      if (!el) {
+        continue;
+      }
       gsap.killTweensOf(el);
-      gsap.to(el, { opacity: 1, duration: 0.6, delay: 0.18, ease: "power2.out" });
+      gsap.to(el, { delay: 0.18, duration: 0.6, ease: "power2.out", opacity: 1 });
     }
   }, [applyCameraTransform, effectiveMinScale]);
 
   const handleClickItem = useCallback(
     (idx: number) => {
-      if (!enteredRef.current) return;
+      if (!enteredRef.current) {
+        return;
+      }
 
       const prevIdx = selectedIdxRef.current;
-      if (prevIdx === idx) return;
-      if (prevIdx === null && transitioningRef.current) return;
+      if (prevIdx === idx) {
+        return;
+      }
+      if (prevIdx === null && transitioningRef.current) {
+        return;
+      }
 
       transitioningRef.current = true;
 
@@ -493,8 +570,8 @@ export function LookbookCamera() {
       const pos = positionsRef.current;
       const newPos = pos[idx];
       const newEl = itemRefs.current[idx];
-      const prevPos = prevIdx !== null ? pos[prevIdx] : null;
-      const prevEl = prevIdx !== null ? itemRefs.current[prevIdx] : null;
+      const prevPos = prevIdx === null ? null : pos[prevIdx];
+      const prevEl = prevIdx === null ? null : itemRefs.current[prevIdx];
       if (!newPos || !newEl) {
         transitioningRef.current = false;
         return;
@@ -508,7 +585,7 @@ export function LookbookCamera() {
       const g = solveSelection(d, newPos, worldCx, worldCy);
 
       if (prevIdx === null) {
-        preSelectionCamera.current = { x: preCamX, y: preCamY, scale: preCamS };
+        preSelectionCamera.current = { scale: preCamS, x: preCamX, y: preCamY };
       }
 
       // Read BEFORE the add below: whether the RAF loop or GSAP owned this card
@@ -516,7 +593,9 @@ export function LookbookCamera() {
       const rafOwnedNew = !gsapManagedItems.current.has(idx);
 
       gsapManagedItems.current.add(idx);
-      if (prevIdx !== null) gsapManagedItems.current.add(prevIdx);
+      if (prevIdx !== null) {
+        gsapManagedItems.current.add(prevIdx);
+      }
 
       // Claim the selection SYNCHRONOUSLY. Deferring this into the panel
       // fade-out below leaves a ~280ms window in which a drag reads the stale
@@ -541,15 +620,17 @@ export function LookbookCamera() {
       // stale by however far the field has panned since, so replaying it would
       // reintroduce the very jump this prevents.
       const lastWritten = rafOwnedNew ? lastWrittenRef.current[idx] : undefined;
-      if (lastWritten) gsap.set(newEl, lastWritten);
+      if (lastWritten) {
+        gsap.set(newEl, lastWritten);
+      }
       gsap.to(newEl, {
+        duration: prevIdx === null ? 1 : 0.9,
+        ease: "power3.inOut",
+        opacity: 1,
+        rotation: 0,
+        scale: g.cardScale,
         x: g.tileOffX,
         y: g.tileOffY,
-        scale: g.cardScale,
-        rotation: 0,
-        opacity: 1,
-        duration: prevIdx === null ? 1.0 : 0.9,
-        ease: "power3.inOut",
       });
       newEl.style.zIndex = "60";
       newEl.style.pointerEvents = "none";
@@ -557,42 +638,38 @@ export function LookbookCamera() {
       if (prevEl && prevPos) {
         gsap.killTweensOf(prevEl);
         gsap.to(prevEl, {
-          x: wrapOffset(prevPos.x, worldCx, d.worldW),
-          y: wrapOffset(prevPos.y, worldCy, d.worldH),
-          scale: 1,
-          rotation: prevPos.rot,
-          opacity: 0.22,
           duration: 0.65,
           ease: "power3.inOut",
+          onComplete: () => {
+            prevEl.style.zIndex = "";
+            if (prevIdx !== null) {
+              gsapManagedItems.current.delete(prevIdx);
+            }
+          },
           onStart: () => {
             prevEl.style.pointerEvents = "";
           },
-          onComplete: () => {
-            prevEl.style.zIndex = "";
-            if (prevIdx !== null) gsapManagedItems.current.delete(prevIdx);
-          },
+          opacity: 0.22,
+          rotation: prevPos.rot,
+          scale: 1,
+          x: wrapOffset(prevPos.x, worldCx, d.worldW),
+          y: wrapOffset(prevPos.y, worldCy, d.worldH),
         });
       }
 
-      for (let i = 0; i < LOOKS.length; i++) {
-        if (i === idx || i === prevIdx) continue;
-        const el = itemRefs.current[i];
-        if (!el) continue;
-        gsap.killTweensOf(el);
-        gsap.to(el, { opacity: 0.22, duration: 0.55, ease: "power2.out" });
-      }
+      dimOtherCards(itemRefs.current, idx, prevIdx);
 
       gsap.killTweensOf(camera.current);
       gsap.to(camera.current, {
-        scale: g.cameraScale,
-        x: g.cameraX,
-        y: g.cameraY,
         duration: prevIdx === null ? 1.05 : 0.95,
         ease: "power3.inOut",
-        onUpdate: applyCameraTransform,
         onComplete: () => {
           transitioningRef.current = false;
         },
+        onUpdate: applyCameraTransform,
+        scale: g.cameraScale,
+        x: g.cameraX,
+        y: g.cameraY,
       });
 
       if (prevIdx === null) {
@@ -605,20 +682,20 @@ export function LookbookCamera() {
             gsap.fromTo(
               dp,
               { opacity: 0, x: 48 },
-              { opacity: 1, x: 0, duration: 0.75, ease: "power3.out", delay: 0.35 },
+              { delay: 0.35, duration: 0.75, ease: "power3.out", opacity: 1, x: 0 },
             );
             const stages = dp.querySelectorAll<HTMLElement>("[data-detail-anim]");
             gsap.fromTo(
               stages,
-              { opacity: 0, y: 16, filter: "blur(6px)" },
+              { filter: "blur(6px)", opacity: 0, y: 16 },
               {
-                opacity: 1,
-                y: 0,
-                filter: "blur(0px)",
+                delay: 0.55,
                 duration: 0.65,
                 ease: "power3.out",
+                filter: "blur(0px)",
+                opacity: 1,
                 stagger: 0.08,
-                delay: 0.55,
+                y: 0,
               },
             );
           }
@@ -626,7 +703,7 @@ export function LookbookCamera() {
             gsap.fromTo(
               cb,
               { opacity: 0, scale: 0.85 },
-              { opacity: 1, scale: 1, duration: 0.5, ease: "power3.out", delay: 0.4 },
+              { delay: 0.4, duration: 0.5, ease: "power3.out", opacity: 1, scale: 1 },
             );
           }
         });
@@ -637,18 +714,12 @@ export function LookbookCamera() {
         // path above. Without this the look re-opens with no visible close
         // affordance. On an ordinary re-selection the button is already at
         // rest, so this is a no-op.
-        const cbNow = closeBtnRef.current;
-        if (cbNow) {
-          gsap.killTweensOf(cbNow);
-          gsap.to(cbNow, { opacity: 1, scale: 1, duration: 0.3, ease: "power3.out" });
-        }
+        restoreCloseButton(closeBtnRef.current);
         const dp = detailPanelRef.current;
         if (dp) {
           gsap.killTweensOf(dp);
           gsap.killTweensOf(dp.querySelectorAll("[data-detail-anim]"));
           gsap.to(dp, {
-            opacity: 0,
-            x: 20,
             duration: 0.28,
             ease: "power2.in",
             onComplete: () => {
@@ -656,28 +727,32 @@ export function LookbookCamera() {
               panelRafRef.current = requestAnimationFrame(() => {
                 panelRafRef.current = null;
                 const newDp = detailPanelRef.current;
-                if (!newDp) return;
+                if (!newDp) {
+                  return;
+                }
                 gsap.fromTo(
                   newDp,
                   { opacity: 0, x: 28 },
-                  { opacity: 1, x: 0, duration: 0.55, ease: "power3.out" },
+                  { duration: 0.55, ease: "power3.out", opacity: 1, x: 0 },
                 );
                 const newStages = newDp.querySelectorAll<HTMLElement>("[data-detail-anim]");
                 gsap.fromTo(
                   newStages,
-                  { opacity: 0, y: 12, filter: "blur(4px)" },
+                  { filter: "blur(4px)", opacity: 0, y: 12 },
                   {
-                    opacity: 1,
-                    y: 0,
-                    filter: "blur(0px)",
+                    delay: 0.08,
                     duration: 0.5,
                     ease: "power3.out",
+                    filter: "blur(0px)",
+                    opacity: 1,
                     stagger: 0.06,
-                    delay: 0.08,
+                    y: 0,
                   },
                 );
               });
             },
+            opacity: 0,
+            x: 20,
           });
         } else {
           setSelectedIdx(idx);
@@ -689,20 +764,25 @@ export function LookbookCamera() {
 
   /* Deferred work scheduled from event handlers rather than from an effect —
      it outlives the handler, so unmount has to reclaim it explicitly. */
-  useEffect(() => {
-    return () => {
+  useEffect(
+    () => () => {
       deselectCallRef.current?.kill();
       deselectCallRef.current = null;
-      if (panelRafRef.current !== null) cancelAnimationFrame(panelRafRef.current);
+      if (panelRafRef.current !== null) {
+        cancelAnimationFrame(panelRafRef.current);
+      }
       panelRafRef.current = null;
-    };
-  }, []);
+    },
+    [],
+  );
 
   /* Measure on mount + whenever the container box changes. A window resize
      listener is not enough: the gallery resizes the frame directly. */
   useLayoutEffect(() => {
     const c = containerRef.current;
-    if (!c) return;
+    if (!c) {
+      return;
+    }
     measure();
     const ro = new ResizeObserver(() => measure());
     ro.observe(c);
@@ -717,14 +797,24 @@ export function LookbookCamera() {
   /* Pointer / wheel / key listeners + the per-frame RAF loop. */
   useEffect(() => {
     const c = containerRef.current;
-    if (!c) return;
+    if (!c) {
+      return;
+    }
 
     const onPointerDown = (e: PointerEvent) => {
-      if (!enteredRef.current) return;
-      if (e.button !== 0 && e.pointerType === "mouse") return;
+      if (!enteredRef.current) {
+        return;
+      }
+      if (e.button !== 0 && e.pointerType === "mouse") {
+        return;
+      }
       const target = e.target instanceof Node ? e.target : null;
-      if (target && detailPanelRef.current?.contains(target)) return;
-      if (target && closeBtnRef.current?.contains(target)) return;
+      if (target && detailPanelRef.current?.contains(target)) {
+        return;
+      }
+      if (target && closeBtnRef.current?.contains(target)) {
+        return;
+      }
 
       const r = rectRef.current;
       const sx = e.clientX - r.left;
@@ -757,7 +847,9 @@ export function LookbookCamera() {
       const d = dimsRef.current;
       mouse.current.inside = sx >= 0 && sy >= 0 && sx <= d.w && sy <= d.h;
 
-      if (!drag.current.active || drag.current.pointerId !== e.pointerId) return;
+      if (!drag.current.active || drag.current.pointerId !== e.pointerId) {
+        return;
+      }
 
       drag.current.lastSx = sx;
       drag.current.lastSy = sy;
@@ -786,7 +878,9 @@ export function LookbookCamera() {
     };
 
     const onPointerUp = (e: PointerEvent) => {
-      if (drag.current.pointerId !== e.pointerId) return;
+      if (drag.current.pointerId !== e.pointerId) {
+        return;
+      }
       drag.current.active = false;
       drag.current.pointerId = -1;
       c.style.cursor = "grab";
@@ -807,11 +901,19 @@ export function LookbookCamera() {
       // is the camera's, so it swallows the event even when it cannot act on
       // it — otherwise the entrance and every transition let the wheel through
       // to whatever page has embedded this.
-      if (selectedIdxRef.current !== null) return;
+      if (selectedIdxRef.current !== null) {
+        return;
+      }
       e.preventDefault();
-      if (!enteredRef.current) return;
-      if (transitioningRef.current) return;
-      if (drag.current.active && drag.current.didMove) return;
+      if (!enteredRef.current) {
+        return;
+      }
+      if (transitioningRef.current) {
+        return;
+      }
+      if (drag.current.active && drag.current.didMove) {
+        return;
+      }
       drag.current.inertiaActive = false;
       drag.current.vx = 0;
       drag.current.vy = 0;
@@ -824,7 +926,9 @@ export function LookbookCamera() {
       const zoomFactor = Math.exp(-e.deltaY * WHEEL_SENSITIVITY);
       const minScale = effectiveMinScale();
       const newScale = clamp(currentScale * zoomFactor, minScale, MAX_CAMERA_SCALE);
-      if (newScale === currentScale) return;
+      if (newScale === currentScale) {
+        return;
+      }
 
       // Re-solve the camera so the world point under the cursor stays pinned.
       const worldX = (sx - camera.current.x) / currentScale;
@@ -853,13 +957,9 @@ export function LookbookCamera() {
     c.addEventListener("wheel", onWheel, { passive: false });
     window.addEventListener("keydown", onKey);
     // Capture phase so a scrolling ancestor counts, not just the window.
-    window.addEventListener("scroll", refreshRect, { passive: true, capture: true });
+    window.addEventListener("scroll", refreshRect, { capture: true, passive: true });
 
-    const tick = () => {
-      const sel = selectedIdxRef.current;
-      const pos = positionsRef.current;
-      const d = dimsRef.current;
-
+    const stepInertia = (sel: number | null) => {
       if (
         drag.current.inertiaActive &&
         !drag.current.active &&
@@ -877,7 +977,9 @@ export function LookbookCamera() {
         }
         applyCameraTransform();
       }
+    };
 
+    const stepDrift = (sel: number | null) => {
       if (
         AUTO_DRIFT_PX_PER_FRAME > 0 &&
         !reduceMotionRef.current &&
@@ -893,6 +995,15 @@ export function LookbookCamera() {
         camera.current.y -= speed;
         applyCameraTransform();
       }
+    };
+
+    const tick = () => {
+      const sel = selectedIdxRef.current;
+      const pos = positionsRef.current;
+      const d = dimsRef.current;
+
+      stepInertia(sel);
+      stepDrift(sel);
 
       if (enteredRef.current) {
         const atRest = sel === null && !transitioningRef.current;
@@ -911,47 +1022,42 @@ export function LookbookCamera() {
         const refs = itemRefs.current;
         const written = lastWrittenRef.current;
 
-        for (let i = 0; i < refs.length; i++) {
-          if (managed.has(i)) continue;
+        for (let i = 0; i < refs.length; i += 1) {
+          if (managed.has(i)) {
+            continue;
+          }
           const el = refs[i];
           const p = pos[i];
-          if (!el || !p) continue;
+          if (!el || !p) {
+            continue;
+          }
 
           // Re-wrap every card against the camera's world centre, every frame.
           // This is the mechanic: the field has no edges, ever.
           const tileOffX = wrapOffset(p.x, worldCx, tileW);
           const tileOffY = wrapOffset(p.y, worldCy, tileH);
 
-          let parLift = 1;
-          let extraX = 0;
-          let extraY = 0;
+          let par = PARALLAX_REST;
           if (doParallax) {
             const wrappedX = p.x + tileOffX;
             const wrappedY = p.y + tileOffY;
             const icx = camX + wrappedX * camS;
             const icy = camY + wrappedY * camS;
-            const ddx = mx - icx;
-            const ddy = my - icy;
-            const dist = Math.hypot(ddx, ddy);
-            const falloff = Math.max(0, 1 - dist / PARALLAX_RANGE);
-            const cEased = falloff * falloff * (3 - 2 * falloff);
-            extraX = dist > 0.5 ? (ddx / dist) * PARALLAX_STRENGTH * cEased : 0;
-            extraY = dist > 0.5 ? (ddy / dist) * PARALLAX_STRENGTH * cEased : 0;
-            parLift = 1 + cEased * 0.04;
+            par = cursorParallax(mx - icx, my - icy);
           }
 
-          const ox = extraX + tileOffX;
-          const oy = extraY + tileOffY;
-          el.style.transform = `translate3d(${ox}px, ${oy}px, 0) rotate(${p.rot}deg) scale(${parLift})`;
+          const ox = par.extraX + tileOffX;
+          const oy = par.extraY + tileOffY;
+          el.style.transform = `translate3d(${ox}px, ${oy}px, 0) rotate(${p.rot}deg) scale(${par.lift})`;
 
           const w = written[i];
           if (w) {
             w.x = ox;
             w.y = oy;
             w.rotation = p.rot;
-            w.scale = parLift;
+            w.scale = par.lift;
           } else {
-            written[i] = { x: ox, y: oy, rotation: p.rot, scale: parLift };
+            written[i] = { rotation: p.rot, scale: par.lift, x: ox, y: oy };
           }
         }
       }
@@ -969,7 +1075,9 @@ export function LookbookCamera() {
       c.removeEventListener("wheel", onWheel);
       window.removeEventListener("keydown", onKey);
       window.removeEventListener("scroll", refreshRect, { capture: true });
-      if (animRef.current !== null) cancelAnimationFrame(animRef.current);
+      if (animRef.current !== null) {
+        cancelAnimationFrame(animRef.current);
+      }
     };
   }, [applyCameraTransform, effectiveMinScale, handleClose, refreshRect, triggerDragDeselect]);
 
@@ -978,7 +1086,9 @@ export function LookbookCamera() {
      kills the in-flight dolly and the re-run restarts it from the current
      camera state, so it always settles at rest. */
   useEffect(() => {
-    if (!ready) return;
+    if (!ready) {
+      return;
+    }
 
     enteredRef.current = true;
     const realItems = itemRefs.current.filter((el): el is HTMLDivElement => el !== null);
@@ -996,10 +1106,10 @@ export function LookbookCamera() {
       camera.current.x = (dd.w - dd.worldW * restScale) / 2;
       camera.current.y = (dd.h - dd.worldH * restScale) / 2;
       applyCameraTransform();
-      realItems.forEach((el) => {
+      for (const el of realItems) {
         el.style.opacity = "1";
         el.style.filter = "none";
-      });
+      }
       // Unlike the source, reduced motion also parks the perpetual drift and
       // the cursor repulsion — both read this ref inside the RAF loop.
       driftRamp.current.amount = 0;
@@ -1007,16 +1117,16 @@ export function LookbookCamera() {
     }
 
     driftObj.amount = 0;
-    gsap.to(driftObj, { amount: 1, duration: 2.5, ease: "power2.in", delay: 1.5 });
+    gsap.to(driftObj, { amount: 1, delay: 1.5, duration: 2.5, ease: "power2.in" });
 
     const tl = gsap.timeline({ delay: 0.12 });
     tl.to(
       realItems,
       {
-        opacity: 1,
-        filter: "blur(0px)",
         duration: 0.95,
         ease: "power3.out",
+        filter: "blur(0px)",
+        opacity: 1,
         stagger: { each: ENTRANCE_STAGGER, from: "random" },
       },
       0,
@@ -1024,7 +1134,6 @@ export function LookbookCamera() {
     tl.to(
       cameraObj,
       {
-        scale: restScale,
         duration: 1.6,
         ease: "power4.out",
         onUpdate: () => {
@@ -1036,6 +1145,7 @@ export function LookbookCamera() {
           }
           applyCameraTransform();
         },
+        scale: restScale,
       },
       0,
     );
@@ -1061,7 +1171,7 @@ export function LookbookCamera() {
       // anchor here they inherit the HOST page's — white, under a dark theme,
       // on this component's permanently cream glass.
       className="bg-background text-foreground relative size-full overflow-hidden select-none"
-      style={{ touchAction: "none", cursor: "grab" }}
+      style={{ cursor: "grab", touchAction: "none" }}
     >
       {/* Scoped palette. uicapsule declares its tokens with `@theme inline`, so
           `--color-background` expands to `var(--background)` at the use site —
@@ -1091,19 +1201,19 @@ export function LookbookCamera() {
         className="absolute top-0 left-0"
         style={{
           transformOrigin: "0 0",
-          willChange: "transform",
           // The gallery server-renders this component, so the first HTML has no
           // measurements and every card is stacked at 0,0. Hide the camera node
           // rather than unmounting the cards: `measure()` needs them mounted to
           // zero them, and that zeroed state is what the entrance animates from.
           visibility: ready ? undefined : "hidden",
+          willChange: "transform",
         }}
       >
         <div
           style={{
+            height: dims?.worldH ?? 0,
             position: "relative",
             width: dims?.worldW ?? 0,
-            height: dims?.worldH ?? 0,
           }}
         >
           {LOOKS.map((look, i) => {
@@ -1115,6 +1225,7 @@ export function LookbookCamera() {
             // not be focusable at all, not merely untabbable.
             const isDuplicate = i >= KEYBOARD_REACHABLE;
             return (
+              // oxlint-disable-next-line jsx-a11y/no-static-element-interactions -- role is deliberately absent on the aria-hidden duplicates (they must not be focusable), so it cannot be a literal
               <div
                 key={look.id}
                 ref={(el) => {
@@ -1125,7 +1236,9 @@ export function LookbookCamera() {
                   // keyboard path below deliberately skips this: `didMove`
                   // survives until the next pointerdown, and gating Enter on it
                   // left activation dead for as long as that took.
-                  if (drag.current.didMove) return;
+                  if (drag.current.didMove) {
+                    return;
+                  }
                   handleClickItem(i);
                 }}
                 onKeyDown={(e) => {
@@ -1150,10 +1263,10 @@ export function LookbookCamera() {
                 data-look-card={look.id}
                 className="focus-visible:ring-foreground/40 focus-visible:ring-offset-background absolute cursor-pointer rounded-sm outline-none focus-visible:ring-2 focus-visible:ring-offset-2"
                 style={{
-                  width: CARD_W,
                   height: CARD_H,
                   left: p ? p.x - CARD_W / 2 : 0,
                   top: p ? p.y - CARD_H / 2 : 0,
+                  width: CARD_W,
                   willChange: "transform",
                 }}
               >
@@ -1168,7 +1281,7 @@ export function LookbookCamera() {
       <div
         className="pointer-events-none absolute bottom-6 left-8 z-20"
         style={{
-          opacity: selectedIdx !== null ? 0 : 1,
+          opacity: selectedIdx === null ? 1 : 0,
           transition: "opacity 0.5s ease",
         }}
       >
@@ -1200,4 +1313,4 @@ export function LookbookCamera() {
       )}
     </section>
   );
-}
+};

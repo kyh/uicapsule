@@ -14,7 +14,7 @@ import type { ContentComponentSummary, SourceFile } from "./content/content-sche
 export const getAllContent = async (): Promise<ContentComponentSummary[]> => {
   "use cache";
   cacheLife("max");
-  return readContentIndex();
+  return await readContentIndex();
 };
 
 // Deep-linked unlisted entries lead the otherwise listed feed.
@@ -58,28 +58,30 @@ export const getContentList = async (filterTags: string[]): Promise<GalleryEntry
   return markNew(
     all.filter((component) => {
       const tags = component.tags ?? [];
-      if (!revealsUnlisted && isUnlisted(tags)) return false;
+      if (!revealsUnlisted && isUnlisted(tags)) {
+        return false;
+      }
       return normalizedFilters.some((filter) => tags.includes(filter));
     }),
   );
 };
 
-export type SearchEntry = {
+export interface SearchEntry {
   slug: string;
   name: string;
   description: string;
   tags: string[];
   unlisted: boolean;
-};
+}
 
 export const getSearchEntries = async (): Promise<SearchEntry[]> => {
   "use cache";
   cacheLife("max");
   const all = await getAllContent();
   return all.map((component) => ({
-    slug: component.slug,
-    name: component.name,
     description: component.description ?? "",
+    name: component.name,
+    slug: component.slug,
     tags: component.tags ?? [],
     unlisted: isUnlisted(component.tags),
   }));
@@ -89,37 +91,40 @@ export const getSourceFiles = async (slug: string): Promise<SourceFile[] | null>
   "use cache";
   cacheLife("max");
   const component = await readContentBySlug(slug);
-  if (!component || component.type !== "local") return null;
+  if (!component || component.type !== "local") {
+    return null;
+  }
   return readSourceFiles(component);
 };
 
 export const getShadcnRegistry = async () => {
   "use cache";
   cacheLife("max");
-  const locals = (await readContentIndex()).filter((component) => component.type === "local");
+  const all = await readContentIndex();
+  const locals = all.filter((component) => component.type === "local");
 
   const items = await Promise.all(
     locals.map(async (component) => {
       const item = await buildShadcnRegistryItem(component);
       return {
         $schema: item.$schema,
-        homepage: item.homepage,
-        name: item.name,
-        type: item.type,
         author: item.author,
         dependencies: item.dependencies,
         devDependencies: item.devDependencies,
+        files: item.files.map(({ type, path, target }) => ({ path, target, type })),
+        homepage: item.homepage,
+        name: item.name,
         registryDependencies: item.registryDependencies,
-        files: item.files.map(({ type, path, target }) => ({ type, path, target })),
+        type: item.type,
       };
     }),
   );
 
   return {
     $schema: "https://ui.shadcn.com/schema/registry.json",
-    name: "uicapsule",
     homepage: "https://uicapsule.com",
     items,
+    name: "uicapsule",
   };
 };
 
@@ -127,6 +132,8 @@ export const getShadcnRegistryItem = async (slug: string) => {
   "use cache";
   cacheLife("max");
   const component = await readContentBySlug(slug);
-  if (!component || component.type !== "local") return null;
+  if (!component || component.type !== "local") {
+    return null;
+  }
   return buildShadcnRegistryItem(component);
 };

@@ -1,24 +1,24 @@
 /** The bars the card performs. Percentage words kick the dial. */
 
-export type LyricWord = {
+export interface LyricWord {
   readonly text: string;
   /** Set on the number word opening an "<n> percent" phrase. Drives the dial. */
   readonly percent?: number;
   /** Position inside the line, in beats. Keeps the fill on the song's cadence. */
   readonly beat: number;
-};
+}
 
-export type LyricLine = {
+export interface LyricLine {
   readonly words: readonly LyricWord[];
   readonly durationBeats: number;
-};
+}
 
-type LineTiming = {
+interface LineTiming {
   percent: number;
   percentWordIndex: number;
   wordBeats: number[];
   durationBeats: number;
-};
+}
 
 const line = (text: string, timing: LineTiming): LyricLine => {
   const words = text.split(" ");
@@ -57,10 +57,12 @@ const line = (text: string, timing: LineTiming): LyricLine => {
     words: Object.freeze(
       words.map((word, index) => {
         const beat = timing.wordBeats[index];
-        if (beat === undefined) throw new Error(`Missing beat cue for "${word}".`);
+        if (beat === undefined) {
+          throw new Error(`Missing beat cue for "${word}".`);
+        }
         return index === timing.percentWordIndex
-          ? { text: word, percent: timing.percent, beat }
-          : { text: word, beat };
+          ? { beat, percent: timing.percent, text: word }
+          : { beat, text: word };
       }),
     ),
   });
@@ -68,40 +70,40 @@ const line = (text: string, timing: LineTiming): LyricLine => {
 
 export const LYRIC_LINES: readonly LyricLine[] = Object.freeze([
   line("This is ten percent luck", {
+    durationBeats: 2,
     percent: 10,
     percentWordIndex: 2,
     wordBeats: [0, 0.35, 0.75, 1.25, 1.7],
-    durationBeats: 2,
   }),
   line("Twenty percent skill", {
+    durationBeats: 2,
     percent: 20,
     percentWordIndex: 0,
     wordBeats: [0, 0.75, 1.35],
-    durationBeats: 2,
   }),
   line("Fifteen percent concentrated power of will", {
+    durationBeats: 4,
     percent: 15,
     percentWordIndex: 0,
     wordBeats: [0, 0.55, 1.15, 2.05, 2.7, 3.25],
-    durationBeats: 4,
   }),
   line("Five percent pleasure", {
+    durationBeats: 2,
     percent: 5,
     percentWordIndex: 0,
     wordBeats: [0, 0.7, 1.35],
-    durationBeats: 2,
   }),
   line("Fifty percent pain", {
+    durationBeats: 2,
     percent: 50,
     percentWordIndex: 0,
     wordBeats: [0, 0.7, 1.35],
-    durationBeats: 2,
   }),
   line("And a hundred percent reason to remember the name", {
+    durationBeats: 4,
     percent: 100,
     percentWordIndex: 2,
     wordBeats: [0, 0.4, 0.85, 1.3, 1.75, 2.15, 2.55, 3, 3.45],
-    durationBeats: 4,
   }),
 ]);
 
@@ -116,12 +118,12 @@ const buildSchedule = (lines: readonly LyricLine[]) => {
 
   for (const [lineIndex, lyricLine] of lines.entries()) {
     for (const word of lyricLine.words) {
-      words.push({ ...word, lineIndex, cueBeat: elapsedBeats + word.beat });
+      words.push({ ...word, cueBeat: elapsedBeats + word.beat, lineIndex });
     }
     elapsedBeats += lyricLine.durationBeats;
   }
 
-  return { words: Object.freeze(words), totalBeats: elapsedBeats };
+  return { totalBeats: elapsedBeats, words: Object.freeze(words) };
 };
 
 const schedule = buildSchedule(LYRIC_LINES);

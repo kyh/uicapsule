@@ -65,9 +65,9 @@ export const RadialSlider = ({ onChange, maxValue = 100 }: RadialSliderProps) =>
           accumulatedRotation.current = finalRotation;
 
           animate(rotate, finalRotation, {
-            type: "spring",
-            stiffness: 300,
             damping: 30,
+            stiffness: 300,
+            type: "spring",
           });
         }}
         style={{ rotate }}

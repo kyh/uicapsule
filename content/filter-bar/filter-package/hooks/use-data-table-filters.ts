@@ -5,7 +5,7 @@ import type { DataTableFilterActions, DataTableFiltersOptions, FiltersState } fr
 import { createColumns } from "../core/columns/column-factory";
 import { setFilterOperator, setFilterValue, toggleFilterValues } from "../core/filters";
 
-export function useDataTableFilters<Row>({
+export const useDataTableFilters = <Row>({
   data,
   columnsConfig,
   filters: controlledFilters,
@@ -13,7 +13,7 @@ export function useDataTableFilters<Row>({
   defaultFilters = [],
   strategy = "client",
   entityName,
-}: DataTableFiltersOptions<Row>) {
+}: DataTableFiltersOptions<Row>) => {
   const [internalFilters, setInternalFilters] = useState<FiltersState>(defaultFilters);
   const filters = controlledFilters ?? internalFilters;
   const setFilters = onFiltersChange ?? setInternalFilters;
@@ -23,17 +23,17 @@ export function useDataTableFilters<Row>({
   );
   const actions = useMemo<DataTableFilterActions>(
     () => ({
-      setFilterValue: (update) => setFilters((current) => setFilterValue(current, update)),
-      setFilterOperator: (update) => setFilters((current) => setFilterOperator(current, update)),
       addFilterValue: (column, values) =>
         setFilters((current) => toggleFilterValues(current, column, values, true)),
-      removeFilterValue: (column, values) =>
-        setFilters((current) => toggleFilterValues(current, column, values, false)),
+      removeAllFilters: () => setFilters([]),
       removeFilter: (columnId) =>
         setFilters((current) => current.filter((filter) => filter.columnId !== columnId)),
-      removeAllFilters: () => setFilters([]),
+      removeFilterValue: (column, values) =>
+        setFilters((current) => toggleFilterValues(current, column, values, false)),
+      setFilterOperator: (update) => setFilters((current) => setFilterOperator(current, update)),
+      setFilterValue: (update) => setFilters((current) => setFilterValue(current, update)),
     }),
     [setFilters],
   );
-  return { columns, filters, actions, strategy, entityName };
-}
+  return { actions, columns, entityName, filters, strategy };
+};

@@ -3,25 +3,33 @@ import { test } from "node:test";
 
 import { attachmentMetaSchema, uploadAttachment } from "./github-attachment";
 
-const withToken = (t: { after: (fn: () => void) => void }, token: string | undefined) => {
+const withToken = (t: { after: (fn: () => void) => void }, token?: string) => {
   const previous = process.env.GITHUB_ISSUES_TOKEN;
-  if (token === undefined) delete process.env.GITHUB_ISSUES_TOKEN;
-  else process.env.GITHUB_ISSUES_TOKEN = token;
+  if (token === undefined) {
+    delete process.env.GITHUB_ISSUES_TOKEN;
+  } else {
+    process.env.GITHUB_ISSUES_TOKEN = token;
+  }
   t.after(() => {
-    if (previous === undefined) delete process.env.GITHUB_ISSUES_TOKEN;
-    else process.env.GITHUB_ISSUES_TOKEN = previous;
+    if (previous === undefined) {
+      delete process.env.GITHUB_ISSUES_TOKEN;
+    } else {
+      process.env.GITHUB_ISSUES_TOKEN = previous;
+    }
   });
 };
 
-const meta = attachmentMetaSchema.parse({ name: "clip.mov", type: "video/quicktime", size: 3 });
+const meta = attachmentMetaSchema.parse({ name: "clip.mov", size: 3, type: "video/quicktime" });
 const blob = new Blob(["abc"]);
 
 test("posts raw bytes to GitHub's user-attachments store for this repository", async (t) => {
   withToken(t, "test-token");
   let received: Request | undefined;
-  const url = await uploadAttachment(meta, blob, async (input, init) => {
+  const url = await uploadAttachment(meta, blob, (input, init) => {
     received = new Request(input, init);
-    return Response.json({ url: "https://github.com/user-attachments/assets/abc-123" });
+    return Promise.resolve(
+      Response.json({ url: "https://github.com/user-attachments/assets/abc-123" }),
+    );
   });
   assert.equal(url, "https://github.com/user-attachments/assets/abc-123");
   assert.ok(received);
@@ -41,36 +49,36 @@ test("posts raw bytes to GitHub's user-attachments store for this repository", a
 test("refuses an asset URL outside GitHub's attachment host", async (t) => {
   withToken(t, "test-token");
   await assert.rejects(
-    uploadAttachment(meta, blob, async () => Response.json({ url: "https://evil.example/x" })),
+    uploadAttachment(meta, blob, () =>
+      Promise.resolve(Response.json({ url: "https://evil.example/x" })),
+    ),
     { status: 500 },
   );
 });
 
 test("is unavailable without a token and on provider or network failure", async (t) => {
-  withToken(t, undefined);
+  withToken(t);
   await assert.rejects(
-    uploadAttachment(meta, blob, async () => Response.json({})),
+    uploadAttachment(meta, blob, () => Promise.resolve(Response.json({}))),
     { status: 503 },
   );
   withToken(t, "test-token");
   await assert.rejects(
-    uploadAttachment(meta, blob, async () => new Response("no", { status: 401 })),
+    uploadAttachment(meta, blob, () => Promise.resolve(new Response("no", { status: 401 }))),
     { status: 503 },
   );
   await assert.rejects(
-    uploadAttachment(meta, blob, async () => {
-      throw new Error("offline");
-    }),
+    uploadAttachment(meta, blob, () => Promise.reject(new Error("offline"))),
     { status: 503 },
   );
 });
 
 test("caps size and type at the boundary", () => {
   assert.ok(
-    !attachmentMetaSchema.safeParse({ name: "a.mp4", type: "video/mp4", size: 5e6 }).success,
+    !attachmentMetaSchema.safeParse({ name: "a.mp4", size: 5e6, type: "video/mp4" }).success,
   );
   assert.ok(
-    !attachmentMetaSchema.safeParse({ name: "a.exe", type: "application/x-msdownload", size: 1 })
+    !attachmentMetaSchema.safeParse({ name: "a.exe", size: 1, type: "application/x-msdownload" })
       .success,
   );
 });

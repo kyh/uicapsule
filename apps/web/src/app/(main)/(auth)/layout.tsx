@@ -1,16 +1,16 @@
-import { type ReactNode } from "react";
+import type { ReactNode } from "react";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { Logo } from "@repo/ui/components/logo";
 
 export const metadata: Metadata = {
-  title: "Authentication",
   description: "Sign in to UICapsule.",
+  title: "Authentication",
 };
 
-type LayoutProps = {
+interface LayoutProps {
   children: ReactNode;
-};
+}
 
 const Layout = (props: LayoutProps) => (
   <div className="relative container grid min-h-dvh flex-col items-center justify-center lg:max-w-none lg:grid-cols-2 lg:px-0">

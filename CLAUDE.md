@@ -89,8 +89,12 @@ pnpm check:content    # Fail if any content/<slug> is not a loadable component
 
 ## Verification Contract
 
-`pnpm verify` runs typecheck, lint, formatting, tests, and build. Every step must pass;
-lint warnings also fail. CI runs it on every push and pull request.
+`pnpm verify` runs typecheck, lint, formatting, tests, and build. Every step must pass.
+CI runs it on every push and pull request.
+
+Lint is a clean gate: `oxlint.config.ts` extends the ultracite presets (core, react, next,
+anti-slop) and every rule is an error. Fix the code, don't add config overrides; a
+`// oxlint-disable-next-line rule -- why` needs a stated reason.
 
 Typecheck covers the app, shared packages, scripts, and every code-bearing content package
 independently. Content remains excluded from the app's TypeScript project because independent

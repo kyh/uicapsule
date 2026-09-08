@@ -1,24 +1,23 @@
 "use client";
 
-import { type SVGProps } from "react";
+import type { SVGProps } from "react";
 import { motion } from "motion/react";
 
-export const Signature = (props: SVGProps<SVGSVGElement>) => {
-  return (
-    <svg viewBox="0 0 1843.2 720.083" xmlSpace="preserve" {...props}>
-      <motion.path
-        initial={{ pathLength: 0, opacity: 0 }}
-        animate={{ pathLength: 1, opacity: 1 }}
-        transition={{
-          duration: 1.25,
-          ease: "easeOut",
-        }}
-        fill="none"
-        stroke="currentColor"
-        strokeWidth={20}
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        d="M772.359,0c-37.649,0-55.482,1.982-104.228,11.889c-143.065,28.533-308.72,90.753-435.934,163.277
+export const Signature = (props: SVGProps<SVGSVGElement>) => (
+  <svg viewBox="0 0 1843.2 720.083" xmlSpace="preserve" {...props}>
+    <motion.path
+      initial={{ opacity: 0, pathLength: 0 }}
+      animate={{ opacity: 1, pathLength: 1 }}
+      transition={{
+        duration: 1.25,
+        ease: "easeOut",
+      }}
+      fill="none"
+      stroke="currentColor"
+      strokeWidth={20}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      d="M772.359,0c-37.649,0-55.482,1.982-104.228,11.889c-143.065,28.533-308.72,90.753-435.934,163.277
 		C103.795,248.086,19.383,328.932,2.738,393.529c-7.133,28.534-0.396,51.916,21.004,73.317
 		c27.345,27.741,76.09,43.989,148.217,49.141c33.289,2.378,95.113-1.585,85.998-5.548c-1.585-0.397-14.267-0.397-28.93,0.396
 		c-77.675,5.152-157.729-13.078-191.018-43.593c-21.004-19.023-25.363-42.008-13.871-72.92
@@ -73,7 +72,6 @@ export const Signature = (props: SVGProps<SVGSVGElement>) => {
 		l5.548,0.397l-18.23,13.475c-56.275,42.404-129.195,84.412-163.673,94.32l0,0c-25.76,7.134-29.723,4.756-19.815-13.474
 		c9.908-18.23,31.704-40.82,68.164-70.146c25.76-20.212,18.23-18.23,73.316-21.797
 		C1055.716,591.68,1080.287,590.492,1083.853,590.888L1083.853,590.888z"
-      />
-    </svg>
-  );
-};
+    />
+  </svg>
+);

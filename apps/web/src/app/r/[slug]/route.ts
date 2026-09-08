@@ -3,9 +3,9 @@ import { NextResponse } from "next/server";
 
 import { getShadcnRegistry, getShadcnRegistryItem } from "@/lib/content-data";
 
-type RegistryParams = {
+interface RegistryParams {
   params: Promise<{ slug: string }>;
-};
+}
 
 export const GET = async (_: NextRequest, { params }: RegistryParams) => {
   const { slug } = await params;

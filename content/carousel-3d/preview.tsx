@@ -16,12 +16,10 @@ const cards = [
   { src: `${rootUrl}/8.webp` },
 ];
 
-const Preview = () => {
-  return (
-    <ImageCarouselCanvas>
-      <ImageCarousel images={cards.map((card) => card.src)} />
-    </ImageCarouselCanvas>
-  );
-};
+const Preview = () => (
+  <ImageCarouselCanvas>
+    <ImageCarousel images={cards.map((card) => card.src)} />
+  </ImageCarouselCanvas>
+);
 
 export default Preview;

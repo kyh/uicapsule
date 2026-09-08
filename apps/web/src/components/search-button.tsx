@@ -1,6 +1,7 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState, type ReactNode } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import type { ReactNode } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { motion } from "motion/react";
@@ -33,17 +34,17 @@ const TRENDING_LIMIT = 8;
 
 type SearchKind = "component" | "category" | "section" | "style";
 
-type SearchSuggestion = {
+interface SearchSuggestion {
   value: string;
   href: string;
   label: string;
   sublabel: string;
   kind: SearchKind;
-};
+}
 
 const searchKindIcon = {
-  component: BoxIcon,
   category: BookmarkIcon,
+  component: BoxIcon,
   section: LayoutGridIcon,
   style: PaletteIcon,
 } satisfies Record<SearchKind, typeof SearchIcon>;
@@ -55,7 +56,7 @@ const AnimateHeight = ({ children }: { children: ReactNode }) => (
   <motion.div
     layout
     initial={false}
-    transition={{ type: "spring", visualDuration: 0.25, bounce: 0 }}
+    transition={{ bounce: 0, type: "spring", visualDuration: 0.25 }}
     className="overflow-hidden"
   >
     <motion.div layout="position">{children}</motion.div>
@@ -115,9 +116,9 @@ export const SearchButton = ({ searchEntries }: { searchEntries: SearchEntry[] }
     () =>
       contentCategories
         .map((category) => ({
+          count: tagCounts[category.slug] ?? 0,
           name: category.name,
           slug: category.slug,
-          count: tagCounts[category.slug] ?? 0,
         }))
         .filter((category) => category.count > 0)
         .toSorted((a, b) => {
@@ -133,9 +134,9 @@ export const SearchButton = ({ searchEntries }: { searchEntries: SearchEntry[] }
     () =>
       contentStyles
         .map((style) => ({
+          count: tagCounts[style.slug] ?? 0,
           name: style.name,
           slug: style.slug,
-          count: tagCounts[style.slug] ?? 0,
         }))
         .filter((style) => style.count > 0)
         .toSorted((a, b) => {
@@ -150,10 +151,10 @@ export const SearchButton = ({ searchEntries }: { searchEntries: SearchEntry[] }
   const sections = useMemo(() => {
     const allSections = contentElements.flatMap((element) =>
       (element.subcategories ?? []).map((sub) => ({
-        name: sub.name,
-        slug: sub.slug,
-        parent: element.name,
         count: tagCounts[sub.slug] ?? 0,
+        name: sub.name,
+        parent: element.name,
+        slug: sub.slug,
       })),
     );
 
@@ -188,12 +189,11 @@ export const SearchButton = ({ searchEntries }: { searchEntries: SearchEntry[] }
       return [];
     }
 
-    return categories.filter((category) => {
-      return (
+    return categories.filter(
+      (category) =>
         category.name.toLowerCase().includes(normalizedQuery) ||
-        category.slug.includes(normalizedQuery)
-      );
-    });
+        category.slug.includes(normalizedQuery),
+    );
   }, [categories, hasQuery, normalizedQuery]);
 
   const sectionMatches = useMemo(() => {
@@ -201,13 +201,12 @@ export const SearchButton = ({ searchEntries }: { searchEntries: SearchEntry[] }
       return [];
     }
 
-    return sections.filter((section) => {
-      return (
+    return sections.filter(
+      (section) =>
         section.name.toLowerCase().includes(normalizedQuery) ||
         section.slug.includes(normalizedQuery) ||
-        section.parent.toLowerCase().includes(normalizedQuery)
-      );
-    });
+        section.parent.toLowerCase().includes(normalizedQuery),
+    );
   }, [hasQuery, normalizedQuery, sections]);
 
   const styleMatches = useMemo(() => {
@@ -215,11 +214,10 @@ export const SearchButton = ({ searchEntries }: { searchEntries: SearchEntry[] }
       return [];
     }
 
-    return styles.filter((style) => {
-      return (
-        style.name.toLowerCase().includes(normalizedQuery) || style.slug.includes(normalizedQuery)
-      );
-    });
+    return styles.filter(
+      (style) =>
+        style.name.toLowerCase().includes(normalizedQuery) || style.slug.includes(normalizedQuery),
+    );
   }, [hasQuery, normalizedQuery, styles]);
 
   const totalMatches =
@@ -234,80 +232,80 @@ export const SearchButton = ({ searchEntries }: { searchEntries: SearchEntry[] }
   );
 
   const trendingSuggestions: SearchSuggestion[] = trending.map((entry) => ({
-    value: `trending:${entry.slug}`,
     href: `/ui/${entry.slug}`,
+    kind: "component",
     label: entry.name,
     sublabel: entry.tags.slice(0, 2).join(", ") || "Component",
-    kind: "component",
+    value: `trending:${entry.slug}`,
   }));
 
   const categorySuggestions: SearchSuggestion[] = categories.map((category) => ({
-    value: `category:${category.slug}`,
     href: `/?category=${category.slug}`,
+    kind: "category",
     label: category.name,
     sublabel: componentCountLabel(category.count),
-    kind: "category",
+    value: `category:${category.slug}`,
   }));
 
   const sectionSuggestions: SearchSuggestion[] = sections.map((section) => ({
-    value: `section:${section.slug}`,
     href: `/?element=${section.slug}`,
+    kind: "section",
     label: section.name,
     sublabel: `${section.parent} · ${componentCountLabel(section.count)}`,
-    kind: "section",
+    value: `section:${section.slug}`,
   }));
 
   const styleSuggestions: SearchSuggestion[] = styles.map((style) => ({
-    value: `style:${style.slug}`,
     href: `/?style=${style.slug}`,
+    kind: "style",
     label: style.name,
     sublabel: componentCountLabel(style.count),
-    kind: "style",
+    value: `style:${style.slug}`,
   }));
 
   const querySuggestions: SearchSuggestion[] = [
     ...componentMatches.map((entry): SearchSuggestion => ({
-      value: `component:${entry.slug}`,
       href: `/ui/${entry.slug}`,
+      kind: "component",
       label: entry.name,
       sublabel: "Component",
-      kind: "component",
+      value: `component:${entry.slug}`,
     })),
     ...categoryMatches.map((category): SearchSuggestion => ({
-      value: `category:${category.slug}`,
       href: `/?category=${category.slug}`,
+      kind: "category",
       label: category.name,
       sublabel: "Category",
-      kind: "category",
+      value: `category:${category.slug}`,
     })),
     ...sectionMatches.map((section): SearchSuggestion => ({
-      value: `section:${section.slug}`,
       href: `/?element=${section.slug}`,
+      kind: "section",
       label: section.name,
       sublabel: "Section",
-      kind: "section",
+      value: `section:${section.slug}`,
     })),
     ...styleMatches.map((style): SearchSuggestion => ({
-      value: `style:${style.slug}`,
       href: `/?style=${style.slug}`,
+      kind: "style",
       label: style.name,
       sublabel: "Style",
-      kind: "style",
+      value: `style:${style.slug}`,
     })),
   ];
 
   const browseViews: { id: SearchView; label: string; icon: typeof SearchIcon }[] = [
-    { id: "trending", label: "Trending", icon: TrendingUpIcon },
-    { id: "categories", label: "Categories", icon: BookmarkIcon },
-    { id: "sections", label: "Sections", icon: LayoutGridIcon },
-    { id: "styles", label: "Styles", icon: PaletteIcon },
+    { icon: TrendingUpIcon, id: "trending", label: "Trending" },
+    { icon: BookmarkIcon, id: "categories", label: "Categories" },
+    { icon: LayoutGridIcon, id: "sections", label: "Sections" },
+    { icon: PaletteIcon, id: "styles", label: "Styles" },
   ];
 
   const viewSuggestions = {
-    trending: trendingSuggestions,
     categories: categorySuggestions,
     sections: sectionSuggestions,
     styles: styleSuggestions,
+    trending: trendingSuggestions,
   } satisfies Record<SearchView, SearchSuggestion[]>;
 
   const renderSuggestion = (suggestion: SearchSuggestion) => {

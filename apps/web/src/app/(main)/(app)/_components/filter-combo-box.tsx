@@ -30,124 +30,32 @@ import { ChevronDownIcon, SearchIcon } from "lucide-react";
 
 import type { ContentFilter } from "@/lib/content/content-categories";
 
-type FilterConfig = {
+interface FilterConfig {
   filterKey: string;
   filterOptions: ContentFilter[];
   defaultLabel: string;
   highlighted?: boolean;
-};
+}
 
-type FilterBarProps = {
+interface FilterBarProps {
   filters: FilterConfig[];
-};
+}
 
-// Share one popup so it can animate between filters without remounting the input.
-export const FilterBar = ({ filters }: FilterBarProps) => {
-  const isDesktop = useMediaQuery("(min-width: 768px)");
-  const [query, setQuery] = useState("");
-
-  if (isDesktop) {
-    return (
-      <NavigationMenu
-        onValueChange={(value) => {
-          if (value == null) {
-            setQuery("");
-          }
-        }}
-      >
-        <NavigationMenuList>
-          {filters.map((filter) => (
-            <NavigationMenuItem key={filter.filterKey} value={filter.filterKey}>
-              <NavigationMenuTrigger
-                render={
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className={triggerClassname(filter.highlighted)}
-                  />
-                }
-              >
-                <FilterTriggerLabel
-                  defaultLabel={filter.defaultLabel}
-                  filterKey={filter.filterKey}
-                  filterOptions={filter.filterOptions}
-                />
-              </NavigationMenuTrigger>
-              <NavigationMenuContent className="w-72">
-                <FilterOptionsList
-                  filterKey={filter.filterKey}
-                  filterOptions={filter.filterOptions}
-                  query={query}
-                />
-              </NavigationMenuContent>
-            </NavigationMenuItem>
-          ))}
-        </NavigationMenuList>
-        <NavigationMenuPortal>
-          <NavigationMenuPositioner>
-            <NavigationMenuPopup>
-              <FilterInput value={query} onChange={setQuery} />
-              <NavigationMenuViewport />
-            </NavigationMenuPopup>
-          </NavigationMenuPositioner>
-        </NavigationMenuPortal>
-      </NavigationMenu>
-    );
-  }
-
-  return (
-    <>
-      {filters.map((filter) => (
-        <FilterDrawer key={filter.filterKey} {...filter} />
-      ))}
-    </>
+const parseSelection = (value: string | null) =>
+  new Set(
+    (value ?? "")
+      .split(",")
+      .map((slug) => slug.trim())
+      .filter(Boolean),
   );
-};
 
 const triggerClassname = (highlighted?: boolean) =>
   cn("justify-start capitalize dark:bg-background!", highlighted && "border-foreground");
 
-const FilterDrawer = ({ filterKey, filterOptions, defaultLabel, highlighted }: FilterConfig) => {
-  const [open, setOpen] = useState(false);
-  const [query, setQuery] = useState("");
-
-  return (
-    <Drawer
-      open={open}
-      onOpenChange={(nextOpen) => {
-        setOpen(nextOpen);
-        if (!nextOpen) {
-          setQuery("");
-        }
-      }}
-    >
-      <DrawerTrigger asChild>
-        <Button variant="outline" className={triggerClassname(highlighted)} size="sm">
-          <FilterTriggerLabel
-            defaultLabel={defaultLabel}
-            filterKey={filterKey}
-            filterOptions={filterOptions}
-          />
-        </Button>
-      </DrawerTrigger>
-      <DrawerContent>
-        <DrawerHeader className="sr-only">
-          <DrawerTitle>{defaultLabel}</DrawerTitle>
-          <DrawerDescription>Select filters</DrawerDescription>
-        </DrawerHeader>
-        <div className="mt-4 border-t">
-          <FilterInput value={query} onChange={setQuery} />
-          <FilterOptionsList filterKey={filterKey} filterOptions={filterOptions} query={query} />
-        </div>
-      </DrawerContent>
-    </Drawer>
-  );
-};
-
-type FilterInputProps = {
+interface FilterInputProps {
   value: string;
   onChange: (value: string) => void;
-};
+}
 
 const FilterInput = ({ value, onChange }: FilterInputProps) => (
   <div className="border-border/60 flex h-9 shrink-0 items-center gap-2 border-b px-3">
@@ -162,11 +70,11 @@ const FilterInput = ({ value, onChange }: FilterInputProps) => (
   </div>
 );
 
-type FilterOptionsListProps = {
+interface FilterOptionsListProps {
   filterKey: string;
   filterOptions: ContentFilter[];
   query: string;
-};
+}
 
 const optionRowClassname =
   "flex w-full items-center gap-2 rounded-sm px-2 py-1.5 text-sm outline-none select-none hover:bg-muted focus-visible:bg-muted [&:hover_[data-slot=checkbox]]:border-muted-foreground/60";
@@ -188,7 +96,7 @@ const FilterOptionsList = ({ filterKey, filterOptions, query }: FilterOptionsLis
 
     const nextParams = new URLSearchParams(searchParams.toString());
     if (current.size > 0) {
-      nextParams.set(filterKey, Array.from(current).join(","));
+      nextParams.set(filterKey, [...current].join(","));
     } else {
       nextParams.delete(filterKey);
     }
@@ -284,10 +192,102 @@ const FilterTriggerLabel = ({
   );
 };
 
-const parseSelection = (value: string | null) =>
-  new Set(
-    (value ?? "")
-      .split(",")
-      .map((slug) => slug.trim())
-      .filter(Boolean),
+const FilterDrawer = ({ filterKey, filterOptions, defaultLabel, highlighted }: FilterConfig) => {
+  const [open, setOpen] = useState(false);
+  const [query, setQuery] = useState("");
+
+  return (
+    <Drawer
+      open={open}
+      onOpenChange={(nextOpen) => {
+        setOpen(nextOpen);
+        if (!nextOpen) {
+          setQuery("");
+        }
+      }}
+    >
+      <DrawerTrigger asChild>
+        <Button variant="outline" className={triggerClassname(highlighted)} size="sm">
+          <FilterTriggerLabel
+            defaultLabel={defaultLabel}
+            filterKey={filterKey}
+            filterOptions={filterOptions}
+          />
+        </Button>
+      </DrawerTrigger>
+      <DrawerContent>
+        <DrawerHeader className="sr-only">
+          <DrawerTitle>{defaultLabel}</DrawerTitle>
+          <DrawerDescription>Select filters</DrawerDescription>
+        </DrawerHeader>
+        <div className="mt-4 border-t">
+          <FilterInput value={query} onChange={setQuery} />
+          <FilterOptionsList filterKey={filterKey} filterOptions={filterOptions} query={query} />
+        </div>
+      </DrawerContent>
+    </Drawer>
   );
+};
+
+// Share one popup so it can animate between filters without remounting the input.
+export const FilterBar = ({ filters }: FilterBarProps) => {
+  const isDesktop = useMediaQuery("(min-width: 768px)");
+  const [query, setQuery] = useState("");
+
+  if (isDesktop) {
+    return (
+      <NavigationMenu
+        onValueChange={(value) => {
+          if (value === null || value === undefined) {
+            setQuery("");
+          }
+        }}
+      >
+        <NavigationMenuList>
+          {filters.map((filter) => (
+            <NavigationMenuItem key={filter.filterKey} value={filter.filterKey}>
+              <NavigationMenuTrigger
+                render={
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className={triggerClassname(filter.highlighted)}
+                  />
+                }
+              >
+                <FilterTriggerLabel
+                  defaultLabel={filter.defaultLabel}
+                  filterKey={filter.filterKey}
+                  filterOptions={filter.filterOptions}
+                />
+              </NavigationMenuTrigger>
+              <NavigationMenuContent className="w-72">
+                <FilterOptionsList
+                  filterKey={filter.filterKey}
+                  filterOptions={filter.filterOptions}
+                  query={query}
+                />
+              </NavigationMenuContent>
+            </NavigationMenuItem>
+          ))}
+        </NavigationMenuList>
+        <NavigationMenuPortal>
+          <NavigationMenuPositioner>
+            <NavigationMenuPopup>
+              <FilterInput value={query} onChange={setQuery} />
+              <NavigationMenuViewport />
+            </NavigationMenuPopup>
+          </NavigationMenuPositioner>
+        </NavigationMenuPortal>
+      </NavigationMenu>
+    );
+  }
+
+  return (
+    <>
+      {filters.map((filter) => (
+        <FilterDrawer key={filter.filterKey} {...filter} />
+      ))}
+    </>
+  );
+};

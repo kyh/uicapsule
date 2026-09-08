@@ -62,7 +62,7 @@ const TWO_PI = Math.PI * 2;
 export const clamp = (v: number, a: number, b: number) => Math.min(b, Math.max(a, v));
 export const lerp = (a: number, b: number, t: number) => a + (b - a) * t;
 const wrap = (x: number, p: number) => ((((x + p / 2) % p) + p) % p) - p / 2;
-export const easeInOut = (t: number) => (t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2);
+export const easeInOut = (t: number) => (t < 0.5 ? 4 * t * t * t : 1 - (-2 * t + 2) ** 3 / 2);
 
 // Poses are mutated in place — the engine holds one `cur`/`from` per card for
 // the lifetime of the component, so nothing allocates inside the rAF loop.
@@ -124,24 +124,29 @@ const buildFlatRing = (
     const sp = Math.sin(phi);
     const cp = Math.cos(phi);
     return {
-      phi,
       ds: Math.sqrt(Rx * Rx * sp * sp + Ry * Ry * cp * cp) * dphi,
       fp: cw * Math.abs(cp) + ch * Math.abs(sp),
+      phi,
     };
   });
 
   // count(G) falls monotonically as G grows, so plain bisection converges.
   const count = (G: number) => {
     let s = 0;
-    for (const sm of samples) s += sm.ds / (sm.fp + G);
+    for (const sm of samples) {
+      s += sm.ds / (sm.fp + G);
+    }
     return s;
   };
   let lo = -0.85 * Math.min(cw, ch);
   let hi = Math.max(W, H);
-  for (let it = 0; it < 60; it++) {
+  for (let it = 0; it < 60; it += 1) {
     const mid = (lo + hi) / 2;
-    if (count(mid) > n) lo = mid;
-    else hi = mid;
+    if (count(mid) > n) {
+      lo = mid;
+    } else {
+      hi = mid;
+    }
   }
   const G = (lo + hi) / 2;
 
@@ -149,15 +154,19 @@ const buildFlatRing = (
   const flatAngles: number[] = [];
   let cum = 0;
   for (const sm of samples) {
-    if (flatAngles.length >= n) break;
-    while (flatAngles.length < n && cum >= flatAngles.length) flatAngles.push(sm.phi);
+    if (flatAngles.length >= n) {
+      break;
+    }
+    while (flatAngles.length < n && cum >= flatAngles.length) {
+      flatAngles.push(sm.phi);
+    }
     cum += sm.ds / (sm.fp + G);
   }
   while (flatAngles.length < n) {
     flatAngles.push((TWO_PI * flatAngles.length) / n);
   }
 
-  return { flatAngles, Rx, Ry, flatCY };
+  return { Rx, Ry, flatAngles, flatCY };
 };
 
 export const getLayout = (W: number, H: number, n: number): FmLayout => {
@@ -169,34 +178,37 @@ export const getLayout = (W: number, H: number, n: number): FmLayout => {
   const cardH = Math.round(cardW * 1.34);
   const flatScale = mobile ? 0.42 : 0.62;
   const ring = buildFlatRing(W, H, n, cardW, cardH, flatScale, portrait);
-  return { W, H, n, mobile, portrait, cardW, cardH, flatScale, ...ring };
+  return { H, W, cardH, cardW, flatScale, mobile, n, portrait, ...ring };
 };
 
 // ── Formations — each a pure function f(i, L, browse) → Pose ─────────────────
 const flatPose = (i: number, L: FmLayout, browse: number): Pose => {
-  const n = L.n;
+  const { n } = L;
   const slot = (((i + browse * 0.004) % n) + n) % n;
   const i0 = Math.floor(slot);
   const i1 = (i0 + 1) % n;
   const fr = slot - i0;
   const a0 = L.flatAngles.at(i0) ?? 0;
   let a1 = L.flatAngles.at(i1) ?? 0;
-  if (a1 < a0) a1 += TWO_PI; // bridge the 2π seam
+  // bridge the 2π seam
+  if (a1 < a0) {
+    a1 += TWO_PI;
+  }
   const ang = lerp(a0, a1, fr);
   return {
-    x: Math.cos(ang) * L.Rx,
-    y: Math.sin(ang) * L.Ry + L.flatCY,
-    z: 0,
+    o: 1,
     rx: 0,
     ry: 0,
     rz: Math.sin(i * 3.1 + 1.2) * 7,
     s: L.flatScale,
-    o: 1,
+    x: Math.cos(ang) * L.Rx,
+    y: Math.sin(ang) * L.Ry + L.flatCY,
+    z: 0,
   };
 };
 
 const tiltPose = (i: number, L: FmLayout, browse: number): Pose => {
-  const n = L.n;
+  const { n } = L;
   const unit = L.cardW * (L.mobile ? 1.12 : 1.5);
   const x = wrap((i - Math.floor(n / 2)) * unit + browse, n * unit);
   const Rarc = L.W * (L.mobile ? 1.5 : 1.2);
@@ -204,14 +216,14 @@ const tiltPose = (i: number, L: FmLayout, browse: number): Pose => {
   const y = -L.H * 0.05 + (Rarc - Math.sqrt(Rarc * Rarc - ax * ax));
   const rz = (Math.asin(clamp(x / Rarc, -1, 1)) / DEG) * 0.65;
   return {
-    x,
-    y,
-    z: 0,
+    o: clamp((0.5 - Math.abs(x) / L.W) / 0.13, 0, 1),
     rx: 0,
     ry: 0,
     rz,
     s: L.mobile ? 0.92 : 1.18,
-    o: clamp((0.5 - Math.abs(x) / L.W) / 0.13, 0, 1),
+    x,
+    y,
+    z: 0,
   };
 };
 
@@ -228,14 +240,14 @@ const ringPose = (i: number, L: FmLayout, browse: number): Pose => {
   const y = lx * Math.sin(B) + y0 * Math.cos(B);
   const k = (lz / R + 1) / 2;
   return {
-    x,
-    y,
-    z: depth,
+    o: 1,
     rx: 0,
     ry: 0,
     rz: (lx / R) * (L.mobile ? 3 : 6),
     s: (L.mobile ? 0.36 : 0.6) + k * (L.mobile ? 0.19 : 0.42),
-    o: 1,
+    x,
+    y,
+    z: depth,
   };
 };
 
@@ -245,20 +257,26 @@ const galleryPose = (i: number, L: FmLayout, browse: number): Pose => {
   const front = (c + 1) / 2;
   const baseS = L.mobile ? 0.72 : 1.42;
   return {
-    x: Math.sin(theta) * L.W * (L.mobile ? 0.46 : 0.43),
-    y: c * L.H * (L.mobile ? 0.16 : 0.14),
-    z: c * (L.mobile ? 95 : 150),
+    o: 1,
     rx: 0,
     ry: 0,
     rz: 0,
     s: baseS * ((L.mobile ? 0.5 : 0.66) + front * (L.mobile ? 0.5 : 0.34)),
-    o: 1,
+    x: Math.sin(theta) * L.W * (L.mobile ? 0.46 : 0.43),
+    y: c * L.H * (L.mobile ? 0.16 : 0.14),
+    z: c * (L.mobile ? 95 : 150),
   };
 };
 
 export const poseFor = (mode: FormationMode, i: number, L: FmLayout, browse: number): Pose => {
-  if (mode === "flat") return flatPose(i, L, browse);
-  if (mode === "tilt") return tiltPose(i, L, browse);
-  if (mode === "ring") return ringPose(i, L, browse);
+  if (mode === "flat") {
+    return flatPose(i, L, browse);
+  }
+  if (mode === "tilt") {
+    return tiltPose(i, L, browse);
+  }
+  if (mode === "ring") {
+    return ringPose(i, L, browse);
+  }
   return galleryPose(i, L, browse);
 };

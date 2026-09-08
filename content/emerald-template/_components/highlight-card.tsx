@@ -1,4 +1,4 @@
-import { type ComponentProps, type HTMLAttributes, type MouseEvent, type ReactNode } from "react";
+import type { ComponentProps, HTMLAttributes, MouseEvent, ReactNode } from "react";
 import type { MotionValue } from "motion/react";
 
 import { cn } from "cn";
@@ -18,7 +18,7 @@ const Pattern = ({
   mouseY: MotionValue<number>;
 }) => {
   const maskImage = useMotionTemplate`radial-gradient(1000px at ${mouseX}px ${mouseY}px, rgba(255,255,255,.5), transparent 40%)`;
-  const style = { maskImage, WebkitMaskImage: maskImage };
+  const style = { WebkitMaskImage: maskImage, maskImage };
 
   return (
     <div className="pointer-events-none">
@@ -50,6 +50,14 @@ const Pattern = ({
     </div>
   );
 };
+
+const Card = ({ className, ...props }: HTMLAttributes<HTMLDivElement>) => (
+  <div
+    data-slot="card"
+    className={cn("bg-(--card) flex flex-col gap-3 overflow-hidden border p-3", className)}
+    {...props}
+  />
+);
 
 export const HighlightCard = ({
   className,
@@ -85,11 +93,3 @@ export const HighlightCard = ({
     </Card>
   );
 };
-
-const Card = ({ className, ...props }: HTMLAttributes<HTMLDivElement>) => (
-  <div
-    data-slot="card"
-    className={cn("bg-(--card) flex flex-col gap-3 overflow-hidden border p-3", className)}
-    {...props}
-  />
-);

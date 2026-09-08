@@ -1,8 +1,8 @@
-export type ContentFilter = {
+export interface ContentFilter {
   name: string;
   slug: string;
   subcategories?: { name: string; slug: string }[];
-};
+}
 
 export const contentCategories: ContentFilter[] = [
   { name: "Silly", slug: "silly" },

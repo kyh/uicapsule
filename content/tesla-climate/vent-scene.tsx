@@ -1,13 +1,14 @@
 "use client";
 
-import { useEffect, useRef, useState, type FC } from "react";
+import { useEffect, useRef, useState } from "react";
+import type { FC } from "react";
 
-type VentSceneProps = {
+interface VentSceneProps {
   tempF: number;
   fanSpeed: number;
   powerOn: boolean;
   acOn: boolean;
-};
+}
 
 const STRANDS = 38;
 const SEGMENTS = 16;
@@ -20,7 +21,9 @@ const TINT_MIN_TEMP = 60;
 const TINT_TEMP_SPAN = 20;
 
 const tintFor = (tempF: number, acOn: boolean): readonly [number, number, number] => {
-  if (!acOn) return [168, 176, 188];
+  if (!acOn) {
+    return [168, 176, 188];
+  }
   const k = Math.min(1, Math.max(0, (tempF - TINT_MIN_TEMP) / TINT_TEMP_SPAN));
   const cold: readonly [number, number, number] = [90, 140, 240];
   const mid: readonly [number, number, number] = [150, 178, 226];
@@ -37,32 +40,38 @@ const tintFor = (tempF: number, acOn: boolean): readonly [number, number, number
 
 // Deterministic per-strand pseudo-random, stable across frames.
 const seeded = (index: number, channel: number) => {
-  const value = Math.sin(index * 127.1 + channel * 311.7) * 43758.5453;
+  const value = Math.sin(index * 127.1 + channel * 311.7) * 43_758.5453;
   return value - Math.floor(value);
 };
 
 export const VentScene: FC<VentSceneProps> = ({ tempF, fanSpeed, powerOn, acOn }) => {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
-  const settingsRef = useRef({ tempF, fanSpeed, powerOn, acOn });
-  const steerRef = useRef({ current: 0, target: 0, reach: 1, reachTarget: 1 });
+  const settingsRef = useRef({ acOn, fanSpeed, powerOn, tempF });
+  const steerRef = useRef({ current: 0, reach: 1, reachTarget: 1, target: 0 });
   const intensityRef = useRef(0);
   const smoothFanRef = useRef(fanSpeed);
-  const pointerRef = useRef({ x: 0, y: 0, alpha: 0 });
+  const pointerRef = useRef({ alpha: 0, x: 0, y: 0 });
   const [dragging, setDragging] = useState(false);
   const draggingRef = useRef(false);
 
   useEffect(() => {
-    settingsRef.current = { tempF, fanSpeed, powerOn, acOn };
+    settingsRef.current = { acOn, fanSpeed, powerOn, tempF };
   }, [tempF, fanSpeed, powerOn, acOn]);
 
   useEffect(() => {
     const canvas = canvasRef.current;
-    if (!canvas) return;
+    if (!canvas) {
+      return;
+    }
     const context = canvas.getContext("2d");
-    if (!context) return;
+    if (!context) {
+      return;
+    }
     const offscreen = document.createElement("canvas");
     const offContext = offscreen.getContext("2d");
-    if (!offContext) return;
+    if (!offContext) {
+      return;
+    }
 
     let frame = 0;
     const resize = () => {
@@ -86,7 +95,9 @@ export const VentScene: FC<VentSceneProps> = ({ tempF, fanSpeed, powerOn, acOn }
       const rect = resize();
       const w = rect.width;
       const h = rect.height;
-      if (w === 0 || h === 0) return;
+      if (w === 0 || h === 0) {
+        return;
+      }
 
       const time = timeMs * 0.001;
       const { tempF: temp, fanSpeed: fan, powerOn: on, acOn: cool } = settingsRef.current;
@@ -162,7 +173,7 @@ export const VentScene: FC<VentSceneProps> = ({ tempF, fanSpeed, powerOn, acOn }
             const nextY = y + Math.cos(angle) * stepLength;
 
             const pulse = 0.68 + 0.32 * Math.sin(s * 6.2 - time * pulseSpeed + phase);
-            const alpha = Math.pow(1 - s, 1.55) * Math.min(s * 9, 1) * 0.5 * strandAlpha * pulse;
+            const alpha = (1 - s) ** 1.55 * Math.min(s * 9, 1) * 0.5 * strandAlpha * pulse;
             if (alpha > 0.008) {
               offContext.strokeStyle = `rgba(255,255,255,${alpha.toFixed(3)})`;
               offContext.lineWidth = (0.9 + s * 7.5) * unit;
@@ -182,16 +193,14 @@ export const VentScene: FC<VentSceneProps> = ({ tempF, fanSpeed, powerOn, acOn }
           context.filter = "blur(7px)";
           context.drawImage(offscreen, 0, 0, w, h);
           context.filter = "blur(1.5px)";
-          context.globalAlpha = 0.75;
-          context.drawImage(offscreen, 0, 0, w, h);
         } else {
           context.globalAlpha = 0.3;
           for (let dx = -2; dx <= 2; dx += 2) {
             context.drawImage(offscreen, dx, 1, w, h);
           }
-          context.globalAlpha = 0.75;
-          context.drawImage(offscreen, 0, 0, w, h);
         }
+        context.globalAlpha = 0.75;
+        context.drawImage(offscreen, 0, 0, w, h);
         context.restore();
 
         // Bright rush at the slit.
@@ -248,7 +257,9 @@ export const VentScene: FC<VentSceneProps> = ({ tempF, fanSpeed, powerOn, acOn }
   // distance from the slit sets reach.
   const aimStream = (clientX: number, clientY: number) => {
     const canvas = canvasRef.current;
-    if (!canvas || !draggingRef.current) return;
+    if (!canvas || !draggingRef.current) {
+      return;
+    }
     const rect = canvas.getBoundingClientRect();
     const px = clientX - rect.left;
     const py = clientY - rect.top;
@@ -257,7 +268,9 @@ export const VentScene: FC<VentSceneProps> = ({ tempF, fanSpeed, powerOn, acOn }
     const dx = px - rect.width / 2;
     const dy = py - rect.height * SLIT_Y;
     const fromSlit = Math.hypot(dx, dy);
-    if (fromSlit < 10) return;
+    if (fromSlit < 10) {
+      return;
+    }
     steerRef.current.target = Math.atan2(dx, dy);
     const distance = fromSlit / (rect.height * 0.52);
     steerRef.current.reachTarget = Math.max(0.35, Math.min(1.3, distance));
@@ -270,7 +283,9 @@ export const VentScene: FC<VentSceneProps> = ({ tempF, fanSpeed, powerOn, acOn }
         dragging ? "cursor-grabbing" : "cursor-grab"
       }`}
       onPointerDown={(event) => {
-        if (!settingsRef.current.powerOn) return;
+        if (!settingsRef.current.powerOn) {
+          return;
+        }
         draggingRef.current = true;
         setDragging(true);
         event.currentTarget.setPointerCapture(event.pointerId);

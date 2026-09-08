@@ -12,17 +12,20 @@ import { EFFORT_THEMES, nearestLevel, notchX } from "./effort-theme";
 import { KaraokeCard } from "./karaoke-track";
 import { SlingshotCard } from "./slingshot-track";
 
-export type EffortVariant = "slingshot" | "karaoke" | "curls";
-export type { EffortTheme };
+export { type EffortTheme } from "./effort-theme";
 
-type EffortPickerProps = {
+export type EffortVariant = "slingshot" | "karaoke" | "curls";
+
+const CARDS = { curls: CurlCard, karaoke: KaraokeCard, slingshot: SlingshotCard };
+
+interface EffortPickerProps {
   variant?: EffortVariant;
   /** Which app the picker is pretending to live inside. Orthogonal to variant:
    * the theme paints the chrome, the variant supplies the physics. */
   theme?: EffortTheme;
-};
+}
 
-const CARD_POP = { type: "spring", stiffness: 380, damping: 30 } as const;
+const CARD_POP = { damping: 30, stiffness: 380, type: "spring" } as const;
 
 /** Slingshot is a control you operate. The other two are takes you perform: they
  * start the moment the card opens and run on their own clock. */
@@ -65,14 +68,19 @@ export const EffortPicker = ({ variant = "slingshot", theme = "chatgpt" }: Effor
   }
 
   const handleToggle = () => setOpen((was) => !was);
+  const Card = CARDS[variant];
 
   // Clicking anywhere that isn't the chip or the card dismisses the popover, the
   // way every real popover dies. The chip and card live inside the composer's own
   // markup, so the frame finds them by attribute rather than holding refs into a
   // subtree it doesn't render.
   const handleFramePointerDown = (event: React.PointerEvent) => {
-    if (!open) return;
-    if (event.target instanceof Element && event.target.closest("[data-effort-control]")) return;
+    if (!open) {
+      return;
+    }
+    if (event.target instanceof Element && event.target.closest("[data-effort-control]")) {
+      return;
+    }
     setOpen(false);
   };
 
@@ -83,9 +91,9 @@ export const EffortPicker = ({ variant = "slingshot", theme = "chatgpt" }: Effor
           // Re-keyed on theme as well as variant: a reskinned card is a different
           // card, and it should land rather than cross-fade its own chrome.
           key={`${variant}-${theme}`}
-          initial={{ opacity: 0, y: 6, scale: 0.96 }}
-          animate={{ opacity: 1, y: 0, scale: 1 }}
-          exit={{ opacity: 0, y: 4, scale: 0.96 }}
+          initial={{ opacity: 0, scale: 0.96, y: 6 }}
+          animate={{ opacity: 1, scale: 1, y: 0 }}
+          exit={{ opacity: 0, scale: 0.96, y: 4 }}
           transition={CARD_POP}
           style={{ transformOrigin: "bottom right", width: CARD_WIDTH }}
           // Pinned to the chip's right edge, at its full open width from the first
@@ -93,13 +101,7 @@ export const EffortPicker = ({ variant = "slingshot", theme = "chatgpt" }: Effor
           // is heading. The chip catches up underneath it.
           className="absolute right-0 bottom-full mb-2.5"
         >
-          {variant === "curls" ? (
-            <CurlCard knobX={knobX} theme={theme} />
-          ) : variant === "karaoke" ? (
-            <KaraokeCard knobX={knobX} theme={theme} />
-          ) : (
-            <SlingshotCard knobX={knobX} theme={theme} />
-          )}
+          <Card knobX={knobX} theme={theme} />
         </motion.div>
       )}
     </AnimatePresence>

@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "motion/react";
 
-export function Ring() {
+export const Ring = () => {
   const [isSilent, setIsSilent] = useState(false);
   const [firstTime, setFirstTime] = useState(true);
 
@@ -23,19 +23,19 @@ export function Ring() {
       layout
       className="relative flex h-7 items-center justify-between px-2.5"
       style={{ width: isSilent ? 148 : 128 }}
-      transition={{ type: "spring", bounce: 0.5 }}
+      transition={{ bounce: 0.5, type: "spring" }}
     >
       <AnimatePresence>
         {isSilent ? (
           <motion.div
-            initial={{ scaleX: 0, opacity: 0, filter: "blur(4px)" }}
+            initial={{ filter: "blur(4px)", opacity: 0, scaleX: 0 }}
             animate={{
-              scaleX: 1,
-              opacity: 1,
               filter: "blur(0px)",
+              opacity: 1,
+              scaleX: 1,
             }}
-            exit={{ scaleX: 0, opacity: 0, filter: "blur(4px)" }}
-            transition={{ type: "spring", bounce: 0.35 }}
+            exit={{ filter: "blur(4px)", opacity: 0, scaleX: 0 }}
+            transition={{ bounce: 0.35, type: "spring" }}
             className="absolute left-[5px] h-[18px] w-10 origin-left rounded-full bg-[#FD4F30]"
           />
         ) : null}
@@ -65,9 +65,9 @@ export function Ring() {
             <motion.div
               animate={{ scaleY: isSilent ? 1 : 0 }}
               transition={{
-                ease: "easeInOut",
-                duration: isSilent ? 0.125 : 0.05,
                 delay: isSilent ? 0.15 : 0,
+                duration: isSilent ? 0.125 : 0.05,
+                ease: "easeInOut",
               }}
               className="h-4 w-fit origin-top rounded-full"
             >
@@ -87,4 +87,4 @@ export function Ring() {
       </div>
     </motion.div>
   );
-}
+};

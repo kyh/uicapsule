@@ -2,7 +2,8 @@
 
 import { motion } from "motion/react";
 
-import { GridItemConfig, InfiniteGrid } from "./infinite-grid";
+import type { GridItemConfig } from "./infinite-grid";
+import { InfiniteGrid } from "./infinite-grid";
 
 const Cell = ({ gridIndex }: GridItemConfig) => (
   <motion.div
@@ -11,7 +12,7 @@ const Cell = ({ gridIndex }: GridItemConfig) => (
     animate={{ opacity: 1, scale: 1 }}
     transition={{
       duration: 0.4,
-      scale: { type: "spring", visualDuration: 0.4, bounce: 0.5 },
+      scale: { bounce: 0.5, type: "spring", visualDuration: 0.4 },
     }}
   >
     <img
@@ -22,12 +23,10 @@ const Cell = ({ gridIndex }: GridItemConfig) => (
   </motion.div>
 );
 
-const Preview = () => {
-  return (
-    <div className="h-screen w-screen bg-blue-50">
-      <InfiniteGrid gridSize={150} renderItem={Cell} />
-    </div>
-  );
-};
+const Preview = () => (
+  <div className="h-screen w-screen bg-blue-50">
+    <InfiniteGrid gridSize={150} renderItem={Cell} />
+  </div>
+);
 
 export default Preview;

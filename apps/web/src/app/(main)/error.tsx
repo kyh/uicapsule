@@ -2,9 +2,9 @@
 
 import { useEffect } from "react";
 
-type ErrorProps = {
+interface ErrorProps {
   error: Error;
-};
+}
 
 const Error = ({ error }: ErrorProps) => {
   useEffect(() => {

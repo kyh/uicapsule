@@ -1,7 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import { LiquidOrb, presetLabel, type LiquidOrbPreset } from "./liquid-orb";
+import { LiquidOrb, presetLabel } from "./liquid-orb";
+import type { LiquidOrbPreset } from "./liquid-orb";
 
 const Preview = () => {
   const [preset, setPreset] = useState<LiquidOrbPreset>("siri");

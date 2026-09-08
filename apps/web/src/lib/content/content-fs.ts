@@ -1,7 +1,7 @@
 import { readdir, readFile, stat } from "node:fs/promises";
-import { join, relative, resolve } from "node:path";
+import path from "node:path";
 import { cache } from "react";
-import { z } from "zod";
+import type { z } from "zod";
 
 import { contentMetaSchema, contentPackageSchema } from "./content-schema";
 
@@ -11,7 +11,7 @@ import type {
   SourceFile,
 } from "./content-schema";
 
-const contentRoot = resolve(process.cwd(), "..", "..", "content");
+const contentRoot = path.resolve(process.cwd(), "..", "..", "content");
 
 const IGNORED_SOURCE_SEGMENTS = new Set(["node_modules", "dist", ".turbo", ".cache"]);
 const SOURCE_FILE_EXTENSIONS = new Set([
@@ -26,9 +26,9 @@ const SOURCE_FILE_EXTENSIONS = new Set([
 ]);
 const IGNORED_SOURCE_FILES = new Set(["meta.json", "package-lock.json", "pnpm-lock.yaml"]);
 
-const readJson = async <T>(path: string, schema: z.ZodType<T>): Promise<T | null> => {
+const readJson = async <T>(filePath: string, schema: z.ZodType<T>): Promise<T | null> => {
   try {
-    const parsed = schema.safeParse(JSON.parse(await readFile(path, "utf-8")));
+    const parsed = schema.safeParse(JSON.parse(await readFile(filePath, "utf-8")));
     return parsed.success ? parsed.data : null;
   } catch {
     return null;
@@ -38,25 +38,33 @@ const readJson = async <T>(path: string, schema: z.ZodType<T>): Promise<T | null
 export const readSourceFiles = async (
   component: LocalContentComponentSummary,
 ): Promise<SourceFile[]> => {
-  const root = join(contentRoot, component.slug);
+  const root = path.join(contentRoot, component.slug);
   const files: SourceFile[] = [];
 
   const walk = async (dir: string) => {
     const entries = await readdir(dir, { withFileTypes: true });
     await Promise.all(
       entries.map(async (entry) => {
-        if (IGNORED_SOURCE_SEGMENTS.has(entry.name)) return;
-        const full = join(dir, entry.name);
+        if (IGNORED_SOURCE_SEGMENTS.has(entry.name)) {
+          return;
+        }
+        const full = path.join(dir, entry.name);
         if (entry.isDirectory()) {
           await walk(full);
           return;
         }
-        if (!entry.isFile()) return;
-        if (IGNORED_SOURCE_FILES.has(entry.name)) return;
+        if (!entry.isFile()) {
+          return;
+        }
+        if (IGNORED_SOURCE_FILES.has(entry.name)) {
+          return;
+        }
         const ext = entry.name.slice(entry.name.lastIndexOf("."));
-        if (!SOURCE_FILE_EXTENSIONS.has(ext)) return;
+        if (!SOURCE_FILE_EXTENSIONS.has(ext)) {
+          return;
+        }
         const code = await readFile(full, "utf-8");
-        files.push({ path: `/${relative(root, full).replaceAll("\\", "/")}`, code });
+        files.push({ code, path: `/${path.relative(root, full).replaceAll("\\", "/")}` });
       }),
     );
   };
@@ -74,11 +82,15 @@ export const readContentIndex = cache(async (): Promise<ContentComponentSummary[
 
   const components = await Promise.all(
     slugs.map(async (slug): Promise<ContentComponentSummary | null> => {
-      const meta = await readJson(join(contentRoot, slug, "meta.json"), contentMetaSchema);
-      if (!meta) return null;
+      const meta = await readJson(path.join(contentRoot, slug, "meta.json"), contentMetaSchema);
+      if (!meta) {
+        return null;
+      }
       if (meta.type === "local") {
-        const preview = await stat(join(contentRoot, slug, "preview.tsx")).catch(() => null);
-        if (!preview?.isFile()) return null;
+        const preview = await stat(path.join(contentRoot, slug, "preview.tsx")).catch(() => null);
+        if (!preview?.isFile()) {
+          return null;
+        }
       }
       return Object.assign(meta, { slug });
     }),
@@ -96,7 +108,7 @@ export const readContentBySlug = async (slug: string): Promise<ContentComponentS
 
 export const buildShadcnRegistryItem = async (component: LocalContentComponentSummary) => {
   const [pkg, sourceFiles] = await Promise.all([
-    readJson(join(contentRoot, component.slug, "package.json"), contentPackageSchema),
+    readJson(path.join(contentRoot, component.slug, "package.json"), contentPackageSchema),
     readSourceFiles(component),
   ]);
   const dependencies = [
@@ -111,18 +123,18 @@ export const buildShadcnRegistryItem = async (component: LocalContentComponentSu
 
   return {
     $schema: "https://ui.shadcn.com/schema/registry.json",
-    homepage: `https://uicapsule.com/ui/${component.slug}`,
-    name: component.slug,
-    type: "registry:block" as const,
     author: "Kaiyu Hsu <uicapsule@kyh.io>",
     dependencies,
     devDependencies,
-    registryDependencies: [],
-    files: sourceFiles.map(({ path, code }) => ({
-      type: "registry:file" as const,
-      path,
+    files: sourceFiles.map(({ path: filePath, code }) => ({
       content: code,
-      target: `uicapsule/${component.slug}${path}`,
+      path: filePath,
+      target: `uicapsule/${component.slug}${filePath}`,
+      type: "registry:file" as const,
     })),
+    homepage: `https://uicapsule.com/ui/${component.slug}`,
+    name: component.slug,
+    registryDependencies: [],
+    type: "registry:block" as const,
   };
 };
