@@ -683,9 +683,6 @@ importers:
       gsap:
         specifier: ^3.15.0
         version: 3.15.0
-      lucide-react:
-        specifier: ^1.35.0
-        version: 1.35.0(react@19.2.8)
       react:
         specifier: 'catalog:'
         version: 19.2.8
