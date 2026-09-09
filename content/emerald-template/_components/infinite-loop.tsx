@@ -60,7 +60,6 @@ export const InfiniteLooper = ({
       <div className={cn("flex w-fit justify-center", className)} ref={innerRef}>
         {Array.from({ length: looperInstances }, (_, index) => (
           <div
-            // oxlint-disable-next-line react/no-array-index-key -- Identical animation copies keep fixed positions; only trailing copies are added or removed.
             key={index}
             className={cn("flex w-max", animating && "animate-slide-across")}
             style={{

@@ -438,7 +438,6 @@ const CodeBlockFallback = ({ children, ...props }: CodeBlockFallbackProps) => (
           ?.toString()
           .split("\n")
           .map((line, lineNumber) => (
-            // eslint-disable-next-line react/no-array-index-key -- Lines are positional, stateless source text.
             <span className="line" key={lineNumber}>
               {line}
             </span>

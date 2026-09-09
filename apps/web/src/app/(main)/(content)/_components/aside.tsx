@@ -208,7 +208,7 @@ const Aside = ({ contentComponent }: AsideProps) => {
             <div className="flex justify-center">
               <button
                 type="button"
-                aria-label="Copy the shadcn install command"
+                aria-label={copied ? "Copied to clipboard" : "Copy the shadcn install command"}
                 className="text-muted-foreground grid text-xs"
                 onClick={handleInstallClick}
               >
