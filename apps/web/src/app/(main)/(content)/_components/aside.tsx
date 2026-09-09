@@ -2,6 +2,7 @@
 
 import { Badge } from "@repo/ui/components/badge";
 import { Button, buttonVariants } from "@repo/ui/components/button";
+import { ButtonGroup } from "@repo/ui/components/button-group";
 import { Card } from "@repo/ui/components/card";
 import {
   Drawer,
@@ -159,25 +160,20 @@ const Aside = ({ contentComponent }: AsideProps) => {
       {contentComponent.type === "local" ? (
         <Drawer>
           <div className="flex flex-col gap-1.5">
-            <div className="flex rounded-full shadow-xs">
+            <ButtonGroup className="w-full shadow-xs">
               <DrawerTrigger
                 className={buttonVariants({
                   variant: "outline",
-                  className:
-                    "flex-1 rounded-none rounded-s-full border-e-0 pl-12 shadow-none focus-visible:z-10",
+                  className: "flex-1 pl-12 shadow-none",
                 })}
               >
                 View Source
               </DrawerTrigger>
-              <Button
-                variant="outline"
-                className="rounded-none rounded-e-full shadow-none focus-visible:z-10"
-                onClick={handleDownloadClick}
-              >
+              <Button variant="outline" className="shadow-none" onClick={handleDownloadClick}>
                 <span className="sr-only">Download</span>
                 <DownloadIcon className="size-4" />
               </Button>
-            </div>
+            </ButtonGroup>
             <div className="flex justify-center">
               <motion.button
                 layout
@@ -251,7 +247,7 @@ const Aside = ({ contentComponent }: AsideProps) => {
             render={<a href={contentComponent.sourceUrl} target="_blank" rel="noreferrer" />}
             nativeButton={false}
             variant="outline"
-            className="w-full rounded-full shadow-none focus-visible:z-10"
+            className="w-full shadow-xs"
           >
             View Source on GitHub
           </Button>
