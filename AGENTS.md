@@ -174,7 +174,7 @@ Web is the only surface. There is no mobile, desktop, or extension target.
   is the local one.
 - Env vars read at build time must be listed in `turbo.json` `globalEnv`, or turbo's strict
   env mode strips them from the task with no error. `NEXT_PUBLIC_SUPABASE_URL` was missing
-  from it until recently: `next.config.js` reads it to build `images.remotePatterns`, so
+  from it until recently: `next.config.ts` reads it to build `images.remotePatterns`, so
   without it that list is empty and `next/image` rejects every Supabase-hosted cover. Not
   yet load-bearing — every cover in the repo today is `coverType: "video"` (28 of 40 slugs;
   the other 12 have no cover), and video bypasses `next/image` — but it bites the first time

@@ -52,7 +52,7 @@ agent-browser --session covers screenshot <scratch>/stage.png   # Read it: layou
 ```
 
 Coordinates measured on `stage.png` are the coordinates the recording sees — same tab, same
-viewport. `next.config.js` sets `devIndicators: false`, so there is no dev badge to strip.
+viewport. `next.config.ts` sets `devIndicators: false`, so there is no dev badge to strip.
 
 If the component is small in a 1600×900 frame (a pill, a toggle), scale the preview's inner
 block before measuring — `transform: scale(1.8)` on `main`'s first child, origin center —
