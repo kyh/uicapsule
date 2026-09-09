@@ -21,7 +21,7 @@ import {
 import { useMutation } from "@tanstack/react-query";
 import { cn } from "cn";
 import { UploadIcon, XIcon } from "lucide-react";
-import { useForm, useWatch } from "react-hook-form";
+import { useForm } from "react-hook-form";
 import { z } from "zod";
 
 import { orpc } from "@/orpc/react";
@@ -76,7 +76,7 @@ const uploadFile = async (file: File): Promise<string> => {
   return parsed.data.url;
 };
 
-type Filed = { url: string; number?: number };
+type Filed = { url: string };
 
 export const RequestForm = ({ className }: { className?: string }) => {
   const [filed, setFiled] = useState<Filed | null>(null);
@@ -97,10 +97,8 @@ export const RequestForm = ({ className }: { className?: string }) => {
   });
   const {
     register,
-    control,
     formState: { errors, isSubmitting },
   } = form;
-  const name = useWatch({ control, name: "name" });
 
   useEffect(
     () => () => attachments.forEach((attachment) => URL.revokeObjectURL(attachment.previewUrl)),
@@ -165,12 +163,6 @@ export const RequestForm = ({ className }: { className?: string }) => {
     }
   });
 
-  const cardLabel = filed
-    ? filed.number
-      ? `Filed · #${filed.number}`
-      : "Filed"
-    : name.trim() || "Your request";
-
   return (
     <form
       className={cn("grid gap-8 lg:grid-cols-[minmax(0,6fr)_minmax(0,5fr)] lg:gap-12", className)}
@@ -234,10 +226,6 @@ export const RequestForm = ({ className }: { className?: string }) => {
               event.target.value = "";
             }}
           />
-        </div>
-        <div className="flex justify-between font-mono text-xs">
-          <p className={cn("truncate", filed ? "text-primary" : "text-foreground")}>{cardLabel}</p>
-          <p className="text-muted-foreground/50">REQ</p>
         </div>
         {attachments.length > 0 && (
           <ul className="flex flex-wrap gap-2">
