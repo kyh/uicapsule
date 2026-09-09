@@ -34,28 +34,33 @@ import dynamic from "next/dynamic";
 
 import { PersonAvatar } from "./person-avatar";
 
-const CodePreview = dynamic(() => import("./code-preview").then((module) => module.CodePreview));
+const CodePreview = dynamic(async () => {
+  const mod = await import("./code-preview");
+  return mod.CodePreview;
+});
 
 const FLOATING_BUTTON_CLASS = "size-9 rounded-full shadow-sm";
 const SECTION_CLASS = "-mx-3 flex flex-col gap-2.5 border-t px-3 pt-3 pb-1";
 const AVATAR_ROW_CLASS =
   "*:data-[slot=avatar]:ring-background flex -space-x-2 *:data-[slot=avatar]:ring-2 *:data-[slot=avatar]:grayscale";
 
-const sourceFilesSchema = z.array(z.object({ path: z.string(), code: z.string() }));
+const sourceFilesSchema = z.array(z.object({ code: z.string(), path: z.string() }));
 
 const sourceFilesQuery = (slug: string) =>
   queryOptions({
-    queryKey: ["content-source-files", slug],
     queryFn: async (): Promise<SourceFile[]> => {
       const res = await fetch(`/api/content/${slug}`);
-      if (!res.ok) throw new Error(`Failed to load source files for ${slug}`);
+      if (!res.ok) {
+        throw new Error(`Failed to load source files for ${slug}`);
+      }
       return sourceFilesSchema.parse(await res.json());
     },
+    queryKey: ["content-source-files", slug],
   });
 
-type AsideProps = {
+interface AsideProps {
   contentComponent: ContentComponentSummary;
-};
+}
 
 type ResponsiveAsideProps = AsideProps & {
   onPrev?: () => void;
@@ -66,26 +71,62 @@ const COPIED_RESET_DELAY = 2000;
 
 const formatAddedAt = (isoDate: string) =>
   new Date(`${isoDate}T00:00:00Z`).toLocaleDateString("en-US", {
-    year: "numeric",
-    month: "short",
     day: "numeric",
+    month: "short",
     timeZone: "UTC",
+    year: "numeric",
   });
+
+const downloadZip = async (slug: string, sourceFiles: SourceFile[]) => {
+  const { default: JSZip } = await import("jszip");
+  const zip = new JSZip();
+  for (const { path, code } of sourceFiles) {
+    const cleanPath = path.startsWith("/") ? path.slice(1) : path;
+    zip.file(cleanPath, code);
+  }
+
+  const zipBlob = await zip.generateAsync({ type: "blob" });
+
+  const url = URL.createObjectURL(zipBlob);
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = `${slug}.zip`;
+  document.body.append(link);
+  link.click();
+  link.remove();
+  URL.revokeObjectURL(url);
+};
+
+const SourceCodePreview = ({ slug }: { slug: string }) => {
+  const { data: sourceFiles } = useSuspenseQuery(sourceFilesQuery(slug));
+  return <CodePreview key={slug} sourceFiles={sourceFiles} />;
+};
 
 const Aside = ({ contentComponent }: AsideProps) => {
   const queryClient = useQueryClient();
   const [copied, setCopied] = useState(false);
-  const copiedTimerRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
+  const copiedTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
-    if (contentComponent.type !== "local") return;
+    if (contentComponent.type !== "local") {
+      return;
+    }
     void queryClient.prefetchQuery(sourceFilesQuery(contentComponent.slug));
   }, [contentComponent, queryClient]);
 
-  useEffect(() => () => clearTimeout(copiedTimerRef.current), []);
+  useEffect(
+    () => () => {
+      if (copiedTimerRef.current !== null) {
+        clearTimeout(copiedTimerRef.current);
+      }
+    },
+    [],
+  );
 
   const handleInstallClick = async () => {
-    if (contentComponent.type !== "local" || copied) return;
+    if (contentComponent.type !== "local" || copied) {
+      return;
+    }
 
     const command = `npx shadcn@latest add @uicapsule/${contentComponent.slug}`;
     // Always wider than the toast; the fade signals overflow without a scrollbar.
@@ -99,8 +140,8 @@ const Aside = ({ contentComponent }: AsideProps) => {
 
     try {
       await navigator.clipboard.writeText(command);
-    } catch (err) {
-      console.error("Failed to copy command to clipboard:", err);
+    } catch (error) {
+      console.error("Failed to copy command to clipboard:", error);
       toast.error("Failed to copy command to clipboard.", { description: snippet });
       return;
     }
@@ -115,36 +156,21 @@ const Aside = ({ contentComponent }: AsideProps) => {
   };
 
   const handleDownloadClick = async () => {
-    if (contentComponent.type !== "local") return;
+    if (contentComponent.type !== "local") {
+      return;
+    }
 
     const toastId = toast.loading("Download started", {
-      icon: <DownloadIcon className="size-4" />,
       description: `${contentComponent.slug}.zip is being downloaded`,
+      icon: <DownloadIcon className="size-4" />,
     });
     try {
       const sourceFiles = await queryClient.fetchQuery(sourceFilesQuery(contentComponent.slug));
-
-      const { default: JSZip } = await import("jszip");
-      const zip = new JSZip();
-      for (const { path, code } of sourceFiles) {
-        const cleanPath = path.startsWith("/") ? path.slice(1) : path;
-        zip.file(cleanPath, code);
-      }
-
-      const zipBlob = await zip.generateAsync({ type: "blob" });
-
-      const url = URL.createObjectURL(zipBlob);
-      const link = document.createElement("a");
-      link.href = url;
-      link.download = `${contentComponent.slug}.zip`;
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      URL.revokeObjectURL(url);
+      await downloadZip(contentComponent.slug, sourceFiles);
 
       toast.success("Download completed", {
-        icon: <CheckIcon className="size-4" />,
         description: `${contentComponent.slug}.zip has been downloaded`,
+        icon: <CheckIcon className="size-4" />,
         id: toastId,
       });
     } catch (error) {
@@ -168,8 +194,8 @@ const Aside = ({ contentComponent }: AsideProps) => {
             <ButtonGroup className="w-full shadow-xs">
               <DrawerTrigger
                 className={buttonVariants({
-                  variant: "outline",
                   className: "flex-1 pl-12 shadow-none",
+                  variant: "outline",
                 })}
               >
                 View Source
@@ -182,8 +208,9 @@ const Aside = ({ contentComponent }: AsideProps) => {
             <div className="flex justify-center">
               <button
                 type="button"
+                aria-label="Copy the shadcn install command"
                 className="text-muted-foreground grid text-xs"
-                onClick={() => void handleInstallClick()}
+                onClick={handleInstallClick}
               >
                 <AnimatePresence initial={false}>
                   <motion.span
@@ -192,9 +219,9 @@ const Aside = ({ contentComponent }: AsideProps) => {
                       "col-start-1 row-start-1 flex items-center justify-center gap-1 underline decoration-dotted",
                       copied && "text-primary decoration-transparent",
                     )}
-                    initial={{ opacity: 0, filter: "blur(4px)" }}
-                    animate={{ opacity: 1, filter: "blur(0px)" }}
-                    exit={{ opacity: 0, filter: "blur(4px)" }}
+                    initial={{ filter: "blur(4px)", opacity: 0 }}
+                    animate={{ filter: "blur(0px)", opacity: 1 }}
+                    exit={{ filter: "blur(4px)", opacity: 0 }}
                     transition={{ duration: 0.2, ease: "easeOut" }}
                   >
                     {copied ? (
@@ -214,10 +241,10 @@ const Aside = ({ contentComponent }: AsideProps) => {
                             initial={{ pathLength: 0 }}
                             animate={{ pathLength: 1 }}
                             transition={{
-                              type: "spring",
-                              stiffness: 300,
                               damping: 25,
                               delay: 0.1,
+                              stiffness: 300,
+                              type: "spring",
                             }}
                           />
                         </svg>
@@ -248,7 +275,10 @@ const Aside = ({ contentComponent }: AsideProps) => {
       ) : (
         <div className="flex flex-col items-center gap-1.5">
           <Button
-            render={<a href={contentComponent.sourceUrl} target="_blank" rel="noreferrer" />}
+            render={
+              // oxlint-disable-next-line jsx-a11y/anchor-has-content, jsx-a11y/control-has-associated-label -- Base UI render prop; the Button's children become the anchor's content
+              <a href={contentComponent.sourceUrl} target="_blank" rel="noreferrer" />
+            }
             nativeButton={false}
             variant="outline"
             className="w-full shadow-xs"
@@ -319,11 +349,6 @@ const Aside = ({ contentComponent }: AsideProps) => {
       </p>
     </Card>
   );
-};
-
-const SourceCodePreview = ({ slug }: { slug: string }) => {
-  const { data: sourceFiles } = useSuspenseQuery(sourceFilesQuery(slug));
-  return <CodePreview key={slug} sourceFiles={sourceFiles} />;
 };
 
 export const ResponsiveAside = ({ contentComponent, onPrev, onNext }: ResponsiveAsideProps) => {

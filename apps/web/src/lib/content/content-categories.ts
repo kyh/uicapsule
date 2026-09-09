@@ -1,7 +1,7 @@
-export type ContentFilter = {
+export interface ContentFilter {
   name: string;
   slug: string;
-};
+}
 
 // Every component carries exactly one element tag, enforced by the metadata
 // schema so a gallery filter can never yield a stray entry.

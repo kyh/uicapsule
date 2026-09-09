@@ -1,33 +1,44 @@
 import type { Column, FilterModel, FilterBinding } from "../core/types";
 
-export function getColumn(columns: Column[], id: string) {
-  const column = columns.find((column) => column.id === id);
-  if (!column) throw new Error(`Column with id ${id} not found`);
+export const getColumn = (columns: Column[], id: string) => {
+  const column = columns.find((candidate) => candidate.id === id);
+  if (!column) {
+    throw new Error(`Column with id ${id} not found`);
+  }
   return column;
-}
+};
 
-export function createNumberRange(values: number[]): number[] {
+export const createNumberRange = (values: number[]): number[] => {
   const [a = 0, b = 0] = values;
   return a < b ? [a, b] : [b, a];
-}
+};
 
-export function bindFilter(column: Column, filter?: FilterModel): FilterBinding {
+export const bindFilter = (column: Column, filter?: FilterModel): FilterBinding => {
   switch (column.type) {
-    case "text":
-      return { type: "text", column, filter: filter?.type === "text" ? filter : undefined };
-    case "number":
-      return { type: "number", column, filter: filter?.type === "number" ? filter : undefined };
-    case "date":
-      return { type: "date", column, filter: filter?.type === "date" ? filter : undefined };
-    case "boolean":
-      return { type: "boolean", column, filter: filter?.type === "boolean" ? filter : undefined };
-    case "option":
-      return { type: "option", column, filter: filter?.type === "option" ? filter : undefined };
-    case "multiOption":
+    case "text": {
+      return { column, filter: filter?.type === "text" ? filter : undefined, type: "text" };
+    }
+    case "number": {
+      return { column, filter: filter?.type === "number" ? filter : undefined, type: "number" };
+    }
+    case "date": {
+      return { column, filter: filter?.type === "date" ? filter : undefined, type: "date" };
+    }
+    case "boolean": {
+      return { column, filter: filter?.type === "boolean" ? filter : undefined, type: "boolean" };
+    }
+    case "option": {
+      return { column, filter: filter?.type === "option" ? filter : undefined, type: "option" };
+    }
+    case "multiOption": {
       return {
-        type: "multiOption",
         column,
         filter: filter?.type === "multiOption" ? filter : undefined,
+        type: "multiOption",
       };
+    }
+    default: {
+      throw new Error(`Unsupported column type: ${String(column satisfies never)}`);
+    }
   }
-}
+};

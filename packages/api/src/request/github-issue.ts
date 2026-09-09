@@ -6,7 +6,7 @@ import type { ComponentRequest } from "./component-request";
 export const REQUESTS_REPO = "kyh/uicapsule";
 export const REQUEST_LABEL = "request";
 
-const createdIssueSchema = z.object({ number: z.number().int(), html_url: z.url() });
+const createdIssueSchema = z.object({ html_url: z.url(), number: z.number().int() });
 
 export type CreatedIssue = z.infer<typeof createdIssueSchema>;
 
@@ -19,6 +19,16 @@ const quote = (text: string) =>
     .split("\n")
     .map((line) => `> ${line}`)
     .join("\n");
+
+const formatCredit = ({ name, url }: ComponentRequest["credit"]) => {
+  if (!name) {
+    return "_anonymous_";
+  }
+  if (!url) {
+    return neutralizeMentions(name);
+  }
+  return `[${neutralizeMentions(name)}](${neutralizeMentions(url)})`;
+};
 
 export const buildIssueBody = (request: ComponentRequest) => {
   const references =
@@ -33,11 +43,7 @@ export const buildIssueBody = (request: ComponentRequest) => {
           .map((url) => neutralizeMentions(url))
           .join("\n\n")
       : "_none_";
-  const credit = request.credit.name
-    ? request.credit.url
-      ? `[${neutralizeMentions(request.credit.name)}](${neutralizeMentions(request.credit.url)})`
-      : neutralizeMentions(request.credit.name)
-    : "_anonymous_";
+  const credit = formatCredit(request.credit);
 
   return [
     "### What it does",
@@ -75,18 +81,18 @@ export const createComponentRequestIssue = async (
   let response: Response;
   try {
     response = await send(`https://api.github.com/repos/${REQUESTS_REPO}/issues`, {
-      method: "POST",
+      body: JSON.stringify({
+        body: buildIssueBody(request),
+        labels: [REQUEST_LABEL],
+        title: `Request: ${neutralizeMentions(request.name)}`,
+      }),
       headers: {
-        Authorization: `Bearer ${token}`,
         Accept: "application/vnd.github+json",
+        Authorization: `Bearer ${token}`,
         "Content-Type": "application/json",
         "X-GitHub-Api-Version": "2022-11-28",
       },
-      body: JSON.stringify({
-        title: `Request: ${neutralizeMentions(request.name)}`,
-        body: buildIssueBody(request),
-        labels: [REQUEST_LABEL],
-      }),
+      method: "POST",
       signal: AbortSignal.timeout(10_000),
     });
   } catch (error) {

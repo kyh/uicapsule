@@ -1,53 +1,37 @@
 import { Suspense } from "react";
 import Link from "next/link";
-import {
-  contentElements,
-  contentStyles,
-  type ContentFilter,
-} from "@/lib/content/content-categories";
+import { contentElements, contentStyles } from "@/lib/content/content-categories";
+import type { ContentFilter } from "@/lib/content/content-categories";
 import { Button } from "@repo/ui/components/button";
 
-import { getContentList, getFilterCounts, type GalleryFilter } from "@/lib/content-data";
+import { getContentList, getFilterCounts } from "@/lib/content-data";
+import type { GalleryFilter } from "@/lib/content-data";
 import { ContentPreview, ContentPreviewSkeleton } from "./_components/content-preview";
-import { FilterBar, type Facet } from "./_components/filter-bar";
+import { FilterBar } from "./_components/filter-bar";
+import type { Facet } from "./_components/filter-bar";
 
 type SearchParams = Promise<Record<string, string | string[] | undefined>>;
 
-type PageProps = {
+interface PageProps {
   searchParams: SearchParams;
-};
+}
 
 const skeletonIds = Array.from({ length: 14 }, (_, index) => `placeholder-${index}`);
 
-const Page = ({ searchParams }: PageProps) => {
-  const contentContainerClassname =
-    "bg-border grid gap-px md:h-auto md:grid-cols-10 md:grid-rows-2 md:*:col-span-2 md:[&>*:nth-child(10n+1)]:col-span-4 md:[&>*:nth-child(10n+1)]:row-span-2 md:[&>*:nth-child(10n+1)]:h-auto";
+const parseFilter = async (searchParams: SearchParams): Promise<GalleryFilter> => {
+  const params = await searchParams;
+  const slugs = (key: string) =>
+    (params[key]?.toString() ?? "")
+      .split(",")
+      .map((slug) => slug.trim().toLowerCase())
+      .filter(Boolean);
 
-  return (
-    <main>
-      <div className="flex h-14 items-center justify-between border-b bg-(image:--background-stripe) bg-size-[10px_10px] bg-fixed sm:h-16">
-        <Suspense>
-          <Filters searchParams={searchParams} />
-        </Suspense>
-      </div>
-      <Suspense
-        fallback={
-          <div className={contentContainerClassname}>
-            {skeletonIds.map((id) => (
-              <ContentPreviewSkeleton key={id} />
-            ))}
-          </div>
-        }
-      >
-        <div className={contentContainerClassname}>
-          <ContentList searchParams={searchParams} />
-        </div>
-      </Suspense>
-    </main>
-  );
+  return {
+    elements: slugs("element"),
+    styles: slugs("style"),
+    view: params.view?.toString() === "recommended" ? "recommended" : "recent",
+  };
 };
-
-export default Page;
 
 const withCounts = (options: ContentFilter[], counts: Record<string, number>) =>
   options.map((option) => ({ ...option, count: counts[option.slug] ?? 0 }));
@@ -58,27 +42,27 @@ const Filters = async ({ searchParams }: PageProps) => {
 
   const facets: Facet[] = [
     {
+      defaultOption: { name: "Recently added" },
       key: "view",
       label: "Recently added",
       mode: "single",
+      options: [{ name: "Recommended", slug: "recommended" }],
       searchable: false,
       standalone: true,
-      defaultOption: { name: "Recently added" },
-      options: [{ name: "Recommended", slug: "recommended" }],
     },
     {
       key: "element",
       label: "Components",
       mode: "multi",
-      searchable: true,
       options: withCounts(contentElements, counts.elements),
+      searchable: true,
     },
     {
       key: "style",
       label: "Styles",
       mode: "multi",
-      searchable: true,
       options: withCounts(contentStyles, counts.styles),
+      searchable: true,
     },
   ];
 
@@ -120,17 +104,32 @@ const ContentList = async ({ searchParams }: PageProps) => {
   ));
 };
 
-const parseFilter = async (searchParams: SearchParams): Promise<GalleryFilter> => {
-  const params = await searchParams;
-  const slugs = (key: string) =>
-    (params[key]?.toString() ?? "")
-      .split(",")
-      .map((slug) => slug.trim().toLowerCase())
-      .filter(Boolean);
+const Page = ({ searchParams }: PageProps) => {
+  const contentContainerClassname =
+    "bg-border grid gap-px md:h-auto md:grid-cols-10 md:grid-rows-2 md:*:col-span-2 md:[&>*:nth-child(10n+1)]:col-span-4 md:[&>*:nth-child(10n+1)]:row-span-2 md:[&>*:nth-child(10n+1)]:h-auto";
 
-  return {
-    view: params.view?.toString() === "recommended" ? "recommended" : "recent",
-    elements: slugs("element"),
-    styles: slugs("style"),
-  };
+  return (
+    <main>
+      <div className="flex h-14 items-center justify-between border-b bg-(image:--background-stripe) bg-size-[10px_10px] bg-fixed sm:h-16">
+        <Suspense>
+          <Filters searchParams={searchParams} />
+        </Suspense>
+      </div>
+      <Suspense
+        fallback={
+          <div className={contentContainerClassname}>
+            {skeletonIds.map((id) => (
+              <ContentPreviewSkeleton key={id} />
+            ))}
+          </div>
+        }
+      >
+        <div className={contentContainerClassname}>
+          <ContentList searchParams={searchParams} />
+        </div>
+      </Suspense>
+    </main>
+  );
 };
+
+export default Page;

@@ -1,6 +1,7 @@
 "use client";
 
-import { useState, type ComponentProps, type ReactNode } from "react";
+import { useState } from "react";
+import type { ComponentProps, ReactNode } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useTheme } from "next-themes";
@@ -37,10 +38,35 @@ import { authClient } from "@/lib/auth-client";
 
 const menuItemIconClassName = "text-muted-foreground size-4 group-hover:text-foreground transition";
 const themes = [
-  { value: "system", label: "System theme", icon: SunMoonIcon },
-  { value: "light", label: "Light theme", icon: SunIcon },
-  { value: "dark", label: "Dark theme", icon: MoonIcon },
+  { icon: SunMoonIcon, label: "System theme", value: "system" },
+  { icon: SunIcon, label: "Light theme", value: "light" },
+  { icon: MoonIcon, label: "Dark theme", value: "dark" },
 ];
+
+const ProfileLink = ({
+  isDesktop,
+  children,
+  className,
+  ...props
+}: ComponentProps<typeof Link> & {
+  isDesktop: boolean;
+  children: ReactNode;
+}) =>
+  isDesktop ? (
+    <DropdownMenuItem
+      render={<Link {...props} />}
+      className={cn("group w-full justify-start", className)}
+    >
+      {children}
+    </DropdownMenuItem>
+  ) : (
+    <Link
+      {...props}
+      className={cn("group flex w-full items-center gap-2 px-2 py-1.5 text-sm", className)}
+    >
+      {children}
+    </Link>
+  );
 
 export const ProfileButton = () => {
   const isDesktop = useMediaQuery();
@@ -69,6 +95,22 @@ export const ProfileButton = () => {
         {user ? (user.name || user.email).slice(0, 2).toUpperCase() : "UI"}
       </AvatarFallback>
     </Avatar>
+  );
+
+  const signOut = isDesktop ? (
+    <DropdownMenuItem onClick={handleSignOut}>
+      <LogOutIcon aria-hidden="true" className={menuItemIconClassName} />
+      Sign out
+    </DropdownMenuItem>
+  ) : (
+    <button
+      type="button"
+      className="group flex w-full items-center gap-2 px-2 py-1.5 text-sm"
+      onClick={handleSignOut}
+    >
+      <LogOutIcon aria-hidden="true" className={menuItemIconClassName} />
+      Sign out
+    </button>
   );
 
   const menu = (
@@ -146,21 +188,7 @@ export const ProfileButton = () => {
       </div>
       <DropdownMenuSeparator />
       {user ? (
-        isDesktop ? (
-          <DropdownMenuItem onClick={handleSignOut}>
-            <LogOutIcon aria-hidden="true" className={menuItemIconClassName} />
-            Sign out
-          </DropdownMenuItem>
-        ) : (
-          <button
-            type="button"
-            className="group flex w-full items-center gap-2 px-2 py-1.5 text-sm"
-            onClick={handleSignOut}
-          >
-            <LogOutIcon aria-hidden="true" className={menuItemIconClassName} />
-            Sign out
-          </button>
-        )
+        signOut
       ) : (
         <ProfileLink isDesktop={isDesktop} href="/auth/login" onClick={close}>
           <LogInIcon aria-hidden="true" className={menuItemIconClassName} />
@@ -200,28 +228,3 @@ export const ProfileButton = () => {
     </Drawer>
   );
 };
-
-const ProfileLink = ({
-  isDesktop,
-  children,
-  className,
-  ...props
-}: ComponentProps<typeof Link> & {
-  isDesktop: boolean;
-  children: ReactNode;
-}) =>
-  isDesktop ? (
-    <DropdownMenuItem
-      render={<Link {...props} />}
-      className={cn("group w-full justify-start", className)}
-    >
-      {children}
-    </DropdownMenuItem>
-  ) : (
-    <Link
-      {...props}
-      className={cn("group flex w-full items-center gap-2 px-2 py-1.5 text-sm", className)}
-    >
-      {children}
-    </Link>
-  );

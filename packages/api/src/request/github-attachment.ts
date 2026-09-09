@@ -2,7 +2,7 @@ import { z } from "zod";
 
 // GitHub's own issue-attachment store, the same one the web uploader and
 // `gh --attach` use. Requires write access on the repository the asset targets.
-export const REQUESTS_REPO_ID = 329844766;
+export const REQUESTS_REPO_ID = 329_844_766;
 export const ATTACHMENT_URL_PREFIX = "https://github.com/user-attachments/assets/";
 export const ATTACHMENT_MAX_COUNT = 3;
 // Vercel refuses request bodies over 4.5MB before our code runs; stay under it.
@@ -21,9 +21,9 @@ const ATTACHMENT_TYPE_LIST = [
 export type AttachmentType = (typeof ATTACHMENT_TYPE_LIST)[number];
 
 export const ATTACHMENT_TYPES = {
-  "image/png": "image",
-  "image/jpeg": "image",
   "image/gif": "image",
+  "image/jpeg": "image",
+  "image/png": "image",
   "image/webp": "image",
   "video/mp4": "video",
   "video/quicktime": "video",
@@ -32,8 +32,8 @@ export const ATTACHMENT_TYPES = {
 
 export const attachmentMetaSchema = z.object({
   name: z.string().trim().min(1).max(200),
-  type: z.enum(ATTACHMENT_TYPE_LIST),
   size: z.number().int().positive().max(ATTACHMENT_MAX_BYTES),
+  type: z.enum(ATTACHMENT_TYPE_LIST),
 });
 
 export type AttachmentMeta = z.infer<typeof attachmentMetaSchema>;
@@ -41,11 +41,12 @@ export type AttachmentMeta = z.infer<typeof attachmentMetaSchema>;
 const uploadedAssetSchema = z.object({ url: z.string().startsWith(ATTACHMENT_URL_PREFIX) });
 
 export class AttachmentUploadError extends Error {
-  constructor(
-    message: string,
-    readonly status: 503 | 500,
-  ) {
+  readonly status: 503 | 500;
+
+  constructor(message: string, status: 503 | 500) {
     super(message);
+    this.name = "AttachmentUploadError";
+    this.status = status;
   }
 }
 
@@ -57,7 +58,9 @@ export const uploadAttachment = async (
   send: typeof fetch = fetch,
 ): Promise<string> => {
   const token = process.env.GITHUB_ISSUES_TOKEN;
-  if (!token) throw unavailable("Attachments are temporarily unavailable. Add a link instead.");
+  if (!token) {
+    throw unavailable("Attachments are temporarily unavailable. Add a link instead.");
+  }
 
   const url = new URL("https://uploads.github.com/user-attachments/assets");
   url.searchParams.set("name", meta.name);
@@ -67,13 +70,13 @@ export const uploadAttachment = async (
   let response: Response;
   try {
     response = await send(url, {
-      method: "POST",
+      body,
       headers: {
+        Accept: "application/vnd.github+json",
         Authorization: `Bearer ${token}`,
         "Content-Type": "application/octet-stream",
-        Accept: "application/vnd.github+json",
       },
-      body,
+      method: "POST",
       signal: AbortSignal.timeout(30_000),
     });
   } catch (error) {

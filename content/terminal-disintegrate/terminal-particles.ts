@@ -7,32 +7,33 @@ import { OUTER_COLS, OUTER_ROWS } from "./terminal-grid";
 // ---------------------------------------------------------------------------
 
 const lerp = (a: number, b: number, t: number): number => a + (b - a) * t;
-export const clamp01 = (t: number): number => (t < 0 ? 0 : t > 1 ? 1 : t);
+export const clamp01 = (t: number): number => (t < 0 ? 0 : Math.min(1, t));
 
 export const smoothstep = (t: number): number => {
   const x = clamp01(t);
   return x * x * (3 - 2 * x);
 };
 
-const easeInOutCubic = (t: number): number =>
-  t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
+const easeInOutCubic = (t: number): number => (t < 0.5 ? 4 * t * t * t : 1 - (-2 * t + 2) ** 3 / 2);
 
 // Mulberry32 — seeded, so scrubbing forwards/backwards is identical every time.
-function seededRng(seed: number): () => number {
+const seededRng = (seed: number): (() => number) => {
+  /* oxlint-disable no-bitwise, unicorn/prefer-math-trunc -- Mulberry32 is int32 bit math; `| 0` is the wrap Math.trunc would drop */
   let s = seed | 0 || 1;
   return () => {
-    s = (s + 0x6d2b79f5) | 0;
+    s = (s + 0x6d_2b_79_f5) | 0;
     let t = s;
     t = Math.imul(t ^ (t >>> 15), t | 1);
     t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
-    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+    return ((t ^ (t >>> 14)) >>> 0) / 4_294_967_296;
   };
-}
+  /* oxlint-enable no-bitwise, unicorn/prefer-math-trunc */
+};
 
-function curl(seed: number, t: number, axis: number): number {
+const curl = (seed: number, t: number, axis: number): number => {
   const base = seed * 0.0173 + axis * 7.91;
   return Math.sin(base + t * 5.21) * 0.6 + Math.sin(base * 1.6 + t * 11.4) * 0.4;
-}
+};
 
 // Curl is a free-flight wobble, so it has to vanish at both ends of the flight.
 // `curl` itself is ~uniform in [-1,1] at local 0 and 1, but the renderer snaps
@@ -50,16 +51,16 @@ const curlWindow = (local: number): number => Math.sin(Math.PI * local);
 // is what turns a 50x60 character grid into a phone-shaped object.
 const CELL_ASPECT = 0.572;
 
-export type CellMetrics = {
+export interface CellMetrics {
   cellW: number;
   cellH: number;
   canvasW: number;
   canvasH: number;
-};
+}
 
 // Sized against the stage box, not the viewport: the component lives in an
 // arbitrarily-sized frame and must never clip its own bezel.
-export function cellMetrics(stageW: number, stageH: number): CellMetrics {
+export const cellMetrics = (stageW: number, stageH: number): CellMetrics => {
   const fitH = (stageH * 0.9) / OUTER_ROWS;
   const fitW = (stageW * 0.92) / (OUTER_COLS * CELL_ASPECT);
 
@@ -68,18 +69,18 @@ export function cellMetrics(stageW: number, stageH: number): CellMetrics {
   const cellW = Math.round(cellH * CELL_ASPECT * 100) / 100;
 
   return {
-    cellW,
-    cellH,
-    canvasW: cellW * OUTER_COLS,
     canvasH: cellH * OUTER_ROWS,
+    canvasW: cellW * OUTER_COLS,
+    cellH,
+    cellW,
   };
-}
+};
 
 // ---------------------------------------------------------------------------
 // Particles
 // ---------------------------------------------------------------------------
 
-export type Particle = {
+export interface Particle {
   char: string;
   x0: number;
   y0: number;
@@ -90,9 +91,9 @@ export type Particle = {
   begin: number;
   end: number;
   seed: number;
-};
+}
 
-export type BuildOpts = {
+export interface BuildOpts {
   cellW: number;
   cellH: number;
   frameX: number;
@@ -101,12 +102,12 @@ export type BuildOpts = {
   rngSeed: number;
   stageW: number;
   stageH: number;
-};
+}
 
-export type RenderOpts = {
+export interface RenderOpts {
   curlAmp: number;
   scorchAmp: number;
-};
+}
 
 // Deliberately narrowed to glyphs every monospace fallback ships, so a scorched
 // character can never render as a tofu box inside an otherwise perfect grid.
@@ -117,25 +118,29 @@ const NOISE = [".", ":", "·", "*", "+", "◦", "▪", "▫", "°"];
 // the traversal order is part of the deterministic output, not an incidental.
 const LIT_ALPHA_MIN = 0.04;
 
-function forEachLitCell(
+const forEachLitCell = (
   grid: Grid,
   visit: (cell: Cell, r: number, c: number, cols: number) => void,
-) {
-  for (let r = 0; r < grid.length; r++) {
+) => {
+  for (let r = 0; r < grid.length; r += 1) {
     const row = grid[r];
-    if (!row) continue;
+    if (!row) {
+      continue;
+    }
 
-    for (let c = 0; c < row.length; c++) {
+    for (let c = 0; c < row.length; c += 1) {
       const cell = row[c];
-      if (!cell || cell.alpha < LIT_ALPHA_MIN || cell.char === " ") continue;
+      if (!cell || cell.alpha < LIT_ALPHA_MIN || cell.char === " ") {
+        continue;
+      }
       visit(cell, r, c, row.length);
     }
   }
-}
+};
 
 // Outgoing — every lit source cell lifts off toward a shared convergence zone
 // near the centre of the stage. The wind-facing edge crumbles first.
-export function buildOutgoing(grid: Grid, opts: BuildOpts): Particle[] {
+export const buildOutgoing = (grid: Grid, opts: BuildOpts): Particle[] => {
   const { cellW, cellH, frameX, frameY, windDir, rngSeed, stageW, stageH } = opts;
   const rng = seededRng(rngSeed);
 
@@ -159,25 +164,25 @@ export function buildOutgoing(grid: Grid, opts: BuildOpts): Particle[] {
     const duration = 0.28 + rng() * 0.1;
 
     out.push({
-      char: cell.char,
-      x0,
-      y0,
-      x1,
-      y1,
       a0: cell.alpha,
       a1: 0,
       begin,
+      char: cell.char,
       end: Math.min(0.72, begin + duration),
       seed: Math.floor(rng() * 1e7),
+      x0,
+      x1,
+      y0,
+      y1,
     });
   });
 
   return out;
-}
+};
 
 // Incoming — mirror of outgoing. Spawns in the convergence zone on the
 // opposite side of centre so the two clouds pass through each other.
-export function buildIncoming(grid: Grid, opts: BuildOpts): Particle[] {
+export const buildIncoming = (grid: Grid, opts: BuildOpts): Particle[] => {
   const { cellW, cellH, frameX, frameY, windDir, rngSeed, stageW, stageH } = opts;
   const rng = seededRng(rngSeed);
 
@@ -201,25 +206,25 @@ export function buildIncoming(grid: Grid, opts: BuildOpts): Particle[] {
     const duration = 0.28 + rng() * 0.1;
 
     out.push({
-      char: cell.char,
-      x0,
-      y0,
-      x1,
-      y1,
       a0: 0,
       a1: cell.alpha,
       begin,
+      char: cell.char,
       end: Math.min(0.96, begin + duration),
       seed: Math.floor(rng() * 1e7),
+      x0,
+      x1,
+      y0,
+      y1,
     });
   });
 
   return out;
-}
+};
 
 // Entrance — every cell spawns in a wide ring around the destination and
 // drifts inward. Outer cells settle first, the centre resolves last.
-export function buildEntrance(grid: Grid, opts: Omit<BuildOpts, "windDir">): Particle[] {
+export const buildEntrance = (grid: Grid, opts: Omit<BuildOpts, "windDir">): Particle[] => {
   const { cellW, cellH, frameX, frameY, rngSeed, stageW, stageH } = opts;
   const rng = seededRng(rngSeed);
 
@@ -249,54 +254,58 @@ export function buildEntrance(grid: Grid, opts: Omit<BuildOpts, "windDir">): Par
     const duration = 0.34 + rng() * 0.16;
 
     out.push({
-      char: cell.char,
-      x0,
-      y0,
-      x1,
-      y1,
       a0: 0,
       a1: cell.alpha,
       begin: stagger,
+      char: cell.char,
       end: Math.min(0.98, stagger + duration),
       seed: Math.floor(rng() * 1e7),
+      x0,
+      x1,
+      y0,
+      y1,
     });
   });
 
   return out;
-}
+};
 
 // ---------------------------------------------------------------------------
 // Renderers — fillStyle + font are set by the caller before invoking these
 // ---------------------------------------------------------------------------
 
-export function renderGrid(
+export const renderGrid = (
   ctx: CanvasRenderingContext2D,
   grid: Grid,
   frameX: number,
   frameY: number,
   cellW: number,
   cellH: number,
-) {
-  for (let r = 0; r < grid.length; r++) {
+) => {
+  for (let r = 0; r < grid.length; r += 1) {
     const row = grid[r];
-    if (!row) continue;
+    if (!row) {
+      continue;
+    }
 
-    for (let c = 0; c < row.length; c++) {
+    for (let c = 0; c < row.length; c += 1) {
       const cell = row[c];
-      if (!cell || cell.char === " " || cell.alpha <= 0) continue;
+      if (!cell || cell.char === " " || cell.alpha <= 0) {
+        continue;
+      }
       ctx.globalAlpha = cell.alpha;
       ctx.fillText(cell.char, frameX + c * cellW, frameY + r * cellH);
     }
   }
   ctx.globalAlpha = 1;
-}
+};
 
-export function renderParticles(
+export const renderParticles = (
   ctx: CanvasRenderingContext2D,
   particles: Particle[],
   t: number,
   opts: RenderOpts,
-) {
+) => {
   const { curlAmp, scorchAmp } = opts;
 
   for (const p of particles) {
@@ -336,8 +345,11 @@ export function renderParticles(
     // glyph burns into noise, and only inside its own 0.32-0.72 window.
     let ch = p.char;
     if (scorchAmp > 0 && local > 0.32 && local < 0.72) {
-      const pick = (p.seed * 2654435761) >>> 0;
-      if (((pick >>> 8) & 0xff) / 255 < scorchAmp) {
+      /* oxlint-disable no-bitwise -- Knuth multiplicative hash: `>>> 0` is the uint32 wrap, `& 0xff` the byte mask */
+      const pick = (p.seed * 2_654_435_761) >>> 0;
+      const burns = ((pick >>> 8) & 0xff) / 255 < scorchAmp;
+      /* oxlint-enable no-bitwise */
+      if (burns) {
         ch = NOISE[(pick + Math.floor(local * 64)) % NOISE.length] ?? p.char;
       }
     }
@@ -347,4 +359,4 @@ export function renderParticles(
   }
 
   ctx.globalAlpha = 1;
-}
+};

@@ -30,15 +30,40 @@ const SIZE_LOUD = 38;
 /** How often a minus comes up instead of a plus. Enough to keep you honest. */
 const MINUS_ODDS = 0.38;
 
-const POP = { type: "spring", stiffness: 520, damping: 26 } as const;
+const POP = { damping: 26, stiffness: 520, type: "spring" } as const;
 
-type Mole = { id: number; hole: number; kind: "plus" | "minus" };
+interface Mole {
+  id: number;
+  hole: number;
+  kind: "plus" | "minus";
+}
 
 const lerp = (from: number, to: number, t: number) => from + (to - from) * t;
 
-type PlusMinusTrackProps = {
-  volume: MotionValue<number>;
+const keyDelta = (key: string) => {
+  if (key === "ArrowRight") {
+    return STEP;
+  }
+  if (key === "ArrowLeft") {
+    return -STEP;
+  }
+  return 0;
 };
+
+const StaticButton = ({ kind, onClick }: { kind: "plus" | "minus"; onClick: () => void }) => (
+  <button
+    type="button"
+    onClick={onClick}
+    aria-label={kind === "plus" ? "Louder" : "Quieter"}
+    className="flex size-11 items-center justify-center rounded-full border border-white/15 bg-neutral-800 text-neutral-100 outline-none hover:bg-neutral-700 focus-visible:ring-2 focus-visible:ring-white/70"
+  >
+    {kind === "plus" ? <PlusIcon className="size-5" /> : <MinusIcon className="size-5" />}
+  </button>
+);
+
+interface PlusMinusTrackProps {
+  volume: MotionValue<number>;
+}
 
 /**
  * The + and − are still there. They just won't hold still.
@@ -63,14 +88,18 @@ export const PlusMinusTrack = ({ volume }: PlusMinusTrackProps) => {
   const levelRef = useRef(level);
   /** A hit has to be able to summon the next pop, and it lives outside the effect
    * that defines the loop. This is the doorbell. */
-  const popRef = useRef(() => {});
+  const popRef = useRef(() => {
+    /* empty */
+  });
   /** Pops already scored, so an exiting pill can't be scored twice. */
   const whacked = useRef(new Set<number>());
 
   // Reduced motion gets what it should have had all along: two buttons that stay
   // where you left them.
   useEffect(() => {
-    if (reduceMotion) return;
+    if (reduceMotion) {
+      return;
+    }
 
     const pop = () => {
       // Never the same hole twice running — a pill that reappears under a resting
@@ -84,7 +113,7 @@ export const PlusMinusTrack = ({ volume }: PlusMinusTrackProps) => {
 
       const kind = Math.random() < MINUS_ODDS ? "minus" : "plus";
       nextId.current += 1;
-      setMole({ id: nextId.current, hole, kind });
+      setMole({ hole, id: nextId.current, kind });
 
       // Louder means less time to react. The window closes as you climb.
       const loudness = clampVolume(levelRef.current) / VOLUME_MAX;
@@ -113,7 +142,9 @@ export const PlusMinusTrack = ({ volume }: PlusMinusTrackProps) => {
     // A pill is still on screen — and still clickable — for as long as its exit
     // animation runs. Without this, a fast enough hand scores the same pop over
     // and over on its way down the hole.
-    if (whacked.current.has(hit.id)) return;
+    if (whacked.current.has(hit.id)) {
+      return;
+    }
     whacked.current.add(hit.id);
 
     window.clearTimeout(timer.current);
@@ -128,6 +159,7 @@ export const PlusMinusTrack = ({ volume }: PlusMinusTrackProps) => {
       <div className="flex items-center justify-center gap-4">
         <StaticButton kind="minus" onClick={() => apply(-STEP)} />
         <span
+          // oxlint-disable-next-line jsx-a11y/prefer-tag-over-role -- a range input would be the honest slider this piece refuses to be; the keyboard contract is the same
           role="slider"
           tabIndex={0}
           aria-label="Volume"
@@ -135,8 +167,10 @@ export const PlusMinusTrack = ({ volume }: PlusMinusTrackProps) => {
           aria-valuemax={VOLUME_MAX}
           aria-valuenow={level}
           onKeyDown={(event) => {
-            const delta = event.key === "ArrowRight" ? STEP : event.key === "ArrowLeft" ? -STEP : 0;
-            if (delta === 0) return;
+            const delta = keyDelta(event.key);
+            if (delta === 0) {
+              return;
+            }
             event.preventDefault();
             apply(delta);
           }}
@@ -154,6 +188,7 @@ export const PlusMinusTrack = ({ volume }: PlusMinusTrackProps) => {
 
   return (
     <div
+      // oxlint-disable-next-line jsx-a11y/prefer-tag-over-role -- the whack-a-mole field is the slider; a range input can't host the buttons
       role="slider"
       tabIndex={0}
       aria-label="Volume"
@@ -161,13 +196,15 @@ export const PlusMinusTrack = ({ volume }: PlusMinusTrackProps) => {
       aria-valuemax={VOLUME_MAX}
       aria-valuenow={level}
       onKeyDown={(event) => {
-        const delta = event.key === "ArrowRight" ? STEP : event.key === "ArrowLeft" ? -STEP : 0;
-        if (delta === 0) return;
+        const delta = keyDelta(event.key);
+        if (delta === 0) {
+          return;
+        }
         // The keyboard is the cheat code: the buttons stop running from you.
         event.preventDefault();
         apply(delta);
       }}
-      style={{ width: FIELD_WIDTH, height: FIELD_HEIGHT }}
+      style={{ height: FIELD_HEIGHT, width: FIELD_WIDTH }}
       className="relative grid rounded-2xl bg-neutral-950/80 p-2 outline-none focus-visible:ring-2 focus-visible:ring-white/70"
     >
       <div
@@ -192,7 +229,7 @@ export const PlusMinusTrack = ({ volume }: PlusMinusTrackProps) => {
                   animate={{ opacity: 1, scale: 1, y: 0 }}
                   exit={{ opacity: 0, scale: 0.5, y: 8 }}
                   transition={POP}
-                  style={{ width: size, height: size }}
+                  style={{ height: size, width: size }}
                   className={`absolute flex cursor-pointer items-center justify-center rounded-full outline-none focus-visible:ring-2 focus-visible:ring-white/70 ${
                     mole.kind === "plus"
                       ? "bg-emerald-400/90 shadow-[0_0_18px_rgba(52,211,153,0.45)]"
@@ -213,14 +250,3 @@ export const PlusMinusTrack = ({ volume }: PlusMinusTrackProps) => {
     </div>
   );
 };
-
-const StaticButton = ({ kind, onClick }: { kind: "plus" | "minus"; onClick: () => void }) => (
-  <button
-    type="button"
-    onClick={onClick}
-    aria-label={kind === "plus" ? "Louder" : "Quieter"}
-    className="flex size-11 items-center justify-center rounded-full border border-white/15 bg-neutral-800 text-neutral-100 outline-none hover:bg-neutral-700 focus-visible:ring-2 focus-visible:ring-white/70"
-  >
-    {kind === "plus" ? <PlusIcon className="size-5" /> : <MinusIcon className="size-5" />}
-  </button>
-);

@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect, useRef, useState, type DragEvent } from "react";
+import { useEffect, useRef, useState } from "react";
+import type { DragEvent } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Button } from "@repo/ui/components/button";
 import {
@@ -22,18 +23,19 @@ import { useMutation } from "@tanstack/react-query";
 import { cn } from "cn";
 import { UploadIcon, XIcon } from "lucide-react";
 import { useForm } from "react-hook-form";
+import type { FieldErrors, UseFormRegister } from "react-hook-form";
 import { z } from "zod";
 
 import { orpc } from "@/orpc/react";
 
 const splitLines = (value: string) =>
   value
-    .split(/\r?\n/)
+    .split(/\r?\n/u)
     .map((line) => line.trim())
     .filter(Boolean);
 
 // The textarea holds one URL per line; the API wants an array.
-const formSchema = componentRequestSchema.omit({ references: true, attachments: true }).extend({
+const formSchema = componentRequestSchema.omit({ attachments: true, references: true }).extend({
   references: z
     .string()
     .refine((value) => splitLines(value).length <= MAX_REFERENCE_LINKS, {
@@ -44,7 +46,9 @@ const formSchema = componentRequestSchema.omit({ references: true, attachments: 
     }),
 });
 
-type Attachment = {
+type FormValues = z.infer<typeof formSchema>;
+
+interface Attachment {
   id: string;
   name: string;
   kind: "image" | "video";
@@ -52,7 +56,7 @@ type Attachment = {
   status: "uploading" | "done" | "error";
   url?: string;
   error?: string;
-};
+}
 
 const isAttachmentType = (type: string): type is keyof typeof ATTACHMENT_TYPES =>
   type in ATTACHMENT_TYPES;
@@ -61,14 +65,14 @@ const ACCEPT = Object.keys(ATTACHMENT_TYPES).join(",");
 const MAX_MB = Math.round(ATTACHMENT_MAX_BYTES / 1024 / 1024);
 
 const uploadResponseSchema = z.object({
-  url: z.string().optional(),
   message: z.string().optional(),
+  url: z.string().optional(),
 });
 
 const uploadFile = async (file: File): Promise<string> => {
   const body = new FormData();
   body.set("file", file);
-  const res = await fetch("/api/request/attachments", { method: "POST", body });
+  const res = await fetch("/api/request/attachments", { body, method: "POST" });
   const parsed = uploadResponseSchema.safeParse(await res.json().catch(() => ({})));
   if (!res.ok || !parsed.success || !parsed.data.url) {
     throw new Error(parsed.success && parsed.data.message ? parsed.data.message : "Upload failed");
@@ -76,7 +80,126 @@ const uploadFile = async (file: File): Promise<string> => {
   return parsed.data.url;
 };
 
-type Filed = { url: string };
+interface Filed {
+  url: string;
+}
+
+const AttachmentMedia = ({
+  attachment,
+  autoPlay = false,
+}: {
+  attachment: Attachment;
+  autoPlay?: boolean;
+}) => {
+  if (attachment.kind === "video") {
+    return (
+      <video
+        src={attachment.previewUrl}
+        className="size-full object-cover"
+        autoPlay={autoPlay}
+        muted
+        loop={autoPlay}
+        playsInline={autoPlay}
+      />
+    );
+  }
+  // oxlint-disable-next-line next/no-img-element -- object URL preview; nothing for next/image to optimize
+  return <img src={attachment.previewUrl} alt="" className="size-full object-cover" />;
+};
+
+interface RequestFieldsProps {
+  register: UseFormRegister<FormValues>;
+  errors: FieldErrors<FormValues>;
+  isSubmitting: boolean;
+  uploading: boolean;
+}
+
+const RequestFields = ({ register, errors, isSubmitting, uploading }: RequestFieldsProps) => (
+  <FieldGroup className="gap-5">
+    <Field>
+      <FieldLabel htmlFor="request-name">Name</FieldLabel>
+      <Input
+        id="request-name"
+        placeholder="Shutter button"
+        autoComplete="off"
+        aria-invalid={errors.name ? true : undefined}
+        {...register("name")}
+      />
+      <FieldError errors={errors.name ? [errors.name] : undefined} />
+    </Field>
+    <Field>
+      <FieldLabel htmlFor="request-description">What it does</FieldLabel>
+      <Textarea
+        id="request-description"
+        rows={5}
+        placeholder="The motion and the states. What happens on press, on release, at rest?"
+        aria-invalid={errors.description ? true : undefined}
+        {...register("description")}
+      />
+      <FieldDescription className="text-muted-foreground/70 text-xs">
+        The best entries import an interaction from outside the web and read from motion alone. A
+        nicer dropdown won&apos;t make it.
+      </FieldDescription>
+      <FieldError errors={errors.description ? [errors.description] : undefined} />
+    </Field>
+    <Field>
+      <FieldLabel htmlFor="request-references">Where you saw it</FieldLabel>
+      <Textarea
+        id="request-references"
+        rows={2}
+        placeholder={"https://x.com/…/status/…\nhttps://youtu.be/…"}
+        aria-invalid={errors.references ? true : undefined}
+        {...register("references")}
+      />
+      <FieldDescription className="text-muted-foreground/70 text-xs">
+        One link per line. Optional if you attached a recording.
+      </FieldDescription>
+      <FieldError errors={errors.references ? [errors.references] : undefined} />
+    </Field>
+    <div className="grid grid-cols-2 gap-3">
+      <Field>
+        <FieldLabel htmlFor="request-credit-name">Your name</FieldLabel>
+        <Input
+          id="request-credit-name"
+          placeholder="Optional"
+          autoComplete="name"
+          aria-invalid={errors.credit?.name ? true : undefined}
+          {...register("credit.name")}
+        />
+        <FieldError errors={errors.credit?.name ? [errors.credit.name] : undefined} />
+      </Field>
+      <Field>
+        <FieldLabel htmlFor="request-credit-url">Your link</FieldLabel>
+        <Input
+          id="request-credit-url"
+          placeholder="https://github.com/you"
+          autoComplete="url"
+          inputMode="url"
+          aria-invalid={errors.credit?.url ? true : undefined}
+          {...register("credit.url")}
+        />
+        <FieldError errors={errors.credit?.url ? [errors.credit.url] : undefined} />
+      </Field>
+    </div>
+    <Input
+      type="text"
+      tabIndex={-1}
+      autoComplete="off"
+      aria-hidden
+      className="hidden"
+      {...register("website")}
+    />
+    <FieldError errors={errors.root ? [errors.root] : undefined} />
+    <Button
+      type="submit"
+      loading={isSubmitting}
+      disabled={uploading}
+      className="self-start rounded-full"
+    >
+      {uploading ? "Uploading…" : "File request"}
+    </Button>
+  </FieldGroup>
+);
 
 export const RequestForm = ({ className }: { className?: string }) => {
   const [filed, setFiled] = useState<Filed | null>(null);
@@ -86,14 +209,14 @@ export const RequestForm = ({ className }: { className?: string }) => {
   const create = useMutation(orpc.request.create.mutationOptions());
 
   const form = useForm({
-    resolver: zodResolver(formSchema),
     defaultValues: {
-      name: "",
-      description: "",
-      references: "",
       credit: { name: "", url: "" },
+      description: "",
+      name: "",
+      references: "",
       website: "",
     },
+    resolver: zodResolver(formSchema),
   });
   const {
     register,
@@ -101,25 +224,33 @@ export const RequestForm = ({ className }: { className?: string }) => {
   } = form;
 
   useEffect(
-    () => () => attachments.forEach((attachment) => URL.revokeObjectURL(attachment.previewUrl)),
+    () => () => {
+      for (const attachment of attachments) {
+        URL.revokeObjectURL(attachment.previewUrl);
+      }
+    },
     [attachments],
   );
 
   const addFiles = (files: FileList | File[]) => {
     const room = ATTACHMENT_MAX_COUNT - attachments.length;
-    for (const file of Array.from(files).slice(0, Math.max(room, 0))) {
-      if (!isAttachmentType(file.type)) continue;
+    for (const file of [...files].slice(0, Math.max(room, 0))) {
+      if (!isAttachmentType(file.type)) {
+        continue;
+      }
       const id = crypto.randomUUID();
       const next: Attachment = {
+        error: file.size > ATTACHMENT_MAX_BYTES ? `Over ${MAX_MB} MB` : undefined,
         id,
-        name: file.name,
         kind: ATTACHMENT_TYPES[file.type],
+        name: file.name,
         previewUrl: URL.createObjectURL(file),
         status: file.size > ATTACHMENT_MAX_BYTES ? "error" : "uploading",
-        error: file.size > ATTACHMENT_MAX_BYTES ? `Over ${MAX_MB} MB` : undefined,
       };
       setAttachments((current) => [...current, next]);
-      if (next.status === "error") continue;
+      if (next.status === "error") {
+        continue;
+      }
       void (async () => {
         try {
           const url = await uploadFile(file);
@@ -129,7 +260,7 @@ export const RequestForm = ({ className }: { className?: string }) => {
         } catch (error) {
           const message = error instanceof Error ? error.message : "Upload failed";
           setAttachments((current) =>
-            current.map((a) => (a.id === id ? { ...a, status: "error", error: message } : a)),
+            current.map((a) => (a.id === id ? { ...a, error: message, status: "error" } : a)),
           );
         }
       })();
@@ -152,8 +283,8 @@ export const RequestForm = ({ className }: { className?: string }) => {
     try {
       const result = await create.mutateAsync({
         ...values,
-        references: splitLines(values.references),
         attachments: attachments.flatMap((a) => (a.status === "done" && a.url ? [a.url] : [])),
+        references: splitLines(values.references),
       });
       setFiled(result);
     } catch (error) {
@@ -169,21 +300,17 @@ export const RequestForm = ({ className }: { className?: string }) => {
       onSubmit={handleSubmit}
     >
       <div className="flex flex-col gap-3 max-lg:order-first lg:sticky lg:top-24 lg:self-start lg:order-last">
-        <div
-          role="button"
-          tabIndex={filed ? -1 : 0}
+        <button
+          type="button"
+          tabIndex={filed ? -1 : undefined}
           aria-label="Attach a recording or screenshot"
           aria-disabled={Boolean(filed)}
           onClick={() => !filed && fileInputRef.current?.click()}
-          onKeyDown={(event) => {
-            if (event.key === "Enter" || event.key === " ") {
-              event.preventDefault();
-              fileInputRef.current?.click();
-            }
-          }}
           onDragOver={(event) => {
             event.preventDefault();
-            if (!filed) setDragging(true);
+            if (!filed) {
+              setDragging(true);
+            }
           }}
           onDragLeave={() => setDragging(false)}
           onDrop={handleDrop}
@@ -196,37 +323,28 @@ export const RequestForm = ({ className }: { className?: string }) => {
           )}
         >
           {featured ? (
-            featured.kind === "video" ? (
-              <video
-                src={featured.previewUrl}
-                className="size-full object-cover"
-                autoPlay
-                muted
-                loop
-                playsInline
-              />
-            ) : (
-              <img src={featured.previewUrl} alt="" className="size-full object-cover" />
-            )
+            <AttachmentMedia attachment={featured} autoPlay />
           ) : (
             <div className="text-muted-foreground flex flex-col items-center gap-2 px-6 text-center">
               <UploadIcon className="size-4" aria-hidden />
               <span className="text-sm">Drop a recording or screenshot</span>
             </div>
           )}
-          <input
-            ref={fileInputRef}
-            type="file"
-            accept={ACCEPT}
-            multiple
-            className="sr-only"
-            tabIndex={-1}
-            onChange={(event) => {
-              if (event.target.files) addFiles(event.target.files);
-              event.target.value = "";
-            }}
-          />
-        </div>
+        </button>
+        <input
+          ref={fileInputRef}
+          type="file"
+          accept={ACCEPT}
+          multiple
+          className="sr-only"
+          tabIndex={-1}
+          onChange={(event) => {
+            if (event.target.files) {
+              addFiles(event.target.files);
+            }
+            event.target.value = "";
+          }}
+        />
         {attachments.length > 0 && (
           <ul className="flex flex-wrap gap-2">
             {attachments.map((attachment) => (
@@ -238,11 +356,7 @@ export const RequestForm = ({ className }: { className?: string }) => {
                 )}
                 title={attachment.error ?? attachment.name}
               >
-                {attachment.kind === "video" ? (
-                  <video src={attachment.previewUrl} className="size-full object-cover" muted />
-                ) : (
-                  <img src={attachment.previewUrl} alt="" className="size-full object-cover" />
-                )}
+                <AttachmentMedia attachment={attachment} />
                 {attachment.status === "uploading" && (
                   <span className="bg-background/60 absolute inset-0 animate-pulse" />
                 )}
@@ -271,11 +385,14 @@ export const RequestForm = ({ className }: { className?: string }) => {
         <div className="flex flex-col gap-3 self-center">
           <p className="text-lg">Filed. Thank you.</p>
           <p className="text-muted-foreground text-sm leading-relaxed">
-            It's public on GitHub now. If it's accepted it gets a <code>ready</code> label, then it
-            gets built.
+            It&apos;s public on GitHub now. If it&apos;s accepted it gets a <code>ready</code>{" "}
+            label, then it gets built.
           </p>
           <Button
-            render={<a href={filed.url} target="_blank" rel="noreferrer" />}
+            render={
+              // oxlint-disable-next-line jsx-a11y/anchor-has-content, jsx-a11y/control-has-associated-label -- Base UI render prop; the Button's children become the anchor's content
+              <a href={filed.url} target="_blank" rel="noreferrer" />
+            }
             nativeButton={false}
             variant="outline"
             className="self-start rounded-full"
@@ -284,90 +401,12 @@ export const RequestForm = ({ className }: { className?: string }) => {
           </Button>
         </div>
       ) : (
-        <FieldGroup className="gap-5">
-          <Field>
-            <FieldLabel htmlFor="request-name">Name</FieldLabel>
-            <Input
-              id="request-name"
-              placeholder="Shutter button"
-              autoComplete="off"
-              aria-invalid={errors.name ? true : undefined}
-              {...register("name")}
-            />
-            <FieldError errors={errors.name ? [errors.name] : undefined} />
-          </Field>
-          <Field>
-            <FieldLabel htmlFor="request-description">What it does</FieldLabel>
-            <Textarea
-              id="request-description"
-              rows={5}
-              placeholder="The motion and the states. What happens on press, on release, at rest?"
-              aria-invalid={errors.description ? true : undefined}
-              {...register("description")}
-            />
-            <FieldDescription className="text-muted-foreground/70 text-xs">
-              The best entries import an interaction from outside the web and read from motion
-              alone. A nicer dropdown won't make it.
-            </FieldDescription>
-            <FieldError errors={errors.description ? [errors.description] : undefined} />
-          </Field>
-          <Field>
-            <FieldLabel htmlFor="request-references">Where you saw it</FieldLabel>
-            <Textarea
-              id="request-references"
-              rows={2}
-              placeholder={"https://x.com/…/status/…\nhttps://youtu.be/…"}
-              aria-invalid={errors.references ? true : undefined}
-              {...register("references")}
-            />
-            <FieldDescription className="text-muted-foreground/70 text-xs">
-              One link per line. Optional if you attached a recording.
-            </FieldDescription>
-            <FieldError errors={errors.references ? [errors.references] : undefined} />
-          </Field>
-          <div className="grid grid-cols-2 gap-3">
-            <Field>
-              <FieldLabel htmlFor="request-credit-name">Your name</FieldLabel>
-              <Input
-                id="request-credit-name"
-                placeholder="Optional"
-                autoComplete="name"
-                aria-invalid={errors.credit?.name ? true : undefined}
-                {...register("credit.name")}
-              />
-              <FieldError errors={errors.credit?.name ? [errors.credit.name] : undefined} />
-            </Field>
-            <Field>
-              <FieldLabel htmlFor="request-credit-url">Your link</FieldLabel>
-              <Input
-                id="request-credit-url"
-                placeholder="https://github.com/you"
-                autoComplete="url"
-                inputMode="url"
-                aria-invalid={errors.credit?.url ? true : undefined}
-                {...register("credit.url")}
-              />
-              <FieldError errors={errors.credit?.url ? [errors.credit.url] : undefined} />
-            </Field>
-          </div>
-          <Input
-            type="text"
-            tabIndex={-1}
-            autoComplete="off"
-            aria-hidden
-            className="hidden"
-            {...register("website")}
-          />
-          <FieldError errors={errors.root ? [errors.root] : undefined} />
-          <Button
-            type="submit"
-            loading={isSubmitting}
-            disabled={uploading}
-            className="self-start rounded-full"
-          >
-            {uploading ? "Uploading…" : "File request"}
-          </Button>
-        </FieldGroup>
+        <RequestFields
+          register={register}
+          errors={errors}
+          isSubmitting={isSubmitting}
+          uploading={uploading}
+        />
       )}
     </form>
   );

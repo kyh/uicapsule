@@ -8,14 +8,14 @@ import type { EffortTheme, EffortVariant } from "./effort-picker";
 import { EffortPicker } from "./effort-picker";
 
 const VARIANTS: { value: EffortVariant; label: string }[] = [
-  { value: "slingshot", label: "Slingshot" },
-  { value: "karaoke", label: "Karaoke" },
-  { value: "curls", label: "Curls" },
+  { label: "Slingshot", value: "slingshot" },
+  { label: "Karaoke", value: "karaoke" },
+  { label: "Curls", value: "curls" },
 ];
 
 const THEMES: { value: EffortTheme; label: string }[] = [
-  { value: "chatgpt", label: "ChatGPT" },
-  { value: "claude", label: "Claude" },
+  { label: "ChatGPT", value: "chatgpt" },
+  { label: "Claude", value: "claude" },
 ];
 
 const isVariant = (value: string): value is EffortVariant =>
@@ -24,12 +24,12 @@ const isVariant = (value: string): value is EffortVariant =>
 const isTheme = (value: string): value is EffortTheme =>
   THEMES.some((theme) => theme.value === value);
 
-type PickerProps<T extends string> = {
+interface PickerProps<T extends string> {
   label: string;
   value: T;
   options: { value: T; label: string }[];
   onChange: (value: string) => void;
-};
+}
 
 const Picker = <T extends string>({ label, value, options, onChange }: PickerProps<T>) => (
   <span className="relative flex items-center rounded-full border border-white/10 bg-neutral-900">
@@ -61,7 +61,9 @@ const Preview = () => {
           value={variant}
           options={VARIANTS}
           onChange={(value) => {
-            if (isVariant(value)) setVariant(value);
+            if (isVariant(value)) {
+              setVariant(value);
+            }
           }}
         />
         <Picker
@@ -69,7 +71,9 @@ const Preview = () => {
           value={theme}
           options={THEMES}
           onChange={(value) => {
-            if (isTheme(value)) setTheme(value);
+            if (isTheme(value)) {
+              setTheme(value);
+            }
           }}
         />
       </span>

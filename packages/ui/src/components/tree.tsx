@@ -1,6 +1,7 @@
 "use client";
 
-import { createContext, useContext, useMemo, type CSSProperties, type HTMLAttributes } from "react";
+import { createContext, useContext, useMemo } from "react";
+import type { CSSProperties, HTMLAttributes } from "react";
 import { useRender } from "@base-ui/react/use-render";
 import { ChevronDownIcon } from "lucide-react";
 
@@ -10,15 +11,15 @@ import { cn } from "cn";
 // Feature methods only exist when the consumer enables their headless-tree feature.
 type TreeStyle = CSSProperties & Record<`--${string}`, string>;
 
-type TreeContextValue = {
+interface TreeContextValue {
   indent: number;
   currentItem?: Pick<ItemInstance<unknown>, "isFolder" | "getItemName">;
   tree?: Pick<TreeInstance<unknown>, "getDragLineStyle">;
-};
+}
 
 const TreeContext = createContext<TreeContextValue>({
-  indent: 20,
   currentItem: undefined,
+  indent: 20,
   tree: undefined,
 });
 
@@ -27,7 +28,7 @@ type TreeProps<T = unknown> = {
   tree?: TreeInstance<T>;
 } & HTMLAttributes<HTMLDivElement>;
 
-function Tree<T = unknown>({ indent = 20, tree, className, ...props }: TreeProps<T>) {
+const Tree = <T = unknown,>({ indent = 20, tree, className, ...props }: TreeProps<T>) => {
   const context = useMemo(() => ({ indent, tree }), [indent, tree]);
   const containerProps = tree?.getContainerProps?.() ?? {};
   const mergedProps = { ...props, ...containerProps };
@@ -49,16 +50,22 @@ function Tree<T = unknown>({ indent = 20, tree, className, ...props }: TreeProps
       />
     </TreeContext.Provider>
   );
-}
+};
 
 type TreeItemProps<T = unknown> = {
   item: ItemInstance<T>;
   render?: useRender.RenderProp<HTMLAttributes<HTMLElement>>;
 } & HTMLAttributes<HTMLButtonElement>;
 
-function TreeItem<T = unknown>({ item, className, render, children, ...props }: TreeItemProps<T>) {
+const TreeItem = <T = unknown,>({
+  item,
+  className,
+  render,
+  children,
+  ...props
+}: TreeItemProps<T>) => {
   const { indent } = useContext(TreeContext);
-  const context = useMemo(() => ({ indent, currentItem: item }), [indent, item]);
+  const context = useMemo(() => ({ currentItem: item, indent }), [indent, item]);
 
   const itemProps = item.getProps?.() ?? {};
   const mergedProps = { ...props, ...itemProps };
@@ -71,38 +78,39 @@ function TreeItem<T = unknown>({ item, className, render, children, ...props }: 
   };
 
   const element = useRender({
-    render: render ?? <button type="button" />,
     props: {
-      "data-slot": "tree-item",
-      style: mergedStyle,
+      "aria-expanded": item.isExpanded(),
+      children,
       className: cn(
         "z-10 ps-(--tree-padding) outline-hidden select-none not-last:pb-0.5 focus:z-20 data-[disabled]:pointer-events-none data-[disabled]:opacity-50",
         className,
       ),
+      "data-drag-target": item.isDragTarget?.(),
       "data-focus": item.isFocused?.(),
       "data-folder": item.isFolder?.(),
-      "data-selected": item.isSelected?.(),
-      "data-drag-target": item.isDragTarget?.(),
       "data-search-match": item.isMatchingSearch?.(),
-      "aria-expanded": item.isExpanded(),
-      children,
+      "data-selected": item.isSelected?.(),
+      "data-slot": "tree-item",
+      style: mergedStyle,
       ...otherProps,
     },
+    // oxlint-disable-next-line jsx-a11y/control-has-associated-label -- useRender merges `children` into whichever element renders
+    render: render ?? <button type="button" />,
   });
 
   return <TreeContext.Provider value={context}>{element}</TreeContext.Provider>;
-}
+};
 
 type TreeItemLabelProps<T = unknown> = {
   item?: ItemInstance<T>;
 } & HTMLAttributes<HTMLSpanElement>;
 
-function TreeItemLabel<T = unknown>({
+const TreeItemLabel = <T = unknown,>({
   item: propItem,
   children,
   className,
   ...props
-}: TreeItemLabelProps<T>) {
+}: TreeItemLabelProps<T>) => {
   const { currentItem } = useContext(TreeContext);
   const item = propItem ?? currentItem;
 
@@ -126,7 +134,7 @@ function TreeItemLabel<T = unknown>({
       {children ?? item.getItemName?.() ?? null}
     </span>
   );
-}
+};
 
 const TreeDragLine = ({ className, ...props }: HTMLAttributes<HTMLDivElement>) => {
   const { tree } = useContext(TreeContext);

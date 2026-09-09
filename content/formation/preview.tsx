@@ -8,73 +8,71 @@ const rootUrl =
 
 const works: Work[] = [
   {
-    title: "Vantage",
     image: `${rootUrl}/vista.jpg`,
+    title: "Vantage",
   },
   {
-    title: "Mirror",
     image: `${rootUrl}/mirror.jpg`,
+    title: "Mirror",
   },
   {
-    title: "Cosmos",
     image: `${rootUrl}/cosmos.jpg`,
+    title: "Cosmos",
   },
   {
-    title: "Current",
     image: `${rootUrl}/current.jpg`,
+    title: "Current",
   },
   {
-    title: "Threshold",
     image: `${rootUrl}/portal.jpg`,
+    title: "Threshold",
   },
   {
-    title: "Hollow",
     image: `${rootUrl}/valley.jpg`,
+    title: "Hollow",
   },
   {
-    title: "Ascent",
     image: `${rootUrl}/ascent.jpg`,
+    title: "Ascent",
   },
   {
-    title: "Array",
     image: `${rootUrl}/array.jpg`,
+    title: "Array",
   },
   {
-    title: "Meridian",
     image: `${rootUrl}/giza.jpg`,
+    title: "Meridian",
   },
   {
-    title: "Rift",
     image: `${rootUrl}/rift.jpg`,
+    title: "Rift",
   },
   {
-    title: "Overlook",
     image: `${rootUrl}/overlook.jpg`,
+    title: "Overlook",
   },
   {
-    title: "Event Horizon",
     image: `${rootUrl}/horizon.jpg`,
+    title: "Event Horizon",
   },
   {
-    title: "Archipelago",
     image: `${rootUrl}/archipelago.jpg`,
+    title: "Archipelago",
   },
   {
-    title: "Crest",
     image: `${rootUrl}/crest.jpg`,
+    title: "Crest",
   },
   {
-    title: "Ridge",
     image: `${rootUrl}/ridge.jpg`,
+    title: "Ridge",
   },
   {
-    title: "Fathom",
     image: `${rootUrl}/fathom.jpg`,
+    title: "Fathom",
   },
 ];
 
-const Preview = () => {
-  return <Formation works={works} />;
-};
+const Preview = () => <Formation works={works} />;
 
 export default Preview;

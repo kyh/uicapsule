@@ -8,34 +8,40 @@ import type {
 } from "./types";
 import { DEFAULT_OPERATORS, determineNewOperator } from "./operators";
 
-function replaceFilter(filters: FiltersState, next: FilterModel): FiltersState {
-  if (next.values.length === 0)
+const replaceFilter = (filters: FiltersState, next: FilterModel): FiltersState => {
+  if (next.values.length === 0) {
     return filters.filter((filter) => filter.columnId !== next.columnId);
+  }
   return filters.some((filter) => filter.columnId === next.columnId)
     ? filters.map((filter) => (filter.columnId === next.columnId ? next : filter))
     : [...filters, next];
-}
+};
 
-export function setFilterValue(filters: FiltersState, update: FilterValueUpdate): FiltersState {
+const defaultOperator = <Operator>(
+  count: number,
+  operators: { single: Operator; multiple: Operator },
+) => (count > 1 ? operators.multiple : operators.single);
+
+export const setFilterValue = (filters: FiltersState, update: FilterValueUpdate): FiltersState => {
   const current = filters.find((filter) => filter.columnId === update.columnId);
-  const columnId = update.columnId;
+  const { columnId } = update;
   switch (update.type) {
     case "text": {
       const values = [...new Set(update.values)].filter((value) => value.trim().length > 0);
       return replaceFilter(filters, {
         columnId,
+        operator: current?.type === "text" ? current.operator : "contains",
         type: "text",
         values,
-        operator: current?.type === "text" ? current.operator : "contains",
       });
     }
     case "boolean": {
       const values = update.values.slice(0, 1);
       return replaceFilter(filters, {
         columnId,
+        operator: current?.type === "boolean" ? current.operator : "is",
         type: "boolean",
         values,
-        operator: current?.type === "boolean" ? current.operator : "is",
       });
     }
     case "number": {
@@ -46,10 +52,8 @@ export function setFilterValue(filters: FiltersState, update: FilterValueUpdate)
       const operator =
         current?.type === "number"
           ? determineNewOperator("number", current.values, values, current.operator)
-          : values.length > 1
-            ? "is between"
-            : "is";
-      return replaceFilter(filters, { columnId, type: "number", values, operator });
+          : defaultOperator(values.length, DEFAULT_OPERATORS.number);
+      return replaceFilter(filters, { columnId, operator, type: "number", values });
     }
     case "date": {
       const values = update.values
@@ -59,63 +63,70 @@ export function setFilterValue(filters: FiltersState, update: FilterValueUpdate)
       const operator =
         current?.type === "date"
           ? determineNewOperator("date", current.values, values, current.operator)
-          : values.length > 1
-            ? "is between"
-            : "is";
-      return replaceFilter(filters, { columnId, type: "date", values, operator });
+          : defaultOperator(values.length, DEFAULT_OPERATORS.date);
+      return replaceFilter(filters, { columnId, operator, type: "date", values });
     }
     case "option": {
       const values = [...new Set(update.values)];
       const operator =
         current?.type === "option"
           ? determineNewOperator("option", current.values, values, current.operator)
-          : values.length > 1
-            ? DEFAULT_OPERATORS.option.multiple
-            : DEFAULT_OPERATORS.option.single;
-      return replaceFilter(filters, { columnId, type: "option", values, operator });
+          : defaultOperator(values.length, DEFAULT_OPERATORS.option);
+      return replaceFilter(filters, { columnId, operator, type: "option", values });
     }
     case "multiOption": {
       const values = [...new Set(update.values)];
       const operator =
         current?.type === "multiOption"
           ? determineNewOperator("multiOption", current.values, values, current.operator)
-          : values.length > 1
-            ? DEFAULT_OPERATORS.multiOption.multiple
-            : DEFAULT_OPERATORS.multiOption.single;
-      return replaceFilter(filters, { columnId, type: "multiOption", values, operator });
+          : defaultOperator(values.length, DEFAULT_OPERATORS.multiOption);
+      return replaceFilter(filters, { columnId, operator, type: "multiOption", values });
+    }
+    default: {
+      throw new Error(`Unsupported filter type: ${String(update satisfies never)}`);
     }
   }
-}
+};
 
-export function setFilterOperator(
+export const setFilterOperator = (
   filters: FiltersState,
   update: FilterOperatorUpdate,
-): FiltersState {
-  return filters.map((filter) => {
-    if (filter.columnId !== update.columnId) return filter;
+): FiltersState =>
+  filters.map((filter) => {
+    if (filter.columnId !== update.columnId) {
+      return filter;
+    }
     switch (update.type) {
-      case "text":
+      case "text": {
         return filter.type === "text" ? { ...filter, operator: update.operator } : filter;
-      case "number":
+      }
+      case "number": {
         return filter.type === "number" ? { ...filter, operator: update.operator } : filter;
-      case "date":
+      }
+      case "date": {
         return filter.type === "date" ? { ...filter, operator: update.operator } : filter;
-      case "boolean":
+      }
+      case "boolean": {
         return filter.type === "boolean" ? { ...filter, operator: update.operator } : filter;
-      case "option":
+      }
+      case "option": {
         return filter.type === "option" ? { ...filter, operator: update.operator } : filter;
-      case "multiOption":
+      }
+      case "multiOption": {
         return filter.type === "multiOption" ? { ...filter, operator: update.operator } : filter;
+      }
+      default: {
+        return filter;
+      }
     }
   });
-}
 
-export function toggleFilterValues(
+export const toggleFilterValues = (
   filters: FiltersState,
   column: Column<OptionBasedColumnDataType>,
   values: string[],
   add: boolean,
-): FiltersState {
+): FiltersState => {
   const current = filters.find((filter) => filter.columnId === column.id);
   const existing =
     current?.type === "option" || current?.type === "multiOption" ? current.values : [];
@@ -124,4 +135,4 @@ export function toggleFilterValues(
     type: column.type,
     values: add ? [...existing, ...values] : existing.filter((value) => !values.includes(value)),
   });
-}
+};

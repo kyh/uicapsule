@@ -1,27 +1,27 @@
 import assert from "node:assert/strict";
 import { chmod, mkdir, mkdtemp, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
-import { dirname, join } from "node:path";
+import path from "node:path";
 import { after, test } from "node:test";
 
-const fixture = await mkdtemp(join(tmpdir(), "uicapsule-content-"));
-const contentRoot = join(fixture, "content");
-const webRoot = join(fixture, "apps", "web");
+const fixture = await mkdtemp(path.join(tmpdir(), "uicapsule-content-"));
+const contentRoot = path.join(fixture, "content");
+const webRoot = path.join(fixture, "apps", "web");
 const packageSource = JSON.stringify({
-  dependencies: { react: "19", "react-dom": "19", motion: "13" },
-  devDependencies: { "@types/react": "19", "@types/react-dom": "19", typescript: "7", sass: "1" },
-  peerDependencies: { react: "19", motion: "13", "date-fns": "4" },
+  dependencies: { motion: "13", react: "19", "react-dom": "19" },
+  devDependencies: { "@types/react": "19", "@types/react-dom": "19", sass: "1", typescript: "7" },
+  peerDependencies: { "date-fns": "4", motion: "13", react: "19" },
 });
 const sourceFiles = [
-  { path: "/nested/a.ts", code: "export const value = 1;" },
-  { path: "/nested/z.css", code: ".example { color: red; }" },
-  { path: "/package.json", code: packageSource },
-  { path: "/preview.tsx", code: "export default function Preview() { return null; }" },
-  { path: "/README.md", code: "Example component" },
+  { code: "export const value = 1;", path: "/nested/a.ts" },
+  { code: ".example { color: red; }", path: "/nested/z.css" },
+  { code: packageSource, path: "/package.json" },
+  { code: "export default function Preview() { return null; }", path: "/preview.tsx" },
+  { code: "Example component", path: "/README.md" },
 ];
 const tags = ["effects"];
 const fixtureFiles: [string, string][] = [
-  ["local/meta.json", JSON.stringify({ name: "Local", addedAt: "2026-01-01", tags })],
+  ["local/meta.json", JSON.stringify({ addedAt: "2026-01-01", name: "Local", tags })],
   ...sourceFiles.map((file): [string, string] => [`local${file.path}`, file.code]),
   ["local/node_modules/dep/index.ts", "ignored"],
   ["local/dist/index.js", "ignored"],
@@ -33,34 +33,34 @@ const fixtureFiles: [string, string][] = [
   [
     "remote/meta.json",
     JSON.stringify({
-      name: "Remote",
       addedAt: "2026-01-02",
+      iframeUrl: "https://example.com/preview",
+      name: "Remote",
+      sourceUrl: "https://example.com/source",
       tags,
       type: "remote",
-      iframeUrl: "https://example.com/preview",
-      sourceUrl: "https://example.com/source",
     }),
   ],
   ["broken-json/meta.json", "{"],
   ["bad-metadata/meta.json", JSON.stringify({ name: 42 })],
   ["bad-metadata/preview.tsx", "export default function Preview() {}"],
-  ["untagged/meta.json", JSON.stringify({ name: "Untagged", addedAt: "2026-01-01", tags: [] })],
+  ["untagged/meta.json", JSON.stringify({ addedAt: "2026-01-01", name: "Untagged", tags: [] })],
   ["untagged/preview.tsx", "export default function Preview() {}"],
   [
     "missing-preview/meta.json",
-    JSON.stringify({ name: "Missing preview", addedAt: "2026-01-01", tags }),
+    JSON.stringify({ addedAt: "2026-01-01", name: "Missing preview", tags }),
   ],
-  [".hidden/meta.json", JSON.stringify({ name: "Hidden", addedAt: "2026-01-01", tags })],
+  [".hidden/meta.json", JSON.stringify({ addedAt: "2026-01-01", name: "Hidden", tags })],
   [".hidden/preview.tsx", "export default function Preview() {}"],
 ];
 await mkdir(webRoot, { recursive: true });
-for (const [path, source] of fixtureFiles) {
-  const target = join(contentRoot, path);
-  await mkdir(dirname(target), { recursive: true });
+for (const [relativePath, source] of fixtureFiles) {
+  const target = path.join(contentRoot, relativePath);
+  await mkdir(path.dirname(target), { recursive: true });
   await writeFile(target, source);
 }
 
-after(() => rm(fixture, { recursive: true, force: true }));
+after(() => rm(fixture, { force: true, recursive: true }));
 
 const previousCwd = process.cwd();
 process.chdir(webRoot);
@@ -69,21 +69,21 @@ const { readContentIndex, readContentBySlug, readSourceFiles, buildShadcnRegistr
 process.chdir(previousCwd);
 
 test("indexes loadable metadata without reading component source", async () => {
-  const sourcePath = join(contentRoot, "local", "nested", "a.ts");
+  const sourcePath = path.join(contentRoot, "local", "nested", "a.ts");
   // An eager source read fails for normal users; root can bypass filesystem permissions.
   await chmod(sourcePath, 0);
   try {
     assert.deepEqual(await readContentIndex(), [
       {
-        slug: "remote",
-        name: "Remote",
         addedAt: "2026-01-02",
+        iframeUrl: "https://example.com/preview",
+        name: "Remote",
+        slug: "remote",
+        sourceUrl: "https://example.com/source",
         tags,
         type: "remote",
-        iframeUrl: "https://example.com/preview",
-        sourceUrl: "https://example.com/source",
       },
-      { slug: "local", name: "Local", addedAt: "2026-01-01", tags, type: "local" },
+      { addedAt: "2026-01-01", name: "Local", slug: "local", tags, type: "local" },
     ]);
   } finally {
     await chmod(sourcePath, 0o600);
@@ -108,10 +108,10 @@ test("source and registry downloads preserve consumer files and dependencies", a
   assert.deepEqual(
     registry.files.find((file) => file.path === "/nested/a.ts"),
     {
-      type: "registry:file",
-      path: "/nested/a.ts",
       content: "export const value = 1;",
+      path: "/nested/a.ts",
       target: "uicapsule/local/nested/a.ts",
+      type: "registry:file",
     },
   );
 });

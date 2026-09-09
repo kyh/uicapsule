@@ -23,14 +23,14 @@ const LEVELS = ["Light", "Medium", "High", "Extra High", "Ultra"] as const;
 
 /** The knob's paint. Sized independently of `KNOB_SIZE`: the hit box drives the
  * physics, this is only what you see riding in it. */
-type KnobSkin = {
+interface KnobSkin {
   width: number;
   height: number;
   radius: number;
   className: string;
-};
+}
 
-type ThemeTokens = {
+interface ThemeTokens {
   levels: LevelNames;
   /** The cropped app the composer sits in. */
   frame: string;
@@ -54,52 +54,52 @@ type ThemeTokens = {
   /** The top notch gets its own colour: the one rung the app wants you to notice. */
   dotTop: string;
   knob: KnobSkin;
-};
+}
 
 export const EFFORT_THEMES = {
   chatgpt: {
-    levels: LEVELS,
-    frame: "bg-neutral-950 text-neutral-100",
     card: "rounded-[28px] border border-white/10 bg-neutral-800/95 shadow-2xl shadow-black/60",
-    text: "text-neutral-100",
-    muted: "text-neutral-400",
+    dot: "bg-white/45",
+    dotTop: "bg-white/45",
     faint: "text-neutral-500",
-    ring: "focus-visible:ring-violet-500/60",
-    troughHeight: 30,
-    troughRadius: 15,
-    trough: "bg-neutral-700/60",
     // Codex blue for most of the track, shifting into violet over the last
     // stretch — the fill reads as a temperature before any label does. It tops
     // out at violet, not white: white belongs to the knob and the band.
     fill: ["#3b82f6", "#a855f7"],
-    dot: "bg-white/45",
-    dotTop: "bg-white/45",
+    frame: "bg-neutral-950 text-neutral-100",
     // A circle exactly as wide as its hit box: the Codex knob rides proud of the
     // trough and caps the track at either end.
-    knob: { width: 38, height: 38, radius: 19, className: "bg-white shadow-lg" },
+    knob: { className: "bg-white shadow-lg", height: 38, radius: 19, width: 38 },
+    levels: LEVELS,
+    muted: "text-neutral-400",
+    ring: "focus-visible:ring-violet-500/60",
+    text: "text-neutral-100",
+    trough: "bg-neutral-700/60",
+    troughHeight: 30,
+    troughRadius: 15,
   },
   claude: {
-    levels: LEVELS,
-    frame: "bg-[#20201f] text-[#e1e0d9]",
     // No border and no drop shadow: the surface is drawn with a 1px inset stroke
     // (2px here) so the card's edge reads as a lit rim rather than an outline.
     card: "rounded-[24px] bg-[#2c2c2a] shadow-[inset_0_0_0_2px_rgba(255,255,255,0.08)]",
-    text: "text-white/70",
-    muted: "text-white/48",
+    dot: "bg-white/25",
+    dotTop: "bg-[#b796ff]",
     faint: "text-white/25",
+    // Flat, not a temperature: the filled stretch is just the surface lifted.
+    fill: ["rgba(255,255,255,0.16)", "rgba(255,255,255,0.16)"],
+    frame: "bg-[#20201f] text-[#e1e0d9]",
+    // Narrower than its hit box and exactly as tall as the trough: this knob sits
+    // down inside the groove rather than on top of it.
+    knob: { className: "bg-[#a5a49a]", height: 40, radius: 12, width: 32 },
+    levels: LEVELS,
+    muted: "text-white/48",
     ring: "focus-visible:ring-[#b796ff]/60",
-    troughHeight: 40,
-    troughRadius: 12,
+    text: "text-white/70",
     // The trough is *darker* than the card it sits on — a groove cut into the
     // surface, where the Codex one is a rail laid on top of it.
     trough: "bg-[#1a1a19]",
-    // Flat, not a temperature: the filled stretch is just the surface lifted.
-    fill: ["rgba(255,255,255,0.16)", "rgba(255,255,255,0.16)"],
-    dot: "bg-white/25",
-    dotTop: "bg-[#b796ff]",
-    // Narrower than its hit box and exactly as tall as the trough: this knob sits
-    // down inside the groove rather than on top of it.
-    knob: { width: 32, height: 40, radius: 12, className: "bg-[#a5a49a]" },
+    troughHeight: 40,
+    troughRadius: 12,
   },
 } satisfies Record<EffortTheme, ThemeTokens>;
 

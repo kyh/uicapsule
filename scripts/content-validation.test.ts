@@ -1,24 +1,25 @@
 import assert from "node:assert/strict";
 import { mkdir, mkdtemp, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
-import { dirname, join } from "node:path";
-import { test, type TestContext } from "node:test";
+import path from "node:path";
+import { test } from "node:test";
+import type { TestContext } from "node:test";
 
 import { validateContentDirectory } from "./content-validation";
 
-const validMeta = { name: "Example", addedAt: "2026-01-01", tags: ["effects"] };
+const validMeta = { addedAt: "2026-01-01", name: "Example", tags: ["effects"] };
 
 const fixture = async (context: TestContext, files: [string, string][]) => {
-  const directory = await mkdtemp(join(tmpdir(), "uicapsule-registry-"));
-  context.after(() => rm(directory, { recursive: true, force: true }));
+  const directory = await mkdtemp(path.join(tmpdir(), "uicapsule-registry-"));
+  context.after(() => rm(directory, { force: true, recursive: true }));
   const defaults: [string, string][] = [
     ["meta.json", JSON.stringify(validMeta)],
     ["package.json", JSON.stringify({ dependencies: { react: "catalog:" } })],
     ["preview.tsx", "export default function Preview() { return null; }"],
   ];
-  for (const [path, source] of [...defaults, ...files]) {
-    const target = join(directory, path);
-    await mkdir(dirname(target), { recursive: true });
+  for (const [relativePath, source] of [...defaults, ...files]) {
+    const target = path.join(directory, relativePath);
+    await mkdir(path.dirname(target), { recursive: true });
     await writeFile(target, source);
   }
   return directory;
@@ -68,24 +69,27 @@ test("rejects workspace-only dependencies in every dependency group", async (con
     [
       "package.json",
       JSON.stringify({
-        dependencies: { shared: "workspace:*", "@repo/ui": "1.0.0" },
+        dependencies: { "@repo/ui": "1.0.0", shared: "workspace:*" },
         devDependencies: { tools: "file:../../tools" },
         peerDependencies: { shared: "link:../shared" },
       }),
     ],
   ]);
-  assert.equal((await validateContentDirectory(directory)).length, 4);
+  const issues = await validateContentDirectory(directory);
+  assert.equal(issues.length, 4);
 });
 
 test("requires valid metadata and a real preview before publishing local content", async (context) => {
   const directory = await fixture(context, [["meta.json", JSON.stringify({ name: 42 })]]);
-  assert.ok((await validateContentDirectory(directory)).some((issue) => issue.startsWith("name:")));
+  const issues = await validateContentDirectory(directory);
+  assert.ok(issues.some((issue) => issue.startsWith("name:")));
   await writeFile(
-    join(directory, "meta.json"),
+    path.join(directory, "meta.json"),
     JSON.stringify({ ...validMeta, tags: ["effects", "controls"] }),
   );
-  assert.ok((await validateContentDirectory(directory)).some((issue) => issue.startsWith("tags:")));
-  await writeFile(join(directory, "meta.json"), JSON.stringify(validMeta));
-  await rm(join(directory, "preview.tsx"));
+  const tagIssues = await validateContentDirectory(directory);
+  assert.ok(tagIssues.some((issue) => issue.startsWith("tags:")));
+  await writeFile(path.join(directory, "meta.json"), JSON.stringify(validMeta));
+  await rm(path.join(directory, "preview.tsx"));
   assert.deepEqual(await validateContentDirectory(directory), ["missing preview.tsx"]);
 });

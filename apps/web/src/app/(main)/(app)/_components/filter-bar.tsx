@@ -31,9 +31,13 @@ import { useMediaQuery } from "@repo/ui/hooks/use-media-query";
 import { cn } from "cn";
 import { CheckIcon, ChevronDownIcon, SearchIcon } from "lucide-react";
 
-export type FacetOption = { name: string; slug: string; count?: number };
+export interface FacetOption {
+  name: string;
+  slug: string;
+  count?: number;
+}
 
-export type Facet = {
+export interface Facet {
   key: "view" | "element" | "style";
   label: string;
   mode: "single" | "multi";
@@ -43,77 +47,33 @@ export type Facet = {
   // Single-select only: the row that clears the parameter instead of setting it.
   defaultOption?: { name: string };
   options: FacetOption[];
-};
+}
 
-// One shared popup morphs between facets instead of remounting the search input.
-export const FilterBar = ({ facets }: { facets: Facet[] }) => {
-  const isDesktop = useMediaQuery("(min-width: 768px)");
-  const [query, setQuery] = useState("");
-  const [activeFacet, setActiveFacet] = useState<Facet | null>(null);
-  const searchParams = useSearchParams();
-  const selectedFor = (facet: Facet) => parseSelection(searchParams.get(facet.key));
-  const standalone = facets.filter((facet) => facet.standalone);
-  const grouped = facets.filter((facet) => !facet.standalone);
+interface FacetProps {
+  facet: Facet;
+  selected: ReadonlySet<string>;
+}
 
-  if (isDesktop) {
-    const trigger = (facet: Facet) => (
-      // Rendered as a div so the joined group can wrap a subset of the list.
-      <NavigationMenuItem key={facet.key} value={facet.key} render={<div />}>
-        <NavigationMenuTrigger
-          render={
-            <Button
-              variant="outline"
-              size="sm"
-              className={triggerClassname(selectedFor(facet).size > 0)}
-            />
-          }
-        >
-          <FacetLabel facet={facet} selected={selectedFor(facet)} />
-        </NavigationMenuTrigger>
-        <NavigationMenuContent className="w-64">
-          <FacetList facet={facet} selected={selectedFor(facet)} query={query} />
-        </NavigationMenuContent>
-      </NavigationMenuItem>
-    );
+interface FacetRow {
+  slug: string | null;
+  name: string;
+  count?: number;
+}
 
-    return (
-      <NavigationMenu
-        onValueChange={(value) => {
-          setActiveFacet(facets.find((facet) => facet.key === value) ?? null);
-          setQuery("");
-        }}
-      >
-        <NavigationMenuList render={<div />}>
-          {standalone.map(trigger)}
-          <ButtonGroup>{grouped.map(trigger)}</ButtonGroup>
-        </NavigationMenuList>
-        <NavigationMenuPortal>
-          <NavigationMenuPositioner>
-            <NavigationMenuPopup>
-              {activeFacet?.searchable && <FilterInput value={query} onChange={setQuery} />}
-              <NavigationMenuViewport />
-            </NavigationMenuPopup>
-          </NavigationMenuPositioner>
-        </NavigationMenuPortal>
-      </NavigationMenu>
-    );
-  }
-
-  const drawer = (facet: Facet) => (
-    <FacetDrawer key={facet.key} facet={facet} selected={selectedFor(facet)} />
+const parseSelection = (value: string | null): ReadonlySet<string> =>
+  new Set(
+    (value ?? "")
+      .split(",")
+      .map((slug) => slug.trim())
+      .filter(Boolean),
   );
-
-  return (
-    <div className="flex items-center gap-3">
-      {standalone.map(drawer)}
-      <ButtonGroup>{grouped.map(drawer)}</ButtonGroup>
-    </div>
-  );
-};
 
 // A selected trigger draws its whole outline over the group's shared divider.
 const triggerClassname = (highlighted: boolean) =>
   cn("shrink-0 dark:bg-background!", highlighted && "border-foreground relative z-10 border-l!");
+
+const rowClassname =
+  "flex w-full items-center gap-2 rounded-sm px-2 py-1.5 text-sm outline-none select-none hover:bg-muted focus-visible:bg-muted data-[empty]:text-muted-foreground";
 
 const useFilterNavigation = () => {
   const router = useRouter();
@@ -134,43 +94,34 @@ const useFilterNavigation = () => {
   };
 };
 
-type FacetProps = { facet: Facet; selected: ReadonlySet<string> };
-
-const FacetDrawer = ({ facet, selected }: FacetProps) => {
-  const [open, setOpen] = useState(false);
-  const [query, setQuery] = useState("");
-
-  return (
-    <Drawer
-      open={open}
-      onOpenChange={(nextOpen) => {
-        setOpen(nextOpen);
-        setQuery("");
-      }}
-    >
-      <DrawerTrigger asChild>
-        <Button variant="outline" size="sm" className={triggerClassname(selected.size > 0)}>
-          <FacetLabel facet={facet} selected={selected} />
-        </Button>
-      </DrawerTrigger>
-      <DrawerContent>
-        <DrawerHeader className="sr-only">
-          <DrawerTitle>{facet.label}</DrawerTitle>
-          <DrawerDescription>Select filters</DrawerDescription>
-        </DrawerHeader>
-        <div className="mt-4 border-t">
-          {facet.searchable && <FilterInput value={query} onChange={setQuery} />}
-          <FacetList
-            facet={facet}
-            selected={selected}
-            query={query}
-            onNavigate={() => setOpen(false)}
-          />
-        </div>
-      </DrawerContent>
-    </Drawer>
+const FacetCount = ({ count }: { count?: number }) =>
+  count === undefined ? null : (
+    <span className="text-muted-foreground font-mono text-xs tabular-nums">{count}</span>
   );
-};
+
+const FacetRows = ({ empty, children }: { empty: boolean; children: React.ReactNode }) => (
+  <div className="max-h-72 overflow-y-auto p-1">
+    {empty ? <div className="py-6 text-center text-sm">No results found.</div> : children}
+  </div>
+);
+
+interface FilterInputProps {
+  value: string;
+  onChange: (value: string) => void;
+}
+
+const FilterInput = ({ value, onChange }: FilterInputProps) => (
+  <div className="border-border/60 flex h-9 shrink-0 items-center gap-2 border-b px-3">
+    <SearchIcon className="text-muted-foreground size-4 shrink-0" aria-hidden="true" />
+    <input
+      value={value}
+      onChange={(event) => onChange(event.target.value)}
+      placeholder="Filter..."
+      aria-label="Filter options"
+      className="placeholder:text-muted-foreground h-full w-full bg-transparent text-sm outline-none"
+    />
+  </div>
+);
 
 const FacetLabel = ({ facet, selected }: FacetProps) => {
   const names = facet.options
@@ -196,29 +147,6 @@ const FacetLabel = ({ facet, selected }: FacetProps) => {
     </>
   );
 };
-
-type FilterInputProps = {
-  value: string;
-  onChange: (value: string) => void;
-};
-
-const FilterInput = ({ value, onChange }: FilterInputProps) => (
-  <div className="border-border/60 flex h-9 shrink-0 items-center gap-2 border-b px-3">
-    <SearchIcon className="text-muted-foreground size-4 shrink-0" aria-hidden="true" />
-    <input
-      value={value}
-      onChange={(event) => onChange(event.target.value)}
-      placeholder="Filter..."
-      aria-label="Filter options"
-      className="placeholder:text-muted-foreground h-full w-full bg-transparent text-sm outline-none"
-    />
-  </div>
-);
-
-const rowClassname =
-  "flex w-full items-center gap-2 rounded-sm px-2 py-1.5 text-sm outline-none select-none hover:bg-muted focus-visible:bg-muted data-[empty]:text-muted-foreground";
-
-type FacetRow = { slug: string | null; name: string; count?: number };
 
 const FacetList = ({
   facet,
@@ -273,7 +201,7 @@ const FacetList = ({
   }
 
   const rows: FacetRow[] = [
-    ...(facet.defaultOption ? [{ slug: null, name: facet.defaultOption.name }] : []),
+    ...(facet.defaultOption ? [{ name: facet.defaultOption.name, slug: null }] : []),
     ...facet.options,
   ].filter((row) => matches(row.name));
 
@@ -328,21 +256,104 @@ const FacetList = ({
   );
 };
 
-const FacetRows = ({ empty, children }: { empty: boolean; children: React.ReactNode }) => (
-  <div className="max-h-72 overflow-y-auto p-1">
-    {empty ? <div className="py-6 text-center text-sm">No results found.</div> : children}
-  </div>
-);
+const FacetDrawer = ({ facet, selected }: FacetProps) => {
+  const [open, setOpen] = useState(false);
+  const [query, setQuery] = useState("");
 
-const FacetCount = ({ count }: { count?: number }) =>
-  count === undefined ? null : (
-    <span className="text-muted-foreground font-mono text-xs tabular-nums">{count}</span>
+  return (
+    <Drawer
+      open={open}
+      onOpenChange={(nextOpen) => {
+        setOpen(nextOpen);
+        setQuery("");
+      }}
+    >
+      <DrawerTrigger asChild>
+        <Button variant="outline" size="sm" className={triggerClassname(selected.size > 0)}>
+          <FacetLabel facet={facet} selected={selected} />
+        </Button>
+      </DrawerTrigger>
+      <DrawerContent>
+        <DrawerHeader className="sr-only">
+          <DrawerTitle>{facet.label}</DrawerTitle>
+          <DrawerDescription>Select filters</DrawerDescription>
+        </DrawerHeader>
+        <div className="mt-4 border-t">
+          {facet.searchable && <FilterInput value={query} onChange={setQuery} />}
+          <FacetList
+            facet={facet}
+            selected={selected}
+            query={query}
+            onNavigate={() => setOpen(false)}
+          />
+        </div>
+      </DrawerContent>
+    </Drawer>
+  );
+};
+
+// One shared popup morphs between facets instead of remounting the search input.
+export const FilterBar = ({ facets }: { facets: Facet[] }) => {
+  const isDesktop = useMediaQuery("(min-width: 768px)");
+  const [query, setQuery] = useState("");
+  const [activeFacet, setActiveFacet] = useState<Facet | null>(null);
+  const searchParams = useSearchParams();
+  const selectedFor = (facet: Facet) => parseSelection(searchParams.get(facet.key));
+  const standalone = facets.filter((facet) => facet.standalone);
+  const grouped = facets.filter((facet) => !facet.standalone);
+
+  if (isDesktop) {
+    // Items render as divs so the joined group can wrap a subset of the list.
+    const trigger = (facet: Facet) => (
+      <NavigationMenuItem key={facet.key} value={facet.key} render={<div />}>
+        <NavigationMenuTrigger
+          render={
+            <Button
+              variant="outline"
+              size="sm"
+              className={triggerClassname(selectedFor(facet).size > 0)}
+            />
+          }
+        >
+          <FacetLabel facet={facet} selected={selectedFor(facet)} />
+        </NavigationMenuTrigger>
+        <NavigationMenuContent className="w-64">
+          <FacetList facet={facet} selected={selectedFor(facet)} query={query} />
+        </NavigationMenuContent>
+      </NavigationMenuItem>
+    );
+
+    return (
+      <NavigationMenu
+        onValueChange={(value) => {
+          setActiveFacet(facets.find((facet) => facet.key === value) ?? null);
+          setQuery("");
+        }}
+      >
+        <NavigationMenuList render={<div />}>
+          {standalone.map(trigger)}
+          <ButtonGroup>{grouped.map(trigger)}</ButtonGroup>
+        </NavigationMenuList>
+        <NavigationMenuPortal>
+          <NavigationMenuPositioner>
+            <NavigationMenuPopup>
+              {activeFacet?.searchable && <FilterInput value={query} onChange={setQuery} />}
+              <NavigationMenuViewport />
+            </NavigationMenuPopup>
+          </NavigationMenuPositioner>
+        </NavigationMenuPortal>
+      </NavigationMenu>
+    );
+  }
+
+  const drawer = (facet: Facet) => (
+    <FacetDrawer key={facet.key} facet={facet} selected={selectedFor(facet)} />
   );
 
-const parseSelection = (value: string | null): ReadonlySet<string> =>
-  new Set(
-    (value ?? "")
-      .split(",")
-      .map((slug) => slug.trim())
-      .filter(Boolean),
+  return (
+    <div className="flex items-center gap-3">
+      {standalone.map(drawer)}
+      <ButtonGroup>{grouped.map(drawer)}</ButtonGroup>
+    </div>
   );
+};

@@ -14,7 +14,7 @@ import type { ContentComponentSummary, SourceFile } from "./content/content-sche
 export const getAllContent = async (): Promise<ContentComponentSummary[]> => {
   "use cache";
   cacheLife("max");
-  return readContentIndex();
+  return await readContentIndex();
 };
 
 export type GalleryEntry = ContentComponentSummary & { isNew: boolean };
@@ -31,11 +31,11 @@ const markNew = (components: ContentComponentSummary[]): GalleryEntry[] => {
 
 export type GalleryView = "recent" | "recommended";
 
-export type GalleryFilter = {
+export interface GalleryFilter {
   view: GalleryView;
   elements: string[];
   styles: string[];
-};
+}
 
 // Selections within an axis are OR'd; the axes themselves are AND'd.
 const matchesFilter = (component: ContentComponentSummary, filter: GalleryFilter) => {
@@ -60,10 +60,10 @@ export const getContentList = async (filter: GalleryFilter): Promise<GalleryEntr
   return markNew(orderBy(filter.view, visibleContent(await getAllContent(), filter)));
 };
 
-export type FilterCounts = {
+export interface FilterCounts {
   elements: Record<string, number>;
   styles: Record<string, number>;
-};
+}
 
 // Each axis is counted against the other axes' selection so no option leads to an empty gallery.
 export const getFilterCounts = async (filter: GalleryFilter): Promise<FilterCounts> => {
@@ -87,21 +87,21 @@ export const getFilterCounts = async (filter: GalleryFilter): Promise<FilterCoun
   };
 };
 
-export type SearchEntry = {
+export interface SearchEntry {
   slug: string;
   name: string;
   description: string;
   tags: string[];
-};
+}
 
 export const getSearchEntries = async (): Promise<SearchEntry[]> => {
   "use cache";
   cacheLife("max");
   const all = await getAllContent();
   return all.map((component) => ({
-    slug: component.slug,
-    name: component.name,
     description: component.description ?? "",
+    name: component.name,
+    slug: component.slug,
     tags: component.tags,
   }));
 };
@@ -110,37 +110,40 @@ export const getSourceFiles = async (slug: string): Promise<SourceFile[] | null>
   "use cache";
   cacheLife("max");
   const component = await readContentBySlug(slug);
-  if (!component || component.type !== "local") return null;
+  if (!component || component.type !== "local") {
+    return null;
+  }
   return readSourceFiles(component);
 };
 
 export const getShadcnRegistry = async () => {
   "use cache";
   cacheLife("max");
-  const locals = (await readContentIndex()).filter((component) => component.type === "local");
+  const all = await readContentIndex();
+  const locals = all.filter((component) => component.type === "local");
 
   const items = await Promise.all(
     locals.map(async (component) => {
       const item = await buildShadcnRegistryItem(component);
       return {
         $schema: item.$schema,
-        homepage: item.homepage,
-        name: item.name,
-        type: item.type,
         author: item.author,
         dependencies: item.dependencies,
         devDependencies: item.devDependencies,
+        files: item.files.map(({ type, path, target }) => ({ path, target, type })),
+        homepage: item.homepage,
+        name: item.name,
         registryDependencies: item.registryDependencies,
-        files: item.files.map(({ type, path, target }) => ({ type, path, target })),
+        type: item.type,
       };
     }),
   );
 
   return {
     $schema: "https://ui.shadcn.com/schema/registry.json",
-    name: "uicapsule",
     homepage: "https://uicapsule.com",
     items,
+    name: "uicapsule",
   };
 };
 
@@ -148,6 +151,8 @@ export const getShadcnRegistryItem = async (slug: string) => {
   "use cache";
   cacheLife("max");
   const component = await readContentBySlug(slug);
-  if (!component || component.type !== "local") return null;
+  if (!component || component.type !== "local") {
+    return null;
+  }
   return buildShadcnRegistryItem(component);
 };

@@ -16,7 +16,7 @@ import "../filter-bar.css";
 
 type Styled<Props> = Omit<Props, "className"> & { className?: string };
 
-export function Button({
+export const Button = ({
   className,
   variant = "default",
   size = "default",
@@ -24,186 +24,164 @@ export function Button({
 }: Styled<ButtonPrimitive.Props> & {
   variant?: "default" | "outline" | "ghost";
   size?: "default" | "sm" | "icon";
-}) {
-  return (
-    <ButtonPrimitive
-      className={cn(
-        "inline-flex shrink-0 items-center justify-center gap-2 rounded-full text-sm font-medium outline-none transition-colors focus-visible:ring-2 focus-visible:ring-(--ring) disabled:pointer-events-none disabled:opacity-50 [&_svg]:shrink-0",
-        variant === "default" &&
-          "bg-(--primary) text-(--primary-foreground) hover:bg-(--primary)/80",
-        variant === "outline" && "border border-(--border) bg-(--background) hover:bg-(--muted)",
-        variant === "ghost" && "hover:bg-(--muted) aria-expanded:bg-(--muted)",
-        size === "default" && "h-9 px-4 py-2",
-        size === "sm" && "h-8 px-2.5",
-        size === "icon" && "size-9",
-        className,
-      )}
-      {...props}
-    />
-  );
-}
+}) => (
+  <ButtonPrimitive
+    className={cn(
+      "inline-flex shrink-0 items-center justify-center gap-2 rounded-full text-sm font-medium outline-none transition-colors focus-visible:ring-2 focus-visible:ring-(--ring) disabled:pointer-events-none disabled:opacity-50 [&_svg]:shrink-0",
+      variant === "default" && "bg-(--primary) text-(--primary-foreground) hover:bg-(--primary)/80",
+      variant === "outline" && "border border-(--border) bg-(--background) hover:bg-(--muted)",
+      variant === "ghost" && "hover:bg-(--muted) aria-expanded:bg-(--muted)",
+      size === "default" && "h-9 px-4 py-2",
+      size === "sm" && "h-8 px-2.5",
+      size === "icon" && "size-9",
+      className,
+    )}
+    {...props}
+  />
+);
 
-export function Input({ className, ...props }: ComponentProps<"input">) {
-  return (
-    <input
-      className={cn(
-        "h-9 w-full min-w-0 rounded-md border border-(--input) bg-transparent px-2.5 py-1 text-sm outline-none focus-visible:ring-2 focus-visible:ring-(--ring) disabled:opacity-50",
-        className,
-      )}
-      {...props}
-    />
-  );
-}
+export const Input = ({ className, ...props }: ComponentProps<"input">) => (
+  <input
+    className={cn(
+      "h-9 w-full min-w-0 rounded-md border border-(--input) bg-transparent px-2.5 py-1 text-sm outline-none focus-visible:ring-2 focus-visible:ring-(--ring) disabled:opacity-50",
+      className,
+    )}
+    {...props}
+  />
+);
 
 export const Popover = PopoverPrimitive.Root;
 export const PopoverTrigger = PopoverPrimitive.Trigger;
 
-export function PopoverContent({
+export const PopoverContent = ({
   className,
   align = "center",
   side = "bottom",
   ...props
 }: Styled<PopoverPrimitive.Popup.Props> &
-  Pick<PopoverPrimitive.Positioner.Props, "align" | "side">) {
-  return (
-    <PopoverPrimitive.Portal>
-      <PopoverPrimitive.Positioner
-        align={align}
-        side={side}
-        sideOffset={4}
-        className="filter-bar isolate z-50"
-      >
-        <PopoverPrimitive.Popup
-          className={cn(
-            "flex w-72 origin-(--transform-origin) flex-col gap-4 rounded-md bg-(--popover) p-4 text-sm text-(--popover-foreground) shadow-md ring-1 ring-(--foreground)/10 outline-none",
-            className,
-          )}
-          {...props}
-        />
-      </PopoverPrimitive.Positioner>
-    </PopoverPrimitive.Portal>
-  );
-}
-
-export function Checkbox({ className, ...props }: Styled<CheckboxPrimitive.Root.Props>) {
-  return (
-    <CheckboxPrimitive.Root
-      className={cn(
-        "relative size-[15px] shrink-0 rounded-[5px] border-[1.5px] border-(--input) outline-none focus-visible:ring-2 focus-visible:ring-(--ring) data-checked:border-transparent",
-        className,
-      )}
-      {...props}
+  Pick<PopoverPrimitive.Positioner.Props, "align" | "side">) => (
+  <PopoverPrimitive.Portal>
+    <PopoverPrimitive.Positioner
+      align={align}
+      side={side}
+      sideOffset={4}
+      className="filter-bar isolate z-50"
     >
-      <CheckboxPrimitive.Indicator className="absolute inset-0 grid place-content-center text-(--primary)">
-        <CheckIcon className="size-4" strokeWidth={2.5} />
-      </CheckboxPrimitive.Indicator>
-    </CheckboxPrimitive.Root>
-  );
-}
+      <PopoverPrimitive.Popup
+        className={cn(
+          "flex w-72 origin-(--transform-origin) flex-col gap-4 rounded-md bg-(--popover) p-4 text-sm text-(--popover-foreground) shadow-md ring-1 ring-(--foreground)/10 outline-none",
+          className,
+        )}
+        {...props}
+      />
+    </PopoverPrimitive.Positioner>
+  </PopoverPrimitive.Portal>
+);
 
-export function Separator({
+export const Checkbox = ({ className, ...props }: Styled<CheckboxPrimitive.Root.Props>) => (
+  <CheckboxPrimitive.Root
+    className={cn(
+      "relative size-[15px] shrink-0 rounded-[5px] border-[1.5px] border-(--input) outline-none focus-visible:ring-2 focus-visible:ring-(--ring) data-checked:border-transparent",
+      className,
+    )}
+    {...props}
+  >
+    <CheckboxPrimitive.Indicator className="absolute inset-0 grid place-content-center text-(--primary)">
+      <CheckIcon className="size-4" strokeWidth={2.5} />
+    </CheckboxPrimitive.Indicator>
+  </CheckboxPrimitive.Root>
+);
+
+export const Separator = ({
   className,
   orientation = "horizontal",
   ...props
-}: Styled<SeparatorPrimitive.Props>) {
-  return (
-    <SeparatorPrimitive
-      orientation={orientation}
-      className={cn(
-        "shrink-0 bg-(--border) data-[orientation=horizontal]:h-px data-[orientation=horizontal]:w-full data-[orientation=vertical]:w-px data-[orientation=vertical]:self-stretch",
-        className,
-      )}
-      {...props}
-    />
-  );
-}
+}: Styled<SeparatorPrimitive.Props>) => (
+  <SeparatorPrimitive
+    orientation={orientation}
+    className={cn(
+      "shrink-0 bg-(--border) data-[orientation=horizontal]:h-px data-[orientation=horizontal]:w-full data-[orientation=vertical]:w-px data-[orientation=vertical]:self-stretch",
+      className,
+    )}
+    {...props}
+  />
+);
 
-export function Command({ className, ...props }: ComponentProps<typeof CommandPrimitive>) {
-  return (
-    <CommandPrimitive
-      className={cn(
-        "flex size-full flex-col overflow-hidden rounded-xl bg-(--popover) p-1 text-(--popover-foreground)",
-        className,
-      )}
-      {...props}
-    />
-  );
-}
+export const Command = ({ className, ...props }: ComponentProps<typeof CommandPrimitive>) => (
+  <CommandPrimitive
+    className={cn(
+      "flex size-full flex-col overflow-hidden rounded-xl bg-(--popover) p-1 text-(--popover-foreground)",
+      className,
+    )}
+    {...props}
+  />
+);
 
-export function CommandInput({
+export const CommandInput = ({
   className,
   ...props
-}: ComponentProps<typeof CommandPrimitive.Input>) {
-  return (
-    <div className="relative m-1 flex h-8 items-center gap-2 rounded-lg border border-(--input)/30 bg-(--input)/30 px-2">
-      <SearchIcon className="size-4 shrink-0 opacity-50" />
-      <CommandPrimitive.Input
-        aria-label="Search filters"
-        className={cn("w-full bg-transparent text-sm outline-none disabled:opacity-50", className)}
-        {...props}
-      />
-    </div>
-  );
-}
-
-export function CommandList({ className, ...props }: ComponentProps<typeof CommandPrimitive.List>) {
-  return (
-    <CommandPrimitive.List
-      className={cn(
-        "max-h-72 scroll-py-1 overflow-x-hidden overflow-y-auto outline-none",
-        className,
-      )}
+}: ComponentProps<typeof CommandPrimitive.Input>) => (
+  <div className="relative m-1 flex h-8 items-center gap-2 rounded-lg border border-(--input)/30 bg-(--input)/30 px-2">
+    <SearchIcon className="size-4 shrink-0 opacity-50" />
+    <CommandPrimitive.Input
+      aria-label="Search filters"
+      className={cn("w-full bg-transparent text-sm outline-none disabled:opacity-50", className)}
       {...props}
     />
-  );
-}
+  </div>
+);
 
-export function CommandEmpty({
+export const CommandList = ({
   className,
   ...props
-}: ComponentProps<typeof CommandPrimitive.Empty>) {
-  return (
-    <CommandPrimitive.Empty className={cn("py-6 text-center text-sm", className)} {...props} />
-  );
-}
+}: ComponentProps<typeof CommandPrimitive.List>) => (
+  <CommandPrimitive.List
+    className={cn("max-h-72 scroll-py-1 overflow-x-hidden overflow-y-auto outline-none", className)}
+    {...props}
+  />
+);
 
-export function CommandGroup({
+export const CommandEmpty = ({
   className,
   ...props
-}: ComponentProps<typeof CommandPrimitive.Group>) {
-  return (
-    <CommandPrimitive.Group
-      className={cn(
-        "overflow-hidden p-1 text-(--foreground) **:[[cmdk-group-heading]]:px-2 **:[[cmdk-group-heading]]:py-1.5 **:[[cmdk-group-heading]]:text-xs **:[[cmdk-group-heading]]:text-(--muted-foreground)",
-        className,
-      )}
-      {...props}
-    />
-  );
-}
+}: ComponentProps<typeof CommandPrimitive.Empty>) => (
+  <CommandPrimitive.Empty className={cn("py-6 text-center text-sm", className)} {...props} />
+);
 
-export function CommandItem({ className, ...props }: ComponentProps<typeof CommandPrimitive.Item>) {
-  return (
-    <CommandPrimitive.Item
-      className={cn(
-        "group/command-item relative flex cursor-default items-center gap-2 rounded-sm px-2 py-1.5 text-sm outline-none select-none data-[disabled=true]:pointer-events-none data-[disabled=true]:opacity-50 data-[selected=true]:bg-(--muted) [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4",
-        className,
-      )}
-      {...props}
-    />
-  );
-}
-
-export function CommandSeparator({
+export const CommandGroup = ({
   className,
   ...props
-}: ComponentProps<typeof CommandPrimitive.Separator>) {
-  return (
-    <CommandPrimitive.Separator className={cn("-mx-1 h-px bg-(--border)", className)} {...props} />
-  );
-}
+}: ComponentProps<typeof CommandPrimitive.Group>) => (
+  <CommandPrimitive.Group
+    className={cn(
+      "overflow-hidden p-1 text-(--foreground) **:[[cmdk-group-heading]]:px-2 **:[[cmdk-group-heading]]:py-1.5 **:[[cmdk-group-heading]]:text-xs **:[[cmdk-group-heading]]:text-(--muted-foreground)",
+      className,
+    )}
+    {...props}
+  />
+);
 
-export function Slider({ className, value, ...props }: Styled<SliderPrimitive.Root.Props>) {
+export const CommandItem = ({
+  className,
+  ...props
+}: ComponentProps<typeof CommandPrimitive.Item>) => (
+  <CommandPrimitive.Item
+    className={cn(
+      "group/command-item relative flex cursor-default items-center gap-2 rounded-sm px-2 py-1.5 text-sm outline-none select-none data-[disabled=true]:pointer-events-none data-[disabled=true]:opacity-50 data-[selected=true]:bg-(--muted) [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4",
+      className,
+    )}
+    {...props}
+  />
+);
+
+export const CommandSeparator = ({
+  className,
+  ...props
+}: ComponentProps<typeof CommandPrimitive.Separator>) => (
+  <CommandPrimitive.Separator className={cn("-mx-1 h-px bg-(--border)", className)} {...props} />
+);
+
+export const Slider = ({ className, value, ...props }: Styled<SliderPrimitive.Root.Props>) => {
   const count = Array.isArray(value) ? value.length : 1;
   return (
     <SliderPrimitive.Root
@@ -225,37 +203,36 @@ export function Slider({ className, value, ...props }: Styled<SliderPrimitive.Ro
       </SliderPrimitive.Control>
     </SliderPrimitive.Root>
   );
-}
+};
 
-export function Tabs({ className, ...props }: Styled<TabsPrimitive.Root.Props>) {
-  return <TabsPrimitive.Root className={cn("flex flex-col gap-2", className)} {...props} />;
-}
-export function TabsList({ className, ...props }: Styled<TabsPrimitive.List.Props>) {
-  return (
-    <TabsPrimitive.List
-      className={cn(
-        "inline-flex h-9 w-fit items-center justify-center rounded-lg bg-(--muted) p-[3px] text-(--muted-foreground)",
-        className,
-      )}
-      {...props}
-    />
-  );
-}
-export function TabsTrigger({ className, ...props }: Styled<TabsPrimitive.Tab.Props>) {
-  return (
-    <TabsPrimitive.Tab
-      className={cn(
-        "inline-flex h-full flex-1 items-center justify-center rounded-md px-2 py-1 text-sm outline-none focus-visible:ring-2 focus-visible:ring-(--ring) data-active:bg-(--background) data-active:text-(--foreground)",
-        className,
-      )}
-      {...props}
-    />
-  );
-}
-export function TabsContent({ className, ...props }: Styled<TabsPrimitive.Panel.Props>) {
-  return <TabsPrimitive.Panel className={cn("flex-1 outline-none", className)} {...props} />;
-}
+export const Tabs = ({ className, ...props }: Styled<TabsPrimitive.Root.Props>) => (
+  <TabsPrimitive.Root className={cn("flex flex-col gap-2", className)} {...props} />
+);
 
-export function Calendar(props: ComponentProps<typeof DayPicker>) {
-  return <DayPicker showOutsideDays className="filter-bar-calendar p-3" {...props} />;
-}
+export const TabsList = ({ className, ...props }: Styled<TabsPrimitive.List.Props>) => (
+  <TabsPrimitive.List
+    className={cn(
+      "inline-flex h-9 w-fit items-center justify-center rounded-lg bg-(--muted) p-[3px] text-(--muted-foreground)",
+      className,
+    )}
+    {...props}
+  />
+);
+
+export const TabsTrigger = ({ className, ...props }: Styled<TabsPrimitive.Tab.Props>) => (
+  <TabsPrimitive.Tab
+    className={cn(
+      "inline-flex h-full flex-1 items-center justify-center rounded-md px-2 py-1 text-sm outline-none focus-visible:ring-2 focus-visible:ring-(--ring) data-active:bg-(--background) data-active:text-(--foreground)",
+      className,
+    )}
+    {...props}
+  />
+);
+
+export const TabsContent = ({ className, ...props }: Styled<TabsPrimitive.Panel.Props>) => (
+  <TabsPrimitive.Panel className={cn("flex-1 outline-none", className)} {...props} />
+);
+
+export const Calendar = (props: ComponentProps<typeof DayPicker>) => (
+  <DayPicker showOutsideDays className="filter-bar-calendar p-3" {...props} />
+);

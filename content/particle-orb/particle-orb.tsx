@@ -3,154 +3,6 @@
 import { useEffect, useRef } from "react";
 import * as THREE from "three";
 
-export const ParticleOrb = () => {
-  const rootRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    const container = rootRef.current;
-    if (!container) return;
-
-    const scene = new THREE.Scene();
-
-    const getSize = () => ({
-      width: container.clientWidth,
-      height: container.clientHeight,
-    });
-
-    const { width: initialWidth, height: initialHeight } = getSize();
-
-    const camera = new THREE.PerspectiveCamera(75, initialWidth / initialHeight, 0.1, 1000);
-    camera.position.z = 3;
-
-    const renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true });
-    renderer.setPixelRatio(window.devicePixelRatio);
-    renderer.setSize(initialWidth, initialHeight);
-    container.appendChild(renderer.domElement);
-
-    const radius = 1.5;
-    const detail = 40;
-    const particleSizeMin = 0.01;
-    const particleSizeMax = 0.08;
-
-    const geometry = new THREE.IcosahedronGeometry(1, detail);
-    const texture = createDotTexture(32, "#FFFFFF");
-    const material = new THREE.PointsMaterial({
-      map: texture,
-      blending: THREE.AdditiveBlending,
-      color: 0x101a88,
-      depthTest: false,
-    });
-
-    const setShaderTime = setupPointsShader(material, {
-      radius,
-      particleSizeMin,
-      particleSizeMax,
-    });
-
-    const points = new THREE.Points(geometry, material);
-    scene.add(points);
-
-    let animationFrameId = 0;
-    const animate = (timeMs: number) => {
-      const time = timeMs * 0.001;
-      points.rotation.set(0, time * 0.2, 0);
-      setShaderTime(time);
-      renderer.render(scene, camera);
-      animationFrameId = requestAnimationFrame(animate);
-    };
-    animationFrameId = requestAnimationFrame(animate);
-
-    const resizeObserver = new ResizeObserver(() => {
-      const { width, height } = getSize();
-      camera.aspect = width / height;
-      camera.updateProjectionMatrix();
-      renderer.setSize(width, height);
-    });
-    resizeObserver.observe(container);
-
-    return () => {
-      cancelAnimationFrame(animationFrameId);
-      resizeObserver.disconnect();
-      scene.remove(points);
-      geometry.dispose();
-      material.dispose();
-      texture.dispose();
-      renderer.dispose();
-      if (renderer.domElement.parentElement === container) {
-        container.removeChild(renderer.domElement);
-      }
-    };
-  }, []);
-
-  return (
-    <div
-      ref={rootRef}
-      className="h-full w-full bg-[radial-gradient(circle_farthest-corner,_#060a33,_#000000)]"
-    />
-  );
-};
-
-function createDotTexture(size = 32, color = "#FFFFFF"): THREE.CanvasTexture {
-  const radius = size * 0.5;
-  const canvas = document.createElement("canvas");
-  canvas.width = canvas.height = size;
-  const ctx = canvas.getContext("2d");
-  if (!ctx) throw new Error("2D canvas context not available");
-
-  const circle = new Path2D();
-  circle.arc(radius, radius, radius, 0, 2 * Math.PI);
-  ctx.fillStyle = color;
-  // eslint-disable-next-line unicorn/no-array-fill-with-reference-type -- Canvas fills a path, not an array.
-  ctx.fill(circle);
-
-  return new THREE.CanvasTexture(canvas);
-}
-
-/**
- * Injects the noise-displacement vertex shader into a PointsMaterial.
- * Returns a setter for the `time` uniform — the compiled shader is only available
- * once WebGL first compiles the program, so the setter is a no-op until then.
- */
-function setupPointsShader(
-  material: THREE.PointsMaterial,
-  opts: { radius: number; particleSizeMin: number; particleSizeMax: number },
-): (time: number) => void {
-  const { radius, particleSizeMin, particleSizeMax } = opts;
-  let compiled: THREE.WebGLProgramParametersWithUniforms | null = null;
-
-  material.onBeforeCompile = (shader: THREE.WebGLProgramParametersWithUniforms) => {
-    shader.uniforms.time = { value: 0 };
-    shader.uniforms.radius = { value: radius };
-    shader.uniforms.particleSizeMin = { value: particleSizeMin };
-    shader.uniforms.particleSizeMax = { value: particleSizeMax };
-    shader.vertexShader =
-      webGlNoise +
-      "\nuniform float time;\nuniform float radius;\nuniform float particleSizeMin;\nuniform float particleSizeMax;\n" +
-      shader.vertexShader;
-    shader.vertexShader = shader.vertexShader.replace(
-      "#include <begin_vertex>",
-      `
-          vec3 p = position;
-          float n = snoise( vec3( p.x*.6 + time*0.2, p.y*0.4 + time*0.3, p.z*.2 + time*0.2) );
-          p += n *0.4;
-
-          float l = radius / length(p);
-          p *= l;
-          float s = mix(particleSizeMin, particleSizeMax, n);
-          vec3 transformed = vec3( p.x, p.y, p.z );
-        `,
-    );
-    shader.vertexShader = shader.vertexShader.replace("gl_PointSize = size;", "gl_PointSize = s;");
-
-    compiled = shader;
-  };
-
-  return (time: number) => {
-    const timeUniform = compiled?.uniforms.time;
-    if (timeUniform) timeUniform.value = time;
-  };
-}
-
 const webGlNoise = `
 vec3 mod289(vec3 x) {
   return x - floor(x * (1.0 / 289.0)) * 289.0;
@@ -244,3 +96,159 @@ vec4 taylorInvSqrt(vec4 r)
                                 dot(p2,x2), dot(p3,x3) ) );
 }
 `;
+
+const createDotTexture = (size = 32, color = "#FFFFFF"): THREE.CanvasTexture => {
+  const radius = size * 0.5;
+  const canvas = document.createElement("canvas");
+  canvas.width = size;
+  canvas.height = size;
+  const ctx = canvas.getContext("2d");
+  if (!ctx) {
+    throw new Error("2D canvas context not available");
+  }
+
+  const circle = new Path2D();
+  circle.arc(radius, radius, radius, 0, 2 * Math.PI);
+  ctx.fillStyle = color;
+  // eslint-disable-next-line unicorn/no-array-fill-with-reference-type -- Canvas fills a path, not an array.
+  ctx.fill(circle);
+
+  return new THREE.CanvasTexture(canvas);
+};
+
+/**
+ * Injects the noise-displacement vertex shader into a PointsMaterial.
+ * Returns a setter for the `time` uniform — the compiled shader is only available
+ * once WebGL first compiles the program, so the setter is a no-op until then.
+ */
+const setupPointsShader = (
+  material: THREE.PointsMaterial,
+  opts: { radius: number; particleSizeMin: number; particleSizeMax: number },
+): ((time: number) => void) => {
+  const { radius, particleSizeMin, particleSizeMax } = opts;
+  let compiled: THREE.WebGLProgramParametersWithUniforms | null = null;
+
+  material.onBeforeCompile = (shader: THREE.WebGLProgramParametersWithUniforms) => {
+    shader.uniforms.time = { value: 0 };
+    shader.uniforms.radius = { value: radius };
+    shader.uniforms.particleSizeMin = { value: particleSizeMin };
+    shader.uniforms.particleSizeMax = { value: particleSizeMax };
+    shader.vertexShader = `${
+      webGlNoise
+    }\nuniform float time;\nuniform float radius;\nuniform float particleSizeMin;\nuniform float particleSizeMax;\n${
+      shader.vertexShader
+    }`;
+    shader.vertexShader = shader.vertexShader.replace(
+      "#include <begin_vertex>",
+      `
+          vec3 p = position;
+          float n = snoise( vec3( p.x*.6 + time*0.2, p.y*0.4 + time*0.3, p.z*.2 + time*0.2) );
+          p += n *0.4;
+
+          float l = radius / length(p);
+          p *= l;
+          float s = mix(particleSizeMin, particleSizeMax, n);
+          vec3 transformed = vec3( p.x, p.y, p.z );
+        `,
+    );
+    shader.vertexShader = shader.vertexShader.replace("gl_PointSize = size;", "gl_PointSize = s;");
+
+    compiled = shader;
+  };
+
+  return (time: number) => {
+    const timeUniform = compiled?.uniforms.time;
+    if (timeUniform) {
+      timeUniform.value = time;
+    }
+  };
+};
+
+export const ParticleOrb = () => {
+  const rootRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const container = rootRef.current;
+    if (!container) {
+      return;
+    }
+
+    const scene = new THREE.Scene();
+
+    const getSize = () => ({
+      height: container.clientHeight,
+      width: container.clientWidth,
+    });
+
+    const { width: initialWidth, height: initialHeight } = getSize();
+
+    const camera = new THREE.PerspectiveCamera(75, initialWidth / initialHeight, 0.1, 1000);
+    camera.position.z = 3;
+
+    const renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true });
+    renderer.setPixelRatio(window.devicePixelRatio);
+    renderer.setSize(initialWidth, initialHeight);
+    container.append(renderer.domElement);
+
+    const radius = 1.5;
+    const detail = 40;
+    const particleSizeMin = 0.01;
+    const particleSizeMax = 0.08;
+
+    const geometry = new THREE.IcosahedronGeometry(1, detail);
+    const texture = createDotTexture(32, "#FFFFFF");
+    const material = new THREE.PointsMaterial({
+      blending: THREE.AdditiveBlending,
+      color: 0x10_1a_88,
+      depthTest: false,
+      map: texture,
+    });
+
+    const setShaderTime = setupPointsShader(material, {
+      particleSizeMax,
+      particleSizeMin,
+      radius,
+    });
+
+    const points = new THREE.Points(geometry, material);
+    scene.add(points);
+
+    let animationFrameId = 0;
+    const animate = (timeMs: number) => {
+      const time = timeMs * 0.001;
+      points.rotation.set(0, time * 0.2, 0);
+      setShaderTime(time);
+      renderer.render(scene, camera);
+      animationFrameId = requestAnimationFrame(animate);
+    };
+    animationFrameId = requestAnimationFrame(animate);
+
+    const resizeObserver = new ResizeObserver(() => {
+      const { width, height } = getSize();
+      camera.aspect = width / height;
+      camera.updateProjectionMatrix();
+      renderer.setSize(width, height);
+    });
+    resizeObserver.observe(container);
+
+    return () => {
+      cancelAnimationFrame(animationFrameId);
+      resizeObserver.disconnect();
+      scene.remove(points);
+      geometry.dispose();
+      material.dispose();
+      texture.dispose();
+      renderer.dispose();
+      if (renderer.domElement.parentElement === container) {
+        renderer.domElement.remove();
+      }
+    };
+  }, []);
+
+  return (
+    <div
+      ref={rootRef}
+      className="h-full w-full bg-[radial-gradient(circle_farthest-corner,_#060a33,_#000000)]"
+    />
+  );
+};

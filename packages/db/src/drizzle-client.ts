@@ -4,12 +4,12 @@ import { drizzle } from "drizzle-orm/libsql/web";
 import * as schema from "./drizzle-schema-auth";
 
 const client = createClient({
-  url: process.env.TURSO_DATABASE_URL ?? "",
   authToken: process.env.TURSO_AUTH_TOKEN,
+  url: process.env.TURSO_DATABASE_URL ?? "",
 });
 
 export const db = drizzle({
+  casing: "snake_case",
   client,
   schema,
-  casing: "snake_case",
 });

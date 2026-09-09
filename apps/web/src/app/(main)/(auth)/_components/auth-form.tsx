@@ -1,6 +1,7 @@
 "use client";
 
-import { useState, type HTMLAttributes } from "react";
+import { useState } from "react";
+import type { HTMLAttributes } from "react";
 import { useRouter } from "next/navigation";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Button } from "@repo/ui/components/button";
@@ -17,7 +18,7 @@ const emailSchema = z.object({ email: z.email("Invalid email address") });
 const loginSchema = emailSchema.extend({ password: z.string().min(1, "Password is required") });
 const registerSchema = emailSchema.extend({ password: z.string().min(8).max(128) });
 const passwordSchema = z
-  .object({ password: z.string().min(8).max(128), confirmPassword: z.string() })
+  .object({ confirmPassword: z.string(), password: z.string().min(8).max(128) })
   .refine((data) => data.password === data.confirmPassword, {
     message: "Passwords don't match",
     path: ["confirmPassword"],
@@ -31,11 +32,11 @@ export const AuthForm = ({ className, type, ...props }: AuthFormProps) => {
   const router = useRouter();
 
   const form = useForm({
-    resolver: zodResolver(type === "register" ? registerSchema : loginSchema),
     defaultValues: {
       email: "",
       password: "",
     },
+    resolver: zodResolver(type === "register" ? registerSchema : loginSchema),
   });
 
   const {
@@ -113,10 +114,10 @@ export const AuthForm = ({ className, type, ...props }: AuthFormProps) => {
 export const RequestPasswordResetForm = () => {
   const [requested, setRequested] = useState(false);
   const form = useForm({
-    resolver: zodResolver(emailSchema),
     defaultValues: {
       email: "",
     },
+    resolver: zodResolver(emailSchema),
   });
 
   const {
@@ -150,7 +151,7 @@ export const RequestPasswordResetForm = () => {
       <div className="space-y-4 text-center">
         <div className="rounded-md bg-green-50 p-4 dark:bg-green-900/20">
           <p className="text-sm text-green-800 dark:text-green-200">
-            If an account exists for that email, you'll receive a password reset link.
+            If an account exists for that email, you&apos;ll receive a password reset link.
           </p>
         </div>
       </div>
@@ -188,11 +189,11 @@ export const UpdatePasswordForm = ({ token }: { token: string }) => {
   const router = useRouter();
 
   const form = useForm({
-    resolver: zodResolver(passwordSchema),
     defaultValues: {
-      password: "",
       confirmPassword: "",
+      password: "",
     },
+    resolver: zodResolver(passwordSchema),
   });
 
   const {
@@ -202,7 +203,7 @@ export const UpdatePasswordForm = ({ token }: { token: string }) => {
 
   const handleUpdatePassword = form.handleSubmit(async (data) => {
     try {
-      const { error } = await authClient.resetPassword({ token, newPassword: data.password });
+      const { error } = await authClient.resetPassword({ newPassword: data.password, token });
       if (error) {
         form.setError("root", {
           message: error.message ?? "Unable to reset your password. Try again.",

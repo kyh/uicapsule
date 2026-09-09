@@ -6,7 +6,7 @@ import { useWebHaptics } from "web-haptics/react";
 
 import { MediaReveal } from "@/components/media-reveal";
 
-type ContentPreviewProps = {
+interface ContentPreviewProps {
   slug: string;
   name: string;
   index: number;
@@ -14,7 +14,7 @@ type ContentPreviewProps = {
   isNew: boolean;
   coverUrl?: string;
   coverType?: "image" | "video";
-};
+}
 
 export const ContentPreview = ({
   slug,
@@ -63,16 +63,14 @@ export const ContentPreview = ({
   );
 };
 
-export const ContentPreviewSkeleton = () => {
-  return (
-    <div className="bg-background group flex flex-col justify-between gap-3 p-3 sm:p-6">
-      <MediaReveal className="aspect-video w-full" />
-      <div className="flex justify-between text-xs">
-        <div className="flex items-center gap-1">
-          <div className="bg-muted h-4 w-24 rounded" />
-        </div>
-        <div className="bg-muted h-4 w-8 rounded" />
+export const ContentPreviewSkeleton = () => (
+  <div className="bg-background group flex flex-col justify-between gap-3 p-3 sm:p-6">
+    <MediaReveal className="aspect-video w-full" />
+    <div className="flex justify-between text-xs">
+      <div className="flex items-center gap-1">
+        <div className="bg-muted h-4 w-24 rounded" />
       </div>
+      <div className="bg-muted h-4 w-8 rounded" />
     </div>
-  );
-};
+  </div>
+);

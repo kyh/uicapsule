@@ -57,16 +57,16 @@ const FG_DARK = "#cff060";
 const MONO_FAMILY =
   '"JetBrains Mono", "Cascadia Mono", "DejaVu Sans Mono", Menlo, Consolas, "Liberation Mono", "Noto Sans Mono", monospace';
 
-function hexToRgb(hex: string) {
+const hexToRgb = (hex: string) => {
   const h = hex.replace("#", "");
   return {
-    r: parseInt(h.slice(0, 2), 16),
-    g: parseInt(h.slice(2, 4), 16),
-    b: parseInt(h.slice(4, 6), 16),
+    b: Number.parseInt(h.slice(4, 6), 16),
+    g: Number.parseInt(h.slice(2, 4), 16),
+    r: Number.parseInt(h.slice(0, 2), 16),
   };
-}
+};
 
-function mixHex(a: string, b: string, t: number): string {
+const mixHex = (a: string, b: string, t: number): string => {
   const ca = hexToRgb(a);
   const cb = hexToRgb(b);
   const ch = (x: number, y: number) =>
@@ -74,16 +74,20 @@ function mixHex(a: string, b: string, t: number): string {
       .toString(16)
       .padStart(2, "0");
   return `#${ch(ca.r, cb.r)}${ch(ca.g, cb.g)}${ch(ca.b, cb.b)}`;
-}
+};
 
-function paletteAt(p: number) {
-  if (p <= FLIP_START) return { fg: FG_LIGHT, bg: BG_LIGHT };
-  if (p >= FLIP_END) return { fg: FG_DARK, bg: BG_DARK };
+const paletteAt = (p: number) => {
+  if (p <= FLIP_START) {
+    return { bg: BG_LIGHT, fg: FG_LIGHT };
+  }
+  if (p >= FLIP_END) {
+    return { bg: BG_DARK, fg: FG_DARK };
+  }
   const t = smoothstep((p - FLIP_START) / (FLIP_END - FLIP_START));
-  return { fg: mixHex(FG_LIGHT, FG_DARK, t), bg: mixHex(BG_LIGHT, BG_DARK, t) };
-}
+  return { bg: mixHex(BG_LIGHT, BG_DARK, t), fg: mixHex(FG_LIGHT, FG_DARK, t) };
+};
 
-type Layout = {
+interface Layout {
   w: number;
   h: number;
   cellW: number;
@@ -94,17 +98,17 @@ type Layout = {
   frameX1: number;
   frameX2: number;
   frameX3: number;
-};
+}
 
-type ParticleSets = {
+interface ParticleSets {
   entrance: Particle[];
   t1out: Particle[];
   t1in: Particle[];
   t2out: Particle[];
   t2in: Particle[];
-};
+}
 
-type Runtime = {
+interface Runtime {
   smoothP: number;
   targetP: number;
   lastDrawnP: number;
@@ -114,6 +118,30 @@ type Runtime = {
   interacted: boolean;
   lastNow: number | null;
   fg: string;
+}
+
+const phaseAt = (p: number): 1 | 2 | 3 => {
+  if (p < PHASE_2_AT) {
+    return 1;
+  }
+  if (p < PHASE_3_AT) {
+    return 2;
+  }
+  return 3;
+};
+
+/* The idle cycle: sweep forward, hold, sweep back, rest. */
+const autoTargetAt = (u: number): number => {
+  if (u < SWEEP_MS) {
+    return u / SWEEP_MS;
+  }
+  if (u < SWEEP_MS + HOLD_MS) {
+    return 1;
+  }
+  if (u < SWEEP_MS * 2 + HOLD_MS) {
+    return 1 - (u - SWEEP_MS - HOLD_MS) / SWEEP_MS;
+  }
+  return 0;
 };
 
 export const TerminalDisintegrate = () => {
@@ -128,10 +156,14 @@ export const TerminalDisintegrate = () => {
   useEffect(() => {
     const canvasEl = canvasRef.current;
     const rootEl = rootRef.current;
-    if (!canvasEl || !rootEl) return;
+    if (!canvasEl || !rootEl) {
+      return;
+    }
 
     const ctx2d = canvasEl.getContext("2d");
-    if (!ctx2d) return;
+    if (!ctx2d) {
+      return;
+    }
 
     // Re-bound as non-nullable so the hoisted helpers below close over a
     // narrowed type without needing assertions.
@@ -147,38 +179,38 @@ export const TerminalDisintegrate = () => {
     };
 
     const layout: Layout = {
-      w: 0,
-      h: 0,
-      cellW: 0,
-      cellH: 0,
-      canvasW: 0,
       canvasH: 0,
-      frameY: 0,
+      canvasW: 0,
+      cellH: 0,
+      cellW: 0,
       frameX1: 0,
       frameX2: 0,
       frameX3: 0,
+      frameY: 0,
+      h: 0,
+      w: 0,
     };
 
     const particles: ParticleSets = {
       entrance: [],
-      t1out: [],
       t1in: [],
-      t2out: [],
+      t1out: [],
       t2in: [],
+      t2out: [],
     };
 
     const S: Runtime = {
-      smoothP: 0,
-      targetP: 0,
-      lastDrawnP: -1,
-      entranceDone: false,
-      entranceT: 0,
       // Negative so the assembled first screen holds before it starts burning;
       // `u` clamps at 0 until the lead-in is spent.
       autoElapsed: -HOLD_MS,
-      interacted: false,
-      lastNow: null,
+      entranceDone: false,
+      entranceT: 0,
       fg: FG_LIGHT,
+      interacted: false,
+      lastDrawnP: -1,
+      lastNow: null,
+      smoothP: 0,
+      targetP: 0,
     };
 
     const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
@@ -188,7 +220,7 @@ export const TerminalDisintegrate = () => {
       S.entranceT = 1;
     }
 
-    function computeLayout(stageW: number, stageH: number) {
+    const computeLayout = (stageW: number, stageH: number) => {
       const m = cellMetrics(stageW, stageH);
 
       const dpr = Math.min(2.5, window.devicePixelRatio || 1);
@@ -226,47 +258,47 @@ export const TerminalDisintegrate = () => {
       layout.frameX2 = rightX;
       layout.frameX3 = leftX;
 
-      const common = { cellW: m.cellW, cellH: m.cellH, stageW, stageH };
+      const common = { cellH: m.cellH, cellW: m.cellW, stageH, stageW };
 
       particles.entrance = buildEntrance(grids.btc, {
         ...common,
         frameX: leftX,
         frameY,
-        rngSeed: 90210,
+        rngSeed: 90_210,
       });
       particles.t1out = buildOutgoing(grids.btc, {
         ...common,
         frameX: leftX,
         frameY,
-        windDir: 1,
         rngSeed: 1337,
+        windDir: 1,
       });
       particles.t1in = buildIncoming(grids.gold, {
         ...common,
         frameX: rightX,
         frameY,
-        windDir: 1,
         rngSeed: 2024,
+        windDir: 1,
       });
       particles.t2out = buildOutgoing(grids.gold, {
         ...common,
         frameX: rightX,
         frameY,
-        windDir: -1,
         rngSeed: 4242,
+        windDir: -1,
       });
       particles.t2in = buildIncoming(grids.stats, {
         ...common,
         frameX: leftX,
         frameY,
-        windDir: -1,
         rngSeed: 8675,
+        windDir: -1,
       });
 
       S.lastDrawnP = -1;
-    }
+    };
 
-    function draw() {
+    const draw = () => {
       ctx.clearRect(0, 0, layout.w, layout.h);
       ctx.fillStyle = S.fg;
 
@@ -293,7 +325,7 @@ export const TerminalDisintegrate = () => {
       } else {
         renderGrid(ctx, grids.stats, frameX3, frameY, cellW, cellH);
       }
-    }
+    };
 
     // The scalar moves every frame but the chrome derived from it mostly does
     // not: palette, phase and fade all sit still for hundreds of frames at a
@@ -305,7 +337,7 @@ export const TerminalDisintegrate = () => {
     let shownValueNow = -1;
     let shownFade = -1;
 
-    function applyPalette(p: number) {
+    const applyPalette = (p: number) => {
       const { fg, bg } = paletteAt(p);
       S.fg = fg;
       if (fg !== shownFg) {
@@ -319,10 +351,10 @@ export const TerminalDisintegrate = () => {
           el.style.background = bg;
         }
       }
-    }
+    };
 
-    function applyChrome(p: number, fade: number) {
-      const phase = p < PHASE_2_AT ? 1 : p < PHASE_3_AT ? 2 : 3;
+    const applyChrome = (p: number, fade: number) => {
+      const phase = phaseAt(p);
       const valueNow = Math.round(clamp01(p) * 100);
 
       if (valueNow !== shownValueNow) {
@@ -332,18 +364,26 @@ export const TerminalDisintegrate = () => {
       if (phase !== shownPhase) {
         shownPhase = phase;
         root.setAttribute("aria-valuetext", `screen ${phase} of 3`);
-        if (chipRef.current) chipRef.current.textContent = `terminal · 0${phase} / 03`;
+        if (chipRef.current) {
+          chipRef.current.textContent = `terminal · 0${phase} / 03`;
+        }
       }
       if (fade !== shownFade) {
         shownFade = fade;
-        if (chipRef.current) chipRef.current.style.opacity = String(0.55 * fade);
-        if (hintRef.current) hintRef.current.style.opacity = String(0.4 * fade);
-        if (railTrackRef.current) railTrackRef.current.style.opacity = String(0.18 * fade);
+        if (chipRef.current) {
+          chipRef.current.style.opacity = String(0.55 * fade);
+        }
+        if (hintRef.current) {
+          hintRef.current.style.opacity = String(0.4 * fade);
+        }
+        if (railTrackRef.current) {
+          railTrackRef.current.style.opacity = String(0.18 * fade);
+        }
       }
       if (railFillRef.current) {
         railFillRef.current.style.transform = `scaleY(${clamp01(p)})`;
       }
-    }
+    };
 
     // --- Driver: pointer drag + keys, with autoplay whenever the reader idles -
     // Deliberately no wheel handler: this lives inside a card in a scrolling
@@ -364,73 +404,105 @@ export const TerminalDisintegrate = () => {
     // card must never be able to strand the component on a frozen frame, so
     // control returns to autoplay once the reader has been still for a while —
     // re-seeded at wherever they left the scalar, not snapped back to zero.
-    function takeOver() {
+    const takeOver = () => {
       S.interacted = true;
-      if (idleTimer) window.clearTimeout(idleTimer);
+      if (idleTimer) {
+        window.clearTimeout(idleTimer);
+      }
       idleTimer = 0;
       // A held pointer that has stopped moving is still a reader holding the
       // scrubber, not an idle one — so the countdown is armed at release
       // instead, or the terminal would run away under a stationary cursor.
-      if (dragId !== null) return;
+      if (dragId !== null) {
+        return;
+      }
       idleTimer = window.setTimeout(() => {
         idleTimer = 0;
         S.autoElapsed = clamp01(S.targetP) * SWEEP_MS;
         S.interacted = false;
       }, IDLE_RESUME_MS);
-    }
+    };
 
-    function onPointerDown(e: PointerEvent) {
-      if (dragId !== null) return;
+    const onPointerDown = (e: PointerEvent) => {
+      if (dragId !== null) {
+        return;
+      }
       dragId = e.pointerId;
       lastX = e.clientX;
       lastY = e.clientY;
       // Not a take-over: a press that never moves must leave autoplay alone.
       // It only has to hold off a resume that an earlier drag already armed.
-      if (idleTimer) window.clearTimeout(idleTimer);
+      if (idleTimer) {
+        window.clearTimeout(idleTimer);
+      }
       idleTimer = 0;
       root.style.cursor = "grabbing";
       root.setPointerCapture(e.pointerId);
-    }
+    };
 
-    function onPointerMove(e: PointerEvent) {
-      if (dragId !== e.pointerId) return;
+    const onPointerMove = (e: PointerEvent) => {
+      if (dragId !== e.pointerId) {
+        return;
+      }
       const dx = e.clientX - lastX;
       const dy = e.clientY - lastY;
       lastX = e.clientX;
       lastY = e.clientY;
       // Only real movement counts as a grab; a jittery tap stays autoplaying.
-      if (S.interacted || Math.abs(dx) + Math.abs(dy) > DRAG_SLOP_PX) takeOver();
+      if (S.interacted || Math.abs(dx) + Math.abs(dy) > DRAG_SLOP_PX) {
+        takeOver();
+      }
       // Dragging left or up advances, matching both carousel and scroll habits.
       S.targetP = clamp01(S.targetP + (-dx - dy) / travel());
-    }
+    };
 
-    function stepFor(key: string): number {
-      if (key === "ArrowRight" || key === "ArrowDown") return KEY_STEP;
-      if (key === "ArrowLeft" || key === "ArrowUp") return -KEY_STEP;
-      if (key === "PageDown") return PAGE_STEP;
-      if (key === "PageUp") return -PAGE_STEP;
-      if (key === "End") return 1;
-      if (key === "Home") return -1;
+    const stepFor = (key: string): number => {
+      if (key === "ArrowRight" || key === "ArrowDown") {
+        return KEY_STEP;
+      }
+      if (key === "ArrowLeft" || key === "ArrowUp") {
+        return -KEY_STEP;
+      }
+      if (key === "PageDown") {
+        return PAGE_STEP;
+      }
+      if (key === "PageUp") {
+        return -PAGE_STEP;
+      }
+      if (key === "End") {
+        return 1;
+      }
+      if (key === "Home") {
+        return -1;
+      }
       return 0;
-    }
+    };
 
-    function onKeyDown(e: KeyboardEvent) {
+    const onKeyDown = (e: KeyboardEvent) => {
       const step = stepFor(e.key);
-      if (step === 0) return;
+      if (step === 0) {
+        return;
+      }
       e.preventDefault();
       takeOver();
       S.targetP = clamp01(S.targetP + step);
-    }
+    };
 
-    function endDrag(e: PointerEvent) {
-      if (dragId !== e.pointerId) return;
+    const endDrag = (e: PointerEvent) => {
+      if (dragId !== e.pointerId) {
+        return;
+      }
       dragId = null;
       root.style.cursor = "grab";
-      if (root.hasPointerCapture(e.pointerId)) root.releasePointerCapture(e.pointerId);
+      if (root.hasPointerCapture(e.pointerId)) {
+        root.releasePointerCapture(e.pointerId);
+      }
       // Release is where "still" starts counting. A press that never scrubbed
       // left `interacted` false and must not hand autoplay a fresh countdown.
-      if (S.interacted) takeOver();
-    }
+      if (S.interacted) {
+        takeOver();
+      }
+    };
 
     // --- Loop ---------------------------------------------------------------
     let raf = 0;
@@ -439,8 +511,10 @@ export const TerminalDisintegrate = () => {
     let onScreen = true;
     let cancelled = false;
 
-    function tick(now: number) {
-      if (!running) return;
+    const tick = (now: number) => {
+      if (!running) {
+        return;
+      }
 
       const dt = S.lastNow === null ? 16.7 : Math.min(64, now - S.lastNow);
       S.lastNow = now;
@@ -464,20 +538,15 @@ export const TerminalDisintegrate = () => {
       if (!S.interacted && !reduce) {
         S.autoElapsed = (S.autoElapsed + dt) % CYCLE_MS;
         const u = Math.max(0, S.autoElapsed);
-        S.targetP =
-          u < SWEEP_MS
-            ? u / SWEEP_MS
-            : u < SWEEP_MS + HOLD_MS
-              ? 1
-              : u < SWEEP_MS * 2 + HOLD_MS
-                ? 1 - (u - SWEEP_MS - HOLD_MS) / SWEEP_MS
-                : 0;
+        S.targetP = autoTargetAt(u);
       }
 
       // Critically-damped follow. Without it the disintegration reads as a
       // jump-cut instead of a burn.
       let sp = S.smoothP + (S.targetP - S.smoothP) * 0.12;
-      if (Math.abs(S.targetP - sp) < 0.0002) sp = S.targetP;
+      if (Math.abs(S.targetP - sp) < 0.0002) {
+        sp = S.targetP;
+      }
       S.smoothP = sp;
 
       if (Math.abs(sp - S.lastDrawnP) > 0.00005) {
@@ -488,51 +557,71 @@ export const TerminalDisintegrate = () => {
       }
 
       raf = requestAnimationFrame(tick);
-    }
+    };
 
-    function startLoop() {
-      if (running || cancelled || !ready) return;
+    const startLoop = () => {
+      if (running || cancelled || !ready) {
+        return;
+      }
       running = true;
       S.lastNow = null;
       raf = requestAnimationFrame(tick);
-    }
+    };
 
-    function stopLoop() {
+    const stopLoop = () => {
       running = false;
-      if (raf) cancelAnimationFrame(raf);
+      if (raf) {
+        cancelAnimationFrame(raf);
+      }
       raf = 0;
-    }
+    };
 
-    function syncLoop() {
-      if (onScreen && document.visibilityState !== "hidden") startLoop();
-      else stopLoop();
-    }
+    const syncLoop = () => {
+      if (onScreen && document.visibilityState !== "hidden") {
+        startLoop();
+      } else {
+        stopLoop();
+      }
+    };
 
-    function begin() {
-      if (cancelled || ready) return;
+    const begin = () => {
+      if (cancelled || ready) {
+        return;
+      }
       const rect = root.getBoundingClientRect();
-      if (rect.width < 1 || rect.height < 1) return;
+      if (rect.width < 1 || rect.height < 1) {
+        return;
+      }
       computeLayout(rect.width, rect.height);
       applyPalette(0);
       applyChrome(0, 0);
       ready = true;
       syncLoop();
-    }
+    };
 
     // A freshly-mounted iframe reports a 0x0 box first; ignore that callback.
     const ro = new ResizeObserver((entries) => {
-      const entry = entries[0];
-      if (!entry) return;
+      const [entry] = entries;
+      if (!entry) {
+        return;
+      }
       const { width, height } = entry.contentRect;
-      if (width < 1 || height < 1) return;
-      if (ready) computeLayout(width, height);
-      else begin();
+      if (width < 1 || height < 1) {
+        return;
+      }
+      if (ready) {
+        computeLayout(width, height);
+      } else {
+        begin();
+      }
     });
     ro.observe(root);
 
     const io = new IntersectionObserver((entries) => {
-      const entry = entries[0];
-      if (!entry) return;
+      const [entry] = entries;
+      if (!entry) {
+        return;
+      }
       onScreen = entry.isIntersecting;
       syncLoop();
     });
@@ -542,10 +631,19 @@ export const TerminalDisintegrate = () => {
     // forever for it.
     let fontTimer = 0;
     if (document.fonts?.ready) {
-      const timeout = new Promise<void>((res) => {
-        fontTimer = window.setTimeout(res, 800);
+      // oxlint-disable-next-line promise/avoid-new -- a cancellable timeout in the browser; there is no promise-returning timer to await here
+      const timeout = new Promise<void>((resolve) => {
+        fontTimer = window.setTimeout(resolve, 800);
       });
-      void Promise.race([document.fonts.ready, timeout]).then(begin, begin);
+      const beginAfterFonts = async () => {
+        try {
+          await Promise.race([document.fonts.ready, timeout]);
+        } catch {
+          // A failed font load still gets a first paint.
+        }
+        begin();
+      };
+      void beginAfterFonts();
     } else {
       begin();
     }
@@ -560,8 +658,12 @@ export const TerminalDisintegrate = () => {
     return () => {
       cancelled = true;
       stopLoop();
-      if (fontTimer) window.clearTimeout(fontTimer);
-      if (idleTimer) window.clearTimeout(idleTimer);
+      if (fontTimer) {
+        window.clearTimeout(fontTimer);
+      }
+      if (idleTimer) {
+        window.clearTimeout(idleTimer);
+      }
       ro.disconnect();
       io.disconnect();
       root.removeEventListener("pointerdown", onPointerDown);
@@ -578,6 +680,7 @@ export const TerminalDisintegrate = () => {
       ref={rootRef}
       // A scrubbable scalar, not a picture: drag or arrow-key it through the
       // three screens. The label carries what the canvas shows.
+      // oxlint-disable-next-line jsx-a11y/prefer-tag-over-role -- a range input cannot host the canvas; the keyboard and aria-value contract is the same
       role="slider"
       tabIndex={0}
       aria-label="An ASCII trading terminal whose screen disintegrates into embers and reassembles as the next screen"
@@ -585,64 +688,64 @@ export const TerminalDisintegrate = () => {
       aria-valuemax={100}
       aria-valuenow={0}
       style={{
-        position: "relative",
+        background: BG_LIGHT,
+        color: "var(--terminal-fg, #1c5f27)",
+        cursor: "grab",
         height: "100%",
-        width: "100%",
         overflow: "hidden",
+        position: "relative",
         // Same reasoning as the missing wheel handler: this lives in a
         // scrolling feed. The browser keeps vertical pans, horizontal drags
         // still reach the scrubber.
         touchAction: "pan-y",
         userSelect: "none",
-        cursor: "grab",
-        background: BG_LIGHT,
-        color: "var(--terminal-fg, #1c5f27)",
+        width: "100%",
       }}
     >
       <div
         ref={bgRef}
         aria-hidden
         style={{
-          position: "absolute",
-          inset: 0,
-          zIndex: 0,
           background: BG_LIGHT,
+          inset: 0,
           pointerEvents: "none",
+          position: "absolute",
+          zIndex: 0,
         }}
       />
 
       <div
         aria-hidden
         style={{
-          position: "absolute",
-          inset: 0,
-          zIndex: 1,
           background: "radial-gradient(ellipse at center, transparent 35%, rgba(0,0,0,0.06) 95%)",
+          inset: 0,
           mixBlendMode: "multiply",
           pointerEvents: "none",
+          position: "absolute",
+          zIndex: 1,
         }}
       />
 
       <canvas
         ref={canvasRef}
         aria-hidden
-        style={{ position: "absolute", inset: 0, zIndex: 2, pointerEvents: "none" }}
+        style={{ inset: 0, pointerEvents: "none", position: "absolute", zIndex: 2 }}
       />
 
       <div
         ref={chipRef}
         aria-hidden
         style={{
-          position: "absolute",
-          top: 16,
-          left: 22,
-          zIndex: 4,
-          opacity: 0,
           fontFamily: MONO_FAMILY,
           fontSize: 11,
-          textTransform: "uppercase",
+          left: 22,
           letterSpacing: "0.25em",
+          opacity: 0,
           pointerEvents: "none",
+          position: "absolute",
+          textTransform: "uppercase",
+          top: 16,
+          zIndex: 4,
         }}
       >
         terminal · 01 / 03
@@ -652,16 +755,16 @@ export const TerminalDisintegrate = () => {
         ref={hintRef}
         aria-hidden
         style={{
-          position: "absolute",
           bottom: 16,
-          left: 22,
-          zIndex: 4,
-          opacity: 0,
           fontFamily: MONO_FAMILY,
           fontSize: 10,
-          textTransform: "uppercase",
+          left: 22,
           letterSpacing: "0.3em",
+          opacity: 0,
           pointerEvents: "none",
+          position: "absolute",
+          textTransform: "uppercase",
+          zIndex: 4,
         }}
       >
         drag · disintegrate · resolve
@@ -671,15 +774,15 @@ export const TerminalDisintegrate = () => {
         ref={railTrackRef}
         aria-hidden
         style={{
-          position: "absolute",
-          left: 0,
-          top: "7%",
+          background: "currentColor",
           bottom: "7%",
+          left: 0,
+          opacity: 0,
+          pointerEvents: "none",
+          position: "absolute",
+          top: "7%",
           width: 2,
           zIndex: 4,
-          opacity: 0,
-          background: "currentColor",
-          pointerEvents: "none",
         }}
       />
 
@@ -687,16 +790,16 @@ export const TerminalDisintegrate = () => {
         ref={railFillRef}
         aria-hidden
         style={{
-          position: "absolute",
-          left: 0,
-          top: "7%",
+          background: "currentColor",
           height: "86%",
+          left: 0,
+          pointerEvents: "none",
+          position: "absolute",
+          top: "7%",
+          transform: "scaleY(0)",
+          transformOrigin: "top",
           width: 2,
           zIndex: 4,
-          transformOrigin: "top",
-          transform: "scaleY(0)",
-          background: "currentColor",
-          pointerEvents: "none",
         }}
       />
     </div>

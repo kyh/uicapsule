@@ -1,6 +1,7 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState, type ReactNode } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import type { ReactNode } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { motion } from "motion/react";
@@ -14,12 +15,8 @@ import {
   DialogTitle,
 } from "@repo/ui/components/dialog";
 import { cn } from "cn";
-import {
-  contentElements,
-  contentStyles,
-  tagLabel,
-  type ContentFilter,
-} from "@/lib/content/content-categories";
+import { contentElements, contentStyles, tagLabel } from "@/lib/content/content-categories";
+import type { ContentFilter } from "@/lib/content/content-categories";
 import type { SearchEntry } from "@/lib/content-data";
 
 const SEARCH_RESULT_LIMIT = 12;
@@ -27,13 +24,13 @@ const TRENDING_LIMIT = 8;
 
 type SearchKind = "component" | "element" | "style";
 
-type SearchSuggestion = {
+interface SearchSuggestion {
   value: string;
   href: string;
   label: string;
   sublabel: string;
   kind: SearchKind;
-};
+}
 
 type FacetKind = Exclude<SearchKind, "component">;
 
@@ -45,13 +42,13 @@ const facetDefinitions: {
   icon: typeof SearchIcon;
 }[] = [
   {
+    icon: LayoutGridIcon,
     kind: "element",
     label: "Components",
-    param: "element",
     options: contentElements,
-    icon: LayoutGridIcon,
+    param: "element",
   },
-  { kind: "style", label: "Styles", param: "style", options: contentStyles, icon: PaletteIcon },
+  { icon: PaletteIcon, kind: "style", label: "Styles", options: contentStyles, param: "style" },
 ];
 
 const searchKindIcon = {
@@ -73,7 +70,7 @@ const AnimateHeight = ({ children }: { children: ReactNode }) => (
   <motion.div
     layout
     initial={false}
-    transition={{ type: "spring", visualDuration: 0.25, bounce: 0 }}
+    transition={{ bounce: 0, type: "spring", visualDuration: 0.25 }}
     className="overflow-hidden"
   >
     <motion.div layout="position">{children}</motion.div>
@@ -129,23 +126,23 @@ export const SearchButton = ({ searchEntries }: { searchEntries: SearchEntry[] }
   const facetSuggestions = useMemo(
     () =>
       facetDefinitions.map((facet) => ({
+        icon: facet.icon,
         kind: facet.kind,
         label: facet.label,
-        icon: facet.icon,
         suggestions: facet.options
           .map((option) => ({
+            count: tagCounts[option.slug] ?? 0,
             name: option.name,
             slug: option.slug,
-            count: tagCounts[option.slug] ?? 0,
           }))
           .filter((option) => option.count > 0)
           .toSorted((a, b) => b.count - a.count || a.name.localeCompare(b.name))
           .map((option): SearchSuggestion => ({
-            value: `${facet.kind}:${option.slug}`,
             href: `/?${facet.param}=${option.slug}`,
+            kind: facet.kind,
             label: option.name,
             sublabel: componentCountLabel(option.count),
-            kind: facet.kind,
+            value: `${facet.kind}:${option.slug}`,
           })),
       })),
     [tagCounts],
@@ -180,11 +177,11 @@ export const SearchButton = ({ searchEntries }: { searchEntries: SearchEntry[] }
             suggestion.value.includes(normalizedQuery),
         )
         .map((suggestion): SearchSuggestion => ({
-          value: suggestion.value,
           href: suggestion.href,
+          kind: suggestion.kind,
           label: suggestion.label,
           sublabel: searchKindLabel[suggestion.kind],
-          kind: suggestion.kind,
+          value: suggestion.value,
         })),
     );
   }, [facetSuggestions, hasQuery, normalizedQuery]);
@@ -198,36 +195,36 @@ export const SearchButton = ({ searchEntries }: { searchEntries: SearchEntry[] }
   );
 
   const trendingSuggestions: SearchSuggestion[] = trending.map((entry) => ({
-    value: `trending:${entry.slug}`,
     href: `/ui/${entry.slug}`,
+    kind: "component",
     label: entry.name,
     sublabel: entry.tags.slice(0, 2).map(tagLabel).join(", ") || "Component",
-    kind: "component",
+    value: `trending:${entry.slug}`,
   }));
 
   const querySuggestions: SearchSuggestion[] = [
     ...componentMatches.map((entry): SearchSuggestion => ({
-      value: `component:${entry.slug}`,
       href: `/ui/${entry.slug}`,
+      kind: "component",
       label: entry.name,
       sublabel: "Component",
-      kind: "component",
+      value: `component:${entry.slug}`,
     })),
     ...facetMatches,
   ];
 
   const browseViews: { id: SearchView; label: string; icon: typeof SearchIcon }[] = [
-    { id: "trending", label: "Trending", icon: TrendingUpIcon },
-    ...facetSuggestions.map((facet) => ({ id: facet.kind, label: facet.label, icon: facet.icon })),
+    { icon: TrendingUpIcon, id: "trending", label: "Trending" },
+    ...facetSuggestions.map((facet) => ({ icon: facet.icon, id: facet.kind, label: facet.label })),
   ];
 
   const suggestionsFor = (kind: FacetKind) =>
     facetSuggestions.find((facet) => facet.kind === kind)?.suggestions ?? [];
 
   const viewSuggestions = {
-    trending: trendingSuggestions,
     element: suggestionsFor("element"),
     style: suggestionsFor("style"),
+    trending: trendingSuggestions,
   } satisfies Record<SearchView, SearchSuggestion[]>;
 
   const renderSuggestion = (suggestion: SearchSuggestion) => {

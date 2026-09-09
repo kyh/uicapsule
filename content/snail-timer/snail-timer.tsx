@@ -1,12 +1,13 @@
-import { useEffect, useState, type CSSProperties } from "react";
+import { useEffect, useState } from "react";
+import type { CSSProperties } from "react";
 
 import "./snail-timer.css";
 
-type Props = {
+interface Props {
   started?: boolean;
   initialSeconds?: number;
   onTimeout?: () => void;
-};
+}
 
 /** `CSSProperties` widened to accept custom properties without a type assertion. */
 interface CSSVarProperties extends CSSProperties {
@@ -14,46 +15,8 @@ interface CSSVarProperties extends CSSProperties {
 }
 
 /** Module-level so the default prop keeps a stable identity across renders. */
-const NOOP = () => {};
-
-export const SnailTimer = ({ started = true, initialSeconds = 45, onTimeout = NOOP }: Props) => {
-  const [seconds, setSeconds] = useState(initialSeconds);
-  const trackStyle: CSSVarProperties = { "--snail-move-duration": `${initialSeconds}s` };
-
-  useEffect(() => {
-    let interval: ReturnType<typeof setInterval> | undefined;
-
-    if (started) {
-      interval = setInterval(() => {
-        if (seconds !== 1) {
-          setSeconds((seconds) => seconds - 1);
-        } else {
-          onTimeout();
-          clearInterval(interval);
-        }
-      }, 1000);
-    }
-
-    return () => clearInterval(interval);
-  }, [started, seconds, onTimeout]);
-
-  return (
-    <div
-      className={`snail-timer pointer-events-none absolute right-0 bottom-5 left-0 overflow-hidden ${
-        started ? "" : "is-paused"
-      }`}
-    >
-      <div className="snail-timer__track" style={trackStyle}>
-        <div className="flex items-end">
-          <div className="snail">
-            <SnailSvg />
-          </div>
-          <div className="snail-timer__dust" aria-hidden="true" />
-        </div>
-        <div className="text-muted-foreground mt-1 ml-2 text-xs">{seconds} seconds remaining</div>
-      </div>
-    </div>
-  );
+const NOOP = () => {
+  /* empty */
 };
 
 const SnailSvg = () => (
@@ -150,3 +113,43 @@ const SnailSvg = () => (
     </g>
   </svg>
 );
+
+export const SnailTimer = ({ started = true, initialSeconds = 45, onTimeout = NOOP }: Props) => {
+  const [seconds, setSeconds] = useState(initialSeconds);
+  const trackStyle: CSSVarProperties = { "--snail-move-duration": `${initialSeconds}s` };
+
+  useEffect(() => {
+    let interval: ReturnType<typeof setInterval> | undefined;
+
+    if (started) {
+      interval = setInterval(() => {
+        if (seconds === 1) {
+          onTimeout();
+          clearInterval(interval);
+        } else {
+          setSeconds((current) => current - 1);
+        }
+      }, 1000);
+    }
+
+    return () => clearInterval(interval);
+  }, [started, seconds, onTimeout]);
+
+  return (
+    <div
+      className={`snail-timer pointer-events-none absolute right-0 bottom-5 left-0 overflow-hidden ${
+        started ? "" : "is-paused"
+      }`}
+    >
+      <div className="snail-timer__track" style={trackStyle}>
+        <div className="flex items-end">
+          <div className="snail">
+            <SnailSvg />
+          </div>
+          <div className="snail-timer__dust" aria-hidden="true" />
+        </div>
+        <div className="text-muted-foreground mt-1 ml-2 text-xs">{seconds} seconds remaining</div>
+      </div>
+    </div>
+  );
+};
