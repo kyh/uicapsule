@@ -5,7 +5,7 @@
   "featured": true,
   "coverUrl": "https://zmdrwswxugswzmcokvff.supabase.co/storage/v1/object/public/uicapsule/paper-roll/paper-roll.mp4",
   "coverType": "video",
-  "tags": ["cards-grids", "physical", "skeuomorphism"],
+  "tags": ["cards-grids", "skeuomorphism"],
   "inspiredBy": [
     {
       "label": "thebuggeddev/paper-roll",

@@ -5,6 +5,6 @@
   "featured": true,
   "coverUrl": "https://zmdrwswxugswzmcokvff.supabase.co/storage/v1/object/public/uicapsule/formation/formation.mp4",
   "coverType": "video",
-  "tags": ["cards-grids", "spatial", "minimal"],
+  "tags": ["cards-grids", "minimal"],
   "defaultSize": "full"
 }

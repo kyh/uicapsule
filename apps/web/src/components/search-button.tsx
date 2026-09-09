@@ -4,14 +4,7 @@ import { useCallback, useEffect, useMemo, useState, type ReactNode } from "react
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { motion } from "motion/react";
-import {
-  BoxIcon,
-  CompassIcon,
-  LayoutGridIcon,
-  PaletteIcon,
-  SearchIcon,
-  TrendingUpIcon,
-} from "lucide-react";
+import { BoxIcon, LayoutGridIcon, PaletteIcon, SearchIcon, TrendingUpIcon } from "lucide-react";
 import { Command, CommandInputBare, CommandItem, CommandList } from "@repo/ui/components/command";
 import {
   Dialog,
@@ -23,7 +16,6 @@ import {
 import { cn } from "cn";
 import {
   contentElements,
-  contentSources,
   contentStyles,
   tagLabel,
   type ContentFilter,
@@ -33,7 +25,7 @@ import type { SearchEntry } from "@/lib/content-data";
 const SEARCH_RESULT_LIMIT = 12;
 const TRENDING_LIMIT = 8;
 
-type SearchKind = "component" | "element" | "source" | "style";
+type SearchKind = "component" | "element" | "style";
 
 type SearchSuggestion = {
   value: string;
@@ -59,21 +51,18 @@ const facetDefinitions: {
     options: contentElements,
     icon: LayoutGridIcon,
   },
-  { kind: "source", label: "Sources", param: "source", options: contentSources, icon: CompassIcon },
   { kind: "style", label: "Styles", param: "style", options: contentStyles, icon: PaletteIcon },
 ];
 
 const searchKindIcon = {
   component: BoxIcon,
   element: LayoutGridIcon,
-  source: CompassIcon,
   style: PaletteIcon,
 } satisfies Record<SearchKind, typeof SearchIcon>;
 
 const searchKindLabel = {
   component: "Component",
   element: "Components",
-  source: "Source",
   style: "Style",
 } satisfies Record<SearchKind, string>;
 
@@ -108,11 +97,7 @@ export const SearchButton = ({ searchEntries }: { searchEntries: SearchEntry[] }
     }
     return counts;
   }, [searchEntries]);
-  // Unlisted entries remain searchable but stay out of default suggestions.
-  const trending = useMemo(
-    () => searchEntries.filter((entry) => !entry.unlisted).slice(0, TRENDING_LIMIT),
-    [searchEntries],
-  );
+  const trending = useMemo(() => searchEntries.slice(0, TRENDING_LIMIT), [searchEntries]);
 
   const resetSearch = useCallback(() => {
     setActiveView("trending");
@@ -242,7 +227,6 @@ export const SearchButton = ({ searchEntries }: { searchEntries: SearchEntry[] }
   const viewSuggestions = {
     trending: trendingSuggestions,
     element: suggestionsFor("element"),
-    source: suggestionsFor("source"),
     style: suggestionsFor("style"),
   } satisfies Record<SearchView, SearchSuggestion[]>;
 

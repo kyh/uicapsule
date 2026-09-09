@@ -5,7 +5,7 @@
   "featured": true,
   "coverUrl": "https://zmdrwswxugswzmcokvff.supabase.co/storage/v1/object/public/uicapsule/tesla-climate/tesla-climate.mp4",
   "coverType": "video",
-  "tags": ["controls", "hardware", "skeuomorphism"],
+  "tags": ["controls", "skeuomorphism"],
   "inspiredBy": [
     {
       "label": "Tesla Model 3 climate controls",

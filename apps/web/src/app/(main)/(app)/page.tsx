@@ -2,7 +2,6 @@ import { Suspense } from "react";
 import Link from "next/link";
 import {
   contentElements,
-  contentSources,
   contentStyles,
   type ContentFilter,
 } from "@/lib/content/content-categories";
@@ -66,13 +65,6 @@ const Filters = async ({ searchParams }: PageProps) => {
       options: withCounts(contentElements, counts.elements),
     },
     {
-      key: "source",
-      label: "Sources",
-      allLabel: "All sources",
-      mode: "single",
-      options: withCounts(contentSources, counts.sources),
-    },
-    {
       key: "style",
       label: "Styles",
       allLabel: "All styles",
@@ -130,7 +122,6 @@ const parseFilter = async (searchParams: SearchParams): Promise<GalleryFilter> =
   return {
     view: params.view?.toString() === "recommended" ? "recommended" : "recent",
     element: slugs("element")[0],
-    source: slugs("source")[0],
     styles: slugs("style"),
   };
 };

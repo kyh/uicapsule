@@ -19,7 +19,7 @@ const sourceFiles = [
   { path: "/preview.tsx", code: "export default function Preview() { return null; }" },
   { path: "/README.md", code: "Example component" },
 ];
-const tags = ["effects", "web"];
+const tags = ["effects"];
 const fixtureFiles: [string, string][] = [
   ["local/meta.json", JSON.stringify({ name: "Local", addedAt: "2026-01-01", tags })],
   ...sourceFiles.map((file): [string, string] => [`local${file.path}`, file.code]),

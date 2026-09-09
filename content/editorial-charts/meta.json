@@ -5,6 +5,6 @@
   "featured": true,
   "coverUrl": "https://zmdrwswxugswzmcokvff.supabase.co/storage/v1/object/public/uicapsule/editorial-charts/editorial-charts.mp4",
   "coverType": "video",
-  "tags": ["data", "web", "minimal"],
+  "tags": ["data", "minimal"],
   "defaultSize": "full"
 }

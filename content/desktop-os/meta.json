@@ -5,6 +5,6 @@
   "featured": true,
   "coverUrl": "https://zmdrwswxugswzmcokvff.supabase.co/storage/v1/object/public/uicapsule/desktop-os/desktop-os.mp4",
   "coverType": "video",
-  "tags": ["pages", "os", "skeuomorphism"],
+  "tags": ["pages", "skeuomorphism"],
   "defaultSize": "full"
 }

@@ -5,6 +5,6 @@
   "featured": true,
   "coverUrl": "https://zmdrwswxugswzmcokvff.supabase.co/storage/v1/object/public/uicapsule/lookbook-camera/lookbook-camera.mp4",
   "coverType": "video",
-  "tags": ["cards-grids", "spatial"],
+  "tags": ["cards-grids"],
   "defaultSize": "full"
 }

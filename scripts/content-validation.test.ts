@@ -6,7 +6,7 @@ import { test, type TestContext } from "node:test";
 
 import { validateContentDirectory } from "./content-validation";
 
-const validMeta = { name: "Example", addedAt: "2026-01-01", tags: ["effects", "web"] };
+const validMeta = { name: "Example", addedAt: "2026-01-01", tags: ["effects"] };
 
 const fixture = async (context: TestContext, files: [string, string][]) => {
   const directory = await mkdtemp(join(tmpdir(), "uicapsule-registry-"));
@@ -82,7 +82,7 @@ test("requires valid metadata and a real preview before publishing local content
   assert.ok((await validateContentDirectory(directory)).some((issue) => issue.startsWith("name:")));
   await writeFile(
     join(directory, "meta.json"),
-    JSON.stringify({ ...validMeta, tags: ["effects", "controls", "web"] }),
+    JSON.stringify({ ...validMeta, tags: ["effects", "controls"] }),
   );
   assert.ok((await validateContentDirectory(directory)).some((issue) => issue.startsWith("tags:")));
   await writeFile(join(directory, "meta.json"), JSON.stringify(validMeta));

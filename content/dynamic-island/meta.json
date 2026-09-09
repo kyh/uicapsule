@@ -5,7 +5,7 @@
   "featured": true,
   "coverUrl": "https://zmdrwswxugswzmcokvff.supabase.co/storage/v1/object/public/uicapsule/dynamic-island/dynamic-island.mp4",
   "coverType": "video",
-  "tags": ["navigation", "os", "skeuomorphism"],
+  "tags": ["navigation", "skeuomorphism"],
   "inspiredBy": [
     {
       "label": "Apple Dynamic Island",

@@ -1,18 +1,12 @@
 import { z } from "zod";
 
-import { elementSlugs, sourceSlugs } from "./content-categories";
+import { elementSlugs } from "./content-categories";
 
-const countIn = (tags: string[], slugs: ReadonlySet<string>) =>
-  tags.filter((tag) => slugs.has(tag)).length;
-
-// Gallery axes are single-valued so counts and filters stay exact.
+// The element axis is single-valued so counts and filters stay exact.
 const tagsSchema = z
   .array(z.string())
-  .refine((tags) => countIn(tags, elementSlugs) === 1, {
+  .refine((tags) => tags.filter((tag) => elementSlugs.has(tag)).length === 1, {
     message: `tags must contain exactly one element tag: ${[...elementSlugs].join(", ")}`,
-  })
-  .refine((tags) => countIn(tags, sourceSlugs) === 1, {
-    message: `tags must contain exactly one source tag: ${[...sourceSlugs].join(", ")}`,
   });
 
 const linkSchema = z.object({ label: z.string().min(1), url: z.url() });

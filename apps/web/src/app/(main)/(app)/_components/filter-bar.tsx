@@ -43,7 +43,7 @@ import type { GalleryView } from "@/lib/content-data";
 export type FacetOption = { name: string; slug: string; count: number };
 
 export type Facet = {
-  key: "element" | "source" | "style";
+  key: "element" | "style";
   label: string;
   allLabel: string;
   mode: "single" | "multi";
