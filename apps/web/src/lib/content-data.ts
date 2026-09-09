@@ -42,18 +42,22 @@ const matchesFilter = (component: ContentComponentSummary, filter: GalleryFilter
   const { tags } = component;
   const matchesAxis = (selection: string[]) =>
     selection.length === 0 || selection.some((slug) => tags.includes(slug));
-
-  if (filter.view === "recommended" && !component.featured) return false;
   return matchesAxis(filter.elements) && matchesAxis(filter.styles);
 };
 
 const visibleContent = (all: ContentComponentSummary[], filter: GalleryFilter) =>
   all.filter((component) => matchesFilter(component, filter));
 
+// The index is already newest-first; a view only reorders, never hides.
+const orderBy = (view: GalleryView, components: ContentComponentSummary[]) =>
+  view === "recommended"
+    ? components.toSorted((a, b) => Number(Boolean(b.featured)) - Number(Boolean(a.featured)))
+    : components;
+
 export const getContentList = async (filter: GalleryFilter): Promise<GalleryEntry[]> => {
   "use cache";
   cacheLife("max");
-  return markNew(visibleContent(await getAllContent(), filter));
+  return markNew(orderBy(filter.view, visibleContent(await getAllContent(), filter)));
 };
 
 export type FilterCounts = {
