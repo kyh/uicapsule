@@ -88,23 +88,28 @@ const Aside = ({ contentComponent }: AsideProps) => {
     if (contentComponent.type !== "local" || copied) return;
 
     const command = `npx shadcn@latest add @uicapsule/${contentComponent.slug}`;
+    // Always wider than the toast; the fade signals overflow without a scrollbar.
+    const snippet = (
+      <code className="bg-muted block rounded px-2 py-1.5 font-[monospace]">
+        <span className="block overflow-x-auto whitespace-nowrap [mask-image:linear-gradient(to_right,black_calc(100%-2rem),transparent)] [scrollbar-width:none]">
+          {command}
+        </span>
+      </code>
+    );
 
     try {
       await navigator.clipboard.writeText(command);
     } catch (err) {
       console.error("Failed to copy command to clipboard:", err);
-      toast.error("Failed to copy command to clipboard.", {
-        description: (
-          <code className="bg-muted mt-1 block rounded p-2 font-[monospace]">{command}</code>
-        ),
-      });
+      toast.error("Failed to copy command to clipboard.", { description: snippet });
       return;
     }
 
     setCopied(true);
     copiedTimerRef.current = setTimeout(() => setCopied(false), COPIED_RESET_DELAY);
 
-    toast(<code className="bg-muted block rounded p-2 font-[monospace]">{command}</code>, {
+    toast("Copied to clipboard", {
+      description: snippet,
       icon: <ClipboardCheckIcon className="size-4" />,
     });
   };
