@@ -175,23 +175,22 @@ const Aside = ({ contentComponent }: AsideProps) => {
               </Button>
             </ButtonGroup>
             <div className="flex justify-center">
-              <motion.button
-                layout
-                className={cn(
-                  "text-muted-foreground flex items-center gap-1 text-xs underline decoration-dotted transition-colors",
-                  copied && "text-primary decoration-transparent",
-                )}
+              <button
+                type="button"
+                className="text-muted-foreground grid text-xs"
                 onClick={() => void handleInstallClick()}
               >
-                <AnimatePresence mode="popLayout" initial={false}>
+                <AnimatePresence initial={false}>
                   <motion.span
                     key={copied ? "copied" : "install"}
-                    layout="position"
-                    className="flex items-center gap-1"
+                    className={cn(
+                      "col-start-1 row-start-1 flex items-center justify-center gap-1 underline decoration-dotted",
+                      copied && "text-primary decoration-transparent",
+                    )}
                     initial={{ opacity: 0, filter: "blur(4px)" }}
                     animate={{ opacity: 1, filter: "blur(0px)" }}
                     exit={{ opacity: 0, filter: "blur(4px)" }}
-                    transition={{ type: "spring", stiffness: 260, damping: 18 }}
+                    transition={{ duration: 0.2, ease: "easeOut" }}
                   >
                     {copied ? (
                       <>
@@ -224,7 +223,7 @@ const Aside = ({ contentComponent }: AsideProps) => {
                     )}
                   </motion.span>
                 </AnimatePresence>
-              </motion.button>
+              </button>
             </div>
           </div>
           <DrawerContent className="border-border bg-background text-sm">
