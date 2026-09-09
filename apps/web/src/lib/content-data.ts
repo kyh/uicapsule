@@ -33,18 +33,18 @@ export type GalleryView = "recent" | "recommended";
 
 export type GalleryFilter = {
   view: GalleryView;
-  element?: string;
+  elements: string[];
   styles: string[];
 };
 
+// Selections within an axis are OR'd; the axes themselves are AND'd.
 const matchesFilter = (component: ContentComponentSummary, filter: GalleryFilter) => {
   const { tags } = component;
+  const matchesAxis = (selection: string[]) =>
+    selection.length === 0 || selection.some((slug) => tags.includes(slug));
+
   if (filter.view === "recommended" && !component.featured) return false;
-  if (filter.element && !tags.includes(filter.element)) return false;
-  if (filter.styles.length > 0 && !filter.styles.some((style) => tags.includes(style))) {
-    return false;
-  }
-  return true;
+  return matchesAxis(filter.elements) && matchesAxis(filter.styles);
 };
 
 const visibleContent = (all: ContentComponentSummary[], filter: GalleryFilter) =>
@@ -78,7 +78,7 @@ export const getFilterCounts = async (filter: GalleryFilter): Promise<FilterCoun
     );
 
   return {
-    elements: countBy(elementSlugs, (slug) => ({ element: slug })),
+    elements: countBy(elementSlugs, (slug) => ({ elements: [slug] })),
     styles: countBy(styleSlugs, (slug) => ({ styles: [slug] })),
   };
 };

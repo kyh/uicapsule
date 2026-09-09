@@ -58,24 +58,32 @@ const Filters = async ({ searchParams }: PageProps) => {
 
   const facets: Facet[] = [
     {
+      key: "view",
+      label: "Recently added",
+      mode: "single",
+      searchable: false,
+      defaultOption: { name: "Recently added" },
+      options: [{ name: "Recommended", slug: "recommended" }],
+    },
+    {
       key: "element",
       label: "Components",
-      allLabel: "All components",
-      mode: "single",
+      mode: "multi",
+      searchable: true,
       options: withCounts(contentElements, counts.elements),
     },
     {
       key: "style",
       label: "Styles",
-      allLabel: "All styles",
       mode: "multi",
+      searchable: true,
       options: withCounts(contentStyles, counts.styles),
     },
   ];
 
   return (
-    <div className="flex h-full flex-1 items-center justify-between gap-3 overflow-x-auto px-3 sm:px-6">
-      <FilterBar view={filter.view} facets={facets} />
+    <div className="flex h-full flex-1 items-center gap-3 overflow-x-auto px-3 sm:px-6">
+      <FilterBar facets={facets} />
     </div>
   );
 };
@@ -121,7 +129,7 @@ const parseFilter = async (searchParams: SearchParams): Promise<GalleryFilter> =
 
   return {
     view: params.view?.toString() === "recommended" ? "recommended" : "recent",
-    element: slugs("element")[0],
+    elements: slugs("element"),
     styles: slugs("style"),
   };
 };
