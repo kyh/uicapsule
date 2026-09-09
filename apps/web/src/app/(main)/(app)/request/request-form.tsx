@@ -22,7 +22,7 @@ import {
 import { useMutation } from "@tanstack/react-query";
 import { cn } from "cn";
 import { UploadIcon, XIcon } from "lucide-react";
-import { useForm, useWatch } from "react-hook-form";
+import { useForm } from "react-hook-form";
 import type { FieldErrors, UseFormRegister } from "react-hook-form";
 import { z } from "zod";
 
@@ -82,15 +82,7 @@ const uploadFile = async (file: File): Promise<string> => {
 
 interface Filed {
   url: string;
-  number?: number;
 }
-
-const cardLabelFor = (filed: Filed | null, name: string) => {
-  if (!filed) {
-    return name.trim() || "Your request";
-  }
-  return filed.number ? `Filed · #${filed.number}` : "Filed";
-};
 
 const AttachmentMedia = ({
   attachment,
@@ -228,10 +220,8 @@ export const RequestForm = ({ className }: { className?: string }) => {
   });
   const {
     register,
-    control,
     formState: { errors, isSubmitting },
   } = form;
-  const name = useWatch({ control, name: "name" });
 
   useEffect(
     () => () => {
@@ -304,8 +294,6 @@ export const RequestForm = ({ className }: { className?: string }) => {
     }
   });
 
-  const cardLabel = cardLabelFor(filed, name);
-
   return (
     <form
       className={cn("grid gap-8 lg:grid-cols-[minmax(0,6fr)_minmax(0,5fr)] lg:gap-12", className)}
@@ -357,10 +345,6 @@ export const RequestForm = ({ className }: { className?: string }) => {
             event.target.value = "";
           }}
         />
-        <div className="flex justify-between font-mono text-xs">
-          <p className={cn("truncate", filed ? "text-primary" : "text-foreground")}>{cardLabel}</p>
-          <p className="text-muted-foreground/50">REQ</p>
-        </div>
         {attachments.length > 0 && (
           <ul className="flex flex-wrap gap-2">
             {attachments.map((attachment) => (

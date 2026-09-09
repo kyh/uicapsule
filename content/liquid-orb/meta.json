@@ -2,7 +2,8 @@
   "name": "Liquid Orb",
   "description": "Liquid-glass shader orb that morphs through material presets — siri, aurora, plasma, chrome, opal, blue drop, violet ember",
   "addedAt": "2026-09-01",
+  "featured": true,
   "coverUrl": "https://zmdrwswxugswzmcokvff.supabase.co/storage/v1/object/public/uicapsule/liquid-orb/liquid-orb.mp4",
   "coverType": "video",
-  "tags": ["effects", "geometric", "design"]
+  "tags": ["effects", "geometric"]
 }

@@ -2,6 +2,7 @@
 
 import { Badge } from "@repo/ui/components/badge";
 import { Button, buttonVariants } from "@repo/ui/components/button";
+import { ButtonGroup } from "@repo/ui/components/button-group";
 import { Card } from "@repo/ui/components/card";
 import {
   Drawer,
@@ -27,6 +28,7 @@ import {
 import { AnimatePresence, motion } from "motion/react";
 import { Suspense, useEffect, useRef, useState } from "react";
 
+import { tagLabel } from "@/lib/content/content-categories";
 import type { ContentComponentSummary, SourceFile } from "@/lib/content/content-schema";
 import dynamic from "next/dynamic";
 
@@ -127,23 +129,28 @@ const Aside = ({ contentComponent }: AsideProps) => {
     }
 
     const command = `npx shadcn@latest add @uicapsule/${contentComponent.slug}`;
+    // Always wider than the toast; the fade signals overflow without a scrollbar.
+    const snippet = (
+      <code className="bg-muted block rounded px-2 py-1.5 font-[monospace]">
+        <span className="block overflow-x-auto whitespace-nowrap [mask-image:linear-gradient(to_right,black_calc(100%-2rem),transparent)] [scrollbar-width:none]">
+          {command}
+        </span>
+      </code>
+    );
 
     try {
       await navigator.clipboard.writeText(command);
     } catch (error) {
       console.error("Failed to copy command to clipboard:", error);
-      toast.error("Failed to copy command to clipboard.", {
-        description: (
-          <code className="bg-muted mt-1 block rounded p-2 font-[monospace]">{command}</code>
-        ),
-      });
+      toast.error("Failed to copy command to clipboard.", { description: snippet });
       return;
     }
 
     setCopied(true);
     copiedTimerRef.current = setTimeout(() => setCopied(false), COPIED_RESET_DELAY);
 
-    toast(<code className="bg-muted block rounded p-2 font-[monospace]">{command}</code>, {
+    toast("Copied to clipboard", {
+      description: snippet,
       icon: <ClipboardCheckIcon className="size-4" />,
     });
   };
@@ -184,43 +191,38 @@ const Aside = ({ contentComponent }: AsideProps) => {
       {contentComponent.type === "local" ? (
         <Drawer>
           <div className="flex flex-col gap-1.5">
-            <div className="flex rounded-full shadow-xs">
+            <ButtonGroup className="w-full shadow-xs">
               <DrawerTrigger
                 className={buttonVariants({
-                  className:
-                    "flex-1 rounded-none rounded-s-full border-e-0 pl-12 shadow-none focus-visible:z-10",
+                  className: "flex-1 pl-12 shadow-none",
                   variant: "outline",
                 })}
               >
                 View Source
               </DrawerTrigger>
-              <Button
-                variant="outline"
-                className="rounded-none rounded-e-full shadow-none focus-visible:z-10"
-                onClick={handleDownloadClick}
-              >
+              <Button variant="outline" className="shadow-none" onClick={handleDownloadClick}>
                 <span className="sr-only">Download</span>
                 <DownloadIcon className="size-4" />
               </Button>
-            </div>
+            </ButtonGroup>
             <div className="flex justify-center">
-              <motion.button
-                layout
-                className={cn(
-                  "text-muted-foreground flex items-center gap-1 text-xs underline decoration-dotted transition-colors",
-                  copied && "text-primary decoration-transparent",
-                )}
+              <button
+                type="button"
+                aria-label="Copy the shadcn install command"
+                className="text-muted-foreground grid text-xs"
                 onClick={handleInstallClick}
               >
-                <AnimatePresence mode="popLayout" initial={false}>
+                <AnimatePresence initial={false}>
                   <motion.span
                     key={copied ? "copied" : "install"}
-                    layout="position"
-                    className="flex items-center gap-1"
+                    className={cn(
+                      "col-start-1 row-start-1 flex items-center justify-center gap-1 underline decoration-dotted",
+                      copied && "text-primary decoration-transparent",
+                    )}
                     initial={{ filter: "blur(4px)", opacity: 0 }}
                     animate={{ filter: "blur(0px)", opacity: 1 }}
                     exit={{ filter: "blur(4px)", opacity: 0 }}
-                    transition={{ damping: 18, stiffness: 260, type: "spring" }}
+                    transition={{ duration: 0.2, ease: "easeOut" }}
                   >
                     {copied ? (
                       <>
@@ -253,7 +255,7 @@ const Aside = ({ contentComponent }: AsideProps) => {
                     )}
                   </motion.span>
                 </AnimatePresence>
-              </motion.button>
+              </button>
             </div>
           </div>
           <DrawerContent className="border-border bg-background text-sm">
@@ -279,25 +281,23 @@ const Aside = ({ contentComponent }: AsideProps) => {
             }
             nativeButton={false}
             variant="outline"
-            className="w-full rounded-full shadow-none focus-visible:z-10"
+            className="w-full shadow-xs"
           >
             View Source on GitHub
           </Button>
           <span className="text-muted-foreground text-center text-xs">Opens in a new tab</span>
         </div>
       )}
-      {contentComponent.tags && (
-        <div className={SECTION_CLASS}>
-          <h2>Tags</h2>
-          <div className="flex flex-wrap gap-2">
-            {contentComponent.tags.map((tag) => (
-              <Badge key={tag} variant="secondary">
-                {tag}
-              </Badge>
-            ))}
-          </div>
+      <div className={SECTION_CLASS}>
+        <h2>Tags</h2>
+        <div className="flex flex-wrap gap-2">
+          {contentComponent.tags.map((tag) => (
+            <Badge key={tag} variant="secondary">
+              {tagLabel(tag)}
+            </Badge>
+          ))}
         </div>
-      )}
+      </div>
       {contentComponent.authors && (
         <div className={SECTION_CLASS}>
           <h2>Author</h2>

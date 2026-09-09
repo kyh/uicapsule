@@ -1,70 +1,81 @@
 import { Suspense } from "react";
 import Link from "next/link";
-import {
-  contentCategories,
-  contentElements,
-  contentStyles,
-} from "@/lib/content/content-categories";
+import { contentElements, contentStyles } from "@/lib/content/content-categories";
+import type { ContentFilter } from "@/lib/content/content-categories";
 import { Button } from "@repo/ui/components/button";
 
-import { getContentList } from "@/lib/content-data";
+import { getContentList, getFilterCounts } from "@/lib/content-data";
+import type { GalleryFilter } from "@/lib/content-data";
 import { ContentPreview, ContentPreviewSkeleton } from "./_components/content-preview";
-import { FilterBar } from "./_components/filter-combo-box";
+import { FilterBar } from "./_components/filter-bar";
+import type { Facet } from "./_components/filter-bar";
+
+type SearchParams = Promise<Record<string, string | string[] | undefined>>;
 
 interface PageProps {
-  searchParams: Promise<Record<string, string | string[] | undefined>>;
+  searchParams: SearchParams;
 }
 
 const skeletonIds = Array.from({ length: 14 }, (_, index) => `placeholder-${index}`);
 
-const getFilters = async (searchParams: Promise<Record<string, string | string[] | undefined>>) => {
-  const allSearchParams = await searchParams;
-  const elementFilter = allSearchParams.element?.toString().split(",") ?? [];
-  const styleFilter = allSearchParams.style?.toString().split(",") ?? [];
-  const categoryFilter = allSearchParams.category?.toString().split(",") ?? [];
+const parseFilter = async (searchParams: SearchParams): Promise<GalleryFilter> => {
+  const params = await searchParams;
+  const slugs = (key: string) =>
+    (params[key]?.toString() ?? "")
+      .split(",")
+      .map((slug) => slug.trim().toLowerCase())
+      .filter(Boolean);
 
   return {
-    categoryFilter,
-    elementFilter,
-    styleFilter,
+    elements: slugs("element"),
+    styles: slugs("style"),
+    view: params.view?.toString() === "recommended" ? "recommended" : "recent",
   };
 };
 
+const withCounts = (options: ContentFilter[], counts: Record<string, number>) =>
+  options.map((option) => ({ ...option, count: counts[option.slug] ?? 0 }));
+
 const Filters = async ({ searchParams }: PageProps) => {
-  const { elementFilter, styleFilter, categoryFilter } = await getFilters(searchParams);
+  const filter = await parseFilter(searchParams);
+  const counts = await getFilterCounts(filter);
+
+  const facets: Facet[] = [
+    {
+      defaultOption: { name: "Recently added" },
+      key: "view",
+      label: "Recently added",
+      mode: "single",
+      options: [{ name: "Recommended", slug: "recommended" }],
+      searchable: false,
+      standalone: true,
+    },
+    {
+      key: "element",
+      label: "Components",
+      mode: "multi",
+      options: withCounts(contentElements, counts.elements),
+      searchable: true,
+    },
+    {
+      key: "style",
+      label: "Styles",
+      mode: "multi",
+      options: withCounts(contentStyles, counts.styles),
+      searchable: true,
+    },
+  ];
 
   return (
-    <div className="flex h-full flex-1 items-center gap-3 px-3 sm:px-6">
-      <FilterBar
-        filters={[
-          {
-            defaultLabel: "Elements",
-            filterKey: "element",
-            filterOptions: contentElements,
-            highlighted: elementFilter.length > 0,
-          },
-          {
-            defaultLabel: "Styles",
-            filterKey: "style",
-            filterOptions: contentStyles,
-            highlighted: styleFilter.length > 0,
-          },
-          {
-            defaultLabel: "Categories",
-            filterKey: "category",
-            filterOptions: contentCategories,
-            highlighted: categoryFilter.length > 0,
-          },
-        ]}
-      />
+    <div className="flex h-full flex-1 items-center gap-3 overflow-x-auto px-3 sm:px-6">
+      <FilterBar facets={facets} />
     </div>
   );
 };
 
 const ContentList = async ({ searchParams }: PageProps) => {
-  const { elementFilter, styleFilter, categoryFilter } = await getFilters(searchParams);
-  const filters = [elementFilter, styleFilter, categoryFilter].flat();
-  const content = await getContentList(filters);
+  const filter = await parseFilter(searchParams);
+  const content = await getContentList(filter);
 
   if (content.length === 0) {
     return (
@@ -85,7 +96,7 @@ const ContentList = async ({ searchParams }: PageProps) => {
       slug={c.slug}
       name={c.name}
       index={index}
-      tags={c.tags ?? []}
+      tags={c.tags}
       isNew={c.isNew}
       coverUrl={c.coverUrl}
       coverType={c.coverType}

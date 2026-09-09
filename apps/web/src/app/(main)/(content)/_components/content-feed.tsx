@@ -6,6 +6,7 @@ import type { Ref } from "react";
 import type { ContentComponentSummary, DefaultSize } from "@/lib/content/content-schema";
 import { MediaReveal } from "@/components/media-reveal";
 import { ResponsiveAside } from "./aside";
+import { Resizable } from "./resizable";
 
 const WIDTH_BY_SIZE = { full: 1392, md: 720, sm: 360 } satisfies Record<DefaultSize, number>;
 
@@ -24,11 +25,12 @@ interface ContentFeedProps {
 interface FeedItemProps {
   ref?: Ref<HTMLElement>;
   component: ContentComponentSummary;
+  active: boolean;
   shouldRender: boolean;
   keepMounted: boolean;
 }
 
-const FeedItemBase = ({ ref, component, shouldRender, keepMounted }: FeedItemProps) => {
+const FeedItemBase = ({ ref, component, active, shouldRender, keepMounted }: FeedItemProps) => {
   // Keep visited neighbors mounted so scrolling back preserves preview state.
   const [everRendered, setEverRendered] = useState(shouldRender);
   if (shouldRender && !everRendered) {
@@ -39,23 +41,30 @@ const FeedItemBase = ({ ref, component, shouldRender, keepMounted }: FeedItemPro
   const src =
     component.type === "remote" ? component.iframeUrl : `/preview-frame/${component.slug}`;
 
-  const width = WIDTH_BY_SIZE[component.defaultSize ?? "md"];
+  const [width, setWidth] = useState(WIDTH_BY_SIZE[component.defaultSize ?? "md"]);
 
+  // Off-screen panes stay mounted for instant scrolling but must not take focus.
   return (
     <section
       ref={ref}
       data-slug={component.slug}
+      inert={!active}
       className="flex h-full snap-start snap-always items-center justify-center px-3 pb-2"
     >
-      <div
-        className="bg-background h-full w-full overflow-hidden rounded-md border"
-        style={{ maxWidth: `${width}px` }}
+      <Resizable
+        className="h-full"
+        width={width}
+        minWidth={WIDTH_BY_SIZE.sm}
+        maxWidth={WIDTH_BY_SIZE.full}
+        onWidthChange={setWidth}
       >
-        <MediaReveal
-          className="h-full w-full"
-          iframe={mountIframe ? { src, title: component.name, type: component.type } : undefined}
-        />
-      </div>
+        <div className="bg-background h-full w-full overflow-hidden rounded-md border">
+          <MediaReveal
+            className="h-full w-full"
+            iframe={mountIframe ? { src, title: component.name, type: component.type } : undefined}
+          />
+        </div>
+      </Resizable>
     </section>
   );
 };
@@ -209,6 +218,7 @@ export const ContentFeed = ({ initialSlug, feed }: ContentFeedProps) => {
             key={item.slug}
             ref={itemRefSetters[idx]}
             component={item}
+            active={idx === activeIndex}
             shouldRender={Math.abs(idx - activeIndex) <= 1}
             keepMounted={Math.abs(idx - activeIndex) <= 2}
           />

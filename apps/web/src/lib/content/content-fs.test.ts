@@ -19,8 +19,9 @@ const sourceFiles = [
   { code: "export default function Preview() { return null; }", path: "/preview.tsx" },
   { code: "Example component", path: "/README.md" },
 ];
+const tags = ["effects"];
 const fixtureFiles: [string, string][] = [
-  ["local/meta.json", JSON.stringify({ addedAt: "2026-01-01", name: "Local" })],
+  ["local/meta.json", JSON.stringify({ addedAt: "2026-01-01", name: "Local", tags })],
   ...sourceFiles.map((file): [string, string] => [`local${file.path}`, file.code]),
   ["local/node_modules/dep/index.ts", "ignored"],
   ["local/dist/index.js", "ignored"],
@@ -36,14 +37,20 @@ const fixtureFiles: [string, string][] = [
       iframeUrl: "https://example.com/preview",
       name: "Remote",
       sourceUrl: "https://example.com/source",
+      tags,
       type: "remote",
     }),
   ],
   ["broken-json/meta.json", "{"],
   ["bad-metadata/meta.json", JSON.stringify({ name: 42 })],
   ["bad-metadata/preview.tsx", "export default function Preview() {}"],
-  ["missing-preview/meta.json", JSON.stringify({ addedAt: "2026-01-01", name: "Missing preview" })],
-  [".hidden/meta.json", JSON.stringify({ addedAt: "2026-01-01", name: "Hidden" })],
+  ["untagged/meta.json", JSON.stringify({ addedAt: "2026-01-01", name: "Untagged", tags: [] })],
+  ["untagged/preview.tsx", "export default function Preview() {}"],
+  [
+    "missing-preview/meta.json",
+    JSON.stringify({ addedAt: "2026-01-01", name: "Missing preview", tags }),
+  ],
+  [".hidden/meta.json", JSON.stringify({ addedAt: "2026-01-01", name: "Hidden", tags })],
   [".hidden/preview.tsx", "export default function Preview() {}"],
 ];
 await mkdir(webRoot, { recursive: true });
@@ -73,9 +80,10 @@ test("indexes loadable metadata without reading component source", async () => {
         name: "Remote",
         slug: "remote",
         sourceUrl: "https://example.com/source",
+        tags,
         type: "remote",
       },
-      { addedAt: "2026-01-01", name: "Local", slug: "local", type: "local" },
+      { addedAt: "2026-01-01", name: "Local", slug: "local", tags, type: "local" },
     ]);
   } finally {
     await chmod(sourcePath, 0o600);

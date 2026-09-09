@@ -1,85 +1,39 @@
 export interface ContentFilter {
   name: string;
   slug: string;
-  subcategories?: { name: string; slug: string }[];
 }
 
-export const contentCategories: ContentFilter[] = [
-  { name: "Silly", slug: "silly" },
-  { name: "AI", slug: "ai" },
-  { name: "Productivity", slug: "productivity" },
-  { name: "Social", slug: "social" },
-  { name: "Entertainment", slug: "entertainment" },
-  { name: "Education", slug: "education" },
-  { name: "Finance", slug: "finance" },
-  { name: "Health & Fitness", slug: "health-fitness" },
-  { name: "Design", slug: "design" },
-  { name: "Business", slug: "business" },
-  { name: "Games", slug: "games" },
-  { name: "Utilities", slug: "utilities" },
+// Every component carries exactly one element tag, enforced by the metadata
+// schema so a gallery filter can never yield a stray entry.
+export const contentElements: ContentFilter[] = [
+  { name: "Effects", slug: "effects" },
+  { name: "Controls", slug: "controls" },
+  { name: "Cards & Grids", slug: "cards-grids" },
+  { name: "Navigation", slug: "navigation" },
+  { name: "Data", slug: "data" },
+  { name: "Pages", slug: "pages" },
 ];
 
-// Hidden by default; still reachable through explicit filters, search, links, and installs.
-export const unlistedTags: ReadonlySet<string> = new Set(["silly"]);
-
-export const isUnlisted = (tags: string[] | undefined) =>
-  (tags ?? []).some((tag) => unlistedTags.has(tag));
-
+// Only styles with shipped content belong here; an option that yields an empty
+// gallery is worse than no option.
 export const contentStyles: ContentFilter[] = [
   { name: "Minimal", slug: "minimal" },
-  { name: "Skeuomorphism", slug: "skeuomorphism" },
-  { name: "Colorful", slug: "colorful" },
-  { name: "Monochrome", slug: "monochrome" },
-  { name: "Cyberpunk", slug: "cyberpunk" },
-  { name: "Typographic", slug: "typographic" },
   { name: "Geometric", slug: "geometric" },
-  { name: "Retro", slug: "retro" },
+  { name: "Skeuomorphism", slug: "skeuomorphism" },
   { name: "Pixel Art", slug: "pixel-art" },
+  { name: "Colorful", slug: "colorful" },
+  { name: "Cyberpunk", slug: "cyberpunk" },
+  { name: "Silly", slug: "silly" },
 ];
 
-export const contentElements: ContentFilter[] = [
-  {
-    name: "Control",
-    slug: "control",
-    subcategories: [
-      { name: "Buttons and Links", slug: "buttons-and-links" },
-      { name: "Inputs", slug: "inputs" },
-      { name: "Video & Audio", slug: "video-audio" },
-    ],
-  },
-  {
-    name: "View",
-    slug: "view",
-    subcategories: [
-      { name: "Cards", slug: "cards" },
-      { name: "Carousels", slug: "carousels" },
-      { name: "Grids", slug: "grids" },
-      { name: "Navigation", slug: "navigation" },
-      { name: "Tables", slug: "tables" },
-      { name: "Toolbars", slug: "toolbars" },
-      { name: "Trees", slug: "trees" },
-      { name: "Charts", slug: "charts" },
-      { name: "Effects", slug: "effects" },
-    ],
-  },
-  {
-    name: "Overlay",
-    slug: "overlay",
-    subcategories: [
-      { name: "Dialog and Drawer", slug: "dialog-and-drawer" },
-      {
-        name: "Dropdown, Popovers, and Tooltips",
-        slug: "dropdown-popovers-and-tooltips",
-      },
-      { name: "Toast", slug: "toast" },
-    ],
-  },
-  {
-    name: "Templates",
-    slug: "templates",
-    subcategories: [
-      { name: "Landing Pages", slug: "landing-pages" },
-      { name: "Dashboard Pages", slug: "dashboard-pages" },
-    ],
-  },
-];
+const slugSet = (filters: ContentFilter[]): ReadonlySet<string> =>
+  new Set(filters.map((filter) => filter.slug));
+
+export const elementSlugs = slugSet(contentElements);
+export const styleSlugs = slugSet(contentStyles);
+
+const labels = new Map(
+  [...contentElements, ...contentStyles].map((filter) => [filter.slug, filter.name]),
+);
+
+export const tagLabel = (slug: string) => labels.get(slug) ?? slug;

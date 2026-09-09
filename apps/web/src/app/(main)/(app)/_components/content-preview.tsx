@@ -32,24 +32,27 @@ export const ContentPreview = ({
       href={`/ui/${slug}`}
       onClick={() => trigger("selection")}
     >
-      <MediaReveal
-        className="aspect-video w-full"
-        image={coverType === "image" ? coverUrl : undefined}
-        video={coverType === "video" ? coverUrl : undefined}
-      />
+      <div className="relative">
+        <MediaReveal
+          className="aspect-video w-full"
+          image={coverType === "image" ? coverUrl : undefined}
+          video={coverType === "video" ? coverUrl : undefined}
+        />
+        {isNew && (
+          <Badge
+            className="bg-background/80 absolute top-2 left-2 z-10 backdrop-blur-sm"
+            variant="outline"
+          >
+            New
+          </Badge>
+        )}
+      </div>
       <div className="flex justify-between font-mono text-xs">
-        <p className="group-hover:text-primary flex items-center gap-2 transition">
-          {name}
-          {isNew && (
-            <Badge className="group-hover:text-primary" variant="secondary">
-              New
-            </Badge>
-          )}
-        </p>
+        <p className="group-hover:text-primary transition">{name}</p>
         <p className="text-muted-foreground/50 group-hover:text-primary/50 transition">
-          {tags.includes("landing-pages") || tags.includes("dashboard-pages") ? (
+          {tags.includes("pages") ? (
             <Badge className="group-hover:text-primary" variant="secondary">
-              Landing Page
+              Page
             </Badge>
           ) : (
             String(index).padStart(3, "0")

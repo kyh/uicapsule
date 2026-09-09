@@ -28,6 +28,10 @@ const NavigationMenuTrigger = ({ ...props }: NavigationMenuPrimitive.Trigger.Pro
   <NavigationMenuPrimitive.Trigger data-slot="navigation-menu-trigger" {...props} />
 );
 
+const NavigationMenuLink = ({ ...props }: NavigationMenuPrimitive.Link.Props) => (
+  <NavigationMenuPrimitive.Link data-slot="navigation-menu-link" {...props} />
+);
+
 const NavigationMenuContent = ({ className, ...props }: NavigationMenuPrimitive.Content.Props) => (
   <NavigationMenuPrimitive.Content
     data-slot="navigation-menu-content"
@@ -96,6 +100,7 @@ export {
   NavigationMenuList,
   NavigationMenuItem,
   NavigationMenuTrigger,
+  NavigationMenuLink,
   NavigationMenuContent,
   NavigationMenuPortal,
   NavigationMenuPositioner,
