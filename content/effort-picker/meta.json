@@ -4,7 +4,7 @@
   "addedAt": "2026-07-13",
   "coverUrl": "https://zmdrwswxugswzmcokvff.supabase.co/storage/v1/object/public/uicapsule/effort-picker/effort-picker.mp4",
   "coverType": "video",
-  "tags": ["silly", "minimal", "inputs"],
+  "tags": ["controls", "web", "minimal", "silly"],
   "inspiredBy": [
     {
       "label": "OpenAI Codex",

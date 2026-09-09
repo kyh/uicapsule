@@ -32,6 +32,10 @@ function NavigationMenuTrigger({ ...props }: NavigationMenuPrimitive.Trigger.Pro
   return <NavigationMenuPrimitive.Trigger data-slot="navigation-menu-trigger" {...props} />;
 }
 
+function NavigationMenuLink({ ...props }: NavigationMenuPrimitive.Link.Props) {
+  return <NavigationMenuPrimitive.Link data-slot="navigation-menu-link" {...props} />;
+}
+
 function NavigationMenuContent({ className, ...props }: NavigationMenuPrimitive.Content.Props) {
   return (
     <NavigationMenuPrimitive.Content
@@ -105,6 +109,7 @@ export {
   NavigationMenuList,
   NavigationMenuItem,
   NavigationMenuTrigger,
+  NavigationMenuLink,
   NavigationMenuContent,
   NavigationMenuPortal,
   NavigationMenuPositioner,

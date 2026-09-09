@@ -19,8 +19,9 @@ const sourceFiles = [
   { path: "/preview.tsx", code: "export default function Preview() { return null; }" },
   { path: "/README.md", code: "Example component" },
 ];
+const tags = ["effects", "web"];
 const fixtureFiles: [string, string][] = [
-  ["local/meta.json", JSON.stringify({ name: "Local", addedAt: "2026-01-01" })],
+  ["local/meta.json", JSON.stringify({ name: "Local", addedAt: "2026-01-01", tags })],
   ...sourceFiles.map((file): [string, string] => [`local${file.path}`, file.code]),
   ["local/node_modules/dep/index.ts", "ignored"],
   ["local/dist/index.js", "ignored"],
@@ -34,6 +35,7 @@ const fixtureFiles: [string, string][] = [
     JSON.stringify({
       name: "Remote",
       addedAt: "2026-01-02",
+      tags,
       type: "remote",
       iframeUrl: "https://example.com/preview",
       sourceUrl: "https://example.com/source",
@@ -42,8 +44,13 @@ const fixtureFiles: [string, string][] = [
   ["broken-json/meta.json", "{"],
   ["bad-metadata/meta.json", JSON.stringify({ name: 42 })],
   ["bad-metadata/preview.tsx", "export default function Preview() {}"],
-  ["missing-preview/meta.json", JSON.stringify({ name: "Missing preview", addedAt: "2026-01-01" })],
-  [".hidden/meta.json", JSON.stringify({ name: "Hidden", addedAt: "2026-01-01" })],
+  ["untagged/meta.json", JSON.stringify({ name: "Untagged", addedAt: "2026-01-01", tags: [] })],
+  ["untagged/preview.tsx", "export default function Preview() {}"],
+  [
+    "missing-preview/meta.json",
+    JSON.stringify({ name: "Missing preview", addedAt: "2026-01-01", tags }),
+  ],
+  [".hidden/meta.json", JSON.stringify({ name: "Hidden", addedAt: "2026-01-01", tags })],
   [".hidden/preview.tsx", "export default function Preview() {}"],
 ];
 await mkdir(webRoot, { recursive: true });
@@ -71,11 +78,12 @@ test("indexes loadable metadata without reading component source", async () => {
         slug: "remote",
         name: "Remote",
         addedAt: "2026-01-02",
+        tags,
         type: "remote",
         iframeUrl: "https://example.com/preview",
         sourceUrl: "https://example.com/source",
       },
-      { slug: "local", name: "Local", addedAt: "2026-01-01", type: "local" },
+      { slug: "local", name: "Local", addedAt: "2026-01-01", tags, type: "local" },
     ]);
   } finally {
     await chmod(sourcePath, 0o600);

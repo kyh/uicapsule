@@ -1,18 +1,21 @@
 import { Suspense } from "react";
 import Link from "next/link";
 import {
-  contentCategories,
   contentElements,
+  contentSources,
   contentStyles,
+  type ContentFilter,
 } from "@/lib/content/content-categories";
 import { Button } from "@repo/ui/components/button";
 
-import { getContentList } from "@/lib/content-data";
+import { getContentList, getFilterCounts, type GalleryFilter } from "@/lib/content-data";
 import { ContentPreview, ContentPreviewSkeleton } from "./_components/content-preview";
-import { FilterBar } from "./_components/filter-combo-box";
+import { FilterBar, type Facet } from "./_components/filter-bar";
+
+type SearchParams = Promise<Record<string, string | string[] | undefined>>;
 
 type PageProps = {
-  searchParams: Promise<Record<string, string | string[] | undefined>>;
+  searchParams: SearchParams;
 };
 
 const skeletonIds = Array.from({ length: 14 }, (_, index) => `placeholder-${index}`);
@@ -47,41 +50,47 @@ const Page = ({ searchParams }: PageProps) => {
 
 export default Page;
 
+const withCounts = (options: ContentFilter[], counts: Record<string, number>) =>
+  options.map((option) => ({ ...option, count: counts[option.slug] ?? 0 }));
+
 const Filters = async ({ searchParams }: PageProps) => {
-  const { elementFilter, styleFilter, categoryFilter } = await getFilters(searchParams);
+  const filter = await parseFilter(searchParams);
+  const counts = await getFilterCounts(filter);
+
+  const facets: Facet[] = [
+    {
+      key: "element",
+      label: "Components",
+      allLabel: "All components",
+      mode: "single",
+      options: withCounts(contentElements, counts.elements),
+    },
+    {
+      key: "source",
+      label: "Sources",
+      allLabel: "All sources",
+      mode: "single",
+      options: withCounts(contentSources, counts.sources),
+    },
+    {
+      key: "style",
+      label: "Styles",
+      allLabel: "All styles",
+      mode: "multi",
+      options: withCounts(contentStyles, counts.styles),
+    },
+  ];
 
   return (
-    <div className="flex h-full flex-1 items-center gap-3 px-3 sm:px-6">
-      <FilterBar
-        filters={[
-          {
-            filterKey: "element",
-            filterOptions: contentElements,
-            highlighted: elementFilter.length > 0,
-            defaultLabel: "Elements",
-          },
-          {
-            filterKey: "style",
-            filterOptions: contentStyles,
-            highlighted: styleFilter.length > 0,
-            defaultLabel: "Styles",
-          },
-          {
-            filterKey: "category",
-            filterOptions: contentCategories,
-            highlighted: categoryFilter.length > 0,
-            defaultLabel: "Categories",
-          },
-        ]}
-      />
+    <div className="flex h-full flex-1 items-center justify-between gap-3 overflow-x-auto px-3 sm:px-6">
+      <FilterBar view={filter.view} facets={facets} />
     </div>
   );
 };
 
 const ContentList = async ({ searchParams }: PageProps) => {
-  const { elementFilter, styleFilter, categoryFilter } = await getFilters(searchParams);
-  const filters = [elementFilter, styleFilter, categoryFilter].flat();
-  const content = await getContentList(filters);
+  const filter = await parseFilter(searchParams);
+  const content = await getContentList(filter);
 
   if (content.length === 0) {
     return (
@@ -102,7 +111,7 @@ const ContentList = async ({ searchParams }: PageProps) => {
       slug={c.slug}
       name={c.name}
       index={index}
-      tags={c.tags ?? []}
+      tags={c.tags}
       isNew={c.isNew}
       coverUrl={c.coverUrl}
       coverType={c.coverType}
@@ -110,15 +119,18 @@ const ContentList = async ({ searchParams }: PageProps) => {
   ));
 };
 
-const getFilters = async (searchParams: Promise<Record<string, string | string[] | undefined>>) => {
-  const allSearchParams = await searchParams;
-  const elementFilter = allSearchParams.element?.toString().split(",") ?? [];
-  const styleFilter = allSearchParams.style?.toString().split(",") ?? [];
-  const categoryFilter = allSearchParams.category?.toString().split(",") ?? [];
+const parseFilter = async (searchParams: SearchParams): Promise<GalleryFilter> => {
+  const params = await searchParams;
+  const slugs = (key: string) =>
+    (params[key]?.toString() ?? "")
+      .split(",")
+      .map((slug) => slug.trim().toLowerCase())
+      .filter(Boolean);
 
   return {
-    elementFilter,
-    styleFilter,
-    categoryFilter,
+    view: params.view?.toString() === "recommended" ? "recommended" : "recent",
+    element: slugs("element")[0],
+    source: slugs("source")[0],
+    styles: slugs("style"),
   };
 };

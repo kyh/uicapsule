@@ -6,11 +6,13 @@ import { test, type TestContext } from "node:test";
 
 import { validateContentDirectory } from "./content-validation";
 
+const validMeta = { name: "Example", addedAt: "2026-01-01", tags: ["effects", "web"] };
+
 const fixture = async (context: TestContext, files: [string, string][]) => {
   const directory = await mkdtemp(join(tmpdir(), "uicapsule-registry-"));
   context.after(() => rm(directory, { recursive: true, force: true }));
   const defaults: [string, string][] = [
-    ["meta.json", JSON.stringify({ name: "Example", addedAt: "2026-01-01" })],
+    ["meta.json", JSON.stringify(validMeta)],
     ["package.json", JSON.stringify({ dependencies: { react: "catalog:" } })],
     ["preview.tsx", "export default function Preview() { return null; }"],
   ];
@@ -80,8 +82,10 @@ test("requires valid metadata and a real preview before publishing local content
   assert.ok((await validateContentDirectory(directory)).some((issue) => issue.startsWith("name:")));
   await writeFile(
     join(directory, "meta.json"),
-    JSON.stringify({ name: "Example", addedAt: "2026-01-01" }),
+    JSON.stringify({ ...validMeta, tags: ["effects", "controls", "web"] }),
   );
+  assert.ok((await validateContentDirectory(directory)).some((issue) => issue.startsWith("tags:")));
+  await writeFile(join(directory, "meta.json"), JSON.stringify(validMeta));
   await rm(join(directory, "preview.tsx"));
   assert.deepEqual(await validateContentDirectory(directory), ["missing preview.tsx"]);
 });

@@ -27,6 +27,7 @@ import {
 import { AnimatePresence, motion } from "motion/react";
 import { Suspense, useEffect, useRef, useState } from "react";
 
+import { tagLabel } from "@/lib/content/content-categories";
 import type { ContentComponentSummary, SourceFile } from "@/lib/content/content-schema";
 import dynamic from "next/dynamic";
 
@@ -257,18 +258,16 @@ const Aside = ({ contentComponent }: AsideProps) => {
           <span className="text-muted-foreground text-center text-xs">Opens in a new tab</span>
         </div>
       )}
-      {contentComponent.tags && (
-        <div className={SECTION_CLASS}>
-          <h2>Tags</h2>
-          <div className="flex flex-wrap gap-2">
-            {contentComponent.tags.map((tag) => (
-              <Badge key={tag} variant="secondary">
-                {tag}
-              </Badge>
-            ))}
-          </div>
+      <div className={SECTION_CLASS}>
+        <h2>Tags</h2>
+        <div className="flex flex-wrap gap-2">
+          {contentComponent.tags.map((tag) => (
+            <Badge key={tag} variant="secondary">
+              {tagLabel(tag)}
+            </Badge>
+          ))}
         </div>
-      )}
+      </div>
       {contentComponent.authors && (
         <div className={SECTION_CLASS}>
           <h2>Author</h2>

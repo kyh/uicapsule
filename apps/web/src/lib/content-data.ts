@@ -1,6 +1,12 @@
 import { cacheLife } from "next/cache";
 
-import { isUnlisted, unlistedTags } from "./content/content-categories";
+import {
+  elementSlugs,
+  isUnlisted,
+  sourceSlugs,
+  styleSlugs,
+  unlistedTags,
+} from "./content/content-categories";
 import {
   buildShadcnRegistryItem,
   readContentBySlug,
@@ -42,26 +48,71 @@ const markNew = (components: ContentComponentSummary[]): GalleryEntry[] => {
   return components.map((component) => ({ ...component, isNew: component.addedAt >= newSince }));
 };
 
-export const getContentList = async (filterTags: string[]): Promise<GalleryEntry[]> => {
+export type GalleryView = "recent" | "recommended";
+
+export type GalleryFilter = {
+  view: GalleryView;
+  element?: string;
+  source?: string;
+  styles: string[];
+};
+
+const requestedTags = (filter: GalleryFilter) =>
+  [filter.element, filter.source, ...filter.styles].filter((tag): tag is string => Boolean(tag));
+
+const matchesFilter = (component: ContentComponentSummary, filter: GalleryFilter) => {
+  const { tags } = component;
+  if (filter.view === "recommended" && !component.featured) return false;
+  if (filter.element && !tags.includes(filter.element)) return false;
+  if (filter.source && !tags.includes(filter.source)) return false;
+  if (filter.styles.length > 0 && !filter.styles.some((style) => tags.includes(style))) {
+    return false;
+  }
+  return true;
+};
+
+// Unlisted content surfaces only when one of its unlisted tags is requested outright.
+const visibleContent = (all: ContentComponentSummary[], filter: GalleryFilter) => {
+  const revealsUnlisted = requestedTags(filter).some((tag) => unlistedTags.has(tag));
+  return all.filter(
+    (component) =>
+      (revealsUnlisted || !isUnlisted(component.tags)) && matchesFilter(component, filter),
+  );
+};
+
+export const getContentList = async (filter: GalleryFilter): Promise<GalleryEntry[]> => {
+  "use cache";
+  cacheLife("max");
+  return markNew(visibleContent(await getAllContent(), filter));
+};
+
+export type FilterCounts = {
+  elements: Record<string, number>;
+  sources: Record<string, number>;
+  styles: Record<string, number>;
+};
+
+// Each axis is counted against the other axes' selection so no option leads to an empty gallery.
+export const getFilterCounts = async (filter: GalleryFilter): Promise<FilterCounts> => {
   "use cache";
   cacheLife("max");
   const all = await getAllContent();
+  const countBy = (
+    slugs: ReadonlySet<string>,
+    withSlug: (slug: string) => Partial<GalleryFilter>,
+  ) =>
+    Object.fromEntries(
+      [...slugs].map((slug) => [
+        slug,
+        visibleContent(all, { ...filter, ...withSlug(slug) }).length,
+      ]),
+    );
 
-  const normalizedFilters = filterTags.map((tag) => tag.trim().toLowerCase()).filter(Boolean);
-  if (normalizedFilters.length === 0) {
-    return markNew(all.filter((component) => !isUnlisted(component.tags)));
-  }
-
-  // OR filters reveal unlisted content only when its unlisted tag is requested.
-  const revealsUnlisted = normalizedFilters.some((filter) => unlistedTags.has(filter));
-
-  return markNew(
-    all.filter((component) => {
-      const tags = component.tags ?? [];
-      if (!revealsUnlisted && isUnlisted(tags)) return false;
-      return normalizedFilters.some((filter) => tags.includes(filter));
-    }),
-  );
+  return {
+    elements: countBy(elementSlugs, (slug) => ({ element: slug })),
+    sources: countBy(sourceSlugs, (slug) => ({ source: slug })),
+    styles: countBy(styleSlugs, (slug) => ({ styles: [slug] })),
+  };
 };
 
 export type SearchEntry = {
@@ -80,7 +131,7 @@ export const getSearchEntries = async (): Promise<SearchEntry[]> => {
     slug: component.slug,
     name: component.name,
     description: component.description ?? "",
-    tags: component.tags ?? [],
+    tags: component.tags,
     unlisted: isUnlisted(component.tags),
   }));
 };
