@@ -5,17 +5,19 @@ import { cva, type VariantProps } from "class-variance-authority";
 import { Separator } from "@repo/ui/components/separator";
 import { cn } from "cn";
 
-// Composite roots (e.g. NavigationMenu) wrap each trigger in a list item, so
-// every rule targets a direct child or the single button inside one.
+// Only the inner corners and the doubled border are removed; each child keeps
+// the outer radius its own variant sets, so pill buttons stay pills. Composite
+// roots (e.g. NavigationMenu) wrap each trigger in an item element, so every
+// rule also targets the single button one level down.
 const buttonGroupVariants = cva(
   "flex w-fit items-stretch *:focus-visible:relative *:focus-visible:z-10 has-[>[data-slot=button-group]]:gap-2 [&>input]:flex-1",
   {
     variants: {
       orientation: {
         horizontal:
-          "[&>[data-slot]:not(:last-child)]:rounded-r-none [&>:not(:last-child)>[data-slot=button]]:rounded-r-none [&>[data-slot]:not(:first-child)]:-ml-px [&>[data-slot]:not(:first-child)]:rounded-l-none [&>:not(:first-child)>[data-slot=button]]:-ml-px [&>:not(:first-child)>[data-slot=button]]:rounded-l-none",
+          "[&>[data-slot]:not(:last-child)]:rounded-r-none [&>:not(:last-child)>[data-slot=button]]:rounded-r-none [&>[data-slot]:not(:first-child)]:rounded-l-none [&>[data-slot]:not(:first-child)]:border-l-0 [&>:not(:first-child)>[data-slot=button]]:rounded-l-none [&>:not(:first-child)>[data-slot=button]]:border-l-0",
         vertical:
-          "flex-col [&>[data-slot]:not(:last-child)]:rounded-b-none [&>:not(:last-child)>[data-slot=button]]:rounded-b-none [&>[data-slot]:not(:first-child)]:-mt-px [&>[data-slot]:not(:first-child)]:rounded-t-none [&>:not(:first-child)>[data-slot=button]]:-mt-px [&>:not(:first-child)>[data-slot=button]]:rounded-t-none",
+          "flex-col [&>[data-slot]:not(:last-child)]:rounded-b-none [&>:not(:last-child)>[data-slot=button]]:rounded-b-none [&>[data-slot]:not(:first-child)]:rounded-t-none [&>[data-slot]:not(:first-child)]:border-t-0 [&>:not(:first-child)>[data-slot=button]]:rounded-t-none [&>:not(:first-child)>[data-slot=button]]:border-t-0",
       },
     },
     defaultVariants: {

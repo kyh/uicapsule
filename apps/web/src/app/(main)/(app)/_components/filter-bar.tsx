@@ -38,6 +38,8 @@ export type Facet = {
   label: string;
   mode: "single" | "multi";
   searchable: boolean;
+  // Sits on its own outside the joined group.
+  standalone?: boolean;
   // Single-select only: the row that clears the parameter instead of setting it.
   defaultOption?: { name: string };
   options: FacetOption[];
@@ -50,36 +52,41 @@ export const FilterBar = ({ facets }: { facets: Facet[] }) => {
   const [activeFacet, setActiveFacet] = useState<Facet | null>(null);
   const searchParams = useSearchParams();
   const selectedFor = (facet: Facet) => parseSelection(searchParams.get(facet.key));
+  const standalone = facets.filter((facet) => facet.standalone);
+  const grouped = facets.filter((facet) => !facet.standalone);
 
   if (isDesktop) {
+    const trigger = (facet: Facet) => (
+      // Rendered as a div so the joined group can wrap a subset of the list.
+      <NavigationMenuItem key={facet.key} value={facet.key} render={<div />}>
+        <NavigationMenuTrigger
+          render={
+            <Button
+              variant="outline"
+              size="sm"
+              className={triggerClassname(selectedFor(facet).size > 0)}
+            />
+          }
+        >
+          <FacetLabel facet={facet} selected={selectedFor(facet)} />
+        </NavigationMenuTrigger>
+        <NavigationMenuContent className="w-64">
+          <FacetList facet={facet} selected={selectedFor(facet)} query={query} />
+        </NavigationMenuContent>
+      </NavigationMenuItem>
+    );
+
     return (
       <NavigationMenu
         onValueChange={(value) => {
-          const next = facets.find((facet) => facet.key === value) ?? null;
-          setActiveFacet(next);
+          setActiveFacet(facets.find((facet) => facet.key === value) ?? null);
           setQuery("");
         }}
       >
-        <ButtonGroup render={<NavigationMenuList className="gap-0" />}>
-          {facets.map((facet) => (
-            <NavigationMenuItem key={facet.key} value={facet.key}>
-              <NavigationMenuTrigger
-                render={
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className={triggerClassname(selectedFor(facet).size > 0)}
-                  />
-                }
-              >
-                <FacetLabel facet={facet} selected={selectedFor(facet)} />
-              </NavigationMenuTrigger>
-              <NavigationMenuContent className="w-64">
-                <FacetList facet={facet} selected={selectedFor(facet)} query={query} />
-              </NavigationMenuContent>
-            </NavigationMenuItem>
-          ))}
-        </ButtonGroup>
+        <NavigationMenuList render={<div />}>
+          {standalone.map(trigger)}
+          <ButtonGroup>{grouped.map(trigger)}</ButtonGroup>
+        </NavigationMenuList>
         <NavigationMenuPortal>
           <NavigationMenuPositioner>
             <NavigationMenuPopup>
@@ -92,17 +99,21 @@ export const FilterBar = ({ facets }: { facets: Facet[] }) => {
     );
   }
 
+  const drawer = (facet: Facet) => (
+    <FacetDrawer key={facet.key} facet={facet} selected={selectedFor(facet)} />
+  );
+
   return (
-    <ButtonGroup>
-      {facets.map((facet) => (
-        <FacetDrawer key={facet.key} facet={facet} selected={selectedFor(facet)} />
-      ))}
-    </ButtonGroup>
+    <div className="flex items-center gap-3">
+      {standalone.map(drawer)}
+      <ButtonGroup>{grouped.map(drawer)}</ButtonGroup>
+    </div>
   );
 };
 
+// A selected trigger draws its whole outline over the group's shared divider.
 const triggerClassname = (highlighted: boolean) =>
-  cn("shrink-0 dark:bg-background!", highlighted && "border-foreground relative z-10");
+  cn("shrink-0 dark:bg-background!", highlighted && "border-foreground relative z-10 border-l!");
 
 const useFilterNavigation = () => {
   const router = useRouter();

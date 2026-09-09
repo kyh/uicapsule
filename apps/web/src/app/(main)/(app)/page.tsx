@@ -62,6 +62,7 @@ const Filters = async ({ searchParams }: PageProps) => {
       label: "Recently added",
       mode: "single",
       searchable: false,
+      standalone: true,
       defaultOption: { name: "Recently added" },
       options: [{ name: "Recommended", slug: "recommended" }],
     },
