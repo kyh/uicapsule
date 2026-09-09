@@ -1,5 +1,9 @@
-import { readdirSync, existsSync } from "node:fs";
+import { existsSync, readdirSync } from "node:fs";
 import path from "node:path";
+import type { NextConfig } from "next";
+
+type ImageConfig = NonNullable<NextConfig["images"]>;
+type RemotePatterns = NonNullable<ImageConfig["remotePatterns"]>;
 
 const IS_PRODUCTION = process.env.NODE_ENV === "production";
 const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL;
@@ -18,9 +22,8 @@ const getContentPackages = () => {
   }
 };
 
-const getRemotePatterns = () => {
-  /** @type {import("next/dist/shared/lib/image-config").RemotePattern[]} */
-  const remotePatterns = [];
+const getRemotePatterns = (): RemotePatterns => {
+  const remotePatterns: RemotePatterns = [];
 
   if (SUPABASE_URL) {
     const { hostname } = new URL(SUPABASE_URL);
@@ -49,8 +52,7 @@ const getRemotePatterns = () => {
 
 const transpilePackages = ["@repo/api", "@repo/db", "@repo/ui", ...getContentPackages()];
 
-/** @type {import("next").NextConfig} */
-const config = {
+const config: NextConfig = {
   /** next dev rewrites AGENTS.md/CLAUDE.md when it detects an agent; we own those files */
   agentRules: false,
   cacheComponents: true,
