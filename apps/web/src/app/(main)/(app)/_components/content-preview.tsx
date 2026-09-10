@@ -32,15 +32,15 @@ export const ContentPreview = ({
       href={`/ui/${slug}`}
       onClick={() => trigger("selection")}
     >
-      <div className="relative">
+      <div className="grid">
         <MediaReveal
-          className="aspect-video w-full"
+          className="col-start-1 row-start-1 aspect-video w-full"
           image={coverType === "image" ? coverUrl : undefined}
           video={coverType === "video" ? coverUrl : undefined}
         />
         {isNew && (
           <Badge
-            className="bg-background/80 absolute top-2 left-2 z-10 backdrop-blur-sm"
+            className="bg-background/80 relative col-start-1 row-start-1 m-2 self-start justify-self-start backdrop-blur-sm"
             variant="outline"
           >
             New
