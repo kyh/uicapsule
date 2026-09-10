@@ -7,7 +7,7 @@ import react from "ultracite/oxlint/react";
 export default defineConfig({
   extends: [core, react, antiSlop],
   ignorePatterns: [
-    ...core.ignorePatterns,
+    ...(core.ignorePatterns ?? []),
     "dist-electron",
     ".expo",
     ".wxt",
