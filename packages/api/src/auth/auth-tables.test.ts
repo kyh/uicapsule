@@ -3,7 +3,7 @@ import { test } from "node:test";
 
 import * as drizzleSchema from "@repo/db/drizzle-schema-auth";
 import { getAuthTables } from "better-auth/db";
-import { getTableColumns, is, Table } from "drizzle-orm";
+import { getColumns, is, Table } from "drizzle-orm";
 
 import { auth } from "./auth";
 
@@ -13,7 +13,7 @@ for (const [model, authTable] of Object.entries(getAuthTables(auth.options))) {
     const table = Object.entries(drizzleSchema).find(([key]) => key === authTable.modelName)?.[1];
     assert.ok(is(table, Table), `Missing table export: ${authTable.modelName}`);
 
-    const columns = new Map(Object.entries(getTableColumns(table)));
+    const columns = new Map(Object.entries(getColumns(table)));
     const fields = Object.entries(authTable.fields).map(([key, field]) => ({
       name: field.fieldName ?? key,
       required: field.required === true,

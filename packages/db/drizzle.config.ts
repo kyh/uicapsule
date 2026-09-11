@@ -1,7 +1,6 @@
 import type { Config } from "drizzle-kit";
 
 export default {
-  casing: "snake_case",
   dbCredentials: {
     authToken: process.env.TURSO_AUTH_TOKEN,
     url: process.env.TURSO_DATABASE_URL ?? "",
