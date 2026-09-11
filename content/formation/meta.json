@@ -3,8 +3,7 @@
   "description": "Sixteen photo cards regroup between four spatial formations — a solved ellipse, an arc conveyor, a tilted ring and a swelling orbit — and scrub under drag or wheel with a parallax lean that follows the cursor.",
   "addedAt": "2026-07-18",
   "featured": true,
-  "coverUrl": "https://zmdrwswxugswzmcokvff.supabase.co/storage/v1/object/public/uicapsule/formation/formation.mp4",
-  "coverType": "video",
+  "cover": "formation/formation.mp4",
   "tags": ["cards-grids", "minimal"],
   "defaultSize": "full"
 }

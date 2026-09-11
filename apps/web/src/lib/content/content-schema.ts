@@ -10,6 +10,11 @@ const tagsSchema = z
   });
 
 const linkSchema = z.object({ label: z.string().min(1), url: z.url() });
+// A key in the assets bucket (`<slug>/<file>.<ext>`), never a URL: the host is
+// resolved by the app so the bucket can move without touching every meta.json.
+const coverKeySchema = z.string().regex(/^[a-z0-9-]+\/[\w.-]+\.(?:mp4|webm|png|jpe?g|webp|gif)$/u, {
+  message: "cover must be a bucket key like <slug>/<slug>.mp4",
+});
 const linkedPersonSchema = z.object({
   avatarUrl: z.url().optional(),
   name: z.string().min(1),
@@ -19,8 +24,7 @@ const metadataFields = {
   addedAt: z.iso.date(),
   authors: z.array(linkedPersonSchema).optional(),
   category: z.enum(["marketing", "application", "mobile"]).optional(),
-  coverType: z.enum(["image", "video"]).optional(),
-  coverUrl: z.string().optional(),
+  cover: coverKeySchema.optional(),
   defaultSize: z.enum(["full", "md", "sm"]).optional(),
   description: z.string().optional(),
   featured: z.boolean().optional(),

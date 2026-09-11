@@ -10,8 +10,7 @@
  * `look-figure.tsx` can crop any piece out of any look with one set of boxes.
  */
 
-const LOOK_IMAGE_BASE =
-  "https://zmdrwswxugswzmcokvff.supabase.co/storage/v1/object/public/uicapsule/lookbook-camera/looks";
+const LOOK_IMAGE_BASE = "https://pub-327ea719340342d3a3d5c5aa7f979e3a.r2.dev/lookbook-camera/looks";
 
 export type ItemCategory = "Outerwear" | "Knitwear" | "Tops" | "Trousers" | "Skirt" | "Footwear";
 

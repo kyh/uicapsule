@@ -141,9 +141,7 @@ const main = defineCommand({
     consola.info("Next steps:");
     consola.log(`  1. Build your component in content/${slug}/${slug}.tsx`);
     consola.log(`  2. Stage it in content/${slug}/preview.tsx`);
-    consola.log(
-      `  3. Fill in description/tags (and optional coverUrl) in content/${slug}/meta.json`,
-    );
+    consola.log(`  3. Fill in description/tags (and optional cover) in content/${slug}/meta.json`);
     consola.log(`  4. View it at http://localhost:3000/ui/${slug} (pnpm dev:web)`);
   },
 });

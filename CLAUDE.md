@@ -117,7 +117,9 @@ does not prove delivery. Reset tokens expire after one hour and revoke existing 
 
 - **auth + oRPC are kept.** One procedure, zero callers, deliberately retained for a future
   feature. Make them correct; don't propose deleting them.
-- **Supabase stays.** It hosts every cover video.
+- **Assets live in the `uicapsule-assets` R2 bucket.** Covers, illustrations and other
+  content media resolve against `NEXT_PUBLIC_ASSETS_URL`; `meta.json` stores bucket keys,
+  never URLs.
 - **Vercel builds on every push — deliberately. Do not add build-skipping.** Both Vercel's
   "Skip unaffected projects" and an Ignored Build Step / `turbo-ignore` are disabled on the
   project. Every skip mechanism decides "affected" from the _workspace dependency graph_, and

@@ -2,7 +2,6 @@
   "name": "Gradient Orb",
   "description": "Glowing shader orb with noise-based color mixing, hue rotation, and breathing pulse",
   "addedAt": "2026-03-10",
-  "coverUrl": "https://zmdrwswxugswzmcokvff.supabase.co/storage/v1/object/public/uicapsule/gradient-orb/gradient-orb.mp4",
-  "coverType": "video",
+  "cover": "gradient-orb/gradient-orb.mp4",
   "tags": ["effects", "geometric"]
 }

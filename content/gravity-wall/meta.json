@@ -2,8 +2,7 @@
   "name": "Gravity Wall",
   "description": "A drifting wall of photos bends away from the cursor like a gravity well, promoting whichever picture sits in the clearing — click and the whole wall pans to bring it to center.",
   "addedAt": "2026-07-18",
-  "coverUrl": "https://zmdrwswxugswzmcokvff.supabase.co/storage/v1/object/public/uicapsule/gravity-wall/gravity-wall.mp4",
-  "coverType": "video",
+  "cover": "gravity-wall/gravity-wall.mp4",
   "tags": ["cards-grids"],
   "defaultSize": "full"
 }

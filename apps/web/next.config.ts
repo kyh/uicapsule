@@ -6,7 +6,7 @@ type ImageConfig = NonNullable<NextConfig["images"]>;
 type RemotePatterns = NonNullable<ImageConfig["remotePatterns"]>;
 
 const IS_PRODUCTION = process.env.NODE_ENV === "production";
-const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL;
+const ASSETS_URL = process.env.NEXT_PUBLIC_ASSETS_URL;
 
 const appRoot = import.meta.dirname;
 const contentRoot = path.join(appRoot, "..", "..", "content");
@@ -25,8 +25,8 @@ const getContentPackages = () => {
 const getRemotePatterns = (): RemotePatterns => {
   const remotePatterns: RemotePatterns = [];
 
-  if (SUPABASE_URL) {
-    const { hostname } = new URL(SUPABASE_URL);
+  if (ASSETS_URL) {
+    const { hostname } = new URL(ASSETS_URL);
 
     remotePatterns.push({
       hostname,

@@ -2,7 +2,6 @@
   "name": "ASCII Renderer",
   "description": "Take any 3D model and render it as ASCII art",
   "addedAt": "2025-06-13",
-  "coverUrl": "https://zmdrwswxugswzmcokvff.supabase.co/storage/v1/object/public/uicapsule/ascii/ascii.mp4",
-  "coverType": "video",
+  "cover": "ascii/ascii.mp4",
   "tags": ["effects", "pixel-art"]
 }

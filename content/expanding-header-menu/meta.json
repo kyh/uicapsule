@@ -1,7 +1,6 @@
 {
   "name": "Expanding Header Menu",
   "addedAt": "2025-05-03",
-  "coverUrl": "https://zmdrwswxugswzmcokvff.supabase.co/storage/v1/object/public/uicapsule/expanding-header-menu/expanding-header-menu.mp4",
-  "coverType": "video",
+  "cover": "expanding-header-menu/expanding-header-menu.mp4",
   "tags": ["navigation", "minimal"]
 }

@@ -140,7 +140,7 @@ pnpm check:content        # fail if any content/<slug> is not loadable
 Two committed skills own the full lifecycles and both shell out to `agent-browser`:
 
 - `.claude/skills/build-content` — idea → scaffold → build → record → PR
-- `.claude/skills/cover-video` — record, verify, upload to Supabase, wire into `meta.json`
+- `.claude/skills/cover-video` — record, verify, upload to R2, wire into `meta.json`
 - `.claude/skills/build-requests` — drain `ready`-labelled request issues through both of
   the above, one PR per issue, `Closes #n`. Meant for a local daily schedule.
 
@@ -173,12 +173,11 @@ Web is the only surface. There is no mobile, desktop, or extension target.
 - **`pnpm db:push-remote` writes production Turso.** Never run it locally. `pnpm db:push`
   is the local one.
 - Env vars read at build time must be listed in `turbo.json` `globalEnv`, or turbo's strict
-  env mode strips them from the task with no error. `NEXT_PUBLIC_SUPABASE_URL` was missing
-  from it until recently: `next.config.ts` reads it to build `images.remotePatterns`, so
-  without it that list is empty and `next/image` rejects every Supabase-hosted cover. Not
-  yet load-bearing — every cover in the repo today is `coverType: "video"` (28 of 40 slugs;
-  the other 12 have no cover), and video bypasses `next/image` — but it bites the first time
-  a `meta.json` uses `coverType: "image"`.
+  env mode strips them from the task with no error. `NEXT_PUBLIC_ASSETS_URL` is the one that
+  bites: `next.config.ts` reads it to build `images.remotePatterns`, every `meta.json`
+  `cover` key and every content package that references bucket media resolves against it,
+  and `apps/web/src/lib/assets.ts` throws at import when it is unset so the failure is loud
+  rather than a page of broken media.
 
 ## Map
 
