@@ -1,6 +1,6 @@
 ---
 name: cover-video
-description: Record a cover video for a content component, verify it looks right, upload it to R2, and wire it into meta.json. Use when asked to generate/update a component's cover, preview video, or gallery thumbnail.
+description: Record a cover video for a content component, verify it looks right, upload it to Vercel Blob, and wire it into meta.json. Use when asked to generate/update a component's cover, preview video, or gallery thumbnail.
 ---
 
 # Cover Video
@@ -144,20 +144,20 @@ Read every frame as an image and check ALL of:
 
 ## 6. Upload
 
-Covers live in the `uicapsule-assets` R2 bucket, keyed `<slug>/<slug>.mp4`. Upload with
-wrangler (needs `CLOUDFLARE_API_TOKEN` in the environment, or `wrangler login`):
+Covers live in the `uicapsule-assets` Vercel Blob store, keyed `<slug>/<slug>.mp4`. Upload
+with the Vercel CLI from the repo root (the project is linked; the store's token is in
+`.env.local` via `vercel env pull`):
 
 ```bash
-npx wrangler@latest r2 object put "uicapsule-assets/<slug>/<slug>.mp4" \
-  --file <slug>.mp4 --content-type video/mp4
+vercel blob put <slug>.mp4 --pathname "<slug>/<slug>.mp4" --content-type video/mp4 \
+  --access public --add-random-suffix false --allow-overwrite true
 curl -s -o /dev/null -w "%{http_code} %{content_type}" \
   "$NEXT_PUBLIC_ASSETS_URL/<slug>/<slug>.mp4"
 # expect: 200 video/mp4
 ```
 
-`put` overwrites silently, so replacing a cover is the same command. The public URL sits
-behind Cloudflare's cache — a replaced cover can serve stale for a while; mention that when
-overwriting.
+`--allow-overwrite` means replacing a cover is the same command. The public URL sits behind
+Vercel's CDN — a replaced cover can serve stale for a while; mention that when overwriting.
 
 ## 7. Wire up + confirm
 

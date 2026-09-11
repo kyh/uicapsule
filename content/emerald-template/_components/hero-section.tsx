@@ -52,7 +52,7 @@ export const HeroSection = () => (
         playsInline
         className="pointer-events-none absolute inset-0 w-full translate-y-10 [mask-image:linear-gradient(transparent_10%,black,transparent)] opacity-50 mix-blend-lighten hue-rotate-[250deg]"
       >
-        <source src="https://pub-327ea719340342d3a3d5c5aa7f979e3a.r2.dev/emerald-template/home-hero-bg.mov" />
+        <source src="https://d24l2zb4cwkekfpl.public.blob.vercel-storage.com/emerald-template/home-hero-bg.mov" />
       </video>
       <HeroExample />
     </div>

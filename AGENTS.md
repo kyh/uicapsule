@@ -140,7 +140,7 @@ pnpm check:content        # fail if any content/<slug> is not loadable
 Two committed skills own the full lifecycles and both shell out to `agent-browser`:
 
 - `.claude/skills/build-content` — idea → scaffold → build → record → PR
-- `.claude/skills/cover-video` — record, verify, upload to R2, wire into `meta.json`
+- `.claude/skills/cover-video` — record, verify, upload to Blob, wire into `meta.json`
 - `.claude/skills/build-requests` — drain `ready`-labelled request issues through both of
   the above, one PR per issue, `Closes #n`. Meant for a local daily schedule.
 

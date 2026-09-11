@@ -18,7 +18,7 @@ const Cell = ({ gridIndex }: GridItemConfig) => (
     <img
       alt=""
       className="pointer-events-none size-20"
-      src={`https://pub-327ea719340342d3a3d5c5aa7f979e3a.r2.dev/illustrations/blueprint/%20${(gridIndex % 100) + 1}.svg`}
+      src={`https://d24l2zb4cwkekfpl.public.blob.vercel-storage.com/illustrations/blueprint/%20${(gridIndex % 100) + 1}.svg`}
     />
   </motion.div>
 );
