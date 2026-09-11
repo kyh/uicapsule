@@ -12,8 +12,8 @@ description: >
 
 Queue → claim → build-content → cover-video → PR that closes the issue.
 
-Run this from a clean `main` with `pnpm dev:web` reachable on :3000 and the Supabase
-CLI authenticated (cover-video uploads). It is designed to be scheduled locally, e.g.
+Run this from a clean `main` with `pnpm dev:web` reachable on :3000 and `CLOUDFLARE_API_TOKEN`
+in the environment (cover-video uploads via wrangler). It is designed to be scheduled locally, e.g.
 `claude -p "/build-requests"` from cron or launchd once a day.
 
 ## 1. Queue
@@ -63,8 +63,8 @@ build, verify, record, PR). Differences:
 ## 4. Cover
 
 Run `../cover-video/SKILL.md` on the same branch before opening the PR, so the PR
-ships with `coverUrl`/`coverType` already wired. Follow it exactly — dedicated
-`--session covers`, native `.mp4` at `--fps 60`, 1600×900, frame-check, Supabase
+ships with `cover` already wired. Follow it exactly — dedicated
+`--session covers`, native `.mp4` at `--fps 60`, 1600×900, frame-check, R2
 upload, gallery confirm. Every shortcut it warns about has already cost a take.
 
 ## 5. Done gate — every line must pass before `gh pr create`
@@ -87,11 +87,11 @@ ffprobe -v error -show_entries stream=codec_name,width,height,avg_frame_rate:for
 
 # 4. cover is live and typed correctly
 curl -s -o /dev/null -w "%{http_code} %{content_type}\n" \
-  "https://zmdrwswxugswzmcokvff.supabase.co/storage/v1/object/public/uicapsule/<slug>/<slug>.mp4"   # 200 video/mp4
+  "$NEXT_PUBLIC_ASSETS_URL/<slug>/<slug>.mp4"   # 200 video/mp4
 
 # 5. meta.json carries everything the gallery + detail page need
 python3 -c "import json; m=json.load(open('content/<slug>/meta.json')); \
-  assert m['coverType']=='video' and m['coverUrl'].endswith('/<slug>/<slug>.mp4'); \
+  assert m['cover']=='<slug>/<slug>.mp4'; \
   assert m['addedAt'] and m['tags'] and m['inspiredBy']; print('meta ok')"
 
 # 6. the card actually plays on the grid
