@@ -161,4 +161,4 @@ finishes; the gif renders immediately.)
 - Delete scratch mp4/gif/frames/batch files.
 - Report the PR URL and your take on the component.
 - Offer, don't do: gallery cover via the `cover-video` skill (separate 1600×900 mp4
-  pipeline + R2 upload), typically after the PR merges.
+  pipeline + Blob upload), typically after the PR merges.

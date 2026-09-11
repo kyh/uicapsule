@@ -12,8 +12,8 @@ description: >
 
 Queue → claim → build-content → cover-video → PR that closes the issue.
 
-Run this from a clean `main` with `pnpm dev:web` reachable on :3000 and `CLOUDFLARE_API_TOKEN`
-in the environment (cover-video uploads via wrangler). It is designed to be scheduled locally, e.g.
+Run this from a clean `main` with `pnpm dev:web` reachable on :3000 and the Vercel CLI
+linked to the project (cover-video uploads via `vercel blob put`). It is designed to be scheduled locally, e.g.
 `claude -p "/build-requests"` from cron or launchd once a day.
 
 ## 1. Queue
@@ -64,7 +64,7 @@ build, verify, record, PR). Differences:
 
 Run `../cover-video/SKILL.md` on the same branch before opening the PR, so the PR
 ships with `cover` already wired. Follow it exactly — dedicated
-`--session covers`, native `.mp4` at `--fps 60`, 1600×900, frame-check, R2
+`--session covers`, native `.mp4` at `--fps 60`, 1600×900, frame-check, Blob
 upload, gallery confirm. Every shortcut it warns about has already cost a take.
 
 ## 5. Done gate — every line must pass before `gh pr create`

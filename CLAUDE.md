@@ -117,7 +117,7 @@ does not prove delivery. Reset tokens expire after one hour and revoke existing 
 
 - **auth + oRPC are kept.** One procedure, zero callers, deliberately retained for a future
   feature. Make them correct; don't propose deleting them.
-- **Assets live in the `uicapsule-assets` R2 bucket.** Covers, illustrations and other
+- **Assets live in the `uicapsule-assets` Vercel Blob store.** Covers, illustrations and other
   content media resolve against `NEXT_PUBLIC_ASSETS_URL`; `meta.json` stores bucket keys,
   never URLs.
 - **Vercel builds on every push — deliberately. Do not add build-skipping.** Both Vercel's

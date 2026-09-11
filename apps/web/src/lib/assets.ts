@@ -6,7 +6,7 @@ if (!assetsUrl) {
   );
 }
 
-/** Public URL of a key in the `uicapsule-assets` R2 bucket. */
+/** Public URL of a key in the `uicapsule-assets` Vercel Blob store. */
 export const assetUrl = (key: string) => `${assetsUrl}/${key}`;
 
 export type CoverType = "image" | "video";

@@ -2,7 +2,7 @@
 
 import { CardStack } from "./card-stack";
 
-const rootUrl = "https://pub-327ea719340342d3a3d5c5aa7f979e3a.r2.dev/card-stack-1";
+const rootUrl = "https://d24l2zb4cwkekfpl.public.blob.vercel-storage.com/card-stack-1";
 
 const cards = [
   { alt: "UI Capsule", href: "https://uicapsule.com", src: `${rootUrl}/uic.webp` },

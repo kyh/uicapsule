@@ -1,7 +1,7 @@
 import type { ComponentType, SVGProps } from "react";
 import { cn } from "cn";
 
-const ICON_ASSET_BASE = "https://pub-327ea719340342d3a3d5c5aa7f979e3a.r2.dev/emerald-template";
+const ICON_ASSET_BASE = "https://d24l2zb4cwkekfpl.public.blob.vercel-storage.com/emerald-template";
 
 const shellClassName =
   "inline-flex justify-center rounded-full border border-dashed border-zinc-700 bg-zinc-900 p-3 text-white";
