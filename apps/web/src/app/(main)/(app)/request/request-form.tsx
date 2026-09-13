@@ -22,7 +22,7 @@ import {
 import { useMutation } from "@tanstack/react-query";
 import { cn } from "cn";
 import { ArrowUpRightIcon, UploadIcon, XIcon } from "lucide-react";
-import { AnimatePresence, motion } from "motion/react";
+import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import type { Transition } from "motion/react";
 import { useMediaQuery } from "@repo/ui/hooks/use-media-query";
 import { useForm } from "react-hook-form";
@@ -30,6 +30,9 @@ import type { FieldErrors, UseFormRegister } from "react-hook-form";
 import { z } from "zod";
 
 import { orpc } from "@/orpc/react";
+
+import { getRandomReceiptArt, ReceiptArt } from "./receipt-art";
+import type { ReceiptArtVariant } from "./receipt-art";
 
 const splitLines = (value: string) =>
   value
@@ -84,6 +87,7 @@ const uploadFile = async (file: File): Promise<string> => {
 };
 
 interface Filed {
+  art: ReceiptArtVariant;
   attachments: number;
   filedAt: string;
   links: number;
@@ -97,57 +101,6 @@ const reveal = {
   shown: { filter: "blur(0px)", opacity: 1 },
 };
 const revealTransition: Transition = { duration: 0.3, ease: "easeOut" };
-const strokeTransition = (delay: number): Transition => ({
-  delay,
-  duration: 0.6,
-  ease: "easeInOut",
-});
-
-const ReceiptArt = () => (
-  <svg
-    viewBox="0 0 120 120"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="1.25"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-    aria-hidden
-    className="size-28"
-  >
-    <motion.circle
-      cx="60"
-      cy="60"
-      r="46"
-      initial={{ pathLength: 0 }}
-      animate={{ pathLength: 1 }}
-      transition={strokeTransition(0.55)}
-    />
-    <motion.circle
-      cx="60"
-      cy="66"
-      r="32"
-      initial={{ pathLength: 0 }}
-      animate={{ pathLength: 1 }}
-      transition={strokeTransition(0.7)}
-    />
-    <motion.circle
-      cx="60"
-      cy="72"
-      r="19"
-      initial={{ pathLength: 0 }}
-      animate={{ pathLength: 1 }}
-      transition={strokeTransition(0.85)}
-    />
-    <motion.path
-      d="M50 72l7 7 14-15"
-      strokeWidth="2"
-      initial={{ pathLength: 0 }}
-      animate={{ pathLength: 1 }}
-      transition={{ damping: 22, delay: 1.25, stiffness: 260, type: "spring" }}
-    />
-  </svg>
-);
-
 const CORNERS = [
   "top-2 left-2 border-t border-l",
   "top-2 right-2 border-t border-r",
@@ -181,6 +134,7 @@ const TicketShell = ({ className, children }: { className: string; children: Rea
 
 const Receipt = ({ filed }: { filed: Filed }) => {
   const horizontal = useMediaQuery();
+  const reducedMotion = useReducedMotion();
   // The stub hinges open on its seam edge, so the axis follows the layout.
   const fold = horizontal
     ? { hidden: { rotateY: -90 }, shown: { rotateY: 0 } }
@@ -195,7 +149,7 @@ const Receipt = ({ filed }: { filed: Filed }) => {
   const number = filed.number === undefined ? "Filed" : `No. ${filed.number}`;
   return (
     <motion.div
-      initial="hidden"
+      initial={reducedMotion ? false : "hidden"}
       animate="shown"
       className="flex w-full max-w-sm flex-col sm:max-w-3xl sm:flex-row"
     >
@@ -235,7 +189,7 @@ const Receipt = ({ filed }: { filed: Filed }) => {
                     className={cn("border-foreground/40 absolute size-2", corner)}
                   />
                 ))}
-                <ReceiptArt />
+                <ReceiptArt variant={filed.art} />
               </motion.div>
               <dl className="flex min-w-0 flex-col gap-1.5 px-4 pb-4 sm:flex-1 sm:justify-center sm:py-4 sm:pl-2">
                 {rows.map(({ label, value }) =>
@@ -408,6 +362,7 @@ const RequestFields = ({ register, errors, isSubmitting, uploading }: RequestFie
 );
 
 export const RequestForm = ({ className }: { className?: string }) => {
+  const reducedMotion = useReducedMotion();
   const [filed, setFiled] = useState<Filed | null>(null);
   const [attachments, setAttachments] = useState<Attachment[]>([]);
   const [dragging, setDragging] = useState(false);
@@ -492,6 +447,7 @@ export const RequestForm = ({ className }: { className?: string }) => {
       const result = await create.mutateAsync({ ...values, attachments: uploaded, references });
       setFiled({
         ...result,
+        art: getRandomReceiptArt(),
         attachments: uploaded.length,
         filedAt: new Date().toLocaleDateString(undefined, {
           day: "numeric",
@@ -515,7 +471,7 @@ export const RequestForm = ({ className }: { className?: string }) => {
       ) : (
         <motion.form
           key="form"
-          exit={{ filter: "blur(4px)", opacity: 0, y: -8 }}
+          exit={reducedMotion ? undefined : { filter: "blur(4px)", opacity: 0, y: -8 }}
           transition={{ duration: 0.2, ease: "easeIn" }}
           className={cn(
             "grid gap-8 lg:grid-cols-[minmax(0,6fr)_minmax(0,5fr)] lg:gap-12",
