@@ -1,7 +1,6 @@
 "use client";
 
-import { Button } from "@repo/ui/components/button";
-import { ButtonGroup } from "@repo/ui/components/button-group";
+import { Tabs, TabsIndicator, TabsList, TabsTrigger } from "@repo/ui/components/tabs";
 import { MonitorIcon, SmartphoneIcon, TabletIcon } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import { memo, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
@@ -52,6 +51,7 @@ const FeedItemBase = ({ ref, component, active, shouldRender, keepMounted }: Fee
     component.type === "remote" ? component.iframeUrl : `/preview-frame/${component.slug}`;
 
   const [width, setWidth] = useState(WIDTH_BY_SIZE[component.defaultSize ?? "md"]);
+  const preset = SIZE_PRESETS.find((p) => WIDTH_BY_SIZE[p.size] === width)?.size ?? null;
 
   // Off-screen panes stay mounted for instant scrolling but must not take focus.
   return (
@@ -75,22 +75,35 @@ const FeedItemBase = ({ ref, component, active, shouldRender, keepMounted }: Fee
           />
         </div>
       </Resizable>
-      {/* Presets sit below the frame; the drag handles cover in-between widths. Both are desktop-only. */}
-      <ButtonGroup aria-label="Preview width" className="hidden shadow-xs md:flex">
-        {SIZE_PRESETS.map(({ size, label, Icon }) => (
-          <Button
-            key={size}
-            variant="outline"
-            size="icon-sm"
-            aria-pressed={width === WIDTH_BY_SIZE[size]}
-            className="aria-pressed:bg-muted aria-pressed:text-foreground shadow-none"
-            onClick={() => setWidth(WIDTH_BY_SIZE[size])}
-          >
-            <Icon className="size-4" />
-            <span className="sr-only">{label}</span>
-          </Button>
-        ))}
-      </ButtonGroup>
+      {/* Presets sit below the frame; the drag handles cover in-between widths, in which
+          case no preset is active and the indicator hides. Both are desktop-only. */}
+      <Tabs
+        value={preset}
+        onValueChange={(next) => {
+          const match = SIZE_PRESETS.find((p) => p.size === next);
+          if (match) {
+            setWidth(WIDTH_BY_SIZE[match.size]);
+          }
+        }}
+        className="hidden md:flex"
+      >
+        <TabsList
+          aria-label="Preview width"
+          className="bg-background relative flex h-fit items-center gap-0.5 rounded-full border p-0.5 shadow-xs"
+        >
+          <TabsIndicator className="bg-accent rounded-full shadow-none" />
+          {SIZE_PRESETS.map(({ size, label, Icon }) => (
+            <TabsTrigger
+              key={size}
+              value={size}
+              aria-label={label}
+              className="text-muted-foreground data-active:text-foreground relative size-7 rounded-full border-0 p-0"
+            >
+              <Icon className="size-4" />
+            </TabsTrigger>
+          ))}
+        </TabsList>
+      </Tabs>
     </section>
   );
 };
