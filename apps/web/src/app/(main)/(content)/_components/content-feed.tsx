@@ -1,5 +1,9 @@
 "use client";
 
+import { Button } from "@repo/ui/components/button";
+import { ButtonGroup } from "@repo/ui/components/button-group";
+import { MonitorIcon, SmartphoneIcon, TabletIcon } from "lucide-react";
+import type { LucideIcon } from "lucide-react";
 import { memo, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import type { Ref } from "react";
 
@@ -9,6 +13,12 @@ import { ResponsiveAside } from "./aside";
 import { Resizable } from "./resizable";
 
 const WIDTH_BY_SIZE = { full: 1392, md: 720, sm: 360 } satisfies Record<DefaultSize, number>;
+
+const SIZE_PRESETS: { size: DefaultSize; label: string; Icon: LucideIcon }[] = [
+  { Icon: SmartphoneIcon, label: "Phone width", size: "sm" },
+  { Icon: TabletIcon, label: "Tablet width", size: "md" },
+  { Icon: MonitorIcon, label: "Full width", size: "full" },
+];
 
 const KEY_DELTA = new Map<string, 1 | -1>([
   ["ArrowDown", 1],
@@ -49,10 +59,10 @@ const FeedItemBase = ({ ref, component, active, shouldRender, keepMounted }: Fee
       ref={ref}
       data-slug={component.slug}
       inert={!active}
-      className="flex h-full snap-start snap-always items-center justify-center px-3 pb-2"
+      className="flex h-full snap-start snap-always flex-col items-center gap-2 px-3 pb-2"
     >
       <Resizable
-        className="h-full"
+        className="min-h-0 flex-1"
         width={width}
         minWidth={WIDTH_BY_SIZE.sm}
         maxWidth={WIDTH_BY_SIZE.full}
@@ -65,6 +75,22 @@ const FeedItemBase = ({ ref, component, active, shouldRender, keepMounted }: Fee
           />
         </div>
       </Resizable>
+      {/* Presets sit below the frame; the drag handles cover in-between widths. Both are desktop-only. */}
+      <ButtonGroup aria-label="Preview width" className="hidden shadow-xs md:flex">
+        {SIZE_PRESETS.map(({ size, label, Icon }) => (
+          <Button
+            key={size}
+            variant="outline"
+            size="icon-sm"
+            aria-pressed={width === WIDTH_BY_SIZE[size]}
+            className="aria-pressed:bg-muted aria-pressed:text-foreground shadow-none"
+            onClick={() => setWidth(WIDTH_BY_SIZE[size])}
+          >
+            <Icon className="size-4" />
+            <span className="sr-only">{label}</span>
+          </Button>
+        ))}
+      </ButtonGroup>
     </section>
   );
 };
