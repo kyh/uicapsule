@@ -9,10 +9,10 @@ import { Signature } from "../_components/signature";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: aboutPage.title,
-  description: aboutPage.description,
   alternates: canonicalAlternates(aboutPage.path),
+  description: aboutPage.description,
   openGraph: pageOpenGraph(aboutPage.path, aboutPage.title, aboutPage.description),
+  title: aboutPage.title,
 };
 
 const Page = () => (

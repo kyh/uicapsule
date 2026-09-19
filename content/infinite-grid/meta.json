@@ -1,6 +1,6 @@
 {
   "name": "Infinite Grid",
-  "coverUrl": "https://zmdrwswxugswzmcokvff.supabase.co/storage/v1/object/public/uicapsule/infinite-grid/infinite-grid.mp4",
-  "coverType": "video",
-  "tags": ["design", "geometric", "grids"]
+  "addedAt": "2025-05-03",
+  "cover": "infinite-grid/infinite-grid.mp4",
+  "tags": ["cards-grids", "geometric"]
 }

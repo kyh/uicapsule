@@ -26,6 +26,7 @@
     "@tanstack/react-query": "catalog:",
     "@vercel/analytics": "^2.0.1",
     "better-auth": "catalog:",
+    "cn": "catalog:",
     "jszip": "^3.10.1",
     "lucide-react": "^1.35.0",
     "motion": "^13.1.1",

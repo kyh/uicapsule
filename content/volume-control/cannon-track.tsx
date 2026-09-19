@@ -7,6 +7,7 @@ import type { MotionValue } from "motion/react";
 
 import { HUD_INNER_WIDTH } from "./macos-chrome";
 import {
+  arrowDelta,
   clamp,
   clampVolume,
   DETENT_STEP,
@@ -38,16 +39,62 @@ const FLOOR_DRAG = 0.66;
 const SETTLE_SPEED = 42;
 const MAX_FLIGHT_SECONDS = 6;
 
-const RESET_SPRING = { type: "spring", stiffness: 300, damping: 26 } as const;
+const RESET_SPRING = { damping: 26, stiffness: 300, type: "spring" } as const;
 
-type Shot = { x: number; y: number; vx: number; vy: number };
+interface Shot {
+  x: number;
+  y: number;
+  vx: number;
+  vy: number;
+}
 
 const floorToVolume = (x: number) => clamp((x / BOARD_WIDTH) * VOLUME_MAX, VOLUME_MIN, VOLUME_MAX);
 const volumeToFloor = (volume: number) => (clampVolume(volume) / VOLUME_MAX) * BOARD_WIDTH;
 
-type CannonTrackProps = {
-  volume: MotionValue<number>;
+/** The volume scale, painted on the floor where the ball has to land on it. Ticks
+ * sit exactly on their value — the ball is scored against them, so they can't lie
+ * — while the two end labels shuffle inwards to clear the board's rounded corner. */
+const endLabelShift = (value: number) => {
+  if (value === 0) {
+    return "translate-x-2";
+  }
+  if (value === 100) {
+    return "-translate-x-2.5";
+  }
+  return "";
 };
+
+const FloorScale = () => (
+  <div aria-hidden className="absolute inset-x-0 bottom-0 h-[26px] border-t border-white/10">
+    {[0, 25, 50, 75, 100].map((value) => (
+      <span
+        key={value}
+        className="absolute top-0 flex -translate-x-1/2 flex-col items-center"
+        style={{ left: volumeToFloor(value) }}
+      >
+        <span className="h-2 w-px bg-white/25" />
+        <span
+          className={`mt-0.5 text-[10px] tabular-nums text-neutral-500 ${endLabelShift(value)}`}
+        >
+          {value}
+        </span>
+      </span>
+    ))}
+    {Array.from({ length: VOLUME_MAX / DETENT_STEP + 1 }, (_, index) => index * DETENT_STEP)
+      .filter((value) => value % 25 !== 0)
+      .map((value) => (
+        <span
+          key={value}
+          className="absolute top-0 h-1 w-px bg-white/10"
+          style={{ left: volumeToFloor(value) }}
+        />
+      ))}
+  </div>
+);
+
+interface CannonTrackProps {
+  volume: MotionValue<number>;
+}
 
 /**
  * Artillery, as a volume control. Haul back off the muzzle to load angle and
@@ -82,28 +129,34 @@ export const CannonTrack = ({ volume }: CannonTrackProps) => {
     return volume.on("change", report);
   }, [volume]);
 
-  useEffect(() => {
-    return () => {
+  useEffect(
+    () => () => {
       cancelAnimationFrame(frame.current);
       window.clearTimeout(wideTimer.current);
-    };
-  }, []);
+    },
+    [],
+  );
 
   /** One step of ballistics. Shared by the animated flight and the reduced-motion
    * fast-forward, so both land the ball in exactly the same place. */
   const advance = (shot: Shot, dt: number): Shot => {
     const vy = shot.vy + GRAVITY * dt;
-    let next = { x: shot.x + shot.vx * dt, y: shot.y + vy * dt, vx: shot.vx, vy };
+    let next = { vx: shot.vx, vy, x: shot.x + shot.vx * dt, y: shot.y + vy * dt };
 
     if (next.y >= FLOOR_Y) {
       next = {
-        x: next.x,
-        y: FLOOR_Y,
         vx: next.vx * FLOOR_DRAG,
         vy: -Math.abs(next.vy) * BOUNCE,
+        x: next.x,
+        y: FLOOR_Y,
       };
     }
     return next;
+  };
+
+  const resetBall = () => {
+    void animate(ballX, MUZZLE.x, RESET_SPRING);
+    void animate(ballY, MUZZLE.y, RESET_SPRING);
   };
 
   const land = (x: number) => {
@@ -121,26 +174,23 @@ export const CannonTrack = ({ volume }: CannonTrackProps) => {
     void animate(ballX, volumeToFloor(landed), RESET_SPRING);
   };
 
-  const resetBall = () => {
-    void animate(ballX, MUZZLE.x, RESET_SPRING);
-    void animate(ballY, MUZZLE.y, RESET_SPRING);
-  };
-
   const fire = (vx: number, vy: number) => {
     if (reduceMotion) {
       // No arc, same maths: run the flight to its conclusion and report the result.
-      let shot: Shot = { x: MUZZLE.x, y: MUZZLE.y, vx, vy };
+      let shot: Shot = { vx, vy, x: MUZZLE.x, y: MUZZLE.y };
       for (let t = 0; t < MAX_FLIGHT_SECONDS * 60; t += 1) {
         shot = advance(shot, 1 / 60);
         const resting = shot.y >= FLOOR_Y - 0.5 && Math.abs(shot.vy) < SETTLE_SPEED;
-        if (resting || shot.x > BOARD_WIDTH) break;
+        if (resting || shot.x > BOARD_WIDTH) {
+          break;
+        }
       }
       land(shot.x);
       return;
     }
 
     setPhase("firing");
-    let shot: Shot = { x: MUZZLE.x, y: MUZZLE.y, vx, vy };
+    let shot: Shot = { vx, vy, x: MUZZLE.x, y: MUZZLE.y };
     let last = performance.now();
     let elapsed = 0;
 
@@ -168,12 +218,16 @@ export const CannonTrack = ({ volume }: CannonTrackProps) => {
 
   const pointerInBoard = (event: React.PointerEvent<HTMLDivElement>) => {
     const box = boardRef.current?.getBoundingClientRect();
-    if (!box) return { x: 0, y: 0 };
+    if (!box) {
+      return { x: 0, y: 0 };
+    }
     return { x: event.clientX - box.left, y: event.clientY - box.top };
   };
 
   const handlePointerDown = (event: React.PointerEvent<HTMLDivElement>) => {
-    if (phase === "firing") return;
+    if (phase === "firing") {
+      return;
+    }
     cancelAnimationFrame(frame.current);
     event.currentTarget.setPointerCapture(event.pointerId);
     setWide(false);
@@ -185,7 +239,9 @@ export const CannonTrack = ({ volume }: CannonTrackProps) => {
   };
 
   const handlePointerMove = (event: React.PointerEvent<HTMLDivElement>) => {
-    if (phase !== "aiming") return;
+    if (phase !== "aiming") {
+      return;
+    }
     const point = pointerInBoard(event);
     // Pull is measured from the muzzle and capped, so the barrel can't be hauled
     // through the back of the cannon and the shot has a ceiling.
@@ -202,7 +258,9 @@ export const CannonTrack = ({ volume }: CannonTrackProps) => {
   };
 
   const handlePointerUp = () => {
-    if (phase !== "aiming") return;
+    if (phase !== "aiming") {
+      return;
+    }
     const vector = pull.current;
     const distance = Math.hypot(vector.x, vector.y);
     if (distance < MIN_PULL) {
@@ -217,13 +275,10 @@ export const CannonTrack = ({ volume }: CannonTrackProps) => {
   };
 
   const handleKeyDown = (event: React.KeyboardEvent<HTMLDivElement>) => {
-    const delta =
-      event.key === "ArrowRight" || event.key === "ArrowUp"
-        ? DETENT_STEP
-        : event.key === "ArrowLeft" || event.key === "ArrowDown"
-          ? -DETENT_STEP
-          : 0;
-    if (delta === 0) return;
+    const delta = arrowDelta(event.key);
+    if (delta === 0) {
+      return;
+    }
     event.preventDefault();
     const next = clampVolume(snapVolume(volume.get()) + delta);
     volume.set(next);
@@ -239,6 +294,7 @@ export const CannonTrack = ({ volume }: CannonTrackProps) => {
   return (
     <div
       ref={boardRef}
+      // oxlint-disable-next-line jsx-a11y/prefer-tag-over-role, jsx-a11y/role-has-required-aria-props -- a physics toy, not a range input; aria-valuenow is written straight to the DOM every frame (see the effect above)
       role="slider"
       tabIndex={0}
       aria-label="Volume"
@@ -249,7 +305,7 @@ export const CannonTrack = ({ volume }: CannonTrackProps) => {
       onPointerUp={handlePointerUp}
       onPointerCancel={handlePointerUp}
       onKeyDown={handleKeyDown}
-      style={{ width: BOARD_WIDTH, height: BOARD_HEIGHT, touchAction: "none" }}
+      style={{ height: BOARD_HEIGHT, touchAction: "none", width: BOARD_WIDTH }}
       className={`relative overflow-hidden rounded-2xl bg-neutral-950/80 outline-none focus-visible:ring-2 focus-visible:ring-white/70 ${
         phase === "aiming" ? "cursor-grabbing" : "cursor-crosshair"
       }`}
@@ -261,11 +317,11 @@ export const CannonTrack = ({ volume }: CannonTrackProps) => {
         aria-hidden
         className="absolute origin-left rounded-r-[3px] bg-gradient-to-b from-neutral-400 to-neutral-600"
         style={{
+          height: 10 + power * 3,
           left: MUZZLE.x - 16,
+          rotate: barrelAngle,
           top: MUZZLE.y - 5,
           width: 34 + power * 6,
-          height: 10 + power * 3,
-          rotate: barrelAngle,
         }}
       />
       <span
@@ -293,10 +349,10 @@ export const CannonTrack = ({ volume }: CannonTrackProps) => {
         aria-hidden
         className="absolute rounded-full bg-gradient-to-b from-neutral-200 to-neutral-500 shadow-[0_2px_6px_rgba(0,0,0,0.6)]"
         style={{
-          width: BALL_SIZE,
           height: BALL_SIZE,
           left: -BALL_SIZE / 2,
           top: -BALL_SIZE / 2,
+          width: BALL_SIZE,
           x: ballX,
           y: ballY,
         }}
@@ -318,36 +374,3 @@ export const CannonTrack = ({ volume }: CannonTrackProps) => {
     </div>
   );
 };
-
-/** The volume scale, painted on the floor where the ball has to land on it. Ticks
- * sit exactly on their value — the ball is scored against them, so they can't lie
- * — while the two end labels shuffle inwards to clear the board's rounded corner. */
-const FloorScale = () => (
-  <div aria-hidden className="absolute inset-x-0 bottom-0 h-[26px] border-t border-white/10">
-    {[0, 25, 50, 75, 100].map((value) => (
-      <span
-        key={value}
-        className="absolute top-0 flex -translate-x-1/2 flex-col items-center"
-        style={{ left: volumeToFloor(value) }}
-      >
-        <span className="h-2 w-px bg-white/25" />
-        <span
-          className={`mt-0.5 text-[10px] tabular-nums text-neutral-500 ${
-            value === 0 ? "translate-x-2" : value === 100 ? "-translate-x-2.5" : ""
-          }`}
-        >
-          {value}
-        </span>
-      </span>
-    ))}
-    {Array.from({ length: VOLUME_MAX / DETENT_STEP + 1 }, (_, index) => index * DETENT_STEP)
-      .filter((value) => value % 25 !== 0)
-      .map((value) => (
-        <span
-          key={value}
-          className="absolute top-0 h-1 w-px bg-white/10"
-          style={{ left: volumeToFloor(value) }}
-        />
-      ))}
-  </div>
-);

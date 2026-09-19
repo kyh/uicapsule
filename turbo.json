@@ -9,7 +9,12 @@
       "outputs": [".next/**", "!.next/cache/**"]
     },
     "//#check:content": {
-      "inputs": ["content/**", "scripts/check-content.ts"]
+      "inputs": [
+        "content/**",
+        "scripts/check-content.ts",
+        "apps/web/src/lib/content/content-schema.ts",
+        "scripts/content-validation.ts"
+      ]
     },
     "dev": {
       "cache": false,
@@ -43,9 +48,13 @@
     "TURSO_DATABASE_URL",
     "TURSO_AUTH_TOKEN",
     "BETTER_AUTH_SECRET",
-    "NEXT_PUBLIC_SUPABASE_URL",
+    "BETTER_AUTH_URL",
+    "NEXT_PUBLIC_ASSETS_URL",
     "PORT",
-    "VERCEL_PROJECT_PRODUCTION_URL"
+    "VERCEL_PROJECT_PRODUCTION_URL",
+    "RESEND_API_KEY",
+    "AUTH_EMAIL_FROM",
+    "GITHUB_ISSUES_TOKEN"
   ],
   "globalPassThroughEnv": [
     "NODE_ENV",

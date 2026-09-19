@@ -14,27 +14,32 @@ import { aboutPage, contactPage, privacyPage, prosePages, utilityPages } from ".
 import type { ContentComponentSummary } from "@/lib/content/content-schema";
 
 const localComponent: ContentComponentSummary = {
-  slug: "dynamic-island",
-  type: "local",
-  name: "Dynamic Island",
-  description: "A springy Dynamic Island interaction with ring and timer states.",
+  addedAt: "2026-01-02",
+  authors: [{ avatarUrl: "https://kyh.io/avatar.png", name: "Kaiyu Hsu", url: "https://kyh.io" }],
   category: "mobile",
-  tags: ["overlay", "minimal"],
-  authors: [{ name: "Kaiyu Hsu", url: "https://kyh.io", avatarUrl: "https://kyh.io/avatar.png" }],
+  description: "A springy Dynamic Island interaction with ring and timer states.",
+  name: "Dynamic Island",
+  slug: "dynamic-island",
+  tags: ["effects", "minimal"],
+  type: "local",
 };
 
 const bareComponent: ContentComponentSummary = {
-  slug: "feed",
-  type: "local",
+  addedAt: "2026-01-01",
   name: "Feed",
+  slug: "feed",
+  tags: ["cards-grids"],
+  type: "local",
 };
 
 const remoteComponent: ContentComponentSummary = {
-  slug: "elsewhere",
-  type: "remote",
-  name: "Elsewhere",
+  addedAt: "2026-01-03",
   iframeUrl: "https://example.com/embed",
+  name: "Elsewhere",
+  slug: "elsewhere",
   sourceUrl: "https://example.com/source",
+  tags: ["pages"],
+  type: "remote",
 };
 
 describe("absoluteUrl", () => {
@@ -44,7 +49,7 @@ describe("absoluteUrl", () => {
   });
 
   test("prefixes site-relative paths with the site origin", () => {
-    assert.match(absoluteUrl("/about"), /^https?:\/\/[^/]+\/about$/);
+    assert.match(absoluteUrl("/about"), /^https?:\/\/[^/]+\/about$/u);
   });
 });
 
@@ -52,10 +57,10 @@ describe("renderProsePageMarkdown", () => {
   test("opens with a single H1 and a blockquote summary", () => {
     const body = renderProsePageMarkdown(aboutPage);
     assert.equal(body.startsWith(`# ${aboutPage.heading}\n`), true);
-    assert.deepEqual(body.match(/^# /gm), ["# "]);
+    assert.deepEqual(body.match(/^# /gmu), ["# "]);
     assert.ok(
       body.includes(`> ${aboutPage.description}`),
-      "should contain `> ${aboutPage.description}`",
+      `should contain > ${aboutPage.description}`,
     );
   });
 
@@ -79,24 +84,24 @@ describe("renderProsePageMarkdown", () => {
   test("gives every registered page a non-trivial body", () => {
     for (const page of [...prosePages, ...utilityPages]) {
       const body = renderProsePageMarkdown(page);
-      assert.ok(body.includes(`# ${page.heading}`), "should contain `# ${page.heading}`");
+      assert.ok(body.includes(`# ${page.heading}`), `should contain # ${page.heading}`);
       assert.ok(body.length > 100, "expected > 100");
     }
   });
 });
 
-describe("trust anchor pages", () => {
-  // These are the pages an agent reads to decide whether a site is a real
-  // operation. Below ~500 characters they read as placeholders.
-  const textLength = (page: (typeof prosePages)[number]) =>
-    page.blocks
-      .map((block) =>
-        block.kind === "list"
-          ? block.items.map((item) => `${item.label} ${item.text ?? ""}`).join(" ")
-          : block.text,
-      )
-      .join(" ").length;
+// These are the pages an agent reads to decide whether a site is a real
+// operation. Below ~500 characters they read as placeholders.
+const textLength = (page: (typeof prosePages)[number]) =>
+  page.blocks
+    .map((block) =>
+      block.kind === "list"
+        ? block.items.map((item) => `${item.label} ${item.text ?? ""}`).join(" ")
+        : block.text,
+    )
+    .join(" ").length;
 
+describe("trust anchor pages", () => {
   for (const page of [aboutPage, contactPage, privacyPage]) {
     test(`${page.path} carries real content`, () => {
       assert.ok(
@@ -127,17 +132,16 @@ describe("renderHomeMarkdown", () => {
       body.includes("A springy Dynamic Island interaction"),
       'should contain "A springy Dynamic Island interaction"',
     );
-    assert.ok(body.includes("tags: overlay, minimal"), 'should contain "tags: overlay, minimal"');
+    assert.ok(body.includes("tags: effects, minimal"), 'should contain "tags: effects, minimal"');
     assert.ok(body.includes("[Feed]("), 'should contain "[Feed]("');
   });
 
   test("exposes the filter taxonomy so an agent can build a filtered URL", () => {
     assert.ok(body.includes("**Elements**"), 'should contain "**Elements**"');
     assert.ok(body.includes("**Styles**"), 'should contain "**Styles**"');
-    assert.ok(body.includes("**Categories**"), 'should contain "**Categories**"');
     assert.ok(
-      body.includes("?element=inputs&style=skeuomorphism"),
-      'should contain "?element=inputs&style=skeuomorphism"',
+      body.includes("?element=controls&style=skeuomorphism"),
+      'should contain "?element=controls&style=skeuomorphism"',
     );
   });
 });

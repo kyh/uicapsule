@@ -1,16 +1,16 @@
 "use client";
 
-import { Button } from "@repo/ui/components/button";
 import {
+  Button,
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-} from "@repo/ui/components/dropdown-menu";
-import { createColumnHelper } from "@tanstack/react-table";
-import { Download, MoreVerticalIcon, Plus, Sparkles, TrashIcon, Upload } from "lucide-react";
+} from "./components/ui";
 
-import type { SpreadsheetFeatures } from "./lib/spreadsheet-utils";
+import { MoreVerticalIcon, Plus, Sparkles, TrashIcon } from "lucide-react";
+
+import type { SpreadsheetProps } from "./components/spreadsheet";
 import { EditableCell } from "./components/editable-cell";
 import { Spreadsheet } from "./components/spreadsheet";
 import {
@@ -20,10 +20,11 @@ import {
   StatusBarSummary,
 } from "./components/status-bar";
 import { Toolbar, ToolbarButton } from "./components/toolbar";
-import { useSpreadsheetStore } from "./lib/spreadsheet-store";
+import type { SpreadsheetRow } from "./lib/spreadsheet-store";
+import { SpreadsheetProvider, useSpreadsheetStore } from "./lib/spreadsheet-store";
 import { useAiEnrichment } from "./lib/use-ai-enrichment";
 
-type Person = {
+interface Person extends SpreadsheetRow {
   id: string;
   linkedinUrl: string;
   firstName: string;
@@ -31,51 +32,42 @@ type Person = {
   email: string;
   company: string;
   role: string;
-};
+}
 
-const columnHelper = createColumnHelper<SpreadsheetFeatures, Person>();
-
-const generateSamplePeople = (count: number): Person[] => {
-  return Array.from({ length: count }, (_, i) => ({
-    id: `${i + 1}`,
-    linkedinUrl: `https://linkedin.com/in/user-${i + 1}`,
-    firstName: "",
-    lastName: "",
-    email: "",
+const generateSamplePeople = (count: number): Person[] =>
+  Array.from({ length: count }, (_, i) => ({
     company: "",
+    email: "",
+    firstName: "",
+    id: `${i + 1}`,
+    lastName: "",
+    linkedinUrl: `https://linkedin.com/in/user-${i + 1}`,
     role: "",
   }));
+
+const initialData = generateSamplePeople(30);
+const initialColumnWidths = {
+  company: 150,
+  email: 180,
+  firstName: 120,
+  lastName: 120,
+  linkedinUrl: 250,
+  role: 150,
 };
 
-// Initialize store outside React
-const initializeStore = () => {
-  const store = useSpreadsheetStore.getState();
-  if (store.data.length === 0) {
-    store.setData(generateSamplePeople(30));
-  }
-  if (Object.keys(store.columnWidths).length === 0) {
-    store.setColumnWidths({
-      linkedinUrl: 250,
-      firstName: 120,
-      lastName: 120,
-      email: 180,
-      company: 150,
-      role: 150,
-    });
-  }
-};
-
-// Row actions component that uses the spreadsheet context
-const RowActions = ({ row }: { row: Person }) => {
+const RowActions = ({ row }: { row: SpreadsheetRow }) => {
   const deleteRow = useSpreadsheetStore((state) => state.deleteRow);
 
   return (
     <DropdownMenu>
-      <DropdownMenuTrigger render={<Button size="icon" variant="ghost" className="h-8 w-8" />}>
+      <DropdownMenuTrigger
+        aria-label="Row actions"
+        render={<Button size="icon" variant="ghost" className="h-8 w-8" />}
+      >
         <MoreVerticalIcon className="h-3 w-3" />
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end">
-        <DropdownMenuItem onClick={() => deleteRow(row.id)} className="text-destructive">
+        <DropdownMenuItem onClick={() => deleteRow(row.id)} className="text-(--destructive)">
           <TrashIcon className="size-4" />
           Delete
         </DropdownMenuItem>
@@ -84,24 +76,25 @@ const RowActions = ({ row }: { row: Person }) => {
   );
 };
 
-const addRow = () => {
-  useSpreadsheetStore.getState().addRow((index) => ({
-    id: `${Date.now()}-${index}`,
-    linkedinUrl: "",
-    firstName: "",
-    lastName: "",
-    email: "",
-    company: "",
-    role: "",
-  }));
-};
-
 const ToolbarButtons = () => {
   const { handleEnrich } = useAiEnrichment();
+  const addRow = useSpreadsheetStore((state) => state.addRow);
 
   return (
     <>
-      <ToolbarButton onClick={addRow}>
+      <ToolbarButton
+        onClick={() =>
+          addRow(() => ({
+            company: "",
+            email: "",
+            firstName: "",
+            id: crypto.randomUUID(),
+            lastName: "",
+            linkedinUrl: "",
+            role: "",
+          }))
+        }
+      >
         <Plus className="size-4" />
         Add Row
       </ToolbarButton>
@@ -109,50 +102,38 @@ const ToolbarButtons = () => {
         <Sparkles className="size-4" />
         Enrich
       </ToolbarButton>
-      <ToolbarButton onClick={() => alert("Import")}>
-        <Upload className="size-4" />
-        Import
-      </ToolbarButton>
-      <ToolbarButton onClick={() => alert("Export")}>
-        <Download className="size-4" />
-        Export
-      </ToolbarButton>
     </>
   );
 };
 
-const columns = [
-  columnHelper.accessor("linkedinUrl", { header: "LinkedIn URL", cell: EditableCell }),
-  columnHelper.accessor("firstName", { header: "First Name", cell: EditableCell }),
-  columnHelper.accessor("lastName", { header: "Last Name", cell: EditableCell }),
-  columnHelper.accessor("email", { header: "Email", cell: EditableCell }),
-  columnHelper.accessor("company", { header: "Company", cell: EditableCell }),
-  columnHelper.accessor("role", { header: "Role", cell: EditableCell }),
+const columns: SpreadsheetProps["columns"] = [
+  { accessorKey: "linkedinUrl", cell: EditableCell, header: "LinkedIn URL" },
+  { accessorKey: "firstName", cell: EditableCell, header: "First Name" },
+  { accessorKey: "lastName", cell: EditableCell, header: "Last Name" },
+  { accessorKey: "email", cell: EditableCell, header: "Email" },
+  { accessorKey: "company", cell: EditableCell, header: "Company" },
+  { accessorKey: "role", cell: EditableCell, header: "Role" },
 ];
 
-const Preview = () => {
-  return (
-    <>
-      <Toolbar>
-        <ToolbarButtons />
-      </Toolbar>
-      <Spreadsheet
-        columns={columns}
-        showRowNumbers
-        renderRowActions={(row) => <RowActions row={row} />}
-      />
-      <StatusBar>
-        <StatusBarSection>
-          <StatusBarMessage />
-        </StatusBarSection>
-        <StatusBarSection className="justify-end">
-          <StatusBarSummary />
-        </StatusBarSection>
-      </StatusBar>
-    </>
-  );
-};
-
-initializeStore();
+const Preview = () => (
+  <SpreadsheetProvider initialData={initialData} initialColumnWidths={initialColumnWidths}>
+    <Toolbar>
+      <ToolbarButtons />
+    </Toolbar>
+    <Spreadsheet
+      columns={columns}
+      showRowNumbers
+      renderRowActions={(row) => <RowActions row={row} />}
+    />
+    <StatusBar>
+      <StatusBarSection>
+        <StatusBarMessage />
+      </StatusBarSection>
+      <StatusBarSection className="justify-end">
+        <StatusBarSummary />
+      </StatusBarSection>
+    </StatusBar>
+  </SpreadsheetProvider>
+);
 
 export default Preview;

@@ -8,13 +8,13 @@ import { Line2 } from "three/examples/jsm/lines/Line2.js";
 import { LineMaterial } from "three/examples/jsm/lines/LineMaterial.js";
 import { LineGeometry } from "three/examples/jsm/lines/LineGeometry.js";
 
-extend({ Line2, LineMaterial, LineGeometry });
+const OrbLine = extend(Line2);
 
 /**
  * Configuration options for the geometric orb.
  * All fields are optional and fall back to sensible defaults.
  */
-export type GeometricOrbConfig = {
+export interface GeometricOrbConfig {
   /** Number of latitude lines rendered on the sphere. @default 20 */
   numLines?: number;
   /** Radius of the sphere in world units. @default 1.5 */
@@ -43,23 +43,23 @@ export type GeometricOrbConfig = {
   minDistance?: number;
   /** Maximum camera distance (farthest zoom). @default 20 */
   maxDistance?: number;
-};
+}
 
 const defaults: Required<GeometricOrbConfig> = {
+  background: "#0a0a0a",
+  color: "#eeeeee",
+  enablePan: false,
+  enableZoom: true,
+  lineWidth: 2,
+  maxDistance: 20,
+  minDistance: 2,
   numLines: 20,
+  pointsPerLine: 96,
   radius: 1.5,
   speed: 20,
-  lineWidth: 2,
-  color: "#eeeeee",
-  background: "#0a0a0a",
   squiggleAmount: 0.04,
   squiggleFrequency: 4,
   squiggleSpeed: 2,
-  pointsPerLine: 96,
-  enableZoom: true,
-  enablePan: false,
-  minDistance: 2,
-  maxDistance: 20,
 };
 
 /**
@@ -67,7 +67,7 @@ const defaults: Required<GeometricOrbConfig> = {
  * Each line is one Line2 with per-vertex colors encoding depth-based opacity,
  * reducing draw calls from numLines×segmentGroups to just numLines.
  */
-function LatitudeLines({ config }: { config: Required<GeometricOrbConfig> }) {
+const LatitudeLines = ({ config }: { config: Required<GeometricOrbConfig> }) => {
   const camDirRef = useRef(new THREE.Vector3());
   const { size } = useThree();
 
@@ -76,15 +76,14 @@ function LatitudeLines({ config }: { config: Required<GeometricOrbConfig> }) {
   const lineConstants = useMemo(
     () =>
       Array.from({ length: config.numLines }, (_, i) => ({
-        longitudeRotation: (i / config.numLines) * Math.PI,
-        timeOffset: (i / config.numLines) * config.speed,
         cosR: Math.cos((i / config.numLines) * Math.PI),
+        longitudeRotation: (i / config.numLines) * Math.PI,
         sinR: Math.sin((i / config.numLines) * Math.PI),
+        timeOffset: (i / config.numLines) * config.speed,
       })),
     [config.numLines, config.speed],
   );
 
-  // One material per line with vertexColors enabled
   const materials = useMemo(
     () =>
       Array.from(
@@ -93,26 +92,35 @@ function LatitudeLines({ config }: { config: Required<GeometricOrbConfig> }) {
           new LineMaterial({
             color: baseColor.getHex(),
             linewidth: config.lineWidth,
-            transparent: true,
             opacity: 1,
+            transparent: true,
             vertexColors: true,
           }),
       ),
     [baseColor, config.numLines, config.lineWidth],
   );
 
-  // One geometry per line
   const geometries = useMemo(
     () => Array.from({ length: config.numLines }, () => new LineGeometry()),
     [config.numLines],
   );
 
-  useEffect(() => {
-    return () => {
-      for (const mat of materials) mat.dispose();
-      for (const geo of geometries) geo.dispose();
-    };
-  }, [materials, geometries]);
+  useEffect(
+    () => () => {
+      for (const material of materials) {
+        material.dispose();
+      }
+    },
+    [materials],
+  );
+  useEffect(
+    () => () => {
+      for (const geometry of geometries) {
+        geometry.dispose();
+      }
+    },
+    [geometries],
+  );
 
   useEffect(() => {
     for (const mat of materials) {
@@ -120,29 +128,42 @@ function LatitudeLines({ config }: { config: Required<GeometricOrbConfig> }) {
     }
   }, [materials, size.width, size.height]);
 
-  // Pre-allocate reusable buffers (+1 vertex to close the loop)
+  // Reuse buffers across frames; the extra vertex closes the loop.
   const vertexCount = config.pointsPerLine + 1;
-  const positionBuffer = useMemo(() => new Float32Array(vertexCount * 3), [vertexCount]);
-  const colorBuffer = useMemo(() => new Float32Array(vertexCount * 3), [vertexCount]);
+  const buffersRef = useRef<{
+    vertexCount: number;
+    positions: Float32Array;
+    colors: Float32Array;
+  } | null>(null);
 
   useFrame((state) => {
+    if (buffersRef.current?.vertexCount !== vertexCount) {
+      buffersRef.current = {
+        colors: new Float32Array(vertexCount * 3),
+        positions: new Float32Array(vertexCount * 3),
+        vertexCount,
+      };
+    }
+    const { positions: positionBuffer, colors: colorBuffer } = buffersRef.current;
     const time = state.clock.elapsedTime;
     const camDir = camDirRef.current.copy(state.camera.position).normalize();
-    const r = baseColor.r;
-    const g = baseColor.g;
-    const b = baseColor.b;
+    const { r } = baseColor;
+    const { g } = baseColor;
+    const { b } = baseColor;
 
-    for (let lineIdx = 0; lineIdx < config.numLines; lineIdx++) {
+    for (let lineIdx = 0; lineIdx < config.numLines; lineIdx += 1) {
       const constants = lineConstants[lineIdx];
       const geometry = geometries[lineIdx];
-      if (!constants || !geometry) continue;
+      if (!constants || !geometry) {
+        continue;
+      }
       const { timeOffset, cosR, sinR } = constants;
       const progress = ((time + timeOffset) % config.speed) / config.speed;
       const latitude = progress * Math.PI;
       const circleRadius = Math.sin(latitude) * config.radius;
       const yPosition = Math.cos(latitude) * config.radius;
 
-      for (let i = 0; i < config.pointsPerLine; i++) {
+      for (let i = 0; i < config.pointsPerLine; i += 1) {
         const angle = (i / config.pointsPerLine) * Math.PI * 2;
         const squiggle =
           Math.sin(angle * config.squiggleFrequency + time * config.squiggleSpeed + lineIdx * 0.5) *
@@ -194,23 +215,23 @@ function LatitudeLines({ config }: { config: Required<GeometricOrbConfig> }) {
         const geometry = geometries[lineIdx];
         const material = materials[lineIdx];
         const constants = lineConstants[lineIdx];
-        if (!geometry || !material || !constants) return null;
+        if (!geometry || !material || !constants) {
+          return null;
+        }
         return (
           // Longitude rotation is constant per line, so it is declared once here
           // rather than re-written from the frame loop.
           <group key={lineIdx} rotation-y={constants.longitudeRotation}>
-            {/* @ts-expect-error line2 is an R3F extension registered via extend() */}
-            <line2>
+            <OrbLine>
               <primitive object={geometry} attach="geometry" />
               <primitive object={material} attach="material" />
-              {/* @ts-expect-error line2 is an R3F extension registered via extend() */}
-            </line2>
+            </OrbLine>
           </group>
         );
       })}
     </>
   );
-}
+};
 
 /**
  * 3D animated orb with flowing latitude lines and depth-based opacity.
@@ -225,20 +246,20 @@ function LatitudeLines({ config }: { config: Required<GeometricOrbConfig> }) {
  * <GeometricOrb config={{ color: "#4af", numLines: 30, speed: 10 }} />
  * ```
  */
-export function GeometricOrb({
+export const GeometricOrb = ({
   config: configOverrides,
   className = "",
 }: {
   config?: GeometricOrbConfig;
   className?: string;
-}) {
+}) => {
   // Derived during render: LatitudeLines only memoizes on individual config
   // fields, so a fresh object identity each render costs nothing.
   const config = { ...defaults, ...configOverrides };
 
   return (
     <div className={`w-full h-full ${className}`} style={{ background: config.background }}>
-      <Canvas camera={{ position: [0, 0, 8], fov: 45 }} gl={{ antialias: true, alpha: false }}>
+      <Canvas camera={{ fov: 45, position: [0, 0, 8] }} gl={{ alpha: false, antialias: true }}>
         <color attach="background" args={[config.background]} />
         <LatitudeLines config={config} />
         <OrbitControls
@@ -250,4 +271,4 @@ export function GeometricOrb({
       </Canvas>
     </div>
   );
-}
+};

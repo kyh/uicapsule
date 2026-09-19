@@ -2,14 +2,15 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { ArrowUp, Check, Mic, Plus, Sparkles, X } from "lucide-react";
-import { AnimatePresence, motion, useAnimate, type Transition } from "motion/react";
+import { AnimatePresence, motion, useAnimate } from "motion/react";
+import type { Transition } from "motion/react";
 
 type Mode = "idle" | "input" | "listening" | "thinking" | "responding";
 
-type Exchange = {
+interface Exchange {
   prompt: string;
-  words: string[];
-};
+  words: { id: string; text: string }[];
+}
 
 const VOICE_PROMPTS = [
   "What makes a voice interface feel alive?",
@@ -22,14 +23,14 @@ const RESPONSES = [
   "Morphing earns trust when nothing teleports. Anchor the capsule in place, animate width and height from the same origin, and stagger content in a beat after the container settles so the shape reads first and the details second.",
 ] as const;
 
-const SPRING: Transition = { type: "spring", duration: 0.55, bounce: 0.3 };
+const SPRING: Transition = { bounce: 0.3, duration: 0.55, type: "spring" };
 
 const WIDTHS = {
   idle: "w-[260px]",
   input: "w-[min(400px,calc(100vw-48px))]",
   listening: "w-[300px]",
-  thinking: "w-[200px]",
   responding: "w-[min(420px,calc(100vw-48px))]",
+  thinking: "w-[200px]",
 } satisfies Record<Mode, string>;
 
 const pickIndex = (length: number) => Math.floor(Math.random() * length);
@@ -47,10 +48,10 @@ const ListeningWave = () => (
           className="h-7 w-[3px] rounded-full bg-white"
           animate={{ scaleY: [0.12, envelope * wobble, 0.22, envelope, 0.12] }}
           transition={{
-            duration: 0.9 + (index % 5) * 0.13,
-            repeat: Infinity,
-            ease: "easeInOut",
             delay: (index % 7) * 0.07,
+            duration: 0.9 + (index % 5) * 0.13,
+            ease: "easeInOut",
+            repeat: Infinity,
           }}
         />
       );
@@ -82,10 +83,10 @@ export const DynamicAiComposer = () => {
 
   // Timers are tracked so unmount can cancel the in-flight stream; each one drops
   // itself from the set as it fires so a long session cannot accumulate dead ids.
-  const queue = useCallback((callback: () => void, delay: number) => {
+  const queue = useCallback((task: () => void, delay: number) => {
     const id = setTimeout(() => {
       timeoutsRef.current.delete(id);
-      callback();
+      task();
     }, delay);
     timeoutsRef.current.add(id);
   }, []);
@@ -93,7 +94,9 @@ export const DynamicAiComposer = () => {
   useEffect(() => {
     const timeouts = timeoutsRef.current;
     return () => {
-      timeouts.forEach(clearTimeout);
+      for (const id of timeouts) {
+        clearTimeout(id);
+      }
     };
   }, []);
 
@@ -104,8 +107,9 @@ export const DynamicAiComposer = () => {
   }, [mode]);
 
   useEffect(() => {
-    if (mode !== "listening") return;
-    setElapsed(0);
+    if (mode !== "listening") {
+      return;
+    }
     const interval = setInterval(() => {
       setElapsed((previous) => previous + 1);
     }, 1000);
@@ -115,8 +119,10 @@ export const DynamicAiComposer = () => {
   const submit = useCallback(
     (prompt: string) => {
       const response = RESPONSES[pickIndex(RESPONSES.length)];
-      if (!response) return;
-      const words = response.split(" ");
+      if (!response) {
+        return;
+      }
+      const words = response.split(" ").map((text) => ({ id: crypto.randomUUID(), text }));
       setExchange({ prompt, words });
       setStreamedCount(0);
       setMode("thinking");
@@ -147,7 +153,9 @@ export const DynamicAiComposer = () => {
 
   const handleVoiceConfirm = useCallback(() => {
     const prompt = VOICE_PROMPTS[pickIndex(VOICE_PROMPTS.length)];
-    if (!prompt) return;
+    if (!prompt) {
+      return;
+    }
     submit(prompt);
   }, [submit]);
 
@@ -166,7 +174,7 @@ export const DynamicAiComposer = () => {
 
   const content = (() => {
     switch (mode) {
-      case "idle":
+      case "idle": {
         return (
           <div className="flex h-12 items-center gap-1 pr-2 pl-4">
             <button
@@ -180,14 +188,18 @@ export const DynamicAiComposer = () => {
             <button
               type="button"
               aria-label="Start voice input"
-              onClick={() => setMode("listening")}
+              onClick={() => {
+                setElapsed(0);
+                setMode("listening");
+              }}
               className="grid size-8 place-items-center rounded-full text-white/60 transition-colors hover:bg-white/10 hover:text-white"
             >
               <Mic className="size-4" />
             </button>
           </div>
         );
-      case "input":
+      }
+      case "input": {
         return (
           <div className="flex flex-col">
             <textarea
@@ -219,7 +231,10 @@ export const DynamicAiComposer = () => {
               <button
                 type="button"
                 aria-label="Start voice input"
-                onClick={() => setMode("listening")}
+                onClick={() => {
+                  setElapsed(0);
+                  setMode("listening");
+                }}
                 className="grid size-8 place-items-center rounded-full text-white/50 transition-colors hover:bg-white/10 hover:text-white"
               >
                 <Mic className="size-4" />
@@ -235,7 +250,8 @@ export const DynamicAiComposer = () => {
             </div>
           </div>
         );
-      case "listening":
+      }
+      case "listening": {
         return (
           <div className="flex h-12 items-center gap-2 px-2">
             <button
@@ -260,20 +276,22 @@ export const DynamicAiComposer = () => {
             </button>
           </div>
         );
-      case "thinking":
+      }
+      case "thinking": {
         return (
           <div className="flex h-12 items-center justify-center gap-2.5 px-4">
             <Sparkles className="size-4 text-violet-300" />
             <motion.span
               className="bg-[linear-gradient(90deg,rgba(255,255,255,0.25)_0%,rgba(255,255,255,0.95)_50%,rgba(255,255,255,0.25)_100%)] bg-[length:200%_100%] bg-clip-text text-sm text-transparent"
               animate={{ backgroundPosition: ["150% 0%", "-150% 0%"] }}
-              transition={{ duration: 1.4, repeat: Infinity, ease: "linear" }}
+              transition={{ duration: 1.4, ease: "linear", repeat: Infinity }}
             >
               Thinking…
             </motion.span>
           </div>
         );
-      case "responding":
+      }
+      case "responding": {
         return (
           <div className="flex flex-col gap-2 px-4 py-3.5">
             <p className="flex items-center gap-2 text-xs text-white/40">
@@ -281,14 +299,14 @@ export const DynamicAiComposer = () => {
               <span className="truncate">{exchange?.prompt}</span>
             </p>
             <p className="min-h-12 text-sm leading-6 text-white/90">
-              {exchange?.words.slice(0, streamedCount).map((word, index) => (
+              {exchange?.words.slice(0, streamedCount).map((word) => (
                 <motion.span
-                  key={index}
-                  initial={{ opacity: 0, filter: "blur(4px)" }}
-                  animate={{ opacity: 1, filter: "blur(0px)" }}
+                  key={word.id}
+                  initial={{ filter: "blur(4px)", opacity: 0 }}
+                  animate={{ filter: "blur(0px)", opacity: 1 }}
                   transition={{ duration: 0.3 }}
                 >
-                  {word}{" "}
+                  {word.text}{" "}
                 </motion.span>
               ))}
             </p>
@@ -311,6 +329,10 @@ export const DynamicAiComposer = () => {
             </AnimatePresence>
           </div>
         );
+      }
+      default: {
+        return null;
+      }
     }
   })();
 
@@ -338,11 +360,11 @@ export const DynamicAiComposer = () => {
         <motion.div
           key={mode}
           className="relative"
-          initial={{ opacity: 0, scale: 0.92, filter: "blur(6px)" }}
+          initial={{ filter: "blur(6px)", opacity: 0, scale: 0.92 }}
           animate={{
+            filter: "blur(0px)",
             opacity: 1,
             scale: 1,
-            filter: "blur(0px)",
             transition: { ...SPRING, delay: 0.05 },
           }}
         >

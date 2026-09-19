@@ -1,23 +1,7 @@
 import {
-  cloneElement,
-  isValidElement,
-  memo,
-  useCallback,
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-  type ChangeEvent,
-  type ElementType as ReactElementType,
-  type InputHTMLAttributes,
-  type Key,
-  type ReactElement,
-} from "react";
-import type { DateRange } from "react-day-picker";
-import { Button } from "@repo/ui/components/button";
-import { Calendar } from "@repo/ui/components/calendar";
-import { Checkbox } from "@repo/ui/components/checkbox";
-import {
+  Button,
+  Calendar,
+  Checkbox,
   Command,
   CommandEmpty,
   CommandGroup,
@@ -25,437 +9,144 @@ import {
   CommandItem,
   CommandList,
   CommandSeparator,
-} from "@repo/ui/components/command";
-import { Input } from "@repo/ui/components/input";
-import { Popover, PopoverContent, PopoverTrigger } from "@repo/ui/components/popover";
-import { Slider } from "@repo/ui/components/slider";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@repo/ui/components/tabs";
-import { cn } from "@repo/ui/lib/utils";
+  Input,
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+  Slider,
+  Tabs,
+  TabsContent,
+  TabsList,
+  TabsTrigger,
+} from "./ui";
+import {
+  Fragment,
+  cloneElement,
+  isValidElement,
+  memo,
+  useCallback,
+  useEffect,
+  useMemo,
+  useState,
+} from "react";
+import type {
+  ChangeEvent,
+  ElementType as ReactElementType,
+  InputHTMLAttributes,
+  Key,
+  ReactElement,
+} from "react";
+import type { DateRange } from "react-day-picker";
+import { cn } from "cn";
 import { format, isEqual } from "date-fns";
 import { Ellipsis } from "lucide-react";
 
 import type {
   Column,
+  FilterBinding,
   ColumnDataType,
   ColumnOptionExtended,
   DataTableFilterActions,
   FilterModel,
   FilterStrategy,
-  MinMaxReturn,
 } from "../filter-package";
-import { createNumberRange, numberFilterOperators, take } from "../filter-package";
+import { createNumberRange, numberFilterOperators } from "../filter-package";
+import { useDebouncedCallback } from "./use-debounced-callback";
 
-type IconProps = { className?: string; key?: Key };
+interface IconProps {
+  className?: string;
+  key?: Key;
+}
 type IconLike = ReactElement | ReactElementType;
 
 const renderIcon = (icon: IconLike, props: IconProps = {}) => {
-  if (isValidElement<IconProps>(icon)) return cloneElement(icon, props);
+  if (isValidElement(icon)) {
+    // oxlint-disable-next-line react/no-clone-element -- applies the caller's className and key to an element the config supplied; wrapping it would change the DOM
+    return cloneElement(icon, props);
+  }
   const IconComp = icon;
-  return <IconComp {...props} />;
+  const { key, ...iconProps } = props;
+  return <IconComp key={key} {...iconProps} />;
 };
 
-type ControlFunctions = {
-  cancel: () => void;
-  flush: () => void;
-  isPending: () => boolean;
-};
-
-export type DebouncedState<T extends (...args: any) => ReturnType<T>> = ((
-  ...args: Parameters<T>
-) => ReturnType<T> | undefined) &
-  ControlFunctions;
-
-export function useDebounceCallback<T extends (...args: any) => ReturnType<T>>(
-  func: T,
-  delay = 500,
-  options?: DebounceOptions,
-): DebouncedState<T> {
-  const debouncedFunc = useRef<ReturnType<typeof debounce>>(null);
-
-  useUnmount(() => {
-    if (debouncedFunc.current) {
-      debouncedFunc.current.cancel();
-    }
-  });
-
-  const debounced = useMemo(() => {
-    const debouncedFuncInstance = debounce(func, delay, options);
-
-    const wrappedFunc: DebouncedState<T> = (...args: Parameters<T>) => {
-      return debouncedFuncInstance(...args);
-    };
-
-    wrappedFunc.cancel = () => {
-      debouncedFuncInstance.cancel();
-    };
-
-    wrappedFunc.isPending = () => {
-      return !!debouncedFunc.current;
-    };
-
-    wrappedFunc.flush = () => {
-      return debouncedFuncInstance.flush();
-    };
-
-    return wrappedFunc;
-  }, [func, delay, options]);
-
-  // Update the debounced function ref whenever func, wait, or options change
-  useEffect(() => {
-    debouncedFunc.current = debounce(func, delay, options);
-  }, [func, delay, options]);
-
-  return debounced;
-}
-
-function useUnmount(func: () => void) {
-  const funcRef = useRef(func);
-
-  useEffect(() => {
-    funcRef.current = func;
-  }, [func]);
-
-  useEffect(
-    () => () => {
-      funcRef.current();
-    },
-    [],
-  );
-}
-
-type DebounceOptions = {
-  leading?: boolean;
-  trailing?: boolean;
-  maxWait?: number;
-};
-
-// `setTimeout` returns a number in the DOM and a Timeout object in Node; infer
-// it rather than hard-coding `NodeJS.Timeout`, which needs @types/node.
-type TimeoutHandle = ReturnType<typeof setTimeout>;
-
-function debounce<T extends (...args: any[]) => any>(
-  func: T,
-  wait: number,
-  options: DebounceOptions = {},
-): ((...args: Parameters<T>) => ReturnType<T> | undefined) & ControlFunctions {
-  const { leading = false, trailing = true, maxWait } = options;
-  let timeout: TimeoutHandle | null = null;
-  let lastArgs: Parameters<T> | null = null;
-  let lastThis: any;
-  let result: ReturnType<T> | undefined;
-  let lastCallTime: number | null = null;
-  let lastInvokeTime = 0;
-
-  const maxWaitTime = maxWait !== undefined ? Math.max(wait, maxWait) : null;
-
-  function invokeFunc(time: number): ReturnType<T> | undefined {
-    if (lastArgs === null) return undefined;
-    const args = lastArgs;
-    const thisArg = lastThis;
-    lastArgs = null;
-    lastThis = null;
-    lastInvokeTime = time;
-    result = func.apply(thisArg, args);
-    return result;
-  }
-
-  function shouldInvoke(time: number): boolean {
-    if (lastCallTime === null) return false;
-    const timeSinceLastCall = time - lastCallTime;
-    const timeSinceLastInvoke = time - lastInvokeTime;
-    return (
-      lastCallTime === null ||
-      timeSinceLastCall >= wait ||
-      timeSinceLastCall < 0 ||
-      (maxWaitTime !== null && timeSinceLastInvoke >= maxWaitTime)
-    );
-  }
-
-  function startTimer(pendingFunc: () => void, waitTime: number): TimeoutHandle {
-    return setTimeout(pendingFunc, waitTime);
-  }
-
-  function remainingWait(time: number): number {
-    if (lastCallTime === null) return wait;
-    const timeSinceLastCall = time - lastCallTime;
-    const timeSinceLastInvoke = time - lastInvokeTime;
-    const timeWaiting = wait - timeSinceLastCall;
-    return maxWaitTime !== null
-      ? Math.min(timeWaiting, maxWaitTime - timeSinceLastInvoke)
-      : timeWaiting;
-  }
-
-  function timerExpired() {
-    const time = Date.now();
-    if (shouldInvoke(time)) {
-      return trailingEdge(time);
-    }
-    timeout = startTimer(timerExpired, remainingWait(time));
-  }
-
-  function leadingEdge(time: number): ReturnType<T> | undefined {
-    lastInvokeTime = time;
-    timeout = startTimer(timerExpired, wait);
-    return leading ? invokeFunc(time) : undefined;
-  }
-
-  function trailingEdge(time: number): ReturnType<T> | undefined {
-    timeout = null;
-    if (trailing && lastArgs) {
-      return invokeFunc(time);
-    }
-    lastArgs = null;
-    lastThis = null;
-    return result;
-  }
-
-  function debounced(this: any, ...args: Parameters<T>): ReturnType<T> | undefined {
-    const time = Date.now();
-    const isInvoking = shouldInvoke(time);
-
-    lastArgs = args;
-    lastThis = this;
-    lastCallTime = time;
-
-    if (isInvoking) {
-      if (timeout === null) {
-        return leadingEdge(lastCallTime);
-      }
-      if (maxWaitTime !== null) {
-        timeout = startTimer(timerExpired, wait);
-        return invokeFunc(lastCallTime);
-      }
-    }
-    if (timeout === null) {
-      timeout = startTimer(timerExpired, wait);
-    }
-    return result;
-  }
-
-  debounced.cancel = () => {
-    if (timeout !== null) {
-      clearTimeout(timeout);
-    }
-    lastInvokeTime = 0;
-    lastArgs = null;
-    lastThis = null;
-    lastCallTime = null;
-    timeout = null;
-  };
-
-  debounced.flush = () => {
-    return timeout === null ? result : trailingEdge(Date.now());
-  };
-
-  debounced.isPending = () => {
-    return timeout !== null;
-  };
-
-  return debounced;
-}
-
-export function DebouncedInput({
+export const DebouncedInput = ({
   value: initialValue,
   onChange,
-  debounceMs = 500, // This is the wait time, not the function
+  debounceMs = 500,
+  onBlur,
+  onKeyDown,
   ...props
 }: {
   value: string | number;
   onChange: (value: string | number) => void;
   debounceMs?: number;
-} & Omit<InputHTMLAttributes<HTMLInputElement>, "onChange">) {
+} & Omit<InputHTMLAttributes<HTMLInputElement>, "onChange">) => {
   const [value, setValue] = useState(initialValue);
   const [prevInitialValue, setPrevInitialValue] = useState(initialValue);
 
-  // Sync with initialValue when it changes
   if (prevInitialValue !== initialValue) {
     setPrevInitialValue(initialValue);
     setValue(initialValue);
   }
 
-  const debouncedOnChange = useMemo(
-    () =>
-      debounce((newValue: string | number) => {
-        onChange(newValue);
-      }, debounceMs),
-    [debounceMs, onChange],
-  );
+  const { schedule: debouncedOnChange, cancel, flush } = useDebouncedCallback(onChange, debounceMs);
+  useEffect(cancel, [initialValue, cancel]);
 
   const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
     const newValue = e.target.value;
-    setValue(newValue); // Update local state immediately
-    debouncedOnChange(newValue); // Call debounced version
+    setValue(newValue);
+    debouncedOnChange(newValue);
   };
 
-  return <Input {...props} value={value} onChange={handleChange} />;
-}
+  return (
+    <Input
+      {...props}
+      value={value}
+      onChange={handleChange}
+      onBlur={(event) => {
+        flush();
+        onBlur?.(event);
+      }}
+      onKeyDown={(event) => {
+        onKeyDown?.(event);
+        if (!event.defaultPrevented && (event.key === "Enter" || event.key === "Escape")) {
+          flush();
+        }
+      }}
+    />
+  );
+};
 
-interface FilterValueProps<TData, TType extends ColumnDataType> {
-  filter: FilterModel<TType>;
-  column: Column<TData, TType>;
+interface FilterValueProps {
+  binding: FilterBinding;
   actions: DataTableFilterActions;
   strategy: FilterStrategy;
   entityName?: string;
 }
 
-export const FilterValue =
-  // SAFETY: React.memo erases the generic call signature; the wrapper still
-  // accepts exactly __FilterValue's props.
-  memo(__FilterValue) as typeof __FilterValue;
-
-function __FilterValue<TData, TType extends ColumnDataType>({
-  filter,
-  column,
-  actions,
-  strategy,
-  entityName,
-}: FilterValueProps<TData, TType>) {
-  const [open, setOpen] = useState(false);
-
-  return (
-    <Popover
-      open={open}
-      onOpenChange={(next) => {
-        if (column.type === "boolean") return;
-        setOpen(next);
-      }}
-    >
-      <PopoverTrigger
-        render={
-          <Button
-            variant="ghost"
-            className={cn(
-              "m-0 h-full w-fit rounded-none p-0 px-2 text-xs whitespace-nowrap",
-              column.type === "boolean" && "hover:bg-inherit",
-            )}
-          />
-        }
-      >
-        <FilterValueDisplay
-          filter={filter}
-          column={column}
-          actions={actions}
-          entityName={entityName}
-        />
-      </PopoverTrigger>
-      <PopoverContent align="start" side="bottom" className="w-fit origin-(--transform-origin) p-0">
-        <FilterValueController
-          filter={filter}
-          column={column}
-          actions={actions}
-          strategy={strategy}
-        />
-      </PopoverContent>
-    </Popover>
-  );
-}
-
-interface FilterValueDisplayProps<TData, TType extends ColumnDataType> {
-  filter: FilterModel<TType>;
-  column: Column<TData, TType>;
+interface FilterValueDisplayProps<K extends ColumnDataType> {
+  filter: FilterModel<K>;
+  column: Column<K>;
   actions: DataTableFilterActions;
   entityName?: string;
 }
 
-export function FilterValueDisplay<TData, TType extends ColumnDataType>({
-  filter,
-  column,
-  actions,
-  entityName,
-}: FilterValueDisplayProps<TData, TType>) {
-  switch (column.type) {
-    case "option":
-      // SAFETY: column.type fixes TType to "option", and filter always shares
-      // its column's TType.
-      return (
-        <FilterValueOptionDisplay
-          filter={filter as FilterModel<"option">}
-          column={column as Column<TData, "option">}
-          actions={actions}
-        />
-      );
-    case "multiOption":
-      // SAFETY: column.type fixes TType to "multiOption", and filter always shares
-      // its column's TType.
-      return (
-        <FilterValueMultiOptionDisplay
-          filter={filter as FilterModel<"multiOption">}
-          column={column as Column<TData, "multiOption">}
-          actions={actions}
-        />
-      );
-    case "date":
-      // SAFETY: column.type fixes TType to "date", and filter always shares
-      // its column's TType.
-      return (
-        <FilterValueDateDisplay
-          filter={filter as FilterModel<"date">}
-          column={column as Column<TData, "date">}
-          actions={actions}
-        />
-      );
-    case "text":
-      // SAFETY: column.type fixes TType to "text", and filter always shares
-      // its column's TType.
-      return (
-        <FilterValueTextDisplay
-          filter={filter as FilterModel<"text">}
-          column={column as Column<TData, "text">}
-          actions={actions}
-        />
-      );
-    case "number":
-      // SAFETY: column.type fixes TType to "number", and filter always shares
-      // its column's TType.
-      return (
-        <FilterValueNumberDisplay
-          filter={filter as FilterModel<"number">}
-          column={column as Column<TData, "number">}
-          actions={actions}
-        />
-      );
-    case "boolean":
-      // SAFETY: column.type fixes TType to "boolean", and filter always shares
-      // its column's TType.
-      return (
-        <FilterValueBooleanDisplay
-          filter={filter as FilterModel<"boolean">}
-          column={column as Column<TData, "boolean">}
-          actions={actions}
-          entityName={entityName}
-        />
-      );
-    default:
-      return null;
-  }
-}
-
-export function FilterValueOptionDisplay<TData>({
-  filter,
-  column,
-}: FilterValueDisplayProps<TData, "option">) {
-  const options = useMemo(() => column.getOptions(), [column]);
+export const FilterValueOptionDisplay = ({ filter, column }: FilterValueDisplayProps<"option">) => {
+  const { options } = column;
   const selected = options.filter((o) => filter?.values.includes(o.value));
 
-  // We display the selected options based on how many are selected
-  //
-  // If there is only one option selected, we display its icon and label
-  //
-  // If there are multiple options selected, we display:
-  // 1) up to 3 icons of the selected options
-  // 2) the number of selected options
-  if (selected.length === 1 && selected[0]) {
-    const { label, icon: Icon } = selected[0];
+  const [only] = selected;
+  if (selected.length === 1 && only) {
+    const { label, icon: Icon } = only;
     const hasIcon = !!Icon;
     return (
       <span className="inline-flex items-center gap-1">
-        {hasIcon && renderIcon(Icon, { className: "text-primary size-4" })}
+        {hasIcon && renderIcon(Icon, { className: "text-(--primary) size-4" })}
         <span>{label}</span>
       </span>
     );
   }
   const name = column.displayName.toLowerCase();
-  // TODO: Better pluralization for different languages
   const pluralName = name.endsWith("s") ? `${name}es` : `${name}s`;
 
   const hasOptionIcons = !options?.some((o) => !o.icon);
@@ -463,30 +154,34 @@ export function FilterValueOptionDisplay<TData>({
   return (
     <div className="inline-flex items-center gap-0.5">
       {hasOptionIcons &&
-        take(selected, 3).map(({ value, icon }) => {
-          const Icon = icon!;
-          return renderIcon(Icon, { key: value, className: "size-4" });
+        selected.slice(0, 3).map(({ value, icon }) => {
+          const Icon = icon;
+          if (!Icon) {
+            return null;
+          }
+          return renderIcon(Icon, { className: "size-4", key: value });
         })}
       <span className={cn(hasOptionIcons && "ml-1.5")}>
         {selected.length} {pluralName}
       </span>
     </div>
   );
-}
+};
 
-export function FilterValueMultiOptionDisplay<TData>({
+export const FilterValueMultiOptionDisplay = ({
   filter,
   column,
-}: FilterValueDisplayProps<TData, "multiOption">) {
-  const options = useMemo(() => column.getOptions(), [column]);
+}: FilterValueDisplayProps<"multiOption">) => {
+  const { options } = column;
   const selected = options.filter((o) => filter.values.includes(o.value));
 
-  if (selected.length === 1 && selected[0]) {
-    const { label, icon: Icon } = selected[0];
+  const [only] = selected;
+  if (selected.length === 1 && only) {
+    const { label, icon: Icon } = only;
     const hasIcon = !!Icon;
     return (
       <span className="inline-flex items-center gap-1.5">
-        {hasIcon && renderIcon(Icon, { className: "text-primary size-4" })}
+        {hasIcon && renderIcon(Icon, { className: "text-(--primary) size-4" })}
 
         <span>{label}</span>
       </span>
@@ -501,11 +196,16 @@ export function FilterValueMultiOptionDisplay<TData>({
     <div className="inline-flex items-center gap-1.5">
       {hasOptionIcons && (
         <div key="icons" className="inline-flex items-center gap-0.5">
-          {take(selected, 3).map(({ value, icon }) => {
-            const Icon = icon!;
-            return isValidElement<IconProps>(Icon)
-              ? cloneElement(Icon, { key: value })
-              : renderIcon(Icon, { key: value, className: "size-4" });
+          {selected.slice(0, 3).map(({ value, icon }) => {
+            const Icon = icon;
+            if (!Icon) {
+              return null;
+            }
+            return isValidElement(Icon) ? (
+              <Fragment key={value}>{Icon}</Fragment>
+            ) : (
+              renderIcon(Icon, { className: "size-4", key: value })
+            );
           })}
         </div>
       )}
@@ -514,9 +214,9 @@ export function FilterValueMultiOptionDisplay<TData>({
       </span>
     </div>
   );
-}
+};
 
-function formatDateRange(start: Date, end: Date) {
+const formatDateRange = (start: Date, end: Date) => {
   const sameMonth = start.getMonth() === end.getMonth();
   const sameYear = start.getFullYear() === end.getFullYear();
 
@@ -529,45 +229,50 @@ function formatDateRange(start: Date, end: Date) {
   }
 
   return `${format(start, "MMM d, yyyy")} - ${format(end, "MMM d, yyyy")}`;
-}
+};
 
-export function FilterValueDateDisplay<TData>({ filter }: FilterValueDisplayProps<TData, "date">) {
-  if (!filter) return null;
-  if (filter.values.length === 0) return <Ellipsis className="size-4" />;
-  if (filter.values.length === 1 && filter.values[0]) {
-    const value = filter.values[0];
-
-    const formattedDateStr = format(value, "MMM d, yyyy");
+export const FilterValueDateDisplay = ({ filter }: FilterValueDisplayProps<"date">) => {
+  if (!filter) {
+    return null;
+  }
+  if (filter.values.length === 0) {
+    return <Ellipsis className="size-4" />;
+  }
+  const [first, second] = filter.values;
+  if (filter.values.length === 1 && first) {
+    const formattedDateStr = format(first, "MMM d, yyyy");
 
     return <span>{formattedDateStr}</span>;
   }
-  if (filter.values.length === 2 && filter.values[0] && filter.values[1]) {
-    const formattedRangeStr = formatDateRange(filter.values[0], filter.values[1]);
+  if (filter.values.length === 2 && first && second) {
+    const formattedRangeStr = formatDateRange(first, second);
 
     return <span>{formattedRangeStr}</span>;
   }
 
   return null;
-}
+};
 
-export function FilterValueTextDisplay<TData>({ filter }: FilterValueDisplayProps<TData, "text">) {
-  if (!filter) return null;
-  if (filter.values.length === 0 || (filter.values[0] && filter.values[0].trim() === ""))
+export const FilterValueTextDisplay = ({ filter }: FilterValueDisplayProps<"text">) => {
+  if (!filter) {
+    return null;
+  }
+  if (filter.values.length === 0 || (filter.values[0] && filter.values[0].trim() === "")) {
     return <Ellipsis className="size-4" />;
+  }
 
-  const value = filter.values[0];
+  const [value] = filter.values;
 
   return <span>{value}</span>;
-}
+};
 
-export function FilterValueNumberDisplay<TData>({
-  filter,
-}: FilterValueDisplayProps<TData, "number">) {
-  if (!filter || !filter.values || filter.values.length === 0) return null;
+export const FilterValueNumberDisplay = ({ filter }: FilterValueDisplayProps<"number">) => {
+  if (!filter || !filter.values || filter.values.length === 0) {
+    return null;
+  }
 
   if (filter.operator === "is between" || filter.operator === "is not between") {
-    const minValue = filter.values[0];
-    const maxValue = filter.values[1];
+    const [minValue, maxValue] = filter.values;
 
     return (
       <span className="tracking-tight tabular-nums">
@@ -576,97 +281,109 @@ export function FilterValueNumberDisplay<TData>({
     );
   }
 
-  const value = filter.values[0];
+  const [value] = filter.values;
   return <span className="tracking-tight tabular-nums">{value}</span>;
-}
+};
 
-export function FilterValueBooleanDisplay<TData>({
+export const FilterValueBooleanDisplay = ({
   filter,
   column,
-}: FilterValueDisplayProps<TData, "boolean">) {
-  if (!filter || filter.values.length === 0) return null;
+}: FilterValueDisplayProps<"boolean">) => {
+  if (!filter || filter.values.length === 0) {
+    return null;
+  }
   return <span>{column.toggledStateName}</span>;
-}
+};
 
-/****** Property Filter Value Controller ******/
+export const FilterValueDisplay = ({
+  binding,
+  actions,
+  entityName,
+}: Omit<FilterValueProps, "strategy">) => {
+  switch (binding.type) {
+    case "option": {
+      return (
+        binding.filter && (
+          <FilterValueOptionDisplay
+            filter={binding.filter}
+            column={binding.column}
+            actions={actions}
+            entityName={entityName}
+          />
+        )
+      );
+    }
+    case "multiOption": {
+      return (
+        binding.filter && (
+          <FilterValueMultiOptionDisplay
+            filter={binding.filter}
+            column={binding.column}
+            actions={actions}
+            entityName={entityName}
+          />
+        )
+      );
+    }
+    case "date": {
+      return (
+        binding.filter && (
+          <FilterValueDateDisplay
+            filter={binding.filter}
+            column={binding.column}
+            actions={actions}
+            entityName={entityName}
+          />
+        )
+      );
+    }
+    case "text": {
+      return (
+        binding.filter && (
+          <FilterValueTextDisplay
+            filter={binding.filter}
+            column={binding.column}
+            actions={actions}
+            entityName={entityName}
+          />
+        )
+      );
+    }
+    case "number": {
+      return (
+        binding.filter && (
+          <FilterValueNumberDisplay
+            filter={binding.filter}
+            column={binding.column}
+            actions={actions}
+            entityName={entityName}
+          />
+        )
+      );
+    }
+    case "boolean": {
+      return (
+        binding.filter && (
+          <FilterValueBooleanDisplay
+            filter={binding.filter}
+            column={binding.column}
+            actions={actions}
+            entityName={entityName}
+          />
+        )
+      );
+    }
+    default: {
+      return null;
+    }
+  }
+};
 
-interface FilterValueControllerProps<TData, TType extends ColumnDataType> {
-  filter: FilterModel<TType>;
-  column: Column<TData, TType>;
+interface FilterValueControllerProps<K extends ColumnDataType> {
+  filter?: FilterModel<K>;
+  column: Column<K>;
   actions: DataTableFilterActions;
   strategy: FilterStrategy;
-}
-
-export const FilterValueController =
-  // SAFETY: React.memo erases the generic call signature; the wrapper still
-  // accepts exactly __FilterValueController's props.
-  memo(__FilterValueController) as typeof __FilterValueController;
-
-function __FilterValueController<TData, TType extends ColumnDataType>({
-  filter,
-  column,
-  actions,
-  strategy,
-}: FilterValueControllerProps<TData, TType>) {
-  switch (column.type) {
-    case "option":
-      // SAFETY: column.type fixes TType to "option", and filter always shares
-      // its column's TType.
-      return (
-        <FilterValueOptionController
-          filter={filter as FilterModel<"option">}
-          column={column as Column<TData, "option">}
-          actions={actions}
-          strategy={strategy}
-        />
-      );
-    case "multiOption":
-      // SAFETY: column.type fixes TType to "multiOption", and filter always shares
-      // its column's TType.
-      return (
-        <FilterValueMultiOptionController
-          filter={filter as FilterModel<"multiOption">}
-          column={column as Column<TData, "multiOption">}
-          actions={actions}
-          strategy={strategy}
-        />
-      );
-    case "date":
-      // SAFETY: column.type fixes TType to "date", and filter always shares
-      // its column's TType.
-      return (
-        <FilterValueDateController
-          filter={filter as FilterModel<"date">}
-          column={column as Column<TData, "date">}
-          actions={actions}
-          strategy={strategy}
-        />
-      );
-    case "text":
-      // SAFETY: column.type fixes TType to "text", and filter always shares
-      // its column's TType.
-      return (
-        <FilterValueTextController
-          filter={filter as FilterModel<"text">}
-          column={column as Column<TData, "text">}
-          actions={actions}
-          strategy={strategy}
-        />
-      );
-    case "number":
-      // SAFETY: column.type fixes TType to "number", and filter always shares
-      // its column's TType.
-      return (
-        <FilterValueNumberController
-          filter={filter as FilterModel<"number">}
-          column={column as Column<TData, "number">}
-          actions={actions}
-          strategy={strategy}
-        />
-      );
-    default:
-      return null;
-  }
 }
 
 interface OptionItemProps {
@@ -674,8 +391,7 @@ interface OptionItemProps {
   onToggle: (value: string, checked: boolean) => void;
 }
 
-// Memoized option item to prevent re-renders unless its own props change
-const OptionItem = memo(function OptionItem({ option, onToggle }: OptionItemProps) {
+const OptionItemBase = ({ option, onToggle }: OptionItemProps) => {
   const { value, label, icon: Icon, selected } = option;
   const handleSelect = useCallback(() => {
     onToggle(value, !selected);
@@ -690,34 +406,36 @@ const OptionItem = memo(function OptionItem({ option, onToggle }: OptionItemProp
       <div className="flex min-w-0 flex-1 items-center gap-1.5">
         <Checkbox
           checked={selected}
-          className="dark:border-ring mr-1 shrink-0 opacity-0 group-data-[selected=true]:opacity-100 data-[state=checked]:opacity-100"
+          className="dark:border-(--ring) mr-1 shrink-0 opacity-0 group-data-[selected=true]:opacity-100 data-checked:opacity-100"
         />
         <div className="shrink-0">
-          {Icon && renderIcon(Icon, { className: "text-primary size-4" })}
+          {Icon && renderIcon(Icon, { className: "text-(--primary) size-4" })}
         </div>
         <span className="overflow-x-hidden overflow-ellipsis whitespace-nowrap">{label}</span>
       </div>
     </CommandItem>
   );
-});
+};
 
-export function FilterValueOptionController<TData>({
+const OptionItem = memo(OptionItemBase);
+
+export const FilterValueOptionController = ({
   filter,
   column,
   actions,
-}: FilterValueControllerProps<TData, "option">) {
-  // Derive the initial selected values on mount
+}: FilterValueControllerProps<"option" | "multiOption">) => {
+  // oxlint-disable-next-line react/hook-use-state -- a one-time snapshot of the selection when the controller opens, so items stay in their group while toggling; there is deliberately no setter
   const [initialSelectedValues] = useState(() => new Set(filter?.values || []));
 
-  // Separate the selected and unselected options
   const { selectedOptions, unselectedOptions } = useMemo(() => {
-    const counts = column.getFacetedUniqueValues();
-    const allOptions = column.getOptions().map((o) => {
+    const allOptions = column.options.map((o) => {
       const currentlySelected = filter?.values.includes(o.value) ?? false;
       return {
-        ...o,
+        count: o.count ?? 0,
+        icon: o.icon,
+        label: o.label,
         selected: currentlySelected,
-        count: counts?.get(o.value) ?? 0,
+        value: o.value,
       };
     });
 
@@ -728,8 +446,11 @@ export function FilterValueOptionController<TData>({
 
   const handleToggle = useCallback(
     (value: string, checked: boolean) => {
-      if (checked) actions.addFilterValue(column, [value]);
-      else actions.removeFilterValue(column, [value]);
+      if (checked) {
+        actions.addFilterValue(column, [value]);
+      } else {
+        actions.removeFilterValue(column, [value]);
+      }
     },
     [actions, column],
   );
@@ -744,7 +465,6 @@ export function FilterValueOptionController<TData>({
             <OptionItem key={option.value} option={option} onToggle={handleToggle} />
           ))}
         </CommandGroup>
-        {/* Only show separator if there are both selected AND unselected options */}
         <CommandSeparator
           className={cn(
             (unselectedOptions.length === 0 || selectedOptions.length === 0) && "hidden",
@@ -758,88 +478,29 @@ export function FilterValueOptionController<TData>({
       </CommandList>
     </Command>
   );
-}
+};
 
-export function FilterValueMultiOptionController<TData>({
+export const FilterValueDateController = ({
   filter,
   column,
   actions,
-}: FilterValueControllerProps<TData, "multiOption">) {
-  // Derive the initial selected values on mount
-  const [initialSelectedValues] = useState(() => new Set(filter?.values || []));
+}: FilterValueControllerProps<"date">) => {
+  const start = filter?.values[0];
+  const date: DateRange | undefined = start ? { from: start, to: filter?.values[1] } : undefined;
 
-  // Separate the selected and unselected options
-  const { selectedOptions, unselectedOptions } = useMemo(() => {
-    const counts = column.getFacetedUniqueValues();
-    const allOptions = column.getOptions().map((o) => {
-      const currentlySelected = filter?.values.includes(o.value) ?? false;
-      return {
-        ...o,
-        selected: currentlySelected,
-        count: counts?.get(o.value) ?? 0,
-      };
-    });
+  const changeDateRange = (value: DateRange | undefined) => {
+    const from = value?.from;
+    const to = from && value?.to && !isEqual(from, value.to) ? value.to : undefined;
 
-    const selected = allOptions.filter((o) => initialSelectedValues.has(o.value));
-    const unselected = allOptions.filter((o) => !initialSelectedValues.has(o.value));
-    return { selectedOptions: selected, unselectedOptions: unselected };
-  }, [column, filter?.values, initialSelectedValues]);
+    let newValues: Date[] = [];
+    if (from && to) {
+      newValues = [from, to];
+    } else if (from) {
+      newValues = [from];
+    }
 
-  const handleToggle = useCallback(
-    (value: string, checked: boolean) => {
-      if (checked) actions.addFilterValue(column, [value]);
-      else actions.removeFilterValue(column, [value]);
-    },
-    [actions, column],
-  );
-
-  return (
-    <Command className="max-w-[300px]" loop>
-      <CommandInput autoFocus placeholder="search" />
-      <CommandEmpty>No results</CommandEmpty>
-      <CommandList>
-        <CommandGroup className={cn(selectedOptions.length === 0 && "hidden")}>
-          {selectedOptions.map((option) => (
-            <OptionItem key={option.value} option={option} onToggle={handleToggle} />
-          ))}
-        </CommandGroup>
-        {/* Only show separator if there are both selected AND unselected options */}
-        <CommandSeparator
-          className={cn(
-            (unselectedOptions.length === 0 || selectedOptions.length === 0) && "hidden",
-          )}
-        />
-        <CommandGroup className={cn(unselectedOptions.length === 0 && "hidden")}>
-          {unselectedOptions.map((option) => (
-            <OptionItem key={option.value} option={option} onToggle={handleToggle} />
-          ))}
-        </CommandGroup>
-      </CommandList>
-    </Command>
-  );
-}
-
-export function FilterValueDateController<TData>({
-  filter,
-  column,
-  actions,
-}: FilterValueControllerProps<TData, "date">) {
-  const [date, setDate] = useState<DateRange | undefined>({
-    from: filter?.values[0] ?? new Date(),
-    to: filter?.values[1] ?? undefined,
-  });
-
-  function changeDateRange(value: DateRange | undefined) {
-    const start = value?.from;
-    const end = start && value && value.to && !isEqual(start, value.to) ? value.to : undefined;
-
-    setDate({ from: start, to: end });
-
-    const isRange = start && end;
-    const newValues = isRange ? [start, end] : start ? [start] : [];
-
-    actions.setFilterValue(column, newValues);
-  }
+    actions.setFilterValue({ columnId: column.id, type: column.type, values: newValues });
+  };
 
   return (
     <Command>
@@ -858,15 +519,15 @@ export function FilterValueDateController<TData>({
       </CommandList>
     </Command>
   );
-}
+};
 
-export function FilterValueTextController<TData>({
+export const FilterValueTextController = ({
   filter,
   column,
   actions,
-}: FilterValueControllerProps<TData, "text">) {
+}: FilterValueControllerProps<"text">) => {
   const changeText = (value: string | number) => {
-    actions.setFilterValue(column, [String(value)]);
+    actions.setFilterValue({ columnId: column.id, type: "text", values: [String(value)] });
   };
 
   return (
@@ -885,90 +546,100 @@ export function FilterValueTextController<TData>({
       </CommandList>
     </Command>
   );
-}
+};
 
-export function FilterValueNumberController<TData>({
+export const FilterValueNumberController = ({
   filter,
   column,
   actions,
-}: FilterValueControllerProps<TData, "number">) {
-  const minMax = useMemo(() => column.getFacetedMinMaxValues(), [column]);
+}: FilterValueControllerProps<"number">) => {
+  const minMax = useMemo<[number, number]>(
+    () => [column.min, column.max],
+    [column.min, column.max],
+  );
   const [sliderMin, sliderMax] = [minMax ? minMax[0] : 0, minMax ? minMax[1] : 0];
 
-  // Local state for values
   const [values, setValues] = useState(filter?.values ?? [0, 0]);
+  const [previousFilterValues, setPreviousFilterValues] = useState(filter?.values);
 
-  // Sync with parent filter changes
-  useEffect(() => {
-    if (
-      filter?.values &&
-      filter.values.length === values.length &&
-      filter.values.every((v, i) => v === values[i])
-    ) {
-      setValues(filter.values);
-    }
-  }, [filter?.values, values]);
+  if (previousFilterValues !== filter?.values) {
+    setPreviousFilterValues(filter?.values);
+    setValues(filter?.values ?? [0, 0]);
+  }
 
-  const isNumberRange =
-    // filter && values.length === 2
-    filter && numberFilterOperators[filter.operator].target === "multiple";
+  const isNumberRange = filter && numberFilterOperators[filter.operator].target === "multiple";
 
-  const setFilterOperatorDebounced = useDebounceCallback(actions.setFilterOperator, 500);
   const setNumberFilterValue = useCallback(
-    (newValues: number[]) => actions.setFilterValue(column, newValues),
+    (newValues: number[]) =>
+      actions.setFilterValue({ columnId: column.id, type: "number", values: newValues }),
     [actions, column],
   );
-  const setFilterValueDebounced = useDebounceCallback(setNumberFilterValue, 500);
+  const {
+    schedule: setFilterValueDebounced,
+    cancel: cancelFilterValueUpdate,
+    flush: flushFilterValueUpdate,
+  } = useDebouncedCallback(setNumberFilterValue, 500);
+  useEffect(cancelFilterValueUpdate, [filter?.values, cancelFilterValueUpdate]);
 
   const changeNumber = (value: number[]) => {
+    cancelFilterValueUpdate();
     setValues(value);
-    setFilterValueDebounced(value);
+    setNumberFilterValue(value);
+  };
+
+  const changeSlider = (value: number | readonly number[]) => {
+    const nextValues = Array.isArray(value) ? [...value] : [value];
+    setValues(nextValues);
+    setFilterValueDebounced(nextValues);
   };
 
   const changeMinNumber = (value: number) => {
-    const newValues = createNumberRange([value, values[1]!]);
-    setValues(newValues);
-    setFilterValueDebounced(newValues);
+    const newValues = createNumberRange([value, values[1] ?? 0]);
+    changeNumber(newValues);
   };
 
   const changeMaxNumber = (value: number) => {
-    const newValues = createNumberRange([values[0]!, value]);
-    setValues(newValues);
-    setFilterValueDebounced(newValues);
+    const newValues = createNumberRange([values[0] ?? 0, value]);
+    changeNumber(newValues);
   };
 
   const changeType = useCallback(
     (type: "single" | "range") => {
       let newValues: number[] = [];
-      if (type === "single")
-        newValues = [values[0]!]; // Keep the first value for single mode
-      else if (!minMax) newValues = createNumberRange([values[0]!, values[1] ?? 0]);
-      else {
-        const value = values[0]!;
+      if (type === "single") {
+        newValues = [values[0] ?? 0];
+      } else if (minMax) {
+        const value = values[0] ?? 0;
         newValues =
           value - minMax[0] < minMax[1] - value
             ? createNumberRange([value, minMax[1]])
             : createNumberRange([minMax[0], value]);
+      } else {
+        newValues = createNumberRange([values[0] ?? 0, values[1] ?? 0]);
       }
 
       const newOperator = type === "single" ? "is" : "is between";
 
-      // Update local state
       setValues(newValues);
 
-      // Cancel in-flight debounced calls to prevent flicker/race conditions
-      setFilterOperatorDebounced.cancel();
-      setFilterValueDebounced.cancel();
+      // Cancel the old value before changing operators.
+      cancelFilterValueUpdate();
 
-      // Update global filter state atomically
-      actions.setFilterOperator(column.id, newOperator);
-      actions.setFilterValue(column, newValues);
+      actions.setFilterOperator({ columnId: column.id, operator: newOperator, type: "number" });
+      actions.setFilterValue({ columnId: column.id, type: column.type, values: newValues });
     },
-    [values, column, actions, minMax, setFilterOperatorDebounced, setFilterValueDebounced],
+    [values, column, actions, minMax, cancelFilterValueUpdate],
   );
 
   return (
-    <Command>
+    <Command
+      onBlur={flushFilterValueUpdate}
+      onKeyDown={(event) => {
+        if (event.key === "Escape") {
+          flushFilterValueUpdate();
+        }
+      }}
+    >
       <CommandList className="w-[300px] px-2 py-2">
         <CommandGroup>
           <div className="flex w-full flex-col">
@@ -983,10 +654,9 @@ export function FilterValueNumberController<TData>({
               <TabsContent value="single" className="mt-4 flex flex-col gap-4">
                 {minMax && (
                   <Slider
-                    value={[values[0]!]}
-                    onValueChange={(value) =>
-                      changeNumber(Array.isArray(value) ? [...value] : [value])
-                    }
+                    value={[values[0] ?? 0]}
+                    onValueChange={changeSlider}
+                    onValueCommitted={flushFilterValueUpdate}
                     min={sliderMin}
                     max={sliderMax}
                     step={1}
@@ -998,7 +668,7 @@ export function FilterValueNumberController<TData>({
                   <DebouncedInput
                     id="single"
                     type="number"
-                    value={values[0]!.toString()} // Use values[0] directly
+                    value={(values[0] ?? 0).toString()}
                     onChange={(v) => changeNumber([Number(v)])}
                   />
                 </div>
@@ -1006,10 +676,9 @@ export function FilterValueNumberController<TData>({
               <TabsContent value="range" className="mt-4 flex flex-col gap-4">
                 {minMax && (
                   <Slider
-                    value={values} // Use values directly
-                    onValueChange={(value) =>
-                      changeNumber(Array.isArray(value) ? [...value] : [value])
-                    }
+                    value={values}
+                    onValueChange={changeSlider}
+                    onValueCommitted={flushFilterValueUpdate}
                     min={sliderMin}
                     max={sliderMax}
                     step={1}
@@ -1021,7 +690,7 @@ export function FilterValueNumberController<TData>({
                     <span className="text-xs font-medium">min</span>
                     <DebouncedInput
                       type="number"
-                      value={values[0]!}
+                      value={values[0] ?? 0}
                       onChange={(v) => changeMinNumber(Number(v))}
                     />
                   </div>
@@ -1029,7 +698,7 @@ export function FilterValueNumberController<TData>({
                     <span className="text-xs font-medium">max</span>
                     <DebouncedInput
                       type="number"
-                      value={values[1]!}
+                      value={values[1] ?? 0}
                       onChange={(v) => changeMaxNumber(Number(v))}
                     />
                   </div>
@@ -1041,6 +710,100 @@ export function FilterValueNumberController<TData>({
       </CommandList>
     </Command>
   );
-}
+};
 
-// TODO: Add support for `bigint` filtering
+export const FilterValueController = ({
+  binding,
+  actions,
+  strategy,
+}: Omit<FilterValueProps, "entityName">) => {
+  switch (binding.type) {
+    case "option": {
+      return (
+        <FilterValueOptionController
+          filter={binding.filter}
+          column={binding.column}
+          actions={actions}
+          strategy={strategy}
+        />
+      );
+    }
+    case "multiOption": {
+      return (
+        <FilterValueOptionController
+          filter={binding.filter}
+          column={binding.column}
+          actions={actions}
+          strategy={strategy}
+        />
+      );
+    }
+    case "date": {
+      return (
+        <FilterValueDateController
+          filter={binding.filter}
+          column={binding.column}
+          actions={actions}
+          strategy={strategy}
+        />
+      );
+    }
+    case "text": {
+      return (
+        <FilterValueTextController
+          filter={binding.filter}
+          column={binding.column}
+          actions={actions}
+          strategy={strategy}
+        />
+      );
+    }
+    case "number": {
+      return (
+        <FilterValueNumberController
+          filter={binding.filter}
+          column={binding.column}
+          actions={actions}
+          strategy={strategy}
+        />
+      );
+    }
+    case "boolean": {
+      return null;
+    }
+    default: {
+      return null;
+    }
+  }
+};
+
+export const FilterValue = ({ binding, actions, strategy, entityName }: FilterValueProps) => {
+  const [open, setOpen] = useState(false);
+  return (
+    <Popover
+      open={open}
+      onOpenChange={(next) => {
+        if (binding.type !== "boolean") {
+          setOpen(next);
+        }
+      }}
+    >
+      <PopoverTrigger
+        render={
+          <Button
+            variant="ghost"
+            className={cn(
+              "m-0 h-full w-fit rounded-none p-0 px-2 text-xs whitespace-nowrap",
+              binding.type === "boolean" && "hover:bg-inherit",
+            )}
+          />
+        }
+      >
+        <FilterValueDisplay binding={binding} actions={actions} entityName={entityName} />
+      </PopoverTrigger>
+      <PopoverContent align="start" side="bottom" className="w-fit origin-(--transform-origin) p-0">
+        <FilterValueController binding={binding} actions={actions} strategy={strategy} />
+      </PopoverContent>
+    </Popover>
+  );
+};

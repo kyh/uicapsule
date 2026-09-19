@@ -1,7 +1,13 @@
 {
   "name": "Resizable Sidebar",
   "description": "A shadcn-inspired application sidebar with a draggable resize handle.",
-  "coverUrl": "https://zmdrwswxugswzmcokvff.supabase.co/storage/v1/object/public/uicapsule/resizable-sidebar/resizable-sidebar.mp4",
-  "coverType": "video",
-  "tags": ["navigation", "minimal"]
+  "addedAt": "2025-09-23",
+  "cover": "resizable-sidebar/resizable-sidebar.mp4",
+  "tags": ["navigation", "minimal"],
+  "inspiredBy": [
+    {
+      "label": "shadcn/ui Sidebar",
+      "url": "https://ui.shadcn.com/docs/components/sidebar"
+    }
+  ]
 }

@@ -1,6 +1,5 @@
-import { memo } from "react";
-import { Button } from "@repo/ui/components/button";
-import { cn } from "@repo/ui/lib/utils";
+import { Button } from "./ui";
+import { cn } from "cn";
 
 import type { DataTableFilterActions } from "../filter-package";
 
@@ -9,15 +8,12 @@ interface FilterActionsProps {
   actions?: DataTableFilterActions;
 }
 
-export const FilterActions = memo(__FilterActions);
-function __FilterActions({ hasFilters, actions }: FilterActionsProps) {
-  return (
-    <Button
-      className={cn("text-muted-foreground h-7 px-2 font-normal", !hasFilters && "hidden")}
-      variant="ghost"
-      onClick={actions?.removeAllFilters}
-    >
-      clear
-    </Button>
-  );
-}
+export const FilterActions = ({ hasFilters, actions }: FilterActionsProps) => (
+  <Button
+    className={cn("text-(--muted-foreground) h-7 px-2 font-normal", !hasFilters && "hidden")}
+    variant="ghost"
+    onClick={() => actions?.removeAllFilters()}
+  >
+    clear
+  </Button>
+);

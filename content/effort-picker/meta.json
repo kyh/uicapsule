@@ -1,7 +1,13 @@
 {
   "name": "Effort Picker",
   "description": "Remake of the Codex effort picker, in ChatGPT's chrome or Claude's.",
-  "coverUrl": "https://zmdrwswxugswzmcokvff.supabase.co/storage/v1/object/public/uicapsule/effort-picker/effort-picker.mp4",
-  "coverType": "video",
-  "tags": ["silly", "minimal", "inputs"]
+  "addedAt": "2026-07-13",
+  "cover": "effort-picker/effort-picker.mp4",
+  "tags": ["controls", "minimal", "silly"],
+  "inspiredBy": [
+    {
+      "label": "OpenAI Codex",
+      "url": "https://openai.com/codex/"
+    }
+  ]
 }

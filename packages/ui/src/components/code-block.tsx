@@ -2,7 +2,7 @@
 
 import type { ComponentProps, HTMLAttributes, ReactNode } from "react";
 import type { BundledLanguage, CodeOptionsMultipleThemes, SpecialLanguage } from "shiki";
-import { createContext, useContext, useEffect, useState } from "react";
+import { createContext, useContext, useEffect, useMemo, useRef, useState } from "react";
 import {
   SiAstro,
   SiBiome,
@@ -86,9 +86,10 @@ import { codeToHtml } from "shiki";
 import type { IconType } from "@icons-pack/react-simple-icons";
 import { Button } from "./button";
 import { useControllableState } from "@repo/ui/hooks/use-controllable-state";
-import { cn } from "@repo/ui/lib/utils";
+import { cn } from "cn";
 
 export type { BundledLanguage, SpecialLanguage } from "shiki";
+/* oxlint-disable sort-keys -- first matching glob wins, so specific patterns (`*.module.css`) must precede general ones (`*.css`) */
 const filenameIconMap = {
   ".env": SiDotenv,
   "*.astro": SiAstro,
@@ -164,6 +165,7 @@ const filenameIconMap = {
   "*.vue": SiVuedotjs,
   "*.wasm": SiWebassembly,
 };
+/* oxlint-enable sort-keys */
 const lineNumberClassNames = cn(
   "[&_code]:[counter-reset:line]",
   "[&_code]:[counter-increment:line_0]",
@@ -240,8 +242,8 @@ const highlight = (
   codeToHtml(html, {
     lang: language ?? "typescript",
     themes: themes ?? {
-      light: "github-light",
       dark: "github-dark-default",
+      light: "github-light",
     },
     transformers: [
       transformerNotationDiff({
@@ -261,20 +263,20 @@ const highlight = (
       }),
     ],
   });
-type CodeBlockData = {
+interface CodeBlockData {
   language: string;
   filename: string;
   code: string;
-};
-type CodeBlockContextType = {
+}
+interface CodeBlockContextType {
   value: string | undefined;
   onValueChange: ((value: string) => void) | undefined;
   data: CodeBlockData[];
-};
+}
 const CodeBlockContext = createContext<CodeBlockContextType>({
-  value: undefined,
-  onValueChange: undefined,
   data: [],
+  onValueChange: undefined,
+  value: undefined,
 });
 export type CodeBlockProps = HTMLAttributes<HTMLDivElement> & {
   defaultValue?: string;
@@ -292,11 +294,12 @@ export const CodeBlock = ({
 }: CodeBlockProps) => {
   const [value, onValueChange] = useControllableState({
     defaultProp: defaultValue ?? "",
-    prop: controlledValue,
     onChange: controlledOnValueChange,
+    prop: controlledValue,
   });
+  const context = useMemo(() => ({ data, onValueChange, value }), [value, onValueChange, data]);
   return (
-    <CodeBlockContext.Provider value={{ value, onValueChange, data }}>
+    <CodeBlockContext.Provider value={context}>
       <div className={cn("size-full overflow-hidden rounded-md border", className)} {...props} />
     </CodeBlockContext.Provider>
   );
@@ -333,7 +336,8 @@ export const CodeBlockFilename = ({
   const { value: activeValue } = useContext(CodeBlockContext);
   const defaultIcon = Object.entries(filenameIconMap).find(([pattern]) => {
     const regex = new RegExp(
-      `^${pattern.replace(/\\/g, "\\\\").replace(/\./g, "\\.").replace(/\*/g, ".*")}$`,
+      `^${pattern.replaceAll("\\", "\\\\").replaceAll(".", "\\.").replaceAll("*", ".*")}$`,
+      "u",
     );
     return regex.test(String(children));
   })?.[1];
@@ -343,7 +347,10 @@ export const CodeBlockFilename = ({
   }
   return (
     <div
-      className="bg-secondary text-muted-foreground flex items-center gap-2 px-4 py-1.5 text-xs"
+      className={cn(
+        "bg-secondary text-muted-foreground flex items-center gap-2 px-4 py-1.5 text-xs",
+        className,
+      )}
       {...props}
     >
       {Icon && <Icon className="h-4 w-4 shrink-0" />}
@@ -365,17 +372,32 @@ export const CodeBlockCopyButton = ({
   ...props
 }: CodeBlockCopyButtonProps) => {
   const [isCopied, setIsCopied] = useState(false);
+  const resetTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
+  useEffect(
+    () => () => {
+      if (resetTimeout.current !== null) {
+        clearTimeout(resetTimeout.current);
+      }
+    },
+    [],
+  );
   const { data, value } = useContext(CodeBlockContext);
   const code = data.find((item) => item.language === value)?.code;
-  const copyToClipboard = () => {
-    if (typeof window === "undefined" || !navigator.clipboard.writeText || !code) {
+  const copyToClipboard = async () => {
+    if (!navigator.clipboard?.writeText || code === undefined) {
       return;
     }
-    navigator.clipboard.writeText(code).then(() => {
+    try {
+      await navigator.clipboard.writeText(code);
       setIsCopied(true);
       onCopy?.();
-      setTimeout(() => setIsCopied(false), timeout);
-    }, onError);
+      if (resetTimeout.current !== null) {
+        clearTimeout(resetTimeout.current);
+      }
+      resetTimeout.current = setTimeout(() => setIsCopied(false), timeout);
+    } catch (error) {
+      onError?.(error instanceof Error ? error : new Error(String(error)));
+    }
   };
   return (
     <Button
@@ -383,6 +405,7 @@ export const CodeBlockCopyButton = ({
       onClick={copyToClipboard}
       size="icon"
       variant="ghost"
+      aria-label={isCopied ? "Copied" : "Copy code"}
       {...props}
     >
       {children ?? (
@@ -414,8 +437,8 @@ const CodeBlockFallback = ({ children, ...props }: CodeBlockFallbackProps) => (
         {children
           ?.toString()
           .split("\n")
-          .map((line, i) => (
-            <span className="line" key={i}>
+          .map((line, lineNumber) => (
+            <span className="line" key={lineNumber}>
               {line}
             </span>
           ))}
@@ -476,24 +499,41 @@ export const CodeBlockContent = ({
   syntaxHighlighting = true,
   ...props
 }: CodeBlockContentProps) => {
-  const [html, setHtml] = useState<string | null>(null);
+  const [highlighted, setHighlighted] = useState<{
+    html: string;
+    source: string;
+    language: CodeBlockContentProps["language"];
+    themes: CodeBlockContentProps["themes"];
+  } | null>(null);
   useEffect(() => {
     if (!syntaxHighlighting) {
       return;
     }
-    highlight(children, language, themes)
-      .then(setHtml)
-      // biome-ignore lint/suspicious/noConsole: "it's fine"
-      .catch(console.error);
+    let active = true;
+    const updateHighlight = async () => {
+      try {
+        const html = await highlight(children, language, themes);
+        if (active) {
+          setHighlighted({ html, language, source: children, themes });
+        }
+      } catch (error) {
+        console.error(error);
+      }
+    };
+    void updateHighlight();
+    return () => {
+      active = false;
+    };
   }, [children, themes, syntaxHighlighting, language]);
+  const html =
+    highlighted?.source === children &&
+    highlighted.language === language &&
+    highlighted.themes === themes
+      ? highlighted.html
+      : null;
   if (!(syntaxHighlighting && html)) {
-    return <CodeBlockFallback>{children}</CodeBlockFallback>;
+    return <CodeBlockFallback {...props}>{children}</CodeBlockFallback>;
   }
-  return (
-    <div
-      // biome-ignore lint/security/noDangerouslySetInnerHtml: "Kinda how Shiki works"
-      dangerouslySetInnerHTML={{ __html: html }}
-      {...props}
-    />
-  );
+  // oxlint-disable-next-line react/no-danger -- the markup is shiki's own output for the code string, never user-supplied HTML
+  return <div dangerouslySetInnerHTML={{ __html: html }} {...props} />;
 };

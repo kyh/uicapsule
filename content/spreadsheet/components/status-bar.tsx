@@ -1,7 +1,7 @@
 "use client";
 
-import { type ComponentProps } from "react";
-import { cn } from "@repo/ui/lib/utils";
+import type { ComponentProps } from "react";
+import { cn } from "cn";
 
 import { useSpreadsheetStore } from "../lib/spreadsheet-store";
 
@@ -10,7 +10,7 @@ export type StatusBarProps = ComponentProps<"div">;
 export const StatusBar = ({ className, ...props }: StatusBarProps) => (
   <div
     className={cn(
-      "text-muted-foreground bg-background dark:bg-background/95 sticky bottom-0 flex items-center justify-between border-t p-2 text-xs",
+      "text-(--muted-foreground) bg-(--background) dark:bg-(--background)/95 sticky bottom-0 flex items-center justify-between border-t p-2 text-xs",
       className,
     )}
     {...props}
@@ -31,7 +31,7 @@ export const StatusBarMessage = () => {
 
   if (editingCell) {
     const rowIndex = data.findIndex((row) => row.id === editingCell.rowId);
-    const displayRowNumber = rowIndex !== -1 ? rowIndex + 1 : "?";
+    const displayRowNumber = rowIndex === -1 ? "?" : rowIndex + 1;
 
     return (
       <span>

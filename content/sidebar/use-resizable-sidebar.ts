@@ -1,4 +1,5 @@
-import { useEffect, useRef, type MouseEvent as ReactMouseEvent } from "react";
+import { useEffect, useRef } from "react";
+import type { MouseEvent as ReactMouseEvent } from "react";
 
 interface UseResizableSidebarOptions {
   defaultWidth?: number;
@@ -19,10 +20,12 @@ export const useResizableSidebar = ({
     e.preventDefault();
     isResizingRef.current = true;
     startXRef.current = e.clientX;
-    startWidthRef.current = parseInt(
+    // oxlint-disable-next-line unicorn/prefer-number-coercion -- parseInt tolerates a trailing unit the replace() misses; Number() would NaN on it
+    startWidthRef.current = Number.parseInt(
       getComputedStyle(document.documentElement)
         .getPropertyValue("--sidebar-width")
         .replace("px", "") || defaultWidth.toString(),
+      10,
     );
     document.body.style.cursor = "col-resize";
     document.body.style.userSelect = "none";
@@ -33,7 +36,9 @@ export const useResizableSidebar = ({
 
     // The width lives in a CSS variable rather than state so dragging never re-renders.
     const handleMouseMove = (e: MouseEvent) => {
-      if (!isResizingRef.current) return;
+      if (!isResizingRef.current) {
+        return;
+      }
 
       const newWidth = startWidthRef.current + (e.clientX - startXRef.current);
       const clampedWidth = Math.min(Math.max(newWidth, minWidth), maxWidth);
@@ -41,7 +46,9 @@ export const useResizableSidebar = ({
     };
 
     const handleMouseUp = () => {
-      if (!isResizingRef.current) return;
+      if (!isResizingRef.current) {
+        return;
+      }
       isResizingRef.current = false;
       document.body.style.cursor = "";
       document.body.style.userSelect = "";

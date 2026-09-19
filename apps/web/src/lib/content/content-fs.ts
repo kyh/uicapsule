@@ -1,39 +1,17 @@
 import { readdir, readFile, stat } from "node:fs/promises";
-import { join, relative, resolve } from "node:path";
+import path from "node:path";
 import { cache } from "react";
-import { z } from "zod";
+import type { z } from "zod";
+
+import { contentMetaSchema, contentPackageSchema } from "./content-schema";
 
 import type {
-  ContentComponent,
-  ContentComponentBase,
-  LocalContentComponent,
-  RemoteContentComponent,
+  ContentComponentSummary,
+  LocalContentComponentSummary,
+  SourceFile,
 } from "./content-schema";
 
-const contentRoot = resolve(process.cwd(), "..", "..", "content");
-
-type RawMeta = Omit<ContentComponentBase, "slug" | "type"> & {
-  type?: "local" | "remote";
-  iframeUrl?: string;
-  sourceUrl?: string;
-};
-
-const linkedPersonSchema = z.object({ name: z.string(), url: z.string(), avatarUrl: z.string() });
-
-const rawMetaSchema: z.ZodType<RawMeta> = z.object({
-  type: z.enum(["local", "remote"]).optional(),
-  name: z.string(),
-  description: z.string().optional(),
-  defaultSize: z.enum(["full", "md", "sm"]).optional(),
-  coverUrl: z.string().optional(),
-  coverType: z.enum(["image", "video"]).optional(),
-  category: z.enum(["marketing", "application", "mobile"]).optional(),
-  tags: z.array(z.string()).optional(),
-  authors: z.array(linkedPersonSchema).optional(),
-  asSeenOn: z.array(linkedPersonSchema).optional(),
-  iframeUrl: z.string().optional(),
-  sourceUrl: z.string().optional(),
-});
+const contentRoot = path.resolve(process.cwd(), "..", "..", "content");
 
 const IGNORED_SOURCE_SEGMENTS = new Set(["node_modules", "dist", ".turbo", ".cache"]);
 const SOURCE_FILE_EXTENSIONS = new Set([
@@ -48,97 +26,79 @@ const SOURCE_FILE_EXTENSIONS = new Set([
 ]);
 const IGNORED_SOURCE_FILES = new Set(["meta.json", "package-lock.json", "pnpm-lock.yaml"]);
 
-const readJson = async <T>(path: string, schema: z.ZodType<T>): Promise<T | null> => {
+const readJson = async <T>(filePath: string, schema: z.ZodType<T>): Promise<T | null> => {
   try {
-    const parsed = schema.safeParse(JSON.parse(await readFile(path, "utf-8")));
+    const parsed = schema.safeParse(JSON.parse(await readFile(filePath, "utf-8")));
     return parsed.success ? parsed.data : null;
   } catch {
     return null;
   }
 };
 
-const readSourceFiles = async (slug: string): Promise<{ path: string; code: string }[]> => {
-  const root = join(contentRoot, slug);
-  const files: { path: string; code: string }[] = [];
+export const readSourceFiles = async (
+  component: LocalContentComponentSummary,
+): Promise<SourceFile[]> => {
+  const root = path.join(contentRoot, component.slug);
+  const files: SourceFile[] = [];
 
   const walk = async (dir: string) => {
-    const entries = await readdir(dir, { withFileTypes: true }).catch(() => []);
+    const entries = await readdir(dir, { withFileTypes: true });
     await Promise.all(
       entries.map(async (entry) => {
-        if (IGNORED_SOURCE_SEGMENTS.has(entry.name)) return;
-        const full = join(dir, entry.name);
+        if (IGNORED_SOURCE_SEGMENTS.has(entry.name)) {
+          return;
+        }
+        const full = path.join(dir, entry.name);
         if (entry.isDirectory()) {
           await walk(full);
           return;
         }
-        if (!entry.isFile()) return;
-        if (IGNORED_SOURCE_FILES.has(entry.name)) return;
+        if (!entry.isFile()) {
+          return;
+        }
+        if (IGNORED_SOURCE_FILES.has(entry.name)) {
+          return;
+        }
         const ext = entry.name.slice(entry.name.lastIndexOf("."));
-        if (!SOURCE_FILE_EXTENSIONS.has(ext)) return;
+        if (!SOURCE_FILE_EXTENSIONS.has(ext)) {
+          return;
+        }
         const code = await readFile(full, "utf-8");
-        files.push({ path: `/${relative(root, full).replaceAll("\\", "/")}`, code });
+        files.push({ code, path: `/${path.relative(root, full).replaceAll("\\", "/")}` });
       }),
     );
   };
 
   await walk(root);
-  files.sort((a, b) => a.path.localeCompare(b.path));
-  return files;
+  return files.toSorted((a, b) => a.path.localeCompare(b.path));
 };
 
-const buildComponent = async (slug: string, meta: RawMeta): Promise<ContentComponent | null> => {
-  const base: ContentComponentBase = {
-    slug,
-    type: meta.type === "remote" ? "remote" : "local",
-    name: meta.name,
-    description: meta.description,
-    defaultSize: meta.defaultSize,
-    coverUrl: meta.coverUrl,
-    coverType: meta.coverType,
-    category: meta.category,
-    tags: meta.tags,
-    authors: meta.authors,
-    asSeenOn: meta.asSeenOn,
-  };
-
-  if (meta.type === "remote") {
-    if (!meta.iframeUrl || !meta.sourceUrl) return null;
-    return {
-      ...base,
-      type: "remote",
-      iframeUrl: meta.iframeUrl,
-      sourceUrl: meta.sourceUrl,
-    } satisfies RemoteContentComponent;
-  }
-
-  const sourceFiles = await readSourceFiles(slug);
-  if (!sourceFiles.some((f) => f.path === "/preview.tsx")) return null;
-
-  return {
-    ...base,
-    type: "local",
-    sourceFiles,
-  } satisfies LocalContentComponent;
-};
-
-export const readContentIndex = cache(async (): Promise<ContentComponent[]> => {
-  const entries = await readdir(contentRoot, { withFileTypes: true }).catch(() => []);
+export const readContentIndex = cache(async (): Promise<ContentComponentSummary[]> => {
+  const entries = await readdir(contentRoot, { withFileTypes: true });
   const slugs = entries
     .filter((entry) => entry.isDirectory() && !entry.name.startsWith("."))
     .map((entry) => entry.name)
-    .sort();
+    .toSorted();
 
-  const built = await Promise.all(
-    slugs.map(async (slug) => {
-      const meta = await readJson(join(contentRoot, slug, "meta.json"), rawMetaSchema);
-      if (!meta) return null;
-      return buildComponent(slug, meta);
+  const components = await Promise.all(
+    slugs.map(async (slug): Promise<ContentComponentSummary | null> => {
+      const meta = await readJson(path.join(contentRoot, slug, "meta.json"), contentMetaSchema);
+      if (!meta) {
+        return null;
+      }
+      if (meta.type === "local") {
+        const preview = await stat(path.join(contentRoot, slug, "preview.tsx")).catch(() => null);
+        if (!preview?.isFile()) {
+          return null;
+        }
+      }
+      return Object.assign(meta, { slug });
     }),
   );
 
-  const components = built.filter((c): c is ContentComponent => c !== null);
-
-  return components;
+  return components
+    .filter((component) => component !== null)
+    .toSorted((a, b) => b.addedAt.localeCompare(a.addedAt) || a.slug.localeCompare(b.slug));
 });
 
 /**
@@ -154,64 +114,55 @@ export const readContentLastModified = cache(async (): Promise<Date> => {
     ...entries
       .filter((entry) => entry.isDirectory() && !entry.name.startsWith("."))
       .flatMap((entry) => [
-        join(contentRoot, entry.name),
-        join(contentRoot, entry.name, "meta.json"),
+        path.join(contentRoot, entry.name),
+        path.join(contentRoot, entry.name, "meta.json"),
       ]),
   ];
 
   const times = await Promise.all(
-    paths.map(async (path) => (await stat(path).catch(() => null))?.mtimeMs ?? 0),
+    paths.map(async (target) => {
+      const stats = await stat(target).catch(() => null);
+      return stats?.mtimeMs ?? 0;
+    }),
   );
 
   return new Date(Math.max(0, ...times));
 });
 
-export const readContentBySlug = cache(async (slug: string): Promise<ContentComponent | null> => {
+export const readContentBySlug = async (slug: string): Promise<ContentComponentSummary | null> => {
   const all = await readContentIndex();
   return all.find((component) => component.slug === slug) ?? null;
-});
-
-type ContentPackageJson = {
-  dependencies?: Record<string, string>;
-  devDependencies?: Record<string, string>;
 };
 
-const contentPackageJsonSchema: z.ZodType<ContentPackageJson> = z.object({
-  dependencies: z.record(z.string(), z.string()).optional(),
-  devDependencies: z.record(z.string(), z.string()).optional(),
-});
-
-const readContentPackageJson = cache(async (slug: string): Promise<ContentPackageJson> => {
-  return (await readJson(join(contentRoot, slug, "package.json"), contentPackageJsonSchema)) ?? {};
-});
-
-export const buildShadcnRegistryItem = async (component: LocalContentComponent) => {
-  const pkg = await readContentPackageJson(component.slug);
-  const dependencyKeys = Object.keys(pkg.dependencies ?? {});
-  const devDependencyKeys = Object.keys(pkg.devDependencies ?? {});
-
-  const repoScoped = dependencyKeys.filter((dep) => dep.startsWith("@repo"));
-  const dependencies = dependencyKeys.filter(
-    (dep) => !["react", "react-dom", ...repoScoped].includes(dep),
-  );
-  const devDependencies = devDependencyKeys.filter(
+export const buildShadcnRegistryItem = async (component: LocalContentComponentSummary) => {
+  const [pkg, sourceFiles] = await Promise.all([
+    readJson(path.join(contentRoot, component.slug, "package.json"), contentPackageSchema),
+    readSourceFiles(component),
+  ]);
+  const dependencies = [
+    ...new Set([
+      ...Object.keys(pkg?.dependencies ?? {}),
+      ...Object.keys(pkg?.peerDependencies ?? {}),
+    ]),
+  ].filter((dependency) => dependency !== "react" && dependency !== "react-dom");
+  const devDependencies = Object.keys(pkg?.devDependencies ?? {}).filter(
     (dep) => !["@types/react", "@types/react-dom", "typescript"].includes(dep),
   );
 
   return {
     $schema: "https://ui.shadcn.com/schema/registry.json",
-    homepage: `https://uicapsule.com/ui/${component.slug}`,
-    name: component.slug,
-    type: "registry:block" as const,
     author: "Kaiyu Hsu <uicapsule@kyh.io>",
     dependencies,
     devDependencies,
-    registryDependencies: [],
-    files: component.sourceFiles.map(({ path, code }) => ({
-      type: "registry:file" as const,
-      path,
+    files: sourceFiles.map(({ path: filePath, code }) => ({
       content: code,
-      target: `uicapsule/${component.slug}${path}`,
+      path: filePath,
+      target: `uicapsule/${component.slug}${filePath}`,
+      type: "registry:file" as const,
     })),
+    homepage: `https://uicapsule.com/ui/${component.slug}`,
+    name: component.slug,
+    registryDependencies: [],
+    type: "registry:block" as const,
   };
 };

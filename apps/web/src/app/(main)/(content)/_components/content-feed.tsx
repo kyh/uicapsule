@@ -1,25 +1,23 @@
 "use client";
 
-import {
-  memo,
-  useCallback,
-  useEffect,
-  useLayoutEffect,
-  useMemo,
-  useRef,
-  useState,
-  type Ref,
-} from "react";
-import { isRemoteContentComponent } from "@/lib/content/content-schema";
+import { Tabs, TabsIndicator, TabsList, TabsTrigger } from "@repo/ui/components/tabs";
+import { MonitorIcon, SmartphoneIcon, TabletIcon } from "lucide-react";
+import type { LucideIcon } from "lucide-react";
+import { memo, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
+import type { Ref } from "react";
 
 import type { ContentComponentSummary, DefaultSize } from "@/lib/content/content-schema";
 import { MediaReveal } from "@/components/media-reveal";
 import { ResponsiveAside } from "./aside";
+import { Resizable } from "./resizable";
 
-const WIDTH_BY_SIZE = { sm: 360, md: 720, full: 1392 } as const satisfies Record<
-  DefaultSize,
-  number
->;
+const WIDTH_BY_SIZE = { full: 1392, md: 720, sm: 360 } satisfies Record<DefaultSize, number>;
+
+const SIZE_PRESETS: { size: DefaultSize; label: string; Icon: LucideIcon }[] = [
+  { Icon: SmartphoneIcon, label: "Phone width", size: "sm" },
+  { Icon: TabletIcon, label: "Tablet width", size: "md" },
+  { Icon: MonitorIcon, label: "Full width", size: "full" },
+];
 
 const KEY_DELTA = new Map<string, 1 | -1>([
   ["ArrowDown", 1],
@@ -28,10 +26,89 @@ const KEY_DELTA = new Map<string, 1 | -1>([
   ["k", -1],
 ]);
 
-type ContentFeedProps = {
+interface ContentFeedProps {
   initialSlug: string;
   feed: ContentComponentSummary[];
+}
+
+interface FeedItemProps {
+  ref?: Ref<HTMLElement>;
+  component: ContentComponentSummary;
+  active: boolean;
+  shouldRender: boolean;
+  keepMounted: boolean;
+}
+
+const FeedItemBase = ({ ref, component, active, shouldRender, keepMounted }: FeedItemProps) => {
+  // Keep visited neighbors mounted so scrolling back preserves preview state.
+  const [everRendered, setEverRendered] = useState(shouldRender);
+  if (shouldRender && !everRendered) {
+    setEverRendered(true);
+  }
+  const mountIframe = shouldRender || (everRendered && keepMounted);
+
+  const src =
+    component.type === "remote" ? component.iframeUrl : `/preview-frame/${component.slug}`;
+
+  const [width, setWidth] = useState(WIDTH_BY_SIZE[component.defaultSize ?? "md"]);
+  const preset = SIZE_PRESETS.find((p) => WIDTH_BY_SIZE[p.size] === width)?.size ?? null;
+
+  // Off-screen panes stay mounted for instant scrolling but must not take focus.
+  return (
+    <section
+      ref={ref}
+      data-slug={component.slug}
+      inert={!active}
+      className="flex h-full snap-start snap-always flex-col items-center gap-2 px-3 pb-2"
+    >
+      <Resizable
+        className="min-h-0 flex-1"
+        width={width}
+        minWidth={WIDTH_BY_SIZE.sm}
+        maxWidth={WIDTH_BY_SIZE.full}
+        onWidthChange={setWidth}
+      >
+        <div className="bg-background h-full w-full overflow-hidden rounded-md border">
+          <MediaReveal
+            className="h-full w-full"
+            iframe={mountIframe ? { src, title: component.name, type: component.type } : undefined}
+          />
+        </div>
+      </Resizable>
+      {/* Presets sit below the frame; the drag handles cover in-between widths, in which
+          case no preset is active and the indicator hides. Both are desktop-only. */}
+      <Tabs
+        value={preset}
+        onValueChange={(next) => {
+          const match = SIZE_PRESETS.find((p) => p.size === next);
+          if (match) {
+            setWidth(WIDTH_BY_SIZE[match.size]);
+          }
+        }}
+        className="hidden md:flex"
+      >
+        <TabsList
+          aria-label="Preview width"
+          className="bg-background relative flex h-fit items-center gap-0.5 rounded-full border p-0.5 shadow-xs"
+        >
+          <TabsIndicator className="bg-accent rounded-full shadow-none" />
+          {SIZE_PRESETS.map(({ size, label, Icon }) => (
+            <TabsTrigger
+              key={size}
+              value={size}
+              aria-label={label}
+              className="text-muted-foreground data-active:text-foreground relative size-7 rounded-full border-0 p-0"
+            >
+              <Icon className="size-4" />
+            </TabsTrigger>
+          ))}
+        </TabsList>
+      </Tabs>
+    </section>
+  );
 };
+
+const FeedItem = memo(FeedItemBase);
 
 export const ContentFeed = ({ initialSlug, feed }: ContentFeedProps) => {
   const initialIndex = Math.max(
@@ -52,39 +129,48 @@ export const ContentFeed = ({ initialSlug, feed }: ContentFeedProps) => {
   useLayoutEffect(() => {
     const container = containerRef.current;
     const target = itemRefs.current[initialIndex];
-    if (!container || !target) return;
+    if (!container || !target) {
+      return;
+    }
     container.scrollTop = target.offsetTop;
   }, [initialIndex]);
 
-  // The active item is found by observation rather than by reading scrollTop on every
-  // scroll frame — those reads force layout, on the one interaction that has to stay
-  // smooth. Items are full-height snap panes, so at a 0.6 threshold exactly one can
-  // ever be intersecting.
+  // Full-height snap panes ensure only one crosses the 0.6 threshold.
   useEffect(() => {
     const container = containerRef.current;
-    if (!container) return;
+    if (!container) {
+      return;
+    }
 
     const observer = new IntersectionObserver(
       (entries) => {
         for (const entry of entries) {
-          if (!entry.isIntersecting) continue;
-          const index = itemRefs.current.findIndex((item) => item === entry.target);
-          if (index === -1) continue;
-          setActiveIndex((prev) => (prev === index ? prev : index));
+          if (!entry.isIntersecting || !(entry.target instanceof HTMLElement)) {
+            continue;
+          }
+          const index = itemRefs.current.indexOf(entry.target);
+          if (index === -1) {
+            continue;
+          }
+          setActiveIndex(index);
         }
       },
       { root: container, threshold: 0.6 },
     );
 
     for (const item of itemRefs.current.slice(0, feed.length)) {
-      if (item) observer.observe(item);
+      if (item) {
+        observer.observe(item);
+      }
     }
     return () => observer.disconnect();
   }, [feed.length]);
 
   const activeSlug = feed[activeIndex]?.slug;
   useEffect(() => {
-    if (!activeSlug) return;
+    if (!activeSlug) {
+      return;
+    }
     const path = `/ui/${activeSlug}`;
     if (window.location.pathname !== path) {
       window.history.replaceState(null, "", path);
@@ -94,19 +180,27 @@ export const ContentFeed = ({ initialSlug, feed }: ContentFeedProps) => {
   const scrollToIndex = useCallback((idx: number) => {
     const container = containerRef.current;
     const target = itemRefs.current[idx];
-    if (!container || !target) return;
-    container.scrollTo({ top: target.offsetTop, behavior: "smooth" });
+    if (!container || !target) {
+      return;
+    }
+    container.scrollTo({ behavior: "smooth", top: target.offsetTop });
   }, []);
 
   const scrollByDelta = useCallback(
     (delta: 1 | -1) => {
       const container = containerRef.current;
-      if (!container) return;
+      if (!container) {
+        return;
+      }
       const itemHeight = container.clientHeight;
-      if (itemHeight === 0) return;
+      if (itemHeight === 0) {
+        return;
+      }
       const currentIdx = Math.round(container.scrollTop / itemHeight);
       const next = currentIdx + delta;
-      if (next < 0 || next >= feed.length) return;
+      if (next < 0 || next >= feed.length) {
+        return;
+      }
       scrollToIndex(next);
     },
     [feed.length, scrollToIndex],
@@ -114,7 +208,7 @@ export const ContentFeed = ({ initialSlug, feed }: ContentFeedProps) => {
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
-      const target = e.target;
+      const { target } = e;
       if (
         target instanceof HTMLElement &&
         (target.tagName === "INPUT" || target.tagName === "TEXTAREA" || target.isContentEditable)
@@ -123,8 +217,12 @@ export const ContentFeed = ({ initialSlug, feed }: ContentFeedProps) => {
       }
 
       const delta = KEY_DELTA.get(e.key);
-      if (!delta) return;
-      if (document.querySelector('[role="dialog"], [role="alertdialog"]')) return;
+      if (!delta) {
+        return;
+      }
+      if (document.querySelector('[role="dialog"], [role="alertdialog"]')) {
+        return;
+      }
 
       e.preventDefault();
       scrollByDelta(delta);
@@ -142,7 +240,9 @@ export const ContentFeed = ({ initialSlug, feed }: ContentFeedProps) => {
   );
 
   const active = feed[activeIndex];
-  if (!active) return null;
+  if (!active) {
+    return null;
+  }
 
   return (
     <>
@@ -157,20 +257,17 @@ export const ContentFeed = ({ initialSlug, feed }: ContentFeedProps) => {
             key={item.slug}
             ref={itemRefSetters[idx]}
             component={item}
+            active={idx === activeIndex}
             shouldRender={Math.abs(idx - activeIndex) <= 1}
             keepMounted={Math.abs(idx - activeIndex) <= 2}
           />
         ))}
       </div>
-      {/* Scroll the deep-linked item into place while the static HTML is
-          parsing, before first paint — otherwise the page flashes item 0
-          until hydration runs the layout effect above. The script is wrapped
-          in a hidden div via dangerouslySetInnerHTML because React never
-          executes <script> elements it renders on the client (and warns about
-          them); the browser's HTML parser executes this one on initial load,
-          and client-side navigations are handled by the layout effect. */}
+      {/* Align deep links before first paint. HTML parsing runs this script;
+          client navigation uses the layout effect because React-created scripts don't run. */}
       <div
         hidden
+        // oxlint-disable-next-line react/no-danger -- inline script must run during HTML parsing; React-created scripts don't
         dangerouslySetInnerHTML={{
           __html:
             '<script>(function(){var c=document.getElementById("content-feed");if(!c)return;var s=c.getAttribute("data-initial-slug");var n=c.querySelectorAll("[data-slug]");for(var i=0;i<n.length;i++){if(n[i].getAttribute("data-slug")===s){c.scrollTop=n[i].offsetTop;return;}}})();</script>',
@@ -184,48 +281,3 @@ export const ContentFeed = ({ initialSlug, feed }: ContentFeedProps) => {
     </>
   );
 };
-
-type FeedItemProps = {
-  ref?: Ref<HTMLElement>;
-  component: ContentComponentSummary;
-  shouldRender: boolean;
-  keepMounted: boolean;
-};
-
-const FeedItem = memo(function FeedItem({
-  ref,
-  component,
-  shouldRender,
-  keepMounted,
-}: FeedItemProps) {
-  // Latch once an iframe has rendered so scrolling away one extra item
-  // (shouldRender false, keepMounted true) doesn't unload it — otherwise
-  // scrolling back would reload the preview from scratch.
-  const [everRendered, setEverRendered] = useState(shouldRender);
-  if (shouldRender && !everRendered) setEverRendered(true);
-  const mountIframe = shouldRender || (everRendered && keepMounted);
-
-  const src = isRemoteContentComponent(component)
-    ? component.iframeUrl
-    : `/preview-frame/${component.slug}`;
-
-  const width = WIDTH_BY_SIZE[component.defaultSize ?? "md"];
-
-  return (
-    <section
-      ref={ref}
-      data-slug={component.slug}
-      className="flex h-full snap-start snap-always items-center justify-center px-3 pb-2"
-    >
-      <div
-        className="bg-background h-full w-full overflow-hidden rounded-md border"
-        style={{ maxWidth: `${width}px` }}
-      >
-        <MediaReveal
-          className="h-full w-full"
-          iframe={mountIframe ? { src, title: component.name } : undefined}
-        />
-      </div>
-    </section>
-  );
-});

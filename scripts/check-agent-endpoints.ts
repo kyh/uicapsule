@@ -11,16 +11,20 @@
  *
  * Exits non-zero on the first failing expectation, listing every failure.
  */
-import consola from "consola";
+import { consola } from "consola";
 
-const baseUrl = (process.argv[2] ?? "http://localhost:3000").replace(/\/$/, "");
+const baseUrl = (process.argv[2] ?? "http://localhost:3000").replace(/\/$/u, "");
 
-type Check = { name: string; ok: boolean; detail: string };
+interface Check {
+  name: string;
+  ok: boolean;
+  detail: string;
+}
 
 const checks: Check[] = [];
 
 const record = (name: string, ok: boolean, detail: string) => {
-  checks.push({ name, ok, detail });
+  checks.push({ detail, name, ok });
 };
 
 const expect = (name: string, ok: boolean, detail: string) => record(name, ok, detail);
@@ -30,25 +34,25 @@ const fetchWith = async (path: string, accept?: string) => {
     headers: accept ? { accept } : {},
     redirect: "manual",
   });
-  return { response, body: await response.text() };
+  return { body: await response.text(), response };
 };
 
 /** Text an agent sees with JavaScript disabled: markup, scripts and templates stripped. */
 const visibleText = (html: string): string =>
   html
-    .replace(/<script[\s\S]*?<\/script>/gi, " ")
-    .replace(/<style[\s\S]*?<\/style>/gi, " ")
-    .replace(/<template[\s\S]*?<\/template>/gi, " ")
-    .replace(/<[^>]+>/g, " ")
-    .replace(/&[a-z]+;|&#\d+;/gi, " ")
-    .replace(/\s+/g, " ")
+    .replaceAll(/<script[\s\S]*?<\/script>/giu, " ")
+    .replaceAll(/<style[\s\S]*?<\/style>/giu, " ")
+    .replaceAll(/<template[\s\S]*?<\/template>/giu, " ")
+    .replaceAll(/<[^>]+>/gu, " ")
+    .replaceAll(/&[a-z]+;|&#\d+;/giu, " ")
+    .replaceAll(/\s+/gu, " ")
     .trim();
 
 const checkHomePage = async () => {
   const { response, body } = await fetchWith("/");
   expect("GET / → 200", response.status === 200, `status ${response.status}`);
 
-  const headings = body.match(/<h1[^>]*>([\s\S]*?)<\/h1>/gi) ?? [];
+  const headings = body.match(/<h1[^>]*>(?<inner>[\s\S]*?)<\/h1>/giu) ?? [];
   expect("home has exactly one <h1>", headings.length === 1, `found ${headings.length}`);
 
   const text = visibleText(body);
@@ -66,11 +70,12 @@ const checkHomePage = async () => {
   );
 
   const jsonLdBlocks =
-    body.match(/<script[^>]+type="application\/ld\+json"[^>]*>([\s\S]*?)<\/script>/gi) ?? [];
+    body.match(/<script[^>]+type="application\/ld\+json"[^>]*>(?<body>[\s\S]*?)<\/script>/giu) ??
+    [];
   expect("home ships JSON-LD", jsonLdBlocks.length > 0, `${jsonLdBlocks.length} block(s)`);
 
   const types = jsonLdBlocks.flatMap((block) => {
-    const json = block.replace(/^<script[^>]*>/i, "").replace(/<\/script>$/i, "");
+    const json = block.replaceAll(/^<script[^>]*>/giu, "").replaceAll(/<\/script>$/giu, "");
     const parsed = JSON.parse(json.replaceAll("\\u003c", "<"));
     const graph = Array.isArray(parsed["@graph"]) ? parsed["@graph"] : [parsed];
     return graph.map((node: { "@type"?: string }) => node["@type"]);
@@ -83,8 +88,8 @@ const checkHomePage = async () => {
     .map((block) =>
       JSON.parse(
         block
-          .replace(/^<script[^>]*>/i, "")
-          .replace(/<\/script>$/i, "")
+          .replaceAll(/^<script[^>]*>/giu, "")
+          .replaceAll(/<\/script>$/giu, "")
           .replaceAll("\\u003c", "<"),
       ),
     )
@@ -100,10 +105,10 @@ const checkHomePage = async () => {
   );
 
   for (const signal of [
-    { name: "canonical", pattern: /<link[^>]+rel="canonical"[^>]+>/i },
-    { name: "html lang", pattern: /<html[^>]+lang="/i },
-    { name: "og:image", pattern: /<meta[^>]+property="og:image"/i },
-    { name: "og:type", pattern: /<meta[^>]+property="og:type"/i },
+    { name: "canonical", pattern: /<link[^>]+rel="canonical"[^>]+>/iu },
+    { name: "html lang", pattern: /<html[^>]+lang="/iu },
+    { name: "og:image", pattern: /<meta[^>]+property="og:image"/iu },
+    { name: "og:type", pattern: /<meta[^>]+property="og:type"/iu },
   ]) {
     expect(`home has ${signal.name}`, signal.pattern.test(body), "missing");
   }
@@ -152,7 +157,7 @@ const checkMarkdownNegotiation = async () => {
   // `Accept: text/x-component`, which no representation of this site satisfies.
   for (const [name, headers] of [
     ["a client-side navigation", { rsc: "1" }],
-    ["a prefetch", { rsc: "1", "next-router-prefetch": "1" }],
+    ["a prefetch", { "next-router-prefetch": "1", rsc: "1" }],
     ["a Server Action", { accept: "text/x-component", "next-action": "abc123" }],
   ] as const) {
     const response = await fetch(`${baseUrl}/about`, { headers, redirect: "manual" });
@@ -214,14 +219,14 @@ const checkMachineFiles = async () => {
     sitemapBody.includes("<urlset") && sitemapBody.includes("<lastmod>"),
     sitemapBody.slice(0, 80),
   );
-  const urlCount = (sitemapBody.match(/<loc>/g) ?? []).length;
+  const urlCount = (sitemapBody.match(/<loc>/gu) ?? []).length;
   expect("sitemap lists the whole site", urlCount > 30, `${urlCount} URLs`);
 
   const { response: robots, body: robotsBody } = await fetchWith("/robots.txt");
   expect(
     "robots.txt advertises the sitemap",
     robots.status === 200 && robotsBody.includes("/sitemap.xml"),
-    robotsBody.trim().replace(/\n/g, " | "),
+    robotsBody.trim().replaceAll("\n", " | "),
   );
 
   const { response: llms, body: llmsBody } = await fetchWith("/llms.txt");
@@ -249,7 +254,7 @@ const checkTrustAnchors = async () => {
     expect(`${path} has 500+ chars of content`, text.length >= 500, `${text.length} chars`);
     expect(
       `${path} has an <h1> and a canonical`,
-      /<h1[^>]*>/i.test(body) && /rel="canonical"/i.test(body),
+      /<h1[^>]*>/iu.test(body) && /rel="canonical"/iu.test(body),
       "missing",
     );
   }
@@ -266,8 +271,11 @@ const main = async () => {
 
   for (const check of checks) {
     // `detail` describes the failure, so only a failing check needs it printed.
-    if (check.ok) consola.success(check.name);
-    else consola.error(`${check.name} — ${check.detail}`);
+    if (check.ok) {
+      consola.success(check.name);
+    } else {
+      consola.error(`${check.name} — ${check.detail}`);
+    }
   }
 
   const failures = checks.filter((check) => !check.ok);
@@ -278,7 +286,9 @@ const main = async () => {
   consola.success(`All ${checks.length} agent-readiness checks passed.`);
 };
 
-main().catch((error) => {
+try {
+  await main();
+} catch (error) {
   consola.error(error);
   process.exit(1);
-});
+}

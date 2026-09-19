@@ -1,9 +1,8 @@
 "use client";
 
-import { isLocalContentComponent } from "@/lib/content/content-schema";
-import { Avatar, AvatarFallback, AvatarImage } from "@repo/ui/components/avatar";
 import { Badge } from "@repo/ui/components/badge";
 import { Button, buttonVariants } from "@repo/ui/components/button";
+import { ButtonGroup } from "@repo/ui/components/button-group";
 import { Card } from "@repo/ui/components/card";
 import {
   Drawer,
@@ -15,9 +14,8 @@ import {
 } from "@repo/ui/components/drawer";
 import { toast } from "@repo/ui/components/toast";
 import { useMediaQuery } from "@repo/ui/hooks/use-media-query";
-import { cn } from "@repo/ui/lib/utils";
+import { cn } from "cn";
 import { queryOptions, useQueryClient, useSuspenseQuery } from "@tanstack/react-query";
-import JSZip from "jszip";
 import { z } from "zod";
 import {
   CheckIcon,
@@ -30,27 +28,39 @@ import {
 import { AnimatePresence, motion } from "motion/react";
 import { Suspense, useEffect, useRef, useState } from "react";
 
+import { tagLabel } from "@/lib/content/content-categories";
 import type { ContentComponentSummary, SourceFile } from "@/lib/content/content-schema";
-import { CodePreview } from "./code-preview";
+import dynamic from "next/dynamic";
+
+import { PersonAvatar } from "./person-avatar";
+
+const CodePreview = dynamic(async () => {
+  const mod = await import("./code-preview");
+  return mod.CodePreview;
+});
 
 const FLOATING_BUTTON_CLASS = "size-9 rounded-full shadow-sm";
 const SECTION_CLASS = "-mx-3 flex flex-col gap-2.5 border-t px-3 pt-3 pb-1";
+const AVATAR_ROW_CLASS =
+  "*:data-[slot=avatar]:ring-background flex -space-x-2 *:data-[slot=avatar]:ring-2 *:data-[slot=avatar]:grayscale";
 
-const sourceFilesSchema = z.array(z.object({ path: z.string(), code: z.string() }));
+const sourceFilesSchema = z.array(z.object({ code: z.string(), path: z.string() }));
 
 const sourceFilesQuery = (slug: string) =>
   queryOptions({
-    queryKey: ["content-source-files", slug],
     queryFn: async (): Promise<SourceFile[]> => {
       const res = await fetch(`/api/content/${slug}`);
-      if (!res.ok) throw new Error(`Failed to load source files for ${slug}`);
+      if (!res.ok) {
+        throw new Error(`Failed to load source files for ${slug}`);
+      }
       return sourceFilesSchema.parse(await res.json());
     },
+    queryKey: ["content-source-files", slug],
   });
 
-type AsideProps = {
+interface AsideProps {
   contentComponent: ContentComponentSummary;
-};
+}
 
 type ResponsiveAsideProps = AsideProps & {
   onPrev?: () => void;
@@ -59,73 +69,108 @@ type ResponsiveAsideProps = AsideProps & {
 
 const COPIED_RESET_DELAY = 2000;
 
+const formatAddedAt = (isoDate: string) =>
+  new Date(`${isoDate}T00:00:00Z`).toLocaleDateString("en-US", {
+    day: "numeric",
+    month: "short",
+    timeZone: "UTC",
+    year: "numeric",
+  });
+
+const downloadZip = async (slug: string, sourceFiles: SourceFile[]) => {
+  const { default: JSZip } = await import("jszip");
+  const zip = new JSZip();
+  for (const { path, code } of sourceFiles) {
+    const cleanPath = path.startsWith("/") ? path.slice(1) : path;
+    zip.file(cleanPath, code);
+  }
+
+  const zipBlob = await zip.generateAsync({ type: "blob" });
+
+  const url = URL.createObjectURL(zipBlob);
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = `${slug}.zip`;
+  document.body.append(link);
+  link.click();
+  link.remove();
+  URL.revokeObjectURL(url);
+};
+
+const SourceCodePreview = ({ slug }: { slug: string }) => {
+  const { data: sourceFiles } = useSuspenseQuery(sourceFilesQuery(slug));
+  return <CodePreview key={slug} sourceFiles={sourceFiles} />;
+};
+
 const Aside = ({ contentComponent }: AsideProps) => {
   const queryClient = useQueryClient();
   const [copied, setCopied] = useState(false);
-  const copiedTimerRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
+  const copiedTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
-    if (!isLocalContentComponent(contentComponent)) return;
+    if (contentComponent.type !== "local") {
+      return;
+    }
     void queryClient.prefetchQuery(sourceFilesQuery(contentComponent.slug));
   }, [contentComponent, queryClient]);
 
-  useEffect(() => () => clearTimeout(copiedTimerRef.current), []);
+  useEffect(
+    () => () => {
+      if (copiedTimerRef.current !== null) {
+        clearTimeout(copiedTimerRef.current);
+      }
+    },
+    [],
+  );
 
   const handleInstallClick = async () => {
-    if (!isLocalContentComponent(contentComponent) || copied) return;
+    if (contentComponent.type !== "local" || copied) {
+      return;
+    }
 
     const command = `npx shadcn@latest add @uicapsule/${contentComponent.slug}`;
+    // Always wider than the toast; the fade signals overflow without a scrollbar.
+    const snippet = (
+      <code className="bg-muted block rounded px-2 py-1.5 font-[monospace]">
+        <span className="block overflow-x-auto whitespace-nowrap [mask-image:linear-gradient(to_right,black_calc(100%-2rem),transparent)] [scrollbar-width:none]">
+          {command}
+        </span>
+      </code>
+    );
 
     try {
       await navigator.clipboard.writeText(command);
-    } catch (err) {
-      console.error("Failed to copy command to clipboard:", err);
-      toast.error("Failed to copy command to clipboard.", {
-        description: (
-          <code className="bg-muted mt-1 block rounded p-2 font-[monospace]">{command}</code>
-        ),
-      });
+    } catch (error) {
+      console.error("Failed to copy command to clipboard:", error);
+      toast.error("Failed to copy command to clipboard.", { description: snippet });
       return;
     }
 
     setCopied(true);
     copiedTimerRef.current = setTimeout(() => setCopied(false), COPIED_RESET_DELAY);
 
-    toast(<code className="bg-muted block rounded p-2 font-[monospace]">{command}</code>, {
+    toast("Copied to clipboard", {
+      description: snippet,
       icon: <ClipboardCheckIcon className="size-4" />,
     });
   };
 
   const handleDownloadClick = async () => {
-    if (!isLocalContentComponent(contentComponent)) return;
+    if (contentComponent.type !== "local") {
+      return;
+    }
 
     const toastId = toast.loading("Download started", {
-      icon: <DownloadIcon className="size-4" />,
       description: `${contentComponent.slug}.zip is being downloaded`,
+      icon: <DownloadIcon className="size-4" />,
     });
     try {
       const sourceFiles = await queryClient.fetchQuery(sourceFilesQuery(contentComponent.slug));
-
-      const zip = new JSZip();
-      for (const { path, code } of sourceFiles) {
-        const cleanPath = path.startsWith("/") ? path.slice(1) : path;
-        zip.file(cleanPath, code);
-      }
-
-      const zipBlob = await zip.generateAsync({ type: "blob" });
-
-      const url = URL.createObjectURL(zipBlob);
-      const link = document.createElement("a");
-      link.href = url;
-      link.download = `${contentComponent.slug}.zip`;
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      URL.revokeObjectURL(url);
+      await downloadZip(contentComponent.slug, sourceFiles);
 
       toast.success("Download completed", {
-        icon: <CheckIcon className="size-4" />,
         description: `${contentComponent.slug}.zip has been downloaded`,
+        icon: <CheckIcon className="size-4" />,
         id: toastId,
       });
     } catch (error) {
@@ -143,46 +188,41 @@ const Aside = ({ contentComponent }: AsideProps) => {
       {contentComponent.description && (
         <p className="text-muted-foreground text-sm">{contentComponent.description}</p>
       )}
-      {isLocalContentComponent(contentComponent) ? (
+      {contentComponent.type === "local" ? (
         <Drawer>
           <div className="flex flex-col gap-1.5">
-            <div className="flex rounded-full shadow-xs">
+            <ButtonGroup className="w-full shadow-xs">
               <DrawerTrigger
                 className={buttonVariants({
+                  className: "flex-1 pl-12 shadow-none",
                   variant: "outline",
-                  className:
-                    "flex-1 rounded-none rounded-s-full border-e-0 pl-12 shadow-none focus-visible:z-10",
                 })}
               >
                 View Source
               </DrawerTrigger>
-              <Button
-                variant="outline"
-                className="rounded-none rounded-e-full shadow-none focus-visible:z-10"
-                onClick={handleDownloadClick}
-              >
+              <Button variant="outline" className="shadow-none" onClick={handleDownloadClick}>
                 <span className="sr-only">Download</span>
                 <DownloadIcon className="size-4" />
               </Button>
-            </div>
+            </ButtonGroup>
             <div className="flex justify-center">
-              <motion.button
-                layout
-                className={cn(
-                  "text-muted-foreground flex items-center gap-1 text-xs underline decoration-dotted transition-colors",
-                  copied && "text-primary decoration-transparent",
-                )}
-                onClick={() => void handleInstallClick()}
+              <button
+                type="button"
+                aria-label={copied ? "Copied to clipboard" : "Copy the shadcn install command"}
+                className="text-muted-foreground grid text-xs"
+                onClick={handleInstallClick}
               >
-                <AnimatePresence mode="popLayout" initial={false}>
+                <AnimatePresence initial={false}>
                   <motion.span
                     key={copied ? "copied" : "install"}
-                    layout="position"
-                    className="flex items-center gap-1"
-                    initial={{ opacity: 0, filter: "blur(4px)" }}
-                    animate={{ opacity: 1, filter: "blur(0px)" }}
-                    exit={{ opacity: 0, filter: "blur(4px)" }}
-                    transition={{ type: "spring", stiffness: 260, damping: 18 }}
+                    className={cn(
+                      "col-start-1 row-start-1 flex items-center justify-center gap-1 underline decoration-dotted",
+                      copied && "text-primary decoration-transparent",
+                    )}
+                    initial={{ filter: "blur(4px)", opacity: 0 }}
+                    animate={{ filter: "blur(0px)", opacity: 1 }}
+                    exit={{ filter: "blur(4px)", opacity: 0 }}
+                    transition={{ duration: 0.2, ease: "easeOut" }}
                   >
                     {copied ? (
                       <>
@@ -201,10 +241,10 @@ const Aside = ({ contentComponent }: AsideProps) => {
                             initial={{ pathLength: 0 }}
                             animate={{ pathLength: 1 }}
                             transition={{
-                              type: "spring",
-                              stiffness: 300,
                               damping: 25,
                               delay: 0.1,
+                              stiffness: 300,
+                              type: "spring",
                             }}
                           />
                         </svg>
@@ -215,7 +255,7 @@ const Aside = ({ contentComponent }: AsideProps) => {
                     )}
                   </motion.span>
                 </AnimatePresence>
-              </motion.button>
+              </button>
             </div>
           </div>
           <DrawerContent className="border-border bg-background text-sm">
@@ -235,67 +275,80 @@ const Aside = ({ contentComponent }: AsideProps) => {
       ) : (
         <div className="flex flex-col items-center gap-1.5">
           <Button
-            render={<a href={contentComponent.sourceUrl} target="_blank" rel="noreferrer" />}
+            render={
+              // oxlint-disable-next-line jsx-a11y/anchor-has-content, jsx-a11y/control-has-associated-label -- Base UI render prop; the Button's children become the anchor's content
+              <a href={contentComponent.sourceUrl} target="_blank" rel="noreferrer" />
+            }
             nativeButton={false}
             variant="outline"
-            className="w-full rounded-full shadow-none focus-visible:z-10"
+            className="w-full shadow-xs"
           >
             View Source on GitHub
           </Button>
           <span className="text-muted-foreground text-center text-xs">Opens in a new tab</span>
         </div>
       )}
-      {contentComponent.asSeenOn && (
-        <div className={SECTION_CLASS}>
-          <h2>As seen on</h2>
-          <div className="flex flex-wrap gap-2">
-            {contentComponent.asSeenOn.map((item) => (
-              <a
-                href={item.url}
-                key={item.name}
-                target="_blank"
-                className="text-blue-600 hover:underline"
-              >
-                {item.name}
-              </a>
-            ))}
-          </div>
+      <div className={SECTION_CLASS}>
+        <h2>Tags</h2>
+        <div className="flex flex-wrap gap-2">
+          {contentComponent.tags.map((tag) => (
+            <Badge key={tag} variant="secondary">
+              {tagLabel(tag)}
+            </Badge>
+          ))}
         </div>
-      )}
-      {contentComponent.tags && (
-        <div className={SECTION_CLASS}>
-          <h2>Tags</h2>
-          <div className="flex flex-wrap gap-2">
-            {contentComponent.tags.map((tag) => (
-              <Badge key={tag} variant="secondary">
-                {tag}
-              </Badge>
-            ))}
-          </div>
-        </div>
-      )}
+      </div>
       {contentComponent.authors && (
         <div className={SECTION_CLASS}>
           <h2>Author</h2>
-          <div className="*:data-[slot=avatar]:ring-background flex -space-x-2 *:data-[slot=avatar]:ring-2 *:data-[slot=avatar]:grayscale">
+          <div className={AVATAR_ROW_CLASS}>
             {contentComponent.authors.map((author) => (
-              <a href={author.url} key={author.name} target="_blank">
-                <Avatar>
-                  <AvatarImage src={author.url} />
-                  <AvatarFallback>{author.name.charAt(0)}</AvatarFallback>
-                </Avatar>
-              </a>
+              <PersonAvatar key={author.url} person={author} />
             ))}
           </div>
         </div>
       )}
+      {contentComponent.inspiredBy && (
+        <div className={SECTION_CLASS}>
+          <h2>Inspired by</h2>
+          <ul className="flex flex-col gap-1 text-sm">
+            {contentComponent.inspiredBy.map((link) => (
+              <li key={link.url}>
+                <a
+                  href={link.url}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="text-muted-foreground hover:text-primary underline decoration-dotted transition-colors"
+                >
+                  {link.label}
+                </a>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+      {contentComponent.requestedBy && (
+        <div className={SECTION_CLASS}>
+          <h2>Requested by</h2>
+          <div className="flex items-center gap-2 text-sm">
+            <PersonAvatar person={contentComponent.requestedBy} />
+            <a
+              href={contentComponent.requestedBy.url}
+              target="_blank"
+              rel="noreferrer"
+              className="text-muted-foreground hover:text-primary underline decoration-dotted transition-colors"
+            >
+              {contentComponent.requestedBy.name}
+            </a>
+          </div>
+        </div>
+      )}
+      <p className="text-muted-foreground -mx-3 border-t px-3 pt-3 text-xs">
+        Added{" "}
+        <time dateTime={contentComponent.addedAt}>{formatAddedAt(contentComponent.addedAt)}</time>
+      </p>
     </Card>
   );
-};
-
-const SourceCodePreview = ({ slug }: { slug: string }) => {
-  const { data: sourceFiles } = useSuspenseQuery(sourceFilesQuery(slug));
-  return <CodePreview sourceFiles={sourceFiles} />;
 };
 
 export const ResponsiveAside = ({ contentComponent, onPrev, onNext }: ResponsiveAsideProps) => {
@@ -338,7 +391,7 @@ export const ResponsiveAside = ({ contentComponent, onPrev, onNext }: Responsive
           <DrawerDescription>Component details</DrawerDescription>
         </DrawerHeader>
         <div className={cn(isDesktop ? "h-full [&_[data-slot=card]]:h-full" : "pt-5")}>
-          <Aside contentComponent={contentComponent} />
+          <Aside key={contentComponent.slug} contentComponent={contentComponent} />
         </div>
       </DrawerContent>
     </Drawer>

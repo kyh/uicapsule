@@ -17,11 +17,11 @@ export interface OpenWindow {
 }
 
 export const DEFAULT_WINDOW_SIZES = {
-  quicklook: { w: 760, h: 560 },
-  photos: { w: 880, h: 600 },
-  notes: { w: 720, h: 520 },
-  finder: { w: 760, h: 460 },
-  terminal: { w: 640, h: 400 },
+  finder: { h: 460, w: 760 },
+  notes: { h: 520, w: 720 },
+  photos: { h: 600, w: 880 },
+  quicklook: { h: 560, w: 760 },
+  terminal: { h: 400, w: 640 },
 } satisfies Record<WindowKind, { readonly w: number; readonly h: number }>;
 
 export interface WindowCtx {

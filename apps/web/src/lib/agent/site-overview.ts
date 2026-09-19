@@ -31,7 +31,7 @@ export const whenToUse: ProseListItem[] = [
   },
   {
     label: "You are surveying interaction-design prior art",
-    text: "the catalog is tagged by element, visual style and product category, and each component links to a live preview you can drive",
+    text: "the catalog is tagged by element and visual style, and each component links to a live preview you can drive",
   },
   {
     label: "You need to know exactly what a component depends on",
@@ -50,15 +50,15 @@ export const whenToUse: ProseListItem[] = [
 export const siteUsageParagraphs: string[] = [
   `How to call it: every component is a shadcn registry item. Fetch \`${siteConfig.url}/r/registry.json\` for the index, or \`${siteConfig.url}/r/<slug>.json\` for one item with its full source, its npm dependencies and its install targets. \`npx shadcn@latest add ${siteConfig.url}/r/<slug>.json\` writes the files into a project directly. Nothing here requires an API key, an account, or a rate-limited token.`,
   "Reading it as an agent: send `Accept: text/markdown` to any page URL — or append `.md` to it — and the same page comes back as Markdown instead of HTML. `/llms.txt` carries this overview plus the complete component catalog in one request, and `/sitemap.xml` lists every indexable URL.",
-  `Filtering it: the home page accepts \`element\`, \`style\` and \`category\` query parameters, each a comma-separated list, so \`${siteConfig.url}/?element=inputs&style=skeuomorphism\` narrows the grid to skeuomorphic input components. The full vocabulary for each is listed below.`,
+  `Filtering it: the home page accepts \`element\` and \`style\` query parameters, each a comma-separated list, so \`${siteConfig.url}/?element=controls&style=skeuomorphism\` narrows the grid to skeuomorphic controls. The full vocabulary for each is listed below.`,
   `Licensing and support: everything is MIT licensed — use it in personal and commercial work with no attribution required. The gallery itself is open source at ${siteConfig.repository}; bugs and component requests go to its issue tracker, and anything private goes to ${siteConfig.email}.`,
 ];
 
 /** Machine-readable surfaces, with what each one returns. */
 export const agentEndpoints: ProseListItem[] = [
   {
-    label: "/r/registry.json",
     href: "/r/registry.json",
+    label: "/r/registry.json",
     text: "the full shadcn registry index — every component with its dependencies and file list",
   },
   {
@@ -77,8 +77,8 @@ export const agentEndpoints: ProseListItem[] = [
     label: "/preview-frame/<slug>",
     text: "the bare component with no site chrome, suitable for embedding in an iframe",
   },
-  { label: "/sitemap.xml", href: "/sitemap.xml", text: "every indexable URL on the site" },
-  { label: "/llms.txt", href: "/llms.txt", text: "this overview plus the full component catalog" },
+  { href: "/sitemap.xml", label: "/sitemap.xml", text: "every indexable URL on the site" },
+  { href: "/llms.txt", label: "/llms.txt", text: "this overview plus the full component catalog" },
   {
     label: "Markdown for any page",
     text: "send `Accept: text/markdown` to any page URL, or append `.md` to it, and the same content comes back as Markdown",

@@ -2,47 +2,39 @@ import { db } from "@repo/db/drizzle-client";
 import { betterAuth } from "better-auth";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
 
-export const baseUrl =
-  process.env.VERCEL_ENV === "production"
-    ? `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}`
-    : process.env.VERCEL_ENV === "preview"
-      ? `https://${process.env.VERCEL_URL}`
-      : "http://localhost:3000";
+import { sendPasswordResetEmail } from "./password-reset-email";
 
-// Origins allowed to drive authenticated requests. Only the web app runs
-// same-origin as baseUrl. Consumed by better-auth's own Origin checks, which
-// cover /api/auth/* only; the RPC endpoint pairs the session cookie's
-// SameSite=Lax with its own Origin check, because SameSite keys on site rather
-// than origin and so covers the cross-SITE half only
-// (see apps/web/src/app/api/orpc/[[...rest]]/route.ts). Lax is better-auth's
-// default and nothing here sets `advanced.defaultCookieAttributes`; loosening
-// it to "none" would re-open cross-site CSRF app-wide.
-const trustedOrigins = [baseUrl];
+const resolveBaseUrl = () => {
+  if (process.env.VERCEL_ENV === "production") {
+    return `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}`;
+  }
+  if (process.env.VERCEL_ENV === "preview") {
+    return `https://${process.env.VERCEL_URL}`;
+  }
+  return process.env.BETTER_AUTH_URL || "http://localhost:3000";
+};
+
+export const baseUrl = resolveBaseUrl();
 
 export const auth = betterAuth({
+  baseURL: baseUrl,
   database: drizzleAdapter(db, {
     provider: "sqlite",
   }),
-  baseURL: baseUrl,
   emailAndPassword: {
     enabled: true,
+    revokeSessionsOnPasswordReset: true,
+    sendResetPassword:
+      process.env.RESEND_API_KEY && process.env.AUTH_EMAIL_FROM
+        ? ({ user, url }) => sendPasswordResetEmail(user.email, url)
+        : undefined,
   },
-  trustedOrigins,
-  // Persist rate-limit counters in the database. The default in-memory store
-  // keeps per-instance counters, so on serverless (Vercel) the effective limit
-  // multiplies across cold-started instances and resets on every deploy.
-  //
-  // This 10/60s is the fallback for auth routes generally — it does NOT govern
-  // the credential endpoints. better-auth applies a built-in rule of 3
-  // requests/10s to /sign-in*, /sign-up*, /change-password* and /change-email*,
-  // which overrides these values (only rateLimit.customRules could raise them).
+  // Share counters across serverless instances. Credential routes use better-auth's stricter limit.
   rateLimit: {
     enabled: true,
+    max: 10,
     storage: "database",
     window: 60,
-    max: 10,
   },
+  trustedOrigins: [baseUrl],
 });
-
-export type Auth = typeof auth;
-export type Session = Auth["$Infer"]["Session"];

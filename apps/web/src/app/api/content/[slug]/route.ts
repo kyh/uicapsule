@@ -3,13 +3,11 @@ import { NextResponse } from "next/server";
 
 import { getSourceFiles } from "@/lib/content-data";
 
-type SourceParams = {
+interface SourceParams {
   params: Promise<{ slug: string }>;
-};
+}
 
-// Internal seam for the source drawer and zip download. The shadcn registry
-// at /r/[slug].json is a contract owned by external CLI consumers — its file
-// shape can change for install compatibility without breaking this route.
+// Keep the drawer/zip payload independent of shadcn's external registry format.
 export const GET = async (_: NextRequest, { params }: SourceParams) => {
   const { slug } = await params;
 

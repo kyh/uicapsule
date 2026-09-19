@@ -7,13 +7,14 @@ import type { ContentComponentSummary } from "@/lib/content/content-schema";
 
 const components: ContentComponentSummary[] = [
   {
-    slug: "dynamic-island",
-    type: "local",
-    name: "Dynamic Island",
+    addedAt: "2026-01-02",
     description: "A springy Dynamic Island interaction with ring and timer states.",
-    tags: ["overlay", "minimal"],
+    name: "Dynamic Island",
+    slug: "dynamic-island",
+    tags: ["effects", "minimal"],
+    type: "local",
   },
-  { slug: "feed", type: "local", name: "Feed" },
+  { addedAt: "2026-01-01", name: "Feed", slug: "feed", tags: ["cards-grids"], type: "local" },
 ];
 
 const body = renderLlmsTxt(components);
@@ -33,7 +34,7 @@ describe("renderLlmsTxt — llmstxt.org format", () => {
   test("keeps every H2 section a link list", () => {
     // The spec reserves H2 sections for file lists: a markdown list whose items
     // each open with a link or a bold label. Prose belongs above the first H2.
-    const sections = body.split(/^## /m).slice(1);
+    const sections = body.split(/^## /mu).slice(1);
     assert.ok(sections.length > 0, "expected > 0");
     for (const section of sections) {
       const items = section
@@ -48,6 +49,7 @@ describe("renderLlmsTxt — llmstxt.org format", () => {
   });
 
   test("puts the when-to-use guidance above the first H2, where free prose is allowed", () => {
+    // oxlint-disable-next-line unicorn/prefer-set-has -- a string, not a list: `.includes` here is substring search, and the rule's autofix turns it into a per-character test
     const beforeFirstHeading = body.slice(0, body.indexOf("\n## "));
     assert.ok(
       beforeFirstHeading.includes("**When to use this:**"),
@@ -74,7 +76,7 @@ describe("renderLlmsTxt — llmstxt.org format", () => {
   test("lists every component as an absolute link with notes", () => {
     assert.ok(
       body.includes(
-        "- [Dynamic Island](https://uicapsule.com/ui/dynamic-island): A springy Dynamic Island interaction with ring and timer states. — tags: overlay, minimal",
+        "- [Dynamic Island](https://uicapsule.com/ui/dynamic-island): A springy Dynamic Island interaction with ring and timer states. — tags: effects, minimal",
       ),
       'should contain "- [Dynamic Island](https://uicapsule.com/ui/dyn…',
     );
@@ -88,7 +90,7 @@ describe("renderLlmsTxt — llmstxt.org format", () => {
     for (const path of ["/about", "/contact", "/privacy", "/sitemap.xml", "/robots.txt"]) {
       assert.ok(
         body.includes(`https://uicapsule.com${path}`),
-        "should contain `https://uicapsule.com${path}`",
+        `should contain https://uicapsule.com${path}`,
       );
     }
   });

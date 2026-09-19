@@ -7,6 +7,7 @@ import type { MotionValue } from "motion/react";
 
 import { HUD_INNER_WIDTH } from "./macos-chrome";
 import {
+  arrowDelta,
   clamp,
   clampVolume,
   DETENT_STEP,
@@ -41,16 +42,36 @@ const CATCH_RADIUS = 7;
  * is the whole game: level the panel to let a detent bite, lean to break out. */
 const DETENT_GRIP = 300;
 
-const LEVEL_SPRING = { type: "spring", stiffness: 220, damping: 18 } as const;
-const SETTLE_SPRING = { type: "spring", stiffness: 400, damping: 30 } as const;
+const LEVEL_SPRING = { damping: 18, stiffness: 220, type: "spring" } as const;
+const SETTLE_SPRING = { damping: 30, stiffness: 400, type: "spring" } as const;
 
 const volumeToX = (volume: number) => (clampVolume(volume) / VOLUME_MAX) * TRAVEL;
 const xToVolume = (x: number) => clamp((x / TRAVEL) * VOLUME_MAX, VOLUME_MIN, VOLUME_MAX);
 const detentX = (volume: number) => volumeToX(snapVolume(volume));
 
-type TiltTrackProps = {
+/** A notch every five points. They're the only places the marble can rest. */
+const Detents = () => (
+  <>
+    {Array.from({ length: VOLUME_MAX / DETENT_STEP + 1 }, (_, index) => {
+      const value = index * DETENT_STEP;
+      const major = value % 25 === 0;
+      return (
+        <span
+          key={value}
+          aria-hidden
+          className={`absolute top-1/2 w-px -translate-y-1/2 ${
+            major ? "h-4 bg-white/25" : "h-2 bg-white/10"
+          }`}
+          style={{ left: volumeToX(value) + MARBLE_SIZE / 2 + (GROOVE_HEIGHT - MARBLE_SIZE) / 2 }}
+        />
+      );
+    })}
+  </>
+);
+
+interface TiltTrackProps {
   volume: MotionValue<number>;
-};
+}
 
 /**
  * The panel is a spirit level and the volume is a marble in the groove.
@@ -160,7 +181,9 @@ export const TiltTrack = ({ volume }: TiltTrackProps) => {
   };
 
   const handlePointerDown = (event: React.PointerEvent<HTMLDivElement>) => {
-    if (reduceMotion) return;
+    if (reduceMotion) {
+      return;
+    }
     event.currentTarget.setPointerCapture(event.pointerId);
     grabX.current = event.clientX;
     grabTilt.current = tilt.get();
@@ -169,13 +192,17 @@ export const TiltTrack = ({ volume }: TiltTrackProps) => {
   };
 
   const handlePointerMove = (event: React.PointerEvent<HTMLDivElement>) => {
-    if (!tilting) return;
+    if (!tilting) {
+      return;
+    }
     const delta = (event.clientX - grabX.current) / PX_PER_DEGREE;
     tilt.set(clamp(grabTilt.current + delta, -MAX_TILT, MAX_TILT));
   };
 
   const handlePointerUp = () => {
-    if (!tilting) return;
+    if (!tilting) {
+      return;
+    }
     setTilting(false);
     // Hands off: the panel finds level again, and whatever the marble was doing,
     // it now has to do it on a flat surface. Usually that means it stops.
@@ -190,13 +217,10 @@ export const TiltTrack = ({ volume }: TiltTrackProps) => {
   };
 
   const handleKeyDown = (event: React.KeyboardEvent<HTMLDivElement>) => {
-    const delta =
-      event.key === "ArrowRight" || event.key === "ArrowUp"
-        ? DETENT_STEP
-        : event.key === "ArrowLeft" || event.key === "ArrowDown"
-          ? -DETENT_STEP
-          : 0;
-    if (delta === 0) return;
+    const delta = arrowDelta(event.key);
+    if (delta === 0) {
+      return;
+    }
     // Keyboard gets the boring volume control. The joke isn't worth locking anyone out.
     event.preventDefault();
     settleTo(clampVolume(snapVolume(volume.get()) + delta));
@@ -212,6 +236,7 @@ export const TiltTrack = ({ volume }: TiltTrackProps) => {
           scythe straight through the readout above it. */}
       <motion.div
         ref={panelRef}
+        // oxlint-disable-next-line jsx-a11y/prefer-tag-over-role, jsx-a11y/role-has-required-aria-props -- a physics toy, not a range input; aria-valuenow is written straight to the DOM every frame (see the effect above)
         role="slider"
         tabIndex={0}
         aria-label="Volume"
@@ -237,12 +262,12 @@ export const TiltTrack = ({ volume }: TiltTrackProps) => {
             aria-hidden
             className="absolute top-1/2 left-0 rounded-full bg-gradient-to-b from-white to-neutral-400 shadow-[0_2px_5px_rgba(0,0,0,0.6)]"
             style={{
-              width: MARBLE_SIZE,
               height: MARBLE_SIZE,
-              marginTop: -MARBLE_SIZE / 2,
               marginLeft: (GROOVE_HEIGHT - MARBLE_SIZE) / 2,
-              x,
+              marginTop: -MARBLE_SIZE / 2,
               rotate: reduceMotion ? 0 : marbleSpin,
+              width: MARBLE_SIZE,
+              x,
             }}
           >
             {/* One off-centre highlight, so the roll is visible. A featureless
@@ -266,23 +291,3 @@ export const TiltTrack = ({ volume }: TiltTrackProps) => {
     </div>
   );
 };
-
-/** A notch every five points. They're the only places the marble can rest. */
-const Detents = () => (
-  <>
-    {Array.from({ length: VOLUME_MAX / DETENT_STEP + 1 }, (_, index) => {
-      const value = index * DETENT_STEP;
-      const major = value % 25 === 0;
-      return (
-        <span
-          key={value}
-          aria-hidden
-          className={`absolute top-1/2 w-px -translate-y-1/2 ${
-            major ? "h-4 bg-white/25" : "h-2 bg-white/10"
-          }`}
-          style={{ left: volumeToX(value) + MARBLE_SIZE / 2 + (GROOVE_HEIGHT - MARBLE_SIZE) / 2 }}
-        />
-      );
-    })}
-  </>
-);

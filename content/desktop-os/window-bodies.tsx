@@ -21,6 +21,7 @@ import type { OpenWindow, WindowCtx } from "./window-types";
 import { AppGlyph } from "./app-icons";
 import { FILES, FIRST_NOTE, NOTES, PHOTOS, findFile } from "./desktop-data";
 import { WindowFrame } from "./window-frame";
+import { useReducedMotion } from "./use-reduced-motion";
 
 /* -------------------------------------------------------------- Quick Look -- */
 
@@ -50,11 +51,12 @@ const QuickLookBody = ({
       FILES[(index + 1) % FILES.length],
       FILES[(index - 1 + FILES.length) % FILES.length],
     ];
-    neighbours.forEach((neighbour) => {
-      if (!neighbour) return;
-      const img = new Image();
-      img.src = neighbour.full;
-    });
+    for (const neighbour of neighbours) {
+      if (neighbour) {
+        const img = new Image();
+        img.src = neighbour.full;
+      }
+    }
   }, [index]);
 
   return (
@@ -169,7 +171,9 @@ const NotesBody = ({ ctx }: { ctx: WindowCtx }): ReactNode => {
                 type="button"
                 onClick={() => {
                   setActiveId(note.id);
-                  if (ctx.isMobile) setMobileView("detail");
+                  if (ctx.isMobile) {
+                    setMobileView("detail");
+                  }
                 }}
                 className={`block w-full border-b border-black/[0.05] px-4 py-3 text-left transition-colors ${
                   note.id === activeId && !ctx.isMobile
@@ -218,18 +222,18 @@ const NotesBody = ({ ctx }: { ctx: WindowCtx }): ReactNode => {
 /* ------------------------------------------------------------------ Finder -- */
 
 const FINDER_SIDEBAR = [
-  { label: "Desktop", color: "#62a8e8" },
-  { label: "Applications", color: "#7c8595" },
-  { label: "Documents", color: "#7c8595" },
-  { label: "Captures", color: "#5fd0c9" },
-  { label: "Exports", color: "#a8a08b" },
-  { label: "Downloads", color: "#7c8595" },
+  { color: "#62a8e8", label: "Desktop" },
+  { color: "#7c8595", label: "Applications" },
+  { color: "#7c8595", label: "Documents" },
+  { color: "#5fd0c9", label: "Captures" },
+  { color: "#a8a08b", label: "Exports" },
+  { color: "#7c8595", label: "Downloads" },
 ] as const;
 
 const FinderFolderDot = ({ size = 14 }: { size?: number }): ReactNode => (
   <FolderIcon
     className="shrink-0 text-[#4aa3f0]"
-    style={{ width: size, height: size }}
+    style={{ height: size, width: size }}
     fill="#4aa3f0"
   />
 );
@@ -399,6 +403,11 @@ interface TerminalLine {
   readonly tone?: "ok" | "dim";
 }
 
+const TONE_CLASS: Record<NonNullable<TerminalLine["tone"]>, string> = {
+  dim: "text-white/45",
+  ok: "text-[#9fe6c0]",
+};
+
 const TERMINAL_LINES: readonly TerminalLine[] = [
   { prompt: true, text: "system --status" },
   { prompt: false, text: "compositor      up     16.6ms/frame", tone: "ok" },
@@ -411,10 +420,10 @@ const TERMINAL_LINES: readonly TerminalLine[] = [
 
 const TerminalBody = (): ReactNode => {
   const [visible, setVisible] = useState(0);
+  const reducedMotion = useReducedMotion();
 
   useEffect(() => {
-    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
-      setVisible(TERMINAL_LINES.length);
+    if (reducedMotion) {
       return;
     }
 
@@ -425,24 +434,20 @@ const TerminalBody = (): ReactNode => {
     const id = window.setInterval(() => {
       shown += 1;
       setVisible(shown);
-      if (shown >= TERMINAL_LINES.length) window.clearInterval(id);
+      if (shown >= TERMINAL_LINES.length) {
+        window.clearInterval(id);
+      }
     }, 190);
 
     return () => window.clearInterval(id);
-  }, []);
+  }, [reducedMotion]);
 
   return (
     <div className="dos-scroll dos-scroll-dark h-full overflow-y-auto bg-[#101014] px-4 py-3 font-mono text-[12px] leading-[1.7] text-[#d6d6da]">
-      {TERMINAL_LINES.slice(0, visible).map((line) => (
+      {TERMINAL_LINES.slice(0, reducedMotion ? TERMINAL_LINES.length : visible).map((line) => (
         <div key={line.text} className="flex gap-2">
           {line.prompt && <span className="text-[#5fd0a0]">~ %</span>}
-          <span
-            className={
-              line.tone === "ok" ? "text-[#9fe6c0]" : line.tone === "dim" ? "text-white/45" : ""
-            }
-          >
-            {line.text}
-          </span>
+          <span className={line.tone === undefined ? "" : TONE_CLASS[line.tone]}>{line.text}</span>
         </div>
       ))}
       <div className="flex gap-2">
@@ -462,31 +467,49 @@ const TerminalBody = (): ReactNode => {
  */
 const bodyForWindow = (win: OpenWindow, ctx: WindowCtx): ReactNode => {
   switch (win.kind) {
-    case "quicklook":
+    case "quicklook": {
       return <QuickLookBody fileId={win.fileId} ctx={ctx} />;
-    case "photos":
+    }
+    case "photos": {
       return <PhotosBody ctx={ctx} />;
-    case "notes":
+    }
+    case "notes": {
       return <NotesBody ctx={ctx} />;
-    case "finder":
+    }
+    case "finder": {
       return <FinderBody win={win} ctx={ctx} />;
-    case "terminal":
+    }
+    case "terminal": {
       return <TerminalBody />;
+    }
+    default: {
+      const exhaustive: never = win.kind;
+      return exhaustive;
+    }
   }
 };
 
 const titleForWindow = (win: OpenWindow): string => {
   switch (win.kind) {
-    case "quicklook":
+    case "quicklook": {
       return findFile(win.fileId)?.name ?? "Quick Look";
-    case "photos":
+    }
+    case "photos": {
       return "Photos";
-    case "notes":
+    }
+    case "notes": {
       return "Notes";
-    case "finder":
+    }
+    case "finder": {
       return win.folderName ?? "Files";
-    case "terminal":
+    }
+    case "terminal": {
       return "Terminal — bash";
+    }
+    default: {
+      const exhaustive: never = win.kind;
+      return exhaustive;
+    }
   }
 };
 
@@ -500,18 +523,16 @@ export const WindowView = ({
 }: Pick<FrameProps, "sectionRef" | "onClose" | "onFocus" | "onMove"> & {
   win: OpenWindow;
   ctx: WindowCtx;
-}): ReactNode => {
-  return (
-    <WindowFrame
-      win={win}
-      isMobile={ctx.isMobile}
-      sectionRef={sectionRef}
-      onClose={onClose}
-      onFocus={onFocus}
-      onMove={onMove}
-      title={titleForWindow(win)}
-    >
-      {bodyForWindow(win, ctx)}
-    </WindowFrame>
-  );
-};
+}): ReactNode => (
+  <WindowFrame
+    win={win}
+    isMobile={ctx.isMobile}
+    sectionRef={sectionRef}
+    onClose={onClose}
+    onFocus={onFocus}
+    onMove={onMove}
+    title={titleForWindow(win)}
+  >
+    {bodyForWindow(win, ctx)}
+  </WindowFrame>
+);

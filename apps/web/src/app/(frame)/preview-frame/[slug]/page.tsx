@@ -1,32 +1,31 @@
 import { Suspense } from "react";
 import { notFound } from "next/navigation";
-import { isRemoteContentComponent } from "@/lib/content/content-schema";
 
 import { MediaReveal } from "@/components/media-reveal";
 import { getAllContent } from "@/lib/content-data";
 
 import type { ComponentType } from "react";
 
-type Props = {
+interface Props {
   params: Promise<{ slug: string }>;
-};
+}
 
 export const generateStaticParams = async () => {
   const all = await getAllContent();
-  return all.filter((c) => !isRemoteContentComponent(c)).map((c) => ({ slug: c.slug }));
+  return all.filter((c) => c.type === "local").map((c) => ({ slug: c.slug }));
 };
 
-const SLUG_PATTERN = /^[a-z0-9][a-z0-9-]*$/;
+const SLUG_PATTERN = /^[a-z0-9][a-z0-9-]*$/u;
 
 const loadPreview = async (slug: string): Promise<ComponentType | null> => {
-  if (!SLUG_PATTERN.test(slug)) return null;
+  if (!SLUG_PATTERN.test(slug)) {
+    return null;
+  }
   try {
-    // SAFETY: the slug pattern keeps the specifier inside content/, and
-    // scripts/check-content.ts fails the build unless every local
-    // content/<slug>/preview.tsx default-exports a preview component.
-    const mod = (await import(`../../../../../../../content/${slug}/preview.tsx`)) as {
-      default: ComponentType;
-    };
+    // Independent content checks verify each default export accepts empty preview props.
+    const mod: { default: ComponentType } = await import(
+      `../../../../../../../content/${slug}/preview.tsx`
+    );
     return mod.default;
   } catch {
     return null;
@@ -36,7 +35,9 @@ const loadPreview = async (slug: string): Promise<ComponentType | null> => {
 const PreviewContent = async ({ params }: Props) => {
   const { slug } = await params;
   const Preview = await loadPreview(slug);
-  if (!Preview) notFound();
+  if (!Preview) {
+    notFound();
+  }
   return <Preview />;
 };
 

@@ -11,7 +11,7 @@ import type { Metadata } from "next";
  * return complete values so overriding a title can't cost a page its OG card.
  */
 
-const ogImage = { url: `${siteConfig.url}/og.jpg`, width: 1920, height: 1080 };
+const ogImage = { height: 1080, url: `${siteConfig.url}/og.jpg`, width: 1920 };
 
 /** An explicit canonical, plus the Markdown representation the proxy serves from the same URL. */
 export const canonicalAlternates = (path: string): Metadata["alternates"] => ({
@@ -24,11 +24,11 @@ export const pageOpenGraph = (
   title: string = siteConfig.name,
   description: string = siteConfig.description,
 ): Metadata["openGraph"] => ({
-  type: "website",
-  locale: "en-US",
-  siteName: siteConfig.name,
-  url: path,
-  title,
   description,
   images: [ogImage],
+  locale: "en-US",
+  siteName: siteConfig.name,
+  title,
+  type: "website",
+  url: path,
 });

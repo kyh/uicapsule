@@ -20,16 +20,31 @@ content/         # Gallery components — one workspace package per slug
 
 Content is filesystem-driven; the web app never depends on content packages by name:
 
-- `apps/web/src/lib/content/content-fs.ts` reads `content/*/meta.json` + source files;
+- `apps/web/src/lib/content/content-fs.ts` indexes `content/*/meta.json` and reads source
+  only for downloads/registry requests. `content-schema.ts` supplies the shared metadata
+  parser and inferred types for the loader and build guard;
   `content-data.ts` wraps it in `"use cache"` server functions (feed, filters, search
   index, shadcn registry). The `"use cache"` + `cacheLife("max")` pairing is intentional,
   not an oversight — content only ever changes on deploy.
 - `preview-frame/[slug]` renders previews via a relative dynamic import of
   `content/<slug>/preview.tsx`.
-- `/r/<slug>.json` serves the shadcn registry item; the source-code drawer and zip
-  download on the client reuse it.
+- `/r/<slug>.json` serves the shadcn registry item. The source drawer and zip download
+  use `/api/content/<slug>`; the viewer and zip library load on demand.
 - Content packages exist as workspace packages only so pnpm installs their deps in
   isolation and the registry can report per-component dependencies.
+- `meta.json` carries provenance: `addedAt` (required, stamped by `new:content`, drives
+  gallery order newest-first), `inspiredBy` (where the idea came from), `requestedBy`
+  (who asked for it). Keep them honest — they render on the detail page.
+
+### Component requests
+
+`/request` → oRPC `request.create` → GitHub issue labelled `request` (needs
+`GITHUB_ISSUES_TOKEN`). Attachments go through `/api/request/attachments` to GitHub's own
+`uploads.github.com/user-attachments/assets` store (the endpoint `gh --attach` uses; fine-grained
+PATs allowed, repo write access required), capped at 4MB by Vercel's request-body limit.
+Visitor text has `@` neutralized so it can't trigger the `@claude` workflow.
+Triage is manual: apply `ready` to accept, close as not-planned to decline. The
+`build-requests` skill drains `ready` issues into PRs (run locally, on a schedule).
 
 ### Agent-readable surfaces
 
@@ -47,7 +62,7 @@ Next imports, no filesystem — so it can be unit-tested without a runtime. The 
   "no constraint" and gets HTML.
 - **`Vary: Accept` does not reach prerendered app pages.** Next replays a prerender's
   stored headers on send and `vary` is one of them, so neither the proxy nor
-  `next.config.js` `headers()` can add to it. The config entry is still there and does
+  `next.config.ts` `headers()` can add to it. The config entry is still there and does
   apply to every route handler. Retest on a Next upgrade before deleting the comment.
 - **The homepage's text layer** (`_components/gallery-outline.tsx`) is `sr-only` and
   outside any `<Suspense>` on purpose: the grid is covers and hover states, which reads as
@@ -59,7 +74,7 @@ Next imports, no filesystem — so it can be unit-tested without a runtime. The 
 
 ### Tech Stack
 
-- **Runtime**: pnpm 10, Node 24, TypeScript 6 (pinned — TS 7 / tsgo breaks Next 16)
+- **Runtime**: pnpm 12, Node 24, TypeScript 7 (versions in package.json / pnpm-workspace.yaml)
 - **Frontend**: Next.js 16, React 19, Tailwind CSS 4
 - **API**: oRPC, better-auth
 - **Database**: Turso (libSQL), Drizzle ORM
@@ -103,37 +118,45 @@ pnpm check:agent-endpoints  # Runtime check of the agent surfaces (needs a runni
 
 ## Verification Contract
 
-`pnpm verify` runs five steps in order: `pnpm typecheck`, `pnpm lint` (oxlint),
-`pnpm format` (`oxfmt --check` — the checking one; `format:fix` is what rewrites),
-`pnpm test`, and `pnpm build`. All but lint are gates:
+`pnpm verify` runs typecheck, lint, formatting, tests, and build. Every step must pass.
+CI runs it on every push and pull request.
 
-- **typecheck, format, test, build fail the run.** They must be green.
-- **lint does not.** `.oxlintrc.json` sets every category (`correctness`, `suspicious`,
-  `perf`) to `warn` and root `lint` has no `--deny-warnings`, so `pnpm lint` exits 0
-  whatever it finds — today 96 pre-existing warnings, almost all in `content/*` and
-  upstream shadcn components in `packages/ui`. Turning it into a real gate would fail a
-  clean checkout, so it stays advisory: **read its output, don't just read its exit code.**
+Lint is a clean gate: `oxlint.config.ts` extends the ultracite presets (core, react, next,
+anti-slop) and every rule is an error. Fix the code, don't add config overrides; a
+`// oxlint-disable-next-line rule -- why` needs a stated reason.
 
-Tests are thin — a better-auth schema + session-cookie guard in `packages/api`, and the RPC
-route's transport guards plus the agent-surface unit tests (`src/lib/agent/*.test.ts`) in
-`apps/web`. They pin things typecheck cannot see, notably `/api/orpc`'s cross-origin
-defense: `SameSite=Lax` keys on _site_, so it stops a cross-SITE POST only, and the route's
-own Origin check covers the same-site cross-origin case (a sibling subdomain, another
-localhost port). Don't assume a suite has your back anywhere else, and note `content/*` is
-typechecked by nothing (see `AGENTS.md` → Verify a change end-to-end).
-`verify` reads `.env`, because `build` does.
+Typecheck covers the app, shared packages, scripts, and every code-bearing content package
+independently. Content remains excluded from the app's TypeScript project because independent
+checks preserve its distribution boundary. Use `pnpm typecheck:content <slug>` for one package.
 
-`pnpm build` runs `check:content` first (turbo task `//#check:content`): the gallery loader
-in `content-fs.ts` silently drops a `content/<slug>` that lacks its `meta.json` + `preview.tsx`
-pair (or, for a remote component, `iframeUrl`/`sourceUrl`), so a half-scaffolded stub used to
-vanish with no error and pile up. The guard turns that silence into a failed build — do not
-remove it. Finish the component or delete the directory; scaffold with `pnpm new:content`.
+Tests cover the auth schema/cookies/reset and RPC transport guards, the content
+filesystem/registry behavior, and the agent surfaces in `apps/web/src/lib/agent/*.test.ts`.
+They pin things typecheck cannot see, notably `/api/orpc`'s cross-origin defense:
+`SameSite=Lax` keys on _site_, so it stops a cross-SITE POST only, and the route's own Origin
+check covers the same-site cross-origin case (a sibling subdomain, another localhost port).
+Status codes and response headers are outside the static gate entirely — that is what
+`pnpm check:agent-endpoints` is for. `verify` reads `.env`, because `build` does.
+
+Tests cover auth schema/cookies/reset, RPC Origin guards, filesystem/registry contracts, and
+standalone-content validation. Keep tests that pin observable behavior; check visual changes
+in the browser. `verify` reads `.env` for the build but requires no running database.
+
+The build's `check:content` guard validates metadata, preview files, manifests, and imports.
+It rejects private workspace dependencies and paths escaping a component directory. Do not
+remove it. Scaffold with `pnpm new:content`; finish a component or remove its directory.
+
+Password reset uses Resend. Configure `RESEND_API_KEY` and `AUTH_EMAIL_FROM` with a verified
+sender to enable it. Without both, Better Auth returns `RESET_PASSWORD_DISABLED`. Configured
+requests keep account existence private; provider failures are logged. Request acceptance
+does not prove delivery. Reset tokens expire after one hour and revoke existing sessions.
 
 ## Decisions (do not re-litigate)
 
 - **auth + oRPC are kept.** One procedure, zero callers, deliberately retained for a future
   feature. Make them correct; don't propose deleting them.
-- **Supabase stays.** It hosts every cover video.
+- **Assets live in the `uicapsule-assets` Vercel Blob store.** Covers, illustrations and other
+  content media resolve against `NEXT_PUBLIC_ASSETS_URL`; `meta.json` stores bucket keys,
+  never URLs.
 - **Vercel builds on every push — deliberately. Do not add build-skipping.** Both Vercel's
   "Skip unaffected projects" and an Ignored Build Step / `turbo-ignore` are disabled on the
   project. Every skip mechanism decides "affected" from the _workspace dependency graph_, and

@@ -2,23 +2,24 @@
 
 import { useState } from "react";
 
+import type { Person } from "./types";
 import type { FiltersState } from "./filter-package/core/types";
 import { DataTableFilter } from "./_components/data-table-filter";
-import { createTypedDataTableFilters } from "./filter-package";
+import { useDataTableFilters } from "./filter-package";
 import { columnsConfig } from "./filters";
 
-const usePeopleTableFilters = createTypedDataTableFilters();
+const people: Person[] = [];
 
-export default function Preview() {
+const Preview = () => {
   const [filtersState, setFiltersState] = useState<FiltersState>([]);
 
-  const { columns, filters, actions, strategy, entityName } = usePeopleTableFilters({
-    strategy: "client",
-    data: [],
-    entityName: "Person",
+  const { columns, filters, actions, strategy, entityName } = useDataTableFilters({
     columnsConfig,
+    data: people,
+    entityName: "Person",
     filters: filtersState,
     onFiltersChange: setFiltersState,
+    strategy: "client",
   });
 
   return (
@@ -32,4 +33,6 @@ export default function Preview() {
       />
     </div>
   );
-}
+};
+
+export default Preview;

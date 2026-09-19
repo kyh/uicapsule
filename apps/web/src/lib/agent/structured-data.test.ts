@@ -21,14 +21,21 @@ import type { JsonLdValue } from "./structured-data";
 import type { ContentComponentSummary } from "@/lib/content/content-schema";
 
 const withDescription: ContentComponentSummary = {
-  slug: "dynamic-island",
-  type: "local",
-  name: "Dynamic Island",
+  addedAt: "2026-01-02",
   description: "A springy Dynamic Island interaction.",
-  tags: ["overlay"],
+  name: "Dynamic Island",
+  slug: "dynamic-island",
+  tags: ["effects"],
+  type: "local",
 };
 
-const bare: ContentComponentSummary = { slug: "feed", type: "local", name: "Feed" };
+const bare: ContentComponentSummary = {
+  addedAt: "2026-01-01",
+  name: "Feed",
+  slug: "feed",
+  tags: ["cards-grids"],
+  type: "local",
+};
 
 describe("buildOrganization", () => {
   const organization = buildOrganization();
@@ -89,9 +96,9 @@ describe("buildHomeGraph", () => {
     assert.ok(application.license.includes("MIT"), 'should contain "MIT"');
     assert.deepEqual(application.offers, {
       "@type": "Offer",
+      availability: "https://schema.org/InStock",
       price: "0",
       priceCurrency: "USD",
-      availability: "https://schema.org/InStock",
     });
     assert.ok(
       application.featureList.some((feature) => feature.includes("2 live")),
@@ -105,15 +112,15 @@ describe("buildHomeGraph", () => {
     assert.deepEqual(page.mainEntity.itemListElement, [
       {
         "@type": "ListItem",
+        name: "Dynamic Island",
         position: 1,
         url: "https://uicapsule.com/ui/dynamic-island",
-        name: "Dynamic Island",
       },
       {
         "@type": "ListItem",
+        name: "Feed",
         position: 2,
         url: "https://uicapsule.com/ui/feed",
-        name: "Feed",
       },
     ]);
   });
@@ -141,7 +148,7 @@ describe("buildComponentGraph", () => {
     assert.equal(source.name, "Dynamic Island");
     assert.equal(source.url, "https://uicapsule.com/ui/dynamic-island");
     assert.equal(source.programmingLanguage, "TypeScript");
-    assert.equal(source.keywords, "overlay");
+    assert.equal(source.keywords, "effects");
   });
 
   test("puts the component under the site in a breadcrumb", () => {
@@ -157,10 +164,15 @@ describe("buildComponentGraph", () => {
     assert.deepEqual(bareSource.author, [
       { "@type": "Person", name: "Kaiyu Hsu", url: "https://kyh.io" },
     ]);
+    // The metadata schema requires exactly one element tag, so `keywords` is
+    // always present; `description` is the optional field that can be absent.
+    assert.equal(bareSource.keywords, "cards-grids");
     assert.equal(bareSource.description, undefined);
-    assert.equal(bareSource.keywords, undefined);
     // `undefined` is how an optional field is omitted — JSON.stringify drops it.
-    assert.ok(!serializeJsonLd(bareSource).includes("keywords"), 'should not contain "keywords"');
+    assert.ok(
+      !serializeJsonLd(bareSource).includes("description"),
+      'should not contain "description"',
+    );
   });
 });
 
@@ -181,7 +193,7 @@ describe("serializeJsonLd", () => {
   test("round-trips through JSON.parse", () => {
     const graph = buildHomeGraph([withDescription, bare]);
     const parsed: JsonLdValue = JSON.parse(serializeJsonLd(graph));
-    assert.deepEqual(parsed, JSON.parse(JSON.stringify(graph)));
+    assert.deepEqual(parsed, structuredClone(graph));
   });
 
   test("escapes < so a value can never close the script tag", () => {

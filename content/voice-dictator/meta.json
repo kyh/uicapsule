@@ -1,6 +1,6 @@
 {
   "name": "Voice Dictator",
-  "coverUrl": "https://zmdrwswxugswzmcokvff.supabase.co/storage/v1/object/public/uicapsule/voice-dictator/voice-dictator.mp4",
-  "coverType": "video",
-  "tags": ["video-audio", "effects", "ai"]
+  "addedAt": "2025-09-21",
+  "cover": "voice-dictator/voice-dictator.mp4",
+  "tags": ["controls"]
 }

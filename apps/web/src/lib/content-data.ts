@@ -1,103 +1,116 @@
 import { cacheLife } from "next/cache";
 
-import { isUnlisted, unlistedTags } from "./content/content-categories";
+import { elementSlugs, styleSlugs } from "./content/content-categories";
 import {
   buildShadcnRegistryItem,
   readContentBySlug,
   readContentIndex,
   readContentLastModified,
+  readSourceFiles,
 } from "./content/content-fs";
-import { isLocalContentComponent } from "./content/content-schema";
 
-import type {
-  ContentComponent,
-  ContentComponentSummary,
-  SourceFile,
-} from "./content/content-schema";
+import type { ContentComponentSummary, SourceFile } from "./content/content-schema";
 
-// Content ships with the deployment and only changes on redeploy. `use cache`
-// keys include the build ID, so "max" can never serve a previous deploy's
-// content — it just avoids re-reading the content tree on every request.
-
-const toSummary = (component: ContentComponent): ContentComponentSummary => {
-  if (component.type === "remote") return component;
-  const { sourceFiles: _sourceFiles, ...summary } = component;
-  return summary;
-};
-
-/** Every component, unlisted ones included. Routing and packaging surfaces use
- * this — an unlisted component is hidden, not absent. */
+// Content changes only on deploy; cache keys include the build ID.
 export const getAllContent = async (): Promise<ContentComponentSummary[]> => {
   "use cache";
   cacheLife("max");
-  const all = await readContentIndex();
-  return all.map(toSummary);
+  return await readContentIndex();
 };
 
-/**
- * The scroll feed for `/ui/<slug>`. Unlisted components aren't part of it, but
- * deep-linking one splices it in at the front so the URL still resolves and
- * scrolling carries on into the listed content.
- */
-export const getFeedList = async (initialSlug?: string): Promise<ContentComponentSummary[]> => {
+export type GalleryEntry = ContentComponentSummary & { isNew: boolean };
+
+const NEW_FOR_DAYS = 30;
+
+// "New" is judged at cache time, like everything else here: it refreshes on deploy.
+const markNew = (components: ContentComponentSummary[]): GalleryEntry[] => {
+  const newSince = new Date(Date.now() - NEW_FOR_DAYS * 24 * 60 * 60 * 1000)
+    .toISOString()
+    .slice(0, 10);
+  return components.map((component) => ({ ...component, isNew: component.addedAt >= newSince }));
+};
+
+export type GalleryView = "recent" | "recommended";
+
+export interface GalleryFilter {
+  view: GalleryView;
+  elements: string[];
+  styles: string[];
+}
+
+// Selections within an axis are OR'd; the axes themselves are AND'd.
+const matchesFilter = (component: ContentComponentSummary, filter: GalleryFilter) => {
+  const { tags } = component;
+  const matchesAxis = (selection: string[]) =>
+    selection.length === 0 || selection.some((slug) => tags.includes(slug));
+  return matchesAxis(filter.elements) && matchesAxis(filter.styles);
+};
+
+const visibleContent = (all: ContentComponentSummary[], filter: GalleryFilter) =>
+  all.filter((component) => matchesFilter(component, filter));
+
+// The index is already newest-first; a view only reorders, never hides.
+const orderBy = (view: GalleryView, components: ContentComponentSummary[]) =>
+  view === "recommended"
+    ? components.toSorted((a, b) => Number(Boolean(b.featured)) - Number(Boolean(a.featured)))
+    : components;
+
+export const getContentList = async (filter: GalleryFilter): Promise<GalleryEntry[]> => {
+  "use cache";
+  cacheLife("max");
+  return markNew(orderBy(filter.view, visibleContent(await getAllContent(), filter)));
+};
+
+export interface FilterCounts {
+  elements: Record<string, number>;
+  styles: Record<string, number>;
+}
+
+// Each axis is counted against the other axes' selection so no option leads to an empty gallery.
+export const getFilterCounts = async (filter: GalleryFilter): Promise<FilterCounts> => {
   "use cache";
   cacheLife("max");
   const all = await getAllContent();
-  const listed = all.filter((component) => !isUnlisted(component.tags));
+  const countBy = (
+    slugs: ReadonlySet<string>,
+    withSlug: (slug: string) => Partial<GalleryFilter>,
+  ) =>
+    Object.fromEntries(
+      [...slugs].map((slug) => [
+        slug,
+        visibleContent(all, { ...filter, ...withSlug(slug) }).length,
+      ]),
+    );
 
-  const unlistedInitial = all.find(
-    (component) => component.slug === initialSlug && isUnlisted(component.tags),
-  );
-  return unlistedInitial ? [unlistedInitial, ...listed] : listed;
-};
-
-export const getContentList = async (filterTags: string[]): Promise<ContentComponentSummary[]> => {
-  "use cache";
-  cacheLife("max");
-  const all = await getAllContent();
-
-  const normalizedFilters = filterTags.map((tag) => tag.trim().toLowerCase()).filter(Boolean);
-  if (normalizedFilters.length === 0) {
-    return all.filter((component) => !isUnlisted(component.tags));
-  }
-
-  // Filters are OR'd, so an unlisted component would otherwise leak in through
-  // any tag it happens to share with listed content. It surfaces only when an
-  // unlisted tag is one of the things actually being asked for.
-  const revealsUnlisted = normalizedFilters.some((filter) => unlistedTags.has(filter));
-
-  return all.filter((component) => {
-    const tags = component.tags ?? [];
-    if (!revealsUnlisted && isUnlisted(tags)) return false;
-    return normalizedFilters.some((filter) => tags.includes(filter));
-  });
+  return {
+    elements: countBy(elementSlugs, (slug) => ({ elements: [slug] })),
+    styles: countBy(styleSlugs, (slug) => ({ styles: [slug] })),
+  };
 };
 
 /** Newest mtime in the content tree — the sitemap's `lastmod`. */
 export const getContentLastModified = async (): Promise<Date> => {
   "use cache";
   cacheLife("max");
-  return readContentLastModified();
+  return await readContentLastModified();
 };
 
-export type SearchEntry = {
+export interface SearchEntry {
   slug: string;
   name: string;
   description: string;
   tags: string[];
-  unlisted: boolean;
-};
+}
 
 export const getSearchEntries = async (): Promise<SearchEntry[]> => {
   "use cache";
   cacheLife("max");
   const all = await getAllContent();
   return all.map((component) => ({
-    slug: component.slug,
-    name: component.name,
     description: component.description ?? "",
-    tags: component.tags ?? [],
-    unlisted: isUnlisted(component.tags),
+    name: component.name,
+    slug: component.slug,
+    tags: component.tags,
   }));
 };
 
@@ -105,30 +118,40 @@ export const getSourceFiles = async (slug: string): Promise<SourceFile[] | null>
   "use cache";
   cacheLife("max");
   const component = await readContentBySlug(slug);
-  if (!component || !isLocalContentComponent(component)) return null;
-  return component.sourceFiles;
+  if (!component || component.type !== "local") {
+    return null;
+  }
+  return readSourceFiles(component);
 };
 
 export const getShadcnRegistry = async () => {
   "use cache";
   cacheLife("max");
-  const locals = (await readContentIndex()).filter(isLocalContentComponent);
+  const all = await readContentIndex();
+  const locals = all.filter((component) => component.type === "local");
 
   const items = await Promise.all(
     locals.map(async (component) => {
       const item = await buildShadcnRegistryItem(component);
       return {
-        ...item,
-        files: item.files.map(({ content: _content, ...rest }) => rest),
+        $schema: item.$schema,
+        author: item.author,
+        dependencies: item.dependencies,
+        devDependencies: item.devDependencies,
+        files: item.files.map(({ type, path, target }) => ({ path, target, type })),
+        homepage: item.homepage,
+        name: item.name,
+        registryDependencies: item.registryDependencies,
+        type: item.type,
       };
     }),
   );
 
   return {
     $schema: "https://ui.shadcn.com/schema/registry.json",
-    name: "uicapsule",
     homepage: "https://uicapsule.com",
     items,
+    name: "uicapsule",
   };
 };
 
@@ -136,6 +159,8 @@ export const getShadcnRegistryItem = async (slug: string) => {
   "use cache";
   cacheLife("max");
   const component = await readContentBySlug(slug);
-  if (!component || !isLocalContentComponent(component)) return null;
+  if (!component || component.type !== "local") {
+    return null;
+  }
   return buildShadcnRegistryItem(component);
 };

@@ -16,21 +16,21 @@ export const buildSitemapEntries = (
   lastModified: Date,
 ): SitemapEntry[] => [
   {
-    url: absoluteUrl("/"),
-    lastModified,
     changeFrequency: "weekly",
+    lastModified,
     priority: 1,
+    url: absoluteUrl("/"),
   },
   ...prosePages.map((page) => ({
-    url: absoluteUrl(page.path),
-    lastModified,
     changeFrequency: "monthly" as const,
+    lastModified,
     priority: page.sitemapPriority ?? 0.5,
+    url: absoluteUrl(page.path),
   })),
   ...componentSlugs.map((slug) => ({
-    url: absoluteUrl(`/ui/${slug}`),
-    lastModified,
     changeFrequency: "monthly" as const,
+    lastModified,
     priority: 0.8,
+    url: absoluteUrl(`/ui/${slug}`),
   })),
 ];

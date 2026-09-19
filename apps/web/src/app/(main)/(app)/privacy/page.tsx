@@ -8,10 +8,10 @@ import { ProsePageView } from "../_components/prose-page";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: privacyPage.title,
-  description: privacyPage.description,
   alternates: canonicalAlternates(privacyPage.path),
+  description: privacyPage.description,
   openGraph: pageOpenGraph(privacyPage.path, privacyPage.title, privacyPage.description),
+  title: privacyPage.title,
 };
 
 const Page = () => (

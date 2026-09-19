@@ -1,8 +1,4 @@
-import {
-  contentCategories,
-  contentElements,
-  contentStyles,
-} from "@/lib/content/content-categories";
+import { contentElements, contentStyles } from "@/lib/content/content-categories";
 import { siteConfig } from "@/lib/site-config";
 
 import {
@@ -33,8 +29,12 @@ const renderListItem = (item: ProseListItem): string => {
 export const renderList = (items: ProseListItem[]): string => items.map(renderListItem).join("\n");
 
 const renderBlock = (block: ProseBlock): string => {
-  if (block.kind === "heading") return `## ${block.text}`;
-  if (block.kind === "list") return renderList(block.items);
+  if (block.kind === "heading") {
+    return `## ${block.text}`;
+  }
+  if (block.kind === "list") {
+    return renderList(block.items);
+  }
   return block.text;
 };
 
@@ -45,7 +45,7 @@ export const componentLine = (component: ContentComponentSummary): string => {
   const link = `[${component.name}](${absoluteUrl(`/ui/${component.slug}`)})`;
   const tags = component.tags ?? [];
   const notes = [component.description, tags.length > 0 ? `tags: ${tags.join(", ")}` : ""]
-    .filter((note) => Boolean(note))
+    .filter(Boolean)
     .join(" — ");
   return notes ? `- ${link}: ${notes}` : `- ${link}`;
 };
@@ -53,20 +53,14 @@ export const componentLine = (component: ContentComponentSummary): string => {
 const taxonomyLine = (heading: string, slugs: string[]): string =>
   `- **${heading}**: ${slugs.join(", ")}`;
 
-const elementSlugs = contentElements.flatMap((element) => [
-  element.slug,
-  ...(element.subcategories ?? []).map((sub) => sub.slug),
-]);
-
 export const taxonomyLines = (): string[] => [
-  taxonomyLine("Elements", elementSlugs),
+  taxonomyLine(
+    "Elements",
+    contentElements.map((element) => element.slug),
+  ),
   taxonomyLine(
     "Styles",
     contentStyles.map((style) => style.slug),
-  ),
-  taxonomyLine(
-    "Categories",
-    contentCategories.map((category) => category.slug),
   ),
 ];
 
@@ -112,10 +106,9 @@ export const renderHomeMarkdown = (components: ContentComponentSummary[]): strin
       "## Pages",
       "",
       renderList([
-        { label: "About", href: "/about", text: "what this is and how to install a component" },
-        { label: "Contact", href: "/contact", text: "email and GitHub" },
-        { label: "Privacy", href: "/privacy", text: "what is collected and who processes it" },
-        { label: "Inspiration", href: "/inspiration", text: "other places worth looking at" },
+        { href: "/about", label: "About", text: "what this is and how to install a component" },
+        { href: "/contact", label: "Contact", text: "email and GitHub" },
+        { href: "/privacy", label: "Privacy", text: "what is collected and who processes it" },
       ]),
     ].join("\n"),
   );
@@ -134,9 +127,9 @@ export const renderComponentMarkdown = (
       label: "Author",
       text: `[${author.name}](${author.url})`,
     })),
-    ...(component.asSeenOn ?? []).map((source) => ({
-      label: "As seen on",
-      text: `[${source.name}](${source.url})`,
+    ...(component.inspiredBy ?? []).map((source) => ({
+      label: "Inspired by",
+      text: `[${source.label}](${source.url})`,
     })),
   ];
 
@@ -144,26 +137,26 @@ export const renderComponentMarkdown = (
     component.type === "remote"
       ? [
           {
-            label: "Live preview",
             href: component.iframeUrl,
+            label: "Live preview",
             text: "hosted by the original author",
           },
-          { label: "Source", href: component.sourceUrl, text: "on the original author's site" },
+          { href: component.sourceUrl, label: "Source", text: "on the original author's site" },
         ]
       : [
           {
-            label: "Registry item",
             href: `/r/${component.slug}.json`,
+            label: "Registry item",
             text: `install with \`npx shadcn@latest add ${siteConfig.url}/r/${component.slug}.json\``,
           },
           {
-            label: "Raw source JSON",
             href: `/api/content/${component.slug}`,
+            label: "Raw source JSON",
             text: "every file, as JSON",
           },
           {
-            label: "Bare preview",
             href: `/preview-frame/${component.slug}`,
+            label: "Bare preview",
             text: "the component with no site chrome",
           },
         ];
@@ -205,12 +198,12 @@ export const renderComponentMarkdown = (
  * same recovery paths whichever format it asked for.
  */
 export const notFoundRecoveryLinks: ProseListItem[] = [
-  { label: "Home", href: "/", text: "the full component gallery" },
-  { label: "/llms.txt", href: "/llms.txt", text: "site overview and the complete component list" },
-  { label: "/sitemap.xml", href: "/sitemap.xml", text: "every indexable URL" },
-  { label: "/r/registry.json", href: "/r/registry.json", text: "the shadcn registry index" },
-  { label: "About", href: "/about", text: "what this site is" },
-  { label: "Contact", href: "/contact", text: "how to reach a human" },
+  { href: "/", label: "Home", text: "the full component gallery" },
+  { href: "/llms.txt", label: "/llms.txt", text: "site overview and the complete component list" },
+  { href: "/sitemap.xml", label: "/sitemap.xml", text: "every indexable URL" },
+  { href: "/r/registry.json", label: "/r/registry.json", text: "the shadcn registry index" },
+  { href: "/about", label: "About", text: "what this site is" },
+  { href: "/contact", label: "Contact", text: "how to reach a human" },
 ];
 
 export const renderNotFoundMarkdown = (pathname: string): string =>

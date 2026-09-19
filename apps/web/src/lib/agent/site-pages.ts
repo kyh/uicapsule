@@ -8,13 +8,13 @@ import { siteConfig } from "@/lib/site-config";
  * reads in the browser.
  */
 
-export type ProseListItem = {
+export interface ProseListItem {
   label: string;
   /** When present the label renders as a link. */
   href?: string;
   /** Trailing note, rendered after an em dash. */
   text?: string;
-};
+}
 
 /**
  * Whether an href has to be a plain `<a>` rather than a `next/link`.
@@ -29,8 +29,10 @@ export type ProseListItem = {
  * this site's route handlers from its pages.
  */
 export const rendersOutsideRouter = (href: string): boolean => {
-  if (!href.startsWith("/")) return true;
-  const lastSegment = href.split(/[?#]/)[0]?.split("/").pop() ?? "";
+  if (!href.startsWith("/")) {
+    return true;
+  }
+  const lastSegment = href.split(/[?#]/u)[0]?.split("/").pop() ?? "";
   return lastSegment.includes(".");
 };
 
@@ -39,7 +41,7 @@ export type ProseBlock =
   | { kind: "heading"; text: string }
   | { kind: "list"; items: ProseListItem[] };
 
-export type ProsePage = {
+export interface ProsePage {
   /** Route path, also the canonical URL suffix and the sitemap entry. */
   path: string;
   /** Rendered as the page's single `<h1>` and as the Markdown `#` heading. */
@@ -51,19 +53,17 @@ export type ProsePage = {
   /** `<priority>` in sitemap.xml. Omitted for pages the sitemap leaves out. */
   sitemapPriority?: number;
   blocks: ProseBlock[];
-};
+}
 
 export const aboutPage: ProsePage = {
-  path: "/about",
-  heading: "A curated collection of components that spark joy.",
-  title: "About",
-  description:
-    "What UICapsule is, who makes it, and how the components are built, licensed, and installed.",
-  sitemapPriority: 0.6,
   blocks: [
     {
       kind: "paragraph",
       text: "Over the years I've built and collected UI pieces that are thoughtfully crafted, interactive concepts that feel natural, and creative design experiments.",
+    },
+    {
+      kind: "paragraph",
+      text: "These days I build them with an AI. I set the brief and hold the taste; it does the heavy lifting; we go back and forth until it feels right.",
     },
     {
       kind: "paragraph",
@@ -83,37 +83,39 @@ export const aboutPage: ProsePage = {
     },
     { kind: "heading", text: "Using the components" },
     {
-      kind: "list",
       items: [
         {
+          href: "/r/registry.json",
           label: "Install with the shadcn CLI",
           text: `run \`npx shadcn@latest add ${siteConfig.url}/r/<slug>.json\``,
         },
         {
           label: "Browse the registry index",
-          href: "/r/registry.json",
           text: "every component, with its dependencies",
         },
         {
-          label: "Read the source",
           href: siteConfig.repository,
+          label: "Read the source",
           text: "the whole gallery is open source on GitHub",
         },
         {
+          href: `mailto:${siteConfig.email}`,
           label: "License",
           text: "MIT — use the components in personal and commercial work, no attribution required",
         },
       ],
+      kind: "list",
     },
   ],
+  description:
+    "What UICapsule is, who makes it, and how the components are built, licensed, and installed.",
+  heading: "A curated collection of components that spark joy.",
+  path: "/about",
+  sitemapPriority: 0.6,
+  title: "About",
 };
 
 export const contactPage: ProsePage = {
-  path: "/contact",
-  heading: "Get in touch.",
-  title: "Contact",
-  description: `How to reach ${siteConfig.name} — email, GitHub issues, and social.`,
-  sitemapPriority: 0.5,
   blocks: [
     {
       kind: "paragraph",
@@ -129,34 +131,34 @@ export const contactPage: ProsePage = {
     },
     { kind: "heading", text: "Channels" },
     {
-      kind: "list",
       items: [
         {
-          label: siteConfig.email,
           href: `mailto:${siteConfig.email}`,
+          label: siteConfig.email,
           text: "general enquiries, licensing, privacy requests",
         },
         {
-          label: "GitHub issues",
           href: `${siteConfig.repository}/issues`,
+          label: "GitHub issues",
           text: "bugs, broken components, feature requests",
         },
         {
-          label: `${siteConfig.twitter} on X`,
           href: "https://x.com/kaiyuhsu",
+          label: `${siteConfig.twitter} on X`,
           text: "new components as they ship",
         },
       ],
+      kind: "list",
     },
   ],
+  description: `How to reach ${siteConfig.name} — email, GitHub issues, and social.`,
+  heading: "Get in touch.",
+  path: "/contact",
+  sitemapPriority: 0.5,
+  title: "Contact",
 };
 
 export const privacyPage: ProsePage = {
-  path: "/privacy",
-  heading: "Privacy.",
-  title: "Privacy",
-  description: `What ${siteConfig.name} collects, what it stores, and who it shares data with.`,
-  sitemapPriority: 0.4,
   blocks: [
     {
       kind: "paragraph",
@@ -164,9 +166,9 @@ export const privacyPage: ProsePage = {
     },
     { kind: "heading", text: "What is collected" },
     {
-      kind: "list",
       items: [
         {
+          href: "https://vercel.com/legal/privacy-policy",
           label: "Analytics",
           text: "Vercel Analytics records aggregate page views. It sets no cookies and builds no cross-site profile of you",
         },
@@ -180,9 +182,10 @@ export const privacyPage: ProsePage = {
         },
         {
           label: "Media",
-          text: "component cover videos are served from Supabase storage, so playing one is a request to that host",
+          text: "component covers are served from a Vercel Blob store, so playing one is a request to that host",
         },
       ],
+      kind: "list",
     },
     { kind: "heading", text: "Accounts" },
     {
@@ -195,43 +198,38 @@ export const privacyPage: ProsePage = {
     },
     { kind: "heading", text: "Processors" },
     {
-      kind: "list",
       items: [
         {
           label: "Vercel",
-          href: "https://vercel.com/legal/privacy-policy",
           text: "hosting and analytics",
         },
         {
-          label: "Turso",
           href: "https://turso.tech/privacy",
+          label: "Turso",
           text: "the database behind accounts",
         },
         {
-          label: "Supabase",
-          href: "https://supabase.com/privacy",
-          text: "storage for cover videos",
+          href: "https://vercel.com/legal/privacy-policy",
+          label: "Vercel",
+          text: "the Blob store behind component covers",
         },
       ],
+      kind: "list",
     },
     {
       kind: "paragraph",
       text: `Questions about any of this go to ${siteConfig.email}.`,
     },
   ],
-};
-
-export const inspirationPage: ProsePage = {
-  path: "/inspiration",
-  heading: "Other inspirations",
-  title: "Inspiration",
-  description: "Places worth looking at beyond this gallery. In progress.",
-  sitemapPriority: 0.3,
-  blocks: [{ kind: "paragraph", text: "[IN PROGRESS]" }],
+  description: `What ${siteConfig.name} collects, what it stores, and who it shares data with.`,
+  heading: "Privacy.",
+  path: "/privacy",
+  sitemapPriority: 0.4,
+  title: "Privacy",
 };
 
 /** Prose pages, in the order they should appear in a sitemap or llms.txt. */
-export const prosePages: ProsePage[] = [aboutPage, contactPage, privacyPage, inspirationPage];
+export const prosePages: ProsePage[] = [aboutPage, contactPage, privacyPage];
 
 /**
  * Routes that render HTML but carry no prose worth a full Markdown page. They
@@ -240,47 +238,47 @@ export const prosePages: ProsePage[] = [aboutPage, contactPage, privacyPage, ins
  */
 export const utilityPages: ProsePage[] = [
   {
-    path: "/auth/login",
-    heading: "Log in",
-    title: "Login",
-    description: "Sign in to a UICapsule account.",
     blocks: [
       {
         kind: "paragraph",
         text: "An interactive sign-in form. Accounts are optional — every component in the gallery is readable, installable, and downloadable without one.",
       },
     ],
+    description: "Sign in to a UICapsule account.",
+    heading: "Log in",
+    path: "/auth/login",
+    title: "Login",
   },
   {
-    path: "/auth/register",
-    heading: "Create an account",
-    title: "Register",
-    description: "Create a UICapsule account.",
     blocks: [
       {
         kind: "paragraph",
         text: "An interactive sign-up form. Accounts are optional — nothing in the gallery is gated behind one.",
       },
     ],
+    description: "Create a UICapsule account.",
+    heading: "Create an account",
+    path: "/auth/register",
+    title: "Register",
   },
   {
-    path: "/auth/password-reset",
-    heading: "Reset your password",
-    title: "Password reset",
-    description: "Request a UICapsule password reset link.",
     blocks: [{ kind: "paragraph", text: "An interactive form that emails a password reset link." }],
+    description: "Request a UICapsule password reset link.",
+    heading: "Reset your password",
+    path: "/auth/password-reset",
+    title: "Password reset",
   },
   {
-    path: "/auth/password-update",
-    heading: "Choose a new password",
-    title: "Password update",
-    description: "Set a new UICapsule password from a reset link.",
     blocks: [
       {
         kind: "paragraph",
         text: "An interactive form for setting a new password from a reset link.",
       },
     ],
+    description: "Set a new UICapsule password from a reset link.",
+    heading: "Choose a new password",
+    path: "/auth/password-update",
+    title: "Password update",
   },
 ];
 

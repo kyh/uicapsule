@@ -8,9 +8,9 @@ import {
 import { findPageByPath } from "@/lib/agent/site-pages";
 import { getAllContent, getContentList, getSourceFiles } from "@/lib/content-data";
 
-type MarkdownParams = {
+interface MarkdownParams {
   params: Promise<{ slug?: string[] }>;
-};
+}
 
 /**
  * The Markdown half of every page's content negotiation. `src/proxy.ts`
@@ -26,17 +26,23 @@ const buildBody = async (segments: string[]): Promise<{ body: string; status: nu
   if (segments.length === 0) {
     // Mirrors the HTML home page, which shows the listed grid — not the full
     // catalog. /llms.txt is the surface that carries every component.
-    return { body: renderHomeMarkdown(await getContentList([])), status: 200 };
+    return {
+      body: renderHomeMarkdown(await getContentList({ elements: [], styles: [], view: "recent" })),
+      status: 200,
+    };
   }
 
   const pathname = `/${segments.join("/")}`;
 
   const page = findPageByPath(pathname);
-  if (page) return { body: renderProsePageMarkdown(page), status: 200 };
+  if (page) {
+    return { body: renderProsePageMarkdown(page), status: 200 };
+  }
 
   const [first, slug, ...rest] = segments;
   if (first === "ui" && slug && rest.length === 0) {
-    const component = (await getAllContent()).find((entry) => entry.slug === slug);
+    const all = await getAllContent();
+    const component = all.find((entry) => entry.slug === slug);
     if (component) {
       const sourceFiles = await getSourceFiles(slug);
       return {
@@ -57,14 +63,14 @@ export const GET = async (_request: Request, { params }: MarkdownParams) => {
   const { body, status } = await buildBody(slug);
 
   return new Response(body, {
-    status,
     headers: {
-      "Content-Type": MARKDOWN_CONTENT_TYPE,
-      Vary: "Accept",
       "Cache-Control":
         status === 200
           ? "public, max-age=0, s-maxage=3600, stale-while-revalidate=86400"
           : "no-store",
+      "Content-Type": MARKDOWN_CONTENT_TYPE,
+      Vary: "Accept",
     },
+    status,
   });
 };

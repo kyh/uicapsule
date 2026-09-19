@@ -76,12 +76,12 @@ export const proxy = (request: NextRequest) => {
   // RFC 9110 wants a 406 for. A missing or wildcard Accept never lands here.
   if (chosen === null) {
     return new Response(notAcceptableBody(accept), {
-      status: 406,
       headers: {
+        "Cache-Control": "no-store",
         "Content-Type": "text/plain; charset=utf-8",
         Vary: "Accept",
-        "Cache-Control": "no-store",
       },
+      status: 406,
     });
   }
 

@@ -40,11 +40,10 @@ export const renderLlmsTxt = (components: ContentComponentSummary[]): string => 
     "## Pages",
     "",
     renderList([
-      { label: "Home", href: "/", text: "the component gallery, filterable" },
-      { label: "About", href: "/about", text: "what this is, how it is built, how to install it" },
-      { label: "Contact", href: "/contact", text: "email and GitHub issues" },
-      { label: "Privacy", href: "/privacy", text: "what is collected and who processes it" },
-      { label: "Inspiration", href: "/inspiration", text: "other places worth looking at" },
+      { href: "/", label: "Home", text: "the component gallery, filterable" },
+      { href: "/about", label: "About", text: "what this is, how it is built, how to install it" },
+      { href: "/contact", label: "Contact", text: "email and GitHub issues" },
+      { href: "/privacy", label: "Privacy", text: "what is collected and who processes it" },
     ]),
     "",
     "## Machine-readable endpoints",
@@ -54,13 +53,13 @@ export const renderLlmsTxt = (components: ContentComponentSummary[]): string => 
     "## Optional",
     "",
     renderList([
-      { label: "Source code", href: siteConfig.repository, text: "the gallery itself, on GitHub" },
+      { href: siteConfig.repository, label: "Source code", text: "the gallery itself, on GitHub" },
       {
-        label: "Issue tracker",
         href: `${siteConfig.repository}/issues`,
+        label: "Issue tracker",
         text: "bugs and component requests",
       },
-      { label: "robots.txt", href: "/robots.txt", text: "crawl rules" },
+      { href: "/robots.txt", label: "robots.txt", text: "crawl rules" },
     ]),
   ];
 

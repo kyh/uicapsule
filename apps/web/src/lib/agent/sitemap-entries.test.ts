@@ -18,7 +18,7 @@ describe("buildSitemapEntries", () => {
     for (const page of prosePages) {
       assert.ok(
         urls.includes(`https://uicapsule.com${page.path}`),
-        "should contain `https://uicapsule.com${page.path}`",
+        `should contain https://uicapsule.com${page.path}`,
       );
     }
     assert.ok(
@@ -39,7 +39,9 @@ describe("buildSitemapEntries", () => {
   });
 
   test("emits only absolute https URLs, with no duplicates", () => {
-    for (const url of urls) assert.equal(url.startsWith("https://uicapsule.com/"), true);
+    for (const url of urls) {
+      assert.equal(url.startsWith("https://uicapsule.com/"), true);
+    }
     assert.equal(new Set(urls).size, urls.length);
   });
 

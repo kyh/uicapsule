@@ -1,9 +1,5 @@
 import Link from "next/link";
-import {
-  contentCategories,
-  contentElements,
-  contentStyles,
-} from "@/lib/content/content-categories";
+import { contentElements, contentStyles } from "@/lib/content/content-categories";
 
 import { JsonLd } from "@/components/json-ld";
 import {
@@ -36,21 +32,19 @@ import type { ProseListItem } from "@/lib/agent/site-pages";
  */
 
 const filterItems = (filters: ContentFilter[], key: string): ProseListItem[] =>
-  filters.flatMap((filter) => [
-    { label: filter.name, href: `/?${key}=${filter.slug}` },
-    ...(filter.subcategories ?? []).map((sub) => ({
-      label: sub.name,
-      href: `/?${key}=${sub.slug}`,
-    })),
-  ]);
+  filters.map((filter) => ({ href: `/?${key}=${filter.slug}`, label: filter.name }));
 
 /**
  * `/llms.txt` and `/r/registry.json` are route handlers, not pages — the client
  * router cannot navigate to them, so they need a plain anchor.
  */
 const OutlineLink = ({ item }: { item: ProseListItem }) => {
-  if (!item.href) return item.label;
-  if (rendersOutsideRouter(item.href)) return <a href={item.href}>{item.label}</a>;
+  if (!item.href) {
+    return item.label;
+  }
+  if (rendersOutsideRouter(item.href)) {
+    return <a href={item.href}>{item.label}</a>;
+  }
   return <Link href={item.href}>{item.label}</Link>;
 };
 
@@ -66,7 +60,7 @@ const OutlineList = ({ items }: { items: ProseListItem[] }) => (
 );
 
 export const GalleryOutline = async () => {
-  const components = await getContentList([]);
+  const components = await getContentList({ elements: [], styles: [], view: "recent" });
 
   return (
     <section aria-labelledby="gallery-outline-heading" className="sr-only">
@@ -94,9 +88,6 @@ export const GalleryOutline = async () => {
       <h2>Browse by style</h2>
       <OutlineList items={filterItems(contentStyles, "style")} />
 
-      <h2>Browse by category</h2>
-      <OutlineList items={filterItems(contentCategories, "category")} />
-
       <h2>All {components.length} components</h2>
       <ul>
         {components.map((component) => (
@@ -113,10 +104,9 @@ export const GalleryOutline = async () => {
       <h2>More about {siteConfig.name}</h2>
       <OutlineList
         items={[
-          { label: "About", href: "/about", text: "what this is and how to install a component" },
-          { label: "Contact", href: "/contact", text: "email and GitHub issues" },
-          { label: "Privacy", href: "/privacy", text: "what is collected and who processes it" },
-          { label: "Inspiration", href: "/inspiration", text: "other places worth looking at" },
+          { href: "/about", label: "About", text: "what this is and how to install a component" },
+          { href: "/contact", label: "Contact", text: "email and GitHub issues" },
+          { href: "/privacy", label: "Privacy", text: "what is collected and who processes it" },
         ]}
       />
     </section>
@@ -124,5 +114,7 @@ export const GalleryOutline = async () => {
 };
 
 export const GalleryStructuredData = async () => (
-  <JsonLd node={buildHomeGraph(await getContentList([]))} />
+  <JsonLd
+    node={buildHomeGraph(await getContentList({ elements: [], styles: [], view: "recent" }))}
+  />
 );

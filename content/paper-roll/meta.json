@@ -1,5 +1,14 @@
 {
   "name": "Paper Roll",
   "description": "An endless strip of paper unrolls behind a heavy roll, printing a portfolio in its wake",
-  "tags": ["effects", "skeuomorphism", "design"]
+  "addedAt": "2026-07-22",
+  "featured": true,
+  "cover": "paper-roll/paper-roll.mp4",
+  "tags": ["cards-grids", "skeuomorphism"],
+  "inspiredBy": [
+    {
+      "label": "thebuggeddev/paper-roll",
+      "url": "https://github.com/thebuggeddev/paper-roll"
+    }
+  ]
 }

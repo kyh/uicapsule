@@ -1,16 +1,16 @@
-import { type ReactNode } from "react";
+import type { ReactNode } from "react";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { Logo } from "@repo/ui/components/logo";
 
 export const metadata: Metadata = {
+  description: "Sign in to UICapsule.",
   title: "Authentication",
-  description: "Authentication forms built using the components.",
 };
 
-type LayoutProps = {
+interface LayoutProps {
   children: ReactNode;
-};
+}
 
 const Layout = (props: LayoutProps) => (
   <div className="relative container grid min-h-dvh flex-col items-center justify-center lg:max-w-none lg:grid-cols-2 lg:px-0">
@@ -20,14 +20,10 @@ const Layout = (props: LayoutProps) => (
         <Logo />
       </Link>
       <div className="relative z-20 mt-auto">
-        <blockquote className="space-y-2">
-          <p className="text-lg">
-            &ldquo;Aenean consectetur a enim ac posuere. Pellentesque vehicula semper blandit.
-            Aliquam maximus ligula quis risus porta, sit amet pulvinar mi elementum. Lorem ipsum
-            dolor sit amet, consectetur adipiscing elit.&rdquo;
-          </p>
-          <footer className="text-sm">Lorem Ipsum</footer>
-        </blockquote>
+        <p className="max-w-md text-lg">
+          A curated collection of UI components. Explore the details, read the source, make them
+          yours.
+        </p>
       </div>
     </div>
     <div className="lg:p-8">{props.children}</div>

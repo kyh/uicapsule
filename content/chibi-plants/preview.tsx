@@ -39,7 +39,7 @@ const Preview = () => {
   const [eyeScale, setEyeScale] = useState(1);
   const [wobble, setWobble] = useState(1);
   const [gaze, setGaze] = useState(1);
-  const [potColor, setPotColor] = useState<string | undefined>(undefined);
+  const [potColor, setPotColor] = useState<string | undefined>();
 
   return (
     <main className="relative h-dvh w-full overflow-hidden bg-[#0b0a0e]">

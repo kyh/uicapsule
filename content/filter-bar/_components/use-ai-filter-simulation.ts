@@ -1,4 +1,4 @@
-import { useCallback, useRef } from "react";
+import { useCallback } from "react";
 import { useChat } from "@ai-sdk/react";
 import { StaticChatTransport } from "@loremllm/transport";
 
@@ -10,70 +10,49 @@ type FilterUIMessage = UIMessage<
   {
     setFilter: {
       columnId: string;
-      values: unknown[];
+      values: string[];
     };
   }
 >;
 
 const transport = new StaticChatTransport<FilterUIMessage>({
+  chunkDelayMs: [600, 1400],
   async *mockResponse() {
     yield {
-      type: "data-setFilter",
       data: {
         columnId: "skills",
         values: ["javascript", "typescript", "react", "nodejs"],
       },
+      type: "data-setFilter",
     };
 
     yield {
-      type: "data-setFilter",
       data: {
         columnId: "department",
         values: ["design"],
       },
+      type: "data-setFilter",
     };
   },
-  chunkDelayMs: [600, 1400],
 });
 
-type UseAiFilterSimulationParams<TData> = {
-  columns: Column<TData>[];
+interface UseAiFilterSimulationParams {
+  columns: Column[];
   actions: DataTableFilterActions;
-};
+}
 
-export const useAiFilterSimulation = <TData>({
-  columns,
-  actions,
-}: UseAiFilterSimulationParams<TData>) => {
-  // Chunks arrive one column at a time, but `actions` closes over the filter
-  // state as of the render that produced it. Replaying every chunk received so
-  // far inside a single batch keeps earlier filters from being clobbered.
-  const batchResultsRef = useRef<
-    {
-      column: Column<TData>;
-      values: unknown[];
-    }[]
-  >([]);
-
+export const useAiFilterSimulation = ({ columns, actions }: UseAiFilterSimulationParams) => {
   const { sendMessage, status } = useChat<FilterUIMessage>({
-    transport,
     onData: (dataPart) => {
       if (dataPart.type === "data-setFilter") {
         const { columnId, values } = dataPart.data;
         const column = columns.find((col) => col.id === columnId);
-        if (column) {
-          batchResultsRef.current.push({ column, values });
-          actions.batch((batchActions) => {
-            batchResultsRef.current.forEach(({ column, values }) => {
-              batchActions.setFilterValue(column, values);
-            });
-          });
+        if (column?.type === "option" || column?.type === "multiOption") {
+          actions.setFilterValue({ columnId, type: column.type, values });
         }
       }
     },
-    onFinish: () => {
-      batchResultsRef.current = [];
-    },
+    transport,
   });
 
   const handleAiFilterSubmit = useCallback(

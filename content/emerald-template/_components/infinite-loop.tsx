@@ -1,5 +1,6 @@
-import { useCallback, useEffect, useRef, useState, type ReactNode } from "react";
-import { cn } from "@repo/ui/lib/utils";
+import { useCallback, useEffect, useRef, useState } from "react";
+import type { ReactNode } from "react";
+import { cn } from "cn";
 
 export const InfiniteLooper = ({
   speed = 70,
@@ -19,12 +20,14 @@ export const InfiniteLooper = ({
   const outerRef = useRef<HTMLDivElement>(null);
   const innerRef = useRef<HTMLDivElement>(null);
 
-  const restartTimeoutRef = useRef<ReturnType<typeof setTimeout>>(undefined);
+  const restartTimeoutRef = useRef(0);
 
   const setupInstances = useCallback(() => {
     const inner = innerRef.current;
     const outer = outerRef.current;
-    if (!inner || !outer) return;
+    if (!inner || !outer) {
+      return;
+    }
 
     const { width } = inner.getBoundingClientRect();
     const { width: parentWidth } = outer.getBoundingClientRect();
@@ -38,8 +41,8 @@ export const InfiniteLooper = ({
 
     // Drop and re-add the animation class so every instance restarts in phase.
     setAnimating(false);
-    clearTimeout(restartTimeoutRef.current);
-    restartTimeoutRef.current = setTimeout(() => setAnimating(true), 10);
+    window.clearTimeout(restartTimeoutRef.current);
+    restartTimeoutRef.current = window.setTimeout(() => setAnimating(true), 10);
   }, [looperInstances]);
 
   useEffect(() => {
@@ -48,20 +51,20 @@ export const InfiniteLooper = ({
 
     return () => {
       window.removeEventListener("resize", setupInstances);
-      clearTimeout(restartTimeoutRef.current);
+      window.clearTimeout(restartTimeoutRef.current);
     };
   }, [setupInstances]);
 
   return (
     <div className={cn("w-full overflow-hidden", containerClassName)} ref={outerRef}>
       <div className={cn("flex w-fit justify-center", className)} ref={innerRef}>
-        {[...Array(looperInstances)].map((_, index) => (
+        {Array.from({ length: looperInstances }, (_, index) => (
           <div
             key={index}
             className={cn("flex w-max", animating && "animate-slide-across")}
             style={{
-              animationDuration: `${speed}s`,
               animationDirection: direction === "right" ? "reverse" : "normal",
+              animationDuration: `${speed}s`,
             }}
           >
             {children}

@@ -23,7 +23,7 @@
   color: var(--foreground);
 }
 
-.contained-page {
+.emerald-template .contained-page {
   --viewport-padding: 16px;
 
   display: grid;
@@ -34,16 +34,16 @@
   gap: 0 var(--viewport-padding);
 }
 
-.contained-page > * {
+.emerald-template .contained-page > * {
   grid-column: 2;
 }
 
-.full-bleed {
+.emerald-template .full-bleed {
   width: 100%;
   grid-column: 1 / 4;
 }
 
-@keyframes tilt {
+@keyframes emerald-tilt {
   0%,
   50%,
   100% {
@@ -57,7 +57,7 @@
   }
 }
 
-@keyframes disco {
+@keyframes emerald-disco {
   from {
     transform: translateY(-50%) rotate(0deg);
   }
@@ -66,7 +66,7 @@
   }
 }
 
-@keyframes slide-across {
+@keyframes emerald-slide-across {
   from {
     transform: translateX(0);
   }
@@ -75,19 +75,19 @@
   }
 }
 
-.animate-tilt {
-  animation: tilt 6s linear infinite;
+.emerald-template .animate-tilt {
+  animation: emerald-tilt 6s linear infinite;
 }
 
-.animate-disco {
-  animation: disco 6s linear infinite;
+.emerald-template .animate-disco {
+  animation: emerald-disco 6s linear infinite;
 }
 
-.animate-slide-across {
-  animation: slide-across linear infinite;
+.emerald-template .animate-slide-across {
+  animation: emerald-slide-across linear infinite;
 }
 
-.container {
+.emerald-template .container {
   --border-radius: 12px;
   --height: 400px;
 
@@ -95,7 +95,7 @@
   position: relative;
 }
 
-.container::before {
+.emerald-template .container::before {
   position: absolute;
   top: -1px;
   left: -1px;
@@ -107,7 +107,7 @@
   content: "";
 }
 
-.window {
+.emerald-template .window {
   position: relative;
   width: 100%;
   overflow: hidden;
@@ -115,7 +115,7 @@
   border-radius: var(--border-radius);
 }
 
-.input {
+.emerald-template .input {
   position: relative;
   z-index: 1;
   display: flex;
@@ -126,7 +126,7 @@
   background-image: linear-gradient(transparent, rgba(0, 0, 0, 0.75));
 }
 
-.input::before {
+.emerald-template .input::before {
   position: absolute;
   top: -10px;
   left: 10%;
@@ -139,15 +139,15 @@
   content: "";
 }
 
-.loading {
+.emerald-template .loading {
   position: relative;
   width: 100%;
   height: 1px;
   background: linear-gradient(hsla(0, 0%, 100%, 0.25), hsla(0, 0%, 100%, 0.05));
 }
 
-.loading::before,
-.loading::after {
+.emerald-template .loading::before,
+.emerald-template .loading::after {
   position: absolute;
   top: 0;
   left: 0;
@@ -164,24 +164,24 @@
   content: "";
 }
 
-.loading::before {
+.emerald-template .loading::before {
   height: 4px;
   filter: blur(4px) saturate(1.5);
 }
 
-.loading::after {
+.emerald-template .loading::after {
   height: 1px;
 }
 
-.loading.active::before,
-.loading.active::after {
-  animation-name: loading;
+.emerald-template .loading.active::before,
+.emerald-template .loading.active::after {
+  animation-name: emerald-loading;
   animation-duration: 1.4s;
   animation-timing-function: ease-in-out;
   animation-fill-mode: forwards;
 }
 
-@keyframes loading {
+@keyframes emerald-loading {
   0% {
     transform: scaleX(0) translateX(-50%);
     opacity: 1;
@@ -191,12 +191,12 @@
   }
 }
 
-.output {
+.emerald-template .output {
   height: var(--height);
   padding: 24px 32px;
 }
 
-.outputText {
+.emerald-template .outputText {
   min-height: calc(100% - 32px);
   max-height: calc(100% - 32px);
   overflow: hidden;
@@ -205,7 +205,7 @@
   white-space: pre-wrap;
 }
 
-.outputFooter {
+.emerald-template .outputFooter {
   position: absolute;
   right: 32px;
   bottom: 24px;
@@ -214,12 +214,12 @@
   justify-content: space-between;
 }
 
-.cursor {
-  animation: cursor 1s infinite;
+.emerald-template .cursor {
+  animation: emerald-cursor 1s infinite;
   margin-left: 1px;
 }
 
-@keyframes cursor {
+@keyframes emerald-cursor {
   0% {
     opacity: 0;
   }
@@ -228,5 +228,11 @@
   }
   100% {
     opacity: 0;
+  }
+}
+
+@layer base {
+  :where(.emerald-template, .emerald-template *) {
+    border-color: var(--border);
   }
 }

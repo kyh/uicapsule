@@ -20,7 +20,9 @@ export type JsonLdValue =
   | JsonLdValue[]
   | { [key: string]: JsonLdValue };
 
-export type JsonLdNode = { [key: string]: JsonLdValue };
+export interface JsonLdNode {
+  [key: string]: JsonLdValue;
+}
 
 const ORGANIZATION_ID = `${siteConfig.url}/#organization`;
 const WEBSITE_ID = `${siteConfig.url}/#website`;
@@ -36,53 +38,53 @@ const APPLICATION_ID = `${siteConfig.url}/#application`;
  */
 export const buildOrganization = () =>
   ({
-    "@type": "Organization",
     "@id": ORGANIZATION_ID,
-    name: siteConfig.name,
+    "@type": "Organization",
     alternateName: siteConfig.shortName,
-    url: siteConfig.url,
+    contactPoint: [
+      {
+        "@type": "ContactPoint",
+        availableLanguage: ["en"],
+        contactType: "customer support",
+        email: siteConfig.email,
+        url: absoluteUrl("/contact"),
+      },
+      {
+        "@type": "ContactPoint",
+        availableLanguage: ["en"],
+        contactType: "technical support",
+        email: siteConfig.email,
+        url: `${siteConfig.repository}/issues`,
+      },
+    ],
     description: siteSummary,
     email: siteConfig.email,
-    logo: {
-      "@type": "ImageObject",
-      url: `${siteConfig.url}/favicon/favicon-96x96.png`,
-      width: 96,
-      height: 96,
-    },
-    image: `${siteConfig.url}/og.jpg`,
     founder: {
       "@type": "Person",
       name: siteConfig.author.name,
       url: siteConfig.author.url,
     },
-    contactPoint: [
-      {
-        "@type": "ContactPoint",
-        contactType: "customer support",
-        email: siteConfig.email,
-        url: absoluteUrl("/contact"),
-        availableLanguage: ["en"],
-      },
-      {
-        "@type": "ContactPoint",
-        contactType: "technical support",
-        email: siteConfig.email,
-        url: `${siteConfig.repository}/issues`,
-        availableLanguage: ["en"],
-      },
-    ],
+    image: `${siteConfig.url}/og.jpg`,
+    logo: {
+      "@type": "ImageObject",
+      height: 96,
+      url: `${siteConfig.url}/favicon/favicon-96x96.png`,
+      width: 96,
+    },
+    name: siteConfig.name,
     sameAs: siteConfig.sameAs,
+    url: siteConfig.url,
   }) satisfies JsonLdNode;
 
 export const buildWebSite = () =>
   ({
-    "@type": "WebSite",
     "@id": WEBSITE_ID,
-    name: siteConfig.name,
-    url: siteConfig.url,
+    "@type": "WebSite",
     description: siteConfig.description,
     inLanguage: "en-US",
+    name: siteConfig.name,
     publisher: { "@id": ORGANIZATION_ID },
+    url: siteConfig.url,
   }) satisfies JsonLdNode;
 
 /**
@@ -91,58 +93,58 @@ export const buildWebSite = () =>
  */
 export const buildSoftwareApplication = (componentCount: number) =>
   ({
-    "@type": "SoftwareApplication",
     "@id": APPLICATION_ID,
-    name: siteConfig.name,
-    url: siteConfig.url,
-    description: siteSummary,
+    "@type": "SoftwareApplication",
     applicationCategory: "DeveloperApplication",
     applicationSubCategory: "UI component library",
-    operatingSystem: "Any",
-    softwareRequirements: "React 19, Tailwind CSS 4",
+    codeRepository: siteConfig.repository,
+    description: siteSummary,
     featureList: [
       `${componentCount} live, self-contained React components`,
       "shadcn registry install for every component",
       "Full source and dependency list per component",
       "Markdown representation of every page via Accept: text/markdown",
     ],
-    license: "https://opensource.org/licenses/MIT",
-    codeRepository: siteConfig.repository,
     isAccessibleForFree: true,
-    publisher: { "@id": ORGANIZATION_ID },
+    license: "https://opensource.org/licenses/MIT",
+    name: siteConfig.name,
     offers: {
       "@type": "Offer",
+      availability: "https://schema.org/InStock",
       price: "0",
       priceCurrency: "USD",
-      availability: "https://schema.org/InStock",
     },
+    operatingSystem: "Any",
+    publisher: { "@id": ORGANIZATION_ID },
+    softwareRequirements: "React 19, Tailwind CSS 4",
+    url: siteConfig.url,
   }) satisfies JsonLdNode;
 
 const componentUrl = (slug: string): string => absoluteUrl(`/ui/${slug}`);
 
 export const buildCollectionPage = (components: ContentComponentSummary[]) =>
   ({
-    "@type": "CollectionPage",
     "@id": `${siteConfig.url}/#webpage`,
-    url: siteConfig.url,
-    name: `${siteConfig.name} — ${siteConfig.description}`,
+    "@type": "CollectionPage",
+    about: { "@id": APPLICATION_ID },
     description: siteSummary,
     inLanguage: "en-US",
     isPartOf: { "@id": WEBSITE_ID },
-    about: { "@id": APPLICATION_ID },
     // Names and URLs only. Descriptions are already in the page text and in
     // /llms.txt, and repeating them here is pure markup weight on the one
     // page whose text-to-markup ratio matters most.
     mainEntity: {
       "@type": "ItemList",
-      numberOfItems: components.length,
       itemListElement: components.map((component, index) => ({
         "@type": "ListItem",
+        name: component.name,
         position: index + 1,
         url: componentUrl(component.slug),
-        name: component.name,
       })),
+      numberOfItems: components.length,
     },
+    name: `${siteConfig.name} — ${siteConfig.description}`,
+    url: siteConfig.url,
   }) satisfies JsonLdNode;
 
 export const buildHomeGraph = (components: ContentComponentSummary[]) =>
@@ -158,34 +160,34 @@ export const buildHomeGraph = (components: ContentComponentSummary[]) =>
 
 export const buildSoftwareSourceCode = (component: ContentComponentSummary) =>
   ({
-    "@type": "SoftwareSourceCode",
     "@id": `${componentUrl(component.slug)}#component`,
-    name: component.name,
-    url: componentUrl(component.slug),
-    description: component.description,
-    programmingLanguage: "TypeScript",
-    runtimePlatform: "React",
-    codeRepository: siteConfig.repository,
-    license: "https://opensource.org/licenses/MIT",
-    isAccessibleForFree: true,
-    keywords: (component.tags ?? []).join(", ") || undefined,
+    "@type": "SoftwareSourceCode",
     author: (
       component.authors ?? [{ name: siteConfig.author.name, url: siteConfig.author.url }]
     ).map((author) => ({ "@type": "Person", name: author.name, url: author.url })),
-    publisher: { "@id": ORGANIZATION_ID },
+    codeRepository: siteConfig.repository,
+    description: component.description,
+    isAccessibleForFree: true,
     isPartOf: { "@id": WEBSITE_ID },
+    keywords: (component.tags ?? []).join(", ") || undefined,
+    license: "https://opensource.org/licenses/MIT",
+    name: component.name,
+    programmingLanguage: "TypeScript",
+    publisher: { "@id": ORGANIZATION_ID },
+    runtimePlatform: "React",
+    url: componentUrl(component.slug),
   }) satisfies JsonLdNode;
 
 export const buildComponentBreadcrumb = (component: ContentComponentSummary) =>
   ({
     "@type": "BreadcrumbList",
     itemListElement: [
-      { "@type": "ListItem", position: 1, name: siteConfig.name, item: siteConfig.url },
+      { "@type": "ListItem", item: siteConfig.url, name: siteConfig.name, position: 1 },
       {
         "@type": "ListItem",
-        position: 2,
-        name: component.name,
         item: componentUrl(component.slug),
+        name: component.name,
+        position: 2,
       },
     ],
   }) satisfies JsonLdNode;
@@ -202,15 +204,15 @@ export const buildComponentGraph = (component: ContentComponentSummary) =>
 
 export const buildWebPage = (page: ProsePage) =>
   ({
-    "@type": "WebPage",
     "@id": `${absoluteUrl(page.path)}#webpage`,
-    url: absoluteUrl(page.path),
-    name: page.title,
-    headline: page.heading,
+    "@type": "WebPage",
+    about: { "@id": ORGANIZATION_ID },
     description: page.description,
+    headline: page.heading,
     inLanguage: "en-US",
     isPartOf: { "@id": WEBSITE_ID },
-    about: { "@id": ORGANIZATION_ID },
+    name: page.title,
+    url: absoluteUrl(page.path),
   }) satisfies JsonLdNode;
 
 export const buildProsePageGraph = (page: ProsePage) =>

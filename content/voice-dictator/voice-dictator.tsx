@@ -1,6 +1,7 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState, type FC } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
+import type { FC } from "react";
 import { motion } from "motion/react";
 
 const TRANSCRIPT_LIBRARY = [
@@ -42,7 +43,9 @@ export const VoiceDictator: FC = () => {
 
   const initialiseWebGL = useCallback(() => {
     const canvas = canvasRef.current;
-    if (!canvas) return;
+    if (!canvas) {
+      return;
+    }
 
     const gl = canvas.getContext("webgl", {
       antialias: false,
@@ -50,7 +53,9 @@ export const VoiceDictator: FC = () => {
       preserveDrawingBuffer: false,
     });
 
-    if (!gl) return;
+    if (!gl) {
+      return;
+    }
 
     const vertexShaderSource = `
       attribute vec2 aPosition;
@@ -110,7 +115,9 @@ export const VoiceDictator: FC = () => {
 
     const createShader = (type: GLenum, source: string) => {
       const shader = gl.createShader(type);
-      if (!shader) throw new Error("Unable to create shader");
+      if (!shader) {
+        throw new Error("Unable to create shader");
+      }
       gl.shaderSource(shader, source);
       gl.compileShader(shader);
       const compiled = gl.getShaderParameter(shader, gl.COMPILE_STATUS);
@@ -126,7 +133,9 @@ export const VoiceDictator: FC = () => {
     const fragmentShader = createShader(gl.FRAGMENT_SHADER, fragmentShaderSource);
 
     const program = gl.createProgram();
-    if (!program) throw new Error("Unable to create WebGL program");
+    if (!program) {
+      throw new Error("Unable to create WebGL program");
+    }
 
     gl.attachShader(program, vertexShader);
     gl.attachShader(program, fragmentShader);
@@ -153,6 +162,7 @@ export const VoiceDictator: FC = () => {
     gl.enableVertexAttribArray(positionLocation);
     gl.vertexAttribPointer(positionLocation, 2, gl.FLOAT, false, 0, 0);
 
+    // eslint-disable-next-line react/hooks -- WebGL method, not a React hook.
     gl.useProgram(program);
     gl.disable(gl.DEPTH_TEST);
     gl.disable(gl.CULL_FACE);
@@ -160,9 +170,9 @@ export const VoiceDictator: FC = () => {
     gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
 
     const uniforms = {
-      time: gl.getUniformLocation(program, "uTime"),
       amplitude: gl.getUniformLocation(program, "uAmplitude"),
       resolution: gl.getUniformLocation(program, "uResolution"),
+      time: gl.getUniformLocation(program, "uTime"),
     };
 
     // Sizing is driven by a ResizeObserver rather than read every frame, so the
@@ -186,6 +196,7 @@ export const VoiceDictator: FC = () => {
     const render = (time: number) => {
       animationFrameRef.current = requestAnimationFrame(render);
 
+      // eslint-disable-next-line react/hooks -- WebGL method, not a React hook.
       gl.useProgram(program);
       gl.clearColor(0, 0, 0, 1);
       gl.clear(gl.COLOR_BUFFER_BIT);
@@ -234,7 +245,6 @@ export const VoiceDictator: FC = () => {
     try {
       return initialiseWebGL();
     } catch (error) {
-      // eslint-disable-next-line no-console
       console.error(error);
     }
   }, [initialiseWebGL]);
@@ -255,7 +265,9 @@ export const VoiceDictator: FC = () => {
     }
 
     const pump = () => {
-      if (!listeningRef.current) return;
+      if (!listeningRef.current) {
+        return;
+      }
       targetAmplitudeRef.current = 0.25 + Math.random() * 0.7;
       const delay = 120 + Math.random() * 80;
       pulseTimeoutRef.current = setTimeout(pump, delay);
@@ -282,10 +294,11 @@ export const VoiceDictator: FC = () => {
 
     scriptRef.current = pickTranscript().split(" ");
     wordIndexRef.current = 0;
-    setTranscript("");
 
     const deliver = () => {
-      if (!listeningRef.current) return;
+      if (!listeningRef.current) {
+        return;
+      }
       if (wordIndexRef.current >= scriptRef.current.length) {
         stopDictation();
         return;
@@ -320,6 +333,7 @@ export const VoiceDictator: FC = () => {
     }
 
     listeningRef.current = true;
+    setTranscript("");
     setIsListening(true);
   }, [stopDictation]);
 
@@ -330,21 +344,23 @@ export const VoiceDictator: FC = () => {
       <motion.button
         ref={buttonRef}
         type="button"
+        aria-label={isListening ? "Stop dictation" : "Start dictation"}
+        aria-pressed={isListening}
         onClick={handleToggle}
         className="absolute top-1/2 left-1/2 h-8 w-8 -translate-x-1/2 -translate-y-1/2 rounded-full bg-white/80"
         animate={{
-          scale: isListening ? [1, 1.1, 1] : 1,
           opacity: isListening ? 0.9 : 0.6,
+          scale: isListening ? [1, 1.1, 1] : 1,
         }}
         transition={{
-          scale: {
-            duration: 0.6,
-            repeat: isListening ? Infinity : 0,
-            ease: "easeInOut",
-          },
           opacity: {
             duration: 0.3,
             ease: "easeInOut",
+          },
+          scale: {
+            duration: 0.6,
+            ease: "easeInOut",
+            repeat: isListening ? Infinity : 0,
           },
         }}
         whileHover={{ scale: 1.05 }}

@@ -1,4 +1,5 @@
-import { Fragment, type ReactNode } from "react";
+import { Fragment } from "react";
+import type { ReactNode } from "react";
 import Link from "next/link";
 
 import { rendersOutsideRouter } from "@/lib/agent/site-pages";

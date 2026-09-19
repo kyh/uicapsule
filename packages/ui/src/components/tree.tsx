@@ -1,42 +1,35 @@
 "use client";
 
-import { createContext, useContext, type CSSProperties, type HTMLAttributes } from "react";
+import { createContext, useContext, useMemo } from "react";
+import type { CSSProperties, HTMLAttributes } from "react";
 import { useRender } from "@base-ui/react/use-render";
 import { ChevronDownIcon } from "lucide-react";
 
 import type { ItemInstance, TreeInstance } from "@headless-tree/core";
-import { cn } from "@repo/ui/lib/utils";
+import { cn } from "cn";
 
-// headless-tree's types merge every feature's methods, but a runtime instance
-// only carries the methods of the features the consumer enabled — so feature
-// methods are optional-called instead of assumed present.
-
-// React's CSSProperties has no index signature for custom properties, so widen
-// it rather than reaching for a type assertion.
+// Feature methods only exist when the consumer enables their headless-tree feature.
 type TreeStyle = CSSProperties & Record<`--${string}`, string>;
 
-type TreeContextValue<T = any> = {
+interface TreeContextValue {
   indent: number;
-  currentItem?: ItemInstance<T>;
-  tree?: TreeInstance<T>;
-};
+  currentItem?: Pick<ItemInstance<unknown>, "isFolder" | "getItemName">;
+  tree?: Pick<TreeInstance<unknown>, "getDragLineStyle">;
+}
 
 const TreeContext = createContext<TreeContextValue>({
-  indent: 20,
   currentItem: undefined,
+  indent: 20,
   tree: undefined,
 });
 
-function useTreeContext<T = any>(): TreeContextValue<T> {
-  return useContext(TreeContext);
-}
-
-type TreeProps<T = any> = {
+type TreeProps<T = unknown> = {
   indent?: number;
   tree?: TreeInstance<T>;
 } & HTMLAttributes<HTMLDivElement>;
 
-function Tree<T = any>({ indent = 20, tree, className, ...props }: TreeProps<T>) {
+const Tree = <T = unknown,>({ indent = 20, tree, className, ...props }: TreeProps<T>) => {
+  const context = useMemo(() => ({ indent, tree }), [indent, tree]);
   const containerProps = tree?.getContainerProps?.() ?? {};
   const mergedProps = { ...props, ...containerProps };
 
@@ -48,7 +41,7 @@ function Tree<T = any>({ indent = 20, tree, className, ...props }: TreeProps<T>)
   };
 
   return (
-    <TreeContext.Provider value={{ indent, tree }}>
+    <TreeContext.Provider value={context}>
       <div
         data-slot="tree"
         style={mergedStyle}
@@ -57,22 +50,22 @@ function Tree<T = any>({ indent = 20, tree, className, ...props }: TreeProps<T>)
       />
     </TreeContext.Provider>
   );
-}
+};
 
-type TreeItemProps<T = any> = {
+type TreeItemProps<T = unknown> = {
   item: ItemInstance<T>;
-  indent?: number;
   render?: useRender.RenderProp<HTMLAttributes<HTMLElement>>;
 } & HTMLAttributes<HTMLButtonElement>;
 
-function TreeItem<T = any>({
+const TreeItem = <T = unknown,>({
   item,
   className,
   render,
   children,
   ...props
-}: Omit<TreeItemProps<T>, "indent">) {
-  const { indent } = useTreeContext<T>();
+}: TreeItemProps<T>) => {
+  const { indent } = useContext(TreeContext);
+  const context = useMemo(() => ({ currentItem: item, indent }), [indent, item]);
 
   const itemProps = item.getProps?.() ?? {};
   const mergedProps = { ...props, ...itemProps };
@@ -85,42 +78,41 @@ function TreeItem<T = any>({
   };
 
   const element = useRender({
-    render: render ?? <button type="button" />,
     props: {
-      "data-slot": "tree-item",
-      style: mergedStyle,
+      "aria-expanded": item.isExpanded(),
+      children,
       className: cn(
         "z-10 ps-(--tree-padding) outline-hidden select-none not-last:pb-0.5 focus:z-20 data-[disabled]:pointer-events-none data-[disabled]:opacity-50",
         className,
       ),
+      "data-drag-target": item.isDragTarget?.(),
       "data-focus": item.isFocused?.(),
       "data-folder": item.isFolder?.(),
-      "data-selected": item.isSelected?.(),
-      "data-drag-target": item.isDragTarget?.(),
       "data-search-match": item.isMatchingSearch?.(),
-      "aria-expanded": item.isExpanded(),
-      children,
+      "data-selected": item.isSelected?.(),
+      "data-slot": "tree-item",
+      style: mergedStyle,
       ...otherProps,
     },
+    // oxlint-disable-next-line jsx-a11y/control-has-associated-label -- useRender merges `children` into whichever element renders
+    render: render ?? <button type="button" />,
   });
 
-  return (
-    <TreeContext.Provider value={{ indent, currentItem: item }}>{element}</TreeContext.Provider>
-  );
-}
+  return <TreeContext.Provider value={context}>{element}</TreeContext.Provider>;
+};
 
-type TreeItemLabelProps<T = any> = {
+type TreeItemLabelProps<T = unknown> = {
   item?: ItemInstance<T>;
 } & HTMLAttributes<HTMLSpanElement>;
 
-function TreeItemLabel<T = any>({
+const TreeItemLabel = <T = unknown,>({
   item: propItem,
   children,
   className,
   ...props
-}: TreeItemLabelProps<T>) {
-  const { currentItem } = useTreeContext<T>();
-  const item = propItem || currentItem;
+}: TreeItemLabelProps<T>) => {
+  const { currentItem } = useContext(TreeContext);
+  const item = propItem ?? currentItem;
 
   if (!item) {
     console.warn("TreeItemLabel: No item provided via props or context");
@@ -139,13 +131,13 @@ function TreeItemLabel<T = any>({
       {item.isFolder() && (
         <ChevronDownIcon className="text-muted-foreground size-4 in-aria-[expanded=false]:-rotate-90" />
       )}
-      {children || item.getItemName?.() || null}
+      {children ?? item.getItemName?.() ?? null}
     </span>
   );
-}
+};
 
 const TreeDragLine = ({ className, ...props }: HTMLAttributes<HTMLDivElement>) => {
-  const { tree } = useTreeContext();
+  const { tree } = useContext(TreeContext);
 
   if (!tree?.getDragLineStyle) {
     console.warn(

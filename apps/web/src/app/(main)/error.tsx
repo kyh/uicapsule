@@ -2,13 +2,12 @@
 
 import { useEffect } from "react";
 
-type ErrorProps = {
+interface ErrorProps {
   error: Error;
-};
+}
 
 const Error = ({ error }: ErrorProps) => {
   useEffect(() => {
-    // Log the error to an error reporting service
     console.error(error);
   }, [error]);
 

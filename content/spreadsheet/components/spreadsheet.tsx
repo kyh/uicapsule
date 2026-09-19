@@ -1,18 +1,10 @@
 "use client";
 
-import {
-  useCallback,
-  useEffect,
-  useMemo,
-  useRef,
-  type HTMLAttributes,
-  type ReactNode,
-  type Ref,
-} from "react";
-import { cn } from "@repo/ui/lib/utils";
+import { useCallback, useEffect, useMemo, useRef } from "react";
+import type { HTMLAttributes, ReactNode, Ref } from "react";
+import { cn } from "cn";
 import { flexRender, useTable } from "@tanstack/react-table";
 import { useVirtualizer } from "@tanstack/react-virtual";
-import { z } from "zod";
 
 import type { SpreadsheetRow } from "../lib/spreadsheet-store";
 import type { ColumnInfo, NavigationMap, SpreadsheetFeatures } from "../lib/spreadsheet-utils";
@@ -26,34 +18,18 @@ import {
   spreadsheetFeatures,
 } from "../lib/spreadsheet-utils";
 import { useSpreadsheetHandlers } from "../lib/use-spreadsheet-handlers";
-import { MemoizedTableBody } from "./memoized-table-body";
+import { TableBody } from "./table-body";
 import { ResizeHandle } from "./resize-handle";
 
-interface SpreadsheetProps<
-  TRow extends SpreadsheetRow,
-  TValue = unknown,
-> extends HTMLAttributes<HTMLDivElement> {
-  columns: ColumnDef<SpreadsheetFeatures, TRow, TValue>[];
+export interface SpreadsheetProps extends HTMLAttributes<HTMLDivElement> {
+  columns: ColumnDef<SpreadsheetFeatures, SpreadsheetRow>[];
   showRowNumbers?: boolean;
   renderRowNumber?: (rowIndex: number) => ReactNode;
-  renderRowActions?: (row: TRow, rowIndex: number) => ReactNode;
+  renderRowActions?: (row: SpreadsheetRow, rowIndex: number) => ReactNode;
   ref?: Ref<HTMLDivElement>;
 }
 
-/** `accessorKey` is not on the shared `ColumnDef` union, so narrow instead of asserting;
- *  its declared type also admits non-string row keys, so parse before using it. */
-const accessorKeySchema = z.string();
-
-const getAccessorKey = <TRow extends SpreadsheetRow, TValue>(
-  columnDef: ColumnDef<SpreadsheetFeatures, TRow, TValue>,
-  fallback: string,
-): string => {
-  if (!("accessorKey" in columnDef)) return fallback;
-  const parsed = accessorKeySchema.safeParse(columnDef.accessorKey);
-  return parsed.success ? parsed.data : fallback;
-};
-
-export function Spreadsheet<TRow extends SpreadsheetRow, TValue = unknown>({
+export const Spreadsheet = ({
   className,
   style,
   columns,
@@ -62,10 +38,13 @@ export function Spreadsheet<TRow extends SpreadsheetRow, TValue = unknown>({
   renderRowActions,
   ref,
   ...props
-}: SpreadsheetProps<TRow, TValue>) {
+}: SpreadsheetProps) => {
+  "use no memo";
+
+  // TanStack Virtual exposes mutable measurements that React Compiler cannot memoize.
   const data = useSpreadsheetStore((state) => state.data);
   const selectedCells = useSpreadsheetStore((state) => state.selectedCells);
-  const isDragging = useSpreadsheetStore((state) => state.isDragging);
+  const isDragging = useSpreadsheetStore((state) => state.dragStartCell !== null);
   const columnWidths = useSpreadsheetStore((state) => state.columnWidths);
   const setColumnWidths = useSpreadsheetStore((state) => state.setColumnWidths);
   const dragLineVisible = useSpreadsheetStore((state) => state.dragLineVisible);
@@ -75,23 +54,17 @@ export function Spreadsheet<TRow extends SpreadsheetRow, TValue = unknown>({
   const dragLineRef = useRef<HTMLDivElement>(null);
 
   const table = useTable({
-    features: spreadsheetFeatures,
-    // SAFETY: the store holds exactly the rows the caller seeded through
-    // `setData`, so every row is the caller's TRow; the module-scope zustand
-    // store cannot carry that generic, so it is reasserted here.
-    data: data as TRow[],
     columns,
+    data,
+    features: spreadsheetFeatures,
   });
 
-  // Compute column meta locally - no need to store in Zustand
-  const columnMeta = useMemo<ColumnInfo[]>(() => {
-    return table.getAllLeafColumns().map((column) => ({
-      id: column.id,
-      accessorKey: getAccessorKey(column.columnDef, column.id),
-    }));
-  }, [table]);
+  const leafColumns = table.getAllLeafColumns();
+  const columnMeta = useMemo<ColumnInfo[]>(
+    () => leafColumns.map((column) => ({ id: column.id })),
+    [leafColumns],
+  );
 
-  // Compute navigation map locally - no need to store in Zustand
   const navigationMap = useMemo<Map<string, NavigationMap>>(
     () => createNavigationMap(data, columnMeta),
     [data, columnMeta],
@@ -117,34 +90,30 @@ export function Spreadsheet<TRow extends SpreadsheetRow, TValue = unknown>({
   );
 
   const getRowCellsHelper = useCallback(
-    (rowId: string) => {
-      return getRowCells(rowId, columnMeta);
-    },
+    (rowId: string) => getRowCells(rowId, columnMeta),
     [columnMeta],
   );
 
   // Mouseup should be global to handle drag ending outside the spreadsheet
   useEffect(() => {
-    const handleGlobalMouseUp = () => {
-      handleMouseUp();
-    };
-
-    document.addEventListener("mouseup", handleGlobalMouseUp);
+    document.addEventListener("mouseup", handleMouseUp);
     return () => {
-      document.removeEventListener("mouseup", handleGlobalMouseUp);
+      document.removeEventListener("mouseup", handleMouseUp);
     };
   }, [handleMouseUp]);
 
+  // oxlint-disable-next-line react/incompatible-library -- This component and its table body opt out of memoization for mutable virtualizer measurements.
   const rowVirtualizer = useVirtualizer({
     count: table.getRowModel().rows.length,
-    getScrollElement: () => tableContainerRef.current,
     estimateSize: () => 36,
+    getScrollElement: () => tableContainerRef.current,
     overscan: 10,
   });
 
   return (
     <div
       ref={ref}
+      role="grid"
       className={cn("relative flex flex-col", isDragging && "select-none", className)}
       style={{ ...columnSizeVars, ...style }}
       tabIndex={0}
@@ -154,23 +123,24 @@ export function Spreadsheet<TRow extends SpreadsheetRow, TValue = unknown>({
       <div
         ref={dragLineRef}
         className={cn(
-          "bg-primary pointer-events-none absolute top-0 bottom-0 z-50 w-0.5 transition-opacity",
+          "bg-(--primary) pointer-events-none absolute top-0 bottom-0 z-50 w-0.5 transition-opacity",
           dragLineVisible ? "opacity-100" : "opacity-0",
         )}
       />
 
-      <div className="bg-muted border-border sticky top-0 z-1 flex border-y">
+      <div className="bg-(--muted) border-(--border) sticky top-0 z-1 flex border-y">
         {showRowNumbers && (
-          <div className="border-border bg-muted text-muted-foreground flex h-10 w-12 shrink-0 items-center justify-center border-r text-xs font-medium">
+          <div className="border-(--border) bg-(--muted) text-(--muted-foreground) flex h-10 w-12 shrink-0 items-center justify-center border-r text-xs font-medium">
             #
           </div>
         )}
         {(table.getHeaderGroups()[0]?.headers ?? []).map((header) => (
           <div
             key={header.id}
+            role="presentation"
             data-column-id={header.column.id}
             data-column-header
-            className="border-border bg-muted text-muted-foreground relative flex h-10 shrink-0 cursor-default items-center border-r pl-1 text-left text-xs font-medium transition-colors"
+            className="border-(--border) bg-(--muted) text-(--muted-foreground) relative flex h-10 shrink-0 cursor-default items-center border-r pl-1 text-left text-xs font-medium transition-colors"
             style={{
               width: `calc(var(--col-${header.column.id}-size) * 1px)`,
             }}
@@ -191,7 +161,7 @@ export function Spreadsheet<TRow extends SpreadsheetRow, TValue = unknown>({
           </div>
         ))}
         {showRowNumbers && (
-          <div className="border-border bg-muted text-muted-foreground flex h-10 w-12 shrink-0 items-center justify-center border-r text-xs font-medium" />
+          <div className="border-(--border) bg-(--muted) text-(--muted-foreground) flex h-10 w-12 shrink-0 items-center justify-center border-r text-xs font-medium" />
         )}
       </div>
 
@@ -202,7 +172,7 @@ export function Spreadsheet<TRow extends SpreadsheetRow, TValue = unknown>({
             position: "relative",
           }}
         >
-          <MemoizedTableBody
+          <TableBody
             virtualItems={rowVirtualizer.getVirtualItems()}
             table={table}
             selectedCells={selectedCells}
@@ -217,4 +187,4 @@ export function Spreadsheet<TRow extends SpreadsheetRow, TValue = unknown>({
       </div>
     </div>
   );
-}
+};

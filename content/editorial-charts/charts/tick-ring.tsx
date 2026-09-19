@@ -9,16 +9,16 @@ import { useMemo } from "react";
 import type { ChannelRow } from "../lib/data";
 import { SPRING } from "../lib/tokens";
 
-const renderer = motion({ transition: SPRING, initial: "always" });
+const renderer = motion({ initial: "always", transition: SPRING });
 
-type RingTick = {
+interface RingTick {
   id: number;
   x: number;
   y: number;
   rotate: number;
   channel: string;
   major: boolean;
-};
+}
 
 // 100 radial dashes, one per percent, read clockwise from noon. The reveal
 // sweeps the dial once; after that each scene twists it a few degrees so the
@@ -53,12 +53,12 @@ export const TickRing = ({
       const slot = bounds.findIndex((b) => i < b);
       const row = channels[slot === -1 ? channels.length - 1 : slot];
       return {
+        channel: row?.channel ?? "",
         id: i,
+        major: i % 10 === 0,
+        rotate: deg + 180,
         x: Math.sin(rad),
         y: Math.cos(rad),
-        rotate: deg + 180,
-        channel: row?.channel ?? "",
-        major: i % 10 === 0,
       };
     });
     return defineChart({
@@ -66,15 +66,15 @@ export const TickRing = ({
       margin: 0,
       marks: [
         vector(ticks, {
-          x: "x",
-          y: "y",
-          rotate: "rotate",
           anchor: "start",
-          length: (d) => (d.major ? 26 : 18),
           headLength: 0,
           key: "id",
+          length: (d) => (d.major ? 26 : 18),
+          rotate: "rotate",
           stroke: (d) => shade.get(d.channel) ?? ladder[0] ?? "#f1f0ec",
           strokeWidth: 2.4,
+          x: "x",
+          y: "y",
         }),
       ],
       scales: {

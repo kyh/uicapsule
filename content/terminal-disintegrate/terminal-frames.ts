@@ -24,7 +24,7 @@ import {
 // Phone shell — bezel rails, rounded stubs, side buttons, Dynamic Island
 // ---------------------------------------------------------------------------
 
-function drawPhoneBezel(g: Grid) {
+const drawPhoneBezel = (g: Grid) => {
   const cols = OUTER_COLS;
   const rows = OUTER_ROWS;
   const L_OUTER = 1;
@@ -35,10 +35,12 @@ function drawPhoneBezel(g: Grid) {
   // Top edge with rounded-corner stubs
   setCell(g, 0, L_OUTER, "▗", 1);
   setCell(g, 0, R_OUTER, "▖", 1);
-  for (let c = L_OUTER + 1; c < R_OUTER; c++) setCell(g, 0, c, "▀", 1);
+  for (let c = L_OUTER + 1; c < R_OUTER; c += 1) {
+    setCell(g, 0, c, "▀", 1);
+  }
 
   // Side rails
-  for (let r = 1; r < rows - 1; r++) {
+  for (let r = 1; r < rows - 1; r += 1) {
     setCell(g, r, L_OUTER, "▌", 1);
     setCell(g, r, L_INNER, "█", 1);
     setCell(g, r, R_INNER, "█", 1);
@@ -48,14 +50,20 @@ function drawPhoneBezel(g: Grid) {
   // Bottom edge with mirror stubs
   setCell(g, rows - 1, L_OUTER, "▝", 1);
   setCell(g, rows - 1, R_OUTER, "▘", 1);
-  for (let c = L_OUTER + 1; c < R_OUTER; c++) setCell(g, rows - 1, c, "▄", 1);
+  for (let c = L_OUTER + 1; c < R_OUTER; c += 1) {
+    setCell(g, rows - 1, c, "▄", 1);
+  }
 
   // Side buttons — left rail action + volume rockers, right rail sleep
   const leftBtn = (r0: number, r1: number) => {
-    for (let r = r0; r <= r1; r++) setCell(g, r, 0, "▌", 1);
+    for (let r = r0; r <= r1; r += 1) {
+      setCell(g, r, 0, "▌", 1);
+    }
   };
   const rightBtn = (r0: number, r1: number) => {
-    for (let r = r0; r <= r1; r++) setCell(g, r, cols - 1, "▐", 1);
+    for (let r = r0; r <= r1; r += 1) {
+      setCell(g, r, cols - 1, "▐", 1);
+    }
   };
 
   leftBtn(8, 9);
@@ -67,47 +75,55 @@ function drawPhoneBezel(g: Grid) {
   const diW = 14;
   const diStart = Math.floor((cols - diW) / 2);
 
-  for (let c = 0; c < diW; c++) setCell(g, 1, diStart + c, "▄", 1);
-  for (let c = 0; c < diW; c++) {
-    if (c === 2) continue;
-    if (c === diW - 3) continue;
+  for (let c = 0; c < diW; c += 1) {
+    setCell(g, 1, diStart + c, "▄", 1);
+  }
+  for (let c = 0; c < diW; c += 1) {
+    if (c === 2) {
+      continue;
+    }
+    if (c === diW - 3) {
+      continue;
+    }
     setCell(g, 2, diStart + c, "█", 1);
   }
-  for (let c = 0; c < diW; c++) setCell(g, 3, diStart + c, "▀", 1);
-}
+  for (let c = 0; c < diW; c += 1) {
+    setCell(g, 3, diStart + c, "▀", 1);
+  }
+};
 
-function statusBarTop(g: Grid) {
+const statusBarTop = (g: Grid) => {
   drawText(g, 2, 5, "9:41", 0.85);
   drawText(g, 2, 38, "●●●", 0.55);
   drawText(g, 2, 42, "78%", 0.8);
   setCell(g, 2, 46, "█", 0.85);
-}
+};
 
 const TABS = [
-  { iconCol: 3, labelCol: 1, label: "home" },
-  { iconCol: 11, labelCol: 8, label: "trade" },
-  { iconCol: 19, labelCol: 17, label: "book" },
-  { iconCol: 27, labelCol: 25, label: "acct" },
-  { iconCol: 35, labelCol: 33, label: "more" },
+  { iconCol: 3, label: "home", labelCol: 1 },
+  { iconCol: 11, label: "trade", labelCol: 8 },
+  { iconCol: 19, label: "book", labelCol: 17 },
+  { iconCol: 27, label: "acct", labelCol: 25 },
+  { iconCol: 35, label: "more", labelCol: 33 },
 ] as const;
 
-function drawTabBar(inner: Grid, activeIndex: number) {
+const drawTabBar = (inner: Grid, activeIndex: number) => {
   drawHRule(inner, 49, 0, INNER_COLS, "─", 0.22);
 
-  TABS.forEach((tab, i) => {
+  for (const [i, tab] of TABS.entries()) {
     const active = i === activeIndex;
     setCell(inner, 50, tab.iconCol, active ? "◆" : "◇", active ? 0.9 : 0.45);
     drawText(inner, 51, tab.labelCol, tab.label, active ? 0.8 : 0.45);
-  });
+  }
 
   drawHRule(inner, 53, 16, 8, "▬", 0.6);
-}
+};
 
 // ---------------------------------------------------------------------------
 // Phase 1 — BTC spot trade
 // ---------------------------------------------------------------------------
 
-function drawCandles(inner: Grid) {
+const drawCandles = (inner: Grid) => {
   const top = 9;
   const bottom = 23;
   const h = bottom - top;
@@ -127,7 +143,7 @@ function drawCandles(inner: Grid) {
   drawText(inner, top + Math.round(h / 2), 0, "107K", 0.45);
   drawText(inner, bottom, 0, "106K", 0.45);
 
-  CANDLES.forEach((k, i) => {
+  for (const [i, k] of CANDLES.entries()) {
     const cx = x0 + i * cw;
     const bull = k.c >= k.o;
     const bodyChar = bull ? "█" : "▒";
@@ -137,24 +153,32 @@ function drawCandles(inner: Grid) {
     const bodyTop = Math.min(yOf(k.o), yOf(k.c));
     const bodyBot = Math.max(yOf(k.o), yOf(k.c));
 
-    for (let r = hi; r <= lo; r++) setCell(inner, r, cx, "│", 0.5);
-    for (let r = bodyTop; r <= bodyBot; r++) {
-      for (let x = 0; x < cw; x++) setCell(inner, r, cx + x, bodyChar, bodyAlpha);
+    for (let r = hi; r <= lo; r += 1) {
+      setCell(inner, r, cx, "│", 0.5);
     }
-  });
+    for (let r = bodyTop; r <= bodyBot; r += 1) {
+      for (let x = 0; x < cw; x += 1) {
+        setCell(inner, r, cx + x, bodyChar, bodyAlpha);
+      }
+    }
+  }
 
-  const last = CANDLES[CANDLES.length - 1];
-  if (!last) return;
+  const last = CANDLES.at(-1);
+  if (!last) {
+    return;
+  }
 
   const lastRow = yOf(last.c);
-  for (let c = x0; c < 39; c++) setCell(inner, lastRow, c, "┄", 0.3);
+  for (let c = x0; c < 39; c += 1) {
+    setCell(inner, lastRow, c, "┄", 0.3);
+  }
   // Alpha 1 is load-bearing: the last-price row crosses the final candles and
   // `setCell` drops any write that a brighter cell already occupies, so
   // anything at or below the 0.98 bull body would come out half-eaten.
   drawText(inner, lastRow, 33, "107.4K", 1);
-}
+};
 
-function drawOrderBook(inner: Grid) {
+const drawOrderBook = (inner: Grid) => {
   drawText(inner, 27, 0, "ORDER BOOK", 0.6);
   drawTextRight(inner, 27, 39, "depth 4.32 BTC", 0.5);
   drawHRule(inner, 28, 0, INNER_COLS, "─", 0.22);
@@ -163,26 +187,26 @@ function drawOrderBook(inner: Grid) {
   const barCol = 13;
   const barMax = 11;
 
-  ASKS.forEach((a, i) => {
+  for (const [i, a] of ASKS.entries()) {
     const r = 29 + i;
     drawText(inner, r, 0, `ASK ${a.price}`, 0.7);
     drawBar(inner, r, barCol, Math.max(1, Math.round((a.size / maxSize) * barMax)), "▒", 0.55);
     drawTextRight(inner, r, 34, a.size.toFixed(3), 0.7);
     setCell(inner, r, 37, "↑", 0.55);
-  });
+  }
 
   drawText(inner, 33, 9, "── spread $4.00 ──", 0.4);
 
-  BIDS.forEach((b, i) => {
+  for (const [i, b] of BIDS.entries()) {
     const r = 34 + i;
     drawText(inner, r, 0, `BID ${b.price}`, 0.7);
     drawBar(inner, r, barCol, Math.max(1, Math.round((b.size / maxSize) * barMax)), "▓", 0.7);
     drawTextRight(inner, r, 34, b.size.toFixed(3), 0.7);
     setCell(inner, r, 37, "↓", 0.55);
-  });
-}
+  }
+};
 
-export function buildBtcFrame(): Grid {
+export const buildBtcFrame = (): Grid => {
   const outer = makeGrid(OUTER_COLS, OUTER_ROWS);
   drawPhoneBezel(outer);
   statusBarTop(outer);
@@ -199,18 +223,20 @@ export function buildBtcFrame(): Grid {
   drawTextRight(inner, 4, 39, "live ●", 0.75);
 
   const tfs = ["1H", "1D", "1W", "1M", "3M", "1Y"];
-  tfs.forEach((t, i) => drawText(inner, 6, i * 6, t, i === 3 ? 0.9 : 0.45));
+  for (const [i, t] of tfs.entries()) {
+    drawText(inner, 6, i * 6, t, i === 3 ? 0.9 : 0.45);
+  }
   drawText(inner, 7, 18, "──", 0.8);
 
   drawCandles(inner);
 
   const maxV = Math.max(...CANDLES.map((k) => k.v));
-  CANDLES.forEach((k, i) => {
+  for (const [i, k] of CANDLES.entries()) {
     const cx = 5 + i * 2;
     const ch = vbarChar(k.v / maxV);
     setCell(inner, 25, cx, ch, 0.5);
     setCell(inner, 25, cx + 1, ch, 0.5);
-  });
+  }
 
   drawOrderBook(inner);
 
@@ -229,41 +255,49 @@ export function buildBtcFrame(): Grid {
 
   pasteInto(outer, inner, SCREEN_Y, SCREEN_X);
   return outer;
-}
+};
 
 // ---------------------------------------------------------------------------
 // Phase 2 — XAU options chain
 // ---------------------------------------------------------------------------
 
-function drawPayoff(inner: Grid) {
+const drawPayoff = (inner: Grid) => {
   const top = 25;
   const lossRow = 33;
   const zero = 31;
   const strikeCol = 14;
 
   drawHRule(inner, zero, 1, 38, "┈", 0.16);
-  for (let c = 1; c <= strikeCol; c++) setCell(inner, lossRow, c, "─", 0.6);
+  for (let c = 1; c <= strikeCol; c += 1) {
+    setCell(inner, lossRow, c, "─", 0.6);
+  }
 
   let prevRow = lossRow;
-  for (let k = 1; k <= 24; k++) {
+  for (let k = 1; k <= 24; k += 1) {
     const col = strikeCol + k;
-    if (col > 39) break;
+    if (col > 39) {
+      break;
+    }
     const row = Math.max(top, Math.round(lossRow - k * 0.62));
     setCell(inner, row, col, "╱", 0.72);
     if (prevRow - row > 1) {
-      for (let rr = row + 1; rr < prevRow; rr++) setCell(inner, rr, col, "╱", 0.5);
+      for (let rr = row + 1; rr < prevRow; rr += 1) {
+        setCell(inner, rr, col, "╱", 0.5);
+      }
     }
     prevRow = row;
   }
 
   const beCol = strikeCol + 6;
-  for (let r = top; r <= lossRow; r++) setCell(inner, r, beCol, "┊", 0.22);
+  for (let r = top; r <= lossRow; r += 1) {
+    setCell(inner, r, beCol, "┊", 0.22);
+  }
   // Sits on the clamped plateau of the ramp, so it has to outrank the 0.72
   // slashes to read as a label rather than a stray character.
   drawTextRight(inner, top, 39, "+max", 0.8);
-}
+};
 
-export function buildGoldFrame(): Grid {
+export const buildGoldFrame = (): Grid => {
   const outer = makeGrid(OUTER_COLS, OUTER_ROWS);
   drawPhoneBezel(outer);
   statusBarTop(outer);
@@ -281,11 +315,11 @@ export function buildGoldFrame(): Grid {
 
   const exps = ["NOV", "DEC", "JAN", "MAR", "JUN", "LEAP"];
   let ec = 0;
-  exps.forEach((e, i) => {
+  for (const [i, e] of exps.entries()) {
     const active = i === 1;
     drawText(inner, 6, ec, active ? `${e}*` : e, active ? 0.9 : 0.45);
     ec += e.length + (active ? 1 : 0) + 2;
-  });
+  }
   drawText(inner, 7, 5, "──", 0.8);
 
   const cCallBid = 6;
@@ -303,10 +337,12 @@ export function buildGoldFrame(): Grid {
   drawTextRight(inner, 9, 39, "PUT", 0.55);
   drawHRule(inner, 10, 0, INNER_COLS, "─", 0.22);
 
-  OPTION_CHAIN.forEach((row, i) => {
+  for (const [i, row] of OPTION_CHAIN.entries()) {
     const r = 11 + i;
     if (row.highlight) {
-      for (let c = 0; c < INNER_COLS; c++) setCell(inner, r, c, "·", 0.14);
+      for (let c = 0; c < INNER_COLS; c += 1) {
+        setCell(inner, r, c, "·", 0.14);
+      }
     }
     drawText(inner, r, cCallBid, row.callBid.toFixed(2), 0.82);
     drawText(inner, r, cCallIv, row.callIv.toFixed(1), 0.45);
@@ -320,7 +356,7 @@ export function buildGoldFrame(): Grid {
       setCell(inner, r, cK - 1, "►", 0.9);
       setCell(inner, r, cK + 4, "◄", 0.9);
     }
-  });
+  }
 
   drawText(inner, 20, 0, "GREEKS", 0.6);
   drawText(inner, 20, 9, `delta ${GREEKS.delta.toFixed(2)}`, 0.7);
@@ -353,13 +389,35 @@ export function buildGoldFrame(): Grid {
 
   pasteInto(outer, inner, SCREEN_Y, SCREEN_X);
   return outer;
-}
+};
 
 // ---------------------------------------------------------------------------
 // Phase 3 — Drawdown stats card
 // ---------------------------------------------------------------------------
 
-function drawBearChart(inner: Grid) {
+// Line segment glyph for a step from row `pr` to row `r` (rows grow downward).
+const slopeChar = (r: number, pr: number): string => {
+  if (r < pr) {
+    return "╱";
+  }
+  if (r > pr) {
+    return "╲";
+  }
+  return "─";
+};
+
+// Area fill under the curve, thinning with distance `d` (0..1) below the line.
+const fillChar = (d: number): string => {
+  if (d < 0.4) {
+    return "▒";
+  }
+  if (d < 0.75) {
+    return "░";
+  }
+  return "·";
+};
+
+const drawBearChart = (inner: Grid) => {
   const top = 32;
   const bottom = 43;
   const h = bottom - top;
@@ -368,8 +426,10 @@ function drawBearChart(inner: Grid) {
   const w = x1 - x0;
   const vals = BEAR_CURVE;
 
-  const first = vals[0];
-  if (first === undefined) return;
+  const [first] = vals;
+  if (first === undefined) {
+    return;
+  }
 
   let min = Infinity;
   let max = -Infinity;
@@ -389,7 +449,7 @@ function drawBearChart(inner: Grid) {
   let peakV = first;
   let troughI = 0;
   let troughV = first;
-  vals.forEach((v, i) => {
+  for (const [i, v] of vals.entries()) {
     if (v > peakV) {
       peakV = v;
       peakI = i;
@@ -398,9 +458,9 @@ function drawBearChart(inner: Grid) {
       troughV = v;
       troughI = i;
     }
-  });
+  }
 
-  vals.forEach((v, i) => {
+  for (const [i, v] of vals.entries()) {
     const c = colOf(i);
     const r = rowOf(v);
 
@@ -409,19 +469,19 @@ function drawBearChart(inner: Grid) {
       const pc = colOf(i - 1);
       const pr = rowOf(prev);
       const steps = Math.max(1, c - pc);
-      for (let s = 1; s < steps; s++) {
+      for (let s = 1; s < steps; s += 1) {
         const ix = pc + s;
         const iy = Math.round(pr + ((r - pr) * s) / steps);
-        setCell(inner, iy, ix, r < pr ? "╱" : r > pr ? "╲" : "─", 0.5);
+        setCell(inner, iy, ix, slopeChar(r, pr), 0.5);
       }
     }
 
     setCell(inner, r, c, "▪", 0.85);
-    for (let rr = r + 1; rr <= bottom; rr++) {
+    for (let rr = r + 1; rr <= bottom; rr += 1) {
       const d = (rr - r) / Math.max(1, bottom - r);
-      setCell(inner, rr, c, d < 0.4 ? "▒" : d < 0.75 ? "░" : "·", 0.18);
+      setCell(inner, rr, c, fillChar(d), 0.18);
     }
-  });
+  }
 
   setCell(inner, rowOf(peakV) - 1, colOf(peakI), "▼", 0.6);
   setCell(inner, rowOf(troughV) + 1, colOf(troughI), "▲", 0.6);
@@ -430,14 +490,14 @@ function drawBearChart(inner: Grid) {
   // definition the chart floor, so its ▲ always lands on `bottom + 1` and would
   // swallow whichever tick shares that column.
   const years = ["21", "22", "23", "24", "25"];
-  years.forEach((y, i) => {
+  for (const [i, y] of years.entries()) {
     const c = x0 + Math.round((i / (years.length - 1)) * w);
     setCell(inner, bottom + 2, c, "┴", 0.35);
     drawText(inner, bottom + 3, Math.min(36, c), `'${y}`, 0.4);
-  });
-}
+  }
+};
 
-export function buildStatsFrame(): Grid {
+export const buildStatsFrame = (): Grid => {
   const outer = makeGrid(OUTER_COLS, OUTER_ROWS);
   drawPhoneBezel(outer);
   statusBarTop(outer);
@@ -483,4 +543,4 @@ export function buildStatsFrame(): Grid {
 
   pasteInto(outer, inner, SCREEN_Y, SCREEN_X);
   return outer;
-}
+};

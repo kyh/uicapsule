@@ -20,60 +20,60 @@ import {
 
 import { useResizableSidebar } from "./use-resizable-sidebar";
 
-type NavItem = {
+interface NavItem {
   id: string;
   label: string;
   /** A lucide element, or a plain string to render an emoji glyph instead. */
   icon: ReactNode;
   isActive?: boolean;
   subItems?: NavItem[];
-};
+}
 
 const navigationItems: NavItem[] = [
-  { id: "notifications", label: "Notifications", icon: <Bell size={14} /> },
-  { id: "tasks", label: "Tasks", icon: <CheckSquare size={14} /> },
-  { id: "emails", label: "Emails", icon: <Mail size={14} /> },
-  { id: "reports", label: "Reports", icon: <BarChart3 size={14} /> },
+  { icon: <Bell size={14} />, id: "notifications", label: "Notifications" },
+  { icon: <CheckSquare size={14} />, id: "tasks", label: "Tasks" },
+  { icon: <Mail size={14} />, id: "emails", label: "Emails" },
+  { icon: <BarChart3 size={14} />, id: "reports", label: "Reports" },
   {
+    icon: <Settings size={14} />,
     id: "automations",
     label: "Automations",
-    icon: <Settings size={14} />,
     subItems: [
-      { id: "workflows", label: "Workflows", icon: <Workflow size={14} /> },
-      { id: "sequences", label: "Sequences", icon: <GitBranch size={14} /> },
+      { icon: <Workflow size={14} />, id: "workflows", label: "Workflows" },
+      { icon: <GitBranch size={14} />, id: "sequences", label: "Sequences" },
     ],
   },
 ];
 
 const favoritesItems: NavItem[] = [
   {
+    icon: <Star size={14} />,
     id: "onboarding-pipeline",
     label: "Onboarding pipeline",
-    icon: <Star size={14} />,
   },
   {
+    icon: <Building2 size={14} />,
     id: "top-of-funnel",
     label: "Top of funnel",
-    icon: <Building2 size={14} />,
   },
   {
+    icon: <FileText size={14} />,
     id: "revops-workflows",
     label: "RevOps workflows",
-    icon: <FileText size={14} />,
   },
 ];
 
 const recordsItems: NavItem[] = [
   {
-    id: "companies",
-    label: "Companies",
     icon: <Building size={14} />,
+    id: "companies",
     isActive: true,
+    label: "Companies",
   },
-  { id: "people", label: "People", icon: <Users size={14} /> },
-  { id: "deals", label: "Deals", icon: <DollarSign size={14} /> },
-  { id: "workspaces", label: "Workspaces", icon: <Grid3X3 size={14} /> },
-  { id: "partnerships", label: "Partnerships", icon: <Link size={14} /> },
+  { icon: <Users size={14} />, id: "people", label: "People" },
+  { icon: <DollarSign size={14} />, id: "deals", label: "Deals" },
+  { icon: <Grid3X3 size={14} />, id: "workspaces", label: "Workspaces" },
+  { icon: <Link size={14} />, id: "partnerships", label: "Partnerships" },
 ];
 
 /** Emoji glyphs need the centring wrapper a component icon draws itself. */
@@ -85,9 +85,9 @@ const EmojiIcon = ({ children }: { children: string }) => (
 
 const listsItems: NavItem[] = [
   {
+    icon: <EmojiIcon>🚀</EmojiIcon>,
     id: "strategic-accounts",
     label: "Strategic accounts",
-    icon: <EmojiIcon>🚀</EmojiIcon>,
   },
 ];
 
@@ -157,18 +157,18 @@ export const Sidebar = () => {
               strokeWidth="1.2"
               strokeLinecap="round"
               strokeLinejoin="round"
-            ></path>
+            />
           </svg>
         </div>
         <svg width="18" height="18" fill="none" xmlns="http://www.w3.org/2000/svg">
           <g stroke="#75777C" strokeWidth="1.2">
-            <rect x="1.5" y="2.5" width="15" height="13" rx="3"></rect>
-            <path d="M7.8 2.725v12.5"></path>
+            <rect x="1.5" y="2.5" width="15" height="13" rx="3" />
+            <path d="M7.8 2.725v12.5" />
             <path
               d="M3.975 5.425h1.35M3.975 7.674h1.35"
               strokeLinecap="round"
               strokeLinejoin="round"
-            ></path>
+            />
           </g>
         </svg>
       </div>
@@ -186,7 +186,7 @@ export const Sidebar = () => {
                 strokeWidth="1.1"
                 strokeLinecap="round"
                 strokeLinejoin="round"
-              ></rect>
+              />
               <rect
                 x="2"
                 y="1"
@@ -197,14 +197,14 @@ export const Sidebar = () => {
                 strokeWidth="1.1"
                 strokeLinecap="round"
                 strokeLinejoin="round"
-              ></rect>
+              />
               <path
                 d="M5.333 3.166v4.667m0-1.667 1.053-1m0 0 2.105-2m-2.105 2 2.28 2.667"
                 stroke="#232529"
                 strokeWidth="1.1"
                 strokeLinecap="round"
                 strokeLinejoin="round"
-              ></path>
+              />
             </svg>
             <span className="min-w-0 flex-1 truncate text-[14px] leading-5 font-medium tracking-[-0.28px]">
               Quick actions
@@ -232,6 +232,7 @@ export const Sidebar = () => {
       </div>
 
       {/* Resize Handle */}
+      {/* oxlint-disable-next-line jsx-a11y/no-static-element-interactions -- mouse-only resize affordance; the sidebar is fully usable at its default width, so there is no keyboard equivalent to provide */}
       <div
         className="absolute top-0 -right-0.5 h-full w-1 cursor-col-resize bg-transparent transition-colors duration-200 hover:bg-[#266DF0] active:bg-[#266DF0]"
         onMouseDown={handleMouseDown}

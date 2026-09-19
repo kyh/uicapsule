@@ -6,13 +6,13 @@ import { JsonLd } from "@/components/json-ld";
 import { MediaReveal } from "@/components/media-reveal";
 import { canonicalAlternates, pageOpenGraph } from "@/lib/agent/page-metadata";
 import { buildComponentGraph } from "@/lib/agent/structured-data";
-import { getAllContent, getFeedList } from "@/lib/content-data";
+import { getAllContent } from "@/lib/content-data";
 
 import type { Metadata } from "next";
 
-type Props = {
+interface Props {
   params: Promise<{ slug: string }>;
-};
+}
 
 export const generateStaticParams = async () => {
   const all = await getAllContent();
@@ -21,36 +21,29 @@ export const generateStaticParams = async () => {
 
 export const generateMetadata = async ({ params }: Props): Promise<Metadata> => {
   const { slug } = await params;
-  const component = (await getAllContent()).find((c) => c.slug === slug);
-  if (!component) return { alternates: canonicalAlternates(`/ui/${slug}`) };
+  const all = await getAllContent();
+  const component = all.find((c) => c.slug === slug);
+  if (!component) {
+    return { alternates: canonicalAlternates(`/ui/${slug}`) };
+  }
 
   const description =
     component.description ??
     `${component.name} — a live, installable React component in the UICapsule gallery.`;
 
   return {
-    title: component.name,
-    description,
     alternates: canonicalAlternates(`/ui/${component.slug}`),
+    description,
     openGraph: pageOpenGraph(`/ui/${component.slug}`, component.name, description),
+    title: component.name,
   };
 };
 
-const Page = ({ params }: Props) => {
-  return (
-    <main className="relative flex h-[calc(100dvh-(--spacing(16)))] justify-center">
-      <Suspense fallback={<ContentFeedSkeleton />}>
-        <Content params={params} />
-      </Suspense>
-    </main>
-  );
-};
-
-export default Page;
-
 const Content = async ({ params }: Props) => {
   const { slug } = await params;
-  const feed = await getFeedList(slug);
+  const feed = await getAllContent();
+  // Looked up rather than `.some()` because the JSON-LD and the sr-only
+  // heading below both need the component itself.
   const component = feed.find((c) => c.slug === slug);
   if (!component) {
     notFound();
@@ -75,3 +68,13 @@ const ContentFeedSkeleton = () => (
     <MediaReveal className="mx-auto h-full w-full max-w-[720px] rounded-md" />
   </div>
 );
+
+const Page = ({ params }: Props) => (
+  <main className="relative flex h-[calc(100dvh-(--spacing(16)))] justify-center">
+    <Suspense fallback={<ContentFeedSkeleton />}>
+      <Content params={params} />
+    </Suspense>
+  </main>
+);
+
+export default Page;

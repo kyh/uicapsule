@@ -10,10 +10,10 @@ import type { EffortTheme } from "./effort-theme";
 import { KNOB_SIZE, percentToX, TRACK_TRAVEL, TRACK_WIDTH } from "./effort-scale";
 import { EFFORT_THEMES, labelAt, nearestLevel, notchX } from "./effort-theme";
 
-type DialTroughProps = {
+interface DialTroughProps {
   knobX: MotionValue<number>;
   theme: EffortTheme;
-};
+}
 
 /**
  * Everything about the dial that is purely a function of the knob's position:
@@ -47,10 +47,10 @@ export const DialTrough = ({ knobX, theme }: DialTroughProps) => {
       <motion.div
         className={`absolute ${tokens.trough}`}
         style={{
-          top: offsetY,
-          height: tokens.troughHeight,
           borderRadius: tokens.troughRadius,
+          height: tokens.troughHeight,
           left: troughLeft,
+          top: offsetY,
           width: troughWidth,
         }}
       />
@@ -58,12 +58,12 @@ export const DialTrough = ({ knobX, theme }: DialTroughProps) => {
       <motion.div
         className="absolute"
         style={{
-          top: offsetY,
-          left: fillLeft,
-          height: tokens.troughHeight,
-          borderRadius: tokens.troughRadius,
-          width: fillWidth,
           backgroundColor: fillColor,
+          borderRadius: tokens.troughRadius,
+          height: tokens.troughHeight,
+          left: fillLeft,
+          top: offsetY,
+          width: fillWidth,
         }}
       />
 
@@ -74,7 +74,7 @@ export const DialTrough = ({ knobX, theme }: DialTroughProps) => {
           className={`absolute size-1.5 -translate-x-1/2 -translate-y-1/2 rounded-full ${
             index === tokens.levels.length - 1 ? tokens.dotTop : tokens.dot
           }`}
-          style={{ top: "50%", left: KNOB_SIZE / 2 + notchX(theme, index) }}
+          style={{ left: KNOB_SIZE / 2 + notchX(theme, index), top: "50%" }}
         />
       ))}
     </>
@@ -93,7 +93,7 @@ export const KnobSkin = ({ theme }: { theme: EffortTheme }) => {
     <span
       aria-hidden
       className={`absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 ${knob.className}`}
-      style={{ width: knob.width, height: knob.height, borderRadius: knob.radius }}
+      style={{ borderRadius: knob.radius, height: knob.height, width: knob.width }}
     />
   );
 };
@@ -101,18 +101,18 @@ export const KnobSkin = ({ theme }: { theme: EffortTheme }) => {
 /** The hit box every knob is dragged by. Themes paint inside it; nothing about
  * it changes, because `TRACK_TRAVEL` is measured against it. */
 export const knobBoxStyle = (theme: EffortTheme) => ({
-  top: 0,
-  left: 0,
-  width: KNOB_SIZE,
-  height: KNOB_SIZE,
   borderRadius: EFFORT_THEMES[theme].knob.radius,
+  height: KNOB_SIZE,
+  left: 0,
+  top: 0,
+  width: KNOB_SIZE,
 });
 
-type LevelLabelProps = {
+interface LevelLabelProps {
   knobX: MotionValue<number>;
   theme: EffortTheme;
   className?: string;
-};
+}
 
 /**
  * The dial's word for where it is. The knob moves every frame but the *level*
@@ -123,7 +123,9 @@ type LevelLabelProps = {
 export const LevelLabel = ({ knobX, theme, className }: LevelLabelProps) => {
   const ref = useRef<HTMLSpanElement>(null);
   useMotionValueEvent(knobX, "change", (x) => {
-    if (ref.current) ref.current.textContent = labelAt(theme, nearestLevel(theme, x));
+    if (ref.current) {
+      ref.current.textContent = labelAt(theme, nearestLevel(theme, x));
+    }
   });
 
   // Reading the knob during render is safe: it only ever seeds the first paint,
@@ -148,20 +150,20 @@ export const Sparks = ({ percent }: { percent: number }) => (
   >
     <motion.span
       className="absolute -translate-x-1/2 -translate-y-1/2 rounded-full border-2 border-violet-400"
-      initial={{ width: 10, height: 10, opacity: 0.9 }}
-      animate={{ width: 64, height: 64, opacity: 0 }}
+      initial={{ height: 10, opacity: 0.9, width: 10 }}
+      animate={{ height: 64, opacity: 0, width: 64 }}
       transition={{ duration: 0.55, ease: "easeOut" }}
     />
     {SPARK_ANGLES.map((angle) => (
       <motion.span
         key={angle}
         className="absolute size-1 rounded-full bg-violet-300"
-        initial={{ x: 0, y: 0, opacity: 1, scale: 1 }}
+        initial={{ opacity: 1, scale: 1, x: 0, y: 0 }}
         animate={{
-          x: Math.cos((angle * Math.PI) / 180) * 30,
-          y: Math.sin((angle * Math.PI) / 180) * 26,
           opacity: 0,
           scale: 0.4,
+          x: Math.cos((angle * Math.PI) / 180) * 30,
+          y: Math.sin((angle * Math.PI) / 180) * 26,
         }}
         transition={{ duration: 0.6, ease: "easeOut" }}
       />

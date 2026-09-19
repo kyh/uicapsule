@@ -1,7 +1,7 @@
 # AGENTS.md
 
 **uicapsule** is a curated gallery of UI components — a pnpm/Turborepo monorepo with one
-Next.js 16 app (`apps/web`) that renders 36 self-contained component packages under
+Next.js 16 app (`apps/web`) that renders 40 self-contained component packages under
 `content/`. This is the tool-agnostic guide for coding agents; it is meant to be _run_, not
 just read. Claude also reads `CLAUDE.md` (conventions, curation philosophy, decisions that
 are settled) — this file is the runnable half.
@@ -21,10 +21,8 @@ pnpm dev:web                      # shell 2: http://localhost:3000
 - `.env` is **required**, not optional: `apps/web`'s `dev` and `build` both run through
   `dotenv -e ../../.env --`, so a clone without it fails outright.
 - `TURSO_AUTH_TOKEN` stays empty locally — `turso dev` requires no auth.
-- **The dev server must be on port 3000.** `packages/api/src/auth/auth.ts` pins `baseUrl`
-  and `trustedOrigins` to `http://localhost:3000` outside Vercel. If Next falls back to
-  3001 because 3000 is taken, every browser sign-in returns 403 with no visible error —
-  the form just sits there. Free the port before blaming the code.
+- Auth defaults to `http://localhost:3000`. For another port, set `BETTER_AUTH_URL` to
+  that origin and start Next on the matching port. Vercel uses its deployment origin.
 - The gallery itself is entirely public. Only `/auth/*` needs the database at all, so
   `pnpm dev:web` alone is enough to work on content, the grid, or the detail page.
 
@@ -74,24 +72,24 @@ Static gate:
 pnpm verify           # typecheck · lint · format · test · build
 ```
 
-`verify` needs `.env` (it runs `build`, which is `dotenv -e ../../.env -- next build`). It
-does _not_ need the database. Two things it deliberately does not cover:
+`verify` needs `.env` because it runs the production build. It does not need a database.
+CI runs the same gate on every push and pull request using local test configuration.
 
-- **Tests are thin** (`pnpm test`, Node's built-in runner via `node --import tsx --test`).
-  `packages/api` holds a better-auth schema + session-cookie guard; `apps/web` holds the
-  RPC route's transport guards (Origin check, GET refusal, no CORS) and
-  `src/lib/agent/*.test.ts`, which covers Accept negotiation, the Markdown/llms.txt/sitemap
-  renderers and the JSON-LD builders — everything under `src/lib/agent` is pure, so it runs
-  without a Next runtime. Nothing else has your back but the gate and your own runtime check.
-- **`content/*` is not typechecked.** `apps/web/tsconfig.json` excludes `../../content/**`,
-  no content package has a `typecheck` script, and `next.config.js` sets
-  `typescript.ignoreBuildErrors`. `pnpm lint` (oxlint) is the only static tool that reads
-  content, and it reports warnings without failing. Content correctness is proven at
-  runtime, not by the gate.
+- Typecheck covers the app, packages, scripts, and each of the 39 code-bearing content
+  packages independently, including each preview's default export. Previews must render
+  without required props. `pnpm typecheck:content <slug>` checks one component.
+- Lint is a clean gate. `oxlint.config.ts` extends the ultracite presets (`ultracite/oxlint/core`, `react`, `next`, `anti-slop`); every rule is an error, including explicit `any`, non-null assertions, and type casts. `no-await-in-loop` is the one deliberate override. Prefer fixing code over `oxlint-disable` comments; when a rule is genuinely wrong for a line, disable that line with a `-- reason`.
+  Next.js-only rules apply to the app; content stays portable.
+- Tests cover auth schema/cookies/reset, RPC transport, content filesystem/registry behavior,
+  the standalone-content guard, and the agent surfaces (`apps/web/src/lib/agent/*.test.ts` —
+  Accept negotiation, the Markdown/llms.txt/sitemap renderers, the JSON-LD builders).
+  Everything under `src/lib/agent` is pure, so it runs without a Next runtime. Changed
+  visual behavior still needs a browser check, and status codes and headers need
+  `pnpm check:agent-endpoints` against a running server.
 
-`pnpm build` runs `//#check:content` first — it fails the build if any `content/<slug>` is
-missing its `meta.json` + `preview.tsx` pair, because the gallery loader would otherwise
-drop it silently. Do not remove that guard.
+`pnpm build` runs `//#check:content` first. It validates metadata, local preview files,
+package manifests, and imports. Private workspace imports and paths escaping the component
+fail the build. Do not remove this guard.
 
 Agent surfaces — the response codes, `Content-Type`/`Vary` headers, JSON-LD and Markdown
 negotiation that `verify` structurally cannot see — have their own runtime gate. It needs a
@@ -109,7 +107,7 @@ the three trust-anchor pages. Run it after touching anything in `apps/web/src/li
 `src/proxy.ts`, or page metadata.
 
 Runtime — drive the real UI with [agent-browser](https://github.com/vercel-labs/agent-browser)
-(installed globally: `npm i -g agent-browser && agent-browser install`):
+(installed globally: `npm i -g agent-browser && agent-browser install`; ≥ 0.37 for `record --fps 60`):
 
 ```sh
 agent-browser open http://localhost:3000/
@@ -128,23 +126,24 @@ agent-browser snapshot                        # → email @e6, password @e7, Log
 agent-browser fill @e6 dev@uicapsule.local
 agent-browser fill @e7 password
 agent-browser click @e4                       # redirects to /
-agent-browser network requests --filter sign-in   # expect 200; a 403 means you're not on :3000
+agent-browser network requests --filter sign-in   # expect 200; a 403 means the Origin does not match BETTER_AUTH_URL
 ```
 
 The routes worth checking, and what each proves:
 
-| Route                                            | Proves                                                |
-| ------------------------------------------------ | ----------------------------------------------------- |
-| `/`                                              | gallery grid, filters, search (`⌘K`)                  |
-| `/ui/<slug>`                                     | detail page, live preview iframe, source-code drawer  |
-| `/preview-frame/<slug>`                          | the bare preview — what the cover-video skill records |
-| `/r/<slug>.json`                                 | shadcn registry item (external CLI contract)          |
-| `/r/registry.json`                               | the full registry index                               |
-| `/api/content/<slug>`                            | source payload behind the drawer + zip download       |
-| `/about`, `/contact`, `/privacy`, `/inspiration` | prose pages (trust anchors)                           |
-| `/llms.txt`                                      | llmstxt.org index — overview + full component catalog |
-| `/sitemap.xml`                                   | every indexable URL, with `lastmod`                   |
-| `/index.md`, `/<path>.md`                        | the Markdown representation of any page               |
+| Route                     | Proves                                                |
+| ------------------------- | ----------------------------------------------------- |
+| `/`                       | gallery grid, filters, search (`⌘K`)                  |
+| `/ui/<slug>`              | detail page, live preview iframe, source-code drawer  |
+| `/preview-frame/<slug>`   | the bare preview — what the cover-video skill records |
+| `/r/<slug>.json`          | shadcn registry item (external CLI contract)          |
+| `/r/registry.json`        | the full registry index                               |
+| `/api/content/<slug>`     | source payload behind the drawer + zip download       |
+| `/about`, `/request`      | static page; request form → GitHub issue              |
+| `/contact`, `/privacy`    | prose pages (trust anchors)                           |
+| `/llms.txt`               | llmstxt.org index — overview + full component catalog |
+| `/sitemap.xml`            | every indexable URL, with `lastmod`                   |
+| `/index.md`, `/<path>.md` | the Markdown representation of any page               |
 
 **Before reporting a visual bug in a brand-new component, clear the Turbopack cache.** Its
 persistent cache freezes the Tailwind `@source` glob, so classes that exist only in a newly
@@ -164,15 +163,19 @@ pnpm check:content        # fail if any content/<slug> is not loadable
 Two committed skills own the full lifecycles and both shell out to `agent-browser`:
 
 - `.claude/skills/build-content` — idea → scaffold → build → record → PR
-- `.claude/skills/cover-video` — record, verify, upload to Supabase, wire into `meta.json`
+- `.claude/skills/cover-video` — record, verify, upload to Blob, wire into `meta.json`
+- `.claude/skills/build-requests` — drain `ready`-labelled request issues through both of
+  the above, one PR per issue, `Closes #n`. Meant for a local daily schedule.
+
+Requests arrive as GitHub issues labelled `request`, from `/request` (oRPC → GitHub API,
+`GITHUB_ISSUES_TOKEN`) or the `component-request.yml` template. Apply `ready` to accept.
 
 Content packages **must not** import from `apps/web` or `packages/*`. The registry serves
 their source verbatim — `content-fs.ts` does no import rewriting and hardcodes
 `registryDependencies: []` — so any `@repo/*` import ships an unresolvable registry item to
-an external `shadcn add` consumer. Three legacy packages violate this
-(`emerald-template`, `filter-bar`, `spreadsheet`, all depending on `@repo/ui`); they render
-fine inside the gallery but are broken outside it. Do not copy them, and don't factor a
-shared helper out of a content package.
+an external `shadcn add` consumer. All content packages now use public dependencies and
+package-local helpers. Keep them self-contained, including styles: gallery theme variables
+and base CSS are not present in a clean consumer.
 
 ## Platform matrix
 
@@ -193,17 +196,18 @@ Web is the only surface. There is no mobile, desktop, or extension target.
 - **`pnpm db:push-remote` writes production Turso.** Never run it locally. `pnpm db:push`
   is the local one.
 - Env vars read at build time must be listed in `turbo.json` `globalEnv`, or turbo's strict
-  env mode strips them from the task with no error. `NEXT_PUBLIC_SUPABASE_URL` was missing
-  from it until recently: `next.config.js` reads it to build `images.remotePatterns`, so
-  without it that list is empty and `next/image` rejects every Supabase-hosted cover. Not
-  yet load-bearing — every cover in the repo today is `coverType: "video"` (28 of 36 slugs;
-  the other 8 have no cover), and video bypasses `next/image` — but it bites the first time
-  a `meta.json` uses `coverType: "image"`.
+  env mode strips them from the task with no error. `NEXT_PUBLIC_ASSETS_URL` is the one that
+  bites: `next.config.ts` reads it to build `images.remotePatterns`, every `meta.json`
+  `cover` key and every content package that references bucket media resolves against it,
+  and `apps/web/src/lib/assets.ts` throws at import when it is unset so the failure is loud
+  rather than a page of broken media.
 
 ## Map
 
-- `apps/web` — the Next.js app. `src/lib/content/content-fs.ts` reads `content/`;
-  `src/lib/content-data.ts` wraps it in `"use cache"` server functions.
+- `apps/web` — the Next.js app. `src/lib/content/content-fs.ts` indexes metadata and reads
+  source on demand; `src/lib/content-data.ts` adds `"use cache"`. `content-schema.ts` owns
+  metadata validation for the loader and build guard. Header, search, profile, and footer
+  live in separate files under `src/components/`.
 - `apps/web/src/lib/agent` — the machine-readable layer: Accept negotiation, Markdown
   rendering, `llms.txt`, sitemap entries, JSON-LD, and the prose-page definitions that
   `/about`, `/contact` and `/privacy` render from. Pure and unit-tested; `src/proxy.ts` and
