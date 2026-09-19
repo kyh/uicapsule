@@ -2,8 +2,13 @@ import { Suspense } from "react";
 import { notFound } from "next/navigation";
 
 import { ContentFeed } from "@/app/(main)/(content)/_components/content-feed";
+import { JsonLd } from "@/components/json-ld";
 import { MediaReveal } from "@/components/media-reveal";
+import { canonicalAlternates, pageOpenGraph } from "@/lib/agent/page-metadata";
+import { buildComponentGraph } from "@/lib/agent/structured-data";
 import { getAllContent } from "@/lib/content-data";
+
+import type { Metadata } from "next";
 
 interface Props {
   params: Promise<{ slug: string }>;
@@ -14,14 +19,48 @@ export const generateStaticParams = async () => {
   return all.map((c) => ({ slug: c.slug }));
 };
 
+export const generateMetadata = async ({ params }: Props): Promise<Metadata> => {
+  const { slug } = await params;
+  const all = await getAllContent();
+  const component = all.find((c) => c.slug === slug);
+  if (!component) {
+    return { alternates: canonicalAlternates(`/ui/${slug}`) };
+  }
+
+  const description =
+    component.description ??
+    `${component.name} — a live, installable React component in the UICapsule gallery.`;
+
+  return {
+    alternates: canonicalAlternates(`/ui/${component.slug}`),
+    description,
+    openGraph: pageOpenGraph(`/ui/${component.slug}`, component.name, description),
+    title: component.name,
+  };
+};
+
 const Content = async ({ params }: Props) => {
   const { slug } = await params;
   const feed = await getAllContent();
-  if (!feed.some((c) => c.slug === slug)) {
+  // Looked up rather than `.some()` because the JSON-LD and the sr-only
+  // heading below both need the component itself.
+  const component = feed.find((c) => c.slug === slug);
+  if (!component) {
     notFound();
   }
 
-  return <ContentFeed initialSlug={slug} feed={feed} />;
+  return (
+    <>
+      <JsonLd node={buildComponentGraph(component)} />
+      {/* The feed is a full-bleed preview with no heading of its own; this
+          gives the route the `h1` and description its canonical URL claims. */}
+      <div className="sr-only">
+        <h1>{component.name}</h1>
+        {component.description ? <p>{component.description}</p> : null}
+      </div>
+      <ContentFeed initialSlug={slug} feed={feed} />
+    </>
+  );
 };
 
 const ContentFeedSkeleton = () => (

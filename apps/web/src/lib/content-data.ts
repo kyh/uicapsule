@@ -5,6 +5,7 @@ import {
   buildShadcnRegistryItem,
   readContentBySlug,
   readContentIndex,
+  readContentLastModified,
   readSourceFiles,
 } from "./content/content-fs";
 
@@ -85,6 +86,13 @@ export const getFilterCounts = async (filter: GalleryFilter): Promise<FilterCoun
     elements: countBy(elementSlugs, (slug) => ({ elements: [slug] })),
     styles: countBy(styleSlugs, (slug) => ({ styles: [slug] })),
   };
+};
+
+/** Newest mtime in the content tree — the sitemap's `lastmod`. */
+export const getContentLastModified = async (): Promise<Date> => {
+  "use cache";
+  cacheLife("max");
+  return await readContentLastModified();
 };
 
 export interface SearchEntry {

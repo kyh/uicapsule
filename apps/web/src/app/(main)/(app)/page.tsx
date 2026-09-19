@@ -5,11 +5,15 @@ import type { ContentFilter } from "@/lib/content/content-categories";
 import { Button } from "@repo/ui/components/button";
 
 import { resolveCover } from "@/lib/assets";
+import { canonicalAlternates, pageOpenGraph } from "@/lib/agent/page-metadata";
 import { getContentList, getFilterCounts } from "@/lib/content-data";
 import type { GalleryFilter } from "@/lib/content-data";
 import { ContentPreview, ContentPreviewSkeleton } from "./_components/content-preview";
 import { FilterBar } from "./_components/filter-bar";
 import type { Facet } from "./_components/filter-bar";
+import { GalleryOutline, GalleryStructuredData } from "./_components/gallery-outline";
+
+import type { Metadata } from "next";
 
 type SearchParams = Promise<Record<string, string | string[] | undefined>>;
 
@@ -32,6 +36,11 @@ const parseFilter = async (searchParams: SearchParams): Promise<GalleryFilter> =
     styles: slugs("style"),
     view: params.view?.toString() === "recommended" ? "recommended" : "recent",
   };
+};
+
+export const metadata: Metadata = {
+  alternates: canonicalAlternates("/"),
+  openGraph: pageOpenGraph("/"),
 };
 
 const withCounts = (options: ContentFilter[], counts: Record<string, number>) =>
@@ -82,7 +91,7 @@ const ContentList = async ({ searchParams }: PageProps) => {
     return (
       <div className="bg-background text-muted-foreground col-span-full! flex min-h-[calc(100dvh-(--spacing(48)))] items-center justify-center">
         <div className="flex flex-col items-center gap-4">
-          <h1>No content found with the selected filters.</h1>
+          <p>No content found with the selected filters.</p>
           <Button variant="outline" render={<Link href="/" />} nativeButton={false}>
             Reset Filters
           </Button>
@@ -110,6 +119,8 @@ const Page = ({ searchParams }: PageProps) => {
 
   return (
     <main>
+      <GalleryOutline />
+      <GalleryStructuredData />
       <div className="flex h-14 items-center justify-between border-b bg-(image:--background-stripe) bg-size-[10px_10px] bg-fixed sm:h-16">
         <Suspense>
           <Filters searchParams={searchParams} />
