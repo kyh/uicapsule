@@ -3,7 +3,6 @@
   "description": "An ASCII trading terminal drawn from box-drawing glyphs, whose screen burns into drifting embers and reassembles as the next one — scrub backwards and the same debris replays in reverse.",
   "addedAt": "2026-07-18",
   "defaultSize": "full",
-  "coverUrl": "https://zmdrwswxugswzmcokvff.supabase.co/storage/v1/object/public/uicapsule/terminal-disintegrate/terminal-disintegrate.mp4",
-  "coverType": "video",
+  "cover": "terminal-disintegrate/terminal-disintegrate.mp4",
   "tags": ["effects", "pixel-art"]
 }

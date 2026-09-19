@@ -3,8 +3,7 @@
   "description": "An endless strip of paper unrolls behind a heavy roll, printing a portfolio in its wake",
   "addedAt": "2026-07-22",
   "featured": true,
-  "coverUrl": "https://zmdrwswxugswzmcokvff.supabase.co/storage/v1/object/public/uicapsule/paper-roll/paper-roll.mp4",
-  "coverType": "video",
+  "cover": "paper-roll/paper-roll.mp4",
   "tags": ["cards-grids", "skeuomorphism"],
   "inspiredBy": [
     {

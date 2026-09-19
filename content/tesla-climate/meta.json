@@ -3,8 +3,7 @@
   "description": "A replica of Tesla's climate screen — drag the airstream to aim the vents, with live temperature, fan, and seat-heat response.",
   "addedAt": "2026-07-07",
   "featured": true,
-  "coverUrl": "https://zmdrwswxugswzmcokvff.supabase.co/storage/v1/object/public/uicapsule/tesla-climate/tesla-climate.mp4",
-  "coverType": "video",
+  "cover": "tesla-climate/tesla-climate.mp4",
   "tags": ["controls", "skeuomorphism"],
   "inspiredBy": [
     {

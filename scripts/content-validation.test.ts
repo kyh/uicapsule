@@ -89,6 +89,12 @@ test("requires valid metadata and a real preview before publishing local content
   );
   const tagIssues = await validateContentDirectory(directory);
   assert.ok(tagIssues.some((issue) => issue.startsWith("tags:")));
+  await writeFile(
+    path.join(directory, "meta.json"),
+    JSON.stringify({ ...validMeta, cover: "https://cdn.example.com/x/x.mp4" }),
+  );
+  const coverIssues = await validateContentDirectory(directory);
+  assert.ok(coverIssues.some((issue) => issue.startsWith("cover:")));
   await writeFile(path.join(directory, "meta.json"), JSON.stringify(validMeta));
   await rm(path.join(directory, "preview.tsx"));
   assert.deepEqual(await validateContentDirectory(directory), ["missing preview.tsx"]);

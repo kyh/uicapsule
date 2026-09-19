@@ -2,8 +2,7 @@
 
 import { ImageCarousel, ImageCarouselCanvas } from "./carousel-3d";
 
-const rootUrl =
-  "https://zmdrwswxugswzmcokvff.supabase.co/storage/v1/object/public/uicapsule/carousel-3d";
+const rootUrl = "https://d24l2zb4cwkekfpl.public.blob.vercel-storage.com/carousel-3d";
 
 const cards = [
   { src: `${rootUrl}/1.webp` },

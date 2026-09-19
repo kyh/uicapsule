@@ -50,9 +50,6 @@ yarn-error.log*
 # turbo
 .turbo
 
-# Supabase
-.branches
-.temp
 local.*
 .superset
 

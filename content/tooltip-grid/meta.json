@@ -2,7 +2,6 @@
   "name": "Tooltip Grid",
   "description": "Tooltip with a direction aware pixel grid background animation",
   "addedAt": "2025-08-15",
-  "coverUrl": "https://zmdrwswxugswzmcokvff.supabase.co/storage/v1/object/public/uicapsule/tooltip-grid/tooltip-grid.mp4",
-  "coverType": "video",
+  "cover": "tooltip-grid/tooltip-grid.mp4",
   "tags": ["navigation", "minimal"]
 }

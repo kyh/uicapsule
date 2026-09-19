@@ -3,8 +3,7 @@
   "description": "A desktop boots itself — one card riffles through every thumbnail, icons burst out from centre, then the dock magnifies under the cursor and windows drag, stack and pop.",
   "addedAt": "2026-07-18",
   "featured": true,
-  "coverUrl": "https://zmdrwswxugswzmcokvff.supabase.co/storage/v1/object/public/uicapsule/desktop-os/desktop-os.mp4",
-  "coverType": "video",
+  "cover": "desktop-os/desktop-os.mp4",
   "tags": ["pages", "skeuomorphism"],
   "defaultSize": "full"
 }

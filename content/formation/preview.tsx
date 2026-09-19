@@ -3,8 +3,7 @@
 import type { Work } from "./formation-poses";
 import { Formation } from "./formation";
 
-const rootUrl =
-  "https://zmdrwswxugswzmcokvff.supabase.co/storage/v1/object/public/uicapsule/formation";
+const rootUrl = "https://d24l2zb4cwkekfpl.public.blob.vercel-storage.com/formation";
 
 const works: Work[] = [
   {

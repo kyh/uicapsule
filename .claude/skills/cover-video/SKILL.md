@@ -1,14 +1,14 @@
 ---
 name: cover-video
-description: Record a cover video for a content component, verify it looks right, upload it to Supabase storage, and wire it into meta.json. Use when asked to generate/update a component's cover, preview video, or gallery thumbnail.
+description: Record a cover video for a content component, verify it looks right, upload it to Vercel Blob, and wire it into meta.json. Use when asked to generate/update a component's cover, preview video, or gallery thumbnail.
 ---
 
 # Cover Video
 
 Produce the looping cover video shown on the gallery card for a `content/<slug>` component.
 Pipeline: stage → record → convert → frame-check → upload → update meta.json → confirm live.
-A component with no motion at all (static markup) gets a 1600×900 screenshot as
-`coverType: "image"` instead — a video of nothing moving is dead weight on the card.
+A component with no motion at all (static markup) gets a 1600×900 screenshot uploaded as
+`<slug>/<slug>.webp` instead — a video of nothing moving is dead weight on the card.
 
 Target spec (matches existing covers + the `aspect-video` gallery card):
 
@@ -144,28 +144,28 @@ Read every frame as an image and check ALL of:
 
 ## 6. Upload
 
-Supabase CLI is already linked (`supabase/.temp/project-ref`, currently `zmdrwswxugswzmcokvff`):
+Covers live in the `uicapsule-assets` Vercel Blob store, keyed `<slug>/<slug>.mp4`. Upload
+with the Vercel CLI from the repo root (the project is linked; the store's token is in
+`.env.local` via `vercel env pull`):
 
 ```bash
-supabase storage cp <slug>.mp4 ss:///uicapsule/<slug>/<slug>.mp4 --experimental
+vercel blob put <slug>.mp4 --pathname "<slug>/<slug>.mp4" --content-type video/mp4 \
+  --access public --add-random-suffix false --allow-overwrite true
 curl -s -o /dev/null -w "%{http_code} %{content_type}" \
-  "https://<project-ref>.supabase.co/storage/v1/object/public/uicapsule/<slug>/<slug>.mp4"
+  "$NEXT_PUBLIC_ASSETS_URL/<slug>/<slug>.mp4"
 # expect: 200 video/mp4
 ```
 
-`cp` never overwrites — an existing object fails with `409 KeyAlreadyExists`. Replacing a
-cover means `supabase storage rm ss:///uicapsule/<slug>/<slug>.mp4 --experimental --yes`
-first (without `--yes` the confirm prompt ignores piped stdin and silently does nothing).
-Storage sits behind a CDN (~1h cache) — a replaced cover can serve stale for a while;
-mention that when overwriting.
+`--allow-overwrite` means replacing a cover is the same command. The public URL sits behind
+Vercel's CDN — a replaced cover can serve stale for a while; mention that when overwriting.
 
 ## 7. Wire up + confirm
 
-Add to `content/<slug>/meta.json` (keys before `tags`):
+Add to `content/<slug>/meta.json` (key before `tags`) — a bucket key, never a URL; the
+app resolves the host and derives image/video from the extension:
 
 ```json
-"coverUrl": "https://<project-ref>.supabase.co/storage/v1/object/public/uicapsule/<slug>/<slug>.mp4",
-"coverType": "video",
+"cover": "<slug>/<slug>.mp4",
 ```
 
 Open `http://localhost:3000/`, screenshot, and confirm the component's card is playing the

@@ -2,7 +2,6 @@
   "name": "Snail Timer",
   "description": "Fastest countdown ever",
   "addedAt": "2025-08-14",
-  "coverUrl": "https://zmdrwswxugswzmcokvff.supabase.co/storage/v1/object/public/uicapsule/snail-timer/snail-timer.mp4",
-  "coverType": "video",
+  "cover": "snail-timer/snail-timer.mp4",
   "tags": ["effects", "silly"]
 }

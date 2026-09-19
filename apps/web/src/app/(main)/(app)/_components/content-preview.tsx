@@ -4,6 +4,7 @@ import Link from "next/link";
 import { Badge } from "@repo/ui/components/badge";
 import { useWebHaptics } from "web-haptics/react";
 
+import type { Cover } from "@/lib/assets";
 import { MediaReveal } from "@/components/media-reveal";
 
 interface ContentPreviewProps {
@@ -12,19 +13,10 @@ interface ContentPreviewProps {
   index: number;
   tags: string[];
   isNew: boolean;
-  coverUrl?: string;
-  coverType?: "image" | "video";
+  cover?: Cover;
 }
 
-export const ContentPreview = ({
-  slug,
-  name,
-  index,
-  tags,
-  isNew,
-  coverUrl,
-  coverType,
-}: ContentPreviewProps) => {
+export const ContentPreview = ({ slug, name, index, tags, isNew, cover }: ContentPreviewProps) => {
   const { trigger } = useWebHaptics();
   return (
     <Link
@@ -32,15 +24,15 @@ export const ContentPreview = ({
       href={`/ui/${slug}`}
       onClick={() => trigger("selection")}
     >
-      <div className="relative">
+      <div className="grid">
         <MediaReveal
-          className="aspect-video w-full"
-          image={coverType === "image" ? coverUrl : undefined}
-          video={coverType === "video" ? coverUrl : undefined}
+          className="col-start-1 row-start-1 aspect-video w-full"
+          image={cover?.type === "image" ? cover.url : undefined}
+          video={cover?.type === "video" ? cover.url : undefined}
         />
         {isNew && (
           <Badge
-            className="bg-background/80 absolute top-2 left-2 z-10 backdrop-blur-sm"
+            className="bg-background/80 relative col-start-1 row-start-1 m-2 self-start justify-self-start backdrop-blur-sm"
             variant="outline"
           >
             New

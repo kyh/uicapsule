@@ -2,7 +2,6 @@
   "name": "Scrollable Card Stack",
   "description": "An infinite stack of cards placed with perspective one on top of another.",
   "addedAt": "2025-05-03",
-  "coverUrl": "https://zmdrwswxugswzmcokvff.supabase.co/storage/v1/object/public/uicapsule/card-stack-1/card-stack-1.mp4",
-  "coverType": "video",
+  "cover": "card-stack-1/card-stack-1.mp4",
   "tags": ["cards-grids", "minimal"]
 }

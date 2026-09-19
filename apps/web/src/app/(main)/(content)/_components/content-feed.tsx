@@ -1,5 +1,8 @@
 "use client";
 
+import { Tabs, TabsIndicator, TabsList, TabsTrigger } from "@repo/ui/components/tabs";
+import { MonitorIcon, SmartphoneIcon, TabletIcon } from "lucide-react";
+import type { LucideIcon } from "lucide-react";
 import { memo, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import type { Ref } from "react";
 
@@ -9,6 +12,12 @@ import { ResponsiveAside } from "./aside";
 import { Resizable } from "./resizable";
 
 const WIDTH_BY_SIZE = { full: 1392, md: 720, sm: 360 } satisfies Record<DefaultSize, number>;
+
+const SIZE_PRESETS: { size: DefaultSize; label: string; Icon: LucideIcon }[] = [
+  { Icon: SmartphoneIcon, label: "Phone width", size: "sm" },
+  { Icon: TabletIcon, label: "Tablet width", size: "md" },
+  { Icon: MonitorIcon, label: "Full width", size: "full" },
+];
 
 const KEY_DELTA = new Map<string, 1 | -1>([
   ["ArrowDown", 1],
@@ -42,6 +51,7 @@ const FeedItemBase = ({ ref, component, active, shouldRender, keepMounted }: Fee
     component.type === "remote" ? component.iframeUrl : `/preview-frame/${component.slug}`;
 
   const [width, setWidth] = useState(WIDTH_BY_SIZE[component.defaultSize ?? "md"]);
+  const preset = SIZE_PRESETS.find((p) => WIDTH_BY_SIZE[p.size] === width)?.size ?? null;
 
   // Off-screen panes stay mounted for instant scrolling but must not take focus.
   return (
@@ -49,10 +59,10 @@ const FeedItemBase = ({ ref, component, active, shouldRender, keepMounted }: Fee
       ref={ref}
       data-slug={component.slug}
       inert={!active}
-      className="flex h-full snap-start snap-always items-center justify-center px-3 pb-2"
+      className="flex h-full snap-start snap-always flex-col items-center gap-2 px-3 pb-2"
     >
       <Resizable
-        className="h-full"
+        className="min-h-0 flex-1"
         width={width}
         minWidth={WIDTH_BY_SIZE.sm}
         maxWidth={WIDTH_BY_SIZE.full}
@@ -65,6 +75,35 @@ const FeedItemBase = ({ ref, component, active, shouldRender, keepMounted }: Fee
           />
         </div>
       </Resizable>
+      {/* Presets sit below the frame; the drag handles cover in-between widths, in which
+          case no preset is active and the indicator hides. Both are desktop-only. */}
+      <Tabs
+        value={preset}
+        onValueChange={(next) => {
+          const match = SIZE_PRESETS.find((p) => p.size === next);
+          if (match) {
+            setWidth(WIDTH_BY_SIZE[match.size]);
+          }
+        }}
+        className="hidden md:flex"
+      >
+        <TabsList
+          aria-label="Preview width"
+          className="bg-background relative flex h-fit items-center gap-0.5 rounded-full border p-0.5 shadow-xs"
+        >
+          <TabsIndicator className="bg-accent rounded-full shadow-none" />
+          {SIZE_PRESETS.map(({ size, label, Icon }) => (
+            <TabsTrigger
+              key={size}
+              value={size}
+              aria-label={label}
+              className="text-muted-foreground data-active:text-foreground relative size-7 rounded-full border-0 p-0"
+            >
+              <Icon className="size-4" />
+            </TabsTrigger>
+          ))}
+        </TabsList>
+      </Tabs>
     </section>
   );
 };

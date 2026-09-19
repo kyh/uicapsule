@@ -1,8 +1,7 @@
 {
   "name": "Emerald",
   "addedAt": "2025-09-10",
-  "coverUrl": "https://zmdrwswxugswzmcokvff.supabase.co/storage/v1/object/public/uicapsule/prompt-animation/prompt-animation.mp4",
-  "coverType": "video",
+  "cover": "prompt-animation/prompt-animation.mp4",
   "defaultSize": "full",
   "tags": ["pages", "minimal"]
 }

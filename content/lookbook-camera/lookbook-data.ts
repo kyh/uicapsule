@@ -11,7 +11,7 @@
  */
 
 const LOOK_IMAGE_BASE =
-  "https://zmdrwswxugswzmcokvff.supabase.co/storage/v1/object/public/uicapsule/lookbook-camera/looks";
+  "https://d24l2zb4cwkekfpl.public.blob.vercel-storage.com/lookbook-camera/looks";
 
 export type ItemCategory = "Outerwear" | "Knitwear" | "Tops" | "Trousers" | "Skirt" | "Footwear";
 

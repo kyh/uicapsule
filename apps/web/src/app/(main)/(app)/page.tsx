@@ -4,6 +4,7 @@ import { contentElements, contentStyles } from "@/lib/content/content-categories
 import type { ContentFilter } from "@/lib/content/content-categories";
 import { Button } from "@repo/ui/components/button";
 
+import { resolveCover } from "@/lib/assets";
 import { getContentList, getFilterCounts } from "@/lib/content-data";
 import type { GalleryFilter } from "@/lib/content-data";
 import { ContentPreview, ContentPreviewSkeleton } from "./_components/content-preview";
@@ -98,8 +99,7 @@ const ContentList = async ({ searchParams }: PageProps) => {
       index={index}
       tags={c.tags}
       isNew={c.isNew}
-      coverUrl={c.coverUrl}
-      coverType={c.coverType}
+      cover={resolveCover(c.cover)}
     />
   ));
 };
