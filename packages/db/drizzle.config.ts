@@ -2,7 +2,8 @@ import type { Config } from "drizzle-kit";
 
 export default {
   dbCredentials: {
-    authToken: process.env.TURSO_AUTH_TOKEN,
+    // drizzle-kit rejects an empty token, which is what .env.example ships for local turso dev.
+    authToken: process.env.TURSO_AUTH_TOKEN || undefined,
     url: process.env.TURSO_DATABASE_URL ?? "",
   },
   dialect: "turso",
