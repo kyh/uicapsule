@@ -1,6 +1,7 @@
 import { db } from "@repo/db/drizzle-client";
 import { betterAuth } from "better-auth";
-import { drizzleAdapter } from "better-auth/adapters/drizzle";
+// relations-v2, not better-auth's default re-export: the default entry reads `db._.fullSchema`, gone in drizzle 1.0; relations-v2 reads `db._.relations`.
+import { drizzleAdapter } from "@better-auth/drizzle-adapter/relations-v2";
 
 import { sendPasswordResetEmail } from "./password-reset-email";
 
