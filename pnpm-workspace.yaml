@@ -6,8 +6,8 @@ packages:
 catalog:
   "@base-ui/react": ^1.8.0
   "@better-auth/cli": ^1.4.21
-  # Exact, in lockstep with better-auth: auth.ts imports its relations-v2 entry directly.
-  "@better-auth/drizzle-adapter": 1.7.2
+  # In lockstep with better-auth: auth.ts imports its relations-v2 entry directly.
+  "@better-auth/drizzle-adapter": ^1.7.5
   "@kyh/tsconfig": ^1.2.0
   "@orpc/client": 2.0.0-beta.31
   "@orpc/server": 2.0.0-beta.31
@@ -20,10 +20,7 @@ catalog:
   "@types/react": ^19.3.0
   "@types/react-dom": ^19.3.0
   "@vitejs/plugin-react": ^5.2.0
-  # 1.7.3+ drops account.issuer, which the auth schema requires NOT NULL with a
-  # unique (issuer, accountId) index; every account insert fails until the schema
-  # and the production database move together.
-  better-auth: 1.7.2
+  better-auth: ^1.7.5
   cn: ^0.3.0
   drizzle-orm: 1.0.0-rc.4
   next: ^16.3.5
@@ -36,11 +33,6 @@ catalog:
   zod: ^4.6.5
 
 linkWorkspacePackages: true
-
-overrides:
-  # The directly-installed drizzle adapter otherwise resolves its core peer to the
-  # newest 1.7.x, giving auth two core instances.
-  "@better-auth/core": 1.7.2
 
 allowBuilds:
   # Unused optional peer of @better-auth/cli; this repo is on drizzle.

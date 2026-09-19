@@ -1,5 +1,5 @@
 import { sql } from "drizzle-orm";
-import { sqliteTable, text, integer, index, uniqueIndex } from "drizzle-orm/sqlite-core";
+import { sqliteTable, text, integer, index } from "drizzle-orm/sqlite-core";
 
 export const user = sqliteTable("user", {
   createdAt: integer("created_at", { mode: "timestamp_ms" })
@@ -44,14 +44,12 @@ export const account = sqliteTable(
     accessTokenExpiresAt: integer("access_token_expires_at", {
       mode: "timestamp_ms",
     }),
-    // better-auth scopes account identity by (issuer, accountId), including credentials.
     accountId: text("account_id").notNull(),
     createdAt: integer("created_at", { mode: "timestamp_ms" })
       .default(sql`(cast(unixepoch('subsecond') * 1000 as integer))`)
       .notNull(),
     id: text("id").primaryKey(),
     idToken: text("id_token"),
-    issuer: text("issuer").notNull(),
     password: text("password"),
     providerId: text("provider_id").notNull(),
     refreshToken: text("refresh_token"),
@@ -66,10 +64,7 @@ export const account = sqliteTable(
       .notNull()
       .references(() => user.id, { onDelete: "cascade" }),
   },
-  (table) => [
-    index("account_userId_idx").on(table.userId),
-    uniqueIndex("account_issuer_accountId_uidx").on(table.issuer, table.accountId),
-  ],
+  (table) => [index("account_userId_idx").on(table.userId)],
 );
 
 export const verification = sqliteTable(
