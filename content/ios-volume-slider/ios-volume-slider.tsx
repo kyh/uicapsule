@@ -8,15 +8,15 @@ const TRACK_HEIGHT = 200;
 const OVERSCROLL = 50;
 
 /** Sigmoid falloff: maps unbounded overshoot into (-max, max). */
-function decay(value: number, max: number) {
+const decay = (value: number, max: number) => {
   const entry = value / max;
   const sigmoid = 2 / (1 + Math.exp(-entry)) - 1;
   const exit = sigmoid * max;
 
   return exit;
-}
+};
 
-export function Volume() {
+export const Volume = () => {
   const [value, setValue] = useState([0]);
   const [position, setPosition] = useState<"top" | "middle" | "bottom">("middle");
 
@@ -26,7 +26,9 @@ export function Volume() {
   const ref = useRef<HTMLDivElement>(null);
 
   useMotionValueEvent(clientY, "change", (latestValue) => {
-    if (!ref.current) return;
+    if (!ref.current) {
+      return;
+    }
 
     const overflow = latestValue - ref.current.getBoundingClientRect().top;
 
@@ -71,7 +73,7 @@ export function Volume() {
             }
           }}
           onLostPointerCapture={() => {
-            animate(y, 1, { type: "spring", bounce: 0.5 });
+            animate(y, 1, { bounce: 0.5, type: "spring" });
           }}
         >
           <Slider.Track className="relative w-full grow overflow-hidden rounded-xl bg-neutral-800">
@@ -88,4 +90,4 @@ export function Volume() {
       </div>
     </div>
   );
-}
+};

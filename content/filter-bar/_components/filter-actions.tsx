@@ -8,14 +8,12 @@ interface FilterActionsProps {
   actions?: DataTableFilterActions;
 }
 
-export function FilterActions({ hasFilters, actions }: FilterActionsProps) {
-  return (
-    <Button
-      className={cn("text-(--muted-foreground) h-7 px-2 font-normal", !hasFilters && "hidden")}
-      variant="ghost"
-      onClick={() => actions?.removeAllFilters()}
-    >
-      clear
-    </Button>
-  );
-}
+export const FilterActions = ({ hasFilters, actions }: FilterActionsProps) => (
+  <Button
+    className={cn("text-(--muted-foreground) h-7 px-2 font-normal", !hasFilters && "hidden")}
+    variant="ghost"
+    onClick={() => actions?.removeAllFilters()}
+  >
+    clear
+  </Button>
+);

@@ -78,7 +78,7 @@ CI runs the same gate on every push and pull request using local test configurat
 - Typecheck covers the app, packages, scripts, and each of the 39 code-bearing content
   packages independently, including each preview's default export. Previews must render
   without required props. `pnpm typecheck:content <slug>` checks one component.
-- Lint warnings fail the gate. Explicit `any`, non-null assertions, and type casts fail too.
+- Lint is a clean gate. `oxlint.config.ts` extends the ultracite presets (`ultracite/oxlint/core`, `react`, `next`, `anti-slop`); every rule is an error, including explicit `any`, non-null assertions, and type casts. `no-await-in-loop` is the one deliberate override. Prefer fixing code over `oxlint-disable` comments; when a rule is genuinely wrong for a line, disable that line with a `-- reason`.
   Next.js-only rules apply to the app; content stays portable.
 - Tests cover auth schema/cookies/reset, RPC transport, content filesystem/registry behavior,
   and the standalone-content guard. Changed visual behavior still needs a browser check.
@@ -88,7 +88,7 @@ package manifests, and imports. Private workspace imports and paths escaping the
 fail the build. Do not remove this guard.
 
 Runtime — drive the real UI with [agent-browser](https://github.com/vercel-labs/agent-browser)
-(installed globally: `npm i -g agent-browser && agent-browser install`):
+(installed globally: `npm i -g agent-browser && agent-browser install`; ≥ 0.37 for `record --fps 60`):
 
 ```sh
 agent-browser open http://localhost:3000/
@@ -112,15 +112,15 @@ agent-browser network requests --filter sign-in   # expect 200; a 403 means the 
 
 The routes worth checking, and what each proves:
 
-| Route                    | Proves                                                |
-| ------------------------ | ----------------------------------------------------- |
-| `/`                      | gallery grid, filters, search (`⌘K`)                  |
-| `/ui/<slug>`             | detail page, live preview iframe, source-code drawer  |
-| `/preview-frame/<slug>`  | the bare preview — what the cover-video skill records |
-| `/r/<slug>.json`         | shadcn registry item (external CLI contract)          |
-| `/r/registry.json`       | the full registry index                               |
-| `/api/content/<slug>`    | source payload behind the drawer + zip download       |
-| `/about`, `/inspiration` | static pages                                          |
+| Route                   | Proves                                                |
+| ----------------------- | ----------------------------------------------------- |
+| `/`                     | gallery grid, filters, search (`⌘K`)                  |
+| `/ui/<slug>`            | detail page, live preview iframe, source-code drawer  |
+| `/preview-frame/<slug>` | the bare preview — what the cover-video skill records |
+| `/r/<slug>.json`        | shadcn registry item (external CLI contract)          |
+| `/r/registry.json`      | the full registry index                               |
+| `/api/content/<slug>`   | source payload behind the drawer + zip download       |
+| `/about`, `/request`    | static page; request form → GitHub issue              |
 
 **Before reporting a visual bug in a brand-new component, clear the Turbopack cache.** Its
 persistent cache freezes the Tailwind `@source` glob, so classes that exist only in a newly
@@ -140,7 +140,12 @@ pnpm check:content        # fail if any content/<slug> is not loadable
 Two committed skills own the full lifecycles and both shell out to `agent-browser`:
 
 - `.claude/skills/build-content` — idea → scaffold → build → record → PR
-- `.claude/skills/cover-video` — record, verify, upload to Supabase, wire into `meta.json`
+- `.claude/skills/cover-video` — record, verify, upload to Blob, wire into `meta.json`
+- `.claude/skills/build-requests` — drain `ready`-labelled request issues through both of
+  the above, one PR per issue, `Closes #n`. Meant for a local daily schedule.
+
+Requests arrive as GitHub issues labelled `request`, from `/request` (oRPC → GitHub API,
+`GITHUB_ISSUES_TOKEN`) or the `component-request.yml` template. Apply `ready` to accept.
 
 Content packages **must not** import from `apps/web` or `packages/*`. The registry serves
 their source verbatim — `content-fs.ts` does no import rewriting and hardcodes
@@ -168,12 +173,11 @@ Web is the only surface. There is no mobile, desktop, or extension target.
 - **`pnpm db:push-remote` writes production Turso.** Never run it locally. `pnpm db:push`
   is the local one.
 - Env vars read at build time must be listed in `turbo.json` `globalEnv`, or turbo's strict
-  env mode strips them from the task with no error. `NEXT_PUBLIC_SUPABASE_URL` was missing
-  from it until recently: `next.config.js` reads it to build `images.remotePatterns`, so
-  without it that list is empty and `next/image` rejects every Supabase-hosted cover. Not
-  yet load-bearing — every cover in the repo today is `coverType: "video"` (28 of 40 slugs;
-  the other 12 have no cover), and video bypasses `next/image` — but it bites the first time
-  a `meta.json` uses `coverType: "image"`.
+  env mode strips them from the task with no error. `NEXT_PUBLIC_ASSETS_URL` is the one that
+  bites: `next.config.ts` reads it to build `images.remotePatterns`, every `meta.json`
+  `cover` key and every content package that references bucket media resolves against it,
+  and `apps/web/src/lib/assets.ts` throws at import when it is unset so the failure is loud
+  rather than a page of broken media.
 
 ## Map
 

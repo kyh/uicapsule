@@ -1,14 +1,14 @@
-import { type ReactNode } from "react";
+import type { ReactNode } from "react";
 import { cn } from "cn";
 
 import { HighlightCard } from "./highlight-card";
 
 const cardGridProps = {
-  y: -6,
   squares: [
     [-1, 2],
     [1, 3],
   ],
+  y: -6,
 };
 
 export const HomeCard = ({
@@ -25,24 +25,22 @@ export const HomeCard = ({
   inline?: boolean;
   pattern?: ReactNode;
   children?: ReactNode;
-}) => {
-  return (
-    <HighlightCard className={cn("grow", className)} pattern={pattern} gridProps={cardGridProps}>
-      <div
-        className={cn(
-          "flex h-full items-center gap-5 text-center lg:gap-8 lg:text-start",
-          inline ? "flex-col" : "flex-col lg:flex-row",
-        )}
-      >
-        <div className="flex min-w-[300px] shrink-0 flex-col gap-2 lg:gap-5">
-          <h3 className="text-xl font-semibold sm:text-2xl">{title}</h3>
-          <div className="text-start text-sm text-zinc-300 sm:text-base">{description}</div>
-        </div>
-        {children}
+}) => (
+  <HighlightCard className={cn("grow", className)} pattern={pattern} gridProps={cardGridProps}>
+    <div
+      className={cn(
+        "flex h-full items-center gap-5 text-center lg:gap-8 lg:text-start",
+        inline ? "flex-col" : "flex-col lg:flex-row",
+      )}
+    >
+      <div className="flex min-w-[300px] shrink-0 flex-col gap-2 lg:gap-5">
+        <h3 className="text-xl font-semibold sm:text-2xl">{title}</h3>
+        <div className="text-start text-sm text-zinc-300 sm:text-base">{description}</div>
       </div>
-    </HighlightCard>
-  );
-};
+      {children}
+    </div>
+  </HighlightCard>
+);
 
 export const HomeCardDescriptionList = ({ points }: { points: string[] }) => (
   <ul className="flex flex-col gap-1">

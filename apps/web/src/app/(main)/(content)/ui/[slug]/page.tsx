@@ -3,32 +3,20 @@ import { notFound } from "next/navigation";
 
 import { ContentFeed } from "@/app/(main)/(content)/_components/content-feed";
 import { MediaReveal } from "@/components/media-reveal";
-import { getAllContent, getFeedList } from "@/lib/content-data";
+import { getAllContent } from "@/lib/content-data";
 
-type Props = {
+interface Props {
   params: Promise<{ slug: string }>;
-};
+}
 
 export const generateStaticParams = async () => {
   const all = await getAllContent();
   return all.map((c) => ({ slug: c.slug }));
 };
 
-const Page = ({ params }: Props) => {
-  return (
-    <main className="relative flex h-[calc(100dvh-(--spacing(16)))] justify-center">
-      <Suspense fallback={<ContentFeedSkeleton />}>
-        <Content params={params} />
-      </Suspense>
-    </main>
-  );
-};
-
-export default Page;
-
 const Content = async ({ params }: Props) => {
   const { slug } = await params;
-  const feed = await getFeedList(slug);
+  const feed = await getAllContent();
   if (!feed.some((c) => c.slug === slug)) {
     notFound();
   }
@@ -41,3 +29,13 @@ const ContentFeedSkeleton = () => (
     <MediaReveal className="mx-auto h-full w-full max-w-[720px] rounded-md" />
   </div>
 );
+
+const Page = ({ params }: Props) => (
+  <main className="relative flex h-[calc(100dvh-(--spacing(16)))] justify-center">
+    <Suspense fallback={<ContentFeedSkeleton />}>
+      <Content params={params} />
+    </Suspense>
+  </main>
+);
+
+export default Page;

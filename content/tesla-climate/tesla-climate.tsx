@@ -10,8 +10,12 @@ const MIN_TEMP = 60;
 const MAX_TEMP = 80;
 
 const tempLabel = (tempF: number) => {
-  if (tempF <= MIN_TEMP) return "LO";
-  if (tempF >= MAX_TEMP) return "HI";
+  if (tempF <= MIN_TEMP) {
+    return "LO";
+  }
+  if (tempF >= MAX_TEMP) {
+    return "HI";
+  }
   return String(tempF);
 };
 

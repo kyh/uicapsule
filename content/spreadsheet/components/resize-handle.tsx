@@ -1,9 +1,9 @@
 "use client";
 
-import { useRef, useState, type MouseEvent as ReactMouseEvent, type RefObject } from "react";
+import { useRef, useState } from "react";
+import type { MouseEvent as ReactMouseEvent, RefObject, Ref } from "react";
 import { cn } from "cn";
 
-import type { Ref } from "react";
 import { MIN_COLUMN_WIDTH } from "../lib/spreadsheet-utils";
 
 /** Half the handle's hit width, so the drag line sits centred on it. */
@@ -62,9 +62,9 @@ export const ResizeHandle = ({
     const widthForClientX = (clientX: number) =>
       Math.max(MIN_COLUMN_WIDTH, startWidthRef.current + (clientX - startXRef.current));
 
-    const handleMouseMove = (e: MouseEvent) => {
-      currentMouseXRef.current = e.clientX;
-      const dragX = columnStartXRef.current + widthForClientX(e.clientX) - DRAG_LINE_OFFSET;
+    const handleMouseMove = (event: MouseEvent) => {
+      currentMouseXRef.current = event.clientX;
+      const dragX = columnStartXRef.current + widthForClientX(event.clientX) - DRAG_LINE_OFFSET;
 
       if (dragLineRef.current) {
         dragLineRef.current.style.left = `${dragX}px`;
@@ -86,6 +86,7 @@ export const ResizeHandle = ({
   return (
     <div
       ref={ref}
+      role="presentation"
       className={cn(
         "hover:bg-(--primary)/50 dark:hover:bg-(--primary)/60 absolute top-0 right-0 h-full w-1 cursor-col-resize transition-colors",
         isResizing && "bg-(--primary) dark:bg-(--primary)/80",

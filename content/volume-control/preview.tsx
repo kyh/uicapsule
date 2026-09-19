@@ -8,11 +8,11 @@ import type { VolumeVariant } from "./volume-control";
 import { VolumeControl } from "./volume-control";
 
 const VARIANTS: { value: VolumeVariant; label: string }[] = [
-  { value: "tilt", label: "Tilt" },
-  { value: "cannon", label: "Cannon" },
-  { value: "curling", label: "Curling" },
-  { value: "dots", label: "Dots" },
-  { value: "plus-minus", label: "+/− game" },
+  { label: "Tilt", value: "tilt" },
+  { label: "Cannon", value: "cannon" },
+  { label: "Curling", value: "curling" },
+  { label: "Dots", value: "dots" },
+  { label: "+/− game", value: "plus-minus" },
 ];
 
 const isVariant = (value: string): value is VolumeVariant =>
@@ -29,7 +29,9 @@ const Preview = () => {
           aria-label="Variation"
           value={variant}
           onChange={(event) => {
-            if (isVariant(event.target.value)) setVariant(event.target.value);
+            if (isVariant(event.target.value)) {
+              setVariant(event.target.value);
+            }
           }}
           className="appearance-none bg-transparent py-1.5 pr-7 pl-3 text-xs text-neutral-400 outline-none"
         >

@@ -1,6 +1,6 @@
 import type { LucideIcon } from "lucide-react";
 
-export type Person = {
+export interface Person {
   id: string;
   firstName: string;
   lastName: string;
@@ -21,44 +21,45 @@ export type Person = {
   experience: number;
   education: PersonEducation;
   performance: PersonPerformance;
-};
+}
 
-export type PersonGender = {
+export interface PersonGender {
   id: "male" | "female" | "non-binary" | "other";
   name: string;
   order: number;
   icon: LucideIcon;
-};
+}
 
-export type PersonDepartment = {
+export interface PersonDepartment {
   id: string;
   name: string;
   color: string;
-};
+}
 
-export type PersonSkill = {
+export interface PersonSkill {
   id: string;
   name: string;
   level: "beginner" | "intermediate" | "advanced" | "expert";
   color: string;
-};
+}
 
-export type PersonLocation = {
+export interface PersonLocation {
   city: string;
   state: string;
   country: string;
   timezone: string;
-};
+}
 
-export type PersonEducation = {
+export interface PersonEducation {
   degree: string;
   field: string;
   institution: string;
   graduationYear: number;
-};
+}
 
-export type PersonPerformance = {
-  rating: number; // 1-5
+export interface PersonPerformance {
+  // 1-5
+  rating: number;
   lastReview: Date;
   goals: string[];
-};
+}

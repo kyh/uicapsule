@@ -6,10 +6,10 @@ interface FilterSubjectProps<TType extends ColumnDataType> {
   entityName?: string;
 }
 
-export function FilterSubject<TType extends ColumnDataType>({
+export const FilterSubject = <TType extends ColumnDataType>({
   column,
   entityName,
-}: FilterSubjectProps<TType>) {
+}: FilterSubjectProps<TType>) => {
   const subject = column.type === "boolean" ? entityName : column.displayName;
 
   const { icon: Icon } = column;
@@ -27,4 +27,4 @@ export function FilterSubject<TType extends ColumnDataType>({
       <span>{subject}</span>
     </span>
   );
-}
+};

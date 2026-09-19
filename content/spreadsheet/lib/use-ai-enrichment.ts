@@ -36,7 +36,7 @@ const fakeData = new Map<string, () => string>([
     "email",
     () => {
       const domain = pick(["example.com", "demo.org", "test.io"]);
-      return `${Math.random().toString(36).substring(2, 15)}@${domain}`;
+      return `${Math.random().toString(36).slice(2, 15)}@${domain}`;
     },
   ],
   [
@@ -65,37 +65,39 @@ const fakeData = new Map<string, () => string>([
   ],
 ]);
 
-const createTransport = (storeApi: StoreApi<SpreadsheetStore>) => {
-  return new StaticChatTransport<CustomUIMessage>({
+const createTransport = (storeApi: StoreApi<SpreadsheetStore>) =>
+  new StaticChatTransport<CustomUIMessage>({
+    chunkDelayMs: [400, 1400],
     async *mockResponse() {
       const store = storeApi.getState();
       const { selectedCells } = store;
-      const cells = Array.from(selectedCells);
+      const cells = [...selectedCells];
 
       for (const cellKey of cells) {
         const [rowId, columnId] = cellKey.split(":");
-        if (!rowId || !columnId) continue;
+        if (!rowId || !columnId) {
+          continue;
+        }
         const generateValue = fakeData.get(columnId);
-        if (!generateValue) continue;
+        if (!generateValue) {
+          continue;
+        }
         const value = generateValue();
         store.updateData(rowId, columnId, "Generating...");
 
         yield {
+          data: { columnId, rowId, value },
           type: "data-updateCell",
-          data: { rowId, columnId, value },
         };
       }
     },
-    chunkDelayMs: [400, 1400],
   });
-};
 
 export const useAiEnrichment = () => {
   const storeApi = useSpreadsheetApi();
   const transport = useMemo(() => createTransport(storeApi), [storeApi]);
 
   const { sendMessage, status } = useChat<CustomUIMessage>({
-    transport,
     onData: (dataPart) => {
       if (dataPart.type === "data-updateCell") {
         const { rowId, columnId, value } = dataPart.data;
@@ -103,6 +105,7 @@ export const useAiEnrichment = () => {
         store.updateData(rowId, columnId, value);
       }
     },
+    transport,
   });
 
   const handleEnrich = useCallback(() => {

@@ -41,7 +41,7 @@ import {
 export const CHIBI_VARIANTS = ["pip", "momo", "fifi", "kiki"] as const;
 export type ChibiVariant = (typeof CHIBI_VARIANTS)[number];
 
-export type ChibiPlantsProps = {
+export interface ChibiPlantsProps {
   /** Which plant character to show. Switching morphs the SDF surface. @default "pip" */
   variant?: ChibiVariant;
   /** Override the pot color (CSS hex). Defaults to the variant's palette. */
@@ -65,7 +65,7 @@ export type ChibiPlantsProps = {
   /** Raymarch step count (read once at mount). Lower on weak GPUs. @default 80 */
   raySteps?: number;
   className?: string;
-};
+}
 
 /** Morphable SDF + face parameters. Every key is spring-lerped, so any two
  * variants (or user tweaks) blend as one continuous surface deformation.
@@ -98,129 +98,137 @@ const PARAM_KEYS = [
 ] as const;
 type PlantParams = Record<(typeof PARAM_KEYS)[number], number>;
 
-type Palette = { body: string; leaf: string; pot: string };
-type VariantDef = { label: string; params: PlantParams; palette: Palette };
+interface Palette {
+  body: string;
+  leaf: string;
+  pot: string;
+}
+interface VariantDef {
+  label: string;
+  params: PlantParams;
+  palette: Palette;
+}
 
 export const VARIANTS = {
-  pip: {
-    label: "Pip",
-    params: {
-      bodyR: 0.34,
-      squash: 0.96,
-      stemH: 0.3,
-      l0s: 1,
-      l0yaw: 1.57,
-      l0tilt: 0.95,
-      l0len: 0.17,
-      l0wid: 0.1,
-      l1s: 1,
-      l1yaw: -1.57,
-      l1tilt: 0.95,
-      l1len: 0.17,
-      l1wid: 0.1,
-      l2s: 0.001,
-      l2yaw: 0,
-      l2tilt: 0.5,
-      l2len: 0.12,
-      l2wid: 0.08,
-      armS: 0.001,
-      eyeR: 0.155,
-      eyeSep: 0.27,
-      eyeY: 0.06,
-      mouthW: 0.8,
-      cheek: 0.8,
-    },
-    palette: { body: "#9fd6a3", leaf: "#67b26f", pot: "#d98b71" },
-  },
-  momo: {
-    label: "Momo",
-    params: {
-      bodyR: 0.43,
-      squash: 0.78,
-      stemH: 0.04,
-      l0s: 0.85,
-      l0yaw: 0.3,
-      l0tilt: 0.55,
-      l0len: 0.15,
-      l0wid: 0.09,
-      l1s: 0.001,
-      l1yaw: -1.57,
-      l1tilt: 0.9,
-      l1len: 0.12,
-      l1wid: 0.08,
-      l2s: 0.001,
-      l2yaw: 1.57,
-      l2tilt: 0.9,
-      l2len: 0.12,
-      l2wid: 0.08,
-      armS: 0.001,
-      eyeR: 0.185,
-      eyeSep: 0.3,
-      eyeY: 0.02,
-      mouthW: 0.55,
-      cheek: 1,
-    },
-    palette: { body: "#f2a7bb", leaf: "#7cbf80", pot: "#ead9c8" },
-  },
   fifi: {
     label: "Fifi",
+    palette: { body: "#7cc487", leaf: "#4e9e63", pot: "#e8e3da" },
     params: {
-      bodyR: 0.34,
-      squash: 1.12,
-      stemH: 0.12,
-      l0s: 1,
-      l0yaw: 0,
-      l0tilt: 0.85,
-      l0len: 0.24,
-      l0wid: 0.12,
-      l1s: 1,
-      l1yaw: 2.1,
-      l1tilt: 1.1,
-      l1len: 0.22,
-      l1wid: 0.11,
-      l2s: 1,
-      l2yaw: -2.1,
-      l2tilt: 1.1,
-      l2len: 0.22,
-      l2wid: 0.11,
       armS: 0.001,
+      bodyR: 0.34,
+      cheek: 0.55,
       eyeR: 0.15,
       eyeSep: 0.33,
       eyeY: 0.22,
+      l0len: 0.24,
+      l0s: 1,
+      l0tilt: 0.85,
+      l0wid: 0.12,
+      l0yaw: 0,
+      l1len: 0.22,
+      l1s: 1,
+      l1tilt: 1.1,
+      l1wid: 0.11,
+      l1yaw: 2.1,
+      l2len: 0.22,
+      l2s: 1,
+      l2tilt: 1.1,
+      l2wid: 0.11,
+      l2yaw: -2.1,
       mouthW: 1,
-      cheek: 0.55,
+      squash: 1.12,
+      stemH: 0.12,
     },
-    palette: { body: "#7cc487", leaf: "#4e9e63", pot: "#e8e3da" },
   },
   kiki: {
     label: "Kiki",
+    palette: { body: "#7fae72", leaf: "#f193b4", pot: "#e2986a" },
     params: {
-      bodyR: 0.32,
-      squash: 1.5,
-      stemH: 0.03,
-      l0s: 0.7,
-      l0yaw: 0,
-      l0tilt: 0.15,
-      l0len: 0.12,
-      l0wid: 0.08,
-      l1s: 0.001,
-      l1yaw: -1.57,
-      l1tilt: 0.9,
-      l1len: 0.1,
-      l1wid: 0.07,
-      l2s: 0.001,
-      l2yaw: 1.57,
-      l2tilt: 0.9,
-      l2len: 0.1,
-      l2wid: 0.07,
       armS: 1,
+      bodyR: 0.32,
+      cheek: 0.7,
       eyeR: 0.17,
       eyeSep: 0.27,
       eyeY: 0.12,
+      l0len: 0.12,
+      l0s: 0.7,
+      l0tilt: 0.15,
+      l0wid: 0.08,
+      l0yaw: 0,
+      l1len: 0.1,
+      l1s: 0.001,
+      l1tilt: 0.9,
+      l1wid: 0.07,
+      l1yaw: -1.57,
+      l2len: 0.1,
+      l2s: 0.001,
+      l2tilt: 0.9,
+      l2wid: 0.07,
+      l2yaw: 1.57,
       mouthW: 0.7,
-      cheek: 0.7,
+      squash: 1.5,
+      stemH: 0.03,
     },
-    palette: { body: "#7fae72", leaf: "#f193b4", pot: "#e2986a" },
+  },
+  momo: {
+    label: "Momo",
+    palette: { body: "#f2a7bb", leaf: "#7cbf80", pot: "#ead9c8" },
+    params: {
+      armS: 0.001,
+      bodyR: 0.43,
+      cheek: 1,
+      eyeR: 0.185,
+      eyeSep: 0.3,
+      eyeY: 0.02,
+      l0len: 0.15,
+      l0s: 0.85,
+      l0tilt: 0.55,
+      l0wid: 0.09,
+      l0yaw: 0.3,
+      l1len: 0.12,
+      l1s: 0.001,
+      l1tilt: 0.9,
+      l1wid: 0.08,
+      l1yaw: -1.57,
+      l2len: 0.12,
+      l2s: 0.001,
+      l2tilt: 0.9,
+      l2wid: 0.08,
+      l2yaw: 1.57,
+      mouthW: 0.55,
+      squash: 0.78,
+      stemH: 0.04,
+    },
+  },
+  pip: {
+    label: "Pip",
+    palette: { body: "#9fd6a3", leaf: "#67b26f", pot: "#d98b71" },
+    params: {
+      armS: 0.001,
+      bodyR: 0.34,
+      cheek: 0.8,
+      eyeR: 0.155,
+      eyeSep: 0.27,
+      eyeY: 0.06,
+      l0len: 0.17,
+      l0s: 1,
+      l0tilt: 0.95,
+      l0wid: 0.1,
+      l0yaw: 1.57,
+      l1len: 0.17,
+      l1s: 1,
+      l1tilt: 0.95,
+      l1wid: 0.1,
+      l1yaw: -1.57,
+      l2len: 0.12,
+      l2s: 0.001,
+      l2tilt: 0.5,
+      l2wid: 0.08,
+      l2yaw: 0,
+      mouthW: 0.8,
+      squash: 0.96,
+      stemH: 0.3,
+    },
   },
 } satisfies Record<ChibiVariant, VariantDef>;
 
@@ -246,29 +254,29 @@ export const ChibiPlants = ({
   const containerRef = useRef<HTMLDivElement>(null);
   // Live tuning values, read every frame by the render loop.
   const tuningRef = useRef({
-    variant,
-    potColor,
-    bodyColor,
-    leafColor,
-    cheekColor,
     background,
+    bodyColor,
+    cheekColor,
     eyeScale,
     gaze,
-    wobble,
+    leafColor,
+    potColor,
     speed,
+    variant,
+    wobble,
   });
   useEffect(() => {
     tuningRef.current = {
-      variant,
-      potColor,
-      bodyColor,
-      leafColor,
-      cheekColor,
       background,
+      bodyColor,
+      cheekColor,
       eyeScale,
       gaze,
-      wobble,
+      leafColor,
+      potColor,
       speed,
+      variant,
+      wobble,
     };
   }, [
     variant,
@@ -286,7 +294,9 @@ export const ChibiPlants = ({
 
   useEffect(() => {
     const container = containerRef.current;
-    if (!container) return;
+    if (!container) {
+      return;
+    }
     let disposed = false;
     let raf = 0;
 
@@ -324,30 +334,30 @@ export const ChibiPlants = ({
     const uCheekC = uniform(new THREE.Color(initialTuning.cheekColor));
 
     const uParams = {
-      bodyR: uniform(initialParams.bodyR),
-      squash: uniform(initialParams.squash),
-      stemH: uniform(initialParams.stemH),
-      l0s: uniform(initialParams.l0s),
-      l0yaw: uniform(initialParams.l0yaw),
-      l0tilt: uniform(initialParams.l0tilt),
-      l0len: uniform(initialParams.l0len),
-      l0wid: uniform(initialParams.l0wid),
-      l1s: uniform(initialParams.l1s),
-      l1yaw: uniform(initialParams.l1yaw),
-      l1tilt: uniform(initialParams.l1tilt),
-      l1len: uniform(initialParams.l1len),
-      l1wid: uniform(initialParams.l1wid),
-      l2s: uniform(initialParams.l2s),
-      l2yaw: uniform(initialParams.l2yaw),
-      l2tilt: uniform(initialParams.l2tilt),
-      l2len: uniform(initialParams.l2len),
-      l2wid: uniform(initialParams.l2wid),
       armS: uniform(initialParams.armS),
+      bodyR: uniform(initialParams.bodyR),
+      cheek: uniform(initialParams.cheek),
       eyeR: uniform(initialParams.eyeR),
       eyeSep: uniform(initialParams.eyeSep),
       eyeY: uniform(initialParams.eyeY),
+      l0len: uniform(initialParams.l0len),
+      l0s: uniform(initialParams.l0s),
+      l0tilt: uniform(initialParams.l0tilt),
+      l0wid: uniform(initialParams.l0wid),
+      l0yaw: uniform(initialParams.l0yaw),
+      l1len: uniform(initialParams.l1len),
+      l1s: uniform(initialParams.l1s),
+      l1tilt: uniform(initialParams.l1tilt),
+      l1wid: uniform(initialParams.l1wid),
+      l1yaw: uniform(initialParams.l1yaw),
+      l2len: uniform(initialParams.l2len),
+      l2s: uniform(initialParams.l2s),
+      l2tilt: uniform(initialParams.l2tilt),
+      l2wid: uniform(initialParams.l2wid),
+      l2yaw: uniform(initialParams.l2yaw),
       mouthW: uniform(initialParams.mouthW),
-      cheek: uniform(initialParams.cheek),
+      squash: uniform(initialParams.squash),
+      stemH: uniform(initialParams.stemH),
     };
 
     // ---- TSL node helpers --------------------------------------------------
@@ -393,7 +403,7 @@ export const ChibiPlants = ({
       const pitch = uLook.y
         .mul(uGaze.mul(0.38))
         .add(sin(uTime.mul(0.83).add(1.7)).mul(0.05).mul(uWobble));
-      return { yaw: yaw.toVar(), pitch: pitch.toVar() };
+      return { pitch: pitch.toVar(), yaw: yaw.toVar() };
     };
 
     // Transform a world point into the plant's head-local space (body center
@@ -492,7 +502,7 @@ export const ChibiPlants = ({
         armR,
       ).toVar();
 
-      return { dBody, dGreen, dArm };
+      return { dArm, dBody, dGreen };
     };
 
     const sceneSdf = (p: Point, yaw: Scalar, pitch: Scalar) => {
@@ -706,7 +716,9 @@ export const ChibiPlants = ({
     const cur = { ...initialParams };
     const vel = { ...initialParams };
     const target = { ...initialParams };
-    for (const key of PARAM_KEYS) vel[key] = 0;
+    for (const key of PARAM_KEYS) {
+      vel[key] = 0;
+    }
     const curCol = {
       body: new THREE.Color(initialBody),
       leaf: new THREE.Color(initialLeaf),
@@ -714,7 +726,7 @@ export const ChibiPlants = ({
     };
     const tgtCol = { body: new THREE.Color(), leaf: new THREE.Color(), pot: new THREE.Color() };
 
-    const look = { x: 0, y: 0, vx: 0, vy: 0, tx: 0, ty: 0.1 };
+    const look = { tx: 0, ty: 0.1, vx: 0, vy: 0, x: 0, y: 0 };
     let lastPointer = -1e4;
     let nextWander = 0;
     let blink = 0;
@@ -759,7 +771,9 @@ export const ChibiPlants = ({
 
       // Variant + prop overrides drive the morph targets.
       const v = VARIANTS[tuning.variant] ?? VARIANTS.pip;
-      for (const k of PARAM_KEYS) target[k] = v.params[k];
+      for (const k of PARAM_KEYS) {
+        target[k] = v.params[k];
+      }
       target.eyeR = v.params.eyeR * tuning.eyeScale;
       tgtCol.body.set(tuning.bodyColor ?? v.palette.body);
       tgtCol.leaf.set(tuning.leafColor ?? v.palette.leaf);
@@ -808,7 +822,9 @@ export const ChibiPlants = ({
         nextBlink = elapsed + 2 + Math.random() * 3.2 + (Math.random() < 0.18 ? -1.75 : 0);
       }
       blink += (blinkTarget - blink) * Math.min(1, dt * (blinkTarget === 1 ? 26 : 13));
-      if (blink > 0.93) blinkTarget = 0;
+      if (blink > 0.93) {
+        blinkTarget = 0;
+      }
       uBlink.value = blink;
 
       excite = Math.max(0, excite - dt * 1.4);
@@ -817,15 +833,17 @@ export const ChibiPlants = ({
       renderer.render(scene, camera);
     };
 
-    container.appendChild(renderer.domElement);
+    container.append(renderer.domElement);
     void (async () => {
       try {
         await renderer.init();
-      } catch (err) {
-        console.error("chibi-plants: renderer init failed", err);
+      } catch (error) {
+        console.error("chibi-plants: renderer init failed", error);
         return;
       }
-      if (disposed) return;
+      if (disposed) {
+        return;
+      }
       resize();
       prev = performance.now();
       raf = requestAnimationFrame(frame);

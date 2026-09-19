@@ -15,11 +15,12 @@
   "dependencies": {
     "@orpc/server": "catalog:",
     "@repo/db": "workspace:^",
-    "better-auth": "catalog:"
+    "better-auth": "catalog:",
+    "zod": "catalog:"
   },
   "devDependencies": {
     "@kyh/tsconfig": "catalog:",
-    "@types/node": "^26.4.1",
+    "@types/node": "^26.6.1",
     "drizzle-orm": "catalog:",
     "tsx": "catalog:",
     "typescript": "catalog:"

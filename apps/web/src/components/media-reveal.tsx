@@ -18,16 +18,19 @@ const useInView = (rootMargin = "200px") => {
     const io = new IntersectionObserver(
       (entries) => {
         const visible = entries.some((entry) => entry.isIntersecting);
-        setVisibility((previous) =>
-          visible ? "visible" : previous === "hidden" ? "hidden" : "seen",
-        );
+        setVisibility((previous) => {
+          if (visible) {
+            return "visible";
+          }
+          return previous === "hidden" ? "hidden" : "seen";
+        });
       },
       { rootMargin },
     );
     io.observe(el);
     return () => io.disconnect();
   }, [rootMargin]);
-  return { ref, visible: visibility === "visible", loaded: visibility !== "hidden" };
+  return { loaded: visibility !== "hidden", ref, visible: visibility === "visible" };
 };
 
 const SHIMMER_DURATION = 1.5;
@@ -36,12 +39,12 @@ const WIPE_DURATION = 0.6;
 const SHIMMER_HIGHLIGHT = "color-mix(in oklab, var(--color-foreground) 8%, transparent)";
 const SHIMMER_GRADIENT = `linear-gradient(90deg, transparent 25%, ${SHIMMER_HIGHLIGHT} 50%, transparent 75%)`;
 
-type MediaRevealProps = {
+interface MediaRevealProps {
   className?: string;
   image?: string;
   video?: string;
   iframe?: { src: string; title: string; type: "local" | "remote" };
-};
+}
 
 export const MediaReveal = ({ className, image, video, iframe }: MediaRevealProps) => {
   const { ref: rootRef, visible, loaded } = useInView();
@@ -67,18 +70,27 @@ export const MediaReveal = ({ className, image, video, iframe }: MediaRevealProp
 
   useEffect(() => {
     const element = videoRef.current;
-    if (!element) return;
+    if (!element) {
+      return;
+    }
     if (visible && !prefersReducedMotion) {
-      void element.play().catch(() => {
-        /* Playback can be interrupted by scrolling. */
-      });
+      const play = async () => {
+        try {
+          await element.play();
+        } catch {
+          /* Playback can be interrupted by scrolling. */
+        }
+      };
+      void play();
     } else {
       element.pause();
     }
   }, [visible, prefersReducedMotion]);
 
   useEffect(() => {
-    if (!shimmering) return;
+    if (!shimmering) {
+      return;
+    }
     sweep.set(-50);
     const controls = animate(sweep, 50, {
       duration: SHIMMER_DURATION,
@@ -93,7 +105,9 @@ export const MediaReveal = ({ className, image, video, iframe }: MediaRevealProp
       wipe.set(100);
       return;
     }
-    if (prefersReducedMotion) return;
+    if (prefersReducedMotion) {
+      return;
+    }
     const controls = animate(wipe, -100, {
       duration: WIPE_DURATION,
       ease: "easeInOut",
@@ -155,7 +169,7 @@ export const MediaReveal = ({ className, image, video, iframe }: MediaRevealProp
         <motion.div
           aria-hidden
           className="bg-muted pointer-events-none absolute inset-0 overflow-hidden"
-          style={{ maskImage, WebkitMaskImage: maskImage }}
+          style={{ WebkitMaskImage: maskImage, maskImage }}
         >
           <motion.div
             className="absolute inset-y-0 left-0 w-[200%]"

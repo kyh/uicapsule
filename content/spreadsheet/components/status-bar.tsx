@@ -1,6 +1,6 @@
 "use client";
 
-import { type ComponentProps } from "react";
+import type { ComponentProps } from "react";
 import { cn } from "cn";
 
 import { useSpreadsheetStore } from "../lib/spreadsheet-store";
@@ -31,7 +31,7 @@ export const StatusBarMessage = () => {
 
   if (editingCell) {
     const rowIndex = data.findIndex((row) => row.id === editingCell.rowId);
-    const displayRowNumber = rowIndex !== -1 ? rowIndex + 1 : "?";
+    const displayRowNumber = rowIndex === -1 ? "?" : rowIndex + 1;
 
     return (
       <span>

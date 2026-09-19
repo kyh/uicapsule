@@ -2,7 +2,7 @@
 
 import type { Dispatch, FC, RefObject, SetStateAction } from "react";
 import { memo, useCallback, useEffect, useMemo, useRef, useState } from "react";
-import gsap from "gsap";
+import { gsap } from "gsap";
 
 import type { Cell, Dims } from "./build-cells";
 import type { Photo } from "./photos";
@@ -35,34 +35,36 @@ interface WallProps {
   itemsRef: RefObject<(HTMLDivElement | null)[]>;
 }
 
-const Wall = memo(function Wall({ cells, photos, itemsRef }: WallProps) {
-  return (
-    <>
-      {cells.map((cell, i) => {
-        const photo = photos[cell.photoIndex];
-        if (!photo) return null;
-        return (
-          <div
-            key={cell.index}
-            ref={(el) => {
-              itemsRef.current[i] = el;
-            }}
-            className={CELL_CLASS}
-            style={{ width: cell.width, height: cell.height, opacity: 0 }}
-          >
-            <img
-              src={photo.thumbUrl}
-              alt=""
-              draggable={false}
-              decoding="async"
-              className="h-full w-full object-cover select-none"
-            />
-          </div>
-        );
-      })}
-    </>
-  );
-});
+const WallBase = ({ cells, photos, itemsRef }: WallProps) => (
+  <>
+    {cells.map((cell, i) => {
+      const photo = photos[cell.photoIndex];
+      if (!photo) {
+        return null;
+      }
+      return (
+        <div
+          key={cell.index}
+          ref={(el) => {
+            itemsRef.current[i] = el;
+          }}
+          className={CELL_CLASS}
+          style={{ height: cell.height, opacity: 0, width: cell.width }}
+        >
+          <img
+            src={photo.thumbUrl}
+            alt=""
+            draggable={false}
+            decoding="async"
+            className="h-full w-full object-cover select-none"
+          />
+        </div>
+      );
+    })}
+  </>
+);
+
+const Wall = memo(WallBase);
 
 /* ── Mutable per-frame state, kept off React so the loop never re-renders ─ */
 interface PhysicsState {
@@ -90,22 +92,196 @@ interface IntroState {
   featuredEmerge: number;
 }
 
+/* Per-build constants the frame loop reads every tick. */
+interface Frame {
+  vw: number;
+  vh: number;
+  tileW: number;
+  tileH: number;
+  halfDiag: number;
+  idleRadius: number;
+  hoverRadius: number;
+  expandedRadius: number;
+}
+
+/* Steps A–D of a tick: row drift, pan lerp, void position, void radius. */
+const advanceVoid = (
+  p: PhysicsState,
+  introVals: IntroState,
+  frame: Frame,
+  reduceMotion: boolean,
+) => {
+  const isExpanded = p.expanded;
+  const { vw, vh } = frame;
+
+  /* A. per-row drift (frozen while a detail is open) */
+  if (!isExpanded && !reduceMotion) {
+    for (let r = 0; r < p.rowOffsets.length; r += 1) {
+      const offset = p.rowOffsets[r];
+      if (offset === undefined) {
+        continue;
+      }
+      p.rowOffsets[r] = offset + rowDriftSpeed(r);
+    }
+  }
+
+  /* B. pan lerp toward target */
+  p.panOff.x += (p.panTarget.x - p.panOff.x) * PAN_LERP;
+  p.panOff.y += (p.panTarget.y - p.panOff.y) * PAN_LERP;
+
+  /* C. void position (world coords) */
+  if (isExpanded) {
+    if (!p.pinned) {
+      const ddx = p.panTarget.x - p.panOff.x;
+      const ddy = p.panTarget.y - p.panOff.y;
+      if (Math.abs(ddx) < 0.5 && Math.abs(ddy) < 0.5) {
+        p.pinned = true;
+      }
+    }
+    if (p.pinned) {
+      p.voidWorld.x = vw / 2 - p.panOff.x;
+      p.voidWorld.y = vh / 2 - p.panOff.y;
+    }
+  } else if (p.mouse.has) {
+    const tx = p.mouse.x - p.panOff.x;
+    const ty = p.mouse.y - p.panOff.y;
+    p.voidWorld.x += (tx - p.voidWorld.x) * VOID_LERP;
+    p.voidWorld.y += (ty - p.voidWorld.y) * VOID_LERP;
+  }
+
+  /* D. target radius: idle < hover < expanded, scaled by intro emerge */
+  let baseR: number;
+  if (isExpanded) {
+    baseR = frame.expandedRadius;
+  } else if (p.hovering) {
+    baseR = frame.hoverRadius;
+  } else {
+    baseR = frame.idleRadius;
+  }
+  p.targetRadius = baseR * introVals.voidEmerge;
+  p.voidRadius += (p.targetRadius - p.voidRadius) * RADIUS_LERP;
+};
+
+/* Step E for one cell: writes its transform and opacity for this frame (skipped
+   when culled) and returns its distance from the void centre. */
+const placeCell = (
+  cell: Cell,
+  el: HTMLDivElement,
+  p: PhysicsState,
+  introVals: IntroState,
+  frame: Frame,
+): number => {
+  const { vw, vh, tileW, tileH, halfDiag } = frame;
+  const R = p.voidRadius;
+  const SOFT = R * SOFT_PUSH_RATIO;
+  const vX = p.voidWorld.x;
+  const vY = p.voidWorld.y;
+  const { entrance } = introVals;
+  const revealActive = entrance < 1;
+
+  /* Re-home this cell into whichever torus repeat sits nearest the frame
+     centre — this is what makes a finite cell array look infinite. */
+  const driftedX = cell.baseX + (p.rowOffsets[cell.rowIndex] ?? 0);
+  const baseScreenX0 = driftedX + p.panOff.x;
+  const baseScreenY0 = cell.baseY + p.panOff.y;
+  const kX = Math.round((vw / 2 - baseScreenX0) / tileW);
+  const kY = Math.round((vh / 2 - baseScreenY0) / tileH);
+  const effectiveWorldX = driftedX + kX * tileW;
+  const effectiveWorldY = cell.baseY + kY * tileH;
+
+  const dx = effectiveWorldX - vX;
+  const dy = effectiveWorldY - vY;
+  // oxlint-disable-next-line unicorn/prefer-modern-math-apis -- Math.hypot is slower and this runs ~500 times a frame; same result for pixel-scale inputs
+  const dist = Math.sqrt(dx * dx + dy * dy);
+
+  const baseScreenX = effectiveWorldX + p.panOff.x;
+  const baseScreenY = effectiveWorldY + p.panOff.y;
+  if (baseScreenX + cell.width < -CULL_MARGIN) {
+    return dist;
+  }
+  if (baseScreenX > vw + CULL_MARGIN) {
+    return dist;
+  }
+  if (baseScreenY + cell.height < -CULL_MARGIN) {
+    return dist;
+  }
+  if (baseScreenY > vh + CULL_MARGIN) {
+    return dist;
+  }
+
+  let finalWorldX = effectiveWorldX;
+  let finalWorldY = effectiveWorldY;
+  let s = cell.scale;
+
+  if (dist < SOFT) {
+    const t = 1 - dist / SOFT;
+    const push = R * t * t;
+    let dirX: number;
+    let dirY: number;
+    if (dist < 0.5) {
+      /* Dead centre: fall back to the cell's own deterministic angle
+         instead of dividing by zero. */
+      dirX = Math.cos(cell.angle);
+      dirY = Math.sin(cell.angle);
+    } else {
+      dirX = dx / dist;
+      dirY = dy / dist;
+    }
+    finalWorldX = effectiveWorldX + dirX * push;
+    finalWorldY = effectiveWorldY + dirY * push;
+    if (dist > R * 0.55 && dist < R * 1.05) {
+      /* Ring bump — makes the void rim read as a lens, not a hole. */
+      const ringT =
+        smoothstep(R * 0.55, R * 0.8, dist) * (1 - smoothstep(R * 0.85, R * 1.05, dist));
+      s *= 1 + 0.06 * ringT;
+    }
+  }
+
+  let alpha = 1;
+  let introOffsetX = 0;
+  let introOffsetY = 0;
+  if (revealActive) {
+    const distFromCenter = Math.hypot(cell.baseX, cell.baseY);
+    const cellEntrance = entrance * 1 - (distFromCenter / halfDiag) * 0.4;
+    const entranceAlpha = Math.max(0, Math.min(1, cellEntrance * 1.5));
+    alpha = entranceAlpha;
+    s *= 0.3 + 0.7 * entranceAlpha;
+    if (distFromCenter > 1) {
+      const dirX = cell.baseX / distFromCenter;
+      const dirY = cell.baseY / distFromCenter;
+      const flyMag = (1 - entranceAlpha) * 420;
+      introOffsetX = dirX * flyMag;
+      introOffsetY = dirY * flyMag;
+    }
+  }
+
+  const screenX = finalWorldX + introOffsetX + p.panOff.x - cell.width / 2;
+  const screenY = finalWorldY + introOffsetY + p.panOff.y - cell.height / 2;
+  el.style.transform =
+    `translate3d(${screenX.toFixed(2)}px, ${screenY.toFixed(2)}px, 0) ` +
+    `rotate(${cell.rotation.toFixed(2)}deg) scale(${s.toFixed(3)})`;
+  el.style.opacity = alpha < 0.999 ? alpha.toFixed(3) : "1";
+  return dist;
+};
+
 interface GravityWallProps {
   /** Non-empty by construction, so `photos[0]` needs no guard. */
   photos: readonly [Photo, ...Photo[]];
 }
 
 /** Membership toggle for one of the photo-slug sets (liked / saved). */
-function useSlugToggle(setSlugs: Dispatch<SetStateAction<Set<string>>>, slug: string) {
-  return useCallback(() => {
+const useSlugToggle = (setSlugs: Dispatch<SetStateAction<Set<string>>>, slug: string) =>
+  useCallback(() => {
     setSlugs((prev) => {
       const next = new Set(prev);
-      if (next.has(slug)) next.delete(slug);
-      else next.add(slug);
+      if (next.has(slug)) {
+        next.delete(slug);
+      } else {
+        next.add(slug);
+      }
       return next;
     });
   }, [setSlugs, slug]);
-}
 
 export const GravityWall: FC<GravityWallProps> = ({ photos }) => {
   const [dims, setDims] = useState<Dims | null>(null);
@@ -128,23 +304,23 @@ export const GravityWall: FC<GravityWallProps> = ({ photos }) => {
   const lastDimsRef = useRef<Dims | null>(null);
 
   const physics = useRef<PhysicsState>({
-    mouse: { x: 0, y: 0, has: false },
-    panOff: { x: 0, y: 0 },
-    panTarget: { x: 0, y: 0 },
-    voidWorld: { x: 0, y: 0 },
-    voidRadius: 0,
-    targetRadius: 0,
-    rowOffsets: [],
-    hovering: false,
-    pinned: false,
     expanded: false,
     featuredIdx: 0,
     featuredPhoto: 0,
+    hovering: false,
+    mouse: { has: false, x: 0, y: 0 },
+    panOff: { x: 0, y: 0 },
+    panTarget: { x: 0, y: 0 },
+    pinned: false,
+    rowOffsets: [],
+    targetRadius: 0,
+    voidRadius: 0,
+    voidWorld: { x: 0, y: 0 },
   });
   const intro = useRef<IntroState>({
     entrance: 0,
-    voidEmerge: 0,
     featuredEmerge: 0,
+    voidEmerge: 0,
   });
 
   const built = useMemo(() => (dims ? buildCells(dims, photos) : null), [dims, photos]);
@@ -173,7 +349,9 @@ export const GravityWall: FC<GravityWallProps> = ({ photos }) => {
      the caller that also needs the size does not pay for a second layout read. */
   const refreshOrigin = useCallback((): DOMRect | null => {
     const section = sectionRef.current;
-    if (!section) return null;
+    if (!section) {
+      return null;
+    }
     const rect = section.getBoundingClientRect();
     originRef.current.left = rect.left;
     originRef.current.top = rect.top;
@@ -183,17 +361,23 @@ export const GravityWall: FC<GravityWallProps> = ({ photos }) => {
   /* ── Frame sizing, measured from the section rather than the window ── */
   useEffect(() => {
     const section = sectionRef.current;
-    if (!section) return;
+    if (!section) {
+      return;
+    }
 
     let raf = 0;
     const measure = () => {
       const rect = refreshOrigin();
-      if (!rect) return;
+      if (!rect) {
+        return;
+      }
       const vw = Math.round(rect.width);
       const vh = Math.round(rect.height);
       /* A freshly-mounted iframe reports 0x0 on the first callback. Building
          from that yields an empty cell array and NaN opacities. */
-      if (vw <= 0 || vh <= 0) return;
+      if (vw <= 0 || vh <= 0) {
+        return;
+      }
       const isMobile = vw < MOBILE_BREAKPOINT;
 
       /* Deliberately NOT `setDims(prev => …)`. React may replay a queued
@@ -218,7 +402,7 @@ export const GravityWall: FC<GravityWallProps> = ({ photos }) => {
       ) {
         return;
       }
-      const next: Dims = { vw, vh, isMobile };
+      const next: Dims = { isMobile, vh, vw };
       lastDimsRef.current = next;
       setDims(next);
     };
@@ -243,7 +427,9 @@ export const GravityWall: FC<GravityWallProps> = ({ photos }) => {
   const setFeatured = useCallback((idx: number, cells: readonly Cell[]) => {
     const p = physics.current;
     const cell = cells[idx];
-    if (!cell) return;
+    if (!cell) {
+      return;
+    }
     p.featuredIdx = idx;
     p.featuredPhoto = cell.photoIndex;
     setFeaturedIdx(idx);
@@ -252,7 +438,9 @@ export const GravityWall: FC<GravityWallProps> = ({ photos }) => {
   /* ── Actions ─────────────────────────────────────────────────────── */
   const open = useCallback(() => {
     const p = physics.current;
-    if (p.expanded || !dims) return;
+    if (p.expanded || !dims) {
+      return;
+    }
     p.pinned = false;
     p.panTarget.x = dims.vw / 2 - p.voidWorld.x;
     p.panTarget.y = dims.vh / 2 - p.voidWorld.y;
@@ -269,13 +457,19 @@ export const GravityWall: FC<GravityWallProps> = ({ photos }) => {
 
   const navigate = useCallback(
     (dir: 1 | -1) => {
-      if (!built || !dims) return;
+      if (!built || !dims) {
+        return;
+      }
       const { cells, tile } = built;
-      if (cells.length === 0) return;
+      if (cells.length === 0) {
+        return;
+      }
       const p = physics.current;
       const newIdx = (p.featuredIdx + dir + cells.length) % cells.length;
       const nextCell = cells[newIdx];
-      if (!nextCell) return;
+      if (!nextCell) {
+        return;
+      }
 
       const driftedX = nextCell.baseX + (p.rowOffsets[nextCell.rowIndex] ?? 0);
       const baseScreenX0 = driftedX + p.panOff.x;
@@ -295,8 +489,8 @@ export const GravityWall: FC<GravityWallProps> = ({ photos }) => {
     [built, dims, setFeatured],
   );
 
-  const next = useCallback(() => navigate(1), [navigate]);
-  const prev = useCallback(() => navigate(-1), [navigate]);
+  const goNext = useCallback(() => navigate(1), [navigate]);
+  const goPrev = useCallback(() => navigate(-1), [navigate]);
 
   const toggleLike = useSlugToggle(setLiked, currentPhoto.slug);
   const toggleSave = useSlugToggle(setSaved, currentPhoto.slug);
@@ -304,7 +498,9 @@ export const GravityWall: FC<GravityWallProps> = ({ photos }) => {
   /* ── Pointer / touch / hover listeners ───────────────────────────── */
   useEffect(() => {
     const section = sectionRef.current;
-    if (!section) return;
+    if (!section) {
+      return;
+    }
     const p = physics.current;
 
     const onMove = (e: PointerEvent) => {
@@ -313,8 +509,10 @@ export const GravityWall: FC<GravityWallProps> = ({ photos }) => {
       p.mouse.has = true;
     };
     const onTouch = (e: TouchEvent) => {
-      const touch = e.touches[0];
-      if (!touch) return;
+      const [touch] = e.touches;
+      if (!touch) {
+        return;
+      }
       p.mouse.x = touch.clientX - originRef.current.left;
       p.mouse.y = touch.clientY - originRef.current.top;
       p.mouse.has = true;
@@ -335,7 +533,7 @@ export const GravityWall: FC<GravityWallProps> = ({ photos }) => {
        `pointerenter` cannot fire for a cursor already inside the section, and
        the ResizeObserver does not fire on scroll, so without this the void
        detaches from the cursor by exactly the scroll delta. */
-    window.addEventListener("scroll", refreshOrigin, { passive: true, capture: true });
+    window.addEventListener("scroll", refreshOrigin, { capture: true, passive: true });
     return () => {
       section.removeEventListener("pointermove", onMove);
       section.removeEventListener("touchmove", onTouch);
@@ -348,18 +546,26 @@ export const GravityWall: FC<GravityWallProps> = ({ photos }) => {
   /* ── Keyboard (only while a detail is open) ──────────────────────── */
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
-      if (!physics.current.expanded || e.repeat) return;
-      if (e.key === "Escape") close();
-      else if (e.key === "ArrowRight") next();
-      else if (e.key === "ArrowLeft") prev();
+      if (!physics.current.expanded || e.repeat) {
+        return;
+      }
+      if (e.key === "Escape") {
+        close();
+      } else if (e.key === "ArrowRight") {
+        goNext();
+      } else if (e.key === "ArrowLeft") {
+        goPrev();
+      }
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [close, next, prev]);
+  }, [close, goNext, goPrev]);
 
   /* ── The rAF physics loop ────────────────────────────────────────── */
   useEffect(() => {
-    if (!built || !dims) return;
+    if (!built || !dims) {
+      return;
+    }
     const { cells, tile } = built;
     const { vw, vh, isMobile } = dims;
     const p = physics.current;
@@ -403,9 +609,11 @@ export const GravityWall: FC<GravityWallProps> = ({ photos }) => {
     } else {
       let best = 0;
       let bestD = Infinity;
-      for (let i = 0; i < cells.length; i++) {
+      for (let i = 0; i < cells.length; i += 1) {
         const cell = cells[i];
-        if (!cell) continue;
+        if (!cell) {
+          continue;
+        }
         const d = Math.hypot(cell.baseX, cell.baseY);
         if (d < bestD) {
           bestD = d;
@@ -415,148 +623,42 @@ export const GravityWall: FC<GravityWallProps> = ({ photos }) => {
       setFeatured(best, cells);
     }
 
+    const frame: Frame = {
+      expandedRadius,
+      halfDiag: Math.hypot(vw, vh) / 2,
+      hoverRadius,
+      idleRadius,
+      tileH,
+      tileW,
+      vh,
+      vw,
+    };
+
     let raf = 0;
     const tick = () => {
+      advanceVoid(p, introVals, frame, reduceMotionRef.current);
       const isExpanded = p.expanded;
-      const hovering = p.hovering;
-
-      /* A. per-row drift (frozen while a detail is open) */
-      if (!isExpanded && !reduceMotionRef.current) {
-        for (let r = 0; r < p.rowOffsets.length; r++) {
-          const offset = p.rowOffsets[r];
-          if (offset === undefined) continue;
-          p.rowOffsets[r] = offset + rowDriftSpeed(r);
-        }
-      }
-
-      /* B. pan lerp toward target */
-      p.panOff.x += (p.panTarget.x - p.panOff.x) * PAN_LERP;
-      p.panOff.y += (p.panTarget.y - p.panOff.y) * PAN_LERP;
-
-      /* C. void position (world coords) */
-      if (isExpanded) {
-        if (!p.pinned) {
-          const ddx = p.panTarget.x - p.panOff.x;
-          const ddy = p.panTarget.y - p.panOff.y;
-          if (Math.abs(ddx) < 0.5 && Math.abs(ddy) < 0.5) p.pinned = true;
-        }
-        if (p.pinned) {
-          p.voidWorld.x = vw / 2 - p.panOff.x;
-          p.voidWorld.y = vh / 2 - p.panOff.y;
-        }
-      } else if (p.mouse.has) {
-        const tx = p.mouse.x - p.panOff.x;
-        const ty = p.mouse.y - p.panOff.y;
-        p.voidWorld.x += (tx - p.voidWorld.x) * VOID_LERP;
-        p.voidWorld.y += (ty - p.voidWorld.y) * VOID_LERP;
-      }
-
-      /* D. target radius: idle < hover < expanded, scaled by intro emerge */
-      let baseR: number;
-      if (isExpanded) baseR = expandedRadius;
-      else if (hovering) baseR = hoverRadius;
-      else baseR = idleRadius;
-      p.targetRadius = baseR * introVals.voidEmerge;
-      p.voidRadius += (p.targetRadius - p.voidRadius) * RADIUS_LERP;
-
       const R = p.voidRadius;
-      const SOFT = R * SOFT_PUSH_RATIO;
       const vX = p.voidWorld.x;
       const vY = p.voidWorld.y;
-
-      const entrance = introVals.entrance;
-      const halfDiag = Math.hypot(vw, vh) / 2;
-      const revealActive = entrance < 1;
 
       let nearestIdx = p.featuredIdx;
       let nearestDist = Infinity;
 
-      for (let i = 0; i < cells.length; i++) {
+      for (let i = 0; i < cells.length; i += 1) {
         const cell = cells[i];
-        if (!cell) continue;
+        if (!cell) {
+          continue;
+        }
         const el = itemEls.current[i];
-        if (!el) continue;
-
-        /* Re-home this cell into whichever torus repeat sits nearest the frame
-           centre — this is what makes a finite cell array look infinite. */
-        const driftedX = cell.baseX + (p.rowOffsets[cell.rowIndex] ?? 0);
-        const baseScreenX0 = driftedX + p.panOff.x;
-        const baseScreenY0 = cell.baseY + p.panOff.y;
-        const kX = Math.round((vw / 2 - baseScreenX0) / tileW);
-        const kY = Math.round((vh / 2 - baseScreenY0) / tileH);
-        const effectiveWorldX = driftedX + kX * tileW;
-        const effectiveWorldY = cell.baseY + kY * tileH;
-
-        const dx = effectiveWorldX - vX;
-        const dy = effectiveWorldY - vY;
-        /* `Math.sqrt` rather than `Math.hypot`: same result for pixel-scale
-           inputs, and this runs ~500 times a frame. */
-        const dist = Math.sqrt(dx * dx + dy * dy);
-
+        if (!el) {
+          continue;
+        }
+        const dist = placeCell(cell, el, p, introVals, frame);
         if (dist < nearestDist) {
           nearestDist = dist;
           nearestIdx = i;
         }
-
-        const baseScreenX = effectiveWorldX + p.panOff.x;
-        const baseScreenY = effectiveWorldY + p.panOff.y;
-        if (baseScreenX + cell.width < -CULL_MARGIN) continue;
-        if (baseScreenX > vw + CULL_MARGIN) continue;
-        if (baseScreenY + cell.height < -CULL_MARGIN) continue;
-        if (baseScreenY > vh + CULL_MARGIN) continue;
-
-        let finalWorldX = effectiveWorldX;
-        let finalWorldY = effectiveWorldY;
-        let s = cell.scale;
-
-        if (dist < SOFT) {
-          const t = 1 - dist / SOFT;
-          const push = R * t * t;
-          let dirX: number;
-          let dirY: number;
-          if (dist < 0.5) {
-            /* Dead centre: fall back to the cell's own deterministic angle
-               instead of dividing by zero. */
-            dirX = Math.cos(cell.angle);
-            dirY = Math.sin(cell.angle);
-          } else {
-            dirX = dx / dist;
-            dirY = dy / dist;
-          }
-          finalWorldX = effectiveWorldX + dirX * push;
-          finalWorldY = effectiveWorldY + dirY * push;
-          if (dist > R * 0.55 && dist < R * 1.05) {
-            /* Ring bump — makes the void rim read as a lens, not a hole. */
-            const ringT =
-              smoothstep(R * 0.55, R * 0.8, dist) * (1 - smoothstep(R * 0.85, R * 1.05, dist));
-            s *= 1 + 0.06 * ringT;
-          }
-        }
-
-        let alpha = 1;
-        let introOffsetX = 0;
-        let introOffsetY = 0;
-        if (revealActive) {
-          const distFromCenter = Math.sqrt(cell.baseX * cell.baseX + cell.baseY * cell.baseY);
-          const cellEntrance = entrance * 1.0 - (distFromCenter / halfDiag) * 0.4;
-          const entranceAlpha = Math.max(0, Math.min(1, cellEntrance * 1.5));
-          alpha = entranceAlpha;
-          s *= 0.3 + 0.7 * entranceAlpha;
-          if (distFromCenter > 1) {
-            const dirX = cell.baseX / distFromCenter;
-            const dirY = cell.baseY / distFromCenter;
-            const flyMag = (1 - entranceAlpha) * 420;
-            introOffsetX = dirX * flyMag;
-            introOffsetY = dirY * flyMag;
-          }
-        }
-
-        const screenX = finalWorldX + introOffsetX + p.panOff.x - cell.width / 2;
-        const screenY = finalWorldY + introOffsetY + p.panOff.y - cell.height / 2;
-        el.style.transform =
-          `translate3d(${screenX.toFixed(2)}px, ${screenY.toFixed(2)}px, 0) ` +
-          `rotate(${cell.rotation.toFixed(2)}deg) scale(${s.toFixed(3)})`;
-        el.style.opacity = alpha < 0.999 ? alpha.toFixed(3) : "1";
       }
 
       /* F. featured index update (only on real change, only when closed) */
@@ -597,7 +699,9 @@ export const GravityWall: FC<GravityWallProps> = ({ photos }) => {
      mount of a StrictMode double-invoke, which still replays the intro. */
   const hasBuilt = built !== null;
   useEffect(() => {
-    if (!hasBuilt) return;
+    if (!hasBuilt) {
+      return;
+    }
 
     const introVals = intro.current;
 
@@ -615,9 +719,9 @@ export const GravityWall: FC<GravityWallProps> = ({ photos }) => {
     physics.current.targetRadius = 0;
 
     const tl = gsap.timeline({ delay: 0.1 });
-    tl.to(introVals, { entrance: 1, duration: 1.7, ease: "power2.inOut" }, 0);
-    tl.to(introVals, { voidEmerge: 1, duration: 1.1, ease: "power2.out" }, 0.2);
-    tl.to(introVals, { featuredEmerge: 1, duration: 0.8, ease: "back.out(1.4)" }, 0.7);
+    tl.to(introVals, { duration: 1.7, ease: "power2.inOut", entrance: 1 }, 0);
+    tl.to(introVals, { duration: 1.1, ease: "power2.out", voidEmerge: 1 }, 0.2);
+    tl.to(introVals, { duration: 0.8, ease: "back.out(1.4)", featuredEmerge: 1 }, 0.7);
 
     return () => {
       tl.kill();
@@ -679,8 +783,8 @@ export const GravityWall: FC<GravityWallProps> = ({ photos }) => {
             saved={saved.has(currentPhoto.slug)}
             onOpen={open}
             onClose={close}
-            onNext={next}
-            onPrev={prev}
+            onNext={goNext}
+            onPrev={goPrev}
             onToggleLike={toggleLike}
             onToggleSave={toggleSave}
           />

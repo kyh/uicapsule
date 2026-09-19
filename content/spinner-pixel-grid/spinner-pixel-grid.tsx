@@ -1,6 +1,7 @@
 "use client";
 
-import { useSyncExternalStore, type ComponentProps, type CSSProperties } from "react";
+import { useSyncExternalStore } from "react";
+import type { ComponentProps, CSSProperties } from "react";
 
 import "./spinner-pixel-grid.css";
 import { cn } from "cn";
@@ -46,7 +47,7 @@ const heartMask: CellMask = (x, y, g) => {
   const c = (g - 1) / 2;
   const nx = (x - c) / (g * 0.48);
   const ny = (c - y) / (g * 0.34) + 0.05;
-  return Math.pow(nx * nx + ny * ny - 1, 3) - nx * nx * Math.pow(ny, 3) <= 0;
+  return (nx * nx + ny * ny - 1) ** 3 - nx * nx * ny ** 3 <= 0;
 };
 
 const variants = [
@@ -77,146 +78,153 @@ type SpinnerVariant = (typeof variants)[number];
 // Per-variant configuration. Delay functions only run for dots the mask keeps
 // visible, so they never need to guard against out-of-pattern positions.
 const variantConfigs = {
-  // Diagonal wave from the top-left corner
-  default: { keyframe: "pixel-scale", duration: 1, delay: (x, y) => 0.05 * (x + y) },
-  // Horizontal wave
-  wave: { keyframe: "pixel-scale", duration: 1, delay: (x) => 0.1 * x },
   // Vertical wave, top to bottom
-  cascade: { keyframe: "pixel-scale", duration: 1, delay: (_x, y) => 0.12 * y },
-  // Spiral radiating from the center
-  spiral: {
-    keyframe: "pixel-scale",
-    duration: 1,
-    delay: (x, y, g) => {
-      const c = (g - 1) / 2;
-      const distance = Math.hypot(x - c, y - c);
-      const normalizedAngle = (Math.atan2(y - c, x - c) + Math.PI) / (2 * Math.PI);
-      return distance * 0.15 + normalizedAngle * 0.3;
-    },
-  },
-  // Rotating arm that also pulses radially
-  vortex: {
-    keyframe: "pixel-chase",
-    duration: 1.2,
-    delay: (x, y, g) => {
-      const c = (g - 1) / 2;
-      const distance = Math.hypot(x - c, y - c);
-      const normalizedAngle = (Math.atan2(y - c, x - c) + Math.PI) / (2 * Math.PI);
-      return normalizedAngle * 1.2 + distance * 0.1;
-    },
-  },
+  cascade: { delay: (_x, y) => 0.12 * y, duration: 1, keyframe: "pixel-scale" },
   // Chase around the perimeter
   chase: {
-    keyframe: "pixel-chase",
-    duration: 0.8,
-    mask: edgeMask,
     delay: (x, y, g) => {
       const last = g - 1;
-      if (last === 0) return 0;
+      if (last === 0) {
+        return 0;
+      }
       let order = 0;
-      if (y === 0) order = x;
-      else if (x === last) order = last + y;
-      else if (y === last) order = 2 * last + (last - x);
-      else order = 3 * last + (last - y);
+      if (y === 0) {
+        order = x;
+      } else if (x === last) {
+        order = last + y;
+      } else if (y === last) {
+        order = 2 * last + (last - x);
+      } else {
+        order = 3 * last + (last - y);
+      }
       return (order / (4 * last)) * 0.8;
     },
+    duration: 0.8,
+    keyframe: "pixel-chase",
+    mask: edgeMask,
   },
-  // Whole border pulses together
-  frame: { keyframe: "pixel-chase", duration: 1, mask: edgeMask, delay: () => 0 },
-  // Rain falling from the top, each column offset
-  rain: { keyframe: "pixel-rain", duration: 0.8, delay: (x, y) => y * 0.1 + x * 0.05 },
-  // Sharp scanline sweeping downward
-  scan: { keyframe: "pixel-chase", duration: 1.2, delay: (_x, y) => y * 0.15 },
-  // Concentric rings radiating from the center
-  ripple: {
-    keyframe: "pixel-scale",
-    duration: 1,
-    delay: (x, y, g) => {
-      const c = (g - 1) / 2;
-      return Math.hypot(x - c, y - c) * 0.18;
-    },
-  },
-  // Diamond-shaped rings (manhattan distance) from the center
-  diamond: {
-    keyframe: "pixel-scale",
-    duration: 1,
-    delay: (x, y, g) => {
-      const c = (g - 1) / 2;
-      return (Math.abs(x - c) + Math.abs(y - c)) * 0.12;
-    },
-  },
-  // Cross + diagonals radiating from the center
-  star: {
-    keyframe: "pixel-scale",
-    duration: 1,
-    mask: starMask,
-    delay: (x, y, g) => {
-      const c = Math.floor(g / 2);
-      return Math.max(Math.abs(x - c), Math.abs(y - c)) * 0.12;
-    },
-  },
-  // Diagonal cross (X) radiating from the center
-  saltire: {
-    keyframe: "pixel-scale",
-    duration: 1,
-    mask: saltireMask,
-    delay: (x, y, g) => {
-      const c = Math.floor(g / 2);
-      return Math.max(Math.abs(x - c), Math.abs(y - c)) * 0.12;
-    },
-  },
-  // Center row and column animate outward from the center
-  crosshair: {
-    keyframe: "pixel-crosshair",
-    duration: 0.6,
-    mask: crosshairMask,
-    delay: (x, y, g) => {
-      const c = Math.floor(g / 2);
-      return (y === c ? Math.abs(x - c) : Math.abs(y - c)) * 0.1;
-    },
-  },
+  // Alternating checkerboard pulse
+  checker: { delay: (x, y) => ((x + y) % 2) * 0.5, duration: 1, keyframe: "pixel-scale" },
   // Collapse inward from all four corners
   corners: {
-    keyframe: "pixel-scale",
-    duration: 1,
     delay: (x, y, g) => {
       const last = g - 1;
       const toX = Math.min(x, last - x);
       const toY = Math.min(y, last - y);
       return Math.hypot(toX, toY) * 0.15;
     },
-  },
-  // Alternating checkerboard pulse
-  checker: { keyframe: "pixel-scale", duration: 1, delay: (x, y) => ((x + y) % 2) * 0.5 },
-  // Snake (alternating direction per row)
-  snake: {
+    duration: 1,
     keyframe: "pixel-scale",
-    duration: 1.5,
-    delay: (x, y, g) => {
-      const effectiveX = y % 2 === 0 ? x : g - 1 - x;
-      return (y * g + effectiveX) * 0.05;
-    },
   },
+  // Center row and column animate outward from the center
+  crosshair: {
+    delay: (x, y, g) => {
+      const c = Math.floor(g / 2);
+      return (y === c ? Math.abs(x - c) : Math.abs(y - c)) * 0.1;
+    },
+    duration: 0.6,
+    keyframe: "pixel-crosshair",
+    mask: crosshairMask,
+  },
+  // Diagonal wave from the top-left corner
+  default: { delay: (x, y) => 0.05 * (x + y), duration: 1, keyframe: "pixel-scale" },
+  // Diamond-shaped rings (manhattan distance) from the center
+  diamond: {
+    delay: (x, y, g) => {
+      const c = (g - 1) / 2;
+      return (Math.abs(x - c) + Math.abs(y - c)) * 0.12;
+    },
+    duration: 1,
+    keyframe: "pixel-scale",
+  },
+  // Whole border pulses together
+  frame: { delay: () => 0, duration: 1, keyframe: "pixel-chase", mask: edgeMask },
+  // Whole heart beats together
+  heart: { delay: () => 0, duration: 1.2, keyframe: "pixel-beat", mask: heartMask },
+  // Every dot breathes together
+  pulse: { delay: () => 0, duration: 1, keyframe: "pixel-scale" },
   // Radar sweep around the center
   radar: {
-    keyframe: "pixel-chase",
-    duration: 1.2,
     delay: (x, y, g) => {
       const c = (g - 1) / 2;
       return ((Math.atan2(y - c, x - c) + Math.PI) / (2 * Math.PI)) * 1.2;
     },
+    duration: 1.2,
+    keyframe: "pixel-chase",
   },
-  // Every dot breathes together
-  pulse: { keyframe: "pixel-scale", duration: 1, delay: () => 0 },
-  // Whole heart beats together
-  heart: { keyframe: "pixel-beat", duration: 1.2, mask: heartMask, delay: () => 0 },
+  // Rain falling from the top, each column offset
+  rain: { delay: (x, y) => y * 0.1 + x * 0.05, duration: 0.8, keyframe: "pixel-rain" },
+  // Concentric rings radiating from the center
+  ripple: {
+    delay: (x, y, g) => {
+      const c = (g - 1) / 2;
+      return Math.hypot(x - c, y - c) * 0.18;
+    },
+    duration: 1,
+    keyframe: "pixel-scale",
+  },
+  // Diagonal cross (X) radiating from the center
+  saltire: {
+    delay: (x, y, g) => {
+      const c = Math.floor(g / 2);
+      return Math.max(Math.abs(x - c), Math.abs(y - c)) * 0.12;
+    },
+    duration: 1,
+    keyframe: "pixel-scale",
+    mask: saltireMask,
+  },
+  // Sharp scanline sweeping downward
+  scan: { delay: (_x, y) => y * 0.15, duration: 1.2, keyframe: "pixel-chase" },
+  // Snake (alternating direction per row)
+  snake: {
+    delay: (x, y, g) => {
+      const effectiveX = y % 2 === 0 ? x : g - 1 - x;
+      return (y * g + effectiveX) * 0.05;
+    },
+    duration: 1.5,
+    keyframe: "pixel-scale",
+  },
+  // Spiral radiating from the center
+  spiral: {
+    delay: (x, y, g) => {
+      const c = (g - 1) / 2;
+      const distance = Math.hypot(x - c, y - c);
+      const normalizedAngle = (Math.atan2(y - c, x - c) + Math.PI) / (2 * Math.PI);
+      return distance * 0.15 + normalizedAngle * 0.3;
+    },
+    duration: 1,
+    keyframe: "pixel-scale",
+  },
+  // Cross + diagonals radiating from the center
+  star: {
+    delay: (x, y, g) => {
+      const c = Math.floor(g / 2);
+      return Math.max(Math.abs(x - c), Math.abs(y - c)) * 0.12;
+    },
+    duration: 1,
+    keyframe: "pixel-scale",
+    mask: starMask,
+  },
+  // Rotating arm that also pulses radially
+  vortex: {
+    delay: (x, y, g) => {
+      const c = (g - 1) / 2;
+      const distance = Math.hypot(x - c, y - c);
+      const normalizedAngle = (Math.atan2(y - c, x - c) + Math.PI) / (2 * Math.PI);
+      return normalizedAngle * 1.2 + distance * 0.1;
+    },
+    duration: 1.2,
+    keyframe: "pixel-chase",
+  },
+  // Horizontal wave
+  wave: { delay: (x) => 0.1 * x, duration: 1, keyframe: "pixel-scale" },
 } satisfies Record<SpinnerVariant, VariantConfig>;
 
 const dots = ["square", "circle"] as const;
 
 type SpinnerDot = (typeof dots)[number];
 
-type SpinnerProps = ComponentProps<"div"> & {
+type SpinnerProps = ComponentProps<"output"> & {
   /** Pixel size of each dot. */
   size?: number;
   /** Number of dots per row/column. */
@@ -286,13 +294,12 @@ export const SpinnerPixelGrid = ({
   // two variables every dot depends on.
   const rootStyle: SpinnerStyle = {
     ...style,
-    "--square-size": `${size}px`,
     "--spinner-color": color,
+    "--square-size": `${size}px`,
   };
 
   return (
-    <div
-      role="status"
+    <output
       aria-label={ariaLabel}
       className={cn("inline-flex flex-col", className)}
       style={rootStyle}
@@ -304,19 +311,19 @@ export const SpinnerPixelGrid = ({
             <div
               key={x}
               className="relative"
-              style={{ width: "var(--square-size)", height: "var(--square-size)" }}
+              style={{ height: "var(--square-size)", width: "var(--square-size)" }}
             >
               {(config.mask?.(x, y, gridSize) ?? true) && (
                 <div
                   className="absolute inset-0"
                   style={{
+                    animation: animate
+                      ? `${config.keyframe} ${duration}s linear ${config.delay(x, y, gridSize) / safeSpeed}s infinite${rainbowAnimation}`
+                      : undefined,
                     backgroundColor: "var(--spinner-color)",
                     borderRadius: dot === "circle" ? "50%" : undefined,
                     boxShadow: glow
                       ? "0 0 10px var(--spinner-color), 0 0 20px var(--spinner-color), 0 0 40px var(--spinner-color)"
-                      : undefined,
-                    animation: animate
-                      ? `${config.keyframe} ${duration}s linear ${config.delay(x, y, gridSize) / safeSpeed}s infinite${rainbowAnimation}`
                       : undefined,
                   }}
                 />
@@ -325,7 +332,7 @@ export const SpinnerPixelGrid = ({
           ))}
         </div>
       ))}
-    </div>
+    </output>
   );
 };
 

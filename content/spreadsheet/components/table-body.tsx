@@ -1,6 +1,6 @@
 "use client";
 
-import { type MouseEvent, type ReactNode } from "react";
+import type { MouseEvent, ReactNode } from "react";
 import { cn } from "cn";
 import { flexRender } from "@tanstack/react-table";
 
@@ -21,7 +21,7 @@ interface TableBodyProps {
   renderRowActions?: (row: SpreadsheetRow, rowIndex: number) => ReactNode;
 }
 
-export function TableBody({
+export const TableBody = ({
   virtualItems,
   table,
   selectedCells,
@@ -31,74 +31,76 @@ export function TableBody({
   showRowNumbers = true,
   renderRowNumber,
   renderRowActions,
-}: TableBodyProps) {
-  return (
-    <>
-      {virtualItems.map((virtualRow) => {
-        const row = table.getRowModel().rows[virtualRow.index];
-        const rowIndex = virtualRow.index;
-        const rowId = row?.original?.id;
-        if (!rowId) return null;
+}: TableBodyProps) => (
+  <>
+    {virtualItems.map((virtualRow) => {
+      const row = table.getRowModel().rows[virtualRow.index];
+      const rowIndex = virtualRow.index;
+      const rowId = row?.original?.id;
+      if (!rowId) {
+        return null;
+      }
 
-        const rowCells = getRowCells(rowId);
-        const isRowSelected = rowCells.every((cell) => selectedCells.has(cell));
+      const rowCells = getRowCells(rowId);
+      const isRowSelected = rowCells.every((cell) => selectedCells.has(cell));
 
-        return (
-          <div
-            key={row.id}
-            className={cn(
-              "hover:bg-(--muted)/30 dark:hover:bg-(--muted)/20 absolute top-0 left-0 w-full transition-colors",
-              isRowSelected && "bg-(--muted)/50 dark:bg-(--muted)/40",
+      return (
+        <div
+          key={row.id}
+          className={cn(
+            "hover:bg-(--muted)/30 dark:hover:bg-(--muted)/20 absolute top-0 left-0 w-full transition-colors",
+            isRowSelected && "bg-(--muted)/50 dark:bg-(--muted)/40",
+          )}
+          style={{
+            height: `${virtualRow.size}px`,
+            transform: `translateY(${virtualRow.start}px)`,
+          }}
+        >
+          <div className="flex h-full">
+            {showRowNumbers && (
+              <div
+                role="presentation"
+                data-row-number
+                className={cn(
+                  "border-(--border) bg-(--muted)/30 text-(--muted-foreground) hover:bg-(--muted)/50 dark:hover:bg-(--muted)/40 flex h-9 w-12 shrink-0 cursor-default items-center justify-center border-r border-b font-mono text-xs transition-colors",
+                  isRowSelected && "bg-(--muted) dark:bg-(--muted)/80",
+                )}
+                onMouseDown={(e) => handleMouseDown(e, rowId, "")}
+                onMouseMove={(e) => handleMouseMove(e, rowId, "")}
+              >
+                {renderRowNumber ? renderRowNumber(rowIndex) : rowIndex + 1}
+              </div>
             )}
-            style={{
-              height: `${virtualRow.size}px`,
-              transform: `translateY(${virtualRow.start}px)`,
-            }}
-          >
-            <div className="flex h-full">
-              {showRowNumbers && (
-                <div
-                  data-row-number
-                  className={cn(
-                    "border-(--border) bg-(--muted)/30 text-(--muted-foreground) hover:bg-(--muted)/50 dark:hover:bg-(--muted)/40 flex h-9 w-12 shrink-0 cursor-default items-center justify-center border-r border-b font-mono text-xs transition-colors",
-                    isRowSelected && "bg-(--muted) dark:bg-(--muted)/80",
-                  )}
-                  onMouseDown={(e) => handleMouseDown(e, rowId, "")}
-                  onMouseMove={(e) => handleMouseMove(e, rowId, "")}
-                >
-                  {renderRowNumber ? renderRowNumber(rowIndex) : rowIndex + 1}
-                </div>
-              )}
-              {row.getVisibleCells().map((cell) => {
-                const cellKey = `${rowId}:${cell.column.id}`;
-                const isCellSelected = selectedCells.has(cellKey);
+            {row.getVisibleCells().map((cell) => {
+              const cellKey = `${rowId}:${cell.column.id}`;
+              const isCellSelected = selectedCells.has(cellKey);
 
-                return (
-                  <div
-                    key={cell.id}
-                    className={cn(
-                      "border-(--border) relative flex h-9 shrink-0 cursor-default items-center border-r border-b transition-colors",
-                      isCellSelected && "bg-blue-50 dark:bg-blue-950/50",
-                    )}
-                    style={{
-                      width: `calc(var(--col-${cell.column.id}-size) * 1px)`,
-                    }}
-                    onMouseDown={(e) => handleMouseDown(e, rowId, cell.column.id)}
-                    onMouseMove={(e) => handleMouseMove(e, rowId, cell.column.id)}
-                  >
-                    {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                  </div>
-                );
-              })}
-              {renderRowActions && (
-                <div className="border-(--border) flex h-9 shrink-0 items-center justify-center border-b">
-                  {renderRowActions(row.original, rowIndex)}
+              return (
+                <div
+                  key={cell.id}
+                  role="presentation"
+                  className={cn(
+                    "border-(--border) relative flex h-9 shrink-0 cursor-default items-center border-r border-b transition-colors",
+                    isCellSelected && "bg-blue-50 dark:bg-blue-950/50",
+                  )}
+                  style={{
+                    width: `calc(var(--col-${cell.column.id}-size) * 1px)`,
+                  }}
+                  onMouseDown={(e) => handleMouseDown(e, rowId, cell.column.id)}
+                  onMouseMove={(e) => handleMouseMove(e, rowId, cell.column.id)}
+                >
+                  {flexRender(cell.column.columnDef.cell, cell.getContext())}
                 </div>
-              )}
-            </div>
+              );
+            })}
+            {renderRowActions && (
+              <div className="border-(--border) flex h-9 shrink-0 items-center justify-center border-b">
+                {renderRowActions(row.original, rowIndex)}
+              </div>
+            )}
           </div>
-        );
-      })}
-    </>
-  );
-}
+        </div>
+      );
+    })}
+  </>
+);

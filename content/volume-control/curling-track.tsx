@@ -6,14 +6,7 @@ import { animate, motion, useMotionValue, useReducedMotion, useTransform } from 
 import type { MotionValue } from "motion/react";
 
 import { HUD_INNER_WIDTH } from "./macos-chrome";
-import {
-  clamp,
-  clampVolume,
-  DETENT_STEP,
-  snapVolume,
-  VOLUME_MAX,
-  VOLUME_MIN,
-} from "./volume-scale";
+import { arrowDelta, clamp, clampVolume, snapVolume, VOLUME_MAX, VOLUME_MIN } from "./volume-scale";
 
 const SHEET_WIDTH = HUD_INNER_WIDTH;
 const SHEET_HEIGHT = 132;
@@ -43,8 +36,8 @@ const BACKBOARD = 0.3;
 const SETTLE_SPEED = 12;
 const MAX_SLIDE_SECONDS = 8;
 
-const SETTLE_SPRING = { type: "spring", stiffness: 380, damping: 30 } as const;
-const RETURN_SPRING = { type: "spring", stiffness: 220, damping: 24 } as const;
+const SETTLE_SPRING = { damping: 30, stiffness: 380, type: "spring" } as const;
+const RETURN_SPRING = { damping: 24, stiffness: 220, type: "spring" } as const;
 
 const stoneToVolume = (x: number) => clamp((x / TRAVEL) * VOLUME_MAX, VOLUME_MIN, VOLUME_MAX);
 const volumeToStone = (volume: number) => (clampVolume(volume) / VOLUME_MAX) * TRAVEL;
@@ -53,9 +46,25 @@ const volumeToStone = (volume: number) => (clampVolume(volume) / VOLUME_MAX) * T
  * stay on the ice instead of falling off the end of it. */
 const HOUSE_X = volumeToStone(92) + STONE_SIZE / 2;
 
-type CurlingTrackProps = {
+/** The scale, printed on the ice. */
+const SheetScale = () => (
+  <div aria-hidden className="absolute inset-x-0 bottom-0 h-5">
+    {[0, 25, 50, 75, 100].map((value) => (
+      <span
+        key={value}
+        className="absolute bottom-0 flex -translate-x-1/2 flex-col items-center"
+        style={{ left: volumeToStone(value) + STONE_SIZE / 2 }}
+      >
+        <span className="h-2 w-px bg-sky-100/30" />
+        <span className="text-[10px] tabular-nums text-sky-100/40">{value}</span>
+      </span>
+    ))}
+  </div>
+);
+
+interface CurlingTrackProps {
   volume: MotionValue<number>;
-};
+}
 
 /**
  * Volume by curling. Draw the stone back off the hack, release, and it goes out
@@ -168,7 +177,9 @@ export const CurlingTrack = ({ volume }: CurlingTrackProps) => {
   };
 
   const handlePointerDown = (event: React.PointerEvent<HTMLDivElement>) => {
-    if (phase === "sliding" || reduceMotion) return;
+    if (phase === "sliding" || reduceMotion) {
+      return;
+    }
     cancelAnimationFrame(frame.current);
     event.currentTarget.setPointerCapture(event.pointerId);
     drawOrigin.current = event.clientX;
@@ -187,24 +198,32 @@ export const CurlingTrack = ({ volume }: CurlingTrackProps) => {
       stoneX.set(clamp(HACK_X - distance * 0.28, -24, TRAVEL));
       return;
     }
-    if (phase !== "sliding") return;
+    if (phase !== "sliding") {
+      return;
+    }
 
     // Sweeping: raw scrubbing distance, but only if the broom is near the stone.
     const at = pointerInSheet(event);
     broomX.set(at);
     const previous = lastPointer.current;
     lastPointer.current = at;
-    if (previous === null) return;
+    if (previous === null) {
+      return;
+    }
 
     const stoneCentre = stoneX.get() + STONE_SIZE / 2;
-    if (Math.abs(at - stoneCentre) > BROOM_REACH) return;
+    if (Math.abs(at - stoneCentre) > BROOM_REACH) {
+      return;
+    }
 
     const scrubbed = Math.abs(at - previous);
     sweep.set(clamp(sweep.get() + scrubbed / SWEEP_FULL, 0, 1));
   };
 
   const handlePointerUp = () => {
-    if (phase !== "drawing") return;
+    if (phase !== "drawing") {
+      return;
+    }
     const distance = drawn.current;
     if (distance < MIN_DRAW) {
       setPhase("idle");
@@ -219,13 +238,10 @@ export const CurlingTrack = ({ volume }: CurlingTrackProps) => {
   };
 
   const handleKeyDown = (event: React.KeyboardEvent<HTMLDivElement>) => {
-    const delta =
-      event.key === "ArrowRight" || event.key === "ArrowUp"
-        ? DETENT_STEP
-        : event.key === "ArrowLeft" || event.key === "ArrowDown"
-          ? -DETENT_STEP
-          : 0;
-    if (delta === 0) return;
+    const delta = arrowDelta(event.key);
+    if (delta === 0) {
+      return;
+    }
     event.preventDefault();
     cancelAnimationFrame(frame.current);
     settle(volumeToStone(clampVolume(snapVolume(volume.get()) + delta)));
@@ -239,6 +255,7 @@ export const CurlingTrack = ({ volume }: CurlingTrackProps) => {
   return (
     <div
       ref={sheetRef}
+      // oxlint-disable-next-line jsx-a11y/prefer-tag-over-role, jsx-a11y/role-has-required-aria-props -- a physics toy, not a range input; aria-valuenow is written straight to the DOM every frame (see the effect above)
       role="slider"
       tabIndex={0}
       aria-label="Volume"
@@ -249,7 +266,7 @@ export const CurlingTrack = ({ volume }: CurlingTrackProps) => {
       onPointerUp={handlePointerUp}
       onPointerCancel={handlePointerUp}
       onKeyDown={handleKeyDown}
-      style={{ width: SHEET_WIDTH, height: SHEET_HEIGHT, touchAction: "none" }}
+      style={{ height: SHEET_HEIGHT, touchAction: "none", width: SHEET_WIDTH }}
       className={`relative overflow-hidden rounded-2xl bg-gradient-to-b from-sky-100/10 to-sky-50/[0.04] outline-none focus-visible:ring-2 focus-visible:ring-white/70 ${
         phase === "drawing" ? "cursor-grabbing" : "cursor-grab"
       }`}
@@ -279,7 +296,7 @@ export const CurlingTrack = ({ volume }: CurlingTrackProps) => {
       <motion.span
         aria-hidden
         className="absolute top-1/2 -translate-y-1/2 rounded-full bg-gradient-to-b from-neutral-300 to-neutral-500 shadow-[0_3px_10px_rgba(0,0,0,0.55)]"
-        style={{ width: STONE_SIZE, height: STONE_SIZE, x: stoneX, rotate: stoneSpin }}
+        style={{ height: STONE_SIZE, rotate: stoneSpin, width: STONE_SIZE, x: stoneX }}
       >
         <span className="absolute inset-[6px] rounded-full border border-neutral-600/60 bg-neutral-700" />
         <span className="absolute inset-x-[13px] top-[3px] h-2 rounded-full bg-rose-400/80" />
@@ -306,19 +323,3 @@ export const CurlingTrack = ({ volume }: CurlingTrackProps) => {
     </div>
   );
 };
-
-/** The scale, printed on the ice. */
-const SheetScale = () => (
-  <div aria-hidden className="absolute inset-x-0 bottom-0 h-5">
-    {[0, 25, 50, 75, 100].map((value) => (
-      <span
-        key={value}
-        className="absolute bottom-0 flex -translate-x-1/2 flex-col items-center"
-        style={{ left: volumeToStone(value) + STONE_SIZE / 2 }}
-      >
-        <span className="h-2 w-px bg-sky-100/30" />
-        <span className="text-[10px] tabular-nums text-sky-100/40">{value}</span>
-      </span>
-    ))}
-  </div>
-);

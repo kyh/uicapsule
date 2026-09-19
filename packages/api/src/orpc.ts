@@ -8,7 +8,9 @@ export const createORPCContext = async (headers: Headers) => ({
 
 type ORPCContext = Awaited<ReturnType<typeof createORPCContext>>;
 
-export const protectedProcedure = os.$context<ORPCContext>().use(({ context, next }) => {
+export const publicProcedure = os.$context<ORPCContext>();
+
+export const protectedProcedure = publicProcedure.use(({ context, next }) => {
   const { session } = context;
   if (!session) {
     throw new ORPCError("UNAUTHORIZED", {

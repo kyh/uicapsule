@@ -1,21 +1,21 @@
 #!/bin/bash
-# publish-recording.sh <slug> <webm-path>
-# webm -> 800px/12fps GIF -> kyh/pr-preview-assets orphan branch -> print raw embed URL
+# publish-recording.sh <slug> <recording-path>
+# recording (mp4/webm) -> 800px/12fps GIF -> kyh/pr-preview-assets orphan branch -> print raw embed URL
 set -euo pipefail
 
-SLUG="${1:?usage: publish-recording.sh <slug> <webm-path>}"
-WEBM="${2:?usage: publish-recording.sh <slug> <webm-path>}"
+SLUG="${1:?usage: publish-recording.sh <slug> <recording-path>}"
+SRC="${2:?usage: publish-recording.sh <slug> <recording-path>}"
 REPO_ROOT="$(git rev-parse --show-toplevel)"
 ASSETS_BRANCH="kyh/pr-preview-assets"
-GIF="$(dirname "$WEBM")/$SLUG.gif"
+GIF="$(dirname "$SRC")/$SLUG.gif"
 WT="$(mktemp -d)/assets"
 
-[ -s "$WEBM" ] || { echo "ERROR: $WEBM is missing or empty" >&2; exit 1; }
-DUR=$(ffprobe -v error -show_entries format=duration -of csv=p=0 "$WEBM")
+[ -s "$SRC" ] || { echo "ERROR: $SRC is missing or empty" >&2; exit 1; }
+DUR=$(ffprobe -v error -show_entries format=duration -of csv=p=0 "$SRC")
 python3 -c "exit(0 if float('$DUR') >= 8 else 1)" || {
   echo "ERROR: recording is only ${DUR}s (<8s) — re-record" >&2; exit 1; }
 
-ffmpeg -y -v error -i "$WEBM" \
+ffmpeg -y -v error -i "$SRC" \
   -vf "fps=12,scale=800:-1:flags=lanczos,split[s0][s1];[s0]palettegen=max_colors=128[p];[s1][p]paletteuse=dither=bayer" \
   "$GIF"
 echo "gif: $GIF ($(stat -f%z "$GIF") bytes, ${DUR}s source)"

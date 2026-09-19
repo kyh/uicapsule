@@ -1,6 +1,7 @@
 "use client";
 
-import { useState, type FormEvent } from "react";
+import { useState } from "react";
+import type { FormEvent } from "react";
 import { Button } from "./ui";
 
 export const WaitlistForm = () => {
@@ -9,7 +10,9 @@ export const WaitlistForm = () => {
 
   const handleJoinWaitlist = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    if (!email) return;
+    if (!email) {
+      return;
+    }
     setSubmitted(true);
     setEmail("");
   };
@@ -40,9 +43,9 @@ export const WaitlistForm = () => {
       <Button type="submit" className="text-xs hover:bg-transparent">
         Join Waitlist
       </Button>
-      <span role="status" className="absolute top-full left-4 mt-2 text-xs text-emerald-400">
+      <output className="absolute top-full left-4 mt-2 text-xs text-emerald-400">
         {submitted ? "Waitlist joined!" : ""}
-      </span>
+      </output>
     </form>
   );
 };

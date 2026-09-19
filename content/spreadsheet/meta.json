@@ -1,7 +1,7 @@
 {
   "name": "Spreadsheet",
-  "coverUrl": "https://zmdrwswxugswzmcokvff.supabase.co/storage/v1/object/public/uicapsule/spreadsheet/spreadsheet-data-enrichment.mp4",
-  "coverType": "video",
+  "addedAt": "2025-09-10",
+  "cover": "spreadsheet/spreadsheet-data-enrichment.mp4",
   "defaultSize": "full",
-  "tags": ["business", "minimal", "tables"]
+  "tags": ["data", "minimal"]
 }

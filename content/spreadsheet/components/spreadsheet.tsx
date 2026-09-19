@@ -1,14 +1,7 @@
 "use client";
 
-import {
-  useCallback,
-  useEffect,
-  useMemo,
-  useRef,
-  type HTMLAttributes,
-  type ReactNode,
-  type Ref,
-} from "react";
+import { useCallback, useEffect, useMemo, useRef } from "react";
+import type { HTMLAttributes, ReactNode, Ref } from "react";
 import { cn } from "cn";
 import { flexRender, useTable } from "@tanstack/react-table";
 import { useVirtualizer } from "@tanstack/react-virtual";
@@ -36,7 +29,7 @@ export interface SpreadsheetProps extends HTMLAttributes<HTMLDivElement> {
   ref?: Ref<HTMLDivElement>;
 }
 
-export function Spreadsheet({
+export const Spreadsheet = ({
   className,
   style,
   columns,
@@ -45,7 +38,7 @@ export function Spreadsheet({
   renderRowActions,
   ref,
   ...props
-}: SpreadsheetProps) {
+}: SpreadsheetProps) => {
   "use no memo";
 
   // TanStack Virtual exposes mutable measurements that React Compiler cannot memoize.
@@ -61,9 +54,9 @@ export function Spreadsheet({
   const dragLineRef = useRef<HTMLDivElement>(null);
 
   const table = useTable({
-    features: spreadsheetFeatures,
-    data,
     columns,
+    data,
+    features: spreadsheetFeatures,
   });
 
   const leafColumns = table.getAllLeafColumns();
@@ -97,9 +90,7 @@ export function Spreadsheet({
   );
 
   const getRowCellsHelper = useCallback(
-    (rowId: string) => {
-      return getRowCells(rowId, columnMeta);
-    },
+    (rowId: string) => getRowCells(rowId, columnMeta),
     [columnMeta],
   );
 
@@ -114,14 +105,15 @@ export function Spreadsheet({
   // oxlint-disable-next-line react/incompatible-library -- This component and its table body opt out of memoization for mutable virtualizer measurements.
   const rowVirtualizer = useVirtualizer({
     count: table.getRowModel().rows.length,
-    getScrollElement: () => tableContainerRef.current,
     estimateSize: () => 36,
+    getScrollElement: () => tableContainerRef.current,
     overscan: 10,
   });
 
   return (
     <div
       ref={ref}
+      role="grid"
       className={cn("relative flex flex-col", isDragging && "select-none", className)}
       style={{ ...columnSizeVars, ...style }}
       tabIndex={0}
@@ -145,6 +137,7 @@ export function Spreadsheet({
         {(table.getHeaderGroups()[0]?.headers ?? []).map((header) => (
           <div
             key={header.id}
+            role="presentation"
             data-column-id={header.column.id}
             data-column-header
             className="border-(--border) bg-(--muted) text-(--muted-foreground) relative flex h-10 shrink-0 cursor-default items-center border-r pl-1 text-left text-xs font-medium transition-colors"
@@ -194,4 +187,4 @@ export function Spreadsheet({
       </div>
     </div>
   );
-}
+};

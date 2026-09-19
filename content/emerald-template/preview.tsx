@@ -9,19 +9,17 @@ import { WorkflowSection } from "./_components/workflow-section";
 
 import "./preview.css";
 
-const Preview = () => {
-  return (
-    <div className="emerald-template font-sans antialiased">
-      <Header />
-      <main className="contained-page text-center">
-        <HeroSection />
-        <WorkflowSection />
-        <FeaturesSection />
-        <IntegrationsSection />
-      </main>
-      <Footer />
-    </div>
-  );
-};
+const Preview = () => (
+  <div className="emerald-template font-sans antialiased">
+    <Header />
+    <main className="contained-page text-center">
+      <HeroSection />
+      <WorkflowSection />
+      <FeaturesSection />
+      <IntegrationsSection />
+    </main>
+    <Footer />
+  </div>
+);
 
 export default Preview;

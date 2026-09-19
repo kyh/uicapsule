@@ -6,19 +6,21 @@ import { getAllContent } from "@/lib/content-data";
 
 import type { ComponentType } from "react";
 
-type Props = {
+interface Props {
   params: Promise<{ slug: string }>;
-};
+}
 
 export const generateStaticParams = async () => {
   const all = await getAllContent();
   return all.filter((c) => c.type === "local").map((c) => ({ slug: c.slug }));
 };
 
-const SLUG_PATTERN = /^[a-z0-9][a-z0-9-]*$/;
+const SLUG_PATTERN = /^[a-z0-9][a-z0-9-]*$/u;
 
 const loadPreview = async (slug: string): Promise<ComponentType | null> => {
-  if (!SLUG_PATTERN.test(slug)) return null;
+  if (!SLUG_PATTERN.test(slug)) {
+    return null;
+  }
   try {
     // Independent content checks verify each default export accepts empty preview props.
     const mod: { default: ComponentType } = await import(
@@ -33,7 +35,9 @@ const loadPreview = async (slug: string): Promise<ComponentType | null> => {
 const PreviewContent = async ({ params }: Props) => {
   const { slug } = await params;
   const Preview = await loadPreview(slug);
-  if (!Preview) notFound();
+  if (!Preview) {
+    notFound();
+  }
   return <Preview />;
 };
 

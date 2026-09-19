@@ -1,7 +1,55 @@
 import { AnimatePresence, motion } from "motion/react";
 import { useEffect, useState } from "react";
 
-export function Timer() {
+const Counter = ({ paused }: { paused: boolean }) => {
+  const [count, setCount] = useState(60);
+
+  useEffect(() => {
+    if (paused) {
+      return;
+    }
+
+    const id = setInterval(() => {
+      setCount((c) => {
+        if (c === 0) {
+          return 60;
+        }
+        return c - 1;
+      });
+    }, 1000);
+
+    return () => {
+      clearInterval(id);
+    };
+  }, [paused]);
+
+  const digits = [
+    { place: "tens", value: Math.floor(count / 10) },
+    { place: "ones", value: count % 10 },
+  ];
+
+  return (
+    <div className="relative w-[64px] overflow-hidden text-3xl font-light whitespace-nowrap">
+      0:
+      <AnimatePresence initial={false} mode="popLayout">
+        {digits.map((digit) => (
+          <motion.div
+            className="inline-block tabular-nums"
+            key={`${digit.place}-${digit.value}`}
+            initial={{ filter: "blur(2px)", opacity: 0, y: "12px" }}
+            animate={{ filter: "blur(0px)", opacity: 1, y: "0" }}
+            exit={{ filter: "blur(2px)", opacity: 0, y: "-12px" }}
+            transition={{ bounce: 0.35, type: "spring" }}
+          >
+            {digit.value}
+          </motion.div>
+        ))}
+      </AnimatePresence>
+    </div>
+  );
+};
+
+export const Timer = () => {
   const [isPaused, setIsPaused] = useState(false);
 
   return (
@@ -17,9 +65,9 @@ export function Timer() {
           {isPaused ? (
             <motion.svg
               key="play"
-              initial={{ opacity: 0, scale: 0.5, filter: "blur(4px)" }}
-              animate={{ opacity: 1, scale: 1, filter: "blur(0px)" }}
-              exit={{ opacity: 0, scale: 0.5, filter: "blur(4px)" }}
+              initial={{ filter: "blur(4px)", opacity: 0, scale: 0.5 }}
+              animate={{ filter: "blur(0px)", opacity: 1, scale: 1 }}
+              exit={{ filter: "blur(4px)", opacity: 0, scale: 0.5 }}
               transition={{ duration: 0.1 }}
               viewBox="0 0 12 14"
               fill="none"
@@ -31,9 +79,9 @@ export function Timer() {
           ) : (
             <motion.svg
               key="pause"
-              initial={{ opacity: 0, scale: 0.5, filter: "blur(4px)" }}
-              animate={{ opacity: 1, scale: 1, filter: "blur(0px)" }}
-              exit={{ opacity: 0, scale: 0.5, filter: "blur(4px)" }}
+              initial={{ filter: "blur(4px)", opacity: 0, scale: 0.5 }}
+              animate={{ filter: "blur(0px)", opacity: 1, scale: 1 }}
+              exit={{ filter: "blur(4px)", opacity: 0, scale: 0.5 }}
               transition={{ duration: 0.1 }}
               viewBox="0 0 10 13"
               fill="none"
@@ -67,50 +115,4 @@ export function Timer() {
       </div>
     </div>
   );
-}
-
-function Counter({ paused }: { paused: boolean }) {
-  const [count, setCount] = useState(60);
-
-  useEffect(() => {
-    if (paused) return;
-
-    const id = setInterval(() => {
-      setCount((c) => {
-        if (c === 0) {
-          return 60;
-        }
-        return c - 1;
-      });
-    }, 1000);
-
-    return () => {
-      clearInterval(id);
-    };
-  }, [paused]);
-
-  const digits = [
-    { place: "tens", value: Math.floor(count / 10) },
-    { place: "ones", value: count % 10 },
-  ];
-
-  return (
-    <div className="relative w-[64px] overflow-hidden text-3xl font-light whitespace-nowrap">
-      0:
-      <AnimatePresence initial={false} mode="popLayout">
-        {digits.map((digit) => (
-          <motion.div
-            className="inline-block tabular-nums"
-            key={`${digit.place}-${digit.value}`}
-            initial={{ y: "12px", filter: "blur(2px)", opacity: 0 }}
-            animate={{ y: "0", filter: "blur(0px)", opacity: 1 }}
-            exit={{ y: "-12px", filter: "blur(2px)", opacity: 0 }}
-            transition={{ type: "spring", bounce: 0.35 }}
-          >
-            {digit.value}
-          </motion.div>
-        ))}
-      </AnimatePresence>
-    </div>
-  );
-}
+};

@@ -17,25 +17,25 @@ const DOT_GAP = 5;
 /** The dots, as fixed positions rather than an anonymous array — so each one can
  * carry its own key and say where it lives out loud for a screen reader. */
 const POSITIONS = Array.from({ length: CELL_SIZE }, (_, index) => ({
+  column: (index % COLS) + 1,
   index,
   row: Math.floor(index / COLS) + 1,
-  column: (index % COLS) + 1,
 }));
 
-/** A 5×7 glyph for every digit — the machine's entire idea of what numbers look
- * like. It matches whatever you draw against these and picks a winner, no matter
+/** A 5×7 glyph for every digit, indexed by digit — the machine's entire idea of
+ * what numbers look like. It matches whatever you draw against these and picks a winner, no matter
  * how little your drawing deserves one. */
 const GLYPHS: readonly (readonly string[])[] = [
-  ["01110", "10001", "10011", "10101", "11001", "10001", "01110"], // 0
-  ["00100", "01100", "00100", "00100", "00100", "00100", "01110"], // 1
-  ["01110", "10001", "00001", "00010", "00100", "01000", "11111"], // 2
-  ["11111", "00010", "00100", "00010", "00001", "10001", "01110"], // 3
-  ["00010", "00110", "01010", "10010", "11111", "00010", "00010"], // 4
-  ["11111", "10000", "11110", "00001", "00001", "10001", "01110"], // 5
-  ["00110", "01000", "10000", "11110", "10001", "10001", "01110"], // 6
-  ["11111", "00001", "00010", "00100", "01000", "01000", "01000"], // 7
-  ["01110", "10001", "10001", "01110", "10001", "10001", "01110"], // 8
-  ["01110", "10001", "10001", "01111", "00001", "00010", "01100"], // 9
+  ["01110", "10001", "10011", "10101", "11001", "10001", "01110"],
+  ["00100", "01100", "00100", "00100", "00100", "00100", "01110"],
+  ["01110", "10001", "00001", "00010", "00100", "01000", "11111"],
+  ["11111", "00010", "00100", "00010", "00001", "10001", "01110"],
+  ["00010", "00110", "01010", "10010", "11111", "00010", "00010"],
+  ["11111", "10000", "11110", "00001", "00001", "10001", "01110"],
+  ["00110", "01000", "10000", "11110", "10001", "10001", "01110"],
+  ["11111", "00001", "00010", "00100", "01000", "01000", "01000"],
+  ["01110", "10001", "10001", "01110", "10001", "10001", "01110"],
+  ["01110", "10001", "10001", "01111", "00001", "00010", "01100"],
 ];
 
 const GLYPH_CELLS: readonly (readonly boolean[])[] = GLYPHS.map((rows) =>
@@ -55,28 +55,80 @@ const INK_THRESHOLD = 3;
  */
 const readCell = (cells: boolean[]): number => {
   const ink = cells.filter(Boolean).length;
-  if (ink < INK_THRESHOLD) return 0;
+  if (ink < INK_THRESHOLD) {
+    return 0;
+  }
 
   let best = 0;
   let bestScore = -1;
-  GLYPH_CELLS.forEach((glyph, digit) => {
+  for (const [digit, glyph] of GLYPH_CELLS.entries()) {
     let score = 0;
     for (let index = 0; index < CELL_SIZE; index += 1) {
-      if (cells[index] === glyph[index]) score += 1;
+      if (cells[index] === glyph[index]) {
+        score += 1;
+      }
     }
     if (score > bestScore) {
       bestScore = score;
       best = digit;
     }
-  });
+  }
   return best;
 };
 
 const SCAN_MS = 620;
 
-type DotsTrackProps = {
-  volume: MotionValue<number>;
+const Verdict = ({ scanning, verdict }: { scanning: boolean; verdict: number | null }) => {
+  if (scanning) {
+    return <span className="text-neutral-600">scanning…</span>;
+  }
+  if (verdict === null) {
+    return <span className="text-neutral-700">—</span>;
+  }
+  return verdict;
 };
+
+interface DotCellProps {
+  label: "tens" | "ones";
+  cells: boolean[];
+  onDown: (cell: "tens" | "ones", index: number, lit: boolean) => void;
+  onEnter: (cell: "tens" | "ones", index: number) => void;
+}
+
+const DotCell = ({ label, cells, onDown, onEnter }: DotCellProps) => (
+  <div
+    className="grid"
+    style={{
+      gap: DOT_GAP,
+      gridTemplateColumns: `repeat(${COLS}, ${DOT}px)`,
+      touchAction: "none",
+    }}
+  >
+    {POSITIONS.map((dot) => {
+      const lit = cells[dot.index] ?? false;
+      return (
+        <button
+          key={`${label}-${dot.row}-${dot.column}`}
+          type="button"
+          aria-pressed={lit}
+          aria-label={`${label} digit, row ${dot.row}, column ${dot.column}`}
+          onPointerDown={() => onDown(label, dot.index, lit)}
+          onPointerEnter={() => onEnter(label, dot.index)}
+          style={{ height: DOT, margin: 0, width: DOT }}
+          className={`rounded-full outline-none transition-colors duration-75 focus-visible:ring-2 focus-visible:ring-white/70 ${
+            lit
+              ? "bg-emerald-300 shadow-[0_0_8px_rgba(110,231,183,0.65)]"
+              : "bg-neutral-800 hover:bg-neutral-700"
+          }`}
+        />
+      );
+    })}
+  </div>
+);
+
+interface DotsTrackProps {
+  volume: MotionValue<number>;
+}
 
 /**
  * The machine reads dot-matrix. It does not read sliders, it does not read
@@ -110,7 +162,9 @@ export const DotsTrack = ({ volume }: DotsTrackProps) => {
   };
 
   const handleDotEnter = (cell: "tens" | "ones", index: number) => {
-    if (painting.current === null) return;
+    if (painting.current === null) {
+      return;
+    }
     paint(cell, index, painting.current);
   };
 
@@ -173,13 +227,7 @@ export const DotsTrack = ({ volume }: DotsTrackProps) => {
         <div aria-live="polite" className="min-h-[52px]">
           <p className="text-[11px] tracking-wide text-neutral-500 uppercase">Reads as</p>
           <p className="text-[30px] leading-tight font-semibold tabular-nums text-emerald-300">
-            {scanning ? (
-              <span className="text-neutral-600">scanning…</span>
-            ) : verdict === null ? (
-              <span className="text-neutral-700">—</span>
-            ) : (
-              verdict
-            )}
+            <Verdict scanning={scanning} verdict={verdict} />
           </p>
         </div>
 
@@ -206,41 +254,3 @@ export const DotsTrack = ({ volume }: DotsTrackProps) => {
     </div>
   );
 };
-
-type DotCellProps = {
-  label: "tens" | "ones";
-  cells: boolean[];
-  onDown: (cell: "tens" | "ones", index: number, lit: boolean) => void;
-  onEnter: (cell: "tens" | "ones", index: number) => void;
-};
-
-const DotCell = ({ label, cells, onDown, onEnter }: DotCellProps) => (
-  <div
-    className="grid"
-    style={{
-      gridTemplateColumns: `repeat(${COLS}, ${DOT}px)`,
-      gap: DOT_GAP,
-      touchAction: "none",
-    }}
-  >
-    {POSITIONS.map((dot) => {
-      const lit = cells[dot.index] ?? false;
-      return (
-        <button
-          key={`${label}-${dot.row}-${dot.column}`}
-          type="button"
-          aria-pressed={lit}
-          aria-label={`${label} digit, row ${dot.row}, column ${dot.column}`}
-          onPointerDown={() => onDown(label, dot.index, lit)}
-          onPointerEnter={() => onEnter(label, dot.index)}
-          style={{ width: DOT, height: DOT, margin: 0 }}
-          className={`rounded-full outline-none transition-colors duration-75 focus-visible:ring-2 focus-visible:ring-white/70 ${
-            lit
-              ? "bg-emerald-300 shadow-[0_0_8px_rgba(110,231,183,0.65)]"
-              : "bg-neutral-800 hover:bg-neutral-700"
-          }`}
-        />
-      );
-    })}
-  </div>
-);

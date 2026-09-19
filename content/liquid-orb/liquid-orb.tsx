@@ -19,13 +19,13 @@ export type LiquidOrbPreset =
 
 /** Display names for each preset, for captions and controls. */
 export const presetLabel = {
-  siri: "Siri",
-  chrome: "Chrome",
   aurora: "Aurora",
-  violetEmber: "Violet Ember",
   blueDrop: "Blue Drop",
+  chrome: "Chrome",
   opal: "Opal",
   plasma: "Plasma",
+  siri: "Siri",
+  violetEmber: "Violet Ember",
 } satisfies Record<LiquidOrbPreset, string>;
 
 /** Cycle order — adjacent presets are chosen for maximum material contrast. */
@@ -43,7 +43,7 @@ export const presetOrder: readonly LiquidOrbPreset[] = [
  * Configuration options for the liquid orb.
  * All fields are optional and fall back to sensible defaults.
  */
-export type LiquidOrbConfig = {
+export interface LiquidOrbConfig {
   /** Preset to start on. @default "siri" */
   preset?: LiquidOrbPreset;
   /** Continuously morph through every preset. @default true */
@@ -60,9 +60,9 @@ export type LiquidOrbConfig = {
   glow?: number;
   /** Fired when a morph toward a new preset begins. */
   onPresetChange?: (preset: LiquidOrbPreset) => void;
-};
+}
 
-type PresetSpec = {
+interface PresetSpec {
   speed: number;
   radius: number;
   contourDeform: number;
@@ -89,204 +89,204 @@ type PresetSpec = {
   specColor: string;
   canvasColor: string;
   glowColor: string;
-};
+}
 
 // Preset values carried over verbatim from the source editor's style bank.
 const base = {
-  radius: 0.72,
   contourDeform: 0,
   highlight: "#FFFFFF",
-  shellInner: "#FFFFFF",
+  radius: 0.72,
   sheenColor: "#EAF4FF",
+  shellInner: "#FFFFFF",
   specColor: "#DCEAFF",
 };
 
 const presets = {
-  siri: {
-    ...base,
-    speed: 0.82,
-    zoom: 0.36,
-    warp: 3.2,
-    ridgeAmt: 0.5,
-    sharp: 2.2,
-    shade: 0.12,
-    sheen: 0.28,
-    gloss: 0.24,
-    glassOpacity: 0.44,
-    shellMidAlpha: 0.18,
-    shellEdgeAlpha: 0.18,
-    exposure: 2,
-    colorA: "#FFD86B",
-    colorB: "#82F4FF",
-    colorC: "#FF7BD5",
-    colorD: "#8E6CFF",
-    shellMid: "#9BF4FF",
-    shellEdge: "#C5A9FF",
-    canvasColor: "#030409",
-    glowColor: "#956CFF",
-  },
-  chrome: {
-    ...base,
-    speed: 2,
-    zoom: 0.36,
-    warp: 3.8,
-    ridgeAmt: 0.44,
-    sharp: 5.2,
-    shade: 0.58,
-    sheen: 0.36,
-    gloss: 0.28,
-    glassOpacity: 0.42,
-    shellMidAlpha: 0.2,
-    shellEdgeAlpha: 0.22,
-    exposure: 1.08,
-    colorA: "#FFFFFF",
-    colorB: "#B9C0CA",
-    colorC: "#343A43",
-    colorD: "#030405",
-    shellMid: "#B9C0CA",
-    shellEdge: "#FFFFFF",
-    canvasColor: "#050608",
-    glowColor: "#FFFFFF",
-  },
   aurora: {
     ...base,
-    speed: 3,
-    contourDeform: 0.08,
-    zoom: 0.4,
-    warp: 4.2,
-    ridgeAmt: 0.62,
-    sharp: 2.1,
-    shade: 0.18,
-    sheen: 0.36,
-    gloss: 0.28,
-    glassOpacity: 0.42,
-    shellMidAlpha: 0.2,
-    shellEdgeAlpha: 0.22,
-    exposure: 1.18,
+    canvasColor: "#010207",
     colorA: "#030816",
     colorB: "#20F0B6",
     colorC: "#32A8FF",
     colorD: "#A34BFF",
-    shellMid: "#32A8FF",
-    shellEdge: "#20F0B6",
-    canvasColor: "#010207",
+    contourDeform: 0.08,
+    exposure: 1.18,
+    glassOpacity: 0.42,
+    gloss: 0.28,
     glowColor: "#20F0B6",
-  },
-  violetEmber: {
-    ...base,
-    speed: 1.12,
-    contourDeform: 0.04,
-    zoom: 0.58,
-    warp: 4.7,
-    ridgeAmt: 0.73,
-    sharp: 3.3,
+    ridgeAmt: 0.62,
     shade: 0.18,
-    sheen: 0.2,
-    gloss: 0.34,
-    glassOpacity: 0.62,
-    shellMidAlpha: 0.28,
-    shellEdgeAlpha: 0.24,
-    exposure: 1.28,
-    colorA: "#100016",
-    colorB: "#4A0E8F",
-    colorC: "#A52EFF",
-    colorD: "#F1A7FF",
-    highlight: "#FFD6FF",
-    shellInner: "#FCF5FF",
-    shellMid: "#C257FF",
-    shellEdge: "#6C2DFF",
-    sheenColor: "#F8E6FF",
-    specColor: "#D4B7FF",
-    canvasColor: "#030006",
-    glowColor: "#A52EFF",
+    sharp: 2.1,
+    sheen: 0.36,
+    shellEdge: "#20F0B6",
+    shellEdgeAlpha: 0.22,
+    shellMid: "#32A8FF",
+    shellMidAlpha: 0.2,
+    speed: 3,
+    warp: 4.2,
+    zoom: 0.4,
   },
   blueDrop: {
     ...base,
-    speed: 0.9,
-    radius: 0.74,
-    contourDeform: 0.08,
-    zoom: 0.48,
-    warp: 2.65,
-    ridgeAmt: 0.42,
-    sharp: 2.4,
-    shade: 0.16,
-    sheen: 0.22,
-    gloss: 0.42,
-    glassOpacity: 0.66,
-    shellMidAlpha: 0.32,
-    shellEdgeAlpha: 0.24,
-    exposure: 1.24,
+    canvasColor: "#010207",
     colorA: "#020B1D",
     colorB: "#0756B8",
     colorC: "#1EC8FF",
     colorD: "#DDFBFF",
+    contourDeform: 0.08,
+    exposure: 1.24,
+    glassOpacity: 0.66,
+    gloss: 0.42,
+    glowColor: "#168DFF",
     highlight: "#EAFBFF",
+    radius: 0.74,
+    ridgeAmt: 0.42,
+    shade: 0.16,
+    sharp: 2.4,
+    sheen: 0.22,
+    sheenColor: "#DDFBFF",
+    shellEdge: "#466DFF",
+    shellEdgeAlpha: 0.24,
     shellInner: "#F6FDFF",
     shellMid: "#4FD7FF",
-    shellEdge: "#466DFF",
-    sheenColor: "#DDFBFF",
+    shellMidAlpha: 0.32,
     specColor: "#A8D9FF",
-    canvasColor: "#010207",
-    glowColor: "#168DFF",
+    speed: 0.9,
+    warp: 2.65,
+    zoom: 0.48,
+  },
+  chrome: {
+    ...base,
+    canvasColor: "#050608",
+    colorA: "#FFFFFF",
+    colorB: "#B9C0CA",
+    colorC: "#343A43",
+    colorD: "#030405",
+    exposure: 1.08,
+    glassOpacity: 0.42,
+    gloss: 0.28,
+    glowColor: "#FFFFFF",
+    ridgeAmt: 0.44,
+    shade: 0.58,
+    sharp: 5.2,
+    sheen: 0.36,
+    shellEdge: "#FFFFFF",
+    shellEdgeAlpha: 0.22,
+    shellMid: "#B9C0CA",
+    shellMidAlpha: 0.2,
+    speed: 2,
+    warp: 3.8,
+    zoom: 0.36,
   },
   opal: {
     ...base,
-    speed: 1.5,
-    zoom: 0.3,
-    warp: 2.8,
-    ridgeAmt: 0.36,
-    sharp: 2,
-    shade: 0.1,
-    sheen: 0.3,
-    gloss: 0.26,
-    glassOpacity: 0.38,
-    shellMidAlpha: 0.2,
-    shellEdgeAlpha: 0.2,
-    exposure: 1.12,
+    canvasColor: "#07080D",
     colorA: "#FFF6E8",
     colorB: "#6EF2CF",
     colorC: "#FF91D8",
     colorD: "#756BFF",
-    shellMid: "#CDE5FF",
-    shellEdge: "#D9C8FF",
-    canvasColor: "#07080D",
+    exposure: 1.12,
+    glassOpacity: 0.38,
+    gloss: 0.26,
     glowColor: "#9E8CFF",
+    ridgeAmt: 0.36,
+    shade: 0.1,
+    sharp: 2,
+    sheen: 0.3,
+    shellEdge: "#D9C8FF",
+    shellEdgeAlpha: 0.2,
+    shellMid: "#CDE5FF",
+    shellMidAlpha: 0.2,
+    speed: 1.5,
+    warp: 2.8,
+    zoom: 0.3,
   },
   plasma: {
     ...base,
-    speed: 1.32,
-    contourDeform: 0.05,
-    zoom: 0.55,
-    warp: 5.4,
-    ridgeAmt: 0.78,
-    sharp: 4.2,
-    shade: 0.16,
-    sheen: 0.36,
-    gloss: 0.28,
-    glassOpacity: 0.42,
-    shellMidAlpha: 0.2,
-    shellEdgeAlpha: 0.22,
-    exposure: 1.25,
+    canvasColor: "#020105",
     colorA: "#06020E",
     colorB: "#0099FF",
     colorC: "#258BFF",
     colorD: "#1375FF",
+    contourDeform: 0.05,
+    exposure: 1.25,
+    glassOpacity: 0.42,
+    gloss: 0.28,
+    glowColor: "#0099FF",
+    ridgeAmt: 0.78,
+    shade: 0.16,
+    sharp: 4.2,
+    sheen: 0.36,
+    shellEdge: "#00E9FF",
+    shellEdgeAlpha: 0.22,
     shellInner: "#FFFFFF",
     shellMid: "#1951C2",
-    shellEdge: "#00E9FF",
-    canvasColor: "#020105",
-    glowColor: "#0099FF",
+    shellMidAlpha: 0.2,
+    speed: 1.32,
+    warp: 5.4,
+    zoom: 0.55,
+  },
+  siri: {
+    ...base,
+    canvasColor: "#030409",
+    colorA: "#FFD86B",
+    colorB: "#82F4FF",
+    colorC: "#FF7BD5",
+    colorD: "#8E6CFF",
+    exposure: 2,
+    glassOpacity: 0.44,
+    gloss: 0.24,
+    glowColor: "#956CFF",
+    ridgeAmt: 0.5,
+    shade: 0.12,
+    sharp: 2.2,
+    sheen: 0.28,
+    shellEdge: "#C5A9FF",
+    shellEdgeAlpha: 0.18,
+    shellMid: "#9BF4FF",
+    shellMidAlpha: 0.18,
+    speed: 0.82,
+    warp: 3.2,
+    zoom: 0.36,
+  },
+  violetEmber: {
+    ...base,
+    canvasColor: "#030006",
+    colorA: "#100016",
+    colorB: "#4A0E8F",
+    colorC: "#A52EFF",
+    colorD: "#F1A7FF",
+    contourDeform: 0.04,
+    exposure: 1.28,
+    glassOpacity: 0.62,
+    gloss: 0.34,
+    glowColor: "#A52EFF",
+    highlight: "#FFD6FF",
+    ridgeAmt: 0.73,
+    shade: 0.18,
+    sharp: 3.3,
+    sheen: 0.2,
+    sheenColor: "#F8E6FF",
+    shellEdge: "#6C2DFF",
+    shellEdgeAlpha: 0.24,
+    shellInner: "#FCF5FF",
+    shellMid: "#C257FF",
+    shellMidAlpha: 0.28,
+    specColor: "#D4B7FF",
+    speed: 1.12,
+    warp: 4.7,
+    zoom: 0.58,
   },
 } satisfies Record<LiquidOrbPreset, PresetSpec>;
 
 // Style indices the shader dispatches on — must match presetFluid() below.
 const styleIndex = {
-  siri: 0,
   aurora: 1,
-  plasma: 2,
+  blueDrop: 5,
   chrome: 3,
   opal: 4,
-  blueDrop: 5,
+  plasma: 2,
+  siri: 0,
   violetEmber: 6,
 } satisfies Record<LiquidOrbPreset, number>;
 
@@ -368,12 +368,12 @@ const hexToRgb = (hex: string): [number, number, number] => {
 
 const presetVec = (spec: PresetSpec): Float32Array => {
   const out = new Float32Array(VEC_SIZE);
-  scalarKeys.forEach((key, i) => {
+  for (const [i, key] of scalarKeys.entries()) {
     out[i] = spec[key];
-  });
-  colorKeys.forEach((key, i) => {
+  }
+  for (const [i, key] of colorKeys.entries()) {
     out.set(hexToRgb(spec[key]), COLOR_BASE + i * 3);
-  });
+  }
   return out;
 };
 
@@ -926,7 +926,9 @@ void main() {
 
 const compileShader = (gl: WebGL2RenderingContext, type: number, source: string) => {
   const shader = gl.createShader(type);
-  if (!shader) return null;
+  if (!shader) {
+    return null;
+  }
   gl.shaderSource(shader, source);
   gl.compileShader(shader);
   if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) {
@@ -957,47 +959,51 @@ export const LiquidOrb = ({
 
   useEffect(() => {
     const container = rootRef.current;
-    if (!container) return;
+    if (!container) {
+      return;
+    }
 
     const canvas = document.createElement("canvas");
     canvas.style.display = "block";
     canvas.style.width = "100%";
     canvas.style.height = "100%";
-    container.appendChild(canvas);
+    container.append(canvas);
 
     const gl = canvas.getContext("webgl2", {
       alpha: true,
-      premultipliedAlpha: true,
       antialias: false,
       depth: false,
+      premultipliedAlpha: true,
       stencil: false,
     });
     if (!gl) {
-      container.removeChild(canvas);
+      canvas.remove();
       return;
     }
 
     const vs = compileShader(gl, gl.VERTEX_SHADER, vertexSrc);
     if (!vs) {
-      container.removeChild(canvas);
+      canvas.remove();
       return;
     }
     gl.disable(gl.BLEND);
 
-    type ProgramEntry = {
+    interface ProgramEntry {
       program: WebGLProgram;
       uSize: WebGLUniformLocation | null;
       uTime: WebGLUniformLocation | null;
       uStyleMix: WebGLUniformLocation | null;
       scalars: (WebGLUniformLocation | null)[];
       colors: (WebGLUniformLocation | null)[];
-    };
+    }
     const programs = new Map<string, ProgramEntry | null>();
 
     const getProgram = (a: number, b: number): ProgramEntry | null => {
       const key = `${a}:${b}`;
       const cached = programs.get(key);
-      if (cached !== undefined) return cached;
+      if (cached !== undefined) {
+        return cached;
+      }
       const src = `#version 300 es\n#define STYLE_A ${a}\n#define STYLE_B ${b}\n${fragmentBody}`;
       const fs = compileShader(gl, gl.FRAGMENT_SHADER, src);
       const program = gl.createProgram();
@@ -1014,12 +1020,12 @@ export const LiquidOrb = ({
           gl.uniform1f(loc("uGlass"), glass ? 1 : 0);
           gl.uniform1f(loc("uGlow"), Math.max(glow, 0));
           entry = {
-            program,
-            uSize: loc("uSize"),
-            uTime: loc("uTime"),
-            uStyleMix: loc("uStyleMix"),
-            scalars: scalarUniforms.map(loc),
             colors: colorUniforms.map(loc),
+            program,
+            scalars: scalarUniforms.map(loc),
+            uSize: loc("uSize"),
+            uStyleMix: loc("uStyleMix"),
+            uTime: loc("uTime"),
           };
         } else {
           console.error("liquid-orb program link failed:", gl.getProgramInfoLog(program));
@@ -1066,56 +1072,69 @@ export const LiquidOrb = ({
 
     const mixed = new Float32Array(VEC_SIZE);
 
+    const adaptRenderScale = (now: number, elapsed: number) => {
+      frameCostMs += (Math.min(elapsed, 1000) - frameCostMs) * 0.2;
+      if (now - lastAdjust <= 700) {
+        return;
+      }
+      if (frameCostMs > 50 && renderScale > SCALE_MIN) {
+        renderScale = Math.max(SCALE_MIN, renderScale * 0.8);
+        lastAdjust = now;
+        resize();
+      } else if (frameCostMs < 25 && renderScale < SCALE_MAX) {
+        renderScale = Math.min(SCALE_MAX, renderScale * 1.25);
+        lastAdjust = now;
+        resize();
+      }
+    };
+
+    const advanceCycle = (dt: number) => {
+      if (morphing) {
+        morphT += dt / Math.max(morphDuration, 0.001);
+        if (morphT >= 1) {
+          current = next;
+          next = (current + 1) % order.length;
+          morphing = false;
+          morphT = 0;
+          holdT = 0;
+        }
+        return;
+      }
+      holdT += dt;
+      if (holdT >= holdDuration) {
+        morphing = true;
+        morphT = 0;
+        const targetPreset = order[next];
+        if (targetPreset === undefined) {
+          throw new RangeError("Liquid orb preset index is out of bounds");
+        }
+        onPresetChangeRef.current?.(targetPreset);
+      }
+    };
+
     const draw = (now: number) => {
       frame = requestAnimationFrame(draw);
       const elapsed = now - last;
       const dt = Math.min(elapsed / 1000, 0.25);
       last = now;
 
-      frameCostMs += (Math.min(elapsed, 1000) - frameCostMs) * 0.2;
-      if (now - lastAdjust > 700) {
-        if (frameCostMs > 50 && renderScale > SCALE_MIN) {
-          renderScale = Math.max(SCALE_MIN, renderScale * 0.8);
-          lastAdjust = now;
-          resize();
-        } else if (frameCostMs < 25 && renderScale < SCALE_MAX) {
-          renderScale = Math.min(SCALE_MAX, renderScale * 1.25);
-          lastAdjust = now;
-          resize();
-        }
-      }
-
+      adaptRenderScale(now, elapsed);
       if (cycle) {
-        if (!morphing) {
-          holdT += dt;
-          if (holdT >= holdDuration) {
-            morphing = true;
-            morphT = 0;
-            const targetPreset = order[next];
-            if (targetPreset === undefined)
-              throw new RangeError("Liquid orb preset index is out of bounds");
-            onPresetChangeRef.current?.(targetPreset);
-          }
-        } else {
-          morphT += dt / Math.max(morphDuration, 0.001);
-          if (morphT >= 1) {
-            current = next;
-            next = (current + 1) % order.length;
-            morphing = false;
-            morphT = 0;
-            holdT = 0;
-          }
-        }
+        advanceCycle(dt);
       }
 
       const k = morphing ? easeInOut(Math.min(morphT, 1)) : 0;
       const currentPreset = order[current];
       const nextPreset = order[next];
-      if (!currentPreset || !nextPreset) return;
+      if (!currentPreset || !nextPreset) {
+        return;
+      }
       const a = presetVecs.get(currentPreset);
       const b = presetVecs.get(nextPreset);
-      if (!a || !b) return;
-      for (let i = 0; i < VEC_SIZE; i++) {
+      if (!a || !b) {
+        return;
+      }
+      for (let i = 0; i < VEC_SIZE; i += 1) {
         const from = a[i];
         const to = b[i];
         if (from === undefined || to === undefined) {
@@ -1124,15 +1143,18 @@ export const LiquidOrb = ({
         mixed[i] = from + (to - from) * k;
       }
 
-      const phaseSpeed = mixed[0];
-      if (phaseSpeed === undefined)
+      const [phaseSpeed] = mixed;
+      if (phaseSpeed === undefined) {
         throw new Error("Liquid orb preset buffer is missing its speed");
+      }
       phase += dt * phaseSpeed * speed;
 
       const styleA = styleIndex[currentPreset];
       const styleB = styleIndex[nextPreset];
       const entry = morphing ? getProgram(styleA, styleB) : getProgram(styleA, styleA);
-      if (!entry) return;
+      if (!entry) {
+        return;
+      }
       // Warm the next segment's program mid-segment so switches don't hitch.
       if (!morphing && holdT > 0.3) {
         getProgram(styleA, styleB);
@@ -1145,12 +1167,12 @@ export const LiquidOrb = ({
       gl.uniform2f(entry.uSize, canvas.width, canvas.height);
       gl.uniform1f(entry.uTime, phase);
       gl.uniform1f(entry.uStyleMix, k);
-      entry.scalars.forEach((location, i) => {
+      for (const [i, location] of entry.scalars.entries()) {
         gl.uniform1fv(location, mixed, i + 1, 1);
-      });
-      entry.colors.forEach((location, i) => {
+      }
+      for (const [i, location] of entry.colors.entries()) {
         gl.uniform3fv(location, mixed, COLOR_BASE + i * 3, 3);
-      });
+      }
       gl.drawArrays(gl.TRIANGLES, 0, 3);
     };
     frame = requestAnimationFrame(draw);
@@ -1159,11 +1181,13 @@ export const LiquidOrb = ({
       cancelAnimationFrame(frame);
       observer.disconnect();
       for (const entry of programs.values()) {
-        if (entry) gl.deleteProgram(entry.program);
+        if (entry) {
+          gl.deleteProgram(entry.program);
+        }
       }
       gl.deleteShader(vs);
       gl.getExtension("WEBGL_lose_context")?.loseContext();
-      container.removeChild(canvas);
+      canvas.remove();
     };
   }, [preset, cycle, holdDuration, morphDuration, speed, glass, glow]);
 

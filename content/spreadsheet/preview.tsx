@@ -11,7 +11,6 @@ import {
 import { MoreVerticalIcon, Plus, Sparkles, TrashIcon } from "lucide-react";
 
 import type { SpreadsheetProps } from "./components/spreadsheet";
-import type { SpreadsheetRow } from "./lib/spreadsheet-store";
 import { EditableCell } from "./components/editable-cell";
 import { Spreadsheet } from "./components/spreadsheet";
 import {
@@ -21,10 +20,11 @@ import {
   StatusBarSummary,
 } from "./components/status-bar";
 import { Toolbar, ToolbarButton } from "./components/toolbar";
+import type { SpreadsheetRow } from "./lib/spreadsheet-store";
 import { SpreadsheetProvider, useSpreadsheetStore } from "./lib/spreadsheet-store";
 import { useAiEnrichment } from "./lib/use-ai-enrichment";
 
-type Person = {
+interface Person extends SpreadsheetRow {
   id: string;
   linkedinUrl: string;
   firstName: string;
@@ -32,27 +32,26 @@ type Person = {
   email: string;
   company: string;
   role: string;
-};
+}
 
-const generateSamplePeople = (count: number): Person[] => {
-  return Array.from({ length: count }, (_, i) => ({
-    id: `${i + 1}`,
-    linkedinUrl: `https://linkedin.com/in/user-${i + 1}`,
-    firstName: "",
-    lastName: "",
-    email: "",
+const generateSamplePeople = (count: number): Person[] =>
+  Array.from({ length: count }, (_, i) => ({
     company: "",
+    email: "",
+    firstName: "",
+    id: `${i + 1}`,
+    lastName: "",
+    linkedinUrl: `https://linkedin.com/in/user-${i + 1}`,
     role: "",
   }));
-};
 
 const initialData = generateSamplePeople(30);
 const initialColumnWidths = {
-  linkedinUrl: 250,
+  company: 150,
+  email: 180,
   firstName: 120,
   lastName: 120,
-  email: 180,
-  company: 150,
+  linkedinUrl: 250,
   role: 150,
 };
 
@@ -86,12 +85,12 @@ const ToolbarButtons = () => {
       <ToolbarButton
         onClick={() =>
           addRow(() => ({
-            id: crypto.randomUUID(),
-            linkedinUrl: "",
-            firstName: "",
-            lastName: "",
-            email: "",
             company: "",
+            email: "",
+            firstName: "",
+            id: crypto.randomUUID(),
+            lastName: "",
+            linkedinUrl: "",
             role: "",
           }))
         }
@@ -108,35 +107,33 @@ const ToolbarButtons = () => {
 };
 
 const columns: SpreadsheetProps["columns"] = [
-  { accessorKey: "linkedinUrl", header: "LinkedIn URL", cell: EditableCell },
-  { accessorKey: "firstName", header: "First Name", cell: EditableCell },
-  { accessorKey: "lastName", header: "Last Name", cell: EditableCell },
-  { accessorKey: "email", header: "Email", cell: EditableCell },
-  { accessorKey: "company", header: "Company", cell: EditableCell },
-  { accessorKey: "role", header: "Role", cell: EditableCell },
+  { accessorKey: "linkedinUrl", cell: EditableCell, header: "LinkedIn URL" },
+  { accessorKey: "firstName", cell: EditableCell, header: "First Name" },
+  { accessorKey: "lastName", cell: EditableCell, header: "Last Name" },
+  { accessorKey: "email", cell: EditableCell, header: "Email" },
+  { accessorKey: "company", cell: EditableCell, header: "Company" },
+  { accessorKey: "role", cell: EditableCell, header: "Role" },
 ];
 
-const Preview = () => {
-  return (
-    <SpreadsheetProvider initialData={initialData} initialColumnWidths={initialColumnWidths}>
-      <Toolbar>
-        <ToolbarButtons />
-      </Toolbar>
-      <Spreadsheet
-        columns={columns}
-        showRowNumbers
-        renderRowActions={(row) => <RowActions row={row} />}
-      />
-      <StatusBar>
-        <StatusBarSection>
-          <StatusBarMessage />
-        </StatusBarSection>
-        <StatusBarSection className="justify-end">
-          <StatusBarSummary />
-        </StatusBarSection>
-      </StatusBar>
-    </SpreadsheetProvider>
-  );
-};
+const Preview = () => (
+  <SpreadsheetProvider initialData={initialData} initialColumnWidths={initialColumnWidths}>
+    <Toolbar>
+      <ToolbarButtons />
+    </Toolbar>
+    <Spreadsheet
+      columns={columns}
+      showRowNumbers
+      renderRowActions={(row) => <RowActions row={row} />}
+    />
+    <StatusBar>
+      <StatusBarSection>
+        <StatusBarMessage />
+      </StatusBarSection>
+      <StatusBarSection className="justify-end">
+        <StatusBarSummary />
+      </StatusBarSection>
+    </StatusBar>
+  </SpreadsheetProvider>
+);
 
 export default Preview;

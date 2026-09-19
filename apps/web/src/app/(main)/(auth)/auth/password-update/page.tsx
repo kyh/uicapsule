@@ -6,9 +6,9 @@ import { UpdatePasswordForm } from "@/app/(main)/(auth)/_components/auth-form";
 
 export const metadata: Metadata = { title: "Update Password" };
 
-type PageProps = {
+interface PageProps {
   searchParams: Promise<{ token?: string | string[]; error?: string | string[] }>;
-};
+}
 
 const PasswordUpdate = async ({ searchParams }: PageProps) => {
   const { token, error } = await searchParams;

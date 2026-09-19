@@ -19,7 +19,9 @@ const useCountUp = (target: number, ms = 950) => {
   const painted = useRef(0);
   useEffect(() => {
     const from = painted.current;
-    if (from === target) return;
+    if (from === target) {
+      return;
+    }
     let raf = 0;
     const t0 = performance.now();
     const step = (t: number) => {
@@ -28,7 +30,9 @@ const useCountUp = (target: number, ms = 950) => {
       const value = Math.round(from + (target - from) * eased);
       painted.current = value;
       setShown(value);
-      if (p < 1) raf = requestAnimationFrame(step);
+      if (p < 1) {
+        raf = requestAnimationFrame(step);
+      }
     };
     raf = requestAnimationFrame(step);
     return () => cancelAnimationFrame(raf);
@@ -40,13 +44,17 @@ const useCountUp = (target: number, ms = 950) => {
 const useReveal = (active: boolean, ms: number) => {
   const [progress, setProgress] = useState(0);
   useEffect(() => {
-    if (!active) return;
+    if (!active) {
+      return;
+    }
     let raf = 0;
     const t0 = performance.now();
     const step = (t: number) => {
       const p = Math.min(1, (t - t0) / ms);
       setProgress(p);
-      if (p < 1) raf = requestAnimationFrame(step);
+      if (p < 1) {
+        raf = requestAnimationFrame(step);
+      }
     };
     raf = requestAnimationFrame(step);
     return () => cancelAnimationFrame(raf);
@@ -58,8 +66,8 @@ const Kicker = ({ children, dark }: { children: string; dark?: boolean }) => (
   <span
     className="inline-block rounded-full border border-dashed px-2.5 py-0.5 text-[8.5px] font-semibold tracking-[0.14em]"
     style={{
-      color: dark ? DARK.muted : MUTED,
       borderColor: dark ? DARK.faint : FAINT,
+      color: dark ? DARK.muted : MUTED,
     }}
   >
     {children}
@@ -116,7 +124,9 @@ export const EditorialCharts = () => {
 
   const reveal = useReveal(inked, 1500);
   const s = SCENES[scene];
-  if (!s) throw new RangeError("Editorial chart scene index is out of bounds");
+  if (!s) {
+    throw new RangeError("Editorial chart scene index is out of bounds");
+  }
   const sessions = useCountUp(s.sessions);
 
   return (
@@ -138,8 +148,8 @@ export const EditorialCharts = () => {
               key={q.quarter}
               className="transition-colors duration-500"
               style={{
-                color: i === scene ? INK : FAINT,
                 borderBottom: i === scene ? `2px solid ${INK}` : "2px solid transparent",
+                color: i === scene ? INK : FAINT,
               }}
             >
               {q.quarter}

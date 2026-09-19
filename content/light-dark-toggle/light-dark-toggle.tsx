@@ -20,13 +20,13 @@ const SUN_RAYS = [
 
 const RAY_RADIUS = 1.5;
 
-type LightDarkToggleProps = {
+interface LightDarkToggleProps {
   isLight: boolean;
-};
+}
 
 export const LightDarkToggle = ({ isLight }: LightDarkToggleProps) => {
   // Scoped so several toggles can coexist on one page without their masks colliding.
-  const maskId = `moon-mask-${useId().replace(/[^a-zA-Z0-9]/g, "")}`;
+  const maskId = `moon-mask-${useId().replaceAll(/[^a-zA-Z0-9]/gu, "")}`;
 
   return (
     <svg

@@ -22,17 +22,14 @@ const PANEL_MIN_GAP = 16;
 /** Space kept between the panel and the right edge of the frame. */
 const PANEL_EDGE = 16;
 
-function panelWidth(containerW: number): number {
-  return Math.min(420, containerW * 0.36);
-}
+const panelWidth = (containerW: number): number => Math.min(420, containerW * 0.36);
 
 /**
  * Right edge of the focused card in the beside-card layout: it lands centred
  * on 0.34w and renders 0.75h tall, so it is 0.25h wide either side.
  */
-function focusedCardRight(containerW: number, containerH: number): number {
-  return 0.34 * containerW + 0.25 * containerH;
-}
+const focusedCardRight = (containerW: number, containerH: number): number =>
+  0.34 * containerW + 0.25 * containerH;
 
 /**
  * Whether the panel sits beside the focused card rather than beneath it.
@@ -45,14 +42,16 @@ function focusedCardRight(containerW: number, containerH: number): number {
  * reads this same predicate to choose where to fly the camera; the two must
  * never disagree about which layout is in play.
  */
-export function usesSideLayout(containerW: number, containerH: number): boolean {
-  if (containerW < NARROW_BREAKPOINT) return false;
+export const usesSideLayout = (containerW: number, containerH: number): boolean => {
+  if (containerW < NARROW_BREAKPOINT) {
+    return false;
+  }
   const rightEdge =
     focusedCardRight(containerW, containerH) + PANEL_MIN_GAP + panelWidth(containerW) + PANEL_EDGE;
   return rightEdge <= containerW;
-}
+};
 
-const SLOT_TAG = { top: "A", lower: "B", shoes: "C" } as const;
+const SLOT_TAG = { lower: "B", shoes: "C", top: "A" } as const;
 
 /** Utilities-layer scrollbar suppression — the app's base layer styles one in. */
 const NO_SCROLLBAR =
@@ -67,7 +66,7 @@ export interface DetailPanelProps {
   ref: RefObject<HTMLDivElement | null>;
 }
 
-export function DetailPanel({ look, containerW, containerH, ref }: DetailPanelProps) {
+export const DetailPanel = ({ look, containerW, containerH, ref }: DetailPanelProps) => {
   const [activeIdx, setActiveIdx] = useState(0);
   const [bag, setBag] = useState<ReadonlySet<string>>(new Set<string>());
 
@@ -93,20 +92,23 @@ export function DetailPanel({ look, containerW, containerH, ref }: DetailPanelPr
   const itemsCount = orderedItems.length;
   const tag = SLOT_TAG[activeItem.slot];
 
-  function toggle(itemId: string) {
+  const toggle = (itemId: string) => {
     setBag((prev) => {
       const next = new Set(prev);
-      if (next.has(itemId)) next.delete(itemId);
-      else next.add(itemId);
+      if (next.has(itemId)) {
+        next.delete(itemId);
+      } else {
+        next.add(itemId);
+      }
       return next;
     });
-  }
-  function prevItem() {
+  };
+  const prevItem = () => {
     setActiveIdx((i) => (i - 1 + itemsCount) % itemsCount);
-  }
-  function nextItem() {
+  };
+  const nextItem = () => {
     setActiveIdx((i) => (i + 1) % itemsCount);
-  }
+  };
 
   const panelW = panelWidth(containerW);
   // Start PANEL_GAP past the card's right edge and never run off the frame.
@@ -121,10 +123,10 @@ export function DetailPanel({ look, containerW, containerH, ref }: DetailPanelPr
   const narrowTop = Math.round(0.38 * containerH + 38);
 
   const wrapperStyle: CSSProperties = narrow
-    ? { top: narrowTop, left: 8, right: 8, bottom: 8 }
+    ? { bottom: 8, left: 8, right: 8, top: narrowTop }
     : {
-        top: "50%",
         left: Math.round(panelLeft),
+        top: "50%",
         transform: "translateY(-50%)",
         width: Math.round(panelW),
       };
@@ -138,12 +140,10 @@ export function DetailPanel({ look, containerW, containerH, ref }: DetailPanelPr
     : Math.round(containerH * 0.44);
 
   const cardStyle: CSSProperties = {
-    maxHeight: narrow ? "100%" : maxCardHeight,
-    height: narrow ? "100%" : undefined,
+    WebkitBackdropFilter: "blur(40px) saturate(180%)",
+    backdropFilter: "blur(40px) saturate(180%)",
     background:
       "linear-gradient(135deg, rgba(255,255,255,0.22) 0%, rgba(255,255,255,0.08) 55%, rgba(255,255,255,0.14) 100%)",
-    backdropFilter: "blur(40px) saturate(180%)",
-    WebkitBackdropFilter: "blur(40px) saturate(180%)",
     border: "1px solid rgba(255,255,255,0.28)",
     boxShadow: [
       "inset 0 1px 0 rgba(255,255,255,0.55)",
@@ -153,6 +153,8 @@ export function DetailPanel({ look, containerW, containerH, ref }: DetailPanelPr
       "0 12px 28px -8px rgba(0,0,0,0.16)",
       `0 0 0 1px ${look.accent}10`,
     ].join(", "),
+    height: narrow ? "100%" : undefined,
+    maxHeight: narrow ? "100%" : maxCardHeight,
   };
 
   return (
@@ -181,7 +183,7 @@ export function DetailPanel({ look, containerW, containerH, ref }: DetailPanelPr
           {/* Hero — a crop of the very same drawing the card shows */}
           <div
             className="relative mb-3 w-full"
-            style={{ height: heroHeight, background: `${look.accent}14` }}
+            style={{ background: `${look.accent}14`, height: heroHeight }}
             data-detail-anim
           >
             {orderedItems.map((item, i) => (
@@ -213,8 +215,8 @@ export function DetailPanel({ look, containerW, containerH, ref }: DetailPanelPr
                   key={item.id}
                   className="block h-[3px] rounded-full transition-all duration-300"
                   style={{
-                    width: i === activeIdx ? 18 : 5,
                     background: i === activeIdx ? look.accent : "rgba(0,0,0,0.18)",
+                    width: i === activeIdx ? 18 : 5,
                   }}
                 />
               ))}
@@ -274,11 +276,11 @@ export function DetailPanel({ look, containerW, containerH, ref }: DetailPanelPr
                         aria-label={`View ${item.name}`}
                         className="absolute inset-0 overflow-hidden rounded-xl transition-all duration-300"
                         style={{
-                          opacity: isActive ? 1 : 0.6,
                           background: `${look.accent}12`,
                           boxShadow: isActive
                             ? "inset 0 0 0 1.5px var(--foreground, #111)"
                             : "inset 0 0 0 1px rgba(0,0,0,0.06)",
+                          opacity: isActive ? 1 : 0.6,
                         }}
                       >
                         <LookFigure
@@ -380,4 +382,4 @@ export function DetailPanel({ look, containerW, containerH, ref }: DetailPanelPr
       </div>
     </div>
   );
-}
+};

@@ -10,12 +10,17 @@ import { useMemo } from "react";
 import type { PlanRow } from "../lib/data";
 import { INK, MUTED, SPRING } from "../lib/tokens";
 
-const renderer = motion({ transition: SPRING, initial: "always" });
+const renderer = motion({ initial: "always", transition: SPRING });
 
 // One rung = $2k of MRR. The bar is a ladder you can count.
 const RUNG = 2;
 
-type Rung = { id: string; plan: string; y: number; fifth: boolean };
+interface Rung {
+  id: string;
+  plan: string;
+  y: number;
+  fifth: boolean;
+}
 
 export const RungBars = ({
   plans,
@@ -35,16 +40,18 @@ export const RungBars = ({
   const definition = useMemo(() => {
     const rungs: Rung[] = plans.flatMap((p) =>
       Array.from({ length: Math.round(p.value / RUNG) }, (_, i) => ({
+        fifth: (i + 1) % 5 === 0,
         id: `${p.plan}-${i}`,
         plan: p.plan,
         y: (i + 1) * RUNG,
-        fifth: (i + 1) % 5 === 0,
       })),
     );
     // The ladder climbs column by column, rung by rung.
     const shown = rungs.slice(0, revealed);
     const done = new Map<string, number>();
-    for (const r of shown) done.set(r.plan, (done.get(r.plan) ?? 0) + 1);
+    for (const r of shown) {
+      done.set(r.plan, (done.get(r.plan) ?? 0) + 1);
+    }
     const labeled = plans.filter((p) => (done.get(p.plan) ?? 0) >= Math.round(p.value / RUNG));
     const top = Math.max(...plans.map((p) => p.value)) * 1.36;
     return defineChart({
@@ -52,22 +59,22 @@ export const RungBars = ({
       margin: 0,
       marks: [
         tickY(shown, {
-          x: "plan",
-          y: "y",
-          span: 0.5,
           key: "id",
+          span: 0.5,
           stroke: (d) => (d.fifth ? INK : "rgba(27,27,25,0.55)"),
           strokeWidth: 1.2,
+          x: "plan",
+          y: "y",
         }),
         text(labeled, {
-          x: "plan",
-          y: "value",
-          key: "plan",
-          text: (d) => `${d.value}`,
           dy: -13,
           fill: INK,
           fontSize: 12,
           fontWeight: 800,
+          key: "plan",
+          text: (d) => `${d.value}`,
+          x: "plan",
+          y: "value",
         }),
       ],
       scales: {

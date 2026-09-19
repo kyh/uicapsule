@@ -8,16 +8,21 @@
 import { useEffect, useRef } from "react";
 import * as THREE from "three";
 
-const RIBBON_W = 1.5; // paper width
-const ATLAS_N = 8; // pages in the atlas
+// paper width
+const RIBBON_W = 1.5;
+// pages in the atlas
+const ATLAS_N = 8;
 const ROLL_R = 1.75;
 // one full revolution lays down exactly one atlas — this is what makes the
 // print on the barrel hand off to the floor with zero drift, forever
 const CARD_LEN = (2 * Math.PI * ROLL_R) / ATLAS_N;
 const INNER_R = ROLL_R * 0.52;
-const STEP = 0.12; // path sampling distance
-const MAX_PTS = 760; // fixed history budget (~91 world units of trail)
-const CURL_SEG = 16; // segments peeling off the roll
+// path sampling distance
+const STEP = 0.12;
+// fixed history budget (~91 world units of trail)
+const MAX_PTS = 760;
+// segments peeling off the roll
+const CURL_SEG = 16;
 const MAX_SEG = MAX_PTS + CURL_SEG + 2;
 const FLOOR_RGB = "vec3(0.905, 0.905, 0.912)";
 
@@ -28,24 +33,26 @@ export const PaperRoll = () => {
   useEffect(() => {
     const container = rootRef.current;
     const canvas = canvasRef.current;
-    if (!container || !canvas) return;
+    if (!container || !canvas) {
+      return;
+    }
 
     let seed = 7;
     const rand = () => {
-      seed = (seed * 16807) % 2147483647;
-      return (seed - 1) / 2147483646;
+      seed = (seed * 16_807) % 2_147_483_647;
+      return (seed - 1) / 2_147_483_646;
     };
 
     // ---------- Renderer / scene ----------
-    const renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
+    const renderer = new THREE.WebGLRenderer({ antialias: true, canvas });
     renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
     renderer.setSize(container.clientWidth, container.clientHeight);
     renderer.shadowMap.enabled = true;
     renderer.shadowMap.type = THREE.PCFShadowMap;
 
     const scene = new THREE.Scene();
-    scene.background = new THREE.Color(0xeaeaec);
-    scene.fog = new THREE.Fog(0xeaeaec, 24, 58);
+    scene.background = new THREE.Color(0xea_ea_ec);
+    scene.fog = new THREE.Fog(0xea_ea_ec, 24, 58);
 
     const camera = new THREE.PerspectiveCamera(
       32,
@@ -55,10 +62,10 @@ export const PaperRoll = () => {
     );
 
     // ---------- Lighting ----------
-    const hemi = new THREE.HemisphereLight(0xffffff, 0xd6d6da, 0.95);
+    const hemi = new THREE.HemisphereLight(0xff_ff_ff, 0xd6_d6_da, 0.95);
     scene.add(hemi);
 
-    const sun = new THREE.DirectionalLight(0xffffff, 0.85);
+    const sun = new THREE.DirectionalLight(0xff_ff_ff, 0.85);
     sun.castShadow = true;
     sun.shadow.mapSize.set(2048, 2048);
     sun.shadow.camera.left = -9;
@@ -72,16 +79,16 @@ export const PaperRoll = () => {
     scene.add(sun);
     scene.add(sun.target);
 
-    const fill = new THREE.DirectionalLight(0xffffff, 0.22);
+    const fill = new THREE.DirectionalLight(0xff_ff_ff, 0.22);
     fill.position.set(-6, 4, -8);
     scene.add(fill);
 
     // ---------- Floor ----------
     const floorGeo = new THREE.PlaneGeometry(400, 400);
     const floorMat = new THREE.MeshStandardMaterial({
-      color: 0xe7e7ea,
-      roughness: 1.0,
+      color: 0xe7_e7_ea,
       metalness: 0,
+      roughness: 1,
     });
     const floor = new THREE.Mesh(floorGeo, floorMat);
     floor.rotation.x = -Math.PI / 2;
@@ -91,13 +98,15 @@ export const PaperRoll = () => {
     // ============================================================
     // Procedural texture atlas — 8 portfolio pages, one canvas
     // ============================================================
-    function buildAtlas() {
+    const buildAtlas = () => {
       const CELL = 512;
       const cv = document.createElement("canvas");
       cv.width = CELL * ATLAS_N;
       cv.height = CELL;
       const g = cv.getContext("2d");
-      if (!g) throw new Error("PaperRoll requires a 2D canvas context");
+      if (!g) {
+        throw new Error("PaperRoll requires a 2D canvas context");
+      }
 
       const INK = "#161616";
       const PAPER = "#fbfaf7";
@@ -109,14 +118,14 @@ export const PaperRoll = () => {
       g.fillStyle = "#f6f5f1";
       g.fillRect(0, 0, cv.width, cv.height);
       // faint fibre grain
-      for (let i = 0; i < 2600; i++) {
+      for (let i = 0; i < 2600; i += 1) {
         g.fillStyle = `rgba(120,116,105,${0.015 + rand() * 0.03})`;
         g.fillRect(rand() * cv.width, rand() * cv.height, 1 + rand() * 2, 1);
       }
 
       const bars = (x: number, y: number, w: number, n: number, lh: number, color?: string) => {
         g.fillStyle = color || "#c9c8c2";
-        for (let r = 0; r < n; r++) {
+        for (let r = 0; r < n; r += 1) {
           const bw = w * (0.55 + rand() * 0.45);
           g.fillRect(x, y + r * lh, bw, Math.max(2, lh * 0.42));
         }
@@ -138,7 +147,7 @@ export const PaperRoll = () => {
         gr.addColorStop(1, tint[1]);
         g.fillStyle = gr;
         g.fillRect(x, y, w, h);
-        for (let b = 0; b < 9; b++) {
+        for (let b = 0; b < 9; b += 1) {
           const bw = w * (0.08 + rand() * 0.3);
           const bh = h * (0.1 + rand() * 0.5);
           const bx = x + rand() * (w - bw);
@@ -153,9 +162,15 @@ export const PaperRoll = () => {
         g.fillRect(x, y, w, h * 0.5);
       };
 
-      const M = 30; // card inset inside cell
+      // card inset inside cell
+      const M = 30;
 
-      type Frame = { x: number; y: number; w: number; h: number };
+      interface Frame {
+        x: number;
+        y: number;
+        w: number;
+        h: number;
+      }
 
       const cardFrame = (cx: number): Frame => {
         const x = cx + M;
@@ -172,7 +187,7 @@ export const PaperRoll = () => {
         g.strokeStyle = "rgba(20,20,20,0.08)";
         g.lineWidth = 1;
         g.strokeRect(x + 0.5, y + 0.5, w - 1, h - 1);
-        return { x, y, w, h };
+        return { h, w, x, y };
       };
       const indexTag = (f: Frame, n: number) => {
         g.save();
@@ -229,11 +244,11 @@ export const PaperRoll = () => {
           ];
           const gw = (f.w - 44 - 24) / 3;
           const gh = (f.h - 170) / 2;
-          tints.forEach((tint, i) => {
+          for (const [i, tint] of tints.entries()) {
             const gx = f.x + 22 + (i % 3) * (gw + 12);
             const gy = f.y + 56 + Math.floor(i / 3) * (gh + 12);
             photo(gx, gy, gw, gh, tint);
-          });
+          }
           bars(f.x + 22, f.y + f.h - 84, f.w * 0.6, 3, 15);
         },
         // 05 — amber arcs
@@ -242,7 +257,7 @@ export const PaperRoll = () => {
           g.fillRect(f.x + 20, f.y + 20, f.w - 40, f.h - 40);
           g.strokeStyle = "rgba(251,250,247,0.9)";
           g.lineWidth = 7;
-          for (let a = 0; a < 5; a++) {
+          for (let a = 0; a < 5; a += 1) {
             g.beginPath();
             g.arc(f.x + f.w * 0.5, f.y + f.h * 0.86, 46 + a * 34, Math.PI, Math.PI * 2);
             g.stroke();
@@ -295,7 +310,7 @@ export const PaperRoll = () => {
           g.fillRect(f.x + 20, f.y + 20, f.w - 40, f.h - 40);
           g.strokeStyle = "rgba(251,250,247,0.35)";
           g.lineWidth = 1;
-          for (let l = 0; l < 6; l++) {
+          for (let l = 0; l < 6; l += 1) {
             g.beginPath();
             g.moveTo(f.x + 44, f.y + 70 + l * 26);
             g.lineTo(f.x + f.w - 44, f.y + 70 + l * 26);
@@ -312,13 +327,14 @@ export const PaperRoll = () => {
         },
       ];
 
-      if (draws.length !== ATLAS_N)
+      if (draws.length !== ATLAS_N) {
         throw new Error("Paper atlas page count does not match its layout");
-      draws.forEach((draw, c) => {
+      }
+      for (const [c, draw] of draws.entries()) {
         const frame = cardFrame(c * CELL);
         draw(frame);
         indexTag(frame, c + 1);
-      });
+      }
 
       const tex = new THREE.CanvasTexture(cv);
       tex.wrapS = THREE.RepeatWrapping;
@@ -326,16 +342,18 @@ export const PaperRoll = () => {
       tex.colorSpace = THREE.SRGBColorSpace;
       tex.anisotropy = renderer.capabilities.getMaxAnisotropy();
       return tex;
-    }
+    };
 
     // Spiral cap: hundreds of wound paper layers, drawn once
-    function buildCapTexture() {
+    const buildCapTexture = () => {
       const S = 1024;
       const cv = document.createElement("canvas");
       cv.width = S;
       cv.height = S;
       const g = cv.getContext("2d");
-      if (!g) throw new Error("PaperRoll requires a 2D canvas context");
+      if (!g) {
+        throw new Error("PaperRoll requires a 2D canvas context");
+      }
       const cx = S / 2;
       const innerPx = (INNER_R / ROLL_R) * (S / 2);
 
@@ -360,8 +378,11 @@ export const PaperRoll = () => {
         const an = t * turns * Math.PI * 2;
         const px = cx + Math.cos(an) * rr;
         const py = cx + Math.sin(an) * rr;
-        if (t === 0) g.moveTo(px, py);
-        else g.lineTo(px, py);
+        if (t === 0) {
+          g.moveTo(px, py);
+        } else {
+          g.lineTo(px, py);
+        }
       }
       g.stroke();
       // inner shading
@@ -385,16 +406,18 @@ export const PaperRoll = () => {
       tex.colorSpace = THREE.SRGBColorSpace;
       tex.anisotropy = renderer.capabilities.getMaxAnisotropy();
       return tex;
-    }
+    };
 
     // Blob shadow under the roll
-    function buildBlobTexture() {
+    const buildBlobTexture = () => {
       const S = 256;
       const cv = document.createElement("canvas");
       cv.width = S;
       cv.height = S;
       const g = cv.getContext("2d");
-      if (!g) throw new Error("PaperRoll requires a 2D canvas context");
+      if (!g) {
+        throw new Error("PaperRoll requires a 2D canvas context");
+      }
       const gr = g.createRadialGradient(S / 2, S / 2, 6, S / 2, S / 2, S / 2);
       gr.addColorStop(0, "rgba(20,20,22,0.34)");
       gr.addColorStop(0.55, "rgba(20,20,22,0.14)");
@@ -402,7 +425,7 @@ export const PaperRoll = () => {
       g.fillStyle = gr;
       g.fillRect(0, 0, S, S);
       return new THREE.CanvasTexture(cv);
-    }
+    };
 
     const atlasTex = buildAtlas();
     const capTex = buildCapTexture();
@@ -411,8 +434,10 @@ export const PaperRoll = () => {
     // ============================================================
     // The roll
     // ============================================================
-    const rollGroup = new THREE.Group(); // yaw + position
-    const spinner = new THREE.Group(); // rolls about local X
+    // yaw + position
+    const rollGroup = new THREE.Group();
+    // rolls about local X
+    const spinner = new THREE.Group();
     rollGroup.add(spinner);
     scene.add(rollGroup);
 
@@ -427,8 +452,8 @@ export const PaperRoll = () => {
     barrelTex.offset.x = 0.25;
     const paperMat = new THREE.MeshStandardMaterial({
       map: barrelTex,
-      roughness: 0.92,
       metalness: 0,
+      roughness: 0.92,
     });
 
     const barrelGeo = new THREE.CylinderGeometry(ROLL_R, ROLL_R, RIBBON_W, 96, 1, true);
@@ -439,8 +464,8 @@ export const PaperRoll = () => {
 
     const capMat = new THREE.MeshStandardMaterial({
       map: capTex,
-      roughness: 0.95,
       metalness: 0,
+      roughness: 0.95,
     });
     const capGeo = new THREE.RingGeometry(INNER_R, ROLL_R, 96, 1);
     const capR = new THREE.Mesh(capGeo, capMat);
@@ -457,9 +482,9 @@ export const PaperRoll = () => {
     const coreGeo = new THREE.CylinderGeometry(INNER_R, INNER_R, RIBBON_W * 1.002, 48, 1, true);
     coreGeo.rotateZ(Math.PI / 2);
     const coreMat = new THREE.MeshStandardMaterial({
-      color: 0xdad7cf,
-      roughness: 1,
+      color: 0xda_d7_cf,
       metalness: 0,
+      roughness: 1,
       side: THREE.DoubleSide,
     });
     const core = new THREE.Mesh(coreGeo, coreMat);
@@ -467,9 +492,9 @@ export const PaperRoll = () => {
 
     const blobGeo = new THREE.PlaneGeometry(ROLL_R * 3.4, RIBBON_W * 2.2);
     const blobMat = new THREE.MeshBasicMaterial({
+      depthWrite: false,
       map: blobTex,
       transparent: true,
-      depthWrite: false,
     });
     const blob = new THREE.Mesh(blobGeo, blobMat);
     blob.rotation.x = -Math.PI / 2;
@@ -485,7 +510,7 @@ export const PaperRoll = () => {
     const uvArr = new Float32Array(VERTS * 2);
     const sArr = new Float32Array(VERTS);
     const idxArr = new Uint16Array(MAX_SEG * 6);
-    for (let iq = 0; iq < MAX_SEG; iq++) {
+    for (let iq = 0; iq < MAX_SEG; iq += 1) {
       const v0 = iq * 2;
       idxArr[iq * 6 + 0] = v0;
       idxArr[iq * 6 + 1] = v0 + 1;
@@ -512,8 +537,8 @@ export const PaperRoll = () => {
 
     const ribbonMat = new THREE.MeshStandardMaterial({
       map: atlasTex,
-      roughness: 0.9,
       metalness: 0,
+      roughness: 0.9,
       side: THREE.DoubleSide,
     });
     ribbonMat.onBeforeCompile = (shader) => {
@@ -547,15 +572,16 @@ export const PaperRoll = () => {
     let sTotal = 0;
     const REV = 2 * Math.PI * ROLL_R;
 
-    const SPRING = 16.0;
+    const SPRING = 16;
     const DAMP = 5.4;
-    const MAX_SPEED = 9.0;
+    const MAX_SPEED = 9;
 
     // path history — preallocated ring of plain records
     const hx = new Float32Array(MAX_PTS);
     const hz = new Float32Array(MAX_PTS);
     const hs = new Float32Array(MAX_PTS);
-    let head = -1; // index of newest
+    // index of newest
+    let head = -1;
     let count = 0;
 
     const pushPoint = (x: number, z: number, s: number) => {
@@ -563,9 +589,15 @@ export const PaperRoll = () => {
       hx[head] = x;
       hz[head] = z;
       hs[head] = s;
-      if (count < MAX_PTS) count++;
+      if (count < MAX_PTS) {
+        count += 1;
+      }
     };
-    type Pt = { x: number; z: number; s: number };
+    interface Pt {
+      x: number;
+      z: number;
+      s: number;
+    }
     const getPt = (i: number, out: Pt) => {
       // i = 0 oldest … count-1 newest
       const k = (head - (count - 1) + i + MAX_PTS * 2) % MAX_PTS;
@@ -584,8 +616,12 @@ export const PaperRoll = () => {
 
     const angleLerp = (a: number, b: number, t: number) => {
       let d = b - a;
-      while (d > Math.PI) d -= Math.PI * 2;
-      while (d < -Math.PI) d += Math.PI * 2;
+      while (d > Math.PI) {
+        d -= Math.PI * 2;
+      }
+      while (d < -Math.PI) {
+        d += Math.PI * 2;
+      }
       return a + d * t;
     };
 
@@ -597,14 +633,17 @@ export const PaperRoll = () => {
       acceleration.addScaledVector(vel, -DAMP);
       vel.addScaledVector(acceleration, dt);
       const sp = vel.length();
-      if (sp > MAX_SPEED) vel.multiplyScalar(MAX_SPEED / sp);
+      if (sp > MAX_SPEED) {
+        vel.multiplyScalar(MAX_SPEED / sp);
+      }
       positionDelta.copy(vel).multiplyScalar(dt);
       const ds = positionDelta.length();
       if (ds > 1e-6) {
         pos.add(positionDelta);
         sTotal += ds;
         if (sp > 0.06) {
-          const ty = Math.atan2(vel.x, vel.y); // vel.y is world z
+          // vel.y is world z
+          const ty = Math.atan2(vel.x, vel.y);
           yaw = angleLerp(yaw, ty, 1 - Math.exp(-7 * dt));
         }
         // sample the path by distance, never by time
@@ -624,10 +663,11 @@ export const PaperRoll = () => {
     // ============================================================
     // Ribbon rebuild — zero allocations
     // ============================================================
-    const springStart: Pt = { x: 0, z: 0, s: 0 };
-    const springMiddle: Pt = { x: 0, z: 0, s: 0 };
-    const springEnd: Pt = { x: 0, z: 0, s: 0 };
-    const CURL_MAX = 0.85; // radians of peel wrapped onto the barrel
+    const springStart: Pt = { s: 0, x: 0, z: 0 };
+    const springMiddle: Pt = { s: 0, x: 0, z: 0 };
+    const springEnd: Pt = { s: 0, x: 0, z: 0 };
+    // radians of peel wrapped onto the barrel
+    const CURL_MAX = 0.85;
 
     const writeVert = (
       vi: number,
@@ -678,7 +718,7 @@ export const PaperRoll = () => {
       let ptx = 0;
       let ptz = 0;
       let hasPrev = false;
-      for (let i = 0; i < n; i++) {
+      for (let i = 0; i < n; i += 1) {
         getPt(i, springMiddle);
         let tx: number;
         let tz: number;
@@ -694,7 +734,7 @@ export const PaperRoll = () => {
           tx = springEnd.x - springStart.x;
           tz = springEnd.z - springStart.z;
         }
-        const tl = Math.sqrt(tx * tx + tz * tz);
+        const tl = Math.hypot(tx, tz);
         if (tl < 1e-4) {
           // degenerate delta at a reversal: reuse the previous tangent
           tx = hasPrev ? ptx : fx;
@@ -712,21 +752,26 @@ export const PaperRoll = () => {
         ptz = tz;
         hasPrev = true;
         const sx = tz;
-        const sz = -tx; // side vector on the floor
+        // side vector on the floor
+        const sz = -tx;
 
         // width taper at the tail so recycling is invisible
         let w = half;
         const fromTail = springMiddle.s - sTail;
-        if (fromTail < 3.0) w *= fromTail / 3.0;
+        if (fromTail < 3) {
+          w *= fromTail / 3;
+        }
 
         // newer paper lies on top; the head gets an extra ramp so fresh paper
         // laid over a just-reversed spot never z-fights with itself
         let y = 0.012 + (springMiddle.s - sTail) * 0.0008;
         const headBlend = 1 - (sTotal - springMiddle.s) / 1.5;
-        if (headBlend > 0) y += 0.0035 * headBlend;
+        if (headBlend > 0) {
+          y += 0.0035 * headBlend;
+        }
         const u = (springMiddle.s - uBase) / uSpan;
         writeVert(
-          vi++,
+          vi,
           springMiddle.x + sx * w,
           y,
           springMiddle.z + sz * w,
@@ -737,8 +782,9 @@ export const PaperRoll = () => {
           0,
           springMiddle.s - uBase,
         );
+        vi += 1;
         writeVert(
-          vi++,
+          vi,
           springMiddle.x - sx * w,
           y,
           springMiddle.z - sz * w,
@@ -749,18 +795,21 @@ export const PaperRoll = () => {
           1,
           springMiddle.s - uBase,
         );
+        vi += 1;
       }
 
       // ---- bridge to the live contact point ----
       const yTop = 0.012 + (sTotal - sTail) * 0.0008 + 0.0035;
       const uC = (sTotal - uBase) / uSpan;
-      writeVert(vi++, pos.x + sxc * half, yTop, pos.y + szc * half, 0, 1, 0, uC, 0, sTotal - uBase);
-      writeVert(vi++, pos.x - sxc * half, yTop, pos.y - szc * half, 0, 1, 0, uC, 1, sTotal - uBase);
+      writeVert(vi, pos.x + sxc * half, yTop, pos.y + szc * half, 0, 1, 0, uC, 0, sTotal - uBase);
+      vi += 1;
+      writeVert(vi, pos.x - sxc * half, yTop, pos.y - szc * half, 0, 1, 0, uC, 1, sTotal - uBase);
+      vi += 1;
 
       // ---- peel: unprinted paper coming down the front of the barrel ----
       // this is the physically correct side — the card rolling down the front
       // is exactly the card the atlas shows there, so the hand-off is seamless
-      for (let j = 1; j <= CURL_SEG; j++) {
+      for (let j = 1; j <= CURL_SEG; j += 1) {
         const th = (j / CURL_SEG) * CURL_MAX;
         const rr = ROLL_R + 0.012;
         const px = pos.x + fx * Math.sin(th) * rr;
@@ -772,8 +821,10 @@ export const PaperRoll = () => {
         const nz = -fz * Math.sin(th);
         const sHere = sTotal + th * ROLL_R;
         const uH = (sHere - uBase) / uSpan;
-        writeVert(vi++, px + sxc * half, py, pz + szc * half, nx, nyv, nz, uH, 0, sHere - uBase);
-        writeVert(vi++, px - sxc * half, py, pz - szc * half, nx, nyv, nz, uH, 1, sHere - uBase);
+        writeVert(vi, px + sxc * half, py, pz + szc * half, nx, nyv, nz, uH, 0, sHere - uBase);
+        vi += 1;
+        writeVert(vi, px - sxc * half, py, pz - szc * half, nx, nyv, nz, uH, 1, sHere - uBase);
+        vi += 1;
       }
 
       const segs = vi / 2 - 1;
@@ -873,7 +924,7 @@ export const PaperRoll = () => {
     // Pre-roll: lay a trail before the first frame
     // ============================================================
     let t0 = 0;
-    for (let i = 0; i < 560; i++) {
+    for (let i = 0; i < 560; i += 1) {
       t0 += 1 / 60;
       autoAngle += (1 / 60) * (0.34 + 0.5 * Math.sin(t0 * 0.31) + 0.3 * Math.sin(t0 * 0.113 + 2.1));
       target.set(pos.x + Math.sin(autoAngle) * 5.2, pos.y + Math.cos(autoAngle) * 5.2);
@@ -903,7 +954,9 @@ export const PaperRoll = () => {
         updateTarget(elapsed, dt);
         const steps = Math.min(8, Math.ceil(dt * 60));
         const h = dt / steps;
-        for (let s = 0; s < steps; s++) stepMotion(h);
+        for (let s = 0; s < steps; s += 1) {
+          stepMotion(h);
+        }
 
         rollGroup.position.set(pos.x, ROLL_R, pos.y);
         rollGroup.rotation.y = yaw;
@@ -928,7 +981,9 @@ export const PaperRoll = () => {
     const resizeObserver = new ResizeObserver(() => {
       const width = container.clientWidth;
       const height = container.clientHeight;
-      if (!width || !height) return;
+      if (!width || !height) {
+        return;
+      }
       camera.aspect = width / height;
       camera.updateProjectionMatrix();
       renderer.setSize(width, height);

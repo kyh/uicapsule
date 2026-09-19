@@ -20,6 +20,7 @@ import {
   TabsTrigger,
 } from "./ui";
 import {
+  Fragment,
   cloneElement,
   isValidElement,
   memo,
@@ -27,11 +28,13 @@ import {
   useEffect,
   useMemo,
   useState,
-  type ChangeEvent,
-  type ElementType as ReactElementType,
-  type InputHTMLAttributes,
-  type Key,
-  type ReactElement,
+} from "react";
+import type {
+  ChangeEvent,
+  ElementType as ReactElementType,
+  InputHTMLAttributes,
+  Key,
+  ReactElement,
 } from "react";
 import type { DateRange } from "react-day-picker";
 import { cn } from "cn";
@@ -50,17 +53,23 @@ import type {
 import { createNumberRange, numberFilterOperators } from "../filter-package";
 import { useDebouncedCallback } from "./use-debounced-callback";
 
-type IconProps = { className?: string; key?: Key };
+interface IconProps {
+  className?: string;
+  key?: Key;
+}
 type IconLike = ReactElement | ReactElementType;
 
 const renderIcon = (icon: IconLike, props: IconProps = {}) => {
-  if (isValidElement(icon)) return cloneElement(icon, props);
+  if (isValidElement(icon)) {
+    // oxlint-disable-next-line react/no-clone-element -- applies the caller's className and key to an element the config supplied; wrapping it would change the DOM
+    return cloneElement(icon, props);
+  }
   const IconComp = icon;
   const { key, ...iconProps } = props;
   return <IconComp key={key} {...iconProps} />;
 };
 
-export function DebouncedInput({
+export const DebouncedInput = ({
   value: initialValue,
   onChange,
   debounceMs = 500,
@@ -71,7 +80,7 @@ export function DebouncedInput({
   value: string | number;
   onChange: (value: string | number) => void;
   debounceMs?: number;
-} & Omit<InputHTMLAttributes<HTMLInputElement>, "onChange">) {
+} & Omit<InputHTMLAttributes<HTMLInputElement>, "onChange">) => {
   const [value, setValue] = useState(initialValue);
   const [prevInitialValue, setPrevInitialValue] = useState(initialValue);
 
@@ -100,46 +109,19 @@ export function DebouncedInput({
       }}
       onKeyDown={(event) => {
         onKeyDown?.(event);
-        if (!event.defaultPrevented && (event.key === "Enter" || event.key === "Escape")) flush();
+        if (!event.defaultPrevented && (event.key === "Enter" || event.key === "Escape")) {
+          flush();
+        }
       }}
     />
   );
-}
+};
 
 interface FilterValueProps {
   binding: FilterBinding;
   actions: DataTableFilterActions;
   strategy: FilterStrategy;
   entityName?: string;
-}
-
-export function FilterValue({ binding, actions, strategy, entityName }: FilterValueProps) {
-  const [open, setOpen] = useState(false);
-  return (
-    <Popover
-      open={open}
-      onOpenChange={(next) => {
-        if (binding.type !== "boolean") setOpen(next);
-      }}
-    >
-      <PopoverTrigger
-        render={
-          <Button
-            variant="ghost"
-            className={cn(
-              "m-0 h-full w-fit rounded-none p-0 px-2 text-xs whitespace-nowrap",
-              binding.type === "boolean" && "hover:bg-inherit",
-            )}
-          />
-        }
-      >
-        <FilterValueDisplay binding={binding} actions={actions} entityName={entityName} />
-      </PopoverTrigger>
-      <PopoverContent align="start" side="bottom" className="w-fit origin-(--transform-origin) p-0">
-        <FilterValueController binding={binding} actions={actions} strategy={strategy} />
-      </PopoverContent>
-    </Popover>
-  );
 }
 
 interface FilterValueDisplayProps<K extends ColumnDataType> {
@@ -149,87 +131,13 @@ interface FilterValueDisplayProps<K extends ColumnDataType> {
   entityName?: string;
 }
 
-export function FilterValueDisplay({
-  binding,
-  actions,
-  entityName,
-}: Omit<FilterValueProps, "strategy">) {
-  switch (binding.type) {
-    case "option":
-      return (
-        binding.filter && (
-          <FilterValueOptionDisplay
-            filter={binding.filter}
-            column={binding.column}
-            actions={actions}
-            entityName={entityName}
-          />
-        )
-      );
-    case "multiOption":
-      return (
-        binding.filter && (
-          <FilterValueMultiOptionDisplay
-            filter={binding.filter}
-            column={binding.column}
-            actions={actions}
-            entityName={entityName}
-          />
-        )
-      );
-    case "date":
-      return (
-        binding.filter && (
-          <FilterValueDateDisplay
-            filter={binding.filter}
-            column={binding.column}
-            actions={actions}
-            entityName={entityName}
-          />
-        )
-      );
-    case "text":
-      return (
-        binding.filter && (
-          <FilterValueTextDisplay
-            filter={binding.filter}
-            column={binding.column}
-            actions={actions}
-            entityName={entityName}
-          />
-        )
-      );
-    case "number":
-      return (
-        binding.filter && (
-          <FilterValueNumberDisplay
-            filter={binding.filter}
-            column={binding.column}
-            actions={actions}
-            entityName={entityName}
-          />
-        )
-      );
-    case "boolean":
-      return (
-        binding.filter && (
-          <FilterValueBooleanDisplay
-            filter={binding.filter}
-            column={binding.column}
-            actions={actions}
-            entityName={entityName}
-          />
-        )
-      );
-  }
-}
-
-export function FilterValueOptionDisplay({ filter, column }: FilterValueDisplayProps<"option">) {
-  const options = column.options;
+export const FilterValueOptionDisplay = ({ filter, column }: FilterValueDisplayProps<"option">) => {
+  const { options } = column;
   const selected = options.filter((o) => filter?.values.includes(o.value));
 
-  if (selected.length === 1 && selected[0]) {
-    const { label, icon: Icon } = selected[0];
+  const [only] = selected;
+  if (selected.length === 1 && only) {
+    const { label, icon: Icon } = only;
     const hasIcon = !!Icon;
     return (
       <span className="inline-flex items-center gap-1">
@@ -248,25 +156,28 @@ export function FilterValueOptionDisplay({ filter, column }: FilterValueDisplayP
       {hasOptionIcons &&
         selected.slice(0, 3).map(({ value, icon }) => {
           const Icon = icon;
-          if (!Icon) return null;
-          return renderIcon(Icon, { key: value, className: "size-4" });
+          if (!Icon) {
+            return null;
+          }
+          return renderIcon(Icon, { className: "size-4", key: value });
         })}
       <span className={cn(hasOptionIcons && "ml-1.5")}>
         {selected.length} {pluralName}
       </span>
     </div>
   );
-}
+};
 
-export function FilterValueMultiOptionDisplay({
+export const FilterValueMultiOptionDisplay = ({
   filter,
   column,
-}: FilterValueDisplayProps<"multiOption">) {
-  const options = column.options;
+}: FilterValueDisplayProps<"multiOption">) => {
+  const { options } = column;
   const selected = options.filter((o) => filter.values.includes(o.value));
 
-  if (selected.length === 1 && selected[0]) {
-    const { label, icon: Icon } = selected[0];
+  const [only] = selected;
+  if (selected.length === 1 && only) {
+    const { label, icon: Icon } = only;
     const hasIcon = !!Icon;
     return (
       <span className="inline-flex items-center gap-1.5">
@@ -287,10 +198,14 @@ export function FilterValueMultiOptionDisplay({
         <div key="icons" className="inline-flex items-center gap-0.5">
           {selected.slice(0, 3).map(({ value, icon }) => {
             const Icon = icon;
-            if (!Icon) return null;
-            return isValidElement<IconProps>(Icon)
-              ? cloneElement(Icon, { key: value })
-              : renderIcon(Icon, { key: value, className: "size-4" });
+            if (!Icon) {
+              return null;
+            }
+            return isValidElement(Icon) ? (
+              <Fragment key={value}>{Icon}</Fragment>
+            ) : (
+              renderIcon(Icon, { className: "size-4", key: value })
+            );
           })}
         </div>
       )}
@@ -299,9 +214,9 @@ export function FilterValueMultiOptionDisplay({
       </span>
     </div>
   );
-}
+};
 
-function formatDateRange(start: Date, end: Date) {
+const formatDateRange = (start: Date, end: Date) => {
   const sameMonth = start.getMonth() === end.getMonth();
   const sameYear = start.getFullYear() === end.getFullYear();
 
@@ -314,43 +229,50 @@ function formatDateRange(start: Date, end: Date) {
   }
 
   return `${format(start, "MMM d, yyyy")} - ${format(end, "MMM d, yyyy")}`;
-}
+};
 
-export function FilterValueDateDisplay({ filter }: FilterValueDisplayProps<"date">) {
-  if (!filter) return null;
-  if (filter.values.length === 0) return <Ellipsis className="size-4" />;
-  if (filter.values.length === 1 && filter.values[0]) {
-    const value = filter.values[0];
-
-    const formattedDateStr = format(value, "MMM d, yyyy");
+export const FilterValueDateDisplay = ({ filter }: FilterValueDisplayProps<"date">) => {
+  if (!filter) {
+    return null;
+  }
+  if (filter.values.length === 0) {
+    return <Ellipsis className="size-4" />;
+  }
+  const [first, second] = filter.values;
+  if (filter.values.length === 1 && first) {
+    const formattedDateStr = format(first, "MMM d, yyyy");
 
     return <span>{formattedDateStr}</span>;
   }
-  if (filter.values.length === 2 && filter.values[0] && filter.values[1]) {
-    const formattedRangeStr = formatDateRange(filter.values[0], filter.values[1]);
+  if (filter.values.length === 2 && first && second) {
+    const formattedRangeStr = formatDateRange(first, second);
 
     return <span>{formattedRangeStr}</span>;
   }
 
   return null;
-}
+};
 
-export function FilterValueTextDisplay({ filter }: FilterValueDisplayProps<"text">) {
-  if (!filter) return null;
-  if (filter.values.length === 0 || (filter.values[0] && filter.values[0].trim() === ""))
+export const FilterValueTextDisplay = ({ filter }: FilterValueDisplayProps<"text">) => {
+  if (!filter) {
+    return null;
+  }
+  if (filter.values.length === 0 || (filter.values[0] && filter.values[0].trim() === "")) {
     return <Ellipsis className="size-4" />;
+  }
 
-  const value = filter.values[0];
+  const [value] = filter.values;
 
   return <span>{value}</span>;
-}
+};
 
-export function FilterValueNumberDisplay({ filter }: FilterValueDisplayProps<"number">) {
-  if (!filter || !filter.values || filter.values.length === 0) return null;
+export const FilterValueNumberDisplay = ({ filter }: FilterValueDisplayProps<"number">) => {
+  if (!filter || !filter.values || filter.values.length === 0) {
+    return null;
+  }
 
   if (filter.operator === "is between" || filter.operator === "is not between") {
-    const minValue = filter.values[0];
-    const maxValue = filter.values[1];
+    const [minValue, maxValue] = filter.values;
 
     return (
       <span className="tracking-tight tabular-nums">
@@ -359,14 +281,103 @@ export function FilterValueNumberDisplay({ filter }: FilterValueDisplayProps<"nu
     );
   }
 
-  const value = filter.values[0];
+  const [value] = filter.values;
   return <span className="tracking-tight tabular-nums">{value}</span>;
-}
+};
 
-export function FilterValueBooleanDisplay({ filter, column }: FilterValueDisplayProps<"boolean">) {
-  if (!filter || filter.values.length === 0) return null;
+export const FilterValueBooleanDisplay = ({
+  filter,
+  column,
+}: FilterValueDisplayProps<"boolean">) => {
+  if (!filter || filter.values.length === 0) {
+    return null;
+  }
   return <span>{column.toggledStateName}</span>;
-}
+};
+
+export const FilterValueDisplay = ({
+  binding,
+  actions,
+  entityName,
+}: Omit<FilterValueProps, "strategy">) => {
+  switch (binding.type) {
+    case "option": {
+      return (
+        binding.filter && (
+          <FilterValueOptionDisplay
+            filter={binding.filter}
+            column={binding.column}
+            actions={actions}
+            entityName={entityName}
+          />
+        )
+      );
+    }
+    case "multiOption": {
+      return (
+        binding.filter && (
+          <FilterValueMultiOptionDisplay
+            filter={binding.filter}
+            column={binding.column}
+            actions={actions}
+            entityName={entityName}
+          />
+        )
+      );
+    }
+    case "date": {
+      return (
+        binding.filter && (
+          <FilterValueDateDisplay
+            filter={binding.filter}
+            column={binding.column}
+            actions={actions}
+            entityName={entityName}
+          />
+        )
+      );
+    }
+    case "text": {
+      return (
+        binding.filter && (
+          <FilterValueTextDisplay
+            filter={binding.filter}
+            column={binding.column}
+            actions={actions}
+            entityName={entityName}
+          />
+        )
+      );
+    }
+    case "number": {
+      return (
+        binding.filter && (
+          <FilterValueNumberDisplay
+            filter={binding.filter}
+            column={binding.column}
+            actions={actions}
+            entityName={entityName}
+          />
+        )
+      );
+    }
+    case "boolean": {
+      return (
+        binding.filter && (
+          <FilterValueBooleanDisplay
+            filter={binding.filter}
+            column={binding.column}
+            actions={actions}
+            entityName={entityName}
+          />
+        )
+      );
+    }
+    default: {
+      return null;
+    }
+  }
+};
 
 interface FilterValueControllerProps<K extends ColumnDataType> {
   filter?: FilterModel<K>;
@@ -375,68 +386,12 @@ interface FilterValueControllerProps<K extends ColumnDataType> {
   strategy: FilterStrategy;
 }
 
-export function FilterValueController({
-  binding,
-  actions,
-  strategy,
-}: Omit<FilterValueProps, "entityName">) {
-  switch (binding.type) {
-    case "option":
-      return (
-        <FilterValueOptionController
-          filter={binding.filter}
-          column={binding.column}
-          actions={actions}
-          strategy={strategy}
-        />
-      );
-    case "multiOption":
-      return (
-        <FilterValueOptionController
-          filter={binding.filter}
-          column={binding.column}
-          actions={actions}
-          strategy={strategy}
-        />
-      );
-    case "date":
-      return (
-        <FilterValueDateController
-          filter={binding.filter}
-          column={binding.column}
-          actions={actions}
-          strategy={strategy}
-        />
-      );
-    case "text":
-      return (
-        <FilterValueTextController
-          filter={binding.filter}
-          column={binding.column}
-          actions={actions}
-          strategy={strategy}
-        />
-      );
-    case "number":
-      return (
-        <FilterValueNumberController
-          filter={binding.filter}
-          column={binding.column}
-          actions={actions}
-          strategy={strategy}
-        />
-      );
-    case "boolean":
-      return null;
-  }
-}
-
 interface OptionItemProps {
   option: ColumnOptionExtended;
   onToggle: (value: string, checked: boolean) => void;
 }
 
-const OptionItem = memo(function OptionItem({ option, onToggle }: OptionItemProps) {
+const OptionItemBase = ({ option, onToggle }: OptionItemProps) => {
   const { value, label, icon: Icon, selected } = option;
   const handleSelect = useCallback(() => {
     onToggle(value, !selected);
@@ -460,24 +415,27 @@ const OptionItem = memo(function OptionItem({ option, onToggle }: OptionItemProp
       </div>
     </CommandItem>
   );
-});
+};
 
-export function FilterValueOptionController({
+const OptionItem = memo(OptionItemBase);
+
+export const FilterValueOptionController = ({
   filter,
   column,
   actions,
-}: FilterValueControllerProps<"option" | "multiOption">) {
+}: FilterValueControllerProps<"option" | "multiOption">) => {
+  // oxlint-disable-next-line react/hook-use-state -- a one-time snapshot of the selection when the controller opens, so items stay in their group while toggling; there is deliberately no setter
   const [initialSelectedValues] = useState(() => new Set(filter?.values || []));
 
   const { selectedOptions, unselectedOptions } = useMemo(() => {
     const allOptions = column.options.map((o) => {
       const currentlySelected = filter?.values.includes(o.value) ?? false;
       return {
-        label: o.label,
-        value: o.value,
-        icon: o.icon,
-        selected: currentlySelected,
         count: o.count ?? 0,
+        icon: o.icon,
+        label: o.label,
+        selected: currentlySelected,
+        value: o.value,
       };
     });
 
@@ -488,8 +446,11 @@ export function FilterValueOptionController({
 
   const handleToggle = useCallback(
     (value: string, checked: boolean) => {
-      if (checked) actions.addFilterValue(column, [value]);
-      else actions.removeFilterValue(column, [value]);
+      if (checked) {
+        actions.addFilterValue(column, [value]);
+      } else {
+        actions.removeFilterValue(column, [value]);
+      }
     },
     [actions, column],
   );
@@ -517,25 +478,29 @@ export function FilterValueOptionController({
       </CommandList>
     </Command>
   );
-}
+};
 
-export function FilterValueDateController({
+export const FilterValueDateController = ({
   filter,
   column,
   actions,
-}: FilterValueControllerProps<"date">) {
+}: FilterValueControllerProps<"date">) => {
   const start = filter?.values[0];
   const date: DateRange | undefined = start ? { from: start, to: filter?.values[1] } : undefined;
 
-  function changeDateRange(value: DateRange | undefined) {
-    const start = value?.from;
-    const end = start && value && value.to && !isEqual(start, value.to) ? value.to : undefined;
+  const changeDateRange = (value: DateRange | undefined) => {
+    const from = value?.from;
+    const to = from && value?.to && !isEqual(from, value.to) ? value.to : undefined;
 
-    const isRange = start && end;
-    const newValues = isRange ? [start, end] : start ? [start] : [];
+    let newValues: Date[] = [];
+    if (from && to) {
+      newValues = [from, to];
+    } else if (from) {
+      newValues = [from];
+    }
 
-    actions.setFilterValue({ type: column.type, columnId: column.id, values: newValues });
-  }
+    actions.setFilterValue({ columnId: column.id, type: column.type, values: newValues });
+  };
 
   return (
     <Command>
@@ -554,15 +519,15 @@ export function FilterValueDateController({
       </CommandList>
     </Command>
   );
-}
+};
 
-export function FilterValueTextController({
+export const FilterValueTextController = ({
   filter,
   column,
   actions,
-}: FilterValueControllerProps<"text">) {
+}: FilterValueControllerProps<"text">) => {
   const changeText = (value: string | number) => {
-    actions.setFilterValue({ type: "text", columnId: column.id, values: [String(value)] });
+    actions.setFilterValue({ columnId: column.id, type: "text", values: [String(value)] });
   };
 
   return (
@@ -581,13 +546,13 @@ export function FilterValueTextController({
       </CommandList>
     </Command>
   );
-}
+};
 
-export function FilterValueNumberController({
+export const FilterValueNumberController = ({
   filter,
   column,
   actions,
-}: FilterValueControllerProps<"number">) {
+}: FilterValueControllerProps<"number">) => {
   const minMax = useMemo<[number, number]>(
     () => [column.min, column.max],
     [column.min, column.max],
@@ -606,7 +571,7 @@ export function FilterValueNumberController({
 
   const setNumberFilterValue = useCallback(
     (newValues: number[]) =>
-      actions.setFilterValue({ type: "number", columnId: column.id, values: newValues }),
+      actions.setFilterValue({ columnId: column.id, type: "number", values: newValues }),
     [actions, column],
   );
   const {
@@ -641,14 +606,16 @@ export function FilterValueNumberController({
   const changeType = useCallback(
     (type: "single" | "range") => {
       let newValues: number[] = [];
-      if (type === "single") newValues = [values[0] ?? 0];
-      else if (!minMax) newValues = createNumberRange([values[0] ?? 0, values[1] ?? 0]);
-      else {
+      if (type === "single") {
+        newValues = [values[0] ?? 0];
+      } else if (minMax) {
         const value = values[0] ?? 0;
         newValues =
           value - minMax[0] < minMax[1] - value
             ? createNumberRange([value, minMax[1]])
             : createNumberRange([minMax[0], value]);
+      } else {
+        newValues = createNumberRange([values[0] ?? 0, values[1] ?? 0]);
       }
 
       const newOperator = type === "single" ? "is" : "is between";
@@ -658,8 +625,8 @@ export function FilterValueNumberController({
       // Cancel the old value before changing operators.
       cancelFilterValueUpdate();
 
-      actions.setFilterOperator({ type: "number", columnId: column.id, operator: newOperator });
-      actions.setFilterValue({ type: column.type, columnId: column.id, values: newValues });
+      actions.setFilterOperator({ columnId: column.id, operator: newOperator, type: "number" });
+      actions.setFilterValue({ columnId: column.id, type: column.type, values: newValues });
     },
     [values, column, actions, minMax, cancelFilterValueUpdate],
   );
@@ -668,7 +635,9 @@ export function FilterValueNumberController({
     <Command
       onBlur={flushFilterValueUpdate}
       onKeyDown={(event) => {
-        if (event.key === "Escape") flushFilterValueUpdate();
+        if (event.key === "Escape") {
+          flushFilterValueUpdate();
+        }
       }}
     >
       <CommandList className="w-[300px] px-2 py-2">
@@ -741,4 +710,100 @@ export function FilterValueNumberController({
       </CommandList>
     </Command>
   );
-}
+};
+
+export const FilterValueController = ({
+  binding,
+  actions,
+  strategy,
+}: Omit<FilterValueProps, "entityName">) => {
+  switch (binding.type) {
+    case "option": {
+      return (
+        <FilterValueOptionController
+          filter={binding.filter}
+          column={binding.column}
+          actions={actions}
+          strategy={strategy}
+        />
+      );
+    }
+    case "multiOption": {
+      return (
+        <FilterValueOptionController
+          filter={binding.filter}
+          column={binding.column}
+          actions={actions}
+          strategy={strategy}
+        />
+      );
+    }
+    case "date": {
+      return (
+        <FilterValueDateController
+          filter={binding.filter}
+          column={binding.column}
+          actions={actions}
+          strategy={strategy}
+        />
+      );
+    }
+    case "text": {
+      return (
+        <FilterValueTextController
+          filter={binding.filter}
+          column={binding.column}
+          actions={actions}
+          strategy={strategy}
+        />
+      );
+    }
+    case "number": {
+      return (
+        <FilterValueNumberController
+          filter={binding.filter}
+          column={binding.column}
+          actions={actions}
+          strategy={strategy}
+        />
+      );
+    }
+    case "boolean": {
+      return null;
+    }
+    default: {
+      return null;
+    }
+  }
+};
+
+export const FilterValue = ({ binding, actions, strategy, entityName }: FilterValueProps) => {
+  const [open, setOpen] = useState(false);
+  return (
+    <Popover
+      open={open}
+      onOpenChange={(next) => {
+        if (binding.type !== "boolean") {
+          setOpen(next);
+        }
+      }}
+    >
+      <PopoverTrigger
+        render={
+          <Button
+            variant="ghost"
+            className={cn(
+              "m-0 h-full w-fit rounded-none p-0 px-2 text-xs whitespace-nowrap",
+              binding.type === "boolean" && "hover:bg-inherit",
+            )}
+          />
+        }
+      >
+        <FilterValueDisplay binding={binding} actions={actions} entityName={entityName} />
+      </PopoverTrigger>
+      <PopoverContent align="start" side="bottom" className="w-fit origin-(--transform-origin) p-0">
+        <FilterValueController binding={binding} actions={actions} strategy={strategy} />
+      </PopoverContent>
+    </Popover>
+  );
+};

@@ -21,71 +21,82 @@ import type {
 } from "../filter-package";
 import { filterTypeOperatorDetails } from "../filter-package";
 
-function operatorDetails<K extends ColumnDataType>(
+const operatorDetails = <K extends ColumnDataType>(
   type: K,
   operator: FilterOperators[K],
-): { key: string; target: "single" | "multiple" } {
-  return filterTypeOperatorDetails[type][operator];
-}
+): { key: string; target: "single" | "multiple" } => filterTypeOperatorDetails[type][operator];
 
-function relatedOperators<K extends ColumnDataType>(type: K, operator: FilterOperators[K]) {
+const relatedOperators = <K extends ColumnDataType>(type: K, operator: FilterOperators[K]) => {
   const current = operatorDetails(type, operator);
   const details: FilterOperatorDetails<FilterOperators[K], K>[] = Object.values(
     filterTypeOperatorDetails[type],
   );
   return details.filter((detail) => detail.target === current.target);
-}
+};
 
-function operatorChoices(filter: FilterModel): { label: string; update: FilterOperatorUpdate }[] {
-  const columnId = filter.columnId;
+const operatorChoices = (
+  filter: FilterModel,
+): { label: string; update: FilterOperatorUpdate }[] => {
+  const { columnId } = filter;
   switch (filter.type) {
-    case "text":
+    case "text": {
       return relatedOperators("text", filter.operator).map((detail) => ({
         label: detail.key,
-        update: { type: "text", columnId, operator: detail.value },
+        update: { columnId, operator: detail.value, type: "text" },
       }));
-    case "number":
+    }
+    case "number": {
       return relatedOperators("number", filter.operator).map((detail) => ({
         label: detail.key,
-        update: { type: "number", columnId, operator: detail.value },
+        update: { columnId, operator: detail.value, type: "number" },
       }));
-    case "date":
+    }
+    case "date": {
       return relatedOperators("date", filter.operator).map((detail) => ({
         label: detail.key,
-        update: { type: "date", columnId, operator: detail.value },
+        update: { columnId, operator: detail.value, type: "date" },
       }));
-    case "boolean":
+    }
+    case "boolean": {
       return relatedOperators("boolean", filter.operator).map((detail) => ({
         label: detail.key,
-        update: { type: "boolean", columnId, operator: detail.value },
+        update: { columnId, operator: detail.value, type: "boolean" },
       }));
-    case "option":
+    }
+    case "option": {
       return relatedOperators("option", filter.operator).map((detail) => ({
         label: detail.key,
-        update: { type: "option", columnId, operator: detail.value },
+        update: { columnId, operator: detail.value, type: "option" },
       }));
-    case "multiOption":
+    }
+    case "multiOption": {
       return relatedOperators("multiOption", filter.operator).map((detail) => ({
         label: detail.key,
-        update: { type: "multiOption", columnId, operator: detail.value },
+        update: { columnId, operator: detail.value, type: "multiOption" },
       }));
+    }
+    default: {
+      return [];
+    }
   }
-}
+};
 
-export function FilterOperator({
+export const FilterOperator = ({
   filter,
   actions,
 }: {
   filter: FilterModel;
   actions: DataTableFilterActions;
-}) {
+}) => {
   const [open, setOpen] = useState(false);
   const current = operatorDetails(filter.type, filter.operator);
   return (
     <Popover
       open={open}
       onOpenChange={(next) => {
-        if (filter.type !== "boolean") setOpen(next);
+        if (filter.type !== "boolean") {
+          setOpen(next);
+        }
       }}
     >
       <PopoverTrigger
@@ -94,11 +105,13 @@ export function FilterOperator({
             variant="ghost"
             className="m-0 h-full w-fit rounded-none p-0 px-2 text-xs whitespace-nowrap"
             onClick={() => {
-              if (filter.type !== "boolean") return;
+              if (filter.type !== "boolean") {
+                return;
+              }
               actions.setFilterOperator({
-                type: "boolean",
                 columnId: filter.columnId,
                 operator: filter.operator === "is" ? "is not" : "is",
+                type: "boolean",
               });
             }}
           />
@@ -130,4 +143,4 @@ export function FilterOperator({
       </PopoverContent>
     </Popover>
   );
-}
+};

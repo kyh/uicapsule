@@ -1,6 +1,6 @@
 {
   "name": "Radial Slider",
-  "coverUrl": "https://zmdrwswxugswzmcokvff.supabase.co/storage/v1/object/public/uicapsule/radial-slider/radial-slider.mp4",
-  "coverType": "video",
-  "tags": ["productivity", "cyberpunk", "inputs"]
+  "addedAt": "2025-05-03",
+  "cover": "radial-slider/radial-slider.mp4",
+  "tags": ["controls", "cyberpunk"]
 }

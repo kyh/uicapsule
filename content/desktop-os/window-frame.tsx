@@ -47,7 +47,9 @@ const clamp = (value: number, min: number, max: number): number =>
  * leaving that handler nothing to undo.
  */
 const releaseCapture = (el: HTMLElement, pointerId: number): void => {
-  if (el.hasPointerCapture(pointerId)) el.releasePointerCapture(pointerId);
+  if (el.hasPointerCapture(pointerId)) {
+    el.releasePointerCapture(pointerId);
+  }
 };
 
 export const WindowFrame = ({
@@ -66,25 +68,27 @@ export const WindowFrame = ({
   // Mount pop. gsap writes inline styles, so the tween owns the rest state too.
   useEffect(() => {
     const el = frameRef.current;
-    if (!el) return;
+    if (!el) {
+      return;
+    }
 
     const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
     if (reduced) {
-      gsap.set(el, { opacity: 1, scale: 1, y: 0, filter: "none" });
+      gsap.set(el, { filter: "none", opacity: 1, scale: 1, y: 0 });
       return;
     }
 
     const tween = gsap.fromTo(
       el,
-      { opacity: 0, scale: 0.94, y: 14, filter: "blur(6px)" },
+      { filter: "blur(6px)", opacity: 0, scale: 0.94, y: 14 },
       {
+        duration: 0.36,
+        ease: "power3.out",
+        filter: "blur(0px)",
         opacity: 1,
         scale: 1,
         y: 0,
-        filter: "blur(0px)",
-        duration: 0.36,
-        ease: "power3.out",
       },
     );
 
@@ -96,19 +100,33 @@ export const WindowFrame = ({
   /** Undo the gesture's imperative writes and hand `left`/`top` back to React. */
   const resetFramePosition = (): void => {
     const el = frameRef.current;
-    if (!el) return;
+    if (!el) {
+      return;
+    }
     el.style.left = `${win.x}px`;
     el.style.top = `${win.y}px`;
   };
 
   const onHeaderPointerDown = (e: ReactPointerEvent<HTMLDivElement>): void => {
-    if (isMobile) return;
-    if (e.button !== 0) return;
-    if (drag.current.phase === "active") return;
-    if (!(e.target instanceof Element)) return;
+    if (isMobile) {
+      return;
+    }
+    if (e.button !== 0) {
+      return;
+    }
+    if (drag.current.phase === "active") {
+      return;
+    }
+    if (!(e.target instanceof Element)) {
+      return;
+    }
     // Traffic lights are inside the drag handle but must stay clickable.
-    if (e.target.closest("[data-traffic-light]")) return;
-    if (!frameRef.current) return;
+    if (e.target.closest("[data-traffic-light]")) {
+      return;
+    }
+    if (!frameRef.current) {
+      return;
+    }
 
     onFocus(win.uid);
     // Capture on the element that owns these handlers. Capturing on an ancestor
@@ -116,27 +134,33 @@ export const WindowFrame = ({
     // which is to say the drag would never move and never end.
     e.currentTarget.setPointerCapture(e.pointerId);
     drag.current = {
+      last: null,
+      moved: false,
+      originX: win.x,
+      originY: win.y,
       phase: "active",
       pointerId: e.pointerId,
       startX: e.clientX,
       startY: e.clientY,
-      originX: win.x,
-      originY: win.y,
-      moved: false,
-      last: null,
     };
   };
 
   const onHeaderPointerMove = (e: ReactPointerEvent<HTMLDivElement>): void => {
     const state = drag.current;
-    if (state.phase !== "active" || state.pointerId !== e.pointerId) return;
+    if (state.phase !== "active" || state.pointerId !== e.pointerId) {
+      return;
+    }
     const el = frameRef.current;
     const section = sectionRef.current;
-    if (!el || !section) return;
+    if (!el || !section) {
+      return;
+    }
 
     const dx = e.clientX - state.startX;
     const dy = e.clientY - state.startY;
-    if (!state.moved && Math.hypot(dx, dy) < 3) return;
+    if (!state.moved && Math.hypot(dx, dy) < 3) {
+      return;
+    }
     state.moved = true;
 
     const nx = clamp(state.originX + dx, -win.w + 80, section.clientWidth - 80);
@@ -148,13 +172,17 @@ export const WindowFrame = ({
 
   const onHeaderPointerUp = (e: ReactPointerEvent<HTMLDivElement>): void => {
     const state = drag.current;
-    if (state.phase !== "active" || state.pointerId !== e.pointerId) return;
+    if (state.phase !== "active" || state.pointerId !== e.pointerId) {
+      return;
+    }
 
     drag.current = { phase: "idle" };
     releaseCapture(e.currentTarget, e.pointerId);
 
     const committed = state.last;
-    if (state.moved && committed) onMove(win.uid, committed.x, committed.y);
+    if (state.moved && committed) {
+      onMove(win.uid, committed.x, committed.y);
+    }
   };
 
   /**
@@ -164,7 +192,9 @@ export const WindowFrame = ({
    */
   const onHeaderPointerCancel = (e: ReactPointerEvent<HTMLDivElement>): void => {
     const state = drag.current;
-    if (state.phase !== "active" || state.pointerId !== e.pointerId) return;
+    if (state.phase !== "active" || state.pointerId !== e.pointerId) {
+      return;
+    }
 
     drag.current = { phase: "idle" };
     releaseCapture(e.currentTarget, e.pointerId);
@@ -172,17 +202,19 @@ export const WindowFrame = ({
   };
 
   return (
+    // oxlint-disable-next-line jsx-a11y/no-noninteractive-element-interactions -- mousedown only raises the window's z-order; focusing anything inside the window reaches the same state from the keyboard
     <div
       ref={frameRef}
+      // oxlint-disable-next-line jsx-a11y/prefer-tag-over-role -- a <dialog> element's UA inset/fit-content sizing and open/close model fight this absolutely positioned, pointer-dragged frame
       role="dialog"
       aria-label={title}
       onMouseDown={() => onFocus(win.uid)}
       className="pointer-events-auto absolute flex flex-col overflow-hidden rounded-[12px] border border-black/15 bg-[#fbfaf7] text-[#1a1612] shadow-[0_30px_80px_-20px_rgba(0,0,0,0.45),0_8px_24px_-8px_rgba(0,0,0,0.35)]"
       style={{
+        height: win.h,
         left: win.x,
         top: win.y,
         width: win.w,
-        height: win.h,
         zIndex: win.z,
       }}
     >
@@ -258,12 +290,14 @@ export const PhotoLightbox = ({
 
   useEffect(() => {
     const el = overlayRef.current;
-    if (!el) return;
+    if (!el) {
+      return;
+    }
 
     const tween = gsap.fromTo(
       el,
       { opacity: 0 },
-      { opacity: 1, duration: 0.25, ease: "power2.out" },
+      { duration: 0.25, ease: "power2.out", opacity: 1 },
     );
 
     return () => {
@@ -274,8 +308,11 @@ export const PhotoLightbox = ({
   return (
     <div
       ref={overlayRef}
+      role="presentation"
       onMouseDown={(e) => {
-        if (e.target === e.currentTarget) onClose();
+        if (e.target === e.currentTarget) {
+          onClose();
+        }
       }}
       className="absolute inset-0 z-[60] flex items-center justify-center bg-black/85 p-8 backdrop-blur-sm"
     >

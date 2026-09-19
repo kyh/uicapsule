@@ -1,6 +1,6 @@
 {
   "name": "3D Carousel",
-  "coverUrl": "https://zmdrwswxugswzmcokvff.supabase.co/storage/v1/object/public/uicapsule/carousel-3d/carousel-3d.mp4",
-  "coverType": "video",
-  "tags": ["entertainment", "colorful", "carousels"]
+  "addedAt": "2025-08-14",
+  "cover": "carousel-3d/carousel-3d.mp4",
+  "tags": ["cards-grids", "colorful"]
 }

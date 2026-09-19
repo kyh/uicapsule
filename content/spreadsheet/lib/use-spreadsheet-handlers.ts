@@ -1,4 +1,5 @@
-import { useCallback, type KeyboardEvent, type MouseEvent } from "react";
+import { useCallback } from "react";
+import type { KeyboardEvent, MouseEvent } from "react";
 import type { ColumnInfo, NavigationDirection, NavigationMap } from "./spreadsheet-utils";
 import { useSpreadsheetStore } from "./spreadsheet-store";
 import {
@@ -51,7 +52,9 @@ export const useSpreadsheetHandlers = ({ columns, navigationMap }: UseSpreadshee
 
   const handleMouseDown = useCallback(
     (e: MouseEvent, rowId: string, columnId: string) => {
-      if (e.button !== 0) return; // Only left mouse button
+      if (e.button !== 0) {
+        return;
+      }
 
       const cellKey = `${rowId}:${columnId}`;
 
@@ -83,12 +86,18 @@ export const useSpreadsheetHandlers = ({ columns, navigationMap }: UseSpreadshee
         );
       } else if (e.shiftKey) {
         setSelectedCells((currentSelectedCells) => {
-          if (currentSelectedCells.size === 0) return new Set([cellKey]);
+          if (currentSelectedCells.size === 0) {
+            return new Set([cellKey]);
+          }
 
-          const firstSelectedCell = Array.from(currentSelectedCells)[0];
-          if (!firstSelectedCell) return new Set([cellKey]);
+          const [firstSelectedCell] = [...currentSelectedCells];
+          if (!firstSelectedCell) {
+            return new Set([cellKey]);
+          }
           const [firstRowId, firstCol] = firstSelectedCell.split(":");
-          if (!firstRowId || !firstCol) return new Set([cellKey]);
+          if (!firstRowId || !firstCol) {
+            return new Set([cellKey]);
+          }
           const rangeCells = getRangeCells(firstRowId, firstCol, rowId, columnId, columns, data);
           return exitEditIfMultiple(new Set(rangeCells));
         });
@@ -100,13 +109,13 @@ export const useSpreadsheetHandlers = ({ columns, navigationMap }: UseSpreadshee
         if (isCurrentlyEditing) {
           setTimeout(() => setEditingCell(null), 0);
         } else if (isCurrentlySelected) {
-          setTimeout(() => setEditingCell({ rowId, columnId }), 0);
+          setTimeout(() => setEditingCell({ columnId, rowId }), 0);
         } else {
           setSelectedCells(() => new Set([cellKey]));
         }
       }
 
-      setDragStartCell({ rowId, columnId });
+      setDragStartCell({ columnId, rowId });
     },
     [
       selectedCells,
@@ -122,7 +131,9 @@ export const useSpreadsheetHandlers = ({ columns, navigationMap }: UseSpreadshee
 
   const handleMouseMove = useCallback(
     (e: MouseEvent, rowId: string, columnId: string) => {
-      if (!dragStartCell) return;
+      if (!dragStartCell) {
+        return;
+      }
 
       const rangeCells = getRangeCells(
         dragStartCell.rowId,
@@ -144,11 +155,13 @@ export const useSpreadsheetHandlers = ({ columns, navigationMap }: UseSpreadshee
   const handleKeyDown = useCallback(
     (e: KeyboardEvent) => {
       const firstSelectedCell = getFirstSelectedCell(selectedCells);
-      if (!firstSelectedCell) return;
+      if (!firstSelectedCell) {
+        return;
+      }
 
       const { rowId, columnId } = firstSelectedCell;
 
-      const activeElement = document.activeElement;
+      const { activeElement } = document;
       if (activeElement && activeElement.tagName === "INPUT") {
         return;
       }
@@ -168,14 +181,15 @@ export const useSpreadsheetHandlers = ({ columns, navigationMap }: UseSpreadshee
       }
 
       switch (e.key) {
-        case "Enter":
+        case "Enter": {
           e.preventDefault();
           if (editingCell?.rowId === rowId && editingCell?.columnId === columnId) {
             setEditingCell(null);
           } else if (shouldAllowEditing(selectedCells, `${rowId}:${columnId}`)) {
-            setEditingCell({ rowId, columnId });
+            setEditingCell({ columnId, rowId });
           }
           break;
+        }
         case "Escape": {
           e.preventDefault();
           if (editingCell) {
@@ -189,8 +203,11 @@ export const useSpreadsheetHandlers = ({ columns, navigationMap }: UseSpreadshee
         case "Backspace": {
           e.preventDefault();
           if (selectedCells.size > 0) {
-            updateSelectedCellsData(undefined);
+            updateSelectedCellsData();
           }
+          break;
+        }
+        default: {
           break;
         }
       }
@@ -206,9 +223,9 @@ export const useSpreadsheetHandlers = ({ columns, navigationMap }: UseSpreadshee
   );
 
   return {
+    handleKeyDown,
     handleMouseDown,
     handleMouseMove,
     handleMouseUp,
-    handleKeyDown,
   };
 };

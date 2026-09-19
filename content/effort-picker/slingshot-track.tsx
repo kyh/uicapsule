@@ -41,21 +41,41 @@ const MAX_BLUR = 7;
  * so a resting knob keeps its crisp edge and costs nothing to composite. */
 const BLUR_CUTOFF = 0.03;
 
-const SETTLE_SPRING = { type: "spring", stiffness: 420, damping: 26 } as const;
-const IMPACT_SPRING = { type: "spring", stiffness: 500, damping: 18 } as const;
-const RELEASE_SPRING = { type: "spring", stiffness: 700, damping: 30 } as const;
+const SETTLE_SPRING = { damping: 26, stiffness: 420, type: "spring" } as const;
+const IMPACT_SPRING = { damping: 18, stiffness: 500, type: "spring" } as const;
+const RELEASE_SPRING = { damping: 30, stiffness: 700, type: "spring" } as const;
 
 export type TrackPhase = "idle" | "pulling" | "flying";
 
-type PullOrigin = { anchor: number; pointer: number };
+const ARROW_DELTA = new Map([
+  ["ArrowLeft", -1],
+  ["ArrowRight", 1],
+]);
 
-type SlingshotTrackProps = {
+/** Past either cap the band goes taut rather than snapping — an asymptote, so
+ * there is always runway to pull against even when sitting on an end notch. */
+const overpull = (raw: number) => {
+  if (raw < 0) {
+    return -MAX_OVERPULL * Math.tanh(-raw / MAX_OVERPULL);
+  }
+  if (raw > TRACK_TRAVEL) {
+    return TRACK_TRAVEL + MAX_OVERPULL * Math.tanh((raw - TRACK_TRAVEL) / MAX_OVERPULL);
+  }
+  return raw;
+};
+
+interface PullOrigin {
+  anchor: number;
+  pointer: number;
+}
+
+interface SlingshotTrackProps {
   /** Knob offset in px, owned by the shell so the chrome can follow it. */
   knobX: MotionValue<number>;
   theme: EffortTheme;
   /** Fires whenever the knob starts or stops being a projectile. */
   onPhaseChange?: (phase: TrackPhase) => void;
-};
+}
 
 /**
  * An effort slider you cannot place — only fire. Haul the knob back either way
@@ -64,10 +84,10 @@ type SlingshotTrackProps = {
  */
 export const SlingshotTrack = ({ knobX, theme, onPhaseChange }: SlingshotTrackProps) => {
   const tokens = EFFORT_THEMES[theme];
-  const [phase, setPhaseState] = useState<TrackPhase>("idle");
+  const [phase, setPhase] = useState<TrackPhase>("idle");
 
-  const setPhase = (next: TrackPhase) => {
-    setPhaseState(next);
+  const enterPhase = (next: TrackPhase) => {
+    setPhase(next);
     onPhaseChange?.(next);
   };
 
@@ -92,7 +112,7 @@ export const SlingshotTrack = ({ knobX, theme, onPhaseChange }: SlingshotTrackPr
   const settle = (x: number) => {
     const level = nearestLevel(theme, x);
     velocity.current = 0;
-    setPhase("idle");
+    enterPhase("idle");
     void animate(knobX, notchX(theme, level), SETTLE_SPRING);
     void animate(speed, 0, SETTLE_SPRING);
     knobOrigin.set(0.5);
@@ -112,7 +132,7 @@ export const SlingshotTrack = ({ knobX, theme, onPhaseChange }: SlingshotTrackPr
   /** Stretch is signed: haul left, it fires right; haul right, it fires left. */
   const launch = (stretch: number) => {
     velocity.current = stretch * LAUNCH_GAIN;
-    setPhase("flying");
+    enterPhase("flying");
     void animate(tension, 0, RELEASE_SPRING);
 
     let last = performance.now();
@@ -164,22 +184,16 @@ export const SlingshotTrack = ({ knobX, theme, onPhaseChange }: SlingshotTrackPr
     anchorX.set(anchor);
     velocity.current = 0;
     speed.set(0);
-    setPhase("pulling");
+    enterPhase("pulling");
   };
 
   const handlePointerMove = (event: React.PointerEvent<HTMLButtonElement>) => {
     const origin = pullOrigin.current;
-    if (!origin) return;
+    if (!origin) {
+      return;
+    }
 
-    const raw = origin.anchor - (origin.pointer - event.clientX);
-    // Past either cap the band goes taut rather than snapping — an asymptote, so
-    // there is always runway to pull against even when sitting on an end notch.
-    const x =
-      raw < 0
-        ? -MAX_OVERPULL * Math.tanh(-raw / MAX_OVERPULL)
-        : raw > TRACK_TRAVEL
-          ? TRACK_TRAVEL + MAX_OVERPULL * Math.tanh((raw - TRACK_TRAVEL) / MAX_OVERPULL)
-          : raw;
+    const x = overpull(origin.anchor - (origin.pointer - event.clientX));
 
     knobX.set(x);
     tension.set(clamp(Math.abs(origin.anchor - x) / FULL_STRETCH, 0, 1));
@@ -188,7 +202,9 @@ export const SlingshotTrack = ({ knobX, theme, onPhaseChange }: SlingshotTrackPr
   const handlePointerUp = () => {
     const origin = pullOrigin.current;
     pullOrigin.current = null;
-    if (!origin) return;
+    if (!origin) {
+      return;
+    }
 
     const stretch = origin.anchor - knobX.get();
     if (Math.abs(stretch) < MIN_STRETCH) {
@@ -200,8 +216,10 @@ export const SlingshotTrack = ({ knobX, theme, onPhaseChange }: SlingshotTrackPr
   };
 
   const handleKeyDown = (event: React.KeyboardEvent<HTMLButtonElement>) => {
-    const delta = event.key === "ArrowRight" ? 1 : event.key === "ArrowLeft" ? -1 : 0;
-    if (delta === 0) return;
+    const delta = ARROW_DELTA.get(event.key) ?? 0;
+    if (delta === 0) {
+      return;
+    }
     // Keyboard users get the boring slider. The joke isn't worth locking them out.
     event.preventDefault();
     cancelAnimationFrame(frame.current);
@@ -255,7 +273,7 @@ export const SlingshotTrack = ({ knobX, theme, onPhaseChange }: SlingshotTrackPr
   const ghostLeft = useTransform(anchorX, (x) => x + KNOB_SIZE / 2);
 
   return (
-    <div className="relative" style={{ width: TRACK_WIDTH, height: KNOB_SIZE }}>
+    <div className="relative" style={{ height: KNOB_SIZE, width: TRACK_WIDTH }}>
       <svg aria-hidden className="absolute size-0">
         <filter id={blurId} x="-50%" y="-50%" width="200%" height="200%">
           <feGaussianBlur ref={blurRef} stdDeviation="0 0" />
@@ -268,22 +286,23 @@ export const SlingshotTrack = ({ knobX, theme, onPhaseChange }: SlingshotTrackPr
         aria-hidden
         className="absolute h-[3px] -translate-y-1/2 rounded-full"
         style={{
-          top: "50%",
-          left: bandLeft,
-          width: bandWidth,
           backgroundColor: bandColor,
+          left: bandLeft,
           opacity: bandOpacity,
+          top: "50%",
+          width: bandWidth,
         }}
       />
 
       <motion.span
         aria-hidden
         className="absolute size-4 -translate-x-1/2 -translate-y-1/2 rounded-full border border-white/60"
-        style={{ top: "50%", left: ghostLeft, opacity: bandOpacity }}
+        style={{ left: ghostLeft, opacity: bandOpacity, top: "50%" }}
       />
 
       <motion.button
         type="button"
+        // oxlint-disable-next-line jsx-a11y/prefer-tag-over-role -- the knob is a projectile drawn by motion, not a value an <input type="range"> could hold
         role="slider"
         aria-label="Reasoning effort"
         aria-valuemin={0}
@@ -295,12 +314,12 @@ export const SlingshotTrack = ({ knobX, theme, onPhaseChange }: SlingshotTrackPr
         }`}
         style={{
           ...knobBoxStyle(theme),
-          x: knobX,
+          filter: knobFilter,
           scaleX: knobScaleX,
           scaleY: knobScaleY,
-          transformOrigin: knobTransformOrigin,
-          filter: knobFilter,
           touchAction: "none",
+          transformOrigin: knobTransformOrigin,
+          x: knobX,
         }}
         onPointerDown={handlePointerDown}
         onPointerMove={handlePointerMove}
@@ -316,10 +335,10 @@ export const SlingshotTrack = ({ knobX, theme, onPhaseChange }: SlingshotTrackPr
 
 const HEADER_FADE = { duration: 0.18, ease: [0.4, 0, 0.2, 1] } as const;
 
-type SlingshotCardProps = {
+interface SlingshotCardProps {
   knobX: MotionValue<number>;
   theme: EffortTheme;
-};
+}
 
 /**
  * The popover the slingshot lives in — and the one place the two apps disagree

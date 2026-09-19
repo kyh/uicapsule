@@ -1,6 +1,7 @@
 "use client";
 
-import { createContext, use, useState, type ReactNode } from "react";
+import { createContext, use, useMemo } from "react";
+import type { ReactNode } from "react";
 import { createStore, useStore } from "zustand";
 import "../spreadsheet.css";
 
@@ -31,40 +32,51 @@ export interface SpreadsheetStore {
   setDragLineVisible: (visible: boolean) => void;
 
   updateData: (rowId: string, columnId: string, value: CellValue) => void;
-  updateSelectedCellsData: (value: CellValue) => void;
+  updateSelectedCellsData: (value?: CellValue) => void;
   addRow: (onCreateRow?: (rowIndex: number) => SpreadsheetRow) => void;
   deleteRow: (rowId: string) => void;
 }
 
-function createSpreadsheetStore(
+const createSpreadsheetStore = (
   initialData: SpreadsheetRow[],
   initialColumnWidths: Record<string, number>,
-) {
-  return createStore<SpreadsheetStore>((set, get) => ({
-    data: initialData,
-    selectedCells: new Set(),
-    editingCell: null,
-    dragStartCell: null,
+) =>
+  createStore<SpreadsheetStore>((set, get) => ({
+    addRow: (onCreateRow) => {
+      set((state) => {
+        const nextRow = onCreateRow?.(state.data.length) ?? { id: crypto.randomUUID() };
+        return { data: [...state.data, nextRow] };
+      });
+    },
     columnWidths: initialColumnWidths,
-    dragLineVisible: false,
-
-    setSelectedCells: (cells) => {
+    data: initialData,
+    deleteRow: (rowId) => {
       set((state) => ({
-        selectedCells: cells(state.selectedCells),
+        data: state.data.filter((row) => row.id !== rowId),
+        dragStartCell: state.dragStartCell?.rowId === rowId ? null : state.dragStartCell,
+        editingCell: state.editingCell?.rowId === rowId ? null : state.editingCell,
+        selectedCells: new Set(
+          [...state.selectedCells].filter((key) => !key.startsWith(`${rowId}:`)),
+        ),
       }));
     },
-
-    setEditingCell: (cell) => set({ editingCell: cell }),
-    setDragStartCell: (cell) => set({ dragStartCell: cell }),
-
+    dragLineVisible: false,
+    dragStartCell: null,
+    editingCell: null,
+    selectedCells: new Set(),
     setColumnWidths: (widths) => {
       set((state) => ({
         columnWidths: widths(state.columnWidths),
       }));
     },
-
     setDragLineVisible: (visible) => set({ dragLineVisible: visible }),
-
+    setDragStartCell: (cell) => set({ dragStartCell: cell }),
+    setEditingCell: (cell) => set({ editingCell: cell }),
+    setSelectedCells: (cells) => {
+      set((state) => ({
+        selectedCells: cells(state.selectedCells),
+      }));
+    },
     updateData: (rowId, columnId, value) => {
       set((state) => ({
         data: state.data.map((row) => {
@@ -75,49 +87,35 @@ function createSpreadsheetStore(
         }),
       }));
     },
-
     updateSelectedCellsData: (value) => {
-      if (get().selectedCells.size === 0) return;
+      if (get().selectedCells.size === 0) {
+        return;
+      }
 
       set((state) => {
         const newData = [...state.data];
-        state.selectedCells.forEach((cellKey) => {
+        for (const cellKey of state.selectedCells) {
           const [rowId, columnId] = cellKey.split(":");
-          if (!rowId || !columnId) return;
+          if (!rowId || !columnId) {
+            continue;
+          }
           const rowIndex = newData.findIndex((row) => row.id === rowId);
           const currentRow = newData[rowIndex];
-          if (!currentRow) return;
+          if (!currentRow) {
+            continue;
+          }
 
           newData[rowIndex] = { ...currentRow, [columnId]: value };
-        });
+        }
         return { data: newData };
       });
     },
-
-    addRow: (onCreateRow) => {
-      set((state) => {
-        const nextRow = onCreateRow?.(state.data.length) ?? { id: crypto.randomUUID() };
-        return { data: [...state.data, nextRow] };
-      });
-    },
-
-    deleteRow: (rowId) => {
-      set((state) => ({
-        data: state.data.filter((row) => row.id !== rowId),
-        selectedCells: new Set(
-          [...state.selectedCells].filter((key) => !key.startsWith(`${rowId}:`)),
-        ),
-        editingCell: state.editingCell?.rowId === rowId ? null : state.editingCell,
-        dragStartCell: state.dragStartCell?.rowId === rowId ? null : state.dragStartCell,
-      }));
-    },
   }));
-}
 
 type SpreadsheetStoreApi = ReturnType<typeof createSpreadsheetStore>;
 const SpreadsheetContext = createContext<SpreadsheetStoreApi | null>(null);
 
-export function SpreadsheetProvider({
+export const SpreadsheetProvider = ({
   initialData,
   initialColumnWidths,
   children,
@@ -125,21 +123,25 @@ export function SpreadsheetProvider({
   initialData: SpreadsheetRow[];
   initialColumnWidths: Record<string, number>;
   children: ReactNode;
-}) {
-  const [store] = useState(() => createSpreadsheetStore(initialData, initialColumnWidths));
+}) => {
+  const store = useMemo(
+    () => createSpreadsheetStore(initialData, initialColumnWidths),
+    [initialData, initialColumnWidths],
+  );
   return (
     <SpreadsheetContext value={store}>
       <div className="spreadsheet">{children}</div>
     </SpreadsheetContext>
   );
-}
+};
 
-export function useSpreadsheetApi() {
+export const useSpreadsheetApi = () => {
   const store = use(SpreadsheetContext);
-  if (!store) throw new Error("Spreadsheet components require SpreadsheetProvider");
+  if (!store) {
+    throw new Error("Spreadsheet components require SpreadsheetProvider");
+  }
   return store;
-}
+};
 
-export function useSpreadsheetStore<T>(selector: (state: SpreadsheetStore) => T): T {
-  return useStore(useSpreadsheetApi(), selector);
-}
+export const useSpreadsheetStore = <T,>(selector: (state: SpreadsheetStore) => T): T =>
+  useStore(useSpreadsheetApi(), selector);

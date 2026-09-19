@@ -1,9 +1,9 @@
 import { useCallback, useEffect, useRef } from "react";
 
-export function useDebouncedCallback<TArgs extends unknown[]>(
+export const useDebouncedCallback = <TArgs extends unknown[]>(
   callback: (...args: TArgs) => void,
   delay: number,
-) {
+) => {
   const callbackRef = useRef(callback);
   const pendingRef = useRef<{ timeout: ReturnType<typeof setTimeout>; args: TArgs } | null>(null);
 
@@ -12,7 +12,9 @@ export function useDebouncedCallback<TArgs extends unknown[]>(
   }, [callback]);
 
   const cancel = useCallback(() => {
-    if (pendingRef.current !== null) clearTimeout(pendingRef.current.timeout);
+    if (pendingRef.current !== null) {
+      clearTimeout(pendingRef.current.timeout);
+    }
     pendingRef.current = null;
   }, []);
 
@@ -20,7 +22,9 @@ export function useDebouncedCallback<TArgs extends unknown[]>(
 
   const flush = useCallback(() => {
     const pending = pendingRef.current;
-    if (!pending) return;
+    if (!pending) {
+      return;
+    }
     cancel();
     callbackRef.current(...pending.args);
   }, [cancel]);
@@ -28,10 +32,10 @@ export function useDebouncedCallback<TArgs extends unknown[]>(
   const schedule = useCallback(
     (...args: TArgs) => {
       cancel();
-      pendingRef.current = { timeout: setTimeout(flush, delay), args };
+      pendingRef.current = { args, timeout: setTimeout(flush, delay) };
     },
     [cancel, delay, flush],
   );
 
-  return { schedule, cancel, flush };
-}
+  return { cancel, flush, schedule };
+};

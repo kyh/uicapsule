@@ -1,7 +1,8 @@
 "use client";
 
-import type { FC, ReactNode, Ref } from "react";
+import type { ComponentProps, FC, ReactNode, Ref } from "react";
 import { useEffect, useRef } from "react";
+import type { LucideIcon } from "lucide-react";
 import { Bookmark, ChevronLeft, ChevronRight, Heart, X } from "lucide-react";
 
 import type { Photo } from "./photos";
@@ -54,6 +55,101 @@ const IconButton: FC<IconButtonProps> = ({ onClick, label, size, pressed, ref, c
   </button>
 );
 
+interface ToggleButtonProps {
+  icon: LucideIcon;
+  pressed: boolean;
+  onLabel: string;
+  offLabel: string;
+  onClick: () => void;
+}
+
+/* Like / save: the only buttons with a state, so the only ones whose label flips. */
+const ToggleButton: FC<ToggleButtonProps> = ({
+  icon: Icon,
+  pressed,
+  onLabel,
+  offLabel,
+  onClick,
+}) => (
+  <IconButton onClick={onClick} label={pressed ? onLabel : offLabel} size="md" pressed={pressed}>
+    <Icon className="size-4" fill={pressed ? "currentColor" : "none"} />
+  </IconButton>
+);
+
+/* Expanded, the card behaves as a modal — Escape and a backdrop click both
+   close it, and the wall behind is `aria-hidden`. Collapsed, it is the button
+   that opens the detail view. */
+const surfaceProps = (
+  expanded: boolean,
+  title: string,
+  onOpen: () => void,
+): ComponentProps<"div"> => {
+  if (expanded) {
+    return {
+      "aria-label": title,
+      "aria-modal": true,
+      onClick: onOpen,
+      role: "dialog",
+      tabIndex: -1,
+    };
+  }
+  return {
+    "aria-label": `Open ${title}`,
+    onClick: onOpen,
+    onKeyDown: (e) => {
+      if (e.key === "Enter" || e.key === " ") {
+        e.preventDefault();
+        onOpen();
+      }
+    },
+    role: "button",
+    tabIndex: 0,
+  };
+};
+
+interface CardFrame {
+  w: number;
+  frameH: number;
+}
+
+/* Sizes the card for its state; the frame budgets stop it outgrowing the preview box. */
+const cardFrame = (
+  aspect: number,
+  expanded: boolean,
+  isMobile: boolean,
+  vw: number,
+  vh: number,
+): CardFrame => {
+  const restH = isMobile ? 220 : 280;
+  const restMaxW = isMobile ? 270 : 400;
+  const expH = isMobile ? 280 : 360;
+  const expMaxW = isMobile ? 300 : 480;
+  const expMinW = isMobile ? 260 : 340;
+
+  const heightBudget = expanded
+    ? Math.min(vh * 0.44, Math.max(MIN_EXPANDED_H, vh - EXPANDED_CHROME_H))
+    : vh * 0.62;
+  const widthBudget = vw * (expanded ? 0.78 : 0.86);
+
+  const h = Math.min(expanded ? expH : restH, heightBudget);
+  const maxW = Math.min(expanded ? expMaxW : restMaxW, widthBudget);
+  /* Clamp against the height budget too: without it, a tall-but-narrow photo
+     takes the min-width branch below and recomputes frameH from width alone,
+     re-inflating past the budget and clipping the satellite UI in short frames. */
+  const minW = Math.min(expMinW, widthBudget, heightBudget * aspect);
+
+  let w = h * aspect;
+  let frameH = h;
+  if (w > maxW) {
+    w = maxW;
+    frameH = maxW / aspect;
+  } else if (expanded && w < minW) {
+    w = minW;
+    frameH = minW / aspect;
+  }
+  return { frameH, w };
+};
+
 interface FeaturedCardProps {
   photo: Photo;
   expanded: boolean;
@@ -95,59 +191,36 @@ export const FeaturedCard: FC<FeaturedCardProps> = ({
   const wasExpanded = useRef(expanded);
 
   useEffect(() => {
-    if (wasExpanded.current === expanded) return;
+    if (wasExpanded.current === expanded) {
+      return;
+    }
     wasExpanded.current = expanded;
-    if (expanded) closeRef.current?.focus();
-    else cardRef.current?.focus();
+    if (expanded) {
+      closeRef.current?.focus();
+    } else {
+      cardRef.current?.focus();
+    }
   }, [expanded]);
 
-  const restH = isMobile ? 220 : 280;
-  const restMaxW = isMobile ? 270 : 400;
-  const expH = isMobile ? 280 : 360;
-  const expMaxW = isMobile ? 300 : 480;
-  const expMinW = isMobile ? 260 : 340;
-
-  const heightBudget = expanded
-    ? Math.min(vh * 0.44, Math.max(MIN_EXPANDED_H, vh - EXPANDED_CHROME_H))
-    : vh * 0.62;
-  const widthBudget = vw * (expanded ? 0.78 : 0.86);
-
-  const h = Math.min(expanded ? expH : restH, heightBudget);
-  const maxW = Math.min(expanded ? expMaxW : restMaxW, widthBudget);
-  /* Clamp against the height budget too: without it, a tall-but-narrow photo
-     takes the min-width branch below and recomputes frameH from width alone,
-     re-inflating past the budget and clipping the satellite UI in short frames. */
-  const minW = Math.min(expMinW, widthBudget, heightBudget * photo.aspect);
-
-  let w = h * photo.aspect;
-  let frameH = h;
-  if (w > maxW) {
-    w = maxW;
-    frameH = maxW / photo.aspect;
-  } else if (expanded && w < minW) {
-    w = minW;
-    frameH = minW / photo.aspect;
-  }
+  const { w, frameH } = cardFrame(photo.aspect, expanded, isMobile, vw, vh);
 
   const likeBtn = (
-    <IconButton
-      onClick={onToggleLike}
-      label={liked ? "Remove like" : "Like"}
-      size="md"
+    <ToggleButton
+      icon={Heart}
       pressed={liked}
-    >
-      <Heart className="size-4" fill={liked ? "currentColor" : "none"} />
-    </IconButton>
+      onLabel="Remove like"
+      offLabel="Like"
+      onClick={onToggleLike}
+    />
   );
   const saveBtn = (
-    <IconButton
-      onClick={onToggleSave}
-      label={saved ? "Remove from saved" : "Save"}
-      size="md"
+    <ToggleButton
+      icon={Bookmark}
       pressed={saved}
-    >
-      <Bookmark className="size-4" fill={saved ? "currentColor" : "none"} />
-    </IconButton>
+      onLabel="Remove from saved"
+      offLabel="Save"
+      onClick={onToggleSave}
+    />
   );
   const closeBtn = (
     <IconButton ref={closeRef} onClick={onClose} label="Close" size="md">
@@ -160,29 +233,13 @@ export const FeaturedCard: FC<FeaturedCardProps> = ({
       ref={cardRef}
       className={`pointer-events-auto absolute${expanded ? "" : " cursor-pointer"}`}
       style={{
-        width: w,
         height: frameH,
         transform: "translate(-50%, -50%)",
         transition:
           "width 0.25s cubic-bezier(0.16, 1, 0.3, 1), height 0.25s cubic-bezier(0.16, 1, 0.3, 1)",
+        width: w,
       }}
-      onClick={onOpen}
-      /* Expanded, this behaves as a modal — Escape and a backdrop click both
-         close it, and the wall behind is `aria-hidden`. */
-      role={expanded ? "dialog" : "button"}
-      aria-modal={expanded ? true : undefined}
-      tabIndex={expanded ? -1 : 0}
-      aria-label={expanded ? photo.title : `Open ${photo.title}`}
-      onKeyDown={
-        expanded
-          ? undefined
-          : (e) => {
-              if (e.key === "Enter" || e.key === " ") {
-                e.preventDefault();
-                onOpen();
-              }
-            }
-      }
+      {...surfaceProps(expanded, photo.title, onOpen)}
     >
       {expanded && (
         <div className="absolute bottom-full left-1/2 mb-4 w-max max-w-[80%] -translate-x-1/2 text-center">
@@ -254,8 +311,8 @@ export const FeaturedCard: FC<FeaturedCardProps> = ({
         <div
           className="absolute top-full left-1/2 mt-4 -translate-x-1/2 text-center"
           style={{
-            minWidth: Math.min(isMobile ? 260 : 320, vw * 0.9),
             maxWidth: vw * 0.9,
+            minWidth: Math.min(isMobile ? 260 : 320, vw * 0.9),
           }}
         >
           <div className="text-[11px] tracking-[0.24em] text-white/60 uppercase">{photo.year}</div>
@@ -271,7 +328,7 @@ export const FeaturedCard: FC<FeaturedCardProps> = ({
           {!isMobile && (
             <p
               className="mx-auto mt-3 text-[13px] text-white/70"
-              style={{ maxWidth: 440, lineHeight: 1.6 }}
+              style={{ lineHeight: 1.6, maxWidth: 440 }}
             >
               {photo.description}
             </p>

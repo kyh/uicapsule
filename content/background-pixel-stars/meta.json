@@ -1,6 +1,6 @@
 {
   "name": "Background Pixel Stars",
-  "coverUrl": "https://zmdrwswxugswzmcokvff.supabase.co/storage/v1/object/public/uicapsule/background-pixel-stars/background-pixel-stars.mp4",
-  "coverType": "video",
-  "tags": ["design", "pixel-art", "effects"]
+  "addedAt": "2025-05-03",
+  "cover": "background-pixel-stars/background-pixel-stars.mp4",
+  "tags": ["effects", "pixel-art"]
 }

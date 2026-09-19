@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect, useMemo, useState, type ReactElement, type ReactNode } from "react";
+import { useEffect, useMemo, useState } from "react";
+import type { ReactElement, ReactNode } from "react";
 
 interface CellProps {
   colors: string[];
@@ -144,7 +145,6 @@ export const BackgroundGlyphs = ({
   maxInterval = 5000,
 }: BackgroundGlyphsProps) => {
   const borderSize = cellSize * 2;
-  const colorsKey = colors.join("|");
 
   const cells = useMemo<ReactNode[]>(() => {
     const list: ReactNode[] = [];
@@ -173,9 +173,7 @@ export const BackgroundGlyphs = ({
       }
     }
     return list;
-    // colors identity may change per-render; use a stable join key instead.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [width, height, cellSize, strokeWidth, colorsKey, borderSize, minInterval, maxInterval]);
+  }, [width, height, cellSize, strokeWidth, colors, borderSize, minInterval, maxInterval]);
 
   return (
     <svg width={width} height={height} viewBox={`0 0 ${width} ${height}`} className={className}>

@@ -9,38 +9,40 @@ const HEART_PATH =
 
 const CIRCLE_RADIUS = 20;
 
-const CircleAnimation = () => {
-  return (
-    <svg
-      className="pointer-events-none absolute -top-3 -left-3"
-      style={{
-        width: CIRCLE_RADIUS * 2,
-        height: CIRCLE_RADIUS * 2,
+const CUBIC_OUT = [0.33, 1, 0.68, 1] as const;
+const QUAD_IN = [0.55, 0.085, 0.68, 0.53] as const;
+const QUINT_OUT = [0.23, 1, 0.32, 1] as const;
+
+const CircleAnimation = () => (
+  <svg
+    className="pointer-events-none absolute -top-3 -left-3"
+    style={{
+      height: CIRCLE_RADIUS * 2,
+      width: CIRCLE_RADIUS * 2,
+    }}
+  >
+    <motion.circle
+      cx={CIRCLE_RADIUS}
+      cy={CIRCLE_RADIUS}
+      r={CIRCLE_RADIUS - 2}
+      fill="none"
+      initial={{
+        scale: 0,
+        stroke: "#E5214A",
+        strokeWidth: CIRCLE_RADIUS * 2,
       }}
-    >
-      <motion.circle
-        cx={CIRCLE_RADIUS}
-        cy={CIRCLE_RADIUS}
-        r={CIRCLE_RADIUS - 2}
-        fill="none"
-        initial={{
-          scale: 0,
-          stroke: "#E5214A",
-          strokeWidth: CIRCLE_RADIUS * 2,
-        }}
-        animate={{
-          scale: 1,
-          stroke: "#CC8EF5",
-          strokeWidth: 0,
-        }}
-        transition={{
-          duration: 0.4,
-          ease: [0.33, 1, 0.68, 1], // cubic-out
-        }}
-      />
-    </svg>
-  );
-};
+      animate={{
+        scale: 1,
+        stroke: "#CC8EF5",
+        strokeWidth: 0,
+      }}
+      transition={{
+        duration: 0.4,
+        ease: CUBIC_OUT,
+      }}
+    />
+  </svg>
+);
 
 // One entry per particle; each fades from `from` to `to` over its flight.
 const PARTICLE_COLOR_PAIRS = [
@@ -59,49 +61,36 @@ const PARTICLE_COLOR_PAIRS = [
   { from: "#9EC9F5", to: "#9ED8C6" },
   { from: "#91D3F7", to: "#9AE4CF" },
 ].map((colors, index, pairs) => ({
+  angle: (index / pairs.length) * 360 + 45,
   from: colors.from,
   to: colors.to,
-  angle: (index / pairs.length) * 360 + 45,
 }));
-
-const BurstAnimation = () => {
-  return (
-    <div className="pointer-events-none absolute -top-3 -left-3 grid size-10 place-items-center">
-      {PARTICLE_COLOR_PAIRS.map((colors) => (
-        <Particle
-          key={colors.angle}
-          fromColor={colors.from}
-          toColor={colors.to}
-          angle={colors.angle}
-        />
-      ))}
-    </div>
-  );
-};
 
 const BURST_RADIUS = 32;
 const START_RADIUS = 4;
 const PATH_SCALE_FACTOR = 0.8;
 
-const Particle = ({
-  fromColor,
-  toColor,
-  angle,
-}: {
-  fromColor: string;
-  toColor: string;
+interface Flight {
   angle: number;
-}) => {
-  const radians = (angle * Math.PI) / 180;
+  from: string;
+  to: string;
+  burstDistance: number;
+  duration: number;
+}
 
-  // Rolled once per mount rather than per render: a re-render mid-flight (e.g. the
-  // user clicks again) would otherwise hand motion new targets and jolt the particle.
-  const [{ burstDistance, duration }] = useState(() => ({
+// Rolled once per burst, in the click handler rather than in render: a re-render
+// mid-flight would otherwise hand motion new targets and jolt the particles.
+const rollBurst = (): Flight[] =>
+  PARTICLE_COLOR_PAIRS.map((colors) => ({
+    ...colors,
     // Add randomness to the burst distance (±15%)
     burstDistance: BURST_RADIUS * (0.85 + Math.random() * 0.3),
     // Randomize duration between 500-700ms
     duration: 500 + Math.random() * 200,
   }));
+
+const Particle = ({ from: fromColor, to: toColor, angle, burstDistance, duration }: Flight) => {
+  const radians = (angle * Math.PI) / 180;
 
   // Calculate the degree shift (13 degrees in radians)
   const degreeShift = (13 * Math.PI) / 180;
@@ -111,59 +100,68 @@ const Particle = ({
       className="pointer-events-none absolute size-1.5 rounded-full"
       style={{ backgroundColor: fromColor, opacity: 0 }}
       initial={{
+        backgroundColor: fromColor,
         opacity: 0,
         scale: 1,
         x: Math.cos(radians) * START_RADIUS * PATH_SCALE_FACTOR,
         y: Math.sin(radians) * START_RADIUS * PATH_SCALE_FACTOR,
-        backgroundColor: fromColor,
       }}
       animate={{
+        backgroundColor: toColor,
         opacity: [0, 1, 1, 0],
+        scale: 0,
         x: Math.cos(radians + degreeShift) * burstDistance * PATH_SCALE_FACTOR,
         y: Math.sin(radians + degreeShift) * burstDistance * PATH_SCALE_FACTOR,
-        scale: 0,
-        backgroundColor: toColor,
       }}
       transition={{
+        backgroundColor: {
+          delay: 0.3,
+          duration: duration / 1000,
+        },
         opacity: {
-          times: [0, 0.01, 0.99, 1],
-          duration: duration / 1000,
           delay: 0.4,
-        },
-        x: {
           duration: duration / 1000,
-          ease: [0.23, 1, 0.32, 1], // quint.out for movement
-          delay: 0.3,
-        },
-        y: {
-          duration: duration / 1000,
-          ease: [0.23, 1, 0.32, 1], // quint.out for movement
-          delay: 0.3,
+          times: [0, 0.01, 0.99, 1],
         },
         scale: {
-          duration: duration / 1000,
-          ease: [0.55, 0.085, 0.68, 0.53], // quad.in for scaling
           delay: 0.3,
+          duration: duration / 1000,
+          ease: QUAD_IN,
         },
-        backgroundColor: {
-          duration: duration / 1000,
+        x: {
           delay: 0.3,
+          duration: duration / 1000,
+          ease: QUINT_OUT,
+        },
+        y: {
+          delay: 0.3,
+          duration: duration / 1000,
+          ease: QUINT_OUT,
         },
       }}
     />
   );
 };
 
+const BurstAnimation = ({ flights }: { flights: Flight[] }) => (
+  <div className="pointer-events-none absolute -top-3 -left-3 grid size-10 place-items-center">
+    {flights.map((flight) => (
+      <Particle key={flight.angle} {...flight} />
+    ))}
+  </div>
+);
+
 export const LikeButton = () => {
   const [isLiked, setIsLiked] = useState(false);
-  const [isAnimating, setIsAnimating] = useState(false);
+  const [burst, setBurst] = useState<Flight[] | null>(null);
+  const isAnimating = burst !== null;
 
   const toggleLike = () => {
     if (isLiked) {
       setIsLiked(false);
     } else {
       setIsLiked(true);
-      setIsAnimating(true);
+      setBurst(rollBurst());
     }
   };
 
@@ -175,19 +173,19 @@ export const LikeButton = () => {
     >
       <div className="relative">
         {isAnimating && <CircleAnimation />}
-        {isAnimating && <BurstAnimation />}
+        {burst && <BurstAnimation flights={burst} />}
         {isAnimating ? (
           <motion.svg
             key="animating-heart"
             initial={{ scale: 0 }}
             animate={{ scale: 1 }}
             transition={{
-              type: "spring",
-              stiffness: 300,
               damping: 10,
               delay: 0.3,
+              stiffness: 300,
+              type: "spring",
             }}
-            onAnimationComplete={() => setIsAnimating(false)}
+            onAnimationComplete={() => setBurst(null)}
             className="text-red-500"
             width="16"
             height="16"

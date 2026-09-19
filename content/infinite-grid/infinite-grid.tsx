@@ -1,10 +1,10 @@
-import {
-  Component,
-  createRef,
-  type MouseEvent as ReactMouseEvent,
-  type ReactNode,
-  type RefObject,
-  type TouchEvent as ReactTouchEvent,
+import { useEffect, useRef, useState } from "react";
+import type {
+  Dispatch,
+  MouseEvent as ReactMouseEvent,
+  ReactNode,
+  SetStateAction,
+  TouchEvent as ReactTouchEvent,
 } from "react";
 // Grid physics constants
 const MIN_VELOCITY = 0.2;
@@ -18,10 +18,10 @@ const MOVING_DISTANCE = 5;
 const REST_DELAY = 200;
 
 // Custom debounce implementation
-function debounce(func: () => void, wait: number) {
-  let timeoutId: ReturnType<typeof setTimeout> | undefined = undefined;
+const debounce = (func: () => void, wait: number) => {
+  let timeoutId: ReturnType<typeof setTimeout> | undefined;
 
-  const debouncedFn = function () {
+  const debouncedFn = () => {
     clearTimeout(timeoutId);
     timeoutId = setTimeout(() => {
       func();
@@ -29,20 +29,20 @@ function debounce(func: () => void, wait: number) {
     }, wait);
   };
 
-  debouncedFn.cancel = function () {
+  debouncedFn.cancel = () => {
     clearTimeout(timeoutId);
     timeoutId = undefined;
   };
 
   return debouncedFn;
-}
+};
 
 // Custom throttle implementation (leading + trailing)
-function throttle(func: () => void, limit: number) {
+const throttle = (func: () => void, limit: number) => {
   let lastCall = 0;
-  let timeoutId: ReturnType<typeof setTimeout> | undefined = undefined;
+  let timeoutId: ReturnType<typeof setTimeout> | undefined;
 
-  const throttledFn = function () {
+  const throttledFn = () => {
     const now = Date.now();
     const remaining = limit - (now - lastCall);
 
@@ -60,7 +60,7 @@ function throttle(func: () => void, limit: number) {
     }
   };
 
-  throttledFn.cancel = function () {
+  throttledFn.cancel = () => {
     if (timeoutId) {
       clearTimeout(timeoutId);
       timeoutId = undefined;
@@ -68,214 +68,171 @@ function throttle(func: () => void, limit: number) {
   };
 
   return throttledFn;
-}
+};
 
-function getDistance(p1: Position, p2: Position) {
-  const dx = p2.x - p1.x;
-  const dy = p2.y - p1.y;
-  return Math.sqrt(dx * dx + dy * dy);
-}
-
-type Position = {
+interface Position {
   x: number;
   y: number;
-};
+}
 
-type GridItem = {
+interface Size {
+  width: number;
+  height: number;
+}
+
+interface GridItem {
   position: Position;
   gridIndex: number;
-};
+}
 
-type State = {
-  offset: Position;
-  isDragging: boolean;
-  startPos: Position;
-  restPos: Position;
-  velocity: Position;
-  gridItems: GridItem[];
-  isMoving: boolean;
-};
-
-export type GridItemConfig = {
+export interface GridItemConfig {
   isMoving: boolean;
   position: Position;
   gridIndex: number;
-};
+}
 
-export type InfiniteGridProps = {
+export interface InfiniteGridProps {
   gridSize: number;
   renderItem: (itemConfig: GridItemConfig) => ReactNode;
   className?: string;
   initialPosition?: Position;
+}
+
+const ORIGIN: Position = { x: 0, y: 0 };
+const NO_SIZE: Size = { height: 0, width: 0 };
+
+const getDistance = (p1: Position, p2: Position) => Math.hypot(p2.x - p1.x, p2.y - p1.y);
+
+const getItemIndexForPosition = (x: number, y: number): number => {
+  // Special case for center
+  if (x === 0 && y === 0) {
+    return 0;
+  }
+
+  // Determine which layer of the spiral we're in
+  const layer = Math.max(Math.abs(x), Math.abs(y));
+
+  // Calculate the size of all inner layers
+  const innerLayersSize = (2 * layer - 1) ** 2;
+
+  // Calculate position within current layer
+  let positionInLayer = 0;
+
+  if (y === 0 && x === layer) {
+    // Starting position (middle right)
+    positionInLayer = 0;
+  } else if (y < 0 && x === layer) {
+    // Right side, bottom half
+    positionInLayer = -y;
+  } else if (y === -layer && x > -layer) {
+    // Bottom side
+    positionInLayer = layer + (layer - x);
+  } else if (x === -layer && y < layer) {
+    // Left side
+    positionInLayer = 3 * layer + (layer + y);
+  } else if (y === layer && x < layer) {
+    // Top side
+    positionInLayer = 5 * layer + (layer + x);
+  } else {
+    // Right side, top half (y > 0 && x === layer)
+    positionInLayer = 7 * layer + (layer - y);
+  }
+
+  return innerLayersSize + positionInLayer;
 };
 
-export class InfiniteGrid extends Component<InfiniteGridProps, State> {
-  private containerRef: RefObject<HTMLDivElement | null>;
-  // Per-gesture scratch: never rendered, so it stays out of state.
-  private lastPos: Position;
-  private lastMoveTime: number;
-  private velocityHistory: Position[];
-  private animationFrame: number | null;
-  private isComponentMounted: boolean;
-  private lastUpdateTime: number;
-  private debouncedUpdateGridItems: ReturnType<typeof throttle>;
+const calculateVisiblePositions = (rect: Size, gridSize: number, offset: Position): Position[] => {
+  // Calculate grid cells needed to fill container
+  const cellsX = Math.ceil(rect.width / gridSize);
+  const cellsY = Math.ceil(rect.height / gridSize);
 
-  constructor(props: InfiniteGridProps) {
-    super(props);
-    const offset = props.initialPosition ?? { x: 0, y: 0 };
-    this.state = {
-      offset: { ...offset },
-      restPos: { ...offset },
-      startPos: { ...offset },
-      velocity: { x: 0, y: 0 },
-      isDragging: false,
-      gridItems: [],
-      isMoving: false,
-    };
-    this.containerRef = createRef();
-    this.lastPos = { x: 0, y: 0 };
-    this.lastMoveTime = 0;
-    this.velocityHistory = [];
-    this.animationFrame = null;
-    this.isComponentMounted = false;
-    this.lastUpdateTime = 0;
-    this.debouncedUpdateGridItems = throttle(this.updateGridItems, UPDATE_INTERVAL);
-  }
+  // Calculate center position based on offset
+  const centerX = -Math.round(offset.x / gridSize);
+  const centerY = -Math.round(offset.y / gridSize);
 
-  componentDidMount() {
-    this.isComponentMounted = true;
-    this.updateGridItems();
+  const positions: Position[] = [];
+  const halfCellsX = Math.ceil(cellsX / 2);
+  const halfCellsY = Math.ceil(cellsY / 2);
 
-    // Add non-passive event listener
-    if (this.containerRef.current) {
-      this.containerRef.current.addEventListener("wheel", this.handleWheel, {
-        passive: false,
-      });
-      this.containerRef.current.addEventListener("touchmove", this.handleTouchMove, {
-        passive: false,
-      });
+  for (let y = centerY - halfCellsY; y <= centerY + halfCellsY; y += 1) {
+    for (let x = centerX - halfCellsX; x <= centerX + halfCellsX; x += 1) {
+      positions.push({ x, y });
     }
   }
 
-  componentWillUnmount() {
-    this.isComponentMounted = false;
-    if (this.animationFrame) {
-      cancelAnimationFrame(this.animationFrame);
-    }
-    this.debouncedUpdateGridItems.cancel();
-    this.debouncedStopMoving.cancel();
+  return positions;
+};
 
-    // Remove event listeners
-    if (this.containerRef.current) {
-      this.containerRef.current.removeEventListener("wheel", this.handleWheel);
-      this.containerRef.current.removeEventListener("touchmove", this.handleTouchMove);
-    }
-  }
+/** What the grid renders. The engine writes here; nothing else does. */
+interface View {
+  setContainerSize: Dispatch<SetStateAction<Size>>;
+  setGridItems: Dispatch<SetStateAction<GridItem[]>>;
+  setIsDragging: Dispatch<SetStateAction<boolean>>;
+  setIsMoving: Dispatch<SetStateAction<boolean>>;
+  setOffset: Dispatch<SetStateAction<Position>>;
+}
 
-  private calculateVisiblePositions = (): Position[] => {
-    if (!this.containerRef.current) return [];
+/**
+ * The pan physics, integrated outside React: the loop, the throttle and the
+ * gesture scratch all live here, and only what the picture needs is mirrored
+ * into state through `view`.
+ */
+const createEngine = (initialOffset: Position, initialGridSize: number, view: View) => {
+  let container: HTMLDivElement | null = null;
+  let gridSize = initialGridSize;
+  let offset = { ...initialOffset };
+  let restPos = { ...initialOffset };
+  let startPos = { ...initialOffset };
+  let velocity: Position = { x: 0, y: 0 };
+  let isDragging = false;
+  let mounted = false;
+  let lastPos: Position = { x: 0, y: 0 };
+  let lastMoveTime = 0;
+  let lastUpdateTime = 0;
+  let animationFrame: number | null = null;
+  const velocityHistory: Position[] = [];
 
-    const rect = this.containerRef.current.getBoundingClientRect();
-    const width = rect.width;
-    const height = rect.height;
-
-    // Calculate grid cells needed to fill container
-    const cellsX = Math.ceil(width / this.props.gridSize);
-    const cellsY = Math.ceil(height / this.props.gridSize);
-
-    // Calculate center position based on offset
-    const centerX = -Math.round(this.state.offset.x / this.props.gridSize);
-    const centerY = -Math.round(this.state.offset.y / this.props.gridSize);
-
-    const positions: Position[] = [];
-    const halfCellsX = Math.ceil(cellsX / 2);
-    const halfCellsY = Math.ceil(cellsY / 2);
-
-    for (let y = centerY - halfCellsY; y <= centerY + halfCellsY; y++) {
-      for (let x = centerX - halfCellsX; x <= centerX + halfCellsX; x++) {
-        positions.push({ x, y });
-      }
-    }
-
-    return positions;
-  };
-
-  private getItemIndexForPosition = (x: number, y: number): number => {
-    // Special case for center
-    if (x === 0 && y === 0) return 0;
-
-    // Determine which layer of the spiral we're in
-    const layer = Math.max(Math.abs(x), Math.abs(y));
-
-    // Calculate the size of all inner layers
-    const innerLayersSize = Math.pow(2 * layer - 1, 2);
-
-    // Calculate position within current layer
-    let positionInLayer = 0;
-
-    if (y === 0 && x === layer) {
-      // Starting position (middle right)
-      positionInLayer = 0;
-    } else if (y < 0 && x === layer) {
-      // Right side, bottom half
-      positionInLayer = -y;
-    } else if (y === -layer && x > -layer) {
-      // Bottom side
-      positionInLayer = layer + (layer - x);
-    } else if (x === -layer && y < layer) {
-      // Left side
-      positionInLayer = 3 * layer + (layer + y);
-    } else if (y === layer && x < layer) {
-      // Top side
-      positionInLayer = 5 * layer + (layer + x);
-    } else {
-      // Right side, top half (y > 0 && x === layer)
-      positionInLayer = 7 * layer + (layer - y);
-    }
-
-    const index = innerLayersSize + positionInLayer;
-    return index;
-  };
-
-  private debouncedStopMoving = debounce(() => {
-    this.setState({ isMoving: false, restPos: { ...this.state.offset } });
+  const stopMoving = debounce(() => {
+    restPos = { ...offset };
+    view.setIsMoving(false);
   }, REST_DELAY);
 
-  private updateGridItems = () => {
-    if (!this.isComponentMounted) return;
+  const updateGridItems = () => {
+    if (!mounted) {
+      return;
+    }
 
-    const positions = this.calculateVisiblePositions();
-    const newItems = positions.map((position) => {
-      const gridIndex = this.getItemIndexForPosition(position.x, position.y);
-      return {
-        position,
-        gridIndex,
-      };
-    });
+    const rect = container?.getBoundingClientRect();
+    const size: Size = rect ? { height: rect.height, width: rect.width } : NO_SIZE;
+    const positions = rect ? calculateVisiblePositions(rect, gridSize, offset) : [];
+    const newItems = positions.map((position) => ({
+      gridIndex: getItemIndexForPosition(position.x, position.y),
+      position,
+    }));
 
-    const distanceFromRest = getDistance(this.state.offset, this.state.restPos);
+    view.setContainerSize(size);
+    view.setGridItems(newItems);
+    view.setIsMoving(getDistance(offset, restPos) > MOVING_DISTANCE);
 
-    this.setState({ gridItems: newItems, isMoving: distanceFromRest > MOVING_DISTANCE });
-
-    this.debouncedStopMoving();
+    stopMoving();
   };
 
-  private animate = () => {
-    if (!this.isComponentMounted) return;
+  const throttledUpdateGridItems = throttle(updateGridItems, UPDATE_INTERVAL);
+
+  const animate = () => {
+    if (!mounted) {
+      return;
+    }
 
     const currentTime = performance.now();
-    const deltaTime = currentTime - this.lastUpdateTime;
+    const deltaTime = currentTime - lastUpdateTime;
 
     if (deltaTime >= UPDATE_INTERVAL) {
-      const { velocity } = this.state;
-      const speed = Math.sqrt(velocity.x * velocity.x + velocity.y * velocity.y);
+      const speed = Math.hypot(velocity.x, velocity.y);
 
       if (speed < MIN_VELOCITY) {
-        this.animationFrame = null;
-        // Only re-render if there was residual velocity left to zero out.
-        if (speed > 0) {
-          this.setState({ velocity: { x: 0, y: 0 } });
-        }
+        animationFrame = null;
+        velocity = { x: 0, y: 0 };
         return;
       }
 
@@ -286,230 +243,246 @@ export class InfiniteGrid extends Component<InfiniteGridProps, State> {
         deceleration = FRICTION * (speed / VELOCITY_THRESHOLD);
       }
 
-      this.setState(
-        (prevState) => ({
-          offset: {
-            x: prevState.offset.x + prevState.velocity.x,
-            y: prevState.offset.y + prevState.velocity.y,
-          },
-          velocity: {
-            x: prevState.velocity.x * deceleration,
-            y: prevState.velocity.y * deceleration,
-          },
-        }),
-        this.debouncedUpdateGridItems,
-      );
+      offset = { x: offset.x + velocity.x, y: offset.y + velocity.y };
+      velocity = { x: velocity.x * deceleration, y: velocity.y * deceleration };
+      view.setOffset(offset);
+      throttledUpdateGridItems();
 
-      this.lastUpdateTime = currentTime;
+      lastUpdateTime = currentTime;
     }
 
-    this.animationFrame = requestAnimationFrame(this.animate);
+    animationFrame = requestAnimationFrame(animate);
   };
 
-  private handleDown = (p: Position) => {
-    if (this.animationFrame) {
-      cancelAnimationFrame(this.animationFrame);
-      this.animationFrame = null;
+  const handleDown = (p: Position) => {
+    if (animationFrame) {
+      cancelAnimationFrame(animationFrame);
+      animationFrame = null;
     }
 
-    this.setState({
-      isDragging: true,
-      startPos: {
-        x: p.x - this.state.offset.x,
-        y: p.y - this.state.offset.y,
-      },
-      velocity: { x: 0, y: 0 },
-    });
+    isDragging = true;
+    startPos = { x: p.x - offset.x, y: p.y - offset.y };
+    velocity = { x: 0, y: 0 };
+    view.setIsDragging(true);
 
-    this.lastPos = { x: p.x, y: p.y };
+    lastPos = { x: p.x, y: p.y };
   };
-  private handleMove = (p: Position) => {
-    if (!this.state.isDragging) return;
+
+  const handleMove = (p: Position) => {
+    if (!isDragging) {
+      return;
+    }
 
     const currentTime = performance.now();
-    const timeDelta = currentTime - this.lastMoveTime;
+    const timeDelta = currentTime - lastMoveTime;
 
     // Calculate raw velocity based on position and time
     const rawVelocity = {
-      x: (p.x - this.lastPos.x) / (timeDelta || 1),
-      y: (p.y - this.lastPos.y) / (timeDelta || 1),
+      x: (p.x - lastPos.x) / (timeDelta || 1),
+      y: (p.y - lastPos.y) / (timeDelta || 1),
     };
 
     // Add to velocity history and maintain fixed size
-    const velocityHistory = this.velocityHistory;
     velocityHistory.push(rawVelocity);
     if (velocityHistory.length > VELOCITY_HISTORY_SIZE) {
       velocityHistory.shift();
     }
 
     // Calculate smoothed velocity using moving average
-    const smoothedVelocity = velocityHistory.reduce(
-      (acc, vel) => ({
-        x: acc.x + vel.x / velocityHistory.length,
-        y: acc.y + vel.y / velocityHistory.length,
-      }),
-      { x: 0, y: 0 },
-    );
+    const smoothedVelocity = { x: 0, y: 0 };
+    for (const vel of velocityHistory) {
+      smoothedVelocity.x += vel.x / velocityHistory.length;
+      smoothedVelocity.y += vel.y / velocityHistory.length;
+    }
 
-    this.setState(
-      {
-        velocity: smoothedVelocity,
-        offset: {
-          x: p.x - this.state.startPos.x,
-          y: p.y - this.state.startPos.y,
-        },
-      },
-      this.updateGridItems,
-    );
+    offset = { x: p.x - startPos.x, y: p.y - startPos.y };
+    velocity = smoothedVelocity;
+    view.setOffset(offset);
+    updateGridItems();
 
-    this.lastMoveTime = currentTime;
-    this.lastPos = { x: p.x, y: p.y };
+    lastMoveTime = currentTime;
+    lastPos = { x: p.x, y: p.y };
   };
-  private handleUp = () => {
+
+  const handleUp = () => {
     // Also fires on mouseleave/touchcancel, which can arrive without a drag in
     // flight — bail out so we don't spawn a second animation loop.
-    if (!this.state.isDragging) return;
-
-    this.setState({ isDragging: false });
-
-    if (this.animationFrame) {
-      cancelAnimationFrame(this.animationFrame);
+    if (!isDragging) {
+      return;
     }
-    this.animationFrame = requestAnimationFrame(this.animate);
+
+    isDragging = false;
+    view.setIsDragging(false);
+
+    if (animationFrame) {
+      cancelAnimationFrame(animationFrame);
+    }
+    animationFrame = requestAnimationFrame(animate);
   };
 
-  private handleMouseDown = (e: ReactMouseEvent) => {
-    this.handleDown({
-      x: e.clientX,
-      y: e.clientY,
-    });
-  };
+  const handleTouchMove = (e: TouchEvent) => {
+    const touch = e.touches.item(0);
 
-  private handleMouseMove = (e: ReactMouseEvent) => {
-    e.preventDefault();
-    this.handleMove({
-      x: e.clientX,
-      y: e.clientY,
-    });
-  };
-
-  private handleMouseUp = () => {
-    this.handleUp();
-  };
-
-  private handleTouchStart = (e: ReactTouchEvent) => {
-    const touch = e.touches[0];
-
-    if (!touch) return;
-
-    this.handleDown({
-      x: touch.clientX,
-      y: touch.clientY,
-    });
-  };
-
-  private handleTouchMove = (e: TouchEvent) => {
-    const touch = e.touches[0];
-
-    if (!touch) return;
+    if (!touch) {
+      return;
+    }
 
     e.preventDefault();
-    this.handleMove({
-      x: touch.clientX,
-      y: touch.clientY,
-    });
+    handleMove({ x: touch.clientX, y: touch.clientY });
   };
 
-  private handleTouchEnd = () => {
-    this.handleUp();
-  };
-
-  private handleWheel = (e: WheelEvent) => {
+  const handleWheel = (e: WheelEvent) => {
     e.preventDefault();
 
-    // Get the scroll deltas
-    const deltaX = e.deltaX;
-    const deltaY = e.deltaY;
-
-    this.setState(
-      (prevState) => ({
-        offset: {
-          x: prevState.offset.x - deltaX,
-          y: prevState.offset.y - deltaY,
-        },
-        velocity: { x: 0, y: 0 }, // Reset velocity when scrolling
-      }),
-      this.debouncedUpdateGridItems,
-    );
+    offset = { x: offset.x - e.deltaX, y: offset.y - e.deltaY };
+    velocity = { x: 0, y: 0 };
+    view.setOffset(offset);
+    throttledUpdateGridItems();
   };
 
-  render() {
-    const { offset, isDragging, gridItems, isMoving } = this.state;
-    const { gridSize, className } = this.props;
+  const mount = (element: HTMLDivElement | null) => {
+    container = element;
+    mounted = true;
+    updateGridItems();
 
-    // Get container dimensions
-    const containerRect = this.containerRef.current?.getBoundingClientRect();
-    const containerWidth = containerRect?.width || 0;
-    const containerHeight = containerRect?.height || 0;
+    // Non-passive, so the handlers can cancel the page's own scrolling.
+    element?.addEventListener("wheel", handleWheel, { passive: false });
+    element?.addEventListener("touchmove", handleTouchMove, { passive: false });
 
-    return (
-      <div
-        ref={this.containerRef}
-        className={className}
-        style={{
-          position: "absolute",
-          inset: 0,
-          touchAction: "none",
-          overflow: "hidden",
-          cursor: isDragging ? "grabbing" : "grab",
-        }}
-        onMouseDown={this.handleMouseDown}
-        onMouseMove={this.handleMouseMove}
-        onMouseUp={this.handleMouseUp}
-        onMouseLeave={this.handleMouseUp}
-        onTouchStart={this.handleTouchStart}
-        onTouchEnd={this.handleTouchEnd}
-        onTouchCancel={this.handleTouchEnd}
-      >
-        <div
-          style={{
-            position: "absolute",
-            inset: 0,
-            transform: `translate3d(${offset.x}px, ${offset.y}px, 0)`,
-            willChange: "transform",
-          }}
-        >
-          {gridItems.map((item) => {
-            const x = item.position.x * gridSize + containerWidth / 2;
-            const y = item.position.y * gridSize + containerHeight / 2;
+    return () => {
+      mounted = false;
+      container = null;
+      if (animationFrame) {
+        cancelAnimationFrame(animationFrame);
+      }
+      throttledUpdateGridItems.cancel();
+      stopMoving.cancel();
 
-            return (
-              <div
-                key={`${item.position.x}-${item.position.y}`}
-                style={{
-                  position: "absolute",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  userSelect: "none",
-                  width: gridSize,
-                  height: gridSize,
-                  transform: `translate3d(${x}px, ${y}px, 0)`,
-                  marginLeft: `-${gridSize / 2}px`,
-                  marginTop: `-${gridSize / 2}px`,
-                  willChange: "transform",
-                }}
-              >
-                {this.props.renderItem({
-                  gridIndex: item.gridIndex,
-                  position: item.position,
-                  isMoving,
-                })}
-              </div>
-            );
-          })}
-        </div>
-      </div>
-    );
+      element?.removeEventListener("wheel", handleWheel);
+      element?.removeEventListener("touchmove", handleTouchMove);
+    };
+  };
+
+  const setGridSize = (size: number) => {
+    gridSize = size;
+  };
+
+  return { handleDown, handleMove, handleUp, mount, setGridSize };
+};
+
+type Engine = ReturnType<typeof createEngine>;
+
+export const InfiniteGrid = ({
+  gridSize,
+  renderItem,
+  className,
+  initialPosition,
+}: InfiniteGridProps) => {
+  const containerRef = useRef<HTMLDivElement>(null);
+  const [offset, setOffset] = useState<Position>(() => ({ ...(initialPosition ?? ORIGIN) }));
+  const [isDragging, setIsDragging] = useState(false);
+  const [isMoving, setIsMoving] = useState(false);
+  const [gridItems, setGridItems] = useState<GridItem[]>([]);
+  const [containerSize, setContainerSize] = useState<Size>(NO_SIZE);
+
+  const engineRef = useRef<Engine | null>(null);
+  if (engineRef.current === null) {
+    engineRef.current = createEngine(initialPosition ?? ORIGIN, gridSize, {
+      setContainerSize,
+      setGridItems,
+      setIsDragging,
+      setIsMoving,
+      setOffset,
+    });
   }
-}
+
+  useEffect(() => {
+    engineRef.current?.setGridSize(gridSize);
+  }, [gridSize]);
+
+  useEffect(() => engineRef.current?.mount(containerRef.current), []);
+
+  const handleMouseDown = (e: ReactMouseEvent) => {
+    engineRef.current?.handleDown({ x: e.clientX, y: e.clientY });
+  };
+
+  const handleMouseMove = (e: ReactMouseEvent) => {
+    e.preventDefault();
+    engineRef.current?.handleMove({ x: e.clientX, y: e.clientY });
+  };
+
+  const handleTouchStart = (e: ReactTouchEvent) => {
+    const touch = e.touches.item(0);
+
+    if (!touch) {
+      return;
+    }
+
+    engineRef.current?.handleDown({ x: touch.clientX, y: touch.clientY });
+  };
+
+  const handleUp = () => {
+    engineRef.current?.handleUp();
+  };
+
+  return (
+    <div
+      ref={containerRef}
+      role="presentation"
+      className={className}
+      style={{
+        cursor: isDragging ? "grabbing" : "grab",
+        inset: 0,
+        overflow: "hidden",
+        position: "absolute",
+        touchAction: "none",
+      }}
+      onMouseDown={handleMouseDown}
+      onMouseMove={handleMouseMove}
+      onMouseUp={handleUp}
+      onMouseLeave={handleUp}
+      onTouchStart={handleTouchStart}
+      onTouchEnd={handleUp}
+      onTouchCancel={handleUp}
+    >
+      <div
+        style={{
+          inset: 0,
+          position: "absolute",
+          transform: `translate3d(${offset.x}px, ${offset.y}px, 0)`,
+          willChange: "transform",
+        }}
+      >
+        {gridItems.map((item) => {
+          const x = item.position.x * gridSize + containerSize.width / 2;
+          const y = item.position.y * gridSize + containerSize.height / 2;
+
+          return (
+            <div
+              key={`${item.position.x}-${item.position.y}`}
+              style={{
+                alignItems: "center",
+                display: "flex",
+                height: gridSize,
+                justifyContent: "center",
+                marginLeft: `-${gridSize / 2}px`,
+                marginTop: `-${gridSize / 2}px`,
+                position: "absolute",
+                transform: `translate3d(${x}px, ${y}px, 0)`,
+                userSelect: "none",
+                width: gridSize,
+                willChange: "transform",
+              }}
+            >
+              {renderItem({
+                gridIndex: item.gridIndex,
+                isMoving,
+                position: item.position,
+              })}
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+};

@@ -79,102 +79,13 @@ export const fanfarePower = (theme: EffortTheme, level: number) =>
  * every re-render, and the card re-renders plenty while this is on screen.
  */
 const scatter = (index: number, salt: number) => {
-  const value = Math.sin(index * 12.9898 + salt * 78.233) * 43758.5453;
+  const value = Math.sin(index * 12.9898 + salt * 78.233) * 43_758.5453;
   return value - Math.floor(value);
 };
 
-type CurlFanfareProps = {
-  /** The level the take rounded down to — the show's origin point, and its size. */
-  level: number;
-  theme: EffortTheme;
-};
-
-export const CurlFanfare = ({ level, theme }: CurlFanfareProps) => {
-  const tokens = EFFORT_THEMES[theme];
-  const landedX = notchX(theme, level);
-  const power = fanfarePower(theme, level);
-  // Card coordinates, not track coordinates: the fanfare covers the whole card,
-  // so the notch has to be re-expressed against the card's own padding box. The
-  // track sits flush in that box, which makes this the knob's centre.
-  const anchorLeft = CARD_PADDING + KNOB_SIZE / 2 + landedX;
-  const anchorBottom = CARD_PADDING + KNOB_SIZE / 2;
-  const lean = (0.5 - power) * 2 * FAN_LEAN;
-
-  return (
-    <>
-      {/* The card's own edge, lit. Unclipped, so the outer bloom escapes the
-          popover the way a real light source would — faintly at Light, where it
-          reads as the card catching a little of the glow rather than announcing
-          anything. */}
-      <motion.span
-        aria-hidden
-        className="pointer-events-none absolute inset-0 rounded-[inherit]"
-        style={{
-          boxShadow: `inset 0 0 0 2px rgba(196,181,253,0.7), inset 0 0 40px rgba(${VIOLET},0.28), 0 0 60px rgba(139,92,246,0.45)`,
-        }}
-        initial={{ opacity: 0 }}
-        animate={{ opacity: [0, lerp(0.22, 1, power), 0] }}
-        transition={{ duration: 1.3, times: [0, 0.1, 1], ease: "easeOut" }}
-      />
-
-      {/* Everything with a trajectory lives in here, clipped to the card. Sparks
-          that outlive the card's edge should die at it — a firework that leaks
-          out of the popover reads as a rendering bug, not a flourish.
-
-          `isolate` matters as much as the clip: every layer below blends screen,
-          and without an isolation group they blend against the whole card —
-          including the verdict's `backdrop-blur` panel, which Chrome composites
-          in a different pass. Left un-isolated they stack into one flat white
-          disc over the camera. Isolated, they screen against each other and the
-          group lands on the card as ordinary alpha. */}
-      <span
-        aria-hidden
-        className="pointer-events-none absolute inset-0 overflow-hidden rounded-[inherit] isolate"
-      >
-        {/* The fill charges: a hot band runs the length of everything the take
-            earned, arriving at the notch just as the knob commits to it. This one
-            layer needs no scaling — it *is* the scale, since there's barely any
-            fill to run down at the bottom of the track. */}
-        <span
-          className="absolute overflow-hidden"
-          style={{
-            left: CARD_PADDING,
-            bottom: CARD_PADDING + (KNOB_SIZE - tokens.troughHeight) / 2,
-            width: landedX + KNOB_SIZE / 2,
-            height: tokens.troughHeight,
-            borderRadius: tokens.troughRadius,
-          }}
-        >
-          <motion.span
-            className="absolute inset-y-0 w-1/2 mix-blend-screen"
-            style={{
-              backgroundImage:
-                "linear-gradient(90deg, rgba(255,255,255,0) 0%, rgba(255,255,255,0.85) 55%, rgba(255,255,255,0) 100%)",
-            }}
-            initial={{ x: "-130%" }}
-            animate={{ x: "320%" }}
-            transition={{ duration: 0.65, ease: "easeOut" }}
-          />
-        </span>
-
-        {power >= GLARE_FLOOR && <Glare power={power} />}
-
-        {/* Zero-sized anchor at the notch. Everything below centres on it the
-            same way the per-rep `Sparks` do — position once, then only ever
-            animate transforms. */}
-        <span className="absolute size-0" style={{ left: anchorLeft, bottom: anchorBottom }}>
-          <Bloom power={power} />
-          <Flare power={power} />
-          <Streaks power={power} lean={lean} />
-          <Rings power={power} />
-          <SparkSpray power={power} lean={lean} />
-        </span>
-      </span>
-    </>
-  );
-};
-
-type PoweredProps = { power: number };
+interface PoweredProps {
+  power: number;
+}
 
 /**
  * The soft glow under everything else. Deliberately smaller than the card even
@@ -186,13 +97,13 @@ const Bloom = ({ power }: PoweredProps) => (
   <motion.span
     className="absolute -translate-x-1/2 -translate-y-1/2 rounded-full"
     style={{
-      width: lerp(170, 440, power),
-      height: lerp(170, 440, power),
       backgroundImage: `radial-gradient(circle, rgba(${VIOLET},0.55) 0%, rgba(139,92,246,0.3) 30%, rgba(109,40,217,0.14) 52%, transparent 72%)`,
+      height: lerp(170, 440, power),
+      width: lerp(170, 440, power),
     }}
-    initial={{ scale: 0.12, opacity: 0 }}
-    animate={{ scale: [0.12, 1, 1.25], opacity: [0, lerp(0.55, 1, power), 0] }}
-    transition={{ duration: lerp(0.7, 1.15, power), times: [0, 0.16, 1], ease: "easeOut" }}
+    initial={{ opacity: 0, scale: 0.12 }}
+    animate={{ opacity: [0, lerp(0.55, 1, power), 0], scale: [0.12, 1, 1.25] }}
+    transition={{ duration: lerp(0.7, 1.15, power), ease: "easeOut", times: [0, 0.16, 1] }}
   />
 );
 
@@ -203,21 +114,21 @@ const Flare = ({ power }: PoweredProps) => (
   <motion.span
     className="absolute mix-blend-screen"
     style={{
-      width: lerp(160, 480, power),
+      backgroundImage: `linear-gradient(90deg, rgba(255,255,255,0) 0%, rgba(${VIOLET},0.7) 30%, rgba(255,255,255,0.95) 50%, rgba(${VIOLET},0.7) 70%, rgba(255,255,255,0) 100%)`,
+      borderRadius: 4,
+      filter: "blur(1.5px)",
       height: 4,
+      width: lerp(160, 480, power),
       x: lerp(-80, -240, power),
       y: -2,
-      borderRadius: 4,
-      backgroundImage: `linear-gradient(90deg, rgba(255,255,255,0) 0%, rgba(${VIOLET},0.7) 30%, rgba(255,255,255,0.95) 50%, rgba(${VIOLET},0.7) 70%, rgba(255,255,255,0) 100%)`,
-      filter: "blur(1.5px)",
     }}
-    initial={{ scaleX: 0.05, scaleY: 0.4, opacity: 0 }}
+    initial={{ opacity: 0, scaleX: 0.05, scaleY: 0.4 }}
     animate={{
+      opacity: [0, lerp(0.5, 0.9, power), 0],
       scaleX: [0.05, 1, 1.1],
       scaleY: [0.4, 1, 0.3],
-      opacity: [0, lerp(0.5, 0.9, power), 0],
     }}
-    transition={{ duration: lerp(0.6, 0.95, power), times: [0, 0.14, 1], ease: "easeOut" }}
+    transition={{ duration: lerp(0.6, 0.95, power), ease: "easeOut", times: [0, 0.14, 1] }}
   />
 );
 
@@ -232,13 +143,13 @@ const Glare = ({ power }: PoweredProps) => (
   <motion.span
     className="absolute -top-1/4 h-[150%] w-28 mix-blend-screen"
     style={{
+      backgroundImage: `linear-gradient(90deg, rgba(255,255,255,0) 0%, rgba(221,214,254,0.22) 45%, rgba(255,255,255,0.34) 55%, rgba(255,255,255,0) 100%)`,
       left: -120,
       rotate: 14,
-      backgroundImage: `linear-gradient(90deg, rgba(255,255,255,0) 0%, rgba(221,214,254,0.22) 45%, rgba(255,255,255,0.34) 55%, rgba(255,255,255,0) 100%)`,
     }}
-    initial={{ x: 0, opacity: 0 }}
-    animate={{ x: [0, 660], opacity: [0, power, power, 0] }}
-    transition={{ duration: 0.7, times: [0, 0.15, 0.7, 1], ease: "easeOut" }}
+    initial={{ opacity: 0, x: 0 }}
+    animate={{ opacity: [0, power, power, 0], x: [0, 660] }}
+    transition={{ duration: 0.7, ease: "easeOut", times: [0, 0.15, 0.7, 1] }}
   />
 );
 
@@ -276,21 +187,21 @@ const Streaks = ({ power, lean }: PoweredProps & { lean: number }) => {
             <motion.span
               className="absolute mix-blend-screen"
               style={{
+                backgroundImage: `linear-gradient(90deg, rgba(255,255,255,0.95) 0%, rgba(${VIOLET},0.85) 30%, rgba(139,92,246,0.35) 65%, rgba(139,92,246,0) 100%)`,
+                borderRadius: thickness,
+                height: thickness,
                 left: STREAK_GAP,
                 top: -thickness / 2,
-                width: length,
-                height: thickness,
-                borderRadius: thickness,
                 transformOrigin: "0% 50%",
-                backgroundImage: `linear-gradient(90deg, rgba(255,255,255,0.95) 0%, rgba(${VIOLET},0.85) 30%, rgba(139,92,246,0.35) 65%, rgba(139,92,246,0) 100%)`,
+                width: length,
               }}
-              initial={{ scaleX: 0, opacity: 0 }}
-              animate={{ scaleX: [0, 1, 1], opacity: [0, lerp(0.7, 1, power), 0] }}
+              initial={{ opacity: 0, scaleX: 0 }}
+              animate={{ opacity: [0, lerp(0.7, 1, power), 0], scaleX: [0, 1, 1] }}
               transition={{
-                duration: 0.75 + scatter(index, 4) * 0.5,
-                times: [0, 0.24, 1],
-                ease: "easeOut",
                 delay: scatter(index, 5) * 0.12,
+                duration: 0.75 + scatter(index, 4) * 0.5,
+                ease: "easeOut",
+                times: [0, 0.24, 1],
               }}
             />
           </span>
@@ -313,13 +224,13 @@ const Rings = ({ power }: PoweredProps) => (
         key={delay}
         className="absolute -translate-x-1/2 -translate-y-1/2 rounded-full border-2 border-violet-200/70 mix-blend-screen"
         style={{ boxShadow: `0 0 22px rgba(${VIOLET},0.55)` }}
-        initial={{ width: 20, height: 20, opacity: 0 }}
+        initial={{ height: 20, opacity: 0, width: 20 }}
         animate={{
-          width: lerp(130, 280, power) + index * 110,
           height: lerp(130, 280, power) + index * 110,
           opacity: [0, lerp(0.5, 0.8, power), 0],
+          width: lerp(130, 280, power) + index * 110,
         }}
-        transition={{ duration: 0.95, delay, times: [0, 0.1, 1], ease: [0.16, 1, 0.3, 1] }}
+        transition={{ delay, duration: 0.95, ease: [0.16, 1, 0.3, 1], times: [0, 0.1, 1] }}
       />
     ))}
   </>
@@ -348,32 +259,123 @@ const SparkSpray = ({ power, lean }: PoweredProps & { lean: number }) => {
             key={index}
             className="absolute"
             style={{
-              width: elongated ? size * 3.5 : size,
+              background: index % 2 ? `rgb(${VIOLET})` : "#ffffff",
+              borderRadius: size,
+              boxShadow: `0 0 ${6 + size}px rgba(${VIOLET},0.85)`,
               height: size,
               // Centred with margins, not a translate class: the keyframes below
               // own the transform outright and would overwrite one.
               marginLeft: -size / 2,
               marginTop: -size / 2,
-              borderRadius: size,
-              background: index % 2 ? `rgb(${VIOLET})` : "#ffffff",
-              boxShadow: `0 0 ${6 + size}px rgba(${VIOLET},0.85)`,
               rotate: (heading * 180) / Math.PI,
+              width: elongated ? size * 3.5 : size,
             }}
-            initial={{ x: 0, y: 0, opacity: 1, scale: 1 }}
+            initial={{ opacity: 1, scale: 1, x: 0, y: 0 }}
             animate={{
-              x: [0, dx, dx * 1.25],
-              y: [0, dy, dy + 210],
               opacity: [1, 1, 0],
               scale: [1, 1, 0.35],
+              x: [0, dx, dx * 1.25],
+              y: [0, dy, dy + 210],
             }}
             transition={{
               duration: 1.05 + scatter(index, 9) * 0.45,
-              times: [0, 0.45, 1],
               ease: ["easeOut", "easeIn"],
+              times: [0, 0.45, 1],
             }}
           />
         );
       })}
+    </>
+  );
+};
+
+interface CurlFanfareProps {
+  /** The level the take rounded down to — the show's origin point, and its size. */
+  level: number;
+  theme: EffortTheme;
+}
+
+export const CurlFanfare = ({ level, theme }: CurlFanfareProps) => {
+  const tokens = EFFORT_THEMES[theme];
+  const landedX = notchX(theme, level);
+  const power = fanfarePower(theme, level);
+  // Card coordinates, not track coordinates: the fanfare covers the whole card,
+  // so the notch has to be re-expressed against the card's own padding box. The
+  // track sits flush in that box, which makes this the knob's centre.
+  const anchorLeft = CARD_PADDING + KNOB_SIZE / 2 + landedX;
+  const anchorBottom = CARD_PADDING + KNOB_SIZE / 2;
+  const lean = (0.5 - power) * 2 * FAN_LEAN;
+
+  return (
+    <>
+      {/* The card's own edge, lit. Unclipped, so the outer bloom escapes the
+          popover the way a real light source would — faintly at Light, where it
+          reads as the card catching a little of the glow rather than announcing
+          anything. */}
+      <motion.span
+        aria-hidden
+        className="pointer-events-none absolute inset-0 rounded-[inherit]"
+        style={{
+          boxShadow: `inset 0 0 0 2px rgba(196,181,253,0.7), inset 0 0 40px rgba(${VIOLET},0.28), 0 0 60px rgba(139,92,246,0.45)`,
+        }}
+        initial={{ opacity: 0 }}
+        animate={{ opacity: [0, lerp(0.22, 1, power), 0] }}
+        transition={{ duration: 1.3, ease: "easeOut", times: [0, 0.1, 1] }}
+      />
+
+      {/* Everything with a trajectory lives in here, clipped to the card. Sparks
+          that outlive the card's edge should die at it — a firework that leaks
+          out of the popover reads as a rendering bug, not a flourish.
+
+          `isolate` matters as much as the clip: every layer below blends screen,
+          and without an isolation group they blend against the whole card —
+          including the verdict's `backdrop-blur` panel, which Chrome composites
+          in a different pass. Left un-isolated they stack into one flat white
+          disc over the camera. Isolated, they screen against each other and the
+          group lands on the card as ordinary alpha. */}
+      <span
+        aria-hidden
+        className="pointer-events-none absolute inset-0 overflow-hidden rounded-[inherit] isolate"
+      >
+        {/* The fill charges: a hot band runs the length of everything the take
+            earned, arriving at the notch just as the knob commits to it. This one
+            layer needs no scaling — it *is* the scale, since there's barely any
+            fill to run down at the bottom of the track. */}
+        <span
+          className="absolute overflow-hidden"
+          style={{
+            borderRadius: tokens.troughRadius,
+            bottom: CARD_PADDING + (KNOB_SIZE - tokens.troughHeight) / 2,
+            height: tokens.troughHeight,
+            left: CARD_PADDING,
+            width: landedX + KNOB_SIZE / 2,
+          }}
+        >
+          <motion.span
+            className="absolute inset-y-0 w-1/2 mix-blend-screen"
+            style={{
+              backgroundImage:
+                "linear-gradient(90deg, rgba(255,255,255,0) 0%, rgba(255,255,255,0.85) 55%, rgba(255,255,255,0) 100%)",
+            }}
+            initial={{ x: "-130%" }}
+            animate={{ x: "320%" }}
+            transition={{ duration: 0.65, ease: "easeOut" }}
+          />
+        </span>
+
+        {power >= GLARE_FLOOR && <Glare power={power} />}
+
+        {/* Zero-sized anchor at the notch. Everything below centres on it the
+            same way the per-rep `Sparks` do — position once, then only ever
+            animate transforms. */}
+        <span className="absolute size-0" style={{ bottom: anchorBottom, left: anchorLeft }}>
+          <Bloom power={power} />
+          <Flare power={power} />
+          <Streaks power={power} lean={lean} />
+          <Rings power={power} />
+          <SparkSpray power={power} lean={lean} />
+        </span>
+      </span>
     </>
   );
 };

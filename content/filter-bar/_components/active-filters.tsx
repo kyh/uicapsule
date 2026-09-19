@@ -1,5 +1,6 @@
 import { Button, Separator } from "./ui";
-import { useCallback, useEffect, useRef, useState, type ReactNode } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
+import type { ReactNode } from "react";
 import { X } from "lucide-react";
 
 import type {
@@ -23,46 +24,14 @@ interface ActiveFiltersProps {
   aiGenerating?: boolean;
 }
 
-export function ActiveFilters({
-  columns,
-  filters,
-  actions,
-  strategy,
-  entityName,
-  aiGenerating,
-}: ActiveFiltersProps) {
-  return (
-    <>
-      {filters.map((filter) => {
-        const id = filter.columnId;
-
-        const column = getColumn(columns, id);
-
-        return (
-          <ActiveFilter
-            key={`active-filter-${filter.columnId}`}
-            binding={bindFilter(column, filter)}
-            actions={actions}
-            strategy={strategy}
-            entityName={entityName}
-          />
-        );
-      })}
-      {aiGenerating && <ActiveFilterSkeleton />}
-    </>
-  );
-}
-
-function ActiveFilterSkeleton() {
-  return (
-    <div className="border-(--border) bg-(--muted)/60 text-(--muted-foreground) flex h-7 items-center gap-2 rounded-2xl border px-3 text-xs shadow-xs">
-      <div className="flex items-center gap-2">
-        <span className="bg-(--muted-foreground)/60 block h-2 w-10 animate-pulse rounded" />
-        <span className="bg-(--muted-foreground)/40 block h-2 w-6 animate-pulse rounded" />
-      </div>
+const ActiveFilterSkeleton = () => (
+  <div className="border-(--border) bg-(--muted)/60 text-(--muted-foreground) flex h-7 items-center gap-2 rounded-2xl border px-3 text-xs shadow-xs">
+    <div className="flex items-center gap-2">
+      <span className="bg-(--muted-foreground)/60 block h-2 w-10 animate-pulse rounded" />
+      <span className="bg-(--muted-foreground)/40 block h-2 w-6 animate-pulse rounded" />
     </div>
-  );
-}
+  </div>
+);
 
 interface ActiveFilterProps {
   binding: FilterBinding;
@@ -71,9 +40,11 @@ interface ActiveFilterProps {
   entityName?: string;
 }
 
-export function ActiveFilter({ binding, actions, strategy, entityName }: ActiveFilterProps) {
+export const ActiveFilter = ({ binding, actions, strategy, entityName }: ActiveFilterProps) => {
   const { column, filter } = binding;
-  if (!filter) return null;
+  if (!filter) {
+    return null;
+  }
   return (
     <div className="border-(--border) bg-(--background) flex h-7 items-center rounded-2xl border text-xs shadow-xs">
       <FilterSubject column={column} entityName={entityName} />
@@ -97,16 +68,46 @@ export function ActiveFilter({ binding, actions, strategy, entityName }: ActiveF
       </Button>
     </div>
   );
-}
+};
 
-export function ActiveFiltersContainer({ children }: { children: ReactNode }) {
+export const ActiveFilters = ({
+  columns,
+  filters,
+  actions,
+  strategy,
+  entityName,
+  aiGenerating,
+}: ActiveFiltersProps) => (
+  <>
+    {filters.map((filter) => {
+      const id = filter.columnId;
+
+      const column = getColumn(columns, id);
+
+      return (
+        <ActiveFilter
+          key={`active-filter-${filter.columnId}`}
+          binding={bindFilter(column, filter)}
+          actions={actions}
+          strategy={strategy}
+          entityName={entityName}
+        />
+      );
+    })}
+    {aiGenerating && <ActiveFilterSkeleton />}
+  </>
+);
+
+export const ActiveFiltersContainer = ({ children }: { children: ReactNode }) => {
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const [showLeftBlur, setShowLeftBlur] = useState(false);
   const [showRightBlur, setShowRightBlur] = useState(true);
 
   const checkScroll = useCallback(() => {
     const el = scrollContainerRef.current;
-    if (!el) return;
+    if (!el) {
+      return;
+    }
 
     const { scrollLeft, scrollWidth, clientWidth } = el;
 
@@ -117,12 +118,14 @@ export function ActiveFiltersContainer({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     const el = scrollContainerRef.current;
-    if (!el) return;
+    if (!el) {
+      return;
+    }
 
     const resizeObserver = new ResizeObserver(checkScroll);
     resizeObserver.observe(el);
     const mutationObserver = new MutationObserver(checkScroll);
-    mutationObserver.observe(el, { childList: true, subtree: true, characterData: true });
+    mutationObserver.observe(el, { characterData: true, childList: true, subtree: true });
     return () => {
       resizeObserver.disconnect();
       mutationObserver.disconnect();
@@ -148,4 +151,4 @@ export function ActiveFiltersContainer({ children }: { children: ReactNode }) {
       )}
     </div>
   );
-}
+};

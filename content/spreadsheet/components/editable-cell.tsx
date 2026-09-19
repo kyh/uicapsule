@@ -1,6 +1,6 @@
 "use client";
 
-import { type ChangeEvent, type KeyboardEvent } from "react";
+import type { ChangeEvent, KeyboardEvent } from "react";
 import { Input } from "./ui";
 
 import type { SpreadsheetRow } from "../lib/spreadsheet-store";

@@ -7,7 +7,7 @@
     "clean": "git clean -xdf .cache .turbo dist node_modules"
   },
   "dependencies": {
-    "@tanstack/charts": "^0.16.0",
+    "@tanstack/charts": "^0.16.2",
     "react": "catalog:",
     "react-dom": "catalog:"
   },

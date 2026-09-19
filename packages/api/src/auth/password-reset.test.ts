@@ -10,20 +10,21 @@ delete process.env.AUTH_EMAIL_FROM;
 const { auth } = await import("./auth");
 const options = {
   ...auth.options,
-  secret: "uicapsule-password-reset-integration-test-secret",
-  rateLimit: { enabled: false },
   logger: { disabled: true },
+  rateLimit: { enabled: false },
+  secret: "uicapsule-password-reset-integration-test-secret",
 };
 
 test("password reset changes credentials, consumes its token, and revokes existing sessions", async () => {
   let delivery: { email: string; url: string; token: string } | undefined;
   const testAuth = betterAuth({
     ...options,
-    database: memoryAdapter({ user: [], account: [], session: [], verification: [] }),
+    database: memoryAdapter({ account: [], session: [], user: [], verification: [] }),
     emailAndPassword: {
       ...options.emailAndPassword,
-      sendResetPassword: async ({ user, url, token }) => {
-        delivery = { email: user.email, url, token };
+      sendResetPassword: ({ user, url, token }) => {
+        delivery = { email: user.email, token, url };
+        return Promise.resolve();
       },
     },
   });
@@ -31,8 +32,8 @@ test("password reset changes credentials, consumes its token, and revokes existi
   const oldPassword = "old-password-for-reset";
   const newPassword = "new-password-after-reset";
   const signup = await testAuth.api.signUpEmail({
-    body: { email, password: oldPassword, name: "Reset Test" },
     asResponse: true,
+    body: { email, name: "Reset Test", password: oldPassword },
   });
   assert.equal(signup.status, 200);
   const headers = new Headers({
@@ -41,7 +42,8 @@ test("password reset changes credentials, consumes its token, and revokes existi
       .map((cookie) => cookie.split(";")[0])
       .join("; "),
   });
-  assert.equal((await testAuth.api.getSession({ headers }))?.user.email, email);
+  const session = await testAuth.api.getSession({ headers });
+  assert.equal(session?.user.email, email);
 
   await testAuth.api.requestPasswordReset({
     body: { email, redirectTo: "/auth/password-update" },
@@ -56,18 +58,16 @@ test("password reset changes credentials, consumes its token, and revokes existi
   assert.equal(resetPage.pathname, "/auth/password-update");
   assert.equal(resetPage.searchParams.get("token"), delivery.token);
 
-  await testAuth.api.resetPassword({ body: { token: delivery.token, newPassword } });
+  await testAuth.api.resetPassword({ body: { newPassword, token: delivery.token } });
   assert.equal(await testAuth.api.getSession({ headers }), null);
   await assert.rejects(
     testAuth.api.signInEmail({ body: { email, password: oldPassword } }),
     (error) => error instanceof APIError && error.body?.code === "INVALID_EMAIL_OR_PASSWORD",
   );
-  assert.equal(
-    (await testAuth.api.signInEmail({ body: { email, password: newPassword } })).user.email,
-    email,
-  );
+  const signin = await testAuth.api.signInEmail({ body: { email, password: newPassword } });
+  assert.equal(signin.user.email, email);
   await assert.rejects(
-    testAuth.api.resetPassword({ body: { token: delivery.token, newPassword: oldPassword } }),
+    testAuth.api.resetPassword({ body: { newPassword: oldPassword, token: delivery.token } }),
     (error) => error instanceof APIError && error.body?.code === "INVALID_TOKEN",
   );
 });

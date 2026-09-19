@@ -10,16 +10,16 @@ import { columnsConfig } from "./filters";
 
 const people: Person[] = [];
 
-export default function Preview() {
+const Preview = () => {
   const [filtersState, setFiltersState] = useState<FiltersState>([]);
 
   const { columns, filters, actions, strategy, entityName } = useDataTableFilters({
-    strategy: "client",
+    columnsConfig,
     data: people,
     entityName: "Person",
-    columnsConfig,
     filters: filtersState,
     onFiltersChange: setFiltersState,
+    strategy: "client",
   });
 
   return (
@@ -33,4 +33,6 @@ export default function Preview() {
       />
     </div>
   );
-}
+};
+
+export default Preview;

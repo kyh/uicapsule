@@ -12,7 +12,7 @@ const ThreeLine = extend(THREE.Line);
  * Configuration options for the wireframe orb.
  * All fields are optional and fall back to sensible defaults.
  */
-export type WireframeOrbConfig = {
+export interface WireframeOrbConfig {
   /** CSS color string for the lines. @default "#c0ebfc" */
   color?: string;
   /** CSS color string for the canvas background. @default "#0a0a0a" */
@@ -43,24 +43,24 @@ export type WireframeOrbConfig = {
   minDistance?: number;
   /** Maximum camera distance (farthest zoom). @default 20 */
   maxDistance?: number;
-};
+}
 
 const defaults: Required<WireframeOrbConfig> = {
-  color: "#c0ebfc",
   background: "#0a0a0a",
-  speed: 20,
-  gridSize: 200,
-  noiseDensity: 0.7,
-  noiseScale: 3.0,
-  minAlpha: 0.01,
-  maxAlpha: 0.45,
   bloomIntensity: 1.5,
-  bloomThreshold: 0.0,
   bloomRadius: 0.85,
-  enableZoom: true,
+  bloomThreshold: 0,
+  color: "#c0ebfc",
   enablePan: false,
-  minDistance: 2,
+  enableZoom: true,
+  gridSize: 200,
+  maxAlpha: 0.45,
   maxDistance: 20,
+  minAlpha: 0.01,
+  minDistance: 2,
+  noiseDensity: 0.7,
+  noiseScale: 3,
+  speed: 20,
 };
 
 /**
@@ -70,7 +70,7 @@ const defaults: Required<WireframeOrbConfig> = {
  * using curl noise derived from simplex noise. The result is an organic,
  * continuously flowing cloud of connected line segments.
  */
-const vertexShader = /* glsl */ `
+const vertexShader = `
   attribute vec2 aUv;
 
   uniform float time;
@@ -189,7 +189,7 @@ const vertexShader = /* glsl */ `
  *
  * Produces a pulsing alpha effect modulated by depth (curl noise z-component).
  */
-const fragmentShader = /* glsl */ `
+const fragmentShader = `
   uniform float time;
   uniform vec3 uColor;
   uniform float uMinAlpha;
@@ -209,17 +209,19 @@ const fragmentShader = /* glsl */ `
 `;
 
 /** Detect low-end devices for adaptive grid sizing. */
-function getAdaptiveGridSize(requested: number): number {
-  if (typeof navigator === "undefined") return requested;
+const getAdaptiveGridSize = (requested: number): number => {
+  if (typeof navigator === "undefined") {
+    return requested;
+  }
   const cores = navigator.hardwareConcurrency ?? 4;
   if (cores <= 4 || window.devicePixelRatio >= 3) {
     return Math.min(requested, 150);
   }
   return requested;
-}
+};
 
 /** Internal scene component for the wireframe line strip. */
-function WireframeScene({ config }: { config: Required<WireframeOrbConfig> }) {
+const WireframeScene = ({ config }: { config: Required<WireframeOrbConfig> }) => {
   const materialRef = useRef<THREE.ShaderMaterial>(null);
 
   const geometry = useMemo(() => {
@@ -231,8 +233,8 @@ function WireframeScene({ config }: { config: Required<WireframeOrbConfig> }) {
     // exist (zero-filled) for three.js to infer the draw range for the line strip.
     const positions = new Float32Array(vertexCount * 3);
 
-    for (let j = 0; j < n; j++) {
-      for (let i = 0; i < n; i++) {
+    for (let j = 0; j < n; j += 1) {
+      for (let i = 0; i < n; i += 1) {
         const v = (j * n + i) * 2;
         uvs[v] = i / maxI;
         uvs[v + 1] = 1 - j / maxI;
@@ -245,28 +247,30 @@ function WireframeScene({ config }: { config: Required<WireframeOrbConfig> }) {
     return geo;
   }, [config.gridSize]);
 
-  useEffect(() => {
-    return () => geometry.dispose();
-  }, [geometry]);
+  useEffect(() => () => geometry.dispose(), [geometry]);
 
   const uniforms = useMemo(() => {
     const col = new THREE.Color(config.color);
     return {
       time: { value: 0 },
-      uSpeed: { value: config.speed * 0.005 },
-      uDensity: { value: config.noiseDensity },
-      uScale: { value: config.noiseScale },
-      uColor: { value: col },
-      uMinAlpha: { value: config.minAlpha },
-      uMaxAlpha: { value: config.maxAlpha },
       uAlphaSpeed: { value: config.speed * 0.025 },
+      uColor: { value: col },
+      uDensity: { value: config.noiseDensity },
+      uMaxAlpha: { value: config.maxAlpha },
+      uMinAlpha: { value: config.minAlpha },
+      uScale: { value: config.noiseScale },
+      uSpeed: { value: config.speed * 0.005 },
     };
   }, [config]);
 
   useFrame((state) => {
-    if (!materialRef.current) return;
+    if (!materialRef.current) {
+      return;
+    }
     const timeUniform = materialRef.current.uniforms.time;
-    if (!timeUniform) return;
+    if (!timeUniform) {
+      return;
+    }
     timeUniform.value = state.clock.elapsedTime;
   });
 
@@ -283,7 +287,7 @@ function WireframeScene({ config }: { config: Required<WireframeOrbConfig> }) {
       />
     </ThreeLine>
   );
-}
+};
 
 /**
  * Curl-noise-displaced particle cloud rendered as a continuous line strip
@@ -295,20 +299,18 @@ function WireframeScene({ config }: { config: Required<WireframeOrbConfig> }) {
  * <WireframeOrb config={{ color: "#ff66aa", bloomIntensity: 2.0 }} />
  * ```
  */
-export function WireframeOrb({
+export const WireframeOrb = ({
   config: configOverrides,
   className = "",
 }: {
   config?: WireframeOrbConfig;
   className?: string;
-}) {
-  const configKey = JSON.stringify(configOverrides);
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  const config = useMemo(() => ({ ...defaults, ...configOverrides }), [configKey]);
+}) => {
+  const config = useMemo(() => ({ ...defaults, ...configOverrides }), [configOverrides]);
 
   return (
     <div className={`w-full h-full ${className}`} style={{ background: config.background }}>
-      <Canvas camera={{ position: [0, 0, 12], fov: 45 }} gl={{ antialias: true, alpha: false }}>
+      <Canvas camera={{ fov: 45, position: [0, 0, 12] }} gl={{ alpha: false, antialias: true }}>
         <color attach="background" args={[config.background]} />
         <WireframeScene config={config} />
         {config.bloomIntensity > 0 && (
@@ -329,4 +331,4 @@ export function WireframeOrb({
       </Canvas>
     </div>
   );
-}
+};

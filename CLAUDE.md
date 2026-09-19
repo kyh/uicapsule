@@ -32,6 +32,19 @@ Content is filesystem-driven; the web app never depends on content packages by n
   use `/api/content/<slug>`; the viewer and zip library load on demand.
 - Content packages exist as workspace packages only so pnpm installs their deps in
   isolation and the registry can report per-component dependencies.
+- `meta.json` carries provenance: `addedAt` (required, stamped by `new:content`, drives
+  gallery order newest-first), `inspiredBy` (where the idea came from), `requestedBy`
+  (who asked for it). Keep them honest — they render on the detail page.
+
+### Component requests
+
+`/request` → oRPC `request.create` → GitHub issue labelled `request` (needs
+`GITHUB_ISSUES_TOKEN`). Attachments go through `/api/request/attachments` to GitHub's own
+`uploads.github.com/user-attachments/assets` store (the endpoint `gh --attach` uses; fine-grained
+PATs allowed, repo write access required), capped at 4MB by Vercel's request-body limit.
+Visitor text has `@` neutralized so it can't trigger the `@claude` workflow.
+Triage is manual: apply `ready` to accept, close as not-planned to decline. The
+`build-requests` skill drains `ready` issues into PRs (run locally, on a schedule).
 
 ### Tech Stack
 
@@ -76,8 +89,12 @@ pnpm check:content    # Fail if any content/<slug> is not a loadable component
 
 ## Verification Contract
 
-`pnpm verify` runs typecheck, lint, formatting, tests, and build. Every step must pass;
-lint warnings also fail. CI runs it on every push and pull request.
+`pnpm verify` runs typecheck, lint, formatting, tests, and build. Every step must pass.
+CI runs it on every push and pull request.
+
+Lint is a clean gate: `oxlint.config.ts` extends the ultracite presets (core, react, next,
+anti-slop) and every rule is an error. Fix the code, don't add config overrides; a
+`// oxlint-disable-next-line rule -- why` needs a stated reason.
 
 Typecheck covers the app, shared packages, scripts, and every code-bearing content package
 independently. Content remains excluded from the app's TypeScript project because independent
@@ -100,7 +117,9 @@ does not prove delivery. Reset tokens expire after one hour and revoke existing 
 
 - **auth + oRPC are kept.** One procedure, zero callers, deliberately retained for a future
   feature. Make them correct; don't propose deleting them.
-- **Supabase stays.** It hosts every cover video.
+- **Assets live in the `uicapsule-assets` Vercel Blob store.** Covers, illustrations and other
+  content media resolve against `NEXT_PUBLIC_ASSETS_URL`; `meta.json` stores bucket keys,
+  never URLs.
 - **Vercel builds on every push — deliberately. Do not add build-skipping.** Both Vercel's
   "Skip unaffected projects" and an Ignored Build Step / `turbo-ignore` are disabled on the
   project. Every skip mechanism decides "affected" from the _workspace dependency graph_, and

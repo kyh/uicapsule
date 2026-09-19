@@ -57,14 +57,14 @@ const Lines = ({
   const animate = invert
     ? {
         x1: [0, 0],
-        y1: [2.5 * height, -2 * height],
         x2: [0, 0],
+        y1: [2.5 * height, -2 * height],
         y2: [2 * height, -2.5 * height],
       }
     : {
         x1: [0, 0],
-        y1: [-2.5 * height, 2 * height],
         x2: [0, 0],
+        y1: [-2.5 * height, 2 * height],
         y2: [-2 * height, 2.5 * height],
       };
 
@@ -99,9 +99,9 @@ const Lines = ({
           id={animateId}
           gradientUnits="userSpaceOnUse"
         >
-          <stop stopColor={"oklch(0.696 0.17 162.48)"} stopOpacity="0" />
-          <stop stopColor={"oklch(0.696 0.17 162.48)"} stopOpacity="0.4" />
-          <stop offset="1" stopColor={"oklch(0.696 0.17 162.48)"} stopOpacity="0" />
+          <stop stopColor="oklch(0.696 0.17 162.48)" stopOpacity="0" />
+          <stop stopColor="oklch(0.696 0.17 162.48)" stopOpacity="0.4" />
+          <stop offset="1" stopColor="oklch(0.696 0.17 162.48)" stopOpacity="0" />
         </motion.linearGradient>
       </defs>
     </svg>
@@ -115,7 +115,9 @@ export const WorkflowSection = () => {
 
   useEffect(() => {
     const container = sourcesContainerRef.current;
-    if (!container) return;
+    if (!container) {
+      return;
+    }
 
     const observer = new ResizeObserver(() => {
       setSourcesContainerWidth(container.getBoundingClientRect().width);
@@ -138,6 +140,7 @@ export const WorkflowSection = () => {
         description={
           <ol className="ml-5 flex list-decimal flex-col gap-1">
             {workflowSteps.map((item, index) => (
+              // oxlint-disable-next-line jsx-a11y/no-noninteractive-element-interactions -- hover only previews the step's sources; nothing is actioned, so there is no keyboard equivalent to provide
               <li
                 className="relative leading-9"
                 onMouseEnter={() => setHighlighted(index)}

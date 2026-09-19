@@ -1,4 +1,5 @@
-import { useEffect, useMemo, useRef, type ReactNode, type RefObject } from "react";
+import { useEffect, useMemo, useRef } from "react";
+import type { ReactNode, RefObject } from "react";
 import type { BufferGeometry, Group, Mesh as MeshType, Texture } from "three";
 
 import { Canvas, useFrame, useLoader, useThree } from "@react-three/fiber";
@@ -37,8 +38,36 @@ const SNAP_SPEED = 0.15;
 /** Snap is considered complete once within this many radians of the target. */
 const SNAP_EPSILON = 0.005;
 const TAU = Math.PI * 2;
+
+// Nearest image angle, expressed in whichever full turn is closest to the
+// current rotation so the snap never travels the long way round.
+const closestSnapRotation = (currentRotation: number, anglePerImage: number, count: number) => {
+  const normalizedAngle = ((-currentRotation % TAU) + TAU) % TAU;
+  const nearestImageIndex = Math.round(normalizedAngle / anglePerImage) % count;
+  const targetRotation = -(nearestImageIndex * anglePerImage);
+
+  const diff1 = Math.abs(targetRotation - currentRotation);
+  const diff2 = Math.abs(targetRotation + TAU - currentRotation);
+  const diff3 = Math.abs(targetRotation - TAU - currentRotation);
+
+  if (diff2 < diff1 && diff2 < diff3) {
+    return targetRotation + TAU;
+  }
+  if (diff3 < diff1 && diff3 < diff2) {
+    return targetRotation - TAU;
+  }
+  return targetRotation;
+};
+
+const setPlaneOpacity = (group: Group, opacity: number) => {
+  for (const child of group.children) {
+    if (child instanceof Mesh && child.material instanceof NodeMaterial) {
+      child.material.opacity = opacity;
+    }
+  }
+};
 /** Extra curvature applied on top of `bendAmount`. */
-const BEND_MULTIPLIER = 2.0;
+const BEND_MULTIPLIER = 2;
 /** Half-width of the smoothstep band that antialiases the rounded-corner mask. */
 const CORNER_MASK_FEATHER = 0.01;
 
@@ -48,34 +77,32 @@ export const ImageCarouselCanvas = ({
 }: {
   backgroundColor?: string;
   children: ReactNode;
-}) => {
-  return (
-    <Canvas
-      shadows
-      camera={{ position: [0, 0, 12], fov: 45 }}
-      className="cursor-grab active:cursor-grabbing"
-      gl={async (props) => {
-        if (!(props.canvas instanceof HTMLCanvasElement)) {
-          throw new Error("ImageCarouselCanvas requires an HTML canvas");
-        }
-        const renderer = new WebGPURenderer({
-          canvas: props.canvas,
-          antialias: props.antialias,
-          alpha: props.alpha,
-          depth: props.depth,
-          stencil: props.stencil,
-        });
-        await renderer.init();
-        return renderer;
-      }}
-    >
-      <color attach="background" args={[backgroundColor]} />
-      {children}
-    </Canvas>
-  );
-};
+}) => (
+  <Canvas
+    shadows
+    camera={{ fov: 45, position: [0, 0, 12] }}
+    className="cursor-grab active:cursor-grabbing"
+    gl={async (props) => {
+      if (!(props.canvas instanceof HTMLCanvasElement)) {
+        throw new Error("ImageCarouselCanvas requires an HTML canvas");
+      }
+      const renderer = new WebGPURenderer({
+        alpha: props.alpha,
+        antialias: props.antialias,
+        canvas: props.canvas,
+        depth: props.depth,
+        stencil: props.stencil,
+      });
+      await renderer.init();
+      return renderer;
+    }}
+  >
+    <color attach="background" args={[backgroundColor]} />
+    {children}
+  </Canvas>
+);
 
-type ImagePlaneProps = {
+interface ImagePlaneProps {
   texture: Texture;
   index: number;
   total: number;
@@ -88,7 +115,7 @@ type ImagePlaneProps = {
   farOpacity: number;
   /** Read per-frame rather than as a prop so ring rotation never re-renders the tree. */
   currentIndexRef: RefObject<number>;
-};
+}
 
 const ImagePlane = ({
   texture: imageTexture,
@@ -127,7 +154,7 @@ const ImagePlane = ({
     const imageColor = texture(imageTexture, uvCoords);
 
     const center = sub(uvCoords, 0.5);
-    const d = length(max(sub(abs(center), 0.5 - cornerRadius), 0.0));
+    const d = length(max(sub(abs(center), 0.5 - cornerRadius), 0));
 
     const mask = smoothstep(
       cornerRadius + CORNER_MASK_FEATHER,
@@ -148,7 +175,9 @@ const ImagePlane = ({
 
   useFrame(() => {
     const mesh = meshRef.current;
-    if (!mesh) return;
+    if (!mesh) {
+      return;
+    }
 
     mesh.lookAt(0, mesh.position.y, 0);
 
@@ -179,7 +208,7 @@ const ImagePlane = ({
 
 const EMPTY_IMAGES: string[] = [];
 
-type ImageCarouselProps = {
+interface ImageCarouselProps {
   images?: string[];
   radius?: number;
   imageWidth?: number;
@@ -194,7 +223,7 @@ type ImageCarouselProps = {
   enableSnapping?: boolean;
   autorotate?: boolean;
   autorotateSpeed?: number;
-};
+}
 
 export const ImageCarousel = ({
   images = EMPTY_IMAGES,
@@ -202,9 +231,9 @@ export const ImageCarousel = ({
   imageWidth = 3,
   cornerRadius = 0.15,
   bendAmount = 0.1,
-  centerOpacity = 1.0,
-  adjacentOpacity = 1.0,
-  farOpacity = 1.0,
+  centerOpacity = 1,
+  adjacentOpacity = 1,
+  farOpacity = 1,
   friction = 0.95,
   wheelSensitivity = 0.002,
   dragSensitivity = 0.0003,
@@ -233,16 +262,18 @@ export const ImageCarousel = ({
   const textures = useMemo(
     () =>
       sourceTextures.map((source) => {
-        const texture = source.clone();
-        texture.colorSpace = SRGBColorSpace;
-        return texture;
+        const cloned = source.clone();
+        cloned.colorSpace = SRGBColorSpace;
+        return cloned;
       }),
     [sourceTextures],
   );
 
   useEffect(
     () => () => {
-      for (const texture of textures) texture.dispose();
+      for (const cloned of textures) {
+        cloned.dispose();
+      }
     },
     [textures],
   );
@@ -262,7 +293,9 @@ export const ImageCarousel = ({
     };
 
     const moveDrag = (clientX: number) => {
-      if (!isDragging.current) return;
+      if (!isDragging.current) {
+        return;
+      }
       velocityRef.current += (clientX - lastPointerX.current) * dragSensitivity;
       lastPointerX.current = clientX;
       isSnapping.current = false;
@@ -281,13 +314,17 @@ export const ImageCarousel = ({
     };
 
     const handleTouchStart = (event: TouchEvent) => {
-      const touch = event.touches[0];
-      if (touch) startDrag(touch.clientX);
+      const [touch] = event.touches;
+      if (touch) {
+        startDrag(touch.clientX);
+      }
     };
 
     const handleTouchMove = (event: TouchEvent) => {
-      const touch = event.touches[0];
-      if (touch) moveDrag(touch.clientX);
+      const [touch] = event.touches;
+      if (touch) {
+        moveDrag(touch.clientX);
+      }
     };
 
     const handleTouchEnd = () => {
@@ -322,9 +359,13 @@ export const ImageCarousel = ({
   const planeWidth = imageWidth * sizeScale;
 
   useFrame((state, delta) => {
-    if (!images.length) return;
+    if (!images.length) {
+      return;
+    }
     const group = groupRef.current;
-    if (!group) return;
+    if (!group) {
+      return;
+    }
 
     if (isAnimatingIn.current) {
       animationProgress.current = Math.min(
@@ -335,17 +376,13 @@ export const ImageCarousel = ({
         isAnimatingIn.current = false;
       }
 
-      const easedProgress = 1 - Math.pow(1 - animationProgress.current, 3);
+      const easedProgress = 1 - (1 - animationProgress.current) ** 3;
 
       group.rotation.y =
         INITIAL_ROTATION + (rotationRef.current - INITIAL_ROTATION) * easedProgress;
 
       // Overwrite the per-plane opacity written earlier this frame with the fade-in value.
-      for (const child of group.children) {
-        if (child instanceof Mesh && child.material instanceof NodeMaterial) {
-          child.material.opacity = easedProgress;
-        }
-      }
+      setPlaneOpacity(group, easedProgress);
 
       return;
     }
@@ -355,7 +392,7 @@ export const ImageCarousel = ({
     }
 
     // Apply friction using delta time for frame-rate independence
-    velocityRef.current *= Math.pow(friction, delta * REFERENCE_FPS);
+    velocityRef.current *= friction ** (delta * REFERENCE_FPS);
 
     const anglePerImage = TAU / images.length;
 
@@ -365,27 +402,11 @@ export const ImageCarousel = ({
       !isSnapping.current &&
       Math.abs(velocityRef.current) < VELOCITY_THRESHOLD
     ) {
-      const currentRotation = rotationRef.current;
-
-      const normalizedAngle = ((-currentRotation % TAU) + TAU) % TAU;
-      const nearestImageIndex = Math.round(normalizedAngle / anglePerImage) % images.length;
-
-      // Calculate target rotation (keeping it negative as expected)
-      const targetRotation = -(nearestImageIndex * anglePerImage);
-
-      // Adjust target to be close to current rotation (avoid long rotations)
-      let bestTargetRotation = targetRotation;
-      const diff1 = Math.abs(targetRotation - currentRotation);
-      const diff2 = Math.abs(targetRotation + TAU - currentRotation);
-      const diff3 = Math.abs(targetRotation - TAU - currentRotation);
-
-      if (diff2 < diff1 && diff2 < diff3) {
-        bestTargetRotation = targetRotation + TAU;
-      } else if (diff3 < diff1 && diff3 < diff2) {
-        bestTargetRotation = targetRotation - TAU;
-      }
-
-      targetRotationRef.current = bestTargetRotation;
+      targetRotationRef.current = closestSnapRotation(
+        rotationRef.current,
+        anglePerImage,
+        images.length,
+      );
       isSnapping.current = true;
       velocityRef.current = 0;
     }
@@ -414,7 +435,9 @@ export const ImageCarousel = ({
     currentIndexRef.current = Math.round(normalizedAngle / anglePerImage) % images.length;
   });
 
-  if (!images.length) return null;
+  if (!images.length) {
+    return null;
+  }
 
   return (
     <group ref={groupRef}>
