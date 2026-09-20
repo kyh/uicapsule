@@ -8,12 +8,12 @@ import { ArrowUpRightIcon } from "lucide-react";
 import { motion, useReducedMotion } from "motion/react";
 import type { Transition } from "motion/react";
 
-import { ReceiptArt } from "./receipt-art";
+import { nextReceiptArt, ReceiptArt } from "./receipt-art";
 import type { ReceiptArtVariant } from "./receipt-art";
 import { ReceiptSpec, ReceiptSpecNotes } from "./receipt-spec";
 import type { ReceiptLayout } from "./receipt-spec";
 import { useTearStub } from "./use-tear-stub";
-import { useTilt } from "./use-tilt";
+import { TILT, useTilt } from "./use-tilt";
 
 export interface Filed {
   art: ReceiptArtVariant;
@@ -51,14 +51,30 @@ const ReceiptRow = ({ label, value }: { label: string; value: string }) => (
   </motion.div>
 );
 
-// Each half punches its own seam corners; together they read as holes through the ticket.
+// Each half punches its own seam corners and a row of perforations along its seam edge;
+// together they read as holes through the ticket, and each half keeps its semicircles once torn.
 // The shell is border-colored and punched 1px tighter than its content, so the rim follows the hole.
 const HOLE_MASK =
-  "radial-gradient(circle at var(--hole-a), transparent var(--hole-r), black calc(var(--hole-r) + 0.5px)), radial-gradient(circle at var(--hole-b), transparent var(--hole-r), black calc(var(--hole-r) + 0.5px))";
-const holeStyle = { maskComposite: "intersect", maskImage: HOLE_MASK };
+  "radial-gradient(circle at var(--hole-a), transparent var(--hole-r), black calc(var(--hole-r) + 0.5px)), radial-gradient(circle at var(--hole-b), transparent var(--hole-r), black calc(var(--hole-r) + 0.5px)), radial-gradient(circle at var(--perf-at), transparent var(--perf-r), black calc(var(--perf-r) + 0.5px))";
+const holeStyle = {
+  maskComposite: "intersect",
+  maskImage: HOLE_MASK,
+  maskPosition: "0 0, 0 0, var(--perf-pos)",
+  maskRepeat: "no-repeat, no-repeat, var(--perf-repeat)",
+  maskSize: "auto, auto, var(--perf-size)",
+};
+const PERF =
+  "[--perf-size:32px_100%] [--perf-repeat:repeat-x] sm:[--perf-size:100%_32px] sm:[--perf-repeat:repeat-y]";
 
 const TicketShell = ({ className, children }: { className: string; children: ReactNode }) => (
-  <div style={holeStyle} className={cn("bg-border rounded-lg p-px [--hole-r:10px]", className)}>
+  <div
+    style={holeStyle}
+    className={cn(
+      "bg-border rounded-lg p-px [--hole-r:10px] [--perf-r:3px] [--perf-pos:0_0]",
+      PERF,
+      className,
+    )}
+  >
     {children}
   </div>
 );
@@ -79,6 +95,9 @@ export const Receipt = ({ filed }: { filed: Filed }) => {
   const horizontal = useMediaQuery();
   const reducedMotion = useReducedMotion() === true;
   const [layout, setLayout] = useState<ReceiptLayout | null>(null);
+  const [art, setArt] = useState({ swapped: false, variant: filed.art });
+  const handleNextArt = () =>
+    setArt((current) => ({ swapped: true, variant: nextReceiptArt(current.variant) }));
   const headRef = useRef<HTMLDivElement>(null);
   const artRef = useRef<HTMLDivElement>(null);
   const {
@@ -89,7 +108,6 @@ export const Receipt = ({ filed }: { filed: Filed }) => {
     intact,
     phase,
     rootRef,
-    setFibre,
     stubRef,
     tear: handleTear,
     torn,
@@ -109,10 +127,14 @@ export const Receipt = ({ filed }: { filed: Filed }) => {
       return;
     }
     const observer = new ResizeObserver(() => {
-      const art = artRef.current;
+      const artBox = artRef.current;
       setLayout({
-        art: art
-          ? { ...offsetWithin(art, root), height: art.offsetHeight, width: art.offsetWidth }
+        art: artBox
+          ? {
+              ...offsetWithin(artBox, root),
+              height: artBox.offsetHeight,
+              width: artBox.offsetWidth,
+            }
           : null,
         head: headRef.current?.offsetHeight ?? 0,
         height: root.offsetHeight,
@@ -130,12 +152,10 @@ export const Receipt = ({ filed }: { filed: Filed }) => {
     rootRef,
   });
 
-  // The stub hinges open on its seam edge, so the axis follows the layout. Both axes are
-  // always named so a breakpoint change mid-life can't leave the old axis folded.
-  const fold = {
-    hidden: horizontal ? { rotateX: 0, rotateY: -90 } : { rotateX: 90, rotateY: 0 },
-    shown: { rotateX: 0, rotateY: 0 },
-  };
+  // The stub hinges open on its seam edge, so the axis follows the layout.
+  const fold = horizontal
+    ? { hidden: { rotateY: -90 }, shown: { rotateY: 0 } }
+    : { hidden: { rotateX: 90 }, shown: { rotateX: 0 } };
   const rows: { label: string; value: string | null }[] = [
     { label: "Name", value: filed.name },
     { label: "Links", value: filed.links > 0 ? String(filed.links) : null },
@@ -147,7 +167,11 @@ export const Receipt = ({ filed }: { filed: Filed }) => {
 
   return (
     <div className="flex flex-col gap-12">
-      <div ref={rootRef} className="relative w-full max-w-sm select-none sm:max-w-3xl">
+      <div
+        ref={rootRef}
+        style={{ perspective: TILT.perspective }}
+        className="relative w-full max-w-sm select-none sm:max-w-3xl"
+      >
         {layout ? (
           <ReceiptSpec
             layout={layout}
@@ -173,10 +197,13 @@ export const Receipt = ({ filed }: { filed: Filed }) => {
               }}
               className="flex min-w-0 flex-1 flex-col"
             >
-              <TicketShell className="flex min-w-0 flex-1 flex-col [--hole-a:0_100%] [--hole-b:100%_100%] max-sm:pb-0 sm:pr-0 sm:[--hole-a:100%_0] sm:[--hole-b:100%_100%]">
+              <TicketShell className="flex min-w-0 flex-1 flex-col [--hole-a:0_100%] [--hole-b:100%_100%] [--perf-at:50%_100%] max-sm:pb-0 sm:pr-0 sm:[--hole-a:100%_0] sm:[--hole-b:100%_100%] sm:[--perf-at:100%_50%]">
                 <div
                   style={holeStyle}
-                  className="bg-muted text-card-foreground dark:bg-card relative flex min-w-0 flex-1 flex-col rounded-[7px] [--hole-r:11px] [--hole-a:-1px_calc(100%_+_1px)] [--hole-b:calc(100%_+_1px)_calc(100%_+_1px)] sm:[--hole-a:calc(100%_+_1px)_-1px] sm:[--hole-b:calc(100%_+_1px)_calc(100%_+_1px)]"
+                  className={cn(
+                    "bg-muted text-card-foreground dark:bg-card relative flex min-w-0 flex-1 flex-col rounded-[7px] [--hole-r:11px] [--hole-a:-1px_calc(100%_+_1px)] [--hole-b:calc(100%_+_1px)_calc(100%_+_1px)] [--perf-r:4px] [--perf-at:50%_calc(100%_+_1px)] [--perf-pos:-1px_0] sm:[--hole-a:calc(100%_+_1px)_-1px] sm:[--hole-b:calc(100%_+_1px)_calc(100%_+_1px)] sm:[--perf-at:calc(100%_+_1px)_50%] sm:[--perf-pos:0_-1px]",
+                    PERF,
+                  )}
                 >
                   <motion.div
                     ref={headRef}
@@ -201,9 +228,19 @@ export const Receipt = ({ filed }: { filed: Filed }) => {
                           className={cn("border-foreground/40 absolute size-2", corner)}
                         />
                       ))}
-                      <motion.div style={{ x: artX, y: artY }}>
-                        <ReceiptArt variant={filed.art} />
-                      </motion.div>
+                      <button
+                        type="button"
+                        aria-label="Show another artwork"
+                        onClick={handleNextArt}
+                        className="focus-visible:ring-ring/50 cursor-pointer rounded-md outline-none focus-visible:ring-3"
+                      >
+                        <motion.div style={{ x: artX, y: artY }}>
+                          <ReceiptArt
+                            variant={art.variant}
+                            tempo={art.swapped ? "swap" : "arrive"}
+                          />
+                        </motion.div>
+                      </button>
                     </motion.div>
                     <dl className="flex min-w-0 flex-col gap-1.5 px-4 pb-4 sm:flex-1 sm:justify-center sm:py-4 sm:pl-2">
                       {rows.map(({ label, value }) =>
@@ -213,31 +250,10 @@ export const Receipt = ({ filed }: { filed: Filed }) => {
                       )}
                     </dl>
                   </div>
-                  <span
-                    aria-hidden
-                    className="absolute inset-x-4 bottom-0 border-t border-dashed sm:inset-x-auto sm:inset-y-4 sm:right-0 sm:border-t-0 sm:border-l"
-                  />
                 </div>
               </TicketShell>
             </motion.div>
           </div>
-          <svg
-            aria-hidden
-            className="pointer-events-none absolute inset-0 size-full overflow-visible"
-          >
-            {Array.from({ length: bridges }, (_, index) => (
-              <g key={index}>
-                <path
-                  ref={setFibre(index * 2)}
-                  className="stroke-muted fill-none opacity-0 [stroke-linecap:round] dark:stroke-card"
-                />
-                <path
-                  ref={setFibre(index * 2 + 1)}
-                  className="stroke-primary fill-none opacity-0 [stroke-linecap:round]"
-                />
-              </g>
-            ))}
-          </svg>
           <div
             ref={stubRef}
             {...handlers}
@@ -246,15 +262,19 @@ export const Receipt = ({ filed }: { filed: Filed }) => {
             className="flex cursor-grab touch-none flex-col select-none will-change-transform data-grabbing:cursor-grabbing sm:w-60 sm:shrink-0"
           >
             <motion.div
+              key={horizontal ? "row" : "column"}
               variants={fold}
               transition={{ bounce: 0.2, delay: 0.3, type: "spring", visualDuration: 0.7 }}
               style={{ transformPerspective: 1200 }}
               className="flex flex-1 origin-top flex-col backface-hidden sm:origin-left"
             >
-              <TicketShell className="flex flex-1 flex-col [--hole-a:0_0] [--hole-b:100%_0] max-sm:pt-0 sm:pl-0 sm:[--hole-a:0_0] sm:[--hole-b:0_100%]">
+              <TicketShell className="flex flex-1 flex-col [--hole-a:0_0] [--hole-b:100%_0] [--perf-at:50%_0] max-sm:pt-0 sm:pl-0 sm:[--hole-a:0_0] sm:[--hole-b:0_100%] sm:[--perf-at:0_50%]">
                 <div
                   style={holeStyle}
-                  className="bg-primary text-primary-foreground relative flex flex-1 flex-col rounded-[7px] [--hole-r:11px] [--hole-a:-1px_-1px] [--hole-b:calc(100%_+_1px)_-1px] sm:[--hole-a:-1px_-1px] sm:[--hole-b:-1px_calc(100%_+_1px)]"
+                  className={cn(
+                    "bg-primary text-primary-foreground relative flex flex-1 flex-col rounded-[7px] [--hole-r:11px] [--hole-a:-1px_-1px] [--hole-b:calc(100%_+_1px)_-1px] [--perf-r:4px] [--perf-at:50%_-1px] [--perf-pos:-1px_0] sm:[--hole-a:-1px_-1px] sm:[--hole-b:-1px_calc(100%_+_1px)] sm:[--perf-at:-1px_50%] sm:[--perf-pos:0_-1px]",
+                    PERF,
+                  )}
                 >
                   <div className="border-primary-foreground/30 flex items-center justify-between border-b border-dashed px-4 py-2.5 font-mono text-[10px] tracking-[0.2em] uppercase">
                     <span className="opacity-70">Stub</span>

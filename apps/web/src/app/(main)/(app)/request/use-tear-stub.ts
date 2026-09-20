@@ -25,7 +25,6 @@ export const TEAR = {
   stretch: 30,
 };
 
-const RETRACT = 0.17;
 const REDUCED_MOTION_PULL = 28;
 
 interface Vec {
@@ -60,9 +59,7 @@ interface Sim {
   pvy: number;
   raf: number;
   sign: 1 | -1;
-  snapAt: number[];
   snapped: boolean[];
-  span: number[];
   start: Vec;
   sx: number;
   sy: number;
@@ -94,9 +91,7 @@ const initialSim = (): Sim => ({
   pvy: 0,
   raf: 0,
   sign: 1,
-  snapAt: [],
   snapped: [],
-  span: [],
   start: { x: 0, y: 0 },
   sx: 0,
   sy: 0,
@@ -108,7 +103,7 @@ const initialSim = (): Sim => ({
 const buildLayout = (geometry: TearGeometry): Layout => {
   const cross = geometry.horizontal ? geometry.height : geometry.width;
   const span = cross - 2 * geometry.inset;
-  const count = clamp(Math.round(span / 22), 4, 16);
+  const count = clamp(Math.round(span / 32), 4, 16);
   const at = (v: number): Bridge =>
     geometry.horizontal ? { v, x: geometry.seam, y: v } : { v, x: v, y: geometry.seam };
   const bridges: Bridge[] = [];
@@ -116,11 +111,6 @@ const buildLayout = (geometry: TearGeometry): Layout => {
     bridges.push(at(geometry.inset + (span * (i + 0.5)) / count));
   }
   return { bridges, cross, ends: [at(geometry.inset), at(cross - geometry.inset)] };
-};
-
-const hide = (near: SVGPathElement, far: SVGPathElement) => {
-  near.style.opacity = "0";
-  far.style.opacity = "0";
 };
 
 const isLink = (target: EventTarget | null) =>
@@ -141,7 +131,6 @@ interface EngineOutput {
 
 interface EngineRefs {
   body: RefObject<HTMLDivElement | null>;
-  fibres: RefObject<(SVGPathElement | null)[]>;
   input: RefObject<EngineInput>;
   output: RefObject<EngineOutput>;
   root: RefObject<HTMLDivElement | null>;
@@ -177,84 +166,8 @@ const createEngine = (refs: EngineRefs): Engine => {
     return { sx: offset.x, sy: offset.y, theta: rad(TEAR.restAngle) };
   };
 
-  const fibreEnds = (b: Bridge) => {
+  const paint = () => {
     const { geometry: geo } = refs.input.current;
-    const cos = Math.cos(s.theta * s.sign);
-    const sin = Math.sin(s.theta * s.sign);
-    const dx = b.x - s.hinge.x;
-    const dy = b.y - s.hinge.y;
-    return {
-      ox: b.x + (geo.horizontal ? s.bx : 0),
-      oy: b.y + (geo.horizontal ? 0 : s.bx),
-      tx: s.hinge.x + dx * cos - dy * sin + s.sx,
-      ty: s.hinge.y + dx * sin + dy * cos + s.sy,
-    };
-  };
-
-  const paintStretch = (near: SVGPathElement, far: SVGPathElement, i: number, b: Bridge) => {
-    const { geometry: geo } = refs.input.current;
-    const { ox, oy, tx, ty } = fibreEnds(b);
-    const gx = tx - ox;
-    const gy = ty - oy;
-    const gap = Math.hypot(gx, gy);
-    if (gap < 0.35) {
-      hide(near, far);
-      return;
-    }
-    const lx = geo.horizontal ? 0 : 1.6;
-    const ly = geo.horizontal ? 1.6 : 0;
-    const k = clamp(gap / TEAR.stretch, 0, 1);
-    const sag = gap * 0.18;
-    const w = (1.7 - 1.15 * k).toFixed(2);
-    const sx = (geo.horizontal ? 0 : sag) + gx / 2;
-    const sy = (geo.horizontal ? sag : 0) + gy / 2;
-    near.setAttribute(
-      "d",
-      `M${f(ox - lx)},${f(oy - ly)}Q${f(ox - lx + sx)},${f(oy - ly + sy)} ${f(tx - lx)},${f(ty - ly)}`,
-    );
-    far.setAttribute(
-      "d",
-      `M${f(ox + lx)},${f(oy + ly)}Q${f(ox + lx + gx - sx)},${f(oy + ly + gy - sy)} ${f(tx + lx)},${f(ty + ly)}`,
-    );
-    near.style.strokeWidth = w;
-    far.style.strokeWidth = w;
-    near.style.opacity = "1";
-    far.style.opacity = "1";
-    s.span[i] = gap;
-  };
-
-  const paintRetract = (
-    near: SVGPathElement,
-    far: SVGPathElement,
-    i: number,
-    b: Bridge,
-    now: number,
-  ) => {
-    const snapAt = s.snapAt[i] ?? 0;
-    const t = (now - snapAt) / 1000 / RETRACT;
-    if (t >= 1 || snapAt === 0) {
-      hide(near, far);
-      return false;
-    }
-    const { ox, oy, tx, ty } = fibreEnds(b);
-    const gx = tx - ox;
-    const gy = ty - oy;
-    const gap = Math.hypot(gx, gy);
-    const left = (1 - t) * (1 - t);
-    const len = (s.span[i] ?? TEAR.stretch) * 0.5 * left;
-    const ux = gap > 0.01 ? gx / gap : 1;
-    const uy = gap > 0.01 ? gy / gap : 0;
-    near.setAttribute("d", `M${f(ox)},${f(oy)}L${f(ox + ux * len)},${f(oy + uy * len)}`);
-    far.setAttribute("d", `M${f(tx)},${f(ty)}L${f(tx - ux * len)},${f(ty - uy * len)}`);
-    near.style.strokeWidth = "0.9";
-    far.style.strokeWidth = "0.9";
-    near.style.opacity = left.toFixed(2);
-    far.style.opacity = left.toFixed(2);
-    return true;
-  };
-
-  const paint = (now: number) => {
-    const { geometry: geo, layout, reducedMotion } = refs.input.current;
     const stubEl = refs.stub.current;
     const bodyEl = refs.body.current;
     if (stubEl) {
@@ -264,23 +177,6 @@ const createEngine = (refs: EngineRefs): Engine => {
     if (bodyEl) {
       bodyEl.style.transform = `translate${geo.horizontal ? "X" : "Y"}(${f(s.bx)}px)`;
     }
-    const live = s.phase !== "idle" && !reducedMotion;
-    let busy = false;
-    for (const [i, b] of layout.bridges.entries()) {
-      const near = refs.fibres.current[i * 2];
-      const far = refs.fibres.current[i * 2 + 1];
-      if (!(near && far)) {
-        continue;
-      }
-      if (!live) {
-        hide(near, far);
-      } else if (s.snapped[i]) {
-        busy = paintRetract(near, far, i, b, now) || busy;
-      } else {
-        paintStretch(near, far, i, b);
-      }
-    }
-    return busy;
   };
 
   const settleHinge = (grabV: number) => {
@@ -308,7 +204,7 @@ const createEngine = (refs: EngineRefs): Engine => {
     out.setTorn(true);
   };
 
-  const stepHeld = (now: number, dt: number) => {
+  const stepHeld = (dt: number) => {
     const { geometry: geo, layout } = refs.input.current;
     const limit = rad(TEAR.angle);
     const count = layout.bridges.length;
@@ -332,7 +228,6 @@ const createEngine = (refs: EngineRefs): Engine => {
       const d = Math.abs(b.v - s.hingeV);
       if (2 * d * Math.sin(s.theta / 2) + slack > TEAR.stretch || s.theta >= limit) {
         s.snapped[i] = true;
-        s.snapAt[i] = now;
         s.bv -= 560 / count;
       } else {
         left += 1;
@@ -382,7 +277,7 @@ const createEngine = (refs: EngineRefs): Engine => {
     const dt = clamp((now - s.last) / 1000, 0.001, 0.034);
     s.last = now;
     if (s.phase === "held") {
-      stepHeld(now, dt);
+      stepHeld(dt);
     } else if (s.phase === "free") {
       stepFree(dt);
     } else if (s.phase === "spring") {
@@ -390,14 +285,14 @@ const createEngine = (refs: EngineRefs): Engine => {
     }
     s.bv += (-520 * (s.bx - s.bRest) - 30 * s.bv) * dt;
     s.bx += s.bv * dt;
-    const busy = paint(now);
+    paint();
     const moving = Math.abs(s.bx - s.bRest) > 0.02 || Math.abs(s.bv) > 0.5;
-    if (s.phase !== "idle" || moving || busy) {
+    if (s.phase !== "idle" || moving) {
       s.raf = requestAnimationFrame(step);
     } else {
       s.bx = s.bRest;
       s.bv = 0;
-      paint(now);
+      paint();
       s.raf = 0;
     }
   };
@@ -429,7 +324,7 @@ const createEngine = (refs: EngineRefs): Engine => {
     markTorn();
     if (refs.input.current.reducedMotion) {
       Object.assign(s, restPose(), { bv: 0, bx: s.bRest, phase: "idle", thetaV: 0 });
-      paint(performance.now());
+      paint();
       return;
     }
     s.phase = "spring";
@@ -523,7 +418,7 @@ const createEngine = (refs: EngineRefs): Engine => {
       Object.assign(s, restPose(), { bx: s.bRest });
     }
     out.intact.set(torn ? 0 : s.snapped.length);
-    paint(performance.now());
+    paint();
   };
 
   const stop = () => cancelAnimationFrame(s.raf);
@@ -563,7 +458,6 @@ export const useTearStub = ({
   const root = useRef<HTMLDivElement>(null);
   const body = useRef<HTMLDivElement>(null);
   const stub = useRef<HTMLDivElement>(null);
-  const fibres = useRef<(SVGPathElement | null)[]>([]);
   const [grabbing, setGrabbing] = useState(false);
   const [torn, setTorn] = useState(false);
   const phase = useMotionValue<TearPhase>("rest");
@@ -577,7 +471,7 @@ export const useTearStub = ({
   }, [geometry, layout, reducedMotion]);
 
   useLayoutEffect(() => {
-    const created = createEngine({ body, fibres, input, output, root, stub });
+    const created = createEngine({ body, input, output, root, stub });
     engine.current = created;
     created.reset();
     return () => {
@@ -597,13 +491,6 @@ export const useTearStub = ({
     [],
   );
   const tear = useCallback(() => engine.current?.tearNow(), []);
-  const setFibre = useCallback(
-    (index: number) => (element: SVGPathElement | null) => {
-      fibres.current[index] = element;
-    },
-    [],
-  );
-
   return {
     bodyRef: body,
     bridges: layout.bridges.length,
@@ -612,7 +499,6 @@ export const useTearStub = ({
     intact,
     phase,
     rootRef: root,
-    setFibre,
     stubRef: stub,
     tear,
     torn,

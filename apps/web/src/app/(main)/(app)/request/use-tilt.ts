@@ -26,10 +26,10 @@ export const useTilt = ({
   const tiltY = useSpring(0, TILT.spring);
   const aimX = useMotionValue(0);
   const aimY = useMotionValue(0);
-  const plane = useMotionTemplate`perspective(${TILT.perspective}px) rotateX(${tiltX}deg) rotateY(${tiltY}deg)`;
+  const plane = useMotionTemplate`rotateX(${tiltX}deg) rotateY(${tiltY}deg)`;
   const depth = TILT.parallax / TILT.max;
-  const artX = useTransform(tiltY, (value) => -value * depth);
-  const artY = useTransform(tiltX, (value) => value * depth);
+  const artX = useTransform(() => -tiltY.get() * depth);
+  const artY = useTransform(() => tiltX.get() * depth);
 
   useEffect(() => {
     if (disabled) {
