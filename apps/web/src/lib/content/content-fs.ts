@@ -111,12 +111,11 @@ export const readContentLastModified = cache(async (): Promise<Date> => {
   const entries = await readdir(contentRoot, { withFileTypes: true }).catch(() => []);
   const paths = [
     contentRoot,
-    ...entries
-      .filter((entry) => entry.isDirectory() && !entry.name.startsWith("."))
-      .flatMap((entry) => [
-        path.join(contentRoot, entry.name),
-        path.join(contentRoot, entry.name, "meta.json"),
-      ]),
+    ...entries.flatMap((entry) =>
+      entry.isDirectory() && !entry.name.startsWith(".")
+        ? [path.join(contentRoot, entry.name), path.join(contentRoot, entry.name, "meta.json")]
+        : [],
+    ),
   ];
 
   const times = await Promise.all(

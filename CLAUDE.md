@@ -129,17 +129,15 @@ Typecheck covers the app, shared packages, scripts, and every code-bearing conte
 independently. Content remains excluded from the app's TypeScript project because independent
 checks preserve its distribution boundary. Use `pnpm typecheck:content <slug>` for one package.
 
-Tests cover the auth schema/cookies/reset and RPC transport guards, the content
-filesystem/registry behavior, and the agent surfaces in `apps/web/src/lib/agent/*.test.ts`.
-They pin things typecheck cannot see, notably `/api/orpc`'s cross-origin defense:
-`SameSite=Lax` keys on _site_, so it stops a cross-SITE POST only, and the route's own Origin
-check covers the same-site cross-origin case (a sibling subdomain, another localhost port).
-Status codes and response headers are outside the static gate entirely — that is what
-`pnpm check:agent-endpoints` is for. `verify` reads `.env`, because `build` does.
-
-Tests cover auth schema/cookies/reset, RPC Origin guards, filesystem/registry contracts, and
-standalone-content validation. Keep tests that pin observable behavior; check visual changes
-in the browser. `verify` reads `.env` for the build but requires no running database.
+Tests cover the auth schema/cookies/reset, the RPC Origin guards, the content
+filesystem/registry contracts, standalone-content validation, and the agent surfaces in
+`apps/web/src/lib/agent/*.test.ts`. They pin things typecheck cannot see, notably
+`/api/orpc`'s cross-origin defense: `SameSite=Lax` keys on _site_, so it stops a cross-SITE
+POST only, and the route's own Origin check covers the same-site cross-origin case (a sibling
+subdomain, another localhost port). Keep tests that pin observable behavior; check visual
+changes in the browser. Status codes and response headers are outside the static gate
+entirely — that is what `pnpm check:agent-endpoints` is for. `verify` reads `.env` because
+`build` does, but it needs no running database.
 
 The build's `check:content` guard validates metadata, preview files, manifests, and imports.
 It rejects private workspace dependencies and paths escaping a component directory. Do not
