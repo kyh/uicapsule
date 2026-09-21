@@ -9,7 +9,7 @@
     "dev": "pnpm with-env next dev",
     "start": "pnpm with-env next start",
     "test": "TURSO_DATABASE_URL=http://127.0.0.1:8080 node --import tsx --test 'src/**/*.test.ts'",
-    "typecheck": "tsc --noEmit",
+    "typecheck": "next typegen && tsc --noEmit",
     "with-env": "dotenv -e ../../.env --"
   },
   "dependencies": {
