@@ -1,19 +1,7 @@
 import { lstat, readFile, readdir } from "node:fs/promises";
 import path from "node:path";
-import { parse } from "@babel/parser";
-import {
-  isCallExpression,
-  isExportAllDeclaration,
-  isExportNamedDeclaration,
-  isIdentifier,
-  isImport,
-  isImportDeclaration,
-  isImportExpression,
-  isStringLiteral,
-  isTemplateLiteral,
-  traverseFast,
-} from "@babel/types";
-import type { Node } from "@babel/types";
+import { Visitor, parseSync } from "oxc-parser";
+import type { Argument } from "oxc-parser";
 
 import {
   contentMetaSchema,
@@ -23,11 +11,12 @@ import {
 export const ignoredDirectories = new Set(["node_modules", "dist", ".cache", ".turbo"]);
 const codeExtensions = new Set([".ts", ".tsx", ".js", ".jsx", ".mts", ".cts", ".mjs", ".cjs"]);
 
-const staticSpecifier = (node: Node | null | undefined): string | undefined => {
-  if (isStringLiteral(node)) {
+const staticSpecifier = (node: Argument | null | undefined): string | undefined => {
+  // oxlint-disable-next-line anti-slop/no-runtime-typeof -- ESTree tags every literal "Literal"; value type is the discriminant
+  if (node?.type === "Literal" && typeof node.value === "string") {
     return node.value;
   }
-  if (isTemplateLiteral(node) && node.expressions.length === 0) {
+  if (node?.type === "TemplateLiteral" && node.expressions.length === 0) {
     return node.quasis[0]?.value.raw;
   }
   return undefined;
@@ -114,37 +103,27 @@ export const validateContentDirectory = async (directory: string): Promise<strin
         continue;
       }
 
-      try {
-        const syntax = parse(source, {
-          plugins: extension.endsWith("x") ? ["typescript", "jsx"] : ["typescript"],
-          sourceFilename: file,
-          sourceType: "unambiguous",
-        });
-        traverseFast(syntax, (node) => {
-          let specifier: string | undefined;
-          if (
-            isImportDeclaration(node) ||
-            isExportNamedDeclaration(node) ||
-            isExportAllDeclaration(node)
-          ) {
-            specifier = staticSpecifier(node.source);
-          } else if (isImportExpression(node)) {
-            specifier = staticSpecifier(node.source);
-          } else if (
-            isCallExpression(node) &&
-            (isImport(node.callee) || isIdentifier(node.callee, { name: "require" }))
-          ) {
-            specifier = staticSpecifier(node.arguments[0]);
-          }
-          if (specifier) {
-            checkImport(file, specifier);
-          }
-        });
-      } catch (error) {
-        issues.push(
-          `${path.relative(directory, file)}: ${error instanceof Error ? error.message : error}`,
-        );
+      const { program, errors } = parseSync(file, source, { sourceType: "unambiguous" });
+      for (const error of errors) {
+        issues.push(`${path.relative(directory, file)}: ${error.message}`);
       }
+      const check = (node: Argument | null | undefined) => {
+        const specifier = staticSpecifier(node);
+        if (specifier) {
+          checkImport(file, specifier);
+        }
+      };
+      new Visitor({
+        CallExpression: (node) => {
+          if (node.callee.type === "Identifier" && node.callee.name === "require") {
+            check(node.arguments[0]);
+          }
+        },
+        ExportAllDeclaration: (node) => check(node.source),
+        ExportNamedDeclaration: (node) => check(node.source),
+        ImportDeclaration: (node) => check(node.source),
+        ImportExpression: (node) => check(node.source),
+      }).visit(program);
     }
   };
 
