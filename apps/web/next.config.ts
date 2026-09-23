@@ -59,16 +59,16 @@ const config: NextConfig = {
   /** cover/PR recordings capture cold navigations; the badge can't be stripped in time */
   devIndicators: false,
   experimental: {
+    // Multiple root layouts leave app/not-found.tsx nothing to render into for unmatched URLs.
+    globalNotFound: true,
     // Avoid replaying grid skeletons on back navigation; content changes only on deploy.
     staleTimes: {
       dynamic: 180,
     },
   },
   images: {
-    localPatterns: [{ pathname: "/assets/**" }],
     remotePatterns: getRemotePatterns(),
   },
-  pageExtensions: ["js", "jsx", "md", "mdx", "ts", "tsx"],
   transpilePackages,
 };
 
