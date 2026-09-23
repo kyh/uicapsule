@@ -8,7 +8,7 @@ import { TooltipProvider } from "@repo/ui/components/tooltip";
 
 import { MotionProvider } from "@/components/motion-provider";
 import { ThemeProvider } from "@/components/theme-provider";
-import { siteConfig } from "@/lib/site-config";
+import { ogImage, siteConfig } from "@/lib/site-config";
 import { ORPCReactProvider } from "@/orpc/react";
 
 import "../styles/globals.css";
@@ -62,18 +62,11 @@ export const metadata: Metadata = {
   metadataBase: new URL(siteConfig.url),
   openGraph: {
     description: siteConfig.description,
-    images: [
-      {
-        height: 1080,
-        url: `${siteConfig.url}/og.jpg`,
-        width: 1920,
-      },
-    ],
+    images: [ogImage],
     locale: "en-US",
     siteName: siteConfig.name,
     title: siteConfig.name,
     type: "website",
-    url: siteConfig.url,
   },
   other: {
     "apple-mobile-web-app-title": siteConfig.shortName,
@@ -87,13 +80,7 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     creator: siteConfig.twitter,
     description: siteConfig.description,
-    images: [
-      {
-        height: 1080,
-        url: `${siteConfig.url}/og.jpg`,
-        width: 1920,
-      },
-    ],
+    images: [ogImage],
     title: siteConfig.name,
   },
 };

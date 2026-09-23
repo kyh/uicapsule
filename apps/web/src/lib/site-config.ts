@@ -1,3 +1,6 @@
+const url =
+  process.env.NODE_ENV === "development" ? "http://localhost:3000" : "https://uicapsule.com";
+
 export const siteConfig = {
   author: {
     name: "Kaiyu Hsu",
@@ -12,5 +15,12 @@ export const siteConfig = {
   sameAs: ["https://github.com/kyh/uicapsule", "https://x.com/kaiyuhsu"],
   shortName: "UICapsule",
   twitter: "@kaiyuhsu",
-  url: process.env.NODE_ENV === "development" ? "http://localhost:3000" : "https://uicapsule.com",
+  url,
+};
+
+export const ogImage = {
+  alt: `${siteConfig.name} — ${siteConfig.description}`,
+  height: 630,
+  url: `${url}/og.jpg`,
+  width: 1200,
 };

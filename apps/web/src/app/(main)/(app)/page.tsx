@@ -5,7 +5,7 @@ import type { ContentFilter } from "@/lib/content/content-categories";
 import { Button } from "@repo/ui/components/button";
 
 import { resolveCover } from "@/lib/assets";
-import { canonicalAlternates, pageOpenGraph } from "@/lib/agent/page-metadata";
+import { canonicalAlternates, pageOpenGraph, pageTwitter } from "@/lib/agent/page-metadata";
 import { getContentList, getFilterCounts } from "@/lib/content-data";
 import type { GalleryFilter } from "@/lib/content-data";
 import { ContentPreview, ContentPreviewSkeleton } from "./_components/content-preview";
@@ -14,6 +14,13 @@ import type { Facet } from "./_components/filter-bar";
 import { GalleryOutline, GalleryStructuredData } from "./_components/gallery-outline";
 
 import type { Metadata } from "next";
+
+// Filtered views are the same gallery; point them all at the root.
+export const metadata: Metadata = {
+  alternates: canonicalAlternates("/"),
+  openGraph: pageOpenGraph("/"),
+  twitter: pageTwitter(),
+};
 
 type SearchParams = Promise<Record<string, string | string[] | undefined>>;
 
@@ -36,11 +43,6 @@ const parseFilter = async (searchParams: SearchParams): Promise<GalleryFilter> =
     styles: slugs("style"),
     view: params.view?.toString() === "recommended" ? "recommended" : "recent",
   };
-};
-
-export const metadata: Metadata = {
-  alternates: canonicalAlternates("/"),
-  openGraph: pageOpenGraph("/"),
 };
 
 const withCounts = (options: ContentFilter[], counts: Record<string, number>) =>

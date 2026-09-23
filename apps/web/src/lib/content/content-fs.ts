@@ -101,33 +101,6 @@ export const readContentIndex = cache(async (): Promise<ContentComponentSummary[
     .toSorted((a, b) => b.addedAt.localeCompare(a.addedAt) || a.slug.localeCompare(b.slug));
 });
 
-/**
- * Newest mtime across the content tree, used as the sitemap's `lastmod`.
- * Directory mtimes are enough: every deploy is a fresh checkout, so this
- * resolves to "when this content was published" rather than to the clock —
- * which keeps `sitemap.xml` byte-identical between two builds of one commit.
- */
-export const readContentLastModified = cache(async (): Promise<Date> => {
-  const entries = await readdir(contentRoot, { withFileTypes: true }).catch(() => []);
-  const paths = [
-    contentRoot,
-    ...entries.flatMap((entry) =>
-      entry.isDirectory() && !entry.name.startsWith(".")
-        ? [path.join(contentRoot, entry.name), path.join(contentRoot, entry.name, "meta.json")]
-        : [],
-    ),
-  ];
-
-  const times = await Promise.all(
-    paths.map(async (target) => {
-      const stats = await stat(target).catch(() => null);
-      return stats?.mtimeMs ?? 0;
-    }),
-  );
-
-  return new Date(Math.max(0, ...times));
-});
-
 export const readContentBySlug = async (slug: string): Promise<ContentComponentSummary | null> => {
   const all = await readContentIndex();
   return all.find((component) => component.slug === slug) ?? null;

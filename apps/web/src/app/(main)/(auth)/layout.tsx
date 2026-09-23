@@ -5,6 +5,7 @@ import { Logo } from "@repo/ui/components/logo";
 
 export const metadata: Metadata = {
   description: "Sign in to UICapsule.",
+  robots: { follow: false, index: false },
   title: "Authentication",
 };
 

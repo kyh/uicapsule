@@ -4,7 +4,7 @@ import { notFound } from "next/navigation";
 import { ContentFeed } from "@/app/(main)/(content)/_components/content-feed";
 import { JsonLd } from "@/components/json-ld";
 import { MediaReveal } from "@/components/media-reveal";
-import { canonicalAlternates, pageOpenGraph } from "@/lib/agent/page-metadata";
+import { canonicalAlternates, pageOpenGraph, pageTwitter } from "@/lib/agent/page-metadata";
 import { buildComponentGraph } from "@/lib/agent/structured-data";
 import { getAllContent } from "@/lib/content-data";
 
@@ -36,6 +36,7 @@ export const generateMetadata = async ({ params }: Props): Promise<Metadata> => 
     description,
     openGraph: pageOpenGraph(`/ui/${component.slug}`, component.name, description),
     title: component.name,
+    twitter: pageTwitter(component.name, description),
   };
 };
 

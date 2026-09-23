@@ -24,17 +24,16 @@
     "typecheck:scripts": "tsc --project tsconfig.scripts.json"
   },
   "devDependencies": {
-    "@babel/parser": "^7.29.9",
-    "@babel/types": "^7.29.8",
     "@kyh/tsconfig": "catalog:",
     "@types/node": "catalog:",
     "citty": "^0.2.2",
     "consola": "^3.4.2",
     "dotenv-cli": "^11.0.0",
-    "oxfmt": "^0.68.0",
-    "oxlint": "^1.83.0",
+    "oxc-parser": "^0.151.0",
+    "oxfmt": "^0.70.0",
+    "oxlint": "^1.85.0",
     "tsx": "catalog:",
-    "turbo": "^2.11.1",
+    "turbo": "^2.11.2",
     "typescript": "catalog:",
     "ultracite": "^7.12.0"
   },

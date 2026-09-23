@@ -1,4 +1,4 @@
-import { siteConfig } from "@/lib/site-config";
+import { ogImage, siteConfig } from "@/lib/site-config";
 
 import type { Metadata } from "next";
 
@@ -10,8 +10,6 @@ import type { Metadata } from "next";
  * which silently drops `og:type` and `og:image`. Both helpers below always
  * return complete values so overriding a title can't cost a page its OG card.
  */
-
-const ogImage = { height: 1080, url: `${siteConfig.url}/og.jpg`, width: 1920 };
 
 /** An explicit canonical, plus the Markdown representation the proxy serves from the same URL. */
 export const canonicalAlternates = (path: string): Metadata["alternates"] => ({
@@ -31,4 +29,18 @@ export const pageOpenGraph = (
   title,
   type: "website",
   url: path,
+});
+
+/**
+ * The card a page shows when shared. Same replace-don't-merge rule as
+ * `openGraph`, so the image is restated rather than inherited.
+ */
+export const pageTwitter = (
+  title: string = siteConfig.name,
+  description: string = siteConfig.description,
+): Metadata["twitter"] => ({
+  card: "summary_large_image",
+  description,
+  images: [ogImage],
+  title,
 });

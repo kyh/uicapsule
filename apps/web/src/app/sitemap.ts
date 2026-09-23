@@ -1,5 +1,5 @@
 import { buildSitemapEntries } from "@/lib/agent/sitemap-entries";
-import { getAllContent, getContentLastModified } from "@/lib/content-data";
+import { getAllContent } from "@/lib/content-data";
 
 import type { MetadataRoute } from "next";
 
@@ -9,11 +9,10 @@ import type { MetadataRoute } from "next";
  * `/ui/<slug>` page is public, linkable and installable.
  */
 const sitemap = async (): Promise<MetadataRoute.Sitemap> => {
-  const [components, lastModified] = await Promise.all([getAllContent(), getContentLastModified()]);
+  const components = await getAllContent();
 
   return buildSitemapEntries(
-    components.map((component) => component.slug),
-    lastModified,
+    components.map((component) => ({ addedAt: component.addedAt, slug: component.slug })),
   );
 };
 

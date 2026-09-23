@@ -4,8 +4,11 @@ import { describe, test } from "node:test";
 import { buildSitemapEntries } from "./sitemap-entries";
 import { prosePages } from "./site-pages";
 
-const lastModified = new Date("2026-02-01T00:00:00.000Z");
-const entries = buildSitemapEntries(["dynamic-island", "feed"], lastModified);
+const components = [
+  { addedAt: "2026-02-01", slug: "dynamic-island" },
+  { addedAt: "2025-11-14", slug: "feed" },
+];
+const entries = buildSitemapEntries(components);
 const urls = entries.map((entry) => entry.url);
 
 describe("buildSitemapEntries", () => {
@@ -14,13 +17,22 @@ describe("buildSitemapEntries", () => {
     assert.equal(entries[0]?.priority, 1);
   });
 
-  test("includes every prose page and every component page", () => {
+  test("stamps the home page with the newest component date, whatever the order", () => {
+    assert.equal(entries[0]?.lastModified, "2026-02-01");
+    assert.equal(buildSitemapEntries(components.toReversed())[0]?.lastModified, "2026-02-01");
+  });
+
+  test("includes every prose page, the request form, and every component page", () => {
     for (const page of prosePages) {
       assert.ok(
         urls.includes(`https://uicapsule.com${page.path}`),
         `should contain https://uicapsule.com${page.path}`,
       );
     }
+    assert.ok(
+      urls.includes("https://uicapsule.com/request"),
+      'should contain "https://uicapsule.com/request"',
+    );
     assert.ok(
       urls.includes("https://uicapsule.com/ui/dynamic-island"),
       'should contain "https://uicapsule.com/ui/dynamic-island"',
@@ -29,6 +41,12 @@ describe("buildSitemapEntries", () => {
       urls.includes("https://uicapsule.com/ui/feed"),
       'should contain "https://uicapsule.com/ui/feed"',
     );
+  });
+
+  test("dates each component page from its own addedAt", () => {
+    const byUrl = new Map(entries.map((entry) => [entry.url, entry]));
+    assert.equal(byUrl.get("https://uicapsule.com/ui/dynamic-island")?.lastModified, "2026-02-01");
+    assert.equal(byUrl.get("https://uicapsule.com/ui/feed")?.lastModified, "2025-11-14");
   });
 
   test("leaves the auth screens out — they are not indexable content", () => {
@@ -45,11 +63,10 @@ describe("buildSitemapEntries", () => {
     assert.equal(new Set(urls).size, urls.length);
   });
 
-  test("stamps every entry with the supplied lastmod and a valid changefreq", () => {
+  test("gives every entry a valid changefreq and priority", () => {
     for (const entry of entries) {
-      assert.equal(entry.lastModified, lastModified);
       assert.ok(
-        ["weekly", "monthly"].includes(entry.changeFrequency ?? ""),
+        ["weekly", "monthly", "yearly"].includes(entry.changeFrequency ?? ""),
         `${entry.url} has changefreq ${entry.changeFrequency}`,
       );
       const priority = entry.priority ?? 0;
@@ -58,6 +75,6 @@ describe("buildSitemapEntries", () => {
   });
 
   test("is deterministic for a given content set", () => {
-    assert.deepEqual(buildSitemapEntries(["dynamic-island", "feed"], lastModified), entries);
+    assert.deepEqual(buildSitemapEntries(components), entries);
   });
 });

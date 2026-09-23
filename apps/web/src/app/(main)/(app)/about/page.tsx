@@ -1,5 +1,5 @@
 import { JsonLd } from "@/components/json-ld";
-import { canonicalAlternates, pageOpenGraph } from "@/lib/agent/page-metadata";
+import { canonicalAlternates, pageOpenGraph, pageTwitter } from "@/lib/agent/page-metadata";
 import { aboutPage } from "@/lib/agent/site-pages";
 import { buildProsePageGraph } from "@/lib/agent/structured-data";
 
@@ -13,6 +13,7 @@ export const metadata: Metadata = {
   description: aboutPage.description,
   openGraph: pageOpenGraph(aboutPage.path, aboutPage.title, aboutPage.description),
   title: aboutPage.title,
+  twitter: pageTwitter(aboutPage.title, aboutPage.description),
 };
 
 const Page = () => (

@@ -1,5 +1,5 @@
 import { JsonLd } from "@/components/json-ld";
-import { canonicalAlternates, pageOpenGraph } from "@/lib/agent/page-metadata";
+import { canonicalAlternates, pageOpenGraph, pageTwitter } from "@/lib/agent/page-metadata";
 import { privacyPage } from "@/lib/agent/site-pages";
 import { buildProsePageGraph } from "@/lib/agent/structured-data";
 
@@ -12,6 +12,7 @@ export const metadata: Metadata = {
   description: privacyPage.description,
   openGraph: pageOpenGraph(privacyPage.path, privacyPage.title, privacyPage.description),
   title: privacyPage.title,
+  twitter: pageTwitter(privacyPage.title, privacyPage.description),
 };
 
 const Page = () => (
