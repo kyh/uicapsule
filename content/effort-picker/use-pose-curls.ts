@@ -352,6 +352,59 @@ export const usePoseCurls = ({ enabled, onRep }: UsePoseCurlsOptions): UsePoseCu
       setPose({ error: cause instanceof Error ? cause.message : String(cause), status: "error" });
     };
 
+    // Whichever arm we're on stays the subject unless the other one is
+    // decisively clearer for long enough to have earned the hand-off.
+    const pickSubject = (image: NormalizedLandmark[] | undefined): ArmPose | null => {
+      const { held, clearest } = readArms(image, tracked);
+      const contender = pickContender(clearest, held, tracked);
+
+      if (contender && contender.arm === challenger) {
+        challengeFrames += 1;
+      } else {
+        challengeFrames = contender ? 1 : 0;
+      }
+      challenger = contender ? contender.arm : null;
+
+      return contender && (!held || challengeFrames >= ARM_SWITCH_FRAMES) ? contender : held;
+    };
+
+    const lose = (element: HTMLVideoElement) => {
+      lostFrames += 1;
+      if (lostFrames >= POSE_LOST_FRAMES) {
+        report(false);
+        tracked = null;
+        averaged = null;
+      }
+      drawArm(canvasRef.current, element, null);
+    };
+
+    const score = (lift: number, changed: boolean) => {
+      // Switching arms mid-set starts the new wrist's trip from where it is
+      // rather than scoring on the hand-off: dropping a raised left arm and
+      // hanging an extended right one is a change of subject, not a rep.
+      if (changed) {
+        flexed = false;
+        extreme = lift;
+        return;
+      }
+
+      if (flexed) {
+        extreme = Math.max(extreme, lift);
+        if (extreme - lift >= REP_LIFT) {
+          flexed = false;
+          extreme = lift;
+        }
+        return;
+      }
+
+      extreme = Math.min(extreme, lift);
+      if (lift - extreme >= REP_LIFT) {
+        flexed = true;
+        extreme = lift;
+        onRepRef.current();
+      }
+    };
+
     const boot = async () => {
       const { FilesetResolver, PoseLandmarker } = await loadVision();
       if (cancelled) {
@@ -400,59 +453,6 @@ export const usePoseCurls = ({ enabled, onRep }: UsePoseCurlsOptions): UsePoseCu
 
       let lastVideoTime = -1;
       let lastTimestamp = 0;
-
-      // Whichever arm we're on stays the subject unless the other one is
-      // decisively clearer for long enough to have earned the hand-off.
-      const pickSubject = (image: NormalizedLandmark[] | undefined): ArmPose | null => {
-        const { held, clearest } = readArms(image, tracked);
-        const contender = pickContender(clearest, held, tracked);
-
-        if (contender && contender.arm === challenger) {
-          challengeFrames += 1;
-        } else {
-          challengeFrames = contender ? 1 : 0;
-        }
-        challenger = contender ? contender.arm : null;
-
-        return contender && (!held || challengeFrames >= ARM_SWITCH_FRAMES) ? contender : held;
-      };
-
-      const lose = (element: HTMLVideoElement) => {
-        lostFrames += 1;
-        if (lostFrames >= POSE_LOST_FRAMES) {
-          report(false);
-          tracked = null;
-          averaged = null;
-        }
-        drawArm(canvasRef.current, element, null);
-      };
-
-      const score = (lift: number, changed: boolean) => {
-        // Switching arms mid-set starts the new wrist's trip from where it is
-        // rather than scoring on the hand-off: dropping a raised left arm and
-        // hanging an extended right one is a change of subject, not a rep.
-        if (changed) {
-          flexed = false;
-          extreme = lift;
-          return;
-        }
-
-        if (flexed) {
-          extreme = Math.max(extreme, lift);
-          if (extreme - lift >= REP_LIFT) {
-            flexed = false;
-            extreme = lift;
-          }
-          return;
-        }
-
-        extreme = Math.min(extreme, lift);
-        if (lift - extreme >= REP_LIFT) {
-          flexed = true;
-          extreme = lift;
-          onRepRef.current();
-        }
-      };
 
       const detect = () => {
         frame = requestAnimationFrame(detect);

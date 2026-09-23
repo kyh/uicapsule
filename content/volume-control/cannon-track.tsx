@@ -92,6 +92,23 @@ const FloorScale = () => (
   </div>
 );
 
+/** One step of ballistics. Shared by the animated flight and the reduced-motion
+ * fast-forward, so both land the ball in exactly the same place. */
+const advance = (shot: Shot, dt: number): Shot => {
+  const vy = shot.vy + GRAVITY * dt;
+  let next = { vx: shot.vx, vy, x: shot.x + shot.vx * dt, y: shot.y + vy * dt };
+
+  if (next.y >= FLOOR_Y) {
+    next = {
+      vx: next.vx * FLOOR_DRAG,
+      vy: -Math.abs(next.vy) * BOUNCE,
+      x: next.x,
+      y: FLOOR_Y,
+    };
+  }
+  return next;
+};
+
 interface CannonTrackProps {
   volume: MotionValue<number>;
 }
@@ -136,23 +153,6 @@ export const CannonTrack = ({ volume }: CannonTrackProps) => {
     },
     [],
   );
-
-  /** One step of ballistics. Shared by the animated flight and the reduced-motion
-   * fast-forward, so both land the ball in exactly the same place. */
-  const advance = (shot: Shot, dt: number): Shot => {
-    const vy = shot.vy + GRAVITY * dt;
-    let next = { vx: shot.vx, vy, x: shot.x + shot.vx * dt, y: shot.y + vy * dt };
-
-    if (next.y >= FLOOR_Y) {
-      next = {
-        vx: next.vx * FLOOR_DRAG,
-        vy: -Math.abs(next.vy) * BOUNCE,
-        x: next.x,
-        y: FLOOR_Y,
-      };
-    }
-    return next;
-  };
 
   const resetBall = () => {
     void animate(ballX, MUZZLE.x, RESET_SPRING);

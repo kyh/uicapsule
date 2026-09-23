@@ -276,7 +276,7 @@ const Aside = ({ contentComponent }: AsideProps) => {
         <div className="flex flex-col items-center gap-1.5">
           <Button
             render={
-              // oxlint-disable-next-line jsx-a11y/anchor-has-content, jsx-a11y/control-has-associated-label -- Base UI render prop; the Button's children become the anchor's content
+              // oxlint-disable-next-line jsx-a11y/control-has-associated-label -- Base UI render prop; the Button's children become the anchor's content
               <a href={contentComponent.sourceUrl} target="_blank" rel="noreferrer" />
             }
             nativeButton={false}
