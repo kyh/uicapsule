@@ -1,7 +1,8 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 
-import { attachmentMetaSchema, uploadAttachment } from "./github-attachment";
+import { attachmentMetaSchema } from "./attachment";
+import { uploadAttachment } from "./github-attachment";
 
 const withToken = (t: { after: (fn: () => void) => void }, token?: string) => {
   const previous = process.env.GITHUB_ISSUES_TOKEN;

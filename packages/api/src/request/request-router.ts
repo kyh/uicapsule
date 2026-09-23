@@ -2,7 +2,7 @@ import { ORPCError } from "@orpc/server";
 
 import { publicProcedure } from "../orpc";
 import { componentRequestSchema } from "./component-request";
-import { ATTACHMENT_URL_PREFIX } from "./github-attachment";
+import { ATTACHMENT_URL_PREFIX } from "./attachment";
 import { createComponentRequestIssue, REQUESTS_REPO } from "./github-issue";
 
 export const requestRouter = {

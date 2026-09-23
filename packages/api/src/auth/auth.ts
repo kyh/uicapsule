@@ -1,3 +1,4 @@
+import "server-only";
 import { db } from "@repo/db/drizzle-client";
 import { betterAuth } from "better-auth";
 import type { BaseURLConfig } from "better-auth";

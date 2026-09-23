@@ -8,7 +8,7 @@
     "clean": "git clean -xdf .cache .next .turbo node_modules",
     "dev": "pnpm with-env next dev",
     "start": "pnpm with-env next start",
-    "test": "TURSO_DATABASE_URL=http://127.0.0.1:8080 node --import tsx --test 'src/**/*.test.ts'",
+    "test": "TURSO_DATABASE_URL=http://127.0.0.1:8080 node --conditions=react-server --import tsx --test 'src/**/*.test.ts'",
     "typecheck": "next typegen && tsc --noEmit",
     "with-env": "dotenv -e ../../.env --"
   },

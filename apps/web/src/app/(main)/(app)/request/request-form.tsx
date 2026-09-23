@@ -18,7 +18,7 @@ import {
   ATTACHMENT_MAX_BYTES,
   ATTACHMENT_MAX_COUNT,
   ATTACHMENT_TYPES,
-} from "@repo/api/request/github-attachment";
+} from "@repo/api/request/attachment";
 import { useMutation } from "@tanstack/react-query";
 import { cn } from "cn";
 import { UploadIcon, XIcon } from "lucide-react";
