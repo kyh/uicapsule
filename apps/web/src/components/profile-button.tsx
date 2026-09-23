@@ -189,10 +189,8 @@ const ProfileMenuItems = ({ user, onSignOut }: { user?: SessionUser; onSignOut: 
 
 // Both variants mount and CSS picks one, so the server render already matches the viewport
 // and nothing remounts after hydration.
-export const ProfileButton = () => {
+const ProfileMenu = ({ user }: { user?: SessionUser }) => {
   const router = useRouter();
-  const { data: session } = authClient.useSession();
-  const user = session?.user;
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [drawerOpen, setDrawerOpen] = useState(false);
 
@@ -252,3 +250,13 @@ export const ProfileButton = () => {
     </>
   );
 };
+
+const SignedInProfileMenu = () => {
+  const { data: session } = authClient.useSession();
+  return <ProfileMenu user={session?.user} />;
+};
+
+// Anonymous visitors never subscribe to the session, which would otherwise cost a
+// get-session request per page view and again on every window focus.
+export const ProfileButton = ({ signedIn }: { signedIn: boolean }) =>
+  signedIn ? <SignedInProfileMenu /> : <ProfileMenu />;
