@@ -1,9 +1,11 @@
 import { Suspense } from "react";
+import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 
 import { ContentFeed } from "@/app/(main)/(content)/_components/content-feed";
 import { MediaReveal } from "@/components/media-reveal";
 import { getAllContent } from "@/lib/content-data";
+import { ogImage, siteConfig } from "@/lib/site-config";
 
 interface Props {
   params: Promise<{ slug: string }>;
@@ -12,6 +14,28 @@ interface Props {
 export const generateStaticParams = async () => {
   const all = await getAllContent();
   return all.map((c) => ({ slug: c.slug }));
+};
+
+export const generateMetadata = async ({ params }: Props): Promise<Metadata> => {
+  const { slug } = await params;
+  const all = await getAllContent();
+  const component = all.find((c) => c.slug === slug);
+  if (!component) {
+    return {};
+  }
+
+  const title = component.name;
+  const description = component.description ?? siteConfig.description;
+  const url = `/ui/${slug}`;
+
+  // openGraph/twitter replace the root layout's objects wholesale, so the image is restated.
+  return {
+    alternates: { canonical: url },
+    description,
+    openGraph: { description, images: [ogImage], title, type: "website", url },
+    title,
+    twitter: { card: "summary_large_image", description, images: [ogImage], title },
+  };
 };
 
 const Content = async ({ params }: Props) => {

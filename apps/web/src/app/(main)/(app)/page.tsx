@@ -1,4 +1,5 @@
 import { Suspense } from "react";
+import type { Metadata } from "next";
 import Link from "next/link";
 import { contentElements, contentStyles } from "@/lib/content/content-categories";
 import type { ContentFilter } from "@/lib/content/content-categories";
@@ -10,6 +11,9 @@ import type { GalleryFilter } from "@/lib/content-data";
 import { ContentPreview, ContentPreviewSkeleton } from "./_components/content-preview";
 import { FilterBar } from "./_components/filter-bar";
 import type { Facet } from "./_components/filter-bar";
+
+// Filtered views are the same gallery; point them all at the root.
+export const metadata: Metadata = { alternates: { canonical: "/" } };
 
 type SearchParams = Promise<Record<string, string | string[] | undefined>>;
 

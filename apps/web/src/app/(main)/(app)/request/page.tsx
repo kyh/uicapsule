@@ -3,6 +3,9 @@ import type { Metadata } from "next";
 import { RequestForm } from "./request-form";
 
 export const metadata: Metadata = {
+  alternates: { canonical: "/request" },
+  description:
+    "Pitch an interaction you want built. Accepted requests become UICapsule components.",
   title: "Request a component",
 };
 

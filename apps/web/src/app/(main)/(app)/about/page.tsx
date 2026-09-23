@@ -1,4 +1,12 @@
+import type { Metadata } from "next";
+
 import { Signature } from "../_components/signature";
+
+export const metadata: Metadata = {
+  alternates: { canonical: "/about" },
+  description: "Why UICapsule exists and how its components get made.",
+  title: "About",
+};
 
 const Page = () => (
   <main className="flex min-h-[calc(100dvh-(--spacing(32)))] max-w-3xl flex-col gap-4 p-8 lg:p-20">
