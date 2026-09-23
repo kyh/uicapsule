@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useOptimistic, useState, useTransition } from "react";
 import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { Badge } from "@repo/ui/components/badge";
@@ -31,6 +31,9 @@ import { useMediaQuery } from "@repo/ui/hooks/use-media-query";
 import { cn } from "cn";
 import { CheckIcon, ChevronDownIcon, SearchIcon } from "lucide-react";
 
+import { parseGalleryFilter } from "@/lib/content/content-categories";
+import type { GalleryFilter } from "@/lib/content/content-categories";
+
 export interface FacetOption {
   name: string;
   slug: string;
@@ -60,13 +63,15 @@ interface FacetRow {
   count?: number;
 }
 
-const parseSelection = (value: string | null): ReadonlySet<string> =>
-  new Set(
-    (value ?? "")
-      .split(",")
-      .map((slug) => slug.trim())
-      .filter(Boolean),
-  );
+const selectionFor = (filter: GalleryFilter, key: Facet["key"]): ReadonlySet<string> => {
+  if (key === "element") {
+    return new Set(filter.elements);
+  }
+  if (key === "style") {
+    return new Set(filter.styles);
+  }
+  return new Set(filter.view === "recent" ? [] : [filter.view]);
+};
 
 // A selected trigger draws its whole outline over the group's shared divider.
 const triggerClassname = (highlighted: boolean) =>
@@ -155,23 +160,29 @@ const FacetList = ({
   onNavigate,
 }: FacetProps & { query: string; onNavigate?: () => void }) => {
   const { hrefWith, navigate } = useFilterNavigation();
+  const [, startTransition] = useTransition();
+  // The URL only updates once the server re-renders the grid; ticks must not wait for it.
+  const [checked, setChecked] = useOptimistic(selected);
   const normalizedQuery = facet.searchable ? query.trim().toLowerCase() : "";
   const matches = (name: string) => name.toLowerCase().includes(normalizedQuery);
 
   if (facet.mode === "multi") {
     const toggle = (slug: string) => {
-      const next = new Set(selected);
+      const next = new Set(checked);
       if (next.has(slug)) {
         next.delete(slug);
       } else {
         next.add(slug);
       }
-      navigate((params) => {
-        if (next.size > 0) {
-          params.set(facet.key, [...next].join(","));
-        } else {
-          params.delete(facet.key);
-        }
+      startTransition(() => {
+        setChecked(next);
+        navigate((params) => {
+          if (next.size > 0) {
+            params.set(facet.key, [...next].toSorted().join(","));
+          } else {
+            params.delete(facet.key);
+          }
+        });
       });
     };
 
@@ -189,7 +200,7 @@ const FacetList = ({
             data-empty={option.count === 0 || undefined}
           >
             <Checkbox
-              checked={selected.has(option.slug)}
+              checked={checked.has(option.slug)}
               onCheckedChange={() => toggle(option.slug)}
             />
             <span className="flex-1">{option.name}</span>
@@ -298,7 +309,8 @@ export const FilterBar = ({ facets }: { facets: Facet[] }) => {
   const [query, setQuery] = useState("");
   const [activeFacet, setActiveFacet] = useState<Facet | null>(null);
   const searchParams = useSearchParams();
-  const selectedFor = (facet: Facet) => parseSelection(searchParams.get(facet.key));
+  const filter = parseGalleryFilter((key) => searchParams.get(key));
+  const selectedFor = (facet: Facet) => selectionFor(filter, facet.key);
   const standalone = facets.filter((facet) => facet.standalone);
   const grouped = facets.filter((facet) => !facet.standalone);
 

@@ -1,6 +1,7 @@
 import { cacheLife } from "next/cache";
 
 import { elementSlugs, styleSlugs } from "./content/content-categories";
+import type { GalleryFilter, GalleryView } from "./content/content-categories";
 import {
   buildShadcnRegistryItem,
   readContentBySlug,
@@ -17,6 +18,12 @@ export const getAllContent = async (): Promise<ContentComponentSummary[]> => {
   return await readContentIndex();
 };
 
+// Slugs whose source ships in this repo; remote entries only link out.
+export const getLocalSlugs = async (): Promise<string[]> => {
+  const all = await getAllContent();
+  return all.filter((c) => c.type === "local").map((c) => c.slug);
+};
+
 export type GalleryEntry = ContentComponentSummary & { isNew: boolean };
 
 const NEW_FOR_DAYS = 30;
@@ -28,14 +35,6 @@ const markNew = (components: ContentComponentSummary[]): GalleryEntry[] => {
     .slice(0, 10);
   return components.map((component) => ({ ...component, isNew: component.addedAt >= newSince }));
 };
-
-export type GalleryView = "recent" | "recommended";
-
-export interface GalleryFilter {
-  view: GalleryView;
-  elements: string[];
-  styles: string[];
-}
 
 // Selections within an axis are OR'd; the axes themselves are AND'd.
 const matchesFilter = (component: ContentComponentSummary, filter: GalleryFilter) => {

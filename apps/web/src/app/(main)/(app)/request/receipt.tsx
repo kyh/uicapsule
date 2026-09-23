@@ -1,6 +1,6 @@
 "use client";
 
-import { useLayoutEffect, useRef, useState } from "react";
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import type { ReactNode } from "react";
 import { useMediaQuery } from "@repo/ui/hooks/use-media-query";
 import { cn } from "cn";
@@ -99,6 +99,7 @@ export const Receipt = ({ filed }: { filed: Filed }) => {
   const handleNextArt = () =>
     setArt((current) => ({ swapped: true, variant: nextReceiptArt(current.variant) }));
   const headRef = useRef<HTMLDivElement>(null);
+  const confirmationRef = useRef<HTMLHeadingElement>(null);
   const artRef = useRef<HTMLDivElement>(null);
   const {
     bodyRef,
@@ -119,6 +120,11 @@ export const Receipt = ({ filed }: { filed: Filed }) => {
     seam: layout?.seam ?? 0,
     width: layout?.width ?? 0,
   });
+
+  // The form that held focus unmounts on submit; land assistive tech on the confirmation.
+  useEffect(() => {
+    confirmationRef.current?.focus({ preventScroll: true });
+  }, []);
 
   useLayoutEffect(() => {
     const root = rootRef.current;
@@ -281,7 +287,13 @@ export const Receipt = ({ filed }: { filed: Filed }) => {
                     <span>{number}</span>
                   </div>
                   <div className="flex flex-1 flex-col gap-2 px-4 py-4 sm:justify-center">
-                    <p className="text-lg font-medium">Filed. Thank you.</p>
+                    <h2
+                      ref={confirmationRef}
+                      tabIndex={-1}
+                      className="text-lg font-medium outline-none"
+                    >
+                      Filed. Thank you.
+                    </h2>
                     <p className="text-xs leading-relaxed opacity-85">
                       It&apos;s public on GitHub now. If it&apos;s accepted it gets a{" "}
                       <code>ready</code> label, then it gets built.

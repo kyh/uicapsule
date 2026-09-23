@@ -114,6 +114,7 @@ const ToastItem = ({
       data-slot="toast"
       render={
         <motion.div
+          inert={!isVisible}
           className="pointer-events-auto absolute bottom-0 left-0 flex w-full origin-bottom items-center gap-3 rounded-xl border bg-popover p-4 text-sm text-popover-foreground shadow-lg will-change-transform"
           style={{
             pointerEvents: isVisible ? "auto" : "none",

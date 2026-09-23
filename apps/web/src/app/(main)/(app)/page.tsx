@@ -1,13 +1,16 @@
 import { Suspense } from "react";
 import type { Metadata } from "next";
 import Link from "next/link";
-import { contentElements, contentStyles } from "@/lib/content/content-categories";
-import type { ContentFilter } from "@/lib/content/content-categories";
+import {
+  contentElements,
+  contentStyles,
+  parseGalleryFilter,
+} from "@/lib/content/content-categories";
+import type { ContentFilter, GalleryFilter } from "@/lib/content/content-categories";
 import { Button } from "@repo/ui/components/button";
 
 import { resolveCover } from "@/lib/assets";
 import { getContentList, getFilterCounts } from "@/lib/content-data";
-import type { GalleryFilter } from "@/lib/content-data";
 import { ContentPreview, ContentPreviewSkeleton } from "./_components/content-preview";
 import { FilterBar } from "./_components/filter-bar";
 import type { Facet } from "./_components/filter-bar";
@@ -15,33 +18,19 @@ import type { Facet } from "./_components/filter-bar";
 // Filtered views are the same gallery; point them all at the root.
 export const metadata: Metadata = { alternates: { canonical: "/" } };
 
-type SearchParams = Promise<Record<string, string | string[] | undefined>>;
-
-interface PageProps {
-  searchParams: SearchParams;
-}
+type Props = Pick<PageProps<"/">, "searchParams">;
 
 const skeletonIds = Array.from({ length: 14 }, (_, index) => `placeholder-${index}`);
 
-const parseFilter = async (searchParams: SearchParams): Promise<GalleryFilter> => {
+const parseFilter = async (searchParams: Props["searchParams"]): Promise<GalleryFilter> => {
   const params = await searchParams;
-  const slugs = (key: string) =>
-    (params[key]?.toString() ?? "")
-      .split(",")
-      .map((slug) => slug.trim().toLowerCase())
-      .filter(Boolean);
-
-  return {
-    elements: slugs("element"),
-    styles: slugs("style"),
-    view: params.view?.toString() === "recommended" ? "recommended" : "recent",
-  };
+  return parseGalleryFilter((key) => params[key]?.toString());
 };
 
 const withCounts = (options: ContentFilter[], counts: Record<string, number>) =>
   options.map((option) => ({ ...option, count: counts[option.slug] ?? 0 }));
 
-const Filters = async ({ searchParams }: PageProps) => {
+const Filters = async ({ searchParams }: Props) => {
   const filter = await parseFilter(searchParams);
   const counts = await getFilterCounts(filter);
 
@@ -78,7 +67,7 @@ const Filters = async ({ searchParams }: PageProps) => {
   );
 };
 
-const ContentList = async ({ searchParams }: PageProps) => {
+const ContentList = async ({ searchParams }: Props) => {
   const filter = await parseFilter(searchParams);
   const content = await getContentList(filter);
 
@@ -108,7 +97,7 @@ const ContentList = async ({ searchParams }: PageProps) => {
   ));
 };
 
-const Page = ({ searchParams }: PageProps) => {
+const Page = ({ searchParams }: PageProps<"/">) => {
   const contentContainerClassname =
     "bg-border grid gap-px md:h-auto md:grid-cols-10 md:grid-rows-2 md:*:col-span-2 md:[&>*:nth-child(10n+1)]:col-span-4 md:[&>*:nth-child(10n+1)]:row-span-2 md:[&>*:nth-child(10n+1)]:h-auto";
 

@@ -37,3 +37,31 @@ const labels = new Map(
 );
 
 export const tagLabel = (slug: string) => labels.get(slug) ?? slug;
+
+export type GalleryView = "recent" | "recommended";
+
+export interface GalleryFilter {
+  view: GalleryView;
+  elements: string[];
+  styles: string[];
+}
+
+// Unknown, duplicate and reordered slugs all collapse to one canonical filter, so junk URLs
+// can't mint new cache entries and the server and filter bar agree on what is selected.
+const parseSlugs = (value: string | null | undefined, allowed: ReadonlySet<string>) =>
+  [
+    ...new Set(
+      (value ?? "")
+        .split(",")
+        .map((slug) => slug.trim().toLowerCase())
+        .filter((slug) => allowed.has(slug)),
+    ),
+  ].toSorted();
+
+export const parseGalleryFilter = (
+  get: (key: string) => string | null | undefined,
+): GalleryFilter => ({
+  elements: parseSlugs(get("element"), elementSlugs),
+  styles: parseSlugs(get("style"), styleSlugs),
+  view: get("view") === "recommended" ? "recommended" : "recent",
+});

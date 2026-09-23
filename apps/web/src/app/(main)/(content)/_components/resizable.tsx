@@ -15,23 +15,32 @@ const KEY_STEP = new Map<string, 1 | -1>([
 interface ResizeHandleProps {
   side: Side;
   width: number;
+  minWidth: number;
+  maxWidth: number;
   onWidthChange: (width: number) => void;
   onDraggingChange: (dragging: boolean) => void;
 }
 
 // The box is centered, so moving one edge by Δ changes the width by 2Δ.
-const ResizeHandle = ({ side, width, onWidthChange, onDraggingChange }: ResizeHandleProps) => {
+const ResizeHandle = ({
+  side,
+  width,
+  minWidth,
+  maxWidth,
+  onWidthChange,
+  onDraggingChange,
+}: ResizeHandleProps) => {
   const start = useRef<{ x: number; width: number } | null>(null);
   const outward = side === "left" ? -1 : 1;
 
-  const onPointerDown = (event: PointerEvent<HTMLButtonElement>) => {
+  const onPointerDown = (event: PointerEvent<HTMLDivElement>) => {
     event.preventDefault();
     event.currentTarget.setPointerCapture(event.pointerId);
     start.current = { width, x: event.clientX };
     onDraggingChange(true);
   };
 
-  const onPointerMove = (event: PointerEvent<HTMLButtonElement>) => {
+  const onPointerMove = (event: PointerEvent<HTMLDivElement>) => {
     if (!start.current) {
       return;
     }
@@ -43,7 +52,7 @@ const ResizeHandle = ({ side, width, onWidthChange, onDraggingChange }: ResizeHa
     onDraggingChange(false);
   };
 
-  const onKeyDown = (event: KeyboardEvent<HTMLButtonElement>) => {
+  const onKeyDown = (event: KeyboardEvent<HTMLDivElement>) => {
     const step = KEY_STEP.get(event.key);
     if (!step) {
       return;
@@ -53,9 +62,15 @@ const ResizeHandle = ({ side, width, onWidthChange, onDraggingChange }: ResizeHa
   };
 
   return (
-    <button
-      type="button"
+    <div
+      // oxlint-disable-next-line jsx-a11y/prefer-tag-over-role -- a focusable separator is a widget; <hr> can't take focus or handlers
+      role="separator"
+      tabIndex={0}
       aria-label={`Resize preview from the ${side}`}
+      aria-orientation="vertical"
+      aria-valuenow={Math.round(width)}
+      aria-valuemin={minWidth}
+      aria-valuemax={maxWidth}
       className={cn(
         "bg-muted-foreground/20 hover:bg-muted-foreground/50 focus-visible:bg-muted-foreground/50 absolute top-1/2 hidden h-24 w-1.5 -translate-y-1/2 cursor-ew-resize touch-none rounded-full transition-colors outline-none md:block",
         side === "left" ? "-left-3 -translate-x-1/2" : "-right-3 translate-x-1/2",
@@ -92,6 +107,8 @@ export const Resizable = ({
     <ResizeHandle
       side={side}
       width={width}
+      minWidth={minWidth}
+      maxWidth={maxWidth}
       onWidthChange={setClamped}
       onDraggingChange={setDragging}
     />

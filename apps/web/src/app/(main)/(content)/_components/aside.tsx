@@ -105,6 +105,7 @@ const SourceCodePreview = ({ slug }: { slug: string }) => {
 const Aside = ({ contentComponent }: AsideProps) => {
   const queryClient = useQueryClient();
   const [copied, setCopied] = useState(false);
+  const [downloading, setDownloading] = useState(false);
   const copiedTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
@@ -156,10 +157,11 @@ const Aside = ({ contentComponent }: AsideProps) => {
   };
 
   const handleDownloadClick = async () => {
-    if (contentComponent.type !== "local") {
+    if (contentComponent.type !== "local" || downloading) {
       return;
     }
 
+    setDownloading(true);
     const toastId = toast.loading("Download started", {
       description: `${contentComponent.slug}.zip is being downloaded`,
       icon: <DownloadIcon className="size-4" />,
@@ -180,6 +182,7 @@ const Aside = ({ contentComponent }: AsideProps) => {
         id: toastId,
       });
     }
+    setDownloading(false);
   };
 
   return (
@@ -200,7 +203,12 @@ const Aside = ({ contentComponent }: AsideProps) => {
               >
                 View Source
               </DrawerTrigger>
-              <Button variant="outline" className="shadow-none" onClick={handleDownloadClick}>
+              <Button
+                variant="outline"
+                className="shadow-none"
+                loading={downloading}
+                onClick={handleDownloadClick}
+              >
                 <span className="sr-only">Download</span>
                 <DownloadIcon className="size-4" />
               </Button>
