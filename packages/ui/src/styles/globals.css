@@ -22,9 +22,9 @@
 
 /**
  * Covers the CSS-driven animation Motion can't see: tw-animate-css enter/exit keyframes
- * and vaul's drawer transitions. Durations collapse to ~0 rather than `animation: none`,
- * because Base UI and vaul wait on animationend/transitionend to unmount — remove the
- * animation outright and the panels never close.
+ * and Base UI's drawer transitions. Durations collapse to ~0 rather than `animation: none`,
+ * because Base UI waits on animationend/transitionend to unmount — remove the animation
+ * outright and the panels never close.
  */
 @media (prefers-reduced-motion: reduce) {
   *,

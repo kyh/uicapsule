@@ -27,7 +27,6 @@ import {
   NavigationMenuTrigger,
   NavigationMenuViewport,
 } from "@repo/ui/components/navigation-menu";
-import { useMediaQuery } from "@repo/ui/hooks/use-media-query";
 import { cn } from "cn";
 import { CheckIcon, ChevronDownIcon, SearchIcon } from "lucide-react";
 
@@ -279,10 +278,12 @@ const FacetDrawer = ({ facet, selected }: FacetProps) => {
         setQuery("");
       }}
     >
-      <DrawerTrigger asChild>
-        <Button variant="outline" size="sm" className={triggerClassname(selected.size > 0)}>
-          <FacetLabel facet={facet} selected={selected} />
-        </Button>
+      <DrawerTrigger
+        render={
+          <Button variant="outline" size="sm" className={triggerClassname(selected.size > 0)} />
+        }
+      >
+        <FacetLabel facet={facet} selected={selected} />
       </DrawerTrigger>
       <DrawerContent>
         <DrawerHeader className="sr-only">
@@ -303,9 +304,8 @@ const FacetDrawer = ({ facet, selected }: FacetProps) => {
   );
 };
 
-// One shared popup morphs between facets instead of remounting the search input.
+// Both layouts mount and CSS picks one, so the server render already matches the viewport.
 export const FilterBar = ({ facets }: { facets: Facet[] }) => {
-  const isDesktop = useMediaQuery("(min-width: 768px)");
   const [query, setQuery] = useState("");
   const [activeFacet, setActiveFacet] = useState<Facet | null>(null);
   const searchParams = useSearchParams();
@@ -314,29 +314,35 @@ export const FilterBar = ({ facets }: { facets: Facet[] }) => {
   const standalone = facets.filter((facet) => facet.standalone);
   const grouped = facets.filter((facet) => !facet.standalone);
 
-  if (isDesktop) {
-    // Items render as divs so the joined group can wrap a subset of the list.
-    const trigger = (facet: Facet) => (
-      <NavigationMenuItem key={facet.key} value={facet.key} render={<div />}>
-        <NavigationMenuTrigger
-          render={
-            <Button
-              variant="outline"
-              size="sm"
-              className={triggerClassname(selectedFor(facet).size > 0)}
-            />
-          }
-        >
-          <FacetLabel facet={facet} selected={selectedFor(facet)} />
-        </NavigationMenuTrigger>
-        <NavigationMenuContent className="w-64">
-          <FacetList facet={facet} selected={selectedFor(facet)} query={query} />
-        </NavigationMenuContent>
-      </NavigationMenuItem>
-    );
+  // Items render as divs so the joined group can wrap a subset of the list.
+  const trigger = (facet: Facet) => (
+    <NavigationMenuItem key={facet.key} value={facet.key} render={<div />}>
+      <NavigationMenuTrigger
+        render={
+          <Button
+            variant="outline"
+            size="sm"
+            className={triggerClassname(selectedFor(facet).size > 0)}
+          />
+        }
+      >
+        <FacetLabel facet={facet} selected={selectedFor(facet)} />
+      </NavigationMenuTrigger>
+      <NavigationMenuContent className="w-64">
+        <FacetList facet={facet} selected={selectedFor(facet)} query={query} />
+      </NavigationMenuContent>
+    </NavigationMenuItem>
+  );
 
-    return (
+  const drawer = (facet: Facet) => (
+    <FacetDrawer key={facet.key} facet={facet} selected={selectedFor(facet)} />
+  );
+
+  // One shared popup morphs between facets instead of remounting the search input.
+  return (
+    <>
       <NavigationMenu
+        className="max-md:hidden"
         onValueChange={(value) => {
           setActiveFacet(facets.find((facet) => facet.key === value) ?? null);
           setQuery("");
@@ -355,17 +361,10 @@ export const FilterBar = ({ facets }: { facets: Facet[] }) => {
           </NavigationMenuPositioner>
         </NavigationMenuPortal>
       </NavigationMenu>
-    );
-  }
-
-  const drawer = (facet: Facet) => (
-    <FacetDrawer key={facet.key} facet={facet} selected={selectedFor(facet)} />
-  );
-
-  return (
-    <div className="flex items-center gap-3">
-      {standalone.map(drawer)}
-      <ButtonGroup>{grouped.map(drawer)}</ButtonGroup>
-    </div>
+      <div className="flex items-center gap-3 md:hidden">
+        {standalone.map(drawer)}
+        <ButtonGroup>{grouped.map(drawer)}</ButtonGroup>
+      </div>
+    </>
   );
 };

@@ -1,7 +1,7 @@
 "use client";
 
-import { useState } from "react";
-import type { ComponentProps, ReactNode } from "react";
+import { createContext, use, useMemo, useState } from "react";
+import type { ComponentProps, Dispatch, ReactNode, SetStateAction } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useTheme } from "next-themes";
@@ -32,7 +32,6 @@ import {
   DropdownMenuTrigger,
 } from "@repo/ui/components/dropdown-menu";
 import { Tabs, TabsIndicator, TabsList, TabsTrigger } from "@repo/ui/components/tabs";
-import { useMediaQuery } from "@repo/ui/hooks/use-media-query";
 import { cn } from "cn";
 import { authClient } from "@/lib/auth-client";
 
@@ -43,18 +42,36 @@ const themes = [
   { icon: MoonIcon, label: "Dark theme", value: "dark" },
 ];
 
-const ProfileLink = ({
-  isDesktop,
+type MenuVariant = "dropdown" | "drawer";
+
+const ProfileMenuContext = createContext<{ variant: MenuVariant; close: () => void } | null>(null);
+
+const ProfileMenuProvider = ({
+  variant,
+  setOpen,
   children,
-  className,
-  ...props
-}: ComponentProps<typeof Link> & {
-  isDesktop: boolean;
+}: {
+  variant: MenuVariant;
+  setOpen: Dispatch<SetStateAction<boolean>>;
   children: ReactNode;
-}) =>
-  isDesktop ? (
+}) => {
+  const value = useMemo(() => ({ close: () => setOpen(false), variant }), [setOpen, variant]);
+  return <ProfileMenuContext value={value}>{children}</ProfileMenuContext>;
+};
+
+const useProfileMenu = () => {
+  const context = use(ProfileMenuContext);
+  if (!context) {
+    throw new Error("Profile menu items must render inside a ProfileMenuProvider.");
+  }
+  return context;
+};
+
+const ProfileLink = ({ children, className, ...props }: ComponentProps<typeof Link>) => {
+  const { variant, close } = useProfileMenu();
+  return variant === "dropdown" ? (
     <DropdownMenuItem
-      render={<Link {...props} />}
+      render={<Link {...props} onClick={close} />}
       className={cn("group w-full justify-start", className)}
     >
       {children}
@@ -62,43 +79,18 @@ const ProfileLink = ({
   ) : (
     <Link
       {...props}
+      onClick={close}
       className={cn("group flex w-full items-center gap-2 px-2 py-1.5 text-sm", className)}
     >
       {children}
     </Link>
   );
+};
 
-export const ProfileButton = () => {
-  const isDesktop = useMediaQuery();
-  const { theme, setTheme } = useTheme();
-  const router = useRouter();
-  const { data: session } = authClient.useSession();
-  const user = session?.user;
-  const [open, setOpen] = useState(false);
-  const close = () => setOpen(false);
-
-  const handleSignOut = () => {
-    void authClient.signOut({
-      fetchOptions: {
-        onSuccess: () => {
-          close();
-          router.refresh();
-        },
-      },
-    });
-  };
-
-  const avatar = (
-    <Avatar className="size-8">
-      {user?.image && <AvatarImage src={user.image} alt="" />}
-      <AvatarFallback>
-        {user ? (user.name || user.email).slice(0, 2).toUpperCase() : "UI"}
-      </AvatarFallback>
-    </Avatar>
-  );
-
-  const signOut = isDesktop ? (
-    <DropdownMenuItem onClick={handleSignOut}>
+const SignOutItem = ({ onSignOut }: { onSignOut: () => void }) => {
+  const { variant } = useProfileMenu();
+  return variant === "dropdown" ? (
+    <DropdownMenuItem onClick={onSignOut}>
       <LogOutIcon aria-hidden="true" className={menuItemIconClassName} />
       Sign out
     </DropdownMenuItem>
@@ -106,14 +98,20 @@ export const ProfileButton = () => {
     <button
       type="button"
       className="group flex w-full items-center gap-2 px-2 py-1.5 text-sm"
-      onClick={handleSignOut}
+      onClick={onSignOut}
     >
       <LogOutIcon aria-hidden="true" className={menuItemIconClassName} />
       Sign out
     </button>
   );
+};
 
-  const menu = (
+type SessionUser = NonNullable<ReturnType<typeof authClient.useSession>["data"]>["user"];
+
+const ProfileMenuItems = ({ user, onSignOut }: { user?: SessionUser; onSignOut: () => void }) => {
+  const { theme, setTheme } = useTheme();
+
+  return (
     <>
       {user && (
         <>
@@ -124,21 +122,16 @@ export const ProfileButton = () => {
           <DropdownMenuSeparator />
         </>
       )}
-      <ProfileLink isDesktop={isDesktop} href="/about" onClick={close}>
+      <ProfileLink href="/about">
         <BookCheckIcon aria-hidden="true" className={menuItemIconClassName} />
         About
       </ProfileLink>
-      <ProfileLink isDesktop={isDesktop} href="/request" onClick={close}>
+      <ProfileLink href="/request">
         <LightbulbIcon aria-hidden="true" className={menuItemIconClassName} />
         Request
       </ProfileLink>
       <DropdownMenuSeparator />
-      <ProfileLink
-        isDesktop={isDesktop}
-        href="https://github.com/kyh/uicapsule"
-        target="_blank"
-        onClick={close}
-      >
+      <ProfileLink href="https://github.com/kyh/uicapsule" target="_blank">
         <svg
           aria-hidden="true"
           className={menuItemIconClassName}
@@ -149,12 +142,7 @@ export const ProfileButton = () => {
         </svg>
         GitHub
       </ProfileLink>
-      <ProfileLink
-        isDesktop={isDesktop}
-        href="https://x.com/kaiyuhsu"
-        target="_blank"
-        onClick={close}
-      >
+      <ProfileLink href="https://x.com/kaiyuhsu" target="_blank">
         <svg
           aria-hidden="true"
           className={menuItemIconClassName}
@@ -188,43 +176,79 @@ export const ProfileButton = () => {
       </div>
       <DropdownMenuSeparator />
       {user ? (
-        signOut
+        <SignOutItem onSignOut={onSignOut} />
       ) : (
-        <ProfileLink isDesktop={isDesktop} href="/auth/login" onClick={close}>
+        <ProfileLink href="/auth/login">
           <LogInIcon aria-hidden="true" className={menuItemIconClassName} />
           Login
         </ProfileLink>
       )}
     </>
   );
+};
 
-  if (isDesktop) {
-    return (
-      <DropdownMenu open={open} onOpenChange={setOpen}>
-        <DropdownMenuTrigger aria-label="Settings" render={<Button variant="ghost" size="icon" />}>
+// Both variants mount and CSS picks one, so the server render already matches the viewport
+// and nothing remounts after hydration.
+export const ProfileButton = () => {
+  const router = useRouter();
+  const { data: session } = authClient.useSession();
+  const user = session?.user;
+  const [dropdownOpen, setDropdownOpen] = useState(false);
+  const [drawerOpen, setDrawerOpen] = useState(false);
+
+  const handleSignOut = () => {
+    void authClient.signOut({
+      fetchOptions: {
+        onSuccess: () => {
+          setDropdownOpen(false);
+          setDrawerOpen(false);
+          router.refresh();
+        },
+      },
+    });
+  };
+
+  const avatar = (
+    <Avatar className="size-8">
+      {user?.image && <AvatarImage src={user.image} alt="" />}
+      <AvatarFallback>
+        {user ? (user.name || user.email).slice(0, 2).toUpperCase() : "UI"}
+      </AvatarFallback>
+    </Avatar>
+  );
+
+  return (
+    <>
+      <DropdownMenu open={dropdownOpen} onOpenChange={setDropdownOpen}>
+        <DropdownMenuTrigger
+          aria-label="Settings"
+          render={<Button variant="ghost" size="icon" className="max-sm:hidden" />}
+        >
           {avatar}
         </DropdownMenuTrigger>
         <DropdownMenuContent className="w-40" align="end">
-          {menu}
+          <ProfileMenuProvider variant="dropdown" setOpen={setDropdownOpen}>
+            <ProfileMenuItems user={user} onSignOut={handleSignOut} />
+          </ProfileMenuProvider>
         </DropdownMenuContent>
       </DropdownMenu>
-    );
-  }
-
-  return (
-    <Drawer open={open} onOpenChange={setOpen}>
-      <DrawerTrigger asChild>
-        <Button variant="ghost" size="icon" aria-label="Settings">
+      <Drawer open={drawerOpen} onOpenChange={setDrawerOpen}>
+        <DrawerTrigger
+          aria-label="Settings"
+          render={<Button variant="ghost" size="icon" className="sm:hidden" />}
+        >
           {avatar}
-        </Button>
-      </DrawerTrigger>
-      <DrawerContent>
-        <DrawerHeader className="sr-only">
-          <DrawerTitle>Settings</DrawerTitle>
-          <DrawerDescription>Settings options</DrawerDescription>
-        </DrawerHeader>
-        {menu}
-      </DrawerContent>
-    </Drawer>
+        </DrawerTrigger>
+        <DrawerContent>
+          <DrawerHeader className="sr-only">
+            <DrawerTitle>Settings</DrawerTitle>
+            <DrawerDescription>Settings options</DrawerDescription>
+          </DrawerHeader>
+          <ProfileMenuProvider variant="drawer" setOpen={setDrawerOpen}>
+            <ProfileMenuItems user={user} onSignOut={handleSignOut} />
+          </ProfileMenuProvider>
+        </DrawerContent>
+      </Drawer>
+    </>
   );
 };
