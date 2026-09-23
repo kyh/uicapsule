@@ -65,3 +65,17 @@ export const parseGalleryFilter = (
   styles: parseSlugs(get("style"), styleSlugs),
   view: get("view") === "recommended" ? "recommended" : "recent",
 });
+
+export const galleryParams = (filter: GalleryFilter): URLSearchParams => {
+  const params = new URLSearchParams();
+  if (filter.view !== "recent") {
+    params.set("view", filter.view);
+  }
+  if (filter.elements.length > 0) {
+    params.set("element", filter.elements.join(","));
+  }
+  if (filter.styles.length > 0) {
+    params.set("style", filter.styles.join(","));
+  }
+  return params;
+};

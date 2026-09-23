@@ -61,10 +61,6 @@ const config: NextConfig = {
   experimental: {
     // Multiple root layouts leave app/not-found.tsx nothing to render into for unmatched URLs.
     globalNotFound: true,
-    // Avoid replaying grid skeletons on back navigation; content changes only on deploy.
-    staleTimes: {
-      dynamic: 180,
-    },
   },
   images: {
     remotePatterns: getRemotePatterns(),
