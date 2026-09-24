@@ -1,7 +1,7 @@
 {
   "name": "Widget Stack",
   "description": "iOS Smart Stack — widgets roll through a vertical 3D page-flip, auto-advancing until you swipe.",
-  "addedAt": "2026-09-23",
+  "addedAt": "2026-08-30",
   "cover": "widget-stack/widget-stack.mp4",
   "tags": ["cards-grids", "minimal"]
 }

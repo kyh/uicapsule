@@ -4,8 +4,8 @@ import { useRef, useState } from "react";
 import { ChevronLeft, ChevronRight, Mic, Video } from "lucide-react";
 import { motion, useAnimation, useReducedMotion } from "motion/react";
 
-const STAGE_WIDTH = 340;
-const STAGE_HEIGHT = 620;
+import { PhoneFrame, SCREEN_HEIGHT, SCREEN_WIDTH } from "./phone-frame";
+
 const PIP_WIDTH = 150;
 const PIP_HEIGHT = 100;
 const PADDING = 14;
@@ -13,15 +13,16 @@ const PEEK = 26;
 
 type Tucked = "left" | "right" | null;
 
-const TOP_Y = PADDING + 44;
+// Top corners clear the Dynamic Island.
+const TOP_Y = PADDING + 46;
 // Bottom corners sit above the call bar so the window never covers its controls.
-const BOTTOM_Y = STAGE_HEIGHT - PIP_HEIGHT - 84;
+const BOTTOM_Y = SCREEN_HEIGHT - PIP_HEIGHT - 96;
 
-const HOME = { x: STAGE_WIDTH - PIP_WIDTH - PADDING, y: BOTTOM_Y };
+const HOME = { x: SCREEN_WIDTH - PIP_WIDTH - PADDING, y: BOTTOM_Y };
 
 const CORNERS = [
   { x: PADDING, y: TOP_Y },
-  { x: STAGE_WIDTH - PIP_WIDTH - PADDING, y: TOP_Y },
+  { x: SCREEN_WIDTH - PIP_WIDTH - PADDING, y: TOP_Y },
   { x: PADDING, y: BOTTOM_Y },
   HOME,
 ];
@@ -60,10 +61,10 @@ export const PipWindow = () => {
       return;
     }
     if (
-      projectedX > STAGE_WIDTH - PIP_WIDTH * 0.65 ||
-      (velocityX > 900 && projectedX > STAGE_WIDTH - PIP_WIDTH - PADDING)
+      projectedX > SCREEN_WIDTH - PIP_WIDTH * 0.65 ||
+      (velocityX > 900 && projectedX > SCREEN_WIDTH - PIP_WIDTH - PADDING)
     ) {
-      positionRef.current = { x: STAGE_WIDTH - PEEK, y: clampY(projectedY) };
+      positionRef.current = { x: SCREEN_WIDTH - PEEK, y: clampY(projectedY) };
       setTucked("right");
       void controls.start({
         ...positionRef.current,
@@ -97,7 +98,7 @@ export const PipWindow = () => {
     const target =
       side === "left"
         ? { x: PADDING, y: positionRef.current.y }
-        : { x: STAGE_WIDTH - PIP_WIDTH - PADDING, y: positionRef.current.y };
+        : { x: SCREEN_WIDTH - PIP_WIDTH - PADDING, y: positionRef.current.y };
     positionRef.current = target;
     setTucked(null);
     void controls.start({
@@ -107,11 +108,8 @@ export const PipWindow = () => {
   };
 
   return (
-    <div
-      className="relative overflow-hidden rounded-[44px] bg-[#0e0f13] shadow-2xl shadow-black/60 ring-8 ring-black select-none"
-      style={{ height: STAGE_HEIGHT, width: STAGE_WIDTH }}
-    >
-      <div className="px-5 pt-12">
+    <PhoneFrame className="bg-[#0e0f13]">
+      <div className="px-5 pt-[60px]">
         <p className="text-[24px] font-bold text-white">Notes</p>
         <div className="mt-4 space-y-2.5">
           {NOTES.map(([title, body]) => (
@@ -180,15 +178,15 @@ export const PipWindow = () => {
         )}
       </motion.div>
 
-      <p className="pointer-events-none absolute inset-x-0 bottom-4 text-center text-[11px] text-white/30">
+      <p className="pointer-events-none absolute inset-x-0 bottom-6 text-center text-[11px] text-white/30">
         Flick the call window · throw it off an edge to tuck it
       </p>
 
-      <div className="pointer-events-none absolute inset-x-16 bottom-10 flex items-center justify-center gap-4 rounded-full bg-white/[0.07] py-2.5 backdrop-blur-md ring-1 ring-white/10">
+      <div className="pointer-events-none absolute inset-x-16 bottom-12 flex items-center justify-center gap-4 rounded-full bg-white/[0.07] py-2.5 backdrop-blur-md ring-1 ring-white/10">
         <Mic className="size-4 text-white/70" />
         <Video className="size-4 text-white/70" />
         <span className="size-4 rounded-full bg-red-500" />
       </div>
-    </div>
+    </PhoneFrame>
   );
 };

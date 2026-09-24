@@ -1,7 +1,0 @@
-{
-  "name": "Ghost Text",
-  "description": "Cursor-style inline completion — pause and a gray ghost appears ahead of the caret; Tab absorbs it word-by-word, typing through it consumes it.",
-  "addedAt": "2026-09-23",
-  "cover": "ghost-text/ghost-text.mp4",
-  "tags": ["controls", "minimal"]
-}

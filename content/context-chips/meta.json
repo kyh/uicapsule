@@ -1,7 +1,0 @@
-{
-  "name": "Context Chips",
-  "description": "The @-mention — pick a file and its chip flies out of the picker into the composer rail, squishing in as a token while the context meter fills.",
-  "addedAt": "2026-09-23",
-  "cover": "context-chips/context-chips.mp4",
-  "tags": ["controls", "minimal"]
-}

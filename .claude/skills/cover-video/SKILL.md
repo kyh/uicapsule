@@ -41,8 +41,8 @@ parallel agent-browser user can't swap the active tab under you.
 
 ```bash
 agent-browser --session covers close                         # fresh session, window foregrounded
+agent-browser --session covers set viewport 1600 900              # before open: setting it after relaunches to about:blank
 agent-browser --session covers open http://localhost:3000/preview-frame/<slug>
-agent-browser --session covers set viewport 1600 900
 sleep 3
 agent-browser --session covers eval "document.visibilityState + ' ' + window.innerWidth + 'x' + window.innerHeight"
 # MUST print "visible 1600x900". "hidden" → the window is occluded; rAF freezes and the video
