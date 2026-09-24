@@ -101,7 +101,7 @@ pnpm check:agent-endpoints https://uicapsule.com
 ```
 
 Covers homepage `h1` + text-without-JavaScript + content efficiency + JSON-LD,
-`Accept: text/markdown` on every page shape, the HTML `Link: rel="alternate"` header, `406`
+`Accept: text/markdown` on every page shape, the head `<link rel="alternate">`, `406`
 on an unsatisfiable markdown Accept, that a non-markdown Accept skips the proxy, q-value
 handling, the Markdown and HTML 404 bodies, `/sitemap.xml`, `/llms.txt`, `/robots.txt`, and
 the three trust-anchor pages. Run it after touching anything in `apps/web/src/lib/agent`,

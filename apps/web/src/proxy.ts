@@ -52,8 +52,8 @@ export const proxy = (request: NextRequest) => {
     return applyVary(NextResponse.next());
   }
 
-  // An explicit `.md` URL is Markdown regardless of Accept: it is what the
-  // `Link: rel="alternate"` header points at, and a crawler following that link
+  // An explicit `.md` URL is Markdown regardless of Accept: it is what each
+  // page's `<link rel="alternate">` points at, and a crawler following that link
   // may send no Accept header at all.
   if (pathname.endsWith(".md")) {
     const stripped = pathname.slice(0, -".md".length);
@@ -97,8 +97,7 @@ export const proxy = (request: NextRequest) => {
  *
  * Both exclude Next internals, the JSON contracts (`/r/*`, `/api/*`) and the
  * bare preview frames; the Accept entry also skips files that have exactly one
- * representation. The HTML `Link: rel="alternate"` header is in next.config.ts
- * because the proxy no longer sees HTML requests.
+ * representation.
  */
 export const config = {
   matcher: [

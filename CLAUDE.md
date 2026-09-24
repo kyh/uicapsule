@@ -62,14 +62,16 @@ Next imports, no filesystem — so it can be unit-tested without a runtime. The 
   rewrites Markdown-preferring requests to `/api/markdown/*`. `/<path>.md` (and `/index.md`
   for the home page) serves the same thing without an `Accept` header. The proxy's matcher
   (`has` on `Accept`) only invokes it for `.md` URLs or an `Accept` naming markdown, so
-  plain HTML views never pay for it; the HTML `Link: rel="alternate"` header lives in
-  `next.config.ts` for that reason. `406` is reserved for an `Accept` that mentions markdown
-  yet accepts neither representation (`text/markdown;q=0`); one naming neither type never
-  reaches the proxy and gets HTML, as RFC 9110 permits.
-- **`Vary: Accept` does not reach prerendered app pages.** Next replays a prerender's
-  stored headers on send and `vary` is one of them, so neither the proxy nor
-  `next.config.ts` `headers()` can add to it. The config entry is still there and does
-  apply to every route handler. Retest on a Next upgrade before deleting the comment.
+  plain HTML views never pay for it. Pages advertise their `.md` sibling with a head
+  `<link rel="alternate" type="text/markdown">` (`canonicalAlternates`), not a `Link`
+  header. `406` is reserved for an `Accept` that mentions markdown yet accepts neither
+  representation (`text/markdown;q=0`); one naming neither type never reaches the proxy
+  and gets HTML, as RFC 9110 permits.
+- **`Vary: Accept` comes only from the proxy**, on the responses it negotiates (Markdown
+  rewrites, `.md`, 406). It cannot reach prerendered HTML pages: Next replays a
+  prerender's stored headers on send and `vary` is one of them. Harmless, because the
+  proxy rewrites Markdown to a different route before any cache lookup. Retest on a Next
+  upgrade.
 - **The homepage's text layer** (`_components/gallery-outline.tsx`) is `sr-only` and
   outside any `<Suspense>` on purpose: the grid is covers and hover states, which reads as
   an empty page without JavaScript, and only unsuspended cached data lands in the static

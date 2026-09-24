@@ -185,12 +185,13 @@ const checkProxyScope = async () => {
     ["/", "/index.md"],
     ["/about", "/about.md"],
   ] as const) {
-    const { response } = await fetchWith(path);
-    const link = response.headers.get("link") ?? "";
+    const { body } = await fetchWith(path);
+    const alternate =
+      body.match(/<link[^>]+rel="alternate"[^>]+type="text\/markdown"[^>]*>/iu)?.[0] ?? "";
     expect(
-      `HTML ${path} advertises ${target} via Link: rel="alternate"`,
-      link.includes(`<${target}>`) && link.includes('rel="alternate"'),
-      link || "(none)",
+      `HTML ${path} advertises ${target} via <link rel="alternate">`,
+      alternate.includes(`${target}"`),
+      alternate || "(none)",
     );
   }
 
@@ -199,11 +200,6 @@ const checkProxyScope = async () => {
     "Accept matching is case-insensitive",
     (mixedCase.headers.get("content-type") ?? "").startsWith("text/markdown"),
     mixedCase.headers.get("content-type") ?? "(none)",
-  );
-  expect(
-    "the Markdown response does not advertise itself as an alternate",
-    !(mixedCase.headers.get("link") ?? "").includes('rel="alternate"'),
-    mixedCase.headers.get("link") ?? "(none)",
   );
 
   const { response: notAcceptable } = await fetchWith("/about", "text/markdown;q=0");
