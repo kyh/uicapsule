@@ -3,17 +3,25 @@
 import { useEffect, useRef, useState } from "react";
 import type { FC } from "react";
 import { AnimatePresence, MotionConfig, motion, useReducedMotion } from "motion/react";
+import type { Transition } from "motion/react";
 
 /**
- * Seek filmstrip — the tvOS scrub interaction. Dragging the timeline pauses
- * playback and raises a filmstrip of preview frames above the playhead;
- * releasing commits the seek. The "video" is a synthetic day-cycle scene
- * rendered as a pure function of time, so every preview frame is exact.
+ * Seek filmstrip — the tvOS scrub interaction. Grabbing the timeline pauses
+ * playback and unfolds it into a fixed filmstrip; the scrub head glides over
+ * it with a single preview frame floating above. The picture holds the
+ * committed frame and only jumps on release. The "video" is a synthetic
+ * day-cycle scene rendered as a pure function of time, so every preview
+ * frame is exact.
  */
 
 /** Full playback loop, in seconds of real time. */
 const LOOP_SECONDS = 48;
-const FRAME_OFFSETS = [-0.09, -0.045, 0, 0.045, 0.09];
+const TRACK_WIDTH = 572;
+const PREVIEW_WIDTH = 176;
+const PREVIEW_HEIGHT = 99;
+const STRIP = Array.from({ length: 12 }, (_, i) => (i + 0.5) / 12);
+const SPRING: Transition = { damping: 32, stiffness: 420, type: "spring" };
+const INSTANT: Transition = { duration: 0 };
 
 const clamp01 = (value: number) => Math.min(1, Math.max(0, value));
 const lerp = (a: number, b: number, u: number) => a + (b - a) * u;
@@ -140,12 +148,13 @@ export const SeekFilmstrip = () => {
   const [playChoice, setPlayChoice] = useState<boolean | null>(null);
   const reduced = useReducedMotion() ?? false;
   const playing = playChoice ?? !reduced;
-  const [scrub, setScrub] = useState<{ t: number } | null>(null);
+  const [scrubT, setScrubT] = useState<number | null>(null);
+  const scrubbing = scrubT !== null;
   const trackRef = useRef<HTMLDivElement | null>(null);
   const wasPlayingRef = useRef(false);
 
   useEffect(() => {
-    if (!playing || scrub) {
+    if (!playing || scrubbing) {
       return;
     }
     let raf = 0;
@@ -158,7 +167,7 @@ export const SeekFilmstrip = () => {
     };
     raf = requestAnimationFrame(tick);
     return () => cancelAnimationFrame(raf);
-  }, [playing, scrub]);
+  }, [playing, scrubbing]);
 
   const tFromPointer = (clientX: number) => {
     const rect = trackRef.current?.getBoundingClientRect();
@@ -168,16 +177,29 @@ export const SeekFilmstrip = () => {
     return clamp01((clientX - rect.left) / rect.width);
   };
 
-  const shownT = scrub ? scrub.t : playedT;
+  const endScrub = (commitT: number | null) => {
+    if (commitT !== null) {
+      setPlayedT(commitT);
+    }
+    setScrubT(null);
+    setPlayChoice(wasPlayingRef.current);
+  };
+
+  const headT = scrubT ?? playedT;
+  const previewLeft = Math.min(
+    TRACK_WIDTH - PREVIEW_WIDTH,
+    Math.max(0, headT * TRACK_WIDTH - PREVIEW_WIDTH / 2),
+  );
+  const spring = reduced ? INSTANT : SPRING;
 
   return (
     <MotionConfig reducedMotion="user">
       <div className="w-[620px] overflow-hidden rounded-3xl bg-[#101116] shadow-2xl shadow-black/60 ring-1 ring-white/10 select-none">
-        <div className="relative h-[280px]">
-          <Frame t={shownT} />
+        <div className="relative h-[300px]">
+          <Frame t={playedT} />
           <motion.div
             aria-hidden
-            animate={{ opacity: scrub ? 0.35 : 0 }}
+            animate={{ opacity: scrubbing ? 0.3 : 0 }}
             className="pointer-events-none absolute inset-0 bg-black"
           />
           <div className="absolute top-4 left-5 text-[12px] font-medium text-white/85 drop-shadow">
@@ -185,82 +207,84 @@ export const SeekFilmstrip = () => {
           </div>
         </div>
 
-        <div className="relative px-6 pt-5 pb-6">
-          <AnimatePresence>
-            {scrub && (
-              <motion.div
-                initial={{ opacity: 0, scale: 0.96, y: 10 }}
-                animate={{ opacity: 1, scale: 1, y: 0 }}
-                exit={{ opacity: 0, scale: 0.97, y: 8 }}
-                transition={{ damping: 34, stiffness: 500, type: "spring" }}
-                className="pointer-events-none absolute -top-[64px] z-10 flex -translate-x-1/2 items-end gap-1.5"
-                style={{
-                  left: `calc(24px + ${String(scrub.t * 100)}% * 0.9226)`,
-                }}
-              >
-                {FRAME_OFFSETS.map((offset) => {
-                  const frameT = clamp01(scrub.t + offset);
-                  const center = offset === 0;
-                  return (
-                    <div
-                      key={offset}
-                      className={`relative overflow-hidden rounded-md ${
-                        center
-                          ? "h-[64px] w-[112px] shadow-xl ring-2 shadow-black/60 ring-white"
-                          : "h-[46px] w-[80px] opacity-60 ring-1 ring-white/20"
-                      }`}
-                    >
-                      <Frame t={frameT} />
-                      {center && (
-                        <span className="absolute bottom-1 left-1/2 -translate-x-1/2 rounded bg-black/55 px-1.5 py-px text-[10px] font-medium text-white tabular-nums">
-                          {timeLabel(frameT)}
-                        </span>
-                      )}
-                    </div>
-                  );
-                })}
-              </motion.div>
-            )}
-          </AnimatePresence>
+        <div className="px-6 pt-4 pb-5">
+          <div className="relative" style={{ width: TRACK_WIDTH }}>
+            <AnimatePresence>
+              {scrubT !== null && (
+                <motion.div
+                  initial={{ opacity: 0, scale: 0.9, y: 8 }}
+                  animate={{ opacity: 1, scale: 1, y: 0 }}
+                  exit={{ opacity: 0, scale: 0.94, y: 6 }}
+                  transition={spring}
+                  className="pointer-events-none absolute bottom-[calc(100%+10px)] z-10 origin-bottom overflow-hidden rounded-lg shadow-2xl ring-2 shadow-black/70 ring-white"
+                  style={{ height: PREVIEW_HEIGHT, left: previewLeft, width: PREVIEW_WIDTH }}
+                >
+                  <Frame t={scrubT} />
+                  <span className="absolute bottom-1.5 left-1/2 -translate-x-1/2 rounded bg-black/60 px-1.5 py-px text-[11px] font-medium text-white tabular-nums">
+                    {timeLabel(scrubT)}
+                  </span>
+                </motion.div>
+              )}
+            </AnimatePresence>
 
-          <div
-            ref={trackRef}
-            className="relative h-8 cursor-pointer touch-none"
-            onPointerDown={(event) => {
-              event.currentTarget.setPointerCapture(event.pointerId);
-              wasPlayingRef.current = playing;
-              setPlayChoice(false);
-              setScrub({ t: tFromPointer(event.clientX) });
-            }}
-            onPointerMove={(event) => {
-              if (event.currentTarget.hasPointerCapture(event.pointerId)) {
-                setScrub({ t: tFromPointer(event.clientX) });
-              }
-            }}
-            onPointerUp={(event) => {
-              const t = tFromPointer(event.clientX);
-              setPlayedT(t);
-              setScrub(null);
-              setPlayChoice(wasPlayingRef.current);
-            }}
-          >
-            <div className="absolute top-1/2 right-0 left-0 h-[5px] -translate-y-1/2 rounded-full bg-white/12">
-              <div
-                className="h-full rounded-full bg-white/85"
-                style={{ width: `${String(shownT * 100)}%` }}
+            <div
+              ref={trackRef}
+              className="relative flex h-[44px] cursor-pointer touch-none items-center"
+              onPointerDown={(event) => {
+                event.currentTarget.setPointerCapture(event.pointerId);
+                wasPlayingRef.current = playing;
+                setPlayChoice(false);
+                setScrubT(tFromPointer(event.clientX));
+              }}
+              onPointerMove={(event) => {
+                if (event.currentTarget.hasPointerCapture(event.pointerId)) {
+                  setScrubT(tFromPointer(event.clientX));
+                }
+              }}
+              onPointerUp={(event) => endScrub(tFromPointer(event.clientX))}
+              onPointerCancel={() => endScrub(null)}
+            >
+              <motion.div
+                animate={{ height: scrubbing ? 40 : 5 }}
+                initial={false}
+                transition={spring}
+                className="relative flex w-full gap-[2px] overflow-hidden rounded-md bg-white/12"
+              >
+                {STRIP.map((t) => (
+                  <motion.div
+                    key={t}
+                    animate={{ opacity: scrubbing ? 1 : 0 }}
+                    initial={false}
+                    className="h-full flex-1"
+                  >
+                    <Frame t={t} />
+                  </motion.div>
+                ))}
+                <div
+                  className="absolute inset-y-0 left-0 bg-white/85"
+                  style={{ opacity: scrubbing ? 0 : 1, width: `${String(playedT * 100)}%` }}
+                />
+                <div
+                  className="absolute inset-y-0 right-0 bg-black/45"
+                  style={{
+                    opacity: scrubbing ? 1 : 0,
+                    width: `${String((1 - headT) * 100)}%`,
+                  }}
+                />
+              </motion.div>
+              <motion.div
+                animate={{ height: scrubbing ? 52 : 13, width: scrubbing ? 3 : 13 }}
+                initial={false}
+                transition={spring}
+                className="pointer-events-none absolute top-1/2 -translate-x-1/2 -translate-y-1/2 rounded-full bg-white shadow-md shadow-black/60"
+                style={{ left: `${String(headT * 100)}%` }}
               />
             </div>
-            <motion.div
-              animate={{ scale: scrub ? 1.5 : 1 }}
-              transition={{ damping: 30, stiffness: 500, type: "spring" }}
-              className="absolute top-1/2 size-[13px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-white shadow-md shadow-black/50"
-              style={{ left: `${String(shownT * 100)}%` }}
-            />
           </div>
 
-          <div className="mt-1.5 flex items-center justify-between">
+          <div className="mt-2 flex items-center justify-between">
             <span className="text-[12px] font-medium text-white/70 tabular-nums">
-              {timeLabel(shownT)}
+              {timeLabel(playedT)}
             </span>
             <button
               type="button"
