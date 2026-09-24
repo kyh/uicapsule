@@ -1,0 +1,7 @@
+{
+  "name": "Token Confidence",
+  "description": "Generated text that shows its work — per-token certainty as opacity and weight, and clicking a shaky word fans out the alternatives the model almost said.",
+  "addedAt": "2026-09-23",
+  "cover": "token-confidence/token-confidence.mp4",
+  "tags": ["data", "minimal"]
+}
