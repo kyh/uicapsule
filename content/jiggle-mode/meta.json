@@ -1,7 +1,7 @@
 {
   "name": "Jiggle Mode",
   "description": "iOS home-screen edit mode — long-press to wobble, drag to reorder, tap the badge to remove.",
-  "addedAt": "2026-09-23",
+  "addedAt": "2026-09-15",
   "cover": "jiggle-mode/jiggle-mode.mp4",
   "tags": ["cards-grids", "skeuomorphism", "silly"]
 }
