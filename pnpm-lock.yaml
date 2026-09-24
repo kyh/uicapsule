@@ -324,25 +324,6 @@ importers:
         specifier: 'catalog:'
         version: 7.0.2
 
-  content/ai-cursor:
-    dependencies:
-      motion:
-        specifier: ^12.40.0
-        version: 12.43.0(react-dom@19.3.0(react@19.3.0))(react@19.3.0)
-      react:
-        specifier: 'catalog:'
-        version: 19.3.0
-      react-dom:
-        specifier: 'catalog:'
-        version: 19.3.0(react@19.3.0)
-    devDependencies:
-      '@types/react':
-        specifier: 'catalog:'
-        version: 19.3.0
-      '@types/react-dom':
-        specifier: 'catalog:'
-        version: 19.3.0(@types/react@19.3.0)
-
   content/airdrop-radar:
     dependencies:
       lucide-react:
@@ -392,25 +373,6 @@ importers:
       '@types/three':
         specifier: ^0.186.0
         version: 0.186.0
-
-  content/assistant-orb:
-    dependencies:
-      motion:
-        specifier: ^12.40.0
-        version: 12.43.0(react-dom@19.3.0(react@19.3.0))(react@19.3.0)
-      react:
-        specifier: 'catalog:'
-        version: 19.3.0
-      react-dom:
-        specifier: 'catalog:'
-        version: 19.3.0(react@19.3.0)
-    devDependencies:
-      '@types/react':
-        specifier: 'catalog:'
-        version: 19.3.0
-      '@types/react-dom':
-        specifier: 'catalog:'
-        version: 19.3.0(@types/react@19.3.0)
 
   content/background-pixel-stars:
     dependencies:
@@ -491,28 +453,6 @@ importers:
         specifier: ^0.186.0
         version: 0.186.0
 
-  content/chat-heads:
-    dependencies:
-      lucide-react:
-        specifier: ^1.16.0
-        version: 1.47.0(react@19.3.0)
-      motion:
-        specifier: ^12.40.0
-        version: 12.43.0(react-dom@19.3.0(react@19.3.0))(react@19.3.0)
-      react:
-        specifier: 'catalog:'
-        version: 19.3.0
-      react-dom:
-        specifier: 'catalog:'
-        version: 19.3.0(react@19.3.0)
-    devDependencies:
-      '@types/react':
-        specifier: 'catalog:'
-        version: 19.3.0
-      '@types/react-dom':
-        specifier: 'catalog:'
-        version: 19.3.0(@types/react@19.3.0)
-
   content/chibi-plants:
     dependencies:
       react:
@@ -557,67 +497,7 @@ importers:
         specifier: 'catalog:'
         version: 19.3.0(@types/react@19.3.0)
 
-  content/citation-beams:
-    dependencies:
-      motion:
-        specifier: ^12.40.0
-        version: 12.43.0(react-dom@19.3.0(react@19.3.0))(react@19.3.0)
-      react:
-        specifier: 'catalog:'
-        version: 19.3.0
-      react-dom:
-        specifier: 'catalog:'
-        version: 19.3.0(react@19.3.0)
-    devDependencies:
-      '@types/react':
-        specifier: 'catalog:'
-        version: 19.3.0
-      '@types/react-dom':
-        specifier: 'catalog:'
-        version: 19.3.0(@types/react@19.3.0)
-
-  content/context-chips:
-    dependencies:
-      motion:
-        specifier: ^12.40.0
-        version: 12.43.0(react-dom@19.3.0(react@19.3.0))(react@19.3.0)
-      react:
-        specifier: 'catalog:'
-        version: 19.3.0
-      react-dom:
-        specifier: 'catalog:'
-        version: 19.3.0(react@19.3.0)
-    devDependencies:
-      '@types/react':
-        specifier: 'catalog:'
-        version: 19.3.0
-      '@types/react-dom':
-        specifier: 'catalog:'
-        version: 19.3.0(@types/react@19.3.0)
-
   content/context-menu-peek:
-    dependencies:
-      lucide-react:
-        specifier: ^1.16.0
-        version: 1.47.0(react@19.3.0)
-      motion:
-        specifier: ^12.40.0
-        version: 12.43.0(react-dom@19.3.0(react@19.3.0))(react@19.3.0)
-      react:
-        specifier: 'catalog:'
-        version: 19.3.0
-      react-dom:
-        specifier: 'catalog:'
-        version: 19.3.0(react@19.3.0)
-    devDependencies:
-      '@types/react':
-        specifier: 'catalog:'
-        version: 19.3.0
-      '@types/react-dom':
-        specifier: 'catalog:'
-        version: 19.3.0(@types/react@19.3.0)
-
-  content/control-center-tile:
     dependencies:
       lucide-react:
         specifier: ^1.16.0
@@ -821,25 +701,6 @@ importers:
         specifier: 'catalog:'
         version: 19.3.0(@types/react@19.3.0)
 
-  content/epg-grid:
-    dependencies:
-      motion:
-        specifier: ^12.40.0
-        version: 12.43.0(react-dom@19.3.0(react@19.3.0))(react@19.3.0)
-      react:
-        specifier: 'catalog:'
-        version: 19.3.0
-      react-dom:
-        specifier: 'catalog:'
-        version: 19.3.0(react@19.3.0)
-    devDependencies:
-      '@types/react':
-        specifier: 'catalog:'
-        version: 19.3.0
-      '@types/react-dom':
-        specifier: 'catalog:'
-        version: 19.3.0(@types/react@19.3.0)
-
   content/expanding-header-menu:
     dependencies:
       cn:
@@ -905,28 +766,6 @@ importers:
         specifier: 'catalog:'
         version: 19.3.0(@types/react@19.3.0)
 
-  content/fingerprint-unlock:
-    dependencies:
-      lucide-react:
-        specifier: ^1.16.0
-        version: 1.47.0(react@19.3.0)
-      motion:
-        specifier: ^12.40.0
-        version: 12.43.0(react-dom@19.3.0(react@19.3.0))(react@19.3.0)
-      react:
-        specifier: 'catalog:'
-        version: 19.3.0
-      react-dom:
-        specifier: 'catalog:'
-        version: 19.3.0(react@19.3.0)
-    devDependencies:
-      '@types/react':
-        specifier: 'catalog:'
-        version: 19.3.0
-      '@types/react-dom':
-        specifier: 'catalog:'
-        version: 19.3.0(@types/react@19.3.0)
-
   content/formation:
     dependencies:
       gsap:
@@ -974,25 +813,6 @@ importers:
         specifier: ^0.186.0
         version: 0.186.0
 
-  content/ghost-text:
-    dependencies:
-      motion:
-        specifier: ^12.40.0
-        version: 12.43.0(react-dom@19.3.0(react@19.3.0))(react@19.3.0)
-      react:
-        specifier: 'catalog:'
-        version: 19.3.0
-      react-dom:
-        specifier: 'catalog:'
-        version: 19.3.0(react@19.3.0)
-    devDependencies:
-      '@types/react':
-        specifier: 'catalog:'
-        version: 19.3.0
-      '@types/react-dom':
-        specifier: 'catalog:'
-        version: 19.3.0(@types/react@19.3.0)
-
   content/gradient-orb:
     dependencies:
       '@react-three/fiber':
@@ -1026,28 +846,6 @@ importers:
       lucide-react:
         specifier: ^1.47.0
         version: 1.47.0(react@19.3.0)
-      react:
-        specifier: 'catalog:'
-        version: 19.3.0
-      react-dom:
-        specifier: 'catalog:'
-        version: 19.3.0(react@19.3.0)
-    devDependencies:
-      '@types/react':
-        specifier: 'catalog:'
-        version: 19.3.0
-      '@types/react-dom':
-        specifier: 'catalog:'
-        version: 19.3.0(@types/react@19.3.0)
-
-  content/imessage-send:
-    dependencies:
-      lucide-react:
-        specifier: ^1.16.0
-        version: 1.47.0(react@19.3.0)
-      motion:
-        specifier: ^12.40.0
-        version: 12.43.0(react-dom@19.3.0(react@19.3.0))(react@19.3.0)
       react:
         specifier: 'catalog:'
         version: 19.3.0
@@ -1228,69 +1026,6 @@ importers:
         specifier: 'catalog:'
         version: 19.3.0(@types/react@19.3.0)
 
-  content/next-episode-card:
-    dependencies:
-      motion:
-        specifier: ^12.40.0
-        version: 12.43.0(react-dom@19.3.0(react@19.3.0))(react@19.3.0)
-      react:
-        specifier: 'catalog:'
-        version: 19.3.0
-      react-dom:
-        specifier: 'catalog:'
-        version: 19.3.0(react@19.3.0)
-    devDependencies:
-      '@types/react':
-        specifier: 'catalog:'
-        version: 19.3.0
-      '@types/react-dom':
-        specifier: 'catalog:'
-        version: 19.3.0(@types/react@19.3.0)
-
-  content/notification-shade:
-    dependencies:
-      lucide-react:
-        specifier: ^1.16.0
-        version: 1.47.0(react@19.3.0)
-      motion:
-        specifier: ^12.40.0
-        version: 12.43.0(react-dom@19.3.0(react@19.3.0))(react@19.3.0)
-      react:
-        specifier: 'catalog:'
-        version: 19.3.0
-      react-dom:
-        specifier: 'catalog:'
-        version: 19.3.0(react@19.3.0)
-    devDependencies:
-      '@types/react':
-        specifier: 'catalog:'
-        version: 19.3.0
-      '@types/react-dom':
-        specifier: 'catalog:'
-        version: 19.3.0(@types/react@19.3.0)
-
-  content/overscroll-stretch:
-    dependencies:
-      lucide-react:
-        specifier: ^1.16.0
-        version: 1.47.0(react@19.3.0)
-      motion:
-        specifier: ^12.40.0
-        version: 12.43.0(react-dom@19.3.0(react@19.3.0))(react@19.3.0)
-      react:
-        specifier: 'catalog:'
-        version: 19.3.0
-      react-dom:
-        specifier: 'catalog:'
-        version: 19.3.0(react@19.3.0)
-    devDependencies:
-      '@types/react':
-        specifier: 'catalog:'
-        version: 19.3.0
-      '@types/react-dom':
-        specifier: 'catalog:'
-        version: 19.3.0(@types/react@19.3.0)
-
   content/paper-roll:
     dependencies:
       react:
@@ -1335,51 +1070,7 @@ importers:
         specifier: ^0.186.0
         version: 0.186.0
 
-  content/passcode-screen:
-    dependencies:
-      lucide-react:
-        specifier: ^1.16.0
-        version: 1.47.0(react@19.3.0)
-      motion:
-        specifier: ^12.40.0
-        version: 12.43.0(react-dom@19.3.0(react@19.3.0))(react@19.3.0)
-      react:
-        specifier: 'catalog:'
-        version: 19.3.0
-      react-dom:
-        specifier: 'catalog:'
-        version: 19.3.0(react@19.3.0)
-    devDependencies:
-      '@types/react':
-        specifier: 'catalog:'
-        version: 19.3.0
-      '@types/react-dom':
-        specifier: 'catalog:'
-        version: 19.3.0(@types/react@19.3.0)
-
   content/pattern-unlock:
-    dependencies:
-      lucide-react:
-        specifier: ^1.16.0
-        version: 1.47.0(react@19.3.0)
-      motion:
-        specifier: ^12.40.0
-        version: 12.43.0(react-dom@19.3.0(react@19.3.0))(react@19.3.0)
-      react:
-        specifier: 'catalog:'
-        version: 19.3.0
-      react-dom:
-        specifier: 'catalog:'
-        version: 19.3.0(react@19.3.0)
-    devDependencies:
-      '@types/react':
-        specifier: 'catalog:'
-        version: 19.3.0
-      '@types/react-dom':
-        specifier: 'catalog:'
-        version: 19.3.0(@types/react@19.3.0)
-
-  content/pinch-grid:
     dependencies:
       lucide-react:
         specifier: ^1.16.0
@@ -1467,25 +1158,6 @@ importers:
         specifier: 'catalog:'
         version: 19.3.0(@types/react@19.3.0)
 
-  content/regen-scrubber:
-    dependencies:
-      motion:
-        specifier: ^12.40.0
-        version: 12.43.0(react-dom@19.3.0(react@19.3.0))(react@19.3.0)
-      react:
-        specifier: 'catalog:'
-        version: 19.3.0
-      react-dom:
-        specifier: 'catalog:'
-        version: 19.3.0(react@19.3.0)
-    devDependencies:
-      '@types/react':
-        specifier: 'catalog:'
-        version: 19.3.0
-      '@types/react-dom':
-        specifier: 'catalog:'
-        version: 19.3.0(@types/react@19.3.0)
-
   content/screenshot-capture:
     dependencies:
       lucide-react:
@@ -1527,49 +1199,11 @@ importers:
         specifier: 'catalog:'
         version: 19.3.0(@types/react@19.3.0)
 
-  content/semantic-zoom:
-    dependencies:
-      motion:
-        specifier: ^12.40.0
-        version: 12.43.0(react-dom@19.3.0(react@19.3.0))(react@19.3.0)
-      react:
-        specifier: 'catalog:'
-        version: 19.3.0
-      react-dom:
-        specifier: 'catalog:'
-        version: 19.3.0(react@19.3.0)
-    devDependencies:
-      '@types/react':
-        specifier: 'catalog:'
-        version: 19.3.0
-      '@types/react-dom':
-        specifier: 'catalog:'
-        version: 19.3.0(@types/react@19.3.0)
-
   content/sidebar:
     dependencies:
       lucide-react:
         specifier: ^1.47.0
         version: 1.47.0(react@19.3.0)
-      react:
-        specifier: 'catalog:'
-        version: 19.3.0
-      react-dom:
-        specifier: 'catalog:'
-        version: 19.3.0(react@19.3.0)
-    devDependencies:
-      '@types/react':
-        specifier: 'catalog:'
-        version: 19.3.0
-      '@types/react-dom':
-        specifier: 'catalog:'
-        version: 19.3.0(@types/react@19.3.0)
-
-  content/siri-edge-glow:
-    dependencies:
-      motion:
-        specifier: ^12.40.0
-        version: 12.43.0(react-dom@19.3.0(react@19.3.0))(react@19.3.0)
       react:
         specifier: 'catalog:'
         version: 19.3.0
@@ -1681,69 +1315,6 @@ importers:
         specifier: 'catalog:'
         version: 19.3.0(@types/react@19.3.0)
 
-  content/streaming-markdown:
-    dependencies:
-      motion:
-        specifier: ^12.40.0
-        version: 12.43.0(react-dom@19.3.0(react@19.3.0))(react@19.3.0)
-      react:
-        specifier: 'catalog:'
-        version: 19.3.0
-      react-dom:
-        specifier: 'catalog:'
-        version: 19.3.0(react@19.3.0)
-    devDependencies:
-      '@types/react':
-        specifier: 'catalog:'
-        version: 19.3.0
-      '@types/react-dom':
-        specifier: 'catalog:'
-        version: 19.3.0(@types/react@19.3.0)
-
-  content/swipe-actions:
-    dependencies:
-      lucide-react:
-        specifier: ^1.16.0
-        version: 1.47.0(react@19.3.0)
-      motion:
-        specifier: ^12.40.0
-        version: 12.43.0(react-dom@19.3.0(react@19.3.0))(react@19.3.0)
-      react:
-        specifier: 'catalog:'
-        version: 19.3.0
-      react-dom:
-        specifier: 'catalog:'
-        version: 19.3.0(react@19.3.0)
-    devDependencies:
-      '@types/react':
-        specifier: 'catalog:'
-        version: 19.3.0
-      '@types/react-dom':
-        specifier: 'catalog:'
-        version: 19.3.0(@types/react@19.3.0)
-
-  content/swipe-approvals:
-    dependencies:
-      lucide-react:
-        specifier: ^1.16.0
-        version: 1.47.0(react@19.3.0)
-      motion:
-        specifier: ^12.40.0
-        version: 12.43.0(react-dom@19.3.0(react@19.3.0))(react@19.3.0)
-      react:
-        specifier: 'catalog:'
-        version: 19.3.0
-      react-dom:
-        specifier: 'catalog:'
-        version: 19.3.0(react@19.3.0)
-    devDependencies:
-      '@types/react':
-        specifier: 'catalog:'
-        version: 19.3.0
-      '@types/react-dom':
-        specifier: 'catalog:'
-        version: 19.3.0(@types/react@19.3.0)
-
   content/terminal-disintegrate:
     dependencies:
       react:
@@ -1782,25 +1353,6 @@ importers:
         specifier: 'catalog:'
         version: 19.3.0(@types/react@19.3.0)
 
-  content/token-confidence:
-    dependencies:
-      motion:
-        specifier: ^12.40.0
-        version: 12.43.0(react-dom@19.3.0(react@19.3.0))(react@19.3.0)
-      react:
-        specifier: 'catalog:'
-        version: 19.3.0
-      react-dom:
-        specifier: 'catalog:'
-        version: 19.3.0(react@19.3.0)
-    devDependencies:
-      '@types/react':
-        specifier: 'catalog:'
-        version: 19.3.0
-      '@types/react-dom':
-        specifier: 'catalog:'
-        version: 19.3.0(@types/react@19.3.0)
-
   content/tooltip-grid:
     dependencies:
       '@floating-ui/react':
@@ -1809,44 +1361,6 @@ importers:
       motion:
         specifier: ^13.4.0
         version: 13.4.0(react-dom@19.3.0(react@19.3.0))(react@19.3.0)
-      react:
-        specifier: 'catalog:'
-        version: 19.3.0
-      react-dom:
-        specifier: 'catalog:'
-        version: 19.3.0(react@19.3.0)
-    devDependencies:
-      '@types/react':
-        specifier: 'catalog:'
-        version: 19.3.0
-      '@types/react-dom':
-        specifier: 'catalog:'
-        version: 19.3.0(@types/react@19.3.0)
-
-  content/transcript-settle:
-    dependencies:
-      motion:
-        specifier: ^12.40.0
-        version: 12.43.0(react-dom@19.3.0(react@19.3.0))(react@19.3.0)
-      react:
-        specifier: 'catalog:'
-        version: 19.3.0
-      react-dom:
-        specifier: 'catalog:'
-        version: 19.3.0(react@19.3.0)
-    devDependencies:
-      '@types/react':
-        specifier: 'catalog:'
-        version: 19.3.0
-      '@types/react-dom':
-        specifier: 'catalog:'
-        version: 19.3.0(@types/react@19.3.0)
-
-  content/tv-focus-cards:
-    dependencies:
-      motion:
-        specifier: ^12.40.0
-        version: 12.43.0(react-dom@19.3.0(react@19.3.0))(react@19.3.0)
       react:
         specifier: 'catalog:'
         version: 19.3.0
