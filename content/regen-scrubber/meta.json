@@ -1,0 +1,7 @@
+{
+  "name": "Regen Scrubber",
+  "description": "Stop hammering regenerate — drag through variation space. The artwork interpolates continuously between seeds and detents onto the nearest one on release.",
+  "addedAt": "2026-09-23",
+  "cover": "regen-scrubber/regen-scrubber.mp4",
+  "tags": ["controls", "colorful"]
+}
