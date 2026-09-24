@@ -701,31 +701,6 @@ importers:
         specifier: 'catalog:'
         version: 19.3.0(@types/react@19.3.0)
 
-  content/expanding-header-menu:
-    dependencies:
-      cn:
-        specifier: ^0.3.2
-        version: 0.3.2
-      lucide-react:
-        specifier: ^1.47.0
-        version: 1.47.0(react@19.3.0)
-      motion:
-        specifier: ^13.4.0
-        version: 13.4.0(react-dom@19.3.0(react@19.3.0))(react@19.3.0)
-      react:
-        specifier: 'catalog:'
-        version: 19.3.0
-      react-dom:
-        specifier: 'catalog:'
-        version: 19.3.0(react@19.3.0)
-    devDependencies:
-      '@types/react':
-        specifier: 'catalog:'
-        version: 19.3.0
-      '@types/react-dom':
-        specifier: 'catalog:'
-        version: 19.3.0(@types/react@19.3.0)
-
   content/filter-bar:
     dependencies:
       '@ai-sdk/react':
