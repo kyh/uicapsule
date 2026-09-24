@@ -2,6 +2,7 @@
 
 import { createContext, useContext, useMemo } from "react";
 import type { CSSProperties, HTMLAttributes } from "react";
+import { mergeProps } from "@base-ui/react/merge-props";
 import { useRender } from "@base-ui/react/use-render";
 import { ChevronDownIcon } from "lucide-react";
 
@@ -31,7 +32,8 @@ type TreeProps<T = unknown> = {
 const Tree = <T = unknown,>({ indent = 20, tree, className, ...props }: TreeProps<T>) => {
   const context = useMemo(() => ({ indent, tree }), [indent, tree]);
   const containerProps = tree?.getContainerProps?.() ?? {};
-  const mergedProps = { ...props, ...containerProps };
+  // mergeProps chains event handlers; a plain spread would silently drop the consumer's.
+  const mergedProps = mergeProps(containerProps, props);
 
   const { style: propStyle, ...otherProps } = mergedProps;
 
@@ -68,7 +70,7 @@ const TreeItem = <T = unknown,>({
   const context = useMemo(() => ({ currentItem: item, indent }), [indent, item]);
 
   const itemProps = item.getProps?.() ?? {};
-  const mergedProps = { ...props, ...itemProps };
+  const mergedProps = mergeProps(itemProps, props);
 
   const { style: propStyle, ...otherProps } = mergedProps;
 

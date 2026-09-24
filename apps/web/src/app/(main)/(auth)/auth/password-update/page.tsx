@@ -6,11 +6,9 @@ import { UpdatePasswordForm } from "@/app/(main)/(auth)/_components/auth-form";
 
 export const metadata: Metadata = { title: "Update Password" };
 
-interface PageProps {
-  searchParams: Promise<{ token?: string | string[]; error?: string | string[] }>;
-}
-
-const PasswordUpdate = async ({ searchParams }: PageProps) => {
+const PasswordUpdate = async ({
+  searchParams,
+}: Pick<PageProps<"/auth/password-update">, "searchParams">) => {
   const { token, error } = await searchParams;
   if (!token || Array.isArray(token) || error) {
     return (
@@ -25,7 +23,7 @@ const PasswordUpdate = async ({ searchParams }: PageProps) => {
   return <UpdatePasswordForm token={token} />;
 };
 
-const Page = (props: PageProps) => (
+const Page = (props: PageProps<"/auth/password-update">) => (
   <div className="mx-auto flex w-full flex-col justify-center space-y-6 sm:w-[350px]">
     <h1 className="text-center text-lg font-light">Update your password</h1>
     <Suspense fallback={<p>Loading…</p>}>

@@ -10,7 +10,7 @@ import {
 } from "@/lib/agent/site-overview";
 import { rendersOutsideRouter } from "@/lib/agent/site-pages";
 import { buildHomeGraph } from "@/lib/agent/structured-data";
-import { getContentList } from "@/lib/content-data";
+import { getAllContent } from "@/lib/content-data";
 import { siteConfig } from "@/lib/site-config";
 
 import type { ContentFilter } from "@/lib/content/content-categories";
@@ -60,7 +60,7 @@ const OutlineList = ({ items }: { items: ProseListItem[] }) => (
 );
 
 export const GalleryOutline = async () => {
-  const components = await getContentList({ elements: [], styles: [], view: "recent" });
+  const components = await getAllContent();
 
   return (
     <section aria-labelledby="gallery-outline-heading" className="sr-only">
@@ -114,7 +114,5 @@ export const GalleryOutline = async () => {
 };
 
 export const GalleryStructuredData = async () => (
-  <JsonLd
-    node={buildHomeGraph(await getContentList({ elements: [], styles: [], view: "recent" }))}
-  />
+  <JsonLd node={buildHomeGraph(await getAllContent())} />
 );

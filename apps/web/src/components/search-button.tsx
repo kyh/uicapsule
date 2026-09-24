@@ -1,7 +1,7 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
-import type { ReactNode } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import type { MouseEvent, ReactNode } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { motion } from "motion/react";
@@ -186,13 +186,28 @@ export const SearchButton = ({ searchEntries }: { searchEntries: SearchEntry[] }
     );
   }, [facetSuggestions, hasQuery, normalizedQuery]);
 
+  // cmdk fires onSelect for clicks too, after the Link has already navigated (or, with a
+  // modifier held, opened a new tab); onSelect only navigates for keyboard selection.
+  const selectedByPointer = useRef(false);
+
   const handleSelect = useCallback(
     (href: string) => {
+      if (selectedByPointer.current) {
+        selectedByPointer.current = false;
+        return;
+      }
       changeSearchOpen(false);
       router.push(href);
     },
     [changeSearchOpen, router],
   );
+
+  const handleLinkClick = (event: MouseEvent<HTMLAnchorElement>) => {
+    selectedByPointer.current = true;
+    if (!(event.metaKey || event.ctrlKey || event.shiftKey || event.altKey)) {
+      changeSearchOpen(false);
+    }
+  };
 
   const trendingSuggestions: SearchSuggestion[] = trending.map((entry) => ({
     href: `/ui/${entry.slug}`,
@@ -237,7 +252,7 @@ export const SearchButton = ({ searchEntries }: { searchEntries: SearchEntry[] }
         className="px-2.5 py-2"
         onSelect={() => handleSelect(suggestion.href)}
       >
-        <Link href={suggestion.href}>
+        <Link href={suggestion.href} onClick={handleLinkClick}>
           <span className="bg-muted flex size-10 shrink-0 items-center justify-center rounded-md">
             <Icon className="text-muted-foreground size-4.5" aria-hidden="true" />
           </span>
@@ -303,6 +318,7 @@ export const SearchButton = ({ searchEntries }: { searchEntries: SearchEntry[] }
                       <button
                         key={view.id}
                         type="button"
+                        aria-pressed={activeView === view.id}
                         className={cn(
                           "flex shrink-0 items-center gap-2 rounded-full px-3 py-1.5 text-xs font-medium transition",
                           activeView === view.id ? "bg-muted" : "hover:bg-muted/50",
@@ -319,6 +335,7 @@ export const SearchButton = ({ searchEntries }: { searchEntries: SearchEntry[] }
                       <button
                         key={view.id}
                         type="button"
+                        aria-pressed={activeView === view.id}
                         className={cn(
                           "flex items-center gap-2.5 rounded-md px-3 py-2.5 text-left text-sm font-medium transition",
                           activeView === view.id ? "bg-muted" : "hover:bg-muted/50",

@@ -234,6 +234,11 @@ export const CodePreview = ({ sourceFiles }: CodePreviewProps) => {
     getItemName: (item) => item.getItemData().name,
     indent: INDENT,
     isItemFolder: (item) => item.getItemData().isFolder,
+    onPrimaryAction: (item) => {
+      if (!item.isFolder()) {
+        setSelectedPath(item.getItemData().path);
+      }
+    },
     rootItemId: ROOT_ID,
   });
 
@@ -254,17 +259,17 @@ export const CodePreview = ({ sourceFiles }: CodePreviewProps) => {
             const itemData = item.getItemData();
 
             return (
-              <TreeItem key={item.getId()} item={item} className="pb-0!">
+              <TreeItem
+                key={item.getId()}
+                item={item}
+                aria-selected={selectedPath === itemData.path}
+                className="pb-0!"
+              >
                 <TreeItemLabel
                   className={cn(
                     "rounded-none py-1",
                     selectedPath === itemData.path && "text-primary",
                   )}
-                  onClick={() => {
-                    if (!itemData.isFolder) {
-                      setSelectedPath(itemData.path);
-                    }
-                  }}
                 >
                   <span className="flex items-center gap-2 truncate">
                     {!item.isFolder() &&

@@ -1,9 +1,6 @@
 import type { NextRequest } from "next/server";
-import {
-  attachmentMetaSchema,
-  AttachmentUploadError,
-  uploadAttachment,
-} from "@repo/api/request/github-attachment";
+import { attachmentMetaSchema } from "@repo/api/request/attachment";
+import { AttachmentUploadError, uploadAttachment } from "@repo/api/request/github-attachment";
 
 // Multipart upload proxied to GitHub's attachment store. Same-origin only, like /api/orpc.
 export const POST = async (req: NextRequest) => {

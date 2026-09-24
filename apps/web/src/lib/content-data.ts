@@ -1,6 +1,6 @@
 import { cacheLife } from "next/cache";
 
-import { elementSlugs, styleSlugs } from "./content/content-categories";
+import { resolveCover } from "./assets";
 import {
   buildShadcnRegistryItem,
   readContentBySlug,
@@ -9,6 +9,7 @@ import {
 } from "./content/content-fs";
 
 import type { ContentComponentSummary, SourceFile } from "./content/content-schema";
+import type { GalleryCard } from "./content/gallery";
 
 // Content changes only on deploy; cache keys include the build ID.
 export const getAllContent = async (): Promise<ContentComponentSummary[]> => {
@@ -17,74 +18,30 @@ export const getAllContent = async (): Promise<ContentComponentSummary[]> => {
   return await readContentIndex();
 };
 
-export type GalleryEntry = ContentComponentSummary & { isNew: boolean };
+// Slugs whose source ships in this repo; remote entries only link out.
+export const getLocalSlugs = async (): Promise<string[]> => {
+  const all = await getAllContent();
+  return all.filter((c) => c.type === "local").map((c) => c.slug);
+};
 
 const NEW_FOR_DAYS = 30;
 
 // "New" is judged at cache time, like everything else here: it refreshes on deploy.
-const markNew = (components: ContentComponentSummary[]): GalleryEntry[] => {
+export const getGalleryCards = async (): Promise<GalleryCard[]> => {
+  "use cache";
+  cacheLife("max");
   const newSince = new Date(Date.now() - NEW_FOR_DAYS * 24 * 60 * 60 * 1000)
     .toISOString()
     .slice(0, 10);
-  return components.map((component) => ({ ...component, isNew: component.addedAt >= newSince }));
-};
-
-export type GalleryView = "recent" | "recommended";
-
-export interface GalleryFilter {
-  view: GalleryView;
-  elements: string[];
-  styles: string[];
-}
-
-// Selections within an axis are OR'd; the axes themselves are AND'd.
-const matchesFilter = (component: ContentComponentSummary, filter: GalleryFilter) => {
-  const { tags } = component;
-  const matchesAxis = (selection: string[]) =>
-    selection.length === 0 || selection.some((slug) => tags.includes(slug));
-  return matchesAxis(filter.elements) && matchesAxis(filter.styles);
-};
-
-const visibleContent = (all: ContentComponentSummary[], filter: GalleryFilter) =>
-  all.filter((component) => matchesFilter(component, filter));
-
-// The index is already newest-first; a view only reorders, never hides.
-const orderBy = (view: GalleryView, components: ContentComponentSummary[]) =>
-  view === "recommended"
-    ? components.toSorted((a, b) => Number(Boolean(b.featured)) - Number(Boolean(a.featured)))
-    : components;
-
-export const getContentList = async (filter: GalleryFilter): Promise<GalleryEntry[]> => {
-  "use cache";
-  cacheLife("max");
-  return markNew(orderBy(filter.view, visibleContent(await getAllContent(), filter)));
-};
-
-export interface FilterCounts {
-  elements: Record<string, number>;
-  styles: Record<string, number>;
-}
-
-// Each axis is counted against the other axes' selection so no option leads to an empty gallery.
-export const getFilterCounts = async (filter: GalleryFilter): Promise<FilterCounts> => {
-  "use cache";
-  cacheLife("max");
   const all = await getAllContent();
-  const countBy = (
-    slugs: ReadonlySet<string>,
-    withSlug: (slug: string) => Partial<GalleryFilter>,
-  ) =>
-    Object.fromEntries(
-      [...slugs].map((slug) => [
-        slug,
-        visibleContent(all, { ...filter, ...withSlug(slug) }).length,
-      ]),
-    );
-
-  return {
-    elements: countBy(elementSlugs, (slug) => ({ elements: [slug] })),
-    styles: countBy(styleSlugs, (slug) => ({ styles: [slug] })),
-  };
+  return all.map((component) => ({
+    cover: resolveCover(component.cover),
+    featured: Boolean(component.featured),
+    isNew: component.addedAt >= newSince,
+    name: component.name,
+    slug: component.slug,
+    tags: component.tags,
+  }));
 };
 
 export interface SearchEntry {

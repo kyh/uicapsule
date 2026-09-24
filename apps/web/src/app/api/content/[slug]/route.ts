@@ -1,14 +1,15 @@
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 
-import { getSourceFiles } from "@/lib/content-data";
+import { getLocalSlugs, getSourceFiles } from "@/lib/content-data";
 
-interface SourceParams {
-  params: Promise<{ slug: string }>;
-}
+export const generateStaticParams = async () => {
+  const slugs = await getLocalSlugs();
+  return slugs.map((slug) => ({ slug }));
+};
 
 // Keep the drawer/zip payload independent of shadcn's external registry format.
-export const GET = async (_: NextRequest, { params }: SourceParams) => {
+export const GET = async (_: NextRequest, { params }: RouteContext<"/api/content/[slug]">) => {
   const { slug } = await params;
 
   const sourceFiles = await getSourceFiles(slug);

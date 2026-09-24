@@ -10,9 +10,7 @@ import { getAllContent } from "@/lib/content-data";
 
 import type { Metadata } from "next";
 
-interface Props {
-  params: Promise<{ slug: string }>;
-}
+type Props = Pick<PageProps<"/ui/[slug]">, "params">;
 
 export const generateStaticParams = async () => {
   const all = await getAllContent();

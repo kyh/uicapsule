@@ -23,9 +23,12 @@ Content is filesystem-driven; the web app never depends on content packages by n
 - `apps/web/src/lib/content/content-fs.ts` indexes `content/*/meta.json` and reads source
   only for downloads/registry requests. `content-schema.ts` supplies the shared metadata
   parser and inferred types for the loader and build guard;
-  `content-data.ts` wraps it in `"use cache"` server functions (feed, filters, search
+  `content-data.ts` wraps it in `"use cache"` server functions (gallery cards, search
   index, shadcn registry). The `"use cache"` + `cacheLife("max")` pairing is intentional,
   not an oversight — content only ever changes on deploy.
+- The home gallery ships every card in the static shell and filters in the browser
+  (`content/gallery.ts`, pure). Only a leaf reading `useSearchParams` suspends; don't wrap
+  the grid in that Suspense boundary or hydration remounts every card.
 - `preview-frame/[slug]` renders previews via a relative dynamic import of
   `content/<slug>/preview.tsx`.
 - `/r/<slug>.json` serves the shadcn registry item. The source drawer and zip download

@@ -6,7 +6,7 @@ import {
   renderProsePageMarkdown,
 } from "@/lib/agent/markdown";
 import { findPageByPath } from "@/lib/agent/site-pages";
-import { getAllContent, getContentList, getSourceFiles } from "@/lib/content-data";
+import { getAllContent, getSourceFiles } from "@/lib/content-data";
 
 interface MarkdownParams {
   params: Promise<{ slug?: string[] }>;
@@ -27,7 +27,7 @@ const buildBody = async (segments: string[]): Promise<{ body: string; status: nu
     // Mirrors the HTML home page, which shows the listed grid — not the full
     // catalog. /llms.txt is the surface that carries every component.
     return {
-      body: renderHomeMarkdown(await getContentList({ elements: [], styles: [], view: "recent" })),
+      body: renderHomeMarkdown(await getAllContent()),
       status: 200,
     };
   }

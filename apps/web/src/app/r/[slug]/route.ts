@@ -1,13 +1,14 @@
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 
-import { getShadcnRegistry, getShadcnRegistryItem } from "@/lib/content-data";
+import { getLocalSlugs, getShadcnRegistry, getShadcnRegistryItem } from "@/lib/content-data";
 
-interface RegistryParams {
-  params: Promise<{ slug: string }>;
-}
+export const generateStaticParams = async () => {
+  const slugs = await getLocalSlugs();
+  return ["registry", ...slugs].map((slug) => ({ slug: `${slug}.json` }));
+};
 
-export const GET = async (_: NextRequest, { params }: RegistryParams) => {
+export const GET = async (_: NextRequest, { params }: RouteContext<"/r/[slug]">) => {
   const { slug } = await params;
 
   if (!slug.endsWith(".json")) {
