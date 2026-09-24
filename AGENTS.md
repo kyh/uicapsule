@@ -81,11 +81,31 @@ CI runs the same gate on every push and pull request using local test configurat
 - Lint is a clean gate. `oxlint.config.ts` extends the ultracite presets (`ultracite/oxlint/core`, `react`, `next`, `anti-slop`); every rule is an error, including explicit `any`, non-null assertions, and type casts. `no-await-in-loop` is the one deliberate override. Prefer fixing code over `oxlint-disable` comments; when a rule is genuinely wrong for a line, disable that line with a `-- reason`.
   Next.js-only rules apply to the app; content stays portable.
 - Tests cover auth schema/cookies/reset, RPC transport, content filesystem/registry behavior,
-  and the standalone-content guard. Changed visual behavior still needs a browser check.
+  the standalone-content guard, and the agent surfaces (`apps/web/src/lib/agent/*.test.ts` —
+  Accept negotiation, the Markdown/llms.txt/sitemap renderers, the JSON-LD builders).
+  Everything under `src/lib/agent` is pure, so it runs without a Next runtime. Changed
+  visual behavior still needs a browser check, and status codes and headers need
+  `pnpm check:agent-endpoints` against a running server.
 
 `pnpm build` runs `//#check:content` first. It validates metadata, local preview files,
 package manifests, and imports. Private workspace imports and paths escaping the component
 fail the build. Do not remove this guard.
+
+Agent surfaces — the response codes, `Content-Type`/`Vary` headers, JSON-LD and Markdown
+negotiation that `verify` structurally cannot see — have their own runtime gate. It needs a
+server already running:
+
+```sh
+pnpm check:agent-endpoints                  # defaults to http://localhost:3000
+pnpm check:agent-endpoints https://uicapsule.com
+```
+
+Covers homepage `h1` + text-without-JavaScript + content efficiency + JSON-LD,
+`Accept: text/markdown` on every page shape, the head `<link rel="alternate">`, `406`
+on an unsatisfiable markdown Accept, that a non-markdown Accept skips the proxy, q-value
+handling, the Markdown and HTML 404 bodies, `/sitemap.xml`, `/llms.txt`, `/robots.txt`, and
+the three trust-anchor pages. Run it after touching anything in `apps/web/src/lib/agent`,
+`src/proxy.ts`, or page metadata.
 
 Runtime — drive the real UI with [agent-browser](https://github.com/vercel-labs/agent-browser)
 (installed globally: `npm i -g agent-browser && agent-browser install`; ≥ 0.37 for `record --fps 60`):
@@ -112,15 +132,19 @@ agent-browser network requests --filter sign-in   # expect 200; a 403 means the 
 
 The routes worth checking, and what each proves:
 
-| Route                   | Proves                                                |
-| ----------------------- | ----------------------------------------------------- |
-| `/`                     | gallery grid, filters, search (`⌘K`)                  |
-| `/ui/<slug>`            | detail page, live preview iframe, source-code drawer  |
-| `/preview-frame/<slug>` | the bare preview — what the cover-video skill records |
-| `/r/<slug>.json`        | shadcn registry item (external CLI contract)          |
-| `/r/registry.json`      | the full registry index                               |
-| `/api/content/<slug>`   | source payload behind the drawer + zip download       |
-| `/about`, `/request`    | static page; request form → GitHub issue              |
+| Route                     | Proves                                                |
+| ------------------------- | ----------------------------------------------------- |
+| `/`                       | gallery grid, filters, search (`⌘K`)                  |
+| `/ui/<slug>`              | detail page, live preview iframe, source-code drawer  |
+| `/preview-frame/<slug>`   | the bare preview — what the cover-video skill records |
+| `/r/<slug>.json`          | shadcn registry item (external CLI contract)          |
+| `/r/registry.json`        | the full registry index                               |
+| `/api/content/<slug>`     | source payload behind the drawer + zip download       |
+| `/about`, `/request`      | static page; request form → GitHub issue              |
+| `/contact`, `/privacy`    | prose pages (trust anchors)                           |
+| `/llms.txt`               | llmstxt.org index — overview + full component catalog |
+| `/sitemap.xml`            | every indexable URL, with `lastmod`                   |
+| `/index.md`, `/<path>.md` | the Markdown representation of any page               |
 
 **Before reporting a visual bug in a brand-new component, clear the Turbopack cache.** Its
 persistent cache freezes the Tailwind `@source` glob, so classes that exist only in a newly
@@ -185,6 +209,10 @@ Web is the only surface. There is no mobile, desktop, or extension target.
   source on demand; `src/lib/content-data.ts` adds `"use cache"`. `content-schema.ts` owns
   metadata validation for the loader and build guard. Header, search, profile, and footer
   live in separate files under `src/components/`.
+- `apps/web/src/lib/agent` — the machine-readable layer: Accept negotiation, Markdown
+  rendering, `llms.txt`, sitemap entries, JSON-LD, and the prose-page definitions that
+  `/about`, `/contact` and `/privacy` render from. Pure and unit-tested; `src/proxy.ts` and
+  the routes only feed it data.
 - `packages/ui` — Base UI + shadcn-derived components · `packages/db` — Drizzle + Turso ·
   `packages/api` — oRPC + better-auth
 - `content/<slug>/` — one workspace package per component

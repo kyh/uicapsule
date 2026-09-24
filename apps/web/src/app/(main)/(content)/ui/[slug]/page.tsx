@@ -1,11 +1,14 @@
 import { Suspense } from "react";
-import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 
 import { ContentFeed } from "@/app/(main)/(content)/_components/content-feed";
+import { JsonLd } from "@/components/json-ld";
 import { MediaReveal } from "@/components/media-reveal";
+import { canonicalAlternates, pageOpenGraph, pageTwitter } from "@/lib/agent/page-metadata";
+import { buildComponentGraph } from "@/lib/agent/structured-data";
 import { getAllContent } from "@/lib/content-data";
-import { ogImage, siteConfig } from "@/lib/site-config";
+
+import type { Metadata } from "next";
 
 type Props = Pick<PageProps<"/ui/[slug]">, "params">;
 
@@ -19,31 +22,44 @@ export const generateMetadata = async ({ params }: Props): Promise<Metadata> => 
   const all = await getAllContent();
   const component = all.find((c) => c.slug === slug);
   if (!component) {
-    return {};
+    return { alternates: canonicalAlternates(`/ui/${slug}`) };
   }
 
-  const title = component.name;
-  const description = component.description ?? siteConfig.description;
-  const url = `/ui/${slug}`;
+  const description =
+    component.description ??
+    `${component.name} — a live, installable React component in the UICapsule gallery.`;
 
-  // openGraph/twitter replace the root layout's objects wholesale, so the image is restated.
   return {
-    alternates: { canonical: url },
+    alternates: canonicalAlternates(`/ui/${component.slug}`),
     description,
-    openGraph: { description, images: [ogImage], title, type: "website", url },
-    title,
-    twitter: { card: "summary_large_image", description, images: [ogImage], title },
+    openGraph: pageOpenGraph(`/ui/${component.slug}`, component.name, description),
+    title: component.name,
+    twitter: pageTwitter(component.name, description),
   };
 };
 
 const Content = async ({ params }: Props) => {
   const { slug } = await params;
   const feed = await getAllContent();
-  if (!feed.some((c) => c.slug === slug)) {
+  // Looked up rather than `.some()` because the JSON-LD and the sr-only
+  // heading below both need the component itself.
+  const component = feed.find((c) => c.slug === slug);
+  if (!component) {
     notFound();
   }
 
-  return <ContentFeed initialSlug={slug} feed={feed} />;
+  return (
+    <>
+      <JsonLd node={buildComponentGraph(component)} />
+      {/* The feed is a full-bleed preview with no heading of its own; this
+          gives the route the `h1` and description its canonical URL claims. */}
+      <div className="sr-only">
+        <h1>{component.name}</h1>
+        {component.description ? <p>{component.description}</p> : null}
+      </div>
+      <ContentFeed initialSlug={slug} feed={feed} />
+    </>
+  );
 };
 
 const ContentFeedSkeleton = () => (

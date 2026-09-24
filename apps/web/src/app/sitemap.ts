@@ -1,23 +1,19 @@
+import { buildSitemapEntries } from "@/lib/agent/sitemap-entries";
+import { getAllContent } from "@/lib/content-data";
+
 import type { MetadataRoute } from "next";
 
-import { getAllContent } from "@/lib/content-data";
-import { siteConfig } from "@/lib/site-config";
-
+/**
+ * Every indexable URL. Unlisted components are included: `unlisted` hides a
+ * component from the grid and the scroll feed, not from the web — its
+ * `/ui/<slug>` page is public, linkable and installable.
+ */
 const sitemap = async (): Promise<MetadataRoute.Sitemap> => {
-  const content = await getAllContent();
-  const latest = content[0]?.addedAt;
+  const components = await getAllContent();
 
-  return [
-    { changeFrequency: "weekly", lastModified: latest, priority: 1, url: siteConfig.url },
-    { changeFrequency: "yearly", priority: 0.5, url: `${siteConfig.url}/about` },
-    { changeFrequency: "yearly", priority: 0.5, url: `${siteConfig.url}/request` },
-    ...content.map((c) => ({
-      changeFrequency: "monthly" as const,
-      lastModified: c.addedAt,
-      priority: 0.8,
-      url: `${siteConfig.url}/ui/${c.slug}`,
-    })),
-  ];
+  return buildSitemapEntries(
+    components.map((component) => ({ addedAt: component.addedAt, slug: component.slug })),
+  );
 };
 
 export default sitemap;

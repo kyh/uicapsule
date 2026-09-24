@@ -19,6 +19,10 @@ const monoFont = localFont({
 });
 
 export const metadata: Metadata = {
+  applicationName: siteConfig.name,
+  authors: [{ name: siteConfig.author.name, url: siteConfig.author.url }],
+  category: "technology",
+  creator: siteConfig.author.name,
   description: siteConfig.description,
   icons: [
     {
@@ -46,6 +50,15 @@ export const metadata: Metadata = {
       url: `${siteConfig.url}/favicon/site.webmanifest`,
     },
   ],
+  keywords: [
+    "React components",
+    "UI components",
+    "shadcn registry",
+    "Tailwind CSS",
+    "interaction design",
+    "motion design",
+    "open source",
+  ],
   metadataBase: new URL(siteConfig.url),
   openGraph: {
     description: siteConfig.description,
@@ -58,6 +71,7 @@ export const metadata: Metadata = {
   other: {
     "apple-mobile-web-app-title": siteConfig.shortName,
   },
+  publisher: siteConfig.name,
   title: {
     default: siteConfig.name,
     template: `%s | ${siteConfig.name}`,

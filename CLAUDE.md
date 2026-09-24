@@ -49,6 +49,37 @@ Visitor text has `@` neutralized so it can't trigger the `@claude` workflow.
 Triage is manual: apply `ready` to accept, close as not-planned to decline. The
 `build-requests` skill drains `ready` issues into PRs (run locally, on a schedule).
 
+### Agent-readable surfaces
+
+`apps/web/src/lib/agent/` is the machine-readable layer, and it is deliberately pure — no
+Next imports, no filesystem — so it can be unit-tested without a runtime. The routes and
+`src/proxy.ts` only feed it data.
+
+- **One source per page.** `site-pages.ts` holds the prose for `/about`, `/contact` and
+  `/privacy`; the JSX page and the Markdown representation both render from it. Never edit
+  the copy in only one of the two.
+- **Markdown content negotiation** (acceptmarkdown.com): `src/proxy.ts` parses `Accept` and
+  rewrites Markdown-preferring requests to `/api/markdown/*`. `/<path>.md` (and `/index.md`
+  for the home page) serves the same thing without an `Accept` header. The proxy's matcher
+  (`has` on `Accept`) only invokes it for `.md` URLs or an `Accept` naming markdown, so
+  plain HTML views never pay for it. Pages advertise their `.md` sibling with a head
+  `<link rel="alternate" type="text/markdown">` (`canonicalAlternates`), not a `Link`
+  header. `406` is reserved for an `Accept` that mentions markdown yet accepts neither
+  representation (`text/markdown;q=0`); one naming neither type never reaches the proxy
+  and gets HTML, as RFC 9110 permits.
+- **`Vary: Accept` comes only from the proxy**, on the responses it negotiates (Markdown
+  rewrites, `.md`, 406). It cannot reach prerendered HTML pages: Next replays a
+  prerender's stored headers on send and `vary` is one of them. Harmless, because the
+  proxy rewrites Markdown to a different route before any cache lookup. Retest on a Next
+  upgrade.
+- **The homepage's text layer** (`_components/gallery-outline.tsx`) is `sr-only` and
+  outside any `<Suspense>` on purpose: the grid is covers and hover states, which reads as
+  an empty page without JavaScript, and only unsuspended cached data lands in the static
+  shell. Anything added to it costs roughly 2.5× its size in HTML, because a server
+  component's markup is duplicated in the RSC flight payload.
+- Runtime gate: `pnpm check:agent-endpoints` against a running server. `pnpm verify`
+  cannot see status codes or headers.
+
 ### Tech Stack
 
 - **Runtime**: pnpm 12, Node 24, TypeScript 7 (versions in package.json / pnpm-workspace.yaml)
@@ -68,7 +99,8 @@ Triage is manual: apply `ready` to accept, close as not-planned to decline. The
   sign-in 403 silently.
 - **No seeded login.** Nothing in the gallery is authed. `POST /api/auth/sign-up/email`
   creates one on demand (see `AGENTS.md` → Login).
-- **Verify**: `pnpm verify` for the static gate, then drive the running app with
+- **Verify**: `pnpm verify` for the static gate, `pnpm check:agent-endpoints` for the
+  machine-readable surfaces (needs a running server), then drive the running app with
   `agent-browser` — `/`, `/ui/<slug>`, `/preview-frame/<slug>`, `/r/<slug>.json`. Web is
   the only surface; there is nothing that isn't headlessly verifiable.
 
@@ -88,6 +120,8 @@ pnpm db:push          # Push local db schema
 pnpm db:push-remote   # Push to production Turso
 pnpm new:content <slug>  # Scaffold a new content component in content/
 pnpm check:content    # Fail if any content/<slug> is not a loadable component
+pnpm test             # node:test — auth + RPC transport guards + the agent-surface tests
+pnpm check:agent-endpoints  # Runtime check of the agent surfaces (needs a running server)
 ```
 
 ## Verification Contract
@@ -103,9 +137,15 @@ Typecheck covers the app, shared packages, scripts, and every code-bearing conte
 independently. Content remains excluded from the app's TypeScript project because independent
 checks preserve its distribution boundary. Use `pnpm typecheck:content <slug>` for one package.
 
-Tests cover auth schema/cookies/reset, RPC Origin guards, filesystem/registry contracts, and
-standalone-content validation. Keep tests that pin observable behavior; check visual changes
-in the browser. `verify` reads `.env` for the build but requires no running database.
+Tests cover the auth schema/cookies/reset, the RPC Origin guards, the content
+filesystem/registry contracts, standalone-content validation, and the agent surfaces in
+`apps/web/src/lib/agent/*.test.ts`. They pin things typecheck cannot see, notably
+`/api/orpc`'s cross-origin defense: `SameSite=Lax` keys on _site_, so it stops a cross-SITE
+POST only, and the route's own Origin check covers the same-site cross-origin case (a sibling
+subdomain, another localhost port). Keep tests that pin observable behavior; check visual
+changes in the browser. Status codes and response headers are outside the static gate
+entirely — that is what `pnpm check:agent-endpoints` is for. `verify` reads `.env` because
+`build` does, but it needs no running database.
 
 The build's `check:content` guard validates metadata, preview files, manifests, and imports.
 It rejects private workspace dependencies and paths escaping a component directory. Do not
