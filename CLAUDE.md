@@ -60,9 +60,12 @@ Next imports, no filesystem — so it can be unit-tested without a runtime. The 
   the copy in only one of the two.
 - **Markdown content negotiation** (acceptmarkdown.com): `src/proxy.ts` parses `Accept` and
   rewrites Markdown-preferring requests to `/api/markdown/*`. `/<path>.md` (and `/index.md`
-  for the home page) serves the same thing without an `Accept` header. `406` is reserved
-  for a client that accepts neither representation — a missing or wildcard `Accept` means
-  "no constraint" and gets HTML.
+  for the home page) serves the same thing without an `Accept` header. The proxy's matcher
+  (`has` on `Accept`) only invokes it for `.md` URLs or an `Accept` naming markdown, so
+  plain HTML views never pay for it; the HTML `Link: rel="alternate"` header lives in
+  `next.config.ts` for that reason. `406` is reserved for an `Accept` that mentions markdown
+  yet accepts neither representation (`text/markdown;q=0`); one naming neither type never
+  reaches the proxy and gets HTML, as RFC 9110 permits.
 - **`Vary: Accept` does not reach prerendered app pages.** Next replays a prerender's
   stored headers on send and `vary` is one of them, so neither the proxy nor
   `next.config.ts` `headers()` can add to it. The config entry is still there and does

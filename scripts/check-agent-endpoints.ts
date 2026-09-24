@@ -146,13 +146,6 @@ const checkMarkdownNegotiation = async () => {
     mdSibling.headers.get("content-type") ?? "(none)",
   );
 
-  const { response: notAcceptable } = await fetchWith("/about", "application/pdf");
-  expect(
-    "Accept: application/pdf → 406",
-    notAcceptable.status === 406,
-    `status ${notAcceptable.status}`,
-  );
-
   // React's own transport must never be negotiated: a Server Action sends
   // `Accept: text/x-component`, which no representation of this site satisfies.
   for (const [name, headers] of [
@@ -183,6 +176,52 @@ const checkMarkdownNegotiation = async () => {
     "a browser's Accept header still gets HTML",
     (browserLike.headers.get("content-type") ?? "").startsWith("text/html"),
     browserLike.headers.get("content-type") ?? "(none)",
+  );
+};
+
+/** The proxy's matcher admits only `.md` URLs and an `Accept` naming markdown. */
+const checkProxyScope = async () => {
+  for (const [path, target] of [
+    ["/", "/index.md"],
+    ["/about", "/about.md"],
+  ] as const) {
+    const { response } = await fetchWith(path);
+    const link = response.headers.get("link") ?? "";
+    expect(
+      `HTML ${path} advertises ${target} via Link: rel="alternate"`,
+      link.includes(`<${target}>`) && link.includes('rel="alternate"'),
+      link || "(none)",
+    );
+  }
+
+  const { response: mixedCase } = await fetchWith("/about", "Text/Markdown");
+  expect(
+    "Accept matching is case-insensitive",
+    (mixedCase.headers.get("content-type") ?? "").startsWith("text/markdown"),
+    mixedCase.headers.get("content-type") ?? "(none)",
+  );
+  expect(
+    "the Markdown response does not advertise itself as an alternate",
+    !(mixedCase.headers.get("link") ?? "").includes('rel="alternate"'),
+    mixedCase.headers.get("link") ?? "(none)",
+  );
+
+  const { response: notAcceptable } = await fetchWith("/about", "text/markdown;q=0");
+  expect(
+    "Accept: text/markdown;q=0 → 406",
+    notAcceptable.status === 406,
+    `status ${notAcceptable.status}`,
+  );
+
+  // An Accept naming neither representation never reaches the proxy, so it is
+  // disregarded (RFC 9110 §12.5.1) and served HTML. A 406 here means the proxy
+  // ran on a plain HTML request.
+  const { response: disregarded } = await fetchWith("/about", "application/pdf");
+  expect(
+    "Accept: application/pdf skips the proxy and gets HTML",
+    disregarded.status === 200 &&
+      (disregarded.headers.get("content-type") ?? "").startsWith("text/html"),
+    `status ${disregarded.status}, content-type ${disregarded.headers.get("content-type")}`,
   );
 };
 
@@ -265,6 +304,7 @@ const main = async () => {
 
   await checkHomePage();
   await checkMarkdownNegotiation();
+  await checkProxyScope();
   await checkNotFound();
   await checkMachineFiles();
   await checkTrustAnchors();

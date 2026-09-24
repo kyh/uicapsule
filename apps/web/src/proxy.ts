@@ -1,11 +1,6 @@
 import { NextResponse } from "next/server";
 
-import {
-  MARKDOWN_CONTENT_TYPE,
-  negotiateMediaType,
-  notAcceptableBody,
-  withVaryAccept,
-} from "@/lib/agent/accept";
+import { negotiateMediaType, notAcceptableBody, withVaryAccept } from "@/lib/agent/accept";
 
 import type { NextRequest } from "next/server";
 
@@ -85,21 +80,33 @@ export const proxy = (request: NextRequest) => {
     });
   }
 
-  const response = applyVary(NextResponse.next());
-  response.headers.set(
-    "Link",
-    `<${request.nextUrl.origin}${pathname === "/" ? "/index" : pathname}.md>; rel="alternate"; type="${MARKDOWN_CONTENT_TYPE}"`,
-  );
-  return response;
+  return applyVary(NextResponse.next());
 };
 
+/**
+ * Only a request that can negotiate to Markdown invokes the proxy: a `.md` URL,
+ * or an `Accept` that names markdown. Plain HTML views never pay for an
+ * invocation. The cost is that an `Accept` naming neither representation (say
+ * `application/pdf`) gets HTML instead of 406 — RFC 9110 §12.5.1 lets a server
+ * disregard Accept and send its default. Any Accept that mentions markdown but
+ * accepts nothing (`text/markdown;q=0`) still gets the 406.
+ *
+ * Next compiles a `has` value to an anchored, case-sensitive RegExp, and Vercel
+ * to its own route regex, so case-insensitivity is spelled out per character
+ * rather than with an inline flag neither engine is guaranteed to support.
+ *
+ * Both exclude Next internals, the JSON contracts (`/r/*`, `/api/*`) and the
+ * bare preview frames; the Accept entry also skips files that have exactly one
+ * representation. The HTML `Link: rel="alternate"` header is in next.config.ts
+ * because the proxy no longer sees HTML requests.
+ */
 export const config = {
-  /**
-   * Everything except Next internals, the JSON contracts (`/r/*`, `/api/*`),
-   * the bare preview frames, and files that already have exactly one
-   * representation (`robots.txt`, `sitemap.xml`, `llms.txt`, static assets).
-   */
   matcher: [
-    "/((?!api/|_next/|_vercel/|r/|preview-frame/|favicon/|robots\\.txt$|sitemap\\.xml$|llms\\.txt$|og\\.jpg$).*)",
+    { source: "/((?!api/|_next/|_vercel/|r/|preview-frame/|favicon/).*\\.md)" },
+    {
+      has: [{ key: "accept", type: "header", value: ".*[Mm][Aa][Rr][Kk][Dd][Oo][Ww][Nn].*" }],
+      source:
+        "/((?!api/|_next/|_vercel/|r/|preview-frame/|favicon/|robots\\.txt$|sitemap\\.xml$|llms\\.txt$|og\\.jpg$).*)",
+    },
   ],
 };

@@ -2,6 +2,8 @@ import { existsSync, readdirSync } from "node:fs";
 import path from "node:path";
 import type { NextConfig } from "next";
 
+import { MARKDOWN_CONTENT_TYPE } from "./src/lib/agent/accept";
+
 type ImageConfig = NonNullable<NextConfig["images"]>;
 type RemotePatterns = NonNullable<ImageConfig["remotePatterns"]>;
 
@@ -50,6 +52,12 @@ const getRemotePatterns = (): RemotePatterns => {
   return remotePatterns;
 };
 
+/** Mirrors the `has` condition in src/proxy.ts, whose matcher must stay a literal. */
+const MARKDOWN_ACCEPT = ".*[Mm][Aa][Rr][Kk][Dd][Oo][Ww][Nn].*";
+
+const markdownAlternateLink = (target: string) =>
+  `<${target}>; rel="alternate"; type="${MARKDOWN_CONTENT_TYPE}"`;
+
 const transpilePackages = ["@repo/api", "@repo/db", "@repo/ui", ...getContentPackages()];
 
 const config: NextConfig = {
@@ -76,12 +84,27 @@ const config: NextConfig = {
    * Harmless in the meantime: the proxy rewrites Markdown requests to a
    * different route before any cache lookup, so the HTML and Markdown variants
    * of a URL never share a cache key to begin with.
+   *
+   * `Link: rel="alternate"` advertises each page's `.md` sibling. It lives here,
+   * not in the proxy, because the proxy's matcher skips plain HTML requests;
+   * `missing` keeps it off the Markdown and 406 responses the proxy produces.
    */
   headers: () =>
     Promise.resolve([
       {
         headers: [{ key: "Vary", value: "Accept" }],
         source: "/((?!_next/|_vercel/).*)",
+      },
+      {
+        headers: [{ key: "Link", value: markdownAlternateLink("/index.md") }],
+        missing: [{ key: "accept", type: "header", value: MARKDOWN_ACCEPT }],
+        source: "/",
+      },
+      {
+        headers: [{ key: "Link", value: markdownAlternateLink("/:path.md") }],
+        missing: [{ key: "accept", type: "header", value: MARKDOWN_ACCEPT }],
+        source:
+          "/:path((?!api/|_next/|_vercel/|r/|preview-frame/|favicon/|robots\\.txt$|sitemap\\.xml$|llms\\.txt$|og\\.jpg$|.*\\.md$).+)",
       },
     ]),
   images: {
