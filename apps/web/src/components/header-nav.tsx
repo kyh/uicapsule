@@ -1,19 +1,20 @@
 "use client";
 
+import type { ReactNode } from "react";
 import Link from "next/link";
 import { Logo } from "@repo/ui/components/logo";
 import { cn } from "cn";
 import { useWebHaptics } from "web-haptics/react";
 import type { SearchEntry } from "@/lib/content-data";
 import { SearchButton } from "@/components/search-button";
-import { ProfileButton } from "@/components/profile-button";
 
 interface HeaderNavProps {
   className?: string;
   searchEntries: SearchEntry[];
+  profile: ReactNode;
 }
 
-export const HeaderNav = ({ className, searchEntries }: HeaderNavProps) => {
+export const HeaderNav = ({ className, searchEntries, profile }: HeaderNavProps) => {
   const { trigger } = useWebHaptics();
   return (
     <nav
@@ -30,9 +31,7 @@ export const HeaderNav = ({ className, searchEntries }: HeaderNavProps) => {
       <div className="flex flex-1 items-center justify-center gap-2">
         <SearchButton searchEntries={searchEntries} />
       </div>
-      <div className="flex items-center justify-end gap-2">
-        <ProfileButton />
-      </div>
+      <div className="flex items-center justify-end gap-2">{profile}</div>
     </nav>
   );
 };

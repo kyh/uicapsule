@@ -29,8 +29,9 @@ export const sendPasswordResetEmail = async (
     if (response.ok) {
       return;
     }
-  } catch {
-    // Better Auth logs delivery errors while keeping reset responses private.
+    console.error("Password reset email failed", response.status, await response.text());
+  } catch (error) {
+    console.error("Password reset email failed", error);
   }
   throw APIError.from("SERVICE_UNAVAILABLE", {
     code: "PASSWORD_RESET_DELIVERY_FAILED",

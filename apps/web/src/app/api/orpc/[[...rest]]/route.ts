@@ -25,7 +25,7 @@ const handleRequest = async (req: NextRequest) => {
   }
 
   const { response } = await handler.handle(req, {
-    context: await createORPCContext(req.headers),
+    context: createORPCContext(req.headers),
     prefix: "/api/orpc",
   });
 

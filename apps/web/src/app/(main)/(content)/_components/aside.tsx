@@ -105,6 +105,7 @@ const SourceCodePreview = ({ slug }: { slug: string }) => {
 const Aside = ({ contentComponent }: AsideProps) => {
   const queryClient = useQueryClient();
   const [copied, setCopied] = useState(false);
+  const [downloading, setDownloading] = useState(false);
   const copiedTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
@@ -156,10 +157,11 @@ const Aside = ({ contentComponent }: AsideProps) => {
   };
 
   const handleDownloadClick = async () => {
-    if (contentComponent.type !== "local") {
+    if (contentComponent.type !== "local" || downloading) {
       return;
     }
 
+    setDownloading(true);
     const toastId = toast.loading("Download started", {
       description: `${contentComponent.slug}.zip is being downloaded`,
       icon: <DownloadIcon className="size-4" />,
@@ -180,6 +182,7 @@ const Aside = ({ contentComponent }: AsideProps) => {
         id: toastId,
       });
     }
+    setDownloading(false);
   };
 
   return (
@@ -200,7 +203,12 @@ const Aside = ({ contentComponent }: AsideProps) => {
               >
                 View Source
               </DrawerTrigger>
-              <Button variant="outline" className="shadow-none" onClick={handleDownloadClick}>
+              <Button
+                variant="outline"
+                className="shadow-none"
+                loading={downloading}
+                onClick={handleDownloadClick}
+              >
                 <span className="sr-only">Download</span>
                 <DownloadIcon className="size-4" />
               </Button>
@@ -352,11 +360,11 @@ const Aside = ({ contentComponent }: AsideProps) => {
 };
 
 export const ResponsiveAside = ({ contentComponent, onPrev, onNext }: ResponsiveAsideProps) => {
+  // Swipe direction is behavior, not style, so it alone still reads the viewport.
   const isDesktop = useMediaQuery();
-  const direction = isDesktop ? "right" : "bottom";
 
   return (
-    <Drawer direction={direction}>
+    <Drawer swipeDirection={isDesktop ? "right" : "down"}>
       <div className="absolute right-4 bottom-4 z-10 flex flex-col gap-2 sm:top-1/2 sm:right-6 sm:bottom-auto sm:-translate-y-1/2">
         <Button
           variant="secondary"
@@ -368,11 +376,11 @@ export const ResponsiveAside = ({ contentComponent, onPrev, onNext }: Responsive
           <ChevronUpIcon className="size-4" />
           <span className="sr-only">Previous</span>
         </Button>
-        <DrawerTrigger asChild>
-          <Button variant="secondary" size="icon" className={FLOATING_BUTTON_CLASS}>
-            <InfoIcon className="size-4" />
-            <span className="sr-only">Info</span>
-          </Button>
+        <DrawerTrigger
+          render={<Button variant="secondary" size="icon" className={FLOATING_BUTTON_CLASS} />}
+        >
+          <InfoIcon className="size-4" />
+          <span className="sr-only">Info</span>
         </DrawerTrigger>
         <Button
           variant="secondary"
@@ -390,7 +398,7 @@ export const ResponsiveAside = ({ contentComponent, onPrev, onNext }: Responsive
           <DrawerTitle>Component info</DrawerTitle>
           <DrawerDescription>Component details</DrawerDescription>
         </DrawerHeader>
-        <div className={cn(isDesktop ? "h-full [&_[data-slot=card]]:h-full" : "pt-5")}>
+        <div className="max-sm:pt-5 sm:h-full sm:[&_[data-slot=card]]:h-full">
           <Aside key={contentComponent.slug} contentComponent={contentComponent} />
         </div>
       </DrawerContent>

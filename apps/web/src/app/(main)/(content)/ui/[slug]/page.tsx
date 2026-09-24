@@ -7,9 +7,7 @@ import { MediaReveal } from "@/components/media-reveal";
 import { getAllContent } from "@/lib/content-data";
 import { ogImage, siteConfig } from "@/lib/site-config";
 
-interface Props {
-  params: Promise<{ slug: string }>;
-}
+type Props = Pick<PageProps<"/ui/[slug]">, "params">;
 
 export const generateStaticParams = async () => {
   const all = await getAllContent();

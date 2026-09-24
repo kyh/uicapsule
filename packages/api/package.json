@@ -5,11 +5,14 @@
   "type": "module",
   "exports": {
     ".": "./src/index.ts",
-    "./*": "./src/*.ts"
+    "./auth": "./src/auth/auth.ts",
+    "./request/attachment": "./src/request/attachment.ts",
+    "./request/component-request": "./src/request/component-request.ts",
+    "./request/github-attachment": "./src/request/github-attachment.ts"
   },
   "scripts": {
     "clean": "git clean -xdf .cache .turbo node_modules",
-    "test": "TURSO_DATABASE_URL=http://127.0.0.1:8080 node --import tsx --test 'src/**/*.test.ts'",
+    "test": "TURSO_DATABASE_URL=http://127.0.0.1:8080 node --conditions=react-server --import tsx --test 'src/**/*.test.ts'",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
@@ -17,11 +20,12 @@
     "@orpc/server": "catalog:",
     "@repo/db": "workspace:^",
     "better-auth": "catalog:",
+    "server-only": "^0.0.1",
     "zod": "catalog:"
   },
   "devDependencies": {
     "@kyh/tsconfig": "catalog:",
-    "@types/node": "^26.6.2",
+    "@types/node": "catalog:",
     "drizzle-orm": "catalog:",
     "tsx": "catalog:",
     "typescript": "catalog:"

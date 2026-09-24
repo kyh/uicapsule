@@ -58,6 +58,8 @@ export const AuthForm = ({ className, type, ...props }: AuthFormProps) => {
         return;
       }
       router.replace("/");
+      // The header decides whether to load the session from the cookie on the server.
+      router.refresh();
     } catch {
       form.setError("root", { message: "Unable to connect. Try again." });
     }

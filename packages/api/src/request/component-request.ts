@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-import { ATTACHMENT_MAX_COUNT } from "./github-attachment";
+import { ATTACHMENT_MAX_COUNT } from "./attachment";
 
 export const MAX_REFERENCE_LINKS = 5;
 

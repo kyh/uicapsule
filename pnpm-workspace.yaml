@@ -5,7 +5,6 @@ packages:
 
 catalog:
   "@base-ui/react": ^1.8.0
-  "@better-auth/cli": ^1.4.21
   # In lockstep with better-auth: auth.ts imports its relations-v2 entry directly.
   "@better-auth/drizzle-adapter": ^1.7.5
   "@kyh/tsconfig": ^1.2.0
@@ -22,6 +21,8 @@ catalog:
   "@vitejs/plugin-react": ^5.2.0
   better-auth: ^1.7.5
   cn: ^0.3.2
+  # drizzle-kit must match drizzle-orm exactly.
+  drizzle-kit: 1.0.0-rc.4
   drizzle-orm: 1.0.0-rc.4
   next: ^16.3.5
   react: ^19.3.0
@@ -38,8 +39,6 @@ allowBuilds:
   # Unused optional peer of @better-auth/cli; this repo is on drizzle.
   "@prisma/engines": false
   "@tailwindcss/oxide": true
-  better-sqlite3: true
-  es5-ext: true
   esbuild: true
   prisma: false
   sharp: true

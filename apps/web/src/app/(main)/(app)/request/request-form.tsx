@@ -18,7 +18,7 @@ import {
   ATTACHMENT_MAX_BYTES,
   ATTACHMENT_MAX_COUNT,
   ATTACHMENT_TYPES,
-} from "@repo/api/request/github-attachment";
+} from "@repo/api/request/attachment";
 import { useMutation } from "@tanstack/react-query";
 import { cn } from "cn";
 import { UploadIcon, XIcon } from "lucide-react";
@@ -208,6 +208,7 @@ export const RequestForm = ({ className }: { className?: string }) => {
   const [attachments, setAttachments] = useState<Attachment[]>([]);
   const [dragging, setDragging] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const previewUrls = useRef(new Set<string>());
   const create = useMutation(orpc.request.create.mutationOptions());
 
   const form = useForm({
@@ -225,14 +226,14 @@ export const RequestForm = ({ className }: { className?: string }) => {
     formState: { errors, isSubmitting },
   } = form;
 
-  useEffect(
-    () => () => {
-      for (const attachment of attachments) {
-        URL.revokeObjectURL(attachment.previewUrl);
+  useEffect(() => {
+    const urls = previewUrls.current;
+    return () => {
+      for (const url of urls) {
+        URL.revokeObjectURL(url);
       }
-    },
-    [attachments],
-  );
+    };
+  }, []);
 
   const addFiles = (files: FileList | File[]) => {
     const room = ATTACHMENT_MAX_COUNT - attachments.length;
@@ -241,12 +242,14 @@ export const RequestForm = ({ className }: { className?: string }) => {
         continue;
       }
       const id = crypto.randomUUID();
+      const previewUrl = URL.createObjectURL(file);
+      previewUrls.current.add(previewUrl);
       const next: Attachment = {
         error: file.size > ATTACHMENT_MAX_BYTES ? `Over ${MAX_MB} MB` : undefined,
         id,
         kind: ATTACHMENT_TYPES[file.type],
         name: file.name,
-        previewUrl: URL.createObjectURL(file),
+        previewUrl,
         status: file.size > ATTACHMENT_MAX_BYTES ? "error" : "uploading",
       };
       setAttachments((current) => [...current, next]);
@@ -269,8 +272,14 @@ export const RequestForm = ({ className }: { className?: string }) => {
     }
   };
 
-  const removeAttachment = (id: string) =>
+  const removeAttachment = (id: string) => {
+    const removed = attachments.find((a) => a.id === id);
+    if (removed) {
+      URL.revokeObjectURL(removed.previewUrl);
+      previewUrls.current.delete(removed.previewUrl);
+    }
     setAttachments((current) => current.filter((a) => a.id !== id));
+  };
 
   const handleDrop = (event: DragEvent<HTMLElement>) => {
     event.preventDefault();
@@ -329,7 +338,15 @@ export const RequestForm = ({ className }: { className?: string }) => {
                 event.preventDefault();
                 setDragging(true);
               }}
-              onDragLeave={() => setDragging(false)}
+              onDragLeave={(event) => {
+                if (
+                  event.relatedTarget instanceof Node &&
+                  event.currentTarget.contains(event.relatedTarget)
+                ) {
+                  return;
+                }
+                setDragging(false);
+              }}
               onDrop={handleDrop}
               className={cn(
                 "bg-background group relative flex aspect-video w-full items-center justify-center overflow-hidden rounded-md border border-dashed transition-colors outline-none",

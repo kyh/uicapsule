@@ -2,15 +2,17 @@
 
 import { useEffect } from "react";
 
+import "./styles/globals.css";
+
 interface GlobalErrorProps {
   error: Error & { digest?: string };
-  reset: () => void;
+  retry: () => void;
 }
 
 // Catches errors thrown by a root layout itself, so it replaces the layout
-// entirely and must render its own <html>/<body>. Kept dependency-free — the
-// providers and fonts the app usually supplies may be exactly what failed.
-const GlobalError = ({ error, reset }: GlobalErrorProps) => {
+// entirely and must render its own <html>/<body> and stylesheet. Kept free of
+// providers and fonts — those may be exactly what failed.
+const GlobalError = ({ error, retry }: GlobalErrorProps) => {
   useEffect(() => {
     console.error(error);
   }, [error]);
@@ -25,7 +27,7 @@ const GlobalError = ({ error, reset }: GlobalErrorProps) => {
           </div>
           <button
             type="button"
-            onClick={reset}
+            onClick={retry}
             className="bg-primary text-primary-foreground hover:bg-primary/80 inline-flex h-9 items-center rounded-md px-4 text-sm font-medium transition-colors"
           >
             Try again

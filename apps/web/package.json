@@ -8,8 +8,8 @@
     "clean": "git clean -xdf .cache .next .turbo node_modules",
     "dev": "pnpm with-env next dev",
     "start": "pnpm with-env next start",
-    "test": "TURSO_DATABASE_URL=http://127.0.0.1:8080 node --import tsx --test 'src/**/*.test.ts'",
-    "typecheck": "tsc --noEmit",
+    "test": "TURSO_DATABASE_URL=http://127.0.0.1:8080 node --conditions=react-server --import tsx --test 'src/**/*.test.ts'",
+    "typecheck": "next typegen && tsc --noEmit",
     "with-env": "dotenv -e ../../.env --"
   },
   "dependencies": {
@@ -43,7 +43,7 @@
     "@kyh/tsconfig": "catalog:",
     "@tailwindcss/postcss": "catalog:",
     "@tailwindcss/typography": "^0.5.20",
-    "@types/node": "^26.6.2",
+    "@types/node": "catalog:",
     "@types/react": "catalog:",
     "@types/react-dom": "catalog:",
     "postcss": "^8.5.28",

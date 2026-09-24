@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useSyncExternalStore } from "react";
+import { useRef, useState, useSyncExternalStore } from "react";
 import type { ComponentProps, ReactNode } from "react";
 import { AlertDialog as AlertDialogPrimitive } from "@base-ui/react/alert-dialog";
 
@@ -204,6 +204,8 @@ const settle = async (onClick: (() => void | Promise<void>) | undefined, onSettl
 
 export const GlobalAlertDialog = () => {
   const [pending, setPending] = useState<"action" | "cancel" | null>(null);
+  // The action renders first in the DOM, so default focus would put Enter on the confirm.
+  const cancelRef = useRef<HTMLButtonElement>(null);
   const alertState = useSyncExternalStore(
     alertDialogStore.subscribe,
     alertDialogStore.getSnapshot,
@@ -236,7 +238,7 @@ export const GlobalAlertDialog = () => {
 
   return (
     <AlertDialog open={alertState.open} onOpenChange={onOpenChange}>
-      <AlertDialogContent>
+      <AlertDialogContent initialFocus={cancelRef}>
         <AlertDialogHeader>
           <AlertDialogTitle>{alertState.title}</AlertDialogTitle>
         </AlertDialogHeader>
@@ -255,6 +257,7 @@ export const GlobalAlertDialog = () => {
           )}
           {!alertState.cancel?.hidden && (
             <Button
+              ref={cancelRef}
               variant="secondary"
               onClick={() => onOpenChange(false)}
               loading={pending === "cancel"}

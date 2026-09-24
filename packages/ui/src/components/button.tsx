@@ -75,6 +75,8 @@ const Button = ({
       data-slot="button"
       className={cn(buttonVariants({ className, loading, size, variant }))}
       disabled={loading || disabled}
+      focusableWhenDisabled={loading}
+      aria-busy={loading || undefined}
       onClick={(event) => {
         trigger(variant === "destructive" ? "warning" : "selection");
         onClick?.(event);
@@ -82,7 +84,10 @@ const Button = ({
       {...props}
     >
       {loading && (
-        <span className="pointer-events-none absolute inset-0 grid place-items-center rounded-full">
+        <span
+          aria-hidden
+          className="pointer-events-none absolute inset-0 grid place-items-center rounded-full"
+        >
           <Spinner className="size-4" />
         </span>
       )}
