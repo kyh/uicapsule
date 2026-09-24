@@ -4,6 +4,8 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import type { FC } from "react";
 import {
   Activity,
+  BookOpen,
+  Calculator,
   CalendarDays,
   Camera,
   Clock,
@@ -11,6 +13,8 @@ import {
   Compass,
   Folder,
   Heart,
+  House,
+  ListChecks,
   Mail,
   Map,
   MessageCircle,
@@ -20,10 +24,13 @@ import {
   Phone,
   Podcast,
   Settings,
+  TrendingUp,
   Wallet,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
+
+import { PhoneFrame } from "./phone-frame";
 
 interface AppItem {
   id: string;
@@ -138,6 +145,41 @@ const APPS: AppItem[] = [
     iconClass: "text-lime-400",
     id: "fitness",
     label: "Fitness",
+  },
+  {
+    background: "bg-white",
+    icon: ListChecks,
+    iconClass: "text-orange-500",
+    id: "reminders",
+    label: "Reminders",
+  },
+  {
+    background: "bg-gradient-to-b from-[#ffa94d] to-[#f76707]",
+    icon: BookOpen,
+    iconClass: "text-white",
+    id: "books",
+    label: "Books",
+  },
+  {
+    background: "bg-gradient-to-b from-[#2b2d31] to-[#101113]",
+    icon: TrendingUp,
+    iconClass: "text-emerald-400",
+    id: "stocks",
+    label: "Stocks",
+  },
+  {
+    background: "bg-gradient-to-b from-[#495057] to-[#212529]",
+    icon: Calculator,
+    iconClass: "text-orange-400",
+    id: "calculator",
+    label: "Calculator",
+  },
+  {
+    background: "bg-white",
+    icon: House,
+    iconClass: "text-amber-500",
+    id: "home",
+    label: "Home",
   },
 ];
 
@@ -262,7 +304,7 @@ export const JiggleMode = () => {
     .filter((app): app is AppItem => app !== undefined);
 
   return (
-    <div className="relative h-[620px] w-[340px] overflow-hidden rounded-[44px] bg-[#101223] shadow-2xl shadow-black/60 ring-8 ring-black select-none">
+    <PhoneFrame className="bg-[#101223]">
       <div aria-hidden className="absolute inset-0">
         <div className="absolute -top-20 -left-24 size-72 rounded-full bg-[#4438ca]/50 blur-3xl" />
         <div className="absolute right-[-60px] bottom-24 size-80 rounded-full bg-[#0ea5e9]/25 blur-3xl" />
@@ -290,7 +332,7 @@ export const JiggleMode = () => {
         }}
       />
 
-      <div className="pointer-events-none relative flex h-8 items-center justify-between px-8 pt-4 text-[13px] font-semibold text-white">
+      <div className="pointer-events-none relative flex h-[52px] items-center justify-between px-8 text-[14px] font-semibold text-white">
         <span>9:41</span>
         <AnimatePresence>
           {editing && (
@@ -312,7 +354,7 @@ export const JiggleMode = () => {
         </AnimatePresence>
       </div>
 
-      <div ref={gridRef} className="relative mx-auto mt-5 grid w-[304px] grid-cols-4 gap-y-5">
+      <div ref={gridRef} className="relative mx-auto mt-3 grid w-[308px] grid-cols-4 gap-y-6">
         <AnimatePresence mode="popLayout">
           {apps.map((app) => {
             const seed = wobbleSeed(app.id);
@@ -397,7 +439,7 @@ export const JiggleMode = () => {
         </AnimatePresence>
       </div>
 
-      <div className="absolute inset-x-4 bottom-4">
+      <div className="absolute inset-x-3 bottom-3">
         <div className="flex items-center justify-around rounded-[30px] bg-white/15 p-3 backdrop-blur-xl">
           {DOCK.map((app) => {
             const seed = wobbleSeed(app.id);
@@ -434,12 +476,12 @@ export const JiggleMode = () => {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1, transition: { delay: 1 } }}
             exit={{ opacity: 0 }}
-            className="pointer-events-none absolute inset-x-0 bottom-24 text-center text-[11px] text-white/35"
+            className="pointer-events-none absolute inset-x-0 bottom-[108px] text-center text-[11px] text-white/35"
           >
             Hold an icon to edit
           </motion.p>
         )}
       </AnimatePresence>
-    </div>
+    </PhoneFrame>
   );
 };

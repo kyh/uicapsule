@@ -4,6 +4,8 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { Check, Wifi } from "lucide-react";
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 
+import { PhoneFrame } from "./phone-frame";
+
 interface Person {
   id: string;
   name: string;
@@ -19,32 +21,32 @@ const PEOPLE: Person[] = [
     id: "riley",
     initials: "RC",
     name: "Riley",
-    x: -45,
-    y: -178,
+    x: -72,
+    y: -372,
   },
   {
     gradient: "from-[#f0a58f] to-[#c76b52]",
     id: "nova",
     initials: "NV",
     name: "Nova",
-    x: 120,
-    y: -225,
+    x: 100,
+    y: -290,
   },
   {
     gradient: "from-[#a78bfa] to-[#7c3aed]",
     id: "mia",
     initials: "MT",
     name: "Mia",
-    x: 116,
-    y: -85,
+    x: 108,
+    y: -118,
   },
   {
     gradient: "from-[#34d399] to-[#059669]",
     id: "sam",
     initials: "SO",
     name: "Sam",
-    x: -68,
-    y: -75,
+    x: -96,
+    y: -186,
   },
 ];
 
@@ -81,8 +83,8 @@ export const AirdropRadar = () => {
   }, []);
 
   return (
-    <div className="relative h-[620px] w-[340px] overflow-hidden rounded-[44px] bg-[#0b0d14] shadow-2xl shadow-black/60 ring-8 ring-black select-none">
-      <div className="absolute bottom-24 left-1/2 -translate-x-1/2">
+    <PhoneFrame className="bg-[#0b0d14]">
+      <div className="absolute bottom-28 left-1/2 -translate-x-1/2">
         {[0, 1, 2].map((ring) => (
           <motion.span
             key={ring}
@@ -91,13 +93,13 @@ export const AirdropRadar = () => {
             style={{ height: 80, width: 80, x: "-50%", y: "-50%" }}
             animate={
               reduceMotion
-                ? { opacity: 0.4 - ring * 0.1, scale: 2 + ring * 1.6 }
-                : { opacity: [0.55, 0], scale: [1, 6.2] }
+                ? { opacity: 0.4 - ring * 0.1, scale: 2.4 + ring * 2.4 }
+                : { opacity: [0.55, 0], scale: [1, 9] }
             }
             transition={
               reduceMotion
                 ? { duration: 0 }
-                : { delay: ring * 1.05, duration: 3.2, ease: "easeOut", repeat: Infinity }
+                : { delay: ring * 1.2, duration: 3.6, ease: "easeOut", repeat: Infinity }
             }
           />
         ))}
@@ -179,7 +181,7 @@ export const AirdropRadar = () => {
           </div>
         </div>
       </div>
-      <div className="absolute inset-x-0 top-0 flex items-center justify-between px-6 pt-7">
+      <div className="absolute inset-x-0 top-0 flex items-center justify-between px-6 pt-[58px]">
         <div>
           <p className="text-[20px] font-bold text-white">AirDrop</p>
           <p className="mt-0.5 text-[12px] text-white/45">
@@ -191,9 +193,9 @@ export const AirdropRadar = () => {
         </span>
       </div>
 
-      <p className="pointer-events-none absolute inset-x-0 bottom-6 text-center text-[11px] text-white/30">
+      <p className="pointer-events-none absolute inset-x-0 bottom-8 text-center text-[11px] text-white/30">
         Tap someone to send
       </p>
-    </div>
+    </PhoneFrame>
   );
 };

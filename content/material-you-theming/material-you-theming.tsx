@@ -1,9 +1,21 @@
 "use client";
 
 import { useState } from "react";
-import { Bluetooth, Flashlight, Moon, Music2, SkipForward, Wifi } from "lucide-react";
+import {
+  Bluetooth,
+  Flashlight,
+  MapPin,
+  MessageCircle,
+  Moon,
+  Music2,
+  Plane,
+  SkipForward,
+  Wifi,
+} from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import { motion } from "motion/react";
+
+import { PhoneFrame } from "./phone-frame";
 
 interface Wallpaper {
   id: string;
@@ -46,6 +58,8 @@ const QUICK_TILES: QuickTile[] = [
   { icon: Bluetooth, label: "Bluetooth", on: true },
   { icon: Flashlight, label: "Torch", on: false },
   { icon: Moon, label: "Bedtime", on: false },
+  { icon: MapPin, label: "Location", on: true },
+  { icon: Plane, label: "Airplane", on: false },
 ];
 
 const TRANSITION = "background-color 0.7s ease, color 0.7s ease, border-color 0.7s ease";
@@ -57,124 +71,158 @@ export const MaterialYouTheming = () => {
   const palette = paletteFor(active);
 
   return (
-    <div
-      className="relative flex h-[620px] w-[340px] flex-col overflow-hidden rounded-[44px] shadow-2xl shadow-black/60 ring-8 ring-black select-none"
-      style={{ backgroundColor: palette.surface, transition: TRANSITION }}
-    >
-      <motion.div
-        key={active.id}
-        initial={{ opacity: 0.4 }}
-        animate={{ opacity: 1 }}
-        transition={{ duration: 0.7 }}
-        className="absolute inset-x-0 top-0 h-44"
-        style={{
-          background: wallpaperGradient(active),
-          maskImage: "linear-gradient(to bottom, black 30%, transparent)",
-        }}
-      />
+    <PhoneFrame>
+      <div
+        className="absolute inset-0 flex flex-col"
+        style={{ backgroundColor: palette.surface, transition: TRANSITION }}
+      >
+        <motion.div
+          key={active.id}
+          initial={{ opacity: 0.4 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 0.7 }}
+          className="absolute inset-x-0 top-0 h-56"
+          style={{
+            background: wallpaperGradient(active),
+            maskImage: "linear-gradient(to bottom, black 30%, transparent)",
+          }}
+        />
 
-      <div className="relative px-6 pt-10">
-        <p
-          className="text-[44px] leading-none font-medium tracking-tight"
-          style={{ color: palette.onContainer, transition: TRANSITION }}
+        <div className="relative px-6 pt-[60px]">
+          <p
+            className="text-[56px] leading-none font-medium tracking-tight"
+            style={{ color: palette.onContainer, transition: TRANSITION }}
+          >
+            9:41
+          </p>
+          <p className="mt-1 text-[13px]" style={{ color: palette.muted, transition: TRANSITION }}>
+            Mon, Jul 7 · Material You
+          </p>
+        </div>
+        <div className="relative mt-6 grid grid-cols-2 gap-2.5 px-5">
+          {QUICK_TILES.map(({ icon: Icon, label, on }) => (
+            <div
+              key={label}
+              className="flex items-center gap-2.5 rounded-[24px] px-4 py-3.5"
+              style={{
+                backgroundColor: on ? palette.primary : palette.surfaceHigh,
+                color: on ? palette.onPrimary : palette.muted,
+                transition: TRANSITION,
+              }}
+            >
+              <Icon className="size-4 shrink-0" />
+              <span className="truncate text-[12px] font-semibold">{label}</span>
+            </div>
+          ))}
+        </div>
+        <div
+          className="relative mx-5 mt-2.5 flex items-center gap-3 rounded-[26px] p-4"
+          style={{ backgroundColor: palette.container, transition: TRANSITION }}
         >
-          9:41
-        </p>
-        <p className="mt-1 text-[13px]" style={{ color: palette.muted, transition: TRANSITION }}>
-          Mon, Jul 7 · Material You
-        </p>
-      </div>
-      <div className="relative mt-6 grid grid-cols-2 gap-2.5 px-5">
-        {QUICK_TILES.map(({ icon: Icon, label, on }) => (
           <div
-            key={label}
-            className="flex items-center gap-2.5 rounded-[24px] px-4 py-3.5"
+            className="grid size-11 shrink-0 place-items-center rounded-2xl"
             style={{
-              backgroundColor: on ? palette.primary : palette.surfaceHigh,
-              color: on ? palette.onPrimary : palette.muted,
+              backgroundColor: palette.primary,
+              color: palette.onPrimary,
               transition: TRANSITION,
             }}
           >
-            <Icon className="size-4 shrink-0" />
-            <span className="truncate text-[12px] font-semibold">{label}</span>
+            <Music2 className="size-5" />
           </div>
-        ))}
-      </div>
-      <div
-        className="relative mx-5 mt-2.5 flex items-center gap-3 rounded-[26px] p-4"
-        style={{ backgroundColor: palette.container, transition: TRANSITION }}
-      >
-        <div
-          className="grid size-11 shrink-0 place-items-center rounded-2xl"
-          style={{
-            backgroundColor: palette.primary,
-            color: palette.onPrimary,
-            transition: TRANSITION,
-          }}
-        >
-          <Music2 className="size-5" />
-        </div>
-        <div className="min-w-0 flex-1">
-          <p
-            className="truncate text-[13px] font-semibold"
-            style={{ color: palette.onContainer, transition: TRANSITION }}
-          >
-            Night Drive
-          </p>
-          <p className="text-[11px]" style={{ color: palette.muted, transition: TRANSITION }}>
-            Solenne
-          </p>
-          <div
-            className="mt-2 h-1 w-full overflow-hidden rounded-full"
-            style={{ backgroundColor: palette.outline, transition: TRANSITION }}
-          >
-            <div
-              className="h-full w-2/5 rounded-full"
-              style={{ backgroundColor: palette.accent, transition: TRANSITION }}
-            />
-          </div>
-        </div>
-        <SkipForward className="size-5 shrink-0" style={{ color: palette.muted }} />
-      </div>
-      <div className="relative mt-auto pb-7">
-        <p
-          className="px-6 text-[11px] font-medium"
-          style={{ color: palette.muted, transition: TRANSITION }}
-        >
-          Wallpaper & style
-        </p>
-        <div className="mt-2.5 flex justify-center gap-3 px-6">
-          {WALLPAPERS.map((wallpaper) => (
-            <motion.button
-              type="button"
-              key={wallpaper.id}
-              aria-label={`Use ${wallpaper.name} wallpaper`}
-              aria-pressed={wallpaper.id === active.id}
-              onClick={() => setActive(wallpaper)}
-              whileTap={{ scale: 0.92 }}
-              animate={{ scale: wallpaper.id === active.id ? 1.06 : 1 }}
-              className="relative h-24 w-[64px] overflow-hidden rounded-2xl ring-2"
-              style={{
-                background: wallpaperGradient(wallpaper),
-                borderColor: "transparent",
-                ...(wallpaper.id === active.id
-                  ? { boxShadow: `0 0 0 2px ${palette.surface}, 0 0 0 4px ${palette.primary}` }
-                  : { boxShadow: "none" }),
-              }}
+          <div className="min-w-0 flex-1">
+            <p
+              className="truncate text-[13px] font-semibold"
+              style={{ color: palette.onContainer, transition: TRANSITION }}
             >
-              <span className="absolute inset-x-0 bottom-1 text-center text-[9px] font-medium text-white/85">
-                {wallpaper.name}
-              </span>
-            </motion.button>
-          ))}
+              Night Drive
+            </p>
+            <p className="text-[11px]" style={{ color: palette.muted, transition: TRANSITION }}>
+              Solenne
+            </p>
+            <div
+              className="mt-2 h-1 w-full overflow-hidden rounded-full"
+              style={{ backgroundColor: palette.outline, transition: TRANSITION }}
+            >
+              <div
+                className="h-full w-2/5 rounded-full"
+                style={{ backgroundColor: palette.accent, transition: TRANSITION }}
+              />
+            </div>
+          </div>
+          <SkipForward className="size-5 shrink-0" style={{ color: palette.muted }} />
         </div>
-        <p
-          className="mt-3 text-center text-[11px]"
-          style={{ color: palette.muted, transition: TRANSITION }}
+        <div
+          className="relative mx-5 mt-2.5 flex items-center gap-3 rounded-[26px] px-4 py-3.5"
+          style={{ backgroundColor: palette.surfaceHigh, transition: TRANSITION }}
         >
-          Pick a wallpaper — the whole system re-themes
-        </p>
+          <div
+            className="grid size-9 shrink-0 place-items-center rounded-full"
+            style={{
+              backgroundColor: palette.container,
+              color: palette.primary,
+              transition: TRANSITION,
+            }}
+          >
+            <MessageCircle className="size-4" />
+          </div>
+          <div className="min-w-0 flex-1">
+            <p
+              className="truncate text-[12px] font-semibold"
+              style={{ color: palette.onContainer, transition: TRANSITION }}
+            >
+              Mia
+            </p>
+            <p
+              className="truncate text-[11px]"
+              style={{ color: palette.muted, transition: TRANSITION }}
+            >
+              That new wallpaper looks great on you
+            </p>
+          </div>
+          <span className="text-[10px]" style={{ color: palette.muted, transition: TRANSITION }}>
+            now
+          </span>
+        </div>
+        <div className="relative mt-auto pb-8">
+          <p
+            className="px-6 text-[11px] font-medium"
+            style={{ color: palette.muted, transition: TRANSITION }}
+          >
+            Wallpaper & style
+          </p>
+          <div className="mt-2.5 flex justify-center gap-3 px-5">
+            {WALLPAPERS.map((wallpaper) => (
+              <motion.button
+                type="button"
+                key={wallpaper.id}
+                aria-label={`Use ${wallpaper.name} wallpaper`}
+                aria-pressed={wallpaper.id === active.id}
+                onClick={() => setActive(wallpaper)}
+                whileTap={{ scale: 0.92 }}
+                animate={{ scale: wallpaper.id === active.id ? 1.06 : 1 }}
+                className="relative h-[116px] w-[62px] overflow-hidden rounded-2xl ring-2"
+                style={{
+                  background: wallpaperGradient(wallpaper),
+                  borderColor: "transparent",
+                  ...(wallpaper.id === active.id
+                    ? { boxShadow: `0 0 0 2px ${palette.surface}, 0 0 0 4px ${palette.primary}` }
+                    : { boxShadow: "none" }),
+                }}
+              >
+                <span className="absolute inset-x-0 bottom-1 text-center text-[9px] font-medium text-white/85">
+                  {wallpaper.name}
+                </span>
+              </motion.button>
+            ))}
+          </div>
+          <p
+            className="mt-3 text-center text-[11px]"
+            style={{ color: palette.muted, transition: TRANSITION }}
+          >
+            Pick a wallpaper — the whole system re-themes
+          </p>
+        </div>
       </div>
-    </div>
+    </PhoneFrame>
   );
 };
