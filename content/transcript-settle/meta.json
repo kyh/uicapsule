@@ -1,0 +1,7 @@
+{
+  "name": "Transcript Settle",
+  "description": "Live dictation — interim words shimmer and wobble while the recognizer rewrites them, then each phrase settles solid. \"sent the dek\" becomes \"send the deck\".",
+  "addedAt": "2026-09-23",
+  "cover": "transcript-settle/transcript-settle.mp4",
+  "tags": ["effects", "minimal"]
+}

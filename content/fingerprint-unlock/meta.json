@@ -1,0 +1,7 @@
+{
+  "name": "Fingerprint Unlock",
+  "description": "Under-display fingerprint unlock — hold the sensor and the home screen ripples out from under your finger.",
+  "addedAt": "2026-09-23",
+  "cover": "fingerprint-unlock/fingerprint-unlock.mp4",
+  "tags": ["controls", "skeuomorphism"]
+}
