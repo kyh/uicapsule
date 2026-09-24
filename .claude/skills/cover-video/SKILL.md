@@ -145,12 +145,15 @@ Read every frame as an image and check ALL of:
 ## 6. Upload
 
 Covers live in the `uicapsule-assets` Vercel Blob store, keyed `<slug>/<slug>.mp4`. Upload
-with the Vercel CLI from the repo root (the project is linked; the store's token is in
-`.env.local` via `vercel env pull`):
+with the Vercel CLI from the repo root. Pass the store token explicitly: the CLI otherwise
+tries `VERCEL_OIDC_TOKEN`, which needs a store id `.env.local` doesn't carry. Omit
+`--add-random-suffix` entirely — `--add-random-suffix false` still appends a suffix, and the
+default is off:
 
 ```bash
-vercel blob put <slug>.mp4 --pathname "<slug>/<slug>.mp4" --content-type video/mp4 \
-  --access public --add-random-suffix false --allow-overwrite true
+RW=$(grep '^BLOB_READ_WRITE_TOKEN=' .env.local | cut -d= -f2- | tr -d '"')
+vercel blob put <slug>.mp4 --rw-token "$RW" --pathname "<slug>/<slug>.mp4" \
+  --content-type video/mp4 --access public --allow-overwrite true
 curl -s -o /dev/null -w "%{http_code} %{content_type}" \
   "$NEXT_PUBLIC_ASSETS_URL/<slug>/<slug>.mp4"
 # expect: 200 video/mp4
