@@ -1,10 +1,23 @@
 import Link from "next/link";
+import type { ReactNode } from "react";
 import { Button } from "@repo/ui/components/button";
 
 import { notFoundRecoveryLinks } from "@/lib/agent/markdown";
 import { rendersOutsideRouter } from "@/lib/agent/site-pages";
 
 const linkClassName = "text-foreground hover:text-primary underline underline-offset-4 transition";
+
+/** `/llms.txt` and `/sitemap.xml` are route handlers the client router cannot navigate to. */
+const RecoveryLink = ({ href, children }: { href: string; children: ReactNode }) =>
+  rendersOutsideRouter(href) ? (
+    <a className={linkClassName} href={href}>
+      {children}
+    </a>
+  ) : (
+    <Link className={linkClassName} href={href}>
+      {children}
+    </Link>
+  );
 
 /**
  * The recovery list is the same `notFoundRecoveryLinks` the Markdown 404
@@ -24,25 +37,12 @@ export const NotFoundMessage = () => (
     <nav aria-label="Where to look next" className="w-full border-t pt-6">
       <h2 className="text-muted-foreground mb-3 text-sm font-medium">Try one of these</h2>
       <ul className="text-muted-foreground flex flex-col gap-2 text-left text-sm">
-        {notFoundRecoveryLinks.map((item) => {
-          const href = item.href ?? "/";
-          return (
-            <li key={item.href}>
-              {/* `/llms.txt` and `/sitemap.xml` are route handlers, not pages —
-                  the client router cannot navigate to them. */}
-              {rendersOutsideRouter(href) ? (
-                <a className={linkClassName} href={href}>
-                  {item.label}
-                </a>
-              ) : (
-                <Link className={linkClassName} href={href}>
-                  {item.label}
-                </Link>
-              )}
-              {item.text ? ` — ${item.text}` : null}
-            </li>
-          );
-        })}
+        {notFoundRecoveryLinks.map((item) => (
+          <li key={item.label}>
+            <RecoveryLink href={item.href ?? "/"}>{item.label}</RecoveryLink>
+            {item.text ? ` — ${item.text}` : null}
+          </li>
+        ))}
       </ul>
     </nav>
     <Button nativeButton={false} render={<Link href="/" />}>
