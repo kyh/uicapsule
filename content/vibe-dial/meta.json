@@ -1,6 +1,6 @@
 {
   "name": "Vibe Dial",
-  "description": "A temperature knob for generation — turn it and the sample output morphs live: color heats up, corners loosen, and the copy drifts from enterprise-safe to unhinged.",
+  "description": "A temperature knob for generation — turn it and the dial itself heats up: the LED ring fills from cool blue to ember, the glow swells, and the readout drifts from precise to unhinged.",
   "addedAt": "2026-09-09",
   "cover": "vibe-dial/vibe-dial.mp4",
   "tags": ["controls", "skeuomorphism"]
