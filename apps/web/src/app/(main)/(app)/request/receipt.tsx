@@ -5,7 +5,14 @@ import type { ReactNode } from "react";
 import { useMediaQuery } from "@repo/ui/hooks/use-media-query";
 import { cn } from "cn";
 import { ArrowUpRightIcon } from "lucide-react";
-import { motion, useReducedMotion } from "motion/react";
+import {
+  animate,
+  motion,
+  useMotionValue,
+  useReducedMotion,
+  useTransform,
+  useVelocity,
+} from "motion/react";
 import type { Transition } from "motion/react";
 
 import { nextReceiptArt, ReceiptArt } from "./receipt-art";
@@ -26,6 +33,11 @@ export interface Filed {
 }
 
 const HOLE_RADIUS = 11;
+
+// The stub arrives folded face-down over the ticket and turns open on its seam, like a booklet cover.
+// `fold` is degrees from open; everything else in the flip is derived from it and its velocity.
+const FOLDED = 180;
+const FLIP: Transition = { bounce: 0.14, delay: 0.55, type: "spring", visualDuration: 1.3 };
 
 const reveal = {
   hidden: { filter: "blur(4px)", opacity: 0 },
@@ -158,10 +170,29 @@ export const Receipt = ({ filed }: { filed: Filed }) => {
     rootRef,
   });
 
-  // The stub hinges open on its seam edge, so the axis follows the layout.
-  const fold = horizontal
-    ? { hidden: { rotateY: -90 }, shown: { rotateY: 0 } }
-    : { hidden: { rotateX: 90 }, shown: { rotateX: 0 } };
+  const fold = useMotionValue(reducedMotion ? 0 : FOLDED);
+  useEffect(() => {
+    if (reducedMotion) {
+      fold.jump(0);
+      return;
+    }
+    const controls = animate(fold, 0, FLIP);
+    return () => controls.stop();
+  }, [fold, reducedMotion]);
+  // The stub hinges on its seam edge, so the axis follows the layout.
+  const flipTransform = useTransform(fold, (angle) =>
+    horizontal
+      ? `perspective(900px) rotateY(${-angle}deg)`
+      : `perspective(900px) rotateX(${angle}deg)`,
+  );
+  // Blur tracks angular speed, so it only smears the page mid-swing.
+  const flipFilter = useTransform(
+    useVelocity(fold),
+    (speed) => `blur(${Math.min(Math.abs(speed) / 240, 5).toFixed(2)}px)`,
+  );
+  const faceShade = useTransform(fold, [0, 90], [0, 1]);
+  const backShade = useTransform(fold, [90, 180], [0.85, 0.2]);
+  const castShadow = useTransform(fold, [0, 40, 110, 180], [0, 0.95, 0.6, 0]);
   const rows: { label: string; value: string | null }[] = [
     { label: "Name", value: filed.name },
     { label: "Links", value: filed.links > 0 ? String(filed.links) : null },
@@ -211,6 +242,11 @@ export const Receipt = ({ filed }: { filed: Filed }) => {
                     PERF,
                   )}
                 >
+                  <motion.span
+                    aria-hidden
+                    style={{ opacity: castShadow }}
+                    className="pointer-events-none absolute inset-x-0 bottom-0 z-10 h-2/3 bg-linear-to-t from-black/45 via-black/12 to-transparent dark:from-black/85 dark:via-black/35 sm:inset-y-0 sm:right-0 sm:left-auto sm:h-auto sm:w-2/3 sm:bg-linear-to-l"
+                  />
                   <motion.div
                     ref={headRef}
                     variants={reveal}
@@ -269,58 +305,82 @@ export const Receipt = ({ filed }: { filed: Filed }) => {
           >
             <motion.div
               key={horizontal ? "row" : "column"}
-              variants={fold}
-              transition={{ bounce: 0.2, delay: 0.3, type: "spring", visualDuration: 0.7 }}
-              style={{ transformPerspective: 1200 }}
-              className="flex flex-1 origin-top flex-col backface-hidden sm:origin-left"
+              style={{
+                transform: flipTransform,
+                transformStyle: "preserve-3d",
+              }}
+              className="relative flex flex-1 origin-top flex-col sm:origin-left"
             >
-              <TicketShell className="flex flex-1 flex-col [--hole-a:0_0] [--hole-b:100%_0] [--perf-at:50%_0] max-sm:pt-0 sm:pl-0 sm:[--hole-a:0_0] sm:[--hole-b:0_100%] sm:[--perf-at:0_50%]">
-                <div
-                  style={holeStyle}
-                  className={cn(
-                    "bg-primary text-primary-foreground relative flex flex-1 flex-col rounded-[7px] [--hole-r:11px] [--hole-a:-1px_-1px] [--hole-b:calc(100%_+_1px)_-1px] [--perf-r:4px] [--perf-at:50%_-1px] [--perf-pos:-1px_0] sm:[--hole-a:-1px_-1px] sm:[--hole-b:-1px_calc(100%_+_1px)] sm:[--perf-at:-1px_50%] sm:[--perf-pos:0_-1px]",
-                    PERF,
-                  )}
-                >
-                  <div className="border-primary-foreground/30 flex items-center justify-between border-b border-dashed px-4 py-2.5 font-mono text-[10px] tracking-[0.2em] uppercase">
-                    <span className="opacity-70">Stub</span>
-                    <span>{number}</span>
-                  </div>
-                  <div className="flex flex-1 flex-col gap-2 px-4 py-4 sm:justify-center">
-                    <h2
-                      ref={confirmationRef}
-                      tabIndex={-1}
-                      className="text-lg font-medium outline-none"
-                    >
-                      Filed. Thank you.
-                    </h2>
-                    <p className="text-xs leading-relaxed opacity-85">
-                      It&apos;s public on GitHub now. If it&apos;s accepted it gets a{" "}
-                      <code>ready</code> label, then it gets built.
-                    </p>
-                  </div>
-                  <div className="px-4 pb-4">
-                    <a
-                      href={filed.url}
-                      target="_blank"
-                      rel="noreferrer"
-                      className="bg-primary-foreground text-primary hover:bg-primary-foreground/90 flex h-9 items-center justify-center gap-1 rounded-full text-sm font-medium transition-colors"
-                    >
-                      Follow it on GitHub
-                      <ArrowUpRightIcon className="size-3.5" aria-hidden />
-                    </a>
-                  </div>
-                  {torn ? null : (
-                    <button
-                      type="button"
-                      onClick={handleTear}
-                      className="focus-visible:ring-primary-foreground/60 sr-only rounded-full focus-visible:not-sr-only focus-visible:absolute focus-visible:top-2 focus-visible:right-2 focus-visible:px-2 focus-visible:py-1 focus-visible:font-mono focus-visible:text-[10px] focus-visible:tracking-[0.2em] focus-visible:uppercase focus-visible:ring-2 focus-visible:outline-none"
-                    >
-                      Tear off the stub
-                    </button>
-                  )}
+              <motion.div
+                aria-hidden
+                style={{ filter: flipFilter }}
+                className="bg-primary absolute inset-0 overflow-hidden rounded-lg backface-hidden [transform:rotateX(180deg)] sm:[transform:rotateY(180deg)]"
+              >
+                <div className="text-primary-foreground/25 absolute inset-0 flex items-center justify-center font-mono text-[10px] tracking-[0.4em] uppercase">
+                  {number}
                 </div>
-              </TicketShell>
+                <motion.div
+                  style={{ opacity: backShade }}
+                  className="absolute inset-0 bg-linear-to-b from-black/70 to-black/10 sm:bg-linear-to-r"
+                />
+              </motion.div>
+              <motion.div
+                style={{ filter: flipFilter }}
+                className="relative flex flex-1 flex-col backface-hidden"
+              >
+                <TicketShell className="flex flex-1 flex-col [--hole-a:0_0] [--hole-b:100%_0] [--perf-at:50%_0] max-sm:pt-0 sm:pl-0 sm:[--hole-a:0_0] sm:[--hole-b:0_100%] sm:[--perf-at:0_50%]">
+                  <div
+                    style={holeStyle}
+                    className={cn(
+                      "bg-primary text-primary-foreground relative flex flex-1 flex-col rounded-[7px] [--hole-r:11px] [--hole-a:-1px_-1px] [--hole-b:calc(100%_+_1px)_-1px] [--perf-r:4px] [--perf-at:50%_-1px] [--perf-pos:-1px_0] sm:[--hole-a:-1px_-1px] sm:[--hole-b:-1px_calc(100%_+_1px)] sm:[--perf-at:-1px_50%] sm:[--perf-pos:0_-1px]",
+                      PERF,
+                    )}
+                  >
+                    <div className="border-primary-foreground/30 flex items-center justify-between border-b border-dashed px-4 py-2.5 font-mono text-[10px] tracking-[0.2em] uppercase">
+                      <span className="opacity-70">Stub</span>
+                      <span>{number}</span>
+                    </div>
+                    <div className="flex flex-1 flex-col gap-2 px-4 py-4 sm:justify-center">
+                      <h2
+                        ref={confirmationRef}
+                        tabIndex={-1}
+                        className="text-lg font-medium outline-none"
+                      >
+                        Filed. Thank you.
+                      </h2>
+                      <p className="text-xs leading-relaxed opacity-85">
+                        It&apos;s public on GitHub now. If it&apos;s accepted it gets a{" "}
+                        <code>ready</code> label, then it gets built.
+                      </p>
+                    </div>
+                    <div className="px-4 pb-4">
+                      <a
+                        href={filed.url}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="bg-primary-foreground text-primary hover:bg-primary-foreground/90 flex h-9 items-center justify-center gap-1 rounded-full text-sm font-medium transition-colors"
+                      >
+                        Follow it on GitHub
+                        <ArrowUpRightIcon className="size-3.5" aria-hidden />
+                      </a>
+                    </div>
+                    {torn ? null : (
+                      <button
+                        type="button"
+                        onClick={handleTear}
+                        className="focus-visible:ring-primary-foreground/60 sr-only rounded-full focus-visible:not-sr-only focus-visible:absolute focus-visible:top-2 focus-visible:right-2 focus-visible:px-2 focus-visible:py-1 focus-visible:font-mono focus-visible:text-[10px] focus-visible:tracking-[0.2em] focus-visible:uppercase focus-visible:ring-2 focus-visible:outline-none"
+                      >
+                        Tear off the stub
+                      </button>
+                    )}
+                  </div>
+                </TicketShell>
+                <motion.div
+                  aria-hidden
+                  style={{ opacity: faceShade }}
+                  className="pointer-events-none absolute inset-0 rounded-lg bg-linear-to-b from-black/70 to-black/5 sm:bg-linear-to-r"
+                />
+              </motion.div>
             </motion.div>
           </div>
         </motion.div>
