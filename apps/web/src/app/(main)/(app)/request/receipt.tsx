@@ -9,6 +9,7 @@ import {
   animate,
   motion,
   useMotionValue,
+  useMotionValueEvent,
   useReducedMotion,
   useTransform,
   useVelocity,
@@ -36,6 +37,7 @@ const HOLE_RADIUS = 11;
 
 // The stub arrives folded face-down over the ticket and turns open on its seam, like a booklet cover.
 // `fold` is degrees from open; everything else in the flip is derived from it and its velocity.
+// Also the stub's first-paint `[--fold:180]` class; Tailwind needs the literal.
 const FOLDED = 180;
 const FLIP: Transition = { bounce: 0.14, delay: 0.55, type: "spring", visualDuration: 1.3 };
 
@@ -179,12 +181,12 @@ export const Receipt = ({ filed }: { filed: Filed }) => {
     const controls = animate(fold, 0, FLIP);
     return () => controls.stop();
   }, [fold, reducedMotion]);
-  // The stub hinges on its seam edge, so the axis follows the layout.
-  const flipTransform = useTransform(fold, (angle) =>
-    horizontal
-      ? `perspective(900px) rotateY(${-angle}deg)`
-      : `perspective(900px) rotateX(${angle}deg)`,
-  );
+  // The stub hinges on its seam edge. The axis is picked by CSS per breakpoint, not by a media
+  // query hook, so the first paint is already correct instead of flipping axes on hydration.
+  const flipRef = useRef<HTMLDivElement>(null);
+  useMotionValueEvent(fold, "change", (angle) => {
+    flipRef.current?.style.setProperty("--fold", String(angle));
+  });
   // Blur tracks angular speed, so it only smears the page mid-swing.
   const flipFilter = useTransform(
     useVelocity(fold),
@@ -304,12 +306,12 @@ export const Receipt = ({ filed }: { filed: Filed }) => {
             className="flex cursor-grab touch-none flex-col select-none will-change-transform data-grabbing:cursor-grabbing sm:w-60 sm:shrink-0"
           >
             <motion.div
-              key={horizontal ? "row" : "column"}
-              style={{
-                transform: flipTransform,
-                transformStyle: "preserve-3d",
-              }}
-              className="relative flex flex-1 origin-top flex-col sm:origin-left"
+              ref={flipRef}
+              style={{ transformStyle: "preserve-3d" }}
+              className={cn(
+                "relative flex flex-1 origin-top flex-col [transform:perspective(900px)_rotateX(calc(var(--fold)*1deg))] sm:origin-left sm:[transform:perspective(900px)_rotateY(calc(var(--fold)*-1deg))]",
+                reducedMotion ? "[--fold:0]" : "[--fold:180]",
+              )}
             >
               <motion.div
                 aria-hidden
