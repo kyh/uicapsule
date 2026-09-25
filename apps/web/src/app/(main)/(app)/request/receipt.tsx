@@ -93,6 +93,21 @@ const TicketShell = ({ className, children }: { className: string; children: Rea
   </div>
 );
 
+// The back of the stub is what shows while it's folded over the ticket, so the number leads.
+const StubBack = ({ number }: { number: number | undefined }) => (
+  <div className="text-primary-foreground absolute inset-0 flex flex-col items-center justify-center gap-3 font-mono">
+    <span className="text-[10px] tracking-[0.3em] uppercase opacity-75">Component request</span>
+    {number === undefined ? (
+      <span className="text-4xl font-medium tracking-tight">Filed</span>
+    ) : (
+      <span className="flex items-start gap-1 leading-none font-medium tabular-nums">
+        <span className="mt-1.5 text-base opacity-75">No.</span>
+        <span className="text-6xl tracking-tight sm:text-7xl">{number}</span>
+      </span>
+    )}
+  </div>
+);
+
 const offsetWithin = (element: HTMLElement, root: HTMLElement) => {
   let x = 0;
   let y = 0;
@@ -318,9 +333,7 @@ export const Receipt = ({ filed }: { filed: Filed }) => {
                 style={{ filter: flipFilter }}
                 className="bg-primary absolute inset-0 overflow-hidden rounded-lg backface-hidden [transform:rotateX(180deg)] sm:[transform:rotateY(180deg)]"
               >
-                <div className="text-primary-foreground/25 absolute inset-0 flex items-center justify-center font-mono text-[10px] tracking-[0.4em] uppercase">
-                  {number}
-                </div>
+                <StubBack number={filed.number} />
                 <motion.div
                   style={{ opacity: backShade }}
                   className="absolute inset-0 bg-linear-to-b from-black/70 to-black/10 sm:bg-linear-to-r"
