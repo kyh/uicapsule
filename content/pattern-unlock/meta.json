@@ -2,6 +2,6 @@
   "name": "Pattern Unlock",
   "description": "Android's 9-dot pattern lock — glowing trail, dot ripples, red shake on a wrong draw, green on unlock.",
   "addedAt": "2026-08-24",
-  "cover": "pattern-unlock/pattern-unlock.mp4",
+  "cover": "pattern-unlock/pattern-unlock.20260926.mp4",
   "tags": ["controls", "geometric"]
 }

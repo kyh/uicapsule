@@ -144,23 +144,30 @@ Read every frame as an image and check ALL of:
 
 ## 6. Upload
 
-Covers live in the `uicapsule-assets` Vercel Blob store, keyed `<slug>/<slug>.mp4`. Upload
-with the Vercel CLI from the repo root. Pass the store token explicitly: the CLI otherwise
-tries `VERCEL_OIDC_TOKEN`, which needs a store id `.env.local` doesn't carry. Omit
+Covers live in the `uicapsule-assets` Vercel Blob store. Blob serves them with
+`cache-control: max-age=2592000` (30 days), so **never overwrite a published key** — browsers
+and the CDN edge keep the old video for up to a month. Every cover gets a dated key,
+`<slug>/<slug>.<YYYYMMDD>.mp4`, and replacing one means a new date (add `-2` on a same-day
+redo) plus a `meta.json` update.
+
+Upload with the Vercel CLI from the repo root. Pass the store token explicitly: the CLI
+otherwise tries `VERCEL_OIDC_TOKEN`, which needs a store id `.env.local` doesn't carry. Omit
 `--add-random-suffix` entirely — `--add-random-suffix false` still appends a suffix, and the
-default is off:
+default is off. Check the public URL against `.env`'s `NEXT_PUBLIC_ASSETS_URL`; `.env.local`
+carries a stale host.
 
 ```bash
+KEY=<slug>/<slug>.$(date +%Y%m%d).mp4
 RW=$(grep '^BLOB_READ_WRITE_TOKEN=' .env.local | cut -d= -f2- | tr -d '"')
-vercel blob put <slug>.mp4 --rw-token "$RW" --pathname "<slug>/<slug>.mp4" \
-  --content-type video/mp4 --access public --allow-overwrite true
-curl -s -o /dev/null -w "%{http_code} %{content_type}" \
-  "$NEXT_PUBLIC_ASSETS_URL/<slug>/<slug>.mp4"
+A=$(grep '^NEXT_PUBLIC_ASSETS_URL=' .env | cut -d= -f2- | tr -d '"')
+vercel blob put <slug>.mp4 --rw-token "$RW" --pathname "$KEY" \
+  --content-type video/mp4 --access public
+curl -s -o /dev/null -w "%{http_code} %{content_type}" "$A/$KEY"
 # expect: 200 video/mp4
 ```
 
-`--allow-overwrite` means replacing a cover is the same command. The public URL sits behind
-Vercel's CDN — a replaced cover can serve stale for a while; mention that when overwriting.
+`vercel blob list` and `copy` print to stderr; `copy` also needs `--access public`. Once the
+new key is live on production, delete the superseded one with `vercel blob del <old-key>`.
 
 ## 7. Wire up + confirm
 
@@ -168,7 +175,7 @@ Add to `content/<slug>/meta.json` (key before `tags`) — a bucket key, never a 
 app resolves the host and derives image/video from the extension:
 
 ```json
-"cover": "<slug>/<slug>.mp4",
+"cover": "<slug>/<slug>.<YYYYMMDD>.mp4",
 ```
 
 Open `http://localhost:3000/`, screenshot, and confirm the component's card is playing the
