@@ -1,6 +1,5 @@
 import { Suspense } from "react";
 import type { Metadata } from "next";
-import { notFound } from "next/navigation";
 
 import { ReceiptPreview } from "./receipt-preview";
 
@@ -16,11 +15,9 @@ const Stage = async ({ searchParams }: Pick<PageProps<"/request/preview">, "sear
   return <ReceiptPreview art={art} />;
 };
 
-// Dev-only stage for the receipt so it can be iterated on without filing a real issue.
+// A stage for the receipt with sample data, so it can be seen without filing a real issue.
+// noindex keeps it out of search; it links only to the public issue list.
 const Page = (props: PageProps<"/request/preview">) => {
-  if (process.env.NODE_ENV === "production") {
-    notFound();
-  }
   return (
     <main className="mx-auto flex min-h-[calc(100dvh-(--spacing(32)))] w-full max-w-5xl flex-col gap-8 p-6 sm:p-8 lg:gap-12 lg:p-20">
       <header className="flex max-w-2xl flex-col gap-3">
