@@ -71,7 +71,7 @@ export const MaterialYouTheming = () => {
   const palette = paletteFor(active);
 
   return (
-    <PhoneFrame>
+    <PhoneFrame tone="moss">
       <div
         className="absolute inset-0 flex flex-col"
         style={{ backgroundColor: palette.surface, transition: TRANSITION }}

@@ -83,7 +83,7 @@ export const AirdropRadar = () => {
   }, []);
 
   return (
-    <PhoneFrame className="bg-[#0b0d14]">
+    <PhoneFrame tone="slate" className="bg-[#08101d]">
       <div className="absolute bottom-28 left-1/2 -translate-x-1/2">
         {[0, 1, 2].map((ring) => (
           <motion.span

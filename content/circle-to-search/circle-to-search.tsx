@@ -105,7 +105,7 @@ export const CircleToSearch = () => {
   };
 
   return (
-    <PhoneFrame className="bg-[#101116]">
+    <PhoneFrame tone="plum" className="bg-[#130f19]">
       <div ref={stageRef} className="absolute inset-0">
         <div className="px-5 pt-[60px]">
           <p className="text-[20px] font-bold text-white">Autumn lookbook</p>
@@ -231,7 +231,7 @@ export const CircleToSearch = () => {
               animate={{ y: 0 }}
               exit={{ y: "110%" }}
               transition={{ bounce: 0.18, duration: 0.5, type: "spring" }}
-              className="absolute inset-x-3 bottom-[76px] z-30 rounded-[26px] bg-[#1d1e26]/95 p-4 shadow-2xl shadow-black/60 ring-1 ring-white/10 backdrop-blur-xl"
+              className="absolute inset-x-3 bottom-[76px] z-30 rounded-[26px] bg-[#211a29]/95 p-4 shadow-2xl shadow-black/60 ring-1 ring-white/10 backdrop-blur-xl"
             >
               <div className="flex items-center gap-2 text-[11px] font-medium text-indigo-300">
                 <Sparkles className="size-3.5" /> Circle to Search

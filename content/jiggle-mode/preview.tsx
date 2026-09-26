@@ -3,7 +3,7 @@
 import { JiggleMode } from "./jiggle-mode";
 
 const Preview = () => (
-  <main className="flex h-dvh items-center justify-center overflow-hidden bg-[radial-gradient(circle_at_50%_20%,#1e2333_0%,#0d101c_55%,#05060c_100%)] p-5">
+  <main className="flex h-dvh items-center justify-center overflow-hidden bg-[radial-gradient(ellipse_60%_70%_at_50%_45%,#6a4514_0%,#3a250b_45%,#1a1005_80%,#0f0903_100%)] p-5">
     <JiggleMode />
   </main>
 );

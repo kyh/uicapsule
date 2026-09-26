@@ -37,7 +37,7 @@ const STORIES = [
   { blurb: "One curve to rule the capsule library", hue: "#a855f7", title: "The spring config" },
   {
     blurb: "Predictive back and the end of mystery navigation",
-    hue: "#3b82f6",
+    hue: "#e0673a",
     title: "Edge peeks",
   },
   { blurb: "Faking depth without WebGL", hue: "#10b981", title: "Phosphor & fog" },
@@ -159,7 +159,7 @@ export const PredictiveBack = () => {
   };
 
   return (
-    <PhoneFrame className="bg-black">
+    <PhoneFrame className="bg-black" tone="terracotta">
       <div
         className="absolute inset-0 touch-none"
         onPointerDown={onPointerDown}
@@ -170,7 +170,7 @@ export const PredictiveBack = () => {
         <motion.div
           aria-hidden={screen === "detail"}
           style={{ scale: homeScale, x: homeX }}
-          className="absolute inset-0 bg-[#101116] px-5 pt-[58px]"
+          className="absolute inset-0 bg-[#140e0c] px-5 pt-[58px]"
         >
           <p className="text-[11px] font-semibold tracking-[0.14em] text-white/40 uppercase">
             Thursday, September 24
@@ -187,7 +187,7 @@ export const PredictiveBack = () => {
                 onClick={index === TARGET ? openDetail : undefined}
                 className={`flex w-full items-center gap-3.5 rounded-[20px] p-2.5 text-left ring-1 transition-colors ${
                   index === TARGET
-                    ? "bg-[#1b2a45] ring-[#3b82f6]/40 hover:bg-[#20324f]"
+                    ? "bg-[#3a1f16] ring-[#e0673a]/40 hover:bg-[#43241a]"
                     : "bg-white/[0.04] ring-white/[0.05]"
                 }`}
               >
@@ -195,7 +195,7 @@ export const PredictiveBack = () => {
                   aria-hidden="true"
                   className="size-[52px] shrink-0 rounded-[14px]"
                   style={{
-                    background: `radial-gradient(circle at 30% 30%, ${story.hue} 0%, #14161d 85%)`,
+                    background: `radial-gradient(circle at 30% 30%, ${story.hue} 0%, #1a1311 85%)`,
                   }}
                 />
                 <span className="min-w-0 flex-1">
@@ -223,12 +223,12 @@ export const PredictiveBack = () => {
         <motion.article
           aria-hidden={screen === "home"}
           style={{ scale: detailScale, x: offset, y: lift }}
-          className="absolute inset-0 overflow-hidden rounded-[50px] bg-[#15171f] shadow-[0_24px_60px_rgb(0_0_0/0.7)]"
+          className="absolute inset-0 overflow-hidden rounded-[50px] bg-[#1a1310] shadow-[0_24px_60px_rgb(0_0_0/0.7)]"
         >
-          <div className="relative h-[292px] overflow-hidden bg-[radial-gradient(circle_at_28%_38%,#60a5fa_0%,#2563eb_28%,#1d2a44_70%)]">
-            <div className="absolute -right-10 bottom-[-60px] size-[220px] rounded-full bg-[#0f172a]/50 blur-[2px]" />
+          <div className="relative h-[292px] overflow-hidden bg-[radial-gradient(circle_at_28%_38%,#fdba74_0%,#e0673a_28%,#44211a_70%)]">
+            <div className="absolute -right-10 bottom-[-60px] size-[220px] rounded-full bg-[#2a120c]/50 blur-[2px]" />
             <div className="absolute top-[120px] left-[150px] size-[64px] rounded-full bg-white/15 ring-1 ring-white/25" />
-            <div className="absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-[#15171f] to-transparent" />
+            <div className="absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-[#1a1310] to-transparent" />
             <button
               type="button"
               aria-label="Back"
@@ -240,7 +240,7 @@ export const PredictiveBack = () => {
             </button>
           </div>
           <div className="relative -mt-6 px-6">
-            <p className="text-[11px] font-semibold tracking-[0.16em] text-sky-400 uppercase">
+            <p className="text-[11px] font-semibold tracking-[0.16em] text-orange-300 uppercase">
               Navigation
             </p>
             <p className="mt-2 text-[24px] leading-[1.15] font-bold tracking-tight text-white">
@@ -259,7 +259,7 @@ export const PredictiveBack = () => {
               Let go early and it springs back. Flick and it&apos;s gone. No leap of faith.
             </p>
           </div>
-          <div className="absolute inset-x-0 bottom-0 flex h-28 items-end justify-center bg-gradient-to-t from-[#15171f] via-[#15171f]/90 to-transparent pb-9">
+          <div className="absolute inset-x-0 bottom-0 flex h-28 items-end justify-center bg-gradient-to-t from-[#1a1310] via-[#1a1310]/90 to-transparent pb-9">
             <p className="text-[11px] text-white/30">Drag from the left edge</p>
           </div>
           <span
