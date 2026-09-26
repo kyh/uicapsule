@@ -23,7 +23,7 @@ const WeatherWidget: FC = () => (
 );
 
 const CalendarWidget: FC = () => (
-  <div className="flex h-full flex-col bg-[#17181c] p-5">
+  <div className="flex h-full flex-col bg-[#1a1833] p-5">
     <p className="text-[12px] font-semibold text-red-400 uppercase">Tuesday</p>
     <p className="text-[34px] leading-tight font-light text-white">7</p>
     <div className="mt-auto space-y-2">
@@ -51,7 +51,7 @@ const PhotoWidget: FC = () => (
 );
 
 const BatteryWidget: FC = () => (
-  <div className="flex h-full items-center justify-around bg-[#17181c] p-5">
+  <div className="flex h-full items-center justify-around bg-[#1a1833] p-5">
     {[
       ["iPhone", 82, "#30d158"],
       ["Watch", 54, "#ffd60a"],

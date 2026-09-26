@@ -304,11 +304,11 @@ export const JiggleMode = () => {
     .filter((app): app is AppItem => app !== undefined);
 
   return (
-    <PhoneFrame className="bg-[#101223]">
+    <PhoneFrame tone="ochre" className="bg-[#1a1209]">
       <div aria-hidden className="absolute inset-0">
-        <div className="absolute -top-20 -left-24 size-72 rounded-full bg-[#4438ca]/50 blur-3xl" />
-        <div className="absolute right-[-60px] bottom-24 size-80 rounded-full bg-[#0ea5e9]/25 blur-3xl" />
-        <div className="absolute bottom-[-80px] left-[-40px] size-64 rounded-full bg-[#c026d3]/25 blur-3xl" />
+        <div className="absolute -top-20 -left-24 size-72 rounded-full bg-[#d97706]/45 blur-3xl" />
+        <div className="absolute right-[-60px] bottom-24 size-80 rounded-full bg-[#ea580c]/25 blur-3xl" />
+        <div className="absolute bottom-[-80px] left-[-40px] size-64 rounded-full bg-[#be185d]/25 blur-3xl" />
       </div>
 
       <div

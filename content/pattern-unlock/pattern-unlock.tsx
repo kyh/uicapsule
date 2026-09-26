@@ -108,7 +108,7 @@ export const PatternUnlock = () => {
 
   return (
     <MotionConfig reducedMotion="user">
-      <div className="flex w-[340px] flex-col items-center rounded-[36px] bg-[#101014] py-9 shadow-2xl shadow-black/60 ring-1 ring-white/10 select-none">
+      <div className="flex w-[340px] flex-col items-center rounded-[36px] bg-[#08110b] py-9 shadow-2xl shadow-black/60 ring-1 ring-emerald-200/10 select-none">
         <AnimatePresence mode="wait" initial={false}>
           {phase === "success" ? (
             <motion.div
@@ -191,7 +191,7 @@ export const PatternUnlock = () => {
                 >
                   <motion.span
                     animate={{
-                      backgroundColor: active ? stroke : "rgba(255,255,255,0.35)",
+                      backgroundColor: active ? stroke : "rgba(200,255,220,0.38)",
                       scale: active ? 1.5 : 1,
                     }}
                     transition={{ bounce: 0.5, duration: 0.3, type: "spring" }}

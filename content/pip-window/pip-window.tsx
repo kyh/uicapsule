@@ -108,7 +108,7 @@ export const PipWindow = () => {
   };
 
   return (
-    <PhoneFrame className="bg-[#0e0f13]">
+    <PhoneFrame className="bg-[#0b1516]" tone="teal">
       <div className="px-5 pt-[60px]">
         <p className="text-[24px] font-bold text-white">Notes</p>
         <div className="mt-4 space-y-2.5">
@@ -134,10 +134,10 @@ export const PipWindow = () => {
         style={{ height: PIP_HEIGHT, width: PIP_WIDTH }}
         className="absolute top-0 left-0 cursor-grab overflow-hidden rounded-2xl shadow-2xl shadow-black/70 ring-1 ring-white/20 active:cursor-grabbing"
       >
-        <div className="absolute inset-0 bg-gradient-to-br from-[#3b4a6b] via-[#22293d] to-[#141824]" />
+        <div className="absolute inset-0 bg-gradient-to-br from-[#3f6a68] via-[#20393b] to-[#112022]" />
         <motion.div
           aria-hidden
-          className="absolute -top-6 left-8 size-24 rounded-full bg-[#7c8db0]/30 blur-xl"
+          className="absolute -top-6 left-8 size-24 rounded-full bg-[#8cc2ba]/30 blur-xl"
           animate={reduced ? undefined : { x: [0, 8, -4, 0], y: [0, 4, -2, 0] }}
           transition={{ duration: 6, ease: "easeInOut", repeat: Infinity }}
         />

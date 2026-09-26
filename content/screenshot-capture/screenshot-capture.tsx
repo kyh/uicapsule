@@ -16,18 +16,18 @@ const thumbY = (SCREEN_HEIGHT * (1 - THUMB_SCALE)) / 2 - THUMB_BOTTOM;
 
 // The "wallpaper" is pure CSS so the thumbnail can be an exact copy.
 const Scene: FC = () => (
-  <div className="absolute inset-0 overflow-hidden bg-[#0b1120]">
+  <div className="absolute inset-0 overflow-hidden bg-[#1a0e1c]">
     <div className="absolute inset-0 bg-[radial-gradient(circle_at_70%_18%,#fbbf24_0%,#f97316_18%,transparent_40%)]" />
-    <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_120%,#312e81_0%,transparent_60%)]" />
+    <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_120%,#8a3350_0%,transparent_60%)]" />
     <div
-      className="absolute bottom-0 left-[-30%] h-80 w-[90%] bg-[#1e2749]"
+      className="absolute bottom-0 left-[-30%] h-80 w-[90%] bg-[#3a2036]"
       style={{ clipPath: "polygon(0 100%, 50% 0, 100% 100%)" }}
     />
     <div
-      className="absolute bottom-0 right-[-25%] h-64 w-[80%] bg-[#141b36]"
+      className="absolute bottom-0 right-[-25%] h-64 w-[80%] bg-[#26142a]"
       style={{ clipPath: "polygon(0 100%, 45% 8%, 100% 100%)" }}
     />
-    <div className="absolute right-0 bottom-0 left-0 h-32 bg-gradient-to-t from-[#0b1120]/80 to-transparent" />
+    <div className="absolute right-0 bottom-0 left-0 h-32 bg-gradient-to-t from-[#1a0e1c]/80 to-transparent" />
     <p className="absolute top-[76px] left-6 text-[13px] font-medium text-white/60">Golden hour</p>
     <p className="absolute top-[96px] left-6 text-[26px] font-semibold tracking-tight text-white">
       Dolomites, Italy
@@ -67,7 +67,7 @@ export const ScreenshotCapture = () => {
 
   return (
     <MotionConfig reducedMotion="user">
-      <PhoneFrame className="bg-[#0b1120]">
+      <PhoneFrame className="bg-[#1a0e1c]" tone="espresso">
         <Scene />
 
         <AnimatePresence>

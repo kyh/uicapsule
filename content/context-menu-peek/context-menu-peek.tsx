@@ -84,7 +84,7 @@ export const ContextMenuPeek = () => {
 
   return (
     <MotionConfig reducedMotion="user">
-      <PhoneFrame className="bg-[#000000]">
+      <PhoneFrame tone="graphite" className="bg-[#000000]">
         <div className="relative z-10 flex items-center gap-3 border-b border-white/10 bg-[#0d0d0f]/90 px-4 pt-[54px] pb-3">
           <ChevronLeft className="size-5 text-sky-400" />
           <div className="grid size-9 place-items-center rounded-full bg-gradient-to-b from-[#8b93a3] to-[#5b6472] text-[13px] font-semibold text-white">

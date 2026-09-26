@@ -2,6 +2,6 @@
   "name": "Seek Filmstrip",
   "description": "The tvOS scrubber — dragging the timeline raises a filmstrip of preview frames above the playhead, rendered live from a synthetic day-cycle video.",
   "addedAt": "2026-09-05",
-  "cover": "seek-filmstrip/seek-filmstrip.mp4",
+  "cover": "seek-filmstrip/seek-filmstrip.20260926.mp4",
   "tags": ["controls", "minimal"]
 }

@@ -2,6 +2,6 @@
   "name": "PiP Window",
   "description": "iOS picture-in-picture — flick the call window and velocity picks its corner; throw it off an edge to tuck it behind a peek tab.",
   "addedAt": "2026-08-16",
-  "cover": "pip-window/pip-window.mp4",
+  "cover": "pip-window/pip-window.20260926.mp4",
   "tags": ["controls", "minimal"]
 }

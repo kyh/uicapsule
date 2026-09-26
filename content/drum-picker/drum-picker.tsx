@@ -107,7 +107,7 @@ export const DrumPicker = () => {
   const period = PERIODS[periodIndex] ?? "AM";
 
   return (
-    <div className="w-[340px] rounded-[32px] bg-[#161618] p-6 shadow-2xl shadow-black/60 ring-1 ring-white/10 select-none">
+    <div className="w-[340px] rounded-[32px] bg-[#1d0b10] p-6 shadow-2xl shadow-black/60 ring-1 ring-white/10 select-none">
       <div className="flex items-baseline justify-between">
         <p className="text-[17px] font-semibold text-white">Alarm</p>
         <p className="text-[13px] text-white/40 tabular-nums">
@@ -118,16 +118,16 @@ export const DrumPicker = () => {
       <div className="relative mt-4">
         <div
           aria-hidden
-          className="pointer-events-none absolute inset-x-0 top-1/2 -translate-y-1/2 rounded-xl bg-white/[0.07]"
+          className="pointer-events-none absolute inset-x-0 top-1/2 -translate-y-1/2 rounded-xl bg-rose-400/[0.1]"
           style={{ height: ITEM_HEIGHT }}
         />
         <div
           aria-hidden
-          className="pointer-events-none absolute inset-x-0 top-0 z-10 h-16 bg-gradient-to-b from-[#161618] to-transparent"
+          className="pointer-events-none absolute inset-x-0 top-0 z-10 h-16 bg-gradient-to-b from-[#1d0b10] to-transparent"
         />
         <div
           aria-hidden
-          className="pointer-events-none absolute inset-x-0 bottom-0 z-10 h-16 bg-gradient-to-t from-[#161618] to-transparent"
+          className="pointer-events-none absolute inset-x-0 bottom-0 z-10 h-16 bg-gradient-to-t from-[#1d0b10] to-transparent"
         />
 
         <div className="flex items-stretch justify-center gap-1 px-6">
