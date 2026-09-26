@@ -138,7 +138,7 @@ export const VibeDial = () => {
           <motion.div
             animate={{ rotate: angle, scale: dragging ? 1.03 : 1 }}
             transition={{ damping: 30, stiffness: 400, type: "spring" }}
-            className="absolute inset-[44px] rounded-full bg-gradient-to-b from-[#2c2f3b] to-[#14161c] shadow-[0_18px_40px_rgb(0_0_0/0.6),inset_0_1px_0_rgb(255_255_255/0.08)] ring-1 ring-white/10"
+            className="absolute inset-[44px] rounded-full bg-gradient-to-b from-[#35291f] to-[#140d09] shadow-[0_18px_40px_rgb(0_0_0/0.6),inset_0_1px_0_rgb(255_255_255/0.08)] ring-1 ring-white/10"
           >
             <span
               className="absolute top-[14px] left-1/2 h-[22px] w-[5px] -translate-x-1/2 rounded-full"

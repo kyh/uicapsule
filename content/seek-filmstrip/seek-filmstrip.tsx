@@ -194,7 +194,7 @@ export const SeekFilmstrip = () => {
 
   return (
     <MotionConfig reducedMotion="user">
-      <div className="w-[620px] overflow-hidden rounded-3xl bg-[#101116] shadow-2xl shadow-black/60 ring-1 ring-white/10 select-none">
+      <div className="w-[620px] overflow-hidden rounded-3xl bg-[#0a1122] shadow-2xl shadow-black/60 ring-1 ring-white/10 select-none">
         <div className="relative h-[300px]">
           <Frame t={playedT} />
           <motion.div

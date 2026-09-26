@@ -176,7 +176,7 @@ export const DiffusionReveal = () => {
   const done = progress >= 1;
 
   return (
-    <div className="w-[560px] rounded-3xl bg-[#101116] p-5 shadow-2xl shadow-black/60 ring-1 ring-white/10 select-none">
+    <div className="w-[560px] rounded-3xl bg-[#150f22] p-5 shadow-2xl shadow-black/60 ring-1 ring-white/10 select-none">
       <div className="mb-4 flex items-center justify-between gap-3 px-1.5">
         <p className="truncate text-[12.5px] text-white/65">
           <span className="mr-1.5 text-white/30">Prompt</span>a quiet valley at dusk, low fog, oil
