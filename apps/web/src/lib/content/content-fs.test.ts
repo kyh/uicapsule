@@ -129,7 +129,7 @@ test("source and registry downloads preserve consumer files and dependencies", a
   assert.deepEqual(registry.registryDependencies, []);
   assert.deepEqual(
     registry.files.map((file) => file.path),
-    sourceFiles.map((file) => file.path),
+    sourceFiles.map((file) => file.path).filter((filePath) => filePath !== "/package.json"),
   );
   assert.deepEqual(
     registry.files.find((file) => file.path === "/nested/a.ts"),

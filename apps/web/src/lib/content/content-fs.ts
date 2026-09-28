@@ -128,12 +128,15 @@ export const buildShadcnRegistryItem = async (component: LocalContentComponentSu
     dependencies,
     description: component.description,
     devDependencies,
-    files: sourceFiles.map(({ path: filePath, code }) => ({
-      content: code,
-      path: filePath,
-      target: `uicapsule/${component.slug}${filePath}`,
-      type: "registry:file" as const,
-    })),
+    // The manifest is workspace-only ("catalog:" versions); `dependencies` carries what it declares.
+    files: sourceFiles
+      .filter(({ path: filePath }) => filePath !== "/package.json")
+      .map(({ path: filePath, code }) => ({
+        content: code,
+        path: filePath,
+        target: `uicapsule/${component.slug}${filePath}`,
+        type: "registry:file" as const,
+      })),
     homepage: `https://uicapsule.com/ui/${component.slug}`,
     name: component.slug,
     registryDependencies: [],
