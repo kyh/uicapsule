@@ -77,6 +77,10 @@ Next imports, no filesystem — so it can be unit-tested without a runtime. The 
   an empty page without JavaScript, and only unsuspended cached data lands in the static
   shell. Anything added to it costs roughly 2.5× its size in HTML, because a server
   component's markup is duplicated in the RSC flight payload.
+- **`/mcp`** is a stateless Streamable HTTP MCP server (`mcp-handler`) with two read-only
+  tools, `search_components` and `get_component`. Ranking and payload shapes live in
+  `lib/agent/mcp-catalog.ts`; the route only wires them to `content-data`. It ships with each
+  deploy, so there is no npm package to publish or version.
 - Runtime gate: `pnpm check:agent-endpoints` against a running server. `pnpm verify`
   cannot see status codes or headers.
 
