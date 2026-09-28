@@ -1,5 +1,6 @@
 {
   "name": "3D Carousel",
+  "description": "WebGPU 3D image carousel — cards ride a bent ring; scroll or drag to spin it with momentum, then it snaps to the nearest card as side cards fade back.",
   "addedAt": "2025-08-14",
   "cover": "carousel-3d/carousel-3d.mp4",
   "tags": ["cards-grids", "colorful"]

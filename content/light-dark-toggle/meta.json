@@ -1,5 +1,6 @@
 {
   "name": "Light/Dark Toggle",
+  "description": "Sun/moon light-dark theme toggle icon — the moon's crescent mask slides away as it shrinks into a sun, the icon rotates, and six rays pop in one by one.",
   "addedAt": "2025-05-03",
   "cover": "light-dark-toggle/light-dark-toggle.mp4",
   "tags": ["controls", "minimal"]

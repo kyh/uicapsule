@@ -1,5 +1,6 @@
 {
   "name": "Background Pixel Stars",
+  "description": "Retro 16fps pixel starfield background — grid-snapped stars twinkle in stepped fades and slowly reshuffle while pixel shooting stars streak past with fading trails.",
   "addedAt": "2025-05-03",
   "cover": "background-pixel-stars/background-pixel-stars.mp4",
   "tags": ["effects", "pixel-art"]

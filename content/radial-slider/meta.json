@@ -1,5 +1,6 @@
 {
   "name": "Radial Slider",
+  "description": "Rotary dial slider — drag sideways to spin a ring of tick marks under a fixed needle; release and it springs to the nearest tick while the number readout rolls.",
   "addedAt": "2025-05-03",
   "cover": "radial-slider/radial-slider.mp4",
   "tags": ["controls", "cyberpunk"]

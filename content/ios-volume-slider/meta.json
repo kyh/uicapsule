@@ -1,5 +1,6 @@
 {
   "name": "iOS Volume Slider",
+  "description": "iOS-style vertical volume slider — drag past the top and the bar stretches, past the bottom it squashes, with sigmoid rubber-band resistance and a spring back.",
   "addedAt": "2025-05-03",
   "cover": "ios-volume-slider/ios-volume-slider.mp4",
   "tags": ["controls", "skeuomorphism"]

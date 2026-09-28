@@ -165,7 +165,7 @@ export const renderComponentMarkdown = (
     [
       `# ${component.name}`,
       "",
-      `> ${component.description ?? `A component in the ${siteConfig.name} gallery.`}`,
+      `> ${component.description}`,
       "",
       "## Details",
       "",

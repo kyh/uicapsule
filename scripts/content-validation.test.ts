@@ -7,7 +7,12 @@ import type { TestContext } from "node:test";
 
 import { validateContentDirectory } from "./content-validation";
 
-const validMeta = { addedAt: "2026-01-01", name: "Example", tags: ["effects"] };
+const validMeta = {
+  addedAt: "2026-01-01",
+  description: "Example.",
+  name: "Example",
+  tags: ["effects"],
+};
 
 const fixture = async (context: TestContext, files: [string, string][]) => {
   const directory = await mkdtemp(path.join(tmpdir(), "uicapsule-registry-"));

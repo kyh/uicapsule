@@ -31,6 +31,7 @@ const withDescription: ContentComponentSummary = {
 
 const bare: ContentComponentSummary = {
   addedAt: "2026-01-01",
+  description: "A vertical feed of cards.",
   name: "Feed",
   slug: "feed",
   tags: ["cards-grids"],
@@ -159,20 +160,12 @@ describe("buildComponentGraph", () => {
     );
   });
 
-  test("falls back to the site author, and drops empty optional fields", () => {
+  test("falls back to the site author", () => {
     const bareSource = buildSoftwareSourceCode(bare);
     assert.deepEqual(bareSource.author, [
       { "@type": "Person", name: "Kaiyu Hsu", url: "https://kyh.io" },
     ]);
-    // The metadata schema requires exactly one element tag, so `keywords` is
-    // always present; `description` is the optional field that can be absent.
     assert.equal(bareSource.keywords, "cards-grids");
-    assert.equal(bareSource.description, undefined);
-    // `undefined` is how an optional field is omitted — JSON.stringify drops it.
-    assert.ok(
-      !serializeJsonLd(bareSource).includes("description"),
-      'should not contain "description"',
-    );
   });
 });
 

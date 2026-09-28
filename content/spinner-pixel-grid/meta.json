@@ -1,5 +1,6 @@
 {
   "name": "Spinner Pixel Grid",
+  "description": "Dot-matrix pixel loading spinners — 20 grid animations (wave, spiral, radar, rain, snake, heart…) with square or round dots, neon glow and rainbow hue cycling.",
   "addedAt": "2026-01-12",
   "cover": "spinner-pixel-grid/spinner-pixel-grid.mp4",
   "tags": ["effects", "pixel-art"],

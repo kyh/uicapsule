@@ -1,5 +1,6 @@
 {
   "name": "Background Shapes",
+  "description": "Generative glyph grid background — two mirrored SVG panels of dots, crosses, stripes and squares, each cell swapping to a random shape on its own timer.",
   "addedAt": "2025-05-03",
   "cover": "background-shapes/background-shapes.mp4",
   "tags": ["effects", "geometric"]

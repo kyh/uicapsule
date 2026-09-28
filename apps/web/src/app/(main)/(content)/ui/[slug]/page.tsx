@@ -25,9 +25,7 @@ export const generateMetadata = async ({ params }: Props): Promise<Metadata> => 
     return { alternates: canonicalAlternates(`/ui/${slug}`) };
   }
 
-  const description =
-    component.description ??
-    `${component.name} — a live, installable React component in the UICapsule gallery.`;
+  const { description } = component;
 
   return {
     alternates: canonicalAlternates(`/ui/${component.slug}`),
@@ -55,7 +53,7 @@ const Content = async ({ params }: Props) => {
           gives the route the `h1` and description its canonical URL claims. */}
       <div className="sr-only">
         <h1>{component.name}</h1>
-        {component.description ? <p>{component.description}</p> : null}
+        <p>{component.description}</p>
       </div>
       <ContentFeed initialSlug={slug} feed={feed} />
     </>

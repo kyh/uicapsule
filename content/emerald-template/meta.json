@@ -1,5 +1,6 @@
 {
   "name": "Emerald",
+  "description": "Dark emerald AI landing page template — hero demo types a question, reveals collapsible chain-of-thought steps and a sourced answer; feature cards, integrations marquee.",
   "addedAt": "2025-09-10",
   "cover": "prompt-animation/prompt-animation.mp4",
   "defaultSize": "full",
