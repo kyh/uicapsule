@@ -281,6 +281,79 @@ const checkMachineFiles = async () => {
   expect("GET /r/registry.json still 200", registry.status === 200, `status ${registry.status}`);
 };
 
+type McpRequest =
+  | {
+      method: "initialize";
+      params: {
+        capabilities: Record<string, never>;
+        clientInfo: { name: string; version: string };
+        protocolVersion: string;
+      };
+    }
+  | { method: "tools/list"; params: Record<string, never> }
+  | {
+      method: "tools/call";
+      params: { arguments: { limit: number; query: string }; name: string };
+    };
+
+// Streamable HTTP may answer a JSON-RPC call as JSON or as a one-event SSE stream.
+const mcpCall = async (request: McpRequest) => {
+  const response = await fetch(`${baseUrl}/mcp`, {
+    body: JSON.stringify({ id: 1, jsonrpc: "2.0", ...request }),
+    headers: {
+      accept: "application/json, text/event-stream",
+      "content-type": "application/json",
+      "mcp-protocol-version": "2025-06-18",
+    },
+    method: "POST",
+  });
+  const body = await response.text();
+  const payload = body.startsWith("{")
+    ? body
+    : body
+        .split("\n")
+        .filter((line) => line.startsWith("data:"))
+        .map((line) => line.slice("data:".length))
+        .join("");
+  return { payload: payload ? JSON.parse(payload) : null, response };
+};
+
+const checkMcp = async () => {
+  const { response: init, payload: initPayload } = await mcpCall({
+    method: "initialize",
+    params: {
+      capabilities: {},
+      clientInfo: { name: "check-agent-endpoints", version: "1.0.0" },
+      protocolVersion: "2025-06-18",
+    },
+  });
+  expect("POST /mcp initialize → 200", init.status === 200, `status ${init.status}`);
+  expect(
+    "MCP server identifies as uicapsule",
+    initPayload?.result?.serverInfo?.name === "uicapsule",
+    JSON.stringify(initPayload).slice(0, 120),
+  );
+
+  const { payload: tools } = await mcpCall({ method: "tools/list", params: {} });
+  const names = (tools?.result?.tools ?? []).map((tool: { name: string }) => tool.name);
+  expect(
+    "MCP lists search_components and get_component",
+    names.includes("search_components") && names.includes("get_component"),
+    names.join(", ") || JSON.stringify(tools).slice(0, 120),
+  );
+
+  const { payload: search } = await mcpCall({
+    method: "tools/call",
+    params: { arguments: { limit: 3, query: "slider" }, name: "search_components" },
+  });
+  const text = search?.result?.content?.[0]?.text ?? "";
+  expect(
+    "MCP search returns installable components",
+    text.includes("npx shadcn@latest add"),
+    text.slice(0, 120) || JSON.stringify(search).slice(0, 120),
+  );
+};
+
 const checkTrustAnchors = async () => {
   for (const path of ["/about", "/contact", "/privacy"]) {
     const { response, body } = await fetchWith(path);
@@ -303,6 +376,7 @@ const main = async () => {
   await checkProxyScope();
   await checkNotFound();
   await checkMachineFiles();
+  await checkMcp();
   await checkTrustAnchors();
 
   for (const check of checks) {

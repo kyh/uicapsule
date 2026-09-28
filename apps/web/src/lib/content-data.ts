@@ -56,7 +56,7 @@ export const getSearchEntries = async (): Promise<SearchEntry[]> => {
   cacheLife("max");
   const all = await getAllContent();
   return all.map((component) => ({
-    description: component.description ?? "",
+    description: component.description,
     name: component.name,
     slug: component.slug,
     tags: component.tags,

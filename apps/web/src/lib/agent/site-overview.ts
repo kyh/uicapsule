@@ -77,6 +77,10 @@ export const agentEndpoints: ProseListItem[] = [
     label: "/preview-frame/<slug>",
     text: "the bare component with no site chrome, suitable for embedding in an iframe",
   },
+  {
+    label: "/mcp",
+    text: `an MCP server (Streamable HTTP) with \`search_components\` and \`get_component\`; add it with \`claude mcp add --transport http uicapsule ${siteConfig.url}/mcp\``,
+  },
   { href: "/sitemap.xml", label: "/sitemap.xml", text: "every indexable URL on the site" },
   { href: "/llms.txt", label: "/llms.txt", text: "this overview plus the full component catalog" },
   {
