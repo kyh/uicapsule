@@ -9,7 +9,7 @@
   "dependencies": {
     "react": "catalog:",
     "react-dom": "catalog:",
-    "three": "^0.186.0"
+    "three": "^0.186.1"
   },
   "devDependencies": {
     "@types/react": "catalog:",
