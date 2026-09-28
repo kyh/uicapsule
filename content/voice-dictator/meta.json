@@ -1,5 +1,6 @@
 {
   "name": "Voice Dictator",
+  "description": "Voice dictation UI — tap the orb and a dithered WebGL ring swells with simulated speech amplitude while a faux transcript streams in word by word.",
   "addedAt": "2025-09-21",
   "cover": "voice-dictator/voice-dictator.mp4",
   "tags": ["controls"]

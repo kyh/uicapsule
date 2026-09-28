@@ -1,5 +1,6 @@
 {
   "name": "Infinite Grid",
+  "description": "Infinite pannable grid — drag or scroll with momentum through endless cells, indexed in a spiral out from the center and rendered only while in view.",
   "addedAt": "2025-05-03",
   "cover": "infinite-grid/infinite-grid.mp4",
   "tags": ["cards-grids", "geometric"]

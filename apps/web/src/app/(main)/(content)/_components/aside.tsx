@@ -188,9 +188,7 @@ const Aside = ({ contentComponent }: AsideProps) => {
   return (
     <Card className="h-full">
       <h1 className="flex items-center gap-1 text-xl">{contentComponent.name}</h1>
-      {contentComponent.description && (
-        <p className="text-muted-foreground text-sm">{contentComponent.description}</p>
-      )}
+      <p className="text-muted-foreground text-sm">{contentComponent.description}</p>
       {contentComponent.type === "local" ? (
         <Drawer>
           <div className="flex flex-col gap-1.5">

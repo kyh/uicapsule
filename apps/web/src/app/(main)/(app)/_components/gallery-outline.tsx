@@ -93,7 +93,7 @@ export const GalleryOutline = async () => {
         {components.map((component) => (
           <li key={component.slug}>
             <Link href={`/ui/${component.slug}`}>{component.name}</Link>
-            {component.description ? ` — ${component.description}` : null}
+            {` — ${component.description}`}
             {(component.tags ?? []).length > 0
               ? ` Tags: ${(component.tags ?? []).join(", ")}.`
               : null}

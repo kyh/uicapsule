@@ -26,6 +26,7 @@ const localComponent: ContentComponentSummary = {
 
 const bareComponent: ContentComponentSummary = {
   addedAt: "2026-01-01",
+  description: "A vertical feed of cards.",
   name: "Feed",
   slug: "feed",
   tags: ["cards-grids"],
@@ -34,6 +35,7 @@ const bareComponent: ContentComponentSummary = {
 
 const remoteComponent: ContentComponentSummary = {
   addedAt: "2026-01-03",
+  description: "A component hosted elsewhere.",
   iframeUrl: "https://example.com/embed",
   name: "Elsewhere",
   slug: "elsewhere",
@@ -160,9 +162,9 @@ describe("renderComponentMarkdown", () => {
     );
   });
 
-  test("falls back to a generic summary when a component has no description", () => {
+  test("quotes the description and omits files when a component has none", () => {
     const body = renderComponentMarkdown(bareComponent, []);
-    assert.ok(body.includes("> "), 'should contain "> "');
+    assert.ok(body.includes("> A vertical feed of cards."), "should quote the description");
     assert.ok(!body.includes("## Files"), 'should not contain "## Files"');
   });
 

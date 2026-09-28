@@ -21,7 +21,10 @@ const sourceFiles = [
 ];
 const tags = ["effects"];
 const fixtureFiles: [string, string][] = [
-  ["local/meta.json", JSON.stringify({ addedAt: "2026-01-01", name: "Local", tags })],
+  [
+    "local/meta.json",
+    JSON.stringify({ addedAt: "2026-01-01", description: "Local.", name: "Local", tags }),
+  ],
   ...sourceFiles.map((file): [string, string] => [`local${file.path}`, file.code]),
   ["local/node_modules/dep/index.ts", "ignored"],
   ["local/dist/index.js", "ignored"],
@@ -34,6 +37,7 @@ const fixtureFiles: [string, string][] = [
     "remote/meta.json",
     JSON.stringify({
       addedAt: "2026-01-02",
+      description: "Remote.",
       iframeUrl: "https://example.com/preview",
       name: "Remote",
       sourceUrl: "https://example.com/source",
@@ -44,13 +48,24 @@ const fixtureFiles: [string, string][] = [
   ["broken-json/meta.json", "{"],
   ["bad-metadata/meta.json", JSON.stringify({ name: 42 })],
   ["bad-metadata/preview.tsx", "export default function Preview() {}"],
-  ["untagged/meta.json", JSON.stringify({ addedAt: "2026-01-01", name: "Untagged", tags: [] })],
+  [
+    "untagged/meta.json",
+    JSON.stringify({ addedAt: "2026-01-01", description: "Untagged.", name: "Untagged", tags: [] }),
+  ],
   ["untagged/preview.tsx", "export default function Preview() {}"],
   [
     "missing-preview/meta.json",
-    JSON.stringify({ addedAt: "2026-01-01", name: "Missing preview", tags }),
+    JSON.stringify({
+      addedAt: "2026-01-01",
+      description: "Missing.",
+      name: "Missing preview",
+      tags,
+    }),
   ],
-  [".hidden/meta.json", JSON.stringify({ addedAt: "2026-01-01", name: "Hidden", tags })],
+  [
+    ".hidden/meta.json",
+    JSON.stringify({ addedAt: "2026-01-01", description: "Hidden.", name: "Hidden", tags }),
+  ],
   [".hidden/preview.tsx", "export default function Preview() {}"],
 ];
 await mkdir(webRoot, { recursive: true });
@@ -76,6 +91,7 @@ test("indexes loadable metadata without reading component source", async () => {
     assert.deepEqual(await readContentIndex(), [
       {
         addedAt: "2026-01-02",
+        description: "Remote.",
         iframeUrl: "https://example.com/preview",
         name: "Remote",
         slug: "remote",
@@ -83,7 +99,14 @@ test("indexes loadable metadata without reading component source", async () => {
         tags,
         type: "remote",
       },
-      { addedAt: "2026-01-01", name: "Local", slug: "local", tags, type: "local" },
+      {
+        addedAt: "2026-01-01",
+        description: "Local.",
+        name: "Local",
+        slug: "local",
+        tags,
+        type: "local",
+      },
     ]);
   } finally {
     await chmod(sourcePath, 0o600);
@@ -98,6 +121,9 @@ test("source and registry downloads preserve consumer files and dependencies", a
   const registry = await buildShadcnRegistryItem(component);
   assert.equal(registry.type, "registry:block");
   assert.equal(registry.name, "local");
+  assert.equal(registry.title, "Local");
+  assert.equal(registry.description, "Local.");
+  assert.deepEqual(registry.categories, tags);
   assert.deepEqual(registry.dependencies, ["motion", "date-fns"]);
   assert.deepEqual(registry.devDependencies, ["sass"]);
   assert.deepEqual(registry.registryDependencies, []);

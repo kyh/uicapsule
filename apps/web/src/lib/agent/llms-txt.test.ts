@@ -14,7 +14,14 @@ const components: ContentComponentSummary[] = [
     tags: ["effects", "minimal"],
     type: "local",
   },
-  { addedAt: "2026-01-01", name: "Feed", slug: "feed", tags: ["cards-grids"], type: "local" },
+  {
+    addedAt: "2026-01-01",
+    description: "A vertical feed of cards.",
+    name: "Feed",
+    slug: "feed",
+    tags: ["cards-grids"],
+    type: "local",
+  },
 ];
 
 const body = renderLlmsTxt(components);

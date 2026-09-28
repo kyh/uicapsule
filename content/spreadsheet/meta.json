@@ -1,5 +1,6 @@
 {
   "name": "Spreadsheet",
+  "description": "Spreadsheet data grid with AI enrichment — select cells, hit Enrich and each fills in after a Generating… beat; editable cells, drag/shift selection, arrow keys, resizable columns.",
   "addedAt": "2025-09-10",
   "cover": "spreadsheet/spreadsheet-data-enrichment.mp4",
   "defaultSize": "full",

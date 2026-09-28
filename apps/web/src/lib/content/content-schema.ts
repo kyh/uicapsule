@@ -26,7 +26,7 @@ const metadataFields = {
   category: z.enum(["marketing", "application", "mobile"]).optional(),
   cover: coverKeySchema.optional(),
   defaultSize: z.enum(["full", "md", "sm"]).optional(),
-  description: z.string().optional(),
+  description: z.string().min(1),
   featured: z.boolean().optional(),
   inspiredBy: z.array(linkSchema).optional(),
   name: z.string(),

@@ -1,5 +1,6 @@
 {
   "name": "Filter Bar",
+  "description": "Data table filter bar — build text, number, date and option filters as editable chips with operators, or type a prompt, hit Ask AI and watch simulated filters stream in.",
   "addedAt": "2025-08-27",
   "cover": "filter-bar/filter-bar.mp4",
   "tags": ["controls", "minimal"]

@@ -1,5 +1,6 @@
 {
   "name": "Line Chart",
+  "description": "D3 area line chart of US COVID-19 cases — hover or touch to scrub a cursor line with a date/count tooltip; switching state or trend window morphs the curve.",
   "addedAt": "2025-06-13",
   "cover": "line-chart/line-chart.mp4",
   "tags": ["data", "minimal"],

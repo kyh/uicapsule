@@ -124,7 +124,9 @@ export const buildShadcnRegistryItem = async (component: LocalContentComponentSu
   return {
     $schema: "https://ui.shadcn.com/schema/registry.json",
     author: "Kaiyu Hsu <uicapsule@kyh.io>",
+    categories: component.tags,
     dependencies,
+    description: component.description,
     devDependencies,
     files: sourceFiles.map(({ path: filePath, code }) => ({
       content: code,
@@ -135,6 +137,7 @@ export const buildShadcnRegistryItem = async (component: LocalContentComponentSu
     homepage: `https://uicapsule.com/ui/${component.slug}`,
     name: component.slug,
     registryDependencies: [],
+    title: component.name,
     type: "registry:block" as const,
   };
 };
