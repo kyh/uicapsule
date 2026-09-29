@@ -97,7 +97,7 @@ server already running:
 
 ```sh
 pnpm check:agent-endpoints                  # defaults to http://localhost:3000
-pnpm check:agent-endpoints https://uicapsule.com
+pnpm check:agent-endpoints https://www.uicapsule.com
 ```
 
 Covers homepage `h1` + text-without-JavaScript + content efficiency + JSON-LD,

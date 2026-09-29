@@ -90,10 +90,6 @@ export const aboutPage: ProsePage = {
           text: `run \`npx shadcn@latest add ${siteConfig.url}/r/<slug>.json\``,
         },
         {
-          label: "Search from your editor",
-          text: `add the MCP server — \`claude mcp add --transport http uicapsule ${siteConfig.url}/mcp\` — and ask your agent for a component by what it does`,
-        },
-        {
           label: "Browse the registry index",
           text: "every component, with its dependencies",
         },
