@@ -13,7 +13,7 @@ const urls = entries.map((entry) => entry.url);
 
 describe("buildSitemapEntries", () => {
   test("leads with the home page at the highest priority", () => {
-    assert.equal(entries[0]?.url, "https://uicapsule.com/");
+    assert.equal(entries[0]?.url, "https://www.uicapsule.com/");
     assert.equal(entries[0]?.priority, 1);
   });
 
@@ -25,28 +25,31 @@ describe("buildSitemapEntries", () => {
   test("includes every prose page, the request form, and every component page", () => {
     for (const page of prosePages) {
       assert.ok(
-        urls.includes(`https://uicapsule.com${page.path}`),
-        `should contain https://uicapsule.com${page.path}`,
+        urls.includes(`https://www.uicapsule.com${page.path}`),
+        `should contain https://www.uicapsule.com${page.path}`,
       );
     }
     assert.ok(
-      urls.includes("https://uicapsule.com/request"),
-      'should contain "https://uicapsule.com/request"',
+      urls.includes("https://www.uicapsule.com/request"),
+      'should contain "https://www.uicapsule.com/request"',
     );
     assert.ok(
-      urls.includes("https://uicapsule.com/ui/dynamic-island"),
-      'should contain "https://uicapsule.com/ui/dynamic-island"',
+      urls.includes("https://www.uicapsule.com/ui/dynamic-island"),
+      'should contain "https://www.uicapsule.com/ui/dynamic-island"',
     );
     assert.ok(
-      urls.includes("https://uicapsule.com/ui/feed"),
-      'should contain "https://uicapsule.com/ui/feed"',
+      urls.includes("https://www.uicapsule.com/ui/feed"),
+      'should contain "https://www.uicapsule.com/ui/feed"',
     );
   });
 
   test("dates each component page from its own addedAt", () => {
     const byUrl = new Map(entries.map((entry) => [entry.url, entry]));
-    assert.equal(byUrl.get("https://uicapsule.com/ui/dynamic-island")?.lastModified, "2026-02-01");
-    assert.equal(byUrl.get("https://uicapsule.com/ui/feed")?.lastModified, "2025-11-14");
+    assert.equal(
+      byUrl.get("https://www.uicapsule.com/ui/dynamic-island")?.lastModified,
+      "2026-02-01",
+    );
+    assert.equal(byUrl.get("https://www.uicapsule.com/ui/feed")?.lastModified, "2025-11-14");
   });
 
   test("leaves the auth screens out — they are not indexable content", () => {
@@ -58,7 +61,7 @@ describe("buildSitemapEntries", () => {
 
   test("emits only absolute https URLs, with no duplicates", () => {
     for (const url of urls) {
-      assert.equal(url.startsWith("https://uicapsule.com/"), true);
+      assert.equal(url.startsWith("https://www.uicapsule.com/"), true);
     }
     assert.equal(new Set(urls).size, urls.length);
   });

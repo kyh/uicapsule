@@ -5,7 +5,7 @@ import { CardStack } from "./card-stack";
 const rootUrl = "https://d24l2zb4cwkekfpl.public.blob.vercel-storage.com/card-stack-1";
 
 const cards = [
-  { alt: "UI Capsule", href: "https://uicapsule.com", src: `${rootUrl}/uic.webp` },
+  { alt: "UI Capsule", href: "https://www.uicapsule.com", src: `${rootUrl}/uic.webp` },
   { alt: "KYH", href: "https://kyh.io", src: `${rootUrl}/kyh.webp` },
   { alt: "Vibed Games", href: "https://vibedgames.com", src: `${rootUrl}/vg.webp` },
   { alt: "Founding", href: "https://founding.so", src: `${rootUrl}/found.webp` },

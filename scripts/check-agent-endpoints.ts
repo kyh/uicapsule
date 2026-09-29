@@ -7,7 +7,7 @@
  *
  *   pnpm dev:web                       # or: pnpm build && pnpm -F @repo/web start
  *   pnpm check:agent-endpoints         # defaults to http://localhost:3000
- *   pnpm check:agent-endpoints https://uicapsule.com
+ *   pnpm check:agent-endpoints https://www.uicapsule.com
  *
  * Exits non-zero on the first failing expectation, listing every failure.
  */

@@ -3,6 +3,8 @@ import path from "node:path";
 import { cache } from "react";
 import type { z } from "zod";
 
+import { siteConfig } from "../site-config";
+
 import { contentMetaSchema, contentPackageSchema } from "./content-schema";
 
 import type {
@@ -137,7 +139,7 @@ export const buildShadcnRegistryItem = async (component: LocalContentComponentSu
         target: `uicapsule/${component.slug}${filePath}`,
         type: "registry:file" as const,
       })),
-    homepage: `https://uicapsule.com/ui/${component.slug}`,
+    homepage: `${siteConfig.url}/ui/${component.slug}`,
     name: component.slug,
     registryDependencies: [],
     title: component.name,

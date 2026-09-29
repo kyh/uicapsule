@@ -44,7 +44,7 @@ describe("buildOrganization", () => {
   test("carries the identity fields an agent resolves an entity by", () => {
     assert.equal(organization["@type"], "Organization");
     assert.equal(organization.name, "UICapsule");
-    assert.equal(organization.url, "https://uicapsule.com");
+    assert.equal(organization.url, "https://www.uicapsule.com");
     assert.ok(organization.description.length > 40, "expected > 40");
     assert.deepEqual(organization.sameAs, [
       "https://github.com/kyh/uicapsule",
@@ -115,13 +115,13 @@ describe("buildHomeGraph", () => {
         "@type": "ListItem",
         name: "Dynamic Island",
         position: 1,
-        url: "https://uicapsule.com/ui/dynamic-island",
+        url: "https://www.uicapsule.com/ui/dynamic-island",
       },
       {
         "@type": "ListItem",
         name: "Feed",
         position: 2,
-        url: "https://uicapsule.com/ui/feed",
+        url: "https://www.uicapsule.com/ui/feed",
       },
     ]);
   });
@@ -147,7 +147,7 @@ describe("buildComponentGraph", () => {
   test("describes the component as source code", () => {
     assert.equal(source["@type"], "SoftwareSourceCode");
     assert.equal(source.name, "Dynamic Island");
-    assert.equal(source.url, "https://uicapsule.com/ui/dynamic-island");
+    assert.equal(source.url, "https://www.uicapsule.com/ui/dynamic-island");
     assert.equal(source.programmingLanguage, "TypeScript");
     assert.equal(source.keywords, "effects");
   });
@@ -172,7 +172,7 @@ describe("buildComponentGraph", () => {
 describe("buildProsePageGraph", () => {
   test("describes the page and links it to the organization", () => {
     const page = buildWebPage(privacyPage);
-    assert.equal(page.url, "https://uicapsule.com/privacy");
+    assert.equal(page.url, "https://www.uicapsule.com/privacy");
     assert.equal(page.name, "Privacy");
     assert.deepEqual(page.about, { "@id": buildOrganization()["@id"] });
     assert.deepEqual(

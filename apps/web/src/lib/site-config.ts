@@ -1,5 +1,5 @@
 const url =
-  process.env.NODE_ENV === "development" ? "http://localhost:3000" : "https://uicapsule.com";
+  process.env.NODE_ENV === "development" ? "http://localhost:3000" : "https://www.uicapsule.com";
 
 export const siteConfig = {
   author: {
