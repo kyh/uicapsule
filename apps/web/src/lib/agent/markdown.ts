@@ -35,7 +35,9 @@ const renderBlock = (block: ProseBlock): string => {
   if (block.kind === "list") {
     return renderList(block.items);
   }
-  return block.text;
+  return block.link
+    ? block.text.replace(block.link.text, `[${block.link.text}](${absoluteUrl(block.link.href)})`)
+    : block.text;
 };
 
 const withTrailingNewline = (body: string): string => `${body.trimEnd()}\n`;
