@@ -69,46 +69,8 @@ export const aboutPage: ProsePage = {
       kind: "paragraph",
       text: "This is that collection as open source, copy paste-able code.",
     },
-    {
-      kind: "paragraph",
-      text: "Every entry in the gallery is a self-contained React component. It renders live in the browser rather than as a screenshot, so what you see on the grid is the component actually running. Open one and you get the full source, the dependencies it needs, and a download of the files — nothing is hidden behind a paywall or an account.",
-    },
-    {
-      kind: "paragraph",
-      text: "The bar for inclusion is deliberately narrow. A component earns a slot when it imports an interaction from outside the web — hardware, operating-system motion, physical mechanisms, instruments — or when it collides one familiar interaction with an unexpected domain. It has to read from motion alone: if the idea needs a paragraph of explanation before it lands, it isn't ready.",
-    },
-    {
-      kind: "paragraph",
-      text: "The stack is React 19, Next.js, Tailwind CSS and Motion, with Base UI underneath the primitives. Components are distributed as a shadcn registry, so you can install one straight into your own project instead of copying files by hand.",
-    },
-    { kind: "heading", text: "Using the components" },
-    {
-      items: [
-        {
-          href: "/r/registry.json",
-          label: "Install with the shadcn CLI",
-          text: `run \`npx shadcn@latest add ${siteConfig.url}/r/<slug>.json\``,
-        },
-        {
-          label: "Browse the registry index",
-          text: "every component, with its dependencies",
-        },
-        {
-          href: siteConfig.repository,
-          label: "Read the source",
-          text: "the whole gallery is open source on GitHub",
-        },
-        {
-          href: `mailto:${siteConfig.email}`,
-          label: "License",
-          text: "MIT — use the components in personal and commercial work, no attribution required",
-        },
-      ],
-      kind: "list",
-    },
   ],
-  description:
-    "What UICapsule is, who makes it, and how the components are built, licensed, and installed.",
+  description: "Why UICapsule exists and who makes it.",
   heading: "A curated collection of components that spark joy.",
   path: "/about",
   sitemapPriority: 0.6,

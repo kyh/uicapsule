@@ -80,7 +80,9 @@ Next imports, no filesystem — so it can be unit-tested without a runtime. The 
 - **`/mcp`** is a stateless Streamable HTTP MCP server (`mcp-handler`) with two read-only
   tools, `search_components` and `get_component`. Ranking and payload shapes live in
   `lib/agent/mcp-catalog.ts`; the route only wires them to `content-data`. It ships with each
-  deploy, so there is no npm package to publish or version.
+  deploy, so there is no npm package to publish or version. `server.json` is its MCP Registry
+  entry (`com.uicapsule/components`, DNS-verified); republish with `mcp-publisher publish` only
+  when that metadata changes — the signing key is not in the repo.
 - Runtime gate: `pnpm check:agent-endpoints` against a running server. `pnpm verify`
   cannot see status codes or headers.
 
