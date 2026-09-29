@@ -103,8 +103,10 @@ const textLength = (page: (typeof prosePages)[number]) =>
     )
     .join(" ").length;
 
+// /about is exempt: it is deliberately a short personal note, and /llms.txt
+// carries the detail an agent needs.
 describe("trust anchor pages", () => {
-  for (const page of [aboutPage, contactPage, privacyPage]) {
+  for (const page of [contactPage, privacyPage]) {
     test(`${page.path} carries real content`, () => {
       assert.ok(
         textLength(page) > 500,

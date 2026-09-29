@@ -359,7 +359,10 @@ const checkTrustAnchors = async () => {
     const { response, body } = await fetchWith(path);
     const text = visibleText(body);
     expect(`${path} → 200`, response.status === 200, `status ${response.status}`);
-    expect(`${path} has 500+ chars of content`, text.length >= 500, `${text.length} chars`);
+    // /about is deliberately a short personal note; see markdown.test.ts.
+    if (path !== "/about") {
+      expect(`${path} has 500+ chars of content`, text.length >= 500, `${text.length} chars`);
+    }
     expect(
       `${path} has an <h1> and a canonical`,
       /<h1[^>]*>/iu.test(body) && /rel="canonical"/iu.test(body),

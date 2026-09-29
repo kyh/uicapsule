@@ -1,0 +1,18 @@
+{
+  "$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
+  "name": "com.uicapsule/components",
+  "title": "UICapsule",
+  "description": "Search and install interactive React components with unusual motion, via the shadcn CLI.",
+  "version": "1.0.0",
+  "websiteUrl": "https://www.uicapsule.com",
+  "repository": {
+    "url": "https://github.com/kyh/uicapsule",
+    "source": "github"
+  },
+  "remotes": [
+    {
+      "type": "streamable-http",
+      "url": "https://www.uicapsule.com/mcp"
+    }
+  ]
+}

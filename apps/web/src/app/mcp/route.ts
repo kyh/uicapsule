@@ -1,4 +1,6 @@
+import { track } from "@vercel/analytics/server";
 import { createMcpHandler } from "mcp-handler";
+import { after } from "next/server";
 import { z } from "zod";
 
 import { componentDetail, searchCatalog, serverInstructions } from "@/lib/agent/mcp-catalog";
@@ -34,7 +36,17 @@ const handler = createMcpHandler(
         }),
         title: "Search components",
       },
-      async (input) => json(searchCatalog(await getAllContent(), input)),
+      async (input) => {
+        const results = searchCatalog(await getAllContent(), input);
+        after(() =>
+          track("mcp_search", {
+            query: input.query?.slice(0, 100) ?? "",
+            results: results.length,
+            tags: input.tags?.join(",") ?? "",
+          }),
+        );
+        return json(results);
+      },
     );
 
     server.registerTool(
@@ -49,6 +61,7 @@ const handler = createMcpHandler(
       async ({ slug }) => {
         const all = await getAllContent();
         const component = all.find((c) => c.slug === slug);
+        after(() => track("mcp_get", { found: Boolean(component), slug: slug.slice(0, 100) }));
         if (!component) {
           return { ...json({ error: `Component not found: ${slug}` }), isError: true };
         }
