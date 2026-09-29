@@ -74,6 +74,19 @@ const ProseBlockView = ({ block }: { block: ProseBlock }) => {
       </ul>
     );
   }
+  if (block.link) {
+    const { href, text } = block.link;
+    const at = block.text.indexOf(text);
+    if (at !== -1) {
+      return (
+        <p>
+          {withInlineCode(block.text.slice(0, at))}
+          <ProseLink href={href}>{text}</ProseLink>
+          {withInlineCode(block.text.slice(at + text.length))}
+        </p>
+      );
+    }
+  }
   return <p>{withInlineCode(block.text)}</p>;
 };
 

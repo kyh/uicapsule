@@ -76,6 +76,27 @@ describe("renderProsePageMarkdown", () => {
     assert.ok(body.includes("GitHub issues"), 'should contain "GitHub issues"');
   });
 
+  test("links the inline phrase a paragraph names", () => {
+    const body = renderProsePageMarkdown(aboutPage);
+    assert.ok(
+      body.includes(`[request it](${absoluteUrl("/request")})`),
+      "should link the /request phrase",
+    );
+  });
+
+  test("every paragraph link names a phrase its text contains", () => {
+    for (const page of [...prosePages, ...utilityPages]) {
+      for (const block of page.blocks) {
+        if (block.kind === "paragraph" && block.link) {
+          assert.ok(
+            block.text.includes(block.link.text),
+            `${page.path}: "${block.link.text}" is not in its paragraph`,
+          );
+        }
+      }
+    }
+  });
+
   test("ends with a newline and links back to the discovery surfaces", () => {
     const body = renderProsePageMarkdown(privacyPage);
     assert.equal(body.endsWith("\n"), true);

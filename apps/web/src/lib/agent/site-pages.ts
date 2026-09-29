@@ -37,7 +37,12 @@ export const rendersOutsideRouter = (href: string): boolean => {
 };
 
 export type ProseBlock =
-  | { kind: "paragraph"; text: string }
+  | {
+      kind: "paragraph";
+      text: string;
+      /** Turns the first occurrence of `link.text` inside `text` into a link. */
+      link?: { text: string; href: string };
+    }
   | { kind: "heading"; text: string }
   | { kind: "list"; items: ProseListItem[] };
 
@@ -59,11 +64,11 @@ export const aboutPage: ProsePage = {
   blocks: [
     {
       kind: "paragraph",
-      text: "Mostly interactions the web doesn't have yet, borrowed from phones, hardware, and physical objects: a dynamic island, a drum picker, a pattern unlock, a roll of paper.",
+      text: "Mostly interactions the web doesn't have yet, borrowed from phones, hardware, and physical objects.",
     },
     {
       kind: "paragraph",
-      text: "I'm Kaiyu. Over the years I've built and collected UI pieces that caught my eye: thoughtfully crafted details, interactive concepts that feel natural, design experiments that never found a home.",
+      text: "Over the years I've built and collected UI pieces that caught my eye: thoughtfully crafted details, interactive concepts that feel natural, design experiments that never found a home.",
     },
     {
       kind: "paragraph",
@@ -71,6 +76,7 @@ export const aboutPage: ProsePage = {
     },
     {
       kind: "paragraph",
+      link: { href: "/request", text: "request it" },
       text: "If there's an interaction you wish existed, request it. The best ideas come from somewhere other than the web.",
     },
   ],
