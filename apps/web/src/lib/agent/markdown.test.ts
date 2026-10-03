@@ -9,9 +9,17 @@ import {
   renderNotFoundMarkdown,
   renderProsePageMarkdown,
 } from "./markdown";
-import { aboutPage, contactPage, privacyPage, prosePages, utilityPages } from "./site-pages";
+import {
+  aboutPage,
+  contactPage,
+  privacyPage,
+  prosePages,
+  termsPage,
+  utilityPages,
+} from "./site-pages";
 
 import type { ContentComponentSummary } from "@/lib/content/content-schema";
+import type { ProseBlock } from "./site-pages";
 
 const localComponent: ContentComponentSummary = {
   addedAt: "2026-01-02",
@@ -45,9 +53,10 @@ const remoteComponent: ContentComponentSummary = {
 };
 
 describe("absoluteUrl", () => {
-  test("leaves absolute and mailto URLs alone", () => {
+  test("leaves absolute, mailto and in-page anchor URLs alone", () => {
     assert.equal(absoluteUrl("https://example.com/x"), "https://example.com/x");
     assert.equal(absoluteUrl("mailto:a@b.c"), "mailto:a@b.c");
+    assert.equal(absoluteUrl("#how-to-contact-us"), "#how-to-contact-us");
   });
 
   test("prefixes site-relative paths with the site origin", () => {
@@ -84,16 +93,58 @@ describe("renderProsePageMarkdown", () => {
     );
   });
 
-  test("every paragraph link names a phrase its text contains", () => {
-    for (const page of [...prosePages, ...utilityPages]) {
-      for (const block of page.blocks) {
-        if (block.kind === "paragraph" && block.link) {
-          assert.ok(
-            block.text.includes(block.link.text),
-            `${page.path}: "${block.link.text}" is not in its paragraph`,
-          );
-        }
-      }
+  test("keeps bold and code, and takes inline site links absolute", () => {
+    const body = renderProsePageMarkdown(termsPage);
+    assert.ok(body.includes("2.1 **License.**"), "should keep a bold lead-in");
+    assert.ok(
+      body.includes(`[www.uicapsule.com/privacy](${absoluteUrl("/privacy")})`),
+      "should link the Privacy Policy absolutely",
+    );
+    assert.ok(
+      body.includes(`(${absoluteUrl("/privacy#tracking--other-technologies")})`),
+      "should keep the fragment on a cross-page anchor",
+    );
+  });
+
+  test("leaves the privacy index on in-page anchors", () => {
+    const body = renderProsePageMarkdown(privacyPage);
+    assert.ok(
+      body.includes("- [Personal information we collect](#personal-information-we-collect)"),
+      "should index the first section by its anchor",
+    );
+    assert.ok(
+      body.includes("- [Notice to European users](#notice-to-european-users)"),
+      "should index the last section by its anchor",
+    );
+  });
+
+  test("renders subsections, tables and dividers", () => {
+    const body = renderProsePageMarkdown(privacyPage);
+    assert.ok(body.includes("\n## Retention\n"), "should render a section as H2");
+    assert.ok(body.includes("\n### Retention\n"), "should render a subsection as H3");
+    assert.ok(
+      body.includes(
+        '| Personal Information ("PI") we collect | CCPA statutory category | Purposes |',
+      ),
+      "should render the CCPA table's header row",
+    );
+    assert.ok(body.includes("| --- | --- | --- | --- | --- |"), "should separate the header");
+    assert.ok(
+      body.includes("| Purpose | Categories of personal information involved | Legal basis |"),
+      "should render the legal-bases table's header row",
+    );
+    assert.equal(body.match(/^---$/gmu)?.length, 2, "the credit's divider and the footer rule");
+  });
+
+  test("escapes a pipe inside a table cell", () => {
+    const table: ProseBlock = { columns: ["A", "B"], kind: "table", rows: [["x | y", "z"]] };
+    const body = renderProsePageMarkdown({ ...termsPage, blocks: [table] });
+    assert.ok(body.includes(String.raw`| x \| y | z |`), "should escape the pipe");
+  });
+
+  test("gives each legal page a single H1", () => {
+    for (const page of [privacyPage, termsPage]) {
+      assert.deepEqual(renderProsePageMarkdown(page).match(/^# /gmu), ["# "]);
     }
   });
 
@@ -115,19 +166,33 @@ describe("renderProsePageMarkdown", () => {
 
 // These are the pages an agent reads to decide whether a site is a real
 // operation. Below ~500 characters they read as placeholders.
+const blockText = (block: ProseBlock): string => {
+  switch (block.kind) {
+    case "list": {
+      return block.items.map((item) => `${item.label} ${item.text ?? ""}`).join(" ");
+    }
+    case "bullets": {
+      return block.items.join(" ");
+    }
+    case "table": {
+      return [...block.columns, ...block.rows.flat()].join(" ");
+    }
+    case "divider": {
+      return "";
+    }
+    default: {
+      return block.text;
+    }
+  }
+};
+
 const textLength = (page: (typeof prosePages)[number]) =>
-  page.blocks
-    .map((block) =>
-      block.kind === "list"
-        ? block.items.map((item) => `${item.label} ${item.text ?? ""}`).join(" ")
-        : block.text,
-    )
-    .join(" ").length;
+  page.blocks.map(blockText).join(" ").length;
 
 // /about is exempt: it is deliberately a short personal note, and /llms.txt
 // carries the detail an agent needs.
 describe("trust anchor pages", () => {
-  for (const page of [contactPage, privacyPage]) {
+  for (const page of [contactPage, privacyPage, termsPage]) {
     test(`${page.path} carries real content`, () => {
       assert.ok(
         textLength(page) > 500,

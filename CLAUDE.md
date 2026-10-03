@@ -55,9 +55,14 @@ Triage is manual: apply `ready` to accept, close as not-planned to decline. The
 Next imports, no filesystem — so it can be unit-tested without a runtime. The routes and
 `src/proxy.ts` only feed it data.
 
-- **One source per page.** `site-pages.ts` holds the prose for `/about`, `/contact` and
-  `/privacy`; the JSX page and the Markdown representation both render from it. Never edit
-  the copy in only one of the two.
+- **One source per page.** `site-pages.ts` holds the prose for `/about`, `/contact`,
+  `/privacy` and `/terms`; the JSX page and the Markdown representation both render from it.
+  Never edit the copy in only one of the two. Copy carries `**bold**`, `` `code` `` and
+  `[label](href)` inline markup, read by the one tokenizer in `inline-markup.ts`.
+- **The Privacy Policy and Terms of Use follow General Legal's templates**, adapted so every
+  sentence is true of this code. A change to what the site collects, stores, logs, or sends
+  to a third party (a new analytics event, processor, cookie or form field) changes
+  `privacyPage` in the same commit.
 - **Markdown content negotiation** (acceptmarkdown.com): `src/proxy.ts` parses `Accept` and
   rewrites Markdown-preferring requests to `/api/markdown/*`. `/<path>.md` (and `/index.md`
   for the home page) serves the same thing without an `Accept` header. The proxy's matcher

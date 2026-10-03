@@ -9,6 +9,8 @@ import {
   whenToUse,
 } from "./site-overview";
 
+import { parseInline } from "./inline-markup";
+
 import type { ContentComponentSummary } from "@/lib/content/content-schema";
 import type { ProseBlock, ProseListItem, ProsePage } from "./site-pages";
 
@@ -18,26 +20,67 @@ import type { ProseBlock, ProseListItem, ProsePage } from "./site-pages";
  * route handler supplies the data.
  */
 
+/** Site paths become absolute URLs; off-site, `mailto:` and in-page `#anchor` hrefs pass through. */
 export const absoluteUrl = (path: string): string =>
-  path.startsWith("http") || path.startsWith("mailto:") ? path : `${siteConfig.url}${path}`;
+  path.startsWith("http") || path.startsWith("mailto:") || path.startsWith("#")
+    ? path
+    : `${siteConfig.url}${path}`;
+
+/** Copy as Markdown: its inline markup already is Markdown, except that site paths go absolute. */
+const renderInline = (text: string): string =>
+  parseInline(text)
+    .map((token) => {
+      if (token.kind === "bold") {
+        return `**${token.text}**`;
+      }
+      if (token.kind === "code") {
+        return `\`${token.text}\``;
+      }
+      if (token.kind === "link") {
+        return `[${token.text}](${absoluteUrl(token.href)})`;
+      }
+      return token.text;
+    })
+    .join("");
 
 const renderListItem = (item: ProseListItem): string => {
   const label = item.href ? `[${item.label}](${absoluteUrl(item.href)})` : `**${item.label}**`;
-  return item.text ? `- ${label}: ${item.text}` : `- ${label}`;
+  return item.text ? `- ${label}: ${renderInline(item.text)}` : `- ${label}`;
 };
 
 export const renderList = (items: ProseListItem[]): string => items.map(renderListItem).join("\n");
 
+/** A GFM table cell holds one line, and a bare `|` would end the cell. */
+const tableCell = (text: string): string => renderInline(text).replaceAll("|", String.raw`\|`);
+
+const tableRow = (cells: string[]): string => `| ${cells.map(tableCell).join(" | ")} |`;
+
+const renderTable = (columns: string[], rows: string[][]): string =>
+  [tableRow(columns), `| ${columns.map(() => "---").join(" | ")} |`, ...rows.map(tableRow)].join(
+    "\n",
+  );
+
 const renderBlock = (block: ProseBlock): string => {
-  if (block.kind === "heading") {
-    return `## ${block.text}`;
+  switch (block.kind) {
+    case "heading": {
+      return `${block.level === 3 ? "###" : "##"} ${block.text}`;
+    }
+    case "list": {
+      return renderList(block.items);
+    }
+    case "bullets": {
+      return block.items.map((item) => `- ${renderInline(item)}`).join("\n");
+    }
+    case "table": {
+      return renderTable(block.columns, block.rows);
+    }
+    case "divider": {
+      return "---";
+    }
+    default: {
+      return renderInline(block.text);
+    }
   }
-  if (block.kind === "list") {
-    return renderList(block.items);
-  }
-  return block.link
-    ? block.text.replace(block.link.text, `[${block.link.text}](${absoluteUrl(block.link.href)})`)
-    : block.text;
 };
 
 const withTrailingNewline = (body: string): string => `${body.trimEnd()}\n`;
@@ -110,7 +153,16 @@ export const renderHomeMarkdown = (components: ContentComponentSummary[]): strin
       renderList([
         { href: "/about", label: "About", text: "what this is and how to install a component" },
         { href: "/contact", label: "Contact", text: "email and GitHub" },
-        { href: "/privacy", label: "Privacy", text: "what is collected and who processes it" },
+        {
+          href: "/privacy",
+          label: "Privacy Policy",
+          text: "what is collected, who processes it, and your rights",
+        },
+        {
+          href: "/terms",
+          label: "Terms of Use",
+          text: "the terms for using the site and its components",
+        },
       ]),
     ].join("\n"),
   );

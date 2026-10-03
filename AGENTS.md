@@ -104,7 +104,8 @@ Covers homepage `h1` + text-without-JavaScript + content efficiency + JSON-LD,
 `Accept: text/markdown` on every page shape, the head `<link rel="alternate">`, `406`
 on an unsatisfiable markdown Accept, that a non-markdown Accept skips the proxy, q-value
 handling, the Markdown and HTML 404 bodies, `/sitemap.xml`, `/llms.txt`, `/robots.txt`, and
-the three trust-anchor pages. Run it after touching anything in `apps/web/src/lib/agent`,
+the four trust-anchor pages (including that every `#anchor` on the legal pages lands on a
+heading id). Run it after touching anything in `apps/web/src/lib/agent`,
 `src/proxy.ts`, or page metadata.
 
 Runtime — drive the real UI with [agent-browser](https://github.com/vercel-labs/agent-browser)
@@ -142,6 +143,7 @@ The routes worth checking, and what each proves:
 | `/api/content/<slug>`     | source payload behind the drawer + zip download       |
 | `/about`, `/request`      | static page; request form → GitHub issue              |
 | `/contact`, `/privacy`    | prose pages (trust anchors)                           |
+| `/terms`                  | prose page (trust anchor) — the Terms of Use          |
 | `/llms.txt`               | llmstxt.org index — overview + full component catalog |
 | `/sitemap.xml`            | every indexable URL, with `lastmod`                   |
 | `/index.md`, `/<path>.md` | the Markdown representation of any page               |
@@ -211,8 +213,8 @@ Web is the only surface. There is no mobile, desktop, or extension target.
   live in separate files under `src/components/`.
 - `apps/web/src/lib/agent` — the machine-readable layer: Accept negotiation, Markdown
   rendering, `llms.txt`, sitemap entries, JSON-LD, and the prose-page definitions that
-  `/about`, `/contact` and `/privacy` render from. Pure and unit-tested; `src/proxy.ts` and
-  the routes only feed it data.
+  `/about`, `/contact`, `/privacy` and `/terms` render from. Pure and unit-tested;
+  `src/proxy.ts` and the routes only feed it data.
 - `packages/ui` — Base UI + shadcn-derived components · `packages/db` — Drizzle + Turso ·
   `packages/api` — oRPC + better-auth
 - `content/<slug>/` — one workspace package per component

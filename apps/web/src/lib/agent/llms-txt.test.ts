@@ -94,7 +94,14 @@ describe("renderLlmsTxt — llmstxt.org format", () => {
   });
 
   test("links the trust anchor pages and the machine-readable endpoints", () => {
-    for (const path of ["/about", "/contact", "/privacy", "/sitemap.xml", "/robots.txt"]) {
+    for (const path of [
+      "/about",
+      "/contact",
+      "/privacy",
+      "/terms",
+      "/sitemap.xml",
+      "/robots.txt",
+    ]) {
       assert.ok(
         body.includes(`https://www.uicapsule.com${path}`),
         `should contain https://www.uicapsule.com${path}`,
