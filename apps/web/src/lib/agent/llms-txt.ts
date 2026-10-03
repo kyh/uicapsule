@@ -48,6 +48,11 @@ export const renderLlmsTxt = (components: ContentComponentSummary[]): string => 
         label: "Privacy Policy",
         text: "what is collected, who processes it, and your rights",
       },
+      {
+        href: "/terms",
+        label: "Terms of Use",
+        text: "the terms for using the site and its components",
+      },
     ]),
     "",
     "## Machine-readable endpoints",
