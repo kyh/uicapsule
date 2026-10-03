@@ -107,7 +107,6 @@ export const GalleryOutline = async () => {
           { href: "/about", label: "About", text: "what this is and how to install a component" },
           { href: "/contact", label: "Contact", text: "email and GitHub issues" },
           { href: "/privacy", label: "Privacy Policy", text: "what is collected and your rights" },
-          { href: "/terms", label: "Terms of Use", text: "the terms for using the site" },
         ]}
       />
     </section>

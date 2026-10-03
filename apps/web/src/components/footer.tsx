@@ -39,7 +39,6 @@ export const Footer = ({ className }: { className?: string }) => (
       <FooterLink href="/request">Request</FooterLink>
       <FooterLink href="/contact">Contact</FooterLink>
       <FooterLink href="/privacy">Privacy</FooterLink>
-      <FooterLink href="/terms">Terms</FooterLink>
     </div>
     <div className="grid w-full grid-cols-3 border-t lg:flex lg:w-auto lg:border-t-0">
       <FooterIcon href="https://github.com/kyh/uicapsule" label="GitHub">

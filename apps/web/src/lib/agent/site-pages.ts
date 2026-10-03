@@ -325,7 +325,7 @@ const privacySections: ProseBlock[] = [
     "comply with applicable laws, lawful requests, and legal process, such as to respond to subpoenas, investigations or requests from government authorities;",
     "protect our, your or others' rights, privacy, safety or property (including by making and defending legal claims);",
     "audit our internal processes for compliance with legal and contractual requirements or our internal policies;",
-    "enforce the terms and conditions that govern the Service, including our [Terms of Use](/terms); and",
+    "enforce the terms and conditions that govern the Service; and",
     "prevent, identify, investigate and deter fraudulent, harmful, unauthorized, unethical or illegal activity, including cyberattacks and identity theft.",
   ),
   p(
