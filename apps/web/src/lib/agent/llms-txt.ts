@@ -43,7 +43,16 @@ export const renderLlmsTxt = (components: ContentComponentSummary[]): string => 
       { href: "/", label: "Home", text: "the component gallery, filterable" },
       { href: "/about", label: "About", text: "who makes this, and why" },
       { href: "/contact", label: "Contact", text: "email and GitHub issues" },
-      { href: "/privacy", label: "Privacy", text: "what is collected and who processes it" },
+      {
+        href: "/privacy",
+        label: "Privacy Policy",
+        text: "what is collected, who processes it, and your rights",
+      },
+      {
+        href: "/terms",
+        label: "Terms of Use",
+        text: "the terms for using the site and its components",
+      },
     ]),
     "",
     "## Machine-readable endpoints",

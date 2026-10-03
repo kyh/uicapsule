@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { describe, test } from "node:test";
 
-import { privacyPage } from "./site-pages";
+import { privacyPage, termsPage } from "./site-pages";
 import {
   buildCollectionPage,
   buildComponentBreadcrumb,
@@ -173,12 +173,20 @@ describe("buildProsePageGraph", () => {
   test("describes the page and links it to the organization", () => {
     const page = buildWebPage(privacyPage);
     assert.equal(page.url, "https://www.uicapsule.com/privacy");
-    assert.equal(page.name, "Privacy");
+    assert.equal(page.name, "Privacy Policy");
     assert.deepEqual(page.about, { "@id": buildOrganization()["@id"] });
     assert.deepEqual(
       buildProsePageGraph(privacyPage)["@graph"].map((node) => node["@type"]),
       ["Organization", "WebPage"],
     );
+  });
+
+  test("describes the terms page the same way", () => {
+    const page = buildWebPage(termsPage);
+    assert.equal(page.url, "https://www.uicapsule.com/terms");
+    assert.equal(page.name, "Terms of Use");
+    assert.equal(page.headline, "Terms of Use");
+    assert.deepEqual(page.isPartOf, { "@id": buildWebSite()["@id"] });
   });
 });
 
