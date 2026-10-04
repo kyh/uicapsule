@@ -31,7 +31,7 @@ Liveness: `curl -s -o /dev/null -w '%{http_code}' localhost:3000/` → `200`.
 ## Login
 
 **There is no seeded user.** Auth exists and works, but nothing in the gallery is gated by
-it (`packages/api` ships one procedure, `user.me`, with zero callers — see CLAUDE.md
+it (`packages/service` ships one procedure, `user.me`, with zero callers — see CLAUDE.md
 "Decisions"). Create one the first time you need it:
 
 ```sh
@@ -59,7 +59,7 @@ curl -s -i -X POST localhost:3000/api/auth/sign-in/email \
 The same credentials work in the `/auth/login` form. Mind the rate limit: better-auth
 applies a built-in rule of **3 requests / 10s per IP** to any `/sign-in*`, `/sign-up*`,
 `/change-password*` or `/change-email*` path, and it _overrides_ the `window: 60, max: 10`
-configured in `packages/api/src/auth/auth.ts` (only `rateLimit.customRules` could beat it).
+configured in `packages/service/src/auth/auth.ts` (only `rateLimit.customRules` could beat it).
 The configured 10/60 governs the other `/api/auth/*` routes. So a sign-up → sign-in → form
 login sequence already spends the whole budget — one retry inside 10s gets a 429. Always
 print the status line, or a 422/429 looks like "auth is broken".
@@ -216,7 +216,8 @@ Web is the only surface. There is no mobile, desktop, or extension target.
   `/about`, `/contact`, `/privacy` and `/terms` render from. Pure and unit-tested;
   `src/proxy.ts` and the routes only feed it data.
 - `packages/ui` — Base UI + shadcn-derived components · `packages/db` — Drizzle + Turso ·
-  `packages/api` — oRPC + better-auth
+  `packages/contract` — the oRPC contract, client-safe · `packages/service` — its
+  implementation + better-auth
 - `content/<slug>/` — one workspace package per component
 - `CLAUDE.md` — conventions, settled decisions, curation philosophy
 - `plans/component-roadmap.md` — the component backlog

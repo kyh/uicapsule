@@ -50,17 +50,26 @@ test("rejects private imports, reexports, dynamic imports, require, and relative
     [
       "example.tsx",
       `import { Button } from "@repo/ui/components/button";
+       import type { ContractClient } from "@repo/contract";
        export { cn } from "@repo/ui/lib/utils";
        export * from "../../packages/ui/src/lib/utils";
-       const dynamic = import("@repo/api");
+       const dynamic = import("@repo/service");
        const cjs = require("@repo/db");
        const alias = import("@/lib/content-data");`,
     ],
     ["style.css", '@import "@repo/ui/globals.css";'],
   ]);
   const issues = await validateContentDirectory(directory);
-  assert.equal(issues.length, 7);
-  for (const dependency of ["button", "utils", "@repo/api", "@repo/db", "@/lib", "globals.css"]) {
+  assert.equal(issues.length, 8);
+  for (const dependency of [
+    "button",
+    "utils",
+    "@repo/contract",
+    "@repo/service",
+    "@repo/db",
+    "@/lib",
+    "globals.css",
+  ]) {
     assert.ok(
       issues.some((issue) => issue.includes(dependency)),
       dependency,

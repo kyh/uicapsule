@@ -10,11 +10,33 @@
 apps/
   web/           # Next.js 16 app (main frontend)
 packages/
-  api/           # oRPC + better-auth
+  contract/      # oRPC contract: zod inputs, outputs, client-safe request schemas
+  service/       # oRPC implementation of the contract + better-auth
   db/            # Drizzle ORM + Turso (libSQL)
   ui/            # shadcn-derived components on Base UI
 content/         # Gallery components — one workspace package per slug
 ```
+
+### Contract-first API
+
+`@repo/contract` is the single source of truth, and client-safe: a feature's zod inputs and the
+constants clients share live in `<f>-schema.ts` (`request/` adds `attachment-schema.ts`, the
+upload limits the form and `/api/request/attachments` both read), its procedures in
+`<f>-contract.ts` on `publicBase` / `protectedBase` from `base.ts`, registered in
+`src/index.ts`. Both bases are plain `oc`, since no procedure declares errors or meta. An output
+with no zod schema is `.output(type<T>())`, `T` written in the contract: compile-time only.
+`@repo/service` implements it with `os = implement(contract)` — protected:
+`const authed = os.<f>.use(requireSession); export const <f>Router = { <proc>: authed.<proc>.handler(...) }`
+(see `user-router.ts`); public procedures implement `os.<f>.<proc>` directly (see
+`request-router.ts`). Mount in `root-router.ts`; `os.router` fails to compile if a procedure is
+missing or mistyped. Implementer-level `.use` runs before input validation (anonymous →
+UNAUTHORIZED); procedure-level `.use` runs after. Feature routers stay plain objects —
+`os.<f>.router()` re-applies implementer middleware, so it would run twice. `requireSession`
+looks the session up itself, so `createORPCContext` carries only headers and public procedures
+never touch the database. Clients type against `ContractClient` / `RouterInputs` /
+`RouterOutputs` and import schemas from `@repo/contract`; only server code (the route handlers
+under `apps/web/src/app/api`) imports `@repo/service`. Layout follows oRPC's Hybrid monorepo
+recipe.
 
 ### Content architecture
 
@@ -105,7 +127,7 @@ Next imports, no filesystem — so it can be unit-tested without a runtime. The 
 
 - **Provision**: no bootstrap script. `pnpm install` → `cp .env.example .env` (fill it) →
   `pnpm -F db db` in one shell → `pnpm db:push` → `pnpm dev:web`.
-- **Port 3000 is mandatory.** `packages/api/src/auth/auth.ts` pins `baseUrl`/`trustedOrigins`
+- **Port 3000 is mandatory.** `packages/service/src/auth/auth.ts` pins `baseUrl`/`trustedOrigins`
   to `http://localhost:3000` outside Vercel, so a fallback to 3001 makes every browser
   sign-in 403 silently.
 - **No seeded login.** Nothing in the gallery is authed. `POST /api/auth/sign-up/email`

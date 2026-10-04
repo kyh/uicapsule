@@ -1,13 +1,11 @@
 {
-  "name": "@repo/api",
+  "name": "@repo/service",
   "version": "0.1.0",
   "private": true,
   "type": "module",
   "exports": {
     ".": "./src/index.ts",
     "./auth": "./src/auth/auth.ts",
-    "./request/attachment": "./src/request/attachment.ts",
-    "./request/component-request": "./src/request/component-request.ts",
     "./request/github-attachment": "./src/request/github-attachment.ts"
   },
   "scripts": {
@@ -18,6 +16,7 @@
   "dependencies": {
     "@better-auth/drizzle-adapter": "catalog:",
     "@orpc/server": "catalog:",
+    "@repo/contract": "workspace:^",
     "@repo/db": "workspace:^",
     "better-auth": "catalog:",
     "server-only": "^0.0.1",
