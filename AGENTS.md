@@ -194,7 +194,9 @@ Web is the only surface. There is no mobile, desktop, or extension target.
 - **Vercel builds every push, deliberately** — do not add `turbo-ignore` or an Ignored
   Build Step, and do not remove `globalDependencies: ["content/**"]` from `turbo.json`.
   Both exist because `apps/web` never depends on `content/*` by name; each has already
-  broken real deploys. CLAUDE.md → "Decisions" has the full story.
+  broken real deploys. Nor remove the root `build` task's `"dependsOn": ["^build"]`:
+  `apps/web` reaches `@repo/db` only through `@repo/service`, and that chain is what puts
+  `packages/db` in web's build hash. CLAUDE.md → "Decisions" has the full story.
 - **`pnpm db:push-remote` writes production Turso.** Never run it locally. `pnpm db:push`
   is the local one.
 - Env vars read at build time must be listed in `turbo.json` `globalEnv`, or turbo's strict

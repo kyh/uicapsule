@@ -22,7 +22,6 @@
     "@orpc/tanstack-query": "catalog:",
     "@remixicon/react": "^4.9.0",
     "@repo/contract": "workspace:^",
-    "@repo/db": "workspace:^",
     "@repo/service": "workspace:^",
     "@repo/ui": "workspace:^",
     "@tanstack/react-query": "catalog:",

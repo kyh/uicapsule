@@ -212,6 +212,15 @@ does not prove delivery. Reset tokens expire after one hour and revoke existing 
   both hides content edits and, when a content source file was deleted/renamed, fails the
   Vercel deploy with `ENOENT` on the stale file in the cached Next.js trace (killed the
   merge of #86 once). The line makes any content change invalidate the web build.
+- **The root `build` task declares `"dependsOn": ["^build"]` — do not remove it.** Only
+  `apps/web` has a build script, so the dependency builds it chains run nothing; the chain
+  exists for the hash. Turbo hashes a task from its own files plus the hashes of the tasks it
+  depends on, never from its workspace dependencies' files, and `@repo/db` reaches `apps/web`
+  only through `@repo/service`. Web's own `^build` (`apps/web/turbo.json`) reaches one hop;
+  the root one makes `@repo/service#build` depend on `@repo/db#build`, which is what puts
+  `packages/db` in web's build hash. Without it a `packages/db`-only commit is the same stale
+  `FULL TURBO` replay as a content-only one. Don't list `@repo/db` in `apps/web` to fix that
+  instead: nothing there imports it.
 - Settled audit findings that should not be re-raised live in the pinned issue #84.
 
 ## Content Curation Philosophy
