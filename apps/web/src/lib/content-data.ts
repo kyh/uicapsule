@@ -1,6 +1,7 @@
 import { cacheLife } from "next/cache";
 
 import { resolveCover } from "./assets";
+import { siteConfig } from "./site-config";
 import {
   buildShadcnRegistryItem,
   readContentBySlug,
@@ -91,7 +92,7 @@ export const getShadcnRegistry = async () => {
 
   return {
     $schema: "https://ui.shadcn.com/schema/registry.json",
-    homepage: "https://uicapsule.com",
+    homepage: siteConfig.url,
     items,
     name: "uicapsule",
   };

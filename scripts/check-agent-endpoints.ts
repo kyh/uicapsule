@@ -7,7 +7,7 @@
  *
  *   pnpm dev:web                       # or: pnpm build && pnpm -F @repo/web start
  *   pnpm check:agent-endpoints         # defaults to http://localhost:3000
- *   pnpm check:agent-endpoints https://uicapsule.com
+ *   pnpm check:agent-endpoints https://www.uicapsule.com
  *
  * Exits non-zero on the first failing expectation, listing every failure.
  */
@@ -115,7 +115,7 @@ const checkHomePage = async () => {
 };
 
 const checkMarkdownNegotiation = async () => {
-  for (const path of ["/", "/about", "/contact", "/privacy", "/ui/dynamic-island"]) {
+  for (const path of ["/", "/about", "/contact", "/privacy", "/terms", "/ui/dynamic-island"]) {
     const { response, body } = await fetchWith(path, "text/markdown");
     const contentType = response.headers.get("content-type") ?? "";
     expect(
@@ -139,12 +139,16 @@ const checkMarkdownNegotiation = async () => {
     htmlResponse.headers.get("content-type") ?? "(none)",
   );
 
-  const { response: mdSibling } = await fetchWith("/about.md");
-  expect(
-    "/about.md serves markdown with no Accept header",
-    (mdSibling.headers.get("content-type") ?? "").startsWith("text/markdown"),
-    mdSibling.headers.get("content-type") ?? "(none)",
-  );
+  // `/privacy.md` is the privacy policy's printable copy, so it must answer without Accept.
+  for (const path of ["/about.md", "/privacy.md", "/terms.md"]) {
+    const { response: mdSibling } = await fetchWith(path);
+    expect(
+      `${path} serves markdown with no Accept header`,
+      mdSibling.status === 200 &&
+        (mdSibling.headers.get("content-type") ?? "").startsWith("text/markdown"),
+      `status ${mdSibling.status}, content-type ${mdSibling.headers.get("content-type") ?? "(none)"}`,
+    );
+  }
 
   // React's own transport must never be negotiated: a Server Action sends
   // `Accept: text/x-component`, which no representation of this site satisfies.
@@ -355,17 +359,39 @@ const checkMcp = async () => {
 };
 
 const checkTrustAnchors = async () => {
-  for (const path of ["/about", "/contact", "/privacy"]) {
+  for (const path of ["/about", "/contact", "/privacy", "/terms"]) {
     const { response, body } = await fetchWith(path);
     const text = visibleText(body);
     expect(`${path} → 200`, response.status === 200, `status ${response.status}`);
-    expect(`${path} has 500+ chars of content`, text.length >= 500, `${text.length} chars`);
+    // /about is deliberately a short personal note; see markdown.test.ts.
+    if (path !== "/about") {
+      expect(`${path} has 500+ chars of content`, text.length >= 500, `${text.length} chars`);
+    }
     expect(
       `${path} has an <h1> and a canonical`,
       /<h1[^>]*>/iu.test(body) && /rel="canonical"/iu.test(body),
       "missing",
     );
   }
+
+  // The privacy policy's Index, and its cross-references, jump to heading ids.
+  for (const path of ["/privacy", "/terms"]) {
+    const { body } = await fetchWith(path);
+    const ids = new Set([...body.matchAll(/\sid="(?<id>[^"]+)"/gu)].map((match) => match[1]));
+    const anchors = [...body.matchAll(/\shref="#(?<id>[^"]+)"/gu)].map((match) => match[1] ?? "");
+    const missing = anchors.filter((id) => !ids.has(id));
+    expect(
+      `every #anchor on ${path} lands on an element id`,
+      missing.length === 0,
+      missing.join(", ") || "no anchors",
+    );
+  }
+  const { body: privacyHtml } = await fetchWith("/privacy");
+  expect(
+    "/privacy carries an index of in-page anchors",
+    (privacyHtml.match(/\shref="#/gu) ?? []).length >= 14,
+    "fewer than 14 anchors",
+  );
 };
 
 const main = async () => {

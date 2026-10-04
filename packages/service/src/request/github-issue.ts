@@ -1,8 +1,7 @@
 import "server-only";
+import type { ComponentRequest } from "@repo/contract/request/request-schema";
 import { ORPCError } from "@orpc/server";
 import { z } from "zod";
-
-import type { ComponentRequest } from "./component-request";
 
 export const REQUESTS_REPO = "kyh/uicapsule";
 export const REQUEST_LABEL = "request";

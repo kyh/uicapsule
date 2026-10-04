@@ -10,11 +10,33 @@
 apps/
   web/           # Next.js 16 app (main frontend)
 packages/
-  api/           # oRPC + better-auth
+  contract/      # oRPC contract: zod inputs, outputs, client-safe request schemas
+  service/       # oRPC implementation of the contract + better-auth
   db/            # Drizzle ORM + Turso (libSQL)
   ui/            # shadcn-derived components on Base UI
 content/         # Gallery components — one workspace package per slug
 ```
+
+### Contract-first API
+
+`@repo/contract` is the single source of truth, and client-safe: a feature's zod inputs and the
+constants clients share live in `<f>-schema.ts` (`request/` adds `attachment-schema.ts`, the
+upload limits the form and `/api/request/attachments` both read), its procedures in
+`<f>-contract.ts` on `publicBase` / `protectedBase` from `base.ts`, registered in
+`src/index.ts`. Both bases are plain `oc`, since no procedure declares errors or meta. An output
+with no zod schema is `.output(type<T>())`, `T` written in the contract: compile-time only.
+`@repo/service` implements it with `os = implement(contract)` — protected:
+`const authed = os.<f>.use(requireSession); export const <f>Router = { <proc>: authed.<proc>.handler(...) }`
+(see `user-router.ts`); public procedures implement `os.<f>.<proc>` directly (see
+`request-router.ts`). Mount in `root-router.ts`; `os.router` fails to compile if a procedure is
+missing or mistyped. Implementer-level `.use` runs before input validation (anonymous →
+UNAUTHORIZED); procedure-level `.use` runs after. Feature routers stay plain objects —
+`os.<f>.router()` re-applies implementer middleware, so it would run twice. `requireSession`
+looks the session up itself, so `createORPCContext` carries only headers and public procedures
+never touch the database. Clients type against `ContractClient` / `RouterInputs` /
+`RouterOutputs` and import schemas from `@repo/contract`; only server code (the route handlers
+under `apps/web/src/app/api`) imports `@repo/service`. Layout follows oRPC's Hybrid monorepo
+recipe.
 
 ### Content architecture
 
@@ -55,9 +77,14 @@ Triage is manual: apply `ready` to accept, close as not-planned to decline. The
 Next imports, no filesystem — so it can be unit-tested without a runtime. The routes and
 `src/proxy.ts` only feed it data.
 
-- **One source per page.** `site-pages.ts` holds the prose for `/about`, `/contact` and
-  `/privacy`; the JSX page and the Markdown representation both render from it. Never edit
-  the copy in only one of the two.
+- **One source per page.** `site-pages.ts` holds the prose for `/about`, `/contact`,
+  `/privacy` and `/terms`; the JSX page and the Markdown representation both render from it.
+  Never edit the copy in only one of the two. Copy carries `**bold**`, `` `code` `` and
+  `[label](href)` inline markup, read by the one tokenizer in `inline-markup.ts`.
+- **The Privacy Policy and Terms of Use follow General Legal's templates**, adapted so every
+  sentence is true of this code. A change to what the site collects, stores, logs, or sends
+  to a third party (a new analytics event, processor, cookie or form field) changes
+  `privacyPage` in the same commit.
 - **Markdown content negotiation** (acceptmarkdown.com): `src/proxy.ts` parses `Accept` and
   rewrites Markdown-preferring requests to `/api/markdown/*`. `/<path>.md` (and `/index.md`
   for the home page) serves the same thing without an `Accept` header. The proxy's matcher
@@ -80,7 +107,9 @@ Next imports, no filesystem — so it can be unit-tested without a runtime. The 
 - **`/mcp`** is a stateless Streamable HTTP MCP server (`mcp-handler`) with two read-only
   tools, `search_components` and `get_component`. Ranking and payload shapes live in
   `lib/agent/mcp-catalog.ts`; the route only wires them to `content-data`. It ships with each
-  deploy, so there is no npm package to publish or version.
+  deploy, so there is no npm package to publish or version. `server.json` is its MCP Registry
+  entry (`com.uicapsule/components`, DNS-verified); republish with `mcp-publisher publish` only
+  when that metadata changes — the signing key is not in the repo.
 - Runtime gate: `pnpm check:agent-endpoints` against a running server. `pnpm verify`
   cannot see status codes or headers.
 
@@ -98,9 +127,9 @@ Next imports, no filesystem — so it can be unit-tested without a runtime. The 
 
 - **Provision**: no bootstrap script. `pnpm install` → `cp .env.example .env` (fill it) →
   `pnpm -F db db` in one shell → `pnpm db:push` → `pnpm dev:web`.
-- **Port 3000 is mandatory.** `packages/api/src/auth/auth.ts` pins `baseUrl`/`trustedOrigins`
-  to `http://localhost:3000` outside Vercel, so a fallback to 3001 makes every browser
-  sign-in 403 silently.
+- **Auth's origin must match the port.** Outside Vercel, `packages/service/src/auth/auth.ts`
+  takes its `baseURL` from `BETTER_AUTH_URL`, else `http://localhost:3000`, so a fallback to
+  3001 makes every browser sign-in 403 silently. For another port, set `BETTER_AUTH_URL` to it.
 - **No seeded login.** Nothing in the gallery is authed. `POST /api/auth/sign-up/email`
   creates one on demand (see `AGENTS.md` → Login).
 - **Verify**: `pnpm verify` for the static gate, `pnpm check:agent-endpoints` for the
@@ -162,8 +191,9 @@ does not prove delivery. Reset tokens expire after one hour and revoke existing 
 
 ## Decisions (do not re-litigate)
 
-- **auth + oRPC are kept.** One procedure, zero callers, deliberately retained for a future
-  feature. Make them correct; don't propose deleting them.
+- **auth + oRPC are kept.** oRPC serves two procedures: `request.create`, called by the
+  `/request` form, and `user.me`, with zero callers, deliberately retained with auth for a
+  future feature. Make them correct; don't propose deleting them.
 - **Assets live in the `uicapsule-assets` Vercel Blob store.** Covers, illustrations and other
   content media resolve against `NEXT_PUBLIC_ASSETS_URL`; `meta.json` stores bucket keys,
   never URLs.

@@ -83,21 +83,28 @@ describe("renderLlmsTxt — llmstxt.org format", () => {
   test("lists every component as an absolute link with notes", () => {
     assert.ok(
       body.includes(
-        "- [Dynamic Island](https://uicapsule.com/ui/dynamic-island): A springy Dynamic Island interaction with ring and timer states. — tags: effects, minimal",
+        "- [Dynamic Island](https://www.uicapsule.com/ui/dynamic-island): A springy Dynamic Island interaction with ring and timer states. — tags: effects, minimal",
       ),
-      'should contain "- [Dynamic Island](https://uicapsule.com/ui/dyn…',
+      'should contain "- [Dynamic Island](https://www.uicapsule.com/ui/dyn…',
     );
     assert.ok(
-      body.includes("- [Feed](https://uicapsule.com/ui/feed)"),
-      'should contain "- [Feed](https://uicapsule.com/ui/feed)"',
+      body.includes("- [Feed](https://www.uicapsule.com/ui/feed)"),
+      'should contain "- [Feed](https://www.uicapsule.com/ui/feed)"',
     );
   });
 
   test("links the trust anchor pages and the machine-readable endpoints", () => {
-    for (const path of ["/about", "/contact", "/privacy", "/sitemap.xml", "/robots.txt"]) {
+    for (const path of [
+      "/about",
+      "/contact",
+      "/privacy",
+      "/terms",
+      "/sitemap.xml",
+      "/robots.txt",
+    ]) {
       assert.ok(
-        body.includes(`https://uicapsule.com${path}`),
-        `should contain https://uicapsule.com${path}`,
+        body.includes(`https://www.uicapsule.com${path}`),
+        `should contain https://www.uicapsule.com${path}`,
       );
     }
   });

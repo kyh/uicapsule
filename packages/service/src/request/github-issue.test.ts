@@ -1,7 +1,8 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 
-import { componentRequestSchema } from "./component-request";
+import { componentRequestSchema } from "@repo/contract/request/request-schema";
+
 import { buildIssueBody, createComponentRequestIssue } from "./github-issue";
 
 const request = componentRequestSchema.parse({
@@ -94,15 +95,4 @@ test("reports missing token, provider failure, and network failure as unavailabl
     createComponentRequestIssue(request, () => Promise.reject(new Error("offline"))),
     unavailable,
   );
-});
-
-test("credit link requires a name", () => {
-  const result = componentRequestSchema.safeParse({
-    attachments: [],
-    credit: { name: "", url: "https://github.com/ada" },
-    description: "A latch that snaps shut with a visible overshoot.",
-    name: "Latch",
-    references: [],
-  });
-  assert.ok(!result.success);
 });

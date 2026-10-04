@@ -13,12 +13,12 @@ import {
 } from "@repo/ui/components/field";
 import { Input } from "@repo/ui/components/input";
 import { Textarea } from "@repo/ui/components/textarea";
-import { componentRequestSchema, MAX_REFERENCE_LINKS } from "@repo/api/request/component-request";
+import { componentRequestSchema, MAX_REFERENCE_LINKS } from "@repo/contract/request/request-schema";
 import {
   ATTACHMENT_MAX_BYTES,
   ATTACHMENT_MAX_COUNT,
   ATTACHMENT_TYPES,
-} from "@repo/api/request/attachment";
+} from "@repo/contract/request/attachment-schema";
 import { useMutation } from "@tanstack/react-query";
 import { cn } from "cn";
 import { UploadIcon, XIcon } from "lucide-react";

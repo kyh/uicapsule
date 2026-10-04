@@ -31,8 +31,7 @@ Liveness: `curl -s -o /dev/null -w '%{http_code}' localhost:3000/` → `200`.
 ## Login
 
 **There is no seeded user.** Auth exists and works, but nothing in the gallery is gated by
-it (`packages/api` ships one procedure, `user.me`, with zero callers — see CLAUDE.md
-"Decisions"). Create one the first time you need it:
+it (`user.me` has zero callers — see CLAUDE.md "Decisions"). Create one the first time you need it:
 
 ```sh
 curl -s -i -X POST localhost:3000/api/auth/sign-up/email \
@@ -59,7 +58,7 @@ curl -s -i -X POST localhost:3000/api/auth/sign-in/email \
 The same credentials work in the `/auth/login` form. Mind the rate limit: better-auth
 applies a built-in rule of **3 requests / 10s per IP** to any `/sign-in*`, `/sign-up*`,
 `/change-password*` or `/change-email*` path, and it _overrides_ the `window: 60, max: 10`
-configured in `packages/api/src/auth/auth.ts` (only `rateLimit.customRules` could beat it).
+configured in `packages/service/src/auth/auth.ts` (only `rateLimit.customRules` could beat it).
 The configured 10/60 governs the other `/api/auth/*` routes. So a sign-up → sign-in → form
 login sequence already spends the whole budget — one retry inside 10s gets a 429. Always
 print the status line, or a 422/429 looks like "auth is broken".
@@ -97,14 +96,15 @@ server already running:
 
 ```sh
 pnpm check:agent-endpoints                  # defaults to http://localhost:3000
-pnpm check:agent-endpoints https://uicapsule.com
+pnpm check:agent-endpoints https://www.uicapsule.com
 ```
 
 Covers homepage `h1` + text-without-JavaScript + content efficiency + JSON-LD,
 `Accept: text/markdown` on every page shape, the head `<link rel="alternate">`, `406`
 on an unsatisfiable markdown Accept, that a non-markdown Accept skips the proxy, q-value
 handling, the Markdown and HTML 404 bodies, `/sitemap.xml`, `/llms.txt`, `/robots.txt`, and
-the three trust-anchor pages. Run it after touching anything in `apps/web/src/lib/agent`,
+the four trust-anchor pages (including that every `#anchor` on the legal pages lands on a
+heading id). Run it after touching anything in `apps/web/src/lib/agent`,
 `src/proxy.ts`, or page metadata.
 
 Runtime — drive the real UI with [agent-browser](https://github.com/vercel-labs/agent-browser)
@@ -142,6 +142,7 @@ The routes worth checking, and what each proves:
 | `/api/content/<slug>`     | source payload behind the drawer + zip download       |
 | `/about`, `/request`      | static page; request form → GitHub issue              |
 | `/contact`, `/privacy`    | prose pages (trust anchors)                           |
+| `/terms`                  | prose page (trust anchor) — the Terms of Use          |
 | `/llms.txt`               | llmstxt.org index — overview + full component catalog |
 | `/sitemap.xml`            | every indexable URL, with `lastmod`                   |
 | `/index.md`, `/<path>.md` | the Markdown representation of any page               |
@@ -211,10 +212,11 @@ Web is the only surface. There is no mobile, desktop, or extension target.
   live in separate files under `src/components/`.
 - `apps/web/src/lib/agent` — the machine-readable layer: Accept negotiation, Markdown
   rendering, `llms.txt`, sitemap entries, JSON-LD, and the prose-page definitions that
-  `/about`, `/contact` and `/privacy` render from. Pure and unit-tested; `src/proxy.ts` and
-  the routes only feed it data.
+  `/about`, `/contact`, `/privacy` and `/terms` render from. Pure and unit-tested;
+  `src/proxy.ts` and the routes only feed it data.
 - `packages/ui` — Base UI + shadcn-derived components · `packages/db` — Drizzle + Turso ·
-  `packages/api` — oRPC + better-auth
+  `packages/contract` — the oRPC contract, client-safe · `packages/service` — its
+  implementation + better-auth
 - `content/<slug>/` — one workspace package per component
 - `CLAUDE.md` — conventions, settled decisions, curation philosophy
 - `plans/component-roadmap.md` — the component backlog

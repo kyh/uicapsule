@@ -1,8 +1,7 @@
 import "server-only";
+import { ATTACHMENT_URL_PREFIX } from "@repo/contract/request/attachment-schema";
+import type { AttachmentMeta } from "@repo/contract/request/attachment-schema";
 import { z } from "zod";
-
-import { ATTACHMENT_URL_PREFIX } from "./attachment";
-import type { AttachmentMeta } from "./attachment";
 
 // GitHub's own issue-attachment store, the same one the web uploader and
 // `gh --attach` use. Requires write access on the repository the asset targets.
