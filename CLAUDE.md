@@ -127,9 +127,9 @@ Next imports, no filesystem — so it can be unit-tested without a runtime. The 
 
 - **Provision**: no bootstrap script. `pnpm install` → `cp .env.example .env` (fill it) →
   `pnpm -F db db` in one shell → `pnpm db:push` → `pnpm dev:web`.
-- **Port 3000 is mandatory.** `packages/service/src/auth/auth.ts` pins `baseUrl`/`trustedOrigins`
-  to `http://localhost:3000` outside Vercel, so a fallback to 3001 makes every browser
-  sign-in 403 silently.
+- **Auth's origin must match the port.** Outside Vercel, `packages/service/src/auth/auth.ts`
+  takes its `baseURL` from `BETTER_AUTH_URL`, else `http://localhost:3000`, so a fallback to
+  3001 makes every browser sign-in 403 silently. For another port, set `BETTER_AUTH_URL` to it.
 - **No seeded login.** Nothing in the gallery is authed. `POST /api/auth/sign-up/email`
   creates one on demand (see `AGENTS.md` → Login).
 - **Verify**: `pnpm verify` for the static gate, `pnpm check:agent-endpoints` for the
