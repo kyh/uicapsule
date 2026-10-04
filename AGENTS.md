@@ -31,8 +31,7 @@ Liveness: `curl -s -o /dev/null -w '%{http_code}' localhost:3000/` → `200`.
 ## Login
 
 **There is no seeded user.** Auth exists and works, but nothing in the gallery is gated by
-it (`packages/service` ships one procedure, `user.me`, with zero callers — see CLAUDE.md
-"Decisions"). Create one the first time you need it:
+it (`user.me` has zero callers — see CLAUDE.md "Decisions"). Create one the first time you need it:
 
 ```sh
 curl -s -i -X POST localhost:3000/api/auth/sign-up/email \
