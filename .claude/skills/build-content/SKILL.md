@@ -35,9 +35,9 @@ flattering loop) in one sentence and proceed.
 
 ## 1. Branch + scaffold
 
-Preflight: `git status --short`. The PR must commit `apps/web/package.json` and
-`pnpm-lock.yaml` — if either already has uncommitted changes, stop and surface it
-to the user rather than sweeping their WIP into the PR. Also check
+Preflight: `git status --short`. The PR must commit `pnpm-lock.yaml` — if it
+already has uncommitted changes, stop and surface it to the user rather than
+sweeping their WIP into the PR. Also check
 `git rev-list --count origin/main..main` — unpushed main commits will show up in
 the PR diff until main is pushed; mention it in the wrap-up if nonzero.
 
@@ -47,8 +47,9 @@ pnpm new:content <slug> --description "<one-liner>"
 ```
 
 Slug is kebab-case (`SLUG_RE` in `scripts/new-content.ts` enforces it). The scaffold
-creates `content/<slug>/{<slug>.tsx, preview.tsx, meta.json, package.json}`, registers
-the workspace dep in `apps/web/package.json`, and runs `pnpm install`.
+creates `content/<slug>/{<slug>.tsx, preview.tsx, meta.json, package.json}` and runs
+`pnpm install`. Nothing registers it in `apps/web/package.json`: the web app reads
+`content/` from the filesystem and never depends on a content package by name.
 
 ## 2. Build the component
 
@@ -133,7 +134,7 @@ recording, so don't prune it.
 ## 6. Commit, push, PR
 
 ```bash
-git add content/<slug> apps/web/package.json pnpm-lock.yaml
+git add content/<slug> pnpm-lock.yaml
 git commit -m "feat: add <slug> — <tagline>"
 git push -u origin kyh/<slug>
 ```
