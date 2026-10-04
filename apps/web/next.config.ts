@@ -50,7 +50,7 @@ const getRemotePatterns = (): RemotePatterns => {
   return remotePatterns;
 };
 
-/** workspace packages ship TS source; @repo/db arrives via @repo/service, not as a dependency */
+/** workspace packages ship TS source; @repo/db arrives via @repo/service, not as a direct dependency */
 const transpilePackages = [
   "@repo/contract",
   "@repo/db",
