@@ -1,7 +1,8 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 
-import { attachmentMetaSchema } from "./attachment";
+import { attachmentMetaSchema } from "@repo/contract/request/attachment-schema";
+
 import { uploadAttachment } from "./github-attachment";
 
 const withToken = (t: { after: (fn: () => void) => void }, token?: string) => {
@@ -71,15 +72,5 @@ test("is unavailable without a token and on provider or network failure", async 
   await assert.rejects(
     uploadAttachment(meta, blob, () => Promise.reject(new Error("offline"))),
     { status: 503 },
-  );
-});
-
-test("caps size and type at the boundary", () => {
-  assert.ok(
-    !attachmentMetaSchema.safeParse({ name: "a.mp4", size: 5e6, type: "video/mp4" }).success,
-  );
-  assert.ok(
-    !attachmentMetaSchema.safeParse({ name: "a.exe", size: 1, type: "application/x-msdownload" })
-      .success,
   );
 });

@@ -1,12 +1,11 @@
+import { ATTACHMENT_URL_PREFIX } from "@repo/contract/request/attachment-schema";
 import { ORPCError } from "@orpc/server";
 
-import { publicProcedure } from "../orpc";
-import { componentRequestSchema } from "./component-request";
-import { ATTACHMENT_URL_PREFIX } from "./attachment";
+import { os } from "../orpc";
 import { createComponentRequestIssue, REQUESTS_REPO } from "./github-issue";
 
 export const requestRouter = {
-  create: publicProcedure.input(componentRequestSchema).handler(async ({ input }) => {
+  create: os.request.create.handler(async ({ input }) => {
     // Bots that fill the honeypot get a plausible answer and no issue.
     if (input.website) {
       return { url: `https://github.com/${REQUESTS_REPO}/issues` };
