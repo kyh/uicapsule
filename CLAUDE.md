@@ -191,8 +191,9 @@ does not prove delivery. Reset tokens expire after one hour and revoke existing 
 
 ## Decisions (do not re-litigate)
 
-- **auth + oRPC are kept.** One procedure, zero callers, deliberately retained for a future
-  feature. Make them correct; don't propose deleting them.
+- **auth + oRPC are kept.** oRPC serves two procedures: `request.create`, called by the
+  `/request` form, and `user.me`, with zero callers, deliberately retained with auth for a
+  future feature. Make them correct; don't propose deleting them.
 - **Assets live in the `uicapsule-assets` Vercel Blob store.** Covers, illustrations and other
   content media resolve against `NEXT_PUBLIC_ASSETS_URL`; `meta.json` stores bucket keys,
   never URLs.
