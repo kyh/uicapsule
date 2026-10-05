@@ -39,6 +39,9 @@ const splitLines = (value: string) =>
     .map((line) => line.trim())
     .filter(Boolean);
 
+const formatToday = () =>
+  new Date().toLocaleDateString(undefined, { day: "numeric", month: "short", year: "numeric" });
+
 // The textarea holds one URL per line; the API wants an array.
 const formSchema = componentRequestSchema.omit({ attachments: true, references: true }).extend({
   references: z
@@ -299,11 +302,7 @@ export const RequestForm = ({ className }: { className?: string }) => {
         ...result,
         art: getRandomReceiptArt(),
         attachments: uploaded.length,
-        filedAt: new Date().toLocaleDateString(undefined, {
-          day: "numeric",
-          month: "short",
-          year: "numeric",
-        }),
+        filedAt: formatToday(),
         links: references.length,
         name: values.name,
       });
