@@ -85,6 +85,9 @@ const uploadFile = async (file: File): Promise<string> => {
   return parsed.data.url;
 };
 
+const formatFiledAt = () =>
+  new Date().toLocaleDateString(undefined, { day: "numeric", month: "short", year: "numeric" });
+
 const AttachmentMedia = ({
   attachment,
   autoPlay = false,
@@ -299,11 +302,7 @@ export const RequestForm = ({ className }: { className?: string }) => {
         ...result,
         art: getRandomReceiptArt(),
         attachments: uploaded.length,
-        filedAt: new Date().toLocaleDateString(undefined, {
-          day: "numeric",
-          month: "short",
-          year: "numeric",
-        }),
+        filedAt: formatFiledAt(),
         links: references.length,
         name: values.name,
       });
