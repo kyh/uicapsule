@@ -247,9 +247,6 @@ importers:
       '@repo/contract':
         specifier: workspace:^
         version: link:../../packages/contract
-      '@repo/db':
-        specifier: workspace:^
-        version: link:../../packages/db
       '@repo/service':
         specifier: workspace:^
         version: link:../../packages/service
