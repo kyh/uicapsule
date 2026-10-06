@@ -39,6 +39,7 @@ const Preview = () => {
   const [eyeScale, setEyeScale] = useState(1);
   const [wobble, setWobble] = useState(1);
   const [gaze, setGaze] = useState(1);
+  const [firmness, setFirmness] = useState(0.5);
   const [potColor, setPotColor] = useState<string | undefined>();
 
   return (
@@ -48,12 +49,13 @@ const Preview = () => {
         eyeScale={eyeScale}
         wobble={wobble}
         gaze={gaze}
+        firmness={firmness}
         potColor={potColor}
         className="absolute inset-0"
       />
 
       <p className="pointer-events-none absolute top-6 left-1/2 -translate-x-1/2 text-xs tracking-wide text-white/30">
-        move your cursor — they&apos;re watching
+        pinch, pull, toss — they&apos;re squishy
       </p>
 
       <div className="absolute bottom-6 left-1/2 flex w-max max-w-[calc(100vw-2rem)] -translate-x-1/2 flex-col items-center gap-3 rounded-2xl border border-white/10 bg-white/[0.06] px-5 py-4 backdrop-blur-md">
@@ -82,6 +84,7 @@ const Preview = () => {
           <Slider label="eyes" value={eyeScale} min={0.5} max={1.6} onChange={setEyeScale} />
           <Slider label="wobble" value={wobble} min={0} max={2} onChange={setWobble} />
           <Slider label="gaze" value={gaze} min={0} max={1.5} onChange={setGaze} />
+          <Slider label="firm" value={firmness} min={0} max={1} onChange={setFirmness} />
           <div className="flex items-center gap-1.5">
             {POT_SWATCHES.map((c) => (
               <button
