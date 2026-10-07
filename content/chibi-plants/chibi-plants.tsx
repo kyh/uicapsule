@@ -36,6 +36,7 @@ import {
   POT_H,
   POT_R,
   PlantRig,
+  SOIL_Y,
   gazeMatrix,
 } from "./chibi-rig";
 
@@ -263,6 +264,12 @@ const RI = FW.clone()
   .normalize();
 const UP = RI.clone().cross(FW);
 const FOV_S = 0.36;
+/**
+ * Narrow (portrait) viewports widen the field of view until this much of the table is visible
+ * either side of the plant, so it fits a phone instead of spilling off both edges.
+ */
+const FIT_HALF_WIDTH = 0.58;
+const fovFor = (aspect: number) => Math.max(FOV_S, FIT_HALF_WIDTH / (RO.z * aspect));
 /** A tap shorter and stiller than this is a boop, not a grab. */
 const TAP_MS = 280;
 const TAP_PX = 6;
@@ -282,9 +289,10 @@ const posePlant = (p: PlantParams, gaze: Mat3) => ({
 
 /** The camera ray through a viewport point, as the fragment shader builds it. */
 const rayThrough = (ndcX: number, ndcY: number, aspect: number) => {
+  const fov = fovFor(aspect);
   const rd = FW.clone()
-    .addScaledVector(RI, ndcX * aspect * FOV_S)
-    .addScaledVector(UP, ndcY * FOV_S)
+    .addScaledVector(RI, ndcX * aspect * fov)
+    .addScaledVector(UP, ndcY * fov)
     .normalize();
   return { rd: [rd.x, rd.y, rd.z] satisfies Vec3, ro: [RO.x, RO.y, RO.z] satisfies Vec3 };
 };
@@ -293,7 +301,8 @@ const rayThrough = (ndcX: number, ndcY: number, aspect: number) => {
 const project = (p: Vec3, aspect: number) => {
   const v = new THREE.Vector3(...p).sub(RO);
   const depth = Math.max(v.dot(FW), 1e-3);
-  return [v.dot(RI) / depth / FOV_S / aspect, v.dot(UP) / depth / FOV_S] as const;
+  const fov = fovFor(aspect);
+  return [v.dot(RI) / depth / fov / aspect, v.dot(UP) / depth / fov] as const;
 };
 
 export const ChibiPlants = ({
@@ -401,6 +410,7 @@ export const ChibiPlants = ({
     const uGaze = uniform(1);
     const uWobble = uniform(1);
     const uRes = uniform(new THREE.Vector2(1, 1));
+    const uFov = uniform(FOV_S);
     const uBg1 = uniform(new THREE.Color(initialTuning.background[0]));
     const uBg2 = uniform(new THREE.Color(initialTuning.background[1]));
     const uBodyC = uniform(new THREE.Color(initialBody));
@@ -557,17 +567,22 @@ export const ChibiPlants = ({
       return { k: float(1).div(stretch).toVar(), q: x.sub(vec3(0, bodyCenterY(), 0)).toVar(), xp };
     };
 
+    // The pot is its own rigid thing: a rounded, tapered tub filled to the soil
+    // line, with a lip standing proud of the soil that the plant grows out of.
     const sdPot = (p: Point) => {
       const py = p.y.sub(POT_H * 0.5);
       const ra = float(POT_R).mul(p.y.div(POT_H).sub(0.5).mul(0.3).add(1));
       const dx = length(vec2(p.x, p.z)).sub(ra).add(0.03);
       const dy = abs(py).sub(POT_H * 0.5 - 0.02);
       const d2 = vec2(dx, dy).toVar();
-      const body = min(max(d2.x, d2.y), 0)
-        .add(length(max(d2, vec2(0, 0))))
-        .sub(0.03);
+      const tub = max(
+        min(max(d2.x, d2.y), 0)
+          .add(length(max(d2, vec2(0, 0))))
+          .sub(0.03),
+        p.y.sub(SOIL_Y),
+      );
       const rim = length(vec2(length(vec2(p.x, p.z)).sub(POT_R * 1.1), p.y.sub(POT_H))).sub(0.038);
-      return smin(body, rim, 0.02).toVar();
+      return smin(tub, rim, 0.02).toVar();
     };
 
     // One leaf, given the sample point already in its frame (rest yaw/tilt ×
@@ -616,14 +631,14 @@ export const ChibiPlants = ({
       };
     };
 
+    // The plant is one continuous soft surface; the pot is a separate solid it
+    // is planted in, so the two meet in a hard crease, never a fillet.
+    const plantSdf = (dBody: Scalar, dGreen: Scalar, dArm: Scalar) =>
+      smin(smin(dBody, dGreen, 0.045), dArm, 0.07);
     const sceneSdf = (p: Point) => {
       const { k, q, xp } = toDesign(p);
-      const dPot = sdPot(xp);
       const { dBody, dGreen, dArm } = plantParts(q, k);
-      let d = smin(dPot, dBody, 0.09);
-      d = smin(d, dGreen, 0.045);
-      d = smin(d, dArm, 0.07);
-      return d.toVar();
+      return min(sdPot(xp), plantSdf(dBody, dGreen, dArm)).toVar();
     };
 
     const mapFn = Fn(([p]: [Point]) => sceneSdf(p));
@@ -651,8 +666,8 @@ export const ChibiPlants = ({
       const ro = vec3(RO.x, RO.y, RO.z);
       const rd = normalize(
         vec3(RI.x, RI.y, RI.z)
-          .mul(nx.mul(FOV_S))
-          .add(vec3(UP.x, UP.y, UP.z).mul(ndc.y.mul(FOV_S)))
+          .mul(nx.mul(uFov))
+          .add(vec3(UP.x, UP.y, UP.z).mul(ndc.y.mul(uFov)))
           .add(vec3(FW.x, FW.y, FW.z)),
       ).toVar();
 
@@ -705,20 +720,29 @@ export const ChibiPlants = ({
           const { dBody, dGreen, dArm } = plantParts(q, k);
           const dPot = sdPot(xp);
 
-          // Soft part weights — colors bleed across the smin creases.
-          const wPot = exp(dPot.div(-0.028)).toVar();
+          // Plant parts share soft weights — colors bleed across their smin
+          // creases. The pot is a different object: a hard edge, no bleed, and
+          // the soil is the top of its fill, inside the lip.
           const wBody = exp(dBody.div(-0.028)).toVar();
           const wGreen = exp(dGreen.div(-0.028)).toVar();
           const wArm = exp(dArm.div(-0.028)).toVar();
-          const wSum = wPot.add(wBody).add(wGreen).add(wArm).toVar();
-          const albedo = uPotC.rgb
-            .mul(wPot)
-            .add(uBodyC.rgb.mul(wBody))
+          const wSum = wBody.add(wGreen).add(wArm).toVar();
+          const plantC = uBodyC.rgb
+            .mul(wBody)
             .add(uLeafC.rgb.mul(wGreen))
             .add(uBodyC.rgb.mul(0.92).mul(wArm))
-            .div(wSum)
+            .div(wSum);
+          const onPot = smoothstep(-0.002, 0.002, plantSdf(dBody, dGreen, dArm).sub(dPot)).toVar();
+          const onSoil = onPot
+            .mul(smoothstep(0.292, 0.275, length(vec2(xp.x, xp.z))))
+            .mul(smoothstep(0.014, 0.004, abs(xp.y.sub(SOIL_Y))))
             .toVar();
-          const bodyW = wBody.div(wSum).toVar();
+          const albedo = mix(
+            plantC,
+            mix(uPotC.rgb, vec3(0.12, 0.08, 0.055), onSoil),
+            onPot,
+          ).toVar();
+          const bodyW = wBody.div(wSum).mul(onPot.oneMinus()).toVar();
 
           // ---- face, painted on the front of the body ----
           const sq = uParams.squash;
@@ -794,7 +818,7 @@ export const ChibiPlants = ({
           albedo.assign(mix(albedo, vec3(0.28, 0.13, 0.11), mouthMask.mul(front)));
           albedo.assign(mix(albedo, vec3(0.95, 0.95, 0.97), hlMask.mul(front)));
 
-          // ---- soft vinyl shading ----
+          // ---- shading: soft vinyl plant, glazed ceramic pot, matte soil ----
           const ld = normalize(vec3(0.55, 0.75, 0.5));
           const dif = clamp(dot(n, ld).mul(0.5).add(0.5), 0, 1).toVar();
           const skyT = n.y.mul(0.5).add(0.5);
@@ -804,10 +828,14 @@ export const ChibiPlants = ({
           const ao = ao1.mul(0.55).add(ao2.mul(0.45)).mul(0.7).add(0.3).toVar();
           const lit = albedo.mul(amb.add(dif.mul(vec3(0.98, 0.9, 0.8)).mul(1.05)).mul(ao)).toVar();
           const hv = normalize(ld.sub(rd));
-          const spec = pow(clamp(dot(n, hv), 0, 1), 50)
-            .mul(0.55)
+          const gloss = onPot.mul(onSoil.oneMinus()).toVar();
+          const spec = pow(clamp(dot(n, hv), 0, 1), mix(50, 140, gloss))
+            .mul(mix(0.55, 0.9, gloss))
+            .mul(onSoil.oneMinus())
             .mul(ao);
-          const fres = pow(clamp(dot(n, rd.negate()), 0, 1).oneMinus(), 3.5).mul(0.3);
+          const fres = pow(clamp(dot(n, rd.negate()), 0, 1).oneMinus(), 3.5)
+            .mul(mix(0.3, 0.18, gloss))
+            .mul(onSoil.oneMinus());
           lit.assign(
             lit
               .add(vec3(1, 0.98, 0.95).mul(spec))
@@ -970,7 +998,8 @@ export const ChibiPlants = ({
       const dpr = Math.min(window.devicePixelRatio, 1.5);
       uRes.value.set(w * dpr, h * dpr);
       // The screen edges are walls: keep the whole pot in view.
-      rig.halfWidth = Math.max(0.38, RO.z * FOV_S * (w / h) - 0.06);
+      uFov.value = fovFor(w / h);
+      rig.halfWidth = Math.max(0.38, RO.z * uFov.value * (w / h) - 0.06);
     };
     const ro2 = new ResizeObserver(resize);
     ro2.observe(container);

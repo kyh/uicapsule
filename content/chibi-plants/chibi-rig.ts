@@ -13,6 +13,8 @@
 
 export const POT_H = 0.36;
 export const POT_R = 0.3;
+/** The pot is filled to here; the plant grows out of the soil, inside the lip. */
+export const SOIL_Y = POT_H - 0.03;
 /** Below this band the body's base rides with the pot; above it, with the soft body. */
 export const BLEND_LO = POT_H - 0.04;
 export const BLEND_HI = POT_H + 0.16;
@@ -307,9 +309,10 @@ export const sdPot = (p: Vec3) => {
   const rr = Math.hypot(p[0], p[2]);
   const dx = rr - ra + 0.03;
   const dy = Math.abs(p[1] - POT_H * 0.5) - (POT_H * 0.5 - 0.02);
-  const body = Math.min(Math.max(dx, dy), 0) + Math.hypot(Math.max(dx, 0), Math.max(dy, 0)) - 0.03;
+  const rounded = Math.min(Math.max(dx, dy), 0) + Math.hypot(Math.max(dx, 0), Math.max(dy, 0));
+  const tub = Math.max(rounded - 0.03, p[1] - SOIL_Y);
   const rim = Math.hypot(rr - POT_R * 1.1, p[1] - POT_H) - 0.038;
-  return smin(body, rim, 0.02);
+  return smin(tub, rim, 0.02);
 };
 const bodyCentreY = (pose: PlantPose) => POT_H + pose.bodyR * pose.squash * 0.55;
 const bodyTop = (pose: PlantPose) => pose.bodyR * pose.squash - 0.03;
@@ -1261,7 +1264,7 @@ export class PlantRig {
     const armS = Math.max(pose.armS, 0.001);
     const arm = sdCapsule(aq, [0, 0, 0], [0, armS * 0.26, 0], armS * 0.095) * k;
     parts.push(["body", arm]);
-    const d = smin(smin(smin(pot, body, 0.09), green, 0.045), arm, 0.07);
+    const d = Math.min(pot, smin(smin(body, green, 0.045), arm, 0.07));
     let best: [PlantPart, number] = ["pot", Infinity];
     for (const part of parts) {
       if (part[1] < best[1]) {
