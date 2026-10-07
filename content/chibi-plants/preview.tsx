@@ -12,7 +12,7 @@ const Preview = () => {
     <main className="relative h-dvh w-full overflow-hidden bg-[#0b0a0e]">
       <ChibiPlants variant={variant} className="absolute inset-0" />
 
-      <fieldset className="absolute bottom-4 left-4 m-0 flex min-w-0 items-center border-0 p-0">
+      <fieldset className="absolute bottom-4 left-4 m-0 flex min-w-0 flex-col items-center border-0 p-0">
         <legend className="sr-only">Plant</legend>
         {CHIBI_VARIANTS.map((v) => (
           <button
