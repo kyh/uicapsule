@@ -7,9 +7,9 @@
     "clean": "git clean -xdf .cache .turbo dist node_modules"
   },
   "dependencies": {
-    "@mediapipe/tasks-vision": "^1.0.1",
-    "lucide-react": "^1.52.0",
-    "motion": "^14.0.0",
+    "@mediapipe/tasks-vision": "^1.1.0",
+    "lucide-react": "^1.55.0",
+    "motion": "^14.1.0",
     "react": "catalog:",
     "react-dom": "catalog:"
   },

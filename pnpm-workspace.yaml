@@ -4,10 +4,10 @@ packages:
   - content/*
 
 catalog:
-  "@base-ui/react": ^1.8.0
+  "@base-ui/react": ^1.9.0
   # In lockstep with better-auth: auth.ts imports its relations-v2 entry directly.
   "@better-auth/drizzle-adapter": ^1.7.7
-  "@kyh/tsconfig": ^1.2.0
+  "@kyh/tsconfig": ^1.3.0
   "@orpc/client": 2.0.0-beta.42
   "@orpc/contract": 2.0.0-beta.42
   "@orpc/server": 2.0.0-beta.42
@@ -25,7 +25,7 @@ catalog:
   # drizzle-kit must match drizzle-orm exactly.
   drizzle-kit: 1.0.0-rc.4
   drizzle-orm: 1.0.0-rc.4
-  next: ^16.3.8
+  next: ^16.4.0
   react: ^19.3.0
   react-dom: ^19.3.0
   tailwindcss: ^4.3.3
