@@ -8,6 +8,10 @@ import type { ComponentType } from "react";
 
 type Props = Pick<PageProps<"/preview-frame/[slug]">, "params">;
 
+// Unknown slugs are a real 404: with the whole route static, notFound() runs at
+// prerender time instead of after a fallback shell has already streamed under 200.
+export const ensureStatic = "navigation";
+
 export const generateStaticParams = async () => {
   const slugs = await getLocalSlugs();
   return slugs.map((slug) => ({ slug }));
