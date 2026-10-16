@@ -1,11 +1,11 @@
 "use client";
 
-import Link from "next/link";
 import { Badge } from "@repo/ui/components/badge";
 import { useWebHaptics } from "web-haptics/react";
 
 import type { Cover } from "@/lib/assets";
 import { MediaReveal } from "@/components/media-reveal";
+import { PrefetchLink } from "@/components/prefetch-link";
 
 interface ContentPreviewProps {
   slug: string;
@@ -19,7 +19,7 @@ interface ContentPreviewProps {
 export const ContentPreview = ({ slug, name, index, tags, isNew, cover }: ContentPreviewProps) => {
   const { trigger } = useWebHaptics();
   return (
-    <Link
+    <PrefetchLink
       className="bg-background group flex flex-col justify-between gap-3 p-3 text-lg sm:p-6"
       href={`/ui/${slug}`}
       onClick={() => trigger("selection")}
@@ -51,6 +51,6 @@ export const ContentPreview = ({ slug, name, index, tags, isNew, cover }: Conten
           )}
         </p>
       </div>
-    </Link>
+    </PrefetchLink>
   );
 };

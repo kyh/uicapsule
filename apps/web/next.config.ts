@@ -72,6 +72,8 @@ const config: NextConfig = {
   images: {
     remotePatterns: getRemotePatterns(),
   },
+  /** a default <Link> prefetches only the route's shared App Shell; gallery cards opt into more on intent */
+  partialPrefetching: true,
   transpilePackages,
 };
 

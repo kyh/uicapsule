@@ -51,6 +51,10 @@ Content is filesystem-driven; the web app never depends on content packages by n
 - The home gallery ships every card in the static shell and filters in the browser
   (`content/gallery.ts`, pure). Only a leaf reading `useSearchParams` suspends; don't wrap
   the grid in that Suspense boundary or hydration remounts every card.
+- `partialPrefetching` is on: a default `<Link>` prefetches only its route's shared App
+  Shell. Gallery cards are `PrefetchLink` (`components/prefetch-link.tsx`), upgrading to
+  `prefetch={true}` on hover/focus/touch; viewport `prefetch={true}` would cost one request
+  per visible card.
 - `preview-frame/[slug]` renders previews via a relative dynamic import of
   `content/<slug>/preview.tsx`.
 - `/r/<slug>.json` serves the shadcn registry item. The source drawer and zip download
