@@ -10,7 +10,7 @@
     "clean": "git clean -xdf .cache .turbo dist node_modules"
   },
   "dependencies": {
-    "@react-three/fiber": "^9.8.1",
+    "@react-three/fiber": "^9.8.2",
     "react": "catalog:",
     "react-dom": "catalog:",
     "three": "^0.186.1"
