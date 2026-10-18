@@ -10,13 +10,13 @@
     "clean": "git clean -xdf .cache .turbo dist node_modules"
   },
   "dependencies": {
-    "@ai-sdk/react": "^4.0.140",
+    "@ai-sdk/react": "^4.0.147",
     "@base-ui/react": "catalog:",
     "@loremllm/transport": "^0.7.1",
-    "@tanstack/react-table": "^9.2.8",
-    "@tanstack/react-virtual": "^3.14.14",
+    "@tanstack/react-table": "^9.3.1",
+    "@tanstack/react-virtual": "^3.14.21",
     "cn": "catalog:",
-    "lucide-react": "^1.55.0",
+    "lucide-react": "^1.59.0",
     "react": "catalog:",
     "react-dom": "catalog:",
     "zod": "catalog:",
