@@ -108,8 +108,12 @@ Next imports, no filesystem — so it can be unit-tested without a runtime. The 
   an empty page without JavaScript, and only unsuspended cached data lands in the static
   shell. Anything added to it costs roughly 2.5× its size in HTML, because a server
   component's markup is duplicated in the RSC flight payload.
-- **`/mcp`** is a stateless Streamable HTTP MCP server (`mcp-handler`) with two read-only
-  tools, `search_components` and `get_component`. Ranking and payload shapes live in
+- **`/mcp`** is a stateless Streamable HTTP MCP server with two read-only tools,
+  `search_components` and `get_component`: oRPC procedures in the route, registered by
+  `@orpc/mcp`'s `McpRegistrar` on a fresh `McpServer` per request (`createMcpHandler` from
+  `@modelcontextprotocol/server`). They stay out of `@repo/contract`: no client calls them
+  over RPC. A tool's name is its router key, its title and hints are `mcp.tool` meta, a
+  thrown `ORPCError` is a tool error. Ranking and payload shapes live in
   `lib/agent/mcp-catalog.ts`; the route only wires them to `content-data`. It ships with each
   deploy, so there is no npm package to publish or version. `server.json` is its MCP Registry
   entry (`com.uicapsule/components`, DNS-verified); republish with `mcp-publisher publish` only
