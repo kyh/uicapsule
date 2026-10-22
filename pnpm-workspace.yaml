@@ -8,10 +8,11 @@ catalog:
   # In lockstep with better-auth: auth.ts imports its relations-v2 entry directly.
   "@better-auth/drizzle-adapter": ^1.7.10
   "@kyh/tsconfig": ^1.3.0
-  "@orpc/client": 2.0.0-beta.42
-  "@orpc/contract": 2.0.0-beta.42
-  "@orpc/server": 2.0.0-beta.42
-  "@orpc/tanstack-query": 2.0.0-beta.42
+  "@orpc/client": 2.0.0-beta.45
+  "@orpc/contract": 2.0.0-beta.45
+  "@orpc/mcp": 2.0.0-beta.45
+  "@orpc/server": 2.0.0-beta.45
+  "@orpc/tanstack-query": 2.0.0-beta.45
   "@tailwindcss/postcss": ^4.3.3
   "@tailwindcss/vite": ^4.2.2
   "@tanstack/react-form": ^1.28.5
@@ -43,3 +44,13 @@ allowBuilds:
   esbuild: true
   prisma: false
   sharp: true
+
+minimumReleaseAgeExclude:
+  - "@orpc/client@2.0.0-beta.45"
+  - "@orpc/contract@2.0.0-beta.45"
+  - "@orpc/json-schema@2.0.0-beta.45"
+  - "@orpc/mcp@2.0.0-beta.45"
+  - "@orpc/openapi@2.0.0-beta.45"
+  - "@orpc/server@2.0.0-beta.45"
+  - "@orpc/shared@2.0.0-beta.45"
+  - "@orpc/tanstack-query@2.0.0-beta.45"
