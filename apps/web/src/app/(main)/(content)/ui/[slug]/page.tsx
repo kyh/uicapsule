@@ -4,9 +4,15 @@ import { notFound } from "next/navigation";
 import { ContentFeed } from "@/app/(main)/(content)/_components/content-feed";
 import { JsonLd } from "@/components/json-ld";
 import { MediaReveal } from "@/components/media-reveal";
-import { canonicalAlternates, pageOpenGraph, pageTwitter } from "@/lib/agent/page-metadata";
+import {
+  canonicalAlternates,
+  ogVideo,
+  pageOpenGraph,
+  pageTwitter,
+} from "@/lib/agent/page-metadata";
 import { buildComponentGraph } from "@/lib/agent/structured-data";
 import { getAllContent } from "@/lib/content-data";
+import { componentVideo } from "@/lib/social-video";
 
 import type { Metadata } from "next";
 
@@ -26,13 +32,19 @@ export const generateMetadata = async ({ params }: Props): Promise<Metadata> => 
   }
 
   const { description } = component;
+  // The cover already on the gallery card is the share video; the image is the
+  // route's own opengraph-image / twitter-image card.
+  const video = componentVideo(component);
 
   return {
     alternates: canonicalAlternates(`/ui/${component.slug}`),
     description,
-    openGraph: pageOpenGraph(`/ui/${component.slug}`, component.name, description),
+    openGraph: pageOpenGraph(`/ui/${component.slug}`, component.name, description, {
+      ownImage: true,
+      videos: video ? ogVideo(video.contentUrl, video.width, video.height) : undefined,
+    }),
     title: component.name,
-    twitter: pageTwitter(component.name, description),
+    twitter: pageTwitter(component.name, description, { ownImage: true }),
   };
 };
 
@@ -48,7 +60,7 @@ const Content = async ({ params }: Props) => {
 
   return (
     <>
-      <JsonLd node={buildComponentGraph(component)} />
+      <JsonLd node={buildComponentGraph(component, componentVideo(component))} />
       {/* The feed is a full-bleed preview with no heading of its own; this
           gives the route the `h1` and description its canonical URL claims. */}
       <div className="sr-only">

@@ -180,3 +180,8 @@ app resolves the host and derives image/video from the extension:
 
 Open `http://localhost:3000/`, screenshot, and confirm the component's card is playing the
 video (a blank card = bad URL or content-type). Delete scratch mp4/frames/batch files.
+
+Then refresh the share metadata: `pnpm og:video --only covers` probes the new cover into
+`apps/web/src/lib/content/cover-media.json` (the page's og:video size and its VideoObject)
+and writes its still to `apps/web/public/og/covers/<slug>.jpg` (the page's OG card). Commit
+both with the meta.json change. Until it runs, the page simply has no og:video.

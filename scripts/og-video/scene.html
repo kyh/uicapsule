@@ -1,0 +1,413 @@
+<!doctype html>
+<!--
+  The home page's og:video: a ten-second "component trailer" of generic UI
+  primitives drawn as hairline wireframes, ending on the UICapsule mark.
+
+  Deliberately evergreen: no gallery entry appears, so the clip never goes
+  stale as content changes. Rendered frame by frame by scripts/og-video.ts —
+  every value below is a pure function of `t`, so a run is reproducible. Not
+  part of the app; nothing routes to it.
+
+  Tokens are the site's own (packages/ui/src/styles/globals.css, dark theme),
+  the font is apps/web/src/app/styles/mono.woff2 and the mark's path is read
+  from packages/ui/src/components/logo.tsx by the script.
+-->
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>UICapsule trailer</title>
+    <style>
+      @font-face {
+        font-family: "UICapsule Mono";
+        src: url("./mono.woff2") format("woff2");
+      }
+      :root {
+        --background: oklch(0.141 0.005 285.823);
+        --foreground: oklch(0.985 0 0);
+        --muted-foreground: oklch(0.705 0.015 286.067);
+        --muted: oklch(0.274 0.006 286.033);
+        --card: oklch(0.21 0.006 285.885);
+        --primary: oklch(0.684 0.207 37);
+      }
+      html,
+      body {
+        margin: 0;
+        width: 1200px;
+        height: 630px;
+        overflow: hidden;
+        background: var(--background);
+      }
+      svg {
+        position: absolute;
+        inset: 0;
+      }
+      .line {
+        fill: none;
+        stroke: var(--foreground);
+        stroke-width: 1.5;
+        stroke-linecap: round;
+        stroke-linejoin: round;
+        vector-effect: non-scaling-stroke;
+      }
+      .hair {
+        stroke: var(--muted-foreground);
+        stroke-width: 1;
+        stroke-opacity: 0.55;
+      }
+      .accent {
+        stroke: var(--primary);
+      }
+      .words {
+        position: absolute;
+        inset: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-family: "UICapsule Mono", ui-monospace, monospace;
+        color: var(--foreground);
+        font-size: 64px;
+        letter-spacing: -0.02em;
+        white-space: pre;
+      }
+      .words span {
+        display: inline-block;
+      }
+      .words em {
+        font-style: normal;
+        color: var(--primary);
+      }
+      #wordmark {
+        position: absolute;
+        left: 0;
+        right: 0;
+        top: 404px;
+        text-align: center;
+        font-family: "UICapsule Mono", ui-monospace, monospace;
+        color: var(--foreground);
+        font-size: 22px;
+        white-space: pre;
+      }
+    </style>
+  </head>
+  <body>
+    <svg viewBox="0 0 1200 630" width="1200" height="630">
+      <defs>
+        <filter id="lift" x="-30%" y="-30%" width="160%" height="160%">
+          <feDropShadow dx="0" dy="14" stdDeviation="16" flood-color="#000" flood-opacity="0.55" />
+        </filter>
+        <clipPath id="screen">
+          <rect x="687" y="172" width="166" height="286" rx="26" />
+        </clipPath>
+      </defs>
+
+      <!-- Beat 1: a toggle, the cursor that presses it, the ripple it leaves -->
+      <g id="toggle">
+        <rect id="toggle-track" class="line" x="-75" y="-40" width="150" height="80" rx="40" />
+        <circle id="toggle-knob" class="line" cx="-35" cy="0" r="29" />
+      </g>
+      <circle id="ripple" class="line accent" cx="0" cy="0" r="0" />
+      <g id="cursor">
+        <path
+          class="line"
+          style="fill: var(--background)"
+          d="M0 0 L0 30 L8 23 L13.5 35 L18.5 32.7 L13 21 L23.5 21 Z"
+        />
+      </g>
+
+      <!-- Beat 2: a dial and a slider, side by side -->
+      <g id="dial">
+        <g id="dial-ticks"></g>
+        <circle class="line" cx="0" cy="0" r="78" />
+        <path id="dial-arc" class="line accent" style="stroke-width: 3" d="" />
+        <line id="dial-needle" class="line" x1="0" y1="-30" x2="0" y2="-62" />
+      </g>
+      <g id="slider">
+        <line class="line hair" x1="-120" y1="0" x2="120" y2="0" />
+        <line
+          id="slider-fill"
+          class="line accent"
+          style="stroke-width: 3"
+          x1="-120"
+          y1="0"
+          x2="0"
+          y2="0"
+        />
+        <circle
+          id="slider-thumb"
+          class="line"
+          style="fill: var(--background)"
+          cx="0"
+          cy="0"
+          r="14"
+        />
+        <line class="line hair" x1="-120" y1="34" x2="-60" y2="34" />
+        <line class="line hair" x1="80" y1="34" x2="120" y2="34" />
+      </g>
+
+      <!-- Beat 3: a card stack and a sheet sliding up -->
+      <g id="stack"></g>
+      <g id="phone">
+        <rect class="line" x="685" y="170" width="170" height="290" rx="28" />
+        <line class="line hair" x1="752" y1="186" x2="788" y2="186" />
+        <g clip-path="url(#screen)">
+          <rect class="line hair" x="703" y="210" width="80" height="8" rx="4" />
+          <rect class="line hair" x="703" y="230" width="120" height="8" rx="4" />
+          <rect class="line hair" x="703" y="250" width="100" height="8" rx="4" />
+          <g id="sheet" filter="url(#lift)">
+            <rect
+              class="line"
+              style="fill: var(--card)"
+              x="689"
+              y="300"
+              width="162"
+              height="200"
+              rx="22"
+            />
+            <line class="line hair" x1="756" y1="312" x2="784" y2="312" />
+            <rect class="line hair" x="705" y="332" width="96" height="8" rx="4" />
+            <rect class="line hair" x="705" y="350" width="128" height="8" rx="4" />
+            <rect class="line accent" x="705" y="378" width="130" height="34" rx="17" />
+          </g>
+        </g>
+      </g>
+
+      <!-- Close: the mark -->
+      <g id="logo">
+        <path id="logo-path" d="" pathLength="1" />
+      </g>
+    </svg>
+
+    <div class="words" id="words-1"></div>
+    <div class="words" id="words-2"></div>
+    <div id="wordmark">UICAPSULE</div>
+
+    <script>
+      "use strict";
+
+      const DURATION = 10;
+      const CX = 600;
+      const CY = 315;
+
+      // A damped harmonic oscillator settling from 0 to 1. `zeta` below 1
+      // overshoots (the bounce), `freq` is the natural frequency in Hz.
+      const spring = (t, freq = 2.2, zeta = 0.62) => {
+        if (t <= 0) return 0;
+        const w = 2 * Math.PI * freq;
+        if (zeta >= 1) return 1 - Math.exp(-w * t) * (1 + w * t);
+        const wd = w * Math.sqrt(1 - zeta * zeta);
+        return (
+          1 - Math.exp(-zeta * w * t) * (Math.cos(wd * t) + ((zeta * w) / wd) * Math.sin(wd * t))
+        );
+      };
+      const soft = (t, freq = 2.4) => spring(t, freq, 1);
+      const clamp = (v, lo = 0, hi = 1) => Math.min(hi, Math.max(lo, v));
+      const lerp = (a, b, k) => a + (b - a) * k;
+      // An element's presence: springs in at `start`, eases out over `out` seconds from `end`.
+      const presence = (t, start, end, out = 0.3, freq = 2.4, zeta = 0.7) => {
+        const enter = spring(t - start, freq, zeta);
+        const exit = soft((t - end) / out, 0.6);
+        return { enter, exit, alpha: clamp(Math.min(soft(t - start, 3), 1 - exit)) };
+      };
+      const $ = (id) => document.getElementById(id);
+      const set = (el, attrs) => {
+        for (const [k, v] of Object.entries(attrs)) el.setAttribute(k, String(v));
+      };
+      const place = (el, x, y, scale, alpha, rotate = 0) => {
+        el.setAttribute("transform", `translate(${x} ${y}) rotate(${rotate}) scale(${scale})`);
+        el.setAttribute("opacity", String(clamp(alpha)));
+      };
+      const polar = (r, deg) => {
+        const a = ((deg - 90) * Math.PI) / 180;
+        return [r * Math.cos(a), r * Math.sin(a)];
+      };
+
+      // Static geometry built once: dial ticks, stack cards, split letters.
+      const ticks = $("dial-ticks");
+      for (let i = 0; i <= 24; i += 1) {
+        const deg = -135 + (270 * i) / 24;
+        const [x1, y1] = polar(92, deg);
+        const [x2, y2] = polar(i % 6 === 0 ? 104 : 99, deg);
+        const line = document.createElementNS("http://www.w3.org/2000/svg", "line");
+        set(line, { class: "line hair", x1, y1, x2, y2 });
+        ticks.append(line);
+      }
+      const stack = $("stack");
+      const cards = [0, 1, 2, 3].map(() => {
+        const g = document.createElementNS("http://www.w3.org/2000/svg", "g");
+        g.innerHTML =
+          '<rect class="line" style="fill: var(--card)" x="-100" y="-66" width="200" height="132" rx="18" />' +
+          '<circle class="line hair" cx="-70" cy="-36" r="12" />' +
+          '<rect class="line hair" x="-48" y="-42" width="80" height="8" rx="4" />' +
+          '<rect class="line hair" x="-80" y="10" width="160" height="8" rx="4" />' +
+          '<rect class="line hair" x="-80" y="28" width="110" height="8" rx="4" />';
+        g.setAttribute("filter", "url(#lift)");
+        stack.prepend(g);
+        return g;
+      });
+      const splitWords = (el, text, accentFrom) => {
+        const spans = [];
+        [...text].forEach((ch, i) => {
+          const span = document.createElement(i >= accentFrom ? "em" : "span");
+          span.style.display = "inline-block";
+          span.textContent = ch;
+          el.append(span);
+          spans.push(span);
+        });
+        return spans;
+      };
+      const words1 = splitWords($("words-1"), "Components", Infinity);
+      const words2 = splitWords($("words-2"), "that spark joy.", 11);
+      const wordmark = $("wordmark");
+
+      const renderWords = (spans, t, start, end) => {
+        const { exit } = presence(t, start, end, 0.25);
+        spans.forEach((span, i) => {
+          const local = t - start - i * 0.028;
+          const k = spring(local, 2.1, 0.78);
+          const y = lerp(26, 0, k) - 14 * exit;
+          span.style.transform = `translateY(${y}px)`;
+          span.style.opacity = String(clamp(Math.min(soft(local, 3.2), 1 - exit)));
+          span.style.filter = `blur(${(1 - clamp(soft(local, 3))) * 6}px)`;
+        });
+      };
+
+      window.renderAt = (t) => {
+        // Beat 1 — toggle (0.3–2.4)
+        {
+          const p = presence(t, 0.3, 2.1);
+          const press = t > 1.25 && t < 1.42 ? 0.94 : 1;
+          place(
+            $("toggle"),
+            CX,
+            CY,
+            1.5 * lerp(0.7, 1, p.enter) * lerp(1, 0.9, p.exit) * press,
+            p.alpha,
+          );
+          const on = spring(t - 1.32, 2.6, 0.55);
+          set($("toggle-knob"), { cx: lerp(-35, 35, on) });
+          const fill = clamp(on);
+          $("toggle-track").style.fill =
+            `color-mix(in oklch, var(--primary) ${fill * 100}%, transparent)`;
+          $("toggle-track").style.stroke = fill > 0.5 ? "var(--primary)" : "var(--foreground)";
+          $("toggle-knob").style.fill =
+            `color-mix(in oklch, var(--foreground) ${fill * 100}%, var(--background))`;
+
+          const move = soft((t - 0.55) / 0.75, 1.1);
+          const leave = soft((t - 1.7) / 0.6, 0.9);
+          const cx = lerp(lerp(880, 648, move), 920, leave);
+          const cy = lerp(lerp(510, 326, move), 580, leave);
+          const cursorAlpha = Math.min(soft(t - 0.5, 3), 1 - leave);
+          place($("cursor"), cx, cy, t > 1.25 && t < 1.42 ? 0.88 : 1, cursorAlpha);
+
+          const r = t - 1.3;
+          const grow = r > 0 ? soft(r / 0.75, 0.9) : 0;
+          set($("ripple"), { cx: 652, cy: 318, r: grow * 150 });
+          $("ripple").setAttribute("opacity", String(r > 0 ? (1 - grow) * 0.9 : 0));
+        }
+
+        // Beat 2 — dial + slider (2.35–4.0)
+        {
+          const d = presence(t, 2.35, 3.7);
+          place($("dial"), 420, CY, 1.2 * lerp(0.8, 1, d.enter) * lerp(1, 0.92, d.exit), d.alpha);
+          const v = lerp(0.08, 0.74, spring(t - 2.7, 1.8, 0.6));
+          const end = -135 + 270 * v;
+          const [ax, ay] = polar(78, -135);
+          const [bx, by] = polar(78, end);
+          set($("dial-arc"), {
+            d: `M${ax} ${ay} A78 78 0 ${end + 135 > 180 ? 1 : 0} 1 ${bx} ${by}`,
+          });
+          $("dial-needle").setAttribute("transform", `rotate(${end})`);
+
+          const s = presence(t, 2.5, 3.78);
+          place(
+            $("slider"),
+            790,
+            CY,
+            1.2 * lerp(0.85, 1, s.enter) * lerp(1, 0.92, s.exit),
+            s.alpha,
+          );
+          const x = lerp(-96, 72, spring(t - 2.95, 1.9, 0.58));
+          set($("slider-fill"), { x2: x });
+          set($("slider-thumb"), { cx: x });
+          $("slider-thumb").setAttribute("r", String(t > 2.9 && t < 3.6 ? 16 : 14));
+        }
+
+        // Kinetic type — "Components" (3.95–5.0)
+        renderWords(words1, t, 3.95, 4.85);
+
+        // Beat 3 — card stack + sheet (5.0–6.75)
+        {
+          const p = presence(t, 5.0, 6.45);
+          const flick = soft((t - 5.75) / 0.55, 0.9);
+          const advance = spring(t - 5.82, 2.2, 0.68);
+          cards.forEach((card, i) => {
+            // Card 0 is the front card that flicks away; the rest move up a slot.
+            const enter = spring(t - 5.0 - (3 - i) * 0.07, 2.4, 0.72);
+            if (i === 0) {
+              place(
+                card,
+                420 + flick * 240,
+                CY - flick * 60,
+                1.15 * lerp(0.8, 1, enter),
+                Math.min(p.alpha, 1 - flick),
+                flick * 14,
+              );
+              return;
+            }
+            const slot = i - advance;
+            const scale = 1.15 * (1 - slot * 0.08) * lerp(0.8, 1, enter) * lerp(1, 0.92, p.exit);
+            const alpha = i === 3 ? Math.min(p.alpha, advance) : p.alpha;
+            place(card, 420, CY - slot * 21, scale, alpha);
+          });
+
+          const q = presence(t, 5.12, 6.5);
+          place($("phone"), 0, 0, 1, q.alpha);
+          $("phone").setAttribute(
+            "transform",
+            `translate(${CX + 200} ${CY}) scale(${1.15 * lerp(0.86, 1, q.enter) * lerp(1, 0.94, q.exit)}) translate(${-(CX + 170)} ${-CY})`,
+          );
+          const up = spring(t - 5.55, 1.9, 0.66);
+          $("sheet").setAttribute("transform", `translate(0 ${lerp(180, 0, up)})`);
+        }
+
+        // Kinetic type — "that spark joy." (6.75–7.7)
+        renderWords(words2, t, 6.75, 7.5);
+
+        // Close — the mark, held, then a fade back to the empty frame (7.7–10)
+        {
+          const p = presence(t, 7.7, 9.72, 0.24);
+          const draw = soft((t - 7.7) / 0.7, 0.8);
+          const fill = soft((t - 8.15) / 0.4, 0.9);
+          const scale = lerp(0.9, 1, spring(t - 7.7, 1.6, 0.8));
+          const logo = $("logo");
+          const size = 168;
+          logo.setAttribute(
+            "transform",
+            `translate(${CX - (size * scale) / 2} ${282 - (size * scale) / 2}) scale(${(size * scale) / 1026})`,
+          );
+          logo.setAttribute("opacity", String(clamp(1 - p.exit)));
+          const path = $("logo-path");
+          path.setAttribute("stroke-dasharray", "1 1");
+          path.setAttribute("stroke-dashoffset", String(1 - draw));
+          path.style.stroke = "var(--foreground)";
+          path.style.strokeWidth = "1.5";
+          path.style.vectorEffect = "non-scaling-stroke";
+          path.style.fill = `color-mix(in oklch, var(--foreground) ${fill * 100}%, transparent)`;
+          path.style.opacity = t < 7.7 ? "0" : "1";
+
+          const w = soft((t - 8.2) / 0.6, 0.9);
+          wordmark.style.letterSpacing = `${lerp(0.7, 0.42, w)}em`;
+          wordmark.style.opacity = String(clamp(Math.min(w, 1 - p.exit)) * 0.92);
+        }
+      };
+
+      window.setLogo = (d) => {
+        const path = $("logo-path");
+        path.setAttribute("d", d);
+        path.setAttribute("fill-rule", "evenodd");
+      };
+      window.DURATION = DURATION;
+      window.renderAt(0);
+    </script>
+  </body>
+</html>
