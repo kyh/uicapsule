@@ -11,12 +11,14 @@ import {
   buildProsePageGraph,
   buildSoftwareApplication,
   buildSoftwareSourceCode,
+  buildVideoObject,
   buildWebPage,
   buildWebSite,
+  isoDuration,
   serializeJsonLd,
 } from "./structured-data";
 
-import type { JsonLdValue } from "./structured-data";
+import type { JsonLdValue, SocialVideo } from "./structured-data";
 
 import type { ContentComponentSummary } from "@/lib/content/content-schema";
 
@@ -166,6 +168,69 @@ describe("buildComponentGraph", () => {
       { "@type": "Person", name: "Kaiyu Hsu", url: "https://kyh.io" },
     ]);
     assert.equal(bareSource.keywords, "cards-grids");
+  });
+});
+
+const video: SocialVideo = {
+  contentUrl: "https://assets.example.com/dynamic-island/dynamic-island.mp4",
+  description: "A springy Dynamic Island interaction.",
+  duration: 13.18,
+  height: 900,
+  name: "Dynamic Island — UICapsule",
+  thumbnailUrl: "https://www.uicapsule.com/og/covers/dynamic-island.jpg",
+  uploadDate: "2026-09-08",
+  width: 1600,
+};
+
+describe("isoDuration", () => {
+  test("rounds to whole seconds and never says zero", () => {
+    assert.equal(isoDuration(13.18), "PT13S");
+    assert.equal(isoDuration(9.6), "PT10S");
+    assert.equal(isoDuration(0.2), "PT1S");
+  });
+});
+
+describe("buildVideoObject", () => {
+  const node = buildVideoObject(video, "https://www.uicapsule.com/ui/dynamic-island");
+
+  test("states every field a VideoObject rich result needs", () => {
+    assert.equal(node["@type"], "VideoObject");
+    assert.equal(node["@id"], "https://www.uicapsule.com/ui/dynamic-island#video");
+    assert.equal(node.contentUrl, video.contentUrl);
+    assert.equal(node.thumbnailUrl, video.thumbnailUrl);
+    assert.equal(node.uploadDate, "2026-09-08");
+    assert.equal(node.duration, "PT13S");
+    assert.equal(node.encodingFormat, "video/mp4");
+    assert.deepEqual([node.width, node.height], [1600, 900]);
+  });
+});
+
+describe("graphs with a video", () => {
+  test("a component's graph adds its cover and points the source code at it", () => {
+    const graph = buildComponentGraph(withDescription, video)["@graph"];
+    assert.deepEqual(
+      graph.map((node) => node["@type"]),
+      ["Organization", "SoftwareSourceCode", "BreadcrumbList", "VideoObject"],
+    );
+    const [, source] = graph;
+    assert.deepEqual(source?.video, {
+      "@id": "https://www.uicapsule.com/ui/dynamic-island#video",
+    });
+    assert.equal(source?.image, video.thumbnailUrl);
+  });
+
+  test("the home graph adds the trailer and links it from the collection page", () => {
+    const graph = buildHomeGraph([withDescription, bare], video)["@graph"];
+    assert.deepEqual(
+      graph.map((node) => node["@type"]),
+      ["Organization", "WebSite", "SoftwareApplication", "CollectionPage", "VideoObject"],
+    );
+    assert.deepEqual(graph[3]?.video, { "@id": "https://www.uicapsule.com/#video" });
+  });
+
+  test("without a video the graphs carry no video reference", () => {
+    const serialized = serializeJsonLd(buildComponentGraph(withDescription));
+    assert.ok(!serialized.includes('"video"'), 'should not contain "video"');
   });
 });
 

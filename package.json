@@ -21,7 +21,8 @@
     "check:agent-endpoints": "node --import tsx scripts/check-agent-endpoints.ts",
     "verify": "pnpm typecheck && pnpm lint && pnpm format && pnpm test && pnpm build",
     "typecheck:content": "node --import tsx scripts/typecheck-content.ts",
-    "typecheck:scripts": "tsc --project tsconfig.scripts.json"
+    "typecheck:scripts": "tsc --project tsconfig.scripts.json",
+    "og:video": "node --import tsx scripts/og-video.ts"
   },
   "devDependencies": {
     "@kyh/tsconfig": "catalog:",
@@ -32,6 +33,7 @@
     "oxc-parser": "^0.154.0",
     "oxfmt": "^0.73.0",
     "oxlint": "^1.88.0",
+    "playwright": "1.63.0",
     "tsx": "catalog:",
     "turbo": "^2.11.9",
     "typescript": "catalog:",

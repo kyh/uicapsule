@@ -147,16 +147,54 @@ export const buildCollectionPage = (components: ContentComponentSummary[]) =>
     url: siteConfig.url,
   }) satisfies JsonLdNode;
 
-export const buildHomeGraph = (components: ContentComponentSummary[]) =>
+/**
+ * A page's share video (`og:video`) as the facts its `VideoObject` states.
+ * URLs are absolute; `duration` is in seconds.
+ */
+export interface SocialVideo {
+  contentUrl: string;
+  description: string;
+  duration: number;
+  height: number;
+  name: string;
+  thumbnailUrl: string;
+  uploadDate: string;
+  width: number;
+}
+
+/** ISO 8601 duration, whole seconds: 13.2 → `PT13S`. Never `PT0S`. */
+export const isoDuration = (seconds: number): string => `PT${Math.max(1, Math.round(seconds))}S`;
+
+export const buildVideoObject = (video: SocialVideo, pageUrl: string) =>
   ({
-    "@context": "https://schema.org",
-    "@graph": [
-      buildOrganization(),
-      buildWebSite(),
-      buildSoftwareApplication(components.length),
-      buildCollectionPage(components),
-    ],
+    "@id": `${pageUrl}#video`,
+    "@type": "VideoObject",
+    contentUrl: video.contentUrl,
+    description: video.description,
+    duration: isoDuration(video.duration),
+    encodingFormat: "video/mp4",
+    height: video.height,
+    name: video.name,
+    publisher: { "@id": ORGANIZATION_ID },
+    thumbnailUrl: video.thumbnailUrl,
+    uploadDate: video.uploadDate,
+    width: video.width,
   }) satisfies JsonLdNode;
+
+export const buildHomeGraph = (components: ContentComponentSummary[], video?: SocialVideo) => {
+  const page: JsonLdNode = buildCollectionPage(components);
+  const graph: JsonLdNode[] = [
+    buildOrganization(),
+    buildWebSite(),
+    buildSoftwareApplication(components.length),
+    page,
+  ];
+  if (video) {
+    page.video = { "@id": `${siteConfig.url}/#video` };
+    graph.push(buildVideoObject(video, `${siteConfig.url}/`));
+  }
+  return { "@context": "https://schema.org", "@graph": graph } satisfies JsonLdNode;
+};
 
 export const buildSoftwareSourceCode = (component: ContentComponentSummary) =>
   ({
@@ -192,15 +230,20 @@ export const buildComponentBreadcrumb = (component: ContentComponentSummary) =>
     ],
   }) satisfies JsonLdNode;
 
-export const buildComponentGraph = (component: ContentComponentSummary) =>
-  ({
-    "@context": "https://schema.org",
-    "@graph": [
-      buildOrganization(),
-      buildSoftwareSourceCode(component),
-      buildComponentBreadcrumb(component),
-    ],
-  }) satisfies JsonLdNode;
+/** With a video, the source code points at its cover as `video` and `image`. */
+export const buildComponentGraph = (component: ContentComponentSummary, video?: SocialVideo) => {
+  const source: JsonLdNode = {
+    ...buildSoftwareSourceCode(component),
+    dateCreated: component.addedAt,
+  };
+  const graph: JsonLdNode[] = [buildOrganization(), source, buildComponentBreadcrumb(component)];
+  if (video) {
+    source.image = video.thumbnailUrl;
+    source.video = { "@id": `${componentUrl(component.slug)}#video` };
+    graph.push(buildVideoObject(video, componentUrl(component.slug)));
+  }
+  return { "@context": "https://schema.org", "@graph": graph } satisfies JsonLdNode;
+};
 
 export const buildWebPage = (page: ProsePage) =>
   ({

@@ -1,5 +1,5 @@
 import { absoluteUrl } from "./markdown";
-import { prosePages } from "./site-pages";
+import { prosePages, requestPage } from "./site-pages";
 
 import type { MetadataRoute } from "next";
 
@@ -15,9 +15,6 @@ export interface SitemapComponent {
   addedAt: string;
   slug: string;
 }
-
-/** The form is indexable but carries no prose, so it has no Markdown twin. */
-const requestPath = "/request";
 
 export const buildSitemapEntries = (components: SitemapComponent[]): SitemapEntry[] => {
   // Sorted rather than indexed off the feed, so the home page's lastmod does
@@ -42,7 +39,7 @@ export const buildSitemapEntries = (components: SitemapComponent[]): SitemapEntr
     {
       changeFrequency: "yearly",
       priority: 0.5,
-      url: absoluteUrl(requestPath),
+      url: absoluteUrl(requestPage.path),
     },
     ...components.map((component) => ({
       changeFrequency: "monthly" as const,
