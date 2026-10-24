@@ -203,4 +203,14 @@
       monospace;
     user-select: text !important;
   }
+
+  /* The site's chrome opts out of selection (see the (main) layout); what a person types into
+     or is told about always selects. */
+  input,
+  textarea,
+  [contenteditable]:not([contenteditable="false"]),
+  [role="alert"] {
+    -webkit-user-select: text;
+    user-select: text;
+  }
 }
