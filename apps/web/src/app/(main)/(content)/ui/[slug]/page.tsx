@@ -9,6 +9,7 @@ import {
   ogVideo,
   pageOpenGraph,
   pageTwitter,
+  shareCardImage,
 } from "@/lib/agent/page-metadata";
 import { buildComponentGraph } from "@/lib/agent/structured-data";
 import { getAllContent } from "@/lib/content-data";
@@ -33,18 +34,19 @@ export const generateMetadata = async ({ params }: Props): Promise<Metadata> => 
 
   const { description } = component;
   // The cover already on the gallery card is the share video; the image is the
-  // route's own opengraph-image / twitter-image card.
+  // component's card, its cover still behind its name.
   const video = componentVideo(component);
+  const image = shareCardImage(`/ui/${component.slug}`, component.name);
 
   return {
     alternates: canonicalAlternates(`/ui/${component.slug}`),
     description,
     openGraph: pageOpenGraph(`/ui/${component.slug}`, component.name, description, {
-      ownImage: true,
+      image,
       videos: video ? ogVideo(video.contentUrl, video.width, video.height) : undefined,
     }),
     title: component.name,
-    twitter: pageTwitter(component.name, description, { ownImage: true }),
+    twitter: pageTwitter(component.name, description, { image }),
   };
 };
 

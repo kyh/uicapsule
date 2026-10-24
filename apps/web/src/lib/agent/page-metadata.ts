@@ -24,13 +24,30 @@ export const ogVideo = (url: string, width: number, height: number): OpenGraphVi
   { height, secureUrl: url, type: "video/mp4", url, width },
 ];
 
+/** An `og:image` / `twitter:image` entry. */
+export interface ShareImage {
+  alt: string;
+  height: number;
+  type?: string;
+  url: string;
+  width: number;
+}
+
+/**
+ * The page's own share card, rendered by `app/card/[...path]` from the same
+ * title and description its metadata states. Pages without one use `ogImage`.
+ */
+export const shareCardImage = (path: string, title: string): ShareImage => ({
+  alt: `${title} — ${siteConfig.name}`,
+  height: 630,
+  type: "image/png",
+  url: `${siteConfig.url}/card${path}`,
+  width: 1200,
+});
+
 export interface ShareMedia {
-  /**
-   * The route renders its own card (an `opengraph-image` / `twitter-image`
-   * file), so the site image is left out for Next to fill from the file:
-   * metadata that names `images` outranks the file convention.
-   */
-  ownImage?: boolean;
+  /** Defaults to the site-wide `ogImage`. */
+  image?: ShareImage;
   videos?: OpenGraphVideos;
 }
 
@@ -38,20 +55,17 @@ export const pageOpenGraph = (
   path: string,
   title: string = siteConfig.name,
   description: string = siteConfig.description,
-  { ownImage = false, videos }: ShareMedia = {},
+  { image = ogImage, videos }: ShareMedia = {},
 ): Metadata["openGraph"] => {
   const openGraph: NonNullable<Metadata["openGraph"]> = {
     description,
+    images: [image],
     locale: "en-US",
     siteName: siteConfig.name,
     title,
     type: "website",
     url: path,
   };
-  // Even `images: undefined` counts as set and hides the file's card, so the key is added, not blanked.
-  if (!ownImage) {
-    openGraph.images = [ogImage];
-  }
   if (videos) {
     openGraph.videos = videos;
   }
@@ -65,16 +79,11 @@ export const pageOpenGraph = (
 export const pageTwitter = (
   title: string = siteConfig.name,
   description: string = siteConfig.description,
-  { ownImage = false }: Pick<ShareMedia, "ownImage"> = {},
-): Metadata["twitter"] => {
-  const twitter: NonNullable<Metadata["twitter"]> = {
-    card: "summary_large_image",
-    creator: siteConfig.twitter,
-    description,
-    title,
-  };
-  if (!ownImage) {
-    twitter.images = [ogImage];
-  }
-  return twitter;
-};
+  { image = ogImage }: Pick<ShareMedia, "image"> = {},
+): Metadata["twitter"] => ({
+  card: "summary_large_image",
+  creator: siteConfig.twitter,
+  description,
+  images: [image],
+  title,
+});

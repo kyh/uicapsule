@@ -52,15 +52,19 @@ export type ProseBlock =
   | { kind: "table"; columns: string[]; rows: string[][] }
   | { kind: "divider" };
 
-export interface ProsePage {
+/** What a page says about itself: its metadata and its share card read this. */
+export interface PageCopy {
   /** Route path, also the canonical URL suffix and the sitemap entry. */
   path: string;
+  /** `<title>`, `og:title` and the share card's heading (the layout appends the site name). */
+  title: string;
+  /** `<meta name="description">`, the llms.txt note, the Markdown summary and the card. */
+  description: string;
+}
+
+export interface ProsePage extends PageCopy {
   /** Rendered as the page's single `<h1>` and as the Markdown `#` heading. */
   heading: string;
-  /** `<title>` and `og:title` (the layout appends the site name). */
-  title: string;
-  /** `<meta name="description">`, the llms.txt note, and the Markdown summary. */
-  description: string;
   /** `<priority>` in sitemap.xml. Omitted for pages the sitemap leaves out. */
   sitemapPriority?: number;
   blocks: ProseBlock[];
@@ -957,6 +961,20 @@ export const termsPage: ProsePage = {
 
 /** Prose pages, in the order they should appear in a sitemap or llms.txt. */
 export const prosePages: ProsePage[] = [aboutPage, contactPage, privacyPage, termsPage];
+
+/**
+ * The request form: indexable and shareable, but a form, not prose, so it has
+ * no Markdown twin and stays out of `prosePages`.
+ */
+export const requestPage: PageCopy = {
+  description:
+    "Pitch an interaction you want built. Accepted requests become UICapsule components.",
+  path: "/request",
+  title: "Request a component",
+};
+
+/** Every indexable page with copy of its own, each served a share card at `/card<path>`. */
+export const sharePages: PageCopy[] = [...prosePages, requestPage];
 
 /**
  * Routes that render HTML but carry no prose worth a full Markdown page. They
