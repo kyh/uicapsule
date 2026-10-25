@@ -1,33 +1,46 @@
 <!doctype html>
 <!--
-  The home page's og:video: a ten-second "component trailer" of generic UI
-  primitives drawn as hairline wireframes, ending on the UICapsule mark.
+  The home page's og:video, and the still behind its og:image: the UICapsule
+  mark drawn as the subject of a dimensional drawing, with generic UI
+  components (card, toggle, button, field, dialog, slider, segmented control)
+  drawn the same way around it.
 
-  Deliberately evergreen: no gallery entry appears, so the clip never goes
-  stale as content changes. Rendered frame by frame by scripts/og-video.ts —
-  every value below is a pure function of `t`, so a run is reproducible. Not
-  part of the app; nothing routes to it.
+  Ten seconds, looping: on a sheet that holds only the mark, the pen draws the
+  mark's construction and dimensions while the camera pushes in, pulls back as
+  the components draw around it, visits the dialog while its layers lift into
+  an exploded view and settle, holds on the full sheet, then clears back to the
+  mark alone, so the last frame is the first.
 
-  Tokens are the site's own (packages/ui/src/styles/globals.css, dark theme),
-  the font is apps/web/src/app/styles/mono.woff2 and the mark's path is read
+  Deliberately evergreen: the components are wireframes of slots, not gallery
+  entries, so the clip never goes stale as content changes. Rendered frame by
+  frame by scripts/og-video.ts: every value below is a pure function of `t`.
+  Not part of the app; nothing routes to it.
+
+  Style, drawing kit and motion grammar (draw-on strokes, ticking labels,
+  exploded-layer matrix morph) follow enesozturk/dimensional-drawing
+  (https://github.com/enesozturk/dimensional-drawing, MIT, (c) 2026 Enes
+  Ozturk): monochrome grays told apart by line weight, dashes and hatches;
+  slots instead of content; variables instead of numbers. Lettering is the
+  site's mono (apps/web/src/app/styles/mono.woff2); the mark's path is read
   from packages/ui/src/components/logo.tsx by the script.
 -->
 <html lang="en">
   <head>
     <meta charset="utf-8" />
-    <title>UICapsule trailer</title>
+    <title>UICapsule dimensional drawing</title>
     <style>
       @font-face {
         font-family: "UICapsule Mono";
         src: url("./mono.woff2") format("woff2");
       }
       :root {
-        --background: oklch(0.141 0.005 285.823);
-        --foreground: oklch(0.985 0 0);
-        --muted-foreground: oklch(0.705 0.015 286.067);
-        --muted: oklch(0.274 0.006 286.033);
-        --card: oklch(0.21 0.006 285.885);
-        --primary: oklch(0.684 0.207 37);
+        color-scheme: light;
+        --paper: #f5f4f0;
+        --ink: #1c1c1c;
+        --gray: #6e6e6b;
+        --line: #8a8a86;
+        --fill: #e6e5e0;
+        --well: #ecebe6;
       }
       html,
       body {
@@ -35,379 +48,827 @@
         width: 1200px;
         height: 630px;
         overflow: hidden;
-        background: var(--background);
+        background: var(--paper);
       }
       svg {
         position: absolute;
         inset: 0;
+        font-family: "UICapsule Mono", ui-monospace, monospace;
+        --u: 1;
       }
-      .line {
+      text {
+        text-transform: uppercase;
+      }
+      .border {
         fill: none;
-        stroke: var(--foreground);
-        stroke-width: 1.5;
-        stroke-linecap: round;
+        stroke: var(--ink);
+        stroke-width: 1.6;
+      }
+      .obj {
+        fill: var(--paper);
+        stroke: var(--ink);
+        stroke-width: calc(2.4px * var(--u));
         stroke-linejoin: round;
-        vector-effect: non-scaling-stroke;
       }
-      .hair {
-        stroke: var(--muted-foreground);
+      .well {
+        fill: var(--well);
+        stroke: var(--ink);
+        stroke-width: calc(1.3px * var(--u));
+      }
+      .hug {
+        fill: var(--fill);
+        stroke: var(--ink);
+        stroke-width: calc(1.3px * var(--u));
+      }
+      .slot {
+        fill: none;
+        stroke: var(--line);
+        stroke-width: calc(1.1px * var(--u));
+        stroke-dasharray: calc(5px * var(--u)) calc(3.5px * var(--u));
+      }
+      .thin {
+        fill: none;
+        stroke: var(--ink);
+        stroke-width: calc(1.3px * var(--u));
+      }
+      .ph {
+        fill: none;
+        stroke: var(--line);
+        stroke-width: calc(1px * var(--u));
+        stroke-dasharray: calc(14px * var(--u)) calc(3px * var(--u)) calc(3px * var(--u))
+          calc(3px * var(--u));
+      }
+      .cl {
+        fill: none;
+        stroke: var(--line);
         stroke-width: 1;
-        stroke-opacity: 0.55;
+        stroke-dasharray: 18 4 3 4;
       }
-      .accent {
-        stroke: var(--primary);
+      .con {
+        fill: none;
+        stroke: var(--ink);
+        stroke-width: 1.2;
       }
-      .words {
-        position: absolute;
-        inset: 0;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-family: "UICapsule Mono", ui-monospace, monospace;
-        color: var(--foreground);
-        font-size: 64px;
-        letter-spacing: -0.02em;
-        white-space: pre;
+      .dl,
+      .lead {
+        fill: none;
+        stroke: var(--ink);
+        stroke-width: 1.2;
       }
-      .words span {
-        display: inline-block;
+      .ext {
+        fill: none;
+        stroke: var(--ink);
+        stroke-width: 0.95;
       }
-      .words em {
-        font-style: normal;
-        color: var(--primary);
+      .arrow,
+      .dot {
+        fill: var(--ink);
       }
-      #wordmark {
-        position: absolute;
-        left: 0;
-        right: 0;
-        top: 404px;
-        text-align: center;
-        font-family: "UICapsule Mono", ui-monospace, monospace;
-        color: var(--foreground);
-        font-size: 22px;
-        white-space: pre;
+      .hl {
+        stroke: var(--line);
+        stroke-width: 1;
+      }
+      .hs {
+        stroke: var(--ink);
+        stroke-width: calc(1.1px * var(--u));
+      }
+      .nb {
+        fill: var(--paper);
+        stroke: var(--ink);
+        stroke-width: 1;
+      }
+      .rule {
+        stroke: var(--ink);
+        stroke-width: 1;
+      }
+      .mark {
+        fill: var(--ink);
+      }
+      .dt {
+        font-size: 13.5px;
+        fill: var(--ink);
+        paint-order: stroke;
+        stroke: var(--paper);
+        stroke-width: 4px;
+        stroke-linejoin: round;
+      }
+      .sl {
+        font-size: 9.5px;
+        fill: var(--gray);
+        letter-spacing: 0.06em;
+      }
+      .vt {
+        font-size: 12px;
+        fill: var(--ink);
+        letter-spacing: 0.12em;
+      }
+      .dts {
+        font-size: 9.5px;
+        fill: var(--gray);
+        letter-spacing: 0.06em;
+        paint-order: stroke;
+        stroke: var(--paper);
+        stroke-width: 3px;
+      }
+      .nbt {
+        font-size: 9px;
+        fill: var(--ink);
+      }
+      .fl {
+        font-size: 7.5px;
+        fill: var(--gray);
+        letter-spacing: 0.1em;
+      }
+      .fv {
+        font-size: 11px;
+        fill: var(--ink);
+        letter-spacing: 0.08em;
       }
     </style>
   </head>
   <body>
-    <svg viewBox="0 0 1200 630" width="1200" height="630">
-      <defs>
-        <filter id="lift" x="-30%" y="-30%" width="160%" height="160%">
-          <feDropShadow dx="0" dy="14" stdDeviation="16" flood-color="#000" flood-opacity="0.55" />
-        </filter>
-        <clipPath id="screen">
-          <rect x="687" y="172" width="166" height="286" rx="26" />
-        </clipPath>
-      </defs>
-
-      <!-- Beat 1: a toggle, the cursor that presses it, the ripple it leaves -->
-      <g id="toggle">
-        <rect id="toggle-track" class="line" x="-75" y="-40" width="150" height="80" rx="40" />
-        <circle id="toggle-knob" class="line" cx="-35" cy="0" r="29" />
-      </g>
-      <circle id="ripple" class="line accent" cx="0" cy="0" r="0" />
-      <g id="cursor">
-        <path
-          class="line"
-          style="fill: var(--background)"
-          d="M0 0 L0 30 L8 23 L13.5 35 L18.5 32.7 L13 21 L23.5 21 Z"
-        />
-      </g>
-
-      <!-- Beat 2: a dial and a slider, side by side -->
-      <g id="dial">
-        <g id="dial-ticks"></g>
-        <circle class="line" cx="0" cy="0" r="78" />
-        <path id="dial-arc" class="line accent" style="stroke-width: 3" d="" />
-        <line id="dial-needle" class="line" x1="0" y1="-30" x2="0" y2="-62" />
-      </g>
-      <g id="slider">
-        <line class="line hair" x1="-120" y1="0" x2="120" y2="0" />
-        <line
-          id="slider-fill"
-          class="line accent"
-          style="stroke-width: 3"
-          x1="-120"
-          y1="0"
-          x2="0"
-          y2="0"
-        />
-        <circle
-          id="slider-thumb"
-          class="line"
-          style="fill: var(--background)"
-          cx="0"
-          cy="0"
-          r="14"
-        />
-        <line class="line hair" x1="-120" y1="34" x2="-60" y2="34" />
-        <line class="line hair" x1="80" y1="34" x2="120" y2="34" />
-      </g>
-
-      <!-- Beat 3: a card stack and a sheet sliding up -->
-      <g id="stack"></g>
-      <g id="phone">
-        <rect class="line" x="685" y="170" width="170" height="290" rx="28" />
-        <line class="line hair" x1="752" y1="186" x2="788" y2="186" />
-        <g clip-path="url(#screen)">
-          <rect class="line hair" x="703" y="210" width="80" height="8" rx="4" />
-          <rect class="line hair" x="703" y="230" width="120" height="8" rx="4" />
-          <rect class="line hair" x="703" y="250" width="100" height="8" rx="4" />
-          <g id="sheet" filter="url(#lift)">
-            <rect
-              class="line"
-              style="fill: var(--card)"
-              x="689"
-              y="300"
-              width="162"
-              height="200"
-              rx="22"
-            />
-            <line class="line hair" x1="756" y1="312" x2="784" y2="312" />
-            <rect class="line hair" x="705" y="332" width="96" height="8" rx="4" />
-            <rect class="line hair" x="705" y="350" width="128" height="8" rx="4" />
-            <rect class="line accent" x="705" y="378" width="130" height="34" rx="17" />
-          </g>
-        </g>
-      </g>
-
-      <!-- Close: the mark -->
-      <g id="logo">
-        <path id="logo-path" d="" pathLength="1" />
-      </g>
-    </svg>
-
-    <div class="words" id="words-1"></div>
-    <div class="words" id="words-2"></div>
-    <div id="wordmark">UICAPSULE</div>
-
+    <svg id="sheet" viewBox="0 0 1200 630" width="1200" height="630"></svg>
     <script>
-      "use strict";
-
       const DURATION = 10;
-      const CX = 600;
-      const CY = 315;
+      const NS = "http://www.w3.org/2000/svg";
 
-      // A damped harmonic oscillator settling from 0 to 1. `zeta` below 1
-      // overshoots (the bounce), `freq` is the natural frequency in Hz.
-      const spring = (t, freq = 2.2, zeta = 0.62) => {
-        if (t <= 0) return 0;
-        const w = 2 * Math.PI * freq;
-        if (zeta >= 1) return 1 - Math.exp(-w * t) * (1 + w * t);
-        const wd = w * Math.sqrt(1 - zeta * zeta);
-        return (
-          1 - Math.exp(-zeta * w * t) * (Math.cos(wd * t) + ((zeta * w) / wd) * Math.sin(wd * t))
-        );
-      };
-      const soft = (t, freq = 2.4) => spring(t, freq, 1);
+      /* ---------- time kit: pure functions of t ---------- */
       const clamp = (v, lo = 0, hi = 1) => Math.min(hi, Math.max(lo, v));
       const lerp = (a, b, k) => a + (b - a) * k;
-      // An element's presence: springs in at `start`, eases out over `out` seconds from `end`.
-      const presence = (t, start, end, out = 0.3, freq = 2.4, zeta = 0.7) => {
-        const enter = spring(t - start, freq, zeta);
-        const exit = soft((t - end) / out, 0.6);
-        return { enter, exit, alpha: clamp(Math.min(soft(t - start, 3), 1 - exit)) };
-      };
-      const $ = (id) => document.getElementById(id);
-      const set = (el, attrs) => {
-        for (const [k, v] of Object.entries(attrs)) el.setAttribute(k, String(v));
-      };
-      const place = (el, x, y, scale, alpha, rotate = 0) => {
-        el.setAttribute("transform", `translate(${x} ${y}) rotate(${rotate}) scale(${scale})`);
-        el.setAttribute("opacity", String(clamp(alpha)));
-      };
-      const polar = (r, deg) => {
-        const a = ((deg - 90) * Math.PI) / 180;
-        return [r * Math.cos(a), r * Math.sin(a)];
+      const seg = (t, a, b) => clamp((t - a) / (b - a));
+      const eio = (p) => (p < 0.5 ? 4 * p * p * p : 1 - (-2 * p + 2) ** 3 / 2);
+      const eo = (p) => 1 - (1 - p) ** 3;
+      /** A critically damped spring's settle, 0 → 1 with no overshoot. */
+      const spring = (p) => (p >= 1 ? 1 : 1 - Math.exp(-7 * clamp(p)) * (1 + 7 * clamp(p)));
+
+      /* ---------- camera keys: the frame centre is (600, 297) at z 1 ---------- */
+      const CAM = [
+        { t: 0, cx: 600, cy: 297, z: 1 },
+        { t: 0.55, cx: 600, cy: 297, z: 1 },
+        { t: 2.45, cx: 600, cy: 290, z: 1.38 },
+        { t: 2.75, cx: 600, cy: 290, z: 1.39 },
+        { t: 4.05, cx: 600, cy: 297, z: 1 },
+        { t: 4.6, cx: 600, cy: 297, z: 1 },
+        { t: 5.45, cx: 978, cy: 168, z: 1.72 },
+        { t: 7.05, cx: 980, cy: 168, z: 1.74 },
+        { t: 7.95, cx: 600, cy: 297, z: 1 },
+        { t: 10, cx: 600, cy: 297, z: 1 },
+      ];
+      const camAt = (t) => {
+        let i = 0;
+        while (i < CAM.length - 2 && t >= CAM[i + 1].t) i += 1;
+        const a = CAM[i];
+        const b = CAM[i + 1];
+        const p = eio(seg(t, a.t, b.t));
+        return {
+          cx: lerp(a.cx, b.cx, p),
+          cy: lerp(a.cy, b.cy, p),
+          z: Math.exp(lerp(Math.log(a.z), Math.log(b.z), p)),
+        };
       };
 
-      // Static geometry built once: dial ticks, stack cards, split letters.
-      const ticks = $("dial-ticks");
-      for (let i = 0; i <= 24; i += 1) {
-        const deg = -135 + (270 * i) / 24;
-        const [x1, y1] = polar(92, deg);
-        const [x2, y2] = polar(i % 6 === 0 ? 104 : 99, deg);
-        const line = document.createElementNS("http://www.w3.org/2000/svg", "line");
-        set(line, { class: "line hair", x1, y1, x2, y2 });
-        ticks.append(line);
-      }
-      const stack = $("stack");
-      const cards = [0, 1, 2, 3].map(() => {
-        const g = document.createElementNS("http://www.w3.org/2000/svg", "g");
-        g.innerHTML =
-          '<rect class="line" style="fill: var(--card)" x="-100" y="-66" width="200" height="132" rx="18" />' +
-          '<circle class="line hair" cx="-70" cy="-36" r="12" />' +
-          '<rect class="line hair" x="-48" y="-42" width="80" height="8" rx="4" />' +
-          '<rect class="line hair" x="-80" y="10" width="160" height="8" rx="4" />' +
-          '<rect class="line hair" x="-80" y="28" width="110" height="8" rx="4" />';
-        g.setAttribute("filter", "url(#lift)");
-        stack.prepend(g);
-        return g;
-      });
-      const splitWords = (el, text, accentFrom) => {
-        const spans = [];
-        [...text].forEach((ch, i) => {
-          const span = document.createElement(i >= accentFrom ? "em" : "span");
-          span.style.display = "inline-block";
-          span.textContent = ch;
-          el.append(span);
-          spans.push(span);
+      /* ---------- the exploded lift of the dialog ---------- */
+      const LIFT = { up: 5.45, upEnd: 6.25, down: 6.75, downEnd: 7.3, step: 0.1 };
+      const liftAt = (t, i) =>
+        eio(seg(t, LIFT.up + i * LIFT.step, LIFT.upEnd + i * LIFT.step)) *
+        (1 - eio(seg(t, LIFT.down - i * 0.06, LIFT.downEnd - i * 0.06)));
+
+      /* ---------- the sheet clears, edges first, back to the mark alone ---------- */
+      const EXIT = { at: 8.6, spread: 0.55, dur: 0.5 };
+      const MARK = { x: 600, y: 292, h: 236 };
+
+      const REG = [];
+      const MORPH = [];
+      let state = null;
+
+      const build = (logoD) => {
+        const svg = document.getElementById("sheet");
+        svg.replaceChildren();
+        REG.length = 0;
+        MORPH.length = 0;
+        let cur = { a: 0, s: 0, d: 0.6, i: 0 };
+        let parent = svg;
+        let noreg = 0;
+        let keep = 0;
+
+        const at = (a, s = 0, d = 0.6) => {
+          cur = { a, s, d, i: 0 };
+        };
+        const kindOf = (e, tag) => {
+          if (tag === "text") return "t";
+          const c = ` ${e.getAttribute("class") || ""} `;
+          if (/ (slot|ph|cl|hs|nb) /u.test(c) || (e.getAttribute("fill") || "").startsWith("url")) {
+            return "f";
+          }
+          return "d";
+        };
+        const mk = (tag, attrs, p) => {
+          const e = document.createElementNS(NS, tag);
+          for (const [k, v] of Object.entries(attrs)) if (v != null) e.setAttribute(k, String(v));
+          (p || parent).append(e);
+          if (!noreg && tag !== "g") {
+            const a = cur.a + cur.i * cur.s;
+            cur.i += 1;
+            const k = kindOf(e, tag);
+            if (k === "d") e.setAttribute("pathLength", "1");
+            const arrows = ["marker-start", "marker-end"].filter((m) => e.hasAttribute(m));
+            for (const m of arrows) e.removeAttribute(m);
+            e.style.opacity = "0";
+            REG.push({ e, a, b: a + cur.d, k, keep, arrows, shown: false, last: "" });
+          }
+          return e;
+        };
+        const tx = (x, y, s, c = "dt", a = {}, p) => {
+          const t = mk("text", { x, y, class: c, ...a }, p);
+          t.textContent = s;
+          return t;
+        };
+
+        noreg = 1;
+        const defs = mk("defs", {});
+        const marker = mk(
+          "marker",
+          {
+            id: "ar",
+            viewBox: "0 0 10 10",
+            refX: 10,
+            refY: 5,
+            markerWidth: 8,
+            markerHeight: 8,
+            orient: "auto-start-reverse",
+            markerUnits: "userSpaceOnUse",
+          },
+          defs,
+        );
+        mk("path", { d: "M0,1.6 L10,5 L0,8.4 z", class: "arrow" }, marker);
+        const hatch = mk(
+          "pattern",
+          {
+            id: "hat",
+            width: 6,
+            height: 6,
+            patternUnits: "userSpaceOnUse",
+            patternTransform: "rotate(45)",
+          },
+          defs,
+        );
+        mk("line", { x1: 0, y1: 0, x2: 0, y2: 6, class: "hl" }, hatch);
+        const clip = mk("clipPath", { id: "area" }, defs);
+        mk("rect", { x: 15, y: 15, width: 1170, height: 563, rx: 13 }, clip);
+
+        // The fixed sheet: border and title strip never move or clear.
+        mk("rect", { x: 14, y: 14, width: 1172, height: 602, rx: 14, class: "border" });
+        mk("line", { x1: 14, y1: 578, x2: 1186, y2: 578, class: "rule" });
+        const cells = [
+          [14, "Dimensional drawing", "Component architecture"],
+          [470, "Dwg no.", "UI-LOGO-001"],
+          [640, "Scale", "1:1 unless noted"],
+          [840, "Units", "Variables"],
+          [1010, "Rev · sheet", "A · 1 / 1"],
+        ];
+        cells.forEach(([x, label, value], i) => {
+          if (i) mk("line", { x1: x, y1: 578, x2: x, y2: 616, class: "rule" });
+          tx(x + 14, 592, label, "fl");
+          tx(x + 14, 607, value, "fv");
         });
-        return spans;
-      };
-      const words1 = splitWords($("words-1"), "Components", Infinity);
-      const words2 = splitWords($("words-2"), "that spark joy.", 11);
-      const wordmark = $("wordmark");
 
-      const renderWords = (spans, t, start, end) => {
-        const { exit } = presence(t, start, end, 0.25);
-        spans.forEach((span, i) => {
-          const local = t - start - i * 0.028;
-          const k = spring(local, 2.1, 0.78);
-          const y = lerp(26, 0, k) - 14 * exit;
-          span.style.transform = `translateY(${y}px)`;
-          span.style.opacity = String(clamp(Math.min(soft(local, 3.2), 1 - exit)));
-          span.style.filter = `blur(${(1 - clamp(soft(local, 3))) * 6}px)`;
-        });
-      };
+        const camClip = mk("g", { "clip-path": "url(#area)" });
+        const cam = mk("g", { id: "camera" }, camClip);
+        noreg = 0;
+        parent = cam;
 
-      window.renderAt = (t) => {
-        // Beat 1 — toggle (0.3–2.4)
-        {
-          const p = presence(t, 0.3, 2.1);
-          const press = t > 1.25 && t < 1.42 ? 0.94 : 1;
-          place(
-            $("toggle"),
-            CX,
-            CY,
-            1.5 * lerp(0.7, 1, p.enter) * lerp(1, 0.9, p.exit) * press,
-            p.alpha,
+        const A = "url(#ar)";
+
+        /* ---------- drawing kit (after the reference's helpers) ---------- */
+        const dimH = (x1, x2, y, e1, e2, l, o = {}) => {
+          for (const [x, e] of [
+            [x1, e1],
+            [x2, e2],
+          ]) {
+            if (e == null) continue;
+            const s = Math.sign(y - e) || 1;
+            mk("line", { x1: x, y1: e + s * 3, x2: x, y2: y + s * 6, class: "ext" });
+          }
+          if (x2 - x1 >= 30) {
+            mk("line", { x1, y1: y, x2, y2: y, class: "dl", "marker-start": A, "marker-end": A });
+          } else {
+            mk("line", { x1: x1 - 14, y1: y, x2: x1, y2: y, class: "dl", "marker-end": A });
+            mk("line", { x1: x2 + 14, y1: y, x2, y2: y, class: "dl", "marker-end": A });
+          }
+          tx(
+            (x1 + x2) / 2 + (o.dx || 0),
+            (o.below ? y + 15 : y - 5) + (o.dy || 0),
+            l,
+            o.c || "dt",
+            {
+              "text-anchor": "middle",
+            },
           );
-          const on = spring(t - 1.32, 2.6, 0.55);
-          set($("toggle-knob"), { cx: lerp(-35, 35, on) });
-          const fill = clamp(on);
-          $("toggle-track").style.fill =
-            `color-mix(in oklch, var(--primary) ${fill * 100}%, transparent)`;
-          $("toggle-track").style.stroke = fill > 0.5 ? "var(--primary)" : "var(--foreground)";
-          $("toggle-knob").style.fill =
-            `color-mix(in oklch, var(--foreground) ${fill * 100}%, var(--background))`;
-
-          const move = soft((t - 0.55) / 0.75, 1.1);
-          const leave = soft((t - 1.7) / 0.6, 0.9);
-          const cx = lerp(lerp(880, 648, move), 920, leave);
-          const cy = lerp(lerp(510, 326, move), 580, leave);
-          const cursorAlpha = Math.min(soft(t - 0.5, 3), 1 - leave);
-          place($("cursor"), cx, cy, t > 1.25 && t < 1.42 ? 0.88 : 1, cursorAlpha);
-
-          const r = t - 1.3;
-          const grow = r > 0 ? soft(r / 0.75, 0.9) : 0;
-          set($("ripple"), { cx: 652, cy: 318, r: grow * 150 });
-          $("ripple").setAttribute("opacity", String(r > 0 ? (1 - grow) * 0.9 : 0));
-        }
-
-        // Beat 2 — dial + slider (2.35–4.0)
-        {
-          const d = presence(t, 2.35, 3.7);
-          place($("dial"), 420, CY, 1.2 * lerp(0.8, 1, d.enter) * lerp(1, 0.92, d.exit), d.alpha);
-          const v = lerp(0.08, 0.74, spring(t - 2.7, 1.8, 0.6));
-          const end = -135 + 270 * v;
-          const [ax, ay] = polar(78, -135);
-          const [bx, by] = polar(78, end);
-          set($("dial-arc"), {
-            d: `M${ax} ${ay} A78 78 0 ${end + 135 > 180 ? 1 : 0} 1 ${bx} ${by}`,
+        };
+        const dimV = (y1, y2, x, e1, e2, l, o = {}) => {
+          for (const [y, e] of [
+            [y1, e1],
+            [y2, e2],
+          ]) {
+            if (e == null) continue;
+            const s = Math.sign(x - e) || 1;
+            mk("line", { x1: e + s * 3, y1: y, x2: x + s * 6, y2: y, class: "ext" });
+          }
+          if (y2 - y1 >= 30) {
+            mk("line", { x1: x, y1, x2: x, y2, class: "dl", "marker-start": A, "marker-end": A });
+          } else {
+            mk("line", { x1: x, y1: y1 - 14, x2: x, y2: y1, class: "dl", "marker-end": A });
+            mk("line", { x1: x, y1: y2 + 14, x2: x, y2, class: "dl", "marker-end": A });
+          }
+          const r = o.side !== "l";
+          tx(r ? x + 7 : x - 7, (y1 + y2) / 2 + 4.5 + (o.dy || 0), l, o.c || "dt", {
+            "text-anchor": r ? "start" : "end",
           });
-          $("dial-needle").setAttribute("transform", `rotate(${end})`);
-
-          const s = presence(t, 2.5, 3.78);
-          place(
-            $("slider"),
-            790,
-            CY,
-            1.2 * lerp(0.85, 1, s.enter) * lerp(1, 0.92, s.exit),
-            s.alpha,
+        };
+        const callout = (px, py, ex, ey, l, dir, c) => {
+          const s = dir || (ex >= px ? 1 : -1);
+          mk("circle", { cx: px, cy: py, r: 2.2, class: "dot" });
+          mk("polyline", { points: `${px},${py} ${ex},${ey} ${ex + s * 12},${ey}`, class: "lead" });
+          tx(ex + s * 16, ey + 4.5, l, c || "dt", { "text-anchor": s > 0 ? "start" : "end" });
+        };
+        /** Radius callout from the arc's midpoint of a corner. */
+        const rad = (cx, cy, r, corner, l, len) => {
+          const sx = corner.includes("l") ? -1 : 1;
+          const sy = corner.includes("t") ? -1 : 1;
+          const ox = cx - sx * r + sx * r * Math.SQRT1_2;
+          const oy = cy - sy * r + sy * r * Math.SQRT1_2;
+          callout(ox, oy, ox + sx * len, oy + sy * len, l, sx);
+        };
+        const nb = (x, y, n) => {
+          mk("rect", { x: x - 7, y: y - 7, width: 14, height: 14, class: "nb" });
+          tx(x, y + 3.5, String(n), "nbt", { "text-anchor": "middle" });
+        };
+        const rr = (x, y, w, h, r, c, p) =>
+          mk("rect", { x, y, width: w, height: h, rx: r, class: c }, p);
+        const slotLabel = (x, y, w, h, l, al, p) =>
+          tx(
+            al === "l" ? x + 7 : x + w / 2,
+            y + h / 2 + 3.2,
+            l,
+            "sl",
+            {
+              "text-anchor": al === "l" ? "start" : "middle",
+            },
+            p,
           );
-          const x = lerp(-96, 72, spring(t - 2.95, 1.9, 0.58));
-          set($("slider-fill"), { x2: x });
-          set($("slider-thumb"), { cx: x });
-          $("slider-thumb").setAttribute("r", String(t > 2.9 && t < 3.6 ? 16 : 14));
+        const slot = (x, y, w, h, l, al, p) => {
+          rr(x, y, w, h, 2, "slot", p);
+          if (l) slotLabel(x, y, w, h, l, al, p);
+        };
+        const title = (x, y, t, s) => {
+          tx(x, y, t, "vt", { "text-anchor": "middle" });
+          if (s) tx(x, y + 14, s, "dts", { "text-anchor": "middle" });
+        };
+        const xbox = (x, y, w, h, p) => {
+          mk("rect", { x, y, width: w, height: h, class: "thin" }, p);
+          mk("path", { d: `M${x},${y} l${w},${h} M${x + w},${y} l${-w},${h}`, class: "thin" }, p);
+        };
+        const detailRef = (cx, cy, r, lbl, lx, ly, anchor) => {
+          mk("circle", { cx, cy, r, class: "ph" });
+          const a = Math.atan2(ly - cy, lx - cx);
+          mk("line", {
+            x1: cx + r * Math.cos(a),
+            y1: cy + r * Math.sin(a),
+            x2: lx,
+            y2: ly,
+            class: "lead",
+          });
+          const an = anchor || (lx < cx ? "end" : "start");
+          const off = an === "middle" ? 0 : an === "end" ? -5 : 5;
+          tx(lx + off, ly + (an === "middle" ? 13 : 4), lbl, "dts", { "text-anchor": an });
+        };
+
+        /* ================= THE MARK ================= */
+        const s = MARK.h / 684;
+        const MX = (x) => MARK.x + (x - 513.5) * s;
+        const MY = (y) => MARK.y + (y - 513) * s;
+        keep = 1;
+        noreg = 1;
+        const markG = mk("g", {
+          transform: `translate(${MX(0)} ${MY(0)}) scale(${s})`,
+        });
+        mk("path", { d: logoD, "fill-rule": "evenodd", class: "mark" }, markG);
+        noreg = 0;
+        keep = 0;
+
+        // Construction: the regular hexagon the mark is cut from, its circle, centrelines.
+        const hex = [
+          [217, 342],
+          [513.5, 171],
+          [810, 342],
+          [810, 684],
+          [513.5, 855],
+          [217, 684],
+        ];
+        at(0.5, 0, 1.3);
+        mk("path", {
+          d: `M${hex.map(([x, y]) => `${MX(x)},${MY(y)}`).join(" L")} Z`,
+          class: "con",
+        });
+        at(0.85, 0.12, 0.55);
+        mk("line", {
+          x1: MX(513.5),
+          y1: MY(171) - 70,
+          x2: MX(513.5),
+          y2: MY(855) + 58,
+          class: "cl",
+        });
+        mk("line", { x1: MX(217) - 60, y1: MARK.y, x2: MX(810) + 60, y2: MARK.y, class: "cl" });
+        const R0 = 342 * s;
+        at(1.05, 0, 0.6);
+        mk("circle", { cx: MARK.x, cy: MARK.y, r: R0, class: "ph" });
+
+        // Top chain C1 · G1 · K1 · G1 · C1, then overall W.
+        const topY = MY(171) - 30;
+        at(1.35, 0.045, 0.45);
+        dimH(MX(217), MX(420), topY, MY(342), MY(225), "C1");
+        dimH(MX(420), MX(477), topY, null, MY(192), "G1", { dy: -14, dx: -3 });
+        dimH(MX(477), MX(550), topY, null, MY(192), "M1");
+        dimH(MX(550), MX(607), topY, null, MY(225), "G1", { dy: -14, dx: 3 });
+        dimH(MX(607), MX(810), topY, null, MY(342), "C1");
+        at(1.75, 0.05, 0.45);
+        dimH(MX(217), MX(810), topY - 34, topY - 6, topY - 6, "W = √3·R0");
+
+        // Left: the columns' height H2 and the apex-to-apex H1.
+        at(1.9, 0.06, 0.45);
+        dimV(MY(342), MY(684), MX(810) + 26, MX(810), MX(810), "R0");
+        dimV(MY(171), MY(855), MX(217) - 72, MX(513.5) - 14, MX(513.5) - 14, "H1 = 2·R0", {
+          side: "l",
+        });
+
+        // Bottom chains: each glyph's walls K1 and counter S1.
+        const botY = MY(855) + 26;
+        at(2.1, 0.035, 0.4);
+        dimH(MX(217), MX(290), botY, MY(684), MY(642), "M1", { dx: -4 });
+        dimH(MX(290), MX(347), botY, null, MY(675), "S1");
+        dimH(MX(347), MX(420), botY, null, MY(801), "M1", { dx: 4 });
+        dimH(MX(607), MX(680), botY, MY(801), MY(675), "M1", { dx: -4 });
+        dimH(MX(680), MX(737), botY, null, MY(642), "S1");
+        dimH(MX(737), MX(810), botY, null, MY(684), "M1", { dx: 4 });
+
+        // Right: the facet angle A1, off the top-right vertex.
+        {
+          const vx = MX(217);
+          const vy = MY(342);
+          const ux = -Math.cos(Math.PI / 6);
+          const uy = Math.sin(Math.PI / 6);
+          at(2.3, 0.06, 0.45);
+          mk("line", { x1: vx - 3, y1: vy, x2: vx - 52, y2: vy, class: "ext" });
+          mk("line", {
+            x1: vx + 3 * ux,
+            y1: vy + 3 * uy,
+            x2: vx + 56 * ux,
+            y2: vy + 56 * uy,
+            class: "ext",
+          });
+          const r = 40;
+          mk("path", {
+            d: `M${vx - r},${vy} A${r},${r} 0 0 0 ${vx + r * ux},${vy + r * uy}`,
+            class: "dl",
+            "marker-start": A,
+            "marker-end": A,
+          });
+          tx(vx - 36, vy + 34, "A1", "dt");
         }
 
-        // Kinetic type — "Components" (3.95–5.0)
-        renderWords(words1, t, 3.95, 4.85);
-
-        // Beat 3 — card stack + sheet (5.0–6.75)
+        // The circle's radius, the apex detail, the note numbers and the view title.
+        at(2.4, 0.06, 0.45);
         {
-          const p = presence(t, 5.0, 6.45);
-          const flick = soft((t - 5.75) / 0.55, 0.9);
-          const advance = spring(t - 5.82, 2.2, 0.68);
-          cards.forEach((card, i) => {
-            // Card 0 is the front card that flicks away; the rest move up a slot.
-            const enter = spring(t - 5.0 - (3 - i) * 0.07, 2.4, 0.72);
-            if (i === 0) {
-              place(
-                card,
-                420 + flick * 240,
-                CY - flick * 60,
-                1.15 * lerp(0.8, 1, enter),
-                Math.min(p.alpha, 1 - flick),
-                flick * 14,
-              );
-              return;
+          const a = (Math.PI * 3) / 4;
+          callout(
+            MARK.x + R0 * Math.cos(a),
+            MARK.y + R0 * Math.sin(a),
+            MX(217) - 34,
+            MY(855) + 30,
+            "R0",
+            -1,
+          );
+        }
+        at(2.5, 0.06, 0.45);
+        detailRef(
+          MX(513.5),
+          MY(855) - 10,
+          17,
+          "Detail A · apex",
+          MX(513.5),
+          MY(855) + 44,
+          "middle",
+        );
+        at(2.68, 0.08, 0.5);
+        title(MARK.x, MY(855) + 96, "Logo · plan view", "W = 2·C1 + 2·G1 + M1 · C1 = 2·M1 + S1");
+
+        /* ================= LEFT: CARD ================= */
+        {
+          const x = 68;
+          const y = 68;
+          const w = 272;
+          const h = 134;
+          at(2.95, 0, 0.9);
+          rr(x, y, w, h, 12, "obj");
+          at(3.2, 0.06, 0.45);
+          xbox(x + 14, y + 14, 18, 18);
+          slot(x + 42, y + 14, 150, 18, "Title slot · flex", "l");
+          rr(x + 206, y + 12, 52, 22, 11, "hug");
+          slotLabel(x + 206, y + 12, 52, 22, "Trail");
+          mk("line", { x1: x + 1, y1: y + 46, x2: x + w - 1, y2: y + 46, class: "ph" });
+          rr(x + 5, y + 46, w - 10, 46, 8, "well");
+          slot(x + 14, y + 54, w - 28, 30, "Content slot · fill");
+          slot(x + 14, y + 104, 138, 18, "Meta · flex", "l");
+          rr(x + 186, y + 100, 72, 26, 13, "hug");
+          slotLabel(x + 186, y + 100, 72, 26, "Action");
+          at(3.45, 0.04, 0.4);
+          dimH(x, x + w, y - 18, y, y, "W · fill");
+          dimV(y, y + 46, x - 16, x, x, "H1", { side: "l" });
+          dimV(y + 92, y + h, x - 16, x, x, "H2", { side: "l" });
+          const by = y + h + 18;
+          dimH(x, x + 14, by, y + h, y + 126, "S1", { below: true, dx: -6 });
+          dimH(x + 14, x + 152, by, null, y + 122, "Flex", { below: true, c: "dts" });
+          dimH(x + 152, x + 186, by, null, y + 126, "S4", { below: true });
+          dimH(x + 186, x + 258, by, null, y + 126, "Hug", { below: true, c: "dts" });
+          dimH(x + 258, x + w, by, null, y + h, "S1", { below: true, dx: 6 });
+          rad(x + w, y, 12, "tr", "R1", 16);
+          at(3.65, 0, 0.4);
+          tx(x + w / 2, by + 36, "UI-CARD-001 · plan", "vt", { "text-anchor": "middle" });
+        }
+
+        /* ================= LEFT: TOGGLE + BUTTON ================= */
+        {
+          const y = 300;
+          const tx0 = 74;
+          at(3.25, 0.08, 0.6);
+          rr(tx0, y, 84, 44, 22, "hug");
+          mk("circle", { cx: tx0 + 62, cy: y + 22, r: 17, class: "obj" });
+          at(3.5, 0.04, 0.4);
+          dimH(tx0, tx0 + 84, y - 16, y, y, "W1");
+          dimV(y, y + 44, tx0 - 14, tx0, tx0, "Z1", { side: "l" });
+          rad(tx0 + 84, y + 44, 22, "br", "R4 = Z1 ÷ 2", 14);
+          const bx = 206;
+          at(3.4, 0.08, 0.6);
+          rr(bx, y, 134, 44, 10, "hug");
+          slot(bx + 20, y + 14, 94, 16, "Label · hug");
+          at(3.6, 0.04, 0.4);
+          dimH(bx, bx + 20, y - 16, y, y + 14, "S9", { dx: -6 });
+          dimH(bx + 20, bx + 114, y - 16, null, y + 14, "Hug", { c: "dts" });
+          dimH(bx + 114, bx + 134, y - 16, null, y, "S9", { dx: 6 });
+          dimV(y, y + 44, bx + 150, bx + 134, bx + 134, "H3");
+          at(3.75, 0.08, 0.4);
+          tx(tx0 + 42, y + 82, "UI-TOGGLE-002", "vt", { "text-anchor": "middle" });
+          tx(bx + 67, y + 82, "UI-BUTTON-003", "vt", { "text-anchor": "middle" });
+        }
+
+        /* ================= LEFT: FIELD ================= */
+        {
+          const x = 68;
+          const y = 432;
+          const w = 272;
+          at(3.55, 0.07, 0.6);
+          slot(x, y, w, 16, "Label slot", "l");
+          rr(x, y + 26, w, 44, 10, "obj");
+          xbox(x + 14, y + 39, 18, 18);
+          slot(x + 42, y + 40, w - 56, 16, "Value slot · fill", "l");
+          at(3.8, 0.035, 0.4);
+          dimV(y, y + 16, x - 16, x, x, "Hug", { side: "l", c: "dts" });
+          dimV(y + 16, y + 26, x - 16, null, x, "S4", { side: "l", dy: 2 });
+          dimV(y + 26, y + 70, x - 16, null, x, "H5", { side: "l" });
+          const by = y + 88;
+          dimH(x, x + 14, by, y + 70, y + 57, "S9", { below: true, dx: -6 });
+          dimH(x + 14, x + 32, by, null, y + 57, "I1", { below: true, dx: 6 });
+          dimH(x + 42, x + w - 14, by, y + 56, y + 56, "Fill", { below: true, c: "dts" });
+          rad(x + w, y + 70, 10, "br", "R3", 14);
+        }
+
+        /* ================= RIGHT: DIALOG (lifts into an exploded view) ================= */
+        const D = { x: 872, y: 58, w: 228, h: 196 };
+        {
+          const { x, y, w, h } = D;
+          const mg = (z, i) => {
+            const g = mk("g", {});
+            MORPH.push({ g, z, i });
+            return g;
+          };
+          // The shadow footprint only shows while the layers are apart.
+          noreg = 1;
+          const shadow = mg(0, -1);
+          const fp = rr(x + 10, y + 16, w - 20, h - 12, 14, "hs", shadow);
+          fp.setAttribute("fill", "url(#hat)");
+          noreg = 0;
+
+          const L1 = mg(30, 0);
+          at(3.3, 0, 0.9);
+          rr(x, y, w, h, 14, "obj", L1);
+          at(3.55, 0.05, 0.45);
+          mk("line", { x1: x + 1, y1: y + 40, x2: x + w - 1, y2: y + 40, class: "ph" }, L1);
+          mk("line", { x1: x + 1, y1: y + 152, x2: x + w - 1, y2: y + 152, class: "ph" }, L1);
+          const L2 = mg(60, 1);
+          rr(x + 4, y + 40, w - 8, 112, 10, "well", L2);
+          const L3 = mg(90, 2);
+          at(3.65, 0.045, 0.45);
+          mk("circle", { cx: x + 22, cy: y + 20, r: 10, class: "hug" }, L3);
+          slot(x + 40, y + 12, 128, 16, "Title · flex", "l", L3);
+          rr(x + 184, y + 8, 28, 28, 9, "slot", L3);
+          xbox(x + 189, y + 13, 18, 18, L3);
+          slot(x + 14, y + 50, w - 28, 30, "Content slot · fill", null, L3);
+          slot(x + 14, y + 88, w - 28, 12, "", null, L3);
+          rr(x + 14, y + 106, w - 28, 34, 9, "hug", L3);
+          slot(x + 22, y + 115, w - 44, 16, "Value slot", "l", L3);
+          rr(x + 76, y + 160, 68, 26, 13, "hug", L3);
+          slotLabel(x + 76, y + 160, 68, 26, "Secondary", null, L3);
+          rr(x + 150, y + 160, 64, 26, 8, "hug", L3);
+          slotLabel(x + 150, y + 160, 64, 26, "Primary", null, L3);
+
+          // Plan dims: they step back while the layers are apart.
+          noreg = 1;
+          const dims = mk("g", { id: "dialog-dims" });
+          noreg = 0;
+          parent = dims;
+          at(3.85, 0.035, 0.4);
+          dimH(x, x + w, y - 18, y, y, "W · fixed");
+          dimV(y, y + 40, x - 16, x, x, "H1", { side: "l" });
+          dimV(y + 40, y + 152, x - 16, null, x, "Hug", { side: "l", c: "dts" });
+          dimV(y + 152, y + h, x - 16, null, x, "H2", { side: "l" });
+          dimV(y + 160, y + 186, x + w + 14, x + 214, x + 214, "H3");
+          dimV(y + 186, y + h, x + w + 14, null, x + w, "S1", { dy: 6 });
+          rad(x, y + h, 14, "bl", "R1", 14);
+          dimH(x + 144, x + 150, y + h + 16, y + 186, y + 186, "S7", { below: true });
+          parent = cam;
+          at(4.15, 0, 0.4);
+          tx(x + w / 2, y + h + 44, "UI-DIALOG-005 · plan", "vt", { "text-anchor": "middle" });
+
+          // Exploded-view furniture: corner posts, layer leaders and labels.
+          noreg = 1;
+          const lift = mk("g", { id: "lift-labels" });
+          state = { lift, dims, D };
+          noreg = 0;
+        }
+
+        /* ================= RIGHT: SLIDER ================= */
+        {
+          const x = 872;
+          const y = 352;
+          const w = 228;
+          at(3.7, 0.07, 0.6);
+          mk("line", { x1: x, y1: y, x2: x + w, y2: y, class: "thin" });
+          rr(x, y - 4, 132, 8, 4, "hug");
+          mk("circle", { cx: x + 132, cy: y, r: 13, class: "obj" });
+          at(3.95, 0.04, 0.4);
+          dimH(x, x + 132, y - 26, y - 4, y - 13, "Value · flex", { c: "dts" });
+          dimH(x + 132, x + w, y - 26, null, y, "Flex", { c: "dts" });
+          dimH(x + 119, x + 145, y + 26, y + 13, y + 13, "Z2", { below: true });
+          rad(x + 145, y + 13, 13, "br", "R4", 12);
+          at(4.1, 0, 0.4);
+          tx(x + w / 2, y + 66, "UI-SLIDER-006", "vt", { "text-anchor": "middle" });
+        }
+
+        /* ================= RIGHT: SEGMENTED CONTROL ================= */
+        {
+          const x = 872;
+          const y = 450;
+          const w = 228;
+          const h = 40;
+          at(3.9, 0.06, 0.6);
+          rr(x, y, w, h, 12, "obj");
+          rr(x + 4, y + 4, 72, 32, 8, "hug");
+          slot(x + 14, y + 12, 52, 16, "Seg");
+          slot(x + 86, y + 12, 58, 16, "Seg");
+          slot(x + 156, y + 12, 58, 16, "Seg");
+          at(4.15, 0.04, 0.4);
+          dimV(y, y + h, x - 16, x, x, "H4", { side: "l" });
+          dimH(x, x + 4, y + h + 18, y + h, y + 36, "S6", { below: true, dx: -8 });
+          dimH(x + 4, x + 76, y + h + 18, null, y + 36, "Fill ÷ n", { below: true, c: "dts" });
+          {
+            const c = 12 - 12 * Math.SQRT1_2;
+            callout(x + w - c, y + h - c, x + w - 30, y + h + 22, "R2 = R1 − S6", -1);
+          }
+        }
+
+        /* ================= NOTES ================= */
+
+        // Exploded-view furniture, drawn in sheet space from the iso projection.
+        const iso = isoOf(D);
+        const P = (x, y, z) => [
+          iso[0] * x + iso[2] * y + iso[4],
+          iso[1] * x + iso[3] * y + iso[5] - z,
+        ];
+        const lift = state.lift;
+        const LX = D.x + D.w + 2;
+        const corners = [
+          [D.x, D.y],
+          [D.x + D.w, D.y],
+          [D.x + D.w, D.y + D.h],
+          [D.x, D.y + D.h],
+        ];
+        noreg = 1;
+        for (const [cx, cy] of corners) {
+          const [ax, ay] = P(cx, cy, 0);
+          const [bx, by] = P(cx, cy, 90);
+          mk("line", { x1: ax, y1: ay, x2: bx, y2: by, class: "ph" }, lift);
+        }
+        [
+          [0, [D.x + D.w - 10, D.y + D.h - 20], "L0 · shadow"],
+          [30, [D.x + D.w, D.y + D.h - 30], "L1 · container"],
+          [60, [D.x + D.w - 4, D.y + 112], "L2 · body"],
+          [90, [D.x + D.w - 14, D.y + 50], "L3 · slots"],
+        ].forEach(([z, [x, y], label]) => {
+          const [px, py] = P(x, y, z);
+          mk("circle", { cx: px, cy: py, r: 2.2, class: "dot" }, lift);
+          mk("polyline", { points: `${px},${py} ${LX + 30},${py}`, class: "lead" }, lift);
+          tx(LX + 34, py + 4, label, "dts", {}, lift);
+        });
+        noreg = 0;
+
+        // Exit order: farther from the mark clears first.
+        for (const r of REG) {
+          let cx = MARK.x;
+          let cy = MARK.y;
+          try {
+            const b = r.e.getBBox();
+            cx = b.x + b.width / 2;
+            cy = b.y + b.height / 2;
+          } catch {
+            /* not rendered yet: treat as centred */
+          }
+          const d = Math.min(1, Math.hypot(cx - MARK.x, (cy - MARK.y) * 1.6) / 620);
+          r.x0 = EXIT.at + EXIT.spread * (1 - d);
+        }
+      };
+
+      /** The axonometric matrix the dialog's layers lift into (reference: .94 .17 −.34 .47). */
+      const isoOf = (D) => {
+        const k = 0.78;
+        const a = 0.94 * k;
+        const b = 0.17 * k;
+        const c = -0.34 * k;
+        const d = 0.47 * k;
+        const TX = 905;
+        const TY = 158;
+        return [a, b, c, d, TX - a * D.x - c * D.y, TY - b * D.x - d * D.y];
+      };
+
+      const renderAt = (t) => {
+        const cam = camAt(t);
+        const camG = document.getElementById("camera");
+        camG.setAttribute(
+          "transform",
+          `translate(${600 - cam.cx * cam.z} ${297 - cam.cy * cam.z}) scale(${cam.z})`,
+        );
+
+        for (const r of REG) {
+          const out = r.keep ? 0 : eio(seg(t, r.x0, r.x0 + EXIT.dur));
+          const p = seg(t, r.a, r.b);
+          let style = "";
+          if (r.k === "d") {
+            const e = eio(p);
+            const vis = clamp(p * 6) * (1 - out);
+            style = `opacity:${vis.toFixed(3)};stroke-dasharray:1 2;stroke-dashoffset:${(1 - e).toFixed(4)};fill-opacity:${clamp((p - 0.55) / 0.45).toFixed(3)}`;
+          } else if (r.k === "t") {
+            const e = spring(p);
+            style = `opacity:${(clamp(p * 1.6) * (1 - out)).toFixed(3)};transform:translateY(${((1 - e) * 5).toFixed(2)}px)`;
+          } else {
+            style = `opacity:${(eo(p) * (1 - out)).toFixed(3)}`;
+          }
+          const shown = p > 0.8 && out < 1;
+          if (r.arrows.length && shown !== r.shown) {
+            for (const m of r.arrows) {
+              if (shown) r.e.setAttribute(m, "url(#ar)");
+              else r.e.removeAttribute(m);
             }
-            const slot = i - advance;
-            const scale = 1.15 * (1 - slot * 0.08) * lerp(0.8, 1, enter) * lerp(1, 0.92, p.exit);
-            const alpha = i === 3 ? Math.min(p.alpha, advance) : p.alpha;
-            place(card, 420, CY - slot * 21, scale, alpha);
-          });
-
-          const q = presence(t, 5.12, 6.5);
-          place($("phone"), 0, 0, 1, q.alpha);
-          $("phone").setAttribute(
-            "transform",
-            `translate(${CX + 200} ${CY}) scale(${1.15 * lerp(0.86, 1, q.enter) * lerp(1, 0.94, q.exit)}) translate(${-(CX + 170)} ${-CY})`,
-          );
-          const up = spring(t - 5.55, 1.9, 0.66);
-          $("sheet").setAttribute("transform", `translate(0 ${lerp(180, 0, up)})`);
+            r.shown = shown;
+          }
+          if (style !== r.last) {
+            r.e.setAttribute("style", style);
+            r.last = style;
+          }
         }
 
-        // Kinetic type — "that spark joy." (6.75–7.7)
-        renderWords(words2, t, 6.75, 7.5);
-
-        // Close — the mark, held, then a fade back to the empty frame (7.7–10)
-        {
-          const p = presence(t, 7.7, 9.72, 0.24);
-          const draw = soft((t - 7.7) / 0.7, 0.8);
-          const fill = soft((t - 8.15) / 0.4, 0.9);
-          const scale = lerp(0.9, 1, spring(t - 7.7, 1.6, 0.8));
-          const logo = $("logo");
-          const size = 168;
-          logo.setAttribute(
-            "transform",
-            `translate(${CX - (size * scale) / 2} ${282 - (size * scale) / 2}) scale(${(size * scale) / 1026})`,
-          );
-          logo.setAttribute("opacity", String(clamp(1 - p.exit)));
-          const path = $("logo-path");
-          path.setAttribute("stroke-dasharray", "1 1");
-          path.setAttribute("stroke-dashoffset", String(1 - draw));
-          path.style.stroke = "var(--foreground)";
-          path.style.strokeWidth = "1.5";
-          path.style.vectorEffect = "non-scaling-stroke";
-          path.style.fill = `color-mix(in oklch, var(--foreground) ${fill * 100}%, transparent)`;
-          path.style.opacity = t < 7.7 ? "0" : "1";
-
-          const w = soft((t - 8.2) / 0.6, 0.9);
-          wordmark.style.letterSpacing = `${lerp(0.7, 0.42, w)}em`;
-          wordmark.style.opacity = String(clamp(Math.min(w, 1 - p.exit)) * 0.92);
+        // The lift: each layer's matrix morphs from the plan to the axonometric.
+        const { D, dims, lift } = state;
+        const iso = isoOf(D);
+        let maxUp = 0;
+        for (const m of MORPH) {
+          const p = liftAt(t, Math.max(0, m.i));
+          maxUp = Math.max(maxUp, p);
+          const M = [1, 0, 0, 1, 0, 0].map((v, j) => lerp(v, iso[j], p));
+          M[5] -= m.z * p;
+          m.g.setAttribute("transform", `matrix(${M.map((v) => v.toFixed(4)).join(",")})`);
+          m.g.style.setProperty("--u", String(1 / Math.sqrt(Math.abs(M[0] * M[3] - M[1] * M[2]))));
+          if (m.i < 0) m.g.style.opacity = String(clamp((p - 0.35) / 0.4));
         }
+        const settled = liftAt(t, 0);
+        dims.style.opacity = String(1 - 0.9 * settled);
+        lift.style.opacity = String(clamp((liftAt(t, 2) - 0.7) / 0.3));
       };
 
       window.setLogo = (d) => {
-        const path = $("logo-path");
-        path.setAttribute("d", d);
-        path.setAttribute("fill-rule", "evenodd");
+        build(d);
+        renderAt(0);
       };
+      window.renderAt = renderAt;
       window.DURATION = DURATION;
-      window.renderAt(0);
     </script>
   </body>
 </html>

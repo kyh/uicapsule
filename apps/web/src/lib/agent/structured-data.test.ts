@@ -219,7 +219,7 @@ describe("graphs with a video", () => {
     assert.equal(source?.image, video.thumbnailUrl);
   });
 
-  test("the home graph adds the trailer and links it from the collection page", () => {
+  test("the home graph adds the home video and links it from the collection page", () => {
     const graph = buildHomeGraph([withDescription, bare], video)["@graph"];
     assert.deepEqual(
       graph.map((node) => node["@type"]),

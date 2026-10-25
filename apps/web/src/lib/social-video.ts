@@ -9,19 +9,22 @@ import type { SocialVideo } from "./agent/structured-data";
  * The videos pages share as `og:video` and describe as `VideoObject`.
  *
  * Both come from `pnpm og:video` (scripts/og-video.ts): the home page's is a
- * rendered trailer in public/og, a component's is its existing cover in the
+ * rendered loop in public/og, a component's is its existing cover in the
  * assets store, sized and dated by `cover-media.json`.
  */
 
-/** Width, height and length of the trailer scripts/og-video/scene.html renders. */
+/**
+ * Width, height and length of the loop scripts/og-video/scene.html renders: a
+ * dimensional drawing of the mark, with wireframe components drawn around it.
+ */
 export const homeVideo: SocialVideo = {
   contentUrl: `${siteConfig.url}/og/og.mp4`,
-  description: `${siteConfig.name} — ${siteConfig.description}. Wireframe UI primitives: a toggle, a dial, a slider, a card stack and a sheet.`,
+  description: `${siteConfig.name} — ${siteConfig.description}. The ${siteConfig.name} mark drawn as a dimensional drawing, with a card, toggle, button, field, dialog, slider and segmented control measured around it and the dialog's layers lifting apart.`,
   duration: 10,
   height: 630,
-  name: `${siteConfig.name} trailer`,
+  name: `${siteConfig.name} — a dimensional drawing`,
   thumbnailUrl: `${siteConfig.url}/og/og.jpg`,
-  uploadDate: "2026-10-24",
+  uploadDate: "2026-10-25",
   width: 1200,
 };
 

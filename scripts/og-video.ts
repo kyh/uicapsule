@@ -2,10 +2,11 @@
 /**
  * Social video assets. Run by hand (`pnpm og:video`), never by verify or build.
  *
- * - `scene`: renders scripts/og-video/scene.html — an evergreen trailer of
- *   wireframe UI primitives ending on the mark — frame by frame in Chromium at
- *   2x, then downscales and encodes it to apps/web/public/og/og.mp4 (the home
- *   page's og:video) plus a poster, og.jpg.
+ * - `scene`: renders scripts/og-video/scene.html — a looping dimensional
+ *   drawing of the mark among wireframe UI components — frame by frame in
+ *   Chromium at 2x, then downscales and encodes it to apps/web/public/og/og.mp4
+ *   (the home page's og:video). The finished sheet at POSTER_AT is written
+ *   twice: og/og.jpg, the video's poster, and og.jpg, the site-wide og:image.
  * - `covers`: probes every component's existing cover video in the assets
  *   store and writes apps/web/src/lib/content/cover-media.json (size, length,
  *   upload date — what og:video and VideoObject need), plus a still per
@@ -35,7 +36,8 @@ const coverMediaFile = path.join(webRoot, "src/lib/content/cover-media.json");
 const FPS = 30;
 const WIDTH = 1200;
 const HEIGHT = 630;
-const POSTER_AT = 9;
+/** Seconds into the scene where the sheet is finished and not yet clearing. */
+const POSTER_AT = 8.3;
 
 const run = (command: string, args: string[]): string =>
   execFileSync(command, args, { encoding: "utf-8", maxBuffer: 64 * 1024 * 1024 });
@@ -115,21 +117,26 @@ const renderScene = async () => {
   await mkdir(ogDir, { recursive: true });
   const video = path.join(ogDir, "og.mp4");
   encode(frames, video);
-  const posterFrame = path.join(frames, `${String(POSTER_AT * FPS).padStart(4, "0")}.png`);
-  run("ffmpeg", [
-    "-v",
-    "error",
-    "-y",
-    "-i",
-    posterFrame,
-    "-vf",
-    `scale=${WIDTH}:${HEIGHT}:flags=lanczos`,
-    "-q:v",
-    "3",
-    path.join(ogDir, "og.jpg"),
-  ]);
+  const posterFrame = path.join(
+    frames,
+    `${String(Math.round(POSTER_AT * FPS)).padStart(4, "0")}.png`,
+  );
+  for (const still of [path.join(ogDir, "og.jpg"), path.join(webRoot, "public/og.jpg")]) {
+    run("ffmpeg", [
+      "-v",
+      "error",
+      "-y",
+      "-i",
+      posterFrame,
+      "-vf",
+      `scale=${WIDTH}:${HEIGHT}:flags=lanczos`,
+      "-q:v",
+      "2",
+      still,
+    ]);
+  }
   await rm(work, { force: true, recursive: true });
-  consola.success(`wrote ${path.relative(repoRoot, video)} and og.jpg`);
+  consola.success(`wrote ${path.relative(repoRoot, video)}, its poster og/og.jpg and og.jpg`);
 };
 
 const assetsUrl = async (): Promise<string> => {
