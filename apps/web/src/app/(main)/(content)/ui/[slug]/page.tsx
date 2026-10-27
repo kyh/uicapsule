@@ -4,9 +4,16 @@ import { notFound } from "next/navigation";
 import { ContentFeed } from "@/app/(main)/(content)/_components/content-feed";
 import { JsonLd } from "@/components/json-ld";
 import { MediaReveal } from "@/components/media-reveal";
-import { canonicalAlternates, pageOpenGraph, pageTwitter } from "@/lib/agent/page-metadata";
+import {
+  canonicalAlternates,
+  ogVideo,
+  pageOpenGraph,
+  pageTwitter,
+  shareCardImage,
+} from "@/lib/agent/page-metadata";
 import { buildComponentGraph } from "@/lib/agent/structured-data";
 import { getAllContent } from "@/lib/content-data";
+import { componentVideo } from "@/lib/social-video";
 
 import type { Metadata } from "next";
 
@@ -26,13 +33,20 @@ export const generateMetadata = async ({ params }: Props): Promise<Metadata> => 
   }
 
   const { description } = component;
+  // The cover already on the gallery card is the share video; the image is the
+  // component's card, its cover still behind its name.
+  const video = componentVideo(component);
+  const image = shareCardImage(`/ui/${component.slug}`, component.name);
 
   return {
     alternates: canonicalAlternates(`/ui/${component.slug}`),
     description,
-    openGraph: pageOpenGraph(`/ui/${component.slug}`, component.name, description),
+    openGraph: pageOpenGraph(`/ui/${component.slug}`, component.name, description, {
+      image,
+      videos: video ? ogVideo(video.contentUrl, video.width, video.height) : undefined,
+    }),
     title: component.name,
-    twitter: pageTwitter(component.name, description),
+    twitter: pageTwitter(component.name, description, { image }),
   };
 };
 
@@ -48,7 +62,7 @@ const Content = async ({ params }: Props) => {
 
   return (
     <>
-      <JsonLd node={buildComponentGraph(component)} />
+      <JsonLd node={buildComponentGraph(component, componentVideo(component))} />
       {/* The feed is a full-bleed preview with no heading of its own; this
           gives the route the `h1` and description its canonical URL claims. */}
       <div className="sr-only">

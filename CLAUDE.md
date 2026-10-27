@@ -163,6 +163,7 @@ pnpm new:content <slug>  # Scaffold a new content component in content/
 pnpm check:content    # Fail if any content/<slug> is not a loadable component
 pnpm test             # node:test — auth + RPC transport guards + the agent-surface tests
 pnpm check:agent-endpoints  # Runtime check of the agent surfaces (needs a running server)
+pnpm og:video         # By hand, never in verify: home loop (scripts/og-video/scene.html → public/og/og.mp4, its poster and the site og.jpg) + cover-media.json and stills for /ui/<slug>
 ```
 
 ## Verification Contract
