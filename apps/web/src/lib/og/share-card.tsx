@@ -3,7 +3,7 @@ import path from "node:path";
 import { ImageResponse } from "next/og";
 
 /**
- * Every page's share card, one design: the mark and wordmark, the page's URL in
+ * Every page's share card, one design: the logo mark, the page's URL in
  * the accent, its title and description, on the site's dark tokens. A component
  * page puts its cover still (public/og/covers, written by `pnpm og:video`)
  * behind the text; every other page has the plain background. Served by
@@ -26,6 +26,9 @@ const DISPLAY_HOST = "uicapsule.com";
 // packages/ui's Logo path: satori draws SVG but can't render the React component's class.
 const LOGO_PATH =
   "M737.064151,576.072011 L737.064151,384.064123 L679.928739,351.133373 L679.928739,674.874909 L810,599.89418 L809.996445,683.985857 L607,801 L607,225 L809.996445,342.167965 L809.99289,534.035047 L737.064151,576.072011 M477,192.025199 L477,833.972434 L513.500593,855 L550,833.972434 L550,192.025199 L513.500593,171 L477,192.025199 M347.067706,674.877164 L289.932294,641.940159 L289.932294,299.97795 L217,342.015345 L217,683.988204 L420,801 L420,225 L347.067706,267.035029 L347.067706,674.877164";
+
+/** The mark's own box inside LOGO_PATH's 1026 square, so the corner logo is all mark. */
+const LOGO_BOUNDS = "207 161 613 704";
 
 const MAX_DESCRIPTION = 110;
 
@@ -126,11 +129,10 @@ export const renderShareCard = ({ description, path: pagePath, still, title }: S
           width: "100%",
         }}
       >
-        <div style={{ alignItems: "center", display: "flex", gap: 14 }}>
-          <svg height="40" viewBox="0 0 1026 1026" width="40">
+        <div style={{ display: "flex" }}>
+          <svg height="56" viewBox={LOGO_BOUNDS} width="49">
             <path d={LOGO_PATH} fill={foreground} fillRule="evenodd" />
           </svg>
-          <span style={{ fontSize: 22, letterSpacing: "0.32em" }}>UICAPSULE</span>
         </div>
         <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
           <span style={{ color: primary, fontSize: 22, letterSpacing: "0.08em" }}>
