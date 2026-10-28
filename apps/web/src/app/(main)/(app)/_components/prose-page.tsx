@@ -174,7 +174,7 @@ const ProseBlockView = ({ block, id }: { block: ProseBlock; id?: string }) => {
 export const ProsePageView = ({ page, children }: { page: ProsePage; children?: ReactNode }) => {
   const ids = headingIds(page);
   return (
-    <main className="flex min-h-[calc(100dvh-(--spacing(32)))] max-w-3xl flex-col gap-4 p-8 lg:p-20">
+    <main className="flex min-h-[calc(100dvh-(--spacing(32)))] max-w-3xl flex-col gap-4 p-8 select-text lg:p-20">
       <h1 className="text-3xl leading-snug lg:text-4xl">{page.heading}</h1>
       <div className="text-muted-foreground flex flex-col gap-4 border-t pt-4 leading-relaxed">
         {page.blocks.map((block, index) => (

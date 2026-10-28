@@ -1,5 +1,10 @@
 import { JsonLd } from "@/components/json-ld";
-import { canonicalAlternates, pageOpenGraph, pageTwitter } from "@/lib/agent/page-metadata";
+import {
+  canonicalAlternates,
+  pageOpenGraph,
+  pageTwitter,
+  shareCardImage,
+} from "@/lib/agent/page-metadata";
 import { aboutPage } from "@/lib/agent/site-pages";
 import { buildProsePageGraph } from "@/lib/agent/structured-data";
 
@@ -8,12 +13,14 @@ import { Signature } from "../_components/signature";
 
 import type { Metadata } from "next";
 
+const image = shareCardImage(aboutPage.path, aboutPage.title);
+
 export const metadata: Metadata = {
   alternates: canonicalAlternates(aboutPage.path),
   description: aboutPage.description,
-  openGraph: pageOpenGraph(aboutPage.path, aboutPage.title, aboutPage.description),
+  openGraph: pageOpenGraph(aboutPage.path, aboutPage.title, aboutPage.description, { image }),
   title: aboutPage.title,
-  twitter: pageTwitter(aboutPage.title, aboutPage.description),
+  twitter: pageTwitter(aboutPage.title, aboutPage.description, { image }),
 };
 
 const Page = () => (

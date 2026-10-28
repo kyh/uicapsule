@@ -12,6 +12,7 @@ import { rendersOutsideRouter } from "@/lib/agent/site-pages";
 import { buildHomeGraph } from "@/lib/agent/structured-data";
 import { getAllContent } from "@/lib/content-data";
 import { siteConfig } from "@/lib/site-config";
+import { homeVideo } from "@/lib/social-video";
 
 import type { ContentFilter } from "@/lib/content/content-categories";
 import type { ProseListItem } from "@/lib/agent/site-pages";
@@ -115,5 +116,5 @@ export const GalleryOutline = async () => {
 };
 
 export const GalleryStructuredData = async () => (
-  <JsonLd node={buildHomeGraph(await getAllContent())} />
+  <JsonLd node={buildHomeGraph(await getAllContent(), homeVideo)} />
 );

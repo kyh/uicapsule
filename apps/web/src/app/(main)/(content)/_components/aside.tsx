@@ -187,8 +187,8 @@ const Aside = ({ contentComponent }: AsideProps) => {
 
   return (
     <Card className="h-full">
-      <h1 className="flex items-center gap-1 text-xl">{contentComponent.name}</h1>
-      <p className="text-muted-foreground text-sm">{contentComponent.description}</p>
+      <h1 className="flex items-center gap-1 text-xl select-text">{contentComponent.name}</h1>
+      <p className="text-muted-foreground text-sm select-text">{contentComponent.description}</p>
       {contentComponent.type === "local" ? (
         <Drawer>
           <div className="flex flex-col gap-1.5">
@@ -317,7 +317,7 @@ const Aside = ({ contentComponent }: AsideProps) => {
       {contentComponent.inspiredBy && (
         <div className={SECTION_CLASS}>
           <h2>Inspired by</h2>
-          <ul className="flex flex-col gap-1 text-sm">
+          <ul className="flex flex-col gap-1 text-sm select-text">
             {contentComponent.inspiredBy.map((link) => (
               <li key={link.url}>
                 <a
@@ -336,7 +336,7 @@ const Aside = ({ contentComponent }: AsideProps) => {
       {contentComponent.requestedBy && (
         <div className={SECTION_CLASS}>
           <h2>Requested by</h2>
-          <div className="flex items-center gap-2 text-sm">
+          <div className="flex items-center gap-2 text-sm select-text">
             <PersonAvatar person={contentComponent.requestedBy} />
             <a
               href={contentComponent.requestedBy.url}
@@ -349,7 +349,7 @@ const Aside = ({ contentComponent }: AsideProps) => {
           </div>
         </div>
       )}
-      <p className="text-muted-foreground -mx-3 border-t px-3 pt-3 text-xs">
+      <p className="text-muted-foreground -mx-3 border-t px-3 pt-3 text-xs select-text">
         Added{" "}
         <time dateTime={contentComponent.addedAt}>{formatAddedAt(contentComponent.addedAt)}</time>
       </p>

@@ -1,12 +1,21 @@
 import type { Metadata } from "next";
 
+import { pageOpenGraph, pageTwitter, shareCardImage } from "@/lib/agent/page-metadata";
+import { requestPage } from "@/lib/agent/site-pages";
+
 import { RequestForm } from "./request-form";
 
+const image = shareCardImage(requestPage.path, requestPage.title);
+
+// No Markdown twin (a form, not prose), so a bare canonical rather than canonicalAlternates.
 export const metadata: Metadata = {
-  alternates: { canonical: "/request" },
-  description:
-    "Pitch an interaction you want built. Accepted requests become UICapsule components.",
-  title: "Request a component",
+  alternates: { canonical: requestPage.path },
+  description: requestPage.description,
+  openGraph: pageOpenGraph(requestPage.path, requestPage.title, requestPage.description, {
+    image,
+  }),
+  title: requestPage.title,
+  twitter: pageTwitter(requestPage.title, requestPage.description, { image }),
 };
 
 const Page = () => (

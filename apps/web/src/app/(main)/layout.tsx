@@ -96,9 +96,11 @@ interface LayoutProps {
   children: ReactNode;
 }
 
+// An app, not a document: text opts back in with `select-text`. Previews render under
+// (frame) and keep the browser default, since a demo may need selection.
 const RootLayout = (props: LayoutProps) => (
   <html lang="en" className={monoFont.variable} suppressHydrationWarning>
-    <body className="bg-background text-foreground font-sans antialiased">
+    <body className="bg-background text-foreground font-sans antialiased select-none">
       <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
         <MotionProvider>
           <TooltipProvider>
