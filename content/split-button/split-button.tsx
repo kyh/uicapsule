@@ -148,10 +148,9 @@ export const SplitButton = ({ autoPlay = false }: SplitButtonProps) => {
   };
 
   const onMenuKeyDown = (event: KeyboardEvent<HTMLDivElement>) => {
-    const current = activeIndex ?? -1;
     const target = new Map([
-      ["ArrowDown", current + 1],
-      ["ArrowUp", current - 1],
+      ["ArrowDown", (activeIndex ?? -1) + 1],
+      ["ArrowUp", (activeIndex ?? MENU_ITEMS.length) - 1],
       ["End", MENU_ITEMS.length - 1],
       ["Home", 0],
     ]).get(event.key);
