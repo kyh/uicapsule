@@ -3,7 +3,15 @@
 import { useEffect, useId, useRef, useState } from "react";
 import type { KeyboardEvent, ToggleEvent } from "react";
 import { Check, ChevronDown, Copy, Pencil, Save, Upload } from "lucide-react";
-import { AnimatePresence, motion, useMotionTemplate, useSpring, useTransform } from "motion/react";
+import {
+  AnimatePresence,
+  animate,
+  motion,
+  useMotionTemplate,
+  useMotionValue,
+  useSpring,
+  useTransform,
+} from "motion/react";
 
 type ActionId = "save" | "save-as" | "copy" | "export";
 
@@ -29,16 +37,15 @@ const TRAILING_RADIUS = TRAILING_SIZE / 2;
 
 // One spring drives the circle, the notch and the chevron: on separate timelines
 // the notch drifts off the corner it hugs and the seam visibly breathes mid-morph.
-const MORPH_SPRING = { bounce: 0.5, visualDuration: 0.3 };
-// Shape can't overshoot (a corner past round is still round), so the bounce
-// shows up as size: past open the circle swells, past closed the square end
-// squishes. Swelling a closed end would poke it out above and below the pill.
-const SWELL = 1;
-const SQUISH = 0.5;
+const MORPH_SPRING = { bounce: 0.35, visualDuration: 0.3 };
+// Every toggle presses the trailing button in and lets it spring back, like a
+// physical key. Driven by the toggle, not the pointer, so keyboard and light
+// dismiss get the same feedback.
+const PRESS_SCALE = 0.9;
+const PRESS_DOWN = { duration: 0.08, ease: "easeOut" } as const;
+const PRESS_RELEASE = { bounce: 0.55, type: "spring", visualDuration: 0.35 } as const;
 
 const roundnessOf = (morph: number) => Math.min(Math.max(morph, 0), 1);
-const swellOf = (morph: number) =>
-  1 + (morph > 1 ? (morph - 1) * SWELL : Math.min(morph, 0) * SQUISH);
 
 // seq makes a repeat of the same action a new value, restarting the timer.
 interface Confirmation {
@@ -60,27 +67,20 @@ export const SplitButton = () => {
   const [confirmation, setConfirmation] = useState<Confirmation | null>(null);
 
   const morph = useSpring(0, MORPH_SPRING);
-  const scale = useTransform(morph, swellOf);
+  const scale = useMotionValue(1);
   const cornerRadius = useTransform(morph, (m) => roundnessOf(m) * TRAILING_RADIUS);
   const chevronRotate = useTransform(morph, [0, 1], [0, 180]);
   const chevronShift = useTransform(morph, (m) => (roundnessOf(m) - 1) * 2);
   // The notch is the trailing button's visible left edge grown by the seam: a flat
   // edge plus two fillets of radius corner + seam, each the corner of a tile whose
-  // quarter-disc is cut out. Swelling scales about the button's centre, so the
-  // edge recedes and the fillets spread with it. At rest the fillets sit wholly
+  // quarter-disc is cut out. The press scales about the button's centre, so the
+  // edge recedes and the fillets shrink with it. At rest the fillets sit wholly
   // outside the face.
-  const seamX = useTransform(morph, (m) => LEADING_WIDTH - TRAILING_RADIUS * (swellOf(m) - 1));
-  const filletRadius = useTransform(
-    morph,
-    (m) => roundnessOf(m) * TRAILING_RADIUS * swellOf(m) + SEAM,
-  );
-  const filletTop = useTransform(morph, (m) => TRAILING_RADIUS * (1 - swellOf(m)) - SEAM);
+  const seamX = useTransform(() => LEADING_WIDTH + TRAILING_RADIUS * (1 - scale.get()));
+  const filletRadius = useTransform(() => cornerRadius.get() * scale.get() + SEAM);
+  const filletTop = useTransform(() => TRAILING_RADIUS * (1 - scale.get()) - SEAM);
   const filletBottom = useTransform(
-    morph,
-    (m) =>
-      TRAILING_RADIUS * (1 + swellOf(m)) +
-      SEAM -
-      (roundnessOf(m) * TRAILING_RADIUS * swellOf(m) + SEAM),
+    () => TRAILING_RADIUS * (1 + scale.get()) + SEAM - filletRadius.get(),
   );
   const notchMask = {
     maskImage: useMotionTemplate`linear-gradient(#000, #000), radial-gradient(circle ${filletRadius}px at 100% 100%, transparent ${filletRadius}px, #000 calc(${filletRadius}px + 0.5px)), radial-gradient(circle ${filletRadius}px at 100% 0, transparent ${filletRadius}px, #000 calc(${filletRadius}px + 0.5px))`,
@@ -109,10 +109,16 @@ export const SplitButton = () => {
     return () => window.clearTimeout(timer);
   }, [confirmation]);
 
+  const press = async () => {
+    await animate(scale, PRESS_SCALE, PRESS_DOWN);
+    await animate(scale, 1, PRESS_RELEASE);
+  };
+
   const onToggle = (event: ToggleEvent<HTMLDivElement>) => {
     const isOpen = event.newState === "open";
     setOpen(isOpen);
     morph.set(isOpen ? 1 : 0);
+    void press();
     if (!isOpen) {
       setActiveIndex(null);
     }
