@@ -8,7 +8,7 @@ const fixture = await mkdtemp(path.join(tmpdir(), "uicapsule-content-"));
 const contentRoot = path.join(fixture, "content");
 const webRoot = path.join(fixture, "apps", "web");
 const packageSource = JSON.stringify({
-  dependencies: { motion: "13", react: "19", "react-dom": "19" },
+  dependencies: { "lucide-react": "catalog:", motion: "13", react: "catalog:", "react-dom": "19" },
   devDependencies: { "@types/react": "19", "@types/react-dom": "19", sass: "1", typescript: "7" },
   peerDependencies: { "date-fns": "4", motion: "13", react: "19" },
 });
@@ -124,7 +124,7 @@ test("source and registry downloads preserve consumer files and dependencies", a
   assert.equal(registry.title, "Local");
   assert.equal(registry.description, "Local.");
   assert.deepEqual(registry.categories, tags);
-  assert.deepEqual(registry.dependencies, ["motion", "date-fns"]);
+  assert.deepEqual(registry.dependencies, ["lucide-react", "motion", "date-fns"]);
   assert.deepEqual(registry.devDependencies, ["sass"]);
   assert.deepEqual(registry.registryDependencies, []);
   assert.deepEqual(

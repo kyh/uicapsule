@@ -26,6 +26,8 @@ catalog:
   # drizzle-kit must match drizzle-orm exactly.
   drizzle-kit: 1.0.0-rc.4
   drizzle-orm: 1.0.0-rc.4
+  lucide-react: ^1.61.0
+  motion: ^14.6.0
   next: ^16.4.3
   react: ^19.3.1
   react-dom: ^19.3.1
