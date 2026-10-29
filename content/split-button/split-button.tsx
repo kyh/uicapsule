@@ -1,9 +1,9 @@
 "use client";
 
-import { useEffect, useEffectEvent, useId, useRef, useState } from "react";
+import { useEffect, useId, useRef, useState } from "react";
 import type { KeyboardEvent, ToggleEvent } from "react";
 import { Check, ChevronDown, Copy, Pencil, Save, Upload } from "lucide-react";
-import { AnimatePresence, motion } from "motion/react";
+import { AnimatePresence, motion, useMotionTemplate, useSpring, useTransform } from "motion/react";
 
 type ActionId = "save" | "save-as" | "copy" | "export";
 
@@ -26,20 +26,25 @@ const CONFIRM_MS = 1600;
 // corner morph reads as physical rather than eased.
 const SPRING = "ease-[cubic-bezier(0.34,1.56,0.64,1)]";
 
+const LEADING_WIDTH = 144;
+const SEAM = 2;
+const TRAILING_SIZE = 56;
+// The leading face's right edge is the trailing circle grown by the seam, so the
+// gap stays even all the way around once it rounds off.
+const NOTCH_RADIUS = TRAILING_SIZE / 2 + SEAM;
+// Springing curvature rather than radius keeps the edge visibly bending the whole
+// way: radius would spend most of the spring near-flat. The floor stands in for
+// a straight edge, whose curvature is zero.
+const MIN_CURVATURE = 1 / 4000;
+const NOTCH_SPRING = { damping: 30, stiffness: 420 };
+
 // seq makes a repeat of the same action a new value, restarting the timer.
 interface Confirmation {
   id: ActionId;
   seq: number;
 }
 
-type Step = readonly [atMs: number, run: () => void];
-
-interface SplitButtonProps {
-  /** Loops a scripted tour until the first real pointer or key input. */
-  autoPlay?: boolean;
-}
-
-export const SplitButton = ({ autoPlay = false }: SplitButtonProps) => {
+export const SplitButton = () => {
   const domId = useId().replaceAll(/[^\w-]/gu, "");
   const anchorName = `--split-${domId}`;
   const menuId = `split-menu-${domId}`;
@@ -51,15 +56,15 @@ export const SplitButton = ({ autoPlay = false }: SplitButtonProps) => {
   const [open, setOpen] = useState(false);
   const [activeIndex, setActiveIndex] = useState<number | null>(null);
   const [confirmation, setConfirmation] = useState<Confirmation | null>(null);
-  const [pressed, setPressed] = useState<"leading" | "trailing" | null>(null);
-  const [touring, setTouring] = useState(autoPlay);
+
+  const notchCurvature = useSpring(0, NOTCH_SPRING);
+  const notchRadius = useTransform(notchCurvature, (k) => 1 / Math.max(k, MIN_CURVATURE));
+  const notchMask = useMotionTemplate`radial-gradient(circle ${notchRadius}px at calc(${LEADING_WIDTH}px + ${notchRadius}px) 50%, transparent ${notchRadius}px, #000 calc(${notchRadius}px + 0.5px))`;
 
   const confirm = (id: ActionId) => {
     confirmSeq.current += 1;
     setConfirmation({ id, seq: confirmSeq.current });
   };
-
-  const confirmFromTour = useEffectEvent(confirm);
 
   const choose = (id: ActionId) => {
     menuRef.current?.hidePopover();
@@ -74,67 +79,10 @@ export const SplitButton = ({ autoPlay = false }: SplitButtonProps) => {
     return () => window.clearTimeout(timer);
   }, [confirmation]);
 
-  useEffect(() => {
-    if (!touring) {
-      return;
-    }
-    const menu = menuRef.current;
-    const steps: Step[] = [
-      [1200, () => setPressed("leading")],
-      [
-        1380,
-        () => {
-          setPressed(null);
-          confirmFromTour("save");
-        },
-      ],
-      [3600, () => setPressed("trailing")],
-      [
-        3760,
-        () => {
-          setPressed(null);
-          menu?.showPopover();
-        },
-      ],
-      [4300, () => setActiveIndex(0)],
-      [4800, () => setActiveIndex(1)],
-      [5300, () => setActiveIndex(2)],
-      [5800, () => setActiveIndex(1)],
-      [
-        6600,
-        () => {
-          menu?.hidePopover();
-          confirmFromTour("copy");
-        },
-      ],
-    ];
-    const LOOP_MS = 9200;
-
-    let timers: number[] = [];
-    const cycle = () => {
-      timers = [
-        ...steps.map(([at, run]) => window.setTimeout(run, at)),
-        window.setTimeout(cycle, LOOP_MS),
-      ];
-    };
-    cycle();
-    return () => {
-      for (const timer of timers) {
-        window.clearTimeout(timer);
-      }
-    };
-  }, [touring]);
-
-  const stopTour = () => {
-    if (touring) {
-      setTouring(false);
-      setPressed(null);
-    }
-  };
-
   const onToggle = (event: ToggleEvent<HTMLDivElement>) => {
     const isOpen = event.newState === "open";
     setOpen(isOpen);
+    notchCurvature.set(isOpen ? 1 / NOTCH_RADIUS : 0);
     if (!isOpen) {
       setActiveIndex(null);
     }
@@ -171,7 +119,7 @@ export const SplitButton = ({ autoPlay = false }: SplitButtonProps) => {
   const confirmedLabel = confirmation ? DONE_LABEL[confirmation.id] : null;
 
   return (
-    <div className="contents" onPointerDownCapture={stopTour} onKeyDownCapture={stopTour}>
+    <>
       <div
         className="group/split inline-flex h-14 gap-0.5 select-none"
         data-open={open}
@@ -180,10 +128,15 @@ export const SplitButton = ({ autoPlay = false }: SplitButtonProps) => {
         <button
           type="button"
           aria-label={confirmedLabel ?? "Save"}
-          data-pressed={pressed === "leading"}
           onClick={() => confirm("save")}
-          className={`flex w-36 cursor-pointer items-center justify-center gap-2 rounded-l-full rounded-r-[6px] bg-[#a8c7fa] text-[17px] font-medium text-[#062e6f] transition-[border-radius,background-color] duration-300 outline-none ${SPRING} hover:rounded-r-[12px] hover:bg-[#b6d0fb] focus-visible:ring-2 focus-visible:ring-[#d3e3fd] focus-visible:ring-offset-2 focus-visible:ring-offset-[#131314] active:rounded-r-[20px] data-[pressed=true]:rounded-r-[20px] data-[pressed=true]:bg-[#c2d7fc]`}
+          className="group/leading relative isolate flex cursor-pointer items-center justify-center gap-2 rounded-l-full text-[17px] font-medium text-[#062e6f] outline-none focus-visible:ring-2 focus-visible:ring-[#d3e3fd] focus-visible:ring-offset-2 focus-visible:ring-offset-[#131314]"
+          style={{ width: LEADING_WIDTH }}
         >
+          <motion.span
+            aria-hidden
+            className="pointer-events-none absolute inset-y-0 left-0 -z-10 rounded-l-full bg-[#a8c7fa] transition-colors duration-200 group-hover/leading:bg-[#b6d0fb] group-active/leading:bg-[#c2d7fc]"
+            style={{ maskImage: notchMask, width: LEADING_WIDTH + SEAM + TRAILING_SIZE / 2 }}
+          />
           <AnimatePresence mode="popLayout" initial={false}>
             <motion.span
               key={confirmedLabel ?? "idle"}
@@ -208,9 +161,9 @@ export const SplitButton = ({ autoPlay = false }: SplitButtonProps) => {
           aria-label="More save options"
           aria-haspopup="menu"
           aria-expanded={open}
-          data-pressed={pressed === "trailing"}
           onKeyDown={onTrailingKeyDown}
-          className={`grid w-12 cursor-pointer place-items-center rounded-l-[6px] rounded-r-[28px] bg-[#a8c7fa] text-[#062e6f] transition-[border-radius,width,background-color] duration-300 outline-none ${SPRING} group-data-[open=true]/split:w-14 group-data-[open=true]/split:rounded-l-[28px] group-data-[open=true]/split:bg-[#d3e3fd] group-data-[open=false]/split:hover:rounded-l-[12px] hover:bg-[#b6d0fb] focus-visible:ring-2 focus-visible:ring-[#d3e3fd] focus-visible:ring-offset-2 focus-visible:ring-offset-[#131314] group-data-[open=false]/split:active:rounded-l-[20px] group-data-[open=false]/split:data-[pressed=true]:rounded-l-[20px] data-[pressed=true]:bg-[#c2d7fc]`}
+          className={`relative z-10 grid cursor-pointer place-items-center rounded-l-none rounded-r-[28px] bg-[#a8c7fa] text-[#062e6f] transition-[border-radius,background-color] duration-300 outline-none ${SPRING} group-data-[open=true]/split:rounded-l-[28px] group-data-[open=true]/split:bg-[#d3e3fd] hover:bg-[#b6d0fb] focus-visible:ring-2 focus-visible:ring-[#d3e3fd] focus-visible:ring-offset-2 focus-visible:ring-offset-[#131314] active:bg-[#c2d7fc]`}
+          style={{ height: TRAILING_SIZE, width: TRAILING_SIZE }}
         >
           <ChevronDown
             className={`size-6 -translate-x-0.5 transition-[rotate,translate] duration-400 ${SPRING} group-data-[open=true]/split:translate-x-0 group-data-[open=true]/split:rotate-180`}
@@ -250,6 +203,6 @@ export const SplitButton = ({ autoPlay = false }: SplitButtonProps) => {
           </button>
         ))}
       </div>
-    </div>
+    </>
   );
 };
