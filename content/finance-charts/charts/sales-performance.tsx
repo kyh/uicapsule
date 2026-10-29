@@ -55,7 +55,7 @@ export const SalesPerformance = () => {
     const sides: Vertex[] = [];
     const ghosts: Vertex[] = [];
     const ghostSides: Vertex[] = [];
-    const outlines: { day: string; x: number; y: number }[] = [];
+    const outlines: { day: string; id: string; x: number; y: number }[] = [];
     for (const [i, day] of DAYS.entries()) {
       const a = ACTUAL[i] ?? 0;
       const t = TARGET[i] ?? 0;
@@ -67,11 +67,11 @@ export const SalesPerformance = () => {
       ghosts.push(...face(day, x1, x2, [a, a], [t, t]));
       ghostSides.push(...face(day, x2, x3, [a, Math.max(0, a - SLANT)], [t, t - SLANT]));
       outlines.push(
-        { day, x: x1, y: a },
-        { day, x: x1, y: t },
-        { day, x: x2, y: t },
-        { day, x: x3, y: t - SLANT },
-        { day, x: x3, y: Math.max(0, a - SLANT) },
+        { day, id: `${day}-0`, x: x1, y: a },
+        { day, id: `${day}-1`, x: x1, y: t },
+        { day, id: `${day}-2`, x: x2, y: t },
+        { day, id: `${day}-3`, x: x3, y: t - SLANT },
+        { day, id: `${day}-4`, x: x3, y: Math.max(0, a - SLANT) },
       );
     }
     const paint = (on: string, off: string) => (d: Vertex) => (d.day === picked ? on : off);
@@ -155,6 +155,7 @@ export const SalesPerformance = () => {
           z: "day",
         }),
         lineY(outlines, {
+          key: "id",
           stroke: (d) => (d.day === picked ? "#fbc9a6" : "#d4d4d8"),
           strokeDasharray: "4 4",
           strokeWidth: 1,

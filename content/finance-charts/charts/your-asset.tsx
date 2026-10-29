@@ -89,7 +89,6 @@ const Ticker = () => {
           const Arrow = up ? ArrowUp : ArrowDown;
           return (
             <span
-              // oxlint-disable-next-line no-array-index-key -- the ticker repeats itself to loop seamlessly
               key={`${t.sym}-${i}`}
               className="inline-flex h-7 shrink-0 items-center gap-1 rounded-full border border-black/[0.08] bg-white px-2.5 text-[11px] tabular-nums"
             >
