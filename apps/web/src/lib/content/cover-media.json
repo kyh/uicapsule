@@ -335,6 +335,14 @@
     "uploadDate": "2026-09-08",
     "width": 1924
   },
+  "split-button": {
+    "cover": "split-button/split-button.20261029.mp4",
+    "duration": 14.72,
+    "height": 900,
+    "still": "/og/covers/split-button.jpg",
+    "uploadDate": "2026-10-29",
+    "width": 1600
+  },
   "spreadsheet": {
     "cover": "spreadsheet/spreadsheet-data-enrichment.mp4",
     "duration": 37.5,

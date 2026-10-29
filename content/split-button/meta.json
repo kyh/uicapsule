@@ -2,6 +2,7 @@
   "name": "Split Button",
   "description": "Material 3 Expressive split button — the trailing half rounds into a circle and flips its chevron as a native popover menu unfurls from its anchor.",
   "addedAt": "2026-10-28",
+  "cover": "split-button/split-button.20261029.mp4",
   "tags": ["controls", "minimal"],
   "inspiredBy": [
     {
