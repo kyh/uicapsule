@@ -61,7 +61,7 @@ const GRADIENTS = ROWS.flatMap((r) => {
   ];
 });
 
-const NetWorthBody = () => {
+export const NetWorth = () => {
   const [hi, pin] = useCycle(ROWS.length, 1900, 6);
   const picked = ROWS[hi] ?? ROWS[0];
 
@@ -136,7 +136,7 @@ const NetWorthBody = () => {
   const barTop = 100 - ((picked?.value ?? 0) / TOP) * 100;
 
   return (
-    <>
+    <Card>
       <CardHeader
         icon={CircleArrowOutUpRight}
         color={GREEN}
@@ -182,13 +182,6 @@ const NetWorthBody = () => {
         </PlotOverlay>
       </ChartSlot>
       <p className="mt-1 text-center text-[11px] text-[#a1a1aa]">May 2026</p>
-    </>
+    </Card>
   );
 };
-
-// The cycle hooks read the Card's in-view context, so they live a level below it.
-export const NetWorth = () => (
-  <Card>
-    <NetWorthBody />
-  </Card>
-);

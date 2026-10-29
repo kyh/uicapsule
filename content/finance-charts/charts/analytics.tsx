@@ -41,7 +41,7 @@ const SPARKS = (() => {
   }));
 })();
 
-const AnalyticsBody = () => {
+export const Analytics = () => {
   const [tab, pinTab] = useCycle(TABS.length, 3200);
   const [hover, setHover] = useState<number | null>(null);
   const meta = TABS[tab] ?? TABS[0];
@@ -140,7 +140,7 @@ const AnalyticsBody = () => {
   }, [values, lit]);
 
   return (
-    <>
+    <Card>
       <div className="flex items-center justify-between">
         <h3 className="text-[18px] font-semibold tracking-[-0.01em]">Analytics</h3>
         <Chip icon={CalendarDays} chevron>
@@ -203,13 +203,6 @@ const AnalyticsBody = () => {
           />
         </div>
       </ChartSlot>
-    </>
+    </Card>
   );
 };
-
-// The cycle hooks read the Card's in-view context, so they live a level below it.
-export const Analytics = () => (
-  <Card>
-    <AnalyticsBody />
-  </Card>
-);

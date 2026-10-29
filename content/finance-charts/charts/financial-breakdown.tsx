@@ -62,7 +62,7 @@ const TOP = 60_000;
 const HEIGHT = 220;
 const MARGIN = { bottom: 26, left: 40, right: 0, top: 8 };
 
-const FinancialBreakdownBody = () => {
+export const FinancialBreakdown = () => {
   const [hi, pin] = useCycle(DAYS.length, 2000, 5);
   const day = hi + 1;
   const vals = TABLE[hi] ?? TABLE[0];
@@ -137,7 +137,7 @@ const FinancialBreakdownBody = () => {
   const left = flip ? center - 3.5 : center + 3.5;
 
   return (
-    <>
+    <Card>
       <CardHeader
         icon={ChartPie}
         color={VIVID_PURPLE}
@@ -199,13 +199,6 @@ const FinancialBreakdownBody = () => {
         </PlotOverlay>
       </ChartSlot>
       <p className="mt-1 text-center text-[11px] text-[#a1a1aa]">May 2026</p>
-    </>
+    </Card>
   );
 };
-
-// The cycle hooks read the Card's in-view context, so they live a level below it.
-export const FinancialBreakdown = () => (
-  <Card>
-    <FinancialBreakdownBody />
-  </Card>
-);

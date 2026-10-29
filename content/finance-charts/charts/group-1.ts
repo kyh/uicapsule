@@ -5,6 +5,7 @@ import { CumulativeAssetsAndLiabilities } from "./cumulative-assets-and-liabilit
 import { CustomerRate } from "./customer-rate";
 import type { ChartEntry } from "./entry";
 import { Overview } from "./overview";
+import { PriceRange } from "./price-range";
 import { TotalExpenses } from "./total-expenses";
 import { TotalSales } from "./total-sales";
 
@@ -13,6 +14,7 @@ export const GROUP_1: ChartEntry[] = [
   { Chart: TotalExpenses, id: "total-expenses" },
   { Chart: CashFlowArea, id: "cash-flow-area" },
   { Chart: Overview, id: "overview" },
+  { Chart: PriceRange, id: "price-range" },
   { Chart: Balance, id: "balance" },
   { Chart: TotalSales, id: "total-sales" },
   { Chart: CustomerRate, id: "customer-rate" },

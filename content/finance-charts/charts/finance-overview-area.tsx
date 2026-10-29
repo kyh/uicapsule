@@ -107,7 +107,7 @@ const series = (range: Range) => {
 
 const DATA = RANGES.map(series);
 
-const FinanceOverviewAreaBody = () => {
+export const FinanceOverviewArea = () => {
   const [range, pin] = useCycle(RANGES.length, 3400);
   const meta = RANGES[range] ?? RANGES[0];
 
@@ -185,7 +185,12 @@ const FinanceOverviewAreaBody = () => {
   }, [range, meta]);
 
   return (
-    <>
+    <Card
+      style={{
+        backgroundImage:
+          "radial-gradient(120% 70% at 105% -8%, rgba(168,85,247,0.5), rgba(196,140,255,0.22) 38%, rgba(255,255,255,0) 66%)",
+      }}
+    >
       <div className="flex items-start justify-between">
         <h3 className="text-[17px] font-semibold tracking-[-0.01em]">Finance Overview</h3>
         <button
@@ -249,18 +254,6 @@ const FinanceOverviewAreaBody = () => {
           </p>
         </div>
       </div>
-    </>
+    </Card>
   );
 };
-
-// The cycle hooks read the Card's in-view context, so they live a level below it.
-export const FinanceOverviewArea = () => (
-  <Card
-    style={{
-      backgroundImage:
-        "radial-gradient(120% 70% at 105% -8%, rgba(168,85,247,0.5), rgba(196,140,255,0.22) 38%, rgba(255,255,255,0) 66%)",
-    }}
-  >
-    <FinanceOverviewAreaBody />
-  </Card>
-);

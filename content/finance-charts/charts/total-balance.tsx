@@ -28,7 +28,7 @@ const BARS = Array.from({ length: COUNT }, (_, i) => ({
 }));
 const LABELS = BARS.filter((b) => b.marker);
 
-const TotalBalanceBody = () => {
+export const TotalBalance = () => {
   // Charges capsule by capsule up to the maturity mark, rests, replays.
   const [frame, pin] = useCycle(FILLED + HOLD, 210, FILLED + HOLD - 1);
   const lit = Math.min(FILLED, frame + 1);
@@ -115,7 +115,7 @@ const TotalBalanceBody = () => {
   );
 
   return (
-    <>
+    <Card>
       <div className="flex items-start justify-between">
         <p className="text-[13px]" style={{ color: MUTED }}>
           Total balance
@@ -166,13 +166,6 @@ const TotalBalanceBody = () => {
           <Num value={35} format={(n) => `${Math.round(n)}% maturity`} />
         </p>
       </div>
-    </>
+    </Card>
   );
 };
-
-// The cycle hooks read the Card's in-view context, so they live a level below it.
-export const TotalBalance = () => (
-  <Card>
-    <TotalBalanceBody />
-  </Card>
-);

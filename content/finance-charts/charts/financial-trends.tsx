@@ -87,7 +87,7 @@ const flows = (range: Range) => {
 
 const DATA = RANGES.map(flows);
 
-const FinancialTrendsBody = () => {
+export const FinancialTrends = () => {
   const [range, setRange] = useState(2);
   const meta = RANGES[range] ?? RANGES[2];
   const cols = meta?.cols ?? 24;
@@ -168,7 +168,7 @@ const FinancialTrendsBody = () => {
   const outTop = picked ? Math.max(1, Math.round(picked.out / step)) / ROWS : 0;
 
   return (
-    <>
+    <Card className="!bg-[#f3f3f5] !p-1.5">
       <div className="flex items-center justify-between px-3 pt-2 pb-2.5">
         <h3 className="text-[16px] font-semibold tracking-[-0.01em]">Financial Trends</h3>
         <button
@@ -249,13 +249,6 @@ const FinancialTrendsBody = () => {
           </PlotOverlay>
         </ChartSlot>
       </div>
-    </>
+    </Card>
   );
 };
-
-// The cycle hooks read the Card's in-view context, so they live a level below it.
-export const FinancialTrends = () => (
-  <Card className="!bg-[#f3f3f5] !p-1.5">
-    <FinancialTrendsBody />
-  </Card>
-);

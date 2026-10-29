@@ -21,7 +21,7 @@ const COL_IDS = Array.from({ length: COLS }, (_, i) => i);
 const ROW_IDS = Array.from({ length: ROWS }, (_, i) => i);
 const CELLS = ROW_IDS.flatMap((row) => COL_IDS.map((col) => ({ col, id: `${row}:${col}`, row })));
 
-const BudgetBody = () => {
+export const Budget = () => {
   // A glint walks the spent columns, then rests a beat off the end.
   const [glint, pin] = useCycle(FILLED + 4, 170);
 
@@ -56,7 +56,7 @@ const BudgetBody = () => {
   );
 
   return (
-    <>
+    <Card>
       <div className="flex items-center justify-between">
         <h3 className="text-[18px] font-semibold tracking-[-0.01em]">Budget</h3>
         <MoreButton />
@@ -100,13 +100,6 @@ const BudgetBody = () => {
           Details
         </button>
       </div>
-    </>
+    </Card>
   );
 };
-
-// The cycle hooks read the Card's in-view context, so they live a level below it.
-export const Budget = () => (
-  <Card>
-    <BudgetBody />
-  </Card>
-);

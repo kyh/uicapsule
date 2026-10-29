@@ -91,7 +91,7 @@ const HEIGHT = 260;
 const MARGIN = { bottom: 28, left: 46, right: 6, top: 6 };
 const GRID_STYLE = { stroke: "#e6e6ea", strokeOpacity: 1, strokeWidth: 1 };
 
-const InvestmentPerformanceBody = () => {
+export const InvestmentPerformance = () => {
   const [month, pin] = useCycle(12, 2100, 3);
 
   const definition = useMemo(
@@ -187,7 +187,7 @@ const InvestmentPerformanceBody = () => {
   const x = (month / 11) * 100;
 
   return (
-    <>
+    <Card>
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2.5">
           <IconTile icon={CreditCard} color={STOCK} className="!rounded-full" />
@@ -252,13 +252,6 @@ const InvestmentPerformanceBody = () => {
           </Bubble>
         </PlotOverlay>
       </ChartSlot>
-    </>
+    </Card>
   );
 };
-
-// The cycle hooks read the Card's in-view context, so they live a level below it.
-export const InvestmentPerformance = () => (
-  <Card>
-    <InvestmentPerformanceBody />
-  </Card>
-);

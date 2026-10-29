@@ -61,7 +61,7 @@ const depth = ({ current, seed }: Range) => {
 };
 
 const DATA = SPECS.map((spec) => ({ depth: depth(spec), line: priceLine(spec), spec }));
-const FIRST = DATA[0];
+const [FIRST] = DATA;
 
 const MIN = 3000;
 const MAX = 26_000;

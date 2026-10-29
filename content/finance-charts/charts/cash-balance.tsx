@@ -150,7 +150,7 @@ const Stat = ({ label, value, delta }: { label: string; value: number; delta: nu
   </div>
 );
 
-const CashBalanceBody = () => {
+export const CashBalance = () => {
   const [active, pin] = useCycle(EVENTS.length, 2300);
   const event = EVENTS[active] ?? EVENTS[0];
   const hour = event?.hour ?? START;
@@ -266,7 +266,7 @@ const CashBalanceBody = () => {
   );
 
   return (
-    <>
+    <Card>
       <CardHeader icon={CreditCard} color={BLUE} title="Cash Balance" actions={<MoreButton />} />
       <div className="mt-5 grid grid-cols-2 gap-3">
         <Stat label="Total Balance" value={13_791} delta={8.6} />
@@ -382,13 +382,6 @@ const CashBalanceBody = () => {
           </div>
         ))}
       </div>
-    </>
+    </Card>
   );
 };
-
-// The cycle hooks read the Card's in-view context, so they live a level below it.
-export const CashBalance = () => (
-  <Card>
-    <CashBalanceBody />
-  </Card>
-);
