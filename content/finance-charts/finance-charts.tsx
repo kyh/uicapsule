@@ -3,6 +3,7 @@
 import { useEffect, useRef } from "react";
 
 import { CHARTS } from "./charts";
+import { ChartCell } from "./lib/kit";
 
 /** Pixels per second the wall drifts while nobody is touching it. */
 const DRIFT = 42;
@@ -54,9 +55,9 @@ export const FinanceCharts = ({ autoScroll = true }: { autoScroll?: boolean }) =
     >
       <div className="mx-auto max-w-[1680px] columns-[340px] gap-4 px-4 py-6">
         {CHARTS.map(({ id, Chart }) => (
-          <div key={id} data-chart={id} className="break-inside-avoid">
+          <ChartCell key={id} id={id}>
             <Chart />
-          </div>
+          </ChartCell>
         ))}
       </div>
     </div>

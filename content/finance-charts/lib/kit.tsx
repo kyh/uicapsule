@@ -33,6 +33,18 @@ const ActiveContext = createContext(false);
  * every entrance plays where someone can see it. */
 export const useActive = () => use(ActiveContext);
 
+/** Wraps one card in the wall and owns its in-view state. It sits ABOVE the
+ * chart component, so hooks in a chart's own body (`useCycle`) see it too. */
+export const ChartCell = ({ children, id }: { children: ReactNode; id: string }) => {
+  const ref = useRef<HTMLDivElement>(null);
+  const active = useInView(ref, { margin: "0px 0px -12% 0px", once: true });
+  return (
+    <div ref={ref} data-chart={id} className="break-inside-avoid">
+      <ActiveContext value={active}>{children}</ActiveContext>
+    </div>
+  );
+};
+
 export const Card = ({
   children,
   className,
@@ -42,11 +54,9 @@ export const Card = ({
   className?: string;
   style?: CSSProperties;
 }) => {
-  const ref = useRef<HTMLElement>(null);
-  const active = useInView(ref, { margin: "0px 0px -12% 0px", once: true });
+  const active = useActive();
   return (
     <motion.article
-      ref={ref}
       initial={{ opacity: 0, scale: 0.97, y: 28 }}
       animate={active ? { opacity: 1, scale: 1, y: 0 } : undefined}
       transition={SPRING}
@@ -56,7 +66,7 @@ export const Card = ({
       )}
       style={style}
     >
-      <ActiveContext value={active}>{children}</ActiveContext>
+      {children}
     </motion.article>
   );
 };

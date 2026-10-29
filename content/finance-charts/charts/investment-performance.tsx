@@ -242,7 +242,7 @@ const InvestmentPerformanceBody = () => {
               {SERIES.map((s) => (
                 <p key={s.label} className="flex items-center gap-1.5 py-0.5 text-[11px]">
                   <span className="size-2 rounded-full" style={{ backgroundColor: s.color }} />
-                  <span className="text-white/70">{s.label}</span>
+                  <span className="text-white/70">{s.label.replace(" portfolio", "")}</span>
                   <span className="ml-auto pl-3 font-semibold tabular-nums">
                     {usd(s.values[month] ?? 0)}
                   </span>
