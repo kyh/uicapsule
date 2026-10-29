@@ -15,6 +15,8 @@ const packageJson = (slug: string) =>
   `${JSON.stringify(
     {
       dependencies: {
+        "lucide-react": "catalog:",
+        motion: "catalog:",
         react: "catalog:",
         "react-dom": "catalog:",
       },
