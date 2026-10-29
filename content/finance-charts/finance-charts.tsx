@@ -21,6 +21,9 @@ export const FinanceCharts = ({ autoScroll = true }: { autoScroll?: boolean }) =
   // its hold: Infinity while pressed, then a short yield after lifting.
   const hovered = useRef(false);
   const holdUntil = useRef(0);
+  const release = () => {
+    holdUntil.current = Math.min(holdUntil.current, performance.now() + YIELD_MS);
+  };
 
   useEffect(() => {
     const el = scroller.current;
@@ -65,19 +68,18 @@ export const FinanceCharts = ({ autoScroll = true }: { autoScroll?: boolean }) =
           hovered.current = true;
         }
       }}
+      // Releasing outside the wall (the gallery hosts it in an iframe) fires no
+      // pointerup here, so leaving ends a press too.
       onPointerLeave={() => {
         hovered.current = false;
+        release();
       }}
       // A press, hold or chart scrub doesn't move scrollTop, so it needs its own pause.
       onPointerDown={() => {
         holdUntil.current = Infinity;
       }}
-      onPointerUp={() => {
-        holdUntil.current = performance.now() + YIELD_MS;
-      }}
-      onPointerCancel={() => {
-        holdUntil.current = performance.now() + YIELD_MS;
-      }}
+      onPointerUp={release}
+      onPointerCancel={release}
       className="size-full overflow-y-auto bg-[#f3f4f7] [font-family:Inter,ui-sans-serif,system-ui,sans-serif] [scrollbar-width:none]"
     >
       <div className="mx-auto max-w-[1680px] columns-[340px] gap-4 px-4 py-6">
