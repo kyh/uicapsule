@@ -22,21 +22,14 @@ const DONE_LABEL: Record<ActionId, string> = {
 
 const CONFIRM_MS = 1600;
 
-// M3 Expressive's fast spatial spring, approximated: a touch of overshoot so the
-// corner morph reads as physical rather than eased.
-const SPRING = "ease-[cubic-bezier(0.34,1.56,0.64,1)]";
-
 const LEADING_WIDTH = 144;
 const SEAM = 2;
 const TRAILING_SIZE = 56;
-// The leading face's right edge is the trailing circle grown by the seam, so the
-// gap stays even all the way around once it rounds off.
-const NOTCH_RADIUS = TRAILING_SIZE / 2 + SEAM;
-// Springing curvature rather than radius keeps the edge visibly bending the whole
-// way: radius would spend most of the spring near-flat. The floor stands in for
-// a straight edge, whose curvature is zero.
-const MIN_CURVATURE = 1 / 4000;
-const NOTCH_SPRING = { damping: 30, stiffness: 420 };
+const TRAILING_RADIUS = TRAILING_SIZE / 2;
+
+// One spring drives the circle, the notch and the chevron: on separate timelines
+// the notch drifts off the corner it hugs and the seam visibly breathes mid-morph.
+const MORPH_SPRING = { bounce: 0.2, visualDuration: 0.38 };
 
 // seq makes a repeat of the same action a new value, restarting the timer.
 interface Confirmation {
@@ -57,9 +50,21 @@ export const SplitButton = () => {
   const [activeIndex, setActiveIndex] = useState<number | null>(null);
   const [confirmation, setConfirmation] = useState<Confirmation | null>(null);
 
-  const notchCurvature = useSpring(0, NOTCH_SPRING);
-  const notchRadius = useTransform(notchCurvature, (k) => 1 / Math.max(k, MIN_CURVATURE));
-  const notchMask = useMotionTemplate`radial-gradient(circle ${notchRadius}px at calc(${LEADING_WIDTH}px + ${notchRadius}px) 50%, transparent ${notchRadius}px, #000 calc(${notchRadius}px + 0.5px))`;
+  const morph = useSpring(0, MORPH_SPRING);
+  const roundness = useTransform(morph, [0, 1], [0, 1], { clamp: true });
+  const cornerRadius = useTransform(roundness, (r) => r * TRAILING_RADIUS);
+  const chevronRotate = useTransform(morph, [0, 1], [0, 180]);
+  const chevronShift = useTransform(roundness, [0, 1], [-2, 0]);
+  // The notch is the trailing button's left edge grown by the seam: a flat edge
+  // plus two fillets of radius corner + seam, each the corner of a tile whose
+  // quarter-disc is cut out. At rest the fillets sit wholly outside the face.
+  const filletRadius = useTransform(cornerRadius, (r) => r + SEAM);
+  const notchMask = {
+    maskImage: useMotionTemplate`linear-gradient(#000, #000), radial-gradient(circle ${filletRadius}px at 100% 100%, transparent ${filletRadius}px, #000 calc(${filletRadius}px + 0.5px)), radial-gradient(circle ${filletRadius}px at 100% 0, transparent ${filletRadius}px, #000 calc(${filletRadius}px + 0.5px))`,
+    maskPosition: useMotionTemplate`0 0, ${LEADING_WIDTH}px ${-SEAM}px, ${LEADING_WIDTH}px calc(${TRAILING_SIZE + SEAM}px - ${filletRadius}px)`,
+    maskRepeat: "no-repeat",
+    maskSize: useMotionTemplate`${LEADING_WIDTH}px 100%, ${filletRadius}px ${filletRadius}px, ${filletRadius}px ${filletRadius}px`,
+  };
 
   const confirm = (id: ActionId) => {
     confirmSeq.current += 1;
@@ -82,7 +87,7 @@ export const SplitButton = () => {
   const onToggle = (event: ToggleEvent<HTMLDivElement>) => {
     const isOpen = event.newState === "open";
     setOpen(isOpen);
-    notchCurvature.set(isOpen ? 1 / NOTCH_RADIUS : 0);
+    morph.set(isOpen ? 1 : 0);
     if (!isOpen) {
       setActiveIndex(null);
     }
@@ -135,7 +140,7 @@ export const SplitButton = () => {
           <motion.span
             aria-hidden
             className="pointer-events-none absolute inset-y-0 left-0 -z-10 rounded-l-full bg-[#a8c7fa] transition-colors duration-200 group-hover/leading:bg-[#b6d0fb] group-active/leading:bg-[#c2d7fc]"
-            style={{ maskImage: notchMask, width: LEADING_WIDTH + SEAM + TRAILING_SIZE / 2 }}
+            style={{ ...notchMask, width: LEADING_WIDTH + SEAM + TRAILING_RADIUS }}
           />
           <AnimatePresence mode="popLayout" initial={false}>
             <motion.span
@@ -155,21 +160,25 @@ export const SplitButton = () => {
             </motion.span>
           </AnimatePresence>
         </button>
-        <button
+        <motion.button
           type="button"
           popoverTarget={menuId}
           aria-label="More save options"
           aria-haspopup="menu"
           aria-expanded={open}
           onKeyDown={onTrailingKeyDown}
-          className={`relative z-10 grid cursor-pointer place-items-center rounded-l-none rounded-r-[28px] bg-[#a8c7fa] text-[#062e6f] transition-[border-radius,background-color] duration-300 outline-none ${SPRING} group-data-[open=true]/split:rounded-l-[28px] group-data-[open=true]/split:bg-[#d3e3fd] hover:bg-[#b6d0fb] focus-visible:ring-2 focus-visible:ring-[#d3e3fd] focus-visible:ring-offset-2 focus-visible:ring-offset-[#131314] active:bg-[#c2d7fc]`}
-          style={{ height: TRAILING_SIZE, width: TRAILING_SIZE }}
+          className="relative z-10 grid cursor-pointer place-items-center rounded-r-[28px] bg-[#a8c7fa] text-[#062e6f] transition-colors duration-300 outline-none group-data-[open=true]/split:bg-[#d3e3fd] hover:bg-[#b6d0fb] focus-visible:ring-2 focus-visible:ring-[#d3e3fd] focus-visible:ring-offset-2 focus-visible:ring-offset-[#131314] active:bg-[#c2d7fc]"
+          style={{
+            borderBottomLeftRadius: cornerRadius,
+            borderTopLeftRadius: cornerRadius,
+            height: TRAILING_SIZE,
+            width: TRAILING_SIZE,
+          }}
         >
-          <ChevronDown
-            className={`size-6 -translate-x-0.5 transition-[rotate,translate] duration-400 ${SPRING} group-data-[open=true]/split:translate-x-0 group-data-[open=true]/split:rotate-180`}
-            strokeWidth={2.5}
-          />
-        </button>
+          <motion.span className="grid" style={{ rotate: chevronRotate, x: chevronShift }}>
+            <ChevronDown className="size-6" strokeWidth={2.5} />
+          </motion.span>
+        </motion.button>
       </div>
       <div
         ref={menuRef}
@@ -181,7 +190,7 @@ export const SplitButton = () => {
         onToggle={onToggle}
         onKeyDown={onMenuKeyDown}
         style={{ left: "anchor(left)", positionAnchor: anchorName, top: "anchor(bottom)" }}
-        className="m-0 mt-1.5 w-56 origin-top -translate-y-2 scale-y-75 rounded-[6px_6px_24px_24px] border-0 bg-[#2b2c30] p-1.5 text-[#e3e3e3] opacity-0 shadow-[0_12px_32px_-8px_rgb(0_0_0/0.6)] transition-[opacity,scale,translate,display,overlay] transition-discrete duration-300 ease-[cubic-bezier(0.2,0,0,1)] [inset:auto] open:translate-y-0 open:scale-y-100 open:opacity-100 starting:open:-translate-y-2 starting:open:scale-y-75 starting:open:opacity-0"
+        className="m-0 mt-1.5 w-56 origin-top-left -translate-y-1 scale-[0.96] rounded-[6px_6px_24px_24px] border-0 bg-[#2b2c30] p-1.5 text-[#e3e3e3] opacity-0 shadow-[0_12px_32px_-8px_rgb(0_0_0/0.6)] transition-[opacity,scale,translate,display,overlay] transition-discrete duration-250 ease-[cubic-bezier(0.2,0,0,1)] [inset:auto] open:translate-y-0 open:scale-100 open:opacity-100 starting:open:-translate-y-1 starting:open:scale-[0.96] starting:open:opacity-0"
       >
         {MENU_ITEMS.map((item, index) => (
           <button
