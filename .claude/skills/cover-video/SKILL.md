@@ -151,15 +151,17 @@ and the CDN edge keep the old video for up to a month. Every cover gets a dated 
 redo) plus a `meta.json` update.
 
 Upload with the Vercel CLI from the repo root. Pass the store token explicitly: the CLI
-otherwise tries `VERCEL_OIDC_TOKEN`, which needs a store id `.env.local` doesn't carry. Omit
+otherwise tries `VERCEL_OIDC_TOKEN`, which needs a store id `.env.local` doesn't carry. The
+token comes from the environment first (remote sessions have no `.env.local`), then the file. Omit
 `--add-random-suffix` entirely — `--add-random-suffix false` still appends a suffix, and the
 default is off. Check the public URL against `.env`'s `NEXT_PUBLIC_ASSETS_URL`; `.env.local`
 carries a stale host.
 
 ```bash
 KEY=<slug>/<slug>.$(date +%Y%m%d).mp4
-RW=$(grep '^BLOB_READ_WRITE_TOKEN=' .env.local | cut -d= -f2- | tr -d '"')
-A=$(grep '^NEXT_PUBLIC_ASSETS_URL=' .env | cut -d= -f2- | tr -d '"')
+RW=${BLOB_READ_WRITE_TOKEN:-$(grep '^BLOB_READ_WRITE_TOKEN=' .env.local 2>/dev/null | cut -d= -f2- | tr -d '"')}
+A=${NEXT_PUBLIC_ASSETS_URL:-$(grep '^NEXT_PUBLIC_ASSETS_URL=' .env 2>/dev/null | cut -d= -f2- | tr -d '"')}
+: "${RW:?BLOB_READ_WRITE_TOKEN unset}" "${A:?NEXT_PUBLIC_ASSETS_URL unset}"
 vercel blob put <slug>.mp4 --rw-token "$RW" --pathname "$KEY" \
   --content-type video/mp4 --access public
 curl -s -o /dev/null -w "%{http_code} %{content_type}" "$A/$KEY"
