@@ -29,7 +29,16 @@ const TRAILING_RADIUS = TRAILING_SIZE / 2;
 
 // One spring drives the circle, the notch and the chevron: on separate timelines
 // the notch drifts off the corner it hugs and the seam visibly breathes mid-morph.
-const MORPH_SPRING = { bounce: 0.45, visualDuration: 0.24 };
+const MORPH_SPRING = { bounce: 0.5, visualDuration: 0.3 };
+// Shape can't overshoot (a corner past round is still round), so the bounce
+// shows up as size: past open the circle swells, past closed the square end
+// squishes. Swelling a closed end would poke it out above and below the pill.
+const SWELL = 1;
+const SQUISH = 0.5;
+
+const roundnessOf = (morph: number) => Math.min(Math.max(morph, 0), 1);
+const swellOf = (morph: number) =>
+  1 + (morph > 1 ? (morph - 1) * SWELL : Math.min(morph, 0) * SQUISH);
 
 // seq makes a repeat of the same action a new value, restarting the timer.
 interface Confirmation {
@@ -51,19 +60,35 @@ export const SplitButton = () => {
   const [confirmation, setConfirmation] = useState<Confirmation | null>(null);
 
   const morph = useSpring(0, MORPH_SPRING);
-  const roundness = useTransform(morph, [0, 1], [0, 1], { clamp: true });
-  const cornerRadius = useTransform(roundness, (r) => r * TRAILING_RADIUS);
+  const scale = useTransform(morph, swellOf);
+  const cornerRadius = useTransform(morph, (m) => roundnessOf(m) * TRAILING_RADIUS);
   const chevronRotate = useTransform(morph, [0, 1], [0, 180]);
-  const chevronShift = useTransform(roundness, [0, 1], [-2, 0]);
-  // The notch is the trailing button's left edge grown by the seam: a flat edge
-  // plus two fillets of radius corner + seam, each the corner of a tile whose
-  // quarter-disc is cut out. At rest the fillets sit wholly outside the face.
-  const filletRadius = useTransform(cornerRadius, (r) => r + SEAM);
+  const chevronShift = useTransform(morph, (m) => (roundnessOf(m) - 1) * 2);
+  // The notch is the trailing button's visible left edge grown by the seam: a flat
+  // edge plus two fillets of radius corner + seam, each the corner of a tile whose
+  // quarter-disc is cut out. Swelling scales about the button's centre, so the
+  // edge recedes and the fillets spread with it. At rest the fillets sit wholly
+  // outside the face.
+  const seamX = useTransform(morph, (m) => LEADING_WIDTH - TRAILING_RADIUS * (swellOf(m) - 1));
+  const filletRadius = useTransform(
+    morph,
+    (m) => roundnessOf(m) * TRAILING_RADIUS * swellOf(m) + SEAM,
+  );
+  const filletTop = useTransform(morph, (m) => TRAILING_RADIUS * (1 - swellOf(m)) - SEAM);
+  const filletBottom = useTransform(
+    morph,
+    (m) =>
+      TRAILING_RADIUS * (1 + swellOf(m)) +
+      SEAM -
+      (roundnessOf(m) * TRAILING_RADIUS * swellOf(m) + SEAM),
+  );
   const notchMask = {
     maskImage: useMotionTemplate`linear-gradient(#000, #000), radial-gradient(circle ${filletRadius}px at 100% 100%, transparent ${filletRadius}px, #000 calc(${filletRadius}px + 0.5px)), radial-gradient(circle ${filletRadius}px at 100% 0, transparent ${filletRadius}px, #000 calc(${filletRadius}px + 0.5px))`,
-    maskPosition: useMotionTemplate`0 0, ${LEADING_WIDTH}px ${-SEAM}px, ${LEADING_WIDTH}px calc(${TRAILING_SIZE + SEAM}px - ${filletRadius}px)`,
+    // Fillet tiles start a pixel inside the flat part: abutting at a fractional x
+    // leaves an antialiased hairline between the layers.
+    maskPosition: useMotionTemplate`0 0, calc(${seamX}px - 1px) ${filletTop}px, calc(${seamX}px - 1px) ${filletBottom}px`,
     maskRepeat: "no-repeat",
-    maskSize: useMotionTemplate`${LEADING_WIDTH}px 100%, ${filletRadius}px ${filletRadius}px, ${filletRadius}px ${filletRadius}px`,
+    maskSize: useMotionTemplate`${seamX}px 100%, calc(${filletRadius}px + 1px) ${filletRadius}px, calc(${filletRadius}px + 1px) ${filletRadius}px`,
   };
 
   const confirm = (id: ActionId) => {
@@ -172,6 +197,7 @@ export const SplitButton = () => {
             borderBottomLeftRadius: cornerRadius,
             borderTopLeftRadius: cornerRadius,
             height: TRAILING_SIZE,
+            scale,
             width: TRAILING_SIZE,
           }}
         >
