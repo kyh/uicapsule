@@ -123,6 +123,11 @@ export const useCycle = (count: number, ms = 2200, start = 0) => {
       setHeld(false);
       return;
     }
+    // Focus handlers map pointer positions to indices with findIndex/round;
+    // a miss (-1, NaN, past the end) must not park the cycle off-canvas.
+    if (!Number.isInteger(i) || i < 0 || i >= count) {
+      return;
+    }
     setHeld(true);
     setIndex(i);
   };
