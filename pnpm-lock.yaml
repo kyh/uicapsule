@@ -158,6 +158,12 @@ catalogs:
     drizzle-orm:
       specifier: 1.0.0-rc.4
       version: 1.0.0-rc.4
+    lucide-react:
+      specifier: ^1.61.0
+      version: 1.61.0
+    motion:
+      specifier: ^14.6.0
+      version: 14.6.0
     next:
       specifier: ^16.4.3
       version: 16.4.3
@@ -278,10 +284,10 @@ importers:
         specifier: ^3.10.2
         version: 3.10.2
       lucide-react:
-        specifier: ^1.61.0
+        specifier: 'catalog:'
         version: 1.61.0(@types/react@19.3.0)(react@19.3.1)
       motion:
-        specifier: ^14.6.0
+        specifier: 'catalog:'
         version: 14.6.0(react-dom@19.3.1(react@19.3.1))(react@19.3.1)
       next:
         specifier: 'catalog:'
@@ -342,10 +348,10 @@ importers:
   content/airdrop-radar:
     dependencies:
       lucide-react:
-        specifier: ^1.61.0
+        specifier: 'catalog:'
         version: 1.61.0(@types/react@19.3.0)(react@19.3.1)
       motion:
-        specifier: ^14.6.0
+        specifier: 'catalog:'
         version: 14.6.0(react-dom@19.3.1(react@19.3.1))(react@19.3.1)
       react:
         specifier: 'catalog:'
@@ -493,10 +499,10 @@ importers:
   content/circle-to-search:
     dependencies:
       lucide-react:
-        specifier: ^1.61.0
+        specifier: 'catalog:'
         version: 1.61.0(@types/react@19.3.0)(react@19.3.1)
       motion:
-        specifier: ^14.6.0
+        specifier: 'catalog:'
         version: 14.6.0(react-dom@19.3.1(react@19.3.1))(react@19.3.1)
       react:
         specifier: 'catalog:'
@@ -515,10 +521,10 @@ importers:
   content/context-menu-peek:
     dependencies:
       lucide-react:
-        specifier: ^1.61.0
+        specifier: 'catalog:'
         version: 1.61.0(@types/react@19.3.0)(react@19.3.1)
       motion:
-        specifier: ^14.6.0
+        specifier: 'catalog:'
         version: 14.6.0(react-dom@19.3.1(react@19.3.1))(react@19.3.1)
       react:
         specifier: 'catalog:'
@@ -540,7 +546,7 @@ importers:
         specifier: ^3.15.0
         version: 3.15.0
       lucide-react:
-        specifier: ^1.61.0
+        specifier: 'catalog:'
         version: 1.61.0(@types/react@19.3.0)(react@19.3.1)
       react:
         specifier: 'catalog:'
@@ -559,7 +565,7 @@ importers:
   content/diffusion-reveal:
     dependencies:
       motion:
-        specifier: ^14.6.0
+        specifier: 'catalog:'
         version: 14.6.0(react-dom@19.3.1(react@19.3.1))(react@19.3.1)
       react:
         specifier: 'catalog:'
@@ -578,7 +584,7 @@ importers:
   content/drum-picker:
     dependencies:
       motion:
-        specifier: ^14.6.0
+        specifier: 'catalog:'
         version: 14.6.0(react-dom@19.3.1(react@19.3.1))(react@19.3.1)
       react:
         specifier: 'catalog:'
@@ -597,10 +603,10 @@ importers:
   content/dynamic-ai-composer:
     dependencies:
       lucide-react:
-        specifier: ^1.61.0
+        specifier: 'catalog:'
         version: 1.61.0(@types/react@19.3.0)(react@19.3.1)
       motion:
-        specifier: ^14.6.0
+        specifier: 'catalog:'
         version: 14.6.0(react-dom@19.3.1(react@19.3.1))(react@19.3.1)
       react:
         specifier: 'catalog:'
@@ -619,10 +625,10 @@ importers:
   content/dynamic-island:
     dependencies:
       lucide-react:
-        specifier: ^1.61.0
+        specifier: 'catalog:'
         version: 1.61.0(@types/react@19.3.0)(react@19.3.1)
       motion:
-        specifier: ^14.6.0
+        specifier: 'catalog:'
         version: 14.6.0(react-dom@19.3.1(react@19.3.1))(react@19.3.1)
       react:
         specifier: 'catalog:'
@@ -663,10 +669,10 @@ importers:
         specifier: ^1.1.1
         version: 1.1.1
       lucide-react:
-        specifier: ^1.61.0
+        specifier: 'catalog:'
         version: 1.61.0(@types/react@19.3.0)(react@19.3.1)
       motion:
-        specifier: ^14.6.0
+        specifier: 'catalog:'
         version: 14.6.0(react-dom@19.3.1(react@19.3.1))(react@19.3.1)
       react:
         specifier: 'catalog:'
@@ -697,10 +703,10 @@ importers:
         specifier: 'catalog:'
         version: 0.4.0
       lucide-react:
-        specifier: ^1.61.0
+        specifier: 'catalog:'
         version: 1.61.0(@types/react@19.3.0)(react@19.3.1)
       motion:
-        specifier: ^14.6.0
+        specifier: 'catalog:'
         version: 14.6.0(react-dom@19.3.1(react@19.3.1))(react@19.3.1)
       react:
         specifier: 'catalog:'
@@ -737,7 +743,7 @@ importers:
         specifier: ^4.4.0
         version: 4.4.0
       lucide-react:
-        specifier: ^1.61.0
+        specifier: 'catalog:'
         version: 1.61.0(@types/react@19.3.0)(react@19.3.1)
       react:
         specifier: 'catalog:'
@@ -834,7 +840,7 @@ importers:
         specifier: ^3.15.0
         version: 3.15.0
       lucide-react:
-        specifier: ^1.61.0
+        specifier: 'catalog:'
         version: 1.61.0(@types/react@19.3.0)(react@19.3.1)
       react:
         specifier: 'catalog:'
@@ -853,7 +859,7 @@ importers:
   content/infinite-grid:
     dependencies:
       motion:
-        specifier: ^14.6.0
+        specifier: 'catalog:'
         version: 14.6.0(react-dom@19.3.1(react@19.3.1))(react@19.3.1)
       react:
         specifier: 'catalog:'
@@ -875,7 +881,7 @@ importers:
         specifier: ^1.6.1
         version: 1.6.1(@types/react-dom@19.3.0(@types/react@19.3.0))(@types/react@19.3.0)(react-dom@19.3.1(react@19.3.1))(react@19.3.1)
       motion:
-        specifier: ^14.6.0
+        specifier: 'catalog:'
         version: 14.6.0(react-dom@19.3.1(react@19.3.1))(react@19.3.1)
       react:
         specifier: 'catalog:'
@@ -894,10 +900,10 @@ importers:
   content/jiggle-mode:
     dependencies:
       lucide-react:
-        specifier: ^1.61.0
+        specifier: 'catalog:'
         version: 1.61.0(@types/react@19.3.0)(react@19.3.1)
       motion:
-        specifier: ^14.6.0
+        specifier: 'catalog:'
         version: 14.6.0(react-dom@19.3.1(react@19.3.1))(react@19.3.1)
       react:
         specifier: 'catalog:'
@@ -916,7 +922,7 @@ importers:
   content/light-dark-toggle:
     dependencies:
       motion:
-        specifier: ^14.6.0
+        specifier: 'catalog:'
         version: 14.6.0(react-dom@19.3.1(react@19.3.1))(react@19.3.1)
       react:
         specifier: 'catalog:'
@@ -938,7 +944,7 @@ importers:
         specifier: ^0.6.2
         version: 0.6.2(react-dom@19.3.1(react@19.3.1))(react@19.3.1)
       motion:
-        specifier: ^14.6.0
+        specifier: 'catalog:'
         version: 14.6.0(react-dom@19.3.1(react@19.3.1))(react@19.3.1)
       react:
         specifier: 'catalog:'
@@ -978,7 +984,7 @@ importers:
         specifier: ^3.15.0
         version: 3.15.0
       lucide-react:
-        specifier: ^1.61.0
+        specifier: 'catalog:'
         version: 1.61.0(@types/react@19.3.0)(react@19.3.1)
       react:
         specifier: 'catalog:'
@@ -997,10 +1003,10 @@ importers:
   content/material-you-theming:
     dependencies:
       lucide-react:
-        specifier: ^1.61.0
+        specifier: 'catalog:'
         version: 1.61.0(@types/react@19.3.0)(react@19.3.1)
       motion:
-        specifier: ^14.6.0
+        specifier: 'catalog:'
         version: 14.6.0(react-dom@19.3.1(react@19.3.1))(react@19.3.1)
       react:
         specifier: 'catalog:'
@@ -1063,10 +1069,10 @@ importers:
   content/pattern-unlock:
     dependencies:
       lucide-react:
-        specifier: ^1.61.0
+        specifier: 'catalog:'
         version: 1.61.0(@types/react@19.3.0)(react@19.3.1)
       motion:
-        specifier: ^14.6.0
+        specifier: 'catalog:'
         version: 14.6.0(react-dom@19.3.1(react@19.3.1))(react@19.3.1)
       react:
         specifier: 'catalog:'
@@ -1085,10 +1091,10 @@ importers:
   content/pip-window:
     dependencies:
       lucide-react:
-        specifier: ^1.61.0
+        specifier: 'catalog:'
         version: 1.61.0(@types/react@19.3.0)(react@19.3.1)
       motion:
-        specifier: ^14.6.0
+        specifier: 'catalog:'
         version: 14.6.0(react-dom@19.3.1(react@19.3.1))(react@19.3.1)
       react:
         specifier: 'catalog:'
@@ -1107,10 +1113,10 @@ importers:
   content/predictive-back:
     dependencies:
       lucide-react:
-        specifier: ^1.61.0
+        specifier: 'catalog:'
         version: 1.61.0(@types/react@19.3.0)(react@19.3.1)
       motion:
-        specifier: ^14.6.0
+        specifier: 'catalog:'
         version: 14.6.0(react-dom@19.3.1(react@19.3.1))(react@19.3.1)
       react:
         specifier: 'catalog:'
@@ -1132,7 +1138,7 @@ importers:
         specifier: ^0.6.2
         version: 0.6.2(react-dom@19.3.1(react@19.3.1))(react@19.3.1)
       motion:
-        specifier: ^14.6.0
+        specifier: 'catalog:'
         version: 14.6.0(react-dom@19.3.1(react@19.3.1))(react@19.3.1)
       react:
         specifier: 'catalog:'
@@ -1151,10 +1157,10 @@ importers:
   content/screenshot-capture:
     dependencies:
       lucide-react:
-        specifier: ^1.61.0
+        specifier: 'catalog:'
         version: 1.61.0(@types/react@19.3.0)(react@19.3.1)
       motion:
-        specifier: ^14.6.0
+        specifier: 'catalog:'
         version: 14.6.0(react-dom@19.3.1(react@19.3.1))(react@19.3.1)
       react:
         specifier: 'catalog:'
@@ -1173,7 +1179,7 @@ importers:
   content/seek-filmstrip:
     dependencies:
       motion:
-        specifier: ^14.6.0
+        specifier: 'catalog:'
         version: 14.6.0(react-dom@19.3.1(react@19.3.1))(react@19.3.1)
       react:
         specifier: 'catalog:'
@@ -1192,7 +1198,7 @@ importers:
   content/sidebar:
     dependencies:
       lucide-react:
-        specifier: ^1.61.0
+        specifier: 'catalog:'
         version: 1.61.0(@types/react@19.3.0)(react@19.3.1)
       react:
         specifier: 'catalog:'
@@ -1264,7 +1270,7 @@ importers:
         specifier: 'catalog:'
         version: 0.4.0
       lucide-react:
-        specifier: ^1.61.0
+        specifier: 'catalog:'
         version: 1.61.0(@types/react@19.3.0)(react@19.3.1)
       react:
         specifier: 'catalog:'
@@ -1327,7 +1333,7 @@ importers:
         specifier: ^0.6.2
         version: 0.6.2(react-dom@19.3.1(react@19.3.1))(react@19.3.1)
       lucide-react:
-        specifier: ^1.61.0
+        specifier: 'catalog:'
         version: 1.61.0(@types/react@19.3.0)(react@19.3.1)
       react:
         specifier: 'catalog:'
@@ -1349,7 +1355,7 @@ importers:
         specifier: ^0.27.20
         version: 0.27.20(react-dom@19.3.1(react@19.3.1))(react@19.3.1)
       motion:
-        specifier: ^14.6.0
+        specifier: 'catalog:'
         version: 14.6.0(react-dom@19.3.1(react@19.3.1))(react@19.3.1)
       react:
         specifier: 'catalog:'
@@ -1368,7 +1374,7 @@ importers:
   content/vibe-dial:
     dependencies:
       motion:
-        specifier: ^14.6.0
+        specifier: 'catalog:'
         version: 14.6.0(react-dom@19.3.1(react@19.3.1))(react@19.3.1)
       react:
         specifier: 'catalog:'
@@ -1387,7 +1393,7 @@ importers:
   content/voice-dictator:
     dependencies:
       motion:
-        specifier: ^14.6.0
+        specifier: 'catalog:'
         version: 14.6.0(react-dom@19.3.1(react@19.3.1))(react@19.3.1)
       react:
         specifier: 'catalog:'
@@ -1406,10 +1412,10 @@ importers:
   content/volume-control:
     dependencies:
       lucide-react:
-        specifier: ^1.61.0
+        specifier: 'catalog:'
         version: 1.61.0(@types/react@19.3.0)(react@19.3.1)
       motion:
-        specifier: ^14.6.0
+        specifier: 'catalog:'
         version: 14.6.0(react-dom@19.3.1(react@19.3.1))(react@19.3.1)
       react:
         specifier: 'catalog:'
@@ -1444,10 +1450,10 @@ importers:
   content/widget-stack:
     dependencies:
       lucide-react:
-        specifier: ^1.61.0
+        specifier: 'catalog:'
         version: 1.61.0(@types/react@19.3.0)(react@19.3.1)
       motion:
-        specifier: ^14.6.0
+        specifier: 'catalog:'
         version: 14.6.0(react-dom@19.3.1(react@19.3.1))(react@19.3.1)
       react:
         specifier: 'catalog:'
@@ -1605,10 +1611,10 @@ importers:
         specifier: ^4.4.0
         version: 4.4.0
       lucide-react:
-        specifier: ^1.61.0
+        specifier: 'catalog:'
         version: 1.61.0(@types/react@19.3.0)(react@19.3.1)
       motion:
-        specifier: ^14.6.0
+        specifier: 'catalog:'
         version: 14.6.0(react-dom@19.3.1(react@19.3.1))(react@19.3.1)
       react:
         specifier: 'catalog:'

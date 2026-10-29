@@ -16,7 +16,7 @@
     "@tanstack/react-table": "^9.3.1",
     "@tanstack/react-virtual": "^3.14.22",
     "cn": "catalog:",
-    "lucide-react": "^1.61.0",
+    "lucide-react": "catalog:",
     "react": "catalog:",
     "react-dom": "catalog:",
     "zod": "catalog:",
