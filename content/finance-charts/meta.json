@@ -1,0 +1,10 @@
+{
+  "name": "Finance Charts",
+  "description": "Sixty-two fintech dashboard cards — highlighted bars, scrubbable areas, range bands, radials, flows and more — drawn with TanStack Charts and sprung in with motion as the wall scrolls past.",
+  "addedAt": "2026-10-29",
+  "inspiredBy": [
+    { "label": "Mebius — Free Charts", "url": "https://www.mebius.design/freebies/charts" }
+  ],
+  "tags": ["data", "colorful"],
+  "defaultSize": "full"
+}
