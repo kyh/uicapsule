@@ -1252,10 +1252,10 @@ importers:
   content/split-button:
     dependencies:
       lucide-react:
-        specifier: ^1.61.0
+        specifier: 'catalog:'
         version: 1.61.0(@types/react@19.3.0)(react@19.3.1)
       motion:
-        specifier: ^14.6.0
+        specifier: 'catalog:'
         version: 14.6.0(react-dom@19.3.1(react@19.3.1))(react@19.3.1)
       react:
         specifier: 'catalog:'
