@@ -37,4 +37,9 @@ export const THEME = {
 };
 
 /** Dashed horizontal grid rules, the house style for value axes. */
-export const DASHED_GRID = { stroke: GRID, strokeDasharray: "4 4", strokeWidth: 1 } as const;
+export const DASHED_GRID = {
+  stroke: "#e2e2e7",
+  strokeDasharray: "4 4",
+  strokeOpacity: 1,
+  strokeWidth: 1,
+} as const;

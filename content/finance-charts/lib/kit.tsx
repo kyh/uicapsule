@@ -351,7 +351,7 @@ export const Label = ({
   </p>
 );
 
-/** Pill tabs with a sprung thumb. Auto-cycles while active unless `cycle` is 0. */
+/** Pill tabs with a sprung thumb. Drive `value`/`onChange` from `useCycle` to auto-advance. */
 export const Segmented = ({
   options,
   value,
