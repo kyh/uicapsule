@@ -77,7 +77,7 @@ const fade = (id: string, color: string, top: number) => ({
   y2: 1,
 });
 
-const InvestmentAppUserAgeBody = () => {
+export const InvestmentAppUserAge = () => {
   const id = useId();
   const [hi, pin] = useCycle(GROUPS.length, 2300, 1);
   const group = GROUPS[hi] ?? GROUPS[1];
@@ -135,7 +135,7 @@ const InvestmentAppUserAgeBody = () => {
   }, [hi]);
 
   return (
-    <>
+    <Card>
       <div className="flex items-start justify-between gap-3">
         <div className="flex items-center gap-3">
           <IconTile icon={PiggyBank} color={ORANGE} size={40} className="!rounded-[12px]" />
@@ -193,13 +193,6 @@ const InvestmentAppUserAgeBody = () => {
           ))}
         </div>
       </div>
-    </>
+    </Card>
   );
 };
-
-/** Card is the activation provider, so the cycling body must render inside it. */
-export const InvestmentAppUserAge = () => (
-  <Card>
-    <InvestmentAppUserAgeBody />
-  </Card>
-);

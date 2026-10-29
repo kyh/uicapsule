@@ -55,7 +55,7 @@ const nearestIndex = (list: readonly number[], target: number) => {
 
 const monthOf = (i: number) => MONTHS[Math.min(7, Math.round(i / PER_MONTH))] ?? "Jan";
 
-const CashFlowAreaBody = () => {
+export const CashFlowArea = () => {
   const [stop, pin] = useCycle(STOPS.length, 1800, 6);
   const at = STOPS[stop] ?? 0;
   const picked = ROWS[at] ?? ROWS[0];
@@ -194,7 +194,7 @@ const CashFlowAreaBody = () => {
   const DiffIcon = diff >= 0 ? CircleArrowUp : CircleArrowDown;
 
   return (
-    <>
+    <Card>
       <div className="flex items-start justify-between gap-3">
         <div>
           <h3 className="flex items-center gap-2 text-[16px] font-semibold tracking-[-0.01em]">
@@ -274,13 +274,6 @@ const CashFlowAreaBody = () => {
           </Bubble>
         </PlotOverlay>
       </ChartSlot>
-    </>
+    </Card>
   );
 };
-
-// `useCycle` reads the card's in-view state, so the body renders inside <Card>.
-export const CashFlowArea = () => (
-  <Card>
-    <CashFlowAreaBody />
-  </Card>
-);

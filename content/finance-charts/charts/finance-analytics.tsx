@@ -64,7 +64,7 @@ const Pill = ({ hot }: { hot?: boolean }) => (
   />
 );
 
-const FinanceAnalyticsBody = () => {
+export const FinanceAnalytics = () => {
   const [hi, pin] = useCycle(MONTHS.length, 2000, 3);
   const picked = rows[hi] ?? rows[0];
 
@@ -147,10 +147,10 @@ const FinanceAnalyticsBody = () => {
     [picked],
   );
 
-  const right = hi < 6;
+  const right = hi < 5;
 
   return (
-    <>
+    <Card>
       <div className="flex items-start justify-between gap-2">
         <div className="min-w-0">
           <h3 className="text-[17px] font-semibold tracking-[-0.01em]">Finance Analytics</h3>
@@ -223,14 +223,6 @@ const FinanceAnalyticsBody = () => {
           </Bubble>
         </PlotOverlay>
       </ChartSlot>
-    </>
+    </Card>
   );
 };
-
-// The cycle, count-ups and chart mount read the card's in-view state, so the
-// body renders inside <Card> rather than beside it.
-export const FinanceAnalytics = () => (
-  <Card>
-    <FinanceAnalyticsBody />
-  </Card>
-);

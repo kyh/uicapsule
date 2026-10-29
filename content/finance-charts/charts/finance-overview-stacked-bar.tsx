@@ -49,7 +49,7 @@ interface Seg {
   y2: number;
 }
 
-const FinanceOverviewStackedBarBody = () => {
+export const FinanceOverviewStackedBar = () => {
   const [hi, pin] = useCycle(WEEKDAYS.length, 2200, 5);
   const dayTotal = (SPEND[hi] ?? []).reduce((a: number, b) => a + b, 0);
 
@@ -125,7 +125,7 @@ const FinanceOverviewStackedBarBody = () => {
   }, [hi]);
 
   return (
-    <>
+    <Card>
       <div className="flex items-start justify-between">
         <h3 className="pt-1 text-[16px] font-semibold tracking-[-0.01em]">Finance Overview</h3>
         <MoreButton />
@@ -199,13 +199,6 @@ const FinanceOverviewStackedBarBody = () => {
           /week
         </span>
       </div>
-    </>
+    </Card>
   );
 };
-
-/** Card is the activation provider, so the cycling body must render inside it. */
-export const FinanceOverviewStackedBar = () => (
-  <Card>
-    <FinanceOverviewStackedBarBody />
-  </Card>
-);

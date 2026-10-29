@@ -45,7 +45,7 @@ const curve = d3Curve(curveMonotoneX);
 const yearLabel = (x: number) => String(FIRST + Math.floor(x));
 const millions = (n: number) => `$${n.toFixed(1)}M`;
 
-const GlobalFinanceMarketForecastBody = () => {
+export const GlobalFinanceMarketForecast = () => {
   const [stop, pin] = useCycle(STOPS.length, 2400, START);
   const sx = STOPS[stop] ?? 6.5;
   const year = FIRST + Math.floor(sx);
@@ -188,7 +188,7 @@ const GlobalFinanceMarketForecastBody = () => {
   }, [sx, headline]);
 
   return (
-    <>
+    <Card className="!p-0">
       <div className="p-5 pb-4">
         <div className="flex items-start justify-between gap-3">
           <div className="min-w-0">
@@ -292,13 +292,6 @@ const GlobalFinanceMarketForecastBody = () => {
           </div>
         </ChartSlot>
       </div>
-    </>
+    </Card>
   );
 };
-
-/** Card is the activation provider, so the cycling body must render inside it. */
-export const GlobalFinanceMarketForecast = () => (
-  <Card className="!p-0">
-    <GlobalFinanceMarketForecastBody />
-  </Card>
-);

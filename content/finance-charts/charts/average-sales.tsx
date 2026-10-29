@@ -62,7 +62,7 @@ const wire = (i: number, h: number): Pt[] => {
   ];
 };
 
-const AverageSalesBody = () => {
+export const AverageSales = () => {
   const [hi, pin] = useCycle(REVENUE.length, 2400, 3);
   const revenue = REVENUE[hi] ?? 0;
   const growth = GROWTH[hi] ?? 0;
@@ -154,7 +154,7 @@ const AverageSalesBody = () => {
   }, [hi]);
 
   return (
-    <>
+    <Card>
       <div className="flex items-center justify-between gap-2">
         <h3 className="text-[15px] font-semibold tracking-[-0.01em]">Average Sales</h3>
         <div className="flex items-center gap-1.5">
@@ -201,13 +201,6 @@ const AverageSalesBody = () => {
       <p className="mt-2 text-[12px] leading-snug" style={{ color: "#52525b" }}>
         This week revenue increased due to a 4.4 promo
       </p>
-    </>
+    </Card>
   );
 };
-
-/** Card is the activation provider, so the cycling body must render inside it. */
-export const AverageSales = () => (
-  <Card>
-    <AverageSalesBody />
-  </Card>
-);

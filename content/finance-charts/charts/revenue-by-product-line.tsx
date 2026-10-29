@@ -41,7 +41,7 @@ const gradient = (id: string, top: string, bottom: string, opacity: number) => (
   y2: 1,
 });
 
-const RevenueByProductLineBody = () => {
+export const RevenueByProductLine = () => {
   const [hi, pin] = useCycle(LINES.length, 2600, 0);
   const line = LINES[hi] ?? LINES[0];
   const gap = (1 - line.top / line.avg) * 100;
@@ -110,7 +110,7 @@ const RevenueByProductLineBody = () => {
   );
 
   return (
-    <>
+    <Card className="!p-0">
       <div className="px-5 pt-5 pb-4">
         <h3 className="text-[16px] font-semibold tracking-[-0.01em]">Revenue by product line</h3>
         <p className="mt-0.5 text-[12px]" style={{ color: MUTED }}>
@@ -177,13 +177,6 @@ const RevenueByProductLineBody = () => {
           </button>
         </div>
       </div>
-    </>
+    </Card>
   );
 };
-
-/** Card is the activation provider, so the cycling body must render inside it. */
-export const RevenueByProductLine = () => (
-  <Card className="!p-0">
-    <RevenueByProductLineBody />
-  </Card>
-);

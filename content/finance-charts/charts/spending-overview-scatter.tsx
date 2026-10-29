@@ -81,7 +81,7 @@ const totals = SPAN.map((_, i) => {
 
 const FULL = ["January", "February", "March", "April", "May", "June", "July"] as const;
 
-const SpendingOverviewScatterBody = () => {
+export const SpendingOverviewScatter = () => {
   const [month, pin] = useCycle(SPAN.length, 2300, 2);
   const values = totals[month] ?? totals[0];
 
@@ -181,7 +181,7 @@ const SpendingOverviewScatterBody = () => {
   const right = month <= 2;
 
   return (
-    <>
+    <Card>
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0">
           <h3 className="text-[17px] font-semibold tracking-[-0.01em]">Spending Overview</h3>
@@ -255,14 +255,6 @@ const SpendingOverviewScatterBody = () => {
           </div>
         ))}
       </div>
-    </>
+    </Card>
   );
 };
-
-// The cycle, count-ups and chart mount read the card's in-view state, so the
-// body renders inside <Card> rather than beside it.
-export const SpendingOverviewScatter = () => (
-  <Card>
-    <SpendingOverviewScatterBody />
-  </Card>
-);

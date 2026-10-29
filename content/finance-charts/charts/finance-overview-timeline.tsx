@@ -64,7 +64,7 @@ const TIERS: Tier[] = ["light", "mid", "dark"];
 const HEIGHT = 150;
 const MARGIN = { bottom: 26, left: 0, right: 0, top: 0 };
 
-const FinanceOverviewTimelineBody = () => {
+export const FinanceOverviewTimeline = () => {
   const [w, pin] = useCycle(WEEKS.length, 3000);
   const week = WEEKS[w] ?? WEEKS[0];
 
@@ -126,7 +126,7 @@ const FinanceOverviewTimelineBody = () => {
   ];
 
   return (
-    <>
+    <Card>
       <CardHeader
         icon={PieChart}
         color={VIOLET}
@@ -174,13 +174,6 @@ const FinanceOverviewTimelineBody = () => {
           Share with friends
         </button>
       </div>
-    </>
+    </Card>
   );
 };
-
-/** Card is the activation provider, so the cycling body must render inside it. */
-export const FinanceOverviewTimeline = () => (
-  <Card>
-    <FinanceOverviewTimelineBody />
-  </Card>
-);

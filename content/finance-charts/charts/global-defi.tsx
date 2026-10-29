@@ -43,7 +43,7 @@ const MARGIN = { bottom: 22, left: 0, right: 0, top: 0 };
 // Eight reveal steps, then two beats holding the full decade.
 const STEPS = YEARS + 2;
 
-const GlobalDefiBody = () => {
+export const GlobalDefi = () => {
   const [step, pin] = useCycle(STEPS, 900, STEPS - 1);
   const years = Math.min(YEARS, step + 1);
 
@@ -101,7 +101,7 @@ const GlobalDefiBody = () => {
   }, [years]);
 
   return (
-    <>
+    <Card className="!bg-[#f6f6f7] !p-1.5">
       <div className="flex items-center justify-between px-3 pt-2 pb-2.5">
         <h3 className="text-[16px] font-semibold tracking-[-0.01em]">Global DeFi</h3>
         <MoreButton className="bg-white" />
@@ -129,13 +129,6 @@ const GlobalDefiBody = () => {
           </div>
         </ChartSlot>
       </div>
-    </>
+    </Card>
   );
 };
-
-/** Card is the activation provider, so the cycling body must render inside it. */
-export const GlobalDefi = () => (
-  <Card className="!bg-[#f6f6f7] !p-1.5">
-    <GlobalDefiBody />
-  </Card>
-);

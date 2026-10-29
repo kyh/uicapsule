@@ -54,7 +54,7 @@ const TICKS = [0, 25, 50, 75, 100];
 const GAP = 0.035;
 const BAR = 1;
 
-const PerformanceBody = () => {
+export const Performance = () => {
   const [day, pin] = useCycle(DAYS.length, 2300, 4);
   const today = DAYS[day] ?? DAYS[4];
 
@@ -119,7 +119,7 @@ const PerformanceBody = () => {
   }, [today]);
 
   return (
-    <>
+    <Card className="!bg-[#f6f6f7] !p-2">
       <div className="rounded-[16px] bg-white p-3">
         <h3 className="inline-flex items-center gap-1.5 px-1 text-[15px] font-semibold tracking-[-0.01em]">
           Performance <CircleHelp className="size-3.5" style={{ color: MUTED }} />
@@ -189,13 +189,6 @@ const PerformanceBody = () => {
           </AnimatePresence>
         </div>
       </div>
-    </>
+    </Card>
   );
 };
-
-/** Card is the activation provider, so the cycling body must render inside it. */
-export const Performance = () => (
-  <Card className="!bg-[#f6f6f7] !p-2">
-    <PerformanceBody />
-  </Card>
-);

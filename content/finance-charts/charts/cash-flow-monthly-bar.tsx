@@ -74,7 +74,7 @@ const HEIGHT = 230;
 const X0 = -0.5;
 const X1 = 5.5;
 
-const CashFlowMonthlyBarBody = () => {
+export const CashFlowMonthlyBar = () => {
   const [hi, pin] = useCycle(PAIRS.length, 2100, 2);
   const pair = PAIRS[hi] ?? PAIRS[0];
 
@@ -192,7 +192,7 @@ const CashFlowMonthlyBarBody = () => {
   const left = ((hi + (flip ? -0.45 : 0.45) - X0) / (X1 - X0)) * 100;
 
   return (
-    <>
+    <Card>
       <CardHeader
         title="Cash Flow"
         subtitle="Track money moving in and out across all accounts"
@@ -234,13 +234,6 @@ const CashFlowMonthlyBarBody = () => {
           </Bubble>
         </PlotOverlay>
       </ChartSlot>
-    </>
+    </Card>
   );
 };
-
-// `useCycle` reads the card's in-view state, so the body renders inside <Card>.
-export const CashFlowMonthlyBar = () => (
-  <Card>
-    <CashFlowMonthlyBarBody />
-  </Card>
-);

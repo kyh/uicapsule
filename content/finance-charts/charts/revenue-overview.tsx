@@ -38,7 +38,7 @@ const ring = (inner: number, outer: number) => ({
   outerRadius: ({ radius }: { radius: number }) => radius * outer,
 });
 
-const RevenueOverviewBody = () => {
+export const RevenueOverview = () => {
   const active = useActive();
   // Walk the highlight over the last five months, landing on the current one.
   const [step, pin] = useCycle(STOPS.length - FIRST_ACTIVE, 1700, STOPS.length - FIRST_ACTIVE - 1);
@@ -180,7 +180,7 @@ const RevenueOverviewBody = () => {
   }, [head, hi, end]);
 
   return (
-    <>
+    <Card>
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0">
           <h3 className="text-[17px] font-semibold tracking-[-0.01em]">Revenue Overview</h3>
@@ -246,14 +246,6 @@ const RevenueOverviewBody = () => {
           View details <ArrowUpRight className="size-3.5" />
         </span>
       </div>
-    </>
+    </Card>
   );
 };
-
-// The cycle, count-ups and chart mount read the card's in-view state, so the
-// body renders inside <Card> rather than beside it.
-export const RevenueOverview = () => (
-  <Card>
-    <RevenueOverviewBody />
-  </Card>
-);

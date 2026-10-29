@@ -118,7 +118,7 @@ const PriceBox = ({ label, value, change }: { label: string; value: number; chan
   </div>
 );
 
-const PriceRangeBody = () => {
+export const PriceRange = () => {
   const [pair, setPair] = useState(0);
   const [range, pin] = useCycle(RANGES.length, 3200);
   const {
@@ -214,7 +214,7 @@ const PriceRangeBody = () => {
   );
 
   return (
-    <>
+    <Card className="!bg-[#f4f4f6] !p-1.5">
       <div className="rounded-[18px] bg-white px-3.5 py-3 ring-1 ring-black/[0.04]">
         <div className="flex items-center justify-between gap-2">
           <div className="flex items-center gap-2">
@@ -274,13 +274,6 @@ const PriceRangeBody = () => {
           </div>
         </div>
       </div>
-    </>
+    </Card>
   );
 };
-
-// `useCycle` reads the card's in-view state, so the body renders inside <Card>.
-export const PriceRange = () => (
-  <Card className="!bg-[#f4f4f6] !p-1.5">
-    <PriceRangeBody />
-  </Card>
-);

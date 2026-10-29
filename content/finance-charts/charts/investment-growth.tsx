@@ -48,7 +48,7 @@ const WEEKS = [
 const HEIGHT = 150;
 const MARGIN = { bottom: 26, left: 0, right: 0, top: 4 };
 
-const InvestmentGrowthBody = () => {
+export const InvestmentGrowth = () => {
   const [w, pin] = useCycle(WEEKS.length, 3200);
   const current = WEEKS[w] ?? WEEKS[0];
 
@@ -89,7 +89,7 @@ const InvestmentGrowthBody = () => {
   );
 
   return (
-    <>
+    <Card>
       <div className="flex items-start justify-between">
         <h3 className="pt-1 text-[16px] font-semibold tracking-[-0.01em]">Investment Growth</h3>
         <MoreButton />
@@ -129,13 +129,6 @@ const InvestmentGrowthBody = () => {
           <span className="text-[#52525b]">Portfolio grew steadily towards the weekend</span>
         </p>
       </div>
-    </>
+    </Card>
   );
 };
-
-/** Card is the activation provider, so the cycling body must render inside it. */
-export const InvestmentGrowth = () => (
-  <Card>
-    <InvestmentGrowthBody />
-  </Card>
-);

@@ -84,7 +84,7 @@ const STATS = [
   { delta: 6.82, format: (n: number) => `$${n.toFixed(1)}M`, label: "2027 Forecast", value: 63.6 },
 ] as const;
 
-const GlobalFinanceMarketComboBody = () => {
+export const GlobalFinanceMarketCombo = () => {
   const [hi, pin] = useCycle(SPAN.length, 2200, 4);
   const at = Math.min(N - 1, Math.round((hi + 0.5) * PER));
   const picked = actual[at] ?? actual[0];
@@ -182,7 +182,7 @@ const GlobalFinanceMarketComboBody = () => {
   );
 
   return (
-    <>
+    <Card>
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0">
           <h3 className="text-[16px] leading-tight font-semibold tracking-[-0.01em]">
@@ -259,14 +259,6 @@ const GlobalFinanceMarketComboBody = () => {
           </Bubble>
         </PlotOverlay>
       </ChartSlot>
-    </>
+    </Card>
   );
 };
-
-// The cycle, count-ups and chart mount read the card's in-view state, so the
-// body renders inside <Card> rather than beside it.
-export const GlobalFinanceMarketCombo = () => (
-  <Card>
-    <GlobalFinanceMarketComboBody />
-  </Card>
-);

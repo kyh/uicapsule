@@ -53,7 +53,7 @@ const dateFor = (q: number, i: number) => {
 };
 const fmtDay = (d: Date) => d.toLocaleString("en-US", { day: "numeric", month: "short" });
 
-const OverviewBody = () => {
+export const Overview = () => {
   const [quarter, setQuarter] = useState(0);
   const [slot, pin] = useCycle(STARTS.length, 2400);
   const start = STARTS[slot] ?? 24;
@@ -203,7 +203,7 @@ const OverviewBody = () => {
   const left = Math.min(70, Math.max(30, center));
 
   return (
-    <>
+    <Card className="!bg-[#f4f4f6] !p-1.5">
       <div className="rounded-[18px] bg-white px-4 py-3.5 ring-1 ring-black/[0.04]">
         <div className="flex items-center justify-between gap-2">
           <h3 className="text-[16px] font-semibold tracking-[-0.01em]">Overview</h3>
@@ -283,13 +283,6 @@ const OverviewBody = () => {
           </PlotOverlay>
         </ChartSlot>
       </div>
-    </>
+    </Card>
   );
 };
-
-// `useCycle` reads the card's in-view state, so the body renders inside <Card>.
-export const Overview = () => (
-  <Card className="!bg-[#f4f4f6] !p-1.5">
-    <OverviewBody />
-  </Card>
-);

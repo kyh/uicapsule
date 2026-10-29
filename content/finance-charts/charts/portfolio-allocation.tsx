@@ -27,7 +27,7 @@ const arcs = pie(SLICES, { endAngle: START + TAU, startAngle: START, value: "val
 
 const LEGEND_ORDER = ["Equities", "Cash", "Bonds", "Other"] as const;
 
-const PortfolioAllocationBody = () => {
+export const PortfolioAllocation = () => {
   const [hi, pin] = useCycle(SLICES.length, 2400);
   const activeId = SLICES[hi]?.id ?? "Equities";
   const active = arcs.find((a) => a.id === activeId) ?? arcs[0];
@@ -98,7 +98,7 @@ const PortfolioAllocationBody = () => {
   }, [activeId]);
 
   return (
-    <>
+    <Card>
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0">
           <h3 className="text-[17px] font-semibold tracking-[-0.01em]">Portfolio allocation</h3>
@@ -153,14 +153,6 @@ const PortfolioAllocationBody = () => {
           );
         })}
       </div>
-    </>
+    </Card>
   );
 };
-
-// The cycle, count-ups and chart mount read the card's in-view state, so the
-// body renders inside <Card> rather than beside it.
-export const PortfolioAllocation = () => (
-  <Card>
-    <PortfolioAllocationBody />
-  </Card>
-);

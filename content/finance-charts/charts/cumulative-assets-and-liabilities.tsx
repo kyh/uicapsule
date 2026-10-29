@@ -65,7 +65,7 @@ const MARGIN = { bottom: 28, left: 0, right: 46, top: 8 };
 const HEIGHT = 240;
 const smooth = d3Curve(curveMonotoneX);
 
-const CumulativeAssetsAndLiabilitiesBody = () => {
+export const CumulativeAssetsAndLiabilities = () => {
   const [stop, pin] = useCycle(STOPS.length, 2000, 4);
   const at = STOPS[stop] ?? 0;
   const picked = ROWS[at] ?? ROWS[0];
@@ -154,7 +154,7 @@ const CumulativeAssetsAndLiabilitiesBody = () => {
   const top = 100 - (((picked?.asset ?? MIN) - MIN) / (MAX - MIN)) * 100;
 
   return (
-    <>
+    <Card className="!bg-[#f4f4f6] !p-1.5">
       <div className="flex items-center justify-between gap-2 px-3 pt-2.5 pb-3">
         <div className="flex items-center gap-2.5">
           <IconTile icon={ChartPie} color="#3b82f6" size={30} />
@@ -237,13 +237,6 @@ const CumulativeAssetsAndLiabilitiesBody = () => {
           </PlotOverlay>
         </ChartSlot>
       </div>
-    </>
+    </Card>
   );
 };
-
-// `useCycle` reads the card's in-view state, so the body renders inside <Card>.
-export const CumulativeAssetsAndLiabilities = () => (
-  <Card className="!bg-[#f4f4f6] !p-1.5">
-    <CumulativeAssetsAndLiabilitiesBody />
-  </Card>
-);

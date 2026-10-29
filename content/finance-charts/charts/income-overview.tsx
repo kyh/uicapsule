@@ -35,7 +35,7 @@ const bandCenter = (i: number) => (i + (1 - PADDING) / 2) / (QUARTERS.length - P
 
 const wholeUsd = (n: number) => usd(n, true);
 
-const IncomeOverviewBody = () => {
+export const IncomeOverview = () => {
   const [hi, pin] = useCycle(QUARTERS.length, 2100);
   const picked = rows[hi] ?? rows[0];
   const share = (picked?.value ?? 0) / TARGET;
@@ -127,7 +127,7 @@ const IncomeOverviewBody = () => {
   );
 
   return (
-    <>
+    <Card>
       <div className="flex items-start justify-between">
         <h3 className="text-[17px] font-semibold tracking-[-0.01em]">Income Overview</h3>
         <MoreButton />
@@ -189,14 +189,6 @@ const IncomeOverviewBody = () => {
       >
         See insight <ArrowUpRight className="size-4" style={{ color: MUTED }} />
       </button>
-    </>
+    </Card>
   );
 };
-
-// The cycle, count-ups and chart mount read the card's in-view state, so the
-// body renders inside <Card> rather than beside it.
-export const IncomeOverview = () => (
-  <Card>
-    <IncomeOverviewBody />
-  </Card>
-);

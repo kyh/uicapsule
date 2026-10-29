@@ -42,7 +42,7 @@ const HEIGHT = 168;
 
 const dayFor = (i: number) => WEEKDAYS[Math.min(6, Math.round((i / LAST) * 6))] ?? "Sun";
 
-const TotalExpensesBody = () => {
+export const TotalExpenses = () => {
   const [hi, pin] = useCycle(ROWS.length, 1500, 8);
   const picked = ROWS[hi] ?? ROWS[0];
 
@@ -98,7 +98,7 @@ const TotalExpensesBody = () => {
   }
 
   return (
-    <>
+    <Card className="bg-[linear-gradient(180deg,#a9c8fb_0%,#dce8fd_26%,#ffffff_48%)]">
       <div className="flex items-start justify-between gap-3">
         <div className="flex items-center gap-3">
           <span className="inline-flex size-10 items-center justify-center rounded-[12px] bg-[#8db8fb] shadow-[inset_0_1px_0_rgba(255,255,255,0.5)] ring-1 ring-white/60">
@@ -182,13 +182,6 @@ const TotalExpensesBody = () => {
           </span>
         ))}
       </div>
-    </>
+    </Card>
   );
 };
-
-// `useCycle` reads the card's in-view state, so the body renders inside <Card>.
-export const TotalExpenses = () => (
-  <Card className="bg-[linear-gradient(180deg,#a9c8fb_0%,#dce8fd_26%,#ffffff_48%)]">
-    <TotalExpensesBody />
-  </Card>
-);

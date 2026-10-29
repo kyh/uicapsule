@@ -104,7 +104,7 @@ const Stat = ({
   </p>
 );
 
-const EthereumBody = () => {
+export const Ethereum = () => {
   const [range, pin] = useCycle(RANGES.length, 3600);
   const current = RANGES[range] ?? RANGES[0];
   const rows = current.data;
@@ -184,7 +184,7 @@ const EthereumBody = () => {
   }, [rows, current]);
 
   return (
-    <>
+    <Card>
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2.5">
           <span
@@ -235,14 +235,6 @@ const EthereumBody = () => {
           ariaLabel="Ethereum candlesticks with volume"
         />
       </ChartSlot>
-    </>
+    </Card>
   );
 };
-
-// The cycle, count-ups and chart mount read the card's in-view state, so the
-// body renders inside <Card> rather than beside it.
-export const Ethereum = () => (
-  <Card>
-    <EthereumBody />
-  </Card>
-);
