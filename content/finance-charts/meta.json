@@ -2,6 +2,7 @@
   "name": "Finance Charts",
   "description": "Sixty-two fintech dashboard cards — highlighted bars, scrubbable areas, range bands, radials, flows and more — drawn with TanStack Charts and sprung in with motion as the wall scrolls past.",
   "addedAt": "2026-10-29",
+  "cover": "finance-charts/finance-charts.20261029.mp4",
   "tags": ["data", "colorful"],
   "defaultSize": "full"
 }
