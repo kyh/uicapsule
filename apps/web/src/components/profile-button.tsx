@@ -11,6 +11,7 @@ import {
   LogInIcon,
   LogOutIcon,
   MoonIcon,
+  PlugIcon,
   SunIcon,
   SunMoonIcon,
 } from "lucide-react";
@@ -32,7 +33,9 @@ import {
   DropdownMenuTrigger,
 } from "@repo/ui/components/dropdown-menu";
 import { Tabs, TabsIndicator, TabsList, TabsTrigger } from "@repo/ui/components/tabs";
+import { toast } from "@repo/ui/components/toast";
 import { cn } from "cn";
+import { mcpInstallPrompt } from "@/lib/agent/mcp-install-prompt";
 import { authClient } from "@/lib/auth-client";
 
 const menuItemIconClassName = "text-muted-foreground size-4 group-hover:text-foreground transition";
@@ -106,6 +109,43 @@ const SignOutItem = ({ onSignOut }: { onSignOut: () => void }) => {
   );
 };
 
+const InstallMcpItem = () => {
+  const { variant, close } = useProfileMenu();
+
+  const handleCopy = async () => {
+    close();
+    try {
+      await navigator.clipboard.writeText(mcpInstallPrompt);
+    } catch (error) {
+      console.error("Failed to copy MCP install prompt:", error);
+      toast.error("Failed to copy MCP install prompt.");
+      return;
+    }
+    toast("Copied MCP install prompt", { description: "Paste it into your agent." });
+  };
+
+  const content = (
+    <>
+      <PlugIcon aria-hidden="true" className={menuItemIconClassName} />
+      Install MCP
+    </>
+  );
+
+  return variant === "dropdown" ? (
+    <DropdownMenuItem className="group" onClick={handleCopy}>
+      {content}
+    </DropdownMenuItem>
+  ) : (
+    <button
+      type="button"
+      className="group flex w-full items-center gap-2 px-2 py-1.5 text-sm"
+      onClick={handleCopy}
+    >
+      {content}
+    </button>
+  );
+};
+
 type SessionUser = NonNullable<ReturnType<typeof authClient.useSession>["data"]>["user"];
 
 const ProfileMenuItems = ({ user, onSignOut }: { user?: SessionUser; onSignOut: () => void }) => {
@@ -130,6 +170,7 @@ const ProfileMenuItems = ({ user, onSignOut }: { user?: SessionUser; onSignOut: 
         <LightbulbIcon aria-hidden="true" className={menuItemIconClassName} />
         Request
       </ProfileLink>
+      <InstallMcpItem />
       <DropdownMenuSeparator />
       <ProfileLink href="https://github.com/kyh/uicapsule" target="_blank">
         <svg
