@@ -228,7 +228,7 @@ export const SplitButton = () => {
             role="menuitem"
             tabIndex={-1}
             data-active={activeIndex === index}
-            onPointerEnter={() => setActiveIndex(index)}
+            onPointerEnter={() => focusItem(index)}
             onFocus={() => setActiveIndex(index)}
             onClick={() => choose(item.id)}
             className="flex h-12 w-full cursor-pointer items-center gap-3 rounded-[4px] px-3 text-left text-[15px] transition-[background-color,color,border-radius] duration-200 outline-none first:rounded-t-[4px] last:rounded-b-[20px] data-[active=true]:rounded-[16px] data-[active=true]:bg-[#004a77] data-[active=true]:text-[#c2e7ff]"
