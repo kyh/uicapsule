@@ -17,7 +17,10 @@ const YIELD_MS = 3000;
  */
 export const FinanceCharts = ({ autoScroll = true }: { autoScroll?: boolean }) => {
   const scroller = useRef<HTMLDivElement>(null);
-  const paused = useRef(false);
+  // Mouse resting over the wall, and the time a press (any pointer) releases
+  // its hold: Infinity while pressed, then a short yield after lifting.
+  const hovered = useRef(false);
+  const holdUntil = useRef(0);
 
   useEffect(() => {
     const el = scroller.current;
@@ -38,7 +41,7 @@ export const FinanceCharts = ({ autoScroll = true }: { autoScroll?: boolean }) =
         yieldUntil = t + YIELD_MS;
       }
       const end = el.scrollHeight - el.clientHeight;
-      if (paused.current || t < yieldUntil || y >= end - 1) {
+      if (hovered.current || t < holdUntil.current || t < yieldUntil || y >= end - 1) {
         // Hand the position back to whoever is scrolling; stop at the bottom
         // rather than jumping to the top.
         y = el.scrollTop;
@@ -58,10 +61,22 @@ export const FinanceCharts = ({ autoScroll = true }: { autoScroll?: boolean }) =
       ref={scroller}
       // Move, not enter: a pointer already over the wall at load never enters.
       onPointerMove={(e) => {
-        paused.current = e.pointerType === "mouse";
+        if (e.pointerType === "mouse") {
+          hovered.current = true;
+        }
       }}
       onPointerLeave={() => {
-        paused.current = false;
+        hovered.current = false;
+      }}
+      // A press, hold or chart scrub doesn't move scrollTop, so it needs its own pause.
+      onPointerDown={() => {
+        holdUntil.current = Infinity;
+      }}
+      onPointerUp={() => {
+        holdUntil.current = performance.now() + YIELD_MS;
+      }}
+      onPointerCancel={() => {
+        holdUntil.current = performance.now() + YIELD_MS;
       }}
       className="size-full overflow-y-auto bg-[#f3f4f7] [font-family:Inter,ui-sans-serif,system-ui,sans-serif] [scrollbar-width:none]"
     >
