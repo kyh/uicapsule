@@ -61,7 +61,7 @@ const MARGIN = { bottom: 28, left: 44, right: 4, top: 10 };
 const HEIGHT = 210;
 const YESTERDAY_GREY = "#e4e4e7";
 
-export const TotalSales = () => {
+const TotalSalesBody = () => {
   const [stop, pin] = useCycle(STOPS.length, 1900);
   const h = STOPS[stop] ?? 20.54;
   const value = valueAt(TODAY, h);
@@ -111,7 +111,7 @@ export const TotalSales = () => {
   }
 
   return (
-    <Card>
+    <>
       <SalesHeader label="Total Sales" value={18_645.16} format={(n) => usd(n)} change={1.16} />
       <ChannelRows rows={CHANNELS} format={(n) => usd(n)} />
       <ChartSlot height={HEIGHT} className="mt-5">
@@ -156,6 +156,13 @@ export const TotalSales = () => {
           { color: YESTERDAY_GREY, label: "Yesterday" },
         ]}
       />
-    </Card>
+    </>
   );
 };
+
+// `useCycle` reads the card's in-view state, so the body renders inside <Card>.
+export const TotalSales = () => (
+  <Card>
+    <TotalSalesBody />
+  </Card>
+);

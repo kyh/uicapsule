@@ -79,7 +79,7 @@ const MARGIN = { bottom: 28, left: 44, right: 4, top: 10 };
 const HEIGHT = 210;
 const pct = (n: number) => `${n.toFixed(2)}%`;
 
-export const CustomerRate = () => {
+const CustomerRateBody = () => {
   const [stop, pin] = useCycle(STOPS.length, 1900);
   const h = STOPS[stop] ?? 19.5;
   const first = valueAt(FIRST_TIME, h);
@@ -124,7 +124,7 @@ export const CustomerRate = () => {
   const left = ((h - X_DOMAIN[0]) / (X_DOMAIN[1] - X_DOMAIN[0])) * 100;
 
   return (
-    <Card>
+    <>
       <SalesHeader label="Customer rate" value={8.73} format={pct} change={2.51} />
       <ChannelRows rows={CHANNELS} format={pct} />
       <ChartSlot height={HEIGHT} className="mt-5">
@@ -173,6 +173,13 @@ export const CustomerRate = () => {
           { color: GREY, label: "First time" },
         ]}
       />
-    </Card>
+    </>
   );
 };
+
+// `useCycle` reads the card's in-view state, so the body renders inside <Card>.
+export const CustomerRate = () => (
+  <Card>
+    <CustomerRateBody />
+  </Card>
+);

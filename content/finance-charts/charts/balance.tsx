@@ -46,7 +46,7 @@ const X1 = 7.3;
 const MARGIN = { bottom: 26, left: 0, right: 0, top: 0 };
 const HEIGHT = 230;
 
-export const Balance = () => {
+const BalanceBody = () => {
   const [hi, pin] = useCycle(MONTH_POINTS.length, 2000, 3);
   const picked = MONTH_POINTS[hi] ?? MONTH_POINTS[0];
   const at = picked?.i ?? 0;
@@ -158,7 +158,7 @@ export const Balance = () => {
   const left = ((at - X0) / (X1 - X0)) * 100;
 
   return (
-    <Card>
+    <>
       <div className="flex items-center justify-between gap-3">
         <div className="flex items-center gap-3">
           <span className="inline-flex size-9 items-center justify-center rounded-[11px] bg-[#f3e8ff] ring-1 ring-[#e9d5ff]">
@@ -234,6 +234,13 @@ export const Balance = () => {
           </Bubble>
         </PlotOverlay>
       </ChartSlot>
-    </Card>
+    </>
   );
 };
+
+// `useCycle` reads the card's in-view state, so the body renders inside <Card>.
+export const Balance = () => (
+  <Card>
+    <BalanceBody />
+  </Card>
+);

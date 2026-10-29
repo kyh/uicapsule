@@ -169,7 +169,7 @@ const NetWorthBody = () => {
         <PlotOverlay margin={MARGIN}>
           <Bubble
             left={center}
-            top={Math.min(78, barTop + 30)}
+            top={barTop < 55 ? Math.min(70, barTop + 28) : barTop - 32}
             dark
             align={align}
             className="!rounded-[10px] !px-3 !py-2"
