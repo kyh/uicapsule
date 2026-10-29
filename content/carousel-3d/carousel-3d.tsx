@@ -84,7 +84,7 @@ export const ImageCarouselCanvas = ({
     className="cursor-grab active:cursor-grabbing"
     gl={async (props) => {
       if (!(props.canvas instanceof HTMLCanvasElement)) {
-        throw new Error("ImageCarouselCanvas requires an HTML canvas");
+        throw new TypeError("ImageCarouselCanvas requires an HTML canvas");
       }
       const renderer = new WebGPURenderer({
         alpha: props.alpha,
