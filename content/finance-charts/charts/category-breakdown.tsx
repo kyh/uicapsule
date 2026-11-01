@@ -7,7 +7,7 @@ import { scaleLinear } from "@tanstack/charts/scales/linear";
 import { ArrowUp, Settings } from "lucide-react";
 import { useMemo } from "react";
 
-import { Card, ChartSlot, Label, Num, renderer, useCycle } from "../lib/kit";
+import { Card, ChartSlot, Label as ChartLabel, Num, renderer, useCycle } from "../lib/kit";
 import { GREEN, INK, MUTED, THEME } from "../lib/tokens";
 
 const CATEGORIES = [
@@ -47,7 +47,7 @@ const HEIGHT = 140;
 
 const Stat = ({ label, value, change }: { label: string; value: number; change: number }) => (
   <div className="min-w-0">
-    <Label>{label}</Label>
+    <ChartLabel>{label}</ChartLabel>
     <Num value={value} className="mt-0.5 block text-[22px] font-bold tracking-[-0.03em]" />
     <p className="mt-1.5 flex items-center gap-1.5 text-[12px]" style={{ color: MUTED }}>
       <span

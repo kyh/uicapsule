@@ -76,7 +76,7 @@ const Line = ({
   y2: number;
 }) => <motion.line className={className} x1={x1} y1={y1} x2={x2} y2={y2} variants={draw} />;
 
-const Label = ({
+const DiagramLabel = ({
   x,
   y,
   children,
@@ -123,9 +123,9 @@ const HDim = ({
       <Line x1={x1} y1={y} x2={x2} y2={y} />
       <Line x1={x1 - TICK} y1={y + TICK} x2={x1 + TICK} y2={y - TICK} />
       <Line x1={x2 - TICK} y1={y + TICK} x2={x2 + TICK} y2={y - TICK} />
-      <Label x={(x1 + x2) / 2} y={y + (y < edge ? -7 : 8)}>
+      <DiagramLabel x={(x1 + x2) / 2} y={y + (y < edge ? -7 : 8)}>
         {label}
-      </Label>
+      </DiagramLabel>
     </motion.g>
   );
 };
@@ -151,9 +151,9 @@ const VDim = ({
       <Line x1={x} y1={y1} x2={x} y2={y2} />
       <Line x1={x - TICK} y1={y1 + TICK} x2={x + TICK} y2={y1 - TICK} />
       <Line x1={x - TICK} y1={y2 + TICK} x2={x + TICK} y2={y2 - TICK} />
-      <Label x={x + (x < edge ? -7 : 8)} y={(y1 + y2) / 2} rotate={-90}>
+      <DiagramLabel x={x + (x < edge ? -7 : 8)} y={(y1 + y2) / 2} rotate={-90}>
         {label}
-      </Label>
+      </DiagramLabel>
     </motion.g>
   );
 };
@@ -173,9 +173,9 @@ const Callout = ({
 }) => (
   <motion.g variants={sequence(0.2)}>
     <Line x1={x} y1={y} x2={x + dx} y2={y + dy} />
-    <Label x={x + dx + (dx < 0 ? -4 : 4)} y={y + dy} anchor={dx < 0 ? "end" : "start"}>
+    <DiagramLabel x={x + dx + (dx < 0 ? -4 : 4)} y={y + dy} anchor={dx < 0 ? "end" : "start"}>
       {label}
-    </Label>
+    </DiagramLabel>
   </motion.g>
 );
 
@@ -268,12 +268,12 @@ export const ReceiptSpec = ({
         <Crosshair cx={cx} cy={cy} radius={radius} />
         <motion.circle className={EXT} cx={cx} cy={cy} r={radius} variants={ring} />
         <motion.g variants={sequence(0.05)}>
-          <Label x={cx + radius + 18} y={cy} anchor="start">
+          <DiagramLabel x={cx + radius + 18} y={cy} anchor="start">
             X
-          </Label>
-          <Label x={cx} y={cy - radius - 18}>
+          </DiagramLabel>
+          <DiagramLabel x={cx} y={cy - radius - 18}>
             Y
-          </Label>
+          </DiagramLabel>
         </motion.g>
 
         {horizontal ? (

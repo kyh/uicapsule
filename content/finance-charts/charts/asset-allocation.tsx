@@ -12,7 +12,7 @@ import {
   Bubble,
   Card,
   ChartSlot,
-  Label,
+  Label as ChartLabel,
   Legend,
   MoreButton,
   Num,
@@ -209,7 +209,7 @@ export const AssetAllocation = () => {
 
       <div className="mt-4 grid grid-cols-2 gap-3">
         <div>
-          <Label>Allocated</Label>
+          <ChartLabel>Allocated</ChartLabel>
           <Num
             value={687.6}
             format={(n) => `$${n.toFixed(2)}M`}
@@ -217,7 +217,7 @@ export const AssetAllocation = () => {
           />
         </div>
         <div>
-          <Label>Total value locked</Label>
+          <ChartLabel>Total value locked</ChartLabel>
           <Num
             value={687.6}
             format={(n) => `$${n.toFixed(2)}M`}

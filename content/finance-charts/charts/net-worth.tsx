@@ -14,7 +14,7 @@ import {
   CardHeader,
   ChartSlot,
   Chip,
-  Label,
+  Label as ChartLabel,
   Num,
   PlotOverlay,
   renderer,
@@ -148,9 +148,9 @@ export const NetWorth = () => {
         }
       />
       <Num value={18_645.16} className="mt-5 block text-[30px] font-bold tracking-[-0.03em]" />
-      <Label info className="mt-0.5 !text-[13px]">
+      <ChartLabel info className="mt-0.5 !text-[13px]">
         Total net worth
-      </Label>
+      </ChartLabel>
 
       <ChartSlot height={HEIGHT} className="mt-5">
         <div onMouseLeave={() => pin(null)}>

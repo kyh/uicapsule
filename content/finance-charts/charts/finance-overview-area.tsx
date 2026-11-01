@@ -9,7 +9,15 @@ import { ArrowUp, Settings } from "lucide-react";
 import { useMemo } from "react";
 
 import { MONTHS, rng, usd, WEEKDAYS } from "../lib/data";
-import { Card, ChartSlot, Label, Num, Segmented, renderer, useCycle } from "../lib/kit";
+import {
+  Card,
+  ChartSlot,
+  Label as ChartLabel,
+  Num,
+  Segmented,
+  renderer,
+  useCycle,
+} from "../lib/kit";
 import { GREEN, MUTED, THEME } from "../lib/tokens";
 
 const LINE = "#a034f0";
@@ -226,9 +234,9 @@ export const FinanceOverviewArea = () => {
       </ChartSlot>
       <div className="mt-3 flex items-end justify-between gap-3">
         <div>
-          <Label info className="!text-[13px]">
+          <ChartLabel info className="!text-[13px]">
             Total portfolio value
-          </Label>
+          </ChartLabel>
           <Num value={23_563.01} className="mt-1 block text-[30px] font-bold tracking-[-0.03em]" />
           <Num
             value={meta?.delta ?? 0}

@@ -6,7 +6,7 @@ import { scaleLinear } from "@tanstack/charts/scales/linear";
 import { Car, House, ShieldPlus, ShoppingBag } from "lucide-react";
 import { useMemo } from "react";
 
-import { Card, ChartSlot, Delta, Label, Num, renderer, useCycle } from "../lib/kit";
+import { Card, ChartSlot, Delta, Label as ChartLabel, Num, renderer, useCycle } from "../lib/kit";
 import { MUTED, THEME } from "../lib/tokens";
 
 const PURPLE_BAR = "#a12ff5";
@@ -111,7 +111,7 @@ export const BudgetHealth = () => {
       </div>
       <div className="mt-4 flex items-end justify-between">
         <div>
-          <Label>Budget Utilization</Label>
+          <ChartLabel>Budget Utilization</ChartLabel>
           <p className="mt-0.5 flex items-end gap-1.5">
             <Num
               value={used}
@@ -122,7 +122,7 @@ export const BudgetHealth = () => {
           </p>
         </div>
         <div className="text-right">
-          <Label>Saving rate</Label>
+          <ChartLabel>Saving rate</ChartLabel>
           <Num
             value={98.3 - used}
             format={pctFormat}

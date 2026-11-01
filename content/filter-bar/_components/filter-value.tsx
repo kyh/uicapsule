@@ -442,7 +442,7 @@ export const FilterValueOptionController = ({
     const selected = allOptions.filter((o) => initialSelectedValues.has(o.value));
     const unselected = allOptions.filter((o) => !initialSelectedValues.has(o.value));
     return { selectedOptions: selected, unselectedOptions: unselected };
-  }, [column, filter?.values, initialSelectedValues]);
+  }, [column, filter, initialSelectedValues]);
 
   const handleToggle = useCallback(
     (value: string, checked: boolean) => {

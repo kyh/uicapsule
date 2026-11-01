@@ -13,7 +13,7 @@ import {
   Card,
   ChartSlot,
   IconTile,
-  Label,
+  Label as ChartLabel,
   Num,
   PlotOverlay,
   renderer,
@@ -144,7 +144,7 @@ export const SpendingOverviewRange = () => {
           { label: "Lowest day", value: 13_916.67 },
         ].map((s) => (
           <div key={s.label} className="min-w-0">
-            <Label className="truncate">{s.label}</Label>
+            <ChartLabel className="truncate">{s.label}</ChartLabel>
             <Num
               value={s.value}
               className="mt-0.5 block text-[16px] font-bold tracking-[-0.03em]"

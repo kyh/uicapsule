@@ -13,7 +13,7 @@ import {
   Card,
   CardHeader,
   ChartSlot,
-  Label,
+  Label as ChartLabel,
   Num,
   PlotOverlay,
   renderer,
@@ -108,11 +108,11 @@ export const CashFlowDailyBar = () => {
       />
       <div className="mt-5 grid grid-cols-2 gap-3">
         <div>
-          <Label>Total cash flow</Label>
+          <ChartLabel>Total cash flow</ChartLabel>
           <Num value={total} className="mt-0.5 block text-[22px] font-bold tracking-[-0.03em]" />
         </div>
         <div>
-          <Label>Daily average</Label>
+          <ChartLabel>Daily average</ChartLabel>
           <Num
             value={total / ROWS.length}
             className="mt-0.5 block text-[22px] font-bold tracking-[-0.03em]"
