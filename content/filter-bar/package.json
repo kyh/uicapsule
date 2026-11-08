@@ -10,7 +10,7 @@
     "clean": "git clean -xdf .cache .turbo dist node_modules"
   },
   "dependencies": {
-    "@ai-sdk/react": "^4.0.156",
+    "@ai-sdk/react": "^4.0.168",
     "@base-ui/react": "catalog:",
     "@loremllm/transport": "^0.7.1",
     "cmdk": "^1.1.1",

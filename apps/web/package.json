@@ -37,7 +37,7 @@
     "react": "catalog:",
     "react-dom": "catalog:",
     "react-hook-form": "^7.91.0",
-    "shiki": "^4.5.0",
+    "shiki": "^4.6.0",
     "web-haptics": "^0.0.6",
     "zod": "catalog:"
   },
@@ -48,7 +48,7 @@
     "@types/node": "catalog:",
     "@types/react": "catalog:",
     "@types/react-dom": "catalog:",
-    "postcss": "^8.5.31",
+    "postcss": "^8.5.32",
     "tailwindcss": "catalog:",
     "tsx": "catalog:",
     "typescript": "catalog:"
