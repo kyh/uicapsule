@@ -427,9 +427,10 @@ export const FilterValueOptionController = ({
   // oxlint-disable-next-line react/hook-use-state -- a one-time snapshot of the selection when the controller opens, so items stay in their group while toggling; there is deliberately no setter
   const [initialSelectedValues] = useState(() => new Set(filter?.values || []));
 
+  const filterValues = filter?.values;
   const { selectedOptions, unselectedOptions } = useMemo(() => {
     const allOptions = column.options.map((o) => {
-      const currentlySelected = filter?.values.includes(o.value) ?? false;
+      const currentlySelected = filterValues?.includes(o.value) ?? false;
       return {
         count: o.count ?? 0,
         icon: o.icon,
@@ -442,7 +443,7 @@ export const FilterValueOptionController = ({
     const selected = allOptions.filter((o) => initialSelectedValues.has(o.value));
     const unselected = allOptions.filter((o) => !initialSelectedValues.has(o.value));
     return { selectedOptions: selected, unselectedOptions: unselected };
-  }, [column, filter?.values, initialSelectedValues]);
+  }, [column, filterValues, initialSelectedValues]);
 
   const handleToggle = useCallback(
     (value: string, checked: boolean) => {
