@@ -37,7 +37,9 @@ import type { Styled } from "./sakuga-react";
 // field's value and limits as the root last rendered them.
 interface Rig {
   pill: HTMLElement | null;
+  // the number as it is drawn, which the kick moves, and the input laid over it
   num: HTMLElement | null;
+  input: HTMLElement | null;
   kick: Spring;
   tall: Spring;
   jolt: Spring;
@@ -134,6 +136,7 @@ const makeRig = (): Rig => {
     },
     hold: 0,
     holdSteps: 0,
+    input: null,
     jolt: new Spring(0, 460, 12),
     kick: new Spring(0, 440, 13),
     lean: new Spring(0, 260, 10),
@@ -378,7 +381,7 @@ const useSide = (
         rig.pill.style.transformOrigin = dir > 0 ? "0 50%" : "100% 50%";
         // a mouse press puts focus in the input; that should not draw the keyboard ring or a
         // caret, unless the input already had them
-        if (document.activeElement !== rig.num) {
+        if (document.activeElement !== rig.input) {
           rig.pill.toggleAttribute("data-quiet", true);
         }
       }
@@ -460,8 +463,8 @@ const SakugaNumberFieldInput = ({
   ...props
 }: Omit<Styled<NumberFieldPrimitive.Input.Props>, "render">) => {
   const rigRef = useRig();
-  const numRef = useMergedRef((node: HTMLInputElement | null) => {
-    rigRef.current.num = node;
+  const inputRef = useMergedRef((node: HTMLInputElement | null) => {
+    rigRef.current.input = node;
   }, ref);
   const loud = () => {
     rigRef.current.pill?.toggleAttribute("data-quiet", false);
@@ -471,14 +474,15 @@ const SakugaNumberFieldInput = ({
       data-slot="sakuga-number-field-input"
       className={cn(
         NUMBER,
-        // Laid exactly over the text that sizes the cell, so the digits sit where plain text
-        // would. It reaches 10px into the cell's padding either side, and the text area runs on
-        // to the right edge, so the lean of the italics is not clipped.
-        "absolute inset-y-0 -inset-x-[10px] box-border h-full w-[calc(100%+20px)] rounded-none bg-transparent py-0 pr-0 pl-[10px] text-left text-(--sk-ink) outline-none will-change-transform group-data-quiet/sk-nf:caret-transparent data-disabled:cursor-not-allowed",
+        // Laid exactly over the drawn number, with the same type, so the caret and a selection
+        // sit on its digits. Its own text is clear and it stays still: the kick moves the
+        // drawn number alone, which a browser scales as it does any plain text. It reaches
+        // 10px into the cell's padding, and its text area runs on to the right edge.
+        "absolute inset-y-0 -inset-x-[10px] box-border h-full w-[calc(100%+20px)] rounded-none bg-transparent py-0 pr-0 pl-[10px] text-left text-transparent caret-(--sk-ink) outline-none selection:text-(--sk-ink) group-data-quiet/sk-nf:caret-transparent data-disabled:cursor-not-allowed",
         className,
       )}
-      // The cell takes its width from the number, as text would; the input lies over it, so
-      // typing never shifts the pill until the number outgrows the cell.
+      // The cell takes its width from the drawn number, so typing never shifts the pill until
+      // the number outgrows the cell. Empty, it keeps the width of one digit.
       render={(input, state) => (
         // oxlint-disable-next-line jsx-a11y/no-static-element-interactions -- not a control of its own: a press on the cell's padding only passes focus to the input inside it
         <span
@@ -488,12 +492,21 @@ const SakugaNumberFieldInput = ({
             if (e.target === e.currentTarget) {
               e.preventDefault();
               loud();
-              rigRef.current.num?.focus();
+              rigRef.current.input?.focus();
             }
           }}
         >
           <span className={cn(NUMBER, "relative")}>
-            <span aria-hidden className="invisible whitespace-pre">
+            <span
+              ref={(node) => {
+                rigRef.current.num = node;
+              }}
+              aria-hidden
+              className={cn(
+                "block whitespace-pre will-change-transform",
+                state.inputValue === "" && "invisible",
+              )}
+            >
               {state.inputValue || "0"}
             </span>
             <input {...input} />
@@ -534,7 +547,7 @@ const SakugaNumberFieldInput = ({
         loud();
       }}
       {...props}
-      ref={numRef}
+      ref={inputRef}
     />
   );
 };

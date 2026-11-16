@@ -115,6 +115,12 @@ const rowWith = (rig: Rig, mark: "highlighted" | "selected") => {
   return null;
 };
 
+// While the menu is out, focus is on a row inside it. A keyboard user still sees the ring on the
+// trigger: this marks the trigger from the first key until focus leaves the select altogether.
+const ring = (rig: Rig, on: boolean) => {
+  rig.trigger?.toggleAttribute("data-ring", on);
+};
+
 // the open: two puffs off the menu's far corners and the word by the trigger
 const openEffects = (rig: Rig) => {
   const { popup: m, trigger: b } = rig;
@@ -370,7 +376,13 @@ const SakugaSelect = <Value, Multiple extends boolean | undefined = false>({
         if (next) {
           rigRef.current.byHand =
             details.reason !== "none" && details.reason !== "imperative-action";
+          if (rigRef.current.trigger?.matches(":focus-visible")) {
+            ring(rigRef.current, true);
+          }
         } else {
+          if (details.reason === "focus-out" || details.reason === "outside-press") {
+            ring(rigRef.current, false);
+          }
           // the popup stays until the spring has shrunk it away
           details.preventUnmountOnClose();
         }
@@ -401,6 +413,7 @@ const SakugaSelectTrigger = ({
   className,
   children,
   ref,
+  onBlur,
   onMouseDown,
   onPointerDown,
   ...props
@@ -431,12 +444,20 @@ const SakugaSelectTrigger = ({
       <SelectPrimitive.Trigger
         data-slot="sakuga-select-trigger"
         className={cn(
-          "flex w-full min-w-[196px] cursor-pointer touch-manipulation items-center justify-between gap-[14px] rounded-(--sk-r) border-[length:var(--sk-bw)] border-(--sk-ink) bg-(--sk-card) py-[11px] pr-[14px] pl-[18px] text-left text-[17px] leading-[1.1] font-extrabold tracking-[-0.01em] text-(--sk-ink) italic shadow-(--sk-sh) will-change-transform select-none focus-visible:outline-[2.5px] focus-visible:outline-offset-[3px] focus-visible:outline-(--sk-acc) data-disabled:cursor-not-allowed data-disabled:opacity-45",
+          "flex w-full min-w-[196px] cursor-pointer touch-manipulation items-center justify-between gap-[14px] rounded-(--sk-r) border-[length:var(--sk-bw)] border-(--sk-ink) bg-(--sk-card) py-[11px] pr-[14px] pl-[18px] text-left text-[17px] leading-[1.1] font-extrabold tracking-[-0.01em] text-(--sk-ink) italic shadow-(--sk-sh) will-change-transform select-none focus-visible:outline-[2.5px] focus-visible:outline-offset-[3px] focus-visible:outline-(--sk-acc) data-disabled:cursor-not-allowed data-disabled:opacity-45 data-ring:outline-[2.5px] data-ring:outline-offset-[3px] data-ring:outline-(--sk-acc)",
           FONT_DISPLAY,
           className,
         )}
         {...props}
         ref={triggerRef}
+        onBlur={(e) => {
+          onBlur?.(e);
+          // focus going into the menu is still inside the select
+          const to = e.relatedTarget;
+          if (!(to instanceof Node && rigRef.current.popup?.contains(to))) {
+            ring(rigRef.current, false);
+          }
+        }}
         // The menu opens on the click, not the press: the trigger squashes while it is held and
         // the menu springs out on release. Base UI then treats the click as it does a key press.
         onMouseDown={(e) => {
@@ -489,6 +510,7 @@ const SakugaSelectContent = ({
   className,
   children,
   ref,
+  onKeyDownCapture,
   side = "bottom",
   sideOffset = 13,
   align = "start",
@@ -526,6 +548,10 @@ const SakugaSelectContent = ({
           )}
           {...props}
           ref={popupRef}
+          onKeyDownCapture={(e) => {
+            onKeyDownCapture?.(e);
+            ring(rigRef.current, true);
+          }}
         >
           <SelectPrimitive.List className="relative max-h-[min(320px,calc(var(--available-height)-17px))] overflow-y-auto overscroll-contain outline-none [scrollbar-color:var(--sk-ink)_transparent] [scrollbar-width:thin]">
             <span
