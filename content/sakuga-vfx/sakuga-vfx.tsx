@@ -106,6 +106,7 @@ const ToastCard = () => (
   </Card>
 );
 
+// the select card's rows
 const STAGES = [
   { label: "Key frames", value: "key" },
   { label: "In-betweens", value: "inbetween" },
