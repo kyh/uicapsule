@@ -345,8 +345,8 @@ export const SakugaChips = ({
     m.tilt.x = -9;
     m.squash.x = 0.82;
     m.still = false;
-    wob(c.x - c.w / 2 - 6, c.y, { dir: -1, life: 0.3, r: 10 });
-    wob(c.x + c.w / 2 + 6, c.y, { dir: 1, life: 0.3, r: 10 });
+    // wedges over it, not wobble marks beside it: there the neighbours and the typed text are
+    ticks(c.x, c.y - c.h / 2 - 5, { dir: -Math.PI / 2, fan: 0.5, len: 11, life: 0.4, n: 3, r: 4 });
   };
 
   // it is full: the whole field shakes
