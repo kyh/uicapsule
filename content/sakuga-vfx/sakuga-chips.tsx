@@ -872,7 +872,7 @@ const SakugaChipsList = ({
   return (
     <div
       ref={useMergedRef(fieldRef, ref)}
-      // oxlint-disable-next-line jsx-a11y/prefer-tag-over-role -- a <fieldset> was tried: browsers paint its border by their own fieldset rules and the frame sheets changed by a few pixels along the 3.2px edge, so the field stays a div with the group role
+      // oxlint-disable-next-line jsx-a11y/prefer-tag-over-role -- a <fieldset> paints its border by the browser's own fieldset rules, which moves pixels along the 3.2px edge; a div with the group role draws like every other card
       role="group"
       data-slot="sakuga-chips-list"
       data-disabled={disabled ? "" : undefined}

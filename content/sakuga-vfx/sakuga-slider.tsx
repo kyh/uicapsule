@@ -7,7 +7,7 @@
 
 import { Slider as SliderPrimitive } from "@base-ui/react/slider";
 import { cn } from "cn";
-import { useEffect, useLayoutEffect, useRef, useState } from "react";
+import { useLayoutEffect, useRef } from "react";
 import type { PointerEvent, RefObject } from "react";
 
 import {
@@ -26,34 +26,31 @@ import {
   wob,
 } from "./sakuga-core";
 import { FONT_BODY, SakugaStyle, useFrame } from "./sakuga-react";
-import type { Styled } from "./sakuga-react";
 
-// One thumb, so the value is a number, not an array. Every other prop is Base UI's Slider.Root:
+// One thumb: the value is a number, not an array. Everything else is Base UI's Slider.Root:
 // value / defaultValue / onValueChange / onValueCommitted / min / max / step / largeStep /
-// disabled / name / form / format.
-// Labelling: pass `aria-label` or `aria-labelledby` to SakugaSlider. Both reach the range input,
-// which is the element a screen reader lands on.
-type SakugaSliderProps = Styled<SliderPrimitive.Root.Props<number>> & {
-  // shown after the number in the bubble, and read out after it
+// disabled / name / form / format / aria-labelledby … `aria-label` goes to the range input.
+type SakugaSliderProps = Omit<SliderPrimitive.Root.Props<number>, "className"> & {
+  className?: string;
+  // shown after the number in the bubble
   unit?: string;
 };
 
-// The pointer is mapped the way a native range input stretched over the box maps it: 16px of
-// travel belongs to the browser's own thumb, and the input overhangs the box by 8px above and below.
+// The original is a native range input stretched over the track: 16px of thumb travel is lost to
+// the browser's own thumb, and the input overhangs the box by 8px above and below.
 const NATIVE_THUMB = 16;
-const ROOT =
-  "group/sakuga-slider relative isolate mt-[30px] inline-block align-middle text-[15px] leading-[1.4] font-medium text-(--sk-ink)";
+const ROOT = `group/sakuga-slider relative isolate mt-[30px] inline-block align-middle text-[15px] leading-[1.4] font-medium text-(--sk-ink) ${FONT_BODY}`;
 const BOX =
-  "relative h-[46px] w-(--sk-slider-width,230px) max-w-full group-data-disabled/sakuga-slider:opacity-50 has-[input:focus-visible]:rounded-[8px] has-[input:focus-visible]:outline-[2.5px] has-[input:focus-visible]:outline-offset-[6px] has-[input:focus-visible]:outline-(--sk-acc)";
+  "relative h-[46px] w-(--sk-slider-width,230px) max-w-full group-data-[disabled]/sakuga-slider:opacity-50 has-[input:focus-visible]:rounded-[8px] has-[input:focus-visible]:outline-[2.5px] has-[input:focus-visible]:outline-offset-[6px] has-[input:focus-visible]:outline-(--sk-acc)";
 const TRACK =
-  "absolute inset-x-0 top-[16px] h-[14px] overflow-hidden rounded-[7px] border-[length:var(--sk-bw)] border-(--sk-ink) bg-(--sk-card)";
+  "absolute inset-x-0 top-[16px] h-[14px] overflow-hidden rounded-[7px] bg-(--sk-card) [border:var(--sk-bw)_solid_var(--sk-ink)]";
 const BUBBLE =
-  "absolute -top-[30px] -left-[9px] min-w-[46px] origin-[50%_160%] rounded-[9px] border-[2.6px] border-(--sk-ink) bg-(--sk-card) px-[4px] py-[3px] text-center [font-family:-apple-system,'Segoe_UI',system-ui,sans-serif] text-[13px] leading-[1.1] font-extrabold whitespace-nowrap will-change-transform after:absolute after:top-full after:left-1/2 after:-ml-[5px] after:border-[5px] after:border-t-[7px] after:border-transparent after:border-t-(--sk-ink) after:content-['']";
-// the pointer surface: the box plus 8px above and below, with the native thumb's inset as padding
+  "absolute -top-[30px] -left-[9px] min-w-[46px] origin-[50%_160%] rounded-[9px] bg-(--sk-card) px-[4px] py-[3px] text-center font-[-apple-system,'Segoe_UI',system-ui,sans-serif] text-[13px] leading-[1.1] font-extrabold whitespace-nowrap will-change-transform [border:2.6px_solid_var(--sk-ink)] after:absolute after:top-full after:left-1/2 after:-ml-[5px] after:border-[5px] after:border-t-[7px] after:border-transparent after:border-t-(--sk-ink) after:content-['']";
+// the pointer surface: the box plus 8px above and below, mapped with the native thumb's inset
 const CONTROL =
-  "absolute inset-x-0 -inset-y-[8px] cursor-ew-resize touch-none px-[8px] data-disabled:cursor-not-allowed";
+  "absolute inset-x-0 -inset-y-[8px] cursor-ew-resize touch-none px-[8px] data-[disabled]:cursor-not-allowed";
 const THUMB =
-  "pointer-events-none size-[28px] rounded-full border-[length:var(--sk-bw)] border-(--sk-ink) bg-white will-change-transform";
+  "pointer-events-none size-[28px] rounded-full bg-white will-change-transform [border:var(--sk-bw)_solid_var(--sk-ink)]";
 
 // the cloud bank, the speed line and the odd chip a fast drag leaves behind the thumb
 const trail = (c: { x: number; y: number }, dir: number, big: number) => {
@@ -91,8 +88,8 @@ interface Chase {
 
 // Rendered by Slider.Value, so it sees the value Base UI settled on (clamped), whoever set it.
 // The thumb chases that value on its spring, except the first time, when it starts there. A value
-// set from code is chased the same way, so a big jump from code rolls the cloud and chips too,
-// as it does in the original.
+// set from code is chased the same way, so a big jump rolls the cloud and chips too: inherited
+// from the original, whose value setter moves the same spring.
 const SliderChase = ({
   value,
   frac,
@@ -129,40 +126,14 @@ const SakugaSlider = ({
   "aria-label": ariaLabel,
   ...props
 }: SakugaSliderProps) => {
-  // Uncontrolled, the value is held here and handed to Base UI, so a form reset can put it back.
-  const [inner, setInner] = useState(defaultValue);
-  const current = value ?? inner;
   const box = useRef<HTMLDivElement>(null);
   const thumb = useRef<HTMLDivElement>(null);
   const bubble = useRef<HTMLOutputElement>(null);
-  const input = useRef<HTMLInputElement>(null);
   const spring = useRef(new Spring(0, 420, 30));
   const sim = useRef({ acc: 0, peak: 0, said: 0, t: 0 });
   const chase = useRef<Chase>({ frac: 0, started: false, value: min });
   const press = useRef({ from: Number.NaN, onThumb: false });
   const fracOf = (v: number) => (max > min ? (clamp(v, min, max) - min) / (max - min) : 0);
-
-  // A form reset puts an uncontrolled slider back on its default, quietly: the thumb is placed
-  // there, not sprung there, so no cloud rolls.
-  useEffect(() => {
-    if (value !== undefined) {
-      return;
-    }
-    // the event bubbles from whichever form owns the input, including one named by `form`
-    const restore = (e: Event) => {
-      if (
-        e.target === input.current?.form &&
-        chase.current.value !== clamp(defaultValue, min, max)
-      ) {
-        chase.current.started = false;
-        spring.current.v = 0;
-        sim.current.peak = 0;
-        setInner(defaultValue);
-      }
-    };
-    document.addEventListener("reset", restore);
-    return () => document.removeEventListener("reset", restore);
-  }, [value, defaultValue, min, max]);
 
   // A native range input does not jump when the press lands on its own thumb; it only starts
   // following the pointer once it moves. This is where that thumb would be.
@@ -260,19 +231,19 @@ const SakugaSlider = ({
   return (
     <SliderPrimitive.Root<number>
       data-slot="sakuga-slider"
-      className={cn(ROOT, FONT_BODY, className)}
+      className={cn(ROOT, className)}
       min={min}
       max={max}
-      value={current}
+      value={value}
+      defaultValue={value === undefined ? defaultValue : undefined}
       onValueChange={(next, details) => {
         if (details.reason === "track-press" && press.current.onThumb) {
           details.cancel();
           return;
         }
         onValueChange?.(next, details);
-        // uncontrolled: take it and chase it now, in this event, not a render later
+        // uncontrolled: chase it now, as the original's input handler does, not a render later
         if (!details.isCanceled && value === undefined) {
-          setInner(next);
           chase.current.value = next;
           chase.current.frac = fracOf(next);
           spring.current.to = chase.current.frac;
@@ -280,7 +251,7 @@ const SakugaSlider = ({
       }}
       onValueCommitted={(next, details) => {
         onValueCommitted?.(next, details);
-        // as with a native change event, a drag that ends where it began is not a change
+        // like the native change event: a drag that ends where it began is not a change
         const byPointer = details.reason === "drag" || details.reason === "track-press";
         if (!(byPointer && next === press.current.from)) {
           release(next);
@@ -314,7 +285,7 @@ const SakugaSlider = ({
                   springRef={spring}
                   chaseRef={chase}
                 />
-                {/* one text node: two would kern the unit differently */}
+                {/* one text node, as the original writes it: two would kern the unit differently */}
                 {`${shown}${unit}`}
               </>
             );
@@ -324,9 +295,7 @@ const SakugaSlider = ({
         <SliderPrimitive.Thumb
           ref={thumb}
           data-slot="sakuga-slider-thumb"
-          inputRef={input}
           aria-label={ariaLabel}
-          getAriaValueText={(formatted) => `${formatted}${unit}`}
           className={THUMB}
           // the thumb rides the spring: Base UI's own placement is switched off
           style={{ insetInlineStart: 0, top: 9, translate: "none" }}
