@@ -228,7 +228,8 @@ export const SakugaSlider = ({
       <SakugaStyle />
       <div ref={box} className={`${BOX} ${disabled ? "opacity-50" : ""}`}>
         <div className={TRACK}>
-          <i className="block h-full w-[calc(var(--v,0)*100%+6px)] max-w-full bg-(--sk-pri)" />
+          {/* a div, not the original's <i>: the host app styles a bare .block class */}
+          <div className="h-full w-[calc(var(--v,0)*100%+6px)] max-w-full bg-(--sk-pri)" />
         </div>
         <span ref={bubble} aria-hidden className={BUBBLE}>
           {current}

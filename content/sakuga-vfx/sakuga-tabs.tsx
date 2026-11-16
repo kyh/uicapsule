@@ -40,12 +40,16 @@ const STEPS = new Map([
   ["Home", -99],
 ]);
 
+// The original keeps the way it travelled in `this.dir`, which on an element is the built-in
+// `dir` property and always reads back "": its landing never takes a side. So the puffs rise
+// from the middle of the tab and the speed lines run right, whichever way it came. Kept as is.
+const LANDING_SIDE = 0;
+
 interface Rig {
   sx: Spring;
   sw: Spring;
   up: Spring;
   pending: boolean;
-  dir: number;
   // the index a click or key just asked for: that move gets the landing
   asked: number;
   shown: number;
@@ -53,7 +57,6 @@ interface Rig {
 
 // point the raised tab at a tab; quiet puts it there at once
 const aim = (rig: Rig, tab: HTMLElement, quiet: boolean) => {
-  rig.dir = Math.sign(tab.offsetLeft - rig.sx.to) || 1;
   rig.sx.to = tab.offsetLeft;
   rig.sw.to = tab.offsetWidth;
   if (quiet) {
@@ -86,7 +89,6 @@ export const SakugaTabs = ({
   const buttons = useRef<(HTMLButtonElement | null)[]>([]);
   const rig = useRef<Rig>({
     asked: -1,
-    dir: 1,
     pending: false,
     shown: 0,
     sw: new Spring(10, 320, 26),
@@ -137,7 +139,7 @@ export const SakugaTabs = ({
       r.pending = false;
       r.up.x = -7;
       const c = at(tab);
-      const { dir } = r;
+      const dir = LANDING_SIDE;
       ticks(c.x, c.y - c.h / 2 - 12, {
         dir: -Math.PI / 2,
         fan: 0.5,

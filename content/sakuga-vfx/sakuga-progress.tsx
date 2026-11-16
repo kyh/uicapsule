@@ -407,7 +407,7 @@ const ride = (load: Load, b: ReturnType<typeof at>, dt: number) => {
 const BAR =
   "relative h-[38px] overflow-hidden rounded-[19px] bg-(--sk-card) [border:4px_solid_var(--sk-ink)]";
 const FILL =
-  "relative block h-full w-[calc(var(--v,0)*100%)] bg-(--sk-fill) before:absolute before:top-[5px] before:left-[22px] before:h-[11px] before:w-[9px] before:rounded-[2px] before:bg-white before:opacity-[.92] before:content-[''] before:[transform:skewX(-28deg)] after:absolute after:top-[5px] after:left-[37px] after:h-[11px] after:w-[6px] after:rounded-[2px] after:bg-white after:opacity-[.92] after:content-[''] after:[transform:skewX(-28deg)]";
+  "relative h-full w-[calc(var(--v,0)*100%)] bg-(--sk-fill) before:absolute before:top-[5px] before:left-[22px] before:h-[11px] before:w-[9px] before:rounded-[2px] before:bg-white before:opacity-[.92] before:content-[''] before:[transform:skewX(-28deg)] after:absolute after:top-[5px] after:left-[37px] after:h-[11px] after:w-[6px] after:rounded-[2px] after:bg-white after:opacity-[.92] after:content-[''] after:[transform:skewX(-28deg)]";
 const PCT =
   "mx-auto mt-[64px] table bg-(--sk-card) px-[13px] pt-[3px] pb-[4px] font-['Marker_Felt','Chalkboard_SE','Comic_Sans_MS',-apple-system,'Segoe_UI',sans-serif] text-[21px] leading-[1.1] font-black tracking-[-0.01em] whitespace-nowrap italic shadow-[5px_5px_0_var(--sk-fill)] will-change-transform [border:2.5px_solid_var(--sk-ink)] [transform:skewX(-12deg)]";
 
@@ -519,7 +519,7 @@ export const SakugaProgress = ({
 
   return (
     <div
-      className={`relative isolate block w-(--sk-progress-width,280px) max-w-full align-middle text-[15px] leading-[1.4] font-medium text-(--sk-ink) ${FONT_BODY} ${className}`}
+      className={`relative isolate w-(--sk-progress-width,280px) max-w-full align-middle text-[15px] leading-[1.4] font-medium text-(--sk-ink) ${FONT_BODY} ${className}`}
       style={style}
     >
       <SakugaStyle />
@@ -535,7 +535,8 @@ export const SakugaProgress = ({
         className={`relative pt-[70px] ${demo ? "cursor-pointer" : ""}`}
       >
         <div ref={bar} className={BAR}>
-          <i className={FILL} />
+          {/* a div, not the original's <i>: the host app styles a bare .block class */}
+          <div className={FILL} />
         </div>
         <span ref={pct} className={PCT}>
           0%

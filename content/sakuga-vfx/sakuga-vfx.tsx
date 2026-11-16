@@ -150,8 +150,10 @@ export const SakugaVfx = () => (
         <SakugaSelect />
       </Card>
       {/* ── accordion card ── */}
-      <Card id="accordion" name="Accordion" how="TODO">
-        <SakugaAccordion />
+      <Card id="accordion" name="Accordion" how="Open one, then another.">
+        <div className="flex h-[212px] w-full items-start justify-center">
+          <SakugaAccordion />
+        </div>
       </Card>
       {/* ── chips card ── */}
       <Card id="chips" name="Chips" how="TODO">
