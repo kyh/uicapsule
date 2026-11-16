@@ -1,68 +1,29 @@
 #!/usr/bin/env tsx
 import { execSync } from "node:child_process";
 import { existsSync } from "node:fs";
-import { mkdir, rm, writeFile } from "node:fs/promises";
+import { rm } from "node:fs/promises";
 import path from "node:path";
 import { defineCommand, runMain } from "citty";
 import { consola } from "consola";
+
+import { writeScaffold } from "./content-scaffold";
 
 const repoRoot = path.resolve(import.meta.dirname, "..");
 const contentRoot = path.join(repoRoot, "content");
 
 const SLUG_RE = /^[a-z][a-z0-9]*(?:-[a-z0-9]+)*$/u;
 
-const packageJson = (slug: string) =>
-  `${JSON.stringify(
-    {
-      dependencies: {
-        "lucide-react": "catalog:",
-        motion: "catalog:",
-        react: "catalog:",
-        "react-dom": "catalog:",
-      },
-      devDependencies: {
-        "@types/react": "catalog:",
-        "@types/react-dom": "catalog:",
-      },
-      name: `@uicapsule/${slug}`,
-      private: true,
-      scripts: {
-        clean: "git clean -xdf .cache .turbo dist node_modules",
-      },
-      type: "module",
-      version: "0.1.0",
-    },
-    null,
-    2,
-  )}\n`;
-
-const previewTsx = (slug: string, componentName: string) => `"use client";
-
-import { ${componentName} } from "./${slug}";
-
-const Preview = () => {
-  return (
-    <div className="flex h-screen items-center justify-center">
-      <${componentName} />
-    </div>
-  );
-};
-
-export default Preview;
-`;
-
-const componentTsx = (componentName: string, displayName: string) => `"use client";
-
-export const ${componentName} = () => {
-  return <div>{${JSON.stringify(displayName)}}</div>;
-};
-`;
-
 const main = defineCommand({
   args: {
     description: {
       description: "Short description for meta.json.",
       type: "string",
+    },
+    "design-system": {
+      default: false,
+      description:
+        "Scaffold a design system from scripts/templates/design-system (shared showcase + component set).",
+      type: "boolean",
     },
     install: {
       default: true,
@@ -80,7 +41,7 @@ const main = defineCommand({
     },
   },
   meta: {
-    description: "Scaffold a new blank content component.",
+    description: "Scaffold a new blank content component, or a design system from its template.",
     name: "new:content",
   },
   run: async ({ args }) => {
@@ -96,34 +57,25 @@ const main = defineCommand({
       process.exit(1);
     }
 
-    const words = slug.split("-").map((part) => part.charAt(0).toUpperCase() + part.slice(1));
-    const displayName = args.name ?? words.join(" ");
-    const componentName = words.join("");
+    const displayName =
+      args.name ??
+      slug
+        .split("-")
+        .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+        .join(" ");
+    const kind = args["design-system"] ? "design-system" : "component";
 
-    consola.start(`Scaffolding content/${slug}`);
+    consola.start(`Scaffolding ${kind} content/${slug}`);
 
     try {
-      await mkdir(dir, { recursive: true });
-      await Promise.all([
-        writeFile(
-          path.join(dir, "meta.json"),
-          `${JSON.stringify(
-            /* oxlint-disable sort-keys -- written to meta.json in this order, matching existing content */
-            {
-              name: displayName,
-              description: args.description ?? "",
-              addedAt: new Date().toISOString().slice(0, 10),
-              tags: [],
-            },
-            /* oxlint-enable sort-keys */
-            null,
-            2,
-          )}\n`,
-        ),
-        writeFile(path.join(dir, "package.json"), packageJson(slug)),
-        writeFile(path.join(dir, "preview.tsx"), previewTsx(slug, componentName)),
-        writeFile(path.join(dir, `${slug}.tsx`), componentTsx(componentName, displayName)),
-      ]);
+      await writeScaffold(dir, {
+        description: args.description ?? "",
+        kind,
+        name: displayName,
+        slug,
+      });
+      // JSON.stringify output isn't oxfmt's layout; format so `pnpm format` passes untouched.
+      execSync(`pnpm exec oxfmt content/${slug}`, { cwd: repoRoot, stdio: "ignore" });
       consola.info(`Created content/${slug}`);
 
       if (args.install) {
@@ -141,9 +93,19 @@ const main = defineCommand({
     consola.success(`Scaffolded content/${slug}`);
     consola.log("");
     consola.info("Next steps:");
-    consola.log(`  1. Build your component in content/${slug}/${slug}.tsx`);
-    consola.log(`  2. Stage it in content/${slug}/preview.tsx`);
-    consola.log(`  3. Fill in description/tags (and optional cover) in content/${slug}/meta.json`);
+    if (kind === "design-system") {
+      consola.log(`  1. Define the system's tokens in content/${slug}/tokens.css`);
+      consola.log(
+        `  2. Reshape primitives in content/${slug}/components/ where tokens can't carry it`,
+      );
+      consola.log(`  3. Fill in description (and optional cover) in content/${slug}/meta.json`);
+    } else {
+      consola.log(`  1. Build your component in content/${slug}/${slug}.tsx`);
+      consola.log(`  2. Stage it in content/${slug}/preview.tsx`);
+      consola.log(
+        `  3. Fill in description/tags (and optional cover) in content/${slug}/meta.json`,
+      );
+    }
     consola.log(`  4. View it at http://localhost:3000/ui/${slug} (pnpm dev:web)`);
   },
 });

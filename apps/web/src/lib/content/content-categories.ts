@@ -12,7 +12,17 @@ export const contentElements: ContentFilter[] = [
   { name: "Navigation", slug: "navigation" },
   { name: "Data", slug: "data" },
   { name: "Pages", slug: "pages" },
+  { name: "Design Systems", slug: "design-systems" },
 ];
+
+// Whole-surface elements label their gallery card instead of showing an index number.
+const elementBadges = new Map([
+  ["design-systems", "Design System"],
+  ["pages", "Page"],
+]);
+
+export const elementBadge = (tags: readonly string[]) =>
+  tags.map((tag) => elementBadges.get(tag)).find((badge) => badge !== undefined);
 
 // Only styles with shipped content belong here; an option that yields an empty
 // gallery is worse than no option.
