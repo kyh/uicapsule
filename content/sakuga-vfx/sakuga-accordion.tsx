@@ -169,7 +169,14 @@ export const SakugaAccordion = ({
     puff(left - 7, p.y - 3, { life: 0.7, n: 4, size: 8, vx: -16, vy: -10 });
     puff(right + 12, p.y + 2, { life: 0.7, n: 4, size: 8, vx: 16, vy: -8 });
     ticks(q.x - 4, q.y + 2, { dir: -0.75, fan: 0.36, len: 15, life: 0.5, n: 3, r: 5 });
-    sfx("pon", right + 40, p.y - 50, { life: 0.8, rot: 0.06, size: 80, ...hollow() });
+    // the word lands beside the panel; with no room there (a phone), over the header's corner
+    const room = right + 84 < scrollX + document.documentElement.clientWidth;
+    sfx("pon", room ? right + 40 : right - 34, room ? p.y - 50 : q.y - 6, {
+      life: 0.8,
+      rot: 0.06,
+      size: 80,
+      ...hollow(),
+    });
   };
 
   // it has shut

@@ -269,9 +269,11 @@ export const SakugaChips = ({
     const inp = entry.current;
     const stood = boxBefore.current;
     boxBefore.current = null;
-    // the text box only slides along its own row
-    if (inp && stood?.top === inp.offsetTop) {
-      sendBack(inp, follow.current, stood, fresh.current.size > 0 ? 0 : HOLD + moved * LAG, 0);
+    // the text box follows the tags over; after an add it only slides along its own row, so it
+    // never comes out from under the tag that has just landed where it was
+    const added = fresh.current.size > 0;
+    if (inp && stood && (!added || stood.top === inp.offsetTop)) {
+      sendBack(inp, follow.current, stood, added ? 0 : HOLD + moved * LAG, 0);
     }
     fresh.current.clear();
     for (const tag of motions.current.keys()) {
@@ -302,6 +304,15 @@ export const SakugaChips = ({
       advance(follow.current, dt);
       pose(entry.current, follow.current, 0);
     }
+    // the field lets go of its height once the cut tag has gone and the text box is back on its row
+    if (
+      box &&
+      box.style.minHeight !== "" &&
+      ghostRigs.current.size === 0 &&
+      Math.abs(follow.current.sy.x) < 3
+    ) {
+      box.style.minHeight = "";
+    }
     const over: number[] = [];
     for (const [id, g] of ghostRigs.current) {
       if (cutApart(cut.current.get(id), g, dt)) {
@@ -312,6 +323,7 @@ export const SakugaChips = ({
       for (const id of over) {
         ghostRigs.current.delete(id);
       }
+
       setGhosts((list) => list.filter((g) => !over.includes(g.id)));
     }
   });
@@ -399,6 +411,8 @@ export const SakugaChips = ({
         part: new Spring(0, 300, 14),
         size: new Spring(1, 500, 26),
       });
+      // the field keeps its height until the cut one has gone, so it is never cut outside it
+      box.style.minHeight = `${box.offsetHeight}px`;
       const ghost = {
         id,
         left: el.offsetLeft + (m?.sx.x ?? 0),
@@ -470,7 +484,10 @@ export const SakugaChips = ({
       const words = inp.value.split(",");
       const rest = words.pop() ?? "";
       const kept = words.filter((word) => !add([word]));
-      inp.value = [...kept, rest].join(",").replace(/^[\s,]+/u, "");
+      inp.value = [...kept, rest]
+        .map((word) => word.trim())
+        .filter((word) => word !== "")
+        .join(", ");
       return;
     }
     dust(inp);
@@ -520,7 +537,7 @@ export const SakugaChips = ({
       <SakugaStyle />
       <div
         ref={field}
-        className={`relative flex cursor-text flex-wrap items-center gap-x-[7px] gap-y-[8px] rounded-(--sk-r) bg-(--sk-card) px-[11px] py-[10px] shadow-(--sk-sh) will-change-transform [border:var(--sk-bw)_solid_var(--sk-ink)] ${disabled ? "cursor-not-allowed opacity-50" : ""}`}
+        className={`relative flex cursor-text flex-wrap content-start items-center gap-x-[7px] gap-y-[8px] rounded-(--sk-r) bg-(--sk-card) px-[11px] py-[10px] shadow-(--sk-sh) will-change-transform [border:var(--sk-bw)_solid_var(--sk-ink)] ${disabled ? "cursor-not-allowed opacity-50" : ""}`}
         onPointerDown={pointerDown}
       >
         {tags.map((tag) => (
