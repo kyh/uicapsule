@@ -99,7 +99,8 @@ const unsnap = ({ tip, trigger }: Rig) => {
   }
   // more than a pixel is not rounding: the positioner was moved on purpose
   const sub = Math.abs(dx) < 1 && Math.abs(dy) < 1;
-  tip.style.translate = sub ? `${dx}px ${dy}px` : "";
+  tip.style.left = sub ? `${dx}px` : "";
+  tip.style.top = sub ? `${dy}px` : "";
 };
 
 const SharedContext = createContext<Shared | null>(null);
@@ -128,12 +129,13 @@ const SakugaTooltip = ({
   const ownHandle = useMemo(() => TooltipPrimitive.createHandle(), []);
   const ownActions = useRef<TooltipPrimitive.Root.Actions>(null);
   const actions = actionsRef ?? ownActions;
-  const rigRef = useMemo(makeRig, []);
+  const rigRef = useMemo(() => makeRig(), []);
   const tipId = useId();
   const triggerId = useId();
+  const reach = handle ?? ownHandle;
   const shared = useMemo(
-    () => ({ handle: handle ?? ownHandle, rigRef, tipId, triggerId }),
-    [handle, ownHandle, rigRef, tipId, triggerId],
+    () => ({ handle: reach, rigRef, tipId, triggerId }),
+    [reach, rigRef, tipId, triggerId],
   );
 
   // the bubble springs out or shrinks back; the effects follow 120ms after it starts out
@@ -200,7 +202,7 @@ const SakugaTooltip = ({
       <SakugaStyle />
       <TooltipPrimitive.Root
         open={open}
-        handle={shared.handle}
+        handle={reach}
         actionsRef={actions}
         disableHoverablePopup={disableHoverablePopup}
         onOpenChange={(next, details) => {
@@ -301,7 +303,7 @@ const SakugaTooltipTrigger = ({
   );
 };
 
-const TIP = `pointer-events-none w-max max-w-[220px] min-w-[120px] origin-[50%_120%] [transform:scale(0)] rounded-[13px] [border:var(--sk-bw)_solid_var(--sk-ink)] bg-(--sk-card) px-[14px] py-[11px] text-center text-[16px] leading-[1.4] font-extrabold text-(--sk-ink) shadow-(--sk-sh) will-change-transform before:absolute before:top-[calc(100%-4.5px)] before:left-1/2 before:z-1 before:-ml-[6px] before:border-[6px] before:border-t-[8.5px] before:border-transparent before:border-t-(--sk-card) before:content-[''] after:absolute after:top-full after:left-1/2 after:-ml-[9px] after:border-[9px] after:border-t-[12px] after:border-transparent after:border-t-(--sk-ink) after:content-[''] ${FONT_BODY}`;
+const TIP = `pointer-events-none relative w-max max-w-[220px] min-w-[120px] origin-[50%_120%] [transform:scale(0)] rounded-[13px] [border:var(--sk-bw)_solid_var(--sk-ink)] bg-(--sk-card) px-[14px] py-[11px] text-center text-[16px] leading-[1.4] font-extrabold text-(--sk-ink) shadow-(--sk-sh) will-change-transform before:absolute before:top-[calc(100%-4.5px)] before:left-1/2 before:z-1 before:-ml-[6px] before:border-[6px] before:border-t-[8.5px] before:border-transparent before:border-t-(--sk-card) before:content-[''] after:absolute after:top-full after:left-1/2 after:-ml-[9px] after:border-[9px] after:border-t-[12px] after:border-transparent after:border-t-(--sk-ink) after:content-[''] ${FONT_BODY}`;
 
 // The bubble's tail points down at the trigger, so it sits above and does not flip or shift.
 const STAY = { align: "none", side: "none" } as const;

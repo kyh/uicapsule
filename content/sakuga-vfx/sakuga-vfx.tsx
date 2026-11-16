@@ -14,8 +14,6 @@ import {
   SakugaAccordionItem,
   SakugaAccordionTrigger,
 } from "./sakuga-accordion";
-import { SakugaAccordionOld } from "./tmp-ab-accordion";
-import { SakugaChipsOld } from "./tmp-ab-chips";
 import { SakugaCheckbox } from "./sakuga-checkbox";
 import { SakugaChips, SakugaChipsInput, SakugaChipsList } from "./sakuga-chips";
 import { SakugaInput } from "./sakuga-input";
@@ -239,7 +237,6 @@ export const SakugaVfx = () => (
       </Card>
       {/* ── accordion card ── */}
       <Card id="accordion" name="Accordion" how="Open one, then another.">
-        <span data-ab="old"><SakugaAccordionOld sections={[{ content: "Tracked, and out in two days.", title: "Shipping" }, { content: "Thirty days to send it back.", title: "Returns" }, { content: "Two years, parts and labour.", title: "Warranty" }]} /></span>
         <SakugaAccordion className="self-start">
           <SakugaAccordionItem>
             <SakugaAccordionTrigger>Shipping</SakugaAccordionTrigger>
@@ -257,7 +254,6 @@ export const SakugaVfx = () => (
       </Card>
       {/* ── chips card ── */}
       <Card id="chips" name="Chips" how="Type a tag and press Enter, then remove one.">
-        <span data-ab="old"><SakugaChipsOld defaultValue={["Ink", "Paper"]} /></span>
         <SakugaChips defaultValue={["Ink", "Paper"]}>
           <SakugaChipsList>
             <SakugaChipsInput placeholder="Add a tag" />

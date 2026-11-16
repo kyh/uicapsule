@@ -241,7 +241,7 @@ const SakugaNumberFieldGroup = ({
     <NumberFieldPrimitive.Group
       data-slot="sakuga-number-field-group"
       className={cn(
-        "group/sk-nf flex items-center rounded-(--sk-r) bg-(--sk-card) shadow-(--sk-sh) [border:var(--sk-bw)_solid_var(--sk-ink)] will-change-transform not-data-quiet:has-[:focus-visible]:outline-[2.5px] not-data-quiet:has-[:focus-visible]:outline-offset-[3px] not-data-quiet:has-[:focus-visible]:outline-(--sk-acc) not-data-quiet:has-[:focus-visible]:outline-solid data-disabled:cursor-not-allowed data-disabled:opacity-50",
+        "group/sk-nf flex items-center rounded-(--sk-r) bg-(--sk-card) shadow-(--sk-sh) [border:var(--sk-bw)_solid_var(--sk-ink)] will-change-transform not-data-quiet:has-[:focus-visible]:outline-[2.5px] not-data-quiet:has-[:focus-visible]:outline-offset-[3px] not-data-quiet:has-[:focus-visible]:outline-(--sk-acc) not-data-quiet:has-[:focus-visible]:outline-solid data-[disabled]:cursor-not-allowed data-[disabled]:opacity-50",
         className,
       )}
       {...props}
@@ -254,7 +254,7 @@ const SakugaNumberFieldGroup = ({
 
 const PRESS = { low: 0.56, wide: 0.5 };
 const SIDE =
-  "grid h-[44px] w-[46px] flex-none cursor-pointer touch-manipulation place-items-center will-change-transform outline-none select-none data-disabled:cursor-not-allowed data-disabled:text-(--sk-track) group-data-disabled/sk-nf:text-(--sk-ink)!";
+  "grid h-[44px] w-[46px] flex-none cursor-pointer touch-manipulation place-items-center will-change-transform outline-none select-none data-[disabled]:cursor-not-allowed data-[disabled]:text-(--sk-track) group-data-[disabled]/sk-nf:text-(--sk-ink)!";
 const GLYPH =
   "pointer-events-none h-[20px] w-[20px] fill-none stroke-current stroke-[3.4] [stroke-linecap:round]";
 

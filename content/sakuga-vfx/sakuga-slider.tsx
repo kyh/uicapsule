@@ -285,8 +285,8 @@ const SakugaSlider = ({
                   springRef={spring}
                   chaseRef={chase}
                 />
-                {shown}
-                {unit}
+                {/* one text node, as the original writes it: two would kern the unit differently */}
+                {`${shown}${unit}`}
               </>
             );
           }}

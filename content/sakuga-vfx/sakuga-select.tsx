@@ -25,7 +25,7 @@ import { cn } from "cn";
 import { createContext, use, useMemo, useRef } from "react";
 import type { RefObject } from "react";
 
-import { Spring, at, clamp, clock, later, puff, sfx, ticks } from "./sakuga-core";
+import { Spring, at, clamp, later, puff, sfx, ticks } from "./sakuga-core";
 import { FONT_BODY, FONT_DISPLAY, SakugaStyle, useFrame, useSquashy } from "./sakuga-react";
 import type { Squashy } from "./sakuga-core";
 
@@ -48,12 +48,14 @@ interface Rig {
   // was it open last frame, and which reaction is this
   open: boolean;
   seq: number;
+  // which choice this is: a later one cancels the landing of the one before
+  pick: number;
   // a person opened it, so the open may draw
   byHand: boolean;
   // the popup is being kept for the shrink and must be let go when it has gone
   kept: boolean;
-  // the shrink waits until this moment on the clock
-  holdUntil: number;
+  // a choice has been made and the menu waits a beat before it shrinks
+  held: boolean;
   // the row the raised highlight is behind, and whether its next move is a jump
   under: Element | null;
   jump: boolean;
@@ -63,13 +65,14 @@ const makeRig = (): Rig => ({
   byHand: false,
   chevron: null,
   flip: new Spring(0, 420, 13),
-  holdUntil: -9,
+  held: false,
   jump: true,
   kept: false,
   land: new Spring(1, 600, 13),
   list: null,
   open: false,
   out: new Spring(0, 460, 20),
+  pick: 0,
   popup: null,
   raised: null,
   rowH: new Spring(0, 320, 26),
@@ -177,7 +180,7 @@ const edge = (rig: Rig, open: boolean) => {
 // the menu out of the trigger and back, and the chevron over; true once a kept popup has gone
 const stepMenu = (rig: Rig, open: boolean, dt: number) => {
   const s = rig.out;
-  const want = open || clock.now < rig.holdUntil ? 1 : 0;
+  const want = open || rig.held ? 1 : 0;
   s.to = want;
   s.d = want ? 20 : 34;
   rig.flip.to = want;
@@ -246,10 +249,10 @@ const stepRig = (rig: Rig, dt: number) => {
 const chosen = (rig: Rig, pressed: EventTarget | null) => {
   const { list, text } = rig;
   const was = text?.textContent ?? "";
-  rig.seq += 1;
-  const n = rig.seq;
+  rig.pick += 1;
+  const n = rig.pick;
   const landIfChanged = () => {
-    if (n === rig.seq && (text?.textContent ?? "") !== was) {
+    if (n === rig.pick && (text?.textContent ?? "") !== was) {
       landEffects(rig);
     }
   };
@@ -270,7 +273,12 @@ const chosen = (rig: Rig, pressed: EventTarget | null) => {
       delete row.dataset.inv;
     });
   }
-  rig.holdUntil = clock.now + 0.05;
+  rig.held = true;
+  later(50, () => {
+    if (n === rig.pick) {
+      rig.held = false;
+    }
+  });
   // the menu is back inside the trigger: the new label lands
   later(190, landIfChanged);
 };
@@ -344,7 +352,7 @@ const SakugaSelectTrigger = ({
     <SelectPrimitive.Trigger
       data-slot="sakuga-select-trigger"
       className={cn(
-        "relative isolate inline-flex min-w-[196px] cursor-pointer touch-manipulation items-center justify-between gap-[14px] rounded-(--sk-r) bg-(--sk-card) py-[11px] pr-[14px] pl-[18px] text-left align-middle text-[17px] leading-[1.1] [font-weight:800] tracking-[-0.01em] text-(--sk-ink) italic shadow-(--sk-sh) [border:var(--sk-bw)_solid_var(--sk-ink)] will-change-transform select-none focus-visible:outline-[2.5px] focus-visible:outline-offset-[3px] focus-visible:outline-(--sk-acc) data-disabled:cursor-not-allowed data-disabled:opacity-45",
+        "relative isolate inline-flex min-w-[196px] cursor-pointer touch-manipulation items-center justify-between gap-[14px] rounded-(--sk-r) bg-(--sk-card) py-[11px] pr-[14px] pl-[18px] text-left align-middle text-[17px] leading-[1.1] [font-weight:800] tracking-[-0.01em] text-(--sk-ink) italic shadow-(--sk-sh) [border:var(--sk-bw)_solid_var(--sk-ink)] will-change-transform select-none focus-visible:outline-[2.5px] focus-visible:outline-offset-[3px] focus-visible:outline-(--sk-acc) data-[disabled]:cursor-not-allowed data-[disabled]:opacity-45",
         FONT_DISPLAY,
         className,
       )}
@@ -419,7 +427,7 @@ const SakugaSelectContent = ({
         <SelectPrimitive.Popup
           data-slot="sakuga-select-content"
           className={cn(
-            "w-max max-w-[min(300px,calc(100vw-32px))] min-w-(--anchor-width) origin-[50%_-16px] rounded-[13px] bg-(--sk-card) p-[5px] text-[15px] leading-[1.4] [font-weight:500] text-(--sk-ink) shadow-(--sk-sh) outline-none [border:var(--sk-bw)_solid_var(--sk-ink)] [transform:scale(0)] will-change-transform data-closed:pointer-events-none data-[side=top]:origin-[50%_calc(100%+16px)]",
+            "w-max max-w-[min(300px,calc(100vw-32px))] min-w-(--anchor-width) origin-[50%_-16px] rounded-[13px] bg-(--sk-card) p-[5px] text-[15px] leading-[1.4] [font-weight:500] text-(--sk-ink) shadow-(--sk-sh) outline-none [border:var(--sk-bw)_solid_var(--sk-ink)] [transform:scale(0)] will-change-transform data-[closed]:pointer-events-none data-[side=top]:origin-[50%_calc(100%+16px)]",
             FONT_BODY,
             className,
           )}
@@ -459,7 +467,7 @@ const SakugaSelectItem = ({
   <SelectPrimitive.Item
     data-slot="sakuga-select-item"
     className={cn(
-      "group/sk-row relative flex cursor-pointer items-center justify-between gap-[14px] rounded-[9px] px-[12px] py-[9px] text-[15px] leading-[1.2] [font-weight:600] whitespace-nowrap outline-none select-none [paint-order:stroke_fill] [-webkit-text-stroke:3px_var(--sk-card)] data-disabled:cursor-not-allowed data-disabled:opacity-45 data-on:[-webkit-text-stroke-color:var(--sk-soft)] data-selected:[font-weight:800] data-inv:bg-(--sk-ink) data-inv:text-(--sk-card) data-inv:[-webkit-text-stroke-color:var(--sk-ink)]!",
+      "group/sk-row relative flex cursor-pointer items-center justify-between gap-[14px] rounded-[9px] px-[12px] py-[9px] text-[15px] leading-[1.2] [font-weight:600] whitespace-nowrap outline-none select-none [paint-order:stroke_fill] [-webkit-text-stroke:3px_var(--sk-card)] data-[disabled]:cursor-not-allowed data-[disabled]:opacity-45 data-on:[-webkit-text-stroke-color:var(--sk-soft)] data-[selected]:[font-weight:800] data-inv:bg-(--sk-ink) data-inv:text-(--sk-card) data-inv:[-webkit-text-stroke-color:var(--sk-ink)]!",
       className,
     )}
     {...props}
@@ -471,7 +479,7 @@ const SakugaSelectItem = ({
         <svg
           aria-hidden
           viewBox="0 0 24 18"
-          className="invisible h-[12px] w-[16px] flex-none fill-none stroke-(--sk-acc) stroke-[4.6] [stroke-linecap:round] [stroke-linejoin:round] group-data-selected/sk-row:visible"
+          className="invisible h-[12px] w-[16px] flex-none fill-none stroke-(--sk-acc) stroke-[4.6] [stroke-linecap:round] [stroke-linejoin:round] group-data-[selected]/sk-row:visible"
         />
       }
     >
