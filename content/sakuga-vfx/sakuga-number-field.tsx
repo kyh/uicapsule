@@ -19,17 +19,23 @@
 
 import { NumberField as NumberFieldPrimitive } from "@base-ui/react/number-field";
 import { cn } from "cn";
-import { createContext, use, useEffect, useMemo, useRef } from "react";
+import { createContext, use, useEffect, useMemo, useRef, useState } from "react";
 import type { RefObject } from "react";
 
 import { Spring, at, clock, hollow, later, lines, puff, rnd, sfx, ticks, wob } from "./sakuga-core";
-import { FONT_BODY, FONT_DISPLAY, SakugaStyle, useFrame, useSquashy } from "./sakuga-react";
+import {
+  FONT_BODY,
+  FONT_DISPLAY,
+  SakugaStyle,
+  useFrame,
+  useMergedRef,
+  useSquashy,
+} from "./sakuga-react";
+import type { Styled } from "./sakuga-react";
 
-type Styled<Props> = Omit<Props, "className"> & { className?: string };
-
-// What the parts share: the elements the reactions move, and the springs that move them.
+// What the parts share: the elements the reactions move, the springs that move them, and the
+// field's value and limits as the root last rendered them.
 interface Rig {
-  root: HTMLElement | null;
   pill: HTMLElement | null;
   num: HTMLElement | null;
   kick: Spring;
@@ -37,6 +43,10 @@ interface Rig {
   jolt: Spring;
   lean: Spring;
   press: Spring;
+  value: number | null;
+  min: number | undefined;
+  max: number | undefined;
+  off: boolean;
   heat: number;
   stepped: number;
   said: number;
@@ -127,13 +137,16 @@ const makeRig = (): Rig => {
     jolt: new Spring(0, 460, 12),
     kick: new Spring(0, 440, 13),
     lean: new Spring(0, 260, 10),
+    max: undefined,
+    min: undefined,
     num: null,
+    off: false,
     pill: null,
     press: new Spring(1, 520, 15),
-    root: null,
     said: -9,
     stepped: -9,
     tall: new Spring(1, 520, 13),
+    value: null,
   };
   return rig;
 };
@@ -151,85 +164,116 @@ const useRig = () => {
 // the steps a person makes; typing, pasting and blur formatting are quiet
 const STEPS = new Set(["decrement-press", "increment-press", "keyboard", "scrub", "wheel"]);
 
+// One frame of the springs: the number's kick and stretch, and the pill's jolt, lean and press.
+const stepRig = (rig: Rig, dt: number) => {
+  const k = rig.kick.step(dt);
+  const y = rig.tall.step(dt);
+  const j = rig.jolt.step(dt);
+  const r = rig.lean.step(dt);
+  const w = rig.press.step(dt);
+  if (rig.num) {
+    const still = Math.abs(k) < 0.05 && Math.abs(y - 1) < 0.001;
+    rig.num.style.transform = still
+      ? ""
+      : `translateY(${k.toFixed(2)}px) scale(${(1 / y).toFixed(3)}, ${y.toFixed(3)})`;
+  }
+  if (rig.pill) {
+    const still = Math.abs(j) < 0.05 && Math.abs(r) < 0.02 && Math.abs(w - 1) < 0.001;
+    rig.pill.style.transform = still
+      ? ""
+      : `translateX(${j.toFixed(2)}px) rotate(${r.toFixed(2)}deg) scale(${(1 + (1 - w) * 0.3).toFixed(3)}, ${w.toFixed(3)})`;
+  }
+};
+
 const SakugaNumberField = ({
   className,
   children,
-  value,
+  value: valueProp,
+  defaultValue,
   onValueChange,
+  inputRef,
+  step = 1,
+  largeStep,
   ...props
 }: Styled<NumberFieldPrimitive.Root.Props>) => {
   const rigRef = useMemo(() => ({ current: makeRig() }), []);
-  // the value last seen, to tell which way a step went
-  const seen = useRef(value ?? props.defaultValue ?? null);
+  // The root holds the value when no parent does, so a form reset can put the default back.
+  const [own, setOwn] = useState(defaultValue ?? null);
+  const owned = valueProp !== undefined;
+  const value = owned ? valueProp : own;
   // owned by a parent: the hit waits for the parent to show the value it was asked for
   const asked = useRef<{ dir: number; to: number } | null>(null);
+  const field = useRef<HTMLInputElement>(null);
+  const fieldRef = useMergedRef(field, inputRef);
+  const { min, max, disabled = false, readOnly = false } = props;
 
   useEffect(() => {
-    if (value === undefined) {
-      return;
-    }
-    seen.current = value;
+    const rig = rigRef.current;
+    rig.value = value;
+    rig.min = min;
+    rig.max = max;
+    rig.off = disabled || readOnly;
     const want = asked.current;
     asked.current = null;
     if (want && want.to === value) {
-      rigRef.current.hit(want.dir);
+      rig.hit(want.dir);
     }
-  }, [value, rigRef]);
+  }, [value, min, max, disabled, readOnly, rigRef]);
 
-  useFrame((dt) => {
-    const rig = rigRef.current;
-    const k = rig.kick.step(dt);
-    const y = rig.tall.step(dt);
-    const j = rig.jolt.step(dt);
-    const r = rig.lean.step(dt);
-    const w = rig.press.step(dt);
-    if (rig.num) {
-      const still = Math.abs(k) < 0.05 && Math.abs(y - 1) < 0.001;
-      rig.num.style.transform = still
-        ? ""
-        : `translateY(${k.toFixed(2)}px) scale(${(1 / y).toFixed(3)}, ${y.toFixed(3)})`;
+  // A form reset puts the default back, and plays nothing.
+  useEffect(() => {
+    const form = field.current?.form;
+    if (!form || owned) {
+      return;
     }
-    if (rig.pill) {
-      const still = Math.abs(j) < 0.05 && Math.abs(r) < 0.02 && Math.abs(w - 1) < 0.001;
-      rig.pill.style.transform = still
-        ? ""
-        : `translateX(${j.toFixed(2)}px) rotate(${r.toFixed(2)}deg) scale(${(1 + (1 - w) * 0.3).toFixed(3)}, ${w.toFixed(3)})`;
-    }
-  });
+    const reset = () => setOwn(defaultValue ?? null);
+    form.addEventListener("reset", reset);
+    return () => form.removeEventListener("reset", reset);
+  }, [owned, defaultValue]);
+
+  useFrame((dt) => stepRig(rigRef.current, dt));
 
   return (
     <NumberFieldPrimitive.Root
       data-slot="sakuga-number-field"
       className={cn(
-        "relative isolate inline-block align-middle text-[15px] leading-[1.4] [font-weight:500] text-(--sk-ink)",
+        "relative isolate inline-block align-middle text-[15px] leading-[1.4] font-medium text-(--sk-ink)",
         FONT_BODY,
         className,
       )}
       value={value}
+      step={step}
+      // PageUp and PageDown, and Shift with an arrow, move by ten steps unless told otherwise
+      largeStep={largeStep ?? (step === "any" ? undefined : step * 10)}
+      inputRef={fieldRef}
       onValueChange={(next, details) => {
         onValueChange?.(next, details);
-        const from = seen.current;
-        if (details.isCanceled || next === null || !STEPS.has(details.reason)) {
-          if (value === undefined && !details.isCanceled) {
-            seen.current = next;
-          }
+        if (details.isCanceled) {
+          return;
+        }
+        const rig = rigRef.current;
+        const from = rig.value;
+        if (!owned) {
+          setOwn(next);
+          rig.value = next;
+        }
+        if (next === null || !STEPS.has(details.reason)) {
           return;
         }
         const dir = details.direction ?? Math.sign(next - (from ?? next));
-        if (value === undefined) {
-          seen.current = next;
-          if (dir !== 0) {
-            rigRef.current.hit(dir);
-          }
-        } else if (dir !== 0) {
+        if (dir === 0) {
+          return;
+        }
+        if (owned) {
           asked.current = { dir, to: next };
+        } else {
+          rig.hit(dir);
         }
         // Held onto the limit, Base UI's repeat just stops; the pill still meets the wall when
         // the next step would have come (60ms into a repeat, 400ms after a first press).
         if (details.reason.endsWith("-press")) {
-          const rig = rigRef.current;
           rig.holdSteps += 1;
-          if (next === (dir > 0 ? props.max : props.min)) {
+          if (next === (dir > 0 ? max : min)) {
             const n = rig.hold;
             later(rig.holdSteps > 1 ? 60 : 400, () => {
               if (n === rig.hold && rig.press.to < 1) {
@@ -240,9 +284,6 @@ const SakugaNumberField = ({
         }
       }}
       {...props}
-      ref={(el) => {
-        rigRef.current.root = el;
-      }}
     >
       <SakugaStyle />
       <RigContext value={rigRef}>{children}</RigContext>
@@ -253,61 +294,82 @@ const SakugaNumberField = ({
 // The pill. It owns the press squash and the jolt against the wall.
 const SakugaNumberFieldGroup = ({
   className,
+  ref,
   ...props
 }: Styled<NumberFieldPrimitive.Group.Props>) => {
   const rigRef = useRig();
+  const el = useRef<HTMLDivElement>(null);
+  const pillRef = useMergedRef(el, ref);
+  useEffect(() => {
+    rigRef.current.pill = el.current;
+  });
   return (
     <NumberFieldPrimitive.Group
       data-slot="sakuga-number-field-group"
       className={cn(
-        "group/sk-nf flex items-center rounded-(--sk-r) bg-(--sk-card) shadow-(--sk-sh) [border:var(--sk-bw)_solid_var(--sk-ink)] will-change-transform not-data-quiet:has-[:focus-visible]:outline-[2.5px] not-data-quiet:has-[:focus-visible]:outline-offset-[3px] not-data-quiet:has-[:focus-visible]:outline-(--sk-acc) not-data-quiet:has-[:focus-visible]:outline-solid data-[disabled]:cursor-not-allowed data-[disabled]:opacity-50",
+        "group/sk-nf flex items-center rounded-(--sk-r) border-[length:var(--sk-bw)] border-(--sk-ink) bg-(--sk-card) shadow-(--sk-sh) will-change-transform not-data-quiet:has-[:focus-visible]:outline-[2.5px] not-data-quiet:has-[:focus-visible]:outline-offset-[3px] not-data-quiet:has-[:focus-visible]:outline-(--sk-acc) not-data-quiet:has-[:focus-visible]:outline-solid data-disabled:cursor-not-allowed data-disabled:opacity-50",
         className,
       )}
       {...props}
-      ref={(el) => {
-        rigRef.current.pill = el;
-      }}
+      ref={pillRef}
     />
   );
 };
 
 const PRESS = { low: 0.56, wide: 0.5 };
+// At its limit a side button's glyph greys out, but not when the whole field is off: that dims as one.
 const SIDE =
-  "grid h-[44px] w-[46px] flex-none cursor-pointer touch-manipulation place-items-center will-change-transform outline-none select-none data-[disabled]:cursor-not-allowed data-[disabled]:text-(--sk-track) group-data-[disabled]/sk-nf:text-(--sk-ink)!";
+  "grid h-[44px] w-[46px] flex-none cursor-pointer touch-manipulation place-items-center will-change-transform outline-none select-none data-disabled:cursor-not-allowed data-disabled:text-(--sk-track) group-data-disabled/sk-nf:text-(--sk-ink)!";
 const GLYPH =
   "pointer-events-none h-[20px] w-[20px] fill-none stroke-current stroke-[3.4] [stroke-linecap:round]";
 
 type SideProps = Styled<NumberFieldPrimitive.Increment.Props>;
 
 // What both side buttons add to Base UI's: the glyph squash, the pill's press, and the wall.
-const useSide = (dir: number, { onClick, onPointerDownCapture, ...props }: SideProps) => {
+const useSide = (
+  dir: number,
+  {
+    onClick,
+    onPointerCancel,
+    onPointerDownCapture,
+    onPointerLeave,
+    onPointerUp,
+    ref,
+    ...props
+  }: SideProps,
+) => {
   const rigRef = useRig();
   const el = useRef<HTMLButtonElement>(null);
+  const sideRef = useMergedRef(el, ref);
   const sqRef = useSquashy(el, PRESS);
   useFrame((dt) => sqRef.current?.step(dt));
   const letGo = () => {
     rigRef.current.press.to = 1;
     rigRef.current.hold += 1;
   };
-  return {
-    ...props,
-    onClick: (e: Parameters<NonNullable<SideProps["onClick"]>>[0]) => {
+  const handlers: Pick<
+    SideProps,
+    "onClick" | "onPointerCancel" | "onPointerDownCapture" | "onPointerLeave" | "onPointerUp"
+  > = {
+    onClick: (e) => {
       onClick?.(e);
       // a click with no press before it (the keyboard, assistive technology) still pops the glyph
       const s = sqRef.current;
-      if (s && e.detail === 0 && !e.currentTarget.matches("[data-disabled]")) {
+      if (s && e.detail === 0 && e.currentTarget.dataset.disabled === undefined) {
         s.s.x = Math.min(s.s.x, 0.8);
         s.s.v += 4;
       }
     },
-    onPointerCancel: letGo,
+    onPointerCancel: (e) => {
+      onPointerCancel?.(e);
+      letGo();
+    },
     // on the way down, because Base UI keeps a press on a stepper at its limit to itself
-    onPointerDownCapture: (e: Parameters<NonNullable<SideProps["onPointerDownCapture"]>>[0]) => {
+    onPointerDownCapture: (e) => {
       onPointerDownCapture?.(e);
       const rig = rigRef.current;
       const s = sqRef.current;
-      const off = rig.pill?.matches("[data-disabled], [data-readonly]") ?? true;
-      if (e.button !== 0 || off) {
+      if (e.button !== 0 || rig.off) {
         // Base UI keeps a disabled stepper focusable, so the glyph's own listener cannot tell
         if (s) {
           s.s.to = 1;
@@ -326,14 +388,20 @@ const useSide = (dir: number, { onClick, onPointerDownCapture, ...props }: SideP
       rig.hold += 1;
       rig.holdSteps = 0;
       // at the limit Base UI steps nothing, and the pill says so
-      if (e.currentTarget.matches("[data-disabled]")) {
+      if (e.currentTarget.dataset.disabled !== undefined) {
         rig.bump(dir);
       }
     },
-    onPointerLeave: letGo,
-    onPointerUp: letGo,
-    ref: el,
+    onPointerLeave: (e) => {
+      onPointerLeave?.(e);
+      letGo();
+    },
+    onPointerUp: (e) => {
+      onPointerUp?.(e);
+      letGo();
+    },
   };
+  return { ...props, ...handlers, ref: sideRef };
 };
 
 const SakugaNumberFieldDecrement = ({ className, children, ...props }: SideProps) => (
@@ -364,35 +432,41 @@ const SakugaNumberFieldIncrement = ({ className, children, ...props }: SideProps
   </NumberFieldPrimitive.Increment>
 );
 
-// The weights are written as properties: cn's merge reads the font stack as a font utility and
-// would drop a font-weight class next to it.
-const NUMBER = `text-[21px] leading-[1.1] [font-weight:800] tracking-[-0.01em] tabular-nums italic ${FONT_DISPLAY}`;
+const NUMBER = cn(
+  "text-[21px] leading-[1.1] font-extrabold tracking-[-0.01em] tabular-nums italic",
+  FONT_DISPLAY,
+);
 
 // which way a key would step, when the value has nowhere left to go that way
-const wallFor = (key: string, field: HTMLInputElement) => {
-  if (field.value === "") {
+const wallFor = (key: string, { value, min, max }: Rig) => {
+  if (value === null) {
     return 0;
   }
-  const now = Number(field.value);
-  if ((key === "ArrowUp" || key === "End") && field.max !== "" && now >= Number(field.max)) {
+  if ((key === "ArrowUp" || key === "End") && max !== undefined && value >= max) {
     return 1;
   }
-  if ((key === "ArrowDown" || key === "Home") && field.min !== "" && now <= Number(field.min)) {
+  if ((key === "ArrowDown" || key === "Home") && min !== undefined && value <= min) {
     return -1;
   }
   return 0;
 };
 
-// The number: a real input you can type in. It sits in a cell that carries the dividers, so the
-// kick moves the number and not the lines.
+// The number: a real input you can type in. This part draws its own element (a cell that carries
+// the dividers, with the input inside), so it takes no `render`.
 const SakugaNumberFieldInput = ({
   className,
   onBlur,
   onKeyDown,
   onPointerDown,
+  ref,
   ...props
-}: Styled<NumberFieldPrimitive.Input.Props>) => {
+}: Omit<Styled<NumberFieldPrimitive.Input.Props>, "render">) => {
   const rigRef = useRig();
+  const el = useRef<HTMLInputElement>(null);
+  const numRef = useMergedRef(el, ref);
+  useEffect(() => {
+    rigRef.current.num = el.current;
+  });
   const loud = () => {
     rigRef.current.pill?.toggleAttribute("data-quiet", false);
   };
@@ -401,13 +475,25 @@ const SakugaNumberFieldInput = ({
       data-slot="sakuga-number-field-input"
       className={cn(
         NUMBER,
-        "absolute inset-0 h-full w-full rounded-none bg-transparent p-0 text-center text-(--sk-ink) outline-none will-change-transform group-data-quiet/sk-nf:caret-transparent disabled:cursor-not-allowed",
+        // one line high and centred on the cell, exactly where plain text would sit
+        "absolute inset-x-0 top-[calc(50%-0.55em)] h-[1.1em] w-full rounded-none bg-transparent p-0 text-center text-(--sk-ink) outline-none will-change-transform group-data-quiet/sk-nf:caret-transparent data-disabled:cursor-not-allowed",
         className,
       )}
-      // The cell carries the dividers and takes its width from the number, as text would; the
-      // input lies over it, so typing never shifts the pill until the number outgrows the cell.
+      // The cell takes its width from the number, as text would; the input lies over it, so
+      // typing never shifts the pill until the number outgrows the cell.
       render={(input, state) => (
-        <span className="relative grid h-[44px] min-w-[64px] place-items-center px-[10px] [border-inline:2.4px_solid_var(--sk-ink)]">
+        // oxlint-disable-next-line jsx-a11y/no-static-element-interactions -- not a control of its own: a press on the cell's padding only passes focus to the input inside it
+        <span
+          data-slot="sakuga-number-field-cell"
+          className="relative grid h-[44px] min-w-[64px] cursor-text place-items-center border-x-[2.4px] border-(--sk-ink) px-[10px] group-data-disabled/sk-nf:cursor-not-allowed"
+          onMouseDown={(e) => {
+            if (e.target === e.currentTarget) {
+              e.preventDefault();
+              loud();
+              el.current?.focus();
+            }
+          }}
+        >
           <span aria-hidden className={cn(NUMBER, "invisible whitespace-pre")}>
             {state.inputValue || "0"}
           </span>
@@ -422,12 +508,25 @@ const SakugaNumberFieldInput = ({
         onKeyDown?.(e);
         loud();
         const rig = rigRef.current;
-        const field = rig.root?.querySelector<HTMLInputElement>("input[type=number]");
-        if (field && !field.disabled && !field.readOnly && !e.ctrlKey && !e.metaKey) {
-          const dir = wallFor(e.key, field);
-          if (dir !== 0) {
-            rig.bump(dir);
-          }
+        if (rig.off || e.ctrlKey || e.metaKey || e.altKey) {
+          return;
+        }
+        if (e.key === "PageUp" || e.key === "PageDown") {
+          // Base UI's large step is Shift with an arrow; the page keys ask it for the same step
+          e.preventDefault();
+          e.currentTarget.dispatchEvent(
+            new KeyboardEvent("keydown", {
+              bubbles: true,
+              cancelable: true,
+              key: e.key === "PageUp" ? "ArrowUp" : "ArrowDown",
+              shiftKey: true,
+            }),
+          );
+          return;
+        }
+        const dir = wallFor(e.key, rig);
+        if (dir !== 0) {
+          rig.bump(dir);
         }
       }}
       onPointerDown={(e) => {
@@ -435,9 +534,7 @@ const SakugaNumberFieldInput = ({
         loud();
       }}
       {...props}
-      ref={(el) => {
-        rigRef.current.num = el;
-      }}
+      ref={numRef}
     />
   );
 };

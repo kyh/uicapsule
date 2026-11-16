@@ -273,7 +273,6 @@ export const SakugaVfx = () => (
       </Card>
       {/* ── accordion card ── */}
       <Card id="accordion" name="Accordion" how="Open one, then another.">
-        <SakugaAccordion data-t="refs" ref={(n) => { (globalThis as { tRefs?: string[] }).tRefs = [...((globalThis as { tRefs?: string[] }).tRefs ?? []), `root:${n?.dataset.slot}`]; }}><SakugaAccordionItem><SakugaAccordionTrigger ref={(n) => { (globalThis as { tRefs?: string[] }).tRefs?.push(`trigger:${n?.dataset.slot}`); }} onPointerDown={() => console.info("t-down")} onBlur={() => console.info("t-blur")}>R</SakugaAccordionTrigger><SakugaAccordionContent ref={(n) => { (globalThis as { tRefs?: string[] }).tRefs?.push(`content:${n?.dataset.slot}`); }}>rr</SakugaAccordionContent></SakugaAccordionItem></SakugaAccordion>
         <SakugaAccordion className="self-start">
           <SakugaAccordionItem>
             <SakugaAccordionTrigger>Shipping</SakugaAccordionTrigger>
@@ -291,8 +290,6 @@ export const SakugaVfx = () => (
       </Card>
       {/* ── chips card ── */}
       <Card id="chips" name="Chips" how="Type a tag and press Enter, then remove one.">
-        <form data-t><SakugaChips defaultValue={["Ink", "Paper"]} name="t"><SakugaChipsList ref={(n) => { (globalThis as { tRefs?: string[] }).tRefs?.push(`list:${n?.dataset.slot}`); }} onPointerDown={() => console.info("l-down")}><SakugaChipsInput ref={(n) => { (globalThis as { tRefs?: string[] }).tRefs?.push(`input:${n?.dataset.slot}`); }} onKeyDown={() => console.info("i-key")} /></SakugaChipsList></SakugaChips><button type="reset">reset</button></form>
-        <SakugaChips data-t="rej" value={["Ink", "Paper"]}><SakugaChipsList><SakugaChipsInput /></SakugaChipsList></SakugaChips>
         <SakugaChips defaultValue={["Ink", "Paper"]}>
           <SakugaChipsList>
             <SakugaChipsInput placeholder="Add a tag" />
