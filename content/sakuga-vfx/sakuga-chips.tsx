@@ -97,6 +97,7 @@ interface Ghost {
   age: number;
   part: Spring;
   size: Spring;
+  plain: boolean;
 }
 
 // what a key or a press has just asked of the value
@@ -158,7 +159,7 @@ const sendBack = (
 ) => {
   const dx = old.left - el.offsetLeft;
   const dy = old.top - el.offsetTop;
-  if ((dx === 0 && dy === 0) || isCalm()) {
+  if (dx === 0 && dy === 0) {
     return false;
   }
   m.sx.x = dx;
@@ -173,15 +174,18 @@ const sendBack = (
 // True once it is gone.
 const cutApart = (g: Ghost, dt: number) => {
   g.age += dt;
-  g.el.toggleAttribute("data-inv", g.age < FLASH);
-  const o = g.age < FLASH ? 0 : g.part.step(dt);
-  if (g.age >= GONE) {
+  // with reduced motion there is no ink flash and no parting: the copy only shrinks away
+  const flash = g.plain ? 0 : FLASH;
+  const gone = g.plain ? 0 : GONE;
+  g.el.toggleAttribute("data-inv", g.age < flash);
+  const o = g.plain || g.age < flash ? 0 : g.part.step(dt);
+  if (g.age >= gone) {
     g.size.to = 0;
   }
   const s = Math.max(0, g.size.step(dt));
   g.upper.style.transform = `translate(${(o * 7).toFixed(2)}px, ${(o * -5).toFixed(2)}px) rotate(${(o * -6).toFixed(2)}deg) scale(${s.toFixed(3)})`;
   g.lower.style.transform = `translate(${(o * -5).toFixed(2)}px, ${(o * 6).toFixed(2)}px) rotate(${(o * 5).toFixed(2)}deg) scale(${s.toFixed(3)})`;
-  return g.age >= GONE && s < 0.04;
+  return g.age >= gone && s < 0.04;
 };
 
 const same = (a: string, b: string) => a.toLowerCase() === b.toLowerCase();
@@ -212,7 +216,7 @@ const FACE =
   "pointer-events-none absolute h-[4.8px] origin-left bg-(--sk-ink) group-data-inv:bg-(--sk-card)";
 
 // one side of a cut tag: a copy of the tag clipped to that side of the cut, with a line on its face
-const halfOf = (chip: HTMLElement, side: string, place: Place) => {
+const halfOf = (chip: HTMLElement, side: string, place: Place, plain: boolean) => {
   const half = chip.cloneNode(true);
   if (!(half instanceof HTMLElement)) {
     return null;
@@ -228,22 +232,27 @@ const halfOf = (chip: HTMLElement, side: string, place: Place) => {
   face.style.top = `${(place.height * 0.86 - 4.8).toFixed(2)}px`;
   face.style.width = `${Math.hypot(place.width, rise).toFixed(2)}px`;
   face.style.transform = `rotate(${(-Math.atan2(rise, place.width)).toFixed(4)}rad)`;
-  half.append(face);
+  if (!plain) {
+    half.append(face);
+  }
   return half;
 };
 
 // leave a copy of a tag where it stood, in two halves
 const cutCopy = (layer: HTMLElement, chip: HTMLElement, place: Place): Ghost | null => {
   const el = document.createElement("span");
-  const upper = halfOf(chip, UPPER, place);
-  const lower = halfOf(chip, LOWER, place);
+  const plain = isCalm();
+  const upper = halfOf(chip, UPPER, place, plain);
+  const lower = halfOf(chip, LOWER, place, plain);
   if (!upper || !lower) {
     return null;
   }
   el.className = "group absolute";
   el.inert = true;
-  // it is born on the impact frame
-  el.dataset.inv = "";
+  if (!plain) {
+    // it is born on the impact frame
+    el.dataset.inv = "";
+  }
   el.style.left = `${place.left}px`;
   el.style.top = `${place.top}px`;
   el.style.width = `${place.width}px`;
@@ -252,7 +261,7 @@ const cutCopy = (layer: HTMLElement, chip: HTMLElement, place: Place): Ghost | n
   layer.append(el);
   const part = new Spring(0, 300, 14);
   part.to = 1;
-  return { age: 0, el, lower, part, size: new Spring(1, 500, 26), upper };
+  return { age: 0, el, lower, part, plain, size: new Spring(1, 500, 26), upper };
 };
 
 const Cross = () => (
@@ -320,7 +329,7 @@ export const SakugaChips = ({
   // a new tag pops in
   const arrive = (el: HTMLElement, m: Motion) => {
     const box = field.current;
-    if (!box || isCalm()) {
+    if (!box) {
       return;
     }
     const c = at(el);
@@ -339,7 +348,7 @@ export const SakugaChips = ({
   const cutAway = (chip: HTMLElement, place: Place, height: number) => {
     const box = field.current;
     const layer = cutLayer.current;
-    if (!box || !layer || isCalm()) {
+    if (!box || !layer) {
       return;
     }
     const ghost = cutCopy(layer, chip, place);

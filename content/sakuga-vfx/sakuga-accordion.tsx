@@ -8,7 +8,7 @@
 import { useId, useLayoutEffect, useRef, useState } from "react";
 import type { KeyboardEvent, ReactNode } from "react";
 
-import { Spring, at, hollow, isCalm, puff, sfx, ticks } from "./sakuga-core";
+import { Spring, at, hollow, puff, sfx, ticks } from "./sakuga-core";
 import { FONT_BODY, FONT_DISPLAY, SakugaStyle, useFrame } from "./sakuga-react";
 
 export interface SakugaAccordionSection {
@@ -63,12 +63,6 @@ const aim = (r: Rig, on: boolean, alone: boolean) => {
   r.closing = !on && alone;
   r.still = false;
   r.h.v = on ? Math.max(r.h.v, 5) : Math.min(r.h.v, -6);
-  if (isCalm()) {
-    r.h.x = r.h.to;
-    r.h.v = 0;
-    r.turn.x = r.h.to;
-    r.turn.v = 0;
-  }
 };
 
 // the chevron turns over through flat, a little wider as it goes
