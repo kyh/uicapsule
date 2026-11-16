@@ -116,6 +116,7 @@ export const SakugaSelect = ({
       return;
     }
     now.current.open = false;
+    now.current.typed = "";
     now.current.seq += 1;
     setOpen(false);
     shrink();
@@ -178,6 +179,7 @@ export const SakugaSelect = ({
       return;
     }
     now.current.open = false;
+    now.current.typed = "";
     now.current.seq += 1;
     const n = now.current.seq;
     setOpen(false);
@@ -215,7 +217,7 @@ export const SakugaSelect = ({
   const typeahead = (key: string) => {
     const t = now.current;
     const at0 = performance.now();
-    t.typed = at0 - t.typedAt > 700 ? key : t.typed + key;
+    t.typed = at0 - t.typedAt > 500 ? key : t.typed + key;
     t.typedAt = at0;
     const from = t.typed.length === 1 && open ? active + 1 : 0;
     for (let k = 0; k < options.length; k += 1) {

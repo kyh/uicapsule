@@ -42,10 +42,11 @@ export interface SakugaChipsProps {
 const DEFAULT_VALUE: readonly string[] = ["Ink", "Paper"];
 
 // how long the tags after a cut one wait before they close the gap
-const HOLD = 0.13;
+const HOLD = 0.17;
+const LAG = 0.035;
 // how long a cut tag stays ink, and when its halves start to shrink
-const FLASH = 0.07;
-const GONE = 0.2;
+const FLASH = 0.06;
+const GONE = 0.14;
 
 interface Motion {
   // how far it still is from where the layout has it
@@ -59,7 +60,7 @@ interface Motion {
 }
 
 const makeMotion = (): Motion => ({
-  pop: new Spring(1, 520, 14),
+  pop: new Spring(1, 520, 18),
   squash: new Spring(1, 600, 13),
   still: true,
   sx: new Spring(0, 320, 23),
@@ -86,7 +87,7 @@ const near = (s: Spring, to: number, by: number) =>
   Math.abs(s.x - to) < by && Math.abs(s.v) < by * 10;
 
 // put a tag where its springs say; the stretch comes from its speed and trails behind it
-const pose = (el: HTMLElement, m: Motion) => {
+const pose = (el: HTMLElement, m: Motion, smear = 0.0007) => {
   if (
     near(m.sx, 0, 0.05) &&
     near(m.sy, 0, 0.05) &&
@@ -99,7 +100,7 @@ const pose = (el: HTMLElement, m: Motion) => {
     el.style.transform = "";
     return;
   }
-  const stretch = 1 + Math.min(0.4, Math.abs(m.sx.v) * 0.0007);
+  const stretch = 1 + Math.min(0.3, Math.abs(m.sx.v) * smear);
   const trail = (-Math.sign(m.sx.v) * (stretch - 1) * el.offsetWidth) / 2;
   const p = m.pop.x;
   const q = m.squash.x;
@@ -116,6 +117,46 @@ const advance = (m: Motion, dt: number) => {
   m.pop.step(dt);
   m.squash.step(dt);
   m.tilt.step(dt);
+};
+
+// a tag (or the text box) the layout has just moved: put it back where it stood, wait, then let go
+const sendBack = (
+  el: HTMLElement,
+  m: Motion,
+  old: { left: number; top: number },
+  wait: number,
+  smear?: number,
+) => {
+  const dx = old.left - el.offsetLeft;
+  const dy = old.top - el.offsetTop;
+  if ((dx === 0 && dy === 0) || isCalm()) {
+    return false;
+  }
+  m.sx.x = dx;
+  m.sy.x = dy;
+  m.wait = wait;
+  m.still = false;
+  pose(el, m, smear);
+  return true;
+};
+
+// the cut tag: ink for the impact frame, then the halves slip along the cut and shrink away.
+// True once it is gone.
+const cutApart = (el: HTMLElement | undefined, g: GhostRig, dt: number) => {
+  const [upper, lower] = el ? [...el.children] : [];
+  g.age += dt;
+  if (!(el && upper instanceof HTMLElement && lower instanceof HTMLElement)) {
+    return g.age > 1;
+  }
+  el.toggleAttribute("data-inv", g.age < FLASH);
+  const o = g.age < FLASH ? 0 : g.part.step(dt);
+  if (g.age >= GONE) {
+    g.size.to = 0;
+  }
+  const s = Math.max(0, g.size.step(dt));
+  upper.style.transform = `translate(${(o * 7).toFixed(2)}px, ${(o * -5).toFixed(2)}px) rotate(${(o * -6).toFixed(2)}deg) scale(${s.toFixed(3)})`;
+  lower.style.transform = `translate(${(o * -5).toFixed(2)}px, ${(o * 6).toFixed(2)}px) rotate(${(o * 5).toFixed(2)}deg) scale(${s.toFixed(3)})`;
+  return g.age >= GONE && s < 0.04;
 };
 
 const same = (a: string, b: string) => a.toLowerCase() === b.toLowerCase();
@@ -165,6 +206,9 @@ export const SakugaChips = ({
   const ghostRigs = useRef(new Map<number, GhostRig>());
   // where every tag was just before a change, and the tags that change added
   const before = useRef<Map<string, { left: number; top: number }> | null>(null);
+  const boxBefore = useRef<{ left: number; top: number } | null>(null);
+  // the text box follows the tags over
+  const follow = useRef(makeMotion());
   const fresh = useRef(new Set<string>());
   const give = useRef(new Spring(1, 700, 16));
   const shake = useRef(new Spring(0, 700, 14));
@@ -180,10 +224,10 @@ export const SakugaChips = ({
     }
     const c = at(el);
     const f = at(box, 0.5, 0);
-    m.pop.x = 0.3;
-    m.squash.x = 0.72;
+    m.pop.x = 0.5;
+    m.squash.x = 0.74;
     m.still = false;
-    puff(c.x, c.y + c.h / 2 + 3, { life: 0.45, n: 3, size: 6, vy: -8 });
+    puff(c.x, c.y + c.h / 2 + 9, { life: 0.45, n: 3, size: 5, vy: 3 });
     sfx("pon", c.x + 16, f.y - 30, { life: 0.8, rot: 0.06, size: 80, ...hollow() });
   };
 
@@ -206,6 +250,7 @@ export const SakugaChips = ({
     cut.current = halves;
     const was = before.current;
     before.current = null;
+    let moved = 0;
     for (const [tag, el] of found) {
       let m = motions.current.get(tag);
       if (!m) {
@@ -216,17 +261,17 @@ export const SakugaChips = ({
       if (fresh.current.has(tag)) {
         arrive(el, m);
         pose(el, m);
-      } else if (old && !isCalm()) {
-        const dx = old.left - el.offsetLeft;
-        const dy = old.top - el.offsetTop;
-        if (dx !== 0 || dy !== 0) {
-          m.sx.x = dx;
-          m.sy.x = dy;
-          m.wait = HOLD;
-          m.still = false;
-          pose(el, m);
-        }
+      } else if (old && sendBack(el, m, old, HOLD + moved * LAG)) {
+        // each one sets off a beat after the one before it
+        moved += 1;
       }
+    }
+    const inp = entry.current;
+    const stood = boxBefore.current;
+    boxBefore.current = null;
+    // the text box only slides along its own row
+    if (inp && stood?.top === inp.offsetTop) {
+      sendBack(inp, follow.current, stood, fresh.current.size > 0 ? 0 : HOLD + moved * LAG, 0);
     }
     fresh.current.clear();
     for (const tag of motions.current.keys()) {
@@ -253,26 +298,14 @@ export const SakugaChips = ({
         pose(el, m);
       }
     }
+    if (entry.current && !follow.current.still) {
+      advance(follow.current, dt);
+      pose(entry.current, follow.current, 0);
+    }
     const over: number[] = [];
     for (const [id, g] of ghostRigs.current) {
-      const el = cut.current.get(id);
-      const [upper, lower] = el ? [...el.children] : [];
-      g.age += dt;
-      if (g.age > 1) {
+      if (cutApart(cut.current.get(id), g, dt)) {
         over.push(id);
-      } else if (el && upper instanceof HTMLElement && lower instanceof HTMLElement) {
-        // the impact frame, then the halves slip along the cut and shrink away
-        el.toggleAttribute("data-inv", g.age < FLASH);
-        const o = g.age < FLASH ? 0 : g.part.step(dt);
-        if (g.age >= GONE) {
-          g.size.to = 0;
-        }
-        const s = Math.max(0, g.size.step(dt));
-        upper.style.transform = `translate(${(o * 7).toFixed(2)}px, ${(o * -5).toFixed(2)}px) rotate(${(o * -6).toFixed(2)}deg) scale(${s.toFixed(3)})`;
-        lower.style.transform = `translate(${(o * -5).toFixed(2)}px, ${(o * 6).toFixed(2)}px) rotate(${(o * 5).toFixed(2)}deg) scale(${s.toFixed(3)})`;
-        if (g.age >= GONE && s < 0.04) {
-          over.push(id);
-        }
       }
     }
     if (over.length > 0) {
@@ -293,6 +326,10 @@ export const SakugaChips = ({
       });
     }
     before.current = places;
+    const inp = entry.current;
+    if (inp) {
+      boxBefore.current = { left: inp.offsetLeft + follow.current.sx.x, top: inp.offsetTop };
+    }
     setOwn(next);
     onValueChange?.(next);
   };
