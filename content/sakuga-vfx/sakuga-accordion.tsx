@@ -11,13 +11,12 @@
 
 import { Accordion as AccordionPrimitive } from "@base-ui/react/accordion";
 import { cn } from "cn";
-import { createContext, use, useEffect, useLayoutEffect, useMemo, useRef } from "react";
+import { createContext, use, useLayoutEffect, useMemo, useRef } from "react";
 import type { ComponentProps, RefObject } from "react";
 
 import { Spring, at, hollow, later, puff, sfx, ticks } from "./sakuga-core";
-import { FONT_BODY, FONT_DISPLAY, SakugaStyle, useFrame } from "./sakuga-react";
-
-type Styled<Props> = Omit<Props, "className"> & { className?: string };
+import { FONT_BODY, FONT_DISPLAY, SakugaStyle, useFrame, useMergedRef } from "./sakuga-react";
+import type { Styled } from "./sakuga-react";
 
 interface Rig {
   // the panel's height, as a share of its content's
@@ -71,6 +70,8 @@ interface ItemRefs {
   bodyRef: RefObject<HTMLDivElement | null>;
 }
 
+// the card, for the effects that are placed from its box
+const CardContext = createContext<RefObject<HTMLDivElement | null> | null>(null);
 const ItemContext = createContext<ItemRefs | null>(null);
 
 const useItem = () => {
@@ -82,12 +83,8 @@ const useItem = () => {
 };
 
 // the bottom edge lands
-const land = (head: HTMLElement, panel: HTMLElement) => {
-  const box = head.closest('[data-slot="sakuga-accordion"]');
-  if (!box) {
-    return;
-  }
-  const k = at(box);
+const land = (card: HTMLElement, head: HTMLElement, panel: HTMLElement) => {
+  const k = at(card);
   const p = at(panel, 0.5, 1);
   const q = at(head, 1, 0);
   const left = k.x - k.w / 2;
@@ -109,6 +106,7 @@ const shut = (head: HTMLElement) => {
 const stepPanel = (
   r: Rig,
   dt: number,
+  card: HTMLElement | null,
   head: HTMLElement,
   panel: HTMLElement,
   body: HTMLElement,
@@ -119,7 +117,9 @@ const stepPanel = (
   chevron.style.transform = flip(t);
   if (r.landing && h >= 1) {
     r.landing = false;
-    land(head, panel);
+    if (card) {
+      land(card, head, panel);
+    }
   }
   if (r.closing && h < 0.08) {
     r.closing = false;
@@ -142,21 +142,26 @@ const stepPanel = (
 const SakugaAccordion = ({
   className,
   children,
+  ref,
   ...props
-}: Styled<AccordionPrimitive.Root.Props>) => (
-  <AccordionPrimitive.Root
-    data-slot="sakuga-accordion"
-    // the font family stays outside cn: tailwind-merge takes it for a font weight and drops ours
-    className={`${FONT_BODY} ${cn(
-      "relative isolate inline-block w-[270px] max-w-full rounded-(--sk-r) bg-(--sk-card) align-middle text-[15px] leading-[1.4] font-medium text-(--sk-ink) shadow-(--sk-sh) [border:var(--sk-bw)_solid_var(--sk-ink)]",
-      className,
-    )}`}
-    {...props}
-  >
-    <SakugaStyle />
-    {children}
-  </AccordionPrimitive.Root>
-);
+}: Styled<AccordionPrimitive.Root.Props>) => {
+  const cardRef = useRef<HTMLDivElement>(null);
+  return (
+    <AccordionPrimitive.Root
+      ref={useMergedRef(cardRef, ref)}
+      data-slot="sakuga-accordion"
+      className={cn(
+        "relative isolate inline-block w-[270px] max-w-full rounded-(--sk-r) border-[length:var(--sk-bw)] border-(--sk-ink) bg-(--sk-card) align-middle text-[15px] leading-[1.4] font-medium text-(--sk-ink) shadow-(--sk-sh)",
+        FONT_BODY,
+        className,
+      )}
+      {...props}
+    >
+      <SakugaStyle />
+      <CardContext value={cardRef}>{children}</CardContext>
+    </AccordionPrimitive.Root>
+  );
+};
 
 const SakugaAccordionItem = ({
   className,
@@ -169,6 +174,7 @@ const SakugaAccordionItem = ({
   const panelRef = useRef<HTMLDivElement>(null);
   const bodyRef = useRef<HTMLDivElement>(null);
   const refs = useMemo(() => ({ bodyRef, chevronRef, headRef, panelRef, rigRef }), []);
+  const cardRef = use(CardContext);
 
   useFrame((dt) => {
     const r = rigRef.current;
@@ -185,7 +191,7 @@ const SakugaAccordionItem = ({
         ? ""
         : `scale(${1 + (1 - y) * 0.14}, ${y})`;
     if (!r.still && panel && body && chevron) {
-      stepPanel(r, dt, head, panel, body, chevron);
+      stepPanel(r, dt, cardRef?.current ?? null, head, panel, body, chevron);
     }
   });
 
@@ -219,36 +225,50 @@ const HEADER = `group flex w-full cursor-pointer touch-manipulation items-center
 const SakugaAccordionTrigger = ({
   className,
   children,
+  ref,
+  onPointerDown,
+  onPointerUp,
+  onPointerLeave,
+  onPointerCancel,
+  onBlur,
   ...props
 }: Styled<AccordionPrimitive.Trigger.Props>) => {
   const { rigRef, headRef, chevronRef } = useItem();
 
-  // the header squashes a little while it is held
-  useEffect(() => {
-    const head = headRef.current;
-    if (!head) {
-      return;
+  // the header squashes a little while it is held, and comes back when it is let go
+  const hold = (to: number, el: HTMLElement) => {
+    if (to === 1 || !el.matches(":disabled, [data-disabled]")) {
+      rigRef.current.press.to = to;
     }
-    const off = new AbortController();
-    const hold = (to: number) => () => {
-      if (to === 1 || !head.matches(":disabled, [data-disabled]")) {
-        rigRef.current.press.to = to;
-      }
-    };
-    head.addEventListener("pointerdown", hold(0.86), { signal: off.signal });
-    for (const e of ["pointerup", "pointerleave", "pointercancel", "blur"]) {
-      head.addEventListener(e, hold(1), { signal: off.signal });
-    }
-    return () => off.abort();
-  }, [headRef, rigRef]);
+  };
 
   return (
     <AccordionPrimitive.Header data-slot="sakuga-accordion-header">
       <AccordionPrimitive.Trigger
-        ref={headRef}
+        ref={useMergedRef(headRef, ref)}
         data-slot="sakuga-accordion-trigger"
-        className={`${FONT_DISPLAY} ${cn(HEADER, className)}`}
+        className={cn(HEADER, FONT_DISPLAY, className)}
         {...props}
+        onPointerDown={(e) => {
+          onPointerDown?.(e);
+          hold(0.86, e.currentTarget);
+        }}
+        onPointerUp={(e) => {
+          onPointerUp?.(e);
+          hold(1, e.currentTarget);
+        }}
+        onPointerLeave={(e) => {
+          onPointerLeave?.(e);
+          hold(1, e.currentTarget);
+        }}
+        onPointerCancel={(e) => {
+          onPointerCancel?.(e);
+          hold(1, e.currentTarget);
+        }}
+        onBlur={(e) => {
+          onBlur?.(e);
+          hold(1, e.currentTarget);
+        }}
       >
         {children}
         {/* the class is only how it looks before the first reaction: after that the spring writes the transform */}
@@ -303,12 +323,13 @@ const PanelShell = ({ open, ...props }: ComponentProps<"div"> & { open: boolean 
 const SakugaAccordionContent = ({
   className,
   children,
+  ref,
   ...props
 }: Omit<Styled<AccordionPrimitive.Panel.Props>, "keepMounted" | "hiddenUntilFound" | "render">) => {
   const { panelRef, bodyRef } = useItem();
   return (
     <AccordionPrimitive.Panel
-      ref={panelRef}
+      ref={useMergedRef(panelRef, ref)}
       keepMounted
       data-slot="sakuga-accordion-content"
       // the height class is only how it looks before the first reaction: after that the spring writes it

@@ -7,7 +7,7 @@
 
 import { Checkbox as CheckboxPrimitive } from "@base-ui/react/checkbox";
 import { cn } from "cn";
-import { useLayoutEffect, useRef } from "react";
+import { useEffect, useLayoutEffect, useRef } from "react";
 
 import { Spring, at, dotted, kira, later, lines, puff, sfx, shards, slash } from "./sakuga-core";
 import { SakugaStyle, useFrame, useMergedRef } from "./sakuga-react";
@@ -25,9 +25,11 @@ interface Rig {
   s: Spring;
   // it reacts once the owner agrees
   hand: boolean | null;
+  // set while its form's reset puts it back, so that change plays nothing
+  quiet: boolean;
 }
 
-const makeRig = (): Rig => ({ hand: null, s: new Spring(1, 600, 13) });
+const makeRig = (): Rig => ({ hand: null, quiet: false, s: new Spring(1, 600, 13) });
 
 // the reaction to a person ticking or unticking it
 const land = (box: HTMLElement | null, rig: Rig, checked: boolean) => {
@@ -51,21 +53,25 @@ const land = (box: HTMLElement | null, rig: Rig, checked: boolean) => {
 const SakugaCheckbox = ({
   className,
   checked,
+  defaultChecked,
   onCheckedChange,
+  inputRef,
   ref,
   ...props
 }: SakugaCheckboxProps) => {
   const root = useRef<HTMLElement>(null);
   const rigRef = useRef(makeRig());
+  const input = useRef<HTMLInputElement>(null);
   const setRoot = useMergedRef<HTMLElement>(root, ref);
+  const setInput = useMergedRef(input, inputRef);
 
   // Base UI only calls this for a person's tick
   const change = (next: boolean, details: CheckboxPrimitive.Root.ChangeEventDetails) => {
     onCheckedChange?.(next, details);
-    if (details.isCanceled) {
+    const rig = rigRef.current;
+    if (details.isCanceled || rig.quiet) {
       return;
     }
-    const rig = rigRef.current;
     // an owner can still refuse the tick, so only its own state reacts before the answer
     if (checked === undefined) {
       land(root.current, rig, next);
@@ -87,6 +93,25 @@ const SakugaCheckbox = ({
     rig.hand = null;
   }, [checked]);
 
+  // Base UI leaves a form's reset to the browser, which moves only the hidden input, so the control
+  // would go on showing the old state. Put it back through that input, quietly, just before.
+  useEffect(() => {
+    const hidden = input.current;
+    const form = hidden?.form;
+    if (checked !== undefined || !hidden || !form) {
+      return;
+    }
+    const back = () => {
+      if (hidden.checked !== Boolean(defaultChecked)) {
+        rigRef.current.quiet = true;
+        hidden.click();
+        rigRef.current.quiet = false;
+      }
+    };
+    form.addEventListener("reset", back);
+    return () => form.removeEventListener("reset", back);
+  }, [checked, defaultChecked]);
+
   useFrame((dt) => {
     const y = rigRef.current.s.step(dt);
     if (root.current) {
@@ -100,9 +125,11 @@ const SakugaCheckbox = ({
       <SakugaStyle />
       <CheckboxPrimitive.Root
         ref={setRoot}
+        inputRef={setInput}
         data-slot="sakuga-checkbox"
         className={cn(ROOT, className)}
         checked={checked}
+        defaultChecked={defaultChecked}
         onCheckedChange={change}
         {...props}
       >

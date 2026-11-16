@@ -13,7 +13,16 @@
 // SakugaChipsInput is the text box.
 
 import { cn } from "cn";
-import { createContext, use, useLayoutEffect, useMemo, useRef, useState } from "react";
+import {
+  createContext,
+  use,
+  useCallback,
+  useEffect,
+  useLayoutEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import type {
   ChangeEvent,
   ComponentProps,
@@ -38,7 +47,7 @@ import {
   ticks,
   wob,
 } from "./sakuga-core";
-import { FONT_BODY, SakugaStyle, useFrame } from "./sakuga-react";
+import { FONT_BODY, SakugaStyle, useFrame, useMergedRef } from "./sakuga-react";
 
 type SakugaChipsProps = Omit<ComponentProps<"span">, "defaultValue" | "onChange"> & {
   value?: readonly string[];
@@ -56,13 +65,15 @@ interface Chips {
   keyed: readonly { key: string; tag: string }[];
   disabled: boolean;
   fieldRef: RefObject<HTMLDivElement | null>;
+  // every chip on the page, by key: each SakugaChip puts itself here
+  chipElsRef: RefObject<Map<string, HTMLElement>>;
   entryRef: RefObject<HTMLInputElement | null>;
   cutLayerRef: RefObject<HTMLSpanElement | null>;
   remove: (key: string) => void;
   change: (e: ChangeEvent<HTMLInputElement>) => void;
   keyDown: (e: KeyboardEvent<HTMLInputElement>) => void;
   focus: () => void;
-  pointerDown: (e: PointerEvent<HTMLDivElement>) => void;
+  pointerDown: (e: PointerEvent<HTMLElement>) => void;
 }
 
 const ChipsContext = createContext<Chips | null>(null);
@@ -241,7 +252,7 @@ const keysOf = (tags: readonly string[]) => {
 };
 
 const CHIP =
-  "inline-flex max-w-full items-center gap-[2px] rounded-[9px] bg-(--sk-card) py-[2px] pr-[3px] pl-[10px] text-[14px] leading-[1.2] font-bold text-(--sk-ink) shadow-[2.5px_3px_0_var(--sk-soft)] [border:2.4px_solid_var(--sk-ink)]";
+  "inline-flex max-w-full items-center gap-[2px] rounded-[9px] bg-(--sk-card) py-[2px] pr-[3px] pl-[10px] text-[14px] leading-[1.2] font-bold text-(--sk-ink) border-[2.4px] border-(--sk-ink) shadow-[2.5px_3px_0_var(--sk-soft)]";
 const CROSS =
   "grid h-[21px] w-[21px] flex-none place-items-center rounded-full text-(--sk-ink) group-data-inv:text-(--sk-card)";
 // the two sides of the cut; they reach past the tag so its shadow is kept
@@ -333,6 +344,8 @@ const SakugaChips = ({
   const entry = useRef<HTMLInputElement>(null);
   const cutLayer = useRef<HTMLSpanElement>(null);
   const status = useRef<HTMLOutputElement>(null);
+  const chipEls = useRef(new Map<string, HTMLElement>());
+  // the chips as the last render left them: a tag that has just gone is still in here
   const chips = useRef<Map<string, HTMLElement> | null>(null);
   const motions = useRef(new Map<string, Motion>());
   const ghosts = useRef(new Set<Ghost>());
@@ -465,12 +478,15 @@ const SakugaChips = ({
     if (!box || !inp) {
       return;
     }
+    // in the value's order, which is the order they stand in
     const found = new Map<string, HTMLElement>();
-    for (const el of box.querySelectorAll<HTMLElement>("[data-chip]")) {
-      const key = el.dataset.chip ?? "";
-      found.set(key, el);
-      if (!motions.current.has(key)) {
-        motions.current.set(key, makeMotion());
+    for (const { key } of keyed) {
+      const el = chipEls.current.get(key);
+      if (el) {
+        found.set(key, el);
+        if (!motions.current.has(key)) {
+          motions.current.set(key, makeMotion());
+        }
       }
     }
     const old = chips.current;
@@ -707,7 +723,7 @@ const SakugaChips = ({
   };
 
   // a press on the field's own paper goes to the box, and a press on a tag does not take focus from it
-  const pointerDown = (e: PointerEvent<HTMLDivElement>) => {
+  const pointerDown = (e: PointerEvent<HTMLElement>) => {
     if (e.target !== entry.current && !disabled) {
       e.preventDefault();
       if (!(e.target instanceof Element && e.target.closest("button"))) {
@@ -715,6 +731,19 @@ const SakugaChips = ({
       }
     }
   };
+
+  // a form's reset puts back the tags it started with, and nothing reacts
+  const controlled = value !== undefined;
+  const initial = useRef(defaultValue);
+  useEffect(() => {
+    const form = status.current?.form;
+    if (!form || controlled) {
+      return;
+    }
+    const restore = () => setOwn(initial.current);
+    form.addEventListener("reset", restore);
+    return () => form.removeEventListener("reset", restore);
+  }, [controlled]);
 
   // the handlers read this render's tags; the parts call whichever set is the latest
   const live = useRef({ change, focus, keyDown, pointerDown, remove });
@@ -724,6 +753,7 @@ const SakugaChips = ({
   const parts = useMemo(
     (): Chips => ({
       change: (e) => live.current.change(e),
+      chipElsRef: chipEls,
       cutLayerRef: cutLayer,
       disabled,
       entryRef: entry,
@@ -741,11 +771,11 @@ const SakugaChips = ({
     <span
       data-slot="sakuga-chips"
       data-disabled={disabled ? "" : undefined}
-      // the font family stays outside cn: tailwind-merge takes it for a font weight and drops ours
-      className={`${FONT_BODY} ${cn(
+      className={cn(
         "relative isolate inline-block w-[270px] max-w-full align-middle text-[15px] leading-[1.4] font-medium text-(--sk-ink)",
+        FONT_BODY,
         className,
-      )}`}
+      )}
       {...props}
     >
       <SakugaStyle />
@@ -768,9 +798,10 @@ const SakugaChipRemove = ({ className, children, onClick, ...props }: ComponentP
       data-slot="sakuga-chip-remove"
       aria-label={`Remove ${tag}`}
       disabled={disabled}
+      data-disabled={disabled ? "" : undefined}
       className={cn(
         CROSS,
-        "cursor-pointer hover:bg-(--sk-soft) focus-visible:outline-[2.5px] focus-visible:outline-offset-[1px] focus-visible:outline-(--sk-acc) disabled:cursor-not-allowed",
+        "cursor-pointer hover:bg-(--sk-soft) focus-visible:outline-[2.5px] focus-visible:outline-offset-[1px] focus-visible:outline-(--sk-acc) data-disabled:cursor-not-allowed",
         className,
       )}
       {...props}
@@ -787,10 +818,25 @@ const SakugaChipRemove = ({ className, children, onClick, ...props }: ComponentP
 };
 
 // One tag. With no children it is the tag's text and its remove button.
-const SakugaChip = ({ className, children, ...props }: ComponentProps<"span">) => {
+const SakugaChip = ({ className, children, ref, ...props }: ComponentProps<"span">) => {
+  const { chipElsRef } = useChips();
   const { key, tag } = useChip();
+  const enrol = useCallback(
+    (node: HTMLSpanElement | null) => {
+      if (!node) {
+        return;
+      }
+      const els = chipElsRef.current;
+      els.set(key, node);
+      return () => {
+        els.delete(key);
+      };
+    },
+    [chipElsRef, key],
+  );
   return (
     <span
+      ref={useMergedRef(enrol, ref)}
       data-slot="sakuga-chip"
       data-chip={key}
       className={cn(CHIP, "will-change-transform", className)}
@@ -814,6 +860,7 @@ const SakugaChipsList = ({
   children,
   renderChip = plainChip,
   onPointerDown,
+  ref,
   "aria-label": label,
   "aria-labelledby": labelledBy,
   ...props
@@ -824,15 +871,15 @@ const SakugaChipsList = ({
   const { keyed, disabled, fieldRef, cutLayerRef, pointerDown } = useChips();
   return (
     <div
-      ref={fieldRef}
-      // oxlint-disable-next-line jsx-a11y/prefer-tag-over-role -- a fieldset keeps its own minimum width and cannot be the wrapping row the tags and the text box share
+      ref={useMergedRef(fieldRef, ref)}
+      // oxlint-disable-next-line jsx-a11y/prefer-tag-over-role -- a <fieldset> was tried: browsers paint its border by their own fieldset rules and the frame sheets changed by a few pixels along the 3.2px edge, so the field stays a div with the group role
       role="group"
       data-slot="sakuga-chips-list"
+      data-disabled={disabled ? "" : undefined}
       aria-label={labelledBy === undefined ? (label ?? "Tags") : label}
       aria-labelledby={labelledBy}
       className={cn(
-        "relative flex cursor-text flex-wrap content-start items-center gap-x-[7px] gap-y-[8px] rounded-(--sk-r) bg-(--sk-card) px-[11px] py-[10px] shadow-(--sk-sh) will-change-transform [border:var(--sk-bw)_solid_var(--sk-ink)] has-[input:focus-visible]:outline-[2.5px] has-[input:focus-visible]:outline-offset-[3px] has-[input:focus-visible]:outline-(--sk-acc) has-[input:focus-visible]:outline-solid",
-        disabled && "cursor-not-allowed opacity-50",
+        "relative flex cursor-text flex-wrap content-start items-center gap-x-[7px] gap-y-[8px] rounded-(--sk-r) bg-(--sk-card) px-[11px] py-[10px] shadow-(--sk-sh) will-change-transform border-[length:var(--sk-bw)] border-(--sk-ink) has-[input:focus-visible]:outline-[2.5px] has-[input:focus-visible]:outline-offset-[3px] has-[input:focus-visible]:outline-(--sk-acc) has-[input:focus-visible]:outline-solid data-disabled:cursor-not-allowed data-disabled:opacity-50",
         className,
       )}
       {...props}
@@ -858,6 +905,7 @@ const SakugaChipsInput = ({
   onChange,
   onKeyDown,
   onFocus,
+  ref,
   "aria-label": label,
   "aria-labelledby": labelledBy,
   ...props
@@ -865,16 +913,17 @@ const SakugaChipsInput = ({
   const { disabled, entryRef, change, keyDown, focus } = useChips();
   return (
     <input
-      ref={entryRef}
+      ref={useMergedRef(entryRef, ref)}
       type="text"
       data-slot="sakuga-chips-input"
       aria-label={labelledBy === undefined ? (label ?? "Tags") : label}
       aria-labelledby={labelledBy}
       disabled={disabled}
+      data-disabled={disabled ? "" : undefined}
       autoComplete="off"
       enterKeyHint="done"
       className={cn(
-        "h-[30px] w-0 min-w-[84px] flex-1 bg-transparent px-[2px] text-[16px] font-semibold text-(--sk-ink) caret-(--sk-ink) outline-none placeholder:text-(--sk-dim) disabled:cursor-not-allowed",
+        "h-[30px] w-0 min-w-[84px] flex-1 bg-transparent px-[2px] text-[16px] font-semibold text-(--sk-ink) caret-(--sk-ink) outline-none placeholder:text-(--sk-dim) data-disabled:cursor-not-allowed",
         className,
       )}
       {...props}

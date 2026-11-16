@@ -8,7 +8,7 @@
 
 import { Progress as ProgressPrimitive } from "@base-ui/react/progress";
 import { cn } from "cn";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import type { RefObject } from "react";
 import { flushSync } from "react-dom";
 
@@ -33,21 +33,16 @@ import {
 } from "./sakuga-core";
 import type { Layer } from "./sakuga-core";
 import { BACK_CANVAS, FONT_BODY, SakugaStyle, useBackLayer, useFrame } from "./sakuga-react";
+import type { Styled } from "./sakuga-react";
 
 // Base UI's Progress.Root props: `value` in `min`..`max` (0..100 unless told otherwise), `null`
 // or left out for indeterminate, plus format / locale / getAriaValueText / aria-label(ledby).
 // The bar eases toward `value`; a lower value goes straight there and re-arms the finish.
-type SakugaProgressProps = Omit<
-  ProgressPrimitive.Root.Props,
-  "children" | "className" | "value"
-> & {
-  className?: string;
+type SakugaProgressProps = Styled<Omit<ProgressPrimitive.Root.Props, "children" | "value">> & {
   value?: number | null;
-  // the words at the end
+  // the words under the bar once it is full
   doneLabel?: string;
-  // plays a pretend load on a loop; click restarts it. Don't ship it.
-  demo?: boolean;
-  // once, when the bar itself reaches the end
+  // once, when the bar itself reaches the end, a moment after `value` does
   onDone?: () => void;
 };
 
@@ -128,11 +123,6 @@ type Pebble = ReturnType<typeof pebble>;
 const clear = (load: Load) => {
   load.doneAt = 0;
   load.said = false;
-};
-const reset = (load: Load) => {
-  clear(load);
-  load.p = 0;
-  load.goal = 0;
 };
 const setGoal = (load: Load, value: number) => {
   const n = clamp(Number(value) || 0);
@@ -368,14 +358,8 @@ const finish = (b: ReturnType<typeof at>, top: number, back: Layer | null) => {
   sfx("don", b.x - 26, top - 62, { life: 1.05, rot: -0.12, size: 170 });
 };
 
-// the bar eases toward its goal; the demo pushes the goal along in surges, not at one speed
-const advanceLoad = (load: Load, demo: boolean, dt: number) => {
-  if (demo && !load.doneAt) {
-    load.goal = Math.min(
-      1,
-      load.goal + dt * (0.14 + 0.115 * Math.sin(load.t * 2.1) + 0.07 * Math.sin(load.t * 4.7)),
-    );
-  }
+// the bar eases toward its goal: at least 12% a second, at most 90%
+const advanceLoad = (load: Load, dt: number) => {
   const was = load.p;
   if (!load.doneAt && load.p < load.goal) {
     load.p = Math.min(load.goal, load.p + dt * clamp((load.goal - load.p) * 3, 0.12, 0.9));
@@ -412,7 +396,6 @@ const loadOf = (loadRef: RefObject<Load | null>) => {
   return made;
 };
 
-// the number under the bar: it pops on every fifth percent
 // the words under the bar
 const textOf = (load: Load, n: number, doneLabel: string) => {
   if (load.doneAt) {
@@ -422,13 +405,14 @@ const textOf = (load: Load, n: number, doneLabel: string) => {
 };
 
 const BAR =
-  "relative h-[38px] overflow-hidden rounded-[19px] bg-(--sk-card) [border:4px_solid_var(--sk-ink)]";
+  "relative h-[38px] overflow-hidden rounded-[19px] border-4 border-(--sk-ink) bg-(--sk-card)";
 const FILL =
   "relative bg-(--sk-fill) before:absolute before:top-[5px] before:left-[22px] before:h-[11px] before:w-[9px] before:rounded-[2px] before:bg-white before:opacity-[.92] before:content-[''] before:[transform:skewX(-28deg)] after:absolute after:top-[5px] after:left-[37px] after:h-[11px] after:w-[6px] after:rounded-[2px] after:bg-white after:opacity-[.92] after:content-[''] after:[transform:skewX(-28deg)]";
 const PCT =
-  "mx-auto mt-[64px] table bg-(--sk-card) px-[13px] pt-[3px] pb-[4px] font-['Marker_Felt','Chalkboard_SE','Comic_Sans_MS',-apple-system,'Segoe_UI',sans-serif] text-[21px] leading-[1.1] font-black tracking-[-0.01em] whitespace-nowrap italic shadow-[5px_5px_0_var(--sk-fill)] will-change-transform [border:2.5px_solid_var(--sk-ink)] [transform:skewX(-12deg)]";
+  "mx-auto mt-[64px] table bg-(--sk-card) px-[13px] pt-[3px] pb-[4px] [font-family:'Marker_Felt','Chalkboard_SE','Comic_Sans_MS',-apple-system,'Segoe_UI',sans-serif] text-[21px] leading-[1.1] font-black tracking-[-0.01em] whitespace-nowrap italic shadow-[5px_5px_0_var(--sk-fill)] border-[2.5px] border-(--sk-ink) will-change-transform [transform:skewX(-12deg)]";
 
-const ROOT = `relative isolate w-(--sk-progress-width,280px) max-w-full align-middle text-[15px] leading-[1.4] font-medium text-(--sk-ink) ${FONT_BODY}`;
+const ROOT =
+  "relative isolate w-(--sk-progress-width,280px) max-w-full align-middle text-[15px] leading-[1.4] font-medium text-(--sk-ink)";
 
 const SakugaProgress = ({
   className,
@@ -436,7 +420,6 @@ const SakugaProgress = ({
   min = 0,
   max = 100,
   doneLabel = "Complete ✓",
-  demo = false,
   onDone,
   "aria-label": ariaLabel,
   "aria-labelledby": labelledBy,
@@ -450,7 +433,7 @@ const SakugaProgress = ({
   // What the bar shows right now, a whole percent at a time: Base UI turns it into aria-valuenow,
   // aria-valuetext and data-progressing / data-complete / data-indeterminate.
   const [shown, setShown] = useState<{ text: string; value: number | null }>(() =>
-    value === null || (value === undefined && !demo)
+    value === null || value === undefined
       ? { text: UNKNOWN, value: null }
       : { text: "0%", value: min },
   );
@@ -469,24 +452,14 @@ const SakugaProgress = ({
     };
   }, []);
 
-  // with demo, a click starts the pretend load again
-  useEffect(() => {
-    const el = box.current;
-    if (!demo || !el) {
-      return;
-    }
-    const restart = () => reset(loadOf(loadRef));
-    el.addEventListener("click", restart);
-    return () => el.removeEventListener("click", restart);
-  }, [demo]);
-
-  // A new value is the original's set(value); taking it away is its set(0), and the bar is
-  // indeterminate until there is a value again. A bar that never had one is left alone.
+  // A new value is where the bar now eases to. Taking the value away empties the bar, and it is
+  // indeterminate until there is a value again. In a layout effect, so a value set during a
+  // frame of the shared clock is the one that frame eases toward.
   const hadValue = useRef(false);
-  useEffect(() => {
+  useLayoutEffect(() => {
     const load = loadOf(loadRef);
     const known = value !== null && value !== undefined && Number.isFinite(value);
-    load.unknown = !known && !demo;
+    load.unknown = !known;
     if (known) {
       hadValue.current = true;
       setGoal(load, max > min ? (value - min) / (max - min) : 0);
@@ -494,7 +467,7 @@ const SakugaProgress = ({
       hadValue.current = false;
       setGoal(load, 0);
     }
-  }, [value, min, max, demo]);
+  }, [value, min, max]);
 
   useFrame((dt) => {
     const boxEl = box.current;
@@ -507,7 +480,7 @@ const SakugaProgress = ({
     load.t += dt;
     const r = boxEl.getBoundingClientRect();
     load.vis = r.bottom > -80 && r.top < innerHeight + 80;
-    advanceLoad(load, demo, dt);
+    advanceLoad(load, dt);
     const b = at(barEl);
     const top = b.y - b.h / 2;
     const { p } = load;
@@ -522,8 +495,6 @@ const SakugaProgress = ({
       }
       load.tag.x = 1.5;
       onDone?.();
-    } else if (demo && load.doneAt && load.t - load.doneAt > 3.6) {
-      reset(load);
     }
     const n = load.doneAt ? 100 : Math.floor(p * 100);
     const text = textOf(load, n, doneLabel);
@@ -548,7 +519,7 @@ const SakugaProgress = ({
   return (
     <ProgressPrimitive.Root
       data-slot="sakuga-progress"
-      className={cn(ROOT, className)}
+      className={cn(ROOT, FONT_BODY, className)}
       min={min}
       max={max}
       value={shown.value}
@@ -558,11 +529,7 @@ const SakugaProgress = ({
     >
       <SakugaStyle />
       <canvas ref={attachBack} aria-hidden className={BACK_CANVAS} />
-      <div
-        ref={box}
-        data-slot="sakuga-progress-box"
-        className={cn("relative pt-[70px]", demo && "cursor-pointer")}
-      >
+      <div ref={box} data-slot="sakuga-progress-box" className="relative pt-[70px]">
         <ProgressPrimitive.Track ref={bar} data-slot="sakuga-progress-track" className={BAR}>
           <ProgressPrimitive.Indicator
             data-slot="sakuga-progress-indicator"

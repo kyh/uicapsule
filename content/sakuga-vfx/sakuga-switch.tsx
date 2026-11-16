@@ -53,9 +53,11 @@ interface Rig {
   shown: number;
   // what the film is showing, or heading for; null until it has looked at the switch
   to: boolean | null;
+  // set while its form's reset puts it back, so that change jumps like any other from code
+  quiet: boolean;
 }
 
-const makeRig = (): Rig => ({ acc: 0, pos: 0, seq: [0], shown: -1, to: null });
+const makeRig = (): Rig => ({ acc: 0, pos: 0, quiet: false, seq: [0], shown: -1, to: null });
 
 const current = ({ seq, pos }: Rig) => seq[Math.min(seq.length - 1, pos)] ?? 0;
 
@@ -109,7 +111,9 @@ const SakugaSwitch = ({
   className,
   frames = FRAMES,
   checked,
+  defaultChecked,
   onCheckedChange,
+  inputRef,
   ref,
   ...props
 }: SakugaSwitchProps) => {
@@ -117,15 +121,17 @@ const SakugaSwitch = ({
   const canvas = useRef<HTMLCanvasElement>(null);
   const plain = useRef<HTMLSpanElement>(null);
   const rigRef = useRef(makeRig());
+  const input = useRef<HTMLInputElement>(null);
   const setRoot = useMergedRef<HTMLElement>(root, ref);
+  const setInput = useMergedRef(input, inputRef);
 
   // Base UI only calls this for a person's flip, so this is where the film starts
   const change = (next: boolean, details: SwitchPrimitive.Root.ChangeEventDetails) => {
     onCheckedChange?.(next, details);
-    if (details.isCanceled) {
+    const rig = rigRef.current;
+    if (details.isCanceled || rig.quiet) {
       return;
     }
-    const rig = rigRef.current;
     const seq = next ? ON : OFF;
     rig.seq = seq;
     rig.pos = isCalm() ? seq.length - 1 : 0;
@@ -141,6 +147,25 @@ const SakugaSwitch = ({
   useLayoutEffect(() => {
     settle(rigRef.current, isOn(root.current));
   }, []);
+
+  // Base UI leaves a form's reset to the browser, which moves only the hidden input, so the control
+  // would go on showing the old state. Put it back through that input, quietly, just before.
+  useEffect(() => {
+    const hidden = input.current;
+    const form = hidden?.form;
+    if (checked !== undefined || !hidden || !form) {
+      return;
+    }
+    const back = () => {
+      if (hidden.checked !== Boolean(defaultChecked)) {
+        rigRef.current.quiet = true;
+        hidden.click();
+        rigRef.current.quiet = false;
+      }
+    };
+    form.addEventListener("reset", back);
+    return () => form.removeEventListener("reset", back);
+  }, [checked, defaultChecked]);
 
   // the first frame, as soon as the sheet has arrived
   useEffect(() => {
@@ -179,9 +204,11 @@ const SakugaSwitch = ({
       <SakugaStyle />
       <SwitchPrimitive.Root
         ref={setRoot}
+        inputRef={setInput}
         data-slot="sakuga-switch"
         className={cn(ROOT, className)}
         checked={checked}
+        defaultChecked={defaultChecked}
         onCheckedChange={change}
         {...props}
       >
