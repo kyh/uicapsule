@@ -8,7 +8,7 @@
 import { useId, useLayoutEffect, useRef, useState } from "react";
 import type { KeyboardEvent, ReactNode } from "react";
 
-import { Spring, at, hollow, isCalm, lines, puff, sfx, ticks } from "./sakuga-core";
+import { Spring, at, hollow, isCalm, puff, sfx, ticks } from "./sakuga-core";
 import { FONT_BODY, FONT_DISPLAY, SakugaStyle, useFrame } from "./sakuga-react";
 
 export interface SakugaAccordionSection {
@@ -79,6 +79,12 @@ const aim = (r: Rig, on: boolean, alone: boolean) => {
   }
 };
 
+// the chevron turns over through flat, a little wider as it goes
+const flip = (t: number) => {
+  const y = 1 - 2 * t;
+  return `scale(${(1 + Math.max(0, 1 - Math.abs(y)) * 0.25).toFixed(3)}, ${y.toFixed(3)})`;
+};
+
 const KEYS = new Map([
   ["ArrowDown", 1],
   ["ArrowUp", -1],
@@ -141,6 +147,10 @@ export const SakugaAccordion = ({
         aim(r, now.has(i), !opening);
         // before the paint, so the panel never shows a frame at its new resting height
         panel.style.height = `${(r.h.x * body.offsetHeight).toFixed(2)}px`;
+        const chevron = chevrons.current[i];
+        if (chevron) {
+          chevron.style.transform = flip(r.turn.x);
+        }
       }
     }
   }, [key, count]);
@@ -160,9 +170,8 @@ export const SakugaAccordion = ({
     const right = k.x + k.w / 2;
     puff(left - 7, p.y - 3, { life: 0.7, n: 4, size: 8, vx: -16, vy: -10 });
     puff(right + 12, p.y + 2, { life: 0.7, n: 4, size: 8, vx: 16, vy: -8 });
-    lines(k.x, k.y + k.h / 2 + 14, { dir: Math.PI / 2, len: 18, life: 0.28, n: 4, spread: 70 });
     ticks(q.x - 4, q.y + 2, { dir: -0.75, fan: 0.36, len: 15, life: 0.5, n: 3, r: 5 });
-    sfx("pon", right + 30, p.y - 38, { life: 0.8, rot: 0.06, size: 80, ...hollow() });
+    sfx("pon", right + 40, p.y - 50, { life: 0.8, rot: 0.06, size: 80, ...hollow() });
   };
 
   // it has shut
@@ -189,7 +198,7 @@ export const SakugaAccordion = ({
         if (!r.still) {
           const h = Math.max(0, r.h.step(dt));
           const t = r.turn.step(dt);
-          chevron.style.transform = `rotate(${(t * 180).toFixed(2)}deg)`;
+          chevron.style.transform = flip(t);
           if (r.landing && h >= 1) {
             r.landing = false;
             land(i);
@@ -295,7 +304,7 @@ export const SakugaAccordion = ({
                     }}
                     aria-hidden
                     viewBox="0 0 16 16"
-                    className={`h-[16px] w-[16px] flex-none overflow-visible fill-none stroke-(--sk-ink) stroke-[3.2] [stroke-linecap:round] [stroke-linejoin:round] ${on ? "[transform:rotate(180deg)]" : ""}`}
+                    className={`h-[16px] w-[16px] flex-none overflow-visible fill-none stroke-(--sk-ink) stroke-[3.2] [stroke-linecap:round] [stroke-linejoin:round] ${on ? "[transform:scaleY(-1)]" : ""}`}
                   >
                     <path d="M2.5 5.5l5.5 5.5 5.5-5.5" />
                   </svg>

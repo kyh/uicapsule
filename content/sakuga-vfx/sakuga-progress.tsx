@@ -436,6 +436,7 @@ export const SakugaProgress = ({
         paint(load, bar.current, tt, dt);
       }
     });
+    Reflect.set(globalThis, "__skLoad", { layer, load }); // TEMP-PROBE
     return () => {
       layer.dead = true;
     };
