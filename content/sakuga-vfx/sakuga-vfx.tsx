@@ -178,15 +178,12 @@ export const SakugaVfx = () => (
       <Card id="button-secondary" name="Secondary button" how="Click it.">
         <SakugaButton variant="secondary">Cancel</SakugaButton>
       </Card>
-      {/* ── toggle card ── */}
-      <Card id="toggle" name="Toggle" how="Flip it, then flip it back.">
+      <Card id="toggle" name="Switch" how="Flip it, then flip it back.">
         <SakugaSwitch aria-label="Notifications" />
       </Card>
-      {/* ── slider card ── */}
       <Card id="slider" name="Slider" how="Drag it fast, and let go while it is moving.">
         <SakugaSlider defaultValue={30} aria-label="Volume" />
       </Card>
-      {/* ── checkbox card ── */}
       <Card id="checkbox" name="Checkbox" how="Tick it.">
         <label
           htmlFor="sk-remember"
@@ -196,8 +193,7 @@ export const SakugaVfx = () => (
           Remember me
         </label>
       </Card>
-      {/* ── radio card ── */}
-      <Card id="radio" name="Radio" how="Pick the other one.">
+      <Card id="radio" name="Radio group" how="Pick the other one.">
         <SakugaRadioGroup
           aria-label="Plan"
           defaultValue="a"
@@ -219,11 +215,9 @@ export const SakugaVfx = () => (
           </label>
         </SakugaRadioGroup>
       </Card>
-      {/* ── input card ── */}
-      <Card id="input" name="Text input" how="Click it and type.">
+      <Card id="input" name="Input" how="Click it and type.">
         <SakugaInput aria-label="Text" placeholder="Type something" autoComplete="off" />
       </Card>
-      {/* ── tabs card ── */}
       <Card id="tabs" name="Tabs" how="Pick another tab, or use the arrow keys.">
         <SakugaTabs defaultValue="home">
           <SakugaTabsList aria-label="Sections">
@@ -233,7 +227,6 @@ export const SakugaVfx = () => (
           </SakugaTabsList>
         </SakugaTabs>
       </Card>
-      {/* ── progress card ── */}
       <Card
         id="progress"
         name="Progress"
@@ -242,21 +235,17 @@ export const SakugaVfx = () => (
       >
         <LoadingDemo />
       </Card>
-      {/* ── rating card ── */}
       <Card id="rating" name="Rating" how="Give it five.">
         <SakugaRating aria-label="Rating" />
       </Card>
-      {/* ── toast card ── */}
       <ToastCard />
-      {/* ── tooltip card ── */}
       <Card id="tooltip" name="Tooltip" how="Hover, focus or tap the button.">
         <SakugaTooltip className="mt-[60px]">
           <SakugaTooltipTrigger aria-label="Help">?</SakugaTooltipTrigger>
           <SakugaTooltipContent>Helpful hint!</SakugaTooltipContent>
         </SakugaTooltip>
       </Card>
-      {/* ── stepper card ── */}
-      <Card id="stepper" name="Stepper" how="Tap plus fast, then hit the limit.">
+      <Card id="stepper" name="Number field" how="Tap plus fast, then hit the limit.">
         <SakugaNumberField defaultValue={5} min={0} max={9}>
           <SakugaNumberFieldGroup>
             <SakugaNumberFieldDecrement />
@@ -265,7 +254,6 @@ export const SakugaVfx = () => (
           </SakugaNumberFieldGroup>
         </SakugaNumberField>
       </Card>
-      {/* ── select card ── */}
       <Card id="select" name="Select" how="Open it, run down the rows, and choose one.">
         <SakugaSelect defaultValue="key" items={STAGES}>
           <SakugaSelectTrigger aria-label="Stage">
@@ -280,7 +268,6 @@ export const SakugaVfx = () => (
           </SakugaSelectContent>
         </SakugaSelect>
       </Card>
-      {/* ── accordion card ── */}
       <Card id="accordion" name="Accordion" how="Open one, then another.">
         <SakugaAccordion className="self-start">
           <SakugaAccordionItem>
@@ -297,7 +284,6 @@ export const SakugaVfx = () => (
           </SakugaAccordionItem>
         </SakugaAccordion>
       </Card>
-      {/* ── chips card ── */}
       <Card id="chips" name="Chips" how="Type a tag and press Enter, then remove one.">
         <SakugaChips defaultValue={["Ink", "Paper"]}>
           <SakugaChipsList>
