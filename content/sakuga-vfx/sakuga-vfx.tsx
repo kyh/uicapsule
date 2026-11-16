@@ -33,7 +33,6 @@ import { SakugaTabs, SakugaTabsList, SakugaTabsTrigger } from "./sakuga-tabs";
 import { SakugaToast } from "./sakuga-toast";
 import type { SakugaToastHandle } from "./sakuga-toast";
 import { SakugaSwitch } from "./sakuga-switch";
-import { TrioLab } from "./sakuga-trio-lab";
 import { SakugaTooltip, SakugaTooltipContent, SakugaTooltipTrigger } from "./sakuga-tooltip";
 import { FONT_BODY, SakugaStyle } from "./sakuga-react";
 
@@ -121,7 +120,6 @@ export const SakugaVfx = () => (
       {/* ── toggle card ── */}
       <Card id="toggle" name="Toggle" how="Flip it, then flip it back.">
         <SakugaSwitch aria-label="Notifications" />
-        <TrioLab />
       </Card>
       {/* ── slider card ── */}
       <Card id="slider" name="Slider" how="Drag it fast, and let go while it is moving.">

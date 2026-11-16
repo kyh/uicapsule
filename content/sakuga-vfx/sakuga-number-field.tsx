@@ -296,8 +296,11 @@ const useSide = (dir: number, { onClick, onPointerDownCapture, ...props }: SideP
       }
       if (rig.pill) {
         rig.pill.style.transformOrigin = dir > 0 ? "0 50%" : "100% 50%";
-        // a mouse press puts focus in the input; it should not draw the keyboard ring or a caret
-        rig.pill.toggleAttribute("data-quiet", true);
+        // a mouse press puts focus in the input; that should not draw the keyboard ring or a
+        // caret, unless the input already had them
+        if (document.activeElement !== rig.num) {
+          rig.pill.toggleAttribute("data-quiet", true);
+        }
       }
       rig.press.to = 0.9;
       // at the limit Base UI steps nothing, and the pill says so
