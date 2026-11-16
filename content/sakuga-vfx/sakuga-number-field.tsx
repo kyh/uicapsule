@@ -265,6 +265,7 @@ const useSide = (dir: number, { onClick, onPointerDownCapture, ...props }: SideP
   const rigRef = useRig();
   const el = useRef<HTMLButtonElement>(null);
   const sqRef = useSquashy(el, PRESS);
+  useFrame((dt) => sqRef.current?.step(dt));
   const letGo = () => {
     rigRef.current.press.to = 1;
   };
