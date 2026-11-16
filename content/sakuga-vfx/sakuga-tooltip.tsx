@@ -139,8 +139,8 @@ const SakugaTooltip = ({
 
   return (
     <SharedContext value={shared}>
+      <SakugaStyle />
       <TooltipPrimitive.Root
-        data-slot="sakuga-tooltip"
         open={open}
         handle={shared.handle}
         actionsRef={actions}
@@ -283,7 +283,6 @@ const SakugaTooltipContent = ({
             rigRef.current.tip = node;
           }}
         >
-          <SakugaStyle />
           {children}
         </TooltipPrimitive.Popup>
       </TooltipPrimitive.Positioner>

@@ -2,11 +2,11 @@
 
 // Sakuga VFX: every control in the set, live on one sheet of paper.
 
-import { useRef } from "react";
+import { useRef, useState } from "react";
 import type { ReactNode } from "react";
+import { flushSync } from "react-dom";
 
 import { SakugaButton } from "./sakuga-button";
-import type { SakugaButtonHandle } from "./sakuga-button";
 import { later } from "./sakuga-core";
 import {
   SakugaAccordion,
@@ -34,7 +34,7 @@ import { SakugaToast } from "./sakuga-toast";
 import type { SakugaToastHandle } from "./sakuga-toast";
 import { SakugaSwitch } from "./sakuga-switch";
 import { TrioLab } from "./sakuga-trio-lab";
-import { SakugaTooltip } from "./sakuga-tooltip";
+import { SakugaTooltip, SakugaTooltipContent, SakugaTooltipTrigger } from "./sakuga-tooltip";
 import { FONT_BODY, SakugaStyle } from "./sakuga-react";
 
 const Card = ({
@@ -62,11 +62,29 @@ const Card = ({
   </section>
 );
 
+// The demo's "work" takes 760ms, then the check stays for 1.8 seconds unless it is clicked again.
+// The timers run on the set's clock, and flushSync lands the check on the frame the timer fires.
 const PrimaryCard = () => {
-  const button = useRef<SakugaButtonHandle>(null);
+  const [done, setDone] = useState(false);
+  const run = useRef(0);
   return (
     <Card id="button" name="Primary button" how="Click it.">
-      <SakugaButton ref={button} onClick={() => later(760, () => button.current?.done())}>
+      <SakugaButton
+        done={done}
+        onClick={() => {
+          run.current += 1;
+          setDone(false);
+          later(760, () => {
+            const n = run.current;
+            flushSync(() => setDone(true));
+            later(1800, () => {
+              if (n === run.current) {
+                flushSync(() => setDone(false));
+              }
+            });
+          });
+        }}
+      >
         Confirm
       </SakugaButton>
     </Card>
@@ -107,7 +125,7 @@ export const SakugaVfx = () => (
       </Card>
       {/* ── slider card ── */}
       <Card id="slider" name="Slider" how="Drag it fast, and let go while it is moving.">
-        <SakugaSlider defaultValue={30} label="Volume" />
+        <SakugaSlider defaultValue={30} aria-label="Volume" />
       </Card>
       {/* ── checkbox card ── */}
       <Card id="checkbox" name="Checkbox" how="Tick it.">
@@ -173,7 +191,12 @@ export const SakugaVfx = () => (
       <ToastCard />
       {/* ── tooltip card ── */}
       <Card id="tooltip" name="Tooltip" how="Hover, focus or tap the button.">
-        <SakugaTooltip text="Helpful hint!" />
+        <SakugaTooltip>
+          <SakugaTooltipTrigger aria-label="Help" className="mt-[60px]">
+            ?
+          </SakugaTooltipTrigger>
+          <SakugaTooltipContent>Helpful hint!</SakugaTooltipContent>
+        </SakugaTooltip>
       </Card>
       {/* ── stepper card ── */}
       <Card id="stepper" name="Stepper" how="Tap plus fast, then hit the limit.">

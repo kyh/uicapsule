@@ -26,8 +26,8 @@ type SakugaRadioGroupItemProps<Value> = Omit<RadioPrimitive.Root.Props<Value>, "
 interface Picks {
   // set while a person's pick is landing, so the dots spring instead of jumping
   handRef: RefObject<{ value: unknown } | null>;
-  // each item's reaction, by its value
-  popsRef: RefObject<Map<unknown, () => void>>;
+  // each item, by its value: its reaction, and its hidden form input
+  itemsRef: RefObject<Map<unknown, { pop: () => void; input: () => HTMLInputElement | null }>>;
 }
 const PicksContext = createContext<Picks | null>(null);
 
@@ -48,23 +48,37 @@ const pop = (dot: HTMLElement | null) => {
   sfx("pon", c.x + 70, c.y - 76, { life: 0.8, rot: 0.06, size: 86, ...hollow() });
 };
 
+// the hidden form input Base UI renders beside a control
+const inputAfter = (control: Element | null) => {
+  let next = control?.nextElementSibling ?? null;
+  while (next && !(next instanceof HTMLInputElement && next.type !== "hidden")) {
+    next = next.nextElementSibling;
+  }
+  return next instanceof HTMLInputElement ? next : null;
+};
+
 // the circle a dot sits in
 const circleOf = (dot: HTMLElement | null) => dot?.closest<HTMLElement>('[role="radio"]') ?? null;
 
 const SakugaRadioGroup = <Value,>({
   className,
   value,
+  defaultValue,
   onValueChange,
   ...props
 }: SakugaRadioGroupProps<Value>) => {
   const handRef = useRef<{ value: unknown } | null>(null);
-  const popsRef = useRef(new Map<unknown, () => void>());
-  const picks = useMemo(() => ({ handRef, popsRef }), []);
+  const itemsRef = useRef(
+    new Map<unknown, { pop: () => void; input: () => HTMLInputElement | null }>(),
+  );
+  const picks = useMemo(() => ({ handRef, itemsRef }), []);
+  // set while its form's reset puts it back, so that change plays nothing
+  const quiet = useRef(false);
 
   // Base UI only calls this for a person's pick, by pointer or by arrow key
   const change = (next: Value, details: RadioGroupPrimitive.ChangeEventDetails) => {
     onValueChange?.(next, details);
-    if (details.isCanceled) {
+    if (details.isCanceled || quiet.current) {
       return;
     }
     const mark = { value: next };
@@ -79,16 +93,36 @@ const SakugaRadioGroup = <Value,>({
     );
     // an owner can still refuse the pick, so only its own value reacts before the answer
     if (value === undefined) {
-      popsRef.current.get(next)?.();
+      itemsRef.current.get(next)?.pop();
     }
   };
 
   // an owned value reacts once the owner has agreed
   useLayoutEffect(() => {
     if (value !== undefined && handRef.current?.value === value) {
-      popsRef.current.get(value)?.();
+      itemsRef.current.get(value)?.pop();
     }
   }, [value]);
+
+  // Base UI leaves a form's reset to the browser, which only moves the hidden inputs. Pick the
+  // starting value again, through its input, just before the browser resets them.
+  useEffect(() => {
+    const [first] = itemsRef.current.values();
+    const form = first?.input()?.form;
+    if (value !== undefined || !form) {
+      return;
+    }
+    const back = () => {
+      const input = itemsRef.current.get(defaultValue)?.input();
+      if (input && !input.checked) {
+        quiet.current = true;
+        input.click();
+        quiet.current = false;
+      }
+    };
+    form.addEventListener("reset", back);
+    return () => form.removeEventListener("reset", back);
+  }, [value, defaultValue]);
 
   return (
     <PicksContext value={picks}>
@@ -97,6 +131,7 @@ const SakugaRadioGroup = <Value,>({
         data-slot="sakuga-radio-group"
         className={cn("grid gap-[12px]", className)}
         value={value}
+        defaultValue={defaultValue}
         onValueChange={change}
         {...props}
       />
@@ -125,10 +160,13 @@ const SakugaRadioGroupItem = <Value,>({
   }, []);
 
   useEffect(() => {
-    const pops = picks?.popsRef.current;
-    pops?.set(value, () => pop(circleOf(dot.current)));
+    const items = picks?.itemsRef.current;
+    items?.set(value, {
+      input: () => inputAfter(circleOf(dot.current)),
+      pop: () => pop(circleOf(dot.current)),
+    });
     return () => {
-      pops?.delete(value);
+      items?.delete(value);
     };
   }, [picks, value]);
 
