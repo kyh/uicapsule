@@ -12,7 +12,7 @@ import { FONT_BODY, SakugaStyle, useFrame } from "./sakuga-react";
 const TYPES = ["text", "email", "search", "url", "tel", "password"] as const;
 
 type SakugaInputProps = Omit<ComponentProps<"input">, "type"> & {
-  // what a screen reader calls it
+  // what a screen reader calls it. Leave it out when a <label htmlFor> or aria-labelledby names the field.
   label?: string;
   type?: (typeof TYPES)[number];
 };
@@ -21,7 +21,7 @@ const INPUT =
   "w-(--sk-input-width,230px) max-w-full rounded-(--sk-r) border-[length:var(--sk-bw)] border-(--sk-ink) bg-(--sk-card) px-[16px] py-[13px] text-[16px] leading-[1.4] font-semibold text-(--sk-ink) caret-(--sk-ink) shadow-(--sk-sh) outline-none will-change-transform placeholder:text-(--sk-dim) focus-visible:outline-[2.5px] focus-visible:outline-offset-[3px] focus-visible:outline-(--sk-acc) focus-visible:outline-solid disabled:opacity-50";
 
 export const SakugaInput = ({
-  label = "Text",
+  label,
   type = "text",
   autoComplete = "off",
   className = "",

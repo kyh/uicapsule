@@ -36,6 +36,10 @@ export interface SakugaSliderProps {
   unit?: string;
   // what a screen reader calls it
   label?: string;
+  // the id of a visible label; when given it names the slider instead of `label`
+  "aria-labelledby"?: string;
+  // goes on the native range input, so a <label htmlFor> reaches it
+  id?: string;
   // sent with its form
   name?: string;
   disabled?: boolean;
@@ -101,6 +105,8 @@ export const SakugaSlider = ({
   step = 1,
   unit = "%",
   label = "Slider",
+  "aria-labelledby": labelledBy,
+  id,
   name,
   disabled = false,
   onValueChange,
@@ -118,17 +124,30 @@ export const SakugaSlider = ({
   const sim = useRef({ acc: 0, peak: 0, said: 0, started: false, t: 0 });
   const commit = useRef(onValueCommit);
 
-  // where the value sits, as a fraction of the track
-  const target = max > min ? (clamp(current, min, max) - min) / (max - min) : 0;
+  // The bubble's text is the original's sync(): written from what the native input settled on
+  // (clamped to min/max, snapped to step), not from the raw prop. React only renders the first text.
+  // oxlint-disable-next-line react/hook-use-state -- only the first text is React's; the layout effect owns the bubble after that
+  const [firstText] = useState(`${current}${unit}`);
 
-  // the thumb chases the value on its spring, except the first time, when it starts there
+  // After every render: the thumb chases the input's value on its spring, except the first time,
+  // when it starts there. A value set from code is chased the same way, so a big jump rolls the
+  // cloud and chips too: inherited from the original, whose value setter moves the same spring.
   useLayoutEffect(() => {
-    spring.current.to = target;
+    const r = input.current;
+    const val = bubble.current;
+    if (!r || !val) {
+      return;
+    }
+    spring.current.to = fracOf(r);
     if (!sim.current.started) {
       sim.current.started = true;
-      spring.current.x = target;
+      spring.current.x = spring.current.to;
     }
-  }, [target]);
+    const text = r.value + unit;
+    if (val.textContent !== text) {
+      val.textContent = text;
+    }
+  });
 
   useEffect(() => {
     commit.current = onValueCommit;
@@ -232,8 +251,7 @@ export const SakugaSlider = ({
           <div className="h-full w-[calc(var(--v,0)*100%+6px)] max-w-full bg-(--sk-pri)" />
         </div>
         <span ref={bubble} aria-hidden className={BUBBLE}>
-          {current}
-          {unit}
+          {firstText}
         </span>
         <span ref={thumb} className={THUMB} />
         <input
@@ -246,7 +264,9 @@ export const SakugaSlider = ({
           value={current}
           name={name}
           disabled={disabled}
-          aria-label={label}
+          id={id}
+          aria-label={labelledBy ? undefined : label}
+          aria-labelledby={labelledBy}
           onChange={(e) => {
             const next = e.currentTarget.valueAsNumber;
             setInner(next);

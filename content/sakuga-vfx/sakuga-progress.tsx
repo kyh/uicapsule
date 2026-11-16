@@ -7,7 +7,7 @@
 // small clouds are left on the ground.
 
 import { useEffect, useImperativeHandle, useRef } from "react";
-import type { CSSProperties, Ref } from "react";
+import type { CSSProperties, Ref, RefObject } from "react";
 
 import {
   P,
@@ -43,6 +43,8 @@ export interface SakugaProgressProps {
   value?: number;
   // what a screen reader calls it
   label?: string;
+  // the id of a visible label; when given it names the bar instead of `label`
+  "aria-labelledby"?: string;
   // the words at the end
   doneLabel?: string;
   // plays a pretend load on a loop; click restarts it. Don't ship it.
@@ -110,10 +112,12 @@ const makeLoad = () => ({
   lag: new Spring(0, 120, 16),
   lastPct: "",
   lobes: LOBES.map(lobe),
+  now: 0,
   p: 0,
   peb: [0.14, 0.31, 0.5, 0.69, 0.87].map(pebble),
   rest: new Spring(0, 160, 14),
   said: false,
+  shown: 0,
   size: new Spring(0, 90, 13),
   spd: 0,
   t: 0,
@@ -404,6 +408,25 @@ const ride = (load: Load, b: ReturnType<typeof at>, dt: number) => {
   }
 };
 
+// The load is made the first time anything asks, so a set() from a parent's layout effect or ref
+// callback, which run before this component's own effects, is kept.
+const loadOf = (loadRef: RefObject<Load | null>) => {
+  const made = loadRef.current ?? makeLoad();
+  loadRef.current = made;
+  return made;
+};
+
+// the number under the bar: it pops on every fifth percent
+const showPct = (load: Load, tagEl: HTMLElement, key: string, n: number) => {
+  if (key !== load.lastPct) {
+    load.lastPct = key;
+    tagEl.textContent = key;
+    if (n % 5 === 0 && !load.doneAt) {
+      load.tag.x = 1.1;
+    }
+  }
+};
+
 const BAR =
   "relative h-[38px] overflow-hidden rounded-[19px] bg-(--sk-card) [border:4px_solid_var(--sk-ink)]";
 const FILL =
@@ -414,6 +437,7 @@ const PCT =
 export const SakugaProgress = ({
   value,
   label = "Loading",
+  "aria-labelledby": labelledBy,
   doneLabel = "Complete ✓",
   demo = false,
   onDone,
@@ -426,11 +450,9 @@ export const SakugaProgress = ({
   const pct = useRef<HTMLSpanElement>(null);
   const [attachBack, backRef] = useBackLayer();
   const loadRef = useRef<Load | null>(null);
-
   // the cloud and the ground are one effect with no end, drawn on the effects layer while mounted
   useEffect(() => {
-    const load = loadRef.current ?? makeLoad();
-    loadRef.current = load;
+    const load = loadOf(loadRef);
     const layer = persist((_k, tt, dt) => {
       if (bar.current) {
         paint(load, bar.current, tt, dt);
@@ -447,42 +469,34 @@ export const SakugaProgress = ({
     if (!demo || !el) {
       return;
     }
-    const restart = () => {
-      if (loadRef.current) {
-        reset(loadRef.current);
-      }
-    };
+    const restart = () => reset(loadOf(loadRef));
     el.addEventListener("click", restart);
     return () => el.removeEventListener("click", restart);
   }, [demo]);
 
+  // like the original's attribute: a new value is set(value), and taking it away is set(0)
+  const hadValue = useRef(false);
   useEffect(() => {
-    if (value !== undefined && loadRef.current) {
-      setGoal(loadRef.current, value);
+    if (value === undefined && !hadValue.current) {
+      return;
     }
+    hadValue.current = value !== undefined;
+    setGoal(loadOf(loadRef), value ?? 0);
   }, [value]);
 
   useImperativeHandle(ref, () => ({
-    reset: () => {
-      if (loadRef.current) {
-        reset(loadRef.current);
-      }
-    },
-    set: (n, instant) => {
-      if (loadRef.current) {
-        setGoal(loadRef.current, n, instant);
-      }
-    },
+    reset: () => reset(loadOf(loadRef)),
+    set: (n, instant) => setGoal(loadOf(loadRef), n, instant),
   }));
 
   useFrame((dt) => {
-    const load = loadRef.current;
     const boxEl = box.current;
     const barEl = bar.current;
     const tagEl = pct.current;
-    if (!load || !boxEl || !barEl || !tagEl) {
+    if (!boxEl || !barEl || !tagEl) {
       return;
     }
+    const load = loadOf(loadRef);
     load.t += dt;
     const r = boxEl.getBoundingClientRect();
     load.vis = r.bottom > -80 && r.top < innerHeight + 80;
@@ -494,7 +508,8 @@ export const SakugaProgress = ({
       ride(load, b, dt);
     }
     if (!load.doneAt && p >= 1) {
-      load.doneAt = load.t;
+      // never 0, which would read as "not done" and fire the end twice when a frame has no time in it
+      load.doneAt = Math.max(load.t, 1e-9);
       if (load.vis) {
         finish(b, top, backRef.current);
       }
@@ -505,16 +520,16 @@ export const SakugaProgress = ({
     }
     const n = load.doneAt ? 100 : Math.floor(p * 100);
     const key = load.doneAt ? doneLabel : `${n}%`;
-    if (key !== load.lastPct) {
-      load.lastPct = key;
-      tagEl.textContent = key;
-      if (n % 5 === 0 && !load.doneAt) {
-        load.tag.x = 1.1;
-      }
-    }
+    showPct(load, tagEl, key, n);
     tagEl.style.transform = `skewX(-12deg) scale(${load.tag.step(dt)})`;
-    boxEl.style.setProperty("--v", String(p));
-    boxEl.setAttribute("aria-valuenow", String(n));
+    if (p !== load.shown) {
+      load.shown = p;
+      boxEl.style.setProperty("--v", String(p));
+    }
+    if (n !== load.now) {
+      load.now = n;
+      boxEl.setAttribute("aria-valuenow", String(n));
+    }
   });
 
   return (
@@ -528,7 +543,8 @@ export const SakugaProgress = ({
         ref={box}
         // oxlint-disable-next-line jsx-a11y/prefer-tag-over-role -- a <progress> cannot hold the drawn bar and its label
         role="progressbar"
-        aria-label={label}
+        aria-label={labelledBy ? undefined : label}
+        aria-labelledby={labelledBy}
         aria-valuemin={0}
         aria-valuemax={100}
         aria-valuenow={0}

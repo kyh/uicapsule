@@ -4,7 +4,7 @@
 // and a hollow ポン; five stars gets a burst behind it as well.
 // Clicking the lit star again clears it. With a name, it is sent with its form.
 
-import { useLayoutEffect, useRef, useState } from "react";
+import { useLayoutEffect, useReducer, useRef, useState } from "react";
 import type { KeyboardEvent, RefObject } from "react";
 
 import type { Layer } from "./sakuga-core";
@@ -31,6 +31,8 @@ export interface SakugaRatingProps {
   onValueChange?: (value: number) => void;
   // what a screen reader calls the group
   label?: string;
+  // the id of an element that names the group; with it, no aria-label is set
+  "aria-labelledby"?: string;
   // sent with its form (nothing when 0)
   name?: string;
   disabled?: boolean;
@@ -53,9 +55,22 @@ interface Pop {
   i: number;
   n: number;
   was: number;
+  // the change this pop belongs to, and the counter of changes: a newer change drops it
+  turn: number;
+  turns: RefObject<number>;
 }
 
-const light = ({ b, spring, layer, i, n, was }: Pop) => {
+const glint = (b: HTMLElement, x: number, y: number) => {
+  if (b.isConnected) {
+    kira(x, y, { r: 8 });
+  }
+};
+
+const light = ({ b, spring, layer, i, n, was, turn, turns }: Pop) => {
+  // the score moved on, or the control left the page, before this star's turn came
+  if (turn !== turns.current || !b.isConnected) {
+    return;
+  }
   b.toggleAttribute("data-lit", i < n);
   if (!(i < n && i >= was)) {
     return;
@@ -79,7 +94,7 @@ const light = ({ b, spring, layer, i, n, was }: Pop) => {
     shards(c.x, c.y, { arc: 6.28, n: 6, size: 5 });
   }
   sfx("pon", c.x + 20, c.y - 56, { life: 0.85, rot: 0.08, size: n === 5 ? 120 : 92, ...hollow() });
-  later(300, () => kira(c.x - 22, c.y - 30, { r: 8 }));
+  later(300, () => glint(b, c.x - 22, c.y - 30));
 };
 
 // they light one after another
@@ -90,12 +105,16 @@ export const SakugaRating = ({
   defaultValue = 0,
   onValueChange,
   label = "Rating",
+  "aria-labelledby": labelledBy,
   name,
   disabled = false,
   className = "",
 }: SakugaRatingProps) => {
   const [own, setOwn] = useState(() => score(defaultValue));
   const rated = value === undefined ? own : score(value);
+  // what the server renders lit. It never changes, so React leaves data-lit alone afterwards
+  // and the staggered lighting owns it.
+  const [first] = useReducer((kept: number) => kept, rated);
 
   const [attachBack, backRef] = useBackLayer();
   const stars = useRef<(HTMLButtonElement | null)[]>([]);
@@ -103,18 +122,21 @@ export const SakugaRating = ({
   // what the stars show, and the score a click or key just asked for (that one gets the effects)
   const shown = useRef(0);
   const asked = useRef(-1);
+  const turns = useRef(0);
 
   useLayoutEffect(() => {
     const quiet = asked.current !== rated;
     const was = shown.current;
     asked.current = -1;
     shown.current = rated;
+    turns.current += 1;
+    const turn = turns.current;
     for (const [i, b] of stars.current.entries()) {
       const spring = springs.current[i];
       if (quiet) {
         b?.toggleAttribute("data-lit", i < rated);
       } else if (b && spring) {
-        queue({ b, i, layer: backRef, n: rated, spring, was });
+        queue({ b, i, layer: backRef, n: rated, spring, turn, turns, was });
       }
     }
   }, [rated, backRef]);
@@ -135,6 +157,10 @@ export const SakugaRating = ({
       setOwn(n);
     }
     onValueChange?.(n);
+    // a pick the parent turned down must not lend its effects to a later change from code
+    queueMicrotask(() => {
+      asked.current = -1;
+    });
   };
 
   const keydown = (e: KeyboardEvent<HTMLButtonElement>) => {
@@ -154,7 +180,12 @@ export const SakugaRating = ({
     >
       <SakugaStyle />
       <canvas ref={attachBack} aria-hidden className={BACK_CANVAS} />
-      <div role="radiogroup" aria-label={label} className="flex">
+      <div
+        role="radiogroup"
+        aria-label={labelledBy ? undefined : label}
+        aria-labelledby={labelledBy}
+        className="flex"
+      >
         {STARS.map((n, i) => (
           <button
             key={n}
@@ -168,6 +199,7 @@ export const SakugaRating = ({
             aria-label={`${n} star${n > 1 ? "s" : ""}`}
             tabIndex={(rated ? n === rated : i === 0) ? 0 : -1}
             disabled={disabled}
+            data-lit={n <= first ? "" : undefined}
             className="group size-[44px] cursor-pointer p-[2px] will-change-transform focus-visible:outline-[2.5px] focus-visible:outline-offset-[3px] focus-visible:outline-(--sk-acc) disabled:cursor-not-allowed disabled:opacity-50"
             onClick={() => rate(rated === n ? 0 : n)}
             onKeyDown={keydown}

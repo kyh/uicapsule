@@ -24,6 +24,8 @@ export interface SakugaTabsProps {
   onSelectedChange?: (index: number, detail: { value: string; label: string }) => void;
   // what a screen reader calls the tab list
   label?: string;
+  // the id of an element that names the tab list; with it, no aria-label is set
+  "aria-labelledby"?: string;
   className?: string;
 }
 
@@ -40,16 +42,22 @@ const STEPS = new Map([
   ["Home", -99],
 ]);
 
-// The original keeps the way it travelled in `this.dir`, which on an element is the built-in
-// `dir` property and always reads back "": its landing never takes a side. So the puffs rise
-// from the middle of the tab and the speed lines run right, whichever way it came. Kept as is.
-const LANDING_SIDE = 0;
+// Two deliberate fixes of upstream bugs, so the control does what the original's own header says:
+// 1. The original keeps the way it travelled in `this.dir`, which on an element is the built-in
+//    `dir` property and always reads back "". Its landing never took a side: the puffs rose from
+//    the middle of the tab and the speed lines always ran right. Here the side is kept in the rig.
+// 2. Picking a tab makes its label bold, which resizes the list, and the original's ResizeObserver
+//    answered every resize by snapping the raised tab to its target: the slide and its stretch
+//    never showed. Here a resize during a move only retargets the springs; any other still snaps.
+// Every number is the original's.
 
 interface Rig {
   sx: Spring;
   sw: Spring;
   up: Spring;
   pending: boolean;
+  // which way the last picked move went: 1 right, -1 left
+  dir: number;
   // the index a click or key just asked for: that move gets the landing
   asked: number;
   shown: number;
@@ -57,6 +65,9 @@ interface Rig {
 
 // point the raised tab at a tab; quiet puts it there at once
 const aim = (rig: Rig, tab: HTMLElement, quiet: boolean) => {
+  if (!quiet) {
+    rig.dir = Math.sign(tab.offsetLeft - rig.sx.to) || 1;
+  }
   rig.sx.to = tab.offsetLeft;
   rig.sw.to = tab.offsetWidth;
   if (quiet) {
@@ -69,6 +80,27 @@ const aim = (rig: Rig, tab: HTMLElement, quiet: boolean) => {
   }
 };
 
+// the list changed size: follow it, without cutting a move short
+const follow = (rig: Rig, tab: HTMLElement) => {
+  if (rig.pending) {
+    rig.sx.to = tab.offsetLeft;
+    rig.sw.to = tab.offsetWidth;
+  } else {
+    aim(rig, tab, true);
+  }
+};
+
+// write the raised tab where the springs are: it stretches with its speed
+const paint = (rig: Rig, ind: HTMLElement) => {
+  const { sx } = rig;
+  const w = rig.sw.x + Math.min(46, Math.abs(sx.v) * 0.06);
+  ind.style.transform = `translate(${sx.x - (sx.v < 0 ? 0 : w - rig.sw.x)}px, ${rig.up.x}px)`;
+  ind.style.width = `${w}px`;
+};
+
+// never changes, so React leaves the style alone once the first measure has shown the raised tab
+const HIDDEN = { visibility: "hidden" } as const;
+
 const TAB =
   'relative cursor-pointer border-l-[2.4px] px-[15px] py-[10px] font-[-apple-system,"Segoe_UI",system-ui,sans-serif] text-[15px] leading-[1.2] whitespace-nowrap transition-[translate] duration-[180ms] ease-[cubic-bezier(.3,1.6,.5,1)] focus-visible:outline-[2.5px] focus-visible:outline-offset-[3px] focus-visible:outline-(--sk-acc)';
 
@@ -78,6 +110,7 @@ export const SakugaTabs = ({
   defaultSelected = 0,
   onSelectedChange,
   label = "Tabs",
+  "aria-labelledby": labelledBy,
   className = "",
 }: SakugaTabsProps) => {
   const list = tabs.map((t) => ({ label: t.label, value: t.value ?? t.label }));
@@ -89,6 +122,7 @@ export const SakugaTabs = ({
   const buttons = useRef<(HTMLButtonElement | null)[]>([]);
   const rig = useRef<Rig>({
     asked: -1,
+    dir: 1,
     pending: false,
     shown: 0,
     sw: new Spring(10, 320, 26),
@@ -105,6 +139,12 @@ export const SakugaTabs = ({
     }
     r.asked = -1;
     r.shown = picked;
+    // the raised tab stays hidden until it has been measured once, then the clock moves it
+    const ind = raised.current;
+    if (ind?.style.visibility) {
+      paint(r, ind);
+      ind.style.visibility = "";
+    }
   }, [picked]);
 
   useEffect(() => {
@@ -114,7 +154,7 @@ export const SakugaTabs = ({
     const watch = new ResizeObserver(() => {
       const tab = buttons.current[rig.current.shown];
       if (tab) {
-        aim(rig.current, tab, true);
+        follow(rig.current, tab);
       }
     });
     watch.observe(strip.current);
@@ -129,17 +169,16 @@ export const SakugaTabs = ({
     }
     const { sx } = r;
     const x = sx.step(dt);
-    const w = r.sw.step(dt) + Math.min(46, Math.abs(sx.v) * 0.06);
-    const u = r.up.step(dt);
-    ind.style.transform = `translate(${x - (sx.v < 0 ? 0 : w - r.sw.x)}px, ${u}px)`;
-    ind.style.width = `${w}px`;
+    r.sw.step(dt);
+    r.up.step(dt);
+    paint(r, ind);
     const tab = buttons.current[r.shown];
     if (r.pending && tab && Math.abs(x - sx.to) < 3) {
       // it has landed
       r.pending = false;
       r.up.x = -7;
       const c = at(tab);
-      const dir = LANDING_SIDE;
+      const { dir } = r;
       ticks(c.x, c.y - c.h / 2 - 12, {
         dir: -Math.PI / 2,
         fan: 0.5,
@@ -173,6 +212,10 @@ export const SakugaTabs = ({
       setOwn(i);
     }
     onSelectedChange?.(i, { label: tab.label, value: tab.value });
+    // a pick the parent turned down must not lend its landing to a later change from code
+    queueMicrotask(() => {
+      rig.current.asked = -1;
+    });
   };
 
   const keydown = (e: KeyboardEvent<HTMLButtonElement>, i: number) => {
@@ -195,19 +238,23 @@ export const SakugaTabs = ({
       <div
         ref={strip}
         role="tablist"
-        aria-label={label}
+        aria-label={labelledBy ? undefined : label}
+        aria-labelledby={labelledBy}
         className="relative flex rounded-[12px] border-[length:var(--sk-bw)] border-(--sk-ink) bg-(--sk-card) shadow-(--sk-sh)"
       >
-        <span
-          ref={raised}
-          className="absolute top-[-11px] bottom-[-1px] left-0 ml-[calc(var(--sk-bw)*-1)] w-[10px] rounded-t-[13px] border-[length:var(--sk-bw)] border-b-0 border-(--sk-ink) bg-(--sk-card) will-change-[transform,width]"
-        />
+        {list.length > 0 && (
+          <span
+            ref={raised}
+            style={HIDDEN}
+            className="absolute top-[-11px] bottom-[-1px] left-0 ml-[calc(var(--sk-bw)*-1)] w-[10px] rounded-t-[13px] border-[length:var(--sk-bw)] border-b-0 border-(--sk-ink) bg-(--sk-card) will-change-[transform,width]"
+          />
+        )}
         {list.map((tab, i) => {
           const on = i === picked;
           const bare = i === 0 || on || i === picked + 1;
           return (
             <button
-              key={tab.value}
+              key={`${i}:${tab.value}`}
               ref={(node) => {
                 buttons.current[i] = node;
               }}
