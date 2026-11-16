@@ -9,7 +9,7 @@
 import { useEffect, useId, useRef, useState } from "react";
 import type { KeyboardEvent } from "react";
 
-import { Spring, at, clamp, later, puff, sfx, ticks } from "./sakuga-core";
+import { Spring, at, clamp, clock, later, puff, sfx, ticks } from "./sakuga-core";
 import { FONT_BODY, FONT_DISPLAY, SakugaStyle, useFrame, useSquashy } from "./sakuga-react";
 
 export interface SakugaSelectOption {
@@ -18,40 +18,44 @@ export interface SakugaSelectOption {
 }
 
 export interface SakugaSelectProps {
-  options?: readonly SakugaSelectOption[];
+  options: readonly SakugaSelectOption[];
   value?: string;
   defaultValue?: string;
   onValueChange?: (value: string) => void;
   // sent with a form under this name
   name?: string;
+  // names the trigger and the list; left out when aria-labelledby points at a visible label
   label?: string;
+  // put on the trigger, for a <label htmlFor> or a describedby
+  id?: string;
+  "aria-labelledby"?: string;
   // shown while no option matches the value
   placeholder?: string;
   disabled?: boolean;
   className?: string;
 }
 
-const STAGES: readonly SakugaSelectOption[] = [
-  { label: "Key frames", value: "key" },
-  { label: "In-betweens", value: "inbetween" },
-  { label: "Clean-up", value: "cleanup" },
-  { label: "Paint", value: "paint" },
-];
-
 const PRESS = { low: 0.8, wide: 0.3 };
 const TRIGGER = `flex w-full min-w-[196px] cursor-pointer touch-manipulation items-center justify-between gap-[14px] rounded-(--sk-r) bg-(--sk-card) py-[11px] pr-[14px] pl-[18px] text-left text-[17px] leading-[1.1] font-extrabold tracking-[-0.01em] text-(--sk-ink) italic shadow-(--sk-sh) [border:var(--sk-bw)_solid_var(--sk-ink)] will-change-transform select-none focus-visible:outline-[2.5px] focus-visible:outline-offset-[3px] focus-visible:outline-(--sk-acc) disabled:cursor-not-allowed disabled:opacity-45 ${FONT_DISPLAY}`;
 const MENU =
   "invisible absolute top-[calc(100%+13px)] left-0 z-10 w-max max-w-[min(300px,calc(100vw-32px))] min-w-full origin-[50%_-16px] rounded-[13px] bg-(--sk-card) p-[5px] shadow-(--sk-sh) [border:var(--sk-bw)_solid_var(--sk-ink)] [transform:scale(0)] will-change-transform data-shut:pointer-events-none data-up:top-auto data-up:bottom-[calc(100%+13px)] data-up:origin-[50%_calc(100%+16px)]";
+// The rows scroll inside the menu, so the spring's transform stays on the menu itself.
+const LIST =
+  "relative max-h-[min(320px,calc(100dvh-32px))] overflow-y-auto overscroll-contain [scrollbar-color:var(--sk-ink)_transparent] [scrollbar-width:thin]";
+// Each label carries a halo in the colour of what is behind it, so the highlight's ink edge parts
+// round the letters as it crosses a row instead of striking them through.
 const ROW =
-  "relative flex cursor-pointer items-center justify-between gap-[14px] rounded-[9px] px-[12px] py-[9px] text-[15px] leading-[1.2] font-semibold whitespace-nowrap select-none aria-selected:font-extrabold data-inv:bg-(--sk-ink) data-inv:text-(--sk-card)";
+  "relative flex cursor-pointer items-center justify-between gap-[14px] rounded-[9px] px-[12px] py-[9px] text-[15px] leading-[1.2] font-semibold whitespace-nowrap select-none [paint-order:stroke_fill] [-webkit-text-stroke:3px_var(--sk-card)] aria-selected:font-extrabold data-on:[-webkit-text-stroke-color:var(--sk-soft)] data-inv:bg-(--sk-ink) data-inv:text-(--sk-card) data-inv:[-webkit-text-stroke-color:var(--sk-ink)]!";
 
 export const SakugaSelect = ({
-  options = STAGES,
+  options,
   value,
   defaultValue,
   onValueChange,
   name,
-  label = "Stage",
+  label = "Select",
+  id: triggerId,
+  "aria-labelledby": labelledBy,
   placeholder = "Choose",
   disabled = false,
   className = "",
@@ -67,6 +71,7 @@ export const SakugaSelect = ({
   const wrap = useRef<HTMLSpanElement>(null);
   const trigger = useRef<HTMLButtonElement>(null);
   const menu = useRef<HTMLDivElement>(null);
+  const list = useRef<HTMLDivElement>(null);
   const raised = useRef<HTMLSpanElement>(null);
   const text = useRef<HTMLSpanElement>(null);
   const chevron = useRef<SVGSVGElement>(null);
@@ -78,9 +83,23 @@ export const SakugaSelect = ({
   const rowH = useRef(new Spring(0, 320, 26));
   const land = useRef(new Spring(1, 600, 13));
   // what the delayed beats check: is it still open, and is this still the same reaction
-  const now = useRef({ open: false, seq: 0, typed: "", typedAt: 0 });
+  const now = useRef({ open: false, seq: 0, typed: "", typedAt: -9 });
+  // the value on show, for a beat that must know whether a controlled parent took the change
+  const shown = useRef(current);
 
-  const rowAt = (i: number) => menu.current?.querySelectorAll<HTMLElement>("[role=option]")[i];
+  useEffect(() => {
+    shown.current = current;
+  });
+
+  // nothing delayed may run for a select that has gone
+  useEffect(() => {
+    const beats = now.current;
+    return () => {
+      beats.seq += 1;
+    };
+  }, []);
+
+  const rowAt = (i: number) => list.current?.querySelectorAll<HTMLElement>("[role=option]")[i];
 
   // point the raised highlight at a row; quiet puts it there without the slide
   const aim = (i: number, quiet = false) => {
@@ -96,7 +115,17 @@ export const SakugaSelect = ({
       rowH.current.x = rowH.current.to;
       rowH.current.v = 0;
     }
-    row.scrollIntoView({ block: "nearest" });
+    // keep it in view inside the menu; the page never moves
+    const l = list.current;
+    if (l) {
+      const top = row.offsetTop;
+      const end = top + row.offsetHeight;
+      if (top < l.scrollTop) {
+        l.scrollTop = top;
+      } else if (end > l.scrollTop + l.clientHeight) {
+        l.scrollTop = end - l.clientHeight;
+      }
+    }
   };
 
   const move = (i: number) => {
@@ -125,13 +154,17 @@ export const SakugaSelect = ({
   const show = (i = Math.max(0, picked)) => {
     const b = trigger.current;
     const m = menu.current;
-    if (disabled || !b || !m || options.length === 0) {
+    const l = list.current;
+    if (disabled || !b || !m || !l || options.length === 0) {
       return;
     }
     const start = clamp(i, 0, options.length - 1);
+    // it opens to the side with more room when it does not fit below, and scrolls inside what there is
     const box = b.getBoundingClientRect();
     const below = innerHeight - box.bottom;
-    const above = m.offsetHeight + 28 > below && box.top > below;
+    const frame = m.offsetHeight - l.offsetHeight;
+    const above = l.scrollHeight + frame + 25 > below && box.top > below;
+    l.style.maxHeight = `${clamp((above ? box.top : below) - frame - 25, 64, 320)}px`;
     now.current.open = true;
     now.current.seq += 1;
     const n = now.current.seq;
@@ -157,7 +190,8 @@ export const SakugaSelect = ({
       const end = q.y + far * (q.h / 2 + 13 + m.offsetHeight);
       puff(left - 9, end - far * 16, { life: 0.8, n: 4, size: 8, vx: -14, vy: -6 });
       puff(right + 13, end - far * 30, { life: 0.7, n: 3, size: 7, vx: 14, vy: -10 });
-      sfx("shu", q.x + q.w / 2 + 4, q.y - far * (q.h / 2 + 36), {
+      // flipped, the word tucks in under the trigger so it stays in the control's own column
+      sfx("shu", q.x + q.w / 2 + (above ? -34 : 4), q.y - far * (q.h / 2 + (above ? 30 : 36)), {
         col: "#5a4fd8",
         edge: "#ffffff",
         life: 0.75,
@@ -178,6 +212,8 @@ export const SakugaSelect = ({
       hide();
       return;
     }
+    // a tap gives no pointermove first: the highlight goes where the pick is
+    aim(i, true);
     now.current.open = false;
     now.current.typed = "";
     now.current.seq += 1;
@@ -192,14 +228,15 @@ export const SakugaSelect = ({
     later(190, () => {
       delete row.dataset.inv;
     });
-    later(90, () => {
+    later(50, () => {
       if (n === now.current.seq) {
         shrink();
       }
     });
     // the menu is back inside the trigger: the new label lands
-    later(230, () => {
-      if (n !== now.current.seq) {
+    later(190, () => {
+      // only if it is still here, and the value on show really is the new one
+      if (n !== now.current.seq || !b.isConnected || shown.current !== option.value) {
         return;
       }
       land.current.x = 0.68;
@@ -216,9 +253,8 @@ export const SakugaSelect = ({
   // type a few letters to jump to the row that starts with them
   const typeahead = (key: string) => {
     const t = now.current;
-    const at0 = performance.now();
-    t.typed = at0 - t.typedAt > 500 ? key : t.typed + key;
-    t.typedAt = at0;
+    t.typed = clock.now - t.typedAt > 0.5 ? key : t.typed + key;
+    t.typedAt = clock.now;
     const from = t.typed.length === 1 && open ? active + 1 : 0;
     for (let k = 0; k < options.length; k += 1) {
       const i = (from + k) % options.length;
@@ -310,9 +346,15 @@ export const SakugaSelect = ({
     if (raised.current) {
       const ry = rowY.current;
       const x = ry.step(dt);
-      const h = rowH.current.step(dt) + Math.min(14, Math.abs(ry.v) * 0.04);
+      const h = rowH.current.step(dt) + Math.min(8, Math.abs(ry.v) * 0.04);
       raised.current.style.transform = `translateY(${(x - (ry.v < 0 ? 0 : h - rowH.current.x)).toFixed(2)}px)`;
       raised.current.style.height = `${h.toFixed(2)}px`;
+      // a label's halo takes the highlight's colour while the highlight is behind it
+      const top = x - (ry.v < 0 ? 0 : h - rowH.current.x);
+      for (const row of list.current?.querySelectorAll<HTMLElement>("[role=option]") ?? []) {
+        const mid = row.offsetTop + row.offsetHeight / 2;
+        row.toggleAttribute("data-on", mid > top && mid < top + h);
+      }
     }
     if (text.current) {
       const p = land.current.step(dt);
@@ -336,7 +378,9 @@ export const SakugaSelect = ({
         aria-controls={`${id}-menu`}
         aria-expanded={open}
         aria-haspopup="listbox"
-        aria-label={label}
+        id={triggerId}
+        aria-label={labelledBy ? undefined : label}
+        aria-labelledby={labelledBy}
         disabled={disabled}
         className={TRIGGER}
         onBlur={hide}
@@ -363,49 +407,56 @@ export const SakugaSelect = ({
       </button>
       <div
         ref={menu}
-        // oxlint-disable-next-line jsx-a11y/prefer-tag-over-role -- see the trigger: the list is drawn, so it cannot be a native select
-        role="listbox"
-        id={`${id}-menu`}
-        tabIndex={-1}
-        aria-label={label}
+        role="presentation"
         data-shut={open ? undefined : ""}
         data-up={up ? "" : undefined}
         className={MENU}
         // keep focus on the trigger, which holds the keys
         onMouseDown={(e) => e.preventDefault()}
       >
-        <span
-          ref={raised}
-          aria-hidden
-          className="absolute top-0 right-[5px] left-[5px] rounded-[9px] bg-(--sk-soft) [border:2.4px_solid_var(--sk-ink)] will-change-transform"
-        />
-        {options.map((o, i) => (
-          // oxlint-disable-next-line jsx-a11y/click-events-have-key-events -- focus stays on the trigger, which holds the keys and points here with aria-activedescendant
-          <div
-            key={o.value}
-            // oxlint-disable-next-line jsx-a11y/prefer-tag-over-role -- see the trigger
-            role="option"
-            id={`${id}-${i}`}
-            tabIndex={-1}
-            aria-selected={i === picked}
-            className={ROW}
-            onClick={() => choose(i)}
-            onPointerMove={() => {
-              if (open && i !== active) {
-                move(i);
-              }
-            }}
-          >
-            {o.label}
-            <svg
-              aria-hidden
-              viewBox="0 0 24 18"
-              className={`h-[12px] w-[16px] flex-none fill-none stroke-(--sk-acc) stroke-[4.6] [stroke-linecap:round] [stroke-linejoin:round] ${i === picked ? "" : "invisible"}`}
+        <div
+          ref={list}
+          // oxlint-disable-next-line jsx-a11y/prefer-tag-over-role -- see the trigger: the list is drawn, so it cannot be a native select
+          role="listbox"
+          id={`${id}-menu`}
+          tabIndex={-1}
+          aria-label={labelledBy ? undefined : label}
+          aria-labelledby={labelledBy}
+          className={LIST}
+        >
+          <span
+            ref={raised}
+            aria-hidden
+            className="absolute top-0 right-0 left-0 rounded-[9px] bg-(--sk-soft) [border:2.4px_solid_var(--sk-ink)] will-change-transform"
+          />
+          {options.map((o, i) => (
+            // oxlint-disable-next-line jsx-a11y/click-events-have-key-events -- focus stays on the trigger, which holds the keys and points here with aria-activedescendant
+            <div
+              key={o.value}
+              // oxlint-disable-next-line jsx-a11y/prefer-tag-over-role -- see the trigger
+              role="option"
+              id={`${id}-${i}`}
+              tabIndex={-1}
+              aria-selected={i === picked}
+              className={ROW}
+              onClick={() => choose(i)}
+              onPointerMove={() => {
+                if (open && i !== active) {
+                  move(i);
+                }
+              }}
             >
-              <path d="M3 9.5l6 6L21 2.5" />
-            </svg>
-          </div>
-        ))}
+              {o.label}
+              <svg
+                aria-hidden
+                viewBox="0 0 24 18"
+                className={`h-[12px] w-[16px] flex-none fill-none stroke-(--sk-acc) stroke-[4.6] [stroke-linecap:round] [stroke-linejoin:round] ${i === picked ? "" : "invisible"}`}
+              >
+                <path d="M3 9.5l6 6L21 2.5" />
+              </svg>
+            </div>
+          ))}
+        </div>
       </div>
       {name !== undefined && (
         <input type="hidden" name={name} value={current} disabled={disabled} />

@@ -3,10 +3,11 @@
 // Sakuga Stepper: a number stepper. Step it and the number is kicked the way it went and springs
 // back, with wedges off that side and a hollow カチッ. Step fast and it stops saying so: speed lines
 // and small puffs trail behind the number instead. At the limit the number stays put and the whole
-// pill jolts against the wall, with wobble marks on that side.
+// pill jolts against the wall, with wobble marks on that side. While a side is held the whole pill
+// squashes toward the other end, and it repeats until it meets the wall.
 
 import { useEffect, useRef, useState } from "react";
-import type { KeyboardEvent } from "react";
+import type { KeyboardEvent, MouseEvent, PointerEvent } from "react";
 
 import {
   Spring,
@@ -35,7 +36,11 @@ export interface SakugaStepperProps {
   bigStep?: number;
   // sent with a form under this name
   name?: string;
+  // names the spinbutton; left out when aria-labelledby points at a visible label
   label?: string;
+  // put on the spinbutton, for a <label htmlFor> or a describedby
+  id?: string;
+  "aria-labelledby"?: string;
   disabled?: boolean;
   className?: string;
 }
@@ -58,6 +63,8 @@ export const SakugaStepper = ({
   bigStep,
   name,
   label = "Quantity",
+  id,
+  "aria-labelledby": labelledBy,
   disabled = false,
   className = "",
 }: SakugaStepperProps) => {
@@ -66,6 +73,7 @@ export const SakugaStepper = ({
   const digits = Math.max(places(step), places(min));
 
   const pill = useRef<HTMLDivElement>(null);
+  const spin = useRef<HTMLSpanElement>(null);
   const num = useRef<HTMLSpanElement>(null);
   const less = useRef<HTMLButtonElement>(null);
   const more = useRef<HTMLButtonElement>(null);
@@ -76,14 +84,28 @@ export const SakugaStepper = ({
   const tall = useRef(new Spring(1, 520, 13));
   const jolt = useRef(new Spring(0, 460, 12));
   const lean = useRef(new Spring(0, 260, 10));
-  // the value as of the last step, so two steps inside one render both count
+  const press = useRef(new Spring(1, 520, 15));
+  // what a held repeat reads: it outlives the render that started it
+  const propsRef = useRef({ current, digits, disabled, max, min, onValueChange, step, value });
+  // the value as of the last step, so the repeats of one hold each count
   const live = useRef(current);
   const beat = useRef({ bumped: -9, heat: 0, hold: 0, said: -9, stepped: -9 });
-  const repeated = useRef(false);
+  // a pointer press has already stepped; the click that follows it must not step again
+  const swallow = useRef(false);
+  // controlled: the hit waits for the parent to show the value it was asked for
+  const asked = useRef<{ dir: number; to: number } | null>(null);
 
   useEffect(() => {
-    live.current = current;
-  }, [current]);
+    propsRef.current = { current, digits, disabled, max, min, onValueChange, step, value };
+  });
+
+  // a hold must not go on stepping a stepper that has gone
+  useEffect(() => {
+    const b = beat.current;
+    return () => {
+      b.hold += 1;
+    };
+  }, []);
 
   // the hit: the number goes the way it was stepped
   const hit = (dir: number) => {
@@ -161,48 +183,73 @@ export const SakugaStepper = ({
 
   // returns whether the value moved
   const go = (target: number, dir: number) => {
-    if (disabled) {
+    const o = propsRef.current;
+    if (o.disabled) {
       return false;
     }
-    const next = Number(clamp(target, min, max).toFixed(digits));
+    const next = Number(clamp(target, o.min, o.max).toFixed(o.digits));
     if (next === live.current) {
       bump(dir);
       return false;
     }
     live.current = next;
-    if (value === undefined) {
+    if (o.value === undefined) {
       setInner(next);
+      o.onValueChange?.(next);
+      hit(dir);
+    } else {
+      asked.current = { dir, to: next };
+      o.onValueChange?.(next);
     }
-    onValueChange?.(next);
-    hit(dir);
     return true;
   };
 
-  const nudge = (dir: number) => go(live.current + dir * step, dir);
+  // every gesture starts from what is shown, so a parent that says no is not stepped past
+  const begin = () => {
+    live.current = propsRef.current.current;
+    asked.current = null;
+  };
 
-  // held down, it repeats until it meets the wall
-  const hold = (dir: number) => {
+  const nudge = (dir: number) => go(live.current + dir * propsRef.current.step, dir);
+
+  const letGo = () => {
+    beat.current.hold += 1;
+    press.current.to = 1;
+  };
+
+  // a press steps at once; held, it repeats until it meets the wall
+  const hold = (dir: number, e: PointerEvent<HTMLButtonElement>) => {
+    if (e.button !== 0 || propsRef.current.disabled) {
+      return;
+    }
+    // a mouse press should not draw the keyboard ring
+    spin.current?.focus({ focusVisible: false });
+    swallow.current = true;
     beat.current.hold += 1;
     const n = beat.current.hold;
-    repeated.current = false;
+    if (pill.current) {
+      pill.current.style.transformOrigin = dir > 0 ? "0 50%" : "100% 50%";
+    }
+    press.current.to = 0.9;
+    begin();
+    if (!nudge(dir)) {
+      return;
+    }
     const again = () => {
-      if (n !== beat.current.hold) {
-        return;
-      }
-      repeated.current = true;
-      if (nudge(dir)) {
+      const o = propsRef.current;
+      // controlled, and the parent has not shown the last step: it said no
+      const refused = o.value !== undefined && o.current !== live.current;
+      if (n === beat.current.hold && !refused && nudge(dir)) {
         later(85, again);
       }
     };
     later(420, again);
   };
-  const letGo = () => {
-    beat.current.hold += 1;
-  };
 
+  // a click with no press before it: the keyboard, or assistive technology
   const tap = (dir: number) => {
-    if (repeated.current) {
-      repeated.current = false;
+    if (swallow.current) {
+      swallow.current = false;
       return;
     }
     const s = dir > 0 ? moreRef.current : lessRef.current;
@@ -210,24 +257,26 @@ export const SakugaStepper = ({
       s.s.x = Math.min(s.s.x, 0.8);
       s.s.v += 4;
     }
+    begin();
     nudge(dir);
   };
 
   const keys = (e: KeyboardEvent<HTMLDivElement>) => {
     const big = bigStep ?? step * 10;
     const moves = new Map([
-      ["ArrowDown", { dir: -1, to: live.current - step }],
-      ["ArrowUp", { dir: 1, to: live.current + step }],
+      ["ArrowDown", { dir: -1, to: current - step }],
+      ["ArrowUp", { dir: 1, to: current + step }],
       ["End", { dir: 1, to: max }],
       ["Home", { dir: -1, to: min }],
-      ["PageDown", { dir: -1, to: live.current - big }],
-      ["PageUp", { dir: 1, to: live.current + big }],
+      ["PageDown", { dir: -1, to: current - big }],
+      ["PageUp", { dir: 1, to: current + big }],
     ]);
     const move = moves.get(e.key);
     if (!move || e.altKey || e.ctrlKey || e.metaKey || !Number.isFinite(move.to)) {
       return;
     }
     e.preventDefault();
+    begin();
     go(move.to, move.dir);
   };
 
@@ -238,6 +287,7 @@ export const SakugaStepper = ({
     const y = tall.current.step(dt);
     const j = jolt.current.step(dt);
     const r = lean.current.step(dt);
+    const w = press.current.step(dt);
     if (num.current) {
       const still = Math.abs(k) < 0.05 && Math.abs(y - 1) < 0.001;
       num.current.style.transform = still
@@ -245,10 +295,25 @@ export const SakugaStepper = ({
         : `translateY(${k.toFixed(2)}px) scale(${(1 / y).toFixed(3)}, ${y.toFixed(3)})`;
     }
     if (pill.current) {
-      const still = Math.abs(j) < 0.05 && Math.abs(r) < 0.02;
+      const still = Math.abs(j) < 0.05 && Math.abs(r) < 0.02 && Math.abs(w - 1) < 0.001;
       pill.current.style.transform = still
         ? ""
-        : `translateX(${j.toFixed(2)}px) rotate(${r.toFixed(2)}deg)`;
+        : `translateX(${j.toFixed(2)}px) rotate(${r.toFixed(2)}deg) scale(${(1 + (1 - w) * 0.3).toFixed(3)}, ${w.toFixed(3)})`;
+    }
+  });
+
+  // let go off the button: no click follows
+  const leave = () => {
+    swallow.current = false;
+    letGo();
+  };
+
+  // controlled: the number is kicked when the parent shows the value that was asked for
+  useEffect(() => {
+    const want = asked.current;
+    if (want && want.to === current) {
+      asked.current = null;
+      hit(want.dir);
     }
   });
 
@@ -257,9 +322,11 @@ export const SakugaStepper = ({
     "aria-disabled": (dir > 0 ? current >= max : current <= min) || undefined,
     disabled,
     onClick: () => tap(dir),
-    onPointerCancel: letGo,
-    onPointerDown: () => hold(dir),
-    onPointerLeave: letGo,
+    // focus goes to the spinbutton, which holds the keys
+    onMouseDown: (e: MouseEvent<HTMLButtonElement>) => e.preventDefault(),
+    onPointerCancel: leave,
+    onPointerDown: (e: PointerEvent<HTMLButtonElement>) => hold(dir, e),
+    onPointerLeave: leave,
     onPointerUp: letGo,
     tabIndex: -1,
   });
@@ -284,8 +351,11 @@ export const SakugaStepper = ({
         <span
           // oxlint-disable-next-line jsx-a11y/prefer-tag-over-role -- a number input brings its own spinners, wheel stepping and a caret; this value is only ever stepped
           role="spinbutton"
+          ref={spin}
+          id={id}
           aria-disabled={disabled || undefined}
-          aria-label={label}
+          aria-label={labelledBy ? undefined : label}
+          aria-labelledby={labelledBy}
           aria-valuemax={Number.isFinite(max) ? max : undefined}
           aria-valuemin={Number.isFinite(min) ? min : undefined}
           aria-valuenow={current}

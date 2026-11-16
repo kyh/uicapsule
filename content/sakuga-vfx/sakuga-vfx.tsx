@@ -147,17 +147,30 @@ export const SakugaVfx = () => (
       </Card>
       {/* ── select card ── */}
       <Card id="select" name="Select" how="Open it, run down the rows, and choose one.">
-        <SakugaSelect />
+        <SakugaSelect
+          label="Stage"
+          options={[
+            { label: "Key frames", value: "key" },
+            { label: "In-betweens", value: "inbetween" },
+            { label: "Clean-up", value: "cleanup" },
+            { label: "Paint", value: "paint" },
+          ]}
+        />
       </Card>
       {/* ── accordion card ── */}
       <Card id="accordion" name="Accordion" how="Open one, then another.">
-        <div className="flex h-[212px] w-full items-start justify-center">
-          <SakugaAccordion />
-        </div>
+        <SakugaAccordion
+          className="self-start"
+          sections={[
+            { content: "Tracked, and out in two days.", title: "Shipping" },
+            { content: "Thirty days to send it back.", title: "Returns" },
+            { content: "Two years, parts and labour.", title: "Warranty" },
+          ]}
+        />
       </Card>
       {/* ── chips card ── */}
       <Card id="chips" name="Chips" how="Type a tag and press Enter, then remove one.">
-        <SakugaChips />
+        <SakugaChips defaultValue={["Ink", "Paper"]} />
       </Card>
     </div>
   </div>

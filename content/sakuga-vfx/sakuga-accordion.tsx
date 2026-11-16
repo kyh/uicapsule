@@ -18,7 +18,7 @@ export interface SakugaAccordionSection {
 }
 
 export interface SakugaAccordionProps {
-  sections?: readonly SakugaAccordionSection[];
+  sections: readonly SakugaAccordionSection[];
   // let more than one section stay open
   multiple?: boolean;
   // the indexes of the open sections
@@ -28,12 +28,6 @@ export interface SakugaAccordionProps {
   disabled?: boolean;
   className?: string;
 }
-
-const DEFAULT_SECTIONS: readonly SakugaAccordionSection[] = [
-  { content: "Sent within two days, tracked to your door.", title: "Shipping" },
-  { content: "Send it back within 30 days for a full refund.", title: "Returns" },
-  { content: "Covered for two years, parts and labour.", title: "Warranty" },
-];
 
 const NONE: readonly number[] = [];
 
@@ -90,10 +84,10 @@ const KEYS = new Map([
   ["Home", -99],
 ]);
 
-const HEADER = `flex w-full cursor-pointer touch-manipulation items-center justify-between gap-3 rounded-[10px] px-[16px] py-[11px] text-left text-[17px] leading-[1.2] font-extrabold tracking-[-0.01em] text-(--sk-ink) italic will-change-transform select-none focus-visible:outline-[2.5px] focus-visible:outline-offset-[-6px] focus-visible:outline-(--sk-acc) disabled:cursor-not-allowed disabled:opacity-45 ${FONT_DISPLAY}`;
+const HEADER = `flex w-full cursor-pointer touch-manipulation items-center justify-between gap-3 rounded-[10px] px-[16px] py-[10px] text-left text-[17px] leading-[1.2] font-extrabold tracking-[-0.01em] text-(--sk-ink) italic will-change-transform select-none focus-visible:outline-[2.5px] focus-visible:outline-offset-[-3px] focus-visible:outline-(--sk-acc) disabled:cursor-not-allowed disabled:opacity-45 ${FONT_DISPLAY}`;
 
 export const SakugaAccordion = ({
-  sections = DEFAULT_SECTIONS,
+  sections,
   multiple = false,
   open,
   defaultOpen = NONE,
@@ -169,14 +163,8 @@ export const SakugaAccordion = ({
     puff(left - 7, p.y - 3, { life: 0.7, n: 4, size: 8, vx: -16, vy: -10 });
     puff(right + 12, p.y + 2, { life: 0.7, n: 4, size: 8, vx: 16, vy: -8 });
     ticks(q.x - 4, q.y + 2, { dir: -0.75, fan: 0.36, len: 15, life: 0.5, n: 3, r: 5 });
-    // the word lands beside the panel; with no room there (a phone), over the header's corner
-    const room = right + 84 < scrollX + document.documentElement.clientWidth;
-    sfx("pon", room ? right + 40 : right - 34, room ? p.y - 50 : q.y - 6, {
-      life: 0.8,
-      rot: 0.06,
-      size: 80,
-      ...hollow(),
-    });
+    // the word straddles the card's top right corner, clear of every chevron and inside its column
+    sfx("pon", right - 30, k.y - k.h / 2 - 22, { life: 0.8, rot: 0.06, size: 72, ...hollow() });
   };
 
   // it has shut
@@ -280,7 +268,8 @@ export const SakugaAccordion = ({
           const off = disabled || section.disabled === true;
           return (
             <div
-              key={section.title}
+              // a section is its place: `open` holds indexes, and two may share a title
+              key={i}
               className={i > 0 ? "border-t-[2.4px] border-(--sk-ink)" : undefined}
             >
               <h3>
