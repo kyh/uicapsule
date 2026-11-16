@@ -1,0 +1,48 @@
+/*
+ * The whole system lives here. Every design system shares the same showcase and
+ * component set; a new one starts by rewriting these tokens, then reshapes the
+ * components in ./components where tokens alone can't carry the idea.
+ *
+ * Scoped to .ds-template (rewritten to .ds-<slug> on scaffold) so two systems
+ * visited in one session never bleed into each other.
+ */
+.ds-template {
+  /* Surfaces */
+  --background: oklch(0.985 0.002 90);
+  --foreground: oklch(0.2 0.01 90);
+  --card: oklch(1 0 0);
+  --card-foreground: var(--foreground);
+  --muted: oklch(0.95 0.004 90);
+  --muted-foreground: oklch(0.5 0.01 90);
+  --border: oklch(0.9 0.006 90);
+  --input: oklch(0.88 0.006 90);
+
+  /* Intent */
+  --primary: oklch(0.25 0.01 90);
+  --primary-foreground: oklch(0.985 0.002 90);
+  --secondary: oklch(0.94 0.005 90);
+  --secondary-foreground: var(--foreground);
+  --accent: oklch(0.72 0.17 55);
+  --accent-foreground: oklch(0.2 0.03 55);
+  --destructive: oklch(0.58 0.21 27);
+  --ring: oklch(0.72 0.17 55);
+
+  /* Shape */
+  --radius: 0.625rem;
+  --ds-border-width: 1px;
+  --ds-shadow: 0 1px 2px oklch(0 0 0 / 0.06), 0 4px 12px oklch(0 0 0 / 0.04);
+
+  /* Type */
+  --ds-font-heading: ui-sans-serif, system-ui, sans-serif;
+  --ds-font-body: ui-sans-serif, system-ui, sans-serif;
+  --ds-font-mono: ui-monospace, "SF Mono", Menlo, monospace;
+  --ds-heading-tracking: -0.02em;
+
+  /* Motion */
+  --ds-duration: 160ms;
+  --ds-ease: cubic-bezier(0.2, 0, 0, 1);
+
+  background: var(--background);
+  color: var(--foreground);
+  font-family: var(--ds-font-body);
+}

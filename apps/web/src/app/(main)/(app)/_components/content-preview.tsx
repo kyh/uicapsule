@@ -4,6 +4,7 @@ import { Badge } from "@repo/ui/components/badge";
 import { useWebHaptics } from "web-haptics/react";
 
 import type { Cover } from "@/lib/assets";
+import { elementBadge } from "@/lib/content/content-categories";
 import { MediaReveal } from "@/components/media-reveal";
 import { PrefetchLink } from "@/components/prefetch-link";
 
@@ -18,6 +19,7 @@ interface ContentPreviewProps {
 
 export const ContentPreview = ({ slug, name, index, tags, isNew, cover }: ContentPreviewProps) => {
   const { trigger } = useWebHaptics();
+  const badge = elementBadge(tags);
   return (
     <PrefetchLink
       className="bg-background group flex flex-col justify-between gap-3 p-3 text-lg sm:p-6"
@@ -42,9 +44,9 @@ export const ContentPreview = ({ slug, name, index, tags, isNew, cover }: Conten
       <div className="flex justify-between font-mono text-xs">
         <p className="group-hover:text-primary transition">{name}</p>
         <p className="text-muted-foreground/50 group-hover:text-primary/50 transition">
-          {tags.includes("pages") ? (
+          {badge ? (
             <Badge className="group-hover:text-primary" variant="secondary">
-              Page
+              {badge}
             </Badge>
           ) : (
             String(index).padStart(3, "0")

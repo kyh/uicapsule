@@ -61,6 +61,12 @@ Content is filesystem-driven; the web app never depends on content packages by n
   use `/api/content/<slug>`; the viewer and zip library load on demand.
 - Content packages exist as workspace packages only so pnpm installs their deps in
   isolation and the registry can report per-component dependencies.
+- **Design systems** (element tag `design-systems`) are the one templated kind:
+  `pnpm new:content <slug> --design-system` copies `scripts/templates/design-system/` (shared
+  showcase + fixed component set, scoped to `.ds-<slug>`). Entries differ in `tokens.css`
+  and `components/*`, never in the showcase, so they compare side by side. Template edits
+  reach only systems scaffolded afterwards. Like `pages`, the gallery card shows a badge
+  (`elementBadge` in `content-categories.ts`) instead of an index number.
 - `meta.json` carries provenance: `addedAt` (required, stamped by `new:content`, drives
   gallery order newest-first), `inspiredBy` (where the idea came from), `requestedBy`
   (who asked for it). Keep them honest — they render on the detail page.
@@ -159,7 +165,7 @@ pnpm format           # Check formatting
 pnpm format:fix       # Fix formatting
 pnpm db:push          # Push local db schema
 pnpm db:push-remote   # Push to production Turso
-pnpm new:content <slug>  # Scaffold a new content component in content/
+pnpm new:content <slug>  # Scaffold a new content component in content/ (--design-system for the template)
 pnpm check:content    # Fail if any content/<slug> is not a loadable component
 pnpm test             # node:test — auth + RPC transport guards + the agent-surface tests
 pnpm check:agent-endpoints  # Runtime check of the agent surfaces (needs a running server)
