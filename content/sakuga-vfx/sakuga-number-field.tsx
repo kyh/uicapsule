@@ -261,7 +261,7 @@ const GLYPH =
 type SideProps = Styled<NumberFieldPrimitive.Increment.Props>;
 
 // What both side buttons add to Base UI's: the glyph squash, the pill's press, and the wall.
-const useSide = (dir: number, { onClick, onPointerDown, ...props }: SideProps) => {
+const useSide = (dir: number, { onClick, onPointerDownCapture, ...props }: SideProps) => {
   const rigRef = useRig();
   const el = useRef<HTMLButtonElement>(null);
   const sqRef = useSquashy(el, PRESS);
@@ -280,12 +280,12 @@ const useSide = (dir: number, { onClick, onPointerDown, ...props }: SideProps) =
       }
     },
     onPointerCancel: letGo,
-    onPointerDown: (e: Parameters<NonNullable<SideProps["onPointerDown"]>>[0]) => {
-      onPointerDown?.(e);
+    // on the way down, because Base UI keeps a press on a stepper at its limit to itself
+    onPointerDownCapture: (e: Parameters<NonNullable<SideProps["onPointerDownCapture"]>>[0]) => {
+      onPointerDownCapture?.(e);
       const rig = rigRef.current;
       const s = sqRef.current;
       const off = rig.pill?.matches("[data-disabled], [data-readonly]") ?? true;
-      console.log("DBG", e.button, off, !!rig.pill, rig.pill?.outerHTML.slice(0,120));
       if (e.button !== 0 || off) {
         // Base UI keeps a disabled stepper focusable, so the glyph's own listener cannot tell
         if (s) {

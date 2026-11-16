@@ -1,79 +1,106 @@
 "use client";
 
-// Sakuga Tooltip: a help button whose hint springs out of it like a speech bubble, with puffs
-// either side, a ring off the button and a hollow カチッ.
-// It shows on hover, on focus and on tap, and Escape closes it. Children replace the "?" on the
-// button. The hint opens above the button; the control keeps 60px above itself for that.
+// Sakuga Tooltip: a hint that springs out of its trigger like a speech bubble, with puffs either
+// side, a ring off the trigger and a hollow カチッ, and shrinks back into it.
+// Base UI's Tooltip owns the open state, hover, Escape, the portal and the positioning. On top of
+// that the trigger keeps the set's own rules: it also opens on any focus and on a tap or click, a
+// click on the focused trigger keeps it open, and blur closes it.
 
-import { useId, useImperativeHandle, useRef } from "react";
-import type { ReactNode, Ref } from "react";
+import { Tooltip as TooltipPrimitive } from "@base-ui/react/tooltip";
+import { cn } from "cn";
+import { createContext, use, useId, useLayoutEffect, useMemo, useRef } from "react";
+import type { RefObject } from "react";
 
 import { Spring, at, hollow, later, puff, ring, sfx, ticks } from "./sakuga-core";
 import { FONT_BODY, SakugaStyle, useFrame, useSquashy } from "./sakuga-react";
 
-export interface SakugaTooltipHandle {
-  show: () => void;
-  hide: () => void;
-  // true while the hint is out
-  readonly open: boolean;
+type Styled<Props> = Omit<Props, "className"> & { className?: string };
+
+// What the parts share: the bubble's spring and the two elements the effects are placed from.
+interface Rig {
+  open: boolean;
+  // the close is being held open by us until the bubble has shrunk away
+  held: boolean;
+  s: Spring;
+  tip: HTMLElement | null;
+  trigger: HTMLElement | null;
+  // the little jump the trigger makes as the bubble leaves it
+  kick: (() => void) | null;
 }
 
-interface SakugaTooltipProps {
-  // the hint
-  text?: string;
-  // what a screen reader calls the button
-  label?: string;
-  // replaces the "?" on the button
-  children?: ReactNode;
-  onOpenChange?: (open: boolean) => void;
-  className?: string;
-  ref?: Ref<SakugaTooltipHandle>;
+interface Shared {
+  rigRef: RefObject<Rig>;
+  handle: TooltipPrimitive.Handle<unknown>;
+  tipId: string;
+  triggerId: string;
 }
 
-// the handle is built out here because its `open` is a getter
-const tooltipHandle = (set: (on: boolean) => void, isOpen: () => boolean): SakugaTooltipHandle => ({
-  hide: () => set(false),
-  get open() {
-    return isOpen();
-  },
-  show: () => set(true),
-});
+const SharedContext = createContext<Shared | null>(null);
 
-export const SakugaTooltip = ({
-  text = "Helpful hint!",
-  label = "Help",
-  children,
+const useShared = () => {
+  const shared = use(SharedContext);
+  if (!shared) {
+    throw new Error("SakugaTooltip parts must be inside <SakugaTooltip>");
+  }
+  return shared;
+};
+
+const SakugaTooltipProvider = ({ delay = 0, ...props }: TooltipPrimitive.Provider.Props) => (
+  <TooltipPrimitive.Provider data-slot="sakuga-tooltip-provider" delay={delay} {...props} />
+);
+
+const SakugaTooltip = ({
+  open,
+  handle,
+  actionsRef,
   onOpenChange,
-  className = "",
-  ref,
-}: SakugaTooltipProps) => {
-  const id = useId();
-  const button = useRef<HTMLButtonElement>(null);
-  const tip = useRef<HTMLDivElement>(null);
-  const s = useRef(new Spring(0, 460, 15));
-  const sqRef = useSquashy(button, { low: 0.78, wide: 0.3 });
-  const isOpen = useRef(false);
+  disableHoverablePopup = true,
+  children,
+  ...props
+}: TooltipPrimitive.Root.Props) => {
+  const ownHandle = useMemo(() => TooltipPrimitive.createHandle(), []);
+  const ownActions = useRef<TooltipPrimitive.Root.Actions>(null);
+  const actions = actionsRef ?? ownActions;
+  const rigRef = useMemo(
+    (): RefObject<Rig> => ({
+      current: {
+        held: false,
+        kick: null,
+        open: false,
+        s: new Spring(0, 460, 15),
+        tip: null,
+        trigger: null,
+      },
+    }),
+    [],
+  );
+  const tipId = useId();
+  const triggerId = useId();
+  const shared = useMemo(
+    () => ({ handle: handle ?? ownHandle, rigRef, tipId, triggerId }),
+    [handle, ownHandle, rigRef, tipId, triggerId],
+  );
 
-  const set = (on: boolean) => {
-    if (on === isOpen.current) {
+  // the bubble springs out or shrinks back; the effects follow 120ms after it starts out
+  const react = (on: boolean) => {
+    const rig = rigRef.current;
+    if (on === rig.open) {
       return;
     }
-    isOpen.current = on;
-    s.current.to = on ? 1 : 0;
-    s.current.d = on ? 15 : 34;
-    onOpenChange?.(on);
+    rig.open = on;
+    rig.s.to = on ? 1 : 0;
+    rig.s.d = on ? 15 : 34;
     if (!on) {
       return;
     }
-    if (sqRef.current) {
-      sqRef.current.s.v += 2;
-    }
+    rig.kick?.();
     later(120, () => {
-      if (!isOpen.current || !tip.current || !button.current) {
+      const { tip, trigger } = rig;
+      if (!rig.open || !tip || !trigger) {
         return;
       }
-      const c = at(tip.current);
-      const q = at(button.current);
+      const c = at(tip);
+      const q = at(trigger);
       puff(c.x - c.w / 2 - 8, c.y - 12, { life: 0.8, n: 4, size: 8, vx: -14, vy: -10 });
       puff(c.x + c.w / 2 + 10, c.y + 12, { life: 0.8, n: 4, size: 8, vx: 14, vy: -6 });
       puff(c.x - c.w / 2 - 4, c.y + 22, { life: 0.6, n: 3, size: 5, vx: -10 });
@@ -90,56 +117,178 @@ export const SakugaTooltip = ({
     });
   };
 
-  useImperativeHandle(ref, () => tooltipHandle(set, () => isOpen.current));
+  // owned by a parent: the bubble follows the `open` it is given
+  useLayoutEffect(() => {
+    if (open !== undefined) {
+      react(open);
+    }
+  });
 
   useFrame((dt) => {
-    sqRef.current?.step(dt);
-    const y = Math.max(0, s.current.step(dt));
-    if (tip.current) {
-      tip.current.style.transform = `scale(${y}) rotate(${(1 - y) * -10}deg)`;
+    const rig = rigRef.current;
+    const y = Math.max(0, rig.s.step(dt));
+    if (rig.tip) {
+      rig.tip.style.transform = `scale(${y}) rotate(${(1 - y) * -10}deg)`;
+    }
+    // Base UI was asked to keep the closed bubble on the page; let it go once it has shrunk to nothing
+    if (rig.held && !rig.open && y === 0) {
+      rig.held = false;
+      actions.current?.unmount();
     }
   });
 
   return (
-    <span
-      className={`relative isolate mt-[60px] inline-block align-middle text-[15px] leading-[1.4] font-medium text-(--sk-ink) ${FONT_BODY} ${className}`}
-    >
-      <SakugaStyle />
-      <div
-        ref={tip}
-        id={id}
-        role="tooltip"
-        className="pointer-events-none absolute bottom-[calc(100%+16px)] left-1/2 w-max max-w-[220px] min-w-[120px] origin-[50%_120%] [translate:-50%_0] [transform:scale(0)] rounded-[13px] [border:var(--sk-bw)_solid_var(--sk-ink)] bg-(--sk-card) px-[14px] py-[11px] text-center text-[16px] font-extrabold shadow-(--sk-sh) will-change-transform before:absolute before:top-[calc(100%-4.5px)] before:left-1/2 before:z-1 before:-ml-[6px] before:border-[6px] before:border-t-[8.5px] before:border-transparent before:border-t-(--sk-card) before:content-[''] after:absolute after:top-full after:left-1/2 after:-ml-[9px] after:border-[9px] after:border-t-[12px] after:border-transparent after:border-t-(--sk-ink) after:content-['']"
+    <SharedContext value={shared}>
+      <TooltipPrimitive.Root
+        data-slot="sakuga-tooltip"
+        open={open}
+        handle={shared.handle}
+        actionsRef={actions}
+        disableHoverablePopup={disableHoverablePopup}
+        onOpenChange={(next, details) => {
+          onOpenChange?.(next, details);
+          if (details.isCanceled) {
+            return;
+          }
+          if (!next) {
+            details.preventUnmountOnClose();
+            rigRef.current.held = true;
+          }
+          if (open === undefined) {
+            react(next);
+          }
+        }}
+        {...props}
       >
-        {text}
-      </div>
-      <button
-        ref={button}
-        type="button"
-        aria-describedby={id}
-        aria-label={label}
-        className="grid size-[42px] cursor-pointer place-items-center rounded-full [border:var(--sk-bw)_solid_var(--sk-ink)] bg-(--sk-card) p-0 font-black shadow-[4px_5px_0_var(--sk-soft)] focus-visible:outline-[2.5px] focus-visible:outline-offset-[3px] focus-visible:outline-(--sk-acc)"
-        onPointerEnter={(e) => {
-          if (e.pointerType === "mouse") {
-            set(true);
-          }
-        }}
-        onPointerLeave={(e) => {
-          if (e.pointerType === "mouse") {
-            set(false);
-          }
-        }}
-        onFocus={() => set(true)}
-        onBlur={() => set(false)}
-        onClick={(e) => set(!isOpen.current || document.activeElement === e.currentTarget)}
-        onKeyDown={(e) => {
-          if (e.key === "Escape") {
-            set(false);
-          }
-        }}
-      >
-        {children ?? "?"}
-      </button>
-    </span>
+        {children}
+      </TooltipPrimitive.Root>
+    </SharedContext>
   );
 };
+
+const TRIGGER = `inline-grid size-[42px] cursor-pointer place-items-center rounded-full [border:var(--sk-bw)_solid_var(--sk-ink)] bg-(--sk-card) p-0 align-middle text-[15px] leading-[1.4] font-black text-(--sk-ink) shadow-[4px_5px_0_var(--sk-soft)] focus-visible:outline-[2.5px] focus-visible:outline-offset-[3px] focus-visible:outline-(--sk-acc) ${FONT_BODY}`;
+
+// The trigger is the set's round help button. `delay` is how long a hover waits (none), and
+// `closeOnClick` hands the click back to Base UI's rule, where a click closes the hint.
+const SakugaTooltipTrigger = ({
+  className,
+  closeOnClick = false,
+  delay = 0,
+  onBlur,
+  onClick,
+  onFocus,
+  ...props
+}: Styled<TooltipPrimitive.Trigger.Props>) => {
+  const { handle, rigRef, tipId, triggerId } = useShared();
+  const el = useRef<HTMLButtonElement>(null);
+  const sqRef = useSquashy(el, { low: 0.78, wide: 0.3 });
+
+  useLayoutEffect(() => {
+    const rig = rigRef.current;
+    rig.trigger = el.current;
+    rig.kick = () => {
+      if (sqRef.current) {
+        sqRef.current.s.v += 2;
+      }
+    };
+    return () => {
+      rig.trigger = null;
+      rig.kick = null;
+    };
+  }, [rigRef, sqRef]);
+
+  useFrame((dt) => sqRef.current?.step(dt));
+
+  const set = (on: boolean, id: string) => {
+    if (on === rigRef.current.open) {
+      return;
+    }
+    if (on) {
+      handle.open(id);
+    } else {
+      handle.close();
+    }
+  };
+
+  return (
+    <TooltipPrimitive.Trigger
+      data-slot="sakuga-tooltip-trigger"
+      id={triggerId}
+      aria-describedby={tipId}
+      className={cn(TRIGGER, className)}
+      closeOnClick={closeOnClick}
+      delay={delay}
+      {...props}
+      ref={el}
+      onFocus={(e) => {
+        onFocus?.(e);
+        // any focus opens it, not only a keyboard one
+        e.preventBaseUIHandler();
+        set(true, e.currentTarget.id);
+      }}
+      onBlur={(e) => {
+        onBlur?.(e);
+        e.preventBaseUIHandler();
+        set(false, e.currentTarget.id);
+      }}
+      onClick={(e) => {
+        onClick?.(e);
+        if (!closeOnClick) {
+          // a tap opens it, and a click on the focused trigger keeps it open
+          const focused = document.activeElement === e.currentTarget;
+          set(!rigRef.current.open || focused, e.currentTarget.id);
+        }
+      }}
+    />
+  );
+};
+
+const TIP = `pointer-events-none w-max max-w-[220px] min-w-[120px] origin-[50%_120%] [transform:scale(0)] rounded-[13px] [border:var(--sk-bw)_solid_var(--sk-ink)] bg-(--sk-card) px-[14px] py-[11px] text-center text-[16px] leading-[1.4] font-extrabold text-(--sk-ink) shadow-(--sk-sh) will-change-transform before:absolute before:top-[calc(100%-4.5px)] before:left-1/2 before:z-1 before:-ml-[6px] before:border-[6px] before:border-t-[8.5px] before:border-transparent before:border-t-(--sk-card) before:content-[''] after:absolute after:top-full after:left-1/2 after:-ml-[9px] after:border-[9px] after:border-t-[12px] after:border-transparent after:border-t-(--sk-ink) after:content-[''] ${FONT_BODY}`;
+
+// The bubble's tail points down at the trigger, so it sits above and does not flip or shift.
+const STAY = { align: "none", side: "none" } as const;
+
+const SakugaTooltipContent = ({
+  className,
+  side = "top",
+  sideOffset = 16,
+  align = "center",
+  alignOffset = 0,
+  collisionAvoidance = STAY,
+  children,
+  ...props
+}: Styled<TooltipPrimitive.Popup.Props> &
+  Pick<
+    TooltipPrimitive.Positioner.Props,
+    "align" | "alignOffset" | "collisionAvoidance" | "side" | "sideOffset"
+  >) => {
+  const { rigRef, tipId } = useShared();
+  return (
+    <TooltipPrimitive.Portal keepMounted>
+      <TooltipPrimitive.Positioner
+        align={align}
+        alignOffset={alignOffset}
+        collisionAvoidance={collisionAvoidance}
+        side={side}
+        sideOffset={sideOffset}
+        className="isolate z-50"
+      >
+        <TooltipPrimitive.Popup
+          data-slot="sakuga-tooltip-content"
+          id={tipId}
+          role="tooltip"
+          className={cn(TIP, className)}
+          {...props}
+          ref={(node) => {
+            rigRef.current.tip = node;
+          }}
+        >
+          <SakugaStyle />
+          {children}
+        </TooltipPrimitive.Popup>
+      </TooltipPrimitive.Positioner>
+    </TooltipPrimitive.Portal>
+  );
+};
+
+export { SakugaTooltip, SakugaTooltipContent, SakugaTooltipProvider, SakugaTooltipTrigger };
