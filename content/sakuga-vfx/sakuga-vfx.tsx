@@ -20,6 +20,7 @@ import { SakugaSlider } from "./sakuga-slider";
 import { SakugaStepper } from "./sakuga-stepper";
 import { SakugaTabs } from "./sakuga-tabs";
 import { SakugaToast } from "./sakuga-toast";
+import type { SakugaToastHandle } from "./sakuga-toast";
 import { SakugaToggle } from "./sakuga-toggle";
 import { SakugaTooltip } from "./sakuga-tooltip";
 import { FONT_BODY, SakugaStyle } from "./sakuga-react";
@@ -60,6 +61,23 @@ const PrimaryCard = () => {
   );
 };
 
+const ToastCard = () => {
+  const toast = useRef<SakugaToastHandle>(null);
+  return (
+    <Card id="toast" name="Toast" how="Press Save.">
+      <div className="relative grid justify-items-center gap-[22px]">
+        <SakugaButton
+          variant="secondary"
+          onClick={() => toast.current?.show("Saved successfully!")}
+        >
+          Save
+        </SakugaButton>
+        <SakugaToast ref={toast} />
+      </div>
+    </Card>
+  );
+};
+
 export const SakugaVfx = () => (
   <div
     className={`w-full max-w-[1080px] text-[15px] leading-[1.45] font-medium text-[#1d1a4a] ${FONT_BODY}`}
@@ -72,51 +90,60 @@ export const SakugaVfx = () => (
       </Card>
       {/* ── toggle card ── */}
       <Card id="toggle" name="Toggle" how="Flip it, then flip it back.">
-        <SakugaToggle />
+        <SakugaToggle label="Notifications" />
       </Card>
       {/* ── slider card ── */}
       <Card id="slider" name="Slider" how="Drag it fast, and let go while it is moving.">
-        <SakugaSlider />
+        <SakugaSlider defaultValue={30} label="Volume" />
       </Card>
       {/* ── checkbox card ── */}
       <Card id="checkbox" name="Checkbox" how="Tick it.">
-        <SakugaCheckbox />
+        <SakugaCheckbox>Remember me</SakugaCheckbox>
       </Card>
       {/* ── radio card ── */}
       <Card id="radio" name="Radio" how="Pick the other one.">
-        <SakugaRadio />
+        <SakugaRadio
+          label="Plan"
+          defaultValue="a"
+          options={[
+            { label: "Option A", value: "a" },
+            { label: "Option B", value: "b" },
+          ]}
+        />
       </Card>
       {/* ── input card ── */}
       <Card id="input" name="Text input" how="Click it and type.">
-        <SakugaInput />
+        <SakugaInput label="Text" placeholder="Type something" />
       </Card>
       {/* ── tabs card ── */}
       <Card id="tabs" name="Tabs" how="Pick another tab, or use the arrow keys.">
-        <SakugaTabs />
+        <SakugaTabs
+          label="Sections"
+          tabs={[{ label: "Home" }, { label: "Profile" }, { label: "Settings" }]}
+        />
       </Card>
       {/* ── progress card ── */}
       <Card
         id="progress"
         name="Progress"
         how="It plays a load by itself, in surges. Click it to start again."
+        wide
       >
-        <SakugaProgress />
+        <SakugaProgress demo label="Loading" />
       </Card>
       {/* ── rating card ── */}
       <Card id="rating" name="Rating" how="Give it five.">
-        <SakugaRating />
+        <SakugaRating label="Rating" />
       </Card>
       {/* ── toast card ── */}
-      <Card id="toast" name="Toast" how="Press Save.">
-        <SakugaToast />
-      </Card>
+      <ToastCard />
       {/* ── tooltip card ── */}
       <Card id="tooltip" name="Tooltip" how="Hover, focus or tap the button.">
-        <SakugaTooltip />
+        <SakugaTooltip text="Helpful hint!" />
       </Card>
       {/* ── stepper card ── */}
-      <Card id="stepper" name="Stepper" how="TODO">
-        <SakugaStepper />
+      <Card id="stepper" name="Stepper" how="Tap plus fast, then hit the limit.">
+        <SakugaStepper defaultValue={5} max={9} label="Copies" />
       </Card>
       {/* ── select card ── */}
       <Card id="select" name="Select" how="TODO">

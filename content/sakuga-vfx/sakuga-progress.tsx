@@ -1,4 +1,546 @@
 "use client";
 
-// STUB — replace this whole file.
-export const SakugaProgress = () => <span data-stub>progress</span>;
+// Sakuga Progress: a loading bar with a storm cloud riding the leading edge.
+// The cloud grows as the bar fills and drags back when it surges; wisps tear off it and speed lines
+// trail it. Pebbles lift off a ground line as the edge passes over them, and ゴゴゴゴ rumbles once it
+// is under way. At 100 a burst goes off behind the bar with ドン!, a check lands above it, and two
+// small clouds are left on the ground.
+
+import { useEffect, useImperativeHandle, useRef } from "react";
+import type { CSSProperties, Ref } from "react";
+
+import {
+  P,
+  Spring,
+  at,
+  blob,
+  burst,
+  clamp,
+  fillPath,
+  lerp,
+  lines,
+  pen,
+  persist,
+  puff,
+  rnd,
+  sfx,
+  shards,
+  ticks,
+  toon,
+} from "./sakuga-core";
+import type { Layer } from "./sakuga-core";
+import { BACK_CANVAS, FONT_BODY, SakugaStyle, useBackLayer, useFrame } from "./sakuga-react";
+
+export interface SakugaProgressHandle {
+  // progress from 0 to 1. The bar eases toward it, so a jump still gets ridden. instant goes straight there.
+  set: (n: number, instant?: boolean) => void;
+  // back to 0 for the next task
+  reset: () => void;
+}
+
+export interface SakugaProgressProps {
+  // progress from 0 to 1; the bar eases toward it
+  value?: number;
+  // what a screen reader calls it
+  label?: string;
+  // the words at the end
+  doneLabel?: string;
+  // plays a pretend load on a loop; click restarts it. Don't ship it.
+  demo?: boolean;
+  // once, when the bar itself reaches the end
+  onDone?: () => void;
+  ref?: Ref<SakugaProgressHandle>;
+  className?: string;
+  // e.g. { "--sk-progress-width": "360px" }
+  style?: CSSProperties;
+}
+
+const LOBES = [
+  [0, -0.95, 1],
+  [0.78, -0.55, 0.74],
+  [-0.72, -0.78, 0.72],
+  [0.36, -1.7, 0.7],
+  [-0.4, -1.62, 0.62],
+  [1.1, -1.32, 0.52],
+  [-1.18, -0.28, 0.52],
+  [0.62, 0.3, 0.5],
+  [-0.86, 0.5, 0.52],
+  [-1.5, 0.82, 0.38],
+  [-2.05, 1, 0.24],
+  [0.16, 0.72, 0.4],
+] as const;
+const PEBBLE = [
+  [-1, 0.4],
+  [-0.5, -0.8],
+  [0.5, -1],
+  [1, 0.1],
+  [0.3, 0.9],
+] as const;
+const RAYS = [
+  [-2.6, 58],
+  [-2.95, 60],
+  [-0.35, 56],
+  [-0.1, 60],
+] as const;
+
+const lobe = ([x, y, r]: readonly [number, number, number], i: number) => {
+  const ph = rnd(6.28);
+  const w = rnd(1.4, 2.6);
+  return { i, ph, r, w, x, y };
+};
+
+const pebble = (u: number) => {
+  const s = rnd(3.4, 5.6);
+  const ph = rnd(6.28);
+  const rot = rnd(-0.5, 0.5);
+  const pts = PEBBLE.map(([x, y]) => {
+    const px = x * rnd(0.8, 1.2);
+    const py = y * rnd(0.8, 1.2);
+    return [px, py] as const;
+  });
+  return { lift: new Spring(0, 70, 7), ph, pts, rot, s, u };
+};
+
+// everything the bar remembers between frames
+const makeLoad = () => ({
+  acc: 0,
+  ck: new Spring(0, 260, 13),
+  doneAt: 0,
+  goal: 0,
+  lag: new Spring(0, 120, 16),
+  lastPct: "",
+  lobes: LOBES.map(lobe),
+  p: 0,
+  peb: [0.14, 0.31, 0.5, 0.69, 0.87].map(pebble),
+  rest: new Spring(0, 160, 14),
+  said: false,
+  size: new Spring(0, 90, 13),
+  spd: 0,
+  t: 0,
+  tag: new Spring(1, 500, 13),
+  vis: false,
+});
+type Load = ReturnType<typeof makeLoad>;
+type Pebble = ReturnType<typeof pebble>;
+
+const clear = (load: Load) => {
+  load.doneAt = 0;
+  load.said = false;
+};
+const reset = (load: Load) => {
+  clear(load);
+  load.p = 0;
+  load.goal = 0;
+};
+const setGoal = (load: Load, value: number, instant = false) => {
+  const n = clamp(Number(value) || 0);
+  if (load.doneAt && n >= 1) {
+    return;
+  }
+  if (n < load.p - 0.001 || instant) {
+    if (n < load.p) {
+      clear(load);
+    }
+    load.p = n;
+  }
+  load.goal = n;
+};
+
+// a pebble lifts when the edge goes over it and drops when the load is done
+const paintPebble = (q: Pebble, px: number, gy: number, tt: number, up: number) => {
+  const g = pen();
+  const y = gy - q.s * 0.7 - up * (7 + q.s * 1.5) + Math.sin(tt * 3 + q.ph) * 2 * up;
+  const path = new Path2D();
+  g.save();
+  g.translate(px, y);
+  g.rotate(q.rot + up * Math.sin(tt * 2 + q.ph) * 0.5);
+  for (const [n, [x, yy]] of q.pts.entries()) {
+    if (n) {
+      path.lineTo(x * q.s, yy * q.s);
+    } else {
+      path.moveTo(x * q.s, yy * q.s);
+    }
+  }
+  path.closePath();
+  toon(path, 1.1, q.s * 0.5);
+  g.restore();
+  if (up > 0.15 && up < 0.9 && q.lift.v > 0.6) {
+    g.save();
+    g.strokeStyle = P.accent;
+    g.lineWidth = 2.4;
+    g.beginPath();
+    for (const a of [-1.9, -1.57, -1.24]) {
+      g.moveTo(px + Math.cos(a) * (q.s + 5), y + Math.sin(a) * (q.s + 5));
+      g.lineTo(px + Math.cos(a) * (q.s + 11), y + Math.sin(a) * (q.s + 11));
+    }
+    g.stroke();
+    g.restore();
+  }
+};
+
+// one of the two small clouds left on the ground when it is over
+const paintRest = (x: number, d: number, gy: number, rs: number, tt: number) => {
+  const g = pen();
+  blob(
+    (
+      [
+        [x, gy - 9 * rs, 8 * rs],
+        [x + 8 * d, gy - 6 * rs, 6 * rs],
+        [x - 6 * d, gy - 5 * rs, 5.5 * rs],
+        [x + 2 * d, gy - 15 * rs, 5.5 * rs],
+      ] as const
+    ).map(([cx, cyy, r], n) => [cx, cyy, r * (1 + Math.sin(tt * 3 + n) * 0.06)] as const),
+    1.3,
+    { arcs: true, lx: 1 },
+  );
+  g.strokeStyle = P.line;
+  g.lineWidth = 1.4;
+  g.beginPath();
+  g.moveTo(x + d * 18, gy - 6);
+  g.lineTo(x + d * 25, gy - 6);
+  g.moveTo(x + d * 19, gy - 1.5);
+  g.lineTo(x + d * 23, gy - 1.5);
+  g.stroke();
+};
+
+// the check, its four rays and its glint
+const paintCheck = (x: number, y: number, c: number, tt: number) => {
+  const g = pen();
+  g.save();
+  g.translate(x, y);
+  g.rotate((1 - c) * -0.5);
+  g.scale(c, c);
+  g.save();
+  g.strokeStyle = P.accent;
+  g.lineWidth = 9;
+  g.lineJoin = "miter";
+  g.lineCap = "butt";
+  g.beginPath();
+  g.moveTo(-28, 2);
+  g.lineTo(-8, 22);
+  g.lineTo(30, -26);
+  g.stroke();
+  g.lineCap = "round";
+  g.lineWidth = 4;
+  g.beginPath();
+  for (const [a, d] of RAYS) {
+    g.moveTo(Math.cos(a) * d, Math.sin(a) * d * 0.7);
+    g.lineTo(Math.cos(a) * (d + 13), Math.sin(a) * (d + 13) * 0.7);
+  }
+  g.stroke();
+  g.restore();
+  const s = 15 * (0.9 + 0.1 * Math.sin(tt * 5));
+  const q = s * 0.14;
+  const sp = new Path2D();
+  g.translate(74, 28);
+  sp.moveTo(0, -s);
+  sp.quadraticCurveTo(q, -q, s * 0.75, 0);
+  sp.quadraticCurveTo(q, q, 0, s);
+  sp.quadraticCurveTo(-q, q, -s * 0.75, 0);
+  sp.quadraticCurveTo(-q, -q, 0, -s);
+  g.fillStyle = P.fill;
+  fillPath(sp);
+  g.strokeStyle = P.ink;
+  g.lineWidth = 2.4;
+  g.stroke(sp);
+  g.restore();
+};
+
+// the ground, the pebbles, the cloud and the check: drawn every frame on the effects layer
+const paint = (load: Load, bar: HTMLElement, tt: number, dt: number) => {
+  if (!load.vis) {
+    return;
+  }
+  const g = pen();
+  const b = at(bar);
+  const L = b.x - b.w / 2;
+  const R = b.x + b.w / 2;
+  const { p } = load;
+  const done = load.doneAt;
+  const lead = L + 4 + (b.w - 8) * p;
+  const cy = b.y;
+  const gy = cy + b.h / 2 + 30;
+  // the ground draws itself out under the fill
+  const reach = clamp(p * 1.25 + (done ? 1 : 0));
+  const gx1 = lerp(L + 10, R - 10, reach);
+  if (reach > 0.02) {
+    g.strokeStyle = P.line;
+    g.lineWidth = 1.4;
+    g.beginPath();
+    g.moveTo(L + 10, gy);
+    g.lineTo(gx1, gy);
+    for (let x = L + 26; x < gx1 - 6; x += 37) {
+      g.moveTo(x, gy);
+      g.lineTo(x + 3, gy - 4);
+      g.moveTo(x + 5, gy);
+      g.lineTo(x + 6.5, gy - 2.5);
+    }
+    g.stroke();
+  }
+  for (const q of load.peb) {
+    const px = L + b.w * q.u;
+    q.lift.to = !done && lead > px - 16 ? 1 : 0;
+    const up = q.lift.step(dt);
+    if (!(reach < q.u - 0.04 && up < 0.01)) {
+      paintPebble(q, px, gy, tt, up);
+    }
+  }
+  load.rest.to = done ? 1 : 0;
+  const rs = Math.max(0, load.rest.step(dt));
+  if (rs > 0.02) {
+    paintRest(L + 34, -1, gy, rs, tt);
+    paintRest(R - 40, 1, gy, rs, tt);
+  }
+  // the cloud
+  load.size.to = done || p < 0.015 ? 0 : 10 + 25 * Math.sqrt(p);
+  load.lag.to = load.spd;
+  const S = Math.max(0, load.size.step(dt));
+  const drag = load.lag.step(dt);
+  if (S > 0.6) {
+    blob(
+      load.lobes.map((l) => {
+        // lobes swell in turn, so it reads as rolling forward
+        const boil = 1 + 0.16 * Math.sin(tt * l.w + l.ph);
+        const roll = 0.82 + 0.22 * Math.sin(tt * 2.6 - l.i * 0.9);
+        return [
+          lead +
+            3 +
+            (l.x + Math.cos(tt * l.w * 0.7 + l.ph) * 0.1 - drag * 1.6 * Math.max(0, -l.y) * 0.5) *
+              S,
+          cy - 3 + (l.y + Math.sin(tt * l.w * 0.7 + l.ph) * 0.1) * S,
+          l.r * S * boil * roll,
+        ] as const;
+      }),
+      1.6,
+      { arcs: true, deep: 1.7, lx: 1 },
+    );
+  }
+  load.ck.to = done ? 1 : 0;
+  const c = Math.max(0, load.ck.step(dt));
+  if (c > 0.02) {
+    paintCheck(b.x + 4, cy - b.h / 2 - 56, c, tt);
+  }
+};
+
+// wisps torn off the back of the cloud, and the lines of its speed
+const tear = (lead: number, top: number, p: number, spd: number) => {
+  const S = 10 + 25 * Math.sqrt(p);
+  if (Math.random() < 0.5) {
+    const px = lead - S * rnd(0.9, 1.6);
+    const py = top - S * rnd(0.1, 0.9);
+    const size = rnd(3, 5.5) + p * 3;
+    const vx = -rnd(40, 90);
+    const vy = rnd(-12, 4);
+    const life = rnd(0.4, 0.7);
+    puff(px, py, { life, n: 2, size, vx, vy });
+  } else {
+    lines(lead - S * 1.4, top - S * rnd(0.2, 1.3), {
+      dir: Math.PI,
+      len: 30 + spd * 160,
+      life: 0.3,
+      n: 1,
+      spread: 3,
+    });
+  }
+  if (Math.random() < 0.16) {
+    ticks(lead + S * 1.1, top - S * 1.5, { dir: -0.7, len: 8, life: 0.35, n: 3, r: 4 });
+  }
+};
+
+// the end: a burst behind the bar, ドン!, clouds all round
+const finish = (b: ReturnType<typeof at>, top: number, back: Layer | null) => {
+  const R = b.x + b.w / 2;
+  burst(R - 74, b.y, { layer: back ?? undefined, life: 0.5, r: 92, spikes: 15 });
+  burst(R - 60, b.y, { life: 0.3, r: 40 });
+  shards(R - 60, b.y, { arc: 6.28, life: 0.9, n: 11, size: 7, speed: 270 });
+  for (let i = 0; i < 7; i += 1) {
+    const a = (i / 7) * 6.28 + rnd(0.5);
+    const size = rnd(8, 13);
+    const life = rnd(0.6, 1);
+    puff(R - 70 + Math.cos(a) * 70, b.y + Math.sin(a) * 34, {
+      life,
+      n: 4,
+      size,
+      vx: Math.cos(a) * 46,
+      vy: Math.sin(a) * 30 - 8,
+    });
+  }
+  sfx("don", b.x - 26, top - 62, { life: 1.05, rot: -0.12, size: 170 });
+};
+
+// the bar eases toward its goal; the demo pushes the goal along in surges, not at one speed
+const advanceLoad = (load: Load, demo: boolean, dt: number) => {
+  if (demo && !load.doneAt) {
+    load.goal = Math.min(
+      1,
+      load.goal + dt * (0.14 + 0.115 * Math.sin(load.t * 2.1) + 0.07 * Math.sin(load.t * 4.7)),
+    );
+  }
+  const was = load.p;
+  if (!load.doneAt && load.p < load.goal) {
+    load.p = Math.min(load.goal, load.p + dt * clamp((load.goal - load.p) * 3, 0.12, 0.9));
+  }
+  load.spd = lerp(load.spd, dt > 0 ? (load.p - was) / dt : 0, Math.min(1, dt * 8));
+};
+
+// what the cloud throws off while the bar is under way
+const ride = (load: Load, b: ReturnType<typeof at>, dt: number) => {
+  const L = b.x - b.w / 2;
+  const lead = L + 4 + (b.w - 8) * load.p;
+  const top = b.y - b.h / 2;
+  const { p, spd } = load;
+  if (p > 0.06 && spd > 0.02) {
+    load.acc += dt * (4 + spd * 60);
+    while (load.acc > 1) {
+      load.acc -= 1;
+      tear(lead, top, p, spd);
+    }
+  }
+  if (!load.said && p > 0.3 && p < 0.9) {
+    load.said = true;
+    sfx("gogo", b.x - 34, top - 66, { life: 2.9, rot: -0.1, size: 150 });
+    ticks(b.x + 52, top - 84, { dir: -0.5, len: 10, life: 0.6, n: 2, r: 4 });
+    ticks(L + 8, top - 40, { dir: Math.PI + 0.3, len: 10, life: 0.6, n: 2, r: 4 });
+  }
+};
+
+const BAR =
+  "relative h-[38px] overflow-hidden rounded-[19px] bg-(--sk-card) [border:4px_solid_var(--sk-ink)]";
+const FILL =
+  "relative block h-full w-[calc(var(--v,0)*100%)] bg-(--sk-fill) before:absolute before:top-[5px] before:left-[22px] before:h-[11px] before:w-[9px] before:rounded-[2px] before:bg-white before:opacity-[.92] before:content-[''] before:[transform:skewX(-28deg)] after:absolute after:top-[5px] after:left-[37px] after:h-[11px] after:w-[6px] after:rounded-[2px] after:bg-white after:opacity-[.92] after:content-[''] after:[transform:skewX(-28deg)]";
+const PCT =
+  "mx-auto mt-[64px] table bg-(--sk-card) px-[13px] pt-[3px] pb-[4px] font-['Marker_Felt','Chalkboard_SE','Comic_Sans_MS',-apple-system,'Segoe_UI',sans-serif] text-[21px] leading-[1.1] font-black tracking-[-0.01em] whitespace-nowrap italic shadow-[5px_5px_0_var(--sk-fill)] will-change-transform [border:2.5px_solid_var(--sk-ink)] [transform:skewX(-12deg)]";
+
+export const SakugaProgress = ({
+  value,
+  label = "Loading",
+  doneLabel = "Complete ✓",
+  demo = false,
+  onDone,
+  ref,
+  className = "",
+  style,
+}: SakugaProgressProps) => {
+  const box = useRef<HTMLDivElement>(null);
+  const bar = useRef<HTMLDivElement>(null);
+  const pct = useRef<HTMLSpanElement>(null);
+  const [attachBack, backRef] = useBackLayer();
+  const loadRef = useRef<Load | null>(null);
+
+  // the cloud and the ground are one effect with no end, drawn on the effects layer while mounted
+  useEffect(() => {
+    const load = loadRef.current ?? makeLoad();
+    loadRef.current = load;
+    const layer = persist((_k, tt, dt) => {
+      if (bar.current) {
+        paint(load, bar.current, tt, dt);
+      }
+    });
+    return () => {
+      layer.dead = true;
+    };
+  }, []);
+
+  // with demo, a click starts the pretend load again
+  useEffect(() => {
+    const el = box.current;
+    if (!demo || !el) {
+      return;
+    }
+    const restart = () => {
+      if (loadRef.current) {
+        reset(loadRef.current);
+      }
+    };
+    el.addEventListener("click", restart);
+    return () => el.removeEventListener("click", restart);
+  }, [demo]);
+
+  useEffect(() => {
+    if (value !== undefined && loadRef.current) {
+      setGoal(loadRef.current, value);
+    }
+  }, [value]);
+
+  useImperativeHandle(ref, () => ({
+    reset: () => {
+      if (loadRef.current) {
+        reset(loadRef.current);
+      }
+    },
+    set: (n, instant) => {
+      if (loadRef.current) {
+        setGoal(loadRef.current, n, instant);
+      }
+    },
+  }));
+
+  useFrame((dt) => {
+    const load = loadRef.current;
+    const boxEl = box.current;
+    const barEl = bar.current;
+    const tagEl = pct.current;
+    if (!load || !boxEl || !barEl || !tagEl) {
+      return;
+    }
+    load.t += dt;
+    const r = boxEl.getBoundingClientRect();
+    load.vis = r.bottom > -80 && r.top < innerHeight + 80;
+    advanceLoad(load, demo, dt);
+    const b = at(barEl);
+    const top = b.y - b.h / 2;
+    const { p } = load;
+    if (!load.doneAt && load.vis) {
+      ride(load, b, dt);
+    }
+    if (!load.doneAt && p >= 1) {
+      load.doneAt = load.t;
+      if (load.vis) {
+        finish(b, top, backRef.current);
+      }
+      load.tag.x = 1.5;
+      onDone?.();
+    } else if (demo && load.doneAt && load.t - load.doneAt > 3.6) {
+      reset(load);
+    }
+    const n = load.doneAt ? 100 : Math.floor(p * 100);
+    const key = load.doneAt ? doneLabel : `${n}%`;
+    if (key !== load.lastPct) {
+      load.lastPct = key;
+      tagEl.textContent = key;
+      if (n % 5 === 0 && !load.doneAt) {
+        load.tag.x = 1.1;
+      }
+    }
+    tagEl.style.transform = `skewX(-12deg) scale(${load.tag.step(dt)})`;
+    boxEl.style.setProperty("--v", String(p));
+    boxEl.setAttribute("aria-valuenow", String(n));
+  });
+
+  return (
+    <div
+      className={`relative isolate block w-(--sk-progress-width,280px) max-w-full align-middle text-[15px] leading-[1.4] font-medium text-(--sk-ink) ${FONT_BODY} ${className}`}
+      style={style}
+    >
+      <SakugaStyle />
+      <canvas ref={attachBack} aria-hidden className={BACK_CANVAS} />
+      <div
+        ref={box}
+        // oxlint-disable-next-line jsx-a11y/prefer-tag-over-role -- a <progress> cannot hold the drawn bar and its label
+        role="progressbar"
+        aria-label={label}
+        aria-valuemin={0}
+        aria-valuemax={100}
+        aria-valuenow={0}
+        className={`relative pt-[70px] ${demo ? "cursor-pointer" : ""}`}
+      >
+        <div ref={bar} className={BAR}>
+          <i className={FILL} />
+        </div>
+        <span ref={pct} className={PCT}>
+          0%
+        </span>
+      </div>
+    </div>
+  );
+};
