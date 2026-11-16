@@ -26,6 +26,7 @@ import {
 } from "./sakuga-core";
 import {
   BACK_CANVAS,
+  FONT_BODY,
   FONT_DISPLAY,
   SakugaStyle,
   useBackLayer,
@@ -180,7 +181,9 @@ export const SakugaButton = ({
   };
 
   return (
-    <span className="relative isolate inline-block align-middle">
+    <span
+      className={`relative isolate inline-block align-middle text-[15px] leading-[1.4] font-medium text-(--sk-ink) ${FONT_BODY}`}
+    >
       <SakugaStyle />
       {primary && <canvas ref={attachBack} aria-hidden className={BACK_CANVAS} />}
       <button
