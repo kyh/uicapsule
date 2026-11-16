@@ -22,7 +22,13 @@ import { SakugaInput } from "./sakuga-input";
 import { SakugaProgress } from "./sakuga-progress";
 import { SakugaRadioGroup, SakugaRadioGroupItem } from "./sakuga-radio-group";
 import { SakugaRating } from "./sakuga-rating";
-import { SakugaSelect } from "./sakuga-select";
+import {
+  SakugaSelect,
+  SakugaSelectContent,
+  SakugaSelectItem,
+  SakugaSelectTrigger,
+  SakugaSelectValue,
+} from "./sakuga-select";
 import { SakugaSlider } from "./sakuga-slider";
 import {
   SakugaNumberField,
@@ -108,6 +114,14 @@ const ToastCard = () => {
     </Card>
   );
 };
+
+// the select card's rows
+const STAGES = [
+  { label: "Key frames", value: "key" },
+  { label: "In-betweens", value: "inbetween" },
+  { label: "Clean-up", value: "cleanup" },
+  { label: "Paint", value: "paint" },
+];
 
 export const SakugaVfx = () => (
   <div
@@ -210,15 +224,18 @@ export const SakugaVfx = () => (
       </Card>
       {/* ── select card ── */}
       <Card id="select" name="Select" how="Open it, run down the rows, and choose one.">
-        <SakugaSelect
-          label="Stage"
-          options={[
-            { label: "Key frames", value: "key" },
-            { label: "In-betweens", value: "inbetween" },
-            { label: "Clean-up", value: "cleanup" },
-            { label: "Paint", value: "paint" },
-          ]}
-        />
+        <SakugaSelect defaultValue="key" items={STAGES}>
+          <SakugaSelectTrigger aria-label="Stage">
+            <SakugaSelectValue />
+          </SakugaSelectTrigger>
+          <SakugaSelectContent>
+            {STAGES.map((stage) => (
+              <SakugaSelectItem key={stage.value} value={stage.value}>
+                {stage.label}
+              </SakugaSelectItem>
+            ))}
+          </SakugaSelectContent>
+        </SakugaSelect>
       </Card>
       {/* ── accordion card ── */}
       <Card id="accordion" name="Accordion" how="Open one, then another.">

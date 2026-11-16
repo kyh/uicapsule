@@ -147,54 +147,66 @@ const aim = (rig: Rig, row: HTMLElement, jump: boolean) => {
   }
 };
 
-// One frame of everything the select moves.
-const stepRig = (rig: Rig, dt: number) => {
-  rig.squash?.step(dt);
-  const { popup: m, list, raised } = rig;
-  const open = m?.hasAttribute("data-open") ?? false;
-  if (open && !rig.open) {
-    // it has just opened
-    rig.seq += 1;
-    rig.kept = false;
-    rig.jump = true;
-    rig.under = null;
-    if (rig.squash) {
-      rig.squash.s.v += 2;
-    }
-    if (rig.byHand) {
-      const n = rig.seq;
-      later(120, () => {
-        if (n === rig.seq) {
-          openEffects(rig);
-        }
-      });
-    }
-    rig.byHand = false;
-  } else if (!open && rig.open) {
-    rig.seq += 1;
+// it has just opened, or just shut
+const edge = (rig: Rig, open: boolean) => {
+  if (open === rig.open) {
+    return;
   }
   rig.open = open;
+  rig.seq += 1;
+  if (!open) {
+    return;
+  }
+  rig.kept = false;
+  rig.jump = true;
+  rig.under = null;
+  if (rig.squash) {
+    rig.squash.s.v += 2;
+  }
+  if (rig.byHand) {
+    const n = rig.seq;
+    later(120, () => {
+      if (n === rig.seq) {
+        openEffects(rig);
+      }
+    });
+  }
+  rig.byHand = false;
+};
 
+// the menu out of the trigger and back, and the chevron over; true once a kept popup has gone
+const stepMenu = (rig: Rig, open: boolean, dt: number) => {
   const s = rig.out;
   const want = open || clock.now < rig.holdUntil ? 1 : 0;
   s.to = want;
   s.d = want ? 20 : 34;
   rig.flip.to = want;
   const y = Math.max(0, s.step(dt));
-  if (m) {
-    // stretched while it travels, squashed as it turns back: the volume stays
-    const st = clamp(1 + s.v * 0.012, 0.82, 1.22);
-    m.style.transform = `scale(${(y / st).toFixed(4)}, ${(y * st).toFixed(4)}) rotate(${((1 - y) * (isUp(m) ? 7 : -7)).toFixed(2)}deg)`;
-    if (!open && rig.kept && y < 0.004) {
-      rig.kept = false;
-      return true;
-    }
-  }
   if (rig.chevron instanceof SVGElement) {
     rig.chevron.style.transform = `rotate(${(rig.flip.step(dt) * 180).toFixed(1)}deg)`;
   }
-  if (list && raised && open) {
-    // the highlight follows the row Base UI has highlighted, and starts on the chosen one
+  const m = rig.popup;
+  if (!m) {
+    return false;
+  }
+  // stretched while it travels, squashed as it turns back: the volume stays
+  const st = clamp(1 + s.v * 0.012, 0.82, 1.22);
+  m.style.transform = `scale(${(y / st).toFixed(4)}, ${(y * st).toFixed(4)}) rotate(${((1 - y) * (isUp(m) ? 7 : -7)).toFixed(2)}deg)`;
+  if (!open && rig.kept && y < 0.004) {
+    rig.kept = false;
+    return true;
+  }
+  return false;
+};
+
+// the raised highlight, behind whichever row Base UI has highlighted
+const stepRaised = (rig: Rig, open: boolean, dt: number) => {
+  const { list, raised } = rig;
+  if (!list || !raised) {
+    return;
+  }
+  if (open) {
+    // it starts on the chosen row
     const lit =
       list.querySelector<HTMLElement>("[data-highlighted]") ??
       (rig.under ? null : list.querySelector<HTMLElement>("[data-selected]"));
@@ -203,25 +215,32 @@ const stepRig = (rig: Rig, dt: number) => {
       rig.jump = false;
     }
   }
-  if (list && raised) {
-    const ry = rig.rowY;
-    const x = ry.step(dt);
-    const h = rig.rowH.step(dt) + Math.min(8, Math.abs(ry.v) * 0.04);
-    const top = x - (ry.v < 0 ? 0 : h - rig.rowH.x);
-    raised.style.transform = `translateY(${top.toFixed(2)}px)`;
-    raised.style.height = `${h.toFixed(2)}px`;
-    // a label's halo takes the highlight's colour while the highlight is behind it
-    for (const row of list.querySelectorAll<HTMLElement>("[role=option]")) {
-      const mid = row.offsetTop + row.offsetHeight / 2;
-      row.toggleAttribute("data-on", mid > top && mid < top + h);
-    }
+  const ry = rig.rowY;
+  const x = ry.step(dt);
+  const h = rig.rowH.step(dt) + Math.min(8, Math.abs(ry.v) * 0.04);
+  const top = x - (ry.v < 0 ? 0 : h - rig.rowH.x);
+  raised.style.transform = `translateY(${top.toFixed(2)}px)`;
+  raised.style.height = `${h.toFixed(2)}px`;
+  // a label's halo takes the highlight's colour while the highlight is behind it
+  for (const row of list.querySelectorAll<HTMLElement>("[role=option]")) {
+    const mid = row.offsetTop + row.offsetHeight / 2;
+    row.toggleAttribute("data-on", mid > top && mid < top + h);
   }
+};
+
+// One frame of everything the select moves. True when the popup may be unmounted.
+const stepRig = (rig: Rig, dt: number) => {
+  rig.squash?.step(dt);
+  const open = rig.popup?.dataset.open !== undefined;
+  edge(rig, open);
+  const gone = stepMenu(rig, open, dt);
+  stepRaised(rig, open, dt);
   if (rig.text) {
     const p = rig.land.step(dt);
     rig.text.style.transform =
       Math.abs(p - 1) < 0.001 ? "" : `scale(${(1 + (1 - p) * 0.5).toFixed(3)}, ${p.toFixed(3)})`;
   }
-  return false;
+  return gone;
 };
 
 // a choice: the row inverts, the menu waits a beat, and the label lands if it really changed
@@ -434,7 +453,11 @@ const SakugaSelectContent = ({
 
 // Each label carries a halo in the colour of what is behind it, so the highlight's ink edge parts
 // round the letters as it crosses a row instead of striking them through.
-const SakugaSelectItem = ({ className, children, ...props }: Styled<SelectPrimitive.Item.Props>) => (
+const SakugaSelectItem = ({
+  className,
+  children,
+  ...props
+}: Styled<SelectPrimitive.Item.Props>) => (
   <SelectPrimitive.Item
     data-slot="sakuga-select-item"
     className={cn(
@@ -459,4 +482,10 @@ const SakugaSelectItem = ({ className, children, ...props }: Styled<SelectPrimit
   </SelectPrimitive.Item>
 );
 
-export { SakugaSelect, SakugaSelectContent, SakugaSelectItem, SakugaSelectTrigger, SakugaSelectValue };
+export {
+  SakugaSelect,
+  SakugaSelectContent,
+  SakugaSelectItem,
+  SakugaSelectTrigger,
+  SakugaSelectValue,
+};

@@ -44,6 +44,15 @@ const layoutBox = (el: HTMLElement) => {
   return new DOMRect(r.x + (r.width - w) / 2, r.y + (r.height - h) / 2, w, h);
 };
 
+// that box as an anchor for the positioner (built out here because contextElement is a getter)
+const stillAnchor = (rigRef: RefObject<Rig>) => ({
+  get contextElement() {
+    return rigRef.current.trigger ?? undefined;
+  },
+  getBoundingClientRect: () =>
+    rigRef.current.trigger ? layoutBox(rigRef.current.trigger) : new DOMRect(),
+});
+
 // Base UI snaps the positioner to whole pixels. Slide the bubble by the part of a pixel that was
 // lost, so it sits exactly on its anchor, as a bubble laid out inside its trigger would.
 const unsnap = ({ tip, trigger }: Rig) => {
@@ -310,23 +319,14 @@ const SakugaTooltipContent = ({
     "align" | "alignOffset" | "anchor" | "collisionAvoidance" | "side" | "sideOffset"
   >) => {
   const { rigRef, tipId } = useShared();
-  const still = useMemo(
-    () => ({
-      get contextElement() {
-        return rigRef.current.trigger ?? undefined;
-      },
-      getBoundingClientRect: () =>
-        rigRef.current.trigger ? layoutBox(rigRef.current.trigger) : new DOMRect(),
-    }),
-    [rigRef],
-  );
+  const still = useMemo(() => stillAnchor(rigRef), [rigRef]);
   return (
     <TooltipPrimitive.Portal keepMounted>
       <TooltipPrimitive.Positioner
         align={align}
         alignOffset={alignOffset}
         anchor={anchor ?? still}
-        data-gap={typeof sideOffset === "number" && !anchor ? sideOffset : undefined}
+        data-gap={anchor ? undefined : Number(sideOffset)}
         collisionAvoidance={collisionAvoidance}
         side={side}
         sideOffset={sideOffset}
