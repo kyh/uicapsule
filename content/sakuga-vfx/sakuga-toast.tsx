@@ -3,12 +3,16 @@
 // Sakuga Toast: a notification that streaks in from the left as a smear with speed lines behind
 // it, lands in a cloud of dust with ズザッ in dotted letters, wobbles, and after a while leaves by
 // shrinking.
-// Put it where the toast should appear and call show("Saved") through its ref. The message sits
-// in a role="status" region, so it is read out. The element keeps its place on the page while the
-// toast is hidden; position it yourself (for example `fixed bottom-6 left-6` in className).
+// Put <SakugaToaster /> where the toast should appear and call sakugaToast("Saved") from anywhere.
+// Base UI's Toast owns the list, the live region, the close button and the keyboard. The toaster
+// keeps its place on the page while the toast is hidden; position it yourself (for example
+// `fixed bottom-6 left-6` in className). One toast at a time: a new one replaces the message and
+// plays the arrival again.
 
-import { useImperativeHandle, useRef, useState } from "react";
-import type { Ref } from "react";
+import { Toast as ToastPrimitive } from "@base-ui/react/toast";
+import { cn } from "cn";
+import { useLayoutEffect, useRef } from "react";
+import type { ReactNode } from "react";
 
 import {
   Spring,
@@ -25,63 +29,72 @@ import {
 } from "./sakuga-core";
 import { FONT_BODY, SakugaStyle, useFrame } from "./sakuga-react";
 
-export interface SakugaToastHandle {
-  // show a message. It stays for `duration` seconds, or until hide(). Calling it again while one
-  // is up replaces the message and plays the arrival again.
-  show: (text?: string) => void;
-  hide: () => void;
-  // true while it is showing
-  readonly open: boolean;
+type Styled<Props> = Omit<Props, "className"> & { className?: string };
+
+interface SakugaToastData {
+  // seconds it stays once it has landed
+  duration: number;
 }
 
-interface SakugaToastProps {
-  // the words when show() is given none
-  message?: string;
-  // seconds it stays
+interface SakugaToastOptions {
+  // seconds it stays once it has landed (2.6 by default)
   duration?: number;
-  className?: string;
-  ref?: Ref<SakugaToastHandle>;
 }
 
-// 0 hidden, 1 streaking in, 2 landed, 3 leaving
-type Phase = 0 | 1 | 2 | 3;
+type ToastObject = ToastPrimitive.Root.ToastObject<SakugaToastData>;
 
-// the handle is built out here because its `open` is a getter
-const toastHandle = (
-  show: (text?: string) => void,
-  hide: () => void,
-  isOpen: () => boolean,
-): SakugaToastHandle => ({
-  hide,
-  get open() {
-    return isOpen();
-  },
-  show,
-});
+const manager = ToastPrimitive.createToastManager<SakugaToastData>();
+
+// Every call uses the one id, so Base UI updates the toast in place and the arrival plays again.
+const ID = "sakuga-toast";
+const STAY = 2.6;
+
+// Show a message. Base UI's own timeout is off (0): it runs on the wall clock and pauses on
+// hover, and this toast counts its stay on the set's clock, from the moment it lands.
+const sakugaToast = Object.assign(
+  (title: ReactNode, options?: SakugaToastOptions) =>
+    manager.add({ data: { duration: options?.duration ?? STAY }, id: ID, timeout: 0, title }),
+  { dismiss: () => manager.close(ID) },
+);
+
+// 0 gone, 1 streaking in, 2 landed, 3 leaving
+type Phase = 0 | 1 | 2 | 3;
 
 const DUST = [-0.5, -0.36, -0.2] as const;
 
-export const SakugaToast = ({
-  message = "Saved successfully!",
-  duration = 2.6,
-  className = "",
-  ref,
-}: SakugaToastProps) => {
-  const [words, setWords] = useState("");
+const TOAST =
+  "absolute bottom-0 left-0 flex w-[236px] items-center gap-[10px] rounded-(--sk-r) [border:var(--sk-bw)_solid_var(--sk-ink)] bg-(--sk-card) px-[14px] py-[12px] text-[15px] font-bold whitespace-nowrap shadow-(--sk-sh) will-change-transform focus-visible:outline-[2.5px] focus-visible:outline-offset-[3px] focus-visible:outline-(--sk-acc)";
+
+const SakugaToast = ({
+  toast: item,
+  className,
+  ...props
+}: Styled<ToastPrimitive.Root.Props> & { toast: ToastObject }) => {
   const el = useRef<HTMLDivElement>(null);
   const sx = useRef(new Spring(-280, 280, 18));
   const ss = useRef(new Spring(1, 420, 26));
   const phase = useRef<Phase>(0);
   const t = useRef(0);
   const at0 = useRef(0);
+  // Base UI takes a closed toast off the page once the animations on it have finished. This idle,
+  // paused animation is what it waits for; it is finished by hand when the spring has shrunk the
+  // toast away, so the leave runs in full on the set's clock.
+  const holdRef = useRef<Animation | null>(null);
+  const ending = item.transitionStatus === "ending";
+  const duration = item.data?.duration ?? STAY;
 
-  const show = (text?: string) => {
+  const release = () => {
+    holdRef.current?.finish();
+    holdRef.current = null;
+  };
+
+  const arrive = () => {
     const toast = el.current;
     if (!toast) {
       return;
     }
-    setWords(text ?? message);
-    toast.dataset.on = "";
+    release();
+    toast.style.visibility = "";
     sx.current.x = -280;
     sx.current.v = 1000;
     sx.current.to = 0;
@@ -95,7 +108,7 @@ export const SakugaToast = ({
     }
   };
 
-  const hide = () => {
+  const leave = () => {
     const toast = el.current;
     if (!toast || phase.current === 0 || phase.current === 3) {
       return;
@@ -107,9 +120,21 @@ export const SakugaToast = ({
     puff(c.x, c.y, { life: 0.5, n: 4, size: 9 });
   };
 
-  useImperativeHandle(ref, () =>
-    toastHandle(show, hide, () => phase.current > 0 && phase.current < 3),
-  );
+  // A new toast, or a new message on the one that is up, arrives. A closed one leaves.
+  useLayoutEffect(() => {
+    if (!ending) {
+      arrive();
+      return;
+    }
+    const hold = el.current?.animate([], { duration: 1 });
+    hold?.pause();
+    holdRef.current = hold ?? null;
+    leave();
+    if (phase.current === 0) {
+      release();
+    }
+    // oxlint-disable-next-line react-hooks/exhaustive-deps -- runs once per change of the toast, not per render
+  }, [ending, item.updateKey]);
 
   useFrame((dt) => {
     t.current += dt;
@@ -150,45 +175,78 @@ export const SakugaToast = ({
         sfx("zuza", c.x - 34, c.y - 58, { rot: -0.1, size: 124, ...dotted() });
         wob(c.x + c.w / 2 + 6, c.y, { dir: 1 });
       }
-    } else if (phase.current === 2 && t.current - at0.current > (duration || 2.6)) {
-      hide();
+    } else if (phase.current === 2 && t.current - at0.current > duration) {
+      // time is up. It starts leaving on this frame; Base UI hears about it and closes the toast.
+      leave();
+      manager.close(item.id);
     } else if (phase.current === 3 && (sc < 0.03 || isCalm())) {
       phase.current = 0;
-      delete toast.dataset.on;
+      toast.style.visibility = "hidden";
       toast.style.transform = "";
+      release();
     }
   });
 
   return (
-    <span
-      className={`relative isolate inline-block h-[56px] w-[236px] align-middle text-[15px] leading-[1.4] font-medium text-(--sk-ink) ${FONT_BODY} ${className}`}
+    <ToastPrimitive.Root
+      data-slot="sakuga-toast"
+      toast={item}
+      swipeDirection={NO_SWIPE}
+      className={cn(TOAST, className)}
+      {...props}
+      ref={el}
     >
-      <SakugaStyle />
-      <div
-        ref={el}
-        className="invisible absolute bottom-0 left-0 flex w-[236px] items-center gap-[10px] rounded-(--sk-r) [border:var(--sk-bw)_solid_var(--sk-ink)] bg-(--sk-card) px-[14px] py-[12px] text-[15px] font-bold whitespace-nowrap shadow-(--sk-sh) will-change-transform data-on:visible"
+      <span
+        aria-hidden
+        data-slot="sakuga-toast-icon"
+        className="grid size-[28px] flex-none place-items-center rounded-full [border:2.4px_solid_var(--sk-ink)] bg-(--sk-pri)"
       >
-        <span
-          aria-hidden
-          className="grid size-[28px] flex-none place-items-center rounded-full [border:2.4px_solid_var(--sk-ink)] bg-(--sk-pri)"
+        <svg
+          viewBox="0 0 20 20"
+          className="size-[15px] fill-none stroke-(--sk-on-pri) stroke-[4] [stroke-linecap:round] [stroke-linejoin:round]"
         >
-          <svg
-            viewBox="0 0 20 20"
-            className="size-[15px] fill-none stroke-(--sk-on-pri) stroke-[4] [stroke-linecap:round] [stroke-linejoin:round]"
-          >
-            <path d="M3.5 10.5l4.5 4.5 8.5-10" />
-          </svg>
-        </span>
-        <output className="overflow-hidden text-ellipsis">{words}</output>
-        <button
-          type="button"
-          aria-label="Dismiss"
-          className="ml-auto size-[26px] flex-none cursor-pointer rounded-full border-0 bg-transparent p-0 text-[15px] font-black focus-visible:outline-[2.5px] focus-visible:outline-offset-[3px] focus-visible:outline-(--sk-acc)"
-          onClick={hide}
-        >
-          ✕
-        </button>
-      </div>
-    </span>
+          <path d="M3.5 10.5l4.5 4.5 8.5-10" />
+        </svg>
+      </span>
+      <ToastPrimitive.Title
+        data-slot="sakuga-toast-title"
+        className="overflow-hidden text-ellipsis"
+      />
+      <ToastPrimitive.Close
+        data-slot="sakuga-toast-close"
+        aria-label="Dismiss"
+        className="ml-auto size-[26px] flex-none cursor-pointer rounded-full border-0 bg-transparent p-0 text-[15px] font-black focus-visible:outline-[2.5px] focus-visible:outline-offset-[3px] focus-visible:outline-(--sk-acc)"
+      >
+        ✕
+      </ToastPrimitive.Close>
+    </ToastPrimitive.Root>
   );
 };
+
+// The toast has no drag to follow, so Base UI's swipe-to-dismiss is off.
+const NO_SWIPE: ("down" | "left" | "right" | "up")[] = [];
+
+const SakugaToastList = () => {
+  const { toasts } = ToastPrimitive.useToastManager<SakugaToastData>();
+  return toasts.map((item) => <SakugaToast key={item.id} toast={item} />);
+};
+
+// The slot the toast lands in: 236 by 56, kept while the toast is hidden.
+const SakugaToaster = ({ className, ...props }: Styled<ToastPrimitive.Viewport.Props>) => (
+  <ToastPrimitive.Provider toastManager={manager} timeout={0} limit={1}>
+    <SakugaStyle />
+    <ToastPrimitive.Viewport
+      data-slot="sakuga-toaster"
+      className={cn(
+        "relative isolate inline-block h-[56px] w-[236px] align-middle text-[15px] leading-[1.4] font-medium text-(--sk-ink) outline-none",
+        FONT_BODY,
+        className,
+      )}
+      {...props}
+    >
+      <SakugaToastList />
+    </ToastPrimitive.Viewport>
+  </ToastPrimitive.Provider>
+);
+
+export { SakugaToaster, sakugaToast };

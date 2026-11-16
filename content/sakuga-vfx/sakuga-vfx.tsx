@@ -36,8 +36,7 @@ import {
   SakugaNumberFieldInput,
 } from "./sakuga-number-field";
 import { SakugaTabs, SakugaTabsList, SakugaTabsTrigger } from "./sakuga-tabs";
-import { SakugaToast } from "./sakuga-toast";
-import type { SakugaToastHandle } from "./sakuga-toast";
+import { SakugaToaster, sakugaToast } from "./sakuga-toast";
 import { SakugaSwitch } from "./sakuga-switch";
 import { SakugaTooltip, SakugaTooltipContent, SakugaTooltipTrigger } from "./sakuga-tooltip";
 import { FONT_BODY, SakugaStyle } from "./sakuga-react";
@@ -96,30 +95,16 @@ const PrimaryCard = () => {
   );
 };
 
-const ToastCard = () => {
-  const toast = useRef<SakugaToastHandle>(null);
-  return (
-    <Card id="toast" name="Toast" how="Press Save.">
-      <div className="relative grid justify-items-center gap-[22px]">
-        <SakugaButton
-          variant="secondary"
-          onClick={() => toast.current?.show("Saved successfully!")}
-        >
-          Save
-        </SakugaButton>
-        <SakugaToast ref={toast} />
-      </div>
-    </Card>
-  );
-};
-
-// the select card's rows
-const STAGES = [
-  { label: "Key frames", value: "key" },
-  { label: "In-betweens", value: "inbetween" },
-  { label: "Clean-up", value: "cleanup" },
-  { label: "Paint", value: "paint" },
-];
+const ToastCard = () => (
+  <Card id="toast" name="Toast" how="Press Save.">
+    <div className="relative grid justify-items-center gap-[22px]">
+      <SakugaButton variant="secondary" onClick={() => sakugaToast("Saved successfully!")}>
+        Save
+      </SakugaButton>
+      <SakugaToaster />
+    </div>
+  </Card>
+);
 
 export const SakugaVfx = () => (
   <div
