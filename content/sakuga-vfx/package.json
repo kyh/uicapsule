@@ -7,6 +7,8 @@
     "clean": "git clean -xdf .cache .turbo dist node_modules"
   },
   "dependencies": {
+    "@base-ui/react": "catalog:",
+    "cn": "catalog:",
     "react": "catalog:",
     "react-dom": "catalog:"
   },
