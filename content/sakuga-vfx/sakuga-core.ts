@@ -341,13 +341,15 @@ export const puff = (
   y: number,
   { n = 5, size: sz = 13, vx = 0, vy = -18, life = 0.8, spread = 1 } = {},
 ) => {
-  const lobes = Array.from({ length: n }, (_, i) => ({
-    a: (i / n) * TAU + rnd(0.6),
-    d: rnd(0.25, 0.9) * sz * spread,
-    ph: rnd(TAU),
-    r: rnd(0.55, 1) * sz,
-    sp: rnd(0.6, 1.3),
-  }));
+  // each rnd() is drawn in the original's order, so a seeded run matches it frame for frame
+  const lobes = Array.from({ length: n }, (_, i) => {
+    const a = (i / n) * TAU + rnd(0.6);
+    const d = rnd(0.25, 0.9) * sz * spread;
+    const r = rnd(0.55, 1) * sz;
+    const ph = rnd(TAU);
+    const sp = rnd(0.6, 1.3);
+    return { a, d, ph, r, sp };
+  });
   lobes.unshift({ a: 0, d: 0, ph: 0, r: sz, sp: 1 });
   add(life, (k, t) => {
     const grow = easeBack(clamp(t / 0.22));
@@ -564,12 +566,10 @@ export const splash = (x: number, y: number, { w = 34, h = 26, life = 0.7 } = {}
   const n = 7;
   const ts = Array.from({ length: n }, (_, i) => {
     const u = i / (n - 1) - 0.5;
-    return {
-      d: rnd(0, 0.14),
-      h: h * rnd(0.55, 1.1) * (1 - Math.abs(u) * 0.7),
-      lean: rnd(-0.4, 0.4),
-      u,
-    };
+    const tall = h * rnd(0.55, 1.1) * (1 - Math.abs(u) * 0.7);
+    const lean = rnd(-0.4, 0.4);
+    const d = rnd(0, 0.14);
+    return { d, h: tall, lean, u };
   });
   add(life, (k) => {
     const p = new Path2D();
