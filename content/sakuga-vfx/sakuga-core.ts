@@ -968,7 +968,8 @@ export const squashy = (
   const pop = new Spring(1, 300, 12);
   const tilt = new Spring(0, 260, 10);
   const off = new AbortController();
-  const disabled = () => el.matches(":disabled");
+  // a Base UI control that stays focusable while disabled says so with aria-disabled
+  const disabled = () => el.matches(":disabled, [aria-disabled='true']");
   el.addEventListener(
     "pointerdown",
     () => {

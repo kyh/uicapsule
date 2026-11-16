@@ -19,10 +19,12 @@ export const SakugaStyle = () => (
 );
 
 // The body font and the display font the set uses.
+// Written as arbitrary properties, not `font-[…]`: tailwind-merge reads `font-[…]` as a font weight
+// and would drop it (or the real weight) when these pass through cn().
 export const FONT_BODY =
-  'font-[-apple-system,BlinkMacSystemFont,"Inter","Segoe_UI",system-ui,sans-serif]';
+  '[font-family:-apple-system,BlinkMacSystemFont,"Inter","Segoe_UI",system-ui,sans-serif]';
 export const FONT_DISPLAY =
-  'font-["Avenir_Next","Nunito",-apple-system,"Segoe_UI",system-ui,sans-serif]';
+  '[font-family:"Avenir_Next","Nunito",-apple-system,"Segoe_UI",system-ui,sans-serif]';
 
 // Classes for a back-layer canvas: it overhangs its control by 160px a side and sits behind it.
 // The control's wrapper needs `relative isolate`.

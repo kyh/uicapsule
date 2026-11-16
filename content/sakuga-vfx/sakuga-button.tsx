@@ -3,11 +3,13 @@
 // Sakuga Button: a button that reacts like an anime impact frame.
 // Primary: press and it squashes flat with wedges above it. Let go and the button inverts for one
 // frame and tilts, a spiky burst goes off behind it with crystals and four clouds, ドン! lands above
-// it, then it springs tall and smoke rings drift off. done() lands a check and a glint.
+// it, then it springs tall and smoke rings drift off. Turn `done` on and a check lands with a glint.
 // Secondary: a small squash and three wedges at the corner.
+// Base UI's Button owns the element: its type, disabled state and `render`.
 
-import { useImperativeHandle, useRef } from "react";
-import type { ComponentProps, MouseEvent, Ref } from "react";
+import { Button as ButtonPrimitive } from "@base-ui/react/button";
+import { cn } from "cn";
+import { useImperativeHandle, useLayoutEffect, useRef } from "react";
 
 import {
   Spring,
@@ -34,16 +36,12 @@ import {
   useSquashy,
 } from "./sakuga-react";
 
-export interface SakugaButtonHandle {
-  // the impact: what a click does
-  impact: () => void;
-  // a check lands on the button with a glint, and goes after `hold` seconds (0 keeps it)
-  done: (hold?: number) => void;
-}
-
-type SakugaButtonProps = Omit<ComponentProps<"button">, "ref"> & {
+type SakugaButtonProps = Omit<ButtonPrimitive.Props, "className"> & {
+  className?: string;
   variant?: "primary" | "secondary";
-  ref?: Ref<SakugaButtonHandle>;
+  // primary only: a check lands on the button with a glint when this turns true, and leaves when
+  // it turns false. A click clears the check, so turn it false again before the next run.
+  done?: boolean;
 };
 
 const CLOUDS = [
@@ -53,19 +51,19 @@ const CLOUDS = [
   [1, 1],
 ] as const;
 
-const BUTTON = `relative cursor-pointer touch-manipulation rounded-(--sk-r) bg-(--sk-card) px-[30px] py-[14px] text-[19px] leading-[1.1] font-extrabold tracking-[-0.01em] text-(--sk-ink) italic will-change-transform select-none focus-visible:outline-[2.5px] focus-visible:outline-offset-[3px] focus-visible:outline-(--sk-acc) disabled:cursor-not-allowed disabled:opacity-45 data-inv:bg-(--sk-ink) data-inv:text-(--sk-card) data-inv:shadow-none! ${FONT_DISPLAY}`;
+const BUTTON = `relative cursor-pointer touch-manipulation rounded-(--sk-r) bg-(--sk-card) px-[30px] py-[14px] text-[19px] leading-[1.1] font-extrabold tracking-[-0.01em] text-(--sk-ink) italic will-change-transform select-none focus-visible:outline-[2.5px] focus-visible:outline-offset-[3px] focus-visible:outline-(--sk-acc) data-disabled:cursor-not-allowed data-disabled:opacity-45 data-inv:bg-(--sk-ink) data-inv:text-(--sk-card) data-inv:shadow-none! ${FONT_DISPLAY}`;
 const PRIMARY = "[border:var(--sk-bw)_solid_var(--sk-btn-line)] shadow-(--sk-btn-sh)";
 const SECONDARY = "[border:var(--sk-bw)_solid_var(--sk-alt-line)] shadow-(--sk-alt-sh)";
 
-export const SakugaButton = ({
+const SakugaButton = ({
   variant = "primary",
+  done = false,
   children,
-  className = "",
+  className,
   onClick,
   onPointerDown,
   ref,
-  type = "button",
-  ...rest
+  ...props
 }: SakugaButtonProps) => {
   const primary = variant === "primary";
   const el = useRef<HTMLButtonElement>(null);
@@ -73,6 +71,8 @@ export const SakugaButton = ({
   const sqRef = useSquashy(el, primary ? { low: 0.5, wide: 0.24 } : { low: 0.72, wide: 0.3 });
   const ok = useRef(new Spring(0, 420, 14));
   const seq = useRef(0);
+  // whether the check is on the button
+  const checked = useRef(done);
 
   const impact = () => {
     const b = el.current;
@@ -85,6 +85,7 @@ export const SakugaButton = ({
     const n = seq.current;
     ok.current.to = 0;
     ok.current.x = 0;
+    checked.current = false;
     s.s.x = Math.min(s.s.x, 0.6);
     s.pop.x = 1.24;
     s.tilt.x = -5;
@@ -126,26 +127,24 @@ export const SakugaButton = ({
     });
   };
 
-  const done = (hold = 1.8) => {
+  // the caller's ref gets the button too
+  useImperativeHandle<HTMLElement | null, HTMLElement | null>(ref, () => el.current);
+
+  // the check lands, with a glint, when `done` turns true and leaves when it turns false
+  useLayoutEffect(() => {
     const b = el.current;
-    if (!primary || !b) {
+    if (!primary || !b || done === checked.current) {
       return;
     }
-    const n = seq.current;
-    ok.current.to = 1;
+    checked.current = done;
+    ok.current.to = done ? 1 : 0;
+    if (!done) {
+      return;
+    }
     const q = at(b, 1, 0);
     kira(q.x - 16, q.y + 2, { life: 1, r: 15 });
     ticks(q.x - 2, q.y - 12, { dir: -0.8, len: 12, n: 2, r: 6 });
-    if (hold > 0) {
-      later(hold * 1000, () => {
-        if (n === seq.current) {
-          ok.current.to = 0;
-        }
-      });
-    }
-  };
-
-  useImperativeHandle(ref, () => ({ done, impact }));
+  }, [done, primary]);
 
   useFrame((dt) => {
     sqRef.current?.step(dt);
@@ -156,7 +155,7 @@ export const SakugaButton = ({
 
   const press = () => {
     const b = el.current;
-    if (!primary || !b || b.disabled) {
+    if (!primary || !b || b.matches(":disabled, [aria-disabled='true']")) {
       return;
     }
     const c = at(b);
@@ -166,7 +165,7 @@ export const SakugaButton = ({
     lines(c.x, c.y + c.h / 2 + 10, { dir: 0, len: 16, life: 0.25, n: 3, spread: 0.1 });
   };
 
-  const click = (e: MouseEvent<HTMLButtonElement>) => {
+  const click = (e: Parameters<NonNullable<SakugaButtonProps["onClick"]>>[0]) => {
     const b = el.current;
     const s = sqRef.current;
     if (primary) {
@@ -182,23 +181,27 @@ export const SakugaButton = ({
 
   return (
     <span
-      className={`relative isolate inline-block align-middle text-[15px] leading-[1.4] font-medium text-(--sk-ink) ${FONT_BODY}`}
+      data-slot="sakuga-button-stage"
+      className={cn(
+        "relative isolate inline-block align-middle text-[15px] leading-[1.4] font-medium text-(--sk-ink)",
+        FONT_BODY,
+      )}
     >
       <SakugaStyle />
       {primary && <canvas ref={attachBack} aria-hidden className={BACK_CANVAS} />}
-      <button
-        {...rest}
+      <ButtonPrimitive
+        data-slot="sakuga-button"
+        data-variant={variant}
+        className={cn(BUTTON, primary ? PRIMARY : SECONDARY, className)}
+        {...props}
         ref={el}
-        // oxlint-disable-next-line react/button-has-type -- forwarded from props, defaulting to "button"
-        type={type}
-        className={`${BUTTON} ${primary ? PRIMARY : SECONDARY} ${className}`}
         onPointerDown={(e) => {
           press();
           onPointerDown?.(e);
         }}
         onClick={click}
       >
-        {children ?? (primary ? "Confirm" : "Cancel")}
+        {children}
         {primary && (
           <svg
             aria-hidden
@@ -208,7 +211,9 @@ export const SakugaButton = ({
             <path d="M3 9.5l6 6L21 2.5" />
           </svg>
         )}
-      </button>
+      </ButtonPrimitive>
     </span>
   );
 };
+
+export { SakugaButton };

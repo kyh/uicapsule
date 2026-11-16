@@ -2,27 +2,22 @@
 
 // Sakuga Checkbox: tick it and two crescents swing round the box, crystals fly, the tick draws
 // itself, and ズザッ lands in dotted letters. Untick it and it goes out in a small puff.
-// Underneath is a real checkbox: the children are its label, and with a name it is sent with its form.
+// Base UI's Checkbox owns the state, the form input and the ARIA; wrap it in a <label> to label it.
 // Setting `checked` from code plays no effects; only a person ticking it does.
 
+import { Checkbox as CheckboxPrimitive } from "@base-ui/react/checkbox";
+import { cn } from "cn";
 import { useLayoutEffect, useRef } from "react";
-import type { ChangeEvent, ComponentProps, ReactNode } from "react";
 
 import { Spring, at, dotted, kira, later, lines, puff, sfx, shards, slash } from "./sakuga-core";
-import { FONT_BODY, SakugaStyle, useFrame } from "./sakuga-react";
+import { SakugaStyle, useFrame } from "./sakuga-react";
 
-type SakugaCheckboxProps = Omit<ComponentProps<"input">, "type" | "children"> & {
-  // the label; clicking it ticks the box
-  children?: ReactNode;
-  onCheckedChange?: (checked: boolean) => void;
+type SakugaCheckboxProps = Omit<CheckboxPrimitive.Root.Props, "className"> & {
+  className?: string;
 };
 
-const HOST = `relative isolate inline-block align-middle text-[15px] leading-[1.4] font-medium text-(--sk-ink) [-webkit-tap-highlight-color:transparent] ${FONT_BODY}`;
-const LABEL =
-  "flex cursor-pointer items-center gap-[12px] select-none has-disabled:cursor-not-allowed has-disabled:opacity-50";
-const INPUT = "peer absolute m-0 h-px w-px opacity-0";
-const BOX =
-  "grid h-[38px] w-[38px] flex-none place-items-center rounded-[9px] bg-(--sk-card) shadow-(--sk-sh) will-change-transform [--sk-dash:30] [border:var(--sk-bw)_solid_var(--sk-ink)] peer-checked:[--sk-dash:0] peer-focus-visible:outline-[2.5px] peer-focus-visible:outline-offset-[3px] peer-focus-visible:outline-(--sk-acc) peer-focus-visible:outline-solid";
+const ROOT =
+  "grid h-[38px] w-[38px] flex-none cursor-pointer place-items-center rounded-[9px] bg-(--sk-card) shadow-(--sk-sh) will-change-transform [--sk-dash:30] [-webkit-tap-highlight-color:transparent] [border:var(--sk-bw)_solid_var(--sk-ink)] focus-visible:outline-[2.5px] focus-visible:outline-offset-[3px] focus-visible:outline-(--sk-acc) focus-visible:outline-solid data-checked:[--sk-dash:0] data-disabled:cursor-not-allowed data-disabled:opacity-50";
 const TICK =
   "h-[26px] w-[26px] fill-none stroke-(--sk-tick) stroke-[4.6] [stroke-dasharray:30] [stroke-dashoffset:var(--sk-dash)] [stroke-linecap:round] [stroke-linejoin:round] [transition:stroke-dashoffset_.24s_cubic-bezier(.2,.9,.3,1)_.08s]";
 
@@ -45,23 +40,24 @@ const land = (box: HTMLElement | null, s: Spring, checked: boolean) => {
   }
 };
 
-export const SakugaCheckbox = ({
-  children,
-  className = "",
-  checked,
-  onChange,
-  onCheckedChange,
-  ...rest
-}: SakugaCheckboxProps) => {
-  const box = useRef<HTMLSpanElement>(null);
+// the box a tick sits in
+const boxOf = (tick: SVGSVGElement | null) =>
+  tick?.closest<HTMLElement>('[role="checkbox"]') ?? null;
+
+const SakugaCheckbox = ({ className, checked, onCheckedChange, ...props }: SakugaCheckboxProps) => {
+  const tick = useRef<SVGSVGElement>(null);
   const s = useRef(new Spring(1, 600, 13));
   // what a person just asked an owned box for: it reacts once the owner agrees
   const hand = useRef<boolean | null>(null);
 
-  const change = (e: ChangeEvent<HTMLInputElement>) => {
-    const next = e.currentTarget.checked;
+  // Base UI only calls this for a person's tick
+  const change = (next: boolean, details: CheckboxPrimitive.Root.ChangeEventDetails) => {
+    onCheckedChange?.(next, details);
+    if (details.isCanceled) {
+      return;
+    }
     if (checked === undefined) {
-      land(box.current, s.current, next);
+      land(boxOf(tick.current), s.current, next);
     } else {
       hand.current = next;
       // a refused tick changes nothing, so no render would clear the mark
@@ -69,37 +65,45 @@ export const SakugaCheckbox = ({
         hand.current = null;
       });
     }
-    onChange?.(e);
-    onCheckedChange?.(next);
   };
 
   useLayoutEffect(() => {
     if (checked !== undefined && hand.current === checked) {
-      land(box.current, s.current, checked);
+      land(boxOf(tick.current), s.current, checked);
     }
     hand.current = null;
   }, [checked]);
 
   useFrame((dt) => {
     const y = s.current.step(dt);
-    if (box.current) {
-      box.current.style.transform =
-        Math.abs(y - 1) < 0.001 ? "" : `scale(${y}) rotate(${(1 - y) * 20}deg)`;
+    const el = boxOf(tick.current);
+    if (el) {
+      el.style.transform = Math.abs(y - 1) < 0.001 ? "" : `scale(${y}) rotate(${(1 - y) * 20}deg)`;
     }
   });
 
   return (
-    <span className={`${HOST} ${className}`}>
+    <>
       <SakugaStyle />
-      <label className={LABEL}>
-        <input {...rest} type="checkbox" checked={checked} className={INPUT} onChange={change} />
-        <span ref={box} className={BOX}>
-          <svg viewBox="0 0 20 20" aria-hidden className={TICK}>
+      <CheckboxPrimitive.Root
+        data-slot="sakuga-checkbox"
+        className={cn(ROOT, className)}
+        checked={checked}
+        onCheckedChange={change}
+        {...props}
+      >
+        <CheckboxPrimitive.Indicator
+          data-slot="sakuga-checkbox-indicator"
+          keepMounted
+          className="[display:contents]"
+        >
+          <svg ref={tick} viewBox="0 0 20 20" aria-hidden className={TICK}>
             <path d="M3.5 10.5l4.5 4.5 8.5-10" />
           </svg>
-        </span>
-        {children}
-      </label>
-    </span>
+        </CheckboxPrimitive.Indicator>
+      </CheckboxPrimitive.Root>
+    </>
   );
 };
+
+export { SakugaCheckbox };

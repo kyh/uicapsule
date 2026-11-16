@@ -6,9 +6,22 @@
 // the gap, stretching as they go. A tag that is already there just shakes its head.
 // The value changes at once; every reaction starts from the value that came back, so a parent that
 // turns a change down sees none.
+//
+// Base UI has no tag input: its Combobox has chips, but they are a combobox's selected options and
+// come with a list of options and a popup this has not got. So it is our own, in shadcn's shape:
+// SakugaChips holds the value, SakugaChipsList is the field and draws one SakugaChip per tag, and
+// SakugaChipsInput is the text box.
 
-import { useLayoutEffect, useRef, useState } from "react";
-import type { ChangeEvent, KeyboardEvent, PointerEvent } from "react";
+import { cn } from "cn";
+import { createContext, use, useLayoutEffect, useMemo, useRef, useState } from "react";
+import type {
+  ChangeEvent,
+  ComponentProps,
+  KeyboardEvent,
+  PointerEvent,
+  ReactNode,
+  RefObject,
+} from "react";
 
 import {
   Spring,
@@ -27,23 +40,50 @@ import {
 } from "./sakuga-core";
 import { FONT_BODY, SakugaStyle, useFrame } from "./sakuga-react";
 
-export interface SakugaChipsProps {
+type SakugaChipsProps = Omit<ComponentProps<"span">, "defaultValue" | "onChange"> & {
   value?: readonly string[];
   defaultValue?: readonly string[];
   onValueChange?: (value: string[]) => void;
   // with a name, every tag is sent with its form under it
   name?: string;
-  // what a screen reader calls the field; aria-labelledby, when given, names it instead
-  label?: string;
-  "aria-labelledby"?: string;
-  // goes on the text box, for a <label htmlFor>
-  id?: string;
-  placeholder?: string;
   disabled?: boolean;
   // the most tags it takes
   max?: number;
-  className?: string;
+};
+
+// what the root hands its parts
+interface Chips {
+  keyed: readonly { key: string; tag: string }[];
+  disabled: boolean;
+  fieldRef: RefObject<HTMLDivElement | null>;
+  entryRef: RefObject<HTMLInputElement | null>;
+  cutLayerRef: RefObject<HTMLSpanElement | null>;
+  remove: (key: string) => void;
+  change: (e: ChangeEvent<HTMLInputElement>) => void;
+  keyDown: (e: KeyboardEvent<HTMLInputElement>) => void;
+  focus: () => void;
+  pointerDown: (e: PointerEvent<HTMLDivElement>) => void;
 }
+
+const ChipsContext = createContext<Chips | null>(null);
+// the tag a chip is drawing
+const ChipContext = createContext<{ key: string; tag: string } | null>(null);
+
+const useChips = () => {
+  const chips = use(ChipsContext);
+  if (!chips) {
+    throw new Error("Sakuga chips parts go inside a SakugaChips");
+  }
+  return chips;
+};
+
+const useChip = () => {
+  const chip = use(ChipContext);
+  if (!chip) {
+    throw new Error("A SakugaChip is drawn by a SakugaChipsList");
+  }
+  return chip;
+};
 
 const NONE: readonly string[] = [];
 
@@ -223,7 +263,7 @@ const halfOf = (chip: HTMLElement, side: string, place: Place, plain: boolean) =
   }
   delete half.dataset.chip;
   half.style.transform = "";
-  half.className = `${CHIP} ${HALF} ${side}`;
+  half.classList.add(...HALF.split(" "), side);
   const rise = place.height * 0.72;
   const face = document.createElement("span");
   face.className = FACE;
@@ -274,18 +314,16 @@ const Cross = () => (
   </svg>
 );
 
-export const SakugaChips = ({
+const SakugaChips = ({
   value,
   defaultValue = NONE,
   onValueChange,
   name,
-  label = "Tags",
-  "aria-labelledby": labelledBy,
-  id,
-  placeholder = "Add a tag",
   disabled = false,
   max,
-  className = "",
+  className,
+  children,
+  ...props
 }: SakugaChipsProps) => {
   const [own, setOwn] = useState<readonly string[]>(defaultValue);
   const tags = value ?? own;
@@ -678,52 +716,40 @@ export const SakugaChips = ({
     }
   };
 
+  // the handlers read this render's tags; the parts call whichever set is the latest
+  const live = useRef({ change, focus, keyDown, pointerDown, remove });
+  useLayoutEffect(() => {
+    live.current = { change, focus, keyDown, pointerDown, remove };
+  });
+  const parts = useMemo(
+    (): Chips => ({
+      change: (e) => live.current.change(e),
+      cutLayerRef: cutLayer,
+      disabled,
+      entryRef: entry,
+      fieldRef: field,
+      focus: () => live.current.focus(),
+      keyDown: (e) => live.current.keyDown(e),
+      keyed,
+      pointerDown: (e) => live.current.pointerDown(e),
+      remove: (key) => live.current.remove(key),
+    }),
+    [disabled, keyed],
+  );
+
   return (
     <span
-      className={`relative isolate inline-block w-[270px] max-w-full align-middle text-[15px] leading-[1.4] font-medium text-(--sk-ink) ${FONT_BODY} ${className}`}
+      data-slot="sakuga-chips"
+      data-disabled={disabled ? "" : undefined}
+      // the font family stays outside cn: tailwind-merge takes it for a font weight and drops ours
+      className={`${FONT_BODY} ${cn(
+        "relative isolate inline-block w-[270px] max-w-full align-middle text-[15px] leading-[1.4] font-medium text-(--sk-ink)",
+        className,
+      )}`}
+      {...props}
     >
       <SakugaStyle />
-      <div
-        ref={field}
-        // oxlint-disable-next-line jsx-a11y/prefer-tag-over-role -- a fieldset keeps its own minimum width and cannot be the wrapping row the tags and the text box share
-        role="group"
-        aria-label={labelledBy === undefined ? label : undefined}
-        aria-labelledby={labelledBy}
-        className={`relative flex cursor-text flex-wrap content-start items-center gap-x-[7px] gap-y-[8px] rounded-(--sk-r) bg-(--sk-card) px-[11px] py-[10px] shadow-(--sk-sh) will-change-transform [border:var(--sk-bw)_solid_var(--sk-ink)] has-[input:focus-visible]:outline-[2.5px] has-[input:focus-visible]:outline-offset-[3px] has-[input:focus-visible]:outline-(--sk-acc) has-[input:focus-visible]:outline-solid ${disabled ? "cursor-not-allowed opacity-50" : ""}`}
-        onPointerDown={pointerDown}
-      >
-        {keyed.map(({ key, tag }) => (
-          <span key={key} data-chip={key} className={`${CHIP} will-change-transform`}>
-            <span className="truncate">{tag}</span>
-            <button
-              type="button"
-              aria-label={`Remove ${tag}`}
-              disabled={disabled}
-              className={`${CROSS} cursor-pointer hover:bg-(--sk-soft) focus-visible:outline-[2.5px] focus-visible:outline-offset-[1px] focus-visible:outline-(--sk-acc) disabled:cursor-not-allowed`}
-              onClick={() => remove(key)}
-            >
-              <Cross />
-            </button>
-          </span>
-        ))}
-        <input
-          ref={entry}
-          id={id}
-          type="text"
-          aria-label={labelledBy === undefined ? label : undefined}
-          aria-labelledby={labelledBy}
-          placeholder={placeholder}
-          disabled={disabled}
-          autoComplete="off"
-          enterKeyHint="done"
-          className="h-[30px] w-0 min-w-[84px] flex-1 bg-transparent px-[2px] text-[16px] font-semibold text-(--sk-ink) caret-(--sk-ink) outline-none placeholder:text-(--sk-dim) disabled:cursor-not-allowed"
-          onChange={change}
-          onKeyDown={keyDown}
-          onFocus={focus}
-        />
-        {/* the cut copies are put here by hand, where their tags stood, out of the flow */}
-        <span ref={cutLayer} aria-hidden className="pointer-events-none absolute inset-0 z-10" />
-      </div>
+      <ChipsContext value={parts}>{children}</ChipsContext>
       {name !== undefined &&
         keyed.map(({ key, tag }) => (
           <input key={key} type="hidden" name={name} value={tag} disabled={disabled} />
@@ -732,3 +758,142 @@ export const SakugaChips = ({
     </span>
   );
 };
+
+const SakugaChipRemove = ({ className, children, onClick, ...props }: ComponentProps<"button">) => {
+  const { disabled, remove } = useChips();
+  const { key, tag } = useChip();
+  return (
+    <button
+      type="button"
+      data-slot="sakuga-chip-remove"
+      aria-label={`Remove ${tag}`}
+      disabled={disabled}
+      className={cn(
+        CROSS,
+        "cursor-pointer hover:bg-(--sk-soft) focus-visible:outline-[2.5px] focus-visible:outline-offset-[1px] focus-visible:outline-(--sk-acc) disabled:cursor-not-allowed",
+        className,
+      )}
+      {...props}
+      onClick={(e) => {
+        onClick?.(e);
+        if (!e.defaultPrevented) {
+          remove(key);
+        }
+      }}
+    >
+      {children ?? <Cross />}
+    </button>
+  );
+};
+
+// One tag. With no children it is the tag's text and its remove button.
+const SakugaChip = ({ className, children, ...props }: ComponentProps<"span">) => {
+  const { key, tag } = useChip();
+  return (
+    <span
+      data-slot="sakuga-chip"
+      data-chip={key}
+      className={cn(CHIP, "will-change-transform", className)}
+      {...props}
+    >
+      {children ?? (
+        <>
+          <span className="truncate">{tag}</span>
+          <SakugaChipRemove />
+        </>
+      )}
+    </span>
+  );
+};
+
+const plainChip = () => <SakugaChip />;
+
+// The field: every tag as a chip, then its children (the text box).
+const SakugaChipsList = ({
+  className,
+  children,
+  renderChip = plainChip,
+  onPointerDown,
+  "aria-label": label,
+  "aria-labelledby": labelledBy,
+  ...props
+}: ComponentProps<"div"> & {
+  // draw a tag your own way: return a SakugaChip
+  renderChip?: (tag: string) => ReactNode;
+}) => {
+  const { keyed, disabled, fieldRef, cutLayerRef, pointerDown } = useChips();
+  return (
+    <div
+      ref={fieldRef}
+      // oxlint-disable-next-line jsx-a11y/prefer-tag-over-role -- a fieldset keeps its own minimum width and cannot be the wrapping row the tags and the text box share
+      role="group"
+      data-slot="sakuga-chips-list"
+      aria-label={labelledBy === undefined ? (label ?? "Tags") : label}
+      aria-labelledby={labelledBy}
+      className={cn(
+        "relative flex cursor-text flex-wrap content-start items-center gap-x-[7px] gap-y-[8px] rounded-(--sk-r) bg-(--sk-card) px-[11px] py-[10px] shadow-(--sk-sh) will-change-transform [border:var(--sk-bw)_solid_var(--sk-ink)] has-[input:focus-visible]:outline-[2.5px] has-[input:focus-visible]:outline-offset-[3px] has-[input:focus-visible]:outline-(--sk-acc) has-[input:focus-visible]:outline-solid",
+        disabled && "cursor-not-allowed opacity-50",
+        className,
+      )}
+      {...props}
+      onPointerDown={(e) => {
+        onPointerDown?.(e);
+        pointerDown(e);
+      }}
+    >
+      {keyed.map((chip) => (
+        <ChipContext key={chip.key} value={chip}>
+          {renderChip(chip.tag)}
+        </ChipContext>
+      ))}
+      {children}
+      {/* the cut copies are put here by hand, where their tags stood, out of the flow */}
+      <span ref={cutLayerRef} aria-hidden className="pointer-events-none absolute inset-0 z-10" />
+    </div>
+  );
+};
+
+const SakugaChipsInput = ({
+  className,
+  onChange,
+  onKeyDown,
+  onFocus,
+  "aria-label": label,
+  "aria-labelledby": labelledBy,
+  ...props
+}: Omit<ComponentProps<"input">, "value" | "defaultValue" | "type">) => {
+  const { disabled, entryRef, change, keyDown, focus } = useChips();
+  return (
+    <input
+      ref={entryRef}
+      type="text"
+      data-slot="sakuga-chips-input"
+      aria-label={labelledBy === undefined ? (label ?? "Tags") : label}
+      aria-labelledby={labelledBy}
+      disabled={disabled}
+      autoComplete="off"
+      enterKeyHint="done"
+      className={cn(
+        "h-[30px] w-0 min-w-[84px] flex-1 bg-transparent px-[2px] text-[16px] font-semibold text-(--sk-ink) caret-(--sk-ink) outline-none placeholder:text-(--sk-dim) disabled:cursor-not-allowed",
+        className,
+      )}
+      {...props}
+      onChange={(e) => {
+        onChange?.(e);
+        change(e);
+      }}
+      onKeyDown={(e) => {
+        onKeyDown?.(e);
+        if (!e.defaultPrevented) {
+          keyDown(e);
+        }
+      }}
+      onFocus={(e) => {
+        onFocus?.(e);
+        focus();
+      }}
+    />
+  );
+};
+
+export { SakugaChips, SakugaChipsList, SakugaChip, SakugaChipRemove, SakugaChipsInput };

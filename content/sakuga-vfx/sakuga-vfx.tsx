@@ -8,20 +8,32 @@ import type { ReactNode } from "react";
 import { SakugaButton } from "./sakuga-button";
 import type { SakugaButtonHandle } from "./sakuga-button";
 import { later } from "./sakuga-core";
-import { SakugaAccordion } from "./sakuga-accordion";
+import {
+  SakugaAccordion,
+  SakugaAccordionContent,
+  SakugaAccordionItem,
+  SakugaAccordionTrigger,
+} from "./sakuga-accordion";
 import { SakugaCheckbox } from "./sakuga-checkbox";
-import { SakugaChips } from "./sakuga-chips";
+import { SakugaChips, SakugaChipsInput, SakugaChipsList } from "./sakuga-chips";
 import { SakugaInput } from "./sakuga-input";
 import { SakugaProgress } from "./sakuga-progress";
-import { SakugaRadio } from "./sakuga-radio";
+import { SakugaRadioGroup, SakugaRadioGroupItem } from "./sakuga-radio-group";
 import { SakugaRating } from "./sakuga-rating";
 import { SakugaSelect } from "./sakuga-select";
 import { SakugaSlider } from "./sakuga-slider";
-import { SakugaStepper } from "./sakuga-stepper";
-import { SakugaTabs } from "./sakuga-tabs";
+import {
+  SakugaNumberField,
+  SakugaNumberFieldDecrement,
+  SakugaNumberFieldGroup,
+  SakugaNumberFieldIncrement,
+  SakugaNumberFieldInput,
+} from "./sakuga-number-field";
+import { SakugaTabs, SakugaTabsList, SakugaTabsTrigger } from "./sakuga-tabs";
 import { SakugaToast } from "./sakuga-toast";
 import type { SakugaToastHandle } from "./sakuga-toast";
-import { SakugaToggle } from "./sakuga-toggle";
+import { SakugaSwitch } from "./sakuga-switch";
+import { TrioLab } from "./sakuga-trio-lab";
 import { SakugaTooltip } from "./sakuga-tooltip";
 import { FONT_BODY, SakugaStyle } from "./sakuga-react";
 
@@ -90,7 +102,8 @@ export const SakugaVfx = () => (
       </Card>
       {/* ── toggle card ── */}
       <Card id="toggle" name="Toggle" how="Flip it, then flip it back.">
-        <SakugaToggle label="Notifications" />
+        <SakugaSwitch aria-label="Notifications" />
+        <TrioLab />
       </Card>
       {/* ── slider card ── */}
       <Card id="slider" name="Slider" how="Drag it fast, and let go while it is moving.">
@@ -98,29 +111,50 @@ export const SakugaVfx = () => (
       </Card>
       {/* ── checkbox card ── */}
       <Card id="checkbox" name="Checkbox" how="Tick it.">
-        <SakugaCheckbox>Remember me</SakugaCheckbox>
+        <label
+          htmlFor="sk-remember"
+          className="flex cursor-pointer items-center gap-[12px] text-[15px] leading-[1.4] font-medium text-(--sk-ink) select-none"
+        >
+          <SakugaCheckbox id="sk-remember" />
+          Remember me
+        </label>
       </Card>
       {/* ── radio card ── */}
       <Card id="radio" name="Radio" how="Pick the other one.">
-        <SakugaRadio
-          label="Plan"
+        <SakugaRadioGroup
+          aria-label="Plan"
           defaultValue="a"
-          options={[
-            { label: "Option A", value: "a" },
-            { label: "Option B", value: "b" },
-          ]}
-        />
+          className="text-[15px] leading-[1.4] font-medium text-(--sk-ink)"
+        >
+          <label
+            htmlFor="sk-plan-a"
+            className="flex cursor-pointer items-center gap-[12px] select-none"
+          >
+            <SakugaRadioGroupItem id="sk-plan-a" value="a" />
+            Option A
+          </label>
+          <label
+            htmlFor="sk-plan-b"
+            className="flex cursor-pointer items-center gap-[12px] select-none"
+          >
+            <SakugaRadioGroupItem id="sk-plan-b" value="b" />
+            Option B
+          </label>
+        </SakugaRadioGroup>
       </Card>
       {/* ── input card ── */}
       <Card id="input" name="Text input" how="Click it and type.">
-        <SakugaInput label="Text" placeholder="Type something" />
+        <SakugaInput aria-label="Text" placeholder="Type something" />
       </Card>
       {/* ── tabs card ── */}
       <Card id="tabs" name="Tabs" how="Pick another tab, or use the arrow keys.">
-        <SakugaTabs
-          label="Sections"
-          tabs={[{ label: "Home" }, { label: "Profile" }, { label: "Settings" }]}
-        />
+        <SakugaTabs defaultValue="home">
+          <SakugaTabsList aria-label="Sections">
+            <SakugaTabsTrigger value="home">Home</SakugaTabsTrigger>
+            <SakugaTabsTrigger value="profile">Profile</SakugaTabsTrigger>
+            <SakugaTabsTrigger value="settings">Settings</SakugaTabsTrigger>
+          </SakugaTabsList>
+        </SakugaTabs>
       </Card>
       {/* ── progress card ── */}
       <Card
@@ -133,7 +167,7 @@ export const SakugaVfx = () => (
       </Card>
       {/* ── rating card ── */}
       <Card id="rating" name="Rating" how="Give it five.">
-        <SakugaRating label="Rating" />
+        <SakugaRating aria-label="Rating" />
       </Card>
       {/* ── toast card ── */}
       <ToastCard />
@@ -143,7 +177,13 @@ export const SakugaVfx = () => (
       </Card>
       {/* ── stepper card ── */}
       <Card id="stepper" name="Stepper" how="Tap plus fast, then hit the limit.">
-        <SakugaStepper defaultValue={5} max={9} label="Copies" />
+        <SakugaNumberField defaultValue={5} min={0} max={9}>
+          <SakugaNumberFieldGroup>
+            <SakugaNumberFieldDecrement />
+            <SakugaNumberFieldInput aria-label="Copies" />
+            <SakugaNumberFieldIncrement />
+          </SakugaNumberFieldGroup>
+        </SakugaNumberField>
       </Card>
       {/* ── select card ── */}
       <Card id="select" name="Select" how="Open it, run down the rows, and choose one.">
@@ -159,18 +199,28 @@ export const SakugaVfx = () => (
       </Card>
       {/* ── accordion card ── */}
       <Card id="accordion" name="Accordion" how="Open one, then another.">
-        <SakugaAccordion
-          className="self-start"
-          sections={[
-            { content: "Tracked, and out in two days.", title: "Shipping" },
-            { content: "Thirty days to send it back.", title: "Returns" },
-            { content: "Two years, parts and labour.", title: "Warranty" },
-          ]}
-        />
+        <SakugaAccordion className="self-start">
+          <SakugaAccordionItem>
+            <SakugaAccordionTrigger>Shipping</SakugaAccordionTrigger>
+            <SakugaAccordionContent>Tracked, and out in two days.</SakugaAccordionContent>
+          </SakugaAccordionItem>
+          <SakugaAccordionItem>
+            <SakugaAccordionTrigger>Returns</SakugaAccordionTrigger>
+            <SakugaAccordionContent>Thirty days to send it back.</SakugaAccordionContent>
+          </SakugaAccordionItem>
+          <SakugaAccordionItem>
+            <SakugaAccordionTrigger>Warranty</SakugaAccordionTrigger>
+            <SakugaAccordionContent>Two years, parts and labour.</SakugaAccordionContent>
+          </SakugaAccordionItem>
+        </SakugaAccordion>
       </Card>
       {/* ── chips card ── */}
       <Card id="chips" name="Chips" how="Type a tag and press Enter, then remove one.">
-        <SakugaChips defaultValue={["Ink", "Paper"]} />
+        <SakugaChips defaultValue={["Ink", "Paper"]}>
+          <SakugaChipsList>
+            <SakugaChipsInput placeholder="Add a tag" />
+          </SakugaChipsList>
+        </SakugaChips>
       </Card>
     </div>
   </div>
