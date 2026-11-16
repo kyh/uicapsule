@@ -186,7 +186,7 @@ export const SakugaVfx = () => (
         how="It plays a load by itself, in surges. Click it to start again."
         wide
       >
-        <SakugaProgress demo label="Loading" />
+        <SakugaProgress demo aria-label="Loading" />
       </Card>
       {/* ── rating card ── */}
       <Card id="rating" name="Rating" how="Give it five.">

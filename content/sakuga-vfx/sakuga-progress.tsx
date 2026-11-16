@@ -6,8 +6,11 @@
 // is under way. At 100 a burst goes off behind the bar with ドン!, a check lands above it, and two
 // small clouds are left on the ground.
 
-import { useEffect, useImperativeHandle, useRef } from "react";
-import type { CSSProperties, Ref, RefObject } from "react";
+import { Progress as ProgressPrimitive } from "@base-ui/react/progress";
+import { cn } from "cn";
+import { useEffect, useRef, useState } from "react";
+import type { RefObject } from "react";
+import { flushSync } from "react-dom";
 
 import {
   P,
@@ -31,31 +34,25 @@ import {
 import type { Layer } from "./sakuga-core";
 import { BACK_CANVAS, FONT_BODY, SakugaStyle, useBackLayer, useFrame } from "./sakuga-react";
 
-export interface SakugaProgressHandle {
-  // progress from 0 to 1. The bar eases toward it, so a jump still gets ridden. instant goes straight there.
-  set: (n: number, instant?: boolean) => void;
-  // back to 0 for the next task
-  reset: () => void;
-}
-
-export interface SakugaProgressProps {
-  // progress from 0 to 1; the bar eases toward it
-  value?: number;
-  // what a screen reader calls it
-  label?: string;
-  // the id of a visible label; when given it names the bar instead of `label`
-  "aria-labelledby"?: string;
+// Base UI's Progress.Root props: `value` in `min`..`max` (0..100 unless told otherwise), `null`
+// or left out for indeterminate, plus format / locale / getAriaValueText / aria-label(ledby).
+// The bar eases toward `value`; a lower value goes straight there and re-arms the finish.
+type SakugaProgressProps = Omit<
+  ProgressPrimitive.Root.Props,
+  "children" | "className" | "value"
+> & {
+  className?: string;
+  value?: number | null;
   // the words at the end
   doneLabel?: string;
   // plays a pretend load on a loop; click restarts it. Don't ship it.
   demo?: boolean;
   // once, when the bar itself reaches the end
   onDone?: () => void;
-  ref?: Ref<SakugaProgressHandle>;
-  className?: string;
-  // e.g. { "--sk-progress-width": "360px" }
-  style?: CSSProperties;
-}
+};
+
+// what the number under the bar says while the value is not known
+const UNKNOWN = "…";
 
 const LOBES = [
   [0, -0.95, 1],
@@ -112,7 +109,6 @@ const makeLoad = () => ({
   lag: new Spring(0, 120, 16),
   lastPct: "",
   lobes: LOBES.map(lobe),
-  now: 0,
   p: 0,
   peb: [0.14, 0.31, 0.5, 0.69, 0.87].map(pebble),
   rest: new Spring(0, 160, 14),
@@ -122,6 +118,8 @@ const makeLoad = () => ({
   spd: 0,
   t: 0,
   tag: new Spring(1, 500, 13),
+  // no value to show: Base UI's indeterminate
+  unknown: false,
   vis: false,
 });
 type Load = ReturnType<typeof makeLoad>;
@@ -136,15 +134,13 @@ const reset = (load: Load) => {
   load.p = 0;
   load.goal = 0;
 };
-const setGoal = (load: Load, value: number, instant = false) => {
+const setGoal = (load: Load, value: number) => {
   const n = clamp(Number(value) || 0);
   if (load.doneAt && n >= 1) {
     return;
   }
-  if (n < load.p - 0.001 || instant) {
-    if (n < load.p) {
-      clear(load);
-    }
+  if (n < load.p - 0.001) {
+    clear(load);
     load.p = n;
   }
   load.goal = n;
@@ -417,39 +413,48 @@ const loadOf = (loadRef: RefObject<Load | null>) => {
 };
 
 // the number under the bar: it pops on every fifth percent
-const showPct = (load: Load, tagEl: HTMLElement, key: string, n: number) => {
-  if (key !== load.lastPct) {
-    load.lastPct = key;
-    tagEl.textContent = key;
-    if (n % 5 === 0 && !load.doneAt) {
-      load.tag.x = 1.1;
-    }
+// the words under the bar
+const textOf = (load: Load, n: number, doneLabel: string) => {
+  if (load.doneAt) {
+    return doneLabel;
   }
+  return load.unknown ? UNKNOWN : `${n}%`;
 };
 
 const BAR =
   "relative h-[38px] overflow-hidden rounded-[19px] bg-(--sk-card) [border:4px_solid_var(--sk-ink)]";
 const FILL =
-  "relative h-full w-[calc(var(--v,0)*100%)] bg-(--sk-fill) before:absolute before:top-[5px] before:left-[22px] before:h-[11px] before:w-[9px] before:rounded-[2px] before:bg-white before:opacity-[.92] before:content-[''] before:[transform:skewX(-28deg)] after:absolute after:top-[5px] after:left-[37px] after:h-[11px] after:w-[6px] after:rounded-[2px] after:bg-white after:opacity-[.92] after:content-[''] after:[transform:skewX(-28deg)]";
+  "relative bg-(--sk-fill) before:absolute before:top-[5px] before:left-[22px] before:h-[11px] before:w-[9px] before:rounded-[2px] before:bg-white before:opacity-[.92] before:content-[''] before:[transform:skewX(-28deg)] after:absolute after:top-[5px] after:left-[37px] after:h-[11px] after:w-[6px] after:rounded-[2px] after:bg-white after:opacity-[.92] after:content-[''] after:[transform:skewX(-28deg)]";
 const PCT =
   "mx-auto mt-[64px] table bg-(--sk-card) px-[13px] pt-[3px] pb-[4px] font-['Marker_Felt','Chalkboard_SE','Comic_Sans_MS',-apple-system,'Segoe_UI',sans-serif] text-[21px] leading-[1.1] font-black tracking-[-0.01em] whitespace-nowrap italic shadow-[5px_5px_0_var(--sk-fill)] will-change-transform [border:2.5px_solid_var(--sk-ink)] [transform:skewX(-12deg)]";
 
-export const SakugaProgress = ({
+const ROOT = `relative isolate w-(--sk-progress-width,280px) max-w-full align-middle text-[15px] leading-[1.4] font-medium text-(--sk-ink) ${FONT_BODY}`;
+
+const SakugaProgress = ({
+  className,
   value,
-  label = "Loading",
-  "aria-labelledby": labelledBy,
+  min = 0,
+  max = 100,
   doneLabel = "Complete ✓",
   demo = false,
   onDone,
-  ref,
-  className = "",
-  style,
+  "aria-label": ariaLabel,
+  "aria-labelledby": labelledBy,
+  ...props
 }: SakugaProgressProps) => {
   const box = useRef<HTMLDivElement>(null);
   const bar = useRef<HTMLDivElement>(null);
   const pct = useRef<HTMLSpanElement>(null);
   const [attachBack, backRef] = useBackLayer();
   const loadRef = useRef<Load | null>(null);
+  // What the bar shows right now, a whole percent at a time: Base UI turns it into aria-valuenow,
+  // aria-valuetext and data-progressing / data-complete / data-indeterminate.
+  const [shown, setShown] = useState<{ text: string; value: number | null }>(() =>
+    value === null || (value === undefined && !demo)
+      ? { text: UNKNOWN, value: null }
+      : { text: "0%", value: min },
+  );
+
   // the cloud and the ground are one effect with no end, drawn on the effects layer while mounted
   useEffect(() => {
     const load = loadOf(loadRef);
@@ -458,7 +463,6 @@ export const SakugaProgress = ({
         paint(load, bar.current, tt, dt);
       }
     });
-    Reflect.set(globalThis, "__skLoad", { layer, load }); // TEMP-PROBE
     return () => {
       layer.dead = true;
     };
@@ -475,20 +479,21 @@ export const SakugaProgress = ({
     return () => el.removeEventListener("click", restart);
   }, [demo]);
 
-  // like the original's attribute: a new value is set(value), and taking it away is set(0)
+  // A new value is the original's set(value); taking it away is its set(0), and the bar is
+  // indeterminate until there is a value again. A bar that never had one is left alone.
   const hadValue = useRef(false);
   useEffect(() => {
-    if (value === undefined && !hadValue.current) {
-      return;
+    const load = loadOf(loadRef);
+    const known = value !== null && value !== undefined && Number.isFinite(value);
+    load.unknown = !known && !demo;
+    if (known) {
+      hadValue.current = true;
+      setGoal(load, max > min ? (value - min) / (max - min) : 0);
+    } else if (hadValue.current) {
+      hadValue.current = false;
+      setGoal(load, 0);
     }
-    hadValue.current = value !== undefined;
-    setGoal(loadOf(loadRef), value ?? 0);
-  }, [value]);
-
-  useImperativeHandle(ref, () => ({
-    reset: () => reset(loadOf(loadRef)),
-    set: (n, instant) => setGoal(loadOf(loadRef), n, instant),
-  }));
+  }, [value, min, max, demo]);
 
   useFrame((dt) => {
     const boxEl = box.current;
@@ -520,45 +525,57 @@ export const SakugaProgress = ({
       reset(load);
     }
     const n = load.doneAt ? 100 : Math.floor(p * 100);
-    const key = load.doneAt ? doneLabel : `${n}%`;
-    showPct(load, tagEl, key, n);
+    const text = textOf(load, n, doneLabel);
+    if (text !== load.lastPct) {
+      load.lastPct = text;
+      // In this frame, not a render later: the number changes on the frame its tag pops.
+      flushSync(() => {
+        setShown({ text, value: load.unknown ? null : min + ((max - min) * n) / 100 });
+      });
+      // the number pops on every fifth percent
+      if (n % 5 === 0 && !load.doneAt) {
+        load.tag.x = 1.1;
+      }
+    }
     tagEl.style.transform = `skewX(-12deg) scale(${load.tag.step(dt)})`;
     if (p !== load.shown) {
       load.shown = p;
       boxEl.style.setProperty("--v", String(p));
     }
-    if (n !== load.now) {
-      load.now = n;
-      boxEl.setAttribute("aria-valuenow", String(n));
-    }
   });
 
   return (
-    <div
-      className={`relative isolate w-(--sk-progress-width,280px) max-w-full align-middle text-[15px] leading-[1.4] font-medium text-(--sk-ink) ${FONT_BODY} ${className}`}
-      style={style}
+    <ProgressPrimitive.Root
+      data-slot="sakuga-progress"
+      className={cn(ROOT, className)}
+      min={min}
+      max={max}
+      value={shown.value}
+      aria-label={ariaLabel ?? (labelledBy ? undefined : "Loading")}
+      aria-labelledby={labelledBy}
+      {...props}
     >
       <SakugaStyle />
       <canvas ref={attachBack} aria-hidden className={BACK_CANVAS} />
       <div
         ref={box}
-        // oxlint-disable-next-line jsx-a11y/prefer-tag-over-role -- a <progress> cannot hold the drawn bar and its label
-        role="progressbar"
-        aria-label={labelledBy ? undefined : label}
-        aria-labelledby={labelledBy}
-        aria-valuemin={0}
-        aria-valuemax={100}
-        aria-valuenow={0}
-        className={`relative pt-[70px] ${demo ? "cursor-pointer" : ""}`}
+        data-slot="sakuga-progress-box"
+        className={cn("relative pt-[70px]", demo && "cursor-pointer")}
       >
-        <div ref={bar} className={BAR}>
-          {/* a div, not the original's <i>: the host app styles a bare .block class */}
-          <div className={FILL} />
-        </div>
-        <span ref={pct} className={PCT}>
-          0%
-        </span>
+        <ProgressPrimitive.Track ref={bar} data-slot="sakuga-progress-track" className={BAR}>
+          <ProgressPrimitive.Indicator
+            data-slot="sakuga-progress-indicator"
+            className={FILL}
+            // the fill follows the eased bar (--v), a frame at a time
+            style={{ height: "100%", width: "calc(var(--v, 0) * 100%)" }}
+          />
+        </ProgressPrimitive.Track>
+        <ProgressPrimitive.Value ref={pct} data-slot="sakuga-progress-value" className={PCT}>
+          {() => shown.text}
+        </ProgressPrimitive.Value>
       </div>
-    </div>
+    </ProgressPrimitive.Root>
   );
 };
+
+export { SakugaProgress };
