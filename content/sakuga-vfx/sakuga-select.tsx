@@ -1,466 +1,462 @@
 "use client";
 
-// Sakuga Select: a dropdown. The menu springs out of the trigger the way the tooltip's bubble does,
-// the chevron flips over, two puffs leave its far corners and シュッ lands by the trigger. A raised
-// highlight slides between the rows, stretching as it goes. Choose a row and it inverts for one
-// frame, the menu shrinks back into the trigger, and the new label lands with wedges and one puff.
-// Close it without choosing and it just shrinks away.
+// Sakuga Select: a dropdown on Base UI's Select. The menu springs out of the trigger the way the
+// tooltip's bubble does, the chevron flips over, two puffs leave its far corners and シュッ lands by
+// the trigger. A raised highlight slides between the rows, stretching as it goes. Choose a row and
+// it inverts for one frame, the menu shrinks back into the trigger, and the new label lands with
+// wedges and one puff. Close it without choosing and it just shrinks away.
+//
+//   <SakugaSelect defaultValue="key" items={stages}>
+//     <SakugaSelectTrigger aria-label="Stage">
+//       <SakugaSelectValue />
+//     </SakugaSelectTrigger>
+//     <SakugaSelectContent>
+//       <SakugaSelectItem value="key">Key frames</SakugaSelectItem>
+//       …
+//     </SakugaSelectContent>
+//   </SakugaSelect>
+//
+// The parts share one set of springs through the root. Base UI owns the list, the keys, the
+// typeahead, the placement and the form value; the root only keeps the popup mounted until the
+// shrink has finished.
 
-import { useEffect, useId, useRef, useState } from "react";
-import type { KeyboardEvent } from "react";
+import { Select as SelectPrimitive } from "@base-ui/react/select";
+import { cn } from "cn";
+import { createContext, use, useMemo, useRef } from "react";
+import type { RefObject } from "react";
 
 import { Spring, at, clamp, clock, later, puff, sfx, ticks } from "./sakuga-core";
 import { FONT_BODY, FONT_DISPLAY, SakugaStyle, useFrame, useSquashy } from "./sakuga-react";
+import type { Squashy } from "./sakuga-core";
 
-export interface SakugaSelectOption {
-  value: string;
-  label: string;
+type Styled<Props> = Omit<Props, "className"> & { className?: string };
+
+// What the parts share: the elements the reactions move, and the springs that move them.
+interface Rig {
+  trigger: HTMLElement | null;
+  text: HTMLElement | null;
+  chevron: Element | null;
+  popup: HTMLElement | null;
+  list: HTMLElement | null;
+  raised: HTMLElement | null;
+  squash: Squashy | null;
+  out: Spring;
+  flip: Spring;
+  rowY: Spring;
+  rowH: Spring;
+  land: Spring;
+  // was it open last frame, and which reaction is this
+  open: boolean;
+  seq: number;
+  // a person opened it, so the open may draw
+  byHand: boolean;
+  // the popup is being kept for the shrink and must be let go when it has gone
+  kept: boolean;
+  // the shrink waits until this moment on the clock
+  holdUntil: number;
+  // the row the raised highlight is behind, and whether its next move is a jump
+  under: Element | null;
+  jump: boolean;
 }
 
-export interface SakugaSelectProps {
-  options: readonly SakugaSelectOption[];
-  value?: string;
-  defaultValue?: string;
-  onValueChange?: (value: string) => void;
-  // sent with a form under this name
-  name?: string;
-  // names the trigger and the list; left out when aria-labelledby points at a visible label
-  label?: string;
-  // put on the trigger, for a <label htmlFor> or a describedby
-  id?: string;
-  "aria-labelledby"?: string;
-  // shown while no option matches the value
-  placeholder?: string;
-  disabled?: boolean;
-  className?: string;
-}
+const makeRig = (): Rig => ({
+  byHand: false,
+  chevron: null,
+  flip: new Spring(0, 420, 13),
+  holdUntil: -9,
+  jump: true,
+  kept: false,
+  land: new Spring(1, 600, 13),
+  list: null,
+  open: false,
+  out: new Spring(0, 460, 20),
+  popup: null,
+  raised: null,
+  rowH: new Spring(0, 320, 26),
+  rowY: new Spring(0, 320, 23),
+  seq: 0,
+  squash: null,
+  text: null,
+  trigger: null,
+  under: null,
+});
 
-const PRESS = { low: 0.8, wide: 0.3 };
-const TRIGGER = `flex w-full min-w-[196px] cursor-pointer touch-manipulation items-center justify-between gap-[14px] rounded-(--sk-r) bg-(--sk-card) py-[11px] pr-[14px] pl-[18px] text-left text-[17px] leading-[1.1] font-extrabold tracking-[-0.01em] text-(--sk-ink) italic shadow-(--sk-sh) [border:var(--sk-bw)_solid_var(--sk-ink)] will-change-transform select-none focus-visible:outline-[2.5px] focus-visible:outline-offset-[3px] focus-visible:outline-(--sk-acc) disabled:cursor-not-allowed disabled:opacity-45 ${FONT_DISPLAY}`;
-const MENU =
-  "invisible absolute top-[calc(100%+13px)] left-0 z-10 w-max max-w-[min(300px,calc(100vw-32px))] min-w-full origin-[50%_-16px] rounded-[13px] bg-(--sk-card) p-[5px] shadow-(--sk-sh) [border:var(--sk-bw)_solid_var(--sk-ink)] [transform:scale(0)] will-change-transform data-shut:pointer-events-none data-up:top-auto data-up:bottom-[calc(100%+13px)] data-up:origin-[50%_calc(100%+16px)]";
-// The rows scroll inside the menu, so the spring's transform stays on the menu itself.
-const LIST =
-  "relative max-h-[min(320px,calc(100dvh-32px))] overflow-y-auto overscroll-contain [scrollbar-color:var(--sk-ink)_transparent] [scrollbar-width:thin]";
-// Each label carries a halo in the colour of what is behind it, so the highlight's ink edge parts
-// round the letters as it crosses a row instead of striking them through.
-const ROW =
-  "relative flex cursor-pointer items-center justify-between gap-[14px] rounded-[9px] px-[12px] py-[9px] text-[15px] leading-[1.2] font-semibold whitespace-nowrap select-none [paint-order:stroke_fill] [-webkit-text-stroke:3px_var(--sk-card)] aria-selected:font-extrabold data-on:[-webkit-text-stroke-color:var(--sk-soft)] data-inv:bg-(--sk-ink) data-inv:text-(--sk-card) data-inv:[-webkit-text-stroke-color:var(--sk-ink)]!";
+const RigContext = createContext<RefObject<Rig> | null>(null);
 
-export const SakugaSelect = ({
-  options,
-  value,
-  defaultValue,
-  onValueChange,
-  name,
-  label = "Select",
-  id: triggerId,
-  "aria-labelledby": labelledBy,
-  placeholder = "Choose",
-  disabled = false,
-  className = "",
-}: SakugaSelectProps) => {
-  const id = useId();
-  const [inner, setInner] = useState(defaultValue ?? options[0]?.value ?? "");
-  const current = value ?? inner;
-  const picked = options.findIndex((o) => o.value === current);
-  const [open, setOpen] = useState(false);
-  const [up, setUp] = useState(false);
-  const [active, setActive] = useState(Math.max(0, picked));
+const useRig = () => {
+  const rigRef = use(RigContext);
+  if (!rigRef) {
+    throw new Error("SakugaSelect parts must be inside <SakugaSelect>");
+  }
+  return rigRef;
+};
 
-  const wrap = useRef<HTMLSpanElement>(null);
-  const trigger = useRef<HTMLButtonElement>(null);
-  const menu = useRef<HTMLDivElement>(null);
-  const list = useRef<HTMLDivElement>(null);
-  const raised = useRef<HTMLSpanElement>(null);
-  const text = useRef<HTMLSpanElement>(null);
-  const chevron = useRef<SVGSVGElement>(null);
-  const sqRef = useSquashy(trigger, PRESS);
+const isUp = (popup: HTMLElement) => popup.dataset.side === "top";
 
-  const out = useRef(new Spring(0, 460, 15));
-  const flip = useRef(new Spring(0, 420, 13));
-  const rowY = useRef(new Spring(0, 320, 23));
-  const rowH = useRef(new Spring(0, 320, 26));
-  const land = useRef(new Spring(1, 600, 13));
-  // what the delayed beats check: is it still open, and is this still the same reaction
-  const now = useRef({ open: false, seq: 0, typed: "", typedAt: -9 });
-  // the value on show, for a beat that must know whether a controlled parent took the change
-  const shown = useRef(current);
-
-  useEffect(() => {
-    shown.current = current;
+// the open: two puffs off the menu's far corners and the word by the trigger
+const openEffects = (rig: Rig) => {
+  const { trigger: b, popup: m } = rig;
+  if (!b || !m) {
+    return;
+  }
+  const above = isUp(m);
+  const q = at(b);
+  // where the menu will come to rest, not where the overshoot has it now
+  const left = q.x - q.w / 2;
+  const right = left + m.offsetWidth;
+  const far = above ? -1 : 1;
+  const end = q.y + far * (q.h / 2 + 13 + m.offsetHeight);
+  puff(left - 9, end - far * 16, { life: 0.8, n: 4, size: 8, vx: -14, vy: -6 });
+  puff(right + 13, end - far * 30, { life: 0.7, n: 3, size: 7, vx: 14, vy: -10 });
+  // flipped, the word tucks in under the trigger so it stays in the control's own column
+  sfx("shu", q.x + q.w / 2 + (above ? -34 : 4), q.y - far * (q.h / 2 + (above ? 30 : 36)), {
+    col: "#5a4fd8",
+    edge: "#ffffff",
+    life: 0.75,
+    rot: -0.16,
+    size: 88,
   });
+};
 
-  // nothing delayed may run for a select that has gone
-  useEffect(() => {
-    const beats = now.current;
-    return () => {
-      beats.seq += 1;
-    };
-  }, []);
+// the new label lands on the trigger
+const landEffects = (rig: Rig) => {
+  const b = rig.trigger;
+  if (!b?.isConnected) {
+    return;
+  }
+  rig.land.x = 0.68;
+  if (rig.squash) {
+    rig.squash.s.v += 3;
+  }
+  const c = at(b, 1, 0);
+  const q = at(b);
+  ticks(c.x - 8, c.y - 4, { dir: -1.05, fan: 0.36, len: 17, life: 0.5, n: 3, r: 5 });
+  puff(q.x - q.w / 2 - 9, q.y + q.h / 2 - 2, { life: 0.6, n: 3, size: 7, vx: -12, vy: -8 });
+};
 
-  const rowAt = (i: number) => list.current?.querySelectorAll<HTMLElement>("[role=option]")[i];
+// point the raised highlight at a row; a jump puts it there without the slide
+const aim = (rig: Rig, row: HTMLElement, jump: boolean) => {
+  rig.under = row;
+  rig.rowY.to = row.offsetTop;
+  rig.rowH.to = row.offsetHeight;
+  if (jump) {
+    rig.rowY.x = rig.rowY.to;
+    rig.rowY.v = 0;
+    rig.rowH.x = rig.rowH.to;
+    rig.rowH.v = 0;
+  }
+};
 
-  // point the raised highlight at a row; quiet puts it there without the slide
-  const aim = (i: number, quiet = false) => {
-    const row = rowAt(i);
-    if (!row) {
-      return;
+// One frame of everything the select moves.
+const stepRig = (rig: Rig, dt: number) => {
+  rig.squash?.step(dt);
+  const { popup: m, list, raised } = rig;
+  const open = m?.hasAttribute("data-open") ?? false;
+  if (open && !rig.open) {
+    // it has just opened
+    rig.seq += 1;
+    rig.kept = false;
+    rig.jump = true;
+    rig.under = null;
+    if (rig.squash) {
+      rig.squash.s.v += 2;
     }
-    rowY.current.to = row.offsetTop;
-    rowH.current.to = row.offsetHeight;
-    if (quiet) {
-      rowY.current.x = rowY.current.to;
-      rowY.current.v = 0;
-      rowH.current.x = rowH.current.to;
-      rowH.current.v = 0;
-    }
-    // keep it in view inside the menu; the page never moves
-    const l = list.current;
-    if (l) {
-      const top = row.offsetTop;
-      const end = top + row.offsetHeight;
-      if (top < l.scrollTop) {
-        l.scrollTop = top;
-      } else if (end > l.scrollTop + l.clientHeight) {
-        l.scrollTop = end - l.clientHeight;
-      }
-    }
-  };
-
-  const move = (i: number) => {
-    const next = clamp(i, 0, options.length - 1);
-    setActive(next);
-    aim(next);
-  };
-
-  const shrink = () => {
-    out.current.to = 0;
-    out.current.d = 34;
-    flip.current.to = 0;
-  };
-
-  const hide = () => {
-    if (!now.current.open) {
-      return;
-    }
-    now.current.open = false;
-    now.current.typed = "";
-    now.current.seq += 1;
-    setOpen(false);
-    shrink();
-  };
-
-  const show = (i = Math.max(0, picked)) => {
-    const b = trigger.current;
-    const m = menu.current;
-    const l = list.current;
-    if (disabled || !b || !m || !l || options.length === 0) {
-      return;
-    }
-    const start = clamp(i, 0, options.length - 1);
-    // it opens to the side with more room when it does not fit below, and scrolls inside what there is
-    const box = b.getBoundingClientRect();
-    const below = innerHeight - box.bottom;
-    const frame = m.offsetHeight - l.offsetHeight;
-    const above = l.scrollHeight + frame + 25 > below && box.top > below;
-    l.style.maxHeight = `${clamp((above ? box.top : below) - frame - 25, 64, 320)}px`;
-    now.current.open = true;
-    now.current.seq += 1;
-    const n = now.current.seq;
-    setOpen(true);
-    setUp(above);
-    setActive(start);
-    aim(start, true);
-    out.current.to = 1;
-    out.current.d = 20;
-    flip.current.to = 1;
-    if (sqRef.current) {
-      sqRef.current.s.v += 2;
-    }
-    later(120, () => {
-      if (n !== now.current.seq) {
-        return;
-      }
-      const q = at(b);
-      // where the menu will come to rest, not where the overshoot has it now
-      const left = q.x - q.w / 2;
-      const right = left + m.offsetWidth;
-      const far = above ? -1 : 1;
-      const end = q.y + far * (q.h / 2 + 13 + m.offsetHeight);
-      puff(left - 9, end - far * 16, { life: 0.8, n: 4, size: 8, vx: -14, vy: -6 });
-      puff(right + 13, end - far * 30, { life: 0.7, n: 3, size: 7, vx: 14, vy: -10 });
-      // flipped, the word tucks in under the trigger so it stays in the control's own column
-      sfx("shu", q.x + q.w / 2 + (above ? -34 : 4), q.y - far * (q.h / 2 + (above ? 30 : 36)), {
-        col: "#5a4fd8",
-        edge: "#ffffff",
-        life: 0.75,
-        rot: -0.16,
-        size: 88,
+    if (rig.byHand) {
+      const n = rig.seq;
+      later(120, () => {
+        if (n === rig.seq) {
+          openEffects(rig);
+        }
       });
-    });
-  };
+    }
+    rig.byHand = false;
+  } else if (!open && rig.open) {
+    rig.seq += 1;
+  }
+  rig.open = open;
 
-  const choose = (i: number) => {
-    const option = options[i];
-    const row = rowAt(i);
-    const b = trigger.current;
-    if (!option || !now.current.open) {
-      return;
+  const s = rig.out;
+  const want = open || clock.now < rig.holdUntil ? 1 : 0;
+  s.to = want;
+  s.d = want ? 20 : 34;
+  rig.flip.to = want;
+  const y = Math.max(0, s.step(dt));
+  if (m) {
+    // stretched while it travels, squashed as it turns back: the volume stays
+    const st = clamp(1 + s.v * 0.012, 0.82, 1.22);
+    m.style.transform = `scale(${(y / st).toFixed(4)}, ${(y * st).toFixed(4)}) rotate(${((1 - y) * (isUp(m) ? 7 : -7)).toFixed(2)}deg)`;
+    if (!open && rig.kept && y < 0.004) {
+      rig.kept = false;
+      return true;
     }
-    if (option.value === current || !row || !b) {
-      hide();
-      return;
+  }
+  if (rig.chevron instanceof SVGElement) {
+    rig.chevron.style.transform = `rotate(${(rig.flip.step(dt) * 180).toFixed(1)}deg)`;
+  }
+  if (list && raised && open) {
+    // the highlight follows the row Base UI has highlighted, and starts on the chosen one
+    const lit =
+      list.querySelector<HTMLElement>("[data-highlighted]") ??
+      (rig.under ? null : list.querySelector<HTMLElement>("[data-selected]"));
+    if (lit && lit !== rig.under) {
+      aim(rig, lit, rig.jump);
+      rig.jump = false;
     }
-    // a tap gives no pointermove first: the highlight goes where the pick is
-    aim(i, true);
-    now.current.open = false;
-    now.current.typed = "";
-    now.current.seq += 1;
-    const n = now.current.seq;
-    setOpen(false);
-    if (value === undefined) {
-      setInner(option.value);
+  }
+  if (list && raised) {
+    const ry = rig.rowY;
+    const x = ry.step(dt);
+    const h = rig.rowH.step(dt) + Math.min(8, Math.abs(ry.v) * 0.04);
+    const top = x - (ry.v < 0 ? 0 : h - rig.rowH.x);
+    raised.style.transform = `translateY(${top.toFixed(2)}px)`;
+    raised.style.height = `${h.toFixed(2)}px`;
+    // a label's halo takes the highlight's colour while the highlight is behind it
+    for (const row of list.querySelectorAll<HTMLElement>("[role=option]")) {
+      const mid = row.offsetTop + row.offsetHeight / 2;
+      row.toggleAttribute("data-on", mid > top && mid < top + h);
     }
-    onValueChange?.(option.value);
+  }
+  if (rig.text) {
+    const p = rig.land.step(dt);
+    rig.text.style.transform =
+      Math.abs(p - 1) < 0.001 ? "" : `scale(${(1 + (1 - p) * 0.5).toFixed(3)}, ${p.toFixed(3)})`;
+  }
+  return false;
+};
+
+// a choice: the row inverts, the menu waits a beat, and the label lands if it really changed
+const chosen = (rig: Rig, pressed: EventTarget | null) => {
+  const { list, text } = rig;
+  const was = text?.textContent ?? "";
+  rig.seq += 1;
+  const n = rig.seq;
+  const landIfChanged = () => {
+    if (n === rig.seq && (text?.textContent ?? "") !== was) {
+      landEffects(rig);
+    }
+  };
+  if (!rig.open || !list) {
+    // changed with the menu shut (typing on the trigger): only the label has anything to do
+    later(0, landIfChanged);
+    return;
+  }
+  const row =
+    (pressed instanceof Element ? pressed.closest<HTMLElement>("[role=option]") : null) ??
+    list.querySelector<HTMLElement>("[data-highlighted]");
+  if (row && list.contains(row)) {
+    // a tap gives no hover first: the highlight goes where the pick is
+    aim(rig, row, true);
     // the impact frame, on the row
     row.dataset.inv = "";
     later(190, () => {
       delete row.dataset.inv;
     });
-    later(50, () => {
-      if (n === now.current.seq) {
-        shrink();
-      }
-    });
-    // the menu is back inside the trigger: the new label lands
-    later(190, () => {
-      // only if it is still here, and the value on show really is the new one
-      if (n !== now.current.seq || !b.isConnected || shown.current !== option.value) {
-        return;
-      }
-      land.current.x = 0.68;
-      if (sqRef.current) {
-        sqRef.current.s.v += 3;
-      }
-      const c = at(b, 1, 0);
-      const q = at(b);
-      ticks(c.x - 8, c.y - 4, { dir: -1.05, fan: 0.36, len: 17, life: 0.5, n: 3, r: 5 });
-      puff(q.x - q.w / 2 - 9, q.y + q.h / 2 - 2, { life: 0.6, n: 3, size: 7, vx: -12, vy: -8 });
-    });
-  };
+  }
+  rig.holdUntil = clock.now + 0.05;
+  // the menu is back inside the trigger: the new label lands
+  later(190, landIfChanged);
+};
 
-  // type a few letters to jump to the row that starts with them
-  const typeahead = (key: string) => {
-    const t = now.current;
-    t.typed = clock.now - t.typedAt > 0.5 ? key : t.typed + key;
-    t.typedAt = clock.now;
-    const from = t.typed.length === 1 && open ? active + 1 : 0;
-    for (let k = 0; k < options.length; k += 1) {
-      const i = (from + k) % options.length;
-      if (options[i]?.label.toLowerCase().startsWith(t.typed)) {
-        if (open) {
-          move(i);
-        } else {
-          show(i);
-        }
-        return;
-      }
-    }
-  };
-
-  const keys = (e: KeyboardEvent<HTMLButtonElement>) => {
-    if (e.altKey || e.ctrlKey || e.metaKey) {
-      return;
-    }
-    const last = options.length - 1;
-    const { key } = e;
-    if (key === "Tab") {
-      hide();
-      return;
-    }
-    if (key === "Escape") {
-      if (open) {
-        e.preventDefault();
-        hide();
-      }
-      return;
-    }
-    if (key.length === 1 && key !== " ") {
-      e.preventDefault();
-      typeahead(key.toLowerCase());
-      return;
-    }
-    const steps = new Map([
-      ["ArrowDown", active + 1],
-      ["ArrowUp", active - 1],
-      ["End", last],
-      ["Home", 0],
-    ]);
-    const to = steps.get(key);
-    const picks = key === "Enter" || key === " ";
-    if (to === undefined && !picks) {
-      return;
-    }
-    e.preventDefault();
-    if (!open) {
-      show(key === "Home" || key === "End" ? to : undefined);
-    } else if (picks) {
-      choose(active);
-    } else if (to !== undefined) {
-      move(to);
-    }
-  };
-
-  // a press anywhere else closes it
-  useEffect(() => {
-    if (!open) {
-      return;
-    }
-    const away = (e: PointerEvent) => {
-      if (e.target instanceof Node && !wrap.current?.contains(e.target)) {
-        hide();
-      }
-    };
-    document.addEventListener("pointerdown", away);
-    return () => document.removeEventListener("pointerdown", away);
-  });
+const SakugaSelect = <Value, Multiple extends boolean | undefined = false>({
+  actionsRef,
+  onOpenChange,
+  onValueChange,
+  children,
+  ...props
+}: SelectPrimitive.Root.Props<Value, Multiple>) => {
+  const rigRef = useMemo(() => ({ current: makeRig() }), []);
+  const ownActions = useRef<SelectPrimitive.Root.Actions>(null);
+  const actions = actionsRef ?? ownActions;
 
   useFrame((dt) => {
-    sqRef.current?.step(dt);
-    const s = out.current;
-    const y = Math.max(0, s.step(dt));
-    const m = menu.current;
-    if (m && wrap.current) {
-      const gone = y < 0.004 && s.to === 0;
-      // stretched while it travels, squashed as it turns back: the volume stays
-      const st = clamp(1 + s.v * 0.012, 0.82, 1.22);
-      m.style.transform = `scale(${(y / st).toFixed(4)}, ${(y * st).toFixed(4)}) rotate(${((1 - y) * (up ? 7 : -7)).toFixed(2)}deg)`;
-      m.style.visibility = gone ? "hidden" : "visible";
-      // over the cards after it while it is out
-      wrap.current.style.zIndex = gone ? "" : "30";
-    }
-    if (chevron.current) {
-      chevron.current.style.transform = `rotate(${(flip.current.step(dt) * 180).toFixed(1)}deg)`;
-    }
-    if (raised.current) {
-      const ry = rowY.current;
-      const x = ry.step(dt);
-      const h = rowH.current.step(dt) + Math.min(8, Math.abs(ry.v) * 0.04);
-      raised.current.style.transform = `translateY(${(x - (ry.v < 0 ? 0 : h - rowH.current.x)).toFixed(2)}px)`;
-      raised.current.style.height = `${h.toFixed(2)}px`;
-      // a label's halo takes the highlight's colour while the highlight is behind it
-      const top = x - (ry.v < 0 ? 0 : h - rowH.current.x);
-      for (const row of list.current?.querySelectorAll<HTMLElement>("[role=option]") ?? []) {
-        const mid = row.offsetTop + row.offsetHeight / 2;
-        row.toggleAttribute("data-on", mid > top && mid < top + h);
-      }
-    }
-    if (text.current) {
-      const p = land.current.step(dt);
-      text.current.style.transform =
-        Math.abs(p - 1) < 0.001 ? "" : `scale(${(1 + (1 - p) * 0.5).toFixed(3)}, ${p.toFixed(3)})`;
+    if (stepRig(rigRef.current, dt)) {
+      // the shrink has finished: now Base UI may take the popup away
+      actions.current?.unmount();
     }
   });
 
   return (
-    <span
-      ref={wrap}
-      className={`relative isolate inline-block align-middle text-[15px] leading-[1.4] font-medium text-(--sk-ink) ${FONT_BODY} ${className}`}
+    <SelectPrimitive.Root
+      modal={false}
+      {...props}
+      actionsRef={actions}
+      onOpenChange={(open, details) => {
+        onOpenChange?.(open, details);
+        if (details.isCanceled) {
+          return;
+        }
+        const rig = rigRef.current;
+        if (open) {
+          rig.byHand = details.reason !== "none" && details.reason !== "imperative-action";
+        } else {
+          // the popup stays until the spring has shrunk it away
+          details.preventUnmountOnClose();
+          rig.kept = true;
+        }
+      }}
+      onValueChange={(value, details) => {
+        onValueChange?.(value, details);
+        if (!details.isCanceled && details.reason !== "none") {
+          chosen(rigRef.current, details.event.target);
+        }
+      }}
     >
       <SakugaStyle />
-      <button
-        ref={trigger}
-        type="button"
-        // oxlint-disable-next-line jsx-a11y/prefer-tag-over-role -- a native select's menu cannot be drawn or put on a spring; this is the select-only combobox pattern
-        role="combobox"
-        aria-activedescendant={open ? `${id}-${active}` : undefined}
-        aria-controls={`${id}-menu`}
-        aria-expanded={open}
-        aria-haspopup="listbox"
-        id={triggerId}
-        aria-label={labelledBy ? undefined : label}
-        aria-labelledby={labelledBy}
-        disabled={disabled}
-        className={TRIGGER}
-        onBlur={hide}
-        onClick={() => (open ? hide() : show())}
-        onKeyDown={keys}
-        onKeyUp={(e) => {
-          // Space clicks a button on the way up; the keys above have already dealt with it
-          if (e.key === " ") {
-            e.preventDefault();
-          }
-        }}
-      >
-        <span ref={text} className="min-w-0 origin-left truncate will-change-transform">
-          {options[picked]?.label ?? placeholder}
-        </span>
-        <svg
-          ref={chevron}
-          aria-hidden
-          viewBox="0 0 20 20"
-          className="h-[20px] w-[20px] flex-none fill-none stroke-current stroke-[3.4] will-change-transform [stroke-linecap:round] [stroke-linejoin:round]"
-        >
-          <path d="M4.5 7.5l5.5 5.5 5.5-5.5" />
-        </svg>
-      </button>
-      <div
-        ref={menu}
-        role="presentation"
-        data-shut={open ? undefined : ""}
-        data-up={up ? "" : undefined}
-        className={MENU}
-        // keep focus on the trigger, which holds the keys
-        onMouseDown={(e) => e.preventDefault()}
-      >
-        <div
-          ref={list}
-          // oxlint-disable-next-line jsx-a11y/prefer-tag-over-role -- see the trigger: the list is drawn, so it cannot be a native select
-          role="listbox"
-          id={`${id}-menu`}
-          tabIndex={-1}
-          aria-label={labelledBy ? undefined : label}
-          aria-labelledby={labelledBy}
-          className={LIST}
-        >
-          <span
-            ref={raised}
-            aria-hidden
-            className="absolute top-0 right-0 left-0 rounded-[9px] bg-(--sk-soft) [border:2.4px_solid_var(--sk-ink)] will-change-transform"
-          />
-          {options.map((o, i) => (
-            // oxlint-disable-next-line jsx-a11y/click-events-have-key-events -- focus stays on the trigger, which holds the keys and points here with aria-activedescendant
-            <div
-              key={o.value}
-              // oxlint-disable-next-line jsx-a11y/prefer-tag-over-role -- see the trigger
-              role="option"
-              id={`${id}-${i}`}
-              tabIndex={-1}
-              aria-selected={i === picked}
-              className={ROW}
-              onClick={() => choose(i)}
-              onPointerMove={() => {
-                if (open && i !== active) {
-                  move(i);
-                }
-              }}
-            >
-              {o.label}
-              <svg
-                aria-hidden
-                viewBox="0 0 24 18"
-                className={`h-[12px] w-[16px] flex-none fill-none stroke-(--sk-acc) stroke-[4.6] [stroke-linecap:round] [stroke-linejoin:round] ${i === picked ? "" : "invisible"}`}
-              >
-                <path d="M3 9.5l6 6L21 2.5" />
-              </svg>
-            </div>
-          ))}
-        </div>
-      </div>
-      {name !== undefined && (
-        <input type="hidden" name={name} value={current} disabled={disabled} />
-      )}
-    </span>
+      <RigContext value={rigRef}>{children}</RigContext>
+    </SelectPrimitive.Root>
   );
 };
+
+const PRESS = { low: 0.8, wide: 0.3 };
+
+const SakugaSelectTrigger = ({
+  className,
+  children,
+  ...props
+}: Styled<SelectPrimitive.Trigger.Props>) => {
+  const rigRef = useRig();
+  const el = useRef<HTMLButtonElement>(null);
+  const sqRef = useSquashy(el, PRESS);
+  return (
+    <SelectPrimitive.Trigger
+      data-slot="sakuga-select-trigger"
+      className={cn(
+        "relative isolate inline-flex min-w-[196px] cursor-pointer touch-manipulation items-center justify-between gap-[14px] rounded-(--sk-r) bg-(--sk-card) py-[11px] pr-[14px] pl-[18px] text-left align-middle text-[17px] leading-[1.1] [font-weight:800] tracking-[-0.01em] text-(--sk-ink) italic shadow-(--sk-sh) [border:var(--sk-bw)_solid_var(--sk-ink)] will-change-transform select-none focus-visible:outline-[2.5px] focus-visible:outline-offset-[3px] focus-visible:outline-(--sk-acc) data-disabled:cursor-not-allowed data-disabled:opacity-45",
+        FONT_DISPLAY,
+        className,
+      )}
+      {...props}
+      ref={(node: HTMLButtonElement | null) => {
+        el.current = node;
+        rigRef.current.trigger = node;
+        // the press squash is made once the button is there; the root steps it with the rest
+        rigRef.current.squash = node ? sqRef.current : null;
+      }}
+      onPointerDown={(e) => {
+        props.onPointerDown?.(e);
+        rigRef.current.squash = sqRef.current;
+      }}
+    >
+      {children}
+      <SelectPrimitive.Icon
+        render={
+          <svg
+            ref={(node) => {
+              rigRef.current.chevron = node;
+            }}
+            aria-hidden
+            viewBox="0 0 20 20"
+            className="h-[20px] w-[20px] flex-none fill-none stroke-current stroke-[3.4] will-change-transform [stroke-linecap:round] [stroke-linejoin:round]"
+          />
+        }
+      >
+        <path d="M4.5 7.5l5.5 5.5 5.5-5.5" />
+      </SelectPrimitive.Icon>
+    </SelectPrimitive.Trigger>
+  );
+};
+
+const SakugaSelectValue = ({ className, ...props }: Styled<SelectPrimitive.Value.Props>) => {
+  const rigRef = useRig();
+  return (
+    <SelectPrimitive.Value
+      data-slot="sakuga-select-value"
+      className={cn("min-w-0 origin-left truncate will-change-transform", className)}
+      {...props}
+      ref={(node) => {
+        rigRef.current.text = node;
+      }}
+    />
+  );
+};
+
+// The menu. It rests 13px off the trigger, level with its left edge, and scrolls inside whatever
+// room Base UI finds for it.
+const SakugaSelectContent = ({
+  className,
+  children,
+  side = "bottom",
+  sideOffset = 13,
+  align = "start",
+  alignOffset = 0,
+  alignItemWithTrigger = false,
+  collisionPadding = 12,
+  ...props
+}: Styled<SelectPrimitive.Popup.Props> &
+  Pick<
+    SelectPrimitive.Positioner.Props,
+    "align" | "alignOffset" | "side" | "sideOffset" | "alignItemWithTrigger" | "collisionPadding"
+  >) => {
+  const rigRef = useRig();
+  return (
+    <SelectPrimitive.Portal>
+      <SelectPrimitive.Positioner
+        side={side}
+        sideOffset={sideOffset}
+        align={align}
+        alignOffset={alignOffset}
+        alignItemWithTrigger={alignItemWithTrigger}
+        collisionPadding={collisionPadding}
+        className="isolate z-50"
+      >
+        <SelectPrimitive.Popup
+          data-slot="sakuga-select-content"
+          className={cn(
+            "w-max max-w-[min(300px,calc(100vw-32px))] min-w-(--anchor-width) origin-[50%_-16px] rounded-[13px] bg-(--sk-card) p-[5px] text-[15px] leading-[1.4] [font-weight:500] text-(--sk-ink) shadow-(--sk-sh) outline-none [border:var(--sk-bw)_solid_var(--sk-ink)] [transform:scale(0)] will-change-transform data-closed:pointer-events-none data-[side=top]:origin-[50%_calc(100%+16px)]",
+            FONT_BODY,
+            className,
+          )}
+          {...props}
+          ref={(node: HTMLDivElement | null) => {
+            rigRef.current.popup = node;
+          }}
+        >
+          <SelectPrimitive.List
+            ref={(node: HTMLDivElement | null) => {
+              rigRef.current.list = node;
+            }}
+            className="relative max-h-[min(320px,calc(var(--available-height)-17px))] overflow-y-auto overscroll-contain outline-none [scrollbar-color:var(--sk-ink)_transparent] [scrollbar-width:thin]"
+          >
+            <span
+              ref={(node) => {
+                rigRef.current.raised = node;
+              }}
+              aria-hidden
+              className="absolute top-0 right-0 left-0 rounded-[9px] bg-(--sk-soft) [border:2.4px_solid_var(--sk-ink)] will-change-transform"
+            />
+            {children}
+          </SelectPrimitive.List>
+        </SelectPrimitive.Popup>
+      </SelectPrimitive.Positioner>
+    </SelectPrimitive.Portal>
+  );
+};
+
+// Each label carries a halo in the colour of what is behind it, so the highlight's ink edge parts
+// round the letters as it crosses a row instead of striking them through.
+const SakugaSelectItem = ({ className, children, ...props }: Styled<SelectPrimitive.Item.Props>) => (
+  <SelectPrimitive.Item
+    data-slot="sakuga-select-item"
+    className={cn(
+      "group/sk-row relative flex cursor-pointer items-center justify-between gap-[14px] rounded-[9px] px-[12px] py-[9px] text-[15px] leading-[1.2] [font-weight:600] whitespace-nowrap outline-none select-none [paint-order:stroke_fill] [-webkit-text-stroke:3px_var(--sk-card)] data-disabled:cursor-not-allowed data-disabled:opacity-45 data-on:[-webkit-text-stroke-color:var(--sk-soft)] data-selected:[font-weight:800] data-inv:bg-(--sk-ink) data-inv:text-(--sk-card) data-inv:[-webkit-text-stroke-color:var(--sk-ink)]!",
+      className,
+    )}
+    {...props}
+  >
+    <SelectPrimitive.ItemText>{children}</SelectPrimitive.ItemText>
+    <SelectPrimitive.ItemIndicator
+      keepMounted
+      render={
+        <svg
+          aria-hidden
+          viewBox="0 0 24 18"
+          className="invisible h-[12px] w-[16px] flex-none fill-none stroke-(--sk-acc) stroke-[4.6] [stroke-linecap:round] [stroke-linejoin:round] group-data-selected/sk-row:visible"
+        />
+      }
+    >
+      <path d="M3 9.5l6 6L21 2.5" />
+    </SelectPrimitive.ItemIndicator>
+  </SelectPrimitive.Item>
+);
+
+export { SakugaSelect, SakugaSelectContent, SakugaSelectItem, SakugaSelectTrigger, SakugaSelectValue };

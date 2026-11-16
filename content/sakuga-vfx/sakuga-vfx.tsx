@@ -125,7 +125,7 @@ export const SakugaVfx = () => (
       </Card>
       {/* ── slider card ── */}
       <Card id="slider" name="Slider" how="Drag it fast, and let go while it is moving.">
-        <SakugaSlider defaultValue={30} aria-label="Volume" />
+        <SakugaSlider defaultValue={30} label="Volume" />
       </Card>
       {/* ── checkbox card ── */}
       <Card id="checkbox" name="Checkbox" how="Tick it.">

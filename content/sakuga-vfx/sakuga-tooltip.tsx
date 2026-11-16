@@ -35,6 +35,49 @@ interface Shared {
   triggerId: string;
 }
 
+// Where the trigger sits in the layout, without the squash it is drawn with. The bubble is
+// anchored to this, so it does not ride the trigger's bounce.
+const layoutBox = (el: HTMLElement) => {
+  const r = el.getBoundingClientRect();
+  const w = el.offsetWidth;
+  const h = el.offsetHeight;
+  return new DOMRect(r.x + (r.width - w) / 2, r.y + (r.height - h) / 2, w, h);
+};
+
+// Base UI snaps the positioner to whole pixels. Slide the bubble by the part of a pixel that was
+// lost, so it sits exactly on its anchor, as a bubble laid out inside its trigger would.
+const unsnap = ({ tip, trigger }: Rig) => {
+  const box = tip?.parentElement;
+  if (!tip || !trigger || !box) {
+    return;
+  }
+  const { side, align } = box.dataset;
+  const gap = Number(box.dataset.gap);
+  const a = layoutBox(trigger);
+  const p = box.getBoundingClientRect();
+  const upright = side === "top" || side === "bottom";
+  const flat = side === "left" || side === "right";
+  let dx = 0;
+  let dy = 0;
+  if (upright && align === "center") {
+    dx = a.x + a.width / 2 - (p.x + p.width / 2);
+  } else if (side === "left") {
+    dx = a.x - gap - p.right;
+  } else if (side === "right") {
+    dx = a.right + gap - p.x;
+  }
+  if (flat && align === "center") {
+    dy = a.y + a.height / 2 - (p.y + p.height / 2);
+  } else if (side === "top") {
+    dy = a.y - gap - p.bottom;
+  } else if (side === "bottom") {
+    dy = a.bottom + gap - p.y;
+  }
+  // more than a pixel is not rounding: the positioner was moved on purpose
+  const sub = Math.abs(dx) < 1 && Math.abs(dy) < 1;
+  tip.style.translate = sub ? `${dx}px ${dy}px` : "";
+};
+
 const SharedContext = createContext<Shared | null>(null);
 
 const useShared = () => {
@@ -129,6 +172,9 @@ const SakugaTooltip = ({
     const y = Math.max(0, rig.s.step(dt));
     if (rig.tip) {
       rig.tip.style.transform = `scale(${y}) rotate(${(1 - y) * -10}deg)`;
+    }
+    if (rig.open || rig.held) {
+      unsnap(rig);
     }
     // Base UI was asked to keep the closed bubble on the page; let it go once it has shrunk to nothing
     if (rig.held && !rig.open && y === 0) {
@@ -255,19 +301,32 @@ const SakugaTooltipContent = ({
   align = "center",
   alignOffset = 0,
   collisionAvoidance = STAY,
+  anchor,
   children,
   ...props
 }: Styled<TooltipPrimitive.Popup.Props> &
   Pick<
     TooltipPrimitive.Positioner.Props,
-    "align" | "alignOffset" | "collisionAvoidance" | "side" | "sideOffset"
+    "align" | "alignOffset" | "anchor" | "collisionAvoidance" | "side" | "sideOffset"
   >) => {
   const { rigRef, tipId } = useShared();
+  const still = useMemo(
+    () => ({
+      get contextElement() {
+        return rigRef.current.trigger ?? undefined;
+      },
+      getBoundingClientRect: () =>
+        rigRef.current.trigger ? layoutBox(rigRef.current.trigger) : new DOMRect(),
+    }),
+    [rigRef],
+  );
   return (
     <TooltipPrimitive.Portal keepMounted>
       <TooltipPrimitive.Positioner
         align={align}
         alignOffset={alignOffset}
+        anchor={anchor ?? still}
+        data-gap={typeof sideOffset === "number" && !anchor ? sideOffset : undefined}
         collisionAvoidance={collisionAvoidance}
         side={side}
         sideOffset={sideOffset}
