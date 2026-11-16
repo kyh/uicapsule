@@ -330,7 +330,15 @@ const SakugaSelect = <Value, Multiple extends boolean | undefined = false>({
   const [ownOpen, setOwnOpen] = useState(defaultOpen);
   const open = openProp ?? ownOpen;
   // The root holds the value when no parent does, so a form reset can put the default back.
-  const [ownValue, setOwnValue] = useState(defaultValue);
+  // null (or no rows, when several can be chosen) is nothing chosen: the primitive stays
+  // controlled from the first render.
+  const { multiple } = props;
+  // SAFETY: null and an empty list are the primitive's own empty values for one and for several.
+  const start = useMemo(
+    () => (defaultValue ?? (multiple ? [] : null)) as typeof valueProp,
+    [defaultValue, multiple],
+  );
+  const [ownValue, setOwnValue] = useState(start);
   const owned = valueProp !== undefined;
   const field = useRef<HTMLInputElement>(null);
   const fieldRef = useMergedRef(field, inputRef);
@@ -346,10 +354,10 @@ const SakugaSelect = <Value, Multiple extends boolean | undefined = false>({
     if (!form || owned) {
       return;
     }
-    const reset = () => setOwnValue(defaultValue);
+    const reset = () => setOwnValue(start);
     form.addEventListener("reset", reset);
     return () => form.removeEventListener("reset", reset);
-  }, [owned, defaultValue]);
+  }, [owned, start]);
 
   useFrame((dt) => {
     if (stepRig(rigRef.current, dt)) {

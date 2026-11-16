@@ -9,7 +9,7 @@
 import { Radio as RadioPrimitive } from "@base-ui/react/radio";
 import { RadioGroup as RadioGroupPrimitive } from "@base-ui/react/radio-group";
 import { cn } from "cn";
-import { createContext, use, useEffect, useLayoutEffect, useMemo, useRef } from "react";
+import { createContext, use, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import type { RefObject } from "react";
 
 import { Spring, at, hollow, later, lines, puff, sfx, ticks } from "./sakuga-core";
@@ -72,14 +72,18 @@ const SakugaRadioGroup = <Value,>({
   const handRef = useRef<{ value: unknown } | null>(null);
   const itemsRef = useRef(new Map<unknown, Item>());
   const picks = useMemo(() => ({ handRef, itemsRef }), []);
-  // set while its form's reset puts it back, so that change plays nothing
-  const quiet = useRef(false);
+  // The group holds the pick when no parent does, so a form reset can put the starting one back.
+  // null is no pick: the primitive stays controlled from the first render.
+  const [own, setOwn] = useState<Value | null>(defaultValue ?? null);
 
   // Base UI only calls this for a person's pick, by pointer or by arrow key
   const change = (next: Value, details: RadioGroupPrimitive.ChangeEventDetails) => {
     onValueChange?.(next, details);
-    if (details.isCanceled || quiet.current) {
+    if (details.isCanceled) {
       return;
+    }
+    if (value === undefined) {
+      setOwn(next);
     }
     const mark = { value: next };
     handRef.current = mark;
@@ -105,22 +109,14 @@ const SakugaRadioGroup = <Value,>({
   }, [value]);
 
   // Base UI leaves a form's reset to the browser, which moves only the hidden inputs, so the group
-  // would go on showing the old pick. Pick the starting value again through its input, quietly,
-  // just before.
+  // would go on showing the old pick. Put the starting pick back; a change from code plays nothing.
   useEffect(() => {
     const [first] = itemsRef.current.values();
     const form = first?.input()?.form;
     if (value !== undefined || !form) {
       return;
     }
-    const back = () => {
-      const hidden = itemsRef.current.get(defaultValue)?.input();
-      if (hidden && !hidden.checked) {
-        quiet.current = true;
-        hidden.click();
-        quiet.current = false;
-      }
-    };
+    const back = () => setOwn(defaultValue ?? null);
     form.addEventListener("reset", back);
     return () => form.removeEventListener("reset", back);
   }, [value, defaultValue]);
@@ -131,8 +127,8 @@ const SakugaRadioGroup = <Value,>({
       <RadioGroupPrimitive
         data-slot="sakuga-radio-group"
         className={cn(GROUP, className)}
-        value={value}
-        defaultValue={defaultValue}
+        // SAFETY: the primitive reads null as no pick (it tests `== null`); only its type leaves null out.
+        value={value === undefined ? (own as Value) : value}
         onValueChange={change}
         {...props}
       />

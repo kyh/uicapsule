@@ -2,7 +2,7 @@
 
 // The React side of the core: the shared stylesheet, and hooks that put a control on the shared clock.
 
-import { useCallback, useEffect, useRef } from "react";
+import { useCallback, useEffect, useLayoutEffect, useRef } from "react";
 import type { Ref, RefCallback, RefObject } from "react";
 
 import { addBackLayer, onFrame, removeBackLayer, squashy } from "./sakuga-core";
@@ -25,22 +25,52 @@ const assignRef = <T,>(ref: Ref<T> | undefined, node: T | null): (() => void) | 
 
 // One ref callback that feeds several refs: ours, and the one a consumer (or a `render` composition) passes.
 // Every part that needs its own element uses this, so a consumer's ref never replaces or loses ours.
+// The callback itself never changes, so React does not detach and re-attach the element on every
+// render; a ref that is swapped for another is handed the element in the same commit.
 export const useMergedRef = <T,>(...refs: (Ref<T> | undefined)[]): RefCallback<T> => {
   const latest = useRef(refs);
-  useEffect(() => {
+  const held = useRef<{ node: T | null; cleanups: ((() => void) | null)[]; refs: typeof refs }>({
+    cleanups: [],
+    node: null,
+    refs: [],
+  });
+  const release = (i: number) => {
+    const cleanup = held.current.cleanups[i];
+    if (cleanup) {
+      cleanup();
+    } else {
+      assignRef(held.current.refs[i], null);
+    }
+  };
+  useLayoutEffect(() => {
     latest.current = refs;
+    const h = held.current;
+    if (h.node === null) {
+      return;
+    }
+    for (const [i, ref] of refs.entries()) {
+      if (h.refs[i] !== ref) {
+        release(i);
+        h.refs[i] = ref;
+        h.cleanups[i] = assignRef(ref, h.node);
+      }
+    }
   });
   return useCallback((node: T | null) => {
-    const cleanups = latest.current.map((ref) => assignRef(ref, node));
+    const h = held.current;
+    h.node = node;
+    h.refs = [...latest.current];
+    h.cleanups = h.refs.map((ref) => assignRef(ref, node));
     return () => {
-      for (const [i, ref] of latest.current.entries()) {
-        const cleanup = cleanups[i];
+      for (const i of h.refs.keys()) {
+        const cleanup = h.cleanups[i];
         if (cleanup) {
           cleanup();
         } else {
-          assignRef(ref, null);
+          assignRef(h.refs[i], null);
         }
       }
+      held.current = { cleanups: [], node: null, refs: [] };
     };
   }, []);
 };
