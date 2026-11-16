@@ -291,20 +291,20 @@ const SakugaSlider = ({
             );
           }}
         </SliderPrimitive.Value>
+        {/* Beside the control, not inside it: it only shows the value, the control takes the pointer. */}
+        <SliderPrimitive.Thumb
+          ref={thumb}
+          data-slot="sakuga-slider-thumb"
+          aria-label={ariaLabel}
+          className={THUMB}
+          // the thumb rides the spring: Base UI's own placement is switched off
+          style={{ insetInlineStart: 0, top: 9, translate: "none" }}
+        />
         <SliderPrimitive.Control
           data-slot="sakuga-slider-control"
           className={CONTROL}
           onPointerDownCapture={pressDown}
-        >
-          <SliderPrimitive.Thumb
-            ref={thumb}
-            data-slot="sakuga-slider-thumb"
-            aria-label={ariaLabel}
-            className={THUMB}
-            // the thumb rides the spring: Base UI's own placement is switched off
-            style={{ insetInlineStart: 0, top: 17, translate: "none" }}
-          />
-        </SliderPrimitive.Control>
+        />
       </div>
     </SliderPrimitive.Root>
   );

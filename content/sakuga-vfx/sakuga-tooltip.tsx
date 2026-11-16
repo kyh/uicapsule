@@ -26,6 +26,8 @@ interface Rig {
   trigger: HTMLElement | null;
   // the little jump the trigger makes as the bubble leaves it
   kick: (() => void) | null;
+  // the trigger was last reached by touch or pen, not a mouse
+  touch: boolean;
   // the trigger's layout box, as an anchor for the positioner
   still: { contextElement: Element | undefined; getBoundingClientRect: () => DOMRect };
 }
@@ -62,6 +64,7 @@ const makeRig = (): RefObject<Rig> => {
           rigRef.current.trigger ? layoutBox(rigRef.current.trigger) : new DOMRect(),
       },
       tip: null,
+      touch: false,
       trigger: null,
     },
   };
@@ -206,6 +209,11 @@ const SakugaTooltip = ({
         actionsRef={actions}
         disableHoverablePopup={disableHoverablePopup}
         onOpenChange={(next, details) => {
+          // a finger has no hover to end: the mouseleave a tap leaves behind does not close it
+          if (!next && details.reason === "trigger-hover" && rigRef.current.touch) {
+            details.cancel();
+            return;
+          }
           onOpenChange?.(next, details);
           if (details.isCanceled) {
             return;
@@ -237,6 +245,8 @@ const SakugaTooltipTrigger = ({
   onBlur,
   onClick,
   onFocus,
+  onPointerDown,
+  onPointerEnter,
   ...props
 }: Styled<TooltipPrimitive.Trigger.Props>) => {
   const { handle, rigRef, tipId, triggerId } = useShared();
@@ -280,6 +290,14 @@ const SakugaTooltipTrigger = ({
       delay={delay}
       {...props}
       ref={el}
+      onPointerEnter={(e) => {
+        onPointerEnter?.(e);
+        rigRef.current.touch = e.pointerType !== "mouse";
+      }}
+      onPointerDown={(e) => {
+        onPointerDown?.(e);
+        rigRef.current.touch = e.pointerType !== "mouse";
+      }}
       onFocus={(e) => {
         onFocus?.(e);
         // any focus opens it, not only a keyboard one

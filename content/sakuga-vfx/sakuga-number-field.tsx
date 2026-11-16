@@ -22,7 +22,7 @@ import { cn } from "cn";
 import { createContext, use, useEffect, useMemo, useRef } from "react";
 import type { RefObject } from "react";
 
-import { Spring, at, clock, hollow, lines, puff, rnd, sfx, ticks, wob } from "./sakuga-core";
+import { Spring, at, clock, hollow, later, lines, puff, rnd, sfx, ticks, wob } from "./sakuga-core";
 import { FONT_BODY, FONT_DISPLAY, SakugaStyle, useFrame, useSquashy } from "./sakuga-react";
 
 type Styled<Props> = Omit<Props, "className"> & { className?: string };
@@ -41,6 +41,9 @@ interface Rig {
   stepped: number;
   said: number;
   bumped: number;
+  // which press this is, and how many steps it has made
+  hold: number;
+  holdSteps: number;
   // the number is kicked the way it was stepped
   hit: (dir: number) => void;
   // nothing changed: the pill meets the wall on that side
@@ -119,6 +122,8 @@ const makeRig = (): Rig => {
         });
       }
     },
+    hold: 0,
+    holdSteps: 0,
     jolt: new Spring(0, 460, 12),
     kick: new Spring(0, 440, 13),
     lean: new Spring(0, 260, 10),
@@ -219,6 +224,20 @@ const SakugaNumberField = ({
         } else if (dir !== 0) {
           asked.current = { dir, to: next };
         }
+        // Held onto the limit, Base UI's repeat just stops; the pill still meets the wall when
+        // the next step would have come (60ms into a repeat, 400ms after a first press).
+        if (details.reason.endsWith("-press")) {
+          const rig = rigRef.current;
+          rig.holdSteps += 1;
+          if (next === (dir > 0 ? props.max : props.min)) {
+            const n = rig.hold;
+            later(rig.holdSteps > 1 ? 60 : 400, () => {
+              if (n === rig.hold && rig.press.to < 1) {
+                rig.bump(dir);
+              }
+            });
+          }
+        }
       }}
       {...props}
       ref={(el) => {
@@ -268,6 +287,7 @@ const useSide = (dir: number, { onClick, onPointerDownCapture, ...props }: SideP
   useFrame((dt) => sqRef.current?.step(dt));
   const letGo = () => {
     rigRef.current.press.to = 1;
+    rigRef.current.hold += 1;
   };
   return {
     ...props,
@@ -303,6 +323,8 @@ const useSide = (dir: number, { onClick, onPointerDownCapture, ...props }: SideP
         }
       }
       rig.press.to = 0.9;
+      rig.hold += 1;
+      rig.holdSteps = 0;
       // at the limit Base UI steps nothing, and the pill says so
       if (e.currentTarget.matches("[data-disabled]")) {
         rig.bump(dir);

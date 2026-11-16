@@ -180,7 +180,8 @@ const edge = (rig: Rig, open: boolean) => {
 // the menu out of the trigger and back, and the chevron over; true once a kept popup has gone
 const stepMenu = (rig: Rig, open: boolean, dt: number) => {
   const s = rig.out;
-  const want = open || rig.held ? 1 : 0;
+  // `kept` is set the moment a person closes it, a little before Base UI's attribute follows
+  const want = (open && !rig.kept) || rig.held ? 1 : 0;
   s.to = want;
   s.d = want ? 20 : 34;
   rig.flip.to = want;
@@ -208,8 +209,8 @@ const stepRaised = (rig: Rig, open: boolean, dt: number) => {
   if (!list || !raised) {
     return;
   }
-  if (open) {
-    // it starts on the chosen row
+  if (open && !rig.held) {
+    // it starts on the chosen row, and stays under a row that has just been picked
     const lit =
       list.querySelector<HTMLElement>("[data-highlighted]") ??
       (rig.under ? null : list.querySelector<HTMLElement>("[data-selected]"));
@@ -313,6 +314,7 @@ const SakugaSelect = <Value, Multiple extends boolean | undefined = false>({
         }
         const rig = rigRef.current;
         if (open) {
+          rig.kept = false;
           rig.byHand = details.reason !== "none" && details.reason !== "imperative-action";
         } else {
           // the popup stays until the spring has shrunk it away

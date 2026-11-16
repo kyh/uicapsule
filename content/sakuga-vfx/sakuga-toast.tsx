@@ -11,8 +11,8 @@
 
 import { Toast as ToastPrimitive } from "@base-ui/react/toast";
 import { cn } from "cn";
-import { useLayoutEffect, useRef } from "react";
-import type { ReactNode } from "react";
+import { useEffect, useLayoutEffect, useRef } from "react";
+import type { ReactNode, RefObject } from "react";
 
 import {
   Spring,
@@ -62,14 +62,24 @@ type Phase = 0 | 1 | 2 | 3;
 
 const DUST = [-0.5, -0.36, -0.2] as const;
 
+// The toast has no drag to follow, so Base UI's swipe-to-dismiss is off.
+const NO_SWIPE: ("down" | "left" | "right" | "up")[] = [];
+
 const TOAST =
   "absolute bottom-0 left-0 flex w-[236px] items-center gap-[10px] rounded-(--sk-r) [border:var(--sk-bw)_solid_var(--sk-ink)] bg-(--sk-card) px-[14px] py-[12px] text-[15px] font-bold whitespace-nowrap shadow-(--sk-sh) will-change-transform focus-visible:outline-[2.5px] focus-visible:outline-offset-[3px] focus-visible:outline-(--sk-acc)";
 
+type Step = (dt: number) => void;
+
 const SakugaToast = ({
   toast: item,
+  stepsRef,
   className,
   ...props
-}: Styled<ToastPrimitive.Root.Props> & { toast: ToastObject }) => {
+}: Styled<ToastPrimitive.Root.Props> & {
+  toast: ToastObject;
+  // where the toast puts its frame step, for the toaster to run
+  stepsRef: RefObject<Set<RefObject<Step>>>;
+}) => {
   const el = useRef<HTMLDivElement>(null);
   const sx = useRef(new Spring(-280, 280, 18));
   const ss = useRef(new Spring(1, 420, 26));
@@ -80,6 +90,8 @@ const SakugaToast = ({
   // paused animation is what it waits for; it is finished by hand when the spring has shrunk the
   // toast away, so the leave runs in full on the set's clock.
   const holdRef = useRef<Animation | null>(null);
+  // the turn of the toast's life last acted on
+  const seen = useRef("");
   const ending = item.transitionStatus === "ending";
   const duration = item.data?.duration ?? STAY;
 
@@ -122,6 +134,11 @@ const SakugaToast = ({
 
   // A new toast, or a new message on the one that is up, arrives. A closed one leaves.
   useLayoutEffect(() => {
+    const turn = `${item.updateKey}${ending ? " ending" : ""}`;
+    if (turn === seen.current) {
+      return;
+    }
+    seen.current = turn;
     if (!ending) {
       arrive();
       return;
@@ -133,10 +150,9 @@ const SakugaToast = ({
     if (phase.current === 0) {
       release();
     }
-    // oxlint-disable-next-line react-hooks/exhaustive-deps -- runs once per change of the toast, not per render
-  }, [ending, item.updateKey]);
+  });
 
-  useFrame((dt) => {
+  const step: Step = (dt) => {
     t.current += dt;
     const toast = el.current;
     if (!toast || phase.current === 0) {
@@ -185,7 +201,21 @@ const SakugaToast = ({
       toast.style.transform = "";
       release();
     }
+  };
+
+  // The toaster steps its toasts from the frame it took when the page loaded, so a toast keeps
+  // its turn among the page's controls however late it is shown.
+  const stepRef = useRef(step);
+  useEffect(() => {
+    stepRef.current = step;
   });
+  useEffect(() => {
+    const steps = stepsRef.current;
+    steps.add(stepRef);
+    return () => {
+      steps.delete(stepRef);
+    };
+  }, [stepsRef]);
 
   return (
     <ToastPrimitive.Root
@@ -223,12 +253,15 @@ const SakugaToast = ({
   );
 };
 
-// The toast has no drag to follow, so Base UI's swipe-to-dismiss is off.
-const NO_SWIPE: ("down" | "left" | "right" | "up")[] = [];
-
 const SakugaToastList = () => {
   const { toasts } = ToastPrimitive.useToastManager<SakugaToastData>();
-  return toasts.map((item) => <SakugaToast key={item.id} toast={item} />);
+  const stepsRef = useRef(new Set<RefObject<Step>>());
+  useFrame((dt) => {
+    for (const stepRef of stepsRef.current) {
+      stepRef.current(dt);
+    }
+  });
+  return toasts.map((item) => <SakugaToast key={item.id} toast={item} stepsRef={stepsRef} />);
 };
 
 // The slot the toast lands in: 236 by 56, kept while the toast is hidden.

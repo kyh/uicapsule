@@ -106,6 +106,13 @@ const ToastCard = () => (
   </Card>
 );
 
+const STAGES = [
+  { label: "Key frames", value: "key" },
+  { label: "In-betweens", value: "inbetween" },
+  { label: "Clean-up", value: "cleanup" },
+  { label: "Paint", value: "paint" },
+];
+
 export const SakugaVfx = () => (
   <div
     className={`w-full max-w-[1080px] text-[15px] leading-[1.45] font-medium text-[#1d1a4a] ${FONT_BODY}`}
@@ -178,7 +185,7 @@ export const SakugaVfx = () => (
         how="It plays a load by itself, in surges. Click it to start again."
         wide
       >
-        <SakugaProgress demo label="Loading" />
+        <SakugaProgress demo aria-label="Loading" />
       </Card>
       {/* ── rating card ── */}
       <Card id="rating" name="Rating" how="Give it five.">
