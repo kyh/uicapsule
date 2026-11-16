@@ -230,7 +230,6 @@ const stepRaised = (rig: Rig, open: boolean, dt: number) => {
 
 // One frame of everything the select moves. True when the popup may be unmounted.
 const stepRig = (rig: Rig, dt: number) => {
-  rig.squash?.step(dt);
   const open = rig.popup?.dataset.open !== undefined;
   edge(rig, open);
   const gone = stepMenu(rig, open, dt);
@@ -336,6 +335,11 @@ const SakugaSelectTrigger = ({
   const rigRef = useRig();
   const el = useRef<HTMLButtonElement>(null);
   const sqRef = useSquashy(el, PRESS);
+  // the press squash steps here; the root reaches it to give the trigger its small kicks
+  useFrame((dt) => {
+    rigRef.current.squash = sqRef.current;
+    sqRef.current?.step(dt);
+  });
   return (
     <SelectPrimitive.Trigger
       data-slot="sakuga-select-trigger"
@@ -348,12 +352,6 @@ const SakugaSelectTrigger = ({
       ref={(node: HTMLButtonElement | null) => {
         el.current = node;
         rigRef.current.trigger = node;
-        // the press squash is made once the button is there; the root steps it with the rest
-        rigRef.current.squash = node ? sqRef.current : null;
-      }}
-      onPointerDown={(e) => {
-        props.onPointerDown?.(e);
-        rigRef.current.squash = sqRef.current;
       }}
     >
       {children}

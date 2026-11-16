@@ -26,6 +26,8 @@ interface Rig {
   trigger: HTMLElement | null;
   // the little jump the trigger makes as the bubble leaves it
   kick: (() => void) | null;
+  // the trigger's layout box, as an anchor for the positioner
+  still: { contextElement: Element | undefined; getBoundingClientRect: () => DOMRect };
 }
 
 interface Shared {
@@ -44,14 +46,27 @@ const layoutBox = (el: HTMLElement) => {
   return new DOMRect(r.x + (r.width - w) / 2, r.y + (r.height - h) / 2, w, h);
 };
 
-// that box as an anchor for the positioner (built out here because contextElement is a getter)
-const stillAnchor = (rigRef: RefObject<Rig>) => ({
-  get contextElement() {
-    return rigRef.current.trigger ?? undefined;
-  },
-  getBoundingClientRect: () =>
-    rigRef.current.trigger ? layoutBox(rigRef.current.trigger) : new DOMRect(),
-});
+// A rig, with that box as the anchor the positioner measures.
+const makeRig = (): RefObject<Rig> => {
+  const rigRef: RefObject<Rig> = {
+    current: {
+      held: false,
+      kick: null,
+      open: false,
+      s: new Spring(0, 460, 15),
+      still: {
+        get contextElement() {
+          return rigRef.current.trigger ?? undefined;
+        },
+        getBoundingClientRect: () =>
+          rigRef.current.trigger ? layoutBox(rigRef.current.trigger) : new DOMRect(),
+      },
+      tip: null,
+      trigger: null,
+    },
+  };
+  return rigRef;
+};
 
 // Base UI snaps the positioner to whole pixels. Slide the bubble by the part of a pixel that was
 // lost, so it sits exactly on its anchor, as a bubble laid out inside its trigger would.
@@ -113,19 +128,7 @@ const SakugaTooltip = ({
   const ownHandle = useMemo(() => TooltipPrimitive.createHandle(), []);
   const ownActions = useRef<TooltipPrimitive.Root.Actions>(null);
   const actions = actionsRef ?? ownActions;
-  const rigRef = useMemo(
-    (): RefObject<Rig> => ({
-      current: {
-        held: false,
-        kick: null,
-        open: false,
-        s: new Spring(0, 460, 15),
-        tip: null,
-        trigger: null,
-      },
-    }),
-    [],
-  );
+  const rigRef = useMemo(makeRig, []);
   const tipId = useId();
   const triggerId = useId();
   const shared = useMemo(
@@ -319,13 +322,12 @@ const SakugaTooltipContent = ({
     "align" | "alignOffset" | "anchor" | "collisionAvoidance" | "side" | "sideOffset"
   >) => {
   const { rigRef, tipId } = useShared();
-  const still = useMemo(() => stillAnchor(rigRef), [rigRef]);
   return (
     <TooltipPrimitive.Portal keepMounted>
       <TooltipPrimitive.Positioner
         align={align}
         alignOffset={alignOffset}
-        anchor={anchor ?? still}
+        anchor={anchor ?? (() => rigRef.current.still)}
         data-gap={anchor ? undefined : Number(sideOffset)}
         collisionAvoidance={collisionAvoidance}
         side={side}
