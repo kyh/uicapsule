@@ -3,10 +3,47 @@
 // The React side of the core: the shared stylesheet, and hooks that put a control on the shared clock.
 
 import { useCallback, useEffect, useRef } from "react";
-import type { RefObject } from "react";
+import type { Ref, RefCallback, RefObject } from "react";
 
 import { addBackLayer, onFrame, removeBackLayer, squashy } from "./sakuga-core";
 import type { Layer, Squashy } from "./sakuga-core";
+
+// A primitive's props with `className` narrowed to a string, so it can be merged with cn().
+export type Styled<Props> = Omit<Props, "className"> & { className?: string };
+
+// Returns the cleanup a React 19 callback ref may hand back, if any.
+const assignRef = <T,>(ref: Ref<T> | undefined, node: T | null): (() => void) | null => {
+  if (!ref) {
+    return null;
+  }
+  if ("current" in ref) {
+    ref.current = node;
+    return null;
+  }
+  return ref(node) ?? null;
+};
+
+// One ref callback that feeds several refs: ours, and the one a consumer (or a `render` composition) passes.
+// Every part that needs its own element uses this, so a consumer's ref never replaces or loses ours.
+export const useMergedRef = <T,>(...refs: (Ref<T> | undefined)[]): RefCallback<T> => {
+  const latest = useRef(refs);
+  useEffect(() => {
+    latest.current = refs;
+  });
+  return useCallback((node: T | null) => {
+    const cleanups = latest.current.map((ref) => assignRef(ref, node));
+    return () => {
+      for (const [i, ref] of latest.current.entries()) {
+        const cleanup = cleanups[i];
+        if (cleanup) {
+          cleanup();
+        } else {
+          assignRef(ref, null);
+        }
+      }
+    };
+  }, []);
+};
 
 // The controls' colours. :where() keeps these at no specificity, so a page's own
 // :root { --sk-acc: ... } wins.
