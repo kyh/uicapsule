@@ -2,12 +2,12 @@
 
 // Sakuga VFX: every control in the set, live on one sheet of paper.
 
-import { useRef, useState } from "react";
+import { useLayoutEffect, useRef, useState } from "react";
 import type { ReactNode } from "react";
 import { flushSync } from "react-dom";
 
 import { SakugaButton } from "./sakuga-button";
-import { later } from "./sakuga-core";
+import { later, onFrame } from "./sakuga-core";
 import {
   SakugaAccordion,
   SakugaAccordionContent,
@@ -38,6 +38,7 @@ import {
 import { SakugaTabs, SakugaTabsList, SakugaTabsTrigger } from "./sakuga-tabs";
 import { SakugaToaster, sakugaToast } from "./sakuga-toast";
 import { SakugaSwitch } from "./sakuga-switch";
+import { TrioLab } from "./sakuga-trio-lab";
 import { SakugaTooltip, SakugaTooltipContent, SakugaTooltipTrigger } from "./sakuga-tooltip";
 import { FONT_BODY, SakugaStyle } from "./sakuga-react";
 
@@ -114,6 +115,51 @@ const STAGES = [
   { label: "Paint", value: "paint" },
 ];
 
+// The gallery plays a pretend load: the value climbs in surges on the shared clock, rests on the
+// finished bar for 3.6s and starts again. A click starts it again at once. The frame is subscribed
+// in a layout effect so it runs before the bar's own, and each frame's value is the one it eases to.
+const LoadingDemo = () => {
+  const [value, setValue] = useState(0);
+  const demo = useRef({ doneAt: 0, goal: 0, t: 0 });
+  useLayoutEffect(() => {
+    Reflect.set(globalThis, "__skDemo", demo.current); // TEMP-PROBE
+    return onFrame((dt) => {
+      const d = demo.current;
+      d.t += dt;
+      if (d.doneAt) {
+        if (d.t - d.doneAt > 3.6) {
+          d.doneAt = 0;
+          d.goal = 0;
+          flushSync(() => setValue(0));
+        }
+        return;
+      }
+      d.goal = Math.min(
+        1,
+        d.goal + dt * (0.14 + 0.115 * Math.sin(d.t * 2.1) + 0.07 * Math.sin(d.t * 4.7)),
+      );
+      flushSync(() => setValue(d.goal));
+    });
+  }, []);
+  return (
+    <SakugaProgress
+      min={0}
+      max={1}
+      value={value}
+      aria-label="Loading"
+      className="cursor-pointer"
+      onDone={() => {
+        demo.current.doneAt = demo.current.t;
+      }}
+      onClick={() => {
+        demo.current.doneAt = 0;
+        demo.current.goal = 0;
+        setValue(0);
+      }}
+    />
+  );
+};
+
 export const SakugaVfx = () => (
   <div
     className={`w-full max-w-[1080px] text-[15px] leading-[1.45] font-medium text-[#1d1a4a] ${FONT_BODY}`}
@@ -127,6 +173,7 @@ export const SakugaVfx = () => (
       {/* ── toggle card ── */}
       <Card id="toggle" name="Toggle" how="Flip it, then flip it back.">
         <SakugaSwitch aria-label="Notifications" />
+        <TrioLab />
       </Card>
       {/* ── slider card ── */}
       <Card id="slider" name="Slider" how="Drag it fast, and let go while it is moving.">
@@ -167,7 +214,7 @@ export const SakugaVfx = () => (
       </Card>
       {/* ── input card ── */}
       <Card id="input" name="Text input" how="Click it and type.">
-        <SakugaInput aria-label="Text" placeholder="Type something" />
+        <SakugaInput aria-label="Text" placeholder="Type something" autoComplete="off" />
       </Card>
       {/* ── tabs card ── */}
       <Card id="tabs" name="Tabs" how="Pick another tab, or use the arrow keys.">
@@ -196,10 +243,8 @@ export const SakugaVfx = () => (
       <ToastCard />
       {/* ── tooltip card ── */}
       <Card id="tooltip" name="Tooltip" how="Hover, focus or tap the button.">
-        <SakugaTooltip>
-          <SakugaTooltipTrigger aria-label="Help" className="mt-[60px]">
-            ?
-          </SakugaTooltipTrigger>
+        <SakugaTooltip className="mt-[60px]">
+          <SakugaTooltipTrigger aria-label="Help">?</SakugaTooltipTrigger>
           <SakugaTooltipContent>Helpful hint!</SakugaTooltipContent>
         </SakugaTooltip>
       </Card>

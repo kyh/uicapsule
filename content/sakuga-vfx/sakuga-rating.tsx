@@ -10,7 +10,7 @@
 // more here where a radio group's Up means previous.
 
 import { cn } from "cn";
-import { useLayoutEffect, useReducer, useRef, useState } from "react";
+import { useEffect, useLayoutEffect, useReducer, useRef, useState } from "react";
 import type { ComponentProps, KeyboardEvent, RefObject } from "react";
 
 import {
@@ -121,6 +121,19 @@ const SakugaRating = ({
   const shown = useRef(0);
   const asked = useRef(-1);
   const turns = useRef(0);
+  const field = useRef<HTMLInputElement>(null);
+
+  // a form reset puts back the default, as it does for a native field; no effects play
+  const owned = value !== undefined;
+  useEffect(() => {
+    const form = field.current?.form;
+    if (!form || owned) {
+      return;
+    }
+    const reset = () => setOwn(defaultValue);
+    form.addEventListener("reset", reset);
+    return () => form.removeEventListener("reset", reset);
+  }, [owned, defaultValue]);
 
   useLayoutEffect(() => {
     const quiet = asked.current !== rated;
@@ -180,11 +193,11 @@ const SakugaRating = ({
       aria-label={labelledBy ? undefined : (label ?? "Rating")}
       aria-labelledby={labelledBy}
       aria-disabled={disabled || undefined}
-      // the font family is kept outside cn: tailwind-merge reads an arbitrary font-[…] as a weight
-      className={`${FONT_BODY} ${cn(
+      className={cn(
         "relative isolate inline-flex align-middle text-[15px] leading-[1.4] font-medium text-(--sk-ink)",
+        FONT_BODY,
         className,
-      )}`}
+      )}
       {...props}
     >
       <SakugaStyle />
@@ -208,8 +221,9 @@ const SakugaRating = ({
             aria-label={`${n} star${n > 1 ? "s" : ""}`}
             tabIndex={(rated ? n === rated : i === 0) ? 0 : -1}
             disabled={disabled}
+            data-disabled={disabled ? "" : undefined}
             data-lit={n <= first ? "" : undefined}
-            className="group size-[44px] cursor-pointer p-[2px] will-change-transform focus-visible:outline-[2.5px] focus-visible:outline-offset-[3px] focus-visible:outline-(--sk-acc) disabled:cursor-not-allowed disabled:opacity-50"
+            className="group size-[44px] cursor-pointer p-[2px] will-change-transform focus-visible:outline-[2.5px] focus-visible:outline-offset-[3px] focus-visible:outline-(--sk-acc) data-disabled:cursor-not-allowed data-disabled:opacity-50"
             onClick={() => rate(rated === n ? 0 : n)}
             onKeyDown={keydown}
           >
@@ -223,7 +237,14 @@ const SakugaRating = ({
           </button>
         );
       })}
-      {name && rated > 0 && !disabled && <input type="hidden" name={name} value={rated} />}
+      {/* what its form reads: nothing when there is no score. It also finds the form for a reset. */}
+      <input
+        ref={field}
+        type="hidden"
+        name={name}
+        value={rated}
+        disabled={disabled || rated === 0}
+      />
     </div>
   );
 };

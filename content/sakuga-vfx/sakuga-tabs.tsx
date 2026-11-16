@@ -11,9 +11,8 @@ import { createContext, use, useEffect, useRef } from "react";
 import type { RefObject } from "react";
 
 import { Spring, at, clamp, clock, later, lines, puff, ticks } from "./sakuga-core";
-import { FONT_BODY, SakugaStyle, useFrame } from "./sakuga-react";
-
-type Styled<Props> = Omit<Props, "className"> & { className?: string };
+import { FONT_BODY, SakugaStyle, useFrame, useMergedRef } from "./sakuga-react";
+import type { Styled } from "./sakuga-react";
 
 // Two deliberate fixes of upstream bugs, so the control does what the original's own header says:
 // 1. The original keeps the way it travelled in `this.dir`, which on an element is the built-in
@@ -98,19 +97,40 @@ const land = (tab: HTMLElement, dir: number) => {
 // a change in the same instant was theirs and gets the landing, any other came from code.
 const PickContext = createContext<RefObject<number> | null>(null);
 
-const SakugaTabs = ({ className, onValueChange, ...props }: Styled<TabsPrimitive.Root.Props>) => {
+// no value: nothing has been tried
+const UNTRIED = Symbol("untried");
+
+const SakugaTabs = ({
+  className,
+  onValueChange,
+  onPointerDownCapture,
+  ...props
+}: Styled<TabsPrimitive.Root.Props>) => {
   const pickedAt = useRef(-1);
+  // The value this press already asked for when it focused the tab. Base UI asks again on the
+  // click when the owner refused the first time; one press is one attempt.
+  const tried = useRef<unknown>(UNTRIED);
   return (
     <PickContext value={pickedAt}>
       <SakugaStyle />
       <TabsPrimitive.Root
         data-slot="sakuga-tabs"
-        className={`${FONT_BODY} ${cn(
+        className={cn(
           "flex flex-col items-start text-[15px] leading-[1.4] font-medium text-(--sk-ink)",
+          FONT_BODY,
           className,
-        )}`}
+        )}
         {...props}
+        onPointerDownCapture={(e) => {
+          tried.current = UNTRIED;
+          onPointerDownCapture?.(e);
+        }}
         onValueChange={(value, details) => {
+          if (details.event.type === "click" && Object.is(tried.current, value)) {
+            details.cancel();
+            return;
+          }
+          tried.current = details.event.type === "click" ? UNTRIED : value;
           onValueChange?.(value, details);
           if (details.reason === "none" && !details.isCanceled) {
             pickedAt.current = clock.now;
@@ -129,10 +149,12 @@ const SakugaTabsList = ({
   children,
   // upstream picks a tab as the arrow keys reach it
   activateOnFocus = true,
+  ref,
   ...props
 }: Styled<TabsPrimitive.List.Props>) => {
   const pickedAtRef = use(PickContext);
   const strip = useRef<HTMLDivElement>(null);
+  const stripRef = useMergedRef(strip, ref);
   const raised = useRef<HTMLSpanElement>(null);
   const rig = useRef<Rig>({
     dir: 1,
@@ -152,7 +174,8 @@ const SakugaTabsList = ({
       return;
     }
     const r = rig.current;
-    // Base UI owns which tab is active; the raised tab follows what it wrote to the DOM, after
+    // Base UI owns which tab is active and hands out no ref to it, so the raised tab follows
+    // what Base UI wrote to the DOM, after
     // the tabs have their new weights, so the widths read are the new ones
     const sync = () => {
       const tab = list.querySelector<HTMLElement>('[role="tab"][aria-selected="true"]');
@@ -216,7 +239,7 @@ const SakugaTabsList = ({
 
   return (
     <TabsPrimitive.List
-      ref={strip}
+      ref={stripRef}
       data-slot="sakuga-tabs-list"
       activateOnFocus={activateOnFocus}
       className={cn(
@@ -237,17 +260,14 @@ const SakugaTabsList = ({
   );
 };
 
-// The font families are kept outside cn: tailwind-merge reads an arbitrary font-[…] as a weight
-// and would drop either it or the weight.
-const TAB_FONT = 'font-[-apple-system,"Segoe_UI",system-ui,sans-serif]';
-
 const SakugaTabsTrigger = ({ className, ...props }: Styled<TabsPrimitive.Tab.Props>) => (
   <TabsPrimitive.Tab
     data-slot="sakuga-tabs-trigger"
-    className={`${TAB_FONT} ${cn(
+    className={cn(
       "relative cursor-pointer border-l-[2.4px] border-l-(--sk-ink) px-[15px] py-[10px] text-[15px] leading-[1.2] font-semibold whitespace-nowrap transition-[translate] duration-[180ms] ease-[cubic-bezier(.3,1.6,.5,1)] first-of-type:border-l-transparent focus-visible:outline-[2.5px] focus-visible:outline-offset-[3px] focus-visible:outline-(--sk-acc) data-active:-translate-y-[5px] data-active:border-l-transparent data-active:font-extrabold [[data-active]+&]:border-l-transparent",
+      '[font-family:-apple-system,"Segoe_UI",system-ui,sans-serif]',
       className,
-    )}`}
+    )}
     {...props}
   />
 );

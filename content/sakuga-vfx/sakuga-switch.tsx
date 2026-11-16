@@ -12,10 +12,10 @@ import { cn } from "cn";
 import { useEffect, useLayoutEffect, useRef } from "react";
 
 import { isCalm } from "./sakuga-core";
-import { SakugaStyle, useFrame } from "./sakuga-react";
+import { SakugaStyle, useFrame, useMergedRef } from "./sakuga-react";
+import type { Styled } from "./sakuga-react";
 
-type SakugaSwitchProps = Omit<SwitchPrimitive.Root.Props, "className"> & {
-  className?: string;
+type SakugaSwitchProps = Styled<SwitchPrimitive.Root.Props> & {
   // the sprite sheet: 43 frames, 8 across, 300 by 325 each
   frames?: string;
 };
@@ -45,7 +45,8 @@ const getSheet = (src: string) => {
   return img;
 };
 
-interface Film {
+// The film: which frames it is playing and how far in it is.
+interface Rig {
   acc: number;
   pos: number;
   seq: readonly number[];
@@ -54,13 +55,15 @@ interface Film {
   to: boolean | null;
 }
 
-const current = ({ seq, pos }: Film) => seq[Math.min(seq.length - 1, pos)] ?? 0;
+const makeRig = (): Rig => ({ acc: 0, pos: 0, seq: [0], shown: -1, to: null });
+
+const current = ({ seq, pos }: Rig) => seq[Math.min(seq.length - 1, pos)] ?? 0;
 
 // put the film's current frame on the canvas, once the sheet has arrived, and take the plain switch away
 const paint = (
   canvas: HTMLCanvasElement | null,
   img: HTMLImageElement,
-  film: Film,
+  rig: Rig,
   plain: HTMLElement | null,
 ) => {
   const c = canvas?.getContext("2d");
@@ -70,37 +73,27 @@ const paint = (
   if (plain) {
     plain.style.display = "none";
   }
-  const i = current(film);
+  const i = current(rig);
   c.clearRect(0, 0, FW, FH);
   c.drawImage(img, (i % COLS) * FW, Math.floor(i / COLS) * FH, FW, FH, 0, 0, FW, FH);
-  film.shown = i;
+  rig.shown = i;
 };
 
 // the switch's own word on what it is: the drawing never disagrees with aria-checked
-const isOn = (canvas: HTMLCanvasElement | null) =>
-  canvas?.closest('[role="switch"]')?.getAttribute("aria-checked") === "true";
-
-// the hidden form input Base UI renders beside a control
-const inputAfter = (control: Element | null) => {
-  let next = control?.nextElementSibling ?? null;
-  while (next && !(next instanceof HTMLInputElement && next.type !== "hidden")) {
-    next = next.nextElementSibling;
-  }
-  return next instanceof HTMLInputElement ? next : null;
-};
+const isOn = (root: HTMLElement | null) => root?.getAttribute("aria-checked") === "true";
 
 // straight to the rest frame of a state, no animation
-const settle = (film: Film, on: boolean) => {
-  film.seq = [on ? N - 1 : 0];
-  film.pos = 0;
-  film.acc = 0;
-  film.to = on;
+const settle = (rig: Rig, on: boolean) => {
+  rig.seq = [on ? N - 1 : 0];
+  rig.pos = 0;
+  rig.acc = 0;
+  rig.to = on;
 };
 
-// the drawing is bigger than the button: the margin keeps room for all of it
+// the drawing is bigger than the switch: the margin keeps room for all of it
 const ROOT =
   "group/sakuga-switch relative isolate mx-[21px] mt-[89px] mb-[20px] inline-block h-[54px] w-[108px] shrink-0 cursor-pointer rounded-[27px] align-middle [-webkit-tap-highlight-color:transparent] focus-visible:outline-[2.5px] focus-visible:outline-offset-[3px] focus-visible:outline-(--sk-acc) focus-visible:outline-solid data-disabled:cursor-not-allowed data-disabled:opacity-50";
-const CANVAS =
+const FILM =
   "pointer-events-none absolute top-1/2 left-1/2 mt-[-115.6px] ml-[-75px] h-[162.5px] w-[150px] max-w-none";
 
 // The switch with no painting: what shows until the sheet arrives, and for good if it never does.
@@ -108,71 +101,52 @@ const CANVAS =
 // the knob 43 across.
 const PLAIN = "pointer-events-none absolute inset-0";
 const TRACK =
-  "absolute top-0 left-px h-[54px] w-[106px] rounded-full bg-(--sk-track) [border:var(--sk-bw)_solid_var(--sk-ink)] group-data-checked/sakuga-switch:top-[6px] group-data-checked/sakuga-switch:h-[42px] group-data-checked/sakuga-switch:bg-(--sk-pri)";
+  "absolute top-0 left-px h-[54px] w-[106px] rounded-full border-[length:var(--sk-bw)] border-(--sk-ink) bg-(--sk-track) group-data-checked/sakuga-switch:top-[6px] group-data-checked/sakuga-switch:h-[42px] group-data-checked/sakuga-switch:bg-(--sk-pri)";
 const THUMB =
-  "absolute top-[5.5px] left-[5.5px] h-[43px] w-[43px] rounded-full bg-(--sk-card) [border:var(--sk-bw)_solid_var(--sk-ink)] data-checked:left-[63.5px]";
+  "absolute top-[5.5px] left-[5.5px] h-[43px] w-[43px] rounded-full border-[length:var(--sk-bw)] border-(--sk-ink) bg-(--sk-card) data-checked:left-[63.5px]";
 
 const SakugaSwitch = ({
   className,
   frames = FRAMES,
   checked,
-  defaultChecked,
   onCheckedChange,
+  ref,
   ...props
 }: SakugaSwitchProps) => {
+  const root = useRef<HTMLElement>(null);
   const canvas = useRef<HTMLCanvasElement>(null);
   const plain = useRef<HTMLSpanElement>(null);
-  const film = useRef<Film>({ acc: 0, pos: 0, seq: [0], shown: -1, to: null });
-  // set while its form's reset puts it back, so that change jumps like any other from code
-  const quiet = useRef(false);
+  const rigRef = useRef(makeRig());
+  const setRoot = useMergedRef<HTMLElement>(root, ref);
 
   // Base UI only calls this for a person's flip, so this is where the film starts
   const change = (next: boolean, details: SwitchPrimitive.Root.ChangeEventDetails) => {
     onCheckedChange?.(next, details);
-    if (details.isCanceled || quiet.current) {
+    if (details.isCanceled) {
       return;
     }
-    const f = film.current;
+    const rig = rigRef.current;
     const seq = next ? ON : OFF;
-    f.seq = seq;
-    f.pos = isCalm() ? seq.length - 1 : 0;
-    f.acc = 0;
-    f.to = next;
+    rig.seq = seq;
+    rig.pos = isCalm() ? seq.length - 1 : 0;
+    rig.acc = 0;
+    rig.to = next;
     // an owner can still refuse the change, so only its own state draws before the answer
     if (checked === undefined) {
-      paint(canvas.current, getSheet(frames), f, plain.current);
+      paint(canvas.current, getSheet(frames), rig, plain.current);
     }
   };
 
   // where it starts: the rest frame, no animation
   useLayoutEffect(() => {
-    settle(film.current, isOn(canvas.current));
+    settle(rigRef.current, isOn(root.current));
   }, []);
-
-  // Base UI leaves a form's reset to the browser, which only moves the hidden input. Put the
-  // switch itself back where it started, through that input, just before the browser resets it.
-  useEffect(() => {
-    const input = inputAfter(canvas.current?.closest('[role="switch"]') ?? null);
-    const form = input?.form;
-    if (checked !== undefined || !input || !form) {
-      return;
-    }
-    const back = () => {
-      if (input.checked !== Boolean(defaultChecked)) {
-        quiet.current = true;
-        input.click();
-        quiet.current = false;
-      }
-    };
-    form.addEventListener("reset", back);
-    return () => form.removeEventListener("reset", back);
-  }, [checked, defaultChecked]);
 
   // the first frame, as soon as the sheet has arrived
   useEffect(() => {
     const img = getSheet(frames);
-    const show = () => paint(canvas.current, img, film.current, plain.current);
-    film.current.shown = -1;
+    const show = () => paint(canvas.current, img, rigRef.current, plain.current);
+    rigRef.current.shown = -1;
     if (img.complete) {
       show();
       return;
@@ -182,21 +156,21 @@ const SakugaSwitch = ({
   }, [frames]);
 
   useFrame((dt) => {
-    const f = film.current;
+    const rig = rigRef.current;
     // set from code, reset by its form, or a flip its owner refused: straight to where it really is
-    const on = isOn(canvas.current);
-    if (on !== f.to) {
-      settle(f, on);
+    const on = isOn(root.current);
+    if (on !== rig.to) {
+      settle(rig, on);
     }
-    if (f.pos < f.seq.length - 1) {
-      f.acc += dt * FPS;
-      while (f.acc >= 1 && f.pos < f.seq.length - 1) {
-        f.acc -= 1;
-        f.pos += 1;
+    if (rig.pos < rig.seq.length - 1) {
+      rig.acc += dt * FPS;
+      while (rig.acc >= 1 && rig.pos < rig.seq.length - 1) {
+        rig.acc -= 1;
+        rig.pos += 1;
       }
     }
-    if (current(f) !== f.shown && !broken.has(frames)) {
-      paint(canvas.current, getSheet(frames), f, plain.current);
+    if (current(rig) !== rig.shown && !broken.has(frames)) {
+      paint(canvas.current, getSheet(frames), rig, plain.current);
     }
   });
 
@@ -204,10 +178,10 @@ const SakugaSwitch = ({
     <>
       <SakugaStyle />
       <SwitchPrimitive.Root
+        ref={setRoot}
         data-slot="sakuga-switch"
         className={cn(ROOT, className)}
         checked={checked}
-        defaultChecked={defaultChecked}
         onCheckedChange={change}
         {...props}
       >
@@ -221,7 +195,7 @@ const SakugaSwitch = ({
           height={FH}
           aria-hidden
           data-slot="sakuga-switch-film"
-          className={CANVAS}
+          className={FILM}
         />
       </SwitchPrimitive.Root>
     </>

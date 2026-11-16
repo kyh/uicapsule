@@ -9,7 +9,7 @@
 
 import { Button as ButtonPrimitive } from "@base-ui/react/button";
 import { cn } from "cn";
-import { useImperativeHandle, useLayoutEffect, useRef } from "react";
+import { useLayoutEffect, useRef } from "react";
 
 import {
   Spring,
@@ -33,11 +33,12 @@ import {
   SakugaStyle,
   useBackLayer,
   useFrame,
+  useMergedRef,
   useSquashy,
 } from "./sakuga-react";
+import type { Styled } from "./sakuga-react";
 
-type SakugaButtonProps = Omit<ButtonPrimitive.Props, "className"> & {
-  className?: string;
+type SakugaButtonProps = Styled<ButtonPrimitive.Props> & {
   variant?: "primary" | "secondary";
   // primary only: a check lands on the button with a glint when this turns true, and leaves when
   // it turns false. A click clears the check, so turn it false again before the next run.
@@ -51,9 +52,11 @@ const CLOUDS = [
   [1, 1],
 ] as const;
 
-const BUTTON = `relative cursor-pointer touch-manipulation rounded-(--sk-r) bg-(--sk-card) px-[30px] py-[14px] text-[19px] leading-[1.1] font-extrabold tracking-[-0.01em] text-(--sk-ink) italic will-change-transform select-none focus-visible:outline-[2.5px] focus-visible:outline-offset-[3px] focus-visible:outline-(--sk-acc) data-disabled:cursor-not-allowed data-disabled:opacity-45 data-inv:bg-(--sk-ink) data-inv:text-(--sk-card) data-inv:shadow-none! ${FONT_DISPLAY}`;
-const PRIMARY = "[border:var(--sk-bw)_solid_var(--sk-btn-line)] shadow-(--sk-btn-sh)";
-const SECONDARY = "[border:var(--sk-bw)_solid_var(--sk-alt-line)] shadow-(--sk-alt-sh)";
+const BUTTON =
+  "relative cursor-pointer touch-manipulation rounded-(--sk-r) bg-(--sk-card) px-[30px] py-[14px] text-[19px] leading-[1.1] font-extrabold tracking-[-0.01em] text-(--sk-ink) italic will-change-transform select-none focus-visible:outline-[2.5px] focus-visible:outline-offset-[3px] focus-visible:outline-(--sk-acc) data-disabled:cursor-not-allowed data-disabled:opacity-45 data-inv:bg-(--sk-ink) data-inv:text-(--sk-card) data-inv:shadow-none!";
+const PRIMARY = "border-[length:var(--sk-bw)] border-(--sk-btn-line) shadow-(--sk-btn-sh)";
+const SECONDARY =
+  "border-[length:var(--sk-bw)] border-(--sk-alt-line) align-middle shadow-(--sk-alt-sh)";
 
 const SakugaButton = ({
   variant = "primary",
@@ -67,6 +70,7 @@ const SakugaButton = ({
 }: SakugaButtonProps) => {
   const primary = variant === "primary";
   const el = useRef<HTMLButtonElement>(null);
+  const setEl = useMergedRef<HTMLElement>(el, ref);
   const [attachBack, backRef] = useBackLayer();
   const sqRef = useSquashy(el, primary ? { low: 0.5, wide: 0.24 } : { low: 0.72, wide: 0.3 });
   const ok = useRef(new Spring(0, 420, 14));
@@ -127,9 +131,6 @@ const SakugaButton = ({
     });
   };
 
-  // the caller's ref gets the button too
-  useImperativeHandle<HTMLElement | null, HTMLElement | null>(ref, () => el.current);
-
   // the check lands, with a glint, when `done` turns true and leaves when it turns false
   useLayoutEffect(() => {
     const b = el.current;
@@ -179,6 +180,41 @@ const SakugaButton = ({
     onClick?.(e);
   };
 
+  const button = (
+    <ButtonPrimitive
+      data-slot="sakuga-button"
+      data-variant={variant}
+      className={cn(BUTTON, FONT_DISPLAY, primary ? PRIMARY : SECONDARY, className)}
+      {...props}
+      ref={setEl}
+      onPointerDown={(e) => {
+        press();
+        onPointerDown?.(e);
+      }}
+      onClick={click}
+    >
+      {children}
+      {primary && (
+        <svg
+          aria-hidden
+          viewBox="0 0 24 18"
+          className="ml-[calc(var(--ok,0)*6px)] inline-block h-[18px] w-[calc(var(--ok,0)*24px)] [scale:var(--ok,0)] overflow-visible fill-none stroke-(--sk-acc) stroke-[4.4] align-[-2px] [stroke-linecap:round] [stroke-linejoin:round]"
+        >
+          <path d="M3 9.5l6 6L21 2.5" />
+        </svg>
+      )}
+    </ButtonPrimitive>
+  );
+
+  // only the primary has a burst to draw behind it, so only it needs the stage and its canvas
+  if (!primary) {
+    return (
+      <>
+        <SakugaStyle />
+        {button}
+      </>
+    );
+  }
   return (
     <span
       data-slot="sakuga-button-stage"
@@ -188,30 +224,8 @@ const SakugaButton = ({
       )}
     >
       <SakugaStyle />
-      {primary && <canvas ref={attachBack} aria-hidden className={BACK_CANVAS} />}
-      <ButtonPrimitive
-        data-slot="sakuga-button"
-        data-variant={variant}
-        className={cn(BUTTON, primary ? PRIMARY : SECONDARY, className)}
-        {...props}
-        ref={el}
-        onPointerDown={(e) => {
-          press();
-          onPointerDown?.(e);
-        }}
-        onClick={click}
-      >
-        {children}
-        {primary && (
-          <svg
-            aria-hidden
-            viewBox="0 0 24 18"
-            className="ml-[calc(var(--ok,0)*6px)] inline-block h-[18px] w-[calc(var(--ok,0)*24px)] [scale:var(--ok,0)] overflow-visible fill-none stroke-(--sk-acc) stroke-[4.4] align-[-2px] [stroke-linecap:round] [stroke-linejoin:round]"
-          >
-            <path d="M3 9.5l6 6L21 2.5" />
-          </svg>
-        )}
-      </ButtonPrimitive>
+      <canvas ref={attachBack} aria-hidden className={BACK_CANVAS} />
+      {button}
     </span>
   );
 };

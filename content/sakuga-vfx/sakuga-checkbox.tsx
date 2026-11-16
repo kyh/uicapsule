@@ -7,26 +7,34 @@
 
 import { Checkbox as CheckboxPrimitive } from "@base-ui/react/checkbox";
 import { cn } from "cn";
-import { useEffect, useLayoutEffect, useRef } from "react";
+import { useLayoutEffect, useRef } from "react";
 
 import { Spring, at, dotted, kira, later, lines, puff, sfx, shards, slash } from "./sakuga-core";
-import { SakugaStyle, useFrame } from "./sakuga-react";
+import { SakugaStyle, useFrame, useMergedRef } from "./sakuga-react";
+import type { Styled } from "./sakuga-react";
 
-type SakugaCheckboxProps = Omit<CheckboxPrimitive.Root.Props, "className"> & {
-  className?: string;
-};
+type SakugaCheckboxProps = Styled<CheckboxPrimitive.Root.Props>;
 
 const ROOT =
-  "grid h-[38px] w-[38px] flex-none cursor-pointer place-items-center rounded-[9px] bg-(--sk-card) shadow-(--sk-sh) will-change-transform [--sk-dash:30] [-webkit-tap-highlight-color:transparent] [border:var(--sk-bw)_solid_var(--sk-ink)] focus-visible:outline-[2.5px] focus-visible:outline-offset-[3px] focus-visible:outline-(--sk-acc) focus-visible:outline-solid data-checked:[--sk-dash:0] data-disabled:cursor-not-allowed data-disabled:opacity-50";
+  "grid h-[38px] w-[38px] flex-none cursor-pointer place-items-center rounded-[9px] border-[length:var(--sk-bw)] border-(--sk-ink) bg-(--sk-card) shadow-(--sk-sh) will-change-transform [--sk-dash:30] [-webkit-tap-highlight-color:transparent] focus-visible:outline-[2.5px] focus-visible:outline-offset-[3px] focus-visible:outline-(--sk-acc) focus-visible:outline-solid data-checked:[--sk-dash:0] data-disabled:cursor-not-allowed data-disabled:opacity-50";
 const TICK =
   "h-[26px] w-[26px] fill-none stroke-(--sk-tick) stroke-[4.6] [stroke-dasharray:30] [stroke-dashoffset:var(--sk-dash)] [stroke-linecap:round] [stroke-linejoin:round] [transition:stroke-dashoffset_.24s_cubic-bezier(.2,.9,.3,1)_.08s]";
 
+// The box's squash, and what a person last asked an owned box for.
+interface Rig {
+  s: Spring;
+  // it reacts once the owner agrees
+  hand: boolean | null;
+}
+
+const makeRig = (): Rig => ({ hand: null, s: new Spring(1, 600, 13) });
+
 // the reaction to a person ticking or unticking it
-const land = (box: HTMLElement | null, s: Spring, checked: boolean) => {
+const land = (box: HTMLElement | null, rig: Rig, checked: boolean) => {
   if (!box) {
     return;
   }
-  s.x = 0.68;
+  rig.s.x = 0.68;
   const c = at(box);
   if (checked) {
     slash(c.x + 8, c.y + 2, { ang: -0.42, len: 150, life: 0.5, thick: 13 });
@@ -40,81 +48,50 @@ const land = (box: HTMLElement | null, s: Spring, checked: boolean) => {
   }
 };
 
-// the hidden form input Base UI renders beside a control
-const inputAfter = (control: Element | null) => {
-  let next = control?.nextElementSibling ?? null;
-  while (next && !(next instanceof HTMLInputElement && next.type !== "hidden")) {
-    next = next.nextElementSibling;
-  }
-  return next instanceof HTMLInputElement ? next : null;
-};
-
-// the box a tick sits in
-const boxOf = (tick: SVGSVGElement | null) =>
-  tick?.closest<HTMLElement>('[role="checkbox"]') ?? null;
-
 const SakugaCheckbox = ({
   className,
   checked,
-  defaultChecked,
   onCheckedChange,
+  ref,
   ...props
 }: SakugaCheckboxProps) => {
-  const tick = useRef<SVGSVGElement>(null);
-  const s = useRef(new Spring(1, 600, 13));
-  // what a person just asked an owned box for: it reacts once the owner agrees
-  const hand = useRef<boolean | null>(null);
-  // set while its form's reset puts it back, so that change plays nothing
-  const quiet = useRef(false);
+  const root = useRef<HTMLElement>(null);
+  const rigRef = useRef(makeRig());
+  const setRoot = useMergedRef<HTMLElement>(root, ref);
 
   // Base UI only calls this for a person's tick
   const change = (next: boolean, details: CheckboxPrimitive.Root.ChangeEventDetails) => {
     onCheckedChange?.(next, details);
-    if (details.isCanceled || quiet.current) {
+    if (details.isCanceled) {
       return;
     }
+    const rig = rigRef.current;
+    // an owner can still refuse the tick, so only its own state reacts before the answer
     if (checked === undefined) {
-      land(boxOf(tick.current), s.current, next);
-    } else {
-      hand.current = next;
-      // a refused tick changes nothing, so no render would clear the mark
-      later(0, () => {
-        hand.current = null;
-      });
+      land(root.current, rig, next);
+      return;
     }
+    rig.hand = next;
+    // a refused tick changes nothing, so no render would clear the mark
+    later(0, () => {
+      rig.hand = null;
+    });
   };
 
+  // an owned box reacts once the owner has agreed
   useLayoutEffect(() => {
-    if (checked !== undefined && hand.current === checked) {
-      land(boxOf(tick.current), s.current, checked);
+    const rig = rigRef.current;
+    if (checked !== undefined && rig.hand === checked) {
+      land(root.current, rig, checked);
     }
-    hand.current = null;
+    rig.hand = null;
   }, [checked]);
 
-  // Base UI leaves a form's reset to the browser, which only moves the hidden input. Put the
-  // box itself back where it started, through that input, just before the browser resets it.
-  useEffect(() => {
-    const input = inputAfter(boxOf(tick.current));
-    const form = input?.form;
-    if (checked !== undefined || !input || !form) {
-      return;
-    }
-    const back = () => {
-      if (input.checked !== Boolean(defaultChecked)) {
-        quiet.current = true;
-        input.click();
-        quiet.current = false;
-      }
-    };
-    form.addEventListener("reset", back);
-    return () => form.removeEventListener("reset", back);
-  }, [checked, defaultChecked]);
-
   useFrame((dt) => {
-    const y = s.current.step(dt);
-    const el = boxOf(tick.current);
-    if (el) {
-      el.style.transform = Math.abs(y - 1) < 0.001 ? "" : `scale(${y}) rotate(${(1 - y) * 20}deg)`;
+    const y = rigRef.current.s.step(dt);
+    if (root.current) {
+      root.current.style.transform =
+        Math.abs(y - 1) < 0.001 ? "" : `scale(${y}) rotate(${(1 - y) * 20}deg)`;
     }
   });
 
@@ -122,10 +99,10 @@ const SakugaCheckbox = ({
     <>
       <SakugaStyle />
       <CheckboxPrimitive.Root
+        ref={setRoot}
         data-slot="sakuga-checkbox"
         className={cn(ROOT, className)}
         checked={checked}
-        defaultChecked={defaultChecked}
         onCheckedChange={change}
         {...props}
       >
@@ -134,7 +111,7 @@ const SakugaCheckbox = ({
           keepMounted
           className="[display:contents]"
         >
-          <svg ref={tick} viewBox="0 0 20 20" aria-hidden className={TICK}>
+          <svg viewBox="0 0 20 20" aria-hidden className={TICK}>
             <path d="M3.5 10.5l4.5 4.5 8.5-10" />
           </svg>
         </CheckboxPrimitive.Indicator>

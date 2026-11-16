@@ -10,10 +10,9 @@ import { useRef } from "react";
 
 import { Spring, at, puff, rnd, shards, ticks } from "./sakuga-core";
 import { FONT_BODY, SakugaStyle, useFrame } from "./sakuga-react";
+import type { Styled } from "./sakuga-react";
 
-// The font family is kept outside cn: tailwind-merge reads an arbitrary font-[…] as a weight and
-// would drop either it or the weight.
-type SakugaInputProps = Omit<InputPrimitive.Props, "className"> & { className?: string };
+type SakugaInputProps = Styled<InputPrimitive.Props>;
 
 // the width of the text before the caret, in the input's own font; a password is measured over dots
 const beforeCaret = (inp: HTMLInputElement, ruler: CanvasRenderingContext2D | null) => {
@@ -27,13 +26,7 @@ const beforeCaret = (inp: HTMLInputElement, ruler: CanvasRenderingContext2D | nu
     .width;
 };
 
-const SakugaInput = ({
-  className,
-  autoComplete = "off",
-  onFocus,
-  onInput,
-  ...props
-}: SakugaInputProps) => {
+const SakugaInput = ({ className, onFocus, onInput, ...props }: SakugaInputProps) => {
   // the field a person is in: the one the spring moves
   const live = useRef<HTMLInputElement | null>(null);
   const give = useRef(new Spring(1, 700, 16));
@@ -53,11 +46,11 @@ const SakugaInput = ({
       <SakugaStyle />
       <InputPrimitive
         data-slot="sakuga-input"
-        autoComplete={autoComplete}
-        className={`${FONT_BODY} ${cn(
-          "w-(--sk-input-width,230px) max-w-full rounded-(--sk-r) border-[length:var(--sk-bw)] border-(--sk-ink) bg-(--sk-card) px-[16px] py-[13px] align-middle text-[16px] leading-[1.4] font-semibold text-(--sk-ink) caret-(--sk-ink) shadow-(--sk-sh) outline-none will-change-transform placeholder:text-(--sk-dim) focus-visible:outline-[2.5px] focus-visible:outline-offset-[3px] focus-visible:outline-(--sk-acc) focus-visible:outline-solid disabled:opacity-50",
+        className={cn(
+          "w-(--sk-input-width,230px) max-w-full rounded-(--sk-r) border-[length:var(--sk-bw)] border-(--sk-ink) bg-(--sk-card) px-[16px] py-[13px] align-middle text-[16px] leading-[1.4] font-semibold text-(--sk-ink) caret-(--sk-ink) shadow-(--sk-sh) outline-none will-change-transform placeholder:text-(--sk-dim) focus-visible:outline-[2.5px] focus-visible:outline-offset-[3px] focus-visible:outline-(--sk-acc) focus-visible:outline-solid data-disabled:opacity-50",
+          FONT_BODY,
           className,
-        )}`}
+        )}
         {...props}
         onFocus={(e) => {
           live.current = e.currentTarget;
