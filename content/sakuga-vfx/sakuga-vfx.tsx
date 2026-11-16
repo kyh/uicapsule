@@ -146,7 +146,7 @@ export const SakugaVfx = () => (
         <SakugaStepper defaultValue={5} max={9} label="Copies" />
       </Card>
       {/* ── select card ── */}
-      <Card id="select" name="Select" how="TODO">
+      <Card id="select" name="Select" how="Open it, run down the rows, and choose one.">
         <SakugaSelect />
       </Card>
       {/* ── accordion card ── */}

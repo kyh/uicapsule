@@ -42,7 +42,7 @@ export interface SakugaStepperProps {
 
 const PRESS = { low: 0.56, wide: 0.5 };
 const SIDE =
-  "grid h-[44px] w-[46px] flex-none cursor-pointer touch-manipulation place-items-center will-change-transform select-none aria-disabled:cursor-not-allowed aria-disabled:text-(--sk-track) disabled:cursor-not-allowed";
+  "grid h-[44px] w-[46px] flex-none cursor-pointer outline-none touch-manipulation place-items-center will-change-transform select-none aria-disabled:cursor-not-allowed aria-disabled:text-(--sk-track) disabled:cursor-not-allowed";
 const GLYPH =
   "pointer-events-none h-[20px] w-[20px] fill-none stroke-current stroke-[3.4] [stroke-linecap:round]";
 

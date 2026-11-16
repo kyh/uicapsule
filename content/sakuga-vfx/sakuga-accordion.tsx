@@ -62,15 +62,13 @@ const makeRig = (): Rig => ({
 // drop it open, or suck it back up
 const aim = (r: Rig, on: boolean, alone: boolean) => {
   r.h.to = on ? 1 : 0;
-  r.h.k = on ? 380 : 560;
-  r.h.d = on ? 19 : 44;
+  r.h.k = on ? 380 : 900;
+  r.h.d = on ? 19 : 40;
   r.turn.to = r.h.to;
   r.landing = on;
   r.closing = !on && alone;
   r.still = false;
-  if (on) {
-    r.h.v = Math.max(r.h.v, 5);
-  }
+  r.h.v = on ? Math.max(r.h.v, 5) : Math.min(r.h.v, -6);
   if (isCalm()) {
     r.h.x = r.h.to;
     r.h.v = 0;
