@@ -298,11 +298,9 @@ const SakugaNumberFieldGroup = ({
   ...props
 }: Styled<NumberFieldPrimitive.Group.Props>) => {
   const rigRef = useRig();
-  const el = useRef<HTMLDivElement>(null);
-  const pillRef = useMergedRef(el, ref);
-  useEffect(() => {
-    rigRef.current.pill = el.current;
-  });
+  const pillRef = useMergedRef((node: HTMLDivElement | null) => {
+    rigRef.current.pill = node;
+  }, ref);
   return (
     <NumberFieldPrimitive.Group
       data-slot="sakuga-number-field-group"
@@ -462,11 +460,9 @@ const SakugaNumberFieldInput = ({
   ...props
 }: Omit<Styled<NumberFieldPrimitive.Input.Props>, "render">) => {
   const rigRef = useRig();
-  const el = useRef<HTMLInputElement>(null);
-  const numRef = useMergedRef(el, ref);
-  useEffect(() => {
-    rigRef.current.num = el.current;
-  });
+  const numRef = useMergedRef((node: HTMLInputElement | null) => {
+    rigRef.current.num = node;
+  }, ref);
   const loud = () => {
     rigRef.current.pill?.toggleAttribute("data-quiet", false);
   };
@@ -475,8 +471,10 @@ const SakugaNumberFieldInput = ({
       data-slot="sakuga-number-field-input"
       className={cn(
         NUMBER,
-        // one line high and centred on the cell, exactly where plain text would sit
-        "absolute inset-x-0 top-[calc(50%-0.55em)] h-[1.1em] w-full rounded-none bg-transparent p-0 text-center text-(--sk-ink) outline-none will-change-transform group-data-quiet/sk-nf:caret-transparent data-disabled:cursor-not-allowed",
+        // Laid exactly over the text that sizes the cell, so the digits sit where plain text
+        // would. It reaches 10px into the cell's padding either side, and the text area runs on
+        // to the right edge, so the lean of the italics is not clipped.
+        "absolute inset-y-0 -inset-x-[10px] box-border h-full w-[calc(100%+20px)] rounded-none bg-transparent py-0 pr-0 pl-[10px] text-left text-(--sk-ink) outline-none will-change-transform group-data-quiet/sk-nf:caret-transparent data-disabled:cursor-not-allowed",
         className,
       )}
       // The cell takes its width from the number, as text would; the input lies over it, so
@@ -490,14 +488,16 @@ const SakugaNumberFieldInput = ({
             if (e.target === e.currentTarget) {
               e.preventDefault();
               loud();
-              el.current?.focus();
+              rigRef.current.num?.focus();
             }
           }}
         >
-          <span aria-hidden className={cn(NUMBER, "invisible whitespace-pre")}>
-            {state.inputValue || "0"}
+          <span className={cn(NUMBER, "relative")}>
+            <span aria-hidden className="invisible whitespace-pre">
+              {state.inputValue || "0"}
+            </span>
+            <input {...input} />
           </span>
-          <input {...input} />
         </span>
       )}
       onBlur={(e) => {
