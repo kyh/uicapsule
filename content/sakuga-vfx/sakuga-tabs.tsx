@@ -49,7 +49,10 @@ const STEPS = new Map([
 // 2. Picking a tab makes its label bold, which resizes the list, and the original's ResizeObserver
 //    answered every resize by snapping the raised tab to its target: the slide and its stretch
 //    never showed. Here a resize during a move only retargets the springs; any other still snaps.
-// Every number is the original's.
+// Every number is the original's. One clamp is added: because of the snap, the original's stretch
+// formula never ran, and at full speed its 46px would throw the trailing edge out past the end of
+// the list. Here the stretch only trails over ground already covered since the move began, and
+// never leaves the list; the spring's overshoot past either end of the list is held at the end.
 
 interface Rig {
   sx: Spring;
@@ -58,6 +61,9 @@ interface Rig {
   pending: boolean;
   // which way the last picked move went: 1 right, -1 left
   dir: number;
+  // where the move began, and how wide the list is: the stretch stays between them
+  from: number;
+  span: number;
   // the index a click or key just asked for: that move gets the landing
   asked: number;
   shown: number;
@@ -67,7 +73,9 @@ interface Rig {
 const aim = (rig: Rig, tab: HTMLElement, quiet: boolean) => {
   if (!quiet) {
     rig.dir = Math.sign(tab.offsetLeft - rig.sx.to) || 1;
+    rig.from = rig.sx.x;
   }
+  rig.span = tab.offsetParent?.clientWidth ?? Infinity;
   rig.sx.to = tab.offsetLeft;
   rig.sw.to = tab.offsetWidth;
   if (quiet) {
@@ -85,6 +93,7 @@ const follow = (rig: Rig, tab: HTMLElement) => {
   if (rig.pending) {
     rig.sx.to = tab.offsetLeft;
     rig.sw.to = tab.offsetWidth;
+    rig.span = tab.offsetParent?.clientWidth ?? Infinity;
   } else {
     aim(rig, tab, true);
   }
@@ -93,8 +102,12 @@ const follow = (rig: Rig, tab: HTMLElement) => {
 // write the raised tab where the springs are: it stretches with its speed
 const paint = (rig: Rig, ind: HTMLElement) => {
   const { sx } = rig;
-  const w = rig.sw.x + Math.min(46, Math.abs(sx.v) * 0.06);
-  ind.style.transform = `translate(${sx.x - (sx.v < 0 ? 0 : w - rig.sw.x)}px, ${rig.up.x}px)`;
+  const room = sx.v < 0 ? rig.span - sx.x - rig.sw.x : sx.x;
+  const stretch = Math.max(0, Math.min(46, Math.abs(sx.v) * 0.06, Math.abs(sx.x - rig.from), room));
+  const w = rig.sw.x + stretch;
+  // the list's ends are walls: the spring's own overshoot stops at them too
+  const left = clamp(sx.x - (sx.v < 0 ? 0 : stretch), 0, Math.max(0, rig.span - w));
+  ind.style.transform = `translate(${left}px, ${rig.up.x}px)`;
   ind.style.width = `${w}px`;
 };
 
@@ -123,8 +136,10 @@ export const SakugaTabs = ({
   const rig = useRef<Rig>({
     asked: -1,
     dir: 1,
+    from: 0,
     pending: false,
     shown: 0,
+    span: Infinity,
     sw: new Spring(10, 320, 26),
     sx: new Spring(0, 320, 23),
     up: new Spring(0, 420, 13),
