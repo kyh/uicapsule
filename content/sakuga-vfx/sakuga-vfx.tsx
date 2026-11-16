@@ -143,11 +143,13 @@ export const SakugaVfx = () => (
       </Card>
       {/* ── stepper card ── */}
       <Card id="stepper" name="Stepper" how="Tap plus fast, then hit the limit.">
-        <SakugaStepper defaultValue={5} max={9} label="Copies" />
+        <SakugaStepper defaultValue={5} max={9} label="Copies" name="copies" />
+<SakugaStepper disabled name="off" />
       </Card>
       {/* ── select card ── */}
       <Card id="select" name="Select" how="Open it, run down the rows, and choose one.">
-        <SakugaSelect />
+        <SakugaSelect name="stage" />
+<SakugaSelect disabled name="off2" />
       </Card>
       {/* ── accordion card ── */}
       <Card id="accordion" name="Accordion" how="Open one, then another.">
@@ -156,7 +158,7 @@ export const SakugaVfx = () => (
         </div>
       </Card>
       {/* ── chips card ── */}
-      <Card id="chips" name="Chips" how="TODO">
+      <Card id="chips" name="Chips" how="Type a tag and press Enter, then remove one.">
         <SakugaChips />
       </Card>
     </div>

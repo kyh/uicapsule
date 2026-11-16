@@ -11,7 +11,7 @@ const Preview = () => {
     Reflect.set(globalThis, "SakugaFX", clock);
   }, []);
   return (
-    <main className="min-h-dvh bg-white px-4 py-8 [color-scheme:light]">
+    <main className="min-h-dvh overflow-x-clip bg-white px-4 py-8 [color-scheme:light]">
       <div className="mx-auto flex justify-center">
         <SakugaVfx />
       </div>

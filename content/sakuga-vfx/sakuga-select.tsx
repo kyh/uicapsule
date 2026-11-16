@@ -139,7 +139,7 @@ export const SakugaSelect = ({
     setActive(start);
     aim(start, true);
     out.current.to = 1;
-    out.current.d = 15;
+    out.current.d = 20;
     flip.current.to = 1;
     if (sqRef.current) {
       sqRef.current.s.v += 2;
@@ -148,23 +148,14 @@ export const SakugaSelect = ({
       if (n !== now.current.seq) {
         return;
       }
-      const c = at(m);
       const q = at(b);
+      // where the menu will come to rest, not where the overshoot has it now
+      const left = q.x - q.w / 2;
+      const right = left + m.offsetWidth;
       const far = above ? -1 : 1;
-      puff(c.x - c.w / 2 - 8, c.y + far * (c.h / 2 - 10), {
-        life: 0.8,
-        n: 4,
-        size: 8,
-        vx: -14,
-        vy: -6,
-      });
-      puff(c.x + c.w / 2 + 10, c.y + far * (c.h / 2 - 24), {
-        life: 0.7,
-        n: 3,
-        size: 6,
-        vx: 14,
-        vy: -10,
-      });
+      const end = q.y + far * (q.h / 2 + 13 + m.offsetHeight);
+      puff(left - 9, end - far * 16, { life: 0.8, n: 4, size: 8, vx: -14, vy: -6 });
+      puff(right + 13, end - far * 30, { life: 0.7, n: 3, size: 7, vx: 14, vy: -10 });
       sfx("shu", q.x + q.w / 2 + 4, q.y - far * (q.h / 2 + 36), {
         col: "#5a4fd8",
         edge: "#ffffff",
@@ -216,7 +207,7 @@ export const SakugaSelect = ({
       const c = at(b, 1, 0);
       const q = at(b);
       ticks(c.x - 8, c.y - 4, { dir: -1.05, fan: 0.36, len: 17, life: 0.5, n: 3, r: 5 });
-      puff(q.x - q.w / 2 - 9, q.y + q.h / 2 - 2, { life: 0.6, n: 3, size: 6, vx: -12, vy: -8 });
+      puff(q.x - q.w / 2 - 9, q.y + q.h / 2 - 2, { life: 0.6, n: 3, size: 7, vx: -12, vy: -8 });
     });
   };
 
