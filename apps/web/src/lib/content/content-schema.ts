@@ -47,6 +47,17 @@ export const contentMetaSchema = z.discriminatedUnion("type", [
 export type ContentComponentSummary = z.infer<typeof contentMetaSchema> & { slug: string };
 export type LocalContentComponentSummary = Extract<ContentComponentSummary, { type: "local" }>;
 export type DefaultSize = NonNullable<ContentComponentSummary["defaultSize"]>;
+
+// One entry of cover-media.json, written by `pnpm og:video` (scripts/og-video.ts).
+export const coverMediaSchema = z.object({
+  cover: coverKeySchema,
+  duration: z.number().positive(),
+  height: z.int().positive(),
+  still: z.string().startsWith("/og/covers/"),
+  uploadDate: z.iso.date(),
+  width: z.int().positive(),
+});
+export type CoverMedia = z.infer<typeof coverMediaSchema>;
 export interface SourceFile {
   path: string;
   code: string;

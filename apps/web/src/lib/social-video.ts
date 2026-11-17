@@ -2,7 +2,7 @@ import { assetUrl } from "./assets";
 import coverMedia from "./content/cover-media.json";
 import { siteConfig } from "./site-config";
 
-import type { ContentComponentSummary } from "./content/content-schema";
+import type { ContentComponentSummary, CoverMedia } from "./content/content-schema";
 import type { SocialVideo } from "./agent/structured-data";
 
 /**
@@ -28,16 +28,7 @@ export const homeVideo: SocialVideo = {
   width: 1200,
 };
 
-interface CoverMediaEntry {
-  cover: string;
-  duration: number;
-  height: number;
-  still: string;
-  uploadDate: string;
-  width: number;
-}
-
-const mediaBySlug: Record<string, CoverMediaEntry | undefined> = coverMedia;
+const mediaBySlug: Record<string, CoverMedia | undefined> = coverMedia;
 
 /**
  * The probed facts for a component's cover, or nothing when the probe is
@@ -45,7 +36,7 @@ const mediaBySlug: Record<string, CoverMediaEntry | undefined> = coverMedia;
  */
 export const coverMediaFor = (
   component: Pick<ContentComponentSummary, "cover" | "slug">,
-): CoverMediaEntry | undefined => {
+): CoverMedia | undefined => {
   const entry = mediaBySlug[component.slug];
   return entry && entry.cover === component.cover ? entry : undefined;
 };
