@@ -303,6 +303,14 @@
     "uploadDate": "2026-09-08",
     "width": 1440
   },
+  "sakuga-vfx": {
+    "cover": "sakuga-vfx/sakuga-vfx.20261116.mp4",
+    "duration": 14.48,
+    "height": 900,
+    "still": "/og/covers/sakuga-vfx.jpg",
+    "uploadDate": "2026-11-17",
+    "width": 1600
+  },
   "screenshot-capture": {
     "cover": "screenshot-capture/screenshot-capture.20260926.mp4",
     "duration": 13.2,
