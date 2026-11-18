@@ -14,7 +14,6 @@ import { GREEN, GRID, MUTED, ORANGE, RED, THEME } from "../lib/tokens";
 const FIRST = 2020;
 const YEARS = 8;
 const TOP = 80;
-// Scrubber stops at column centers, 2023 → 2027; it parks on 2026 first.
 const STOPS = [3.5, 4.5, 5.5, 6.5, 7.5] as const;
 const START = 3;
 
@@ -23,19 +22,20 @@ const SERIES = [
   { id: "mid", plateau: 47 },
   { id: "low", plateau: 32 },
 ] as const;
+
 type SeriesId = (typeof SERIES)[number]["id"];
 
 const smooth = (t: number) => {
   const c = Math.min(1, Math.max(0, t));
+
   return c * c * (3 - 2 * c);
 };
 
-/** An S-curve that idles near $10M, climbs 2021→2024, then plateaus; the
- * headline series carries a 2027 forecast bump to $74.8M. */
 const valueAt = (id: SeriesId, plateau: number, x: number) => {
   const dip = -0.6 * Math.sin(Math.min(1, x / 1.4) * Math.PI);
   const lift = id === "aum" ? smooth((x - 1.2) / 3.1) : smooth((x - 1.3) / 3.5);
   const forecast = id === "aum" ? smooth(x - 6.5) * 4.8 : 0;
+
   return 10 + dip + (plateau - 10) * lift + forecast;
 };
 
@@ -54,14 +54,19 @@ export const GlobalFinanceMarketForecast = () => {
   const definition = useMemo(() => {
     const rows = SERIES.flatMap(({ id, plateau }) => {
       const xs: number[] = [];
+
       for (let x = 0; x < sx; x += 0.125) {
         xs.push(x);
       }
+
       xs.push(sx);
+
       return xs.map((x) => ({ key: `${id}-${x}`, s: id, v: valueAt(id, plateau, x), x }));
     });
+
     const heads = SERIES.map(({ id, plateau }) => ({ s: id, v: valueAt(id, plateau, sx), x: sx }));
     const columns = Array.from({ length: YEARS + 1 }, (_, i) => i);
+
     return defineChart({
       gradients: [
         {
@@ -278,13 +283,16 @@ export const GlobalFinanceMarketForecast = () => {
               ariaLabel="Global assets under management, 2020 to 2027"
               onFocusChange={(p) => {
                 const x = Number(p?.xValue);
+
                 if (p && Number.isFinite(x)) {
                   let best = 0;
+
                   for (const [i, s] of STOPS.entries()) {
                     if (Math.abs(s - x) < Math.abs((STOPS[best] ?? 0) - x)) {
                       best = i;
                     }
                   }
+
                   pin(best);
                 }
               }}

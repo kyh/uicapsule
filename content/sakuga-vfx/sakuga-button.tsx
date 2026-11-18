@@ -1,12 +1,5 @@
 "use client";
 
-// Sakuga Button: a button that reacts like an anime impact frame.
-// Primary: press and it squashes flat with wedges above it. Let go and the button inverts for one
-// frame and tilts, a spiky burst goes off behind it with crystals and four clouds, ドン! lands above
-// it, then it springs tall and smoke rings drift off. Turn `done` on and a check lands with a glint.
-// Secondary: a small squash and three wedges at the corner.
-// Base UI's Button owns the element: its type, disabled state and `render`.
-
 import { Button as ButtonPrimitive } from "@base-ui/react/button";
 import { cn } from "cn";
 import { useLayoutEffect, useRef } from "react";
@@ -40,8 +33,6 @@ import type { Styled } from "./sakuga-react";
 
 type SakugaButtonProps = Styled<ButtonPrimitive.Props> & {
   variant?: "primary" | "secondary";
-  // primary only: a check lands on the button with a glint when this turns true, and leaves when
-  // it turns false. A click clears the check, so turn it false again before the next run.
   done?: boolean;
 };
 
@@ -54,7 +45,9 @@ const CLOUDS = [
 
 const BUTTON =
   "relative cursor-pointer touch-manipulation rounded-(--sk-r) bg-(--sk-card) px-[30px] py-[14px] text-[19px] leading-[1.1] font-extrabold tracking-[-0.01em] text-(--sk-ink) italic will-change-transform select-none focus-visible:outline-[2.5px] focus-visible:outline-offset-[3px] focus-visible:outline-(--sk-acc) data-disabled:cursor-not-allowed data-disabled:opacity-45 data-inv:bg-(--sk-ink) data-inv:text-(--sk-card) data-inv:shadow-none!";
+
 const PRIMARY = "border-[length:var(--sk-bw)] border-(--sk-btn-line) shadow-(--sk-btn-sh)";
+
 const SECONDARY =
   "border-[length:var(--sk-bw)] border-(--sk-alt-line) align-middle shadow-(--sk-alt-sh)";
 
@@ -75,15 +68,16 @@ const SakugaButton = ({
   const sqRef = useSquashy(el, primary ? { low: 0.5, wide: 0.24 } : { low: 0.72, wide: 0.3 });
   const ok = useRef(new Spring(0, 420, 14));
   const seq = useRef(0);
-  // whether the check is on the button
   const checked = useRef(done);
 
   const impact = () => {
     const b = el.current;
     const s = sqRef.current;
+
     if (!b || !s) {
       return;
     }
+
     const c = at(b);
     seq.current += 1;
     const n = seq.current;
@@ -93,15 +87,14 @@ const SakugaButton = ({
     s.s.x = Math.min(s.s.x, 0.6);
     s.pop.x = 1.24;
     s.tilt.x = -5;
-    // the impact frame
     b.dataset.inv = "";
     later(190, () => {
       delete b.dataset.inv;
     });
     burst(c.x, c.y, { layer: backRef.current ?? undefined, life: 0.48, r: 98, spikes: 17 });
     shards(c.x, c.y, { arc: 6.28, grav: 300, life: 0.95, n: 11, size: 9, speed: 260 });
+
     for (const [dx, dy] of CLOUDS) {
-      // size is drawn before life, as in the original, so a seeded run matches it frame for frame
       const size = rnd(12, 16);
       const life = rnd(0.75, 1.05);
       puff(c.x + dx * (c.w / 2 + 6), c.y + dy * 26, {
@@ -112,6 +105,7 @@ const SakugaButton = ({
         vy: dy * 30 - 6,
       });
     }
+
     sfx("don", c.x + 10, c.y - 84, { life: 1.05, rot: -0.12, size: 176 });
     ticks(c.x - 96, c.y - 70, { dir: -2.4, len: 22, life: 0.45, n: 2, r: 4 });
     ticks(c.x + 110, c.y - 60, { dir: -0.7, len: 22, life: 0.45, n: 2, r: 4 });
@@ -119,6 +113,7 @@ const SakugaButton = ({
       if (n !== seq.current) {
         return;
       }
+
       s.s.x = 1.22;
       wob(c.x - c.w / 2 - 8, c.y, { dir: -1 });
       wob(c.x + c.w / 2 + 8, c.y, { dir: 1 });
@@ -131,17 +126,20 @@ const SakugaButton = ({
     });
   };
 
-  // the check lands, with a glint, when `done` turns true and leaves when it turns false
   useLayoutEffect(() => {
     const b = el.current;
+
     if (!primary || !b || done === checked.current) {
       return;
     }
+
     checked.current = done;
     ok.current.to = done ? 1 : 0;
+
     if (!done) {
       return;
     }
+
     const q = at(b, 1, 0);
     kira(q.x - 16, q.y + 2, { life: 1, r: 15 });
     ticks(q.x - 2, q.y - 12, { dir: -0.8, len: 12, n: 2, r: 6 });
@@ -149,6 +147,7 @@ const SakugaButton = ({
 
   useFrame((dt) => {
     sqRef.current?.step(dt);
+
     if (primary) {
       el.current?.style.setProperty("--ok", Math.max(0, ok.current.step(dt)).toFixed(3));
     }
@@ -156,9 +155,11 @@ const SakugaButton = ({
 
   const press = () => {
     const b = el.current;
+
     if (!primary || !b || b.matches(":disabled, [aria-disabled='true']")) {
       return;
     }
+
     const c = at(b);
     ticks(c.x, c.y - c.h / 2 - 6, { dir: -Math.PI / 2, fan: 0.5, len: 14, n: 3, r: 4 });
     wob(c.x - c.w / 2 - 6, c.y, { dir: -1, life: 0.3, r: 10 });
@@ -169,6 +170,7 @@ const SakugaButton = ({
   const click = (e: Parameters<NonNullable<SakugaButtonProps["onClick"]>>[0]) => {
     const b = el.current;
     const s = sqRef.current;
+
     if (primary) {
       impact();
     } else if (b && s) {
@@ -177,6 +179,7 @@ const SakugaButton = ({
       const c = at(b, 1, 0);
       ticks(c.x - 8, c.y - 4, { dir: -1.05, fan: 0.36, len: 17, life: 0.5, n: 3, r: 5 });
     }
+
     onClick?.(e);
   };
 
@@ -206,7 +209,6 @@ const SakugaButton = ({
     </ButtonPrimitive>
   );
 
-  // only the primary has a burst to draw behind it, so only it needs the stage and its canvas
   if (!primary) {
     return (
       <>
@@ -215,6 +217,7 @@ const SakugaButton = ({
       </>
     );
   }
+
   return (
     <span
       data-slot="sakuga-button-stage"

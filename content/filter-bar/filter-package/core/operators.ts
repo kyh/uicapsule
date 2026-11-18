@@ -239,13 +239,12 @@ export const filterTypeOperatorDetails: FilterTypeOperatorDetails = {
   text: textFilterOperators,
 };
 
-// Preserve negation when the value count switches between one and many.
 export const determineNewOperator = <TType extends ColumnDataType>(
   type: TType,
   oldVals: FilterValues<TType>,
   nextVals: FilterValues<TType>,
   currentOperator: FilterOperators[TType],
-): FilterOperators[TType] => {
+) => {
   const a = oldVals.length;
   const b = nextVals.length;
 
@@ -258,8 +257,10 @@ export const determineNewOperator = <TType extends ColumnDataType>(
   if (a < b && b >= 2) {
     return opDetails.multiple ?? currentOperator;
   }
+
   if (a > b && b <= 1) {
     return opDetails.single ?? currentOperator;
   }
+
   return currentOperator;
 };

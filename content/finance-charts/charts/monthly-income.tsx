@@ -12,11 +12,7 @@ import { compact, usd } from "../lib/data";
 import { Card, ChartSlot, MoreButton, Num, renderer, useCycle } from "../lib/kit";
 import { GREEN, GRID, MUTED, THEME } from "../lib/tokens";
 
-// The dial is a slice of a circle much larger than the card: its centre sits
-// far below the visible strip, so only the crown shows and both ends run off
-// the card's edges.
 const HEIGHT = 150;
-// The drawing is a square wider than the card, centred under it.
 const SIZE = 480;
 const TOP = 24;
 const SWEEP = 1;

@@ -2,6 +2,7 @@ import { useId } from "react";
 
 export const Progress = ({ label, value }: { label: string; value: number }) => {
   const id = useId();
+
   return (
     <div className="grid gap-1.5">
       <div className="flex justify-between text-xs">

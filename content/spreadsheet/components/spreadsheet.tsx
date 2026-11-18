@@ -41,7 +41,6 @@ export const Spreadsheet = ({
 }: SpreadsheetProps) => {
   "use no memo";
 
-  // TanStack Virtual exposes mutable measurements that React Compiler cannot memoize.
   const data = useSpreadsheetStore((state) => state.data);
   const selectedCells = useSpreadsheetStore((state) => state.selectedCells);
   const isDragging = useSpreadsheetStore((state) => state.dragStartCell !== null);
@@ -60,6 +59,7 @@ export const Spreadsheet = ({
   });
 
   const leafColumns = table.getAllLeafColumns();
+
   const columnMeta = useMemo<ColumnInfo[]>(
     () => leafColumns.map((column) => ({ id: column.id })),
     [leafColumns],
@@ -94,9 +94,9 @@ export const Spreadsheet = ({
     [columnMeta],
   );
 
-  // Mouseup should be global to handle drag ending outside the spreadsheet
   useEffect(() => {
     document.addEventListener("mouseup", handleMouseUp);
+
     return () => {
       document.removeEventListener("mouseup", handleMouseUp);
     };

@@ -1,6 +1,3 @@
-// Formation — data model, tunables, math helpers, layout + pose functions.
-// Pure (no React) so the client component stays focused on wiring + the rAF loop.
-
 export type FormationMode = "flat" | "tilt" | "ring" | "gallery";
 
 export interface Work {
@@ -29,7 +26,6 @@ export interface FmLayout {
   cardW: number;
   cardH: number;
   flatScale: number;
-  // Flat ring geometry
   flatAngles: number[];
   Rx: number;
   Ry: number;
@@ -43,7 +39,6 @@ export const MODES: { id: FormationMode; label: string }[] = [
   { id: "gallery", label: "Gallery" },
 ];
 
-// ── Global tunables ────────────────────────────────────────────────────────
 export const SPRING = 0.12;
 export const HOVER_EASE = 0.055;
 export const HOVER_ZOOM = 0.26;
@@ -58,15 +53,12 @@ export const SWAP_FLOOR = 0.6;
 const DEG = Math.PI / 180;
 const TWO_PI = Math.PI * 2;
 
-// ── Helpers ────────────────────────────────────────────────────────────────
 export const clamp = (v: number, a: number, b: number) => Math.min(b, Math.max(a, v));
 export const lerp = (a: number, b: number, t: number) => a + (b - a) * t;
 const wrap = (x: number, p: number) => ((((x + p / 2) % p) + p) % p) - p / 2;
 export const easeInOut = (t: number) => (t < 0.5 ? 4 * t * t * t : 1 - (-2 * t + 2) ** 3 / 2);
 
-// Poses are mutated in place — the engine holds one `cur`/`from` per card for
-// the lifetime of the component, so nothing allocates inside the rAF loop.
-export const copyPose = (dst: Pose, src: Pose): void => {
+export const copyPose = (dst: Pose, src: Pose) => {
   dst.x = src.x;
   dst.y = src.y;
   dst.z = src.z;
@@ -78,7 +70,7 @@ export const copyPose = (dst: Pose, src: Pose): void => {
 };
 
 /** `dst = lerp(a, b, t)`, field by field. `dst` may alias `a` (that's the spring step). */
-export const lerpPose = (dst: Pose, a: Pose, b: Pose, t: number): void => {
+export const lerpPose = (dst: Pose, a: Pose, b: Pose, t: number) => {
   dst.x = lerp(a.x, b.x, t);
   dst.y = lerp(a.y, b.y, t);
   dst.z = lerp(a.z, b.z, t);
@@ -90,15 +82,11 @@ export const lerpPose = (dst: Pose, a: Pose, b: Pose, t: number): void => {
 };
 
 /** Lower is "more focused": nearest the stage centre, biased toward the front. */
-export const focusScore = (p: Pose): number => Math.abs(p.x) + Math.abs(p.y) - p.z;
+export const focusScore = (p: Pose) => Math.abs(p.x) + Math.abs(p.y) - p.z;
 
-export const poseTransform = (p: Pose): string =>
+export const poseTransform = (p: Pose) =>
   `translate3d(${p.x}px, ${p.y}px, ${p.z}px) rotateX(${p.rx}deg) rotateY(${p.ry}deg) rotateZ(${p.rz}deg) scale(${p.s})`;
 
-// ── Layout (recomputed on mount + resize) ───────────────────────────────────
-// The flat ring is not evenly angled: card spacing is solved so the *edge* gap
-// between neighbours is constant all the way round the ellipse. Sample the
-// ellipse finely, then bisect on a shared gap G until Σ ds/(fp+G) === n.
 const buildFlatRing = (
   W: number,
   H: number,
@@ -119,10 +107,12 @@ const buildFlatRing = (
 
   const M = 3000;
   const dphi = TWO_PI / M;
+
   const samples = Array.from({ length: M }, (_, k) => {
     const phi = k * dphi;
     const sp = Math.sin(phi);
     const cp = Math.cos(phi);
+
     return {
       ds: Math.sqrt(Rx * Rx * sp * sp + Ry * Ry * cp * cp) * dphi,
       fp: cw * Math.abs(cp) + ch * Math.abs(sp),
@@ -130,38 +120,46 @@ const buildFlatRing = (
     };
   });
 
-  // count(G) falls monotonically as G grows, so plain bisection converges.
   const count = (G: number) => {
     let s = 0;
+
     for (const sm of samples) {
       s += sm.ds / (sm.fp + G);
     }
+
     return s;
   };
+
   let lo = -0.85 * Math.min(cw, ch);
   let hi = Math.max(W, H);
+
   for (let it = 0; it < 60; it += 1) {
     const mid = (lo + hi) / 2;
+
     if (count(mid) > n) {
       lo = mid;
     } else {
       hi = mid;
     }
   }
+
   const G = (lo + hi) / 2;
 
-  // Place card i where the cumulative count first reaches i.
   const flatAngles: number[] = [];
   let cum = 0;
+
   for (const sm of samples) {
     if (flatAngles.length >= n) {
       break;
     }
+
     while (flatAngles.length < n && cum >= flatAngles.length) {
       flatAngles.push(sm.phi);
     }
+
     cum += sm.ds / (sm.fp + G);
   }
+
   while (flatAngles.length < n) {
     flatAngles.push((TWO_PI * flatAngles.length) / n);
   }
@@ -169,20 +167,22 @@ const buildFlatRing = (
   return { Rx, Ry, flatAngles, flatCY };
 };
 
-export const getLayout = (W: number, H: number, n: number): FmLayout => {
+export const getLayout = (W: number, H: number, n: number) => {
   const mobile = Math.min(W, H) < 640;
   const portrait = H > W;
+
   const cardW = mobile
     ? clamp(Math.min(W, H) * 0.27, 80, 118)
     : clamp(Math.min(W, H) * 0.155, 128, 196);
+
   const cardH = Math.round(cardW * 1.34);
   const flatScale = mobile ? 0.42 : 0.62;
   const ring = buildFlatRing(W, H, n, cardW, cardH, flatScale, portrait);
+
   return { H, W, cardH, cardW, flatScale, mobile, n, portrait, ...ring };
 };
 
-// ── Formations — each a pure function f(i, L, browse) → Pose ─────────────────
-const flatPose = (i: number, L: FmLayout, browse: number): Pose => {
+const flatPose = (i: number, L: FmLayout, browse: number) => {
   const { n } = L;
   const slot = (((i + browse * 0.004) % n) + n) % n;
   const i0 = Math.floor(slot);
@@ -190,11 +190,13 @@ const flatPose = (i: number, L: FmLayout, browse: number): Pose => {
   const fr = slot - i0;
   const a0 = L.flatAngles.at(i0) ?? 0;
   let a1 = L.flatAngles.at(i1) ?? 0;
-  // bridge the 2π seam
+
   if (a1 < a0) {
     a1 += TWO_PI;
   }
+
   const ang = lerp(a0, a1, fr);
+
   return {
     o: 1,
     rx: 0,
@@ -207,7 +209,7 @@ const flatPose = (i: number, L: FmLayout, browse: number): Pose => {
   };
 };
 
-const tiltPose = (i: number, L: FmLayout, browse: number): Pose => {
+const tiltPose = (i: number, L: FmLayout, browse: number) => {
   const { n } = L;
   const unit = L.cardW * (L.mobile ? 1.12 : 1.5);
   const x = wrap((i - Math.floor(n / 2)) * unit + browse, n * unit);
@@ -215,6 +217,7 @@ const tiltPose = (i: number, L: FmLayout, browse: number): Pose => {
   const ax = Math.min(Math.abs(x), Rarc * 0.98);
   const y = -L.H * 0.05 + (Rarc - Math.sqrt(Rarc * Rarc - ax * ax));
   const rz = (Math.asin(clamp(x / Rarc, -1, 1)) / DEG) * 0.65;
+
   return {
     o: clamp((0.5 - Math.abs(x) / L.W) / 0.13, 0, 1),
     rx: 0,
@@ -227,7 +230,7 @@ const tiltPose = (i: number, L: FmLayout, browse: number): Pose => {
   };
 };
 
-const ringPose = (i: number, L: FmLayout, browse: number): Pose => {
+const ringPose = (i: number, L: FmLayout, browse: number) => {
   const t = (i / L.n) * TWO_PI + browse * 0.0016;
   const R = Math.min(L.W, L.H) * 0.38;
   const lx = Math.sin(t) * R * (L.portrait ? 1.04 : 1.46);
@@ -239,6 +242,7 @@ const ringPose = (i: number, L: FmLayout, browse: number): Pose => {
   const x = lx * Math.cos(B) - y0 * Math.sin(B);
   const y = lx * Math.sin(B) + y0 * Math.cos(B);
   const k = (lz / R + 1) / 2;
+
   return {
     o: 1,
     rx: 0,
@@ -251,11 +255,12 @@ const ringPose = (i: number, L: FmLayout, browse: number): Pose => {
   };
 };
 
-const galleryPose = (i: number, L: FmLayout, browse: number): Pose => {
+const galleryPose = (i: number, L: FmLayout, browse: number) => {
   const theta = (i / L.n) * TWO_PI + browse * 0.0042;
   const c = Math.cos(theta);
   const front = (c + 1) / 2;
   const baseS = L.mobile ? 0.72 : 1.42;
+
   return {
     o: 1,
     rx: 0,
@@ -268,15 +273,18 @@ const galleryPose = (i: number, L: FmLayout, browse: number): Pose => {
   };
 };
 
-export const poseFor = (mode: FormationMode, i: number, L: FmLayout, browse: number): Pose => {
+export const poseFor = (mode: FormationMode, i: number, L: FmLayout, browse: number) => {
   if (mode === "flat") {
     return flatPose(i, L, browse);
   }
+
   if (mode === "tilt") {
     return tiltPose(i, L, browse);
   }
+
   if (mode === "ring") {
     return ringPose(i, L, browse);
   }
+
   return galleryPose(i, L, browse);
 };

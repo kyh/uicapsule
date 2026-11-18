@@ -56,6 +56,7 @@ describe("buildOrganization", () => {
 
   test("exposes reachable contactPoints, each with an email and a contactType", () => {
     assert.ok(organization.contactPoint.length > 0, "expected > 0");
+
     for (const point of organization.contactPoint) {
       assert.equal(point["@type"], "ContactPoint");
       assert.equal(point.email, "uicapsule@kyh.io");
@@ -64,8 +65,6 @@ describe("buildOrganization", () => {
   });
 
   test("omits address rather than inventing one", () => {
-    // UICapsule is a personal open-source project with no business premises.
-    // A fabricated PostalAddress would be worse than none.
     assert.ok(!Object.keys(organization).includes("address"), 'should not contain "address"');
   });
 });
@@ -80,6 +79,7 @@ describe("buildHomeGraph", () => {
 
   test("declares the schema.org context once, at the root", () => {
     assert.equal(graph["@context"], "https://schema.org");
+
     for (const node of graph["@graph"]) {
       assert.ok(!Object.keys(node).includes("@context"), 'should not contain "@context"');
     }

@@ -18,11 +18,13 @@ const request = componentRequestSchema.parse({
 
 const withToken = (t: { after: (fn: () => void) => void }, token?: string) => {
   const previous = process.env.GITHUB_ISSUES_TOKEN;
+
   if (token === undefined) {
     delete process.env.GITHUB_ISSUES_TOKEN;
   } else {
     process.env.GITHUB_ISSUES_TOKEN = token;
   }
+
   t.after(() => {
     if (previous === undefined) {
       delete process.env.GITHUB_ISSUES_TOKEN;
@@ -35,12 +37,15 @@ const withToken = (t: { after: (fn: () => void) => void }, token?: string) => {
 test("files a labelled issue with mentions neutralized", async (t) => {
   withToken(t, "test-token");
   let received: Request | undefined;
+
   const issue = await createComponentRequestIssue(request, (input, init) => {
     received = new Request(input, init);
+
     return Promise.resolve(
       Response.json({ html_url: "https://github.com/kyh/uicapsule/issues/7", number: 7 }),
     );
   });
+
   assert.deepEqual(issue, { html_url: "https://github.com/kyh/uicapsule/issues/7", number: 7 });
   assert.ok(received);
   assert.equal(received.url, "https://api.github.com/repos/kyh/uicapsule/issues");
@@ -71,6 +76,7 @@ test("credit falls back to anonymous and references to none", () => {
       references: [],
     }),
   );
+
   assert.match(body, /_anonymous_/u);
   assert.equal(body.match(/_none_/gu)?.length, 2);
 });

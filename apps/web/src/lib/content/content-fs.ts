@@ -7,15 +7,12 @@ import { siteConfig } from "../site-config";
 
 import { contentMetaSchema, contentPackageSchema } from "./content-schema";
 
-import type {
-  ContentComponentSummary,
-  LocalContentComponentSummary,
-  SourceFile,
-} from "./content-schema";
+import type { LocalContentComponentSummary, SourceFile } from "./content-schema";
 
 const contentRoot = path.resolve(process.cwd(), "..", "..", "content");
 
 const IGNORED_SOURCE_SEGMENTS = new Set(["node_modules", "dist", ".turbo", ".cache"]);
+
 const SOURCE_FILE_EXTENSIONS = new Set([
   ".ts",
   ".tsx",
@@ -26,20 +23,20 @@ const SOURCE_FILE_EXTENSIONS = new Set([
   ".json",
   ".md",
 ]);
+
 const IGNORED_SOURCE_FILES = new Set(["meta.json", "package-lock.json", "pnpm-lock.yaml"]);
 
-const readJson = async <T>(filePath: string, schema: z.ZodType<T>): Promise<T | null> => {
+const readJson = async <T>(filePath: string, schema: z.ZodType<T>) => {
   try {
     const parsed = schema.safeParse(JSON.parse(await readFile(filePath, "utf-8")));
+
     return parsed.success ? parsed.data : null;
   } catch {
     return null;
   }
 };
 
-export const readSourceFiles = async (
-  component: LocalContentComponentSummary,
-): Promise<SourceFile[]> => {
+export const readSourceFiles = async (component: LocalContentComponentSummary) => {
   const root = path.join(contentRoot, component.slug);
   const files: SourceFile[] = [];
 
@@ -50,21 +47,29 @@ export const readSourceFiles = async (
         if (IGNORED_SOURCE_SEGMENTS.has(entry.name)) {
           return;
         }
+
         const full = path.join(dir, entry.name);
+
         if (entry.isDirectory()) {
           await walk(full);
+
           return;
         }
+
         if (!entry.isFile()) {
           return;
         }
+
         if (IGNORED_SOURCE_FILES.has(entry.name)) {
           return;
         }
+
         const ext = entry.name.slice(entry.name.lastIndexOf("."));
+
         if (!SOURCE_FILE_EXTENSIONS.has(ext)) {
           return;
         }
+
         const code = await readFile(full, "utf-8");
         files.push({ code, path: `/${path.relative(root, full).replaceAll("\\", "/")}` });
       }),
@@ -72,28 +77,34 @@ export const readSourceFiles = async (
   };
 
   await walk(root);
+
   return files.toSorted((a, b) => a.path.localeCompare(b.path));
 };
 
-export const readContentIndex = cache(async (): Promise<ContentComponentSummary[]> => {
+export const readContentIndex = cache(async () => {
   const entries = await readdir(contentRoot, { withFileTypes: true });
+
   const slugs = entries
     .filter((entry) => entry.isDirectory() && !entry.name.startsWith("."))
     .map((entry) => entry.name)
     .toSorted();
 
   const components = await Promise.all(
-    slugs.map(async (slug): Promise<ContentComponentSummary | null> => {
+    slugs.map(async (slug) => {
       const meta = await readJson(path.join(contentRoot, slug, "meta.json"), contentMetaSchema);
+
       if (!meta) {
         return null;
       }
+
       if (meta.type === "local") {
         const preview = await stat(path.join(contentRoot, slug, "preview.tsx")).catch(() => null);
+
         if (!preview?.isFile()) {
           return null;
         }
       }
+
       return Object.assign(meta, { slug });
     }),
   );
@@ -103,8 +114,9 @@ export const readContentIndex = cache(async (): Promise<ContentComponentSummary[
     .toSorted((a, b) => b.addedAt.localeCompare(a.addedAt) || a.slug.localeCompare(b.slug));
 });
 
-export const readContentBySlug = async (slug: string): Promise<ContentComponentSummary | null> => {
+export const readContentBySlug = async (slug: string) => {
   const all = await readContentIndex();
+
   return all.find((component) => component.slug === slug) ?? null;
 };
 
@@ -113,12 +125,14 @@ export const buildShadcnRegistryItem = async (component: LocalContentComponentSu
     readJson(path.join(contentRoot, component.slug, "package.json"), contentPackageSchema),
     readSourceFiles(component),
   ]);
+
   const dependencies = [
     ...new Set([
       ...Object.keys(pkg?.dependencies ?? {}),
       ...Object.keys(pkg?.peerDependencies ?? {}),
     ]),
   ].filter((dependency) => dependency !== "react" && dependency !== "react-dom");
+
   const devDependencies = Object.keys(pkg?.devDependencies ?? {}).filter(
     (dep) => !["@types/react", "@types/react-dom", "typescript"].includes(dep),
   );
@@ -130,7 +144,6 @@ export const buildShadcnRegistryItem = async (component: LocalContentComponentSu
     dependencies,
     description: component.description,
     devDependencies,
-    // The manifest is workspace-only ("catalog:" versions); `dependencies` carries what it declares.
     files: sourceFiles
       .filter(({ path: filePath }) => filePath !== "/package.json")
       .map(({ path: filePath, code }) => ({

@@ -13,11 +13,9 @@ import { KNOB_SIZE, percentToX, TRACK_TRAVEL, TRACK_WIDTH } from "./effort-scale
 import { EFFORT_THEMES, labelAt, nearestLevel, notchX } from "./effort-theme";
 import { averagePercent, FLAT_WORDS, LYRIC_LINES, VERSE_BEATS } from "./karaoke-lyrics";
 
-/** The original track sits at 85 BPM. Every cue below lands on that grid. */
 const BEAT_MS = 60_000 / 85;
 const COUNTDOWN_BEATS = 3;
 const COUNT_IN_MS = BEAT_MS * COUNTDOWN_BEATS;
-/** Beat between the last word and the dial committing. */
 const COMMIT_DELAY_MS = 700;
 
 const DIAL_SPRING = { damping: 24, stiffness: 260, type: "spring" } as const;
@@ -27,6 +25,7 @@ interface Burst {
   id: number;
   percent: number;
 }
+
 type CountdownCount = 3 | 2 | 1;
 
 type TakeState =
@@ -36,10 +35,6 @@ type TakeState =
 
 const promptForCountdown = (count: CountdownCount) => (count === 1 ? "Let's go!" : "You ready?!");
 
-/**
- * The bloom that escapes the lyric panel. It stays close to the edge — a rim of
- * light leaking out from behind the verdict, not a flare washing over the card.
- */
 const CompletionGlow = ({ reduceMotion }: { reduceMotion: boolean }) => (
   <motion.div
     aria-hidden
@@ -57,7 +52,6 @@ const CompletionGlow = ({ reduceMotion }: { reduceMotion: boolean }) => (
   </motion.div>
 );
 
-/** Sparse, panel-bound — a few catches of light, not a firework. */
 const FINALE_GLINTS = [
   { delay: 0.1, x: -148, y: -16 },
   { delay: 0.18, x: -92, y: 16 },
@@ -69,6 +63,7 @@ const FinaleGlints = () => (
   <>
     {FINALE_GLINTS.map((glint) => {
       const destination = `translate(calc(-50% + ${glint.x}px), calc(-50% + ${glint.y}px))`;
+
       return (
         <motion.span
           key={`${glint.x}-${glint.y}`}
@@ -92,10 +87,6 @@ const FinaleGlints = () => (
   </>
 );
 
-/**
- * Everything else is clipped to the lyric panel: the verse burns off, the panel
- * catches the light for a beat, and a single specular sweep crosses it.
- */
 const CompletionShimmer = () => (
   <motion.div
     aria-hidden
@@ -151,17 +142,19 @@ const wordClass = (isPercent: boolean, done: boolean) => {
   if (isPercent) {
     return done ? "text-violet-400" : "text-violet-400/30";
   }
+
   return done ? "text-neutral-100" : "text-neutral-600";
 };
 
-/** Words landed so far — the whole verse once the take has committed. */
 const matchedWords = (take: TakeState) => {
   if (take.status === "singing") {
     return take.matched;
   }
+
   if (take.status === "complete") {
     return FLAT_WORDS.length;
   }
+
   return 0;
 };
 
@@ -185,8 +178,6 @@ const AgainButton = ({ onClick }: { onClick: () => void }) => (
   </motion.button>
 );
 
-/** The counter scrolls with the verse: the bar you just finished lifts away
- * while the one you're on rises to take its place. */
 const BarCounter = ({ lineIndex, reduceMotion }: MotionProps & { lineIndex: number }) => (
   <motion.span
     initial={{ opacity: 0 }}
@@ -256,8 +247,6 @@ const Countdown = ({ count, reduceMotion }: MotionProps & { count: CountdownCoun
   </div>
 );
 
-/** Bars scroll like a teleprompter: the outgoing line lifts, blurs and fades
- * while the next one rises into focus underneath it. */
 const Verse = ({
   lineIndex,
   matched,
@@ -272,9 +261,6 @@ const Verse = ({
       animate={{ filter: "blur(0px)", opacity: 1, y: 0 }}
       exit={reduceMotion ? { opacity: 0 } : { filter: "blur(5px)", opacity: 0, y: -14 }}
       transition={{ duration: reduceMotion ? 0.1 : 0.22, ease: [0.4, 0, 0.2, 1] }}
-      // Pinned to the panel rather than laid out in it: popLayout yanks the
-      // outgoing bar out of flow, and a shrink-wrapped bar re-wraps mid-exit.
-      // Same width in, same width out — a bar that wraps, wraps the whole time.
       className="absolute inset-x-4 inset-y-0 z-20 flex flex-wrap content-center items-center justify-center gap-x-1.5 text-center text-[15px] font-medium"
     >
       {line?.words.map((word, index) => (
@@ -289,8 +275,6 @@ const Verse = ({
   );
 };
 
-/** The verse gives way to the verdict. It arrives with a flare behind it,
- * because six bars of arithmetic deserve at least a bit of ceremony. */
 const Verdict = ({ label, reduceMotion }: MotionProps & { label: string }) => (
   <motion.div
     initial={reduceMotion ? { opacity: 0 } : { opacity: 0, scale: 0.9 }}
@@ -345,17 +329,16 @@ export const KaraokeCard = ({ knobX, theme }: KaraokeCardProps) => {
     for (const timer of timers.current) {
       window.clearTimeout(timer);
     }
+
     timers.current = [];
   }, []);
+
   const after = useCallback((ms: number, run: () => void) => {
     timers.current.push(window.setTimeout(run, ms));
   }, []);
 
-  // The line on screen is the one the *last landed word* belongs to, not the one
-  // the next word belongs to. Reading ahead flipped the line the instant a bar's
-  // final word landed, so that word was never seen lit — every bar looked like it
-  // skipped its last word, and the closing bar was cut off entirely by the commit.
   const matched = matchedWords(take);
+
   const currentLineIndex =
     matched === 0 ? 0 : (FLAT_WORDS[matched - 1]?.lineIndex ?? LYRIC_LINES.length - 1);
 
@@ -363,6 +346,7 @@ export const KaraokeCard = ({ knobX, theme }: KaraokeCardProps) => {
     clearTimers();
     setBursts([]);
     setTake({ count: 3, status: "countdown" });
+
     if (reduceMotionRef.current) {
       knobX.set(0);
     } else {
@@ -373,20 +357,22 @@ export const KaraokeCard = ({ knobX, theme }: KaraokeCardProps) => {
     after(BEAT_MS * 2, () => setTake({ count: 1, status: "countdown" }));
     after(COUNT_IN_MS, () => setTake({ matched: 0, status: "singing" }));
 
-    // Cues are song beats, not a uniform word ticker. Short bars breathe while the
-    // dense final bar runs faster, matching the recorded cadence without drift.
     for (const [index, word] of FLAT_WORDS.entries()) {
       after(COUNT_IN_MS + word.cueBeat * BEAT_MS, () => {
         setTake({ matched: index + 1, status: "singing" });
+
         if (word.percent === undefined) {
           return;
         }
 
         const landed = word.percent;
+
         if (reduceMotionRef.current) {
           knobX.set(percentToX(landed));
+
           return;
         }
+
         void animate(knobX, percentToX(landed), DIAL_SPRING);
         burstId.current += 1;
         const burst = { id: burstId.current, percent: landed };
@@ -399,21 +385,20 @@ export const KaraokeCard = ({ knobX, theme }: KaraokeCardProps) => {
       const average = averagePercent(
         FLAT_WORDS.flatMap((word) => (word.percent === undefined ? [] : [word.percent])),
       );
-      // The average is a percentage, but the dial only has notches — so the take
-      // settles on the nearest one. That rounding IS the joke: perform six bars of
-      // precise percentages and the machine shrugs them into "Medium".
+
       const level = nearestLevel(theme, percentToX(average));
       setTake({ level, status: "complete" });
+
       if (reduceMotionRef.current) {
         knobX.set(notchX(theme, level));
       } else {
         void animate(knobX, notchX(theme, level), COMMIT_SPRING);
       }
 
-      // One last burst, on the notch it actually landed on.
       if (reduceMotionRef.current) {
         return;
       }
+
       burstId.current += 1;
       const finale = { id: burstId.current, percent: (notchX(theme, level) / TRACK_TRAVEL) * 100 };
       setBursts((current) => [...current, finale]);
@@ -423,6 +408,7 @@ export const KaraokeCard = ({ knobX, theme }: KaraokeCardProps) => {
 
   useEffect(() => {
     const frame = requestAnimationFrame(run);
+
     return () => {
       cancelAnimationFrame(frame);
       clearTimers();
@@ -434,8 +420,6 @@ export const KaraokeCard = ({ knobX, theme }: KaraokeCardProps) => {
       <div className="relative mb-4 flex h-8 items-center justify-between gap-3">
         <p className="text-[15px] font-medium text-neutral-100">Reasoning effort</p>
 
-        {/* The right slot carries the state of the take: how far in you are, and
-            only once it lands, the way to run it back. */}
         <AnimatePresence mode="wait" initial={false}>
           {take.status === "complete" && <AgainButton key="again" onClick={run} />}
           {take.status === "singing" && (

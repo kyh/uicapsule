@@ -11,6 +11,7 @@ const Preview = () => {
     const update = () => setSize({ height: window.innerHeight, width: window.innerWidth });
     update();
     window.addEventListener("resize", update);
+
     return () => window.removeEventListener("resize", update);
   }, []);
 

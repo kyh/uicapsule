@@ -85,7 +85,6 @@ export const verification = sqliteTable(
   (table) => [index("verification_identifier_idx").on(table.identifier)],
 );
 
-// Shared auth rate-limit counters, keyed by IP and request path.
 export const rateLimit = sqliteTable("rate_limit", {
   count: integer("count").notNull(),
   id: text("id").primaryKey(),

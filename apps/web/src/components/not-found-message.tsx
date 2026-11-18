@@ -7,7 +7,6 @@ import { rendersOutsideRouter } from "@/lib/agent/site-pages";
 
 const linkClassName = "text-foreground hover:text-primary underline underline-offset-4 transition";
 
-/** `/llms.txt` and `/sitemap.xml` are route handlers the client router cannot navigate to. */
 const RecoveryLink = ({ href, children }: { href: string; children: ReactNode }) =>
   rendersOutsideRouter(href) ? (
     <a className={linkClassName} href={href}>

@@ -20,11 +20,6 @@ export interface FrameProps {
   children: ReactNode;
 }
 
-/**
- * Modelled as a union so "not dragging" cannot carry drag coordinates: the
- * previous shape kept a `dragging` boolean beside stale start/origin values,
- * and any path that failed to reset it left the window glued to the cursor.
- */
 type HeaderDrag =
   | { readonly phase: "idle" }
   | {
@@ -38,15 +33,9 @@ type HeaderDrag =
       last: { readonly x: number; readonly y: number } | null;
     };
 
-const clamp = (value: number, min: number, max: number): number =>
-  Math.min(Math.max(value, min), max);
+const clamp = (value: number, min: number, max: number) => Math.min(Math.max(value, min), max);
 
-/**
- * Releasing capture schedules a `lostpointercapture`, which routes back into the
- * cancel handler — so every caller drops its own state *before* calling this,
- * leaving that handler nothing to undo.
- */
-const releaseCapture = (el: HTMLElement, pointerId: number): void => {
+const releaseCapture = (el: HTMLElement, pointerId: number) => {
   if (el.hasPointerCapture(pointerId)) {
     el.releasePointerCapture(pointerId);
   }
@@ -61,13 +50,13 @@ export const WindowFrame = ({
   onMove,
   title,
   children,
-}: FrameProps): ReactNode => {
+}: FrameProps) => {
   const frameRef = useRef<HTMLDivElement>(null);
   const drag = useRef<HeaderDrag>({ phase: "idle" });
 
-  // Mount pop. gsap writes inline styles, so the tween owns the rest state too.
   useEffect(() => {
     const el = frameRef.current;
+
     if (!el) {
       return;
     }
@@ -76,6 +65,7 @@ export const WindowFrame = ({
 
     if (reduced) {
       gsap.set(el, { filter: "none", opacity: 1, scale: 1, y: 0 });
+
       return;
     }
 
@@ -97,41 +87,43 @@ export const WindowFrame = ({
     };
   }, []);
 
-  /** Undo the gesture's imperative writes and hand `left`/`top` back to React. */
-  const resetFramePosition = (): void => {
+  const resetFramePosition = () => {
     const el = frameRef.current;
+
     if (!el) {
       return;
     }
+
     el.style.left = `${win.x}px`;
     el.style.top = `${win.y}px`;
   };
 
-  const onHeaderPointerDown = (e: ReactPointerEvent<HTMLDivElement>): void => {
+  const onHeaderPointerDown = (e: ReactPointerEvent<HTMLDivElement>) => {
     if (isMobile) {
       return;
     }
+
     if (e.button !== 0) {
       return;
     }
+
     if (drag.current.phase === "active") {
       return;
     }
+
     if (!(e.target instanceof Element)) {
       return;
     }
-    // Traffic lights are inside the drag handle but must stay clickable.
+
     if (e.target.closest("[data-traffic-light]")) {
       return;
     }
+
     if (!frameRef.current) {
       return;
     }
 
     onFocus(win.uid);
-    // Capture on the element that owns these handlers. Capturing on an ancestor
-    // retargets every later event to that ancestor, where nothing is listening —
-    // which is to say the drag would never move and never end.
     e.currentTarget.setPointerCapture(e.pointerId);
     drag.current = {
       last: null,
@@ -145,22 +137,27 @@ export const WindowFrame = ({
     };
   };
 
-  const onHeaderPointerMove = (e: ReactPointerEvent<HTMLDivElement>): void => {
+  const onHeaderPointerMove = (e: ReactPointerEvent<HTMLDivElement>) => {
     const state = drag.current;
+
     if (state.phase !== "active" || state.pointerId !== e.pointerId) {
       return;
     }
+
     const el = frameRef.current;
     const section = sectionRef.current;
+
     if (!el || !section) {
       return;
     }
 
     const dx = e.clientX - state.startX;
     const dy = e.clientY - state.startY;
+
     if (!state.moved && Math.hypot(dx, dy) < 3) {
       return;
     }
+
     state.moved = true;
 
     const nx = clamp(state.originX + dx, -win.w + 80, section.clientWidth - 80);
@@ -170,8 +167,9 @@ export const WindowFrame = ({
     state.last = { x: nx, y: ny };
   };
 
-  const onHeaderPointerUp = (e: ReactPointerEvent<HTMLDivElement>): void => {
+  const onHeaderPointerUp = (e: ReactPointerEvent<HTMLDivElement>) => {
     const state = drag.current;
+
     if (state.phase !== "active" || state.pointerId !== e.pointerId) {
       return;
     }
@@ -180,18 +178,15 @@ export const WindowFrame = ({
     releaseCapture(e.currentTarget, e.pointerId);
 
     const committed = state.last;
+
     if (state.moved && committed) {
       onMove(win.uid, committed.x, committed.y);
     }
   };
 
-  /**
-   * Alt-tab, a context menu or a cancelled touch ends the gesture without a
-   * `pointerup`. Drop the drag and redraw from the last committed position
-   * rather than stranding half a move in the inline style.
-   */
-  const onHeaderPointerCancel = (e: ReactPointerEvent<HTMLDivElement>): void => {
+  const onHeaderPointerCancel = (e: ReactPointerEvent<HTMLDivElement>) => {
     const state = drag.current;
+
     if (state.phase !== "active" || state.pointerId !== e.pointerId) {
       return;
     }
@@ -266,11 +261,6 @@ export const WindowFrame = ({
           </span>
         </div>
 
-        {/*
-          Empty on purpose. The traffic lights sit in the row's left slot, so the
-          title only lands optically centred while a same-order counterweight
-          holds the right slot open.
-        */}
         <div className="shrink-0" style={{ minWidth: 60 }} aria-hidden="true" />
       </div>
 
@@ -279,17 +269,12 @@ export const WindowFrame = ({
   );
 };
 
-export const PhotoLightbox = ({
-  src,
-  onClose,
-}: {
-  src: string;
-  onClose: () => void;
-}): ReactNode => {
+export const PhotoLightbox = ({ src, onClose }: { src: string; onClose: () => void }) => {
   const overlayRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const el = overlayRef.current;
+
     if (!el) {
       return;
     }

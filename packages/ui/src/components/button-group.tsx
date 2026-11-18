@@ -8,12 +8,6 @@ import type { VariantProps } from "class-variance-authority";
 import { Separator } from "@repo/ui/components/separator";
 import { cn } from "cn";
 
-// Only the inner corners and the doubled border are removed; each child keeps
-// the outer radius its own variant sets, so pill buttons stay pills.
-//
-// Rules are matched structurally rather than by data-slot: a composite root
-// (e.g. NavigationMenu) both wraps each control in an item element and
-// overwrites the control's own data-slot with its own.
 const buttonGroupVariants = cva(
   "flex w-fit items-stretch *:focus-visible:relative *:focus-visible:z-10 has-[>[data-slot=button-group]]:gap-2 [&>input]:flex-1",
   {

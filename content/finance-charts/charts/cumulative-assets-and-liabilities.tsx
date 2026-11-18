@@ -16,13 +16,12 @@ const ASSET = "#16a34a";
 const LIABILITY = "#ef4444";
 const LIABILITY_FILL = "#fde4e4";
 
-// Weekly-ish readings, January (0) through July (75).
 const LAST = 75;
 const RAW = walk(LAST + 1, 23, { drift: 2.6, start: 0, vol: 9 });
 const RAW_MIN = Math.min(...RAW);
 const RAW_MAX = Math.max(...RAW);
-// Rescale the walk so it climbs from $40K to a $250K peak.
 const ASSETS = RAW.map((v) => 40_000 + ((v - RAW_MIN) / (RAW_MAX - RAW_MIN)) * 210_000);
+
 const LIABILITY_KNOTS = [
   [0, 40_000],
   [4, 52_000],
@@ -42,16 +41,20 @@ const LIABILITY_KNOTS = [
   [72, 175_000],
   [75, 252_000],
 ] as const;
+
 const liabilityAt = (x: number) => {
   for (let k = 1; k < LIABILITY_KNOTS.length; k += 1) {
     const a = LIABILITY_KNOTS[k - 1];
     const b = LIABILITY_KNOTS[k];
+
     if (a && b && x <= b[0]) {
       return a[1] + ((b[1] - a[1]) * (x - a[0])) / (b[0] - a[0]);
     }
   }
+
   return 252_000;
 };
+
 const KNOT_ROWS = LIABILITY_KNOTS.map(([i, liability]) => ({ i, liability }));
 const ROWS = ASSETS.map((asset, i) => ({ asset, i, liability: liabilityAt(i) }));
 
@@ -84,7 +87,6 @@ export const CumulativeAssetsAndLiabilities = () => {
             y2: "liability",
           }),
           ruleX([at], { stroke: "#a1a1aa", strokeDasharray: "3 3", strokeOpacity: 0.7 }),
-          // A wide faint under-stroke stands in for the source's glow.
           lineY(ROWS, {
             id: "glow",
             stroke: ASSET,
@@ -122,6 +124,7 @@ export const CumulativeAssetsAndLiabilities = () => {
                   if (index === 0) {
                     return "start";
                   }
+
                   return index === MONTH_X.length - 1 ? "end" : "middle";
                 },
                 fontSize: 11.5,
@@ -202,11 +205,13 @@ export const CumulativeAssetsAndLiabilities = () => {
                 if (p) {
                   const x = Number(p.xValue);
                   let best = 0;
+
                   for (const [k, s] of STOPS.entries()) {
                     if (Math.abs(s - x) < Math.abs((STOPS[best] ?? 0) - x)) {
                       best = k;
                     }
                   }
+
                   pin(best);
                 }
               }}
@@ -218,7 +223,6 @@ export const CumulativeAssetsAndLiabilities = () => {
               top={top}
               align={left > 55 ? "right" : "left"}
               dark
-              // High on the plot the readout hangs below the point, clear of the legend.
               className={`text-[11px] ${top < 40 ? "translate-y-3" : "-translate-y-[calc(100%+12px)]"} ${left > 55 ? "ml-2" : "-ml-2"}`}
             >
               <p className="flex items-center gap-1.5">

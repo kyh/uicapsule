@@ -20,10 +20,6 @@ import {
   vbarChar,
 } from "./terminal-grid";
 
-// ---------------------------------------------------------------------------
-// Phone shell — bezel rails, rounded stubs, side buttons, Dynamic Island
-// ---------------------------------------------------------------------------
-
 const drawPhoneBezel = (g: Grid) => {
   const cols = OUTER_COLS;
   const rows = OUTER_ROWS;
@@ -32,14 +28,13 @@ const drawPhoneBezel = (g: Grid) => {
   const R_INNER = cols - 3;
   const R_OUTER = cols - 2;
 
-  // Top edge with rounded-corner stubs
   setCell(g, 0, L_OUTER, "▗", 1);
   setCell(g, 0, R_OUTER, "▖", 1);
+
   for (let c = L_OUTER + 1; c < R_OUTER; c += 1) {
     setCell(g, 0, c, "▀", 1);
   }
 
-  // Side rails
   for (let r = 1; r < rows - 1; r += 1) {
     setCell(g, r, L_OUTER, "▌", 1);
     setCell(g, r, L_INNER, "█", 1);
@@ -47,19 +42,19 @@ const drawPhoneBezel = (g: Grid) => {
     setCell(g, r, R_OUTER, "▐", 1);
   }
 
-  // Bottom edge with mirror stubs
   setCell(g, rows - 1, L_OUTER, "▝", 1);
   setCell(g, rows - 1, R_OUTER, "▘", 1);
+
   for (let c = L_OUTER + 1; c < R_OUTER; c += 1) {
     setCell(g, rows - 1, c, "▄", 1);
   }
 
-  // Side buttons — left rail action + volume rockers, right rail sleep
   const leftBtn = (r0: number, r1: number) => {
     for (let r = r0; r <= r1; r += 1) {
       setCell(g, r, 0, "▌", 1);
     }
   };
+
   const rightBtn = (r0: number, r1: number) => {
     for (let r = r0; r <= r1; r += 1) {
       setCell(g, r, cols - 1, "▐", 1);
@@ -71,22 +66,25 @@ const drawPhoneBezel = (g: Grid) => {
   leftBtn(17, 19);
   rightBtn(14, 19);
 
-  // Dynamic Island — pill with camera + Face ID cut-outs
   const diW = 14;
   const diStart = Math.floor((cols - diW) / 2);
 
   for (let c = 0; c < diW; c += 1) {
     setCell(g, 1, diStart + c, "▄", 1);
   }
+
   for (let c = 0; c < diW; c += 1) {
     if (c === 2) {
       continue;
     }
+
     if (c === diW - 3) {
       continue;
     }
+
     setCell(g, 2, diStart + c, "█", 1);
   }
+
   for (let c = 0; c < diW; c += 1) {
     setCell(g, 3, diStart + c, "▀", 1);
   }
@@ -119,10 +117,6 @@ const drawTabBar = (inner: Grid, activeIndex: number) => {
   drawHRule(inner, 53, 16, 8, "▬", 0.6);
 };
 
-// ---------------------------------------------------------------------------
-// Phase 1 — BTC spot trade
-// ---------------------------------------------------------------------------
-
 const drawCandles = (inner: Grid) => {
   const top = 9;
   const bottom = 23;
@@ -132,10 +126,12 @@ const drawCandles = (inner: Grid) => {
 
   let min = Infinity;
   let max = -Infinity;
+
   for (const k of CANDLES) {
     min = Math.min(min, k.l);
     max = Math.max(max, k.h);
   }
+
   const span = max - min || 1;
   const yOf = (price: number) => top + Math.round((1 - (price - min) / span) * h);
 
@@ -156,6 +152,7 @@ const drawCandles = (inner: Grid) => {
     for (let r = hi; r <= lo; r += 1) {
       setCell(inner, r, cx, "│", 0.5);
     }
+
     for (let r = bodyTop; r <= bodyBot; r += 1) {
       for (let x = 0; x < cw; x += 1) {
         setCell(inner, r, cx + x, bodyChar, bodyAlpha);
@@ -164,17 +161,17 @@ const drawCandles = (inner: Grid) => {
   }
 
   const last = CANDLES.at(-1);
+
   if (!last) {
     return;
   }
 
   const lastRow = yOf(last.c);
+
   for (let c = x0; c < 39; c += 1) {
     setCell(inner, lastRow, c, "┄", 0.3);
   }
-  // Alpha 1 is load-bearing: the last-price row crosses the final candles and
-  // `setCell` drops any write that a brighter cell already occupies, so
-  // anything at or below the 0.98 bull body would come out half-eaten.
+
   drawText(inner, lastRow, 33, "107.4K", 1);
 };
 
@@ -206,7 +203,7 @@ const drawOrderBook = (inner: Grid) => {
   }
 };
 
-export const buildBtcFrame = (): Grid => {
+export const buildBtcFrame = () => {
   const outer = makeGrid(OUTER_COLS, OUTER_ROWS);
   drawPhoneBezel(outer);
   statusBarTop(outer);
@@ -223,14 +220,17 @@ export const buildBtcFrame = (): Grid => {
   drawTextRight(inner, 4, 39, "live ●", 0.75);
 
   const tfs = ["1H", "1D", "1W", "1M", "3M", "1Y"];
+
   for (const [i, t] of tfs.entries()) {
     drawText(inner, 6, i * 6, t, i === 3 ? 0.9 : 0.45);
   }
+
   drawText(inner, 7, 18, "──", 0.8);
 
   drawCandles(inner);
 
   const maxV = Math.max(...CANDLES.map((k) => k.v));
+
   for (const [i, k] of CANDLES.entries()) {
     const cx = 5 + i * 2;
     const ch = vbarChar(k.v / maxV);
@@ -254,12 +254,9 @@ export const buildBtcFrame = (): Grid => {
   drawTabBar(inner, 1);
 
   pasteInto(outer, inner, SCREEN_Y, SCREEN_X);
+
   return outer;
 };
-
-// ---------------------------------------------------------------------------
-// Phase 2 — XAU options chain
-// ---------------------------------------------------------------------------
 
 const drawPayoff = (inner: Grid) => {
   const top = 25;
@@ -268,36 +265,42 @@ const drawPayoff = (inner: Grid) => {
   const strikeCol = 14;
 
   drawHRule(inner, zero, 1, 38, "┈", 0.16);
+
   for (let c = 1; c <= strikeCol; c += 1) {
     setCell(inner, lossRow, c, "─", 0.6);
   }
 
   let prevRow = lossRow;
+
   for (let k = 1; k <= 24; k += 1) {
     const col = strikeCol + k;
+
     if (col > 39) {
       break;
     }
+
     const row = Math.max(top, Math.round(lossRow - k * 0.62));
     setCell(inner, row, col, "╱", 0.72);
+
     if (prevRow - row > 1) {
       for (let rr = row + 1; rr < prevRow; rr += 1) {
         setCell(inner, rr, col, "╱", 0.5);
       }
     }
+
     prevRow = row;
   }
 
   const beCol = strikeCol + 6;
+
   for (let r = top; r <= lossRow; r += 1) {
     setCell(inner, r, beCol, "┊", 0.22);
   }
-  // Sits on the clamped plateau of the ramp, so it has to outrank the 0.72
-  // slashes to read as a label rather than a stray character.
+
   drawTextRight(inner, top, 39, "+max", 0.8);
 };
 
-export const buildGoldFrame = (): Grid => {
+export const buildGoldFrame = () => {
   const outer = makeGrid(OUTER_COLS, OUTER_ROWS);
   drawPhoneBezel(outer);
   statusBarTop(outer);
@@ -315,11 +318,13 @@ export const buildGoldFrame = (): Grid => {
 
   const exps = ["NOV", "DEC", "JAN", "MAR", "JUN", "LEAP"];
   let ec = 0;
+
   for (const [i, e] of exps.entries()) {
     const active = i === 1;
     drawText(inner, 6, ec, active ? `${e}*` : e, active ? 0.9 : 0.45);
     ec += e.length + (active ? 1 : 0) + 2;
   }
+
   drawText(inner, 7, 5, "──", 0.8);
 
   const cCallBid = 6;
@@ -339,20 +344,20 @@ export const buildGoldFrame = (): Grid => {
 
   for (const [i, row] of OPTION_CHAIN.entries()) {
     const r = 11 + i;
+
     if (row.highlight) {
       for (let c = 0; c < INNER_COLS; c += 1) {
         setCell(inner, r, c, "·", 0.14);
       }
     }
+
     drawText(inner, r, cCallBid, row.callBid.toFixed(2), 0.82);
     drawText(inner, r, cCallIv, row.callIv.toFixed(1), 0.45);
     drawText(inner, r, cK, String(row.strike), row.highlight ? 0.98 : 0.7);
     drawText(inner, r, cPutIv, row.putIv.toFixed(1), 0.45);
     drawText(inner, r, cPutBid, row.putBid.toFixed(2), 0.82);
+
     if (row.highlight) {
-      // Hugging the strike: cK-2 lands on the last digit of the call IV and
-      // cK+4 is the only free column on the put side, so the pair has to sit
-      // tight against the 4-digit strike rather than one cell out.
       setCell(inner, r, cK - 1, "►", 0.9);
       setCell(inner, r, cK + 4, "◄", 0.9);
     }
@@ -388,32 +393,31 @@ export const buildGoldFrame = (): Grid => {
   drawTabBar(inner, 2);
 
   pasteInto(outer, inner, SCREEN_Y, SCREEN_X);
+
   return outer;
 };
 
-// ---------------------------------------------------------------------------
-// Phase 3 — Drawdown stats card
-// ---------------------------------------------------------------------------
-
-// Line segment glyph for a step from row `pr` to row `r` (rows grow downward).
-const slopeChar = (r: number, pr: number): string => {
+const slopeChar = (r: number, pr: number) => {
   if (r < pr) {
     return "╱";
   }
+
   if (r > pr) {
     return "╲";
   }
+
   return "─";
 };
 
-// Area fill under the curve, thinning with distance `d` (0..1) below the line.
-const fillChar = (d: number): string => {
+const fillChar = (d: number) => {
   if (d < 0.4) {
     return "▒";
   }
+
   if (d < 0.75) {
     return "░";
   }
+
   return "·";
 };
 
@@ -427,16 +431,19 @@ const drawBearChart = (inner: Grid) => {
   const vals = BEAR_CURVE;
 
   const [first] = vals;
+
   if (first === undefined) {
     return;
   }
 
   let min = Infinity;
   let max = -Infinity;
+
   for (const v of vals) {
     min = Math.min(min, v);
     max = Math.max(max, v);
   }
+
   const span = max - min || 1;
   const colOf = (i: number) => x0 + Math.round((i / (vals.length - 1)) * w);
   const rowOf = (v: number) => top + Math.round((1 - (v - min) / span) * h);
@@ -449,11 +456,13 @@ const drawBearChart = (inner: Grid) => {
   let peakV = first;
   let troughI = 0;
   let troughV = first;
+
   for (const [i, v] of vals.entries()) {
     if (v > peakV) {
       peakV = v;
       peakI = i;
     }
+
     if (v < troughV) {
       troughV = v;
       troughI = i;
@@ -465,10 +474,12 @@ const drawBearChart = (inner: Grid) => {
     const r = rowOf(v);
 
     const prev = vals[i - 1];
+
     if (i > 0 && prev !== undefined) {
       const pc = colOf(i - 1);
       const pr = rowOf(prev);
       const steps = Math.max(1, c - pc);
+
       for (let s = 1; s < steps; s += 1) {
         const ix = pc + s;
         const iy = Math.round(pr + ((r - pr) * s) / steps);
@@ -477,6 +488,7 @@ const drawBearChart = (inner: Grid) => {
     }
 
     setCell(inner, r, c, "▪", 0.85);
+
     for (let rr = r + 1; rr <= bottom; rr += 1) {
       const d = (rr - r) / Math.max(1, bottom - r);
       setCell(inner, rr, c, fillChar(d), 0.18);
@@ -486,10 +498,8 @@ const drawBearChart = (inner: Grid) => {
   setCell(inner, rowOf(peakV) - 1, colOf(peakI), "▼", 0.6);
   setCell(inner, rowOf(troughV) + 1, colOf(troughI), "▲", 0.6);
 
-  // One row below the trough marker, not level with it: the trough is by
-  // definition the chart floor, so its ▲ always lands on `bottom + 1` and would
-  // swallow whichever tick shares that column.
   const years = ["21", "22", "23", "24", "25"];
+
   for (const [i, y] of years.entries()) {
     const c = x0 + Math.round((i / (years.length - 1)) * w);
     setCell(inner, bottom + 2, c, "┴", 0.35);
@@ -497,7 +507,7 @@ const drawBearChart = (inner: Grid) => {
   }
 };
 
-export const buildStatsFrame = (): Grid => {
+export const buildStatsFrame = () => {
   const outer = makeGrid(OUTER_COLS, OUTER_ROWS);
   drawPhoneBezel(outer);
   statusBarTop(outer);
@@ -542,5 +552,6 @@ export const buildStatsFrame = (): Grid => {
   drawTextRight(inner, 51, 39, "self · usd", 0.4);
 
   pasteInto(outer, inner, SCREEN_Y, SCREEN_X);
+
   return outer;
 };

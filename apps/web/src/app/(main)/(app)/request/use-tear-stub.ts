@@ -74,43 +74,55 @@ const wrap = (a: number) => Math.atan2(Math.sin(a), Math.cos(a));
 const f = (n: number) => n.toFixed(2);
 const ease = (dt: number, tau: number) => 1 - Math.exp(-dt / tau);
 
-const initialSim = (): Sim => ({
-  a0: 0,
-  bRest: 0,
-  bv: 0,
-  bx: 0,
-  grab: { x: 0, y: 0 },
-  hinge: { x: 0, y: 0 },
-  hingeV: 0,
-  last: 0,
-  phase: "idle",
-  point: { x: 0, y: 0 },
-  pointerId: null,
-  pt: 0,
-  pvx: 0,
-  pvy: 0,
-  raf: 0,
-  sign: 1,
-  snapped: [],
-  start: { x: 0, y: 0 },
-  sx: 0,
-  sy: 0,
-  theta: 0,
-  thetaV: 0,
-  torn: false,
-});
+const initialSim = () => {
+  const sim: Sim = {
+    a0: 0,
+    bRest: 0,
+    bv: 0,
+    bx: 0,
+    grab: { x: 0, y: 0 },
+    hinge: { x: 0, y: 0 },
+    hingeV: 0,
+    last: 0,
+    phase: "idle",
+    point: { x: 0, y: 0 },
+    pointerId: null,
+    pt: 0,
+    pvx: 0,
+    pvy: 0,
+    raf: 0,
+    sign: 1,
+    snapped: [],
+    start: { x: 0, y: 0 },
+    sx: 0,
+    sy: 0,
+    theta: 0,
+    thetaV: 0,
+    torn: false,
+  };
 
-const buildLayout = (geometry: TearGeometry): Layout => {
+  return sim;
+};
+
+const buildLayout = (geometry: TearGeometry) => {
   const cross = geometry.horizontal ? geometry.height : geometry.width;
   const span = cross - 2 * geometry.inset;
   const count = clamp(Math.round(span / 32), 4, 16);
-  const at = (v: number): Bridge =>
+
+  const at = (v: number) =>
     geometry.horizontal ? { v, x: geometry.seam, y: v } : { v, x: v, y: geometry.seam };
+
   const bridges: Bridge[] = [];
+
   for (let i = 0; i < count; i += 1) {
     bridges.push(at(geometry.inset + (span * (i + 0.5)) / count));
   }
-  return { bridges, cross, ends: [at(geometry.inset), at(cross - geometry.inset)] };
+
+  return {
+    bridges,
+    cross,
+    ends: [at(geometry.inset), at(cross - geometry.inset)],
+  } satisfies Layout;
 };
 
 const isLink = (target: EventTarget | null) =>
@@ -154,15 +166,16 @@ interface Engine {
   tearNow: () => void;
 }
 
-const createEngine = (refs: EngineRefs): Engine => {
+const createEngine = (refs: EngineRefs) => {
   const out = refs.output.current;
   const s = initialSim();
 
-  const axis = (along: number, across = 0): Vec =>
+  const axis = (along: number, across = 0) =>
     refs.input.current.geometry.horizontal ? { x: along, y: across } : { x: across, y: along };
 
   const restPose = () => {
     const offset = axis(TEAR.gap / 2);
+
     return { sx: offset.x, sy: offset.y, theta: rad(TEAR.restAngle) };
   };
 
@@ -170,10 +183,12 @@ const createEngine = (refs: EngineRefs): Engine => {
     const { geometry: geo } = refs.input.current;
     const stubEl = refs.stub.current;
     const bodyEl = refs.body.current;
+
     if (stubEl) {
       const deg = (s.theta * s.sign * 180) / Math.PI;
       stubEl.style.transform = `translate(${f(s.sx)}px, ${f(s.sy)}px) rotate(${deg.toFixed(3)}deg)`;
     }
+
     if (bodyEl) {
       bodyEl.style.transform = `translate${geo.horizontal ? "X" : "Y"}(${f(s.bx)}px)`;
     }
@@ -187,6 +202,7 @@ const createEngine = (refs: EngineRefs): Engine => {
     s.hinge = { x: end.x, y: end.y };
     s.hingeV = end.v;
     const origin = axis(geo.seam);
+
     if (refs.stub.current) {
       refs.stub.current.style.transformOrigin = `${end.x - origin.x}px ${end.y - origin.y}px`;
     }
@@ -196,6 +212,7 @@ const createEngine = (refs: EngineRefs): Engine => {
     if (s.torn) {
       return;
     }
+
     s.torn = true;
     s.bRest = -TEAR.gap / 2;
     s.snapped = refs.input.current.layout.bridges.map(() => true);
@@ -221,11 +238,14 @@ const createEngine = (refs: EngineRefs): Engine => {
     s.sy += (target.y - s.sy) * ease(dt, 0.05);
     const slack = Math.hypot(s.sx, s.sy);
     let left = 0;
+
     for (const [i, b] of layout.bridges.entries()) {
       if (s.snapped[i]) {
         continue;
       }
+
       const d = Math.abs(b.v - s.hingeV);
+
       if (2 * d * Math.sin(s.theta / 2) + slack > TEAR.stretch || s.theta >= limit) {
         s.snapped[i] = true;
         s.bv -= 560 / count;
@@ -233,7 +253,9 @@ const createEngine = (refs: EngineRefs): Engine => {
         left += 1;
       }
     }
+
     out.intact.set(left);
+
     if (left === 0) {
       s.phase = "free";
       s.bv -= 150;
@@ -263,10 +285,12 @@ const createEngine = (refs: EngineRefs): Engine => {
     s.theta += s.thetaV * dt;
     s.sx += (rest.sx - s.sx) * ease(dt, 0.07);
     s.sy += (rest.sy - s.sy) * ease(dt, 0.07);
+
     const settled =
       Math.abs(s.theta - rest.theta) < 0.0008 &&
       Math.abs(s.thetaV) < 0.01 &&
       Math.hypot(s.sx - rest.sx, s.sy - rest.sy) < 0.05;
+
     if (settled) {
       Object.assign(s, rest, { phase: "idle", thetaV: 0 });
       out.phase.set(s.torn ? "torn" : "rest");
@@ -276,6 +300,7 @@ const createEngine = (refs: EngineRefs): Engine => {
   const step = (now: number) => {
     const dt = clamp((now - s.last) / 1000, 0.001, 0.034);
     s.last = now;
+
     if (s.phase === "held") {
       stepHeld(dt);
     } else if (s.phase === "free") {
@@ -283,10 +308,12 @@ const createEngine = (refs: EngineRefs): Engine => {
     } else if (s.phase === "spring") {
       stepSpring(dt);
     }
+
     s.bv += (-520 * (s.bx - s.bRest) - 30 * s.bv) * dt;
     s.bx += s.bv * dt;
     paint();
     const moving = Math.abs(s.bx - s.bRest) > 0.02 || Math.abs(s.bv) > 0.5;
+
     if (s.phase !== "idle" || moving) {
       s.raf = requestAnimationFrame(step);
     } else {
@@ -301,15 +328,18 @@ const createEngine = (refs: EngineRefs): Engine => {
     if (s.raf) {
       return;
     }
+
     s.last = performance.now();
     s.raf = requestAnimationFrame(step);
   };
 
-  const local = (event: ReactPointerEvent): Vec => {
+  const local = (event: ReactPointerEvent) => {
     const rect = refs.root.current?.getBoundingClientRect();
+
     if (!rect) {
       return { x: event.clientX, y: event.clientY };
     }
+
     return { x: event.clientX - rect.left, y: event.clientY - rect.top };
   };
 
@@ -318,15 +348,20 @@ const createEngine = (refs: EngineRefs): Engine => {
     s.raf = 0;
     s.pointerId = null;
     out.setGrabbing(false);
+
     if (s.theta < 0.01 && !s.torn) {
       settleHinge(0);
     }
+
     markTorn();
+
     if (refs.input.current.reducedMotion) {
       Object.assign(s, restPose(), { bv: 0, bx: s.bRest, phase: "idle", thetaV: 0 });
       paint();
+
       return;
     }
+
     s.phase = "spring";
     run();
   };
@@ -335,13 +370,18 @@ const createEngine = (refs: EngineRefs): Engine => {
     if (event.button !== 0 || s.pointerId !== null || isLink(event.target)) {
       return;
     }
+
     const { geometry: geo } = refs.input.current;
     event.preventDefault();
+
     try {
       event.currentTarget.setPointerCapture(event.pointerId);
-    } catch {
-      // Best effort: the drag still works while the pointer stays over the stub.
+    } catch (error) {
+      if (!(error instanceof DOMException)) {
+        throw error;
+      }
     }
+
     const p = local(event);
     s.pointerId = event.pointerId;
     s.start = p;
@@ -349,9 +389,11 @@ const createEngine = (refs: EngineRefs): Engine => {
     s.pt = performance.now();
     s.pvx = 0;
     s.pvy = 0;
+
     if (s.theta < 0.01 && !s.torn) {
       settleHinge(geo.horizontal ? p.y : p.x);
     }
+
     const cos = Math.cos(-s.theta * s.sign);
     const sin = Math.sin(-s.theta * s.sign);
     const ux = p.x - s.sx - s.hinge.x;
@@ -369,6 +411,7 @@ const createEngine = (refs: EngineRefs): Engine => {
     if (s.pointerId !== event.pointerId) {
       return;
     }
+
     const p = local(event);
     const now = performance.now();
     const dt = Math.max(0.004, (now - s.pt) / 1000);
@@ -376,6 +419,7 @@ const createEngine = (refs: EngineRefs): Engine => {
     s.pvy += ((p.y - s.point.y) / dt - s.pvy) * 0.35;
     s.pt = now;
     s.point = p;
+
     if (
       refs.input.current.reducedMotion &&
       !s.torn &&
@@ -389,21 +433,29 @@ const createEngine = (refs: EngineRefs): Engine => {
     if (s.pointerId !== event.pointerId) {
       return;
     }
+
     s.pointerId = null;
+
     try {
       if (event.currentTarget.hasPointerCapture(event.pointerId)) {
         event.currentTarget.releasePointerCapture(event.pointerId);
       }
-    } catch {
-      // Already released.
+    } catch (error) {
+      if (!(error instanceof DOMException)) {
+        throw error;
+      }
     }
+
     out.setGrabbing(false);
+
     if (s.phase === "free" || s.phase === "held") {
       s.phase = "spring";
+
       if (!s.torn) {
         out.phase.set("rest");
       }
     }
+
     run();
   };
 
@@ -412,11 +464,13 @@ const createEngine = (refs: EngineRefs): Engine => {
     const { torn } = s;
     Object.assign(s, initialSim(), { torn });
     s.snapped = refs.input.current.layout.bridges.map(() => torn);
+
     if (torn) {
       s.bRest = -TEAR.gap / 2;
       settleHinge(0);
       Object.assign(s, restPose(), { bx: s.bRest });
     }
+
     out.intact.set(torn ? 0 : s.snapped.length);
     paint();
   };
@@ -453,6 +507,7 @@ export const useTearStub = ({
     () => ({ height, horizontal, inset, seam, width }),
     [height, horizontal, inset, seam, width],
   );
+
   const layout = useMemo(() => buildLayout(geometry), [geometry]);
   const input = useRef<EngineInput>({ geometry, layout, reducedMotion });
   const root = useRef<HTMLDivElement>(null);
@@ -474,6 +529,7 @@ export const useTearStub = ({
     const created = createEngine({ body, input, output, root, stub });
     engine.current = created;
     created.reset();
+
     return () => {
       created.stop();
       engine.current = null;
@@ -490,7 +546,9 @@ export const useTearStub = ({
     }),
     [],
   );
+
   const tear = useCallback(() => engine.current?.tearNow(), []);
+
   return {
     bodyRef: body,
     bridges: layout.bridges.length,

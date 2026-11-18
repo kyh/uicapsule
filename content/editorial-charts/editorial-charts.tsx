@@ -12,53 +12,62 @@ import { DARK, FAINT, INK, LADDER, MUTED, PAPER } from "./lib/tokens";
 const CYCLE_MS = 4600;
 
 const useCountUp = (target: number, ms = 950) => {
-  // Starts at 0 (matching the not-yet-inked charts around it) and always
-  // resumes from the last painted value, so neither SSR nor a Strict Mode
-  // remount can flash the final count or skip the entrance.
   const [shown, setShown] = useState(0);
   const painted = useRef(0);
   useEffect(() => {
     const from = painted.current;
+
     if (from === target) {
       return;
     }
+
     let raf = 0;
     const t0 = performance.now();
+
     const step = (t: number) => {
       const p = Math.min(1, (t - t0) / ms);
       const eased = 1 - (1 - p) ** 3;
       const value = Math.round(from + (target - from) * eased);
       painted.current = value;
       setShown(value);
+
       if (p < 1) {
         raf = requestAnimationFrame(step);
       }
     };
+
     raf = requestAnimationFrame(step);
+
     return () => cancelAnimationFrame(raf);
   }, [target, ms]);
+
   return shown;
 };
 
-// Entrance clock: 0 → 1 over `ms`, driving how much of each chart is inked.
 const useReveal = (active: boolean, ms: number) => {
   const [progress, setProgress] = useState(0);
   useEffect(() => {
     if (!active) {
       return;
     }
+
     let raf = 0;
     const t0 = performance.now();
+
     const step = (t: number) => {
       const p = Math.min(1, (t - t0) / ms);
       setProgress(p);
+
       if (p < 1) {
         raf = requestAnimationFrame(step);
       }
     };
+
     raf = requestAnimationFrame(step);
+
     return () => cancelAnimationFrame(raf);
   }, [active, ms]);
+
   return progress;
 };
 
@@ -110,12 +119,11 @@ const SourceRow = ({ children, dark }: { children: string; dark?: boolean }) => 
 
 export const EditorialCharts = () => {
   const [scene, setScene] = useState(0);
-  // Charts mount after first paint so every visitor gets the full staggered
-  // entrance instead of a server-rendered final state.
   const [inked, setInked] = useState(false);
   useEffect(() => {
     const frame = requestAnimationFrame(() => setInked(true));
     const t = setInterval(() => setScene((s) => (s + 1) % SCENES.length), CYCLE_MS);
+
     return () => {
       cancelAnimationFrame(frame);
       clearInterval(t);
@@ -124,9 +132,11 @@ export const EditorialCharts = () => {
 
   const reveal = useReveal(inked, 1500);
   const s = SCENES[scene];
+
   if (!s) {
     throw new RangeError("Editorial chart scene index is out of bounds");
   }
+
   const sessions = useCountUp(s.sessions);
 
   return (
@@ -134,7 +144,6 @@ export const EditorialCharts = () => {
       className="w-[1080px] rounded-[28px] px-9 pt-7 pb-5 shadow-[0_40px_90px_-30px_rgba(0,0,0,0.55)] [font-family:Inter,ui-sans-serif,system-ui,sans-serif]"
       style={{ backgroundColor: PAPER, color: INK }}
     >
-      {/* Masthead */}
       <div className="flex items-baseline justify-between pb-4">
         <div className="flex items-baseline gap-3">
           <h1 className="text-[19px] font-bold tracking-[-0.02em]">The quarter, drawn in ink</h1>
@@ -159,7 +168,6 @@ export const EditorialCharts = () => {
       </div>
 
       <div className="grid grid-cols-2 gap-x-9 gap-y-5">
-        {/* Rung bars */}
         <section className="flex min-h-[298px] flex-col">
           <CardHead
             kicker="RUNG BARS · BILLING"
@@ -172,7 +180,6 @@ export const EditorialCharts = () => {
           <SourceRow>TICK MARKS ON A POINT SCALE · STAGGERED SPRING ENTRANCE</SourceRow>
         </section>
 
-        {/* Tick ring — the dark card */}
         <section
           className="flex min-h-[298px] flex-col rounded-[20px] px-6 pt-5 pb-4"
           style={{ backgroundColor: DARK.bg }}
@@ -208,13 +215,13 @@ export const EditorialCharts = () => {
               </span>
             </div>
             {s.channels.map((c, i) => {
-              // Clockwise from noon: channel order sweeps right side first.
               const spots = [
                 "left-full top-3 ml-3",
                 "left-full bottom-3 ml-3",
                 "right-full bottom-3 mr-3 text-right",
                 "right-full top-3 mr-3 text-right",
               ] as const;
+
               return (
                 <div
                   key={c.channel}
@@ -232,7 +239,6 @@ export const EditorialCharts = () => {
           <SourceRow dark>100 VECTOR MARKS · ONE SHADE PER CHANNEL · SPRUNG TWIST</SourceRow>
         </section>
 
-        {/* Hairline line */}
         <section className="flex min-h-[286px] flex-col">
           <CardHead
             kicker="HAIRLINE LINE · GROWTH"
@@ -253,7 +259,6 @@ export const EditorialCharts = () => {
           <SourceRow>LINE + DOT + TEXT MARKS · PATH MORPHS BETWEEN QUARTERS</SourceRow>
         </section>
 
-        {/* Dot waffle */}
         <section className="flex min-h-[286px] flex-col">
           <CardHead
             kicker="DOT WAFFLE · PLAN MIX"

@@ -97,12 +97,13 @@ vec4 taylorInvSqrt(vec4 r)
 }
 `;
 
-const createDotTexture = (size = 32, color = "#FFFFFF"): THREE.CanvasTexture => {
+const createDotTexture = (size = 32, color = "#FFFFFF") => {
   const radius = size * 0.5;
   const canvas = document.createElement("canvas");
   canvas.width = size;
   canvas.height = size;
   const ctx = canvas.getContext("2d");
+
   if (!ctx) {
     throw new Error("2D canvas context not available");
   }
@@ -116,15 +117,10 @@ const createDotTexture = (size = 32, color = "#FFFFFF"): THREE.CanvasTexture => 
   return new THREE.CanvasTexture(canvas);
 };
 
-/**
- * Injects the noise-displacement vertex shader into a PointsMaterial.
- * Returns a setter for the `time` uniform — the compiled shader is only available
- * once WebGL first compiles the program, so the setter is a no-op until then.
- */
 const setupPointsShader = (
   material: THREE.PointsMaterial,
   opts: { radius: number; particleSizeMin: number; particleSizeMax: number },
-): ((time: number) => void) => {
+) => {
   const { radius, particleSizeMin, particleSizeMax } = opts;
   let compiled: THREE.WebGLProgramParametersWithUniforms | null = null;
 
@@ -158,6 +154,7 @@ const setupPointsShader = (
 
   return (time: number) => {
     const timeUniform = compiled?.uniforms.time;
+
     if (timeUniform) {
       timeUniform.value = time;
     }
@@ -169,6 +166,7 @@ export const ParticleOrb = () => {
 
   useEffect(() => {
     const container = rootRef.current;
+
     if (!container) {
       return;
     }
@@ -197,6 +195,7 @@ export const ParticleOrb = () => {
 
     const geometry = new THREE.IcosahedronGeometry(1, detail);
     const texture = createDotTexture(32, "#FFFFFF");
+
     const material = new THREE.PointsMaterial({
       blending: THREE.AdditiveBlending,
       color: 0x10_1a_88,
@@ -214,6 +213,7 @@ export const ParticleOrb = () => {
     scene.add(points);
 
     let animationFrameId = 0;
+
     const animate = (timeMs: number) => {
       const time = timeMs * 0.001;
       points.rotation.set(0, time * 0.2, 0);
@@ -221,6 +221,7 @@ export const ParticleOrb = () => {
       renderer.render(scene, camera);
       animationFrameId = requestAnimationFrame(animate);
     };
+
     animationFrameId = requestAnimationFrame(animate);
 
     const resizeObserver = new ResizeObserver(() => {
@@ -229,6 +230,7 @@ export const ParticleOrb = () => {
       camera.updateProjectionMatrix();
       renderer.setSize(width, height);
     });
+
     resizeObserver.observe(container);
 
     return () => {
@@ -239,6 +241,7 @@ export const ParticleOrb = () => {
       material.dispose();
       texture.dispose();
       renderer.dispose();
+
       if (renderer.domElement.parentElement === container) {
         renderer.domElement.remove();
       }

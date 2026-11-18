@@ -9,7 +9,6 @@ import { InvestmentPerformance } from "./investment-performance";
 import { NetWorth } from "./net-worth";
 import { TotalBalance } from "./total-balance";
 
-// cash-balance, net-worth, financial-breakdown, finance-overview-area, total-balance, budget, investment-performance, financial-trends, analytics
 export const GROUP_2: ChartEntry[] = [
   { Chart: CashBalance, id: "cash-balance" },
   { Chart: NetWorth, id: "net-worth" },

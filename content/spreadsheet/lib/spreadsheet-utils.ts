@@ -34,10 +34,10 @@ export interface NavigationMap {
 
 export type NavigationDirection = keyof NavigationMap;
 
-export const getRowCells = (rowId: string, columns: ColumnInfo[]): string[] =>
+export const getRowCells = (rowId: string, columns: ColumnInfo[]) =>
   columns.map((col) => `${rowId}:${col.id}`);
 
-export const getColumnCells = (columnId: string, data: SpreadsheetRow[]): string[] =>
+export const getColumnCells = (columnId: string, data: SpreadsheetRow[]) =>
   data.map((row) => `${row.id}:${columnId}`);
 
 export const getRangeCells = (
@@ -47,7 +47,7 @@ export const getRangeCells = (
   endColId: string,
   columns: ColumnInfo[],
   data: SpreadsheetRow[],
-): string[] => {
+) => {
   const columnIds = columns.map((col) => col.id);
   const startColIndex = columnIds.indexOf(startColId);
   const endColIndex = columnIds.indexOf(endColId);
@@ -66,19 +66,25 @@ export const getRangeCells = (
   const maxRowIndex = Math.max(startRowIndex, endRowIndex);
 
   const cells: string[] = [];
+
   for (let rowIndex = minRowIndex; rowIndex <= maxRowIndex; rowIndex += 1) {
     const row = data[rowIndex];
+
     if (!row) {
       continue;
     }
+
     for (let colIndex = minColIndex; colIndex <= maxColIndex; colIndex += 1) {
       const colId = columnIds[colIndex];
+
       if (!colId) {
         continue;
       }
+
       cells.push(`${row.id}:${colId}`);
     }
   }
+
   return cells;
 };
 
@@ -86,11 +92,12 @@ export const toggleRowSelection = (
   rowId: string,
   selectedCells: Set<string>,
   columns: ColumnInfo[],
-): Set<string> => {
+) => {
   const rowCells = getRowCells(rowId, columns);
   const isRowFullySelected = rowCells.every((cell) => selectedCells.has(cell));
 
   const newSelectedCells = new Set(selectedCells);
+
   for (const cell of rowCells) {
     if (isRowFullySelected) {
       newSelectedCells.delete(cell);
@@ -98,6 +105,7 @@ export const toggleRowSelection = (
       newSelectedCells.add(cell);
     }
   }
+
   return newSelectedCells;
 };
 
@@ -105,11 +113,12 @@ export const toggleColumnSelection = (
   columnId: string,
   selectedCells: Set<string>,
   data: SpreadsheetRow[],
-): Set<string> => {
+) => {
   const columnCells = getColumnCells(columnId, data);
   const isColumnFullySelected = columnCells.every((cell) => selectedCells.has(cell));
 
   const newSelectedCells = new Set(selectedCells);
+
   for (const cell of columnCells) {
     if (isColumnFullySelected) {
       newSelectedCells.delete(cell);
@@ -117,50 +126,55 @@ export const toggleColumnSelection = (
       newSelectedCells.add(cell);
     }
   }
+
   return newSelectedCells;
 };
 
-export const toggleCellSelection = (cellKey: string, selectedCells: Set<string>): Set<string> => {
+export const toggleCellSelection = (cellKey: string, selectedCells: Set<string>) => {
   const newSelectedCells = new Set(selectedCells);
+
   if (newSelectedCells.has(cellKey)) {
     newSelectedCells.delete(cellKey);
   } else {
     newSelectedCells.add(cellKey);
   }
+
   return newSelectedCells;
 };
 
-export const getFirstSelectedCell = (selectedCells: Set<string>): CellPosition | null => {
+export const getFirstSelectedCell = (selectedCells: Set<string>) => {
   const [firstSelectedCell] = [...selectedCells];
+
   if (!firstSelectedCell) {
     return null;
   }
 
   const [rowId, columnId] = firstSelectedCell.split(":");
+
   if (!rowId || !columnId) {
     return null;
   }
+
   return { columnId, rowId };
 };
 
 export const getColumnSizeVars = (columnWidths: Record<string, number>) => {
   const colSizes: { [key: string]: number } = {};
+
   for (const [columnId, width] of Object.entries(columnWidths)) {
     colSizes[`--col-${columnId}-size`] = width;
   }
+
   return colSizes;
 };
 
-export const isWithinDataAttribute = (target: EventTarget | null, attribute: string): boolean =>
+export const isWithinDataAttribute = (target: EventTarget | null, attribute: string) =>
   target instanceof HTMLElement && !!target.closest(`[data-${attribute}]`);
 
-export const shouldAllowEditing = (selectedCells: Set<string>, cellKey: string): boolean =>
+export const shouldAllowEditing = (selectedCells: Set<string>, cellKey: string) =>
   selectedCells.has(cellKey) && selectedCells.size === 1;
 
-export const createNavigationMap = (
-  data: SpreadsheetRow[],
-  columns: ColumnInfo[],
-): Map<string, NavigationMap> => {
+export const createNavigationMap = (data: SpreadsheetRow[], columns: ColumnInfo[]) => {
   const navigationMap = new Map<string, NavigationMap>();
   const columnIds = columns.map((col) => col.id);
 
@@ -198,20 +212,24 @@ export const getNextCellPositionFromMap = (
   cellKey: string,
   direction: NavigationDirection,
   navigationMap: Map<string, NavigationMap>,
-): CellPosition | null => {
+) => {
   const navigation = navigationMap.get(cellKey);
+
   if (!navigation) {
     return null;
   }
 
   const nextCellKey = navigation[direction];
+
   if (!nextCellKey) {
     return null;
   }
 
   const [rowId, columnId] = nextCellKey.split(":");
+
   if (!rowId || !columnId) {
     return null;
   }
+
   return { columnId, rowId };
 };

@@ -1,15 +1,3 @@
-/* Photo metadata for the wall.
- *
- * Each seed's `id` is an Unsplash photo id; both renditions are derived from it
- * at module scope, so the component needs no CMS, no CDN and no local assets.
- * Aspects are only ever 3:4, 1:1 or 3:2 — the wall's row packing relies on that
- * narrow set to keep cell heights uniform.
- *
- * Title, category and description describe what is actually in the frame. They
- * deliberately make no claim about *where* a photo was taken: the ids are stock
- * images, so any place name would be invented, and an invented place name that
- * contradicts the picture reads as a bug. `year` is flavour, not a claim. */
-
 const FULL_HEIGHT = 900;
 const THUMB_HEIGHT = 300;
 
@@ -18,11 +6,8 @@ const unsplashUrl = (id: string, aspect: number, height: number) =>
     height * aspect,
   )}&h=${height}&fit=crop&q=80&auto=format`;
 
-/* Portrait (3:4) < square (1:1) < landscape (3:2). */
 type Aspect = 0.75 | 1 | 1.5;
 
-/* Closed set, so a typo can't mint a one-off category that appears exactly
-   once in the deck. */
 type Category = "Landscape" | "Nature" | "Forest" | "Water" | "Night" | "Architecture";
 
 interface PhotoSeed {
@@ -313,7 +298,7 @@ const PHOTO_SEEDS: readonly [PhotoSeed, ...PhotoSeed[]] = [
   },
 ];
 
-const toPhoto = (seed: PhotoSeed): Photo => ({
+const toPhoto = (seed: PhotoSeed) => ({
   aspect: seed.aspect,
   category: seed.category,
   description: seed.description,
@@ -326,6 +311,4 @@ const toPhoto = (seed: PhotoSeed): Photo => ({
 
 const [firstSeed, ...restSeeds] = PHOTO_SEEDS;
 
-/* Typed as a non-empty tuple so `PHOTOS[0]` narrows to `Photo` under
-   noUncheckedIndexedAccess without an assertion. */
 export const PHOTOS: readonly [Photo, ...Photo[]] = [toPhoto(firstSeed), ...restSeeds.map(toPhoto)];

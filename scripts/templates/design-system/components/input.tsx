@@ -9,6 +9,7 @@ interface InputProps extends InputHTMLAttributes<HTMLInputElement> {
 export const Input = ({ label, hint, className = "", ...props }: InputProps) => {
   const id = useId();
   const hintId = `${id}-hint`;
+
   return (
     <div className={`grid gap-1.5 ${className}`}>
       <label className="text-sm font-medium" htmlFor={id}>

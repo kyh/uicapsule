@@ -23,34 +23,26 @@ import { FILES, FIRST_NOTE, NOTES, PHOTOS, findFile } from "./desktop-data";
 import { WindowFrame } from "./window-frame";
 import { useReducedMotion } from "./use-reduced-motion";
 
-/* -------------------------------------------------------------- Quick Look -- */
-
-const QuickLookBody = ({
-  fileId,
-  ctx,
-}: {
-  fileId: string | undefined;
-  ctx: WindowCtx;
-}): ReactNode => {
+const QuickLookBody = ({ fileId, ctx }: { fileId: string | undefined; ctx: WindowCtx }) => {
   const startIndex = Math.max(
     0,
     FILES.findIndex((file) => file.id === fileId),
   );
+
   const [index, setIndex] = useState(startIndex);
 
   const file: DesktopFile = FILES[index] ?? FILES[0];
 
-  const step = (delta: number): void => {
+  const step = (delta: number) => {
     setIndex((prev) => (prev + delta + FILES.length) % FILES.length);
   };
 
-  // `file.full` is a cold 1600px derivative. Warm both neighbours so an arrow
-  // click swaps to a decoded frame instead of blanking for the fetch.
   useEffect(() => {
     const neighbours = [
       FILES[(index + 1) % FILES.length],
       FILES[(index - 1 + FILES.length) % FILES.length],
     ];
+
     for (const neighbour of neighbours) {
       if (neighbour) {
         const img = new Image();
@@ -68,8 +60,6 @@ const QuickLookBody = ({
           aria-label={`Open ${file.name} full screen`}
           className="absolute inset-0 flex items-center justify-center p-6"
         >
-          {/* No `key`: reusing the element lets the browser hold the previous
-              frame until the next one decodes, instead of flashing empty. */}
           <img
             src={file.full}
             alt={file.name}
@@ -107,9 +97,7 @@ const QuickLookBody = ({
   );
 };
 
-/* ------------------------------------------------------------------ Photos -- */
-
-const PhotosBody = ({ ctx }: { ctx: WindowCtx }): ReactNode => (
+const PhotosBody = ({ ctx }: { ctx: WindowCtx }) => (
   <div className="dos-scroll h-full overflow-y-auto px-6 py-7 sm:px-8 sm:py-8">
     <p className="text-[10px] font-semibold tracking-[0.18em] text-black/45 uppercase">
       Recents · {PHOTOS.length}
@@ -143,9 +131,7 @@ const PhotosBody = ({ ctx }: { ctx: WindowCtx }): ReactNode => (
   </div>
 );
 
-/* ------------------------------------------------------------------- Notes -- */
-
-const NotesBody = ({ ctx }: { ctx: WindowCtx }): ReactNode => {
+const NotesBody = ({ ctx }: { ctx: WindowCtx }) => {
   const [activeId, setActiveId] = useState<string>(FIRST_NOTE.id);
   const [mobileView, setMobileView] = useState<"list" | "detail">("list");
 
@@ -171,6 +157,7 @@ const NotesBody = ({ ctx }: { ctx: WindowCtx }): ReactNode => {
                 type="button"
                 onClick={() => {
                   setActiveId(note.id);
+
                   if (ctx.isMobile) {
                     setMobileView("detail");
                   }
@@ -219,8 +206,6 @@ const NotesBody = ({ ctx }: { ctx: WindowCtx }): ReactNode => {
   );
 };
 
-/* ------------------------------------------------------------------ Finder -- */
-
 const FINDER_SIDEBAR = [
   { color: "#62a8e8", label: "Desktop" },
   { color: "#7c8595", label: "Applications" },
@@ -230,7 +215,7 @@ const FINDER_SIDEBAR = [
   { color: "#7c8595", label: "Downloads" },
 ] as const;
 
-const FinderFolderDot = ({ size = 14 }: { size?: number }): ReactNode => (
+const FinderFolderDot = ({ size = 14 }: { size?: number }) => (
   <FolderIcon
     className="shrink-0 text-[#4aa3f0]"
     style={{ height: size, width: size }}
@@ -246,7 +231,7 @@ const ViewModeButton = ({
   children: ReactNode;
   active?: boolean;
   label: string;
-}): ReactNode => (
+}) => (
   <button
     type="button"
     aria-label={label}
@@ -258,9 +243,8 @@ const ViewModeButton = ({
   </button>
 );
 
-const FinderBody = ({ win, ctx }: { win: OpenWindow; ctx: WindowCtx }): ReactNode => {
+const FinderBody = ({ win, ctx }: { win: OpenWindow; ctx: WindowCtx }) => {
   const folderName = win.folderName ?? "Archive";
-  // Trash and Archive hold different slices of the same library.
   const contents = folderName === "Trash" ? FILES.slice(6, 10) : FILES.slice(1, 6);
 
   return (
@@ -395,8 +379,6 @@ const FinderBody = ({ win, ctx }: { win: OpenWindow; ctx: WindowCtx }): ReactNod
   );
 };
 
-/* ---------------------------------------------------------------- Terminal -- */
-
 interface TerminalLine {
   readonly prompt: boolean;
   readonly text: string;
@@ -418,7 +400,7 @@ const TERMINAL_LINES: readonly TerminalLine[] = [
   { prompt: false, text: "2 seconds since boot", tone: "dim" },
 ];
 
-const TerminalBody = (): ReactNode => {
+const TerminalBody = () => {
   const [visible, setVisible] = useState(0);
   const reducedMotion = useReducedMotion();
 
@@ -427,13 +409,12 @@ const TerminalBody = (): ReactNode => {
       return;
     }
 
-    // The count lives in the closure, not in the updater: React may invoke an
-    // updater twice, and stopping the interval from inside one is a side effect
-    // that has no business running during a re-render.
     let shown = 0;
+
     const id = window.setInterval(() => {
       shown += 1;
       setVisible(shown);
+
       if (shown >= TERMINAL_LINES.length) {
         window.clearInterval(id);
       }
@@ -458,56 +439,61 @@ const TerminalBody = (): ReactNode => {
   );
 };
 
-/* -------------------------------------------------------------- dispatcher -- */
-
-/**
- * Sibling of `titleForWindow`: the two functions are the whole mapping from a
- * window's kind to what the frame shows, and they stay next to each other so a
- * new kind cannot satisfy one exhaustive switch and miss the other.
- */
-const bodyForWindow = (win: OpenWindow, ctx: WindowCtx): ReactNode => {
+const bodyForWindow = (win: OpenWindow, ctx: WindowCtx) => {
   switch (win.kind) {
     case "quicklook": {
       return <QuickLookBody fileId={win.fileId} ctx={ctx} />;
     }
+
     case "photos": {
       return <PhotosBody ctx={ctx} />;
     }
+
     case "notes": {
       return <NotesBody ctx={ctx} />;
     }
+
     case "finder": {
       return <FinderBody win={win} ctx={ctx} />;
     }
+
     case "terminal": {
       return <TerminalBody />;
     }
+
     default: {
       const exhaustive: never = win.kind;
+
       return exhaustive;
     }
   }
 };
 
-const titleForWindow = (win: OpenWindow): string => {
+const titleForWindow = (win: OpenWindow) => {
   switch (win.kind) {
     case "quicklook": {
       return findFile(win.fileId)?.name ?? "Quick Look";
     }
+
     case "photos": {
       return "Photos";
     }
+
     case "notes": {
       return "Notes";
     }
+
     case "finder": {
       return win.folderName ?? "Files";
     }
+
     case "terminal": {
       return "Terminal — bash";
     }
+
     default: {
       const exhaustive: never = win.kind;
+
       return exhaustive;
     }
   }
@@ -523,7 +509,7 @@ export const WindowView = ({
 }: Pick<FrameProps, "sectionRef" | "onClose" | "onFocus" | "onMove"> & {
   win: OpenWindow;
   ctx: WindowCtx;
-}): ReactNode => (
+}) => (
   <WindowFrame
     win={win}
     isMobile={ctx.isMobile}

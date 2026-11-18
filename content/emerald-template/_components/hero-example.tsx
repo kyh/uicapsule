@@ -132,13 +132,15 @@ type StepIcon = ComponentType<{ size?: number }>;
 
 type StepStatus = "complete" | "active" | "pending";
 
-const stepStatus = (stepIndex: number, currentStepIndex: number): StepStatus => {
+const stepStatus = (stepIndex: number, currentStepIndex: number) => {
   if (stepIndex < currentStepIndex) {
     return "complete";
   }
+
   if (stepIndex === currentStepIndex) {
     return "active";
   }
+
   return "pending";
 };
 
@@ -163,8 +165,6 @@ const Spinner = (props: SVGProps<SVGSVGElement>) => (
   </svg>
 );
 
-// Keyed elements returned directly under AnimatePresence, so the swap between
-// spinner and icon still animates out and in.
 const statusIcon = (status: StepStatus, staticIcon: StepIcon) => {
   if (status === "active") {
     return (
@@ -182,6 +182,7 @@ const statusIcon = (status: StepStatus, staticIcon: StepIcon) => {
       </motion.div>
     );
   }
+
   if (status === "complete") {
     return (
       <motion.div
@@ -197,6 +198,7 @@ const statusIcon = (status: StepStatus, staticIcon: StepIcon) => {
       </motion.div>
     );
   }
+
   return (
     <motion.div
       key="pending"
@@ -281,6 +283,7 @@ const Typewriter = ({
       if (cancelled || !textContainerRef.current || finishedRef.current) {
         return;
       }
+
       if (i < splitText.length) {
         textContainerRef.current.textContent = splitText.slice(0, i + 1).join(splitBy);
         i += 1;
@@ -296,6 +299,7 @@ const Typewriter = ({
       if (cancelled || !textContainerRef.current || !finishedRef.current) {
         return;
       }
+
       if (i < splitText.length) {
         textContainerRef.current.textContent = splitText.slice(0, text.length - i).join(splitBy);
         i += 1;
@@ -315,6 +319,7 @@ const Typewriter = ({
 
     return () => {
       cancelled = true;
+
       if (timeoutId !== undefined) {
         clearTimeout(timeoutId);
       }
@@ -354,6 +359,7 @@ export const ExampleChat = ({ start }: { start: boolean }) => {
   }, []);
 
   const [previousStart, setPreviousStart] = useState(start);
+
   if (previousStart !== start) {
     setPreviousStart(start);
     clearAll();
@@ -364,11 +370,14 @@ export const ExampleChat = ({ start }: { start: boolean }) => {
     if (!start) {
       return;
     }
+
     const pending = promisesRef.current;
+
     return () => {
       for (const cancel of pending) {
         cancel();
       }
+
       pending.length = 0;
     };
   }, [start]);
@@ -386,6 +395,7 @@ export const ExampleChat = ({ start }: { start: boolean }) => {
     setIsThinkingComplete(false);
 
     const reasoningStepCount = samples[currentSampleIndex]?.output.reasoning.length ?? 0;
+
     for (let i = 0; i < reasoningStepCount; i += 1) {
       setCurrentStepIndex(i);
       const stepDelay = wait(800);
@@ -432,6 +442,7 @@ export const ExampleChat = ({ start }: { start: boolean }) => {
     if (isThinkingComplete && thinkingDuration !== null) {
       return `Thought for ${thinkingDuration} second${thinkingDuration === 1 ? "" : "s"}`;
     }
+
     return "Thinking...";
   }, [isThinkingComplete, thinkingDuration]);
 
@@ -520,9 +531,11 @@ const scrollYProgressMap = [0, 0.1];
 export const HeroExample = () => {
   const [isScaled, setIsScaled] = useState(false);
   const ref = useRef(null);
+
   const isInView = useInView(ref, {
     amount: 1,
   });
+
   const { scrollYProgress } = useScroll();
   const y = useTransform(scrollYProgress, scrollYProgressMap, [21.28, 0]);
   const z = useTransform(scrollYProgress, scrollYProgressMap, [-74.56, 0]);

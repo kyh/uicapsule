@@ -12,15 +12,19 @@ const compiler = path.join(repoRoot, "node_modules/typescript/bin/tsc");
 
 const main = async () => {
   const entries = await readdir(contentRoot, { withFileTypes: true });
+
   const slugs = entries
     .filter((entry) => entry.isDirectory() && !entry.name.startsWith("."))
     .map((entry) => entry.name)
     .toSorted();
+
   const requested = process.argv.slice(2);
   const unknownSlugs = requested.filter((slug) => !slugs.includes(slug));
+
   if (unknownSlugs.length > 0) {
     throw new Error(`Unknown content: ${unknownSlugs.join(", ")}`);
   }
+
   const selected = requested.length > 0 ? [...new Set(requested)] : slugs;
   const configRoot = await mkdtemp(path.join(tmpdir(), "uicapsule-typecheck-"));
   let checked = 0;
@@ -30,12 +34,14 @@ const main = async () => {
     for (const slug of selected) {
       const packageRoot = path.join(contentRoot, slug);
       const files: string[] = [];
+
       for await (const file of glob("**/*.{ts,tsx,js,jsx,mts,cts,mjs,cjs}", {
         cwd: packageRoot,
         exclude: ["**/node_modules/**", "**/dist/**", "**/.cache/**", "**/.turbo/**"],
       })) {
         files.push(path.join(packageRoot, file));
       }
+
       if (files.length === 0) {
         continue;
       }
@@ -54,12 +60,15 @@ const main = async () => {
         config,
         JSON.stringify({ extends: path.join(repoRoot, "tsconfig.content.json"), files }),
       );
+
       const child = spawn(process.execPath, [compiler, "--noEmit", "--project", config], {
         cwd: repoRoot,
         stdio: "inherit",
       });
+
       const [exitCode] = await once(child, "close");
       checked += 1;
+
       if (exitCode !== 0) {
         failed.push(slug);
       }
@@ -71,8 +80,10 @@ const main = async () => {
   if (failed.length > 0) {
     consola.error(`Content typecheck failed: ${failed.join(", ")}`);
     process.exitCode = 1;
+
     return;
   }
+
   consola.success(`Typechecked ${checked} content packages independently.`);
 };
 

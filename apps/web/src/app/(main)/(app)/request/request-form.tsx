@@ -42,7 +42,6 @@ const splitLines = (value: string) =>
 const formatToday = () =>
   new Date().toLocaleDateString(undefined, { day: "numeric", month: "short", year: "numeric" });
 
-// The textarea holds one URL per line; the API wants an array.
 const formSchema = componentRequestSchema.omit({ attachments: true, references: true }).extend({
   references: z
     .string()
@@ -77,14 +76,16 @@ const uploadResponseSchema = z.object({
   url: z.string().optional(),
 });
 
-const uploadFile = async (file: File): Promise<string> => {
+const uploadFile = async (file: File) => {
   const body = new FormData();
   body.set("file", file);
   const res = await fetch("/api/request/attachments", { body, method: "POST" });
   const parsed = uploadResponseSchema.safeParse(await res.json().catch(() => ({})));
+
   if (!res.ok || !parsed.success || !parsed.data.url) {
     throw new Error(parsed.success && parsed.data.message ? parsed.data.message : "Upload failed");
   }
+
   return parsed.data.url;
 };
 
@@ -107,6 +108,7 @@ const AttachmentMedia = ({
       />
     );
   }
+
   // oxlint-disable-next-line next/no-img-element -- object URL preview; nothing for next/image to optimize
   return <img src={attachment.previewUrl} alt="" className="size-full object-cover" />;
 };
@@ -224,6 +226,7 @@ export const RequestForm = ({ className }: { className?: string }) => {
     },
     resolver: zodResolver(formSchema),
   });
+
   const {
     register,
     formState: { errors, isSubmitting },
@@ -231,6 +234,7 @@ export const RequestForm = ({ className }: { className?: string }) => {
 
   useEffect(() => {
     const urls = previewUrls.current;
+
     return () => {
       for (const url of urls) {
         URL.revokeObjectURL(url);
@@ -240,13 +244,16 @@ export const RequestForm = ({ className }: { className?: string }) => {
 
   const addFiles = (files: FileList | File[]) => {
     const room = ATTACHMENT_MAX_COUNT - attachments.length;
+
     for (const file of [...files].slice(0, Math.max(room, 0))) {
       if (!isAttachmentType(file.type)) {
         continue;
       }
+
       const id = crypto.randomUUID();
       const previewUrl = URL.createObjectURL(file);
       previewUrls.current.add(previewUrl);
+
       const next: Attachment = {
         error: file.size > ATTACHMENT_MAX_BYTES ? `Over ${MAX_MB} MB` : undefined,
         id,
@@ -255,10 +262,13 @@ export const RequestForm = ({ className }: { className?: string }) => {
         previewUrl,
         status: file.size > ATTACHMENT_MAX_BYTES ? "error" : "uploading",
       };
+
       setAttachments((current) => [...current, next]);
+
       if (next.status === "error") {
         continue;
       }
+
       void (async () => {
         try {
           const url = await uploadFile(file);
@@ -277,10 +287,12 @@ export const RequestForm = ({ className }: { className?: string }) => {
 
   const removeAttachment = (id: string) => {
     const removed = attachments.find((a) => a.id === id);
+
     if (removed) {
       URL.revokeObjectURL(removed.previewUrl);
       previewUrls.current.delete(removed.previewUrl);
     }
+
     setAttachments((current) => current.filter((a) => a.id !== id));
   };
 
@@ -344,6 +356,7 @@ export const RequestForm = ({ className }: { className?: string }) => {
                 ) {
                   return;
                 }
+
                 setDragging(false);
               }}
               onDrop={handleDrop}
@@ -374,6 +387,7 @@ export const RequestForm = ({ className }: { className?: string }) => {
                 if (event.target.files) {
                   addFiles(event.target.files);
                 }
+
                 event.target.value = "";
               }}
             />

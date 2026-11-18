@@ -30,7 +30,6 @@ const PADDING = 0.26;
 
 const rows = QUARTERS.map((q, i) => ({ q, target: TARGET, value: VALUES[i] ?? 0 }));
 
-// Center of band `i` as a fraction of the plot height (d3 band, no outer padding).
 const bandCenter = (i: number) => (i + (1 - PADDING) / 2) / (QUARTERS.length - PADDING);
 
 const wholeUsd = (n: number) => usd(n, true);
@@ -39,7 +38,6 @@ export const IncomeOverview = () => {
   const [hi, pin] = useCycle(QUARTERS.length, 2100);
   const picked = rows[hi] ?? rows[0];
   const share = (picked?.value ?? 0) / TARGET;
-  // Long bars carry their readout inside the bar end so it never clips the card.
   const inside = share > 0.6;
 
   const definition = useMemo(

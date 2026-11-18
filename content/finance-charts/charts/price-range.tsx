@@ -15,7 +15,6 @@ import { GREEN, MUTED, RED } from "../lib/tokens";
 
 const LINE = "#16a34a";
 const N = 120;
-// The price line spans x 0…92; the liquidity histogram owns the strip to 100.
 const LINE_END = 92;
 const DAYS = ["Fri", "Sat", "Sun", "Mon", "Tue", "Wed", "Thu"] as const;
 const RANGES = ["Week", "Month", "Year"] as const;
@@ -28,34 +27,37 @@ interface Range {
   peak: number;
   seed: number;
 }
+
 const SPECS: readonly Range[] = [
   { current: 15_000, floor: 10_600, high: 20_000, low: 10_000, peak: 21_600, seed: 5 },
   { current: 13_400, floor: 8200, high: 17_500, low: 9000, peak: 19_200, seed: 17 },
   { current: 16_800, floor: 6400, high: 22_500, low: 7500, peak: 23_400, seed: 29 },
 ];
 
-/** A random walk rescaled into [floor, peak] that ends on `current`. */
 const priceLine = ({ current, floor, peak, seed }: Range) => {
   const raw = walk(N, seed, { start: 0, vol: 6 });
   const lo = Math.min(...raw);
   const hi = Math.max(...raw);
   const end = raw.at(-1) ?? 0;
+
   return raw.map((v, i) => {
     const scaled = floor + ((v - lo) / (hi - lo || 1)) * (peak - floor);
-    // Ease the tail onto the current price so the end dot sits on the dashed rule.
     const pull = Math.max(0, (i - (N - 18)) / 17);
     const target = floor + ((end - lo) / (hi - lo || 1)) * (peak - floor);
+
     return { i, value: scaled + (current - target) * pull, x: (i / (N - 1)) * LINE_END };
   });
 };
 
 const LEVEL_STEP = 300;
 const LEVELS = Array.from({ length: 72 }, (_, k) => 3600 + k * LEVEL_STEP);
-/** Liquidity depth per price level: dense around the current price. */
+
 const depth = ({ current, seed }: Range) => {
   const r = rng(seed * 31);
+
   return LEVELS.map((y) => {
     const near = Math.exp(-(((y - current + 2200) / 4200) ** 2));
+
     return { len: (0.12 + 0.88 * near) * (0.35 + 0.65 * r()) * 9, y };
   });
 };
@@ -121,11 +123,13 @@ const PriceBox = ({ label, value, change }: { label: string; value: number; chan
 export const PriceRange = () => {
   const [pair, setPair] = useState(0);
   const [range, pin] = useCycle(RANGES.length, 3200);
+
   const {
     depth: levels,
     line,
     spec,
   } = DATA[range] ?? FIRST ?? { depth: [], line: [], spec: SPECS[0] };
+
   const { current = 0, high = 0, low = 0 } = spec ?? {};
   const last = line.at(-1);
 

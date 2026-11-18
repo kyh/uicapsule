@@ -16,6 +16,7 @@ const HEIGHT = 168;
 const DAYS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat"] as const;
 const PER_DAY = BARS / DAYS.length;
 const RANGES = ["Week", "Month", "Year"] as const;
+
 const TOTALS: [number, number][] = [
   [12_350, 4761],
   [48_920, 17_305],
@@ -31,11 +32,10 @@ interface Row {
   value: number;
 }
 
-// A busy Monday that cools through the week, with a mid-week spike — the shape
-// of the source — reseeded per range so the bars visibly re-settle.
-const build = (seed: number): Row[] => {
+const build = (seed: number) => {
   const r = rng(seed);
   const rows: Row[] = [];
+
   for (let i = 0; i < BARS; i += 1) {
     const day = i / PER_DAY;
     const pulse = 0.35 + 0.65 * Math.exp(-day * 0.55);
@@ -44,17 +44,18 @@ const build = (seed: number): Row[] => {
     const stocks = 0.05 + r() * (r() < 0.25 ? 0.22 : 0.07);
     rows.push({ i, kind: "funds", value: funds }, { i, kind: "stocks", value: stocks });
   }
+
   const peak = Math.max(
     ...Array.from({ length: BARS }, (_, i) =>
       rows.filter((row) => row.i === i).reduce((sum, row) => sum + row.value, 0),
     ),
   );
+
   return rows.map((row) => ({ ...row, value: row.value / peak }));
 };
 
 const DATA = [build(91), build(92), build(93)];
 const EMPTY: Row[] = [];
-// build() normalises every range to the same peak, so one ceiling fits all.
 const TOP = 1.02;
 
 export const AssetOverviewBar = () => {

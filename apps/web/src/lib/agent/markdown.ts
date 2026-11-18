@@ -14,91 +14,93 @@ import { parseInline } from "./inline-markup";
 import type { ContentComponentSummary } from "@/lib/content/content-schema";
 import type { ProseBlock, ProseListItem, ProsePage } from "./site-pages";
 
-/**
- * Markdown representations of the site, served from the same URLs as the HTML
- * via `Accept: text/markdown` (see `src/proxy.ts`). Pure string building — the
- * route handler supplies the data.
- */
-
 /** Site paths become absolute URLs; off-site, `mailto:` and in-page `#anchor` hrefs pass through. */
-export const absoluteUrl = (path: string): string =>
+export const absoluteUrl = (path: string) =>
   path.startsWith("http") || path.startsWith("mailto:") || path.startsWith("#")
     ? path
     : `${siteConfig.url}${path}`;
 
-/** Copy as Markdown: its inline markup already is Markdown, except that site paths go absolute. */
-const renderInline = (text: string): string =>
+const renderInline = (text: string) =>
   parseInline(text)
     .map((token) => {
       if (token.kind === "bold") {
         return `**${token.text}**`;
       }
+
       if (token.kind === "code") {
         return `\`${token.text}\``;
       }
+
       if (token.kind === "link") {
         return `[${token.text}](${absoluteUrl(token.href)})`;
       }
+
       return token.text;
     })
     .join("");
 
-const renderListItem = (item: ProseListItem): string => {
+const renderListItem = (item: ProseListItem) => {
   const label = item.href ? `[${item.label}](${absoluteUrl(item.href)})` : `**${item.label}**`;
+
   return item.text ? `- ${label}: ${renderInline(item.text)}` : `- ${label}`;
 };
 
-export const renderList = (items: ProseListItem[]): string => items.map(renderListItem).join("\n");
+export const renderList = (items: ProseListItem[]) => items.map(renderListItem).join("\n");
 
-/** A GFM table cell holds one line, and a bare `|` would end the cell. */
-const tableCell = (text: string): string => renderInline(text).replaceAll("|", String.raw`\|`);
+const tableCell = (text: string) => renderInline(text).replaceAll("|", String.raw`\|`);
 
-const tableRow = (cells: string[]): string => `| ${cells.map(tableCell).join(" | ")} |`;
+const tableRow = (cells: string[]) => `| ${cells.map(tableCell).join(" | ")} |`;
 
-const renderTable = (columns: string[], rows: string[][]): string =>
+const renderTable = (columns: string[], rows: string[][]) =>
   [tableRow(columns), `| ${columns.map(() => "---").join(" | ")} |`, ...rows.map(tableRow)].join(
     "\n",
   );
 
-const renderBlock = (block: ProseBlock): string => {
+const renderBlock = (block: ProseBlock) => {
   switch (block.kind) {
     case "heading": {
       return `${block.level === 3 ? "###" : "##"} ${block.text}`;
     }
+
     case "list": {
       return renderList(block.items);
     }
+
     case "bullets": {
       return block.items.map((item) => `- ${renderInline(item)}`).join("\n");
     }
+
     case "table": {
       return renderTable(block.columns, block.rows);
     }
+
     case "divider": {
       return "---";
     }
+
     default: {
       return renderInline(block.text);
     }
   }
 };
 
-const withTrailingNewline = (body: string): string => `${body.trimEnd()}\n`;
+const withTrailingNewline = (body: string) => `${body.trimEnd()}\n`;
 
 /** One catalog entry, shared by the Markdown home page and `/llms.txt`. */
-export const componentLine = (component: ContentComponentSummary): string => {
+export const componentLine = (component: ContentComponentSummary) => {
   const link = `[${component.name}](${absoluteUrl(`/ui/${component.slug}`)})`;
   const tags = component.tags ?? [];
+
   const notes = [component.description, tags.length > 0 ? `tags: ${tags.join(", ")}` : ""]
     .filter(Boolean)
     .join(" — ");
+
   return notes ? `- ${link}: ${notes}` : `- ${link}`;
 };
 
-const taxonomyLine = (heading: string, slugs: string[]): string =>
-  `- **${heading}**: ${slugs.join(", ")}`;
+const taxonomyLine = (heading: string, slugs: string[]) => `- **${heading}**: ${slugs.join(", ")}`;
 
-export const taxonomyLines = (): string[] => [
+export const taxonomyLines = () => [
   taxonomyLine(
     "Elements",
     contentElements.map((element) => element.slug),
@@ -109,7 +111,7 @@ export const taxonomyLines = (): string[] => [
   ),
 ];
 
-export const renderProsePageMarkdown = (page: ProsePage): string =>
+export const renderProsePageMarkdown = (page: ProsePage) =>
   withTrailingNewline(
     [
       `# ${page.heading}`,
@@ -123,7 +125,7 @@ export const renderProsePageMarkdown = (page: ProsePage): string =>
     ].join("\n"),
   );
 
-export const renderHomeMarkdown = (components: ContentComponentSummary[]): string =>
+export const renderHomeMarkdown = (components: ContentComponentSummary[]) =>
   withTrailingNewline(
     [
       `# ${siteConfig.name} — ${siteConfig.description}`,
@@ -170,7 +172,7 @@ export const renderHomeMarkdown = (components: ContentComponentSummary[]): strin
 export const renderComponentMarkdown = (
   component: ContentComponentSummary,
   sourcePaths: string[],
-): string => {
+) => {
   const facts: ProseListItem[] = [
     { label: "Slug", text: `\`${component.slug}\`` },
     ...(component.category ? [{ label: "Category", text: component.category }] : []),
@@ -260,7 +262,7 @@ export const notFoundRecoveryLinks: ProseListItem[] = [
   { href: "/contact", label: "Contact", text: "how to reach a human" },
 ];
 
-export const renderNotFoundMarkdown = (pathname: string): string =>
+export const renderNotFoundMarkdown = (pathname: string) =>
   withTrailingNewline(
     [
       "# 404 — Page not found",

@@ -58,7 +58,6 @@ export interface PersonEducation {
 }
 
 export interface PersonPerformance {
-  // 1-5
   rating: number;
   lastReview: Date;
   goals: string[];

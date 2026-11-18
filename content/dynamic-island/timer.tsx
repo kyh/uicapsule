@@ -14,6 +14,7 @@ const Counter = ({ paused }: { paused: boolean }) => {
         if (c === 0) {
           return 60;
         }
+
         return c - 1;
       });
     }, 1000);

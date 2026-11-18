@@ -21,11 +21,11 @@ import {
 } from "../lib/kit";
 import { BLUE, GRID, MUTED, ORANGE, PURPLE } from "../lib/tokens";
 
-// Thirteen readings across the week: a lazy middle, then a climb into Saturday.
 const VALUES = [
   31_200, 35_400, 33_100, 33_800, 32_900, 32_100, 33_700, 37_300, 36_500, 38_400, 40_300, 42_900,
   46_200,
 ] as const;
+
 const ROWS = VALUES.map((value, i) => ({ i, value }));
 const LAST = ROWS.length - 1;
 const TOP = 52_000;
@@ -91,6 +91,7 @@ export const TotalExpenses = () => {
 
   const left = ((picked?.i ?? 0) / LAST) * 100;
   let align: "center" | "left" | "right" = "center";
+
   if (left < 18) {
     align = "left";
   } else if (left > 82) {

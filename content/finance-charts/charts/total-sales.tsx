@@ -18,7 +18,6 @@ import {
   valueAt,
 } from "./total-sales-parts";
 
-// Sales arrive in bursts: flat hours, then a sharp spike.
 const TODAY = [
   [18, 0],
   [19.76, 0],
@@ -30,6 +29,7 @@ const TODAY = [
   [24.78, 0],
   [26, 17_800],
 ] as const;
+
 const YESTERDAY = [
   [18, 0],
   [18.69, 7000],
@@ -41,12 +41,13 @@ const YESTERDAY = [
   [22.7, 0],
   [26, 0],
 ] as const;
+
 const toRows = (pts: readonly (readonly [number, number])[]) =>
   pts.map(([h, value]) => ({ h, value }));
+
 const TODAY_ROWS = toRows(TODAY);
 const YESTERDAY_ROWS = toRows(YESTERDAY);
 
-// The readout hops between the moments worth reading.
 const STOPS = [20.54, 21.6, 22.5, 23.8, 26, 18.9] as const;
 const TICKS = [0, 10_000, 20_000, 30_000] as const;
 const MAX = 30_000;
@@ -69,12 +70,12 @@ export const TotalSales = () => {
 
   const definition = useMemo(() => {
     const axes = hourlyAxes(TICKS, (v) => compact(v));
+
     return defineChart({
       margin: MARGIN,
       marks: [
         ruleX([h], { stroke: BLUE, strokeDasharray: "3 3", strokeOpacity: 0.5 }),
         lineY(YESTERDAY_ROWS, { stroke: YESTERDAY_GREY, strokeWidth: 2, x: "h", y: "value" }),
-        // A soft under-stroke stands in for the source's glow.
         lineY(TODAY_ROWS, {
           id: "glow",
           stroke: BLUE,
@@ -104,6 +105,7 @@ export const TotalSales = () => {
 
   const left = ((h - X_DOMAIN[0]) / (X_DOMAIN[1] - X_DOMAIN[0])) * 100;
   let align: "center" | "left" | "right" = "center";
+
   if (left < 22) {
     align = "left";
   } else if (left > 75) {
@@ -125,11 +127,13 @@ export const TotalSales = () => {
               if (p) {
                 const x = Number(p.xValue);
                 let best = 0;
+
                 for (const [k, s] of STOPS.entries()) {
                   if (Math.abs(s - x) < Math.abs((STOPS[best] ?? 0) - x)) {
                     best = k;
                   }
                 }
+
                 pin(best);
               }
             }}

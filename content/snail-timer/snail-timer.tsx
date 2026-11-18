@@ -9,15 +9,9 @@ interface Props {
   onTimeout?: () => void;
 }
 
-/** `CSSProperties` widened to accept custom properties without a type assertion. */
 interface CSSVarProperties extends CSSProperties {
   [key: `--${string}`]: string | number | undefined;
 }
-
-/** Module-level so the default prop keeps a stable identity across renders. */
-const NOOP = () => {
-  /* empty */
-};
 
 const SnailSvg = () => (
   <svg xmlns="http://www.w3.org/2000/svg" width="138" height="67" viewBox="0 0 138 67">
@@ -114,7 +108,7 @@ const SnailSvg = () => (
   </svg>
 );
 
-export const SnailTimer = ({ started = true, initialSeconds = 45, onTimeout = NOOP }: Props) => {
+export const SnailTimer = ({ started = true, initialSeconds = 45, onTimeout }: Props) => {
   const [seconds, setSeconds] = useState(initialSeconds);
   const trackStyle: CSSVarProperties = { "--snail-move-duration": `${initialSeconds}s` };
 
@@ -124,7 +118,7 @@ export const SnailTimer = ({ started = true, initialSeconds = 45, onTimeout = NO
     if (started) {
       interval = setInterval(() => {
         if (seconds === 1) {
-          onTimeout();
+          onTimeout?.();
           clearInterval(interval);
         } else {
           setSeconds((current) => current - 1);

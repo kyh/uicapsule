@@ -26,6 +26,7 @@ interface Bar {
   v: number;
   x: number;
 }
+
 const BARS: Bar[] = LINES.flatMap((l, c) => [
   { c, series: "avg" as const, v: l.avg, x: c + 0.335 },
   { c, series: "top" as const, v: l.top, x: c + 0.665 },
@@ -142,6 +143,7 @@ export const RevenueByProductLine = () => {
               ariaLabel="Churn rate by product line, industry average against top quartile"
               onFocusChange={(p) => {
                 const x = Number(p?.xValue);
+
                 if (p && Number.isFinite(x)) {
                   pin(Math.min(LINES.length - 1, Math.max(0, Math.floor(x))));
                 }

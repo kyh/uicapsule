@@ -19,15 +19,16 @@ import {
 } from "../lib/kit";
 import { BLUE, FAINT, GREEN, GRID, MUTED, RED } from "../lib/tokens";
 
-// Thirteen readings a month, January through the first of August.
 const PER_MONTH = 13;
 const LAST = PER_MONTH * 7;
-/** A jagged series that wanders around `mean` without drifting off it. */
+
 const jagged = (seed: number, mean: number, amp: number) => {
   const noise = uniform(LAST + 1, seed, -1, 1);
   const swell = walk(LAST + 1, seed + 1, { max: amp, min: -amp, start: 0, vol: amp * 0.18 });
+
   return noise.map((n, i) => mean + (swell[i] ?? 0) + n * amp * 0.35);
 };
+
 const CURRENT = jagged(41, 16_600, 2200);
 const PREVIOUS = jagged(77, 19_600, 2900);
 const ROWS = CURRENT.map((value, i) => ({ i, prev: PREVIOUS[i] ?? value, value }));
@@ -35,21 +36,21 @@ const ROWS = CURRENT.map((value, i) => ({ i, prev: PREVIOUS[i] ?? value, value }
 const MIN = 2500;
 const MAX = 26_500;
 const TICKS = [5000, 10_000, 15_000, 20_000, 25_000] as const;
-// The scrubber parks on every half month.
 const STOPS = Array.from({ length: 14 }, (_, k) => Math.round(k * 6.5 + 3));
 const GRID_X = Array.from({ length: 15 }, (_, k) => k * 6.5);
 
 const MARGIN = { bottom: 28, left: 0, right: 40, top: 10 };
 const HEIGHT = 230;
 
-/** Index of the entry in `list` closest to `target`. */
 const nearestIndex = (list: readonly number[], target: number) => {
   let best = 0;
+
   for (const [k, v] of list.entries()) {
     if (Math.abs(v - target) < Math.abs((list[best] ?? 0) - target)) {
       best = k;
     }
   }
+
   return best;
 };
 
@@ -70,6 +71,7 @@ export const CashFlowArea = () => {
       { i: at, key: "cursor", label: monthOf(at) },
       { i: LAST, key: "end", label: "Aug" },
     ].filter((l) => l.key === "cursor" || Math.abs(l.i - at) > 14);
+
     return defineChart({
       gradients: [
         {
@@ -143,7 +145,6 @@ export const CashFlowArea = () => {
           x: "i",
           y: "value",
         }),
-        // Text paint must be constant per mark, so each color is its own layer.
         ...[false, true].map((hot) =>
           text(
             TICKS.filter((v) => (v === nearest) === hot),
@@ -168,6 +169,7 @@ export const CashFlowArea = () => {
                 if (l.key === "start") {
                   return "start";
                 }
+
                 return l.key === "end" ? "end" : "middle";
               },
               dy: 20,
@@ -248,7 +250,6 @@ export const CashFlowArea = () => {
         </div>
         <PlotOverlay margin={MARGIN}>
           <Bubble
-            // ~45% of the plot wide: sit beside the scrubber, on whichever side has room.
             left={left > 50 ? Math.max(0, left - 49) : left + 3}
             top={22}
             align="left"

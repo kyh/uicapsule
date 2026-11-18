@@ -36,8 +36,6 @@ const KPIS = [
   },
 ] as const;
 
-// Revenue (share of the $2K daily target) and conversion, each with its
-// lighter ceiling: what the day could have done.
 const DAYS = [
   { conv: 44, convCap: 61, day: "June 15", rev: 36, revCap: 49 },
   { conv: 52, convCap: 66, day: "June 16", rev: 47, revCap: 60 },
@@ -70,6 +68,7 @@ export const Performance = () => {
         y1: () => 0,
         y2: "y",
       });
+
     return defineChart({
       margin: MARGIN,
       marks: [

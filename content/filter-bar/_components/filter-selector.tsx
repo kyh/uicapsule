@@ -34,7 +34,9 @@ const renderColumnIcon = (icon: ReactElement | ReactElementType, className: stri
   if (isValidElement(icon)) {
     return icon;
   }
+
   const IconComp = icon;
+
   return <IconComp className={className} />;
 };
 
@@ -50,6 +52,7 @@ export const FilterableColumn = <TType extends ColumnDataType>({
   filters: FiltersState;
 }) => {
   const { icon: Icon } = column;
+
   const isFiltered = filters.some(
     (filter) => filter.columnId === column.id && filter.values.length > 0,
   );
@@ -57,6 +60,7 @@ export const FilterableColumn = <TType extends ColumnDataType>({
   const handleSelect = () => {
     if (column.type === "boolean") {
       actions.setFilterValue({ columnId: column.id, type: "boolean", values: [true] });
+
       return;
     }
 
@@ -167,6 +171,7 @@ export const QuickSearchFilters = ({
     </>
   );
 };
+
 interface FilterSelectorProps {
   filters: FiltersState;
   columns: Column[];
@@ -203,6 +208,7 @@ export const FilterSelector = ({
     if (!property) {
       return;
     }
+
     inputRef.current?.focus();
   }, [property]);
 
@@ -212,6 +218,7 @@ export const FilterSelector = ({
     }
 
     const timeoutId = setTimeout(() => setValue(""), 150);
+
     return () => clearTimeout(timeoutId);
   }, [open]);
 
@@ -245,6 +252,7 @@ export const FilterSelector = ({
           loop
           filter={(itemValue, search, keywords) => {
             const extendValue = `${itemValue} ${keywords?.join(" ")}`;
+
             return extendValue.toLowerCase().includes(search.toLowerCase()) ? 1 : 0;
           }}
         >
@@ -261,6 +269,7 @@ export const FilterSelector = ({
                 disabled={!onAIFilterSubmit || aiGenerating}
                 onSelect={() => {
                   const prompt = value.trim();
+
                   if (!prompt || !onAIFilterSubmit) {
                     return;
                   }
@@ -324,6 +333,7 @@ export const FilterSelector = ({
       open={open}
       onOpenChange={(next) => {
         setOpen(next);
+
         if (!next) {
           setTimeout(() => setProperty(undefined), 100);
         }

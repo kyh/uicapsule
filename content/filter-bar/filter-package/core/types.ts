@@ -12,7 +12,9 @@ export interface ColumnOptionExtended extends ColumnOption {
 }
 
 export type ColumnDataType = "text" | "number" | "date" | "boolean" | "option" | "multiOption";
+
 export type OptionBasedColumnDataType = "option" | "multiOption";
+
 export type FilterStrategy = "client" | "server";
 
 interface ColumnBase {
@@ -136,6 +138,7 @@ export interface DataTableFilterActions {
 }
 
 export type FilterOperatorTarget = "single" | "multiple";
+
 export interface FilterOperatorDetails<Operator, K extends ColumnDataType> {
   key: string;
   value: Operator;
@@ -147,6 +150,7 @@ export interface FilterOperatorDetails<Operator, K extends ColumnDataType> {
 export type FilterDetails<K extends ColumnDataType> = {
   [Operator in FilterOperators[K]]: FilterOperatorDetails<Operator, K>;
 };
+
 export type FilterTypeOperatorDetails = { [K in ColumnDataType]: FilterDetails<K> };
 
 export type DataTableFiltersOptions<Row> = {

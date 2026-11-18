@@ -34,7 +34,6 @@ export const useResizableSidebar = ({
   useEffect(() => {
     document.documentElement.style.setProperty("--sidebar-width", `${defaultWidth}px`);
 
-    // The width lives in a CSS variable rather than state so dragging never re-renders.
     const handleMouseMove = (e: MouseEvent) => {
       if (!isResizingRef.current) {
         return;
@@ -49,6 +48,7 @@ export const useResizableSidebar = ({
       if (!isResizingRef.current) {
         return;
       }
+
       isResizingRef.current = false;
       document.body.style.cursor = "";
       document.body.style.userSelect = "";

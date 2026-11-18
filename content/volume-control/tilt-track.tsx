@@ -20,26 +20,15 @@ const MARBLE_SIZE = 22;
 const GROOVE_HEIGHT = 34;
 const TRAVEL = HUD_INNER_WIDTH - MARBLE_SIZE;
 
-/** Degrees of tilt at the ends of the drag. Past this the marble is uncatchable
- * and the joke stops being funny — and the panel starts sweeping through the
- * readout above it (see the clearance the track reserves for its swing). */
 const MAX_TILT = 15;
-/** Pointer pixels per degree — how heavy the panel feels to lean on. */
 const PX_PER_DEGREE = 7;
 
-/** Acceleration (px/s²) the marble would feel if the panel were stood on its end. */
 const GRAVITY = 1500;
-/** Exponential speed decay per second. Ice would be unplayable; this is more like wood. */
 const FRICTION = 2.3;
-/** Fraction of speed kept off a wall. The ends are rubber, not a trampoline. */
 const RESTITUTION = 0.35;
 
-/** A detent can only catch a marble that's barely moving... */
 const CATCH_SPEED = 46;
-/** ...and only if it's basically on top of it. */
 const CATCH_RADIUS = 7;
-/** ...and it lets go the moment the panel leans hard enough to overcome it. This
- * is the whole game: level the panel to let a detent bite, lean to break out. */
 const DETENT_GRIP = 300;
 
 const LEVEL_SPRING = { damping: 18, stiffness: 220, type: "spring" } as const;
@@ -49,12 +38,12 @@ const volumeToX = (volume: number) => (clampVolume(volume) / VOLUME_MAX) * TRAVE
 const xToVolume = (x: number) => clamp((x / TRAVEL) * VOLUME_MAX, VOLUME_MIN, VOLUME_MAX);
 const detentX = (volume: number) => volumeToX(snapVolume(volume));
 
-/** A notch every five points. They're the only places the marble can rest. */
 const Detents = () => (
   <>
     {Array.from({ length: VOLUME_MAX / DETENT_STEP + 1 }, (_, index) => {
       const value = index * DETENT_STEP;
       const major = value % 25 === 0;
+
       return (
         <span
           key={value}
@@ -88,32 +77,27 @@ export const TiltTrack = ({ volume }: TiltTrackProps) => {
 
   const panelRef = useRef<HTMLDivElement>(null);
 
-  /** Panel lean, in degrees. Positive = right side down. */
   const tilt = useMotionValue(0);
-  /** Marble offset along the groove, in px. */
   const x = useMotionValue(volumeToX(volume.get()));
 
   const velocity = useRef(0);
   const frame = useRef(0);
   const grabX = useRef(0);
   const grabTilt = useRef(0);
-  /** The detent the marble is currently sitting in, or null if it's loose. */
   const seated = useRef<number | null>(snapVolume(volume.get()));
 
-  // The marble's position IS the volume — no commit step, no confirmation. The
-  // menu bar's speaker icon follows it the entire way down the groove.
   useEffect(() => {
     const unsubscribe = x.on("change", (next) => volume.set(xToVolume(next)));
+
     return unsubscribe;
   }, [x, volume]);
 
-  // A rolling marble moves the volume every frame. Reporting that through state
-  // would re-render the whole panel — detents and all — for each one, so the
-  // slider's value is written straight to the attribute instead.
   useEffect(() => {
     const report = (value: number) =>
       panelRef.current?.setAttribute("aria-valuenow", String(Math.round(value)));
+
     report(volume.get());
+
     return volume.on("change", report);
   }, [volume]);
 
@@ -124,8 +108,6 @@ export const TiltTrack = ({ volume }: TiltTrackProps) => {
     let last = performance.now();
 
     const step = (now: number) => {
-      // Clamped so a backgrounded tab doesn't resume with one enormous step and
-      // fire the marble straight through a wall.
       const dt = Math.min((now - last) / 1000, 1 / 30);
       last = now;
 
@@ -135,13 +117,15 @@ export const TiltTrack = ({ volume }: TiltTrackProps) => {
       let next = x.get();
 
       const seatedAt = seated.current;
+
       if (seatedAt !== null) {
-        // Sitting in a detent: nothing happens until the lean beats the grip.
         if (Math.abs(accel) < DETENT_GRIP) {
           velocity.current = 0;
           frame.current = requestAnimationFrame(step);
+
           return;
         }
+
         seated.current = null;
       }
 
@@ -157,9 +141,8 @@ export const TiltTrack = ({ volume }: TiltTrackProps) => {
         v = -v * RESTITUTION;
       }
 
-      // A detent bites only a slow marble sitting right on top of it, and only
-      // while the panel is flat enough to hold it there.
       const candidate = detentX(xToVolume(next));
+
       if (
         Math.abs(v) < CATCH_SPEED &&
         Math.abs(candidate - next) < CATCH_RADIUS &&
@@ -169,6 +152,7 @@ export const TiltTrack = ({ volume }: TiltTrackProps) => {
         velocity.current = 0;
         seated.current = snapVolume(xToVolume(candidate));
         frame.current = requestAnimationFrame(step);
+
         return;
       }
 
@@ -184,6 +168,7 @@ export const TiltTrack = ({ volume }: TiltTrackProps) => {
     if (reduceMotion) {
       return;
     }
+
     event.currentTarget.setPointerCapture(event.pointerId);
     grabX.current = event.clientX;
     grabTilt.current = tilt.get();
@@ -195,6 +180,7 @@ export const TiltTrack = ({ volume }: TiltTrackProps) => {
     if (!tilting) {
       return;
     }
+
     const delta = (event.clientX - grabX.current) / PX_PER_DEGREE;
     tilt.set(clamp(grabTilt.current + delta, -MAX_TILT, MAX_TILT));
   };
@@ -203,9 +189,8 @@ export const TiltTrack = ({ volume }: TiltTrackProps) => {
     if (!tilting) {
       return;
     }
+
     setTilting(false);
-    // Hands off: the panel finds level again, and whatever the marble was doing,
-    // it now has to do it on a flat surface. Usually that means it stops.
     void animate(tilt, 0, LEVEL_SPRING);
   };
 
@@ -218,10 +203,11 @@ export const TiltTrack = ({ volume }: TiltTrackProps) => {
 
   const handleKeyDown = (event: React.KeyboardEvent<HTMLDivElement>) => {
     const delta = arrowDelta(event.key);
+
     if (delta === 0) {
       return;
     }
-    // Keyboard gets the boring volume control. The joke isn't worth locking anyone out.
+
     event.preventDefault();
     settleTo(clampVolume(snapVolume(volume.get()) + delta));
   };
@@ -231,9 +217,6 @@ export const TiltTrack = ({ volume }: TiltTrackProps) => {
 
   return (
     <div>
-      {/* The panel swings, so it needs room to swing in: a level bar this wide sweeps
-          a box far taller than itself once it leans, and without the clearance it would
-          scythe straight through the readout above it. */}
       <motion.div
         ref={panelRef}
         // oxlint-disable-next-line jsx-a11y/prefer-tag-over-role, jsx-a11y/role-has-required-aria-props -- a physics toy, not a range input; aria-valuenow is written straight to the DOM every frame (see the effect above)
@@ -270,14 +253,11 @@ export const TiltTrack = ({ volume }: TiltTrackProps) => {
               x,
             }}
           >
-            {/* One off-centre highlight, so the roll is visible. A featureless
-                ball sliding down a groove reads as a slider handle. */}
             <span className="absolute top-1 left-[6px] size-1.5 rounded-full bg-white/90" />
           </motion.span>
         </div>
       </motion.div>
 
-      {/* The bubble level: the only feedback telling you how hard you're leaning. */}
       <div
         aria-hidden
         className="mx-auto mt-3 flex h-5 w-24 items-center justify-center rounded-full border border-white/10 bg-neutral-900/70"

@@ -5,19 +5,15 @@ import { catalogEntry, searchCatalog } from "./mcp-catalog";
 
 import type { ContentComponentSummary } from "@/lib/content/content-schema";
 
-const component = (
-  slug: string,
-  name: string,
-  description: string,
-  tags: string[],
-): ContentComponentSummary => ({
-  addedAt: "2026-01-01",
-  description,
-  name,
-  slug,
-  tags,
-  type: "local",
-});
+const component = (slug: string, name: string, description: string, tags: string[]) =>
+  ({
+    addedAt: "2026-01-01",
+    description,
+    name,
+    slug,
+    tags,
+    type: "local",
+  }) satisfies ContentComponentSummary;
 
 const catalog: ContentComponentSummary[] = [
   component("volume-knob", "Volume Knob", "A skeuomorphic rotary dial.", [
@@ -87,6 +83,7 @@ describe("catalogEntry", () => {
       tags: ["pages"],
       type: "remote",
     });
+
     assert.deepEqual(
       { installable: entry.installable, sourceUrl: "sourceUrl" in entry && entry.sourceUrl },
       { installable: false, sourceUrl: "https://example.com/source" },

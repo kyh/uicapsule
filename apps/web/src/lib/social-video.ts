@@ -6,14 +6,6 @@ import type { ContentComponentSummary, CoverMedia } from "./content/content-sche
 import type { SocialVideo } from "./agent/structured-data";
 
 /**
- * The videos pages share as `og:video` and describe as `VideoObject`.
- *
- * Both come from `pnpm og:video` (scripts/og-video.ts): the home page's is a
- * rendered loop in public/og, a component's is its existing cover in the
- * assets store, sized and dated by `cover-media.json`.
- */
-
-/**
  * Width, height and length of the loop scripts/og-video/scene.html renders: a
  * dimensional drawing of the mark, with wireframe components drawn around it.
  */
@@ -34,18 +26,19 @@ const mediaBySlug: Record<string, CoverMedia | undefined> = coverMedia;
  * The probed facts for a component's cover, or nothing when the probe is
  * missing or was taken of a different cover (re-run `pnpm og:video`).
  */
-export const coverMediaFor = (
-  component: Pick<ContentComponentSummary, "cover" | "slug">,
-): CoverMedia | undefined => {
+export const coverMediaFor = (component: Pick<ContentComponentSummary, "cover" | "slug">) => {
   const entry = mediaBySlug[component.slug];
+
   return entry && entry.cover === component.cover ? entry : undefined;
 };
 
-export const componentVideo = (component: ContentComponentSummary): SocialVideo | undefined => {
+export const componentVideo = (component: ContentComponentSummary) => {
   const media = coverMediaFor(component);
+
   if (!media) {
-    return undefined;
+    return;
   }
+
   return {
     contentUrl: assetUrl(media.cover),
     description: component.description,

@@ -12,7 +12,6 @@ import { MUTED, THEME } from "../lib/tokens";
 const VIOLET_BAR = "#a12ff5";
 const IDLE = "#ebebee";
 const COUNT = 40;
-// Months of the quarter: the meter refills to each month's progress.
 const PROGRESS = [27.5, 46.2, 71.8, 38.4, 88.6] as const;
 const TARGET = 39_673;
 
@@ -30,6 +29,7 @@ export const SalesTarget = () => {
       on: i < filled,
       x: ((i + 0.5) / COUNT) * 100,
     }));
+
     return defineChart({
       focusRing: false,
       margin: MARGIN,
@@ -52,6 +52,7 @@ export const SalesTarget = () => {
                 if (index === 0) {
                   return "start";
                 }
+
                 return index === 4 ? "end" : "middle";
               },
               fontSize: 12,
@@ -100,7 +101,6 @@ export const SalesTarget = () => {
             height={HEIGHT}
             ariaLabel="Sales progress toward the monthly target"
             onFocusChange={(p) => {
-              // Hovering the meter holds the current month.
               if (p) {
                 pin(step);
               }

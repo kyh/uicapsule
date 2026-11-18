@@ -13,7 +13,7 @@ import {
   Card,
   ChartSlot,
   IconTile,
-  Label,
+  Caption,
   Num,
   PlotOverlay,
   renderer,
@@ -35,37 +35,41 @@ interface Segment {
   y2: number;
 }
 
-// Each slot is one intraday spending range; some split into a long run plus a
-// short dash, the way the source draws them.
 const SEGMENTS: Segment[] = (() => {
   const r = rng(4242);
   const out: Segment[] = [];
+
   for (let day = 0; day < DAYS.length; day += 1) {
-    // May 3 runs lowest, so it is the "lowest day" the stats call out.
     const base = day === 2 ? 7000 : 9500;
+
     for (let k = 0; k < PER_DAY; k += 1) {
       const slot = `${day}-${k}`;
       const low = base + r() * 6500;
       const len = 1200 + r() * 4200;
       out.push({ day, id: `${slot}-a`, slot, y1: low, y2: Math.min(HI - 800, low + len) });
+
       if (r() < 0.45) {
         const above = r() < 0.5;
         const y1 = above ? low + len + 500 : low - 1100;
+
         if (y1 + 600 > HI - 300) {
           continue;
         }
+
         out.push({ day, id: `${slot}-b`, slot, y1, y2: y1 + 600 });
       }
     }
   }
+
   return out;
 })();
 
 const SLOTS = [...new Set(SEGMENTS.map((s) => s.slot))];
 const MIDDLES = DAYS.map((_, d) => `${d}-${Math.floor(PER_DAY / 2)}`);
 const GRID_LINES = { ...DASHED_GRID, stroke: "#e2e2e7", strokeOpacity: 1 };
+
 const DAY_LOWS = DAYS.map((_, d) =>
-  Math.min(...SEGMENTS.filter((s) => s.day === d).map((s) => s.y1)),
+  Math.min(...SEGMENTS.flatMap((s) => (s.day === d ? [s.y1] : []))),
 );
 
 const MARGIN = { bottom: 30, left: 36, right: 0, top: 10 };
@@ -144,7 +148,7 @@ export const SpendingOverviewRange = () => {
           { label: "Lowest day", value: 13_916.67 },
         ].map((s) => (
           <div key={s.label} className="min-w-0">
-            <Label className="truncate">{s.label}</Label>
+            <Caption className="truncate">{s.label}</Caption>
             <Num
               value={s.value}
               className="mt-0.5 block text-[16px] font-bold tracking-[-0.03em]"

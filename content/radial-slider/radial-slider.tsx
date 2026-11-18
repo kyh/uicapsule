@@ -1,15 +1,11 @@
 import { useMemo, useRef } from "react";
 import { animate, motion, useMotionValue } from "motion/react";
 
-/** Horizontal drag distance, in px, that advances the dial by one degree. */
 const PIXELS_PER_DEGREE = 5;
 
-/**
- * Rounds a rotation to the nearest tick, expressed as an angle in [0, 360].
- * 360 is a valid result: it means "snap forward to the next full turn".
- */
 const nearestTickAngle = (rotation: number, snapAngle: number) => {
   const normalized = ((rotation % 360) + 360) % 360;
+
   return Math.round(normalized / snapAngle) * snapAngle;
 };
 

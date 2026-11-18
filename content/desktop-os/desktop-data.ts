@@ -1,14 +1,5 @@
-/**
- * All static content for the desktop simulation.
- *
- * Every image is a remote Unsplash CDN derivative — the package ships no binary
- * assets and the wallpaper is pure CSS, so there is nothing to host.
- */
-
-const unsplash = (id: string, width: number): string =>
+const unsplash = (id: string, width: number) =>
   `https://images.unsplash.com/${id}?w=${width}&q=75&auto=format&fit=crop`;
-
-/* ------------------------------------------------------------------ files -- */
 
 export interface SeedPos {
   readonly xPct: number;
@@ -116,10 +107,7 @@ export const FILES = [
 
 export const [HERO_FILE] = FILES;
 
-export const findFile = (id: string | undefined): DesktopFile | undefined =>
-  FILES.find((file) => file.id === id);
-
-/* ------------------------------------------------------------------ tiles -- */
+export const findFile = (id: string | undefined) => FILES.find((file) => file.id === id);
 
 export type DesktopTile =
   | { readonly kind: "file"; readonly file: DesktopFile }
@@ -130,21 +118,16 @@ export type DesktopTile =
       readonly pos: SeedPos;
     };
 
-export const tileId = (tile: DesktopTile): string =>
-  tile.kind === "file" ? tile.file.id : tile.id;
+export const tileId = (tile: DesktopTile) => (tile.kind === "file" ? tile.file.id : tile.id);
 
-export const tileName = (tile: DesktopTile): string =>
-  tile.kind === "file" ? tile.file.name : tile.name;
+export const tileName = (tile: DesktopTile) => (tile.kind === "file" ? tile.file.name : tile.name);
 
-export const tilePos = (tile: DesktopTile): SeedPos =>
-  tile.kind === "file" ? tile.file.pos : tile.pos;
+export const tilePos = (tile: DesktopTile) => (tile.kind === "file" ? tile.file.pos : tile.pos);
 
 export const TILES: readonly DesktopTile[] = [
-  ...FILES.map((file): DesktopTile => ({ file, kind: "file" })),
+  ...FILES.map<DesktopTile>((file) => ({ file, kind: "file" })),
   { id: "archive", kind: "folder", name: "Archive", pos: { xPct: 6, yPct: 60 } },
 ];
-
-/* ----------------------------------------------------------------- photos -- */
 
 export interface DesktopPhoto {
   readonly src: string;
@@ -153,7 +136,7 @@ export interface DesktopPhoto {
   readonly caption: string;
 }
 
-const photo = (id: string, ratio: DesktopPhoto["ratio"], caption: string): DesktopPhoto => ({
+const photo = (id: string, ratio: DesktopPhoto["ratio"], caption: string) => ({
   caption,
   full: unsplash(id, 1600),
   ratio,
@@ -171,8 +154,6 @@ export const PHOTOS: readonly DesktopPhoto[] = [
   photo("photo-1454391304352-2bf4678b1a7a", "wide", "Workbench"),
   photo("photo-1465101162946-4377e57745c3", "tall", "First light"),
 ];
-
-/* ------------------------------------------------------------------ notes -- */
 
 export interface DesktopNote {
   readonly id: string;
@@ -232,8 +213,6 @@ Subpixel text rendering changes when you promote a layer. Know which of your lay
 
 export const [FIRST_NOTE] = NOTES;
 
-/* ------------------------------------------------------------------- dock -- */
-
 export type DockAppId = "files" | "preview" | "photos" | "notes" | "terminal" | "trash";
 
 export interface DockApp {
@@ -252,8 +231,6 @@ export const DOCK_APPS: readonly DockApp[] = [
 
 export const MOBILE_PRIMARY: readonly DockAppId[] = ["files", "photos", "notes"];
 export const GROUP_APPS: readonly DockAppId[] = ["preview", "terminal", "trash"];
-
-/* -------------------------------------------------------------- wallpaper -- */
 
 /**
  * Pure-CSS wallpaper. The thin conic rays are what makes the boot's

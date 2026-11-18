@@ -45,57 +45,65 @@ const CATEGORIES: { icon: LucideIcon; label: string; tint: string; value: number
   { icon: House, label: "Bills & Utilities", tint: BLUE, value: 550 },
 ];
 
-// A blob of hexes: orange core, purple ring, blues fading out to a ragged edge.
 const CELLS: Cell[] = (() => {
   const r = rng(8080);
   const out: Cell[] = [];
   const cx = (COLS - 1) / 2;
   const cy = (ROWS - 1) / 2;
+
   for (let row = 0; row < ROWS; row += 1) {
     for (let col = 0; col < COLS; col += 1) {
       const x = col + (row % 2 === 1 ? 0.5 : 0);
       const d = Math.hypot(x - cx - 0.25, ((row - cy) * 1.5) / SQRT3) + (r() - 0.5) * 1.1;
       const keep = d < 4.6 || r() > (d - 4.6) / 2.2;
+
       if (keep) {
         let kind: Kind = 2;
+
         if (d < 2) {
           kind = 0;
         } else if (d < 3.4) {
           kind = 1;
         }
+
         const shades = SHADES[kind];
         let shade = Math.floor(r() * Math.min(shades.length, 3));
+
         if (kind === 2) {
-          // Blues lighten with distance from the core.
           shade = Math.min(shades.length - 1, Math.max(0, Math.floor(d - 3.6 + r() * 1.8)));
         }
+
         out.push({ col, color: shades[shade] ?? INK, id: `${row}-${col}`, kind, row });
       }
     }
   }
+
   return out;
 })();
 
-/** Mixes a hex color toward white; `t` = 0 keeps it, 1 is white. */
 const fade = (hex: string, t: number) => {
   const n = Number.parseInt(hex.slice(1), 16);
   const ch = [16, 8, 0].map((s) => Math.floor(n / 2 ** s) % 256);
+
   return `rgb(${ch.map((c) => Math.round(c + (255 - c) * t)).join(",")})`;
 };
 
-/** Container width, so hexes can tile exactly at any column width. */
 const useWidth = () => {
   const ref = useRef<HTMLDivElement>(null);
   const [width, setWidth] = useState(0);
   useEffect(() => {
     const el = ref.current;
+
     if (!el) {
       return;
     }
+
     const ro = new ResizeObserver(([entry]) => setWidth(entry?.contentRect.width ?? 0));
     ro.observe(el);
+
     return () => ro.disconnect();
   }, []);
+
   return [ref, width] as const;
 };
 
@@ -105,18 +113,18 @@ export const BudgetOverview = () => {
 
   const definition = useMemo(() => {
     const w = Math.max(1, width);
-    // Circumradius that fits the grid in both directions; pointy-top hexes
-    // step sqrt(3)·R across and 1.5·R down.
     const radius = Math.min(w / ((COLS + 0.5) * SQRT3), HEIGHT / ((ROWS - 1) * 1.5 + 2));
     const gridW = (COLS + 0.5) * SQRT3 * radius;
     const gridH = ((ROWS - 1) * 1.5 + 2) * radius;
     const ox = (w - gridW) / 2 + (SQRT3 * radius) / 2;
     const oy = (HEIGHT - gridH) / 2 + radius;
+
     const rows = CELLS.map((c) => ({
       ...c,
       px: ox + (c.col + (c.row % 2 === 1 ? 0.5 : 0)) * SQRT3 * radius,
       py: oy + c.row * 1.5 * radius,
     }));
+
     return defineChart({
       focusRing: false,
       guides: false,

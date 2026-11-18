@@ -62,11 +62,6 @@ const defaults: Required<GeometricOrbConfig> = {
   squiggleSpeed: 2,
 };
 
-/**
- * All latitude lines rendered with a single useFrame callback.
- * Each line is one Line2 with per-vertex colors encoding depth-based opacity,
- * reducing draw calls from numLines×segmentGroups to just numLines.
- */
 const LatitudeLines = ({ config }: { config: Required<GeometricOrbConfig> }) => {
   const camDirRef = useRef(new THREE.Vector3());
   const { size } = useThree();
@@ -128,8 +123,8 @@ const LatitudeLines = ({ config }: { config: Required<GeometricOrbConfig> }) => 
     }
   }, [materials, size.width, size.height]);
 
-  // Reuse buffers across frames; the extra vertex closes the loop.
   const vertexCount = config.pointsPerLine + 1;
+
   const buffersRef = useRef<{
     vertexCount: number;
     positions: Float32Array;
@@ -144,6 +139,7 @@ const LatitudeLines = ({ config }: { config: Required<GeometricOrbConfig> }) => 
         vertexCount,
       };
     }
+
     const { positions: positionBuffer, colors: colorBuffer } = buffersRef.current;
     const time = state.clock.elapsedTime;
     const camDir = camDirRef.current.copy(state.camera.position).normalize();
@@ -154,9 +150,11 @@ const LatitudeLines = ({ config }: { config: Required<GeometricOrbConfig> }) => 
     for (let lineIdx = 0; lineIdx < config.numLines; lineIdx += 1) {
       const constants = lineConstants[lineIdx];
       const geometry = geometries[lineIdx];
+
       if (!constants || !geometry) {
         continue;
       }
+
       const { timeOffset, cosR, sinR } = constants;
       const progress = ((time + timeOffset) % config.speed) / config.speed;
       const latitude = progress * Math.PI;
@@ -165,14 +163,18 @@ const LatitudeLines = ({ config }: { config: Required<GeometricOrbConfig> }) => 
 
       for (let i = 0; i < config.pointsPerLine; i += 1) {
         const angle = (i / config.pointsPerLine) * Math.PI * 2;
+
         const squiggle =
           Math.sin(angle * config.squiggleFrequency + time * config.squiggleSpeed + lineIdx * 0.5) *
           config.squiggleAmount;
+
         const radiusSquiggle =
           Math.cos(angle * config.squiggleFrequency * 1.3 + time * config.squiggleSpeed * 0.8) *
           config.squiggleAmount *
           0.5;
+
         const displacedRadius = circleRadius + (squiggle + radiusSquiggle) * circleRadius;
+
         const ySquiggle =
           Math.sin(angle * config.squiggleFrequency * 0.7 + time * config.squiggleSpeed * 1.2) *
           config.squiggleAmount *
@@ -187,7 +189,6 @@ const LatitudeLines = ({ config }: { config: Required<GeometricOrbConfig> }) => 
         positionBuffer[offset + 1] = y;
         positionBuffer[offset + 2] = z;
 
-        // Smooth depth-fade via vertex color brightness
         const worldX = x * cosR + z * sinR;
         const worldZ = -x * sinR + z * cosR;
         const dot = worldX * camDir.x + y * camDir.y + worldZ * camDir.z;
@@ -199,7 +200,6 @@ const LatitudeLines = ({ config }: { config: Required<GeometricOrbConfig> }) => 
         colorBuffer[offset + 2] = b * opacity;
       }
 
-      // Close the loop: copy first vertex exactly to avoid floating-point gaps
       const last = config.pointsPerLine * 3;
       positionBuffer.copyWithin(last, 0, 3);
       colorBuffer.copyWithin(last, 0, 3);
@@ -215,12 +215,12 @@ const LatitudeLines = ({ config }: { config: Required<GeometricOrbConfig> }) => 
         const geometry = geometries[lineIdx];
         const material = materials[lineIdx];
         const constants = lineConstants[lineIdx];
+
         if (!geometry || !material || !constants) {
           return null;
         }
+
         return (
-          // Longitude rotation is constant per line, so it is declared once here
-          // rather than re-written from the frame loop.
           <group key={lineIdx} rotation-y={constants.longitudeRotation}>
             <OrbLine>
               <primitive object={geometry} attach="geometry" />
@@ -253,8 +253,6 @@ export const GeometricOrb = ({
   config?: GeometricOrbConfig;
   className?: string;
 }) => {
-  // Derived during render: LatitudeLines only memoizes on individual config
-  // fields, so a fresh object identity each render costs nothing.
   const config = { ...defaults, ...configOverrides };
 
   return (

@@ -32,9 +32,6 @@ export const expandedWidgetOptions: ExpandedWidgetOption[] = [
   { label: "flight", view: "flight" },
 ];
 
-// Tokens from the Figma widget pack (Dynamic island pack → variable defs):
-// bg/black-solid, text/disabled, bg/overlay-alpha-secondary, red/500,
-// text/error-primary, green/500, border/tertiary, pink/500, fuchsia/500.
 const ISLAND_BG = "#0a0a0a";
 const TEXT_MUTED = "#a3a3a3";
 const DARK_BUTTON = "rgba(26,26,26,0.75)";
@@ -44,12 +41,9 @@ const GREEN = "#16b364";
 const RING = "#e5e5e5";
 const PINK = "#ec4899";
 
-// Label-1 (16/22, -0.18) and Label-3 (12/16, -0.12) from the pack's type ramp.
 const TITLE_CLASS = "truncate text-[16px] leading-[22px] tracking-[-0.18px]";
 const SUBTITLE_CLASS = "truncate text-xs leading-4 tracking-[-0.12px]";
 
-// Every expanded widget sits on the same 376px card; only the corner radius and
-// the internal flow (`layout`) differ between them.
 const WIDGET_SHELL_CLASS = "flex w-[376px] max-w-[calc(100vw-40px)] p-6 text-white";
 
 const WidgetShell = ({ children, layout }: { children: ReactNode; layout: string }) => (
@@ -58,8 +52,6 @@ const WidgetShell = ({ children, layout }: { children: ReactNode; layout: string
   </div>
 );
 
-// Stop control shared by the recording widgets, straight from the pack:
-// 44px circle with a 1px border/tertiary ring and a rounded red square inside.
 const StopButton = ({ label }: { label: string }) => (
   <button
     aria-label={label}
@@ -104,7 +96,6 @@ const Avatar = () => (
   <div className="size-12 shrink-0 rounded-full bg-[radial-gradient(circle_at_42%_32%,#f4d4b8_0_16%,#2f241f_17%_38%,#f8fafc_39%_56%,#171717_57%)]" />
 );
 
-// Five-bar equalizer fading pink/500 → fuchsia/500 like the pack's glyph.
 const EQ_BARS = [
   { color: "#db2777", delay: 0, height: 10, id: "eq-0" },
   { color: "#ec4899", delay: 0.15, height: 18, id: "eq-1" },
@@ -193,12 +184,11 @@ const OngoingCallExpanded = () => (
   </WidgetShell>
 );
 
-// Waveform heights straight from the mock; the last bar fades and hands off to
-// a dot trail (red/50 at 40%) for the unrecorded remainder.
 const MEMO_BARS = [25, 20, 16, 20, 25, 20, 14, 10, 16, 22, 27, 15, 19].map((height, index) => ({
   height,
   id: `memo-${index}`,
 }));
+
 const MEMO_DOTS = Array.from({ length: 11 }, (_, index) => `dot-${index}`);
 
 const VoiceMemoExpanded = () => (
@@ -342,5 +332,6 @@ interface ExpandedWidgetProps {
 
 export const ExpandedWidget = ({ view }: ExpandedWidgetProps) => {
   const Widget = EXPANDED_WIDGETS[view];
+
   return <Widget />;
 };

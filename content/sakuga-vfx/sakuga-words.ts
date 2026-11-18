@@ -1,6 +1,3 @@
-// Six manga sound-effect words from finktheartist/sakuga-vfx (MIT): painted, then traced to paths.
-// Each entry is [width, height, svg path].
-
 export type WordName = "don" | "gogo" | "kachi" | "pon" | "shu" | "zuza";
 
 export const WORDS: Record<WordName, readonly [number, number, string]> = {

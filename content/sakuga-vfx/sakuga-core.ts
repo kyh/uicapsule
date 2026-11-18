@@ -1,22 +1,17 @@
-// Sakuga VFX core: springs, the effects layer and the lettering, shared by every control.
-// A typed port of core.js from finktheartist/sakuga-vfx (MIT, Justin Finkelman).
-//
-// One fixed canvas sits over the page and every effect is drawn on it in page coordinates,
-// so effects can fly outside their control. One clock drives every spring, timer and effect.
-
 import { WORDS } from "./sakuga-words";
 import type { WordName } from "./sakuga-words";
 
 export const TAU = Math.PI * 2;
 export const clamp = (v: number, a = 0, b = 1) => Math.min(b, Math.max(a, v));
 export const lerp = (a: number, b: number, t: number) => a + (b - a) * t;
+
 export const rnd = (a = 1, b?: number) =>
   b === undefined ? Math.random() * a : a + Math.random() * (b - a);
+
 export const easeOut = (t: number) => 1 - (1 - t) ** 3;
 export const easeIn = (t: number) => t ** 3;
 export const easeBack = (t: number) => 1 + 2.70158 * (t - 1) ** 3 + 1.70158 * (t - 1) ** 2;
 
-// A spring: the thing that makes a control overshoot and settle instead of stopping dead.
 export class Spring {
   x: number;
   v = 0;
@@ -35,18 +30,19 @@ export class Spring {
     if (!(dt > 0)) {
       return this.x;
     }
+
     const n = Math.ceil(dt / 0.008);
     const h = dt / n;
+
     for (let i = 0; i < n; i += 1) {
       this.v += (-this.k * (this.x - this.to) - this.d * this.v) * h;
       this.x += this.v * h;
     }
+
     return this.x;
   }
 }
 
-// ───────── the palette ─────────
-// P is for the effects; the --sk-* CSS variables (see sakuga-react.tsx) are for the controls.
 export const P = {
   accent: "#ff5fa8",
   fill: "#ffffff",
@@ -56,16 +52,15 @@ export const P = {
   shade: "#b8b3ff",
 } as const;
 
-// ───────── layers ─────────
-// The front layer is one fixed canvas over the whole page. A control can also have a back layer:
-// a canvas inside it, behind the control. Effects are placed in page coordinates.
 type Draw = (k: number, t: number, dt: number) => void;
+
 export interface Effect {
   t: number;
   life: number;
   draw: Draw;
   dead?: boolean;
 }
+
 export interface Layer {
   c: HTMLCanvasElement | null;
   g: CanvasRenderingContext2D | null;
@@ -78,23 +73,22 @@ const layers: Layer[] = [front];
 let dpr = 1;
 let calmQuery: MediaQueryList | null = null;
 
-// The context of the layer being drawn. Only valid inside an effect's draw callback.
 let g!: CanvasRenderingContext2D;
 export const pen = () => g;
 
-// oxlint's Array.fill rule mistakes a canvas fill of a Path2D for an array fill; route them all through here.
 export const fillPath = (path: Path2D, rule?: CanvasFillRule) => {
   g.fill(path, rule);
 };
 
-// Reduced motion drops every effect; the springs and the state changes stay.
 export const isCalm = () => {
   calmQuery ??= matchMedia("(prefers-reduced-motion: reduce)");
+
   return calmQuery.matches;
 };
 
 const size = () => {
   dpr = Math.min(2.5, devicePixelRatio || 1);
+
   if (front.c) {
     front.c.width = innerWidth * dpr;
     front.c.height = innerHeight * dpr;
@@ -105,36 +99,40 @@ const ensureFront = () => {
   if (front.c?.isConnected) {
     return;
   }
+
   const c = document.createElement("canvas");
   c.setAttribute("aria-hidden", "true");
   c.dataset.sakugaFx = "";
   c.style.cssText =
     "position:fixed;inset:0;width:100vw;height:100vh;pointer-events:none;z-index:2147483000";
   document.body.append(c);
+
   if (!front.c) {
     addEventListener("resize", size);
   }
+
   front.c = c;
   front.g = c.getContext("2d");
   size();
 };
 
-export const addBackLayer = (canvas: HTMLCanvasElement): Layer => {
+export const addBackLayer = (canvas: HTMLCanvasElement) => {
   const layer: Layer = { c: canvas, dirty: false, g: canvas.getContext("2d"), live: [] };
   layers.push(layer);
+
   return layer;
 };
+
 export const removeBackLayer = (layer: Layer) => {
   const i = layers.indexOf(layer);
+
   if (i > 0) {
     layers.splice(i, 1);
   }
 };
 
-// ───────── the clock ─────────
-// One loop for every control. later() runs on this clock, not on setTimeout, so a film can step
-// it a frame at a time: set clock.paused and call clock.advance(dt).
 type FrameFn = (dt: number) => void;
+
 const frames = new Set<FrameFn>();
 const timers: { at: number; f: () => void }[] = [];
 let now = 0;
@@ -143,30 +141,38 @@ let running = false;
 
 const drawLayer = (layer: Layer, dt: number) => {
   const { c, g: ctx } = layer;
+
   if (!c || !ctx || (layer.live.length === 0 && !layer.dirty)) {
     return;
   }
+
   let ox = scrollX;
   let oy = scrollY;
+
   if (layer !== front) {
-    // a back layer: keep its pixels matched to where it sits
     if (!c.isConnected) {
       layer.live = [];
       layer.dirty = false;
+
       return;
     }
+
     const r = c.getBoundingClientRect();
     const w = Math.round(r.width * dpr);
     const h = Math.round(r.height * dpr);
+
     if (c.width !== w) {
       c.width = w;
     }
+
     if (c.height !== h) {
       c.height = h;
     }
+
     ox += r.left;
     oy += r.top;
   }
+
   g = ctx;
   g.setTransform(dpr, 0, 0, dpr, 0, 0);
   g.clearRect(0, 0, c.width / dpr, c.height / dpr);
@@ -175,28 +181,35 @@ const drawLayer = (layer: Layer, dt: number) => {
   g.lineCap = "round";
   layer.live = layer.live.filter((p) => {
     p.t += dt;
+
     return !p.dead && p.t < p.life;
   });
+
   for (const p of layer.live) {
     g.save();
     p.draw(p.t / p.life, p.t, dt);
     g.restore();
   }
+
   layer.dirty = layer.live.length > 0;
 };
 
 const advance = (dt: number) => {
   now += dt;
   const due = timers.filter((q) => q.at <= now).toSorted((a, b) => a.at - b.at);
+
   for (const q of due) {
     timers.splice(timers.indexOf(q), 1);
   }
+
   for (const q of due) {
     q.f();
   }
+
   for (const f of frames) {
     f(dt);
   }
+
   for (const layer of layers) {
     drawLayer(layer, dt);
   }
@@ -217,16 +230,20 @@ const loop = (ms: number) => {
   if (!running) {
     return;
   }
-  // a frame's timestamp can be earlier than the moment the loop started
+
   const dt = clamp((ms - last) / 1000, 0, 0.034);
   last = ms;
+
   if (!clock.paused) {
     advance(dt);
   }
+
   if (idle()) {
     running = false;
+
     return;
   }
+
   requestAnimationFrame(loop);
 };
 
@@ -234,6 +251,7 @@ const start = () => {
   if (running) {
     return;
   }
+
   running = true;
   last = performance.now();
   requestAnimationFrame(loop);
@@ -244,31 +262,32 @@ export const later = (ms: number, f: () => void) => {
   start();
 };
 
-// Run fn(dt) every frame while subscribed. Returns the unsubscribe.
 export const onFrame = (fn: FrameFn) => {
   frames.add(fn);
   start();
+
   return () => {
     frames.delete(fn);
   };
 };
 
-const add = (life: number, draw: Draw, layer: Layer = front): Effect => {
+const add = (life: number, draw: Draw, layer: Layer = front) => {
   const p: Effect = { draw, life, t: 0 };
+
   if (!isCalm()) {
     if (layer === front) {
       ensureFront();
     }
+
     layer.live.push(p);
     start();
   }
+
   return p;
 };
 
-// An effect with no end: it draws every frame until its handle is marked dead.
 export const persist = (draw: Draw, layer?: Layer) => add(Infinity, draw, layer);
 
-// ───────── the effects ─────────
 type Circle = readonly [x: number, y: number, r: number];
 
 const paintShade = () => {
@@ -276,19 +295,20 @@ const paintShade = () => {
   g.fillRect(-1e4, -1e4, 2e4, 2e4);
 };
 
-// circles drawn as one shape: outline, shadow tone, then the light side slid up and to the left
 export const blob = (
   cs: readonly Circle[],
   lw = 1.5,
   { lx = -1, arcs = false, deep = 1 }: { lx?: number; arcs?: boolean; deep?: number } = {},
 ) => {
   const u = new Path2D();
+
   for (const [x, y, r] of cs) {
     if (r > 0.3) {
       u.moveTo(x + r, y);
       u.arc(x, y, r, 0, TAU);
     }
   }
+
   g.save();
   g.lineWidth = lw * 2;
   g.strokeStyle = P.line;
@@ -303,23 +323,25 @@ export const blob = (
   g.fillStyle = P.fill;
   fillPath(u);
   g.restore();
+
   if (arcs) {
-    // the cumulus lines inside the cloud
     g.strokeStyle = P.line;
     g.lineWidth = lw * 0.75;
     g.beginPath();
+
     for (const [x, y, rr] of cs) {
       if (rr > 3) {
         g.moveTo(x + Math.cos(-2.7) * rr, y + Math.sin(-2.7) * rr);
         g.arc(x, y, rr, -2.7, -0.5);
       }
     }
+
     g.stroke();
   }
+
   g.restore();
 };
 
-// any path in the two tones: outline, shadow tone, then the light tone slid up and left
 export const toon = (path: Path2D, lw = 1.5, off = 3, fill: string = P.fill) => {
   g.save();
   g.lineWidth = lw * 2;
@@ -335,21 +357,21 @@ export const toon = (path: Path2D, lw = 1.5, off = 3, fill: string = P.fill) => 
   g.restore();
 };
 
-// a puff of smoke: lobes swell out with a little overshoot, roll, and shrink away
 export const puff = (
   x: number,
   y: number,
   { n = 5, size: sz = 13, vx = 0, vy = -18, life = 0.8, spread = 1 } = {},
 ) => {
-  // each rnd() is drawn in the original's order, so a seeded run matches it frame for frame
   const lobes = Array.from({ length: n }, (_, i) => {
     const a = (i / n) * TAU + rnd(0.6);
     const d = rnd(0.25, 0.9) * sz * spread;
     const r = rnd(0.55, 1) * sz;
     const ph = rnd(TAU);
     const sp = rnd(0.6, 1.3);
+
     return { a, d, ph, r, sp };
   });
+
   lobes.unshift({ a: 0, d: 0, ph: 0, r: sz, sp: 1 });
   add(life, (k, t) => {
     const grow = easeBack(clamp(t / 0.22));
@@ -358,8 +380,9 @@ export const puff = (
     const py = y + vy * easeOut(k) * life;
     const reach = 0.5 + easeOut(k) * 0.9;
     blob(
-      lobes.map((l): Circle => {
+      lobes.map<Circle>((l) => {
         const a = l.a + t * 0.9 * l.sp;
+
         return [
           px + Math.cos(a) * l.d * reach,
           py + Math.sin(a) * l.d * reach - easeOut(k) * 5 * l.sp,
@@ -372,8 +395,6 @@ export const puff = (
   });
 };
 
-// the impact: pink needles, a star in the shadow tone, and a white star on top;
-// it leaves by its points thinning to nothing
 export const burst = (
   x: number,
   y: number,
@@ -382,28 +403,36 @@ export const burst = (
   const j = Array.from({ length: spikes * 2 }, (_, i) =>
     i % 2 ? rnd(0.34, 0.5) : rnd(0.75, 1.15),
   );
+
   const rot = rnd(TAU);
+
   const pins = Array.from({ length: 8 }, (_, i) => ({
     a: (i / 8) * TAU + rnd(0.5),
     l: rnd(1.25, 1.75),
     w: rnd(0.03, 0.055),
   }));
+
   const star = (R: number, turn: number, inner: number) => {
     const p = new Path2D();
+
     for (const [i, m] of j.entries()) {
       const a = rot + turn + (i / j.length) * TAU;
       const rr = R * (i % 2 ? m * inner : m);
       const px = x + Math.cos(a) * rr;
       const py = y + Math.sin(a) * rr;
+
       if (i === 0) {
         p.moveTo(px, py);
       } else {
         p.lineTo(px, py);
       }
     }
+
     p.closePath();
+
     return p;
   };
+
   add(
     life,
     (k) => {
@@ -413,14 +442,17 @@ export const burst = (
       g.save();
       g.fillStyle = P.accent;
       g.beginPath();
+
       for (const n of pins) {
         const l = R * n.l;
+
         if (l > r0) {
           g.moveTo(x + Math.cos(n.a - n.w) * r0, y + Math.sin(n.a - n.w) * r0);
           g.lineTo(x + Math.cos(n.a) * l, y + Math.sin(n.a) * l);
           g.lineTo(x + Math.cos(n.a + n.w) * r0, y + Math.sin(n.a + n.w) * r0);
         }
       }
+
       g.fill();
       g.restore();
       const big = star(R * 1.16, 0.19, hollowing);
@@ -436,6 +468,7 @@ export const burst = (
     layer,
   );
 };
+
 export interface BurstOptions {
   r?: number;
   spikes?: number;
@@ -445,6 +478,7 @@ export interface BurstOptions {
 
 const polygon = (pts: readonly (readonly [number, number])[], scale: number) => {
   const p = new Path2D();
+
   for (const [i, [u, w]] of pts.entries()) {
     if (i === 0) {
       p.moveTo(u * scale, w * scale);
@@ -452,7 +486,9 @@ const polygon = (pts: readonly (readonly [number, number])[], scale: number) => 
       p.lineTo(u * scale, w * scale);
     }
   }
+
   p.closePath();
+
   return p;
 };
 
@@ -490,6 +526,7 @@ const shard = (
     g.translate(px, py);
     g.rotate(spin * t + a);
     toon(polygon(pts, sc), 1.1, sc * 0.45, P.fill);
+
     if (sc > 2.5 && edgeA && edgeB) {
       g.strokeStyle = P.line;
       g.lineWidth = 0.9;
@@ -501,7 +538,6 @@ const shard = (
   });
 };
 
-// chips of crystal: long facets with one edge line, tumbling and falling
 export const shards = (
   x: number,
   y: number,
@@ -520,7 +556,6 @@ export const shards = (
   }
 };
 
-// a flat hoop that opens out and thins away
 export const ring = (x: number, y: number, { rx = 40, ry = 12, life = 0.5, w = 5 } = {}) => {
   add(life, (k) => {
     const s = easeOut(k);
@@ -532,13 +567,13 @@ export const ring = (x: number, y: number, { rx = 40, ry = 12, life = 0.5, w = 5
     g.stroke();
     g.strokeStyle = P.fill;
     g.lineWidth = lw;
+
     if (lw > 0.3) {
       g.stroke();
     }
   });
 };
 
-// drops are teardrops, pointed the way they came from
 const splashDrop = (x: number, y: number, life: number) => {
   const a = -Math.PI / 2 + rnd(-1.1, 1.1);
   const v = rnd(100, 210);
@@ -555,26 +590,30 @@ const splashDrop = (x: number, y: number, life: number) => {
     d.quadraticCurveTo(-r * 0.6, -r * 1.05, r * 0.5, -r * 0.9);
     d.arc(r * 0.4, 0, r * 0.95, -1.4, 1.4);
     d.quadraticCurveTo(-r * 0.6, r * 1.05, -r * 2.6, 0);
+
     if (r > 0.5) {
       toon(d, 1, r * 0.5);
     }
   });
 };
 
-// a splash crown: tongues of water rise out of a line and fall back with foam on their tips, drops fly
 export const splash = (x: number, y: number, { w = 34, h = 26, life = 0.7 } = {}) => {
   const n = 7;
+
   const ts = Array.from({ length: n }, (_, i) => {
     const u = i / (n - 1) - 0.5;
     const tall = h * rnd(0.55, 1.1) * (1 - Math.abs(u) * 0.7);
     const lean = rnd(-0.4, 0.4);
     const d = rnd(0, 0.14);
+
     return { d, h: tall, lean, u };
   });
+
   add(life, (k) => {
     const p = new Path2D();
     const tips: [number, number, number][] = [];
     p.moveTo(x - w * 0.62, y);
+
     for (const s of ts) {
       const kk = clamp((k - s.d) / 0.8);
       const up = Math.sin(kk * Math.PI) * s.h * (1 - kk * 0.25);
@@ -585,6 +624,7 @@ export const splash = (x: number, y: number, { w = 34, h = 26, life = 0.7 } = {}
       p.quadraticCurveTo(bx - half, y - up * 0.25, tx, y - up);
       p.quadraticCurveTo(bx + half * 0.5, y - up * 0.3, bx + half, y);
     }
+
     p.lineTo(x + w * 0.62, y);
     p.closePath();
     g.save();
@@ -597,6 +637,7 @@ export const splash = (x: number, y: number, { w = 34, h = 26, life = 0.7 } = {}
     g.save();
     g.clip(p);
     g.fillStyle = P.fill;
+
     for (const [tx, ty, up] of tips) {
       if (up > 4) {
         g.beginPath();
@@ -604,14 +645,15 @@ export const splash = (x: number, y: number, { w = 34, h = 26, life = 0.7 } = {}
         g.fill();
       }
     }
+
     g.restore();
   });
+
   for (let i = 0; i < 7; i += 1) {
     splashDrop(x, y, life);
   }
 };
 
-// a slash: a crescent whose head races ahead and whose tail catches up
 export const slash = (
   x: number,
   y: number,
@@ -627,30 +669,38 @@ export const slash = (
   add(life, (k) => {
     const head = easeOut(clamp(k / 0.42));
     const tail = easeIn(clamp((k - 0.22) / 0.78));
+
     if (head - tail < 0.01) {
       return;
     }
+
     const crescent = (T: number) => {
       const p = new Path2D();
+
       for (let i = 0; i <= N; i += 1) {
         const a = a0 + sweep * lerp(tail, head, i / N);
         const px = cx + Math.cos(a) * R;
         const py = cy + Math.sin(a) * R;
+
         if (i === 0) {
           p.moveTo(px, py);
         } else {
           p.lineTo(px, py);
         }
       }
+
       for (let i = N; i >= 0; i -= 1) {
         const q = i / N;
         const a = a0 + sweep * lerp(tail, head, q);
         const rr = R - T * Math.sin(q * Math.PI) ** 0.7;
         p.lineTo(cx + Math.cos(a) * rr, cy + Math.sin(a) * rr);
       }
+
       p.closePath();
+
       return p;
     };
+
     g.save();
     g.fillStyle = c;
     fillPath(crescent(thick));
@@ -662,6 +712,7 @@ export const slash = (
     g.stroke(crescent(thick));
   });
 };
+
 export interface SlashOptions {
   len?: number;
   ang?: number;
@@ -690,13 +741,13 @@ const speedLine = (
     g.beginPath();
     g.moveTo(px + Math.cos(dir) * l * b * 1.4, py + Math.sin(dir) * l * b * 1.4);
     g.lineTo(px + Math.cos(dir) * l * (0.2 + a * 1.2), py + Math.sin(dir) * l * (0.2 + a * 1.2));
+
     if (kk > 0) {
       g.stroke();
     }
   });
 };
 
-// speed lines: strokes that shoot out one way and thin away
 export const lines = (
   x: number,
   y: number,
@@ -707,7 +758,6 @@ export const lines = (
   }
 };
 
-// accent ticks: little wedges that point at something and fly off it
 export const ticks = (
   x: number,
   y: number,
@@ -719,11 +769,13 @@ export const ticks = (
     g.save();
     g.fillStyle = P.accent;
     g.beginPath();
+
     for (let i = 0; i < n; i += 1) {
       const an = dir + (i - (n - 1) / 2) * fan;
       const r0 = r + len * b * 1.25;
       const r1 = r + len * a * 1.25;
       const hw = 0.07 + 2.2 / (r1 + 8);
+
       if (r1 - r0 >= 0.6) {
         g.moveTo(x + Math.cos(an) * r0, y + Math.sin(an) * r0);
         g.lineTo(x + Math.cos(an - hw) * r1, y + Math.sin(an - hw) * r1);
@@ -731,12 +783,12 @@ export const ticks = (
         g.closePath();
       }
     }
+
     g.fill();
     g.restore();
   });
 };
 
-// a smoke ring: a lumpy hoop that drifts off and shrinks
 export const donut = (
   x: number,
   y: number,
@@ -745,13 +797,16 @@ export const donut = (
   const ph = rnd(TAU);
   add(life, (k, t) => {
     const s = easeBack(clamp(t / 0.22)) * (1 - easeIn(clamp((k - 0.6) / 0.4)));
+
     if (s < 0.03) {
       return;
     }
+
     const px = x + vx * easeOut(k) * life;
     const py = y + vy * easeOut(k) * life;
     const hole = 0.42 + 0.22 * k;
     const p = new Path2D();
+
     for (const [m, bump] of [
       [1, 0.09],
       [hole, 0.05],
@@ -763,6 +818,7 @@ export const donut = (
         const ey = Math.sin(a) * rr * 0.52;
         const qx = px + ex * Math.cos(tilt) - ey * Math.sin(tilt);
         const qy = py + ex * Math.sin(tilt) + ey * Math.cos(tilt);
+
         if (i === 0) {
           p.moveTo(qx, qy);
         } else {
@@ -770,6 +826,7 @@ export const donut = (
         }
       }
     }
+
     g.save();
     g.lineWidth = 3;
     g.strokeStyle = P.line;
@@ -785,26 +842,28 @@ export const donut = (
   });
 };
 
-// wobble marks: the two little arcs beside something that has just stopped
 export const wob = (x: number, y: number, { dir = 1, r = 16, life = 0.45 } = {}) => {
   add(life, (k) => {
     g.strokeStyle = P.line;
     g.lineWidth = 2.2 * (1 - k);
+
     if (g.lineWidth < 0.2) {
       return;
     }
+
     g.beginPath();
+
     for (const d of [0, 7]) {
       const rr = r + d + easeOut(k) * 8;
       const c = dir > 0 ? 0 : Math.PI;
       g.moveTo(x - dir * r + Math.cos(c - 0.45) * rr, y + Math.sin(c - 0.45) * rr);
       g.arc(x - dir * r, y, rr, c - 0.45, c + 0.45);
     }
+
     g.stroke();
   });
 };
 
-// a glint: a four-pointed sparkle that opens and closes
 export const kira = (
   x: number,
   y: number,
@@ -831,31 +890,35 @@ export const kira = (
   });
 };
 
-// ───────── the lettering ─────────
 const paths = new Map<WordName, Path2D>();
 const baked = new Map<string, HTMLCanvasElement>();
+
 const wordPath = (name: WordName) => {
   let p = paths.get(name);
+
   if (!p) {
     p = new Path2D(WORDS[name][2]);
     paths.set(name, p);
   }
+
   return p;
 };
 
-// screentone: dots in the outline colour on white
 const screentone = (x: CanvasRenderingContext2D, oc: string) => {
   const t = document.createElement("canvas");
   t.width = 22;
   t.height = 44;
   const y = t.getContext("2d");
+
   if (!y) {
     return oc;
   }
+
   y.fillStyle = "#fff";
   y.fillRect(0, 0, 22, 44);
   y.fillStyle = oc;
   y.beginPath();
+
   for (const [px, py] of [
     [0, 0],
     [22, 0],
@@ -866,17 +929,20 @@ const screentone = (x: CanvasRenderingContext2D, oc: string) => {
     y.moveTo(px + 5.2, py);
     y.arc(px, py, 5.2, 0, TAU);
   }
+
   y.fill();
+
   return x.createPattern(t, "repeat") ?? oc;
 };
 
-// The outline and fill are painted once per word and colour, so a word on screen costs one drawImage a frame.
 const bake = (name: WordName, fc: string, oc: string, dots: boolean) => {
   const key = `${name}|${fc}|${oc}|${dots}`;
   const hit = baked.get(key);
+
   if (hit) {
     return hit;
   }
+
   const [w, h] = WORDS[name];
   const p = wordPath(name);
   const pad = 24;
@@ -884,6 +950,7 @@ const bake = (name: WordName, fc: string, oc: string, dots: boolean) => {
   c.width = w + pad * 2;
   c.height = h + pad * 2;
   const x = c.getContext("2d");
+
   if (x) {
     x.translate(pad, pad);
     x.lineJoin = "round";
@@ -895,7 +962,9 @@ const bake = (name: WordName, fc: string, oc: string, dots: boolean) => {
     x.fillStyle = dots ? screentone(x, oc) : fc;
     x.fill(p);
   }
+
   baked.set(key, c);
+
   return c;
 };
 
@@ -903,15 +972,11 @@ export interface SfxOptions {
   size?: number;
   rot?: number;
   life?: number;
-  // fill colour
   col?: string;
-  // outline colour
   edge?: string;
-  // screentone letters
   dots?: boolean;
 }
 
-// A word lands a size too big and wobbles while it stays.
 export const sfx = (
   name: WordName,
   x: number,
@@ -921,6 +986,7 @@ export const sfx = (
   if (isCalm()) {
     return;
   }
+
   const s = new Spring(0.2, 520, 17);
   s.to = 1;
   let lastT = 0;
@@ -935,14 +1001,12 @@ export const sfx = (
   });
 };
 
-// two lettering styles: hollow (white with an ink edge) and dotted (screentone letters)
-export const hollow = (): SfxOptions => ({ col: "#ffffff", edge: "#1d1a4a" });
-export const dotted = (): SfxOptions => ({ dots: true, edge: "#1d1a4a" });
+export const hollow = () => ({ col: "#ffffff", edge: "#1d1a4a" });
+export const dotted = () => ({ dots: true, edge: "#1d1a4a" });
 
-// ───────── for controls ─────────
-// a point on an element, in page coordinates
 export const at = (el: Element, fx = 0.5, fy = 0.5) => {
   const b = el.getBoundingClientRect();
+
   return {
     h: b.height,
     w: b.width,
@@ -959,16 +1023,11 @@ export interface Squashy {
   dispose: () => void;
 }
 
-// a press: squash flat while held, overshoot on release. Call step(dt) every frame.
-export const squashy = (
-  el: HTMLElement,
-  { low = 0.82, k = 520, d = 15, wide = 0.55 } = {},
-): Squashy => {
+export const squashy = (el: HTMLElement, { low = 0.82, k = 520, d = 15, wide = 0.55 } = {}) => {
   const s = new Spring(1, k, d);
   const pop = new Spring(1, 300, 12);
   const tilt = new Spring(0, 260, 10);
   const off = new AbortController();
-  // a Base UI control that stays focusable while disabled says so with aria-disabled
   const disabled = () => el.matches(":disabled, [aria-disabled='true']");
   el.addEventListener(
     "pointerdown",
@@ -979,6 +1038,7 @@ export const squashy = (
     },
     { signal: off.signal },
   );
+
   for (const e of ["pointerup", "pointerleave", "pointercancel", "blur"]) {
     el.addEventListener(
       e,
@@ -988,6 +1048,7 @@ export const squashy = (
       { signal: off.signal },
     );
   }
+
   return {
     dispose: () => off.abort(),
     pop,
@@ -996,15 +1057,17 @@ export const squashy = (
       const y = s.step(dt);
       const p = pop.step(dt);
       const r = tilt.step(dt);
+
       const still =
         Math.abs(y - 1) < 0.001 &&
         Math.abs(s.v) < 0.01 &&
         Math.abs(p - 1) < 0.001 &&
         Math.abs(r) < 0.02;
+
       el.style.transform = still
         ? ""
         : `rotate(${r}deg) scale(${(1 + (1 - y) * wide) * p}, ${y * p})`;
     },
     tilt,
-  };
+  } satisfies Squashy;
 };

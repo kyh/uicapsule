@@ -11,33 +11,38 @@ import {
 export const ignoredDirectories = new Set(["node_modules", "dist", ".cache", ".turbo"]);
 const codeExtensions = new Set([".ts", ".tsx", ".js", ".jsx", ".mts", ".cts", ".mjs", ".cjs"]);
 
-const staticSpecifier = (node: Argument | null | undefined): string | undefined => {
+const staticSpecifier = (node: Argument | null | undefined) => {
   // oxlint-disable-next-line anti-slop/no-runtime-typeof -- ESTree tags every literal "Literal"; value type is the discriminant
   if (node?.type === "Literal" && typeof node.value === "string") {
     return node.value;
   }
-  if (node?.type === "TemplateLiteral" && node.expressions.length === 0) {
-    return node.quasis[0]?.value.raw;
-  }
-  return undefined;
+
+  return node?.type === "TemplateLiteral" && node.expressions.length === 0
+    ? node.quasis[0]?.value.raw
+    : undefined;
 };
 
-export const validateContentDirectory = async (directory: string): Promise<string[]> => {
+export const validateContentDirectory = async (directory: string) => {
   const issues: string[] = [];
+
   const meta = await readFile(path.join(directory, "meta.json"), "utf-8")
     .then((source) => contentMetaSchema.safeParse(JSON.parse(source)))
     .catch(() => null);
+
   if (!meta) {
     return ["missing or unparseable meta.json"];
   }
+
   if (!meta.success) {
     return meta.error.issues.map((issue) => `${issue.path.join(".")}: ${issue.message}`);
   }
+
   if (meta.data.type === "remote") {
     return issues;
   }
 
   const preview = await lstat(path.join(directory, "preview.tsx")).catch(() => null);
+
   if (!preview?.isFile()) {
     issues.push("missing preview.tsx");
   }
@@ -45,6 +50,7 @@ export const validateContentDirectory = async (directory: string): Promise<strin
   const pkg = await readFile(path.join(directory, "package.json"), "utf-8")
     .then((source) => contentPackageSchema.safeParse(JSON.parse(source)))
     .catch(() => null);
+
   if (pkg?.success) {
     for (const group of [
       pkg.data.dependencies,
@@ -63,10 +69,12 @@ export const validateContentDirectory = async (directory: string): Promise<strin
 
   const checkImport = (file: string, specifier: string) => {
     const fileName = path.relative(directory, file);
+
     if (specifier.startsWith("@repo/") || specifier.startsWith("@/")) {
       issues.push(`${fileName}: private import ${specifier}`);
     } else if (specifier.startsWith(".") || path.isAbsolute(specifier)) {
       const target = path.relative(directory, path.resolve(path.dirname(file), specifier));
+
       if (target === ".." || target.startsWith(`..${path.sep}`) || path.isAbsolute(target)) {
         issues.push(`${fileName}: import escapes component directory: ${specifier}`);
       }
@@ -75,44 +83,59 @@ export const validateContentDirectory = async (directory: string): Promise<strin
 
   const visit = async (directoryPath: string) => {
     const entries = await readdir(directoryPath, { withFileTypes: true });
+
     for (const entry of entries) {
       if (ignoredDirectories.has(entry.name)) {
         continue;
       }
+
       const file = path.join(directoryPath, entry.name);
+
       if (entry.isDirectory()) {
         await visit(file);
         continue;
       }
+
       if (!entry.isFile()) {
         continue;
       }
+
       const extension = path.extname(file);
+
       if (!codeExtensions.has(extension) && extension !== ".css") {
         continue;
       }
+
       const source = await readFile(file, "utf-8");
+
       if (extension === ".css") {
         const css = source.replaceAll(/\/\*[\s\S]*?\*\//gu, "");
+
         for (const match of css.matchAll(/@import\s+(?:url\(\s*)?["'](?<specifier>[^"']+)["']/gu)) {
           const specifier = match.groups?.specifier;
+
           if (specifier) {
             checkImport(file, specifier);
           }
         }
+
         continue;
       }
 
       const { program, errors } = parseSync(file, source, { sourceType: "unambiguous" });
+
       for (const error of errors) {
         issues.push(`${path.relative(directory, file)}: ${error.message}`);
       }
+
       const check = (node: Argument | null | undefined) => {
         const specifier = staticSpecifier(node);
+
         if (specifier) {
           checkImport(file, specifier);
         }
       };
+
       new Visitor({
         CallExpression: (node) => {
           if (node.callee.type === "Identifier" && node.callee.name === "require") {
@@ -128,5 +151,6 @@ export const validateContentDirectory = async (directory: string): Promise<strin
   };
 
   await visit(directory);
+
   return issues;
 };

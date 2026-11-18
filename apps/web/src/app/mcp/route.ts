@@ -12,11 +12,8 @@ import { siteConfig } from "@/lib/site-config";
 
 const tagSlugs = [...contentElements, ...contentStyles].map((filter) => filter.slug);
 
-// Read-only and closed-world: the tools only ever read this site's own catalog.
 const readCatalog = { annotations: { openWorldHint: false, readOnlyHint: true } };
 
-// MCP-only procedures, not part of @repo/contract: no client calls them over RPC,
-// and their data lives in this app's filesystem loader.
 const router = {
   get_component: os
     .meta(
@@ -32,9 +29,11 @@ const router = {
       const all = await getAllContent();
       const component = all.find((c) => c.slug === slug);
       after(() => track("mcp_get", { found: Boolean(component), slug: slug.slice(0, 100) }));
+
       if (!component) {
         throw new ORPCError("NOT_FOUND", { message: `Component not found: ${slug}` });
       }
+
       return componentDetail(component, await getShadcnRegistryItem(slug));
     }),
 
@@ -68,19 +67,21 @@ const router = {
           tags: input.tags?.join(",") ?? "",
         }),
       );
+
       return results;
     }),
 };
 
 const registrar = new McpRegistrar(router);
 
-// Stateless Streamable HTTP: a fresh server per request, so nothing is held between calls.
 const handler = createMcpHandler(async () => {
   const server = new McpServer(
     { name: "uicapsule", version: "1.0.0" },
     { instructions: serverInstructions },
   );
+
   await registrar.register(server);
+
   return server;
 });
 

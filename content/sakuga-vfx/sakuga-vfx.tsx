@@ -1,7 +1,5 @@
 "use client";
 
-// Sakuga VFX: every control in the set, live on one sheet of paper.
-
 import { useLayoutEffect, useRef, useState } from "react";
 import type { ReactNode } from "react";
 import { flushSync } from "react-dom";
@@ -66,11 +64,10 @@ const Card = ({
   </section>
 );
 
-// The demo's "work" takes 760ms, then the check stays for 1.8 seconds unless it is clicked again.
-// The timers run on the set's clock, and flushSync lands the check on the frame the timer fires.
 const PrimaryCard = () => {
   const [done, setDone] = useState(false);
   const run = useRef(0);
+
   return (
     <Card id="button" name="Primary button" how="Click it.">
       <SakugaButton
@@ -106,7 +103,6 @@ const ToastCard = () => (
   </Card>
 );
 
-// the select card's rows
 const STAGES = [
   { label: "Key frames", value: "key" },
   { label: "In-betweens", value: "inbetween" },
@@ -114,11 +110,6 @@ const STAGES = [
   { label: "Paint", value: "paint" },
 ];
 
-// The gallery plays a pretend load: the value climbs in surges on the shared clock, rests on the
-// finished bar for 3.6s and starts again. A click starts it again at once. The frame is subscribed
-// in a layout effect so it runs before the bar's own, and each frame's value is the one it eases to.
-// A surge can dip, and a lower value would pull the bar back, so the value is held at where the bar
-// has got to: `at` follows the bar's own easing (12% to 90% of the track a second).
 const LoadingDemo = () => {
   const [value, setValue] = useState(0);
   const demo = useRef({ at: 0, doneAt: 0, goal: 0, t: 0 });
@@ -127,6 +118,7 @@ const LoadingDemo = () => {
       onFrame((dt) => {
         const d = demo.current;
         d.t += dt;
+
         if (d.doneAt) {
           if (d.t - d.doneAt > 3.6) {
             d.doneAt = 0;
@@ -134,20 +126,25 @@ const LoadingDemo = () => {
             d.at = 0;
             flushSync(() => setValue(0));
           }
+
           return;
         }
+
         d.goal = Math.min(
           1,
           d.goal + dt * (0.14 + 0.115 * Math.sin(d.t * 2.1) + 0.07 * Math.sin(d.t * 4.7)),
         );
         const next = Math.max(d.goal, d.at);
+
         if (d.at < d.goal) {
           d.at = Math.min(d.goal, d.at + dt * clamp((d.goal - d.at) * 3, 0.12, 0.9));
         }
+
         flushSync(() => setValue(next));
       }),
     [],
   );
+
   return (
     <SakugaProgress
       min={0}

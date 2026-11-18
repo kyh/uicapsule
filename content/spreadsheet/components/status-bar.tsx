@@ -54,7 +54,6 @@ export const StatusBarMessage = () => {
 
 export const StatusBarSummary = () => {
   const data = useSpreadsheetStore((state) => state.data);
-  // Rows carry an `id` alongside their cell values; only the latter are columns.
   const columnCount = Object.keys(data[0] ?? {}).filter((key) => key !== "id").length;
 
   return (

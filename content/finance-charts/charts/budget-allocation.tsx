@@ -11,8 +11,6 @@ import { Card, ChartSlot, Chip, MoreButton, Num, muted, renderer, useCycle } fro
 import { GREEN } from "../lib/tokens";
 
 const SEGMENTS = 16;
-// The visible half of a full-circle polar chart: the centre sits on the card's
-// bottom edge, like the source gauge.
 const HALF = 178;
 
 interface Period {
@@ -38,13 +36,13 @@ const STOPS: [number, [number, number, number]][] = [
 
 const mix = (a: number, b: number, t: number) => Math.round(a + (b - a) * t);
 
-/** Dark forest through house green to mint; filled segments read left to right. */
 const shade = (i: number) => {
   const t = i / (SEGMENTS - 1);
   const upper = STOPS.findIndex(([at]) => at >= t);
   const [a0, ca] = STOPS[Math.max(0, upper - 1)] ?? STOPS[0] ?? [0, [0, 0, 0]];
   const [a1, cb] = STOPS[upper] ?? [1, ca];
   const k = a1 === a0 ? 0 : (t - a0) / (a1 - a0);
+
   return `rgb(${mix(ca[0], cb[0], k)}, ${mix(ca[1], cb[1], k)}, ${mix(ca[2], cb[2], k)})`;
 };
 

@@ -2,12 +2,9 @@ import { useRef, useState } from "react";
 import * as Slider from "@radix-ui/react-slider";
 import { animate, motion, useMotionValue, useMotionValueEvent, useTransform } from "motion/react";
 
-/** Height of the track in px. Must stay in sync with the `h-[200px]` class below. */
 const TRACK_HEIGHT = 200;
-/** How far the bar may rubber-band past either end of the track, in px. */
 const OVERSCROLL = 50;
 
-/** Sigmoid falloff: maps unbounded overshoot into (-max, max). */
 const decay = (value: number, max: number) => {
   const entry = value / max;
   const sigmoid = 2 / (1 + Math.exp(-entry)) - 1;
@@ -44,7 +41,6 @@ export const Volume = () => {
     }
   });
 
-  // Negative `y` stretches the bar past the track, positive `y` squashes it.
   const scaleY = useTransform(() => (TRACK_HEIGHT - y.get()) / TRACK_HEIGHT);
   const yReadout = useTransform(() => Math.floor(y.get()));
 
@@ -63,8 +59,6 @@ export const Volume = () => {
         <motion.div
           style={{
             scaleY,
-            // Both overscroll directions pivot on the track's bottom edge, which is
-            // the bar's fixed physical anchor.
             transformOrigin: position === "middle" ? "center" : "bottom",
           }}
           onPointerMove={(events) => {

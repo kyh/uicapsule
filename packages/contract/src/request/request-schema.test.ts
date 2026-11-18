@@ -11,5 +11,6 @@ test("credit link requires a name", () => {
     name: "Latch",
     references: [],
   });
+
   assert.ok(!result.success);
 });

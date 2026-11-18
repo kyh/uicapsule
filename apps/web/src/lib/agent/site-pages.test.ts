@@ -63,38 +63,35 @@ describe("rendersOutsideRouter", () => {
   });
 });
 
-/** Every piece of copy a block carries, inline markup included. */
-const blockTexts = (block: ProseBlock): string[] => {
+const blockTexts = (block: ProseBlock) => {
   switch (block.kind) {
     case "list": {
       return block.items.flatMap((item) => [item.label, item.text ?? ""]);
     }
+
     case "bullets": {
       return block.items;
     }
+
     case "table": {
       return [...block.columns, ...block.rows.flat()];
     }
+
     case "divider": {
       return [];
     }
+
     default: {
       return [block.text];
     }
   }
 };
 
-const pageTexts = (page: ProsePage): string[] => page.blocks.flatMap(blockTexts);
+const pageTexts = (page: ProsePage) => page.blocks.flatMap(blockTexts);
 
-/**
- * The three renderers of a `ProseListItem` (`prose-page.tsx`, `not-found.tsx`,
- * `gallery-outline.tsx`) all branch on `rendersOutsideRouter`, and so does the
- * inline link in copy, so every href this layer emits has to give that
- * predicate a defensible answer.
- */
 const hrefsOf = (items: ProseListItem[]) => items.flatMap((item) => (item.href ? [item.href] : []));
 
-const pageHrefs = (page: ProsePage): string[] => [
+const pageHrefs = (page: ProsePage) => [
   ...page.blocks.flatMap((block) => (block.kind === "list" ? hrefsOf(block.items) : [])),
   ...pageTexts(page).flatMap((text) => inlineLinks(text).map((link) => link.href)),
 ];
@@ -149,6 +146,7 @@ describe("heading ids", () => {
       { kind: "heading", level: 3, text: "Retention" },
       { kind: "heading", text: "Privacy Policy" },
     ];
+
     assert.deepEqual(headingIdsFor(blocks, ["privacy-policy"]), [
       "retention",
       undefined,
@@ -171,12 +169,15 @@ describe("heading ids", () => {
     const idsByPath = new Map(
       prosePages.map((page) => [page.path, new Set(headingIds(page).filter(Boolean))]),
     );
+
     for (const page of prosePages) {
       for (const href of pageHrefs(page)) {
         const hash = href.indexOf("#");
+
         if (hash === -1 || !(href.startsWith("#") || href.startsWith("/"))) {
           continue;
         }
+
         const target = hash === 0 ? page.path : href.slice(0, hash);
         const ids = idsByPath.get(target);
         assert.ok(ids, `${page.path} links ${href}, but ${target} is not a prose page`);
@@ -234,7 +235,6 @@ describe("the legal pages", () => {
   test("the terms keep the template's eleven numbered sections, in order", () => {
     assert.equal(termsPage.heading, "Terms of Use");
     assert.equal(paragraphs(termsPage)[0], "**Version 1.0 Last revised:** October 3, 2026");
-    // Cross-references ("Section 11", "Sections 2.2 through 2.7") depend on these numbers.
     assert.deepEqual(
       sectionHeadings(termsPage).map((heading) => heading.split(". ")[0]),
       ["1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11"],
@@ -244,9 +244,12 @@ describe("the legal pages", () => {
   test("the terms number subsections in sequence, and every cross-reference resolves", () => {
     const subsections = paragraphs(termsPage).flatMap((text) => {
       const number = /^(?<section>\d+)\.(?<sub>\d+) /u.exec(text)?.groups;
+
       return number ? [`${number.section}.${number.sub}`] : [];
     });
+
     const sections = sectionHeadings(termsPage).map((heading) => heading.split(". ")[0] ?? "");
+
     for (const section of sections) {
       const numbers = subsections.filter((number) => number.startsWith(`${section}.`));
       assert.deepEqual(
@@ -255,13 +258,16 @@ describe("the legal pages", () => {
         `section ${section} skips or repeats a subsection`,
       );
     }
+
     const exists = (ref: string) =>
       ref.includes(".") ? subsections.includes(ref) : sections.includes(ref);
-    // A statute ("Civil Code Section 1542") is not one of ours.
+
     const reference =
       /(?<!Code )Sections? (?<from>\d+(?:\.\d+)?)(?: through (?<to>\d+(?:\.\d+)?))?/gu;
+
     const references = paragraphs(termsPage).flatMap((text) => [...text.matchAll(reference)]);
     assert.ok(references.length > 5, "expected the terms to cross-reference their sections");
+
     for (const match of references) {
       for (const ref of [match.groups?.from, match.groups?.to]) {
         assert.ok(

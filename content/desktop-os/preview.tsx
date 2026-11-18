@@ -6,8 +6,6 @@ import { RotateCcwIcon } from "lucide-react";
 import { DesktopOS } from "./desktop-os";
 
 const Preview = () => {
-  // The boot sequence writes inline styles that React never clears, so replay
-  // has to be a full remount rather than a timeline restart.
   const [bootKey, setBootKey] = useState(0);
 
   return (

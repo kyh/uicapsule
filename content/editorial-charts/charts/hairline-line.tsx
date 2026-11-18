@@ -11,9 +11,6 @@ import { FAINT, INK, MUTED, PAPER, SPRING } from "../lib/tokens";
 
 const renderer = motion({ initial: "always", transition: SPRING });
 
-// One dot = one day, hollow = weekend, barcode floor keeps the calendar
-// honest. Days land dot by dot; the hairline threads them once the month is
-// complete.
 export const HairlineLine = ({
   days,
   reveal,
@@ -36,20 +33,24 @@ export const HairlineLine = ({
     const weekdays = shown.filter((d) => !d.weekend);
     const weekends = shown.filter((d) => d.weekend);
     let [peak] = days;
+
     for (const d of days) {
       if (peak === undefined || d.value > peak.value) {
         peak = d;
       }
     }
+
     const last = days.at(-1);
-    // Two callouts crowd each other when the peak already sits near day 30.
     const callouts: DayRow[] = [];
+
     if (complete && peak !== undefined) {
       callouts.push(peak);
+
       if (last !== undefined && last.day !== peak.day && peak.day < 26) {
         callouts.push(last);
       }
     }
+
     return defineChart({
       guides: false,
       margin: 0,

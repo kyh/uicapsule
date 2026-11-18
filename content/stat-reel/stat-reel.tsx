@@ -8,43 +8,18 @@ import { N, STATS, statAt } from "./stat-reel-data";
 
 const DESKTOP = { font: 26, itemH: 62 };
 const MOBILE = { font: 19, itemH: 46 };
-/**
- * Gates the first auto-step behind the entrance timeline. Floor is ~250ms:
- * below that the per-focus figure pop (overwrite: true) fires while the
- * entrance still owns the figure and kills the cold open.
- */
 const START_DELAY_MS = 600;
 const BREAKPOINT = 900;
 const TOUCH_GAIN = 1.2;
 const ROW_COUNT = N * 2;
 
-/**
- * Wheel deltas arrive in three units (`WheelEvent.deltaMode`): pixels (0),
- * lines (1) and pages (2). Chrome and Safari only ever report pixels, but
- * Firefox on Windows/Linux reports lines, so the accumulator has to convert
- * to pixels before comparing against `CFG.wheelStep`. This nominal line
- * height only has to be in the right order of magnitude.
- */
 const WHEEL_LINE_PX = 16;
 
-/**
- * A wheel or touch gesture delivers events milliseconds apart, so a gap this
- * long means the gesture ended and any sub-threshold residue in the
- * accumulator is stale. Without expiry, 44px of ignored input waits
- * indefinitely for an unrelated flick minutes later to top it over
- * `CFG.wheelStep` and steal a row. Not a feel constant: every value well above
- * a frame and well below human re-engagement behaves identically for real
- * gestures.
- */
 const GESTURE_IDLE_MS = 500;
 
 const COLOR_REST = "#636365";
 const COLOR_FOCUS = "#010102";
 
-/**
- * Declared locally: the host app never defines `--font-sans`, so Tailwind's
- * `font-sans` resolves to a cycle and falls back to Times.
- */
 const SANS =
   'ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif';
 
@@ -61,7 +36,6 @@ const CFG = {
   wheelStep: 45,
 };
 
-/** Scale a fully-defocused row shrinks to, relative to the focused row. */
 const FAR_RATIO = CFG.farScale / CFG.centerScale;
 
 const clamp01 = (v: number) => (v < 0 ? 0 : Math.min(1, v));
@@ -70,7 +44,6 @@ const smoothstep = (t: number) => t * t * (3 - 2 * t);
 
 const useIsoLayoutEffect = typeof window === "undefined" ? useEffect : useLayoutEffect;
 
-/** `CSSProperties` widened to accept custom properties without a type assertion. */
 interface CSSVarProperties extends CSSProperties {
   [key: `--${string}`]: string | number | undefined;
 }
@@ -92,16 +65,10 @@ const ROW_STYLE: CSSProperties = {
   height: "var(--bm-item-h)",
 };
 
-/** Breathing room kept between the widest figure and the column's inner edge. */
 const FIT_GUTTER_PX = 10;
 
-/** Smallest fraction of its natural size the figure may be shrunk to. */
 const FIT_FLOOR = 0.4;
 
-/**
- * Shrinks the figure until it fits the left column, down to a 40% floor.
- * Writes `--bm-num-fit`, which the font-size `calc()` multiplies in.
- */
 const applyFit = (num: HTMLElement, col: HTMLElement) => {
   num.style.setProperty("--bm-num-fit", "1");
   const natural = num.scrollWidth;
@@ -111,12 +78,11 @@ const applyFit = (num: HTMLElement, col: HTMLElement) => {
   // oxlint-disable-next-line unicorn/prefer-number-coercion -- computed padding carries a px unit, which Number() rejects
   const padR = Number.parseFloat(cs.paddingRight) || 0;
   const available = col.clientWidth - padL - padR - FIT_GUTTER_PX;
-  // A 0-wide column (hidden panel, freshly-mounted iframe) makes `available`
-  // negative, which the 0.4 floor would silently absorb into a real-looking
-  // shrink. Keep the `1` written above until there is something to fit into.
+
   if (available <= 0) {
     return;
   }
+
   if (natural > 0 && natural > available) {
     num.style.setProperty("--bm-num-fit", String(Math.max(FIT_FLOOR, available / natural)));
   }
@@ -155,7 +121,6 @@ export const StatReel: FC = () => {
   const panelRef = useRef<HTMLDivElement>(null);
   const rowsRef = useRef<(HTMLDivElement | null)[]>([]);
 
-  /** The single scalar every tween drives; the rAF loop paints from it. */
   const proxy = useRef({ idx: 0 });
   const targetRef = useRef(0);
   const modeRef = useRef<"auto" | "user">("auto");
@@ -163,6 +128,7 @@ export const StatReel: FC = () => {
   const accumRef = useRef(0);
   const reducedRef = useRef(false);
   const firstFigure = useRef(true);
+
   const sizeRef = useRef({
     cy: 0,
     falloff: CFG.falloff,
@@ -221,19 +187,19 @@ export const StatReel: FC = () => {
     measure();
     window.addEventListener("resize", measure);
 
-    // The gallery resizes the frame without ever firing a window resize.
     const ro = new ResizeObserver(() => {
-      // A freshly-mounted iframe reports 0x0 on the first callback.
       if (section.clientWidth === 0 || section.clientHeight === 0) {
         return;
       }
+
       measure();
     });
+
     ro.observe(section);
 
-    // Fonts swap in after first paint; the initial applyFit measured fallbacks.
     const refitAfterFonts = async () => {
       await document.fonts.ready;
+
       if (!disposed) {
         measure();
       }
@@ -255,15 +221,11 @@ export const StatReel: FC = () => {
       });
     };
 
-    /**
-     * In auto mode, queues the next advance one dwell from now; every tween
-     * hands back here on completion, so the reel keeps stepping until the
-     * mode changes.
-     */
     const queueAutoStep = () => {
       if (modeRef.current !== "auto" || isReduced()) {
         return;
       }
+
       dwellTimer = setTimeout(() => {
         targetRef.current += 1;
         tweenTo(targetRef.current, CFG.step, "expo.inOut", queueAutoStep);
@@ -281,6 +243,7 @@ export const StatReel: FC = () => {
       if (dwellTimer) {
         clearTimeout(dwellTimer);
       }
+
       queueAutoStep();
     };
 
@@ -288,9 +251,11 @@ export const StatReel: FC = () => {
       if (startTimer) {
         clearTimeout(startTimer);
       }
+
       if (dwellTimer) {
         clearTimeout(dwellTimer);
       }
+
       if (resumeTimer) {
         clearTimeout(resumeTimer);
       }
@@ -302,7 +267,6 @@ export const StatReel: FC = () => {
       resumeTimer = setTimeout(startAuto, CFG.resume * 1000);
     };
 
-    /** Input accumulates continuously but only advances in whole rows. */
     const drain = () => {
       while (Math.abs(accumRef.current) >= CFG.wheelStep) {
         const d = Math.sign(accumRef.current);
@@ -313,10 +277,6 @@ export const StatReel: FC = () => {
 
     let idleTimer: ReturnType<typeof setTimeout> | null = null;
 
-    /**
-     * The single entry point for wheel and touch alike: both feed pixels in,
-     * whole rows come out, and the remainder is dropped once the gesture ends.
-     */
     const accumulate = (deltaPx: number) => {
       accumRef.current += deltaPx;
       drain();
@@ -324,6 +284,7 @@ export const StatReel: FC = () => {
       if (idleTimer) {
         clearTimeout(idleTimer);
       }
+
       idleTimer = setTimeout(() => {
         accumRef.current = 0;
       }, GESTURE_IDLE_MS);
@@ -335,8 +296,6 @@ export const StatReel: FC = () => {
     const render = () => {
       const { itemH, falloff, panelH, cy } = sizeRef.current;
 
-      // Skip painting until the panel has a real height, or every row would
-      // land offscreen for a frame inside a freshly-mounted iframe.
       if (panelH > 0) {
         const { idx } = proxyState;
         const rows = rowsRef.current;
@@ -348,12 +307,12 @@ export const StatReel: FC = () => {
 
         for (let j = 0; j < ROW_COUNT; j += 1) {
           const row = rows[j];
+
           if (!row) {
             continue;
           }
 
           let off = (j - idx) * itemH;
-          // Wrap into (-halfWin, halfWin] so the reel never ends.
           off = ((((off + halfWin) % windowH) + windowH) % windowH) - halfWin;
           const screenY = cy + off;
 
@@ -361,34 +320,40 @@ export const StatReel: FC = () => {
             if (row.style.opacity !== "0") {
               row.style.opacity = "0";
             }
+
             continue;
           }
 
           const s = smoothstep(clamp01(Math.abs(off) / falloff));
+
           if (row.style.opacity !== "1") {
             row.style.opacity = "1";
           }
+
           row.style.transform = `translateY(${screenY - itemH / 2}px) scale(${lerp(1, FAR_RATIO, s)})`;
 
           const a = Math.abs(off);
+
           if (a < nearestAbs) {
             nearestAbs = a;
             nearestEl = row;
           }
         }
 
-        // Only touch color when the centre row actually changes.
         if (nearestEl !== prevNearest) {
           if (prevNearest) {
             prevNearest.style.color = COLOR_REST;
           }
+
           if (nearestEl) {
             nearestEl.style.color = COLOR_FOCUS;
           }
+
           prevNearest = nearestEl;
         }
 
         const focused = ((Math.round(idx) % N) + N) % N;
+
         if (focused !== focusedRef.current) {
           focusedRef.current = focused;
           setFocusedIndex(focused);
@@ -403,29 +368,26 @@ export const StatReel: FC = () => {
     const onWheel = (e: WheelEvent) => {
       e.preventDefault();
       let unit = 1;
+
       if (e.deltaMode === 1) {
         unit = WHEEL_LINE_PX;
       } else if (e.deltaMode === 2) {
         unit = sizeRef.current.panelH;
       }
+
       accumulate(e.deltaY * unit);
     };
 
-    /**
-     * The reel tracks exactly one finger, latched by identifier. Reading
-     * `touches[0]` instead would silently re-anchor onto a different contact
-     * the moment the tracked finger lifts out of a multi-touch gesture,
-     * turning the next 2px move into a jump of a dozen rows.
-     */
     let activeTouch: number | null = null;
     let touchY = 0;
 
-    const findTouch = (list: TouchList, id: number): Touch | null => {
+    const findTouch = (list: TouchList, id: number) => {
       for (const t of list) {
         if (t.identifier === id) {
           return t;
         }
       }
+
       return null;
     };
 
@@ -435,6 +397,7 @@ export const StatReel: FC = () => {
       }
 
       const [t] = e.changedTouches;
+
       if (!t) {
         return;
       }
@@ -449,6 +412,7 @@ export const StatReel: FC = () => {
       }
 
       const t = findTouch(e.touches, activeTouch);
+
       if (!t) {
         return;
       }
@@ -463,15 +427,14 @@ export const StatReel: FC = () => {
       if (activeTouch === null) {
         return;
       }
+
       if (!findTouch(e.changedTouches, activeTouch)) {
         return;
       }
 
-      // Hand tracking to a finger that is still down rather than going dead
-      // until the next touchstart. Re-anchoring `touchY` to its current
-      // position is what keeps the handover from registering as a jump.
       const [next] = e.touches;
       activeTouch = next ? next.identifier : null;
+
       if (next) {
         touchY = next.clientY;
       }
@@ -479,11 +442,13 @@ export const StatReel: FC = () => {
 
     const onKeyDown = (e: KeyboardEvent) => {
       let dir = 0;
+
       if (e.key === "ArrowDown") {
         dir = 1;
       } else if (e.key === "ArrowUp") {
         dir = -1;
       }
+
       if (dir === 0) {
         return;
       }
@@ -546,24 +511,23 @@ export const StatReel: FC = () => {
       if (dwellTimer) {
         clearTimeout(dwellTimer);
       }
+
       if (resumeTimer) {
         clearTimeout(resumeTimer);
       }
+
       if (startTimer) {
         clearTimeout(startTimer);
       }
+
       if (idleTimer) {
         clearTimeout(idleTimer);
       }
 
       gsap.killTweensOf(proxyState);
       gsap.killTweensOf(groups);
-      // Killing only the child tween would leave the timeline on the ticker,
-      // where it completes and fires `onComplete` after the reset below.
       intro?.kill();
 
-      // StrictMode remounts: every latch must return to its mount-time value
-      // or the second mount skips the cold open.
       firstFigure.current = true;
       modeRef.current = "auto";
       proxyState.idx = 0;
@@ -573,10 +537,6 @@ export const StatReel: FC = () => {
     };
   }, []);
 
-  // Both halves of a focus change: pop the incoming figure in, then refit it to
-  // the left column now that its digits — and so its natural width — differ.
-  // The entrance timeline owns the figure until it completes, so the pop stays
-  // latched off for the cold open while the fit still has to run.
   useIsoLayoutEffect(() => {
     const figure = figureRef.current;
 

@@ -20,13 +20,13 @@ const GROUPS = [
 ] as const;
 
 const TOP = 40;
-// Box geometry: bar half-width in x units, top-diamond depth in y units.
 const HALF = 0.33;
 const DEPTH = 0.9;
 const HEIGHT = 200;
 const MARGIN = { bottom: 0, left: 0, right: 0, top: 26 };
 
 type Face = "l" | "r" | "t";
+
 interface Pt {
   face: Face;
   g: string;
@@ -37,11 +37,11 @@ interface Pt {
   y2: number;
 }
 
-/** One box as three faces (left, right, top) of area rows. */
-const box = (i: number, v: number, id: string): Pt[] => {
+const box = (i: number, v: number, id: string) => {
   const l = i + 0.5 - HALF;
   const c = i + 0.5;
   const r = i + 0.5 + HALF;
+
   const faces: [Face, number, number, number][] = [
     ["l", l, 0, v],
     ["l", c, 0, v - DEPTH],
@@ -51,6 +51,7 @@ const box = (i: number, v: number, id: string): Pt[] => {
     ["t", c, v - DEPTH, v + DEPTH],
     ["t", r, v, v],
   ];
+
   return faces.map(([face, x, y1, y2], j) => ({
     face,
     g: `${id}-${face}`,
@@ -86,6 +87,7 @@ export const InvestmentAppUserAge = () => {
     const cold = GROUPS.flatMap((g, i) => box(i, g.share, `b${i}`));
     const hot = box(hi, GROUPS[hi]?.share ?? 0, "hl");
     const labels = GROUPS.map((g, i) => ({ i, label: `${g.share.toFixed(1)}%`, v: g.share }));
+
     return defineChart({
       gradients: [
         fade("ua-cold-l", "#e4e4e7", 0.75),
@@ -166,6 +168,7 @@ export const InvestmentAppUserAge = () => {
             ariaLabel="Share of investment app users by age group"
             onFocusChange={(p) => {
               const x = Number(p?.xValue);
+
               if (p && Number.isFinite(x)) {
                 pin(Math.min(GROUPS.length - 1, Math.max(0, Math.floor(x))));
               }

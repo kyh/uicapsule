@@ -39,16 +39,17 @@ describe("renderLlmsTxt — llmstxt.org format", () => {
   });
 
   test("keeps every H2 section a link list", () => {
-    // The spec reserves H2 sections for file lists: a markdown list whose items
-    // each open with a link or a bold label. Prose belongs above the first H2.
     const sections = body.split(/^## /mu).slice(1);
     assert.ok(sections.length > 0, "expected > 0");
+
     for (const section of sections) {
       const items = section
         .split("\n")
         .slice(1)
         .filter((line) => line.trim().length > 0);
+
       assert.ok(items.length > 0, "expected > 0");
+
       for (const item of items) {
         assert.equal(item.startsWith("- "), true);
       }

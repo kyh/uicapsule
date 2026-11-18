@@ -2,7 +2,6 @@
 
 import { useEffect, useRef, useState } from "react";
 
-// 5x5 pixel font — only the glyphs the sections need.
 const FONT = new Map(
   Object.entries({
     A: [".###.", "#...#", "#####", "#...#", "#...#"],
@@ -28,9 +27,8 @@ const FONT = new Map(
 const ACCENTS = ["#e23d2e", "#f0b429", "#3fa945", "#3186d4"] as const;
 const accentAt = (i: number) => ACCENTS[i % ACCENTS.length] ?? ACCENTS[0];
 
-// The corridor runs along +z; scrolling pans the camera so the world
-// slides up-right on screen (matching classic iso site scroll).
 const SECTION_GAP = 60;
+
 const SECTIONS = [
   { accent: ACCENTS[0], word: "VOXEL" },
   { accent: ACCENTS[1], word: "BUILD" },
@@ -38,39 +36,41 @@ const SECTIONS = [
   { accent: ACCENTS[3], word: "SHIP" },
   { accent: ACCENTS[0], word: "START" },
 ] as const;
+
 const WORLD_LEN = SECTION_GAP * (SECTIONS.length - 1);
 
-// Iso half-width of a unit cube, in px.
 const TILE = 13;
 const HALF = TILE * 0.5;
 const GRASS = ["#2c7a33", "#3fa945", "#57b85e"] as const;
 const grassAt = (i: number) => GRASS[i % GRASS.length] ?? GRASS[0];
 
-// Deterministic randomness — every load (and recording) is identical.
 const hash = (n: number) => {
   const s = Math.sin(n * 127.1 + 311.7) * 43_758.5453;
+
   return s - Math.floor(s);
 };
 
 const shadeCache = new Map<string, string>();
+
 const shade = (hex: string, factor: number) => {
   const key = `${hex}:${factor}`;
   const cached = shadeCache.get(key);
+
   if (cached) {
     return cached;
   }
+
   const r = Math.round(Number.parseInt(hex.slice(1, 3), 16) * factor);
   const g = Math.round(Number.parseInt(hex.slice(3, 5), 16) * factor);
   const b = Math.round(Number.parseInt(hex.slice(5, 7), 16) * factor);
   const out = `rgb(${r},${g},${b})`;
   shadeCache.set(key, out);
+
   return out;
 };
 
 type Kind = "static" | "sign" | "road";
 
-// x runs across the corridor, y up (in tiles), z along it — the camera travels +z.
-// size scales horizontally (1 = full tile), h vertically; section tags sign marquee cells.
 interface Voxel {
   x: number;
   y: number;
@@ -84,36 +84,41 @@ interface Voxel {
   seed: number;
 }
 
-const vox = (partial: Partial<Voxel> & Pick<Voxel, "x" | "y" | "z" | "color">): Voxel => ({
-  alpha: 1,
-  h: 1,
-  kind: "static",
-  section: -1,
-  seed: 0,
-  size: 1,
-  ...partial,
-});
+const vox = (partial: Partial<Voxel> & Pick<Voxel, "x" | "y" | "z" | "color">) =>
+  ({
+    alpha: 1,
+    h: 1,
+    kind: "static",
+    section: -1,
+    seed: 0,
+    size: 1,
+    ...partial,
+  }) satisfies Voxel;
 
-// Upright marquee sign: hollow dark frame + floating glyph cells, spanning x.
 const buildSign = (out: Voxel[], word: string, cz: number, section: number) => {
   const cols = word.length * 6 - 1;
   const half = Math.floor(cols / 2) + 2;
+
   for (let x = -half; x <= half; x += 1) {
     out.push(vox({ color: "#33363b", x, y: 1, z: cz }), vox({ color: "#33363b", x, y: 9, z: cz }));
   }
+
   for (let y = 2; y <= 8; y += 1) {
     out.push(
       vox({ color: "#33363b", x: -half, y, z: cz }),
       vox({ color: "#33363b", x: half, y, z: cz }),
     );
   }
+
   for (const [li, ch] of [...word].entries()) {
     const glyph = FONT.get(ch) ?? [];
+
     for (const [gy, row] of glyph.entries()) {
       for (const [gx, cell] of [...row].entries()) {
         if (cell !== "#") {
           continue;
         }
+
         const x = li * 6 + gx - cols / 2;
         out.push(
           vox({ color: "#62666c", kind: "sign", section, seed: out.length, x, y: 7 - gy, z: cz }),
@@ -123,16 +128,18 @@ const buildSign = (out: Voxel[], word: string, cz: number, section: number) => {
   }
 };
 
-// Word laid flat on the ground plane, glyphs running along x, rows along z.
 const buildFlatWord = (out: Voxel[], word: string, cx: number, cz: number, accent: string) => {
   const cols = word.length * 6 - 1;
+
   for (const [li, ch] of [...word].entries()) {
     const glyph = FONT.get(ch) ?? [];
+
     for (const [gz, row] of glyph.entries()) {
       for (const [gx, cell] of [...row].entries()) {
         if (cell !== "#") {
           continue;
         }
+
         const seed = out.length;
         out.push(
           vox({
@@ -149,31 +156,35 @@ const buildFlatWord = (out: Voxel[], word: string, cx: number, cz: number, accen
   }
 };
 
-// Road centerline; movers follow it smoothly (the drawn tiles are rounded).
 const roadX = (z: number) => Math.sin(z * 0.16) * 4 + 4;
 
-// Torii-style gate straddling the road.
 const buildGate = (out: Voxel[], z: number, color: string) => {
   const cx = Math.round(roadX(z));
+
   for (let y = 0; y < 4; y += 1) {
     out.push(vox({ color, x: cx - 4, y, z }), vox({ color, x: cx + 4, y, z }));
   }
+
   for (let x = cx - 5; x <= cx + 5; x += 1) {
     out.push(vox({ color, x, y: 4, z }));
   }
+
   out.push(vox({ color: "#33363b", size: 0.5, x: cx, y: 5, z }));
 };
 
-// Fountain basin — the jets are animated per-frame.
 const FOUNTAIN = { x: -9, z: 30 };
+
 const buildFountain = (out: Voxel[]) => {
   for (let dx = -4; dx <= 4; dx += 1) {
     for (let dz = -4; dz <= 4; dz += 1) {
       const r = Math.hypot(dx, dz);
+
       if (r > 4.2) {
         continue;
       }
+
       const seed = out.length;
+
       if (r > 3.1) {
         out.push(
           vox({ color: "#c9ced3", h: 0.3, seed, x: FOUNTAIN.x + dx, y: 0, z: FOUNTAIN.z + dz }),
@@ -192,6 +203,7 @@ const buildFountain = (out: Voxel[]) => {
       }
     }
   }
+
   out.push(vox({ color: "#9aa0a6", size: 0.7, x: FOUNTAIN.x, y: 0, z: FOUNTAIN.z }));
 };
 
@@ -200,6 +212,7 @@ const buildTree = (out: Voxel[], x: number, z: number, seed: number) => {
     vox({ color: "#7a5a3a", size: 0.5, x, y: 0, z }),
     vox({ color: "#7a5a3a", size: 0.5, x, y: 1, z }),
   );
+
   const canopy: [number, number, number][] = [
     [0, 2, 0],
     [1, 2, 0],
@@ -208,12 +221,13 @@ const buildTree = (out: Voxel[], x: number, z: number, seed: number) => {
     [0, 2, -1],
     [0, 3, 0],
   ];
+
   for (const [i, [dx, dy, dz]] of canopy.entries()) {
     out.push(vox({ color: grassAt(i + seed), x: x + dx, y: dy, z: z + dz }));
   }
 };
 
-const buildWorld = (): Voxel[] => {
+const buildWorld = () => {
   const out: Voxel[] = [];
 
   buildSign(out, "VOXEL", -8, 0);
@@ -228,30 +242,30 @@ const buildWorld = (): Voxel[] => {
   buildFlatWord(out, "STACK", -10, SECTION_GAP * 2 + 9, ACCENTS[2]);
   buildFlatWord(out, "SHIP", -10, SECTION_GAP * 3 + 9, ACCENTS[3]);
 
-  // BUILD: a grove flanking the word.
   buildTree(out, 13, SECTION_GAP - 12, 0);
   buildTree(out, 15, SECTION_GAP - 2, 1);
   buildTree(out, 12, SECTION_GAP + 9, 2);
   buildTree(out, 16, SECTION_GAP + 16, 0);
   buildTree(out, -16, SECTION_GAP + 2, 1);
 
-  // STACK: a bar-chart skyline of cube towers.
   for (let i = 0; i < 12; i += 1) {
     const tz = SECTION_GAP * 2 + Math.floor((hash(i * 7.9) - 0.5) * 30);
     const tx = 10 + Math.floor(hash(i * 3.3) * 8);
     const height = 2 + Math.floor(hash(i * 5.1) * 5);
+
     for (let y = 0; y < height - 1; y += 1) {
       out.push(vox({ color: y % 2 === 0 ? "#5a5f66" : "#6b7076", x: tx, y, z: tz }));
     }
+
     out.push(vox({ color: accentAt(i), x: tx, y: height - 1, z: tz }));
   }
 
-  // SHIP: pond of flat water tiles beside the word.
   for (let dz = -8; dz <= 8; dz += 1) {
     for (let dx = -5; dx <= 5; dx += 1) {
       if ((dz / 8) ** 2 + (dx / 5) ** 2 > 1) {
         continue;
       }
+
       const seed = out.length;
       out.push(
         vox({
@@ -266,16 +280,15 @@ const buildWorld = (): Voxel[] => {
     }
   }
 
-  // Winding dash-road tying the whole strip together.
   for (let z = -14; z <= WORLD_LEN + 14; z += 1) {
     if (hash(z * 9.7) < 0.3) {
       continue;
     }
+
     const x = Math.round(roadX(z));
     out.push(vox({ color: "#4a9de0", h: 0.12, kind: "road", seed: z, size: 0.6, x, y: 0, z }));
   }
 
-  // Flag poles along the road.
   for (let i = 0; i < 14; i += 1) {
     const pz = Math.floor(hash(i * 13.7) * (WORLD_LEN + 20)) - 10;
     const px = Math.round(Math.sin(pz * 0.16) * 4) + 4 + (hash(i * 3.9) < 0.5 ? 3 : -3);
@@ -285,11 +298,11 @@ const buildWorld = (): Voxel[] => {
     );
   }
 
-  // Flora scattered across the whole corridor.
   for (let i = 0; i < 260; i += 1) {
     const fz = Math.floor(hash(i * 17.3) * (WORLD_LEN + 36)) - 18;
     const fx = Math.floor((hash(i * 23.1) - 0.5) * 34);
     const roll = hash(i * 5.9);
+
     if (roll < 0.72) {
       out.push(vox({ color: grassAt(i), h: 0.5, size: 0.4, x: fx, y: 0, z: fz }));
     } else {
@@ -303,7 +316,6 @@ const buildWorld = (): Voxel[] => {
   return out;
 };
 
-// Walkers wander around a home point; position is a pure function of time.
 interface Walker {
   home: [number, number];
   radius: number;
@@ -311,8 +323,9 @@ interface Walker {
   id: number;
 }
 
-const buildWalkers = (): Walker[] => {
+const buildWalkers = () => {
   const walkers: Walker[] = [];
+
   const add = (hx: number, hz: number, radius: number) => {
     walkers.push({
       body: accentAt(walkers.length),
@@ -321,40 +334,44 @@ const buildWalkers = (): Walker[] => {
       radius,
     });
   };
+
   for (let i = 0; i < 5; i += 1) {
     add(4 + i * 2, Math.floor(hash(i * 3.1) * 24) - 12, 5);
   }
+
   add(2, SECTION_GAP - 8, 6);
   add(16, SECTION_GAP + 6, 6);
   add(3, SECTION_GAP * 2 + 4, 6);
   add(17, SECTION_GAP * 2 - 10, 5);
   add(2, SECTION_GAP * 3 - 6, 5);
   add(16, SECTION_GAP * 3 + 8, 5);
+
   for (let i = 0; i < 9; i += 1) {
     add(2 + Math.floor(hash(i * 4.3) * 10), WORLD_LEN + Math.floor(hash(i * 7.7) * 22) - 11, 4);
   }
+
   return walkers;
 };
 
-const walkerPos = (w: Walker, t: number): [number, number, boolean] => {
+const walkerPos = (w: Walker, t: number) => {
   const epoch = Math.floor(t / 2.6 + hash(w.id * 31.7));
   const frac = (t / 2.6 + hash(w.id * 31.7)) % 1;
-  const wp = (k: number): [number, number] => [
-    w.home[0] + (hash(w.id * 91.3 + k * 17.1) - 0.5) * 2 * w.radius,
-    w.home[1] + (hash(w.id * 47.9 + k * 29.3) - 0.5) * 2 * w.radius,
-  ];
+
+  const wp = (k: number) =>
+    [
+      w.home[0] + (hash(w.id * 91.3 + k * 17.1) - 0.5) * 2 * w.radius,
+      w.home[1] + (hash(w.id * 47.9 + k * 29.3) - 0.5) * 2 * w.radius,
+    ] satisfies [number, number];
+
   const [ax, az] = wp(epoch);
   const [bx, bz] = wp(epoch + 1);
-  // Walk, then idle at the waypoint.
   const ease = frac < 0.7 ? frac / 0.7 : 1;
   const x = Math.round((ax + (bx - ax) * ease) * 2) / 2;
   const z = Math.round((az + (bz - az) * ease) * 2) / 2;
-  return [x, z, frac < 0.7];
+
+  return [x, z, frac < 0.7] satisfies [number, number, boolean];
 };
 
-// HTML copy laid into the iso ground plane, y-n10 style.
-// matrix(1,.5,-1,.5): css X → world +x (down-right), css Y → world +z.
-// matrix(1,-.5,1,.5): text running up-right along world −z, for the hero.
 const GROUND = "matrix(1, 0.5, -1, 0.5, 0, 0)";
 const GROUND_CROSS = "matrix(1, -0.5, 1, 0.5, 0, 0)";
 
@@ -411,7 +428,6 @@ interface VoxelLandingProps {
 const clamp01 = (v: number) => Math.min(1, Math.max(0, v));
 const easeInOut = (t: number) => (t < 0.5 ? 4 * t * t * t : 1 - (-2 * t + 2) ** 3 / 2);
 
-// Auto-tour keyframes: [time, scroll]. Holds at each section, long hold on START, rewind.
 const TOUR: [number, number][] = [
   [0, 0],
   [2.8, 0],
@@ -426,19 +442,24 @@ const TOUR: [number, number][] = [
   [19.5, 0],
   [21, 0],
 ];
+
 const [TOUR_LENGTH] = TOUR.at(-1) ?? [1];
 
 const tourScroll = (t: number) => {
   const cycle = t % TOUR_LENGTH;
   let [t0, s0] = TOUR[0] ?? [0, 0];
+
   for (const [t1, s1] of TOUR) {
     if (cycle <= t1) {
       const span = t1 - t0;
       const p = span > 0 ? (cycle - t0) / span : 1;
+
       return s0 + (s1 - s0) * easeInOut(p);
     }
+
     [t0, s0] = [t1, s1];
   }
+
   return 0;
 };
 
@@ -467,21 +488,24 @@ type Push = (
 const pushWorld = (push: Push, world: Voxel[], now: number, atFinale: boolean) => {
   const pulsePhase = Math.floor(now * 2.5);
   const finaleRate = atFinale ? 0.34 : 0.16;
+
   for (const v of world) {
     let { color, alpha } = v;
+
     if (v.kind === "sign") {
       const rate = v.section === 4 ? finaleRate : 0.16;
+
       if (hash(v.seed * 13.7 + pulsePhase * 3.3) < rate) {
         color = accentAt(Math.floor(hash(v.seed + pulsePhase) * 4));
       }
     } else if (v.kind === "road") {
       alpha = 0.35 + 0.65 * hash(v.seed * 7.1 + Math.floor(now * 3.2));
     }
+
     push(v.x, v.y, v.z, v.size, v.h, color, alpha);
   }
 };
 
-// Legs alternate, tiny bob, everything snapped to half tiles.
 const pushWalkers = (push: Push, walkers: Walker[], now: number, tick: number) => {
   for (const w of walkers) {
     const [wx, wz, walking] = walkerPos(w, now);
@@ -502,13 +526,15 @@ const pushSky = (push: Push, now: number, tick: number) => {
     push(bx + flap, 6.2, bz, 0.3, 0.35, "#c9ced3", 1);
   }
 
-  // Clouds drift upwind (opposite the scroll direction).
   const cloudSpan = WORLD_LEN + 60;
+
   for (let i = 0; i < 7; i += 1) {
     const cz =
       ((((hash(i * 11.1) * cloudSpan - now * 0.5) % cloudSpan) + cloudSpan) % cloudSpan) - 20;
+
     const cx = (hash(i * 5.3) - 0.5) * 26;
     const qz = Math.round(cz * 4) / 4;
+
     for (let p = 0; p < 4; p += 1) {
       push(cx + (p > 1 ? 0.8 : 0), 12 + (p % 2) * 0.3, qz + p - 1.5, 0.8, 0.7, "#e8ecef", 0.92);
     }
@@ -534,6 +560,7 @@ const JETS = [
 
 const pushTrucks = (push: Push, now: number) => {
   const truckSpan = WORLD_LEN + 40;
+
   for (let i = 0; i < 2; i += 1) {
     const outbound = i === 0;
     const p = (now * (2.8 + i * 0.6) + hash(i * 41.7) * truckSpan) % truckSpan;
@@ -547,9 +574,9 @@ const pushTrucks = (push: Push, now: number) => {
 };
 
 const pushGround = (push: Push, now: number, tick: number) => {
-  // Fountain jets: chunky water columns rising and collapsing.
   for (const [j, [jx, jz]] of JETS.entries()) {
     const jetH = 1 + Math.floor((Math.sin(now * 2.2 + j * 1.7) + 1) * 1.4);
+
     for (let y = 1; y <= jetH; y += 1) {
       push(FOUNTAIN.x + jx, y * 0.6, FOUNTAIN.z + jz, 0.26, 0.5, "#4a9de0", 0.9);
     }
@@ -559,6 +586,7 @@ const pushGround = (push: Push, now: number, tick: number) => {
 
   const duckSpan = WORLD_LEN + 20;
   const duckLead = (now * 0.8 + 5) % duckSpan;
+
   for (let k = 0; k < 4; k += 1) {
     const dz = duckLead - k * 1.4 - 10;
     const qz = Math.round(dz * 4) / 4;
@@ -569,7 +597,6 @@ const pushGround = (push: Push, now: number, tick: number) => {
     push(dx, 0.45 * s + waddle, qz + 0.22, 0.18 * s, 0.3 * s, "#f0b429", 1);
   }
 
-  // Snail circling the pond — the slowest thing alive here.
   const snailA = now * 0.12;
   const sx = Math.round((12 + Math.cos(snailA) * 6.5) * 4) / 4;
   const sz = Math.round((SECTION_GAP * 3 + Math.sin(snailA) * 9.5) * 4) / 4;
@@ -608,6 +635,7 @@ const paint = (ctx: CanvasRenderingContext2D, drawables: Drawable[]) => {
     ctx.closePath();
     ctx.fill();
   }
+
   ctx.globalAlpha = 1;
 };
 
@@ -622,10 +650,13 @@ export const VoxelLanding = ({ autoTour = true }: VoxelLandingProps) => {
     const container = containerRef.current;
     const canvas = canvasRef.current;
     const htmlLayer = htmlRef.current;
+
     if (!container || !canvas || !htmlLayer) {
       return;
     }
+
     const ctx = canvas.getContext("2d");
+
     if (!ctx) {
       return;
     }
@@ -652,6 +683,7 @@ export const VoxelLanding = ({ autoTour = true }: VoxelLandingProps) => {
       tile.width = 18;
       tile.height = 18;
       const tileCtx = tile.getContext("2d");
+
       if (tileCtx) {
         tileCtx.fillStyle = "#0f1114";
         tileCtx.fillRect(0, 0, 18, 18);
@@ -660,6 +692,7 @@ export const VoxelLanding = ({ autoTour = true }: VoxelLandingProps) => {
         dotPattern = ctx.createPattern(tile, "repeat");
       }
     };
+
     resize();
     const observer = new ResizeObserver(resize);
     observer.observe(container);
@@ -677,9 +710,11 @@ export const VoxelLanding = ({ autoTour = true }: VoxelLandingProps) => {
 
     const frame = (nowMs: number) => {
       raf = requestAnimationFrame(frame);
+
       if (nowMs - last < 1000 / 30) {
         return;
       }
+
       last = nowMs;
       const elapsed = (nowMs - start) / 1000;
       const now = reducedMotion ? 0 : elapsed;
@@ -694,14 +729,13 @@ export const VoxelLanding = ({ autoTour = true }: VoxelLandingProps) => {
             tourOffset += elapsed - pausedAt;
             pausedAt = null;
           }
+
           target = tourScroll(elapsed - tourOffset);
         }
       }
 
       scroll += (target - scroll) * 0.09;
       const camZ = scroll * WORLD_LEN;
-      // Keep world point (0, 0, camZ) at a fixed screen anchor: as camZ grows
-      // the world slides up-right, matching the original's scroll direction.
       const offX = width / 2 + camZ * TILE;
       const offY = height * 0.52 - camZ * HALF;
 
@@ -711,10 +745,12 @@ export const VoxelLanding = ({ autoTour = true }: VoxelLandingProps) => {
       ctx.fillRect(0, 0, width, height);
 
       const nearest = Math.round(scroll * (SECTIONS.length - 1));
+
       if (nearest !== shownSection) {
         shownSection = nearest;
         setSectionIdx(nearest);
       }
+
       if (!shownMoved && scroll > 0.02) {
         shownMoved = true;
         setMoved(true);
@@ -724,12 +760,15 @@ export const VoxelLanding = ({ autoTour = true }: VoxelLandingProps) => {
       const tick = Math.floor(now / 0.16);
 
       const drawables: Drawable[] = [];
+
       const push: Push = (x, y, z, size, h, color, alpha) => {
         const sx = (x - z) * TILE + offX;
         const sy = (x + z) * HALF + offY - y * VY;
+
         if (sx < -70 || sx > width + 70 || sy < -90 || sy > height + 90) {
           return;
         }
+
         drawables.push({ alpha, color, depth: (x + z) * 1000 + y, h, size, sx, sy });
       };
 
@@ -741,6 +780,7 @@ export const VoxelLanding = ({ autoTour = true }: VoxelLandingProps) => {
       drawables.sort((a, b) => a.depth - b.depth);
       paint(ctx, drawables);
     };
+
     raf = requestAnimationFrame(frame);
 
     const nudge = (delta: number) => {
@@ -752,23 +792,29 @@ export const VoxelLanding = ({ autoTour = true }: VoxelLandingProps) => {
       e.preventDefault();
       nudge(e.deltaY * 0.0004);
     };
+
     container.addEventListener("wheel", onWheel, { passive: false });
 
     let dragY: number | null = null;
+
     const onPointerDown = (e: PointerEvent) => {
       dragY = e.clientY;
       container.setPointerCapture(e.pointerId);
     };
+
     const onPointerMove = (e: PointerEvent) => {
       if (dragY === null) {
         return;
       }
+
       nudge((dragY - e.clientY) * 0.0016);
       dragY = e.clientY;
     };
+
     const onPointerUp = () => {
       dragY = null;
     };
+
     container.addEventListener("pointerdown", onPointerDown);
     container.addEventListener("pointermove", onPointerMove);
     container.addEventListener("pointerup", onPointerUp);

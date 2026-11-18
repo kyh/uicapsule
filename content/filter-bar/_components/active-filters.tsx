@@ -42,9 +42,11 @@ interface ActiveFilterProps {
 
 export const ActiveFilter = ({ binding, actions, strategy, entityName }: ActiveFilterProps) => {
   const { column, filter } = binding;
+
   if (!filter) {
     return null;
   }
+
   return (
     <div className="border-(--border) bg-(--background) flex h-7 items-center rounded-2xl border text-xs shadow-xs">
       <FilterSubject column={column} entityName={entityName} />
@@ -105,6 +107,7 @@ export const ActiveFiltersContainer = ({ children }: { children: ReactNode }) =>
 
   const checkScroll = useCallback(() => {
     const el = scrollContainerRef.current;
+
     if (!el) {
       return;
     }
@@ -112,12 +115,12 @@ export const ActiveFiltersContainer = ({ children }: { children: ReactNode }) =>
     const { scrollLeft, scrollWidth, clientWidth } = el;
 
     setShowLeftBlur(scrollLeft > 0);
-    // 1px buffer absorbs subpixel rounding so the right blur clears at the end.
     setShowRightBlur(scrollLeft + clientWidth < scrollWidth - 1);
   }, []);
 
   useEffect(() => {
     const el = scrollContainerRef.current;
+
     if (!el) {
       return;
     }
@@ -126,6 +129,7 @@ export const ActiveFiltersContainer = ({ children }: { children: ReactNode }) =>
     resizeObserver.observe(el);
     const mutationObserver = new MutationObserver(checkScroll);
     mutationObserver.observe(el, { characterData: true, childList: true, subtree: true });
+
     return () => {
       resizeObserver.disconnect();
       mutationObserver.disconnect();

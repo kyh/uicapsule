@@ -15,20 +15,13 @@ import { fmtPrice, lookTotal } from "./lookbook-data";
  */
 export const NARROW_BREAKPOINT = 920;
 
-/** Gap the beside-card layout wants between the card and the panel. */
 const PANEL_GAP = 40;
-/** Smallest gap the beside-card layout will accept before giving up on it. */
 const PANEL_MIN_GAP = 16;
-/** Space kept between the panel and the right edge of the frame. */
 const PANEL_EDGE = 16;
 
-const panelWidth = (containerW: number): number => Math.min(420, containerW * 0.36);
+const panelWidth = (containerW: number) => Math.min(420, containerW * 0.36);
 
-/**
- * Right edge of the focused card in the beside-card layout: it lands centred
- * on 0.34w and renders 0.75h tall, so it is 0.25h wide either side.
- */
-const focusedCardRight = (containerW: number, containerH: number): number =>
+const focusedCardRight = (containerW: number, containerH: number) =>
   0.34 * containerW + 0.25 * containerH;
 
 /**
@@ -42,18 +35,19 @@ const focusedCardRight = (containerW: number, containerH: number): number =>
  * reads this same predicate to choose where to fly the camera; the two must
  * never disagree about which layout is in play.
  */
-export const usesSideLayout = (containerW: number, containerH: number): boolean => {
+export const usesSideLayout = (containerW: number, containerH: number) => {
   if (containerW < NARROW_BREAKPOINT) {
     return false;
   }
+
   const rightEdge =
     focusedCardRight(containerW, containerH) + PANEL_MIN_GAP + panelWidth(containerW) + PANEL_EDGE;
+
   return rightEdge <= containerW;
 };
 
 const SLOT_TAG = { lower: "B", shoes: "C", top: "A" } as const;
 
-/** Utilities-layer scrollbar suppression — the app's base layer styles one in. */
 const NO_SCROLLBAR =
   "[scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden";
 
@@ -73,19 +67,18 @@ export const DetailPanel = ({ look, containerW, containerH, ref }: DetailPanelPr
   const narrow = !usesSideLayout(containerW, containerH);
 
   const firstPaint = useRef(true);
-  // Hide before first paint so the open animation never flashes, and so
-  // re-renders (thumbnail switches) can't reset opacity mid-view.
   useLayoutEffect(() => {
     if (firstPaint.current && ref.current) {
       ref.current.style.opacity = "0";
     }
+
     firstPaint.current = false;
+
     return () => {
       firstPaint.current = true;
     };
   }, [ref]);
 
-  // Already ordered top -> lower -> shoes by the tuple's own type.
   const orderedItems = look.items;
   const activeItem = orderedItems[activeIdx] ?? orderedItems[0];
   const isActiveAdded = bag.has(activeItem.id);
@@ -95,31 +88,32 @@ export const DetailPanel = ({ look, containerW, containerH, ref }: DetailPanelPr
   const toggle = (itemId: string) => {
     setBag((prev) => {
       const next = new Set(prev);
+
       if (next.has(itemId)) {
         next.delete(itemId);
       } else {
         next.add(itemId);
       }
+
       return next;
     });
   };
+
   const prevItem = () => {
     setActiveIdx((i) => (i - 1 + itemsCount) % itemsCount);
   };
+
   const nextItem = () => {
     setActiveIdx((i) => (i + 1) % itemsCount);
   };
 
   const panelW = panelWidth(containerW);
-  // Start PANEL_GAP past the card's right edge and never run off the frame.
-  // `usesSideLayout` has already guaranteed the clamp cannot pull this back
-  // over the card — if it could, we would not be in this layout.
+
   const panelLeft = Math.min(
     focusedCardRight(containerW, containerH) + PANEL_GAP,
     containerW - panelW - PANEL_EDGE,
   );
-  // In the narrow layout the card sits at 0.2h + 28 and is 0.18h tall either
-  // side, so 0.38h + 38 clears its bottom edge.
+
   const narrowTop = Math.round(0.38 * containerH + 38);
 
   const wrapperStyle: CSSProperties = narrow
@@ -132,9 +126,7 @@ export const DetailPanel = ({ look, containerW, containerH, ref }: DetailPanelPr
       };
 
   const maxCardHeight = Math.round(containerH * 0.92);
-  // The narrow sheet only owns ~0.6h, and the hero competes with the info,
-  // the add button and the total for it — keep it small enough that the
-  // primary action stays above the fold on a short frame.
+
   const heroHeight = narrow
     ? Math.round(Math.min(containerH * 0.2, containerW * 0.45))
     : Math.round(containerH * 0.44);
@@ -160,7 +152,6 @@ export const DetailPanel = ({ look, containerW, containerH, ref }: DetailPanelPr
   return (
     <div className="absolute z-40" style={wrapperStyle}>
       <div ref={ref} className="relative overflow-hidden rounded-[28px]" style={cardStyle}>
-        {/* Top sheen */}
         <div
           aria-hidden
           className="pointer-events-none absolute inset-x-0 top-0 h-32"
@@ -169,7 +160,6 @@ export const DetailPanel = ({ look, containerW, containerH, ref }: DetailPanelPr
               "linear-gradient(180deg, rgba(255,255,255,0.32) 0%, rgba(255,255,255,0.08) 40%, rgba(255,255,255,0) 100%)",
           }}
         />
-        {/* Accent halo */}
         <div
           aria-hidden
           className="pointer-events-none absolute -bottom-12 -left-12 size-56 rounded-full opacity-25 blur-3xl"
@@ -180,7 +170,6 @@ export const DetailPanel = ({ look, containerW, containerH, ref }: DetailPanelPr
           className={`relative z-10 overflow-y-auto ${NO_SCROLLBAR} ${narrow ? "h-full" : ""}`}
           style={{ maxHeight: narrow ? undefined : maxCardHeight }}
         >
-          {/* Hero — a crop of the very same drawing the card shows */}
           <div
             className="relative mb-3 w-full"
             style={{ background: `${look.accent}14`, height: heroHeight }}
@@ -193,12 +182,6 @@ export const DetailPanel = ({ look, containerW, containerH, ref }: DetailPanelPr
                   i === activeIdx ? "opacity-100" : "opacity-0"
                 }`}
               >
-                {/* The narrow sheet's hero is a ~2.3:1 letterbox while every
-                    crop is taller than it is wide, so "meet" would strand the
-                    drawing at ~37% of the width against flat accent fill.
-                    Fill it instead; the thumbnails below still show each crop
-                    whole. The wide layout is close enough to square to keep
-                    the full figure. */}
                 <LookFigure
                   look={look}
                   crop={item.slot}
@@ -208,7 +191,6 @@ export const DetailPanel = ({ look, containerW, containerH, ref }: DetailPanelPr
               </div>
             ))}
 
-            {/* Progress pips */}
             <div className="absolute top-3 left-1/2 z-10 flex -translate-x-1/2 gap-1.5">
               {orderedItems.map((item, i) => (
                 <span
@@ -222,7 +204,6 @@ export const DetailPanel = ({ look, containerW, containerH, ref }: DetailPanelPr
               ))}
             </div>
 
-            {/* Look ID badge */}
             <span
               className="bg-background/85 absolute top-3 right-3 z-10 rounded-full border px-2.5 py-1 text-[9px] tracking-[0.34em] uppercase backdrop-blur-md"
               style={{ borderColor: `${look.accent}66`, color: look.accent }}
@@ -230,17 +211,13 @@ export const DetailPanel = ({ look, containerW, containerH, ref }: DetailPanelPr
               N° {look.lookNumber}
             </span>
 
-            {/* Category badge */}
             <span
-              // top-3, not the source's top-9: on a short hero the arrows sit
-              // at 50% and ran straight through a badge pinned lower down.
               className="absolute top-3 left-3 z-10 rounded-md px-2 py-1 text-[8.5px] tracking-[0.24em] text-white uppercase shadow-sm"
               style={{ background: `${look.accent}e0` }}
             >
               {tag} · {activeItem.category}
             </span>
 
-            {/* Prev / next */}
             <button
               type="button"
               onClick={prevItem}
@@ -258,7 +235,6 @@ export const DetailPanel = ({ look, containerW, containerH, ref }: DetailPanelPr
               <ChevronRight className="size-3.5" />
             </button>
 
-            {/* Floating thumbnail pill */}
             <div
               className="pointer-events-none absolute bottom-0 left-1/2 z-20"
               style={{ transform: "translate(-50%, 50%)" }}
@@ -267,6 +243,7 @@ export const DetailPanel = ({ look, containerW, containerH, ref }: DetailPanelPr
                 {orderedItems.map((item, i) => {
                   const isActive = i === activeIdx;
                   const inBag = bag.has(item.id);
+
                   return (
                     <div key={item.id} className="group/thumb relative size-[72px]">
                       <button
@@ -314,7 +291,6 @@ export const DetailPanel = ({ look, containerW, containerH, ref }: DetailPanelPr
             </div>
           </div>
 
-          {/* Active item info */}
           <div className="px-5 pt-12" key={`info-${activeItem.id}`} data-detail-anim>
             <div className="flex items-baseline justify-between gap-3">
               <h4 className="lbk-display truncate text-[19px] leading-tight">{activeItem.name}</h4>
@@ -332,7 +308,6 @@ export const DetailPanel = ({ look, containerW, containerH, ref }: DetailPanelPr
             </div>
           </div>
 
-          {/* Add this piece */}
           <div className="mt-4 px-5" data-detail-anim>
             <button
               type="button"
@@ -359,15 +334,12 @@ export const DetailPanel = ({ look, containerW, containerH, ref }: DetailPanelPr
             </button>
           </div>
 
-          {/* Divider */}
           <div className="mt-4 mb-3 flex items-center gap-2 px-5" data-detail-anim>
             <div className="bg-foreground/10 h-px flex-1" />
             <span className="size-1 rounded-full" style={{ background: look.accent }} />
             <div className="bg-foreground/10 h-px flex-1" />
           </div>
 
-          {/* Price of the whole look — the bag counter beside it is progress
-              towards owning it, not a subtotal, so this figure is constant. */}
           <div className="px-5 pb-6" data-detail-anim>
             <div className="mb-2 flex items-baseline justify-between px-0.5">
               <span className="text-[9px] tracking-[0.28em] uppercase opacity-55">

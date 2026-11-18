@@ -16,13 +16,7 @@ const SQUIRCLE_RADIUS = "22.4%";
 const SQUIRCLE_SHADOW =
   "inset 0 1.5% 0 rgba(255,255,255,0.45), inset 0 -2% 0 rgba(0,0,0,0.18), 0 2% 6% rgba(0,0,0,0.28)";
 
-const Squircle = ({
-  background,
-  children,
-}: {
-  background: string;
-  children: ReactNode;
-}): ReactNode => (
+const Squircle = ({ background, children }: { background: string; children: ReactNode }) => (
   <div
     className="relative size-full"
     style={{
@@ -167,11 +161,9 @@ const GLYPHS = {
  * Fills its square container edge to edge — the dock magnification lerps the
  * wrapper's width/height, so the artwork must honour the `size-full` contract.
  */
-export const AppGlyph = ({ id }: { id: GlyphId }): ReactNode => GLYPHS[id];
+export const AppGlyph = ({ id }: { id: GlyphId }) => GLYPHS[id];
 
-/* --------------------------------------------------------- status glyphs -- */
-
-export const MacBatteryGlyph = (): ReactNode => (
+export const MacBatteryGlyph = () => (
   <svg width="24" height="12" viewBox="0 0 24 12" fill="none" aria-hidden="true">
     <rect
       x="0.5"
@@ -191,7 +183,7 @@ export const MacBatteryGlyph = (): ReactNode => (
   </svg>
 );
 
-export const SignalBarsGlyph = (): ReactNode => (
+export const SignalBarsGlyph = () => (
   <svg width="17" height="11" viewBox="0 0 17 11" fill="currentColor" aria-hidden="true">
     <rect x="0" y="8" width="2.6" height="3" rx="0.6" />
     <rect x="4.6" y="6" width="2.6" height="5" rx="0.6" />
@@ -200,7 +192,7 @@ export const SignalBarsGlyph = (): ReactNode => (
   </svg>
 );
 
-export const WifiGlyph = (): ReactNode => (
+export const WifiGlyph = () => (
   <svg
     width="15"
     height="11"
@@ -218,7 +210,7 @@ export const WifiGlyph = (): ReactNode => (
   </svg>
 );
 
-export const IOSBatteryGlyph = (): ReactNode => (
+export const IOSBatteryGlyph = () => (
   <svg width="28" height="13" viewBox="0 0 28 13" fill="none" aria-hidden="true">
     <rect
       x="0.6"
@@ -234,7 +226,7 @@ export const IOSBatteryGlyph = (): ReactNode => (
   </svg>
 );
 
-export const BellSlashGlyph = (): ReactNode => (
+export const BellSlashGlyph = () => (
   <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true">
     <path d="M3 10 h8 l-1 -1.5 V6 a3 3 0 0 0 -6 0 v2.5 Z" fill="currentColor" />
     <path

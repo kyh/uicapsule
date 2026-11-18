@@ -13,9 +13,11 @@ const tempLabel = (tempF: number) => {
   if (tempF <= MIN_TEMP) {
     return "LO";
   }
+
   if (tempF >= MAX_TEMP) {
     return "HI";
   }
+
   return String(tempF);
 };
 

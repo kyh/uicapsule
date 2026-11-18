@@ -9,7 +9,6 @@ import { RevenueGrowth } from "./revenue-growth";
 import { SavingProgress } from "./saving-progress";
 import { ValueLocked } from "./value-locked";
 
-// finance-overview-flow, value-locked, saving-progress, finance-overview-diverging-bar, budget-allocation, asset-overview-radial, options-portfolio, revenue-growth, investment-app-adoption-by-country
 export const GROUP_4: ChartEntry[] = [
   { Chart: FinanceOverviewFlow, id: "finance-overview-flow" },
   { Chart: ValueLocked, id: "value-locked" },

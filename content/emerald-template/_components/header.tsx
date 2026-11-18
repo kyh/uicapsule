@@ -6,7 +6,6 @@ import { useScroll } from "motion/react";
 
 import { Logo } from "./logo";
 
-/** Scroll offset past which the header gains its translucent backdrop. */
 const BLUR_SCROLL_THRESHOLD = 100;
 
 export const Header = () => {
@@ -18,6 +17,7 @@ export const Header = () => {
     const unsubscribe = scrollY.on("change", (latest) => {
       setIsScrolled(latest > BLUR_SCROLL_THRESHOLD);
     });
+
     return unsubscribe;
   }, [scrollY]);
 

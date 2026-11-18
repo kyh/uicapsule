@@ -3,6 +3,7 @@ import path from "node:path";
 import type { NextConfig } from "next";
 
 type ImageConfig = NonNullable<NextConfig["images"]>;
+
 type RemotePatterns = NonNullable<ImageConfig["remotePatterns"]>;
 
 const IS_PRODUCTION = process.env.NODE_ENV === "production";
@@ -22,7 +23,7 @@ const getContentPackages = () => {
   }
 };
 
-const getRemotePatterns = (): RemotePatterns => {
+const getRemotePatterns = () => {
   const remotePatterns: RemotePatterns = [];
 
   if (ASSETS_URL) {
@@ -50,7 +51,6 @@ const getRemotePatterns = (): RemotePatterns => {
   return remotePatterns;
 };
 
-/** workspace packages ship TS source; @repo/db arrives via @repo/service, not as a direct dependency */
 const transpilePackages = [
   "@repo/contract",
   "@repo/db",
@@ -66,7 +66,6 @@ const config: NextConfig = {
   /** cover/PR recordings capture cold navigations; the badge can't be stripped in time */
   devIndicators: false,
   experimental: {
-    // Multiple root layouts leave app/not-found.tsx nothing to render into for unmatched URLs.
     globalNotFound: true,
   },
   images: {

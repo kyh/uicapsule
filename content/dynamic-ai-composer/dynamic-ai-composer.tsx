@@ -42,6 +42,7 @@ const ListeningWave = () => (
     {Array.from({ length: BAR_COUNT }, (_, index) => {
       const envelope = 0.3 + 0.7 * Math.sin((index / (BAR_COUNT - 1)) * Math.PI);
       const wobble = 0.45 + (Math.sin(index * 12.9898) * 0.5 + 0.5) * 0.55;
+
       return (
         <motion.div
           key={index}
@@ -81,18 +82,18 @@ export const DynamicAiComposer = () => {
   const textareaRef = useRef<HTMLTextAreaElement | null>(null);
   const timeoutsRef = useRef(new Set<ReturnType<typeof setTimeout>>());
 
-  // Timers are tracked so unmount can cancel the in-flight stream; each one drops
-  // itself from the set as it fires so a long session cannot accumulate dead ids.
   const queue = useCallback((task: () => void, delay: number) => {
     const id = setTimeout(() => {
       timeoutsRef.current.delete(id);
       task();
     }, delay);
+
     timeoutsRef.current.add(id);
   }, []);
 
   useEffect(() => {
     const timeouts = timeoutsRef.current;
+
     return () => {
       for (const id of timeouts) {
         clearTimeout(id);
@@ -110,18 +111,22 @@ export const DynamicAiComposer = () => {
     if (mode !== "listening") {
       return;
     }
+
     const interval = setInterval(() => {
       setElapsed((previous) => previous + 1);
     }, 1000);
+
     return () => clearInterval(interval);
   }, [mode]);
 
   const submit = useCallback(
     (prompt: string) => {
       const response = RESPONSES[pickIndex(RESPONSES.length)];
+
       if (!response) {
         return;
       }
+
       const words = response.split(" ").map((text) => ({ id: crypto.randomUUID(), text }));
       setExchange({ prompt, words });
       setStreamedCount(0);
@@ -129,12 +134,15 @@ export const DynamicAiComposer = () => {
 
       queue(() => {
         setMode("responding");
+
         const step = (index: number) => {
           setStreamedCount(index + 1);
+
           if (index + 1 < words.length) {
             queue(() => step(index + 1), 60 + ((index * 37) % 60));
           }
         };
+
         queue(() => step(0), 250);
       }, 1500);
     },
@@ -143,19 +151,24 @@ export const DynamicAiComposer = () => {
 
   const handleSend = useCallback(() => {
     const prompt = draft.trim();
+
     if (!prompt) {
       animateShake(scope.current, { x: [0, -10, 10, -6, 6, 0] }, { duration: 0.4 });
+
       return;
     }
+
     setDraft("");
     submit(prompt);
   }, [animateShake, draft, scope, submit]);
 
   const handleVoiceConfirm = useCallback(() => {
     const prompt = VOICE_PROMPTS[pickIndex(VOICE_PROMPTS.length)];
+
     if (!prompt) {
       return;
     }
+
     submit(prompt);
   }, [submit]);
 
@@ -167,8 +180,6 @@ export const DynamicAiComposer = () => {
 
   const isStreamDone = exchange !== null && streamedCount >= exchange.words.length;
 
-  // The gradient glow marks activity: every state change fires one pulse, and
-  // loading states (thinking, streaming a response) keep pulsing until done.
   const isLoading = mode === "thinking" || (mode === "responding" && !isStreamDone);
   const glowKey = `${mode}-${isLoading ? "loading" : "settled"}`;
 
@@ -199,6 +210,7 @@ export const DynamicAiComposer = () => {
           </div>
         );
       }
+
       case "input": {
         return (
           <div className="flex flex-col">
@@ -212,6 +224,7 @@ export const DynamicAiComposer = () => {
                   event.preventDefault();
                   handleSend();
                 }
+
                 if (event.key === "Escape") {
                   setMode("idle");
                 }
@@ -251,6 +264,7 @@ export const DynamicAiComposer = () => {
           </div>
         );
       }
+
       case "listening": {
         return (
           <div className="flex h-12 items-center gap-2 px-2">
@@ -277,6 +291,7 @@ export const DynamicAiComposer = () => {
           </div>
         );
       }
+
       case "thinking": {
         return (
           <div className="flex h-12 items-center justify-center gap-2.5 px-4">
@@ -291,6 +306,7 @@ export const DynamicAiComposer = () => {
           </div>
         );
       }
+
       case "responding": {
         return (
           <div className="flex flex-col gap-2 px-4 py-3.5">
@@ -330,6 +346,7 @@ export const DynamicAiComposer = () => {
           </div>
         );
       }
+
       default: {
         return null;
       }

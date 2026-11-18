@@ -4,10 +4,9 @@ import { getSessionCookie } from "better-auth/cookies";
 
 import { ProfileButton } from "@/components/profile-button";
 
-// Cookie presence only decides whether to ask for the session; the session itself is still
-// validated by /api/auth on the client.
 const SessionAwareProfileButton = async () => {
   const signedIn = getSessionCookie(await headers()) !== null;
+
   return <ProfileButton signedIn={signedIn} />;
 };
 

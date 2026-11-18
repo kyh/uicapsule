@@ -30,26 +30,26 @@ const TOP = 80;
 const MARGIN = { bottom: 28, left: 42, right: 4, top: 8 };
 const HEIGHT = 236;
 
-/** Linear interpolation through evenly spaced anchors, plus seeded jitter. */
 const throughAnchors = (anchors: readonly number[], seed: number, vol: number) => {
   const noise = walk(N, seed, { max: vol * 1.6, min: -vol * 1.6, start: 0, vol: vol * 0.45 });
+
   return Array.from({ length: N }, (_, i) => {
     const t = (i / (N - 1)) * (anchors.length - 1);
     const k = Math.min(anchors.length - 2, Math.floor(t));
     const lo = anchors[k] ?? 0;
     const hi = anchors[k + 1] ?? lo;
+
     return { i, v: lo + (hi - lo) * (t - k) + (noise[i] ?? 0) };
   });
 };
 
-/** Actual AUM ($M): a climb with a sharp June drawdown and recovery. */
 const actual = throughAnchors([16, 29, 24, 31, 44, 52, 46, 50, 48, 59, 50, 42, 50, 60], 4207, 3.4);
 const forecast = throughAnchors([18, 13, 24, 21, 20, 26, 19, 22, 28, 34, 40, 38, 42, 54], 77, 1.6);
 
-// Three filter chips share one row at card width.
 const TIGHT = "!h-6 !gap-1 !px-2 !text-[11px] [&>svg]:!size-3";
 
 const BAR_VALUES = [15, 9, -7, 13, -10, -5, 18.5, 13, -10, -5, 7, 13, -11.5] as const;
+
 const bars = BAR_VALUES.map((v, k) => ({
   id: `b${k}`,
   up: v >= 0,
@@ -57,26 +57,26 @@ const bars = BAR_VALUES.map((v, k) => ({
   x: ((k + 0.5) * N) / BAR_VALUES.length,
 }));
 
-/** Diagonal hatching as hard-stopped gradient bands: TanStack has no pattern
- * paint, but a gradient with coincident stops draws crisp stripes. */
-const stripes = (id: string, base: string, line: string, count = 9): ChartGradient => ({
-  id,
-  stops: Array.from({ length: count }, (_, k) => {
-    const a = k / count;
-    const b = (k + 0.5) / count;
-    const c = (k + 1) / count;
-    return [
-      { color: base, offset: a },
-      { color: base, offset: b },
-      { color: line, offset: b },
-      { color: line, offset: c },
-    ];
-  }).flat(),
-  x1: 0,
-  x2: 1,
-  y1: 0,
-  y2: 0.35,
-});
+const stripes = (id: string, base: string, line: string, count = 9) =>
+  ({
+    id,
+    stops: Array.from({ length: count }, (_, k) => {
+      const a = k / count;
+      const b = (k + 0.5) / count;
+      const c = (k + 1) / count;
+
+      return [
+        { color: base, offset: a },
+        { color: base, offset: b },
+        { color: line, offset: b },
+        { color: line, offset: c },
+      ];
+    }).flat(),
+    x1: 0,
+    x2: 1,
+    y1: 0,
+    y2: 0.35,
+  }) satisfies ChartGradient;
 
 const STATS = [
   { delta: 8.05, format: (n: number) => `$${n.toFixed(1)}M`, label: "Global AUM’26", value: 59.6 },
@@ -240,6 +240,7 @@ export const GlobalFinanceMarketCombo = () => {
             ariaLabel="Total assets under management, actual against forecast, with monthly net flows"
             onFocusChange={(p) => {
               const x = Number(p?.xValue);
+
               if (p && Number.isFinite(x)) {
                 pin(Math.max(0, Math.min(SPAN.length - 1, Math.floor(x / PER))));
               }

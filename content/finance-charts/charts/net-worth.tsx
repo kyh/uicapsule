@@ -14,7 +14,7 @@ import {
   CardHeader,
   ChartSlot,
   Chip,
-  Label,
+  Caption,
   Num,
   PlotOverlay,
   renderer,
@@ -26,23 +26,26 @@ import { stripes } from "./net-worth-stripes";
 const VALUES = [
   2650, 3700, 8500, 13_450, 19_400, 16_600, 25_833.33, 23_300, 17_200, 2700, 3400, 4700, 11_800,
 ];
+
 const WEEKDAY = ["Fri", "Sat", "Sun", "Mon", "Tue", "Wed", "Thu"] as const;
+
 const ROWS = VALUES.map((value, i) => ({
   day: i + 1,
   value,
   weekday: WEEKDAY[i % 7] ?? "Mon",
 }));
+
 const DAYS = ROWS.map((r) => r.day);
 
 const TOP = 30_000;
 const HEIGHT = 230;
 const MARGIN = { bottom: 26, left: 40, right: 0, top: 8 };
 const PLOT_H = HEIGHT - MARGIN.top - MARGIN.bottom;
-// Expected painted bar width at the ~300px plot width of a wall card.
 const BAR_W = 14;
 
 const GRADIENTS = ROWS.flatMap((r) => {
   const height = (r.value / TOP) * PLOT_H;
+
   return [
     stripes({
       base: "#e0e0e4",
@@ -125,14 +128,15 @@ export const NetWorth = () => {
     [picked],
   );
 
-  // Band center with paddingInner 0.38 / paddingOuter 0.1.
   const center = ((hi + 0.1 + 0.31) / (ROWS.length - 0.38 + 0.2)) * 100;
   let align: "center" | "left" | "right" = "center";
+
   if (hi <= 1) {
     align = "left";
   } else if (hi >= ROWS.length - 2) {
     align = "right";
   }
+
   const barTop = 100 - ((picked?.value ?? 0) / TOP) * 100;
 
   return (
@@ -148,9 +152,9 @@ export const NetWorth = () => {
         }
       />
       <Num value={18_645.16} className="mt-5 block text-[30px] font-bold tracking-[-0.03em]" />
-      <Label info className="mt-0.5 !text-[13px]">
+      <Caption info className="mt-0.5 !text-[13px]">
         Total net worth
-      </Label>
+      </Caption>
 
       <ChartSlot height={HEIGHT} className="mt-5">
         <div onMouseLeave={() => pin(null)}>

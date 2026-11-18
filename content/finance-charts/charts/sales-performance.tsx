@@ -13,6 +13,7 @@ import { GREEN, GRID, MUTED, THEME } from "../lib/tokens";
 const DAYS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"] as const;
 const ACTUAL = [7820, 10_410, 12_330, 16_120, 1790, 11_020, 12_449];
 const TARGET = [18_600, 17_200, 17_900, 26_000, 12_600, 16_100, 18_400];
+
 const FULL = [
   "Monday",
   "Tuesday",
@@ -22,13 +23,12 @@ const FULL = [
   "Saturday",
   "Sunday",
 ] as const;
+
 const DAY_INDEX = new Map<string, number>(DAYS.map((d, i) => [d, i]));
 const TOTAL = ACTUAL.reduce((s, v) => s + v, 0) - 0.22;
 
 const HEIGHT = 230;
 const TOP = 26_000;
-// Each day is a box: a front face `FRONT` wide, then a side face receding
-// `DEPTH` to the right and `SLANT` down — a faux-3D extrusion from flat areas.
 const FRONT = 0.74;
 const DEPTH = 0.26;
 const SLANT = 1500;
@@ -56,6 +56,7 @@ export const SalesPerformance = () => {
     const ghosts: Vertex[] = [];
     const ghostSides: Vertex[] = [];
     const outlines: { day: string; id: string; x: number; y: number }[] = [];
+
     for (const [i, day] of DAYS.entries()) {
       const a = ACTUAL[i] ?? 0;
       const t = TARGET[i] ?? 0;
@@ -74,7 +75,9 @@ export const SalesPerformance = () => {
         { day, id: `${day}-4`, x: x3, y: Math.max(0, a - SLANT) },
       );
     }
+
     const paint = (on: string, off: string) => (d: Vertex) => (d.day === picked ? on : off);
+
     return defineChart({
       gradients: [
         {
@@ -264,6 +267,7 @@ export const SalesPerformance = () => {
             onFocusChange={(p) => {
               const day = p?.datum && "day" in p.datum ? p.datum.day : null;
               const i = day === null ? -1 : (DAY_INDEX.get(day) ?? -1);
+
               if (i !== -1) {
                 pin(i);
               }

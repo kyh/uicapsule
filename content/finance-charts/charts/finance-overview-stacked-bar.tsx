@@ -25,7 +25,6 @@ const SERIES = [
   { bg: "#fff1e7", color: "#fb7417", id: "saving", label: "Saving" },
 ] as const;
 
-// Per day: needs, wants, saving. Weekly totals land on $533 / $466 / $375.
 const SPEND = [
   [85, 85, 35],
   [55, 35, 65],
@@ -55,15 +54,19 @@ export const FinanceOverviewStackedBar = () => {
 
   const definition = useMemo(() => {
     const segs = SERIES.map((_, s) =>
-      SPEND.flatMap((day, d): Seg[] => {
+      SPEND.flatMap<Seg>((day, d) => {
         const v = day[s] ?? 0;
+
         if (v === 0) {
           return [];
         }
+
         const y1 = day.slice(0, s).reduce((a: number, b) => a + b, 0);
+
         return [{ day: d, y1, y2: y1 + v }];
       }),
     );
+
     return defineChart({
       margin: MARGIN,
       marks: [
@@ -171,6 +174,7 @@ export const FinanceOverviewStackedBar = () => {
             ariaLabel="Daily spending by needs, wants and saving"
             onFocusChange={(p) => {
               const x = Number(p?.xValue);
+
               if (p && Number.isFinite(x)) {
                 pin(Math.min(6, Math.max(0, Math.floor(x))));
               }

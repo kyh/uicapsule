@@ -7,13 +7,13 @@ import { getColumns, is, Table } from "drizzle-orm";
 
 import { auth } from "./auth";
 
-// Compare library requirements with the handwritten schema; no database connection needed.
 for (const [model, authTable] of Object.entries(getAuthTables(auth.options))) {
   test(`${model} matches better-auth's fields and nullability`, () => {
     const table = Object.entries(drizzleSchema).find(([key]) => key === authTable.modelName)?.[1];
     assert.ok(is(table, Table), `Missing table export: ${authTable.modelName}`);
 
     const columns = new Map(Object.entries(getColumns(table)));
+
     const fields = Object.entries(authTable.fields).map(([key, field]) => ({
       name: field.fieldName ?? key,
       required: field.required === true,

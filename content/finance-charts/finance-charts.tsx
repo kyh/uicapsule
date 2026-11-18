@@ -5,9 +5,7 @@ import { useEffect, useRef } from "react";
 import { CHARTS } from "./charts";
 import { ChartCell } from "./lib/kit";
 
-/** Pixels per second the wall drifts while nobody is touching it. */
 const DRIFT = 42;
-/** How long the drift yields after someone scrolls the wall themselves. */
 const YIELD_MS = 3000;
 
 /**
@@ -17,64 +15,64 @@ const YIELD_MS = 3000;
  */
 export const FinanceCharts = ({ autoScroll = true }: { autoScroll?: boolean }) => {
   const scroller = useRef<HTMLDivElement>(null);
-  // Mouse resting over the wall, and the time a press (any pointer) releases
-  // its hold: Infinity while pressed, then a short yield after lifting.
   const hovered = useRef(false);
   const holdUntil = useRef(0);
+
   const release = () => {
     holdUntil.current = Math.min(holdUntil.current, performance.now() + YIELD_MS);
   };
 
   useEffect(() => {
     const el = scroller.current;
+
     if (!el || !autoScroll || matchMedia("(prefers-reduced-motion: reduce)").matches) {
       return;
     }
+
     let raf = 0;
     let last = performance.now();
     let yieldUntil = 0;
-    // scrollTop rounds to device pixels, so keep the true position in `y` and
-    // remember what we last wrote: any other change is someone scrolling.
     let y = el.scrollTop;
     let written = el.scrollTop;
+
     const step = (t: number) => {
       const dt = Math.min(64, t - last);
       last = t;
+
       if (Math.abs(el.scrollTop - written) > 1) {
         yieldUntil = t + YIELD_MS;
       }
+
       const end = el.scrollHeight - el.clientHeight;
+
       if (hovered.current || t < holdUntil.current || t < yieldUntil || y >= end - 1) {
-        // Hand the position back to whoever is scrolling; stop at the bottom
-        // rather than jumping to the top.
         y = el.scrollTop;
       } else {
         y += (DRIFT * dt) / 1000;
         el.scrollTop = y;
       }
+
       written = el.scrollTop;
       raf = requestAnimationFrame(step);
     };
+
     raf = requestAnimationFrame(step);
+
     return () => cancelAnimationFrame(raf);
   }, [autoScroll]);
 
   return (
     <div
       ref={scroller}
-      // Move, not enter: a pointer already over the wall at load never enters.
       onPointerMove={(e) => {
         if (e.pointerType === "mouse") {
           hovered.current = true;
         }
       }}
-      // Releasing outside the wall (the gallery hosts it in an iframe) fires no
-      // pointerup here, so leaving ends a press too.
       onPointerLeave={() => {
         hovered.current = false;
         release();
       }}
-      // A press, hold or chart scrub doesn't move scrollTop, so it needs its own pause.
       onPointerDown={() => {
         holdUntil.current = Infinity;
       }}

@@ -27,14 +27,13 @@ const PHASES = [
   { amount: 10_700, label: "Backend & Infra" },
   { amount: 3300, label: "QA & Deployment" },
 ] as const;
+
 const TOTAL = PHASES.reduce((s, p) => s + p.amount, 0);
 
 const HEIGHT = 180;
 const MARGIN = { bottom: 0, left: 0, right: 0, top: 6 };
 const curve = d3Curve(curveMonotoneX);
 
-// Three nested envelopes (committed, forecast, ceiling) that step down at each
-// phase boundary with a soft shoulder rather than a cliff.
 const LAYERS = [
   { id: "ceiling", levels: [0.95, 0.66, 0.4, 0.06], opacity: 0.26 },
   { id: "forecast", levels: [0.75, 0.53, 0.31, 0.06], opacity: 0.5 },
@@ -43,18 +42,22 @@ const LAYERS = [
 
 const smooth = (t: number) => {
   const c = Math.min(1, Math.max(0, t));
+
   return c * c * (3 - 2 * c);
 };
 
 const envelope = (levels: readonly number[], x: number) => {
   let y = levels[0] ?? 0;
+
   for (let k = 0; k < levels.length - 1; k += 1) {
     y += ((levels[k + 1] ?? 0) - (levels[k] ?? 0)) * smooth((x - (k + 0.55)) / 0.7);
   }
+
   return y;
 };
 
 const SAMPLES = Array.from({ length: 81 }, (_, i) => (i / 80) * PHASES.length);
+
 const ROWS = LAYERS.flatMap((layer) =>
   SAMPLES.map((x) => ({ layer: layer.id, x, y: envelope(layer.levels, x) })),
 );
@@ -95,11 +98,9 @@ export const ProjectBudgetAllocation = () => {
               },
             ),
           ),
-          // Phases not in focus sit under a white veil; the veil re-keys as
-          // focus walks, so the lit phase fades up while the last one dims.
           rect(
-            PHASES.map((p, i) => ({ id: p.label, x1: i, x2: i + 1, y1: 0, y2: 1 })).filter(
-              (_, i) => i !== hi,
+            PHASES.flatMap((p, i) =>
+              i === hi ? [] : [{ id: p.label, x1: i, x2: i + 1, y1: 0, y2: 1 }],
             ),
             {
               fill: "#ffffff",
@@ -178,6 +179,7 @@ export const ProjectBudgetAllocation = () => {
             ariaLabel="Project budget by phase"
             onFocusChange={(p) => {
               const x = Number(p?.xValue);
+
               if (p && Number.isFinite(x)) {
                 pin(Math.min(PHASES.length - 1, Math.max(0, Math.floor(x))));
               }

@@ -70,6 +70,7 @@ const Button = ({
   ...props
 }: ButtonProps) => {
   const { trigger } = useWebHaptics();
+
   return (
     <ButtonPrimitive
       data-slot="button"

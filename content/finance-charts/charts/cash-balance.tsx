@@ -29,7 +29,6 @@ const END = 17;
 const LO = 4000;
 const HI = 21_000;
 
-// Hand-placed anchors shape the day (hour, $); seeded jitter roughens it.
 const ANCHORS: [number, number][] = [
   [6, 13_900],
   [6.3, 12_900],
@@ -59,36 +58,43 @@ const ANCHORS: [number, number][] = [
 
 const lerpAnchors = (h: number) => {
   const i = ANCHORS.findIndex(([x]) => x >= h);
+
   if (i <= 0) {
     return ANCHORS[0]?.[1] ?? 0;
   }
+
   const [x0, y0] = ANCHORS[i - 1] ?? [START, 0];
   const [x1, y1] = ANCHORS[i] ?? [END, 0];
+
   return y0 + ((h - x0) / (x1 - x0)) * (y1 - y0);
 };
 
 const POINTS = (() => {
   const r = rng(41);
   const n = 72;
+
   return Array.from({ length: n }, (_, i) => {
     const hour = START + (i / (n - 1)) * (END - START);
+
     return { hour, value: lerpAnchors(hour) + (r() - 0.5) * 380 };
   });
 })();
 
 const valueAt = (hour: number) => {
   let [best] = POINTS;
+
   for (const p of POINTS) {
     if (best === undefined || Math.abs(p.hour - hour) < Math.abs(best.hour - hour)) {
       best = p;
     }
   }
+
   return best ?? { hour, value: 0 };
 };
 
-// Diagonal hatch for the 10K–15K "normal range" band; the chart clips the overhang.
 const HATCH = Array.from({ length: 60 }, (_, i) => {
   const x = START - 1 + i * 0.22;
+
   return { id: i, x1: x, x2: x + 0.42, y1: 10_000, y2: 15_000 };
 });
 
@@ -127,6 +133,7 @@ const clock = (hour: number) => {
   const m = Math.round((hour - h) * 60);
   const suffix = h >= 12 ? "PM" : "AM";
   const h12 = h % 12 === 0 ? 12 : h % 12;
+
   return `${h12}:${String(m).padStart(2, "0")} ${suffix}`;
 };
 
@@ -282,15 +289,19 @@ export const CashBalance = () => {
             ariaLabel="Cash balance through the day"
             onFocusChange={(p) => {
               const x = Number(p?.xValue);
+
               if (!p || !Number.isFinite(x)) {
                 return;
               }
+
               let nearest = 0;
+
               for (const [i, e] of EVENTS.entries()) {
                 if (Math.abs(e.hour - x) < Math.abs((EVENTS[nearest]?.hour ?? 0) - x)) {
                   nearest = i;
                 }
               }
+
               pin(nearest);
             }}
           />
@@ -311,11 +322,11 @@ export const CashBalance = () => {
         </PlotOverlay>
       </ChartSlot>
 
-      {/* Day timeline: event pins over a progress track. */}
       <div className="relative mt-3 h-8">
         {EVENTS.map((e, i) => {
           const Icon = e.icon;
           const on = i === active;
+
           return (
             <motion.span
               key={e.label}
@@ -344,11 +355,13 @@ export const CashBalance = () => {
       <div className="relative mt-1.5 h-4 text-[12px]" style={{ color: MUTED }}>
         {TIME_LABELS.map((t, i) => {
           let shift = "-50%";
+
           if (i === 0) {
             shift = "0%";
           } else if (i === TIME_LABELS.length - 1) {
             shift = "-100%";
           }
+
           return (
             <span
               key={t.label}

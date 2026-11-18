@@ -12,7 +12,6 @@ import { INK, MUTED, SPRING } from "../lib/tokens";
 
 const renderer = motion({ initial: "always", transition: SPRING });
 
-// One rung = $2k of MRR. The bar is a ladder you can count.
 const RUNG = 2;
 
 interface Rung {
@@ -46,14 +45,17 @@ export const RungBars = ({
         y: (i + 1) * RUNG,
       })),
     );
-    // The ladder climbs column by column, rung by rung.
+
     const shown = rungs.slice(0, revealed);
     const done = new Map<string, number>();
+
     for (const r of shown) {
       done.set(r.plan, (done.get(r.plan) ?? 0) + 1);
     }
+
     const labeled = plans.filter((p) => (done.get(p.plan) ?? 0) >= Math.round(p.value / RUNG));
     const top = Math.max(...plans.map((p) => p.value)) * 1.36;
+
     return defineChart({
       guides: false,
       margin: 0,
@@ -78,7 +80,6 @@ export const RungBars = ({
         }),
       ],
       scales: {
-        // Fixed domains keep columns and headroom still while marks enter.
         x: {
           scale: scalePoint<string>()
             .domain(plans.map((p) => p.plan))

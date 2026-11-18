@@ -36,6 +36,7 @@ export const PatternUnlock = () => {
 
   useEffect(() => {
     const timers = timersRef.current;
+
     return () => {
       for (const timer of timers) {
         clearTimeout(timer);
@@ -49,11 +50,13 @@ export const PatternUnlock = () => {
 
   const localPoint = (clientX: number, clientY: number) => {
     const rect = boardRef.current?.getBoundingClientRect();
+
     if (!rect) {
       return null;
     }
-    // Rect is in screen pixels; dots are in board pixels. They differ when an ancestor is scaled.
+
     const scale = rect.width / BOARD;
+
     return { x: (clientX - rect.left) / scale, y: (clientY - rect.top) / scale };
   };
 
@@ -63,11 +66,14 @@ export const PatternUnlock = () => {
         if (previous.includes(index)) {
           continue;
         }
+
         const dot = dotPosition(index);
+
         if (Math.hypot(dot.x - point.x, dot.y - point.y) < HIT_RADIUS) {
           return [...previous, index];
         }
       }
+
       return previous;
     });
   }, []);
@@ -77,8 +83,10 @@ export const PatternUnlock = () => {
     setPath((current) => {
       if (current.length === 0) {
         setPhase("idle");
+
         return current;
       }
+
       if (current.join(",") === CORRECT.join(",")) {
         setPhase("success");
         queue(() => {
@@ -87,6 +95,7 @@ export const PatternUnlock = () => {
         }, 2200);
       } else {
         setPhase("error");
+
         if (scope.current && !reduceMotion) {
           void animate(
             scope.current,
@@ -94,11 +103,13 @@ export const PatternUnlock = () => {
             { duration: 0.4, ease: "easeInOut" },
           );
         }
+
         queue(() => {
           setPhase("idle");
           setPath([]);
         }, 800);
       }
+
       return current;
     });
   }, [animate, queue, reduceMotion, scope]);
@@ -145,6 +156,7 @@ export const PatternUnlock = () => {
               setPath([]);
               setPhase("drawing");
               const point = localPoint(event.clientX, event.clientY);
+
               if (point) {
                 capture(point);
                 setCursor(point);
@@ -154,7 +166,9 @@ export const PatternUnlock = () => {
               if (phase !== "drawing") {
                 return;
               }
+
               const point = localPoint(event.clientX, event.clientY);
+
               if (point) {
                 capture(point);
                 setCursor(point);
@@ -183,6 +197,7 @@ export const PatternUnlock = () => {
             {Array.from({ length: GRID * GRID }, (_, index) => {
               const dot = dotPosition(index);
               const active = path.includes(index);
+
               return (
                 <motion.span
                   key={index}

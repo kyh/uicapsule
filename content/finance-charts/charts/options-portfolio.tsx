@@ -23,24 +23,27 @@ const GROUPS = [
   { fill: "#2f88f1", label: "Fixed income", share: 27, stroke: "#196ed9" },
 ] as const;
 
-// Bar index where each allocation starts.
 const STARTS = (() => {
   const out: number[] = [];
   let acc = 0;
+
   for (const g of GROUPS) {
     out.push(Math.round((acc / 100) * BARS));
     acc += g.share;
   }
+
   return out;
 })();
 
 const groupOf = (i: number) => {
   let g = 0;
+
   for (const [k, s] of STARTS.entries()) {
     if (i >= s) {
       g = k;
     }
   }
+
   return g;
 };
 
@@ -76,12 +79,16 @@ export const OptionsPortfolio = () => {
       const group = groupOf(i);
       const marker = STARTS[group] === i;
       let h = mode === 0 ? REST : (TREND[i] ?? REST);
+
       if (marker) {
         h = 1;
       }
+
       return { group, h, i };
     });
+
     const labels = GROUPS.map((g, k) => ({ ...g, i: STARTS[k] ?? 0, k }));
+
     return defineChart({
       guides: false,
       margin: { bottom: 1, left: 1, right: 1, top: 1 },

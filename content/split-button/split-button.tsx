@@ -35,19 +35,13 @@ const SEAM = 2;
 const TRAILING_SIZE = 56;
 const TRAILING_RADIUS = TRAILING_SIZE / 2;
 
-// One spring drives the circle, the notch and the chevron: on separate timelines
-// the notch drifts off the corner it hugs and the seam visibly breathes mid-morph.
 const MORPH_SPRING = { bounce: 0.35, visualDuration: 0.3 };
-// Every toggle presses the trailing button in and lets it spring back, like a
-// physical key. Driven by the toggle, not the pointer, so keyboard and light
-// dismiss get the same feedback.
 const PRESS_SCALE = 0.9;
 const PRESS_DOWN = { duration: 0.08, ease: "easeOut" } as const;
 const PRESS_RELEASE = { bounce: 0.55, type: "spring", visualDuration: 0.35 } as const;
 
 const roundnessOf = (morph: number) => Math.min(Math.max(morph, 0), 1);
 
-// seq makes a repeat of the same action a new value, restarting the timer.
 interface Confirmation {
   id: ActionId;
   seq: number;
@@ -71,21 +65,16 @@ export const SplitButton = () => {
   const cornerRadius = useTransform(morph, (m) => roundnessOf(m) * TRAILING_RADIUS);
   const chevronRotate = useTransform(morph, [0, 1], [0, 180]);
   const chevronShift = useTransform(morph, (m) => (roundnessOf(m) - 1) * 2);
-  // The notch is the trailing button's visible left edge grown by the seam: a flat
-  // edge plus two fillets of radius corner + seam, each the corner of a tile whose
-  // quarter-disc is cut out. The press scales about the button's centre, so the
-  // edge recedes and the fillets shrink with it. At rest the fillets sit wholly
-  // outside the face.
   const seamX = useTransform(() => LEADING_WIDTH + TRAILING_RADIUS * (1 - scale.get()));
   const filletRadius = useTransform(() => cornerRadius.get() * scale.get() + SEAM);
   const filletTop = useTransform(() => TRAILING_RADIUS * (1 - scale.get()) - SEAM);
+
   const filletBottom = useTransform(
     () => TRAILING_RADIUS * (1 + scale.get()) + SEAM - filletRadius.get(),
   );
+
   const notchMask = {
     maskImage: useMotionTemplate`linear-gradient(#000, #000), radial-gradient(circle ${filletRadius}px at 100% 100%, transparent ${filletRadius}px, #000 calc(${filletRadius}px + 0.5px)), radial-gradient(circle ${filletRadius}px at 100% 0, transparent ${filletRadius}px, #000 calc(${filletRadius}px + 0.5px))`,
-    // Fillet tiles start a pixel inside the flat part: abutting at a fractional x
-    // leaves an antialiased hairline between the layers.
     maskPosition: useMotionTemplate`0 0, calc(${seamX}px - 1px) ${filletTop}px, calc(${seamX}px - 1px) ${filletBottom}px`,
     maskRepeat: "no-repeat",
     maskSize: useMotionTemplate`${seamX}px 100%, calc(${filletRadius}px + 1px) ${filletRadius}px, calc(${filletRadius}px + 1px) ${filletRadius}px`,
@@ -105,7 +94,9 @@ export const SplitButton = () => {
     if (!confirmation) {
       return;
     }
+
     const timer = window.setTimeout(() => setConfirmation(null), CONFIRM_MS);
+
     return () => window.clearTimeout(timer);
   }, [confirmation]);
 
@@ -119,6 +110,7 @@ export const SplitButton = () => {
     setOpen(isOpen);
     morph.set(isOpen ? 1 : 0);
     void press();
+
     if (!isOpen) {
       setActiveIndex(null);
     }
@@ -138,6 +130,7 @@ export const SplitButton = () => {
       ["End", MENU_ITEMS.length - 1],
       ["Home", 0],
     ]).get(event.key);
+
     if (target !== undefined) {
       event.preventDefault();
       focusItem(target);

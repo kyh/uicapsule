@@ -12,7 +12,7 @@ import {
   Bubble,
   Card,
   ChartSlot,
-  Label,
+  Caption,
   Legend,
   MoreButton,
   Num,
@@ -43,8 +43,6 @@ const NODES: Node[] = [
   { color: "#fbbf24", id: "co", label: "Commodities" },
 ];
 
-// Input order is deliberate: with `linkSort: null` each node stacks its links
-// in this order, which reproduces the source's crossing pattern.
 const FLOWS: Flow[] = [
   { id: "cash-re", source: "cash", target: "re", value: 107.7 },
   { id: "eq-fi-a", source: "eq", target: "fi", value: 165.7 },
@@ -56,6 +54,7 @@ const FLOWS: Flow[] = [
 
 const TOTAL = FLOWS.reduce((s, f) => s + f.value, 0);
 const nodeOf = new Map(NODES.map((n) => [n.id, n]));
+
 const totalOf = (id: string, side: "source" | "target") =>
   FLOWS.filter((f) => f[side] === id).reduce((s, f) => s + f.value, 0);
 
@@ -64,7 +63,6 @@ const MARGIN = { bottom: 0, left: 0, right: 0, top: 0 };
 const NODE_W = 34;
 const curve = d3Curve(curveBumpX);
 
-// Sequence the walk through the crossing flows first — they're the story.
 const ORDER = ["eq-re", "cash-re", "eq-co", "eq-fi-b", "cash-co", "eq-fi-a"];
 
 export const AssetAllocation = () => {
@@ -107,8 +105,6 @@ export const AssetAllocation = () => {
                   x1: "x1",
                   x2: "x2",
                   y1: "y1",
-                  // A hair of slope so a perfectly level flow keeps a
-                  // non-degenerate bounding box for its gradient.
                   y2: (l) => l.y2 + 0.01,
                 }),
                 rect(nodes, {
@@ -209,7 +205,7 @@ export const AssetAllocation = () => {
 
       <div className="mt-4 grid grid-cols-2 gap-3">
         <div>
-          <Label>Allocated</Label>
+          <Caption>Allocated</Caption>
           <Num
             value={687.6}
             format={(n) => `$${n.toFixed(2)}M`}
@@ -217,7 +213,7 @@ export const AssetAllocation = () => {
           />
         </div>
         <div>
-          <Label>Total value locked</Label>
+          <Caption>Total value locked</Caption>
           <Num
             value={687.6}
             format={(n) => `$${n.toFixed(2)}M`}
@@ -234,8 +230,8 @@ export const AssetAllocation = () => {
             height={HEIGHT}
             ariaLabel="Asset allocation flows from equities and cash into fixed income, real estate and commodities"
             onFocusChange={(p) => {
-              // Scene keys are scoped under the Sankey mark and end in the link key.
               const i = p ? ORDER.findIndex((id) => p.key.endsWith(id)) : -1;
+
               if (i !== -1) {
                 pin(i);
               }

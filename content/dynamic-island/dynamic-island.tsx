@@ -10,8 +10,11 @@ import { Ring } from "./ring";
 import { Timer } from "./timer";
 
 type BaseView = "idle" | "ring" | "timer";
+
 type View = BaseView | ExpandedWidgetView;
+
 type VariantKey = View | `${View}-${View}`;
+
 interface AnimationVariant {
   scale?: number;
   scaleX?: number;
@@ -24,6 +27,7 @@ const baseViews: { view: BaseView; label: string }[] = [
   { label: "ring", view: "ring" },
   { label: "timer", view: "timer" },
 ];
+
 const views: { view: View; label: string }[] = [...baseViews, ...expandedWidgetOptions];
 
 const variants = {
@@ -41,7 +45,6 @@ const ANIMATION_VARIANTS = new Map<VariantKey, AnimationVariant>([
   ["timer-idle", { bounce: 0.3, scale: 0.7, y: -7.5 }],
 ]);
 
-// Fallback for pairs the table below does not name (e.g. expanded ↔ expanded).
 const DEFAULT_BOUNCE = 0.4;
 
 const BOUNCE_VARIANTS = new Map<VariantKey, number>([
@@ -59,12 +62,15 @@ const viewContent = (view: View) => {
     case "ring": {
       return <Ring />;
     }
+
     case "timer": {
       return <Timer />;
     }
+
     case "idle": {
       return <div className="h-7" />;
     }
+
     default: {
       return <ExpandedWidget view={view} />;
     }
@@ -76,6 +82,7 @@ const DynamicIsland = () => {
   const [variantKey, setVariantKey] = useState<VariantKey>("idle");
 
   const content = viewContent(view);
+
   const spring: Transition = {
     bounce: BOUNCE_VARIANTS.get(variantKey) ?? DEFAULT_BOUNCE,
     type: "spring",

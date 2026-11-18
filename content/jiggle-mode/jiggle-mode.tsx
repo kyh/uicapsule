@@ -219,9 +219,11 @@ const LONG_PRESS_MS = 450;
 
 const wobbleSeed = (id: string) => {
   let hash = 0;
+
   for (const char of id) {
     hash = (hash * 31 + (char.codePointAt(0) ?? 0)) % 997;
   }
+
   return hash / 997;
 };
 
@@ -256,6 +258,7 @@ export const JiggleMode = () => {
     if (pressTimerRef.current) {
       clearTimeout(pressTimerRef.current);
     }
+
     pressTimerRef.current = setTimeout(() => setEditing(true), LONG_PRESS_MS);
   }, []);
 
@@ -273,26 +276,33 @@ export const JiggleMode = () => {
   const reorderTo = useCallback(
     (id: string, pointX: number, pointY: number) => {
       const grid = gridRef.current;
+
       if (!grid) {
         return;
       }
+
       const rect = grid.getBoundingClientRect();
       const cellWidth = rect.width / COLUMNS;
       const rows = Math.ceil(order.length / COLUMNS);
       const cellHeight = rect.height / rows;
+
       const column = Math.min(
         COLUMNS - 1,
         Math.max(0, Math.floor((pointX - rect.left) / cellWidth)),
       );
+
       const row = Math.min(rows - 1, Math.max(0, Math.floor((pointY - rect.top) / cellHeight)));
       const target = Math.min(order.length - 1, row * COLUMNS + column);
       const current = order.indexOf(id);
+
       if (current === -1 || target === current) {
         return;
       }
+
       setOrder((previous) => {
         const next = previous.filter((entry) => entry !== id);
         next.splice(target, 0, id);
+
         return next;
       });
     },
@@ -315,15 +325,18 @@ export const JiggleMode = () => {
         className="absolute inset-0"
         onPointerDown={() => {
           wallpaperPressWhileEditingRef.current = editing;
+
           if (!editing) {
             startPress();
           }
         }}
         onPointerUp={() => {
           cancelPress();
+
           if (wallpaperPressWhileEditingRef.current && !draggingId) {
             setEditing(false);
           }
+
           wallpaperPressWhileEditingRef.current = false;
         }}
         onPointerLeave={() => {
@@ -359,6 +372,7 @@ export const JiggleMode = () => {
           {apps.map((app) => {
             const seed = wobbleSeed(app.id);
             const wobble = 2 + seed * 1.2;
+
             return (
               <motion.div
                 key={app.id}
@@ -443,6 +457,7 @@ export const JiggleMode = () => {
         <div className="flex items-center justify-around rounded-[30px] bg-white/15 p-3 backdrop-blur-xl">
           {DOCK.map((app) => {
             const seed = wobbleSeed(app.id);
+
             return (
               <motion.div
                 key={app.id}

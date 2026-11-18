@@ -18,9 +18,7 @@ type CustomUIMessage = UIMessage<
   }
 >;
 
-// The random index is always in range; the `?? list[0]` only satisfies
-// `noUncheckedIndexedAccess`, which the non-empty tuple keeps well-typed.
-const pick = <T>(list: readonly [T, ...T[]]): T =>
+const pick = <T>(list: readonly [T, ...T[]]) =>
   list[Math.floor(Math.random() * list.length)] ?? list[0];
 
 const fakeData = new Map<string, () => string>([
@@ -36,6 +34,7 @@ const fakeData = new Map<string, () => string>([
     "email",
     () => {
       const domain = pick(["example.com", "demo.org", "test.io"]);
+
       return `${Math.random().toString(36).slice(2, 15)}@${domain}`;
     },
   ],
@@ -75,13 +74,17 @@ const createTransport = (storeApi: StoreApi<SpreadsheetStore>) =>
 
       for (const cellKey of cells) {
         const [rowId, columnId] = cellKey.split(":");
+
         if (!rowId || !columnId) {
           continue;
         }
+
         const generateValue = fakeData.get(columnId);
+
         if (!generateValue) {
           continue;
         }
+
         const value = generateValue();
         store.updateData(rowId, columnId, "Generating...");
 

@@ -1,6 +1,3 @@
-// Light fintech tokens: white cards on a pale ground, near-black ink, one
-// saturated accent per card.
-
 export const INK = "#0b0b0f";
 export const MUTED = "#8a8a93";
 export const FAINT = "#c4c4cb";
@@ -20,7 +17,6 @@ export const YELLOW = "#fbbf24";
 export const PINK = "#ec4899";
 export const TEAL = "#14b8a6";
 
-// One spring for every chart and card: quick in, a hint of settle.
 export const SPRING = {
   damping: 22,
   mass: 1,

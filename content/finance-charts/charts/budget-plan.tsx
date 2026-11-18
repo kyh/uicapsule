@@ -13,8 +13,6 @@ const STEPS = [32.5, 47.8, 24.1, 61.3] as const;
 const BUDGET = 5064.52;
 const COLS = 52;
 const DOT_ROWS = 7;
-// Pixel layout: the texture fills the white band, axis labels sit in the
-// grey band under the track.
 const HEIGHT = 128;
 const BAND = 86;
 const MARGIN = { bottom: HEIGHT - BAND, left: 0, right: 0, top: 0 };
@@ -24,6 +22,7 @@ const PAD = 14;
 const DOTS = Array.from({ length: COLS * DOT_ROWS }, (_, i) => {
   const col = i % COLS;
   const row = Math.floor(i / COLS);
+
   return {
     col,
     id: i,
@@ -44,11 +43,11 @@ export const BudgetPlan = () => {
         margin: MARGIN,
         marks: [
           hexagon(DOTS, {
-            // Dots under the spent share pick up the accent; the rest stay grey.
             fill: (d) => {
               if (d.x <= pct) {
                 return d.row < 3 ? "#d5e5fb" : "#c3d9f8";
               }
+
               return d.row < 3 ? "#eeeef1" : "#e4e4e8";
             },
             key: "id",
@@ -85,12 +84,14 @@ export const BudgetPlan = () => {
                   if (index === 0) {
                     return "start";
                   }
+
                   return index === 4 ? "end" : "middle";
                 },
                 dx: ({ index }) => {
                   if (index === 0) {
                     return PAD;
                   }
+
                   return index === 4 ? -PAD : 0;
                 },
                 fontSize: 12,

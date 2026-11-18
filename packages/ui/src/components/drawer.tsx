@@ -32,9 +32,6 @@ const DrawerOverlay = ({ className, ...props }: DrawerPrimitive.Backdrop.Props) 
   />
 );
 
-// Bottom/top sheets span the viewport edge; side sheets float inset with a shadow. Each side's
-// closed transform clears its inset so the panel fully leaves the screen. Base UI renders a
-// backdrop only for the outermost drawer, so a nested viewport paints its own to dim the parent.
 const DrawerContent = ({ className, children, ...props }: DrawerPrimitive.Popup.Props) => (
   <DrawerPortal>
     <DrawerOverlay />

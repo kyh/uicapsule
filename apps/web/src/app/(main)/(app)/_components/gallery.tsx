@@ -23,8 +23,9 @@ const gridClassname =
 const withCounts = (options: ContentFilter[], counts: Record<string, number>) =>
   options.map((option) => ({ ...option, count: counts[option.slug] ?? 0 }));
 
-const facetsFor = (cards: GalleryCard[], filter: GalleryFilter): Facet[] => {
+const facetsFor = (cards: GalleryCard[], filter: GalleryFilter) => {
   const counts = countFilters(cards, filter);
+
   return [
     {
       defaultOption: { name: "Recently added" },
@@ -49,12 +50,9 @@ const facetsFor = (cards: GalleryCard[], filter: GalleryFilter): Facet[] => {
       options: withCounts(contentStyles, counts.styles),
       searchable: true,
     },
-  ];
+  ] satisfies Facet[];
 };
 
-// Search params are unknown at prerender, so reading them suspends. Only this leaf suspends;
-// the grid above stays in the static shell and re-renders in place once the URL is known,
-// instead of being client-rendered from scratch.
 const UrlFilter = ({ onChange }: { onChange: (filter: GalleryFilter) => void }) => {
   const searchParams = useSearchParams();
   const query = searchParams.toString();
@@ -62,6 +60,7 @@ const UrlFilter = ({ onChange }: { onChange: (filter: GalleryFilter) => void }) 
     const params = new URLSearchParams(query);
     onChange(parseGalleryFilter((key) => params.get(key)));
   }, [query, onChange]);
+
   return null;
 };
 

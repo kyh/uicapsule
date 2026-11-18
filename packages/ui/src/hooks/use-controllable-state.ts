@@ -6,14 +6,13 @@ interface UseControllableStateParams<T> {
   onChange?: ((state: T) => void) | undefined;
 }
 
-/** Direct values only. This keeps callable values unambiguous. */
 type SetValue<T> = (next: T) => void;
 
 export const useControllableState = <T>({
   prop,
   defaultProp,
   onChange,
-}: UseControllableStateParams<T>): [T, SetValue<T>] => {
+}: UseControllableStateParams<T>) => {
   const [uncontrolled, setUncontrolled] = useState(() => defaultProp);
   const isControlled = prop !== undefined;
   const value = isControlled ? prop : uncontrolled;
@@ -25,6 +24,7 @@ export const useControllableState = <T>({
 
   const setValue = useCallback((next: T) => {
     const { current } = currentRef;
+
     if (Object.is(next, current.value)) {
       return;
     }
@@ -33,8 +33,9 @@ export const useControllableState = <T>({
       current.value = next;
       setUncontrolled(() => next);
     }
+
     current.onChange?.(next);
   }, []);
 
-  return [value, setValue];
+  return [value, setValue] satisfies [T, SetValue<T>];
 };
