@@ -7,20 +7,14 @@ import { headingIds, rendersOutsideRouter } from "@/lib/agent/site-pages";
 
 import type { ProseBlock, ProseListItem, ProsePage } from "@/lib/agent/site-pages";
 
-/**
- * Renders a `ProsePage` — the same definition the Markdown representation is
- * built from, so `/privacy` and `/privacy` with `Accept: text/markdown` can
- * never drift apart.
- */
-
 const isOffSite = (href: string) => href.startsWith("http") || href.startsWith("mailto:");
 
 const ProseLink = ({ href, children }: { href: string; children: ReactNode }) => {
   const className = "text-foreground hover:text-primary underline underline-offset-4 transition";
+
   if (rendersOutsideRouter(href)) {
-    // Only a genuinely off-site link opens in a new tab; `/llms.txt`, `#anchors`
-    // and friends are this site's own and stay in place.
     const offSite = isOffSite(href);
+
     return (
       <a
         className={className}
@@ -32,6 +26,7 @@ const ProseLink = ({ href, children }: { href: string; children: ReactNode }) =>
       </a>
     );
   }
+
   return (
     <Link className={className} href={href}>
       {children}
@@ -39,7 +34,6 @@ const ProseLink = ({ href, children }: { href: string; children: ReactNode }) =>
   );
 };
 
-/** The copy's inline markup (see `inline-markup.ts`) as elements. Nothing else in it is markup. */
 const Inline = ({ text }: { text: string }) =>
   parseInline(text).map((token, index) => {
     if (token.kind === "bold") {
@@ -49,6 +43,7 @@ const Inline = ({ text }: { text: string }) =>
         </strong>
       );
     }
+
     if (token.kind === "code") {
       return (
         <code
@@ -59,6 +54,7 @@ const Inline = ({ text }: { text: string }) =>
         </code>
       );
     }
+
     if (token.kind === "link") {
       return (
         <ProseLink key={index} href={token.href}>
@@ -66,6 +62,7 @@ const Inline = ({ text }: { text: string }) =>
         </ProseLink>
       );
     }
+
     return <Fragment key={index}>{token.text}</Fragment>;
   });
 
@@ -87,11 +84,8 @@ const ProseItem = ({ item }: { item: ProseListItem }) => (
 
 const listClassName = "flex list-disc flex-col gap-2 pl-5";
 
-// The header is sticky, so an anchored heading stops clear of it.
 const headingClassName = "text-foreground scroll-mt-20";
 
-// Wide enough to keep five columns readable, narrow enough to fit the desktop prose column;
-// a phone scrolls the table inside its own box rather than the page.
 const ProseTable = ({ columns, rows }: { columns: string[]; rows: string[][] }) => (
   <div className="overflow-x-auto">
     <table className="w-full min-w-xl border-collapse text-left text-sm">
@@ -135,6 +129,7 @@ const ProseBlockView = ({ block, id }: { block: ProseBlock; id?: string }) => {
         </h2>
       );
     }
+
     case "list": {
       return (
         <ul className={listClassName}>
@@ -144,6 +139,7 @@ const ProseBlockView = ({ block, id }: { block: ProseBlock; id?: string }) => {
         </ul>
       );
     }
+
     case "bullets": {
       return (
         <ul className={listClassName}>
@@ -155,12 +151,15 @@ const ProseBlockView = ({ block, id }: { block: ProseBlock; id?: string }) => {
         </ul>
       );
     }
+
     case "table": {
       return <ProseTable columns={block.columns} rows={block.rows} />;
     }
+
     case "divider": {
       return <hr className="my-2" />;
     }
+
     default: {
       return (
         <p>
@@ -173,6 +172,7 @@ const ProseBlockView = ({ block, id }: { block: ProseBlock; id?: string }) => {
 
 export const ProsePageView = ({ page, children }: { page: ProsePage; children?: ReactNode }) => {
   const ids = headingIds(page);
+
   return (
     <main className="flex min-h-[calc(100dvh-(--spacing(32)))] max-w-3xl flex-col gap-4 p-8 select-text lg:p-20">
       <h1 className="text-3xl leading-snug lg:text-4xl">{page.heading}</h1>

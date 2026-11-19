@@ -53,6 +53,7 @@ const Components = () => {
   const [sync, setSync] = useState(false);
   const [terms, setTerms] = useState(true);
   const [range, setRange] = useState<(typeof RANGES)[number]>("Week");
+
   return (
     <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
       <Specimen title="Button">
@@ -117,6 +118,7 @@ const Components = () => {
 
 const InContext = () => {
   const [shared, setShared] = useState(false);
+
   return (
     <Card className="mx-auto grid w-full max-w-md gap-6 p-6">
       <div className="flex items-start justify-between gap-4">

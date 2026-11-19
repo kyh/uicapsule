@@ -9,7 +9,6 @@ import { ProjectBudgetAllocation } from "./project-budget-allocation";
 import { SalesPerformance } from "./sales-performance";
 import { TotalRevenue } from "./total-revenue";
 
-// growth-trends, asset-allocation, profit-margin-analysis, monthly-income, asset-overview-bar, sales-performance, expenses, total-revenue, project-budget-allocation
 export const GROUP_6: ChartEntry[] = [
   { Chart: GrowthTrends, id: "growth-trends" },
   { Chart: AssetAllocation, id: "asset-allocation" },

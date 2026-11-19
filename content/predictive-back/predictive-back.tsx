@@ -19,7 +19,6 @@ const COMMIT = 110;
 const EXIT = SCREEN_WIDTH + 48;
 const ARROW_SIZE = 40;
 
-// Apple's scroll-deceleration projection (rate 0.995): a flick commits even from a short pull.
 const project = (velocity: number) => ((velocity / 1000) * 0.995) / (1 - 0.995);
 const clamp = (value: number, min: number, max: number) => Math.min(max, Math.max(min, value));
 
@@ -52,10 +51,8 @@ export const PredictiveBack = () => {
   const reduced = useReducedMotion() ?? false;
   const grabRef = useRef<Grab | null>(null);
 
-  // 0 = detail at rest, EXIT = detail gone. The pointer writes it 1:1; springs settle it.
   const offset = useMotionValue(0);
   const lift = useMotionValue(0);
-  // The arrow follows the live gesture only, so settle and reopen springs never flash it.
   const arrow = useMotionValue(0);
   const arrowY = useMotionValue(SCREEN_HEIGHT / 2);
 
@@ -68,11 +65,13 @@ export const PredictiveBack = () => {
   const arrowOpacity = useTransform(arrow, [0, 24], [0, 1]);
   const armed = useTransform(arrow, [0, COMMIT - 1, COMMIT], [0.55, 0.9, 1.12]);
   const arrowScale = useSpring(armed, { damping: 18, stiffness: 520 });
+
   const arrowFill = useTransform(
     arrow,
     [COMMIT - 1, COMMIT],
     ["rgba(255,255,255,0.16)", "rgba(255,255,255,1)"],
   );
+
   const arrowInk = useTransform(arrow, [COMMIT - 1, COMMIT], ["#ffffff", "#0b0c10"]);
   const arrowTop = useTransform(arrowY, (y) => y - ARROW_SIZE / 2);
 
@@ -82,12 +81,15 @@ export const PredictiveBack = () => {
         setScreen("home");
       }
     };
+
     if (reduced) {
       offset.jump(target);
       lift.jump(0);
       done();
+
       return;
     }
+
     void animate(lift, 0, { bounce: 0, type: "spring", visualDuration: 0.3 });
     void animate(offset, target, {
       bounce: target === 0 ? 0.15 : 0,
@@ -105,9 +107,11 @@ export const PredictiveBack = () => {
     const onButton = event.target instanceof Element && event.target.closest("button") !== null;
     const inFlight = offset.isAnimating();
     const fromEdge = screen === "detail" && localX < EDGE && !onButton;
+
     if (!inFlight && !fromEdge) {
       return;
     }
+
     offset.stop();
     lift.stop();
     arrow.stop();
@@ -126,9 +130,11 @@ export const PredictiveBack = () => {
 
   const onPointerMove = (event: PointerEvent<HTMLDivElement>) => {
     const grab = grabRef.current;
+
     if (!grab || grab.pointerId !== event.pointerId) {
       return;
     }
+
     const next = clamp(grab.originOffset + (event.clientX - grab.originX) / grab.unit, 0, EXIT);
     const y = clamp((event.clientY - grab.top) / grab.unit, 90, SCREEN_HEIGHT - 90);
     offset.set(next);
@@ -139,17 +145,21 @@ export const PredictiveBack = () => {
 
   const onPointerUp = (event: PointerEvent<HTMLDivElement>) => {
     const grab = grabRef.current;
+
     if (!grab || grab.pointerId !== event.pointerId) {
       return;
     }
+
     grabRef.current = null;
     const velocity = offset.getVelocity();
     const commit = offset.get() + project(velocity) > COMMIT;
+
     if (reduced) {
       arrow.jump(0);
     } else {
       void animate(arrow, 0, { bounce: 0, type: "spring", visualDuration: 0.22 });
     }
+
     settle(commit ? EXIT : 0, velocity);
   };
 

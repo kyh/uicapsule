@@ -32,11 +32,9 @@ const WEEK = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
 interface Range {
   name: string;
   cols: number;
-  /** $ per cell row. */
   step: number;
   seed: number;
   total: number;
-  /** Tick columns and their labels. */
   ticks: [number, string][];
   period: (col: number) => string;
 }
@@ -66,6 +64,7 @@ const RANGES: Range[] = [
     period: (c) => {
       const m = Math.floor(c / 2);
       const month = MONTHS[m] ?? "";
+
       return c % 2 === 0 ? `${month} 1 – 15, 2026` : `${month} 16 – ${MONTH_DAYS[m] ?? 30}, 2026`;
     },
     seed: 29,
@@ -77,10 +76,12 @@ const RANGES: Range[] = [
 
 const flows = (range: Range) => {
   const r = rng(range.seed);
+
   return Array.from({ length: range.cols }, (_, col) => {
     const out = range.step * (0.7 + r() * 3.1);
     const swell = Math.sin((col / range.cols) * Math.PI) * 4;
     const inflow = range.step * (1.2 + swell + r() * 4.2);
+
     return { col, inflow, out };
   });
 };
@@ -98,21 +99,27 @@ export const FinancialTrends = () => {
 
   const definition = useMemo(() => {
     const data = DATA[range] ?? [];
+
     const cells = data.flatMap((d) => {
       const outRows = Math.max(1, Math.round(d.out / step));
       const inRows = Math.round(d.inflow / step);
+
       return Array.from({ length: ROWS }, (_, row) => {
         let kind = "empty";
+
         if (row < outRows) {
           kind = "out";
         } else if (row < outRows + inRows) {
           kind = "in";
         }
+
         return { col: d.col, id: `${d.col}:${row}`, kind, row };
       });
     });
+
     const colIds = data.map((d) => d.col);
     const ticks = meta?.ticks ?? [];
+
     return defineChart({
       color: { domain: ["out", "in", "empty"], range: [BLUE, IN_COLOR, EMPTY] },
       margin: MARGIN,
@@ -215,6 +222,7 @@ export const FinancialTrends = () => {
               ariaLabel={`Cash inflow and outflow by period, ${meta?.name.toLowerCase()}`}
               onFocusChange={(p) => {
                 const c = Number(p?.xValue);
+
                 if (p && Number.isInteger(c)) {
                   pin(c);
                 }

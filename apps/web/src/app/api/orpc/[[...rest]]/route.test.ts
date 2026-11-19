@@ -4,7 +4,6 @@ import { NextRequest } from "next/server";
 
 import * as route from "./route";
 
-// Cookie-less requests stop at the session guard without querying the database.
 const APP_ORIGIN = "http://localhost:3000";
 
 const post = (headers: Record<string, string> = {}) =>
@@ -38,6 +37,7 @@ describe("rpc endpoint", () => {
     const response = await route.GET(
       new NextRequest(`${APP_ORIGIN}/api/orpc/user/me`, { method: "GET" }),
     );
+
     assert.strictEqual(response.status, 404);
   });
 

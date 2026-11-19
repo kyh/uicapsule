@@ -25,9 +25,8 @@ export const DialTrough = ({ knobX, theme }: DialTroughProps) => {
   const tokens = EFFORT_THEMES[theme];
   const offsetY = (KNOB_SIZE - tokens.troughHeight) / 2;
 
-  // The trough follows the knob out past either cap, so the knob always sits ON
-  // the track rather than floating off the end of it.
   const troughLeft = useTransform(knobX, (x) => Math.min(0, x));
+
   const troughWidth = useTransform(
     knobX,
     (x) => TRACK_WIDTH + Math.max(0, -x) + Math.max(0, x - TRACK_TRAVEL),
@@ -36,6 +35,7 @@ export const DialTrough = ({ knobX, theme }: DialTroughProps) => {
   const fillLeft = useTransform(knobX, (x) => Math.min(0, x));
   const fillWidth = useTransform(knobX, (x) => x - Math.min(0, x) + KNOB_SIZE / 2);
   const [rampFrom, rampTo] = tokens.fill;
+
   const fillColor = useTransform(
     knobX,
     [0, TRACK_TRAVEL * 0.75, TRACK_TRAVEL],
@@ -128,8 +128,6 @@ export const LevelLabel = ({ knobX, theme, className }: LevelLabelProps) => {
     }
   });
 
-  // Reading the knob during render is safe: it only ever seeds the first paint,
-  // and a card that mounts mid-flight should open on the level it can already see.
   return (
     <span ref={ref} className={className}>
       {labelAt(theme, nearestLevel(theme, knobX.get()))}

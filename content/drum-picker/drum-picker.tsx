@@ -30,7 +30,6 @@ interface WheelItemProps {
 }
 
 const WheelItem: FC<WheelItemProps> = ({ y, index, label, align }) => {
-  // Distance of this item from the selection line, in items (-3..3 visible).
   const distance = useTransform(y, (value) => (value + index * ITEM_HEIGHT) / ITEM_HEIGHT);
   const rotateX = useTransform(distance, [-3.5, 0, 3.5], [-62, 0, 62]);
   const opacity = useTransform(distance, [-3.5, -2, 0, 2, 3.5], [0, 0.35, 1, 0.35, 0]);

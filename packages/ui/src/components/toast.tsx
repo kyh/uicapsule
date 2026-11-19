@@ -15,7 +15,6 @@ import {
 
 import { cn } from "cn";
 
-// Hidden toasts stay mounted so promotion into the visible stack animates.
 const MAX_VISIBLE = 3;
 const STACK_OFFSET_Y = 10;
 const STACK_SCALE = 0.06;
@@ -82,6 +81,7 @@ const ToastIcon = ({
 }) => {
   const icon =
     toastObject.data?.icon ?? (isToastType(toastObject.type) ? TYPE_ICONS[toastObject.type] : null);
+
   if (!icon) {
     return null;
   }

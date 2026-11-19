@@ -14,6 +14,7 @@ export const Segmented = <T extends string>({
   onValueChange,
 }: SegmentedProps<T>) => {
   const name = useId();
+
   return (
     <fieldset className="bg-muted inline-flex w-fit rounded-lg p-1">
       <legend className="sr-only">{label}</legend>

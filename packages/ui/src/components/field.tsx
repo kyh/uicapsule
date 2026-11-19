@@ -85,6 +85,7 @@ const FieldContent = ({ className, ...props }: ComponentProps<"div">) => (
 );
 
 const FieldLabel = ({ className, ...props }: ComponentProps<typeof Label>) => (
+  // oxlint-disable-next-line jsx-a11y/label-has-associated-control -- wraps the Label primitive; the consumer supplies htmlFor or nests the control
   <Label
     data-slot="field-label"
     className={cn(
@@ -159,6 +160,7 @@ const FieldError = ({
   const messages = [
     ...new Set(errors?.flatMap((fieldError) => (fieldError?.message ? [fieldError.message] : []))),
   ];
+
   const content =
     children ??
     (messages.length > 1 ? (

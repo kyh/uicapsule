@@ -5,6 +5,7 @@ import { getLocalSlugs, getShadcnRegistry, getShadcnRegistryItem } from "@/lib/c
 
 export const generateStaticParams = async () => {
   const slugs = await getLocalSlugs();
+
   return ["registry", ...slugs].map((slug) => ({ slug: `${slug}.json` }));
 };
 
@@ -22,6 +23,7 @@ export const GET = async (_: NextRequest, { params }: RouteContext<"/r/[slug]">)
   }
 
   const item = await getShadcnRegistryItem(slugWithoutExtension);
+
   if (!item) {
     return NextResponse.json(
       { error: `Component not found: ${slugWithoutExtension}` },

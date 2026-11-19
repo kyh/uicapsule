@@ -30,7 +30,6 @@ const SERIES = [
   { color: VIVID_PURPLE, label: "Cash", total: 79_742.92 },
 ] as const;
 
-// $ per series per day, May 1–13: assets, debt, investments, cash.
 const TABLE: [number, number, number, number][] = [
   [9460, 1520, 4480, 5600],
   [7420, 2560, 7010, 2140],
@@ -49,6 +48,7 @@ const TABLE: [number, number, number, number][] = [
 
 const WEEKDAY = ["Fri", "Sat", "Sun", "Mon", "Tue", "Wed", "Thu"] as const;
 const DAYS = TABLE.map((_, i) => i + 1);
+
 const ROWS = TABLE.flatMap((vals, i) =>
   SERIES.map((s, j) => ({
     day: i + 1,
@@ -129,9 +129,7 @@ export const FinancialBreakdown = () => {
     [day],
   );
 
-  // Band center with paddingInner 0.34 / paddingOuter 0.1.
   const center = ((hi + 0.1 + 0.33) / (DAYS.length - 0.34 + 0.2)) * 100;
-  // A narrow callout beside the band, flipping sides past the middle.
   const flip = hi > 6;
   const align = flip ? "right" : "left";
   const left = flip ? center - 3.5 : center + 3.5;

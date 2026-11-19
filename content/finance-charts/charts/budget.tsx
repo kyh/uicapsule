@@ -14,7 +14,6 @@ const LIMIT = 5000;
 const COLS = 30;
 const ROWS = 2;
 const FILLED = Math.floor((SPENT / LIMIT) * COLS);
-// Two rows of ~11px squares at wall-card width.
 const HEIGHT = 23;
 
 const COL_IDS = Array.from({ length: COLS }, (_, i) => i);
@@ -22,7 +21,6 @@ const ROW_IDS = Array.from({ length: ROWS }, (_, i) => i);
 const CELLS = ROW_IDS.flatMap((row) => COL_IDS.map((col) => ({ col, id: `${row}:${col}`, row })));
 
 export const Budget = () => {
-  // A glint walks the spent columns, then rests a beat off the end.
   const [glint, pin] = useCycle(FILLED + 4, 170);
 
   const definition = useMemo(
@@ -37,6 +35,7 @@ export const Budget = () => {
               if (d.col >= FILLED) {
                 return "off";
               }
+
               return d.col === glint ? "glint" : "on";
             },
             inset: 1.3,

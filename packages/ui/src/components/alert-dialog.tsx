@@ -176,6 +176,7 @@ const alertDialogStore = {
   state: initialAlertState,
   subscribe: (listener: Listener) => {
     alertDialogStore.listeners.push(listener);
+
     return () => {
       alertDialogStore.listeners = alertDialogStore.listeners.filter((l) => l !== listener);
     };
@@ -204,8 +205,8 @@ const settle = async (onClick: (() => void | Promise<void>) | undefined, onSettl
 
 export const GlobalAlertDialog = () => {
   const [pending, setPending] = useState<"action" | "cancel" | null>(null);
-  // The action renders first in the DOM, so default focus would put Enter on the confirm.
   const cancelRef = useRef<HTMLButtonElement>(null);
+
   const alertState = useSyncExternalStore(
     alertDialogStore.subscribe,
     alertDialogStore.getSnapshot,
@@ -219,6 +220,7 @@ export const GlobalAlertDialog = () => {
     if (pending) {
       return;
     }
+
     setPending(action);
     void settle(onClick, () => setPending(null));
   };
@@ -227,6 +229,7 @@ export const GlobalAlertDialog = () => {
     if (pending) {
       return;
     }
+
     if (!open) {
       runAndClose(alertState.cancel?.onClick, "cancel");
     }

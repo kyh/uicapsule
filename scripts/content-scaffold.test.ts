@@ -22,11 +22,13 @@ test("a scaffolded design system is valid, scoped to its slug, and carries no te
 
   const files = await readdir(directory, { recursive: true });
   assert.ok(!files.includes("README.md"));
+
   const sources = await Promise.all(
     files
       .filter((file) => /\.(?:tsx?|css)$/u.test(file))
       .map((file) => readFile(path.join(directory, file), "utf-8")),
   );
+
   assert.ok(sources.every((source) => !source.includes("ds-template")));
   assert.match(
     await readFile(path.join(directory, "tokens.css"), "utf-8"),

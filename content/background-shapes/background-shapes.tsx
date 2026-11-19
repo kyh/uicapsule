@@ -10,7 +10,6 @@ interface CellProps {
 
 type CellComponent = (props: CellProps) => ReactElement | null;
 
-// Cell glyph functions that return JSX instead of SVG strings
 const Cell1 = ({ colors }: CellProps) => (
   <circle cx="50" cy="50" r="9.44" fill={colors[0]} fillRule="evenodd" />
 );
@@ -65,26 +64,19 @@ const cellConfigs: CellConfig[] = [
   { glyph: Cell7, weight: 3 },
 ];
 
-// Each config repeated `weight` times, so a uniform draw honours the weights.
-// Built once at module scope: every cell re-rolls on its own timer, so rebuilding
-// this per draw would allocate constantly.
 const weightedCells: CellConfig[] = cellConfigs.flatMap((config) =>
   Array.from({ length: config.weight }, () => config),
 );
 
-// Unreachable fallback for `noUncheckedIndexedAccess`; the index below is always in range.
 const fallbackCell: CellConfig = { glyph: Cell1, weight: 1 };
 
-const pickCell = (): CellConfig =>
+const pickCell = () =>
   weightedCells[Math.floor(Math.random() * weightedCells.length)] ?? fallbackCell;
 
-// Cells are authored in a 100x100 viewBox; this maps one down to a `cellSize` grid slot.
 const CELL_SCALE = 0.2;
 
-// Module scope so the default keeps a stable identity across renders.
 const DEFAULT_COLORS = ["white"];
 
-// Individual cell component that manages its own interval
 interface GridCellProps {
   x: number;
   y: number;
@@ -101,12 +93,14 @@ const GridCell = ({ x, y, colors, strokeWidth, minInterval, maxInterval }: GridC
     const getRandomInterval = () => Math.random() * (maxInterval - minInterval) + minInterval;
 
     let timeoutId: ReturnType<typeof setTimeout>;
+
     const scheduleNext = () => {
       timeoutId = setTimeout(() => {
         setCurrentCell(pickCell());
         scheduleNext();
       }, getRandomInterval());
     };
+
     scheduleNext();
 
     return () => clearTimeout(timeoutId);
@@ -148,6 +142,7 @@ export const BackgroundGlyphs = ({
 
   const cells = useMemo<ReactNode[]>(() => {
     const list: ReactNode[] = [];
+
     for (let x = borderSize; x < width / 2; x += cellSize) {
       for (let y = borderSize; y < height - borderSize; y += cellSize) {
         list.push(
@@ -172,6 +167,7 @@ export const BackgroundGlyphs = ({
         );
       }
     }
+
     return list;
   }, [width, height, cellSize, strokeWidth, colors, borderSize, minInterval, maxInterval]);
 

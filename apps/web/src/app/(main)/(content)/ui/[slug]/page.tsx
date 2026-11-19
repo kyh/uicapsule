@@ -21,20 +21,20 @@ type Props = Pick<PageProps<"/ui/[slug]">, "params">;
 
 export const generateStaticParams = async () => {
   const all = await getAllContent();
+
   return all.map((c) => ({ slug: c.slug }));
 };
 
-export const generateMetadata = async ({ params }: Props): Promise<Metadata> => {
+export const generateMetadata = async ({ params }: Props) => {
   const { slug } = await params;
   const all = await getAllContent();
   const component = all.find((c) => c.slug === slug);
+
   if (!component) {
-    return { alternates: canonicalAlternates(`/ui/${slug}`) };
+    return { alternates: canonicalAlternates(`/ui/${slug}`) } satisfies Metadata;
   }
 
   const { description } = component;
-  // The cover already on the gallery card is the share video; the image is the
-  // component's card, its cover still behind its name.
   const video = componentVideo(component);
   const image = shareCardImage(`/ui/${component.slug}`, component.name);
 
@@ -47,15 +47,14 @@ export const generateMetadata = async ({ params }: Props): Promise<Metadata> => 
     }),
     title: component.name,
     twitter: pageTwitter(component.name, description, { image }),
-  };
+  } satisfies Metadata;
 };
 
 const Content = async ({ params }: Props) => {
   const { slug } = await params;
   const feed = await getAllContent();
-  // Looked up rather than `.some()` because the JSON-LD and the sr-only
-  // heading below both need the component itself.
   const component = feed.find((c) => c.slug === slug);
+
   if (!component) {
     notFound();
   }
@@ -63,8 +62,6 @@ const Content = async ({ params }: Props) => {
   return (
     <>
       <JsonLd node={buildComponentGraph(component, componentVideo(component))} />
-      {/* The feed is a full-bleed preview with no heading of its own; this
-          gives the route the `h1` and description its canonical URL claims. */}
       <div className="sr-only">
         <h1>{component.name}</h1>
         <p>{component.description}</p>

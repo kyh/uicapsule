@@ -59,6 +59,7 @@ const Row = ({ metric, step }: { metric: Metric; step: number }) => {
       metric.series.slice(step, step + WINDOW).map((value, i) => ({ id: `m${step + i}`, value })),
     [metric, step],
   );
+
   const change = metric.change[step] ?? 0;
   const top = Math.max(...rows.map((r) => r.value));
   const amount = metric.amounts[step] ?? 0;
@@ -165,6 +166,7 @@ const Row = ({ metric, step }: { metric: Metric; step: number }) => {
 
 export const GrowthTrends = () => {
   const [step] = useCycle(STEPS, 2600);
+
   return (
     <Card className="divide-y divide-[#ececf0]">
       {METRICS.map((m) => (

@@ -36,11 +36,13 @@ import { PersonAvatar } from "./person-avatar";
 
 const CodePreview = dynamic(async () => {
   const mod = await import("./code-preview");
+
   return mod.CodePreview;
 });
 
 const FLOATING_BUTTON_CLASS = "size-9 rounded-full shadow-sm";
 const SECTION_CLASS = "-mx-3 flex flex-col gap-2.5 border-t px-3 pt-3 pb-1";
+
 const AVATAR_ROW_CLASS =
   "*:data-[slot=avatar]:ring-background flex -space-x-2 *:data-[slot=avatar]:ring-2 *:data-[slot=avatar]:grayscale";
 
@@ -48,11 +50,13 @@ const sourceFilesSchema = z.array(z.object({ code: z.string(), path: z.string() 
 
 const sourceFilesQuery = (slug: string) =>
   queryOptions({
-    queryFn: async (): Promise<SourceFile[]> => {
+    queryFn: async () => {
       const res = await fetch(`/api/content/${slug}`);
+
       if (!res.ok) {
         throw new Error(`Failed to load source files for ${slug}`);
       }
+
       return sourceFilesSchema.parse(await res.json());
     },
     queryKey: ["content-source-files", slug],
@@ -80,6 +84,7 @@ const formatAddedAt = (isoDate: string) =>
 const downloadZip = async (slug: string, sourceFiles: SourceFile[]) => {
   const { default: JSZip } = await import("jszip");
   const zip = new JSZip();
+
   for (const { path, code } of sourceFiles) {
     const cleanPath = path.startsWith("/") ? path.slice(1) : path;
     zip.file(cleanPath, code);
@@ -99,6 +104,7 @@ const downloadZip = async (slug: string, sourceFiles: SourceFile[]) => {
 
 const SourceCodePreview = ({ slug }: { slug: string }) => {
   const { data: sourceFiles } = useSuspenseQuery(sourceFilesQuery(slug));
+
   return <CodePreview key={slug} sourceFiles={sourceFiles} />;
 };
 
@@ -112,6 +118,7 @@ const Aside = ({ contentComponent }: AsideProps) => {
     if (contentComponent.type !== "local") {
       return;
     }
+
     void queryClient.prefetchQuery(sourceFilesQuery(contentComponent.slug));
   }, [contentComponent, queryClient]);
 
@@ -130,7 +137,7 @@ const Aside = ({ contentComponent }: AsideProps) => {
     }
 
     const command = `npx shadcn@latest add @uicapsule/${contentComponent.slug}`;
-    // Always wider than the toast; the fade signals overflow without a scrollbar.
+
     const snippet = (
       <code className="bg-muted block rounded px-2 py-1.5 font-[monospace]">
         <span className="block overflow-x-auto whitespace-nowrap [mask-image:linear-gradient(to_right,black_calc(100%-2rem),transparent)] [scrollbar-width:none]">
@@ -144,6 +151,7 @@ const Aside = ({ contentComponent }: AsideProps) => {
     } catch (error) {
       console.error("Failed to copy command to clipboard:", error);
       toast.error("Failed to copy command to clipboard.", { description: snippet });
+
       return;
     }
 
@@ -162,10 +170,12 @@ const Aside = ({ contentComponent }: AsideProps) => {
     }
 
     setDownloading(true);
+
     const toastId = toast.loading("Download started", {
       description: `${contentComponent.slug}.zip is being downloaded`,
       icon: <DownloadIcon className="size-4" />,
     });
+
     try {
       const sourceFiles = await queryClient.fetchQuery(sourceFilesQuery(contentComponent.slug));
       await downloadZip(contentComponent.slug, sourceFiles);
@@ -182,6 +192,7 @@ const Aside = ({ contentComponent }: AsideProps) => {
         id: toastId,
       });
     }
+
     setDownloading(false);
   };
 
@@ -358,7 +369,6 @@ const Aside = ({ contentComponent }: AsideProps) => {
 };
 
 export const ResponsiveAside = ({ contentComponent, onPrev, onNext }: ResponsiveAsideProps) => {
-  // Swipe direction is behavior, not style, so it alone still reads the viewport.
   const isDesktop = useMediaQuery();
 
   return (

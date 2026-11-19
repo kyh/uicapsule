@@ -1,15 +1,3 @@
-/**
- * Lookbook data layer.
- *
- * Owns every constant the renderer reads: the eighteen base looks, the four
- * cycle permutations that expand them into 72 unique cards, the card/cell
- * geometry, and the deterministic grid layout helpers.
- *
- * Every look is one photograph, generated to a fixed framing (full body, model
- * centred, small margin above the head and below the shoes) so
- * `look-figure.tsx` can crop any piece out of any look with one set of boxes.
- */
-
 const LOOK_IMAGE_BASE =
   "https://d24l2zb4cwkekfpl.public.blob.vercel-storage.com/lookbook-camera/looks";
 
@@ -30,9 +18,13 @@ interface ItemBase {
  * never point at a region of the drawing that does not exist.
  */
 export type TopItem = ItemBase & { slot: "top" };
+
 export type LowerItem = ItemBase & { slot: "lower" };
+
 export type ShoeItem = ItemBase & { slot: "shoes" };
+
 export type ClothingItem = TopItem | LowerItem | ShoeItem;
+
 export type ItemSlot = ClothingItem["slot"];
 
 export interface Look {
@@ -701,14 +693,6 @@ const RAW_LOOKS: Omit<Look, "imageUrl">[] = [
   },
 ];
 
-/**
- * Cycle expansion. The 18 base looks are emitted four times into a single
- * LOOKS array of length 72. Each cycle uses a different permutation (generated
- * offline by simulated annealing against an adjacency-cost objective for column
- * counts 8..15) so duplicates never sit adjacent at any chooseCols result.
- * Cycles 1-3 suffix every id so React keys stay unique while cycle 0 keeps the
- * base objects by reference.
- */
 const CYCLE_ORDERS: number[][] = [
   [0, 8, 2, 16, 4, 5, 11, 7, 1, 10, 17, 6, 12, 13, 14, 15, 3, 9],
   [13, 15, 3, 8, 9, 2, 16, 7, 5, 0, 1, 10, 6, 17, 11, 4, 14, 12],
@@ -722,8 +706,9 @@ export const BASE_LOOKS: Look[] = RAW_LOOKS.map((look) =>
   Object.assign(look, { imageUrl: `${LOOK_IMAGE_BASE}/${look.id}.jpg` }),
 );
 
-const cloneLook = (look: Look, suffix: string): Look => {
+const cloneLook = (look: Look, suffix: string) => {
   const [top, lower, shoes] = look.items;
+
   return {
     ...look,
     id: `${look.id}-${suffix}`,
@@ -732,36 +717,37 @@ const cloneLook = (look: Look, suffix: string): Look => {
       { ...lower, id: `${lower.id}-${suffix}` },
       { ...shoes, id: `${shoes.id}-${suffix}` },
     ],
-  };
+  } satisfies Look;
 };
 
 export const LOOKS: Look[] = CYCLE_ORDERS.flatMap((order, cycleIdx) => {
   const suffix = CYCLE_SUFFIXES[cycleIdx] ?? "";
   const out: Look[] = [];
+
   for (const baseIdx of order) {
     const base = BASE_LOOKS[baseIdx];
+
     if (!base) {
       continue;
     }
-    // Cycle 0 keeps the base objects by reference — only 1-3 clone, which is
-    // what keeps `look-01` unsuffixed and every key unique.
+
     out.push(cycleIdx === 0 ? base : cloneLook(base, suffix));
   }
+
   return out;
 });
 
-export const lookTotal = (look: Look): number => {
+export const lookTotal = (look: Look) => {
   let sum = 0;
+
   for (const it of look.items) {
     sum += it.priceCents;
   }
+
   return sum;
 };
 
-export const fmtPrice = (cents: number): string =>
-  `$${Math.round(cents / 100).toLocaleString("en-US")}`;
-
-/* ── Layout geometry (world coordinates) ─────────────────────────── */
+export const fmtPrice = (cents: number) => `$${Math.round(cents / 100).toLocaleString("en-US")}`;
 
 export const CARD_W = 188;
 export const CARD_H = 282;
@@ -783,12 +769,12 @@ export interface Pos {
  * selection uses it so the camera flies to the copy already on screen rather
  * than to the canonical one a tile away.
  */
-export const wrapOffset = (v: number, centre: number, tile: number): number =>
+export const wrapOffset = (v: number, centre: number, tile: number) =>
   -Math.round((v - centre) / tile) * tile;
 
-/** Stable pseudo-random in [0, 1) from a numeric seed. */
-const hash = (n: number): number => {
+const hash = (n: number) => {
   const s = Math.sin(n * 12.9898 + 78.233) * 43_758.5453;
+
   return s - Math.floor(s);
 };
 
@@ -797,22 +783,26 @@ const hash = (n: number): number => {
  * Only perfect divisions are considered so the wrap-tiled world never reveals
  * an empty cell.
  */
-export const chooseCols = (count: number, viewportAspect: number): number => {
+export const chooseCols = (count: number, viewportAspect: number) => {
   const cardAspect = CARD_W / CARD_H;
   const target = viewportAspect / cardAspect;
   let best = 1;
   let bestDiff = Infinity;
+
   for (let cols = 1; cols <= count; cols += 1) {
     if (count % cols !== 0) {
       continue;
     }
+
     const rows = count / cols;
     const diff = Math.abs(cols / rows - target);
+
     if (diff < bestDiff) {
       bestDiff = diff;
       best = cols;
     }
   }
+
   return best;
 };
 
@@ -821,16 +811,12 @@ export const chooseCols = (count: number, viewportAspect: number): number => {
  * centre plus a hashed offset (±0.09 cellW, ±0.07 cellH) and a rotation of up
  * to ±2°. Positions are stable across renders.
  */
-export const layoutPositions = (
-  worldW: number,
-  worldH: number,
-  cols: number,
-  count: number,
-): Pos[] => {
+export const layoutPositions = (worldW: number, worldH: number, cols: number, count: number) => {
   const rows = Math.ceil(count / cols);
   const cellW = worldW / cols;
   const cellH = worldH / rows;
   const out: Pos[] = [];
+
   for (let i = 0; i < count; i += 1) {
     const col = i % cols;
     const row = Math.floor(i / cols);
@@ -844,5 +830,6 @@ export const layoutPositions = (
       y: row * cellH + cellH / 2 + oy,
     });
   }
+
   return out;
 };

@@ -3,9 +3,6 @@ import type { GalleryFilter } from "./content-categories";
 
 import type { Cover } from "@/lib/assets";
 
-// Pure and client-safe: the gallery ships every card in the static shell and filters in the
-// browser, so a filter change never waits on the server.
-
 export interface GalleryCard {
   slug: string;
   name: string;
@@ -17,19 +14,19 @@ export interface GalleryCard {
 
 export const DEFAULT_GALLERY_FILTER: GalleryFilter = { elements: [], styles: [], view: "recent" };
 
-// Selections within an axis are OR'd; the axes themselves are AND'd.
 const matchesFilter = ({ tags }: GalleryCard, filter: GalleryFilter) => {
   const matchesAxis = (selection: string[]) =>
     selection.length === 0 || selection.some((slug) => tags.includes(slug));
+
   return matchesAxis(filter.elements) && matchesAxis(filter.styles);
 };
 
 const visibleCards = (cards: GalleryCard[], filter: GalleryFilter) =>
   cards.filter((card) => matchesFilter(card, filter));
 
-// Cards arrive newest-first; a view only reorders, never hides.
-export const filterGallery = (cards: GalleryCard[], filter: GalleryFilter): GalleryCard[] => {
+export const filterGallery = (cards: GalleryCard[], filter: GalleryFilter) => {
   const visible = visibleCards(cards, filter);
+
   return filter.view === "recommended"
     ? visible.toSorted((a, b) => Number(b.featured) - Number(a.featured))
     : visible;
@@ -40,8 +37,7 @@ export interface FilterCounts {
   styles: Record<string, number>;
 }
 
-// Each axis is counted against the other axes' selection so no option leads to an empty gallery.
-export const countFilters = (cards: GalleryCard[], filter: GalleryFilter): FilterCounts => {
+export const countFilters = (cards: GalleryCard[], filter: GalleryFilter) => {
   const countBy = (
     slugs: ReadonlySet<string>,
     withSlug: (slug: string) => Partial<GalleryFilter>,

@@ -13,7 +13,7 @@ import {
   Card,
   CardHeader,
   ChartSlot,
-  Label,
+  Caption,
   Num,
   PlotOverlay,
   renderer,
@@ -25,12 +25,14 @@ import { PeriodChip, UsdChip } from "./cash-flow-daily-bar-chrome";
 const DAYS = Array.from({ length: 17 }, (_, i) => `May ${i + 1}`);
 const TOTALS = uniform(DAYS.length, 311, 11_500, 28_500);
 const SHARES = uniform(DAYS.length, 977, 0.12, 0.62);
+
 const ROWS = DAYS.map((day, i) => {
   const total = Math.round(TOTALS[i] ?? 0);
+
   return { day, flow: Math.round(total * (SHARES[i] ?? 0)), total };
 });
+
 const LABELED = DAYS.filter((_, i) => i % 4 === 0);
-// The theme paints grids at 11% opacity; the kit's dashed grid wants them solid.
 const GRID_LINES = { ...DASHED_GRID, stroke: "#e2e2e7", strokeOpacity: 1 };
 
 const MARGIN = { bottom: 30, left: 38, right: 0, top: 10 };
@@ -108,11 +110,11 @@ export const CashFlowDailyBar = () => {
       />
       <div className="mt-5 grid grid-cols-2 gap-3">
         <div>
-          <Label>Total cash flow</Label>
+          <Caption>Total cash flow</Caption>
           <Num value={total} className="mt-0.5 block text-[22px] font-bold tracking-[-0.03em]" />
         </div>
         <div>
-          <Label>Daily average</Label>
+          <Caption>Daily average</Caption>
           <Num
             value={total / ROWS.length}
             className="mt-0.5 block text-[22px] font-bold tracking-[-0.03em]"

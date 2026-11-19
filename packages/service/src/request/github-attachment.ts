@@ -3,8 +3,6 @@ import { ATTACHMENT_URL_PREFIX } from "@repo/contract/request/attachment-schema"
 import type { AttachmentMeta } from "@repo/contract/request/attachment-schema";
 import { z } from "zod";
 
-// GitHub's own issue-attachment store, the same one the web uploader and
-// `gh --attach` use. Requires write access on the repository the asset targets.
 const REQUESTS_REPO_ID = 329_844_766;
 
 const uploadedAssetSchema = z.object({ url: z.string().startsWith(ATTACHMENT_URL_PREFIX) });
@@ -25,8 +23,9 @@ export const uploadAttachment = async (
   meta: AttachmentMeta,
   body: Blob,
   send: typeof fetch = fetch,
-): Promise<string> => {
+) => {
   const token = process.env.GITHUB_ISSUES_TOKEN;
+
   if (!token) {
     throw unavailable("Attachments are temporarily unavailable. Add a link instead.");
   }
@@ -37,6 +36,7 @@ export const uploadAttachment = async (
   url.searchParams.set("repository_id", String(REQUESTS_REPO_ID));
 
   let response: Response;
+
   try {
     response = await send(url, {
       body,
@@ -52,14 +52,17 @@ export const uploadAttachment = async (
     console.error("Attachment upload failed", error);
     throw unavailable("Unable to upload the file. Try again or add a link instead.");
   }
+
   if (!response.ok) {
     console.error("Attachment upload failed", response.status, await response.text());
     throw unavailable("Unable to upload the file. Try again or add a link instead.");
   }
 
   const parsed = uploadedAssetSchema.safeParse(await response.json());
+
   if (!parsed.success) {
     throw new AttachmentUploadError("GitHub returned an unexpected response.", 500);
   }
+
   return parsed.data.url;
 };

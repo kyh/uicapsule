@@ -17,16 +17,19 @@ const validMeta = {
 const fixture = async (context: TestContext, files: [string, string][]) => {
   const directory = await mkdtemp(path.join(tmpdir(), "uicapsule-registry-"));
   context.after(() => rm(directory, { force: true, recursive: true }));
+
   const defaults: [string, string][] = [
     ["meta.json", JSON.stringify(validMeta)],
     ["package.json", JSON.stringify({ dependencies: { react: "catalog:" } })],
     ["preview.tsx", "export default function Preview() { return null; }"],
   ];
+
   for (const [relativePath, source] of [...defaults, ...files]) {
     const target = path.join(directory, relativePath);
     await mkdir(path.dirname(target), { recursive: true });
     await writeFile(target, source);
   }
+
   return directory;
 };
 
@@ -42,6 +45,7 @@ test("accepts portable imports without confusing comments or examples for depend
     ],
     ["style.css", "/* @import '@repo/ui'; */\n.example { color: red; }"],
   ]);
+
   assert.deepEqual(await validateContentDirectory(directory), []);
 });
 
@@ -59,8 +63,10 @@ test("rejects private imports, reexports, dynamic imports, require, and relative
     ],
     ["style.css", '@import "@repo/ui/globals.css";'],
   ]);
+
   const issues = await validateContentDirectory(directory);
   assert.equal(issues.length, 8);
+
   for (const dependency of [
     "button",
     "utils",
@@ -75,6 +81,7 @@ test("rejects private imports, reexports, dynamic imports, require, and relative
       dependency,
     );
   }
+
   assert.ok(issues.some((issue) => issue.includes("import escapes component directory")));
 });
 
@@ -89,6 +96,7 @@ test("rejects workspace-only dependencies in every dependency group", async (con
       }),
     ],
   ]);
+
   const issues = await validateContentDirectory(directory);
   assert.equal(issues.length, 4);
 });

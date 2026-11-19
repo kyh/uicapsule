@@ -15,6 +15,7 @@ export const useDebouncedCallback = <TArgs extends unknown[]>(
     if (pendingRef.current !== null) {
       clearTimeout(pendingRef.current.timeout);
     }
+
     pendingRef.current = null;
   }, []);
 
@@ -22,9 +23,11 @@ export const useDebouncedCallback = <TArgs extends unknown[]>(
 
   const flush = useCallback(() => {
     const pending = pendingRef.current;
+
     if (!pending) {
       return;
     }
+
     cancel();
     callbackRef.current(...pending.args);
   }, [cancel]);

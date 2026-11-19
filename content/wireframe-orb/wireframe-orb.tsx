@@ -63,13 +63,6 @@ const defaults: Required<WireframeOrbConfig> = {
   speed: 20,
 };
 
-/**
- * GLSL vertex shader for the wireframe orb.
- *
- * Takes a 2D UV grid attribute (`aUv`) and displaces each vertex in 3D space
- * using curl noise derived from simplex noise. The result is an organic,
- * continuously flowing cloud of connected line segments.
- */
 const vertexShader = `
   attribute vec2 aUv;
 
@@ -184,11 +177,6 @@ const vertexShader = `
   }
 `;
 
-/**
- * GLSL fragment shader for the wireframe orb.
- *
- * Produces a pulsing alpha effect modulated by depth (curl noise z-component).
- */
 const fragmentShader = `
   uniform float time;
   uniform vec3 uColor;
@@ -208,19 +196,20 @@ const fragmentShader = `
   }
 `;
 
-/** Detect low-end devices for adaptive grid sizing. */
-const getAdaptiveGridSize = (requested: number): number => {
+const getAdaptiveGridSize = (requested: number) => {
   if (typeof navigator === "undefined") {
     return requested;
   }
+
   const cores = navigator.hardwareConcurrency ?? 4;
+
   if (cores <= 4 || window.devicePixelRatio >= 3) {
     return Math.min(requested, 150);
   }
+
   return requested;
 };
 
-/** Internal scene component for the wireframe line strip. */
 const WireframeScene = ({ config }: { config: Required<WireframeOrbConfig> }) => {
   const materialRef = useRef<THREE.ShaderMaterial>(null);
 
@@ -229,8 +218,6 @@ const WireframeScene = ({ config }: { config: Required<WireframeOrbConfig> }) =>
     const maxI = n - 1;
     const vertexCount = n * n;
     const uvs = new Float32Array(vertexCount * 2);
-    // The vertex shader derives every position from `aUv`, so `position` only has to
-    // exist (zero-filled) for three.js to infer the draw range for the line strip.
     const positions = new Float32Array(vertexCount * 3);
 
     for (let j = 0; j < n; j += 1) {
@@ -244,6 +231,7 @@ const WireframeScene = ({ config }: { config: Required<WireframeOrbConfig> }) =>
     const geo = new THREE.BufferGeometry();
     geo.setAttribute("position", new THREE.Float32BufferAttribute(positions, 3));
     geo.setAttribute("aUv", new THREE.Float32BufferAttribute(uvs, 2));
+
     return geo;
   }, [config.gridSize]);
 
@@ -251,6 +239,7 @@ const WireframeScene = ({ config }: { config: Required<WireframeOrbConfig> }) =>
 
   const uniforms = useMemo(() => {
     const col = new THREE.Color(config.color);
+
     return {
       time: { value: 0 },
       uAlphaSpeed: { value: config.speed * 0.025 },
@@ -267,10 +256,13 @@ const WireframeScene = ({ config }: { config: Required<WireframeOrbConfig> }) =>
     if (!materialRef.current) {
       return;
     }
+
     const timeUniform = materialRef.current.uniforms.time;
+
     if (!timeUniform) {
       return;
     }
+
     timeUniform.value = state.clock.elapsedTime;
   });
 

@@ -12,8 +12,6 @@ import { rng, WEEKDAYS } from "../lib/data";
 import { Card, ChartSlot, MoreButton, Num, Segmented, renderer, useCycle } from "../lib/kit";
 import { BLUE, GREEN, MUTED, ORANGE, THEME } from "../lib/tokens";
 
-// The chart works in pixels: y is a pixel-height domain, so the elliptical
-// caps keep a constant thickness however wide the column gets.
 const HEIGHT = 250;
 const BASE = 30;
 const TOP = HEIGHT - 14;
@@ -25,15 +23,16 @@ const RANGES = [
   [0.41, 0.3, 0.58, 0.52, 0.66, 0.27, 0.44],
   [0.62, 0.55, 0.31, 0.78, 0.48, 0.58, 0.38],
 ] as const;
+
 const HOT_DAY = [3, 4, 3] as const;
 
 const DAY_LIST: readonly string[] = WEEKDAYS;
 
 const level = (v: number) => BASE + v * (TOP - BASE);
 
-// Sparkles that drift inside the lit cylinder: offsets from its centre.
 const SPARKS = (() => {
   const r = rng(515);
+
   return Array.from({ length: 14 }, (_, i) => ({
     dx: (r() - 0.5) * 0.7,
     id: i,
@@ -62,11 +61,13 @@ export const SpendingOverviewCylinder = () => {
   const definition = useMemo(() => {
     const days = WEEKDAYS.map((day, i) => ({ day, hot: i === hi, level: level(values[i] ?? 0) }));
     const hot = days[hi] ?? days[0];
+
     const sparks = SPARKS.map((s) => ({
       ...s,
       day: hot?.day ?? "Sun",
       y: BASE + s.t * ((hot?.level ?? BASE) - BASE - CAP),
     }));
+
     return defineChart({
       focusRing: false,
       gradients: [
@@ -120,7 +121,6 @@ export const SpendingOverviewCylinder = () => {
             x: "day",
           },
         ),
-        // Empty glass tube and its open rim.
         barY(days, {
           fill: "#f7f7f8",
           key: (d) => `${d.day}-tube`,
@@ -141,7 +141,6 @@ export const SpendingOverviewCylinder = () => {
           y1: TOP - CAP / 2,
           y2: TOP + CAP / 2,
         }),
-        // The liquid: body, bright lip, darker surface.
         barY(days, {
           fill: (d) => (d.hot ? "url(#soc-hot)" : "url(#soc-gray)"),
           key: (d) => `${d.day}-body`,

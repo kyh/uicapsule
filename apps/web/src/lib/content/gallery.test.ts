@@ -5,13 +5,14 @@ import { galleryParams, parseGalleryFilter } from "./content-categories";
 import { countFilters, DEFAULT_GALLERY_FILTER, filterGallery } from "./gallery";
 import type { GalleryCard } from "./gallery";
 
-const card = (slug: string, tags: string[], featured = false): GalleryCard => ({
-  featured,
-  isNew: false,
-  name: slug,
-  slug,
-  tags,
-});
+const card = (slug: string, tags: string[], featured = false) =>
+  ({
+    featured,
+    isNew: false,
+    name: slug,
+    slug,
+    tags,
+  }) satisfies GalleryCard;
 
 const cards = [
   card("newest", ["effects", "minimal"]),
@@ -25,6 +26,7 @@ test("selections OR within an axis and AND across axes", () => {
     styles: ["minimal"],
     view: "recent" as const,
   };
+
   assert.deepEqual(
     filterGallery(cards, filter).map((c) => c.slug),
     ["newest", "middle"],
@@ -50,6 +52,7 @@ test("filters round-trip through the URL in canonical form", () => {
   const parsed = parseGalleryFilter((key) =>
     new URLSearchParams("element=Effects,bogus,controls&view=recommended").get(key),
   );
+
   assert.equal(galleryParams(parsed).toString(), "view=recommended&element=controls%2Ceffects");
   assert.equal(galleryParams(DEFAULT_GALLERY_FILTER).toString(), "");
 });

@@ -25,6 +25,7 @@
     "og:video": "node --import tsx scripts/og-video.ts"
   },
   "devDependencies": {
+    "@interfere/landmines": "^0.1.0",
     "@kyh/tsconfig": "catalog:",
     "@types/node": "catalog:",
     "citty": "^0.2.2",
@@ -32,12 +33,12 @@
     "dotenv-cli": "^11.0.0",
     "oxc-parser": "^0.154.0",
     "oxfmt": "^0.73.0",
-    "oxlint": "^1.89.0",
+    "oxlint": "^1.94.0",
     "playwright": "1.63.0",
     "tsx": "catalog:",
     "turbo": "^2.11.10",
     "typescript": "catalog:",
-    "ultracite": "^8.0.0"
+    "ultracite": "^8.3.0"
   },
   "engines": {
     "node": "24.x"

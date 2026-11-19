@@ -1,6 +1,5 @@
 import type { ReactNode } from "react";
 
-// Screen is 330×716 (iPhone 15 proportions); the clay shell adds a 16px lip on every side.
 export const SCREEN_WIDTH = 330;
 export const SCREEN_HEIGHT = 716;
 
@@ -8,11 +7,9 @@ interface Clay {
   base: string;
   deep: string;
   light: string;
-  /** RGB triplet for inner shading, tinted so each tone reads as one material. */
   rim: string;
 }
 
-// Dark matte clay: `light` is the lit top face, `base` the body, `deep` the shaded underside.
 const TONES = {
   espresso: { base: "#3a2b24", deep: "#1f1612", light: "#5a4436", rim: "32 20 14" },
   graphite: { base: "#303036", deep: "#18181c", light: "#4a4a52", rim: "10 10 14" },
@@ -63,6 +60,7 @@ export const PhoneFrame = ({
   tone = "graphite",
 }: PhoneFrameProps) => {
   const clay = TONES[tone];
+
   return (
     <div
       className="relative shrink-0 rounded-[66px] p-[16px]"

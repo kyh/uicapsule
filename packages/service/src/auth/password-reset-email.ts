@@ -7,6 +7,7 @@ export const sendPasswordResetEmail = async (
 ) => {
   const apiKey = process.env.RESEND_API_KEY;
   const from = process.env.AUTH_EMAIL_FROM;
+
   if (!apiKey || !from) {
     throw APIError.from("SERVICE_UNAVAILABLE", {
       code: "PASSWORD_RESET_UNAVAILABLE",
@@ -26,13 +27,16 @@ export const sendPasswordResetEmail = async (
       method: "POST",
       signal: AbortSignal.timeout(10_000),
     });
+
     if (response.ok) {
       return;
     }
+
     console.error("Password reset email failed", response.status, await response.text());
   } catch (error) {
     console.error("Password reset email failed", error);
   }
+
   throw APIError.from("SERVICE_UNAVAILABLE", {
     code: "PASSWORD_RESET_DELIVERY_FAILED",
     message: "Unable to send a password reset email. Try again later.",

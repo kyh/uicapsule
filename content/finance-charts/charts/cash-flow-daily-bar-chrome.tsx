@@ -4,7 +4,6 @@ import { Calendar } from "lucide-react";
 
 import { Chip } from "../lib/kit";
 
-/** A round US flag drawn in CSS: stripes plus a blue canton. */
 const UsFlag = () => (
   <span
     aria-hidden

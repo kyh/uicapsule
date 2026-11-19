@@ -6,15 +6,14 @@ interface CardStackProps {
   cards: { src: string; href: string; alt: string }[];
 }
 
-/** Wheel delta (px) required to advance the stack by one timeline second. */
 const WHEEL_PIXELS_PER_SECOND = 1000;
-/** Max tilt (deg) applied across the full height/width of the viewport. */
 const TILT_X_RANGE = 5;
 const TILT_Y_RANGE = 10;
 
 const setContentTransformOnRepeat = (transform: string) =>
   function onRepeat(this: gsap.core.Tween) {
     const [target] = this.targets();
+
     if (target instanceof HTMLElement) {
       target.style.transform = transform;
     }
@@ -27,6 +26,7 @@ export const CardStack = ({ cards }: CardStackProps) => {
     let incr = 0;
 
     const root = rootRef.current;
+
     if (!root) {
       return;
     }
@@ -53,10 +53,12 @@ export const CardStack = ({ cards }: CardStackProps) => {
         tl.totalTime(deltaObject.delta);
       },
     });
+
     const rotY = gsap.quickTo(root, "rotationY", {
       duration: 0.3,
       ease: "power3",
     });
+
     const rotX = gsap.quickTo(root, "rotationX", {
       duration: 0.3,
       ease: "power3",

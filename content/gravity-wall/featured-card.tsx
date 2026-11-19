@@ -7,38 +7,23 @@ import { Bookmark, ChevronLeft, ChevronRight, Heart, X } from "lucide-react";
 
 import type { Photo } from "./photos";
 
-/* The source shipped these as a `.moments-icon-btn` global class; inlined here
-   so the package carries no stylesheet. */
 const ICON_BTN =
   "flex items-center justify-center rounded-full border border-white/10 bg-white/10 text-white/85 backdrop-blur-[12px] transition-colors hover:bg-white/20 hover:text-white";
 
-/* Playfair Display came from next/font in the source app, which a content
-   package cannot use. Georgia keeps the serif character. */
 const DISPLAY_FONT = "Georgia, 'Times New Roman', serif";
 
-/* The expanded state hangs satellite UI off the card: prev/next plus a title
-   that can wrap to two lines above (~150px), caption and description below
-   (~95px). The card is centred in the frame, so the taller side governs — the
-   budget below reserves twice the top chrome. Under ~430px of frame height the
-   chrome cannot fit at any card size; MIN_EXPANDED_H stops the card collapsing
-   to nothing while it degrades. Both are inert at the designed size, where
-   `expH` wins the Math.min. */
 const EXPANDED_CHROME_H = 300;
 const MIN_EXPANDED_H = 120;
 
 interface IconButtonProps {
   onClick: () => void;
   label: string;
-  /** `sm` is the prev/next pair; `md` is like / save / close. */
   size: "sm" | "md";
-  /** Only set for the two toggles, which are the only buttons with a state. */
   pressed?: boolean;
   ref?: Ref<HTMLButtonElement>;
   children: ReactNode;
 }
 
-/* Card-level clicks open the detail view, so every control inside has to stop
-   the event before running its own action. */
 const IconButton: FC<IconButtonProps> = ({ onClick, label, size, pressed, ref, children }) => (
   <button
     ref={ref}
@@ -63,7 +48,6 @@ interface ToggleButtonProps {
   onClick: () => void;
 }
 
-/* Like / save: the only buttons with a state, so the only ones whose label flips. */
 const ToggleButton: FC<ToggleButtonProps> = ({
   icon: Icon,
   pressed,
@@ -76,14 +60,7 @@ const ToggleButton: FC<ToggleButtonProps> = ({
   </IconButton>
 );
 
-/* Expanded, the card behaves as a modal — Escape and a backdrop click both
-   close it, and the wall behind is `aria-hidden`. Collapsed, it is the button
-   that opens the detail view. */
-const surfaceProps = (
-  expanded: boolean,
-  title: string,
-  onOpen: () => void,
-): ComponentProps<"div"> => {
+const surfaceProps = (expanded: boolean, title: string, onOpen: () => void) => {
   if (expanded) {
     return {
       "aria-label": title,
@@ -91,8 +68,9 @@ const surfaceProps = (
       onClick: onOpen,
       role: "dialog",
       tabIndex: -1,
-    };
+    } satisfies ComponentProps<"div">;
   }
+
   return {
     "aria-label": `Open ${title}`,
     onClick: onOpen,
@@ -104,7 +82,7 @@ const surfaceProps = (
     },
     role: "button",
     tabIndex: 0,
-  };
+  } satisfies ComponentProps<"div">;
 };
 
 interface CardFrame {
@@ -112,14 +90,13 @@ interface CardFrame {
   frameH: number;
 }
 
-/* Sizes the card for its state; the frame budgets stop it outgrowing the preview box. */
 const cardFrame = (
   aspect: number,
   expanded: boolean,
   isMobile: boolean,
   vw: number,
   vh: number,
-): CardFrame => {
+) => {
   const restH = isMobile ? 220 : 280;
   const restMaxW = isMobile ? 270 : 400;
   const expH = isMobile ? 280 : 360;
@@ -129,17 +106,16 @@ const cardFrame = (
   const heightBudget = expanded
     ? Math.min(vh * 0.44, Math.max(MIN_EXPANDED_H, vh - EXPANDED_CHROME_H))
     : vh * 0.62;
+
   const widthBudget = vw * (expanded ? 0.78 : 0.86);
 
   const h = Math.min(expanded ? expH : restH, heightBudget);
   const maxW = Math.min(expanded ? expMaxW : restMaxW, widthBudget);
-  /* Clamp against the height budget too: without it, a tall-but-narrow photo
-     takes the min-width branch below and recomputes frameH from width alone,
-     re-inflating past the budget and clipping the satellite UI in short frames. */
   const minW = Math.min(expMinW, widthBudget, heightBudget * aspect);
 
   let w = h * aspect;
   let frameH = h;
+
   if (w > maxW) {
     w = maxW;
     frameH = maxW / aspect;
@@ -147,7 +123,8 @@ const cardFrame = (
     w = minW;
     frameH = minW / aspect;
   }
-  return { frameH, w };
+
+  return { frameH, w } satisfies CardFrame;
 };
 
 interface FeaturedCardProps {
@@ -184,17 +161,15 @@ export const FeaturedCard: FC<FeaturedCardProps> = ({
 }) => {
   const cardRef = useRef<HTMLDivElement | null>(null);
   const closeRef = useRef<HTMLButtonElement | null>(null);
-  /* Expanding strips the card's own `role`/`tabIndex`, which destroys the
-     focusability of the element that was just activated — so hand focus to
-     Close, and give it back on collapse. Seeded from `expanded` so a mount in
-     either state never steals focus from the surrounding page. */
   const wasExpanded = useRef(expanded);
 
   useEffect(() => {
     if (wasExpanded.current === expanded) {
       return;
     }
+
     wasExpanded.current = expanded;
+
     if (expanded) {
       closeRef.current?.focus();
     } else {
@@ -213,6 +188,7 @@ export const FeaturedCard: FC<FeaturedCardProps> = ({
       onClick={onToggleLike}
     />
   );
+
   const saveBtn = (
     <ToggleButton
       icon={Bookmark}
@@ -222,6 +198,7 @@ export const FeaturedCard: FC<FeaturedCardProps> = ({
       onClick={onToggleSave}
     />
   );
+
   const closeBtn = (
     <IconButton ref={closeRef} onClick={onClose} label="Close" size="md">
       <X className="size-4" />
@@ -274,8 +251,6 @@ export const FeaturedCard: FC<FeaturedCardProps> = ({
         </div>
       )}
 
-      {/* Close sits on the card's own corner: with Share/Download dropped a
-          second side rail would be a lone floating button. */}
       {expanded && !isMobile && <div className="absolute -top-3 -right-3 z-10">{closeBtn}</div>}
 
       <div

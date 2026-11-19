@@ -4,10 +4,12 @@ import { betterAuth } from "better-auth";
 import { memoryAdapter } from "better-auth/adapters/memory";
 import { APIError } from "better-auth/api";
 
-// Node runs test files in isolated processes; this exercises our unconfigured auth options.
 delete process.env.RESEND_API_KEY;
+
 delete process.env.AUTH_EMAIL_FROM;
+
 const { auth } = await import("./auth");
+
 const options = {
   ...auth.options,
   logger: { disabled: true },
@@ -17,6 +19,7 @@ const options = {
 
 test("password reset changes credentials, consumes its token, and revokes existing sessions", async () => {
   let delivery: { email: string; url: string; token: string } | undefined;
+
   const testAuth = betterAuth({
     ...options,
     database: memoryAdapter({ account: [], session: [], user: [], verification: [] }),
@@ -24,24 +27,30 @@ test("password reset changes credentials, consumes its token, and revokes existi
       ...options.emailAndPassword,
       sendResetPassword: ({ user, url, token }) => {
         delivery = { email: user.email, token, url };
+
         return Promise.resolve();
       },
     },
   });
+
   const email = "reset@example.com";
   const oldPassword = "old-password-for-reset";
   const newPassword = "new-password-after-reset";
+
   const signup = await testAuth.api.signUpEmail({
     asResponse: true,
     body: { email, name: "Reset Test", password: oldPassword },
   });
+
   assert.equal(signup.status, 200);
+
   const headers = new Headers({
     cookie: signup.headers
       .getSetCookie()
       .map((cookie) => cookie.split(";")[0])
       .join("; "),
   });
+
   const session = await testAuth.api.getSession({ headers });
   assert.equal(session?.user.email, email);
 

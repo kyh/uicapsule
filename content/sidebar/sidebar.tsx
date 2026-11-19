@@ -23,7 +23,6 @@ import { useResizableSidebar } from "./use-resizable-sidebar";
 interface NavItem {
   id: string;
   label: string;
-  /** A lucide element, or a plain string to render an emoji glyph instead. */
   icon: ReactNode;
   isActive?: boolean;
   subItems?: NavItem[];
@@ -76,7 +75,6 @@ const recordsItems: NavItem[] = [
   { icon: <Link size={14} />, id: "partnerships", label: "Partnerships" },
 ];
 
-/** Emoji glyphs need the centring wrapper a component icon draws itself. */
 const EmojiIcon = ({ children }: { children: string }) => (
   <span className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-[16px] leading-4">
     {children}
@@ -231,7 +229,6 @@ export const Sidebar = () => {
         </div>
       </div>
 
-      {/* Resize Handle */}
       {/* oxlint-disable-next-line jsx-a11y/no-static-element-interactions -- mouse-only resize affordance; the sidebar is fully usable at its default width, so there is no keyboard equivalent to provide */}
       <div
         className="absolute top-0 -right-0.5 h-full w-1 cursor-col-resize bg-transparent transition-colors duration-200 hover:bg-[#266DF0] active:bg-[#266DF0]"

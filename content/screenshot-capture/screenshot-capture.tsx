@@ -14,7 +14,6 @@ const THUMB_BOTTOM = 30;
 const thumbX = THUMB_INSET - (SCREEN_WIDTH * (1 - THUMB_SCALE)) / 2;
 const thumbY = (SCREEN_HEIGHT * (1 - THUMB_SCALE)) / 2 - THUMB_BOTTOM;
 
-// The "wallpaper" is pure CSS so the thumbnail can be an exact copy.
 const Scene: FC = () => (
   <div className="absolute inset-0 overflow-hidden bg-[#1a0e1c]">
     <div className="absolute inset-0 bg-[radial-gradient(circle_at_70%_18%,#fbbf24_0%,#f97316_18%,transparent_40%)]" />
@@ -59,9 +58,11 @@ export const ScreenshotCapture = () => {
     nextIdRef.current += 1;
     setFlashKey(id);
     setShot({ id });
+
     if (timerRef.current) {
       clearTimeout(timerRef.current);
     }
+
     timerRef.current = setTimeout(() => setShot(null), LINGER_MS);
   }, []);
 

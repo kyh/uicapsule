@@ -16,7 +16,6 @@ import { HomeCard } from "./home-card";
 import { Logo } from "./logo";
 import { SourceAssetIcon, SourceIcon } from "./source-icon";
 
-/** How far the source/output diagram slides up as each workflow step is highlighted. */
 const stepTranslateY = [0, -100, -170];
 
 const workflowSteps = ["Connect your data source", "Build your app", "One click deploy"];
@@ -115,6 +114,7 @@ export const WorkflowSection = () => {
 
   useEffect(() => {
     const container = sourcesContainerRef.current;
+
     if (!container) {
       return;
     }
@@ -122,6 +122,7 @@ export const WorkflowSection = () => {
     const observer = new ResizeObserver(() => {
       setSourcesContainerWidth(container.getBoundingClientRect().width);
     });
+
     observer.observe(container);
 
     return () => {

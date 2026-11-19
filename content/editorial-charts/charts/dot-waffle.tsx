@@ -18,8 +18,6 @@ interface Cell {
   plan: string;
 }
 
-// A hundred dots, one per percent. Cells fill left to right, top to bottom;
-// keys carry the plan so a shifted percent pops out and back in.
 export const DotWaffle = ({
   mix,
   reveal,
@@ -37,17 +35,19 @@ export const DotWaffle = ({
   const definition = useMemo(() => {
     const bounds: number[] = [];
     let acc = 0;
+
     for (const m of mix) {
       acc += m.share;
       bounds.push(acc);
     }
+
     const cells: Cell[] = Array.from({ length: revealed }, (_, i) => {
       const slot = bounds.findIndex((b) => i < b);
       const plan = mix[slot === -1 ? mix.length - 1 : slot]?.plan ?? "";
-      // Fill left → right, top → bottom, so the darkest plan starts where the
-      // legend starts reading.
+
       return { col: i % 10, id: `${i}:${plan}`, plan, row: 9 - Math.floor(i / 10) };
     });
+
     return defineChart({
       color: { domain: mix.map((m) => m.plan), range: [...ladder] },
       guides: false,

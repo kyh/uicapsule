@@ -6,7 +6,6 @@ import { cn } from "cn";
 
 import { MIN_COLUMN_WIDTH } from "../lib/spreadsheet-utils";
 
-/** Half the handle's hit width, so the drag line sits centred on it. */
 const DRAG_LINE_OFFSET = 2;
 
 interface ResizeHandleProps {
@@ -42,17 +41,19 @@ export const ResizeHandle = ({
     setIsResizing(true);
     setDragLineVisible(true);
     startXRef.current = e.clientX;
-    // Seed with the press position so a click with no drag commits the current width.
     currentMouseXRef.current = e.clientX;
     startWidthRef.current = width;
 
     const headerElement = e.currentTarget.closest("[data-column-id]");
+
     if (headerElement instanceof HTMLElement) {
       const rect = headerElement.getBoundingClientRect();
       const tableRect = tableContainerRef.current?.getBoundingClientRect();
+
       if (tableRect) {
         columnStartXRef.current = rect.left - tableRect.left;
         const initialDragX = columnStartXRef.current + startWidthRef.current - DRAG_LINE_OFFSET;
+
         if (dragLineRef.current) {
           dragLineRef.current.style.left = `${initialDragX}px`;
         }

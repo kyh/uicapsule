@@ -19,7 +19,6 @@ import {
 } from "../lib/kit";
 import { GRID } from "../lib/tokens";
 
-// Money out (purple, left) and in (blue, right) per month.
 const PAIRS = [
   [13_500, 19_700],
   [7400, 17_500],
@@ -28,8 +27,11 @@ const PAIRS = [
   [15_600, 19_500],
   [17_900, 13_500],
 ] as const;
+
 const SIDES = ["out", "in"] as const;
+
 type Side = (typeof SIDES)[number];
+
 interface Bar {
   id: string;
   m: number;
@@ -37,8 +39,7 @@ interface Bar {
   value: number;
   x: number;
 }
-// A linear x lets each pair sit at month ± 0.2: the bars come out a third of
-// a step wide with a narrow gap inside the pair, as in the source.
+
 const BARS: Bar[] = PAIRS.flatMap((pair, m) =>
   SIDES.map((side, k) => ({
     id: `${m}-${side}`,
@@ -49,9 +50,9 @@ const BARS: Bar[] = PAIRS.flatMap((pair, m) =>
   })),
 );
 
-// Sparkles: fixed flecks inside each bar, drawn only for the active pair.
 const FLECKS = BARS.flatMap((b) => {
   const r = rng(b.m * 7 + (b.side === "in" ? 3 : 1));
+
   return Array.from({ length: 6 }, (_, k) => ({
     bar: b.id,
     id: `${b.id}-${k}`,
@@ -111,7 +112,6 @@ export const CashFlowMonthlyBar = () => {
             y1: 0,
             y2: 1,
           },
-          // A sideways sheen over every bar reads as a glossy cylinder.
           {
             id: "cfm-gloss",
             stops: [
@@ -187,7 +187,6 @@ export const CashFlowMonthlyBar = () => {
     [hi],
   );
 
-  // The readout sits just past the active pair, or before it near the axis.
   const flip = hi >= 4;
   const left = ((hi + (flip ? -0.45 : 0.45) - X0) / (X1 - X0)) * 100;
 

@@ -23,10 +23,6 @@ export const renderer = chartMotion({ initial: "always", transition: SPRING });
 
 const cx = (...parts: (string | false | null | undefined)[]) => parts.filter(Boolean).join(" ");
 
-/* -------------------------------------------------------------------------- */
-/* Card + activation                                                          */
-/* -------------------------------------------------------------------------- */
-
 const ActiveContext = createContext(false);
 
 /** True once the surrounding card has scrolled into view. Charts mount then, so
@@ -38,6 +34,7 @@ export const useActive = () => use(ActiveContext);
 export const ChartCell = ({ children, id }: { children: ReactNode; id: string }) => {
   const ref = useRef<HTMLDivElement>(null);
   const active = useInView(ref, { margin: "0px 0px -12% 0px", once: true });
+
   return (
     <div ref={ref} data-chart={id} className="break-inside-avoid">
       <ActiveContext value={active}>{children}</ActiveContext>
@@ -55,6 +52,7 @@ export const Card = ({
   style?: CSSProperties;
 }) => {
   const active = useActive();
+
   return (
     <motion.article
       initial={{ opacity: 0, scale: 0.97, y: 28 }}
@@ -82,6 +80,7 @@ export const ChartSlot = ({
   className?: string;
 }) => {
   const active = useActive();
+
   return (
     <div className={cx("relative", className)} style={{ height }}>
       {active ? children : null}
@@ -115,30 +114,30 @@ export const useCycle = (count: number, ms = 2200, start = 0) => {
     if (!active || held || count < 2) {
       return;
     }
+
     const t = setInterval(() => setIndex((i) => (i + 1) % count), ms);
+
     return () => clearInterval(t);
   }, [active, held, count, ms]);
+
   const pin = (i: number | null) => {
     if (i === null) {
       setHeld(false);
+
       return;
     }
-    // Focus handlers map pointer positions to indices with findIndex/round;
-    // a miss (-1, NaN, past the end) must not park the cycle off-canvas.
+
     if (!Number.isInteger(i) || i < 0 || i >= count) {
       return;
     }
+
     setHeld(true);
     setIndex(i);
   };
+
   return [index, pin] as const;
 };
 
-/* -------------------------------------------------------------------------- */
-/* Numbers                                                                    */
-/* -------------------------------------------------------------------------- */
-
-/** Counts from 0 (and later from its last value) to `value` once active. */
 const defaultFormat = (n: number) => usd(n);
 
 export const Num = ({
@@ -160,9 +159,12 @@ export const Num = ({
     if (!active) {
       return;
     }
+
     const controls = animate(mv, value, { duration: 1.1, ease: [0.16, 1, 0.3, 1] });
+
     return () => controls.stop();
   }, [active, value, mv]);
+
   return (
     <span className={cx("tabular-nums", className)} style={style}>
       {text}
@@ -190,13 +192,16 @@ export const Delta = ({
   const up = value >= 0;
   const color = up ? GREEN : RED;
   let sign = "";
+
   if (showSign) {
     sign = up ? "+" : "-";
   }
+
   const body = `${sign}${prefix}${Math.abs(value).toLocaleString("en-US", {
     maximumFractionDigits: 2,
     minimumFractionDigits: 2,
   })}${suffix}`;
+
   if (variant === "pill") {
     return (
       <span
@@ -210,12 +215,15 @@ export const Delta = ({
       </span>
     );
   }
+
   if (variant === "circle" || variant === "trend") {
     const icons: Record<"circle" | "trend", [LucideIcon, LucideIcon]> = {
       circle: [ArrowUp, ArrowDown],
       trend: [TrendingUp, TrendingDown],
     };
+
     const Icon = icons[variant][up ? 0 : 1];
+
     return (
       <span
         className={cx("inline-flex items-center gap-1 font-semibold tabular-nums", className)}
@@ -235,16 +243,13 @@ export const Delta = ({
       </span>
     );
   }
+
   return (
     <span className={cx("font-semibold tabular-nums", className)} style={{ color }}>
       {body}
     </span>
   );
 };
-
-/* -------------------------------------------------------------------------- */
-/* Chrome                                                                     */
-/* -------------------------------------------------------------------------- */
 
 /** Rounded square holding a white glyph on a tinted gradient. */
 export const IconTile = ({
@@ -348,7 +353,7 @@ export const CardHeader = ({
 );
 
 /** Small muted label with an optional info glyph. */
-export const Label = ({
+export const Caption = ({
   children,
   info,
   className,
@@ -381,6 +386,7 @@ export const Segmented = ({
   size?: "sm" | "md";
 }) => {
   const id = useId();
+
   return (
     <div
       className={cx(
@@ -459,6 +465,7 @@ export const Bubble = ({
   className?: string;
 }) => {
   const shift = { center: "-50%", left: "0%", right: "-100%" }[align];
+
   return (
     <motion.div
       initial={false}

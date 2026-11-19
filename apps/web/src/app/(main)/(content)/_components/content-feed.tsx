@@ -40,11 +40,12 @@ interface FeedItemProps {
 }
 
 const FeedItemBase = ({ ref, component, active, shouldRender, keepMounted }: FeedItemProps) => {
-  // Keep visited neighbors mounted so scrolling back preserves preview state.
   const [everRendered, setEverRendered] = useState(shouldRender);
+
   if (shouldRender && !everRendered) {
     setEverRendered(true);
   }
+
   const mountIframe = shouldRender || (everRendered && keepMounted);
 
   const src =
@@ -53,7 +54,6 @@ const FeedItemBase = ({ ref, component, active, shouldRender, keepMounted }: Fee
   const [width, setWidth] = useState(WIDTH_BY_SIZE[component.defaultSize ?? "md"]);
   const preset = SIZE_PRESETS.find((p) => WIDTH_BY_SIZE[p.size] === width)?.size ?? null;
 
-  // Off-screen panes stay mounted for instant scrolling but must not take focus.
   return (
     <section
       ref={ref}
@@ -75,12 +75,11 @@ const FeedItemBase = ({ ref, component, active, shouldRender, keepMounted }: Fee
           />
         </div>
       </Resizable>
-      {/* Presets sit below the frame; the drag handles cover in-between widths, in which
-          case no preset is active and the indicator hides. Both are desktop-only. */}
       <Tabs
         value={preset}
         onValueChange={(next) => {
           const match = SIZE_PRESETS.find((p) => p.size === next);
+
           if (match) {
             setWidth(WIDTH_BY_SIZE[match.size]);
           }
@@ -129,15 +128,17 @@ export const ContentFeed = ({ initialSlug, feed }: ContentFeedProps) => {
   useLayoutEffect(() => {
     const container = containerRef.current;
     const target = itemRefs.current[initialIndex];
+
     if (!container || !target) {
       return;
     }
+
     container.scrollTop = target.offsetTop;
   }, [initialIndex]);
 
-  // Full-height snap panes ensure only one crosses the 0.6 threshold.
   useEffect(() => {
     const container = containerRef.current;
+
     if (!container) {
       return;
     }
@@ -148,10 +149,13 @@ export const ContentFeed = ({ initialSlug, feed }: ContentFeedProps) => {
           if (!entry.isIntersecting || !(entry.target instanceof HTMLElement)) {
             continue;
           }
+
           const index = itemRefs.current.indexOf(entry.target);
+
           if (index === -1) {
             continue;
           }
+
           setActiveIndex(index);
         }
       },
@@ -163,6 +167,7 @@ export const ContentFeed = ({ initialSlug, feed }: ContentFeedProps) => {
         observer.observe(item);
       }
     }
+
     return () => observer.disconnect();
   }, [feed.length]);
 
@@ -171,7 +176,9 @@ export const ContentFeed = ({ initialSlug, feed }: ContentFeedProps) => {
     if (!activeSlug) {
       return;
     }
+
     const path = `/ui/${activeSlug}`;
+
     if (window.location.pathname !== path) {
       window.history.replaceState(null, "", path);
     }
@@ -180,27 +187,35 @@ export const ContentFeed = ({ initialSlug, feed }: ContentFeedProps) => {
   const scrollToIndex = useCallback((idx: number) => {
     const container = containerRef.current;
     const target = itemRefs.current[idx];
+
     if (!container || !target) {
       return;
     }
+
     container.scrollTo({ behavior: "smooth", top: target.offsetTop });
   }, []);
 
   const scrollByDelta = useCallback(
     (delta: 1 | -1) => {
       const container = containerRef.current;
+
       if (!container) {
         return;
       }
+
       const itemHeight = container.clientHeight;
+
       if (itemHeight === 0) {
         return;
       }
+
       const currentIdx = Math.round(container.scrollTop / itemHeight);
       const next = currentIdx + delta;
+
       if (next < 0 || next >= feed.length) {
         return;
       }
+
       scrollToIndex(next);
     },
     [feed.length, scrollToIndex],
@@ -209,6 +224,7 @@ export const ContentFeed = ({ initialSlug, feed }: ContentFeedProps) => {
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       const { target } = e;
+
       if (
         target instanceof HTMLElement &&
         (target.tagName === "INPUT" || target.tagName === "TEXTAREA" || target.isContentEditable)
@@ -217,9 +233,11 @@ export const ContentFeed = ({ initialSlug, feed }: ContentFeedProps) => {
       }
 
       const delta = KEY_DELTA.get(e.key);
+
       if (!delta) {
         return;
       }
+
       if (document.querySelector('[role="dialog"], [role="alertdialog"]')) {
         return;
       }
@@ -227,7 +245,9 @@ export const ContentFeed = ({ initialSlug, feed }: ContentFeedProps) => {
       e.preventDefault();
       scrollByDelta(delta);
     };
+
     window.addEventListener("keydown", onKey);
+
     return () => window.removeEventListener("keydown", onKey);
   }, [scrollByDelta]);
 
@@ -240,6 +260,7 @@ export const ContentFeed = ({ initialSlug, feed }: ContentFeedProps) => {
   );
 
   const active = feed[activeIndex];
+
   if (!active) {
     return null;
   }
@@ -263,8 +284,6 @@ export const ContentFeed = ({ initialSlug, feed }: ContentFeedProps) => {
           />
         ))}
       </div>
-      {/* Align deep links before first paint. HTML parsing runs this script;
-          client navigation uses the layout effect because React-created scripts don't run. */}
       <div
         hidden
         // oxlint-disable-next-line react/no-danger -- inline script must run during HTML parsing; React-created scripts don't

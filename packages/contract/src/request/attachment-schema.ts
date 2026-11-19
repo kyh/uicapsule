@@ -2,7 +2,6 @@ import { z } from "zod";
 
 export const ATTACHMENT_URL_PREFIX = "https://github.com/user-attachments/assets/";
 export const ATTACHMENT_MAX_COUNT = 3;
-// Vercel refuses request bodies over 4.5MB before our code runs; stay under it.
 export const ATTACHMENT_MAX_BYTES = 4 * 1024 * 1024;
 
 const ATTACHMENT_TYPE_LIST = [

@@ -35,9 +35,6 @@ export interface Filed {
 
 const HOLE_RADIUS = 11;
 
-// The stub arrives folded face-down over the ticket and turns open on its seam, like a booklet cover.
-// `fold` is degrees from open; everything else in the flip is derived from it and its velocity.
-// Also the stub's first-paint `[--fold:180]` class; Tailwind needs the literal.
 const FOLDED = 180;
 const FLIP: Transition = { bounce: 0.14, delay: 0.55, type: "spring", visualDuration: 1.3 };
 
@@ -45,7 +42,9 @@ const reveal = {
   hidden: { filter: "blur(4px)", opacity: 0 },
   shown: { filter: "blur(0px)", opacity: 1 },
 };
+
 const revealTransition: Transition = { duration: 0.3, ease: "easeOut" };
+
 const CORNERS = [
   "top-2 left-2 border-t border-l",
   "top-2 right-2 border-t border-r",
@@ -65,11 +64,9 @@ const ReceiptRow = ({ label, value }: { label: string; value: string }) => (
   </motion.div>
 );
 
-// Each half punches its own seam corners and a row of perforations along its seam edge;
-// together they read as holes through the ticket, and each half keeps its semicircles once torn.
-// The shell is border-colored and punched 1px tighter than its content, so the rim follows the hole.
 const HOLE_MASK =
   "radial-gradient(circle at var(--hole-a), transparent var(--hole-r), black calc(var(--hole-r) + 0.5px)), radial-gradient(circle at var(--hole-b), transparent var(--hole-r), black calc(var(--hole-r) + 0.5px)), radial-gradient(circle at var(--perf-at), transparent var(--perf-r), black calc(var(--perf-r) + 0.5px))";
+
 const holeStyle = {
   maskComposite: "intersect",
   maskImage: HOLE_MASK,
@@ -77,6 +74,7 @@ const holeStyle = {
   maskRepeat: "no-repeat, no-repeat, var(--perf-repeat)",
   maskSize: "auto, auto, var(--perf-size)",
 };
+
 const PERF =
   "[--perf-size:32px_100%] [--perf-repeat:repeat-x] sm:[--perf-size:100%_32px] sm:[--perf-repeat:repeat-y]";
 
@@ -97,11 +95,13 @@ const offsetWithin = (element: HTMLElement, root: HTMLElement) => {
   let x = 0;
   let y = 0;
   let node: Element | null = element;
+
   while (node instanceof HTMLElement && node !== root) {
     x += node.offsetLeft;
     y += node.offsetTop;
     node = node.offsetParent;
   }
+
   return { x, y };
 };
 
@@ -110,11 +110,14 @@ export const Receipt = ({ filed }: { filed: Filed }) => {
   const reducedMotion = useReducedMotion() === true;
   const [layout, setLayout] = useState<ReceiptLayout | null>(null);
   const [art, setArt] = useState({ swapped: false, variant: filed.art });
+
   const handleNextArt = () =>
     setArt((current) => ({ swapped: true, variant: nextReceiptArt(current.variant) }));
+
   const headRef = useRef<HTMLDivElement>(null);
   const confirmationRef = useRef<HTMLHeadingElement>(null);
   const artRef = useRef<HTMLDivElement>(null);
+
   const {
     bodyRef,
     bridges,
@@ -135,7 +138,6 @@ export const Receipt = ({ filed }: { filed: Filed }) => {
     width: layout?.width ?? 0,
   });
 
-  // The form that held focus unmounts on submit; land assistive tech on the confirmation.
   useEffect(() => {
     confirmationRef.current?.focus({ preventScroll: true });
   }, []);
@@ -143,9 +145,11 @@ export const Receipt = ({ filed }: { filed: Filed }) => {
   useLayoutEffect(() => {
     const root = rootRef.current;
     const body = bodyRef.current;
+
     if (!(root && body)) {
       return;
     }
+
     const observer = new ResizeObserver(() => {
       const artBox = artRef.current;
       setLayout({
@@ -162,8 +166,10 @@ export const Receipt = ({ filed }: { filed: Filed }) => {
         width: root.offsetWidth,
       });
     });
+
     observer.observe(root);
     observer.observe(body);
+
     return () => observer.disconnect();
   }, [bodyRef, horizontal, rootRef]);
 
@@ -176,25 +182,28 @@ export const Receipt = ({ filed }: { filed: Filed }) => {
   useEffect(() => {
     if (reducedMotion) {
       fold.jump(0);
+
       return;
     }
+
     const controls = animate(fold, 0, FLIP);
+
     return () => controls.stop();
   }, [fold, reducedMotion]);
-  // The stub hinges on its seam edge. The axis is picked by CSS per breakpoint, not by a media
-  // query hook, so the first paint is already correct instead of flipping axes on hydration.
   const flipRef = useRef<HTMLDivElement>(null);
   useMotionValueEvent(fold, "change", (angle) => {
     flipRef.current?.style.setProperty("--fold", String(angle));
   });
-  // Blur tracks angular speed, so it only smears the page mid-swing.
+
   const flipFilter = useTransform(
     useVelocity(fold),
     (speed) => `blur(${Math.min(Math.abs(speed) / 240, 5).toFixed(2)}px)`,
   );
+
   const faceShade = useTransform(fold, [0, 90], [0, 1]);
   const backShade = useTransform(fold, [90, 180], [0.85, 0.2]);
   const castShadow = useTransform(fold, [0, 40, 110, 180], [0, 0.95, 0.6, 0]);
+
   const rows: { label: string; value: string | null }[] = [
     { label: "Name", value: filed.name },
     { label: "Links", value: filed.links > 0 ? String(filed.links) : null },
@@ -202,6 +211,7 @@ export const Receipt = ({ filed }: { filed: Filed }) => {
     { label: "Issue", value: filed.number === undefined ? null : `#${filed.number}` },
     { label: "Filed", value: filed.filedAt },
   ];
+
   const number = filed.number === undefined ? "Filed" : `No. ${filed.number}`;
 
   return (

@@ -23,7 +23,6 @@ interface Series {
   fill: string;
   domain: [number, number];
   values: number[];
-  /** Scrubber positions the sweep visits, in point indexes. */
   stops: number[];
 }
 
@@ -79,7 +78,6 @@ const Panel = ({ series, step }: { series: Series; step: number }) => {
             y2: "v",
           }),
           lineY(rows, { stroke: series.color, strokeWidth: 1.25, x: "i", y: "v" }),
-          // The unrevealed side: a white sheet whose left edge is the scrubber.
           rect([{ hi: series.domain[1], id: "sheet", lo: series.domain[0], x1: at, x2: N - 1 }], {
             fill: "#ffffff",
             inset: 0,
@@ -151,6 +149,7 @@ export const ProfitMarginAnalysis = () => {
   const [step] = useCycle(12, 1600);
   const [gross] = SERIES;
   const grossNow = gross ? (gross.values[gross.stops[step] ?? 0] ?? 0) : 0;
+
   return (
     <Card>
       <div className="flex items-start justify-between gap-2">

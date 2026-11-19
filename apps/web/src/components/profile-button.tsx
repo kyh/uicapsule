@@ -39,6 +39,7 @@ import { mcpInstallPrompt } from "@/lib/agent/mcp-install-prompt";
 import { authClient } from "@/lib/auth-client";
 
 const menuItemIconClassName = "text-muted-foreground size-4 group-hover:text-foreground transition";
+
 const themes = [
   { icon: SunMoonIcon, label: "System theme", value: "system" },
   { icon: SunIcon, label: "Light theme", value: "light" },
@@ -59,19 +60,23 @@ const ProfileMenuProvider = ({
   children: ReactNode;
 }) => {
   const value = useMemo(() => ({ close: () => setOpen(false), variant }), [setOpen, variant]);
+
   return <ProfileMenuContext value={value}>{children}</ProfileMenuContext>;
 };
 
 const useProfileMenu = () => {
   const context = use(ProfileMenuContext);
+
   if (!context) {
     throw new Error("Profile menu items must render inside a ProfileMenuProvider.");
   }
+
   return context;
 };
 
 const ProfileLink = ({ children, className, ...props }: ComponentProps<typeof Link>) => {
   const { variant, close } = useProfileMenu();
+
   return variant === "dropdown" ? (
     <DropdownMenuItem
       render={<Link {...props} onClick={close} />}
@@ -92,6 +97,7 @@ const ProfileLink = ({ children, className, ...props }: ComponentProps<typeof Li
 
 const SignOutItem = ({ onSignOut }: { onSignOut: () => void }) => {
   const { variant } = useProfileMenu();
+
   return variant === "dropdown" ? (
     <DropdownMenuItem onClick={onSignOut}>
       <LogOutIcon aria-hidden="true" className={menuItemIconClassName} />
@@ -114,13 +120,16 @@ const InstallMcpItem = () => {
 
   const handleCopy = async () => {
     close();
+
     try {
       await navigator.clipboard.writeText(mcpInstallPrompt);
     } catch (error) {
       console.error("Failed to copy MCP install prompt:", error);
       toast.error("Failed to copy MCP install prompt.");
+
       return;
     }
+
     toast("Copied MCP install prompt", { description: "Paste it into your agent." });
   };
 
@@ -228,8 +237,6 @@ const ProfileMenuItems = ({ user, onSignOut }: { user?: SessionUser; onSignOut: 
   );
 };
 
-// Both variants mount and CSS picks one, so the server render already matches the viewport
-// and nothing remounts after hydration.
 const ProfileMenu = ({ user }: { user?: SessionUser }) => {
   const router = useRouter();
   const [dropdownOpen, setDropdownOpen] = useState(false);
@@ -294,10 +301,9 @@ const ProfileMenu = ({ user }: { user?: SessionUser }) => {
 
 const SignedInProfileMenu = () => {
   const { data: session } = authClient.useSession();
+
   return <ProfileMenu user={session?.user} />;
 };
 
-// Anonymous visitors never subscribe to the session, which would otherwise cost a
-// get-session request per page view and again on every window focus.
 export const ProfileButton = ({ signedIn }: { signedIn: boolean }) =>
   signedIn ? <SignedInProfileMenu /> : <ProfileMenu />;

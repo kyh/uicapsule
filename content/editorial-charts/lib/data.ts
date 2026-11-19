@@ -1,19 +1,19 @@
-// Three quarters of a fictional product, cycled by the set. Deterministic on
-// purpose — a refresh must draw the exact same page.
-
 export interface PlanRow {
   plan: string;
   value: number;
 }
+
 export interface DayRow {
   day: number;
   value: number;
   weekend: boolean;
 }
+
 export interface ChannelRow {
   channel: string;
   share: number;
 }
+
 export interface MixRow {
   plan: string;
   share: number;
@@ -35,15 +35,17 @@ const hash = (n: number) => {
   let x = (n + 0x9e_37_79_b9) >>> 0;
   x = Math.imul(x ^ (x >>> 16), 0x4_5d_9f_3b) >>> 0;
   x = Math.imul(x ^ (x >>> 16), 0x4_5d_9f_3b) >>> 0;
+
   return ((x ^ (x >>> 16)) >>> 0) / 0xff_ff_ff_ff;
 };
 /* oxlint-enable no-bitwise */
 
-const days = (seed: number, base: number, slope: number): DayRow[] =>
+const days = (seed: number, base: number, slope: number) =>
   Array.from({ length: 30 }, (_, i) => {
     const weekend = i % 7 === 5 || i % 7 === 6;
     const wiggle = (hash(seed * 1000 + i) - 0.5) * 16;
     const value = Math.max(6, Math.round(base + i * slope + wiggle - (weekend ? 11 : 0)));
+
     return { day: i + 1, value, weekend };
   });
 
@@ -122,5 +124,4 @@ export const SCENES: Scene[] = [
   },
 ];
 
-// Shared y ceiling so the line visibly climbs across quarters.
 export const DAY_MAX = Math.max(...SCENES.flatMap((s) => s.days.map((d) => d.value)));

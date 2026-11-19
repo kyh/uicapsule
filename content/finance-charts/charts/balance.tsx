@@ -24,7 +24,6 @@ import { FAINT, GREEN, MUTED, RED } from "../lib/tokens";
 const PURPLE = "#9333ea";
 const LILAC = "#dcc2fb";
 
-// x = -0.45 is the lead-in from the card's edge; months sit at 0…7.
 const POINTS = [
   { i: -0.45, value: 64_000 },
   { i: 0, value: 71_500 },
@@ -36,6 +35,7 @@ const POINTS = [
   { i: 6, value: 103_400 },
   { i: 7, value: 113_600 },
 ] as const;
+
 const MONTH_POINTS = POINTS.filter((p) => p.i >= 0);
 const BAND = 36;
 const MIN = 0;
@@ -56,6 +56,7 @@ export const Balance = () => {
   const definition = useMemo(() => {
     const past = POINTS.filter((p) => p.i <= at);
     const future = POINTS.filter((p) => p.i >= at);
+
     return defineChart({
       gradients: [
         {
@@ -122,7 +123,6 @@ export const Balance = () => {
             y: "value",
           },
         ),
-        // Text paint is constant per mark, so the active month is its own layer.
         text(
           MONTH_POINTS.filter((p) => p.i !== at),
           {
@@ -206,6 +206,7 @@ export const Balance = () => {
             onFocusChange={(p) => {
               if (p) {
                 const k = MONTH_POINTS.findIndex((m) => m.i === p.xValue);
+
                 if (k !== -1) {
                   pin(k);
                 }

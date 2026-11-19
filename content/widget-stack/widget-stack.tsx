@@ -123,7 +123,6 @@ const wrap = (value: number) => (value + WIDGETS.length) % WIDGETS.length;
 export const WidgetStack = () => {
   const [page, setPage] = useState<Page>({ direction: 1, index: 0 });
   const { index, direction } = page;
-  // Auto-rotation is looping motion the user never asked for; reduced motion keeps it manual.
   const reduced = useReducedMotion() ?? false;
 
   const goTo = (next: number, nextDirection: 1 | -1) => {
@@ -134,10 +133,11 @@ export const WidgetStack = () => {
     if (reduced) {
       return;
     }
-    // Keyed on the index so any page change, swipe or auto, restarts the countdown.
+
     const timer = setTimeout(() => {
       setPage({ direction: 1, index: wrap(index + 1) });
     }, AUTO_ADVANCE_MS);
+
     return () => clearTimeout(timer);
   }, [index, reduced]);
 

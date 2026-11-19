@@ -30,9 +30,6 @@ const HINTS = {
   tilt: "Tilt the panel. Roll the marble. Don't overshoot.",
 } satisfies Record<VolumeVariant, string>;
 
-/** Every control takes the volume and nothing else, so the shell can pick one by
- * name. Keyed by variant rather than branched on it: adding a sixth control makes
- * this table and HINTS fail to compile until both know about it. */
 const TRACKS = {
   cannon: CannonTrack,
   curling: CurlingTrack,
@@ -41,7 +38,6 @@ const TRACKS = {
   tilt: TiltTrack,
 } satisfies Record<VolumeVariant, (props: { volume: MotionValue<number> }) => ReactNode>;
 
-/** Each bar is named, so the set can be walked without leaning on its index. */
 const BARS = [
   { height: 0.45, id: "a" },
   { height: 0.8, id: "b" },
@@ -59,6 +55,7 @@ const BARS = [
 
 const LevelBar = ({ height, volume }: { height: number; volume: MotionValue<number> }) => {
   const scaleY = useTransform(volume, [0, 100], [0.06, height]);
+
   return (
     <motion.span
       className="h-full w-2.5 origin-bottom rounded-full bg-gradient-to-t from-indigo-400/60 to-rose-300/60"
@@ -67,8 +64,6 @@ const LevelBar = ({ height, volume }: { height: number; volume: MotionValue<numb
   );
 };
 
-/** The only honest feedback in the whole component: bars that get taller when the
- * volume does. They're a readout, not a control — you cannot drag them either. */
 const Levels = ({ volume }: { volume: MotionValue<number> }) => (
   <div className="flex h-12 items-end gap-1.5">
     {BARS.map((bar) => (
@@ -77,11 +72,6 @@ const Levels = ({ volume }: { volume: MotionValue<number> }) => (
   </div>
 );
 
-/**
- * The app you were trying to turn down, sitting behind everything, bleeding off the
- * bottom-left of the frame. Pure scenery with one exception: its levels ride the
- * volume, so whatever the control up there finally decides, you see it land here.
- */
 const NowPlayingWindow = ({ volume }: { volume: MotionValue<number> }) => (
   <div
     aria-hidden
@@ -121,9 +111,8 @@ export const VolumeControl = ({ variant = "tilt" }: VolumeControlProps) => {
   const volume = useMotionValue(DEFAULT_VOLUME);
   const [open, setOpen] = useState(true);
 
-  // Swapping controls would otherwise hand the next one a volume the last one
-  // earned, which reads as a bug rather than a joke. Everyone starts at 35.
   const [renderedVariant, setRenderedVariant] = useState(variant);
+
   if (renderedVariant !== variant) {
     setRenderedVariant(variant);
     volume.set(DEFAULT_VOLUME);
@@ -153,11 +142,6 @@ export const VolumeControl = ({ variant = "tilt" }: VolumeControlProps) => {
 
   return (
     <div className="relative flex h-full w-full items-start justify-end overflow-hidden bg-neutral-950 text-neutral-100">
-      {/* Somebody else's desktop, cropped: the wallpaper, the menu bar and the window
-          behind it all run wider than the frame. The zoom is intrinsic sizing, never a
-          transform — scaling this subtree would put the controls' pointer deltas (screen
-          px) out of step with their physics (local px), and the marble would outrun your
-          hand. */}
       <div
         aria-hidden
         className="absolute inset-0 bg-gradient-to-br from-indigo-950/50 via-neutral-950 to-neutral-950"

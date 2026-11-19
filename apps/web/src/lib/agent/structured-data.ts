@@ -120,7 +120,7 @@ export const buildSoftwareApplication = (componentCount: number) =>
     url: siteConfig.url,
   }) satisfies JsonLdNode;
 
-const componentUrl = (slug: string): string => absoluteUrl(`/ui/${slug}`);
+const componentUrl = (slug: string) => absoluteUrl(`/ui/${slug}`);
 
 export const buildCollectionPage = (components: ContentComponentSummary[]) =>
   ({
@@ -130,9 +130,6 @@ export const buildCollectionPage = (components: ContentComponentSummary[]) =>
     description: siteSummary,
     inLanguage: "en-US",
     isPartOf: { "@id": WEBSITE_ID },
-    // Names and URLs only. Descriptions are already in the page text and in
-    // /llms.txt, and repeating them here is pure markup weight on the one
-    // page whose text-to-markup ratio matters most.
     mainEntity: {
       "@type": "ItemList",
       itemListElement: components.map((component, index) => ({
@@ -163,7 +160,7 @@ export interface SocialVideo {
 }
 
 /** ISO 8601 duration, whole seconds: 13.2 → `PT13S`. Never `PT0S`. */
-export const isoDuration = (seconds: number): string => `PT${Math.max(1, Math.round(seconds))}S`;
+export const isoDuration = (seconds: number) => `PT${Math.max(1, Math.round(seconds))}S`;
 
 export const buildVideoObject = (video: SocialVideo, pageUrl: string) =>
   ({
@@ -183,16 +180,19 @@ export const buildVideoObject = (video: SocialVideo, pageUrl: string) =>
 
 export const buildHomeGraph = (components: ContentComponentSummary[], video?: SocialVideo) => {
   const page: JsonLdNode = buildCollectionPage(components);
+
   const graph: JsonLdNode[] = [
     buildOrganization(),
     buildWebSite(),
     buildSoftwareApplication(components.length),
     page,
   ];
+
   if (video) {
     page.video = { "@id": `${siteConfig.url}/#video` };
     graph.push(buildVideoObject(video, `${siteConfig.url}/`));
   }
+
   return { "@context": "https://schema.org", "@graph": graph } satisfies JsonLdNode;
 };
 
@@ -236,12 +236,15 @@ export const buildComponentGraph = (component: ContentComponentSummary, video?: 
     ...buildSoftwareSourceCode(component),
     dateCreated: component.addedAt,
   };
+
   const graph: JsonLdNode[] = [buildOrganization(), source, buildComponentBreadcrumb(component)];
+
   if (video) {
     source.image = video.thumbnailUrl;
     source.video = { "@id": `${componentUrl(component.slug)}#video` };
     graph.push(buildVideoObject(video, componentUrl(component.slug)));
   }
+
   return { "@context": "https://schema.org", "@graph": graph } satisfies JsonLdNode;
 };
 
@@ -269,5 +272,5 @@ export const buildProsePageGraph = (page: ProsePage) =>
  * could start a `</script>` has to be escaped. `<` is valid inside a JSON
  * string and parses back to `<`.
  */
-export const serializeJsonLd = (node: JsonLdNode): string =>
+export const serializeJsonLd = (node: JsonLdNode) =>
   JSON.stringify(node).replaceAll("<", "\\u003c");

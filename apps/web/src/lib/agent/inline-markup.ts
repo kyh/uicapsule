@@ -17,40 +17,48 @@ export type InlineToken =
 const INLINE_SPAN =
   /\*\*(?<bold>[^*]+)\*\*|`(?<code>[^`]+)`|\[(?<label>[^\]]+)\]\((?<href>[^)\s]+)\)/gu;
 
-const spanToken = (groups: Record<string, string | undefined>): InlineToken | null => {
+const spanToken = (groups: Record<string, string | undefined>) => {
   if (groups.bold !== undefined) {
-    return { kind: "bold", text: groups.bold };
+    return { kind: "bold", text: groups.bold } satisfies InlineToken;
   }
+
   if (groups.code !== undefined) {
-    return { kind: "code", text: groups.code };
+    return { kind: "code", text: groups.code } satisfies InlineToken;
   }
+
   if (groups.label !== undefined && groups.href !== undefined) {
-    return { href: groups.href, kind: "link", text: groups.label };
+    return { href: groups.href, kind: "link", text: groups.label } satisfies InlineToken;
   }
+
   return null;
 };
 
-export const parseInline = (source: string): InlineToken[] => {
+export const parseInline = (source: string) => {
   const tokens: InlineToken[] = [];
   let cursor = 0;
+
   for (const match of source.matchAll(INLINE_SPAN)) {
     const token = spanToken(match.groups ?? {});
+
     if (token) {
       if (match.index > cursor) {
         tokens.push({ kind: "text", text: source.slice(cursor, match.index) });
       }
+
       tokens.push(token);
       cursor = match.index + match[0].length;
     }
   }
+
   if (cursor < source.length) {
     tokens.push({ kind: "text", text: source.slice(cursor) });
   }
+
   return tokens;
 };
 
 /** Every link a string carries, in order. */
-export const inlineLinks = (source: string): { text: string; href: string }[] =>
+export const inlineLinks = (source: string) =>
   parseInline(source).flatMap((token) =>
     token.kind === "link" ? [{ href: token.href, text: token.text }] : [],
   );

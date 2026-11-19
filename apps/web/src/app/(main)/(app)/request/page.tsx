@@ -7,7 +7,6 @@ import { RequestForm } from "./request-form";
 
 const image = shareCardImage(requestPage.path, requestPage.title);
 
-// No Markdown twin (a form, not prose), so a bare canonical rather than canonicalAlternates.
 export const metadata: Metadata = {
   alternates: { canonical: requestPage.path },
   description: requestPage.description,

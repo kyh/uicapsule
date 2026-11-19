@@ -9,7 +9,6 @@ import { ChevronDownIcon } from "lucide-react";
 import type { ItemInstance, TreeInstance } from "@headless-tree/core";
 import { cn } from "cn";
 
-// Feature methods only exist when the consumer enables their headless-tree feature.
 type TreeStyle = CSSProperties & Record<`--${string}`, string>;
 
 interface TreeContextValue {
@@ -32,7 +31,6 @@ type TreeProps<T = unknown> = {
 const Tree = <T = unknown,>({ indent = 20, tree, className, ...props }: TreeProps<T>) => {
   const context = useMemo(() => ({ indent, tree }), [indent, tree]);
   const containerProps = tree?.getContainerProps?.() ?? {};
-  // mergeProps chains event handlers; a plain spread would silently drop the consumer's.
   const mergedProps = mergeProps(containerProps, props);
 
   const { style: propStyle, ...otherProps } = mergedProps;
@@ -118,6 +116,7 @@ const TreeItemLabel = <T = unknown,>({
 
   if (!item) {
     console.warn("TreeItemLabel: No item provided via props or context");
+
     return null;
   }
 
@@ -145,10 +144,12 @@ const TreeDragLine = ({ className, ...props }: HTMLAttributes<HTMLDivElement>) =
     console.warn(
       "TreeDragLine: No tree provided via context or tree does not have getDragLineStyle method",
     );
+
     return null;
   }
 
   const dragLine = tree.getDragLineStyle();
+
   return (
     <div
       style={dragLine}

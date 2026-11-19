@@ -40,9 +40,11 @@ describe("parseInline", () => {
 
   test("round-trips: concatenating the spans' text drops only the markers", () => {
     const text = "**Email**: [uicapsule@kyh.io](mailto:uicapsule@kyh.io)";
+
     const plain = parseInline(text)
       .map((token) => token.text)
       .join("");
+
     assert.equal(plain, "Email: uicapsule@kyh.io");
   });
 });

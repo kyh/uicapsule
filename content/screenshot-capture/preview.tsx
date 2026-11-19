@@ -4,7 +4,6 @@ import type { CSSProperties } from "react";
 
 import { ScreenshotCapture } from "./screenshot-capture";
 
-// A low horizon glow under a rose-to-plum sky: dusk, not the flat amber of daylight.
 const backdrop: CSSProperties = {
   background: [
     "radial-gradient(ellipse 70% 38% at 50% 100%, rgb(214 120 96 / 0.42), transparent 72%)",

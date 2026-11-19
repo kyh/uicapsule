@@ -17,8 +17,8 @@ Source downloads and registry output have their own boundary. Auth/oRPC and Supa
 | Verification         | Strict checks cover all code-bearing content packages independently, including preview export contracts. Lint warnings fail. Next builds no longer ignore type errors. CI runs the full gate on every push and PR.                     |
 
 Kept cache wrappers, UI primitives, and cohesive highlighting code: they encapsulate behavior.
-Removed copied utility features and unused abstractions. Comments explain constraints and
-invariants; repeated implementation narration was trimmed. Narrow lint exceptions cover
+Removed copied utility features and unused abstractions. Prose comments are gone (the landmines
+lint preset bans them); constraints and invariants live in CLAUDE.md and AGENTS.md. Narrow lint exceptions cover
 verified native-API/ref false positives and fixed positional rendering, with local reasons.
 
 Validation:

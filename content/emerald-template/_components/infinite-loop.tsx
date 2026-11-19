@@ -25,6 +25,7 @@ export const InfiniteLooper = ({
   const setupInstances = useCallback(() => {
     const inner = innerRef.current;
     const outer = outerRef.current;
+
     if (!inner || !outer) {
       return;
     }
@@ -39,7 +40,6 @@ export const InfiniteLooper = ({
       setLooperInstances(looperInstances + Math.ceil(widthDeficit / instanceWidth) + 1);
     }
 
-    // Drop and re-add the animation class so every instance restarts in phase.
     setAnimating(false);
     window.clearTimeout(restartTimeoutRef.current);
     restartTimeoutRef.current = window.setTimeout(() => setAnimating(true), 10);

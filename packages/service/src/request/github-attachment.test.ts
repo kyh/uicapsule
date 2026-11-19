@@ -7,11 +7,13 @@ import { uploadAttachment } from "./github-attachment";
 
 const withToken = (t: { after: (fn: () => void) => void }, token?: string) => {
   const previous = process.env.GITHUB_ISSUES_TOKEN;
+
   if (token === undefined) {
     delete process.env.GITHUB_ISSUES_TOKEN;
   } else {
     process.env.GITHUB_ISSUES_TOKEN = token;
   }
+
   t.after(() => {
     if (previous === undefined) {
       delete process.env.GITHUB_ISSUES_TOKEN;
@@ -27,12 +29,15 @@ const blob = new Blob(["abc"]);
 test("posts raw bytes to GitHub's user-attachments store for this repository", async (t) => {
   withToken(t, "test-token");
   let received: Request | undefined;
+
   const url = await uploadAttachment(meta, blob, (input, init) => {
     received = new Request(input, init);
+
     return Promise.resolve(
       Response.json({ url: "https://github.com/user-attachments/assets/abc-123" }),
     );
   });
+
   assert.equal(url, "https://github.com/user-attachments/assets/abc-123");
   assert.ok(received);
   const target = new URL(received.url);

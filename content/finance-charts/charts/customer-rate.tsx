@@ -20,8 +20,6 @@ const AMBER = "#fbbf24";
 const AMBER_DEEP = "#f59e0b";
 const GREY = "#ebebee";
 
-// First-time visitors (grey) tower over returning ones (amber); both fade out
-// past midnight.
 const FIRST_TIME = [
   [17.6, 0],
   [18, 7.5],
@@ -40,6 +38,7 @@ const FIRST_TIME = [
   [25.1, 0],
   [26.4, 0],
 ] as const;
+
 const RETURNING = [
   [17.6, 0],
   [18, 2.6],
@@ -55,10 +54,10 @@ const RETURNING = [
   [26.4, 0],
 ] as const;
 
-// Both series on one shared hour grid so the scrubber reads them together.
 const GRID_H = [...new Set([...FIRST_TIME, ...RETURNING].map(([h]) => h))].toSorted(
   (a, b) => a - b,
 );
+
 const ROWS = GRID_H.map((h) => ({
   first: valueAt(FIRST_TIME, h),
   h,
@@ -88,6 +87,7 @@ export const CustomerRate = () => {
   const definition = useMemo(() => {
     const axes = hourlyAxes(TICKS, (v) => `${v}%`);
     const at = [{ first, h, returning }];
+
     return defineChart({
       margin: MARGIN,
       marks: [
@@ -138,11 +138,13 @@ export const CustomerRate = () => {
               if (p) {
                 const x = Number(p.xValue);
                 let best = 0;
+
                 for (const [k, s] of STOPS.entries()) {
                   if (Math.abs(s - x) < Math.abs((STOPS[best] ?? 0) - x)) {
                     best = k;
                   }
                 }
+
                 pin(best);
               }
             }}

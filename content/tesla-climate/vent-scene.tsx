@@ -15,15 +15,14 @@ const SEGMENTS = 16;
 const SLIT_Y = 0.5;
 const SLIT_WIDTH = 0.46;
 
-// Mirrors the MIN_TEMP/MAX_TEMP range in tesla-climate.tsx; duplicated rather than
-// imported so the tint math stays independent of the control panel.
 const TINT_MIN_TEMP = 60;
 const TINT_TEMP_SPAN = 20;
 
-const tintFor = (tempF: number, acOn: boolean): readonly [number, number, number] => {
+const tintFor = (tempF: number, acOn: boolean) => {
   if (!acOn) {
     return [168, 176, 188];
   }
+
   const k = Math.min(1, Math.max(0, (tempF - TINT_MIN_TEMP) / TINT_TEMP_SPAN));
   const cold: readonly [number, number, number] = [90, 140, 240];
   const mid: readonly [number, number, number] = [150, 178, 226];
@@ -31,6 +30,7 @@ const tintFor = (tempF: number, acOn: boolean): readonly [number, number, number
   const from = k < 0.5 ? cold : mid;
   const to = k < 0.5 ? mid : hot;
   const t = k < 0.5 ? k * 2 : (k - 0.5) * 2;
+
   return [
     Math.round(from[0] + (to[0] - from[0]) * t),
     Math.round(from[1] + (to[1] - from[1]) * t),
@@ -38,9 +38,9 @@ const tintFor = (tempF: number, acOn: boolean): readonly [number, number, number
   ];
 };
 
-// Deterministic per-strand pseudo-random, stable across frames.
 const seeded = (index: number, channel: number) => {
   const value = Math.sin(index * 127.1 + channel * 311.7) * 43_758.5453;
+
   return value - Math.floor(value);
 };
 
@@ -60,25 +60,32 @@ export const VentScene: FC<VentSceneProps> = ({ tempF, fanSpeed, powerOn, acOn }
 
   useEffect(() => {
     const canvas = canvasRef.current;
+
     if (!canvas) {
       return;
     }
+
     const context = canvas.getContext("2d");
+
     if (!context) {
       return;
     }
+
     const offscreen = document.createElement("canvas");
     const offContext = offscreen.getContext("2d");
+
     if (!offContext) {
       return;
     }
 
     let frame = 0;
+
     const resize = () => {
       const rect = canvas.getBoundingClientRect();
       const dpr = window.devicePixelRatio || 1;
       const width = Math.round(rect.width * dpr);
       const height = Math.round(rect.height * dpr);
+
       if (canvas.width !== width || canvas.height !== height) {
         canvas.width = width;
         canvas.height = height;
@@ -87,6 +94,7 @@ export const VentScene: FC<VentSceneProps> = ({ tempF, fanSpeed, powerOn, acOn }
         context.setTransform(dpr, 0, 0, dpr, 0, 0);
         offContext.setTransform(dpr, 0, 0, dpr, 0, 0);
       }
+
       return rect;
     };
 
@@ -95,6 +103,7 @@ export const VentScene: FC<VentSceneProps> = ({ tempF, fanSpeed, powerOn, acOn }
       const rect = resize();
       const w = rect.width;
       const h = rect.height;
+
       if (w === 0 || h === 0) {
         return;
       }
@@ -105,7 +114,6 @@ export const VentScene: FC<VentSceneProps> = ({ tempF, fanSpeed, powerOn, acOn }
       intensityRef.current += ((on ? 1 : 0) - intensityRef.current) * 0.06;
       smoothFanRef.current += (fan - smoothFanRef.current) * 0.08;
       const steer = steerRef.current;
-      // Shortest-arc lerp so aiming across the top doesn't spin the long way round.
       const arc = ((steer.target - steer.current + Math.PI * 3) % (Math.PI * 2)) - Math.PI;
       steer.current += arc * 0.1;
       steer.reach += (steer.reachTarget - steer.reach) * 0.08;
@@ -115,7 +123,6 @@ export const VentScene: FC<VentSceneProps> = ({ tempF, fanSpeed, powerOn, acOn }
       const tint = tintFor(temp, cool);
       const unit = h / 340;
 
-      // Backdrop.
       const backdrop = context.createLinearGradient(0, 0, 0, h);
       backdrop.addColorStop(0, "#eef0f3");
       backdrop.addColorStop(0.35, "#e4e8ec");
@@ -127,7 +134,6 @@ export const VentScene: FC<VentSceneProps> = ({ tempF, fanSpeed, powerOn, acOn }
       const slitY = h * SLIT_Y;
       const slitW = w * SLIT_WIDTH;
 
-      // Ambient temperature wash under the plume.
       if (intensity > 0.02) {
         const wash = context.createRadialGradient(slitCx, slitY, 0, slitCx, slitY, h * 0.85);
         wash.addColorStop(
@@ -139,7 +145,6 @@ export const VentScene: FC<VentSceneProps> = ({ tempF, fanSpeed, powerOn, acOn }
         context.fillRect(0, 0, w, h);
       }
 
-      // Air strands, drawn sharp offscreen then composited through blur.
       if (intensity > 0.01) {
         offContext.clearRect(0, 0, w, h);
         offContext.globalCompositeOperation = "lighter";
@@ -164,16 +169,19 @@ export const VentScene: FC<VentSceneProps> = ({ tempF, fanSpeed, powerOn, acOn }
 
           for (let segment = 1; segment <= SEGMENTS; segment += 1) {
             const s = segment / SEGMENTS;
+
             const angle =
               steer.current +
               across * (0.5 + 1.05 * s) +
               Math.sin(time * speedSeed * 1.25 * flutter + s * 2.8 + phase) * curl * s;
+
             const stepLength = length / SEGMENTS;
             const nextX = x + Math.sin(angle) * stepLength;
             const nextY = y + Math.cos(angle) * stepLength;
 
             const pulse = 0.68 + 0.32 * Math.sin(s * 6.2 - time * pulseSpeed + phase);
             const alpha = (1 - s) ** 1.55 * Math.min(s * 9, 1) * 0.5 * strandAlpha * pulse;
+
             if (alpha > 0.008) {
               offContext.strokeStyle = `rgba(255,255,255,${alpha.toFixed(3)})`;
               offContext.lineWidth = (0.9 + s * 7.5) * unit;
@@ -182,28 +190,30 @@ export const VentScene: FC<VentSceneProps> = ({ tempF, fanSpeed, powerOn, acOn }
               offContext.lineTo(nextX, nextY);
               offContext.stroke();
             }
+
             x = nextX;
             y = nextY;
           }
         }
 
-        // Heavy pass = mist body, light pass = fiber detail.
         context.save();
+
         if ("filter" in CanvasRenderingContext2D.prototype) {
           context.filter = "blur(7px)";
           context.drawImage(offscreen, 0, 0, w, h);
           context.filter = "blur(1.5px)";
         } else {
           context.globalAlpha = 0.3;
+
           for (let dx = -2; dx <= 2; dx += 2) {
             context.drawImage(offscreen, dx, 1, w, h);
           }
         }
+
         context.globalAlpha = 0.75;
         context.drawImage(offscreen, 0, 0, w, h);
         context.restore();
 
-        // Bright rush at the slit.
         const rush = context.createRadialGradient(slitCx, slitY, 0, slitCx, slitY, slitW * 0.42);
         rush.addColorStop(0, `rgba(255,255,255,${(0.9 * intensity).toFixed(3)})`);
         rush.addColorStop(0.4, `rgba(255,255,255,${(0.35 * intensity).toFixed(3)})`);
@@ -219,7 +229,6 @@ export const VentScene: FC<VentSceneProps> = ({ tempF, fanSpeed, powerOn, acOn }
         context.restore();
       }
 
-      // The slit itself, drawn above the air so it stays crisp.
       context.beginPath();
       context.roundRect(slitCx - slitW / 2, slitY - 3.5 * unit, slitW, 7 * unit, 5 * unit);
       const slot = context.createLinearGradient(0, slitY - 3.5 * unit, 0, slitY + 3.5 * unit);
@@ -228,15 +237,14 @@ export const VentScene: FC<VentSceneProps> = ({ tempF, fanSpeed, powerOn, acOn }
       slot.addColorStop(1, "#5b6574");
       context.fillStyle = slot;
       context.fill();
-      // Bottom lip highlight.
       context.beginPath();
       context.roundRect(slitCx - slitW / 2, slitY + 3.5 * unit, slitW, 1.4 * unit, 1);
       context.fillStyle = "rgba(255,255,255,0.75)";
       context.fill();
 
-      // Subtle touch circle under the pointer while dragging.
       const pointer = pointerRef.current;
       pointer.alpha += ((draggingRef.current ? 1 : 0) - pointer.alpha) * 0.16;
+
       if (pointer.alpha > 0.02) {
         const touchRadius = 26 * unit;
         context.beginPath();
@@ -250,16 +258,17 @@ export const VentScene: FC<VentSceneProps> = ({ tempF, fanSpeed, powerOn, acOn }
     };
 
     frame = requestAnimationFrame(step);
+
     return () => cancelAnimationFrame(frame);
   }, []);
 
-  // The plume aims at the pointer: direction sets the angle (any way, up included),
-  // distance from the slit sets reach.
   const aimStream = (clientX: number, clientY: number) => {
     const canvas = canvasRef.current;
+
     if (!canvas || !draggingRef.current) {
       return;
     }
+
     const rect = canvas.getBoundingClientRect();
     const px = clientX - rect.left;
     const py = clientY - rect.top;
@@ -268,9 +277,11 @@ export const VentScene: FC<VentSceneProps> = ({ tempF, fanSpeed, powerOn, acOn }
     const dx = px - rect.width / 2;
     const dy = py - rect.height * SLIT_Y;
     const fromSlit = Math.hypot(dx, dy);
+
     if (fromSlit < 10) {
       return;
     }
+
     steerRef.current.target = Math.atan2(dx, dy);
     const distance = fromSlit / (rect.height * 0.52);
     steerRef.current.reachTarget = Math.max(0.35, Math.min(1.3, distance));
@@ -286,6 +297,7 @@ export const VentScene: FC<VentSceneProps> = ({ tempF, fanSpeed, powerOn, acOn }
         if (!settingsRef.current.powerOn) {
           return;
         }
+
         draggingRef.current = true;
         setDragging(true);
         event.currentTarget.setPointerCapture(event.pointerId);

@@ -17,17 +17,18 @@ const BARS = DAYS.length * PER_DAY;
 const MID = [46, 60, 60, 41, 50] as const;
 const PEAK = [48, 86, 104, 122, 86, 58, 104] as const;
 const TIER_FILL = { dark: "#16a34a", light: "#b9ebc9", mid: "#5fc683" } as const;
+
 type Tier = keyof typeof TIER_FILL;
 
-/** One week of 49 four-hour buckets: a quiet floor, one mid-week swell and
- * one surge. Each week moves both, so bars spring between weeks. */
 const week = (seed: number, midAt: number, peakAt: number) => {
   const r = rng(seed);
+
   return Array.from({ length: BARS }, (_, i) => {
     const m = MID[i - midAt];
     const p = PEAK[i - peakAt];
     let tier: Tier = "light";
     let v = 6 + r() * 17;
+
     if (p !== undefined) {
       tier = "dark";
       v = p;
@@ -35,6 +36,7 @@ const week = (seed: number, midAt: number, peakAt: number) => {
       tier = "mid";
       v = m;
     }
+
     return { i, tier, v };
   });
 };

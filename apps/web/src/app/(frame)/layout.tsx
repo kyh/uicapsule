@@ -6,7 +6,6 @@ import { ThemeProvider } from "@/components/theme-provider";
 
 import "../styles/globals.css";
 
-// Bare iframe targets; /ui/<slug> is the indexable page.
 export const metadata: Metadata = { robots: { follow: false, index: false } };
 
 const FrameLayout = ({ children }: { children: ReactNode }) => (

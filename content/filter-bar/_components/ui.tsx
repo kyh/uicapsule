@@ -183,6 +183,7 @@ export const CommandSeparator = ({
 
 export const Slider = ({ className, value, ...props }: Styled<SliderPrimitive.Root.Props>) => {
   const count = Array.isArray(value) ? value.length : 1;
+
   return (
     <SliderPrimitive.Root
       value={value}

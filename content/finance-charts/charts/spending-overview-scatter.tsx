@@ -26,9 +26,9 @@ const SERIES = [
   { color: "#5ea8f7", id: "expenses", label: "Expenses" },
   { color: "#0a6edb", id: "investment", label: "Investment" },
 ] as const;
+
 type SeriesId = (typeof SERIES)[number]["id"];
 
-/** The trend the scatter rides: $400 in January, $4,000 by the end of July. */
 const trend = (x: number) => 400 * 10 ** (x / COLS);
 
 interface Cell {
@@ -38,6 +38,7 @@ interface Cell {
 }
 
 const grid: Cell[] = [];
+
 for (let c = 0; c < COLS; c += 1) {
   for (let r = 0; r < ROWS; r += 1) {
     grid.push({ c, id: `${c}-${r}`, r });
@@ -52,18 +53,22 @@ const hits: Hit[] = (() => {
   const rand = rng(712);
   const out: Hit[] = [];
   const seen = new Set<string>();
+
   for (let c = 0; c < COLS; c += 1) {
     const count = rand() > 0.4 ? 2 : 1;
+
     for (let k = 0; k < count; k += 1) {
       const base = trend(c + 0.5) / STEP;
       const r = Math.max(0, Math.min(ROWS - 1, Math.round(base + (rand() - 0.5) * 6)));
       const id = `${c}-${r}`;
+
       if (!seen.has(id)) {
         seen.add(id);
         out.push({ c, id, r, series: SERIES[Math.floor(rand() * 3)]?.id ?? "income" });
       }
     }
   }
+
   return out;
 })();
 
@@ -72,6 +77,7 @@ const curve = Array.from({ length: COLS * 2 + 1 }, (_, i) => ({ x: i / 2, y: tre
 const totals = SPAN.map((_, i) => {
   const rand = rng(90 + i);
   const scale = 0.55 + i * 0.12;
+
   return {
     expenses: (900 + rand() * 500) * scale,
     income: (1400 + rand() * 600) * scale,
@@ -206,6 +212,7 @@ export const SpendingOverviewScatter = () => {
             ariaLabel="Monthly income, expenses and investment as a dot grid"
             onFocusChange={(p) => {
               const x = Number(p?.xValue);
+
               if (p && Number.isFinite(x)) {
                 pin(Math.min(SPAN.length - 1, Math.floor(x / PER)));
               }

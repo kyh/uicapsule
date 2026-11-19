@@ -13,14 +13,13 @@ const YEARS = 8;
 const PER_YEAR = 4;
 const COLS = YEARS * PER_YEAR;
 const ROWS = 22;
-// Quarters where the market crossed a milestone: their top cell is lit.
 const MILESTONES = new Set([1, 5, 8, 10, 12, 17, 21, 25, 28, 29, 31]);
 
-/** Filled rows per quarter: 46% CAGR compounding from two rows to the top. */
 const level = (c: number) => {
   const t = c / (COLS - 1);
   const g = 1.46 ** (t * (YEARS - 1));
   const span = 1.46 ** (YEARS - 1) - 1;
+
   return Math.round(2 + (ROWS - 3) * ((g - 1) / span));
 };
 
@@ -29,9 +28,11 @@ interface Cell {
   id: string;
   r: number;
 }
-const cellAt = (c: number, r: number): Cell => ({ c, id: `${c}-${r}`, r });
+
+const cellAt = (c: number, r: number) => ({ c, id: `${c}-${r}`, r });
 
 const ALL: Cell[] = [];
+
 for (let c = 0; c < COLS; c += 1) {
   for (let r = 0; r < ROWS; r += 1) {
     ALL.push(cellAt(c, r));
@@ -40,7 +41,6 @@ for (let c = 0; c < COLS; c += 1) {
 
 const HEIGHT = 200;
 const MARGIN = { bottom: 22, left: 0, right: 0, top: 0 };
-// Eight reveal steps, then two beats holding the full decade.
 const STEPS = YEARS + 2;
 
 export const GlobalDefi = () => {
@@ -50,8 +50,10 @@ export const GlobalDefi = () => {
   const definition = useMemo(() => {
     const filled: Cell[] = [];
     const lit: Cell[] = [];
+
     for (let c = 0; c < years * PER_YEAR; c += 1) {
       const top = level(c);
+
       for (let r = 0; r < top; r += 1) {
         if (r === top - 1 && MILESTONES.has(c)) {
           lit.push(cellAt(c, r));
@@ -60,8 +62,10 @@ export const GlobalDefi = () => {
         }
       }
     }
+
     const grid = (rows: Cell[], fill: string, id: string) =>
       cell(rows, { fill, id, inset: 1.1, key: "id", radius: 2, x: "c", y: "r" });
+
     return defineChart({
       margin: MARGIN,
       marks: [

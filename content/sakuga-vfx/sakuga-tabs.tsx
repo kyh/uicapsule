@@ -1,10 +1,5 @@
 "use client";
 
-// Sakuga Tabs: the raised tab itself slides to the one you pick, stretching as it goes, and lands
-// with wedges above it, a puff at the side it came from and speed lines behind it.
-// Base UI's Tabs underneath: SakugaTabs, SakugaTabsList, SakugaTabsTrigger, SakugaTabsContent.
-// A value set from code moves the raised tab without the landing.
-
 import { Tabs as TabsPrimitive } from "@base-ui/react/tabs";
 import { cn } from "cn";
 import { createContext, use, useEffect, useRef } from "react";
@@ -14,41 +9,27 @@ import { Spring, at, clamp, clock, later, lines, puff, ticks } from "./sakuga-co
 import { FONT_BODY, SakugaStyle, useFrame, useMergedRef } from "./sakuga-react";
 import type { Styled } from "./sakuga-react";
 
-// Two deliberate fixes of upstream bugs, so the control does what the original's own header says:
-// 1. The original keeps the way it travelled in `this.dir`, which on an element is the built-in
-//    `dir` property and always reads back "". Its landing never took a side: the puffs rose from
-//    the middle of the tab and the speed lines always ran right. Here the side is kept in the rig.
-// 2. Picking a tab makes its label bold, which resizes the list, and the original's ResizeObserver
-//    answered every resize by snapping the raised tab to its target: the slide and its stretch
-//    never showed. Here a resize during a move only retargets the springs; any other still snaps.
-// Every number is the original's. One clamp is added: because of the snap, the original's stretch
-// formula never ran, and at full speed its 46px would throw the trailing edge out past the end of
-// the list. Here the stretch only trails over ground already covered since the move began, and
-// never leaves the list; the spring's overshoot past either end of the list is held at the end.
-
 interface Rig {
   sx: Spring;
   sw: Spring;
   up: Spring;
   pending: boolean;
-  // which way the last picked move went: 1 right, -1 left
   dir: number;
-  // where the move began, and how wide the list is: the stretch stays between them
   from: number;
   span: number;
-  // the tab the raised tab is on, or going to
   shown: HTMLElement | null;
 }
 
-// point the raised tab at a tab; quiet puts it there at once
 const aim = (rig: Rig, tab: HTMLElement, quiet: boolean) => {
   if (!quiet) {
     rig.dir = Math.sign(tab.offsetLeft - rig.sx.to) || 1;
     rig.from = rig.sx.x;
   }
+
   rig.span = tab.offsetParent?.clientWidth ?? Infinity;
   rig.sx.to = tab.offsetLeft;
   rig.sw.to = tab.offsetWidth;
+
   if (quiet) {
     rig.sx.x = rig.sx.to;
     rig.sw.x = rig.sw.to;
@@ -59,7 +40,6 @@ const aim = (rig: Rig, tab: HTMLElement, quiet: boolean) => {
   }
 };
 
-// the list changed size: follow it, without cutting a move short
 const follow = (rig: Rig, tab: HTMLElement) => {
   if (rig.pending) {
     rig.sx.to = tab.offsetLeft;
@@ -70,19 +50,16 @@ const follow = (rig: Rig, tab: HTMLElement) => {
   }
 };
 
-// write the raised tab where the springs are: it stretches with its speed
 const paint = (rig: Rig, ind: HTMLElement) => {
   const { sx } = rig;
   const room = sx.v < 0 ? rig.span - sx.x - rig.sw.x : sx.x;
   const stretch = Math.max(0, Math.min(46, Math.abs(sx.v) * 0.06, Math.abs(sx.x - rig.from), room));
   const w = rig.sw.x + stretch;
-  // the list's ends are walls: the spring's own overshoot stops at them too
   const left = clamp(sx.x - (sx.v < 0 ? 0 : stretch), 0, Math.max(0, rig.span - w));
   ind.style.transform = `translate(${left}px, ${rig.up.x}px)`;
   ind.style.width = `${w}px`;
 };
 
-// it has landed
 const land = (tab: HTMLElement, dir: number) => {
   const c = at(tab);
   ticks(c.x, c.y - c.h / 2 - 12, { dir: -Math.PI / 2, fan: 0.5, len: 15, life: 0.5, n: 3, r: 4 });
@@ -93,11 +70,8 @@ const land = (tab: HTMLElement, dir: number) => {
   lines(c.x - (dir * c.w) / 2, c.y, { dir: dir > 0 ? Math.PI : 0, len: 34, n: 4, spread: 10 });
 };
 
-// The clock time of the last change a person made. The list reads it when the active tab changes:
-// a change in the same instant was theirs and gets the landing, any other came from code.
 const PickContext = createContext<RefObject<number> | null>(null);
 
-// no value: nothing has been tried
 const UNTRIED = Symbol("untried");
 
 const SakugaTabs = ({
@@ -107,9 +81,8 @@ const SakugaTabs = ({
   ...props
 }: Styled<TabsPrimitive.Root.Props>) => {
   const pickedAt = useRef(-1);
-  // The value this press already asked for when it focused the tab. Base UI asks again on the
-  // click when the owner refused the first time; one press is one attempt.
   const tried = useRef<unknown>(UNTRIED);
+
   return (
     <PickContext value={pickedAt}>
       <SakugaStyle />
@@ -128,10 +101,13 @@ const SakugaTabs = ({
         onValueChange={(value, details) => {
           if (details.event.type === "click" && Object.is(tried.current, value)) {
             details.cancel();
+
             return;
           }
+
           tried.current = details.event.type === "click" ? UNTRIED : value;
           onValueChange?.(value, details);
+
           if (details.reason === "none" && !details.isCanceled) {
             pickedAt.current = clock.now;
           }
@@ -141,13 +117,11 @@ const SakugaTabs = ({
   );
 };
 
-// never changes, so React leaves the style alone once the first measure has shown the raised tab
 const HIDDEN = { visibility: "hidden" } as const;
 
 const SakugaTabsList = ({
   className,
   children,
-  // upstream picks a tab as the arrow keys reach it
   activateOnFocus = true,
   ref,
   ...props
@@ -156,6 +130,7 @@ const SakugaTabsList = ({
   const strip = useRef<HTMLDivElement>(null);
   const stripRef = useMergedRef(strip, ref);
   const raised = useRef<HTMLSpanElement>(null);
+
   const rig = useRef<Rig>({
     dir: 1,
     from: 0,
@@ -170,35 +145,43 @@ const SakugaTabsList = ({
   useEffect(() => {
     const list = strip.current;
     const ind = raised.current;
+
     if (!list || !ind) {
       return;
     }
+
     const r = rig.current;
-    // Base UI owns which tab is active and hands out no ref to it, so the raised tab follows
-    // what Base UI wrote to the DOM, after
-    // the tabs have their new weights, so the widths read are the new ones
+
     const sync = () => {
       const tab = list.querySelector<HTMLElement>('[role="tab"][aria-selected="true"]');
+
       if (tab === r.shown) {
         return;
       }
+
       const first = r.shown === null;
       r.shown = tab;
+
       if (!tab) {
         ind.style.visibility = "hidden";
+
         return;
       }
+
       const picked = pickedAtRef !== null && pickedAtRef.current === clock.now;
+
       if (pickedAtRef) {
         pickedAtRef.current = -1;
       }
+
       aim(r, tab, first || !picked);
-      // the raised tab stays hidden until it has been measured, then the clock moves it
+
       if (ind.style.visibility) {
         paint(r, ind);
         ind.style.visibility = "";
       }
     };
+
     sync();
     const active = new MutationObserver(sync);
     active.observe(list, {
@@ -207,12 +190,15 @@ const SakugaTabsList = ({
       childList: true,
       subtree: true,
     });
+
     const size = new ResizeObserver(() => {
       if (r.shown) {
         follow(r, r.shown);
       }
     });
+
     size.observe(list);
+
     return () => {
       active.disconnect();
       size.disconnect();
@@ -222,14 +208,17 @@ const SakugaTabsList = ({
   useFrame((dt) => {
     const r = rig.current;
     const ind = raised.current;
+
     if (!ind) {
       return;
     }
+
     const { sx } = r;
     const x = sx.step(dt);
     r.sw.step(dt);
     r.up.step(dt);
     paint(r, ind);
+
     if (r.pending && r.shown && Math.abs(x - sx.to) < 3) {
       r.pending = false;
       r.up.x = -7;

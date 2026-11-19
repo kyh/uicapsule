@@ -21,62 +21,75 @@ import type {
 } from "../filter-package";
 import { filterTypeOperatorDetails } from "../filter-package";
 
-const operatorDetails = <K extends ColumnDataType>(
-  type: K,
-  operator: FilterOperators[K],
-): { key: string; target: "single" | "multiple" } => filterTypeOperatorDetails[type][operator];
+const operatorDetails = <K extends ColumnDataType>(type: K, operator: FilterOperators[K]) =>
+  filterTypeOperatorDetails[type][operator] satisfies {
+    key: string;
+    target: "single" | "multiple";
+  };
 
 const relatedOperators = <K extends ColumnDataType>(type: K, operator: FilterOperators[K]) => {
   const current = operatorDetails(type, operator);
+
   const details: FilterOperatorDetails<FilterOperators[K], K>[] = Object.values(
     filterTypeOperatorDetails[type],
   );
+
   return details.filter((detail) => detail.target === current.target);
 };
 
-const operatorChoices = (
-  filter: FilterModel,
-): { label: string; update: FilterOperatorUpdate }[] => {
+interface OperatorChoice {
+  label: string;
+  update: FilterOperatorUpdate;
+}
+
+const operatorChoices = (filter: FilterModel) => {
   const { columnId } = filter;
+
   switch (filter.type) {
     case "text": {
-      return relatedOperators("text", filter.operator).map((detail) => ({
+      return relatedOperators("text", filter.operator).map<OperatorChoice>((detail) => ({
         label: detail.key,
         update: { columnId, operator: detail.value, type: "text" },
       }));
     }
+
     case "number": {
-      return relatedOperators("number", filter.operator).map((detail) => ({
+      return relatedOperators("number", filter.operator).map<OperatorChoice>((detail) => ({
         label: detail.key,
         update: { columnId, operator: detail.value, type: "number" },
       }));
     }
+
     case "date": {
-      return relatedOperators("date", filter.operator).map((detail) => ({
+      return relatedOperators("date", filter.operator).map<OperatorChoice>((detail) => ({
         label: detail.key,
         update: { columnId, operator: detail.value, type: "date" },
       }));
     }
+
     case "boolean": {
-      return relatedOperators("boolean", filter.operator).map((detail) => ({
+      return relatedOperators("boolean", filter.operator).map<OperatorChoice>((detail) => ({
         label: detail.key,
         update: { columnId, operator: detail.value, type: "boolean" },
       }));
     }
+
     case "option": {
-      return relatedOperators("option", filter.operator).map((detail) => ({
+      return relatedOperators("option", filter.operator).map<OperatorChoice>((detail) => ({
         label: detail.key,
         update: { columnId, operator: detail.value, type: "option" },
       }));
     }
+
     case "multiOption": {
-      return relatedOperators("multiOption", filter.operator).map((detail) => ({
+      return relatedOperators("multiOption", filter.operator).map<OperatorChoice>((detail) => ({
         label: detail.key,
         update: { columnId, operator: detail.value, type: "multiOption" },
       }));
     }
+
     default: {
-      return [];
+      return [] satisfies OperatorChoice[];
     }
   }
 };
@@ -90,6 +103,7 @@ export const FilterOperator = ({
 }) => {
   const [open, setOpen] = useState(false);
   const current = operatorDetails(filter.type, filter.operator);
+
   return (
     <Popover
       open={open}
@@ -108,6 +122,7 @@ export const FilterOperator = ({
               if (filter.type !== "boolean") {
                 return;
               }
+
               actions.setFilterOperator({
                 columnId: filter.columnId,
                 operator: filter.operator === "is" ? "is not" : "is",

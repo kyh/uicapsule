@@ -12,6 +12,7 @@ import { Card, ChartSlot, MoreButton, Num, Segmented, renderer, useCycle } from 
 import { GREEN, GRID, MUTED, THEME } from "../lib/tokens";
 
 const RANGES = ["Week", "Month", "Year"] as const;
+
 const CATEGORIES = [
   { color: "#f7863a", id: "Debt" },
   { color: "#22b25a", id: "Investment" },
@@ -48,11 +49,14 @@ export const Expenses = () => {
       ...CATEGORIES.map((c, i) => ({ id: c.id, value: values[i] ?? 0 })),
       { id: "rest", value: Math.max(0, budget - total) },
     ];
+
     const slices = pie(rows, { gapAngle: 0.025, value: "value" });
     const rest = slices.find((s) => s.id === "rest");
+
     const open = HATCH.filter(
       (a) => rest && a > rest.startAngle + 0.03 && a < rest.endAngle - 0.03,
     );
+
     return defineChart({
       color: {
         domain: CATEGORIES.map((c) => c.id),

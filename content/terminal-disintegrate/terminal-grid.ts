@@ -1,6 +1,3 @@
-// The ASCII art is a grid of single characters, each carrying an alpha.
-// Every frame builder mutates a Grid in place through these pure primitives.
-
 export const OUTER_COLS = 50;
 export const OUTER_ROWS = 60;
 export const INNER_COLS = 40;
@@ -12,30 +9,34 @@ export interface Cell {
   char: string;
   alpha: number;
 }
+
 export type Grid = Cell[][];
 
-export const makeGrid = (cols: number, rows: number): Grid => {
+export const makeGrid = (cols: number, rows: number) => {
   const g: Grid = [];
 
   for (let r = 0; r < rows; r += 1) {
     const row: Cell[] = [];
+
     for (let c = 0; c < cols; c += 1) {
       row.push({ alpha: 0, char: " " });
     }
+
     g.push(row);
   }
 
   return g;
 };
 
-// Higher-alpha writes win on overlap; a space never erases an existing glyph.
 export const setCell = (g: Grid, r: number, c: number, char: string, alpha: number) => {
   const row = g[r];
+
   if (!row) {
     return;
   }
 
   const cur = row[c];
+
   if (!cur) {
     return;
   }
@@ -43,6 +44,7 @@ export const setCell = (g: Grid, r: number, c: number, char: string, alpha: numb
   if (char === " " && cur.char !== " ") {
     return;
   }
+
   if (cur.alpha > alpha && cur.char !== " ") {
     return;
   }
@@ -92,29 +94,32 @@ export const drawBox = (g: Grid, r: number, c: number, w: number, h: number, alp
 
 const VBARS = ["▁", "▂", "▃", "▄", "▅", "▆", "▇", "█"] as const;
 
-export const vbarChar = (v01: number): string => {
+export const vbarChar = (v01: number) => {
   const v = v01 < 0 ? 0 : Math.min(1, v01);
+
   return VBARS[Math.min(VBARS.length - 1, Math.floor(v * VBARS.length))] ?? "█";
 };
 
 export const pasteInto = (outer: Grid, inner: Grid, rOff: number, cOff: number) => {
   for (let r = 0; r < inner.length; r += 1) {
     const row = inner[r];
+
     if (!row) {
       continue;
     }
 
     for (let c = 0; c < row.length; c += 1) {
       const cell = row[c];
+
       if (!cell || cell.char === " " || cell.alpha <= 0) {
         continue;
       }
+
       setCell(outer, rOff + r, cOff + c, cell.char, cell.alpha);
     }
   }
 };
 
-// 5-row block-digit font for the Phase 3 hero stats.
 type BigGlyph = readonly [string, string, string, string, string];
 
 const BLANK_GLYPH: BigGlyph = ["   ", "   ", "   ", "   ", "   "];
@@ -125,8 +130,6 @@ const BIG_DIGITS = new Map<string, BigGlyph>(
     $: [" ╭╴", "╶┼╮", " │ ", "╶┼╯", " ╰╴"],
     "%": ["▪ ╱", " ╱ ", " ╱ ", "╱  ", "╱ ▪"],
     "+": ["   ", " │ ", "╶┼╴", " │ ", "   "],
-    // Period and comma are drawn 2 columns wide (see `drawBigNumber`), so their
-    // art has to live in the first two columns — a third column is never read.
     ",": ["   ", "   ", "   ", " ╷ ", "╶╯ "],
     "-": ["   ", "   ", "╶─╴", "   ", "   "],
     ".": ["   ", "   ", "   ", "   ", " ▪ "],
@@ -143,9 +146,6 @@ const BIG_DIGITS = new Map<string, BigGlyph>(
   } satisfies Record<string, BigGlyph>),
 );
 
-// Walks a string, writing each block glyph. Period and comma consume 2 cols
-// so the number reads as one tight typographic unit. `gap` is the inter-glyph
-// spacing in cells.
 export const drawBigNumber = (
   g: Grid,
   r: number,
@@ -162,12 +162,14 @@ export const drawBigNumber = (
 
     for (let row = 0; row < 5; row += 1) {
       const line = glyph[row];
+
       if (line === undefined) {
         continue;
       }
 
       for (let x = 0; x < w; x += 1) {
         const gch = line.charAt(x);
+
         if (gch && gch !== " ") {
           setCell(g, r + row, col + x, gch, alpha);
         }

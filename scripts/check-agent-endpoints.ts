@@ -1,16 +1,4 @@
 #!/usr/bin/env tsx
-/**
- * Runtime verification of the agent-facing surfaces against a running server.
- * `pnpm verify` is a static gate and cannot see any of this: response status
- * codes, `Content-Type`, `Vary`, whether the homepage HTML actually contains an
- * `<h1>` and its JSON-LD, or whether `Accept: text/markdown` negotiates.
- *
- *   pnpm dev:web                       # or: pnpm build && pnpm -F @repo/web start
- *   pnpm check:agent-endpoints         # defaults to http://localhost:3000
- *   pnpm check:agent-endpoints https://www.uicapsule.com
- *
- * Exits non-zero on the first failing expectation, listing every failure.
- */
 import { consola } from "consola";
 
 const baseUrl = (process.argv[2] ?? "http://localhost:3000").replace(/\/$/u, "");
@@ -34,11 +22,11 @@ const fetchWith = async (path: string, accept?: string) => {
     headers: accept ? { accept } : {},
     redirect: "manual",
   });
+
   return { body: await response.text(), response };
 };
 
-/** Text an agent sees with JavaScript disabled: markup, scripts and templates stripped. */
-const visibleText = (html: string): string =>
+const visibleText = (html: string) =>
   html
     .replaceAll(/<script[\s\S]*?<\/script>/giu, " ")
     .replaceAll(/<style[\s\S]*?<\/style>/giu, " ")
@@ -72,14 +60,17 @@ const checkHomePage = async () => {
   const jsonLdBlocks =
     body.match(/<script[^>]+type="application\/ld\+json"[^>]*>(?<body>[\s\S]*?)<\/script>/giu) ??
     [];
+
   expect("home ships JSON-LD", jsonLdBlocks.length > 0, `${jsonLdBlocks.length} block(s)`);
 
   const types = jsonLdBlocks.flatMap((block) => {
     const json = block.replaceAll(/^<script[^>]*>/giu, "").replaceAll(/<\/script>$/giu, "");
     const parsed = JSON.parse(json.replaceAll("\\u003c", "<"));
     const graph = Array.isArray(parsed["@graph"]) ? parsed["@graph"] : [parsed];
+
     return graph.map((node: { "@type"?: string }) => node["@type"]);
   });
+
   for (const required of ["Organization", "WebSite", "SoftwareApplication", "CollectionPage"]) {
     expect(`JSON-LD includes ${required}`, types.includes(required), types.join(", "));
   }
@@ -95,6 +86,7 @@ const checkHomePage = async () => {
     )
     .flatMap((parsed) => (Array.isArray(parsed["@graph"]) ? parsed["@graph"] : [parsed]))
     .find((node: { "@type"?: string }) => node["@type"] === "Organization");
+
   expect(
     "Organization has a contactPoint with an email",
     Array.isArray(organizationBlock?.contactPoint) &&
@@ -139,7 +131,6 @@ const checkMarkdownNegotiation = async () => {
     htmlResponse.headers.get("content-type") ?? "(none)",
   );
 
-  // `/privacy.md` is the privacy policy's printable copy, so it must answer without Accept.
   for (const path of ["/about.md", "/privacy.md", "/terms.md"]) {
     const { response: mdSibling } = await fetchWith(path);
     expect(
@@ -150,8 +141,6 @@ const checkMarkdownNegotiation = async () => {
     );
   }
 
-  // React's own transport must never be negotiated: a Server Action sends
-  // `Accept: text/x-component`, which no representation of this site satisfies.
   for (const [name, headers] of [
     ["a client-side navigation", { rsc: "1" }],
     ["a prefetch", { "next-router-prefetch": "1", rsc: "1" }],
@@ -176,6 +165,7 @@ const checkMarkdownNegotiation = async () => {
     "/about",
     "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
   );
+
   expect(
     "a browser's Accept header still gets HTML",
     (browserLike.headers.get("content-type") ?? "").startsWith("text/html"),
@@ -183,15 +173,16 @@ const checkMarkdownNegotiation = async () => {
   );
 };
 
-/** The proxy's matcher admits only `.md` URLs and an `Accept` naming markdown. */
 const checkProxyScope = async () => {
   for (const [path, target] of [
     ["/", "/index.md"],
     ["/about", "/about.md"],
   ] as const) {
     const { body } = await fetchWith(path);
+
     const alternate =
       body.match(/<link[^>]+rel="alternate"[^>]+type="text\/markdown"[^>]*>/iu)?.[0] ?? "";
+
     expect(
       `HTML ${path} advertises ${target} via <link rel="alternate">`,
       alternate.includes(`${target}"`),
@@ -213,9 +204,6 @@ const checkProxyScope = async () => {
     `status ${notAcceptable.status}`,
   );
 
-  // An Accept naming neither representation never reaches the proxy, so it is
-  // disregarded (RFC 9110 §12.5.1) and served HTML. A 406 here means the proxy
-  // ran on a plain HTML request.
   const { response: disregarded } = await fetchWith("/about", "application/pdf");
   expect(
     "Accept: application/pdf skips the proxy and gets HTML",
@@ -228,6 +216,7 @@ const checkProxyScope = async () => {
 const checkNotFound = async () => {
   const { response, body } = await fetchWith("/definitely-not-a-real-path");
   expect("unknown path → HTTP 404", response.status === 404, `status ${response.status}`);
+
   for (const target of ["/llms.txt", "/sitemap.xml", "/about"]) {
     expect(`HTML 404 points at ${target}`, body.includes(target), "missing");
   }
@@ -236,6 +225,7 @@ const checkNotFound = async () => {
     "/definitely-not-a-real-path",
     "text/markdown",
   );
+
   expect(
     "unknown path with Accept: text/markdown → 404",
     markdown.status === 404,
@@ -300,7 +290,6 @@ type McpRequest =
       params: { arguments: { limit: number; query: string }; name: string };
     };
 
-// Streamable HTTP may answer a JSON-RPC call as JSON or as a one-event SSE stream.
 const mcpCall = async (request: McpRequest) => {
   const response = await fetch(`${baseUrl}/mcp`, {
     body: JSON.stringify({ id: 1, jsonrpc: "2.0", ...request }),
@@ -311,7 +300,9 @@ const mcpCall = async (request: McpRequest) => {
     },
     method: "POST",
   });
+
   const body = await response.text();
+
   const payload = body.startsWith("{")
     ? body
     : body
@@ -319,6 +310,7 @@ const mcpCall = async (request: McpRequest) => {
         .filter((line) => line.startsWith("data:"))
         .map((line) => line.slice("data:".length))
         .join("");
+
   return { payload: payload ? JSON.parse(payload) : null, response };
 };
 
@@ -331,6 +323,7 @@ const checkMcp = async () => {
       protocolVersion: "2025-06-18",
     },
   });
+
   expect("POST /mcp initialize → 200", init.status === 200, `status ${init.status}`);
   expect(
     "MCP server identifies as uicapsule",
@@ -350,6 +343,7 @@ const checkMcp = async () => {
     method: "tools/call",
     params: { arguments: { limit: 3, query: "slider" }, name: "search_components" },
   });
+
   const text = search?.result?.content?.[0]?.text ?? "";
   expect(
     "MCP search returns installable components",
@@ -363,10 +357,11 @@ const checkTrustAnchors = async () => {
     const { response, body } = await fetchWith(path);
     const text = visibleText(body);
     expect(`${path} → 200`, response.status === 200, `status ${response.status}`);
-    // /about is deliberately a short personal note; see markdown.test.ts.
+
     if (path !== "/about") {
       expect(`${path} has 500+ chars of content`, text.length >= 500, `${text.length} chars`);
     }
+
     expect(
       `${path} has an <h1> and a canonical`,
       /<h1[^>]*>/iu.test(body) && /rel="canonical"/iu.test(body),
@@ -374,7 +369,6 @@ const checkTrustAnchors = async () => {
     );
   }
 
-  // The privacy policy's Index, and its cross-references, jump to heading ids.
   for (const path of ["/privacy", "/terms"]) {
     const { body } = await fetchWith(path);
     const ids = new Set([...body.matchAll(/\sid="(?<id>[^"]+)"/gu)].map((match) => match[1]));
@@ -386,6 +380,7 @@ const checkTrustAnchors = async () => {
       missing.join(", ") || "no anchors",
     );
   }
+
   const { body: privacyHtml } = await fetchWith("/privacy");
   expect(
     "/privacy carries an index of in-page anchors",
@@ -406,7 +401,6 @@ const main = async () => {
   await checkTrustAnchors();
 
   for (const check of checks) {
-    // `detail` describes the failure, so only a failing check needs it printed.
     if (check.ok) {
       consola.success(check.name);
     } else {
@@ -415,10 +409,12 @@ const main = async () => {
   }
 
   const failures = checks.filter((check) => !check.ok);
+
   if (failures.length > 0) {
     consola.error(`${failures.length} of ${checks.length} checks failed.`);
     process.exit(1);
   }
+
   consola.success(`All ${checks.length} agent-readiness checks passed.`);
 };
 

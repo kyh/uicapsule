@@ -34,10 +34,9 @@ const SocialLink = ({
 );
 
 const SmallPrint = () => {
-  // UTC, not local: this tree is prerendered on the server and hydrated in the
-  // browser, so a timezone-dependent year mismatches around New Year.
   // oxlint-disable-next-line react/purity -- copyright year is meant to be current
   const year = new Date().getUTCFullYear();
+
   return (
     <div className="flex flex-col items-center justify-between gap-5 border-t border-white/10 pt-8 sm:flex-row">
       <p className="text-xs text-zinc-400">&copy; Copyright {year}. All rights reserved.</p>

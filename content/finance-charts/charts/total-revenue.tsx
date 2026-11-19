@@ -17,8 +17,6 @@ const MONTH_INDEX = new Map<string, number>(MONTHS.map((m, i) => [m, i]));
 
 const HEIGHT = 230;
 const TOP = 25;
-// Each bar is a front face plus a lid: a trapezoid that narrows by `LID_IN`
-// over `LID` — the top of the column seen slightly from above.
 const PAD = 0.14;
 const LID = 2.25;
 const LID_IN = 0.07;
@@ -30,10 +28,9 @@ interface Vertex {
   hi: number;
 }
 
-// Fixed sparkle positions, as fractions of the bar: the highlighted column's
-// "starfield" travels with whichever month is lit.
 const SPARKS = (() => {
   const r = rng(117);
+
   return Array.from({ length: 14 }, (_, i) => ({
     fx: 0.12 + r() * 0.76,
     fy: 0.04 + r() * 0.9,
@@ -50,6 +47,7 @@ export const TotalRevenue = () => {
   const definition = useMemo(() => {
     const fronts: Vertex[] = [];
     const lids: Vertex[] = [];
+
     for (const [i, month] of MONTHS.entries()) {
       const v = REVENUE[i] ?? 0;
       const x1 = i + PAD;
@@ -62,14 +60,18 @@ export const TotalRevenue = () => {
         { hi: v, lo: v, month, x: x2 },
       );
     }
+
     const v = REVENUE[hi] ?? 0;
+
     const sparks = SPARKS.map((s) => ({
       ...s,
       key: `${picked}-${s.i}`,
       x: hi + PAD + s.fx * (1 - 2 * PAD),
       y: s.fy * v,
     }));
+
     const paint = (on: string, off: string) => (d: Vertex) => (d.month === picked ? on : off);
+
     return defineChart({
       gradients: [
         {
@@ -212,6 +214,7 @@ export const TotalRevenue = () => {
             onFocusChange={(p) => {
               const month = p?.datum && "month" in p.datum ? p.datum.month : null;
               const i = month === null ? -1 : (MONTH_INDEX.get(month) ?? -1);
+
               if (i !== -1) {
                 pin(i);
               }

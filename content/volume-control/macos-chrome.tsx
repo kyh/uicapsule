@@ -41,6 +41,7 @@ const TierIcon = ({
 }) => {
   const Icon = TIER_ICON[tier];
   const opacity = useTransform(volume, (value) => (speakerTier(value) === tier ? 1 : 0));
+
   return (
     <motion.span aria-hidden className="absolute inset-0" style={{ opacity }}>
       <Icon className="size-[22px] text-neutral-100" />
@@ -48,11 +49,6 @@ const TierIcon = ({
   );
 };
 
-/**
- * Four glyphs stacked, cross-fading on the volume value. A tier change is an icon
- * swap, and an icon swap is a re-render — so instead the icons all stay mounted
- * and opacity does the work, off the motion value, on the compositor.
- */
 const SpeakerGlyph = ({ volume }: { volume: MotionValue<number> }) => (
   <span className="relative flex size-[22px] items-center justify-center">
     {TIERS.map((tier) => (
@@ -154,8 +150,6 @@ export const VolumeHud = ({ volume, title, hint, children }: VolumeHudProps) => 
 
       <p className="mb-3 text-[13px] text-neutral-500">{hint}</p>
 
-      {/* The honest slider, demoted to a read-only meter. It shows you exactly
-          where you are and offers no way to change it. */}
       <div aria-hidden className="mb-4 h-1.5 overflow-hidden rounded-full bg-neutral-700/70">
         <motion.div
           className="h-full origin-left rounded-full bg-neutral-100"

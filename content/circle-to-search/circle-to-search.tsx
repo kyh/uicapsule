@@ -54,15 +54,16 @@ export const CircleToSearch = () => {
   const cardRefs = useRef(new Map<string, HTMLDivElement>());
   const reduceMotion = useReducedMotion() ?? false;
 
-  // Pointer events and layout rects are in viewport pixels, but the stroke and hit-test live in
-  // the stage's own CSS pixels; they diverge whenever an ancestor is transformed.
-  const localPoint = (clientX: number, clientY: number): Point | null => {
+  const localPoint = (clientX: number, clientY: number) => {
     const stage = stageRef.current;
+
     if (!stage) {
       return null;
     }
+
     const rect = stage.getBoundingClientRect();
     const scale = rect.width / stage.offsetWidth || 1;
+
     return { x: (clientX - rect.left) / scale, y: (clientY - rect.top) / scale };
   };
 
@@ -70,26 +71,35 @@ export const CircleToSearch = () => {
     if (!drawingRef.current) {
       return;
     }
+
     drawingRef.current = false;
     const drawn = pointsRef.current;
+
     if (drawn.length < 8) {
       pointsRef.current = [];
       setPoints([]);
+
       return;
     }
+
     const cx = drawn.reduce((sum, p) => sum + p.x, 0) / drawn.length;
     const cy = drawn.reduce((sum, p) => sum + p.y, 0) / drawn.length;
+
     for (const item of ITEMS) {
       const node = cardRefs.current.get(item.id);
+
       if (!node) {
         continue;
       }
+
       const rect = node.getBoundingClientRect();
       const topLeft = localPoint(rect.left, rect.top);
       const bottomRight = localPoint(rect.right, rect.bottom);
+
       if (!topLeft || !bottomRight) {
         continue;
       }
+
       if (cx >= topLeft.x && cx <= bottomRight.x && cy >= topLeft.y && cy <= bottomRight.y) {
         setMatch(item);
         break;
@@ -178,9 +188,11 @@ export const CircleToSearch = () => {
               if (match) {
                 return;
               }
+
               drawingRef.current = true;
               event.currentTarget.setPointerCapture(event.pointerId);
               const point = localPoint(event.clientX, event.clientY);
+
               if (point) {
                 pointsRef.current = [point];
                 setPoints([point]);
@@ -190,7 +202,9 @@ export const CircleToSearch = () => {
               if (!drawingRef.current) {
                 return;
               }
+
               const point = localPoint(event.clientX, event.clientY);
+
               if (point) {
                 pointsRef.current = [...pointsRef.current, point];
                 setPoints(pointsRef.current);

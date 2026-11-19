@@ -31,7 +31,6 @@ const WALLPAPERS: Wallpaper[] = [
   { hue: 285, hueB: 320, id: "orchid", name: "Orchid" },
 ];
 
-// A tiny Material-You-style tonal palette derived from the wallpaper seed hue.
 const paletteFor = (wallpaper: Wallpaper) => ({
   accent: `hsl(${wallpaper.hueB} 50% 70%)`,
   container: `hsl(${wallpaper.hue} 32% 26%)`,
@@ -68,6 +67,7 @@ export const MaterialYouTheming = () => {
   const [active, setActive] = useState<Wallpaper>(
     WALLPAPERS[0] ?? { hue: 200, hueB: 160, id: "", name: "" },
   );
+
   const palette = paletteFor(active);
 
   return (

@@ -16,9 +16,6 @@ import {
   smoothstep,
 } from "./terminal-particles";
 
-// --- Choreography -----------------------------------------------------------
-// A single 0..1 scalar drives everything: hold, disintegrate, hold,
-// disintegrate, hold. The palette inverts inside the second transition.
 const HOLD1_END = 0.03;
 const TRANS1_END = 0.36;
 const HOLD2_END = 0.55;
@@ -26,39 +23,31 @@ const TRANS2_END = 0.85;
 const FLIP_START = 0.78;
 const FLIP_END = 0.86;
 
-// Derived, so retuning the choreography can never desync the phase readout.
 const PHASE_2_AT = (HOLD1_END + TRANS1_END) / 2;
 const PHASE_3_AT = (HOLD2_END + TRANS2_END) / 2;
 
-// --- Animation tunables -----------------------------------------------------
 const ENTRANCE_MS = 2000;
 const CURL_AMP_PX = 22;
 const SCORCH_AMP = 0.45;
 
-// The entrance is deliberately wilder than the transitions.
 const TRANS_OPTS = { curlAmp: CURL_AMP_PX, scorchAmp: SCORCH_AMP };
 const ENTRANCE_OPTS = { curlAmp: CURL_AMP_PX * 2.4, scorchAmp: SCORCH_AMP * 1.3 };
 
-// Idle autoplay ping-pongs 0 -> 1 -> 0 until the first drag. Snapping 1 back to
-// 0 would replay both transitions in half a second and hard-flip the palette,
-// so it reverses through them instead.
 const SWEEP_MS = 8000;
 const HOLD_MS = 900;
 const CYCLE_MS = SWEEP_MS * 2 + HOLD_MS * 2;
 
-// --- Palette ----------------------------------------------------------------
 const BG_LIGHT = "#cff060";
 const FG_LIGHT = "#1c5f27";
 const BG_DARK = "#1c5f27";
 const FG_DARK = "#cff060";
 
-// Pinned, never inherited: every pixel here is a box-drawing or block-element
-// glyph, so the stack has to lead with faces that actually ship U+2500/U+2580.
 const MONO_FAMILY =
   '"JetBrains Mono", "Cascadia Mono", "DejaVu Sans Mono", Menlo, Consolas, "Liberation Mono", "Noto Sans Mono", monospace';
 
 const hexToRgb = (hex: string) => {
   const h = hex.replace("#", "");
+
   return {
     b: Number.parseInt(h.slice(4, 6), 16),
     g: Number.parseInt(h.slice(2, 4), 16),
@@ -66,13 +55,15 @@ const hexToRgb = (hex: string) => {
   };
 };
 
-const mixHex = (a: string, b: string, t: number): string => {
+const mixHex = (a: string, b: string, t: number) => {
   const ca = hexToRgb(a);
   const cb = hexToRgb(b);
+
   const ch = (x: number, y: number) =>
     Math.round(x + (y - x) * t)
       .toString(16)
       .padStart(2, "0");
+
   return `#${ch(ca.r, cb.r)}${ch(ca.g, cb.g)}${ch(ca.b, cb.b)}`;
 };
 
@@ -80,10 +71,13 @@ const paletteAt = (p: number) => {
   if (p <= FLIP_START) {
     return { bg: BG_LIGHT, fg: FG_LIGHT };
   }
+
   if (p >= FLIP_END) {
     return { bg: BG_DARK, fg: FG_DARK };
   }
+
   const t = smoothstep((p - FLIP_START) / (FLIP_END - FLIP_START));
+
   return { bg: mixHex(BG_LIGHT, BG_DARK, t), fg: mixHex(FG_LIGHT, FG_DARK, t) };
 };
 
@@ -120,27 +114,31 @@ interface Runtime {
   fg: string;
 }
 
-const phaseAt = (p: number): 1 | 2 | 3 => {
+const phaseAt = (p: number) => {
   if (p < PHASE_2_AT) {
     return 1;
   }
+
   if (p < PHASE_3_AT) {
     return 2;
   }
+
   return 3;
 };
 
-/* The idle cycle: sweep forward, hold, sweep back, rest. */
-const autoTargetAt = (u: number): number => {
+const autoTargetAt = (u: number) => {
   if (u < SWEEP_MS) {
     return u / SWEEP_MS;
   }
+
   if (u < SWEEP_MS + HOLD_MS) {
     return 1;
   }
+
   if (u < SWEEP_MS * 2 + HOLD_MS) {
     return 1 - (u - SWEEP_MS - HOLD_MS) / SWEEP_MS;
   }
+
   return 0;
 };
 
@@ -156,22 +154,21 @@ export const TerminalDisintegrate = () => {
   useEffect(() => {
     const canvasEl = canvasRef.current;
     const rootEl = rootRef.current;
+
     if (!canvasEl || !rootEl) {
       return;
     }
 
     const ctx2d = canvasEl.getContext("2d");
+
     if (!ctx2d) {
       return;
     }
 
-    // Re-bound as non-nullable so the hoisted helpers below close over a
-    // narrowed type without needing assertions.
     const canvas: HTMLCanvasElement = canvasEl;
     const root: HTMLDivElement = rootEl;
     const ctx: CanvasRenderingContext2D = ctx2d;
 
-    // The three screen grids are pure data — built once, never rebuilt.
     const grids = {
       btc: buildBtcFrame(),
       gold: buildGoldFrame(),
@@ -200,8 +197,6 @@ export const TerminalDisintegrate = () => {
     };
 
     const S: Runtime = {
-      // Negative so the assembled first screen holds before it starts burning;
-      // `u` clamps at 0 until the lead-in is spent.
       autoElapsed: -HOLD_MS,
       entranceDone: false,
       entranceT: 0,
@@ -229,18 +224,9 @@ export const TerminalDisintegrate = () => {
       canvas.style.width = `${stageW}px`;
       canvas.style.height = `${stageH}px`;
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-      // Resizing the backing store wipes the whole 2d state, so the font and
-      // baseline are (re)set here — the only place either can change — rather
-      // than being re-parsed on every frame of the loop.
       ctx.textBaseline = "top";
       ctx.font = `500 ${m.cellH * 0.92}px ${MONO_FAMILY}`;
 
-      // The three frames deliberately sit at two different X positions. The
-      // disintegration is a stage traversal — left, right, left — which is what
-      // makes the outgoing and incoming clouds visibly cross mid-flight rather
-      // than shimmer in place.
-      // The 8px slack reserve is what keeps the left frame off the stage edge;
-      // the progress rail is pinned at left:0 so the two can never coincide.
       const slack = Math.max(0, stageW - m.canvasW);
       const offset = Math.max(0, Math.min(slack / 2 - 8, m.canvasW * 0.55));
       const leftX = stageW / 2 - offset - m.canvasW / 2;
@@ -304,6 +290,7 @@ export const TerminalDisintegrate = () => {
 
       if (!S.entranceDone) {
         renderParticles(ctx, particles.entrance, S.entranceT, ENTRANCE_OPTS);
+
         return;
       }
 
@@ -327,10 +314,6 @@ export const TerminalDisintegrate = () => {
       }
     };
 
-    // The scalar moves every frame but the chrome derived from it mostly does
-    // not: palette, phase and fade all sit still for hundreds of frames at a
-    // time. Everything below writes to the DOM only when its own value
-    // actually changed, so a steady-state frame costs one transform.
     let shownFg = "";
     let shownBg = "";
     let shownPhase = 0;
@@ -340,12 +323,15 @@ export const TerminalDisintegrate = () => {
     const applyPalette = (p: number) => {
       const { fg, bg } = paletteAt(p);
       S.fg = fg;
+
       if (fg !== shownFg) {
         shownFg = fg;
         root.style.setProperty("--terminal-fg", fg);
       }
+
       if (bg !== shownBg) {
         const el = bgRef.current;
+
         if (el) {
           shownBg = bg;
           el.style.background = bg;
@@ -361,33 +347,37 @@ export const TerminalDisintegrate = () => {
         shownValueNow = valueNow;
         root.setAttribute("aria-valuenow", String(valueNow));
       }
+
       if (phase !== shownPhase) {
         shownPhase = phase;
         root.setAttribute("aria-valuetext", `screen ${phase} of 3`);
+
         if (chipRef.current) {
           chipRef.current.textContent = `terminal · 0${phase} / 03`;
         }
       }
+
       if (fade !== shownFade) {
         shownFade = fade;
+
         if (chipRef.current) {
           chipRef.current.style.opacity = String(0.55 * fade);
         }
+
         if (hintRef.current) {
           hintRef.current.style.opacity = String(0.4 * fade);
         }
+
         if (railTrackRef.current) {
           railTrackRef.current.style.opacity = String(0.18 * fade);
         }
       }
+
       if (railFillRef.current) {
         railFillRef.current.style.transform = `scaleY(${clamp01(p)})`;
       }
     };
 
-    // --- Driver: pointer drag + keys, with autoplay whenever the reader idles -
-    // Deliberately no wheel handler: this lives inside a card in a scrolling
-    // feed, and swallowing wheel events would trap the reader.
     const DRAG_SLOP_PX = 3;
     const IDLE_RESUME_MS = 4000;
     const KEY_STEP = 0.02;
@@ -400,22 +390,19 @@ export const TerminalDisintegrate = () => {
 
     const travel = () => Math.max(420, Math.min(layout.w, layout.h));
 
-    // Taking over is always temporary. A bare tap or a click that lands on the
-    // card must never be able to strand the component on a frozen frame, so
-    // control returns to autoplay once the reader has been still for a while —
-    // re-seeded at wherever they left the scalar, not snapped back to zero.
     const takeOver = () => {
       S.interacted = true;
+
       if (idleTimer) {
         window.clearTimeout(idleTimer);
       }
+
       idleTimer = 0;
-      // A held pointer that has stopped moving is still a reader holding the
-      // scrubber, not an idle one — so the countdown is armed at release
-      // instead, or the terminal would run away under a stationary cursor.
+
       if (dragId !== null) {
         return;
       }
+
       idleTimer = window.setTimeout(() => {
         idleTimer = 0;
         S.autoElapsed = clamp01(S.targetP) * SWEEP_MS;
@@ -427,14 +414,15 @@ export const TerminalDisintegrate = () => {
       if (dragId !== null) {
         return;
       }
+
       dragId = e.pointerId;
       lastX = e.clientX;
       lastY = e.clientY;
-      // Not a take-over: a press that never moves must leave autoplay alone.
-      // It only has to hold off a resume that an earlier drag already armed.
+
       if (idleTimer) {
         window.clearTimeout(idleTimer);
       }
+
       idleTimer = 0;
       root.style.cursor = "grabbing";
       root.setPointerCapture(e.pointerId);
@@ -444,45 +432,54 @@ export const TerminalDisintegrate = () => {
       if (dragId !== e.pointerId) {
         return;
       }
+
       const dx = e.clientX - lastX;
       const dy = e.clientY - lastY;
       lastX = e.clientX;
       lastY = e.clientY;
-      // Only real movement counts as a grab; a jittery tap stays autoplaying.
+
       if (S.interacted || Math.abs(dx) + Math.abs(dy) > DRAG_SLOP_PX) {
         takeOver();
       }
-      // Dragging left or up advances, matching both carousel and scroll habits.
+
       S.targetP = clamp01(S.targetP + (-dx - dy) / travel());
     };
 
-    const stepFor = (key: string): number => {
+    const stepFor = (key: string) => {
       if (key === "ArrowRight" || key === "ArrowDown") {
         return KEY_STEP;
       }
+
       if (key === "ArrowLeft" || key === "ArrowUp") {
         return -KEY_STEP;
       }
+
       if (key === "PageDown") {
         return PAGE_STEP;
       }
+
       if (key === "PageUp") {
         return -PAGE_STEP;
       }
+
       if (key === "End") {
         return 1;
       }
+
       if (key === "Home") {
         return -1;
       }
+
       return 0;
     };
 
     const onKeyDown = (e: KeyboardEvent) => {
       const step = stepFor(e.key);
+
       if (step === 0) {
         return;
       }
+
       e.preventDefault();
       takeOver();
       S.targetP = clamp01(S.targetP + step);
@@ -492,19 +489,19 @@ export const TerminalDisintegrate = () => {
       if (dragId !== e.pointerId) {
         return;
       }
+
       dragId = null;
       root.style.cursor = "grab";
+
       if (root.hasPointerCapture(e.pointerId)) {
         root.releasePointerCapture(e.pointerId);
       }
-      // Release is where "still" starts counting. A press that never scrubbed
-      // left `interacted` false and must not hand autoplay a fresh countdown.
+
       if (S.interacted) {
         takeOver();
       }
     };
 
-    // --- Loop ---------------------------------------------------------------
     let raf = 0;
     let running = false;
     let ready = false;
@@ -525,13 +522,14 @@ export const TerminalDisintegrate = () => {
         applyPalette(0);
         applyChrome(0, fade);
         draw();
+
         if (S.entranceT >= 1) {
           S.entranceDone = true;
-          // Adopt whatever the driver accumulated during the entrance, so a
-          // reader who scrubbed early doesn't watch the transitions replay.
           S.smoothP = S.targetP;
         }
+
         raf = requestAnimationFrame(tick);
+
         return;
       }
 
@@ -541,12 +539,12 @@ export const TerminalDisintegrate = () => {
         S.targetP = autoTargetAt(u);
       }
 
-      // Critically-damped follow. Without it the disintegration reads as a
-      // jump-cut instead of a burn.
       let sp = S.smoothP + (S.targetP - S.smoothP) * 0.12;
+
       if (Math.abs(S.targetP - sp) < 0.0002) {
         sp = S.targetP;
       }
+
       S.smoothP = sp;
 
       if (Math.abs(sp - S.lastDrawnP) > 0.00005) {
@@ -563,6 +561,7 @@ export const TerminalDisintegrate = () => {
       if (running || cancelled || !ready) {
         return;
       }
+
       running = true;
       S.lastNow = null;
       raf = requestAnimationFrame(tick);
@@ -570,9 +569,11 @@ export const TerminalDisintegrate = () => {
 
     const stopLoop = () => {
       running = false;
+
       if (raf) {
         cancelAnimationFrame(raf);
       }
+
       raf = 0;
     };
 
@@ -588,10 +589,13 @@ export const TerminalDisintegrate = () => {
       if (cancelled || ready) {
         return;
       }
+
       const rect = root.getBoundingClientRect();
+
       if (rect.width < 1 || rect.height < 1) {
         return;
       }
+
       computeLayout(rect.width, rect.height);
       applyPalette(0);
       applyChrome(0, 0);
@@ -599,50 +603,54 @@ export const TerminalDisintegrate = () => {
       syncLoop();
     };
 
-    // A freshly-mounted iframe reports a 0x0 box first; ignore that callback.
     const ro = new ResizeObserver((entries) => {
       const [entry] = entries;
+
       if (!entry) {
         return;
       }
+
       const { width, height } = entry.contentRect;
+
       if (width < 1 || height < 1) {
         return;
       }
+
       if (ready) {
         computeLayout(width, height);
       } else {
         begin();
       }
     });
+
     ro.observe(root);
 
     const io = new IntersectionObserver((entries) => {
       const [entry] = entries;
+
       if (!entry) {
         return;
       }
+
       onScreen = entry.isIntersecting;
       syncLoop();
     });
+
     io.observe(root);
 
-    // Measure against the real font rather than a fallback, but never wait
-    // forever for it.
     let fontTimer = 0;
+
     if (document.fonts?.ready) {
       // oxlint-disable-next-line promise/avoid-new -- a cancellable timeout in the browser; there is no promise-returning timer to await here
       const timeout = new Promise<void>((resolve) => {
         fontTimer = window.setTimeout(resolve, 800);
       });
+
       const beginAfterFonts = async () => {
-        try {
-          await Promise.race([document.fonts.ready, timeout]);
-        } catch {
-          // A failed font load still gets a first paint.
-        }
+        await Promise.race([document.fonts.ready.catch(() => null), timeout]);
         begin();
       };
+
       void beginAfterFonts();
     } else {
       begin();
@@ -658,12 +666,15 @@ export const TerminalDisintegrate = () => {
     return () => {
       cancelled = true;
       stopLoop();
+
       if (fontTimer) {
         window.clearTimeout(fontTimer);
       }
+
       if (idleTimer) {
         window.clearTimeout(idleTimer);
       }
+
       ro.disconnect();
       io.disconnect();
       root.removeEventListener("pointerdown", onPointerDown);
@@ -678,8 +689,6 @@ export const TerminalDisintegrate = () => {
   return (
     <div
       ref={rootRef}
-      // A scrubbable scalar, not a picture: drag or arrow-key it through the
-      // three screens. The label carries what the canvas shows.
       // oxlint-disable-next-line jsx-a11y/prefer-tag-over-role -- a range input cannot host the canvas; the keyboard and aria-value contract is the same
       role="slider"
       tabIndex={0}
@@ -694,9 +703,6 @@ export const TerminalDisintegrate = () => {
         height: "100%",
         overflow: "hidden",
         position: "relative",
-        // Same reasoning as the missing wheel handler: this lives in a
-        // scrolling feed. The browser keeps vertical pans, horizontal drags
-        // still reach the scrubber.
         touchAction: "pan-y",
         userSelect: "none",
         width: "100%",

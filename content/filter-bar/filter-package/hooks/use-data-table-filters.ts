@@ -17,10 +17,12 @@ export const useDataTableFilters = <Row>({
   const [internalFilters, setInternalFilters] = useState<FiltersState>(defaultFilters);
   const filters = controlledFilters ?? internalFilters;
   const setFilters = onFiltersChange ?? setInternalFilters;
+
   const columns = useMemo(
     () => createColumns(data, columnsConfig, strategy),
     [data, columnsConfig, strategy],
   );
+
   const actions = useMemo<DataTableFilterActions>(
     () => ({
       addFilterValue: (column, values) =>
@@ -35,5 +37,6 @@ export const useDataTableFilters = <Row>({
     }),
     [setFilters],
   );
+
   return { actions, columns, entityName, filters, strategy };
 };

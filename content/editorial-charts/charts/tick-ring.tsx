@@ -20,9 +20,6 @@ interface RingTick {
   major: boolean;
 }
 
-// 100 radial dashes, one per percent, read clockwise from noon. The reveal
-// sweeps the dial once; after that each scene twists it a few degrees so the
-// update itself is visible motion.
 export const TickRing = ({
   channels,
   reveal,
@@ -42,16 +39,20 @@ export const TickRing = ({
   const definition = useMemo(() => {
     const bounds: number[] = [];
     let acc = 0;
+
     for (const c of channels) {
       acc += c.share;
       bounds.push(acc);
     }
+
     const shade = new Map(channels.map((c, i) => [c.channel, ladder[i % ladder.length]]));
+
     const ticks: RingTick[] = Array.from({ length: revealed }, (_, i) => {
       const deg = i * 3.6 + twist;
       const rad = (deg * Math.PI) / 180;
       const slot = bounds.findIndex((b) => i < b);
       const row = channels[slot === -1 ? channels.length - 1 : slot];
+
       return {
         channel: row?.channel ?? "",
         id: i,
@@ -61,6 +62,7 @@ export const TickRing = ({
         y: Math.cos(rad),
       };
     });
+
     return defineChart({
       guides: false,
       margin: 0,

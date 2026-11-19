@@ -104,6 +104,7 @@ export const FinanceOverviewDivergingBar = () => {
     const up = hours.map((h) => ({ h, v: today[h] ?? 0 }));
     const down = hours.map((h) => ({ h, v: -(yesterday[h] ?? 0) }));
     const fill = (d: { h: number }) => (d.h === hi ? "url(#fodb-hot)" : PEACH);
+
     return defineChart({
       gradients: [
         {
@@ -150,7 +151,6 @@ export const FinanceOverviewDivergingBar = () => {
     });
   }, [today, yesterday, hi]);
 
-  // The highlighted hour's price inside the day's range.
   const price = low + ((today[hi] ?? 0) / 100) * (high - low);
   const t = (price - low) / (high - low);
 
@@ -246,6 +246,7 @@ export const FinanceOverviewDivergingBar = () => {
               onFocusChange={(p) => {
                 if (p) {
                   const i = Number(p.xValue);
+
                   if (Number.isInteger(i) && i >= 0 && i < BARS) {
                     pin(i);
                   }
@@ -280,6 +281,7 @@ export const FinanceOverviewDivergingBar = () => {
       <div className="mt-2 space-y-2">
         {METRICS.map((m, i) => {
           const row = data.rows[i];
+
           return (
             <div
               key={m.label}

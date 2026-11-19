@@ -3,24 +3,14 @@
 import { useEffect, useRef, useState } from "react";
 import { motion, useReducedMotion } from "motion/react";
 
-/**
- * Diffusion reveal — the image-gen loading ritual done honestly: pure
- * noise resolves through coarse color blobs into the sharp frame, the way
- * a denoiser actually converges. Canvas compositing: the target scene is
- * painted once offscreen, then each frame draws it at climbing resolution
- * under decaying noise.
- */
-
 const WIDTH = 520;
 const HEIGHT = 300;
 const DURATION_MS = 6200;
 const STEPS = 30;
 
-/** Paint the target "generation" — a dusk valley — onto a canvas. */
 const paintScene = (ctx: CanvasRenderingContext2D, hueShift: number) => {
   const h = (base: number) => (base + hueShift) % 360;
 
-  // Sky
   const sky = ctx.createLinearGradient(0, 0, 0, HEIGHT);
   sky.addColorStop(0, `oklch(0.35 0.09 ${String(h(280))})`);
   sky.addColorStop(0.55, `oklch(0.62 0.15 ${String(h(35))})`);
@@ -29,7 +19,6 @@ const paintScene = (ctx: CanvasRenderingContext2D, hueShift: number) => {
   ctx.fillStyle = sky;
   ctx.fillRect(0, 0, WIDTH, HEIGHT);
 
-  // Sun
   const sun = ctx.createRadialGradient(
     WIDTH * 0.62,
     HEIGHT * 0.52,
@@ -38,31 +27,34 @@ const paintScene = (ctx: CanvasRenderingContext2D, hueShift: number) => {
     HEIGHT * 0.52,
     70,
   );
+
   sun.addColorStop(0, "rgba(255,240,200,0.95)");
   sun.addColorStop(0.35, "rgba(255,200,120,0.55)");
   sun.addColorStop(1, "rgba(255,200,120,0)");
   ctx.fillStyle = sun;
   ctx.fillRect(0, 0, WIDTH, HEIGHT);
 
-  // Ridges
   const ridge = (baseY: number, amp: number, color: string, seed: number) => {
     ctx.beginPath();
     ctx.moveTo(0, HEIGHT);
+
     for (let x = 0; x <= WIDTH; x += 8) {
       const y =
         baseY + Math.sin(x * 0.012 + seed) * amp + Math.sin(x * 0.031 + seed * 2.7) * amp * 0.45;
+
       ctx.lineTo(x, y);
     }
+
     ctx.lineTo(WIDTH, HEIGHT);
     ctx.closePath();
     ctx.fillStyle = color;
     ctx.fill();
   };
+
   ridge(HEIGHT * 0.58, 18, `oklch(0.32 0.06 ${String(h(270))})`, 1.3);
   ridge(HEIGHT * 0.7, 24, `oklch(0.24 0.05 ${String(h(265))})`, 4.1);
   ridge(HEIGHT * 0.84, 16, `oklch(0.17 0.04 ${String(h(260))})`, 7.9);
 
-  // Fog band
   const fog = ctx.createLinearGradient(0, HEIGHT * 0.62, 0, HEIGHT * 0.8);
   fog.addColorStop(0, "rgba(255,220,190,0)");
   fog.addColorStop(0.5, "rgba(255,220,190,0.16)");
@@ -87,30 +79,34 @@ export const DiffusionReveal = () => {
   useEffect(() => {
     const canvas = canvasRef.current;
     const ctx = canvas?.getContext("2d");
+
     if (!canvas || !ctx) {
       return;
     }
 
-    // Target scene, painted once.
     const scene = document.createElement("canvas");
     scene.width = WIDTH;
     scene.height = HEIGHT;
     const sceneCtx = scene.getContext("2d");
+
     if (!sceneCtx) {
       return;
     }
+
     paintScene(sceneCtx, seed * 73);
 
-    // Small noise tile, regenerated every few frames.
     const noise = document.createElement("canvas");
     noise.width = 128;
     noise.height = 128;
     const noiseCtx = noise.getContext("2d");
+
     if (!noiseCtx) {
       return;
     }
+
     const refreshNoise = () => {
       const data = noiseCtx.createImageData(128, 128);
+
       for (let i = 0; i < data.data.length; i += 4) {
         const v = Math.random() * 255;
         data.data[i] = v;
@@ -118,6 +114,7 @@ export const DiffusionReveal = () => {
         data.data[i + 2] = v * (0.9 + Math.random() * 0.3);
         data.data[i + 3] = 255;
       }
+
       noiseCtx.putImageData(data, 0, 0);
     };
 
@@ -127,38 +124,38 @@ export const DiffusionReveal = () => {
 
     const tick = (now: number) => {
       const t = Math.min(1, (now - start) / DURATION_MS);
-      // Ease the convergence — denoisers sprint at the end.
       const eased = t * t * (3 - 2 * t);
       setProgress(t);
+
       if (t >= 1) {
         setElapsed((now - start) / 1000);
       }
 
       frame += 1;
-      // Reduced motion keeps the grain frozen: the convergence still reads, without the flicker.
+
       if (!reduceMotion && frame % 3 === 0 && t < 1) {
         refreshNoise();
       }
 
-      // 1) coarse reconstruction: draw scene at low res, upscale smooth
       const res = Math.max(0.012, eased ** 1.6);
       const rw = Math.max(6, Math.round(WIDTH * res));
       const rh = Math.max(4, Math.round(HEIGHT * res));
       ctx.imageSmoothingEnabled = true;
       ctx.clearRect(0, 0, WIDTH, HEIGHT);
-      // downscale into corner then upscale full
       ctx.drawImage(scene, 0, 0, WIDTH, HEIGHT, 0, 0, rw, rh);
       ctx.drawImage(canvas, 0, 0, rw, rh, 0, 0, WIDTH, HEIGHT);
 
-      // 2) noise veil, decaying hard near the end
       const noiseAlpha = (1 - eased) ** 1.35;
+
       if (noiseAlpha > 0.004) {
         ctx.globalAlpha = noiseAlpha;
+
         for (let x = 0; x < WIDTH; x += 128) {
           for (let y = 0; y < HEIGHT; y += 128) {
             ctx.drawImage(noise, x, y);
           }
         }
+
         ctx.globalAlpha = 1;
       }
 
@@ -169,6 +166,7 @@ export const DiffusionReveal = () => {
 
     refreshNoise();
     raf = requestAnimationFrame(tick);
+
     return () => cancelAnimationFrame(raf);
   }, [seed, reduceMotion]);
 

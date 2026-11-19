@@ -27,7 +27,7 @@ import {
   sqrt,
 } from "three/tsl";
 
-import type { Mat3, PlantHit, PlantPart, RigFrame, Vec3 } from "./chibi-rig";
+import type { Mat3, PlantPart, RigFrame, Vec3 } from "./chibi-rig";
 import {
   BLEND_HI,
   BLEND_LO,
@@ -56,6 +56,7 @@ import {
  */
 
 export const CHIBI_VARIANTS = ["pip", "momo", "fifi", "kiki"] as const;
+
 export type ChibiVariant = (typeof CHIBI_VARIANTS)[number];
 
 export interface ChibiPlantsProps {
@@ -88,9 +89,6 @@ export interface ChibiPlantsProps {
   className?: string;
 }
 
-/** Morphable SDF + face parameters. Every key is spring-lerped, so any two
- * variants (or user tweaks) blend as one continuous surface deformation.
- * The key list is the single source of truth: PlantParams derives from it. */
 const PARAM_KEYS = [
   "bodyR",
   "squash",
@@ -117,6 +115,7 @@ const PARAM_KEYS = [
   "mouthW",
   "cheek",
 ] as const;
+
 type PlantParams = Record<(typeof PARAM_KEYS)[number], number>;
 
 interface Palette {
@@ -124,6 +123,7 @@ interface Palette {
   leaf: string;
   pot: string;
 }
+
 interface VariantDef {
   label: string;
   params: PlantParams;
@@ -255,22 +255,18 @@ export const VARIANTS = {
 
 const DEFAULT_BG: [string, string] = ["#2e2a33", "#0b0a0e"];
 
-// Camera: a fixed pinhole looking slightly down at the plant.
 const RO = new THREE.Vector3(0, 0.62, 2.35);
 const TA = new THREE.Vector3(0, 0.52, 0);
 const FW = TA.clone().sub(RO).normalize();
+
 const RI = FW.clone()
   .cross(new THREE.Vector3(0, 1, 0))
   .normalize();
+
 const UP = RI.clone().cross(FW);
 const FOV_S = 0.36;
-/**
- * Narrow (portrait) viewports widen the field of view until this much of the table is visible
- * either side of the plant, so it fits a phone instead of spilling off both edges.
- */
 const FIT_HALF_WIDTH = 0.58;
 const fovFor = (aspect: number) => Math.max(FOV_S, FIT_HALF_WIDTH / (RO.z * aspect));
-/** A tap shorter and stiller than this is a boop, not a grab. */
 const TAP_MS = 280;
 const TAP_PX = 6;
 
@@ -287,21 +283,22 @@ const posePlant = (p: PlantParams, gaze: Mat3) => ({
   stemH: p.stemH,
 });
 
-/** The camera ray through a viewport point, as the fragment shader builds it. */
 const rayThrough = (ndcX: number, ndcY: number, aspect: number) => {
   const fov = fovFor(aspect);
+
   const rd = FW.clone()
     .addScaledVector(RI, ndcX * aspect * fov)
     .addScaledVector(UP, ndcY * fov)
     .normalize();
+
   return { rd: [rd.x, rd.y, rd.z] satisfies Vec3, ro: [RO.x, RO.y, RO.z] satisfies Vec3 };
 };
 
-/** Where a world point lands in the viewport, ndc. */
 const project = (p: Vec3, aspect: number) => {
   const v = new THREE.Vector3(...p).sub(RO);
   const depth = Math.max(v.dot(FW), 1e-3);
   const fov = fovFor(aspect);
+
   return [v.dot(RI) / depth / fov / aspect, v.dot(UP) / depth / fov] as const;
 };
 
@@ -322,7 +319,7 @@ export const ChibiPlants = ({
   className,
 }: ChibiPlantsProps) => {
   const containerRef = useRef<HTMLDivElement>(null);
-  // Live tuning values, read every frame by the render loop.
+
   const tuningRef = useRef({
     background,
     bodyColor,
@@ -337,6 +334,7 @@ export const ChibiPlants = ({
     variant,
     wobble,
   });
+
   useEffect(() => {
     tuningRef.current = {
       background,
@@ -370,9 +368,11 @@ export const ChibiPlants = ({
 
   useEffect(() => {
     const container = containerRef.current;
+
     if (!container) {
       return;
     }
+
     let disposed = false;
     let raf = 0;
 
@@ -381,27 +381,24 @@ export const ChibiPlants = ({
     renderer.domElement.style.width = "100%";
     renderer.domElement.style.height = "100%";
     renderer.domElement.style.display = "block";
-    // The plant is dragged around; the page must not scroll or zoom under the finger.
     renderer.domElement.style.touchAction = "none";
 
-    // Start from the requested variant and colors — the morph springs are for
-    // later changes, not the initial mount.
     const initialTuning = tuningRef.current;
     const initialVariant = VARIANTS[initialTuning.variant] ?? VARIANTS.pip;
+
     const initialParams = {
       ...initialVariant.params,
       eyeR: initialVariant.params.eyeR * initialTuning.eyeScale,
     } satisfies PlantParams;
+
     const initialBody = initialTuning.bodyColor ?? initialVariant.palette.body;
     const initialLeaf = initialTuning.leafColor ?? initialVariant.palette.leaf;
     const initialPot = initialTuning.potColor ?? initialVariant.palette.pot;
 
-    // ---- physics -------------------------------------------------------------
     const rig = new PlantRig(posePlant(initialParams, gazeMatrix(0, 0)));
     const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
     let frame: RigFrame = rig.frame();
 
-    // ---- uniforms ----------------------------------------------------------
     const uTime = uniform(0);
     const uLook = uniform(new THREE.Vector2(0, 0));
     const uBlink = uniform(0);
@@ -418,19 +415,19 @@ export const ChibiPlants = ({
     const uPotC = uniform(new THREE.Color(initialPot));
     const uCheekC = uniform(new THREE.Color(initialTuning.cheekColor));
 
-    // Rig transforms (see RigFrame): world → plant space via the pot, world →
-    // design space via the body, plus the stem, leaves and pinch.
     const uPotM = uniform(new THREE.Matrix3());
     const uPotK = uniform(new THREE.Vector3());
     const uBodyM = uniform(new THREE.Matrix3());
     const uBodyK = uniform(new THREE.Vector3());
     const uStemTip = uniform(new THREE.Vector3());
     const uLeafBase = uniform(new THREE.Vector3());
+
     const uLeafM = [
       uniform(new THREE.Matrix3()),
       uniform(new THREE.Matrix3()),
       uniform(new THREE.Matrix3()),
     ] as const;
+
     const uPinchC = uniform(new THREE.Vector3());
     const uPinchD = uniform(new THREE.Vector3());
     const uPinchOn = uniform(0);
@@ -487,11 +484,13 @@ export const ChibiPlants = ({
       const [sx, sz, lift] = f.shadow;
       uShadow.value.set(sx, sz, 1 / (1 + lift * 5), 1 + lift * 1.4);
     };
+
     upload(frame);
 
-    // ---- TSL node helpers --------------------------------------------------
     type Scalar = THREE.Node<"float">;
+
     type Point = THREE.Node<"vec3">;
+
     const smin = (a: Scalar, b: Scalar, k: number) => {
       const h = clamp(
         b
@@ -501,104 +500,107 @@ export const ChibiPlants = ({
         0,
         1,
       );
+
       return mix(b, a, h).sub(h.mul(h.oneMinus()).mul(k));
     };
+
     const sdEllipsoid = (p: Point, r: Point) => {
       const k0 = length(p.div(r));
       const k1 = length(p.div(r.mul(r)));
+
       return k0.mul(k0.sub(1)).div(k1.add(1e-6));
     };
+
     const sdVCapsule = (p: Point, h: Scalar, r: Scalar) =>
       length(vec3(p.x, p.y.sub(clamp(p.y, 0, h)), p.z)).sub(r);
+
     const sdCapsule = (p: Point, a: Point, b: Point, r: number) => {
       const pa = p.sub(a).toVar();
       const ba = b.sub(a).toVar();
       const h = clamp(dot(pa, ba).div(max(dot(ba, ba), 1e-8)), 0, 1);
+
       return length(pa.sub(ba.mul(h))).sub(r);
     };
 
-    // Breathing + idle sway, all driven by uTime so the plant is alive at rest.
     const breathe = () => sin(uTime.mul(2.1)).mul(uWobble).toVar();
 
-    // The pinch: a bi-scale regularised Kelvinlet (de Goes & James 2017),
-    // normalised so the grabbed spot moves by exactly uPinchD. Incompressible,
-    // so pulling a cheek out draws the flesh around it in.
     const kelvinlet = (r: Point, eps: number) => {
       const re2 = dot(r, r)
         .add(eps * eps)
         .toVar();
+
       const re = sqrt(re2).toVar();
       const re3 = re2.mul(re).toVar();
+
       const a = float(1)
         .div(re)
         .add(float(eps * eps).div(re3));
+
       return uPinchD.mul(a.mul(0.5)).add(r.mul(dot(r, uPinchD).div(re3).mul(0.5)));
     };
+
     const pinch = (x: Point) => {
       const r = x.sub(uPinchC).toVar();
+
       return kelvinlet(r, PINCH_E1)
         .sub(kelvinlet(r, PINCH_E2))
         .mul(1 / (1 / PINCH_E1 - 1 / PINCH_E2));
     };
 
-    // World → design space. Below the rim the body rides with the pot, above
-    // it with the soft body; the pinch is undone last (first-order inverse).
-    // `k` scales design-space distances back to a safe world-space step: the
-    // body frame's stretch, the shear across the rim band where the two frames
-    // disagree, and the pinch — the last two only where they actually are.
     const bodyCenterY = () => uParams.bodyR.mul(uParams.squash).mul(0.55).add(POT_H).toVar();
+
     const toDesign = (p: Point) => {
       const xp = uPotM.mul(p).add(uPotK).toVar();
       const xb = uBodyM.mul(p).add(uBodyK);
       const t = clamp(xp.y.sub(BLEND_LO).div(BLEND_HI - BLEND_LO), 0, 1).toVar();
       const x = mix(xp, xb, t.mul(t).mul(t.mul(-2).add(3))).toVar();
+
       const stretch = t
         .mul(t.oneMinus())
         .mul(uGap.mul(6 / (BLEND_HI - BLEND_LO)))
         .add(1)
         .mul(uWarp)
         .toVar();
+
       If(uPinchOn.greaterThan(0.5), () => {
         const r = x.sub(uPinchC);
         const e2 = PINCH_E1 * PINCH_E1;
         stretch.mulAssign(uPinchL.mul(float(e2).div(dot(r, r).add(e2))).add(1));
         x.subAssign(pinch(x));
       });
+
       return { k: float(1).div(stretch).toVar(), q: x.sub(vec3(0, bodyCenterY(), 0)).toVar(), xp };
     };
 
-    // The pot is its own rigid thing: a rounded, tapered tub filled to the soil
-    // line, with a lip standing proud of the soil that the plant grows out of.
     const sdPot = (p: Point) => {
       const py = p.y.sub(POT_H * 0.5);
       const ra = float(POT_R).mul(p.y.div(POT_H).sub(0.5).mul(0.3).add(1));
       const dx = length(vec2(p.x, p.z)).sub(ra).add(0.03);
       const dy = abs(py).sub(POT_H * 0.5 - 0.02);
       const d2 = vec2(dx, dy).toVar();
+
       const tub = max(
         min(max(d2.x, d2.y), 0)
           .add(length(max(d2, vec2(0, 0))))
           .sub(0.03),
         p.y.sub(SOIL_Y),
       );
+
       const rim = length(vec2(length(vec2(p.x, p.z)).sub(POT_R * 1.1), p.y.sub(POT_H))).sub(0.038);
+
       return smin(tub, rim, 0.02).toVar();
     };
 
-    // One leaf, given the sample point already in its frame (rest yaw/tilt ×
-    // swing, from the rig): an ellipsoid blade.
     const sdLeaf = (lq: Point, s: Scalar, len: Scalar, wid: Scalar) => {
       const ll = len.mul(s).toVar();
       const ww = wid.mul(s).toVar();
+
       return sdEllipsoid(
         vec3(lq.x, lq.y.sub(ll.mul(0.55).add(0.02)), lq.z),
         vec3(ww, ll.mul(0.6), ww.mul(0.45)),
       );
     };
 
-    // Part distances in body-centred design space; combined by map(),
-    // re-queried at the hit point for smooth part-color weights (the "one
-    // continuous surface" look). Scaled by k so the warp stays a safe step.
     const plantParts = (q: Point, k: Scalar) => {
       const br = breathe();
       const rB = uParams.bodyR.mul(br.mul(-0.012).add(1)).toVar();
@@ -618,6 +620,7 @@ export const ChibiPlants = ({
       const aq = vec3(abs(q.x), q.y, q.z).toVar();
       const armR = uParams.armS.mul(0.095).toVar();
       const armH = uParams.armS.mul(0.26).toVar();
+
       const dArm = sdVCapsule(
         vec3(aq.x.sub(rB.mul(0.92)), aq.y.add(rB.mul(sq).mul(0.05)), aq.z),
         armH,
@@ -631,13 +634,13 @@ export const ChibiPlants = ({
       };
     };
 
-    // The plant is one continuous soft surface; the pot is a separate solid it
-    // is planted in, so the two meet in a hard crease, never a fillet.
     const plantSdf = (dBody: Scalar, dGreen: Scalar, dArm: Scalar) =>
       smin(smin(dBody, dGreen, 0.045), dArm, 0.07);
+
     const sceneSdf = (p: Point) => {
       const { k, q, xp } = toDesign(p);
       const { dBody, dGreen, dArm } = plantParts(q, k);
+
       return min(sdPot(xp), plantSdf(dBody, dGreen, dArm)).toVar();
     };
 
@@ -649,6 +652,7 @@ export const ChibiPlants = ({
       const e2 = vec3(-1, -1, 1);
       const e3 = vec3(-1, 1, -1);
       const e4 = vec3(1, 1, 1);
+
       return normalize(
         e1
           .mul(mapFn(p.add(e1.mul(h))))
@@ -658,12 +662,12 @@ export const ChibiPlants = ({
       ).toVar();
     };
 
-    // ---- fragment ----------------------------------------------------------
     const fragment = Fn(() => {
       const aspect = uRes.x.div(uRes.y);
       const ndc = uv().mul(2).sub(1).toVar();
       const nx = ndc.x.mul(aspect).toVar();
       const ro = vec3(RO.x, RO.y, RO.z);
+
       const rd = normalize(
         vec3(RI.x, RI.y, RI.z)
           .mul(nx.mul(uFov))
@@ -671,24 +675,25 @@ export const ChibiPlants = ({
           .add(vec3(FW.x, FW.y, FW.z)),
       ).toVar();
 
-      // Background: radial dusk gradient + soft contact shadow on the floor,
-      // under the pot, fading and spreading as it is lifted.
       const bgT = smoothstep(0.05, 1.25, length(vec2(nx, ndc.y.mul(1.15).add(0.12))));
       const col = mix(uBg1.rgb, uBg2.rgb, bgT).toVar();
       const tg = ro.y.sub(0.001).div(max(rd.y.negate(), 1e-4)).toVar();
       const gp = ro.add(rd.mul(tg)).toVar();
+
       const shadowR = length(vec2(gp.x.sub(uShadow.x), gp.z.sub(uShadow.y).mul(1.35))).div(
         uShadow.w,
       );
+
       const shadow = exp(shadowR.mul(shadowR).mul(-6))
         .mul(0.42)
         .mul(uShadow.z)
         .mul(smoothstep(0, 0.02, rd.y.negate()));
+
       col.assign(col.mul(shadow.oneMinus()));
 
-      // Bounding-sphere pre-test so empty pixels stay cheap; it follows the plant.
       const oc = ro.sub(uBound.xyz).toVar();
       const bq = dot(oc, rd).toVar();
+
       const bh = bq
         .mul(bq)
         .sub(dot(oc, oc).sub(uBound.w.mul(uBound.w)))
@@ -720,56 +725,60 @@ export const ChibiPlants = ({
           const { dBody, dGreen, dArm } = plantParts(q, k);
           const dPot = sdPot(xp);
 
-          // Plant parts share soft weights — colors bleed across their smin
-          // creases. The pot is a different object: a hard edge, no bleed, and
-          // the soil is the top of its fill, inside the lip.
           const wBody = exp(dBody.div(-0.028)).toVar();
           const wGreen = exp(dGreen.div(-0.028)).toVar();
           const wArm = exp(dArm.div(-0.028)).toVar();
           const wSum = wBody.add(wGreen).add(wArm).toVar();
+
           const plantC = uBodyC.rgb
             .mul(wBody)
             .add(uLeafC.rgb.mul(wGreen))
             .add(uBodyC.rgb.mul(0.92).mul(wArm))
             .div(wSum);
+
           const onPot = smoothstep(-0.002, 0.002, plantSdf(dBody, dGreen, dArm).sub(dPot)).toVar();
+
           const onSoil = onPot
             .mul(smoothstep(0.292, 0.275, length(vec2(xp.x, xp.z))))
             .mul(smoothstep(0.014, 0.004, abs(xp.y.sub(SOIL_Y))))
             .toVar();
+
           const albedo = mix(
             plantC,
             mix(uPotC.rgb, vec3(0.12, 0.08, 0.055), onSoil),
             onPot,
           ).toVar();
+
           const bodyW = wBody.div(wSum).mul(onPot.oneMinus()).toVar();
 
-          // ---- face, painted on the front of the body ----
           const sq = uParams.squash;
           const nd = normalize(q.div(vec3(1, sq, 1))).toVar();
+
           const front = smoothstep(0.05, 0.4, nd.z)
             .mul(smoothstep(0.55, 0.75, bodyW))
             .toVar();
+
           const fu = nd.x.toVar();
           const fv = nd.y.toVar();
           const leadX = uLook.x.mul(0.2).mul(uGaze).toVar();
           const leadY = uLook.y.mul(0.16).mul(uGaze).toVar();
 
-          // A squint first shuts the eyes like a blink, then they scrunch into > <.
           const shut = max(uBlink, smoothstep(0, 0.55, uSquint)).toVar();
           const scrunch = smoothstep(0.45, 0.8, uSquint).toVar();
+
           const eyeRr = uParams.eyeR
             .mul(uExcite.mul(0.3).add(1))
             .mul(shut.mul(0.3).oneMinus())
             .toVar();
+
           const blinkK = float(1).div(shut.mul(0.94).oneMinus()).toVar();
           const eyeMask = float(0).toVar();
           const hlMask = float(0).toVar();
+
           for (const sign of [-1, 1]) {
             const c = vec2(uParams.eyeSep.mul(sign).add(leadX), uParams.eyeY.add(leadY)).toVar();
             const dv = vec2(fu.sub(c.x), fv.sub(c.y).mul(blinkK)).toVar();
             const disc = smoothstep(eyeRr, eyeRr.sub(0.015), length(dv)).mul(scrunch.oneMinus());
-            // Squeezed shut: a chevron pointing at the nose, > <.
             const ex = fu.sub(c.x).mul(-sign);
             const ey = abs(fv.sub(c.y));
             const a = uParams.eyeR.mul(0.55);
@@ -790,23 +799,28 @@ export const ChibiPlants = ({
               max(hlMask, smoothstep(eyeRr.mul(0.14), eyeRr.mul(0.14).sub(0.012), length(h2))),
             );
           }
+
           hlMask.assign(hlMask.mul(eyeMask).mul(shut.oneMinus()));
 
           const mw = uParams.mouthW.mul(uExcite.mul(0.5).add(1)).mul(0.058).toVar();
+
           const mdv = vec2(
             fu.sub(leadX.mul(0.6)),
             fv.sub(uParams.eyeY).add(0.14).sub(leadY.mul(0.5)).mul(1.4),
           ).toVar();
+
           const mouthMask = smoothstep(mw, mw.sub(0.012), length(mdv))
             .mul(eyeMask.oneMinus())
             .toVar();
 
           const cheekMask = float(0).toVar();
+
           for (const sign of [-1, 1]) {
             const cc = vec2(
               uParams.eyeSep.add(uParams.eyeR).add(0.09).mul(sign),
               uParams.eyeY.sub(0.1),
             );
+
             cheekMask.assign(
               max(cheekMask, smoothstep(0.085, 0.02, length(vec2(fu.sub(cc.x), fv.sub(cc.y))))),
             );
@@ -818,7 +832,6 @@ export const ChibiPlants = ({
           albedo.assign(mix(albedo, vec3(0.28, 0.13, 0.11), mouthMask.mul(front)));
           albedo.assign(mix(albedo, vec3(0.95, 0.95, 0.97), hlMask.mul(front)));
 
-          // ---- shading: soft vinyl plant, glazed ceramic pot, matte soil ----
           const ld = normalize(vec3(0.55, 0.75, 0.5));
           const dif = clamp(dot(n, ld).mul(0.5).add(0.5), 0, 1).toVar();
           const skyT = n.y.mul(0.5).add(0.5);
@@ -829,13 +842,16 @@ export const ChibiPlants = ({
           const lit = albedo.mul(amb.add(dif.mul(vec3(0.98, 0.9, 0.8)).mul(1.05)).mul(ao)).toVar();
           const hv = normalize(ld.sub(rd));
           const gloss = onPot.mul(onSoil.oneMinus()).toVar();
+
           const spec = pow(clamp(dot(n, hv), 0, 1), mix(50, 140, gloss))
             .mul(mix(0.55, 0.9, gloss))
             .mul(onSoil.oneMinus())
             .mul(ao);
+
           const fres = pow(clamp(dot(n, rd.negate()), 0, 1).oneMinus(), 3.5)
             .mul(mix(0.3, 0.18, gloss))
             .mul(onSoil.oneMinus());
+
           lit.assign(
             lit
               .add(vec3(1, 0.98, 0.95).mul(spec))
@@ -856,18 +872,20 @@ export const ChibiPlants = ({
     scene.add(quad);
     const camera = new THREE.OrthographicCamera(-1, 1, 1, -1, 0, 1);
 
-    // ---- animation state ---------------------------------------------------
     const cur = { ...initialParams };
     const vel = { ...initialParams };
     const target = { ...initialParams };
+
     for (const key of PARAM_KEYS) {
       vel[key] = 0;
     }
+
     const curCol = {
       body: new THREE.Color(initialBody),
       leaf: new THREE.Color(initialLeaf),
       pot: new THREE.Color(initialPot),
     };
+
     const tgtCol = { body: new THREE.Color(), leaf: new THREE.Color(), pot: new THREE.Color() };
 
     const look = { tx: 0, ty: 0.1, vx: 0, vy: 0, x: 0, y: 0 };
@@ -881,18 +899,18 @@ export const ChibiPlants = ({
     let squintHold = 0;
     let elapsed = 0;
     let lastVariant = initialTuning.variant;
-    // Pointer in viewport ndc (null until it moves over the window), and the
-    // head's own screen position, so the gaze stays aimed at the cursor
-    // wherever the plant has been dragged.
     let pointer: readonly [number, number] | null = null;
     let head: readonly [number, number] = [0, 0];
 
     const aspectNow = () => {
       const rect = container.getBoundingClientRect();
+
       return rect.width / Math.max(rect.height, 1);
     };
+
     const ndcOf = (e: PointerEvent) => {
       const rect = container.getBoundingClientRect();
+
       return [
         ((e.clientX - rect.left) / rect.width) * 2 - 1,
         -(((e.clientY - rect.top) / rect.height) * 2 - 1),
@@ -905,13 +923,12 @@ export const ChibiPlants = ({
       excite = Math.min(1, excite + speedMag * 0.004);
       lastPointer = elapsed;
     };
+
     window.addEventListener("pointermove", onPointerMove);
 
-    // ---- handling ----------------------------------------------------------
     interface Hold {
       id: number;
       part: PlantPart;
-      /** Where the pointer touched, and the point being dragged (see PlantRig.grab). */
       point: Vec3;
       anchor: Vec3;
       x: number;
@@ -919,20 +936,25 @@ export const ChibiPlants = ({
       at: number;
       moved: boolean;
     }
+
     let hold: Hold | null = null;
     let hover = false;
 
-    const pickAt = (ndc: readonly [number, number]): PlantHit | null => {
+    const pickAt = (ndc: readonly [number, number]) => {
       const { ro, rd } = rayThrough(ndc[0], ndc[1], aspectNow());
+
       return rig.pick(ro, rd, frame);
     };
+
     const setCursor = () => {
       let cursor = "";
+
       if (hold) {
         cursor = "grabbing";
       } else if (hover) {
         cursor = "grab";
       }
+
       renderer.domElement.style.cursor = cursor;
     };
 
@@ -940,10 +962,13 @@ export const ChibiPlants = ({
       if (!tuningRef.current.interactive || hold || e.button !== 0) {
         return;
       }
+
       const hit = pickAt(ndcOf(e));
+
       if (!hit) {
         return;
       }
+
       e.preventDefault();
       renderer.domElement.setPointerCapture(e.pointerId);
       hold = {
@@ -958,33 +983,40 @@ export const ChibiPlants = ({
       };
       setCursor();
     };
+
     const onCanvasMove = (e: PointerEvent) => {
       if (!hold || e.pointerId !== hold.id) {
         return;
       }
+
       if (Math.hypot(e.clientX - hold.x, e.clientY - hold.y) > TAP_PX) {
         hold.moved = true;
       }
-      // Drag in the plane through the grabbed point, facing the camera.
+
       const [nx, ny] = ndcOf(e);
       const { ro, rd } = rayThrough(nx, ny, aspectNow());
       const along = new THREE.Vector3(...rd);
       const t = new THREE.Vector3(...hold.anchor).sub(RO).dot(FW) / Math.max(along.dot(FW), 1e-3);
       rig.drag([ro[0] + rd[0] * t, ro[1] + rd[1] * t, ro[2] + rd[2] * t]);
     };
+
     const onPointerUp = (e: PointerEvent) => {
       if (!hold || e.pointerId !== hold.id) {
         return;
       }
+
       rig.release();
+
       if (!hold.moved && performance.now() - hold.at < TAP_MS) {
         const { rd } = rayThrough(...ndcOf(e), aspectNow());
         rig.boop(hold.part, hold.point, rd);
         squintHold = 0.45;
       }
+
       hold = null;
       setCursor();
     };
+
     renderer.domElement.addEventListener("pointerdown", onPointerDown);
     renderer.domElement.addEventListener("pointermove", onCanvasMove);
     renderer.domElement.addEventListener("pointerup", onPointerUp);
@@ -997,26 +1029,27 @@ export const ChibiPlants = ({
       renderer.setSize(w, h, false);
       const dpr = Math.min(window.devicePixelRatio, 1.5);
       uRes.value.set(w * dpr, h * dpr);
-      // The screen edges are walls: keep the whole pot in view.
       uFov.value = fovFor(w / h);
       rig.halfWidth = Math.max(0.38, RO.z * uFov.value * (w / h) - 0.06);
     };
+
     const ro2 = new ResizeObserver(resize);
     ro2.observe(container);
 
     type Tuning = typeof tuningRef.current;
 
-    // Variant + prop overrides drive the morph targets; a new character
-    // arrives with a hop.
     const morph = (dt: number, tuning: Tuning) => {
       const v = VARIANTS[tuning.variant] ?? VARIANTS.pip;
+
       if (tuning.variant !== lastVariant) {
         lastVariant = tuning.variant;
         rig.hop(reducedMotion.matches ? 0 : 2);
       }
+
       for (const k of PARAM_KEYS) {
         target[k] = v.params[k];
       }
+
       target.eyeR = v.params.eyeR * tuning.eyeScale;
       tgtCol.body.set(tuning.bodyColor ?? v.palette.body);
       tgtCol.leaf.set(tuning.leafColor ?? v.palette.leaf);
@@ -1025,9 +1058,9 @@ export const ChibiPlants = ({
       uBg1.value.set(tuning.background[0]);
       uBg2.value.set(tuning.background[1]);
 
-      // Slightly underdamped springs make morphs land with a squishy overshoot.
       const omega = 9;
       const zeta = 0.72;
+
       for (const k of PARAM_KEYS) {
         const x = cur[k] - target[k];
         const a = -omega * omega * x - 2 * zeta * omega * vel[k];
@@ -1035,6 +1068,7 @@ export const ChibiPlants = ({
         cur[k] += vel[k] * dt;
         uParams[k].value = cur[k];
       }
+
       const cf = 1 - Math.exp(-dt * 7);
       curCol.body.lerp(tgtCol.body, cf);
       curCol.leaf.lerp(tgtCol.leaf, cf);
@@ -1044,7 +1078,6 @@ export const ChibiPlants = ({
       uPotC.value.copy(curCol.pot);
     };
 
-    // Gaze: at the cursor relative to the head, else an idle wander.
     const aim = (dt: number) => {
       if (pointer && elapsed - lastPointer <= 2.4) {
         look.tx = THREE.MathUtils.clamp((pointer[0] - head[0]) * 1.1, -1, 1);
@@ -1054,6 +1087,7 @@ export const ChibiPlants = ({
         look.ty = Math.random() * 0.9 - 0.35;
         nextWander = elapsed + 1.3 + Math.random() * 1.5;
       }
+
       const lo = 10;
       const lz = 0.85;
       const ax = -lo * lo * (look.x - look.tx) - 2 * lz * lo * look.vx;
@@ -1065,43 +1099,48 @@ export const ChibiPlants = ({
       uLook.value.set(look.x, look.y);
     };
 
-    // The head turn (cursor follow + idle sway) is folded into the body's
-    // frame on the CPU, so the leaves swing after it.
     const simulate = (dt: number, tuning: Tuning) => {
       const yaw = look.x * -0.55 * tuning.gaze + Math.sin(elapsed * 0.6) * 0.07 * tuning.wobble;
+
       const pitch =
         look.y * 0.38 * tuning.gaze + Math.sin(elapsed * 0.83 + 1.7) * 0.05 * tuning.wobble;
+
       rig.firmness = THREE.MathUtils.clamp(tuning.firmness, 0, 1);
       rig.calm = reducedMotion.matches;
       rig.setPose(posePlant(cur, gazeMatrix(yaw, pitch)));
+
       if (hold && !tuning.interactive) {
         rig.release();
         hold = null;
         setCursor();
       }
+
       rig.step(dt);
       frame = rig.frame();
       upload(frame);
       head = project(frame.head, aspectNow());
     };
 
-    // Blinks, quick close and softer open with the odd double; wide eyes off
-    // the ground; > < when squeezed, booped or landed hard.
     const emote = (dt: number) => {
       if (elapsed > nextBlink && blinkTarget === 0) {
         blinkTarget = 1;
         nextBlink = elapsed + 2 + Math.random() * 3.2 + (Math.random() < 0.18 ? -1.75 : 0);
       }
+
       blink += (blinkTarget - blink) * Math.min(1, dt * (blinkTarget === 1 ? 26 : 13));
+
       if (blink > 0.93) {
         blinkTarget = 0;
       }
+
       uBlink.value = blink;
 
       const landing = rig.takeLanding();
+
       if (landing > 0.2) {
         squintHold = Math.max(squintHold, 0.2 + landing * 0.35);
       }
+
       squintHold = Math.max(0, squintHold - dt);
       const squintTarget = squintHold > 0 || rig.strain > 0.55 ? 1 : 0;
       squint += (squintTarget - squint) * Math.min(1, dt * (squintTarget > squint ? 22 : 9));
@@ -1115,7 +1154,9 @@ export const ChibiPlants = ({
       if (hold || !pointer || !tuning.interactive) {
         return;
       }
+
       const over = pickAt(pointer) !== null;
+
       if (over !== hover) {
         hover = over;
         setCursor();
@@ -1123,6 +1164,7 @@ export const ChibiPlants = ({
     };
 
     let prev = performance.now();
+
     const tick = () => {
       raf = requestAnimationFrame(tick);
       const now = performance.now();
@@ -1147,11 +1189,14 @@ export const ChibiPlants = ({
         await renderer.init();
       } catch (error) {
         console.error("chibi-plants: renderer init failed", error);
+
         return;
       }
+
       if (disposed) {
         return;
       }
+
       resize();
       prev = performance.now();
       raf = requestAnimationFrame(tick);
@@ -1172,7 +1217,6 @@ export const ChibiPlants = ({
       material.dispose();
       renderer.dispose();
     };
-    // The shader graph is built once; live values flow through uniforms/refs.
   }, []);
 
   return <div ref={containerRef} className={className ?? "h-full w-full"} />;

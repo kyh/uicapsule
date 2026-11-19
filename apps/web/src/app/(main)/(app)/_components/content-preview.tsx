@@ -20,6 +20,7 @@ interface ContentPreviewProps {
 export const ContentPreview = ({ slug, name, index, tags, isNew, cover }: ContentPreviewProps) => {
   const { trigger } = useWebHaptics();
   const badge = elementBadge(tags);
+
   return (
     <PrefetchLink
       className="bg-background group flex flex-col justify-between gap-3 p-3 text-lg sm:p-6"

@@ -1,14 +1,5 @@
 "use client";
 
-// Sakuga Accordion: pick a section and its panel drops open on a spring, shoving the ones below it
-// down. Where its bottom edge lands, dust kicks up either side, wedges fly off the header's corner as
-// the chevron flips, and a hollow ポン lands on the card's corner. Close it and the panel is sucked
-// back up with one small puff. The panel's height is the real thing: the text is there from the first
-// frame.
-//
-// Base UI's Accordion owns the value, the ids and ARIA, and the buttons. The panel stays mounted and
-// we own its height: Base UI would hide it the moment it closes, and ours has a spring to finish.
-
 import { Accordion as AccordionPrimitive } from "@base-ui/react/accordion";
 import { cn } from "cn";
 import { createContext, use, useLayoutEffect, useMemo, useRef } from "react";
@@ -19,21 +10,16 @@ import { FONT_BODY, FONT_DISPLAY, SakugaStyle, useFrame, useMergedRef } from "./
 import type { Styled } from "./sakuga-react";
 
 interface Rig {
-  // the panel's height, as a share of its content's
   h: Spring;
-  // the chevron: 0 points down, 1 points up
   turn: Spring;
   press: Spring;
-  // its own header has just been pressed: the change that follows is the person's
   asked: boolean;
-  // it is dropping open and has not hit the bottom yet
   landing: boolean;
-  // it was closed by its own header, so it gets the puff
   closing: boolean;
   still: boolean;
 }
 
-const makeRig = (): Rig => ({
+const makeRig = () => ({
   asked: false,
   closing: false,
   h: new Spring(0, 380, 19),
@@ -43,7 +29,6 @@ const makeRig = (): Rig => ({
   turn: new Spring(0, 420, 13),
 });
 
-// drop it open, or suck it back up; only a change its own header asked for gets the effects
 const aim = (r: Rig, on: boolean, loud: boolean) => {
   r.h.to = on ? 1 : 0;
   r.h.k = on ? 380 : 900;
@@ -55,13 +40,12 @@ const aim = (r: Rig, on: boolean, loud: boolean) => {
   r.h.v = on ? Math.max(r.h.v, 5) : Math.min(r.h.v, -6);
 };
 
-// the chevron turns over through flat, a little wider as it goes
 const flip = (t: number) => {
   const y = 1 - 2 * t;
+
   return `scale(${(1 + Math.max(0, 1 - Math.abs(y)) * 0.25).toFixed(3)}, ${y.toFixed(3)})`;
 };
 
-// one item's moving parts, shared by its trigger and its panel
 interface ItemRefs {
   rigRef: RefObject<Rig>;
   headRef: RefObject<HTMLButtonElement | null>;
@@ -70,19 +54,19 @@ interface ItemRefs {
   bodyRef: RefObject<HTMLDivElement | null>;
 }
 
-// the card, for the effects that are placed from its box
 const CardContext = createContext<RefObject<HTMLDivElement | null> | null>(null);
 const ItemContext = createContext<ItemRefs | null>(null);
 
 const useItem = () => {
   const item = use(ItemContext);
+
   if (!item) {
     throw new Error("Sakuga accordion parts go inside a SakugaAccordionItem");
   }
+
   return item;
 };
 
-// the bottom edge lands
 const land = (card: HTMLElement, head: HTMLElement, panel: HTMLElement) => {
   const k = at(card);
   const p = at(panel, 0.5, 1);
@@ -92,17 +76,14 @@ const land = (card: HTMLElement, head: HTMLElement, panel: HTMLElement) => {
   puff(left - 7, p.y - 3, { life: 0.7, n: 4, size: 8, vx: -16, vy: -10 });
   puff(right + 12, p.y + 2, { life: 0.7, n: 4, size: 8, vx: 16, vy: -8 });
   ticks(q.x - 4, q.y + 2, { dir: -0.75, fan: 0.36, len: 15, life: 0.5, n: 3, r: 5 });
-  // the word straddles the card's top right corner, clear of every chevron and inside its column
   sfx("pon", right - 30, k.y - k.h / 2 - 22, { life: 0.8, rot: 0.06, size: 72, ...hollow() });
 };
 
-// it has shut
 const shut = (head: HTMLElement) => {
   const q = at(head, 1, 1);
   puff(q.x + 4, q.y, { life: 0.4, n: 3, size: 7 });
 };
 
-// the panel's height and the chevron, one frame on
 const stepPanel = (
   r: Rig,
   dt: number,
@@ -115,17 +96,22 @@ const stepPanel = (
   const h = Math.max(0, r.h.step(dt));
   const t = r.turn.step(dt);
   chevron.style.transform = flip(t);
+
   if (r.landing && h >= 1) {
     r.landing = false;
+
     if (card) {
       land(card, head, panel);
     }
   }
+
   if (r.closing && h < 0.08) {
     r.closing = false;
     shut(head);
   }
+
   const turned = Math.abs(t - r.turn.to) < 0.002 && Math.abs(r.turn.v) < 0.02;
+
   if (r.h.to === 1 && Math.abs(h - 1) < 0.001 && Math.abs(r.h.v) < 0.01) {
     panel.style.height = "";
     r.still = turned;
@@ -146,6 +132,7 @@ const SakugaAccordion = ({
   ...props
 }: Styled<AccordionPrimitive.Root.Props>) => {
   const cardRef = useRef<HTMLDivElement>(null);
+
   return (
     <AccordionPrimitive.Root
       ref={useMergedRef(cardRef, ref)}
@@ -182,14 +169,17 @@ const SakugaAccordionItem = ({
     const panel = panelRef.current;
     const body = bodyRef.current;
     const chevron = chevronRef.current;
+
     if (!head) {
       return;
     }
+
     const y = r.press.step(dt);
     head.style.transform =
       Math.abs(y - 1) < 0.001 && Math.abs(r.press.v) < 0.01
         ? ""
         : `scale(${1 + (1 - y) * 0.14}, ${y})`;
+
     if (!r.still && panel && body && chevron) {
       stepPanel(r, dt, cardRef?.current ?? null, head, panel, body, chevron);
     }
@@ -203,13 +193,13 @@ const SakugaAccordionItem = ({
         {...props}
         onOpenChange={(open, details) => {
           onOpenChange?.(open, details);
+
           if (details.isCanceled || details.reason !== "trigger-press") {
             return;
           }
+
           const r = rigRef.current;
-          // the header gives, whatever pressed it
           r.press.x = Math.min(r.press.x, 0.86);
-          // the panel reacts when the value comes back changed; if it never does, forget it
           r.asked = true;
           later(0, () => {
             r.asked = false;
@@ -235,7 +225,6 @@ const SakugaAccordionTrigger = ({
 }: Styled<AccordionPrimitive.Trigger.Props>) => {
   const { rigRef, headRef, chevronRef } = useItem();
 
-  // the header squashes a little while it is held, and comes back when it is let go
   const hold = (to: number, el: HTMLElement) => {
     if (to === 1 || !el.matches(":disabled, [data-disabled]")) {
       rigRef.current.press.to = to;
@@ -271,7 +260,6 @@ const SakugaAccordionTrigger = ({
         }}
       >
         {children}
-        {/* the class is only how it looks before the first reaction: after that the spring writes the transform */}
         <svg
           ref={chevronRef}
           aria-hidden
@@ -285,8 +273,6 @@ const SakugaAccordionTrigger = ({
   );
 };
 
-// The panel's own element. Base UI marks a closed panel `hidden` at once; ours has a spring to play
-// first, so it is never hidden: closed, it is inert and no taller than the spring says.
 const PanelShell = ({ open, ...props }: ComponentProps<"div"> & { open: boolean }) => {
   const { rigRef, panelRef, bodyRef, chevronRef } = useItem();
   const was = useRef<boolean | null>(null);
@@ -295,23 +281,27 @@ const PanelShell = ({ open, ...props }: ComponentProps<"div"> & { open: boolean 
     const r = rigRef.current;
     const before = was.current;
     was.current = open;
+
     if (before === null) {
-      // mounted: an open one is simply open
       r.h.x = open ? 1 : 0;
       r.h.to = r.h.x;
       r.turn.x = r.h.x;
       r.turn.to = r.h.x;
+
       return;
     }
+
     const panel = panelRef.current;
     const body = bodyRef.current;
+
     if (before === open || !panel || !body) {
       return;
     }
+
     aim(r, open, r.asked);
     r.asked = false;
-    // before the paint, so the panel never shows a frame at its new resting height
     panel.style.height = `${(r.h.x * body.offsetHeight).toFixed(2)}px`;
+
     if (chevronRef.current) {
       chevronRef.current.style.transform = flip(r.turn.x);
     }
@@ -327,12 +317,12 @@ const SakugaAccordionContent = ({
   ...props
 }: Omit<Styled<AccordionPrimitive.Panel.Props>, "keepMounted" | "hiddenUntilFound" | "render">) => {
   const { panelRef, bodyRef } = useItem();
+
   return (
     <AccordionPrimitive.Panel
       ref={useMergedRef(panelRef, ref)}
       keepMounted
       data-slot="sakuga-accordion-content"
-      // the height class is only how it looks before the first reaction: after that the spring writes it
       className="overflow-hidden not-data-open:h-0"
       render={(panelProps, state) => <PanelShell {...panelProps} open={state.open} />}
       {...props}

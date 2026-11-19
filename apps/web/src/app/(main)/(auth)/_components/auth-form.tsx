@@ -17,6 +17,7 @@ import { authClient } from "@/lib/auth-client";
 const emailSchema = z.object({ email: z.email("Invalid email address") });
 const loginSchema = emailSchema.extend({ password: z.string().min(1, "Password is required") });
 const registerSchema = emailSchema.extend({ password: z.string().min(8).max(128) });
+
 const passwordSchema = z
   .object({ confirmPassword: z.string(), password: z.string().min(8).max(128) })
   .refine((data) => data.password === data.confirmPassword, {
@@ -53,12 +54,14 @@ export const AuthForm = ({ className, type, ...props }: AuthFormProps) => {
               name: credentials.email.split("@")[0] ?? "User",
             })
           : await authClient.signIn.email(credentials);
+
       if (result.error) {
         form.setError("root", { message: result.error.message ?? "Unable to sign in. Try again." });
+
         return;
       }
+
       router.replace("/");
-      // The header decides whether to load the session from the cookie on the server.
       router.refresh();
     } catch {
       form.setError("root", { message: "Unable to connect. Try again." });
@@ -115,6 +118,7 @@ export const AuthForm = ({ className, type, ...props }: AuthFormProps) => {
 
 export const RequestPasswordResetForm = () => {
   const [requested, setRequested] = useState(false);
+
   const form = useForm({
     defaultValues: {
       email: "",
@@ -133,6 +137,7 @@ export const RequestPasswordResetForm = () => {
         email: data.email,
         redirectTo: "/auth/password-update",
       });
+
       if (error) {
         form.setError("root", {
           message:
@@ -140,8 +145,10 @@ export const RequestPasswordResetForm = () => {
               ? "Password reset is temporarily unavailable. Try again later."
               : (error.message ?? "Unable to request a reset. Try again."),
         });
+
         return;
       }
+
       setRequested(true);
     } catch {
       form.setError("root", { message: "Unable to connect. Try again." });
@@ -206,12 +213,15 @@ export const UpdatePasswordForm = ({ token }: { token: string }) => {
   const handleUpdatePassword = form.handleSubmit(async (data) => {
     try {
       const { error } = await authClient.resetPassword({ newPassword: data.password, token });
+
       if (error) {
         form.setError("root", {
           message: error.message ?? "Unable to reset your password. Try again.",
         });
+
         return;
       }
+
       toast.success("Password updated. Sign in with your new password.");
       router.replace("/auth/login");
     } catch {

@@ -14,7 +14,6 @@ const REVENUE = [1680, 3340, 2610, 2891.12, 2560, 2580] as const;
 const GROWTH = [6.2, 21.4, 9.8, 14, 4.1, 5.3] as const;
 const GOAL = 6000;
 const TOP = 3700;
-// Isometric box: half width in x units, diamond depth in y units.
 const W = 0.37;
 const D = TOP * 0.05;
 
@@ -27,6 +26,7 @@ interface Pt {
   x: number;
   y: number;
 }
+
 interface Face {
   k: string;
   x: number;
@@ -34,9 +34,9 @@ interface Face {
   y2: number;
 }
 
-/** The dashed wireframe of one box: silhouette, front edge and top ridge. */
-const wire = (i: number, h: number): Pt[] => {
+const wire = (i: number, h: number) => {
   const cx = i + 0.5;
+
   const outline: [number, number][] = [
     [cx - W, D],
     [cx - W, h],
@@ -46,20 +46,23 @@ const wire = (i: number, h: number): Pt[] => {
     [cx, 0],
     [cx - W, D],
   ];
+
   const ridge: [number, number][] = [
     [cx - W, h],
     [cx, h - D],
     [cx + W, h],
   ];
+
   const spine: [number, number][] = [
     [cx, h - D],
     [cx, 0],
   ];
+
   return [
     ...outline.map(([x, y], j) => ({ g: `${i}-o`, k: `${i}-o${j}`, x, y })),
     ...ridge.map(([x, y], j) => ({ g: `${i}-r`, k: `${i}-r${j}`, x, y })),
     ...spine.map(([x, y], j) => ({ g: `${i}-s`, k: `${i}-s${j}`, x, y })),
-  ];
+  ] satisfies Pt[];
 };
 
 export const AverageSales = () => {
@@ -71,21 +74,26 @@ export const AverageSales = () => {
     const h = REVENUE[hi] ?? 0;
     const cx = hi + 0.5;
     const wires = REVENUE.flatMap((v, i) => (i === hi ? [] : wire(i, v)));
+
     const left: Face[] = [
       { k: "l0", x: cx - W, y1: D, y2: h },
       { k: "l1", x: cx, y1: 0, y2: h - D },
     ];
+
     const right: Face[] = [
       { k: "r0", x: cx, y1: 0, y2: h - D },
       { k: "r1", x: cx + W, y1: D, y2: h },
     ];
+
     const top: Face[] = [
       { k: "t0", x: cx - W, y1: h, y2: h },
       { k: "t1", x: cx, y1: h - D, y2: h + D },
       { k: "t2", x: cx + W, y1: h, y2: h },
     ];
+
     const face = (rows: Face[], fill: string, id: string) =>
       areaY(rows, { fill, fillOpacity: 1, id, key: "k", x: "x", y1: "y1", y2: "y2" });
+
     return defineChart({
       gradients: [
         {
@@ -191,6 +199,7 @@ export const AverageSales = () => {
             ariaLabel="Monthly revenue, January to June"
             onFocusChange={(p) => {
               const x = Number(p?.xValue);
+
               if (p && Number.isFinite(x)) {
                 pin(Math.min(REVENUE.length - 1, Math.max(0, Math.floor(x))));
               }

@@ -3,13 +3,6 @@
 import { useEffect, useRef, useState } from "react";
 import { AnimatePresence, MotionConfig, motion } from "motion/react";
 
-/**
- * Vibe dial — a temperature knob for generation. Turn it and the dial itself
- * heats up: the LED ring fills and shifts from cool blue to ember, the glow
- * swells, and the readout drifts from "precise" to "unhinged". Temperature as
- * something you can feel, not a float in a settings panel.
- */
-
 const MIN = 0;
 const MAX = 2;
 const SWEEP = 270;
@@ -34,18 +27,20 @@ export const VibeDial = () => {
   const [dragging, setDragging] = useState(false);
   const dialRef = useRef<HTMLDivElement | null>(null);
 
-  // React registers wheel listeners as passive, so preventDefault there is ignored; the dial
-  // needs a native non-passive listener to keep the wheel from scrolling the page.
   useEffect(() => {
     const dial = dialRef.current;
+
     if (!dial) {
       return;
     }
+
     const onWheel = (event: WheelEvent) => {
       event.preventDefault();
       setTemp((current) => clampTemp(current - event.deltaY * 0.0035));
     };
+
     dial.addEventListener("wheel", onWheel, { passive: false });
+
     return () => dial.removeEventListener("wheel", onWheel);
   }, []);
 
@@ -70,6 +65,7 @@ export const VibeDial = () => {
             if (!event.currentTarget.hasPointerCapture(event.pointerId)) {
               return;
             }
+
             setTemp((current) => clampTemp(current - event.movementY * 0.009));
           }}
           onPointerUp={(event) => {
@@ -90,6 +86,7 @@ export const VibeDial = () => {
           <svg viewBox="0 0 100 100" className="absolute inset-0 size-full">
             {Array.from({ length: TICKS }, (_, index) => {
               const major = index % 10 === 0;
+
               return (
                 <line
                   key={index}

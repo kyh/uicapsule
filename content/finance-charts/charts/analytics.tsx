@@ -27,12 +27,11 @@ const HEIGHT = 250;
 const LABEL_SPACE = 24;
 const MARGIN = { bottom: LABEL_SPACE, left: 0, right: 0, top: 0 };
 const PLOT_H = HEIGHT - LABEL_SPACE;
-// ~340px plot / 7 bands at paddingInner 0.2.
 const BAR_W = 39;
 
-// Twinkles inside the lit bar: (u across, v up) in bar-relative units.
 const SPARKS = (() => {
   const r = rng(77);
+
   return Array.from({ length: 14 }, (_, i) => ({
     id: i,
     r: 0.8 + r() * 1.1,
@@ -47,16 +46,19 @@ export const Analytics = () => {
   const meta = TABS[tab] ?? TABS[0];
   const values = meta?.values ?? TABS[0].values;
   let peak = 0;
+
   for (const [i, v] of values.entries()) {
     if (v > (values[peak] ?? 0)) {
       peak = i;
     }
   }
+
   const lit = hover ?? peak;
 
   const definition = useMemo(() => {
     const rows = WEEKDAYS.map((day, i) => ({ day, i, value: values[i] ?? 0 }));
     const hot = rows[lit] ?? rows[0];
+
     return defineChart({
       gradients: [
         ...rows.map((r) =>
@@ -195,6 +197,7 @@ export const Analytics = () => {
             ariaLabel={`${meta?.name} activity by weekday`}
             onFocusChange={(p) => {
               const i = DAY_INDEX.get(String(p?.xValue)) ?? -1;
+
               if (i !== -1) {
                 setHover(i);
                 pinTab(tab);

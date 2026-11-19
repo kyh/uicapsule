@@ -55,7 +55,9 @@ const SERIES = [
 const ROWS = SERIES.flatMap((s) =>
   s.values.map((value, m) => ({ id: `${s.label}-${m}`, m, series: s.label, value })),
 );
+
 const MONTH_IDX = MONTHS.map((_, i) => i);
+
 const LONG_MONTHS = [
   "January",
   "February",
@@ -70,7 +72,7 @@ const LONG_MONTHS = [
   "November",
   "December",
 ];
-// First-of-month weekdays for 2026.
+
 const FIRST_WEEKDAY = [
   "Thursday",
   "Sunday",
@@ -221,6 +223,7 @@ export const InvestmentPerformance = () => {
             ariaLabel="Stock, bonds and cash portfolio value by month"
             onFocusChange={(p) => {
               const m = Number(p?.xValue);
+
               if (p && Number.isInteger(m)) {
                 pin(m);
               }

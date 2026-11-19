@@ -10,9 +10,11 @@ export const WaitlistForm = () => {
 
   const handleJoinWaitlist = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
+
     if (!email) {
       return;
     }
+
     setSubmitted(true);
     setEmail("");
   };

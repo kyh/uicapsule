@@ -66,7 +66,6 @@ const searchKindLabel = {
 const componentCountLabel = (count: number) => `${count} component${count === 1 ? "" : "s"}`;
 
 const AnimateHeight = ({ children }: { children: ReactNode }) => (
-  // The inner layout counter-scales content during the outer height transition.
   <motion.div
     layout
     initial={false}
@@ -87,13 +86,16 @@ export const SearchButton = ({ searchEntries }: { searchEntries: SearchEntry[] }
 
   const tagCounts = useMemo(() => {
     const counts: Record<string, number> = {};
+
     for (const entry of searchEntries) {
       for (const tag of entry.tags) {
         counts[tag] = (counts[tag] ?? 0) + 1;
       }
     }
+
     return counts;
   }, [searchEntries]);
+
   const trending = useMemo(() => searchEntries.slice(0, TRENDING_LIMIT), [searchEntries]);
 
   const resetSearch = useCallback(() => {
@@ -119,10 +121,10 @@ export const SearchButton = ({ searchEntries }: { searchEntries: SearchEntry[] }
     };
 
     document.addEventListener("keydown", down);
+
     return () => document.removeEventListener("keydown", down);
   }, [resetSearch]);
 
-  // Facet suggestions link straight into the gallery filter; empty options stay hidden.
   const facetSuggestions = useMemo(
     () =>
       facetDefinitions.map((facet) => ({
@@ -137,7 +139,7 @@ export const SearchButton = ({ searchEntries }: { searchEntries: SearchEntry[] }
           }))
           .filter((option) => option.count > 0)
           .toSorted((a, b) => b.count - a.count || a.name.localeCompare(b.name))
-          .map((option): SearchSuggestion => ({
+          .map<SearchSuggestion>((option) => ({
             href: `/?${facet.param}=${option.slug}`,
             kind: facet.kind,
             label: option.name,
@@ -159,6 +161,7 @@ export const SearchButton = ({ searchEntries }: { searchEntries: SearchEntry[] }
     return searchEntries
       .filter((entry) => {
         const haystacks = [entry.name, entry.description, ...entry.tags];
+
         return haystacks.some((field) => field.toLowerCase().includes(normalizedQuery));
       })
       .slice(0, SEARCH_RESULT_LIMIT);
@@ -176,7 +179,7 @@ export const SearchButton = ({ searchEntries }: { searchEntries: SearchEntry[] }
             suggestion.label.toLowerCase().includes(normalizedQuery) ||
             suggestion.value.includes(normalizedQuery),
         )
-        .map((suggestion): SearchSuggestion => ({
+        .map<SearchSuggestion>((suggestion) => ({
           href: suggestion.href,
           kind: suggestion.kind,
           label: suggestion.label,
@@ -186,16 +189,16 @@ export const SearchButton = ({ searchEntries }: { searchEntries: SearchEntry[] }
     );
   }, [facetSuggestions, hasQuery, normalizedQuery]);
 
-  // cmdk fires onSelect for clicks too, after the Link has already navigated (or, with a
-  // modifier held, opened a new tab); onSelect only navigates for keyboard selection.
   const selectedByPointer = useRef(false);
 
   const handleSelect = useCallback(
     (href: string) => {
       if (selectedByPointer.current) {
         selectedByPointer.current = false;
+
         return;
       }
+
       changeSearchOpen(false);
       router.push(href);
     },
@@ -204,6 +207,7 @@ export const SearchButton = ({ searchEntries }: { searchEntries: SearchEntry[] }
 
   const handleLinkClick = (event: MouseEvent<HTMLAnchorElement>) => {
     selectedByPointer.current = true;
+
     if (!(event.metaKey || event.ctrlKey || event.shiftKey || event.altKey)) {
       changeSearchOpen(false);
     }
@@ -218,7 +222,7 @@ export const SearchButton = ({ searchEntries }: { searchEntries: SearchEntry[] }
   }));
 
   const querySuggestions: SearchSuggestion[] = [
-    ...componentMatches.map((entry): SearchSuggestion => ({
+    ...componentMatches.map<SearchSuggestion>((entry) => ({
       href: `/ui/${entry.slug}`,
       kind: "component",
       label: entry.name,
@@ -244,6 +248,7 @@ export const SearchButton = ({ searchEntries }: { searchEntries: SearchEntry[] }
 
   const renderSuggestion = (suggestion: SearchSuggestion) => {
     const Icon = searchKindIcon[suggestion.kind];
+
     return (
       <CommandItem
         key={suggestion.value}

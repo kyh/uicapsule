@@ -9,7 +9,6 @@ import { SpendingOverviewCylinder } from "./spending-overview-cylinder";
 import { SpendingOverviewRange } from "./spending-overview-range";
 import { YourAsset } from "./your-asset";
 
-// cash-flow-daily-bar, spending-overview-range, budget-overview, sales-target, your-asset, budget-plan, spending-overview-cylinder, budget-health, category-breakdown
 export const GROUP_3: ChartEntry[] = [
   { Chart: CashFlowDailyBar, id: "cash-flow-daily-bar" },
   { Chart: SpendingOverviewRange, id: "spending-overview-range" },

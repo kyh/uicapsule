@@ -1,6 +1,3 @@
-// Static datasets for the three phases. No network, no randomness — every
-// figure here gets drawn onto the canvas as characters.
-
 export interface Candle {
   o: number;
   h: number;
@@ -8,10 +5,12 @@ export interface Candle {
   c: number;
   v: number;
 }
+
 export interface DepthRow {
   price: string;
   size: number;
 }
+
 export interface OptionRow {
   strike: number;
   callBid: number;
@@ -21,7 +20,6 @@ export interface OptionRow {
   highlight?: boolean;
 }
 
-// Phase 1 — a bullish BTC breakout from ~106K to a 107.4K close with one pullback.
 export const CANDLES: Candle[] = [
   { c: 106_140, h: 106_180, l: 105_920, o: 106_020, v: 0.42 },
   { c: 106_280, h: 106_320, l: 106_080, o: 106_140, v: 0.55 },
@@ -56,7 +54,6 @@ export const BIDS: DepthRow[] = [
   { price: "107,424", size: 0.314 },
 ];
 
-// Phase 2 — a XAU options chain, 26 DEC expiry, ATM at the 2680 strike.
 export const OPTION_CHAIN: OptionRow[] = [
   {
     callBid: 56.4,
@@ -125,7 +122,6 @@ export const GREEKS = {
   vega: 1.2,
 };
 
-// Phase 3 — a bearish equity curve indexed to 100, peak ~131, trough ~83.
 export const BEAR_CURVE: number[] = [
   100, 104, 108, 113, 119, 124, 122, 127, 131, 128, 122, 116, 118, 121, 119, 113, 106, 99, 95, 91,
   88, 86, 83, 87, 92, 95, 93, 96, 99, 102,

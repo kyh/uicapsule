@@ -21,9 +21,11 @@ import {
 import { DASHED_GRID, MUTED, ORANGE, THEME } from "../lib/tokens";
 
 const INCOME = [4080, 4700, 5380, 5102.87, 4980, 4890, 5190, 5510, 5900, 5080, 4720, 4220] as const;
+
 const EXPENSES = [
   3580, 3200, 2780, 4151.99, 3060, 3450, 2560, 3850, 4480, 3400, 3700, 2150,
 ] as const;
+
 const FULL = [
   "January",
   "February",
@@ -185,6 +187,7 @@ export const FinanceAnalytics = () => {
             onFocusChange={(p) => {
               if (p) {
                 const i = rows.findIndex((r) => r.m === p.xValue);
+
                 if (i !== -1) {
                   pin(i);
                 }

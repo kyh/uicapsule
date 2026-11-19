@@ -1,9 +1,5 @@
 "use client";
 
-// Shared chrome for the twin "Total Sales" / "Customer rate" cards: a headline
-// with a pill delta, three channel rows, an hourly 6 PM → 2 AM plot and a
-// square-swatch legend.
-
 import { Info } from "lucide-react";
 import type { ReactNode } from "react";
 
@@ -16,6 +12,7 @@ export const X_DOMAIN = [17.35, 26.6] as const;
 export const hourLabel = (h: number) => {
   const hour = Math.round(h) % 24;
   const twelve = hour % 12 === 0 ? 12 : hour % 12;
+
   return `${twelve} ${hour >= 12 ? "PM" : "AM"}`;
 };
 
@@ -24,6 +21,7 @@ export const clockLabel = (h: number) => {
   const minutes = Math.round((h % 1) * 60);
   const hour = Math.floor(h) % 24;
   const twelve = hour % 12 === 0 ? 12 : hour % 12;
+
   return `${twelve}:${String(minutes).padStart(2, "0")} ${hour >= 12 ? "PM" : "AM"}`;
 };
 
@@ -32,11 +30,14 @@ export const valueAt = (points: readonly (readonly [number, number])[], x: numbe
   for (let k = 1; k < points.length; k += 1) {
     const a = points[k - 1];
     const b = points[k];
+
     if (a && b && x <= b[0]) {
       const t = (x - a[0]) / (b[0] - a[0] || 1);
+
       return a[1] + (b[1] - a[1]) * Math.max(0, Math.min(1, t));
     }
   }
+
   return points.at(-1)?.[1] ?? 0;
 };
 

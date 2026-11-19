@@ -35,19 +35,13 @@ type HoverDirection =
 
 const DEFAULT_HOVER_DIRECTION: HoverDirection = "top-center";
 
-/**
- * Which edge/corner of the trigger the pointer crossed on entry. Drives the
- * direction the block grid wipes in. A pointer that enters within
- * `EDGE_THRESHOLD_RATIO` of the trigger's centre line on the minor axis counts
- * as a straight edge entry; anything further out is a corner entry.
- */
 const EDGE_THRESHOLD_RATIO = 0.25;
 
 const resolveHoverDirection = (
   rect: Pick<DOMRect, "left" | "top" | "width" | "height">,
   pointerX: number,
   pointerY: number,
-): HoverDirection => {
+) => {
   const deltaX = pointerX - (rect.left + rect.width / 2);
   const deltaY = pointerY - (rect.top + rect.height / 2);
   const thresholdX = rect.width * EDGE_THRESHOLD_RATIO;
@@ -57,18 +51,22 @@ const resolveHoverDirection = (
     if (Math.abs(deltaY) < thresholdY) {
       return deltaX > 0 ? "right" : "left";
     }
+
     if (deltaY < 0) {
       return deltaX > 0 ? "top-right" : "top-left";
     }
+
     return deltaX > 0 ? "bottom-right" : "bottom-left";
   }
 
   if (Math.abs(deltaX) < thresholdX) {
     return deltaY > 0 ? "bottom-center" : "top-center";
   }
+
   if (deltaX < 0) {
     return deltaY > 0 ? "bottom-left" : "top-left";
   }
+
   return deltaY > 0 ? "bottom-right" : "top-right";
 };
 
@@ -89,11 +87,13 @@ export const useTooltip = ({
   const [hoverDirection, setHoverDirection] = useState<HoverDirection>(DEFAULT_HOVER_DIRECTION);
 
   const open = controlledOpen ?? uncontrolledOpen;
+
   const setOpen = useCallback(
     (nextOpen: boolean) => {
       if (controlledOpen === undefined) {
         setUncontrolledOpen(nextOpen);
       }
+
       setControlledOpen?.(nextOpen);
     },
     [controlledOpen, setControlledOpen],
@@ -110,15 +110,17 @@ export const useTooltip = ({
     ],
     onOpenChange: (isOpen, event) => {
       const { reference } = data.elements;
+
       if (isOpen && !open && reference && event instanceof MouseEvent) {
         setHoverDirection(
           resolveHoverDirection(reference.getBoundingClientRect(), event.clientX, event.clientY),
         );
       }
-      // Reset direction on close so the next open starts from a known state.
+
       if (!isOpen) {
         setHoverDirection(DEFAULT_HOVER_DIRECTION);
       }
+
       setOpen(isOpen);
     },
     open,
@@ -137,6 +139,7 @@ export const useTooltip = ({
   const focus = useFocus(context, {
     enabled: controlledOpen === undefined,
   });
+
   const dismiss = useDismiss(context);
   const role = useRole(context, { role: "tooltip" });
 
@@ -156,8 +159,6 @@ export const useTooltip = ({
 
 type TooltipContextValue = ReturnType<typeof useTooltip>;
 
-/** Floating UI reports the position as numbers, but they are not meaningful
- * until the floating element has been measured. */
 const isPlaced = ({ x, y }: Pick<TooltipContextValue, "x" | "y">) =>
   x !== null && x !== undefined && y !== null && y !== undefined;
 
@@ -274,13 +275,8 @@ const centerCol = Math.floor(cols / 2);
 
 const calculateDelay = (n: number) => baseDelay * Math.floor(n / cols) + baseDelay * (n % cols);
 
-// Calculate total delay for the default top direction
 const totalDelay = calculateDelay(cols * rows);
 
-/**
- * Per-block stagger delay: distance (in grid steps) from the entry edge/corner,
- * scaled by `baseDelay`, so the wipe travels away from where the pointer came in.
- */
 const getDirectionalDelay = (n: number, direction: HoverDirection) => {
   const row = Math.floor(n / cols);
   const col = n % cols;
@@ -291,35 +287,41 @@ const getDirectionalDelay = (n: number, direction: HoverDirection) => {
     case "left": {
       return baseDelay * col + baseDelay * row;
     }
+
     case "right": {
       return baseDelay * fromRight + baseDelay * row;
     }
+
     case "bottom-center": {
       return baseDelay * fromBottom + baseDelay * Math.abs(col - centerCol);
     }
+
     case "top-left": {
       return baseDelay * row + baseDelay * col;
     }
+
     case "top-right": {
       return baseDelay * row + baseDelay * fromRight;
     }
+
     case "bottom-left": {
       return baseDelay * fromBottom + baseDelay * col;
     }
+
     case "bottom-right": {
       return baseDelay * fromBottom + baseDelay * fromRight;
     }
+
     case "top-center": {
       return baseDelay * row + baseDelay * Math.abs(col - centerCol);
     }
+
     default: {
       return 0;
     }
   }
 };
 
-// React's CSSProperties has no index signature for custom properties, so widen
-// it rather than reaching for a type assertion.
 type BlocksContainerStyle = CSSProperties & Record<`--${string}`, number>;
 
 const blocksContainerStyle: BlocksContainerStyle = { "--cols": cols, "--rows": rows };
@@ -361,8 +363,6 @@ export const TooltipContent = ({
 }) => {
   const context = useTooltipContext();
   const ref = useMergeRefs([context.refs.setFloating, propRef]);
-  // Children stay out of `getFloatingProps`, which merges interaction props and
-  // would only hand them back untyped.
   const floatingProps = context.getFloatingProps(props);
   const blockType = type === "block";
 

@@ -17,35 +17,18 @@ import { homeVideo } from "@/lib/social-video";
 import type { ContentFilter } from "@/lib/content/content-categories";
 import type { ProseListItem } from "@/lib/agent/site-pages";
 
-/**
- * The home page's text layer: an `<h1>`, what the site is, and a linked index
- * of every component in the grid.
- *
- * The grid itself is covers and hover states — a page of images with no heading
- * and barely a paragraph of prose. That reads as an empty page to a crawler
- * that does not run JavaScript, to a text-mode browser, and to a screen reader
- * looking for a landmark to start from. This renders the same information the
- * grid conveys visually as text, so all three get the real page.
- *
- * It is deliberately *not* wrapped in `<Suspense>`: everything it reads is a
- * `use cache` function, so it prerenders into the static shell and is present
- * in the first byte of HTML rather than streaming in behind the grid.
- */
-
-const filterItems = (filters: ContentFilter[], key: string): ProseListItem[] =>
+const filterItems = (filters: ContentFilter[], key: string) =>
   filters.map((filter) => ({ href: `/?${key}=${filter.slug}`, label: filter.name }));
 
-/**
- * `/llms.txt` and `/r/registry.json` are route handlers, not pages — the client
- * router cannot navigate to them, so they need a plain anchor.
- */
 const OutlineLink = ({ item }: { item: ProseListItem }) => {
   if (!item.href) {
     return item.label;
   }
+
   if (rendersOutsideRouter(item.href)) {
     return <a href={item.href}>{item.label}</a>;
   }
+
   return <Link href={item.href}>{item.label}</Link>;
 };
 
@@ -65,8 +48,6 @@ export const GalleryOutline = async () => {
 
   return (
     <section aria-labelledby="gallery-outline-heading" className="sr-only">
-      {/* One interpolation, not three: React writes `<!-- -->` separators
-          between adjacent expressions, and those land inside the `h1` text. */}
       <h1 id="gallery-outline-heading">{`${siteConfig.name} — ${siteConfig.description}`}</h1>
       {siteIntroParagraphs.map((paragraph) => (
         <p key={paragraph}>{paragraph}</p>

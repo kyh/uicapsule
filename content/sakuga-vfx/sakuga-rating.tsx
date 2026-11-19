@@ -1,14 +1,5 @@
 "use client";
 
-// Sakuga Rating: stars that pop in one after another. The last one lit gets a fan of wedges and a
-// hollow ポン; full marks gets a burst behind it as well.
-// Clicking the lit star again clears it. With a name, it is sent with its form.
-//
-// Hand-rolled: Base UI has no rating, and its RadioGroup does not fit. A radio cannot be cleared
-// by clicking it again, there is no "none" between the arrows (upstream: either arrow from an
-// empty rating gives one star, and the arrows stop at the ends instead of wrapping), and Up means
-// more here where a radio group's Up means previous.
-
 import { cn } from "cn";
 import { useEffect, useLayoutEffect, useReducer, useRef, useState } from "react";
 import type { ComponentProps, KeyboardEvent, RefObject } from "react";
@@ -30,13 +21,10 @@ import type { Layer } from "./sakuga-core";
 import { BACK_CANVAS, FONT_BODY, SakugaStyle, useBackLayer, useFrame } from "./sakuga-react";
 
 type SakugaRatingProps = Omit<ComponentProps<"div">, "defaultValue" | "onChange" | "children"> & {
-  // 0 (none) to max; setting it from code lights the stars without the effects
   value?: number;
   defaultValue?: number;
   onValueChange?: (value: number) => void;
-  // how many stars
   max?: number;
-  // sent with its form (nothing when 0)
   name?: string;
   disabled?: boolean;
 };
@@ -55,9 +43,7 @@ interface Pop {
   i: number;
   n: number;
   was: number;
-  // full marks: the last star gets the burst
   full: boolean;
-  // the change this pop belongs to, and the counter of changes: a newer change drops it
   turn: number;
   turns: RefObject<number>;
 }
@@ -69,30 +55,35 @@ const glint = (b: HTMLElement, x: number, y: number) => {
 };
 
 const light = ({ b, spring, layer, i, n, was, full, turn, turns }: Pop) => {
-  // the score moved on, or the control left the page, before this star's turn came
   if (turn !== turns.current || !b.isConnected) {
     return;
   }
+
   b.toggleAttribute("data-lit", i < n);
+
   if (!(i < n && i >= was)) {
     return;
   }
+
   spring.x = 0.35;
   const c = at(b);
   puff(c.x, c.y + 14, { life: 0.4, n: 2, size: 5 });
+
   if (i !== n - 1) {
     return;
   }
+
   ticks(c.x, c.y, { dir: -Math.PI / 2, fan: 0.698, len: full ? 26 : 17, life: 0.55, n: 9, r: 20 });
+
   if (full) {
     burst(c.x, c.y, { layer: layer.current ?? undefined, life: 0.4, r: 46 });
     shards(c.x, c.y, { arc: 6.28, n: 6, size: 5 });
   }
+
   sfx("pon", c.x + 20, c.y - 56, { life: 0.85, rot: 0.08, size: full ? 120 : 92, ...hollow() });
   later(300, () => glint(b, c.x - 22, c.y - 30));
 };
 
-// they light one after another
 const queue = (pop: Pop) => later(Math.max(0, pop.i - pop.was) * 60, () => light(pop));
 
 const SakugaRating = ({
@@ -110,28 +101,27 @@ const SakugaRating = ({
   const score = (n: number) => clamp(Math.round(n) || 0, 0, max);
   const [own, setOwn] = useState(defaultValue);
   const rated = score(value ?? own);
-  // what the server renders lit. It never changes, so React leaves data-lit alone afterwards
-  // and the staggered lighting owns it.
   const [first] = useReducer((kept: number) => kept, rated);
 
   const [attachBack, backRef] = useBackLayer();
   const stars = useRef<(HTMLButtonElement | null)[]>([]);
   const springs = useRef<Spring[]>([]);
-  // what the stars show, and the score a click or key just asked for (that one gets the effects)
   const shown = useRef(0);
   const asked = useRef(-1);
   const turns = useRef(0);
   const field = useRef<HTMLInputElement>(null);
 
-  // a form reset puts back the default, as it does for a native field; no effects play
   const owned = value !== undefined;
   useEffect(() => {
     const form = field.current?.form;
+
     if (!form || owned) {
       return;
     }
+
     const reset = () => setOwn(defaultValue);
     form.addEventListener("reset", reset);
+
     return () => form.removeEventListener("reset", reset);
   }, [owned, defaultValue]);
 
@@ -142,8 +132,10 @@ const SakugaRating = ({
     shown.current = rated;
     turns.current += 1;
     const turn = turns.current;
+
     for (const [i, b] of stars.current.entries()) {
       const spring = springs.current[i];
+
       if (quiet) {
         b?.toggleAttribute("data-lit", i < rated);
       } else if (b && spring) {
@@ -155,6 +147,7 @@ const SakugaRating = ({
   useFrame((dt) => {
     for (const [i, b] of stars.current.entries()) {
       const y = springs.current[i]?.step(dt) ?? 1;
+
       if (b) {
         b.style.transform =
           Math.abs(y - 1) < 0.001 ? "" : `scale(${y}) rotate(${(1 - y) * -34}deg)`;
@@ -164,11 +157,12 @@ const SakugaRating = ({
 
   const rate = (n: number) => {
     asked.current = n;
+
     if (value === undefined) {
       setOwn(n);
     }
+
     onValueChange?.(n);
-    // a pick the parent turned down must not lend its effects to a later change from code
     queueMicrotask(() => {
       asked.current = -1;
     });
@@ -176,9 +170,11 @@ const SakugaRating = ({
 
   const keydown = (e: KeyboardEvent<HTMLButtonElement>) => {
     const d = STEPS.get(e.key);
+
     if (!d) {
       return;
     }
+
     e.preventDefault();
     const n = clamp((rated || (d > 0 ? 0 : 2)) + d, 1, max);
     rate(n);
@@ -204,11 +200,13 @@ const SakugaRating = ({
       <canvas ref={attachBack} aria-hidden className={BACK_CANVAS} />
       {Array.from({ length: max }, (_, i) => {
         const n = i + 1;
+
         return (
           <button
             key={n}
             ref={(node) => {
               stars.current[i] = node;
+
               if (!springs.current[i]) {
                 springs.current[i] = new Spring(1, 560, 12);
               }
@@ -237,7 +235,6 @@ const SakugaRating = ({
           </button>
         );
       })}
-      {/* what its form reads: nothing when there is no score. It also finds the form for a reset. */}
       <input
         ref={field}
         type="hidden"

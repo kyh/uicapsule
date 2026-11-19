@@ -1,10 +1,7 @@
 import { cp, mkdir, readdir, readFile, writeFile } from "node:fs/promises";
 import path from "node:path";
 
-// Every design system starts from this one directory, so they share a showcase and a
-// component set and differ only in what each system does to them.
 export const designSystemTemplate = path.join(import.meta.dirname, "templates/design-system");
-// Docs for the template itself, and the stub `system.ts` that scaffolding rewrites.
 const TEMPLATE_ONLY = new Set(["README.md", "system.ts"]);
 const SCOPE_CLASS = "ds-template";
 
@@ -17,12 +14,11 @@ export interface ScaffoldOptions {
   kind: ScaffoldKind;
 }
 
-// Design systems are static showcases; only a blank component starts with motion on hand.
 const dependencies = (kind: ScaffoldKind) =>
   Object.fromEntries(
-    ["lucide-react", "motion", "react", "react-dom"]
-      .filter((name) => kind === "component" || name !== "motion")
-      .map((name) => [name, "catalog:"]),
+    ["lucide-react", "motion", "react", "react-dom"].flatMap((name) =>
+      kind === "component" || name !== "motion" ? [[name, "catalog:"]] : [],
+    ),
   );
 
 const packageJson = (slug: string, kind: ScaffoldKind) =>
@@ -53,7 +49,6 @@ interface ScaffoldMeta {
   tags: string[];
 }
 
-// The order meta.json is written in, matching existing content.
 const META_KEYS = [
   "name",
   "description",
@@ -69,11 +64,12 @@ const metaJson = ({ name, description, kind }: ScaffoldOptions) => {
     name,
     tags: [],
   };
+
   if (kind === "design-system") {
-    // A design system is a whole surface, like a page: it opens full width.
     meta.defaultSize = "full";
     meta.tags = ["design-systems"];
   }
+
   return `${JSON.stringify(meta, META_KEYS, 2)}\n`;
 };
 
@@ -82,6 +78,7 @@ const componentFiles = (slug: string, name: string) => {
     .split("-")
     .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
     .join("");
+
   return {
     [`${slug}.tsx`]: `"use client";
 
@@ -106,8 +103,6 @@ export default Preview;
   };
 };
 
-// The scope class keeps each system's tokens off every other system: CSS from one
-// preview-frame stays loaded after a client navigation to the next.
 const scopeTemplate = async (directory: string, slug: string) => {
   const entries = await readdir(directory, { recursive: true, withFileTypes: true });
   await Promise.all(
@@ -132,6 +127,7 @@ const designSystemFiles = (name: string, description: string) => ({
 export const writeScaffold = async (directory: string, options: ScaffoldOptions) => {
   const { slug, name, description, kind } = options;
   await mkdir(directory, { recursive: true });
+
   if (kind === "design-system") {
     await cp(designSystemTemplate, directory, {
       filter: (source) => !TEMPLATE_ONLY.has(path.relative(designSystemTemplate, source)),
@@ -139,6 +135,7 @@ export const writeScaffold = async (directory: string, options: ScaffoldOptions)
     });
     await scopeTemplate(directory, slug);
   }
+
   const files = {
     "meta.json": metaJson(options),
     "package.json": packageJson(slug, kind),
@@ -146,6 +143,7 @@ export const writeScaffold = async (directory: string, options: ScaffoldOptions)
       ? designSystemFiles(name, description)
       : componentFiles(slug, name)),
   };
+
   await Promise.all(
     Object.entries(files).map(([file, source]) => writeFile(path.join(directory, file), source)),
   );
