@@ -25,20 +25,20 @@
     "og:video": "node --import tsx scripts/og-video.ts"
   },
   "devDependencies": {
-    "@interfere/landmines": "^0.1.0",
+    "@interfere/landmines": "^0.1.1",
     "@kyh/tsconfig": "catalog:",
     "@types/node": "catalog:",
     "citty": "^0.2.2",
     "consola": "^3.4.2",
-    "dotenv-cli": "^11.0.0",
+    "dotenv-cli": "^11.1.0",
     "oxc-parser": "^0.154.0",
     "oxfmt": "^0.73.0",
     "oxlint": "^1.94.0",
-    "playwright": "1.63.0",
+    "playwright": "1.65.1",
     "tsx": "catalog:",
-    "turbo": "^2.11.10",
+    "turbo": "^2.11.13",
     "typescript": "catalog:",
-    "ultracite": "^8.3.0"
+    "ultracite": "^8.3.1"
   },
   "engines": {
     "node": "24.x"
