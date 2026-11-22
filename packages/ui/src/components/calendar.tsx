@@ -23,6 +23,7 @@ const chevronIcons = {
 
 const CalendarChevron = ({ className, orientation = "down", ...props }: ChevronProps) => {
   const Icon = chevronIcons[orientation];
+
   return <Icon className={cn("size-4", className)} {...props} />;
 };
 

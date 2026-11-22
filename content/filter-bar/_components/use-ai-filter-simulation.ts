@@ -47,6 +47,7 @@ export const useAiFilterSimulation = ({ columns, actions }: UseAiFilterSimulatio
       if (dataPart.type === "data-setFilter") {
         const { columnId, values } = dataPart.data;
         const column = columns.find((col) => col.id === columnId);
+
         if (column?.type === "option" || column?.type === "multiOption") {
           actions.setFilterValue({ columnId, type: column.type, values });
         }

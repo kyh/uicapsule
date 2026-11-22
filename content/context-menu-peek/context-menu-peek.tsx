@@ -64,10 +64,10 @@ export const ContextMenuPeek = () => {
     if (pressTimerRef.current) {
       clearTimeout(pressTimerRef.current);
     }
+
     pressTimerRef.current = setTimeout(() => {
       const thread = threadRef.current?.getBoundingClientRect();
       const rect = bubble.getBoundingClientRect();
-      // Bubbles in the lower half have no room below, so the menu flips upward like iOS.
       const menuAbove = thread ? rect.top - thread.top > thread.height / 2 : false;
       setActive({ id, menuAbove });
     }, LONG_PRESS_MS);
@@ -104,6 +104,7 @@ export const ContextMenuPeek = () => {
           {MESSAGES.map((message) => {
             const isActive = active?.id === message.id;
             const menuAbove = isActive && active.menuAbove;
+
             return (
               <div
                 key={message.id}

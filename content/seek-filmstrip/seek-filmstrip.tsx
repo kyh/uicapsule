@@ -5,16 +5,6 @@ import type { FC } from "react";
 import { AnimatePresence, MotionConfig, motion, useReducedMotion } from "motion/react";
 import type { Transition } from "motion/react";
 
-/**
- * Seek filmstrip — the tvOS scrub interaction. Grabbing the timeline pauses
- * playback and unfolds it into a fixed filmstrip; the scrub head glides over
- * it with a single preview frame floating above. The picture holds the
- * committed frame and only jumps on release. The "video" is a synthetic
- * day-cycle scene rendered as a pure function of time, so every preview
- * frame is exact.
- */
-
-/** Full playback loop, in seconds of real time. */
 const LOOP_SECONDS = 48;
 const TRACK_WIDTH = 572;
 const PREVIEW_WIDTH = 176;
@@ -26,15 +16,17 @@ const INSTANT: Transition = { duration: 0 };
 const clamp01 = (value: number) => Math.min(1, Math.max(0, value));
 const lerp = (a: number, b: number, u: number) => a + (b - a) * u;
 
-const hexToRgb = (hex: string): [number, number, number] => [
-  Number.parseInt(hex.slice(1, 3), 16),
-  Number.parseInt(hex.slice(3, 5), 16),
-  Number.parseInt(hex.slice(5, 7), 16),
-];
+const hexToRgb = (hex: string) =>
+  [
+    Number.parseInt(hex.slice(1, 3), 16),
+    Number.parseInt(hex.slice(3, 5), 16),
+    Number.parseInt(hex.slice(5, 7), 16),
+  ] satisfies [number, number, number];
 
 const mixHex = (a: string, b: string, u: number) => {
   const [ar, ag, ab] = hexToRgb(a);
   const [br, bg, bb] = hexToRgb(b);
+
   return `rgb(${String(Math.round(lerp(ar, br, u)))},${String(Math.round(lerp(ag, bg, u)))},${String(Math.round(lerp(ab, bb, u)))})`;
 };
 
@@ -45,7 +37,6 @@ interface SkyStop {
   light: number;
 }
 
-// A 24-hour cycle: midnight → dawn → noon → dusk → midnight.
 const SKY: SkyStop[] = [
   { horizon: "#0c1233", light: 0.1, t: 0, top: "#04061a" },
   { horizon: "#e2814f", light: 0.45, t: 0.2, top: "#1d2a5e" },
@@ -59,18 +50,23 @@ const SKY: SkyStop[] = [
 const skyAt = (t: number) => {
   const clamped = clamp01(t);
   let upper = SKY.length - 1;
+
   for (let i = 1; i < SKY.length; i += 1) {
     if ((SKY[i]?.t ?? 1) >= clamped) {
       upper = i;
       break;
     }
   }
+
   const a = SKY[upper - 1];
   const b = SKY[upper];
+
   if (!a || !b) {
     return { horizon: "#000000", light: 0, top: "#000000" };
   }
+
   const u = b.t === a.t ? 0 : (clamped - a.t) / (b.t - a.t);
+
   return {
     horizon: mixHex(a.horizon, b.horizon, u),
     light: lerp(a.light, b.light, u),
@@ -78,11 +74,10 @@ const skyAt = (t: number) => {
   };
 };
 
-/** Sun (day) or moon (night) position along an arc. */
 const orbAt = (t: number) => {
   const day = t >= 0.25 && t <= 0.79;
-  // Map the day window (or the wrapped night window) onto 0..1.
   const u = day ? (t - 0.25) / 0.54 : ((t + 1 - 0.79) % 1) / 0.46;
+
   return {
     day,
     x: lerp(8, 92, u),
@@ -94,13 +89,14 @@ const timeLabel = (t: number) => {
   const minutes = Math.round(clamp01(t) * 24 * 60) % (24 * 60);
   const h = Math.floor(minutes / 60);
   const m = minutes % 60;
+
   return `${h.toString().padStart(2, "0")}:${m.toString().padStart(2, "0")}`;
 };
 
-/** One rendered "video frame" at time t — pure CSS, no assets. */
 const Frame: FC<{ t: number }> = ({ t }) => {
   const sky = skyAt(t);
   const orb = orbAt(t);
+
   return (
     <div
       className="relative size-full overflow-hidden"
@@ -144,7 +140,6 @@ const Frame: FC<{ t: number }> = ({ t }) => {
 
 export const SeekFilmstrip = () => {
   const [playedT, setPlayedT] = useState(0.3);
-  // null until the viewer chooses; reduced motion means the timelapse doesn't autoplay.
   const [playChoice, setPlayChoice] = useState<boolean | null>(null);
   const reduced = useReducedMotion() ?? false;
   const playing = playChoice ?? !reduced;
@@ -157,23 +152,29 @@ export const SeekFilmstrip = () => {
     if (!playing || scrubbing) {
       return;
     }
+
     let raf = 0;
     let last = performance.now();
+
     const tick = (now: number) => {
       const dt = (now - last) / 1000;
       last = now;
       setPlayedT((current) => (current + dt / LOOP_SECONDS) % 1);
       raf = requestAnimationFrame(tick);
     };
+
     raf = requestAnimationFrame(tick);
+
     return () => cancelAnimationFrame(raf);
   }, [playing, scrubbing]);
 
   const tFromPointer = (clientX: number) => {
     const rect = trackRef.current?.getBoundingClientRect();
+
     if (!rect) {
       return 0;
     }
+
     return clamp01((clientX - rect.left) / rect.width);
   };
 
@@ -181,15 +182,18 @@ export const SeekFilmstrip = () => {
     if (commitT !== null) {
       setPlayedT(commitT);
     }
+
     setScrubT(null);
     setPlayChoice(wasPlayingRef.current);
   };
 
   const headT = scrubT ?? playedT;
+
   const previewLeft = Math.min(
     TRACK_WIDTH - PREVIEW_WIDTH,
     Math.max(0, headT * TRACK_WIDTH - PREVIEW_WIDTH / 2),
   );
+
   const spring = reduced ? INSTANT : SPRING;
 
   return (

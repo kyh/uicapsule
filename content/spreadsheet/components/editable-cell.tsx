@@ -15,7 +15,6 @@ export const EditableCell = ({ row, column }: EditableCellProps) => {
   const editingCell = useSpreadsheetStore((state) => state.editingCell);
   const setEditingCell = useSpreadsheetStore((state) => state.setEditingCell);
   const updateData = useSpreadsheetStore((state) => state.updateData);
-  // Cells are cleared to `undefined` by Delete/Backspace; coerce so <Input> stays controlled.
   const value = row.original[column.id] ?? "";
   const isEditing = editingCell?.rowId === row.original.id && editingCell?.columnId === column.id;
 
@@ -31,6 +30,7 @@ export const EditableCell = ({ row, column }: EditableCellProps) => {
     if (e.key === "Enter" || e.key === "Escape") {
       setEditingCell(null);
     }
+
     e.stopPropagation();
   };
 

@@ -30,13 +30,11 @@ const LABEL = "fill-primary/50 font-mono text-[9px] tracking-[0.15em] uppercase"
 const EASE: Transition["ease"] = [0.22, 1, 0.36, 1];
 const shift: Transition = { bounce: 0.15, type: "spring", visualDuration: 0.6 };
 
-// Every piece of the drawing is a variant node, so the sequence is the DOM order:
-// grid, crosshair, ring, then each dimension draws its extension lines out from the
-// card edge, then the dimension line, ticks, and finally the label.
-const sequence = (step: number, startDelay = 0): Variants => ({
+const sequence = (step: number, startDelay = 0) => ({
   hidden: {},
   shown: { transition: { delayChildren: stagger(step, { startDelay }) } },
 });
+
 const draw: Variants = {
   hidden: { opacity: 0, pathLength: 0 },
   shown: {
@@ -45,6 +43,7 @@ const draw: Variants = {
     transition: { opacity: { duration: 0.01 }, pathLength: { duration: 0.55, ease: EASE } },
   },
 };
+
 const ring: Variants = {
   hidden: { opacity: 0, pathLength: 0 },
   shown: {
@@ -53,10 +52,12 @@ const ring: Variants = {
     transition: { opacity: { duration: 0.01 }, pathLength: { duration: 1.2, ease: EASE } },
   },
 };
+
 const fade: Variants = {
   hidden: { opacity: 0 },
   shown: { opacity: 1, transition: { duration: 0.45, ease: "easeOut" } },
 };
+
 const rise: Variants = {
   hidden: { opacity: 0, y: 4 },
   shown: { opacity: 1, transition: { duration: 0.4, ease: EASE }, y: 0 },
@@ -76,7 +77,7 @@ const Line = ({
   y2: number;
 }) => <motion.line className={className} x1={x1} y1={y1} x2={x2} y2={y2} variants={draw} />;
 
-const Label = ({
+const Annotation = ({
   x,
   y,
   children,
@@ -116,6 +117,7 @@ const HDim = ({
   y: number;
 }) => {
   const beyond = y < edge ? -4 : 4;
+
   return (
     <motion.g variants={sequence(0.09)}>
       <Line className={EXT} x1={x1} y1={edge} x2={x1} y2={y + beyond} />
@@ -123,9 +125,9 @@ const HDim = ({
       <Line x1={x1} y1={y} x2={x2} y2={y} />
       <Line x1={x1 - TICK} y1={y + TICK} x2={x1 + TICK} y2={y - TICK} />
       <Line x1={x2 - TICK} y1={y + TICK} x2={x2 + TICK} y2={y - TICK} />
-      <Label x={(x1 + x2) / 2} y={y + (y < edge ? -7 : 8)}>
+      <Annotation x={(x1 + x2) / 2} y={y + (y < edge ? -7 : 8)}>
         {label}
-      </Label>
+      </Annotation>
     </motion.g>
   );
 };
@@ -144,6 +146,7 @@ const VDim = ({
   y2: number;
 }) => {
   const beyond = x < edge ? -4 : 4;
+
   return (
     <motion.g variants={sequence(0.09)}>
       <Line className={EXT} x1={edge} y1={y1} x2={x + beyond} y2={y1} />
@@ -151,9 +154,9 @@ const VDim = ({
       <Line x1={x} y1={y1} x2={x} y2={y2} />
       <Line x1={x - TICK} y1={y1 + TICK} x2={x + TICK} y2={y1 - TICK} />
       <Line x1={x - TICK} y1={y2 + TICK} x2={x + TICK} y2={y2 - TICK} />
-      <Label x={x + (x < edge ? -7 : 8)} y={(y1 + y2) / 2} rotate={-90}>
+      <Annotation x={x + (x < edge ? -7 : 8)} y={(y1 + y2) / 2} rotate={-90}>
         {label}
-      </Label>
+      </Annotation>
     </motion.g>
   );
 };
@@ -173,14 +176,15 @@ const Callout = ({
 }) => (
   <motion.g variants={sequence(0.2)}>
     <Line x1={x} y1={y} x2={x + dx} y2={y + dy} />
-    <Label x={x + dx + (dx < 0 ? -4 : 4)} y={y + dy} anchor={dx < 0 ? "end" : "start"}>
+    <Annotation x={x + dx + (dx < 0 ? -4 : 4)} y={y + dy} anchor={dx < 0 ? "end" : "start"}>
       {label}
-    </Label>
+    </Annotation>
   </motion.g>
 );
 
 const Crosshair = ({ cx, cy, radius }: { cx: number; cy: number; radius: number }) => {
   const reach = radius + 12;
+
   return (
     <motion.g variants={sequence(0)}>
       <Line className={EXT} x1={cx} y1={cy} x2={cx - reach} y2={cy} />
@@ -196,6 +200,7 @@ const useShift = (value: number) => {
   useEffect(() => {
     spring.set(value);
   }, [spring, value]);
+
   return spring;
 };
 
@@ -268,12 +273,12 @@ export const ReceiptSpec = ({
         <Crosshair cx={cx} cy={cy} radius={radius} />
         <motion.circle className={EXT} cx={cx} cy={cy} r={radius} variants={ring} />
         <motion.g variants={sequence(0.05)}>
-          <Label x={cx + radius + 18} y={cy} anchor="start">
+          <Annotation x={cx + radius + 18} y={cy} anchor="start">
             X
-          </Label>
-          <Label x={cx} y={cy - radius - 18}>
+          </Annotation>
+          <Annotation x={cx} y={cy - radius - 18}>
             Y
-          </Label>
+          </Annotation>
         </motion.g>
 
         {horizontal ? (
@@ -393,11 +398,14 @@ export const ReceiptSpecNotes = ({
 }) => {
   const thetaX = useTransform(() => signed(telemetry.tiltX.get(), 2, "°"));
   const thetaY = useTransform(() => signed(telemetry.tiltY.get(), 2, "°"));
+
   const aim = useTransform(
     () => `${signed(telemetry.aimX.get(), 2)}  ${signed(telemetry.aimY.get(), 2)}`,
   );
+
   const intact = useTransform(() => `${telemetry.intact.get()}/${bridges}`);
-  const phase = useTransform((): string => telemetry.phase.get());
+  const readPhase: () => string = () => telemetry.phase.get();
+  const phase = useTransform(readPhase);
   const { spring } = TILT;
 
   return (

@@ -7,11 +7,13 @@ import { after, test } from "node:test";
 const fixture = await mkdtemp(path.join(tmpdir(), "uicapsule-content-"));
 const contentRoot = path.join(fixture, "content");
 const webRoot = path.join(fixture, "apps", "web");
+
 const packageSource = JSON.stringify({
   dependencies: { "lucide-react": "catalog:", motion: "13", react: "catalog:", "react-dom": "19" },
   devDependencies: { "@types/react": "19", "@types/react-dom": "19", sass: "1", typescript: "7" },
   peerDependencies: { "date-fns": "4", motion: "13", react: "19" },
 });
+
 const sourceFiles = [
   { code: "export const value = 1;", path: "/nested/a.ts" },
   { code: ".example { color: red; }", path: "/nested/z.css" },
@@ -19,13 +21,15 @@ const sourceFiles = [
   { code: "export default function Preview() { return null; }", path: "/preview.tsx" },
   { code: "Example component", path: "/README.md" },
 ];
+
 const tags = ["effects"];
+
 const fixtureFiles: [string, string][] = [
   [
     "local/meta.json",
     JSON.stringify({ addedAt: "2026-01-01", description: "Local.", name: "Local", tags }),
   ],
-  ...sourceFiles.map((file): [string, string] => [`local${file.path}`, file.code]),
+  ...sourceFiles.map<[string, string]>((file) => [`local${file.path}`, file.code]),
   ["local/node_modules/dep/index.ts", "ignored"],
   ["local/dist/index.js", "ignored"],
   ["local/.cache/source.ts", "ignored"],
@@ -68,7 +72,9 @@ const fixtureFiles: [string, string][] = [
   ],
   [".hidden/preview.tsx", "export default function Preview() {}"],
 ];
+
 await mkdir(webRoot, { recursive: true });
+
 for (const [relativePath, source] of fixtureFiles) {
   const target = path.join(contentRoot, relativePath);
   await mkdir(path.dirname(target), { recursive: true });
@@ -78,15 +84,18 @@ for (const [relativePath, source] of fixtureFiles) {
 after(() => rm(fixture, { force: true, recursive: true }));
 
 const previousCwd = process.cwd();
+
 process.chdir(webRoot);
+
 const { readContentIndex, readContentBySlug, readSourceFiles, buildShadcnRegistryItem } =
   await import("./content-fs");
+
 process.chdir(previousCwd);
 
 test("indexes loadable metadata without reading component source", async () => {
   const sourcePath = path.join(contentRoot, "local", "nested", "a.ts");
-  // An eager source read fails for normal users; root can bypass filesystem permissions.
   await chmod(sourcePath, 0);
+
   try {
     assert.deepEqual(await readContentIndex(), [
       {
@@ -129,7 +138,7 @@ test("source and registry downloads preserve consumer files and dependencies", a
   assert.deepEqual(registry.registryDependencies, []);
   assert.deepEqual(
     registry.files.map((file) => file.path),
-    sourceFiles.map((file) => file.path).filter((filePath) => filePath !== "/package.json"),
+    sourceFiles.flatMap((file) => (file.path === "/package.json" ? [] : [file.path])),
   );
   assert.deepEqual(
     registry.files.find((file) => file.path === "/nested/a.ts"),

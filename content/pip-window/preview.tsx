@@ -4,7 +4,6 @@ import type { CSSProperties } from "react";
 
 import { PipWindow } from "./pip-window";
 
-// Faint scanlines nod to the video call without competing with the floating window.
 const backdrop: CSSProperties = {
   background: [
     "repeating-linear-gradient(0deg, rgb(255 255 255 / 0.018) 0 1px, transparent 1px 4px)",

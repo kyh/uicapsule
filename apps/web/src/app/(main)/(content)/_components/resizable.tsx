@@ -7,6 +7,7 @@ import { cn } from "cn";
 type Side = "left" | "right";
 
 const KEYBOARD_STEP = 16;
+
 const KEY_STEP = new Map<string, 1 | -1>([
   ["ArrowRight", 1],
   ["ArrowLeft", -1],
@@ -21,7 +22,6 @@ interface ResizeHandleProps {
   onDraggingChange: (dragging: boolean) => void;
 }
 
-// The box is centered, so moving one edge by Δ changes the width by 2Δ.
 const ResizeHandle = ({
   side,
   width,
@@ -44,6 +44,7 @@ const ResizeHandle = ({
     if (!start.current) {
       return;
     }
+
     onWidthChange(start.current.width + outward * 2 * (event.clientX - start.current.x));
   };
 
@@ -54,9 +55,11 @@ const ResizeHandle = ({
 
   const onKeyDown = (event: KeyboardEvent<HTMLDivElement>) => {
     const step = KEY_STEP.get(event.key);
+
     if (!step) {
       return;
     }
+
     event.preventDefault();
     onWidthChange(width + outward * step * 2 * KEYBOARD_STEP);
   };

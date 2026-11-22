@@ -16,31 +16,20 @@ import { usePoseCurls } from "./use-pose-curls";
 
 import type { PoseStatus } from "./use-pose-curls";
 
-/** The whole take, in milliseconds. Long enough to hurt, short enough to redo. */
 const SET_MS = 10_000;
 const COUNT_MS = 900;
-/** Effort a completed curl buys you, in percent. One arm is watched, so this is
- * the whole of your income. Just over a full notch, so every rep visibly moves
- * the verdict — and the ladder it sets against the drain below: five curls in
- * the set is Medium-ish, eight is Ultra. */
 const CURL_GAIN = 27;
-/** Effort the machine takes back every second, whatever you're doing. Against the
- * gain above, holding a level costs a curl every 2.7 seconds — anything less and
- * the dial walks backwards while you watch it. */
 const DRAIN_PER_SEC = 10;
 
 const COMMIT_SPRING = { damping: 18, stiffness: 180, type: "spring" } as const;
 const KNOB_PUMP = { damping: 18, stiffness: 700, type: "spring" } as const;
-/** Looser than the per-rep pump and thrown from much further out: the landing
- * kick is the one the whole take has been building to. */
 const KNOB_SLAM = { damping: 11, stiffness: 420, type: "spring" } as const;
 
 const lerp = (from: number, to: number, t: number) => from + (to - from) * t;
-/** Power below which the verdict keeps its halo and drops the rest of its
- * ceremony. Four curls is a result, not an occasion. */
 const SUNBURST_FLOOR = 0.45;
 
 type CountdownCount = 3 | 2 | 1;
+
 interface Burst {
   id: number;
   percent: number;
@@ -86,8 +75,6 @@ const Verdict = ({ label, power, reduceMotion, reps }: VerdictProps) => (
   >
     {!reduceMotion && (
       <>
-        {/* A halo that blows open and then stays, dimmed — the
-            verdict keeps a light on it for as long as it's up. */}
         <motion.span
           aria-hidden
           className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 rounded-full mix-blend-screen"
@@ -104,12 +91,6 @@ const Verdict = ({ label, power, reduceMotion, reps }: VerdictProps) => (
           }}
           transition={{ duration: 0.85, ease: "easeOut", times: [0, 0.35, 1] }}
         />
-        {/* A sunburst, turning slowly. It's a repeating conic
-            gradient masked back to a disc — twelve wedges of light
-            behind the word, which is the cheapest way to make a
-            static label look like it's radiating. Reserved for the
-            top half of the track: a Light take gets the halo and
-            nothing to stand in front of. */}
         {power >= SUNBURST_FLOOR && (
           <motion.span
             aria-hidden
@@ -147,8 +128,6 @@ const Verdict = ({ label, power, reduceMotion, reps }: VerdictProps) => (
     )}
     <p className="relative flex flex-col items-center gap-0.5">
       <span className="text-[13px] tracking-wide text-neutral-400 uppercase">Landed on</span>
-      {/* The word itself gets the pop, a beat behind the card's:
-          the fireworks announce it, then it arrives. */}
       <motion.span
         initial={reduceMotion ? false : { opacity: 0, scale: 0.6 }}
         animate={{ opacity: 1, scale: 1 }}
@@ -158,11 +137,6 @@ const Verdict = ({ label, power, reduceMotion, reps }: VerdictProps) => (
           stiffness: 520,
           type: "spring",
         }}
-        // White, not violet: the sunburst behind it is violet and
-        // bright, and the word has to stay the lightest thing on
-        // the card or the ceremony swallows the verdict. It grows
-        // with the take as well — Ultra should be a headline and
-        // Light shouldn't be.
         style={{
           filter: `drop-shadow(0 0 ${lerp(12, 26, power)}px rgba(139,92,246,0.95))`,
           fontSize: lerp(20, 30, power),
@@ -256,7 +230,6 @@ export const CurlCard = ({ knobX, theme }: CurlCardProps) => {
   const [take, setTake] = useState<TakeState>({ status: "arming" });
   const [reps, setReps] = useState(0);
   const [bursts, setBursts] = useState<Burst[]>([]);
-  /** The landing fireworks, mounted for exactly as long as they burn. */
   const [celebrating, setCelebrating] = useState(false);
   const reduceMotion = Boolean(useReducedMotion());
 
@@ -266,8 +239,6 @@ export const CurlCard = ({ knobX, theme }: CurlCardProps) => {
   const timerRef = useRef<HTMLSpanElement>(null);
   const effortRef = useRef(0);
   const burstId = useRef(0);
-  /** The rep handler is called from the detection loop, which knows nothing about
-   * React's render cycle — it reads the phase through a ref. */
   const phaseRef = useRef<TakeState["status"]>("arming");
   const reduceMotionRef = useRef(reduceMotion);
 
@@ -282,6 +253,7 @@ export const CurlCard = ({ knobX, theme }: CurlCardProps) => {
     if (phaseRef.current !== "lifting") {
       return;
     }
+
     effortRef.current = clamp(effortRef.current + CURL_GAIN, 0, 100);
     knobX.set(percentToX(effortRef.current));
     setReps((count) => count + 1);
@@ -289,8 +261,7 @@ export const CurlCard = ({ knobX, theme }: CurlCardProps) => {
     if (reduceMotionRef.current) {
       return;
     }
-    // The knob takes the hit: a kick on every rep, settling back while the drain
-    // quietly walks it left again.
+
     knobScale.set(1.18);
     void animate(knobScale, 1, KNOB_PUMP);
     burstId.current += 1;
@@ -318,6 +289,7 @@ export const CurlCard = ({ knobX, theme }: CurlCardProps) => {
     timerScale.set(1);
     cardPop.set(1);
     knobScale.set(1);
+
     if (reduceMotionRef.current) {
       knobX.set(0);
     } else {
@@ -325,18 +297,16 @@ export const CurlCard = ({ knobX, theme }: CurlCardProps) => {
     }
   }, [knobX, timerScale, cardPop, knobScale]);
 
-  // The fireworks tear themselves down. Nothing in `CurlFanfare` loops, so the
-  // only reason to keep three dozen animated spans mounted past their last
-  // frame would be forgetting to unmount them.
   useEffect(() => {
     if (!celebrating) {
       return;
     }
+
     const timer = window.setTimeout(() => setCelebrating(false), FANFARE_MS);
+
     return () => window.clearTimeout(timer);
   }, [celebrating]);
 
-  // Start the count-in only after the camera detects an arm.
   if (take.status === "arming" && status === "tracking" && posed) {
     setTake({ count: 3, status: "countdown" });
   }
@@ -345,7 +315,9 @@ export const CurlCard = ({ knobX, theme }: CurlCardProps) => {
     if (take.status !== "countdown") {
       return;
     }
+
     const { count } = take;
+
     const timer = window.setTimeout(() => {
       if (count === 1) {
         setTake({ status: "lifting" });
@@ -353,13 +325,10 @@ export const CurlCard = ({ knobX, theme }: CurlCardProps) => {
         setTake({ count: count === 3 ? 2 : 1, status: "countdown" });
       }
     }, COUNT_MS);
+
     return () => window.clearTimeout(timer);
   }, [take]);
 
-  // The set itself: one loop, draining effort and the clock together. Both are
-  // written straight to the DOM / motion values — a ten second countdown that
-  // re-renders the card sixty times a second would be a strange way to spend a
-  // frame budget the pose model is already using.
   useEffect(() => {
     if (take.status !== "lifting") {
       return;
@@ -379,38 +348,26 @@ export const CurlCard = ({ knobX, theme }: CurlCardProps) => {
 
       const remaining = Math.max(0, SET_MS - elapsed);
       timerScale.set(remaining / SET_MS);
+
       if (timerRef.current) {
         timerRef.current.textContent = (remaining / 1000).toFixed(1);
       }
 
       if (remaining > 0) {
         frame = requestAnimationFrame(tick);
+
         return;
       }
 
-      // Time's up. The dial has notches, not percentages, so the last thing the
-      // set does is round away most of what you just earned.
       const level = nearestLevel(theme, percentToX(effortRef.current));
       setTake((current) =>
         current.status === "lifting" ? { level, status: "complete" } : current,
       );
+
       if (reduceMotionRef.current) {
         knobX.set(notchX(theme, level));
       } else {
-        // The drain writes knobX every frame, so the value arrives at the commit
-        // carrying real velocity — a spring that inherits it hurls the knob clean
-        // off the end of the track. The take is over; it starts from rest.
         void animate(knobX, notchX(theme, level), { ...COMMIT_SPRING, velocity: 0 });
-        // The knob doesn't just arrive at the notch, it lands on it: a slam the
-        // card feels, with the fireworks going off from the point of impact.
-        // `velocity: 0` for the same reason the commit above needs it, and then
-        // some: a `set()` one tick before an `animate()` reads as a jump of 0.55
-        // in a single frame, so the spring inherits a velocity of ~33/s. Left to
-        // pick that up, this one underdamped spring blew the knob to 36× its own
-        // size — a white disc wider than the card, for about a fifth of a second.
-        //
-        // How hard it lands is the take's own doing: at the bottom of the track
-        // this is a nudge and the card barely moves, at the top it's a slam.
         const power = fanfarePower(theme, level);
         knobScale.set(lerp(1.16, 1.55, power));
         void animate(knobScale, 1, { ...KNOB_SLAM, velocity: 0 });
@@ -423,12 +380,10 @@ export const CurlCard = ({ knobX, theme }: CurlCardProps) => {
     };
 
     frame = requestAnimationFrame(tick);
+
     return () => cancelAnimationFrame(frame);
   }, [take.status, knobX, knobScale, cardPop, timerScale, theme]);
 
-  // How much of the ceremony the take earned, 0 at the bottom notch and 1 at the
-  // top. Everything the card itself does for the landing is scaled by it, the
-  // same way `CurlFanfare` scales the fireworks.
   const power = take.status === "complete" ? fanfarePower(theme, take.level) : 0;
   const live = take.status === "lifting";
 
@@ -468,10 +423,6 @@ export const CurlCard = ({ knobX, theme }: CurlCardProps) => {
         </AnimatePresence>
       </div>
 
-      {/* The camera is the card's face, and it's square: a letterboxed strip of a
-          webcam is a status light, but a full frame of you is a mirror. It stays on
-          through the verdict — you should have to watch yourself be told you
-          managed Medium. */}
       <div className="relative mb-4 aspect-square overflow-hidden rounded-2xl bg-neutral-900/70">
         <video
           ref={videoRef}
@@ -503,7 +454,6 @@ export const CurlCard = ({ knobX, theme }: CurlCardProps) => {
           />
         </div>
 
-        {/* The clock: a bar that empties, and the number it's emptying towards. */}
         <AnimatePresence>
           {live && (
             <motion.div
@@ -526,8 +476,6 @@ export const CurlCard = ({ knobX, theme }: CurlCardProps) => {
           )}
         </AnimatePresence>
 
-        {/* Flashbulb. The camera has been pointed at you for ten seconds; when
-            the clock stops, it takes the photo. */}
         {celebrating && (
           <motion.span
             aria-hidden
@@ -547,8 +495,6 @@ export const CurlCard = ({ knobX, theme }: CurlCardProps) => {
             bursts.map((burst) => <Sparks key={burst.id} percent={burst.percent} />)}
         </AnimatePresence>
 
-        {/* The knob kicks on every rep — the only thing on the card that answers
-            your body faster than the drain can undo it. */}
         <motion.div
           aria-hidden
           className="absolute"
@@ -558,10 +504,6 @@ export const CurlCard = ({ knobX, theme }: CurlCardProps) => {
         </motion.div>
       </div>
 
-      {/* Last child, and deliberately: the fanfare is lit from in front of the
-          card, so it goes over the camera, the verdict and the dial alike. Every
-          layer of it blends screen, which brightens what's underneath instead of
-          hiding it — the word you earned stays legible through the fireworks. */}
       {celebrating && take.status === "complete" && (
         <CurlFanfare level={take.level} theme={theme} />
       )}

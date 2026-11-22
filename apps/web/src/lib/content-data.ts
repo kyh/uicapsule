@@ -9,32 +9,31 @@ import {
   readSourceFiles,
 } from "./content/content-fs";
 
-import type { ContentComponentSummary, SourceFile } from "./content/content-schema";
-import type { GalleryCard } from "./content/gallery";
-
-// Content changes only on deploy; cache keys include the build ID.
-export const getAllContent = async (): Promise<ContentComponentSummary[]> => {
+export const getAllContent = async () => {
   "use cache";
   cacheLife("max");
+
   return await readContentIndex();
 };
 
-// Slugs whose source ships in this repo; remote entries only link out.
-export const getLocalSlugs = async (): Promise<string[]> => {
+export const getLocalSlugs = async () => {
   const all = await getAllContent();
+
   return all.filter((c) => c.type === "local").map((c) => c.slug);
 };
 
 const NEW_FOR_DAYS = 30;
 
-// "New" is judged at cache time, like everything else here: it refreshes on deploy.
-export const getGalleryCards = async (): Promise<GalleryCard[]> => {
+export const getGalleryCards = async () => {
   "use cache";
   cacheLife("max");
+
   const newSince = new Date(Date.now() - NEW_FOR_DAYS * 24 * 60 * 60 * 1000)
     .toISOString()
     .slice(0, 10);
+
   const all = await getAllContent();
+
   return all.map((component) => ({
     cover: resolveCover(component.cover),
     featured: Boolean(component.featured),
@@ -52,10 +51,11 @@ export interface SearchEntry {
   tags: string[];
 }
 
-export const getSearchEntries = async (): Promise<SearchEntry[]> => {
+export const getSearchEntries = async () => {
   "use cache";
   cacheLife("max");
   const all = await getAllContent();
+
   return all.map((component) => ({
     description: component.description,
     name: component.name,
@@ -64,13 +64,15 @@ export const getSearchEntries = async (): Promise<SearchEntry[]> => {
   }));
 };
 
-export const getSourceFiles = async (slug: string): Promise<SourceFile[] | null> => {
+export const getSourceFiles = async (slug: string) => {
   "use cache";
   cacheLife("max");
   const component = await readContentBySlug(slug);
+
   if (!component || component.type !== "local") {
     return null;
   }
+
   return readSourceFiles(component);
 };
 
@@ -83,6 +85,7 @@ export const getShadcnRegistry = async () => {
   const items = await Promise.all(
     locals.map(async (component) => {
       const { files, ...item } = await buildShadcnRegistryItem(component);
+
       return {
         ...item,
         files: files.map(({ type, path, target }) => ({ path, target, type })),
@@ -102,8 +105,10 @@ export const getShadcnRegistryItem = async (slug: string) => {
   "use cache";
   cacheLife("max");
   const component = await readContentBySlug(slug);
+
   if (!component || component.type !== "local") {
     return null;
   }
+
   return buildShadcnRegistryItem(component);
 };

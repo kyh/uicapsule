@@ -77,6 +77,7 @@ const CoinBadge = ({ coin, size = 24 }: { coin: Coin | undefined; size?: number 
 const Ticker = () => {
   const active = useActive();
   const items = [...TICKER, ...TICKER];
+
   return (
     <div className="relative -mx-5 mt-3 overflow-hidden border-b border-black/[0.06] pb-3 [mask-image:linear-gradient(90deg,transparent,black_8%,black_92%,transparent)]">
       <motion.div
@@ -87,6 +88,7 @@ const Ticker = () => {
         {items.map((t, i) => {
           const up = t.change >= 0;
           const Arrow = up ? ArrowUp : ArrowDown;
+
           return (
             <span
               key={`${t.sym}-${i}`}
@@ -112,6 +114,7 @@ const Ticker = () => {
 const Flow = ({ label, value, change }: { label: string; value: number; change: number }) => {
   const up = change >= 0;
   const Arrow = up ? ArrowUp : ArrowDown;
+
   return (
     <div className="rounded-2xl bg-[#f6f6f7] p-3.5">
       <p className="text-[12px]" style={{ color: MUTED }}>
@@ -141,7 +144,6 @@ export const YourAsset = () => {
   const [hi, pin] = useCycle(COINS.length, 1900, 4);
   const [lap] = useCycle(1000, 1900 * COINS.length, 0);
 
-  // Each lap re-prices the portfolio a little, so the bars breathe.
   const rows = useMemo(
     () =>
       COINS.map((c, i) => ({
@@ -150,6 +152,7 @@ export const YourAsset = () => {
       })),
     [lap],
   );
+
   const picked = rows[hi] ?? rows[0];
 
   const definition = useMemo(

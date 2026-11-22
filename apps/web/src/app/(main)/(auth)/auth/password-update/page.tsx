@@ -10,6 +10,7 @@ const PasswordUpdate = async ({
   searchParams,
 }: Pick<PageProps<"/auth/password-update">, "searchParams">) => {
   const { token, error } = await searchParams;
+
   if (!token || Array.isArray(token) || error) {
     return (
       <div className="space-y-4 text-center">
@@ -20,6 +21,7 @@ const PasswordUpdate = async ({
       </div>
     );
   }
+
   return <UpdatePasswordForm token={token} />;
 };
 

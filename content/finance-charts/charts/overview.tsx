@@ -24,19 +24,19 @@ import { GREEN, MUTED } from "../lib/tokens";
 const N = 60;
 const WINDOW = 16;
 const QUARTERS = ["Q1", "Q2", "Q3"] as const;
-// Each bar is a day and a half of revenue.
 const DAYS_PER_BAR = 1.5;
+
 const SERIES = QUARTERS.map((_, q) => {
   const noise = uniform(N, 90 + q * 13, 0, 1);
+
   return noise.map((n, i) => ({
     i,
-    // Revenue per bar in dollars: a slow swell with day-to-day chatter.
     value: 520 + 190 * Math.sin(i / 6.5 + q * 1.7) + 120 * Math.sin(i / 2.3 + q) + 260 * n,
   }));
 });
+
 const FIRST = SERIES[0] ?? [];
 const MAX = 1120;
-// The brush lives below the baseline: a track and the orange selection.
 const BRUSH_TOP = -90;
 const BRUSH_BOTTOM = -190;
 const MIN = -205;
@@ -49,8 +49,10 @@ const HEIGHT = 230;
 const dateFor = (q: number, i: number) => {
   const d = new Date(2026, q * 3, 1);
   d.setDate(d.getDate() + Math.round(i * DAYS_PER_BAR));
+
   return d;
 };
+
 const fmtDay = (d: Date) => d.toLocaleString("en-US", { day: "numeric", month: "short" });
 
 export const Overview = () => {
@@ -63,6 +65,7 @@ export const Overview = () => {
 
   let total = 0;
   let before = 0;
+
   for (const r of rows) {
     if (r.i >= start && r.i <= end) {
       total += r.value;
@@ -70,6 +73,7 @@ export const Overview = () => {
       before += r.value;
     }
   }
+
   const change = before > 0 ? (total / before - 1) * 100 : 0;
 
   const definition = useMemo(
@@ -114,6 +118,7 @@ export const Overview = () => {
               if (r.i < start || r.i > end) {
                 return "#ececee";
               }
+
               return r.i < mid ? "url(#ov-soft)" : "url(#ov-deep)";
             },
             inset: 0.4,
@@ -144,7 +149,6 @@ export const Overview = () => {
             y1: () => BRUSH_BOTTOM,
             y2: () => BRUSH_TOP,
           }),
-          // Grips at either end and the split handle in the middle.
           link(
             [
               { id: "l", x: start + 0.1 },
@@ -250,11 +254,13 @@ export const Overview = () => {
                 if (p) {
                   const x = Number(p.xValue) - WINDOW / 2;
                   let best = 0;
+
                   for (const [k, s] of STARTS.entries()) {
                     if (Math.abs(s - x) < Math.abs((STARTS[best] ?? 0) - x)) {
                       best = k;
                     }
                   }
+
                   pin(best);
                 }
               }}

@@ -164,22 +164,24 @@ describe("renderProsePageMarkdown", () => {
   });
 });
 
-// These are the pages an agent reads to decide whether a site is a real
-// operation. Below ~500 characters they read as placeholders.
-const blockText = (block: ProseBlock): string => {
+const blockText = (block: ProseBlock) => {
   switch (block.kind) {
     case "list": {
       return block.items.map((item) => `${item.label} ${item.text ?? ""}`).join(" ");
     }
+
     case "bullets": {
       return block.items.join(" ");
     }
+
     case "table": {
       return [...block.columns, ...block.rows.flat()].join(" ");
     }
+
     case "divider": {
       return "";
     }
+
     default: {
       return block.text;
     }
@@ -189,8 +191,6 @@ const blockText = (block: ProseBlock): string => {
 const textLength = (page: (typeof prosePages)[number]) =>
   page.blocks.map(blockText).join(" ").length;
 
-// /about is exempt: it is deliberately a short personal note, and /llms.txt
-// carries the detail an agent needs.
 describe("trust anchor pages", () => {
   for (const page of [contactPage, privacyPage, termsPage]) {
     test(`${page.path} carries real content`, () => {
@@ -282,6 +282,7 @@ describe("renderNotFoundMarkdown", () => {
     for (const link of notFoundRecoveryLinks) {
       assert.ok(body.includes(link.label), "should contain link.label");
     }
+
     assert.ok(body.includes("/llms.txt"), 'should contain "/llms.txt"');
     assert.ok(body.includes("/sitemap.xml"), 'should contain "/sitemap.xml"');
   });

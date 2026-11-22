@@ -11,10 +11,12 @@ import type { ReactNode } from "react";
 import { createQueryClient } from "./query-client";
 
 let browserQueryClient: QueryClient | undefined;
+
 const getQueryClient = () => {
   if (typeof window === "undefined") {
     return createQueryClient();
   }
+
   return (browserQueryClient ??= createQueryClient());
 };
 
@@ -22,9 +24,11 @@ const getBaseUrl = () => {
   if (typeof window !== "undefined") {
     return window.location.origin;
   }
+
   if (process.env.VERCEL_URL) {
     return `https://${process.env.VERCEL_URL}`;
   }
+
   return `http://localhost:${process.env.PORT ?? 3000}`;
 };
 

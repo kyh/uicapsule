@@ -5,16 +5,18 @@ import Image from "next/image";
 import { animate, motion, useMotionValue, useReducedMotion, useTransform } from "motion/react";
 import { cn } from "cn";
 
-// Keep loaded media mounted; pause video once it leaves the viewport buffer.
 const useInView = (rootMargin = "200px") => {
   const ref = useRef<HTMLDivElement>(null);
   const [visibility, setVisibility] = useState<"hidden" | "visible" | "seen">("hidden");
   useEffect(() => {
     const el = ref.current;
+
     if (!el || !("IntersectionObserver" in window)) {
       setVisibility("visible");
+
       return;
     }
+
     const io = new IntersectionObserver(
       (entries) => {
         const visible = entries.some((entry) => entry.isIntersecting);
@@ -22,14 +24,18 @@ const useInView = (rootMargin = "200px") => {
           if (visible) {
             return "visible";
           }
+
           return previous === "hidden" ? "hidden" : "seen";
         });
       },
       { rootMargin },
     );
+
     io.observe(el);
+
     return () => io.disconnect();
   }, [rootMargin]);
+
   return { loaded: visibility !== "hidden", ref, visible: visibility === "visible" };
 };
 
@@ -55,14 +61,13 @@ export const MediaReveal = ({ className, image, video, iframe }: MediaRevealProp
 
   const retired = wiped || (revealed && Boolean(prefersReducedMotion));
 
-  // 100 covers the frame; -100 uncovers it.
   const wipe = useMotionValue(100);
+
   const maskImage = useTransform(
     wipe,
     (value) => `linear-gradient(to right, black ${value}%, transparent ${value + 100}%)`,
   );
 
-  // A transform avoids repainting; manual controls freeze the shimmer during the wipe.
   const sweep = useMotionValue(-50);
   const sweepX = useTransform(sweep, (value) => `${value}%`);
 
@@ -70,17 +75,22 @@ export const MediaReveal = ({ className, image, video, iframe }: MediaRevealProp
 
   useEffect(() => {
     const element = videoRef.current;
+
     if (!element) {
       return;
     }
+
     if (visible && !prefersReducedMotion) {
       const play = async () => {
         try {
           await element.play();
-        } catch {
-          /* Playback can be interrupted by scrolling. */
+        } catch (error) {
+          if (!(error instanceof DOMException)) {
+            throw error;
+          }
         }
       };
+
       void play();
     } else {
       element.pause();
@@ -91,35 +101,43 @@ export const MediaReveal = ({ className, image, video, iframe }: MediaRevealProp
     if (!shimmering) {
       return;
     }
+
     sweep.set(-50);
+
     const controls = animate(sweep, 50, {
       duration: SHIMMER_DURATION,
       ease: "easeInOut",
       repeat: Infinity,
     });
+
     return () => controls.stop();
   }, [shimmering, sweep]);
 
   useEffect(() => {
     if (!revealed) {
       wipe.set(100);
+
       return;
     }
+
     if (prefersReducedMotion) {
       return;
     }
+
     const controls = animate(wipe, -100, {
       duration: WIPE_DURATION,
       ease: "easeInOut",
       onComplete: () => setWiped(true),
     });
+
     return () => controls.stop();
   }, [revealed, wipe, prefersReducedMotion]);
 
-  // Feed windowing remounts iframes; cover the frame while they reload.
   const [hasIframe, setHasIframe] = useState(Boolean(iframe));
+
   if (Boolean(iframe) !== hasIframe) {
     setHasIframe(Boolean(iframe));
+
     if (iframe && revealed) {
       setRevealed(false);
       setWiped(false);
@@ -152,13 +170,11 @@ export const MediaReveal = ({ className, image, video, iframe }: MediaRevealProp
           <source src={video} type="video/mp4" />
         </video>
       )}
-      {/* Mount after hydration so cached iframe loads cannot beat the onLoad handler. */}
       {iframe && loaded && (
         <iframe
           className="bg-background absolute inset-0 h-full w-full"
           title={iframe.title}
           src={iframe.src}
-          // Remote previews run on separate origins and need storage; local previews are trusted code.
           sandbox={iframe.type === "remote" ? "allow-scripts allow-same-origin" : undefined}
           allow={iframe.type === "local" ? "microphone; camera" : undefined}
           referrerPolicy="no-referrer"

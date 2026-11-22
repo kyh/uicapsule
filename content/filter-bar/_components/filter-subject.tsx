@@ -21,6 +21,7 @@ export const FilterSubject = <TType extends ColumnDataType>({
           ? Icon
           : (() => {
               const IconComp = Icon;
+
               return <IconComp className="text-(--primary) size-4 stroke-[2.25px]" />;
             })())}
 

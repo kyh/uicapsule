@@ -37,30 +37,39 @@ export const useTilt = ({
       tiltY.set(0);
       aimX.set(0);
       aimY.set(0);
+
       return;
     }
+
     const move = (event: PointerEvent) => {
       const root = rootRef.current;
+
       if (!root || event.pointerType === "touch") {
         return;
       }
+
       const rect = root.getBoundingClientRect();
+
       const nx = clamp(
         (event.clientX - (rect.left + rect.width / 2)) / (rect.width / 2 + TILT.reach),
         -1,
         1,
       );
+
       const ny = clamp(
         (event.clientY - (rect.top + rect.height / 2)) / (rect.height / 2 + TILT.reach),
         -1,
         1,
       );
+
       aimX.set(nx);
       aimY.set(ny);
       tiltY.set(nx * TILT.max);
       tiltX.set(-ny * TILT.max);
     };
+
     window.addEventListener("pointermove", move);
+
     return () => window.removeEventListener("pointermove", move);
   }, [aimX, aimY, disabled, rootRef, tiltX, tiltY]);
 

@@ -15,19 +15,13 @@ const COLS = 5;
 const ROWS = 3;
 const HOLES = COLS * ROWS;
 
-/** What a hit is worth. Both directions cost the same — the minus is not a
- * penalty, it's just the other button, and it counts exactly as much. */
 const STEP = DETENT_STEP;
 
-/** How long a button stays up at volume 0, and at volume 100. The louder it gets,
- * the less time you have — the last twenty points are a scramble. */
 const SHOW_MS_LOUD = 520;
 const SHOW_MS_QUIET = 1000;
-/** Pill size shrinks the same way. */
 const SIZE_QUIET = 54;
 const SIZE_LOUD = 38;
 
-/** How often a minus comes up instead of a plus. Enough to keep you honest. */
 const MINUS_ODDS = 0.38;
 
 const POP = { damping: 26, stiffness: 520, type: "spring" } as const;
@@ -44,9 +38,11 @@ const keyDelta = (key: string) => {
   if (key === "ArrowRight") {
     return STEP;
   }
+
   if (key === "ArrowLeft") {
     return -STEP;
   }
+
   return 0;
 };
 
@@ -82,40 +78,31 @@ export const PlusMinusTrack = ({ volume }: PlusMinusTrackProps) => {
   const nextId = useRef(0);
   const timer = useRef(0);
   const lastHole = useRef(-1);
-  /** The loop reads the volume, and the volume changes on every hit — so it reads
-   * it from a ref rather than closing over a stale render's copy. `apply` is the
-   * only writer and updates both, so the two never drift. */
   const levelRef = useRef(level);
-  /** A hit has to be able to summon the next pop, and it lives outside the effect
-   * that defines the loop. This is the doorbell. */
-  const popRef = useRef(() => {
-    /* empty */
-  });
-  /** Pops already scored, so an exiting pill can't be scored twice. */
+
+  const popRef = useRef<(() => void) | null>(null);
+
   const whacked = useRef(new Set<number>());
 
-  // Reduced motion gets what it should have had all along: two buttons that stay
-  // where you left them.
   useEffect(() => {
     if (reduceMotion) {
       return;
     }
 
     const pop = () => {
-      // Never the same hole twice running — a pill that reappears under a resting
-      // cursor is a gift, and this control does not give gifts.
       const drift = 1 + Math.floor(Math.random() * (HOLES - 1));
+
       const hole =
         lastHole.current < 0
           ? Math.floor(Math.random() * HOLES)
           : (lastHole.current + drift) % HOLES;
+
       lastHole.current = hole;
 
       const kind = Math.random() < MINUS_ODDS ? "minus" : "plus";
       nextId.current += 1;
       setMole({ hole, id: nextId.current, kind });
 
-      // Louder means less time to react. The window closes as you climb.
       const loudness = clampVolume(levelRef.current) / VOLUME_MAX;
       timer.current = window.setTimeout(
         () => {
@@ -128,6 +115,7 @@ export const PlusMinusTrack = ({ volume }: PlusMinusTrackProps) => {
 
     popRef.current = pop;
     pop();
+
     return () => window.clearTimeout(timer.current);
   }, [reduceMotion]);
 
@@ -139,19 +127,16 @@ export const PlusMinusTrack = ({ volume }: PlusMinusTrackProps) => {
   };
 
   const whack = (hit: Mole) => {
-    // A pill is still on screen — and still clickable — for as long as its exit
-    // animation runs. Without this, a fast enough hand scores the same pop over
-    // and over on its way down the hole.
     if (whacked.current.has(hit.id)) {
       return;
     }
+
     whacked.current.add(hit.id);
 
     window.clearTimeout(timer.current);
     setMole(null);
     apply(hit.kind === "plus" ? STEP : -STEP);
-    // The next one comes up quicker than if this had timed out. No rest.
-    timer.current = window.setTimeout(() => popRef.current(), 200);
+    timer.current = window.setTimeout(() => popRef.current?.(), 200);
   };
 
   if (reduceMotion) {
@@ -168,9 +153,11 @@ export const PlusMinusTrack = ({ volume }: PlusMinusTrackProps) => {
           aria-valuenow={level}
           onKeyDown={(event) => {
             const delta = keyDelta(event.key);
+
             if (delta === 0) {
               return;
             }
+
             event.preventDefault();
             apply(delta);
           }}
@@ -197,10 +184,11 @@ export const PlusMinusTrack = ({ volume }: PlusMinusTrackProps) => {
       aria-valuenow={level}
       onKeyDown={(event) => {
         const delta = keyDelta(event.key);
+
         if (delta === 0) {
           return;
         }
-        // The keyboard is the cheat code: the buttons stop running from you.
+
         event.preventDefault();
         apply(delta);
       }}

@@ -20,11 +20,13 @@ interface LineTiming {
   durationBeats: number;
 }
 
-const line = (text: string, timing: LineTiming): LyricLine => {
+const line = (text: string, timing: LineTiming) => {
   const words = text.split(" ");
+
   if (words.length !== timing.wordBeats.length) {
     throw new Error(`Expected one beat cue per word in "${text}".`);
   }
+
   if (
     !Number.isInteger(timing.percentWordIndex) ||
     timing.percentWordIndex < 0 ||
@@ -32,14 +34,17 @@ const line = (text: string, timing: LineTiming): LyricLine => {
   ) {
     throw new Error(`Percentage cue falls outside "${text}".`);
   }
+
   if (!Number.isFinite(timing.percent) || timing.percent < 0 || timing.percent > 100) {
     throw new Error(`Invalid percentage cue for "${text}".`);
   }
+
   if (!Number.isFinite(timing.durationBeats) || timing.durationBeats <= 0) {
     throw new Error(`Invalid line duration for "${text}".`);
   }
 
   let previousBeat = -1;
+
   for (const beat of timing.wordBeats) {
     if (
       !Number.isFinite(beat) ||
@@ -49,6 +54,7 @@ const line = (text: string, timing: LineTiming): LyricLine => {
     ) {
       throw new Error(`Invalid beat cue in "${text}".`);
     }
+
     previousBeat = beat;
   }
 
@@ -57,9 +63,11 @@ const line = (text: string, timing: LineTiming): LyricLine => {
     words: Object.freeze(
       words.map((word, index) => {
         const beat = timing.wordBeats[index];
+
         if (beat === undefined) {
           throw new Error(`Missing beat cue for "${word}".`);
         }
+
         return index === timing.percentWordIndex
           ? { beat, percent: timing.percent, text: word }
           : { beat, text: word };
@@ -120,6 +128,7 @@ const buildSchedule = (lines: readonly LyricLine[]) => {
     for (const word of lyricLine.words) {
       words.push({ ...word, cueBeat: elapsedBeats + word.beat, lineIndex });
     }
+
     elapsedBeats += lyricLine.durationBeats;
   }
 

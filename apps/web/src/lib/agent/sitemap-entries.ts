@@ -16,9 +16,7 @@ export interface SitemapComponent {
   slug: string;
 }
 
-export const buildSitemapEntries = (components: SitemapComponent[]): SitemapEntry[] => {
-  // Sorted rather than indexed off the feed, so the home page's lastmod does
-  // not depend on the caller's ordering.
+export const buildSitemapEntries = (components: SitemapComponent[]) => {
   const latest = components
     .map((component) => component.addedAt)
     .toSorted()

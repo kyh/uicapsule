@@ -45,6 +45,7 @@ const createSpreadsheetStore = (
     addRow: (onCreateRow) => {
       set((state) => {
         const nextRow = onCreateRow?.(state.data.length) ?? { id: crypto.randomUUID() };
+
         return { data: [...state.data, nextRow] };
       });
     },
@@ -83,6 +84,7 @@ const createSpreadsheetStore = (
           if (row.id === rowId) {
             return { ...row, [columnId]: value };
           }
+
           return row;
         }),
       }));
@@ -94,25 +96,31 @@ const createSpreadsheetStore = (
 
       set((state) => {
         const newData = [...state.data];
+
         for (const cellKey of state.selectedCells) {
           const [rowId, columnId] = cellKey.split(":");
+
           if (!rowId || !columnId) {
             continue;
           }
+
           const rowIndex = newData.findIndex((row) => row.id === rowId);
           const currentRow = newData[rowIndex];
+
           if (!currentRow) {
             continue;
           }
 
           newData[rowIndex] = { ...currentRow, [columnId]: value };
         }
+
         return { data: newData };
       });
     },
   }));
 
 type SpreadsheetStoreApi = ReturnType<typeof createSpreadsheetStore>;
+
 const SpreadsheetContext = createContext<SpreadsheetStoreApi | null>(null);
 
 export const SpreadsheetProvider = ({
@@ -128,6 +136,7 @@ export const SpreadsheetProvider = ({
     () => createSpreadsheetStore(initialData, initialColumnWidths),
     [initialData, initialColumnWidths],
   );
+
   return (
     <SpreadsheetContext value={store}>
       <div className="spreadsheet">{children}</div>
@@ -137,11 +146,13 @@ export const SpreadsheetProvider = ({
 
 export const useSpreadsheetApi = () => {
   const store = use(SpreadsheetContext);
+
   if (!store) {
     throw new Error("Spreadsheet components require SpreadsheetProvider");
   }
+
   return store;
 };
 
-export const useSpreadsheetStore = <T,>(selector: (state: SpreadsheetStore) => T): T =>
+export const useSpreadsheetStore = <T,>(selector: (state: SpreadsheetStore) => T) =>
   useStore(useSpreadsheetApi(), selector);

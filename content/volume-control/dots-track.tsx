@@ -14,17 +14,12 @@ const CELL_SIZE = COLS * ROWS;
 const DOT = 13;
 const DOT_GAP = 5;
 
-/** The dots, as fixed positions rather than an anonymous array — so each one can
- * carry its own key and say where it lives out loud for a screen reader. */
 const POSITIONS = Array.from({ length: CELL_SIZE }, (_, index) => ({
   column: (index % COLS) + 1,
   index,
   row: Math.floor(index / COLS) + 1,
 }));
 
-/** A 5×7 glyph for every digit, indexed by digit — the machine's entire idea of
- * what numbers look like. It matches whatever you draw against these and picks a winner, no matter
- * how little your drawing deserves one. */
 const GLYPHS: readonly (readonly string[])[] = [
   ["01110", "10001", "10011", "10101", "11001", "10001", "01110"],
   ["00100", "01100", "00100", "00100", "00100", "00100", "01110"],
@@ -42,37 +37,35 @@ const GLYPH_CELLS: readonly (readonly boolean[])[] = GLYPHS.map((rows) =>
   Array.from(rows.join(""), (bit) => bit === "1"),
 );
 
-const EMPTY_CELL = (): boolean[] => Array.from({ length: CELL_SIZE }, () => false);
+const EMPTY_CELL = () => Array.from({ length: CELL_SIZE }, () => false);
 
-/** How many lit dots it takes before the machine bothers looking at a cell. Under
- * this, the cell is blank and the digit is a zero. */
 const INK_THRESHOLD = 3;
 
-/**
- * Nearest glyph wins, full stop. There is no "I'm not sure" — every drawing is
- * read as *something*, and a lazy 7 becoming a 1 is the entire point of the
- * exercise. Ties go to the lower digit, purely so it's deterministic.
- */
-const readCell = (cells: boolean[]): number => {
+const readCell = (cells: boolean[]) => {
   const ink = cells.filter(Boolean).length;
+
   if (ink < INK_THRESHOLD) {
     return 0;
   }
 
   let best = 0;
   let bestScore = -1;
+
   for (const [digit, glyph] of GLYPH_CELLS.entries()) {
     let score = 0;
+
     for (let index = 0; index < CELL_SIZE; index += 1) {
       if (cells[index] === glyph[index]) {
         score += 1;
       }
     }
+
     if (score > bestScore) {
       bestScore = score;
       best = digit;
     }
   }
+
   return best;
 };
 
@@ -82,9 +75,11 @@ const Verdict = ({ scanning, verdict }: { scanning: boolean; verdict: number | n
   if (scanning) {
     return <span className="text-neutral-600">scanning…</span>;
   }
+
   if (verdict === null) {
     return <span className="text-neutral-700">—</span>;
   }
+
   return verdict;
 };
 
@@ -106,6 +101,7 @@ const DotCell = ({ label, cells, onDown, onEnter }: DotCellProps) => (
   >
     {POSITIONS.map((dot) => {
       const lit = cells[dot.index] ?? false;
+
       return (
         <button
           key={`${label}-${dot.row}-${dot.column}`}
@@ -143,8 +139,6 @@ export const DotsTrack = ({ volume }: DotsTrackProps) => {
   const [scanning, setScanning] = useState(false);
   const [verdict, setVerdict] = useState<number | null>(null);
 
-  /** What we're painting for the length of this drag: on, or off. Set by whichever
-   * dot you pressed first, so a drag never flickers dots on and off under itself. */
   const painting = useRef<boolean | null>(null);
   const scanTimer = useRef(0);
 
@@ -165,6 +159,7 @@ export const DotsTrack = ({ volume }: DotsTrackProps) => {
     if (painting.current === null) {
       return;
     }
+
     paint(cell, index, painting.current);
   };
 
@@ -180,11 +175,10 @@ export const DotsTrack = ({ volume }: DotsTrackProps) => {
     if (reduceMotion) {
       setVerdict(value);
       volume.set(value);
+
       return;
     }
 
-    // The scan is theatre, but it's the theatre that sells the misread: you watch
-    // it look, and then you watch it be wrong with total confidence.
     setScanning(true);
     setVerdict(null);
     scanTimer.current = window.setTimeout(() => {

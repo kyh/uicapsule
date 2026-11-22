@@ -28,7 +28,6 @@ const COUNTRIES = [
   { color: YELLOW, deep: "#e9a514", label: "Other", light: "#fcd05c" },
 ] as const;
 
-// Millions of active investors per year, by country.
 const YEARS = [
   { mix: [1.78, 1.6, 1.22, 1.03, 0.57], year: 2023 },
   { mix: [3.42, 3.04, 2.38, 2, 1.56], year: 2024 },
@@ -53,10 +52,12 @@ interface Block {
 
 const blocks: Block[] = YEARS.flatMap((y, col) => {
   let acc = 0;
+
   return y.mix.map((v, country) => {
     const c = CENTERS[col] ?? 0;
     const block = { c, col, country, x1: c - HALF, x2: c + HALF, y1: acc, y2: acc + v };
     acc += v;
+
     return block;
   });
 });
@@ -68,7 +69,6 @@ const totals = YEARS.map((y, col) => ({
   year: y.year,
 }));
 
-/** Ribbons run edge to edge across each bar so they read as one flow. */
 const ribbon = (country: number) =>
   blocks.flatMap((b) =>
     b.country === country
@@ -191,6 +191,7 @@ export const InvestmentAppAdoptionByCountry = () => {
             onFocusChange={(p) => {
               if (p) {
                 const i = totals.findIndex((t) => t.c === p.xValue);
+
                 if (i !== -1) {
                   pin(i);
                 }

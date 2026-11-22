@@ -20,9 +20,11 @@ const ChainOfThoughtContext = createContext<ChainOfThoughtContextValue | null>(n
 
 const useChainOfThought = () => {
   const context = use(ChainOfThoughtContext);
+
   if (!context) {
     throw new Error("ChainOfThought components must be used within ChainOfThought");
   }
+
   return context;
 };
 
@@ -152,6 +154,9 @@ const ChainOfThoughtContentBase = ({
 export const ChainOfThoughtContent = memo(ChainOfThoughtContentBase);
 
 ChainOfThought.displayName = "ChainOfThought";
+
 ChainOfThoughtHeader.displayName = "ChainOfThoughtHeader";
+
 ChainOfThoughtStep.displayName = "ChainOfThoughtStep";
+
 ChainOfThoughtContent.displayName = "ChainOfThoughtContent";

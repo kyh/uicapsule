@@ -19,7 +19,7 @@ import type { ContentComponentSummary } from "@/lib/content/content-schema";
  * under its own `##` — the spec reserves H2 sections for link lists, so a
  * `## When to use this` full of prose would be off-format.
  */
-export const renderLlmsTxt = (components: ContentComponentSummary[]): string => {
+export const renderLlmsTxt = (components: ContentComponentSummary[]) => {
   const lines = [
     `# ${siteConfig.name}`,
     "",

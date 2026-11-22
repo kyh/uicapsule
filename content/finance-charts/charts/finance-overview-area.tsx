@@ -9,7 +9,7 @@ import { ArrowUp, Settings } from "lucide-react";
 import { useMemo } from "react";
 
 import { MONTHS, rng, usd, WEEKDAYS } from "../lib/data";
-import { Card, ChartSlot, Label, Num, Segmented, renderer, useCycle } from "../lib/kit";
+import { Card, ChartSlot, Caption, Num, Segmented, renderer, useCycle } from "../lib/kit";
 import { GREEN, MUTED, THEME } from "../lib/tokens";
 
 const LINE = "#a034f0";
@@ -17,7 +17,6 @@ const N = 85;
 const HEIGHT = 210;
 const MARGIN = { bottom: 26, left: 0, right: 8, top: 8 };
 
-// Seven label slots, matching the source's inset first and last columns.
 const SLOTS = Array.from({ length: 7 }, (_, i) => 6 + i * 12);
 
 interface Range {
@@ -94,13 +93,14 @@ const RANGES: Range[] = [
 const series = (range: Range) => {
   const r = rng(range.seed);
   const { anchors } = range;
+
   return Array.from({ length: N }, (_, i) => {
     const k = anchors.findIndex(([x]) => x >= i);
     const [x0, y0] = anchors[Math.max(0, k - 1)] ?? [0, 0];
     const [x1, y1] = anchors[Math.max(0, k)] ?? [N, 0];
     const t = x1 === x0 ? 0 : (i - x0) / (x1 - x0);
-    // Flat runs stay flat (the source's plateau); everywhere else gets texture.
     const flat = y0 === y1;
+
     return { i, value: y0 + t * (y1 - y0) + (flat ? 0 : (r() - 0.5) * 5) };
   });
 };
@@ -114,6 +114,7 @@ export const FinanceOverviewArea = () => {
   const definition = useMemo(() => {
     const rows = DATA[range] ?? [];
     const last = rows.at(-1);
+
     return defineChart({
       gradients: [
         {
@@ -226,9 +227,9 @@ export const FinanceOverviewArea = () => {
       </ChartSlot>
       <div className="mt-3 flex items-end justify-between gap-3">
         <div>
-          <Label info className="!text-[13px]">
+          <Caption info className="!text-[13px]">
             Total portfolio value
-          </Label>
+          </Caption>
           <Num value={23_563.01} className="mt-1 block text-[30px] font-bold tracking-[-0.03em]" />
           <Num
             value={meta?.delta ?? 0}

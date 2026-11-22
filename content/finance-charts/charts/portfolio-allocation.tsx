@@ -34,6 +34,7 @@ export const PortfolioAllocation = () => {
 
   const definition = useMemo(() => {
     const outerOf = (id: string, base: number) => (id === activeId ? 1 : base);
+
     return defineChart({
       guides: false,
       margin: 0,
@@ -118,6 +119,7 @@ export const PortfolioAllocation = () => {
             onFocusChange={(p) => {
               if (p) {
                 const i = SLICES.findIndex((s) => s.id === p.key || s.id === p.datum?.id);
+
                 if (i !== -1) {
                   pin(i);
                 }
@@ -139,6 +141,7 @@ export const PortfolioAllocation = () => {
       <div className="mt-3 flex items-center justify-between text-[13px] text-[#3a3a42]">
         {LEGEND_ORDER.map((id) => {
           const s = SLICES.find((x) => x.id === id);
+
           return (
             <span key={id} className="inline-flex items-center gap-1.5">
               <span

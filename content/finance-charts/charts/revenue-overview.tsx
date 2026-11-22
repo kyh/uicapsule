@@ -18,8 +18,6 @@ const VISIBLE = 182;
 const BLUE = "#1d7cf2";
 const PURPLE = "#a43cf5";
 
-/** The month-by-month trajectory riding the band: angle (radians from noon)
- * and radius as a fraction of the dial. */
 const PATH = [
   { a: -HALF, r: 0.745, v: 0 },
   { a: -1.42, r: 0.75, v: 212.4 },
@@ -30,6 +28,7 @@ const PATH = [
   { a: 0.16, r: 0.79, v: 781.5 },
   { a: 0.42, r: 0.775, v: 874.92 },
 ] as const;
+
 const STOPS = PATH.slice(1).map((p, k) => ({ ...p, id: `p${k}`, k }));
 const FIRST_ACTIVE = 2;
 
@@ -40,7 +39,6 @@ const ring = (inner: number, outer: number) => ({
 
 export const RevenueOverview = () => {
   const active = useActive();
-  // Walk the highlight over the last five months, landing on the current one.
   const [step, pin] = useCycle(STOPS.length - FIRST_ACTIVE, 1700, STOPS.length - FIRST_ACTIVE - 1);
   const hi = step + FIRST_ACTIVE;
   const head = STOPS[hi] ?? STOPS.at(-1);
@@ -48,6 +46,7 @@ export const RevenueOverview = () => {
 
   const definition = useMemo(() => {
     const trail = PATH.filter((p) => p.a <= (head?.a ?? 0));
+
     return defineChart({
       gradients: [
         {

@@ -1,10 +1,6 @@
 "use client";
 
-import type {
-  KeyboardEvent as ReactKeyboardEvent,
-  PointerEvent as ReactPointerEvent,
-  ReactNode,
-} from "react";
+import type { KeyboardEvent as ReactKeyboardEvent, PointerEvent as ReactPointerEvent } from "react";
 
 import { Fragment, useCallback, useEffect, useRef, useState } from "react";
 import { gsap } from "gsap";
@@ -39,63 +35,44 @@ import { WindowView } from "./window-bodies";
 import { PhotoLightbox } from "./window-frame";
 import { DEFAULT_WINDOW_SIZES } from "./window-types";
 
-/* ---------------------------------------------------------------- tuning -- */
-
 const DOCK_ICON_BASE = 56;
 const DOCK_ICON_MAX = 96;
 const DOCK_HOVER_RANGE = 140;
 const DOCK_SIZE_LERP = 0.28;
-/**
- * Second-order smoothing on the cursor itself. Together with the per-icon size
- * lerp this is what separates the dock from a CSS `:hover { scale }`.
- */
 const DOCK_CURSOR_LERP = 0.22;
 const MOBILE_ICON_BASE = 72;
 
 const TILE_SIZE = 78;
-/** The springboard grid draws the same tile artwork smaller. */
 const MOBILE_TILE_SIZE = 64;
 const FEATURED_SIZE = 180;
-/** Breathing room kept between a tile's box and the frame edge or the dock. */
 const TILE_EDGE_MARGIN = 4;
-/**
- * The desktop tile's box when no element is available to measure (the seed pass
- * runs for both layouts, and the mobile tree renders a different-sized tile):
- * the wrapper's rendered width, and `TILE_SIZE` plus the 8px gap and the single
- * 11px/1.25 name label beneath it.
- */
 const TILE_BOX_W = 96;
 const TILE_BOX_H = TILE_SIZE + 24;
-/** Boot "slot machine" reel. */
 const REEL_FRAME_MS = 100;
 const REEL_DELAY_MS = 250;
-/** Hard cap on waiting for the thumbnail preload before booting anyway. */
 const PRELOAD_CAP_MS = 1400;
 
 const HERO_ID = HERO_FILE.id;
 
-const clamp = (value: number, min: number, max: number): number =>
-  Math.min(Math.max(value, min), max);
+const clamp = (value: number, min: number, max: number) => Math.min(Math.max(value, min), max);
 
-const topZ = (wins: readonly OpenWindow[]): number => Math.max(100, ...wins.map((win) => win.z));
+const topZ = (wins: readonly OpenWindow[]) => Math.max(100, ...wins.map((win) => win.z));
 
-const topWindow = (wins: readonly OpenWindow[]): OpenWindow | undefined => {
+const topWindow = (wins: readonly OpenWindow[]) => {
   let top: OpenWindow | undefined;
+
   for (const win of wins) {
     if (top === undefined || win.z > top.z) {
       top = win;
     }
   }
+
   return top;
 };
 
 const DOCK_SHADOW =
   "0 30px 80px -20px rgba(0,0,0,0.55), inset 0 1px 0 rgba(255,255,255,0.32), inset 0 -1px 0 rgba(0,0,0,0.18)";
 
-/**
- * The one place this component needs real CSS: scrollbar colouring inside the
- * scrollable surfaces (light and dark variants), and the terminal caret blink.
- */
 const SCOPED_CSS = `
 .dos-scroll { scrollbar-width: thin; scrollbar-color: rgba(0,0,0,0.22) transparent; }
 .dos-scroll::-webkit-scrollbar { width: 11px; height: 11px; }
@@ -115,8 +92,6 @@ const SCOPED_CSS = `
 @media (prefers-reduced-motion: reduce) { .dos-caret { animation: none } }
 `;
 
-/* ----------------------------------------------------------------- state -- */
-
 interface TilePosition {
   x: number;
   y: number;
@@ -132,7 +107,6 @@ interface DragState {
   moved: boolean;
   pointerId: number;
   el: HTMLDivElement | null;
-  /** Resolved once per gesture — the frame and dock cannot resize mid-drag. */
   maxX: number;
   maxY: number;
   lastX: number;
@@ -154,17 +128,10 @@ const IDLE_DRAG: DragState = {
   startY: 0,
 };
 
-/**
- * Wipe the gesture back to idle and hand back the element it owned so the caller
- * can drop its one imperative style. Every exit path routes through here, and it
- * resets *every* field: a gesture that leaves `lastX`/`moved` behind is what let
- * a later, unrelated release commit a stale position.
- */
-const endTileGesture = (drag: DragState, pointerId: number): HTMLDivElement | null => {
+const endTileGesture = (drag: DragState, pointerId: number) => {
   const { el } = drag;
-  // Reset before releasing: the release schedules a `lostpointercapture` that
-  // routes into the cancel handler, which must find an already-idle gesture.
   Object.assign(drag, IDLE_DRAG);
+
   if (el && el.hasPointerCapture(pointerId)) {
     el.releasePointerCapture(pointerId);
   }
@@ -178,7 +145,7 @@ interface OpenSpec {
   folderName?: string;
 }
 
-export const DesktopOS = (): ReactNode => {
+export const DesktopOS = () => {
   const [mounted, setMounted] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
   const [seeded, setSeeded] = useState(false);
@@ -214,9 +181,7 @@ export const DesktopOS = (): ReactNode => {
 
   const dragRef = useRef<DragState>({ ...IDLE_DRAG });
 
-  /* ------------------------------------------------------ window manager -- */
-
-  const openWindow = (spec: OpenSpec): void => {
+  const openWindow = (spec: OpenSpec) => {
     const sec = sectionRef.current;
     const sw = sec?.clientWidth ?? 1280;
     const sh = sec?.clientHeight ?? 800;
@@ -234,9 +199,6 @@ export const DesktopOS = (): ReactNode => {
       y = 60;
     } else {
       w = Math.min(base.w, Math.max(280, sw - 32));
-      // Reserve 140px of vertical slack so the 28px cascade below always has
-      // somewhere to go — otherwise every window opens at exactly y=28 in a
-      // short frame and two open windows stack pixel-perfect.
       h = Math.min(base.h, Math.max(200, sh - 140));
       const offset = Math.min(windows.length, 5) * 28;
       x = clamp((sw - w) / 2 - 40 + offset, 8, Math.max(8, sw - w - 8));
@@ -266,15 +228,14 @@ export const DesktopOS = (): ReactNode => {
     });
   };
 
-  const closeWindow = useCallback((uid: number): void => {
+  const closeWindow = useCallback((uid: number) => {
     setWindows((prev) => prev.filter((win) => win.uid !== uid));
   }, []);
 
-  const focusWindow = (uid: number): void => {
+  const focusWindow = (uid: number) => {
     setWindows((prev) => {
       const max = topZ(prev);
-      // Every click inside a window asks for focus. Bailing when it is already
-      // frontmost keeps `z` bounded and lets React skip the re-render entirely.
+
       if (prev.some((win) => win.uid === uid && win.z === max)) {
         return prev;
       }
@@ -283,7 +244,7 @@ export const DesktopOS = (): ReactNode => {
     });
   };
 
-  const moveWindow = (uid: number, x: number, y: number): void => {
+  const moveWindow = (uid: number, x: number, y: number) => {
     setWindows((prev) => prev.map((win) => (win.uid === uid ? { ...win, x, y } : win)));
   };
 
@@ -293,7 +254,7 @@ export const DesktopOS = (): ReactNode => {
     openQuickLook: (fileId) => openWindow({ fileId, kind: "quicklook" }),
   };
 
-  const openTile = (tile: DesktopTile): void => {
+  const openTile = (tile: DesktopTile) => {
     if (tile.kind === "folder") {
       openWindow({ folderName: tile.name, kind: "finder" });
     } else {
@@ -301,51 +262,50 @@ export const DesktopOS = (): ReactNode => {
     }
   };
 
-  const handleDockApp = (id: DockAppId): void => {
+  const handleDockApp = (id: DockAppId) => {
     switch (id) {
       case "files": {
         openWindow({ folderName: "Archive", kind: "finder" });
         break;
       }
+
       case "preview": {
         openWindow({ fileId: HERO_ID, kind: "quicklook" });
         break;
       }
+
       case "photos": {
         openWindow({ kind: "photos" });
         break;
       }
+
       case "notes": {
         openWindow({ kind: "notes" });
         break;
       }
+
       case "terminal": {
         openWindow({ kind: "terminal" });
         break;
       }
+
       case "trash": {
         openWindow({ folderName: "Trash", kind: "finder" });
         break;
       }
+
       default: {
         break;
       }
     }
   };
 
-  /* ------------------------------------------------------ tile positions -- */
-
-  /**
-   * How far a tile of the given box size may travel before it leaves the frame
-   * or slides under the dock. Derived from live geometry rather than baked
-   * constants so it holds at any frame size and for any dock height.
-   */
   const tileBounds = useCallback((boxW: number, boxH: number) => {
     const sec = sectionRef.current;
     const vw = sec?.clientWidth ?? 1280;
     const vh = sec?.clientHeight ?? 800;
     const dock = dockRef.current;
-    // The dock is the only chrome that overlaps the tile field from below.
+
     const floor =
       sec && dock ? dock.getBoundingClientRect().top - sec.getBoundingClientRect().top : vh;
 
@@ -355,12 +315,7 @@ export const DesktopOS = (): ReactNode => {
     };
   }, []);
 
-  /**
-   * Percentage-seeded layout, re-clamped on every resize so icons can never
-   * leave an arbitrarily-sized frame. Shares `tileBounds` with the drag so a
-   * resize cannot nudge a tile the user just placed at the edge.
-   */
-  const seedPositions = useCallback((): void => {
+  const seedPositions = useCallback(() => {
     const sec = sectionRef.current;
     const vw = sec?.clientWidth ?? 1280;
     const vh = sec?.clientHeight ?? 800;
@@ -376,8 +331,6 @@ export const DesktopOS = (): ReactNode => {
         const baseX = existing ? existing.x : (seed.xPct / 100) * vw;
         const baseY = existing ? existing.y : (seed.yPct / 100) * vh;
         next[id] = {
-          // Same floor and ceiling the drag enforces, or a resize would nudge a
-          // tile the user had just parked against an edge.
           x: clamp(baseX, TILE_EDGE_MARGIN, bounds.maxX),
           y: clamp(baseY, TILE_EDGE_MARGIN, bounds.maxY),
           z: existing ? existing.z : 10 + i,
@@ -389,16 +342,12 @@ export const DesktopOS = (): ReactNode => {
     setSeeded(true);
   }, [tileBounds]);
 
-  /* ------------------------------------------------------ mount + resize -- */
-
   useEffect(() => {
     isMobileRef.current = window.matchMedia("(max-width: 767px)").matches;
     setIsMobile(isMobileRef.current);
 
-    // The boot timeline does not start until the thumbnail preload settles (up
-    // to PRELOAD_CAP_MS). Seed the wallpaper's pre-boot state here instead, or
-    // the first thing on screen is a crisp wallpaper that snaps to blur(24px).
     const wrap = wallpaperWrapRef.current;
+
     if (wrap && !window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
       if (isMobileRef.current) {
         gsap.set(wrap, { opacity: 0 });
@@ -414,15 +363,18 @@ export const DesktopOS = (): ReactNode => {
     if (!mounted) {
       return;
     }
+
     seedPositions();
 
     const mq = window.matchMedia("(max-width: 767px)");
-    const onChange = (): void => {
+
+    const onChange = () => {
       isMobileRef.current = mq.matches;
       setIsMobile(mq.matches);
       seedPositions();
     };
-    const onResize = (): void => seedPositions();
+
+    const onResize = () => seedPositions();
 
     mq.addEventListener("change", onChange);
     window.addEventListener("resize", onResize);
@@ -433,23 +385,21 @@ export const DesktopOS = (): ReactNode => {
     };
   }, [mounted, seedPositions]);
 
-  // Mirror positions into a ref so the boot timeline can read them without
-  // taking `tilePositions` as a dependency — a tile drag must not replay boot.
   useEffect(() => {
     tilePositionsRef.current = tilePositions;
   }, [tilePositions]);
-
-  /* ------------------------------------------------------- boot sequence -- */
 
   useEffect(() => {
     if (!mounted || !seeded) {
       return;
     }
+
     if (entranceStartedRef.current) {
       return;
     }
 
     const sec = sectionRef.current;
+
     if (!sec) {
       return;
     }
@@ -471,36 +421,43 @@ export const DesktopOS = (): ReactNode => {
       if (wrap) {
         gsap.set(wrap, { filter: "none", opacity: 1, scale: 1 });
       }
+
       if (menu) {
         gsap.set(menu, { opacity: 1, y: 0 });
       }
+
       if (dock) {
         gsap.set(dock, { opacity: 1, y: 0 });
       }
+
       for (const el of tileRefs.current.values()) {
         gsap.set(el, { opacity: 1 });
       }
+
       return () => {
         entranceStartedRef.current = false;
       };
     }
 
-    const runMobile = (): void => {
+    const runMobile = () => {
       const tl = gsap.timeline({ defaults: { ease: "power3.out" } });
       timeline = tl;
 
       if (wrap) {
         tl.fromTo(wrap, { opacity: 0, scale: 1.04 }, { duration: 0.45, opacity: 1, scale: 1 }, 0);
       }
+
       if (menu) {
         tl.fromTo(menu, { opacity: 0, y: -28 }, { duration: 0.45, opacity: 1, y: 0 }, 0.05);
       }
 
       for (const [i, tile] of TILES.entries()) {
         const el = tileRefs.current.get(tileId(tile));
+
         if (!el) {
           continue;
         }
+
         tl.fromTo(
           el,
           { opacity: 0, scale: 0.94, y: 10 },
@@ -512,10 +469,11 @@ export const DesktopOS = (): ReactNode => {
       if (dock) {
         tl.fromTo(dock, { opacity: 0, y: 60 }, { duration: 0.5, opacity: 1, y: 0 }, 0.35);
       }
+
       tl.call(() => setAnimatedEntranceDone(true), undefined, 1);
     };
 
-    const runDesktop = (): void => {
+    const runDesktop = () => {
       const positions = tilePositionsRef.current;
       const sw = sec.clientWidth;
       const sh = sec.clientHeight;
@@ -544,14 +502,18 @@ export const DesktopOS = (): ReactNode => {
 
       for (const [i, tile] of TILES.entries()) {
         const id = tileId(tile);
+
         if (id === HERO_ID) {
           continue;
         }
+
         const el = tileRefs.current.get(id);
         const pos = positions[id];
+
         if (!el || !pos) {
           continue;
         }
+
         tl.fromTo(
           el,
           {
@@ -574,7 +536,6 @@ export const DesktopOS = (): ReactNode => {
       }
 
       if (thumb && heroPos) {
-        // Hand-off: the 180px featured card shrinks into the 78px hero tile.
         tl.to(
           thumb,
           {
@@ -591,19 +552,21 @@ export const DesktopOS = (): ReactNode => {
       if (thumb) {
         tl.to(thumb, { duration: 0.15, opacity: 0 }, 1.66);
       }
+
       if (heroEl) {
         tl.to(heroEl, { duration: 0.15, opacity: 1 }, 1.66);
       }
+
       if (menu) {
         tl.fromTo(menu, { opacity: 0, y: -32 }, { duration: 0.5, opacity: 1, y: 0 }, 1.75);
       }
+
       if (dock) {
         tl.fromTo(dock, { opacity: 0, y: 80 }, { duration: 0.55, opacity: 1, y: 0 }, 1.9);
       }
+
       tl.call(() => setAnimatedEntranceDone(true), undefined, 2.15);
 
-      // Riffle through every thumbnail like a slot-machine reel, landing back
-      // on the hero frame just before the card flies to its tile.
       const reel = FILES.map((file) => file.thumb);
       let frame = 0;
       reelTimeout = window.setTimeout(() => {
@@ -611,15 +574,19 @@ export const DesktopOS = (): ReactNode => {
           frame += 1;
           const img = featuredImgRef.current;
           const next = reel[frame];
+
           if (next === undefined) {
             if (reelInterval !== null) {
               window.clearInterval(reelInterval);
             }
+
             if (img) {
               img.src = HERO_FILE.thumb;
             }
+
             return;
           }
+
           if (img) {
             img.src = next;
           }
@@ -627,14 +594,11 @@ export const DesktopOS = (): ReactNode => {
       }, REEL_DELAY_MS);
     };
 
-    // Layout mode and tile positions are read here, not at effect setup: the
-    // preload gate below can delay `start` by up to PRELOAD_CAP_MS, and a
-    // breakpoint cross in that window must build the timeline for the tree
-    // that is actually on screen.
-    const start = (): void => {
+    const start = () => {
       if (cancelled) {
         return;
       }
+
       if (isMobileRef.current) {
         runMobile();
       } else {
@@ -642,70 +606,70 @@ export const DesktopOS = (): ReactNode => {
       }
     };
 
-    // The reel mutates <img src> every 100ms. Without a preload the whole
-    // sequence flashes empty frames against a cold CDN — so wait for the
-    // thumbnails, but never longer than PRELOAD_CAP_MS.
     let pending = FILES.length;
     let launched = false;
-    const launch = (): void => {
+
+    const launch = () => {
       if (launched || cancelled) {
         return;
       }
+
       launched = true;
       start();
     };
 
-    const settle = (): void => {
+    const settle = () => {
       pending -= 1;
+
       if (pending <= 0) {
         launch();
       }
     };
+
     for (const file of FILES) {
       const img = new Image();
       img.addEventListener("load", settle, { once: true });
       img.addEventListener("error", settle, { once: true });
       img.src = file.thumb;
     }
+
     capTimeout = window.setTimeout(launch, PRELOAD_CAP_MS);
 
     return () => {
       cancelled = true;
-      // Reset so React 19 StrictMode's second mount replays the intro.
       entranceStartedRef.current = false;
       timeline?.kill();
+
       if (reelTimeout !== null) {
         window.clearTimeout(reelTimeout);
       }
+
       if (reelInterval !== null) {
         window.clearInterval(reelInterval);
       }
+
       if (capTimeout !== null) {
         window.clearTimeout(capTimeout);
       }
     };
   }, [mounted, seeded, reducedMotion]);
 
-  /* -------------------------------------------------- dock magnification -- */
-
   useEffect(() => {
-    const tick = (): void => {
+    const tick = () => {
       const cursor = dockCursor.current;
 
-      // Idle dock costs nothing: no rect reads, no style writes.
       if (!isMobileRef.current && (cursor.active || dockSettling.current)) {
         cursor.smooth += (cursor.x - cursor.smooth) * DOCK_CURSOR_LERP;
 
         let settled = true;
+
         for (const [id, el] of dockIconEls.current) {
-          // Live rect each frame: magnified neighbours push each other apart,
-          // exactly as they do in the real dock.
           const rect = el.getBoundingClientRect();
           const centre = rect.left + rect.width / 2;
           const dist = Math.abs(cursor.smooth - centre);
           const t = Math.max(0, 1 - dist / DOCK_HOVER_RANGE);
-          // smoothstep
           const falloff = t * t * (3 - 2 * t);
+
           const target = cursor.active
             ? DOCK_ICON_BASE + (DOCK_ICON_MAX - DOCK_ICON_BASE) * falloff
             : DOCK_ICON_BASE;
@@ -713,9 +677,11 @@ export const DesktopOS = (): ReactNode => {
           const current = dockIconSizes.current.get(id) ?? DOCK_ICON_BASE;
           const next = current + (target - current) * DOCK_SIZE_LERP;
           dockIconSizes.current.set(id, next);
+
           if (Math.abs(target - next) > 0.1) {
             settled = false;
           }
+
           el.style.width = `${next.toFixed(2)}px`;
           el.style.height = `${next.toFixed(2)}px`;
         }
@@ -732,38 +698,35 @@ export const DesktopOS = (): ReactNode => {
       if (rafId.current !== null) {
         cancelAnimationFrame(rafId.current);
       }
+
       rafId.current = null;
     };
   }, []);
 
-  // Sizes live in their own map so a re-render (which detaches and reattaches
-  // every ref callback) cannot snap a magnified icon back to its base size.
-  const setDockIconRef =
-    (id: DockAppId) =>
-    (el: HTMLDivElement | null): void => {
-      if (el) {
-        dockIconEls.current.set(id, el);
-      } else {
-        dockIconEls.current.delete(id);
-      }
-    };
+  const setDockIconRef = (id: DockAppId) => (el: HTMLDivElement | null) => {
+    if (el) {
+      dockIconEls.current.set(id, el);
+    } else {
+      dockIconEls.current.delete(id);
+    }
+  };
 
-  const dockPointerMove = (e: ReactPointerEvent<HTMLDivElement>): void => {
+  const dockPointerMove = (e: ReactPointerEvent<HTMLDivElement>) => {
     dockCursor.current.x = e.clientX;
+
     if (!dockCursor.current.active) {
       dockCursor.current.smooth = e.clientX;
       dockCursor.current.active = true;
     }
+
     dockSettling.current = true;
   };
 
-  const dockPointerLeave = (): void => {
+  const dockPointerLeave = () => {
     dockCursor.current.active = false;
     dockCursor.current.x = -9999;
     dockSettling.current = true;
   };
-
-  /* ------------------------------------------------ group panel entrance -- */
 
   useEffect(() => {
     if (!groupPanelOpen) {
@@ -771,11 +734,13 @@ export const DesktopOS = (): ReactNode => {
     }
 
     const tweens: gsap.core.Tween[] = [];
+
     if (groupBackdropRef.current) {
       tweens.push(
         gsap.fromTo(groupBackdropRef.current, { opacity: 0 }, { duration: 0.22, opacity: 1 }),
       );
     }
+
     if (groupPanelRef.current) {
       tweens.push(
         gsap.fromTo(
@@ -799,44 +764,46 @@ export const DesktopOS = (): ReactNode => {
     };
   }, [groupPanelOpen]);
 
-  /* ----------------------------------------------------------- ESC stack -- */
-
   useEffect(() => {
-    const onKey = (e: KeyboardEvent): void => {
+    const onKey = (e: KeyboardEvent) => {
       if (e.key !== "Escape") {
         return;
       }
 
       if (lightbox) {
         setLightbox(null);
+
         return;
       }
+
       if (groupPanelOpen) {
         setGroupPanelOpen(false);
+
         return;
       }
+
       const top = topWindow(windows);
+
       if (top) {
         closeWindow(top.uid);
+
         return;
       }
+
       if (selectedId) {
         setSelectedId(null);
       }
     };
 
     window.addEventListener("keydown", onKey);
+
     return () => window.removeEventListener("keydown", onKey);
   }, [lightbox, groupPanelOpen, windows, selectedId, closeWindow]);
 
-  /* ----------------------------------------------------------- tile drag -- */
-
-  const onTilePointerDown = (e: ReactPointerEvent<HTMLDivElement>, tile: DesktopTile): void => {
+  const onTilePointerDown = (e: ReactPointerEvent<HTMLDivElement>, tile: DesktopTile) => {
     const id = tileId(tile);
 
     if (isMobileRef.current) {
-      // No capture on mobile, so a finger lifted off the tile never reports
-      // back. Each press simply replaces the last rather than being gated on it.
       dragRef.current = {
         ...IDLE_DRAG,
         id,
@@ -844,34 +811,36 @@ export const DesktopOS = (): ReactNode => {
         startX: e.clientX,
         startY: e.clientY,
       };
+
       return;
     }
 
     if (e.button !== 0) {
       return;
     }
-    // Capture guarantees the active gesture reports its own end, so a second
-    // pointer arriving mid-drag is a hijack, not a recovery.
+
     if (dragRef.current.id !== null) {
       return;
     }
+
     e.preventDefault();
     const el = e.currentTarget;
     el.setPointerCapture(e.pointerId);
 
     const pos = tilePositions[id];
-    // The z bump goes through state, so React stays the only writer of every
-    // style the render owns and cannot be raced by the gesture. The new z is
-    // derived inside the updater so two presses in one batch cannot tie.
     setTilePositions((prev) => {
       const current = prev[id];
+
       if (!current) {
         return prev;
       }
+
       let top = 10;
+
       for (const entry of Object.values(prev)) {
         top = Math.max(top, entry.z);
       }
+
       if (current.z === top) {
         return prev;
       }
@@ -897,21 +866,24 @@ export const DesktopOS = (): ReactNode => {
     setSelectedId(id);
   };
 
-  const onTilePointerMove = (e: ReactPointerEvent<HTMLDivElement>): void => {
+  const onTilePointerMove = (e: ReactPointerEvent<HTMLDivElement>) => {
     const drag = dragRef.current;
+
     if (!drag.id || drag.pointerId !== e.pointerId) {
       return;
     }
 
     const dx = e.clientX - drag.startX;
     const dy = e.clientY - drag.startY;
-    // 4px of travel is the line between "clicked it" and "dragged it".
+
     if (!drag.moved && Math.hypot(dx, dy) > 4) {
       drag.moved = true;
     }
+
     if (!drag.moved) {
       return;
     }
+
     if (isMobileRef.current || !drag.el) {
       return;
     }
@@ -920,28 +892,24 @@ export const DesktopOS = (): ReactNode => {
     const ny = clamp(drag.originY + dy, TILE_EDGE_MARGIN, drag.maxY);
     drag.lastX = nx;
     drag.lastY = ny;
-    // `translate` composes on top of the `transform` React renders from state.
-    // Keeping the two properties separate means an unrelated re-render mid-drag
-    // cannot clobber the gesture, and abandoning the gesture is one reset away.
     drag.el.style.translate = `${nx - drag.originX}px ${ny - drag.originY}px`;
   };
 
-  const onTilePointerUp = (e: ReactPointerEvent<HTMLDivElement>, tile: DesktopTile): void => {
+  const onTilePointerUp = (e: ReactPointerEvent<HTMLDivElement>, tile: DesktopTile) => {
     const drag = dragRef.current;
     const id = tileId(tile);
-    // Only the pointer that began this tile's gesture may end it: a secondary
-    // button, or a release that started on the desktop, must not open or move it.
+
     if (drag.id !== id || drag.pointerId !== e.pointerId) {
       return;
     }
 
-    // Read the gesture out before ending it — `endTileGesture` wipes it clean.
     const { moved, lastX, lastY } = drag;
     const el = endTileGesture(drag, e.pointerId);
 
     if (moved && !isMobileRef.current) {
       setTilePositions((prev) => {
         const current = prev[id];
+
         if (!current) {
           return prev;
         }
@@ -949,42 +917,38 @@ export const DesktopOS = (): ReactNode => {
         return { ...prev, [id]: { ...current, x: lastX, y: lastY } };
       });
     }
-    // Cleared after the commit: React flushes this handler's updates before the
-    // next paint, so the tile never renders at its pre-drag position.
+
     if (el) {
       el.style.translate = "";
     }
+
     if (!moved) {
       openTile(tile);
     }
   };
 
-  /**
-   * Alt-tab, a context menu or a cancelled touch ends the gesture without a
-   * `pointerup`. Drop it and let the last committed position redraw the tile.
-   */
-  const onTilePointerCancel = (e: ReactPointerEvent<HTMLDivElement>): void => {
+  const onTilePointerCancel = (e: ReactPointerEvent<HTMLDivElement>) => {
     const drag = dragRef.current;
+
     if (!drag.id || drag.pointerId !== e.pointerId) {
       return;
     }
 
     const el = endTileGesture(drag, e.pointerId);
+
     if (el) {
       el.style.translate = "";
     }
   };
 
-  const onTileKeyDown = (e: ReactKeyboardEvent<HTMLDivElement>, tile: DesktopTile): void => {
+  const onTileKeyDown = (e: ReactKeyboardEvent<HTMLDivElement>, tile: DesktopTile) => {
     if (e.key === "Enter" || e.key === " ") {
       e.preventDefault();
       openTile(tile);
     }
   };
 
-  /* ------------------------------------------------------------- renders -- */
-
-  const renderTileInner = (tile: DesktopTile, size: number): ReactNode => {
+  const renderTileInner = (tile: DesktopTile, size: number) => {
     const selected = selectedId === tileId(tile);
 
     return (
@@ -1025,24 +989,15 @@ export const DesktopOS = (): ReactNode => {
     );
   };
 
-  const registerTileRef =
-    (id: string) =>
-    (el: HTMLDivElement | null): void => {
-      if (el) {
-        tileRefs.current.set(id, el);
-      } else {
-        tileRefs.current.delete(id);
-      }
-    };
+  const registerTileRef = (id: string) => (el: HTMLDivElement | null) => {
+    if (el) {
+      tileRefs.current.set(id, el);
+    } else {
+      tileRefs.current.delete(id);
+    }
+  };
 
-  /**
-   * Tiles are hidden by CSS only while the boot timeline still owns their
-   * opacity. Crossing the 767px breakpoint swaps the desktop tile list for the
-   * springboard grid (and back), which mounts brand-new elements that GSAP has
-   * never touched — a permanent `opacity-0` class would leave those orphans
-   * invisible forever, since the one-shot boot never replays.
-   */
-  const renderDesktopTile = (tile: DesktopTile, index: number): ReactNode => {
+  const renderDesktopTile = (tile: DesktopTile, index: number) => {
     const id = tileId(tile);
     const pos = tilePositions[id];
 
@@ -1073,7 +1028,7 @@ export const DesktopOS = (): ReactNode => {
     );
   };
 
-  const renderMobileTile = (tile: DesktopTile): ReactNode => {
+  const renderMobileTile = (tile: DesktopTile) => {
     const id = tileId(tile);
 
     return (
@@ -1177,11 +1132,6 @@ export const DesktopOS = (): ReactNode => {
           }`}
           style={{ height: MOBILE_ICON_BASE, width: MOBILE_ICON_BASE }}
         >
-          {/*
-            `grid-rows-3` is load-bearing: with only an implicit row the single
-            row of glyphs is stretched to the definite `h-full` height and each
-            mini-icon renders as a tall bar.
-          */}
           <div className="grid h-full grid-cols-3 grid-rows-3 gap-[3px]">
             {GROUP_APPS.map((id) => (
               <span key={id} className="size-full overflow-hidden rounded-[3px]">
@@ -1231,11 +1181,6 @@ export const DesktopOS = (): ReactNode => {
             TILES.map((tile, i) => renderDesktopTile(tile, i))
           )}
 
-          {/*
-            Both bars switch on `isMobile` rather than a `sm:` utility: the
-            springboard/desktop split is decided at 767px, and a 640px Tailwind
-            breakpoint would put the macOS bar above the iOS grid at 720px.
-          */}
           <div ref={menuBarRef} className="absolute inset-x-0 top-0 z-[5] opacity-0">
             {isMobile ? (
               <div className="flex h-12 items-center justify-between px-4 text-white drop-shadow-[0_1px_2px_rgba(0,0,0,0.6)]">

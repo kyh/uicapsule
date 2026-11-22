@@ -2,7 +2,6 @@ import { z } from "zod";
 
 import { elementSlugs } from "./content-categories";
 
-// The element axis is single-valued so counts and filters stay exact.
 const tagsSchema = z
   .array(z.string())
   .refine((tags) => tags.filter((tag) => elementSlugs.has(tag)).length === 1, {
@@ -10,16 +9,17 @@ const tagsSchema = z
   });
 
 const linkSchema = z.object({ label: z.string().min(1), url: z.url() });
-// A key in the assets store (`<slug>/<file>.<ext>`), never a URL: the host is
-// resolved by the app so the store can move without touching every meta.json.
+
 const coverKeySchema = z.string().regex(/^[a-z0-9-]+\/[\w.-]+\.(?:mp4|webm|png|jpe?g|webp|gif)$/u, {
   message: "cover must be a bucket key like <slug>/<slug>.mp4",
 });
+
 const linkedPersonSchema = z.object({
   avatarUrl: z.url().optional(),
   name: z.string().min(1),
   url: z.url(),
 });
+
 const metadataFields = {
   addedAt: z.iso.date(),
   authors: z.array(linkedPersonSchema).optional(),
@@ -45,8 +45,22 @@ export const contentMetaSchema = z.discriminatedUnion("type", [
 ]);
 
 export type ContentComponentSummary = z.infer<typeof contentMetaSchema> & { slug: string };
+
 export type LocalContentComponentSummary = Extract<ContentComponentSummary, { type: "local" }>;
+
 export type DefaultSize = NonNullable<ContentComponentSummary["defaultSize"]>;
+
+export const coverMediaSchema = z.object({
+  cover: coverKeySchema,
+  duration: z.number().positive(),
+  height: z.int().positive(),
+  still: z.string().startsWith("/og/covers/"),
+  uploadDate: z.iso.date(),
+  width: z.int().positive(),
+});
+
+export type CoverMedia = z.infer<typeof coverMediaSchema>;
+
 export interface SourceFile {
   path: string;
   code: string;

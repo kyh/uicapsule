@@ -29,10 +29,6 @@ const defaults: Required<GradientOrbConfig> = {
   rotationSpeed: 0.3,
 };
 
-/**
- * GLSL vertex shader — pass-through that outputs clip-space positions
- * directly from a fullscreen triangle in NDC.
- */
 const vertexShader = `
   varying vec2 vUv;
 
@@ -42,10 +38,6 @@ const vertexShader = `
   }
 `;
 
-/**
- * GLSL fragment shader — renders a glowing orb with three noise-mixed colors,
- * hue rotation, breathing pulse, and constant rotation.
- */
 const fragmentShader = `
   precision highp float;
 
@@ -186,7 +178,6 @@ const fragmentShader = `
   }
 `;
 
-/** Internal scene component for the gradient fullscreen shader. */
 const GradientScene = ({
   hue,
   rotationSpeed,
@@ -205,6 +196,7 @@ const GradientScene = ({
       new THREE.Float32BufferAttribute([-1, -1, 0, 3, -1, 0, -1, 3, 0], 3),
     );
     geo.setAttribute("uv", new THREE.Float32BufferAttribute([0, 0, 2, 0, 0, 2], 2));
+
     return geo;
   }, []);
 
@@ -234,9 +226,11 @@ const GradientScene = ({
     rotRef.current += dt * rotationSpeed;
 
     const u = materialRef.current.uniforms;
+
     if (!u.iTime || !u.hue || !u.rot || !u.iResolution) {
       return;
     }
+
     u.iTime.value = t;
     u.hue.value = hue;
     u.rot.value = rotRef.current;
@@ -287,7 +281,6 @@ export const GradientOrb = ({
 
   return (
     <div className={`w-full h-full ${className}`} style={{ background }}>
-      {/* Camera is unused — the vertex shader outputs clip-space positions directly */}
       <Canvas gl={{ alpha: false, antialias: true }}>
         <color attach="background" args={[background]} />
         <GradientScene

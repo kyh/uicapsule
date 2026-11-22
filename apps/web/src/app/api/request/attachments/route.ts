@@ -2,15 +2,16 @@ import type { NextRequest } from "next/server";
 import { attachmentMetaSchema } from "@repo/contract/request/attachment-schema";
 import { AttachmentUploadError, uploadAttachment } from "@repo/service/request/github-attachment";
 
-// Multipart upload proxied to GitHub's attachment store. Same-origin only, like /api/orpc.
 export const POST = async (req: NextRequest) => {
   const origin = req.headers.get("origin");
+
   if (origin !== null && origin !== new URL(req.url).origin) {
     return new Response("Cross-origin request blocked.", { status: 403 });
   }
 
   const form = await req.formData().catch(() => null);
   const file = form?.get("file");
+
   if (!(file instanceof File)) {
     return Response.json({ message: "No file." }, { status: 400 });
   }
@@ -20,6 +21,7 @@ export const POST = async (req: NextRequest) => {
     size: file.size,
     type: file.type,
   });
+
   if (!meta.success) {
     return Response.json({ message: "Unsupported file type or size." }, { status: 400 });
   }
@@ -30,6 +32,7 @@ export const POST = async (req: NextRequest) => {
     if (error instanceof AttachmentUploadError) {
       return Response.json({ message: error.message }, { status: error.status });
     }
+
     throw error;
   }
 };

@@ -7,7 +7,7 @@ import { scaleLinear } from "@tanstack/charts/scales/linear";
 import { ArrowUp, Settings } from "lucide-react";
 import { useMemo } from "react";
 
-import { Card, ChartSlot, Label, Num, renderer, useCycle } from "../lib/kit";
+import { Card, ChartSlot, Caption, Num, renderer, useCycle } from "../lib/kit";
 import { GREEN, INK, MUTED, THEME } from "../lib/tokens";
 
 const CATEGORIES = [
@@ -17,10 +17,10 @@ const CATEGORIES = [
   { color: "#1fae4f", label: "Saving account", pct: 24, ticks: 14 },
 ] as const;
 
-/** Mixes a hex color toward white; `t` = 0 keeps it, 1 is white. */
 const tint = (hex: string, t: number) => {
   const n = Number.parseInt(hex.slice(1), 16);
   const ch = [16, 8, 0].map((s) => Math.floor(n / 2 ** s) % 256);
+
   return `rgb(${ch.map((c) => Math.round(c + (255 - c) * t)).join(",")})`;
 };
 
@@ -28,7 +28,6 @@ interface Slot {
   id: string;
   cat: number;
   marker: boolean;
-  /** 0 light, 1 mid, 2 full: the three strengths each run steps through. */
   tier: number;
 }
 
@@ -41,13 +40,14 @@ const SLOTS: Slot[] = CATEGORIES.flatMap((c, cat) => [
     tier: Math.min(2, Math.floor((i / c.ticks) * 3)),
   })),
 ]);
+
 const TIER_MIX = [0.68, 0.38, 0] as const;
 
 const HEIGHT = 140;
 
 const Stat = ({ label, value, change }: { label: string; value: number; change: number }) => (
   <div className="min-w-0">
-    <Label>{label}</Label>
+    <Caption>{label}</Caption>
     <Num value={value} className="mt-0.5 block text-[22px] font-bold tracking-[-0.03em]" />
     <p className="mt-1.5 flex items-center gap-1.5 text-[12px]" style={{ color: MUTED }}>
       <span
@@ -73,14 +73,18 @@ export const CategoryBreakdown = () => {
   const definition = useMemo(() => {
     const color = (d: Slot) => {
       const base = CATEGORIES[d.cat]?.color ?? INK;
+
       if (d.marker) {
         return tint(base, 0.7);
       }
+
       const mix = TIER_MIX[d.tier] ?? 0;
-      // Categories not in focus wash out toward their lightest tier.
+
       return tint(base, d.cat === active ? mix : 0.55 + mix * 0.45);
     };
+
     const labels = CATEGORIES.map((c, cat) => ({ ...c, cat, slot: `${cat}-m` }));
+
     return defineChart({
       focusRing: false,
       guides: false,
@@ -96,6 +100,7 @@ export const CategoryBreakdown = () => {
             if (d.marker) {
               return 1;
             }
+
             return d.cat === active ? 0.64 : 0.56;
           },
         }),

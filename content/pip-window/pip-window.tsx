@@ -13,9 +13,7 @@ const PEEK = 26;
 
 type Tucked = "left" | "right" | null;
 
-// Top corners clear the Dynamic Island.
 const TOP_Y = PADDING + 46;
-// Bottom corners sit above the call bar so the window never covers its controls.
 const BOTTOM_Y = SCREEN_HEIGHT - PIP_HEIGHT - 96;
 
 const HOME = { x: SCREEN_WIDTH - PIP_WIDTH - PADDING, y: BOTTOM_Y };
@@ -42,6 +40,7 @@ export const PipWindow = () => {
   const positionRef = useRef({ ...HOME });
   const [tucked, setTucked] = useState<Tucked>(null);
   const reduced = useReducedMotion() ?? false;
+
   const spring = (bounce: number, duration: number) =>
     reduced ? { duration: 0 } : { bounce, duration, type: "spring" as const };
 
@@ -50,7 +49,6 @@ export const PipWindow = () => {
     const projectedX = current.x + offsetX + velocityX * 0.18;
     const projectedY = current.y + offsetY + velocityY * 0.18;
 
-    // A hard sideways throw tucks the window off-screen.
     if (projectedX < -PIP_WIDTH * 0.35 || (velocityX < -900 && projectedX < PADDING)) {
       positionRef.current = { x: -(PIP_WIDTH - PEEK), y: clampY(projectedY) };
       setTucked("left");
@@ -58,8 +56,10 @@ export const PipWindow = () => {
         ...positionRef.current,
         transition: spring(0.24, 0.5),
       });
+
       return;
     }
+
     if (
       projectedX > SCREEN_WIDTH - PIP_WIDTH * 0.65 ||
       (velocityX > 900 && projectedX > SCREEN_WIDTH - PIP_WIDTH - PADDING)
@@ -70,18 +70,22 @@ export const PipWindow = () => {
         ...positionRef.current,
         transition: spring(0.24, 0.5),
       });
+
       return;
     }
 
     let nearest = HOME;
     let best = Number.POSITIVE_INFINITY;
+
     for (const corner of CORNERS) {
       const distance = (corner.x - projectedX) ** 2 + (corner.y - projectedY) ** 2;
+
       if (distance < best) {
         best = distance;
         nearest = corner;
       }
     }
+
     positionRef.current = { ...nearest };
     setTucked(null);
     void controls.start({
@@ -92,13 +96,16 @@ export const PipWindow = () => {
 
   const untuck = () => {
     const side = tucked;
+
     if (!side) {
       return;
     }
+
     const target =
       side === "left"
         ? { x: PADDING, y: positionRef.current.y }
         : { x: SCREEN_WIDTH - PIP_WIDTH - PADDING, y: positionRef.current.y };
+
     positionRef.current = target;
     setTucked(null);
     void controls.start({

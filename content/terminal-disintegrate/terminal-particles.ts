@@ -2,53 +2,40 @@ import type { Cell, Grid } from "./terminal-grid";
 
 import { OUTER_COLS, OUTER_ROWS } from "./terminal-grid";
 
-// ---------------------------------------------------------------------------
-// Math helpers — all pure and deterministic
-// ---------------------------------------------------------------------------
+const lerp = (a: number, b: number, t: number) => a + (b - a) * t;
+export const clamp01 = (t: number) => (t < 0 ? 0 : Math.min(1, t));
 
-const lerp = (a: number, b: number, t: number): number => a + (b - a) * t;
-export const clamp01 = (t: number): number => (t < 0 ? 0 : Math.min(1, t));
-
-export const smoothstep = (t: number): number => {
+export const smoothstep = (t: number) => {
   const x = clamp01(t);
+
   return x * x * (3 - 2 * x);
 };
 
-const easeInOutCubic = (t: number): number => (t < 0.5 ? 4 * t * t * t : 1 - (-2 * t + 2) ** 3 / 2);
+const easeInOutCubic = (t: number) => (t < 0.5 ? 4 * t * t * t : 1 - (-2 * t + 2) ** 3 / 2);
 
-// Mulberry32 — seeded, so scrubbing forwards/backwards is identical every time.
-const seededRng = (seed: number): (() => number) => {
+const seededRng = (seed: number) => {
   /* oxlint-disable no-bitwise, unicorn/prefer-math-trunc -- Mulberry32 is int32 bit math; `| 0` is the wrap Math.trunc would drop */
   let s = seed | 0 || 1;
+
   return () => {
     s = (s + 0x6d_2b_79_f5) | 0;
     let t = s;
     t = Math.imul(t ^ (t >>> 15), t | 1);
     t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+
     return ((t ^ (t >>> 14)) >>> 0) / 4_294_967_296;
   };
   /* oxlint-enable no-bitwise, unicorn/prefer-math-trunc */
 };
 
-const curl = (seed: number, t: number, axis: number): number => {
+const curl = (seed: number, t: number, axis: number) => {
   const base = seed * 0.0173 + axis * 7.91;
+
   return Math.sin(base + t * 5.21) * 0.6 + Math.sin(base * 1.6 + t * 11.4) * 0.4;
 };
 
-// Curl is a free-flight wobble, so it has to vanish at both ends of the flight.
-// `curl` itself is ~uniform in [-1,1] at local 0 and 1, but the renderer snaps
-// to the exact endpoints outside [begin, end] — leaving the offset in place put
-// a whole cloud's worth of glyphs up to a full `curlAmp` away from where they
-// land, so they teleported on the frame they arrived. Half a sine window keeps
-// the mid-flight amplitude (the part that is the tuning) and removes the jump.
-const curlWindow = (local: number): number => Math.sin(Math.PI * local);
+const curlWindow = (local: number) => Math.sin(Math.PI * local);
 
-// ---------------------------------------------------------------------------
-// Cell pixel sizing — the aspect ratio that makes the grid read as an iPhone
-// ---------------------------------------------------------------------------
-
-// A monospace cell is roughly 0.572 as wide as it is tall. Holding that ratio
-// is what turns a 50x60 character grid into a phone-shaped object.
 const CELL_ASPECT = 0.572;
 
 export interface CellMetrics {
@@ -58,9 +45,7 @@ export interface CellMetrics {
   canvasH: number;
 }
 
-// Sized against the stage box, not the viewport: the component lives in an
-// arbitrarily-sized frame and must never clip its own bezel.
-export const cellMetrics = (stageW: number, stageH: number): CellMetrics => {
+export const cellMetrics = (stageW: number, stageH: number) => {
   const fitH = (stageH * 0.9) / OUTER_ROWS;
   const fitW = (stageW * 0.92) / (OUTER_COLS * CELL_ASPECT);
 
@@ -75,10 +60,6 @@ export const cellMetrics = (stageW: number, stageH: number): CellMetrics => {
     cellW,
   };
 };
-
-// ---------------------------------------------------------------------------
-// Particles
-// ---------------------------------------------------------------------------
 
 export interface Particle {
   char: string;
@@ -109,13 +90,8 @@ export interface RenderOpts {
   scorchAmp: number;
 }
 
-// Deliberately narrowed to glyphs every monospace fallback ships, so a scorched
-// character can never render as a tofu box inside an otherwise perfect grid.
 const NOISE = [".", ":", "·", "*", "+", "◦", "▪", "▫", "°"];
 
-// A cell is "lit" when it would actually paint. All three builders walk exactly
-// this set in exactly this order — the seeded RNG draws once per lit cell, so
-// the traversal order is part of the deterministic output, not an incidental.
 const LIT_ALPHA_MIN = 0.04;
 
 const forEachLitCell = (
@@ -124,23 +100,24 @@ const forEachLitCell = (
 ) => {
   for (let r = 0; r < grid.length; r += 1) {
     const row = grid[r];
+
     if (!row) {
       continue;
     }
 
     for (let c = 0; c < row.length; c += 1) {
       const cell = row[c];
+
       if (!cell || cell.alpha < LIT_ALPHA_MIN || cell.char === " ") {
         continue;
       }
+
       visit(cell, r, c, row.length);
     }
   }
 };
 
-// Outgoing — every lit source cell lifts off toward a shared convergence zone
-// near the centre of the stage. The wind-facing edge crumbles first.
-export const buildOutgoing = (grid: Grid, opts: BuildOpts): Particle[] => {
+export const buildOutgoing = (grid: Grid, opts: BuildOpts) => {
   const { cellW, cellH, frameX, frameY, windDir, rngSeed, stageW, stageH } = opts;
   const rng = seededRng(rngSeed);
 
@@ -180,9 +157,7 @@ export const buildOutgoing = (grid: Grid, opts: BuildOpts): Particle[] => {
   return out;
 };
 
-// Incoming — mirror of outgoing. Spawns in the convergence zone on the
-// opposite side of centre so the two clouds pass through each other.
-export const buildIncoming = (grid: Grid, opts: BuildOpts): Particle[] => {
+export const buildIncoming = (grid: Grid, opts: BuildOpts) => {
   const { cellW, cellH, frameX, frameY, windDir, rngSeed, stageW, stageH } = opts;
   const rng = seededRng(rngSeed);
 
@@ -222,9 +197,7 @@ export const buildIncoming = (grid: Grid, opts: BuildOpts): Particle[] => {
   return out;
 };
 
-// Entrance — every cell spawns in a wide ring around the destination and
-// drifts inward. Outer cells settle first, the centre resolves last.
-export const buildEntrance = (grid: Grid, opts: Omit<BuildOpts, "windDir">): Particle[] => {
+export const buildEntrance = (grid: Grid, opts: Omit<BuildOpts, "windDir">) => {
   const { cellW, cellH, frameX, frameY, rngSeed, stageW, stageH } = opts;
   const rng = seededRng(rngSeed);
 
@@ -270,10 +243,6 @@ export const buildEntrance = (grid: Grid, opts: Omit<BuildOpts, "windDir">): Par
   return out;
 };
 
-// ---------------------------------------------------------------------------
-// Renderers — fillStyle + font are set by the caller before invoking these
-// ---------------------------------------------------------------------------
-
 export const renderGrid = (
   ctx: CanvasRenderingContext2D,
   grid: Grid,
@@ -284,19 +253,23 @@ export const renderGrid = (
 ) => {
   for (let r = 0; r < grid.length; r += 1) {
     const row = grid[r];
+
     if (!row) {
       continue;
     }
 
     for (let c = 0; c < row.length; c += 1) {
       const cell = row[c];
+
       if (!cell || cell.char === " " || cell.alpha <= 0) {
         continue;
       }
+
       ctx.globalAlpha = cell.alpha;
       ctx.fillText(cell.char, frameX + c * cellW, frameY + r * cellH);
     }
   }
+
   ctx.globalAlpha = 1;
 };
 
@@ -314,6 +287,7 @@ export const renderParticles = (
         ctx.globalAlpha = p.a0;
         ctx.fillText(p.char, p.x0, p.y0);
       }
+
       continue;
     }
 
@@ -322,6 +296,7 @@ export const renderParticles = (
         ctx.globalAlpha = p.a1;
         ctx.fillText(p.char, p.x1, p.y1);
       }
+
       continue;
     }
 
@@ -333,6 +308,7 @@ export const renderParticles = (
     const y = lerp(p.y0, p.y1, eased) + curl(p.seed + 1, local, 1) * curlAmp * 0.7 * sway;
 
     let alpha: number;
+
     if (p.a1 === 0) {
       const fadeStart = 0.7;
       alpha = local < fadeStart ? p.a0 : p.a0 * (1 - (local - fadeStart) / (1 - fadeStart));
@@ -341,13 +317,13 @@ export const renderParticles = (
       alpha = local < fadeIn ? p.a1 * (local / fadeIn) : p.a1;
     }
 
-    // Mid-flight scorch: a bit-mixed per-particle hash decides whether this
-    // glyph burns into noise, and only inside its own 0.32-0.72 window.
     let ch = p.char;
+
     if (scorchAmp > 0 && local > 0.32 && local < 0.72) {
       /* oxlint-disable no-bitwise -- Knuth multiplicative hash: `>>> 0` is the uint32 wrap, `& 0xff` the byte mask */
       const pick = (p.seed * 2_654_435_761) >>> 0;
       const burns = ((pick >>> 8) & 0xff) / 255 < scorchAmp;
+
       /* oxlint-enable no-bitwise */
       if (burns) {
         ch = NOISE[(pick + Math.floor(local * 64)) % NOISE.length] ?? p.char;

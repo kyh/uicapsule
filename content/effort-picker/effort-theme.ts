@@ -15,10 +15,6 @@ export type EffortTheme = "chatgpt" | "claude";
  * `levels[0]` to fall back on, and so a notch gap is never a division by zero. */
 type LevelNames = readonly [string, string, ...string[]];
 
-/** The rungs, in order. Both host apps run Codex's scale: a reskin changes what
- * the dial is made of, not what it can say — and `Ultra` has to mean the end of
- * the track in every skin, or the verdict names a rung the knob doesn't land on.
- * Still a theme token, so a third host app can bring its own words. */
 const LEVELS = ["Light", "Medium", "High", "Extra High", "Ultra"] as const;
 
 /** The knob's paint. Sized independently of `KNOB_SIZE`: the hit box drives the
@@ -62,13 +58,8 @@ export const EFFORT_THEMES = {
     dot: "bg-white/45",
     dotTop: "bg-white/45",
     faint: "text-neutral-500",
-    // Codex blue for most of the track, shifting into violet over the last
-    // stretch — the fill reads as a temperature before any label does. It tops
-    // out at violet, not white: white belongs to the knob and the band.
     fill: ["#3b82f6", "#a855f7"],
     frame: "bg-neutral-950 text-neutral-100",
-    // A circle exactly as wide as its hit box: the Codex knob rides proud of the
-    // trough and caps the track at either end.
     knob: { className: "bg-white shadow-lg", height: 38, radius: 19, width: 38 },
     levels: LEVELS,
     muted: "text-neutral-400",
@@ -79,24 +70,17 @@ export const EFFORT_THEMES = {
     troughRadius: 15,
   },
   claude: {
-    // No border and no drop shadow: the surface is drawn with a 1px inset stroke
-    // (2px here) so the card's edge reads as a lit rim rather than an outline.
     card: "rounded-[24px] bg-[#2c2c2a] shadow-[inset_0_0_0_2px_rgba(255,255,255,0.08)]",
     dot: "bg-white/25",
     dotTop: "bg-[#b796ff]",
     faint: "text-white/25",
-    // Flat, not a temperature: the filled stretch is just the surface lifted.
     fill: ["rgba(255,255,255,0.16)", "rgba(255,255,255,0.16)"],
     frame: "bg-[#20201f] text-[#e1e0d9]",
-    // Narrower than its hit box and exactly as tall as the trough: this knob sits
-    // down inside the groove rather than on top of it.
     knob: { className: "bg-[#a5a49a]", height: 40, radius: 12, width: 32 },
     levels: LEVELS,
     muted: "text-white/48",
     ring: "focus-visible:ring-[#b796ff]/60",
     text: "text-white/70",
-    // The trough is *darker* than the card it sits on — a groove cut into the
-    // surface, where the Codex one is a rail laid on top of it.
     trough: "bg-[#1a1a19]",
     troughHeight: 40,
     troughRadius: 12,
@@ -105,8 +89,6 @@ export const EFFORT_THEMES = {
 
 export const levelCount = (theme: EffortTheme) => EFFORT_THEMES[theme].levels.length;
 
-/** Notch spacing is a function of the theme, since the two apps cut a different
- * number of stops into the same length of track. */
 const notchGap = (theme: EffortTheme) => TRACK_TRAVEL / (levelCount(theme) - 1);
 
 export const notchX = (theme: EffortTheme, level: number) =>
@@ -118,5 +100,6 @@ export const nearestLevel = (theme: EffortTheme, x: number) =>
 /** Takes a level *index*, not a track position. */
 export const labelAt = (theme: EffortTheme, index: number) => {
   const { levels } = EFFORT_THEMES[theme];
+
   return levels[clamp(Math.round(index), 0, levels.length - 1)] ?? levels[0];
 };

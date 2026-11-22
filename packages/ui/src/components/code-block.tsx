@@ -89,7 +89,7 @@ import { useControllableState } from "@repo/ui/hooks/use-controllable-state";
 import { cn } from "cn";
 
 export type { BundledLanguage, SpecialLanguage } from "shiki";
-/* oxlint-disable sort-keys -- first matching glob wins, so specific patterns (`*.module.css`) must precede general ones (`*.css`) */
+
 const filenameIconMap = {
   ".env": SiDotenv,
   "*.astro": SiAstro,
@@ -165,7 +165,7 @@ const filenameIconMap = {
   "*.vue": SiVuedotjs,
   "*.wasm": SiWebassembly,
 };
-/* oxlint-enable sort-keys */
+
 const lineNumberClassNames = cn(
   "[&_code]:[counter-reset:line]",
   "[&_code]:[counter-increment:line_0]",
@@ -180,6 +180,7 @@ const lineNumberClassNames = cn(
   "[&_.line]:before:font-mono",
   "[&_.line]:before:select-none",
 );
+
 const darkModeClassNames = cn(
   "dark:[&_.shiki]:!text-[var(--shiki-dark)]",
   "dark:[&_.shiki]:!bg-[var(--shiki-dark-bg)]",
@@ -191,6 +192,7 @@ const darkModeClassNames = cn(
   "dark:[&_.shiki_span]:![font-weight:var(--shiki-dark-font-weight)]",
   "dark:[&_.shiki_span]:![text-decoration:var(--shiki-dark-text-decoration)]",
 );
+
 const lineHighlightClassNames = cn(
   "[&_.line.highlighted]:bg-blue-50",
   "[&_.line.highlighted]:after:bg-blue-500",
@@ -201,6 +203,7 @@ const lineHighlightClassNames = cn(
   "[&_.line.highlighted]:after:w-0.5",
   "dark:[&_.line.highlighted]:!bg-blue-500/10",
 );
+
 const lineDiffClassNames = cn(
   "[&_.line.diff]:after:absolute",
   "[&_.line.diff]:after:left-0",
@@ -214,14 +217,17 @@ const lineDiffClassNames = cn(
   "dark:[&_.line.diff.add]:!bg-emerald-500/10",
   "dark:[&_.line.diff.remove]:!bg-rose-500/10",
 );
+
 const lineFocusedClassNames = cn(
   "[&_code:has(.focused)_.line]:blur-[2px]",
   "[&_code:has(.focused)_.line.focused]:blur-none",
 );
+
 const wordHighlightClassNames = cn(
   "[&_.highlighted-word]:bg-blue-50",
   "dark:[&_.highlighted-word]:!bg-blue-500/10",
 );
+
 const codeBlockClassName = cn(
   "bg-background mt-0 text-sm",
   "[&_pre]:py-4",
@@ -234,6 +240,7 @@ const codeBlockClassName = cn(
   "[&_.line]:w-full",
   "[&_.line]:relative",
 );
+
 const highlight = (
   html: string,
   language?: BundledLanguage | SpecialLanguage,
@@ -263,27 +270,32 @@ const highlight = (
       }),
     ],
   });
+
 interface CodeBlockData {
   language: string;
   filename: string;
   code: string;
 }
+
 interface CodeBlockContextType {
   value: string | undefined;
   onValueChange: ((value: string) => void) | undefined;
   data: CodeBlockData[];
 }
+
 const CodeBlockContext = createContext<CodeBlockContextType>({
   data: [],
   onValueChange: undefined,
   value: undefined,
 });
+
 export type CodeBlockProps = HTMLAttributes<HTMLDivElement> & {
   defaultValue?: string;
   value?: string;
   onValueChange?: (value: string) => void;
   data: CodeBlockData[];
 };
+
 export const CodeBlock = ({
   value: controlledValue,
   onValueChange: controlledOnValueChange,
@@ -297,35 +309,44 @@ export const CodeBlock = ({
     onChange: controlledOnValueChange,
     prop: controlledValue,
   });
+
   const context = useMemo(() => ({ data, onValueChange, value }), [value, onValueChange, data]);
+
   return (
     <CodeBlockContext.Provider value={context}>
       <div className={cn("size-full overflow-hidden rounded-md border", className)} {...props} />
     </CodeBlockContext.Provider>
   );
 };
+
 export type CodeBlockHeaderProps = HTMLAttributes<HTMLDivElement>;
+
 export const CodeBlockHeader = ({ className, ...props }: CodeBlockHeaderProps) => (
   <div
     className={cn("bg-secondary flex flex-row items-center border-b p-1", className)}
     {...props}
   />
 );
+
 export type CodeBlockFilesProps = Omit<HTMLAttributes<HTMLDivElement>, "children"> & {
   children: (item: CodeBlockData) => ReactNode;
 };
+
 export const CodeBlockFiles = ({ className, children, ...props }: CodeBlockFilesProps) => {
   const { data } = useContext(CodeBlockContext);
+
   return (
     <div className={cn("flex grow flex-row items-center gap-2", className)} {...props}>
       {data.map(children)}
     </div>
   );
 };
+
 export type CodeBlockFilenameProps = HTMLAttributes<HTMLDivElement> & {
   icon?: IconType;
   value?: string;
 };
+
 export const CodeBlockFilename = ({
   className,
   icon,
@@ -334,17 +355,22 @@ export const CodeBlockFilename = ({
   ...props
 }: CodeBlockFilenameProps) => {
   const { value: activeValue } = useContext(CodeBlockContext);
+
   const defaultIcon = Object.entries(filenameIconMap).find(([pattern]) => {
     const regex = new RegExp(
       `^${pattern.replaceAll("\\", "\\\\").replaceAll(".", "\\.").replaceAll("*", ".*")}$`,
       "u",
     );
+
     return regex.test(String(children));
   })?.[1];
+
   const Icon = icon ?? defaultIcon;
+
   if (value !== activeValue) {
     return null;
   }
+
   return (
     <div
       className={cn(
@@ -358,11 +384,13 @@ export const CodeBlockFilename = ({
     </div>
   );
 };
+
 export type CodeBlockCopyButtonProps = ComponentProps<typeof Button> & {
   onCopy?: () => void;
   onError?: (error: Error) => void;
   timeout?: number;
 };
+
 export const CodeBlockCopyButton = ({
   onCopy,
   onError,
@@ -383,22 +411,27 @@ export const CodeBlockCopyButton = ({
   );
   const { data, value } = useContext(CodeBlockContext);
   const code = data.find((item) => item.language === value)?.code;
+
   const copyToClipboard = async () => {
     if (!navigator.clipboard?.writeText || code === undefined) {
       return;
     }
+
     try {
       await navigator.clipboard.writeText(code);
       setIsCopied(true);
       onCopy?.();
+
       if (resetTimeout.current !== null) {
         clearTimeout(resetTimeout.current);
       }
+
       resetTimeout.current = setTimeout(() => setIsCopied(false), timeout);
     } catch (error) {
       onError?.(error instanceof Error ? error : new Error(String(error)));
     }
   };
+
   return (
     <Button
       className={cn("shrink-0", className)}
@@ -429,7 +462,9 @@ export const CodeBlockCopyButton = ({
     </Button>
   );
 };
+
 type CodeBlockFallbackProps = HTMLAttributes<HTMLDivElement>;
+
 const CodeBlockFallback = ({ children, ...props }: CodeBlockFallbackProps) => (
   <div {...props}>
     <pre className="w-full">
@@ -446,17 +481,22 @@ const CodeBlockFallback = ({ children, ...props }: CodeBlockFallbackProps) => (
     </pre>
   </div>
 );
+
 export type CodeBlockBodyProps = Omit<HTMLAttributes<HTMLDivElement>, "children"> & {
   children: (item: CodeBlockData) => ReactNode;
 };
+
 export const CodeBlockBody = ({ children, ...props }: CodeBlockBodyProps) => {
   const { data } = useContext(CodeBlockContext);
+
   return <div {...props}>{data.map(children)}</div>;
 };
+
 export type CodeBlockItemProps = HTMLAttributes<HTMLDivElement> & {
   value: string;
   lineNumbers?: boolean;
 };
+
 export const CodeBlockItem = ({
   children,
   lineNumbers = true,
@@ -465,9 +505,11 @@ export const CodeBlockItem = ({
   ...props
 }: CodeBlockItemProps) => {
   const { value: activeValue } = useContext(CodeBlockContext);
+
   if (value !== activeValue) {
     return null;
   }
+
   return (
     <div
       className={cn(
@@ -486,12 +528,14 @@ export const CodeBlockItem = ({
     </div>
   );
 };
+
 export type CodeBlockContentProps = HTMLAttributes<HTMLDivElement> & {
   themes?: CodeOptionsMultipleThemes["themes"];
   language?: BundledLanguage | SpecialLanguage;
   syntaxHighlighting?: boolean;
   children: string;
 };
+
 export const CodeBlockContent = ({
   children,
   themes,
@@ -505,14 +549,18 @@ export const CodeBlockContent = ({
     language: CodeBlockContentProps["language"];
     themes: CodeBlockContentProps["themes"];
   } | null>(null);
+
   useEffect(() => {
     if (!syntaxHighlighting) {
       return;
     }
+
     let active = true;
+
     const updateHighlight = async () => {
       try {
         const html = await highlight(children, language, themes);
+
         if (active) {
           setHighlighted({ html, language, source: children, themes });
         }
@@ -520,20 +568,25 @@ export const CodeBlockContent = ({
         console.error(error);
       }
     };
+
     void updateHighlight();
+
     return () => {
       active = false;
     };
   }, [children, themes, syntaxHighlighting, language]);
+
   const html =
     highlighted?.source === children &&
     highlighted.language === language &&
     highlighted.themes === themes
       ? highlighted.html
       : null;
+
   if (!(syntaxHighlighting && html)) {
     return <CodeBlockFallback {...props}>{children}</CodeBlockFallback>;
   }
+
   // oxlint-disable-next-line react/no-danger -- the markup is shiki's own output for the code string, never user-supplied HTML
   return <div dangerouslySetInnerHTML={{ __html: html }} {...props} />;
 };

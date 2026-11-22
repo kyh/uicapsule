@@ -65,30 +65,31 @@ const RANGES: Range[] = [
 
 const SHADES = ["#7fb5f2", "#a3caf6", "#c2dcf9", "#dbeafc"] as const;
 
-/** Linear interpolation of the line at a fractional x. */
 const sample = (line: readonly number[], x: number) => {
   const i = Math.min(LAST - 1, Math.floor(x));
   const t = x - i;
+
   return (line[i] ?? 0) * (1 - t) + (line[i + 1] ?? 0) * t;
 };
 
-/** The dotted fill under the line, binned by height so it fades downward. */
 const dotGrid = (line: readonly number[]) => {
   const bands: { id: string; x: number; y: number }[][] = [[], [], [], []];
+
   for (let c = 0; c < COLS; c += 1) {
     const x = (c / (COLS - 1)) * LAST;
     const ceiling = sample(line, x) - ROW_STEP * 0.8;
+
     for (let y = ROW_STEP * 0.5; y < ceiling; y += ROW_STEP) {
       const band = Math.min(3, Math.floor((y / TOP) * 4));
       bands[band]?.push({ id: `${c}-${Math.round(y * 10)}`, x, y });
     }
   }
+
   return bands;
 };
 
 const BAND_OPACITY = [0.14, 0.28, 0.48, 0.72] as const;
 
-/** Blueprint corner ticks around a panel. */
 const Corners = () => (
   <>
     <span className="absolute top-0 left-0 size-2.5 border-t border-l border-[#c4c4cb]" />
@@ -124,6 +125,7 @@ export const ValueLocked = () => {
     const rows = line.map((value, x) => ({ value, x }));
     const bands = dotGrid(line);
     const picked = rows[hi] ?? rows[0];
+
     return defineChart({
       gradients: [
         {
@@ -181,6 +183,7 @@ export const ValueLocked = () => {
         y2: k + 0.62,
       })),
     );
+
     return defineChart({
       guides: false,
       margin: 0,
@@ -244,6 +247,7 @@ export const ValueLocked = () => {
               onFocusChange={(p) => {
                 if (p) {
                   const i = line.findIndex((_, x) => x === p.xValue);
+
                   if (i !== -1) {
                     pin(i);
                   }

@@ -20,6 +20,7 @@ export const PrefetchLink = ({
   ...props
 }: PrefetchLinkProps) => {
   const [intent, setIntent] = useState(false);
+
   return (
     <Link
       {...props}

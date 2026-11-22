@@ -37,6 +37,7 @@ export const TableBody = ({
       const row = table.getRowModel().rows[virtualRow.index];
       const rowIndex = virtualRow.index;
       const rowId = row?.original?.id;
+
       if (!rowId) {
         return null;
       }

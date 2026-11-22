@@ -21,21 +21,14 @@ const BOARD_HEIGHT = 190;
 const FLOOR_Y = BOARD_HEIGHT - 26;
 
 const BALL_SIZE = 14;
-/** Where the barrel ends and the ball leaves. Volume is read off the floor, so
- * the muzzle sits at the zero end of the scale. */
 const MUZZLE = { x: 30, y: FLOOR_Y - 22 };
 
 const GRAVITY = 1500;
-/** Launch speed (px/s) per px of pull-back. */
 const POWER_GAIN = 6.2;
 const MAX_PULL = 120;
-/** A twitch is not a shot. */
 const MIN_PULL = 6;
-/** Speed kept after the ball hits the floor, and the bite the floor takes out of
- * its forward motion. Cannonballs don't skip like stones. */
 const BOUNCE = 0.42;
 const FLOOR_DRAG = 0.66;
-/** Below this the ball has stopped, whatever it thinks. */
 const SETTLE_SPEED = 42;
 const MAX_FLIGHT_SECONDS = 6;
 
@@ -51,16 +44,15 @@ interface Shot {
 const floorToVolume = (x: number) => clamp((x / BOARD_WIDTH) * VOLUME_MAX, VOLUME_MIN, VOLUME_MAX);
 const volumeToFloor = (volume: number) => (clampVolume(volume) / VOLUME_MAX) * BOARD_WIDTH;
 
-/** The volume scale, painted on the floor where the ball has to land on it. Ticks
- * sit exactly on their value — the ball is scored against them, so they can't lie
- * — while the two end labels shuffle inwards to clear the board's rounded corner. */
 const endLabelShift = (value: number) => {
   if (value === 0) {
     return "translate-x-2";
   }
+
   if (value === 100) {
     return "-translate-x-2.5";
   }
+
   return "";
 };
 
@@ -92,9 +84,7 @@ const FloorScale = () => (
   </div>
 );
 
-/** One step of ballistics. Shared by the animated flight and the reduced-motion
- * fast-forward, so both land the ball in exactly the same place. */
-const advance = (shot: Shot, dt: number): Shot => {
+const advance = (shot: Shot, dt: number) => {
   const vy = shot.vy + GRAVITY * dt;
   let next = { vx: shot.vx, vy, x: shot.x + shot.vx * dt, y: shot.y + vy * dt };
 
@@ -106,6 +96,7 @@ const advance = (shot: Shot, dt: number): Shot => {
       y: FLOOR_Y,
     };
   }
+
   return next;
 };
 
@@ -127,9 +118,6 @@ export const CannonTrack = ({ volume }: CannonTrackProps) => {
 
   const ballX = useMotionValue(MUZZLE.x);
   const ballY = useMotionValue(MUZZLE.y);
-  /** Where the pointer has hauled the ball back to: it aims the barrel and sizes
-   * the band, so it renders — but the shot is read on pointerup, and a render is
-   * not guaranteed to have landed by then, hence the mirror. */
   const [pullVector, setPullVector] = useState({ x: 0, y: 0 });
   const pull = useRef({ x: 0, y: 0 });
 
@@ -137,12 +125,12 @@ export const CannonTrack = ({ volume }: CannonTrackProps) => {
   const wideTimer = useRef(0);
   const boardRef = useRef<HTMLDivElement>(null);
 
-  // Written to the attribute rather than held in state, matching the other
-  // controls: nothing about the reported value needs a render to land.
   useEffect(() => {
     const report = (value: number) =>
       boardRef.current?.setAttribute("aria-valuenow", String(Math.round(value)));
+
     report(volume.get());
+
     return volume.on("change", report);
   }, [volume]);
 
@@ -161,14 +149,16 @@ export const CannonTrack = ({ volume }: CannonTrackProps) => {
 
   const land = (x: number) => {
     setPhase("idle");
+
     if (x > BOARD_WIDTH) {
-      // Sailed clean off the board. The volume keeps whatever it had.
       setWide(true);
       window.clearTimeout(wideTimer.current);
       wideTimer.current = window.setTimeout(() => setWide(false), 1600);
       resetBall();
+
       return;
     }
+
     const landed = snapVolume(floorToVolume(x));
     volume.set(landed);
     void animate(ballX, volumeToFloor(landed), RESET_SPRING);
@@ -176,16 +166,19 @@ export const CannonTrack = ({ volume }: CannonTrackProps) => {
 
   const fire = (vx: number, vy: number) => {
     if (reduceMotion) {
-      // No arc, same maths: run the flight to its conclusion and report the result.
       let shot: Shot = { vx, vy, x: MUZZLE.x, y: MUZZLE.y };
+
       for (let t = 0; t < MAX_FLIGHT_SECONDS * 60; t += 1) {
         shot = advance(shot, 1 / 60);
         const resting = shot.y >= FLOOR_Y - 0.5 && Math.abs(shot.vy) < SETTLE_SPEED;
+
         if (resting || shot.x > BOARD_WIDTH) {
           break;
         }
       }
+
       land(shot.x);
+
       return;
     }
 
@@ -204,12 +197,16 @@ export const CannonTrack = ({ volume }: CannonTrackProps) => {
       ballY.set(shot.y);
 
       const grounded = shot.y >= FLOOR_Y - 0.5;
+
       const spent =
         grounded && Math.abs(shot.vy) < SETTLE_SPEED && Math.abs(shot.vx) < SETTLE_SPEED;
+
       if (spent || shot.x > BOARD_WIDTH + BALL_SIZE || elapsed > MAX_FLIGHT_SECONDS) {
         land(shot.x);
+
         return;
       }
+
       frame.current = requestAnimationFrame(step);
     };
 
@@ -218,9 +215,11 @@ export const CannonTrack = ({ volume }: CannonTrackProps) => {
 
   const pointerInBoard = (event: React.PointerEvent<HTMLDivElement>) => {
     const box = boardRef.current?.getBoundingClientRect();
+
     if (!box) {
       return { x: 0, y: 0 };
     }
+
     return { x: event.clientX - box.left, y: event.clientY - box.top };
   };
 
@@ -228,6 +227,7 @@ export const CannonTrack = ({ volume }: CannonTrackProps) => {
     if (phase === "firing") {
       return;
     }
+
     cancelAnimationFrame(frame.current);
     event.currentTarget.setPointerCapture(event.pointerId);
     setWide(false);
@@ -242,9 +242,8 @@ export const CannonTrack = ({ volume }: CannonTrackProps) => {
     if (phase !== "aiming") {
       return;
     }
+
     const point = pointerInBoard(event);
-    // Pull is measured from the muzzle and capped, so the barrel can't be hauled
-    // through the back of the cannon and the shot has a ceiling.
     const dx = point.x - MUZZLE.x;
     const dy = point.y - MUZZLE.y;
     const distance = Math.hypot(dx, dy);
@@ -261,24 +260,29 @@ export const CannonTrack = ({ volume }: CannonTrackProps) => {
     if (phase !== "aiming") {
       return;
     }
+
     const vector = pull.current;
     const distance = Math.hypot(vector.x, vector.y);
+
     if (distance < MIN_PULL) {
       setPhase("idle");
       resetBall();
       setPullVector({ x: 0, y: 0 });
+
       return;
     }
-    // Fired opposite the pull, like every slingshot ever built.
+
     fire(-vector.x * POWER_GAIN, -vector.y * POWER_GAIN);
     setPullVector({ x: 0, y: 0 });
   };
 
   const handleKeyDown = (event: React.KeyboardEvent<HTMLDivElement>) => {
     const delta = arrowDelta(event.key);
+
     if (delta === 0) {
       return;
     }
+
     event.preventDefault();
     const next = clampVolume(snapVolume(volume.get()) + delta);
     volume.set(next);
@@ -287,8 +291,10 @@ export const CannonTrack = ({ volume }: CannonTrackProps) => {
   };
 
   const pullDistance = Math.hypot(pullVector.x, pullVector.y);
+
   const barrelAngle =
     pullDistance > 0 ? (Math.atan2(-pullVector.y, -pullVector.x) * 180) / Math.PI : -45;
+
   const power = clamp(pullDistance / MAX_PULL, 0, 1);
 
   return (
@@ -312,7 +318,6 @@ export const CannonTrack = ({ volume }: CannonTrackProps) => {
     >
       <FloorScale />
 
-      {/* The barrel points wherever the shot is going, and swells with the load. */}
       <motion.span
         aria-hidden
         className="absolute origin-left rounded-r-[3px] bg-gradient-to-b from-neutral-400 to-neutral-600"
@@ -330,7 +335,6 @@ export const CannonTrack = ({ volume }: CannonTrackProps) => {
         style={{ left: MUZZLE.x - 26, top: MUZZLE.y - 8 }}
       />
 
-      {/* The band you're hauling against — the only read on how hard this will go. */}
       {phase === "aiming" && pullDistance > MIN_PULL && (
         <svg aria-hidden className="pointer-events-none absolute inset-0 size-full">
           <line

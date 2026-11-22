@@ -32,10 +32,8 @@ const curve = d3Curve(curveMonotoneX);
 interface Region {
   name: string;
   values: [number, number, number];
-  /** Plateau thickness after the first and second widening. */
   p1: number;
   p2: number;
-  /** Share of the half-thickness held by the green core. */
   core: number;
 }
 
@@ -53,10 +51,10 @@ const STATS = [
 
 const smooth = (a: number, b: number, x: number) => {
   const t = Math.min(1, Math.max(0, (x - a) / (b - a)));
+
   return t * t * (3 - 2 * t);
 };
 
-/** Half-thickness of the stream at x: a thin tail, two widenings, a plateau. */
 const thickness = (r: Region, x: number) =>
   0.07 + (r.p1 - 0.07) * smooth(0.13, 0.33, x) + (r.p2 - r.p1) * smooth(0.58, 0.74, x);
 
@@ -67,12 +65,13 @@ interface Slice {
   edge: number;
 }
 
-const slicesFor = (r: Region): Slice[] =>
+const slicesFor = (r: Region) =>
   Array.from({ length: SAMPLES }, (_, i) => {
     const x = i / (SAMPLES - 1);
     const t = thickness(r, x);
     const core = t * r.core;
     const sky = core + t * 0.26;
+
     return { core, edge: t, sky, x };
   });
 
@@ -143,8 +142,10 @@ export const FinanceOverviewFlow = () => {
     const rows = slicesFor(
       region ?? REGIONS[0] ?? { core: 0.4, name: "", p1: 0.6, p2: 1, values: [0, 0, 0] },
     );
+
     const band = (key: string, fill: string, y1: (s: Slice) => number, y2: (s: Slice) => number) =>
       areaY(rows, { curve, fill, fillOpacity: 1, id: key, key: "x", x: "x", y1, y2 });
+
     return defineChart({
       gradients: GRADIENTS,
       guides: false,

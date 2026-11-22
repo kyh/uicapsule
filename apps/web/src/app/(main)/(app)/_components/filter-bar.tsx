@@ -44,9 +44,7 @@ export interface Facet {
   label: string;
   mode: "single" | "multi";
   searchable: boolean;
-  // Sits on its own outside the joined group.
   standalone?: boolean;
-  // Single-select only: the row that clears the parameter instead of setting it.
   defaultOption?: { name: string };
   options: FacetOption[];
 }
@@ -62,17 +60,18 @@ interface FacetRow {
   count?: number;
 }
 
-const selectionFor = (filter: GalleryFilter, key: Facet["key"]): ReadonlySet<string> => {
+const selectionFor = (filter: GalleryFilter, key: Facet["key"]) => {
   if (key === "element") {
     return new Set(filter.elements);
   }
+
   if (key === "style") {
     return new Set(filter.styles);
   }
+
   return new Set(filter.view === "recent" ? [] : [filter.view]);
 };
 
-// A selected trigger draws its whole outline over the group's shared divider.
 const triggerClassname = (highlighted: boolean) =>
   cn("shrink-0 dark:bg-background!", highlighted && "border-foreground relative z-10 border-l!");
 
@@ -87,6 +86,7 @@ const useFilterNavigation = (filter: GalleryFilter) => {
     const params = galleryParams(filter);
     mutate(params);
     const query = params.toString();
+
     return `${pathname}${query ? `?${query}` : ""}`;
   };
 
@@ -165,7 +165,6 @@ const FacetList = ({
   const selected = selectionFor(filter, facet.key);
   const { hrefWith, navigate } = useFilterNavigation(filter);
   const [, startTransition] = useTransition();
-  // The grid follows the URL after navigation commits; ticks must not wait for it.
   const [checked, setChecked] = useOptimistic(selected);
   const normalizedQuery = facet.searchable ? query.trim().toLowerCase() : "";
   const matches = (name: string) => name.toLowerCase().includes(normalizedQuery);
@@ -173,11 +172,13 @@ const FacetList = ({
   if (facet.mode === "multi") {
     const toggle = (slug: string) => {
       const next = new Set(checked);
+
       if (next.has(slug)) {
         next.delete(slug);
       } else {
         next.add(slug);
       }
+
       startTransition(() => {
         setChecked(next);
         navigate((params) => {
@@ -224,6 +225,7 @@ const FacetList = ({
     <FacetRows empty={rows.length === 0}>
       {rows.map((row) => {
         const active = row.slug === null ? selected.size === 0 : selected.has(row.slug);
+
         const href = hrefWith((params) => {
           if (row.slug === null) {
             params.delete(facet.key);
@@ -231,6 +233,7 @@ const FacetList = ({
             params.set(facet.key, row.slug);
           }
         });
+
         const content = (
           <>
             <CheckIcon className={cn("size-4", !active && "invisible")} />
@@ -238,12 +241,12 @@ const FacetList = ({
             <FacetCount count={row.count} />
           </>
         );
+
         const rowProps = {
           className: rowClassname,
           "data-empty": row.count === 0 || undefined,
         };
 
-        // The menu link needs NavigationMenu context; the drawer has none.
         return onNavigate ? (
           <Link
             key={row.slug ?? "all"}
@@ -310,7 +313,6 @@ const FacetDrawer = ({ facet, filter }: { facet: Facet; filter: GalleryFilter })
   );
 };
 
-// Both layouts mount and CSS picks one, so the server render already matches the viewport.
 export const FilterBar = ({ facets, filter }: { facets: Facet[]; filter: GalleryFilter }) => {
   const [query, setQuery] = useState("");
   const [activeFacet, setActiveFacet] = useState<Facet | null>(null);
@@ -318,7 +320,6 @@ export const FilterBar = ({ facets, filter }: { facets: Facet[]; filter: Gallery
   const standalone = facets.filter((facet) => facet.standalone);
   const grouped = facets.filter((facet) => !facet.standalone);
 
-  // Items render as divs so the joined group can wrap a subset of the list.
   const trigger = (facet: Facet) => (
     <NavigationMenuItem key={facet.key} value={facet.key} render={<div />}>
       <NavigationMenuTrigger
@@ -340,7 +341,6 @@ export const FilterBar = ({ facets, filter }: { facets: Facet[]; filter: Gallery
 
   const drawer = (facet: Facet) => <FacetDrawer key={facet.key} facet={facet} filter={filter} />;
 
-  // One shared popup morphs between facets instead of remounting the search input.
   return (
     <>
       <NavigationMenu

@@ -9,9 +9,6 @@ interface GlobalErrorProps {
   retry: () => void;
 }
 
-// Catches errors thrown by a root layout itself, so it replaces the layout
-// entirely and must render its own <html>/<body> and stylesheet. Kept free of
-// providers and fonts — those may be exactly what failed.
 const GlobalError = ({ error, retry }: GlobalErrorProps) => {
   useEffect(() => {
     console.error(error);

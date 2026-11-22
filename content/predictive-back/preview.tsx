@@ -4,7 +4,6 @@ import type { CSSProperties } from "react";
 
 import { PredictiveBack } from "./predictive-back";
 
-// Light pools on the left, the edge the back gesture pulls from.
 const backdrop: CSSProperties = {
   background: [
     "radial-gradient(ellipse 45% 80% at 0% 50%, rgb(176 82 48 / 0.4), transparent 70%)",

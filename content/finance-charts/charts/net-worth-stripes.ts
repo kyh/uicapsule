@@ -31,14 +31,14 @@ export const stripes = ({
   lean?: number;
   /** Fraction of each period painted `line`. */
   duty?: number;
-}): ChartGradient => {
+}) => {
   const w = Math.max(1, width);
   const h = Math.max(1, height);
   const gx = (lean * w) / h;
-  // Pixel distance between the gradient's 0 and 1 iso-lines.
   const span = (lean * gx * w + h) / ((gx * gx + 1) * Math.sqrt(1 + lean * lean));
   const periods = Math.max(1, Math.round(span / pitch));
   const stops: { color: string; offset: number }[] = [];
+
   for (let i = 0; i < periods; i += 1) {
     const a = i / periods;
     const b = (i + duty) / periods;
@@ -50,5 +50,6 @@ export const stripes = ({
       { color: base, offset: c },
     );
   }
-  return { id, stops, x1: 0, x2: gx, y1: 0, y2: 1 };
+
+  return { id, stops, x1: 0, x2: gx, y1: 0, y2: 1 } satisfies ChartGradient;
 };

@@ -51,6 +51,7 @@ const PEOPLE: Person[] = [
 ];
 
 type SendPhase = "sending" | "sent";
+
 type SendState = { id: string; phase: SendPhase } | null;
 
 const PHASE_LABEL: Record<SendPhase, string> = { sending: "Sending…", sent: "Sent" };
@@ -65,6 +66,7 @@ export const AirdropRadar = () => {
 
   useEffect(() => {
     const timers = timersRef.current;
+
     return () => {
       for (const timer of timers) {
         clearTimeout(timer);
@@ -106,6 +108,7 @@ export const AirdropRadar = () => {
         {PEOPLE.map((person, index) => {
           const state = send?.id === person.id ? send.phase : null;
           const dimmed = send !== null && send.id !== person.id;
+
           return (
             <motion.button
               type="button"

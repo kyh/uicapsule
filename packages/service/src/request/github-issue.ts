@@ -10,8 +10,7 @@ const createdIssueSchema = z.object({ html_url: z.url(), number: z.number().int(
 
 export type CreatedIssue = z.infer<typeof createdIssueSchema>;
 
-// `@` mentions in visitor text would page people and, worse, trigger the
-// `@claude` workflow on this repo. Fullwidth `＠` reads the same and mentions nobody.
+// WARNING: every piece of visitor text goes through this; a raw "@" pages people and triggers the @claude workflow.
 const neutralizeMentions = (text: string) => text.replaceAll("@", "＠");
 
 const quote = (text: string) =>
@@ -24,9 +23,11 @@ const formatCredit = ({ name, url }: ComponentRequest["credit"]) => {
   if (!name) {
     return "_anonymous_";
   }
+
   if (!url) {
     return neutralizeMentions(name);
   }
+
   return `[${neutralizeMentions(name)}](${neutralizeMentions(url)})`;
 };
 
@@ -35,14 +36,12 @@ export const buildIssueBody = (request: ComponentRequest) => {
     request.references.length > 0
       ? request.references.map((url) => `- ${neutralizeMentions(url)}`).join("\n")
       : "_none_";
+
   const attachments =
     request.attachments.length > 0
-      ? request.attachments
-          // GitHub renders an attachment image inline and a bare asset URL as a video player;
-          // the extension is not in the URL, so every asset gets the bare form.
-          .map((url) => neutralizeMentions(url))
-          .join("\n\n")
+      ? request.attachments.map((url) => neutralizeMentions(url)).join("\n\n")
       : "_none_";
+
   const credit = formatCredit(request.credit);
 
   return [
@@ -70,8 +69,9 @@ export const buildIssueBody = (request: ComponentRequest) => {
 export const createComponentRequestIssue = async (
   request: ComponentRequest,
   send: typeof fetch = fetch,
-): Promise<CreatedIssue> => {
+) => {
   const token = process.env.GITHUB_ISSUES_TOKEN;
+
   if (!token) {
     throw new ORPCError("SERVICE_UNAVAILABLE", {
       message: "Requests are temporarily unavailable. Try again later.",
@@ -79,6 +79,7 @@ export const createComponentRequestIssue = async (
   }
 
   let response: Response;
+
   try {
     response = await send(`https://api.github.com/repos/${REQUESTS_REPO}/issues`, {
       body: JSON.stringify({
@@ -110,10 +111,12 @@ export const createComponentRequestIssue = async (
   }
 
   const parsed = createdIssueSchema.safeParse(await response.json());
+
   if (!parsed.success) {
     throw new ORPCError("INTERNAL_SERVER_ERROR", {
       message: "GitHub returned an unexpected response.",
     });
   }
+
   return parsed.data;
 };

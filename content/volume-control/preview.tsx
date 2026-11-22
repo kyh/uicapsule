@@ -23,7 +23,6 @@ const Preview = () => {
 
   return (
     <div className="relative h-screen w-full bg-neutral-950">
-      {/* Bottom-left, out of the way: the HUD hangs off the top-right corner. */}
       <span className="absolute bottom-4 left-4 z-10 flex items-center rounded-full border border-white/10 bg-neutral-900">
         <select
           aria-label="Variation"

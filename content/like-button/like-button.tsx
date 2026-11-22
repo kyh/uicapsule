@@ -44,7 +44,6 @@ const CircleAnimation = () => (
   </svg>
 );
 
-// One entry per particle; each fades from `from` to `to` over its flight.
 const PARTICLE_COLOR_PAIRS = [
   { from: "#9EC9F5", to: "#9ED8C6" },
   { from: "#91D3F7", to: "#9AE4CF" },
@@ -78,21 +77,16 @@ interface Flight {
   duration: number;
 }
 
-// Rolled once per burst, in the click handler rather than in render: a re-render
-// mid-flight would otherwise hand motion new targets and jolt the particles.
-const rollBurst = (): Flight[] =>
+const rollBurst = () =>
   PARTICLE_COLOR_PAIRS.map((colors) => ({
     ...colors,
-    // Add randomness to the burst distance (±15%)
     burstDistance: BURST_RADIUS * (0.85 + Math.random() * 0.3),
-    // Randomize duration between 500-700ms
     duration: 500 + Math.random() * 200,
   }));
 
 const Particle = ({ from: fromColor, to: toColor, angle, burstDistance, duration }: Flight) => {
   const radians = (angle * Math.PI) / 180;
 
-  // Calculate the degree shift (13 degrees in radians)
   const degreeShift = (13 * Math.PI) / 180;
 
   return (

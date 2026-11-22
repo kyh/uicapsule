@@ -2,12 +2,6 @@
 
 import { useEffect, useRef } from "react";
 
-// The flow fields and glass shell are ported from LerSent001/orb (MIT),
-// rewritten from WebGPU/WGSL to WebGL2/GLSL so they run everywhere, with a
-// morph pipeline added on top: every material parameter tweens between
-// presets while the two flow fields crossfade, so the orb transforms
-// instead of cutting.
-
 export type LiquidOrbPreset =
   | "siri"
   | "chrome"
@@ -91,7 +85,6 @@ interface PresetSpec {
   glowColor: string;
 }
 
-// Preset values carried over verbatim from the source editor's style bank.
 const base = {
   contourDeform: 0,
   highlight: "#FFFFFF",
@@ -279,7 +272,6 @@ const presets = {
   },
 } satisfies Record<LiquidOrbPreset, PresetSpec>;
 
-// Style indices the shader dispatches on — must match presetFluid() below.
 const styleIndex = {
   aurora: 1,
   blueDrop: 5,
@@ -322,7 +314,6 @@ const colorKeys = [
   "glowColor",
 ] as const;
 
-// Uniform names aligned with scalarKeys[1..] (speed stays CPU-side).
 const scalarUniforms = [
   "uRadius",
   "uContourDeform",
@@ -357,8 +348,9 @@ const colorUniforms = [
 const COLOR_BASE = scalarKeys.length;
 const VEC_SIZE = COLOR_BASE + colorKeys.length * 3;
 
-const hexToRgb = (hex: string): [number, number, number] => {
+const hexToRgb = (hex: string) => {
   const v = hex.slice(1);
+
   return [
     Number.parseInt(v.slice(0, 2), 16) / 255,
     Number.parseInt(v.slice(2, 4), 16) / 255,
@@ -366,14 +358,17 @@ const hexToRgb = (hex: string): [number, number, number] => {
   ];
 };
 
-const presetVec = (spec: PresetSpec): Float32Array => {
+const presetVec = (spec: PresetSpec) => {
   const out = new Float32Array(VEC_SIZE);
+
   for (const [i, key] of scalarKeys.entries()) {
     out[i] = spec[key];
   }
+
   for (const [i, key] of colorKeys.entries()) {
     out.set(hexToRgb(spec[key]), COLOR_BASE + i * 3);
   }
+
   return out;
 };
 
@@ -386,11 +381,6 @@ void main() {
 }
 `;
 
-// The style pair is compiled in via STYLE_A/STYLE_B defines rather than
-// dispatched on uniforms: software rasterizers (SwiftShader) execute every
-// branch of a uniform if-chain per pixel, which made one style cost as much
-// as all seven. Specialized programs are compiled lazily per cycle segment
-// and cached.
 const fragmentBody = `precision highp float;
 
 uniform vec2 uSize;
@@ -926,16 +916,21 @@ void main() {
 
 const compileShader = (gl: WebGL2RenderingContext, type: number, source: string) => {
   const shader = gl.createShader(type);
+
   if (!shader) {
     return null;
   }
+
   gl.shaderSource(shader, source);
   gl.compileShader(shader);
+
   if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) {
     console.error("liquid-orb shader compile failed:", gl.getShaderInfoLog(shader));
     gl.deleteShader(shader);
+
     return null;
   }
+
   return shader;
 };
 
@@ -959,6 +954,7 @@ export const LiquidOrb = ({
 
   useEffect(() => {
     const container = rootRef.current;
+
     if (!container) {
       return;
     }
@@ -976,16 +972,21 @@ export const LiquidOrb = ({
       premultipliedAlpha: true,
       stencil: false,
     });
+
     if (!gl) {
       canvas.remove();
+
       return;
     }
 
     const vs = compileShader(gl, gl.VERTEX_SHADER, vertexSrc);
+
     if (!vs) {
       canvas.remove();
+
       return;
     }
+
     gl.disable(gl.BLEND);
 
     interface ProgramEntry {
@@ -996,23 +997,28 @@ export const LiquidOrb = ({
       scalars: (WebGLUniformLocation | null)[];
       colors: (WebGLUniformLocation | null)[];
     }
+
     const programs = new Map<string, ProgramEntry | null>();
 
-    const getProgram = (a: number, b: number): ProgramEntry | null => {
+    const getProgram = (a: number, b: number) => {
       const key = `${a}:${b}`;
       const cached = programs.get(key);
+
       if (cached !== undefined) {
         return cached;
       }
+
       const src = `#version 300 es\n#define STYLE_A ${a}\n#define STYLE_B ${b}\n${fragmentBody}`;
       const fs = compileShader(gl, gl.FRAGMENT_SHADER, src);
       const program = gl.createProgram();
       let entry: ProgramEntry | null = null;
+
       if (fs && program) {
         gl.attachShader(program, vs);
         gl.attachShader(program, fs);
         gl.linkProgram(program);
         gl.deleteShader(fs);
+
         if (gl.getProgramParameter(program, gl.LINK_STATUS)) {
           const loc = (name: string) => gl.getUniformLocation(program, name);
           // eslint-disable-next-line react/hooks -- WebGL method, not a React hook.
@@ -1032,14 +1038,12 @@ export const LiquidOrb = ({
           gl.deleteProgram(program);
         }
       }
+
       programs.set(key, entry);
+
       return entry;
     };
 
-    // Adaptive render resolution: the canvas upscales via CSS, and the scale
-    // seeks the largest value the machine sustains — discrete GPUs settle at
-    // 1, software rasterizers sink toward the floor instead of dropping to
-    // slideshow frame rates.
     const SCALE_MIN = 0.3;
     const SCALE_MAX = 1;
     let renderScale = 0.5;
@@ -1050,12 +1054,14 @@ export const LiquidOrb = ({
       const dpr = Math.min(window.devicePixelRatio || 1, 2);
       const width = Math.max(1, Math.round(container.clientWidth * dpr * renderScale));
       const height = Math.max(1, Math.round(container.clientHeight * dpr * renderScale));
+
       if (canvas.width !== width || canvas.height !== height) {
         canvas.width = width;
         canvas.height = height;
         gl.viewport(0, 0, width, height);
       }
     };
+
     resize();
     const observer = new ResizeObserver(resize);
     observer.observe(container);
@@ -1074,9 +1080,11 @@ export const LiquidOrb = ({
 
     const adaptRenderScale = (now: number, elapsed: number) => {
       frameCostMs += (Math.min(elapsed, 1000) - frameCostMs) * 0.2;
+
       if (now - lastAdjust <= 700) {
         return;
       }
+
       if (frameCostMs > 50 && renderScale > SCALE_MIN) {
         renderScale = Math.max(SCALE_MIN, renderScale * 0.8);
         lastAdjust = now;
@@ -1091,6 +1099,7 @@ export const LiquidOrb = ({
     const advanceCycle = (dt: number) => {
       if (morphing) {
         morphT += dt / Math.max(morphDuration, 0.001);
+
         if (morphT >= 1) {
           current = next;
           next = (current + 1) % order.length;
@@ -1098,16 +1107,21 @@ export const LiquidOrb = ({
           morphT = 0;
           holdT = 0;
         }
+
         return;
       }
+
       holdT += dt;
+
       if (holdT >= holdDuration) {
         morphing = true;
         morphT = 0;
         const targetPreset = order[next];
+
         if (targetPreset === undefined) {
           throw new RangeError("Liquid orb preset index is out of bounds");
         }
+
         onPresetChangeRef.current?.(targetPreset);
       }
     };
@@ -1119,6 +1133,7 @@ export const LiquidOrb = ({
       last = now;
 
       adaptRenderScale(now, elapsed);
+
       if (cycle) {
         advanceCycle(dt);
       }
@@ -1126,36 +1141,45 @@ export const LiquidOrb = ({
       const k = morphing ? easeInOut(Math.min(morphT, 1)) : 0;
       const currentPreset = order[current];
       const nextPreset = order[next];
+
       if (!currentPreset || !nextPreset) {
         return;
       }
+
       const a = presetVecs.get(currentPreset);
       const b = presetVecs.get(nextPreset);
+
       if (!a || !b) {
         return;
       }
+
       for (let i = 0; i < VEC_SIZE; i += 1) {
         const from = a[i];
         const to = b[i];
+
         if (from === undefined || to === undefined) {
           throw new RangeError("Liquid orb preset buffer is incomplete");
         }
+
         mixed[i] = from + (to - from) * k;
       }
 
       const [phaseSpeed] = mixed;
+
       if (phaseSpeed === undefined) {
         throw new Error("Liquid orb preset buffer is missing its speed");
       }
+
       phase += dt * phaseSpeed * speed;
 
       const styleA = styleIndex[currentPreset];
       const styleB = styleIndex[nextPreset];
       const entry = morphing ? getProgram(styleA, styleB) : getProgram(styleA, styleA);
+
       if (!entry) {
         return;
       }
-      // Warm the next segment's program mid-segment so switches don't hitch.
+
       if (!morphing && holdT > 0.3) {
         getProgram(styleA, styleB);
       } else if (morphing && morphT > 0.5) {
@@ -1167,24 +1191,30 @@ export const LiquidOrb = ({
       gl.uniform2f(entry.uSize, canvas.width, canvas.height);
       gl.uniform1f(entry.uTime, phase);
       gl.uniform1f(entry.uStyleMix, k);
+
       for (const [i, location] of entry.scalars.entries()) {
         gl.uniform1fv(location, mixed, i + 1, 1);
       }
+
       for (const [i, location] of entry.colors.entries()) {
         gl.uniform3fv(location, mixed, COLOR_BASE + i * 3, 3);
       }
+
       gl.drawArrays(gl.TRIANGLES, 0, 3);
     };
+
     frame = requestAnimationFrame(draw);
 
     return () => {
       cancelAnimationFrame(frame);
       observer.disconnect();
+
       for (const entry of programs.values()) {
         if (entry) {
           gl.deleteProgram(entry.program);
         }
       }
+
       gl.deleteShader(vs);
       gl.getExtension("WEBGL_lose_context")?.loseContext();
       canvas.remove();

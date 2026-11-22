@@ -11,9 +11,9 @@ import { CardHeader, Card, ChartSlot, MoreButton, Num, renderer, useCycle } from
 import { MUTED, THEME, VIOLET } from "../lib/tokens";
 
 const TIER_FILL = { dark: "#c470fb", light: "#e4c2fc", mid: "#d59cf9" } as const;
+
 type Tier = keyof typeof TIER_FILL;
 
-// Spending sessions through the week (in days): start, length, intensity.
 const BASE: readonly (readonly [number, number, Tier])[] = [
   [2.31, 0.12, "light"],
   [2.82, 0.13, "mid"],
@@ -33,20 +33,22 @@ interface Session {
   x2: number;
 }
 
-/** Re-deal the same sessions (same order, same intensity) across another
- * week, so each one slides and stretches into place. */
-const deal = (seed: number): Session[] => {
+const deal = (seed: number) => {
   const r = rng(seed);
   let cursor = 0.4 + r() * 1.4;
+
   const raw = BASE.map(([, len, tier], id) => {
     const x1 = cursor + 0.06 + r() * 0.4;
     const x2 = x1 + len * (0.6 + r() * 0.9);
     cursor = x2;
+
     return { id, tier, x1, x2 };
   });
+
   const end = raw.at(-1)?.x2 ?? 7;
   const fit = end > 6.9 ? 6.9 / end : 1;
-  return raw.map((s) => ({ ...s, x1: s.x1 * fit, x2: s.x2 * fit }));
+
+  return raw.map<Session>((s) => ({ ...s, x1: s.x1 * fit, x2: s.x2 * fit }));
 };
 
 const WEEKS = [

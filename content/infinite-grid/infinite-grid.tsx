@@ -6,18 +6,15 @@ import type {
   SetStateAction,
   TouchEvent as ReactTouchEvent,
 } from "react";
-// Grid physics constants
+
 const MIN_VELOCITY = 0.2;
 const UPDATE_INTERVAL = 16;
 const VELOCITY_HISTORY_SIZE = 5;
 const FRICTION = 0.9;
 const VELOCITY_THRESHOLD = 0.3;
-// Distance (px) the grid must sit away from its rest position to count as "moving".
 const MOVING_DISTANCE = 5;
-// Idle time (ms) after the last update before the grid settles back to rest.
 const REST_DELAY = 200;
 
-// Custom debounce implementation
 const debounce = (func: () => void, wait: number) => {
   let timeoutId: ReturnType<typeof setTimeout> | undefined;
 
@@ -37,7 +34,6 @@ const debounce = (func: () => void, wait: number) => {
   return debouncedFn;
 };
 
-// Custom throttle implementation (leading + trailing)
 const throttle = (func: () => void, limit: number) => {
   let lastCall = 0;
   let timeoutId: ReturnType<typeof setTimeout> | undefined;
@@ -103,50 +99,38 @@ const NO_SIZE: Size = { height: 0, width: 0 };
 
 const getDistance = (p1: Position, p2: Position) => Math.hypot(p2.x - p1.x, p2.y - p1.y);
 
-const getItemIndexForPosition = (x: number, y: number): number => {
-  // Special case for center
+const getItemIndexForPosition = (x: number, y: number) => {
   if (x === 0 && y === 0) {
     return 0;
   }
 
-  // Determine which layer of the spiral we're in
   const layer = Math.max(Math.abs(x), Math.abs(y));
 
-  // Calculate the size of all inner layers
   const innerLayersSize = (2 * layer - 1) ** 2;
 
-  // Calculate position within current layer
   let positionInLayer = 0;
 
   if (y === 0 && x === layer) {
-    // Starting position (middle right)
     positionInLayer = 0;
   } else if (y < 0 && x === layer) {
-    // Right side, bottom half
     positionInLayer = -y;
   } else if (y === -layer && x > -layer) {
-    // Bottom side
     positionInLayer = layer + (layer - x);
   } else if (x === -layer && y < layer) {
-    // Left side
     positionInLayer = 3 * layer + (layer + y);
   } else if (y === layer && x < layer) {
-    // Top side
     positionInLayer = 5 * layer + (layer + x);
   } else {
-    // Right side, top half (y > 0 && x === layer)
     positionInLayer = 7 * layer + (layer - y);
   }
 
   return innerLayersSize + positionInLayer;
 };
 
-const calculateVisiblePositions = (rect: Size, gridSize: number, offset: Position): Position[] => {
-  // Calculate grid cells needed to fill container
+const calculateVisiblePositions = (rect: Size, gridSize: number, offset: Position) => {
   const cellsX = Math.ceil(rect.width / gridSize);
   const cellsY = Math.ceil(rect.height / gridSize);
 
-  // Calculate center position based on offset
   const centerX = -Math.round(offset.x / gridSize);
   const centerY = -Math.round(offset.y / gridSize);
 
@@ -163,7 +147,6 @@ const calculateVisiblePositions = (rect: Size, gridSize: number, offset: Positio
   return positions;
 };
 
-/** What the grid renders. The engine writes here; nothing else does. */
 interface View {
   setContainerSize: Dispatch<SetStateAction<Size>>;
   setGridItems: Dispatch<SetStateAction<GridItem[]>>;
@@ -172,11 +155,6 @@ interface View {
   setOffset: Dispatch<SetStateAction<Position>>;
 }
 
-/**
- * The pan physics, integrated outside React: the loop, the throttle and the
- * gesture scratch all live here, and only what the picture needs is mirrored
- * into state through `view`.
- */
 const createEngine = (initialOffset: Position, initialGridSize: number, view: View) => {
   let container: HTMLDivElement | null = null;
   let gridSize = initialGridSize;
@@ -205,6 +183,7 @@ const createEngine = (initialOffset: Position, initialGridSize: number, view: Vi
     const rect = container?.getBoundingClientRect();
     const size: Size = rect ? { height: rect.height, width: rect.width } : NO_SIZE;
     const positions = rect ? calculateVisiblePositions(rect, gridSize, offset) : [];
+
     const newItems = positions.map((position) => ({
       gridIndex: getItemIndexForPosition(position.x, position.y),
       position,
@@ -233,13 +212,13 @@ const createEngine = (initialOffset: Position, initialGridSize: number, view: Vi
       if (speed < MIN_VELOCITY) {
         animationFrame = null;
         velocity = { x: 0, y: 0 };
+
         return;
       }
 
-      // Apply non-linear deceleration based on speed
       let deceleration = FRICTION;
+
       if (speed < VELOCITY_THRESHOLD) {
-        // Apply stronger deceleration at lower speeds for more natural stopping
         deceleration = FRICTION * (speed / VELOCITY_THRESHOLD);
       }
 
@@ -276,20 +255,19 @@ const createEngine = (initialOffset: Position, initialGridSize: number, view: Vi
     const currentTime = performance.now();
     const timeDelta = currentTime - lastMoveTime;
 
-    // Calculate raw velocity based on position and time
     const rawVelocity = {
       x: (p.x - lastPos.x) / (timeDelta || 1),
       y: (p.y - lastPos.y) / (timeDelta || 1),
     };
 
-    // Add to velocity history and maintain fixed size
     velocityHistory.push(rawVelocity);
+
     if (velocityHistory.length > VELOCITY_HISTORY_SIZE) {
       velocityHistory.shift();
     }
 
-    // Calculate smoothed velocity using moving average
     const smoothedVelocity = { x: 0, y: 0 };
+
     for (const vel of velocityHistory) {
       smoothedVelocity.x += vel.x / velocityHistory.length;
       smoothedVelocity.y += vel.y / velocityHistory.length;
@@ -305,8 +283,6 @@ const createEngine = (initialOffset: Position, initialGridSize: number, view: Vi
   };
 
   const handleUp = () => {
-    // Also fires on mouseleave/touchcancel, which can arrive without a drag in
-    // flight — bail out so we don't spawn a second animation loop.
     if (!isDragging) {
       return;
     }
@@ -317,6 +293,7 @@ const createEngine = (initialOffset: Position, initialGridSize: number, view: Vi
     if (animationFrame) {
       cancelAnimationFrame(animationFrame);
     }
+
     animationFrame = requestAnimationFrame(animate);
   };
 
@@ -345,16 +322,17 @@ const createEngine = (initialOffset: Position, initialGridSize: number, view: Vi
     mounted = true;
     updateGridItems();
 
-    // Non-passive, so the handlers can cancel the page's own scrolling.
     element?.addEventListener("wheel", handleWheel, { passive: false });
     element?.addEventListener("touchmove", handleTouchMove, { passive: false });
 
     return () => {
       mounted = false;
       container = null;
+
       if (animationFrame) {
         cancelAnimationFrame(animationFrame);
       }
+
       throttledUpdateGridItems.cancel();
       stopMoving.cancel();
 
@@ -386,6 +364,7 @@ export const InfiniteGrid = ({
   const [containerSize, setContainerSize] = useState<Size>(NO_SIZE);
 
   const engineRef = useRef<Engine | null>(null);
+
   if (engineRef.current === null) {
     engineRef.current = createEngine(initialPosition ?? ORIGIN, gridSize, {
       setContainerSize,

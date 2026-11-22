@@ -3,12 +3,6 @@
 import { useId } from "react";
 import { motion } from "motion/react";
 
-/**
- * The six sun rays, in the order they pop in when switching to light.
- * Positions are the vertices of a hexagon inscribed at r=8 around (9, 9);
- * `delay` is written out literally rather than derived from the index so the
- * stagger ramp stays free of floating-point drift.
- */
 const SUN_RAYS = [
   { cx: 17, cy: 9, delay: 0 },
   { cx: 13, cy: 15.928203230275509, delay: 0.05 },
@@ -25,7 +19,6 @@ interface LightDarkToggleProps {
 }
 
 export const LightDarkToggle = ({ isLight }: LightDarkToggleProps) => {
-  // Scoped so several toggles can coexist on one page without their masks colliding.
   const maskId = `moon-mask-${useId().replaceAll(/[^a-zA-Z0-9]/gu, "")}`;
 
   return (

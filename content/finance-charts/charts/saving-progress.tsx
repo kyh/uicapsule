@@ -25,7 +25,6 @@ const GOAL = 20_000;
 const BASE_FILLED = 11;
 const BASE_SAVED = 5238.1;
 const STEP = GOAL / SLOTS;
-// Deposits land one slot at a time, then the month resets.
 const DEPOSITS = 4;
 const HEIGHT = 92;
 
@@ -36,12 +35,12 @@ export const SavingProgress = () => {
   const filled = BASE_FILLED + step;
   const saved = BASE_SAVED + step * STEP;
   const percent = Math.round((saved / GOAL) * 100);
-  // The projected finish slot, ahead of what is saved.
   const projected = filled + 2;
 
   const definition = useMemo(() => {
     const done = slots.filter((s) => s.slot < filled);
     const ahead = slots.filter((s) => s.slot >= filled && s.slot < projected);
+
     return defineChart({
       gradients: [
         {

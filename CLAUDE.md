@@ -61,6 +61,12 @@ Content is filesystem-driven; the web app never depends on content packages by n
   use `/api/content/<slug>`; the viewer and zip library load on demand.
 - Content packages exist as workspace packages only so pnpm installs their deps in
   isolation and the registry can report per-component dependencies.
+- **Design systems** (element tag `design-systems`) are the one templated kind:
+  `pnpm new:content <slug> --design-system` copies `scripts/templates/design-system/` (shared
+  showcase + fixed component set, scoped to `.ds-<slug>`). Entries differ in `tokens.css`
+  and `components/*`, never in the showcase, so they compare side by side. Template edits
+  reach only systems scaffolded afterwards. Like `pages`, the gallery card shows a badge
+  (`elementBadge` in `content-categories.ts`) instead of an index number.
 - `meta.json` carries provenance: `addedAt` (required, stamped by `new:content`, drives
   gallery order newest-first), `inspiredBy` (where the idea came from), `requestedBy`
   (who asked for it). Keep them honest — they render on the detail page.
@@ -159,7 +165,7 @@ pnpm format           # Check formatting
 pnpm format:fix       # Fix formatting
 pnpm db:push          # Push local db schema
 pnpm db:push-remote   # Push to production Turso
-pnpm new:content <slug>  # Scaffold a new content component in content/
+pnpm new:content <slug>  # Scaffold a new content component in content/ (--design-system for the template)
 pnpm check:content    # Fail if any content/<slug> is not a loadable component
 pnpm test             # node:test — auth + RPC transport guards + the agent-surface tests
 pnpm check:agent-endpoints  # Runtime check of the agent surfaces (needs a running server)
@@ -172,8 +178,22 @@ pnpm og:video         # By hand, never in verify: home loop (scripts/og-video/sc
 CI runs it on every push and pull request.
 
 Lint is a clean gate: `oxlint.config.ts` extends the ultracite presets (core, react, next,
-anti-slop) and every rule is an error. Fix the code, don't add config overrides; a
-`// oxlint-disable-next-line rule -- why` needs a stated reason.
+anti-slop, landmines) and every rule is an error. Fix the code, don't add config overrides; a
+`// oxlint-disable-next-line rule -- why` needs a stated reason. Landmines applies to `content/*`
+too, so shipped component source carries none of it either:
+
+- **No prose comments.** Allowed are directives, TSDoc on exported API, and a single-line
+  `// WARNING:` for a dangerous recurring footgun. Rationale goes in this file, `AGENTS.md` or
+  the PR, never beside the code.
+- **No annotated return types** on functions with a body. Pin a contract with `satisfies`, a
+  typed variable, or a generic argument (`.map<T>(…)`, `useMemo<T>(…)`); a mutable object with
+  `null` fields needs the typed variable, since `satisfies` keeps the literal `null`.
+- **Tests** are `*.test.ts` beside their subject, with no module mocks, stubbed globals, fixed
+  sleeps or retries.
+- The two deliberate overrides: `no-await-in-loop` is off because sequential awaits are the
+  point here (rate-limited source reads, ordered writes), and
+  `anti-slop/require-safety-comment-for-type-assertion` is off because the `// SAFETY:` comment
+  it demands is one `no-comments` forbids.
 
 Typecheck covers the app, shared packages, scripts, and every code-bearing content package
 independently. Content remains excluded from the app's TypeScript project because independent

@@ -15,6 +15,7 @@ test("password reset delivery reports provider and network failures", async (t) 
     } else {
       process.env.RESEND_API_KEY = previousKey;
     }
+
     if (previousSender === undefined) {
       delete process.env.AUTH_EMAIL_FROM;
     } else {
@@ -26,6 +27,7 @@ test("password reset delivery reports provider and network failures", async (t) 
   let received: Request | undefined;
   await sendPasswordResetEmail("dev@example.com", resetUrl, (input, init) => {
     received = new Request(input, init);
+
     return Promise.resolve(Response.json({ id: "test-message" }));
   });
   assert.ok(received);

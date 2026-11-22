@@ -4,7 +4,7 @@ import { absoluteUrl } from "./markdown";
 
 import type { ContentComponentSummary } from "@/lib/content/content-schema";
 
-export const installCommand = (slug: string): string =>
+export const installCommand = (slug: string) =>
   `npx shadcn@latest add ${siteConfig.url}/r/${slug}.json`;
 
 export type CatalogEntry = Pick<
@@ -15,7 +15,7 @@ export type CatalogEntry = Pick<
     | { installable: false; sourceUrl: string }
   );
 
-export const catalogEntry = (component: ContentComponentSummary): CatalogEntry => {
+export const catalogEntry = (component: ContentComponentSummary) => {
   const base = {
     addedAt: component.addedAt,
     description: component.description,
@@ -24,9 +24,12 @@ export const catalogEntry = (component: ContentComponentSummary): CatalogEntry =
     tags: component.tags,
     url: absoluteUrl(`/ui/${component.slug}`),
   };
-  return component.type === "local"
-    ? { ...base, install: installCommand(component.slug), installable: true }
-    : { ...base, installable: false, sourceUrl: component.sourceUrl };
+
+  return (
+    component.type === "local"
+      ? { ...base, install: installCommand(component.slug), installable: true }
+      : { ...base, installable: false, sourceUrl: component.sourceUrl }
+  ) satisfies CatalogEntry;
 };
 
 export interface CatalogQuery {
@@ -35,15 +38,15 @@ export interface CatalogQuery {
   limit: number;
 }
 
-// Name hits outrank tag hits outrank description hits, so "slider" surfaces the
-// sliders before components that merely mention one.
-const tokenScore = (component: ContentComponentSummary, token: string): number => {
+const tokenScore = (component: ContentComponentSummary, token: string) => {
   if (component.name.toLowerCase().includes(token) || component.slug.includes(token)) {
     return 3;
   }
+
   if (component.tags.includes(token)) {
     return 2;
   }
+
   return component.description.toLowerCase().includes(token) ? 1 : 0;
 };
 
@@ -55,8 +58,9 @@ const tokenScore = (component: ContentComponentSummary, token: string): number =
 export const searchCatalog = (
   components: ContentComponentSummary[],
   { query = "", tags = [], limit }: CatalogQuery,
-): CatalogEntry[] => {
+) => {
   const tokens = query.toLowerCase().split(/\s+/u).filter(Boolean);
+
   const tagged = components.filter((component) =>
     tags.every((tag) => component.tags.includes(tag)),
   );
@@ -66,11 +70,11 @@ export const searchCatalog = (
   }
 
   return tagged
-    .map((component) => ({
-      component,
-      score: tokens.reduce((sum, token) => sum + tokenScore(component, token), 0),
-    }))
-    .filter(({ score }) => score > 0)
+    .flatMap((component) => {
+      const score = tokens.reduce((sum, token) => sum + tokenScore(component, token), 0);
+
+      return score > 0 ? [{ component, score }] : [];
+    })
     .toSorted((a, b) => b.score - a.score)
     .slice(0, limit)
     .map(({ component }) => catalogEntry(component));
@@ -93,7 +97,7 @@ export type ComponentDetail = CatalogEntry & Partial<RegistryFiles>;
 export const componentDetail = (
   component: ContentComponentSummary,
   registry: RegistryFiles | null,
-): ComponentDetail =>
+) =>
   registry
     ? {
         ...catalogEntry(component),

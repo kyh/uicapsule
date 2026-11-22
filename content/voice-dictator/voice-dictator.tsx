@@ -12,13 +12,13 @@ const TRANSCRIPT_LIBRARY = [
   "Introduce a faint aurora stretching across the horizon to hint at ancient magic awakening right behind the hero.",
 ] as const;
 
-/** Per-frame lerp factor pulling the rendered amplitude toward its target. */
 const AMPLITUDE_SMOOTHING = 0.95;
 
 type TimeoutHandle = ReturnType<typeof setTimeout> | null;
 
 const pickTranscript = () => {
   const index = Math.floor(Math.random() * TRANSCRIPT_LIBRARY.length);
+
   return TRANSCRIPT_LIBRARY[index] ?? TRANSCRIPT_LIBRARY[0];
 };
 
@@ -31,6 +31,7 @@ export const VoiceDictator: FC = () => {
   const targetAmplitudeRef = useRef(0.08);
 
   const [isListening, setIsListening] = useState(false);
+
   const [transcript, setTranscript] = useState(
     "Generate expressive prompts by speaking naturally. We will render a faux transcript here.",
   );
@@ -43,6 +44,7 @@ export const VoiceDictator: FC = () => {
 
   const initialiseWebGL = useCallback(() => {
     const canvas = canvasRef.current;
+
     if (!canvas) {
       return;
     }
@@ -115,17 +117,21 @@ export const VoiceDictator: FC = () => {
 
     const createShader = (type: GLenum, source: string) => {
       const shader = gl.createShader(type);
+
       if (!shader) {
         throw new Error("Unable to create shader");
       }
+
       gl.shaderSource(shader, source);
       gl.compileShader(shader);
       const compiled = gl.getShaderParameter(shader, gl.COMPILE_STATUS);
+
       if (!compiled) {
         const info = gl.getShaderInfoLog(shader);
         gl.deleteShader(shader);
         throw new Error(info ?? "Unknown shader compilation error");
       }
+
       return shader;
     };
 
@@ -133,6 +139,7 @@ export const VoiceDictator: FC = () => {
     const fragmentShader = createShader(gl.FRAGMENT_SHADER, fragmentShaderSource);
 
     const program = gl.createProgram();
+
     if (!program) {
       throw new Error("Unable to create WebGL program");
     }
@@ -142,6 +149,7 @@ export const VoiceDictator: FC = () => {
     gl.linkProgram(program);
 
     const linked = gl.getProgramParameter(program, gl.LINK_STATUS);
+
     if (!linked) {
       const info = gl.getProgramInfoLog(program);
       gl.deleteProgram(program);
@@ -175,17 +183,17 @@ export const VoiceDictator: FC = () => {
       time: gl.getUniformLocation(program, "uTime"),
     };
 
-    // Sizing is driven by a ResizeObserver rather than read every frame, so the
-    // render loop never forces a synchronous layout.
     const resize = () => {
       const rect = canvas.getBoundingClientRect();
       const pixelRatio = window.devicePixelRatio || 1;
       const width = Math.round(rect.width * pixelRatio);
       const height = Math.round(rect.height * pixelRatio);
+
       if (canvas.width !== width || canvas.height !== height) {
         canvas.width = width;
         canvas.height = height;
       }
+
       gl.viewport(0, 0, width, height);
     };
 
@@ -204,19 +212,23 @@ export const VoiceDictator: FC = () => {
       const amplitude =
         amplitudeRef.current +
         (targetAmplitudeRef.current - amplitudeRef.current) * (1 - AMPLITUDE_SMOOTHING);
+
       amplitudeRef.current = amplitude;
 
       if (uniforms.time) {
         gl.uniform1f(uniforms.time, time * 0.001);
       }
+
       if (uniforms.amplitude) {
         gl.uniform1f(uniforms.amplitude, amplitude);
       }
+
       if (uniforms.resolution) {
         gl.uniform2f(uniforms.resolution, gl.drawingBufferWidth, gl.drawingBufferHeight);
       }
 
       const button = buttonRef.current;
+
       if (button) {
         const scale = 1 + amplitude * 0.12;
         const glow = 12 + amplitude * 80;
@@ -234,6 +246,7 @@ export const VoiceDictator: FC = () => {
       if (animationFrameRef.current) {
         cancelAnimationFrame(animationFrameRef.current);
       }
+
       animationFrameRef.current = null;
       resizeObserver.disconnect();
       gl.deleteProgram(program);
@@ -260,7 +273,9 @@ export const VoiceDictator: FC = () => {
         clearTimeout(pulseTimeoutRef.current);
         pulseTimeoutRef.current = null;
       }
+
       targetAmplitudeRef.current = 0.06;
+
       return;
     }
 
@@ -268,6 +283,7 @@ export const VoiceDictator: FC = () => {
       if (!listeningRef.current) {
         return;
       }
+
       targetAmplitudeRef.current = 0.25 + Math.random() * 0.7;
       const delay = 120 + Math.random() * 80;
       pulseTimeoutRef.current = setTimeout(pump, delay);
@@ -289,6 +305,7 @@ export const VoiceDictator: FC = () => {
         clearTimeout(wordTimeoutRef.current);
         wordTimeoutRef.current = null;
       }
+
       return;
     }
 
@@ -299,12 +316,15 @@ export const VoiceDictator: FC = () => {
       if (!listeningRef.current) {
         return;
       }
+
       if (wordIndexRef.current >= scriptRef.current.length) {
         stopDictation();
+
         return;
       }
 
       const nextWord = scriptRef.current[wordIndexRef.current];
+
       if (nextWord) {
         wordIndexRef.current += 1;
         setTranscript((previous) => (previous.length > 0 ? `${previous} ${nextWord}` : nextWord));
@@ -329,6 +349,7 @@ export const VoiceDictator: FC = () => {
   const handleToggle = useCallback(() => {
     if (listeningRef.current) {
       stopDictation();
+
       return;
     }
 

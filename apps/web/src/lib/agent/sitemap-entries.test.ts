@@ -8,6 +8,7 @@ const components = [
   { addedAt: "2026-02-01", slug: "dynamic-island" },
   { addedAt: "2025-11-14", slug: "feed" },
 ];
+
 const entries = buildSitemapEntries(components);
 const urls = entries.map((entry) => entry.url);
 
@@ -29,6 +30,7 @@ describe("buildSitemapEntries", () => {
         `should contain https://www.uicapsule.com${page.path}`,
       );
     }
+
     assert.ok(
       urls.includes("https://www.uicapsule.com/request"),
       'should contain "https://www.uicapsule.com/request"',
@@ -63,6 +65,7 @@ describe("buildSitemapEntries", () => {
     for (const url of urls) {
       assert.equal(url.startsWith("https://www.uicapsule.com/"), true);
     }
+
     assert.equal(new Set(urls).size, urls.length);
   });
 

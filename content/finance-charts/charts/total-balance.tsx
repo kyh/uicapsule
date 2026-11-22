@@ -11,12 +11,13 @@ import { Card, ChartSlot, Num, renderer, useCycle } from "../lib/kit";
 import { GREEN, MUTED, THEME } from "../lib/tokens";
 
 const COUNT = 25;
+
 const MARKERS = new Map([
   [0, "0"],
   [12, "50"],
   [24, "100"],
 ]);
-// 35% maturity of 25 capsules; the full charge rests HOLD frames, then replays.
+
 const FILLED = 9;
 const HOLD = 8;
 const HEIGHT = 150;
@@ -26,10 +27,10 @@ const BARS = Array.from({ length: COUNT }, (_, i) => ({
   i,
   marker: MARKERS.has(i),
 }));
+
 const LABELS = BARS.filter((b) => b.marker);
 
 export const TotalBalance = () => {
-  // Charges capsule by capsule up to the maturity mark, rests, replays.
   const [frame, pin] = useCycle(FILLED + HOLD, 210, FILLED + HOLD - 1);
   const lit = Math.min(FILLED, frame + 1);
 
@@ -70,7 +71,6 @@ export const TotalBalance = () => {
           barY(BARS, {
             fill: (d) => (d.i < lit ? "url(#tb-on)" : "url(#tb-off)"),
             key: "i",
-            // Half the ~8px capsule width at wall-card size.
             radius: 4,
             stroke: (d) => (d.i < lit ? "#15803d" : "#cacace"),
             strokeWidth: 1,
@@ -83,12 +83,14 @@ export const TotalBalance = () => {
               if (d.i === 0) {
                 return "start";
               }
+
               return d.i === COUNT - 1 ? "end" : "middle";
             },
             dx: (d) => {
               if (d.i === 0) {
                 return -4;
               }
+
               return d.i === COUNT - 1 ? 4 : 0;
             },
             dy: -11,

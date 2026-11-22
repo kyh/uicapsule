@@ -11,9 +11,11 @@ const Torusknot = () => {
 
   useFrame((_state, delta) => {
     const mesh = meshRef.current;
+
     if (!mesh) {
       return;
     }
+
     mesh.rotation.y += delta / 2;
     mesh.rotation.x = mesh.rotation.y;
   });
@@ -41,6 +43,7 @@ const Renderer = () => {
     effect.domElement.style.pointerEvents = "none";
 
     const container = gl.domElement.parentNode;
+
     if (container) {
       gl.domElement.replaceWith(effect.domElement);
     }
@@ -49,14 +52,13 @@ const Renderer = () => {
 
     return () => {
       effectRef.current = null;
+
       if (container && effect.domElement.parentNode) {
         effect.domElement.replaceWith(gl.domElement);
       }
     };
   }, [gl]);
 
-  // Resizing must not tear the effect down: recreating it would detach and
-  // reattach the ASCII <div>, dropping a frame on every resize tick.
   useEffect(() => {
     effectRef.current?.setSize(size.width, size.height);
   }, [size.width, size.height]);

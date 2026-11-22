@@ -22,13 +22,9 @@ import { LevelLabel } from "./effort-dial";
 import { CARD_WIDTH } from "./effort-scale";
 import { EFFORT_THEMES } from "./effort-theme";
 
-/** ChatGPT's chip has two sizes. Its right edge is pinned, so opening grows it
- * leftward until it lines up under the card. Claude's chip doesn't grow — the
- * card just arrives above it. */
 const CHIP_CLOSED_WIDTH = 200;
 const CHIP_MORPH = { damping: 36, stiffness: 420, type: "spring" } as const;
 
-/** The cost estimate doesn't move with the dial — only the level beside it does. */
 const STATIC_SOL = "5.6 Sol";
 const MODEL_NAME = "Fable 5";
 
@@ -43,11 +39,6 @@ interface ComposerChromeProps {
   popover: ReactNode;
 }
 
-/**
- * The prompt box never moves — the trick is in the chip: opening the card widens
- * it leftward from a compact pill into a bar the width of the card above it.
- * Everything here is scenery except the chip.
- */
 const CodexComposer = ({ knobX, theme, onToggle, open, popover }: ComposerChromeProps) => {
   const tokens = EFFORT_THEMES[theme];
 
@@ -90,8 +81,6 @@ const CodexComposer = ({ knobX, theme, onToggle, open, popover }: ComposerChrome
                 aria-expanded={open}
                 animate={{ width: open ? CARD_WIDTH : CHIP_CLOSED_WIDTH }}
                 transition={CHIP_MORPH}
-                // Closed, the chip is bare text — it only takes on a surface once it
-                // widens into the bar under the card.
                 className={`flex h-12 cursor-pointer items-center rounded-full px-5 text-[17px] outline-none focus-visible:ring-2 ${
                   tokens.ring
                 } ${open ? "bg-neutral-700/60" : "hover:bg-white/5"}`}
@@ -122,22 +111,12 @@ const CodexComposer = ({ knobX, theme, onToggle, open, popover }: ComposerChrome
   );
 };
 
-/**
- * Claude keeps the prompt box clean and hangs the model rail below it, right
- * aligned. The effort chip is the last thing before the send button and it never
- * changes size — so the card, pinned to that chip's right edge, is the only thing
- * on screen that moves when you open it.
- */
 const ClaudeComposer = ({ knobX, theme, onToggle, open, popover }: ComposerChromeProps) => {
   const tokens = EFFORT_THEMES[theme];
-  /** Session chips and the model rail share one pill: 24px tall, 6px radius, 6px
-   * of padding either side — doubled. */
   const pill = "flex h-12 items-center gap-3 rounded-xl px-3 text-[26px]";
 
   return (
     <div className="select-none">
-      {/* Long enough to survive the crop: the frame swallows the first 180px, so a
-          two-chip rail would vanish entirely into the overhang. */}
       <div aria-hidden className={`mb-2.5 flex items-center gap-2.5 ${tokens.text}`}>
         <span className={`${pill} bg-white/8`}>
           <FolderIcon className="size-6" />
@@ -152,8 +131,6 @@ const ClaudeComposer = ({ knobX, theme, onToggle, open, popover }: ComposerChrom
         </span>
       </div>
 
-      {/* Same surface and same inset stroke as the popover card — in this app the
-          prompt box and the card are the same material, lit the same way. */}
       <div
         aria-hidden
         className="flex items-center gap-4 rounded-[20px] bg-[#2c2c2a] px-5 py-6 shadow-[inset_0_0_0_2px_rgba(255,255,255,0.08)]"
@@ -180,8 +157,6 @@ const ClaudeComposer = ({ knobX, theme, onToggle, open, popover }: ComposerChrom
             type="button"
             onClick={onToggle}
             aria-expanded={open}
-            // The chip never resizes — open, it just takes on a surface, and the
-            // card lands above it.
             className={`flex h-10 cursor-pointer items-center rounded-[10px] px-3 text-[24px] text-white outline-none focus-visible:ring-2 ${
               tokens.ring
             } ${open ? "bg-white/12" : "hover:bg-white/8"}`}

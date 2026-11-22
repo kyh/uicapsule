@@ -3,8 +3,6 @@ export interface ContentFilter {
   slug: string;
 }
 
-// Every component carries exactly one element tag, enforced by the metadata
-// schema so a gallery filter can never yield a stray entry.
 export const contentElements: ContentFilter[] = [
   { name: "Effects", slug: "effects" },
   { name: "Controls", slug: "controls" },
@@ -12,10 +10,17 @@ export const contentElements: ContentFilter[] = [
   { name: "Navigation", slug: "navigation" },
   { name: "Data", slug: "data" },
   { name: "Pages", slug: "pages" },
+  { name: "Design Systems", slug: "design-systems" },
 ];
 
-// Only styles with shipped content belong here; an option that yields an empty
-// gallery is worse than no option.
+const elementBadges = new Map([
+  ["design-systems", "Design System"],
+  ["pages", "Page"],
+]);
+
+export const elementBadge = (tags: readonly string[]) =>
+  tags.map((tag) => elementBadges.get(tag)).find((badge) => badge !== undefined);
+
 export const contentStyles: ContentFilter[] = [
   { name: "Minimal", slug: "minimal" },
   { name: "Geometric", slug: "geometric" },
@@ -26,8 +31,7 @@ export const contentStyles: ContentFilter[] = [
   { name: "Silly", slug: "silly" },
 ];
 
-const slugSet = (filters: ContentFilter[]): ReadonlySet<string> =>
-  new Set(filters.map((filter) => filter.slug));
+const slugSet = (filters: ContentFilter[]) => new Set(filters.map((filter) => filter.slug));
 
 export const elementSlugs = slugSet(contentElements);
 export const styleSlugs = slugSet(contentStyles);
@@ -46,8 +50,6 @@ export interface GalleryFilter {
   styles: string[];
 }
 
-// Unknown, duplicate and reordered slugs all collapse to one canonical filter, so junk URLs
-// can't mint new cache entries and the server and filter bar agree on what is selected.
 const parseSlugs = (value: string | null | undefined, allowed: ReadonlySet<string>) =>
   [
     ...new Set(
@@ -58,24 +60,27 @@ const parseSlugs = (value: string | null | undefined, allowed: ReadonlySet<strin
     ),
   ].toSorted();
 
-export const parseGalleryFilter = (
-  get: (key: string) => string | null | undefined,
-): GalleryFilter => ({
-  elements: parseSlugs(get("element"), elementSlugs),
-  styles: parseSlugs(get("style"), styleSlugs),
-  view: get("view") === "recommended" ? "recommended" : "recent",
-});
+export const parseGalleryFilter = (get: (key: string) => string | null | undefined) =>
+  ({
+    elements: parseSlugs(get("element"), elementSlugs),
+    styles: parseSlugs(get("style"), styleSlugs),
+    view: get("view") === "recommended" ? "recommended" : "recent",
+  }) satisfies GalleryFilter;
 
-export const galleryParams = (filter: GalleryFilter): URLSearchParams => {
+export const galleryParams = (filter: GalleryFilter) => {
   const params = new URLSearchParams();
+
   if (filter.view !== "recent") {
     params.set("view", filter.view);
   }
+
   if (filter.elements.length > 0) {
     params.set("element", filter.elements.join(","));
   }
+
   if (filter.styles.length > 0) {
     params.set("style", filter.styles.join(","));
   }
+
   return params;
 };

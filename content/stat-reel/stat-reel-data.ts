@@ -1,11 +1,3 @@
-/**
- * Static dataset for the stat reel.
- *
- * The gradient and the stat are declared together so the 1:1 pairing between a
- * figure and its colour triad cannot drift apart: there is no second array to
- * keep in sync.
- */
-
 const GRAD_SIZE = "95% 95%";
 const GRAD_POS = { x: 50, y: 110 } as const;
 const GRAD_BASE = "#2a2e36";
@@ -160,7 +152,7 @@ const RAW = [
   },
 ] as const satisfies readonly [RawStat, ...RawStat[]];
 
-const toStat = (raw: RawStat): Stat => ({
+const toStat = (raw: RawStat) => ({
   gradient: gradientFrom(raw.triad),
   label: raw.label,
   prefix: raw.prefix,
@@ -178,7 +170,8 @@ export const STATS: readonly [Stat, ...Stat[]] = [toStat(FIRST), ...REST.map(toS
 export const N = STATS.length;
 
 /** Wraps any integer (including negatives) into a defined stat. */
-export const statAt = (index: number): Stat => {
+export const statAt = (index: number) => {
   const wrapped = ((Math.trunc(index) % N) + N) % N;
+
   return STATS[wrapped] ?? STATS[0];
 };

@@ -9,7 +9,6 @@ import { PriceRange } from "./price-range";
 import { TotalExpenses } from "./total-expenses";
 import { TotalSales } from "./total-sales";
 
-// total-expenses, cash-flow-area, overview, price-range, balance, total-sales, customer-rate, cumulative-assets-and-liabilities, cash-flow-monthly-bar
 export const GROUP_1: ChartEntry[] = [
   { Chart: TotalExpenses, id: "total-expenses" },
   { Chart: CashFlowArea, id: "cash-flow-area" },

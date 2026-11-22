@@ -27,17 +27,20 @@ interface Candle {
   up: boolean;
 }
 
-const candles = (seed: number, center: number): Candle[] => {
+const candles = (seed: number, center: number) => {
   const r = rng(seed);
   const out: Candle[] = [];
   let prev = center;
+
   for (let i = 0; i < N; i += 1) {
     const open = Math.min(19_000, Math.max(6500, prev + (r() - 0.5) * 2200));
     const pull = (center - open) * 0.25;
     let close = Math.min(20_000, Math.max(5500, open + pull + (r() - 0.5) * 7600));
+
     if (Math.abs(close - open) < 300) {
       close = open + (r() > 0.5 ? 300 : -300);
     }
+
     const high = Math.max(open, close) + r() * 1300;
     const low = Math.min(open, close) - r() * 1300;
     out.push({
@@ -52,6 +55,7 @@ const candles = (seed: number, center: number): Candle[] => {
     });
     prev = close;
   }
+
   return out;
 };
 
@@ -111,6 +115,7 @@ export const Ethereum = () => {
 
   const definition = useMemo(() => {
     const maxVol = Math.max(...rows.map((d) => d.vol));
+
     return defineChart({
       margin: MARGIN,
       marks: [

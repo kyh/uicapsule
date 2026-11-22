@@ -1,9 +1,9 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
-import type { MouseEvent as ReactMouseEvent, ReactNode } from "react";
+import type { MouseEvent as ReactMouseEvent } from "react";
 import { frame } from "motion/react";
-import type { BundledLanguage, SpecialLanguage } from "shiki";
+import type { BundledLanguage } from "shiki";
 
 import { hotkeysCoreFeature, syncDataLoaderFeature } from "@headless-tree/core";
 import { AssistiveTreeDescription, useTree } from "@headless-tree/react";
@@ -59,34 +59,40 @@ const extensionToLanguageMap = {
 const isKnownExtension = (ext: string): ext is keyof typeof extensionToLanguageMap =>
   ext in extensionToLanguageMap;
 
-const getLanguageFromPath = (path: string): BundledLanguage | SpecialLanguage => {
+const getLanguageFromPath = (path: string) => {
   const ext = path.split(".").pop()?.toLowerCase();
+
   return ext !== undefined && isKnownExtension(ext) ? extensionToLanguageMap[ext] : "txt";
 };
 
-const getFileIcon = (extension: string | undefined, className: string): ReactNode => {
+const getFileIcon = (extension: string | undefined, className: string) => {
   switch (extension) {
     case "tsx":
     case "jsx": {
       return <RiReactjsLine className={className} />;
     }
+
     case "ts":
     case "js":
     case "mjs": {
       return <RiCodeSSlashLine className={className} />;
     }
+
     case "json": {
       return <RiBracesLine className={className} />;
     }
+
     case "svg":
     case "ico":
     case "png":
     case "jpg": {
       return <RiImageLine className={className} />;
     }
+
     case "md": {
       return <RiFileTextLine className={className} />;
     }
+
     default: {
       return <RiFileLine className={className} />;
     }
@@ -108,6 +114,7 @@ const buildFileTree = (files: SourceFile[]) => {
 
     for (let i = 0; i < parts.length; i += 1) {
       const part = parts[i];
+
       if (!part) {
         continue;
       }
@@ -127,8 +134,10 @@ const buildFileTree = (files: SourceFile[]) => {
 
       if (parentPath) {
         const parent = tree[parentPath];
+
         if (parent?.isFolder) {
           const { children } = parent;
+
           if (!children.includes(currentPath)) {
             children.push(currentPath);
           }
@@ -149,7 +158,6 @@ const buildFileTree = (files: SourceFile[]) => {
   return tree;
 };
 
-// Keep width local to the grid; updating :root would restyle the whole page during a drag.
 const useResizableSidebar = () => {
   const containerRef = useRef<HTMLDivElement>(null);
   const dragRef = useRef<{ startX: number; startWidth: number } | null>(null);
@@ -167,9 +175,11 @@ const useResizableSidebar = () => {
 
     const handleMouseMove = (e: MouseEvent) => {
       const drag = dragRef.current;
+
       if (!drag) {
         return;
       }
+
       widthRef.current = Math.min(Math.max(drag.startWidth + e.clientX - drag.startX, 100), 300);
 
       frame.update(() => {
@@ -181,6 +191,7 @@ const useResizableSidebar = () => {
       if (!dragRef.current) {
         return;
       }
+
       dragRef.current = null;
       document.body.style.cursor = "";
       document.body.style.userSelect = "";
@@ -209,10 +220,12 @@ interface CodePreviewProps {
 
 export const CodePreview = ({ sourceFiles }: CodePreviewProps) => {
   const { containerRef, handleMouseDown } = useResizableSidebar();
+
   const files = useMemo(
     () => sourceFiles.map((file) => ({ ...file, path: file.path.replace(/^\/+/u, "") })),
     [sourceFiles],
   );
+
   const [selectedPath, setSelectedPath] = useState(files[0]?.path ?? "");
   const items = useMemo(() => buildFileTree(files), [files]);
 
@@ -220,6 +233,7 @@ export const CodePreview = ({ sourceFiles }: CodePreviewProps) => {
     dataLoader: {
       getChildren: (itemId) => {
         const item = items[itemId];
+
         return item?.isFolder ? item.children : [];
       },
       getItem: (itemId) =>

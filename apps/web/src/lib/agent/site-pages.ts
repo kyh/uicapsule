@@ -33,22 +33,21 @@ export interface ProseListItem {
  * A trailing file extension is the test, because that is exactly what separates
  * this site's route handlers from its pages.
  */
-export const rendersOutsideRouter = (href: string): boolean => {
+export const rendersOutsideRouter = (href: string) => {
   if (!href.startsWith("/")) {
     return true;
   }
+
   const lastSegment = href.split(/[?#]/u)[0]?.split("/").pop() ?? "";
+
   return lastSegment.includes(".");
 };
 
 export type ProseBlock =
   | { kind: "paragraph"; text: string }
-  /** `level` 2 (the default) is a section, 3 a subsection within one. */
   | { kind: "heading"; text: string; level?: 2 | 3 }
   | { kind: "list"; items: ProseListItem[] }
-  /** Sentence bullets: each item is copy, not a label. */
   | { kind: "bullets"; items: string[] }
-  /** Every row carries one cell per column. */
   | { kind: "table"; columns: string[]; rows: string[][] }
   | { kind: "divider" };
 
@@ -75,7 +74,7 @@ export interface ProsePage extends PageCopy {
  * punctuation dropped, each space a hyphen. The HTML page sets the same id, so
  * an `#anchor` link works in both representations.
  */
-export const slugifyHeading = (text: string): string =>
+export const slugifyHeading = (text: string) =>
   text
     .toLowerCase()
     .replaceAll(/[^\p{L}\p{M}\p{N}\p{Pc} -]/gu, "")
@@ -87,48 +86,48 @@ export const slugifyHeading = (text: string): string =>
  * Markdown renderer numbers them. `taken` seeds ids already in use above the
  * blocks, such as the page's own `<h1>`.
  */
-export const headingIdsFor = (
-  blocks: ProseBlock[],
-  taken: string[] = [],
-): (string | undefined)[] => {
+export const headingIdsFor = (blocks: ProseBlock[], taken: string[] = []) => {
   const used = new Set(taken);
-  const claim = (text: string): string => {
+
+  const claim = (text: string) => {
     const base = slugifyHeading(text);
     let id = base;
+
     for (let suffix = 1; used.has(id); suffix += 1) {
       id = `${base}-${suffix}`;
     }
+
     used.add(id);
+
     return id;
   };
+
   return blocks.map((block) => (block.kind === "heading" ? claim(block.text) : undefined));
 };
 
 /** Heading ids for a whole page, aligned with `page.blocks`. */
-export const headingIds = (page: ProsePage): (string | undefined)[] =>
+export const headingIds = (page: ProsePage) =>
   headingIdsFor(page.blocks, [slugifyHeading(page.heading)]);
 
-const p = (text: string): ProseBlock => ({ kind: "paragraph", text });
-const h2 = (text: string): ProseBlock => ({ kind: "heading", text });
-const h3 = (text: string): ProseBlock => ({ kind: "heading", level: 3, text });
-const bullets = (...items: string[]): ProseBlock => ({ items, kind: "bullets" });
-const table = (columns: string[], rows: string[][]): ProseBlock => ({
-  columns,
-  kind: "table",
-  rows,
-});
+const p = (text: string) => ({ kind: "paragraph", text }) satisfies ProseBlock;
+const h2 = (text: string) => ({ kind: "heading", text }) satisfies ProseBlock;
+const h3 = (text: string) => ({ kind: "heading", level: 3, text }) satisfies ProseBlock;
+const bullets = (...items: string[]) => ({ items, kind: "bullets" }) satisfies ProseBlock;
+
+const table = (columns: string[], rows: string[][]) =>
+  ({
+    columns,
+    kind: "table",
+    rows,
+  }) satisfies ProseBlock;
+
 const divider: ProseBlock = { kind: "divider" };
 
-/** An in-page link to a section, labelled with the section's own heading. */
-const anchorTo = (heading: string): string => `[${heading}](#${slugifyHeading(heading)})`;
+const anchorTo = (heading: string) => `[${heading}](#${slugifyHeading(heading)})`;
 
-/**
- * A linked index of the top-level sections in `blocks`. The ids are worked out
- * against the page heading, as `headingIds` does, so each entry lands on the
- * section it names; a test holds every `#anchor` on a page to that.
- */
-const sectionIndex = (pageHeading: string, blocks: ProseBlock[]): ProseBlock => {
+const sectionIndex = (pageHeading: string, blocks: ProseBlock[]) => {
   const ids = headingIdsFor(blocks, [slugifyHeading(pageHeading)]);
+
   return {
     items: blocks.flatMap((block, index) =>
       block.kind === "heading" && block.level !== 3
@@ -136,7 +135,7 @@ const sectionIndex = (pageHeading: string, blocks: ProseBlock[]): ProseBlock => 
         : [],
     ),
     kind: "list",
-  };
+  } satisfies ProseBlock;
 };
 
 export const aboutPage: ProsePage = {
@@ -208,14 +207,6 @@ export const contactPage: ProsePage = {
   title: "Contact",
 };
 
-/*
- * The Privacy Policy and the Terms of Use follow General Legal's templates
- * (the GDPR-enhanced privacy policy and the website terms of use, JAMS
- * arbitration), adapted so every sentence describes what this codebase does.
- * When the code changes what it collects, keeps or shares, the policy changes
- * in the same commit.
- */
-
 const LEGAL_DATE = "October 3, 2026";
 
 const EMAIL = `[${siteConfig.email}](mailto:${siteConfig.email})`;
@@ -223,7 +214,6 @@ const EMAIL = `[${siteConfig.email}](mailto:${siteConfig.email})`;
 const GENERAL_LEGAL_CREDIT =
   'This template was prepared and made publicly available by General Legal, PC ("General Legal"). It is provided for general reference purposes only and does not constitute, and should not be construed as, legal advice, or an endorsement or review of any particular transaction in which it is used. Use of this template does not create an attorney-client relationship with General Legal. General Legal has not reviewed, and takes no position on, any modifications made to this document or the deal terms it is used to document.';
 
-/** The privacy policy's top-level sections, named once for the index and cross-references. */
 const privacySection = {
   changes: "Changes to this Privacy Policy",
   children: "Children",
@@ -243,7 +233,6 @@ const privacySection = {
 
 const PRIVACY_HEADING = "Privacy Policy";
 
-/** The recipients nearly every category of personal information may reach. */
 const DISCLOSED_TO =
   "Service providers; Professional advisors; Authorities and others; Business transferees";
 
@@ -1027,5 +1016,5 @@ export const utilityPages: ProsePage[] = [
   },
 ];
 
-export const findPageByPath = (pathname: string): ProsePage | null =>
+export const findPageByPath = (pathname: string) =>
   [...prosePages, ...utilityPages].find((page) => page.path === pathname) ?? null;

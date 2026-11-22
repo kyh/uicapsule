@@ -34,7 +34,7 @@ interface Person extends SpreadsheetRow {
   role: string;
 }
 
-const generateSamplePeople = (count: number): Person[] =>
+const generateSamplePeople = (count: number) =>
   Array.from({ length: count }, (_, i) => ({
     company: "",
     email: "",
@@ -43,9 +43,10 @@ const generateSamplePeople = (count: number): Person[] =>
     lastName: "",
     linkedinUrl: `https://linkedin.com/in/user-${i + 1}`,
     role: "",
-  }));
+  })) satisfies Person[];
 
 const initialData = generateSamplePeople(30);
+
 const initialColumnWidths = {
   company: 150,
   email: 180,

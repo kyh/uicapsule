@@ -51,6 +51,13 @@ creates `content/<slug>/{<slug>.tsx, preview.tsx, meta.json, package.json}` and 
 `pnpm install`. Nothing registers it in `apps/web/package.json`: the web app reads
 `content/` from the filesystem and never depends on a content package by name.
 
+**Design systems** scaffold with `--design-system` instead: the shared showcase and component
+set from `scripts/templates/design-system/` (read its `README.md`). Build the system in
+`tokens.css`, reshape `components/*` only where tokens can't carry it, keep every
+component's props, and leave the showcase layout alone. Tags and `defaultSize` are prefilled.
+Curation still applies: the system's idea should come from outside the web (a cockpit, a
+synth, a transit map), not "another neutral SaaS kit".
+
 ## 2. Build the component
 
 - `content/<slug>/<slug>.tsx` — the component. `preview.tsx` — stages it fullscreen.

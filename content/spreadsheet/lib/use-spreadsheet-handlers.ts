@@ -20,7 +20,6 @@ interface UseSpreadsheetHandlersProps {
   navigationMap: Map<string, NavigationMap>;
 }
 
-/** Keys that move the single-cell selection, mapped to their direction in the navigation map. */
 const NAVIGATION_KEYS = new Map<string, NavigationDirection>([
   ["ArrowUp", "up"],
   ["ArrowDown", "down"],
@@ -39,12 +38,12 @@ export const useSpreadsheetHandlers = ({ columns, navigationMap }: UseSpreadshee
   const setDragStartCell = useSpreadsheetStore((state) => state.setDragStartCell);
   const updateSelectedCellsData = useSpreadsheetStore((state) => state.updateSelectedCellsData);
 
-  /** A multi-cell selection has no single edit target, so editing is cancelled. Returns `selection` for chaining. */
   const exitEditIfMultiple = useCallback(
     (selection: Set<string>) => {
       if (selection.size > 1 && editingCell) {
         setEditingCell(null);
       }
+
       return selection;
     },
     [editingCell, setEditingCell],
@@ -66,6 +65,7 @@ export const useSpreadsheetHandlers = ({ columns, navigationMap }: UseSpreadshee
         } else {
           setSelectedCells(() => exitEditIfMultiple(new Set(getRowCells(rowId, columns))));
         }
+
         return;
       }
 
@@ -77,6 +77,7 @@ export const useSpreadsheetHandlers = ({ columns, navigationMap }: UseSpreadshee
         } else {
           setSelectedCells(() => exitEditIfMultiple(new Set(getColumnCells(columnId, data))));
         }
+
         return;
       }
 
@@ -91,19 +92,25 @@ export const useSpreadsheetHandlers = ({ columns, navigationMap }: UseSpreadshee
           }
 
           const [firstSelectedCell] = [...currentSelectedCells];
+
           if (!firstSelectedCell) {
             return new Set([cellKey]);
           }
+
           const [firstRowId, firstCol] = firstSelectedCell.split(":");
+
           if (!firstRowId || !firstCol) {
             return new Set([cellKey]);
           }
+
           const rangeCells = getRangeCells(firstRowId, firstCol, rowId, columnId, columns, data);
+
           return exitEditIfMultiple(new Set(rangeCells));
         });
       } else {
         const isCurrentlyEditing =
           editingCell?.rowId === rowId && editingCell?.columnId === columnId;
+
         const isCurrentlySelected = selectedCells.has(cellKey) && selectedCells.size === 1;
 
         if (isCurrentlyEditing) {
@@ -143,6 +150,7 @@ export const useSpreadsheetHandlers = ({ columns, navigationMap }: UseSpreadshee
         columns,
         data,
       );
+
       setSelectedCells(() => exitEditIfMultiple(new Set(rangeCells)));
     },
     [dragStartCell, columns, data, exitEditIfMultiple, setSelectedCells],
@@ -155,6 +163,7 @@ export const useSpreadsheetHandlers = ({ columns, navigationMap }: UseSpreadshee
   const handleKeyDown = useCallback(
     (e: KeyboardEvent) => {
       const firstSelectedCell = getFirstSelectedCell(selectedCells);
+
       if (!firstSelectedCell) {
         return;
       }
@@ -162,51 +171,65 @@ export const useSpreadsheetHandlers = ({ columns, navigationMap }: UseSpreadshee
       const { rowId, columnId } = firstSelectedCell;
 
       const { activeElement } = document;
+
       if (activeElement && activeElement.tagName === "INPUT") {
         return;
       }
 
       const direction = NAVIGATION_KEYS.get(e.key);
+
       if (direction) {
         e.preventDefault();
+
         const nextPosition = getNextCellPositionFromMap(
           `${rowId}:${columnId}`,
           direction,
           navigationMap,
         );
+
         if (nextPosition) {
           setSelectedCells(() => new Set([`${nextPosition.rowId}:${nextPosition.columnId}`]));
         }
+
         return;
       }
 
       switch (e.key) {
         case "Enter": {
           e.preventDefault();
+
           if (editingCell?.rowId === rowId && editingCell?.columnId === columnId) {
             setEditingCell(null);
           } else if (shouldAllowEditing(selectedCells, `${rowId}:${columnId}`)) {
             setEditingCell({ columnId, rowId });
           }
+
           break;
         }
+
         case "Escape": {
           e.preventDefault();
+
           if (editingCell) {
             setEditingCell(null);
           } else {
             setSelectedCells(() => new Set());
           }
+
           break;
         }
+
         case "Delete":
         case "Backspace": {
           e.preventDefault();
+
           if (selectedCells.size > 0) {
             updateSelectedCellsData();
           }
+
           break;
         }
+
         default: {
           break;
         }

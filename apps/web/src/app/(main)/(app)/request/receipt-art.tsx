@@ -13,9 +13,7 @@ interface ArtProps {
 
 const EASE: Transition["ease"] = [0.22, 1, 0.36, 1];
 
-// "arrive" is the receipt landing after filing; "swap" is a click cycling to the next
-// artwork, which runs tighter so the retract and redraw read as one gesture.
-const entrance = (tempo: Tempo, delay = 0, duration = 0.8): Transition =>
+const entrance = (tempo: Tempo, delay = 0, duration = 0.8) =>
   tempo === "swap"
     ? { delay: delay * 0.4, duration: duration * 0.45, ease: EASE }
     : { delay: 0.35 + delay, duration, ease: EASE };
@@ -232,6 +230,7 @@ const Tiles = ({ leave, reducedMotion, tempo }: ArtProps) => (
       [0, 1, 2].map((column) => {
         const x = 60 + (column - row) * 20;
         const y = 30 + (column + row) * 15;
+
         return (
           <motion.path
             key={`${row}-${column}`}
@@ -268,10 +267,10 @@ const isReceiptArtVariant = (value: string): value is ReceiptArtVariant =>
 
 export const receiptArtVariants = Object.keys(ARTWORKS).filter(isReceiptArtVariant);
 
-export const getRandomReceiptArt = (): ReceiptArtVariant =>
+export const getRandomReceiptArt = () =>
   receiptArtVariants[Math.floor(Math.random() * receiptArtVariants.length)] ?? "portal";
 
-export const nextReceiptArt = (current: ReceiptArtVariant): ReceiptArtVariant =>
+export const nextReceiptArt = (current: ReceiptArtVariant) =>
   receiptArtVariants[(receiptArtVariants.indexOf(current) + 1) % receiptArtVariants.length] ??
   current;
 
@@ -284,6 +283,7 @@ export const ReceiptArt = ({
 }) => {
   const reducedMotion = useReducedMotion() === true;
   const Artwork = ARTWORKS[variant];
+
   const leave: TargetAndTransition = reducedMotion
     ? { opacity: 0, transition: { duration: 0.1 } }
     : { opacity: 0, pathLength: 0, transition: { duration: 0.18, ease: "easeIn" } };

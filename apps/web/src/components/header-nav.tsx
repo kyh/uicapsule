@@ -16,6 +16,7 @@ interface HeaderNavProps {
 
 export const HeaderNav = ({ className, searchEntries, profile }: HeaderNavProps) => {
   const { trigger } = useWebHaptics();
+
   return (
     <nav
       className={cn(

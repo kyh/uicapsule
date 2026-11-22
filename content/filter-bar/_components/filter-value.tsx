@@ -57,6 +57,7 @@ interface IconProps {
   className?: string;
   key?: Key;
 }
+
 type IconLike = ReactElement | ReactElementType;
 
 const renderIcon = (icon: IconLike, props: IconProps = {}) => {
@@ -64,8 +65,10 @@ const renderIcon = (icon: IconLike, props: IconProps = {}) => {
     // oxlint-disable-next-line react/no-clone-element -- applies the caller's className and key to an element the config supplied; wrapping it would change the DOM
     return cloneElement(icon, props);
   }
+
   const IconComp = icon;
   const { key, ...iconProps } = props;
+
   return <IconComp key={key} {...iconProps} />;
 };
 
@@ -109,6 +112,7 @@ export const DebouncedInput = ({
       }}
       onKeyDown={(event) => {
         onKeyDown?.(event);
+
         if (!event.defaultPrevented && (event.key === "Enter" || event.key === "Escape")) {
           flush();
         }
@@ -136,9 +140,11 @@ export const FilterValueOptionDisplay = ({ filter, column }: FilterValueDisplayP
   const selected = options.filter((o) => filter?.values.includes(o.value));
 
   const [only] = selected;
+
   if (selected.length === 1 && only) {
     const { label, icon: Icon } = only;
     const hasIcon = !!Icon;
+
     return (
       <span className="inline-flex items-center gap-1">
         {hasIcon && renderIcon(Icon, { className: "text-(--primary) size-4" })}
@@ -146,6 +152,7 @@ export const FilterValueOptionDisplay = ({ filter, column }: FilterValueDisplayP
       </span>
     );
   }
+
   const name = column.displayName.toLowerCase();
   const pluralName = name.endsWith("s") ? `${name}es` : `${name}s`;
 
@@ -156,9 +163,11 @@ export const FilterValueOptionDisplay = ({ filter, column }: FilterValueDisplayP
       {hasOptionIcons &&
         selected.slice(0, 3).map(({ value, icon }) => {
           const Icon = icon;
+
           if (!Icon) {
             return null;
           }
+
           return renderIcon(Icon, { className: "size-4", key: value });
         })}
       <span className={cn(hasOptionIcons && "ml-1.5")}>
@@ -176,9 +185,11 @@ export const FilterValueMultiOptionDisplay = ({
   const selected = options.filter((o) => filter.values.includes(o.value));
 
   const [only] = selected;
+
   if (selected.length === 1 && only) {
     const { label, icon: Icon } = only;
     const hasIcon = !!Icon;
+
     return (
       <span className="inline-flex items-center gap-1.5">
         {hasIcon && renderIcon(Icon, { className: "text-(--primary) size-4" })}
@@ -198,9 +209,11 @@ export const FilterValueMultiOptionDisplay = ({
         <div key="icons" className="inline-flex items-center gap-0.5">
           {selected.slice(0, 3).map(({ value, icon }) => {
             const Icon = icon;
+
             if (!Icon) {
               return null;
             }
+
             return isValidElement(Icon) ? (
               <Fragment key={value}>{Icon}</Fragment>
             ) : (
@@ -235,15 +248,19 @@ export const FilterValueDateDisplay = ({ filter }: FilterValueDisplayProps<"date
   if (!filter) {
     return null;
   }
+
   if (filter.values.length === 0) {
     return <Ellipsis className="size-4" />;
   }
+
   const [first, second] = filter.values;
+
   if (filter.values.length === 1 && first) {
     const formattedDateStr = format(first, "MMM d, yyyy");
 
     return <span>{formattedDateStr}</span>;
   }
+
   if (filter.values.length === 2 && first && second) {
     const formattedRangeStr = formatDateRange(first, second);
 
@@ -257,6 +274,7 @@ export const FilterValueTextDisplay = ({ filter }: FilterValueDisplayProps<"text
   if (!filter) {
     return null;
   }
+
   if (filter.values.length === 0 || (filter.values[0] && filter.values[0].trim() === "")) {
     return <Ellipsis className="size-4" />;
   }
@@ -282,6 +300,7 @@ export const FilterValueNumberDisplay = ({ filter }: FilterValueDisplayProps<"nu
   }
 
   const [value] = filter.values;
+
   return <span className="tracking-tight tabular-nums">{value}</span>;
 };
 
@@ -292,6 +311,7 @@ export const FilterValueBooleanDisplay = ({
   if (!filter || filter.values.length === 0) {
     return null;
   }
+
   return <span>{column.toggledStateName}</span>;
 };
 
@@ -313,6 +333,7 @@ export const FilterValueDisplay = ({
         )
       );
     }
+
     case "multiOption": {
       return (
         binding.filter && (
@@ -325,6 +346,7 @@ export const FilterValueDisplay = ({
         )
       );
     }
+
     case "date": {
       return (
         binding.filter && (
@@ -337,6 +359,7 @@ export const FilterValueDisplay = ({
         )
       );
     }
+
     case "text": {
       return (
         binding.filter && (
@@ -349,6 +372,7 @@ export const FilterValueDisplay = ({
         )
       );
     }
+
     case "number": {
       return (
         binding.filter && (
@@ -361,6 +385,7 @@ export const FilterValueDisplay = ({
         )
       );
     }
+
     case "boolean": {
       return (
         binding.filter && (
@@ -373,6 +398,7 @@ export const FilterValueDisplay = ({
         )
       );
     }
+
     default: {
       return null;
     }
@@ -393,6 +419,7 @@ interface OptionItemProps {
 
 const OptionItemBase = ({ option, onToggle }: OptionItemProps) => {
   const { value, label, icon: Icon, selected } = option;
+
   const handleSelect = useCallback(() => {
     onToggle(value, !selected);
   }, [onToggle, value, selected]);
@@ -428,9 +455,11 @@ export const FilterValueOptionController = ({
   const [initialSelectedValues] = useState(() => new Set(filter?.values || []));
 
   const filterValues = filter?.values;
+
   const { selectedOptions, unselectedOptions } = useMemo(() => {
     const allOptions = column.options.map((o) => {
       const currentlySelected = filterValues?.includes(o.value) ?? false;
+
       return {
         count: o.count ?? 0,
         icon: o.icon,
@@ -442,8 +471,9 @@ export const FilterValueOptionController = ({
 
     const selected = allOptions.filter((o) => initialSelectedValues.has(o.value));
     const unselected = allOptions.filter((o) => !initialSelectedValues.has(o.value));
+
     return { selectedOptions: selected, unselectedOptions: unselected };
-  }, [column, filterValues, initialSelectedValues]);
+  }, [column.options, filterValues, initialSelectedValues]);
 
   const handleToggle = useCallback(
     (value: string, checked: boolean) => {
@@ -494,6 +524,7 @@ export const FilterValueDateController = ({
     const to = from && value?.to && !isEqual(from, value.to) ? value.to : undefined;
 
     let newValues: Date[] = [];
+
     if (from && to) {
       newValues = [from, to];
     } else if (from) {
@@ -558,6 +589,7 @@ export const FilterValueNumberController = ({
     () => [column.min, column.max],
     [column.min, column.max],
   );
+
   const [sliderMin, sliderMax] = [minMax ? minMax[0] : 0, minMax ? minMax[1] : 0];
 
   const [values, setValues] = useState(filter?.values ?? [0, 0]);
@@ -575,11 +607,13 @@ export const FilterValueNumberController = ({
       actions.setFilterValue({ columnId: column.id, type: "number", values: newValues }),
     [actions, column],
   );
+
   const {
     schedule: setFilterValueDebounced,
     cancel: cancelFilterValueUpdate,
     flush: flushFilterValueUpdate,
   } = useDebouncedCallback(setNumberFilterValue, 500);
+
   useEffect(cancelFilterValueUpdate, [filter?.values, cancelFilterValueUpdate]);
 
   const changeNumber = (value: number[]) => {
@@ -607,6 +641,7 @@ export const FilterValueNumberController = ({
   const changeType = useCallback(
     (type: "single" | "range") => {
       let newValues: number[] = [];
+
       if (type === "single") {
         newValues = [values[0] ?? 0];
       } else if (minMax) {
@@ -623,7 +658,6 @@ export const FilterValueNumberController = ({
 
       setValues(newValues);
 
-      // Cancel the old value before changing operators.
       cancelFilterValueUpdate();
 
       actions.setFilterOperator({ columnId: column.id, operator: newOperator, type: "number" });
@@ -729,6 +763,7 @@ export const FilterValueController = ({
         />
       );
     }
+
     case "multiOption": {
       return (
         <FilterValueOptionController
@@ -739,6 +774,7 @@ export const FilterValueController = ({
         />
       );
     }
+
     case "date": {
       return (
         <FilterValueDateController
@@ -749,6 +785,7 @@ export const FilterValueController = ({
         />
       );
     }
+
     case "text": {
       return (
         <FilterValueTextController
@@ -759,6 +796,7 @@ export const FilterValueController = ({
         />
       );
     }
+
     case "number": {
       return (
         <FilterValueNumberController
@@ -769,9 +807,11 @@ export const FilterValueController = ({
         />
       );
     }
+
     case "boolean": {
       return null;
     }
+
     default: {
       return null;
     }
@@ -780,6 +820,7 @@ export const FilterValueController = ({
 
 export const FilterValue = ({ binding, actions, strategy, entityName }: FilterValueProps) => {
   const [open, setOpen] = useState(false);
+
   return (
     <Popover
       open={open}

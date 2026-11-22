@@ -33,7 +33,6 @@ const curve = d3Curve(curveMonotoneX);
 const rows = YEARS.map((year) => ({ annual: ANNUAL[year], mrr: MRR[year], year }));
 
 export const RevenueGrowth = () => {
-  // Walks years 1..5; starts on year 5 like the source.
   const [step, pin] = useCycle(5, 2400, 4);
   const year = step + 1;
   const picked = rows[year] ?? rows[5];
@@ -239,6 +238,7 @@ export const RevenueGrowth = () => {
               onFocusChange={(p) => {
                 if (p) {
                   const y = Number(p.xValue);
+
                   if (Number.isInteger(y) && y >= 1 && y <= 5) {
                     pin(y - 1);
                   }

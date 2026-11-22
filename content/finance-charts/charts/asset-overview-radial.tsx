@@ -62,14 +62,15 @@ const REGIONS: Region[] = [
 
 const spokes = Array.from({ length: SPOKES }, (_, i) => i);
 
-/** Short stubs around the ring with a few long spikes, like the source. */
 const lengths = (seed: number) => {
   const base = uniform(SPOKES, seed, 0.035, 0.07);
   const spikes = uniform(5, seed + 1, 0, SPOKES);
+
   for (const [k, s] of spikes.entries()) {
     const i = Math.floor(s);
     base[i] = 0.11 + k * 0.035;
   }
+
   return base;
 };
 
@@ -82,6 +83,7 @@ export const AssetOverviewRadial = () => {
     const ls = lengths(r?.seed ?? 0);
     const outer = spokes.map((i) => ({ i, r1: RING, r2: 0.96 + ((i * 7) % 5) * 0.01 }));
     const inner = spokes.map((i) => ({ i, r1: RING - 0.13, r2: RING - 0.13 + (ls[i] ?? 0) }));
+
     return defineChart({
       gradients: [
         {

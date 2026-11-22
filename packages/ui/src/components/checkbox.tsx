@@ -9,7 +9,6 @@ const Checkbox = ({ className, ...props }: CheckboxPrimitive.Root.Props) => (
     data-slot="checkbox"
     className={cn(
       "peer group/checkbox relative size-[15px] shrink-0 rounded-[5px] border-[1.5px] border-input transition-colors outline-none",
-      // Invisible hit-area extension for comfortable clicking in form rows.
       "after:absolute after:-inset-x-3 after:-inset-y-2",
       "focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50",
       "disabled:cursor-not-allowed disabled:opacity-50 group-has-disabled/field:opacity-50",
