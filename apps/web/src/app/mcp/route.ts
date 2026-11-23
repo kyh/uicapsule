@@ -11,6 +11,7 @@ import { getAllContent, getShadcnRegistryItem } from "@/lib/content-data";
 import { siteConfig } from "@/lib/site-config";
 
 const tagSlugs = [...contentElements, ...contentStyles].map((filter) => filter.slug);
+const slugList = (filters: { slug: string }[]) => filters.map((filter) => filter.slug).join(", ");
 
 const readCatalog = { annotations: { openWorldHint: false, readOnlyHint: true } };
 
@@ -24,7 +25,15 @@ const router = {
         title: "Get component",
       }),
     )
-    .input(z.object({ slug: z.string().describe("Slug from search_components") }))
+    .input(
+      z.object({
+        slug: z
+          .string()
+          .describe(
+            'The component\'s slug, copied exactly from the slug field of a search_components result, e.g. "card-stack". Lowercase and hyphenated; an unknown slug returns a not-found error.',
+          ),
+      }),
+    )
     .handler(async ({ input: { slug } }) => {
       const all = await getAllContent();
       const component = all.find((c) => c.slug === slug);
@@ -47,15 +56,25 @@ const router = {
     )
     .input(
       z.object({
-        limit: z.number().int().min(1).max(100).default(20),
+        limit: z
+          .number()
+          .int()
+          .min(1)
+          .max(100)
+          .default(20)
+          .describe("Most results to return, from 1 to 100. Defaults to 20."),
         query: z
           .string()
           .optional()
-          .describe('Free text, e.g. "rotary dial" or "ios volume slider"'),
+          .describe(
+            'Free text describing what the component does or looks like, e.g. "rotary dial" or "ios volume slider". Each word is matched against names, slugs, tags and descriptions, and results rank by how many words match; a component matching none is left out. Omit it to list components newest first.',
+          ),
         tags: z
           .array(z.enum(tagSlugs))
           .optional()
-          .describe("Only components carrying every one of these tags"),
+          .describe(
+            `Only return components that carry every one of these tags. Kind tags: ${slugList(contentElements)}. Style tags: ${slugList(contentStyles)}.`,
+          ),
       }),
     )
     .handler(async ({ input }) => {
