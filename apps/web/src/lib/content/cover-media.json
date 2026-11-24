@@ -287,6 +287,14 @@
     "uploadDate": "2026-09-25",
     "width": 1600
   },
+  "popup-book": {
+    "cover": "popup-book/popup-book.20261124.mp4",
+    "duration": 13.73,
+    "height": 900,
+    "still": "/og/covers/popup-book.jpg",
+    "uploadDate": "2026-11-24",
+    "width": 1600
+  },
   "predictive-back": {
     "cover": "predictive-back/predictive-back.20260926.mp4",
     "duration": 14.58,
