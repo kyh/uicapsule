@@ -48,18 +48,51 @@ ${siteConfig.name} is a curated gallery of interactive React components that tra
 - Typecheck: the component's own files are strict TypeScript and should pass as installed.
 `;
 
-export const SKILLS: Skill[] = [
-  {
-    description: DESCRIPTION,
-    files: [
-      {
-        path: "SKILL.md",
-        text: `---\nname: ${NAME}\ndescription: ${JSON.stringify(DESCRIPTION)}\n---\n\n${body}`,
-      },
-    ],
-    name: NAME,
-  },
-];
+/** The skill this site writes: how to find, install and adapt its components. */
+export const COMPONENTS_SKILL: Skill = {
+  description: DESCRIPTION,
+  files: [
+    {
+      path: "SKILL.md",
+      text: `---\nname: ${NAME}\ndescription: ${JSON.stringify(DESCRIPTION)}\n---\n\n${body}`,
+    },
+  ],
+  name: NAME,
+};
+
+/** Third-party skills served from the repo's `.claude/skills/<name>/`, the one copy dev agents load too. Provenance lives in `.claude/skills/THIRD_PARTY.md`. */
+export const REPO_SKILLS = [
+  "animate",
+  "animation-performance",
+  "animation-vocabulary",
+  "apple-design",
+  "ask-sonner",
+  "better-accessibility",
+  "better-colors",
+  "better-interface",
+  "better-layout",
+  "better-motion",
+  "better-typography",
+  "better-ui",
+  "better-writing",
+  "break",
+  "break-ui",
+  "build-design",
+  "choreograph",
+  "emil-design-eng",
+  "explain-interface",
+  "find-animation-opportunities",
+  "gestures",
+  "improve-animations",
+  "interface-review",
+  "mobile-native",
+  "pick-ui-library",
+  "prototype",
+  "remove-animations",
+  "review-animations",
+  "state-machine",
+  "variant",
+] as const;
 
 export const skillUri = (skill: Skill, path = "SKILL.md") => `skill://${skill.name}/${path}`;
 
@@ -79,11 +112,5 @@ const entryOf = async (skill: Skill) => ({
   uri: skillUri(skill),
 });
 
-let catalog: Promise<Awaited<ReturnType<typeof entryOf>>[]> | undefined;
-
 /** The skills as `skills/list` lists them: each SKILL.md's address, its frontmatter and every file's digest and size. */
-export const skillCatalog = async () => {
-  catalog ??= Promise.all(SKILLS.map(entryOf));
-
-  return await catalog;
-};
+export const skillCatalog = async (skills: Skill[]) => await Promise.all(skills.map(entryOf));

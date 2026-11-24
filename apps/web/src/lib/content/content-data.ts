@@ -8,6 +8,7 @@ import {
   readContentIndex,
   readSourceFiles,
 } from "./content-fs";
+import { readRepoSkill } from "./skills-fs";
 
 export const getAllContent = async () => {
   "use cache";
@@ -111,4 +112,11 @@ export const getShadcnRegistryItem = async (slug: string) => {
   }
 
   return buildShadcnRegistryItem(component);
+};
+
+export const getRepoSkills = async (names: readonly string[]) => {
+  "use cache";
+  cacheLife("max");
+
+  return await Promise.all(names.map(readRepoSkill));
 };

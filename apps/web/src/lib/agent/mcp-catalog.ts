@@ -83,7 +83,7 @@ export const serverInstructions = [
   `${siteConfig.name} is a gallery of interactive React components with unusual motion — hardware gestures, OS animations, physical mechanisms — not a general UI kit.`,
   "Use search_components to find one by what it does or looks like, then get_component for its full source and dependencies.",
   "Installable components come with a shadcn command that writes the files into the project; prefer running it over copying source by hand.",
-  "The uicapsule-components skill walks through finding, installing and adapting one.",
+  "The uicapsule-components skill walks through finding, installing and adapting one; the other skills (motion, gestures, accessibility, typography, color, layout, copy and interface review) help polish it once it is in place.",
 ].join(" ");
 
 export interface RegistryFiles {

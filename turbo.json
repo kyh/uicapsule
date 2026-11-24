@@ -45,7 +45,7 @@
       "cache": false
     }
   },
-  "globalDependencies": ["content/**"],
+  "globalDependencies": ["content/**", ".claude/skills/**"],
   "globalEnv": [
     "TURSO_DATABASE_URL",
     "TURSO_AUTH_TOKEN",

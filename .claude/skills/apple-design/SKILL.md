@@ -94,7 +94,7 @@ Apple deliberately replaced the physics triplet (mass/stiffness/damping) with tw
 | Rotation                     | `0.8`   | `0.4`    |
 | Drawer / sheet               | `0.8`   | `0.3`    |
 
-**Web mapping (Motion / Framer Motion):** the `bounce` + `duration` spring API maps closely to Apple's damping + response. A safe house style is `damping: 1.0` springs everywhere by default; reserve bounce for momentum-driven, physical interactions.
+**Web mapping (Motion / Framer Motion):** the `bounce` + `duration` spring API maps closely to Apple's damping + response. A safe house style is `bounce: 0` springs everywhere by default (Motion's `damping` is a physics coefficient, not Apple's damping ratio); reserve bounce for momentum-driven, physical interactions.
 
 ```js
 import { animate } from "motion";
@@ -145,7 +145,6 @@ Note: the physics-textbook `v²/(2·decel)` is _not_ what Apple ships — use th
 
 - **Enter and exit along the same path.** A panel that slides in from the right must dismiss to the right. In-from-right / out-the-bottom feels disconnected and confusing.
 - **Anchor interactions to their source.** A menu, popover, or sheet should originate from the element that triggered it — set `transform-origin` to the trigger, so the spatial relationship between button and content is obvious. (This is the same origin-awareness point as popovers scaling from their trigger, not their center.)
-- **Mirror the easing on reversible transitions** so the outbound path matches the return path (use inverse cubic-bézier control points for the two directions).
 
 ## 8. Hint in the direction of the gesture
 
@@ -173,9 +172,8 @@ function rubberband(overshoot, dimension, constant = 0.55) {
 
 Smoothness is about _what's in the frames_, not just the frame rate.
 
-- Keep the per-frame positional change below the perception threshold to avoid strobing.
 - For very fast motion, a subtle **motion blur / stretch** encodes speed and reads better than a hard sharp streak.
-- `requestAnimationFrame` is the web's display-synced clock (Apple uses `CADisplayLink`). Animate only compositor-friendly properties — `transform` and `opacity` — and hint with `will-change` where motion is imminent.
+- `requestAnimationFrame` is the web's display-synced clock (Apple uses `CADisplayLink`). Animate only compositor-friendly properties — `transform` and `opacity` — and add `will-change` only after you measure a shift or dropped frames (see `../animation-performance/SKILL.md`).
 
 ## 12. Materials & depth — translucency conveys hierarchy
 
@@ -283,19 +281,18 @@ Tactical rules that serve these:
 
 ## Quick Reference
 
-| Need                        | Technique                            | Concrete value                                       |
-| --------------------------- | ------------------------------------ | ---------------------------------------------------- |
-| Default UI spring           | Critically damped, no overshoot      | `damping 1.0`, `response 0.3–0.4`                    |
-| Momentum / flick spring     | Under-damped, slight bounce          | `damping ~0.8`, `response 0.3–0.4`                   |
-| Gesture → spring velocity   | Hand off release velocity            | `gestureVelocity / (target − current)` if normalized |
-| Flick landing point         | Project momentum                     | `current + (v/1000)·d/(1−d)`, `d ≈ 0.998`            |
-| Interrupt cleanly           | Start from presentation (live) value | read the on-screen transform                         |
-| Avoid reversal "brick wall" | Carry velocity through re-target     | spring that blends velocity                          |
-| Reversible transition       | Mirror the easing curve              | inverse cubic-bézier                                 |
-| Decide reverse vs. commit   | Use velocity **sign**, not position  | at release                                           |
-| 1:1 drag                    | Pointer Events + capture             | respect the grab offset                              |
-| Feedback                    | On pointer-down, continuous          | never only at the end                                |
-| Boundary                    | Rubber-band, don't hard-stop         | progressive resistance                               |
-| Translucent chrome          | `backdrop-filter` layer              | content scrolls under                                |
-| Type tracking               | Size-specific, never fixed           | tighten large text (`-0.02em`), body near `0`        |
-| Reduced motion              | Cross-fade, not slide/spring         | `@media (prefers-reduced-motion)`                    |
+| Need                        | Technique                                        | Concrete value                                       |
+| --------------------------- | ------------------------------------------------ | ---------------------------------------------------- |
+| Default UI spring           | Critically damped, no overshoot                  | `damping 1.0`, `response 0.3–0.4`                    |
+| Momentum / flick spring     | Under-damped, slight bounce                      | `damping ~0.8`, `response 0.3–0.4`                   |
+| Gesture → spring velocity   | Hand off release velocity                        | `gestureVelocity / (target − current)` if normalized |
+| Flick landing point         | Project momentum                                 | `current + (v/1000)·d/(1−d)`, `d ≈ 0.998`            |
+| Interrupt cleanly           | Start from presentation (live) value             | read the on-screen transform                         |
+| Avoid reversal "brick wall" | Carry velocity through re-target                 | spring that blends velocity                          |
+| Decide reverse vs. commit   | Snap to the point nearest the projected endpoint | at release                                           |
+| 1:1 drag                    | Pointer Events + capture                         | respect the grab offset                              |
+| Feedback                    | On pointer-down, continuous                      | never only at the end                                |
+| Boundary                    | Rubber-band, don't hard-stop                     | progressive resistance                               |
+| Translucent chrome          | `backdrop-filter` layer                          | content scrolls under                                |
+| Type tracking               | Size-specific, never fixed                       | tighten large text (`-0.02em`), body near `0`        |
+| Reduced motion              | Cross-fade, not slide/spring                     | `@media (prefers-reduced-motion)`                    |
