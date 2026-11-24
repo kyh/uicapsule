@@ -813,6 +813,11 @@ const newYork = {
   ),
 } satisfies PopupCity;
 
+const rialtoArcade = "M4 117L56 99V82L4 100zM136 117L84 99V82L136 100z";
+const rialtoRoofs = "M1 101L58 81V75L1 95zM139 101L82 81V75L139 95z";
+const gondolaFerro = "M246 40l6 -6l2 2l-4 4v10h-4z";
+const gondolaOar = "M110 25l38 56l-2.4 1.6l-38 -56z";
+
 const venice = {
   coords: "45.44° N · 12.34° E",
   country: "Italy",
@@ -864,29 +869,64 @@ const venice = {
       ...BACK,
       art: (
         <g>
-          <rect width={140} height={150} fill="#f5ebd8" />
+          <rect width={140} height={150} fill="#f4e4cc" />
+          <path d={rialtoArcade} fill="#f4e4cc" />
+          <path d={rialtoRoofs} fill="#e7a68e" />
+          {range(5).map((k) => {
+            const x = 9 + k * 9.5;
+            const base = 117 - (x - 4) * 0.346;
+
+            return (
+              <g key={k}>
+                <path
+                  d={`M${x} ${base}v-9q2.5 -4.5 5 0v9z`}
+                  fill="#9fb2da"
+                  stroke={INK}
+                  strokeWidth={0.7}
+                />
+                <path
+                  d={`M${136 - x} ${base}v-9q-2.5 -4.5 -5 0v9z`}
+                  fill="#9fb2da"
+                  stroke={INK}
+                  strokeWidth={0.7}
+                />
+              </g>
+            );
+          })}
+          <path d="M56 100V60h28v40z" fill="#f8eedd" />
+          <path d="M52 60L70 44L88 60z" fill="#e7a68e" />
+          <path {...hair} d="M58 60L70 50L82 60" strokeOpacity={0.9} />
+          <circle cx={70} cy={55} r={2} fill="#9fb2da" />
+          <path d="M62 100V80q8 -11 16 0v20z" fill="#9fb2da" stroke={INK} strokeWidth={0.8} />
+          <path {...hair} d="M56 66h28M56 72h28" strokeOpacity={0.8} />
+          <path {...hair} d="M58 66v-4M82 66v-4" strokeOpacity={0.8} />
+          <path {...hair} d="M0 121L56 102H84L140 121" strokeOpacity={1} />
+          {range(14).map((k) => {
+            const x = 3 + k * 4;
+
+            return (
+              <path
+                key={k}
+                {...hair}
+                d={`M${x} ${124 - x * 0.34}v4M${140 - x} ${124 - x * 0.34}v4`}
+                strokeOpacity={0.9}
+              />
+            );
+          })}
+          <path d="M18 150Q70 92 122 150z" fill="#a8d6d4" />
+          <path {...ink} d="M18 150Q70 92 122 150" fill="none" />
+          <path {...hair} d="M26 150Q70 102 114 150" strokeDasharray="2 3" strokeOpacity={0.9} />
           <path
-            {...ink}
-            d="M50 84h40v-18h-40zM46 66l24 -14l24 14z"
-            fill="#f2c2a6"
-            strokeWidth={1.1}
+            d="M44 140q6 -3 12 0M78 136q6 -3 12 0M60 146q6 -3 12 0"
+            stroke="#e6f6f4"
+            strokeWidth={1.4}
+            fill="none"
+            strokeLinecap="round"
           />
-          <path {...hair} d="M58 84v-12h6v12M76 84v-12h6v12" strokeOpacity={0.9} />
-          {range(8).map((k) => (
-            <path
-              key={k}
-              {...hair}
-              d={`M${16 + k * 15} ${114 - Math.sin((k / 7) * Math.PI) * 22}v12`}
-              strokeOpacity={0.8}
-            />
-          ))}
-          <path {...ink} d="M2 132Q70 68 138 132" fill="none" />
-          <path {...hair} d="M10 128Q70 76 130 128" strokeDasharray="2 3" />
-          <rect y={140} width={140} height={10} fill="#a8d6d4" />
         </g>
       ),
       height: 150,
-      outline: `M0 150V132Q70 72 140 132V150zM118 142Q70 102 22 142z${box(50, 66, 40, 20)}M46 66l24 -14l24 14z`,
+      outline: `M0 150V121L56 102H84L140 121V150zM122 150Q70 92 18 150z${rialtoArcade}${rialtoRoofs}M56 100V60h28v40zM52 60L70 44L88 60z`,
     },
     {
       ...MID,
@@ -914,12 +954,19 @@ const venice = {
           <rect width={FRONT_W} height={84} fill="#8d86c9" />
           <path d="M100 66q70 9 130 0" stroke="#f0d287" strokeWidth={1.6} fill="none" />
           <path {...hair} d="M102 72q66 8 126 0" stroke={PAPER} strokeOpacity={0.6} />
-          <rect x={164} y={16} width={14} height={32} fill={PAPER} />
-          {range(5).map((k) => (
-            <rect key={k} x={164} y={18 + k * 6} width={14} height={3} fill="#ef8f8a" />
+          <path d="M112 62h118q14 -2 16 -16" stroke="#6b64b0" strokeWidth={2} fill="none" />
+          <path {...ink} d="M150 64v-7q0 -3 3 -3h22q3 0 3 3v7z" fill="#ef8f8a" strokeWidth={0.9} />
+          <path {...ink} d={gondolaFerro} fill="#f0d287" strokeWidth={0.8} />
+          <path d={gondolaOar} fill="#a48a78" />
+          <rect x={100} y={40} width={8} height={26} fill="#4b4590" />
+          <rect x={98} y={20} width={12} height={20} fill={PAPER} />
+          {range(4).map((k) => (
+            <rect key={k} x={98} y={22 + k * 5} width={12} height={2.4} fill="#ef8f8a" />
           ))}
-          <circle {...ink} cx={171} cy={11} r={5} fill="#f4d0b2" strokeWidth={1.1} />
-          <path {...ink} d="M160 6h22l-2 -3h-18z" fill="#f0d287" strokeWidth={1} />
+          <path d="M108 26l6 2" stroke="#f4d0b2" strokeWidth={3} strokeLinecap="round" />
+          <circle {...ink} cx={104} cy={15} r={5} fill="#f4d0b2" strokeWidth={1} />
+          <path {...ink} d="M95 10.5h18v2h-18zM99 10.5v-4h10v4z" fill="#f0d287" strokeWidth={0.8} />
+          <path d="M99 9h10" stroke="#e2675f" strokeWidth={1.4} />
           <rect x={14} y={6} width={5} height={78} fill={PAPER} />
           {range(7).map((k) => (
             <rect key={k} x={14} y={10 + k * 11} width={5} height={5} fill="#9fb6e6" />
@@ -927,7 +974,7 @@ const venice = {
         </g>
       ),
       height: 84,
-      outline: `M84 62q8 6 26 8h120q16 -2 18 -22l4 3q-2 26 -24 28h-118q-22 -2 -30 -14z${box(164, 16, 14, 34)}${disc(171, 11, 5)}M160 6h22l-2 -3h-18zM158 24l-36 50l2 1l36 -50z${box(14, 6, 5, 78)}`,
+      outline: `M84 62q8 6 26 8h120q16 -2 18 -22l4 3q-2 26 -24 28h-118q-22 -2 -30 -14zM150 64v-7q0 -3 3 -3h22q3 0 3 3v7z${gondolaFerro}${gondolaOar}${box(100, 38, 8, 28)}${box(98, 20, 12, 20)}${disc(104, 15, 5)}M95 10.5h18v2h-18zM99 10.5v-4h10v4z${box(14, 6, 5, 78)}`,
     },
   ],
   name: "Venice",
@@ -1229,4 +1276,317 @@ const santorini = {
   ),
 } satisfies PopupCity;
 
-export const CITIES = [paris, kyoto, newYork, venice, santorini] satisfies PopupCity[];
+const lombardTurns = range(8).map<[number, number]>((index) => {
+  const along = 34 + index * 21;
+  const side = (index % 2 === 0 ? -1 : 1) * 30;
+
+  return [along + side * Math.SQRT1_2, along - side * Math.SQRT1_2];
+});
+
+const lombard = `M30 30${lombardTurns.map(([x, y]) => `L${x.toFixed(1)} ${y.toFixed(1)}`).join("")}L200 200`;
+
+const Hydrangea = ({ x, y, r }: { x: number; y: number; r: number }) => (
+  <g>
+    <circle {...ink} cx={x} cy={y} r={r} fill="#7fbf8c" strokeWidth={0.9} />
+    {range(5).map((k) => (
+      <circle
+        key={k}
+        cx={x + Math.cos(k * 1.26) * r * 0.5}
+        cy={y + Math.sin(k * 1.26) * r * 0.5}
+        r={r * 0.34}
+        fill={k % 2 === 0 ? "#f27aa6" : "#9d86ea"}
+      />
+    ))}
+  </g>
+);
+
+const pyramid = "M80 2L97 146H63z";
+const coit = `M0 150V112Q22 98 46 110V150z${box(16, 62, 12, 48)}${box(14, 56, 16, 6)}${box(18, 48, 8, 8)}`;
+
+const victorians = range(3)
+  .map((k) => {
+    const x = 6 + k * 30;
+
+    return `M${x} 34L${x + 14} 12L${x + 28} 34z${box(x + 1, 34, 26, 50)}`;
+  })
+  .join("");
+
+const palmFronds = range(7)
+  .map((k) => {
+    const angle = Math.PI * (1.05 + k * 0.15);
+    const tipX = 227 + Math.cos(angle) * 24;
+    const tipY = 22 + Math.sin(angle) * 14 + 10;
+
+    return `M227 22Q${(227 + tipX) / 2} ${Math.min(tipY, 22) - 10} ${tipX.toFixed(1)} ${tipY.toFixed(1)}Q${(227 + tipX) / 2} ${Math.min(tipY, 22) - 3} 227 25z`;
+  })
+  .join("");
+
+const palmTrunk = "M223 84Q220 54 226 22h3Q224 54 228 84z";
+const cableCar = `${box(118, 32, 56, 26)}M114 32L120 24H172L178 32z${box(130, 19, 32, 5)}${box(112, 58, 68, 3)}${disc(128, 64, 5)}${disc(164, 64, 5)}`;
+
+const sanFrancisco = {
+  coords: "37.80° N · 122.41° W",
+  country: "United States",
+  floor: (
+    <g>
+      <Stipple color="#a9c99e" count={60} seed={7} />
+      <path d="M0 0H22V200H0zM0 0H200V22H0z" fill="#ebe4d6" />
+      {range(24).map((k) => (
+        <path key={k} {...hair} strokeOpacity={0.45} d={`M0 ${k * 8 + 26}H22M${k * 8 + 26} 0V22`} />
+      ))}
+      <path {...ink} d="M22 22V200M22 22H200" fill="none" />
+      <path d={lombard} fill="none" stroke={INK} strokeWidth={20} strokeLinejoin="round" />
+      <path d={lombard} fill="none" stroke="#e7a08f" strokeWidth={17} strokeLinejoin="round" />
+      <path
+        d={lombard}
+        fill="none"
+        stroke="#d58d7e"
+        strokeWidth={17}
+        strokeLinejoin="round"
+        strokeDasharray="1 3"
+      />
+      <path
+        d={lombard}
+        fill="none"
+        stroke="#fbf8f2"
+        strokeWidth={0.9}
+        strokeLinejoin="round"
+        strokeDasharray="4 4"
+      />
+      {lombardTurns.map(([x, y], index) => {
+        const side = index % 2 === 0 ? -1 : 1;
+
+        return (
+          <g key={`${x}-${y}`}>
+            <Hydrangea x={x + side * 13} y={y - side * 13} r={7} />
+            <Hydrangea x={x - side * 17 + 11} y={y + side * 17 + 11} r={5.5} />
+          </g>
+        );
+      })}
+    </g>
+  ),
+  ground: "#cfe3c6",
+  layers: [
+    {
+      ...BACK,
+      art: (
+        <g>
+          <rect width={140} height={150} fill="#cfe3c6" />
+          <rect x={10} y={56} width={30} height={60} fill="#f3ecdf" />
+          <rect x={16} y={62} width={12} height={48} fill="#f3ecdf" />
+          <path {...hair} d="M19 64v44M22 64v44M25 64v44" strokeOpacity={0.9} />
+          <rect x={14} y={56} width={16} height={6} fill="#e8dcc6" />
+          <Windows x={15} y={57} cols={3} rows={1} w={3} h={3} gx={5} gy={0} fill="#bcd2ee" />
+          <rect x={18} y={48} width={8} height={8} fill="#e8dcc6" />
+          <path d="M0 150V112Q22 98 46 110V150z" fill="#a9d1ae" />
+          <path {...hair} d="M4 120q6 -4 12 -2M28 114q6 -2 12 1" strokeOpacity={0.9} />
+          <path d={pyramid} fill="#f1f2f9" />
+          {range(16).map((k) => {
+            const y = 14 + k * 8;
+            const half = ((y - 2) / 144) * 17 - 2;
+
+            return (
+              <path
+                key={k}
+                d={`M${80 - half} ${y}H${80 + half}`}
+                stroke="#bcd2ee"
+                strokeWidth={2.4}
+                strokeDasharray="2 1.4"
+              />
+            );
+          })}
+          <path {...hair} d="M80 2V146" strokeOpacity={0.5} />
+          <rect x={100} y={112} width={16} height={34} fill="#f4c6bf" />
+          <path d="M100 112l8 -8l8 8z" fill="#e2675f" />
+          <rect x={118} y={104} width={20} height={42} fill="#bcd2ee" />
+          <path d="M118 104l10 -9l10 9z" fill="#8d86c9" />
+          <Windows x={104} y={118} cols={2} rows={3} w={3} h={4} gx={5} gy={8} fill={PAPER} />
+          <Windows x={122} y={110} cols={2} rows={4} w={4} h={5} gx={7} gy={8} fill={PAPER} />
+          <rect y={144} width={140} height={6} fill="#b6b9cb" />
+        </g>
+      ),
+      height: 150,
+      outline: `${box(0, 144, 140, 6)}${coit}${pyramid}${box(100, 112, 16, 34)}M100 112l8 -8l8 8z${box(118, 104, 20, 42)}M118 104l10 -9l10 9z`,
+    },
+    {
+      ...MID,
+      place: { anchor: 146, at: 140, zoom: ZOOM },
+      art: (
+        <g>
+          <rect width={MID_W} height={70} fill="#f6ead7" />
+          <path d="M114 32L120 24H172L178 32z" fill="#8d86c9" />
+          <rect x={130} y={19} width={32} height={5} fill="#8d86c9" />
+          <rect x={134} y={25} width={24} height={5} fill={PAPER} />
+          <path {...hair} d="M137 27.5h18" strokeOpacity={1} />
+          <rect x={118} y={46} width={56} height={12} fill="#e2675f" />
+          <path d="M118 46h56" stroke="#f0c95e" strokeWidth={1.4} />
+          <Windows x={122} y={35} cols={5} rows={1} w={7} h={8} gx={10} gy={0} fill="#bcd2ee" />
+          <path {...hair} d="M146 34v12" strokeOpacity={1} />
+          <rect x={112} y={58} width={68} height={3} fill="#a48a78" />
+          <circle cx={128} cy={64} r={5} fill="#8d86c9" />
+          <circle cx={164} cy={64} r={5} fill="#8d86c9" />
+          <circle cx={128} cy={64} r={1.8} fill="#e9ebf6" />
+          <circle cx={164} cy={64} r={1.8} fill="#e9ebf6" />
+          <circle cx={170} cy={22} r={2} fill="#f0c95e" />
+        </g>
+      ),
+      height: MID_H,
+      outline: `${cableCar}${disc(170, 22, 2)}`,
+    },
+    {
+      ...FRONT,
+      art: (
+        <g>
+          <rect width={FRONT_W} height={84} fill="#f6ead7" />
+          {[
+            ["#f4c6bf", "#e2675f"],
+            ["#bcd2ee", "#8d86c9"],
+            ["#f3d29e", "#ea8a72"],
+          ].map(([wall = "", roof = ""], k) => {
+            const x = 6 + k * 30;
+
+            return (
+              <g key={wall}>
+                <path d={`M${x} 34L${x + 14} 12L${x + 28} 34z`} fill={roof} />
+                <path d={`M${x + 8} 30L${x + 14} 20L${x + 20} 30z`} fill={PAPER} />
+                <circle cx={x + 14} cy={27} r={2} fill="#bcd2ee" />
+                <rect x={x + 1} y={34} width={26} height={50} fill={wall} />
+                <path {...hair} d={`M${x + 1} 37h26`} strokeOpacity={1} strokeDasharray="1.5 1.5" />
+                <path {...ink} d={box(x + 4, 42, 10, 16)} fill={PAPER} strokeWidth={0.8} />
+                <path {...hair} d={`M${x + 7.3} 42v16M${x + 10.6} 42v16`} strokeOpacity={0.8} />
+                <path {...ink} d={box(x + 18, 42, 6, 10)} fill="#bcd2ee" strokeWidth={0.8} />
+                <path {...ink} d={box(x + 18, 64, 6, 20)} fill={roof} strokeWidth={0.8} />
+                <path {...hair} d={`M${x + 16} 84v-4h10v4M${x + 15} 78h12`} strokeOpacity={1} />
+                <path {...ink} d={box(x + 4, 64, 10, 10)} fill="#bcd2ee" strokeWidth={0.8} />
+              </g>
+            );
+          })}
+          <path d={palmTrunk} fill="#b98b6f" />
+          <path {...hair} d="M222 70h5M222 58h5M223 46h5M224 34h4" strokeOpacity={0.9} />
+          <path d={palmFronds} fill="#8fc49a" />
+          <path {...ink} d="M186 84v-12q0 -4 4 -4q4 0 4 4v12z" fill="#e2675f" strokeWidth={1} />
+          <path d="M184 74h12" stroke="#e2675f" strokeWidth={3} strokeLinecap="round" />
+        </g>
+      ),
+      height: 84,
+      outline: `${victorians}${palmTrunk}${palmFronds}M186 84v-12q0 -4 4 -4q4 0 4 4v12z${box(184, 72.5, 12, 3)}`,
+    },
+  ],
+  name: "San Francisco",
+  panorama: (
+    <g>
+      <rect width={400} height={200} fill="#fbe3d0" />
+      <rect width={400} height={60} fill="#f2d3dc" />
+      <rect width={400} height={26} fill="#e5cbe6" />
+      <path d="M0 150V108Q40 84 80 104Q120 90 150 112Q170 120 200 118V150z" fill="#b8d0a8" />
+      <path {...hair} d="M0 108Q40 84 80 104Q120 90 150 112" strokeOpacity={0.7} />
+      <Cloud x={120} y={86} s={1.6} />
+      <Cloud x={20} y={98} s={1.2} />
+      <Cloud x={330} y={44} s={1} />
+      <Birds
+        points={[
+          [250, 36],
+          [262, 30],
+          [274, 38],
+        ]}
+      />
+      {[
+        [212, 20, 64, "#d6daee"],
+        [236, 18, 80, "#ecdccd"],
+        [228, 30, 118, "#f4c6bf"],
+        [258, 24, 126, "#f6ead2"],
+        [282, 34, 110, "#bcd2ee"],
+        [316, 28, 122, "#f3d29e"],
+        [344, 26, 114, "#e9d6f0"],
+        [370, 30, 120, "#f4c6bf"],
+      ].map(([x = 0, w = 0, top = 0, fill = ""]) => (
+        <g key={Number(x)}>
+          <rect
+            {...ink}
+            x={x}
+            y={top}
+            width={w}
+            height={150 - Number(top)}
+            fill={String(fill)}
+            strokeWidth={1}
+          />
+          <Windows
+            x={Number(x) + 4}
+            y={Number(top) + 6}
+            cols={Math.floor((Number(w) - 4) / 8)}
+            rows={3}
+            w={4}
+            h={5}
+            gx={8}
+            gy={9}
+            fill={PAPER}
+          />
+        </g>
+      ))}
+      <rect y={150} width={400} height={50} fill="#a9c9e6" />
+      <path {...ink} d="M0 150H400" fill="none" />
+      <path {...ink} d="M296 166q14 -12 34 -10q12 2 16 10z" fill="#c9b9a0" strokeWidth={1} />
+      <path {...ink} d="M318 158v-12h4v12z" fill={PAPER} strokeWidth={0.9} />
+      <path {...ink} d="M304 160h20v-4h-20z" fill="#efe3d4" strokeWidth={0.9} />
+      <path
+        d="M14 176q8 -3 16 0M120 184q8 -3 16 0M230 178q8 -3 16 0M360 186q8 -3 16 0"
+        stroke="#e6f1fb"
+        fill="none"
+        strokeWidth={1.4}
+        strokeLinecap="round"
+      />
+      <path d="M-4 128L220 128" stroke="#e5775f" strokeWidth={6} />
+      <path
+        d="M-4 124L60 44Q115 228 170 44L220 116"
+        stroke="#e5775f"
+        strokeWidth={1.8}
+        fill="none"
+      />
+      {range(36).map((k) => {
+        const x = k * 6 + 2;
+        const t = (x - 60) / 110;
+        let top = 44 + 184 * t * (1 - t);
+
+        if (x < 60) {
+          top = 44 + ((60 - x) / 64) * 80;
+        } else if (x > 170) {
+          top = 44 + ((x - 170) / 50) * 72;
+        }
+
+        return (
+          <path
+            key={k}
+            d={`M${x} ${Math.min(top, 126).toFixed(1)}V128`}
+            stroke="#e5775f"
+            strokeWidth={0.6}
+          />
+        );
+      })}
+      {[60, 170].map((x) => (
+        <g key={x}>
+          <path
+            {...ink}
+            d={`M${x - 5} 160V40h3v120zM${x + 2} 160V40h3v120z`}
+            fill="#e5775f"
+            strokeWidth={0.9}
+          />
+          <path
+            d={`M${x - 3} 50h6M${x - 3} 76h6M${x - 3} 102h6M${x - 3} 128h6`}
+            stroke="#c95c48"
+            strokeWidth={3}
+          />
+        </g>
+      ))}
+      <path d="M-4 131.5H220" stroke={INK} strokeWidth={0.8} strokeOpacity={0.6} />
+    </g>
+  ),
+} satisfies PopupCity;
+
+export const CITIES = [
+  sanFrancisco,
+  paris,
+  kyoto,
+  newYork,
+  venice,
+  santorini,
+] satisfies PopupCity[];
