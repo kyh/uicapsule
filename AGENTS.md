@@ -181,11 +181,20 @@ and base CSS are not present in a clean consumer.
 
 ## Platform matrix
 
-| Platform      | Dev command    | Agent-verifiable at runtime?         |
-| ------------- | -------------- | ------------------------------------ |
-| Web (Next.js) | `pnpm dev:web` | **Yes** — headless via agent-browser |
+| Platform        | Dev command          | Agent-verifiable at runtime?         |
+| --------------- | -------------------- | ------------------------------------ |
+| Web (Next.js)   | `pnpm dev:web`       | **Yes** — headless via agent-browser |
+| Extension (WXT) | `pnpm dev:extension` | Partly — see below                   |
 
-Web is the only surface. There is no mobile, desktop, or extension target.
+There is no mobile or desktop target. The extension (`apps/extension`) gets typecheck, tests and
+`wxt build` in `verify`. To drive it, launch Playwright's Chromium with
+`launchPersistentContext("", { channel: "chromium", args: ["--load-extension=<.output/chrome-mv3>"] })`.
+A side panel can't be opened headlessly, so open `chrome-extension://gndnanbepebpjjifhogmdlabbpddfgml/sidepanel.html`
+in its own window (`chrome.windows.create` from the service worker) and, in that page only, point
+`chrome.tabs.query` at the fixture tab and stub `chrome.permissions.request` (an init script);
+copy the build and move `<all_urls>` into `host_permissions` so nothing prompts. Point the panel's
+Settings at `http://localhost:3000` with `EXTENSION_ORIGINS` set: without `GITHUB_ISSUES_TOKEN` a
+submit ends at the attachments route's 503, which proves the Origin guard let it through.
 
 ## Rules that matter
 

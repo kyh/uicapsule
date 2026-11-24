@@ -56,7 +56,8 @@
     "VERCEL_PROJECT_PRODUCTION_URL",
     "RESEND_API_KEY",
     "AUTH_EMAIL_FROM",
-    "GITHUB_ISSUES_TOKEN"
+    "GITHUB_ISSUES_TOKEN",
+    "EXTENSION_ORIGINS"
   ],
   "globalPassThroughEnv": [
     "NODE_ENV",

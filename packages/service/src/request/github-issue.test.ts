@@ -102,3 +102,33 @@ test("reports missing token, provider failure, and network failure as unavailabl
     unavailable,
   );
 });
+
+test("an extension capture adds the page, the element, and its HTML in a fence it cannot close", () => {
+  const body = buildIssueBody(
+    componentRequestSchema.parse({
+      attachments: [],
+      capture: {
+        html: '<pre>```js\nconsole.log("@claude")\n```</pre>',
+        selector: "main > div.hero:nth-of-type(2)",
+        url: "https://example.com/landing",
+      },
+      credit: { name: "", url: "" },
+      description: "A hero that folds open like a pop-up book page.",
+      name: "Pop-up hero",
+      references: [],
+    }),
+  );
+
+  assert.match(body, /### Captured from\n\n- Page: https:\/\/example\.com\/landing\n/u);
+  assert.match(body, /- Element: ` main > div\.hero:nth-of-type\(2\) `\n/u);
+  assert.match(body, /\n````html\n<pre>```js\n[\s\S]*\n```<\/pre>\n````\n/u);
+  assert.ok(!body.includes("@"));
+  assert.match(body, /_Filed from the UICapsule browser extension\._$/u);
+});
+
+test("a request without a capture keeps the form footer and no capture section", () => {
+  const body = buildIssueBody(request);
+
+  assert.ok(!body.includes("### Captured from"));
+  assert.match(body, /_Filed from the request form on uicapsule\.com\._$/u);
+});

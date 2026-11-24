@@ -1,0 +1,3 @@
+interface HTMLMediaElement {
+  captureStream?: () => MediaStream;
+}

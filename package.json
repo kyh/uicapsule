@@ -10,6 +10,7 @@
     "db:push-remote": "pnpm -F db push:remote",
     "dev": "turbo watch dev --continue",
     "dev:web": "turbo watch dev -F @repo/web...",
+    "dev:extension": "pnpm -F @repo/extension dev",
     "lint": "oxlint --report-unused-disable-directives",
     "test": "turbo run test && node --import tsx --test 'scripts/**/*.test.ts'",
     "typecheck": "turbo run typecheck && pnpm typecheck:scripts && pnpm typecheck:content",

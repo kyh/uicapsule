@@ -3,6 +3,8 @@ import { appRouter, createORPCContext } from "@repo/service";
 import { onError, ORPCError } from "@orpc/server";
 import { RPCHandler } from "@orpc/server/fetch";
 
+import { isAllowedOrigin } from "@/lib/request-origin";
+
 const handler = new RPCHandler(appRouter, {
   clientInterceptors: [
     // oxlint-disable-next-line promise/prefer-await-to-callbacks -- oRPC interceptor API, not a Node callback
@@ -17,9 +19,7 @@ const handler = new RPCHandler(appRouter, {
 });
 
 const handleRequest = async (req: NextRequest) => {
-  const origin = req.headers.get("origin");
-
-  if (origin !== null && origin !== new URL(req.url).origin) {
+  if (!isAllowedOrigin(req)) {
     return new Response("Cross-origin request blocked.", { status: 403 });
   }
 

@@ -9,6 +9,7 @@
 ```
 apps/
   web/           # Next.js 16 app (main frontend)
+  extension/     # Chrome MV3 extension (WXT): capture part of any page as a component request
 packages/
   contract/      # oRPC contract: zod inputs, outputs, client-safe request schemas
   service/       # oRPC implementation of the contract + better-auth
@@ -81,6 +82,21 @@ Content is filesystem-driven; the web app never depends on content packages by n
 `uploads.github.com/user-attachments/assets` store (the endpoint `gh --attach` uses; fine-grained
 PATs allowed, repo write access required), capped at 4MB by Vercel's request-body limit.
 Visitor text has `@` neutralized so it can't trigger the `@claude` workflow.
+
+**Browser extension** (`apps/extension`, WXT, scaffolded from kyh/init's): clicking the icon opens
+a side panel. "Select area" / "Pick element" inject `entrypoints/picker.ts` into the active tab
+(`<all_urls>` is an optional host permission, asked for on the first capture); the panel crops
+`captureVisibleTab` to the selection and files through the same `/api/request/attachments` +
+`request.create` as the form, adding `capture` (page URL, element selector, scrubbed HTML) that the
+issue body renders under "Captured from". A picked `<video>` (or the only video inside the picked
+element) is attached as its file when it is ≤4MB and an allowed type; otherwise the page records a
+6s clip via `captureStream` + `MediaRecorder`; if that is refused (cross-origin without CORS, DRM)
+the video URL goes under references. Both routes' Origin guard (`lib/request-origin.ts`) admits
+only the extension origins in `EXTENSION_ORIGINS`. The dev build pins its ID
+(`gndnanbepebpjjifhogmdlabbpddfgml`) with the public `key` in `wxt.config.ts`; `pnpm -F
+@repo/extension zip` (`--mode store`) drops it, so the Web Store ID must be added to
+`EXTENSION_ORIGINS` too.
+
 Triage is manual: apply `ready` to accept, close as not-planned to decline. The
 `build-requests` skill drains `ready` issues into PRs (run locally, on a schedule).
 
@@ -155,13 +171,14 @@ Next imports, no filesystem — so it can be unit-tested without a runtime. The 
   creates one on demand (see `AGENTS.md` → Login).
 - **Verify**: `pnpm verify` for the static gate, `pnpm check:agent-endpoints` for the
   machine-readable surfaces (needs a running server), then drive the running app with
-  `agent-browser` — `/`, `/ui/<slug>`, `/preview-frame/<slug>`, `/r/<slug>.json`. Web is
-  the only surface; there is nothing that isn't headlessly verifiable.
+  `agent-browser` — `/`, `/ui/<slug>`, `/preview-frame/<slug>`, `/r/<slug>.json`. The
+  extension is driven through Playwright's `--load-extension` (`AGENTS.md` → Platform matrix).
 
 ## Common Commands
 
 ```bash
 pnpm dev:web          # Next.js app on :3000 (the one you want)
+pnpm dev:extension    # WXT dev build of the extension (load-unpacked: apps/extension/.output/chrome-mv3)
 pnpm -F db db         # Local Turso (turso dev) on :8080 — its own shell; `pnpm dev` does NOT start it
 pnpm verify           # typecheck + lint + format + test + build (the full gate)
 pnpm build            # Build all
