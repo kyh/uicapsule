@@ -229,6 +229,7 @@ export const App = () => {
   const pick = async (mode: PickMode) => {
     setProblem(null);
     stopPicker();
+    setTarget(null);
 
     try {
       setTarget(await injectPicker(mode));
