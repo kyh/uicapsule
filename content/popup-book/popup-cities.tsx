@@ -24,6 +24,7 @@ export interface PopupSolid {
   color: string;
   top?: string;
   lift?: number;
+  form?: "box" | "cylinder" | "cone" | "dome" | "gable";
   art?: { top?: ReactNode; left?: ReactNode; right?: ReactNode };
 }
 
@@ -248,17 +249,18 @@ const chair = (x: number, y: number, facing: "x" | "y") =>
   ] satisfies PopupSolid[];
 
 const cafeTable = [
-  { at: [0, 0], color: "#8d86c9", size: [2, 2, 11] },
-  { at: [-7, -7], color: PAPER, lift: 11, size: [16, 16, 1.4] },
+  { at: [0, 0], color: "#8d86c9", form: "cylinder", size: [2.4, 2.4, 11] },
+  { at: [-7, -7], color: PAPER, lift: 11, form: "cylinder", size: [16, 16, 1.4] },
   ...chair(-3, 11, "y"),
   ...chair(-18, -3, "x"),
-  { at: [0.2, 0.2], color: "#8d86c9", lift: 12.4, size: [1.6, 1.6, 20] },
+  { at: [0.2, 0.2], color: "#8d86c9", lift: 12.4, form: "cylinder", size: [1.6, 1.6, 20] },
   {
     art: { top: <Stripes w={26} h={26} colors={["#f2b8b0", PAPER]} /> },
     at: [-12, -12],
     color: "#f2b8b0",
-    lift: 32,
-    size: [26, 26, 2.4],
+    lift: 31,
+    form: "cone",
+    size: [28, 28, 6],
   },
 ] satisfies PopupSolid[];
 
@@ -279,28 +281,22 @@ const lantern = [
   { at: [4, 4], color: "#9a94d0", lift: 28, size: [6, 6, 4] },
 ] satisfies PopupSolid[];
 
-const Bands = ({ h }: { h: number }) => (
-  <g>
-    {range(Math.floor(h / 8)).map((k) => (
-      <rect key={k} y={k * 8 + 2} width={7} height={4} fill="#8d86c9" />
-    ))}
-  </g>
-);
-
 const mooringPost = (x: number, y: number, height: number) =>
   [
-    {
-      art: { left: <Bands h={height} />, right: <Bands h={height} /> },
-      at: [x, y],
-      color: PAPER,
-      size: [7, 7, height],
-    },
-    { at: [x - 0.5, y - 0.5], color: "#e8c46e", lift: height, size: [8, 8, 4] },
+    { at: [x, y], color: PAPER, form: "cylinder", size: [7, 7, height] },
+    ...range(Math.floor(height / 10)).map<PopupSolid>((k) => ({
+      at: [x - 0.3, y - 0.3],
+      color: "#8d86c9",
+      lift: k * 10 + 3,
+      form: "cylinder",
+      size: [7.6, 7.6, 4],
+    })),
+    { at: [x - 0.5, y - 0.5], color: "#e8c46e", lift: height, form: "dome", size: [8, 8, 4] },
   ] satisfies PopupSolid[];
 
 const lampPost = (x: number, y: number, height: number) =>
   [
-    { at: [x, y], color: "#4b4590", size: [3, 3, height] },
+    { at: [x, y], color: "#4b4590", form: "cylinder", size: [3, 3, height] },
     { at: [x - 2.5, y - 2.5], color: "#fbe7b0", lift: height, size: [8, 8, 7], top: "#4b4590" },
   ] satisfies PopupSolid[];
 
@@ -1294,7 +1290,7 @@ const santorini = {
       lift: 30,
       size: [24, 24, 16],
     },
-    { at: [36, 120], color: "#86a8e8", lift: 46, size: [12, 12, 5] },
+    { at: [35, 119], color: "#86a8e8", lift: 46, form: "dome", size: [14, 14, 9] },
     { at: [66, 116], color: "#f3ece0", size: [9, 16, 24] },
     { at: [75, 116], color: "#f3ece0", size: [9, 16, 16] },
     { at: [84, 116], color: "#f3ece0", size: [9, 16, 8] },
@@ -1312,7 +1308,7 @@ const santorini = {
       color: "#fdfcf8",
       size: [24, 20, 22],
     },
-    { at: [146, 85], color: "#86a8e8", lift: 22, size: [12, 10, 5] },
+    { at: [145, 83], color: "#86a8e8", lift: 22, form: "dome", size: [14, 14, 9] },
   ],
   name: "Santorini",
   panorama: (
@@ -1513,12 +1509,15 @@ const sanFrancisco = {
       ["#f4c6bf", "#e2675f"],
       ["#bcd2ee", "#8d86c9"],
       ["#f3d29e", "#ea8a72"],
-    ].map<PopupSolid>(([wall = "", roof = ""], k) => ({
-      art: { right: <Facade w={24} h={40} roof={roof} door={roof} /> },
-      at: [154 - k * 24, 8],
-      color: wall,
-      size: [24, 28, 40],
-    })),
+    ].flatMap<PopupSolid>(([wall = "", roof = ""], k) => [
+      {
+        art: { right: <Facade w={24} h={40} roof={roof} door={roof} /> },
+        at: [154 - k * 24, 8],
+        color: wall,
+        size: [24, 28, 40],
+      },
+      { at: [154 - k * 24, 8], color: roof, lift: 40, form: "gable", size: [24, 28, 11] },
+    ]),
     {
       art: {
         left: (
