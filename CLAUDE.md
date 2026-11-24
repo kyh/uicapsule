@@ -60,8 +60,14 @@ Content is filesystem-driven; the web app never depends on content packages by n
   per visible card.
 - `preview-frame/[slug]` renders previews via a relative dynamic import of
   `content/<slug>/preview.tsx`.
-- `/r/<slug>.json` serves the shadcn registry item. The source drawer and zip download
+- `/r/<slug>.json` serves the shadcn registry item. The docked code panel and zip download
   use `/api/content/<slug>`; the viewer and zip library load on demand.
+- `/ui/<slug>` is a docked workspace (`_components/component-workspace.tsx`): component list,
+  preview + toolbar, code panel, info panel. Switching components is client state +
+  `history.pushState`, so the iframe swaps without a route remount. Panel sizes live in
+  `localStorage` (`panel-layout.ts`, a `useSyncExternalStore` store); an inline script applies
+  them to CSS vars before first paint, so the server HTML stays default and hydration never
+  mismatches. Drag a panel past half its minimum to collapse it.
 - Content packages exist as workspace packages only so pnpm installs their deps in
   isolation and the registry can report per-component dependencies.
 - **Design systems** (element tag `design-systems`) are the one templated kind:

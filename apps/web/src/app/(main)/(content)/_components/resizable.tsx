@@ -36,7 +36,10 @@ const ResizeHandle = ({
   const onPointerDown = (event: PointerEvent<HTMLDivElement>) => {
     event.preventDefault();
     event.currentTarget.setPointerCapture(event.pointerId);
-    start.current = { width, x: event.clientX };
+    start.current = {
+      width: event.currentTarget.parentElement?.offsetWidth ?? width,
+      x: event.clientX,
+    };
     onDraggingChange(true);
   };
 
