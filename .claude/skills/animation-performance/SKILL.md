@@ -40,17 +40,17 @@ Two failure modes, and the first is worse:
 
 Start here. Match what the user is seeing, then read the matching section.
 
-| Problem                                       | Solution                                                           |
-| --------------------------------------------- | ------------------------------------------------------------------ |
-| Animation stutters                            | Animate `transform`/`opacity`, not `width`/`height`/`top`/`margin` |
-| Shadow animation is choppy                    | `filter: drop-shadow()` (composited in Chrome; measure elsewhere)  |
-| Jank only during navigation or loading        | Move the animation to CSS or WAAPI so it runs off the main thread  |
-| Motion `x`/`y` drops frames                   | Upgrade to `motion` 14.2+, or animate the full `transform` string  |
-| Hand-rolled animation drops frames in React   | Write to `ref.current.style`, not state                            |
-| Drag gets laggier as the list grows           | Stop animating an inherited CSS variable; set `transform` directly |
-| Blur transition lags (especially Safari)      | Keep animated `blur()` under 20px                                  |
-| Unexpected properties animate                 | Replace `transition: all` with explicit properties                 |
-| Element shifts 1px when motion starts or ends | `will-change: transform`, only once you see it                     |
+| Problem | Solution |
+| --- | --- |
+| Animation stutters | Animate `transform`/`opacity`, not `width`/`height`/`top`/`margin` |
+| Shadow animation is choppy | `filter: drop-shadow()` (composited in Chrome; measure elsewhere) |
+| Jank only during navigation or loading | Move the animation to CSS or WAAPI so it runs off the main thread |
+| Motion `x`/`y` drops frames | Upgrade to `motion` 14.2+, or animate the full `transform` string |
+| Hand-rolled animation drops frames in React | Write to `ref.current.style`, not state |
+| Drag gets laggier as the list grows | Stop animating an inherited CSS variable; set `transform` directly |
+| Blur transition lags (especially Safari) | Keep animated `blur()` under 20px |
+| Unexpected properties animate | Replace `transition: all` with explicit properties |
+| Element shifts 1px when motion starts or ends | `will-change: transform`, only once you see it |
 
 ## The Frame Budget
 
@@ -73,22 +73,22 @@ To show a visual change, the browser runs up to three steps:
 
 Every property enters this pipeline at one of three points, and the cost differs by an order of magnitude:
 
-| Tier                       | Properties                                                            | Cost                                                               |
-| -------------------------- | --------------------------------------------------------------------- | ------------------------------------------------------------------ |
-| Composite only             | `transform`, `opacity`                                                | Cheapest. Browsers promote these to their own layer.               |
-| Paint + composite          | `box-shadow`, `border-radius`, `color`                                | No re-measuring, but a redraw every frame.                         |
+| Tier | Properties | Cost |
+| --- | --- | --- |
+| Composite only | `transform`, `opacity` | Cheapest. Browsers promote these to their own layer. |
+| Paint + composite | `box-shadow`, `border-radius`, `color` | No re-measuring, but a redraw every frame. |
 | Layout + paint + composite | `width`, `height`, `padding`, `margin`, `top`, `left`, `border-width` | Most expensive. One growing element can move everything around it. |
 
 `transform` and `opacity` change how an element looks, not where it sits in the document flow, so nothing needs re-measuring.
 
 **Swapping down a tier:**
 
-| Instead of                                       | Animate                                                                                      |
-| ------------------------------------------------ | -------------------------------------------------------------------------------------------- |
-| `width` / `height` / `padding` to grow or shrink | `scale()`                                                                                    |
-| `top` / `left` / `margin` to move                | `translate()` (percentages are relative to the element's own size)                           |
-| `display` / `visibility` swaps                   | `opacity`, then `visibility: hidden` once it ends so it stops taking clicks                  |
-| `box-shadow`                                     | `filter: drop-shadow(…)` (Chrome composites `filter`; other engines may repaint, so measure) |
+| Instead of | Animate |
+| --- | --- |
+| `width` / `height` / `padding` to grow or shrink | `scale()` |
+| `top` / `left` / `margin` to move | `translate()` (percentages are relative to the element's own size) |
+| `display` / `visibility` swaps | `opacity`, then `visibility: hidden` once it ends so it stops taking clicks |
+| `box-shadow` | `filter: drop-shadow(…)` (Chrome composites `filter`; other engines may repaint, so measure) |
 
 The last one is the one people miss. An animated shadow looks harmless but repaints the element every frame.
 
@@ -101,11 +101,11 @@ Two things follow:
 
 **JavaScript always runs on the main thread.** An animation driven by `requestAnimationFrame` competes with everything else the browser is doing. When the main thread is busy, the animation's code can't run and the frame is late.
 
-| Driver                                                                                       | Thread                      |
-| -------------------------------------------------------------------------------------------- | --------------------------- |
-| JS + `requestAnimationFrame` (GSAP, Motion layout animations)                                | Main thread, always         |
+| Driver | Thread |
+| --- | --- |
+| JS + `requestAnimationFrame` (GSAP, Motion layout animations) | Main thread, always |
 | Web Animations API (`element.animate()`, Motion's `animate()` and `motion/react` components) | Can be hardware-accelerated |
-| CSS transitions and keyframes                                                                | Can be hardware-accelerated |
+| CSS transitions and keyframes | Can be hardware-accelerated |
 
 Hardware acceleration means the animation runs off the main thread, so it stays smooth no matter what JavaScript is doing. "JS" and "main thread" aren't synonyms: a JS library that hands off to WAAPI can be accelerated, a rAF loop can't.
 
@@ -185,11 +185,11 @@ Framer Motion gives you things CSS can't: real springs, shared layout animations
 
 List every animation in scope with its driver and properties:
 
-| Element       | Driver                    | Properties  | Plays during |
-| ------------- | ------------------------- | ----------- | ------------ |
-| Tab indicator | `motion/react` `layoutId` | layout      | route change |
-| Drawer        | CSS transition            | `transform` | user drag    |
-| Card hover    | CSS transition            | `all`       | hover        |
+| Element | Driver | Properties | Plays during |
+| --- | --- | --- | --- |
+| Tab indicator | `motion/react` `layoutId` | layout | route change |
+| Drawer | CSS transition | `transform` | user drag |
+| Card hover | CSS transition | `all` | hover |
 
 Expand `transition: all` and Motion shorthands into what they actually animate.
 

@@ -57,25 +57,25 @@ The space is a look, not a correctness setting. Default to `in oklab`, and reach
 
 ## Before you finish
 
-| Pattern                                                                                                | Fix                                                                                |
-| ------------------------------------------------------------------------------------------------------ | ---------------------------------------------------------------------------------- |
-| A hex, `rgb(` or `oklch(` literal in a component file where a token exists                             | Reuse or add the role token, in the project's notation                             |
-| One `oklch(` value in a codebase otherwise written in hex                                              | Write it in the established notation unless a migration is in scope                |
-| `var(--blue-600)` or `bg-blue-600` in a component file                                                 | Point a semantic token at the primitive and use that                               |
-| A semantic name containing a hue or a component, as in `--color-blue-button` or `--color-sidebar-gray` | Rename it for its role: `--color-accent-solid`, `--color-bg-surface`               |
-| `--color-primary` and `--color-text-primary` both defined                                              | Rename the brand token `accent`                                                    |
-| A `border` or `separator` token inside `color:`, or a `text` token inside `background:`                | Add a token for the missing role                                                   |
-| `hsl(` ramp values that differ only in lightness                                                       | Rebuild with a constant perceived hue, in the project's notation                   |
-| `50`–`200` stepping as far apart in OKLCH `L` as mid-ramp steps do                                     | Tighten the light end to about `0.04`–`0.05` per step                              |
-| One chroma or saturation number copied across every hue's ramp                                         | Use the same proportion of each hue's own maximum                                  |
-| A status hue within `15°` of the accent hue                                                            | Move it at least `15°` away, or give the destructive action a distinct treatment   |
-| Dark tokens equal to the light ramp in reverse step order                                              | Lower the accent's chroma, widen the dark end and remeasure every pair             |
-| Color tokens set under both `prefers-color-scheme` and a `.dark` class                                 | Pick one switching mechanism and use it throughout                                 |
-| A contrast fix that changes hue and leaves lightness                                                   | Change lightness, the channel contrast responds to                                 |
-| `prefers-contrast: more` overriding a color for both appearances in one block                          | Give each appearance its own increased-contrast value                              |
-| Text on a color with alpha, such as `/50`, `rgba(` or `color-mix(` with `transparent`                  | Measure the rendered result, or use a solid token                                  |
-| `text-white` on a Tailwind `500` fill                                                                  | Measure and report it; white on most `500` hues and several `600` hues fails 4.5:1 |
-| `oklch()` chroma beyond sRGB with no sRGB value declared before it                                     | Declare the sRGB value first, then the vivid one inside `@media (color-gamut: p3)` |
+| Pattern | Fix |
+| --- | --- |
+| A hex, `rgb(` or `oklch(` literal in a component file where a token exists | Reuse or add the role token, in the project's notation |
+| One `oklch(` value in a codebase otherwise written in hex | Write it in the established notation unless a migration is in scope |
+| `var(--blue-600)` or `bg-blue-600` in a component file | Point a semantic token at the primitive and use that |
+| A semantic name containing a hue or a component, as in `--color-blue-button` or `--color-sidebar-gray` | Rename it for its role: `--color-accent-solid`, `--color-bg-surface` |
+| `--color-primary` and `--color-text-primary` both defined | Rename the brand token `accent` |
+| A `border` or `separator` token inside `color:`, or a `text` token inside `background:` | Add a token for the missing role |
+| `hsl(` ramp values that differ only in lightness | Rebuild with a constant perceived hue, in the project's notation |
+| `50`–`200` stepping as far apart in OKLCH `L` as mid-ramp steps do | Tighten the light end to about `0.04`–`0.05` per step |
+| One chroma or saturation number copied across every hue's ramp | Use the same proportion of each hue's own maximum |
+| A status hue within `15°` of the accent hue | Move it at least `15°` away, or give the destructive action a distinct treatment |
+| Dark tokens equal to the light ramp in reverse step order | Lower the accent's chroma, widen the dark end and remeasure every pair |
+| Color tokens set under both `prefers-color-scheme` and a `.dark` class | Pick one switching mechanism and use it throughout |
+| A contrast fix that changes hue and leaves lightness | Change lightness, the channel contrast responds to |
+| `prefers-contrast: more` overriding a color for both appearances in one block | Give each appearance its own increased-contrast value |
+| Text on a color with alpha, such as `/50`, `rgba(` or `color-mix(` with `transparent` | Measure the rendered result, or use a solid token |
+| `text-white` on a Tailwind `500` fill | Measure and report it; white on most `500` hues and several `600` hues fails 4.5:1 |
+| `oklch()` chroma beyond sRGB with no sRGB value declared before it | Declare the sRGB value first, then the vivid one inside `@media (color-gamut: p3)` |
 
 ## Reporting
 

@@ -27,12 +27,12 @@ The product has one voice and its existing copy establishes it. A local edit doe
 
 A multi-step flow uses one vocabulary throughout: "Get started" to enter, either "Continue" or "Next" to advance, "Done" to finish. Tone flexes with the stakes:
 
-| Context                           | Tone                          |
-| --------------------------------- | ----------------------------- |
-| Success, onboarding, empty states | Warm, can be light            |
-| Routine actions, settings         | Neutral, minimal              |
+| Context | Tone |
+| --- | --- |
+| Success, onboarding, empty states | Warm, can be light |
+| Routine actions, settings | Neutral, minimal |
 | Errors, destructive confirmations | Calm, plain, zero playfulness |
-| Data loss, security               | Serious, explicit             |
+| Data loss, security | Serious, explicit |
 
 ## Address the reader directly
 
@@ -76,10 +76,10 @@ Link straight to a referenced setting rather than describing the path to it: a "
 
 An error is an instruction, and it belongs beside the field that failed:
 
-| Bad                         | Good                                                 |
-| --------------------------- | ---------------------------------------------------- |
-| That password is too short  | Choose a password with at least 8 characters         |
-| Invalid date                | Enter a date as DD/MM/YYYY                           |
+| Bad | Good |
+| --- | --- |
+| That password is too short | Choose a password with at least 8 characters |
+| Invalid date | Enter a date as DD/MM/YYYY |
 | Oops! Something went wrong. | Unable to save. Check your connection and try again. |
 
 No blame, no "oops" and no exclamation marks. Phrase hints positively, as in "Use at least 8 characters" rather than "Don't use fewer than 8". Show a known requirement as helper text before input, not only in the error. When the same error keeps firing, redesign the interaction so it cannot happen.
@@ -121,19 +121,19 @@ A placeholder shows a realistic example in the format the field accepts, `name@e
 
 ## Before you finish
 
-| Detection pattern                                                                  | Fix                                               |
-| ---------------------------------------------------------------------------------- | ------------------------------------------------- |
-| `Click here`, a link reading `here` or two identical `Learn more` links            | Name the destination                              |
-| `Oops`, `Something went wrong` or `!` in an error string                           | Say what failed and the next step                 |
-| `" + n + "`, a template literal holding a sentence fragment, or `=== 1 ? "" : "s"` | One message with a plural argument                |
-| `>OK<`, `>Yes<` or `>No<` on a dialog button                                       | Verb plus object                                  |
-| `Are you sure`                                                                     | Name the action and the object                    |
-| `successfully`                                                                     | Cut it: "Changes saved"                           |
-| `Please` in a routine instruction                                                  | Cut it                                            |
-| A toggle label starting `Don't`, `Disable` or `Hide`                               | Describe the ON state                             |
-| `aria-label="Trash"`, `"Close icon"` or `"X"`                                      | Name the action: "Delete project", "Close dialog" |
-| `toLocaleDateString()` with no locale, or a date built from `getMonth()`           | `Intl.DateTimeFormat` with the user's locale      |
-| `Save Changes` beside `Discard changes`                                            | One case per element type                         |
+| Detection pattern | Fix |
+| --- | --- |
+| `Click here`, a link reading `here` or two identical `Learn more` links | Name the destination |
+| `Oops`, `Something went wrong` or `!` in an error string | Say what failed and the next step |
+| `" + n + "`, a template literal holding a sentence fragment, or `=== 1 ? "" : "s"` | One message with a plural argument |
+| `>OK<`, `>Yes<` or `>No<` on a dialog button | Verb plus object |
+| `Are you sure` | Name the action and the object |
+| `successfully` | Cut it: "Changes saved" |
+| `Please` in a routine instruction | Cut it |
+| A toggle label starting `Don't`, `Disable` or `Hide` | Describe the ON state |
+| `aria-label="Trash"`, `"Close icon"` or `"X"` | Name the action: "Delete project", "Close dialog" |
+| `toLocaleDateString()` with no locale, or a date built from `getMonth()` | `Intl.DateTimeFormat` with the user's locale |
+| `Save Changes` beside `Discard changes` | One case per element type |
 
 ## Reporting
 

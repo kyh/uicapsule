@@ -63,13 +63,13 @@ Marketing pages get more latitude than product UI: explanation and a single hero
 
 Reduce means a smaller version of the same motion, never a different animation:
 
-| Today                                                          | Reduced to                                                          |
-| -------------------------------------------------------------- | ------------------------------------------------------------------- |
-| Hover with scale, lift, or shadow growth                       | Color/opacity change only, ≤150ms, existing curve                   |
-| Slide or scale entrance on a frequent surface                  | Opacity only, 150ms, existing curve                                 |
-| UI animation over 300ms (not a modal, drawer, sheet, or toast) | 200–250ms, same curve                                               |
-| Stagger over 80ms per item, or over 300ms total                | Cap at 30ms per item, or drop the stagger and fade the group as one |
-| Infinite loop (pulse, shimmer, glow) on a persistent element   | Run once, or remove the loop and keep the static end state          |
+| Today | Reduced to |
+| --- | --- |
+| Hover with scale, lift, or shadow growth | Color/opacity change only, ≤150ms, existing curve |
+| Slide or scale entrance on a frequent surface | Opacity only, 150ms, existing curve |
+| UI animation over 300ms (not a modal, drawer, sheet, or toast) | 200–250ms, same curve |
+| Stagger over 80ms per item, or over 300ms total | Cap at 30ms per item, or drop the stagger and fade the group as one |
+| Infinite loop (pulse, shimmer, glow) on a persistent element | Run once, or remove the loop and keep the static end state |
 
 If reducing would leave motion so small it stops carrying its purpose, delete it instead.
 
@@ -78,27 +78,23 @@ If reducing would leave motion so small it stops carrying its purpose, delete it
 Sweep for these — each is a known class of motion that rarely survives the gate:
 
 **Keyboard and high-frequency**
-
 - Command palette, menu, or dialog opened by a shortcut with an enter/exit animation
 - Tab switches, segmented controls, and sidebar navigation that slide or crossfade
 - Route or page transitions inside the app (not on marketing pages)
 - Hover transforms on rows and list items users sweep the cursor across
 
 **Decoration**
-
 - Fade-in-on-scroll on every section (`whileInView`, IntersectionObserver reveal classes, AOS, `animate-fade-in` utilities)
 - Hover `scale` or lift on cards that aren't the primary action
 - Infinite loops: pulsing badges, gradient orbs, glowing borders, spinning icons that aren't loading indicators
 - Staggered entrances on lists the user loads many times a day
 
 **Functional data**
-
 - Charts that redraw from zero on every mount or refresh
 - Numbers that count up on page load rather than on a change
 - Table rows that animate in when data loads
 
 **Over-engineering**
-
 - Spinners on operations that resolve in under 300ms — the flash reads as a glitch
 - Skeleton shimmer on content that loads in under 300ms
 - `transition: all` — delete it and list only the properties that actually need to transition, or none
@@ -144,11 +140,11 @@ If the motion library is no longer imported anywhere, say so and propose removin
 
 One row per change, ordered by how often the user hits it:
 
-| #   | Location             | Was                                  | Verdict                                   | Deciding branch    |
-| --- | -------------------- | ------------------------------------ | ----------------------------------------- | ------------------ |
-| 1   | `CommandMenu.tsx:24` | 200ms scale + fade on open/close     | Deleted                                   | Keyboard-triggered |
-| 2   | `ProjectCard.tsx:31` | `hover:scale-105` with shadow growth | Reduced → border color, 150ms, same curve | Tens/day hover     |
-| 3   | `sections/*.tsx`     | `whileInView` fade-up on 9 sections  | Deleted, `initial` opacity removed        | No purpose         |
+| # | Location | Was | Verdict | Deciding branch |
+| --- | --- | --- | --- | --- |
+| 1 | `CommandMenu.tsx:24` | 200ms scale + fade on open/close | Deleted | Keyboard-triggered |
+| 2 | `ProjectCard.tsx:31` | `hover:scale-105` with shadow growth | Reduced → border color, 150ms, same curve | Tens/day hover |
+| 3 | `sections/*.tsx` | `whileInView` fade-up on 9 sections | Deleted, `initial` opacity removed | No purpose |
 
 ### Part 2 — Kept (REQUIRED)
 

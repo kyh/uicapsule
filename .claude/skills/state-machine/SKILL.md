@@ -20,11 +20,11 @@ Restate it in one sentence: what the component shows, where it renders in produc
 
 The states are the branches the component already has. Read it and its data hooks for every one:
 
-| Kind    | States                                                                                                                                                    |
-| ------- | --------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Data    | Loading, empty, error, one item, a typical set, a set long enough to scroll or paginate, some requests resolved and others pending, stale data refetching |
-| Account | Plan tier, role and permission checks, an owner versus a member                                                                                           |
-| Feature | Flags, trials, limits reached, a disabled or locked feature                                                                                               |
+| Kind | States |
+| --- | --- |
+| Data | Loading, empty, error, one item, a typical set, a set long enough to scroll or paginate, some requests resolved and others pending, stale data refetching |
+| Account | Plan tier, role and permission checks, an owner versus a member |
+| Feature | Flags, trials, limits reached, a disabled or locked feature |
 
 A state the code cannot reach is not a state. Do not add a branch to render one. Where the design shows a state the code lacks, list it as missing and leave it out.
 
@@ -73,8 +73,8 @@ Delete the page folder and any seam the user approved. Then search the codebase 
 
 ## Before you finish
 
-| Mistake                                   | Fix                                                                                                        |
-| ----------------------------------------- | ---------------------------------------------------------------------------------------------------------- |
-| "Item 1", "Test user", three rows         | Product-shaped data in real quantities                                                                     |
-| Switcher styled with the project's tokens | Keep it visibly outside the design system                                                                  |
-| One long row of tabs, one per state       | A grouped list beside the component that scrolls on its own; a select above it where the list does not fit |
+| Mistake | Fix |
+| --- | --- |
+| "Item 1", "Test user", three rows | Product-shaped data in real quantities |
+| Switcher styled with the project's tokens | Keep it visibly outside the design system |
+| One long row of tabs, one per state | A grouped list beside the component that scrolls on its own; a select above it where the list does not fit |

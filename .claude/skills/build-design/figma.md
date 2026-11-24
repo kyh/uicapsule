@@ -8,12 +8,12 @@ A Figma URL carries the file key after `/design/` or `/file/` and the node in `n
 
 ## The calls
 
-| Tool                 | Gives you                                                                                                       | Use it for                                                   |
-| -------------------- | --------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------ |
-| `get_design_context` | Reference code, exact values, bound variables, component instances, asset downloads and optionally a screenshot | Every frame in scope, one call each                          |
-| `get_screenshot`     | A render of the node                                                                                            | The comparison target, when the design context returned none |
-| `get_variable_defs`  | The variables the node uses, with their names and values                                                        | Mapping design variables onto project tokens                 |
-| `get_metadata`       | The layer tree with ids and sizes, no styling                                                                   | Large pages, to find which child nodes to read               |
+| Tool | Gives you | Use it for |
+| --- | --- | --- |
+| `get_design_context` | Reference code, exact values, bound variables, component instances, asset downloads and optionally a screenshot | Every frame in scope, one call each |
+| `get_screenshot` | A render of the node | The comparison target, when the design context returned none |
+| `get_variable_defs` | The variables the node uses, with their names and values | Mapping design variables onto project tokens |
+| `get_metadata` | The layer tree with ids and sizes, no styling | Large pages, to find which child nodes to read |
 
 Request the screenshot in the same `get_design_context` call. The code it returns is a reference, by default React with Tailwind and raw values. Translate it through **Map the design onto the project** and never paste it.
 

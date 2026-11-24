@@ -72,13 +72,13 @@ The transform shrinks the whole box, not only the glyphs, so let a wrapper draw 
 
 ## Decorative text
 
-| Property                | Effect                                                                    |
-| ----------------------- | ------------------------------------------------------------------------- |
-| `::first-letter`        | Drop cap, widely supported                                                |
-| `::first-line`          | Styles only the first line                                                |
-| `initial-letter`        | Sizes the drop cap; Safari needs `-webkit-initial-letter`, no Firefox yet |
-| `background-clip: text` | Clips a background or gradient to the letter shapes                       |
-| `-webkit-text-stroke`   | Outlines the letters; works across modern browsers despite the prefix     |
-| `text-shadow`           | Like `box-shadow` but follows the character shapes                        |
+| Property | Effect |
+| --- | --- |
+| `::first-letter` | Drop cap, widely supported |
+| `::first-line` | Styles only the first line |
+| `initial-letter` | Sizes the drop cap; Safari needs `-webkit-initial-letter`, no Firefox yet |
+| `background-clip: text` | Clips a background or gradient to the letter shapes |
+| `-webkit-text-stroke` | Outlines the letters; works across modern browsers despite the prefix |
+| `text-shadow` | Like `box-shadow` but follows the character shapes |
 
 If `-webkit-text-stroke` draws lines inside the letters, the font has overlapping contours. Variable fonts often keep them unmerged, so use the static cut for stroked text.

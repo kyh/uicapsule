@@ -61,14 +61,14 @@ Review a rename as a move, not a delete plus an add. Everything that survived th
 
 Exclude these and name what you excluded in the scope block. They are machine-authored and carry no interface rules.
 
-| Category               | Patterns                                                                                                                                             |
-| ---------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Lockfiles              | `package-lock.json`, `pnpm-lock.yaml`, `yarn.lock`, `bun.lock`, `bun.lockb`, `Cargo.lock`, `composer.lock`, `Gemfile.lock`, `poetry.lock`, `uv.lock` |
-| Snapshots and fixtures | `__snapshots__/`, `*.snap`, `*.approved.*`, `test-results/`, `playwright-report/`                                                                    |
-| Generated output       | `dist/`, `build/`, `out/`, `.next/`, `.turbo/`, `.svelte-kit/`, `coverage/`, `storybook-static/`, `*.min.js`, `*.min.css`, `*.map`                   |
-| Generated sources      | `*.gen.ts`, `*.generated.*`, `*.d.ts` emitted by a build, GraphQL and Prisma client output                                                           |
-| Vendored code          | `vendor/`, `third_party/`, `node_modules/`                                                                                                           |
-| Binaries and media     | `*.png`, `*.jpg`, `*.webp`, `*.avif`, `*.woff2`, `*.mp4`, `*.pdf`                                                                                    |
+| Category | Patterns |
+| --- | --- |
+| Lockfiles | `package-lock.json`, `pnpm-lock.yaml`, `yarn.lock`, `bun.lock`, `bun.lockb`, `Cargo.lock`, `composer.lock`, `Gemfile.lock`, `poetry.lock`, `uv.lock` |
+| Snapshots and fixtures | `__snapshots__/`, `*.snap`, `*.approved.*`, `test-results/`, `playwright-report/` |
+| Generated output | `dist/`, `build/`, `out/`, `.next/`, `.turbo/`, `.svelte-kit/`, `coverage/`, `storybook-static/`, `*.min.js`, `*.min.css`, `*.map` |
+| Generated sources | `*.gen.ts`, `*.generated.*`, `*.d.ts` emitted by a build, GraphQL and Prisma client output |
+| Vendored code | `vendor/`, `third_party/`, `node_modules/` |
+| Binaries and media | `*.png`, `*.jpg`, `*.webp`, `*.avif`, `*.woff2`, `*.mp4`, `*.pdf` |
 
 Two exceptions stay in scope. A **font file** added or swapped is a `better-typography` change. An **image** added to a component is a `better-ui` and `better-accessibility` change, through its outline and its `alt` text. Review the code that references them, not the bytes.
 

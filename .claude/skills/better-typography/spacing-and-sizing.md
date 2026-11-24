@@ -18,28 +18,22 @@ A starting point for a product interface, named by role:
 }
 ```
 
-| Role    | Size               | Line-height | Weight |
-| ------- | ------------------ | ----------- | ------ |
-| Display | `2.25rem` (36px)   | `1.1`       | `600`  |
-| Title   | `1.5rem` (24px)    | `1.2`       | `600`  |
-| Heading | `1.125rem` (18px)  | `1.3`       | `600`  |
-| Body    | `1rem` (16px)      | `1.5`       | `400`  |
-| Caption | `0.8125rem` (13px) | `1.4`       | `400`  |
+| Role | Size | Line-height | Weight |
+| --- | --- | --- | --- |
+| Display | `2.25rem` (36px) | `1.1` | `600` |
+| Title | `1.5rem` (24px) | `1.2` | `600` |
+| Heading | `1.125rem` (18px) | `1.3` | `600` |
+| Body | `1rem` (16px) | `1.5` | `400` |
+| Caption | `0.8125rem` (13px) | `1.4` | `400` |
 
 Emphasis within a role is one weight step up (`400` → `500`), not a size change.
 
 ## Heading hierarchy
 
 ```css
-h1 {
-  font-size: var(--text-display);
-}
-h2 {
-  font-size: var(--text-title);
-}
-h3 {
-  font-size: var(--text-heading);
-}
+h1 { font-size: var(--text-display); }
+h2 { font-size: var(--text-title); }
+h3 { font-size: var(--text-heading); }
 ```
 
 In Tailwind, centralize the per-level classes in a component or `@layer base` rather than repeating them inline.
@@ -48,25 +42,21 @@ In Tailwind, centralize the per-level classes in a component or `@layer base` ra
 
 ```css
 /* Bad: card description at heading leading */
-.card-description {
-  line-height: 1.1;
-}
+.card-description { line-height: 1.1; }
 
 /* Good: it wraps to 3 lines, so it reads as body text */
-.card-description {
-  line-height: 1.4;
-}
+.card-description { line-height: 1.4; }
 ```
 
 ## Text trimming with text-box
 
 `text-box` takes which edges to trim (`trim-both`, `trim-start`, `trim-end`) and where. Name both edges, start then end. `cap`, `ex` and `alphabetic` need a second edge value, so `trim-start cap` is dropped and `trim-start cap text` is not.
 
-| Keyword      | Trims at                                              |
-| ------------ | ----------------------------------------------------- |
-| `cap`        | The cap height (top)                                  |
-| `alphabetic` | The baseline (bottom)                                 |
-| `text`       | The font's own text edge, keeping room for descenders |
+| Keyword | Trims at |
+| --- | --- |
+| `cap` | The cap height (top) |
+| `alphabetic` | The baseline (bottom) |
+| `text` | The font's own text edge, keeping room for descenders |
 
 ```css
 /* trim top and bottom */

@@ -13,11 +13,11 @@ No ARIA is better than bad ARIA. A screen reader trusts your roles, so a wrong o
 
 ## Button vs link vs div
 
-| Element         | Use for                                                     | Why                                                                   |
-| --------------- | ----------------------------------------------------------- | --------------------------------------------------------------------- |
-| `<a href>`      | Navigation: anything that goes somewhere or changes the URL | Free Cmd/Ctrl/middle-click, right-click → copy link, Enter activation |
-| `<button>`      | Actions: submit, toggle, open, delete                       | Free focus, Enter _and_ Space activation, form semantics              |
-| `<div onClick>` | Nothing                                                     | No role, no focus, no keyboard; screen readers see plain text         |
+| Element | Use for | Why |
+| --- | --- | --- |
+| `<a href>` | Navigation: anything that goes somewhere or changes the URL | Free Cmd/Ctrl/middle-click, right-click → copy link, Enter activation |
+| `<button>` | Actions: submit, toggle, open, delete | Free focus, Enter *and* Space activation, form semantics |
+| `<div onClick>` | Nothing | No role, no focus, no keyboard; screen readers see plain text |
 
 ```tsx
 // Bad: invisible to keyboard and screen readers
@@ -62,12 +62,12 @@ Keeping brand names and code tokens out of auto-translation with `translate="no"
 
 ## Common ARIA mistakes
 
-| Mistake                                                       | Why it fails                                                                         |
-| ------------------------------------------------------------- | ------------------------------------------------------------------------------------ |
-| `aria-label` on a plain `<div>` or `<span>`                   | ARIA 1.2 prohibits naming the `generic` role, and most screen readers ignore it      |
-| `<button role="button">`                                      | Redundant role; adds noise, no benefit                                               |
-| `aria-labelledby`/`aria-describedby` pointing at a missing ID | Silently produces no name or description                                             |
-| `role="menu"` on a nav list                                   | `menu` promises app-style arrow-key behavior; site navigation is `<nav>` with a list |
+| Mistake | Why it fails |
+| --- | --- |
+| `aria-label` on a plain `<div>` or `<span>` | ARIA 1.2 prohibits naming the `generic` role, and most screen readers ignore it |
+| `<button role="button">` | Redundant role; adds noise, no benefit |
+| `aria-labelledby`/`aria-describedby` pointing at a missing ID | Silently produces no name or description |
+| `role="menu"` on a nav list | `menu` promises app-style arrow-key behavior; site navigation is `<nav>` with a list |
 
 ## Disabled states
 

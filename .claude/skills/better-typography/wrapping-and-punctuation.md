@@ -8,13 +8,13 @@ Any unit works. One `ch` is the width of the `0` in the current font, which is w
 
 ## Smart punctuation
 
-| Instead of               | Use                                                                                |
-| ------------------------ | ---------------------------------------------------------------------------------- |
-| Straight quotes `"..."`  | Curly quotes that curve around the text (keep straight quotes in code)             |
-| Hyphen in ranges         | En dash: `2010–2020`                                                               |
-| Two hyphens for an aside | Em dash character                                                                  |
-| Three periods `...`      | The single ellipsis character `…`                                                  |
-| Regular space in `10 km` | `&nbsp;` so the value never breaks apart                                           |
+| Instead of | Use |
+| --- | --- |
+| Straight quotes `"..."` | Curly quotes that curve around the text (keep straight quotes in code) |
+| Hyphen in ranges | En dash: `2010–2020` |
+| Two hyphens for an aside | Em dash character |
+| Three periods `...` | The single ellipsis character `…` |
+| Regular space in `10 km` | `&nbsp;` so the value never breaks apart |
 | Uncontrolled word breaks | `&shy;` to mark where a word may break, or `hyphens: auto` with the correct `lang` |
 
 ## Internationalization

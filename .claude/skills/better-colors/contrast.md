@@ -8,11 +8,11 @@ Contrast is measured between a **foreground color**, meaning text, an icon or a 
 
 WCAG 2 is the standard formal conformance claims are made against.
 
-| Content type                                  | AA    | AAA   |
-| --------------------------------------------- | ----- | ----- |
-| Text                                          | 4.5:1 | 7:1   |
-| Large text, at least `24px` or `18.67px` bold | 3:1   | 4.5:1 |
-| UI components and graphical objects           | 3:1   | n/a   |
+| Content type | AA | AAA |
+| --- | --- | --- |
+| Text | 4.5:1 | 7:1 |
+| Large text, at least `24px` or `18.67px` bold | 3:1 | 4.5:1 |
+| UI components and graphical objects | 3:1 | n/a |
 
 Disabled or inactive controls and logos are exempt.
 
@@ -20,14 +20,14 @@ Disabled or inactive controls and logos are exempt.
 
 Lc, Lightness Contrast, is APCA's measure of perceived contrast. These levels simplify APCA's full font-size and weight lookup table:
 
-| Content type                                               | Minimum                |
-| ---------------------------------------------------------- | ---------------------- |
-| Body text, columns or blocks of text                       | Lc 75, preferred Lc 90 |
-| Non-body text such as labels and headlines                 | Lc 60                  |
-| Large text, at least `36px` regular or `24px` bold         | Lc 45                  |
-| Fine-detail or outline icons                               | Lc 45                  |
-| Solid icons and UI components                              | Lc 30                  |
-| Non-text that only has to be discernible, such as dividers | Lc 15                  |
+| Content type | Minimum |
+| --- | --- |
+| Body text, columns or blocks of text | Lc 75, preferred Lc 90 |
+| Non-body text such as labels and headlines | Lc 60 |
+| Large text, at least `36px` regular or `24px` bold | Lc 45 |
+| Fine-detail or outline icons | Lc 45 |
+| Solid icons and UI components | Lc 30 |
+| Non-text that only has to be discernible, such as dividers | Lc 15 |
 
 Disabled and placeholder text are not covered by a requirement. Aim for Lc 30 so they stay legible.
 

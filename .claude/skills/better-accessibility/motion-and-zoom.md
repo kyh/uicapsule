@@ -27,11 +27,11 @@ Wrap animations in `@media (prefers-reduced-motion: no-preference)`, so users wh
 
 Reduced motion targets vestibular triggers, not feedback.
 
-| Disable entirely                                 | Replace                                           | Keep                                            |
-| ------------------------------------------------ | ------------------------------------------------- | ----------------------------------------------- |
-| Parallax scrolling                               | Slide/scale/zoom transitions → opacity cross-fade | Loading spinners and progress                   |
-| Autoplaying video, GIFs, looping decoration      | Smooth scrolling → instant jump                   | Instant state changes (hover color, focus ring) |
-| Spinning, large-scale movement across the screen | Auto-rotating carousels → start paused            | Brief functional feedback (button press)        |
+| Disable entirely | Replace | Keep |
+| --- | --- | --- |
+| Parallax scrolling | Slide/scale/zoom transitions → opacity cross-fade | Loading spinners and progress |
+| Autoplaying video, GIFs, looping decoration | Smooth scrolling → instant jump | Instant state changes (hover color, focus ring) |
+| Spinning, large-scale movement across the screen | Auto-rotating carousels → start paused | Brief functional feedback (button press) |
 
 ## Autoplay and timed UI
 

@@ -71,11 +71,11 @@ Status needs a redundant cue: an icon, text or an underline alongside the color 
 
 This skill decides which contrast requirement applies:
 
-| Criterion | Applies to                                              | Minimum |
-| --------- | ------------------------------------------------------- | ------- |
-| 1.4.3 AA  | Text                                                    | 4.5:1   |
-| 1.4.3 AA  | Large text, at least `24px` or `18.67px` bold           | 3:1     |
-| 1.4.11 AA | UI component boundaries, states and meaningful graphics | 3:1     |
+| Criterion | Applies to | Minimum |
+| --- | --- | --- |
+| 1.4.3 AA | Text | 4.5:1 |
+| 1.4.3 AA | Large text, at least `24px` or `18.67px` bold | 3:1 |
+| 1.4.11 AA | UI component boundaries, states and meaningful graphics | 3:1 |
 
 Inactive controls and logos are exempt. Use `better-colors` to measure the rendered pair. When it fails, report the pair and the criterion it misses, and leave the colors alone unless asked.
 
@@ -107,21 +107,21 @@ Text must survive 200% resize (1.4.4), and the page must reflow at 320px width w
 
 ## Before you finish
 
-| Pattern                                                                      | Fix                                                      |
-| ---------------------------------------------------------------------------- | -------------------------------------------------------- |
-| `outline: none` or `outline-none` with no `focus-visible` replacement nearby | Restore the browser ring or add a verified custom one    |
-| `<div onClick` or `<span onClick`                                            | Use `<button>`, or `<a href>` when it navigates          |
-| `role="button"` or `role="tab"` with no `onKeyDown`                          | Use the native element, or implement the APG key map     |
-| `tabIndex={1}` or any positive `tabindex`                                    | Fix the DOM order and use `0`                            |
-| `disabled={!isValid}` on a submit button                                     | Keep it enabled and validate on submit                   |
-| `{msg && <div role="status">`, region mounted with its text                  | Render the empty region first and update its text        |
-| `aria-live="assertive"` on a success toast                                   | `role="status"`                                          |
-| `<img` with no `alt` attribute                                               | `alt=""` if decorative, otherwise describe the purpose   |
-| `aria-label` whose text omits the visible label                              | Start the name with the visible text                     |
-| `aria-hidden` on an ancestor of a button, link or input                      | Remove it, or make the subtree inert                     |
-| `maximum-scale=1` or `user-scalable=no`                                      | Remove it                                                |
-| Tooltip on a natively `disabled` control                                     | Text beside it, or `aria-disabled` so it stays focusable |
-| `onDragStart` or a drag library with no button alternative                   | Add a single-pointer path to the same result             |
+| Pattern | Fix |
+| --- | --- |
+| `outline: none` or `outline-none` with no `focus-visible` replacement nearby | Restore the browser ring or add a verified custom one |
+| `<div onClick` or `<span onClick` | Use `<button>`, or `<a href>` when it navigates |
+| `role="button"` or `role="tab"` with no `onKeyDown` | Use the native element, or implement the APG key map |
+| `tabIndex={1}` or any positive `tabindex` | Fix the DOM order and use `0` |
+| `disabled={!isValid}` on a submit button | Keep it enabled and validate on submit |
+| `{msg && <div role="status">`, region mounted with its text | Render the empty region first and update its text |
+| `aria-live="assertive"` on a success toast | `role="status"` |
+| `<img` with no `alt` attribute | `alt=""` if decorative, otherwise describe the purpose |
+| `aria-label` whose text omits the visible label | Start the name with the visible text |
+| `aria-hidden` on an ancestor of a button, link or input | Remove it, or make the subtree inert |
+| `maximum-scale=1` or `user-scalable=no` | Remove it |
+| Tooltip on a natively `disabled` control | Text beside it, or `aria-disabled` so it stays focusable |
+| `onDragStart` or a drag library with no button alternative | Add a single-pointer path to the same result |
 
 ## Reporting
 

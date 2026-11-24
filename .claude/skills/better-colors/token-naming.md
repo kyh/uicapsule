@@ -26,13 +26,13 @@ Add a third, component-level tier (`--color-button-danger-bg`) only where a comp
 
 A system is complete when every role below has a token. Build against this list rather than adding tokens as components demand them, or the palette ends up shaped like whichever screen came first.
 
-| Group    | Roles                                                                                     |
-| -------- | ----------------------------------------------------------------------------------------- |
+| Group | Roles |
+| --- | --- |
 | Surfaces | page background, surface, raised (menus, popovers), sunken (inputs, wells), overlay scrim |
-| Text     | primary, secondary, disabled, inverse, on-accent                                          |
-| Borders  | subtle, default, strong, focus ring, separator                                            |
-| Accent   | subtle background, border, solid, solid hover, text                                       |
-| Status   | per status shipped: subtle background, border, solid, text                                |
+| Text | primary, secondary, disabled, inverse, on-accent |
+| Borders | subtle, default, strong, focus ring, separator |
+| Accent | subtle background, border, solid, solid hover, text |
+| Status | per status shipped: subtle background, border, solid, text |
 
 Separator and border are separate roles even when they share a value today. A separator divides content; a border encloses a control. They diverge the first time someone restyles inputs, and a system that conflated them gets untangled at that moment.
 
@@ -51,25 +51,25 @@ Use one shape and never deviate. Neutral roles lead with the property, as `--col
 
 Pick one word per concept and use only that word. Consistency matters more than the vocabulary. A reader who has seen `--color-text-primary` must be able to guess `--color-text-disabled` without looking:
 
-| Concept     | Pick one | Never mix in                                     |
-| ----------- | -------- | ------------------------------------------------ |
-| Foreground  | `text`   | `fg`, `foreground`, `content`, `ink`             |
-| Background  | `bg`     | `background`, `surface` as a synonym, `fill`     |
-| Edge        | `border` | `stroke`, `outline`, `line`                      |
+| Concept | Pick one | Never mix in |
+| --- | --- | --- |
+| Foreground | `text` | `fg`, `foreground`, `content`, `ink` |
+| Background | `bg` | `background`, `surface` as a synonym, `fill` |
+| Edge | `border` | `stroke`, `outline`, `line` |
 | Brand color | `accent` | `primary`, `brand`, `theme` used interchangeably |
 
 Reserve `primary` for exactly one meaning. `--color-text-primary` for body text beside `--color-primary` for the brand is the most common naming collision there is, and it makes every `primary` token ambiguous until you open its definition. Use `accent` for the brand and let `primary` mean "the most prominent of its group".
 
 ## Anti-patterns
 
-| Name                             | Problem                                                                 | Instead                        |
-| -------------------------------- | ----------------------------------------------------------------------- | ------------------------------ |
-| `--color-blue-button`            | Appearance at the semantic tier; lies the moment the brand changes      | `--color-accent-solid`         |
-| `--color-sidebar-gray`           | Named for where it was used first; the second usage makes it nonsense   | `--color-bg-surface`           |
-| `--color-light-gray`             | Lies in dark mode, where it is the dark one                             | `--neutral-200` as a primitive |
-| `--color-text-2`                 | Numbered semantics carry no meaning; nobody can guess what `3` would be | `--color-text-secondary`       |
-| `--color-gray-hover`             | Mixes a hue with a state and belongs to no tier                         | `--color-bg-surface-hover`     |
-| `--blue-600` used in a component | Skips the semantic tier and removes the theming seam                    | Point a semantic token at it   |
+| Name | Problem | Instead |
+| --- | --- | --- |
+| `--color-blue-button` | Appearance at the semantic tier; lies the moment the brand changes | `--color-accent-solid` |
+| `--color-sidebar-gray` | Named for where it was used first; the second usage makes it nonsense | `--color-bg-surface` |
+| `--color-light-gray` | Lies in dark mode, where it is the dark one | `--neutral-200` as a primitive |
+| `--color-text-2` | Numbered semantics carry no meaning; nobody can guess what `3` would be | `--color-text-secondary` |
+| `--color-gray-hover` | Mixes a hue with a state and belongs to no tier | `--color-bg-surface-hover` |
+| `--blue-600` used in a component | Skips the semantic tier and removes the theming seam | Point a semantic token at it |
 
 ## In Tailwind projects
 

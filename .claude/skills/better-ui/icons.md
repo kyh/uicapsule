@@ -4,11 +4,11 @@ Icon stroke weight, sizing, state colors, variants and RTL mirroring.
 
 ## Match icon stroke to text weight
 
-| Adjacent text                                | Rendered stroke width |
-| -------------------------------------------- | --------------------- |
-| Regular (400), 14–16px                       | `1.5px`               |
-| Medium or semibold (500–600)                 | `2px`                 |
-| Bold (700), or an emphasized standalone icon | `2.5px`               |
+| Adjacent text | Rendered stroke width |
+| --- | --- |
+| Regular (400), 14–16px | `1.5px` |
+| Medium or semibold (500–600) | `2px` |
+| Bold (700), or an emphasized standalone icon | `2.5px` |
 
 The widths are rendered pixels. A 24px-grid icon drawn at 16px scales its stroke by 16/24, so `stroke-width="2"` paints about `1.33px`. Use the library's absolute-stroke option, such as Lucide's `absoluteStrokeWidth`, or set `vector-effect: non-scaling-stroke` on the SVG's shapes.
 
@@ -39,25 +39,15 @@ Draw every icon with `currentColor` and let CSS state drive the color. Strip har
 
 ```css
 /* Use the project's color tokens */
-.icon-button {
-  color: var(--icon-muted);
-}
-.icon-button:hover {
-  color: var(--icon-strong);
-}
-.icon-button[aria-pressed="true"] {
-  color: var(--icon-active);
-}
-.icon-button:disabled {
-  opacity: 0.4;
-}
+.icon-button { color: var(--icon-muted); }
+.icon-button:hover { color: var(--icon-strong); }
+.icon-button[aria-pressed="true"] { color: var(--icon-active); }
+.icon-button:disabled { opacity: 0.4; }
 ```
 
 ```html
 <!-- Tailwind, with the project's token names -->
-<button
-  class="text-icon-muted hover:text-icon-strong aria-pressed:text-icon-active disabled:opacity-40"
->
+<button class="text-icon-muted hover:text-icon-strong aria-pressed:text-icon-active disabled:opacity-40">
   <BookmarkIcon />
 </button>
 ```
@@ -66,10 +56,10 @@ Draw every icon with `currentColor` and let CSS state drive the color. Strip har
 
 Where an icon set offers outline and filled variants, use them as a state pair, never interchangeably:
 
-| Variant | Use for                                                                               |
-| ------- | ------------------------------------------------------------------------------------- |
-| Outline | Default state in toolbars, list rows and inline text                                  |
-| Fill    | Selected or active state, such as the active tab, a toggled bookmark or a liked heart |
+| Variant | Use for |
+| --- | --- |
+| Outline | Default state in toolbars, list rows and inline text |
+| Fill | Selected or active state, such as the active tab, a toggled bookmark or a liked heart |
 
 ```tsx
 // Good: variant communicates state
@@ -92,12 +82,12 @@ Cross-fade the swap only where the change is infrequent, such as a bookmark or a
 
 Under `dir="rtl"`, flip icons whose meaning is tied to reading direction, and leave the rest alone:
 
-| Flip                                              | Don't flip                                        |
-| ------------------------------------------------- | ------------------------------------------------- |
-| Back and forward arrows, navigation chevrons      | Logos and brand marks                             |
-| Text-block glyphs for alignment, lists and indent | Checkmarks                                        |
-| Speaker and volume waves                          | Physical objects such as clocks, cups and pencils |
-| Directional glyphs such as "send"                 | Media playback, which stays LTR by convention     |
+| Flip | Don't flip |
+| --- | --- |
+| Back and forward arrows, navigation chevrons | Logos and brand marks |
+| Text-block glyphs for alignment, lists and indent | Checkmarks |
+| Speaker and volume waves | Physical objects such as clocks, cups and pencils |
+| Directional glyphs such as "send" | Media playback, which stays LTR by convention |
 
 Use one mechanism per element. Two flips on one icon can compound back to unflipped.
 

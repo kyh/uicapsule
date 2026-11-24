@@ -127,7 +127,7 @@ const [ref, bounds] = useMeasure({ offsetSize: true });
 
 <motion.div animate={{ height: step === "default" ? 388 : bounds.height }}>
   <div ref={ref}>{content}</div>
-</motion.div>;
+</motion.div>
 ```
 
 `bounds.height` is `0` until the content mounts and is measured. A dialog that opens on a measured height therefore grows from nothing, which is why the first state above takes a fixed number.

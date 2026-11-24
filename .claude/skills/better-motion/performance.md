@@ -53,14 +53,14 @@ The same promotion can also move the element by `1px`–`2px` on the first or la
 }
 ```
 
-| Property                                    | Worth `will-change`                                          |
-| ------------------------------------------- | ------------------------------------------------------------ |
-| `transform`, `translate`, `scale`, `rotate` | Yes                                                          |
-| `opacity`                                   | Yes                                                          |
-| `filter`                                    | Yes                                                          |
-| `clip-path`                                 | Rarely, since compositing it is not reliable across browsers |
-| `top`, `left`, `width`, `height`            | No                                                           |
-| `background`, `border`, `color`             | No                                                           |
+| Property | Worth `will-change` |
+| --- | --- |
+| `transform`, `translate`, `scale`, `rotate` | Yes |
+| `opacity` | Yes |
+| `filter` | Yes |
+| `clip-path` | Rarely, since compositing it is not reliable across browsers |
+| `top`, `left`, `width`, `height` | No |
+| `background`, `border`, `color` | No |
 
 `will-change` on a transform property or `filter` makes the element the containing block for its `position: fixed` descendants, so a fixed modal or tooltip inside it stops tracking the viewport. Any of these values also creates a stacking context, which can reorder `z-index` against siblings.
 
@@ -74,12 +74,12 @@ import * as m from "motion/react-m";
 
 <LazyMotion features={domMax}>
   <MotionConfig reducedMotion="user">{children}</MotionConfig>
-</LazyMotion>;
+</LazyMotion>
 ```
 
-| Feature set    | Covers                                                            |
-| -------------- | ----------------------------------------------------------------- |
+| Feature set | Covers |
+| --- | --- |
 | `domAnimation` | Animations, variants, exits and the hover, tap and focus gestures |
-| `domMax`       | Everything in `domAnimation`, plus drag, pan and layout animation |
+| `domMax` | Everything in `domAnimation`, plus drag, pan and layout animation |
 
 Follow what the project already does. Never add `LazyMotion` to a project that imports `motion` directly, since mixing the two loads the full bundle anyway.

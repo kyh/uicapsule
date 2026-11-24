@@ -40,12 +40,12 @@ function Row({ children }) {
 }
 ```
 
-| Prop                   | What it sets                                                                 |
-| ---------------------- | ---------------------------------------------------------------------------- |
-| `drag="x"`             | Locks the drag to one axis                                                   |
-| `dragConstraints`      | The farthest the row travels, here the outer snap points                     |
-| `dragElastic`          | How far the row stretches past a constraint, where `0.05` allows almost none |
-| `dragMomentum={false}` | Removes the fling, so the release position alone decides the snap            |
+| Prop | What it sets |
+| --- | --- |
+| `drag="x"` | Locks the drag to one axis |
+| `dragConstraints` | The farthest the row travels, here the outer snap points |
+| `dragElastic` | How far the row stretches past a constraint, where `0.05` allows almost none |
+| `dragMomentum={false}` | Removes the fling, so the release position alone decides the snap |
 
 Keep the snap points and the threshold as named pixel constants. They are the values that get tuned by eye.
 
@@ -93,14 +93,14 @@ A status dot that appears after the action completes scales from its own corner:
 
 ## Gesture props
 
-| Prop          | Fires                                       | Worth knowing                                                    |
-| ------------- | ------------------------------------------- | ---------------------------------------------------------------- |
-| `whileHover`  | While a pointer is over the element         | Ignores touch, so it never latches after a tap                   |
-| `whileTap`    | From press to release on the same element   | Fires on the Enter key too                                       |
-| `whileDrag`   | While the element is dragged                | Needs the `drag` prop                                            |
-| `whileFocus`  | While the element has focus                 | Follows the `:focus-visible` rules                               |
-| `whileInView` | While the element is in the viewport        | `viewport={{ amount: 0.5 }}` sets how much must show             |
-| `onPan`       | After the pointer moves `3px` while pressed | Has no `while` prop, so set state in `onPanStart` and `onPanEnd` |
+| Prop | Fires | Worth knowing |
+| --- | --- | --- |
+| `whileHover` | While a pointer is over the element | Ignores touch, so it never latches after a tap |
+| `whileTap` | From press to release on the same element | Fires on the Enter key too |
+| `whileDrag` | While the element is dragged | Needs the `drag` prop |
+| `whileFocus` | While the element has focus | Follows the `:focus-visible` rules |
+| `whileInView` | While the element is in the viewport | `viewport={{ amount: 0.5 }}` sets how much must show |
+| `onPan` | After the pointer moves `3px` while pressed | Has no `while` prop, so set state in `onPanStart` and `onPanEnd` |
 
 Keep a `whileFocus` animation small. It supports the focus indicator `better-accessibility` requires and never replaces it.
 

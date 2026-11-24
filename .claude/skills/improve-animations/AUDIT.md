@@ -6,12 +6,12 @@ The eight audit categories, what to look for in each, and the exact target value
 
 Every animation must answer "why does this animate?" — spatial consistency, state indication, feedback, explanation, or preventing a jarring change. "It looks cool" on a frequently-seen element is not a purpose.
 
-| Frequency                                                   | Decision                     |
-| ----------------------------------------------------------- | ---------------------------- |
-| 100+ times/day (keyboard shortcuts, command palette toggle) | No animation. Ever.          |
-| Tens of times/day (hover effects, list navigation)          | Remove or drastically reduce |
-| Occasional (modals, drawers, toasts)                        | Standard animation           |
-| Rare / first-time (onboarding, feedback, celebrations)      | Can add delight              |
+| Frequency | Decision |
+| --- | --- |
+| 100+ times/day (keyboard shortcuts, command palette toggle) | No animation. Ever. |
+| Tens of times/day (hover effects, list navigation) | Remove or drastically reduce |
+| Occasional (modals, drawers, toasts) | Standard animation |
+| Rare / first-time (onboarding, feedback, celebrations) | Can add delight |
 
 Hunt for: animations on keyboard-initiated actions, command palettes with open/close transitions (Raycast has none — correct), decorative motion on list items or hover states hit constantly. The strongest fix is often **delete the animation**.
 
@@ -28,20 +28,20 @@ Decision order for easing:
 **`ease-in` on UI is always a finding** — it starts slow, delaying the exact moment the user is watching. Built-in CSS easings are too weak for deliberate motion; plans should introduce strong custom curves (as tokens, matching repo conventions):
 
 ```css
---ease-out: cubic-bezier(0.23, 1, 0.32, 1); /* strong ease-out for UI */
---ease-in-out: cubic-bezier(0.77, 0, 0.175, 1); /* strong ease-in-out for on-screen movement */
---ease-drawer: cubic-bezier(0.32, 0.72, 0, 1); /* iOS-like drawer curve */
+--ease-out: cubic-bezier(0.23, 1, 0.32, 1);        /* strong ease-out for UI */
+--ease-in-out: cubic-bezier(0.77, 0, 0.175, 1);    /* strong ease-in-out for on-screen movement */
+--ease-drawer: cubic-bezier(0.32, 0.72, 0, 1);     /* iOS-like drawer curve */
 ```
 
 Duration budgets — **UI animations stay under 300ms. Modals, drawers, sheets, and toasts are the documented exceptions** (modals and drawers up to 500ms; Sonner-style toasts use 400ms `ease`):
 
-| Element                  | Duration      |
-| ------------------------ | ------------- |
-| Button press feedback    | 100–160ms     |
-| Tooltips, small popovers | 125–200ms     |
-| Dropdowns, selects       | 150–250ms     |
-| Modals, drawers          | 200–500ms     |
-| Marketing / explanatory  | Can be longer |
+| Element | Duration |
+| --- | --- |
+| Button press feedback | 100–160ms |
+| Tooltips, small popovers | 125–200ms |
+| Dropdowns, selects | 150–250ms |
+| Modals, drawers | 200–500ms |
+| Marketing / explanatory | Can be longer |
 
 Hunt for: `ease-in` anywhere, bare `ease`/`linear` on entrances (Sonner-style toasts excepted), durations > 300ms on UI elements other than modals, drawers, sheets, and toasts, tooltip delay + animation on every tooltip in a toolbar (after the first, they should be instant).
 
@@ -50,9 +50,7 @@ Hunt for: `ease-in` anywhere, bare `ease`/`linear` on entrances (Sonner-style to
 - **Never `scale(0)`** — nothing in the real world appears from nothing. Target: `scale(0.9–0.97)` + `opacity: 0`.
 - **Popovers/dropdowns/tooltips scale from their trigger**, not center:
   ```css
-  .popover {
-    transform-origin: var(--transform-origin);
-  } /* Base UI */
+  .popover { transform-origin: var(--transform-origin); } /* Base UI */
   ```
   **Modals are exempt** — they appear centered; `transform-origin: center` is correct there. Do not report it.
 - **Press feedback**: `transform: scale(0.97)` on `:active` with `transition: transform 160ms var(--ease-out)`. Keep it subtle (0.95–0.98).
@@ -85,19 +83,11 @@ Hunt for: `transition: all`, animated layout properties, Motion shorthand props 
 
 ```css
 @media (prefers-reduced-motion: reduce) {
-  .element {
-    animation: fade 0.2s ease;
-  } /* keep opacity/color, drop movement */
+  .element { animation: fade 0.2s ease; } /* keep opacity/color, drop movement */
 }
-@keyframes fade {
-  from {
-    opacity: 0;
-  }
-}
+@keyframes fade { from { opacity: 0; } }
 @media (hover: hover) and (pointer: fine) {
-  .element:hover {
-    transform: scale(1.05);
-  } /* touch fires false hovers on tap */
+  .element:hover { transform: scale(1.05); } /* touch fires false hovers on tap */
 }
 ```
 

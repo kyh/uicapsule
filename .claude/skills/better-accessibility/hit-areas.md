@@ -4,12 +4,12 @@ Target sizes, expanding hit areas without changing visual size, collision rules 
 
 ## Target sizes
 
-| Standard         | Minimum                  |
-| ---------------- | ------------------------ |
-| WCAG 2.5.8 (AA)  | 24×24px, with exceptions |
-| WCAG 2.5.5 (AAA) | 44×44px                  |
-| Apple HIG        | 44×44pt                  |
-| Material Design  | 48×48dp                  |
+| Standard | Minimum |
+| --- | --- |
+| WCAG 2.5.8 (AA) | 24×24px, with exceptions |
+| WCAG 2.5.5 (AAA) | 44×44px |
+| Apple HIG | 44×44pt |
+| Material Design | 48×48dp |
 
 Before reporting an undersized target, check the spacing, equivalent-control, inline, user-agent and essential exceptions.
 

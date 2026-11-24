@@ -15,55 +15,51 @@ Every recipe is a function that returns its data, so the result comes back whole
 ```js
 () => {
   const html = document.documentElement;
-  const res = performance.getEntriesByType("resource").map((r) => r.name);
-  const any = (re) => res.some((n) => re.test(n));
-  const attr = (sel) => !!document.querySelector(sel);
-  const classes = [...document.querySelectorAll("[class]")].map((e) => e.getAttribute("class"));
+  const res = performance.getEntriesByType('resource').map(r => r.name);
+  const any = re => res.some(n => re.test(n));
+  const attr = sel => !!document.querySelector(sel);
+  const classes = [...document.querySelectorAll('[class]')].map(e => e.getAttribute('class'));
   return {
     framework: {
       next: !!window.__NEXT_DATA__ || any(/\/_next\/static/),
-      nextAppRouter: typeof self.__next_f !== "undefined",
+      nextAppRouter: typeof self.__next_f !== 'undefined',
       nuxt: !!window.__NUXT__ || any(/\/_nuxt\//),
       remix: !!window.__remixContext,
       gatsby: !!window.___gatsby,
-      astro: attr("astro-island, [data-astro-cid]"),
+      astro: attr('astro-island, [data-astro-cid]'),
       svelte: attr('[class*="svelte-"]') || any(/\/_app\/immutable\//),
-      angular: attr("[ng-version]"),
-      reactFiber: Object.keys(document.body.firstElementChild ?? {}).some((k) =>
-        k.startsWith("__react"),
-      ),
+      angular: attr('[ng-version]'),
+      reactFiber: Object.keys(document.body.firstElementChild ?? {}).some(k => k.startsWith('__react')),
     },
     styling: {
-      tailwind:
-        getComputedStyle(html).getPropertyValue("--tw-ring-offset-width") !== "" ||
-        attr('[class*="bg-linear-to"], [class*="bg-gradient-to"]'),
+      tailwind: getComputedStyle(html).getPropertyValue('--tw-ring-offset-width') !== ''
+                || attr('[class*="bg-linear-to"], [class*="bg-gradient-to"]'),
       tailwindV4: attr('[class*="bg-linear-to"]'),
-      cssModules: classes.some((c) => /\b[A-Za-z]+_[A-Za-z0-9]+__[A-Za-z0-9_-]{5}\b/.test(c)),
-      styledComponents: attr('[class^="sc-"]') || attr("style[data-styled]"),
+      cssModules: classes.some(c => /\b[A-Za-z]+_[A-Za-z0-9]+__[A-Za-z0-9_-]{5}\b/.test(c)),
+      styledComponents: attr('[class^="sc-"]') || attr('style[data-styled]'),
       emotion: attr('[class^="css-"]'),
     },
     components: {
-      radix:
-        attr("[data-radix-popper-content-wrapper], [data-radix-scroll-area-viewport]") ||
-        attr("[data-slot], [data-state][data-side]"),
+      radix: attr('[data-radix-popper-content-wrapper], [data-radix-scroll-area-viewport]')
+             || attr('[data-slot], [data-state][data-side]'),
       baseUi: attr('[data-base-ui-portal], [class*="base-ui"]'),
-      headlessUi: attr("[data-headlessui-state]"),
+      headlessUi: attr('[data-headlessui-state]'),
       mui: attr('[class*="Mui"]'),
-      arkOrChakra: attr("[data-scope][data-part]"),
+      arkOrChakra: attr('[data-scope][data-part]'),
     },
     motion: { animationsRunning: document.getAnimations().length, gsap: !!window.gsap },
     images: {
       nextImage: any(/\/_next\/image\?/),
-      modernFormats: [...document.images].some((i) => /\.(avif|webp)/.test(i.currentSrc)),
-      srcset: [...document.images].filter((i) => i.srcset).length,
+      modernFormats: [...document.images].some(i => /\.(avif|webp)/.test(i.currentSrc)),
+      srcset: [...document.images].filter(i => i.srcset).length,
     },
     fonts: {
       count: document.fonts.size,
-      variable: [...document.fonts].some((f) => String(f.weight).includes(" ")),
+      variable: [...document.fonts].some(f => String(f.weight).includes(' ')),
       googleFonts: any(/fonts\.g(oogleapis|static)\.com/),
     },
   };
-};
+}
 ```
 
 ## Tokens
@@ -72,45 +68,28 @@ The walk recurses into `@layer`, `@media` and `@supports`, since Tailwind v4 wri
 
 ```js
 () => {
-  const tokens = {};
-  const unreadable = [];
-  const onRoot = (sel) => {
-    try {
-      return document.documentElement.matches(sel);
-    } catch {
-      return false;
-    }
-  };
-  const applies = (r) => {
+  const tokens = {}; const unreadable = [];
+  const onRoot = sel => { try { return document.documentElement.matches(sel) } catch { return false } };
+  const applies = r => {
     if (r.media) return matchMedia(r.media.mediaText).matches;
     if (r.conditionText) return CSS.supports(r.conditionText);
     return true;
   };
-  const walk = (list) => {
-    for (const r of list ?? []) {
-      if (!applies(r)) continue;
-      if (r.selectorText && onRoot(r.selectorText)) {
-        for (const prop of r.style)
-          if (prop.startsWith("--"))
-            tokens[prop] = { declared: r.style.getPropertyValue(prop).trim() };
-      }
-      if (r.cssRules) walk(r.cssRules);
+  const walk = list => { for (const r of list ?? []) {
+    if (!applies(r)) continue;
+    if (r.selectorText && onRoot(r.selectorText)) {
+      for (const prop of r.style) if (prop.startsWith('--')) tokens[prop] = { declared: r.style.getPropertyValue(prop).trim() };
     }
-  };
+    if (r.cssRules) walk(r.cssRules);
+  }};
   for (const sheet of document.styleSheets) {
-    let rules;
-    try {
-      rules = sheet.cssRules;
-    } catch {
-      unreadable.push(sheet.href);
-      continue;
-    }
+    let rules; try { rules = sheet.cssRules } catch { unreadable.push(sheet.href); continue }
     walk(rules);
   }
   const computed = getComputedStyle(document.documentElement);
   for (const name in tokens) tokens[name].computed = computed.getPropertyValue(name).trim();
   return { tokens, unreadable, count: Object.keys(tokens).length };
-};
+}
 ```
 
 Group the result by prefix, since the prefixes are the system's own layer names. `declared` keeps the authored value, often a `var()` chain, and `computed` is what that resolves to on the page right now. A two-tier structure, `--blue-500` feeding `--color-text-primary`, is what `better-colors` calls primitives and semantic tokens.
@@ -122,14 +101,14 @@ Leaf text nodes only, so a wrapper's inherited size is not counted as its own st
 ```js
 () => {
   const seen = new Map();
-  for (const el of document.querySelectorAll("*")) {
+  for (const el of document.querySelectorAll('*')) {
     if (el.children.length || !el.textContent?.trim()) continue;
     const s = getComputedStyle(el);
     const key = `${parseFloat(s.fontSize)}px  w${s.fontWeight}  lh ${s.lineHeight}  ls ${s.letterSpacing}`;
     seen.set(key, (seen.get(key) ?? 0) + 1);
   }
   return [...seen].sort((a, b) => b[1] - a[1]);
-};
+}
 ```
 
 Sorted by usage, so the body size usually comes first and the one-offs last. Derive the ratio between adjacent sizes. A consistent ratio is a scale, and scattered values are hard-coded sizes.
@@ -139,15 +118,15 @@ Sorted by usage, so the body size usually comes first and the one-offs last. Der
 ```js
 () => {
   const vals = new Map();
-  for (const el of document.querySelectorAll("*")) {
+  for (const el of document.querySelectorAll('*')) {
     const s = getComputedStyle(el);
-    for (const p of ["paddingTop", "paddingLeft", "marginTop", "marginLeft", "gap", "rowGap"]) {
+    for (const p of ['paddingTop', 'paddingLeft', 'marginTop', 'marginLeft', 'gap', 'rowGap']) {
       const v = parseFloat(s[p]);
       if (v > 0) vals.set(v, (vals.get(v) ?? 0) + 1);
     }
   }
   return [...vals].sort((a, b) => a[0] - b[0]);
-};
+}
 ```
 
 Find the base unit that divides most values. Then measure the gap between groups against the gap within one. `better-layout` sets the yardstick at 2× or more for space to carry the grouping on its own.
@@ -158,14 +137,14 @@ Find the base unit that divides most values. Then measure the gap between groups
 () => {
   const grab = (prop, skip) => {
     const m = new Map();
-    for (const el of document.querySelectorAll("*")) {
+    for (const el of document.querySelectorAll('*')) {
       const v = getComputedStyle(el)[prop];
       if (v && v !== skip) m.set(v, (m.get(v) ?? 0) + 1);
     }
     return [...m].sort((a, b) => b[1] - a[1]);
   };
-  return { radius: grab("borderRadius", "0px"), shadow: grab("boxShadow", "none") };
-};
+  return { radius: grab('borderRadius', '0px'), shadow: grab('boxShadow', 'none') };
+}
 ```
 
 Report the count of distinct values and how often each is used. A few values reused everywhere is derived evidence of a shared scale. Whether anyone designed it is an inference.
@@ -175,14 +154,14 @@ Report the count of distinct values and how often each is used. A few values reu
 ```js
 () => {
   const t = new Map();
-  for (const el of document.querySelectorAll("*")) {
+  for (const el of document.querySelectorAll('*')) {
     const s = getComputedStyle(el);
-    if (s.transitionDuration === "0s") continue;
+    if (s.transitionDuration === '0s') continue;
     const key = `${s.transitionProperty}  ${s.transitionDuration}  ${s.transitionTimingFunction}`;
     t.set(key, (t.get(key) ?? 0) + 1);
   }
   return [...t].sort((a, b) => b[1] - a[1]);
-};
+}
 ```
 
 `transition: all` shows up here as `all`. Custom curves arrive as `cubic-bezier(...)`, and keywords such as `ease` are the browser's built-in curves.
@@ -191,27 +170,18 @@ Report the count of distinct values and how often each is used. A few values reu
 
 ```js
 () => {
-  const bp = new Set();
-  const unreadable = [];
+  const bp = new Set(); const unreadable = [];
   const re = /(min|max)-width:\s*[\d.]+(px|r?em)|width\s*[<>]=?\s*[\d.]+(px|r?em)/g;
-  const walk = (list) => {
-    for (const r of list ?? []) {
-      for (const m of (r.media?.mediaText ?? "").matchAll(re)) bp.add(m[0]);
-      if (r.cssRules) walk(r.cssRules);
-    }
-  };
+  const walk = list => { for (const r of list ?? []) {
+    for (const m of (r.media?.mediaText ?? '').matchAll(re)) bp.add(m[0]);
+    if (r.cssRules) walk(r.cssRules);
+  }};
   for (const sheet of document.styleSheets) {
-    let rules;
-    try {
-      rules = sheet.cssRules;
-    } catch {
-      unreadable.push(sheet.href);
-      continue;
-    }
+    let rules; try { rules = sheet.cssRules } catch { unreadable.push(sheet.href); continue }
     walk(rules);
   }
   return { breakpoints: [...bp].sort(), unreadable };
-};
+}
 ```
 
 Compare against the framework defaults. Tailwind v3 ships `640px`, `768px`, `1024px`, `1280px` and `1536px` as `min-width`. Tailwind v4 ships `40rem`, `48rem`, `64rem`, `80rem` and `96rem` as `width >= 40rem`. A match is derived. Whether anyone chose to keep the defaults is an inference.
@@ -220,12 +190,12 @@ Compare against the framework defaults. Tailwind v3 ships `640px`, `768px`, `102
 
 ```js
 () => ({
-  loaded: [...document.fonts].map((f) => `${f.family} ${f.weight} ${f.style} ${f.status}`),
+  loaded: [...document.fonts].map(f => `${f.family} ${f.weight} ${f.style} ${f.status}`),
   bodyStack: getComputedStyle(document.body).fontFamily,
-  variable: [...document.fonts].some((f) => String(f.weight).includes(" ")),
-  themeClass: document.documentElement.className || "(none)",
+  variable: [...document.fonts].some(f => String(f.weight).includes(' ')),
+  themeClass: document.documentElement.className || '(none)',
   colorScheme: getComputedStyle(document.documentElement).colorScheme,
-});
+})
 ```
 
 `variable: true` means one file covers a weight range. A class on `<html>` beside a `prefers-color-scheme` query means a toggle that can override the system setting.

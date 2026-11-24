@@ -2,19 +2,19 @@
 
 What to look for on the `-` side of a hunk and which skill owns the judgement.
 
-| Removed from the `-` side                                                           | Owner                  | What to check                                                               |
-| ----------------------------------------------------------------------------------- | ---------------------- | --------------------------------------------------------------------------- |
-| `aria-label`, `aria-labelledby`, `aria-describedby`, `aria-live`, `role=`           | `better-accessibility` | The control or region lost its accessible name, description or announcement |
-| `alt=`, `<label`, `for=`, `htmlFor`, `scope=`                                       | `better-accessibility` | Image, field or table cell lost its programmatic association                |
-| `<button>`, `<a>`, `<nav>`, `<main>`, `<ul>` replaced by `div` or `span`            | `better-accessibility` | Keyboard and assistive-technology behavior was traded for styling           |
-| `:focus-visible`, `:focus`, `outline`, `tabindex`                                   | `better-accessibility` | Keyboard users lost the focus indicator or the element left the tab order   |
-| `prefers-reduced-motion`                                                            | `better-accessibility` | Motion now ignores the user's system preference                             |
-| `prefers-contrast`                                                                  | `better-colors`        | Colors now ignore the user's contrast preference                            |
-| Logical properties swapped for `left` / `right`                                     | `better-layout`        | Direction-aware layout was dropped                                          |
-| `lang=`, `dir=`                                                                     | `better-typography`    | Language metadata or text direction was dropped                             |
-| `text-wrap`, `line-clamp`, `overflow-wrap`, `tabular-nums`, `font-feature-settings` | `better-typography`    | Text rendering, wrapping or numeral alignment silently changed              |
-| A color token swapped for a literal, or a token swapped for a lighter one           | `better-colors`        | The rendered contrast pair may now fail; measure it                         |
-| A user-facing string deleted or shortened                                           | `better-writing`       | A label, error or empty state lost the information it carried               |
+| Removed from the `-` side | Owner | What to check |
+| --- | --- | --- |
+| `aria-label`, `aria-labelledby`, `aria-describedby`, `aria-live`, `role=` | `better-accessibility` | The control or region lost its accessible name, description or announcement |
+| `alt=`, `<label`, `for=`, `htmlFor`, `scope=` | `better-accessibility` | Image, field or table cell lost its programmatic association |
+| `<button>`, `<a>`, `<nav>`, `<main>`, `<ul>` replaced by `div` or `span` | `better-accessibility` | Keyboard and assistive-technology behavior was traded for styling |
+| `:focus-visible`, `:focus`, `outline`, `tabindex` | `better-accessibility` | Keyboard users lost the focus indicator or the element left the tab order |
+| `prefers-reduced-motion` | `better-accessibility` | Motion now ignores the user's system preference |
+| `prefers-contrast` | `better-colors` | Colors now ignore the user's contrast preference |
+| Logical properties swapped for `left` / `right` | `better-layout` | Direction-aware layout was dropped |
+| `lang=`, `dir=` | `better-typography` | Language metadata or text direction was dropped |
+| `text-wrap`, `line-clamp`, `overflow-wrap`, `tabular-nums`, `font-feature-settings` | `better-typography` | Text rendering, wrapping or numeral alignment silently changed |
+| A color token swapped for a literal, or a token swapped for a lighter one | `better-colors` | The rendered contrast pair may now fail; measure it |
+| A user-facing string deleted or shortened | `better-writing` | A label, error or empty state lost the information it carried |
 
 ## Equivalent replacements
 

@@ -28,7 +28,7 @@ Two failure modes, and the first is worse:
 
 ## Hard Rules
 
-1. **Every fix ships with the reason.** Each rule below has a _why_. Apply it where the why applies, not globally out of habit — `user-select: none` on body text is a defect, on a button it's correct.
+1. **Every fix ships with the reason.** Each rule below has a *why*. Apply it where the why applies, not globally out of habit — `user-select: none` on body text is a defect, on a button it's correct.
 2. **Media queries over device sniffing.** `(hover: hover)`, `(pointer: fine)`, `env()`, `dvh` — the platform tells you what it can do. Never branch on user agent strings or screen width to guess at touch.
 3. **Touch and mouse are not exclusive.** iPads with trackpads, laptops with touchscreens, phones with a mouse. Write for both at once; gate by capability, not by device.
 4. **Never disable zoom.** `user-scalable=no` and `maximum-scale=1` are accessibility failures. Fix the input font size instead, which is what was causing the zoom.
@@ -38,19 +38,19 @@ Two failure modes, and the first is worse:
 
 Start here. Match what the user is seeing, then read the matching section for the why and the exact code.
 
-| Problem                         | Solution                                                |
-| ------------------------------- | ------------------------------------------------------- |
-| Hover state stuck after tap     | Wrap in `@media (hover: hover) and (pointer: fine)`     |
-| Gray/blue flash on tap          | Kill `-webkit-tap-highlight-color`                      |
-| Layout has wrong height         | `100dvh` (app) or `100svh` (hero)                       |
-| Page zooms into input           | Input font size 16px at the minimum                     |
-| Tap feels laggy                 | Feedback on pointer-down + `touch-action: manipulation` |
-| Pull-to-refresh hijacks scroll  | `overscroll-behavior: none` on `html, body`             |
-| Content stops at the notch      | `viewport-fit=cover` + `env(safe-area-inset-*)`         |
-| Long-press selects button text  | Add `user-select: none`                                 |
-| Carousel scrolls vertically     | `touch-action: pan-y` on the gesture surface            |
-| Status bar color doesn't match  | `theme-color` per color scheme                          |
-| Right in Chrome, wrong on phone | Test on real hardware                                   |
+| Problem | Solution |
+| --- | --- |
+| Hover state stuck after tap | Wrap in `@media (hover: hover) and (pointer: fine)` |
+| Gray/blue flash on tap | Kill `-webkit-tap-highlight-color` |
+| Layout has wrong height | `100dvh` (app) or `100svh` (hero) |
+| Page zooms into input | Input font size 16px at the minimum |
+| Tap feels laggy | Feedback on pointer-down + `touch-action: manipulation` |
+| Pull-to-refresh hijacks scroll | `overscroll-behavior: none` on `html, body` |
+| Content stops at the notch | `viewport-fit=cover` + `env(safe-area-inset-*)` |
+| Long-press selects button text | Add `user-select: none` |
+| Carousel scrolls vertically | `touch-action: pan-y` on the gesture surface |
+| Status bar color doesn't match | `theme-color` per color scheme |
+| Right in Chrome, wrong on phone | Test on real hardware |
 
 ## The Fixes
 
@@ -85,18 +85,14 @@ Set it once, globally. Then make sure every tappable element has its own `:activ
 
 ### 3. Layout has the wrong height
 
-`100vh` on mobile is the _largest_ viewport — the height with the browser chrome collapsed. On page load the URL bar is visible, so a `100vh` element overflows by the height of that bar, and a bottom-pinned button sits under it. Use the dynamic and small units instead:
+`100vh` on mobile is the *largest* viewport — the height with the browser chrome collapsed. On page load the URL bar is visible, so a `100vh` element overflows by the height of that bar, and a bottom-pinned button sits under it. Use the dynamic and small units instead:
 
 ```css
 /* App shell, drawers, anything that should track the visible area as chrome shows/hides */
-.app {
-  height: 100dvh;
-}
+.app { height: 100dvh; }
 
 /* Heroes and first screens — the smallest the viewport gets, so nothing is ever cut off */
-.hero {
-  min-height: 100svh;
-}
+.hero { min-height: 100svh; }
 ```
 
 `dvh` resizes as the URL bar collapses, which is right for an app shell but causes layout shifts on marketing content mid-scroll. `svh` is stable and never overflows, which is right for a hero. `lvh` is the old `vh` — you almost never want it. Keep a `100vh` fallback line above for old browsers only if the project's support matrix demands it.
@@ -106,9 +102,7 @@ Set it once, globally. Then make sure every tappable element has its own `:activ
 iOS Safari zooms the page when focus lands on an input whose font size is under 16px, and it does not zoom back out on blur. The user is left looking at a cropped, drifted layout. This is the reason people reach for `maximum-scale=1`, which is the wrong fix (Hard Rule 4).
 
 ```css
-input,
-textarea,
-select {
+input, textarea, select {
   font-size: 16px; /* the minimum; 1rem at the default root size */
 }
 ```
@@ -117,11 +111,7 @@ If the design calls for smaller text in inputs on desktop, scale it up only wher
 
 ```css
 @media (pointer: coarse) {
-  input,
-  textarea,
-  select {
-    font-size: 16px;
-  }
+  input, textarea, select { font-size: 16px; }
 }
 ```
 
@@ -134,21 +124,16 @@ Two separate causes stack here.
 **The 300ms click delay.** Browsers wait after a tap to see whether a second tap is coming, because double-tap zooms. Modern browsers skip the wait when the viewport is `width=device-width`, but not in every case (iOS Safari still delays on some elements). `touch-action: manipulation` tells the browser this element never double-tap-zooms, so it fires `click` immediately:
 
 ```css
-button,
-a,
-[role="button"],
-.tappable {
+button, a, [role="button"], .tappable {
   touch-action: manipulation;
 }
 ```
 
-**Feedback on release instead of press.** Native buttons respond the instant your finger lands. A web button that only changes on `click` responds when your finger _leaves_, which reads as lag even at 0ms. Style `:active`, and if you need JavaScript, listen to `pointerdown`, not `click`:
+**Feedback on release instead of press.** Native buttons respond the instant your finger lands. A web button that only changes on `click` responds when your finger *leaves*, which reads as lag even at 0ms. Style `:active`, and if you need JavaScript, listen to `pointerdown`, not `click`:
 
 ```css
 .button {
-  transition:
-    transform 100ms var(--ease-out),
-    background 100ms;
+  transition: transform 100ms var(--ease-out), background 100ms;
 }
 .button:active {
   transform: scale(0.97);
@@ -163,8 +148,7 @@ Keep press feedback at 100–160ms and `ease-out`. If the codebase uses the `ani
 Scrolling past the top of the page triggers pull-to-refresh on Android Chrome and the whole-page rubber band on iOS. Fine on a document. Wrong in an app with its own scroll containers, a drawer the user drags down, or a canvas.
 
 ```css
-html,
-body {
+html, body {
   overscroll-behavior: none;
 }
 ```
@@ -182,7 +166,7 @@ Then, on any inner scrollable — a sheet's content, a chat list, a sidebar — 
 
 ### 7. Content stops at the notch
 
-By default the browser letterboxes your page inside the safe area, leaving the notch, Dynamic Island, and home-indicator zones the body's background color. A native app paints edge to edge and pads its _content_ away from those zones. Two steps:
+By default the browser letterboxes your page inside the safe area, leaving the notch, Dynamic Island, and home-indicator zones the body's background color. A native app paints edge to edge and pads its *content* away from those zones. Two steps:
 
 ```html
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
@@ -204,16 +188,12 @@ By default the browser letterboxes your page inside the safe area, leaving the n
 
 ### 8. Long-press selects button text
 
-Hold a finger on a web button and iOS selects its label, or pops the copy/share callout on a link. Native controls never do that. Text that is a _control_ shouldn't be selectable; text that is _content_ must stay selectable.
+Hold a finger on a web button and iOS selects its label, or pops the copy/share callout on a link. Native controls never do that. Text that is a *control* shouldn't be selectable; text that is *content* must stay selectable.
 
 ```css
-button,
-[role="button"],
-.tab,
-.chip,
-.drag-handle {
+button, [role="button"], .tab, .chip, .drag-handle {
   user-select: none;
-  -webkit-user-select: none; /* Safari still needs the prefix */
+  -webkit-user-select: none;   /* Safari still needs the prefix */
   -webkit-touch-callout: none; /* no long-press callout on links/images used as controls */
 }
 ```
@@ -229,14 +209,14 @@ A horizontal swipe on a carousel is ambiguous to the browser — it doesn't know
   touch-action: pan-y; /* the carousel handles horizontal; the browser keeps vertical */
 }
 .drag-surface {
-  touch-action: none; /* a custom gesture (a drag-to-dismiss sheet, a slider) owns every axis */
+  touch-action: none;  /* a custom gesture (a drag-to-dismiss sheet, a slider) owns every axis */
 }
 .vertical-sheet-handle {
   touch-action: pan-x; /* the sheet handles vertical drags; horizontal stays with the browser */
 }
 ```
 
-The values name what the _browser_ may still do. `pan-y` on a horizontal carousel means "browser, you keep vertical panning; I'm handling horizontal". `none` means the element handles everything — use it only on elements that really do, or the user won't be able to scroll past them.
+The values name what the *browser* may still do. `pan-y` on a horizontal carousel means "browser, you keep vertical panning; I'm handling horizontal". `none` means the element handles everything — use it only on elements that really do, or the user won't be able to scroll past them.
 
 If the carousel is native scroll rather than a JS gesture, prefer `scroll-snap-type: x mandatory` on the track and `scroll-snap-align: start` on slides — the browser's own physics beat a hand-rolled spring, and `touch-action` becomes unnecessary.
 
@@ -268,10 +248,7 @@ The Xcode Simulator is a step up from emulation but still misses touch feel. Rea
 When starting a mobile-facing app, this is the floor. Ship it before the first component:
 
 ```html
-<meta
-  name="viewport"
-  content="width=device-width, initial-scale=1, viewport-fit=cover, interactive-widget=resizes-content"
-/>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, interactive-widget=resizes-content" />
 <meta name="theme-color" media="(prefers-color-scheme: light)" content="#ffffff" />
 <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#0a0a0a" />
 ```
@@ -283,20 +260,15 @@ html {
   overscroll-behavior: none;
 }
 
-input,
-textarea,
-select {
+input, textarea, select {
   font-size: 16px;
 }
 
-button,
-a,
-[role="button"] {
+button, a, [role="button"] {
   touch-action: manipulation;
 }
 
-button,
-[role="button"] {
+button, [role="button"] {
   user-select: none;
   -webkit-user-select: none;
 }
@@ -312,20 +284,20 @@ button,
 
 Self-check before you finish.
 
-| Never                                                           | Instead                                     |
-| --------------------------------------------------------------- | ------------------------------------------- |
-| `user-scalable=no` or `maximum-scale=1`                         | 16px inputs — fix the cause                 |
-| Ungated `:hover`                                                | `@media (hover: hover) and (pointer: fine)` |
-| `100vh` for an app shell or bottom-pinned UI                    | `100dvh`                                    |
-| `100dvh` on a marketing hero                                    | `100svh` (no layout shift on scroll)        |
-| Press feedback on `click` only                                  | `:active` / `pointerdown`                   |
-| `touchmove` + `preventDefault()` to stop overscroll             | `overscroll-behavior`                       |
-| `user-select: none` on `body`                                   | Only on controls                            |
-| `touch-action: none` on something the user needs to scroll past | `pan-x` / `pan-y`                           |
-| `env(safe-area-inset-*)` without `viewport-fit=cover`           | Add the meta tag or the value is `0`        |
-| One `theme-color` for both schemes                              | One per `prefers-color-scheme`              |
-| User-agent sniffing to detect touch                             | `(hover)` / `(pointer)` media queries       |
-| Declaring it fixed from device emulation                        | Real hardware                               |
+| Never | Instead |
+| --- | --- |
+| `user-scalable=no` or `maximum-scale=1` | 16px inputs — fix the cause |
+| Ungated `:hover` | `@media (hover: hover) and (pointer: fine)` |
+| `100vh` for an app shell or bottom-pinned UI | `100dvh` |
+| `100dvh` on a marketing hero | `100svh` (no layout shift on scroll) |
+| Press feedback on `click` only | `:active` / `pointerdown` |
+| `touchmove` + `preventDefault()` to stop overscroll | `overscroll-behavior` |
+| `user-select: none` on `body` | Only on controls |
+| `touch-action: none` on something the user needs to scroll past | `pan-x` / `pan-y` |
+| `env(safe-area-inset-*)` without `viewport-fit=cover` | Add the meta tag or the value is `0` |
+| One `theme-color` for both schemes | One per `prefers-color-scheme` |
+| User-agent sniffing to detect touch | `(hover)` / `(pointer)` media queries |
+| Declaring it fixed from device emulation | Real hardware |
 
 ## Output
 

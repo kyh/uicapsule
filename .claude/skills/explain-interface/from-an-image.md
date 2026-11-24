@@ -2,13 +2,13 @@
 
 The method for a screenshot, where the answer is a reconstruction rather than a reading. Which property lands in which bucket:
 
-| Exact from pixels                       | Ratios only               | Unavailable                      |
-| --------------------------------------- | ------------------------- | -------------------------------- |
-| Color values                            | Type sizes                | Tokens and their names           |
-| Contrast between any two sampled colors | Spacing values            | The stack and styling system     |
-| Which colors repeat and where           | Radii                     | Breakpoints                      |
-|                                         | Stroke and border weights | Motion, easing, duration         |
-|                                         |                           | Every state but the captured one |
+| Exact from pixels | Ratios only | Unavailable |
+| --- | --- | --- |
+| Color values | Type sizes | Tokens and their names |
+| Contrast between any two sampled colors | Spacing values | The stack and styling system |
+| Which colors repeat and where | Radii | Breakpoints |
+| | Stroke and border weights | Motion, easing, duration |
+| | | Every state but the captured one |
 
 You do not know the capture's scale. A screenshot may be at 1×, 2× or browser zoom, so a measured 30px could be 15px of type or 30. Never report a `px` size or spacing from an image alone.
 

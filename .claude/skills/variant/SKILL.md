@@ -14,13 +14,13 @@ It produces candidates and never ranks them. Reviewing existing UI is `interface
 
 Each variant is a different answer to the same brief, on an axis this collection owns:
 
-| Axis      | Owner               | What varies                                   |
-| --------- | ------------------- | --------------------------------------------- |
-| Structure | `better-layout`     | Grouping, order, column count, what collapses |
-| Density   | `better-layout`     | Spacing scale, how much fits                  |
-| Emphasis  | `better-colors`     | Where filled color goes, what recedes         |
-| Type      | `better-typography` | Scale steps, weight contrast, measure         |
-| Voice     | `better-writing`    | Labels, tone, how much copy                   |
+| Axis | Owner | What varies |
+| --- | --- | --- |
+| Structure | `better-layout` | Grouping, order, column count, what collapses |
+| Density | `better-layout` | Spacing scale, how much fits |
+| Emphasis | `better-colors` | Where filled color goes, what recedes |
+| Type | `better-typography` | Scale steps, weight contrast, measure |
+| Voice | `better-writing` | Labels, tone, how much copy |
 
 Pick **one primary axis** and give each variant a different position on it. The axis names the picker's group heading. Secondary choices follow from it rather than varying on their own. A dense variant may need a smaller type step, and that is coherence, not a second axis.
 
@@ -87,9 +87,9 @@ Load the page once in a browser already at hand and flip through every variant. 
 
 Then hand the decision over:
 
-| Variant   | Axis position            | Right when                 | Costs               |
-| --------- | ------------------------ | -------------------------- | ------------------- |
-| Quiet     | Lowest visual weight     | The page is used daily     | Least memorable     |
+| Variant | Axis position | Right when | Costs |
+| --- | --- | --- | --- |
+| Quiet | Lowest visual weight | The page is used daily | Least memorable |
 | Editorial | Largest type, most space | The moment deserves weight | Eats vertical space |
 
 Say where the picker is running, which key flips it and which width you judged at. The answer can change between 375px and 1440px.
@@ -104,9 +104,9 @@ Asked for another round instead, keep the harness and run **Name the axis before
 
 ## Before you finish
 
-| Mistake                                             | Fix                                                                                                    |
-| --------------------------------------------------- | ------------------------------------------------------------------------------------------------------ |
-| Variants differ only in accent color or a few words | Move one to a different position on the primary axis, or cut it                                        |
-| Lorem ipsum, three rows, "Jane Doe"                 | Real copy and the item count the page will really carry                                                |
-| Picker restyled with the project's tokens           | Keep it visibly outside the design system                                                              |
-| One long row of tabs, one per variant               | A grouped list beside the piece that scrolls on its own; a select above it where the list does not fit |
+| Mistake | Fix |
+| --- | --- |
+| Variants differ only in accent color or a few words | Move one to a different position on the primary axis, or cut it |
+| Lorem ipsum, three rows, "Jane Doe" | Real copy and the item count the page will really carry |
+| Picker restyled with the project's tokens | Keep it visibly outside the design system |
+| One long row of tabs, one per variant | A grouped list beside the piece that scrolls on its own; a select above it where the list does not fit |

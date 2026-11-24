@@ -83,14 +83,13 @@ describe("mcp skills", () => {
     }
   });
 
-  test("THIRD_PARTY.md credits every served repo skill", async () => {
-    const credits = await readFile(
-      path.resolve(process.cwd(), "..", "..", ".claude", "skills", "THIRD_PARTY.md"),
-      "utf-8",
+  test("every served repo skill is pinned in skills-lock.json", async () => {
+    const lock = JSON.parse(
+      await readFile(path.resolve(process.cwd(), "..", "..", "skills-lock.json"), "utf-8"),
     );
 
     for (const name of REPO_SKILLS) {
-      assert.ok(credits.includes(`| \`${name}\``), `${name} is missing from THIRD_PARTY.md`);
+      assert.ok(name in lock.skills, `${name} is missing from skills-lock.json`);
     }
   });
 });

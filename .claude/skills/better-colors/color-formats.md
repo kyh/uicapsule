@@ -4,12 +4,12 @@ Which notation to write colors in, how to convert between them and what happens 
 
 ## Choosing a notation
 
-| Notation  | Good for                                                      | Weakness                                                                                                                |
-| --------- | ------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------- |
-| Hex       | Universal support, compact, what design tools hand you        | Opaque. No channel is readable or editable by hand                                                                      |
-| `rgb()`   | Same reach as hex, readable alpha                             | Channels do not correspond to anything a designer thinks about                                                          |
-| `hsl()`   | Channels look like design controls                            | Its lightness is not perceptual and its hue drifts; a ramp built by varying lightness bunches at one end and shifts hue |
-| `oklch()` | Perceptually uniform lightness, stable hue, predictable ramps | Baseline 2023, so very old browser matrices need a fallback                                                             |
+| Notation | Good for | Weakness |
+| --- | --- | --- |
+| Hex | Universal support, compact, what design tools hand you | Opaque. No channel is readable or editable by hand |
+| `rgb()` | Same reach as hex, readable alpha | Channels do not correspond to anything a designer thinks about |
+| `hsl()` | Channels look like design controls | Its lightness is not perceptual and its hue drifts; a ramp built by varying lightness bunches at one end and shifts hue |
+| `oklch()` | Perceptually uniform lightness, stable hue, predictable ramps | Baseline 2023, so very old browser matrices need a fallback |
 
 ```css
 oklch(L C H)          /* lightness 0–1, chroma 0–~0.4, hue 0–360 */

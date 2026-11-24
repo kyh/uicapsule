@@ -52,10 +52,10 @@ Then mark each break you did see on the page, a one-line note under that scenari
 
 Report findings as a table, broken scenarios first:
 
-| Scenario                            | Observed                                      | Owner               |
-| ----------------------------------- | --------------------------------------------- | ------------------- |
+| Scenario | Observed | Owner |
+| --- | --- | --- |
 | One unbreakable 60-character string | Overflows the card, no wrap and no truncation | `better-typography` |
-| Zero items                          | Blank region with no message                  | `better-writing`    |
+| Zero items | Blank region with no message | `better-writing` |
 
 This skill owns no domain rules and issues no verdict.
 
@@ -69,8 +69,8 @@ The page is half the report, so it outlives the findings table. Leave it running
 
 ## Before you finish
 
-| Mistake                                       | Fix                                                                                 |
-| --------------------------------------------- | ----------------------------------------------------------------------------------- |
-| A scenario missing the content it was fed     | The harness is broken, not the component; make the page client code and reload once |
-| The viewport resized scenario by scenario     | Widths are fixed containers on the page; one load shows them all                    |
-| A break in the table but unmarked on the page | Note it under the scenario's label; the page reads as the report on its own         |
+| Mistake | Fix |
+| --- | --- |
+| A scenario missing the content it was fed | The harness is broken, not the component; make the page client code and reload once |
+| The viewport resized scenario by scenario | Widths are fixed containers on the page; one load shows them all |
+| A break in the table but unmarked on the page | Note it under the scenario's label; the page reads as the report on its own |

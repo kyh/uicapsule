@@ -9,7 +9,7 @@ Three symptoms are `HIGH` on sight whatever the surface, matching `better-interf
 **Format.** Group findings under the principle each violates, ordered by severity, one row per root cause listing every location it appears in:
 
 | Severity | Location | Before | After | Why |
-| -------- | -------- | ------ | ----- | --- |
+| --- | --- | --- | --- | --- |
 
 `Location` is `path/to/file:line`. `Why` names the principle and the user impact.
 

@@ -25,14 +25,14 @@ This step is done when you hold a screenshot of every frame in scope and its val
 
 Read the project's tokens and component library before writing anything. Then map every design value to what exists:
 
-| In the design                                   | In code                                                                                |
-| ----------------------------------------------- | -------------------------------------------------------------------------------------- |
-| A bound variable or style                       | The token with the same name or the same value                                         |
-| A raw value that equals a token                 | That token                                                                             |
-| A raw value with no token                       | The nearest existing token, listed in the report as rounded                            |
-| A component instance                            | The project's component of that name, with the variant the design shows                |
+| In the design | In code |
+| --- | --- |
+| A bound variable or style | The token with the same name or the same value |
+| A raw value that equals a token | That token |
+| A raw value with no token | The nearest existing token, listed in the report as rounded |
+| A component instance | The project's component of that name, with the variant the design shows |
 | A component instance with no project equivalent | Plain markup in place, listed as a deviation, and ask whether a component should exist |
-| A one-off group of layers                       | Plain markup in place, not a new component                                             |
+| A one-off group of layers | Plain markup in place, not a new component |
 
 Never add a token, a component variant or an arbitrary value to hit a number. Stop and ask which way to go when rounding would visibly change the design. That means more than 2px on spacing or size, or a color landing on a different step.
 
@@ -54,11 +54,11 @@ Fix every mismatch you caused, then compare again. This step is done when every 
 
 ## 5. Report and stop
 
-| Element      | Design      | Built           | Status                                     |
-| ------------ | ----------- | --------------- | ------------------------------------------ |
-| Card padding | 20px        | `p-5`           | Matches                                    |
-| Title size   | 15px        | `text-sm`, 14px | Rounded to token                           |
-| Badge        | Filled pill | Text label      | Deviates, asked: no badge component exists |
+| Element | Design | Built | Status |
+| --- | --- | --- | --- |
+| Card padding | 20px | `p-5` | Matches |
+| Title size | 15px | `text-sm`, 14px | Rounded to token |
+| Badge | Filled pill | Text label | Deviates, asked: no badge component exists |
 
 Then list, one line each, and omit a list with nothing in it:
 
@@ -70,14 +70,14 @@ Close by saying where the build is running and at which widths you compared.
 
 ## Before you finish
 
-| You notice                                                                    | Fix                                                       |
-| ----------------------------------------------------------------------------- | --------------------------------------------------------- |
-| "Figma isn't connected" written before any tool search                        | Search the tools for `figma` first                        |
-| Values in code that appear in no Figma response, only in the screenshot       | Read them from the design context                         |
-| An arbitrary utility such as `w-[343px]` or a raw hex in the diff             | Map it to a token, or ask if rounding shows               |
-| A new file under the components directory for a frame that is not a component | Inline it as plain markup                                 |
-| A loading or error branch the design never drew                               | Remove it, keep the default and list it as missing        |
-| Files in the diff that no frame touches                                       | Revert them                                               |
-| A contrast or focus change the design does not show                           | Restore the design and report the conflict with its owner |
-| A comparison claimed with no screenshot of the build                          | Render each frame width, or say it is unverified          |
-| Hard-coded sample data with no mention in the report                          | List it under **Unwired**                                 |
+| You notice | Fix |
+| --- | --- |
+| "Figma isn't connected" written before any tool search | Search the tools for `figma` first |
+| Values in code that appear in no Figma response, only in the screenshot | Read them from the design context |
+| An arbitrary utility such as `w-[343px]` or a raw hex in the diff | Map it to a token, or ask if rounding shows |
+| A new file under the components directory for a frame that is not a component | Inline it as plain markup |
+| A loading or error branch the design never drew | Remove it, keep the default and list it as missing |
+| Files in the diff that no frame touches | Revert them |
+| A contrast or focus change the design does not show | Restore the design and report the conflict with its owner |
+| A comparison claimed with no screenshot of the build | Render each frame width, or say it is unverified |
+| Hard-coded sample data with no mention in the report | List it under **Unwired** |

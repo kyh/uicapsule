@@ -4,11 +4,11 @@ Recipes for control clearance, edge insets, disclosure cues, edge behavior, brea
 
 ## Borderless controls need more clearance
 
-| Between                                                              | Starting point |
-| -------------------------------------------------------------------- | -------------- |
-| Adjacent bordered or filled controls, such as buttons and inputs     | `12px`         |
-| Visible glyphs of borderless controls, such as text and icon buttons | `24px`         |
-| Unrelated control groups                                             | `24px` or more |
+| Between | Starting point |
+| --- | --- |
+| Adjacent bordered or filled controls, such as buttons and inputs | `12px` |
+| Visible glyphs of borderless controls, such as text and icon buttons | `24px` |
+| Unrelated control groups | `24px` or more |
 
 Nothing marks where one borderless target ends and the next begins, so the space is the boundary.
 
@@ -39,9 +39,7 @@ A button pressed against the viewport looks like system chrome and clips against
   padding-inline: 16px;
   padding-bottom: calc(16px + env(safe-area-inset-bottom));
 }
-.action-bar button {
-  width: 100%;
-}
+.action-bar button { width: 100%; }
 
 /* Bad: button glued to three edges, and 100vw adds the scrollbar width */
 .action-bar button {
@@ -92,18 +90,14 @@ The item width sets the peek: width = `100%` + padding − gap − peek, since `
   display: grid;
   grid-template-columns: 1fr min(55ch, calc(100% - 48px)) 1fr;
 }
-.article > * {
-  grid-column: 2;
-}
-.article > .full-bleed {
-  grid-column: 1 / -1;
-}
+.article > * { grid-column: 2; }
+.article > .full-bleed { grid-column: 1 / -1; }
 ```
 
 Safe-area insets are physical, so a floating button pairs each physical side with its own inset and overrides it in RTL:
 
 ```html
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 ```
 
 ```css
@@ -118,9 +112,7 @@ Safe-area insets are physical, so a floating button pairs each physical side wit
 }
 
 /* Sticky header never covers an anchor target or a focused element */
-html {
-  scroll-padding-block-start: var(--header-height);
-}
+html { scroll-padding-block-start: var(--header-height); }
 ```
 
 ## Hold structure until it breaks
@@ -129,20 +121,14 @@ Break where the layout stops fitting, not at `768px` because a preset says so. T
 
 ```css
 /* Good: component adapts to its container */
-.card-list {
-  container-type: inline-size;
-}
+.card-list { container-type: inline-size; }
 @container (width < 400px) {
-  .card {
-    grid-template-columns: 1fr;
-  }
+  .card { grid-template-columns: 1fr; }
 }
 
 /* Bad: viewport media query breaks the card inside a narrow sidebar */
 @media (max-width: 768px) {
-  .card {
-    grid-template-columns: 1fr;
-  }
+  .card { grid-template-columns: 1fr; }
 }
 ```
 
@@ -152,21 +138,11 @@ A query styles only descendants of the container, never the container itself. `c
 
 ```css
 /* Good: label defines the size, and the row wraps */
-.button {
-  padding-inline: 16px;
-  max-width: 100%;
-}
-.button-row {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 12px;
-}
+.button { padding-inline: 16px; max-width: 100%; }
+.button-row { display: flex; flex-wrap: wrap; gap: 12px; }
 
 /* Bad: German will overflow or truncate */
-.button {
-  width: 96px;
-  overflow: hidden;
-}
+.button { width: 96px; overflow: hidden; }
 ```
 
 A grid track or flex child refuses to shrink below its content's minimum width, so long words and wide tables push the layout past the viewport. Use `grid-template-columns: minmax(0, 1fr)` and `min-width: 0` on flex children.

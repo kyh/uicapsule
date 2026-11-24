@@ -100,10 +100,12 @@ Three layers. The first acts as a 1px ring, the second adds lift and the third a
 ```css
 :root {
   --shadow-border:
-    0px 0px 0px 1px oklch(0 0 0 / 0.06), 0px 1px 2px -1px oklch(0 0 0 / 0.06),
+    0px 0px 0px 1px oklch(0 0 0 / 0.06),
+    0px 1px 2px -1px oklch(0 0 0 / 0.06),
     0px 2px 4px 0px oklch(0 0 0 / 0.04);
   --shadow-border-hover:
-    0px 0px 0px 1px oklch(0 0 0 / 0.08), 0px 1px 2px -1px oklch(0 0 0 / 0.08),
+    0px 0px 0px 1px oklch(0 0 0 / 0.08),
+    0px 1px 2px -1px oklch(0 0 0 / 0.08),
     0px 2px 4px 0px oklch(0 0 0 / 0.06);
 }
 ```

@@ -33,11 +33,11 @@ Drive interactive state changes with CSS transitions or a motion library's sprin
 
 Small elements move fast and large ones take longer:
 
-| Element                           | Enter           |
-| --------------------------------- | --------------- |
-| Tooltips and other small elements | `150ms`         |
-| Dropdowns and menus               | `250ms`         |
-| Modals, drawers and panels        | `350ms`–`450ms` |
+| Element | Enter |
+| --- | --- |
+| Tooltips and other small elements | `150ms` |
+| Dropdowns and menus | `250ms` |
+| Modals, drawers and panels | `350ms`–`450ms` |
 
 An exit runs shorter than its enter, so a dropdown that opens in `250ms` closes in `150ms`.
 
@@ -65,12 +65,12 @@ Set `transform-origin` toward the element that opened the popup, never the defau
 
 Travel only far enough to show direction:
 
-| Movement                              | Distance                                 |
-| ------------------------------------- | ---------------------------------------- |
-| A text swap                           | `4px`                                    |
-| A page transition                     | `8px`                                    |
-| Dropdowns, tooltips and most elements | `8px`–`32px`                             |
-| Sheets and side panels                | Up to `70%` of their own width or height |
+| Movement | Distance |
+| --- | --- |
+| A text swap | `4px` |
+| A page transition | `8px` |
+| Dropdowns, tooltips and most elements | `8px`–`32px` |
+| Sheets and side panels | Up to `70%` of their own width or height |
 
 A dropdown moves away from its trigger, a panel enters from the side it was opened from and a tab indicator travels between the two tabs.
 
@@ -106,11 +106,11 @@ Leave `initial` and `exit` off an element with a `layoutId`, because they run du
 
 ## Choose the AnimatePresence mode by where the children sit
 
-| Mode                | Use                                                          |
-| ------------------- | ------------------------------------------------------------ |
+| Mode | Use |
+| --- | --- |
 | `sync`, the default | The children occupy different places and can animate at once |
-| `wait`              | The new child may enter only after the old one has left      |
-| `popLayout`         | The children cross-fade in the same place                    |
+| `wait` | The new child may enter only after the old one has left |
+| `popLayout` | The children cross-fade in the same place |
 
 A child that swaps for another carries a `key` that changes with the state, because the key change is what runs the exit and the enter. A single child that mounts and unmounts needs none. See [layout-animation.md](layout-animation.md#presence-modes).
 
@@ -152,30 +152,30 @@ Speed hides flaws. Replay every animation you built or changed at a tenth of its
 
 ## Before you finish
 
-| Detection                                                                                                                                                   | Fix                                                                               |
-| ----------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------- |
-| `transition-all` or `transition: all`                                                                                                                       | Name the changing properties                                                      |
-| `animation:` set on `:hover`, `.open` or another toggled class                                                                                              | A transition on the same properties                                               |
-| `active:scale-95`, `scale-90` or `whileTap` below `0.96`, in a project with no single press value                                                           | `0.96`                                                                            |
-| `:active` scale with no `:disabled` exclusion                                                                                                               | `:not(:disabled):active`, or `enabled:active:` on an element that is never a link |
-| `bounce:` set to anything but `0`                                                                                                                           | `bounce: 0`                                                                       |
-| A spring on a transition that changes only color or opacity                                                                                                 | `ease-out` with a duration                                                        |
-| A modal or panel entering from a `scale` below `0.98`                                                                                                       | `0.98`                                                                            |
-| A popup anchored to a trigger with no `transform-origin`, or `origin-center`                                                                                | The library's origin variable                                                     |
-| An exit with the same duration and distance as its enter                                                                                                    | `150ms` and a fixed `12px`                                                        |
-| `opacity: 0` in a base rule that only an `animation` reveals                                                                                                | Hidden state in the `from` keyframe, `animation-fill-mode: both`                  |
-| `translate`, `filter`, `motion.*`, `m.*` or a `scale` other than the press with no `prefers-reduced-motion`, `motion-safe:`, `MotionConfig` or global guard | Gate it and cross-fade opacity under reduced motion                               |
-| A `motion.*` or `m.*` element whose only guard is a stylesheet reset                                                                                        | `MotionConfig reducedMotion="user"`                                               |
-| `filter` animated by Motion with `MotionConfig reducedMotion` as its only guard                                                                             | Branch on `useReducedMotion()`                                                    |
-| Color transitions plus a theme toggle with no `disableTransitionOnChange` or override                                                                       | The theme-switch suppression recipe                                               |
-| `will-change: all`, or `will-change` on an element that never animates                                                                                      | Name the animated property or delete it                                           |
-| One `layoutId` on unrelated elements, such as list rows or two tab groups                                                                                   | An id for each pair, built from the item's key                                    |
-| `initial` or `exit` props on a `layoutId` element                                                                                                           | Remove them, and keep `AnimatePresence` only where the origin stays mounted       |
-| A child of `AnimatePresence` that swaps for another with no `key`                                                                                           | Key it by the state                                                               |
-| `height: "auto"` animated on a container whose children swap                                                                                                | The measured height                                                               |
-| A measuring `ref` on the element whose height animates                                                                                                      | An inner wrapper                                                                  |
-| A snapping drag with `dragMomentum` left on                                                                                                                 | `dragMomentum={false}`                                                            |
-| `layoutId` or `drag` under `LazyMotion features={domAnimation}`                                                                                             | `domMax`                                                                          |
+| Detection | Fix |
+| --- | --- |
+| `transition-all` or `transition: all` | Name the changing properties |
+| `animation:` set on `:hover`, `.open` or another toggled class | A transition on the same properties |
+| `active:scale-95`, `scale-90` or `whileTap` below `0.96`, in a project with no single press value | `0.96` |
+| `:active` scale with no `:disabled` exclusion | `:not(:disabled):active`, or `enabled:active:` on an element that is never a link |
+| `bounce:` set to anything but `0` | `bounce: 0` |
+| A spring on a transition that changes only color or opacity | `ease-out` with a duration |
+| A modal or panel entering from a `scale` below `0.98` | `0.98` |
+| A popup anchored to a trigger with no `transform-origin`, or `origin-center` | The library's origin variable |
+| An exit with the same duration and distance as its enter | `150ms` and a fixed `12px` |
+| `opacity: 0` in a base rule that only an `animation` reveals | Hidden state in the `from` keyframe, `animation-fill-mode: both` |
+| `translate`, `filter`, `motion.*`, `m.*` or a `scale` other than the press with no `prefers-reduced-motion`, `motion-safe:`, `MotionConfig` or global guard | Gate it and cross-fade opacity under reduced motion |
+| A `motion.*` or `m.*` element whose only guard is a stylesheet reset | `MotionConfig reducedMotion="user"` |
+| `filter` animated by Motion with `MotionConfig reducedMotion` as its only guard | Branch on `useReducedMotion()` |
+| Color transitions plus a theme toggle with no `disableTransitionOnChange` or override | The theme-switch suppression recipe |
+| `will-change: all`, or `will-change` on an element that never animates | Name the animated property or delete it |
+| One `layoutId` on unrelated elements, such as list rows or two tab groups | An id for each pair, built from the item's key |
+| `initial` or `exit` props on a `layoutId` element | Remove them, and keep `AnimatePresence` only where the origin stays mounted |
+| A child of `AnimatePresence` that swaps for another with no `key` | Key it by the state |
+| `height: "auto"` animated on a container whose children swap | The measured height |
+| A measuring `ref` on the element whose height animates | An inner wrapper |
+| A snapping drag with `dragMomentum` left on | `dragMomentum={false}` |
+| `layoutId` or `drag` under `LazyMotion features={domAnimation}` | `domMax` |
 
 ## Reporting
 

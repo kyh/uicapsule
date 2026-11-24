@@ -4,11 +4,11 @@ Recipes for interruptible transitions, press feedback, a shared spring, first-re
 
 ## Interruptible animations
 
-|                 | CSS transitions                     | CSS keyframe animations                             |
-| --------------- | ----------------------------------- | --------------------------------------------------- |
-| **Behavior**    | Interpolate toward the latest state | Run on a fixed timeline                             |
-| **Interrupted** | Retarget mid-flight and reverse     | Snap or restart from the beginning                  |
-| **Use for**     | Hover, toggle, open and close       | Sequences that run once, such as enters and loading |
+| | CSS transitions | CSS keyframe animations |
+| --- | --- | --- |
+| **Behavior** | Interpolate toward the latest state | Run on a fixed timeline |
+| **Interrupted** | Retarget mid-flight and reverse | Snap or restart from the beginning |
+| **Use for** | Hover, toggle, open and close | Sequences that run once, such as enters and loading |
 
 ```css
 /* Good: clicking again mid-animation reverses smoothly */
@@ -125,7 +125,11 @@ export function DisableThemeTransitions() {
 
     const handleChange = () => {
       const style = document.createElement("style");
-      style.append(document.createTextNode("*,*::before,*::after{transition:none !important}"));
+      style.append(
+        document.createTextNode(
+          "*,*::before,*::after{transition:none !important}"
+        )
+      );
       document.head.append(style);
 
       void document.body.offsetHeight; // forces a synchronous style flush

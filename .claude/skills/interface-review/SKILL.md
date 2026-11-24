@@ -104,46 +104,46 @@ Rendered verification is opt-in here, in place of `better-interface`'s **Verify 
 
 ## Before you finish
 
-| Mistake                                                                                   | Fix                                                                                    |
-| ----------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------- |
-| The scope block counts only uncommitted files while `HEAD` is ahead of the merge base     | Review the branch range plus the uncommitted changes, with both counts                 |
-| A report on `HEAD~1..HEAD` the user never chose                                           | State the facts and offer the routes in **With no change, ask rather than invent one** |
-| A changed shared component with no consumer under `Surfaces expanded`                     | Expand to its consumers and name the ones you skipped                                  |
-| A deleted `aria-label`, `outline` or `prefers-reduced-motion` with no finding and no note | Route it to its owner through [Removed signals](removed-signals.md)                    |
-| A `Regression` whose removed attribute reappears elsewhere in the diff                    | Check the [equivalent replacements](removed-signals.md#equivalent-replacements) first  |
-| A finding on an untouched consumer of a changed token statused `Pre-existing`             | The change caused it, so it is `Introduced` or `Regression`                            |
-| A line outside every hunk statused `Introduced` with no causing change named              | Blame it against the reviewed range                                                    |
-| `gh pr checkout` or `git switch` in the command log                                       | Fetch the ref and read files with `git show`                                           |
-| A cited line that does not match `git show <head-ref>:path`                               | Cite against the head ref named in the scope block                                     |
+| Mistake | Fix |
+| --- | --- |
+| The scope block counts only uncommitted files while `HEAD` is ahead of the merge base | Review the branch range plus the uncommitted changes, with both counts |
+| A report on `HEAD~1..HEAD` the user never chose | State the facts and offer the routes in **With no change, ask rather than invent one** |
+| A changed shared component with no consumer under `Surfaces expanded` | Expand to its consumers and name the ones you skipped |
+| A deleted `aria-label`, `outline` or `prefers-reduced-motion` with no finding and no note | Route it to its owner through [Removed signals](removed-signals.md) |
+| A `Regression` whose removed attribute reappears elsewhere in the diff | Check the [equivalent replacements](removed-signals.md#equivalent-replacements) first |
+| A finding on an untouched consumer of a changed token statused `Pre-existing` | The change caused it, so it is `Introduced` or `Regression` |
+| A line outside every hunk statused `Introduced` with no causing change named | Blame it against the reviewed range |
+| `gh pr checkout` or `git switch` in the command log | Fetch the ref and read files with `git show` |
+| A cited line that does not match `git show <head-ref>:path` | Cite against the head ref named in the scope block |
 
 ## Review output format
 
 Open with the scope block:
 
-| Field             | Value                                                                      |
-| ----------------- | -------------------------------------------------------------------------- |
-| Target            | `branch`, `working`, `staged`, `pr 482` or the range as entered            |
-| Base ref          | `origin/main` at `a1b2c3d`                                                 |
-| Head ref          | `refs/remotes/pr/482` at `e4f5g6h`                                         |
-| Commits           | 7 committed, 2 files uncommitted                                           |
-| Files in scope    | 12 after exclusions                                                        |
-| Excluded          | `pnpm-lock.yaml`, `src/__snapshots__/`, lockfile and snapshots             |
+| Field | Value |
+| --- | --- |
+| Target | `branch`, `working`, `staged`, `pr 482` or the range as entered |
+| Base ref | `origin/main` at `a1b2c3d` |
+| Head ref | `refs/remotes/pr/482` at `e4f5g6h` |
+| Commits | 7 committed, 2 files uncommitted |
+| Files in scope | 12 after exclusions |
+| Excluded | `pnpm-lock.yaml`, `src/__snapshots__/`, lockfile and snapshots |
 | Surfaces expanded | `CheckoutPage`, `SettingsPanel`; 3 further `Button` consumers not expanded |
 
 The coverage table from `better-interface` follows it. A domain with no evidence in the change scope is `Not reviewed: no evidence in the change scope`, which is a coverage statement rather than a gap.
 
 Then the findings, with a `Status` column per **Classify every finding**:
 
-| Severity | Domain        | Status     | Location            | Before                                      | After                                                 | Why                                                                            |
-| -------- | ------------- | ---------- | ------------------- | ------------------------------------------- | ----------------------------------------------------- | ------------------------------------------------------------------------------ |
-| HIGH     | Accessibility | Regression | `src/Dialog.tsx:42` | `aria-label="Close"` removed in this change | Restore `aria-label="Close"` on the icon-only control | The close control had an accessible name before this change and no longer does |
+| Severity | Domain | Status | Location | Before | After | Why |
+| --- | --- | --- | --- | --- | --- | --- |
+| HIGH | Accessibility | Regression | `src/Dialog.tsx:42` | `aria-label="Close"` removed in this change | Restore `aria-label="Close"` on the icon-only control | The close control had an accessible name before this change and no longer does |
 
 With no `Introduced` or `Regression` findings, omit the table and state "No actionable interface findings in this change."
 
 Then `Pre-existing` findings, at most three, highest severity first, stated plainly as not this change's responsibility. Say how many more exist. Omit the section when there are none.
 
-| Severity | Domain     | Location            | Issue                                                         |
-| -------- | ---------- | ------------------- | ------------------------------------------------------------- |
-| MEDIUM   | Typography | `src/Toolbar.tsx:7` | Numeric badges use proportional figures; predates this change |
+| Severity | Domain | Location | Issue |
+| --- | --- | --- | --- |
+| MEDIUM | Typography | `src/Toolbar.tsx:7` | Numeric badges use proportional figures; predates this change |
 
 Verification and the verdict follow in `better-interface`'s format.

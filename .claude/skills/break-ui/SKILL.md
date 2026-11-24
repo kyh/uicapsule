@@ -41,13 +41,13 @@ Two failure modes, and the first is worse:
 
 Read the component and list every value it renders, with its source:
 
-| Field    | Source                  | Type                             | Limit                | Optional? |
-| -------- | ----------------------- | -------------------------------- | -------------------- | --------- |
-| `name`   | `member.name`           | string                           | 255 (`schema.ts:14`) | No        |
-| `email`  | `member.email`          | string                           | none found           | No        |
-| `role`   | `member.title`          | string                           | 120                  | Yes       |
-| `status` | enum                    | `active` / `invited` / `expired` | —                    | No        |
-| `count`  | `workspace.memberCount` | int                              | —                    | No        |
+| Field | Source | Type | Limit | Optional? |
+| --- | --- | --- | --- | --- |
+| `name` | `member.name` | string | 255 (`schema.ts:14`) | No |
+| `email` | `member.email` | string | none found | No |
+| `role` | `member.title` | string | 120 | Yes |
+| `status` | enum | `active` / `invited` / `expired` | — | No |
+| `count` | `workspace.memberCount` | int | — | No |
 
 Include the values people forget: counts in headers, relative timestamps, badge and status text, button labels that come from data, tooltips, avatar images, the list itself (its length is a value too).
 
@@ -94,27 +94,27 @@ If browser tooling is available, screenshot both states at each width and compar
 
 Each of these appears in the screenshot. The cause in the right column is almost always it.
 
-| What you see                                                                  | Cause                                                    | Fix                                                                                                                      |
-| ----------------------------------------------------------------------------- | -------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------ |
-| Avatar or icon squished into an oval or pill                                  | Flex child shrinking                                     | `flex-shrink: 0` on the avatar, icon, and any fixed-size box                                                             |
-| Text overflows its box instead of wrapping or truncating                      | Flex/grid child has `min-width: auto`                    | `min-width: 0` on the text column (`minmax(0, 1fr)` in grid)                                                             |
-| Email or URL runs past the edge                                               | No break opportunities in the string                     | `overflow-wrap: anywhere` on that element                                                                                |
-| Trailing action (••• menu, button) pushed off-screen or clipped               | Middle content took all the space                        | `min-width: 0` on the middle, `flex-shrink: 0` on the action                                                             |
-| Badge wraps onto two lines                                                    | Badge allowed to shrink                                  | `white-space: nowrap; flex-shrink: 0` on the badge, and decide what yields instead                                       |
-| Avatar centered against a three-line name looks adrift                        | `align-items: center` on rows of varying height          | Top-align (`align-items: flex-start`) once text can wrap                                                                 |
-| Last row cut off at a hard edge mid-glyph                                     | Fixed-height container with no fade or scroll affordance | Visible scrollbar or a fade mask, and ensure `overflow` is intended                                                      |
-| Long word breaks mid-word in a heading                                        | `word-break: break-all`                                  | `overflow-wrap: anywhere` breaks only when it has to                                                                     |
-| Wrong initials (`"CI"` for "… Montgomery III", `"�"` for an emoji-first name) | `.split(' ')[0][0]` style code                           | Initials from grapheme clusters (`Intl.Segmenter`), first + last word skipping suffixes (Jr, Sr, II, III), fallback icon |
-| Orphaned `—` or empty line where the role was                                 | Placeholder rendered for a missing optional field        | Omit the line, or reserve its height intentionally                                                                       |
-| "1 members", "0 member"                                                       | Hardcoded plural                                         | `Intl.PluralRules`, or separate strings per count                                                                        |
-| Numbers jitter when they update, columns misalign                             | Proportional figures                                     | `font-variant-numeric: tabular-nums`                                                                                     |
-| `1284`, `1,284.000000001`, `NaN`, `undefined`                                 | Raw number rendered                                      | `Intl.NumberFormat` with the user's locale; guard null                                                                   |
-| Long translated button label overflows                                        | Fixed-width button                                       | Width from content with `min-width`, never a fixed `width`                                                               |
-| Diacritics or tall scripts (Vietnamese, Thai) clipped top or bottom           | Tight `line-height` with `overflow: hidden`              | Looser `line-height` or no clipping on text boxes                                                                        |
-| Broken-image icon in the avatar                                               | No `onError` fallback                                    | Fall back to initials; `object-fit: cover` for any aspect ratio                                                          |
-| Truncated text with no way to read it                                         | `text-overflow: ellipsis` and nothing else               | `title` attribute or a tooltip, and the full value elsewhere (detail view)                                               |
-| Scrolling 1,000 rows stutters                                                 | Every row rendered                                       | Virtualize, or paginate, and say which                                                                                   |
-| Content renders raw `<b>`, `&amp;`, or `**text**`                             | Wrong escaping layer                                     | Escape once, at render; never `dangerouslySetInnerHTML` user data                                                        |
+| What you see | Cause | Fix |
+| --- | --- | --- |
+| Avatar or icon squished into an oval or pill | Flex child shrinking | `flex-shrink: 0` on the avatar, icon, and any fixed-size box |
+| Text overflows its box instead of wrapping or truncating | Flex/grid child has `min-width: auto` | `min-width: 0` on the text column (`minmax(0, 1fr)` in grid) |
+| Email or URL runs past the edge | No break opportunities in the string | `overflow-wrap: anywhere` on that element |
+| Trailing action (••• menu, button) pushed off-screen or clipped | Middle content took all the space | `min-width: 0` on the middle, `flex-shrink: 0` on the action |
+| Badge wraps onto two lines | Badge allowed to shrink | `white-space: nowrap; flex-shrink: 0` on the badge, and decide what yields instead |
+| Avatar centered against a three-line name looks adrift | `align-items: center` on rows of varying height | Top-align (`align-items: flex-start`) once text can wrap |
+| Last row cut off at a hard edge mid-glyph | Fixed-height container with no fade or scroll affordance | Visible scrollbar or a fade mask, and ensure `overflow` is intended |
+| Long word breaks mid-word in a heading | `word-break: break-all` | `overflow-wrap: anywhere` breaks only when it has to |
+| Wrong initials (`"CI"` for "… Montgomery III", `"�"` for an emoji-first name) | `.split(' ')[0][0]` style code | Initials from grapheme clusters (`Intl.Segmenter`), first + last word skipping suffixes (Jr, Sr, II, III), fallback icon |
+| Orphaned `—` or empty line where the role was | Placeholder rendered for a missing optional field | Omit the line, or reserve its height intentionally |
+| "1 members", "0 member" | Hardcoded plural | `Intl.PluralRules`, or separate strings per count |
+| Numbers jitter when they update, columns misalign | Proportional figures | `font-variant-numeric: tabular-nums` |
+| `1284`, `1,284.000000001`, `NaN`, `undefined` | Raw number rendered | `Intl.NumberFormat` with the user's locale; guard null |
+| Long translated button label overflows | Fixed-width button | Width from content with `min-width`, never a fixed `width` |
+| Diacritics or tall scripts (Vietnamese, Thai) clipped top or bottom | Tight `line-height` with `overflow: hidden` | Looser `line-height` or no clipping on text boxes |
+| Broken-image icon in the avatar | No `onError` fallback | Fall back to initials; `object-fit: cover` for any aspect ratio |
+| Truncated text with no way to read it | `text-overflow: ellipsis` and nothing else | `title` attribute or a tooltip, and the full value elsewhere (detail view) |
+| Scrolling 1,000 rows stutters | Every row rendered | Virtualize, or paginate, and say which |
+| Content renders raw `<b>`, `&amp;`, or `**text**` | Wrong escaping layer | Escape once, at render; never `dangerouslySetInnerHTML` user data |
 
 #### Truncate, wrap, or clamp
 
@@ -122,7 +122,7 @@ Every long string forces this choice. Make it per field, not globally:
 
 - **Wrap** text the user needs in full to identify something: names, titles in a detail view. Two lines is usually fine; four is a sign the column is too narrow.
 - **Truncate at the end** for secondary metadata where the start carries the meaning: role, description, last message preview. Always pair with a way to see the full value.
-- **Truncate in the middle** when items differ at the _end_: file names (`Q3-report…v12-final.pdf`), emails sharing a long domain, paths, hashes. End-truncation makes them identical.
+- **Truncate in the middle** when items differ at the *end*: file names (`Q3-report…v12-final.pdf`), emails sharing a long domain, paths, hashes. End-truncation makes them identical.
 - **Clamp** (`-webkit-line-clamp: 2` with `display: -webkit-box; -webkit-box-orient: vertical; overflow: hidden`, Tailwind `line-clamp-2`) for multi-line previews in cards, so card heights stay predictable.
 - **Never truncate** numbers, amounts, dates, or anything the user compares. Give them the room.
 
@@ -144,12 +144,12 @@ Keep the worst-case fixture afterward unless the user says otherwise. It's the r
 
 One row per break, worst first. Severity: **Broken** (content unreadable, action unreachable, wrong data shown), **Ugly** (readable but visibly wrong: squished avatar, wrapped badge), **Fragile** (fine now, one realistic step from breaking: no limit, no fallback).
 
-| #   | Severity | Field   | Worst-case value                                                   | What happens                                               | Fix                                                                                         |
-| --- | -------- | ------- | ------------------------------------------------------------------ | ---------------------------------------------------------- | ------------------------------------------------------------------------------------------- |
-| 1   | Broken   | `email` | `bartholomew.fitzgerald@northwind-industries-holdings.example.com` | Pushes the ••• menu off the row; menu unreachable at 400px | `min-width: 0` on text column, `overflow-wrap: anywhere` on email, `flex-shrink: 0` on menu |
-| 2   | Ugly     | avatar  | name with long email                                               | Avatar squishes to a 28×56 pill                            | `flex-shrink: 0` on avatar                                                                  |
-| 3   | Ugly     | `count` | 1                                                                  | "1 members"                                                | `Intl.PluralRules`                                                                          |
-| 4   | Fragile  | `name`  | —                                                                  | No max length in schema or form                            | Add a limit in both, matching                                                               |
+| # | Severity | Field | Worst-case value | What happens | Fix |
+| --- | --- | --- | --- | --- | --- |
+| 1 | Broken | `email` | `bartholomew.fitzgerald@northwind-industries-holdings.example.com` | Pushes the ••• menu off the row; menu unreachable at 400px | `min-width: 0` on text column, `overflow-wrap: anywhere` on email, `flex-shrink: 0` on menu |
+| 2 | Ugly | avatar | name with long email | Avatar squishes to a 28×56 pill | `flex-shrink: 0` on avatar |
+| 3 | Ugly | `count` | 1 | "1 members" | `Intl.PluralRules` |
+| 4 | Fragile | `name` | — | No max length in schema or form | Add a limit in both, matching |
 
 Every row has `file:line` for the fix location in the Fix cell or directly below the table.
 
@@ -165,12 +165,12 @@ Close with where the toggle is (URL or file path), the states it has, and: "Say 
 
 ## Invocation Variants
 
-| Invocation              | Behavior                                                             |
-| ----------------------- | -------------------------------------------------------------------- |
+| Invocation | Behavior |
+| --- | --- |
 | `<component or screen>` | Full workflow: map → worst case → toggle → break → report, then stop |
-| `<component> + fix`     | Same, then apply every fix that isn't in "Decisions for you"         |
-| `fix all` / `fix 1, 3`  | Apply the named fixes from the last report, re-verify all states     |
-| `data only <component>` | Produce the worst-case fixture and toggle without the report         |
+| `<component> + fix` | Same, then apply every fix that isn't in "Decisions for you" |
+| `fix all` / `fix 1, 3` | Apply the named fixes from the last report, re-verify all states |
+| `data only <component>` | Produce the worst-case fixture and toggle without the report |
 
 ## Tone
 

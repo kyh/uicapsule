@@ -129,8 +129,9 @@ Next imports, no filesystem — so it can be unit-tested without a runtime. The 
   resource per file. Beside it, it serves the vendored `emilkowalski/skills` and `jakubkrehel/skills`
   entries (`REPO_SKILLS`), read at runtime from `.claude/skills/` by `lib/content/skills-fs.ts`,
   so dev agents and MCP clients load the same single copy; the rest of `.claude/skills`
-  (first-party workflow skills, other third-party) is never served. Provenance and the update
-  recipe are in `.claude/skills/THIRD_PARTY.md`. It ships with each
+  (first-party workflow skills, other third-party) is never served. They are pinned in `skills-lock.json` by Vercel's `skills` CLI and kept byte-identical to
+  upstream (oxfmt ignores them); provenance and the update recipe are in
+  `.claude/skills/THIRD_PARTY.md`. It ships with each
   deploy, so there is no npm package to publish or version. `server.json` is its MCP Registry
   entry (`com.uicapsule/components`, DNS-verified); republish with `mcp-publisher publish` only
   when that metadata changes — the signing key is not in the repo.
@@ -179,6 +180,8 @@ pnpm new:content <slug>  # Scaffold a new content component in content/ (--desig
 pnpm check:content    # Fail if any content/<slug> is not a loadable component
 pnpm test             # node:test — auth + RPC transport guards + the agent-surface tests
 pnpm check:agent-endpoints  # Runtime check of the agent surfaces (needs a running server)
+pnpm skills:update    # Bump the skills-lock.json skills (emilkowalski, jakubkrehel) to upstream HEAD; review the diff
+pnpm skills:sync      # Restore .claude/skills to exactly what skills-lock.json pins
 pnpm og:video         # By hand, never in verify: home loop (scripts/og-video/scene.html → Blob og/og.<date>.mp4 + poster, keys in home-media.json) + cover-media.json and Blob stills (<cover key>.jpg) for /ui/<slug>
 ```
 

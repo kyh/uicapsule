@@ -28,11 +28,11 @@ Properties of the finished ramp, checkable against any output in any notation:
 Never compute these by hand or by eye. `culori`, `colorjs.io` and `chroma.js` all convert between notations, measure perceived lightness and interpolate perceptually. Read the brand color in whatever format it arrives, do the math in a perceptual space and emit the project's notation:
 
 ```js
-import { formatHex, interpolate, samples } from "culori";
+import { formatHex, interpolate, samples } from 'culori'
 
 // Perceptual interpolation, hex in and hex out.
-const ramp = interpolate(["#eff6ff", "#3b82f6", "#172554"], "oklab");
-const steps = samples(11).map((t) => formatHex(ramp(t)));
+const ramp = interpolate(['#eff6ff', '#3b82f6', '#172554'], 'oklab')
+const steps = samples(11).map((t) => formatHex(ramp(t)))
 ```
 
 This is a starting point. Linear sampling spaces lightness evenly within each segment, so check the output against the properties above and tighten `50`–`200` by hand.
@@ -62,7 +62,7 @@ For comparison, Tailwind's blue ramp has the finer light end the generated one l
 With an accent plus status ramps, the ramps must agree step for step. `red-500` and `blue-500` should read as equally bright and vivid, or a red button looks heavier than a blue one at the same step.
 
 - **Match perceived lightness exactly.** Same step, same brightness, across every hue.
-- **Match vividness relatively, not absolutely.** Hues do not share a maximum vividness. A saturated yellow and a saturated blue are not equally far from gray, and no format makes them so. Set each ramp to the same _proportion_ of what its own hue reaches.
+- **Match vividness relatively, not absolutely.** Hues do not share a maximum vividness. A saturated yellow and a saturated blue are not equally far from gray, and no format makes them so. Set each ramp to the same *proportion* of what its own hue reaches.
 
 Yellows and cyans are the usual casualties, peaking much lower than reds and blues. Copy the numbers across and the warning color looks weak beside the danger one.
 

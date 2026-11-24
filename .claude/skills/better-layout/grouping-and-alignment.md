@@ -12,22 +12,11 @@ Reach for each tool only where the one before it can't carry the structure:
 
 ```css
 /* Good: spacing alone communicates the grouping */
-.field-group {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-.form {
-  display: flex;
-  flex-direction: column;
-  gap: 24px;
-}
+.field-group { display: flex; flex-direction: column; gap: 8px; }
+.form { display: flex; flex-direction: column; gap: 24px; }
 
 /* Bad: uniform spacing plus lines to compensate */
-.form > * {
-  margin-bottom: 12px;
-  border-bottom: 1px solid var(--separator);
-}
+.form > * { margin-bottom: 12px; border-bottom: 1px solid var(--separator); }
 ```
 
 ```html
@@ -61,35 +50,25 @@ The inverse holds too. A non-clickable badge shaped exactly like the buttons bes
 
 ```css
 /* Good: one shared leading edge, one indent step */
-.section {
-  padding-inline: 24px;
-}
-.section .child {
-  margin-inline-start: 16px;
-}
+.section { padding-inline: 24px; }
+.section .child { margin-inline-start: 16px; }
 
 /* Bad: three unrelated leading edges in one column */
-.header {
-  padding-inline-start: 20px;
-}
-.list-item {
-  padding-inline-start: 14px;
-}
-.footer {
-  padding-inline-start: 24px;
-}
+.header { padding-inline-start: 20px; }
+.list-item { padding-inline-start: 14px; }
+.footer { padding-inline-start: 24px; }
 ```
 
 ## Logical properties for anything that mirrors
 
-| Physical                 | Logical                     |
-| ------------------------ | --------------------------- |
-| `margin-left`            | `margin-inline-start`       |
-| `padding-right`          | `padding-inline-end`        |
-| `left: 0`                | `inset-inline-start: 0`     |
-| `text-align: left`       | `text-align: start`         |
-| `border-right`           | `border-inline-end`         |
-| `float: left`            | `float: inline-start`       |
+| Physical | Logical |
+| --- | --- |
+| `margin-left` | `margin-inline-start` |
+| `padding-right` | `padding-inline-end` |
+| `left: 0` | `inset-inline-start: 0` |
+| `text-align: left` | `text-align: start` |
+| `border-right` | `border-inline-end` |
+| `float: left` | `float: inline-start` |
 | `border-top-left-radius` | `border-start-start-radius` |
 
 ```html

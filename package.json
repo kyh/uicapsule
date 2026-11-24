@@ -22,7 +22,9 @@
     "verify": "pnpm typecheck && pnpm lint && pnpm format && pnpm test && pnpm build",
     "typecheck:content": "node --import tsx scripts/typecheck-content.ts",
     "typecheck:scripts": "tsc --project tsconfig.scripts.json",
-    "og:video": "node --import tsx scripts/og-video.ts"
+    "og:video": "node --import tsx scripts/og-video.ts",
+    "skills:sync": "DISABLE_TELEMETRY=1 skills experimental_install --frozen-lockfile --force --agent claude-code",
+    "skills:update": "DISABLE_TELEMETRY=1 skills update --project --yes"
   },
   "devDependencies": {
     "@interfere/landmines": "^0.1.1",
@@ -36,6 +38,7 @@
     "oxfmt": "^0.73.0",
     "oxlint": "^1.94.0",
     "playwright": "1.65.1",
+    "skills": "1.9.0",
     "tsx": "catalog:",
     "turbo": "^2.11.13",
     "typescript": "catalog:",

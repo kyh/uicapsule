@@ -51,14 +51,14 @@ Icons use `currentColor` and take hover, selected and disabled states from CSS c
 
 ## Before you finish
 
-| Detection                                                                                       | Fix                                            |
-| ----------------------------------------------------------------------------------------------- | ---------------------------------------------- |
-| Padded parent and child with the same `rounded-*` or `border-radius`                            | Add the padding to the outer radius            |
-| `box-shadow: 0 0 0 1px` ring with no `border` beside it                                         | `border: 1px solid transparent`                |
-| `outline-slate-*`, `outline-zinc-*` or a hex outline color on `img`                             | `outline-black/10` and `dark:outline-white/10` |
-| `fill="#..."` or `stroke="#..."` inside an icon SVG                                             | `currentColor`                                 |
-| Plain-CSS `:hover` or Tailwind 3 `hover:` outside `@media (hover: hover)`                       | Wrap it in the query                           |
-| `overflow: auto` or `overflow-y-auto` on a dialog, drawer or menu with no `overscroll-behavior` | `overscroll-behavior: contain`                 |
+| Detection | Fix |
+| --- | --- |
+| Padded parent and child with the same `rounded-*` or `border-radius` | Add the padding to the outer radius |
+| `box-shadow: 0 0 0 1px` ring with no `border` beside it | `border: 1px solid transparent` |
+| `outline-slate-*`, `outline-zinc-*` or a hex outline color on `img` | `outline-black/10` and `dark:outline-white/10` |
+| `fill="#..."` or `stroke="#..."` inside an icon SVG | `currentColor` |
+| Plain-CSS `:hover` or Tailwind 3 `hover:` outside `@media (hover: hover)` | Wrap it in the query |
+| `overflow: auto` or `overflow-y-auto` on a dialog, drawer or menu with no `overscroll-behavior` | `overscroll-behavior: contain` |
 
 ## Reporting
 
