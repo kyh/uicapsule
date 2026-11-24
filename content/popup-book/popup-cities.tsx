@@ -1322,7 +1322,7 @@ const palmFronds = range(7)
   .join("");
 
 const palmTrunk = "M223 84Q220 54 226 22h3Q224 54 228 84z";
-const cableCar = `${box(118, 32, 56, 26)}M114 32L120 24H172L178 32z${box(130, 19, 32, 5)}${box(112, 58, 68, 3)}${disc(128, 64, 5)}${disc(164, 64, 5)}`;
+const cableCar = `M108 32L114 24H178L184 32z${box(130, 19, 32, 5)}${box(128, 32, 36, 26)}${[113, 126, 166, 179].map((x) => box(x - 1, 32, 2, 20)).join("")}${box(112, 45, 16, 3)}${box(164, 45, 16, 3)}${disc(120, 37, 3)}${box(117, 40, 6, 6)}${disc(170, 31, 3)}${box(167, 34, 6, 13)}${box(175.2, 34, 1.6, 16)}${disc(176, 34, 1.6)}${box(110, 50, 72, 8)}${box(108, 58, 76, 3)}${disc(128, 64, 5)}${disc(164, 64, 5)}`;
 
 const sanFrancisco = {
   coords: "37.80° N · 122.41° W",
@@ -1335,6 +1335,18 @@ const sanFrancisco = {
         <path key={k} {...hair} strokeOpacity={0.45} d={`M0 ${k * 8 + 26}H22M${k * 8 + 26} 0V22`} />
       ))}
       <path {...ink} d="M22 22V200M22 22H200" fill="none" />
+      <path
+        d="M144 0L94 50M152 0L102 50M0 144L50 94M0 152L50 102"
+        stroke="#8d86c9"
+        strokeWidth={1.6}
+      />
+      <path
+        d="M148 0L98 50M0 148L50 98"
+        stroke={INK}
+        strokeWidth={0.8}
+        strokeOpacity={0.6}
+        strokeDasharray="5 2"
+      />
       <path d={lombard} fill="none" stroke={INK} strokeWidth={20} strokeLinejoin="round" />
       <path d={lombard} fill="none" stroke="#e7a08f" strokeWidth={17} strokeLinejoin="round" />
       <path
@@ -1414,24 +1426,37 @@ const sanFrancisco = {
       art: (
         <g>
           <rect width={MID_W} height={70} fill="#f6ead7" />
-          <path d="M114 32L120 24H172L178 32z" fill="#8d86c9" />
+          <path d="M108 32L114 24H178L184 32z" fill="#8d86c9" />
           <rect x={130} y={19} width={32} height={5} fill="#8d86c9" />
           <rect x={134} y={25} width={24} height={5} fill={PAPER} />
           <path {...hair} d="M137 27.5h18" strokeOpacity={1} />
-          <rect x={118} y={46} width={56} height={12} fill="#e2675f" />
-          <path d="M118 46h56" stroke="#f0c95e" strokeWidth={1.4} />
-          <Windows x={122} y={35} cols={5} rows={1} w={7} h={8} gx={10} gy={0} fill="#bcd2ee" />
-          <path {...hair} d="M146 34v12" strokeOpacity={1} />
-          <rect x={112} y={58} width={68} height={3} fill="#a48a78" />
+          <rect x={128} y={32} width={36} height={26} fill="#f6ead7" />
+          <Windows x={131} y={35} cols={3} rows={1} w={7} h={8} gx={11} gy={0} fill="#bcd2ee" />
+          {[113, 126, 166, 179].map((x) => (
+            <rect key={x} x={x - 1} y={32} width={2} height={20} fill="#a48a78" />
+          ))}
+          <rect x={112} y={45} width={16} height={3} fill="#a48a78" />
+          <rect x={164} y={45} width={16} height={3} fill="#a48a78" />
+          <circle cx={120} cy={37} r={3} fill="#f4d0b2" />
+          <rect x={117} y={40} width={6} height={6} rx={1} fill="#86a8e8" />
+          <circle cx={170} cy={31} r={3} fill="#f4d0b2" />
+          <rect x={168} y={28} width={4} height={1.6} fill="#4b4590" />
+          <rect x={167} y={34} width={6} height={13} rx={1} fill="#4b4590" />
+          <rect x={175.2} y={34} width={1.6} height={16} fill="#6b6466" />
+          <circle cx={176} cy={34} r={1.6} fill="#f0c95e" />
+          <rect x={110} y={50} width={72} height={8} fill="#e2675f" />
+          <path d="M110 50h72" stroke="#f0c95e" strokeWidth={1.4} />
+          <path {...hair} d="M128 50v8M164 50v8" strokeOpacity={1} />
+          <rect x={108} y={58} width={76} height={3} fill="#a48a78" />
           <circle cx={128} cy={64} r={5} fill="#8d86c9" />
           <circle cx={164} cy={64} r={5} fill="#8d86c9" />
           <circle cx={128} cy={64} r={1.8} fill="#e9ebf6" />
           <circle cx={164} cy={64} r={1.8} fill="#e9ebf6" />
-          <circle cx={170} cy={22} r={2} fill="#f0c95e" />
+          <circle cx={146} cy={22} r={2} fill="#f0c95e" />
         </g>
       ),
       height: MID_H,
-      outline: `${cableCar}${disc(170, 22, 2)}`,
+      outline: `${cableCar}${disc(146, 22, 2)}`,
     },
     {
       ...FRONT,
