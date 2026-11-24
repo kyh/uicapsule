@@ -472,6 +472,8 @@ const SolidMesh = ({
     );
   }
 
+  const wrap = faces("top");
+
   if (form === "gable") {
     return (
       <mesh
@@ -481,7 +483,7 @@ const SolidMesh = ({
         receiveShadow
       >
         {FORMS.gable}
-        <meshLambertMaterial color={solid.color} />
+        <meshLambertMaterial color={wrap ? "#ffffff" : solid.color} map={wrap} />
         <Edges color={INK} lineWidth={1.6} threshold={20} />
         <Halo extent={[w, d, h]}>{FORMS.gable}</Halo>
       </mesh>
@@ -497,7 +499,7 @@ const SolidMesh = ({
       receiveShadow
     >
       {FORMS[form]}
-      <meshLambertMaterial color={solid.color} />
+      <meshLambertMaterial color={wrap ? "#ffffff" : solid.color} map={wrap} />
       <Edges color={INK} lineWidth={1.6} threshold={30} />
       <Halo extent={[w, h, d]}>{FORMS[form]}</Halo>
     </mesh>

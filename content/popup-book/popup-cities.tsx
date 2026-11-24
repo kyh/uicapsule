@@ -255,7 +255,14 @@ const cafeTable = [
   ...chair(-18, -3, "x"),
   { at: [0.2, 0.2], color: "#8d86c9", lift: 12.4, form: "cylinder", size: [1.6, 1.6, 20] },
   {
-    art: { top: <Stripes w={26} h={26} colors={["#f2b8b0", PAPER]} /> },
+    art: {
+      top: (
+        <g>
+          <rect width={28} height={28} fill="#f2b8b0" />
+          <Stripes w={28} h={28} colors={[PAPER]} />
+        </g>
+      ),
+    },
     at: [-12, -12],
     color: "#f2b8b0",
     lift: 31,
