@@ -26,6 +26,7 @@ const CLOTH = "#d6ccb6";
 const ORIGIN: Vec = [0, 0, 0];
 
 const clamp = (value: number, min: number, max: number) => Math.min(max, Math.max(min, value));
+const smoothstep = (t: number) => t * t * (3 - 2 * t);
 const rad = (deg: number) => (deg * Math.PI) / 180;
 const dir = (deg: number) => [Math.cos(rad(deg)), Math.sin(rad(deg)), 0] satisfies Vec;
 const scale = (v: Vec, s: number) => [v[0] * s, v[1] * s, v[2] * s] satisfies Vec;
@@ -247,6 +248,161 @@ const cardLayers = ({
   return layers;
 };
 
+const VIEW: Vec = [0, COS_E, SIN_E];
+
+const dot = (a: Vec, b: Vec) => a[0] * b[0] + a[1] * b[1] + a[2] * b[2];
+
+interface SolidInput {
+  city: PopupCity;
+  frames: { x: Vec; y: Vec }[];
+  index: number;
+  open: number;
+  roomDepth: number;
+}
+
+const solidLayers = ({ city, frames, index, open, roomDepth }: SolidInput) => {
+  const layers: Layer[] = [];
+
+  if (open < 0.02) {
+    return layers;
+  }
+
+  const reaches = city.layers.map((layer) => layer.left);
+
+  for (const [solidIndex, solid] of (city.solids ?? []).entries()) {
+    const [x0, y0] = solid.at;
+    const [w, d, h] = solid.size;
+    const lift = solid.lift ?? 0;
+    const frame = x0 + w / 2 >= y0 + d / 2 ? frames[0] : frames[1];
+
+    if (!frame) {
+      continue;
+    }
+
+    const { x: xAxis, y: yAxis } = frame;
+    const up: Vec = [0, 0, 1];
+    const down = scale(up, -open);
+
+    const at = (u: number, v: number, t: number) =>
+      add(add(scale(xAxis, x0 + u), scale(yAxis, y0 + v)), scale(up, (lift + t * h) * open));
+
+    const center = at(w / 2, d / 2, 0.5);
+    const band = reaches.filter((reach) => reach < x0 + w / 2 + y0 + d / 2).length - 0.5;
+    const base = roomDepth + 0.2 + band * 0.05;
+    const back = scale(xAxis, -1);
+
+    const faces = [
+      {
+        key: "top",
+        origin: at(0, 0, 1),
+        a: xAxis,
+        b: yAxis,
+        size: [w, d],
+        normal: up,
+        art: solid.art?.top,
+        fill: solid.top ?? solid.color,
+      },
+      {
+        key: "left",
+        origin: at(w, 0, 1),
+        a: yAxis,
+        b: down,
+        size: [d, h],
+        normal: xAxis,
+        art: solid.art?.left,
+        fill: solid.color,
+      },
+      {
+        key: "right",
+        origin: at(w, d, 1),
+        a: back,
+        b: down,
+        size: [w, h],
+        normal: yAxis,
+        art: solid.art?.right,
+        fill: solid.color,
+      },
+      {
+        key: "rear-x",
+        origin: at(0, d, 1),
+        a: scale(yAxis, -1),
+        b: down,
+        size: [d, h],
+        normal: back,
+        art: undefined,
+        fill: solid.color,
+      },
+      {
+        key: "rear-y",
+        origin: at(0, 0, 1),
+        a: xAxis,
+        b: down,
+        size: [w, h],
+        normal: scale(yAxis, -1),
+        art: undefined,
+        fill: solid.color,
+      },
+    ];
+
+    if (lift === 0) {
+      const shadow = [
+        [-1, -1],
+        [w + 5, -1],
+        [w + 5, d + 5],
+        [-1, d + 5],
+      ]
+        .map(([u = 0, v = 0]) => {
+          const [px, py] = project(at(u, v, 0));
+
+          return `${px.toFixed(2)} ${py.toFixed(2)}`;
+        })
+        .join("L");
+
+      layers.push({
+        depth: base - 0.01,
+        node: (
+          <path
+            key={`solid-shadow-${index}-${solidIndex}`}
+            d={`M${shadow}z`}
+            fill="#2a2150"
+            opacity={(0.14 * open).toFixed(3)}
+          />
+        ),
+      });
+    }
+
+    for (const face of faces) {
+      if (dot(face.normal, VIEW) <= 0.001) {
+        continue;
+      }
+
+      const [fw = 0, fh = 0] = face.size;
+      const { transform } = affine(face.origin, face.a, face.b);
+
+      layers.push({
+        depth: base + depth(center) * 0.0001 + (face.key === "top" ? 0 : 1e-6),
+        node: (
+          <g key={`solid-${index}-${solidIndex}-${face.key}`} transform={transform}>
+            <rect width={fw} height={fh} fill={face.fill} />
+            {face.art}
+            <Shade normal={face.normal} closed={(1 - open) * 0.6} width={fw} height={fh} />
+            <rect
+              width={fw}
+              height={fh}
+              fill="none"
+              stroke={INK}
+              strokeWidth={1.2}
+              strokeLinejoin="round"
+            />
+          </g>
+        ),
+      });
+    }
+  }
+
+  return layers;
+};
+
 const roomDepthFor = (left: number, right: number) => {
   const leftOpen = Math.cos(rad(left)) < 0;
   const rightOpen = Math.cos(rad(right)) >= 0;
@@ -425,6 +581,16 @@ const buildLayers = (progress: number, ids: Ids) => {
 
     layers.push(
       ...cardLayers({ bisector, city, closed, floorZ, ids, index, left, right, roomDepth }),
+      ...solidLayers({
+        city,
+        frames: [
+          { x: scale(a3, 1 / SIZE), y: scale(sub(tip, a3), 1 / SIZE) },
+          { x: scale(sub(tip, b3), 1 / SIZE), y: scale(b3, 1 / SIZE) },
+        ],
+        index,
+        open: smoothstep(clamp((openness(index) - 0.6) / 0.4, 0, 1)),
+        roomDepth,
+      }),
     );
   }
 

@@ -18,6 +18,15 @@ export const placement = (layer: PopupLayer) =>
     ? `translate(${layer.place.at - layer.place.anchor * layer.place.zoom} 0) scale(${layer.place.zoom})`
     : undefined;
 
+export interface PopupSolid {
+  at: [number, number];
+  size: [number, number, number];
+  color: string;
+  top?: string;
+  lift?: number;
+  art?: { top?: ReactNode; left?: ReactNode; right?: ReactNode };
+}
+
 export interface PopupCity {
   name: string;
   country: string;
@@ -26,6 +35,7 @@ export interface PopupCity {
   ground: string;
   floor: ReactNode;
   layers: PopupLayer[];
+  solids?: PopupSolid[];
 }
 
 /** Flat width of a V-fold card glued `left` and `right` units from the spine, and where it creases. */
@@ -36,11 +46,7 @@ export const cardSpan = (left: number, right: number) => {
 };
 
 const BACK = { left: 99, right: 99 };
-const MID = { left: 135, right: 135 };
 const FRONT = { left: 178, right: 178 };
-const MID_W = cardSpan(MID.left, MID.right).width;
-const ZOOM = 1.7;
-const MID_H = 70 * ZOOM;
 const FRONT_W = cardSpan(FRONT.left, FRONT.right).width;
 
 const ink = {
@@ -191,6 +197,168 @@ const Bunting = ({ y, sag, colors }: { y: number; sag: number; colors: string[] 
   </g>
 );
 
+const Books = ({ x, y, cols, rows }: { x: number; y: number; cols: number; rows: number }) => (
+  <g>
+    {range(rows).map((row) =>
+      range(cols).map((col) => (
+        <rect
+          key={`${row}-${col}`}
+          x={x + col * 5.6}
+          y={y + row * 4.5}
+          width={4.4}
+          height={3.4}
+          fill={["#ea8a72", "#86a8e8", "#f0c95e", "#b3a2e6"][(row * 3 + col) % 4]}
+        />
+      )),
+    )}
+  </g>
+);
+
+const Stripes = ({ w, h, colors }: { w: number; h: number; colors: string[] }) => (
+  <g>
+    {range(Math.ceil(w / 4)).map((k) => (
+      <rect key={k} x={k * 4} width={2} height={h} fill={colors[k % colors.length]} />
+    ))}
+  </g>
+);
+
+const scaleArt = (node: ReactNode, k: number) =>
+  node ? <g transform={`scale(${k})`}>{node}</g> : undefined;
+
+const place = (solids: PopupSolid[], x: number, y: number, k = 1) =>
+  solids.map<PopupSolid>((solid) => ({
+    ...solid,
+    art: solid.art && {
+      left: scaleArt(solid.art.left, k),
+      right: scaleArt(solid.art.right, k),
+      top: scaleArt(solid.art.top, k),
+    },
+    at: [x + solid.at[0] * k, y + solid.at[1] * k],
+    lift: (solid.lift ?? 0) * k,
+    size: [solid.size[0] * k, solid.size[1] * k, solid.size[2] * k],
+  }));
+
+const chair = (x: number, y: number, facing: "x" | "y") =>
+  [
+    { at: [x + 3, y + 3], color: "#8d86c9", size: [1.2, 1.2, 6] },
+    { at: [x, y], color: "#ea8a72", lift: 6, size: [7, 7, 1.2] },
+    facing === "y"
+      ? { at: [x, y + 5.8], color: "#ea8a72", lift: 7.2, size: [7, 1.2, 7] }
+      : { at: [x, y], color: "#ea8a72", lift: 7.2, size: [1.2, 7, 7] },
+  ] satisfies PopupSolid[];
+
+const cafeTable = [
+  { at: [0, 0], color: "#8d86c9", size: [2, 2, 11] },
+  { at: [-7, -7], color: PAPER, lift: 11, size: [16, 16, 1.4] },
+  ...chair(-3, 11, "y"),
+  ...chair(-18, -3, "x"),
+  { at: [0.2, 0.2], color: "#8d86c9", lift: 12.4, size: [1.6, 1.6, 20] },
+  {
+    art: { top: <Stripes w={26} h={26} colors={["#f2b8b0", PAPER]} /> },
+    at: [-12, -12],
+    color: "#f2b8b0",
+    lift: 32,
+    size: [26, 26, 2.4],
+  },
+] satisfies PopupSolid[];
+
+const lantern = [
+  { at: [0, 0], color: "#d4cfe2", size: [14, 14, 4] },
+  { at: [4, 4], color: "#d4cfe2", lift: 4, size: [6, 6, 12] },
+  {
+    art: {
+      left: <rect x={3} y={2} width={6} height={5} fill="#f6d98a" />,
+      right: <rect x={3} y={2} width={6} height={5} fill="#f6d98a" />,
+    },
+    at: [1, 1],
+    color: "#d4cfe2",
+    lift: 16,
+    size: [12, 12, 9],
+  },
+  { at: [-2, -2], color: "#9a94d0", lift: 25, size: [18, 18, 3] },
+  { at: [4, 4], color: "#9a94d0", lift: 28, size: [6, 6, 4] },
+] satisfies PopupSolid[];
+
+const Bands = ({ h }: { h: number }) => (
+  <g>
+    {range(Math.floor(h / 8)).map((k) => (
+      <rect key={k} y={k * 8 + 2} width={7} height={4} fill="#8d86c9" />
+    ))}
+  </g>
+);
+
+const mooringPost = (x: number, y: number, height: number) =>
+  [
+    {
+      art: { left: <Bands h={height} />, right: <Bands h={height} /> },
+      at: [x, y],
+      color: PAPER,
+      size: [7, 7, height],
+    },
+    { at: [x - 0.5, y - 0.5], color: "#e8c46e", lift: height, size: [8, 8, 4] },
+  ] satisfies PopupSolid[];
+
+const lampPost = (x: number, y: number, height: number) =>
+  [
+    { at: [x, y], color: "#4b4590", size: [3, 3, height] },
+    { at: [x - 2.5, y - 2.5], color: "#fbe7b0", lift: height, size: [8, 8, 7], top: "#4b4590" },
+  ] satisfies PopupSolid[];
+
+const Facade = ({ w, h, roof, door }: { w: number; h: number; roof: string; door: string }) => (
+  <g>
+    <path
+      d={`M0 0L${w / 2} ${-w / 2.2}L${w} 0z`}
+      fill={roof}
+      stroke={INK}
+      strokeWidth={1.2}
+      strokeLinejoin="round"
+    />
+    <circle cx={w / 2} cy={-w / 6} r={w / 14} fill="#bcd2ee" />
+    <path {...hair} d={`M0 3h${w}`} strokeOpacity={1} strokeDasharray="1.5 1.5" />
+    <rect
+      {...ink}
+      strokeWidth={0.8}
+      x={w * 0.12}
+      y={h * 0.18}
+      width={w * 0.36}
+      height={h * 0.32}
+      fill={PAPER}
+    />
+    <path
+      {...hair}
+      d={`M${w * 0.24} ${h * 0.18}v${h * 0.32}M${w * 0.36} ${h * 0.18}v${h * 0.32}`}
+      strokeOpacity={0.8}
+    />
+    <rect
+      {...ink}
+      strokeWidth={0.8}
+      x={w * 0.6}
+      y={h * 0.18}
+      width={w * 0.26}
+      height={h * 0.2}
+      fill="#bcd2ee"
+    />
+    <rect
+      {...ink}
+      strokeWidth={0.8}
+      x={w * 0.12}
+      y={h * 0.62}
+      width={w * 0.36}
+      height={h * 0.2}
+      fill="#bcd2ee"
+    />
+    <rect
+      {...ink}
+      strokeWidth={0.8}
+      x={w * 0.6}
+      y={h * 0.55}
+      width={w * 0.26}
+      height={h * 0.45}
+      fill={door}
+    />
+  </g>
+);
+
 const parisTower = `M0 150V146H18L30 132L42 108L40 104L48 100L56 76L54 72L58 70L63 40L64 18L68 16L70 2L72 16L76 18L77 40L82 70L86 72L84 76L92 100L100 104L98 108L110 132L122 146H140V150zM98 146Q70 106 42 146z${disc(11, 130, 10)}${disc(129, 130, 10)}`;
 
 const paris = {
@@ -285,63 +453,33 @@ const paris = {
       height: 150,
       outline: parisTower,
     },
+  ],
+  solids: [
     {
-      ...MID,
-      place: { anchor: 148, at: 140, zoom: ZOOM },
-      art: (
-        <g>
-          <rect width={MID_W} height={70} fill="#f2e6cf" />
-          <path d="M126 30q22 -24 44 0z" fill="#ee9aa2" />
-          {range(4).map((k) => (
-            <path key={k} d={`M${131 + k * 11} 30L148 9`} stroke={PAPER} strokeWidth={2.6} />
-          ))}
-          <rect x={146.5} y={30} width={3} height={22} fill="#8d86c9" />
-          <ellipse cx={148} cy={52} rx={16} ry={3} fill="#f6ead7" />
-          <path {...hair} d="M148 55v13M142 68h12" strokeOpacity={1} />
-          <path
-            {...hair}
-            d="M122 46v22M122 52h10v16M174 46v22M174 52h-10v16"
-            strokeOpacity={1}
-            strokeWidth={1.2}
-          />
-          <path {...ink} d="M50 56h12l-2 12h-8z" fill="#e8b48f" strokeWidth={1.1} />
-          <circle cx={56} cy={50} r={8} fill="#9fce9e" />
-        </g>
-      ),
-      height: MID_H,
-      outline: `M126 30q22 -24 44 0z${box(146.5, 30, 3, 22)}M132 52a16 3 0 1 0 32 0a16 3 0 1 0 -32 0z${box(146.5, 54, 3, 14)}${box(141, 66, 14, 2)}${box(120.5, 46, 3, 22)}${box(120, 51, 13, 3)}${box(130, 51, 3, 17)}${box(172.5, 46, 3, 22)}${box(163, 51, 13, 3)}${box(163, 51, 3, 17)}M50 56h12l-2 12h-8z${disc(56, 50, 8)}`,
+      art: { top: <Books x={3} y={4} cols={9} rows={3} /> },
+      at: [118, 40],
+      color: "#6fa88a",
+      size: [54, 20, 16],
+      top: "#f3e6cf",
     },
     {
-      ...FRONT,
-      art: (
-        <g>
-          <rect width={FRONT_W} height={84} fill="#93c79c" />
-          {range(7).map((k) => (
-            <g key={k}>
-              <path {...hair} d={`M${k * 20 + 4} 70q6 -6 12 0`} strokeOpacity={0.7} />
-              <circle cx={k * 20 + 6} cy={66} r={1.9} fill="#f4a7b7" />
-              <circle cx={k * 20 + 15} cy={73} r={1.7} fill="#fbe3a0" />
-            </g>
-          ))}
-          <rect x={22} y={10} width={5} height={52} fill="#7d78bd" />
-          <path {...ink} d={box(18, 2, 13, 12)} fill="#fbe7b0" strokeWidth={1.1} />
-          <rect x={232} y={10} width={5} height={74} fill="#7d78bd" />
-          <path {...ink} d={box(228, 2, 13, 12)} fill="#fbe7b0" strokeWidth={1.1} />
-          <path
-            {...ink}
-            d="M88 50h40v4h-40zM90 54v8M126 54v8M88 44h40v3h-40z"
-            fill="#e3c08e"
-            strokeWidth={1}
-          />
-        </g>
-      ),
-      height: 84,
-      outline: `M0 84V62${range(7)
-        .map(() => "q10 -12 20 0")
-        .join(
-          "",
-        )}V84z${box(22, 10, 5, 54)}${box(18, 2, 13, 12)}${box(232, 10, 5, 74)}${box(228, 2, 13, 12)}${box(88, 44, 40, 10)}`,
+      art: {
+        right: (
+          <g>
+            <rect x={5} y={3} width={12} height={11} fill="#f2b8b0" />
+            <rect x={21} y={3} width={11} height={12} fill="#bcd2ee" />
+            <rect x={36} y={2} width={12} height={11} fill="#f3d29e" />
+          </g>
+        ),
+      },
+      at: [118, 38],
+      color: "#6fa88a",
+      lift: 16,
+      size: [54, 2, 18],
     },
+    ...place(cafeTable, 62, 132, 1.6),
+    ...lampPost(178, 128, 54),
+    ...lampPost(128, 178, 54),
   ],
   name: "Paris",
   panorama: (
@@ -506,19 +644,6 @@ const kyoto = {
       outline: pagodaOutline,
     },
     {
-      ...MID,
-      place: { anchor: 40, at: 146, zoom: 1.4 },
-      art: (
-        <g>
-          <rect width={MID_W} height={70} fill="#dcd8ce" />
-          <path {...hair} d="M30 30h20M34 46h12M28 60h24" strokeOpacity={0.7} />
-          <path d="M34 34h12v10h-12z" fill="#fbe7b0" />
-        </g>
-      ),
-      height: 70 * 1.4,
-      outline: `M28 30l12 -12l12 12z${box(30, 30, 20, 4)}${box(32, 34, 16, 10)}${box(36, 44, 8, 14)}${box(28, 58, 24, 4)}${box(32, 62, 16, 8)}`,
-    },
-    {
       ...FRONT,
       art: (
         <g>
@@ -540,6 +665,7 @@ const kyoto = {
       outline: `M4 4q60 7 122 7q62 0 122 -7l-5 12H9z${box(26, 16, 200, 6)}${box(114, 16, 24, 16)}${box(48, 16, 12, 120)}${box(192, 16, 12, 120)}${box(34, 32, 184, 6)}${box(44, 132, 22, 8)}${box(186, 132, 22, 8)}`,
     },
   ],
+  solids: [...place(lantern, 140, 64, 1.9), ...place(lantern, 64, 140, 1.9)],
   name: "Kyoto",
   panorama: (
     <g>
@@ -687,66 +813,87 @@ const newYork = {
       height: 150,
       outline: spireOutline,
     },
+  ],
+  solids: [
     {
-      ...MID,
-      place: { anchor: 146, at: 138, zoom: ZOOM },
-      art: (
-        <g>
-          <rect width={MID_W} height={70} fill="#f3e6cf" />
-          <path d="M126 26q20 -20 40 0z" fill="#f0c95e" />
-          {range(3).map((k) => (
-            <path key={k} d={`M${133 + k * 10} 26L146 8`} stroke="#ee8f96" strokeWidth={3} />
-          ))}
-          {range(5).map((k) => (
-            <path
-              key={k}
-              d={`M${126 + k * 8} 26h8v3q-4 3 -8 0z`}
-              fill={k % 2 === 0 ? "#ee8f96" : "#fbf8f2"}
-            />
-          ))}
-          <rect x={144.5} y={29} width={3} height={9} fill="#8d86c9" />
-          <rect x={150} y={37} width={4} height={7} rx={1} fill="#f0c95e" />
-          <rect x={156} y={36} width={4} height={8} rx={1} fill="#e2675f" />
-          <rect x={122} y={42} width={48} height={3} fill="#fbf8f2" />
-          <rect x={124} y={45} width={44} height={15} fill="#d6daee" />
-          <path d="M124 49h44" stroke="#8d86c9" strokeWidth={1.4} />
-          <rect x={128} y={51} width={16} height={7} fill="#fbf8f2" />
-          <path {...hair} d="M130 53h10M130 56h7" strokeOpacity={1} />
-          <circle cx={156} cy={54} r={3} fill="#ee8f96" />
-          <circle cx={132} cy={64} r={5} fill="#8d86c9" />
-          <circle cx={160} cy={64} r={5} fill="#8d86c9" />
-          <circle cx={132} cy={64} r={1.8} fill="#e9ebf6" />
-          <circle cx={160} cy={64} r={1.8} fill="#e9ebf6" />
-          <path {...ink} d="M40 50h10v18h-10zM38 46h14v4h-14z" fill="#ef9a90" strokeWidth={1.1} />
-        </g>
-      ),
-      height: MID_H,
-      outline: `M126 26q20 -20 40 0z${box(126, 26, 40, 5)}${box(144.5, 26, 3, 18)}${box(150, 37, 4, 7)}${box(156, 36, 4, 8)}${box(122, 42, 48, 3)}${box(124, 44, 44, 16)}${disc(132, 64, 5)}${disc(160, 64, 5)}${box(40, 50, 10, 18)}${box(38, 46, 14, 4)}`,
+      art: {
+        left: (
+          <g>
+            <rect y={6} width={22} height={2} fill="#2a2150" opacity={0.25} />
+            <circle cx={5} cy={10} r={3.4} fill="#4b4590" />
+            <circle cx={17} cy={10} r={3.4} fill="#4b4590" />
+          </g>
+        ),
+        right: (
+          <g>
+            <path d="M0 5h54" stroke="#2a2150" strokeOpacity={0.3} strokeDasharray="3 3" />
+            <circle cx={10} cy={10} r={3.4} fill="#4b4590" />
+            <circle cx={44} cy={10} r={3.4} fill="#4b4590" />
+            <circle cx={10} cy={10} r={1.2} fill="#e9ebf6" />
+            <circle cx={44} cy={10} r={1.2} fill="#e9ebf6" />
+          </g>
+        ),
+      },
+      at: [112, 30],
+      color: "#f0c95e",
+      size: [54, 22, 10],
     },
     {
-      ...FRONT,
-      art: (
-        <g>
-          <rect width={FRONT_W} height={84} fill="#f0c95e" />
-          <path {...ink} d="M36 60h22l5 9h-32z" fill="#d6e4f6" strokeWidth={1.1} />
-          <path {...ink} d="M43 60h7v-4h-7z" fill={PAPER} strokeWidth={0.9} />
-          <path {...hair} d="M46 60v9M22 73h52" strokeOpacity={0.9} />
-          <path d="M22 72h52" stroke="#2a2150" strokeOpacity={0.15} strokeWidth={6} />
-          <circle {...ink} cx={32} cy={78} r={5.5} fill="#8d86c9" />
-          <circle {...ink} cx={62} cy={78} r={5.5} fill="#8d86c9" />
-          <circle cx={32} cy={78} r={2} fill="#e9ebf6" />
-          <circle cx={62} cy={78} r={2} fill="#e9ebf6" />
-          <rect x={236} y={8} width={4} height={76} fill="#7d78bd" />
-          <path {...ink} d="M228 8h20v6h-20z" fill="#fbe7b0" strokeWidth={1.1} />
-          <circle cx={200} cy={38} r={20} fill="#a9d1ae" />
-          <circle cx={186} cy={48} r={12} fill="#9bc8a3" />
-          <rect x={198} y={52} width={4} height={32} fill="#a48a78" />
-          <path {...hair} d="M190 34q6 -6 14 -2M180 46q4 -4 8 -1" strokeOpacity={0.9} />
-        </g>
-      ),
-      height: 84,
-      outline: `M22 69h9l5 -9h22l5 9h11v11h-52z${disc(32, 78, 5.5)}${disc(62, 78, 5.5)}${box(43, 56, 7, 4)}${box(236, 10, 4, 74)}${box(228, 8, 20, 6)}${disc(200, 38, 20)}${disc(186, 48, 12)}${box(198, 52, 4, 32)}`,
+      art: {
+        left: <rect x={2} y={1.5} width={14} height={5} fill="#d6e4f6" />,
+        right: (
+          <g>
+            <rect x={2} y={1.5} width={11} height={5} fill="#d6e4f6" />
+            <rect x={15} y={1.5} width={11} height={5} fill="#d6e4f6" />
+          </g>
+        ),
+      },
+      at: [124, 33],
+      color: "#f0c95e",
+      lift: 10,
+      size: [28, 18, 8],
     },
+    { at: [136, 39], color: "#fbf8f2", lift: 18, size: [4, 6, 3] },
+    {
+      art: {
+        left: (
+          <g>
+            <rect y={14} width={44} height={6} fill="#8d86c9" />
+            <rect x={8} y={3} width={18} height={8} fill={PAPER} />
+            <path {...hair} d="M10 5.5h14M10 8.5h9" strokeOpacity={1} />
+            <circle cx={8} cy={20} r={3.4} fill="#4b4590" />
+            <circle cx={36} cy={20} r={3.4} fill="#4b4590" />
+          </g>
+        ),
+      },
+      at: [36, 112],
+      color: "#d6daee",
+      size: [24, 44, 20],
+      top: "#fbf8f2",
+    },
+    { at: [52, 114], color: "#e2675f", lift: 20, size: [3.4, 3.4, 6] },
+    { at: [52, 119], color: "#f0c95e", lift: 20, size: [3.4, 3.4, 6] },
+    { at: [47, 132], color: "#8d86c9", lift: 20, size: [2, 2, 26] },
+    {
+      art: { top: <Stripes w={34} h={52} colors={["#f0c95e", "#ee8f96"]} /> },
+      at: [31, 108],
+      color: "#f0c95e",
+      lift: 46,
+      size: [34, 52, 3],
+    },
+    {
+      art: { right: <rect x={2} y={3} width={8} height={6} fill="#bcd2ee" /> },
+      at: [156, 104],
+      color: "#e2675f",
+      size: [12, 12, 18],
+    },
+    {
+      art: { right: <rect x={2} y={3} width={8} height={6} fill="#fbf8f2" /> },
+      at: [172, 104],
+      color: "#86a8e8",
+      size: [12, 12, 18],
+    },
+    ...lampPost(186, 140, 62),
   ],
   name: "New York",
   panorama: (
@@ -929,25 +1076,6 @@ const venice = {
       outline: `M0 150V121L56 102H84L140 121V150zM122 150Q70 92 18 150z${rialtoArcade}${rialtoRoofs}M56 100V60h28v40zM52 60L70 44L88 60z`,
     },
     {
-      ...MID,
-      place: { anchor: 40, at: 44, zoom: ZOOM },
-      art: (
-        <g>
-          <rect width={MID_W} height={70} fill={PAPER} />
-          {range(6).map((k) => (
-            <g key={k}>
-              <rect x={30} y={4 + k * 11} width={5} height={6} fill="#9fb6e6" />
-              <rect x={44} y={10 + k * 10} width={5} height={5} fill="#ef9aa2" />
-            </g>
-          ))}
-          <circle cx={32.5} cy={2} r={3} fill="#e8c46e" />
-          <circle cx={46.5} cy={8} r={3} fill="#e8c46e" />
-        </g>
-      ),
-      height: MID_H,
-      outline: `${box(30, 2, 5, 68)}${box(44, 8, 5, 62)}${disc(32.5, 2, 3)}${disc(46.5, 8, 3)}`,
-    },
-    {
       ...FRONT,
       art: (
         <g>
@@ -976,6 +1104,14 @@ const venice = {
       height: 84,
       outline: `M84 62q8 6 26 8h120q16 -2 18 -22l4 3q-2 26 -24 28h-118q-22 -2 -30 -14zM150 64v-7q0 -3 3 -3h22q3 0 3 3v7z${gondolaFerro}${gondolaOar}${box(100, 38, 8, 28)}${box(98, 20, 12, 20)}${disc(104, 15, 5)}M95 10.5h18v2h-18zM99 10.5v-4h10v4z${box(14, 6, 5, 78)}`,
     },
+  ],
+  solids: [
+    ...mooringPost(150, 108, 72),
+    ...mooringPost(167, 125, 62),
+    ...mooringPost(184, 142, 52),
+    { at: [36, 118], color: "#c9a27e", size: [20, 20, 16] },
+    { at: [39, 121], color: "#d8b48e", lift: 16, size: [14, 14, 12] },
+    { at: [60, 126], color: "#d8b48e", size: [16, 16, 13] },
   ],
   name: "Venice",
   panorama: (
@@ -1135,72 +1271,48 @@ const santorini = {
       height: 150,
       outline: `${box(0, 144, 140, 6)}${box(36, 84, 80, 60)}M42 84q0 -36 34 -36q34 0 34 36z${box(74, 30, 2, 20)}${box(70, 37, 10, 3)}${box(10, 60, 24, 84)}M10 60q0 -26 12 -26q12 0 12 26z${box(116, 112, 24, 32)}`,
     },
+  ],
+  solids: [
     {
-      ...MID,
-      place: { anchor: 150, at: 150, zoom: ZOOM },
-      art: (
-        <g>
-          <rect width={MID_W} height={70} fill="#fdfcf8" />
-          <path {...hair} d="M120 58h60M132 46h48M144 34h36" strokeOpacity={0.7} />
-          <path {...ink} d="M150 18h14l-2 10h-10z" fill="#ecb393" strokeWidth={1.1} />
-          <circle cx={157} cy={12} r={7} fill="#f08bbd" />
-          <circle cx={152} cy={9} r={3} fill="#f7b3d4" />
-          <path {...ink} d="M124 50h6l-1 8h-4z" fill="#86a8e8" strokeWidth={1} />
-        </g>
-      ),
-      height: MID_H,
-      outline: `M120 70V58h12V46h12V34h36V70z${box(150, 18, 14, 16)}${disc(157, 12, 7)}${box(124, 50, 6, 8)}`,
+      art: {
+        left: (
+          <g>
+            <path d="M20 30v-14q4 -6 8 0v14z" fill="#4f7fd8" />
+            <rect x={6} y={8} width={8} height={8} fill="#86a8e8" />
+          </g>
+        ),
+        right: <rect x={14} y={8} width={9} height={9} fill="#86a8e8" />,
+      },
+      at: [26, 108],
+      color: "#fdfcf8",
+      size: [40, 36, 30],
     },
     {
-      ...FRONT,
-      art: (
-        <g>
-          <rect width={FRONT_W} height={84} fill="#fdfcf8" />
-          {[
-            [18, 40, 12],
-            [44, 32, 10],
-            [80, 42, 9],
-            [116, 36, 11],
-          ].map(([cx = 0, cy = 0, r = 0], k) => (
-            <g key={cx}>
-              <circle cx={cx} cy={cy} r={r} fill="#9cc9a2" />
-              {range(7).map((j) => (
-                <circle
-                  key={j}
-                  cx={cx + Math.cos(j * 0.9 + k) * r * 0.55}
-                  cy={cy + Math.sin(j * 0.9 + k) * r * 0.55}
-                  r={r * 0.34}
-                  fill={j % 3 === 0 ? "#f3a3c8" : "#ea7fb3"}
-                  stroke="#d65f98"
-                  strokeWidth={0.5}
-                />
-              ))}
-              <path
-                {...hair}
-                d={`M${cx - r * 0.6} ${cy + r * 0.8}q${r * 0.4} -${r * 0.5} ${r * 0.9} 0`}
-                stroke="#5f9b6c"
-                strokeOpacity={0.9}
-              />
-            </g>
-          ))}
-          <path
-            {...hair}
-            d="M8 52q30 -14 60 -2M70 50q30 -12 60 0"
-            stroke="#7fb58c"
-            strokeOpacity={1}
-            strokeWidth={1.4}
-          />
-          <path {...hair} d="M0 66h140M46 52h48" strokeOpacity={0.4} />
-          <path {...ink} d="M168 84v-34q12 -14 24 0v34z" fill="#86a8e8" strokeWidth={1.1} />
-          <path {...hair} d="M180 46v38M170 62h20" stroke={PAPER} strokeOpacity={0.8} />
-          <path {...ink} d="M210 70h20l-3 14h-14z" fill="#ecb393" strokeWidth={1.1} />
-          <path d="M220 70q-10 -30 0 -62q10 32 0 62z" fill="#88b996" />
-          <path {...hair} d="M220 66v-52" strokeOpacity={0.6} />
-        </g>
-      ),
-      height: 84,
-      outline: `M0 84V52h46v-6h48v6h46V84z${box(160, 34, 40, 50)}M160 34q20 -20 40 0z${disc(18, 40, 12)}${disc(44, 32, 10)}${disc(80, 42, 9)}${disc(116, 36, 11)}${box(210, 70, 20, 14)}M220 70q-10 -30 0 -62q10 32 0 62z`,
+      art: { left: <path d="M8 16v-9q4 -6 8 0v9z" fill="#86a8e8" /> },
+      at: [30, 114],
+      color: "#fdfcf8",
+      lift: 30,
+      size: [24, 24, 16],
     },
+    { at: [36, 120], color: "#86a8e8", lift: 46, size: [12, 12, 5] },
+    { at: [66, 116], color: "#f3ece0", size: [9, 16, 24] },
+    { at: [75, 116], color: "#f3ece0", size: [9, 16, 16] },
+    { at: [84, 116], color: "#f3ece0", size: [9, 16, 8] },
+    { at: [98, 124], color: "#ecb393", size: [8, 8, 8], top: "#a9d1ae" },
+    {
+      art: {
+        right: (
+          <g>
+            <path d="M9 22v-12q3 -5 6 0v12z" fill="#4f7fd8" />
+            <circle cx={12} cy={5} r={2} fill="#86a8e8" />
+          </g>
+        ),
+      },
+      at: [140, 80],
+      color: "#fdfcf8",
+      size: [24, 20, 22],
+    },
+    { at: [146, 85], color: "#86a8e8", lift: 22, size: [12, 10, 5] },
   ],
   name: "Santorini",
   panorama: (
@@ -1303,27 +1415,6 @@ const Hydrangea = ({ x, y, r }: { x: number; y: number; r: number }) => (
 const pyramid = "M80 2L97 146H63z";
 const coit = `M0 150V112Q22 98 46 110V150z${box(16, 62, 12, 48)}${box(14, 56, 16, 6)}${box(18, 48, 8, 8)}`;
 
-const victorians = range(3)
-  .map((k) => {
-    const x = 6 + k * 30;
-
-    return `M${x} 34L${x + 14} 12L${x + 28} 34z${box(x + 1, 34, 26, 50)}`;
-  })
-  .join("");
-
-const palmFronds = range(7)
-  .map((k) => {
-    const angle = Math.PI * (1.05 + k * 0.15);
-    const tipX = 227 + Math.cos(angle) * 24;
-    const tipY = 22 + Math.sin(angle) * 14 + 10;
-
-    return `M227 22Q${(227 + tipX) / 2} ${Math.min(tipY, 22) - 10} ${tipX.toFixed(1)} ${tipY.toFixed(1)}Q${(227 + tipX) / 2} ${Math.min(tipY, 22) - 3} 227 25z`;
-  })
-  .join("");
-
-const palmTrunk = "M223 84Q220 54 226 22h3Q224 54 228 84z";
-const cableCar = `M108 32L114 24H178L184 32z${box(130, 19, 32, 5)}${box(128, 32, 36, 26)}${[113, 126, 166, 179].map((x) => box(x - 1, 32, 2, 20)).join("")}${box(112, 45, 16, 3)}${box(164, 45, 16, 3)}${disc(120, 37, 3)}${box(117, 40, 6, 6)}${disc(170, 31, 3)}${box(167, 34, 6, 13)}${box(175.2, 34, 1.6, 16)}${disc(176, 34, 1.6)}${box(110, 50, 72, 8)}${box(108, 58, 76, 3)}${disc(128, 64, 5)}${disc(164, 64, 5)}`;
-
 const sanFrancisco = {
   coords: "37.80° N · 122.41° W",
   country: "United States",
@@ -1335,13 +1426,9 @@ const sanFrancisco = {
         <path key={k} {...hair} strokeOpacity={0.45} d={`M0 ${k * 8 + 26}H22M${k * 8 + 26} 0V22`} />
       ))}
       <path {...ink} d="M22 22V200M22 22H200" fill="none" />
+      <path d="M33 80V200M51 80V200" stroke="#8d86c9" strokeWidth={1.6} />
       <path
-        d="M144 0L94 50M152 0L102 50M0 144L50 94M0 152L50 102"
-        stroke="#8d86c9"
-        strokeWidth={1.6}
-      />
-      <path
-        d="M148 0L98 50M0 148L50 98"
+        d="M42 80V200"
         stroke={INK}
         strokeWidth={0.8}
         strokeOpacity={0.6}
@@ -1420,82 +1507,72 @@ const sanFrancisco = {
       height: 150,
       outline: `${box(0, 144, 140, 6)}${coit}${pyramid}${box(100, 112, 16, 34)}M100 112l8 -8l8 8z${box(118, 104, 20, 42)}M118 104l10 -9l10 9z`,
     },
+  ],
+  solids: [
+    ...[
+      ["#f4c6bf", "#e2675f"],
+      ["#bcd2ee", "#8d86c9"],
+      ["#f3d29e", "#ea8a72"],
+    ].map<PopupSolid>(([wall = "", roof = ""], k) => ({
+      art: { right: <Facade w={24} h={40} roof={roof} door={roof} /> },
+      at: [154 - k * 24, 8],
+      color: wall,
+      size: [24, 28, 40],
+    })),
     {
-      ...MID,
-      place: { anchor: 146, at: 140, zoom: ZOOM },
-      art: (
-        <g>
-          <rect width={MID_W} height={70} fill="#f6ead7" />
-          <path d="M108 32L114 24H178L184 32z" fill="#8d86c9" />
-          <rect x={130} y={19} width={32} height={5} fill="#8d86c9" />
-          <rect x={134} y={25} width={24} height={5} fill={PAPER} />
-          <path {...hair} d="M137 27.5h18" strokeOpacity={1} />
-          <rect x={128} y={32} width={36} height={26} fill="#f6ead7" />
-          <Windows x={131} y={35} cols={3} rows={1} w={7} h={8} gx={11} gy={0} fill="#bcd2ee" />
-          {[113, 126, 166, 179].map((x) => (
-            <rect key={x} x={x - 1} y={32} width={2} height={20} fill="#a48a78" />
-          ))}
-          <rect x={112} y={45} width={16} height={3} fill="#a48a78" />
-          <rect x={164} y={45} width={16} height={3} fill="#a48a78" />
-          <circle cx={120} cy={37} r={3} fill="#f4d0b2" />
-          <rect x={117} y={40} width={6} height={6} rx={1} fill="#86a8e8" />
-          <circle cx={170} cy={31} r={3} fill="#f4d0b2" />
-          <rect x={168} y={28} width={4} height={1.6} fill="#4b4590" />
-          <rect x={167} y={34} width={6} height={13} rx={1} fill="#4b4590" />
-          <rect x={175.2} y={34} width={1.6} height={16} fill="#6b6466" />
-          <circle cx={176} cy={34} r={1.6} fill="#f0c95e" />
-          <rect x={110} y={50} width={72} height={8} fill="#e2675f" />
-          <path d="M110 50h72" stroke="#f0c95e" strokeWidth={1.4} />
-          <path {...hair} d="M128 50v8M164 50v8" strokeOpacity={1} />
-          <rect x={108} y={58} width={76} height={3} fill="#a48a78" />
-          <circle cx={128} cy={64} r={5} fill="#8d86c9" />
-          <circle cx={164} cy={64} r={5} fill="#8d86c9" />
-          <circle cx={128} cy={64} r={1.8} fill="#e9ebf6" />
-          <circle cx={164} cy={64} r={1.8} fill="#e9ebf6" />
-          <circle cx={146} cy={22} r={2} fill="#f0c95e" />
-        </g>
-      ),
-      height: MID_H,
-      outline: `${cableCar}${disc(146, 22, 2)}`,
+      art: {
+        left: (
+          <g>
+            <rect y={12} width={64} height={6} fill="#e2675f" />
+            <path d="M0 12h64" stroke="#f0c95e" strokeWidth={1.2} />
+            <rect width={16} height={12} fill="#4b4590" opacity={0.6} />
+            <rect x={48} width={16} height={12} fill="#4b4590" opacity={0.6} />
+            <rect x={1} y={7.5} width={14} height={2} fill="#a48a78" />
+            <rect x={49} y={7.5} width={14} height={2} fill="#a48a78" />
+            <circle cx={5} cy={5} r={1.8} fill="#f4d0b2" />
+            <circle cx={10.5} cy={5} r={1.8} fill="#f4d0b2" />
+            <circle cx={57} cy={2.4} r={2} fill="#f4d0b2" />
+            <rect x={55.6} y={4.2} width={2.8} height={7.8} fill="#2a2150" />
+            {range(4).map((k) => (
+              <rect key={k} x={19 + k * 7} y={3} width={5} height={6} fill="#bcd2ee" />
+            ))}
+            <path
+              d="M1 0v12M8 0v12M15.5 0v12M48.5 0v12M56 0v12M63 0v12"
+              stroke="#c9a26b"
+              strokeWidth={1.1}
+            />
+            <path d="M-2 18.6h68" stroke="#a48a78" strokeWidth={1.4} />
+            <circle cx={14} cy={18} r={3} fill="#4b4590" />
+            <circle cx={50} cy={18} r={3} fill="#4b4590" />
+          </g>
+        ),
+        right: (
+          <g>
+            <rect y={12} width={22} height={6} fill="#e2675f" />
+            <rect x={6} y={2} width={10} height={7} fill="#bcd2ee" />
+          </g>
+        ),
+      },
+      at: [30, 104],
+      color: "#f6ead7",
+      size: [22, 64, 18],
     },
     {
-      ...FRONT,
-      art: (
-        <g>
-          <rect width={FRONT_W} height={84} fill="#f6ead7" />
-          {[
-            ["#f4c6bf", "#e2675f"],
-            ["#bcd2ee", "#8d86c9"],
-            ["#f3d29e", "#ea8a72"],
-          ].map(([wall = "", roof = ""], k) => {
-            const x = 6 + k * 30;
-
-            return (
-              <g key={wall}>
-                <path d={`M${x} 34L${x + 14} 12L${x + 28} 34z`} fill={roof} />
-                <path d={`M${x + 8} 30L${x + 14} 20L${x + 20} 30z`} fill={PAPER} />
-                <circle cx={x + 14} cy={27} r={2} fill="#bcd2ee" />
-                <rect x={x + 1} y={34} width={26} height={50} fill={wall} />
-                <path {...hair} d={`M${x + 1} 37h26`} strokeOpacity={1} strokeDasharray="1.5 1.5" />
-                <path {...ink} d={box(x + 4, 42, 10, 16)} fill={PAPER} strokeWidth={0.8} />
-                <path {...hair} d={`M${x + 7.3} 42v16M${x + 10.6} 42v16`} strokeOpacity={0.8} />
-                <path {...ink} d={box(x + 18, 42, 6, 10)} fill="#bcd2ee" strokeWidth={0.8} />
-                <path {...ink} d={box(x + 18, 64, 6, 20)} fill={roof} strokeWidth={0.8} />
-                <path {...hair} d={`M${x + 16} 84v-4h10v4M${x + 15} 78h12`} strokeOpacity={1} />
-                <path {...ink} d={box(x + 4, 64, 10, 10)} fill="#bcd2ee" strokeWidth={0.8} />
-              </g>
-            );
-          })}
-          <path d={palmTrunk} fill="#b98b6f" />
-          <path {...hair} d="M222 70h5M222 58h5M223 46h5M224 34h4" strokeOpacity={0.9} />
-          <path d={palmFronds} fill="#8fc49a" />
-          <path {...ink} d="M186 84v-12q0 -4 4 -4q4 0 4 4v12z" fill="#e2675f" strokeWidth={1} />
-          <path d="M184 74h12" stroke="#e2675f" strokeWidth={3} strokeLinecap="round" />
-        </g>
-      ),
-      height: 84,
-      outline: `${victorians}${palmTrunk}${palmFronds}M186 84v-12q0 -4 4 -4q4 0 4 4v12z${box(184, 72.5, 12, 3)}`,
+      art: {
+        top: (
+          <g>
+            <rect x={9} y={12} width={10} height={46} fill="#a9a3dc" />
+            <circle cx={14} cy={6} r={2} fill="#f0c95e" />
+          </g>
+        ),
+      },
+      at: [29, 102],
+      color: "#8d86c9",
+      lift: 18,
+      size: [24, 66, 2.4],
     },
+    { at: [184, 116], color: "#e2675f", size: [6, 6, 9] },
+    { at: [183, 115], color: "#e2675f", lift: 9, size: [8, 8, 2] },
   ],
   name: "San Francisco",
   panorama: (
