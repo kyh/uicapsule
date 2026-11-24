@@ -220,8 +220,15 @@ export const App = () => {
     return () => browser.runtime.onMessage.removeListener(listener);
   });
 
+  const stopPicker = () => {
+    if (target) {
+      void browser.tabs.sendMessage(target.tabId, { type: "picker:stop" }).catch(() => null);
+    }
+  };
+
   const pick = async (mode: PickMode) => {
     setProblem(null);
+    stopPicker();
 
     try {
       setTarget(await injectPicker(mode));
@@ -231,10 +238,7 @@ export const App = () => {
   };
 
   const cancelPick = () => {
-    if (target) {
-      void browser.tabs.sendMessage(target.tabId, { type: "picker:stop" }).catch(() => null);
-    }
-
+    stopPicker();
     setTarget(null);
   };
 

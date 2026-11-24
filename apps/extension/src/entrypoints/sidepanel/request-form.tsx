@@ -183,7 +183,12 @@ export const RequestForm = (props: {
           <Button type="submit" loading={submitting} disabled={props.busy}>
             File request
           </Button>
-          <Button type="button" variant="ghost" onClick={props.onReset} disabled={submitting}>
+          <Button
+            type="button"
+            variant="ghost"
+            onClick={props.onReset}
+            disabled={submitting || props.busy}
+          >
             <RotateCcw />
             Start over
           </Button>
