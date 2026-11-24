@@ -1,17 +1,7 @@
-/**
- * RFC 9110 §12.5.1 Accept negotiation, narrowed to the two representations this
- * site produces. Implements the acceptmarkdown.com contract:
- * <https://acceptmarkdown.com/recipes/nextjs>
- *
- * Pure and framework-free on purpose — `src/proxy.ts` is the only caller, and
- * proxy code cannot be exercised in a unit test.
- */
+const PRODUCED_MEDIA_TYPES = ["text/html", "text/markdown"] as const;
 
-export const PRODUCED_MEDIA_TYPES = ["text/html", "text/markdown"] as const;
+type ProducedMediaType = (typeof PRODUCED_MEDIA_TYPES)[number];
 
-export type ProducedMediaType = (typeof PRODUCED_MEDIA_TYPES)[number];
-
-export const HTML_CONTENT_TYPE = "text/html; charset=utf-8";
 export const MARKDOWN_CONTENT_TYPE = "text/markdown; charset=utf-8";
 
 interface AcceptEntry {
@@ -53,7 +43,7 @@ const specificityOf = (range: string) => {
   return 2;
 };
 
-export const parseAcceptHeader = (header: string) =>
+const parseAcceptHeader = (header: string) =>
   header
     .split(",")
     .map((raw, position) => {
@@ -106,10 +96,17 @@ const bestMatchFor = (entries: AcceptEntry[], candidate: string) => {
 };
 
 /**
+ * RFC 9110 §12.5.1 Accept negotiation, narrowed to the two representations this
+ * site produces. Implements the acceptmarkdown.com contract:
+ * <https://acceptmarkdown.com/recipes/nextjs>
+ *
  * Picks the representation to serve, or `null` when the client accepts nothing
  * this site produces — the one case that warrants a 406. A missing, empty or
  * unparseable header means "no constraint", not "nothing works", so it falls
  * back to HTML rather than erroring.
+ *
+ * Pure and framework-free on purpose — `src/proxy.ts` is the only caller, and
+ * proxy code cannot be exercised in a unit test.
  */
 export const negotiateMediaType = (header: string | null) => {
   if (!header?.trim()) {

@@ -17,7 +17,7 @@ import {
 import { cn } from "cn";
 import { contentElements, contentStyles, tagLabel } from "@/lib/content/content-categories";
 import type { ContentFilter } from "@/lib/content/content-categories";
-import type { SearchEntry } from "@/lib/content-data";
+import type { SearchEntry } from "@/lib/content/content-data";
 
 const SEARCH_RESULT_LIMIT = 12;
 const TRENDING_LIMIT = 8;

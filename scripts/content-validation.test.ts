@@ -59,7 +59,7 @@ test("rejects private imports, reexports, dynamic imports, require, and relative
        export * from "../../packages/ui/src/lib/utils";
        const dynamic = import("@repo/service");
        const cjs = require("@repo/db");
-       const alias = import("@/lib/content-data");`,
+       const alias = import("@/lib/content/content-data");`,
     ],
     ["style.css", '@import "@repo/ui/globals.css";'],
   ]);

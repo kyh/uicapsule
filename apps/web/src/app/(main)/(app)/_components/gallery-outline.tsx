@@ -10,9 +10,9 @@ import {
 } from "@/lib/agent/site-overview";
 import { rendersOutsideRouter } from "@/lib/agent/site-pages";
 import { buildHomeGraph } from "@/lib/agent/structured-data";
-import { getAllContent } from "@/lib/content-data";
+import { getAllContent } from "@/lib/content/content-data";
 import { siteConfig } from "@/lib/site-config";
-import { homeVideo } from "@/lib/social-video";
+import { homeVideo } from "@/lib/content/social-video";
 
 import type { ContentFilter } from "@/lib/content/content-categories";
 import type { ProseListItem } from "@/lib/agent/site-pages";

@@ -4,6 +4,7 @@ import { absoluteUrl } from "./markdown";
 import { siteSummary } from "./site-overview";
 
 import type { ContentComponentSummary } from "@/lib/content/content-schema";
+import type { SocialVideo } from "@/lib/content/social-video";
 import type { ProsePage } from "./site-pages";
 
 /**
@@ -28,15 +29,7 @@ const ORGANIZATION_ID = `${siteConfig.url}/#organization`;
 const WEBSITE_ID = `${siteConfig.url}/#website`;
 const APPLICATION_ID = `${siteConfig.url}/#application`;
 
-/**
- * `Organization` is the identity every other node points back at.
- *
- * There is deliberately no `address`: UICapsule is a personal open-source
- * project with no business premises, and inventing a PostalAddress to satisfy a
- * validator would be worse than omitting one. `contactPoint` carries the real,
- * already-published address.
- */
-export const buildOrganization = () =>
+const buildOrganization = () =>
   ({
     "@id": ORGANIZATION_ID,
     "@type": "Organization",
@@ -76,7 +69,7 @@ export const buildOrganization = () =>
     url: siteConfig.url,
   }) satisfies JsonLdNode;
 
-export const buildWebSite = () =>
+const buildWebSite = () =>
   ({
     "@id": WEBSITE_ID,
     "@type": "WebSite",
@@ -87,11 +80,7 @@ export const buildWebSite = () =>
     url: siteConfig.url,
   }) satisfies JsonLdNode;
 
-/**
- * The gallery itself, as the thing an agent would recommend: free, MIT, no
- * account, installable through the shadcn CLI.
- */
-export const buildSoftwareApplication = (componentCount: number) =>
+const buildSoftwareApplication = (componentCount: number) =>
   ({
     "@id": APPLICATION_ID,
     "@type": "SoftwareApplication",
@@ -122,7 +111,7 @@ export const buildSoftwareApplication = (componentCount: number) =>
 
 const componentUrl = (slug: string) => absoluteUrl(`/ui/${slug}`);
 
-export const buildCollectionPage = (components: ContentComponentSummary[]) =>
+const buildCollectionPage = (components: ContentComponentSummary[]) =>
   ({
     "@id": `${siteConfig.url}/#webpage`,
     "@type": "CollectionPage",
@@ -144,25 +133,9 @@ export const buildCollectionPage = (components: ContentComponentSummary[]) =>
     url: siteConfig.url,
   }) satisfies JsonLdNode;
 
-/**
- * A page's share video (`og:video`) as the facts its `VideoObject` states.
- * URLs are absolute; `duration` is in seconds.
- */
-export interface SocialVideo {
-  contentUrl: string;
-  description: string;
-  duration: number;
-  height: number;
-  name: string;
-  thumbnailUrl: string;
-  uploadDate: string;
-  width: number;
-}
+const isoDuration = (seconds: number) => `PT${Math.max(1, Math.round(seconds))}S`;
 
-/** ISO 8601 duration, whole seconds: 13.2 → `PT13S`. Never `PT0S`. */
-export const isoDuration = (seconds: number) => `PT${Math.max(1, Math.round(seconds))}S`;
-
-export const buildVideoObject = (video: SocialVideo, pageUrl: string) =>
+const buildVideoObject = (video: SocialVideo, pageUrl: string) =>
   ({
     "@id": `${pageUrl}#video`,
     "@type": "VideoObject",
@@ -178,6 +151,16 @@ export const buildVideoObject = (video: SocialVideo, pageUrl: string) =>
     width: video.width,
   }) satisfies JsonLdNode;
 
+/**
+ * The home page's graph. Its `Organization` is the identity every node in every
+ * graph points back at, and deliberately has no `address`: UICapsule is a
+ * personal open-source project with no business premises, and inventing a
+ * PostalAddress to satisfy a validator would be worse than omitting one.
+ * `contactPoint` carries the real, already-published address. Its
+ * `SoftwareApplication` is the gallery as the thing an agent would recommend:
+ * free, MIT, no account, installable through the shadcn CLI. A video's
+ * `duration` is ISO 8601 whole seconds, never `PT0S`.
+ */
 export const buildHomeGraph = (components: ContentComponentSummary[], video?: SocialVideo) => {
   const page: JsonLdNode = buildCollectionPage(components);
 
@@ -196,7 +179,7 @@ export const buildHomeGraph = (components: ContentComponentSummary[], video?: So
   return { "@context": "https://schema.org", "@graph": graph } satisfies JsonLdNode;
 };
 
-export const buildSoftwareSourceCode = (component: ContentComponentSummary) =>
+const buildSoftwareSourceCode = (component: ContentComponentSummary) =>
   ({
     "@id": `${componentUrl(component.slug)}#component`,
     "@type": "SoftwareSourceCode",
@@ -216,7 +199,7 @@ export const buildSoftwareSourceCode = (component: ContentComponentSummary) =>
     url: componentUrl(component.slug),
   }) satisfies JsonLdNode;
 
-export const buildComponentBreadcrumb = (component: ContentComponentSummary) =>
+const buildComponentBreadcrumb = (component: ContentComponentSummary) =>
   ({
     "@type": "BreadcrumbList",
     itemListElement: [
@@ -248,7 +231,7 @@ export const buildComponentGraph = (component: ContentComponentSummary, video?: 
   return { "@context": "https://schema.org", "@graph": graph } satisfies JsonLdNode;
 };
 
-export const buildWebPage = (page: ProsePage) =>
+const buildWebPage = (page: ProsePage) =>
   ({
     "@id": `${absoluteUrl(page.path)}#webpage`,
     "@type": "WebPage",

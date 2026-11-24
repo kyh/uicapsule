@@ -5,7 +5,7 @@ import Link from "next/link";
 import { Logo } from "@repo/ui/components/logo";
 import { cn } from "cn";
 import { useWebHaptics } from "web-haptics/react";
-import type { SearchEntry } from "@/lib/content-data";
+import type { SearchEntry } from "@/lib/content/content-data";
 import { SearchButton } from "@/components/search-button";
 
 interface HeaderNavProps {

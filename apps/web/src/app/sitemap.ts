@@ -1,5 +1,5 @@
 import { buildSitemapEntries } from "@/lib/agent/sitemap-entries";
-import { getAllContent } from "@/lib/content-data";
+import { getAllContent } from "@/lib/content/content-data";
 
 /**
  * Every indexable URL. Unlisted components are included: `unlisted` hides a

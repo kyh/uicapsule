@@ -55,8 +55,8 @@ The remaining 13 scanner errors are triaged: 10 isolated content packages cannot
 - 027 · warning · `no-multi-comp` · `src/components/layout.tsx:842` · **deferred** — separate public-API or component-boundary refactor
 - 028 · warning · `use-lazy-motion` · `src/components/media-reveal.tsx:5` · **deferred** — measure bundle/runtime impact before changing
 - 029 · warning · `iframe-missing-sandbox` · `src/components/media-reveal.tsx:142` · **follow-up** — needs destination, keyboard model, or iframe trust contract
-- 030 · warning · `js-flatmap-filter` · `src/lib/content-data.ts:36` · **deferred** — measure bundle/runtime impact before changing
-- 031 · warning · `js-set-map-lookups` · `src/lib/content-data.ts:39` · **deferred** — measure bundle/runtime impact before changing
+- 030 · warning · `js-flatmap-filter` · `src/lib/content/content-data.ts:36` · **deferred** — measure bundle/runtime impact before changing
+- 031 · warning · `js-set-map-lookups` · `src/lib/content/content-data.ts:39` · **deferred** — measure bundle/runtime impact before changing
 - 032 · warning · `js-combine-iterations` · `src/lib/content/content-fs.ts:107` · **deferred** — measure bundle/runtime impact before changing
 - 033 · warning · `js-set-map-lookups` · `src/lib/content/content-fs.ts:146` · **deferred** — measure bundle/runtime impact before changing
 - 034–036 · warning · `unused-export` · `src/orpc/react.tsx` · **fixed** — the anchored RPC context exports are deleted; the successor module's `orpc` utils export still has zero callers, a deliberate keep (CLAUDE.md → Decisions), so a rescan may raise a fresh finding there

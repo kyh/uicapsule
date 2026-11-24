@@ -4,8 +4,7 @@ import { absoluteUrl } from "./markdown";
 
 import type { ContentComponentSummary } from "@/lib/content/content-schema";
 
-export const installCommand = (slug: string) =>
-  `npx shadcn@latest add ${siteConfig.url}/r/${slug}.json`;
+const installCommand = (slug: string) => `npx shadcn@latest add ${siteConfig.url}/r/${slug}.json`;
 
 export type CatalogEntry = Pick<
   ContentComponentSummary,

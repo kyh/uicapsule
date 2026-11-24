@@ -2,9 +2,9 @@ import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 
 import { sharePages } from "@/lib/agent/site-pages";
-import { getAllContent } from "@/lib/content-data";
+import { getAllContent } from "@/lib/content/content-data";
 import { readStill, renderShareCard } from "@/lib/og/share-card";
-import { coverMediaFor } from "@/lib/social-video";
+import { coverMediaFor } from "@/lib/content/social-video";
 
 /**
  * `/card<path>`: the share card for the page at `<path>`, named in its

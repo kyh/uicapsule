@@ -1,6 +1,6 @@
 import { siteConfig } from "@/lib/site-config";
 
-export const mcpServerUrl = `${siteConfig.url}/mcp`;
+const mcpServerUrl = `${siteConfig.url}/mcp`;
 
 /** Pasted into any coding agent, so it names the transport and a fallback config shape. */
 export const mcpInstallPrompt = `Add the ${siteConfig.name} MCP server to your MCP configuration.

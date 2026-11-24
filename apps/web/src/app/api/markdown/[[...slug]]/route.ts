@@ -6,7 +6,7 @@ import {
   renderProsePageMarkdown,
 } from "@/lib/agent/markdown";
 import { findPageByPath } from "@/lib/agent/site-pages";
-import { getAllContent, getSourceFiles } from "@/lib/content-data";
+import { getAllContent, getSourceFiles } from "@/lib/content/content-data";
 
 interface MarkdownParams {
   params: Promise<{ slug?: string[] }>;

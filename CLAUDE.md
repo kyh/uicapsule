@@ -48,6 +48,9 @@ Content is filesystem-driven; the web app never depends on content packages by n
   `content-data.ts` wraps it in `"use cache"` server functions (gallery cards, search
   index, shadcn registry). The `"use cache"` + `cacheLife("max")` pairing is intentional,
   not an oversight — content only ever changes on deploy.
+- `apps/web/src/lib` is layered: the root (`site-config`, `assets`, `auth-client`) imports
+  nothing above it, `lib/content/` builds on the root, and `lib/agent/` builds on both. Nothing
+  imports upward, so a new module goes in the lowest layer whose imports it needs.
 - The home gallery ships every card in the static shell and filters in the browser
   (`content/gallery.ts`, pure). Only a leaf reading `useSearchParams` suspends; don't wrap
   the grid in that Suspense boundary or hydration remounts every card.

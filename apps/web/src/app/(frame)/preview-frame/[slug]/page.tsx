@@ -2,7 +2,7 @@ import { Suspense } from "react";
 import { notFound } from "next/navigation";
 
 import { MediaReveal } from "@/components/media-reveal";
-import { getLocalSlugs } from "@/lib/content-data";
+import { getLocalSlugs } from "@/lib/content/content-data";
 
 import type { ComponentType } from "react";
 

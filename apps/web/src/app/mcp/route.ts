@@ -7,7 +7,7 @@ import { z } from "zod";
 
 import { componentDetail, searchCatalog, serverInstructions } from "@/lib/agent/mcp-catalog";
 import { contentElements, contentStyles } from "@/lib/content/content-categories";
-import { getAllContent, getShadcnRegistryItem } from "@/lib/content-data";
+import { getAllContent, getShadcnRegistryItem } from "@/lib/content/content-data";
 import { siteConfig } from "@/lib/site-config";
 
 const tagSlugs = [...contentElements, ...contentStyles].map((filter) => filter.slug);
