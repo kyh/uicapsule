@@ -1,4 +1,4 @@
-import { McpServer, createMcpHandler } from "@modelcontextprotocol/server";
+import { McpServer, ProtocolError, createMcpHandler } from "@modelcontextprotocol/server";
 import { McpRegistrar, mcp } from "@orpc/mcp";
 import { ORPCError, os } from "@orpc/server";
 import { track } from "@vercel/analytics/server";
@@ -6,6 +6,13 @@ import { after } from "next/server";
 import { z } from "zod";
 
 import { componentDetail, searchCatalog, serverInstructions } from "@/lib/agent/mcp-catalog";
+import {
+  SKILL_CACHE_HINT,
+  SKILLS,
+  SKILLS_EXTENSION,
+  skillCatalog,
+  skillUri,
+} from "@/lib/agent/mcp-skills";
 import { contentElements, contentStyles } from "@/lib/content/content-categories";
 import { getAllContent, getShadcnRegistryItem } from "@/lib/content/content-data";
 import { siteConfig } from "@/lib/site-config";
@@ -93,6 +100,49 @@ const router = {
 
 const registrar = new McpRegistrar(router);
 
+const registerSkills = (server: McpServer) => {
+  server.server.registerCapabilities({ extensions: { [SKILLS_EXTENSION]: {} }, resources: {} });
+
+  for (const skill of SKILLS) {
+    for (const file of skill.files) {
+      const uri = skillUri(skill, file.path);
+      const isSkill = file.path === "SKILL.md";
+
+      server.registerResource(
+        isSkill ? skill.name : `${skill.name}/${file.path}`,
+        uri,
+        {
+          cacheHint: SKILL_CACHE_HINT,
+          description: isSkill ? skill.description : undefined,
+          mimeType: "text/markdown",
+        },
+        () => ({ contents: [{ mimeType: "text/markdown", text: file.text, uri }] }),
+      );
+    }
+  }
+
+  server.server.setRequestHandler(
+    "skills/list",
+    { params: z.looseObject({ cursor: z.string().optional() }) },
+    async () => ({ resultType: "complete", skills: await skillCatalog(), ...SKILL_CACHE_HINT }),
+  );
+
+  server.server.setRequestHandler(
+    "skills/get",
+    { params: z.looseObject({ uri: z.string() }) },
+    async ({ uri }) => {
+      const listed = await skillCatalog();
+      const skill = listed.find((entry) => entry.uri === uri);
+
+      if (!skill) {
+        throw new ProtocolError(-32_602, `No skill at ${uri}. Call skills/list for them.`);
+      }
+
+      return { resultType: "complete", skill, ...SKILL_CACHE_HINT };
+    },
+  );
+};
+
 const handler = createMcpHandler(async () => {
   const server = new McpServer(
     { name: "uicapsule", version: "1.0.0" },
@@ -100,6 +150,7 @@ const handler = createMcpHandler(async () => {
   );
 
   await registrar.register(server);
+  registerSkills(server);
 
   return server;
 });
