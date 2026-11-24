@@ -106,6 +106,10 @@ const subscribe = (listener: () => void) => {
   return () => listeners.delete(listener);
 };
 
+const subscribeNever = () => () => null;
+const isClient = () => true;
+const isServer = () => false;
+
 const updateLayout = (update: (previous: PanelLayout) => PanelLayout) => {
   const previous = getSnapshot();
   const next = update(previous);
@@ -143,18 +147,19 @@ const togglePanel = (id: PanelId) =>
 export const usePanelLayout = () => {
   const ref = useRef<HTMLDivElement>(null);
   const layout = useSyncExternalStore(subscribe, getSnapshot, getServerSnapshot);
+  const hydrated = useSyncExternalStore(subscribeNever, isClient, isServer);
 
   useLayoutEffect(() => {
     const element = ref.current;
 
-    if (!element) {
+    if (!element || !hydrated) {
       return;
     }
 
     for (const id of PANEL_IDS) {
       element.style.setProperty(PANEL_BOUNDS[id].cssVar, panelCssValue(layout[id]));
     }
-  }, [layout]);
+  }, [hydrated, layout]);
 
   return { layout, ref, setPanel, togglePanel };
 };

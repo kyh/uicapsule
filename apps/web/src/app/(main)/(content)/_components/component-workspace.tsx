@@ -196,12 +196,8 @@ export const ComponentWorkspace = ({ initialSlug, feed }: ComponentWorkspaceProp
           "data-dragging:select-none data-dragging:[&_iframe]:pointer-events-none",
         )}
       >
-        <aside
-          aria-label="Component list"
-          inert={!layout.nav.open}
-          className="relative hidden min-w-0 md:block"
-        >
-          <div className="h-full overflow-hidden border-r">
+        <aside aria-label="Component list" className="relative hidden min-w-0 md:block">
+          <div inert={!layout.nav.open} className="h-full overflow-hidden border-r">
             <div className="h-full w-(--nav-w)">
               <ComponentNav feed={feed} activeSlug={active.slug} onSelect={select} />
             </div>
@@ -334,13 +330,12 @@ export const ComponentWorkspace = ({ initialSlug, feed }: ComponentWorkspaceProp
 
         <aside
           aria-label="Component details"
-          inert={!layout.info.open}
           className={cn(
             "relative min-w-0 border-t md:border-t-0",
             !layout.info.open && "max-md:hidden",
           )}
         >
-          <div className="h-full overflow-hidden md:border-l">
+          <div inert={!layout.info.open} className="h-full overflow-hidden md:border-l">
             <div className="h-full overflow-y-auto md:w-(--info-w)">
               <InfoPanel key={active.slug} component={active} />
             </div>

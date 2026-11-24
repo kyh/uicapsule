@@ -124,7 +124,7 @@ export const InfoPanel = ({ component }: { component: ContentComponentSummary })
     </Section>
     {component.authors && (
       <Section title="Author">
-        <ul className="flex flex-col gap-2 text-sm">
+        <ul className="flex flex-col gap-2 text-sm select-text">
           {component.authors.map((author) => (
             <li key={author.url} className="flex items-center gap-2">
               <PersonAvatar person={author} />
@@ -152,7 +152,7 @@ export const InfoPanel = ({ component }: { component: ContentComponentSummary })
     )}
     {component.requestedBy && (
       <Section title="Requested by">
-        <div className="flex items-center gap-2 text-sm">
+        <div className="flex items-center gap-2 text-sm select-text">
           <PersonAvatar person={component.requestedBy} />
           <a
             href={component.requestedBy.url}
@@ -165,7 +165,7 @@ export const InfoPanel = ({ component }: { component: ContentComponentSummary })
         </div>
       </Section>
     )}
-    <p className="text-muted-foreground border-t pt-4 text-xs">
+    <p className="text-muted-foreground border-t pt-4 text-xs select-text">
       Added <time dateTime={component.addedAt}>{formatAddedAt(component.addedAt)}</time>
     </p>
   </div>
