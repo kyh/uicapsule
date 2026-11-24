@@ -172,7 +172,7 @@ pnpm new:content <slug>  # Scaffold a new content component in content/ (--desig
 pnpm check:content    # Fail if any content/<slug> is not a loadable component
 pnpm test             # node:test — auth + RPC transport guards + the agent-surface tests
 pnpm check:agent-endpoints  # Runtime check of the agent surfaces (needs a running server)
-pnpm og:video         # By hand, never in verify: home loop (scripts/og-video/scene.html → public/og/og.mp4, its poster and the site og.jpg) + cover-media.json and stills for /ui/<slug>
+pnpm og:video         # By hand, never in verify: home loop (scripts/og-video/scene.html → Blob og/og.<date>.mp4 + poster, keys in home-media.json) + cover-media.json and Blob stills (<cover key>.jpg) for /ui/<slug>
 ```
 
 ## Verification Contract
@@ -226,9 +226,10 @@ does not prove delivery. Reset tokens expire after one hour and revoke existing 
 - **auth + oRPC are kept.** oRPC serves two procedures: `request.create`, called by the
   `/request` form, and `user.me`, with zero callers, deliberately retained with auth for a
   future feature. Make them correct; don't propose deleting them.
-- **Assets live in the `uicapsule-assets` Vercel Blob store.** Covers, illustrations and other
-  content media resolve against `NEXT_PUBLIC_ASSETS_URL`; `meta.json` stores bucket keys,
-  never URLs.
+- **Assets live in the `uicapsule-assets` Vercel Blob store.** Covers, illustrations, share
+  stills and the home og video resolve against `NEXT_PUBLIC_ASSETS_URL`; `meta.json`,
+  `cover-media.json` and `home-media.json` store bucket keys, never URLs. Nothing media goes in
+  `apps/web/public`.
 - **Vercel builds on every push — deliberately. Do not add build-skipping.** Both Vercel's
   "Skip unaffected projects" and an Ignored Build Step / `turbo-ignore` are disabled on the
   project. Every skip mechanism decides "affected" from the _workspace dependency graph_, and

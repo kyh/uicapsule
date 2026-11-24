@@ -1,8 +1,6 @@
 import assert from "node:assert/strict";
 import { describe, test } from "node:test";
 
-import { ogImage } from "@/lib/site-config";
-
 import { ogVideo, pageOpenGraph, pageTwitter, shareCardImage } from "./page-metadata";
 import { prosePages, requestPage, sharePages } from "./site-pages";
 
@@ -31,22 +29,23 @@ describe("sharePages", () => {
 });
 
 describe("pageOpenGraph / pageTwitter", () => {
-  test("default to the site image", () => {
-    assert.deepEqual(pageOpenGraph("/")?.images, [ogImage]);
-    assert.deepEqual(pageTwitter()?.images, [ogImage]);
-  });
+  const image = shareCardImage("/terms", "Terms of Use");
 
   test("carry a page's card in both tags when given one", () => {
-    const image = shareCardImage("/terms", "Terms of Use");
-    assert.deepEqual(pageOpenGraph("/terms", "Terms of Use", "d", { image })?.images, [image]);
-    assert.deepEqual(pageTwitter("Terms of Use", "d", { image })?.images, [image]);
+    assert.deepEqual(
+      pageOpenGraph("/terms", { description: "d", image, title: "Terms of Use" })?.images,
+      [image],
+    );
+    assert.deepEqual(pageTwitter({ description: "d", image, title: "Terms of Use" })?.images, [
+      image,
+    ]);
   });
 
   test("restate the creator and add og:video only when asked", () => {
-    assert.equal(pageTwitter()?.creator, "@kaiyuhsu");
-    const openGraph = pageOpenGraph("/");
+    assert.equal(pageTwitter({ image })?.creator, "@kaiyuhsu");
+    const openGraph = pageOpenGraph("/", { image });
     assert.ok(openGraph && !Object.keys(openGraph).includes("videos"), "no videos key");
-    const videos = ogVideo("https://www.uicapsule.com/og/og.mp4", 1200, 630);
-    assert.deepEqual(pageOpenGraph("/", undefined, undefined, { videos })?.videos, videos);
+    const videos = ogVideo("https://assets.example.com/og/og.20261124.mp4", 1200, 630);
+    assert.deepEqual(pageOpenGraph("/", { image, videos })?.videos, videos);
   });
 });

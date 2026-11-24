@@ -17,11 +17,3 @@ export const siteConfig = {
   twitter: "@kaiyuhsu",
   url,
 };
-
-/** The finished sheet of the home og:video (`pnpm og:video` writes both). */
-export const ogImage = {
-  alt: `${siteConfig.name} — ${siteConfig.description}. The ${siteConfig.name} mark as a dimensional drawing, surrounded by wireframe UI components labelled with their spacing, size and radius variables.`,
-  height: 630,
-  url: `${url}/og.jpg`,
-  width: 1200,
-};

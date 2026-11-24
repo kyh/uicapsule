@@ -57,7 +57,6 @@ const buildOrganization = () =>
       name: siteConfig.author.name,
       url: siteConfig.author.url,
     },
-    image: `${siteConfig.url}/og.jpg`,
     logo: {
       "@type": "ImageObject",
       height: 96,

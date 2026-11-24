@@ -28,6 +28,7 @@
     "@interfere/landmines": "^0.1.1",
     "@kyh/tsconfig": "catalog:",
     "@types/node": "catalog:",
+    "@vercel/blob": "^2.9.0",
     "citty": "^0.2.2",
     "consola": "^3.4.2",
     "dotenv-cli": "^11.1.0",

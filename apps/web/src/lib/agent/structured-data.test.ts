@@ -55,7 +55,7 @@ const video: SocialVideo = {
   duration: 13.18,
   height: 900,
   name: "Dynamic Island — UICapsule",
-  thumbnailUrl: "https://www.uicapsule.com/og/covers/dynamic-island.jpg",
+  thumbnailUrl: "https://assets.example.com/dynamic-island/dynamic-island.jpg",
   uploadDate: "2026-09-08",
   width: 1600,
 };

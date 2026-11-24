@@ -54,12 +54,22 @@ export const coverMediaSchema = z.object({
   cover: coverKeySchema,
   duration: z.number().positive(),
   height: z.int().positive(),
-  still: z.string().startsWith("/og/covers/"),
   uploadDate: z.iso.date(),
   width: z.int().positive(),
 });
 
 export type CoverMedia = z.infer<typeof coverMediaSchema>;
+
+/** Bucket key of a cover's share still: the cover's own key, as a jpg. */
+export const coverStillKey = (cover: string) => cover.replace(/\.[^.]+$/u, ".jpg");
+
+/** Bucket keys of the home page's share video and its poster, written by `pnpm og:video`. */
+export const homeMediaSchema = z.object({
+  poster: coverKeySchema,
+  video: coverKeySchema,
+});
+
+export type HomeMedia = z.infer<typeof homeMediaSchema>;
 
 export interface SourceFile {
   path: string;

@@ -8,7 +8,8 @@ import { TooltipProvider } from "@repo/ui/components/tooltip";
 
 import { MotionProvider } from "@/components/motion-provider";
 import { ThemeProvider } from "@/components/theme-provider";
-import { ogImage, siteConfig } from "@/lib/site-config";
+import { ogImage } from "@/lib/content/social-video";
+import { siteConfig } from "@/lib/site-config";
 import { ORPCReactProvider } from "@/orpc/react";
 
 import "../styles/globals.css";

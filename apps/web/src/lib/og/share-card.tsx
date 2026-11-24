@@ -1,5 +1,3 @@
-import { readFile } from "node:fs/promises";
-import path from "node:path";
 import { ImageResponse } from "next/og";
 
 const size = { height: 630, width: 1200 };
@@ -29,11 +27,17 @@ const shorten = (text: string) => {
   return `${cut.slice(0, cut.lastIndexOf(" ")).replace(/[\s,;:—-]+$/u, "")}…`;
 };
 
-/** A still under public/, as a data URL satori can draw; a missing file reads as none. */
-export const readStill = async (still: string) => {
-  const bytes = await readFile(path.join(process.cwd(), "public", still)).catch(() => null);
+/** A still at `url`, as a data URL satori can draw; a missing one reads as none. */
+export const readStill = async (url: string) => {
+  const response = await fetch(url).catch(() => null);
 
-  return bytes ? `data:image/jpeg;base64,${bytes.toString("base64")}` : undefined;
+  if (!response?.ok) {
+    return;
+  }
+
+  const bytes = Buffer.from(await response.arrayBuffer());
+
+  return `data:image/jpeg;base64,${bytes.toString("base64")}`;
 };
 
 export interface ShareCard {

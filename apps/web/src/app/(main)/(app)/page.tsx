@@ -5,7 +5,7 @@ import {
   pageTwitter,
 } from "@/lib/agent/page-metadata";
 import { getGalleryCards } from "@/lib/content/content-data";
-import { homeVideo } from "@/lib/content/social-video";
+import { homeVideo, ogImage } from "@/lib/content/social-video";
 import { Gallery } from "./_components/gallery";
 import { GalleryOutline, GalleryStructuredData } from "./_components/gallery-outline";
 
@@ -13,10 +13,11 @@ import type { Metadata } from "next";
 
 export const metadata: Metadata = {
   alternates: canonicalAlternates("/"),
-  openGraph: pageOpenGraph("/", undefined, undefined, {
+  openGraph: pageOpenGraph("/", {
+    image: ogImage,
     videos: ogVideo(homeVideo.contentUrl, homeVideo.width, homeVideo.height),
   }),
-  twitter: pageTwitter(),
+  twitter: pageTwitter({ image: ogImage }),
 };
 
 const Page = async () => (

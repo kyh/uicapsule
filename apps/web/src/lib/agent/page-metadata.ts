@@ -1,4 +1,4 @@
-import { ogImage, siteConfig } from "@/lib/site-config";
+import { siteConfig } from "@/lib/site-config";
 
 import type { Metadata } from "next";
 
@@ -27,7 +27,7 @@ export interface ShareImage {
 
 /**
  * The page's own share card, rendered by `app/card/[...path]` from the same
- * title and description its metadata states. Pages without one use `ogImage`.
+ * title and description its metadata states. The home page uses `ogImage` instead.
  */
 export const shareCardImage = (path: string, title: string) => ({
   alt: `${title} — ${siteConfig.name}`,
@@ -38,16 +38,17 @@ export const shareCardImage = (path: string, title: string) => ({
 });
 
 export interface ShareMedia {
-  /** Defaults to the site-wide `ogImage`. */
-  image?: ShareImage;
+  image: ShareImage;
+  /** Defaults to the site's name. */
+  title?: string;
+  /** Defaults to the site's description. */
+  description?: string;
   videos?: OpenGraphVideos;
 }
 
 export const pageOpenGraph = (
   path: string,
-  title: string = siteConfig.name,
-  description: string = siteConfig.description,
-  { image = ogImage, videos }: ShareMedia = {},
+  { image, title = siteConfig.name, description = siteConfig.description, videos }: ShareMedia,
 ) => {
   const openGraph: NonNullable<Metadata["openGraph"]> = {
     description,
@@ -70,11 +71,11 @@ export const pageOpenGraph = (
  * The card a page shows when shared. Same replace-don't-merge rule as
  * `openGraph`, so the image and the creator are restated rather than inherited.
  */
-export const pageTwitter = (
-  title: string = siteConfig.name,
-  description: string = siteConfig.description,
-  { image = ogImage }: Pick<ShareMedia, "image"> = {},
-) => ({
+export const pageTwitter = ({
+  image,
+  title = siteConfig.name,
+  description = siteConfig.description,
+}: Omit<ShareMedia, "videos">) => ({
   card: "summary_large_image",
   creator: siteConfig.twitter,
   description,

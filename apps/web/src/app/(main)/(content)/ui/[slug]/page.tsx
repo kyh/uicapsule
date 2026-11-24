@@ -41,12 +41,14 @@ export const generateMetadata = async ({ params }: Props) => {
   return {
     alternates: canonicalAlternates(`/ui/${component.slug}`),
     description,
-    openGraph: pageOpenGraph(`/ui/${component.slug}`, component.name, description, {
+    openGraph: pageOpenGraph(`/ui/${component.slug}`, {
+      description,
       image,
+      title: component.name,
       videos: video ? ogVideo(video.contentUrl, video.width, video.height) : undefined,
     }),
     title: component.name,
-    twitter: pageTwitter(component.name, description, { image }),
+    twitter: pageTwitter({ description, image, title: component.name }),
   } satisfies Metadata;
 };
 

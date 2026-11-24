@@ -1,22 +1,26 @@
 #!/usr/bin/env tsx
 import { execFileSync } from "node:child_process";
-import { existsSync } from "node:fs";
 import { copyFile, mkdir, mkdtemp, readFile, readdir, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import path from "node:path";
 import { pathToFileURL } from "node:url";
+import { parseEnv } from "node:util";
+import { BlobNotFoundError, head, put } from "@vercel/blob";
 import { defineCommand, runMain } from "citty";
 import { consola } from "consola";
 import { chromium } from "playwright";
 
-import { contentMetaSchema, coverMediaSchema } from "../apps/web/src/lib/content/content-schema";
-import type { CoverMedia } from "../apps/web/src/lib/content/content-schema";
+import {
+  contentMetaSchema,
+  coverMediaSchema,
+  coverStillKey,
+} from "../apps/web/src/lib/content/content-schema";
+import type { CoverMedia, HomeMedia } from "../apps/web/src/lib/content/content-schema";
 
 const repoRoot = path.resolve(import.meta.dirname, "..");
 const webRoot = path.join(repoRoot, "apps/web");
-const ogDir = path.join(webRoot, "public/og");
-const coverStillDir = path.join(ogDir, "covers");
 const coverMediaFile = path.join(webRoot, "src/lib/content/cover-media.json");
+const homeMediaFile = path.join(webRoot, "src/lib/content/home-media.json");
 
 const FPS = 30;
 const WIDTH = 1200;
@@ -25,6 +29,52 @@ const POSTER_AT = 8.3;
 
 const run = (command: string, args: string[]) =>
   execFileSync(command, args, { encoding: "utf-8", maxBuffer: 64 * 1024 * 1024 });
+
+const blobToken = async () => {
+  if (process.env.BLOB_READ_WRITE_TOKEN) {
+    return process.env.BLOB_READ_WRITE_TOKEN;
+  }
+
+  const local = await readFile(path.join(repoRoot, ".env.local"), "utf-8").catch(() => "");
+  const token = parseEnv(local).BLOB_READ_WRITE_TOKEN;
+
+  if (!token) {
+    throw new Error("BLOB_READ_WRITE_TOKEN is unset and missing from .env.local");
+  }
+
+  return token;
+};
+
+const exists = async (key: string, token: string) => {
+  try {
+    await head(key, { token });
+
+    return true;
+  } catch (error) {
+    if (error instanceof BlobNotFoundError) {
+      return false;
+    }
+
+    throw error;
+  }
+};
+
+const upload = async (key: string, file: string, contentType: string, token: string) => {
+  await put(key, await readFile(file), { access: "public", contentType, token });
+  consola.info(`uploaded ${key}`);
+};
+
+const stamp = () => new Date().toLocaleDateString("sv").replaceAll("-", "");
+
+const freeStem = async (stem: string, extension: string, token: string) => {
+  for (let attempt = 1; ; attempt += 1) {
+    const candidate = attempt === 1 ? `${stem}.${stamp()}` : `${stem}.${stamp()}-${attempt}`;
+
+    if (!(await exists(`${candidate}.${extension}`, token))) {
+      return candidate;
+    }
+  }
+};
 
 const encode = (framesDir: string, out: string) =>
   run("ffmpeg", [
@@ -106,8 +156,8 @@ const renderScene = async () => {
     await browser.close();
   }
 
-  await mkdir(ogDir, { recursive: true });
-  const video = path.join(ogDir, "og.mp4");
+  const video = path.join(work, "og.mp4");
+  const poster = path.join(work, "og.jpg");
   encode(frames, video);
 
   const posterFrame = path.join(
@@ -115,23 +165,32 @@ const renderScene = async () => {
     `${String(Math.round(POSTER_AT * FPS)).padStart(4, "0")}.png`,
   );
 
-  for (const still of [path.join(ogDir, "og.jpg"), path.join(webRoot, "public/og.jpg")]) {
-    run("ffmpeg", [
-      "-v",
-      "error",
-      "-y",
-      "-i",
-      posterFrame,
-      "-vf",
-      `scale=${WIDTH}:${HEIGHT}:flags=lanczos`,
-      "-q:v",
-      "2",
-      still,
-    ]);
-  }
+  run("ffmpeg", [
+    "-v",
+    "error",
+    "-y",
+    "-i",
+    posterFrame,
+    "-vf",
+    `scale=${WIDTH}:${HEIGHT}:flags=lanczos`,
+    "-q:v",
+    "2",
+    poster,
+  ]);
 
+  const token = await blobToken();
+  const stem = await freeStem("og/og", "mp4", token);
+
+  const media = {
+    poster: `${stem}.jpg`,
+    video: `${stem}.mp4`,
+  } satisfies HomeMedia;
+
+  await upload(media.video, video, "video/mp4", token);
+  await upload(media.poster, poster, "image/jpeg", token);
+  await writeFile(homeMediaFile, `${JSON.stringify(media, null, 2)}\n`);
   await rm(work, { force: true, recursive: true });
-  consola.success(`wrote ${path.relative(repoRoot, video)}, its poster og/og.jpg and og.jpg`);
+  consola.success(`wrote home-media.json: ${media.video} and its poster`);
 };
 
 const assetsUrl = async () => {
@@ -215,7 +274,8 @@ const probeCovers = async (force: boolean) => {
     .map((entry) => entry.name)
     .toSorted();
 
-  await mkdir(coverStillDir, { recursive: true });
+  const token = await blobToken();
+  const work = await mkdtemp(path.join(tmpdir(), "og-stills-"));
   const previous = force ? new Map<string, CoverMedia>() : await readCoverMedia();
 
   const media: Record<string, CoverMedia> = {};
@@ -229,10 +289,9 @@ const probeCovers = async (force: boolean) => {
       continue;
     }
 
-    const still = `/og/covers/${slug}.jpg`;
     const kept = previous.get(cover);
 
-    if (kept?.still === still && existsSync(path.join(webRoot, "public", still))) {
+    if (kept) {
       media[slug] = kept;
       continue;
     }
@@ -245,6 +304,7 @@ const probeCovers = async (force: boolean) => {
       continue;
     }
 
+    const still = path.join(work, `${slug}.jpg`);
     run("ffmpeg", [
       "-v",
       "error",
@@ -259,19 +319,28 @@ const probeCovers = async (force: boolean) => {
       "scale=1200:675:force_original_aspect_ratio=increase,crop=1200:675",
       "-q:v",
       "4",
-      path.join(webRoot, "public", still),
+      still,
     ]);
+
+    const stillKey = coverStillKey(cover);
+
+    if (await exists(stillKey, token)) {
+      consola.info(`${slug}: ${stillKey} already uploaded, kept`);
+    } else {
+      await upload(stillKey, still, "image/jpeg", token);
+    }
+
     media[slug] = {
       cover,
       duration: Math.round(duration * 100) / 100,
       height,
-      still,
       uploadDate: uploadDate(slug, cover),
       width,
     };
     consola.info(`${slug}: ${width}x${height} ${duration.toFixed(1)}s`);
   }
 
+  await rm(work, { force: true, recursive: true });
   await writeFile(coverMediaFile, `${JSON.stringify(media, null, 2)}\n`);
   const probed = Object.values(media).filter((entry) => !previous.has(entry.cover)).length;
   consola.success(

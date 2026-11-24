@@ -17,9 +17,13 @@ const image = shareCardImage(privacyPage.path, privacyPage.title);
 export const metadata: Metadata = {
   alternates: canonicalAlternates(privacyPage.path),
   description: privacyPage.description,
-  openGraph: pageOpenGraph(privacyPage.path, privacyPage.title, privacyPage.description, { image }),
+  openGraph: pageOpenGraph(privacyPage.path, {
+    description: privacyPage.description,
+    image,
+    title: privacyPage.title,
+  }),
   title: privacyPage.title,
-  twitter: pageTwitter(privacyPage.title, privacyPage.description, { image }),
+  twitter: pageTwitter({ description: privacyPage.description, image, title: privacyPage.title }),
 };
 
 const Page = () => (

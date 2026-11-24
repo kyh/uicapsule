@@ -1,8 +1,10 @@
 import { assetUrl } from "../assets";
 import { siteConfig } from "../site-config";
+import { coverStillKey } from "./content-schema";
 import coverMedia from "./cover-media.json";
+import homeMediaKeys from "./home-media.json";
 
-import type { ContentComponentSummary, CoverMedia } from "./content-schema";
+import type { ContentComponentSummary, CoverMedia, HomeMedia } from "./content-schema";
 
 /**
  * A page's share video (`og:video`) as the facts its `VideoObject` states.
@@ -19,17 +21,27 @@ export interface SocialVideo {
   width: number;
 }
 
+const homeMedia: HomeMedia = homeMediaKeys;
+
+/** The finished sheet of the home og:video, the site-wide share image. */
+export const ogImage = {
+  alt: `${siteConfig.name} — ${siteConfig.description}. The ${siteConfig.name} mark as a dimensional drawing, surrounded by wireframe UI components labelled with their spacing, size and radius variables.`,
+  height: 630,
+  url: assetUrl(homeMedia.poster),
+  width: 1200,
+};
+
 /**
  * Width, height and length of the loop scripts/og-video/scene.html renders: a
  * dimensional drawing of the mark, with wireframe components drawn around it.
  */
 export const homeVideo: SocialVideo = {
-  contentUrl: `${siteConfig.url}/og/og.mp4`,
+  contentUrl: assetUrl(homeMedia.video),
   description: `${siteConfig.name} — ${siteConfig.description}. The ${siteConfig.name} mark drawn as a dimensional drawing, with a card, toggle, button, field, dialog, slider and segmented control measured around it and the dialog's layers lifting apart.`,
   duration: 10,
   height: 630,
   name: `${siteConfig.name} — a dimensional drawing`,
-  thumbnailUrl: `${siteConfig.url}/og/og.jpg`,
+  thumbnailUrl: ogImage.url,
   uploadDate: "2026-10-25",
   width: 1200,
 };
@@ -59,7 +71,7 @@ export const componentVideo = (component: ContentComponentSummary) => {
     duration: media.duration,
     height: media.height,
     name: `${component.name} — ${siteConfig.name}`,
-    thumbnailUrl: `${siteConfig.url}${media.still}`,
+    thumbnailUrl: assetUrl(coverStillKey(media.cover)),
     uploadDate: media.uploadDate,
     width: media.width,
   };

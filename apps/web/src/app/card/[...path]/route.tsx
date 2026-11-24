@@ -2,14 +2,16 @@ import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 
 import { sharePages } from "@/lib/agent/site-pages";
+import { assetUrl } from "@/lib/assets";
 import { getAllContent } from "@/lib/content/content-data";
+import { coverStillKey } from "@/lib/content/content-schema";
 import { readStill, renderShareCard } from "@/lib/og/share-card";
 import { coverMediaFor } from "@/lib/content/social-video";
 
 /**
  * `/card<path>`: the share card for the page at `<path>`, named in its
  * og:image / twitter:image by `shareCardImage`. Every card prerenders: one per
- * page in `sharePages` and one per component. The home page keeps /og.jpg.
+ * page in `sharePages` and one per component. The home page keeps `ogImage`.
  */
 
 export const generateStaticParams = async () => {
@@ -40,7 +42,7 @@ const cardFor = async (pagePath: string) => {
   return renderShareCard({
     description: component.description,
     path: pagePath,
-    still: media ? await readStill(media.still) : undefined,
+    still: media ? await readStill(assetUrl(coverStillKey(media.cover))) : undefined,
     title: component.name,
   });
 };
