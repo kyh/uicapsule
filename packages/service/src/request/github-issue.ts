@@ -4,7 +4,7 @@ import { ORPCError } from "@orpc/server";
 import { z } from "zod";
 
 export const REQUESTS_REPO = "kyh/uicapsule";
-export const REQUEST_LABEL = "request";
+const REQUEST_LABEL = "request";
 
 const createdIssueSchema = z.object({ html_url: z.url(), number: z.number().int() });
 

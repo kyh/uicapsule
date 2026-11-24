@@ -1,13 +1,13 @@
 import { cacheLife } from "next/cache";
 
-import { resolveCover } from "./assets";
-import { siteConfig } from "./site-config";
+import { resolveCover } from "../assets";
+import { siteConfig } from "../site-config";
 import {
   buildShadcnRegistryItem,
   readContentBySlug,
   readContentIndex,
   readSourceFiles,
-} from "./content/content-fs";
+} from "./content-fs";
 
 export const getAllContent = async () => {
   "use cache";

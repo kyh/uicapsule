@@ -209,7 +209,7 @@ Web is the only surface. There is no mobile, desktop, or extension target.
 ## Map
 
 - `apps/web` — the Next.js app. `src/lib/content/content-fs.ts` indexes metadata and reads
-  source on demand; `src/lib/content-data.ts` adds `"use cache"`. `content-schema.ts` owns
+  source on demand; `src/lib/content/content-data.ts` adds `"use cache"`. `content-schema.ts` owns
   metadata validation for the loader and build guard. Header, search, profile, and footer
   live in separate files under `src/components/`.
 - `apps/web/src/lib/agent` — the machine-readable layer: Accept negotiation, Markdown

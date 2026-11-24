@@ -1,7 +1,7 @@
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 
-import { getLocalSlugs, getSourceFiles } from "@/lib/content-data";
+import { getLocalSlugs, getSourceFiles } from "@/lib/content/content-data";
 
 export const generateStaticParams = async () => {
   const slugs = await getLocalSlugs();

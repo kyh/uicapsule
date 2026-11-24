@@ -1,7 +1,11 @@
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 
-import { getLocalSlugs, getShadcnRegistry, getShadcnRegistryItem } from "@/lib/content-data";
+import {
+  getLocalSlugs,
+  getShadcnRegistry,
+  getShadcnRegistryItem,
+} from "@/lib/content/content-data";
 
 export const generateStaticParams = async () => {
   const slugs = await getLocalSlugs();

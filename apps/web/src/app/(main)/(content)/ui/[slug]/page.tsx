@@ -12,8 +12,8 @@ import {
   shareCardImage,
 } from "@/lib/agent/page-metadata";
 import { buildComponentGraph } from "@/lib/agent/structured-data";
-import { getAllContent } from "@/lib/content-data";
-import { componentVideo } from "@/lib/social-video";
+import { getAllContent } from "@/lib/content/content-data";
+import { componentVideo } from "@/lib/content/social-video";
 
 import type { Metadata } from "next";
 

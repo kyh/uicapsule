@@ -4,8 +4,8 @@ import {
   pageOpenGraph,
   pageTwitter,
 } from "@/lib/agent/page-metadata";
-import { getGalleryCards } from "@/lib/content-data";
-import { homeVideo } from "@/lib/social-video";
+import { getGalleryCards } from "@/lib/content/content-data";
+import { homeVideo } from "@/lib/content/social-video";
 import { Gallery } from "./_components/gallery";
 import { GalleryOutline, GalleryStructuredData } from "./_components/gallery-outline";
 

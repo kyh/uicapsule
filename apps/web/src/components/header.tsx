@@ -1,6 +1,6 @@
 import { HeaderNav } from "@/components/header-nav";
 import { ProfileSlot } from "@/components/profile-slot";
-import { getSearchEntries } from "@/lib/content-data";
+import { getSearchEntries } from "@/lib/content/content-data";
 
 export const Header = async ({ className }: { className?: string }) => (
   <HeaderNav

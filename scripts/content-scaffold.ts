@@ -1,7 +1,7 @@
 import { cp, mkdir, readdir, readFile, writeFile } from "node:fs/promises";
 import path from "node:path";
 
-export const designSystemTemplate = path.join(import.meta.dirname, "templates/design-system");
+const designSystemTemplate = path.join(import.meta.dirname, "templates/design-system");
 const TEMPLATE_ONLY = new Set(["README.md", "system.ts"]);
 const SCOPE_CLASS = "ds-template";
 

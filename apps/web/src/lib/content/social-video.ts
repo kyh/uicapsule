@@ -1,9 +1,23 @@
-import { assetUrl } from "./assets";
-import coverMedia from "./content/cover-media.json";
-import { siteConfig } from "./site-config";
+import { assetUrl } from "../assets";
+import { siteConfig } from "../site-config";
+import coverMedia from "./cover-media.json";
 
-import type { ContentComponentSummary, CoverMedia } from "./content/content-schema";
-import type { SocialVideo } from "./agent/structured-data";
+import type { ContentComponentSummary, CoverMedia } from "./content-schema";
+
+/**
+ * A page's share video (`og:video`) as the facts its `VideoObject` states.
+ * URLs are absolute; `duration` is in seconds.
+ */
+export interface SocialVideo {
+  contentUrl: string;
+  description: string;
+  duration: number;
+  height: number;
+  name: string;
+  thumbnailUrl: string;
+  uploadDate: string;
+  width: number;
+}
 
 /**
  * Width, height and length of the loop scripts/og-video/scene.html renders: a

@@ -1,5 +1,5 @@
 import { renderLlmsTxt } from "@/lib/agent/llms-txt";
-import { getAllContent } from "@/lib/content-data";
+import { getAllContent } from "@/lib/content/content-data";
 
 /**
  * `/llms.txt` — the llmstxt.org index. Serves the complete catalog, including
