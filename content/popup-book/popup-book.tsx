@@ -101,7 +101,7 @@ export const PopupBook = ({ autoPlay = true, interval = 2800 }: PopupBookProps) 
   };
 
   useEffect(() => {
-    if (!autoPlay) {
+    if (!autoPlay || !ready) {
       return;
     }
 
@@ -114,7 +114,7 @@ export const PopupBook = ({ autoPlay = true, interval = 2800 }: PopupBookProps) 
     }, interval);
 
     return () => clearInterval(timer);
-  }, [autoPlay, goTo, index, interval]);
+  }, [autoPlay, goTo, index, interval, ready]);
 
   const onPointerDown = (event: PointerEvent<HTMLDivElement>) => {
     if (!event.isPrimary || event.button !== 0) {
