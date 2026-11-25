@@ -1,20 +1,37 @@
+import "./switch.css";
+
 interface SwitchProps {
   checked: boolean;
   onCheckedChange: (checked: boolean) => void;
   label: string;
+  hideLabel?: boolean;
+  description?: string;
 }
 
-export const Switch = ({ checked, onCheckedChange, label }: SwitchProps) => (
+export const Switch = ({
+  checked,
+  onCheckedChange,
+  label,
+  hideLabel = false,
+  description,
+}: SwitchProps) => (
   <button
     aria-checked={checked}
-    className="group flex items-center justify-between gap-4 text-[15px]"
+    aria-label={hideLabel ? label : undefined}
+    className="cl-switch"
+    data-bare={hideLabel || undefined}
     onClick={() => onCheckedChange(!checked)}
     role="switch"
     type="button"
   >
-    <span>{label}</span>
-    <span className="bg-input group-aria-checked:bg-(--ds-ink) group-focus-visible:outline-ring relative h-7 w-12 shrink-0 rounded-full transition-colors duration-(--ds-duration) group-focus-visible:outline-2 group-focus-visible:outline-offset-2">
-      <span className="bg-card absolute top-0.5 left-0.5 size-6 rounded-full shadow-(--ds-shadow-thumb) transition-transform duration-200 ease-(--ds-ease) group-aria-checked:translate-x-5" />
+    {hideLabel ? null : (
+      <span className="cl-check__text">
+        <span>{label}</span>
+        {description ? <span className="cl-check__desc">{description}</span> : null}
+      </span>
+    )}
+    <span aria-hidden className="cl-switch__track">
+      <span className="cl-switch__thumb" />
     </span>
   </button>
 );

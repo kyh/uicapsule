@@ -1,0 +1,44 @@
+.ds-clementine {
+  & .cl-tool {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    min-width: 0;
+    color: var(--fg-2);
+    font-size: var(--text-sm);
+  }
+  & .cl-tool__mark {
+    display: grid;
+    flex-shrink: 0;
+    place-items: center;
+    width: 22px;
+    height: 22px;
+    color: var(--fg-2);
+    background: var(--surface-2);
+    border-radius: 50%;
+
+    & .cl-spinner {
+      width: 12px;
+      height: 12px;
+      border-width: 1.5px;
+    }
+  }
+  & .cl-tool[data-state="done"] .cl-tool__mark {
+    color: var(--success-text);
+    background: var(--success-tint);
+  }
+  & .cl-tool[data-state="failed"] .cl-tool__mark {
+    color: var(--danger-text);
+    background: var(--danger-tint);
+  }
+  & .cl-tool__label {
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+  }
+  & .cl-tool__detail {
+    flex-shrink: 0;
+    color: var(--fg-2);
+    font-size: var(--text-sm);
+  }
+}

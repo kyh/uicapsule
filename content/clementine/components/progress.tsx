@@ -1,20 +1,31 @@
-import { useId } from "react";
+import type { ReactNode } from "react";
 
-export const Progress = ({ label, value }: { label: string; value: number }) => {
-  const id = useId();
+import "./progress.css";
 
-  return (
-    <div className="grid gap-1.5">
-      <div className="flex justify-between text-xs">
-        <label htmlFor={id}>{label}</label>
-        <span className="text-muted-foreground font-(family-name:--ds-font-mono)">{value}%</span>
-      </div>
-      <progress
-        className="bg-muted [&::-moz-progress-bar]:bg-accent [&::-webkit-progress-bar]:bg-muted [&::-webkit-progress-value]:bg-accent h-2 w-full appearance-none overflow-hidden rounded-full [&::-moz-progress-bar]:rounded-full [&::-webkit-progress-value]:rounded-full [&::-webkit-progress-value]:transition-[width] [&::-webkit-progress-value]:duration-(--ds-duration)"
-        id={id}
-        max={100}
-        value={value}
+export const Progress = ({
+  label,
+  value,
+  max = 100,
+  detail,
+  tone = "accent",
+}: {
+  label: string;
+  value: number;
+  max?: number;
+  detail?: ReactNode;
+  tone?: "accent" | "success" | "ink";
+}) => (
+  <div className="cl-progress">
+    <div className="cl-progress__head">
+      <span className="cl-progress__label">{label}</span>
+      {detail ? <span className="cl-progress__detail">{detail}</span> : null}
+    </div>
+    <progress aria-label={label} className="cl-sr" max={max} value={value} />
+    <div aria-hidden className="cl-progress__track" data-tone={tone}>
+      <span
+        className="cl-progress__fill"
+        style={{ transform: `scaleX(${Math.min(1, Math.max(0, value / max))})` }}
       />
     </div>
-  );
-};
+  </div>
+);

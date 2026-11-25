@@ -66,10 +66,13 @@ Content is filesystem-driven; the web app never depends on content packages by n
 - Content packages exist as workspace packages only so pnpm installs their deps in
   isolation and the registry can report per-component dependencies.
 - **Design systems** (element tag `design-systems`) are the one templated kind:
-  `pnpm new:content <slug> --design-system` copies `scripts/templates/design-system/` (shared
-  showcase + fixed component set, scoped to `.ds-<slug>`). Entries differ in `tokens.css`
-  and `components/*`, never in the showcase, so they compare side by side. Template edits
-  reach only systems scaffolded afterwards. Like `pages`, the gallery card shows a badge
+  `pnpm new:content <slug> --design-system` copies `scripts/templates/design-system/` (a
+  starter showcase + component set, scoped to `.ds-<slug>`). Each entry then owns its whole
+  page, modeled on design.how/systems: header, "In use" demo product screens, foundations
+  shown the system's own way (tokens with contrast, type, radius, elevation, live motion,
+  anti-slop rules), and components grouped by category with domain-specific ones. Keep that
+  section order so entries compare side by side; everything else, chrome included, is the
+  system's. Template edits reach only systems scaffolded afterwards. Like `pages`, the gallery card shows a badge
   (`elementBadge` in `content-categories.ts`) instead of an index number.
 - `meta.json` carries provenance: `addedAt` (required, stamped by `new:content`, drives
   gallery order newest-first), `inspiredBy` (where the idea came from), `requestedBy`

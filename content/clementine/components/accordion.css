@@ -1,0 +1,53 @@
+.ds-clementine {
+  & .cl-acc {
+    border-bottom: 1px solid var(--line);
+  }
+  & .cl-acc__heading {
+    margin: 0;
+    font: inherit;
+  }
+  & .cl-acc__trigger {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+    min-height: 52px;
+    padding: 0;
+    color: var(--fg);
+    font: 500 var(--text-sm) / var(--leading-snug) var(--font-sans);
+    text-align: start;
+    background: none;
+    border: 0;
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+
+    & svg {
+      flex-shrink: 0;
+      color: var(--fg-3);
+      transition: rotate var(--dur-base) var(--ease-out);
+    }
+  }
+  & .cl-acc[data-open] .cl-acc__trigger svg {
+    rotate: 180deg;
+  }
+  & .cl-acc__panel {
+    display: grid;
+    grid-template-rows: 0fr;
+    transition: grid-template-rows var(--dur-base) var(--ease-out);
+  }
+  & .cl-acc[data-open] .cl-acc__panel {
+    grid-template-rows: 1fr;
+  }
+  & .cl-acc__inner {
+    min-height: 0;
+    overflow: hidden;
+    color: var(--fg-2);
+    font-size: var(--text-sm);
+    line-height: var(--leading-normal);
+
+    & > :last-child {
+      padding-bottom: 16px;
+    }
+  }
+}

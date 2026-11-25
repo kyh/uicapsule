@@ -1,0 +1,41 @@
+.ds-clementine {
+  & .cl-progress {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+  & .cl-progress__head {
+    display: flex;
+    gap: 12px;
+    align-items: baseline;
+    justify-content: space-between;
+    font-size: var(--text-sm);
+  }
+  & .cl-progress__label {
+    color: var(--fg);
+    font-weight: 500;
+  }
+  & .cl-progress__detail {
+    color: var(--fg-2);
+  }
+  & .cl-progress__track {
+    height: 8px;
+    overflow: hidden;
+    background: var(--surface-3);
+    border-radius: var(--radius-pill);
+  }
+  & .cl-progress__fill {
+    display: block;
+    height: 100%;
+    background: var(--accent);
+    border-radius: inherit;
+    transform-origin: left;
+    transition: transform var(--dur-base) var(--ease-out);
+  }
+  & .cl-progress__track[data-tone="success"] .cl-progress__fill {
+    background: var(--success);
+  }
+  & .cl-progress__track[data-tone="ink"] .cl-progress__fill {
+    background: var(--ink);
+  }
+}

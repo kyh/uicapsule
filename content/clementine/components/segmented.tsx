@@ -1,10 +1,14 @@
+import type { CSSProperties } from "react";
 import { useId } from "react";
+
+import "./segmented.css";
 
 interface SegmentedProps<T extends string> {
   label: string;
   options: readonly T[];
   value: T;
   onValueChange: (value: T) => void;
+  block?: boolean;
 }
 
 export const Segmented = <T extends string>({
@@ -12,25 +16,35 @@ export const Segmented = <T extends string>({
   options,
   value,
   onValueChange,
+  block = false,
 }: SegmentedProps<T>) => {
   const name = useId();
+  const index = Math.max(0, options.indexOf(value));
 
   return (
-    <fieldset className="bg-muted inline-flex w-fit rounded-full p-1">
-      <legend className="sr-only">{label}</legend>
+    <fieldset
+      className="cl-seg"
+      data-block={block || undefined}
+      style={
+        {
+          "--cl-seg-count": options.length,
+          "--cl-seg-index": index,
+        } as CSSProperties
+      }
+    >
+      <legend className="cl-sr">{label}</legend>
+      <span aria-hidden className="cl-seg__thumb" />
       {options.map((option) => (
-        <label className="cursor-pointer" key={option}>
+        <label className="cl-seg__item" key={option}>
           <input
             checked={option === value}
-            className="peer sr-only"
+            className="cl-sr-input"
             name={name}
             onChange={() => onValueChange(option)}
             type="radio"
             value={option}
           />
-          <span className="text-muted-foreground peer-checked:bg-card peer-checked:text-foreground peer-focus-visible:outline-ring grid h-8 place-items-center rounded-full px-4 text-sm font-medium transition duration-(--ds-duration) ease-(--ds-ease) peer-checked:shadow-(--ds-shadow-thumb) peer-focus-visible:outline-2">
-            {option}
-          </span>
+          <span>{option}</span>
         </label>
       ))}
     </fieldset>

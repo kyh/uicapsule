@@ -1,0 +1,38 @@
+.ds-clementine {
+  & .cl-menu {
+    width: 228px;
+    padding: 4px;
+  }
+  & .cl-menu__item {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    width: 100%;
+    height: 38px;
+    padding: 0 8px;
+    color: var(--fg);
+    font: 400 var(--text-sm) / 1 var(--font-sans);
+    background: none;
+    border: 0;
+    border-radius: var(--radius-md);
+    cursor: pointer;
+
+    & svg {
+      color: var(--fg-3);
+    }
+
+    &:hover,
+    &:focus-visible {
+      background: var(--surface-2);
+      outline: none;
+    }
+
+    &[data-danger] {
+      color: var(--danger-text);
+
+      & svg {
+        color: inherit;
+      }
+    }
+  }
+}

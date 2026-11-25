@@ -1,5 +1,15 @@
-export const Avatar = ({ initials }: { initials: string }) => (
-  <span className="bg-muted text-muted-foreground border-card grid size-8 place-items-center rounded-full border-2 text-[11px] font-medium">
-    {initials}
-  </span>
-);
+/** Initials in an ink wash; never a colour per person. */
+export const Avatar = ({ name, size = "md" }: { name: string; size?: "md" | "lg" }) => {
+  const initials = name
+    .split(" ")
+    .map((part) => part[0])
+    .slice(0, 2)
+    .join("");
+
+  return (
+    <span className="v-avatar" data-size={size} title={name}>
+      <span aria-hidden>{initials}</span>
+      <span className="v-sr">{name}</span>
+    </span>
+  );
+};

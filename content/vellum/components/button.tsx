@@ -1,36 +1,73 @@
 import type { ButtonHTMLAttributes } from "react";
 
-const VARIANTS = {
-  accent: "ds-glass bg-accent/90 text-accent-foreground",
-  ghost: "hover:bg-secondary active:scale-[0.97]",
-  outline:
-    "bg-card shadow-(--ds-shadow) hover:bg-[color-mix(in_oklch,var(--card),var(--ds-ink)_3%)] active:scale-[0.97]",
-  primary: "ds-glass bg-primary/80 text-primary-foreground",
-  secondary: "bg-secondary text-secondary-foreground hover:bg-input active:scale-[0.97]",
+import { Arc } from "./arc";
+
+const VARIANT_CLASS = {
+  confirm: "v-glass",
+  destructive: "v-glass",
+  ghost: "v-ghost",
+  primary: "v-glass",
+  secondary: "v-flat",
 } as const;
 
-const SIZES = {
-  icon: "size-8",
-  md: "h-8 px-3.5 text-[13px]",
-  sm: "h-6 px-2.5 text-xs",
+const TONE = {
+  confirm: "green",
+  destructive: "coral",
+  ghost: undefined,
+  primary: undefined,
+  secondary: undefined,
 } as const;
 
-interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
-  variant?: keyof typeof VARIANTS;
-  size?: keyof typeof SIZES;
+export type ButtonVariant = keyof typeof VARIANT_CLASS;
+
+export type ButtonSize = "sm" | "md" | "lg" | "icon-sm" | "icon" | "icon-lg";
+
+export interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
+  /** Glass for the one lead (ink, coral or green); flat secondary; plain ghost. */
+  variant?: ButtonVariant;
+  size?: ButtonSize;
+  /** Keeps the box and the name, blocks presses and turns the arc. */
+  pending?: boolean;
+  /** Shown while busy; screen readers keep hearing the resting name. */
+  pendingLabel?: string;
+  /** Draws the held state without a pointer, for specimens. */
+  held?: boolean;
 }
 
+/** Starts an action. At most one glass Button leads any group. */
 export const Button = ({
   variant = "primary",
   size = "md",
+  pending = false,
+  pendingLabel,
+  held = false,
   className = "",
+  children,
+  onClick,
   type = "button",
   ...props
 }: ButtonProps) => (
   <button
-    className={`focus-visible:outline-ring inline-flex items-center justify-center gap-1.5 rounded-full font-medium tracking-[0.01em] whitespace-nowrap transition duration-120 ease-(--ds-ease) focus-visible:outline-2 focus-visible:outline-offset-2 disabled:pointer-events-none disabled:opacity-40 ${VARIANTS[variant]} ${SIZES[size]} ${className}`}
-    // oxlint-disable-next-line react/button-has-type -- defaults to "button"; callers may pass "submit"
+    aria-busy={pending || undefined}
+    className={`v-btn ${VARIANT_CLASS[variant]} ${className}`}
+    data-held={held ? "" : undefined}
+    data-size={size === "md" ? undefined : size}
+    data-tone={TONE[variant]}
+    onClick={pending ? undefined : onClick}
+    // oxlint-disable-next-line react/button-has-type -- defaults to "button"; a form passes "submit"
     type={type}
     {...props}
-  />
+  >
+    {pending ? <Arc small={size === "sm" || size === "icon-sm"} /> : null}
+    {pending && pendingLabel ? (
+      <>
+        <span aria-hidden className="v-btn-label">
+          {pendingLabel}
+        </span>
+        <span className="v-sr">{children}</span>
+      </>
+    ) : (
+      children
+    )}
+  </button>
 );

@@ -1,36 +1,53 @@
 import { useId } from "react";
 
-interface SegmentedProps<T extends string> {
-  label: string;
-  options: readonly T[];
-  value: T;
-  onValueChange: (value: T) => void;
-}
-
+/** Two to five views or levels of one thing; the chosen one slides under a paper thumb. */
 export const Segmented = <T extends string>({
   label,
   options,
   value,
   onValueChange,
-}: SegmentedProps<T>) => {
+  size = "md",
+  disabled = false,
+}: {
+  label: string;
+  options: readonly { value: T; label: string }[];
+  value: T | undefined;
+  onValueChange: (value: T) => void;
+  size?: "sm" | "md";
+  disabled?: boolean;
+}) => {
   const name = useId();
+  const index = options.findIndex((option) => option.value === value);
+  const inset = size === "sm" ? 2 : 3;
 
   return (
-    <fieldset className="bg-muted inline-flex w-fit rounded-full p-0.5">
-      <legend className="sr-only">{label}</legend>
+    <fieldset
+      className="v-seg"
+      data-disabled={disabled ? "" : undefined}
+      data-size={size}
+      disabled={disabled}
+    >
+      <legend className="v-sr">{label}</legend>
+      {index === -1 ? null : (
+        <span
+          aria-hidden
+          className="v-seg-thumb"
+          style={{
+            translate: `${index * 100}% 0`,
+            width: `calc((100% - ${inset * 2}px) / ${options.length})`,
+          }}
+        />
+      )}
       {options.map((option) => (
-        <label className="cursor-pointer" key={option}>
+        <label key={option.value}>
           <input
-            checked={option === value}
-            className="peer sr-only"
+            checked={option.value === value}
             name={name}
-            onChange={() => onValueChange(option)}
+            onChange={() => onValueChange(option.value)}
             type="radio"
-            value={option}
+            value={option.value}
           />
-          <span className="text-muted-foreground peer-checked:bg-card peer-checked:text-foreground peer-focus-visible:outline-ring grid h-7 place-items-center rounded-full px-3 text-[13px] font-medium transition duration-(--ds-duration) ease-(--ds-ease) peer-checked:shadow-(--ds-shadow) peer-focus-visible:outline-2">
-            {option}
-          </span>
+          <span className="v-seg-text">{option.label}</span>
         </label>
       ))}
     </fieldset>

@@ -1,0 +1,30 @@
+.ds-clementine {
+  & .cl-tooltip {
+    position: absolute;
+    bottom: calc(100% + 8px);
+    left: 50%;
+    z-index: var(--z-popover);
+    width: max-content;
+    max-width: 240px;
+    padding: 8px 12px;
+    color: var(--fg-inverse);
+    font-size: var(--text-xs);
+    line-height: var(--leading-snug);
+    background: var(--ink);
+    border-radius: var(--radius-md);
+    translate: -50% 2px;
+    opacity: 0;
+    pointer-events: none;
+    transition:
+      opacity var(--dur-fast) var(--ease-in),
+      translate var(--dur-fast) var(--ease-in);
+
+    &[data-open] {
+      translate: -50% 0;
+      opacity: 1;
+      transition:
+        opacity var(--dur-fast) var(--ease-out),
+        translate var(--dur-fast) var(--ease-out);
+    }
+  }
+}

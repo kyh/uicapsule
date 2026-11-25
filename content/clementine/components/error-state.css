@@ -1,0 +1,36 @@
+.ds-clementine {
+  & .cl-alert {
+    display: flex;
+    gap: 8px;
+    align-items: flex-start;
+    padding: 16px 16px;
+    background: var(--danger-tint);
+    border-radius: var(--radius-panel);
+  }
+  & .cl-alert__icon {
+    flex-shrink: 0;
+    margin-top: 1px;
+    color: var(--danger-text);
+  }
+  & .cl-alert__body {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    min-width: 0;
+  }
+  & .cl-alert__title {
+    margin: 0;
+    color: var(--danger-text);
+    font-size: var(--text-sm);
+    font-weight: 500;
+  }
+  & .cl-alert__text {
+    margin: 0;
+    color: var(--fg);
+    font-size: var(--text-sm);
+    line-height: var(--leading-normal);
+  }
+  & .cl-alert__action {
+    margin-top: 8px;
+  }
+}

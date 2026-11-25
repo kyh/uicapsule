@@ -1,0 +1,27 @@
+.ds-clementine {
+  & .cl-empty {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    align-items: center;
+    padding: 24px 16px;
+    text-align: center;
+  }
+  & .cl-empty__icon {
+    margin-bottom: 8px;
+    color: var(--fg-3);
+  }
+  & .cl-empty__title {
+    margin: 0;
+    font-size: var(--text-lg);
+    font-weight: 600;
+    line-height: var(--leading-tight);
+  }
+  & .cl-empty__body {
+    max-width: 34ch;
+    margin: 0 0 8px;
+    color: var(--fg-2);
+    font-size: var(--text-sm);
+    line-height: var(--leading-normal);
+  }
+}

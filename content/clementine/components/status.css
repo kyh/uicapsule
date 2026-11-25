@@ -1,0 +1,33 @@
+.ds-clementine {
+  & .cl-status {
+    display: inline-flex;
+    gap: 8px;
+    align-items: center;
+    color: var(--fg-2);
+    font-size: var(--text-sm);
+    white-space: nowrap;
+  }
+  & .cl-status__dot {
+    width: 8px;
+    height: 8px;
+    background: var(--control);
+    border-radius: 50%;
+  }
+  & .cl-status[data-status="paid"] .cl-status__dot {
+    background: var(--success);
+  }
+  & .cl-status[data-status="pending"] .cl-status__dot {
+    background: var(--warn);
+  }
+  & .cl-status[data-status="failed"] {
+    color: var(--danger-text);
+
+    & .cl-status__dot {
+      background: var(--danger);
+    }
+  }
+  & .cl-status[data-status="scheduled"] .cl-status__dot {
+    background: transparent;
+    box-shadow: inset 0 0 0 1.5px var(--control);
+  }
+}

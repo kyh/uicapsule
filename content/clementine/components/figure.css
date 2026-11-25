@@ -1,0 +1,25 @@
+.ds-clementine {
+  & .cl-fig {
+    display: block;
+    margin: 0;
+    color: var(--fg);
+    font-size: var(--text-3xl);
+    font-weight: 500;
+    line-height: var(--leading-tight);
+    letter-spacing: var(--tracking-tight);
+    white-space: nowrap;
+  }
+  & .cl-fig[data-size="large"] {
+    font-size: var(--text-2xl);
+  }
+  & .cl-fig[data-align="center"] {
+    text-align: center;
+  }
+  & .cl-fig__cents {
+    margin-inline-start: 0.08em;
+    color: var(--fg-2);
+    font-size: var(--cents-size);
+    letter-spacing: 0;
+    vertical-align: var(--cents-lift);
+  }
+}

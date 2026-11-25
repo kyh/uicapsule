@@ -1,0 +1,93 @@
+.ds-clementine.cl-page {
+  & .cl-payday {
+    display: grid;
+    grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr);
+    gap: 48px;
+    align-items: start;
+  }
+  & .cl-payday__ring {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    align-items: center;
+    text-align: center;
+
+    & .cl-app__lead {
+      max-width: 36ch;
+    }
+  }
+  & .cl-payday__plan {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    min-width: 0;
+  }
+  & .cl-pots {
+    display: flex;
+    flex-direction: column;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+  & .cl-pot {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px 12px;
+    align-items: center;
+    min-height: 64px;
+    padding: 12px 0;
+
+    & + .cl-pot {
+      border-top: 1px solid var(--line);
+    }
+  }
+  & .cl-pot__dot {
+    flex-shrink: 0;
+    width: 12px;
+    height: 12px;
+    border-radius: var(--radius-pill);
+
+    &[data-tone="ink"] {
+      background: var(--ink);
+    }
+
+    &[data-tone="quiet"] {
+      background: var(--fg-2);
+    }
+
+    &[data-tone="accent"] {
+      background: var(--accent);
+    }
+
+    &[data-tone="line"] {
+      background: var(--control);
+    }
+
+    &[data-tone="open"] {
+      background: repeating-linear-gradient(45deg, var(--fg-2) 0 2px, var(--surface) 2px 4px);
+      box-shadow: inset 0 0 0 1px var(--fg-2);
+    }
+  }
+  & .cl-pot__text {
+    display: flex;
+    flex: 1 1 160px;
+    flex-direction: column;
+    gap: 4px;
+    min-width: 0;
+  }
+  & .cl-pot__fixed {
+    min-width: 80px;
+    font-size: var(--text-sm);
+    font-weight: 500;
+    text-align: end;
+  }
+}
+
+@media (width < 860px) {
+  .ds-clementine.cl-page {
+    & .cl-payday {
+      grid-template-columns: minmax(0, 1fr);
+      gap: 32px;
+    }
+  }
+}

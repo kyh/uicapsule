@@ -1,4 +1,4 @@
 export const system = {
   name: "Clementine",
-  tagline: "Warm and light for consumer apps, with one glowing action per view.",
+  tagline: "A bright, friendly money app on warm paper, where only the next step gets the zest.",
 };

@@ -1,83 +1,206 @@
 /*
- * Vellum: ink on paper, for AI products.
- * Greys are ink at alphas, colour is reserved for status, and depth is drawn
- * inside the shape. Glass appears only on the action you press next.
+ * Vellum: iron-gall ink on vellum, for AI products.
+ * Every grey is ink at an alpha. Colour means status and nothing else.
+ * Depth is drawn inside the shape; overlays lift with a ring, never a shadow.
+ * Glass marks only the one action a group leads with: ink, vermilion or verdigris.
  */
 .ds-vellum {
-  --ds-ink: oklch(0.14 0.004 80);
+  color-scheme: light;
 
-  /* Surfaces */
-  --background: oklch(0.985 0.003 85);
-  --foreground: oklch(0.14 0.004 80 / 0.86);
-  --card: oklch(1 0 0);
-  --card-foreground: var(--foreground);
-  --muted: oklch(0.945 0.004 85);
-  --muted-foreground: oklch(0.14 0.004 80 / 0.56);
-  --border: oklch(0.14 0.004 80 / 0.07);
-  --input: oklch(0.14 0.004 80 / 0.12);
+  /* Ink and vellum */
+  --ink: #15120e;
+  --page: #f7f5f0;
+  --paper: #fffefb;
+  --shell: #efece5;
+  --field: #eae6de;
+  --code-surface: var(--paper);
 
-  /* Intent: the primary is ink glass, never a hue */
-  --primary: var(--ds-ink);
-  --primary-foreground: oklch(1 0 0 / 0.92);
-  --secondary: oklch(0.14 0.004 80 / 0.05);
-  --secondary-foreground: var(--foreground);
-  --accent: oklch(0.42 0.11 152);
-  --accent-foreground: oklch(1 0 0 / 0.94);
-  --destructive: oklch(0.47 0.15 33);
-  --ring: oklch(0.14 0.004 80 / 0.45);
+  /* Greys are ink at alphas */
+  --ink-80: rgb(21 18 14 / 0.8);
+  --ink-60: rgb(21 18 14 / 0.62);
+  --ink-45: rgb(21 18 14 / 0.45);
+  --ink-32: rgb(21 18 14 / 0.32);
+  --ink-15: rgb(21 18 14 / 0.15);
+  --ink-10: rgb(21 18 14 / 0.1);
+  --ink-06: rgb(21 18 14 / 0.06);
+  --ink-03: rgb(21 18 14 / 0.03);
 
-  --ds-ok-text: oklch(0.47 0.11 152);
-  --ds-ok-tint: oklch(0.95 0.03 152);
-  --ds-fail-text: oklch(0.5 0.15 33);
-  --ds-fail-tint: oklch(0.95 0.025 33);
+  --hover: var(--ink-06);
+  --hover-row: rgb(21 18 14 / 0.035);
+  --pressed: var(--ink-10);
+  --scrim: rgb(21 18 14 / 0.26);
 
-  /* Glass */
-  --ds-glass-blur: 6px;
-  --ds-glass-sheen: oklch(1 0 0 / 0.12);
-  --ds-glass-rim: oklch(1 0 0 / 0.24);
-  --ds-glass-gloss: oklch(1 0 0 / 0.28);
+  /* Text */
+  --text-1: var(--ink-80);
+  --text-2: var(--ink-60);
+  --text-3: var(--ink-45);
+  --text-disabled: var(--ink-32);
+  --text-inverse: #fffefb;
 
-  /* Shape: pills for controls, 14px shells, a ring instead of a shadow */
-  --radius: 0.625rem;
-  --ds-border-width: 1px;
-  --ds-shadow: 0 0 0 1px oklch(0.14 0.004 80 / 0.07);
+  /* Status: verdigris, ochre, vermilion */
+  --ok: #2b8d67;
+  --ok-text: #186a4b;
+  --ok-tint: #e2f1e9;
+  --warn: #c88716;
+  --warn-text: #7c5300;
+  --warn-tint: #f8eed6;
+  --fail: #d8553d;
+  --fail-text: #a8361f;
+  --fail-tint: #f9e5de;
+
+  /* Lines: one hairline, ink at five alphas */
+  --line-faint: var(--ink-06);
+  --line: var(--ink-10);
+  --line-control: var(--ink-15);
+  --line-focus: var(--ink-32);
+  --line-strong: var(--ink-45);
+  --focus: var(--ink-80);
+  --line-width: 1px;
+  --focus-width: 2px;
+  --focus-offset: 2px;
+
+  /* Glass: read only through the .v-glass recipes */
+  --glass-ink-base: rgb(21 18 14 / 0.7);
+  --glass-ink-edge: rgb(21 18 14 / 0.58);
+  --glass-coral-base: rgb(146 40 22 / 0.9);
+  --glass-coral-edge: rgb(104 26 12 / 0.6);
+  --glass-green-base: rgb(14 92 63 / 0.9);
+  --glass-green-edge: rgb(6 62 40 / 0.6);
+  --glass-text: rgb(255 254 251 / 0.92);
+  --glass-core: rgb(0 0 0 / 0.3);
+  --glass-core-held: rgb(0 0 0 / 0.46);
+  --glass-gloss: rgb(255 255 255 / 0.3);
+  --glass-rim: rgb(255 255 255 / 0.3);
+  --glass-glow: rgb(255 255 255 / 0.15);
+  --flat-bg: var(--paper);
+  --flat-ring: var(--ink-06);
+  --flat-text: var(--ink-80);
+
+  /* Shape */
+  --radius-pill: 999px;
+  --radius-shell: 14px;
+  --radius-panel: 11px;
+  --radius-overlay: 10px;
+  --radius-tag: 6px;
+  --radius-mark: 2px;
+  --shell-inset: 3px;
+  --shell-foot-inset: 6px;
+
+  /* Space */
+  --control-sm: 26px;
+  --control: 32px;
+  --control-lg: 36px;
+  --row: 36px;
+  --icon-sm: 12px;
+  --icon: 14px;
+  --icon-lg: 16px;
+  --measure: 68ch;
 
   /* Type */
-  --ds-font-heading: "Geist", "Inter", ui-sans-serif, system-ui, sans-serif;
-  --ds-font-body: "Geist", "Inter", ui-sans-serif, system-ui, sans-serif;
-  --ds-font-mono: "Geist Mono", ui-monospace, "SF Mono", Menlo, monospace;
-  --ds-heading-tracking: -0.025em;
+  --font-sans: "Geist", "Inter", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-mono: "Geist Mono", "JetBrains Mono", ui-monospace, "SF Mono", Menlo, monospace;
+  --mono-scale: 0.8;
+  --tracking-heading: -0.025em;
+  --tracking-label: 0.02em;
 
-  /* Motion: nothing springs */
-  --ds-duration: 160ms;
-  --ds-ease: cubic-bezier(0.2, 0.8, 0.2, 1);
+  /* Motion: everything eases out and stops */
+  --dur-glass-press: 50ms;
+  --dur-glass-release: 200ms;
+  --dur-press: 120ms;
+  --dur-state: 160ms;
+  --dur-overlay: 200ms;
+  --dur-slide: 200ms;
+  --dur-spin: 800ms;
+  --dur-sweep: 1400ms;
+  --dur-demo: 1000ms;
+  --ease-out: cubic-bezier(0.2, 0.8, 0.2, 1);
+  --ease-in: cubic-bezier(0.4, 0, 1, 1);
+  --scale-press: 0.97;
+  --scale-press-glass: 0.99;
+  --scale-overlay: 0.97;
+  --overlay-shift: 4px;
 
-  background: var(--background);
-  color: var(--foreground);
-  font-family: var(--ds-font-body);
+  /* Aliases for the shared shadcn roles */
+  --background: var(--page);
+  --foreground: var(--text-1);
+  --card: var(--paper);
+  --card-foreground: var(--text-1);
+  --muted: var(--shell);
+  --muted-foreground: var(--text-2);
+  --border: var(--line-faint);
+  --input: var(--line-control);
+  --primary: var(--ink);
+  --primary-foreground: var(--text-inverse);
+  --destructive: var(--fail);
+  --ring: var(--focus);
+  --radius: var(--radius-overlay);
+
+  background: var(--page);
+  color: var(--text-1);
+  font-family: var(--font-sans);
   font-size: 14px;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
 }
 
-.ds-vellum .ds-glass {
-  position: relative;
-  isolation: isolate;
-  backdrop-filter: blur(var(--ds-glass-blur));
-  background-image:
-    linear-gradient(to bottom, var(--ds-glass-gloss), transparent 44%),
-    linear-gradient(to bottom, var(--ds-glass-sheen), transparent);
-  box-shadow:
-    inset 0 1px 0 var(--ds-glass-rim),
-    inset 0 0 0 1px oklch(0 0 0 / 0.5);
-  transition:
-    scale 200ms var(--ds-ease),
-    filter 200ms var(--ds-ease);
+.ds-vellum[data-theme="dark"] {
+  color-scheme: dark;
+
+  --ink: #f3f0ea;
+  --page: #0d0c0a;
+  --paper: #1e1c19;
+  --shell: #161512;
+  --field: #2a2824;
+
+  --ink-80: #f3f0ea;
+  --ink-60: rgb(243 240 234 / 0.62);
+  --ink-45: rgb(243 240 234 / 0.45);
+  --ink-32: rgb(243 240 234 / 0.34);
+  --ink-15: rgb(243 240 234 / 0.15);
+  --ink-10: rgb(243 240 234 / 0.1);
+  --ink-06: rgb(243 240 234 / 0.06);
+  --ink-03: rgb(243 240 234 / 0.03);
+  --hover-row: rgb(243 240 234 / 0.04);
+  --scrim: rgb(0 0 0 / 0.64);
+  --text-inverse: #15120e;
+
+  --ok: #3fb985;
+  --ok-text: #74d4a8;
+  --ok-tint: #12261d;
+  --warn: #eba63a;
+  --warn-text: #f3c56e;
+  --warn-tint: #2a2110;
+  --fail: #ec6d55;
+  --fail-text: #f4937f;
+  --fail-tint: #2d1712;
+
+  --glass-ink-base: rgb(243 240 234 / 0.9);
+  --glass-ink-edge: rgb(255 255 255 / 0.5);
+  --glass-coral-base: rgb(240 140 118 / 0.94);
+  --glass-coral-edge: rgb(255 200 190 / 0.5);
+  --glass-green-base: rgb(110 210 165 / 0.94);
+  --glass-green-edge: rgb(200 255 230 / 0.5);
+  --glass-text: rgb(21 18 14 / 0.9);
+  --glass-core: rgb(0 0 0 / 0.1);
+  --glass-core-held: rgb(0 0 0 / 0.2);
+  --glass-gloss: rgb(255 255 255 / 0.5);
+  --glass-rim: rgb(255 255 255 / 0.6);
+  --flat-bg: var(--field);
+  --flat-ring: var(--ink-10);
 }
 
-.ds-vellum .ds-glass:hover {
-  filter: brightness(1.12);
-}
-
-.ds-vellum .ds-glass:active {
-  scale: 0.99;
-  transition-duration: 50ms;
+@media (prefers-reduced-motion: reduce) {
+  .ds-vellum {
+    --dur-glass-press: 0ms;
+    --dur-glass-release: 0ms;
+    --dur-press: 0ms;
+    --dur-state: 0ms;
+    --dur-overlay: 0ms;
+    --dur-slide: 0ms;
+    --dur-demo: 0ms;
+    --scale-press: 1;
+    --scale-press-glass: 1;
+    --scale-overlay: 1;
+    --overlay-shift: 0px;
+  }
 }

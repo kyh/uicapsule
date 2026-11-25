@@ -1,176 +1,272 @@
 "use client";
 
-import { useState } from "react";
-import type { ReactNode } from "react";
-import { ArrowRight, Plus } from "lucide-react";
+import { LayoutGrid, Moon, Palette, Smartphone, Sun } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
 
-import { Alert } from "./components/alert";
-import { Avatar } from "./components/avatar";
-import { Badge } from "./components/badge";
 import { Button } from "./components/button";
-import { Card } from "./components/card";
-import { Checkbox } from "./components/checkbox";
-import { Input } from "./components/input";
-import { Progress } from "./components/progress";
-import { Segmented } from "./components/segmented";
-import { Switch } from "./components/switch";
-import { Foundations } from "./foundations";
+import { TabBar } from "./components/tab-bar";
+import { ToastProvider } from "./components/toast";
+import { CATEGORIES, COMPONENT_COUNT, FOUNDATIONS, SCREENS } from "./data/catalog";
+import { AntiSlopFoundation } from "./foundations/anti-slop";
+import { ColorFoundation } from "./foundations/color";
+import { IconFoundation } from "./foundations/icons";
+import { MotionFoundation } from "./foundations/motion";
+import { ElevationFoundation, RadiusFoundation, SpaceFoundation } from "./foundations/space";
+import { TypeFoundation } from "./foundations/type";
+import { HomeScreen } from "./screens/home-screen";
+import { PaydayScreen } from "./screens/payday-screen";
+import { ReceiptsScreen } from "./screens/receipts-screen";
+import { SendScreen } from "./screens/send-screen";
+import { Block, Frame, Section } from "./shell";
+import { ActionSpecimens } from "./specimens/actions";
+import { AssistantSpecimens } from "./specimens/assistant";
+import { DisplaySpecimens } from "./specimens/display";
+import { FeedbackSpecimens } from "./specimens/feedback";
+import { InputSpecimens } from "./specimens/inputs";
+import { NavigationSpecimens } from "./specimens/navigation";
+import { OverlaySpecimens } from "./specimens/overlays";
+import { SelectionSpecimens } from "./specimens/selection";
 import { system } from "./system";
 
-const RANGES = ["Day", "Week", "Month"] as const;
+import "./base.css";
 
-const Section = ({
-  index,
-  title,
-  children,
-}: {
-  index: string;
-  title: string;
-  children: ReactNode;
-}) => (
-  <section className="border-border grid gap-8 border-t-(length:--ds-border-width) py-12">
-    <h2 className="flex items-baseline gap-3 font-(family-name:--ds-font-heading) text-2xl tracking-(--ds-heading-tracking)">
-      <span className="text-muted-foreground font-(family-name:--ds-font-mono) text-xs">
-        {index}
-      </span>
-      {title}
-    </h2>
-    {children}
-  </section>
-);
+import "./shell.css";
 
-const Specimen = ({ title, children }: { title: string; children: ReactNode }) => (
-  <Card className="grid content-start gap-5">
-    <h3 className="text-muted-foreground font-(family-name:--ds-font-mono) text-xs tracking-widest uppercase">
-      {title}
-    </h3>
-    {children}
-  </Card>
-);
+const SPECIMENS = {
+  "c-actions": ActionSpecimens,
+  "c-assistant": AssistantSpecimens,
+  "c-display": DisplaySpecimens,
+  "c-feedback": FeedbackSpecimens,
+  "c-inputs": InputSpecimens,
+  "c-navigation": NavigationSpecimens,
+  "c-overlays": OverlaySpecimens,
+  "c-selection": SelectionSpecimens,
+} as const;
 
-const Components = () => {
-  const [notify, setNotify] = useState(true);
-  const [sync, setSync] = useState(false);
-  const [terms, setTerms] = useState(true);
-  const [range, setRange] = useState<(typeof RANGES)[number]>("Week");
+const SCREEN_VIEWS = {
+  "screen-home": {
+    Screen: HomeScreen,
+    lead: "Noor opens the app on a Wednesday evening: what is in Everyday, the bills between now and payday, and one orange way to top up.",
+  },
+  "screen-payday": {
+    Screen: PaydayScreen,
+    lead: "Friday's paycheck, cut into segments before it lands. Nudge each pot, watch the ring rebalance, then save the plan once.",
+  },
+  "screen-receipts": {
+    Screen: ReceiptsScreen,
+    lead: "November's card payments beside their receipts, two photos still to take, and a 3:41 am charge from a shop Noor has never used.",
+  },
+  "screen-send": {
+    Screen: SendScreen,
+    lead: "Pay a friend back: pick them, tap the amount, choose how fast, and keep a way back until it leaves tonight.",
+  },
+} as const;
+
+const DOCK = [
+  { href: "#in-use", icon: Smartphone, id: "in-use", label: "In use" },
+  { href: "#foundations", icon: Palette, id: "foundations", label: "Foundations" },
+  { href: "#components", icon: LayoutGrid, id: "components", label: "Components" },
+] as const;
+
+const SECTION_LINE = 72;
+
+const useDock = () => {
+  const [active, setActive] = useState<string>(DOCK[0].label);
+  const [hidden, setHidden] = useState(false);
+  const pinned = useRef(false);
+
+  useEffect(() => {
+    let lastY = window.scrollY;
+    let frame = 0;
+    let settle = 0;
+
+    const measure = () => {
+      frame = 0;
+      const y = window.scrollY;
+
+      if (!pinned.current) {
+        let current: string = DOCK[0].label;
+
+        for (const item of DOCK) {
+          const node = document.querySelector(`#${item.id}`);
+
+          if (node && node.getBoundingClientRect().top <= SECTION_LINE) {
+            current = item.label;
+          }
+        }
+
+        const atEnd = window.innerHeight + y >= document.documentElement.scrollHeight - 2;
+        setActive(current);
+        setHidden(y > lastY && y > 240 && !atEnd);
+      }
+
+      lastY = y;
+    };
+
+    const onScroll = () => {
+      if (frame === 0) {
+        frame = requestAnimationFrame(measure);
+      }
+
+      if (pinned.current) {
+        window.clearTimeout(settle);
+        settle = window.setTimeout(() => {
+          pinned.current = false;
+        }, 160);
+      }
+    };
+
+    const release = () => {
+      pinned.current = false;
+    };
+
+    measure();
+    window.addEventListener("scroll", onScroll, { passive: true });
+    window.addEventListener("wheel", release, { passive: true });
+    window.addEventListener("touchstart", release, { passive: true });
+
+    return () => {
+      cancelAnimationFrame(frame);
+      window.clearTimeout(settle);
+      window.removeEventListener("scroll", onScroll);
+      window.removeEventListener("wheel", release);
+      window.removeEventListener("touchstart", release);
+    };
+  }, []);
+
+  const select = (label: string) => {
+    pinned.current = true;
+    setActive(label);
+    setHidden(false);
+  };
+
+  return { active, hidden, select };
+};
+
+export const DesignSystem = () => {
+  const [dark, setDark] = useState(false);
+  const [scrolled, setScrolled] = useState(false);
+  const dock = useDock();
+
+  useEffect(() => {
+    const onScroll = () => setScrolled(window.scrollY > 8);
+    onScroll();
+    window.addEventListener("scroll", onScroll, { passive: true });
+
+    return () => window.removeEventListener("scroll", onScroll);
+  }, []);
 
   return (
-    <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-      <Specimen title="Button">
-        <div className="flex flex-wrap items-center gap-2">
-          <Button>Primary</Button>
-          <Button variant="secondary">Secondary</Button>
-          <Button variant="accent">Accent</Button>
-          <Button variant="outline">Outline</Button>
-          <Button variant="ghost">Ghost</Button>
-        </div>
-        <div className="flex flex-wrap items-center gap-2">
-          <Button size="sm">Small</Button>
-          <Button aria-label="Add" size="icon" variant="outline">
-            <Plus aria-hidden className="size-4" />
-          </Button>
-          <Button disabled>Disabled</Button>
-        </div>
-      </Specimen>
+    <div className="ds-clementine cl-page" data-theme={dark ? "dark" : "light"}>
+      <ToastProvider>
+        <header className="cl-topbar" data-scrolled={scrolled || undefined}>
+          <div className="cl-topbar__inner">
+            <a className="cl-topbar__name" href="#top">
+              <span aria-hidden className="cl-topbar__mark" />
+              {system.name}
+            </a>
+            <Button
+              aria-label="Dark theme"
+              aria-pressed={dark}
+              onClick={() => setDark(!dark)}
+              size="icon"
+              variant="secondary"
+            >
+              {dark ? (
+                <Sun aria-hidden size={20} strokeWidth={1.75} />
+              ) : (
+                <Moon aria-hidden size={20} strokeWidth={1.75} />
+              )}
+            </Button>
+          </div>
+        </header>
+        <main className="cl-main" id="top">
+          <header className="cl-hero">
+            <h1 className="cl-hero__title">{system.name}</h1>
+            <p className="cl-hero__tagline">{system.tagline}</p>
+            <p className="cl-hero__body">
+              Warm gray steps under near-black ink, soft-square buttons, figures with their cents
+              lifted, and one clementine action per view that glows inside a ring of zest. Below are{" "}
+              {SCREENS.length} working screens, {FOUNDATIONS.length} foundations and{" "}
+              {COMPONENT_COUNT} components, each in light and dark.
+            </p>
+          </header>
 
-      <Specimen title="Input">
-        <Input label="Email" placeholder="you@example.com" type="email" />
-        <Input
-          defaultValue="Northwind"
-          hint="Visible to everyone in the workspace."
-          label="Workspace"
+          <Section
+            id="in-use"
+            jumps={SCREENS}
+            lead="Four moments from one person's money week. Every control on them works, and every piece of them shows up again below as a component."
+            title="In use"
+          >
+            {SCREENS.map((screen) => {
+              const { Screen, lead } = SCREEN_VIEWS[screen.id];
+
+              return (
+                <Block id={screen.id} key={screen.id} lead={lead} title={screen.name}>
+                  <Frame>
+                    <Screen />
+                  </Frame>
+                </Block>
+              );
+            })}
+          </Section>
+
+          <Section
+            id="foundations"
+            jumps={FOUNDATIONS}
+            lead="The values behind those screens, read live from tokens.css in whichever theme you are viewing."
+            title="Foundations"
+          >
+            <ColorFoundation theme={dark ? "dark" : "light"} />
+            <TypeFoundation />
+            <SpaceFoundation />
+            <RadiusFoundation />
+            <ElevationFoundation />
+            <MotionFoundation />
+            <IconFoundation />
+            <AntiSlopFoundation />
+          </Section>
+
+          <Section
+            id="components"
+            jumps={CATEGORIES}
+            lead="Sorted by the job they do on a screen. Press, type, drag and toggle any of them."
+            title="Components"
+          >
+            {CATEGORIES.map((category) => {
+              const Specimens = SPECIMENS[category.id];
+
+              return (
+                <Block
+                  id={category.id}
+                  key={category.id}
+                  lead={category.items.join(", ")}
+                  title={category.name}
+                >
+                  <div className="cl-specs">
+                    <Specimens />
+                  </div>
+                </Block>
+              );
+            })}
+          </Section>
+          <footer className="cl-footer">
+            <p>
+              {system.name} follows the structure and rules of Lime from design.how, with its own
+              palette, glow, type, radius, copy and screens.
+            </p>
+          </footer>
+        </main>
+        <TabBar
+          className="cl-dock"
+          current={dock.active}
+          tucked={dock.hidden}
+          currentKind="location"
+          items={DOCK}
+          label="Sections"
+          onSelect={(label) => dock.select(label)}
         />
-      </Specimen>
-
-      <Specimen title="Selection">
-        <Switch checked={notify} label="Notifications" onCheckedChange={setNotify} />
-        <Switch checked={sync} label="Background sync" onCheckedChange={setSync} />
-        <Checkbox checked={terms} label="Accept terms" onCheckedChange={setTerms} />
-        <Segmented label="Range" onValueChange={setRange} options={RANGES} value={range} />
-      </Specimen>
-
-      <Specimen title="Status">
-        <div className="flex flex-wrap gap-2">
-          <Badge>Draft</Badge>
-          <Badge variant="accent">Live</Badge>
-          <Badge variant="outline">Beta</Badge>
-          <Badge variant="destructive">Failed</Badge>
-        </div>
-        <Progress label="Storage" value={64} />
-      </Specimen>
-
-      <Specimen title="Feedback">
-        <Alert title="Payment failed">
-          Your card was declined. Update billing to keep the workspace active.
-        </Alert>
-      </Specimen>
-
-      <Specimen title="Identity">
-        <div className="flex -space-x-2">
-          {["AL", "MK", "JS", "RT"].map((initials) => (
-            <Avatar initials={initials} key={initials} />
-          ))}
-        </div>
-      </Specimen>
+      </ToastProvider>
     </div>
   );
 };
-
-const InContext = () => {
-  const [shared, setShared] = useState(false);
-
-  return (
-    <Card className="mx-auto grid w-full max-w-md gap-6 p-6">
-      <div className="flex items-start justify-between gap-4">
-        <div className="grid gap-1">
-          <h3 className="font-(family-name:--ds-font-heading) text-xl tracking-(--ds-heading-tracking)">
-            Q3 launch plan
-          </h3>
-          <p className="text-muted-foreground text-sm">12 tasks · due in 4 days</p>
-        </div>
-        <Badge variant="accent">On track</Badge>
-      </div>
-      <Progress label="Complete" value={72} />
-      <div className="flex items-center justify-between">
-        <div className="flex -space-x-2">
-          {["AL", "MK", "JS"].map((initials) => (
-            <Avatar initials={initials} key={initials} />
-          ))}
-        </div>
-        <Switch checked={shared} label="Share link" onCheckedChange={setShared} />
-      </div>
-      <div className="flex justify-end gap-2">
-        <Button variant="ghost">Archive</Button>
-        <Button>
-          Open board
-          <ArrowRight aria-hidden className="size-4" />
-        </Button>
-      </div>
-    </Card>
-  );
-};
-
-export const DesignSystem = () => (
-  <div className="ds-clementine min-h-dvh antialiased">
-    <div className="mx-auto max-w-6xl px-6 sm:px-10">
-      <header className="grid gap-4 py-16">
-        <p className="text-muted-foreground font-(family-name:--ds-font-mono) text-xs tracking-widest uppercase">
-          Design system
-        </p>
-        <h1 className="font-(family-name:--ds-font-heading) text-5xl tracking-(--ds-heading-tracking) sm:text-7xl">
-          {system.name}
-        </h1>
-        <p className="text-muted-foreground max-w-xl text-lg text-pretty">{system.tagline}</p>
-      </header>
-      <Section index="01" title="Foundations">
-        <Foundations />
-      </Section>
-      <Section index="02" title="Components">
-        <Components />
-      </Section>
-      <Section index="03" title="In context">
-        <InContext />
-      </Section>
-    </div>
-  </div>
-);
