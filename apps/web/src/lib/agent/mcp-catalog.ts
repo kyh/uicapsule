@@ -80,7 +80,7 @@ export const searchCatalog = (
 };
 
 export const serverInstructions = [
-  `This server does two things. Its skills help you build better UI in any project: motion, gestures, accessibility, typography, color, layout, copy and interface review; list them with skills/list and load the one that fits the task. Its tools serve ${siteConfig.name}'s components: interactive React components with unusual motion (hardware gestures, OS animations, physical mechanisms) that install into a project as starting points. It is not a general UI kit.`,
+  `${siteConfig.name} is ${siteConfig.description.charAt(0).toLowerCase()}${siteConfig.description.slice(1)}. This server does two things. Its skills help you build better UI in any project: motion, gestures, accessibility, typography, color, layout, copy and interface review; list them with skills/list and load the one that fits the task. Its tools serve ${siteConfig.name}'s components: interactive React components with unusual motion (hardware gestures, OS animations, physical mechanisms) that install into a project as starting points. It is not a general UI kit.`,
   "Use search_components to find a component by what it does or looks like, and open a result's url to watch it move before choosing; then get_component for its full source and dependencies.",
   "Installable components come with a shadcn command that writes the files into the project; prefer running it over copying source by hand. Without a components.json, write get_component's files at the same paths and install its dependencies.",
   "Components need React 19 and Tailwind CSS v4; if one renders unstyled, add an @source line for its folder to the stylesheet that imports Tailwind.",

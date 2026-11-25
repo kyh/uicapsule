@@ -2,7 +2,7 @@
   "$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
   "name": "com.uicapsule/components",
   "title": "UICapsule",
-  "description": "Skills for building better UI, plus interactive React components to install via shadcn.",
+  "description": "A curated collection of components that spark joy, plus skills to help agents build better UI.",
   "version": "1.0.2",
   "websiteUrl": "https://www.uicapsule.com",
   "icons": [
