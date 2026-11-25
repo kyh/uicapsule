@@ -1,0 +1,110 @@
+.ds-clementine.cl-page {
+  & .cl-copy-line {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+    justify-content: space-between;
+    min-width: 0;
+    padding: 8px 8px 8px 16px;
+    font-size: var(--text-sm);
+    background: var(--surface);
+    border-radius: var(--radius-control);
+
+    & > span:first-child {
+      overflow: hidden;
+      white-space: nowrap;
+      text-overflow: ellipsis;
+    }
+  }
+  & .cl-balance-demo {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 0;
+    font-size: var(--text-base);
+    font-weight: 600;
+
+    & + .cl-balance-demo {
+      border-top: 1px solid var(--line);
+    }
+  }
+  & .cl-skel-row {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+    min-height: 56px;
+  }
+  & .cl-skel-lines {
+    display: flex;
+    flex: 1 1 auto;
+    flex-direction: column;
+    gap: 8px;
+  }
+  & .cl-pop-title {
+    margin-bottom: 4px;
+    font-size: var(--text-sm);
+    font-weight: 600;
+  }
+  & .cl-pop-text {
+    color: var(--fg-2);
+    font-size: var(--text-sm);
+    line-height: var(--leading-normal);
+  }
+  & .cl-insights {
+    gap: 20px;
+
+    & .cl-insight + .cl-insight {
+      padding-top: 20px;
+      border-top: 1px solid var(--line);
+    }
+  }
+  & .cl-convo {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    max-width: 560px;
+  }
+  & .cl-convo__turn {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+}
+
+.ds-clementine.cl-page {
+  & .cl-stepper-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    align-items: center;
+    justify-content: space-between;
+  }
+}
+
+.ds-clementine.cl-page {
+  & .cl-tabbar-demo {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+
+    & .cl-tabbar {
+      border-top: 1px solid var(--line);
+    }
+  }
+}
+
+.ds-clementine.cl-page {
+  & .cl-menu-demo {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+  }
+  & .cl-menu-demo__row {
+    display: flex;
+    flex: 1 1 auto;
+    gap: 12px;
+    align-items: center;
+    min-width: 0;
+    font-size: var(--text-sm);
+  }
+}

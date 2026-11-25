@@ -1,0 +1,11 @@
+.ds-clementine {
+  & .cl-skeleton {
+    display: block;
+    background: var(--surface-2);
+    border-radius: var(--radius-sm);
+
+    &[data-round] {
+      border-radius: 50%;
+    }
+  }
+}

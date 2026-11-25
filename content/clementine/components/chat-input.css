@@ -1,0 +1,34 @@
+.ds-clementine {
+  & .cl-chat-input {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    height: 52px;
+    padding: 0 8px 0 16px;
+    background: var(--field);
+    border-radius: var(--radius-panel);
+    box-shadow: inset 0 0 0 1px var(--line);
+
+    &:focus-within {
+      background: var(--page);
+      outline: var(--line-focus) solid var(--ring);
+      outline-offset: var(--focus-offset);
+    }
+
+    & input {
+      flex: 1 1 auto;
+      min-width: 0;
+      height: 100%;
+      padding: 0;
+      color: var(--fg);
+      font: 400 var(--text-base) / 1 var(--font-sans);
+      background: none;
+      border: 0;
+      outline: none;
+
+      &::placeholder {
+        color: var(--fg-3);
+      }
+    }
+  }
+}

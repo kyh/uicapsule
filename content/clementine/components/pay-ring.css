@@ -1,0 +1,59 @@
+.ds-clementine {
+  & .cl-ring {
+    position: relative;
+    display: grid;
+    place-items: center;
+    width: min(100%, 280px);
+    aspect-ratio: 1;
+    margin-inline: auto;
+  }
+  & .cl-ring__svg {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    rotate: -90deg;
+  }
+  & .cl-ring__arc {
+    fill: none;
+    stroke-width: 22;
+    stroke-linecap: butt;
+    transition:
+      stroke-dasharray var(--dur-base) var(--ease-out),
+      stroke-dashoffset var(--dur-base) var(--ease-out);
+
+    &[data-tone="ink"] {
+      stroke: var(--ink);
+    }
+
+    &[data-tone="quiet"] {
+      stroke: var(--fg-2);
+    }
+
+    &[data-tone="accent"] {
+      stroke: var(--accent);
+    }
+
+    &[data-tone="line"] {
+      stroke: var(--control);
+    }
+  }
+  & .cl-ring__hatch-bg {
+    fill: var(--surface);
+  }
+  & .cl-ring__hatch-line {
+    fill: var(--fg-2);
+  }
+  & .cl-ring__center {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    align-items: center;
+    max-width: 60%;
+    text-align: center;
+  }
+  & .cl-ring__label {
+    color: var(--fg-2);
+    font-size: var(--text-sm);
+  }
+}

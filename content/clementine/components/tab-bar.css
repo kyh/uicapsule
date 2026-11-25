@@ -1,0 +1,38 @@
+.ds-clementine {
+  & .cl-tabbar {
+    display: grid;
+    grid-auto-columns: minmax(0, 1fr);
+    grid-auto-flow: column;
+    gap: 4px;
+    padding: 4px;
+  }
+  & .cl-tabbar__item {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    align-items: center;
+    justify-content: center;
+    min-height: 56px;
+    padding: 0 4px;
+    color: var(--fg-3);
+    font: 500 var(--text-xs) / 1 var(--font-sans);
+    text-decoration: none;
+    background: none;
+    border: 0;
+    border-radius: var(--radius-control);
+    cursor: pointer;
+    transition:
+      color var(--dur-instant) var(--ease-out),
+      background-color var(--dur-instant) var(--ease-out);
+    -webkit-tap-highlight-color: transparent;
+
+    &:hover {
+      color: var(--fg-2);
+    }
+
+    &[aria-current] {
+      color: var(--fg);
+      background: var(--surface-2);
+    }
+  }
+}

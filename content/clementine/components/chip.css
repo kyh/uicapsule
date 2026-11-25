@@ -1,0 +1,36 @@
+.ds-clementine {
+  & .cl-chip {
+    display: inline-flex;
+    gap: 8px;
+    align-items: center;
+    height: var(--control-sm);
+    padding: 0 12px;
+    color: var(--fg);
+    font: 500 var(--text-sm) / 1 var(--font-sans);
+    white-space: nowrap;
+    background: var(--page);
+    border: 0;
+    border-radius: var(--radius-pill);
+    box-shadow: inset 0 0 0 1px var(--line-strong);
+    cursor: pointer;
+    transition:
+      background-color var(--dur-fast) var(--ease-out),
+      box-shadow var(--dur-fast) var(--ease-out);
+
+    &:hover {
+      background: var(--surface);
+    }
+
+    &[aria-pressed="true"] {
+      background: var(--accent-wash);
+      box-shadow: inset 0 0 0 1px var(--accent-line);
+    }
+  }
+  & .cl-chip__check {
+    display: none;
+    color: var(--accent-line);
+  }
+  & .cl-chip[aria-pressed="true"] .cl-chip__check {
+    display: block;
+  }
+}

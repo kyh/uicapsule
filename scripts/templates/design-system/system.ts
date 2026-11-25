@@ -1,4 +1,4 @@
 export const system = {
   name: "Template",
-  tagline: "A shared showcase for every design system in the gallery.",
+  tagline: "A starting point for a design system in the gallery.",
 };

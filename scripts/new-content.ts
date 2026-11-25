@@ -22,7 +22,7 @@ const main = defineCommand({
     "design-system": {
       default: false,
       description:
-        "Scaffold a design system from scripts/templates/design-system (shared showcase + component set).",
+        "Scaffold a design system from scripts/templates/design-system (starter showcase + component set).",
       type: "boolean",
     },
     install: {

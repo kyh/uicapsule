@@ -1,0 +1,142 @@
+.ds-clementine.cl-page {
+  & .cl-lane {
+    display: flex;
+    flex: 1 1 auto;
+    gap: 12px;
+    align-items: center;
+    min-width: 200px;
+  }
+  & .cl-lane__track {
+    position: relative;
+    flex: 1 1 auto;
+    height: 20px;
+    background: var(--surface);
+    border-radius: var(--radius-pill);
+  }
+  & .cl-lane__dot {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 20px;
+    height: 20px;
+    background: var(--ink);
+    border-radius: 50%;
+  }
+  & .cl-curves {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 16px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+
+    & > li {
+      display: flex;
+      gap: 20px;
+      align-items: center;
+      padding: 20px;
+      border: 1px solid var(--line);
+      border-radius: var(--radius-panel);
+    }
+  }
+  & .cl-curves__text {
+    display: flex;
+    flex: 1 1 auto;
+    flex-direction: column;
+    gap: 8px;
+    min-width: 0;
+  }
+  & .cl-curves__css {
+    color: var(--fg-3);
+    font-size: var(--text-xs);
+  }
+  & .cl-curve {
+    flex-shrink: 0;
+    width: 104px;
+    height: 104px;
+    overflow: visible;
+  }
+  & .cl-curve__box {
+    fill: var(--surface);
+  }
+  & .cl-curve__handle {
+    stroke: var(--line-strong);
+    stroke-width: 1;
+  }
+  & .cl-curve__path {
+    fill: none;
+    stroke: var(--fg);
+    stroke-width: 2;
+    stroke-linecap: round;
+  }
+  & .cl-jobs {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 16px;
+  }
+  & .cl-job {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    align-items: flex-start;
+    min-width: 0;
+    padding: 20px;
+    border: 1px solid var(--line);
+    border-radius: var(--radius-panel);
+
+    & > .cl-note {
+      margin-bottom: 8px;
+    }
+
+    & > .cl-acc {
+      align-self: stretch;
+      border-top: 1px solid var(--line);
+    }
+  }
+  & .cl-job__row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    align-items: center;
+  }
+  & .cl-job__spin {
+    display: inline-flex;
+    gap: 8px;
+    align-items: center;
+    color: var(--fg-2);
+    font-size: var(--text-sm);
+  }
+  & .cl-enter {
+    padding: 8px 16px;
+    font-size: var(--text-sm);
+    background: var(--raised);
+    border-radius: var(--radius-panel);
+    box-shadow: var(--shadow-menu);
+    visibility: hidden;
+    opacity: 0;
+    scale: var(--scale-enter);
+    transition:
+      opacity var(--dur-fast) var(--ease-in),
+      scale var(--dur-fast) var(--ease-in),
+      visibility 0s linear var(--dur-fast);
+
+    &[data-open] {
+      visibility: visible;
+      opacity: 1;
+      scale: 1;
+      transition:
+        opacity var(--dur-base) var(--ease-out),
+        scale var(--dur-base) var(--ease-out),
+        visibility 0s;
+    }
+  }
+}
+
+@media (width < 860px) {
+  .ds-clementine.cl-page {
+    & .cl-curves,
+    & .cl-jobs {
+      grid-template-columns: minmax(0, 1fr);
+    }
+  }
+}

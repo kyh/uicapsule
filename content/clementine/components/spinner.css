@@ -1,0 +1,17 @@
+.ds-clementine {
+  & .cl-spinner {
+    display: inline-block;
+    width: 16px;
+    height: 16px;
+    border: 2px solid color-mix(in srgb, currentColor 22%, transparent);
+    border-top-color: currentColor;
+    border-radius: 50%;
+    animation: cl-spin var(--dur-spin) linear infinite;
+  }
+}
+
+@keyframes cl-spin {
+  to {
+    rotate: 360deg;
+  }
+}

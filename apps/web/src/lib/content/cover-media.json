@@ -55,6 +55,13 @@
     "uploadDate": "2026-09-25",
     "width": 1600
   },
+  "clementine": {
+    "cover": "clementine/clementine.20261125.mp4",
+    "duration": 11.6,
+    "height": 900,
+    "uploadDate": "2026-11-25",
+    "width": 1600
+  },
   "context-menu-peek": {
     "cover": "context-menu-peek/context-menu-peek.20260926.mp4",
     "duration": 10.42,
@@ -132,6 +139,13 @@
     "uploadDate": "2026-10-29",
     "width": 1600
   },
+  "fjord": {
+    "cover": "fjord/fjord.20261125.mp4",
+    "duration": 11.6,
+    "height": 900,
+    "uploadDate": "2026-11-25",
+    "width": 1600
+  },
   "formation": {
     "cover": "formation/formation.mp4",
     "duration": 14.02,
@@ -158,6 +172,13 @@
     "duration": 13.93,
     "height": 900,
     "uploadDate": "2026-09-08",
+    "width": 1600
+  },
+  "halogen": {
+    "cover": "halogen/halogen.20261125.mp4",
+    "duration": 11.6,
+    "height": 900,
+    "uploadDate": "2026-11-25",
     "width": 1600
   },
   "infinite-grid": {
@@ -355,6 +376,13 @@
     "height": 1080,
     "uploadDate": "2026-09-08",
     "width": 1916
+  },
+  "vellum": {
+    "cover": "vellum/vellum.20261125.mp4",
+    "duration": 11.6,
+    "height": 900,
+    "uploadDate": "2026-11-25",
+    "width": 1600
   },
   "vibe-dial": {
     "cover": "vibe-dial/vibe-dial.20260926.mp4",
