@@ -42,7 +42,6 @@ import {
 import { Tabs, TabsIndicator, TabsList, TabsTrigger } from "@repo/ui/components/tabs";
 import { cn } from "cn";
 import { authClient } from "@/lib/auth-client";
-import { siteConfig } from "@/lib/site-config";
 
 const menuItemIconClassName = "text-muted-foreground size-4 group-hover:text-foreground transition";
 
@@ -149,11 +148,11 @@ const ProfileMenuItems = ({ user, onSignOut }: { user?: SessionUser; onSignOut: 
         <LightbulbIcon aria-hidden="true" className={menuItemIconClassName} />
         Request
       </ProfileLink>
-      <ProfileLink href="/mcp-server">
+      <ProfileLink href="/install/mcp">
         <PlugIcon aria-hidden="true" className={menuItemIconClassName} />
         Install MCP
       </ProfileLink>
-      <ProfileLink href={`${siteConfig.repository}/tree/main/apps/extension`} target="_blank">
+      <ProfileLink href="/install/extension">
         <PuzzleIcon aria-hidden="true" className={menuItemIconClassName} />
         Extension
       </ProfileLink>

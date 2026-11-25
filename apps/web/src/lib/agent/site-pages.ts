@@ -1,6 +1,11 @@
 import { siteConfig } from "@/lib/site-config";
 
-import { mcpClaudeCodeCommand, mcpConfigJson, mcpServerUrl } from "./mcp-install-prompt";
+import {
+  mcpClaudeCodeCommand,
+  mcpConfigJson,
+  mcpInstallPrompt,
+  mcpServerUrl,
+} from "./mcp-install-prompt";
 import { REPO_SKILLS } from "./mcp-skills";
 
 /**
@@ -949,144 +954,305 @@ export const termsPage: ProsePage = {
   title: "Terms of Use",
 };
 
-/** A titled entry on the MCP page: a job, a guarantee, an example prompt or a question. */
-export interface McpPageItem {
+/** A titled entry on an install page: a step, a feature, a prompt, a guarantee or a question. */
+export interface GuideItem {
   title: string;
   text: string;
 }
 
-/** Install steps for the MCP page, in order; a step with `code` shows it with a copy button. */
-export const mcpInstallSteps: (McpPageItem & {
+export interface GuideStep extends GuideItem {
+  /** Shown under the step with a copy button, and fenced in the Markdown. */
   code?: Omit<Extract<ProseBlock, { kind: "code" }>, "kind">;
-})[] = [
-  {
-    code: { label: "Terminal", language: "sh", text: mcpClaudeCodeCommand },
-    text: "Run this once. It adds the server to Claude Code for every project.",
-    title: "Claude Code",
-  },
-  {
-    code: { label: "mcp.json", language: "json", text: mcpConfigJson },
-    text: "Cursor, VS Code, Windsurf and other clients take a remote server in their MCP config. The shape varies a little by client; the URL is the part that matters.",
-    title: "Any other client",
-  },
-  {
-    text: "Ask your agent to list its uicapsule tools. It should name `search_components` and `get_component`.",
-    title: "Check it worked",
-  },
-];
+}
 
-export const mcpJobs: (McpPageItem & { names: string[] })[] = [
-  {
-    names: ["better-motion", "animate", "better-accessibility", "interface-review"],
-    text: `${REPO_SKILLS.length} skills on motion, gestures, accessibility, typography, color, layout and copy, from Emil Kowalski and Jakub Krehel. They work in any project, not just with these components.`,
-    title: "Build better UI",
-  },
-  {
-    names: ["search_components", "get_component"],
-    text: "Find a component by what it does or looks like, then get its source, dependencies and the shadcn command that installs it.",
-    title: "Start from a component",
-  },
-];
+export interface GuideFeature extends GuideItem {
+  /** Tool, skill or shortcut names, shown as chips. */
+  names: string[];
+}
 
-export const mcpPrompts: McpPageItem[] = [
-  {
-    text: "Find a uicapsule component for a volume slider and install it in this app",
-    title: "Find",
-  },
-  {
-    text: "Use the uicapsule dynamic-island component as the starting point for our toasts",
-    title: "Start from",
-  },
-  {
-    text: "Review the animations on this screen with the better-motion skill and fix what's off",
-    title: "Polish",
-  },
-  {
-    text: "Run interface-review on the settings page and fix the top three issues",
-    title: "Review",
-  },
-  {
-    text: "Use break-ui to try this card with worst-case data, then fix what breaks",
-    title: "Stress-test",
-  },
-];
+/**
+ * An `/install/<thing>` page. Its JSX lays these sections out by hand;
+ * `installPage` derives the Markdown blocks from the same fields.
+ */
+export interface InstallGuide extends PageCopy {
+  heading: string;
+  /** The hero action: copy a prompt, or follow a link. */
+  action:
+    | { kind: "copy"; label: string; value: string }
+    | { kind: "link"; label: string; href: string };
+  actionNote: string;
+  steps: GuideStep[];
+  featuresHeading: string;
+  features: GuideFeature[];
+  prompts?: GuideItem[];
+  guaranteesHeading: string;
+  guarantees: GuideItem[];
+  faq: GuideItem[];
+}
 
-export const mcpGuarantees: McpPageItem[] = [
-  { text: "No account, no API key, nothing to sign in to.", title: "No key" },
-  {
-    text: "The server only answers questions. Your agent writes any files, usually by running the shadcn command it gets back.",
-    title: "Read-only",
-  },
-  {
-    text: `The components are MIT licensed, and the server is [open source](${siteConfig.repository}).`,
-    title: "Open source",
-  },
-  {
-    text: "It ships with every deploy of the site, so there is no package to update.",
-    title: "Always current",
-  },
-];
+export const installSectionHeadings = {
+  faq: "Questions",
+  install: "Install",
+  prompts: "Prompts to try",
+} as const;
 
-export const mcpFaq: McpPageItem[] = [
-  {
-    text: `A remote MCP server at \`${mcpServerUrl}\`. It gives a coding agent skills that make its UI work better, and tools that search this gallery and return a component's source to build from.`,
-    title: "What is the UICapsule MCP server?",
-  },
-  {
-    text: "Any client that connects to a remote server over Streamable HTTP. The tools work in all of them. The skills arrive through MCP's skills extension, so they appear only in clients that support it.",
-    title: "Which agents work with it?",
-  },
-  {
-    text: "Yes. There is no account, no key and no usage limit.",
-    title: "Is it free?",
-  },
-  {
-    text: "The search text and the components looked up are recorded as anonymous analytics events, so we can see what people look for. The [Privacy Policy](/privacy) has the details.",
-    title: "What does it record?",
-  },
-  {
-    text: "From [emilkowalski/skills](https://github.com/emilkowalski/skills) and [jakubkrehel/skills](https://github.com/jakubkrehel/skills), served unchanged at a pinned commit under their MIT licenses.",
-    title: "Where do the skills come from?",
-  },
-];
+const installPage = (guide: InstallGuide) => {
+  const lead: ProseBlock[] =
+    guide.action.kind === "link"
+      ? [
+          {
+            items: [{ href: guide.action.href, label: guide.action.label, text: guide.actionNote }],
+            kind: "list",
+          },
+        ]
+      : [];
 
-/** `/mcp-server`, the install guide for `/mcp`. Its page lays these sections out by hand; `blocks` is the same copy for Markdown. */
-export const mcpPage: ProsePage = {
-  blocks: [
-    { kind: "heading", text: "Install" },
-    ...mcpInstallSteps.flatMap<ProseBlock>((step) => [
-      { kind: "heading", level: 3, text: step.title },
-      { kind: "paragraph", text: step.text },
-      ...(step.code ? [{ kind: "code", ...step.code } as const] : []),
-    ]),
-    { kind: "heading", text: "What your agent gets" },
-    {
-      items: mcpJobs.map((job) => ({ label: job.title, text: job.text })),
-      kind: "list",
-    },
-    { kind: "heading", text: "Prompts to try" },
-    { items: mcpPrompts.map((prompt) => `**${prompt.title}:** ${prompt.text}`), kind: "bullets" },
-    { kind: "heading", text: "Read-only, no key" },
-    {
-      items: mcpGuarantees.map((guarantee) => ({ label: guarantee.title, text: guarantee.text })),
-      kind: "list",
-    },
-    { kind: "heading", text: "Questions" },
-    ...mcpFaq.flatMap<ProseBlock>((entry) => [
-      { kind: "heading", level: 3, text: entry.title },
-      { kind: "paragraph", text: entry.text },
-    ]),
-  ],
+  const prompts: ProseBlock[] = guide.prompts
+    ? [
+        { kind: "heading", text: installSectionHeadings.prompts },
+        {
+          items: guide.prompts.map((prompt) => `**${prompt.title}:** ${prompt.text}`),
+          kind: "bullets",
+        },
+      ]
+    : [];
+
+  return {
+    blocks: [
+      ...lead,
+      { kind: "heading", text: installSectionHeadings.install },
+      ...guide.steps.flatMap<ProseBlock>((step) => [
+        { kind: "heading", level: 3, text: step.title },
+        { kind: "paragraph", text: step.text },
+        ...(step.code ? [{ kind: "code" as const, ...step.code }] : []),
+      ]),
+      { kind: "heading", text: guide.featuresHeading },
+      {
+        items: guide.features.map((item) => ({ label: item.title, text: item.text })),
+        kind: "list",
+      },
+      ...prompts,
+      { kind: "heading", text: guide.guaranteesHeading },
+      {
+        items: guide.guarantees.map((item) => ({ label: item.title, text: item.text })),
+        kind: "list",
+      },
+      { kind: "heading", text: installSectionHeadings.faq },
+      ...guide.faq.flatMap<ProseBlock>((entry) => [
+        { kind: "heading", level: 3, text: entry.title },
+        { kind: "paragraph", text: entry.text },
+      ]),
+    ],
+    description: guide.description,
+    heading: guide.heading,
+    path: guide.path,
+    sitemapPriority: 0.7,
+    title: guide.title,
+  } satisfies ProsePage;
+};
+
+export const mcpGuide: InstallGuide = {
+  action: { kind: "copy", label: "Copy install prompt", value: mcpInstallPrompt },
+  actionNote: "Paste it into your agent and it sets itself up.",
   description:
     "Give your coding agent skills for building better UI and a gallery of components to start from. One URL, no API key.",
+  faq: [
+    {
+      text: `A remote MCP server at \`${mcpServerUrl}\`. It gives a coding agent skills that make its UI work better, and tools that search this gallery and return a component's source to build from.`,
+      title: "What is the UICapsule MCP server?",
+    },
+    {
+      text: "Any client that connects to a remote server over Streamable HTTP. The tools work in all of them. The skills arrive through MCP's skills extension, so they appear only in clients that support it.",
+      title: "Which agents work with it?",
+    },
+    { text: "Yes. There is no account, no key and no usage limit.", title: "Is it free?" },
+    {
+      text: "The search text and the components looked up are recorded as anonymous analytics events, so we can see what people look for. The [Privacy Policy](/privacy) has the details.",
+      title: "What does it record?",
+    },
+    {
+      text: "From [emilkowalski/skills](https://github.com/emilkowalski/skills) and [jakubkrehel/skills](https://github.com/jakubkrehel/skills), served unchanged at a pinned commit under their MIT licenses.",
+      title: "Where do the skills come from?",
+    },
+  ],
+  features: [
+    {
+      names: ["better-motion", "animate", "better-accessibility", "interface-review"],
+      text: `${REPO_SKILLS.length} skills on motion, gestures, accessibility, typography, color, layout and copy, from Emil Kowalski and Jakub Krehel. They work in any project, not just with these components.`,
+      title: "Build better UI",
+    },
+    {
+      names: ["search_components", "get_component"],
+      text: "Find a component by what it does or looks like, then get its source, dependencies and the shadcn command that installs it.",
+      title: "Start from a component",
+    },
+  ],
+  featuresHeading: "What your agent gets",
+  guarantees: [
+    { text: "No account, no API key, nothing to sign in to.", title: "No key" },
+    {
+      text: "The server only answers questions. Your agent writes any files, usually by running the shadcn command it gets back.",
+      title: "Read-only",
+    },
+    {
+      text: `The components are MIT licensed, and the server is [open source](${siteConfig.repository}).`,
+      title: "Open source",
+    },
+    {
+      text: "It ships with every deploy of the site, so there is no package to update.",
+      title: "Always current",
+    },
+  ],
+  guaranteesHeading: "Read-only, no key",
   heading: "The MCP server for building better UI.",
-  path: "/mcp-server",
-  sitemapPriority: 0.7,
+  path: "/install/mcp",
+  prompts: [
+    {
+      text: "Find a uicapsule component for a volume slider and install it in this app",
+      title: "Find",
+    },
+    {
+      text: "Use the uicapsule dynamic-island component as the starting point for our toasts",
+      title: "Start from",
+    },
+    {
+      text: "Review the animations on this screen with the better-motion skill and fix what's off",
+      title: "Polish",
+    },
+    {
+      text: "Run interface-review on the settings page and fix the top three issues",
+      title: "Review",
+    },
+    {
+      text: "Use break-ui to try this card with worst-case data, then fix what breaks",
+      title: "Stress-test",
+    },
+  ],
+  steps: [
+    {
+      code: { label: "Terminal", language: "sh", text: mcpClaudeCodeCommand },
+      text: "Run this once. It adds the server to Claude Code for every project.",
+      title: "Claude Code",
+    },
+    {
+      code: { label: "mcp.json", language: "json", text: mcpConfigJson },
+      text: "Cursor, VS Code, Windsurf and other clients take a remote server in their MCP config. The shape varies a little by client; the URL is the part that matters.",
+      title: "Any other client",
+    },
+    {
+      text: "Ask your agent to list its uicapsule tools. It should name `search_components` and `get_component`.",
+      title: "Check it worked",
+    },
+  ],
   title: "MCP server",
 };
 
+const extensionSource = `${siteConfig.repository}/tree/main/apps/extension`;
+
+export const extensionGuide: InstallGuide = {
+  action: { href: extensionSource, kind: "link", label: "Get it on GitHub" },
+  actionNote: "It isn't on the Chrome Web Store yet, so for now you load it from source.",
+  description:
+    "See an interaction you want built? Select it on any page and file it as a UICapsule component request, with a screenshot and a link back.",
+  faq: [
+    {
+      text: `It becomes a public issue in our [GitHub repository](${siteConfig.repository}/issues?q=label%3Arequest), labelled \`request\`. Requests are triaged by hand, and the ones we accept become components in the gallery, credited to you if you ask.`,
+      title: "Where does a request go?",
+    },
+    {
+      text: "Chrome, and other Chromium browsers that can load an unpacked extension, such as Edge and Brave.",
+      title: "Which browsers does it work in?",
+    },
+    {
+      text: "Only the tab you start a capture in, and only after you start it from the toolbar, a shortcut or the right-click menu. The [Privacy Policy](/privacy) lists exactly what a request includes.",
+      title: "What pages can it see?",
+    },
+    {
+      text: "Yes, once it's published. Until then, pull the repository and build it again to update.",
+      title: "Will it come to the Chrome Web Store?",
+    },
+  ],
+  features: [
+    {
+      names: ["⌥⇧R"],
+      text: "Hover to highlight an element and click to snap to it, or drag a box. Handles move and resize it before you save.",
+      title: "Capture a region",
+    },
+    {
+      names: ["⌥⇧V"],
+      text: "Grab everything currently on screen in one go.",
+      title: "Capture the visible area",
+    },
+    {
+      names: ["Right-click"],
+      text: "Choose **Request from this image** or **Request from this video** on any image or video.",
+      title: "Request from media",
+    },
+    {
+      names: ["Video"],
+      text: "A picked video is attached as its file when it's small enough, as a short recording when it isn't, and as a link when the page won't allow either.",
+      title: "Keeps the motion",
+    },
+  ],
+  featuresHeading: "What it does",
+  guarantees: [
+    {
+      text: "A request is filed only when you press Save. Nothing is sent while you look around.",
+      title: "You decide when",
+    },
+    {
+      text: "A screenshot of what you selected, the page address and your note. A snapped element adds a CSS selector and, unless you turn it off in Settings, its HTML.",
+      title: "What it sends",
+    },
+    {
+      text: "No account needed. Add a name and link in Settings if you want credit.",
+      title: "No sign-in",
+    },
+    {
+      text: `Like the rest of the site, the extension is [open source](${extensionSource}).`,
+      title: "Open source",
+    },
+  ],
+  guaranteesHeading: "Only what you capture",
+  heading: "Request a component from any page.",
+  path: "/install/extension",
+  steps: [
+    {
+      code: {
+        label: "Terminal",
+        language: "sh",
+        text: `git clone ${siteConfig.repository}\ncd uicapsule\npnpm install\npnpm -F @repo/extension build`,
+      },
+      text: "Clone the repository and build the extension. You need Node and pnpm.",
+      title: "Build it",
+    },
+    {
+      text: "Open `chrome://extensions`, turn on **Developer mode** and choose **Load unpacked**.",
+      title: "Open Chrome's extensions page",
+    },
+    {
+      text: "Pick the `apps/extension/.output/chrome-mv3` folder, then pin UICapsule to the toolbar.",
+      title: "Load the build",
+    },
+  ],
+  title: "Browser extension",
+};
+
+/** `/install/mcp`, the install guide for the `/mcp` server. */
+export const mcpPage = installPage(mcpGuide);
+
+/** `/install/extension`, the install guide for the browser extension in `apps/extension`. */
+export const extensionPage = installPage(extensionGuide);
+
 /** Prose pages, in the order they should appear in a sitemap or llms.txt. */
-export const prosePages: ProsePage[] = [aboutPage, mcpPage, contactPage, privacyPage, termsPage];
+export const prosePages: ProsePage[] = [
+  aboutPage,
+  mcpPage,
+  extensionPage,
+  contactPage,
+  privacyPage,
+  termsPage,
+];
 
 /**
  * The request form: indexable and shareable, but a form, not prose, so it has

@@ -8,34 +8,29 @@ import {
   pageTwitter,
   shareCardImage,
 } from "@/lib/agent/page-metadata";
-import {
-  mcpFaq,
-  mcpGuarantees,
-  mcpInstallSteps,
-  mcpJobs,
-  mcpPage,
-  mcpPrompts,
-  slugifyHeading,
-} from "@/lib/agent/site-pages";
+import { installSectionHeadings, slugifyHeading } from "@/lib/agent/site-pages";
 import { buildProsePageGraph } from "@/lib/agent/structured-data";
 
-import { Inline } from "../_components/prose-page";
-import { CopyPromptButton } from "./copy-prompt-button";
+import { Inline } from "../../_components/prose-page";
+import { HeroAction } from "./hero-action";
 
+import type { InstallGuide, ProsePage } from "@/lib/agent/site-pages";
 import type { Metadata } from "next";
 
-const image = shareCardImage(mcpPage.path, mcpPage.title);
+export const installMetadata = (guide: InstallGuide) => {
+  const image = shareCardImage(guide.path, guide.title);
 
-export const metadata: Metadata = {
-  alternates: canonicalAlternates(mcpPage.path),
-  description: mcpPage.description,
-  openGraph: pageOpenGraph(mcpPage.path, {
-    description: mcpPage.description,
-    image,
-    title: mcpPage.title,
-  }),
-  title: mcpPage.title,
-  twitter: pageTwitter({ description: mcpPage.description, image, title: mcpPage.title }),
+  return {
+    alternates: canonicalAlternates(guide.path),
+    description: guide.description,
+    openGraph: pageOpenGraph(guide.path, {
+      description: guide.description,
+      image,
+      title: guide.title,
+    }),
+    title: guide.title,
+    twitter: pageTwitter({ description: guide.description, image, title: guide.title }),
+  } satisfies Metadata;
 };
 
 const Section = ({ title, children }: { title: string; children: ReactNode }) => (
@@ -47,26 +42,24 @@ const Section = ({ title, children }: { title: string; children: ReactNode }) =>
   </section>
 );
 
-const Page = () => (
+export const InstallGuideView = ({ guide, page }: { guide: InstallGuide; page: ProsePage }) => (
   <>
-    <JsonLd node={buildProsePageGraph(mcpPage)} />
+    <JsonLd node={buildProsePageGraph(page)} />
     <main className="flex max-w-3xl flex-col gap-14 p-8 select-text lg:p-20">
       <header className="flex flex-col gap-5">
-        <h1 className="text-3xl leading-snug text-balance lg:text-4xl">{mcpPage.heading}</h1>
+        <h1 className="text-3xl leading-snug text-balance lg:text-4xl">{guide.heading}</h1>
         <p className="text-muted-foreground text-lg leading-relaxed text-pretty">
-          {mcpPage.description}
+          {guide.description}
         </p>
         <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
-          <CopyPromptButton />
-          <span className="text-muted-foreground text-sm">
-            Paste it into your agent and it sets itself up.
-          </span>
+          <HeroAction action={guide.action} />
+          <span className="text-muted-foreground text-sm">{guide.actionNote}</span>
         </div>
       </header>
 
-      <Section title="Install">
+      <Section title={installSectionHeadings.install}>
         <ol className="flex flex-col gap-6">
-          {mcpInstallSteps.map((step, index) => (
+          {guide.steps.map((step, index) => (
             <li key={step.title} className="grid grid-cols-[1.5rem_minmax(0,1fr)] gap-x-3">
               <span className="bg-muted text-foreground flex size-6 items-center justify-center rounded-full font-mono text-xs tabular-nums">
                 {index + 1}
@@ -83,14 +76,16 @@ const Page = () => (
         </ol>
       </Section>
 
-      <Section title="What your agent gets">
+      <Section title={guide.featuresHeading}>
         <div className="grid gap-3 sm:grid-cols-2">
-          {mcpJobs.map((job) => (
-            <div key={job.title} className="flex flex-col gap-2 rounded-lg border p-4">
-              <h3 className="text-foreground font-medium">{job.title}</h3>
-              <p className="text-muted-foreground flex-1 text-sm leading-relaxed">{job.text}</p>
+          {guide.features.map((feature) => (
+            <div key={feature.title} className="flex flex-col gap-2 rounded-lg border p-4">
+              <h3 className="text-foreground font-medium">{feature.title}</h3>
+              <p className="text-muted-foreground flex-1 text-sm leading-relaxed">
+                <Inline text={feature.text} />
+              </p>
               <ul className="flex flex-wrap gap-1.5 pt-1">
-                {job.names.map((name) => (
+                {feature.names.map((name) => (
                   <li
                     key={name}
                     className="bg-muted text-foreground rounded px-1.5 py-0.5 font-mono text-xs"
@@ -104,23 +99,27 @@ const Page = () => (
         </div>
       </Section>
 
-      <Section title="Prompts to try">
-        <ul className="divide-y rounded-lg border">
-          {mcpPrompts.map((prompt) => (
-            <li key={prompt.title} className="flex items-center gap-3 py-2 pr-2 pl-4">
-              <div className="flex min-w-0 flex-1 flex-col gap-0.5 sm:flex-row sm:gap-3">
-                <span className="text-muted-foreground w-24 shrink-0 text-sm">{prompt.title}</span>
-                <span className="text-foreground text-sm">{prompt.text}</span>
-              </div>
-              <CopyButton value={prompt.text} label={`Copy the ${prompt.title} prompt`} />
-            </li>
-          ))}
-        </ul>
-      </Section>
+      {guide.prompts && (
+        <Section title={installSectionHeadings.prompts}>
+          <ul className="divide-y rounded-lg border">
+            {guide.prompts.map((prompt) => (
+              <li key={prompt.title} className="flex items-center gap-3 py-2 pr-2 pl-4">
+                <div className="flex min-w-0 flex-1 flex-col gap-0.5 sm:flex-row sm:gap-3">
+                  <span className="text-muted-foreground w-24 shrink-0 text-sm">
+                    {prompt.title}
+                  </span>
+                  <span className="text-foreground text-sm">{prompt.text}</span>
+                </div>
+                <CopyButton value={prompt.text} label={`Copy the ${prompt.title} prompt`} />
+              </li>
+            ))}
+          </ul>
+        </Section>
+      )}
 
-      <Section title="Read-only, no key">
+      <Section title={guide.guaranteesHeading}>
         <dl className="grid gap-x-8 gap-y-4 sm:grid-cols-2">
-          {mcpGuarantees.map((guarantee) => (
+          {guide.guarantees.map((guarantee) => (
             <div key={guarantee.title} className="flex flex-col gap-1">
               <dt className="text-foreground font-medium">{guarantee.title}</dt>
               <dd className="text-muted-foreground text-sm leading-relaxed">
@@ -131,9 +130,9 @@ const Page = () => (
         </dl>
       </Section>
 
-      <Section title="Questions">
+      <Section title={installSectionHeadings.faq}>
         <div className="flex flex-col gap-6">
-          {mcpFaq.map((entry) => (
+          {guide.faq.map((entry) => (
             <div key={entry.title} className="flex flex-col gap-1.5">
               <h3 id={slugifyHeading(entry.title)} className="text-foreground font-medium">
                 {entry.title}
@@ -148,5 +147,3 @@ const Page = () => (
     </main>
   </>
 );
-
-export default Page;
