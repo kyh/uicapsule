@@ -94,9 +94,9 @@ export const createDetails = (options: { onCancel: () => void; onSubmit: () => v
     element,
     fields,
     focus: () => fields.name.control.focus(),
-    setBusy: (busy: boolean) => {
+    setBusy: (busy: boolean, label = "Filing…") => {
       submit.disabled = busy;
-      submit.textContent = busy ? "Filing…" : "File request";
+      submit.textContent = busy ? label : "File request";
     },
     setChip: (state: "attached" | "linked" | "working" | null, text = "") => {
       chip.hidden = state === null;

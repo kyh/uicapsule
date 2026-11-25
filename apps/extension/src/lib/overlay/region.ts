@@ -165,9 +165,7 @@ export const createRegion = (options: {
     begin(event, { from: rect, kind, start: point(event) });
   });
 
-  for (const button of [cancel, save]) {
-    button.addEventListener("pointerdown", (event) => event.stopPropagation());
-  }
+  actions.addEventListener("pointerdown", (event) => event.stopPropagation());
 
   surface.addEventListener("pointermove", (event) => {
     const at = point(event);
@@ -240,6 +238,15 @@ export const createRegion = (options: {
   const onScroll = () => {
     if (!rect) {
       hover(hovered);
+
+      return;
+    }
+
+    if (snapped && !gesture) {
+      const next = clip(toRect(snapped.getBoundingClientRect()));
+      snapped = next ? snapped : undefined;
+      rect = next ?? rect;
+      render();
     }
   };
 

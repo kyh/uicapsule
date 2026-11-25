@@ -120,6 +120,7 @@ export const mountOverlay = (onClosed: () => void) => {
     const run = generation;
     const source = videoSource(target);
     videoWorking = true;
+    details.setBusy(true, "Attaching video…");
     details.setChip("working", "Getting the video…");
 
     let result: FileResult = { ok: false, reason: "" };
@@ -142,6 +143,7 @@ export const mountOverlay = (onClosed: () => void) => {
     }
 
     videoWorking = false;
+    details.setBusy(false);
 
     if (result.ok) {
       video = result.file;
@@ -254,25 +256,33 @@ export const mountOverlay = (onClosed: () => void) => {
   };
 
   const openDetails = async (picked: Region, encoded: Encoded) => {
-    details = createDetails({
+    const run = generation;
+
+    const created = createDetails({
       onCancel: destroy,
       onSubmit: () => {
         void file();
       },
     });
-    captured = picked;
-    shot = encoded;
 
     const credit = await creditItem.getValue();
-    details.fields["credit.name"].control.value = credit.name;
-    details.fields["credit.url"].control.value = credit.url;
-    details.setTarget(hostOf(await serviceUrlItem.getValue()));
-    details.setWhere(
+    created.fields["credit.name"].control.value = credit.name;
+    created.fields["credit.url"].control.value = credit.url;
+    created.setTarget(hostOf(await serviceUrlItem.getValue()));
+    created.setWhere(
       `${picked.element ? labelFor(picked.element) : (picked.label ?? "Area")} on ${location.host}`,
     );
-    await details.setShot(decodeFile(encoded), picked.rect);
-    root.append(details.element);
-    details.focus();
+    await created.setShot(decodeFile(encoded), picked.rect);
+
+    if (run !== generation) {
+      return;
+    }
+
+    details = created;
+    captured = picked;
+    shot = encoded;
+    root.append(created.element);
+    created.focus();
     void attachVideo(picked.element);
   };
 
