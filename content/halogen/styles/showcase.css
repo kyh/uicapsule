@@ -53,7 +53,7 @@
 }
 .ds-halogen .hx-screen-anchor {
   min-width: 0;
-  scroll-margin-top: calc(var(--hx-head) + var(--hx-4));
+  scroll-margin-top: calc(var(--hx-sticky) + var(--hx-4));
 }
 .ds-halogen .hx-screen-anchor:focus {
   outline: none;
@@ -408,6 +408,9 @@
   }
 }
 @media (max-width: 760px) {
+  .ds-halogen {
+    --hx-sticky: calc(var(--hx-head) + var(--hx-row) + var(--hx-line));
+  }
   .ds-halogen .hx-topbar-inner {
     flex-wrap: wrap;
     row-gap: 0;

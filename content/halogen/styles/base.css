@@ -263,6 +263,9 @@
 }
 
 /* Page shell */
+.ds-halogen {
+  --hx-sticky: var(--hx-head);
+}
 .ds-halogen .hx-shell {
   max-width: 1240px;
   margin: 0 auto;
@@ -302,7 +305,7 @@
   gap: var(--hx-8);
   padding: var(--hx-12) 0;
   border-top: var(--hx-line) solid var(--hx-rule);
-  scroll-margin-top: var(--hx-head);
+  scroll-margin-top: var(--hx-sticky);
 }
 .ds-halogen .hx-section-head {
   display: flex;
@@ -317,7 +320,7 @@
 .ds-halogen .hx-group {
   display: grid;
   gap: var(--hx-4);
-  scroll-margin-top: var(--hx-head);
+  scroll-margin-top: var(--hx-sticky);
 }
 .ds-halogen .hx-group-head {
   display: flex;
