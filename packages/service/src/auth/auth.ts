@@ -50,6 +50,9 @@ export const canonicalOrigin = () => {
   return process.env.BETTER_AUTH_URL || "http://localhost:3000";
 };
 
+/** The issuer of every JWT, pinned so a token minted through any of a deployment's hosts verifies. */
+export const AUTH_ISSUER = `${canonicalOrigin()}/api/auth`;
+
 /** The publishing MCP server: the protected resource every MCP access token is bound to. */
 export const MCP_PUBLISH_RESOURCE = `${canonicalOrigin()}/mcp/publish`;
 
@@ -69,7 +72,7 @@ export const auth = betterAuth({
   },
   plugins: [
     bearer(),
-    jwt({ disableSettingJwtHeader: true }),
+    jwt({ disableSettingJwtHeader: true, jwt: { issuer: AUTH_ISSUER } }),
     mcp({
       allowDynamicClientRegistration: true,
       allowUnauthenticatedClientRegistration: true,

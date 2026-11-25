@@ -7,7 +7,7 @@ import {
   publishSchema,
   ugcSlugSchema,
 } from "@repo/contract/ugc/ugc-schema";
-import { MCP_PUBLISH_RESOURCE, canonicalOrigin } from "@repo/service/auth";
+import { AUTH_ISSUER, MCP_PUBLISH_RESOURCE, canonicalOrigin } from "@repo/service/auth";
 import {
   createUploads,
   listPublished,
@@ -146,8 +146,8 @@ const serve = async (request: Request, subject: string | undefined) => {
 const protectedHandler = createMcpProtectedRequestHandler(
   {
     audience: MCP_PUBLISH_RESOURCE,
-    issuer: `${canonicalOrigin()}/api/auth`,
-    jwksUrl: `${canonicalOrigin()}/api/auth/jwks`,
+    issuer: AUTH_ISSUER,
+    jwksUrl: `${AUTH_ISSUER}/jwks`,
   },
   async (request, claims) => await serve(request, claims.sub),
 );
