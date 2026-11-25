@@ -41,9 +41,7 @@ import {
 } from "@repo/ui/components/navigation-menu";
 import { Tabs, TabsIndicator, TabsList, TabsTrigger } from "@repo/ui/components/tabs";
 import { cn } from "cn";
-import { McpInstallDialog } from "@/components/mcp-install-dialog";
 import { authClient } from "@/lib/auth-client";
-import { siteConfig } from "@/lib/site-config";
 
 const menuItemIconClassName = "text-muted-foreground size-4 group-hover:text-foreground transition";
 
@@ -58,21 +56,18 @@ type MenuVariant = "nav" | "drawer";
 const ProfileMenuContext = createContext<{
   variant: MenuVariant;
   close: () => void;
-  openMcpDialog: () => void;
 } | null>(null);
 
 const ProfileMenuProvider = ({
   variant,
   close,
-  openMcpDialog,
   children,
 }: {
   variant: MenuVariant;
   close: () => void;
-  openMcpDialog: () => void;
   children: ReactNode;
 }) => {
-  const value = useMemo(() => ({ close, openMcpDialog, variant }), [close, openMcpDialog, variant]);
+  const value = useMemo(() => ({ close, variant }), [close, variant]);
 
   return <ProfileMenuContext value={value}>{children}</ProfileMenuContext>;
 };
@@ -129,17 +124,6 @@ const ProfileAction = ({ onClick, children }: { onClick: () => void; children: R
   );
 };
 
-const InstallMcpItem = () => {
-  const { openMcpDialog } = useProfileMenu();
-
-  return (
-    <ProfileAction onClick={openMcpDialog}>
-      <PlugIcon aria-hidden="true" className={menuItemIconClassName} />
-      Install MCP
-    </ProfileAction>
-  );
-};
-
 type SessionUser = NonNullable<ReturnType<typeof authClient.useSession>["data"]>["user"];
 
 const ProfileMenuItems = ({ user, onSignOut }: { user?: SessionUser; onSignOut: () => void }) => {
@@ -164,8 +148,11 @@ const ProfileMenuItems = ({ user, onSignOut }: { user?: SessionUser; onSignOut: 
         <LightbulbIcon aria-hidden="true" className={menuItemIconClassName} />
         Request
       </ProfileLink>
-      <InstallMcpItem />
-      <ProfileLink href={`${siteConfig.repository}/tree/main/apps/extension`} target="_blank">
+      <ProfileLink href="/install/mcp">
+        <PlugIcon aria-hidden="true" className={menuItemIconClassName} />
+        Install MCP
+      </ProfileLink>
+      <ProfileLink href="/install/extension">
         <PuzzleIcon aria-hidden="true" className={menuItemIconClassName} />
         Extension
       </ProfileLink>
@@ -233,10 +220,8 @@ const ProfileMenu = ({ user }: { user?: SessionUser }) => {
   const router = useRouter();
   const [navValue, setNavValue] = useState<string | null>(null);
   const [drawerOpen, setDrawerOpen] = useState(false);
-  const [mcpDialogOpen, setMcpDialogOpen] = useState(false);
   const closeNav = useCallback(() => setNavValue(null), []);
   const closeDrawer = useCallback(() => setDrawerOpen(false), []);
-  const openMcpDialog = useCallback(() => setMcpDialogOpen(true), []);
 
   const handleSignOut = () => {
     void authClient.signOut({
@@ -273,7 +258,7 @@ const ProfileMenu = ({ user }: { user?: SessionUser }) => {
               {avatar}
             </NavigationMenuTrigger>
             <NavigationMenuContent className="w-40 p-1">
-              <ProfileMenuProvider variant="nav" close={closeNav} openMcpDialog={openMcpDialog}>
+              <ProfileMenuProvider variant="nav" close={closeNav}>
                 <ProfileMenuItems user={user} onSignOut={handleSignOut} />
               </ProfileMenuProvider>
             </NavigationMenuContent>
@@ -299,12 +284,11 @@ const ProfileMenu = ({ user }: { user?: SessionUser }) => {
             <DrawerTitle>Settings</DrawerTitle>
             <DrawerDescription>Settings options</DrawerDescription>
           </DrawerHeader>
-          <ProfileMenuProvider variant="drawer" close={closeDrawer} openMcpDialog={openMcpDialog}>
+          <ProfileMenuProvider variant="drawer" close={closeDrawer}>
             <ProfileMenuItems user={user} onSignOut={handleSignOut} />
           </ProfileMenuProvider>
         </DrawerContent>
       </Drawer>
-      <McpInstallDialog open={mcpDialogOpen} onOpenChange={setMcpDialogOpen} />
     </>
   );
 };

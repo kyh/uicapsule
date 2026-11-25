@@ -2,6 +2,7 @@ import { Fragment } from "react";
 import type { ReactNode } from "react";
 import Link from "next/link";
 
+import { CodeSnippet } from "@/components/code-snippet";
 import { parseInline } from "@/lib/agent/inline-markup";
 import { headingIds, rendersOutsideRouter } from "@/lib/agent/site-pages";
 
@@ -34,7 +35,7 @@ const ProseLink = ({ href, children }: { href: string; children: ReactNode }) =>
   );
 };
 
-const Inline = ({ text }: { text: string }) =>
+export const Inline = ({ text }: { text: string }) =>
   parseInline(text).map((token, index) => {
     if (token.kind === "bold") {
       return (
@@ -158,6 +159,10 @@ const ProseBlockView = ({ block, id }: { block: ProseBlock; id?: string }) => {
 
     case "divider": {
       return <hr className="my-2" />;
+    }
+
+    case "code": {
+      return <CodeSnippet text={block.text} label={block.label} />;
     }
 
     default: {
