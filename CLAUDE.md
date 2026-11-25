@@ -139,13 +139,14 @@ Next imports, no filesystem — so it can be unit-tested without a runtime. The 
   `@modelcontextprotocol/server`). They stay out of `@repo/contract`: no client calls them
   over RPC. A tool's name is its router key, its title and hints are `mcp.tool` meta, a
   thrown `ORPCError` is a tool error. Ranking and payload shapes live in
-  `lib/agent/mcp-catalog.ts`; the route only wires them to `content-data`. It also serves its own
-  skill, `uicapsule-components` (`lib/agent/mcp-skills.ts`), over MCP's skills extension
+  `lib/agent/mcp-catalog.ts`; the route only wires them to `content-data`. It also serves skills over MCP's skills extension
   (`io.modelcontextprotocol/skills`, SEP-2640): `skills/list`/`skills/get` and a `skill://`
-  resource per file. Beside it, it serves the vendored `emilkowalski/skills` and `jakubkrehel/skills`
-  entries (`REPO_SKILLS`), read at runtime from `.claude/skills/` by `lib/content/skills-fs.ts`,
-  so dev agents and MCP clients load the same single copy; the rest of `.claude/skills`
-  (first-party workflow skills, other third-party) is never served. They are pinned in `skills-lock.json` by Vercel's `skills` CLI and kept byte-identical to
+  resource per file. They are the vendored `emilkowalski/skills` and `jakubkrehel/skills`
+  entries named in `REPO_SKILLS` (`lib/agent/mcp-skills.ts`), read at runtime from
+  `.claude/skills/` by `lib/content/skills-fs.ts`, so dev agents and MCP clients load the same
+  single copy; the rest of `.claude/skills` (first-party workflow skills, other third-party) is
+  never served. How to use uicapsule itself lives in the server instructions
+  (`serverInstructions`), not a skill. The served skills are pinned in `skills-lock.json` by Vercel's `skills` CLI and kept byte-identical to
   upstream (oxfmt ignores them); provenance and the update recipe are in
   `.claude/skills/THIRD_PARTY.md`. It ships with each
   deploy, so there is no npm package to publish or version. `server.json` is its MCP Registry

@@ -7,7 +7,6 @@ import { z } from "zod";
 
 import { componentDetail, searchCatalog, serverInstructions } from "@/lib/agent/mcp-catalog";
 import {
-  COMPONENTS_SKILL,
   REPO_SKILLS,
   SKILL_CACHE_HINT,
   SKILLS_EXTENSION,
@@ -102,7 +101,7 @@ const router = {
 const registrar = new McpRegistrar(router);
 
 const registerSkills = async (server: McpServer) => {
-  const skills = [COMPONENTS_SKILL, ...(await getRepoSkills(REPO_SKILLS))];
+  const skills = await getRepoSkills(REPO_SKILLS);
   const catalog = await skillCatalog(skills);
 
   server.server.registerCapabilities({ extensions: { [SKILLS_EXTENSION]: {} }, resources: {} });
