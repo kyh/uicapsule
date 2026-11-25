@@ -57,8 +57,8 @@ const ComponentNavBase = ({ feed, activeSlug, onSelect }: ComponentNavProps) => 
 
   return (
     <nav aria-label="Components" className="flex h-full flex-col">
-      <div className="p-3 pb-2">
-        <label className="bg-muted/40 focus-within:border-ring flex h-8 items-center gap-2 rounded-md border px-2.5 transition-colors">
+      <div className="p-2">
+        <label className="bg-muted/40 focus-within:border-ring flex h-8 items-center gap-2 rounded-md border px-2 transition-colors">
           <SearchIcon className="text-muted-foreground size-3.5 shrink-0" />
           <span className="sr-only">Filter components</span>
           <input
@@ -72,7 +72,7 @@ const ComponentNavBase = ({ feed, activeSlug, onSelect }: ComponentNavProps) => 
       </div>
       <div
         data-nav-list
-        className="min-h-0 flex-1 overflow-y-auto px-3 pb-6 [scrollbar-width:thin]"
+        className="min-h-0 flex-1 overflow-y-auto px-2 pb-6 [scrollbar-width:thin]"
       >
         {groups.length === 0 && (
           <p className="text-muted-foreground px-2 py-4 text-sm">No components match.</p>

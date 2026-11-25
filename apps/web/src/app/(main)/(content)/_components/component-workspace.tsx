@@ -194,7 +194,7 @@ export const ComponentWorkspace = ({ initialSlug, feed }: ComponentWorkspaceProp
         </aside>
 
         <div className="flex min-w-0 flex-col max-md:contents md:min-h-0">
-          <div className="flex h-12 shrink-0 items-center gap-1 overflow-x-auto px-2 [scrollbar-width:none] md:px-3">
+          <div className="flex h-12 shrink-0 items-center gap-1 overflow-x-auto px-2 [scrollbar-width:none]">
             <ToolbarButton
               label={inspect ? "Stop inspecting" : "Inspect elements"}
               pressed={inspect}

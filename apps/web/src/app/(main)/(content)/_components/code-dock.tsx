@@ -164,7 +164,7 @@ const LocalCodeDock = ({ slug, onClose }: { slug: string; onClose: () => void })
       value={language}
       className="flex h-full flex-col rounded-none border-0 bg-transparent"
     >
-      <div className="flex h-10 shrink-0 items-center gap-2 border-b pr-1.5 pl-1">
+      <div className="flex h-10 shrink-0 items-center gap-2 border-b px-2">
         <div
           role="tablist"
           aria-label="Source files"
@@ -232,7 +232,7 @@ export const CodeDock = ({ component, onClose }: CodeDockProps) => {
 
   return (
     <div className="flex h-full flex-col">
-      <div className="flex h-10 shrink-0 items-center justify-end border-b px-1.5">
+      <div className="flex h-10 shrink-0 items-center justify-end border-b px-2">
         <ToolbarButton label="Hide code" onClick={onClose}>
           <XIcon />
         </ToolbarButton>

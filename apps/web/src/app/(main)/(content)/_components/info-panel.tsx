@@ -1,7 +1,7 @@
 "use client";
 
 import type { ReactNode } from "react";
-import { CheckIcon, ExternalLinkIcon } from "lucide-react";
+import { ExternalLinkIcon } from "lucide-react";
 import { Badge } from "@repo/ui/components/badge";
 import { CopyButton } from "@repo/ui/components/copy-button";
 import { toast } from "@repo/ui/components/toast";
@@ -24,7 +24,7 @@ const formatAddedAt = (isoDate: string) =>
   });
 
 const Section = ({ title, children }: { title: string; children: ReactNode }) => (
-  <section className="flex flex-col gap-2.5">
+  <section className="flex flex-col gap-2 border-b px-4 py-4">
     <h2 className="text-muted-foreground text-xs font-medium">{title}</h2>
     {children}
   </section>
@@ -46,8 +46,8 @@ const InstallCommand = ({ slug }: { slug: string }) => (
 );
 
 export const InfoPanel = ({ component }: { component: ContentComponentSummary }) => (
-  <div className="flex flex-col gap-7 p-5 md:p-6">
-    <header className="flex flex-col gap-1.5">
+  <div className="flex flex-col">
+    <header className="flex flex-col gap-1 border-b px-4 py-4">
       <h1 className="text-lg font-medium select-text">{component.name}</h1>
       <p className="text-muted-foreground text-sm text-pretty select-text">
         {component.description}
@@ -95,12 +95,17 @@ export const InfoPanel = ({ component }: { component: ContentComponentSummary })
     )}
     {component.inspiredBy && (
       <Section title="Inspired by">
-        <ul className="flex flex-col gap-1.5 text-sm select-text">
+        <ul className="flex flex-col gap-1 text-xs select-text">
           {component.inspiredBy.map((link) => (
-            <li key={link.url} className="flex items-start gap-2">
-              <CheckIcon className="text-primary mt-0.5 size-3.5 shrink-0" />
-              <a href={link.url} target="_blank" rel="noreferrer" className={LINK_CLASS}>
+            <li key={link.url}>
+              <a
+                href={link.url}
+                target="_blank"
+                rel="noreferrer"
+                className="text-muted-foreground hover:text-foreground inline-flex items-center gap-1 transition-colors"
+              >
                 {link.label}
+                <ExternalLinkIcon className="size-3 shrink-0" />
               </a>
             </li>
           ))}
@@ -122,7 +127,7 @@ export const InfoPanel = ({ component }: { component: ContentComponentSummary })
         </div>
       </Section>
     )}
-    <p className="text-muted-foreground border-t pt-4 text-xs select-text">
+    <p className="text-muted-foreground px-4 py-3 text-xs select-text">
       Added <time dateTime={component.addedAt}>{formatAddedAt(component.addedAt)}</time>
     </p>
   </div>
