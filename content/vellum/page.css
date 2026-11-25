@@ -17,12 +17,17 @@
 }
 
 .ds-vellum .v-nav {
+  position: sticky;
+  top: 0;
+  z-index: 5;
   display: flex;
   gap: 2px;
   margin: 0 -16px;
-  padding: 0 16px 4px;
+  padding: 8px 16px;
   overflow-x: auto;
   scrollbar-width: none;
+  background: var(--paper);
+  border-bottom: 1px solid var(--line);
 }
 .ds-vellum .v-nav-group {
   display: contents;
@@ -71,6 +76,8 @@
     overflow: visible;
     max-height: calc(100dvh - 64px);
     overflow-y: auto;
+    background: none;
+    border-bottom: 0;
   }
   .ds-vellum .v-nav-group {
     display: grid;

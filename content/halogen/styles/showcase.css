@@ -408,8 +408,19 @@
   }
 }
 @media (max-width: 760px) {
+  .ds-halogen .hx-topbar-inner {
+    flex-wrap: wrap;
+    row-gap: 0;
+  }
   .ds-halogen .hx-topnav {
-    display: none;
+    order: 3;
+    width: 100%;
+    border-top: var(--hx-line) solid var(--hx-rule);
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+  .ds-halogen .hx-topnav a.hx-ntab {
+    height: var(--hx-row);
   }
 }
 .ds-halogen .hx-btn-rows {
