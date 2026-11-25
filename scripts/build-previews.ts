@@ -197,9 +197,14 @@ const main = defineCommand({
 
     consola.info(`Watching ${slugs.length} previews (restart to pick up a new content folder)`);
 
-    for await (const _change of watch(themeStylesheet)) {
-      await finishBuild(slugs, dev);
-      consola.info(`Restyled ${slugs.length} previews`);
+    for await (const change of watch(path.dirname(themeStylesheet))) {
+      if (change.filename !== path.basename(themeStylesheet)) {
+        continue;
+      }
+
+      await finishBuild(slugs, dev)
+        .then(() => consola.info(`Restyled ${slugs.length} previews`))
+        .catch((error: Error) => consola.error(error));
     }
   },
 });
