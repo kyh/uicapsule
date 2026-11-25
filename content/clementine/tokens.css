@@ -1,0 +1,81 @@
+/*
+ * Clementine: warm and light, for consumer apps.
+ * A white page on warm grey steps, pill controls, soft sheets, and exactly
+ * one glowing action per view. Everything else stays calm ink.
+ */
+.ds-clementine {
+  --ds-ink: oklch(0.18 0.006 80);
+  --ds-shadow-ink: 0.3 0.03 70;
+
+  /* Surfaces */
+  --background: oklch(1 0 0);
+  --foreground: var(--ds-ink);
+  --card: oklch(1 0 0);
+  --card-foreground: var(--foreground);
+  --muted: oklch(0.968 0.005 80);
+  --muted-foreground: oklch(0.48 0.01 80);
+  --border: oklch(0.92 0.007 80);
+  --input: oklch(0.85 0.009 80);
+
+  /* Intent: the primary glows; ink carries the rest */
+  --primary: oklch(0.76 0.17 55);
+  --primary-foreground: oklch(0.22 0.05 45);
+  --ds-glow-from: oklch(0.72 0.19 48);
+  --ds-glow-to: oklch(0.86 0.13 75);
+  --ds-glow-bloom: oklch(0.75 0.18 52 / 0.45);
+  --secondary: oklch(0.955 0.006 80);
+  --secondary-foreground: var(--foreground);
+  --accent: oklch(0.72 0.17 52);
+  --accent-foreground: oklch(0.45 0.13 45);
+  --ds-accent-wash: oklch(0.96 0.035 65);
+  --destructive: oklch(0.56 0.2 25);
+  --ring: oklch(0.72 0.17 52);
+
+  /* Shape */
+  --radius: 1rem;
+  --ds-border-width: 1px;
+  --ds-shadow:
+    0 1px 2px oklch(var(--ds-shadow-ink) / 0.06), 0 1px 1px oklch(var(--ds-shadow-ink) / 0.04);
+  --ds-shadow-thumb:
+    0 2px 5px oklch(var(--ds-shadow-ink) / 0.12), 0 0 0 0.5px oklch(var(--ds-shadow-ink) / 0.12);
+
+  /* Type */
+  --ds-font-heading: ui-rounded, "SF Pro Rounded", "Nunito", ui-sans-serif, system-ui, sans-serif;
+  --ds-font-body: ui-rounded, "SF Pro Rounded", "Nunito", ui-sans-serif, system-ui, sans-serif;
+  --ds-font-mono: ui-monospace, "SF Mono", Menlo, monospace;
+  --ds-heading-tracking: -0.015em;
+
+  /* Motion: quick, and only when something changes */
+  --ds-duration: 140ms;
+  --ds-ease: cubic-bezier(0.16, 1, 0.3, 1);
+
+  background: var(--background);
+  color: var(--foreground);
+  font-family: var(--ds-font-body);
+  font-variant-numeric: tabular-nums;
+}
+
+.ds-clementine .ds-glow {
+  background-image: linear-gradient(to top, var(--ds-glow-from), var(--ds-glow-to));
+  box-shadow:
+    inset 0 1px 0 oklch(1 0 0 / 0.7),
+    inset 0 -1px 0 oklch(0.55 0.16 45 / 0.35),
+    0 6px 18px -6px var(--ds-glow-bloom),
+    0 2px 4px -1px oklch(0.5 0.14 45 / 0.3);
+}
+
+.ds-clementine .ds-glow:hover {
+  box-shadow:
+    inset 0 1px 0 oklch(1 0 0 / 0.75),
+    inset 0 -1px 0 oklch(0.55 0.16 45 / 0.35),
+    0 8px 24px -6px var(--ds-glow-bloom),
+    0 2px 4px -1px oklch(0.5 0.14 45 / 0.3);
+}
+
+.ds-clementine .ds-glow:active {
+  background-image: linear-gradient(to top, oklch(0.68 0.19 46), oklch(0.8 0.15 65));
+}
+
+.ds-clementine .ds-glow:disabled {
+  box-shadow: inset 0 1px 0 oklch(1 0 0 / 0.7);
+}

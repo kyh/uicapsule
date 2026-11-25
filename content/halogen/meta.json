@@ -1,0 +1,13 @@
+{
+  "name": "Halogen",
+  "description": "Square and mono for infrastructure and data tools, with one lamp-lit action.",
+  "addedAt": "2026-11-25",
+  "defaultSize": "full",
+  "tags": ["design-systems"],
+  "inspiredBy": [
+    {
+      "label": "Sodium on design.how",
+      "url": "https://design.how/systems/sodium"
+    }
+  ]
+}

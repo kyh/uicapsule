@@ -1,0 +1,56 @@
+/*
+ * Fjord: cold and calm, for agent and developer tools.
+ * Paper cards on a fog canvas with one frame line. Corners go by role
+ * (4px inside, 6px controls, 10px frames) and round means a person.
+ * Flat everywhere; one dark ink primary per view.
+ */
+.ds-fjord {
+  --ds-ink: oklch(0.21 0.026 258);
+
+  /* Surfaces */
+  --background: oklch(0.975 0.005 248);
+  --foreground: var(--ds-ink);
+  --card: oklch(0.997 0.001 248);
+  --card-foreground: var(--foreground);
+  --muted: oklch(0.955 0.006 252);
+  --muted-foreground: oklch(0.21 0.026 258 / 0.72);
+  --border: oklch(0.9 0.008 252);
+  --input: oklch(0.84 0.012 252);
+
+  /* Intent */
+  --primary: var(--ds-ink);
+  --primary-foreground: oklch(0.99 0.002 248);
+  --secondary: oklch(0.945 0.008 252);
+  --secondary-foreground: var(--foreground);
+  --accent: oklch(0.6 0.11 228);
+  --accent-foreground: oklch(0.38 0.09 232);
+  --ds-accent-wash: oklch(0.955 0.025 228);
+  --destructive: oklch(0.53 0.18 26);
+  --ring: oklch(0.6 0.11 228);
+
+  /* Shape */
+  --radius: 0.625rem;
+  --ds-radius-inner: 4px;
+  --ds-radius-control: 6px;
+  --ds-radius-frame: 10px;
+  --ds-border-width: 1px;
+  --ds-shadow: 0 1px 2px -1px oklch(0.21 0.026 258 / 0.14);
+
+  /* Type */
+  --ds-font-heading: "Inter Variable", "Inter", ui-sans-serif, system-ui, sans-serif;
+  --ds-font-body: "Inter Variable", "Inter", ui-sans-serif, system-ui, sans-serif;
+  --ds-font-mono: "JetBrains Mono", ui-monospace, "SF Mono", Menlo, monospace;
+  --ds-heading-tracking: -0.025em;
+
+  /* Motion: fast, and only when something changes */
+  --ds-duration: 120ms;
+  --ds-ease: cubic-bezier(0.2, 0, 0, 1);
+
+  background: var(--background);
+  color: var(--foreground);
+  font-family: var(--ds-font-body);
+  font-weight: 360;
+  font-feature-settings:
+    "tnum" 1,
+    "zero" 1;
+}

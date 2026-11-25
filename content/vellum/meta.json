@@ -1,0 +1,13 @@
+{
+  "name": "Vellum",
+  "description": "Ink on paper for AI products. Greys are ink at alphas, and glass marks only the action you press next.",
+  "addedAt": "2026-11-25",
+  "defaultSize": "full",
+  "tags": ["design-systems"],
+  "inspiredBy": [
+    {
+      "label": "Glaze on design.how",
+      "url": "https://design.how/systems/glaze"
+    }
+  ]
+}
