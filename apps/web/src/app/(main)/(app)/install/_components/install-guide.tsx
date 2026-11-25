@@ -14,10 +14,10 @@ import { buildProsePageGraph } from "@/lib/agent/structured-data";
 import { Inline } from "../../_components/prose-page";
 import { HeroAction } from "./hero-action";
 
-import type { InstallGuide, ProsePage } from "@/lib/agent/site-pages";
+import type { InstallGuide, PageCopy, ProsePage } from "@/lib/agent/site-pages";
 import type { Metadata } from "next";
 
-export const installMetadata = (guide: InstallGuide) => {
+export const installMetadata = (guide: PageCopy) => {
   const image = shareCardImage(guide.path, guide.title);
 
   return {

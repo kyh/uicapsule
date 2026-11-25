@@ -1244,9 +1244,29 @@ export const mcpPage = installPage(mcpGuide);
 /** `/install/extension`, the install guide for the browser extension in `apps/extension`. */
 export const extensionPage = installPage(extensionGuide);
 
+/** `/install`, the index of the install guides. */
+export const installIndexPage: ProsePage = {
+  blocks: [
+    {
+      items: [mcpGuide, extensionGuide].map((guide) => ({
+        href: guide.path,
+        label: guide.title,
+        text: guide.description,
+      })),
+      kind: "list",
+    },
+  ],
+  description: `Ways to bring ${siteConfig.name} into your tools: an MCP server for your coding agent and a browser extension for requests.`,
+  heading: "Bring UICapsule into your tools.",
+  path: "/install",
+  sitemapPriority: 0.6,
+  title: "Install",
+};
+
 /** Prose pages, in the order they should appear in a sitemap or llms.txt. */
 export const prosePages: ProsePage[] = [
   aboutPage,
+  installIndexPage,
   mcpPage,
   extensionPage,
   contactPage,

@@ -122,7 +122,7 @@ Triage is manual: apply `ready` to accept, close as not-planned to decline. The
 Next imports, no filesystem — so it can be unit-tested without a runtime. The routes and
 `src/proxy.ts` only feed it data.
 
-- **One source per page.** `site-pages.ts` holds the prose for `/about`, `/install/mcp`,
+- **One source per page.** `site-pages.ts` holds the prose for `/about`, `/install`, `/install/mcp`,
   `/install/extension`, `/contact`, `/privacy` and `/terms`; the JSX page and the Markdown
   representation both render from it. The `/install/*` pages are `InstallGuide`s
   (`mcpGuide`, `extensionGuide`): `install/_components/install-guide.tsx` lays the fields out by
