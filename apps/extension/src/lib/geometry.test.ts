@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 
-import { clampToViewport, rectFromPoints, toImagePixels } from "./geometry";
+import { clampToViewport, moveRect, rectFromPoints, resizeRect, toImagePixels } from "./geometry";
 
 const viewport = { height: 800, width: 1200 };
 
@@ -33,5 +33,35 @@ test("viewport pixels scale by the screenshot's own width, not devicePixelRatio"
     width: 200,
     x: 20,
     y: 40,
+  });
+});
+
+test("a moved box stops at the viewport edge", () => {
+  assert.deepEqual(moveRect({ height: 100, width: 100, x: 1050, y: 10 }, 200, -50, viewport), {
+    height: 100,
+    width: 100,
+    x: 1100,
+    y: 0,
+  });
+});
+
+test("dragging a corner past the opposite edge flips the box instead of inverting it", () => {
+  assert.deepEqual(
+    resizeRect({ height: 100, width: 100, x: 100, y: 100 }, "se", -150, 0, viewport),
+    {
+      height: 100,
+      width: 50,
+      x: 50,
+      y: 100,
+    },
+  );
+});
+
+test("an edge handle only moves its own edge", () => {
+  assert.deepEqual(resizeRect({ height: 100, width: 100, x: 100, y: 100 }, "n", 30, 40, viewport), {
+    height: 60,
+    width: 100,
+    x: 100,
+    y: 140,
   });
 });

@@ -11,11 +11,25 @@ export default defineConfig({
   manifest: ({ mode }) => {
     const manifest: UserManifest = {
       action: { default_title: "Request a component" },
+      commands: {
+        _execute_action: {
+          description: "Open UICapsule",
+          suggested_key: { default: "Alt+Shift+U" },
+        },
+        "capture-region": {
+          description: "Capture a region of the page",
+          suggested_key: { default: "Alt+Shift+R" },
+        },
+        "capture-visible": {
+          description: "Capture the visible area",
+          suggested_key: { default: "Alt+Shift+V" },
+        },
+      },
       description: "Select part of any page and request it as a UICapsule component.",
       host_permissions: ["https://www.uicapsule.com/*", "http://localhost/*"],
       name: "UICapsule",
       optional_host_permissions: ["<all_urls>"],
-      permissions: ["activeTab", "scripting", "sidePanel", "storage"],
+      permissions: ["activeTab", "contextMenus", "scripting", "storage"],
       version: "0.1.0",
     };
 

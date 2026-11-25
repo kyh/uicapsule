@@ -1,8 +1,9 @@
+import { captureSchema } from "@repo/contract/request/request-schema";
 import { z } from "zod";
 
-export const pickModeSchema = z.enum(["area", "element"]);
+export const toolSchema = z.enum(["region", "visible"]);
 
-export type PickMode = z.infer<typeof pickModeSchema>;
+export type Tool = z.infer<typeof toolSchema>;
 
 const rectSchema = z.object({
   height: z.number(),
@@ -13,43 +14,63 @@ const rectSchema = z.object({
 
 export type Rect = z.infer<typeof rectSchema>;
 
-export const selectionSchema = z.object({
-  element: z
-    .object({
-      html: z.string(),
-      label: z.string(),
-      selector: z.string(),
-    })
-    .optional(),
-  page: z.object({ title: z.string(), url: z.string() }),
-  rect: rectSchema,
-  video: z
-    .object({
-      kind: z.enum(["file", "stream"]),
-      src: z.string(),
-    })
-    .optional(),
-  viewport: z.object({ height: z.number(), width: z.number() }),
+const viewportSchema = z.object({ height: z.number(), width: z.number() });
+
+export const encodedSchema = z.object({
+  base64: z.string(),
+  name: z.string(),
+  type: z.string(),
 });
 
-export type Selection = z.infer<typeof selectionSchema>;
+export type Encoded = z.infer<typeof encodedSchema>;
 
-export const pickerEventSchema = z.discriminatedUnion("type", [
-  z.object({ selection: selectionSchema, type: z.literal("picker:done") }),
-  z.object({ type: z.literal("picker:cancel") }),
+const draftSchema = z.object({
+  capture: captureSchema,
+  credit: z.object({ name: z.string(), url: z.string() }),
+  description: z.string(),
+  name: z.string(),
+  references: z.array(z.string()),
+});
+
+export type Draft = z.infer<typeof draftSchema>;
+
+/** What the popup and the in-page overlay ask of the background worker. */
+export const workerRequestSchema = z.discriminatedUnion("type", [
+  z.object({ rect: rectSchema, type: z.literal("capture"), viewport: viewportSchema }),
+  z.object({ src: z.string(), type: z.literal("video") }),
+  z.object({ draft: draftSchema, files: z.array(encodedSchema), type: z.literal("submit") }),
+  z.object({ type: z.literal("options") }),
+  z.object({ tabId: z.number(), tool: toolSchema, type: z.literal("run") }),
 ]);
 
-export const pickerCommandSchema = z.discriminatedUnion("type", [
-  z.object({ mode: pickModeSchema, type: z.literal("picker:start") }),
-  z.object({ type: z.literal("picker:stop") }),
-  z.object({ type: z.literal("picker:record") }),
-]);
+export type WorkerRequest = z.infer<typeof workerRequestSchema>;
 
-export type PickerCommand = z.infer<typeof pickerCommandSchema>;
-
-export const recordingSchema = z.discriminatedUnion("ok", [
-  z.object({ dataUrl: z.string(), ok: z.literal(true), type: z.string() }),
+export const fileResultSchema = z.discriminatedUnion("ok", [
+  z.object({ file: encodedSchema, ok: z.literal(true) }),
   z.object({ ok: z.literal(false), reason: z.string() }),
 ]);
 
-export type Recording = z.infer<typeof recordingSchema>;
+export type FileResult = z.infer<typeof fileResultSchema>;
+
+export const submitResultSchema = z.discriminatedUnion("ok", [
+  z.object({ number: z.number().optional(), ok: z.literal(true), url: z.string() }),
+  z.object({ ok: z.literal(false), reason: z.string() }),
+]);
+
+export type SubmitResult = z.infer<typeof submitResultSchema>;
+
+export const runResultSchema = z.discriminatedUnion("ok", [
+  z.object({ ok: z.literal(true) }),
+  z.object({ ok: z.literal(false), reason: z.string() }),
+]);
+
+export type RunResult = z.infer<typeof runResultSchema>;
+
+/** What the background asks of the overlay it injected: pick with a tool, or take what was right-clicked. */
+export const overlayStartSchema = z.object({
+  src: z.string().optional(),
+  tool: z.enum(["media", "region", "visible"]),
+  type: z.literal("overlay:start"),
+});
+
+export type OverlayStart = z.infer<typeof overlayStartSchema>;
