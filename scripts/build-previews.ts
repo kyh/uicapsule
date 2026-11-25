@@ -1,6 +1,6 @@
 #!/usr/bin/env tsx
 import { existsSync } from "node:fs";
-import { mkdir, readFile, readdir, rm, stat, writeFile } from "node:fs/promises";
+import { mkdir, readFile, readdir, rm, stat, watch, writeFile } from "node:fs/promises";
 import path from "node:path";
 import tailwindcss from "@tailwindcss/postcss";
 import { defineCommand, runMain } from "citty";
@@ -194,7 +194,13 @@ const main = defineCommand({
     });
 
     await context.watch();
+
     consola.info(`Watching ${slugs.length} previews (restart to pick up a new content folder)`);
+
+    for await (const _change of watch(themeStylesheet)) {
+      await finishBuild(slugs, dev);
+      consola.info(`Restyled ${slugs.length} previews`);
+    }
   },
 });
 
