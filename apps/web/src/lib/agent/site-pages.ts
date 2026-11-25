@@ -142,10 +142,6 @@ export const aboutPage: ProsePage = {
   blocks: [
     {
       kind: "paragraph",
-      text: "Mostly interactions the web doesn't have yet, borrowed from phones, hardware, and physical objects.",
-    },
-    {
-      kind: "paragraph",
       text: "Over the years I've built and collected UI pieces that caught my eye: thoughtfully crafted details, interactive concepts that feel natural, design experiments that never found a home.",
     },
     {
