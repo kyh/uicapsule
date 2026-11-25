@@ -58,6 +58,7 @@ export const mountToolbar = (onClosed: () => void) => {
   let shot: Encoded | null = null;
   let video: Encoded | null = null;
   let videoWorking = false;
+  let generation = 0;
   let references: string[] = [];
   let snapped: Picked | null = null;
   let toastTimer: ReturnType<typeof setTimeout> | undefined;
@@ -101,7 +102,7 @@ export const mountToolbar = (onClosed: () => void) => {
     layer,
     onChange: (picked) => {
       if (phase === "picking") {
-        bar.action.button.disabled = picked === null;
+        bar.action.button.disabled = picked === null || videoWorking;
       }
     },
   });
@@ -111,6 +112,8 @@ export const mountToolbar = (onClosed: () => void) => {
   };
 
   const startPicking = () => {
+    generation += 1;
+    videoWorking = false;
     phase = "picking";
     shot = null;
     video = null;
@@ -135,6 +138,7 @@ export const mountToolbar = (onClosed: () => void) => {
     }
 
     const source = videoSource(element);
+    const run = generation;
     videoWorking = true;
     updateAction();
     card.setChip("working", "Getting the video…");
@@ -145,9 +149,17 @@ export const mountToolbar = (onClosed: () => void) => {
       result = fileResultSchema.parse(await ask({ src: source.src, type: "video" }));
     }
 
+    if (run !== generation) {
+      return;
+    }
+
     if (!result.ok) {
       card.setChip("working", "Recording a few seconds…");
       result = await recordVideo(element);
+    }
+
+    if (run !== generation) {
+      return;
     }
 
     videoWorking = false;
@@ -207,7 +219,14 @@ export const mountToolbar = (onClosed: () => void) => {
     card.open();
     bar.action.show("check", "Snapped!");
     void attachVideo(picked);
+
+    const run = generation;
     await wait(SNAPPED_HOLD_MS);
+
+    if (run !== generation) {
+      return;
+    }
+
     phase = "editing";
     updateAction();
     bar.action.show("send", "File request");
@@ -253,14 +272,18 @@ export const mountToolbar = (onClosed: () => void) => {
   };
 
   const file = async () => {
+    phase = "filing";
+    updateAction();
+
     const request = await draft();
 
     if (!shot || !validate(request)) {
+      phase = "editing";
+      updateAction();
+
       return;
     }
 
-    phase = "filing";
-    updateAction();
     card.setProblem(null);
     bar.action.show("send", "Filing…");
 
@@ -322,9 +345,11 @@ export const mountToolbar = (onClosed: () => void) => {
 
     if (event.key === "Enter" && selection.picked && !event.composedPath().includes(bar.menu)) {
       event.preventDefault();
+      event.stopPropagation();
       void snap();
     } else if (!fromToolbar && selection.walk(event.key)) {
       event.preventDefault();
+      event.stopPropagation();
     }
   };
 
@@ -335,7 +360,17 @@ export const mountToolbar = (onClosed: () => void) => {
     }
   });
 
-  for (const type of ["keydown", "keyup", "keypress"]) {
+  for (const type of [
+    "click",
+    "dblclick",
+    "keydown",
+    "keypress",
+    "keyup",
+    "mousedown",
+    "mouseup",
+    "pointerdown",
+    "pointerup",
+  ]) {
     host.addEventListener(type, (event) => event.stopPropagation(), { signal });
   }
 

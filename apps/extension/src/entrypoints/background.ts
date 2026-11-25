@@ -105,6 +105,8 @@ const toggleToolbar = async (tabId: number) => {
   try {
     await browser.scripting.executeScript({ files: ["/picker.js"], target: { tabId } });
     await browser.tabs.sendMessage(tabId, { type: "toolbar:toggle" });
+    await browser.action.setBadgeText({ tabId, text: "" });
+    await browser.action.setTitle({ tabId, title: "" });
   } catch {
     await browser.action.setBadgeText({ tabId, text: "!" });
     await browser.action.setTitle({ tabId, title: "UICapsule can't capture this page" });
