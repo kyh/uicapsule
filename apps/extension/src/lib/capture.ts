@@ -1,7 +1,7 @@
 import { ATTACHMENT_MAX_BYTES, ATTACHMENT_TYPES } from "@repo/contract/request/attachment-schema";
 
 import { toImagePixels } from "./geometry";
-import type { Selection } from "./messages";
+import type { Rect } from "./messages";
 
 const isAttachmentType = (type: string): type is keyof typeof ATTACHMENT_TYPES =>
   type in ATTACHMENT_TYPES;
@@ -20,9 +20,9 @@ const loadImage = async (dataUrl: string) => {
 };
 
 /** Crops a screenshot of the visible tab to the selection, shrinking it until it fits the upload cap. */
-export const cropScreenshot = async (dataUrl: string, selection: Selection) => {
+export const cropScreenshot = async (dataUrl: string, rect: Rect, viewportWidth: number) => {
   const image = await loadImage(dataUrl);
-  const crop = toImagePixels(selection.rect, selection.viewport.width, image.width);
+  const crop = toImagePixels(rect, viewportWidth, image.width);
   let scale = 1;
 
   for (;;) {
@@ -118,11 +118,4 @@ export const downloadVideo = async (src: string) => {
   }
 
   return { file: new File([blob], fileName(src, type), { type }), ok: true } as const;
-};
-
-export const dataUrlToFile = async (dataUrl: string, name: string) => {
-  const response = await fetch(dataUrl);
-  const blob = await response.blob();
-
-  return new File([blob], name, { type: blob.type });
 };

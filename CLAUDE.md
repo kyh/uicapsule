@@ -83,12 +83,19 @@ Content is filesystem-driven; the web app never depends on content packages by n
 PATs allowed, repo write access required), capped at 4MB by Vercel's request-body limit.
 Visitor text has `@` neutralized so it can't trigger the `@claude` workflow.
 
-**Browser extension** (`apps/extension`, WXT, scaffolded from kyh/init's): clicking the icon opens
-a side panel. "Select area" / "Pick element" inject `entrypoints/picker.ts` into the active tab
-(`<all_urls>` is an optional host permission, asked for on the first capture); the panel crops
-`captureVisibleTab` to the selection and files through the same `/api/request/attachments` +
-`request.create` as the form, adding `capture` (page URL, element selector, scrubbed HTML) that the
-issue body renders under "Captured from". A picked `<video>` (or the only video inside the picked
+**Browser extension** (`apps/extension`, WXT, scaffolded from kyh/init's) works like Pond's
+(raphaelsalaja/pond): the toolbar icon opens a popup of commands (Capture region, Capture visible
+area, Shortcuts, Settings), mirrored by keyboard commands (⌥⇧R, ⌥⇧V) and the right-click menu,
+which adds "Request from this image/video". Each runs `entrypoints/overlay.ts` in the tab
+(`lib/overlay/`, vanilla DOM in a closed shadow root so no page CSS or framework leaks either way):
+the region picker highlights the element under the pointer, a click snaps to it, a drag draws a
+box, and handles move or resize it before Save/Enter; then a request dialog over the page, then a
+toast. The background crops `captureVisibleTab` to the box; files cross to it as base64
+(`lib/encoding.ts`) and it files through the same `/api/request/attachments` + `request.create` as
+the form, adding `capture` (page URL, element selector, scrubbed HTML) that the issue body renders
+under "Captured from". Selector and HTML exist only for a snapped, unadjusted box. Settings
+(service URL, attach video, include HTML, the optional `<all_urls>` grant video downloads need)
+live on the options page. A picked `<video>` (or the only video inside the picked
 element) is attached as its file when it is ≤4MB and an allowed type; otherwise the page records a
 6s clip via `captureStream` + `MediaRecorder`; if that is refused (cross-origin without CORS, DRM)
 the video URL goes under references. Both routes' Origin guard (`lib/request-origin.ts`) admits

@@ -34,3 +34,41 @@ export const rectFromPoints = (a: { x: number; y: number }, b: { x: number; y: n
     x: Math.min(a.x, b.x),
     y: Math.min(a.y, b.y),
   }) satisfies Rect;
+
+export type Handle = "e" | "n" | "ne" | "nw" | "s" | "se" | "sw" | "w";
+
+export const HANDLES: Handle[] = ["nw", "n", "ne", "e", "se", "s", "sw", "w"];
+
+interface Bounds {
+  height: number;
+  width: number;
+}
+
+const clamp = (value: number, max: number) => Math.min(max, Math.max(0, value));
+
+/** Moves `rect` by a drag delta without letting it leave the viewport. */
+export const moveRect = (rect: Rect, dx: number, dy: number, bounds: Bounds) =>
+  ({
+    ...rect,
+    x: clamp(rect.x + dx, bounds.width - rect.width),
+    y: clamp(rect.y + dy, bounds.height - rect.height),
+  }) satisfies Rect;
+
+/** Drags one edge or corner of `rect`; crossing the opposite edge flips the box. */
+export const resizeRect = (rect: Rect, handle: Handle, dx: number, dy: number, bounds: Bounds) => {
+  const left = rect.x + (handle.includes("w") ? dx : 0);
+  const right = rect.x + rect.width + (handle.includes("e") ? dx : 0);
+  const top = rect.y + (handle.includes("n") ? dy : 0);
+  const bottom = rect.y + rect.height + (handle.includes("s") ? dy : 0);
+
+  const next = rectFromPoints(
+    { x: clamp(left, bounds.width), y: clamp(top, bounds.height) },
+    { x: clamp(right, bounds.width), y: clamp(bottom, bounds.height) },
+  );
+
+  return {
+    ...next,
+    height: Math.max(1, next.height),
+    width: Math.max(1, next.width),
+  } satisfies Rect;
+};
