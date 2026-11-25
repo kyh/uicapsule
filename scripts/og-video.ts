@@ -4,7 +4,6 @@ import { copyFile, mkdir, mkdtemp, readFile, readdir, rm, writeFile } from "node
 import { tmpdir } from "node:os";
 import path from "node:path";
 import { pathToFileURL } from "node:url";
-import { parseEnv } from "node:util";
 import { BlobNotFoundError, head, put } from "@vercel/blob";
 import { defineCommand, runMain } from "citty";
 import { consola } from "consola";
@@ -16,6 +15,7 @@ import {
   coverStillKey,
 } from "../apps/web/src/lib/content/content-schema";
 import type { CoverMedia, HomeMedia } from "../apps/web/src/lib/content/content-schema";
+import { blobToken } from "./blob-token";
 
 const repoRoot = path.resolve(import.meta.dirname, "..");
 const webRoot = path.join(repoRoot, "apps/web");
@@ -29,21 +29,6 @@ const POSTER_AT = 8.3;
 
 const run = (command: string, args: string[]) =>
   execFileSync(command, args, { encoding: "utf-8", maxBuffer: 64 * 1024 * 1024 });
-
-const blobToken = async () => {
-  if (process.env.BLOB_READ_WRITE_TOKEN) {
-    return process.env.BLOB_READ_WRITE_TOKEN;
-  }
-
-  const local = await readFile(path.join(repoRoot, ".env.local"), "utf-8").catch(() => "");
-  const token = parseEnv(local).BLOB_READ_WRITE_TOKEN;
-
-  if (!token) {
-    throw new Error("BLOB_READ_WRITE_TOKEN is unset and missing from .env.local");
-  }
-
-  return token;
-};
 
 const exists = async (key: string, token: string) => {
   try {
@@ -178,7 +163,7 @@ const renderScene = async () => {
     poster,
   ]);
 
-  const token = await blobToken();
+  const token = await blobToken(repoRoot);
   const stem = await freeStem("og/og", "mp4", token);
 
   const media = {
@@ -274,7 +259,7 @@ const probeCovers = async (force: boolean) => {
     .map((entry) => entry.name)
     .toSorted();
 
-  const token = await blobToken();
+  const token = await blobToken(repoRoot);
   const work = await mkdtemp(path.join(tmpdir(), "og-stills-"));
   const previous = force ? new Map<string, CoverMedia>() : await readCoverMedia();
 

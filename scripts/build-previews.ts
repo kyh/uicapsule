@@ -2,47 +2,25 @@
 import { existsSync } from "node:fs";
 import { mkdir, readFile, readdir, rm, stat, watch, writeFile } from "node:fs/promises";
 import path from "node:path";
-import tailwindcss from "@tailwindcss/postcss";
 import { defineCommand, runMain } from "citty";
 import { consola } from "consola";
 import * as esbuild from "esbuild";
-import postcss from "postcss";
 
 import { contentMetaSchema } from "../apps/web/src/lib/content/content-schema";
-import { PREVIEW_SHELL_CLASSES } from "../apps/web/src/lib/content/preview-shell";
+import {
+  ASSET_LOADERS,
+  compilePreviewStylesheet,
+  previewEntry,
+  repoRoot,
+  themeStylesheet,
+  webRoot,
+} from "./preview-bundle";
 
-const repoRoot = path.resolve(import.meta.dirname, "..");
 const contentRoot = path.join(repoRoot, "content");
-const outRoot = path.join(repoRoot, "apps/web/public/previews");
-const runtimeModule = path.join(repoRoot, "apps/web/src/lib/content/preview-runtime.ts");
-const themeStylesheet = path.join(repoRoot, "packages/ui/src/styles/theme.css");
+const outRoot = path.join(webRoot, "public/previews");
 
 const BUILD_ID_FILE = "build.txt";
-const SHELL_CLASSES = Object.values(PREVIEW_SHELL_CLASSES).join(" ");
 const ENTRY_NAMESPACE = "preview-entry";
-
-const ASSET_LOADERS = Object.fromEntries(
-  [
-    "png",
-    "jpg",
-    "jpeg",
-    "gif",
-    "webp",
-    "avif",
-    "svg",
-    "mp4",
-    "webm",
-    "mp3",
-    "wav",
-    "woff",
-    "woff2",
-    "ttf",
-    "otf",
-    "glb",
-    "gltf",
-    "hdr",
-  ].map((extension) => [`.${extension}`, "file" as const]),
-);
 
 const isLocalPreview = async (slug: string) => {
   const meta = await readFile(path.join(contentRoot, slug, "meta.json"), "utf-8")
@@ -82,14 +60,10 @@ const entryPlugin = (dev: boolean) =>
       }));
       // oxlint-disable-next-line require-unicode-regexp -- esbuild filters are Go regexps, which reject the u flag
       build.onLoad({ filter: /.*/, namespace: ENTRY_NAMESPACE }, (args) => {
-        const options = dev ? `, { buildUrl: "/previews/${BUILD_ID_FILE}" }` : "";
+        const previewFile = path.join(contentRoot, args.path, "preview.tsx");
 
         return {
-          contents: [
-            `import Preview from ${JSON.stringify(path.join(contentRoot, args.path, "preview.tsx"))};`,
-            `import { startPreview } from ${JSON.stringify(runtimeModule)};`,
-            `startPreview(Preview${options});`,
-          ].join("\n"),
+          contents: previewEntry(previewFile, dev ? `/previews/${BUILD_ID_FILE}` : undefined),
           loader: "ts",
           resolveDir: path.join(contentRoot, args.path),
         };
@@ -100,16 +74,11 @@ const entryPlugin = (dev: boolean) =>
 const buildStylesheets = async (slugs: string[], dev: boolean) => {
   await Promise.all(
     slugs.map(async (slug) => {
-      const base = path.join(contentRoot, slug);
       const dir = path.join(outRoot, slug);
-
-      const result = await postcss([tailwindcss({ base, optimize: !dev })]).process(
-        `@import ${JSON.stringify(themeStylesheet)};\n@source inline(${JSON.stringify(SHELL_CLASSES)});\n`,
-        { from: path.join(base, "preview.tailwind.css") },
-      );
+      const css = await compilePreviewStylesheet(path.join(contentRoot, slug), !dev);
 
       await mkdir(dir, { recursive: true });
-      await writeFile(path.join(dir, "tailwind.css"), result.css);
+      await writeFile(path.join(dir, "tailwind.css"), css);
 
       if (!existsSync(path.join(dir, "index.css"))) {
         await writeFile(path.join(dir, "index.css"), "");

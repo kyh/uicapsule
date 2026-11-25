@@ -1,3 +1,5 @@
+import { createHash } from "node:crypto";
+
 import { PREVIEW_SANDBOX } from "../preview-protocol";
 
 /** Public path of the bundles `scripts/build-previews.ts` writes for one component. */
@@ -32,9 +34,27 @@ const escapeHtml = (value: string) =>
 const THEME_BOOT =
   'document.documentElement.classList.add(matchMedia("(prefers-color-scheme: dark)").matches?"dark":"light")';
 
-/** The HTML document that boots one component's preview bundle. */
-export const renderPreviewShell = ({ slug, name }: { slug: string; name: string }) => {
-  const base = escapeHtml(previewAssetPath(slug));
+const THEME_BOOT_HASH = `'sha256-${createHash("sha256").update(THEME_BOOT).digest("base64")}'`;
+
+/**
+ * Headers for a user-published preview: the same sandbox, plus a script allowlist of the theme
+ * boot and the one origin its bundle was published to, so the reviewed bundle cannot pull in
+ * code from anywhere else after the fact.
+ */
+export const ugcShellHeaders = (bundleOrigin: string) => ({
+  ...previewShellHeaders,
+  "Cache-Control": "public, max-age=0, s-maxage=60",
+  "Content-Security-Policy": [
+    `sandbox ${PREVIEW_SANDBOX}`,
+    `script-src ${bundleOrigin} ${THEME_BOOT_HASH}`,
+    "object-src 'none'",
+    "base-uri 'none'",
+  ].join("; "),
+});
+
+/** The HTML document that boots one component's preview bundle, read from `base`. */
+export const renderPreviewShell = ({ base, name }: { base: string; name: string }) => {
+  const href = escapeHtml(base);
 
   return [
     "<!doctype html>",
@@ -45,9 +65,9 @@ export const renderPreviewShell = ({ slug, name }: { slug: string; name: string 
     '<meta name="robots" content="noindex, nofollow">',
     `<title>${escapeHtml(name)} · UICapsule preview</title>`,
     `<script>${THEME_BOOT}</script>`,
-    `<link rel="stylesheet" href="${base}/tailwind.css">`,
-    `<link rel="stylesheet" href="${base}/index.css">`,
-    `<script type="module" src="${base}/index.js"></script>`,
+    `<link rel="stylesheet" href="${href}/tailwind.css">`,
+    `<link rel="stylesheet" href="${href}/index.css">`,
+    `<script type="module" src="${href}/index.js"></script>`,
     "</head>",
     `<body class="${PREVIEW_SHELL_CLASSES.body}">`,
     '<div id="root" style="display:contents"></div>',

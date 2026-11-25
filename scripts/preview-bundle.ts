@@ -1,0 +1,60 @@
+import path from "node:path";
+import tailwindcss from "@tailwindcss/postcss";
+import postcss from "postcss";
+
+import { PREVIEW_SHELL_CLASSES } from "../apps/web/src/lib/content/preview-shell";
+
+export const repoRoot = path.resolve(import.meta.dirname, "..");
+export const webRoot = path.join(repoRoot, "apps/web");
+
+export const runtimeModule = path.join(webRoot, "src/lib/content/preview-runtime.ts");
+export const themeStylesheet = path.join(repoRoot, "packages/ui/src/styles/theme.css");
+const SHELL_CLASSES = Object.values(PREVIEW_SHELL_CLASSES).join(" ");
+
+/** Imports that must resolve to the site's own copy, so a preview and its runtime share one React. */
+export const SHARED_PACKAGES = ["react", "react-dom", "motion"] as const;
+
+/** Media and font imports a preview may make; each is emitted as a hashed file beside the bundle. */
+export const ASSET_LOADERS = Object.fromEntries(
+  [
+    "png",
+    "jpg",
+    "jpeg",
+    "gif",
+    "webp",
+    "avif",
+    "svg",
+    "mp4",
+    "webm",
+    "mp3",
+    "wav",
+    "woff",
+    "woff2",
+    "ttf",
+    "otf",
+    "glb",
+    "gltf",
+    "hdr",
+  ].map((extension) => [`.${extension}`, "file" as const]),
+);
+
+/** Source of the generated entry module that boots one preview inside its frame. */
+export const previewEntry = (previewFile: string, buildUrl?: string) => {
+  const options = buildUrl ? `, { buildUrl: ${JSON.stringify(buildUrl)} }` : "";
+
+  return [
+    `import Preview from ${JSON.stringify(previewFile)};`,
+    `import { startPreview } from ${JSON.stringify(runtimeModule)};`,
+    `startPreview(Preview${options});`,
+  ].join("\n");
+};
+
+/** The Tailwind stylesheet for one component directory: theme tokens plus only the classes it uses. */
+export const compilePreviewStylesheet = async (base: string, optimize: boolean) => {
+  const result = await postcss([tailwindcss({ base, optimize })]).process(
+    `@import ${JSON.stringify(themeStylesheet)};\n@source inline(${JSON.stringify(SHELL_CLASSES)});\n`,
+    { from: path.join(base, "preview.tailwind.css") },
+  );
+
+  return result.css;
+};

@@ -22,6 +22,7 @@
       "inputs": [
         "content/**",
         "scripts/build-previews.ts",
+        "scripts/preview-bundle.ts",
         "apps/web/src/lib/content/content-schema.ts",
         "apps/web/src/lib/content/preview-runtime.ts",
         "apps/web/src/lib/content/preview-shell.ts",

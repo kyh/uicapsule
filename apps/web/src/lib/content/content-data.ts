@@ -1,6 +1,6 @@
 import { cacheLife } from "next/cache";
 
-import { resolveCover } from "../assets";
+import { assetUrl, resolveCover } from "../assets";
 import { siteConfig } from "../site-config";
 import {
   buildShadcnRegistryItem,
@@ -9,6 +9,7 @@ import {
   readSourceFiles,
 } from "./content-fs";
 import { readRepoSkill } from "./skills-fs";
+import { parseUgcManifest, ugcBuildKey, ugcManifestKey } from "./ugc-preview";
 
 export const getAllContent = async () => {
   "use cache";
@@ -119,4 +120,24 @@ export const getRepoSkills = async (names: readonly string[]) => {
   cacheLife("max");
 
   return await Promise.all(names.map(readRepoSkill));
+};
+
+/**
+ * A user-published preview from the assets Blob store, or null. Unlike repo content this changes
+ * between deploys, so it caches for minutes, not forever: a new publish shows within a few.
+ */
+export const getUgcPreview = async (slug: string) => {
+  "use cache";
+  cacheLife("minutes");
+
+  const response = await fetch(assetUrl(ugcManifestKey(slug))).catch(() => null);
+  const manifest = response?.ok ? parseUgcManifest(await response.text()) : null;
+
+  if (!manifest) {
+    return null;
+  }
+
+  const base = assetUrl(ugcBuildKey(slug, manifest.build));
+
+  return { base, name: manifest.name, origin: new URL(base).origin };
 };
