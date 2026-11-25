@@ -207,7 +207,8 @@ export const contactPage: ProsePage = {
   title: "Contact",
 };
 
-const LEGAL_DATE = "October 3, 2026";
+const PRIVACY_DATE = "November 24, 2026";
+const TERMS_DATE = "October 3, 2026";
 
 const EMAIL = `[${siteConfig.email}](mailto:${siteConfig.email})`;
 
@@ -245,7 +246,7 @@ const privacySections: ProseBlock[] = [
     "**Contact data**, such as your email address and, if you give it, your name.",
     '**Profile data**, such as the email address and password that you set to establish an online account on the Service, and your display name, which the sign-up form sets to the part of your email address before the "@". We store your password only in hashed form, never in plain text.',
     "**Communications data** based on our exchanges with you, including when you contact us by email.",
-    "**User-generated content and input data**, such as the component requests you file through the Service: the name of the component, a description of what it does, links to where you saw it, the name and link you give for credit, and any images or videos you attach, as well as associated metadata. Metadata includes information on how, when, where and by whom a piece of content was collected and how that content has been formatted or edited. Metadata also includes information that users can add or can have added to their content, such as keywords, geographical or location information, and other similar data. Files you attach are uploaded as you provide them, with their file names and any metadata they contain, as soon as you add them to the form, even if you do not go on to file the request.",
+    "**User-generated content and input data**, such as the component requests you file through the Service: the name of the component, a description of what it does, links to where you saw it, the name and link you give for credit, and any images or videos you attach, as well as associated metadata. Metadata includes information on how, when, where and by whom a piece of content was collected and how that content has been formatted or edited. Metadata also includes information that users can add or can have added to their content, such as keywords, geographical or location information, and other similar data. Files you attach are uploaded as you provide them, with their file names and any metadata they contain, as soon as you add them to the form, even if you do not go on to file the request. If you file a request with our browser extension, it also includes the address of the page you captured it from, a screenshot of the area or element you selected and, when you pick an element, its HTML and a CSS selector that locates it. When the element is a video, the extension attaches a copy of the video file, or a recording of a few seconds of it, as one of your files. The extension reads a page only after you start a selection on it, and only the tab you start it in.",
     "**Other data** not specifically listed here, which we will use as described in this Privacy Policy or as otherwise disclosed at the time of collection.",
   ),
   p(
@@ -275,7 +276,7 @@ const privacySections: ProseBlock[] = [
   ),
   bullets(
     "**Essential.** If you sign in, we set a first-party cookie that keeps you signed in. Sessions are cookie-based; the cookie exists to keep you signed in and does nothing else. If you block or delete it, you are signed out and cannot sign in, but every other part of the Service still works.",
-    "**Functionality / performance.** If you pick a light, dark or system theme, your choice is kept in your browser's local storage, a form of browser web storage that we set as a first party. It never leaves your device. If you clear it, the Service follows your device's theme.",
+    "**Functionality / performance.** If you pick a light, dark or system theme, your choice is kept in your browser's local storage, a form of browser web storage that we set as a first party. It never leaves your device. If you clear it, the Service follows your device's theme. Our browser extension keeps the address of the Service it files requests with, and the name and link you give for credit, in the extension's own storage on your device, so you do not have to type them again.",
     "**Analytics.** We use Vercel Web Analytics, provided by Vercel, to record page views for aggregate statistics. It is served from the Service's own domain, sets no cookies and builds no cross-site profile of you: Vercel identifies a visitor by a hash created from the incoming request rather than by a cookie, and discards it after 24 hours (see [Vercel's Web Analytics privacy documentation](https://vercel.com/docs/analytics/privacy-policy)). When an AI agent searches for or looks up a component through our MCP server, we record the search text, or the component looked up, as a Vercel Web Analytics event too. A content blocker can block Vercel Web Analytics without affecting the Service.",
   ),
   p(
@@ -733,7 +734,7 @@ const privacySections: ProseBlock[] = [
 
 export const privacyPage: ProsePage = {
   blocks: [
-    p(`Effective as of ${LEGAL_DATE}.`),
+    p(`Effective as of ${PRIVACY_DATE}.`),
     p(
       `To view previous versions of this Privacy Policy, see [its history on GitHub](${siteConfig.repository}/commits/main/apps/web/src/lib/agent/site-pages.ts).`,
     ),
@@ -741,7 +742,7 @@ export const privacyPage: ProsePage = {
       `**California Notice at Collection/State Privacy Rights Notice**: See the ${anchorTo(privacySection.state)} section below for important information about your rights under applicable state privacy laws.`,
     ),
     p(
-      'Kaiyu Hsu ("**UICapsule**," "**we**," "**us**" or "**our**") provides UICapsule, a curated gallery of open-source UI components. This Privacy Policy describes how UICapsule processes personal information that we collect through our digital or online properties or services that link to this Privacy Policy (including, as applicable, our website at www.uicapsule.com, our shadcn component registry and our MCP server) and the other activities described in this Privacy Policy (collectively, the "**Service**").',
+      'Kaiyu Hsu ("**UICapsule**," "**we**," "**us**" or "**our**") provides UICapsule, a curated gallery of open-source UI components. This Privacy Policy describes how UICapsule processes personal information that we collect through our digital or online properties or services that link to this Privacy Policy (including, as applicable, our website at www.uicapsule.com, our shadcn component registry, our MCP server and our browser extension) and the other activities described in this Privacy Policy (collectively, the "**Service**").',
     ),
     p(
       `**Notice to European users**: Please see the ${anchorTo(privacySection.europe)} section below for additional information for individuals located in the European Economic Area or United Kingdom (which we refer to as "**Europe**", and "**European**" should be understood accordingly).`,
@@ -764,7 +765,7 @@ export const privacyPage: ProsePage = {
 
 export const termsPage: ProsePage = {
   blocks: [
-    p(`**Version 1.0 Last revised:** ${LEGAL_DATE}`),
+    p(`**Version 1.0 Last revised:** ${TERMS_DATE}`),
     p(
       'The website located at www.uicapsule.com, together with its shadcn component registry and MCP server (collectively, the "**Site**") is owned and operated by Kaiyu Hsu ("**UICapsule**," "**us**," "**our**," or "**we**"). Certain features of the Site may be subject to additional guidelines or rules posted on the Site, which are incorporated by reference into these Terms.',
     ),

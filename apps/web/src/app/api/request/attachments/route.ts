@@ -2,10 +2,10 @@ import type { NextRequest } from "next/server";
 import { attachmentMetaSchema } from "@repo/contract/request/attachment-schema";
 import { AttachmentUploadError, uploadAttachment } from "@repo/service/request/github-attachment";
 
-export const POST = async (req: NextRequest) => {
-  const origin = req.headers.get("origin");
+import { isAllowedOrigin } from "@/lib/request-origin";
 
-  if (origin !== null && origin !== new URL(req.url).origin) {
+export const POST = async (req: NextRequest) => {
+  if (!isAllowedOrigin(req)) {
     return new Response("Cross-origin request blocked.", { status: 403 });
   }
 
