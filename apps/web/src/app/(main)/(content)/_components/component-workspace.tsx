@@ -2,30 +2,24 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import dynamic from "next/dynamic";
-import { useTheme } from "next-themes";
 import {
   ArrowLeftIcon,
   ArrowRightIcon,
-  CopyIcon,
   ExternalLinkIcon,
   MonitorIcon,
-  MoonIcon,
-  PanelLeftIcon,
-  PanelRightIcon,
-  RotateCwIcon,
   SmartphoneIcon,
+  SquareDashedMousePointerIcon,
   SquareTerminalIcon,
-  SunIcon,
   TabletIcon,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
-import { Switch } from "@repo/ui/components/switch";
+import { Tabs, TabsIndicator, TabsList, TabsTrigger } from "@repo/ui/components/tabs";
 import { cn } from "cn";
 
 import type { ContentComponentSummary, DefaultSize } from "@/lib/content/content-schema";
 import { siteConfig } from "@/lib/site-config";
 import { ComponentNav, groupComponents } from "./component-nav";
-import { InfoPanel, useCopyInstall } from "./info-panel";
+import { InfoPanel } from "./info-panel";
 import { PanelHandle } from "./panel-handle";
 import { panelLayoutScript, usePanelLayout } from "./panel-layout";
 import { PREVIEW_WIDTH, PreviewStage } from "./preview-stage";
@@ -55,29 +49,7 @@ const slugFromPath = (pathname: string) =>
 
 const Divider = () => <span aria-hidden className="bg-border mx-1 h-4 w-px" />;
 
-const CopyInstallButton = ({ slug }: { slug: string }) => {
-  const { copy } = useCopyInstall(slug);
-
-  return (
-    <ToolbarButton label="Copy install command" onClick={copy}>
-      <CopyIcon />
-    </ToolbarButton>
-  );
-};
-
-const ThemeButton = () => {
-  const { resolvedTheme, setTheme } = useTheme();
-
-  return (
-    <ToolbarButton
-      label="Toggle theme"
-      onClick={() => setTheme(resolvedTheme === "dark" ? "light" : "dark")}
-    >
-      <MoonIcon className="dark:hidden" />
-      <SunIcon className="hidden dark:block" />
-    </ToolbarButton>
-  );
-};
+const PANEL_EASE = "ease-[cubic-bezier(0.23,1,0.32,1)]";
 
 interface ComponentWorkspaceProps {
   initialSlug: string;
@@ -86,12 +58,16 @@ interface ComponentWorkspaceProps {
 
 export const ComponentWorkspace = ({ initialSlug, feed }: ComponentWorkspaceProps) => {
   const { layout, ref, setPanel, togglePanel } = usePanelLayout();
+  const [codeMounted, setCodeMounted] = useState(layout.code.open);
   const [dragging, setDragging] = useState(false);
   const [activeSlug, setActiveSlug] = useState(initialSlug);
   const [prevInitialSlug, setPrevInitialSlug] = useState(initialSlug);
   const [inspect, setInspect] = useState(false);
-  const [reloadKey, setReloadKey] = useState(0);
   const [widths, setWidths] = useState<Record<string, number>>({});
+
+  if (layout.code.open && !codeMounted) {
+    setCodeMounted(true);
+  }
 
   if (prevInitialSlug !== initialSlug) {
     setPrevInitialSlug(initialSlug);
@@ -192,13 +168,15 @@ export const ComponentWorkspace = ({ initialSlug, feed }: ComponentWorkspaceProp
         id={WORKSPACE_ID}
         data-dragging={dragging || undefined}
         className={cn(
-          "flex flex-col border-t [--code-h:280px] [--info-w:340px] [--nav-w:232px] md:grid md:h-[calc(100dvh-(--spacing(16)))] md:grid-cols-[var(--nav-w)_minmax(0,1fr)_var(--info-w)] md:grid-rows-[minmax(0,1fr)] md:overflow-hidden",
-          "data-dragging:select-none data-dragging:[&_iframe]:pointer-events-none",
+          "flex flex-col border-t [--code-h:280px] [--code-size:280px] [--info-size:340px] [--info-w:340px] [--nav-size:232px] [--nav-w:232px] md:grid md:h-[calc(100dvh-(--spacing(16)))] md:grid-cols-[var(--nav-w)_minmax(0,1fr)_var(--info-w)] md:grid-rows-[minmax(0,1fr)] md:overflow-hidden",
+          "md:transition-[grid-template-columns] md:duration-300 motion-reduce:transition-none",
+          PANEL_EASE,
+          "data-dragging:select-none data-dragging:transition-none data-dragging:[&_*]:transition-none! data-dragging:[&_iframe]:pointer-events-none",
         )}
       >
         <aside aria-label="Component list" className="relative hidden min-w-0 md:block">
           <div inert={!layout.nav.open} className="h-full overflow-hidden border-r">
-            <div className="h-full w-(--nav-w)">
+            <div className="h-full w-(--nav-size)">
               <ComponentNav feed={feed} activeSlug={active.slug} onSelect={select} />
             </div>
           </div>
@@ -214,43 +192,37 @@ export const ComponentWorkspace = ({ initialSlug, feed }: ComponentWorkspaceProp
         <div className="flex min-w-0 flex-col max-md:contents md:min-h-0">
           <div className="flex h-12 shrink-0 items-center gap-1 overflow-x-auto px-2 [scrollbar-width:none] md:px-3">
             <ToolbarButton
-              label={layout.nav.open ? "Hide component list" : "Show component list"}
-              pressed={layout.nav.open}
-              className="max-md:hidden"
-              onClick={() => togglePanel("nav")}
+              label={inspect ? "Stop inspecting" : "Inspect elements"}
+              pressed={inspect}
+              disabled={active.type === "remote"}
+              onClick={() => setInspect((on) => !on)}
             >
-              <PanelLeftIcon />
+              <SquareDashedMousePointerIcon />
             </ToolbarButton>
-            <label
-              htmlFor="inspect-toggle"
-              className={cn(
-                "text-muted-foreground flex h-7 shrink-0 items-center gap-2 rounded-md px-2 text-sm",
-                active.type === "remote" && "opacity-50",
-              )}
-            >
-              <Switch
-                id="inspect-toggle"
-                checked={inspect}
-                disabled={active.type === "remote"}
-                onCheckedChange={setInspect}
-              />
-              Inspect
-            </label>
             <div className="ml-auto flex shrink-0 items-center gap-0.5">
-              <div className="flex items-center gap-0.5 max-md:hidden">
-                {WIDTH_PRESETS.map(({ size, label, Icon }) => (
-                  <ToolbarButton
-                    key={size}
-                    label={label}
-                    pressed={preset === size}
-                    onClick={() => onWidthChange(PREVIEW_WIDTH[size])}
-                  >
-                    <Icon />
-                  </ToolbarButton>
-                ))}
-                <Divider />
-              </div>
-              {active.type === "local" && <CopyInstallButton slug={active.slug} />}
+              <Tabs
+                value={preset ?? null}
+                className="max-md:hidden"
+                onValueChange={(size: DefaultSize) => onWidthChange(PREVIEW_WIDTH[size])}
+              >
+                <TabsList
+                  aria-label="Preview width"
+                  className="relative h-7 gap-0.5 bg-transparent p-0"
+                >
+                  <TabsIndicator className="bg-accent rounded-md shadow-none" />
+                  {WIDTH_PRESETS.map(({ size, label, Icon }) => (
+                    <TabsTrigger
+                      key={size}
+                      value={size}
+                      aria-label={label}
+                      className="text-muted-foreground hover:text-foreground data-active:text-foreground relative size-7 flex-none rounded-md border-0 p-0"
+                    >
+                      <Icon className="size-4" />
+                    </TabsTrigger>
+                  ))}
+                </TabsList>
+              </Tabs>
+              <Divider />
               <ToolbarButton
                 label={prev ? `Previous: ${prev.name}` : "Previous"}
                 disabled={!prev}
@@ -272,11 +244,8 @@ export const ComponentWorkspace = ({ initialSlug, feed }: ComponentWorkspaceProp
               >
                 <SquareTerminalIcon />
               </ToolbarButton>
-              <ToolbarButton label="Reload preview" onClick={() => setReloadKey((k) => k + 1)}>
-                <RotateCwIcon />
-              </ToolbarButton>
               <ToolbarButton
-                label="Open preview in new tab"
+                label="Open in new tab"
                 nativeButton={false}
                 render={
                   // oxlint-disable-next-line jsx-a11y/control-has-associated-label -- Base UI render prop; the Button's children become the anchor's content
@@ -285,15 +254,6 @@ export const ComponentWorkspace = ({ initialSlug, feed }: ComponentWorkspaceProp
               >
                 <ExternalLinkIcon />
               </ToolbarButton>
-              <ThemeButton />
-              <Divider />
-              <ToolbarButton
-                label={layout.info.open ? "Hide details" : "Show details"}
-                pressed={layout.info.open}
-                onClick={() => togglePanel("info")}
-              >
-                <PanelRightIcon />
-              </ToolbarButton>
             </div>
           </div>
 
@@ -301,7 +261,6 @@ export const ComponentWorkspace = ({ initialSlug, feed }: ComponentWorkspaceProp
             <PreviewStage
               component={active}
               inspect={inspect}
-              reloadKey={reloadKey}
               width={width}
               onWidthChange={onWidthChange}
             />
@@ -309,8 +268,9 @@ export const ComponentWorkspace = ({ initialSlug, feed }: ComponentWorkspaceProp
 
           <div
             className={cn(
-              "relative shrink-0 max-md:order-last md:h-(--code-h) md:max-h-[calc(100%-(--spacing(40)))]",
-              layout.code.open ? "h-[60dvh] border-t" : "max-md:hidden",
+              "relative shrink-0 max-md:order-last md:h-(--code-h) md:max-h-[calc(100dvh-(--spacing(56)))] md:border-t md:transition-[height] md:duration-300 motion-reduce:transition-none",
+              PANEL_EASE,
+              layout.code.open ? "max-md:h-[60dvh] max-md:border-t" : "max-md:hidden",
             )}
           >
             <PanelHandle
@@ -320,9 +280,11 @@ export const ComponentWorkspace = ({ initialSlug, feed }: ComponentWorkspaceProp
               onDraggingChange={setDragging}
               className="-top-1"
             />
-            {layout.code.open && (
-              <div className="h-full overflow-hidden">
-                <CodeDock component={active} onClose={() => setPanel("code", { open: false })} />
+            {codeMounted && (
+              <div inert={!layout.code.open} className="h-full overflow-hidden">
+                <div className="h-full md:h-(--code-size) md:max-h-[calc(100dvh-(--spacing(56)))]">
+                  <CodeDock component={active} onClose={() => setPanel("code", { open: false })} />
+                </div>
               </div>
             )}
           </div>
@@ -336,7 +298,7 @@ export const ComponentWorkspace = ({ initialSlug, feed }: ComponentWorkspaceProp
           )}
         >
           <div inert={!layout.info.open} className="h-full overflow-hidden md:border-l">
-            <div className="h-full overflow-y-auto md:w-(--info-w)">
+            <div className="h-full overflow-y-auto md:w-(--info-size)">
               <InfoPanel key={active.slug} component={active} />
             </div>
           </div>

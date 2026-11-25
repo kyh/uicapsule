@@ -10,12 +10,13 @@ interface PanelBounds {
   max: number;
   initial: number;
   cssVar: `--${string}`;
+  sizeVar: `--${string}`;
 }
 
 export const PANEL_BOUNDS = {
-  code: { cssVar: "--code-h", initial: 280, max: 720, min: 140 },
-  info: { cssVar: "--info-w", initial: 340, max: 560, min: 280 },
-  nav: { cssVar: "--nav-w", initial: 232, max: 400, min: 184 },
+  code: { cssVar: "--code-h", initial: 280, max: 720, min: 140, sizeVar: "--code-size" },
+  info: { cssVar: "--info-w", initial: 340, max: 560, min: 280, sizeVar: "--info-size" },
+  nav: { cssVar: "--nav-w", initial: 232, max: 400, min: 184, sizeVar: "--nav-size" },
 } satisfies Record<PanelId, PanelBounds>;
 
 const PANEL_IDS = ["nav", "info", "code"] as const satisfies readonly PanelId[];
@@ -86,7 +87,7 @@ export const panelLayoutScript = (elementId: string) => {
     key: STORAGE_KEY,
   }).replaceAll("<", String.raw`<`);
 
-  return `(function(){try{var c=${config};var e=document.getElementById(c.id);var s=JSON.parse(localStorage.getItem(c.key)||"null");if(!e||!s)return;for(var k in c.bounds){var b=c.bounds[k];var p=s[k];if(!p||typeof p.size!=="number")continue;var v=p.open===false?0:Math.round(Math.min(b.max,Math.max(b.min,p.size)));e.style.setProperty(b.cssVar,v+"px");}}catch(_){}})();`;
+  return `(function(){try{var c=${config};var e=document.getElementById(c.id);var s=JSON.parse(localStorage.getItem(c.key)||"null");if(!e||!s)return;for(var k in c.bounds){var b=c.bounds[k];var p=s[k];if(!p||typeof p.size!=="number")continue;var z=Math.round(Math.min(b.max,Math.max(b.min,p.size)));e.style.setProperty(b.sizeVar,z+"px");e.style.setProperty(b.cssVar,(p.open===false?0:z)+"px");}}catch(_){}})();`;
 };
 
 const listeners = new Set<() => void>();
@@ -157,6 +158,7 @@ export const usePanelLayout = () => {
     }
 
     for (const id of PANEL_IDS) {
+      element.style.setProperty(PANEL_BOUNDS[id].sizeVar, `${layout[id].size}px`);
       element.style.setProperty(PANEL_BOUNDS[id].cssVar, panelCssValue(layout[id]));
     }
   }, [hydrated, layout]);

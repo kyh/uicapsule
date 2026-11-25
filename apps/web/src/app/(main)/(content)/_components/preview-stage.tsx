@@ -143,18 +143,11 @@ export const PREVIEW_WIDTH = { full: 4000, md: 720, sm: 375 } as const;
 interface PreviewStageProps {
   component: ContentComponentSummary;
   inspect: boolean;
-  reloadKey: number;
   width: number;
   onWidthChange: (width: number) => void;
 }
 
-const PreviewStageBase = ({
-  component,
-  inspect,
-  reloadKey,
-  width,
-  onWidthChange,
-}: PreviewStageProps) => {
+const PreviewStageBase = ({ component, inspect, width, onWidthChange }: PreviewStageProps) => {
   const wrapperRef = useRef<HTMLDivElement>(null);
   const box = useInspector(inspect && component.type === "local", wrapperRef);
 
@@ -172,7 +165,7 @@ const PreviewStageBase = ({
       >
         <div className="bg-background h-full w-full overflow-hidden rounded-lg border">
           <MediaReveal
-            key={`${component.slug}:${reloadKey}`}
+            key={component.slug}
             className="h-full w-full"
             iframe={{ src, title: component.name, type: component.type }}
           />

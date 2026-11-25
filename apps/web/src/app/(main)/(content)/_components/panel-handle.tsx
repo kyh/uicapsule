@@ -1,13 +1,31 @@
 "use client";
 
-import { useRef } from "react";
+import { useRef, useState } from "react";
 import type { KeyboardEvent, PointerEvent } from "react";
+import { motion, useReducedMotion, useSpring } from "motion/react";
 import { cn } from "cn";
 
 import { PANEL_BOUNDS, clampPanel } from "./panel-layout";
 import type { PanelId, PanelState } from "./panel-layout";
 
 const KEYBOARD_STEP = 24;
+
+const GRIP_SPRING = { damping: 49, mass: 1, stiffness: 600 };
+const GRIP_HALF = 16;
+
+const GRIP_SCALE = { damping: 30, stiffness: 400, type: "spring" } as const;
+
+const GRIP_TRANSITION = {
+  opacity: { duration: 0.15, ease: "easeOut" },
+  scaleX: GRIP_SCALE,
+  scaleY: GRIP_SCALE,
+} as const;
+
+const GRIP_CLASS = {
+  code: "bottom-1/2 left-0 mb-0.75 h-1 w-8",
+  info: "top-0 right-1/2 mr-0.75 h-8 w-1",
+  nav: "top-0 left-1/2 ml-0.75 h-8 w-1",
+} satisfies Record<PanelId, string>;
 
 const DIRECTION = { code: -1, info: -1, nav: 1 } satisfies Record<PanelId, 1 | -1>;
 
@@ -39,11 +57,28 @@ export const PanelHandle = ({
   className,
 }: PanelHandleProps) => {
   const start = useRef<{ pointer: number; size: number } | null>(null);
+  const [hovered, setHovered] = useState(false);
+  const [dragging, setDragging] = useState(false);
+  const reducedMotion = useReducedMotion();
+  const grip = useSpring(0, GRIP_SPRING);
   const vertical = panel !== "code";
   const bounds = PANEL_BOUNDS[panel];
 
   const pointerOf = (event: PointerEvent<HTMLDivElement>) =>
     vertical ? event.clientX : event.clientY;
+
+  const trackGrip = (event: PointerEvent<HTMLDivElement>, jump: boolean) => {
+    const rect = event.currentTarget.getBoundingClientRect();
+    const along = vertical ? event.clientY - rect.top : event.clientX - rect.left;
+    const length = vertical ? rect.height : rect.width;
+    const next = Math.min(length - GRIP_HALF, Math.max(GRIP_HALF, along));
+
+    if (jump || reducedMotion) {
+      grip.jump(next);
+    } else {
+      grip.set(next);
+    }
+  };
 
   const onPointerDown = (event: PointerEvent<HTMLDivElement>) => {
     if (event.button !== 0) {
@@ -53,10 +88,13 @@ export const PanelHandle = ({
     event.preventDefault();
     event.currentTarget.setPointerCapture(event.pointerId);
     start.current = { pointer: pointerOf(event), size: state.open ? state.size : 0 };
+    setDragging(true);
     onDraggingChange(true);
   };
 
   const onPointerMove = (event: PointerEvent<HTMLDivElement>) => {
+    trackGrip(event, false);
+
     if (!start.current) {
       return;
     }
@@ -74,6 +112,7 @@ export const PanelHandle = ({
 
   const onLostPointerCapture = () => {
     start.current = null;
+    setDragging(false);
     onDraggingChange(false);
   };
 
@@ -109,26 +148,41 @@ export const PanelHandle = ({
       aria-valuenow={state.open ? state.size : 0}
       aria-valuemin={0}
       aria-valuemax={bounds.max}
-      title="Drag to resize, double-click to collapse"
+      data-dragging={dragging || undefined}
       className={cn(
-        "group/handle absolute z-20 hidden touch-none outline-none md:block",
-        vertical ? "inset-y-0 w-2 cursor-col-resize" : "inset-x-0 h-2 cursor-row-resize",
+        "absolute z-20 hidden touch-none outline-none select-none md:block",
+        "after:bg-primary after:absolute after:opacity-0 after:transition-opacity after:duration-150 after:ease-out after:content-[''] hover:after:opacity-100 focus-visible:after:opacity-100 data-dragging:after:opacity-100 motion-reduce:after:transition-none",
+        vertical
+          ? "inset-y-0 w-2 cursor-ew-resize after:inset-y-0 after:left-1/2 after:w-px after:-translate-x-1/2"
+          : "inset-x-0 h-2 cursor-ns-resize after:inset-x-0 after:top-1/2 after:h-px after:-translate-y-1/2",
         className,
       )}
+      onPointerEnter={(event) => {
+        trackGrip(event, true);
+        setHovered(true);
+      }}
+      onPointerLeave={() => setHovered(false)}
       onPointerDown={onPointerDown}
       onPointerMove={onPointerMove}
       onLostPointerCapture={onLostPointerCapture}
       onDoubleClick={() => onChange(panel, { open: !state.open })}
       onKeyDown={onKeyDown}
     >
-      <span
+      <motion.span
         aria-hidden
-        className={cn(
-          "bg-primary/0 group-hover/handle:bg-primary/60 group-focus-visible/handle:bg-primary group-active/handle:bg-primary absolute transition-colors delay-75",
+        className={cn("bg-primary pointer-events-none absolute rounded-full", GRIP_CLASS[panel])}
+        style={
           vertical
-            ? "inset-y-0 left-1/2 w-0.5 -translate-x-1/2"
-            : "inset-x-0 top-1/2 h-0.5 -translate-y-1/2",
-        )}
+            ? { marginTop: -GRIP_HALF, originY: 0.5, y: grip }
+            : { marginLeft: -GRIP_HALF, originX: 0.5, x: grip }
+        }
+        initial={false}
+        animate={
+          hovered || dragging
+            ? { opacity: 1, scaleX: 1, scaleY: 1 }
+            : { opacity: 0, scaleX: vertical ? 1 : 0.6, scaleY: vertical ? 0.6 : 1 }
+        }
+        transition={GRIP_TRANSITION}
       />
     </div>
   );

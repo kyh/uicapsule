@@ -92,7 +92,7 @@ const ComponentNavBase = ({ feed, activeSlug, onSelect }: ComponentNavProps) => 
                       aria-current={active ? "page" : undefined}
                       className={cn(
                         "text-muted-foreground hover:text-foreground hover:bg-accent/60 relative flex h-7 items-center rounded-md px-2 text-sm transition-colors",
-                        active && "text-foreground bg-accent/60 font-medium",
+                        active && "text-primary hover:text-primary",
                       )}
                       onClick={(event) => {
                         if (!isPlainClick(event)) {
