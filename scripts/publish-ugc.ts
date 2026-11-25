@@ -17,9 +17,9 @@ const bundle = async (dir: string, assetBase: string) => {
 
   const result = await esbuild.build({
     absWorkingDir: dir,
-    assetNames: "assets/[name]-[hash]",
+    assetNames: "assets/[hash]",
     bundle: true,
-    chunkNames: "chunks/[name]-[hash]",
+    chunkNames: "chunks/[hash]",
     define: { "process.env.NODE_ENV": JSON.stringify("production") },
     entryPoints: { index: path.join(dir, "preview.tsx") },
     external: [...UGC_SHARED_MODULES],

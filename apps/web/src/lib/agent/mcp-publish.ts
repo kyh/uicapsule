@@ -19,7 +19,7 @@ export const bundleRules = (assetBase: string) => ({
     ...UGC_SHARED_MODULES.filter((name) => !name.includes("/")).map((name) => `--external:${name}`),
     `--define:process.env.NODE_ENV='"production"'`,
     `--public-path=${assetBase}`,
-    "--loader:.png=file --loader:.svg=file --loader:.woff2=file",
+    "--loader:.png=file --loader:.svg=file --loader:.woff2=file --asset-names=assets/[hash]",
     "&& touch dist/index.css",
   ].join(" "),
   rules: [
@@ -27,7 +27,7 @@ export const bundleRules = (assetBase: string) => ({
     `Leave exactly these imports external; the frame supplies one shared copy of each, React 19: ${UGC_SHARED_MODULES.join(", ")}. Bundle every other dependency in.`,
     "Build for production with the automatic JSX runtime. The frame has no Node globals, so define process.env.NODE_ENV.",
     "dist/index.css holds every style the component needs (compile Tailwind into it if you use it). It may be empty, but it must exist. The frame already loads Tailwind's preflight and the site's theme tokens, and toggles a light or dark class on <html>.",
-    `Any other file (code-split chunks, images, fonts) may sit beside them in up to four folders. The bundle must load them by absolute URL under assetBase, so set the bundler's public path to ${assetBase}.`,
+    `Any other file (code-split chunks, images, fonts) may sit beside them in up to four folders. The bundle must load them by absolute URL under assetBase, so set the bundler's public path to ${assetBase}. File and folder names may use only letters, digits, dots, dashes and underscores, so name emitted files by content hash rather than by source file name.`,
     `Each file is at most ${megabytes(UGC_MAX_FILE_BYTES)}. Scripts run only from the frame's own host and the build's storage host, with no cookies or storage, so the component cannot fetch code from anywhere else.`,
   ],
 });
