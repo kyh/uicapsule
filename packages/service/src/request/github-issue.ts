@@ -31,6 +31,37 @@ const formatCredit = ({ name, url }: ComponentRequest["credit"]) => {
   return `[${neutralizeMentions(name)}](${neutralizeMentions(url)})`;
 };
 
+const backticksAround = (text: string, minimum: number) => {
+  const longestRun = Math.max(0, ...Array.from(text.matchAll(/`+/gu), (match) => match[0].length));
+
+  return "`".repeat(Math.max(minimum, longestRun + 1));
+};
+
+const formatCapture = ({ html, selector, url }: NonNullable<ComponentRequest["capture"]>) => {
+  const lines = [`- Page: ${neutralizeMentions(url)}`];
+
+  if (selector) {
+    const ticks = backticksAround(selector, 1);
+    lines.push(`- Element: ${ticks} ${neutralizeMentions(selector)} ${ticks}`);
+  }
+
+  if (html) {
+    const ticks = backticksAround(html, 3);
+    lines.push(
+      "",
+      "<details><summary>Element HTML</summary>",
+      "",
+      `${ticks}html`,
+      neutralizeMentions(html),
+      ticks,
+      "",
+      "</details>",
+    );
+  }
+
+  return ["### Captured from", "", ...lines, ""];
+};
+
 export const buildIssueBody = (request: ComponentRequest) => {
   const references =
     request.references.length > 0
@@ -61,8 +92,11 @@ export const buildIssueBody = (request: ComponentRequest) => {
     "",
     credit,
     "",
+    ...(request.capture ? formatCapture(request.capture) : []),
     "---",
-    "_Filed from the request form on uicapsule.com._",
+    request.capture
+      ? "_Filed from the UICapsule browser extension._"
+      : "_Filed from the request form on uicapsule.com._",
   ].join("\n");
 };
 

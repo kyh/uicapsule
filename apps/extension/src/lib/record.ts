@@ -1,0 +1,96 @@
+import { ATTACHMENT_MAX_BYTES } from "@repo/contract/request/attachment-schema";
+
+import type { Recording } from "./messages";
+
+const RECORD_MS = 6000;
+const VIDEO_BITS_PER_SECOND = 2_500_000;
+const MIME_TYPES = ["video/webm;codecs=vp9", "video/webm;codecs=vp8", "video/webm", "video/mp4"];
+
+const toDataUrl = (blob: Blob) =>
+  // oxlint-disable-next-line promise/avoid-new -- FileReader is event-based; there is no promise form to await
+  new Promise<string>((resolve, reject) => {
+    const reader = new FileReader();
+    reader.addEventListener("load", () => resolve(String(reader.result)));
+    reader.addEventListener("error", () => reject(reader.error ?? new Error("Unreadable clip")));
+    reader.readAsDataURL(blob);
+  });
+
+const stopAfter = (recorder: MediaRecorder, video: HTMLVideoElement, ms: number) =>
+  // oxlint-disable-next-line promise/avoid-new -- MediaRecorder signals its end with an event, not a promise
+  new Promise<void>((resolve) => {
+    const stop = () => {
+      if (recorder.state !== "inactive") {
+        recorder.stop();
+      }
+    };
+
+    const timer = setTimeout(stop, ms);
+    video.addEventListener("ended", stop, { once: true });
+    recorder.addEventListener(
+      "stop",
+      () => {
+        clearTimeout(timer);
+        resolve();
+      },
+      { once: true },
+    );
+  });
+
+/** Records a few seconds of what the video is showing, then puts it back as it was. */
+export const recordVideo = async (video: HTMLVideoElement) => {
+  const mimeType = MIME_TYPES.find((type) => MediaRecorder.isTypeSupported(type));
+
+  if (!video.captureStream || !mimeType) {
+    return { ok: false, reason: "This browser can't record video." } satisfies Recording;
+  }
+
+  let stream: MediaStream;
+
+  try {
+    stream = video.captureStream();
+  } catch {
+    return {
+      ok: false,
+      reason: "The site doesn't allow recording this video.",
+    } satisfies Recording;
+  }
+
+  const { muted, paused } = video;
+  const chunks: Blob[] = [];
+
+  const recorder = new MediaRecorder(new MediaStream(stream.getVideoTracks()), {
+    mimeType,
+    videoBitsPerSecond: VIDEO_BITS_PER_SECOND,
+  });
+
+  recorder.addEventListener("dataavailable", (event) => chunks.push(event.data));
+
+  try {
+    if (paused) {
+      video.muted = true;
+      await video.play();
+    }
+
+    recorder.start(500);
+    await stopAfter(recorder, video, RECORD_MS);
+  } catch {
+    return { ok: false, reason: "The video wouldn't play for recording." } satisfies Recording;
+  } finally {
+    if (paused) {
+      video.pause();
+      video.muted = muted;
+    }
+  }
+
+  const blob = new Blob(chunks, { type: mimeType.split(";")[0] });
+
+  if (blob.size === 0) {
+    return { ok: false, reason: "The recording came out empty." } satisfies Recording;
+  }
+
+  if (blob.size > ATTACHMENT_MAX_BYTES) {
+    return { ok: false, reason: "The recording is too large to attach." } satisfies Recording;
+  }
+
+  return { dataUrl: await toDataUrl(blob), ok: true, type: blob.type } satisfies Recording;
+};
