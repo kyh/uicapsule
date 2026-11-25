@@ -21,7 +21,6 @@
     "check:content": "node --import tsx scripts/check-content.ts",
     "build:previews": "node --import tsx scripts/build-previews.ts",
     "dev:previews": "node --import tsx scripts/build-previews.ts --watch",
-    "publish:ugc": "node --import tsx scripts/publish-ugc.ts",
     "check:agent-endpoints": "node --import tsx scripts/check-agent-endpoints.ts",
     "verify": "pnpm typecheck && pnpm lint && pnpm format && pnpm test && pnpm build",
     "typecheck:content": "node --import tsx scripts/typecheck-content.ts",

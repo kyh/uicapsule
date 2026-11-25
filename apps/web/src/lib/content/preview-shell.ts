@@ -1,5 +1,3 @@
-import { createHash } from "node:crypto";
-
 import { PREVIEW_SANDBOX } from "../preview-protocol";
 
 /** Public path of the bundles `scripts/build-previews.ts` writes for one component. */
@@ -20,6 +18,13 @@ export const previewShellHeaders = {
   "X-Robots-Tag": "noindex, nofollow",
 } as const;
 
+/** The plain-text 404 a preview frame answers for anything it cannot serve. */
+export const previewNotFound = () =>
+  new Response("Not found", {
+    headers: { "Content-Type": "text/plain; charset=utf-8" },
+    status: 404,
+  });
+
 const ESCAPES = new Map([
   ['"', "&quot;"],
   ["&", "&amp;"],
@@ -33,24 +38,6 @@ const escapeHtml = (value: string) =>
 
 const THEME_BOOT =
   'document.documentElement.classList.add(matchMedia("(prefers-color-scheme: dark)").matches?"dark":"light")';
-
-const THEME_BOOT_HASH = `'sha256-${createHash("sha256").update(THEME_BOOT).digest("base64")}'`;
-
-/**
- * Headers for a user-published preview: the same sandbox, plus a script allowlist of the theme
- * boot and the one origin its bundle was published to, so the reviewed bundle cannot pull in
- * code from anywhere else after the fact.
- */
-export const ugcShellHeaders = (bundleOrigin: string) => ({
-  ...previewShellHeaders,
-  "Cache-Control": "public, max-age=0, s-maxage=60",
-  "Content-Security-Policy": [
-    `sandbox ${PREVIEW_SANDBOX}`,
-    `script-src ${bundleOrigin} ${THEME_BOOT_HASH}`,
-    "object-src 'none'",
-    "base-uri 'none'",
-  ].join("; "),
-});
 
 /** The HTML document that boots one component's preview bundle, read from `base`. */
 export const renderPreviewShell = ({ base, name }: { base: string; name: string }) => {

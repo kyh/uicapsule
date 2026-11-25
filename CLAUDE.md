@@ -67,7 +67,7 @@ Content is filesystem-driven; the web app never depends on content packages by n
   runs it with `--watch` beside `next dev` (turbo `with`), and a dev preview reloads itself
   when `previews/build.txt` changes. `@repo/ui/globals.css` no longer scans `content/**`, so
   the site's CSS carries no component classes.
-- **`/preview-frame/<slug>` is the trust boundary for UGC.** A static route handler
+- **`/preview-frame/<slug>` is a sandboxed document.** A static route handler
   returns the shell (`lib/content/preview-shell.ts`) with
   `Content-Security-Policy: sandbox <PREVIEW_SANDBOX>` and no `allow-same-origin`, and the
   embedding iframe carries the same `sandbox`: a preview runs on an opaque origin with no
@@ -76,21 +76,7 @@ Content is filesystem-driven; the web app never depends on content packages by n
   to a frame only through `postMessage` (`lib/preview-protocol.ts`: theme in, inspect boxes
   out, both zod-parsed), never `contentDocument`. `NEXT_PUBLIC_PREVIEW_URL` (e.g.
   `https://preview.uicapsule.com`, a domain alias of this same Vercel project) moves frames to
-  their own host, and `next.config.ts` redirects every other path on that host to www. A
-  separate registrable domain would also keep a flagged UGC preview off uicapsule.com's
-  Safe Browsing reputation; it is the same one env var.
-- **A slug not in `content/` falls back to the assets Blob store** (`lib/content/ugc-preview.ts`).
-  `ugc/<slug>/manifest.json` (`{ version, name, build }`, the one mutable key, 60s cache) points
-  at an immutable `ugc/<slug>/<build>/` holding `index.js`, `index.css`, `tailwind.css` and
-  `assets/*`; `getUgcPreview` caches the lookup for minutes (`cacheLife("minutes")`, not
-  `"max"`: it changes between deploys). The repo always wins a slug. A UGC shell adds
-  `script-src <bundle origin> <theme-boot hash>` to the sandbox CSP, so a published bundle
-  can't load code from anywhere else later. UGC bundles are self-contained (React included, no
-  shared chunks). `pnpm publish:ugc <dir> --slug <s> --name <n>` builds one with the same
-  `scripts/preview-bundle.ts` as `build:previews` and uploads it (`--out <dir>` writes the keys
-  locally instead). It trusts its input: it does not sandbox the build, so run it only on
-  reviewed code until a sandboxed builder exists. Only the preview frame knows about UGC so far:
-  no gallery card, `/ui` page, registry item or download.
+  their own host, and `next.config.ts` redirects every other path on that host to www.
 - `/r/<slug>.json` serves the shadcn registry item. The docked code panel and zip download
   use `/api/content/<slug>`; the viewer and zip library load on demand.
 - `/ui/<slug>` is a docked workspace (`_components/component-workspace.tsx`): component list,
@@ -250,7 +236,6 @@ pnpm db:push-remote   # Push to production Turso
 pnpm new:content <slug>  # Scaffold a new content component in content/ (--design-system for the template)
 pnpm check:content    # Fail if any content/<slug> is not a loadable component
 pnpm build:previews   # Bundle every content preview into apps/web/public/previews (build runs it; dev:web watches)
-pnpm publish:ugc <dir> --slug <s> --name <n>  # Build one reviewed component and publish it to Blob as ugc/<s> (needs BLOB_READ_WRITE_TOKEN)
 pnpm test             # node:test — auth + RPC transport guards + the agent-surface tests
 pnpm check:agent-endpoints  # Runtime check of the agent surfaces (needs a running server)
 pnpm skills:update    # Bump the skills-lock.json skills (emilkowalski, jakubkrehel) to upstream HEAD; review the diff

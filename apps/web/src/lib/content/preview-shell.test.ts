@@ -2,12 +2,7 @@ import assert from "node:assert/strict";
 import { test } from "node:test";
 
 import { PREVIEW_SANDBOX } from "../preview-protocol";
-import {
-  previewAssetPath,
-  previewShellHeaders,
-  renderPreviewShell,
-  ugcShellHeaders,
-} from "./preview-shell";
+import { previewAssetPath, previewShellHeaders, renderPreviewShell } from "./preview-shell";
 
 test("the preview document is sandboxed by its own header", () => {
   assert.equal(previewShellHeaders["Content-Security-Policy"], `sandbox ${PREVIEW_SANDBOX}`);
@@ -31,22 +26,4 @@ test("the shell escapes the component name", () => {
 
   assert.ok(!html.includes("<img"));
   assert.match(html, /&lt;img src=x onerror=&quot;alert\(1\)&quot;&gt;/u);
-});
-
-test("a user-published preview loads from its Blob build", () => {
-  const html = renderPreviewShell({
-    base: "https://blob.example/ugc/knob/0123456789abcdef",
-    name: "Knob",
-  });
-
-  assert.match(html, /src="https:\/\/blob\.example\/ugc\/knob\/0123456789abcdef\/index\.js"/u);
-});
-
-test("a user-published preview may only run scripts from its bundle origin", () => {
-  const csp = ugcShellHeaders("https://blob.example")["Content-Security-Policy"];
-
-  assert.ok(csp.startsWith(`sandbox ${PREVIEW_SANDBOX}; `));
-  assert.match(csp, /script-src https:\/\/blob\.example 'sha256-[\w+/]+=*'/u);
-  assert.match(csp, /object-src 'none'/u);
-  assert.ok(!csp.includes("unsafe"));
 });
