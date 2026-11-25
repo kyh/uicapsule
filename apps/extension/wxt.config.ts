@@ -15,7 +15,7 @@ export default defineConfig({
       host_permissions: ["https://www.uicapsule.com/*", "http://localhost/*"],
       name: "UICapsule",
       optional_host_permissions: ["<all_urls>"],
-      permissions: ["activeTab", "scripting", "sidePanel", "storage"],
+      permissions: ["activeTab", "scripting", "storage"],
       version: "0.1.0",
     };
 

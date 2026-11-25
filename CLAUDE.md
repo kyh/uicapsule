@@ -83,12 +83,16 @@ Content is filesystem-driven; the web app never depends on content packages by n
 PATs allowed, repo write access required), capped at 4MB by Vercel's request-body limit.
 Visitor text has `@` neutralized so it can't trigger the `@claude` workflow.
 
-**Browser extension** (`apps/extension`, WXT, scaffolded from kyh/init's): clicking the icon opens
-a side panel. "Select area" / "Pick element" inject `entrypoints/picker.ts` into the active tab
-(`<all_urls>` is an optional host permission, asked for on the first capture); the panel crops
-`captureVisibleTab` to the selection and files through the same `/api/request/attachments` +
-`request.create` as the form, adding `capture` (page URL, element selector, scrubbed HTML) that the
-issue body renders under "Captured from". A picked `<video>` (or the only video inside the picked
+**Browser extension** (`apps/extension`, WXT, scaffolded from kyh/init's): clicking the icon has
+the background inject `entrypoints/picker.ts` into the tab and toggle an in-page capture toolbar
+(`lib/toolbar/`, vanilla DOM in a closed shadow root, so no page CSS or framework leaks either way;
+look and motion follow transitions.dev's studio toolbar, accent swapped for the UICapsule primary).
+Element / Area modes pick, Snap asks the background to crop `captureVisibleTab` to the selection,
+and the request card expands above the bar; files cross to the background as base64
+(`lib/encoding.ts`), which files through the same `/api/request/attachments` + `request.create` as
+the form, adding `capture` (page URL, element selector, scrubbed HTML) that the issue body renders
+under "Captured from". Settings (service URL, the optional `<all_urls>` grant that video downloads
+need) live on the options page. A picked `<video>` (or the only video inside the picked
 element) is attached as its file when it is ≤4MB and an allowed type; otherwise the page records a
 6s clip via `captureStream` + `MediaRecorder`; if that is refused (cross-origin without CORS, DRM)
 the video URL goes under references. Both routes' Origin guard (`lib/request-origin.ts`) admits

@@ -189,11 +189,12 @@ and base CSS are not present in a clean consumer.
 There is no mobile or desktop target. The extension (`apps/extension`) gets typecheck, tests and
 `wxt build` in `verify`. To drive it, launch Playwright's Chromium with
 `launchPersistentContext("", { channel: "chromium", args: ["--load-extension=<.output/chrome-mv3>"] })`.
-A side panel can't be opened headlessly, so open `chrome-extension://gndnanbepebpjjifhogmdlabbpddfgml/sidepanel.html`
-in its own window (`chrome.windows.create` from the service worker) and, in that page only, point
-`chrome.tabs.query` at the fixture tab and stub `chrome.permissions.request` (an init script);
-copy the build and move `<all_urls>` into `host_permissions` so nothing prompts. Point the panel's
-Settings at `http://localhost:3000` with `EXTENSION_ORIGINS` set: without `GITHUB_ISSUES_TOKEN` a
+`action.onClicked` can't be clicked headlessly, so do what it does from the service worker:
+`chrome.scripting.executeScript({ files: ["/picker.js"], target })` then
+`chrome.tabs.sendMessage(tabId, { type: "toolbar:toggle" })`. The toolbar is a closed shadow root,
+so drive it by coordinates and keyboard (hover + click to lock, Enter to snap, the name field is
+focused after a snap); copy the build and move `<all_urls>` into `host_permissions` so nothing
+prompts. Set `serviceUrl` in `chrome.storage.local` to `http://localhost:3000` with `EXTENSION_ORIGINS` set: without `GITHUB_ISSUES_TOKEN` a
 submit ends at the attachments route's 503, which proves the Origin guard let it through.
 
 ## Rules that matter
