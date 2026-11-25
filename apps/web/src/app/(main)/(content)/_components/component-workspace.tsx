@@ -170,9 +170,10 @@ export const ComponentWorkspace = ({ initialSlug, feed }: ComponentWorkspaceProp
       <div
         ref={ref}
         id={WORKSPACE_ID}
+        suppressHydrationWarning
         data-dragging={dragging || undefined}
         className={cn(
-          "flex flex-col border-t [--code-h:280px] [--code-size:280px] [--info-size:340px] [--info-w:340px] [--nav-size:232px] [--nav-w:232px] md:grid md:h-[calc(100dvh-(--spacing(16)))] md:grid-cols-[var(--nav-w)_minmax(0,1fr)_var(--info-w)] md:grid-rows-[minmax(0,1fr)] md:overflow-hidden",
+          "flex flex-col border-t [--code-h:0px] [--code-size:280px] [--info-size:340px] [--info-w:0px] [--nav-size:232px] [--nav-w:0px] md:grid md:h-[calc(100dvh-(--spacing(16)))] md:grid-cols-[var(--nav-w)_minmax(0,1fr)_var(--info-w)] md:grid-rows-[minmax(0,1fr)] md:overflow-hidden",
           "md:transition-[grid-template-columns] md:duration-300 motion-reduce:transition-none",
           PANEL_EASE,
           "data-dragging:select-none data-dragging:transition-none data-dragging:[&_*]:transition-none! data-dragging:[&_iframe]:pointer-events-none",

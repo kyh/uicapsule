@@ -21,7 +21,7 @@ export const PANEL_BOUNDS = {
 
 const PANEL_IDS = ["nav", "info", "code"] as const satisfies readonly PanelId[];
 
-const STORAGE_KEY = "uicapsule:workspace-layout";
+const STORAGE_KEY = "uicapsule:workspace-layout:v2";
 
 const panelStateSchema = z.object({ open: z.boolean(), size: z.number() });
 
@@ -39,9 +39,9 @@ export const clampPanel = (id: PanelId, size: number) =>
   Math.round(Math.min(PANEL_BOUNDS[id].max, Math.max(PANEL_BOUNDS[id].min, size)));
 
 const DEFAULT_LAYOUT: PanelLayout = {
-  code: { open: true, size: PANEL_BOUNDS.code.initial },
-  info: { open: true, size: PANEL_BOUNDS.info.initial },
-  nav: { open: true, size: PANEL_BOUNDS.nav.initial },
+  code: { open: false, size: PANEL_BOUNDS.code.initial },
+  info: { open: false, size: PANEL_BOUNDS.info.initial },
+  nav: { open: false, size: PANEL_BOUNDS.nav.initial },
 };
 
 const readLayout = () => {
