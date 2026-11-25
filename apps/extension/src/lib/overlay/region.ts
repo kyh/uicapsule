@@ -243,10 +243,13 @@ export const createRegion = (options: {
     }
 
     if (snapped && !gesture) {
-      const next = clip(toRect(snapped.getBoundingClientRect()));
-      snapped = next ? snapped : undefined;
-      rect = next ?? rect;
+      rect = clip(toRect(snapped.getBoundingClientRect()));
+      snapped = rect ? snapped : undefined;
       render();
+
+      if (!rect) {
+        hover(hovered);
+      }
     }
   };
 
