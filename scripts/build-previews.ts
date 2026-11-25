@@ -1,17 +1,20 @@
 #!/usr/bin/env tsx
-import { existsSync } from "node:fs";
-import { mkdir, readFile, readdir, rm, stat, watch, writeFile } from "node:fs/promises";
+import { readFile, readdir, stat } from "node:fs/promises";
 import path from "node:path";
+import react from "@vitejs/plugin-react";
 import { defineCommand, runMain } from "citty";
 import { consola } from "consola";
-import * as esbuild from "esbuild";
+import { build, createServer } from "vite";
+import type { InlineConfig, Plugin, Rollup } from "vite";
 
 import { contentMetaSchema } from "../apps/web/src/lib/content/content-schema";
+import { PREVIEW_DEV_ORIGIN } from "../apps/web/src/lib/content/preview-shell";
 import {
-  ASSET_LOADERS,
+  EXTRA_ASSET_GLOBS,
   compilePreviewStylesheet,
   previewEntry,
   repoRoot,
+  runtimeModule,
   themeStylesheet,
   webRoot,
 } from "./preview-bundle";
@@ -19,8 +22,10 @@ import {
 const contentRoot = path.join(repoRoot, "content");
 const outRoot = path.join(webRoot, "public/previews");
 
-const BUILD_ID_FILE = "build.txt";
-const ENTRY_NAMESPACE = "preview-entry";
+const ENTRY_PREFIX = "preview-entry:";
+const RESOLVED_ENTRY_PREFIX = `\0${ENTRY_PREFIX}`;
+const DEV_ENTRY = /^\/@preview\/(?<slug>[\w-]+)\.js$/u;
+const STYLESHEET_NAME = "__preview__.tailwind.css";
 
 const isLocalPreview = async (slug: string) => {
   const meta = await readFile(path.join(contentRoot, slug, "meta.json"), "utf-8")
@@ -49,132 +54,219 @@ const readLocalSlugs = async () => {
   return slugs.filter((_, index) => local[index]);
 };
 
-const entryPlugin = (dev: boolean) =>
-  ({
-    name: ENTRY_NAMESPACE,
-    setup: (build) => {
-      // oxlint-disable-next-line require-unicode-regexp -- esbuild filters are Go regexps, which reject the u flag
-      build.onResolve({ filter: /^preview-entry:/ }, (args) => ({
-        namespace: ENTRY_NAMESPACE,
-        path: args.path.slice(ENTRY_NAMESPACE.length + 1),
-      }));
-      // oxlint-disable-next-line require-unicode-regexp -- esbuild filters are Go regexps, which reject the u flag
-      build.onLoad({ filter: /.*/, namespace: ENTRY_NAMESPACE }, (args) => {
-        const previewFile = path.join(contentRoot, args.path, "preview.tsx");
+const stylesheetId = (slug: string) => path.join(contentRoot, slug, STYLESHEET_NAME);
 
-        return {
-          contents: previewEntry(previewFile, dev ? `/previews/${BUILD_ID_FILE}` : undefined),
-          loader: "ts",
-          resolveDir: path.join(contentRoot, args.path),
-        };
-      });
-    },
-  }) satisfies esbuild.Plugin;
+const slugOfFile = (file: string) => {
+  const relative = path.relative(contentRoot, file);
 
-const buildStylesheets = async (slugs: string[], dev: boolean) => {
-  await Promise.all(
-    slugs.map(async (slug) => {
-      const dir = path.join(outRoot, slug);
-      const css = await compilePreviewStylesheet(path.join(contentRoot, slug), !dev);
+  return relative.startsWith("..") ? undefined : relative.split(path.sep)[0];
+};
 
-      await mkdir(dir, { recursive: true });
-      await writeFile(path.join(dir, "tailwind.css"), css);
+const previewPlugin = (slugs: string[], dev: boolean) => {
+  const known = new Set(slugs);
 
-      if (!existsSync(path.join(dir, "index.css"))) {
-        await writeFile(path.join(dir, "index.css"), "");
+  return {
+    enforce: "pre",
+    handleHotUpdate: ({ file, modules, server }) => {
+      const touched = file === themeStylesheet ? slugs : [slugOfFile(file)];
+
+      const stylesheets = touched
+        .filter((slug): slug is string => slug !== undefined && known.has(slug))
+        .map((slug) => server.moduleGraph.getModuleById(stylesheetId(slug)))
+        .filter((module) => module !== undefined);
+
+      for (const module of stylesheets) {
+        server.moduleGraph.invalidateModule(module);
       }
-    }),
-  );
+
+      return [...modules, ...stylesheets];
+    },
+    load: async function load(id) {
+      if (id.startsWith(RESOLVED_ENTRY_PREFIX)) {
+        const slug = id.slice(RESOLVED_ENTRY_PREFIX.length);
+
+        return previewEntry(path.join(contentRoot, slug, "preview.tsx"), stylesheetId(slug));
+      }
+
+      if (path.basename(id) === STYLESHEET_NAME) {
+        this.addWatchFile(themeStylesheet);
+
+        return await compilePreviewStylesheet(path.dirname(id), !dev);
+      }
+
+      return null;
+    },
+    name: "uicapsule-previews",
+    resolveId: (source) => {
+      const slug = source.startsWith(ENTRY_PREFIX)
+        ? source.slice(ENTRY_PREFIX.length)
+        : DEV_ENTRY.exec(source)?.groups?.slug;
+
+      if (slug && known.has(slug)) {
+        return `${RESOLVED_ENTRY_PREFIX}${slug}`;
+      }
+
+      return path.basename(source) === STYLESHEET_NAME ? source : null;
+    },
+  } satisfies Plugin;
 };
 
-const finishBuild = async (slugs: string[], dev: boolean) => {
-  await buildStylesheets(slugs, dev);
-  await writeFile(path.join(outRoot, BUILD_ID_FILE), String(Date.now()));
+const cssOf = (chunk: Rollup.OutputChunk, files: Map<string, Rollup.OutputChunk>) => {
+  const seen = new Set<string>();
+  const css: string[] = [];
+
+  const visit = (current: Rollup.OutputChunk) => {
+    if (seen.has(current.fileName)) {
+      return;
+    }
+
+    seen.add(current.fileName);
+
+    for (const imported of current.imports) {
+      const dependency = files.get(imported);
+
+      if (dependency) {
+        visit(dependency);
+      }
+    }
+
+    css.push(...(current.viteMetadata?.importedCss ?? []));
+  };
+
+  visit(chunk);
+
+  return [...new Set(css)];
 };
 
-const buildOptions = (slugs: string[], dev: boolean) =>
+const stylesheetPerPreview = {
+  enforce: "post",
+  generateBundle: function generateBundle(_, bundle) {
+    const chunks = Object.values(bundle).filter((file) => file.type === "chunk");
+    const files = new Map(chunks.map((chunk) => [chunk.fileName, chunk]));
+    const merged = new Set<string>();
+
+    for (const entry of chunks.filter((chunk) => chunk.isEntry)) {
+      const css = cssOf(entry, files);
+
+      const source = css
+        .map((file) => bundle[file])
+        .map((asset) => (asset?.type === "asset" ? String(asset.source) : ""))
+        .join("\n");
+
+      this.emitFile({
+        fileName: path.posix.join(path.posix.dirname(entry.fileName), "index.css"),
+        source,
+        type: "asset",
+      });
+
+      for (const file of css) {
+        merged.add(file);
+      }
+    }
+
+    for (const file of merged) {
+      Reflect.deleteProperty(bundle, file);
+    }
+  },
+  name: "uicapsule-preview-stylesheets",
+} satisfies Plugin;
+
+const sharedConfig = (slugs: string[], dev: boolean) =>
   ({
-    assetNames: "assets/[name]-[hash]",
-    bundle: true,
-    chunkNames: "chunks/[name]-[hash]",
-    define: { "process.env.NODE_ENV": JSON.stringify(dev ? "development" : "production") },
-    entryPoints: Object.fromEntries(
-      slugs.map((slug) => [`${slug}/index`, `${ENTRY_NAMESPACE}:${slug}`]),
-    ),
-    format: "esm",
-    jsx: "automatic",
-    legalComments: "none",
-    loader: ASSET_LOADERS,
-    logLevel: "warning",
-    minify: !dev,
-    outdir: outRoot,
-    plugins: [entryPlugin(dev)],
-    publicPath: "/previews",
-    sourcemap: dev ? "linked" : false,
-    splitting: true,
-    target: "es2022",
-  }) satisfies esbuild.BuildOptions;
+    appType: "custom",
+    assetsInclude: EXTRA_ASSET_GLOBS,
+    configFile: false,
+    logLevel: "warn",
+    plugins: [previewPlugin(slugs, dev), react()],
+    publicDir: false,
+    root: contentRoot,
+  }) satisfies InlineConfig;
+
+const buildPreviews = async (slugs: string[]) => {
+  await build({
+    ...sharedConfig(slugs, false),
+    base: "/previews/",
+    build: {
+      assetsInlineLimit: 0,
+      chunkSizeWarningLimit: 4096,
+      emptyOutDir: true,
+      modulePreload: false,
+      outDir: outRoot,
+      reportCompressedSize: false,
+      rollupOptions: {
+        input: Object.fromEntries(slugs.map((slug) => [`${slug}/index`, `${ENTRY_PREFIX}${slug}`])),
+        onwarn: (warning, warn) => {
+          if (warning.code !== "INVALID_ANNOTATION") {
+            warn(warning);
+          }
+        },
+        output: {
+          assetFileNames: "assets/[name]-[hash][extname]",
+          chunkFileNames: "chunks/[name]-[hash].js",
+          entryFileNames: "[name].js",
+        },
+      },
+      target: "es2022",
+    },
+    plugins: [...sharedConfig(slugs, false).plugins, stylesheetPerPreview],
+  });
+};
+
+const servePreviews = async (slugs: string[]) => {
+  const { port } = new URL(PREVIEW_DEV_ORIGIN);
+
+  const server = await createServer({
+    ...sharedConfig(slugs, true),
+    optimizeDeps: {
+      entries: [...slugs.map((slug) => path.join(contentRoot, slug, "preview.tsx")), runtimeModule],
+    },
+    root: webRoot,
+    server: {
+      cors: true,
+      fs: { allow: [repoRoot] },
+      origin: PREVIEW_DEV_ORIGIN,
+      port: Number(port),
+      strictPort: true,
+      watch: { ignored: ["**/.next/**", "**/public/previews/**"] },
+    },
+  });
+
+  server.watcher.add(themeStylesheet);
+  await server.listen();
+
+  return server;
+};
 
 const main = defineCommand({
   args: {
-    watch: {
+    dev: {
       default: false,
-      description: "Rebuild on change; previews served by `next dev` reload themselves.",
+      description: `Serve previews with hot reload at ${PREVIEW_DEV_ORIGIN} instead of building them`,
       type: "boolean",
     },
   },
   meta: {
     description:
-      "Bundle every local content preview (esbuild + its own Tailwind stylesheet) into apps/web/public/previews.",
+      "Bundle every local content preview (Vite + its own Tailwind stylesheet) into apps/web/public/previews.",
     name: "build:previews",
   },
   run: async ({ args }) => {
-    const dev = args.watch;
     const started = performance.now();
     const slugs = await readLocalSlugs();
 
-    if (!dev) {
-      await rm(outRoot, { force: true, recursive: true });
-      await esbuild.build(buildOptions(slugs, dev));
-      await finishBuild(slugs, dev);
-      consola.success(
-        `Built ${slugs.length} previews in ${Math.round(performance.now() - started)}ms`,
+    if (args.dev) {
+      await servePreviews(slugs);
+      consola.info(
+        `Serving ${slugs.length} previews at ${PREVIEW_DEV_ORIGIN} (restart to pick up a new content folder)`,
       );
 
       return;
     }
 
-    const context = await esbuild.context({
-      ...buildOptions(slugs, dev),
-      plugins: [
-        entryPlugin(dev),
-        {
-          name: "preview-stylesheets",
-          setup: (build) => {
-            build.onEnd(async (result) => {
-              if (result.errors.length === 0) {
-                await finishBuild(slugs, dev);
-                consola.info(`Rebuilt ${slugs.length} previews`);
-              }
-            });
-          },
-        },
-      ],
-    });
-
-    await context.watch();
-
-    consola.info(`Watching ${slugs.length} previews (restart to pick up a new content folder)`);
-
-    for await (const change of watch(path.dirname(themeStylesheet))) {
-      if (change.filename !== path.basename(themeStylesheet)) {
-        continue;
-      }
-
-      await finishBuild(slugs, dev)
-        .then(() => consola.info(`Restyled ${slugs.length} previews`))
-        .catch((error: Error) => consola.error(error));
-    }
+    await buildPreviews(slugs);
+    consola.success(
+      `Built ${slugs.length} previews in ${Math.round(performance.now() - started)}ms`,
+    );
   },
 });
 

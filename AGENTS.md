@@ -147,10 +147,11 @@ The routes worth checking, and what each proves:
 | `/sitemap.xml`            | every indexable URL, with `lastmod`                   |
 | `/index.md`, `/<path>.md` | the Markdown representation of any page               |
 
-**Previews are prebuilt, not compiled by Next.** `pnpm dev:web` runs `//:dev:previews`
-(esbuild + a per-slug Tailwind stylesheet into `apps/web/public/previews/`) beside `next dev`;
-a preview reloads itself after each rebuild. If one looks unstyled or stale, check that task's
-output, or run `pnpm build:previews` once. Previews run sandboxed on an opaque origin, so
+**Previews are not compiled by Next.** `pnpm dev:web` runs `//:dev:previews`, a Vite dev
+server on `:5174`, beside `next dev`; in development `/preview-frame/<slug>` loads the preview
+from it and hot-reloads edits in place. If a dev preview is blank, that server isn't running
+(`next dev` alone doesn't start it). Production frames load the bundles `pnpm build:previews`
+writes to `apps/web/public/previews/`. Previews run sandboxed on an opaque origin, so
 `localStorage` and `document.cookie` throw inside them by design.
 
 ## Content workflow

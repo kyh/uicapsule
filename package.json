@@ -20,7 +20,7 @@
     "new:content": "node --import tsx scripts/new-content.ts",
     "check:content": "node --import tsx scripts/check-content.ts",
     "build:previews": "node --import tsx scripts/build-previews.ts",
-    "dev:previews": "node --import tsx scripts/build-previews.ts --watch",
+    "dev:previews": "node --import tsx scripts/build-previews.ts --dev",
     "check:agent-endpoints": "node --import tsx scripts/check-agent-endpoints.ts",
     "verify": "pnpm typecheck && pnpm lint && pnpm format && pnpm test && pnpm build",
     "typecheck:content": "node --import tsx scripts/typecheck-content.ts",
@@ -35,10 +35,10 @@
     "@tailwindcss/postcss": "catalog:",
     "@types/node": "catalog:",
     "@vercel/blob": "^2.9.0",
+    "@vitejs/plugin-react": "catalog:",
     "citty": "^0.2.2",
     "consola": "^3.4.2",
     "dotenv-cli": "^11.1.0",
-    "esbuild": "^0.28.2",
     "oxc-parser": "^0.154.0",
     "oxfmt": "^0.73.0",
     "oxlint": "^1.94.0",
@@ -48,7 +48,8 @@
     "tsx": "catalog:",
     "turbo": "^2.11.13",
     "typescript": "catalog:",
-    "ultracite": "^8.3.1"
+    "ultracite": "^8.3.1",
+    "vite": "catalog:"
   },
   "engines": {
     "node": "24.x"

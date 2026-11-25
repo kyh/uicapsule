@@ -87,8 +87,8 @@ curl -s -o /dev/null -w "%{http_code}" http://localhost:3000/preview-frame/<slug
 
 Dev server not running → start `pnpm dev:web` in the background.
 
-Previews are prebuilt by `//:dev:previews` (part of `pnpm dev:web`): if the preview looks
-unstyled or stale, check that task rebuilt, or run `pnpm build:previews`. Previews run
+Previews are served by `//:dev:previews` (part of `pnpm dev:web`), a Vite dev server that
+hot-reloads edits inside the frame: if the preview is blank, check that task is running. Previews run
 sandboxed, so the component must not rely on `localStorage`, `sessionStorage` or cookies.
 
 Screenshot `/preview-frame/<slug>` and actually look at it before recording.

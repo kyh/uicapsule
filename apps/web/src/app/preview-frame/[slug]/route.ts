@@ -2,7 +2,6 @@ import type { NextRequest } from "next/server";
 
 import { getAllContent, getLocalSlugs } from "@/lib/content/content-data";
 import {
-  previewAssetPath,
   previewNotFound,
   previewShellHeaders,
   renderPreviewShell,
@@ -23,7 +22,9 @@ export const GET = async (_: NextRequest, { params }: RouteContext<"/preview-fra
     return previewNotFound();
   }
 
-  return new Response(renderPreviewShell({ base: previewAssetPath(slug), name: component.name }), {
+  const dev = process.env.NODE_ENV === "development";
+
+  return new Response(renderPreviewShell({ dev, name: component.name, slug }), {
     headers: previewShellHeaders,
   });
 };
