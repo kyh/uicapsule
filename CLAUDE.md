@@ -36,8 +36,8 @@ UNAUTHORIZED); procedure-level `.use` runs after. Feature routers stay plain obj
 looks the session up itself, so `createORPCContext` carries only headers and public procedures
 never touch the database. Clients type against `ContractClient` / `RouterInputs` /
 `RouterOutputs` and import schemas from `@repo/contract`; only server code (the route handlers
-under `apps/web/src/app/api`, and `preview-frame/u/[user]/[slug]`, which reads published
-components through `@repo/service/ugc/ugc-store`) imports `@repo/service`. Layout follows oRPC's Hybrid monorepo
+under `apps/web/src/app/api`, `mcp/publish`, `.well-known`, and `preview-frame/u/[user]/[slug]`,
+which reads published components through `@repo/service/ugc/ugc-store`) imports `@repo/service`. Layout follows oRPC's Hybrid monorepo
 recipe.
 
 ### Content architecture
@@ -84,22 +84,47 @@ Content is filesystem-driven; the web app never depends on content packages by n
   `ugc/`, table `ugc_component` in `@repo/db/drizzle-schema-ugc`). Their code never enters the
   repo. Accounts carry a `username` (better-auth `username` plugin, validated by the contract's
   `handleSchema`), and a component lives at `/u/<username>/<slug>`, its frame at
-  `/preview-frame/u/<username>/<slug>` (`ugcPreviewFrameSrc`). The client builds the bundle
-  (`pnpm publish:ugc`, same `scripts/preview-bundle.ts` as `build:previews`, React bundled in)
-  and the server only hands out Blob client tokens: `ugc.prepare` (quota + asset URL) →
-  `ugc.createUpload` (one token per file, pinned to its pathname, content type and size, 15
-  minutes) → upload → `ugc.publish` (checks the build's files are in Blob, then upserts the
-  row). Blob keys use the user id, never the username: entry files at
-  `ugc/<userId>/<slug>/<build>/`, content-hashed assets beside them in
-  `ugc/<userId>/<slug>/assets/` so builds share them and the bundler knows their URL before the
-  build id (a hash of the files) exists. The frame route reads Turso on every request and lets
-  the CDN cache a hit for 60s (`ugcShellHeaders`); a miss is never cached, so a fresh publish
-  shows at once. A UGC shell adds `script-src <bundle origin> <theme-boot hash>` to the sandbox
-  CSP, so a published bundle can't load code from anywhere else later. Non-browser clients sign
-  in with the better-auth `bearer` plugin (`Authorization: Bearer <set-auth-token>`), which
-  `/api/orpc`'s Origin guard admits because they send no Origin. Not done yet: MCP sign-in and
-  publish tools, gallery cards or `/u` pages, source upload, moderation, and cleanup of builds
-  uploaded but never published.
+  `/preview-frame/u/<username>/<slug>` (`ugcPreviewFrameSrc`).
+  - **Bundle contract: plain ESM, React from us.** Any bundler works. `index.js` default-exports
+    a component rendered with no props; `index.css` is required (may be empty); other files sit
+    in up to four folders, referenced by absolute URL under the `assetBase` the server hands out.
+    `UGC_SHARED_MODULES` (react, react-dom, motion and their subpaths) stay external: the shell's
+    import map points them at `/previews/_ugc/*`, which `build:previews` builds once
+    (`buildUgcRuntime`), with `_ugc/boot.js` (`lib/content/ugc-boot.ts`) importing the entry
+    named in `<meta name="uicapsule-entry">` and handing it to `startPreview`, and `_ugc/base.css`
+    (theme + preflight). So a user bundle carries no React and every UGC frame shares one copy.
+  - **Flow**: `ugc.prepare` / `start_publish` (quota, server-generated build id, `assetBase`) →
+    `ugc.createUpload` / `get_upload_urls` (one signed URL per file not already stored) → `PUT`
+    each file → `ugc.publish` / `publish_component` (checks every file is in Blob, upserts the
+    row). Logic lives once in `@repo/service/ugc/ugc-publish`; the oRPC router and the MCP route
+    are thin wrappers. A signed URL is `/api/ugc/upload?token=<grant>.<HMAC>` (`ugc-upload-token.ts`,
+    keyed off the auth secret), pinning pathname, content type and size for 15 minutes; the route
+    streams the body with a size cap and `put`s it with `allowOverwrite: false`, so a build is
+    immutable (409 on a second write). Uploads pass through our function rather than Blob client
+    tokens so a plain `curl` can do it, which caps a file at 4MB (Vercel's body limit). Blob keys
+    use the user id, never the username: `ugc/<userId>/<slug>/<build>/<file>`.
+  - **MCP publishing is a separate server at `/mcp/publish`**, not a tool on `/mcp`: `/mcp` stays
+    anonymous and read-only. It is an OAuth 2.1 resource: better-auth's `@better-auth/mcp` plugin
+    is the authorization server (dynamic client registration, CIMD client ids via
+    `@better-auth/cimd`, PKCE, JWT access tokens from the `jwt` plugin, `/token` disabled in
+    favour of `/oauth2/token`), with `/auth/login` → `/auth/consent` as its pages. The route
+    verifies tokens with `createMcpProtectedRequestHandler` against the JWKS (audience
+    `MCP_PUBLISH_RESOURCE`) and answers a missing token with the `WWW-Authenticate` challenge that
+    points at `/.well-known/oauth-protected-resource/mcp/publish`; `app/.well-known/[...path]`
+    hands every well-known path to `auth.handler`. Issuer and resource come from
+    `canonicalOrigin()` (production domain, else branch URL, else `BETTER_AUTH_URL`). The plugin
+    tables (`jwks`, `oauth_*`) are in `drizzle-schema-auth.ts`, checked against
+    `getAuthTables` by `auth-tables.test.ts`; array and JSON fields are `text({ mode: "json" })`
+    because the Drizzle adapter does not serialize them on SQLite. `@better-auth/*` are pinned to
+    better-auth's exact version and `@better-auth/core` is overridden to it, or two cores resolve
+    and the plugin types break.
+  - The frame route reads Turso on every request and lets the CDN cache a hit for 60s; a miss is
+    never cached, so a fresh publish shows at once. `renderUgcShell` adds `script-src <shell
+    origin> <bundle origin> <inline hashes>` to the sandbox CSP, so a published bundle can't load
+    code from anywhere else. `pnpm publish:ugc` is the same flow over oRPC for a person with a
+    session token (better-auth `bearer`, admitted by `/api/orpc`'s Origin guard because it sends no
+    Origin). Not done yet: gallery cards or `/u` pages, source upload, moderation, revoking an
+    app, and cleanup of builds uploaded but never published.
 - `/r/<slug>.json` serves the shadcn registry item. The docked code panel and zip download
   use `/api/content/<slug>`; the viewer and zip library load on demand.
 - `/ui/<slug>` is a docked workspace (`_components/component-workspace.tsx`): component list,
@@ -195,6 +220,8 @@ Next imports, no filesystem — so it can be unit-tested without a runtime. The 
   README, install prompt, `/install/mcp`, `/llms.txt`, about page) names both: **skills** help an agent build
   better UI in any project, and **tools** serve this gallery's components as templates. A new
   skill belongs only if it serves the first job; a new tool only if it serves the second.
+  Publishing your own component is neither: it lives on the authed `/mcp/publish` server (see
+  Content architecture), so `/mcp` never needs sign-in.
   It is a stateless Streamable HTTP MCP server with two read-only tools,
   `search_components` and `get_component`: oRPC procedures in the route, registered by
   `@orpc/mcp`'s `McpRegistrar` on a fresh `McpServer` per request (`createMcpHandler` from
@@ -259,7 +286,7 @@ pnpm db:push-remote   # Push to production Turso
 pnpm new:content <slug>  # Scaffold a new content component in content/ (--design-system for the template)
 pnpm check:content    # Fail if any content/<slug> is not a loadable component
 pnpm build:previews   # Bundle every content preview into apps/web/public/previews (build runs it; dev:web watches)
-pnpm publish:ugc <dir> --slug <s> --name <n>  # Build a component and publish it to your account (UICAPSULE_TOKEN, UICAPSULE_URL; --username once; --out to only build)
+pnpm publish:ugc <dir> --slug <s> --name <n>  # Build <dir>/preview.tsx to the plain-ESM contract and publish it (UICAPSULE_TOKEN, UICAPSULE_URL; --username once; --out to only build)
 pnpm test             # node:test — auth + RPC transport guards + the agent-surface tests
 pnpm check:agent-endpoints  # Runtime check of the agent surfaces (needs a running server)
 pnpm skills:update    # Bump the skills-lock.json skills (emilkowalski, jakubkrehel) to upstream HEAD; review the diff

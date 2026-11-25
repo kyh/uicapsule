@@ -10,9 +10,12 @@ delete process.env.AUTH_EMAIL_FROM;
 
 const { auth } = await import("./auth");
 
+const OAUTH_PLUGINS = new Set(["cimd", "jwt", "oauth-provider"]);
+
 const options = {
   ...auth.options,
   logger: { disabled: true },
+  plugins: auth.options.plugins.filter((plugin) => !OAUTH_PLUGINS.has(plugin.id)),
   rateLimit: { enabled: false },
   secret: "uicapsule-password-reset-integration-test-secret",
 };

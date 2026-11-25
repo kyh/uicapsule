@@ -57,8 +57,7 @@ export const ConsentForm = () => {
         <p className="text-muted-foreground text-sm text-pretty">
           {app} will be able to publish components to
           {session?.user.username ? ` @${session.user.username}` : " your account"} and list the
-          ones you have published. It cannot read your email or password. You can sign out to stop
-          it at any time.
+          ones you have published. It cannot read your email or password.
         </p>
       </div>
       <FieldError errors={error ? [{ message: error }] : undefined} />

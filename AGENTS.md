@@ -45,6 +45,20 @@ cookie to `curl` or agent-browser. Add `"username":"dev"` to the body to publish
 the response's `set-auth-token` header is the bearer token `pnpm publish:ugc` reads from
 `UICAPSULE_TOKEN`.
 
+**Testing MCP publishing (`/mcp/publish`) needs an OAuth token, not a session.** Register a
+client, then run authorization code + PKCE with the session cookie:
+
+1. `POST /api/auth/oauth2/register` with `{"client_name":"Test","redirect_uris":["http://127.0.0.1:33418/callback"],"token_endpoint_auth_method":"none"}` → `client_id`.
+2. `GET /api/auth/oauth2/authorize?response_type=code&client_id=…&redirect_uri=…&code_challenge=…&code_challenge_method=S256&scope=openid%20offline_access&resource=http://localhost:3000/mcp/publish`
+   with the cookie. A first grant lands on `/auth/consent?…&sig=…`; `POST /api/auth/oauth2/consent`
+   `{"accept":true,"oauth_query":"<that query string>"}` returns `{url}` with the `code`.
+3. `POST /api/auth/oauth2/token` (form: `grant_type=authorization_code`, `code`, `code_verifier`,
+   `client_id`, `redirect_uri`, `resource`) → a JWT `access_token`; send it as `Authorization: Bearer`.
+
+`resource` must be exactly `MCP_PUBLISH_RESOURCE`, or the token's audience won't verify. The
+upload URLs the tools return point at `/api/ugc/upload` and write to the real Blob store named
+by `BLOB_READ_WRITE_TOKEN`; to stay offline, point `VERCEL_BLOB_API_URL` at a local stand-in.
+
 **Sign-up is not idempotent.** A second call for the same email returns
 `422 USER_ALREADY_EXISTS_USE_ANOTHER_EMAIL` (better-auth throws; it does not return the
 existing session). That is not a failure — it means the user is already there. Sign in
