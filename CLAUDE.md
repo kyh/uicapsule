@@ -65,7 +65,7 @@ Content is filesystem-driven; the web app never depends on content packages by n
   use `/api/content/<slug>`; the viewer and zip library load on demand.
 - `/ui/<slug>` is a docked workspace (`_components/component-workspace.tsx`): component list,
   preview + toolbar, code panel, info panel. Switching components is client state +
-  `history.pushState`, so the iframe swaps without a route remount. Panel sizes live in
+  `history.pushState`, so the iframe swaps without a route remount. Every panel starts collapsed; sizes and open state live in
   `localStorage` (`panel-layout.ts`, a `useSyncExternalStore` store); an inline script applies
   them to CSS vars before first paint, so the server HTML stays default and hydration never
   mismatches. Drag a panel past half its minimum to collapse it. Open/close animates the grid
