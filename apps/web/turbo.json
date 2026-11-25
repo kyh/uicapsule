@@ -3,11 +3,12 @@
   "extends": ["//"],
   "tasks": {
     "build": {
-      "dependsOn": ["^build", "//#check:content"],
+      "dependsOn": ["^build", "//#check:content", "//#build:previews"],
       "outputs": [".next/**", "!.next/cache/**", "next-env.d.ts"]
     },
     "dev": {
-      "persistent": true
+      "persistent": true,
+      "with": ["//#dev:previews"]
     }
   }
 }

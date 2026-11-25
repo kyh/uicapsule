@@ -61,3 +61,4 @@ local.*
 
 # skills CLI staging copy (pnpm skills:sync); .claude/skills is the tracked one
 .agents/
+apps/web/public/previews/

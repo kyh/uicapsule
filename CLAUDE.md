@@ -59,8 +59,26 @@ Content is filesystem-driven; the web app never depends on content packages by n
   Shell. Gallery cards are `PrefetchLink` (`components/prefetch-link.tsx`), upgrading to
   `prefetch={true}` on hover/focus/touch; viewport `prefetch={true}` would cost one request
   per visible card.
-- `preview-frame/[slug]` renders previews via a relative dynamic import of
-  `content/<slug>/preview.tsx`.
+- **Previews never compile into the Next app.** `scripts/build-previews.ts` (turbo
+  `//#build:previews`, which web's build depends on) bundles every `content/<slug>/preview.tsx`
+  with esbuild (one build, shared chunks, `lib/content/preview-runtime.ts` as the boot
+  wrapper) and compiles each slug its own Tailwind stylesheet from `@repo/ui/theme.css`,
+  scanning only that slug, into gitignored `apps/web/public/previews/<slug>/`. `pnpm dev:web`
+  runs it with `--watch` beside `next dev` (turbo `with`), and a dev preview reloads itself
+  when `previews/build.txt` changes. `@repo/ui/globals.css` no longer scans `content/**`, so
+  the site's CSS carries no component classes.
+- **`/preview-frame/<slug>` is the trust boundary UGC will need.** A static route handler
+  returns the shell (`lib/content/preview-shell.ts`) with
+  `Content-Security-Policy: sandbox <PREVIEW_SANDBOX>` and no `allow-same-origin`, and the
+  embedding iframe carries the same `sandbox`: a preview runs on an opaque origin with no
+  cookies and no storage, even when its URL is opened top-level (so `/previews/*` answers
+  CORS with `*`, since module scripts from an opaque origin are CORS fetches). The site talks
+  to a frame only through `postMessage` (`lib/preview-protocol.ts`: theme in, inspect boxes
+  out, both zod-parsed), never `contentDocument`. `NEXT_PUBLIC_PREVIEW_URL` (e.g.
+  `https://preview.uicapsule.com`, a domain alias of this same Vercel project) moves frames to
+  their own host, and `next.config.ts` redirects every other path on that host to www. A
+  separate registrable domain would also keep a flagged UGC preview off uicapsule.com's
+  Safe Browsing reputation; it is the same one env var.
 - `/r/<slug>.json` serves the shadcn registry item. The docked code panel and zip download
   use `/api/content/<slug>`; the viewer and zip library load on demand.
 - `/ui/<slug>` is a docked workspace (`_components/component-workspace.tsx`): component list,
@@ -216,6 +234,7 @@ pnpm db:push          # Push local db schema
 pnpm db:push-remote   # Push to production Turso
 pnpm new:content <slug>  # Scaffold a new content component in content/ (--design-system for the template)
 pnpm check:content    # Fail if any content/<slug> is not a loadable component
+pnpm build:previews   # Bundle every content preview into apps/web/public/previews (build runs it; dev:web watches)
 pnpm test             # node:test — auth + RPC transport guards + the agent-surface tests
 pnpm check:agent-endpoints  # Runtime check of the agent surfaces (needs a running server)
 pnpm skills:update    # Bump the skills-lock.json skills (emilkowalski, jakubkrehel) to upstream HEAD; review the diff
@@ -323,6 +342,5 @@ choreography, gallery copy. In priority order:
 
 ## Gotchas
 
-- Turbopack's persistent cache freezes the Tailwind `@source` glob: arbitrary classes that
-  exist only in a NEWLY created `content/<slug>` package silently don't generate (styles in
-  DOM but no CSS). Fix: `rm -rf apps/web/.next` and restart `pnpm dev:web`.
+- A preview that renders unstyled means its stylesheet is stale or missing: check that
+  `pnpm dev:web` shows `//:dev:previews` rebuilding, or run `pnpm build:previews`.

@@ -147,10 +147,11 @@ The routes worth checking, and what each proves:
 | `/sitemap.xml`            | every indexable URL, with `lastmod`                   |
 | `/index.md`, `/<path>.md` | the Markdown representation of any page               |
 
-**Before reporting a visual bug in a brand-new component, clear the Turbopack cache.** Its
-persistent cache freezes the Tailwind `@source` glob, so classes that exist only in a newly
-created `content/<slug>` generate no CSS — the markup is right and the page looks broken.
-`rm -rf apps/web/.next && pnpm dev:web`. This is the single most common false positive here.
+**Previews are prebuilt, not compiled by Next.** `pnpm dev:web` runs `//:dev:previews`
+(esbuild + a per-slug Tailwind stylesheet into `apps/web/public/previews/`) beside `next dev`;
+a preview reloads itself after each rebuild. If one looks unstyled or stale, check that task's
+output, or run `pnpm build:previews` once. Previews run sandboxed on an opaque origin, so
+`localStorage` and `document.cookie` throw inside them by design.
 
 ## Content workflow
 
