@@ -6,6 +6,8 @@ import {
   ArrowLeftIcon,
   ArrowRightIcon,
   ExternalLinkIcon,
+  InfoIcon,
+  ListIcon,
   MonitorIcon,
   SmartphoneIcon,
   SquareDashedMousePointerIcon,
@@ -22,6 +24,8 @@ import { previewFrameSrc } from "@/lib/preview-protocol";
 import { siteConfig } from "@/lib/site-config";
 import { ComponentNav, groupComponents } from "./component-nav";
 import { InfoPanel } from "./info-panel";
+import { MobileSheet } from "./mobile-sheet";
+import type { MobilePanel } from "./mobile-sheet";
 import { PanelHandle } from "./panel-handle";
 import { panelLayoutScript, usePanelLayout } from "./panel-layout";
 import { PREVIEW_WIDTH, PreviewStage } from "./preview-stage";
@@ -69,6 +73,7 @@ export const ComponentWorkspace = ({ initialSlug, feed }: ComponentWorkspaceProp
   const [prevInitialSlug, setPrevInitialSlug] = useState(initialSlug);
   const [inspect, setInspect] = useState(false);
   const [widths, setWidths] = useState<Record<string, number>>({});
+  const [mobilePanel, setMobilePanel] = useState<MobilePanel | null>(null);
 
   if (layout.code.open && !codeMounted) {
     setCodeMounted(true);
@@ -93,6 +98,7 @@ export const ComponentWorkspace = ({ initialSlug, feed }: ComponentWorkspaceProp
   const select = useCallback((slug: string) => {
     setActiveSlug(slug);
     setInspect(false);
+    setMobilePanel((panel) => (panel === "nav" ? null : panel));
 
     const path = `/ui/${slug}`;
 
@@ -165,15 +171,20 @@ export const ComponentWorkspace = ({ initialSlug, feed }: ComponentWorkspaceProp
   const width = widths[active.slug] ?? PREVIEW_WIDTH[active.defaultSize ?? "full"];
   const preset = WIDTH_PRESETS.find((p) => PREVIEW_WIDTH[p.size] === width)?.size;
   const previewHref = active.type === "remote" ? active.iframeUrl : previewFrameSrc(active.slug);
+  const codeOpen = isDesktop ? layout.code.open : mobilePanel === "code";
+
+  const toggleMobile = (panel: MobilePanel) =>
+    setMobilePanel((current) => (current === panel ? null : panel));
 
   return (
     <>
       <div
         ref={ref}
         id={WORKSPACE_ID}
+        suppressHydrationWarning
         data-dragging={dragging || undefined}
         className={cn(
-          "flex flex-col border-t [--code-h:280px] [--code-size:280px] [--info-size:340px] [--info-w:340px] [--nav-size:232px] [--nav-w:232px] md:grid md:h-[calc(100dvh-(--spacing(16)))] md:grid-cols-[var(--nav-w)_minmax(0,1fr)_var(--info-w)] md:grid-rows-[minmax(0,1fr)] md:overflow-hidden",
+          "flex h-[calc(100dvh-(--spacing(16)))] flex-col border-t [--code-h:0px] [--code-size:280px] [--info-size:340px] [--info-w:0px] [--nav-size:232px] [--nav-w:0px] md:grid md:grid-cols-[var(--nav-w)_minmax(0,1fr)_var(--info-w)] md:grid-rows-[minmax(0,1fr)] md:overflow-hidden",
           "md:transition-[grid-template-columns] md:duration-300 motion-reduce:transition-none",
           PANEL_EASE,
           "data-dragging:select-none data-dragging:transition-none data-dragging:[&_*]:transition-none! data-dragging:[&_iframe]:pointer-events-none",
@@ -197,9 +208,18 @@ export const ComponentWorkspace = ({ initialSlug, feed }: ComponentWorkspaceProp
         <div className="flex min-w-0 flex-col max-md:contents md:min-h-0">
           <div className="flex h-12 shrink-0 items-center gap-1 overflow-x-auto px-2 [scrollbar-width:none]">
             <ToolbarButton
+              label="Components"
+              pressed={mobilePanel === "nav"}
+              className="md:hidden"
+              onClick={() => toggleMobile("nav")}
+            >
+              <ListIcon />
+            </ToolbarButton>
+            <ToolbarButton
               label={inspect ? "Stop inspecting" : "Inspect elements"}
               pressed={inspect}
               disabled={active.type === "remote"}
+              className="max-md:hidden"
               onClick={() => setInspect((on) => !on)}
             >
               <SquareDashedMousePointerIcon />
@@ -227,7 +247,9 @@ export const ComponentWorkspace = ({ initialSlug, feed }: ComponentWorkspaceProp
                   ))}
                 </TabsList>
               </Tabs>
-              <Divider />
+              <span className="max-md:hidden">
+                <Divider />
+              </span>
               <ToolbarButton
                 label={prev ? `Previous: ${prev.name}` : "Previous"}
                 disabled={!prev}
@@ -243,11 +265,19 @@ export const ComponentWorkspace = ({ initialSlug, feed }: ComponentWorkspaceProp
                 <ArrowRightIcon />
               </ToolbarButton>
               <ToolbarButton
-                label={layout.code.open ? "Hide code" : "Show code"}
-                pressed={layout.code.open}
-                onClick={() => togglePanel("code")}
+                label={codeOpen ? "Hide code" : "Show code"}
+                pressed={codeOpen}
+                onClick={() => (isDesktop ? togglePanel("code") : toggleMobile("code"))}
               >
                 <SquareTerminalIcon />
+              </ToolbarButton>
+              <ToolbarButton
+                label="Details"
+                pressed={mobilePanel === "info"}
+                className="md:hidden"
+                onClick={() => toggleMobile("info")}
+              >
+                <InfoIcon />
               </ToolbarButton>
               <ToolbarButton
                 label="Open in new tab"
@@ -262,7 +292,7 @@ export const ComponentWorkspace = ({ initialSlug, feed }: ComponentWorkspaceProp
             </div>
           </div>
 
-          <div className="h-[70dvh] shrink-0 md:h-auto md:min-h-0 md:flex-1">
+          <div className="min-h-0 flex-1">
             <PreviewStage
               component={active}
               inspect={inspect}
@@ -273,9 +303,8 @@ export const ComponentWorkspace = ({ initialSlug, feed }: ComponentWorkspaceProp
 
           <div
             className={cn(
-              "relative shrink-0 max-md:order-last md:h-(--code-h) md:max-h-[calc(100dvh-(--spacing(56)))] md:border-t md:transition-[height] md:duration-300 motion-reduce:transition-none",
+              "relative shrink-0 max-md:hidden md:h-(--code-h) md:max-h-[calc(100dvh-(--spacing(56)))] md:border-t md:transition-[height] md:duration-300 motion-reduce:transition-none",
               PANEL_EASE,
-              layout.code.open ? "max-md:h-[60dvh] max-md:border-t" : "max-md:hidden",
             )}
           >
             <PanelHandle
@@ -295,12 +324,9 @@ export const ComponentWorkspace = ({ initialSlug, feed }: ComponentWorkspaceProp
           </div>
         </div>
 
-        <aside aria-label="Component details" className="relative min-w-0 border-t md:border-t-0">
-          <div
-            inert={isDesktop && !layout.info.open}
-            className="h-full overflow-hidden md:border-l"
-          >
-            <div className="h-full overflow-y-auto md:w-(--info-size)">
+        <aside aria-label="Component details" className="relative hidden min-w-0 md:block">
+          <div inert={!layout.info.open} className="h-full overflow-hidden border-l">
+            <div className="h-full w-(--info-size) overflow-y-auto">
               <InfoPanel key={active.slug} component={active} />
             </div>
           </div>
@@ -313,6 +339,13 @@ export const ComponentWorkspace = ({ initialSlug, feed }: ComponentWorkspaceProp
           />
         </aside>
       </div>
+      <MobileSheet
+        panel={isDesktop ? null : mobilePanel}
+        active={active}
+        feed={feed}
+        onSelect={select}
+        onClose={() => setMobilePanel(null)}
+      />
       <div
         hidden
         // oxlint-disable-next-line react/no-danger -- inline script must run during HTML parsing so stored panel sizes apply before first paint

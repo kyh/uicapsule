@@ -78,6 +78,10 @@ const renderBlock = (block: ProseBlock) => {
       return "---";
     }
 
+    case "code": {
+      return `\`\`\`${block.language}\n${block.text}\n\`\`\``;
+    }
+
     default: {
       return renderInline(block.text);
     }

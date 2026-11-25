@@ -95,7 +95,7 @@ Content is filesystem-driven; the web app never depends on content packages by n
   use `/api/content/<slug>`; the viewer and zip library load on demand.
 - `/ui/<slug>` is a docked workspace (`_components/component-workspace.tsx`): component list,
   preview + toolbar, code panel, info panel. Switching components is client state +
-  `history.pushState`, so the iframe swaps without a route remount. Panel sizes live in
+  `history.pushState`, so the iframe swaps without a route remount. Every panel starts collapsed; sizes and open state live in
   `localStorage` (`panel-layout.ts`, a `useSyncExternalStore` store); an inline script applies
   them to CSS vars before first paint, so the server HTML stays default and hydration never
   mismatches. Drag a panel past half its minimum to collapse it. Open/close animates the grid
@@ -152,8 +152,11 @@ Triage is manual: apply `ready` to accept, close as not-planned to decline. The
 Next imports, no filesystem — so it can be unit-tested without a runtime. The routes and
 `src/proxy.ts` only feed it data.
 
-- **One source per page.** `site-pages.ts` holds the prose for `/about`, `/contact`,
-  `/privacy` and `/terms`; the JSX page and the Markdown representation both render from it.
+- **One source per page.** `site-pages.ts` holds the prose for `/about`, `/install`, `/install/mcp`,
+  `/install/extension`, `/contact`, `/privacy` and `/terms`; the JSX page and the Markdown
+  representation both render from it. The `/install/*` pages are `InstallGuide`s
+  (`mcpGuide`, `extensionGuide`): `install/_components/install-guide.tsx` lays the fields out by
+  hand and `installPage` derives the Markdown blocks from the same fields.
   Never edit the copy in only one of the two. Copy carries `**bold**`, `` `code` `` and
   `[label](href)` inline markup, read by the one tokenizer in `inline-markup.ts`.
 - **The Privacy Policy and Terms of Use follow General Legal's templates**, adapted so every
@@ -180,7 +183,7 @@ Next imports, no filesystem — so it can be unit-tested without a runtime. The 
   shell. Anything added to it costs roughly 2.5× its size in HTML, because a server
   component's markup is duplicated in the RSC flight payload.
 - **`/mcp` has two jobs**, and copy that describes it (server instructions, `server.json`,
-  README, install prompt, `/llms.txt`, about page) names both: **skills** help an agent build
+  README, install prompt, `/install/mcp`, `/llms.txt`, about page) names both: **skills** help an agent build
   better UI in any project, and **tools** serve this gallery's components as templates. A new
   skill belongs only if it serves the first job; a new tool only if it serves the second.
   It is a stateless Streamable HTTP MCP server with two read-only tools,
