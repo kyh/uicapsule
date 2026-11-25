@@ -18,6 +18,7 @@ export const Button = ({
   children,
   className,
   disabled,
+  onClick,
   type = "button",
   ...props
 }: ButtonProps) => (
@@ -27,6 +28,7 @@ export const Button = ({
     data-size={size}
     data-variant={variant}
     disabled={disabled}
+    onClick={pending ? undefined : onClick}
     // oxlint-disable-next-line react/button-has-type -- defaults to "button"; a form passes "submit"
     type={type}
     {...props}

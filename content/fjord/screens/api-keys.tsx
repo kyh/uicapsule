@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Ellipsis, Plus } from "lucide-react";
 
 import { Avatar } from "../components/avatar";
@@ -238,7 +238,34 @@ export const ApiKeys = () => {
   const [expiry, setExpiry] = useState<Expiry>("90d");
   const [touched, setTouched] = useState(false);
   const [pending, setPending] = useState(false);
+  const mintTimer = useRef<number | null>(null);
   const toast = useToast();
+
+  const cancelMint = () => {
+    if (mintTimer.current !== null) {
+      window.clearTimeout(mintTimer.current);
+      mintTimer.current = null;
+    }
+
+    setPending(false);
+  };
+
+  useEffect(
+    () => () => {
+      if (mintTimer.current !== null) {
+        window.clearTimeout(mintTimer.current);
+      }
+    },
+    [],
+  );
+
+  const setMintOpen = (open: boolean) => {
+    if (!open) {
+      cancelMint();
+    }
+
+    setCreating(open);
+  };
 
   const nameError = /^[a-z0-9-]{3,32}$/u.test(name)
     ? undefined
@@ -250,12 +277,13 @@ export const ApiKeys = () => {
   const create = () => {
     setTouched(true);
 
-    if (nameError) {
+    if (nameError || mintTimer.current !== null) {
       return;
     }
 
     setPending(true);
-    window.setTimeout(() => {
+    mintTimer.current = window.setTimeout(() => {
+      mintTimer.current = null;
       const secret = makeSecret();
 
       setKeys((current) => [
@@ -358,14 +386,14 @@ export const ApiKeys = () => {
         description="You can read the whole key once, right after it is minted."
         footer={
           <>
-            <Button onClick={() => setCreating(false)}>Cancel</Button>
+            <Button onClick={() => setMintOpen(false)}>Cancel</Button>
             <Button onClick={create} pending={pending} pendingLabel="Minting" variant="primary">
               Mint key
             </Button>
           </>
         }
         note={`${env} workspace`}
-        onOpenChange={setCreating}
+        onOpenChange={setMintOpen}
         open={creating}
         size="lg"
         title="Mint a deploy key"
