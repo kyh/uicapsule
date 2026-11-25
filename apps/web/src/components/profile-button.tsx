@@ -1,6 +1,6 @@
 "use client";
 
-import { createContext, use, useMemo, useState } from "react";
+import { createContext, use, useCallback, useMemo, useState } from "react";
 import type { ComponentProps, Dispatch, ReactNode, SetStateAction } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -12,6 +12,7 @@ import {
   LogOutIcon,
   MoonIcon,
   PlugIcon,
+  PuzzleIcon,
   SunIcon,
   SunMoonIcon,
 } from "lucide-react";
@@ -33,10 +34,10 @@ import {
   DropdownMenuTrigger,
 } from "@repo/ui/components/dropdown-menu";
 import { Tabs, TabsIndicator, TabsList, TabsTrigger } from "@repo/ui/components/tabs";
-import { toast } from "@repo/ui/components/toast";
 import { cn } from "cn";
-import { mcpInstallPrompt } from "@/lib/agent/mcp-install-prompt";
+import { McpInstallDialog } from "@/components/mcp-install-dialog";
 import { authClient } from "@/lib/auth-client";
+import { siteConfig } from "@/lib/site-config";
 
 const menuItemIconClassName = "text-muted-foreground size-4 group-hover:text-foreground transition";
 
@@ -48,18 +49,27 @@ const themes = [
 
 type MenuVariant = "dropdown" | "drawer";
 
-const ProfileMenuContext = createContext<{ variant: MenuVariant; close: () => void } | null>(null);
+const ProfileMenuContext = createContext<{
+  variant: MenuVariant;
+  close: () => void;
+  openMcpDialog: () => void;
+} | null>(null);
 
 const ProfileMenuProvider = ({
   variant,
   setOpen,
+  openMcpDialog,
   children,
 }: {
   variant: MenuVariant;
   setOpen: Dispatch<SetStateAction<boolean>>;
+  openMcpDialog: () => void;
   children: ReactNode;
 }) => {
-  const value = useMemo(() => ({ close: () => setOpen(false), variant }), [setOpen, variant]);
+  const value = useMemo(
+    () => ({ close: () => setOpen(false), openMcpDialog, variant }),
+    [setOpen, openMcpDialog, variant],
+  );
 
   return <ProfileMenuContext value={value}>{children}</ProfileMenuContext>;
 };
@@ -116,21 +126,11 @@ const SignOutItem = ({ onSignOut }: { onSignOut: () => void }) => {
 };
 
 const InstallMcpItem = () => {
-  const { variant, close } = useProfileMenu();
+  const { variant, close, openMcpDialog } = useProfileMenu();
 
-  const handleCopy = async () => {
+  const handleOpen = () => {
     close();
-
-    try {
-      await navigator.clipboard.writeText(mcpInstallPrompt);
-    } catch (error) {
-      console.error("Failed to copy MCP install prompt:", error);
-      toast.error("Failed to copy MCP install prompt.");
-
-      return;
-    }
-
-    toast("Copied MCP install prompt", { description: "Paste it into your agent." });
+    openMcpDialog();
   };
 
   const content = (
@@ -141,14 +141,14 @@ const InstallMcpItem = () => {
   );
 
   return variant === "dropdown" ? (
-    <DropdownMenuItem className="group" onClick={handleCopy}>
+    <DropdownMenuItem className="group" onClick={handleOpen}>
       {content}
     </DropdownMenuItem>
   ) : (
     <button
       type="button"
       className="group flex w-full items-center gap-2 px-2 py-1.5 text-sm"
-      onClick={handleCopy}
+      onClick={handleOpen}
     >
       {content}
     </button>
@@ -180,6 +180,10 @@ const ProfileMenuItems = ({ user, onSignOut }: { user?: SessionUser; onSignOut: 
         Request
       </ProfileLink>
       <InstallMcpItem />
+      <ProfileLink href={`${siteConfig.repository}/tree/main/apps/extension`} target="_blank">
+        <PuzzleIcon aria-hidden="true" className={menuItemIconClassName} />
+        Extension
+      </ProfileLink>
       <DropdownMenuSeparator />
       <ProfileLink href="https://github.com/kyh/uicapsule" target="_blank">
         <svg
@@ -241,6 +245,8 @@ const ProfileMenu = ({ user }: { user?: SessionUser }) => {
   const router = useRouter();
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [drawerOpen, setDrawerOpen] = useState(false);
+  const [mcpDialogOpen, setMcpDialogOpen] = useState(false);
+  const openMcpDialog = useCallback(() => setMcpDialogOpen(true), []);
 
   const handleSignOut = () => {
     void authClient.signOut({
@@ -268,12 +274,19 @@ const ProfileMenu = ({ user }: { user?: SessionUser }) => {
       <DropdownMenu open={dropdownOpen} onOpenChange={setDropdownOpen}>
         <DropdownMenuTrigger
           aria-label="Settings"
+          openOnHover
+          delay={50}
+          closeDelay={50}
           render={<Button variant="ghost" size="icon" className="max-sm:hidden" />}
         >
           {avatar}
         </DropdownMenuTrigger>
         <DropdownMenuContent className="w-40" align="end">
-          <ProfileMenuProvider variant="dropdown" setOpen={setDropdownOpen}>
+          <ProfileMenuProvider
+            variant="dropdown"
+            setOpen={setDropdownOpen}
+            openMcpDialog={openMcpDialog}
+          >
             <ProfileMenuItems user={user} onSignOut={handleSignOut} />
           </ProfileMenuProvider>
         </DropdownMenuContent>
@@ -290,11 +303,16 @@ const ProfileMenu = ({ user }: { user?: SessionUser }) => {
             <DrawerTitle>Settings</DrawerTitle>
             <DrawerDescription>Settings options</DrawerDescription>
           </DrawerHeader>
-          <ProfileMenuProvider variant="drawer" setOpen={setDrawerOpen}>
+          <ProfileMenuProvider
+            variant="drawer"
+            setOpen={setDrawerOpen}
+            openMcpDialog={openMcpDialog}
+          >
             <ProfileMenuItems user={user} onSignOut={handleSignOut} />
           </ProfileMenuProvider>
         </DrawerContent>
       </Drawer>
+      <McpInstallDialog open={mcpDialogOpen} onOpenChange={setMcpDialogOpen} />
     </>
   );
 };

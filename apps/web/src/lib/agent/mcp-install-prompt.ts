@@ -1,6 +1,14 @@
 import { siteConfig } from "@/lib/site-config";
 
-const mcpServerUrl = `${siteConfig.url}/mcp`;
+export const mcpServerUrl = `${siteConfig.url}/mcp`;
+
+export const mcpClaudeCodeCommand = `claude mcp add --transport http uicapsule ${mcpServerUrl}`;
+
+export const mcpConfigJson = JSON.stringify(
+  { mcpServers: { uicapsule: { type: "http", url: mcpServerUrl } } },
+  null,
+  2,
+);
 
 /** Pasted into any coding agent, so it names the transport and a fallback config shape. */
 export const mcpInstallPrompt = `Add the ${siteConfig.name} MCP server to your MCP configuration.
@@ -10,7 +18,7 @@ export const mcpInstallPrompt = `Add the ${siteConfig.name} MCP server to your M
 - URL: ${mcpServerUrl}
 - No authentication required
 
-In Claude Code, run: claude mcp add --transport http uicapsule ${mcpServerUrl}
+In Claude Code, run: ${mcpClaudeCodeCommand}
 Otherwise, add this to your MCP config file:
 { "mcpServers": { "uicapsule": { "type": "http", "url": "${mcpServerUrl}" } } }
 
