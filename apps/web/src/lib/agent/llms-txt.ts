@@ -42,6 +42,11 @@ export const renderLlmsTxt = (components: ContentComponentSummary[]) => {
     renderList([
       { href: "/", label: "Home", text: "the component gallery, filterable" },
       { href: "/about", label: "About", text: "who makes this, and why" },
+      {
+        href: "/mcp-server",
+        label: "MCP server",
+        text: "how to install the MCP server, and what it gives an agent",
+      },
       { href: "/contact", label: "Contact", text: "email and GitHub issues" },
       {
         href: "/privacy",

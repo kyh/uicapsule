@@ -1,5 +1,8 @@
 import { siteConfig } from "@/lib/site-config";
 
+import { mcpClaudeCodeCommand, mcpConfigJson, mcpServerUrl } from "./mcp-install-prompt";
+import { REPO_SKILLS } from "./mcp-skills";
+
 /**
  * The prose pages, authored once and rendered twice: as JSX by
  * `(main)/(app)/<page>/page.tsx` and as Markdown by the content-negotiated
@@ -49,6 +52,7 @@ export type ProseBlock =
   | { kind: "list"; items: ProseListItem[] }
   | { kind: "bullets"; items: string[] }
   | { kind: "table"; columns: string[]; rows: string[][] }
+  | { kind: "code"; text: string; language: "json" | "sh"; label?: string }
   | { kind: "divider" };
 
 /** What a page says about itself: its metadata and its share card read this. */
@@ -945,8 +949,144 @@ export const termsPage: ProsePage = {
   title: "Terms of Use",
 };
 
+/** A titled entry on the MCP page: a job, a guarantee, an example prompt or a question. */
+export interface McpPageItem {
+  title: string;
+  text: string;
+}
+
+/** Install steps for the MCP page, in order; a step with `code` shows it with a copy button. */
+export const mcpInstallSteps: (McpPageItem & {
+  code?: Omit<Extract<ProseBlock, { kind: "code" }>, "kind">;
+})[] = [
+  {
+    code: { label: "Terminal", language: "sh", text: mcpClaudeCodeCommand },
+    text: "Run this once. It adds the server to Claude Code for every project.",
+    title: "Claude Code",
+  },
+  {
+    code: { label: "mcp.json", language: "json", text: mcpConfigJson },
+    text: "Cursor, VS Code, Windsurf and other clients take a remote server in their MCP config. The shape varies a little by client; the URL is the part that matters.",
+    title: "Any other client",
+  },
+  {
+    text: "Ask your agent to list its uicapsule tools. It should name `search_components` and `get_component`.",
+    title: "Check it worked",
+  },
+];
+
+export const mcpJobs: (McpPageItem & { names: string[] })[] = [
+  {
+    names: ["better-motion", "animate", "better-accessibility", "interface-review"],
+    text: `${REPO_SKILLS.length} skills on motion, gestures, accessibility, typography, color, layout and copy, from Emil Kowalski and Jakub Krehel. They work in any project, not just with these components.`,
+    title: "Build better UI",
+  },
+  {
+    names: ["search_components", "get_component"],
+    text: "Find a component by what it does or looks like, then get its source, dependencies and the shadcn command that installs it.",
+    title: "Start from a component",
+  },
+];
+
+export const mcpPrompts: McpPageItem[] = [
+  {
+    text: "Find a uicapsule component for a volume slider and install it in this app",
+    title: "Find",
+  },
+  {
+    text: "Use the uicapsule dynamic-island component as the starting point for our toasts",
+    title: "Start from",
+  },
+  {
+    text: "Review the animations on this screen with the better-motion skill and fix what's off",
+    title: "Polish",
+  },
+  {
+    text: "Run interface-review on the settings page and fix the top three issues",
+    title: "Review",
+  },
+  {
+    text: "Use break-ui to try this card with worst-case data, then fix what breaks",
+    title: "Stress-test",
+  },
+];
+
+export const mcpGuarantees: McpPageItem[] = [
+  { text: "No account, no API key, nothing to sign in to.", title: "No key" },
+  {
+    text: "The server only answers questions. Your agent writes any files, usually by running the shadcn command it gets back.",
+    title: "Read-only",
+  },
+  {
+    text: `The components are MIT licensed, and the server is [open source](${siteConfig.repository}).`,
+    title: "Open source",
+  },
+  {
+    text: "It ships with every deploy of the site, so there is no package to update.",
+    title: "Always current",
+  },
+];
+
+export const mcpFaq: McpPageItem[] = [
+  {
+    text: `A remote MCP server at \`${mcpServerUrl}\`. It gives a coding agent skills that make its UI work better, and tools that search this gallery and return a component's source to build from.`,
+    title: "What is the UICapsule MCP server?",
+  },
+  {
+    text: "Any client that connects to a remote server over Streamable HTTP. The tools work in all of them. The skills arrive through MCP's skills extension, so they appear only in clients that support it.",
+    title: "Which agents work with it?",
+  },
+  {
+    text: "Yes. There is no account, no key and no usage limit.",
+    title: "Is it free?",
+  },
+  {
+    text: "The search text and the components looked up are recorded as anonymous analytics events, so we can see what people look for. The [Privacy Policy](/privacy) has the details.",
+    title: "What does it record?",
+  },
+  {
+    text: "From [emilkowalski/skills](https://github.com/emilkowalski/skills) and [jakubkrehel/skills](https://github.com/jakubkrehel/skills), served unchanged at a pinned commit under their MIT licenses.",
+    title: "Where do the skills come from?",
+  },
+];
+
+/** `/mcp-server`, the install guide for `/mcp`. Its page lays these sections out by hand; `blocks` is the same copy for Markdown. */
+export const mcpPage: ProsePage = {
+  blocks: [
+    { kind: "heading", text: "Install" },
+    ...mcpInstallSteps.flatMap<ProseBlock>((step) => [
+      { kind: "heading", level: 3, text: step.title },
+      { kind: "paragraph", text: step.text },
+      ...(step.code ? [{ kind: "code", ...step.code } as const] : []),
+    ]),
+    { kind: "heading", text: "What your agent gets" },
+    {
+      items: mcpJobs.map((job) => ({ label: job.title, text: job.text })),
+      kind: "list",
+    },
+    { kind: "heading", text: "Prompts to try" },
+    { items: mcpPrompts.map((prompt) => `**${prompt.title}:** ${prompt.text}`), kind: "bullets" },
+    { kind: "heading", text: "Read-only, no key" },
+    {
+      items: mcpGuarantees.map((guarantee) => ({ label: guarantee.title, text: guarantee.text })),
+      kind: "list",
+    },
+    { kind: "heading", text: "Questions" },
+    ...mcpFaq.flatMap<ProseBlock>((entry) => [
+      { kind: "heading", level: 3, text: entry.title },
+      { kind: "paragraph", text: entry.text },
+    ]),
+  ],
+  description:
+    "Give your coding agent skills for building better UI and a gallery of components to start from. One URL, no API key.",
+  heading: "The MCP server for building better UI.",
+  path: "/mcp-server",
+  sitemapPriority: 0.7,
+  title: "MCP server",
+};
+
 /** Prose pages, in the order they should appear in a sitemap or llms.txt. */
-export const prosePages: ProsePage[] = [aboutPage, contactPage, privacyPage, termsPage];
+export const prosePages: ProsePage[] = [aboutPage, mcpPage, contactPage, privacyPage, termsPage];
 
 /**
  * The request form: indexable and shareable, but a form, not prose, so it has

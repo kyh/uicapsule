@@ -9,9 +9,11 @@ import {
   renderNotFoundMarkdown,
   renderProsePageMarkdown,
 } from "./markdown";
+import { mcpClaudeCodeCommand, mcpConfigJson } from "./mcp-install-prompt";
 import {
   aboutPage,
   contactPage,
+  mcpPage,
   privacyPage,
   prosePages,
   termsPage,
@@ -153,6 +155,12 @@ describe("renderProsePageMarkdown", () => {
     assert.equal(body.endsWith("\n"), true);
     assert.ok(body.includes("/llms.txt"), 'should contain "/llms.txt"');
     assert.ok(body.includes("/sitemap.xml"), 'should contain "/sitemap.xml"');
+  });
+
+  test("fences the MCP install snippets so agents can copy them verbatim", () => {
+    const body = renderProsePageMarkdown(mcpPage);
+    assert.ok(body.includes(`\`\`\`sh\n${mcpClaudeCodeCommand}\n\`\`\``));
+    assert.ok(body.includes(`\`\`\`json\n${mcpConfigJson}\n\`\`\``));
   });
 
   test("gives every registered page a non-trivial body", () => {
