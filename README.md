@@ -12,7 +12,14 @@ Browse [www.uicapsule.com](https://www.uicapsule.com) for slugs.
 
 ## MCP
 
-Let your agent search and install components by what they do:
+One server, two jobs for your agent:
+
+- **Build better UI.** Skills for motion, gestures, accessibility, typography, color, layout,
+  copy and interface review, served over MCP's skills extension (`skills/list`).
+- **Start from a component.** `search_components` and `get_component` find UICapsule components
+  by what they do and return their source and shadcn install command.
+
+Add it:
 
 ```bash
 claude mcp add --transport http uicapsule https://www.uicapsule.com/mcp

@@ -133,7 +133,11 @@ Next imports, no filesystem — so it can be unit-tested without a runtime. The 
   an empty page without JavaScript, and only unsuspended cached data lands in the static
   shell. Anything added to it costs roughly 2.5× its size in HTML, because a server
   component's markup is duplicated in the RSC flight payload.
-- **`/mcp`** is a stateless Streamable HTTP MCP server with two read-only tools,
+- **`/mcp` has two jobs**, and copy that describes it (server instructions, `server.json`,
+  README, install prompt, `/llms.txt`, about page) names both: **skills** help an agent build
+  better UI in any project, and **tools** serve this gallery's components as templates. A new
+  skill belongs only if it serves the first job; a new tool only if it serves the second.
+  It is a stateless Streamable HTTP MCP server with two read-only tools,
   `search_components` and `get_component`: oRPC procedures in the route, registered by
   `@orpc/mcp`'s `McpRegistrar` on a fresh `McpServer` per request (`createMcpHandler` from
   `@modelcontextprotocol/server`). They stay out of `@repo/contract`: no client calls them

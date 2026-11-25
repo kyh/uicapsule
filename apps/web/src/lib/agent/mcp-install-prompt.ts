@@ -14,4 +14,4 @@ In Claude Code, run: claude mcp add --transport http uicapsule ${mcpServerUrl}
 Otherwise, add this to your MCP config file:
 { "mcpServers": { "uicapsule": { "type": "http", "url": "${mcpServerUrl}" } } }
 
-It exposes two read-only tools: search_components and get_component. Once it is installed, confirm both tools are available.`;
+It does two things: skills that help you build better UI (motion, accessibility, typography, color, layout, copy), listed through MCP's skills extension, and two read-only tools, search_components and get_component, that serve ${siteConfig.name} components as templates. Once it is installed, confirm both tools are available.`;

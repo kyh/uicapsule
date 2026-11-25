@@ -150,7 +150,7 @@ export const aboutPage: ProsePage = {
     },
     {
       kind: "paragraph",
-      text: "UICapsule grew out of that collection. What started as a private stash is now open source. Every component installs with a single shadcn command, and agents can find them through the MCP server.",
+      text: "UICapsule grew out of that collection. What started as a private stash is now open source. Every component installs with a single shadcn command, and agents can find them through the MCP server, which also serves skills that help them build better UI.",
     },
     {
       kind: "paragraph",
