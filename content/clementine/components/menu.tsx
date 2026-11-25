@@ -32,7 +32,11 @@ interface MenuProps {
 const moveFocus = (list: HTMLElement | null, step: number) => {
   const buttons = [...(list?.querySelectorAll<HTMLButtonElement>("[role=menuitem]") ?? [])];
   const current = buttons.indexOf(document.activeElement as HTMLButtonElement);
-  const next = (current + step + buttons.length) % buttons.length;
+  let next = (current + step + buttons.length) % buttons.length;
+
+  if (current === -1) {
+    next = step > 0 ? 0 : buttons.length - 1;
+  }
 
   buttons[next]?.focus();
 };
@@ -107,6 +111,11 @@ export const Menu = ({ open, onOpenChange, label, items, trigger, align = "start
             onClick={() => {
               close("select");
               item.onSelect();
+            }}
+            onPointerMove={(event) => {
+              if (document.activeElement !== event.currentTarget) {
+                event.currentTarget.focus();
+              }
             }}
             role="menuitem"
             tabIndex={-1}

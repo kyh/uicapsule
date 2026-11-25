@@ -103,8 +103,8 @@ export const ToastProvider = ({ children }: { children: ReactNode }) => {
               <button
                 className="cl-toast__action"
                 onClick={() => {
-                  toast.action?.onClick();
                   setLeaving(true);
+                  toast.action?.onClick();
                 }}
                 type="button"
               >

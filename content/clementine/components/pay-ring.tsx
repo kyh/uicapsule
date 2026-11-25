@@ -26,7 +26,7 @@ export const PayRing = ({
   centerLabel: string;
   centerValue: number;
 }) => {
-  const hatch = useId();
+  const hatch = `cl-hatch-${useId().replaceAll(/[^\w-]/gu, "")}`;
   const visible = parts.filter((part) => part.amount > 0);
 
   const arcs = visible.map((part, index) => {
@@ -59,7 +59,7 @@ export const PayRing = ({
             data-tone={arc.tone}
             key={arc.name}
             r={R}
-            stroke={arc.tone === "open" ? `url(#${hatch})` : undefined}
+            style={arc.tone === "open" ? { stroke: `url(#${hatch}) var(--fg-2)` } : undefined}
             strokeDasharray={`${String(arc.length)} ${String(C)}`}
             strokeDashoffset={arc.offset}
           />

@@ -861,7 +861,7 @@
   white-space: nowrap;
   transition: background-color var(--dur-state) var(--ease-out);
 }
-.ds-vellum .v-menu-item:hover,
+.ds-vellum .v-menu-item:focus,
 .ds-vellum .v-menu-item[data-active] {
   background: var(--hover);
 }

@@ -52,7 +52,10 @@ export const Menu = ({
       entries[(at + 1) % entries.length]?.focus();
     } else if (event.key === "ArrowUp") {
       event.preventDefault();
-      entries[(at - 1 + entries.length) % entries.length]?.focus();
+      entries[at === -1 ? entries.length - 1 : (at - 1 + entries.length) % entries.length]?.focus();
+    } else if (event.key === "Home" || event.key === "End") {
+      event.preventDefault();
+      entries[event.key === "Home" ? 0 : entries.length - 1]?.focus();
     } else if (event.key === "Escape") {
       setOpen(false);
       root.current?.querySelector<HTMLButtonElement>("[aria-haspopup]")?.focus();
@@ -90,6 +93,7 @@ export const Menu = ({
                 setOpen(false);
                 item.onSelect();
               }}
+              onPointerMove={(event) => event.currentTarget.focus()}
               role="menuitem"
               tabIndex={-1}
               type="button"

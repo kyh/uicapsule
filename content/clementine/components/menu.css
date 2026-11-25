@@ -21,8 +21,7 @@
       color: var(--fg-3);
     }
 
-    &:hover,
-    &:focus-visible {
+    &:focus {
       background: var(--surface-2);
       outline: none;
     }
