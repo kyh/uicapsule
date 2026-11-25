@@ -137,6 +137,7 @@ export const ugcRouter = {
   publish: authed.publish.handler(async ({ context, input }) => {
     const { id: userId, username } = context.session.user;
     const handle = requireHandle(username);
+    await assertQuota(userId, input.slug);
     const files = await uploadedFiles(ugcBuildKey(userId, input.slug, input.build), blobToken());
 
     if (!isCompleteBuild(files)) {
