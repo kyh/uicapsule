@@ -113,25 +113,27 @@ const ProfileLink = ({ children, className, ...props }: ComponentProps<typeof Li
 };
 
 const ProfileAction = ({ onClick, children }: { onClick: () => void; children: ReactNode }) => {
-  const { variant } = useProfileMenu();
+  const { variant, close } = useProfileMenu();
 
   return (
-    <button type="button" className={itemClassName(variant)} onClick={onClick}>
+    <button
+      type="button"
+      className={itemClassName(variant)}
+      onClick={() => {
+        close();
+        onClick();
+      }}
+    >
       {children}
     </button>
   );
 };
 
 const InstallMcpItem = () => {
-  const { close, openMcpDialog } = useProfileMenu();
+  const { openMcpDialog } = useProfileMenu();
 
   return (
-    <ProfileAction
-      onClick={() => {
-        close();
-        openMcpDialog();
-      }}
-    >
+    <ProfileAction onClick={openMcpDialog}>
       <PlugIcon aria-hidden="true" className={menuItemIconClassName} />
       Install MCP
     </ProfileAction>
@@ -240,8 +242,6 @@ const ProfileMenu = ({ user }: { user?: SessionUser }) => {
     void authClient.signOut({
       fetchOptions: {
         onSuccess: () => {
-          setNavValue(null);
-          setDrawerOpen(false);
           router.refresh();
         },
       },
