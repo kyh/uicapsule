@@ -1,7 +1,7 @@
 "use client";
 
-import { createContext, use, useMemo, useState } from "react";
-import type { ComponentProps, Dispatch, ReactNode, SetStateAction } from "react";
+import { createContext, use, useCallback, useMemo, useState } from "react";
+import type { ComponentProps, ReactNode } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useTheme } from "next-themes";
@@ -12,6 +12,7 @@ import {
   LogOutIcon,
   MoonIcon,
   PlugIcon,
+  PuzzleIcon,
   SunIcon,
   SunMoonIcon,
 } from "lucide-react";
@@ -25,18 +26,24 @@ import {
   DrawerTitle,
   DrawerTrigger,
 } from "@repo/ui/components/drawer";
+import { DropdownMenuSeparator } from "@repo/ui/components/dropdown-menu";
 import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@repo/ui/components/dropdown-menu";
+  NavigationMenu,
+  NavigationMenuContent,
+  NavigationMenuItem,
+  NavigationMenuLink,
+  NavigationMenuList,
+  NavigationMenuPopup,
+  NavigationMenuPortal,
+  NavigationMenuPositioner,
+  NavigationMenuTrigger,
+  NavigationMenuViewport,
+} from "@repo/ui/components/navigation-menu";
 import { Tabs, TabsIndicator, TabsList, TabsTrigger } from "@repo/ui/components/tabs";
-import { toast } from "@repo/ui/components/toast";
 import { cn } from "cn";
-import { mcpInstallPrompt } from "@/lib/agent/mcp-install-prompt";
+import { McpInstallDialog } from "@/components/mcp-install-dialog";
 import { authClient } from "@/lib/auth-client";
+import { siteConfig } from "@/lib/site-config";
 
 const menuItemIconClassName = "text-muted-foreground size-4 group-hover:text-foreground transition";
 
@@ -46,20 +53,26 @@ const themes = [
   { icon: MoonIcon, label: "Dark theme", value: "dark" },
 ];
 
-type MenuVariant = "dropdown" | "drawer";
+type MenuVariant = "nav" | "drawer";
 
-const ProfileMenuContext = createContext<{ variant: MenuVariant; close: () => void } | null>(null);
+const ProfileMenuContext = createContext<{
+  variant: MenuVariant;
+  close: () => void;
+  openMcpDialog: () => void;
+} | null>(null);
 
 const ProfileMenuProvider = ({
   variant,
-  setOpen,
+  close,
+  openMcpDialog,
   children,
 }: {
   variant: MenuVariant;
-  setOpen: Dispatch<SetStateAction<boolean>>;
+  close: () => void;
+  openMcpDialog: () => void;
   children: ReactNode;
 }) => {
-  const value = useMemo(() => ({ close: () => setOpen(false), variant }), [setOpen, variant]);
+  const value = useMemo(() => ({ close, openMcpDialog, variant }), [close, openMcpDialog, variant]);
 
   return <ProfileMenuContext value={value}>{children}</ProfileMenuContext>;
 };
@@ -74,84 +87,56 @@ const useProfileMenu = () => {
   return context;
 };
 
+const itemClassName = (variant: MenuVariant) =>
+  cn(
+    "group flex w-full items-center gap-2 px-2 py-1.5 text-sm",
+    variant === "nav" &&
+      "rounded-sm outline-none select-none hover:bg-muted focus-visible:bg-muted",
+  );
+
 const ProfileLink = ({ children, className, ...props }: ComponentProps<typeof Link>) => {
   const { variant, close } = useProfileMenu();
 
-  return variant === "dropdown" ? (
-    <DropdownMenuItem
-      render={<Link {...props} onClick={close} />}
-      className={cn("group w-full justify-start", className)}
+  return variant === "nav" ? (
+    <NavigationMenuLink
+      closeOnClick
+      render={<Link {...props} />}
+      className={cn(itemClassName(variant), className)}
     >
       {children}
-    </DropdownMenuItem>
+    </NavigationMenuLink>
   ) : (
-    <Link
-      {...props}
-      onClick={close}
-      className={cn("group flex w-full items-center gap-2 px-2 py-1.5 text-sm", className)}
-    >
+    <Link {...props} onClick={close} className={cn(itemClassName(variant), className)}>
       {children}
     </Link>
   );
 };
 
-const SignOutItem = ({ onSignOut }: { onSignOut: () => void }) => {
-  const { variant } = useProfileMenu();
+const ProfileAction = ({ onClick, children }: { onClick: () => void; children: ReactNode }) => {
+  const { variant, close } = useProfileMenu();
 
-  return variant === "dropdown" ? (
-    <DropdownMenuItem onClick={onSignOut}>
-      <LogOutIcon aria-hidden="true" className={menuItemIconClassName} />
-      Sign out
-    </DropdownMenuItem>
-  ) : (
+  return (
     <button
       type="button"
-      className="group flex w-full items-center gap-2 px-2 py-1.5 text-sm"
-      onClick={onSignOut}
+      className={itemClassName(variant)}
+      onClick={() => {
+        close();
+        onClick();
+      }}
     >
-      <LogOutIcon aria-hidden="true" className={menuItemIconClassName} />
-      Sign out
+      {children}
     </button>
   );
 };
 
 const InstallMcpItem = () => {
-  const { variant, close } = useProfileMenu();
+  const { openMcpDialog } = useProfileMenu();
 
-  const handleCopy = async () => {
-    close();
-
-    try {
-      await navigator.clipboard.writeText(mcpInstallPrompt);
-    } catch (error) {
-      console.error("Failed to copy MCP install prompt:", error);
-      toast.error("Failed to copy MCP install prompt.");
-
-      return;
-    }
-
-    toast("Copied MCP install prompt", { description: "Paste it into your agent." });
-  };
-
-  const content = (
-    <>
+  return (
+    <ProfileAction onClick={openMcpDialog}>
       <PlugIcon aria-hidden="true" className={menuItemIconClassName} />
       Install MCP
-    </>
-  );
-
-  return variant === "dropdown" ? (
-    <DropdownMenuItem className="group" onClick={handleCopy}>
-      {content}
-    </DropdownMenuItem>
-  ) : (
-    <button
-      type="button"
-      className="group flex w-full items-center gap-2 px-2 py-1.5 text-sm"
-      onClick={handleCopy}
-    >
-      {content}
-    </button>
+    </ProfileAction>
   );
 };
 
@@ -180,6 +165,10 @@ const ProfileMenuItems = ({ user, onSignOut }: { user?: SessionUser; onSignOut: 
         Request
       </ProfileLink>
       <InstallMcpItem />
+      <ProfileLink href={`${siteConfig.repository}/tree/main/apps/extension`} target="_blank">
+        <PuzzleIcon aria-hidden="true" className={menuItemIconClassName} />
+        Extension
+      </ProfileLink>
       <DropdownMenuSeparator />
       <ProfileLink href="https://github.com/kyh/uicapsule" target="_blank">
         <svg
@@ -226,7 +215,10 @@ const ProfileMenuItems = ({ user, onSignOut }: { user?: SessionUser; onSignOut: 
       </div>
       <DropdownMenuSeparator />
       {user ? (
-        <SignOutItem onSignOut={onSignOut} />
+        <ProfileAction onClick={onSignOut}>
+          <LogOutIcon aria-hidden="true" className={menuItemIconClassName} />
+          Sign out
+        </ProfileAction>
       ) : (
         <ProfileLink href="/auth/login">
           <LogInIcon aria-hidden="true" className={menuItemIconClassName} />
@@ -239,15 +231,17 @@ const ProfileMenuItems = ({ user, onSignOut }: { user?: SessionUser; onSignOut: 
 
 const ProfileMenu = ({ user }: { user?: SessionUser }) => {
   const router = useRouter();
-  const [dropdownOpen, setDropdownOpen] = useState(false);
+  const [navValue, setNavValue] = useState<string | null>(null);
   const [drawerOpen, setDrawerOpen] = useState(false);
+  const [mcpDialogOpen, setMcpDialogOpen] = useState(false);
+  const closeNav = useCallback(() => setNavValue(null), []);
+  const closeDrawer = useCallback(() => setDrawerOpen(false), []);
+  const openMcpDialog = useCallback(() => setMcpDialogOpen(true), []);
 
   const handleSignOut = () => {
     void authClient.signOut({
       fetchOptions: {
         onSuccess: () => {
-          setDropdownOpen(false);
-          setDrawerOpen(false);
           router.refresh();
         },
       },
@@ -265,19 +259,34 @@ const ProfileMenu = ({ user }: { user?: SessionUser }) => {
 
   return (
     <>
-      <DropdownMenu open={dropdownOpen} onOpenChange={setDropdownOpen}>
-        <DropdownMenuTrigger
-          aria-label="Settings"
-          render={<Button variant="ghost" size="icon" className="max-sm:hidden" />}
-        >
-          {avatar}
-        </DropdownMenuTrigger>
-        <DropdownMenuContent className="w-40" align="end">
-          <ProfileMenuProvider variant="dropdown" setOpen={setDropdownOpen}>
-            <ProfileMenuItems user={user} onSignOut={handleSignOut} />
-          </ProfileMenuProvider>
-        </DropdownMenuContent>
-      </DropdownMenu>
+      <NavigationMenu
+        className="max-sm:hidden"
+        value={navValue}
+        onValueChange={(value) => setNavValue(value)}
+      >
+        <NavigationMenuList render={<div />}>
+          <NavigationMenuItem value="profile" render={<div />}>
+            <NavigationMenuTrigger
+              aria-label="Settings"
+              render={<Button variant="ghost" size="icon" />}
+            >
+              {avatar}
+            </NavigationMenuTrigger>
+            <NavigationMenuContent className="w-40 p-1">
+              <ProfileMenuProvider variant="nav" close={closeNav} openMcpDialog={openMcpDialog}>
+                <ProfileMenuItems user={user} onSignOut={handleSignOut} />
+              </ProfileMenuProvider>
+            </NavigationMenuContent>
+          </NavigationMenuItem>
+        </NavigationMenuList>
+        <NavigationMenuPortal>
+          <NavigationMenuPositioner align="end">
+            <NavigationMenuPopup>
+              <NavigationMenuViewport />
+            </NavigationMenuPopup>
+          </NavigationMenuPositioner>
+        </NavigationMenuPortal>
+      </NavigationMenu>
       <Drawer open={drawerOpen} onOpenChange={setDrawerOpen}>
         <DrawerTrigger
           aria-label="Settings"
@@ -290,11 +299,12 @@ const ProfileMenu = ({ user }: { user?: SessionUser }) => {
             <DrawerTitle>Settings</DrawerTitle>
             <DrawerDescription>Settings options</DrawerDescription>
           </DrawerHeader>
-          <ProfileMenuProvider variant="drawer" setOpen={setDrawerOpen}>
+          <ProfileMenuProvider variant="drawer" close={closeDrawer} openMcpDialog={openMcpDialog}>
             <ProfileMenuItems user={user} onSignOut={handleSignOut} />
           </ProfileMenuProvider>
         </DrawerContent>
       </Drawer>
+      <McpInstallDialog open={mcpDialogOpen} onOpenChange={setMcpDialogOpen} />
     </>
   );
 };
