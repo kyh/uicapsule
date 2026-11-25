@@ -33,6 +33,8 @@
   "devDependencies": {
     "@interfere/landmines": "^0.1.1",
     "@kyh/tsconfig": "catalog:",
+    "@orpc/client": "catalog:",
+    "@repo/contract": "workspace:^",
     "@tailwindcss/postcss": "catalog:",
     "@types/node": "catalog:",
     "@vercel/blob": "^2.9.0",

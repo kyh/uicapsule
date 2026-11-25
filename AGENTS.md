@@ -41,7 +41,9 @@ curl -s -i -X POST localhost:3000/api/auth/sign-up/email \
 ```
 
 A `200` plus a `better-auth.session_token` cookie means the user was created — hand that
-cookie to `curl` or agent-browser.
+cookie to `curl` or agent-browser. Add `"username":"dev"` to the body to publish components;
+the response's `set-auth-token` header is the bearer token `pnpm publish:ugc` reads from
+`UICAPSULE_TOKEN`.
 
 **Sign-up is not idempotent.** A second call for the same email returns
 `422 USER_ALREADY_EXISTS_USE_ANOTHER_EMAIL` (better-auth throws; it does not return the

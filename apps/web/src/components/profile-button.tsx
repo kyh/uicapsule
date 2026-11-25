@@ -134,7 +134,7 @@ const ProfileMenuItems = ({ user, onSignOut }: { user?: SessionUser; onSignOut: 
       {user && (
         <>
           <div className="flex flex-col px-2 py-1.5 text-sm">
-            <span className="truncate">{user.name}</span>
+            <span className="truncate">{user.username ? `@${user.username}` : user.name}</span>
             <span className="text-muted-foreground truncate text-xs">{user.email}</span>
           </div>
           <DropdownMenuSeparator />

@@ -4,6 +4,7 @@ import { useState } from "react";
 import type { HTMLAttributes } from "react";
 import { useRouter } from "next/navigation";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { handleSchema } from "@repo/contract/ugc/ugc-schema";
 import { Button } from "@repo/ui/components/button";
 import { Field, FieldError, FieldLabel } from "@repo/ui/components/field";
 import { Input } from "@repo/ui/components/input";
@@ -15,8 +16,16 @@ import { z } from "zod";
 import { authClient } from "@/lib/auth-client";
 
 const emailSchema = z.object({ email: z.email("Invalid email address") });
-const loginSchema = emailSchema.extend({ password: z.string().min(1, "Password is required") });
-const registerSchema = emailSchema.extend({ password: z.string().min(8).max(128) });
+
+const loginSchema = emailSchema.extend({
+  password: z.string().min(1, "Password is required"),
+  username: z.string(),
+});
+
+const registerSchema = emailSchema.extend({
+  password: z.string().min(8).max(128),
+  username: handleSchema,
+});
 
 const passwordSchema = z
   .object({ confirmPassword: z.string(), password: z.string().min(8).max(128) })
@@ -36,6 +45,7 @@ export const AuthForm = ({ className, type, ...props }: AuthFormProps) => {
     defaultValues: {
       email: "",
       password: "",
+      username: "",
     },
     resolver: zodResolver(type === "register" ? registerSchema : loginSchema),
   });
@@ -50,10 +60,15 @@ export const AuthForm = ({ className, type, ...props }: AuthFormProps) => {
       const result =
         type === "register"
           ? await authClient.signUp.email({
-              ...credentials,
-              name: credentials.email.split("@")[0] ?? "User",
+              email: credentials.email,
+              name: credentials.username,
+              password: credentials.password,
+              username: credentials.username,
             })
-          : await authClient.signIn.email(credentials);
+          : await authClient.signIn.email({
+              email: credentials.email,
+              password: credentials.password,
+            });
 
       if (result.error) {
         form.setError("root", { message: result.error.message ?? "Unable to sign in. Try again." });
@@ -89,6 +104,25 @@ export const AuthForm = ({ className, type, ...props }: AuthFormProps) => {
           />
           <FieldError errors={errors.email ? [errors.email] : undefined} />
         </Field>
+        {type === "register" && (
+          <Field>
+            <FieldLabel className="sr-only" htmlFor="username">
+              Username
+            </FieldLabel>
+            <Input
+              id="username"
+              data-test="username-input"
+              required
+              placeholder="username"
+              autoCapitalize="none"
+              autoComplete="username"
+              autoCorrect="off"
+              aria-invalid={errors.username ? true : undefined}
+              {...register("username")}
+            />
+            <FieldError errors={errors.username ? [errors.username] : undefined} />
+          </Field>
+        )}
         <Field>
           <FieldLabel className="sr-only" htmlFor="password">
             Password

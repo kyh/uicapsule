@@ -6,6 +6,7 @@ import {
   parseFrameMessage,
   parseParentMessage,
   previewFrameSrc,
+  ugcPreviewFrameSrc,
 } from "./preview-protocol";
 
 type Sample =
@@ -59,5 +60,13 @@ test("preview frames resolve against the preview origin when one is set", () => 
   assert.equal(
     previewFrameSrc("popup-book", "https://preview.uicapsule.com"),
     "https://preview.uicapsule.com/preview-frame/popup-book",
+  );
+});
+
+test("user-published frames live under /preview-frame/u/<handle>/<slug>", () => {
+  assert.equal(ugcPreviewFrameSrc("kai", "knob", ""), "/preview-frame/u/kai/knob");
+  assert.equal(
+    ugcPreviewFrameSrc("kai", "knob", "https://preview.uicapsule.com"),
+    "https://preview.uicapsule.com/preview-frame/u/kai/knob",
   );
 });

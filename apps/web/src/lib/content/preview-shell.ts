@@ -20,6 +20,13 @@ export const previewShellHeaders = {
   "X-Robots-Tag": "noindex, nofollow",
 } as const;
 
+/** The plain-text 404 a preview frame answers for anything it cannot serve. */
+export const previewNotFound = () =>
+  new Response("Not found", {
+    headers: { "Content-Type": "text/plain; charset=utf-8" },
+    status: 404,
+  });
+
 const ESCAPES = new Map([
   ['"', "&quot;"],
   ["&", "&amp;"],

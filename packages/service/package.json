@@ -6,7 +6,8 @@
   "exports": {
     ".": "./src/index.ts",
     "./auth": "./src/auth/auth.ts",
-    "./request/github-attachment": "./src/request/github-attachment.ts"
+    "./request/github-attachment": "./src/request/github-attachment.ts",
+    "./ugc/ugc-store": "./src/ugc/ugc-store.ts"
   },
   "scripts": {
     "clean": "git clean -xdf .cache .turbo node_modules",
@@ -18,14 +19,15 @@
     "@orpc/server": "catalog:",
     "@repo/contract": "workspace:^",
     "@repo/db": "workspace:^",
+    "@vercel/blob": "^2.9.0",
     "better-auth": "catalog:",
+    "drizzle-orm": "catalog:",
     "server-only": "^0.0.1",
     "zod": "catalog:"
   },
   "devDependencies": {
     "@kyh/tsconfig": "catalog:",
     "@types/node": "catalog:",
-    "drizzle-orm": "catalog:",
     "tsx": "catalog:",
     "typescript": "catalog:"
   }

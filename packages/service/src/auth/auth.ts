@@ -1,9 +1,11 @@
 import "server-only";
 import { db } from "@repo/db/drizzle-client";
+import { handleSchema } from "@repo/contract/ugc/ugc-schema";
 import { betterAuth } from "better-auth";
 import type { BaseURLConfig } from "better-auth";
 // WARNING: keep the relations-v2 entry; the default adapter reads db._.fullSchema, which drizzle 1.0 removed.
 import { drizzleAdapter } from "@better-auth/drizzle-adapter/relations-v2";
+import { bearer, username } from "better-auth/plugins";
 
 import { sendPasswordResetEmail } from "./password-reset-email";
 
@@ -42,6 +44,15 @@ export const auth = betterAuth({
         ? ({ user, url }) => sendPasswordResetEmail(user.email, url)
         : undefined,
   },
+  plugins: [
+    bearer(),
+    username({
+      displayUsername: false,
+      maxUsernameLength: 39,
+      minUsernameLength: 3,
+      usernameValidator: (value) => handleSchema.safeParse(value).success,
+    }),
+  ],
   rateLimit: {
     enabled: true,
     max: 10,

@@ -1,42 +1,34 @@
 #!/usr/bin/env tsx
-import { randomBytes } from "node:crypto";
+import { createHash } from "node:crypto";
 import { existsSync } from "node:fs";
 import { mkdir, writeFile } from "node:fs/promises";
 import path from "node:path";
-import { put } from "@vercel/blob";
+import { createORPCClient } from "@orpc/client";
+import { RPCLink } from "@orpc/client/fetch";
+import type { ContractClient } from "@repo/contract";
+import { ugcSlugSchema } from "@repo/contract/ugc/ugc-schema";
+import { put } from "@vercel/blob/client";
 import { defineCommand, runMain } from "citty";
 import { consola } from "consola";
 import * as esbuild from "esbuild";
 
 import {
-  parseUgcSlug,
-  ugcBuildKey,
-  ugcManifestKey,
-  ugcManifestSchema,
-} from "../apps/web/src/lib/content/ugc-preview";
-import { blobToken } from "./blob-token";
-import {
   ASSET_LOADERS,
   SHARED_PACKAGES,
   compilePreviewStylesheet,
   previewEntry,
-  repoRoot,
   webRoot,
 } from "./preview-bundle";
 
 const ENTRY = "ugc-entry";
 
-const CONTENT_TYPES = new Map([
-  [".css", "text/css; charset=utf-8"],
-  [".js", "text/javascript; charset=utf-8"],
-  [".json", "application/json"],
-]);
-
 const sharedAliases = Object.fromEntries(
   SHARED_PACKAGES.map((name) => [name, path.join(webRoot, "node_modules", name)]),
 );
 
-const bundle = async (dir: string, publicPath: string) => {
+const bundle = async (dir: string, assetBase: string) => {
+  const outdir = path.join(dir, ".ugc-out");
+
   const result = await esbuild.build({
     absWorkingDir: dir,
     alias: sharedAliases,
@@ -50,7 +42,7 @@ const bundle = async (dir: string, publicPath: string) => {
     loader: ASSET_LOADERS,
     logLevel: "warning",
     minify: true,
-    outdir: path.join(dir, ".ugc-out"),
+    outdir,
     plugins: [
       {
         name: ENTRY,
@@ -66,16 +58,13 @@ const bundle = async (dir: string, publicPath: string) => {
         },
       },
     ],
-    publicPath,
+    publicPath: assetBase,
     target: "es2022",
     write: false,
   });
 
   const files = new Map(
-    result.outputFiles.map((file) => [
-      path.relative(path.join(dir, ".ugc-out"), file.path),
-      file.contents,
-    ]),
+    result.outputFiles.map((file) => [path.relative(outdir, file.path), file.contents]),
   );
 
   files.set("tailwind.css", new TextEncoder().encode(await compilePreviewStylesheet(dir, true)));
@@ -87,93 +76,120 @@ const bundle = async (dir: string, publicPath: string) => {
   return files;
 };
 
+const buildId = (files: Map<string, Uint8Array>) => {
+  const hash = createHash("sha256");
+
+  for (const [file, contents] of [...files].toSorted(([a], [b]) => a.localeCompare(b))) {
+    hash.update(file).update("\0").update(contents);
+  }
+
+  return hash.digest("hex").slice(0, 16);
+};
+
 const main = defineCommand({
   args: {
+    "asset-base": {
+      description: "With --out: the public URL assets are referenced from",
+      type: "string",
+    },
     dir: {
       description: "Component directory holding preview.tsx",
       required: true,
       type: "positional",
     },
-    name: {
-      description: "Display name shown in the preview's title",
-      required: true,
-      type: "string",
-    },
+    name: { description: "Display name of the component", type: "string" },
     out: {
-      description: "Write the Blob keys under this local directory instead of uploading",
+      description: "Only build: write the files under this directory instead of publishing",
       type: "string",
     },
-    slug: { description: "Slug to publish under (ugc/<slug>/…)", required: true, type: "string" },
+    slug: { description: "Slug under /u/<username>/", required: true, type: "string" },
+    url: {
+      default: process.env.UICAPSULE_URL ?? "http://localhost:3000",
+      description: "The uicapsule site to publish to",
+      type: "string",
+    },
+    username: {
+      description: "Set your username first (needed once, before your first publish)",
+      type: "string",
+    },
   },
   meta: {
     description:
-      "Build one component's preview and publish it to the assets Blob store, where /preview-frame/<slug> finds it when the slug is not in content/. Trusted input only: this does not sandbox the build.",
+      "Build one component's preview and publish it to your account, at /u/<username>/<slug>. Needs UICAPSULE_TOKEN, a session token from signing in.",
     name: "publish:ugc",
   },
   run: async ({ args }) => {
     const dir = path.resolve(args.dir);
-    const slug = parseUgcSlug(args.slug);
-    const assetsUrl = process.env.NEXT_PUBLIC_ASSETS_URL;
-
-    if (!slug) {
-      throw new Error(`"${args.slug}" is not a valid slug: lowercase letters, digits and dashes`);
-    }
-
-    if (existsSync(path.join(repoRoot, "content", slug))) {
-      throw new Error(`content/${slug} exists; the repo copy always wins, so pick another slug`);
-    }
+    const slug = ugcSlugSchema.parse(args.slug);
 
     if (!existsSync(path.join(dir, "preview.tsx"))) {
       throw new Error(`${dir} has no preview.tsx`);
     }
 
-    if (!assetsUrl) {
-      throw new Error("NEXT_PUBLIC_ASSETS_URL is unset; it is the Blob store the site reads from");
-    }
-
-    const build = randomBytes(8).toString("hex");
-    const prefix = ugcBuildKey(slug, build);
-    const files = await bundle(dir, `${assetsUrl}/${prefix}`);
-    const manifest = ugcManifestSchema.parse({ build, name: args.name, version: 1 });
-    const manifestKey = ugcManifestKey(slug);
-    const manifestBody = new TextEncoder().encode(JSON.stringify(manifest));
-    const objects = new Map([...files].map(([file, contents]) => [`${prefix}/${file}`, contents]));
-
     if (args.out) {
-      const out = path.resolve(args.out);
+      const files = await bundle(dir, args["asset-base"] ?? `https://assets.invalid/ugc/${slug}`);
+      const out = path.join(path.resolve(args.out), buildId(files));
 
-      for (const [key, contents] of [...objects, [manifestKey, manifestBody] as const]) {
-        await mkdir(path.dirname(path.join(out, key)), { recursive: true });
-        await writeFile(path.join(out, key), contents);
+      for (const [file, contents] of files) {
+        await mkdir(path.dirname(path.join(out, file)), { recursive: true });
+        await writeFile(path.join(out, file), contents);
       }
 
-      consola.success(`Wrote ${objects.size} files for ${slug} (build ${build}) under ${out}`);
+      consola.success(`Built ${files.size} files into ${out}`);
 
       return;
     }
 
-    const token = await blobToken(repoRoot);
+    const token = process.env.UICAPSULE_TOKEN;
 
-    for (const [key, contents] of objects) {
-      await put(key, Buffer.from(contents), {
+    if (!token) {
+      throw new Error("UICAPSULE_TOKEN is unset: sign in and pass your session token");
+    }
+
+    if (!args.name) {
+      throw new Error("--name is required to publish");
+    }
+
+    const headers = { authorization: `Bearer ${token}` };
+
+    if (args.username) {
+      const response = await fetch(new URL("/api/auth/update-user", args.url), {
+        body: JSON.stringify({ username: args.username }),
+        headers: { ...headers, "content-type": "application/json" },
+        method: "POST",
+      });
+
+      if (!response.ok) {
+        throw new Error(`Could not set username: ${await response.text()}`);
+      }
+    }
+
+    const client: ContractClient = createORPCClient(
+      new RPCLink({ headers, origin: new URL(args.url).origin, url: "/api/orpc" }),
+    );
+
+    const { assetBase } = await client.ugc.prepare({ slug });
+    const files = await bundle(dir, assetBase);
+    const build = buildId(files);
+
+    const { uploads } = await client.ugc.createUpload({
+      build,
+      files: [...files].map(([file, contents]) => ({ path: file, size: contents.byteLength })),
+      slug,
+    });
+
+    for (const upload of uploads) {
+      await put(upload.pathname, Buffer.from(files.get(upload.path) ?? new Uint8Array()), {
         access: "public",
-        addRandomSuffix: false,
-        contentType: CONTENT_TYPES.get(path.extname(key)),
-        token,
+        contentType: upload.contentType,
+        token: upload.token,
       });
     }
 
-    await put(manifestKey, Buffer.from(manifestBody), {
-      access: "public",
-      addRandomSuffix: false,
-      allowOverwrite: true,
-      cacheControlMaxAge: 60,
-      contentType: "application/json",
-      token,
-    });
+    const published = await client.ugc.publish({ build, name: args.name, slug });
 
     consola.success(
-      `Published ${slug} (build ${build}); live at /preview-frame/${slug} within minutes`,
+      `Published ${published.path} (build ${build}, ${uploads.length} of ${files.size} files uploaded). Live at ${new URL(`/preview-frame${published.path}`, args.url).href} within a minute.`,
     );
   },
 });

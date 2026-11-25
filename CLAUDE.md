@@ -36,7 +36,8 @@ UNAUTHORIZED); procedure-level `.use` runs after. Feature routers stay plain obj
 looks the session up itself, so `createORPCContext` carries only headers and public procedures
 never touch the database. Clients type against `ContractClient` / `RouterInputs` /
 `RouterOutputs` and import schemas from `@repo/contract`; only server code (the route handlers
-under `apps/web/src/app/api`) imports `@repo/service`. Layout follows oRPC's Hybrid monorepo
+under `apps/web/src/app/api`, and `preview-frame/u/[user]/[slug]`, which reads published
+components through `@repo/service/ugc/ugc-store`) imports `@repo/service`. Layout follows oRPC's Hybrid monorepo
 recipe.
 
 ### Content architecture
@@ -79,18 +80,26 @@ Content is filesystem-driven; the web app never depends on content packages by n
   their own host, and `next.config.ts` redirects every other path on that host to www. A
   separate registrable domain would also keep a flagged UGC preview off uicapsule.com's
   Safe Browsing reputation; it is the same one env var.
-- **A slug not in `content/` falls back to the assets Blob store** (`lib/content/ugc-preview.ts`).
-  `ugc/<slug>/manifest.json` (`{ version, name, build }`, the one mutable key, 60s cache) points
-  at an immutable `ugc/<slug>/<build>/` holding `index.js`, `index.css`, `tailwind.css` and
-  `assets/*`; `getUgcPreview` caches the lookup for minutes (`cacheLife("minutes")`, not
-  `"max"`: it changes between deploys). The repo always wins a slug. A UGC shell adds
-  `script-src <bundle origin> <theme-boot hash>` to the sandbox CSP, so a published bundle
-  can't load code from anywhere else later. UGC bundles are self-contained (React included, no
-  shared chunks). `pnpm publish:ugc <dir> --slug <s> --name <n>` builds one with the same
-  `scripts/preview-bundle.ts` as `build:previews` and uploads it (`--out <dir>` writes the keys
-  locally instead). It trusts its input: it does not sandbox the build, so run it only on
-  reviewed code until a sandboxed builder exists. Only the preview frame knows about UGC so far:
-  no gallery card, `/ui` page, registry item or download.
+- **Users publish their own components to their account** (contract `ugc/`, service
+  `ugc/`, table `ugc_component` in `@repo/db/drizzle-schema-ugc`). Their code never enters the
+  repo. Accounts carry a `username` (better-auth `username` plugin, validated by the contract's
+  `handleSchema`), and a component lives at `/u/<username>/<slug>`, its frame at
+  `/preview-frame/u/<username>/<slug>` (`ugcPreviewFrameSrc`). The client builds the bundle
+  (`pnpm publish:ugc`, same `scripts/preview-bundle.ts` as `build:previews`, React bundled in)
+  and the server only hands out Blob client tokens: `ugc.prepare` (quota + asset URL) →
+  `ugc.createUpload` (one token per file, pinned to its pathname, content type and size, 15
+  minutes) → upload → `ugc.publish` (checks the build's files are in Blob, then upserts the
+  row). Blob keys use the user id, never the username: entry files at
+  `ugc/<userId>/<slug>/<build>/`, content-hashed assets beside them in
+  `ugc/<userId>/<slug>/assets/` so builds share them and the bundler knows their URL before the
+  build id (a hash of the files) exists. The frame route reads Turso on every request and lets
+  the CDN cache a hit for 60s (`ugcShellHeaders`); a miss is never cached, so a fresh publish
+  shows at once. A UGC shell adds `script-src <bundle origin> <theme-boot hash>` to the sandbox
+  CSP, so a published bundle can't load code from anywhere else later. Non-browser clients sign
+  in with the better-auth `bearer` plugin (`Authorization: Bearer <set-auth-token>`), which
+  `/api/orpc`'s Origin guard admits because they send no Origin. Not done yet: MCP sign-in and
+  publish tools, gallery cards or `/u` pages, source upload, moderation, and cleanup of builds
+  uploaded but never published.
 - `/r/<slug>.json` serves the shadcn registry item. The docked code panel and zip download
   use `/api/content/<slug>`; the viewer and zip library load on demand.
 - `/ui/<slug>` is a docked workspace (`_components/component-workspace.tsx`): component list,
@@ -250,7 +259,7 @@ pnpm db:push-remote   # Push to production Turso
 pnpm new:content <slug>  # Scaffold a new content component in content/ (--design-system for the template)
 pnpm check:content    # Fail if any content/<slug> is not a loadable component
 pnpm build:previews   # Bundle every content preview into apps/web/public/previews (build runs it; dev:web watches)
-pnpm publish:ugc <dir> --slug <s> --name <n>  # Build one reviewed component and publish it to Blob as ugc/<s> (needs BLOB_READ_WRITE_TOKEN)
+pnpm publish:ugc <dir> --slug <s> --name <n>  # Build a component and publish it to your account (UICAPSULE_TOKEN, UICAPSULE_URL; --username once; --out to only build)
 pnpm test             # node:test — auth + RPC transport guards + the agent-surface tests
 pnpm check:agent-endpoints  # Runtime check of the agent surfaces (needs a running server)
 pnpm skills:update    # Bump the skills-lock.json skills (emilkowalski, jakubkrehel) to upstream HEAD; review the diff
@@ -306,9 +315,10 @@ does not prove delivery. Reset tokens expire after one hour and revoke existing 
 
 ## Decisions (do not re-litigate)
 
-- **auth + oRPC are kept.** oRPC serves two procedures: `request.create`, called by the
-  `/request` form, and `user.me`, with zero callers, deliberately retained with auth for a
-  future feature. Make them correct; don't propose deleting them.
+- **auth + oRPC are kept.** oRPC serves `request.create`, called by the `/request` form, the
+  `ugc.*` publishing procedures, called by `pnpm publish:ugc`, and `user.me`, with zero callers,
+  deliberately retained with auth for a future feature. Make them correct; don't propose
+  deleting them.
 - **Assets live in the `uicapsule-assets` Vercel Blob store.** Covers, illustrations, share
   stills and the home og video resolve against `NEXT_PUBLIC_ASSETS_URL`; `meta.json`,
   `cover-media.json` and `home-media.json` store bucket keys, never URLs. Nothing media goes in
