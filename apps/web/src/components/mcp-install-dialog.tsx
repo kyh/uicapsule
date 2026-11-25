@@ -51,7 +51,7 @@ const CopyBlock = ({ label, text }: { label: string; text: string }) => {
   const { copied, copy } = useCopy(text, label);
 
   return (
-    <div className="bg-muted/50 relative rounded-lg border">
+    <div className="bg-muted/50 relative min-w-0 rounded-lg border">
       <pre className="overflow-x-auto py-3 pr-12 pl-3 font-mono text-xs leading-relaxed">
         <code>{text}</code>
       </pre>
@@ -101,7 +101,7 @@ export const McpInstallDialog = ({
   onOpenChange: (open: boolean) => void;
 }) => (
   <Dialog open={open} onOpenChange={onOpenChange}>
-    <DialogContent className="sm:max-w-lg">
+    <DialogContent className="grid-cols-[minmax(0,1fr)] sm:max-w-lg">
       <DialogHeader>
         <DialogTitle>Install the MCP server</DialogTitle>
         <DialogDescription>One server, two jobs for your agent.</DialogDescription>
