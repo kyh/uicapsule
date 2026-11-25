@@ -232,6 +232,9 @@ importers:
       '@vercel/blob':
         specifier: ^2.9.0
         version: 2.9.0
+      '@vitejs/plugin-react':
+        specifier: 'catalog:'
+        version: 5.2.0(vite@7.3.8(@types/node@24.19.2)(jiti@2.7.0)(lightningcss@1.33.0)(tsx@4.23.15)(yaml@2.9.1))
       citty:
         specifier: ^0.2.2
         version: 0.2.2
@@ -241,9 +244,6 @@ importers:
       dotenv-cli:
         specifier: ^11.1.0
         version: 11.1.0
-      esbuild:
-        specifier: ^0.28.2
-        version: 0.28.2
       oxc-parser:
         specifier: ^0.154.0
         version: 0.154.0
@@ -274,6 +274,9 @@ importers:
       ultracite:
         specifier: ^8.3.1
         version: 8.3.1(oxfmt@0.73.0)(oxlint@1.94.0)
+      vite:
+        specifier: 'catalog:'
+        version: 7.3.8(@types/node@24.19.2)(jiti@2.7.0)(lightningcss@1.33.0)(tsx@4.23.15)(yaml@2.9.1)
 
   apps/extension:
     dependencies:

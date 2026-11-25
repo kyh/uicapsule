@@ -6,43 +6,63 @@ import { createORPCClient } from "@orpc/client";
 import { RPCLink } from "@orpc/client/fetch";
 import type { ContractClient } from "@repo/contract";
 import { UGC_SHARED_MODULES, newUgcBuild, ugcSlugSchema } from "@repo/contract/ugc/ugc-schema";
+import react from "@vitejs/plugin-react";
 import { defineCommand, runMain } from "citty";
 import { consola } from "consola";
-import * as esbuild from "esbuild";
+import { build as viteBuild } from "vite";
+import type { Rollup } from "vite";
 
-import { ASSET_LOADERS, compilePreviewStylesheet } from "./preview-bundle";
+import { EXTRA_ASSET_GLOBS, compilePreviewStylesheet } from "./preview-bundle";
 
 const bundle = async (dir: string, assetBase: string) => {
-  const outdir = path.join(dir, ".ugc-out");
-
-  const result = await esbuild.build({
-    absWorkingDir: dir,
-    assetNames: "assets/[hash]",
-    bundle: true,
-    chunkNames: "chunks/[hash]",
-    define: { "process.env.NODE_ENV": JSON.stringify("production") },
-    entryPoints: { index: path.join(dir, "preview.tsx") },
-    external: [...UGC_SHARED_MODULES],
-    format: "esm",
-    jsx: "automatic",
-    legalComments: "none",
-    loader: ASSET_LOADERS,
-    logLevel: "warning",
-    minify: true,
-    outdir,
-    publicPath: assetBase,
-    splitting: true,
-    target: "es2022",
-    write: false,
+  const result = await viteBuild({
+    assetsInclude: EXTRA_ASSET_GLOBS,
+    base: assetBase.endsWith("/") ? assetBase : `${assetBase}/`,
+    build: {
+      assetsInlineLimit: 0,
+      chunkSizeWarningLimit: 4096,
+      cssCodeSplit: false,
+      modulePreload: false,
+      reportCompressedSize: false,
+      rollupOptions: {
+        external: [...UGC_SHARED_MODULES],
+        input: { index: path.join(dir, "preview.tsx") },
+        output: {
+          assetFileNames: "assets/[hash][extname]",
+          chunkFileNames: "chunks/[hash].js",
+          entryFileNames: "[name].js",
+        },
+        preserveEntrySignatures: "strict",
+      },
+      target: "es2022",
+      write: false,
+    },
+    configFile: false,
+    logLevel: "warn",
+    plugins: [react()],
+    publicDir: false,
+    root: dir,
   });
 
-  const files = new Map(
-    result.outputFiles.map((file) => [path.relative(outdir, file.path), file.contents]),
-  );
+  const outputs = (Array.isArray(result) ? result : [result]) as Rollup.RollupOutput[];
+  const files = new Map<string, Uint8Array>();
+  const css: string[] = [];
 
-  const bundled = new TextDecoder().decode(files.get("index.css") ?? new Uint8Array());
+  for (const file of outputs.flatMap((output) => output.output)) {
+    if (file.type === "chunk") {
+      files.set(file.fileName, new TextEncoder().encode(file.code));
+    } else if (file.fileName.endsWith(".css")) {
+      css.push(String(file.source));
+    } else {
+      files.set(
+        file.fileName,
+        file.source instanceof Uint8Array ? file.source : new TextEncoder().encode(file.source),
+      );
+    }
+  }
+
   const tailwind = await compilePreviewStylesheet(dir, true);
-  files.set("index.css", new TextEncoder().encode(`${tailwind}\n${bundled}`));
+  files.set("index.css", new TextEncoder().encode([tailwind, ...css].join("\n")));
 
   return files;
 };

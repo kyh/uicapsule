@@ -77,27 +77,8 @@ const startInspector = () => {
   };
 };
 
-const reloadOnRebuild = (buildUrl: string) => {
-  let current: string | null = null;
-
-  const check = async () => {
-    const response = await fetch(buildUrl, { cache: "no-store" }).catch(() => null);
-    const id = response?.ok ? await response.text() : null;
-
-    if (id && current && id !== current) {
-      location.reload();
-    }
-
-    current = id ?? current;
-  };
-
-  setInterval(() => {
-    check().catch(() => null);
-  }, 1000);
-};
-
 /** Boots a component preview inside its sandboxed frame. Called by each generated bundle. */
-export const startPreview = (Preview: ComponentType, options: { buildUrl?: string } = {}) => {
+export const startPreview = (Preview: ComponentType) => {
   let stopInspector: (() => void) | null = null;
 
   window.addEventListener("message", (event) => {
@@ -123,10 +104,6 @@ export const startPreview = (Preview: ComponentType, options: { buildUrl?: strin
     createRoot(container).render(
       createElement(MotionConfig, { reducedMotion: "user" }, createElement(Preview)),
     );
-  }
-
-  if (options.buildUrl) {
-    reloadOnRebuild(options.buildUrl);
   }
 
   post({ type: "uicapsule:ready" });

@@ -62,12 +62,16 @@ Content is filesystem-driven; the web app never depends on content packages by n
   per visible card.
 - **Previews never compile into the Next app.** `scripts/build-previews.ts` (turbo
   `//#build:previews`, which web's build depends on) bundles every `content/<slug>/preview.tsx`
-  with esbuild (one build, shared chunks, `lib/content/preview-runtime.ts` as the boot
-  wrapper) and compiles each slug its own Tailwind stylesheet from `@repo/ui/theme.css`,
-  scanning only that slug, into gitignored `apps/web/public/previews/<slug>/`. `pnpm dev:web`
-  runs it with `--watch` beside `next dev` (turbo `with`), and a dev preview reloads itself
-  when `previews/build.txt` changes. `@repo/ui/globals.css` no longer scans `content/**`, so
-  the site's CSS carries no component classes.
+  with Vite (one build, shared chunks, `lib/content/preview-runtime.ts` as the boot wrapper)
+  into gitignored `apps/web/public/previews/<slug>/` (`index.js` + one `index.css`). Each slug's
+  entry imports a virtual Tailwind stylesheet compiled from `@repo/ui/theme.css`, scanning only
+  that slug, and a `generateBundle` step merges every stylesheet a preview's chunks import into
+  its `index.css`. Turbopack can't be driven outside `next dev`/`next build`, hence Vite. In
+  dev, `pnpm dev:web` runs `//#dev:previews` beside `next dev` (turbo `with`): a Vite dev server
+  on `PREVIEW_DEV_ORIGIN` (`:5174`), and the frame route in development serves a shell that loads
+  `/@preview/<slug>.js` from it with React Refresh, so edits (and new Tailwind classes, recompiled
+  per slug on change) hot-swap inside the sandboxed frame. `@repo/ui/globals.css` no longer scans
+  `content/**`, so the site's CSS carries no component classes.
 - **`/preview-frame/<slug>` is the trust boundary for UGC.** A static route handler
   returns the shell (`lib/content/preview-shell.ts`) with
   `Content-Security-Policy: sandbox <PREVIEW_SANDBOX>` and no `allow-same-origin`, and the
@@ -285,8 +289,9 @@ pnpm db:push          # Push local db schema
 pnpm db:push-remote   # Push to production Turso
 pnpm new:content <slug>  # Scaffold a new content component in content/ (--design-system for the template)
 pnpm check:content    # Fail if any content/<slug> is not a loadable component
-pnpm build:previews   # Bundle every content preview into apps/web/public/previews (build runs it; dev:web watches)
-pnpm publish:ugc <dir> --slug <s> --name <n>  # Build <dir>/preview.tsx to the plain-ESM contract and publish it (UICAPSULE_TOKEN, UICAPSULE_URL; --username once; --out to only build)
+pnpm build:previews   # Bundle every content preview into apps/web/public/previews with Vite (build runs it)
+pnpm dev:previews     # Vite dev server for previews on :5174 with hot reload (dev:web runs it)
+pnpm publish:ugc <dir> --slug <s> --name <n>  # Build <dir>/preview.tsx to the plain-ESM contract with Vite and publish it (UICAPSULE_TOKEN, UICAPSULE_URL; --username once; --out to only build)
 pnpm test             # node:test — auth + RPC transport guards + the agent-surface tests
 pnpm check:agent-endpoints  # Runtime check of the agent surfaces (needs a running server)
 pnpm skills:update    # Bump the skills-lock.json skills (emilkowalski, jakubkrehel) to upstream HEAD; review the diff
@@ -395,5 +400,6 @@ choreography, gallery copy. In priority order:
 
 ## Gotchas
 
-- A preview that renders unstyled means its stylesheet is stale or missing: check that
-  `pnpm dev:web` shows `//:dev:previews` rebuilding, or run `pnpm build:previews`.
+- A dev preview that renders blank means the preview dev server isn't running: `next dev` alone
+  doesn't start it. Use `pnpm dev:web`, or run `pnpm dev:previews` beside it. A built preview
+  that renders unstyled means `public/previews` is stale: run `pnpm build:previews`.

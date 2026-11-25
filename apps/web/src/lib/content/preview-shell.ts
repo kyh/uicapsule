@@ -116,11 +116,51 @@ export const renderUgcShell = ({
   return { body, headers };
 };
 
-/** The HTML document that boots one component's preview bundle, read from `base`. */
-export const renderPreviewShell = ({ base, name }: { base: string; name: string }) => {
-  const href = escapeHtml(base);
+/** Where `pnpm dev:previews` serves previews with hot reload; dev frames load from here. */
+export const PREVIEW_DEV_ORIGIN = "http://localhost:5174";
+
+/** Dev-server path of the module that boots one preview. */
+export const previewDevEntryPath = (slug: string) => `/@preview/${encodeURIComponent(slug)}.js`;
+
+const REACT_REFRESH_PREAMBLE = [
+  `import RefreshRuntime from "${PREVIEW_DEV_ORIGIN}/@react-refresh";`,
+  "RefreshRuntime.injectIntoGlobalHook(window);",
+  "window.$RefreshReg$ = () => {};",
+  "window.$RefreshSig$ = () => (type) => type;",
+  "window.__vite_plugin_react_preamble_installed__ = true;",
+].join("");
+
+const assetTags = (slug: string, dev: boolean) => {
+  if (dev) {
+    return [
+      `<script type="module">${REACT_REFRESH_PREAMBLE}</script>`,
+      `<script type="module" src="${PREVIEW_DEV_ORIGIN}/@vite/client"></script>`,
+      `<script type="module" src="${PREVIEW_DEV_ORIGIN}${previewDevEntryPath(slug)}"></script>`,
+    ];
+  }
+
+  const href = escapeHtml(previewAssetPath(slug));
 
   return [
+    `<link rel="stylesheet" href="${href}/index.css">`,
+    `<script type="module" src="${href}/index.js"></script>`,
+  ];
+};
+
+/**
+ * The HTML document that boots one component's preview: its built bundle, or with `dev` the
+ * module the Vite dev server compiles on request and hot-reloads.
+ */
+export const renderPreviewShell = ({
+  dev = false,
+  name,
+  slug,
+}: {
+  dev?: boolean;
+  name: string;
+  slug: string;
+}) =>
+  [
     "<!doctype html>",
     `<html lang="en" class="${PREVIEW_SHELL_CLASSES.html}">`,
     "<head>",
@@ -129,13 +169,10 @@ export const renderPreviewShell = ({ base, name }: { base: string; name: string 
     '<meta name="robots" content="noindex, nofollow">',
     `<title>${escapeHtml(name)} · UICapsule preview</title>`,
     `<script>${THEME_BOOT}</script>`,
-    `<link rel="stylesheet" href="${href}/tailwind.css">`,
-    `<link rel="stylesheet" href="${href}/index.css">`,
-    `<script type="module" src="${href}/index.js"></script>`,
+    ...assetTags(slug, dev),
     "</head>",
     `<body class="${PREVIEW_SHELL_CLASSES.body}">`,
     '<div id="root" style="display:contents"></div>',
     "</body>",
     "</html>",
   ].join("\n");
-};

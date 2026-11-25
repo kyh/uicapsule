@@ -11,40 +11,17 @@ export const runtimeModule = path.join(webRoot, "src/lib/content/preview-runtime
 export const themeStylesheet = path.join(repoRoot, "packages/ui/src/styles/theme.css");
 const SHELL_CLASSES = Object.values(PREVIEW_SHELL_CLASSES).join(" ");
 
-/** Media and font imports a preview may make; each is emitted as a hashed file beside the bundle. */
-export const ASSET_LOADERS = Object.fromEntries(
+/** Asset types a preview may import that Vite doesn't treat as assets on its own (3D models, HDRIs). */
+export const EXTRA_ASSET_GLOBS = ["**/*.glb", "**/*.gltf", "**/*.hdr"];
+
+/** Source of the generated entry module that styles and boots one preview inside its frame. */
+export const previewEntry = (previewFile: string, stylesheet: string) =>
   [
-    "png",
-    "jpg",
-    "jpeg",
-    "gif",
-    "webp",
-    "avif",
-    "svg",
-    "mp4",
-    "webm",
-    "mp3",
-    "wav",
-    "woff",
-    "woff2",
-    "ttf",
-    "otf",
-    "glb",
-    "gltf",
-    "hdr",
-  ].map((extension) => [`.${extension}`, "file" as const]),
-);
-
-/** Source of the generated entry module that boots one preview inside its frame. */
-export const previewEntry = (previewFile: string, buildUrl?: string) => {
-  const options = buildUrl ? `, { buildUrl: ${JSON.stringify(buildUrl)} }` : "";
-
-  return [
+    `import ${JSON.stringify(stylesheet)};`,
     `import Preview from ${JSON.stringify(previewFile)};`,
     `import { startPreview } from ${JSON.stringify(runtimeModule)};`,
-    `startPreview(Preview${options});`,
+    "startPreview(Preview);",
   ].join("\n");
-};
 
 /** The Tailwind stylesheet for one component directory: theme tokens plus only the classes it uses. */
 export const compilePreviewStylesheet = async (base: string, optimize: boolean) => {
