@@ -1,7 +1,9 @@
 import { captureSchema } from "@repo/contract/request/request-schema";
 import { z } from "zod";
 
-export type PickMode = "area" | "element";
+export const toolSchema = z.enum(["region", "visible"]);
+
+export type Tool = z.infer<typeof toolSchema>;
 
 const rectSchema = z.object({
   height: z.number(),
@@ -32,12 +34,13 @@ const draftSchema = z.object({
 
 export type Draft = z.infer<typeof draftSchema>;
 
-/** What the in-page toolbar asks of the background worker. */
+/** What the popup and the in-page overlay ask of the background worker. */
 export const workerRequestSchema = z.discriminatedUnion("type", [
   z.object({ rect: rectSchema, type: z.literal("capture"), viewport: viewportSchema }),
   z.object({ src: z.string(), type: z.literal("video") }),
   z.object({ draft: draftSchema, files: z.array(encodedSchema), type: z.literal("submit") }),
   z.object({ type: z.literal("options") }),
+  z.object({ tabId: z.number(), tool: toolSchema, type: z.literal("run") }),
 ]);
 
 export type WorkerRequest = z.infer<typeof workerRequestSchema>;
@@ -56,4 +59,18 @@ export const submitResultSchema = z.discriminatedUnion("ok", [
 
 export type SubmitResult = z.infer<typeof submitResultSchema>;
 
-export const toggleSchema = z.object({ type: z.literal("toolbar:toggle") });
+export const runResultSchema = z.discriminatedUnion("ok", [
+  z.object({ ok: z.literal(true) }),
+  z.object({ ok: z.literal(false), reason: z.string() }),
+]);
+
+export type RunResult = z.infer<typeof runResultSchema>;
+
+/** What the background asks of the overlay it injected: pick with a tool, or take what was right-clicked. */
+export const overlayStartSchema = z.object({
+  src: z.string().optional(),
+  tool: z.enum(["media", "region", "visible"]),
+  type: z.literal("overlay:start"),
+});
+
+export type OverlayStart = z.infer<typeof overlayStartSchema>;

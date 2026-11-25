@@ -3,8 +3,9 @@ import { Button } from "@repo/ui/components/button";
 import { Field, FieldDescription, FieldGroup, FieldLabel } from "@repo/ui/components/field";
 import { Input } from "@repo/ui/components/input";
 import { Logo } from "@repo/ui/components/logo";
+import { Switch } from "@repo/ui/components/switch";
 
-import { DEFAULT_SERVICE_URL, serviceUrlItem } from "@/lib/storage";
+import { DEFAULT_SERVICE_URL, preferencesItem, serviceUrlItem } from "@/lib/storage";
 
 const ALL_SITES = { origins: ["<all_urls>"] };
 
@@ -22,11 +23,13 @@ export const App = () => {
   const [serviceUrl, setServiceUrl] = useState(DEFAULT_SERVICE_URL);
   const [saved, setSaved] = useState(false);
   const [allSites, setAllSites] = useState(false);
+  const [preferences, setPreferences] = useState({ html: true, video: true });
 
   useEffect(() => {
     const load = async () => {
       setServiceUrl(await serviceUrlItem.getValue());
       setAllSites(await browser.permissions.contains(ALL_SITES));
+      setPreferences(await preferencesItem.getValue());
     };
 
     void load();
@@ -44,6 +47,12 @@ export const App = () => {
     setSaved(true);
   };
 
+  const setPreference = (key: "html" | "video", value: boolean) => {
+    const next = { ...preferences, [key]: value };
+    setPreferences(next);
+    void preferencesItem.setValue(next);
+  };
+
   const toggleAllSites = async () => {
     setAllSites(
       allSites
@@ -59,7 +68,7 @@ export const App = () => {
         <div>
           <h1 className="font-semibold">UICapsule</h1>
           <p className="text-sm text-muted-foreground">
-            Click the toolbar icon on any page to capture a component request.
+            Click the toolbar icon, press ⌥⇧R or right-click a page to capture a component request.
           </p>
         </div>
       </header>
@@ -89,6 +98,34 @@ export const App = () => {
           <FieldDescription>
             Use http://localhost:3000 while developing UICapsule locally.
           </FieldDescription>
+        </Field>
+
+        <Field orientation="horizontal">
+          <Switch
+            id="video"
+            checked={preferences.video}
+            onCheckedChange={(checked) => setPreference("video", checked)}
+          />
+          <div className="flex flex-col gap-1">
+            <FieldLabel htmlFor="video">Attach video</FieldLabel>
+            <FieldDescription>
+              When the capture is a video, attach the video file or a few seconds of it.
+            </FieldDescription>
+          </div>
+        </Field>
+
+        <Field orientation="horizontal">
+          <Switch
+            id="html"
+            checked={preferences.html}
+            onCheckedChange={(checked) => setPreference("html", checked)}
+          />
+          <div className="flex flex-col gap-1">
+            <FieldLabel htmlFor="html">Include HTML</FieldLabel>
+            <FieldDescription>
+              When you snap to an element, send its markup (scripts and inline handlers stripped).
+            </FieldDescription>
+          </div>
         </Field>
 
         <Field>

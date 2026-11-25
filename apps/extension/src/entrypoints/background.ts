@@ -5,12 +5,27 @@ import { cropScreenshot, downloadVideo } from "@/lib/capture";
 import { decodeFile, encodeBlob } from "@/lib/encoding";
 import { clampToViewport } from "@/lib/geometry";
 import { workerRequestSchema } from "@/lib/messages";
-import type { FileResult, SubmitResult, WorkerRequest } from "@/lib/messages";
+import type {
+  FileResult,
+  OverlayStart,
+  RunResult,
+  SubmitResult,
+  Tool,
+  WorkerRequest,
+} from "@/lib/messages";
 import { serviceUrlItem } from "@/lib/storage";
 
 const FALLBACK = "Something went wrong. Try again.";
 
-const reasonFor = (error: Error | null) => error?.message ?? FALLBACK;
+const OFFLINE = "Couldn't reach UICapsule. Check your connection, or the service URL in Settings.";
+
+const reasonFor = (error: Error | null) => {
+  if (error instanceof TypeError) {
+    return OFFLINE;
+  }
+
+  return error?.message ?? FALLBACK;
+};
 
 const capture = async (
   request: Extract<WorkerRequest, { type: "capture" }>,
@@ -77,6 +92,10 @@ const handle = async (request: WorkerRequest, windowId: number | undefined) => {
       return submit(request);
     }
 
+    case "run": {
+      return startOverlay(request.tabId, { tool: request.tool });
+    }
+
     case "options": {
       await browser.runtime.openOptionsPage();
 
@@ -101,22 +120,69 @@ const respond = async (
   }
 };
 
-const toggleToolbar = async (tabId: number) => {
+const UNREACHABLE = "UICapsule can't capture this page. Open a regular web page and try again.";
+const TITLE = "Request a component";
+
+const MENUS = {
+  "uicapsule-image": { contexts: ["image"], title: "Request from this image", tool: "media" },
+  "uicapsule-region": { contexts: ["all"], title: "Capture region", tool: "region" },
+  "uicapsule-video": { contexts: ["video"], title: "Request from this video", tool: "media" },
+  "uicapsule-visible": { contexts: ["all"], title: "Capture visible area", tool: "visible" },
+} satisfies Record<
+  string,
+  { contexts: ["all" | "image" | "video"]; title: string; tool: OverlayStart["tool"] }
+>;
+
+const COMMANDS = {
+  "capture-region": "region",
+  "capture-visible": "visible",
+} satisfies Record<string, Tool>;
+
+const isCommand = (command: string): command is keyof typeof COMMANDS =>
+  Object.hasOwn(COMMANDS, command);
+
+const createMenus = async () => {
+  await browser.contextMenus.removeAll();
+
+  for (const [id, menu] of Object.entries(MENUS)) {
+    browser.contextMenus.create({ contexts: menu.contexts, id, title: menu.title });
+  }
+};
+
+const isMenu = (id: string): id is keyof typeof MENUS => Object.hasOwn(MENUS, id);
+
+const startOverlay = async (tabId: number, start: Omit<OverlayStart, "type">) => {
   try {
-    await browser.scripting.executeScript({ files: ["/picker.js"], target: { tabId } });
-    await browser.tabs.sendMessage(tabId, { type: "toolbar:toggle" });
+    await browser.scripting.executeScript({ files: ["/overlay.js"], target: { tabId } });
+    await browser.tabs.sendMessage(tabId, { ...start, type: "overlay:start" });
     await browser.action.setBadgeText({ tabId, text: "" });
-    await browser.action.setTitle({ tabId, title: "Request a component" });
+    await browser.action.setTitle({ tabId, title: TITLE });
+
+    return { ok: true } satisfies RunResult;
   } catch {
     await browser.action.setBadgeText({ tabId, text: "!" });
-    await browser.action.setTitle({ tabId, title: "UICapsule can't capture this page" });
+    await browser.action.setTitle({ tabId, title: UNREACHABLE });
+
+    return { ok: false, reason: UNREACHABLE } satisfies RunResult;
   }
 };
 
 export default defineBackground(() => {
-  browser.action.onClicked.addListener((tab) => {
-    if (tab.id !== undefined) {
-      void toggleToolbar(tab.id);
+  browser.runtime.onInstalled.addListener(() => {
+    void createMenus();
+  });
+
+  browser.contextMenus.onClicked.addListener((info, tab) => {
+    const id = String(info.menuItemId);
+
+    if (tab?.id !== undefined && isMenu(id)) {
+      void startOverlay(tab.id, { src: info.srcUrl, tool: MENUS[id].tool });
+    }
+  });
+
+  browser.commands.onCommand.addListener((command, tab) => {
+    if (isCommand(command) && tab?.id !== undefined) {
+      void startOverlay(tab.id, { tool: COMMANDS[command] });
     }
   });
 

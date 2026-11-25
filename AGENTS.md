@@ -189,12 +189,14 @@ and base CSS are not present in a clean consumer.
 There is no mobile or desktop target. The extension (`apps/extension`) gets typecheck, tests and
 `wxt build` in `verify`. To drive it, launch Playwright's Chromium with
 `launchPersistentContext("", { channel: "chromium", args: ["--load-extension=<.output/chrome-mv3>"] })`.
-`action.onClicked` can't be clicked headlessly, so do what it does from the service worker:
-`chrome.scripting.executeScript({ files: ["/picker.js"], target })` then
-`chrome.tabs.sendMessage(tabId, { type: "toolbar:toggle" })`. The toolbar is a closed shadow root,
-so drive it by coordinates and keyboard (hover + click to lock, Enter to snap, the name field is
-focused after a snap); copy the build and move `<all_urls>` into `host_permissions` so nothing
-prompts. Set `serviceUrl` in `chrome.storage.local` to `http://localhost:3000` with `EXTENSION_ORIGINS` set: without `GITHUB_ISSUES_TOKEN` a
+The popup and right-click menu can't be clicked headlessly, so do what they do from the service
+worker: `chrome.scripting.executeScript({ files: ["/overlay.js"], target })` then
+`chrome.tabs.sendMessage(tabId, { type: "overlay:start", tool })` with `tool` `region`, `visible`, or
+`media` plus `src` (the image or video URL a right-click would pass). The popup itself renders at
+`chrome-extension://gndnanbepebpjjifhogmdlabbpddfgml/popup.html`. The overlay is a closed shadow
+root, so drive it by coordinates and keyboard (hover + click snaps, drag draws, Enter saves, the
+name field is focused in the dialog, Ctrl+Enter files); copy the build and move `<all_urls>` into
+`host_permissions` so nothing prompts. Set `serviceUrl` in `chrome.storage.local` to `http://localhost:3000` with `EXTENSION_ORIGINS` set: without `GITHUB_ISSUES_TOKEN` a
 submit ends at the attachments route's 503, which proves the Origin guard let it through.
 
 ## Rules that matter
