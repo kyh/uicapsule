@@ -140,17 +140,26 @@ Next imports, no filesystem — so it can be unit-tested without a runtime. The 
   an empty page without JavaScript, and only unsuspended cached data lands in the static
   shell. Anything added to it costs roughly 2.5× its size in HTML, because a server
   component's markup is duplicated in the RSC flight payload.
-- **`/mcp`** is a stateless Streamable HTTP MCP server with two read-only tools,
+- **`/mcp` has two jobs**, and copy that describes it (server instructions, `server.json`,
+  README, install prompt, `/llms.txt`, about page) names both: **skills** help an agent build
+  better UI in any project, and **tools** serve this gallery's components as templates. A new
+  skill belongs only if it serves the first job; a new tool only if it serves the second.
+  It is a stateless Streamable HTTP MCP server with two read-only tools,
   `search_components` and `get_component`: oRPC procedures in the route, registered by
   `@orpc/mcp`'s `McpRegistrar` on a fresh `McpServer` per request (`createMcpHandler` from
   `@modelcontextprotocol/server`). They stay out of `@repo/contract`: no client calls them
   over RPC. A tool's name is its router key, its title and hints are `mcp.tool` meta, a
   thrown `ORPCError` is a tool error. Ranking and payload shapes live in
-  `lib/agent/mcp-catalog.ts`; the route only wires them to `content-data`. It also serves one
-  skill, `uicapsule-components` (`lib/agent/mcp-skills.ts`), over MCP's skills extension
+  `lib/agent/mcp-catalog.ts`; the route only wires them to `content-data`. It also serves skills over MCP's skills extension
   (`io.modelcontextprotocol/skills`, SEP-2640): `skills/list`/`skills/get` and a `skill://`
-  resource per file. The repo's `.claude/skills` are dev skills, mostly third-party, and are
-  never served. It ships with each
+  resource per file. They are the vendored `emilkowalski/skills` and `jakubkrehel/skills`
+  entries named in `REPO_SKILLS` (`lib/agent/mcp-skills.ts`), read at runtime from
+  `.claude/skills/` by `lib/content/skills-fs.ts`, so dev agents and MCP clients load the same
+  single copy; the rest of `.claude/skills` (first-party workflow skills, other third-party) is
+  never served. How to use uicapsule itself lives in the server instructions
+  (`serverInstructions`), not a skill. The served skills are pinned in `skills-lock.json` by Vercel's `skills` CLI and kept byte-identical to
+  upstream (oxfmt ignores them); provenance and the update recipe are in
+  `.claude/skills/THIRD_PARTY.md`. It ships with each
   deploy, so there is no npm package to publish or version. `server.json` is its MCP Registry
   entry (`com.uicapsule/components`, DNS-verified); republish with `mcp-publisher publish` only
   when that metadata changes — the signing key is not in the repo.
@@ -200,6 +209,8 @@ pnpm new:content <slug>  # Scaffold a new content component in content/ (--desig
 pnpm check:content    # Fail if any content/<slug> is not a loadable component
 pnpm test             # node:test — auth + RPC transport guards + the agent-surface tests
 pnpm check:agent-endpoints  # Runtime check of the agent surfaces (needs a running server)
+pnpm skills:update    # Bump the skills-lock.json skills (emilkowalski, jakubkrehel) to upstream HEAD; review the diff
+pnpm skills:sync      # Restore .claude/skills to exactly what skills-lock.json pins
 pnpm og:video         # By hand, never in verify: home loop (scripts/og-video/scene.html → Blob og/og.<date>.mp4 + poster, keys in home-media.json) + cover-media.json and Blob stills (<cover key>.jpg) for /ui/<slug>
 ```
 
@@ -266,7 +277,9 @@ does not prove delivery. Reset tokens expire after one hour and revoke existing 
   ate four real deploys before it was caught. The optimization also isn't worth it: builds run
   ~44s and 39 of the last 40 commits genuinely needed one. If this repo ever gains a second
   Vercel project, revisit — until then, always build.
-- **`turbo.json` declares `globalDependencies: ["content/**"]` — do not remove it.** Same
+- **`turbo.json` declares `globalDependencies: ["content/**", ".claude/skills/**"]` — do not
+  remove either.** `/mcp` reads served skills from `.claude/skills` the same way, so the same
+  stale-replay applies to a skills-only commit. Same
   root cause as the Vercel note above: `apps/web` reads `content/*` from the filesystem and
   never imports it, so it is absent from turbo's build-input graph. Without this line a
   content-only commit is a `FULL TURBO` cache hit that serves the _previous_ build — which

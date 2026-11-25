@@ -79,7 +79,7 @@ export const agentEndpoints: ProseListItem[] = [
   },
   {
     label: "/mcp",
-    text: `an MCP server (Streamable HTTP) with \`search_components\` and \`get_component\`; add it with \`claude mcp add --transport http uicapsule ${siteConfig.url}/mcp\``,
+    text: `an MCP server (Streamable HTTP) with two jobs: skills that help an agent build better UI, and the \`search_components\` and \`get_component\` tools that serve these components as templates; add it with \`claude mcp add --transport http uicapsule ${siteConfig.url}/mcp\``,
   },
   { href: "/sitemap.xml", label: "/sitemap.xml", text: "every indexable URL on the site" },
   { href: "/llms.txt", label: "/llms.txt", text: "this overview plus the full component catalog" },

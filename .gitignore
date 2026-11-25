@@ -58,3 +58,6 @@ local.*
 .claude/scheduled_tasks.lock
 .claude/worktrees
 .playwright-mcp
+
+# skills CLI staging copy (pnpm skills:sync); .claude/skills is the tracked one
+.agents/

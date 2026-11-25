@@ -1,112 +1,67 @@
 ---
 name: better-ui
-description: Polishes and improves the UI in your project. Covers concentric border radius, optical alignment, surface depth, contextual icons, hit areas and more.
+description: Polishes surfaces and icons with exact values for border radius, optical alignment, shadows and icon states.
 ---
 
 # UI polish
 
-Polish comes from a pile of small details that compound. This skill is the reference for which are worth having and what values they take.
+This skill holds the visual polish for surfaces and icons, with the exact value each detail takes. It applies once the underlying interaction is sound, and a polish finding never outranks a broken interaction.
 
-When reviewing, slow the interface down. What feels off at 10% speed is what is subtly wrong at full speed.
+## Exact values, optional polish
 
-Keep the project's component library, tokens and density, and match its motion language except where a rule below prescribes an exact interaction.
+The values below are exact, not ranges to approximate. An outline at `oklch(0 0 0 / 0.1)` is not one at `0.15`, and a `1.5px` stroke is not `2px`. The optical nudges and the concentric padding cutoff are the exceptions. They are starting points, judged by eye.
 
-Every duration, curve, scale and blur below is a specific value, not a range to approximate. `cubic-bezier(0.2, 0, 0, 1)` is not `cubic-bezier(0.4, 0, 0.2, 1)`, and `0.96` is not `0.95`. Use what is written.
+Keep the project's component library, tokens and density. A deliberate and consistent project convention, such as a style with no shadows, is a preference and not a finding. The same detail done two ways within the project is a finding.
 
-Text wrapping, font rendering, tabular numbers and text spacing belong to `better-typography`. Hit areas, focus, keyboard support, ARIA and reduced motion belong to `better-accessibility`. Grouping, section spacing, breakpoints and spatial RTL belong to `better-layout`.
+Text wrapping, font rendering, tabular numbers and text spacing belong to `better-typography`. Hit areas, keyboard support, ARIA and the reduced-motion requirement belong to `better-accessibility`. Grouping, section spacing, breakpoints and spatial RTL belong to `better-layout`, except directional icon mirroring. Color tokens and contrast measurement belong to `better-colors`. Transitions, enters and exits, icon swaps and every other animation belong to `better-motion`.
 
-## Concentric border radius
+## Outer radius equals inner radius plus padding
 
-Outer radius = inner radius + padding. Mismatched radii on nested elements is the most common thing that makes an interface feel off. Radius, shadow and outline recipes are in [surfaces.md](surfaces.md).
+Where nested surfaces share a visible, even inset, the outer radius is the inner radius plus the padding plus any border width. Past `24px` of padding, or where the padding is deliberately asymmetric, treat the layers as separate surfaces and keep each one's radius token. Recipes are in [surfaces.md](surfaces.md).
 
-## Optical over geometric alignment
+## Align optically where geometry looks off
 
-When geometric centering looks off, align optically. Buttons with icons, play triangles and asymmetric icons all need a manual nudge.
+Where geometric centering looks off, nudge by eye. Give a button `2px` less padding on its icon side, shift a play triangle toward its point and fix asymmetric glyphs in the SVG itself. Recipes are in [surfaces.md](surfaces.md#optical-alignment).
 
 ## Shadows for elevation, borders for structure
 
-Where a border exists only to create depth, prefer layered transparent `box-shadow` values. Keep borders that communicate structure or state: dividers, separators and selected or focus states.
+Where a border exists only to create depth, replace it with layered transparent `box-shadow` values. Keep borders on dividers, separators, table cells and selected states. Keep them on form inputs too, whose boundary needs 3:1 non-text contrast under `better-accessibility`. Focus rings belong to `better-accessibility` as well.
 
-## Interruptible animations
+Forced-colors mode removes every `box-shadow`. Keep `border: 1px solid transparent` under a shadow ring so that mode still draws an edge. Recipes are in [surfaces.md](surfaces.md#shadow-recipes).
 
-Use CSS transitions for interactive state changes, because they can be interrupted mid-animation. Reserve keyframes for staged sequences that run once.
+## Outline images in pure black or white
 
-## Split and stagger enter animations
+Give content images a `1px` outline inset by `1px`. Use `oklch(0 0 0 / 0.1)` in light mode and `oklch(1 0 0 / 0.1)` in dark. Never use a palette near-black, a tinted neutral or the accent color, because the tint shows as a colored fringe on the image edge. Skip transparent artwork such as logos and illustrations. The recipe is in [surfaces.md](surfaces.md#image-outlines).
 
-For an infrequent staged entrance where sequence communicates hierarchy, break the content into semantic chunks and stagger them by ~100ms. Animating one container gets you less for the same cost. Leave high-frequency interactions unstaggered. See [enter-exit.md](enter-exit.md).
+## Hover effects only on hover-capable pointers
 
-## Subtle exit animations
+Put hover-only styling behind `@media (hover: hover)`. On touch, `:hover` latches after a tap and reads as a stuck selected state. Tailwind 4's `hover:` variant already compiles under that query, and Tailwind 3's does not. Where a control draws its own pressed state, set `-webkit-tap-highlight-color: transparent` so the default gray flash does not double it.
 
-Use a small fixed `translateY` rather than full height. Exits should be softer than enters. Use `ease-out` for both directions.
+## Contain scroll inside overlays
 
-## Contextual icon animations
-
-Animate icons with `opacity`, `scale` and `blur` rather than toggling visibility. Use exactly these values: scale `0.25` to `1`, opacity `0` to `1`, blur `4px` to `0px`.
-
-With a motion library (`motion` or `framer-motion` in `package.json`), match that package's import path, or nearby imports where both exist. Use `transition: { type: "spring", duration: 0.3, bounce: 0 }`. Bounce is always `0`.
-
-Without one, keep both icons in the DOM with one absolutely positioned, and cross-fade with `cubic-bezier(0.2, 0, 0, 1)`. That gives you enter and exit with no dependency. Both recipes are in [icon-transitions.md](icon-transitions.md).
-
-## Image outlines
-
-Give images a `1px` outline at low opacity for consistent depth. Pure black in light mode (`oklch(0 0 0 / 0.1)`), pure white in dark (`oklch(1 0 0 / 0.1)`). Never a near-black like slate or zinc and never a tinted neutral. A tinted outline picks up the surface underneath and reads as dirt on the image edge.
-
-## Scale on press
-
-A `scale(0.96)` on click gives a button tactile feedback. Always `0.96`; anything below `0.95` feels exaggerated. Add a `static` prop to switch it off where motion would distract. See [recipes for CSS, Tailwind and Motion](animations.md#scale-on-press).
-
-## Skip animation on page load
-
-Use `initial={false}` on `AnimatePresence` to keep enter animations off the first render. Check that it leaves intentional page entrances intact.
-
-## Suppress transitions on theme switch
-
-A theme flip changes color, background, border and shadow on nearly every element at once. Every transition on those properties fires together and the switch smears instead of snapping. Inject `*,*::before,*::after{transition:none !important}`, force a reflow, then remove it on the next frame. See the [recipe](animations.md#suppress-transitions-on-theme-switch).
-
-## Transition only what changes
-
-Always name the exact properties: `transition-property: scale, opacity`. Tailwind's `transition-transform` covers `transform, translate, scale, rotate`.
-
-## Use `will-change` sparingly
-
-Only for `transform`, `opacity` and `filter`, which the GPU can composite. Never `will-change: all`. Add it when you see first-frame stutter, not before. See [performance.md](performance.md).
+Give scrollable dialogs, drawers, menus and side panels `overscroll-behavior: contain`, so scrolling past their end never scrolls the page behind.
 
 ## Match icon stroke to text weight
 
-An icon next to text carries the text's optical weight: `1.5px` stroke beside regular (400) text, `2px` beside semibold (600). One stroke weight per icon set and one icon library per surface. Sizing and RTL flipping are in [icons.md](icons.md).
+An icon's rendered stroke tracks the weight of the text beside it, from `1.5px` at 400 to `2.5px` at 700. Use one icon library per surface. The table, sizing and grid rules are in [icons.md](icons.md).
 
 ## One SVG, recolored per state
 
-Icons use `currentColor` and take hover, selected and disabled states from CSS color and opacity, never from separate assets. Outline is the default variant; fill marks the active state.
-
-## Motion restraint
-
-Give high-frequency interactions instant feedback, or a transition of `150ms` or less on opacity and color. A custom animation there charges its attention cost on every trigger.
-
-Every animated state change also needs a static cue: color, an icon, or a label. Motion is never the only feedback channel.
+Icons use `currentColor` and take hover, selected and disabled states from CSS color and opacity, never from separate assets. Outline is the default variant, and fill marks the active state. Under `dir="rtl"`, mirror only icons whose meaning follows reading direction. See [icons.md](icons.md#icons-in-rtl).
 
 ## Before you finish
 
-| Mistake                                | Fix                                                                         |
-| -------------------------------------- | --------------------------------------------------------------------------- |
-| Icons look off-center                  | Nudge optically with padding, or fix the SVG                                |
-| Jarring staged entrance or exit        | Stagger infrequent entrances; keep exits subtle                             |
-| Theme toggle crossfades the whole page | Disable transitions for the swap, force a reflow, restore on the next frame |
-| `transition: all` on elements          | Specify exact properties                                                    |
-| First-frame animation stutter          | Add `will-change: transform` (sparingly)                                    |
-| Hairline icon beside bold text         | Match the stroke width to the text weight                                   |
+| Detection | Fix |
+| --- | --- |
+| Padded parent and child with the same `rounded-*` or `border-radius` | Add the padding to the outer radius |
+| `box-shadow: 0 0 0 1px` ring with no `border` beside it | `border: 1px solid transparent` |
+| `outline-slate-*`, `outline-zinc-*` or a hex outline color on `img` | `outline-black/10` and `dark:outline-white/10` |
+| `fill="#..."` or `stroke="#..."` inside an icon SVG | `currentColor` |
+| Plain-CSS `:hover` or Tailwind 3 `hover:` outside `@media (hover: hover)` | Wrap it in the query |
+| `overflow: auto` or `overflow-y-auto` on a dialog, drawer or menu with no `overscroll-behavior` | `overscroll-behavior: contain` |
 
 ## Reporting
 
-**Severity.** `HIGH` breaks an interaction, makes motion unusable, or leaves a state change visible only while the animation runs. `MEDIUM` is a visible inconsistency in surfaces, icons, or motion. `LOW` is isolated polish.
+**Verification.** Without a browser, read every state the component defines from the code, such as hover, pressed, selected, loading and empty. With one, walk each state in both themes. Report every check you could not run as `Not verified`.
 
-**Verification.** Without a browser: every state the component defines, meaning hover, focus, active, loading and empty, plus motion durations and easings read from the code. With one: walk each state, and replay motion at 10% speed in the browser's Animations panel. Report every check you could not run as `Not verified`.
-
-**Format.** Group findings under the principle each violates, ordered by severity, one row per root cause listing every location it appears in:
-
-| Severity | Location | Before | After | Why |
-| -------- | -------- | ------ | ----- | --- |
-
-`Location` is `path/to/file:line`. `Why` names the principle and the user impact.
-
-End with `Block` when any `HIGH` remains, `Approve` otherwise, leaving the rest in the table as work to do. Never `Approve` coverage you did not inspect. With nothing to report, state "No actionable UI-polish findings" and report verification.
+A standalone review takes its severity ladder and format from [reporting.md](reporting.md).
