@@ -14,6 +14,7 @@ import {
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import { Tabs, TabsIndicator, TabsList, TabsTrigger } from "@repo/ui/components/tabs";
+import { useMediaQuery } from "@repo/ui/hooks/use-media-query";
 import { cn } from "cn";
 
 import type { ContentComponentSummary, DefaultSize } from "@/lib/content/content-schema";
@@ -49,6 +50,8 @@ const slugFromPath = (pathname: string) =>
 
 const Divider = () => <span aria-hidden className="bg-border mx-1 h-4 w-px" />;
 
+const DESKTOP_QUERY = "(min-width: 768px)";
+
 const PANEL_EASE = "ease-[cubic-bezier(0.23,1,0.32,1)]";
 
 interface ComponentWorkspaceProps {
@@ -59,6 +62,7 @@ interface ComponentWorkspaceProps {
 export const ComponentWorkspace = ({ initialSlug, feed }: ComponentWorkspaceProps) => {
   const { layout, ref, setPanel, togglePanel } = usePanelLayout();
   const [codeMounted, setCodeMounted] = useState(layout.code.open);
+  const isDesktop = useMediaQuery(DESKTOP_QUERY);
   const [dragging, setDragging] = useState(false);
   const [activeSlug, setActiveSlug] = useState(initialSlug);
   const [prevInitialSlug, setPrevInitialSlug] = useState(initialSlug);
@@ -290,14 +294,11 @@ export const ComponentWorkspace = ({ initialSlug, feed }: ComponentWorkspaceProp
           </div>
         </div>
 
-        <aside
-          aria-label="Component details"
-          className={cn(
-            "relative min-w-0 border-t md:border-t-0",
-            !layout.info.open && "max-md:hidden",
-          )}
-        >
-          <div inert={!layout.info.open} className="h-full overflow-hidden md:border-l">
+        <aside aria-label="Component details" className="relative min-w-0 border-t md:border-t-0">
+          <div
+            inert={isDesktop && !layout.info.open}
+            className="h-full overflow-hidden md:border-l"
+          >
             <div className="h-full overflow-y-auto md:w-(--info-size)">
               <InfoPanel key={active.slug} component={active} />
             </div>
