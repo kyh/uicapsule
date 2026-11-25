@@ -13,6 +13,8 @@
     "with-env": "dotenv -e ../../.env --"
   },
   "dependencies": {
+    "@better-auth/mcp": "catalog:",
+    "@better-auth/oauth-provider": "catalog:",
     "@hookform/resolvers": "^5.9.2",
     "@modelcontextprotocol/server": "^2.4.0",
     "@orpc/client": "catalog:",

@@ -1,12 +1,20 @@
 #!/usr/bin/env tsx
 import { existsSync } from "node:fs";
-import { mkdir, readFile, readdir, rm, stat, watch, writeFile } from "node:fs/promises";
+import { mkdir, mkdtemp, readFile, readdir, rm, stat, watch, writeFile } from "node:fs/promises";
+import { createRequire } from "node:module";
+import { tmpdir } from "node:os";
 import path from "node:path";
+import { UGC_SHARED_MODULES } from "@repo/contract/ugc/ugc-schema";
 import { defineCommand, runMain } from "citty";
 import { consola } from "consola";
 import * as esbuild from "esbuild";
 
 import { contentMetaSchema } from "../apps/web/src/lib/content/content-schema";
+import {
+  UGC_BASE_STYLESHEET_PATH,
+  UGC_BOOT_PATH,
+  ugcSharedModulePath,
+} from "../apps/web/src/lib/content/preview-shell";
 import {
   ASSET_LOADERS,
   compilePreviewStylesheet,
@@ -115,6 +123,77 @@ const buildOptions = (slugs: string[], dev: boolean) =>
     target: "es2022",
   }) satisfies esbuild.BuildOptions;
 
+const SHARED_NAMESPACE = "ugc-shared";
+const requireFromWeb = createRequire(path.join(webRoot, "package.json"));
+const IDENTIFIER = /^[A-Za-z_$][\w$]*$/u;
+
+const sharedModuleSource = (specifier: string) => {
+  const exported = requireFromWeb(specifier) as { __esModule?: boolean };
+
+  if (exported.__esModule) {
+    return `export * from ${JSON.stringify(specifier)};`;
+  }
+
+  const names = Object.keys(exported).filter((name) => name !== "default" && IDENTIFIER.test(name));
+
+  return [
+    `import shared from ${JSON.stringify(specifier)};`,
+    "export default shared;",
+    `export const { ${names.join(", ")} } = shared;`,
+  ].join("\n");
+};
+
+const outPath = (publicPath: string) =>
+  publicPath.replace(/^\/previews\//u, "").replace(/\.js$/u, "");
+
+const buildUgcRuntime = async () => {
+  await esbuild.build({
+    bundle: true,
+    chunkNames: "_ugc/chunks/[name]-[hash]",
+    define: { "process.env.NODE_ENV": JSON.stringify("production") },
+    entryPoints: {
+      [outPath(UGC_BOOT_PATH)]: path.join(webRoot, "src/lib/content/ugc-boot.ts"),
+      ...Object.fromEntries(
+        UGC_SHARED_MODULES.map((specifier) => [
+          outPath(ugcSharedModulePath(specifier)),
+          `${SHARED_NAMESPACE}:${specifier}`,
+        ]),
+      ),
+    },
+    format: "esm",
+    legalComments: "none",
+    logLevel: "warning",
+    minify: true,
+    nodePaths: [path.join(webRoot, "node_modules")],
+    outdir: outRoot,
+    plugins: [
+      {
+        name: SHARED_NAMESPACE,
+        setup: (build) => {
+          // oxlint-disable-next-line require-unicode-regexp -- esbuild filters are Go regexps, which reject the u flag
+          build.onResolve({ filter: /^ugc-shared:/ }, (args) => ({
+            namespace: SHARED_NAMESPACE,
+            path: args.path.slice(SHARED_NAMESPACE.length + 1),
+          }));
+          // oxlint-disable-next-line require-unicode-regexp -- esbuild filters are Go regexps, which reject the u flag
+          build.onLoad({ filter: /.*/, namespace: SHARED_NAMESPACE }, (args) => ({
+            contents: sharedModuleSource(args.path),
+            loader: "js",
+            resolveDir: webRoot,
+          }));
+        },
+      },
+    ],
+    splitting: true,
+    target: "es2022",
+  });
+
+  const empty = await mkdtemp(path.join(tmpdir(), "ugc-base-"));
+  const css = await compilePreviewStylesheet(empty, true);
+  await writeFile(path.join(outRoot, UGC_BASE_STYLESHEET_PATH.replace(/^\/previews\//u, "")), css);
+  await rm(empty, { force: true, recursive: true });
+};
+
 const main = defineCommand({
   args: {
     watch: {
@@ -137,6 +216,7 @@ const main = defineCommand({
       await rm(outRoot, { force: true, recursive: true });
       await esbuild.build(buildOptions(slugs, dev));
       await finishBuild(slugs, dev);
+      await buildUgcRuntime();
       consola.success(
         `Built ${slugs.length} previews in ${Math.round(performance.now() - started)}ms`,
       );
@@ -163,6 +243,7 @@ const main = defineCommand({
     });
 
     await context.watch();
+    await buildUgcRuntime();
 
     consola.info(`Watching ${slugs.length} previews (restart to pick up a new content folder)`);
 

@@ -10,17 +10,32 @@ export const ugcSlugSchema = z.string().regex(/^[a-z0-9](?:[a-z0-9-]{0,62}[a-z0-
   message: "Up to 64 lowercase letters, digits or dashes, not starting or ending with a dash",
 });
 
-/** A build's id: the first 16 hex characters of the SHA-256 of its files, so it names its content. */
+/** A build's id: 16 random hex characters the server hands out when a publish starts. */
 export const ugcBuildSchema = z.string().regex(/^[a-f0-9]{16}$/u, {
   message: "16 lowercase hex characters",
 });
 
-export const UGC_MAX_FILES = 50;
-export const UGC_MAX_FILE_BYTES = 5 * 1024 * 1024;
-export const UGC_MAX_BUILD_BYTES = 20 * 1024 * 1024;
+export const UGC_MAX_FILES = 100;
 
-/** Every build ships these three; the preview shell loads them by name. */
-export const UGC_REQUIRED_FILES = ["index.js", "index.css", "tailwind.css"] as const;
+/** Under Vercel's 4.5MB function body limit, since every file is uploaded through the site. */
+export const UGC_MAX_FILE_BYTES = 4 * 1024 * 1024;
+export const UGC_MAX_BUILD_BYTES = 25 * 1024 * 1024;
+
+/** Every build ships these two; the preview shell loads them by name. */
+export const UGC_REQUIRED_FILES = ["index.js", "index.css"] as const;
+
+/**
+ * Bare imports a published bundle leaves external. The preview frame maps each to the site's own
+ * copy with an import map, so every component shares one React and needs no bundled runtime.
+ */
+export const UGC_SHARED_MODULES = [
+  "react",
+  "react/jsx-runtime",
+  "react-dom",
+  "react-dom/client",
+  "motion",
+  "motion/react",
+] as const;
 
 /** Content type each uploadable extension is pinned to, so a build can only hold what a preview loads. */
 export const UGC_CONTENT_TYPES = new Map([
@@ -54,8 +69,9 @@ export const ugcContentType = (file: string) => UGC_CONTENT_TYPES.get(extensionO
 const ugcFileSchema = z.object({
   path: z
     .string()
-    .regex(/^(?:index\.js|index\.css|tailwind\.css|assets\/[\w.-]{1,120})$/u, {
-      message: "Only index.js, index.css, tailwind.css and assets/<file>",
+    .max(200)
+    .regex(/^(?:[\w-][\w.-]{0,119}\/){0,4}[\w-][\w.-]{0,119}$/u, {
+      message: "A relative path of up to 5 segments, each starting with a letter, digit, _ or -",
     })
     .refine((file) => ugcContentType(file) !== undefined, { message: "File type not allowed" }),
   size: z.int().min(0).max(UGC_MAX_FILE_BYTES),
@@ -91,21 +107,22 @@ export type PublishInput = z.infer<typeof publishSchema>;
 
 export const prepareSchema = z.object({ slug: ugcSlugSchema });
 
+/** A fresh build id. */
+export const newUgcBuild = () =>
+  Array.from(crypto.getRandomValues(new Uint8Array(8)), (byte) =>
+    byte.toString(16).padStart(2, "0"),
+  ).join("");
+
 /** Blob key prefix of one component. Keyed by user id, so a renamed handle never moves files. */
 export const ugcSlugKey = (userId: string, slug: string) => `ugc/${userId}/${slug}`;
 
-/** Blob key prefix of one build's entry files. */
+/** Blob key prefix of one build. A build is immutable once uploaded; a new publish is a new build. */
 export const ugcBuildKey = (userId: string, slug: string, build: string) =>
   `${ugcSlugKey(userId, slug)}/${build}`;
 
-/**
- * Blob key of one build file. Assets sit beside the builds, not inside one: their names carry a
- * content hash, so builds share them, and a bundle can reference them before its build id exists.
- */
+/** Blob key of one build file. */
 export const ugcFileKey = (userId: string, slug: string, build: string, file: string) =>
-  file.startsWith("assets/")
-    ? `${ugcSlugKey(userId, slug)}/${file}`
-    : `${ugcBuildKey(userId, slug, build)}/${file}`;
+  `${ugcBuildKey(userId, slug, build)}/${file}`;
 
 /** Path of a published component's page and preview frame. */
 export const ugcPath = (handle: string, slug: string) => `/u/${handle}/${slug}`;

@@ -1,41 +1,28 @@
 #!/usr/bin/env tsx
-import { createHash } from "node:crypto";
 import { existsSync } from "node:fs";
 import { mkdir, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { createORPCClient } from "@orpc/client";
 import { RPCLink } from "@orpc/client/fetch";
 import type { ContractClient } from "@repo/contract";
-import { ugcSlugSchema } from "@repo/contract/ugc/ugc-schema";
-import { put } from "@vercel/blob/client";
+import { UGC_SHARED_MODULES, newUgcBuild, ugcSlugSchema } from "@repo/contract/ugc/ugc-schema";
 import { defineCommand, runMain } from "citty";
 import { consola } from "consola";
 import * as esbuild from "esbuild";
 
-import {
-  ASSET_LOADERS,
-  SHARED_PACKAGES,
-  compilePreviewStylesheet,
-  previewEntry,
-  webRoot,
-} from "./preview-bundle";
-
-const ENTRY = "ugc-entry";
-
-const sharedAliases = Object.fromEntries(
-  SHARED_PACKAGES.map((name) => [name, path.join(webRoot, "node_modules", name)]),
-);
+import { ASSET_LOADERS, compilePreviewStylesheet } from "./preview-bundle";
 
 const bundle = async (dir: string, assetBase: string) => {
   const outdir = path.join(dir, ".ugc-out");
 
   const result = await esbuild.build({
     absWorkingDir: dir,
-    alias: sharedAliases,
     assetNames: "assets/[name]-[hash]",
     bundle: true,
+    chunkNames: "chunks/[name]-[hash]",
     define: { "process.env.NODE_ENV": JSON.stringify("production") },
-    entryPoints: { index: ENTRY },
+    entryPoints: { index: path.join(dir, "preview.tsx") },
+    external: [...UGC_SHARED_MODULES],
     format: "esm",
     jsx: "automatic",
     legalComments: "none",
@@ -43,22 +30,8 @@ const bundle = async (dir: string, assetBase: string) => {
     logLevel: "warning",
     minify: true,
     outdir,
-    plugins: [
-      {
-        name: ENTRY,
-        setup: (build) => {
-          // oxlint-disable-next-line require-unicode-regexp -- esbuild filters are Go regexps, which reject the u flag
-          build.onResolve({ filter: /^ugc-entry$/ }, () => ({ namespace: ENTRY, path: ENTRY }));
-          // oxlint-disable-next-line require-unicode-regexp -- esbuild filters are Go regexps, which reject the u flag
-          build.onLoad({ filter: /.*/, namespace: ENTRY }, () => ({
-            contents: previewEntry(path.join(dir, "preview.tsx")),
-            loader: "ts",
-            resolveDir: dir,
-          }));
-        },
-      },
-    ],
     publicPath: assetBase,
+    splitting: true,
     target: "es2022",
     write: false,
   });
@@ -67,23 +40,11 @@ const bundle = async (dir: string, assetBase: string) => {
     result.outputFiles.map((file) => [path.relative(outdir, file.path), file.contents]),
   );
 
-  files.set("tailwind.css", new TextEncoder().encode(await compilePreviewStylesheet(dir, true)));
-
-  if (!files.has("index.css")) {
-    files.set("index.css", new Uint8Array());
-  }
+  const bundled = new TextDecoder().decode(files.get("index.css") ?? new Uint8Array());
+  const tailwind = await compilePreviewStylesheet(dir, true);
+  files.set("index.css", new TextEncoder().encode(`${tailwind}\n${bundled}`));
 
   return files;
-};
-
-const buildId = (files: Map<string, Uint8Array>) => {
-  const hash = createHash("sha256");
-
-  for (const [file, contents] of [...files].toSorted(([a], [b]) => a.localeCompare(b))) {
-    hash.update(file).update("\0").update(contents);
-  }
-
-  return hash.digest("hex").slice(0, 16);
 };
 
 const main = defineCommand({
@@ -127,8 +88,9 @@ const main = defineCommand({
     }
 
     if (args.out) {
-      const files = await bundle(dir, args["asset-base"] ?? `https://assets.invalid/ugc/${slug}`);
-      const out = path.join(path.resolve(args.out), buildId(files));
+      const build = newUgcBuild();
+      const files = await bundle(dir, args["asset-base"] ?? `https://assets.invalid/ugc/${build}`);
+      const out = path.join(path.resolve(args.out), build);
 
       for (const [file, contents] of files) {
         await mkdir(path.dirname(path.join(out, file)), { recursive: true });
@@ -168,9 +130,8 @@ const main = defineCommand({
       new RPCLink({ headers, origin: new URL(args.url).origin, url: "/api/orpc" }),
     );
 
-    const { assetBase } = await client.ugc.prepare({ slug });
+    const { assetBase, build } = await client.ugc.prepare({ slug });
     const files = await bundle(dir, assetBase);
-    const build = buildId(files);
 
     const { uploads } = await client.ugc.createUpload({
       build,
@@ -179,11 +140,15 @@ const main = defineCommand({
     });
 
     for (const upload of uploads) {
-      await put(upload.pathname, Buffer.from(files.get(upload.path) ?? new Uint8Array()), {
-        access: "public",
-        contentType: upload.contentType,
-        token: upload.token,
+      const response = await fetch(upload.url, {
+        body: files.get(upload.path) ?? new Uint8Array(),
+        headers: { "content-type": upload.contentType },
+        method: "PUT",
       });
+
+      if (!response.ok) {
+        throw new Error(`Uploading ${upload.path} failed: ${await response.text()}`);
+      }
     }
 
     const published = await client.ugc.publish({ build, name: args.name, slug });

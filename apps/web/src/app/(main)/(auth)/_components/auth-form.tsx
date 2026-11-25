@@ -2,7 +2,8 @@
 
 import { useState } from "react";
 import type { HTMLAttributes } from "react";
-import { useRouter } from "next/navigation";
+import Link from "next/link";
+import { useRouter, useSearchParams } from "next/navigation";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { handleSchema } from "@repo/contract/ugc/ugc-schema";
 import { Button } from "@repo/ui/components/button";
@@ -33,6 +34,8 @@ const passwordSchema = z
     message: "Passwords don't match",
     path: ["confirmPassword"],
   });
+
+const continuationSchema = z.object({ redirect: z.literal(true), url: z.string() });
 
 type AuthFormProps = {
   type: "login" | "register";
@@ -72,6 +75,14 @@ export const AuthForm = ({ className, type, ...props }: AuthFormProps) => {
 
       if (result.error) {
         form.setError("root", { message: result.error.message ?? "Unable to sign in. Try again." });
+
+        return;
+      }
+
+      const next = continuationSchema.safeParse(result.data);
+
+      if (next.success) {
+        window.location.assign(next.data.url);
 
         return;
       }
@@ -147,6 +158,17 @@ export const AuthForm = ({ className, type, ...props }: AuthFormProps) => {
         </Button>
       </form>
     </div>
+  );
+};
+
+/** A link to the other auth page that keeps the query, so a sign-in an app started carries over. */
+export const AuthSwitchLink = ({ children, href }: { children: string; href: string }) => {
+  const search = useSearchParams().toString();
+
+  return (
+    <Link href={search ? `${href}?${search}` : href} className="underline">
+      {children}
+    </Link>
   );
 };
 

@@ -5,7 +5,10 @@ import { betterAuth } from "better-auth";
 import type { BaseURLConfig } from "better-auth";
 // WARNING: keep the relations-v2 entry; the default adapter reads db._.fullSchema, which drizzle 1.0 removed.
 import { drizzleAdapter } from "@better-auth/drizzle-adapter/relations-v2";
-import { bearer, username } from "better-auth/plugins";
+import { bearer, jwt, username } from "better-auth/plugins";
+import { cimd } from "@better-auth/cimd";
+import { fetchClientMetadataResource } from "@better-auth/cimd/node";
+import { mcp } from "@better-auth/mcp";
 
 import { sendPasswordResetEmail } from "./password-reset-email";
 
@@ -31,8 +34,28 @@ export const resolveBaseUrl = () => {
   return process.env.BETTER_AUTH_URL || "http://localhost:3000";
 };
 
+/**
+ * The one origin OAuth tokens and signed upload URLs are minted for. Unlike `resolveBaseUrl`, a
+ * preview deployment has to pick one of its hosts: the branch URL, which survives redeploys.
+ */
+export const canonicalOrigin = () => {
+  if (process.env.VERCEL_ENV === "production") {
+    return `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}`;
+  }
+
+  if (process.env.VERCEL_ENV === "preview") {
+    return `https://${process.env.VERCEL_BRANCH_URL ?? process.env.VERCEL_URL}`;
+  }
+
+  return process.env.BETTER_AUTH_URL || "http://localhost:3000";
+};
+
+/** The publishing MCP server: the protected resource every MCP access token is bound to. */
+export const MCP_PUBLISH_RESOURCE = `${canonicalOrigin()}/mcp/publish`;
+
 export const auth = betterAuth({
   baseURL: resolveBaseUrl(),
+  disabledPaths: ["/token"],
   database: drizzleAdapter(db, {
     provider: "sqlite",
   }),
@@ -46,6 +69,16 @@ export const auth = betterAuth({
   },
   plugins: [
     bearer(),
+    jwt({ disableSettingJwtHeader: true }),
+    mcp({
+      allowDynamicClientRegistration: true,
+      allowUnauthenticatedClientRegistration: true,
+      clientRegistrationDefaultApplicationType: "infer",
+      consentPage: "/auth/consent",
+      loginPage: "/auth/login",
+      resource: MCP_PUBLISH_RESOURCE,
+    }),
+    cimd({ fetchClientMetadataResource, metadataProfile: "mcp-2026-07-28" }),
     username({
       displayUsername: false,
       maxUsernameLength: 39,

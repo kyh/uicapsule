@@ -1,7 +1,8 @@
+import { Suspense } from "react";
 import type { Metadata } from "next";
 import Link from "next/link";
 
-import { AuthForm } from "@/app/(main)/(auth)/_components/auth-form";
+import { AuthForm, AuthSwitchLink } from "@/app/(main)/(auth)/_components/auth-form";
 
 export const metadata: Metadata = {
   title: "Login",
@@ -18,9 +19,15 @@ const Page = () => (
     </Link>
     <p className="text-muted-foreground px-8 text-center text-sm">
       Don&apos;t have an account?{" "}
-      <Link href="/auth/register" className="underline">
-        Register
-      </Link>
+      <Suspense
+        fallback={
+          <Link href="/auth/register" className="underline">
+            Register
+          </Link>
+        }
+      >
+        <AuthSwitchLink href="/auth/register">Register</AuthSwitchLink>
+      </Suspense>
     </p>
   </div>
 );

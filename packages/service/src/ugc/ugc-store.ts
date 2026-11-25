@@ -4,7 +4,7 @@ import { db } from "@repo/db/drizzle-client";
 import { user } from "@repo/db/drizzle-schema-auth";
 import { ugcComponent } from "@repo/db/drizzle-schema-ugc";
 import { list } from "@vercel/blob";
-import { and, desc, eq } from "drizzle-orm";
+import { and, desc, eq, isNull } from "drizzle-orm";
 
 /** The paths, relative to the build, of every file already uploaded for one build. */
 export const uploadedFiles = async (prefix: string, token: string) => {
@@ -83,4 +83,39 @@ export const findPublishedComponent = async (handle: string, slug: string) => {
     .limit(1);
 
   return row && { buildKey: ugcBuildKey(row.userId, slug, row.build), name: row.name };
+};
+
+/** The account an MCP access token's subject names, or undefined. */
+export const findPublisher = async (userId: string) => {
+  const [row] = await db
+    .select({ id: user.id, username: user.username })
+    .from(user)
+    .where(eq(user.id, userId))
+    .limit(1);
+
+  return row;
+};
+
+/**
+ * Gives an account without a username this one. False when the account already has one or the
+ * name is taken, since a username is set once and then names every URL the account publishes.
+ */
+export const claimUsername = async (userId: string, username: string) => {
+  const taken = await db
+    .select({ id: user.id })
+    .from(user)
+    .where(eq(user.username, username))
+    .limit(1);
+
+  if (taken.length > 0) {
+    return false;
+  }
+
+  const updated = await db
+    .update(user)
+    .set({ username })
+    .where(and(eq(user.id, userId), isNull(user.username)))
+    .returning({ id: user.id });
+
+  return updated.length > 0;
 };

@@ -5,6 +5,8 @@ import {
   UGC_MAX_FILE_BYTES,
   createUploadSchema,
   handleSchema,
+  newUgcBuild,
+  ugcBuildSchema,
   ugcContentType,
   ugcFileKey,
   ugcSlugSchema,
@@ -13,7 +15,6 @@ import {
 const required = [
   { path: "index.js", size: 10 },
   { path: "index.css", size: 0 },
-  { path: "tailwind.css", size: 10 },
 ];
 
 const upload = (files: { path: string; size: number }[]) =>
@@ -33,9 +34,10 @@ test("handles and slugs are plain URL segments", () => {
   }
 });
 
-test("a build must carry the three files the shell loads", () => {
+test("a build must carry the two files the shell loads", () => {
   assert.ok(upload(required));
   assert.ok(upload([...required, { path: "assets/dot-E5ONCOU3.png", size: 105 }]));
+  assert.ok(upload([...required, { path: "chunks/knob-ABC.js", size: 105 }]));
   assert.ok(!upload(required.slice(1)));
   assert.ok(!upload([...required, { path: "index.js", size: 1 }]));
 });
@@ -45,8 +47,11 @@ test("a build can only hold what a preview loads", () => {
     "index.html",
     "assets/x.html",
     "assets/../index.js",
-    "assets/a/b.png",
-    "x.js",
+    "../index.js",
+    "/index.js",
+    "assets/.hidden.png",
+    "a/b/c/d/e/f.png",
+    "x.map",
   ]) {
     assert.ok(!upload([...required, { path, size: 1 }]), path);
   }
@@ -57,13 +62,20 @@ test("a build can only hold what a preview loads", () => {
   assert.equal(ugcContentType("assets/x.html"), undefined);
 });
 
-test("entry files live in their build, assets beside every build", () => {
+test("every file of a build lives under its build", () => {
   assert.equal(
     ugcFileKey("u1", "knob", "0123456789abcdef", "index.js"),
     "ugc/u1/knob/0123456789abcdef/index.js",
   );
   assert.equal(
     ugcFileKey("u1", "knob", "0123456789abcdef", "assets/a-1.png"),
-    "ugc/u1/knob/assets/a-1.png",
+    "ugc/u1/knob/0123456789abcdef/assets/a-1.png",
   );
+});
+
+test("a fresh build id is a valid, distinct build", () => {
+  const [a, b] = [newUgcBuild(), newUgcBuild()];
+
+  assert.ok(ugcBuildSchema.safeParse(a).success, a);
+  assert.notEqual(a, b);
 });
