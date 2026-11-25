@@ -1,36 +1,57 @@
-import type { ButtonHTMLAttributes } from "react";
+import type { ButtonHTMLAttributes, ReactNode } from "react";
 
-const VARIANTS = {
-  accent: "bg-accent text-accent-foreground hover:brightness-[0.98]",
-  ghost: "hover:bg-muted",
-  outline: "border-input bg-card hover:bg-muted border-(length:--ds-border-width)",
-  primary:
-    "bg-primary text-primary-foreground border-(length:--ds-border-width) border-(--ds-primary-edge) bg-[linear-gradient(to_top,var(--ds-primary-lit),transparent_60%)] shadow-[inset_0_-1px_0_var(--ds-primary-lit)] hover:brightness-[1.04]",
-  secondary: "bg-secondary text-secondary-foreground hover:brightness-[0.97]",
-} as const;
+import { cx } from "../lib/cx";
+import { Pending } from "./pending";
 
-const SIZES = {
-  icon: "size-8",
-  md: "h-8 px-3 text-sm",
-  sm: "h-6 px-2 text-xs",
-} as const;
+export type ButtonVariant = "lamp" | "plain" | "ghost" | "danger";
+
+export type ButtonSize = "sm" | "md" | "lg" | "icon" | "icon-sm";
 
 interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
-  variant?: keyof typeof VARIANTS;
-  size?: keyof typeof SIZES;
+  variant?: ButtonVariant;
+  size?: ButtonSize;
+  pending?: boolean;
+  pendingLabel?: string;
+  children?: ReactNode;
 }
 
+/** A button. `lamp` is the lit variant; keep one per view. */
 export const Button = ({
-  variant = "primary",
+  variant = "plain",
   size = "md",
-  className = "",
+  pending = false,
+  pendingLabel,
+  className,
+  children,
+  onClick,
   type = "button",
-  ...props
+  ...rest
 }: ButtonProps) => (
   <button
-    className={`focus-visible:outline-ring inline-flex items-center justify-center gap-2 whitespace-nowrap transition-[filter,background-color,translate] duration-80 ease-(--ds-ease) focus-visible:outline-2 focus-visible:outline-offset-2 active:translate-y-px disabled:pointer-events-none disabled:opacity-40 ${VARIANTS[variant]} ${SIZES[size]} ${className}`}
-    // oxlint-disable-next-line react/button-has-type -- defaults to "button"; callers may pass "submit"
+    aria-busy={pending || undefined}
+    className={cx("hx-btn", className)}
+    data-size={size === "md" ? undefined : size}
+    data-variant={variant}
+    onClick={pending ? undefined : onClick}
+    // oxlint-disable-next-line react/button-has-type -- defaults to "button"; a form passes "submit"
     type={type}
-    {...props}
-  />
+    {...rest}
+  >
+    <span className="hx-btn-label hx-row" data-hidden={pending || undefined}>
+      {children}
+    </span>
+    {pending ? (
+      <span className="hx-btn-pending">
+        <Pending />
+        {pendingLabel}
+      </span>
+    ) : null}
+  </button>
+);
+
+/** A fieldset that fuses buttons along shared edges. */
+export const ButtonGroup = ({ label, children }: { label: string; children: ReactNode }) => (
+  <fieldset aria-label={label} className="hx-btn-group">
+    {children}
+  </fieldset>
 );

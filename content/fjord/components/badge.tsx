@@ -1,22 +1,37 @@
 import type { ReactNode } from "react";
 
-const VARIANTS = {
-  accent: "bg-(--ds-accent-wash) text-accent-foreground",
-  destructive: "bg-[color-mix(in_oklch,var(--destructive),white_90%)] text-destructive",
-  muted: "bg-secondary text-muted-foreground",
-  outline: "shadow-[inset_0_0_0_1px_var(--border)] text-foreground",
-} as const;
+export type Kind = "run" | "agent" | "repo" | "secret";
 
-export const Badge = ({
-  variant = "muted",
-  children,
-}: {
-  variant?: keyof typeof VARIANTS;
-  children: ReactNode;
-}) => (
-  <span
-    className={`inline-flex h-5 items-center rounded-(--ds-radius-inner) px-1.5 text-xs font-[440] ${VARIANTS[variant]}`}
-  >
-    {children}
+export const KINDS = ["run", "agent", "repo", "secret"] as const satisfies readonly Kind[];
+
+export const KIND_WORD = {
+  agent: "Agent",
+  repo: "Repo",
+  run: "Run",
+  secret: "Secret",
+} satisfies Record<Kind, string>;
+
+interface BadgeProps {
+  kind?: Kind;
+  trouble?: "warn" | "fail";
+  variant?: "ghost";
+  children?: ReactNode;
+}
+
+/** A static label: a kind as a tinted word, a trouble attribute, or a plain grey tag. */
+export const Badge = ({ kind, trouble, variant, children }: BadgeProps) => (
+  <span className="fj-badge" data-kind={kind} data-trouble={trouble} data-variant={variant}>
+    {children ?? (kind ? KIND_WORD[kind] : null)}
   </span>
+);
+
+/** Something a person pastes elsewhere: a run id, a branch, a path. Mono and ink. */
+export const CodeTag = ({ children, trouble }: { children: ReactNode; trouble?: "fail" }) => (
+  <code className="fj-code-tag" data-trouble={trouble}>
+    {children}
+  </code>
+);
+
+export const Kbd = ({ children }: { children: ReactNode }) => (
+  <kbd className="fj-kbd">{children}</kbd>
 );

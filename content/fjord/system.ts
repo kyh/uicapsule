@@ -1,5 +1,5 @@
 export const system = {
   name: "Fjord",
   tagline:
-    "Cold and calm for agent and developer tools. Corners by role, and round means a person.",
+    "Fog-cold chrome for teams that supervise coding agents: paper cards on a glacial canvas, one frame line, and ink kept for the decision.",
 };

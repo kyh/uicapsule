@@ -1,38 +1,55 @@
-import type { ButtonHTMLAttributes } from "react";
+import type { ButtonHTMLAttributes, ReactNode } from "react";
 
-const VARIANTS = {
-  accent:
-    "bg-(--ds-accent-wash) text-accent-foreground shadow-[inset_0_0_0_1px_color-mix(in_oklch,var(--accent),transparent_70%)] hover:brightness-[0.98]",
-  ghost: "hover:bg-secondary",
-  outline:
-    "bg-card shadow-[inset_0_0_0_1px_var(--input),var(--ds-shadow)] hover:bg-[color-mix(in_oklch,var(--card),var(--ds-ink)_3%)]",
-  primary:
-    "bg-primary text-primary-foreground bg-[linear-gradient(to_bottom,oklch(1_0_0/0.1),transparent)] shadow-[inset_0_1px_0_oklch(1_0_0/0.16),inset_0_-1px_0_oklch(0_0_0/0.4),0_1px_2px_-1px_oklch(0.21_0.026_258/0.4)] hover:brightness-125",
-  secondary: "bg-secondary text-secondary-foreground hover:brightness-[0.97]",
-} as const;
-
-const SIZES = {
-  icon: "size-8",
-  md: "h-8 px-3 text-sm",
-  sm: "h-6 px-2 text-xs",
-} as const;
+import { StatusArc } from "./status";
 
 interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
-  variant?: keyof typeof VARIANTS;
-  size?: keyof typeof SIZES;
+  variant?: "primary" | "secondary" | "ghost" | "destructive";
+  size?: "xs" | "sm" | "md" | "icon" | "icon-sm" | "icon-xs";
+  pending?: boolean;
+  pendingLabel?: string;
 }
 
+/** Starts an action. Secondary by default, so a view only gets its one ink key on purpose. */
 export const Button = ({
-  variant = "primary",
+  variant = "secondary",
   size = "md",
-  className = "",
+  pending,
+  pendingLabel,
+  children,
+  className,
+  disabled,
   type = "button",
   ...props
 }: ButtonProps) => (
   <button
-    className={`focus-visible:outline-ring inline-flex items-center justify-center gap-1.5 rounded-(--ds-radius-control) font-[440] whitespace-nowrap transition duration-(--ds-duration) ease-(--ds-ease) focus-visible:outline-2 focus-visible:outline-offset-2 active:scale-[0.98] active:duration-60 disabled:pointer-events-none disabled:opacity-40 ${VARIANTS[variant]} ${SIZES[size]} ${className}`}
-    // oxlint-disable-next-line react/button-has-type -- defaults to "button"; callers may pass "submit"
+    aria-busy={pending || undefined}
+    className={className ? `fj-btn ${className}` : "fj-btn"}
+    data-size={size}
+    data-variant={variant}
+    disabled={disabled}
+    // oxlint-disable-next-line react/button-has-type -- defaults to "button"; a form passes "submit"
     type={type}
     {...props}
-  />
+  >
+    {pending === undefined ? (
+      children
+    ) : (
+      <span className="fj-btn-stack">
+        <span aria-hidden={pending} data-hidden={pending ? "" : undefined}>
+          {children}
+        </span>
+        <span aria-hidden={!pending} data-hidden={pending ? undefined : ""}>
+          <StatusArc size={12} />
+          {pendingLabel}
+        </span>
+      </span>
+    )}
+  </button>
+);
+
+export const ButtonGroup = ({ label, children }: { label: string; children: ReactNode }) => (
+  <fieldset className="fj-btn-group">
+    <legend className="fj-sr">{label}</legend>
+    {children}
+  </fieldset>
 );

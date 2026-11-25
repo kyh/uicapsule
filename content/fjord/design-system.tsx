@@ -1,176 +1,290 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useId, useState } from "react";
 import type { ReactNode } from "react";
-import { ArrowRight, Plus } from "lucide-react";
+import { Boxes, ChevronDown, Layers, Moon, PanelsTopLeft, Sun } from "lucide-react";
+import type { LucideIcon } from "lucide-react";
 
-import { Alert } from "./components/alert";
-import { Avatar } from "./components/avatar";
-import { Badge } from "./components/badge";
 import { Button } from "./components/button";
-import { Card } from "./components/card";
-import { Checkbox } from "./components/checkbox";
-import { Input } from "./components/input";
-import { Progress } from "./components/progress";
-import { Segmented } from "./components/segmented";
-import { Switch } from "./components/switch";
-import { Foundations } from "./foundations";
+import { Icon } from "./components/icon";
+import { Breadcrumb } from "./components/navigation";
+import { ToastProvider } from "./components/toast";
+import { FOUNDATIONS } from "./foundations";
+import { ThemeContext } from "./lib/theme";
+import type { Theme } from "./lib/theme";
+import { ApiKeys } from "./screens/api-keys";
+import { ModelSwap } from "./screens/model-swap";
+import { RepoHome } from "./screens/repo-home";
+import { RunTraceScreen } from "./screens/run-trace";
+import { CATEGORIES, COMPONENT_COUNT } from "./specimens";
 import { system } from "./system";
 
-const RANGES = ["Day", "Week", "Month"] as const;
+const SCREENS = [
+  { id: "screen-repo", title: "Repo overview" },
+  { id: "screen-trace", title: "Run trace" },
+  { id: "screen-swap", title: "Model swap" },
+  { id: "screen-keys", title: "Deploy keys" },
+] as const;
 
-const Section = ({
-  index,
-  title,
-  children,
-}: {
-  index: string;
+interface Entry {
+  id: string;
   title: string;
+}
+
+interface Part {
+  id: string;
+  title: string;
+  icon: LucideIcon;
+  entries: readonly Entry[];
+}
+
+const PARTS = [
+  { entries: SCREENS, icon: PanelsTopLeft, id: "in-use", title: "In use" },
+  { entries: FOUNDATIONS, icon: Layers, id: "foundations", title: "Foundations" },
+  { entries: CATEGORIES, icon: Boxes, id: "components", title: "Components" },
+] as const satisfies readonly Part[];
+
+const HEAD_ROOM = 0.35;
+
+interface Place {
+  part: string;
+  entry: string | null;
+}
+
+const locate = () => {
+  const line = window.innerHeight * HEAD_ROOM;
+  let place: Place = { entry: null, part: PARTS[0].id };
+
+  for (const part of PARTS) {
+    const node = document.querySelector(`#${part.id}`);
+
+    if (node && node.getBoundingClientRect().top <= line) {
+      place = { entry: null, part: part.id };
+
+      for (const entry of part.entries) {
+        const child = document.querySelector(`#${entry.id}`);
+
+        if (child && child.getBoundingClientRect().top <= line) {
+          place = { entry: entry.id, part: part.id };
+        }
+      }
+    }
+  }
+
+  return place;
+};
+
+const usePlace = () => {
+  const [place, setPlace] = useState<Place>({ entry: null, part: PARTS[0].id });
+
+  useEffect(() => {
+    let frame = 0;
+
+    const update = () => {
+      window.cancelAnimationFrame(frame);
+      frame = window.requestAnimationFrame(() => {
+        const next = locate();
+
+        setPlace((current) =>
+          current.part === next.part && current.entry === next.entry ? current : next,
+        );
+      });
+    };
+
+    update();
+    window.addEventListener("scroll", update, { passive: true });
+    window.addEventListener("resize", update);
+
+    return () => {
+      window.cancelAnimationFrame(frame);
+      window.removeEventListener("scroll", update);
+      window.removeEventListener("resize", update);
+    };
+  }, []);
+
+  return place;
+};
+
+const Contour = () => (
+  <svg aria-hidden className="fj-contour" viewBox="0 0 320 200">
+    <path d="M0 150 C40 140 70 96 112 98 S170 150 214 132 S280 70 320 74" />
+    <path d="M0 166 C44 158 74 118 114 120 S172 166 216 150 S282 94 320 98" />
+    <path d="M0 182 C48 176 78 140 116 142 S174 182 218 168 S284 118 320 122" />
+    <path d="M0 198 C52 194 82 162 118 164 S176 198 220 186 S286 142 320 146" />
+    <path d="M150 0 C150 30 170 52 214 58 S300 40 320 20" />
+    <path d="M176 0 C178 22 196 38 230 42 S302 28 320 12" />
+  </svg>
+);
+
+interface PageSectionProps {
+  part: Part;
+  lede: string;
   children: ReactNode;
-}) => (
-  <section className="border-border grid gap-8 border-t-(length:--ds-border-width) py-12">
-    <h2 className="flex items-baseline gap-3 font-(family-name:--ds-font-heading) text-2xl tracking-(--ds-heading-tracking)">
-      <span className="text-muted-foreground font-(family-name:--ds-font-mono) text-xs">
-        {index}
-      </span>
-      {title}
-    </h2>
+}
+
+const PageSection = ({ part, lede, children }: PageSectionProps) => (
+  <section aria-labelledby={`${part.id}-title`} className="fj-section" id={part.id}>
+    <header className="fj-section-head">
+      <h2 className="fj-t-title" id={`${part.id}-title`}>
+        {part.title}
+      </h2>
+      <p className="fj-t-body-lg fj-c-2">{lede}</p>
+    </header>
     {children}
   </section>
 );
 
-const Specimen = ({ title, children }: { title: string; children: ReactNode }) => (
-  <Card className="grid content-start gap-5">
-    <h3 className="text-muted-foreground font-(family-name:--ds-font-mono) text-xs tracking-widest uppercase">
-      {title}
-    </h3>
-    {children}
-  </Card>
-);
-
-const Components = () => {
-  const [notify, setNotify] = useState(true);
-  const [sync, setSync] = useState(false);
-  const [terms, setTerms] = useState(true);
-  const [range, setRange] = useState<(typeof RANGES)[number]>("Week");
+export const DesignSystem = () => {
+  const [mode, setMode] = useState<Theme>("light");
+  const place = usePlace();
+  const jumpId = useId();
+  const part = PARTS.find((entry) => entry.id === place.part) ?? PARTS[0];
+  const here = part.entries.find((entry) => entry.id === place.entry);
+  const dark = mode === "dark";
 
   return (
-    <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-      <Specimen title="Button">
-        <div className="flex flex-wrap items-center gap-2">
-          <Button>Primary</Button>
-          <Button variant="secondary">Secondary</Button>
-          <Button variant="accent">Accent</Button>
-          <Button variant="outline">Outline</Button>
-          <Button variant="ghost">Ghost</Button>
-        </div>
-        <div className="flex flex-wrap items-center gap-2">
-          <Button size="sm">Small</Button>
-          <Button aria-label="Add" size="icon" variant="outline">
-            <Plus aria-hidden className="size-4" />
-          </Button>
-          <Button disabled>Disabled</Button>
-        </div>
-      </Specimen>
+    <ThemeContext.Provider value={mode}>
+      <div className="ds-fjord fj-page" data-theme={mode}>
+        <ToastProvider>
+          <div className="fj-shell">
+            <nav aria-label="Parts of the page" className="fj-rail">
+              <a aria-label={`${system.name}, top of page`} className="fj-rail-mark" href="#top">
+                <svg aria-hidden viewBox="0 0 24 24">
+                  <path d="M3 17c3-1 4-7 7-7s3 6 5 6 3-4 6-4" />
+                  <path d="M3 21c3-1 4-5 7-5s3 4 5 4 3-3 6-3" />
+                </svg>
+              </a>
+              <ul>
+                {PARTS.map((entry) => (
+                  <li key={entry.id}>
+                    <a
+                      aria-current={entry.id === place.part ? "location" : undefined}
+                      aria-label={entry.title}
+                      className="fj-rail-link"
+                      href={`#${entry.id}`}
+                    >
+                      <Icon icon={entry.icon} size={20} />
+                      <span aria-hidden className="fj-rail-tip">
+                        {entry.title}
+                      </span>
+                    </a>
+                  </li>
+                ))}
+              </ul>
+            </nav>
 
-      <Specimen title="Input">
-        <Input label="Email" placeholder="you@example.com" type="email" />
-        <Input
-          defaultValue="Northwind"
-          hint="Visible to everyone in the workspace."
-          label="Workspace"
-        />
-      </Specimen>
+            <div className="fj-main">
+              <div className="fj-crumbbar">
+                <Breadcrumb
+                  items={[
+                    "Kestrel",
+                    { href: "#top", label: system.name },
+                    { href: `#${part.id}`, label: part.title },
+                    ...(here ? [here.title] : []),
+                  ]}
+                  label="You are here"
+                />
+                <div className="fj-crumbbar-tools">
+                  <label className="fj-sr" htmlFor={jumpId}>
+                    Jump to
+                  </label>
+                  <div className="fj-select-wrap fj-jump">
+                    <select
+                      className="fj-input fj-select"
+                      data-size="sm"
+                      id={jumpId}
+                      onChange={(event) => {
+                        document
+                          .querySelector(`#${event.target.value}`)
+                          ?.scrollIntoView({ block: "start" });
+                      }}
+                      value={place.entry ?? place.part}
+                    >
+                      {PARTS.map((entry) => (
+                        <optgroup key={entry.id} label={entry.title}>
+                          <option value={entry.id}>{entry.title}, overview</option>
+                          {entry.entries.map((child) => (
+                            <option key={child.id} value={child.id}>
+                              {child.title}
+                            </option>
+                          ))}
+                        </optgroup>
+                      ))}
+                    </select>
+                    <Icon icon={ChevronDown} size={12} />
+                  </div>
+                  <Button
+                    aria-label="Dark theme"
+                    aria-pressed={dark}
+                    onClick={() => setMode(dark ? "light" : "dark")}
+                    size="icon-sm"
+                    variant="ghost"
+                  >
+                    <Icon icon={dark ? Moon : Sun} />
+                  </Button>
+                </div>
+              </div>
 
-      <Specimen title="Selection">
-        <Switch checked={notify} label="Notifications" onCheckedChange={setNotify} />
-        <Switch checked={sync} label="Background sync" onCheckedChange={setSync} />
-        <Checkbox checked={terms} label="Accept terms" onCheckedChange={setTerms} />
-        <Segmented label="Range" onValueChange={setRange} options={RANGES} value={range} />
-      </Specimen>
+              <main className="fj-container" id="top">
+                <div className="fj-hero">
+                  <div className="fj-hero-text">
+                    <h1 className="fj-t-display">{system.name}</h1>
+                    <p className="fj-t-body-lg fj-c-2 fj-hero-lede">{system.tagline}</p>
+                  </div>
+                  <Contour />
+                  <p className="fj-hero-meta fj-t-body-sm fj-c-2">
+                    <span className="fj-data fj-strong">{SCREENS.length}</span> product screens,{" "}
+                    <span className="fj-data fj-strong">{FOUNDATIONS.length}</span> foundations and{" "}
+                    <span className="fj-data fj-strong">{COMPONENT_COUNT}</span> live components, in
+                    light and dark.
+                  </p>
+                </div>
 
-      <Specimen title="Status">
-        <div className="flex flex-wrap gap-2">
-          <Badge>Draft</Badge>
-          <Badge variant="accent">Live</Badge>
-          <Badge variant="outline">Beta</Badge>
-          <Badge variant="destructive">Failed</Badge>
-        </div>
-        <Progress label="Storage" value={64} />
-      </Specimen>
+                <PageSection
+                  lede="Four screens from Kestrel, a team whose coding agents open most of its pull requests. Every part is a Fjord component and every screen runs: slots fill and empty, a trace forks and waits, a model swap closes its shadow window, a deploy key is minted and burned."
+                  part={PARTS[0]}
+                >
+                  <div className="fj-screens">
+                    <RepoHome />
+                    <RunTraceScreen />
+                    <ModelSwap />
+                    <ApiKeys />
+                  </div>
+                </PageSection>
 
-      <Specimen title="Feedback">
-        <Alert title="Payment failed">
-          Your card was declined. Update billing to keep the workspace active.
-        </Alert>
-      </Specimen>
+                <PageSection
+                  lede="What the screens stand on. Each choice names its token, gives a rule an id, and says why, so a reviewer can hold a pull request to it."
+                  part={PARTS[1]}
+                >
+                  <div className="fj-foundations">
+                    {FOUNDATIONS.map(({ Component, id }) => (
+                      <Component key={id} />
+                    ))}
+                  </div>
+                </PageSection>
 
-      <Specimen title="Identity">
-        <div className="flex -space-x-2">
-          {["AL", "MK", "JS", "RT"].map((initials) => (
-            <Avatar initials={initials} key={initials} />
-          ))}
-        </div>
-      </Specimen>
-    </div>
+                <PageSection
+                  lede={`${COMPONENT_COUNT} components in ${CATEGORIES.length} groups. Each one is the real thing, so press it, type in it or tab through it.`}
+                  part={PARTS[2]}
+                >
+                  <div className="fj-categories">
+                    {CATEGORIES.map(({ Component, id }) => (
+                      <Component key={id} />
+                    ))}
+                  </div>
+                </PageSection>
+
+                <footer className="fj-footer">
+                  <p className="fj-t-body-sm fj-c-2">
+                    Fjord is a uicapsule design system. Its page follows the outline of the system
+                    pages on design.how: screens first, then foundations, then components.
+                  </p>
+                </footer>
+              </main>
+            </div>
+          </div>
+        </ToastProvider>
+      </div>
+    </ThemeContext.Provider>
   );
 };
-
-const InContext = () => {
-  const [shared, setShared] = useState(false);
-
-  return (
-    <Card className="mx-auto grid w-full max-w-md gap-6 p-6">
-      <div className="flex items-start justify-between gap-4">
-        <div className="grid gap-1">
-          <h3 className="font-(family-name:--ds-font-heading) text-xl tracking-(--ds-heading-tracking)">
-            Q3 launch plan
-          </h3>
-          <p className="text-muted-foreground text-sm">12 tasks · due in 4 days</p>
-        </div>
-        <Badge variant="accent">On track</Badge>
-      </div>
-      <Progress label="Complete" value={72} />
-      <div className="flex items-center justify-between">
-        <div className="flex -space-x-2">
-          {["AL", "MK", "JS"].map((initials) => (
-            <Avatar initials={initials} key={initials} />
-          ))}
-        </div>
-        <Switch checked={shared} label="Share link" onCheckedChange={setShared} />
-      </div>
-      <div className="flex justify-end gap-2">
-        <Button variant="ghost">Archive</Button>
-        <Button>
-          Open board
-          <ArrowRight aria-hidden className="size-4" />
-        </Button>
-      </div>
-    </Card>
-  );
-};
-
-export const DesignSystem = () => (
-  <div className="ds-fjord min-h-dvh antialiased">
-    <div className="mx-auto max-w-6xl px-6 sm:px-10">
-      <header className="grid gap-4 py-16">
-        <p className="text-muted-foreground font-(family-name:--ds-font-mono) text-xs tracking-widest uppercase">
-          Design system
-        </p>
-        <h1 className="font-(family-name:--ds-font-heading) text-5xl tracking-(--ds-heading-tracking) sm:text-7xl">
-          {system.name}
-        </h1>
-        <p className="text-muted-foreground max-w-xl text-lg text-pretty">{system.tagline}</p>
-      </header>
-      <Section index="01" title="Foundations">
-        <Foundations />
-      </Section>
-      <Section index="02" title="Components">
-        <Components />
-      </Section>
-      <Section index="03" title="In context">
-        <InContext />
-      </Section>
-    </div>
-  </div>
-);

@@ -1,4 +1,5 @@
 export const system = {
   name: "Halogen",
-  tagline: "Square and mono for infrastructure and data tools, with one lamp-lit action.",
+  tagline:
+    "Hairline rules, mono capitals and one amber filament for the people who run data platforms.",
 };
