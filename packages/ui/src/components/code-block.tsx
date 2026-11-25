@@ -1,8 +1,8 @@
 "use client";
 
-import type { ComponentProps, HTMLAttributes, ReactNode } from "react";
+import type { HTMLAttributes, ReactNode } from "react";
 import type { BundledLanguage, CodeOptionsMultipleThemes, SpecialLanguage } from "shiki";
-import { createContext, useContext, useEffect, useMemo, useRef, useState } from "react";
+import { createContext, useContext, useEffect, useMemo, useState } from "react";
 import {
   SiAstro,
   SiBiome,
@@ -80,11 +80,11 @@ import {
   transformerNotationHighlight,
   transformerNotationWordHighlight,
 } from "@shikijs/transformers";
-import { CheckIcon, CopyIcon } from "lucide-react";
 import { codeToHtml } from "shiki";
 
 import type { IconType } from "@icons-pack/react-simple-icons";
-import { Button } from "./button";
+import { CopyButton } from "./copy-button";
+import type { CopyButtonProps } from "./copy-button";
 import { useControllableState } from "@repo/ui/hooks/use-controllable-state";
 import { cn } from "cn";
 
@@ -385,82 +385,13 @@ export const CodeBlockFilename = ({
   );
 };
 
-export type CodeBlockCopyButtonProps = ComponentProps<typeof Button> & {
-  onCopy?: () => void;
-  onError?: (error: Error) => void;
-  timeout?: number;
-};
+export type CodeBlockCopyButtonProps = Omit<CopyButtonProps, "value">;
 
-export const CodeBlockCopyButton = ({
-  onCopy,
-  onError,
-  timeout = 2000,
-  children,
-  className,
-  ...props
-}: CodeBlockCopyButtonProps) => {
-  const [isCopied, setIsCopied] = useState(false);
-  const resetTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
-  useEffect(
-    () => () => {
-      if (resetTimeout.current !== null) {
-        clearTimeout(resetTimeout.current);
-      }
-    },
-    [],
-  );
+export const CodeBlockCopyButton = ({ ...props }: CodeBlockCopyButtonProps) => {
   const { data, value } = useContext(CodeBlockContext);
   const code = data.find((item) => item.language === value)?.code;
 
-  const copyToClipboard = async () => {
-    if (!navigator.clipboard?.writeText || code === undefined) {
-      return;
-    }
-
-    try {
-      await navigator.clipboard.writeText(code);
-      setIsCopied(true);
-      onCopy?.();
-
-      if (resetTimeout.current !== null) {
-        clearTimeout(resetTimeout.current);
-      }
-
-      resetTimeout.current = setTimeout(() => setIsCopied(false), timeout);
-    } catch (error) {
-      onError?.(error instanceof Error ? error : new Error(String(error)));
-    }
-  };
-
-  return (
-    <Button
-      className={cn("shrink-0", className)}
-      onClick={copyToClipboard}
-      size="icon"
-      variant="ghost"
-      aria-label={isCopied ? "Copied" : "Copy code"}
-      {...props}
-    >
-      {children ?? (
-        <span className="text-muted-foreground relative inline-block size-3.5">
-          <CopyIcon
-            size={14}
-            className={cn(
-              "absolute inset-0 transition-all duration-300 ease-out",
-              isCopied ? "scale-25 opacity-0 blur-[4px]" : "scale-100 opacity-100 blur-0",
-            )}
-          />
-          <CheckIcon
-            size={14}
-            className={cn(
-              "absolute inset-0 transition-all duration-300 ease-out",
-              isCopied ? "scale-100 opacity-100 blur-0" : "scale-25 opacity-0 blur-[4px]",
-            )}
-          />
-        </span>
-      )}
-    </Button>
-  );
+  return <CopyButton label="Copy code" value={code} {...props} />;
 };
 
 type CodeBlockFallbackProps = HTMLAttributes<HTMLDivElement>;

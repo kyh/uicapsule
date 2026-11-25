@@ -1,7 +1,7 @@
 import { Suspense } from "react";
 import { notFound } from "next/navigation";
 
-import { ContentFeed } from "@/app/(main)/(content)/_components/content-feed";
+import { ComponentWorkspace } from "@/app/(main)/(content)/_components/component-workspace";
 import { JsonLd } from "@/components/json-ld";
 import { MediaReveal } from "@/components/media-reveal";
 import {
@@ -64,24 +64,20 @@ const Content = async ({ params }: Props) => {
   return (
     <>
       <JsonLd node={buildComponentGraph(component, componentVideo(component))} />
-      <div className="sr-only">
-        <h1>{component.name}</h1>
-        <p>{component.description}</p>
-      </div>
-      <ContentFeed initialSlug={slug} feed={feed} />
+      <ComponentWorkspace initialSlug={slug} feed={feed} />
     </>
   );
 };
 
-const ContentFeedSkeleton = () => (
-  <div className="flex h-full w-full flex-col gap-2 pb-2">
-    <MediaReveal className="mx-auto h-full w-full max-w-[720px] rounded-md" />
+const WorkspaceSkeleton = () => (
+  <div className="h-[calc(100dvh-(--spacing(16)))] border-t p-3">
+    <MediaReveal className="h-full w-full rounded-lg" />
   </div>
 );
 
 const Page = ({ params }: Props) => (
-  <main className="relative flex h-[calc(100dvh-(--spacing(16)))] justify-center">
-    <Suspense fallback={<ContentFeedSkeleton />}>
+  <main className="relative">
+    <Suspense fallback={<WorkspaceSkeleton />}>
       <Content params={params} />
     </Suspense>
   </main>

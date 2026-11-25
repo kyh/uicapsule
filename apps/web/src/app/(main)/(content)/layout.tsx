@@ -2,7 +2,7 @@ import type { ReactNode } from "react";
 import { Header } from "@/components/header";
 
 const Layout = ({ children }: { children: ReactNode }) => (
-  <section className="mx-auto max-w-[1440px]">
+  <section>
     <Header />
     {children}
   </section>

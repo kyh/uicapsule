@@ -36,7 +36,10 @@ const ResizeHandle = ({
   const onPointerDown = (event: PointerEvent<HTMLDivElement>) => {
     event.preventDefault();
     event.currentTarget.setPointerCapture(event.pointerId);
-    start.current = { width, x: event.clientX };
+    start.current = {
+      width: event.currentTarget.parentElement?.offsetWidth ?? width,
+      x: event.clientX,
+    };
     onDraggingChange(true);
   };
 
@@ -75,7 +78,7 @@ const ResizeHandle = ({
       aria-valuemin={minWidth}
       aria-valuemax={maxWidth}
       className={cn(
-        "bg-muted-foreground/20 hover:bg-muted-foreground/50 focus-visible:bg-muted-foreground/50 absolute top-1/2 hidden h-24 w-1.5 -translate-y-1/2 cursor-ew-resize touch-none rounded-full transition-colors outline-none md:block",
+        "bg-muted-foreground/20 hover:bg-primary focus-visible:bg-primary active:bg-primary absolute top-1/2 hidden h-24 w-1.5 -translate-y-1/2 cursor-ew-resize touch-none rounded-full transition-colors duration-150 ease-out outline-none motion-reduce:transition-none md:block",
         side === "left" ? "-left-3 -translate-x-1/2" : "-right-3 translate-x-1/2",
       )}
       onPointerDown={onPointerDown}

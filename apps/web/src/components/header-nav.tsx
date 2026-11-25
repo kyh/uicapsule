@@ -18,12 +18,7 @@ export const HeaderNav = ({ className, searchEntries, profile }: HeaderNavProps)
   const { trigger } = useWebHaptics();
 
   return (
-    <nav
-      className={cn(
-        "flex h-16 w-full grid-cols-3 items-center gap-2 px-3 sm:grid sm:px-6",
-        className,
-      )}
-    >
+    <nav className={cn("flex h-16 w-full grid-cols-3 items-center gap-2 px-4 sm:grid", className)}>
       <div className="flex items-center justify-start gap-2">
         <Link href="/" aria-label="UICapsule home" onClick={() => trigger("selection")}>
           <Logo />

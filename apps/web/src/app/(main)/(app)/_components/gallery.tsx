@@ -74,7 +74,7 @@ export const Gallery = ({ cards }: { cards: GalleryCard[] }) => {
         <UrlFilter onChange={setFilter} />
       </Suspense>
       <div className="flex h-14 items-center justify-between border-b bg-(image:--background-stripe) bg-size-[10px_10px] bg-fixed sm:h-16">
-        <div className="flex h-full flex-1 items-center gap-3 overflow-x-auto px-3 sm:px-6">
+        <div className="flex h-full flex-1 items-center gap-3 overflow-x-auto px-4">
           <FilterBar facets={facetsFor(cards, filter)} filter={filter} />
         </div>
       </div>

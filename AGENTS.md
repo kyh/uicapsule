@@ -113,7 +113,7 @@ Runtime — drive the real UI with [agent-browser](https://github.com/vercel-lab
 ```sh
 agent-browser open http://localhost:3000/
 agent-browser snapshot                                        # accessibility tree with @eN refs
-agent-browser open http://localhost:3000/ui/<slug>            # detail page + source drawer
+agent-browser open http://localhost:3000/ui/<slug>            # detail page workspace
 agent-browser open http://localhost:3000/preview-frame/<slug> # bare preview, no chrome
 agent-browser get text body                                   # `get text` needs a selector
 agent-browser screenshot /tmp/after.png
