@@ -75,11 +75,13 @@ const fixtureFiles: [string, string][] = [
 
 await mkdir(webRoot, { recursive: true });
 
-for (const [relativePath, source] of fixtureFiles) {
-  const target = path.join(contentRoot, relativePath);
-  await mkdir(path.dirname(target), { recursive: true });
-  await writeFile(target, source);
-}
+await Promise.all(
+  fixtureFiles.map(async ([relativePath, source]) => {
+    const target = path.join(contentRoot, relativePath);
+    await mkdir(path.dirname(target), { recursive: true });
+    await writeFile(target, source);
+  }),
+);
 
 after(async () => {
   await rm(fixture, { force: true, recursive: true });

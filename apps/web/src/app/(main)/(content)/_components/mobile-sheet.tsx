@@ -50,7 +50,9 @@ export const MobileSheet = ({ panel, active, feed, onSelect, onClose }: MobileSh
       open={panel !== null}
       swipeDirection={sheet.swipe}
       onOpenChange={(open) => {
-        !open && onClose();
+        if (!open) {
+          onClose();
+        }
       }}
     >
       <DrawerContent className="bg-background">

@@ -23,8 +23,11 @@ const blockEvent = (event: Event) => {
   event.stopPropagation();
 };
 
-const describe = (element: Element) => {
-  const slot = "dataset" in element ? (element as HTMLElement).dataset.slot : undefined;
+const describe = (element: Element, view: Window & typeof globalThis) => {
+  const slot =
+    element instanceof view.HTMLElement || element instanceof view.SVGElement
+      ? element.dataset.slot
+      : undefined;
 
   if (slot !== undefined && slot !== "") {
     return slot;
@@ -67,21 +70,22 @@ const useInspector = (enabled: boolean, wrapperRef: RefObject<HTMLDivElement | n
 
       const onMove = (event: PointerEvent) => {
         const { target } = event;
+        const view = doc.defaultView;
 
-        if (!target || !("getBoundingClientRect" in target) || target === root) {
+        if (view === null || !(target instanceof view.Element) || target === root) {
           setBox(null);
 
           return;
         }
 
-        const element = target as Element;
+        const element = target;
         const rect = element.getBoundingClientRect();
         const frame = iframe.getBoundingClientRect();
         const outer = wrapper.getBoundingClientRect();
 
         setBox({
           height: rect.height,
-          label: `${describe(element)} · ${Math.round(rect.width)}×${Math.round(rect.height)}`,
+          label: `${describe(element, view)} · ${Math.round(rect.width)}×${Math.round(rect.height)}`,
           width: rect.width,
           x: rect.left + frame.left - outer.left,
           y: rect.top + frame.top - outer.top,
@@ -107,7 +111,9 @@ const useInspector = (enabled: boolean, wrapperRef: RefObject<HTMLDivElement | n
     let current: HTMLIFrameElement | null = null;
 
     const onLoad = () => {
-      current && attach(current);
+      if (current) {
+        attach(current);
+      }
     };
 
     const bind = () => {
@@ -117,18 +123,14 @@ const useInspector = (enabled: boolean, wrapperRef: RefObject<HTMLDivElement | n
         return;
       }
 
-      current?.removeEventListener("load", () => {
-        onLoad();
-      });
+      current?.removeEventListener("load", onLoad);
       current = iframe;
 
       if (!iframe) {
         return;
       }
 
-      iframe.addEventListener("load", () => {
-        onLoad();
-      });
+      iframe.addEventListener("load", onLoad);
       attach(iframe);
     };
 
@@ -139,9 +141,7 @@ const useInspector = (enabled: boolean, wrapperRef: RefObject<HTMLDivElement | n
 
     return () => {
       observer.disconnect();
-      current?.removeEventListener("load", () => {
-        onLoad();
-      });
+      current?.removeEventListener("load", onLoad);
       detach?.();
       setBox(null);
     };

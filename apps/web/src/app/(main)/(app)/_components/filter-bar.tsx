@@ -324,7 +324,7 @@ export const FilterBar = ({ facets, filter }: { facets: Facet[]; filter: Gallery
   const [query, setQuery] = useState("");
   const [activeFacet, setActiveFacet] = useState<Facet | null>(null);
   const selectedFor = (facet: Facet) => selectionFor(filter, facet.key);
-  const standalone = facets.filter((facet) => facet.standalone);
+  const standalone = facets.filter((facet) => facet.standalone === true);
   const grouped = facets.filter((facet) => facet.standalone !== true);
 
   const trigger = (facet: Facet) => (

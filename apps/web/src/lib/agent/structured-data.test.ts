@@ -1,5 +1,6 @@
 import assert from "node:assert/strict";
 import { describe, test } from "node:test";
+import { z } from "zod";
 
 import { privacyPage, termsPage } from "./site-pages";
 import {
@@ -19,6 +20,8 @@ const asNode = (value: JsonLdValue | undefined) => {
 
   return value;
 };
+
+const asText = (value: JsonLdValue | undefined) => z.string().parse(value);
 
 const asList = (value: JsonLdValue | undefined) => {
   assert.ok(Array.isArray(value), "expected a list");
@@ -66,7 +69,7 @@ describe("the Organization node", () => {
   test("carries the identity fields an agent resolves an entity by", () => {
     assert.equal(organization.name, "UICapsule");
     assert.equal(organization.url, "https://www.uicapsule.com");
-    assert.ok(String(organization.description).length > 40, "expected > 40");
+    assert.ok(asText(organization.description).length > 40, "expected > 40");
     assert.deepEqual(organization.sameAs, [
       "https://github.com/kyh/uicapsule",
       "https://x.com/kaiyuhsu",
@@ -80,7 +83,7 @@ describe("the Organization node", () => {
     for (const point of points.map(asNode)) {
       assert.equal(point["@type"], "ContactPoint");
       assert.equal(point.email, "uicapsule@kyh.io");
-      assert.ok(String(point.contactType).length > 0, "expected > 0");
+      assert.ok(asText(point.contactType).length > 0, "expected > 0");
     }
   });
 
@@ -121,7 +124,7 @@ describe("buildHomeGraph", () => {
   test("describes the site as a free, MIT-licensed developer application", () => {
     assert.equal(application.applicationCategory, "DeveloperApplication");
     assert.equal(application.isAccessibleForFree, true);
-    assert.ok(String(application.license).includes("MIT"), 'should contain "MIT"');
+    assert.ok(asText(application.license).includes("MIT"), 'should contain "MIT"');
     assert.deepEqual(application.offers, {
       "@type": "Offer",
       availability: "https://schema.org/InStock",
@@ -130,8 +133,8 @@ describe("buildHomeGraph", () => {
     });
     const features = asList(application.featureList);
     assert.ok(
-      features.some((feature) => String(feature).includes("2 live")),
-      `featureList does not report the component count: ${features.join(" | ")}`,
+      features.some((feature) => asText(feature).includes("2 live")),
+      `featureList does not report the component count: ${features.map(asText).join(" | ")}`,
     );
   });
 
@@ -274,7 +277,7 @@ describe("buildProsePageGraph", () => {
 describe("serializeJsonLd", () => {
   test("round-trips through JSON.parse", () => {
     const graph = buildHomeGraph([withDescription, bare]);
-    const parsed: JsonLdValue = JSON.parse(serializeJsonLd(graph));
+    const parsed: unknown = JSON.parse(serializeJsonLd(graph));
     assert.deepEqual(parsed, structuredClone(graph));
   });
 

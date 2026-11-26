@@ -9,7 +9,9 @@ const frontmatterField = (text: string, field: string) => {
   const block = /^---\n(?<body>[\s\S]*?)\n---\n/u.exec(text)?.groups?.body ?? "";
   const line = block.split("\n").find((entry) => entry.startsWith(`${field}: `));
 
-  return line?.slice(field.length + 2).trim() || null;
+  const value = line?.slice(field.length + 2).trim();
+
+  return value === undefined || value === "" ? null : value;
 };
 
 const readMarkdownFiles = async (root: string) => {

@@ -264,7 +264,9 @@ export const ComponentWorkspace = ({ initialSlug, feed }: ComponentWorkspaceProp
                 label={prev ? `Previous: ${prev.name}` : "Previous"}
                 disabled={!prev}
                 onClick={() => {
-                  prev && select(prev.slug);
+                  if (prev) {
+                    select(prev.slug);
+                  }
                 }}
               >
                 <ArrowLeftIcon />
@@ -273,7 +275,9 @@ export const ComponentWorkspace = ({ initialSlug, feed }: ComponentWorkspaceProp
                 label={next ? `Next: ${next.name}` : "Next"}
                 disabled={!next}
                 onClick={() => {
-                  next && select(next.slug);
+                  if (next) {
+                    select(next.slug);
+                  }
                 }}
               >
                 <ArrowRightIcon />
@@ -282,7 +286,11 @@ export const ComponentWorkspace = ({ initialSlug, feed }: ComponentWorkspaceProp
                 label={codeOpen ? "Hide code" : "Show code"}
                 pressed={codeOpen}
                 onClick={() => {
-                  isDesktop ? togglePanel("code") : toggleMobile("code");
+                  if (isDesktop) {
+                    togglePanel("code");
+                  } else {
+                    toggleMobile("code");
+                  }
                 }}
               >
                 <SquareTerminalIcon />

@@ -61,18 +61,16 @@ export const coverMediaFor = (component: Pick<ContentComponentSummary, "cover" |
 export const componentVideo = (component: ContentComponentSummary) => {
   const media = coverMediaFor(component);
 
-  if (!media) {
-    return undefined;
-  }
-
-  return {
-    contentUrl: assetUrl(media.cover),
-    description: component.description,
-    duration: media.duration,
-    height: media.height,
-    name: `${component.name} — ${siteConfig.name}`,
-    thumbnailUrl: assetUrl(coverStillKey(media.cover)),
-    uploadDate: media.uploadDate,
-    width: media.width,
-  };
+  return media === undefined
+    ? undefined
+    : {
+        contentUrl: assetUrl(media.cover),
+        description: component.description,
+        duration: media.duration,
+        height: media.height,
+        name: `${component.name} — ${siteConfig.name}`,
+        thumbnailUrl: assetUrl(coverStillKey(media.cover)),
+        uploadDate: media.uploadDate,
+        width: media.width,
+      };
 };

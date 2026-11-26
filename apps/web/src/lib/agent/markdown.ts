@@ -87,8 +87,13 @@ const renderBlock = (block: ProseBlock) => {
       return `\`\`\`${block.language}\n${block.text}\n\`\`\``;
     }
 
-    default: {
+    case "paragraph": {
       return renderInline(block.text);
+    }
+
+    default: {
+      const exhaustive: never = block;
+      throw new Error(`Unknown prose block: ${JSON.stringify(exhaustive)}`);
     }
   }
 };

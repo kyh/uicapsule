@@ -8,6 +8,7 @@ import { ArrowUpRightIcon } from "lucide-react";
 import {
   animate,
   motion,
+  stagger,
   useMotionValue,
   useMotionValueEvent,
   useReducedMotion,
@@ -247,7 +248,7 @@ export const Receipt = ({ filed }: { filed: Filed }) => {
                 hidden: { opacity: 0 },
                 shown: {
                   opacity: 1,
-                  transition: { delayChildren: 0.15, duration: 0.3, staggerChildren: 0.08 },
+                  transition: { delayChildren: stagger(0.08, { startDelay: 0.15 }), duration: 0.3 },
                 },
               }}
               className="flex min-w-0 flex-1 flex-col"

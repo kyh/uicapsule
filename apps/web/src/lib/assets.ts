@@ -20,15 +20,10 @@ export interface Cover {
 const VIDEO_EXTENSIONS = new Set(["mp4", "webm"]);
 
 /** A meta.json `cover` key resolved to what the gallery card renders. */
-export const resolveCover = (key: string | undefined) => {
-  if (key === undefined || key === "") {
-    return undefined;
-  }
-
-  const extension = key.slice(key.lastIndexOf(".") + 1);
-
-  return {
-    type: VIDEO_EXTENSIONS.has(extension) ? "video" : "image",
-    url: assetUrl(key),
-  } satisfies Cover;
-};
+export const resolveCover = (key: string | undefined) =>
+  key === undefined || key === ""
+    ? undefined
+    : ({
+        type: VIDEO_EXTENSIONS.has(key.slice(key.lastIndexOf(".") + 1)) ? "video" : "image",
+        url: assetUrl(key),
+      } satisfies Cover);

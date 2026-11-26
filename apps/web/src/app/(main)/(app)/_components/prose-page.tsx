@@ -165,12 +165,17 @@ const ProseBlockView = ({ block, id }: { block: ProseBlock; id?: string }) => {
       return <CodeSnippet text={block.text} label={block.label} />;
     }
 
-    default: {
+    case "paragraph": {
       return (
         <p>
           <Inline text={block.text} />
         </p>
       );
+    }
+
+    default: {
+      const exhaustive: never = block;
+      throw new Error(`Unknown prose block: ${JSON.stringify(exhaustive)}`);
     }
   }
 };

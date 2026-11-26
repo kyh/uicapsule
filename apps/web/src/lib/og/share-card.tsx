@@ -31,13 +31,9 @@ const shorten = (text: string) => {
 export const readStill = async (url: string) => {
   const response = await fetch(url).catch(() => null);
 
-  if (response?.ok !== true) {
-    return undefined;
-  }
-
-  const bytes = Buffer.from(await response.arrayBuffer());
-
-  return `data:image/jpeg;base64,${bytes.toString("base64")}`;
+  return response?.ok === true
+    ? `data:image/jpeg;base64,${Buffer.from(await response.arrayBuffer()).toString("base64")}`
+    : undefined;
 };
 
 export interface ShareCard {
