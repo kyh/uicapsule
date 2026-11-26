@@ -67,7 +67,7 @@ export const ConsentForm = () => {
           session.user.username !== ""
             ? ` @${session.user.username}`
             : " your account"}{" "}
-          and list the ones you have published. It cannot read your email or password.
+          and list the ones you have published. It cannot read your email address.
         </p>
       </div>
       <FieldError errors={error !== null && error !== "" ? [{ message: error }] : undefined} />

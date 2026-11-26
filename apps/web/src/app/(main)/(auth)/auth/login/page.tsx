@@ -13,10 +13,7 @@ const Page = () => (
     <div className="flex flex-col text-center">
       <h1 className="text-lg font-light">Welcome back</h1>
     </div>
-    <AuthForm type="login" />
-    <Link href="/auth/password-reset" className="text-center text-sm underline">
-      Forgot password?
-    </Link>
+    <AuthForm />
     <p className="text-muted-foreground px-8 text-center text-sm">
       Don&apos;t have an account?{" "}
       <Suspense

@@ -249,7 +249,7 @@ const privacySections: ProseBlock[] = [
   ),
   bullets(
     "**Contact data**, such as your email address and, if you give it, your name.",
-    "**Profile data**, such as the email address and password that you set to establish an online account on the Service, and the username you choose when you sign up, which is also your display name. We store your password only in hashed form, never in plain text.",
+    '**Profile data**, such as the email address you use to establish an online account on the Service, your display name, which the sign-up form sets to the part of your email address before the "@", and the username you choose when you first publish a component. You sign in with a one-time code we email you; there is no password.',
     "**Communications data** based on our exchanges with you, including when you contact us by email.",
     "**User-generated content and input data**, such as the component requests you file through the Service: the name of the component, a description of what it does, links to where you saw it, the name and link you give for credit, and any images or videos you attach, as well as associated metadata. Metadata includes information on how, when, where and by whom a piece of content was collected and how that content has been formatted or edited. Metadata also includes information that users can add or can have added to their content, such as keywords, geographical or location information, and other similar data. Files you attach are uploaded as you provide them, with their file names and any metadata they contain, as soon as you add them to the form, even if you do not go on to file the request. If you publish a component to your account, it includes the component's name and slug, the built files you upload for it, and when you published it. If you allow an app, such as an AI agent, to publish for you, it also includes that you allowed it, the name and addresses the app registered with us, and the tokens we issue to it. If you file a request with our browser extension, it also includes the address of the page you captured it from, a screenshot of the area or element you selected and, when you pick an element, a CSS selector that locates it and, unless you turn it off, its HTML. When the element is a video, the extension attaches a copy of the video file, or a recording of a few seconds of it, as one of your files, unless you turn that off. The extension reads a page only after you start a capture on it (from its toolbar menu, a keyboard shortcut or the right-click menu), and only the tab you start it in.",
     "**Other data** not specifically listed here, which we will use as described in this Privacy Policy or as otherwise disclosed at the time of collection.",
@@ -310,7 +310,7 @@ const privacySections: ProseBlock[] = [
     "enable security features of the Service;",
     "establish and maintain your user profile on the Service;",
     "publish the component requests you file as public issues in our GitHub repository, build the components you request, and credit you on them as you ask;",
-    "communicate with you about the Service, including by sending password reset emails, Service-related announcements and updates, and support and administrative messages; and",
+    "communicate with you about the Service, including by sending sign-in codes, Service-related announcements and updates, and support and administrative messages; and",
     "provide support for the Service, and respond to your requests, questions and feedback.",
   ),
   p(
@@ -346,15 +346,15 @@ const privacySections: ProseBlock[] = [
   ),
   p("Specifically:"),
   bullets(
-    "Your account, including its username, email address and hashed password, is kept until you ask us to delete it. Deleting it removes it along with everything attached to it, including its sessions, the apps you allowed to publish for you and the components you published, and we delete those components' files from storage.",
+    "Your account, including its display name, username and email address, is kept until you ask us to delete it. Deleting it removes it along with everything attached to it, including its sessions, the apps you allowed to publish for you and the components you published, and we delete those components' files from storage.",
     "A component you publish stays public, with its files, until you or we remove it or your account is deleted. Files you upload for a version you never publish may be deleted at any time.",
-    "Each session record, including the IP address and user agent the session was created from, is deleted when you sign out, when you reset your password, or when your account is deleted.",
-    "A password reset link expires one hour after it is sent and works only once.",
+    "Each session record, including the IP address and user agent the session was created from, is deleted when you sign out or when your account is deleted.",
+    "A sign-in code expires five minutes after it is sent and works only once.",
     "Rate-limit counters for the sign-in, sign-up and other account endpoints are keyed by IP address. Each expires after a window of at most one minute, and expired counters are deleted as those endpoints continue to be used.",
     "Component requests stay public on GitHub until they are edited or deleted. If we build a component from your request, the credit you gave stays on its page while the component is published, and remains in the history of our public repository.",
     "Vercel keeps short-lived request logs, including IP addresses and user agents, and discards the hash that identifies a visitor to Vercel Web Analytics after 24 hours.",
     "Your theme preference stays in your browser until you clear it.",
-    "We never store your password in plain text, and we never receive the video a camera-based preview processes.",
+    "We never receive the video a camera-based preview processes.",
   ),
 
   h2(privacySection.share),
@@ -384,7 +384,7 @@ const privacySections: ProseBlock[] = [
       {
         href: "https://resend.com/legal/privacy-policy",
         label: "Resend",
-        text: "delivers password reset emails",
+        text: "delivers sign-in codes",
       },
       {
         href: "https://www.anthropic.com/legal/privacy",
@@ -415,7 +415,7 @@ const privacySections: ProseBlock[] = [
     "In this section, we describe the rights and choices available to all users. Users who are located in certain U.S. states and Europe can find additional information about their rights below.",
   ),
   p(
-    `**Access or update your information.** If you have registered for an account with us through the Service, you may review the username (if you have set one) and email address on it by logging into the account and opening the profile menu. To change your password, use the password reset form or email us; to update anything else, email us at ${EMAIL}.`,
+    `**Access or update your information.** If you have registered for an account with us through the Service, you may review the display name, username (if you have set one) and email address on it by logging into the account and opening the profile menu. To update anything else, email us at ${EMAIL}.`,
   ),
   p(
     "**Cookies and other technologies.** Most browsers let you remove or reject cookies. To do this, follow the instructions in your browser settings. Many browsers accept cookies by default until you change your settings. If you set your browser to disable cookies, you will not be able to sign in or stay signed in, but every other part of the Service works without them. You can also clear your browser's local storage to remove your theme preference, and block Vercel Web Analytics with a content blocker without affecting the Service.",
@@ -440,7 +440,7 @@ const privacySections: ProseBlock[] = [
 
   h2(privacySection.security),
   p(
-    "We employ technical, organizational and physical safeguards designed to protect the personal information we collect, including through the service providers that host the Service and its database. For example, we store passwords only in hashed form, never in plain text. However, security risk is inherent in all internet and information technologies and we cannot guarantee the security of your personal information.",
+    "We employ technical, organizational and physical safeguards designed to protect the personal information we collect, including through the service providers that host the Service and its database. For example, sign-in codes are single-use and expire after five minutes. However, security risk is inherent in all internet and information technologies and we cannot guarantee the security of your personal information.",
   ),
 
   h2(privacySection.transfer),
@@ -1299,7 +1299,7 @@ export const utilityPages: ProsePage[] = [
     blocks: [
       {
         kind: "paragraph",
-        text: "An interactive sign-in form. Accounts are optional — every component in the gallery is readable, installable, and downloadable without one.",
+        text: "An interactive sign-in form: enter an email, then the code it receives. Accounts are optional — every component in the gallery is readable, installable, and downloadable without one.",
       },
     ],
     description: "Sign in to a UICapsule account.",
@@ -1311,32 +1311,13 @@ export const utilityPages: ProsePage[] = [
     blocks: [
       {
         kind: "paragraph",
-        text: "An interactive sign-up form. Accounts are optional — nothing in the gallery is gated behind one.",
+        text: "An interactive sign-up form: the same emailed code signs a new address up. Accounts are optional — nothing in the gallery is gated behind one.",
       },
     ],
     description: "Create a UICapsule account.",
     heading: "Create an account",
     path: "/auth/register",
     title: "Register",
-  },
-  {
-    blocks: [{ kind: "paragraph", text: "An interactive form that emails a password reset link." }],
-    description: "Request a UICapsule password reset link.",
-    heading: "Reset your password",
-    path: "/auth/password-reset",
-    title: "Password reset",
-  },
-  {
-    blocks: [
-      {
-        kind: "paragraph",
-        text: "An interactive form for setting a new password from a reset link.",
-      },
-    ],
-    description: "Set a new UICapsule password from a reset link.",
-    heading: "Choose a new password",
-    path: "/auth/password-update",
-    title: "Password update",
   },
 ];
 

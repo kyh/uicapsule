@@ -13,6 +13,7 @@
   },
   "scripts": {
     "clean": "git clean -xdf .cache .turbo node_modules",
+    "sign-in-code": "dotenv -e ../../.env -- node --conditions=react-server --import tsx src/sign-in-code.ts",
     "test": "TURSO_DATABASE_URL=http://127.0.0.1:8080 node --conditions=react-server --import tsx --test 'src/**/*.test.ts'",
     "typecheck": "tsc --noEmit"
   },

@@ -13,7 +13,7 @@ const Page = () => (
     <div className="flex flex-col text-center">
       <h1 className="text-lg font-light">Create an account</h1>
     </div>
-    <AuthForm type="register" />
+    <AuthForm />
     <p className="text-muted-foreground px-8 text-center text-sm">
       Already have an account?{" "}
       <Suspense
