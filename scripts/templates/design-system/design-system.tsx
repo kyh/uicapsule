@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import type { ReactNode } from "react";
+import type { CSSProperties, ReactNode } from "react";
 import { ArrowRight, Plus } from "lucide-react";
 
 import { Alert } from "./components/alert";
@@ -18,6 +18,14 @@ import { Foundations } from "./foundations";
 import { system } from "./system";
 
 const RANGES = ["Day", "Week", "Month"] as const;
+
+export type Theme = "light" | "dark";
+
+export type Density = "compact" | "default" | "comfortable";
+
+interface ScopeStyle extends CSSProperties {
+  [property: `--${string}`]: string | number | undefined;
+}
 
 const Section = ({
   index,
@@ -150,27 +158,58 @@ const InContext = () => {
   );
 };
 
-export const DesignSystem = () => (
-  <div className="ds-template min-h-dvh antialiased">
-    <div className="mx-auto max-w-6xl px-6 sm:px-10">
-      <header className="grid gap-4 py-16">
-        <p className="text-muted-foreground font-(family-name:--ds-font-mono) text-xs tracking-widest uppercase">
-          Design system
-        </p>
-        <h1 className="font-(family-name:--ds-font-heading) text-5xl tracking-(--ds-heading-tracking) sm:text-7xl">
-          {system.name}
-        </h1>
-        <p className="text-muted-foreground max-w-xl text-lg text-pretty">{system.tagline}</p>
-      </header>
-      <Section index="01" title="Foundations">
-        <Foundations />
-      </Section>
-      <Section index="02" title="Components">
-        <Components />
-      </Section>
-      <Section index="03" title="In context">
-        <InContext />
-      </Section>
+/** The showcase, drawn from tokens.css; each prop drives one token so the defaults are the tokens' own values. */
+export const DesignSystem = ({
+  theme = "light",
+  density = "default",
+  accent,
+  radiusScale = 1,
+  durationScale = 1,
+}: {
+  /** Light or dark surfaces. */
+  theme?: Theme;
+  /** Rescales every spacing step: padding, gaps and control heights. */
+  density?: Density;
+  /** Replaces the accent and focus ring; its foreground follows the accent's lightness. Unset keeps the token. */
+  accent?: string;
+  /** Multiplies the base radius; 0 squares every corner but the pills. */
+  radiusScale?: number;
+  /** Multiplies every transition duration; 0 turns motion off. */
+  durationScale?: number;
+}) => {
+  const style: ScopeStyle = {
+    "--accent": accent,
+    "--ds-duration-scale": durationScale,
+    "--ds-radius-scale": radiusScale,
+  };
+
+  return (
+    <div
+      className="ds-template min-h-dvh antialiased"
+      data-density={density}
+      data-theme={theme}
+      style={style}
+    >
+      <div className="mx-auto max-w-6xl px-6 sm:px-10">
+        <header className="grid gap-4 py-16">
+          <p className="text-muted-foreground font-(family-name:--ds-font-mono) text-xs tracking-widest uppercase">
+            Design system
+          </p>
+          <h1 className="font-(family-name:--ds-font-heading) text-5xl tracking-(--ds-heading-tracking) sm:text-7xl">
+            {system.name}
+          </h1>
+          <p className="text-muted-foreground max-w-xl text-lg text-pretty">{system.tagline}</p>
+        </header>
+        <Section index="01" title="Foundations">
+          <Foundations />
+        </Section>
+        <Section index="02" title="Components">
+          <Components />
+        </Section>
+        <Section index="03" title="In context">
+          <InContext />
+        </Section>
+      </div>
     </div>
-  </div>
-);
+  );
+};
