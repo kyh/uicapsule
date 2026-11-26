@@ -82,7 +82,7 @@ const ResizeHandle = ({
       aria-valuemax={maxWidth}
       data-dragging={dragging || undefined}
       className={cn(
-        "group absolute top-1/2 hidden h-16 w-4 -translate-y-1/2 cursor-ew-resize touch-none place-items-center outline-none md:grid",
+        "group absolute top-1/2 hidden h-20 w-4 -translate-y-1/2 cursor-ew-resize touch-none place-items-center outline-none md:grid",
         side === "left" ? "-left-3 -translate-x-1/2" : "-right-3 translate-x-1/2",
       )}
       onPointerDown={onPointerDown}
@@ -92,7 +92,7 @@ const ResizeHandle = ({
     >
       <span
         aria-hidden
-        className="bg-muted-foreground/25 group-hover:bg-primary group-focus-visible:bg-primary group-data-dragging:bg-primary h-8 w-1.5 scale-y-[0.6] rounded-full transition-[scale,background-color] duration-300 ease-[cubic-bezier(0.23,1,0.32,1)] group-hover:scale-y-100 group-focus-visible:scale-y-100 group-data-dragging:scale-y-100 motion-reduce:transition-none"
+        className="bg-muted-foreground/25 group-hover:bg-primary group-focus-visible:bg-primary group-data-dragging:bg-primary h-16 w-1 scale-y-50 rounded-full transition-[scale,background-color] duration-300 ease-[cubic-bezier(0.23,1,0.32,1)] group-hover:scale-y-100 group-focus-visible:scale-y-100 group-data-dragging:scale-y-100 motion-reduce:transition-none"
       />
     </div>
   );
