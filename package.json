@@ -23,6 +23,7 @@
     "build:previews": "node --import tsx scripts/build-previews.ts",
     "dev:previews": "node --import tsx scripts/build-previews.ts --dev",
     "check:agent-endpoints": "node --import tsx scripts/check-agent-endpoints.ts",
+    "sign-in-code": "pnpm --silent -F @repo/service sign-in-code",
     "verify": "pnpm typecheck && pnpm lint && pnpm format && pnpm test && pnpm build",
     "typecheck:content": "node --import tsx scripts/typecheck-content.ts",
     "typecheck:scripts": "tsc --project tsconfig.json && tsc --project scripts/templates/tsconfig.json",

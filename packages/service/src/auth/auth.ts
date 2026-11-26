@@ -4,12 +4,14 @@ import { betterAuth } from "better-auth";
 import type { BaseURLConfig } from "better-auth";
 // WARNING: keep the relations-v2 entry; the default adapter reads db._.fullSchema, which drizzle 1.0 removed.
 import { drizzleAdapter } from "@better-auth/drizzle-adapter/relations-v2";
+import { emailOTP } from "better-auth/plugins";
 
 import {
-  PASSWORD_RESET_OFF_WARNING,
-  passwordResetModeOf,
-  passwordResetSenderOf,
-} from "./password-reset-email";
+  SIGN_IN_CODE_OFF_WARNING,
+  guardSignInCodes,
+  signInCodeModeOf,
+  signInCodeSenderOf,
+} from "./sign-in-code-email";
 
 const vercelBaseUrl = (...hosts: (string | undefined)[]) => {
   const allowedHosts = hosts.filter((host): host is string => Boolean(host));
@@ -35,13 +37,13 @@ export const resolveBaseUrl = () => {
     : process.env.BETTER_AUTH_URL;
 };
 
-const passwordResetMode = passwordResetModeOf(
+const signInCodeMode = signInCodeModeOf(
   { AUTH_EMAIL_FROM: process.env.AUTH_EMAIL_FROM, RESEND_API_KEY: process.env.RESEND_API_KEY },
   process.env.NODE_ENV === "production",
 );
 
-if (passwordResetMode === "off") {
-  console.warn(`[password-reset] ${PASSWORD_RESET_OFF_WARNING}`);
+if (signInCodeMode === "off") {
+  console.warn(`[sign-in-code] ${SIGN_IN_CODE_OFF_WARNING}`);
 }
 
 export const auth = betterAuth({
@@ -49,11 +51,8 @@ export const auth = betterAuth({
   database: drizzleAdapter(db, {
     provider: "sqlite",
   }),
-  emailAndPassword: {
-    enabled: true,
-    revokeSessionsOnPasswordReset: true,
-    sendResetPassword: passwordResetSenderOf(passwordResetMode),
-  },
+  hooks: { before: guardSignInCodes(signInCodeMode) },
+  plugins: [emailOTP({ sendVerificationOTP: signInCodeSenderOf(signInCodeMode) })],
   rateLimit: {
     enabled: true,
     max: 10,

@@ -3,3 +3,14 @@
 /* No apps/** or content/** scan here: each app's sources are auto-detected from its own build
    root, and each content preview compiles its own stylesheet from theme.css. */
 @source "../**/*.{ts,tsx}";
+
+@keyframes otp-caret-blink {
+  0%,
+  50% {
+    opacity: 1;
+  }
+  50.01%,
+  100% {
+    opacity: 0;
+  }
+}
