@@ -1,0 +1,202 @@
+/*
+ * Halogen tokens. Square and mono, for infrastructure and data tools.
+ * Paper grounds, near-black ink, 1px rules, zero radius, no shadows,
+ * and one amber lamp for the action to take.
+ */
+.ds-halogen {
+  color-scheme: light;
+
+  /* Grounds */
+  --hx-page: #fdfcf9;
+  --hx-panel: #f7f6f1;
+  --hx-well: #f2f0ea;
+  --hx-code: var(--hx-well);
+  --hx-hover: rgb(26 24 20 / 0.045);
+  --hx-pressed: rgb(26 24 20 / 0.09);
+  --hx-wash: #fff0c2;
+  --hx-wash-strong: #ffe594;
+  --hx-scrim: rgb(26 24 20 / 0.36);
+
+  /* Ink */
+  --hx-ink-1: #1a1814;
+  --hx-ink-2: #57524a;
+  --hx-ink-3: #6d685e;
+  --hx-ink-off: #aba69b;
+  --hx-ink-inverse: #fdfcf9;
+
+  /* The lamp: the one amber action, and amber that may be read */
+  --hx-lamp: #ffbe2e;
+  --hx-lamp-text: #7a5000;
+  --hx-lamp-edge: #d99a0f;
+  --hx-slab: var(--hx-lamp);
+  --hx-slab-ink: #1a1814;
+  --hx-slab-edge: #d99a0f;
+  --hx-slab-hover: #ffcb5c;
+  --hx-slab-edge-hover: #ecb02e;
+  --hx-slab-glow: rgb(255 255 255 / 0.5);
+  --hx-slab-glow-hover: rgb(255 255 255 / 0.8);
+  --hx-slab-halo: #fff5d9;
+
+  /* Outcomes: each paired with its word */
+  --hx-ok: #2e6a3d;
+  --hx-ok-text: #2e6a3d;
+  --hx-ok-tint: #e9f2eb;
+  --hx-warn: #c8590f;
+  --hx-warn-text: #a3430a;
+  --hx-warn-tint: #fdeee2;
+  --hx-fail: #b3281f;
+  --hx-fail-text: #b3281f;
+  --hx-fail-tint: #fdecea;
+
+  /* Lines */
+  --hx-rule-faint: #eeebe3;
+  --hx-rule: #e1ddd2;
+  --hx-rule-control: #8a8477;
+  --hx-dot: #ddd8cc;
+  --hx-focus: #1a1814;
+  --hx-line: 1px;
+  --hx-focus-width: 2px;
+
+  /* Data series: amber leads, ink and stone follow */
+  --hx-series-1: var(--hx-lamp);
+  --hx-series-2: #1a1814;
+  --hx-series-3: #8a8477;
+  --hx-series-4: #cfc9bc;
+
+  /* Type */
+  --hx-sans:
+    "Inter Display", "Inter", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  --hx-mono:
+    "Commit Mono", "JetBrains Mono", "IBM Plex Mono", ui-monospace, "SF Mono", Menlo,
+    "DejaVu Sans Mono", monospace;
+  --hx-mono-in-sans: 0.86em;
+
+  /* Space: a 4px grid, nothing off it */
+  --hx-half: 2px;
+  --hx-1: 4px;
+  --hx-2: 8px;
+  --hx-3: 12px;
+  --hx-4: 16px;
+  --hx-5: 20px;
+  --hx-6: 24px;
+  --hx-8: 32px;
+  --hx-10: 40px;
+  --hx-12: 48px;
+  --hx-inset: 12px;
+  --hx-control-sm: 28px;
+  --hx-control: 32px;
+  --hx-control-lg: 36px;
+  --hx-row-sm: 32px;
+  --hx-row: 40px;
+  --hx-head: 40px;
+  --hx-icon-sm: 14px;
+  --hx-icon: 16px;
+  --hx-mark: 8px;
+
+  /* Shape */
+  --hx-radius: 0px;
+  --hx-shadow: none;
+  --hx-z-raised: 10;
+  --hx-z-overlay: 50;
+
+  /* Motion: mechanical, ease-out, no springs */
+  --hx-dur-press: 80ms;
+  --hx-dur-state: 120ms;
+  --hx-dur-overlay: 160ms;
+  --hx-dur-wipe: 240ms;
+  --hx-dur-draw: 320ms;
+  --hx-dur-type: 20ms;
+  --hx-dur-scramble: 420ms;
+  --hx-dur-lamp: 260ms;
+  --hx-dur-pending: 800ms;
+  --hx-ease-out: cubic-bezier(0.2, 0.8, 0.2, 1);
+  --hx-ease-lamp: cubic-bezier(0.25, 0.8, 0.25, 1);
+  --hx-ease-in: cubic-bezier(0.4, 0, 1, 1);
+  --hx-ease-linear: linear;
+
+  /* shadcn-compatible aliases, for anything installed beside the showcase */
+  --background: var(--hx-page);
+  --foreground: var(--hx-ink-1);
+  --card: var(--hx-panel);
+  --card-foreground: var(--hx-ink-1);
+  --muted: var(--hx-well);
+  --muted-foreground: var(--hx-ink-2);
+  --border: var(--hx-rule);
+  --input: var(--hx-rule);
+  --primary: var(--hx-slab);
+  --primary-foreground: var(--hx-slab-ink);
+  --accent: var(--hx-wash);
+  --accent-foreground: var(--hx-ink-1);
+  --destructive: var(--hx-fail);
+  --ring: var(--hx-focus);
+  --radius: 0rem;
+
+  background: var(--hx-page);
+  color: var(--hx-ink-1);
+  font-family: var(--hx-sans);
+  font-weight: 400;
+  font-variant-numeric: tabular-nums;
+}
+
+.ds-halogen[data-theme="dark"] {
+  color-scheme: dark;
+
+  --hx-page: #131210;
+  --hx-panel: #1a1916;
+  --hx-well: #211f1b;
+  --hx-hover: rgb(242 237 228 / 0.05);
+  --hx-pressed: rgb(242 237 228 / 0.09);
+  --hx-wash: #3b2a06;
+  --hx-wash-strong: #4b3608;
+  --hx-scrim: rgb(0 0 0 / 0.64);
+
+  --hx-ink-1: #f2ede4;
+  --hx-ink-2: #c3bdb2;
+  --hx-ink-3: #9f998d;
+  --hx-ink-off: #5f5a51;
+  --hx-ink-inverse: #131210;
+
+  --hx-lamp-text: #ffbe2e;
+  --hx-lamp-edge: #ffbe2e;
+  --hx-slab: #3b2a06;
+  --hx-slab-ink: #ffbe2e;
+  --hx-slab-edge: #ffbe2e;
+  --hx-slab-hover: #4b3608;
+  --hx-slab-edge-hover: #ffcb5c;
+  --hx-slab-glow: rgb(255 190 46 / 0.2);
+  --hx-slab-glow-hover: rgb(255 190 46 / 0.34);
+  --hx-slab-halo: rgb(255 190 46 / 0.12);
+
+  --hx-ok: #86c495;
+  --hx-ok-text: #86c495;
+  --hx-ok-tint: #16261a;
+  --hx-warn: #ff9858;
+  --hx-warn-text: #ff9858;
+  --hx-warn-tint: #33200f;
+  --hx-fail: #ff6f5e;
+  --hx-fail-text: #ff6f5e;
+  --hx-fail-tint: #3a1915;
+
+  --hx-rule-faint: #211f1b;
+  --hx-rule: #2d2b26;
+  --hx-rule-control: #77715f;
+  --hx-dot: #2a2824;
+  --hx-focus: #f2ede4;
+
+  --hx-series-2: #f2ede4;
+  --hx-series-3: #9f998d;
+  --hx-series-4: #4a463e;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ds-halogen {
+    --hx-dur-press: 0ms;
+    --hx-dur-state: 0ms;
+    --hx-dur-overlay: 0ms;
+    --hx-dur-wipe: 0ms;
+    --hx-dur-draw: 0ms;
+    --hx-dur-type: 0ms;
+    --hx-dur-scramble: 0ms;
+    --hx-dur-lamp: 0ms;
+  }
+}

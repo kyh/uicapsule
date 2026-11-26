@@ -1,0 +1,39 @@
+.ds-clementine {
+  & .cl-btn[data-variant="primary"],
+  & .cl-balance:not([data-low]) {
+    color: var(--on-accent);
+    background-color: var(--glow-from);
+    background-image: radial-gradient(140% 120% at 28% 0%, var(--glow-to) 0%, var(--glow-from) 64%);
+    box-shadow:
+      inset 0 1px 0 var(--glow-edge),
+      0 0 0 4px var(--glow-ring),
+      0 8px 16px -8px var(--glow-cast);
+  }
+  & .cl-btn[data-variant="primary"]:hover:not(:disabled),
+  & .cl-balance:not([data-low]):hover:not(:disabled) {
+    box-shadow:
+      inset 0 1px 0 var(--glow-edge),
+      0 0 0 6px var(--glow-ring),
+      0 10px 20px -8px var(--glow-cast);
+  }
+  & .cl-btn[data-variant="primary"]:active:not(:disabled),
+  & .cl-balance:not([data-low]):active:not(:disabled) {
+    background-image: radial-gradient(
+      140% 120% at 28% 0%,
+      var(--glow-to-press) 0%,
+      var(--glow-from-press) 64%
+    );
+  }
+  & .cl-btn[data-variant="destructive"] {
+    color: var(--on-danger);
+    background-color: var(--glow-danger-from);
+    background-image: radial-gradient(
+      140% 120% at 28% 0%,
+      var(--glow-danger-to) 0%,
+      var(--glow-danger-from) 64%
+    );
+    box-shadow:
+      inset 0 1px 0 rgb(255 255 255 / 0.3),
+      0 0 0 4px var(--glow-danger-ring);
+  }
+}

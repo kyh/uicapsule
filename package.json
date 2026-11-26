@@ -3,6 +3,7 @@
   "private": true,
   "type": "module",
   "scripts": {
+    "bootstrap": "node --import tsx scripts/bootstrap.ts",
     "build": "turbo run build",
     "clean": "git clean -xdf node_modules",
     "clean:workspaces": "turbo run clean",
@@ -54,5 +55,5 @@
   "engines": {
     "node": "24.x"
   },
-  "packageManager": "pnpm@12.3.4"
+  "packageManager": "pnpm@12.23.0"
 }

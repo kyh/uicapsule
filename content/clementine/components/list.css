@@ -1,0 +1,120 @@
+.ds-clementine {
+  & .cl-list {
+    display: flex;
+    flex-direction: column;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+
+    &[data-variant="grouped"] {
+      padding: 4px;
+      background: var(--surface);
+      border-radius: var(--radius-panel);
+
+      & .cl-row + .cl-row .cl-row__inner::before {
+        position: absolute;
+        top: 0;
+        right: 12px;
+        left: 12px;
+        height: 1px;
+        background: var(--line);
+        content: "";
+      }
+    }
+  }
+  & .cl-row {
+    position: relative;
+    border-radius: var(--radius-control);
+
+    &[data-selected] {
+      background: var(--accent-wash);
+    }
+  }
+  & .cl-row__inner {
+    position: relative;
+    display: flex;
+    gap: 12px;
+    align-items: center;
+    width: 100%;
+    min-height: 56px;
+    padding: 8px 12px;
+    color: inherit;
+    font: inherit;
+    text-align: start;
+    background: none;
+    border: 0;
+    border-radius: var(--radius-control);
+  }
+  & .cl-row__inner--action {
+    cursor: pointer;
+    transition: background-color var(--dur-instant) var(--ease-out);
+
+    &:hover {
+      background: color-mix(in srgb, var(--surface-2) 70%, transparent);
+    }
+
+    &:active {
+      background: var(--surface-2);
+    }
+  }
+  & .cl-row__text {
+    display: flex;
+    flex: 1 1 auto;
+    flex-direction: column;
+    gap: 2px;
+    min-width: 0;
+  }
+  & .cl-row__title {
+    overflow: hidden;
+    color: var(--fg);
+    font-size: var(--text-sm);
+    font-weight: 500;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+  }
+  & .cl-row__desc {
+    color: var(--fg-2);
+    font-size: var(--text-sm);
+  }
+  & .cl-row__trail {
+    display: inline-flex;
+    flex-shrink: 0;
+    gap: 8px;
+    align-items: center;
+    color: var(--fg);
+    font-size: var(--text-sm);
+    white-space: nowrap;
+  }
+  & .cl-in {
+    color: var(--success-text);
+  }
+  & .cl-row__chev {
+    flex-shrink: 0;
+    color: var(--fg-3);
+  }
+  & .cl-list-icon {
+    display: inline-grid;
+    flex-shrink: 0;
+    place-items: center;
+    width: 40px;
+    height: 40px;
+    color: var(--fg);
+    background: var(--surface-2);
+    border-radius: 50%;
+
+    &[data-tone="accent"] {
+      color: var(--accent-line);
+      background: var(--accent-wash);
+    }
+
+    &[data-tone="success"] {
+      color: var(--success-text);
+      background: var(--success-tint);
+    }
+
+    &[data-tone="danger"] {
+      color: var(--danger-text);
+      background: var(--danger-tint);
+    }
+  }
+}

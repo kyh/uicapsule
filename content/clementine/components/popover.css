@@ -1,0 +1,55 @@
+.ds-clementine {
+  & .cl-anchor {
+    position: relative;
+    display: inline-flex;
+  }
+  & .cl-popover {
+    position: absolute;
+    top: calc(100% + 8px);
+    left: 0;
+    z-index: var(--z-popover);
+    width: min(var(--popover), calc(100vw - 32px));
+    padding: 16px;
+    color: var(--fg);
+    text-align: start;
+    background: var(--raised);
+    border-radius: var(--radius-panel);
+    box-shadow: var(--shadow-menu);
+    visibility: hidden;
+    opacity: 0;
+    scale: var(--scale-enter);
+    transform-origin: top left;
+    transition:
+      opacity var(--dur-fast) var(--ease-in),
+      scale var(--dur-fast) var(--ease-in),
+      visibility 0s linear var(--dur-fast);
+
+    &[data-align="end"] {
+      right: 0;
+      left: auto;
+      transform-origin: top right;
+    }
+
+    &[data-open] {
+      visibility: visible;
+      opacity: 1;
+      scale: 1;
+      transition:
+        opacity var(--dur-base) var(--ease-out),
+        scale var(--dur-base) var(--ease-out),
+        visibility 0s;
+    }
+  }
+  & dialog.cl-popover {
+    right: auto;
+    bottom: auto;
+    height: auto;
+    margin: 0;
+    border: 0;
+
+    &[data-align="end"] {
+      right: 0;
+      left: auto;
+    }
+  }
+}

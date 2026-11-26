@@ -1,6 +1,6 @@
 {
   "$schema": "https://json.schemastore.org/claude-code-settings.json",
-  "prompt": "Read AGENTS.md first — it is the runnable guide. There is no bootstrap script: if `.env` is missing, `cp .env.example .env` and fill it, then run `pnpm -F db db` (its own shell) and `pnpm db:push`. Serve the app on port 3000 or browser sign-in 403s. Gate every change with `pnpm verify`.",
+  "prompt": "Read AGENTS.md first — it is the runnable guide. Provision with `pnpm install && pnpm bootstrap --yes`: .env from .env.example, local Turso, the schema pushed. Serve the app on port 3000 or browser sign-in 403s. Gate every change with `pnpm verify`.",
   "permissions": {
     "allow": [
       "Bash(pnpm install)",
@@ -26,7 +26,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "[ \"$CLAUDE_CODE_REMOTE\" = \"true\" ] && cd \"$CLAUDE_PROJECT_DIR\" && pnpm install || true",
+            "command": "[ \"$CLAUDE_CODE_REMOTE\" = \"true\" ] && cd \"$CLAUDE_PROJECT_DIR\" && { [ ! -x /opt/node24/bin/node ] || { export PATH=\"/opt/node24/bin:$PATH\"; [ -z \"$CLAUDE_ENV_FILE\" ] || echo 'export PATH=\"/opt/node24/bin:$PATH\"' >> \"$CLAUDE_ENV_FILE\"; }; } && pnpm install || true",
             "timeout": 600
           }
         ]

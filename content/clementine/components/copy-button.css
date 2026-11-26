@@ -1,0 +1,33 @@
+.ds-clementine {
+  & .cl-copy__icons {
+    position: relative;
+    display: inline-grid;
+    width: 14px;
+    height: 14px;
+
+    & svg {
+      position: absolute;
+      inset: 0;
+      transition:
+        opacity var(--dur-fast) var(--ease-out),
+        scale var(--dur-fast) var(--ease-out);
+    }
+
+    & svg:last-child {
+      opacity: 0;
+      scale: 0.5;
+    }
+  }
+  & .cl-copy[data-copied] .cl-copy__icons {
+    & svg:first-child {
+      opacity: 0;
+      scale: 0.5;
+    }
+
+    & svg:last-child {
+      color: var(--success-text);
+      opacity: 1;
+      scale: 1;
+    }
+  }
+}

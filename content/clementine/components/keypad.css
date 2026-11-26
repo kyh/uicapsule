@@ -1,0 +1,41 @@
+.ds-clementine {
+  & .cl-keypad {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+    width: 100%;
+  }
+  & .cl-keypad__key {
+    display: grid;
+    place-items: center;
+    height: 56px;
+    color: var(--fg);
+    font: 400 var(--text-2xl) / 1 var(--font-sans);
+    background: none;
+    border: 0;
+    border-radius: var(--radius-panel);
+    cursor: pointer;
+    transition:
+      background-color var(--dur-instant) var(--ease-out),
+      scale var(--dur-instant) var(--ease-out);
+    -webkit-tap-highlight-color: transparent;
+
+    &:hover:not(:disabled) {
+      background: var(--surface-2);
+    }
+
+    &:active:not(:disabled) {
+      background: var(--surface-3);
+      scale: var(--scale-press);
+    }
+
+    &:disabled {
+      color: var(--fg-disabled);
+      cursor: not-allowed;
+    }
+  }
+  & fieldset.cl-keypad,
+  & .cl-fieldset {
+    padding: 0;
+  }
+}

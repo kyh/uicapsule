@@ -1,0 +1,1772 @@
+/* Vellum recipes. Every selector is scoped to .ds-vellum. */
+
+.ds-vellum *,
+.ds-vellum *::before,
+.ds-vellum *::after {
+  box-sizing: border-box;
+}
+
+.ds-vellum :where(h1, h2, h3, h4, p, ul, ol, dl, dd, figure, pre, blockquote) {
+  margin: 0;
+}
+
+.ds-vellum :where(ul, ol) {
+  padding: 0;
+  list-style: none;
+}
+
+.ds-vellum :where(button, input, textarea, select) {
+  font: inherit;
+  color: inherit;
+  letter-spacing: inherit;
+}
+
+.ds-vellum :where(button) {
+  cursor: pointer;
+  border: 0;
+  background: none;
+  padding: 0;
+}
+
+.ds-vellum :where(svg) {
+  flex-shrink: 0;
+}
+
+.ds-vellum :where(a, button, [tabindex], input, textarea, summary):focus-visible {
+  outline: var(--focus-width) solid var(--focus);
+  outline-offset: var(--focus-offset);
+}
+
+.ds-vellum :where(code, kbd, samp, .v-mono) {
+  font-family: var(--font-mono);
+  font-size: calc(1em * var(--mono-scale));
+  line-height: inherit;
+}
+
+/* Type roles */
+.ds-vellum .v-title {
+  font: 500 28px/1.2 var(--font-sans);
+  letter-spacing: var(--tracking-heading);
+  color: var(--text-1);
+}
+.ds-vellum .v-heading {
+  font: 500 20px/1.3 var(--font-sans);
+  letter-spacing: var(--tracking-heading);
+  color: var(--text-1);
+}
+.ds-vellum .v-heading-sm {
+  font: 500 16px/1.35 var(--font-sans);
+  letter-spacing: var(--tracking-heading);
+  color: var(--text-1);
+}
+.ds-vellum .v-body {
+  font: 400 14px/1.5 var(--font-sans);
+}
+.ds-vellum .v-body-sm {
+  font: 400 13px/1.5 var(--font-sans);
+}
+.ds-vellum .v-label {
+  font: 500 13px/1.35 var(--font-sans);
+  letter-spacing: var(--tracking-label);
+}
+.ds-vellum .v-label-sm {
+  font: 500 12px/1.35 var(--font-sans);
+  letter-spacing: var(--tracking-label);
+}
+.ds-vellum .v-label-lg {
+  font: 500 14px/1.35 var(--font-sans);
+  letter-spacing: var(--tracking-label);
+}
+.ds-vellum .v-caption {
+  font: 400 12px/1.35 var(--font-sans);
+}
+.ds-vellum .v-code {
+  font: 400 calc(14px * var(--mono-scale)) / 1.5 var(--font-mono);
+}
+.ds-vellum .v-code-sm {
+  font: 400 calc(13px * var(--mono-scale)) / 1.5 var(--font-mono);
+}
+.ds-vellum .v-code-xs {
+  font: 400 calc(12px * var(--mono-scale)) / 1.35 var(--font-mono);
+}
+.ds-vellum .v-code-block {
+  font: 400 12px/20px var(--font-mono);
+}
+.ds-vellum .v-data {
+  font-variant-numeric: tabular-nums;
+}
+.ds-vellum .v-t1 {
+  color: var(--text-1);
+}
+.ds-vellum .v-t2 {
+  color: var(--text-2);
+}
+.ds-vellum .v-t3 {
+  color: var(--text-3);
+}
+.ds-vellum .v-ok-text {
+  color: var(--ok-text);
+}
+.ds-vellum .v-warn-text {
+  color: var(--warn-text);
+}
+.ds-vellum .v-fail-text {
+  color: var(--fail-text);
+}
+.ds-vellum .v-strong {
+  font-weight: 600;
+  color: var(--text-1);
+}
+.ds-vellum .v-sr {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+.ds-vellum .v-truncate {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Card: a grey shell, a paper panel 3px inside it, an optional footer row */
+.ds-vellum .v-shell {
+  display: flex;
+  flex-direction: column;
+  padding: var(--shell-inset);
+  border-radius: var(--radius-shell);
+  background: var(--shell);
+  box-shadow: inset 0 0 0 var(--line-width) var(--line-faint);
+  min-width: 0;
+}
+.ds-vellum .v-panel {
+  border-radius: var(--radius-panel);
+  background: var(--paper);
+  box-shadow: 0 0 0 var(--line-width) var(--line-faint);
+  min-width: 0;
+}
+.ds-vellum .v-panel + .v-panel {
+  margin-top: var(--shell-inset);
+}
+.ds-vellum .v-pad {
+  padding: 12px;
+}
+.ds-vellum .v-shell-foot {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  min-height: calc(var(--control-sm) + var(--shell-foot-inset) * 2 - var(--shell-inset));
+  padding: var(--shell-foot-inset) calc(var(--shell-foot-inset) - var(--shell-inset))
+    calc(var(--shell-foot-inset) - var(--shell-inset)) 9px;
+}
+.ds-vellum .v-shell-foot > .v-foot-meta {
+  flex: 1 1 0;
+  min-width: min(104px, 100%);
+  color: var(--text-2);
+  text-wrap: pretty;
+}
+
+.ds-vellum .v-foot-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-left: auto;
+}
+
+/* Rows */
+.ds-vellum .v-rows > * + * {
+  box-shadow: inset 0 var(--line-width) 0 var(--line-faint);
+}
+.ds-vellum .v-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-height: var(--row);
+  padding: 8px 12px;
+  min-width: 0;
+}
+.ds-vellum .v-row-main {
+  display: grid;
+  gap: 1px;
+  min-width: 0;
+  flex: 1;
+}
+.ds-vellum .v-row-end {
+  margin-inline-start: auto;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+.ds-vellum .v-row-hover {
+  transition: background-color var(--dur-state) var(--ease-out);
+}
+.ds-vellum .v-row-hover:hover {
+  background: var(--hover-row);
+}
+.ds-vellum .v-rows > .v-row:first-child {
+  border-start-start-radius: calc(var(--radius-panel) - 1px);
+  border-start-end-radius: calc(var(--radius-panel) - 1px);
+}
+.ds-vellum .v-rows > .v-row:last-child {
+  border-end-start-radius: calc(var(--radius-panel) - 1px);
+  border-end-end-radius: calc(var(--radius-panel) - 1px);
+}
+
+/* Overlay surface: paper and one ring, no shadow */
+.ds-vellum .v-overlay {
+  background: var(--paper);
+  border-radius: var(--radius-overlay);
+  box-shadow: 0 0 0 var(--line-width) var(--line);
+}
+
+/* Buttons */
+.ds-vellum .v-btn {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  flex-shrink: 0;
+  max-width: 100%;
+  height: var(--control);
+  padding: 0 12px;
+  border-radius: var(--radius-pill);
+  font: 500 13px/1.35 var(--font-sans);
+  letter-spacing: var(--tracking-label);
+  white-space: nowrap;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+}
+.ds-vellum .v-btn > svg {
+  width: var(--icon);
+  height: var(--icon);
+}
+.ds-vellum .v-btn > .v-btn-label {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.ds-vellum .v-btn[data-size="sm"] {
+  height: var(--control-sm);
+  padding: 0 10px;
+  font-size: 12px;
+  gap: 4px;
+}
+.ds-vellum .v-btn[data-size="sm"] > svg {
+  width: var(--icon-sm);
+  height: var(--icon-sm);
+}
+.ds-vellum .v-btn[data-size="lg"] {
+  height: var(--control-lg);
+  padding: 0 16px;
+  font-size: 14px;
+}
+.ds-vellum .v-btn[data-size="lg"] > svg {
+  width: var(--icon-lg);
+  height: var(--icon-lg);
+}
+.ds-vellum .v-btn[data-size="icon-sm"] {
+  width: var(--control-sm);
+  height: var(--control-sm);
+  padding: 0;
+}
+.ds-vellum .v-btn[data-size="icon-sm"] > svg {
+  width: var(--icon-sm);
+  height: var(--icon-sm);
+}
+.ds-vellum .v-btn[data-size="icon"] {
+  width: var(--control);
+  padding: 0;
+}
+.ds-vellum .v-btn[data-size="icon-lg"] {
+  width: var(--control-lg);
+  height: var(--control-lg);
+  padding: 0;
+}
+.ds-vellum .v-btn[data-size="icon-lg"] > svg {
+  width: var(--icon-lg);
+  height: var(--icon-lg);
+}
+
+.ds-vellum .v-glass {
+  --g-base: var(--glass-ink-base);
+  --g-edge: var(--glass-ink-edge);
+  --g-core: var(--glass-core);
+  position: relative;
+  isolation: isolate;
+  color: var(--glass-text);
+  background-color: var(--g-base);
+  background-image:
+    radial-gradient(72% 80% at 50% 58%, var(--g-core), transparent 100%),
+    linear-gradient(to bottom, rgb(255 255 255 / 0.1), transparent 60%);
+  box-shadow:
+    inset 0 -8px 14px rgb(255 255 255 / 0.05),
+    inset 0 3px 12px var(--glass-glow),
+    inset 0 0.5px 0 var(--glass-rim),
+    0 0 0 0.75px var(--g-edge);
+  transition:
+    scale var(--dur-glass-release) var(--ease-out),
+    filter var(--dur-state) var(--ease-out);
+}
+.ds-vellum .v-glass::after {
+  content: "";
+  position: absolute;
+  z-index: -1;
+  inset: 1.5px 18% auto;
+  height: 48%;
+  border-radius: var(--radius-pill);
+  background: linear-gradient(to bottom, var(--glass-gloss), transparent);
+  pointer-events: none;
+  transition: opacity var(--dur-glass-release) var(--ease-out);
+}
+.ds-vellum .v-glass[data-tone="coral"] {
+  --g-base: var(--glass-coral-base);
+  --g-edge: var(--glass-coral-edge);
+}
+.ds-vellum .v-glass[data-tone="green"] {
+  --g-base: var(--glass-green-base);
+  --g-edge: var(--glass-green-edge);
+}
+.ds-vellum .v-glass:hover {
+  filter: brightness(1.12);
+}
+.ds-vellum .v-glass:active,
+.ds-vellum .v-glass[data-held] {
+  --g-core: var(--glass-core-held);
+  scale: var(--scale-press-glass);
+  transition-duration: var(--dur-glass-press);
+}
+.ds-vellum .v-glass:active::after,
+.ds-vellum .v-glass[data-held]::after {
+  opacity: 0.25;
+  transition-duration: var(--dur-glass-press);
+}
+
+.ds-vellum .v-flat {
+  color: var(--flat-text);
+  background: var(--flat-bg);
+  box-shadow: 0 0 0 var(--line-width) var(--flat-ring);
+  transition:
+    scale var(--dur-press) var(--ease-out),
+    background-color var(--dur-state) var(--ease-out);
+}
+.ds-vellum .v-flat:hover {
+  background: color-mix(in srgb, var(--flat-bg), var(--ink) 4%);
+}
+.ds-vellum .v-flat:active,
+.ds-vellum .v-flat[data-held] {
+  scale: var(--scale-press);
+  background: color-mix(in srgb, var(--flat-bg), var(--ink) 7%);
+}
+
+.ds-vellum .v-ghost {
+  color: var(--text-1);
+  background: transparent;
+  transition:
+    scale var(--dur-press) var(--ease-out),
+    background-color var(--dur-state) var(--ease-out);
+}
+.ds-vellum .v-ghost:hover {
+  background: var(--hover);
+}
+.ds-vellum .v-ghost:active,
+.ds-vellum .v-ghost[data-held] {
+  background: var(--pressed);
+  scale: var(--scale-press);
+}
+.ds-vellum .v-ghost[aria-pressed="true"] {
+  background: var(--pressed);
+}
+
+.ds-vellum .v-btn:disabled,
+.ds-vellum .v-btn[aria-disabled="true"] {
+  cursor: not-allowed;
+  color: var(--text-disabled);
+  background: var(--field);
+  background-image: none;
+  box-shadow: 0 0 0 var(--line-width) var(--line-faint);
+  filter: none;
+  scale: 1;
+}
+.ds-vellum .v-ghost:disabled {
+  background: transparent;
+  box-shadow: none;
+}
+.ds-vellum .v-btn:disabled::after,
+.ds-vellum .v-btn[aria-disabled="true"]::after {
+  display: none;
+}
+.ds-vellum .v-btn[aria-busy="true"] {
+  cursor: progress;
+}
+
+/* The pending arc: the one loop besides the progress sweep */
+.ds-vellum .v-arc {
+  width: var(--icon);
+  height: var(--icon);
+  animation: v-spin var(--dur-spin) linear infinite;
+}
+.ds-vellum .v-arc-sm {
+  width: var(--icon-sm);
+  height: var(--icon-sm);
+}
+@keyframes v-spin {
+  to {
+    rotate: 1turn;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .ds-vellum .v-arc {
+    animation: none;
+  }
+}
+
+/* Fields */
+.ds-vellum .v-field {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  height: var(--control);
+  padding: 0 12px;
+  border-radius: var(--radius-pill);
+  background: var(--paper);
+  box-shadow: inset 0 0 0 var(--line-width) var(--line-control);
+  transition: box-shadow var(--dur-state) var(--ease-out);
+  min-width: 0;
+}
+.ds-vellum .v-field:focus-within {
+  box-shadow: inset 0 0 0 var(--line-width) var(--line-focus);
+}
+.ds-vellum .v-field[data-invalid] {
+  box-shadow: inset 0 0 0 var(--line-width) var(--fail);
+}
+.ds-vellum .v-field > svg {
+  width: var(--icon);
+  height: var(--icon);
+  color: var(--text-3);
+}
+.ds-vellum .v-field > input {
+  flex: 1;
+  min-width: 0;
+  height: 100%;
+  border: 0;
+  background: transparent;
+  font: 400 13px/1.35 var(--font-sans);
+  color: var(--text-1);
+  outline: none;
+}
+.ds-vellum .v-field > input::placeholder,
+.ds-vellum .v-textarea::placeholder {
+  color: var(--text-3);
+}
+.ds-vellum .v-textarea {
+  display: block;
+  width: 100%;
+  min-height: 84px;
+  padding: 8px 12px;
+  resize: vertical;
+  border: 0;
+  border-radius: var(--radius-overlay);
+  background: var(--paper);
+  box-shadow: inset 0 0 0 var(--line-width) var(--line-control);
+  font: 400 13px/1.5 var(--font-sans);
+  color: var(--text-1);
+  outline: none;
+  transition: box-shadow var(--dur-state) var(--ease-out);
+}
+.ds-vellum .v-textarea:focus-visible {
+  outline: none;
+  box-shadow: inset 0 0 0 var(--line-width) var(--line-focus);
+}
+.ds-vellum .v-field-wrap {
+  display: grid;
+  gap: 6px;
+  min-width: 0;
+}
+.ds-vellum .v-field-wrap > label {
+  font: 500 13px/1.35 var(--font-sans);
+  letter-spacing: var(--tracking-label);
+  color: var(--text-1);
+}
+.ds-vellum .v-hint {
+  font: 400 12px/1.35 var(--font-sans);
+  color: var(--text-2);
+}
+.ds-vellum .v-error {
+  font: 400 12px/1.35 var(--font-sans);
+  color: var(--fail-text);
+}
+
+/* Selection */
+.ds-vellum .v-check {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+  font: 400 13px/1.35 var(--font-sans);
+  color: var(--text-1);
+}
+.ds-vellum .v-check > input {
+  position: absolute;
+  opacity: 0;
+  width: 1px;
+  height: 1px;
+}
+.ds-vellum .v-check-box {
+  display: grid;
+  place-items: center;
+  width: 16px;
+  height: 16px;
+  flex-shrink: 0;
+  border-radius: var(--radius-tag);
+  background: var(--paper);
+  box-shadow: inset 0 0 0 var(--line-width) var(--line-strong);
+  color: var(--glass-text);
+  transition: background-color var(--dur-state) var(--ease-out);
+}
+.ds-vellum .v-check-box svg {
+  width: 11px;
+  height: 11px;
+  clip-path: inset(0 100% 0 0);
+  transition: clip-path var(--dur-state) var(--ease-out);
+}
+.ds-vellum .v-check > input:checked + .v-check-box {
+  background: var(--glass-ink-base);
+  box-shadow:
+    inset 0 0.5px 0 var(--glass-rim),
+    0 0 0 0.75px var(--glass-ink-edge);
+}
+.ds-vellum .v-check > input:checked + .v-check-box svg {
+  clip-path: inset(0 0 0 0);
+}
+.ds-vellum .v-check > input:focus-visible + .v-check-box,
+.ds-vellum .v-radio > input:focus-visible + .v-radio-dot {
+  outline: var(--focus-width) solid var(--focus);
+  outline-offset: 1px;
+}
+.ds-vellum .v-check[data-done] .v-check-label {
+  color: var(--text-2);
+  text-decoration: line-through;
+  text-decoration-color: var(--ink-45);
+}
+
+.ds-vellum .v-radio {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+  font: 400 13px/1.35 var(--font-sans);
+}
+.ds-vellum .v-radio > input {
+  position: absolute;
+  opacity: 0;
+  width: 1px;
+  height: 1px;
+}
+.ds-vellum .v-radio-dot {
+  display: grid;
+  place-items: center;
+  width: 16px;
+  height: 16px;
+  flex-shrink: 0;
+  border-radius: var(--radius-pill);
+  background: var(--paper);
+  box-shadow: inset 0 0 0 var(--line-width) var(--line-strong);
+  transition: box-shadow var(--dur-state) var(--ease-out);
+}
+.ds-vellum .v-radio-dot::after {
+  content: "";
+  width: 6px;
+  height: 6px;
+  border-radius: var(--radius-pill);
+  background: var(--paper);
+  scale: 0;
+  transition: scale var(--dur-state) var(--ease-out);
+}
+.ds-vellum .v-radio > input:checked + .v-radio-dot {
+  background: var(--glass-ink-base);
+  box-shadow: 0 0 0 0.75px var(--glass-ink-edge);
+}
+.ds-vellum .v-radio > input:checked + .v-radio-dot::after {
+  scale: 1;
+}
+
+.ds-vellum .v-switch {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  font: 400 13px/1.35 var(--font-sans);
+  color: var(--text-1);
+  text-align: start;
+}
+.ds-vellum .v-switch-track {
+  position: relative;
+  width: 30px;
+  height: 18px;
+  flex-shrink: 0;
+  border-radius: var(--radius-pill);
+  background: var(--field);
+  box-shadow: inset 0 0 0 var(--line-width) var(--line-strong);
+  transition: background-color var(--dur-state) var(--ease-out);
+}
+.ds-vellum .v-switch-thumb {
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  width: 12px;
+  height: 12px;
+  border-radius: var(--radius-pill);
+  background: var(--ink-60);
+  transition:
+    translate var(--dur-slide) var(--ease-out),
+    background-color var(--dur-state) var(--ease-out);
+}
+.ds-vellum .v-switch[aria-checked="true"] .v-switch-track {
+  background: var(--glass-ink-base);
+  box-shadow:
+    inset 0 0.5px 0 var(--glass-rim),
+    0 0 0 0.75px var(--glass-ink-edge);
+}
+.ds-vellum .v-switch[aria-checked="true"] .v-switch-thumb {
+  translate: 12px 0;
+  background: var(--paper);
+}
+.ds-vellum .v-switch:focus-visible {
+  outline: none;
+}
+.ds-vellum .v-switch:focus-visible .v-switch-track {
+  outline: var(--focus-width) solid var(--focus);
+  outline-offset: 1px;
+}
+.ds-vellum .v-switch:disabled {
+  cursor: not-allowed;
+  color: var(--text-disabled);
+}
+
+/* Segmented: a sliding paper thumb */
+.ds-vellum .v-seg {
+  position: relative;
+  display: inline-grid;
+  grid-auto-flow: column;
+  grid-auto-columns: 1fr;
+  height: var(--control);
+  padding: 3px;
+  margin: 0;
+  border: 0;
+  border-radius: var(--radius-pill);
+  background: var(--field);
+  min-width: 0;
+}
+.ds-vellum .v-seg[data-size="sm"] {
+  height: var(--control-sm);
+  padding: 2px;
+}
+.ds-vellum .v-seg-thumb {
+  position: absolute;
+  top: 3px;
+  bottom: 3px;
+  left: 3px;
+  border-radius: var(--radius-pill);
+  background: var(--paper);
+  box-shadow: 0 0 0 var(--line-width) var(--line);
+  transition: translate var(--dur-slide) var(--ease-out);
+  pointer-events: none;
+}
+.ds-vellum .v-seg[data-size="sm"] .v-seg-thumb {
+  top: 2px;
+  bottom: 2px;
+  left: 2px;
+}
+.ds-vellum .v-seg label {
+  position: relative;
+  display: grid;
+  place-items: center;
+  min-width: 0;
+  padding: 0 10px;
+  border-radius: var(--radius-pill);
+  cursor: pointer;
+}
+.ds-vellum .v-seg input {
+  position: absolute;
+  opacity: 0;
+  width: 1px;
+  height: 1px;
+}
+.ds-vellum .v-seg-text {
+  font: 500 13px/1.35 var(--font-sans);
+  letter-spacing: var(--tracking-label);
+  color: var(--text-2);
+  white-space: nowrap;
+  transition: color var(--dur-slide) var(--ease-out);
+}
+.ds-vellum .v-seg[data-size="sm"] .v-seg-text {
+  font-size: 12px;
+}
+.ds-vellum .v-seg input:checked + .v-seg-text {
+  color: var(--text-1);
+}
+.ds-vellum .v-seg label:has(input:focus-visible) {
+  outline: var(--focus-width) solid var(--focus);
+  outline-offset: 0;
+}
+.ds-vellum .v-seg[data-disabled] {
+  opacity: 0.55;
+}
+.ds-vellum .v-seg[data-disabled] label {
+  cursor: not-allowed;
+}
+
+/* Slider */
+.ds-vellum .v-slider {
+  display: grid;
+  gap: 8px;
+}
+.ds-vellum .v-slider input[type="range"] {
+  appearance: none;
+  width: 100%;
+  height: 18px;
+  margin: 0;
+  background: transparent;
+  cursor: pointer;
+}
+.ds-vellum .v-slider input[type="range"]::-webkit-slider-runnable-track {
+  height: 6px;
+  border-radius: var(--radius-pill);
+  background: linear-gradient(to right, var(--ink-80) 0 var(--fill), var(--field) var(--fill) 100%);
+}
+.ds-vellum .v-slider input[type="range"]::-moz-range-track {
+  height: 6px;
+  border-radius: var(--radius-pill);
+  background: var(--field);
+}
+.ds-vellum .v-slider input[type="range"]::-moz-range-progress {
+  height: 6px;
+  border-radius: var(--radius-pill);
+  background: var(--ink-80);
+}
+.ds-vellum .v-slider input[type="range"]::-webkit-slider-thumb {
+  appearance: none;
+  width: 18px;
+  height: 18px;
+  margin-top: -6px;
+  border-radius: var(--radius-pill);
+  background: var(--paper);
+  box-shadow: 0 0 0 var(--line-width) var(--line-strong);
+}
+.ds-vellum .v-slider input[type="range"]::-moz-range-thumb {
+  width: 18px;
+  height: 18px;
+  border: 0;
+  border-radius: var(--radius-pill);
+  background: var(--paper);
+  box-shadow: 0 0 0 var(--line-width) var(--line-strong);
+}
+.ds-vellum .v-slider input[type="range"]:focus-visible {
+  outline: none;
+}
+.ds-vellum .v-slider input[type="range"]:focus-visible::-webkit-slider-thumb {
+  outline: var(--focus-width) solid var(--focus);
+  outline-offset: var(--focus-offset);
+}
+
+/* Select trigger */
+.ds-vellum .v-select-trigger {
+  display: inline-flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  height: var(--control);
+  min-width: 128px;
+  padding: 0 10px 0 12px;
+  border-radius: var(--radius-pill);
+  background: var(--paper);
+  box-shadow: inset 0 0 0 var(--line-width) var(--line-control);
+  font: 400 13px/1.35 var(--font-sans);
+  color: var(--text-1);
+  transition: box-shadow var(--dur-state) var(--ease-out);
+}
+.ds-vellum .v-select-trigger[data-size="sm"] {
+  height: var(--control-sm);
+  min-width: 112px;
+  font-size: 12px;
+}
+.ds-vellum .v-select-trigger[aria-expanded="true"] {
+  box-shadow: inset 0 0 0 var(--line-width) var(--line-focus);
+}
+.ds-vellum .v-select-trigger svg {
+  width: var(--icon-sm);
+  height: var(--icon-sm);
+  color: var(--text-3);
+}
+.ds-vellum .v-select-trigger:disabled {
+  cursor: not-allowed;
+  color: var(--text-disabled);
+  background: var(--field);
+}
+
+/* Anchored overlays: menu, popover, select list, tooltip */
+.ds-vellum .v-anchor {
+  position: relative;
+  display: inline-flex;
+}
+.ds-vellum .v-pop {
+  position: absolute;
+  z-index: 50;
+  top: calc(100% + 6px);
+  left: 0;
+  min-width: 192px;
+  padding: 4px;
+  visibility: hidden;
+  opacity: 0;
+  translate: 0 calc(var(--overlay-shift) * -1);
+  transition:
+    opacity var(--dur-state) var(--ease-in),
+    translate var(--dur-state) var(--ease-in),
+    visibility 0s linear var(--dur-state);
+}
+.ds-vellum .v-pop[data-align="end"] {
+  left: auto;
+  right: 0;
+}
+.ds-vellum .v-pop[data-side="top"] {
+  top: auto;
+  bottom: calc(100% + 6px);
+  translate: 0 var(--overlay-shift);
+}
+.ds-vellum .v-pop[data-open] {
+  visibility: visible;
+  opacity: 1;
+  translate: 0 0;
+  transition:
+    opacity var(--dur-overlay) var(--ease-out),
+    translate var(--dur-overlay) var(--ease-out),
+    visibility 0s;
+}
+.ds-vellum .v-menu-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  min-height: 32px;
+  padding: 0 8px;
+  border-radius: var(--radius-tag);
+  font: 400 13px/1.35 var(--font-sans);
+  color: var(--text-1);
+  text-align: start;
+  white-space: nowrap;
+  transition: background-color var(--dur-state) var(--ease-out);
+}
+.ds-vellum .v-menu-item:focus,
+.ds-vellum .v-menu-item[data-active] {
+  background: var(--hover);
+}
+.ds-vellum .v-menu-item:focus-visible {
+  outline: none;
+  background: var(--hover);
+  box-shadow: inset 0 0 0 var(--focus-width) var(--focus);
+}
+.ds-vellum .v-menu-item > svg {
+  width: var(--icon);
+  height: var(--icon);
+  color: var(--text-2);
+}
+.ds-vellum .v-menu-item[data-tone="fail"] {
+  color: var(--fail-text);
+}
+.ds-vellum .v-menu-item[data-tone="fail"] > svg {
+  color: var(--fail-text);
+}
+.ds-vellum .v-menu-item .v-menu-check {
+  margin-inline-start: auto;
+  color: var(--text-1);
+}
+.ds-vellum .v-menu-sep {
+  height: 1px;
+  margin: 4px -4px;
+  background: var(--line-faint);
+}
+.ds-vellum .v-menu-label {
+  padding: 6px 8px 2px;
+  font: 400 12px/1.35 var(--font-sans);
+  color: var(--text-2);
+}
+
+.ds-vellum .v-tooltip {
+  position: absolute;
+  z-index: 50;
+  bottom: calc(100% + 6px);
+  left: 50%;
+  max-width: 256px;
+  width: max-content;
+  padding: 4px 8px;
+  border-radius: var(--radius-tag);
+  background: var(--ink);
+  color: var(--text-inverse);
+  font: 400 12px/1.35 var(--font-sans);
+  pointer-events: none;
+  visibility: hidden;
+  opacity: 0;
+  translate: -50% var(--overlay-shift);
+  transition:
+    opacity var(--dur-state) var(--ease-in),
+    translate var(--dur-state) var(--ease-in),
+    visibility 0s linear var(--dur-state);
+}
+.ds-vellum .v-tooltip[data-open] {
+  visibility: visible;
+  opacity: 1;
+  translate: -50% 0;
+  transition:
+    opacity var(--dur-overlay) var(--ease-out),
+    translate var(--dur-overlay) var(--ease-out),
+    visibility 0s;
+}
+.ds-vellum .v-tooltip kbd {
+  margin-inline-start: 6px;
+  opacity: 0.7;
+}
+
+/* Dialog: a shell over the scrim, settling from 0.97 */
+.ds-vellum .v-scrim {
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  display: grid;
+  place-items: center;
+  padding: 16px;
+  background: var(--scrim);
+  visibility: hidden;
+  opacity: 0;
+  transition:
+    opacity var(--dur-state) var(--ease-in),
+    visibility 0s linear var(--dur-state);
+}
+.ds-vellum .v-scrim[data-open] {
+  visibility: visible;
+  opacity: 1;
+  transition:
+    opacity var(--dur-overlay) var(--ease-out),
+    visibility 0s;
+}
+.ds-vellum .v-dialog {
+  width: min(400px, 100%);
+  scale: var(--scale-overlay);
+  transition: scale var(--dur-state) var(--ease-in);
+  box-shadow: 0 0 0 var(--line-width) var(--line);
+}
+.ds-vellum .v-scrim[data-open] .v-dialog {
+  scale: 1;
+  transition: scale var(--dur-overlay) var(--ease-out);
+}
+.ds-vellum .v-dialog-body {
+  display: grid;
+  gap: 8px;
+  padding: 16px;
+}
+
+/* Toast */
+.ds-vellum .v-toaster {
+  position: fixed;
+  z-index: 70;
+  right: 16px;
+  bottom: 16px;
+  display: grid;
+  gap: 8px;
+  width: min(360px, calc(100vw - 32px));
+  pointer-events: none;
+}
+.ds-vellum .v-toast {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 44px;
+  padding: 6px 6px 6px 12px;
+  pointer-events: auto;
+  animation: v-toast-in var(--dur-overlay) var(--ease-out);
+}
+.ds-vellum .v-toast > svg {
+  width: var(--icon);
+  height: var(--icon);
+}
+@keyframes v-toast-in {
+  from {
+    opacity: 0;
+    translate: 0 var(--overlay-shift);
+  }
+}
+
+/* Badge, chip, kbd, avatar */
+.ds-vellum .v-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  height: 20px;
+  padding: 0 7px;
+  border-radius: var(--radius-tag);
+  background: var(--field);
+  color: var(--text-1);
+  font: 500 12px/1 var(--font-sans);
+  letter-spacing: var(--tracking-label);
+  white-space: nowrap;
+}
+.ds-vellum .v-badge[data-tone="ok"] {
+  background: var(--ok-tint);
+  color: var(--ok-text);
+}
+.ds-vellum .v-badge[data-tone="warn"] {
+  background: var(--warn-tint);
+  color: var(--warn-text);
+}
+.ds-vellum .v-badge[data-tone="fail"] {
+  background: var(--fail-tint);
+  color: var(--fail-text);
+}
+.ds-vellum .v-badge[data-tone="outline"] {
+  background: transparent;
+  box-shadow: inset 0 0 0 var(--line-width) var(--line-control);
+}
+.ds-vellum .v-badge > svg {
+  width: var(--icon-sm);
+  height: var(--icon-sm);
+}
+
+.ds-vellum .v-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: var(--control-sm);
+  max-width: 220px;
+  padding: 0 10px;
+  border-radius: var(--radius-pill);
+  background: var(--paper);
+  box-shadow: inset 0 0 0 var(--line-width) var(--line-control);
+  font: 500 12px/1 var(--font-sans);
+  letter-spacing: var(--tracking-label);
+  color: var(--text-1);
+  white-space: nowrap;
+  transition:
+    background-color var(--dur-state) var(--ease-out),
+    box-shadow var(--dur-state) var(--ease-out),
+    scale var(--dur-press) var(--ease-out);
+}
+.ds-vellum button.v-chip:hover {
+  background: color-mix(in srgb, var(--paper), var(--ink) 4%);
+}
+.ds-vellum button.v-chip:active {
+  scale: var(--scale-press);
+}
+.ds-vellum .v-chip[aria-pressed="true"] {
+  background: var(--pressed);
+  box-shadow: inset 0 0 0 var(--line-width) var(--line-focus);
+}
+.ds-vellum .v-chip-count {
+  color: var(--text-2);
+  font-variant-numeric: tabular-nums;
+}
+.ds-vellum .v-chip-x {
+  display: grid;
+  place-items: center;
+  width: 16px;
+  height: 16px;
+  margin-inline-end: -5px;
+  border-radius: var(--radius-pill);
+  color: var(--text-2);
+}
+.ds-vellum .v-chip-x:hover {
+  background: var(--hover);
+  color: var(--text-1);
+}
+.ds-vellum .v-chip-x svg {
+  width: 10px;
+  height: 10px;
+}
+.ds-vellum .v-chip[data-mention] {
+  height: 22px;
+  padding: 0 7px;
+  border-radius: var(--radius-tag);
+  vertical-align: 1px;
+  font-weight: 400;
+  font-size: 13px;
+  letter-spacing: 0;
+}
+
+.ds-vellum .v-kbd {
+  display: inline-grid;
+  place-items: center;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 4px;
+  border-radius: var(--radius-tag);
+  background: var(--paper);
+  box-shadow: inset 0 0 0 var(--line-width) var(--line-control);
+  font: 400 calc(12px * var(--mono-scale)) / 1 var(--font-mono);
+  color: var(--text-2);
+}
+
+.ds-vellum .v-avatar {
+  display: inline-grid;
+  place-items: center;
+  width: 24px;
+  height: 24px;
+  flex-shrink: 0;
+  border-radius: var(--radius-pill);
+  background: var(--field);
+  color: var(--text-1);
+  font: 500 12px/1 var(--font-sans);
+}
+.ds-vellum .v-avatar[data-size="lg"] {
+  width: 32px;
+  height: 32px;
+  font-size: 12px;
+}
+.ds-vellum .v-avatar-stack {
+  display: inline-flex;
+}
+.ds-vellum .v-avatar-stack > .v-avatar {
+  box-shadow: 0 0 0 2px var(--paper);
+}
+.ds-vellum .v-avatar-stack > .v-avatar + .v-avatar {
+  margin-inline-start: -3px;
+}
+
+/* Status: a glyph and a word */
+.ds-vellum .v-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font: 500 12px/1.35 var(--font-sans);
+  letter-spacing: var(--tracking-label);
+  color: var(--text-2);
+  white-space: nowrap;
+}
+.ds-vellum .v-status > svg {
+  width: var(--icon-sm);
+  height: var(--icon-sm);
+}
+.ds-vellum .v-status[data-status="ok"] {
+  color: var(--ok-text);
+}
+.ds-vellum .v-status[data-status="warn"] {
+  color: var(--warn-text);
+}
+.ds-vellum .v-status[data-status="fail"] {
+  color: var(--fail-text);
+}
+.ds-vellum .v-status[data-status="running"],
+.ds-vellum .v-status[data-status="waiting"] {
+  color: var(--text-1);
+}
+.ds-vellum .v-status[data-size="md"] {
+  font-size: 13px;
+}
+
+/* Progress */
+.ds-vellum .v-progress {
+  position: relative;
+  height: 6px;
+  overflow: hidden;
+  border-radius: var(--radius-pill);
+  background: var(--field);
+}
+.ds-vellum .v-progress[data-size="sm"] {
+  height: 4px;
+}
+.ds-vellum .v-progress-fill {
+  position: absolute;
+  inset: 0 auto 0 0;
+  border-radius: inherit;
+  background: var(--ink-80);
+  transition: width var(--dur-state) var(--ease-out);
+}
+.ds-vellum .v-progress[data-done] .v-progress-fill {
+  background: var(--ok);
+}
+.ds-vellum .v-progress[data-indeterminate] .v-progress-fill {
+  width: 32%;
+  animation: v-sweep var(--dur-sweep) linear infinite;
+}
+@keyframes v-sweep {
+  from {
+    translate: -100% 0;
+  }
+  to {
+    translate: 320% 0;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .ds-vellum .v-progress[data-indeterminate] .v-progress-fill {
+    animation: none;
+    translate: 100% 0;
+  }
+}
+
+.ds-vellum .v-skeleton {
+  border-radius: var(--radius-tag);
+  background: var(--field);
+}
+
+/* Tabs: a pill of paper slides under the chosen tab */
+.ds-vellum .v-tabs {
+  position: relative;
+  display: inline-flex;
+  gap: 2px;
+}
+.ds-vellum .v-tab {
+  position: relative;
+  z-index: 1;
+  height: var(--control-sm);
+  padding: 0 10px;
+  border-radius: var(--radius-pill);
+  font: 500 12px/1 var(--font-sans);
+  letter-spacing: var(--tracking-label);
+  color: var(--text-2);
+  transition: color var(--dur-slide) var(--ease-out);
+}
+.ds-vellum .v-tab[aria-selected="true"] {
+  color: var(--text-1);
+}
+.ds-vellum .v-tab:hover {
+  color: var(--text-1);
+}
+.ds-vellum .v-tab-mark {
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: var(--control-sm);
+  border-radius: var(--radius-pill);
+  background: var(--pressed);
+  transition:
+    translate var(--dur-slide) var(--ease-out),
+    width var(--dur-slide) var(--ease-out);
+}
+
+/* Steps */
+.ds-vellum .v-steps {
+  display: grid;
+  gap: 0;
+}
+.ds-vellum .v-step {
+  display: grid;
+  grid-template-columns: 20px 1fr;
+  gap: 0 10px;
+  position: relative;
+  padding-bottom: 14px;
+}
+.ds-vellum .v-step:last-child {
+  padding-bottom: 0;
+}
+.ds-vellum .v-step::before {
+  content: "";
+  position: absolute;
+  top: 22px;
+  bottom: 2px;
+  left: 9.5px;
+  width: 1px;
+  background: var(--line);
+}
+.ds-vellum .v-step:last-child::before {
+  display: none;
+}
+.ds-vellum .v-step-mark {
+  display: grid;
+  place-items: center;
+  width: 20px;
+  height: 20px;
+  border-radius: var(--radius-pill);
+  box-shadow: inset 0 0 0 var(--line-width) var(--line-control);
+  font: 500 12px/1 var(--font-sans);
+  color: var(--text-2);
+  background: var(--paper);
+}
+.ds-vellum .v-step[data-state="done"] .v-step-mark {
+  box-shadow: none;
+  background: var(--field);
+  color: var(--text-1);
+}
+.ds-vellum .v-step[data-state="current"] .v-step-mark {
+  box-shadow: inset 0 0 0 var(--line-width) var(--ink-80);
+  color: var(--text-1);
+}
+.ds-vellum .v-step-mark svg {
+  width: var(--icon-sm);
+  height: var(--icon-sm);
+}
+
+/* Code block */
+.ds-vellum .v-code-frame {
+  border-radius: var(--radius-overlay);
+  background: var(--code-surface);
+  box-shadow: 0 0 0 var(--line-width) var(--line-faint);
+  overflow: hidden;
+}
+.ds-vellum .v-code-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 34px;
+  padding: 0 4px 0 12px;
+  box-shadow: inset 0 calc(var(--line-width) * -1) 0 var(--line-faint);
+}
+.ds-vellum .v-code-body {
+  margin: 0;
+  padding: 10px 12px;
+  overflow-x: auto;
+  color: var(--text-1);
+  tab-size: 2;
+}
+.ds-vellum .v-code-body .v-tok-key {
+  color: var(--text-1);
+}
+.ds-vellum .v-code-body .v-tok-dim {
+  color: var(--text-2);
+}
+
+/* Citation marker */
+.ds-vellum .v-cite {
+  display: inline-grid;
+  place-items: center;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 5px;
+  margin: 0 1px;
+  border-radius: var(--radius-tag);
+  background: var(--field);
+  font: 500 12px/1 var(--font-sans);
+  color: var(--text-1);
+  vertical-align: 1px;
+  transition: background-color var(--dur-state) var(--ease-out);
+}
+.ds-vellum .v-cite[data-active],
+.ds-vellum .v-cite:hover {
+  background: var(--ink-15);
+}
+
+/* Message bubble: the only box in a thread */
+.ds-vellum .v-bubble {
+  max-width: min(84%, 420px);
+  margin-inline-start: auto;
+  padding: 8px 12px;
+  border-radius: var(--radius-shell);
+  background: var(--paper);
+  box-shadow: 0 0 0 var(--line-width) var(--line);
+  font: 400 14px/1.45 var(--font-sans);
+  color: var(--text-1);
+}
+
+/* Collapsible row: reasoning, tool call */
+.ds-vellum .v-fold-trigger {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  max-width: 100%;
+  min-height: 24px;
+  padding: 0 6px;
+  margin-inline-start: -6px;
+  border-radius: var(--radius-tag);
+  font: 400 13px/1.35 var(--font-sans);
+  color: var(--text-2);
+  transition:
+    background-color var(--dur-state) var(--ease-out),
+    color var(--dur-state) var(--ease-out);
+}
+.ds-vellum .v-fold-trigger:hover {
+  color: var(--text-1);
+  background: var(--hover);
+}
+.ds-vellum .v-fold-trigger > svg {
+  width: var(--icon);
+  height: var(--icon);
+}
+.ds-vellum .v-fold-trigger > .v-chev {
+  width: var(--icon-sm);
+  height: var(--icon-sm);
+  transition: rotate var(--dur-state) var(--ease-out);
+}
+.ds-vellum .v-fold-trigger[aria-expanded="true"] > .v-chev {
+  rotate: 90deg;
+}
+.ds-vellum .v-fold-body {
+  animation: v-fade var(--dur-state) var(--ease-out);
+}
+@keyframes v-fade {
+  from {
+    opacity: 0;
+  }
+}
+
+/* Status strip of runs */
+.ds-vellum .v-strip {
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: 1fr;
+  gap: 2px;
+  height: 20px;
+}
+.ds-vellum .v-strip > span {
+  border-radius: var(--radius-mark);
+  background: var(--ink-45);
+  min-width: 0;
+}
+.ds-vellum .v-strip > span[data-status="fail"] {
+  background: var(--fail);
+}
+.ds-vellum .v-strip > span[data-status="running"] {
+  background: var(--field);
+  box-shadow: inset 0 0 0 var(--line-width) var(--line-control);
+}
+
+/* Chart */
+.ds-vellum .v-chart {
+  display: block;
+  width: 100%;
+  height: auto;
+  overflow: visible;
+}
+.ds-vellum .v-chart .v-grid {
+  stroke: var(--line-faint);
+  stroke-width: 1;
+}
+.ds-vellum .v-chart .v-axis {
+  fill: var(--text-2);
+  font: 400 12px var(--font-sans);
+}
+.ds-vellum .v-chart .v-series-1 {
+  fill: none;
+  stroke: var(--ink-80);
+  stroke-width: 1.5;
+}
+.ds-vellum .v-chart .v-series-2 {
+  fill: none;
+  stroke: var(--ink-45);
+  stroke-width: 1.5;
+}
+.ds-vellum .v-chart .v-area {
+  fill: var(--ink-03);
+}
+.ds-vellum .v-chart .v-cursor {
+  stroke: var(--line-control);
+}
+.ds-vellum .v-chart .v-dot {
+  fill: var(--paper);
+  stroke: var(--ink-80);
+  stroke-width: 1.5;
+}
+.ds-vellum .v-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 14px;
+  font: 400 12px/1.35 var(--font-sans);
+  color: var(--text-2);
+}
+.ds-vellum .v-legend > span {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+.ds-vellum .v-legend i {
+  display: inline-block;
+  width: 10px;
+  height: 1.5px;
+  background: var(--ink-80);
+}
+.ds-vellum .v-legend i[data-series="2"] {
+  background: var(--ink-45);
+}
+
+/* Data list */
+.ds-vellum .v-dl {
+  display: grid;
+}
+.ds-vellum .v-dl > div {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 16px;
+  min-height: var(--row);
+  padding: 9px 12px;
+}
+.ds-vellum .v-dl > div + div {
+  box-shadow: inset 0 var(--line-width) 0 var(--line-faint);
+}
+.ds-vellum .v-dl dt {
+  font: 400 13px/1.35 var(--font-sans);
+  color: var(--text-2);
+}
+.ds-vellum .v-dl dd {
+  font: 400 13px/1.35 var(--font-sans);
+  color: var(--text-1);
+  text-align: end;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Table */
+.ds-vellum .v-table {
+  width: 100%;
+  border-collapse: collapse;
+  font: 400 13px/1.35 var(--font-sans);
+}
+.ds-vellum .v-table th {
+  height: 32px;
+  padding: 0 12px;
+  font: 400 12px/1.35 var(--font-sans);
+  color: var(--text-2);
+  text-align: start;
+}
+.ds-vellum .v-table td {
+  height: var(--row);
+  padding: 8px 12px;
+  box-shadow: inset 0 var(--line-width) 0 var(--line-faint);
+  color: var(--text-1);
+}
+.ds-vellum .v-table .v-num {
+  text-align: end;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+@media (max-width: 519px) {
+  .ds-vellum .v-table .v-col-wide {
+    display: none;
+  }
+  .ds-vellum .v-table th,
+  .ds-vellum .v-table td {
+    padding-inline: 8px;
+  }
+}
+
+/* Alert */
+.ds-vellum .v-alert {
+  display: flex;
+  gap: 10px;
+  padding: 10px 12px;
+  border-radius: var(--radius-overlay);
+  background: var(--field);
+  font: 400 13px/1.5 var(--font-sans);
+}
+.ds-vellum .v-alert > svg {
+  width: var(--icon);
+  height: var(--icon);
+  margin-top: 3px;
+}
+.ds-vellum .v-alert[data-tone="fail"] {
+  background: var(--fail-tint);
+}
+.ds-vellum .v-alert[data-tone="fail"] > svg,
+.ds-vellum .v-alert[data-tone="fail"] .v-alert-title {
+  color: var(--fail-text);
+}
+.ds-vellum .v-alert[data-tone="warn"] {
+  background: var(--warn-tint);
+}
+.ds-vellum .v-alert[data-tone="warn"] > svg,
+.ds-vellum .v-alert[data-tone="warn"] .v-alert-title {
+  color: var(--warn-text);
+}
+.ds-vellum .v-alert[data-tone="ok"] {
+  background: var(--ok-tint);
+}
+.ds-vellum .v-alert[data-tone="ok"] > svg,
+.ds-vellum .v-alert[data-tone="ok"] .v-alert-title {
+  color: var(--ok-text);
+}
+.ds-vellum .v-alert-title {
+  font-weight: 500;
+  color: var(--text-1);
+}
+
+/* Prompt composer */
+.ds-vellum .v-composer {
+  display: grid;
+  gap: 6px;
+  padding: 10px 10px 8px 14px;
+  border-radius: var(--radius-shell);
+  background: var(--paper);
+  box-shadow: inset 0 0 0 var(--line-width) var(--line-control);
+  transition: box-shadow var(--dur-state) var(--ease-out);
+}
+.ds-vellum .v-composer:focus-within {
+  box-shadow: inset 0 0 0 var(--line-width) var(--line-focus);
+}
+.ds-vellum .v-composer textarea {
+  width: 100%;
+  min-height: 22px;
+  max-height: 120px;
+  padding: 2px 0;
+  border: 0;
+  resize: none;
+  background: transparent;
+  font: 400 14px/1.5 var(--font-sans);
+  color: var(--text-1);
+  outline: none;
+  field-sizing: content;
+}
+.ds-vellum .v-composer textarea::placeholder {
+  color: var(--text-3);
+}
+.ds-vellum .v-composer-bar {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin-inline-start: -6px;
+}
+
+/* Empty state */
+.ds-vellum .v-empty {
+  display: grid;
+  justify-items: center;
+  gap: 6px;
+  padding: 24px 16px;
+  text-align: center;
+}
+.ds-vellum .v-empty > svg {
+  width: 32px;
+  height: 32px;
+  margin-bottom: 4px;
+  color: var(--text-3);
+  stroke-width: 1.25;
+}
+
+/* Icons: Lucide at a 1.75 stroke; 2 where a 12px glyph carries a status */
+.ds-vellum svg.lucide {
+  stroke-width: 1.75;
+}
+.ds-vellum .v-status svg.lucide,
+.ds-vellum .v-alert svg.lucide,
+.ds-vellum .v-btn[data-size="sm"] svg.lucide,
+.ds-vellum .v-btn[data-size="icon-sm"] svg.lucide {
+  stroke-width: 2;
+}
+.ds-vellum .v-empty svg.lucide {
+  stroke-width: 1.25;
+}
+
+.ds-vellum .v-chart-frame {
+  position: relative;
+}
+.ds-vellum .v-chart-scrub {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  opacity: 0;
+  cursor: crosshair;
+}
+.ds-vellum .v-chart-frame:has(.v-chart-scrub:focus-visible) {
+  outline: var(--focus-width) solid var(--focus);
+  outline-offset: 4px;
+  border-radius: var(--radius-tag);
+}
+
+/* Agent turn */
+.ds-vellum .v-turn {
+  gap: 10px;
+}
+.ds-vellum .v-turn-foot {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 2px;
+  margin-inline-start: -4px;
+}
+.ds-vellum .v-turn-model {
+  margin-inline-start: 6px;
+}
+.ds-vellum .v-transcript {
+  min-height: 104px;
+  text-wrap: pretty;
+}
+.ds-vellum .v-transcript[data-compact] {
+  min-height: 78px;
+}
+.ds-vellum .v-source {
+  align-items: flex-start;
+  transition: background-color var(--dur-state) var(--ease-out);
+}
+.ds-vellum .v-source[data-active] {
+  background: var(--hover-row);
+}
+.ds-vellum .v-source > .v-cite {
+  margin-top: 1px;
+}
+.ds-vellum .v-card-head {
+  padding: 12px 12px 8px;
+}
+.ds-vellum .v-receipt-steps {
+  display: grid;
+  padding-bottom: 6px;
+}
+.ds-vellum .v-receipt-step {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0 12px;
+  min-height: 28px;
+  padding: 4px 12px;
+}
+.ds-vellum .v-skeleton[data-width] {
+  height: 10px;
+  width: 60%;
+}
+.ds-vellum .v-skeleton[data-width="short"] {
+  width: 40%;
+}
+.ds-vellum .v-fold-trigger[data-size="sm"] {
+  font-size: 12px;
+}
+.ds-vellum .v-step-text {
+  gap: 1px;
+  padding-top: 1px;
+}
+.ds-vellum .v-stop-glyph {
+  scale: 0.75;
+}
+.ds-vellum .v-empty-text {
+  max-width: 36ch;
+}
+.ds-vellum .v-empty-action {
+  margin-top: 8px;
+}
+.ds-vellum .v-code-block code {
+  font-size: inherit;
+}
+.ds-vellum .v-reasoning-body {
+  max-width: var(--measure);
+  padding-inline-start: 18px;
+}
+.ds-vellum .v-pop[data-padded] {
+  padding: 12px;
+}
+.ds-vellum .v-pop[data-list] {
+  min-width: max(100%, 160px);
+}
+.ds-vellum .v-rule-row {
+  flex-wrap: wrap;
+  row-gap: 8px;
+  min-height: 44px;
+}
+.ds-vellum .v-rule-row > .v-row-main {
+  flex-basis: 180px;
+}
+.ds-vellum .v-legend {
+  margin-bottom: 8px;
+  padding: 0;
+}
+.ds-vellum .v-nudge {
+  margin-top: 1px;
+}
+.ds-vellum .v-gap-1 {
+  gap: 1px;
+}
+.ds-vellum .v-fold-trigger[data-follow-up] {
+  min-height: 30px;
+  text-align: start;
+}
+.ds-vellum .v-minor {
+  margin-top: 8px;
+}

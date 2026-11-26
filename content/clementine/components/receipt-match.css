@@ -1,0 +1,92 @@
+.ds-clementine {
+  & .cl-matches {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+  & .cl-paper {
+    position: relative;
+    display: grid;
+    flex-shrink: 0;
+    place-items: center;
+    width: 40px;
+    height: 48px;
+    padding: 0;
+    color: var(--fg-3);
+    background: var(--raised);
+    border: 0;
+    border-radius: var(--radius-md);
+    box-shadow: inset 0 0 0 1px var(--line-strong);
+  }
+  & .cl-paper--empty {
+    background: transparent;
+    box-shadow: none;
+    outline: 1.5px dashed var(--control);
+    outline-offset: -1.5px;
+    cursor: pointer;
+    transition: background-color var(--dur-instant) var(--ease-out);
+
+    &:hover {
+      background: var(--surface);
+    }
+
+    &:focus-visible {
+      outline: var(--line-focus) solid var(--ring);
+      outline-offset: var(--focus-offset);
+    }
+  }
+  & .cl-paper__lines {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    width: 22px;
+
+    & span {
+      height: 3px;
+      background: var(--surface-3);
+      border-radius: 2px;
+    }
+
+    & span:nth-child(2) {
+      width: 70%;
+    }
+
+    & span:nth-child(3) {
+      width: 85%;
+    }
+  }
+  & .cl-paper__lines .cl-paper__total {
+    width: 40%;
+    margin-left: auto;
+    background: var(--fg-3);
+  }
+  & .cl-paper__mark {
+    position: absolute;
+    right: -5px;
+    bottom: -5px;
+    display: grid;
+    place-items: center;
+    width: 16px;
+    height: 16px;
+    color: var(--on-status);
+    background: var(--success);
+    border-radius: 50%;
+    box-shadow: 0 0 0 2px var(--page);
+  }
+  & .cl-paper[data-state="review"] {
+    & .cl-paper__mark {
+      color: var(--on-status);
+      background: var(--warn);
+    }
+
+    & .cl-paper__lines .cl-paper__total {
+      background: var(--warn);
+    }
+  }
+  & .cl-match[data-state="review"] .cl-match__note {
+    color: var(--warn-text);
+  }
+}

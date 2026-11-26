@@ -1,0 +1,49 @@
+.ds-clementine {
+  & .cl-split-req {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+  & .cl-split-req__head {
+    display: flex;
+    gap: 12px;
+    align-items: baseline;
+    justify-content: space-between;
+  }
+  & .cl-split-req__paid {
+    color: var(--fg-2);
+    font-size: var(--text-sm);
+  }
+  & .cl-split-req__people {
+    display: flex;
+    flex-direction: column;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+
+    & li {
+      display: flex;
+      gap: 12px;
+      align-items: center;
+      padding: 8px 0;
+    }
+
+    & li + li {
+      border-top: 1px solid var(--line);
+    }
+
+    & li[data-off] .cl-row__title,
+    & li[data-off] .cl-split-req__share {
+      color: var(--fg-3);
+      text-decoration: line-through;
+    }
+
+    & .cl-row__title {
+      flex: 1 1 auto;
+    }
+  }
+  & .cl-split-req__share {
+    font-size: var(--text-sm);
+    font-weight: 500;
+  }
+}

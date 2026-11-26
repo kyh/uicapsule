@@ -1,0 +1,25 @@
+.ds-clementine {
+  & .cl-msg {
+    display: flex;
+    font-size: var(--text-base);
+    line-height: var(--leading-normal);
+
+    &[data-from="person"] {
+      justify-content: flex-end;
+
+      & .cl-msg__body {
+        max-width: 80%;
+        padding: 8px 16px;
+        background: var(--surface-2);
+        border-radius: 20px;
+      }
+    }
+  }
+  & .cl-msg__body {
+    min-width: 0;
+
+    & > p {
+      margin: 0;
+    }
+  }
+}

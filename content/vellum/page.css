@@ -1,0 +1,987 @@
+/* The showcase chrome, drawn in Vellum itself. Scoped to .ds-vellum. */
+
+.ds-vellum.v-root {
+  --v-sticky: 64px;
+  min-height: 100dvh;
+  background: var(--paper);
+  color: var(--text-1);
+  overflow-x: clip;
+}
+
+.ds-vellum .v-page {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 32px;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 24px 16px 96px;
+}
+
+.ds-vellum .v-nav {
+  position: sticky;
+  top: 0;
+  z-index: 5;
+  display: flex;
+  gap: 2px;
+  margin: 0 -16px;
+  padding: 8px 16px;
+  overflow-x: auto;
+  scrollbar-width: none;
+  background: var(--paper);
+  border-bottom: 1px solid var(--line);
+}
+.ds-vellum .v-nav-group {
+  display: contents;
+}
+.ds-vellum .v-nav-group > p {
+  display: none;
+}
+.ds-vellum .v-nav a {
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+  height: 28px;
+  padding: 0 10px;
+  border-radius: var(--radius-pill);
+  font: 400 13px/1 var(--font-sans);
+  color: var(--text-2);
+  text-decoration: none;
+  white-space: nowrap;
+  transition:
+    background-color var(--dur-state) var(--ease-out),
+    color var(--dur-state) var(--ease-out);
+}
+.ds-vellum .v-nav a:hover {
+  color: var(--text-1);
+  background: var(--hover);
+}
+.ds-vellum .v-nav a[aria-current="true"] {
+  color: var(--text-1);
+  background: var(--hover);
+}
+
+@media (min-width: 1040px) {
+  .ds-vellum.v-root {
+    --v-sticky: 16px;
+  }
+  .ds-vellum .v-page {
+    grid-template-columns: 176px minmax(0, 1fr);
+    gap: 56px;
+    padding: 40px 32px 128px;
+  }
+  .ds-vellum .v-nav {
+    position: sticky;
+    top: 32px;
+    align-self: start;
+    flex-direction: column;
+    gap: 0;
+    margin: 0;
+    padding: 0;
+    overflow: visible;
+    max-height: calc(100dvh - 64px);
+    overflow-y: auto;
+    background: none;
+    border-bottom: 0;
+  }
+  .ds-vellum .v-nav-group {
+    display: grid;
+    gap: 0;
+    margin-bottom: 18px;
+  }
+  .ds-vellum .v-nav-group > p {
+    display: block;
+    padding: 0 8px 4px;
+    font: 500 13px/1.35 var(--font-sans);
+    color: var(--text-1);
+  }
+  .ds-vellum .v-nav a {
+    height: 28px;
+    padding: 0 8px;
+    border-radius: var(--radius-tag);
+  }
+}
+
+.ds-vellum .v-main {
+  display: grid;
+  gap: 0;
+  min-width: 0;
+  max-width: 880px;
+}
+
+/* Header */
+.ds-vellum .v-head {
+  display: grid;
+  gap: 10px;
+  padding-bottom: 28px;
+  box-shadow: inset 0 calc(var(--line-width) * -1) 0 var(--line-faint);
+}
+.ds-vellum .v-head-top {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+.ds-vellum .v-wordmark {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+}
+.ds-vellum .v-wordmark svg {
+  width: 22px;
+  height: 22px;
+}
+.ds-vellum .v-tagline {
+  max-width: 60ch;
+  font: 400 16px/1.5 var(--font-sans);
+  color: var(--text-2);
+  text-wrap: pretty;
+}
+.ds-vellum .v-counts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 14px;
+  font: 400 13px/1.35 var(--font-sans);
+  color: var(--text-2);
+}
+.ds-vellum .v-counts b {
+  font-weight: 500;
+  color: var(--text-1);
+  font-variant-numeric: tabular-nums;
+}
+
+/* Sections */
+.ds-vellum .v-part {
+  display: grid;
+  gap: 24px;
+  padding: 44px 0 8px;
+  scroll-margin-top: var(--v-sticky);
+}
+.ds-vellum .v-part-head {
+  display: grid;
+  gap: 6px;
+}
+.ds-vellum .v-part-head p {
+  max-width: 62ch;
+  font: 400 14px/1.5 var(--font-sans);
+  color: var(--text-2);
+}
+.ds-vellum .v-sub {
+  display: grid;
+  gap: 14px;
+  padding-top: 28px;
+  scroll-margin-top: var(--v-sticky);
+  box-shadow: inset 0 var(--line-width) 0 var(--line-faint);
+}
+.ds-vellum .v-part-head + .v-sub {
+  padding-top: 20px;
+}
+.ds-vellum .v-sub-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 4px 16px;
+}
+.ds-vellum .v-sub-head p {
+  font: 400 13px/1.5 var(--font-sans);
+  color: var(--text-2);
+}
+.ds-vellum .v-sub + .v-sub {
+  margin-top: 16px;
+}
+
+/* A stage: the page step under a specimen or a demo */
+.ds-vellum .v-stage {
+  position: relative;
+  border-radius: var(--radius-overlay);
+  background: var(--page);
+  box-shadow: inset 0 0 0 var(--line-width) var(--line-faint);
+  min-width: 0;
+}
+.ds-vellum .v-screen {
+  display: grid;
+  gap: 20px;
+  padding: 28px 16px;
+}
+@media (min-width: 720px) {
+  .ds-vellum .v-screen {
+    padding: 36px 40px;
+  }
+}
+.ds-vellum .v-screen-cols {
+  display: grid;
+  gap: 28px;
+  align-items: start;
+}
+@media (min-width: 820px) {
+  .ds-vellum .v-screen-cols {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  }
+  .ds-vellum .v-screen-cols[data-split="wide"] {
+    grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr);
+  }
+}
+.ds-vellum .v-moment {
+  display: grid;
+  gap: 12px;
+  width: 100%;
+  max-width: 400px;
+  margin: 0 auto;
+  min-width: 0;
+}
+.ds-vellum .v-moment[data-wide] {
+  max-width: 560px;
+}
+
+.ds-vellum .v-specimens {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 20px 16px;
+}
+@media (min-width: 680px) {
+  .ds-vellum .v-specimens {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+.ds-vellum .v-specimen {
+  display: grid;
+  grid-template-rows: 1fr auto;
+  gap: 8px;
+  min-width: 0;
+}
+.ds-vellum .v-specimen[data-span="2"] {
+  grid-column: 1 / -1;
+}
+.ds-vellum .v-specimen > .v-stage {
+  display: grid;
+  align-content: center;
+  gap: 12px;
+  min-height: 132px;
+  padding: 24px 20px;
+}
+.ds-vellum .v-specimen-cap {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 2px 8px;
+  font: 400 13px/1.35 var(--font-sans);
+  color: var(--text-1);
+}
+.ds-vellum .v-specimen-cap span {
+  color: var(--text-2);
+}
+
+.ds-vellum .v-cluster {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+.ds-vellum .v-center {
+  justify-content: center;
+}
+.ds-vellum .v-stack {
+  display: grid;
+  gap: 12px;
+  min-width: 0;
+}
+.ds-vellum .v-stack-sm {
+  display: grid;
+  gap: 6px;
+  min-width: 0;
+}
+.ds-vellum .v-between {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  min-width: 0;
+}
+.ds-vellum .v-fill {
+  width: 100%;
+  max-width: 400px;
+  justify-self: center;
+}
+.ds-vellum .v-fill[data-wide] {
+  max-width: 560px;
+}
+.ds-vellum .v-grow {
+  flex: 1 1 0;
+  min-width: 0;
+}
+.ds-vellum .v-end {
+  justify-content: flex-end;
+}
+.ds-vellum .v-items-end {
+  align-items: end;
+}
+.ds-vellum .v-items-start {
+  align-items: start;
+  justify-items: start;
+}
+.ds-vellum .v-text-center {
+  text-align: center;
+  justify-items: center;
+}
+.ds-vellum .v-push {
+  margin-inline-start: auto;
+}
+.ds-vellum .v-self-center {
+  justify-self: center;
+}
+.ds-vellum .v-wrap {
+  flex-wrap: wrap;
+}
+.ds-vellum .v-inline-flex {
+  display: inline-flex;
+}
+.ds-vellum .v-baseline {
+  align-items: baseline;
+}
+.ds-vellum .v-self-end {
+  align-self: end;
+}
+.ds-vellum .v-rule-top {
+  box-shadow: inset 0 var(--line-width) 0 var(--line-faint);
+}
+.ds-vellum .v-gap-0 {
+  gap: 0;
+}
+.ds-vellum .v-gap-2 {
+  gap: 2px;
+}
+.ds-vellum .v-gap-4 {
+  gap: 4px;
+}
+.ds-vellum .v-gap-8 {
+  gap: 8px;
+}
+.ds-vellum .v-gap-12 {
+  gap: 12px;
+}
+.ds-vellum .v-gap-16 {
+  gap: 16px;
+}
+.ds-vellum .v-gap-20 {
+  gap: 20px;
+}
+.ds-vellum .v-gap-24 {
+  gap: 24px;
+}
+.ds-vellum .v-pad-16 {
+  padding: 16px;
+}
+.ds-vellum .v-pad-20 {
+  padding: 20px;
+}
+.ds-vellum .v-w-160 {
+  width: 160px;
+}
+.ds-vellum .v-measure {
+  max-width: var(--measure);
+}
+
+/* Foundations: swatches */
+.ds-vellum .v-swatches {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(118px, 1fr));
+  gap: 16px 12px;
+  padding: 20px;
+}
+.ds-vellum .v-swatch {
+  display: grid;
+  gap: 6px;
+  min-width: 0;
+}
+.ds-vellum .v-swatch-chip {
+  height: 44px;
+  border-radius: var(--radius-tag);
+  box-shadow: inset 0 0 0 var(--line-width) var(--line-faint);
+}
+.ds-vellum .v-swatch-paper {
+  background: var(--paper);
+}
+.ds-vellum .v-swatch-name {
+  font: 400 12px/1.35 var(--font-sans);
+  color: var(--text-1);
+}
+.ds-vellum .v-swatch-value {
+  font: 400 calc(12px * var(--mono-scale)) / 1.35 var(--font-mono);
+  color: var(--text-2);
+  overflow-wrap: anywhere;
+}
+
+/* Foundation tables */
+.ds-vellum .v-scroll-x {
+  overflow-x: auto;
+  min-width: 0;
+}
+.ds-vellum .v-spec-table {
+  width: 100%;
+  border-collapse: collapse;
+  font: 400 13px/1.35 var(--font-sans);
+}
+.ds-vellum .v-spec-table th {
+  padding: 0 12px 8px 0;
+  font: 400 12px/1.35 var(--font-sans);
+  color: var(--text-2);
+  text-align: start;
+  white-space: nowrap;
+}
+.ds-vellum .v-spec-table td {
+  padding: 9px 12px 9px 0;
+  vertical-align: middle;
+  box-shadow: inset 0 var(--line-width) 0 var(--line-faint);
+  color: var(--text-1);
+}
+.ds-vellum .v-block {
+  display: block;
+}
+.ds-vellum .v-spec-table td.v-nowrap {
+  white-space: nowrap;
+}
+.ds-vellum .v-spec-table .v-num {
+  text-align: end;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+.ds-vellum .v-dot-swatch {
+  display: inline-block;
+  width: 14px;
+  height: 14px;
+  margin-inline-end: 8px;
+  vertical-align: -2px;
+  border-radius: var(--radius-tag);
+  box-shadow: inset 0 0 0 var(--line-width) var(--line-faint);
+}
+.ds-vellum .v-pass {
+  color: var(--ok-text);
+}
+.ds-vellum .v-short {
+  color: var(--fail-text);
+}
+
+/* Type specimen */
+.ds-vellum .v-type-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 4px;
+  padding: 14px 0;
+  box-shadow: inset 0 var(--line-width) 0 var(--line-faint);
+}
+@media (min-width: 680px) {
+  .ds-vellum .v-type-row {
+    grid-template-columns: 136px minmax(0, 1fr) 150px;
+    align-items: baseline;
+    gap: 16px;
+  }
+}
+.ds-vellum .v-type-sample {
+  min-width: 0;
+  text-wrap: pretty;
+}
+.ds-vellum .v-type-meta {
+  font: 400 12px/1.35 var(--font-sans);
+  color: var(--text-2);
+  font-variant-numeric: tabular-nums;
+}
+
+/* Radius */
+.ds-vellum .v-radius-strip {
+  width: 96px;
+}
+.ds-vellum .v-radius-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: 12px;
+  padding: 20px;
+}
+.ds-vellum .v-radius-cell {
+  display: grid;
+  gap: 8px;
+  align-content: start;
+}
+.ds-vellum .v-radius-demo {
+  display: grid;
+  place-items: center;
+  height: 84px;
+}
+
+/* Space */
+.ds-vellum .v-space-row {
+  --space-scale: 4;
+
+  display: grid;
+  grid-template-columns: 56px minmax(0, 1fr) minmax(0, 220px);
+  align-items: center;
+  gap: 12px;
+  min-height: 28px;
+}
+@media (max-width: 559px) {
+  .ds-vellum .v-space-row {
+    --space-scale: 2.5;
+
+    grid-template-columns: 40px 100px minmax(0, 1fr);
+  }
+}
+.ds-vellum .v-space-bar {
+  max-width: 100%;
+  height: 10px;
+  border-radius: 2px;
+  background: var(--ink-15);
+}
+
+/* Lines */
+.ds-vellum .v-line-sample {
+  height: 0;
+  border-top: var(--line-width) solid;
+  width: 100%;
+}
+
+/* Elevation */
+.ds-vellum .v-levels {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+  gap: 12px;
+}
+.ds-vellum .v-level {
+  display: grid;
+  gap: 8px;
+}
+.ds-vellum .v-level-stage {
+  position: relative;
+  display: grid;
+  place-items: center;
+  height: 120px;
+  overflow: hidden;
+  border-radius: var(--radius-overlay);
+  background: var(--page);
+  box-shadow: inset 0 0 0 var(--line-width) var(--line-faint);
+}
+.ds-vellum .v-level-scrim {
+  position: absolute;
+  inset: 0;
+  background: var(--scrim);
+}
+
+/* Motion */
+.ds-vellum .v-motion-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(150px, 100%), 1fr));
+  gap: 12px;
+}
+@media (min-width: 560px) {
+  .ds-vellum .v-motion-grid {
+    grid-template-columns: repeat(auto-fill, minmax(196px, 1fr));
+  }
+}
+.ds-vellum .v-motion-cell {
+  display: grid;
+  gap: 10px;
+  padding: 14px;
+  border-radius: var(--radius-overlay);
+  background: var(--page);
+  box-shadow: inset 0 0 0 var(--line-width) var(--line-faint);
+  min-width: 0;
+}
+.ds-vellum .v-motion-track {
+  position: relative;
+  display: grid;
+  place-items: center;
+  height: 72px;
+  border-radius: var(--radius-tag);
+}
+.ds-vellum .v-motion-meta {
+  display: grid;
+  gap: 1px;
+}
+.ds-vellum .v-curve {
+  width: 100%;
+  height: auto;
+}
+.ds-vellum .v-curve path {
+  fill: none;
+  stroke: var(--ink-80);
+  stroke-width: 1.5;
+}
+.ds-vellum .v-curve .v-curve-base {
+  stroke: var(--line);
+  stroke-width: 1;
+}
+.ds-vellum .v-rail {
+  position: absolute;
+  left: 8px;
+  right: 22px;
+  bottom: 0;
+  height: 10px;
+}
+.ds-vellum .v-runner {
+  display: block;
+  width: 10px;
+  height: 10px;
+  border-radius: var(--radius-pill);
+  background: var(--ink-80);
+}
+.ds-vellum .v-slide-demo {
+  position: relative;
+  width: 100%;
+  height: 26px;
+  border-radius: var(--radius-pill);
+  background: var(--field);
+}
+.ds-vellum .v-slide-demo > span {
+  position: absolute;
+  top: 2px;
+  bottom: 2px;
+  left: 2px;
+  width: calc(50% - 2px);
+  border-radius: var(--radius-pill);
+  background: var(--paper);
+  box-shadow: 0 0 0 var(--line-width) var(--line);
+  transition: translate var(--dur-slide) var(--ease-out);
+}
+.ds-vellum .v-slide-demo[data-on] > span {
+  translate: 100% 0;
+}
+.ds-vellum .v-pop-demo {
+  position: absolute;
+  top: 48px;
+  width: 120px;
+  padding: 8px 10px;
+  font: 400 12px/1.35 var(--font-sans);
+}
+
+/* Anti-slop */
+.ds-vellum .v-rules {
+  display: grid;
+  gap: 16px;
+}
+.ds-vellum .v-rule {
+  display: grid;
+  gap: 10px;
+  padding-top: 16px;
+  box-shadow: inset 0 var(--line-width) 0 var(--line-faint);
+}
+.ds-vellum .v-rule:first-child {
+  padding-top: 0;
+  box-shadow: none;
+}
+.ds-vellum .v-rule-pair {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 12px;
+}
+@media (min-width: 680px) {
+  .ds-vellum .v-rule-pair {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+.ds-vellum .v-rule-side {
+  display: grid;
+  grid-template-rows: 1fr auto;
+  gap: 6px;
+  min-width: 0;
+}
+.ds-vellum .v-rule-side > .v-stage {
+  display: grid;
+  place-items: center;
+  min-height: 112px;
+  padding: 18px 16px;
+}
+.ds-vellum .v-verdict {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font: 500 12px/1.35 var(--font-sans);
+  letter-spacing: var(--tracking-label);
+}
+.ds-vellum .v-verdict svg {
+  width: var(--icon-sm);
+  height: var(--icon-sm);
+}
+.ds-vellum .v-verdict[data-ok] {
+  color: var(--ok-text);
+}
+.ds-vellum .v-verdict[data-bad] {
+  color: var(--fail-text);
+}
+
+/* Deliberately wrong samples for the anti-slop rules */
+.ds-vellum .v-slop-w {
+  width: min(220px, 100%);
+}
+.ds-vellum .v-slop-glass {
+  padding: 14px;
+  border-radius: var(--radius-shell);
+}
+.ds-vellum .v-slop-menu {
+  display: grid;
+  width: 168px;
+  padding: 4px;
+  border-radius: var(--radius-overlay);
+  background: var(--paper);
+}
+.ds-vellum .v-slop-shadow {
+  box-shadow: 0 12px 28px rgb(0 0 0 / 0.18);
+}
+.ds-vellum .v-slop-rail {
+  border-radius: var(--radius-overlay);
+  background: var(--paper);
+  box-shadow:
+    inset 3px 0 0 var(--ink),
+    0 0 0 var(--line-width) var(--line-faint);
+}
+.ds-vellum .v-slop-chosen {
+  border-radius: var(--radius-overlay);
+  background: var(--pressed);
+}
+.ds-vellum .v-slop-caps {
+  font: 500 10px/1.35 var(--font-sans);
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--text-2);
+}
+.ds-vellum .v-slop-dot {
+  display: inline-block;
+  width: 6px;
+  height: 6px;
+  margin-inline-end: 6px;
+  border-radius: var(--radius-pill);
+  background: var(--ok);
+}
+.ds-vellum .v-slop-dot[data-tone="fail"] {
+  background: var(--fail);
+}
+.ds-vellum .v-slop-gradient {
+  background: linear-gradient(135deg, #6d5cff, #e45fd0 55%, #ffb36b);
+  color: #fff;
+}
+
+/* Icon specimen */
+.ds-vellum .v-icon-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(86px, 1fr));
+  gap: 8px;
+}
+.ds-vellum .v-icon-cell {
+  display: grid;
+  justify-items: center;
+  gap: 8px;
+  padding: 14px 6px 10px;
+  border-radius: var(--radius-overlay);
+  background: var(--paper);
+  box-shadow: inset 0 0 0 var(--line-width) var(--line-faint);
+  font: 400 12px/1.35 var(--font-sans);
+  color: var(--text-2);
+}
+.ds-vellum .v-icon-cell svg {
+  width: var(--icon-lg);
+  height: var(--icon-lg);
+  color: var(--text-1);
+}
+
+.ds-vellum .v-foot {
+  padding-top: 40px;
+  margin-top: 40px;
+  box-shadow: inset 0 var(--line-width) 0 var(--line-faint);
+  font: 400 12px/1.5 var(--font-sans);
+  color: var(--text-2);
+}
+
+.ds-vellum .v-bare {
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+.ds-vellum .v-moment-docs {
+  max-width: 600px;
+}
+
+/* Colour tokens */
+.ds-vellum .v-probes {
+  display: none;
+}
+.ds-vellum .v-disabled {
+  color: var(--text-disabled);
+}
+.ds-vellum .v-bullets {
+  max-width: var(--measure);
+  padding-inline-start: 18px;
+  list-style: disc;
+}
+.ds-vellum .v-spec-table th[data-current] {
+  color: var(--text-1);
+}
+.ds-vellum .v-spec-table tbody th {
+  padding: 9px 12px 9px 0;
+  font-weight: 400;
+  text-align: start;
+  white-space: nowrap;
+  box-shadow: inset 0 var(--line-width) 0 var(--line-faint);
+  color: var(--text-1);
+}
+.ds-vellum .v-token-table td,
+.ds-vellum .v-token-table tbody th {
+  vertical-align: top;
+}
+.ds-vellum .v-token-value {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  white-space: nowrap;
+}
+.ds-vellum .v-token-chip {
+  width: 22px;
+  height: 12px;
+  flex-shrink: 0;
+  border-radius: var(--radius-mark);
+  box-shadow: inset 0 0 0 var(--line-width) var(--line);
+}
+@media (max-width: 719px) {
+  .ds-vellum .v-token-table thead {
+    display: none;
+  }
+  .ds-vellum .v-token-table,
+  .ds-vellum .v-token-table tbody {
+    display: block;
+  }
+  .ds-vellum .v-token-table tr {
+    display: grid;
+    grid-template-columns: 72px minmax(0, 1fr);
+    gap: 4px 12px;
+    padding: 10px 0;
+    box-shadow: inset 0 var(--line-width) 0 var(--line-faint);
+  }
+  .ds-vellum .v-token-table tbody th {
+    grid-column: 1 / -1;
+    padding: 0;
+    box-shadow: none;
+  }
+  .ds-vellum .v-token-table td {
+    display: contents;
+  }
+  .ds-vellum .v-token-table td[data-empty] {
+    display: none;
+  }
+  .ds-vellum .v-token-table td::before {
+    content: attr(data-label);
+    color: var(--text-2);
+    font-size: 12px;
+  }
+}
+
+/* Foundation samples */
+.ds-vellum .v-mono-full {
+  font-family: var(--font-mono);
+}
+.ds-vellum .v-row-sample {
+  flex: 1 1 220px;
+  min-width: 0;
+}
+.ds-vellum .v-radius-shell {
+  width: 120px;
+}
+.ds-vellum .v-radius-panel {
+  height: 52px;
+}
+.ds-vellum .v-radius-menu {
+  display: grid;
+  gap: 2px;
+  width: 128px;
+  padding: 4px;
+}
+.ds-vellum .v-line-row {
+  grid-template-columns: 100px minmax(0, 1fr) 84px;
+}
+.ds-vellum .v-text-end {
+  text-align: end;
+}
+.ds-vellum .v-field-demo {
+  width: 180px;
+}
+.ds-vellum .v-field-demo[data-demo="focus"] {
+  box-shadow: inset 0 0 0 var(--line-width) var(--line-focus);
+}
+.ds-vellum .v-focus-demo {
+  outline: var(--focus-width) solid var(--focus);
+  outline-offset: var(--focus-offset);
+}
+.ds-vellum .v-level-card {
+  width: 132px;
+}
+.ds-vellum .v-level-pop {
+  padding: 8px 12px;
+}
+.ds-vellum .v-level-dialog {
+  position: relative;
+  width: 140px;
+  box-shadow: 0 0 0 var(--line-width) var(--line);
+}
+.ds-vellum .v-level-note {
+  flex: 1 1 260px;
+}
+
+/* Motion demos */
+.ds-vellum .v-motion-w {
+  width: 150px;
+  max-width: 100%;
+}
+.ds-vellum .v-motion-field {
+  width: 150px;
+  max-width: 100%;
+  box-shadow: inset 0 0 0 var(--line-width) var(--line-control);
+}
+.ds-vellum .v-motion-field[data-on] {
+  box-shadow: inset 0 0 0 var(--line-width) var(--line-focus);
+}
+.ds-vellum .v-motion-anchor {
+  align-self: start;
+  margin-top: 2px;
+}
+.ds-vellum .v-motion-pop {
+  top: calc(100% + 6px);
+  left: 50%;
+  width: 120px;
+  min-width: 0;
+  margin-left: -60px;
+  padding: 6px 10px;
+}
+.ds-vellum .v-motion-dialog {
+  width: 150px;
+  box-shadow: 0 0 0 var(--line-width) var(--line);
+  opacity: 0;
+  scale: var(--scale-overlay);
+  transition:
+    opacity var(--dur-state) var(--ease-in),
+    scale var(--dur-state) var(--ease-in);
+}
+.ds-vellum .v-motion-dialog[data-open] {
+  opacity: 1;
+  scale: 1;
+  transition:
+    opacity var(--dur-overlay) var(--ease-out),
+    scale var(--dur-overlay) var(--ease-out);
+}
+.ds-vellum .v-curve-box {
+  width: 100px;
+  height: 50px;
+  margin-bottom: 12px;
+}
+.ds-vellum .v-run {
+  display: block;
+  animation: v-run var(--dur-demo) var(--ease-out) both;
+}
+.ds-vellum .v-run[data-ease="in"] {
+  animation-timing-function: var(--ease-in);
+}
+@keyframes v-run {
+  from {
+    translate: 0 0;
+  }
+  to {
+    translate: 100% 0;
+  }
+}
