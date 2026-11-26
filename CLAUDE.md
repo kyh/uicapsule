@@ -372,6 +372,9 @@ asked for, so a foreign page holding a code could sign its visitor in.
   `packages/db` in web's build hash. Without it a `packages/db`-only commit is the same stale
   `FULL TURBO` replay as a content-only one. Don't list `@repo/db` in `apps/web` to fix that
   instead: nothing there imports it.
+- **`dev`/`dev:web` use `turbo run`, not `turbo watch` — keep it.** `next dev` and the Vite
+  preview server watch their own files. Under `turbo watch`, `globalDependencies` (`content/**`)
+  restarts both on every content edit, which kills preview hot-swaps and blanks frames mid-edit.
 - Settled audit findings that should not be re-raised live in the pinned issue #84.
 
 ## Content Curation Philosophy
