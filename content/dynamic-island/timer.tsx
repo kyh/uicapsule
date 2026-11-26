@@ -26,14 +26,16 @@ const Counter = ({ paused }: { paused: boolean }) => {
     };
   }, [paused]);
 
+  const seconds = count % 60;
+
   const digits = [
-    { place: "tens", value: Math.floor(count / 10) },
-    { place: "ones", value: count % 10 },
+    { place: "minutes", value: Math.floor(count / 60) },
+    { place: "tens", value: Math.floor(seconds / 10) },
+    { place: "ones", value: seconds % 10 },
   ];
 
   return (
     <div className="relative w-[64px] overflow-hidden text-3xl font-light whitespace-nowrap">
-      0:
       <AnimatePresence initial={false} mode="popLayout">
         {digits.map((digit) => (
           <motion.div
@@ -45,6 +47,7 @@ const Counter = ({ paused }: { paused: boolean }) => {
             transition={{ bounce: 0.35, type: "spring" }}
           >
             {digit.value}
+            {digit.place === "minutes" && ":"}
           </motion.div>
         ))}
       </AnimatePresence>
