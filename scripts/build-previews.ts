@@ -8,6 +8,7 @@ import react from "@vitejs/plugin-react";
 import { defineCommand, runMain } from "citty";
 import { consola } from "consola";
 import { build, createServer } from "vite";
+import { z } from "zod";
 import type { InlineConfig, Plugin, Rollup } from "vite";
 
 import { contentMetaSchema } from "../apps/web/src/lib/content/content-schema";
@@ -234,13 +235,15 @@ const requireFromWeb = createRequire(path.join(webRoot, "package.json"));
 const IDENTIFIER = /^[A-Za-z_$][\w$]*$/u;
 
 const sharedModuleSource = (specifier: string) => {
-  const exported = requireFromWeb(specifier) as { __esModule?: boolean };
+  const required: unknown = requireFromWeb(specifier);
 
-  if (exported.__esModule) {
+  if (z.object({ __esModule: z.literal(true) }).safeParse(required).success) {
     return `export * from ${JSON.stringify(specifier)};`;
   }
 
-  const names = Object.keys(exported).filter((name) => name !== "default" && IDENTIFIER.test(name));
+  const names = Object.keys(z.record(z.string(), z.unknown()).parse(required)).filter(
+    (name) => name !== "default" && IDENTIFIER.test(name),
+  );
 
   return [
     `import shared from ${JSON.stringify(specifier)};`,

@@ -53,7 +53,9 @@ export const canonicalOrigin = () => {
     return `https://${process.env.VERCEL_BRANCH_URL ?? process.env.VERCEL_URL}`;
   }
 
-  return process.env.BETTER_AUTH_URL || "http://localhost:3000";
+  return process.env.BETTER_AUTH_URL === undefined || process.env.BETTER_AUTH_URL === ""
+    ? "http://localhost:3000"
+    : process.env.BETTER_AUTH_URL;
 };
 
 /** The issuer of every JWT, pinned so a token minted through any of a deployment's hosts verifies. */

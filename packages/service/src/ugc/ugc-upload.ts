@@ -9,24 +9,40 @@ const answer = (status: number, message: string) =>
   Response.json({ error: message }, { headers: { "Cache-Control": "no-store" }, status });
 
 const readBody = async (request: Request, limit: number) => {
-  const chunks: Uint8Array[] = [];
-  let size = 0;
-
   if (!request.body) {
     return Buffer.alloc(0);
   }
 
-  for await (const chunk of request.body) {
-    size += chunk.byteLength;
+  const reader = request.body.getReader();
+  const chunks: Uint8Array[] = [];
 
-    if (size > limit) {
-      return null;
+  const drain: (size: number) => Promise<boolean> = async (size) => {
+    const chunk: { done: boolean; value?: unknown } = await reader.read();
+
+    if (chunk.done) {
+      return true;
     }
 
-    chunks.push(chunk);
-  }
+    const { value } = chunk;
 
-  return Buffer.concat(chunks);
+    if (!(value instanceof Uint8Array)) {
+      throw new TypeError("The request body is not a byte stream");
+    }
+
+    const total = size + value.byteLength;
+
+    if (total > limit) {
+      await reader.cancel();
+
+      return false;
+    }
+
+    chunks.push(value);
+
+    return await drain(total);
+  };
+
+  return (await drain(0)) ? Buffer.concat(chunks) : null;
 };
 
 /**

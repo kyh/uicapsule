@@ -10,17 +10,20 @@ import { z } from "zod";
 /** The paths, relative to the build, of every file already uploaded for one build. */
 export const uploadedFiles = async (prefix: string, token: string) => {
   const files = new Set<string>();
-  let cursor: string | undefined;
 
-  do {
+  const collect: (cursor: string | undefined) => Promise<void> = async (cursor) => {
     const page = await list({ cursor, prefix: `${prefix}/`, token });
 
     for (const blob of page.blobs) {
       files.add(blob.pathname.slice(prefix.length + 1));
     }
 
-    cursor = page.hasMore ? page.cursor : undefined;
-  } while (cursor);
+    if (page.hasMore) {
+      await collect(page.cursor);
+    }
+  };
+
+  await collect(undefined);
 
   return files;
 };

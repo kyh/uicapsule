@@ -35,7 +35,7 @@ export interface Publisher {
 export const blobToken = () => {
   const token = process.env.BLOB_READ_WRITE_TOKEN;
 
-  if (!token) {
+  if (token === undefined || token === "") {
     throw new ORPCError("SERVICE_UNAVAILABLE", { message: "Publishing is not configured" });
   }
 
@@ -45,7 +45,7 @@ export const blobToken = () => {
 const assetsUrl = () => {
   const url = process.env.NEXT_PUBLIC_ASSETS_URL;
 
-  if (!url) {
+  if (url === undefined || url === "") {
     throw new ORPCError("SERVICE_UNAVAILABLE", { message: "Publishing is not configured" });
   }
 
@@ -53,7 +53,7 @@ const assetsUrl = () => {
 };
 
 const requireHandle = (username: string | null | undefined) => {
-  if (!username) {
+  if (username === undefined || username === null || username === "") {
     throw new ORPCError("PRECONDITION_FAILED", {
       message: "Pick a username first: it is the /u/<username> your components live under",
     });

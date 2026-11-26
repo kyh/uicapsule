@@ -25,10 +25,16 @@ export const ConsentForm = () => {
       return;
     }
 
-    authClient.oauth2
-      .publicClient({ query: { client_id: clientId } })
-      .then(({ data }) => setClientName(clientSchema.safeParse(data).data?.client_name ?? null))
-      .catch(() => setClientName(null));
+    const load = async () => {
+      try {
+        const { data } = await authClient.oauth2.publicClient({ query: { client_id: clientId } });
+        setClientName(clientSchema.safeParse(data).data?.client_name ?? null);
+      } catch {
+        setClientName(null);
+      }
+    };
+
+    void load();
   }, [clientId]);
 
   const answer = async (accept: boolean) => {
@@ -56,24 +62,32 @@ export const ConsentForm = () => {
         <h1 className="text-lg font-light">Allow {app} to publish for you?</h1>
         <p className="text-muted-foreground text-sm text-pretty">
           {app} will be able to publish components to
-          {session?.user.username ? ` @${session.user.username}` : " your account"} and list the
-          ones you have published. It cannot read your email or password.
+          {session?.user.username !== undefined &&
+          session.user.username !== null &&
+          session.user.username !== ""
+            ? ` @${session.user.username}`
+            : " your account"}{" "}
+          and list the ones you have published. It cannot read your email or password.
         </p>
       </div>
-      <FieldError errors={error ? [{ message: error }] : undefined} />
+      <FieldError errors={error !== null && error !== "" ? [{ message: error }] : undefined} />
       <div className="grid grid-cols-2 gap-2">
         <Button
           variant="outline"
           loading={pending === "deny"}
           disabled={pending !== null}
-          onClick={() => answer(false)}
+          onClick={() => {
+            void answer(false);
+          }}
         >
           Deny
         </Button>
         <Button
           loading={pending === "allow"}
           disabled={pending !== null}
-          onClick={() => answer(true)}
+          onClick={() => {
+            void answer(true);
+          }}
         >
           Allow
         </Button>

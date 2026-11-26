@@ -1,3 +1,4 @@
+import { z } from "zod";
 import assert from "node:assert/strict";
 import { test } from "node:test";
 
@@ -8,6 +9,8 @@ import {
   renderPreviewShell,
   renderUgcShell,
 } from "./preview-shell";
+
+const importMapSchema = z.object({ imports: z.record(z.string(), z.string()) });
 
 test("the preview document is sandboxed by its own header", () => {
   assert.equal(previewShellHeaders["Content-Security-Policy"], `sandbox ${PREVIEW_SANDBOX}`);
@@ -71,7 +74,7 @@ test("a user-published preview boots its Blob build through the frame's runtime"
 
 test("a user-published preview's bare imports resolve to the frame's one React", () => {
   const map = /<script type="importmap">(?<map>.*?)<\/script>/u.exec(ugc.body)?.groups?.map ?? "";
-  const { imports } = JSON.parse(map) as { imports: Record<string, string> };
+  const { imports } = importMapSchema.parse(JSON.parse(map));
 
   assert.equal(imports.react, "https://preview.example/previews/_ugc/react.js");
   assert.equal(

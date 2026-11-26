@@ -25,7 +25,13 @@ export const signUploadGrant = (grant: UploadGrant, secret: string) => {
 export const verifyUploadGrant = (token: string, secret: string, now = Date.now()) => {
   const [payload, signature, ...rest] = token.split(".");
 
-  if (!payload || !signature || rest.length > 0) {
+  if (
+    payload === undefined ||
+    payload === "" ||
+    signature === undefined ||
+    signature === "" ||
+    rest.length > 0
+  ) {
     return null;
   }
 

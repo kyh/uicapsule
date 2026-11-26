@@ -25,13 +25,17 @@ import { ugcPreviewFrameSrc } from "@/lib/preview-protocol";
 const writes = { annotations: { destructiveHint: false, openWorldHint: false } };
 
 const withUsername = async (publisher: Publisher, username: string | undefined) => {
-  if (publisher.username || !username) {
+  if (
+    (publisher.username !== null && publisher.username !== "") ||
+    username === undefined ||
+    username === ""
+  ) {
     return publisher;
   }
 
   const claimed = await claimUsername(publisher.id, username);
 
-  if (!claimed) {
+  if (claimed === undefined || claimed === null || claimed === "") {
     throw new ORPCError("CONFLICT", {
       message: `The username ${username} is taken. Pick another.`,
     });
@@ -40,8 +44,14 @@ const withUsername = async (publisher: Publisher, username: string | undefined) 
   return { ...publisher, username: claimed };
 };
 
+const previewOrigin = () => {
+  const url = process.env.NEXT_PUBLIC_PREVIEW_URL;
+
+  return url === undefined || url === "" ? canonicalOrigin() : url;
+};
+
 const previewUrl = (handle: string, slug: string) =>
-  ugcPreviewFrameSrc(handle, slug, process.env.NEXT_PUBLIC_PREVIEW_URL || canonicalOrigin());
+  ugcPreviewFrameSrc(handle, slug, previewOrigin());
 
 const tools = (publisher: Publisher) => ({
   get_upload_urls: os
@@ -125,7 +135,8 @@ const tools = (publisher: Publisher) => ({
 });
 
 const serve = async (request: Request, subject: string | undefined) => {
-  const publisher = subject ? await findPublisher(subject) : undefined;
+  const publisher =
+    subject !== undefined && subject !== "" ? await findPublisher(subject) : undefined;
 
   if (!publisher) {
     return Response.json({ error: "This account no longer exists" }, { status: 401 });

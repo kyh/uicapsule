@@ -43,7 +43,10 @@ const bundle = async (dir: string, assetBase: string) => {
     root: dir,
   });
 
-  const outputs = (Array.isArray(result) ? result : [result]) as Rollup.RollupOutput[];
+  const outputs = (Array.isArray(result) ? result : [result]).filter(
+    (output): output is Rollup.RolldownOutput => "output" in output,
+  );
+
   const files = new Map<string, Uint8Array>();
   const css: string[] = [];
 
@@ -106,15 +109,17 @@ const main = defineCommand({
       throw new Error(`${dir} has no preview.tsx`);
     }
 
-    if (args.out) {
+    if (args.out !== undefined && args.out !== "") {
       const build = newUgcBuild();
       const files = await bundle(dir, args["asset-base"] ?? `https://assets.invalid/ugc/${build}`);
       const out = path.join(path.resolve(args.out), build);
 
-      for (const [file, contents] of files) {
-        await mkdir(path.dirname(path.join(out, file)), { recursive: true });
-        await writeFile(path.join(out, file), contents);
-      }
+      await Promise.all(
+        [...files].map(async ([file, contents]) => {
+          await mkdir(path.dirname(path.join(out, file)), { recursive: true });
+          await writeFile(path.join(out, file), contents);
+        }),
+      );
 
       consola.success(`Built ${files.size} files into ${out}`);
 
@@ -123,17 +128,17 @@ const main = defineCommand({
 
     const token = process.env.UICAPSULE_TOKEN;
 
-    if (!token) {
+    if (token === undefined || token === "") {
       throw new Error("UICAPSULE_TOKEN is unset: sign in and pass your session token");
     }
 
-    if (!args.name) {
+    if (args.name === undefined || args.name === "") {
       throw new Error("--name is required to publish");
     }
 
     const headers = { authorization: `Bearer ${token}` };
 
-    if (args.username) {
+    if (args.username !== undefined && args.username !== "") {
       const response = await fetch(new URL("/api/auth/update-user", args.url), {
         body: JSON.stringify({ username: args.username }),
         headers: { ...headers, "content-type": "application/json" },
@@ -158,17 +163,19 @@ const main = defineCommand({
       slug,
     });
 
-    for (const upload of uploads) {
-      const response = await fetch(upload.url, {
-        body: files.get(upload.path) ?? new Uint8Array(),
-        headers: { "content-type": upload.contentType },
-        method: "PUT",
-      });
+    await Promise.all(
+      uploads.map(async (upload) => {
+        const response = await fetch(upload.url, {
+          body: files.get(upload.path) ?? new Uint8Array(),
+          headers: { "content-type": upload.contentType },
+          method: "PUT",
+        });
 
-      if (!response.ok) {
-        throw new Error(`Uploading ${upload.path} failed: ${await response.text()}`);
-      }
-    }
+        if (!response.ok) {
+          throw new Error(`Uploading ${upload.path} failed: ${await response.text()}`);
+        }
+      }),
+    );
 
     const published = await client.ugc.publish({ build, name: args.name, slug });
 
