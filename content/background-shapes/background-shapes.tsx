@@ -47,7 +47,9 @@ const Cell5 = ({ colors, strokeWidth }: CellProps) => (
 
 const Cell6 = () => null;
 
-const Cell7 = () => <rect width="75" height="75" x="12.5" y="12.5" fill="rgba(255,255,255,0.1)" />;
+const Cell7 = ({ colors }: CellProps) => (
+  <rect width="75" height="75" x="12.5" y="12.5" fill={colors[0]} fillOpacity={0.1} />
+);
 
 interface CellConfig {
   glyph: CellComponent;
@@ -73,20 +75,21 @@ const fallbackCell: CellConfig = { glyph: Cell1, weight: 1 };
 const pickCell = () =>
   weightedCells[Math.floor(Math.random() * weightedCells.length)] ?? fallbackCell;
 
-const CELL_SCALE = 0.2;
+const GLYPH_VIEWBOX = 100;
 
 const DEFAULT_COLORS = ["white"];
 
 interface GridCellProps {
   x: number;
   y: number;
+  size: number;
   colors: string[];
   strokeWidth: number;
   minInterval: number;
   maxInterval: number;
 }
 
-const GridCell = ({ x, y, colors, strokeWidth, minInterval, maxInterval }: GridCellProps) => {
+const GridCell = ({ x, y, size, colors, strokeWidth, minInterval, maxInterval }: GridCellProps) => {
   const [currentCell, setCurrentCell] = useState<CellConfig>(pickCell);
 
   useEffect(() => {
@@ -112,7 +115,7 @@ const GridCell = ({ x, y, colors, strokeWidth, minInterval, maxInterval }: GridC
 
   return (
     <g transform={`translate(${x} ${y})`}>
-      <g transform={`scale(${CELL_SCALE})`}>
+      <g transform={`scale(${size / GLYPH_VIEWBOX})`}>
         <Glyph colors={colors} strokeWidth={strokeWidth} />
       </g>
     </g>
@@ -145,22 +148,28 @@ export const BackgroundGlyphs = ({
   const cells = useMemo<ReactNode[]>(() => {
     const list: ReactNode[] = [];
 
-    for (let x = borderSize; x < width / 2; x += cellSize) {
-      for (let y = borderSize; y < height - borderSize; y += cellSize) {
+    for (let column = 0; borderSize + (column + 1) * cellSize <= width / 2; column += 1) {
+      const x = borderSize + column * cellSize;
+
+      for (let row = 0; borderSize + row * cellSize < height - borderSize; row += 1) {
+        const y = borderSize + row * cellSize;
+
         list.push(
           <GridCell
-            key={`left-${x}-${y}`}
+            key={`left-${column}-${row}`}
             x={x}
             y={y}
+            size={cellSize}
             colors={colors}
             strokeWidth={strokeWidth}
             minInterval={minInterval}
             maxInterval={maxInterval}
           />,
           <GridCell
-            key={`right-${x}-${y}`}
+            key={`right-${column}-${row}`}
             x={width - cellSize - x}
             y={y}
+            size={cellSize}
             colors={colors}
             strokeWidth={strokeWidth}
             minInterval={minInterval}

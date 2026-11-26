@@ -66,8 +66,7 @@ const defaults: Required<WireframeOrbConfig> = {
 const vertexShader = `
   attribute vec2 aUv;
 
-  uniform float time;
-  uniform float uSpeed;
+  uniform float uPhase;
   uniform float uDensity;
   uniform float uScale;
 
@@ -169,7 +168,7 @@ const vertexShader = `
 
   void main() {
     vUv = aUv;
-    vec3 pos = vec3(aUv * 2.0 - 1.0, 0.0) + time * uSpeed;
+    vec3 pos = vec3(aUv * 2.0 - 1.0, 0.0) + uPhase * 0.005;
     vec3 noise = curlNoise(pos * uDensity);
     pos = noise * uScale;
     vPositionZ = noise.z;
@@ -178,11 +177,10 @@ const vertexShader = `
 `;
 
 const fragmentShader = `
-  uniform float time;
+  uniform float uPhase;
   uniform vec3 uColor;
   uniform float uMinAlpha;
   uniform float uMaxAlpha;
-  uniform float uAlphaSpeed;
 
   varying vec2 vUv;
   varying float vPositionZ;
@@ -190,7 +188,7 @@ const fragmentShader = `
   const float PI2 = 6.2831853;
 
   void main() {
-    float cAlpha = mix(uMinAlpha, uMaxAlpha, (sin(vUv.x * PI2 + time * uAlphaSpeed) + 1.0) * 0.5);
+    float cAlpha = mix(uMinAlpha, uMaxAlpha, (sin(vUv.x * PI2 + uPhase * 0.025) + 1.0) * 0.5);
     cAlpha *= mix(0.8, 1.0, vPositionZ);
     gl_FragColor = vec4(uColor, cAlpha);
   }
@@ -211,10 +209,11 @@ const getAdaptiveGridSize = (requested: number) => {
 };
 
 const WireframeScene = ({ config }: { config: Required<WireframeOrbConfig> }) => {
+  const { color, gridSize, maxAlpha, minAlpha, noiseDensity, noiseScale, speed } = config;
   const materialRef = useRef<THREE.ShaderMaterial>(null);
 
   const geometry = useMemo(() => {
-    const n = getAdaptiveGridSize(config.gridSize);
+    const n = getAdaptiveGridSize(gridSize);
     const maxI = n - 1;
     const vertexCount = n * n;
     const uvs = new Float32Array(vertexCount * 2);
@@ -233,7 +232,7 @@ const WireframeScene = ({ config }: { config: Required<WireframeOrbConfig> }) =>
     geo.setAttribute("aUv", new THREE.Float32BufferAttribute(uvs, 2));
 
     return geo;
-  }, [config.gridSize]);
+  }, [gridSize]);
 
   useEffect(
     () => () => {
@@ -242,33 +241,37 @@ const WireframeScene = ({ config }: { config: Required<WireframeOrbConfig> }) =>
     [geometry],
   );
 
-  const uniforms = useMemo(() => {
-    const col = new THREE.Color(config.color);
+  const uniforms = useMemo(
+    () => ({
+      uColor: { value: new THREE.Color() },
+      uDensity: { value: 0 },
+      uMaxAlpha: { value: 0 },
+      uMinAlpha: { value: 0 },
+      uPhase: { value: 0 },
+      uScale: { value: 0 },
+    }),
+    [],
+  );
 
-    return {
-      time: { value: 0 },
-      uAlphaSpeed: { value: config.speed * 0.025 },
-      uColor: { value: col },
-      uDensity: { value: config.noiseDensity },
-      uMaxAlpha: { value: config.maxAlpha },
-      uMinAlpha: { value: config.minAlpha },
-      uScale: { value: config.noiseScale },
-      uSpeed: { value: config.speed * 0.005 },
-    };
-  }, [config]);
+  const lineColor = useMemo(() => new THREE.Color(color), [color]);
 
-  useFrame((state) => {
+  useFrame((_, delta) => {
     if (!materialRef.current) {
       return;
     }
 
-    const timeUniform = materialRef.current.uniforms.time;
+    const u = materialRef.current.uniforms;
 
-    if (!timeUniform) {
+    if (!u.uPhase || !u.uColor || !u.uDensity || !u.uMaxAlpha || !u.uMinAlpha || !u.uScale) {
       return;
     }
 
-    timeUniform.value = state.clock.elapsedTime;
+    u.uPhase.value += delta * speed;
+    u.uColor.value = lineColor;
+    u.uDensity.value = noiseDensity;
+    u.uMaxAlpha.value = maxAlpha;
+    u.uMinAlpha.value = minAlpha;
+    u.uScale.value = noiseScale;
   });
 
   return (
@@ -303,7 +306,7 @@ export const WireframeOrb = ({
   config?: WireframeOrbConfig;
   className?: string;
 }) => {
-  const config = useMemo(() => ({ ...defaults, ...configOverrides }), [configOverrides]);
+  const config = { ...defaults, ...configOverrides };
 
   return (
     <div className={`w-full h-full ${className}`} style={{ background: config.background }}>

@@ -10,12 +10,14 @@ import {
   div,
   length,
   max,
+  min,
   mix,
   mul,
   positionLocal,
   smoothstep,
   sub,
   texture,
+  uniform,
   uv,
   vec3,
   vec4,
@@ -60,8 +62,39 @@ const setPlaneOpacity = (group: Group, opacity: number) => {
   }
 };
 
-const BEND_MULTIPLIER = 2;
+export const BEND_MULTIPLIER = 2;
 const CORNER_MASK_FEATHER = 0.01;
+
+class RoundedCardMaterial extends NodeMaterial {
+  readonly bendStrength = uniform(0);
+  readonly cornerRadius = uniform(0);
+
+  constructor(imageTexture: Texture) {
+    super();
+
+    const position = positionLocal;
+    const normalizedX = div(position.x, 0.5);
+    const curvature = mul(mul(normalizedX, normalizedX), this.bendStrength);
+
+    this.positionNode = vec3(position.x, position.y, add(position.z, curvature));
+
+    const uvCoords = uv();
+    const imageColor = texture(imageTexture, uvCoords);
+    const center = sub(uvCoords, 0.5);
+    const cornerOffset = sub(abs(center), sub(0.5, this.cornerRadius));
+
+    const signedDistance = sub(
+      add(length(max(cornerOffset, 0)), min(max(cornerOffset.x, cornerOffset.y), 0)),
+      this.cornerRadius,
+    );
+
+    const mask = sub(1, smoothstep(-CORNER_MASK_FEATHER, CORNER_MASK_FEATHER, signedDistance));
+
+    this.colorNode = mix(vec4(0, 0, 0, 0), imageColor, mask);
+    this.transparent = true;
+    this.side = DoubleSide;
+  }
+}
 
 export const ImageCarouselCanvas = ({
   backgroundColor = "#6F6D66",
@@ -124,46 +157,16 @@ const ImagePlane = ({
   farOpacity,
   currentIndexRef,
 }: ImagePlaneProps) => {
-  const meshRef = useRef<MeshType<BufferGeometry, NodeMaterial> | null>(null);
+  const meshRef = useRef<MeshType<BufferGeometry, RoundedCardMaterial> | null>(null);
 
   const angle = (index * TAU) / total;
   const x = Math.sin(angle) * radius;
   const z = Math.cos(angle) * radius;
-  const planeHeight = planeWidth * IMAGE_ASPECT;
 
-  const roundedCornersMaterial = useMemo(() => {
-    const material = new NodeMaterial();
-
-    const position = positionLocal;
-
-    const bendStrength = mul(bendAmount, BEND_MULTIPLIER);
-    const normalizedX = div(position.x, planeWidth * 0.5);
-    const curvature = mul(mul(normalizedX, normalizedX), bendStrength);
-    const bentZ = add(position.z, curvature);
-
-    material.positionNode = vec3(position.x, position.y, bentZ);
-
-    const uvCoords = uv();
-
-    const imageColor = texture(imageTexture, uvCoords);
-
-    const center = sub(uvCoords, 0.5);
-    const d = length(max(sub(abs(center), 0.5 - cornerRadius), 0));
-
-    const mask = smoothstep(
-      cornerRadius + CORNER_MASK_FEATHER,
-      cornerRadius - CORNER_MASK_FEATHER,
-      d,
-    );
-
-    const finalColor = mix(vec4(0, 0, 0, 0), imageColor, mask);
-
-    material.colorNode = finalColor;
-    material.transparent = true;
-    material.side = DoubleSide;
-
-    return material;
-  }, [imageTexture, bendAmount, planeWidth, cornerRadius]);
+  const roundedCornersMaterial = useMemo(
+    () => new RoundedCardMaterial(imageTexture),
+    [imageTexture],
+  );
 
   useEffect(
     () => () => {
@@ -179,6 +182,8 @@ const ImagePlane = ({
       return;
     }
 
+    mesh.material.bendStrength.value = bendAmount * BEND_MULTIPLIER;
+    mesh.material.cornerRadius.value = cornerRadius;
     mesh.lookAt(0, mesh.position.y, 0);
 
     const rawDistance = Math.abs(index - currentIndexRef.current);
@@ -202,8 +207,13 @@ const ImagePlane = ({
   });
 
   return (
-    <mesh ref={meshRef} position={[x, 0, z]} material={roundedCornersMaterial}>
-      <planeGeometry args={[planeWidth, planeHeight, 32, 32]} />
+    <mesh
+      ref={meshRef}
+      position={[x, 0, z]}
+      scale={[planeWidth, planeWidth, 1]}
+      material={roundedCornersMaterial}
+    >
+      <planeGeometry args={[1, IMAGE_ASPECT, 32, 32]} />
     </mesh>
   );
 };

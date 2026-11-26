@@ -949,10 +949,12 @@ export const LiquidOrb = ({
   onPresetChange,
 }: LiquidOrbConfig = {}) => {
   const rootRef = useRef<HTMLDivElement>(null);
-  const onPresetChangeRef = useRef(onPresetChange);
+  const latest = { cycle, glass, glow, holdDuration, morphDuration, onPresetChange, speed };
+  const liveRef = useRef(latest);
+
   useEffect(() => {
-    onPresetChangeRef.current = onPresetChange;
-  }, [onPresetChange]);
+    liveRef.current = latest;
+  });
 
   useEffect(() => {
     const container = rootRef.current;
@@ -996,6 +998,8 @@ export const LiquidOrb = ({
       uSize: WebGLUniformLocation | null;
       uTime: WebGLUniformLocation | null;
       uStyleMix: WebGLUniformLocation | null;
+      uGlass: WebGLUniformLocation | null;
+      uGlow: WebGLUniformLocation | null;
       scalars: (WebGLUniformLocation | null)[];
       colors: (WebGLUniformLocation | null)[];
     }
@@ -1023,14 +1027,12 @@ export const LiquidOrb = ({
 
         if (gl.getProgramParameter(program, gl.LINK_STATUS) === true) {
           const loc = (name: string) => gl.getUniformLocation(program, name);
-          // eslint-disable-next-line react/hooks -- WebGL method, not a React hook.
-          gl.useProgram(program);
-          gl.uniform1f(loc("uGlass"), glass ? 1 : 0);
-          gl.uniform1f(loc("uGlow"), Math.max(glow, 0));
           entry = {
             colors: colorUniforms.map(loc),
             program,
             scalars: scalarUniforms.map(loc),
+            uGlass: loc("uGlass"),
+            uGlow: loc("uGlow"),
             uSize: loc("uSize"),
             uStyleMix: loc("uStyleMix"),
             uTime: loc("uTime"),
@@ -1100,7 +1102,7 @@ export const LiquidOrb = ({
 
     const advanceCycle = (dt: number) => {
       if (morphing) {
-        morphT += dt / Math.max(morphDuration, 0.001);
+        morphT += dt / Math.max(liveRef.current.morphDuration, 0.001);
 
         if (morphT >= 1) {
           current = next;
@@ -1113,9 +1115,13 @@ export const LiquidOrb = ({
         return;
       }
 
+      if (!liveRef.current.cycle) {
+        return;
+      }
+
       holdT += dt;
 
-      if (holdT >= holdDuration) {
+      if (holdT >= liveRef.current.holdDuration) {
         morphing = true;
         morphT = 0;
         const targetPreset = order[next];
@@ -1124,7 +1130,7 @@ export const LiquidOrb = ({
           throw new RangeError("Liquid orb preset index is out of bounds");
         }
 
-        onPresetChangeRef.current?.(targetPreset);
+        liveRef.current.onPresetChange?.(targetPreset);
       }
     };
 
@@ -1135,10 +1141,8 @@ export const LiquidOrb = ({
       last = now;
 
       adaptRenderScale(now, elapsed);
-
-      if (cycle) {
-        advanceCycle(dt);
-      }
+      advanceCycle(dt);
+      const live = liveRef.current;
 
       const k = morphing ? easeInOut(Math.min(morphT, 1)) : 0;
       const currentPreset = order[current];
@@ -1172,7 +1176,7 @@ export const LiquidOrb = ({
         throw new Error("Liquid orb preset buffer is missing its speed");
       }
 
-      phase += dt * phaseSpeed * speed;
+      phase += dt * phaseSpeed * live.speed;
 
       const styleA = styleIndex[currentPreset];
       const styleB = styleIndex[nextPreset];
@@ -1193,6 +1197,8 @@ export const LiquidOrb = ({
       gl.uniform2f(entry.uSize, canvas.width, canvas.height);
       gl.uniform1f(entry.uTime, phase);
       gl.uniform1f(entry.uStyleMix, k);
+      gl.uniform1f(entry.uGlass, live.glass ? 1 : 0);
+      gl.uniform1f(entry.uGlow, Math.max(live.glow, 0));
 
       for (const [i, location] of entry.scalars.entries()) {
         gl.uniform1fv(location, mixed, i + 1, 1);
@@ -1221,7 +1227,7 @@ export const LiquidOrb = ({
       gl.getExtension("WEBGL_lose_context")?.loseContext();
       canvas.remove();
     };
-  }, [preset, cycle, holdDuration, morphDuration, speed, glass, glow]);
+  }, [preset]);
 
   return <div ref={rootRef} className="h-full w-full" />;
 };

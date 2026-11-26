@@ -1,45 +1,65 @@
 "use client";
 
-import { useState } from "react";
-
 import type { ChibiVariant } from "./chibi-plants";
 import { CHIBI_VARIANTS, ChibiPlants, VARIANTS } from "./chibi-plants";
 
-const Preview = () => {
-  const [variant, setVariant] = useState<ChibiVariant>("pip");
+export const controls = {
+  variant: {
+    default: "pip",
+    label: "Plant",
+    options: CHIBI_VARIANTS.map((value) => ({ label: VARIANTS[value].label, value })),
+    type: "select",
+  },
+  eyeScale: { default: 1, label: "Eye size", max: 1.6, min: 0.5, step: 0.05, type: "number" },
+  gaze: { default: 1, label: "Cursor follow", max: 1.5, min: 0, step: 0.05, type: "number" },
+  wobble: { default: 1, label: "Idle sway", max: 2, min: 0, step: 0.05, type: "number" },
+  speed: { default: 1, label: "Idle speed", max: 3, min: 0, step: 0.1, type: "number" },
+  firmness: { default: 0.5, label: "Firmness", max: 1, min: 0, step: 0.05, type: "number" },
+  interactive: { default: true, label: "Grab & toss", type: "boolean" },
+  cheekColor: { default: "#e8798f", label: "Blush", type: "color" },
+  glow: { default: "#2e2a33", label: "Backdrop glow", type: "color" },
+  backdrop: { default: "#0b0a0e", label: "Backdrop", type: "color" },
+} as const;
 
-  return (
-    <main className="relative h-dvh w-full overflow-hidden bg-[#0b0a0e]">
-      <ChibiPlants variant={variant} className="absolute inset-0" />
+interface PreviewProps {
+  backdrop: string;
+  cheekColor: string;
+  eyeScale: number;
+  firmness: number;
+  gaze: number;
+  glow: string;
+  interactive: boolean;
+  speed: number;
+  variant: ChibiVariant;
+  wobble: number;
+}
 
-      <fieldset className="absolute bottom-4 left-4 m-0 flex min-w-0 flex-col items-center border-0 p-0">
-        <legend className="sr-only">Plant</legend>
-        {CHIBI_VARIANTS.map((v) => (
-          <button
-            key={v}
-            type="button"
-            data-variant={v}
-            aria-label={VARIANTS[v].label}
-            aria-pressed={variant === v}
-            title={VARIANTS[v].label}
-            onClick={() => {
-              setVariant(v);
-            }}
-            className="group grid size-9 place-items-center rounded-full outline-none focus-visible:ring-2 focus-visible:ring-white/60"
-          >
-            <span
-              className={`size-4 rounded-full transition-[scale,opacity,box-shadow] duration-200 ease-out motion-reduce:transition-none ${
-                variant === v
-                  ? "ring-2 ring-white/85 ring-offset-2 ring-offset-[#0b0a0e]"
-                  : "opacity-55 group-hover:scale-110 group-hover:opacity-100"
-              }`}
-              style={{ background: VARIANTS[v].palette.body }}
-            />
-          </button>
-        ))}
-      </fieldset>
-    </main>
-  );
-};
+const Preview = ({
+  backdrop = controls.backdrop.default,
+  cheekColor = controls.cheekColor.default,
+  eyeScale = controls.eyeScale.default,
+  firmness = controls.firmness.default,
+  gaze = controls.gaze.default,
+  glow = controls.glow.default,
+  interactive = controls.interactive.default,
+  speed = controls.speed.default,
+  variant = controls.variant.default,
+  wobble = controls.wobble.default,
+}: Partial<PreviewProps>) => (
+  <main className="relative h-dvh w-full overflow-hidden" style={{ backgroundColor: backdrop }}>
+    <ChibiPlants
+      background={[glow, backdrop]}
+      cheekColor={cheekColor}
+      className="absolute inset-0"
+      eyeScale={eyeScale}
+      firmness={firmness}
+      gaze={gaze}
+      interactive={interactive}
+      speed={speed}
+      variant={variant}
+      wobble={wobble}
+    />
+  </main>
+);
 
 export default Preview;

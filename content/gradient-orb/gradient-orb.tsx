@@ -209,14 +209,14 @@ const GradientScene = ({
 
   const uniforms = useMemo(
     () => ({
-      hue: { value: hue },
+      hue: { value: 0 },
       iResolution: { value: new THREE.Vector3(1, 1, 1) },
       iTime: { value: 0 },
-      innerRadius: { value: innerRadius },
-      noiseScale: { value: noiseScale },
+      innerRadius: { value: 0 },
+      noiseScale: { value: 0 },
       rot: { value: 0 },
     }),
-    [hue, noiseScale, innerRadius],
+    [],
   );
 
   useFrame((state) => {
@@ -232,13 +232,15 @@ const GradientScene = ({
 
     const u = materialRef.current.uniforms;
 
-    if (!u.iTime || !u.hue || !u.rot || !u.iResolution) {
+    if (!u.iTime || !u.hue || !u.rot || !u.iResolution || !u.noiseScale || !u.innerRadius) {
       return;
     }
 
     u.iTime.value = t;
     u.hue.value = hue;
     u.rot.value = rotRef.current;
+    u.noiseScale.value = noiseScale;
+    u.innerRadius.value = innerRadius;
 
     const resolution: unknown = u.iResolution.value;
 

@@ -67,16 +67,18 @@ const LatitudeLines = ({ config }: { config: Required<GeometricOrbConfig> }) => 
   const { size } = useThree();
 
   const baseColor = useMemo(() => new THREE.Color(config.color), [config.color]);
+  const backgroundColor = useMemo(() => new THREE.Color(config.background), [config.background]);
+  const phaseRef = useRef({ cycle: 0, squiggle: 0 });
 
   const lineConstants = useMemo(
     () =>
       Array.from({ length: config.numLines }, (_, i) => ({
         cosR: Math.cos((i / config.numLines) * Math.PI),
         longitudeRotation: (i / config.numLines) * Math.PI,
+        phaseOffset: i / config.numLines,
         sinR: Math.sin((i / config.numLines) * Math.PI),
-        timeOffset: (i / config.numLines) * config.speed,
       })),
-    [config.numLines, config.speed],
+    [config.numLines],
   );
 
   const materials = useMemo(
@@ -85,14 +87,14 @@ const LatitudeLines = ({ config }: { config: Required<GeometricOrbConfig> }) => 
         { length: config.numLines },
         () =>
           new LineMaterial({
-            color: baseColor.getHex(),
+            color: 0xff_ff_ff,
             linewidth: config.lineWidth,
             opacity: 1,
             transparent: true,
             vertexColors: true,
           }),
       ),
-    [baseColor, config.numLines, config.lineWidth],
+    [config.numLines, config.lineWidth],
   );
 
   const geometries = useMemo(
@@ -131,7 +133,7 @@ const LatitudeLines = ({ config }: { config: Required<GeometricOrbConfig> }) => 
     colors: Float32Array;
   } | null>(null);
 
-  useFrame((state) => {
+  useFrame((state, delta) => {
     if (buffersRef.current?.vertexCount !== vertexCount) {
       buffersRef.current = {
         colors: new Float32Array(vertexCount * 3),
@@ -141,11 +143,11 @@ const LatitudeLines = ({ config }: { config: Required<GeometricOrbConfig> }) => 
     }
 
     const { positions: positionBuffer, colors: colorBuffer } = buffersRef.current;
-    const time = state.clock.elapsedTime;
+    const phase = phaseRef.current;
+    phase.cycle = (phase.cycle + delta / config.speed) % 1;
+    phase.squiggle += delta * config.squiggleSpeed;
+    const squigglePhase = phase.squiggle;
     const camDir = camDirRef.current.copy(state.camera.position).normalize();
-    const { r } = baseColor;
-    const { g } = baseColor;
-    const { b } = baseColor;
 
     for (let lineIdx = 0; lineIdx < config.numLines; lineIdx += 1) {
       const constants = lineConstants[lineIdx];
@@ -155,8 +157,8 @@ const LatitudeLines = ({ config }: { config: Required<GeometricOrbConfig> }) => 
         continue;
       }
 
-      const { timeOffset, cosR, sinR } = constants;
-      const progress = ((time + timeOffset) % config.speed) / config.speed;
+      const { phaseOffset, cosR, sinR } = constants;
+      const progress = (phase.cycle + phaseOffset) % 1;
       const latitude = progress * Math.PI;
       const circleRadius = Math.sin(latitude) * config.radius;
       const yPosition = Math.cos(latitude) * config.radius;
@@ -165,18 +167,18 @@ const LatitudeLines = ({ config }: { config: Required<GeometricOrbConfig> }) => 
         const angle = (i / config.pointsPerLine) * Math.PI * 2;
 
         const squiggle =
-          Math.sin(angle * config.squiggleFrequency + time * config.squiggleSpeed + lineIdx * 0.5) *
+          Math.sin(angle * config.squiggleFrequency + squigglePhase + lineIdx * 0.5) *
           config.squiggleAmount;
 
         const radiusSquiggle =
-          Math.cos(angle * config.squiggleFrequency * 1.3 + time * config.squiggleSpeed * 0.8) *
+          Math.cos(angle * config.squiggleFrequency * 1.3 + squigglePhase * 0.8) *
           config.squiggleAmount *
           0.5;
 
         const displacedRadius = circleRadius + (squiggle + radiusSquiggle) * circleRadius;
 
         const ySquiggle =
-          Math.sin(angle * config.squiggleFrequency * 0.7 + time * config.squiggleSpeed * 1.2) *
+          Math.sin(angle * config.squiggleFrequency * 0.7 + squigglePhase * 1.2) *
           config.squiggleAmount *
           0.4;
 
@@ -195,9 +197,9 @@ const LatitudeLines = ({ config }: { config: Required<GeometricOrbConfig> }) => 
         const depthFactor = (dot / config.radius + 1) / 2;
         const opacity = depthFactor * 0.85 + 0.15;
 
-        colorBuffer[offset] = r * opacity;
-        colorBuffer[offset + 1] = g * opacity;
-        colorBuffer[offset + 2] = b * opacity;
+        colorBuffer[offset] = THREE.MathUtils.lerp(backgroundColor.r, baseColor.r, opacity);
+        colorBuffer[offset + 1] = THREE.MathUtils.lerp(backgroundColor.g, baseColor.g, opacity);
+        colorBuffer[offset + 2] = THREE.MathUtils.lerp(backgroundColor.b, baseColor.b, opacity);
       }
 
       const last = config.pointsPerLine * 3;
@@ -234,11 +236,11 @@ const LatitudeLines = ({ config }: { config: Required<GeometricOrbConfig> }) => 
 };
 
 /**
- * 3D animated orb with flowing latitude lines and depth-based opacity.
+ * 3D animated orb with flowing latitude lines and depth that fades into the background.
  *
  * Lines travel pole-to-pole across a sphere surface with subtle squiggle
- * displacement. Per-vertex colors encode camera-facing depth for a
- * volumetric wireframe look.
+ * displacement. Per-vertex colors blend from the line color toward the background by
+ * camera-facing depth for a volumetric wireframe look.
  *
  * @example
  * ```tsx

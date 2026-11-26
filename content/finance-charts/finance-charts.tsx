@@ -7,7 +7,6 @@ import { ChartCell } from "./lib/kit";
 
 const noop = () => null;
 
-const DRIFT = 42;
 const YIELD_MS = 3000;
 
 /**
@@ -15,7 +14,17 @@ const YIELD_MS = 3000;
  * its chart only once it scrolls into view, so the wall reads as a stream of
  * entrances; the wall drifts on its own and yields to any hover or scroll.
  */
-export const FinanceCharts = ({ autoScroll = true }: { autoScroll?: boolean }) => {
+export const FinanceCharts = ({
+  autoScroll = true,
+  columnWidth = 340,
+  speed = 42,
+}: {
+  autoScroll?: boolean;
+  /** Minimum masonry column width in px; the wall fits as many as it can. */
+  columnWidth?: number;
+  /** Auto-scroll drift in px per second. */
+  speed?: number;
+}) => {
   const scroller = useRef<HTMLDivElement>(null);
   const hovered = useRef(false);
   const holdUntil = useRef(0);
@@ -50,7 +59,7 @@ export const FinanceCharts = ({ autoScroll = true }: { autoScroll?: boolean }) =
       if (hovered.current || t < holdUntil.current || t < yieldUntil || y >= end - 1) {
         y = el.scrollTop;
       } else {
-        y += (DRIFT * dt) / 1000;
+        y += (speed * dt) / 1000;
         el.scrollTop = y;
       }
 
@@ -63,7 +72,7 @@ export const FinanceCharts = ({ autoScroll = true }: { autoScroll?: boolean }) =
     return () => {
       cancelAnimationFrame(raf);
     };
-  }, [autoScroll]);
+  }, [autoScroll, speed]);
 
   return (
     <div
@@ -84,7 +93,7 @@ export const FinanceCharts = ({ autoScroll = true }: { autoScroll?: boolean }) =
       onPointerCancel={release}
       className="size-full overflow-y-auto bg-[#f3f4f7] [font-family:Inter,ui-sans-serif,system-ui,sans-serif] [scrollbar-width:none]"
     >
-      <div className="mx-auto max-w-[1680px] columns-[340px] gap-4 px-4 py-6">
+      <div className="mx-auto max-w-[1680px] gap-4 px-4 py-6" style={{ columnWidth }}>
         {CHARTS.map(({ id, Chart }) => (
           <ChartCell key={id} id={id}>
             <Chart />

@@ -2,9 +2,65 @@
 
 import { GeometricOrb } from "./geometric-orb";
 
-const Preview = () => (
+export const controls = {
+  numLines: { default: 20, label: "Lines", max: 60, min: 4, step: 1, type: "number" },
+  speed: { default: 20, label: "Cycle duration (s)", max: 60, min: 4, step: 1, type: "number" },
+  lineWidth: { default: 2, label: "Line width", max: 6, min: 0.5, step: 0.5, type: "number" },
+  squiggleAmount: {
+    default: 0.04,
+    label: "Squiggle",
+    max: 0.3,
+    min: 0,
+    step: 0.01,
+    type: "number",
+  },
+  squiggleFrequency: {
+    default: 4,
+    label: "Squiggle waves",
+    max: 12,
+    min: 1,
+    step: 1,
+    type: "number",
+  },
+  squiggleSpeed: { default: 2, label: "Squiggle speed", max: 8, min: 0, step: 0.1, type: "number" },
+  color: { default: "#eeeeee", label: "Line color", type: "color" },
+  background: { default: "#0a0a0a", type: "color" },
+} as const;
+
+interface PreviewProps {
+  background: string;
+  color: string;
+  lineWidth: number;
+  numLines: number;
+  speed: number;
+  squiggleAmount: number;
+  squiggleFrequency: number;
+  squiggleSpeed: number;
+}
+
+const Preview = ({
+  background = controls.background.default,
+  color = controls.color.default,
+  lineWidth = controls.lineWidth.default,
+  numLines = controls.numLines.default,
+  speed = controls.speed.default,
+  squiggleAmount = controls.squiggleAmount.default,
+  squiggleFrequency = controls.squiggleFrequency.default,
+  squiggleSpeed = controls.squiggleSpeed.default,
+}: Partial<PreviewProps>) => (
   <div className="h-screen w-full">
-    <GeometricOrb />
+    <GeometricOrb
+      config={{
+        background,
+        color,
+        lineWidth,
+        numLines,
+        speed,
+        squiggleAmount,
+        squiggleFrequency,
+        squiggleSpeed,
+      }}
+    />
   </div>
 );
 

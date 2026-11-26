@@ -342,7 +342,12 @@ const createEngine = (initialOffset: Position, initialGridSize: number, view: Vi
   };
 
   const setGridSize = (size: number) => {
+    if (size === gridSize) {
+      return;
+    }
+
     gridSize = size;
+    updateGridItems();
   };
 
   return { handleDown, handleMove, handleUp, mount, setGridSize };
