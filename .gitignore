@@ -62,3 +62,6 @@ turso-dev.log
 
 # skills CLI staging copy (pnpm skills:sync); .claude/skills is the tracked one
 .agents/
+
+# next dev writes these for coding agents; agent docs live at the root
+apps/*/AGENTS.md
