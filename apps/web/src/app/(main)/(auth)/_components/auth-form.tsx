@@ -7,6 +7,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { Button } from "@repo/ui/components/button";
 import { Field, FieldError, FieldLabel } from "@repo/ui/components/field";
 import { Input } from "@repo/ui/components/input";
+import { OTPInput } from "@repo/ui/components/otp-input";
 import { toast } from "@repo/ui/components/toast";
 import { cn } from "cn";
 import { useForm } from "react-hook-form";
@@ -17,12 +18,6 @@ import { authClient } from "@/lib/auth-client";
 const CODE_LENGTH = 6;
 
 const emailSchema = z.object({ email: z.email("Invalid email address") });
-
-const codeSchema = z.object({
-  code: z
-    .string()
-    .regex(new RegExp(`^\\d{${CODE_LENGTH}}$`, "u"), `Enter the ${CODE_LENGTH}-digit code`),
-});
 
 const CODE_ERRORS = new Map([
   ["INVALID_OTP", "That code isn't right. Check it and try again."],
@@ -104,88 +99,64 @@ const EmailStep = ({ onSent }: { onSent: (email: string) => void }) => {
 const CodeStep = ({ email, onBack }: { email: string; onBack: () => void }) => {
   const router = useRouter();
   const [resending, setResending] = useState(false);
-
-  const form = useForm({
-    defaultValues: {
-      code: "",
-    },
-    resolver: zodResolver(codeSchema),
-  });
-
-  const {
-    register,
-    formState: { errors, isSubmitting },
-  } = form;
-
-  const handleSignIn = form.handleSubmit(async ({ code }) => {
-    try {
-      const { error } = await authClient.signIn.emailOtp({
-        email,
-        name: email.split("@")[0] ?? "User",
-        otp: code,
-      });
-
-      if (error) {
-        form.setError("root", { message: errorMessageOf(error) });
-
-        return;
-      }
-
-      router.replace("/");
-      router.refresh();
-    } catch {
-      form.setError("root", { message: "Unable to connect. Try again." });
-    }
-  });
+  const [failure, setFailure] = useState<string>();
 
   const resend = async () => {
     setResending(true);
-    const failure = await sendCode(email);
+    const sendFailure = await sendCode(email);
     setResending(false);
+    setFailure(sendFailure);
 
-    if (failure !== undefined) {
-      form.setError("root", { message: failure });
-
-      return;
+    if (sendFailure === undefined) {
+      toast.success(`Sent a new code to ${email}`);
     }
-
-    form.clearErrors("root");
-    toast.success(`Sent a new code to ${email}`);
   };
 
   return (
-    <form
-      className="grid gap-2"
-      onSubmit={(e) => {
-        void handleSignIn(e);
-      }}
-    >
+    <div className="grid gap-4">
       <p className="text-muted-foreground text-center text-sm">
         We sent a {CODE_LENGTH}-digit code to <span className="text-foreground">{email}</span>.
       </p>
-      <Field>
+      <Field className="items-center">
         <FieldLabel className="sr-only" htmlFor="code">
           Sign-in code
         </FieldLabel>
-        <Input
+        <OTPInput
           id="code"
           data-test="code-input"
-          required
-          inputMode="numeric"
-          pattern="[0-9]*"
-          maxLength={CODE_LENGTH}
-          placeholder={"0".repeat(CODE_LENGTH)}
-          autoComplete="one-time-code"
-          className="text-center font-mono tracking-[0.5em]"
-          aria-invalid={errors.code ? true : undefined}
-          {...register("code")}
+          length={CODE_LENGTH}
+          group
+          autoFocus
+          onInput={() => {
+            setFailure(undefined);
+          }}
+          verify={async (otp) => {
+            try {
+              const { error } = await authClient.signIn.emailOtp({
+                email,
+                name: email.split("@")[0] ?? "User",
+                otp,
+              });
+
+              setFailure(error ? errorMessageOf(error) : undefined);
+
+              return !error;
+            } catch {
+              setFailure("Unable to connect. Try again.");
+
+              return false;
+            }
+          }}
+          onSuccess={() => {
+            router.replace("/");
+            router.refresh();
+          }}
         />
-        <FieldError errors={errors.code ? [errors.code] : undefined} />
+        <FieldError
+          className="text-center"
+          errors={failure === undefined ? undefined : [{ message: failure }]}
+        />
       </Field>
-      <FieldError errors={errors.root ? [errors.root] : undefined} />
-      <Button type="submit" loading={isSubmitting}>
-        Sign in
-      </Button>
       <div className="flex justify-between">
         <Button variant="link" size="sm" type="button" onClick={onBack}>
           Use a different email
@@ -202,7 +173,7 @@ const CodeStep = ({ email, onBack }: { email: string; onBack: () => void }) => {
           Resend code
         </Button>
       </div>
-    </form>
+    </div>
   );
 };
 
