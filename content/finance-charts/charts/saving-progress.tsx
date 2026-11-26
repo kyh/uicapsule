@@ -121,7 +121,14 @@ export const SavingProgress = () => {
         </p>
       </div>
       <ChartSlot height={HEIGHT} className="mt-4">
-        <div onMouseEnter={() => pin(step)} onMouseLeave={() => pin(null)}>
+        <div
+          onMouseEnter={() => {
+            pin(step);
+          }}
+          onMouseLeave={() => {
+            pin(null);
+          }}
+        >
           <Chart
             definition={definition}
             renderer={renderer}

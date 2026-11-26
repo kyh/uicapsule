@@ -19,7 +19,14 @@ export const CopyButton = ({
 
   return (
     <>
-      <Button aria-label={label} onClick={() => copy(value)} size={size} variant="ghost">
+      <Button
+        aria-label={label}
+        onClick={() => {
+          void copy(value);
+        }}
+        size={size}
+        variant="ghost"
+      >
         {copied ? <Check aria-hidden /> : <Copy aria-hidden />}
       </Button>
       <span aria-live="polite" className="v-sr">

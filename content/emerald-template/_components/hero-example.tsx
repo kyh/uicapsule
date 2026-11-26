@@ -30,6 +30,8 @@ import {
   ChainOfThoughtStep,
 } from "./chain-of-thought";
 
+const noop = () => null;
+
 const samples = [
   {
     input: "Can you provide a changelog of everything shipped in Dataembed this week?",
@@ -114,19 +116,10 @@ The Grow team collaborates with various partners, including educational institut
   },
 ];
 
-const wait = (delay: number) => {
-  let timeout: ReturnType<typeof setTimeout>;
-
-  // oxlint-disable-next-line promise/avoid-new -- a cancellable sleep in the browser; there is no promise-returning timer to await here
-  const promise = new Promise((resolve) => {
-    timeout = setTimeout(resolve, delay);
-  });
-
-  return {
-    cancel: () => clearTimeout(timeout),
-    promise,
-  };
-};
+interface Beat {
+  delay: number;
+  act: () => void;
+}
 
 type StepIcon = ComponentType<{ size?: number }>;
 
@@ -329,7 +322,7 @@ const Typewriter = ({
   return (
     <div>
       <span ref={textContainerRef} />
-      {!hideCursor && <span className="cursor">|</span>}
+      {hideCursor !== true && <span className="cursor">|</span>}
     </div>
   );
 };
@@ -368,7 +361,7 @@ export const ExampleChat = ({ start }: { start: boolean }) => {
 
   useEffect(() => {
     if (!start) {
-      return;
+      return noop;
     }
 
     const pending = promisesRef.current;
@@ -382,58 +375,75 @@ export const ExampleChat = ({ start }: { start: boolean }) => {
     };
   }, [start]);
 
-  const showResults = async () => {
-    setShowLoading(true);
-    const afterShowLoading = wait(1000);
-    promisesRef.current.push(afterShowLoading.cancel);
-    await afterShowLoading.promise;
+  const play = (beats: readonly Beat[]) => {
+    const [beat, ...rest] = beats;
 
-    const startTime = Date.now();
-    setShowChainOfThought(true);
-    setChainOfThoughtOpen(true);
-    setCurrentStepIndex(-1);
-    setIsThinkingComplete(false);
-
-    const reasoningStepCount = samples[currentSampleIndex]?.output.reasoning.length ?? 0;
-
-    for (let i = 0; i < reasoningStepCount; i += 1) {
-      setCurrentStepIndex(i);
-      const stepDelay = wait(800);
-      promisesRef.current.push(stepDelay.cancel);
-      await stepDelay.promise;
+    if (beat === undefined) {
+      return;
     }
 
-    const afterAllSteps = wait(500);
-    promisesRef.current.push(afterAllSteps.cancel);
-    await afterAllSteps.promise;
+    const timeout = setTimeout(() => {
+      beat.act();
+      play(rest);
+    }, beat.delay);
 
-    const endTime = Date.now();
-    const duration = Math.round((endTime - startTime) / 1000);
-    setThinkingDuration(duration);
-    setIsThinkingComplete(true);
+    promisesRef.current.push(() => {
+      clearTimeout(timeout);
+    });
+  };
 
-    setChainOfThoughtOpen(false);
-    const afterCollapse = wait(300);
-    promisesRef.current.push(afterCollapse.cancel);
-    await afterCollapse.promise;
+  const showResults = () => {
+    setShowLoading(true);
 
-    setShowAnswer(true);
-    const afterShowAnswer = wait(1000);
-    promisesRef.current.push(afterShowAnswer.cancel);
-    await afterShowAnswer.promise;
+    const reasoningStepCount = samples[currentSampleIndex]?.output.reasoning.length ?? 0;
+    let startTime = 0;
 
-    setShowFooter(true);
-    const afterShowFooter = wait(5000);
-    promisesRef.current.push(afterShowFooter.cancel);
-    await afterShowFooter.promise;
-
-    clearAll();
-    const afterClearAll = wait(1000);
-    promisesRef.current.push(afterClearAll.cancel);
-    await afterClearAll.promise;
-
-    setCurrentSampleIndex((currentSampleIndex + 1) % samples.length);
-    setShowQuestion(true);
+    play([
+      {
+        act: () => {
+          startTime = Date.now();
+          setShowChainOfThought(true);
+          setChainOfThoughtOpen(true);
+          setCurrentStepIndex(reasoningStepCount > 0 ? 0 : -1);
+          setIsThinkingComplete(false);
+        },
+        delay: 1000,
+      },
+      ...Array.from({ length: Math.max(0, reasoningStepCount - 1) }, (_, index) => ({
+        act: () => {
+          setCurrentStepIndex(index + 1);
+        },
+        delay: 800,
+      })),
+      {
+        act: () => {
+          setThinkingDuration(Math.round((Date.now() - startTime) / 1000));
+          setIsThinkingComplete(true);
+          setChainOfThoughtOpen(false);
+        },
+        delay: reasoningStepCount > 0 ? 1300 : 500,
+      },
+      {
+        act: () => {
+          setShowAnswer(true);
+        },
+        delay: 300,
+      },
+      {
+        act: () => {
+          setShowFooter(true);
+        },
+        delay: 1000,
+      },
+      { act: clearAll, delay: 5000 },
+      {
+        act: () => {
+          setCurrentSampleIndex((currentSampleIndex + 1) % samples.length);
+          setShowQuestion(true);
+        },
+        delay: 1000,
+      },
+    ]);
   };
 
   const currentSample = samples[currentSampleIndex];
@@ -467,7 +477,9 @@ export const ExampleChat = ({ start }: { start: boolean }) => {
           <Typewriter
             start={start && showQuestion}
             text={currentSample?.input ?? ""}
-            onTyped={() => showResults()}
+            onTyped={() => {
+              showResults();
+            }}
           />
         </div>
         <div className={cn("loading", showLoading && "active")} />

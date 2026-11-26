@@ -21,6 +21,8 @@ export const ToolCall = ({
     </span>
     <span className="cl-sr">{{ done: "Done", failed: "Failed", running: "Working" }[state]}: </span>
     <span className="cl-tool__label">{label}</span>
-    {detail ? <span className="cl-tool__detail">{detail}</span> : null}
+    {detail !== undefined && detail !== "" ? (
+      <span className="cl-tool__detail">{detail}</span>
+    ) : null}
   </div>
 );

@@ -10,6 +10,8 @@ import { Spring, at, hollow, later, lines, puff, sfx, ticks } from "./sakuga-cor
 import { SakugaStyle, useFrame, useMergedRef } from "./sakuga-react";
 import type { Styled } from "./sakuga-react";
 
+const noop = () => null;
+
 type SakugaRadioGroupProps<Value> = Styled<RadioGroupPrimitive.Props<Value>>;
 
 type SakugaRadioGroupItemProps<Value> = Styled<RadioPrimitive.Root.Props<Value>>;
@@ -55,7 +57,9 @@ const pop = (root: HTMLElement | null) => {
   ticks(c.x, c.y, { dir: -2.3, fan: 0.36, len: 15, life: 0.5, n: 4, r: 20 });
   lines(c.x - 26, c.y + 18, { dir: 2.6, len: 26, n: 3, spread: 6 });
   puff(c.x + 26, c.y - 22, { life: 0.7, n: 3, size: 8, vx: 16, vy: -14 });
-  later(120, () => puff(c.x + 78, c.y + 2, { life: 0.6, n: 3, size: 7, vx: 10, vy: -10 }));
+  later(120, () => {
+    puff(c.x + 78, c.y + 2, { life: 0.6, n: 3, size: 7, vx: 10, vy: -10 });
+  });
   sfx("pon", c.x + 70, c.y - 76, { life: 0.8, rot: 0.06, size: 86, ...hollow() });
 };
 
@@ -84,13 +88,13 @@ const SakugaRadioGroup = <Value,>({
 
     const mark = { value: next };
     handRef.current = mark;
-    later(0, () =>
+    later(0, () => {
       later(0, () => {
         if (handRef.current === mark) {
           handRef.current = null;
         }
-      }),
-    );
+      });
+    });
 
     if (value === undefined) {
       itemsRef.current.get(next)?.pop();
@@ -108,13 +112,18 @@ const SakugaRadioGroup = <Value,>({
     const form = first?.input()?.form;
 
     if (value !== undefined || !form) {
-      return;
+      return noop;
     }
 
-    const back = () => setOwn(defaultValue ?? null);
+    const back = () => {
+      setOwn(defaultValue ?? null);
+    };
+
     form.addEventListener("reset", back);
 
-    return () => form.removeEventListener("reset", back);
+    return () => {
+      form.removeEventListener("reset", back);
+    };
   }, [value, defaultValue]);
 
   return (
@@ -123,7 +132,8 @@ const SakugaRadioGroup = <Value,>({
       <RadioGroupPrimitive
         data-slot="sakuga-radio-group"
         className={cn(GROUP, className)}
-        value={value === undefined ? (own as Value) : value}
+        // oxlint-disable-next-line typescript/no-unsafe-type-assertion, anti-slop/require-safety-comment-for-type-assertion -- Base UI types value as Value | undefined, yet a controlled group takes null for nothing checked, and undefined would make it uncontrolled
+        value={value ?? (own as Value)}
         onValueChange={change}
         {...props}
       />
@@ -158,7 +168,12 @@ const SakugaRadioGroupItem = <Value,>({
 
   useEffect(() => {
     const items = picks?.itemsRef.current;
-    items?.set(value, { input: () => input.current, pop: () => pop(root.current) });
+    items?.set(value, {
+      input: () => input.current,
+      pop: () => {
+        pop(root.current);
+      },
+    });
 
     return () => {
       items?.delete(value);

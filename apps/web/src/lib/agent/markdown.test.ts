@@ -190,8 +190,15 @@ const blockText = (block: ProseBlock) => {
       return "";
     }
 
-    default: {
+    case "code":
+    case "heading":
+    case "paragraph": {
       return block.text;
+    }
+
+    default: {
+      const exhaustive: never = block;
+      throw new Error(`Unknown prose block: ${JSON.stringify(exhaustive)}`);
     }
   }
 };

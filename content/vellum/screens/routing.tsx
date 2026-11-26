@@ -132,7 +132,7 @@ const Grades = () => {
             <li className="v-row v-row-hover v-items-start" key={suite.id}>
               <span className="v-row-main">
                 <span className="v-body-sm v-t1">{suite.title}</span>
-                {suite.detail && suite.status === "fail" ? (
+                {suite.detail !== undefined && suite.detail !== "" && suite.status === "fail" ? (
                   <span className="v-caption v-t2">{suite.detail}</span>
                 ) : null}
               </span>
@@ -147,7 +147,13 @@ const Grades = () => {
         </ul>
       </Panel>
       <ShellFoot meta={<span aria-live="polite">{gradedAt}</span>}>
-        <Button onClick={() => setOnlyRegressions(!onlyRegressions)} size="sm" variant="secondary">
+        <Button
+          onClick={() => {
+            setOnlyRegressions(!onlyRegressions);
+          }}
+          size="sm"
+          variant="secondary"
+        >
           {onlyRegressions ? "Show all" : "Show regressions"}
         </Button>
         <Button onClick={gradeAgain} pending={running} pendingLabel="Grading" size="sm">
@@ -220,11 +226,23 @@ const Cost = () => {
         }
       >
         {paused ? (
-          <Button onClick={() => setPaused(false)} size="sm" variant="secondary">
+          <Button
+            onClick={() => {
+              setPaused(false);
+            }}
+            size="sm"
+            variant="secondary"
+          >
             Resume
           </Button>
         ) : (
-          <Button onClick={() => setConfirm(true)} size="sm" variant="secondary">
+          <Button
+            onClick={() => {
+              setConfirm(true);
+            }}
+            size="sm"
+            variant="secondary"
+          >
             Pause
           </Button>
         )}
@@ -233,7 +251,12 @@ const Cost = () => {
           onClick={() => {
             setLongThreads(true);
             toast({
-              action: { label: "Undo", onAction: () => setLongThreads(false) },
+              action: {
+                label: "Undo",
+                onAction: () => {
+                  setLongThreads(false);
+                },
+              },
               title: "Threads past 40 turns now stay on Quill 4",
               tone: "ok",
             });
@@ -250,7 +273,9 @@ const Cost = () => {
           <>
             <Button
               data-autofocus=""
-              onClick={() => setConfirm(false)}
+              onClick={() => {
+                setConfirm(false);
+              }}
               size="sm"
               variant="secondary"
             >

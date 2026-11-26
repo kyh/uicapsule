@@ -11,7 +11,7 @@ const uploadResponseSchema = z.object({
 const clientFor = (serviceUrl: string) => {
   const client: ContractClient = createORPCClient(
     new RPCLink({
-      fetch: (request, init) => fetch(request, { ...init, credentials: "omit" }),
+      fetch: async (request, init) => await fetch(request, { ...init, credentials: "omit" }),
       origin: serviceUrl,
       url: "/api/orpc",
     }),
@@ -33,12 +33,12 @@ export const uploadAttachment = async (serviceUrl: string, file: File) => {
   const parsed = uploadResponseSchema.safeParse(await response.json().catch(() => ({})));
   const url = parsed.data?.url;
 
-  if (!response.ok || !url) {
+  if (!response.ok || url === undefined || url === "") {
     throw new Error(parsed.data?.message ?? `Upload failed (${response.status}).`);
   }
 
   return url;
 };
 
-export const fileRequest = (serviceUrl: string, request: RouterInputs["request"]["create"]) =>
-  clientFor(serviceUrl).request.create(request);
+export const fileRequest = async (serviceUrl: string, request: RouterInputs["request"]["create"]) =>
+  await clientFor(serviceUrl).request.create(request);

@@ -19,6 +19,8 @@ import {
   wrapOffset,
 } from "./lookbook-data";
 
+const noop = () => null;
+
 const CAMERA_INTRO_FACTOR = 0.52;
 const CAMERA_REST_FACTOR = 1;
 
@@ -738,11 +740,15 @@ export const LookbookCamera = () => {
     const c = containerRef.current;
 
     if (!c) {
-      return;
+      return noop;
     }
 
     measure();
-    const ro = new ResizeObserver(() => measure());
+
+    const ro = new ResizeObserver(() => {
+      measure();
+    });
+
     ro.observe(c);
 
     return () => {
@@ -755,7 +761,7 @@ export const LookbookCamera = () => {
     const c = containerRef.current;
 
     if (!c) {
-      return;
+      return noop;
     }
 
     const onPointerDown = (e: PointerEvent) => {
@@ -769,11 +775,11 @@ export const LookbookCamera = () => {
 
       const target = e.target instanceof Node ? e.target : null;
 
-      if (target && detailPanelRef.current?.contains(target)) {
+      if (target && detailPanelRef.current?.contains(target) === true) {
         return;
       }
 
-      if (target && closeBtnRef.current?.contains(target)) {
+      if (target && closeBtnRef.current?.contains(target) === true) {
         return;
       }
 
@@ -1046,7 +1052,7 @@ export const LookbookCamera = () => {
 
   useEffect(() => {
     if (!ready) {
-      return;
+      return noop;
     }
 
     enteredRef.current = true;
@@ -1072,7 +1078,7 @@ export const LookbookCamera = () => {
 
       driftRamp.current.amount = 0;
 
-      return;
+      return noop;
     }
 
     driftObj.amount = 0;

@@ -16,6 +16,8 @@ import {
   smoothstep,
 } from "./terminal-particles";
 
+const noop = () => null;
+
 const HOLD1_END = 0.03;
 const TRANS1_END = 0.36;
 const HOLD2_END = 0.55;
@@ -156,13 +158,13 @@ export const TerminalDisintegrate = () => {
     const rootEl = rootRef.current;
 
     if (!canvasEl || !rootEl) {
-      return;
+      return noop;
     }
 
     const ctx2d = canvasEl.getContext("2d");
 
     if (!ctx2d) {
-      return;
+      return noop;
     }
 
     const canvas: HTMLCanvasElement = canvasEl;
@@ -640,15 +642,21 @@ export const TerminalDisintegrate = () => {
 
     let fontTimer = 0;
 
-    if (document.fonts?.ready) {
-      // oxlint-disable-next-line promise/avoid-new -- a cancellable timeout in the browser; there is no promise-returning timer to await here
-      const timeout = new Promise<void>((resolve) => {
-        fontTimer = window.setTimeout(resolve, 800);
-      });
+    if ("fonts" in document) {
+      let begun = false;
+
+      const beginOnce = () => {
+        if (!begun) {
+          begun = true;
+          begin();
+        }
+      };
+
+      fontTimer = window.setTimeout(beginOnce, 800);
 
       const beginAfterFonts = async () => {
-        await Promise.race([document.fonts.ready.catch(() => null), timeout]);
-        begin();
+        await document.fonts.ready.catch(() => null);
+        beginOnce();
       };
 
       void beginAfterFonts();

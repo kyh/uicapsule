@@ -127,7 +127,11 @@ export const BudgetPlan = () => {
         style={{ background: `linear-gradient(180deg, #ffffff 0 ${BAND}px, #ececee ${BAND}px)` }}
       >
         <ChartSlot height={HEIGHT}>
-          <div onMouseLeave={() => pin(null)}>
+          <div
+            onMouseLeave={() => {
+              pin(null);
+            }}
+          >
             <Chart
               definition={definition}
               renderer={renderer}

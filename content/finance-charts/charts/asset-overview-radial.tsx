@@ -192,12 +192,19 @@ export const AssetOverviewRadial = () => {
           <Num value={region?.revenue ?? 0} className="text-[18px] font-semibold" />
         </div>
       </ChartSlot>
-      <div className="mt-3 space-y-2" onMouseLeave={() => pin(null)}>
+      <div
+        className="mt-3 space-y-2"
+        onMouseLeave={() => {
+          pin(null);
+        }}
+      >
         {REGIONS.map((r, i) => (
           <button
             key={r.name}
             type="button"
-            onMouseEnter={() => pin(i)}
+            onMouseEnter={() => {
+              pin(i);
+            }}
             className="relative flex w-full items-center gap-2.5 rounded-2xl bg-[#f6f6f7] px-3.5 py-2.5 text-left ring-1 ring-black/[0.05]"
           >
             {i === active ? (

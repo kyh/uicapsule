@@ -126,7 +126,9 @@ export const SnailTimer = ({ started = true, initialSeconds = 45, onTimeout }: P
       }, 1000);
     }
 
-    return () => clearInterval(interval);
+    return () => {
+      clearInterval(interval);
+    };
   }, [started, seconds, onTimeout]);
 
   return (

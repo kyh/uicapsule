@@ -243,7 +243,9 @@ export const PredictiveBack = () => {
               type="button"
               aria-label="Back"
               tabIndex={screen === "detail" ? 0 : -1}
-              onClick={() => settle(EXIT, 0)}
+              onClick={() => {
+                settle(EXIT, 0);
+              }}
               className="absolute top-[54px] left-5 grid size-9 place-items-center rounded-full bg-black/30 text-white backdrop-blur-md transition-colors hover:bg-black/45"
             >
               <ChevronLeft className="size-5" />

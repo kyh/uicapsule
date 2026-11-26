@@ -28,7 +28,9 @@ export const AutonomyRule = ({
   <li className="v-row v-rule-row">
     <div className="v-row-main">
       <span className={`v-label ${disabled ? "v-t2" : ""}`}>{title}</span>
-      {description ? <span className="v-caption v-t2">{description}</span> : null}
+      {description !== undefined && description !== "" ? (
+        <span className="v-caption v-t2">{description}</span>
+      ) : null}
     </div>
     <div className="v-row-end">
       {control === "segmented" ? (

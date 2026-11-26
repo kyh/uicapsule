@@ -277,7 +277,13 @@ export const CircleToSearch = () => {
           <motion.button
             type="button"
             aria-pressed={searchMode}
-            onClick={() => (searchMode ? reset() : setSearchMode(true))}
+            onClick={() => {
+              if (searchMode) {
+                reset();
+              } else {
+                setSearchMode(true);
+              }
+            }}
             whileTap={{ scale: 0.9 }}
             className={`flex items-center gap-2 rounded-full px-4 py-2 text-[12px] font-medium ring-1 backdrop-blur-md transition-colors ${
               searchMode

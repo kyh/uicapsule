@@ -50,7 +50,7 @@ export const Block = ({
 }) => (
   <div className={cx("cl-block", className)} id={id}>
     <h3 className="cl-block__title">{title}</h3>
-    {lead ? <p className="cl-block__lead">{lead}</p> : null}
+    {Boolean(lead) && <p className="cl-block__lead">{lead}</p>}
     {children}
   </div>
 );

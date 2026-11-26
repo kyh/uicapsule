@@ -8,6 +8,7 @@ import { cn } from "cn";
 
 import { MediaReveal } from "@/components/media-reveal";
 import { Resizable } from "./resizable";
+import { noop } from "@tanstack/react-query";
 
 interface InspectBox {
   x: number;
@@ -22,17 +23,20 @@ const blockEvent = (event: Event) => {
   event.stopPropagation();
 };
 
-const describe = (element: Element) => {
-  const slot = "dataset" in element ? (element as HTMLElement).dataset.slot : undefined;
+const describe = (element: Element, view: Window & typeof globalThis) => {
+  const slot =
+    element instanceof view.HTMLElement || element instanceof view.SVGElement
+      ? element.dataset.slot
+      : undefined;
 
-  if (slot) {
+  if (slot !== undefined && slot !== "") {
     return slot;
   }
 
   const tag = element.tagName.toLowerCase();
   const [firstClass] = element.classList;
 
-  return firstClass ? `${tag}.${firstClass}` : tag;
+  return firstClass !== undefined && firstClass !== "" ? `${tag}.${firstClass}` : tag;
 };
 
 const useInspector = (enabled: boolean, wrapperRef: RefObject<HTMLDivElement | null>) => {
@@ -44,12 +48,14 @@ const useInspector = (enabled: boolean, wrapperRef: RefObject<HTMLDivElement | n
     if (!enabled || !wrapper) {
       setBox(null);
 
-      return;
+      return noop;
     }
 
     let detach: (() => void) | null = null;
 
-    const onLeave = () => setBox(null);
+    const onLeave = () => {
+      setBox(null);
+    };
 
     const attach = (iframe: HTMLIFrameElement) => {
       detach?.();
@@ -64,21 +70,22 @@ const useInspector = (enabled: boolean, wrapperRef: RefObject<HTMLDivElement | n
 
       const onMove = (event: PointerEvent) => {
         const { target } = event;
+        const view = doc.defaultView;
 
-        if (!target || !("getBoundingClientRect" in target) || target === root) {
+        if (view === null || !(target instanceof view.Element) || target === root) {
           setBox(null);
 
           return;
         }
 
-        const element = target as Element;
+        const element = target;
         const rect = element.getBoundingClientRect();
         const frame = iframe.getBoundingClientRect();
         const outer = wrapper.getBoundingClientRect();
 
         setBox({
           height: rect.height,
-          label: `${describe(element)} · ${Math.round(rect.width)}×${Math.round(rect.height)}`,
+          label: `${describe(element, view)} · ${Math.round(rect.width)}×${Math.round(rect.height)}`,
           width: rect.width,
           x: rect.left + frame.left - outer.left,
           y: rect.top + frame.top - outer.top,
@@ -102,7 +109,12 @@ const useInspector = (enabled: boolean, wrapperRef: RefObject<HTMLDivElement | n
     };
 
     let current: HTMLIFrameElement | null = null;
-    const onLoad = () => current && attach(current);
+
+    const onLoad = () => {
+      if (current) {
+        attach(current);
+      }
+    };
 
     const bind = () => {
       const iframe = wrapper.querySelector("iframe");

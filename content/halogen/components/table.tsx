@@ -62,20 +62,22 @@ export const Table = <T,>({
           <tr>
             {columns.map((item) => {
               const active = sort?.key === item.key;
-              const direction = sort?.desc ? "descending" : "ascending";
+              const direction = sort?.desc === true ? "descending" : "ascending";
 
               return (
                 <th
                   aria-sort={active ? direction : undefined}
-                  data-num={item.num || undefined}
-                  data-optional={item.optional || undefined}
+                  data-num={item.num === true || undefined}
+                  data-optional={item.optional === true || undefined}
                   key={item.key}
                   scope="col"
                 >
                   {item.sort ? (
                     <button
                       className="hx-sort"
-                      onClick={() => setSort({ desc: active ? !sort?.desc : true, key: item.key })}
+                      onClick={() => {
+                        setSort({ desc: active ? !sort?.desc : true, key: item.key });
+                      }}
                       type="button"
                     >
                       {item.label}
@@ -90,7 +92,7 @@ export const Table = <T,>({
           </tr>
         </thead>
         <tbody>
-          {sorted.length === 0 && empty ? (
+          {sorted.length === 0 && Boolean(empty) ? (
             <tr data-empty>
               <td colSpan={columns.length}>{empty}</td>
             </tr>
@@ -108,10 +110,10 @@ export const Table = <T,>({
               >
                 {columns.map((item, index) => (
                   <td
-                    data-dim={item.dim || undefined}
-                    data-num={item.num || undefined}
-                    data-optional={item.optional || undefined}
-                    data-sans={item.sans || undefined}
+                    data-dim={item.dim === true || undefined}
+                    data-num={item.num === true || undefined}
+                    data-optional={item.optional === true || undefined}
+                    data-sans={item.sans === true || undefined}
                     key={item.key}
                   >
                     {index === 0 && onSelect ? (

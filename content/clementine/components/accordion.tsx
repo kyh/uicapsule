@@ -24,7 +24,9 @@ export const AccordionItem = ({
           aria-controls={id}
           aria-expanded={open}
           className="cl-acc__trigger"
-          onClick={() => onOpenChange(!open)}
+          onClick={() => {
+            onOpenChange(!open);
+          }}
           type="button"
         >
           {title}

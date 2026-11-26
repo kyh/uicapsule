@@ -23,8 +23,8 @@ export const SendButton = ({
 }: {
   status: SendStatus;
   empty: boolean;
-  onSend: () => void;
-  onStop: () => void;
+  onSend?: () => void;
+  onStop?: () => void;
   size?: "icon-sm" | "icon";
 }) => {
   const working = status === "submitted" || status === "streaming" || status === "stopping";
@@ -42,9 +42,9 @@ export const SendButton = ({
         }
 
         if (working) {
-          onStop();
+          onStop?.();
         } else {
-          onSend();
+          onSend?.();
         }
       }}
       size={size}

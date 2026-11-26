@@ -19,16 +19,7 @@ import {
   TabsList,
   TabsTrigger,
 } from "./ui";
-import {
-  Fragment,
-  cloneElement,
-  isValidElement,
-  memo,
-  useCallback,
-  useEffect,
-  useMemo,
-  useState,
-} from "react";
+import { Fragment, isValidElement, memo, useCallback, useEffect, useMemo, useState } from "react";
 import type {
   ChangeEvent,
   ElementType as ReactElementType,
@@ -61,13 +52,20 @@ interface IconProps {
 type IconLike = ReactElement | ReactElementType;
 
 const renderIcon = (icon: IconLike, props: IconProps = {}) => {
+  const { key, ...iconProps } = props;
+
   if (isValidElement(icon)) {
-    // oxlint-disable-next-line react/no-clone-element -- applies the caller's className and key to an element the config supplied; wrapping it would change the DOM
-    return cloneElement(icon, props);
+    return (
+      <span
+        key={key}
+        className={cn("inline-flex shrink-0 items-center justify-center", iconProps.className)}
+      >
+        {icon}
+      </span>
+    );
   }
 
   const IconComp = icon;
-  const { key, ...iconProps } = props;
 
   return <IconComp key={key} {...iconProps} />;
 };
@@ -143,7 +141,7 @@ export const FilterValueOptionDisplay = ({ filter, column }: FilterValueDisplayP
 
   if (selected.length === 1 && only) {
     const { label, icon: Icon } = only;
-    const hasIcon = !!Icon;
+    const hasIcon = Icon !== undefined;
 
     return (
       <span className="inline-flex items-center gap-1">
@@ -156,7 +154,7 @@ export const FilterValueOptionDisplay = ({ filter, column }: FilterValueDisplayP
   const name = column.displayName.toLowerCase();
   const pluralName = name.endsWith("s") ? `${name}es` : `${name}s`;
 
-  const hasOptionIcons = !options?.some((o) => !o.icon);
+  const hasOptionIcons = !options?.some((o) => o.icon === undefined);
 
   return (
     <div className="inline-flex items-center gap-0.5">
@@ -164,7 +162,7 @@ export const FilterValueOptionDisplay = ({ filter, column }: FilterValueDisplayP
         selected.slice(0, 3).map(({ value, icon }) => {
           const Icon = icon;
 
-          if (!Icon) {
+          if (Icon === undefined) {
             return null;
           }
 
@@ -188,7 +186,7 @@ export const FilterValueMultiOptionDisplay = ({
 
   if (selected.length === 1 && only) {
     const { label, icon: Icon } = only;
-    const hasIcon = !!Icon;
+    const hasIcon = Icon !== undefined;
 
     return (
       <span className="inline-flex items-center gap-1.5">
@@ -201,7 +199,7 @@ export const FilterValueMultiOptionDisplay = ({
 
   const name = column.displayName.toLowerCase();
 
-  const hasOptionIcons = !options?.some((o) => !o.icon);
+  const hasOptionIcons = !options?.some((o) => o.icon === undefined);
 
   return (
     <div className="inline-flex items-center gap-1.5">
@@ -210,7 +208,7 @@ export const FilterValueMultiOptionDisplay = ({
           {selected.slice(0, 3).map(({ value, icon }) => {
             const Icon = icon;
 
-            if (!Icon) {
+            if (Icon === undefined) {
               return null;
             }
 
@@ -245,10 +243,6 @@ const formatDateRange = (start: Date, end: Date) => {
 };
 
 export const FilterValueDateDisplay = ({ filter }: FilterValueDisplayProps<"date">) => {
-  if (!filter) {
-    return null;
-  }
-
   if (filter.values.length === 0) {
     return <Ellipsis className="size-4" />;
   }
@@ -271,11 +265,10 @@ export const FilterValueDateDisplay = ({ filter }: FilterValueDisplayProps<"date
 };
 
 export const FilterValueTextDisplay = ({ filter }: FilterValueDisplayProps<"text">) => {
-  if (!filter) {
-    return null;
-  }
-
-  if (filter.values.length === 0 || (filter.values[0] && filter.values[0].trim() === "")) {
+  if (
+    filter.values.length === 0 ||
+    (filter.values[0] !== undefined && filter.values[0] !== "" && filter.values[0].trim() === "")
+  ) {
     return <Ellipsis className="size-4" />;
   }
 
@@ -285,7 +278,7 @@ export const FilterValueTextDisplay = ({ filter }: FilterValueDisplayProps<"text
 };
 
 export const FilterValueNumberDisplay = ({ filter }: FilterValueDisplayProps<"number">) => {
-  if (!filter || !filter.values || filter.values.length === 0) {
+  if (filter.values.length === 0) {
     return null;
   }
 
@@ -308,7 +301,7 @@ export const FilterValueBooleanDisplay = ({
   filter,
   column,
 }: FilterValueDisplayProps<"boolean">) => {
-  if (!filter || filter.values.length === 0) {
+  if (filter.values.length === 0) {
     return null;
   }
 
@@ -421,7 +414,7 @@ const OptionItemBase = ({ option, onToggle }: OptionItemProps) => {
   const { value, label, icon: Icon, selected } = option;
 
   const handleSelect = useCallback(() => {
-    onToggle(value, !selected);
+    onToggle(value, selected !== true);
   }, [onToggle, value, selected]);
 
   return (
@@ -436,7 +429,7 @@ const OptionItemBase = ({ option, onToggle }: OptionItemProps) => {
           className="dark:border-(--ring) mr-1 shrink-0 opacity-0 group-data-[selected=true]:opacity-100 data-checked:opacity-100"
         />
         <div className="shrink-0">
-          {Icon && renderIcon(Icon, { className: "text-(--primary) size-4" })}
+          {Icon !== undefined && renderIcon(Icon, { className: "text-(--primary) size-4" })}
         </div>
         <span className="overflow-x-hidden overflow-ellipsis whitespace-nowrap">{label}</span>
       </div>
@@ -451,8 +444,16 @@ export const FilterValueOptionController = ({
   column,
   actions,
 }: FilterValueControllerProps<"option" | "multiOption">) => {
-  // oxlint-disable-next-line react/hook-use-state -- a one-time snapshot of the selection when the controller opens, so items stay in their group while toggling; there is deliberately no setter
-  const [initialSelectedValues] = useState(() => new Set(filter?.values || []));
+  const [snapshot, setSnapshot] = useState(() => ({
+    columnId: column.id,
+    values: new Set(filter?.values),
+  }));
+
+  if (snapshot.columnId !== column.id) {
+    setSnapshot({ columnId: column.id, values: new Set(filter?.values) });
+  }
+
+  const initialSelectedValues = snapshot.values;
 
   const filterValues = filter?.values;
 
@@ -590,7 +591,7 @@ export const FilterValueNumberController = ({
     [column.min, column.max],
   );
 
-  const [sliderMin, sliderMax] = [minMax ? minMax[0] : 0, minMax ? minMax[1] : 0];
+  const [sliderMin, sliderMax] = minMax;
 
   const [values, setValues] = useState(filter?.values ?? [0, 0]);
   const [previousFilterValues, setPreviousFilterValues] = useState(filter?.values);
@@ -603,8 +604,9 @@ export const FilterValueNumberController = ({
   const isNumberRange = filter && numberFilterOperators[filter.operator].target === "multiple";
 
   const setNumberFilterValue = useCallback(
-    (newValues: number[]) =>
-      actions.setFilterValue({ columnId: column.id, type: "number", values: newValues }),
+    (newValues: number[]) => {
+      actions.setFilterValue({ columnId: column.id, type: "number", values: newValues });
+    },
     [actions, column],
   );
 
@@ -623,7 +625,7 @@ export const FilterValueNumberController = ({
   };
 
   const changeSlider = (value: number | readonly number[]) => {
-    const nextValues = Array.isArray(value) ? [...value] : [value];
+    const nextValues = [value].flat();
     setValues(nextValues);
     setFilterValueDebounced(nextValues);
   };
@@ -644,14 +646,12 @@ export const FilterValueNumberController = ({
 
       if (type === "single") {
         newValues = [values[0] ?? 0];
-      } else if (minMax) {
+      } else {
         const value = values[0] ?? 0;
         newValues =
           value - minMax[0] < minMax[1] - value
             ? createNumberRange([value, minMax[1]])
             : createNumberRange([minMax[0], value]);
-      } else {
-        newValues = createNumberRange([values[0] ?? 0, values[1] ?? 0]);
       }
 
       const newOperator = type === "single" ? "is" : "is between";
@@ -679,54 +679,56 @@ export const FilterValueNumberController = ({
         <CommandGroup>
           <div className="flex w-full flex-col">
             <Tabs
-              value={isNumberRange ? "range" : "single"}
-              onValueChange={(v) => changeType(v === "range" ? "range" : "single")}
+              value={isNumberRange === true ? "range" : "single"}
+              onValueChange={(v) => {
+                changeType(v === "range" ? "range" : "single");
+              }}
             >
               <TabsList className="w-full *:text-xs">
                 <TabsTrigger value="single">single</TabsTrigger>
                 <TabsTrigger value="range">range</TabsTrigger>
               </TabsList>
               <TabsContent value="single" className="mt-4 flex flex-col gap-4">
-                {minMax && (
-                  <Slider
-                    value={[values[0] ?? 0]}
-                    onValueChange={changeSlider}
-                    onValueCommitted={flushFilterValueUpdate}
-                    min={sliderMin}
-                    max={sliderMax}
-                    step={1}
-                    aria-orientation="horizontal"
-                  />
-                )}
+                <Slider
+                  value={[values[0] ?? 0]}
+                  onValueChange={changeSlider}
+                  onValueCommitted={flushFilterValueUpdate}
+                  min={sliderMin}
+                  max={sliderMax}
+                  step={1}
+                  aria-orientation="horizontal"
+                />
                 <div className="flex items-center gap-2">
                   <span className="text-xs font-medium">value</span>
                   <DebouncedInput
                     id="single"
                     type="number"
                     value={(values[0] ?? 0).toString()}
-                    onChange={(v) => changeNumber([Number(v)])}
+                    onChange={(v) => {
+                      changeNumber([Number(v)]);
+                    }}
                   />
                 </div>
               </TabsContent>
               <TabsContent value="range" className="mt-4 flex flex-col gap-4">
-                {minMax && (
-                  <Slider
-                    value={values}
-                    onValueChange={changeSlider}
-                    onValueCommitted={flushFilterValueUpdate}
-                    min={sliderMin}
-                    max={sliderMax}
-                    step={1}
-                    aria-orientation="horizontal"
-                  />
-                )}
+                <Slider
+                  value={values}
+                  onValueChange={changeSlider}
+                  onValueCommitted={flushFilterValueUpdate}
+                  min={sliderMin}
+                  max={sliderMax}
+                  step={1}
+                  aria-orientation="horizontal"
+                />
                 <div className="grid grid-cols-2 gap-4">
                   <div className="flex items-center gap-2">
                     <span className="text-xs font-medium">min</span>
                     <DebouncedInput
                       type="number"
                       value={values[0] ?? 0}
-                      onChange={(v) => changeMinNumber(Number(v))}
+                      onChange={(v) => {
+                        changeMinNumber(Number(v));
+                      }}
                     />
                   </div>
                   <div className="flex items-center gap-2">
@@ -734,7 +736,9 @@ export const FilterValueNumberController = ({
                     <DebouncedInput
                       type="number"
                       value={values[1] ?? 0}
-                      onChange={(v) => changeMaxNumber(Number(v))}
+                      onChange={(v) => {
+                        changeMaxNumber(Number(v));
+                      }}
                     />
                   </div>
                 </div>

@@ -2,15 +2,19 @@ import type { ReactNode } from "react";
 
 import { cx } from "../lib/cx";
 
-export type RunStatus =
-  | "ok"
-  | "warn"
-  | "fail"
-  | "running"
-  | "queued"
-  | "waiting"
-  | "idle"
-  | "skipped";
+/** Every run status. */
+export const RUN_STATUSES = [
+  "fail",
+  "idle",
+  "ok",
+  "queued",
+  "running",
+  "skipped",
+  "waiting",
+  "warn",
+] as const;
+
+export type RunStatus = (typeof RUN_STATUSES)[number];
 
 export const STATUS_WORD = {
   fail: "Failed",
@@ -37,9 +41,10 @@ export const statusRank = {
 
 /** Just the mark. Pass `label` when it appears without its word. */
 export const StatusMark = ({ status, label }: { status: RunStatus; label?: string }) => {
-  const a11y = label
-    ? { "aria-label": label, role: "img" as const }
-    : { "aria-hidden": true as const };
+  const a11y =
+    label !== undefined && label !== ""
+      ? { "aria-label": label, role: "img" as const }
+      : { "aria-hidden": true as const };
 
   if (status === "running") {
     return (
@@ -65,7 +70,7 @@ interface StatusProps {
 /** A run state as a square mark followed by its word in capitals. */
 export const Status = ({ status, children, size = "sm", live }: StatusProps) => (
   <span
-    aria-live={live ? "polite" : undefined}
+    aria-live={live === true ? "polite" : undefined}
     className={cx("hx-status", size === "sm" ? "hx-label-sm" : "hx-label")}
     data-status={status}
   >

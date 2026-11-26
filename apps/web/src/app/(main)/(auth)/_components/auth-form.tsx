@@ -70,7 +70,12 @@ export const AuthForm = ({ className, type, ...props }: AuthFormProps) => {
 
   return (
     <div className={cn("grid gap-6", className)} {...props}>
-      <form className="grid gap-2" onSubmit={handleAuthWithPassword}>
+      <form
+        className="grid gap-2"
+        onSubmit={(e) => {
+          void handleAuthWithPassword(e);
+        }}
+      >
         <Field>
           <FieldLabel className="sr-only" htmlFor="email">
             Email
@@ -168,7 +173,12 @@ export const RequestPasswordResetForm = () => {
   }
 
   return (
-    <form className="grid gap-4" onSubmit={handlePasswordReset}>
+    <form
+      className="grid gap-4"
+      onSubmit={(e) => {
+        void handlePasswordReset(e);
+      }}
+    >
       <Field>
         <FieldLabel className="sr-only" htmlFor="reset-email">
           Email
@@ -230,7 +240,12 @@ export const UpdatePasswordForm = ({ token }: { token: string }) => {
   });
 
   return (
-    <form className="grid gap-4" onSubmit={handleUpdatePassword}>
+    <form
+      className="grid gap-4"
+      onSubmit={(e) => {
+        void handleUpdatePassword(e);
+      }}
+    >
       <Field>
         <FieldLabel className="sr-only" htmlFor="new-password">
           New Password

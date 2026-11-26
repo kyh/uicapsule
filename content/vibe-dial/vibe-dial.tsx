@@ -3,6 +3,8 @@
 import { useEffect, useRef, useState } from "react";
 import { AnimatePresence, MotionConfig, motion } from "motion/react";
 
+const noop = () => null;
+
 const MIN = 0;
 const MAX = 2;
 const SWEEP = 270;
@@ -31,7 +33,7 @@ export const VibeDial = () => {
     const dial = dialRef.current;
 
     if (!dial) {
-      return;
+      return noop;
     }
 
     const onWheel = (event: WheelEvent) => {
@@ -41,7 +43,9 @@ export const VibeDial = () => {
 
     dial.addEventListener("wheel", onWheel, { passive: false });
 
-    return () => dial.removeEventListener("wheel", onWheel);
+    return () => {
+      dial.removeEventListener("wheel", onWheel);
+    };
   }, []);
 
   const fraction = temp / MAX;

@@ -2,6 +2,8 @@
 
 import { useEffect, useRef, useState } from "react";
 
+const noop = () => null;
+
 const FALLBACK_WIDTH = 560;
 const HEIGHT = 168;
 const PAD = { bottom: 22, left: 36, right: 8, top: 8 };
@@ -54,7 +56,7 @@ export const LineChart = ({
     const node = frame.current;
 
     if (!node) {
-      return;
+      return noop;
     }
 
     const observer = new ResizeObserver(([entry]) => {
@@ -67,7 +69,9 @@ export const LineChart = ({
 
     observer.observe(node);
 
-    return () => observer.disconnect();
+    return () => {
+      observer.disconnect();
+    };
   }, []);
 
   const min = Math.min(...ticks);
@@ -174,9 +178,15 @@ export const LineChart = ({
           className="v-chart-scrub"
           max={count - 1}
           min={0}
-          onBlur={() => setFocus(null)}
-          onChange={(event) => setFocus(Number(event.target.value))}
-          onPointerLeave={() => setFocus(null)}
+          onBlur={() => {
+            setFocus(null);
+          }}
+          onChange={(event) => {
+            setFocus(Number(event.target.value));
+          }}
+          onPointerLeave={() => {
+            setFocus(null);
+          }}
           onPointerMove={(event) => {
             const box = event.currentTarget.getBoundingClientRect();
             const relative = ((event.clientX - box.left) / box.width) * width;

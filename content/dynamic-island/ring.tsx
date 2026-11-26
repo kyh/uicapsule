@@ -14,7 +14,9 @@ export const Ring = () => {
       firstTime ? 1000 : 2000,
     );
 
-    return () => clearTimeout(id);
+    return () => {
+      clearTimeout(id);
+    };
   }, [isSilent, firstTime]);
 
   return (

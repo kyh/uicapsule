@@ -345,7 +345,7 @@ export const buildGoldFrame = () => {
   for (const [i, row] of OPTION_CHAIN.entries()) {
     const r = 11 + i;
 
-    if (row.highlight) {
+    if (row.highlight === true) {
       for (let c = 0; c < INNER_COLS; c += 1) {
         setCell(inner, r, c, "·", 0.14);
       }
@@ -353,11 +353,11 @@ export const buildGoldFrame = () => {
 
     drawText(inner, r, cCallBid, row.callBid.toFixed(2), 0.82);
     drawText(inner, r, cCallIv, row.callIv.toFixed(1), 0.45);
-    drawText(inner, r, cK, String(row.strike), row.highlight ? 0.98 : 0.7);
+    drawText(inner, r, cK, String(row.strike), row.highlight === true ? 0.98 : 0.7);
     drawText(inner, r, cPutIv, row.putIv.toFixed(1), 0.45);
     drawText(inner, r, cPutBid, row.putBid.toFixed(2), 0.82);
 
-    if (row.highlight) {
+    if (row.highlight === true) {
       setCell(inner, r, cK - 1, "►", 0.9);
       setCell(inner, r, cK + 4, "◄", 0.9);
     }

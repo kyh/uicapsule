@@ -222,7 +222,9 @@ export const GlobalAlertDialog = () => {
     }
 
     setPending(action);
-    void settle(onClick, () => setPending(null));
+    void settle(onClick, () => {
+      setPending(null);
+    });
   };
 
   const onOpenChange = (open: boolean) => {
@@ -245,11 +247,11 @@ export const GlobalAlertDialog = () => {
         <AlertDialogHeader>
           <AlertDialogTitle>{alertState.title}</AlertDialogTitle>
         </AlertDialogHeader>
-        {alertState.description && (
+        {Boolean(alertState.description) && (
           <AlertDialogDescription>{alertState.description}</AlertDialogDescription>
         )}
         <AlertDialogFooter>
-          {!alertState.action?.hidden && (
+          {alertState.action?.hidden !== true && (
             <Button
               onClick={onConfirm}
               loading={pending === "action"}
@@ -258,11 +260,13 @@ export const GlobalAlertDialog = () => {
               {alertState.action?.label ?? "Confirm"}
             </Button>
           )}
-          {!alertState.cancel?.hidden && (
+          {alertState.cancel?.hidden !== true && (
             <Button
               ref={cancelRef}
               variant="secondary"
-              onClick={() => onOpenChange(false)}
+              onClick={() => {
+                onOpenChange(false);
+              }}
               loading={pending === "cancel"}
               disabled={pending === "action"}
             >

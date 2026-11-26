@@ -7,12 +7,11 @@ import { Icon } from "../components/icon";
 import { Meter, Progress } from "../components/meter";
 import { Group, Sheet, SpecCell } from "../components/page";
 import { groupHead } from "./catalog";
-import { STATUS_WORD, Status } from "../components/status";
-import type { RunStatus } from "../components/status";
+import { RUN_STATUSES, Status } from "../components/status";
 import { useToast } from "../components/toast";
 import { useInterval } from "../lib/motion";
 
-const ALL = Object.keys(STATUS_WORD) as RunStatus[];
+const ALL = RUN_STATUSES;
 
 export const Feedback = () => {
   const push = useToast();
@@ -73,10 +72,20 @@ export const Feedback = () => {
           />
           <Meter label="Queue depth" max={500} reading="118 / 500" value={118} />
           <div className="hx-row">
-            <Button onClick={() => setDisk(Math.max(40, disk - 12))} size="sm">
+            <Button
+              onClick={() => {
+                setDisk(Math.max(40, disk - 12));
+              }}
+              size="sm"
+            >
               Free space
             </Button>
-            <Button onClick={() => setDisk(Math.min(99, disk + 12))} size="sm">
+            <Button
+              onClick={() => {
+                setDisk(Math.min(99, disk + 12));
+              }}
+              size="sm"
+            >
               Fill disk
             </Button>
           </div>
@@ -114,7 +123,13 @@ export const Feedback = () => {
           {rotated ? (
             <Alert
               actions={
-                <Button onClick={() => setRotated(false)} size="sm" variant="ghost">
+                <Button
+                  onClick={() => {
+                    setRotated(false);
+                  }}
+                  size="sm"
+                  variant="ghost"
+                >
                   Show the warning again
                 </Button>
               }
@@ -128,7 +143,12 @@ export const Feedback = () => {
           ) : (
             <Alert
               actions={
-                <Button onClick={() => setRotated(true)} size="sm">
+                <Button
+                  onClick={() => {
+                    setRotated(true);
+                  }}
+                  size="sm"
+                >
                   Rotate key
                 </Button>
               }
@@ -152,24 +172,24 @@ export const Feedback = () => {
         >
           <div className="hx-row-wrap">
             <Button
-              onClick={() =>
+              onClick={() => {
                 push({
                   detail: "run_c0ffee · Manual",
                   status: "running",
                   title: "orders_nightly started",
-                })
-              }
+                });
+              }}
             >
               Start run
             </Button>
             <Button
-              onClick={() =>
+              onClick={() => {
                 push({
                   detail: "42 rows rejected",
                   status: "fail",
                   title: "Load of crm.contacts failed",
-                })
-              }
+                });
+              }}
             >
               Fail a load
             </Button>
@@ -200,7 +220,13 @@ export const Feedback = () => {
               <span className="hx-head-title hx-code">warehouse usage</span>
               <span className="hx-head-meta hx-code-sm">{loaded ? "loaded" : "loading"}</span>
               <div className="hx-head-actions">
-                <Button onClick={() => setLoaded(!loaded)} size="sm" variant="ghost">
+                <Button
+                  onClick={() => {
+                    setLoaded(!loaded);
+                  }}
+                  size="sm"
+                  variant="ghost"
+                >
                   {loaded ? "Reload" : "Finish load"}
                 </Button>
               </div>

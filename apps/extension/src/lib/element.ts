@@ -84,7 +84,10 @@ export const videoFor = (element: Element) => {
 };
 
 export const videoSource = (video: HTMLVideoElement) => {
-  const src = video.currentSrc || video.src || video.querySelector("source")?.src || "";
+  const src =
+    [video.currentSrc, video.src, video.querySelector("source")?.src].find(
+      (candidate) => candidate !== undefined && candidate !== "",
+    ) ?? "";
 
   return {
     kind: src.startsWith("http:") || src.startsWith("https:") ? "file" : "stream",

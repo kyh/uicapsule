@@ -38,7 +38,7 @@ export const TableBody = ({
       const rowIndex = virtualRow.index;
       const rowId = row?.original?.id;
 
-      if (!rowId) {
+      if (row === undefined || rowId === undefined || rowId === "") {
         return null;
       }
 
@@ -66,8 +66,12 @@ export const TableBody = ({
                   "border-(--border) bg-(--muted)/30 text-(--muted-foreground) hover:bg-(--muted)/50 dark:hover:bg-(--muted)/40 flex h-9 w-12 shrink-0 cursor-default items-center justify-center border-r border-b font-mono text-xs transition-colors",
                   isRowSelected && "bg-(--muted) dark:bg-(--muted)/80",
                 )}
-                onMouseDown={(e) => handleMouseDown(e, rowId, "")}
-                onMouseMove={(e) => handleMouseMove(e, rowId, "")}
+                onMouseDown={(e) => {
+                  handleMouseDown(e, rowId, "");
+                }}
+                onMouseMove={(e) => {
+                  handleMouseMove(e, rowId, "");
+                }}
               >
                 {renderRowNumber ? renderRowNumber(rowIndex) : rowIndex + 1}
               </div>
@@ -87,8 +91,12 @@ export const TableBody = ({
                   style={{
                     width: `calc(var(--col-${cell.column.id}-size) * 1px)`,
                   }}
-                  onMouseDown={(e) => handleMouseDown(e, rowId, cell.column.id)}
-                  onMouseMove={(e) => handleMouseMove(e, rowId, cell.column.id)}
+                  onMouseDown={(e) => {
+                    handleMouseDown(e, rowId, cell.column.id);
+                  }}
+                  onMouseMove={(e) => {
+                    handleMouseMove(e, rowId, cell.column.id);
+                  }}
                 >
                   {flexRender(cell.column.columnDef.cell, cell.getContext())}
                 </div>

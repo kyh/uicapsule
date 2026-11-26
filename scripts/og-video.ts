@@ -9,6 +9,7 @@ import { BlobNotFoundError, head, put } from "@vercel/blob";
 import { defineCommand, runMain } from "citty";
 import { consola } from "consola";
 import { chromium } from "playwright";
+import { z } from "zod";
 
 import {
   contentMetaSchema,
@@ -16,6 +17,7 @@ import {
   coverStillKey,
 } from "../apps/web/src/lib/content/content-schema";
 import type { CoverMedia, HomeMedia } from "../apps/web/src/lib/content/content-schema";
+import { inOrder } from "./in-order";
 
 const repoRoot = path.resolve(import.meta.dirname, "..");
 const webRoot = path.join(repoRoot, "apps/web");
@@ -31,14 +33,14 @@ const run = (command: string, args: string[]) =>
   execFileSync(command, args, { encoding: "utf-8", maxBuffer: 64 * 1024 * 1024 });
 
 const blobToken = async () => {
-  if (process.env.BLOB_READ_WRITE_TOKEN) {
+  if (process.env.BLOB_READ_WRITE_TOKEN !== undefined && process.env.BLOB_READ_WRITE_TOKEN !== "") {
     return process.env.BLOB_READ_WRITE_TOKEN;
   }
 
   const local = await readFile(path.join(repoRoot, ".env.local"), "utf-8").catch(() => "");
   const token = parseEnv(local).BLOB_READ_WRITE_TOKEN;
 
-  if (!token) {
+  if (token === undefined || token === "") {
     throw new Error("BLOB_READ_WRITE_TOKEN is unset and missing from .env.local");
   }
 
@@ -66,14 +68,19 @@ const upload = async (key: string, file: string, contentType: string, token: str
 
 const stamp = () => new Date().toLocaleDateString("sv").replaceAll("-", "");
 
-const freeStem = async (stem: string, extension: string, token: string) => {
-  for (let attempt = 1; ; attempt += 1) {
-    const candidate = attempt === 1 ? `${stem}.${stamp()}` : `${stem}.${stamp()}-${attempt}`;
+const freeStem: (
+  stem: string,
+  extension: string,
+  token: string,
+  attempt?: number,
+) => Promise<string> = async (stem, extension, token, attempt = 1) => {
+  const candidate = attempt === 1 ? `${stem}.${stamp()}` : `${stem}.${stamp()}-${attempt}`;
 
-    if (!(await exists(`${candidate}.${extension}`, token))) {
-      return candidate;
-    }
+  if (!(await exists(`${candidate}.${extension}`, token))) {
+    return candidate;
   }
+
+  return await freeStem(stem, extension, token, attempt + 1);
 };
 
 const encode = (framesDir: string, out: string) =>
@@ -111,7 +118,12 @@ const logoPath = async () => {
 
   const match = /\sd="(?<d>[^"]+)"/u.exec(source);
 
-  if (!match?.groups?.d) {
+  if (
+    match === null ||
+    match.groups === undefined ||
+    match.groups.d === undefined ||
+    match.groups.d === ""
+  ) {
     throw new Error("could not find the logo path in logo.tsx");
   }
 
@@ -146,10 +158,13 @@ const renderScene = async () => {
 
     const total = Math.round(Number(duration) * FPS);
 
-    for (let frame = 0; frame < total; frame += 1) {
-      await page.evaluate(`renderAt(${frame / FPS})`);
-      await page.screenshot({ path: path.join(frames, `${String(frame).padStart(4, "0")}.png`) });
-    }
+    await inOrder(
+      Array.from({ length: total }, (_, frame) => frame),
+      async (frame) => {
+        await page.evaluate(`renderAt(${frame / FPS})`);
+        await page.screenshot({ path: path.join(frames, `${String(frame).padStart(4, "0")}.png`) });
+      },
+    );
 
     consola.info(`rendered ${total} frames`);
   } finally {
@@ -194,14 +209,22 @@ const renderScene = async () => {
 };
 
 const assetsUrl = async () => {
-  if (process.env.NEXT_PUBLIC_ASSETS_URL) {
+  if (
+    process.env.NEXT_PUBLIC_ASSETS_URL !== undefined &&
+    process.env.NEXT_PUBLIC_ASSETS_URL !== ""
+  ) {
     return process.env.NEXT_PUBLIC_ASSETS_URL;
   }
 
   const example = await readFile(path.join(repoRoot, ".env.example"), "utf-8");
   const match = /^NEXT_PUBLIC_ASSETS_URL="?(?<url>[^"\n]+)"?/mu.exec(example);
 
-  if (!match?.groups?.url) {
+  if (
+    match === null ||
+    match.groups === undefined ||
+    match.groups.url === undefined ||
+    match.groups.url === ""
+  ) {
     throw new Error("NEXT_PUBLIC_ASSETS_URL is unset and missing from .env.example");
   }
 
@@ -253,15 +276,15 @@ const uploadDate = (slug: string, cover: string) => {
 
 const readCoverMedia = async () => {
   const source = await readFile(coverMediaFile, "utf-8").catch(() => "{}");
-  const parsed = coverMediaSchema.array().safeParse(Object.values(JSON.parse(source)));
+  const parsed = z.record(z.string(), coverMediaSchema).safeParse(JSON.parse(source));
 
   if (!parsed.success) {
     consola.warn("cover-media.json is malformed, re-probing every cover");
 
-    return new Map();
+    return new Map<string, CoverMedia>();
   }
 
-  return new Map(parsed.data.map((entry) => [entry.cover, entry]));
+  return new Map(Object.values(parsed.data).map((entry) => [entry.cover, entry]));
 };
 
 const probeCovers = async (force: boolean) => {
@@ -280,20 +303,22 @@ const probeCovers = async (force: boolean) => {
 
   const media: Record<string, CoverMedia> = {};
 
-  for (const slug of slugs) {
+  await inOrder(slugs, async (slug) => {
     const metaSource = await readFile(path.join(contentRoot, slug, "meta.json"), "utf-8");
     const { cover } = contentMetaSchema.parse(JSON.parse(metaSource));
 
-    if (!cover?.endsWith(".mp4")) {
+    if (cover?.endsWith(".mp4") !== true) {
       consola.warn(`${slug}: no mp4 cover, skipped`);
-      continue;
+
+      return;
     }
 
     const kept = previous.get(cover);
 
     if (kept) {
       media[slug] = kept;
-      continue;
+
+      return;
     }
 
     const url = `${base}/${cover}`;
@@ -301,7 +326,8 @@ const probeCovers = async (force: boolean) => {
 
     if (codec !== "h264") {
       consola.warn(`${slug}: cover is ${codec}, not h264 — og:video wants H.264 mp4, skipped`);
-      continue;
+
+      return;
     }
 
     const still = path.join(work, `${slug}.jpg`);
@@ -338,7 +364,7 @@ const probeCovers = async (force: boolean) => {
       width,
     };
     consola.info(`${slug}: ${width}x${height} ${duration.toFixed(1)}s`);
-  }
+  });
 
   await rm(work, { force: true, recursive: true });
   await writeFile(coverMediaFile, `${JSON.stringify(media, null, 2)}\n`);
@@ -361,11 +387,11 @@ const main = defineCommand({
   },
   meta: { description: "Render the home og:video and index component cover videos" },
   run: async ({ args }) => {
-    if (!args.only || args.only === "covers") {
+    if (args.only === undefined || args.only === "" || args.only === "covers") {
       await probeCovers(Boolean(args.force));
     }
 
-    if (!args.only || args.only === "scene") {
+    if (args.only === undefined || args.only === "" || args.only === "scene") {
       await renderScene();
     }
   },

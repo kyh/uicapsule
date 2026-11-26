@@ -18,7 +18,7 @@ export interface DriftRow<T extends string> {
   kind: DriftKind;
   before?: DriftColumn;
   after?: DriftColumn;
-  options: SelectOption<T>[];
+  options: [SelectOption<T>, ...SelectOption<T>[]];
 }
 
 const TONE = {
@@ -85,7 +85,7 @@ export const SchemaDiff = <T extends string>({
               <Side column={row.after} />
             </td>
             <td className="hx-diff-pick">
-              {locked ? (
+              {locked === true ? (
                 <span className="hx-code-sm">
                   {row.options.find((option) => option.value === choices[row.id])?.label}
                 </span>
@@ -93,10 +93,12 @@ export const SchemaDiff = <T extends string>({
                 <Select
                   hideLabel
                   label={`Resolve ${row.after?.name ?? row.before?.name ?? row.id}`}
-                  onValueChange={(value) => onChoose(row.id, value)}
+                  onValueChange={(value) => {
+                    onChoose(row.id, value);
+                  }}
                   options={row.options}
                   size="sm"
-                  value={choices[row.id] ?? row.options[0]?.value ?? ("" as T)}
+                  value={choices[row.id] ?? row.options[0].value}
                 />
               )}
             </td>

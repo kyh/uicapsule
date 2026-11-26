@@ -2,7 +2,8 @@ import type { ButtonHTMLAttributes, ReactNode } from "react";
 
 import { StatusArc } from "./status";
 
-interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
+interface ButtonProps extends Omit<ButtonHTMLAttributes<HTMLButtonElement>, "type"> {
+  type?: "button" | "submit";
   variant?: "primary" | "secondary" | "ghost" | "destructive";
   size?: "xs" | "sm" | "md" | "icon" | "icon-sm" | "icon-xs";
   pending?: boolean;
@@ -23,14 +24,13 @@ export const Button = ({
   ...props
 }: ButtonProps) => (
   <button
-    aria-busy={pending || undefined}
-    className={className ? `fj-btn ${className}` : "fj-btn"}
+    aria-busy={pending === true || undefined}
+    className={className !== undefined && className !== "" ? `fj-btn ${className}` : "fj-btn"}
     data-size={size}
     data-variant={variant}
     disabled={disabled}
-    onClick={pending ? undefined : onClick}
-    // oxlint-disable-next-line react/button-has-type -- defaults to "button"; a form passes "submit"
-    type={type}
+    onClick={pending === true ? undefined : onClick}
+    type={type === "submit" ? "submit" : "button"}
     {...props}
   >
     {pending === undefined ? (

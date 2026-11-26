@@ -6,6 +6,8 @@ import type { Kind } from "./badge";
 import { cssVars } from "../lib/css";
 import { Icon } from "./icon";
 
+const noop = () => null;
+
 const ALERT_ICON = { fail: OctagonX, info: Info, ok: CircleCheck, warn: TriangleAlert } as const;
 
 interface AlertProps {
@@ -23,7 +25,7 @@ export const Alert = ({ status, title, children, actions }: AlertProps) => (
       <p className="fj-alert-title">{title}</p>
       <div className="fj-alert-text">{children}</div>
     </div>
-    {actions ? <div className="fj-alert-actions">{actions}</div> : null}
+    {Boolean(actions) && <div className="fj-alert-actions">{actions}</div>}
   </div>
 );
 
@@ -38,7 +40,7 @@ export const EmptyState = ({ title, children, actions }: EmptyProps) => (
   <div className="fj-empty">
     <p className="fj-empty-title">{title}</p>
     <p className="fj-empty-text">{children}</p>
-    {actions ? <div className="fj-hstack">{actions}</div> : null}
+    {Boolean(actions) && <div className="fj-hstack">{actions}</div>}
   </div>
 );
 
@@ -61,15 +63,24 @@ export const useSkeletonGate = (loading: boolean) => {
         setSince(Date.now());
       }, SHOW_DELAY);
 
-      return () => window.clearTimeout(timer);
+      return () => {
+        window.clearTimeout(timer);
+      };
     }
 
     if (!loading && shown) {
       const wait = Math.max(0, HOLD_MIN - (Date.now() - since));
-      const timer = window.setTimeout(() => setShown(false), wait);
 
-      return () => window.clearTimeout(timer);
+      const timer = window.setTimeout(() => {
+        setShown(false);
+      }, wait);
+
+      return () => {
+        window.clearTimeout(timer);
+      };
     }
+
+    return noop;
   }, [loading, shown, since]);
 
   return shown;

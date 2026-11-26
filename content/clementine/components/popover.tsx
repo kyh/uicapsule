@@ -52,7 +52,9 @@ export const Popover = ({
       {trigger({
         "aria-controls": id,
         "aria-expanded": open,
-        onClick: () => onOpenChange(!open),
+        onClick: () => {
+          onOpenChange(!open);
+        },
       })}
       <dialog
         aria-label={title}

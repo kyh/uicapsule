@@ -235,7 +235,12 @@ const WireframeScene = ({ config }: { config: Required<WireframeOrbConfig> }) =>
     return geo;
   }, [config.gridSize]);
 
-  useEffect(() => () => geometry.dispose(), [geometry]);
+  useEffect(
+    () => () => {
+      geometry.dispose();
+    },
+    [geometry],
+  );
 
   const uniforms = useMemo(() => {
     const col = new THREE.Color(config.color);

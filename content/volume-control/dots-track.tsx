@@ -108,8 +108,12 @@ const DotCell = ({ label, cells, onDown, onEnter }: DotCellProps) => (
           type="button"
           aria-pressed={lit}
           aria-label={`${label} digit, row ${dot.row}, column ${dot.column}`}
-          onPointerDown={() => onDown(label, dot.index, lit)}
-          onPointerEnter={() => onEnter(label, dot.index)}
+          onPointerDown={() => {
+            onDown(label, dot.index, lit);
+          }}
+          onPointerEnter={() => {
+            onEnter(label, dot.index);
+          }}
           style={{ height: DOT, margin: 0, width: DOT }}
           className={`rounded-full outline-none transition-colors duration-75 focus-visible:ring-2 focus-visible:ring-white/70 ${
             lit
@@ -142,7 +146,12 @@ export const DotsTrack = ({ volume }: DotsTrackProps) => {
   const painting = useRef<boolean | null>(null);
   const scanTimer = useRef(0);
 
-  useEffect(() => () => window.clearTimeout(scanTimer.current), []);
+  useEffect(
+    () => () => {
+      window.clearTimeout(scanTimer.current);
+    },
+    [],
+  );
 
   const paint = (cell: "tens" | "ones", index: number, value: boolean) => {
     const setter = cell === "tens" ? setTens : setOnes;
@@ -172,7 +181,7 @@ export const DotsTrack = ({ volume }: DotsTrackProps) => {
   const read = () => {
     const value = clampVolume(readCell(tens) * 10 + readCell(ones));
 
-    if (reduceMotion) {
+    if (reduceMotion === true) {
       setVerdict(value);
       volume.set(value);
 

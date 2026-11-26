@@ -26,7 +26,7 @@ export const uploadAttachment = async (
 ) => {
   const token = process.env.GITHUB_ISSUES_TOKEN;
 
-  if (!token) {
+  if (token === undefined || token === "") {
     throw unavailable("Attachments are temporarily unavailable. Add a link instead.");
   }
 

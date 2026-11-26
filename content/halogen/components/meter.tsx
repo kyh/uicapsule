@@ -1,4 +1,4 @@
-import type { CSSProperties } from "react";
+import { cssVars } from "../lib/css-vars";
 
 interface MeterProps {
   label: string;
@@ -57,10 +57,10 @@ export const Meter = ({ label, value, max, reading, warnAt, failAt }: MeterProps
         <div
           className="hx-meter-fill"
           data-tone={tone === "lamp" ? undefined : tone}
-          style={{ "--value": `${Math.min(100, share * 100)}%` } as CSSProperties}
+          style={cssVars({ "--value": `${Math.min(100, share * 100)}%` })}
         />
         {warnAt === undefined ? null : (
-          <span className="hx-meter-tick" style={{ "--at": `${warnAt * 100}%` } as CSSProperties} />
+          <span className="hx-meter-tick" style={cssVars({ "--at": `${warnAt * 100}%` })} />
         )}
       </div>
     </div>
@@ -90,10 +90,10 @@ export const Progress = ({ label, done, total, cells = 24, live, reading }: Prog
         <span className="hx-label-sm hx-ink-3">{label}</span>
         <span className="hx-code hx-end">{reading ?? `${done} / ${total}`}</span>
       </div>
-      <div aria-hidden className="hx-progress" style={{ "--cells": cells } as CSSProperties}>
+      <div aria-hidden className="hx-progress" style={cssVars({ "--cells": cells })}>
         {slots.map((key, index) => (
           <span
-            data-live={live && index === filled && done < total ? true : undefined}
+            data-live={live === true && index === filled && done < total ? true : undefined}
             data-on={index < filled ? true : undefined}
             key={key}
           />

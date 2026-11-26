@@ -44,7 +44,13 @@ export const BarChart = ({ data, label, tickEvery, unit }: BarChartProps) => {
             <span key={tick}>{formatNumber(tick)}</span>
           ))}
         </div>
-        <div aria-hidden className="fj-chart-area" onPointerLeave={() => setHover(null)}>
+        <div
+          aria-hidden
+          className="fj-chart-area"
+          onPointerLeave={() => {
+            setHover(null);
+          }}
+        >
           {ticks.map((tick) => (
             <span
               className="fj-chart-grid"
@@ -58,7 +64,9 @@ export const BarChart = ({ data, label, tickEvery, unit }: BarChartProps) => {
                 className="fj-chart-col"
                 data-active={hover === index ? "" : undefined}
                 key={datum.label}
-                onPointerEnter={() => setHover(index)}
+                onPointerEnter={() => {
+                  setHover(index);
+                }}
               >
                 <span
                   className="fj-chart-stack"

@@ -92,11 +92,11 @@ export const SelectionSpecimens = () => {
             {CATEGORIES.map((category) => (
               <Chip
                 key={category}
-                onSelectedChange={(on) =>
+                onSelectedChange={(on) => {
                   setPicked((list) =>
                     on ? [...list, category] : list.filter((item) => item !== category),
-                  )
-                }
+                  );
+                }}
                 selected={picked.includes(category)}
               >
                 {category}

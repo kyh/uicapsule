@@ -23,7 +23,7 @@
     "check:agent-endpoints": "node --import tsx scripts/check-agent-endpoints.ts",
     "verify": "pnpm typecheck && pnpm lint && pnpm format && pnpm test && pnpm build",
     "typecheck:content": "node --import tsx scripts/typecheck-content.ts",
-    "typecheck:scripts": "tsc --project tsconfig.scripts.json",
+    "typecheck:scripts": "tsc --project tsconfig.json && tsc --project scripts/templates/tsconfig.json",
     "og:video": "node --import tsx scripts/og-video.ts",
     "skills:sync": "DISABLE_TELEMETRY=1 skills experimental_install --frozen-lockfile --force --agent claude-code",
     "skills:update": "DISABLE_TELEMETRY=1 skills update --project --yes"
@@ -32,19 +32,23 @@
     "@interfere/landmines": "^0.1.1",
     "@kyh/tsconfig": "catalog:",
     "@types/node": "catalog:",
+    "@types/react": "catalog:",
     "@vercel/blob": "^2.9.0",
     "citty": "^0.2.2",
     "consola": "^3.4.2",
     "dotenv-cli": "^11.1.0",
+    "lucide-react": "catalog:",
     "oxc-parser": "^0.154.0",
     "oxfmt": "^0.73.0",
     "oxlint": "^1.94.0",
+    "oxlint-tsgolint": "^7.0.2008",
     "playwright": "1.65.1",
     "skills": "1.9.0",
     "tsx": "catalog:",
     "turbo": "^2.11.13",
     "typescript": "catalog:",
-    "ultracite": "^8.3.1"
+    "ultracite": "^8.3.1",
+    "zod": "catalog:"
   },
   "engines": {
     "node": "24.x"

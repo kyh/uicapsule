@@ -1,6 +1,7 @@
-import type { CSSProperties, ReactNode } from "react";
+import type { ReactNode } from "react";
 
 import { StatusMark } from "./status";
+import { cssVars } from "../lib/css-vars";
 
 type AlertTone = "fail" | "warn" | "ok" | "info";
 
@@ -18,7 +19,7 @@ interface AlertProps {
 export const Alert = ({ tone = "fail", word, children, actions, framed }: AlertProps) => (
   <div
     className="hx-alert"
-    data-framed={framed || undefined}
+    data-framed={framed === true || undefined}
     data-tone={tone}
     role={tone === "fail" ? "alert" : "status"}
   >
@@ -27,7 +28,7 @@ export const Alert = ({ tone = "fail", word, children, actions, framed }: AlertP
       {word}
     </span>
     <p className="hx-body-sm hx-measure">{children}</p>
-    {actions ? <div className="hx-row-wrap hx-alert-actions">{actions}</div> : null}
+    {Boolean(actions) && <div className="hx-row-wrap hx-alert-actions">{actions}</div>}
   </div>
 );
 
@@ -53,9 +54,5 @@ export const EmptyState = ({
 
 /** Static placeholder bars sized like the content they stand in for. */
 export const Skeleton = ({ width = "100%", height = 12 }: { width?: string; height?: number }) => (
-  <span
-    aria-hidden
-    className="hx-skel"
-    style={{ "--h": `${height}px`, "--w": width } as CSSProperties}
-  />
+  <span aria-hidden className="hx-skel" style={cssVars({ "--h": `${height}px`, "--w": width })} />
 );

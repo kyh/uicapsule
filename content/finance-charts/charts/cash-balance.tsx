@@ -281,7 +281,11 @@ export const CashBalance = () => {
       </div>
 
       <ChartSlot height={HEIGHT} className="mt-5">
-        <div onMouseLeave={() => pin(null)}>
+        <div
+          onMouseLeave={() => {
+            pin(null);
+          }}
+        >
           <Chart
             definition={definition}
             renderer={renderer}

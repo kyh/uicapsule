@@ -8,7 +8,7 @@ interface StripProps {
 
 /** A fieldset of figures on one ruled row; cells with `onSelect` become toggle buttons. */
 export const StatusStrip = ({ label, plain, children }: StripProps) => (
-  <fieldset aria-label={label} className="hx-strip" data-plain={plain || undefined}>
+  <fieldset aria-label={label} className="hx-strip" data-plain={plain === true || undefined}>
     {children}
   </fieldset>
 );
@@ -30,7 +30,7 @@ export const StripCell = ({ label, value, unit, lead, selected, onSelect }: Cell
       <span className="hx-strip-value">
         {lead}
         {value}
-        {unit ? <span className="hx-strip-unit">{unit}</span> : null}
+        {Boolean(unit) && <span className="hx-strip-unit">{unit}</span>}
       </span>
     </>
   );
@@ -38,7 +38,7 @@ export const StripCell = ({ label, value, unit, lead, selected, onSelect }: Cell
   if (onSelect) {
     return (
       <button
-        aria-current={selected ? "true" : undefined}
+        aria-current={selected === true ? "true" : undefined}
         className="hx-strip-cell"
         onClick={onSelect}
         type="button"

@@ -6,6 +6,8 @@ import { groupHead } from "./catalog";
 import { Activity, PromptInput, ToolCallRow, ToolCallStack } from "../components/runs";
 import { StatusMark } from "../components/status";
 
+const noop = () => null;
+
 const FIRST = { elapsed: "00:04", text: "Reading crm-api schema for contacts v7" };
 
 const ACTIVITY = [
@@ -27,12 +29,16 @@ export const Runs = () => {
 
   useEffect(() => {
     if (!thinking) {
-      return;
+      return noop;
     }
 
-    const timer = window.setTimeout(() => setThinking(false), 1200);
+    const timer = window.setTimeout(() => {
+      setThinking(false);
+    }, 1200);
 
-    return () => window.clearTimeout(timer);
+    return () => {
+      window.clearTimeout(timer);
+    };
   }, [thinking]);
 
   let moveState: "waiting" | "done" | "skipped" = "waiting";
@@ -68,10 +74,22 @@ export const Runs = () => {
                     queueing behind growth-data and cost about 210 credits less a month.
                   </p>
                   <div className="hx-row">
-                    <Button onClick={() => setApproved(false)} size="sm" variant="ghost">
+                    <Button
+                      onClick={() => {
+                        setApproved(false);
+                      }}
+                      size="sm"
+                      variant="ghost"
+                    >
                       Decline
                     </Button>
-                    <Button onClick={() => setApproved(true)} size="sm" variant="lamp">
+                    <Button
+                      onClick={() => {
+                        setApproved(true);
+                      }}
+                      size="sm"
+                      variant="lamp"
+                    >
                       Approve move
                     </Button>
                   </div>
@@ -83,7 +101,9 @@ export const Runs = () => {
                   </span>
                   <Button
                     className="hx-end"
-                    onClick={() => setApproved(null)}
+                    onClick={() => {
+                      setApproved(null);
+                    }}
                     size="sm"
                     variant="ghost"
                   >
@@ -114,7 +134,9 @@ export const Runs = () => {
             </span>
             <Button
               className="hx-end"
-              onClick={() => setBeat((beat + 1) % ACTIVITY.length)}
+              onClick={() => {
+                setBeat((beat + 1) % ACTIVITY.length);
+              }}
               size="sm"
             >
               {beat + 1 === ACTIVITY.length ? "From the top" : "Next message"}
@@ -127,7 +149,7 @@ export const Runs = () => {
           path="runs/prompt-input"
           wide
         >
-          {asked ? (
+          {asked !== null && asked !== "" ? (
             <div className="hx-stack">
               <p className="hx-body-sm hx-question">{asked}</p>
               <div className="hx-row hx-answer">

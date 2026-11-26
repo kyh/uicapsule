@@ -69,7 +69,12 @@ export const DisplaySpecimens = () => {
   const topUp = (amount: number, apply: (change: number) => void) => {
     apply(amount);
     toast.show({
-      action: { label: "Undo", onClick: () => apply(-amount) },
+      action: {
+        label: "Undo",
+        onClick: () => {
+          apply(-amount);
+        },
+      },
       title: `Added ${formatAmount(amount)} to Everyday`,
     });
   };
@@ -116,7 +121,11 @@ export const DisplaySpecimens = () => {
           <div className="cl-balance-demo">
             <span>Hi, Noor</span>
             <Balance
-              onClick={() => topUp(50, (change) => setBalance((value) => value + change))}
+              onClick={() => {
+                topUp(50, (change) => {
+                  setBalance((value) => value + change);
+                });
+              }}
               value={balance}
             />
           </div>
@@ -124,7 +133,11 @@ export const DisplaySpecimens = () => {
             <span>Hi, Noor</span>
             <Balance
               low={low < 100}
-              onClick={() => topUp(50, (change) => setLow((value) => value + change))}
+              onClick={() => {
+                topUp(50, (change) => {
+                  setLow((value) => value + change);
+                });
+              }}
               value={low}
             />
           </div>
@@ -173,7 +186,9 @@ export const DisplaySpecimens = () => {
               defaultBank ? "··4471, used first for Add money" : "··4471, Harbor Credit Union"
             }
             leading={<ListIcon icon={Landmark} />}
-            onClick={() => setDefaultBank(!defaultBank)}
+            onClick={() => {
+              setDefaultBank(!defaultBank);
+            }}
             selected={defaultBank}
             title="Linked bank"
             trailing={defaultBank ? <Badge tone="accent">Default</Badge> : null}
@@ -181,7 +196,9 @@ export const DisplaySpecimens = () => {
           <ListItem
             description={cardLocked ? "Locked. Press to unlock" : "Working. Press to lock"}
             leading={<ListIcon icon={CreditCard} />}
-            onClick={() => setCardLocked(!cardLocked)}
+            onClick={() => {
+              setCardLocked(!cardLocked);
+            }}
             title="Card ··2208"
             trailing={
               cardLocked ? <Badge tone="warn">Locked</Badge> : <Badge tone="success">On</Badge>
@@ -241,12 +258,20 @@ export const DisplaySpecimens = () => {
           <div className="cl-spec-row">
             <button
               className="cl-link"
-              onClick={() => setSaved((value) => Math.min(2400, value + 120))}
+              onClick={() => {
+                setSaved((value) => Math.min(2400, value + 120));
+              }}
               type="button"
             >
               Add $120.00
             </button>
-            <button className="cl-link" onClick={() => setSaved(1140)} type="button">
+            <button
+              className="cl-link"
+              onClick={() => {
+                setSaved(1140);
+              }}
+              type="button"
+            >
               Start over
             </button>
           </div>

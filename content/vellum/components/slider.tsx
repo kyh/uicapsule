@@ -1,5 +1,5 @@
 import { useId } from "react";
-import type { CSSProperties } from "react";
+import { cssVars } from "../lib/css-vars";
 
 /** Picks a number on a range; the filled track is ink, never a hue. */
 export const Slider = ({
@@ -37,9 +37,11 @@ export const Slider = ({
         id={id}
         max={max}
         min={min}
-        onChange={(event) => onValueChange(Number(event.target.value))}
+        onChange={(event) => {
+          onValueChange(Number(event.target.value));
+        }}
         step={step}
-        style={{ "--fill": `${fill}%` } as CSSProperties}
+        style={cssVars({ "--fill": `${fill}%` })}
         type="range"
         value={value}
       />

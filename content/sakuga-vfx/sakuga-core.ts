@@ -96,7 +96,7 @@ const size = () => {
 };
 
 const ensureFront = () => {
-  if (front.c?.isConnected) {
+  if (front.c?.isConnected === true) {
     return;
   }
 
@@ -182,7 +182,7 @@ const drawLayer = (layer: Layer, dt: number) => {
   layer.live = layer.live.filter((p) => {
     p.t += dt;
 
-    return !p.dead && p.t < p.life;
+    return p.dead !== true && p.t < p.life;
   });
 
   for (const p of layer.live) {
@@ -1050,7 +1050,9 @@ export const squashy = (el: HTMLElement, { low = 0.82, k = 520, d = 15, wide = 0
   }
 
   return {
-    dispose: () => off.abort(),
+    dispose: () => {
+      off.abort();
+    },
     pop,
     s,
     step: (dt) => {

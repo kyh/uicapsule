@@ -88,11 +88,18 @@ export const Navigation = () => {
           note="The path down to this page, each segment spelled as stored. The last is where you are."
           path="navigation/breadcrumb"
         >
-          <Breadcrumb onNavigate={(index) => setDepth(index + 1)} path={PATH.slice(0, depth)} />
+          <Breadcrumb
+            onNavigate={(index) => {
+              setDepth(index + 1);
+            }}
+            path={PATH.slice(0, depth)}
+          />
           {depth < PATH.length ? (
             <button
               className="hx-sort hx-code-sm hx-ink-3"
-              onClick={() => setDepth(PATH.length)}
+              onClick={() => {
+                setDepth(PATH.length);
+              }}
               type="button"
             >
               Back to {PATH.at(-1)}

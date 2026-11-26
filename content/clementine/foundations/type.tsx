@@ -9,6 +9,8 @@ import { Block } from "../shell";
 
 import "./type.css";
 
+const noop = () => null;
+
 const STEPS: readonly number[] = [111.11, -17.8, 4.44, -1.09, 88.2];
 
 const Jitter = () => {
@@ -17,7 +19,7 @@ const Jitter = () => {
 
   useEffect(() => {
     if (runs === 0) {
-      return;
+      return noop;
     }
 
     const tick = window.setTimeout(() => {
@@ -25,7 +27,9 @@ const Jitter = () => {
       setRuns((count) => count - 1);
     }, 110);
 
-    return () => window.clearTimeout(tick);
+    return () => {
+      window.clearTimeout(tick);
+    };
   }, [runs]);
 
   return (
@@ -42,7 +46,14 @@ const Jitter = () => {
           <span className="cl-jitter__fig">{formatAmount(value)}</span>
         </p>
       </div>
-      <Button onClick={() => setRuns(20)} pending={runs > 0} size="sm" variant="secondary">
+      <Button
+        onClick={() => {
+          setRuns(20);
+        }}
+        pending={runs > 0}
+        size="sm"
+        variant="secondary"
+      >
         Count up the balance
       </Button>
     </div>
@@ -51,7 +62,7 @@ const Jitter = () => {
 
 const TypeScale = () => {
   const tokens = useLiveTokens(ALL_LIVE_TOKENS);
-  const read = (name: string) => tokens?.light.get(name) || "…";
+  const read = (name: string) => tokens?.light.get(name) ?? "…";
 
   return (
     <ol className="cl-type">

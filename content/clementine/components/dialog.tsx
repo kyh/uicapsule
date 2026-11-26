@@ -4,6 +4,8 @@ import type { ReactNode } from "react";
 
 import "./dialog.css";
 
+const noop = () => null;
+
 interface DialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
@@ -47,7 +49,7 @@ export const Dialog = ({
     const node = ref.current;
 
     if (!node || kind === "alert" || "closedBy" in HTMLDialogElement.prototype) {
-      return;
+      return noop;
     }
 
     const onClick = (event: MouseEvent) => {
@@ -58,18 +60,24 @@ export const Dialog = ({
 
     node.addEventListener("click", onClick);
 
-    return () => node.removeEventListener("click", onClick);
+    return () => {
+      node.removeEventListener("click", onClick);
+    };
   }, [kind, onOpenChange]);
+
+  const hasDescription = Boolean(description);
 
   return (
     <dialog
-      aria-describedby={description ? descId : undefined}
+      aria-describedby={hasDescription ? descId : undefined}
       aria-labelledby={titleId}
       className="cl-dialog"
       closedby={kind === "alert" ? "closerequest" : "any"}
       data-kind={kind}
       data-size={size}
-      onClose={() => onOpenChange(false)}
+      onClose={() => {
+        onOpenChange(false);
+      }}
       ref={ref}
       role={kind === "alert" ? "alertdialog" : undefined}
     >
@@ -85,7 +93,9 @@ export const Dialog = ({
               className="cl-btn"
               data-size="icon-sm"
               data-variant="secondary"
-              onClick={() => onOpenChange(false)}
+              onClick={() => {
+                onOpenChange(false);
+              }}
               type="button"
             >
               <span className="cl-btn__body">
@@ -94,13 +104,13 @@ export const Dialog = ({
             </button>
           )}
         </header>
-        {description ? (
+        {hasDescription && (
           <p className="cl-dialog__desc" id={descId}>
             {description}
           </p>
-        ) : null}
-        {children ? <div className="cl-dialog__body">{children}</div> : null}
-        {footer ? <footer className="cl-dialog__foot">{footer}</footer> : null}
+        )}
+        {Boolean(children) && <div className="cl-dialog__body">{children}</div>}
+        {Boolean(footer) && <footer className="cl-dialog__foot">{footer}</footer>}
       </div>
     </dialog>
   );

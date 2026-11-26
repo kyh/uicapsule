@@ -32,7 +32,9 @@ export const Menu = ({
   const root = useRef<HTMLDivElement>(null);
   const list = useRef<HTMLDivElement>(null);
 
-  useDismiss(root, open, () => setOpen(false));
+  useDismiss(root, open, () => {
+    setOpen(false);
+  });
 
   useEffect(() => {
     if (open) {
@@ -45,7 +47,10 @@ export const Menu = ({
       ...(list.current?.querySelectorAll<HTMLButtonElement>("[role=menuitem]") ?? []),
     ];
 
-    const at = entries.indexOf(document.activeElement as HTMLButtonElement);
+    const at =
+      document.activeElement instanceof HTMLButtonElement
+        ? entries.indexOf(document.activeElement)
+        : -1;
 
     if (event.key === "ArrowDown") {
       event.preventDefault();
@@ -69,7 +74,9 @@ export const Menu = ({
       {renderTrigger({
         "aria-expanded": open,
         "aria-haspopup": "menu",
-        onClick: () => setOpen((value) => !value),
+        onClick: () => {
+          setOpen((value) => !value);
+        },
       })}
       <div
         aria-label={label}
@@ -93,7 +100,9 @@ export const Menu = ({
                 setOpen(false);
                 item.onSelect();
               }}
-              onPointerMove={(event) => event.currentTarget.focus()}
+              onPointerMove={(event) => {
+                event.currentTarget.focus();
+              }}
               role="menuitem"
               tabIndex={-1}
               type="button"

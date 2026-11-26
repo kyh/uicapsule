@@ -36,7 +36,9 @@ export const ChatInput = ({
       <input
         autoComplete="off"
         id={id}
-        onChange={(event) => onValueChange(event.target.value)}
+        onChange={(event) => {
+          onValueChange(event.target.value);
+        }}
         placeholder={placeholder}
         value={value}
       />

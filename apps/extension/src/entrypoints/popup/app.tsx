@@ -63,7 +63,11 @@ export const App = () => {
       setTab({ id: active?.id, url: active?.url });
       setShortcuts(
         new Map(
-          commands.flatMap(({ name, shortcut }) => (name && shortcut ? [[name, shortcut]] : [])),
+          commands.flatMap(({ name, shortcut }) =>
+            name !== undefined && name !== "" && shortcut !== undefined && shortcut !== ""
+              ? [[name, shortcut]]
+              : [],
+          ),
         ),
       );
     };
@@ -102,7 +106,7 @@ export const App = () => {
         </output>
       ) : null}
 
-      {error ? (
+      {error !== null && error !== "" ? (
         <p key={error} role="alert" className="shake px-4 pb-2 text-xs text-destructive">
           {error}
         </p>
@@ -120,7 +124,9 @@ export const App = () => {
               onClick={() => {
                 void run(tool);
               }}
-              trailing={shortcut ? <Keys shortcut={shortcut} /> : null}
+              trailing={
+                shortcut !== undefined && shortcut !== "" ? <Keys shortcut={shortcut} /> : null
+              }
             >
               {label}
             </Row>

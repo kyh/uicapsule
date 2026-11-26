@@ -92,7 +92,7 @@ const listsItems: NavItem[] = [
 const NavigationItem = ({ item }: { item: NavItem }) => (
   <div className="flex w-full flex-col">
     <div
-      className={`flex min-w-0 items-center gap-x-1.5 rounded-[9px] px-2 py-1 transition-colors duration-500 [transition-timing-function:cubic-bezier(0.65,0,0.35,1)] ${item.isActive ? "bg-[#F4F5F6]" : ""}`}
+      className={`flex min-w-0 items-center gap-x-1.5 rounded-[9px] px-2 py-1 transition-colors duration-500 [transition-timing-function:cubic-bezier(0.65,0,0.35,1)] ${item.isActive === true ? "bg-[#F4F5F6]" : ""}`}
     >
       <div className="relative w-[14px]">{item.icon}</div>
       <span className="min-w-0 flex-1 truncate text-[14px] leading-5 font-medium tracking-[-0.28px]">

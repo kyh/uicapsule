@@ -47,10 +47,11 @@ export const Data = () => {
   const [order, setOrder] = useState<"status" | "took">("status");
   const [selected, setSelected] = useState<string | null>("c4");
 
-  const toggleAgent = (agent: string) =>
+  const toggleAgent = (agent: string) => {
     setAgents((current) =>
       current.includes(agent) ? current.filter((item) => item !== agent) : [...current, agent],
     );
+  };
 
   const rows = CALLS.filter(
     (row) =>
@@ -78,7 +79,9 @@ export const Data = () => {
           <div className="fj-grow">
             <SearchInput
               label="Search tools"
-              onChange={(event) => setQuery(event.target.value)}
+              onChange={(event) => {
+                setQuery(event.target.value);
+              }}
               placeholder="Search tools"
               value={query}
             />
@@ -89,7 +92,9 @@ export const Data = () => {
                 aria-pressed={agents.includes(agent)}
                 className="fj-chip"
                 key={agent}
-                onClick={() => toggleAgent(agent)}
+                onClick={() => {
+                  toggleAgent(agent);
+                }}
                 type="button"
               >
                 {agent}
@@ -98,7 +103,9 @@ export const Data = () => {
             <button
               aria-pressed={troubleOnly}
               className="fj-chip"
-              onClick={() => setTroubleOnly((value) => !value)}
+              onClick={() => {
+                setTroubleOnly((value) => !value);
+              }}
               type="button"
             >
               Trouble only
@@ -138,7 +145,13 @@ export const Data = () => {
                 <thead>
                   <tr>
                     <th aria-sort={order === "status" ? "descending" : "none"} scope="col">
-                      <button className="fj-sort" onClick={() => setOrder("status")} type="button">
+                      <button
+                        className="fj-sort"
+                        onClick={() => {
+                          setOrder("status");
+                        }}
+                        type="button"
+                      >
                         Result
                       </button>
                     </th>
@@ -149,7 +162,13 @@ export const Data = () => {
                       data-num=""
                       scope="col"
                     >
-                      <button className="fj-sort" onClick={() => setOrder("took")} type="button">
+                      <button
+                        className="fj-sort"
+                        onClick={() => {
+                          setOrder("took");
+                        }}
+                        type="button"
+                      >
                         Took
                       </button>
                     </th>
@@ -166,7 +185,9 @@ export const Data = () => {
                       <th scope="row">
                         <button
                           className="fj-row-select"
-                          onClick={() => setSelected(row.id)}
+                          onClick={() => {
+                            setSelected(row.id);
+                          }}
                           type="button"
                         >
                           {row.tool}

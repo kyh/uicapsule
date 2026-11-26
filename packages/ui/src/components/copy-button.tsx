@@ -39,7 +39,7 @@ export const CopyButton = ({
   );
 
   const copyToClipboard = async () => {
-    if (!navigator.clipboard?.writeText || value === undefined) {
+    if (!("clipboard" in navigator) || value === undefined) {
       return;
     }
 
@@ -52,7 +52,9 @@ export const CopyButton = ({
         clearTimeout(resetTimeout.current);
       }
 
-      resetTimeout.current = setTimeout(() => setIsCopied(false), timeout);
+      resetTimeout.current = setTimeout(() => {
+        setIsCopied(false);
+      }, timeout);
     } catch (error) {
       onError?.(error instanceof Error ? error : new Error(String(error)));
     }
@@ -61,7 +63,9 @@ export const CopyButton = ({
   return (
     <Button
       className={cn("shrink-0", className)}
-      onClick={copyToClipboard}
+      onClick={() => {
+        void copyToClipboard();
+      }}
       size="icon"
       variant="ghost"
       aria-label={isCopied ? "Copied" : label}

@@ -27,6 +27,8 @@ import {
   SWAP_SPEED_REF,
 } from "./formation-poses";
 
+const noop = () => null;
+
 const SANS =
   'ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif';
 
@@ -132,9 +134,7 @@ export const Formation = ({ works }: FormationProps) => {
 
   const sRef = useRef<LoopState | null>(null);
 
-  if (!sRef.current) {
-    sRef.current = createState();
-  }
+  sRef.current ??= createState();
 
   const S = sRef.current;
 
@@ -325,7 +325,7 @@ export const Formation = ({ works }: FormationProps) => {
 
     const root = rootRef.current;
 
-    if (root?.hasPointerCapture(press.id)) {
+    if (root?.hasPointerCapture(press.id) === true) {
       root.releasePointerCapture(press.id);
     }
 
@@ -353,7 +353,7 @@ export const Formation = ({ works }: FormationProps) => {
     const root = rootRef.current;
 
     if (!root) {
-      return;
+      return noop;
     }
 
     const st = S;
@@ -613,7 +613,10 @@ export const Formation = ({ works }: FormationProps) => {
 
     document.addEventListener("visibilitychange", onVis);
 
-    const ro = new ResizeObserver(() => relayout());
+    const ro = new ResizeObserver(() => {
+      relayout();
+    });
+
     ro.observe(root);
     window.addEventListener("resize", relayout);
 
@@ -665,13 +668,13 @@ export const Formation = ({ works }: FormationProps) => {
     const inners = cards.map((c) => c.inner).filter((el): el is HTMLDivElement => el !== null);
 
     if (!inners.length) {
-      return;
+      return noop;
     }
 
     if (S.reduced) {
       gsap.set(inners, { filter: "none", opacity: 1, scale: 1, yPercent: 0 });
 
-      return;
+      return noop;
     }
 
     gsap.set(inners, {
@@ -855,7 +858,9 @@ export const Formation = ({ works }: FormationProps) => {
                 role="tab"
                 type="button"
                 aria-selected={active}
-                onClick={() => setMode(m.id)}
+                onClick={() => {
+                  setMode(m.id);
+                }}
                 className="rounded-full transition-colors"
                 style={{
                   background: active ? "var(--fm-fg)" : "transparent",

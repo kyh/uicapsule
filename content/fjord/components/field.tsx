@@ -29,11 +29,18 @@ export const Field = ({ label, hint, error, optional, children }: FieldProps) =>
     <div className="fj-field">
       <label className="fj-field-label" htmlFor={id}>
         {label}
-        {optional ? <span> optional</span> : null}
+        {optional === true ? <span> optional</span> : null}
       </label>
-      {children({ describedBy: note ? noteId : undefined, id, invalid: Boolean(error) })}
-      {note ? (
-        <p className={error ? "fj-field-error" : "fj-field-hint"} id={noteId}>
+      {children({
+        describedBy: note !== undefined && note !== "" ? noteId : undefined,
+        id,
+        invalid: Boolean(error),
+      })}
+      {note !== undefined && note !== "" ? (
+        <p
+          className={error !== undefined && error !== "" ? "fj-field-error" : "fj-field-hint"}
+          id={noteId}
+        >
           {note}
         </p>
       ) : null}
@@ -56,7 +63,7 @@ export const TextField = ({ label, hint, error, optional, mono, ...props }: Text
         aria-describedby={describedBy}
         aria-invalid={invalid || undefined}
         className="fj-input"
-        data-mono={mono ? "" : undefined}
+        data-mono={mono === true ? "" : undefined}
         id={id}
         {...props}
       />
@@ -93,6 +100,6 @@ export const SearchInput = ({ label, shortcut, ...props }: SearchInputProps) => 
   <div className="fj-input-wrap">
     <Icon icon={Search} />
     <input aria-label={label} className="fj-input" type="search" {...props} />
-    {shortcut ? <Kbd>{shortcut}</Kbd> : null}
+    {shortcut !== undefined && shortcut !== "" ? <Kbd>{shortcut}</Kbd> : null}
   </div>
 );

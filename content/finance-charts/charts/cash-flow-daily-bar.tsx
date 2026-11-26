@@ -76,7 +76,7 @@ export const CashFlowDailyBar = () => {
               },
               ticks: { padding: 10, size: 0, values: LABELED },
             },
-            scale: scaleBand<string>().domain(DAYS).paddingInner(0.3).paddingOuter(0),
+            scale: scaleBand().domain(DAYS).paddingInner(0.3).paddingOuter(0),
           },
           y: {
             axis: {
@@ -122,7 +122,11 @@ export const CashFlowDailyBar = () => {
         </div>
       </div>
       <ChartSlot height={HEIGHT} className="mt-5">
-        <div onMouseLeave={() => pin(null)}>
+        <div
+          onMouseLeave={() => {
+            pin(null);
+          }}
+        >
           <Chart
             definition={definition}
             renderer={renderer}

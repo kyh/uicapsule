@@ -165,7 +165,12 @@ const ImagePlane = ({
     return material;
   }, [imageTexture, bendAmount, planeWidth, cornerRadius]);
 
-  useEffect(() => () => roundedCornersMaterial.dispose(), [roundedCornersMaterial]);
+  useEffect(
+    () => () => {
+      roundedCornersMaterial.dispose();
+    },
+    [roundedCornersMaterial],
+  );
 
   useFrame(() => {
     const mesh = meshRef.current;

@@ -165,7 +165,14 @@ export const Performance = () => {
           </button>
         </div>
         <ChartSlot height={HEIGHT} className="mt-2">
-          <div onMouseLeave={() => pin(null)} onMouseEnter={() => pin(day)}>
+          <div
+            onMouseLeave={() => {
+              pin(null);
+            }}
+            onMouseEnter={() => {
+              pin(day);
+            }}
+          >
             <Chart
               definition={definition}
               renderer={renderer}

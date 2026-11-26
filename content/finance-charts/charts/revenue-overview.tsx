@@ -192,8 +192,12 @@ export const RevenueOverview = () => {
       <div
         className="relative mt-4 overflow-hidden"
         style={{ height: VISIBLE }}
-        onMouseEnter={() => pin(STOPS.length - FIRST_ACTIVE - 1)}
-        onMouseLeave={() => pin(null)}
+        onMouseEnter={() => {
+          pin(STOPS.length - FIRST_ACTIVE - 1);
+        }}
+        onMouseLeave={() => {
+          pin(null);
+        }}
       >
         {active ? (
           <Chart

@@ -96,7 +96,9 @@ export const NavigationSpecimens = () => {
           {FAQ.map((item) => (
             <AccordionItem
               key={item.title}
-              onOpenChange={(next) => setOpen(next ? item.title : null)}
+              onOpenChange={(next) => {
+                setOpen(next ? item.title : null);
+              }}
               open={open === item.title}
               title={item.title}
             >

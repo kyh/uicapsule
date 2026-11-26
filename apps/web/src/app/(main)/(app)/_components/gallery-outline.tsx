@@ -21,7 +21,7 @@ const filterItems = (filters: ContentFilter[], key: string) =>
   filters.map((filter) => ({ href: `/?${key}=${filter.slug}`, label: filter.name }));
 
 const OutlineLink = ({ item }: { item: ProseListItem }) => {
-  if (!item.href) {
+  if (item.href === undefined || item.href === "") {
     return item.label;
   }
 
@@ -37,7 +37,7 @@ const OutlineList = ({ items }: { items: ProseListItem[] }) => (
     {items.map((item) => (
       <li key={`${item.label}-${item.href ?? ""}`}>
         <OutlineLink item={item} />
-        {item.text ? ` — ${item.text}` : null}
+        {item.text !== undefined && item.text !== "" ? ` — ${item.text}` : null}
       </li>
     ))}
   </ul>

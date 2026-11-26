@@ -3,6 +3,8 @@
 import { useEffect, useRef } from "react";
 import * as THREE from "three";
 
+const noop = () => null;
+
 const RIBBON_W = 1.5;
 const ATLAS_N = 8;
 const ROLL_R = 1.75;
@@ -23,7 +25,7 @@ export const PaperRoll = () => {
     const canvas = canvasRef.current;
 
     if (!container || !canvas) {
-      return;
+      return noop;
     }
 
     let seed = 7;
@@ -111,7 +113,7 @@ export const PaperRoll = () => {
       }
 
       const bars = (x: number, y: number, w: number, n: number, lh: number, color?: string) => {
-        g.fillStyle = color || "#c9c8c2";
+        g.fillStyle = color === undefined || color === "" ? "#c9c8c2" : color;
 
         for (let r = 0; r < n; r += 1) {
           const bw = w * (0.55 + rand() * 0.45);
@@ -120,14 +122,14 @@ export const PaperRoll = () => {
       };
 
       const label = (x: number, y: number, txt: string, color?: string, size?: number) => {
-        g.fillStyle = color || INK;
-        g.font = `700 ${size || 13}px -apple-system, "Segoe UI", Helvetica, Arial, sans-serif`;
+        g.fillStyle = color === undefined || color === "" ? INK : color;
+        g.font = `700 ${size === undefined || size === 0 ? 13 : size}px -apple-system, "Segoe UI", Helvetica, Arial, sans-serif`;
         g.fillText(txt, x, y);
       };
 
       const mono = (x: number, y: number, txt: string, color?: string, size?: number) => {
-        g.fillStyle = color || "#8a8a86";
-        g.font = `600 ${size || 11}px "SF Mono", Menlo, Consolas, monospace`;
+        g.fillStyle = color === undefined || color === "" ? "#8a8a86" : color;
+        g.font = `600 ${size === undefined || size === 0 ? 11 : size}px "SF Mono", Menlo, Consolas, monospace`;
         g.fillText(txt, x, y);
       };
 

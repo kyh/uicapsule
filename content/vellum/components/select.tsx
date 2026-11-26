@@ -31,7 +31,9 @@ export const Select = <T extends string>({
   const id = useId();
   const current = options.find((option) => option.value === value);
 
-  useDismiss(root, open, () => setOpen(false));
+  useDismiss(root, open, () => {
+    setOpen(false);
+  });
 
   useEffect(() => {
     if (open) {
@@ -50,7 +52,10 @@ export const Select = <T extends string>({
       ...(list.current?.querySelectorAll<HTMLButtonElement>("[role=menuitemradio]") ?? []),
     ];
 
-    const at = entries.indexOf(document.activeElement as HTMLButtonElement);
+    const at =
+      document.activeElement instanceof HTMLButtonElement
+        ? entries.indexOf(document.activeElement)
+        : -1;
 
     if (event.key === "ArrowDown") {
       event.preventDefault();
@@ -85,7 +90,9 @@ export const Select = <T extends string>({
         className="v-select-trigger"
         data-size={size}
         disabled={disabled}
-        onClick={() => setOpen(!open)}
+        onClick={() => {
+          setOpen(!open);
+        }}
         onKeyDown={(event) => {
           if (event.key === "ArrowDown" || event.key === "ArrowUp") {
             event.preventDefault();
@@ -114,8 +121,12 @@ export const Select = <T extends string>({
             aria-checked={option.value === value}
             className="v-menu-item"
             key={option.value}
-            onClick={() => choose(option.value)}
-            onPointerMove={(event) => event.currentTarget.focus()}
+            onClick={() => {
+              choose(option.value);
+            }}
+            onPointerMove={(event) => {
+              event.currentTarget.focus();
+            }}
             role="menuitemradio"
             tabIndex={-1}
             type="button"

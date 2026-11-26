@@ -68,14 +68,24 @@ export const OverlaySpecimens = () => {
         name="Dialog"
         note="Sized by token with 28px corners, grows in from 0.96 on the slow duration, and is always driven by open and onOpenChange."
       >
-        <Button onClick={() => setDialog(true)} variant="secondary">
+        <Button
+          onClick={() => {
+            setDialog(true);
+          }}
+          variant="secondary"
+        >
           Rename goal
         </Button>
         <Dialog
           description="Only you see this name. The money in it stays put."
           footer={
             <>
-              <Button onClick={() => setDialog(false)} variant="ghost">
+              <Button
+                onClick={() => {
+                  setDialog(false);
+                }}
+                variant="ghost"
+              >
                 Cancel
               </Button>
               <Button
@@ -92,7 +102,13 @@ export const OverlaySpecimens = () => {
           open={dialog}
           title="Rename goal"
         >
-          <Input label="Goal name" onChange={(event) => setName(event.target.value)} value={name} />
+          <Input
+            label="Goal name"
+            onChange={(event) => {
+              setName(event.target.value);
+            }}
+            value={name}
+          />
         </Dialog>
       </Specimen>
       <Specimen
@@ -101,7 +117,9 @@ export const OverlaySpecimens = () => {
       >
         <Button
           icon={<Trash2 aria-hidden size={16} strokeWidth={1.75} />}
-          onClick={() => setAlert(true)}
+          onClick={() => {
+            setAlert(true);
+          }}
           variant="outline"
         >
           Delete goal
@@ -110,7 +128,12 @@ export const OverlaySpecimens = () => {
           description="The $1,140.00 saved so far goes back to Everyday. Past moves stay in Activity."
           footer={
             <>
-              <Button onClick={() => setAlert(false)} variant="ghost">
+              <Button
+                onClick={() => {
+                  setAlert(false);
+                }}
+                variant="ghost"
+              >
                 Keep goal
               </Button>
               <Button
@@ -135,12 +158,24 @@ export const OverlaySpecimens = () => {
         name="Dialog, sheet kind"
         note="Slides from the right on a wide screen and up from the bottom on a phone, as tall as its content. Settings save as you flip them; Done just closes."
       >
-        <Button onClick={() => setSheet(true)} variant="secondary">
+        <Button
+          onClick={() => {
+            setSheet(true);
+          }}
+          variant="secondary"
+        >
           Clementine settings
         </Button>
         <Dialog
           footer={
-            <Button block onClick={() => setSheet(false)} size="lg" variant="solid">
+            <Button
+              block
+              onClick={() => {
+                setSheet(false);
+              }}
+              size="lg"
+              variant="solid"
+            >
               Done
             </Button>
           }
@@ -208,23 +243,31 @@ export const OverlaySpecimens = () => {
               {
                 icon: <NotebookPen aria-hidden size={16} strokeWidth={1.75} />,
                 label: noted ? "Remove note" : "Add a note",
-                onSelect: () => setNoted(!noted),
+                onSelect: () => {
+                  setNoted(!noted);
+                },
               },
               {
                 icon: <Split aria-hidden size={16} strokeWidth={1.75} />,
                 label: split ? "Undo the split" : "Split three ways",
-                onSelect: () => setSplit(!split),
+                onSelect: () => {
+                  setSplit(!split);
+                },
               },
               {
                 icon: <Lock aria-hidden size={16} strokeWidth={1.75} />,
                 label: locked ? "Unlock card ··2208" : "Lock card ··2208",
-                onSelect: () => setLocked(!locked),
+                onSelect: () => {
+                  setLocked(!locked);
+                },
               },
               {
                 danger: true,
                 icon: <Flag aria-hidden size={16} strokeWidth={1.75} />,
                 label: reported ? "Withdraw report" : "Report payment",
-                onSelect: () => setReported(!reported),
+                onSelect: () => {
+                  setReported(!reported);
+                },
               },
             ]}
             align="end"

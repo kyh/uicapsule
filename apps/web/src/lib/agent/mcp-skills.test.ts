@@ -3,6 +3,7 @@ import { createHash } from "node:crypto";
 import { readFile } from "node:fs/promises";
 import path from "node:path";
 import { describe, test } from "node:test";
+import { z } from "zod";
 
 import { readRepoSkill } from "../content/skills-fs";
 
@@ -62,9 +63,13 @@ describe("mcp skills", () => {
   });
 
   test("every served repo skill is pinned in skills-lock.json", async () => {
-    const lock = JSON.parse(
-      await readFile(path.resolve(process.cwd(), "..", "..", "skills-lock.json"), "utf-8"),
-    );
+    const lock = z
+      .object({ skills: z.record(z.string(), z.unknown()) })
+      .parse(
+        JSON.parse(
+          await readFile(path.resolve(process.cwd(), "..", "..", "skills-lock.json"), "utf-8"),
+        ),
+      );
 
     for (const name of REPO_SKILLS) {
       assert.ok(name in lock.skills, `${name} is missing from skills-lock.json`);

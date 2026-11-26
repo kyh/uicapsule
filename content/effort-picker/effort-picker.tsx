@@ -58,7 +58,10 @@ export const EffortPicker = ({ variant = "slingshot", theme = "chatgpt" }: Effor
     knobX.set(notchX(theme, level));
   }
 
-  const handleToggle = () => setOpen((was) => !was);
+  const handleToggle = () => {
+    setOpen((was) => !was);
+  };
+
   const Card = CARDS[variant];
 
   const handleFramePointerDown = (event: React.PointerEvent) => {

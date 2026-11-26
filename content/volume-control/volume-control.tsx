@@ -153,7 +153,9 @@ export const VolumeControl = ({ variant = "tilt" }: VolumeControlProps) => {
         <MacosChrome
           volume={volume}
           open={open}
-          onToggle={() => setOpen((was) => !was)}
+          onToggle={() => {
+            setOpen((was) => !was);
+          }}
           hud={hud}
         />
       </div>

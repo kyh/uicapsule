@@ -96,7 +96,7 @@ export const PatternUnlock = () => {
       } else {
         setPhase("error");
 
-        if (scope.current && !reduceMotion) {
+        if (scope.current instanceof HTMLElement && !reduceMotion) {
           void animate(
             scope.current,
             { x: [0, -12, 12, -8, 8, 0] },

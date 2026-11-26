@@ -24,7 +24,9 @@ export const Segmented = <T extends string>({
             checked={option === value}
             className="peer sr-only"
             name={name}
-            onChange={() => onValueChange(option)}
+            onChange={() => {
+              onValueChange(option);
+            }}
             type="radio"
             value={option}
           />

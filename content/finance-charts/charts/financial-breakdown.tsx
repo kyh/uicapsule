@@ -162,7 +162,11 @@ export const FinancialBreakdown = () => {
       </div>
 
       <ChartSlot height={HEIGHT} className="mt-5">
-        <div onMouseLeave={() => pin(null)}>
+        <div
+          onMouseLeave={() => {
+            pin(null);
+          }}
+        >
           <Chart
             definition={definition}
             renderer={renderer}
@@ -170,7 +174,7 @@ export const FinancialBreakdown = () => {
             ariaLabel="Assets, debt, investments and cash by day, May 1 to May 13"
             onFocusChange={(p) => {
               if (p) {
-                pin(DAYS.indexOf(Number(p.xValue)));
+                pin(DAYS.indexOf(p.xValue));
               }
             }}
           />

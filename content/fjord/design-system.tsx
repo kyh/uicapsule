@@ -216,7 +216,9 @@ export const DesignSystem = () => {
                   <Button
                     aria-label="Dark theme"
                     aria-pressed={dark}
-                    onClick={() => setMode(dark ? "light" : "dark")}
+                    onClick={() => {
+                      setMode(dark ? "light" : "dark");
+                    }}
                     size="icon-sm"
                     variant="ghost"
                   >

@@ -21,19 +21,19 @@ const main = async () => {
     .map((entry) => entry.name)
     .toSorted();
 
-  const slugs: string[] = [];
+  const sourced = await Promise.all(candidates.map(async (slug) => await hasSource(slug)));
+  const slugs = candidates.filter((_, index) => sourced[index] === true);
 
-  for (const slug of candidates) {
-    if (await hasSource(slug)) {
-      slugs.push(slug);
-    }
-  }
+  const results = await Promise.all(
+    slugs.map(async (slug) => ({
+      issues: await validateContentDirectory(path.join(contentRoot, slug)),
+      slug,
+    })),
+  );
 
   let failures = 0;
 
-  for (const slug of slugs) {
-    const issues = await validateContentDirectory(path.join(contentRoot, slug));
-
+  for (const { slug, issues } of results) {
     for (const issue of issues) {
       consola.error(`content/${slug}: ${issue}`);
     }

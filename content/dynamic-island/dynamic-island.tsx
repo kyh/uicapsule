@@ -58,23 +58,19 @@ const BOUNCE_VARIANTS = new Map<VariantKey, number>([
 ]);
 
 const viewContent = (view: View) => {
-  switch (view) {
-    case "ring": {
-      return <Ring />;
-    }
-
-    case "timer": {
-      return <Timer />;
-    }
-
-    case "idle": {
-      return <div className="h-7" />;
-    }
-
-    default: {
-      return <ExpandedWidget view={view} />;
-    }
+  if (view === "ring") {
+    return <Ring />;
   }
+
+  if (view === "timer") {
+    return <Timer />;
+  }
+
+  if (view === "idle") {
+    return <div className="h-7" />;
+  }
+
+  return <ExpandedWidget view={view} />;
 };
 
 const DynamicIsland = () => {

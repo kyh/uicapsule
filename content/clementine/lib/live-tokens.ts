@@ -46,12 +46,17 @@ export const useLiveTokens = (names: readonly string[]) => {
 
   useEffect(() => {
     const list = key.split(",");
-    const update = () => setTokens(read(list));
+
+    const update = () => {
+      setTokens(read(list));
+    };
 
     update();
     window.addEventListener("load", update);
 
-    return () => window.removeEventListener("load", update);
+    return () => {
+      window.removeEventListener("load", update);
+    };
   }, [key]);
 
   return tokens;

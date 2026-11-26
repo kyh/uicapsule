@@ -135,7 +135,14 @@ export const BudgetAllocation = () => {
         </div>
       </div>
       <ChartSlot height={HALF} className="mt-3 overflow-hidden">
-        <div onMouseEnter={() => pin(period)} onMouseLeave={() => pin(null)}>
+        <div
+          onMouseEnter={() => {
+            pin(period);
+          }}
+          onMouseLeave={() => {
+            pin(null);
+          }}
+        >
           <Chart
             definition={definition}
             renderer={renderer}

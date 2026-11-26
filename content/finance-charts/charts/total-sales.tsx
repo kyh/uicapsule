@@ -117,7 +117,11 @@ export const TotalSales = () => {
       <SalesHeader label="Total Sales" value={18_645.16} format={(n) => usd(n)} change={1.16} />
       <ChannelRows rows={CHANNELS} format={(n) => usd(n)} />
       <ChartSlot height={HEIGHT} className="mt-5">
-        <div onMouseLeave={() => pin(null)}>
+        <div
+          onMouseLeave={() => {
+            pin(null);
+          }}
+        >
           <Chart
             definition={definition}
             renderer={renderer}
@@ -125,7 +129,7 @@ export const TotalSales = () => {
             ariaLabel="Sales by hour, today against yesterday"
             onFocusChange={(p) => {
               if (p) {
-                const x = Number(p.xValue);
+                const x = p.xValue;
                 let best = 0;
 
                 for (const [k, s] of STOPS.entries()) {

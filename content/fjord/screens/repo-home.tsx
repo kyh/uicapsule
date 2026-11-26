@@ -183,7 +183,9 @@ export const RepoHome = () => {
   const [sort, setSort] = useState<"checks" | "pushed">("checks");
   const toast = useToast();
 
-  useInterval(() => setState((current) => tick(current.slots, current.queue)), 1000);
+  useInterval(() => {
+    setState((current) => tick(current.slots, current.queue));
+  }, 1000);
 
   const busy = state.slots.filter((slot) => slot.job).length;
 
@@ -292,7 +294,9 @@ export const RepoHome = () => {
           <CardHead
             action={
               <Button
-                onClick={() => setSort(sort === "checks" ? "pushed" : "checks")}
+                onClick={() => {
+                  setSort(sort === "checks" ? "pushed" : "checks");
+                }}
                 size="xs"
                 variant="ghost"
               >

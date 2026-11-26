@@ -164,7 +164,7 @@ export const CashFlowMonthlyBar = () => {
               line: { stroke: GRID, strokeOpacity: 1 },
               tickLabels: { fontSize: 11.5 },
               ticks: {
-                format: (v) => MONTHS[Math.round(Number(v))] ?? "",
+                format: (v) => MONTHS[Math.round(v)] ?? "",
                 size: 0,
                 values: [0, 1, 2, 3, 4, 5],
               },
@@ -198,7 +198,11 @@ export const CashFlowMonthlyBar = () => {
         actions={<MoreButton className="!rounded-[10px]" />}
       />
       <ChartSlot height={HEIGHT} className="mt-4">
-        <div onMouseLeave={() => pin(null)}>
+        <div
+          onMouseLeave={() => {
+            pin(null);
+          }}
+        >
           <Chart
             definition={definition}
             renderer={renderer}
@@ -206,7 +210,7 @@ export const CashFlowMonthlyBar = () => {
             ariaLabel="Monthly money in and out"
             onFocusChange={(p) => {
               if (p) {
-                pin(Math.round(Number(p.xValue)));
+                pin(Math.round(p.xValue));
               }
             }}
           />

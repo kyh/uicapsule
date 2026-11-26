@@ -76,10 +76,21 @@ export const ToolCallSpecimen = () => {
         <ToolCall
           actions={
             <>
-              <Button onClick={() => setDecision("denied")} size="sm">
+              <Button
+                onClick={() => {
+                  setDecision("denied");
+                }}
+                size="sm"
+              >
                 Deny
               </Button>
-              <Button onClick={() => setDecision("completed")} size="sm" variant="primary">
+              <Button
+                onClick={() => {
+                  setDecision("completed");
+                }}
+                size="sm"
+                variant="primary"
+              >
                 Allow force-push
               </Button>
             </>
@@ -102,7 +113,13 @@ export const ToolCallSpecimen = () => {
       </ToolCallList>
       {decision === "awaiting" ? null : (
         <div className="fj-card-foot">
-          <Button onClick={() => setDecision("awaiting")} size="xs" variant="ghost">
+          <Button
+            onClick={() => {
+              setDecision("awaiting");
+            }}
+            size="xs"
+            variant="ghost"
+          >
             <Icon icon={RotateCcw} size={12} />
             Ask again
           </Button>
@@ -133,7 +150,12 @@ const AgentTurn = () => {
   const doneCount = Math.min(TURN_CALLS.length, Math.floor(tick / 12));
   const finished = doneCount >= TURN_CALLS.length;
 
-  useInterval(() => setTick((value) => value + 1), finished ? null : 100);
+  useInterval(
+    () => {
+      setTick((value) => value + 1);
+    },
+    finished ? null : 100,
+  );
 
   const send = () => {
     const text = draft.trim();
@@ -184,7 +206,9 @@ const AgentTurn = () => {
         <div className="fj-composer">
           <textarea
             aria-label="Ask triage"
-            onChange={(event) => setDraft(event.target.value)}
+            onChange={(event) => {
+              setDraft(event.target.value);
+            }}
             onKeyDown={(event) => {
               if (event.key === "Enter" && !event.shiftKey) {
                 event.preventDefault();
@@ -205,7 +229,13 @@ const AgentTurn = () => {
             <Icon icon={ArrowUp} />
           </Button>
         </div>
-        <Button onClick={() => setTick(0)} size="xs" variant="ghost">
+        <Button
+          onClick={() => {
+            setTick(0);
+          }}
+          size="xs"
+          variant="ghost"
+        >
           <Icon icon={RotateCcw} size={12} />
           Replay turn
         </Button>
@@ -256,7 +286,13 @@ const ShadowWindow = () => {
       </PanelBody>
       <PanelFoot>
         {state === "open" ? (
-          <Button onClick={() => setState("signed")} size="sm" variant="primary">
+          <Button
+            onClick={() => {
+              setState("signed");
+            }}
+            size="sm"
+            variant="primary"
+          >
             Sign the swap
           </Button>
         ) : (
@@ -311,7 +347,13 @@ const KeyRowSpecimen = () => {
               Mint a new one
             </Button>
           ) : (
-            <Button onClick={() => setAsking(true)} size="sm" variant="destructive">
+            <Button
+              onClick={() => {
+                setAsking(true);
+              }}
+              size="sm"
+              variant="destructive"
+            >
               Burn key
             </Button>
           )}
@@ -321,7 +363,13 @@ const KeyRowSpecimen = () => {
         description="Pipelines that still send soak-test start failing. A burned key cannot come back."
         footer={
           <>
-            <Button onClick={() => setAsking(false)}>Keep it</Button>
+            <Button
+              onClick={() => {
+                setAsking(false);
+              }}
+            >
+              Keep it
+            </Button>
             <Button
               onClick={() => {
                 setRevoked(true);

@@ -127,7 +127,7 @@ const updateLayout = (update: (previous: PanelLayout) => PanelLayout) => {
   }
 };
 
-const setPanel = (id: PanelId, next: Partial<PanelState>) =>
+const setPanel = (id: PanelId, next: Partial<PanelState>) => {
   updateLayout((previous) => {
     const panel = previous[id];
     const merged = { open: next.open ?? panel.open, size: next.size ?? panel.size };
@@ -138,12 +138,14 @@ const setPanel = (id: PanelId, next: Partial<PanelState>) =>
 
     return { ...previous, [id]: merged };
   });
+};
 
-const togglePanel = (id: PanelId) =>
+const togglePanel = (id: PanelId) => {
   updateLayout((previous) => ({
     ...previous,
     [id]: { ...previous[id], open: !previous[id].open },
   }));
+};
 
 export const usePanelLayout = () => {
   const ref = useRef<HTMLDivElement>(null);

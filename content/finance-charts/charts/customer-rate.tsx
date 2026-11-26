@@ -128,7 +128,11 @@ export const CustomerRate = () => {
       <SalesHeader label="Customer rate" value={8.73} format={pct} change={2.51} />
       <ChannelRows rows={CHANNELS} format={pct} />
       <ChartSlot height={HEIGHT} className="mt-5">
-        <div onMouseLeave={() => pin(null)}>
+        <div
+          onMouseLeave={() => {
+            pin(null);
+          }}
+        >
           <Chart
             definition={definition}
             renderer={renderer}
@@ -136,7 +140,7 @@ export const CustomerRate = () => {
             ariaLabel="Returning and first-time customer rate by hour"
             onFocusChange={(p) => {
               if (p) {
-                const x = Number(p.xValue);
+                const x = p.xValue;
                 let best = 0;
 
                 for (const [k, s] of STOPS.entries()) {

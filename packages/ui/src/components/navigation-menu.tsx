@@ -4,7 +4,10 @@ import { NavigationMenu as NavigationMenuPrimitive } from "@base-ui/react/naviga
 
 import { cn } from "cn";
 
-const NavigationMenu = ({ className, ...props }: NavigationMenuPrimitive.Root.Props) => (
+const NavigationMenu = <Value,>({
+  className,
+  ...props
+}: NavigationMenuPrimitive.Root.Props<Value>) => (
   <NavigationMenuPrimitive.Root
     data-slot="navigation-menu"
     className={cn("relative", className)}

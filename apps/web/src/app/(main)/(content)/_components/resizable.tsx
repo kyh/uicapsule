@@ -69,7 +69,7 @@ const ResizeHandle = ({
 
   return (
     <div
-      // oxlint-disable-next-line jsx-a11y/prefer-tag-over-role -- a focusable separator is a widget; <hr> can't take focus or handlers
+      // oxlint-disable-next-line jsx-a11y/prefer-tag-over-role -- a focusable separator is ARIA's splitter widget; an <hr> with tabIndex and key handlers fails no-noninteractive-tabindex and no-noninteractive-element-interactions (checked), so role="separator" on a div is the one spelling every rule accepts
       role="separator"
       tabIndex={0}
       aria-label={`Resize preview from the ${side}`}
@@ -107,7 +107,10 @@ export const Resizable = ({
   children,
 }: ResizableProps) => {
   const [dragging, setDragging] = useState(false);
-  const setClamped = (next: number) => onWidthChange(Math.min(maxWidth, Math.max(minWidth, next)));
+
+  const setClamped = (next: number) => {
+    onWidthChange(Math.min(maxWidth, Math.max(minWidth, next)));
+  };
 
   const handle = (side: Side) => (
     <ResizeHandle

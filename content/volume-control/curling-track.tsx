@@ -87,7 +87,12 @@ export const CurlingTrack = ({ volume }: CurlingTrackProps) => {
     return volume.on("change", report);
   }, [volume]);
 
-  useEffect(() => () => cancelAnimationFrame(frame.current), []);
+  useEffect(
+    () => () => {
+      cancelAnimationFrame(frame.current);
+    },
+    [],
+  );
 
   const pointerInSheet = (event: React.PointerEvent<HTMLDivElement>) => {
     const box = sheetRef.current?.getBoundingClientRect();
@@ -151,7 +156,7 @@ export const CurlingTrack = ({ volume }: CurlingTrackProps) => {
   };
 
   const handlePointerDown = (event: React.PointerEvent<HTMLDivElement>) => {
-    if (phase === "sliding" || reduceMotion) {
+    if (phase === "sliding" || reduceMotion === true) {
       return;
     }
 

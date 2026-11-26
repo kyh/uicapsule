@@ -71,7 +71,9 @@ export const Tabs = <T extends string>({
             className="fj-tab"
             id={`${id}-${tab.value}`}
             key={tab.value}
-            onClick={() => onValueChange(tab.value)}
+            onClick={() => {
+              onValueChange(tab.value);
+            }}
             ref={(node) => {
               refs.current[index] = node;
             }}
@@ -117,8 +119,12 @@ export const Breadcrumb = ({
         return (
           <li className="fj-hstack" data-gap="4" key={crumb.label}>
             {last ? <span aria-current="location">{crumb.label}</span> : null}
-            {!last && crumb.href ? <a href={crumb.href}>{crumb.label}</a> : null}
-            {!last && !crumb.href ? <span>{crumb.label}</span> : null}
+            {!last && crumb.href !== undefined && crumb.href !== "" ? (
+              <a href={crumb.href}>{crumb.label}</a>
+            ) : null}
+            {!last && (crumb.href === undefined || crumb.href === "") ? (
+              <span>{crumb.label}</span>
+            ) : null}
             {last ? null : (
               <span aria-hidden className="fj-breadcrumb-sep">
                 /
@@ -152,7 +158,9 @@ export const Pagination = ({ page, pages, onPageChange }: PaginationProps) => {
         aria-label="Previous page"
         className="fj-page-btn"
         disabled={page === 1}
-        onClick={() => onPageChange(page - 1)}
+        onClick={() => {
+          onPageChange(page - 1);
+        }}
         type="button"
       >
         <Icon icon={ChevronLeft} />
@@ -172,7 +180,9 @@ export const Pagination = ({ page, pages, onPageChange }: PaginationProps) => {
               aria-current={value === page ? "page" : undefined}
               aria-label={`Page ${value}`}
               className="fj-page-btn"
-              onClick={() => onPageChange(value)}
+              onClick={() => {
+                onPageChange(value);
+              }}
               type="button"
             >
               {value}
@@ -184,7 +194,9 @@ export const Pagination = ({ page, pages, onPageChange }: PaginationProps) => {
         aria-label="Next page"
         className="fj-page-btn"
         disabled={page === pages}
-        onClick={() => onPageChange(page + 1)}
+        onClick={() => {
+          onPageChange(page + 1);
+        }}
         type="button"
       >
         <Icon icon={ChevronRight} />

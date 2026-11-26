@@ -35,6 +35,8 @@ import { WindowView } from "./window-bodies";
 import { PhotoLightbox } from "./window-frame";
 import { DEFAULT_WINDOW_SIZES } from "./window-types";
 
+const noop = () => null;
+
 const DOCK_ICON_BASE = 56;
 const DOCK_ICON_MAX = 96;
 const DOCK_HOVER_RANGE = 140;
@@ -250,8 +252,12 @@ export const DesktopOS = () => {
 
   const ctx: WindowCtx = {
     isMobile,
-    openLightbox: (src) => setLightbox(src),
-    openQuickLook: (fileId) => openWindow({ fileId, kind: "quicklook" }),
+    openLightbox: (src) => {
+      setLightbox(src);
+    },
+    openQuickLook: (fileId) => {
+      openWindow({ fileId, kind: "quicklook" });
+    },
   };
 
   const openTile = (tile: DesktopTile) => {
@@ -361,7 +367,7 @@ export const DesktopOS = () => {
 
   useEffect(() => {
     if (!mounted) {
-      return;
+      return noop;
     }
 
     seedPositions();
@@ -374,7 +380,9 @@ export const DesktopOS = () => {
       seedPositions();
     };
 
-    const onResize = () => seedPositions();
+    const onResize = () => {
+      seedPositions();
+    };
 
     mq.addEventListener("change", onChange);
     window.addEventListener("resize", onResize);
@@ -391,17 +399,17 @@ export const DesktopOS = () => {
 
   useEffect(() => {
     if (!mounted || !seeded) {
-      return;
+      return noop;
     }
 
     if (entranceStartedRef.current) {
-      return;
+      return noop;
     }
 
     const sec = sectionRef.current;
 
     if (!sec) {
-      return;
+      return noop;
     }
 
     entranceStartedRef.current = true;
@@ -470,7 +478,13 @@ export const DesktopOS = () => {
         tl.fromTo(dock, { opacity: 0, y: 60 }, { duration: 0.5, opacity: 1, y: 0 }, 0.35);
       }
 
-      tl.call(() => setAnimatedEntranceDone(true), undefined, 1);
+      tl.call(
+        () => {
+          setAnimatedEntranceDone(true);
+        },
+        undefined,
+        1,
+      );
     };
 
     const runDesktop = () => {
@@ -565,7 +579,13 @@ export const DesktopOS = () => {
         tl.fromTo(dock, { opacity: 0, y: 80 }, { duration: 0.55, opacity: 1, y: 0 }, 1.9);
       }
 
-      tl.call(() => setAnimatedEntranceDone(true), undefined, 2.15);
+      tl.call(
+        () => {
+          setAnimatedEntranceDone(true);
+        },
+        undefined,
+        2.15,
+      );
 
       const reel = FILES.map((file) => file.thumb);
       let frame = 0;
@@ -730,7 +750,7 @@ export const DesktopOS = () => {
 
   useEffect(() => {
     if (!groupPanelOpen) {
-      return;
+      return noop;
     }
 
     const tweens: gsap.core.Tween[] = [];
@@ -770,7 +790,7 @@ export const DesktopOS = () => {
         return;
       }
 
-      if (lightbox) {
+      if (lightbox !== null && lightbox !== "") {
         setLightbox(null);
 
         return;
@@ -790,14 +810,16 @@ export const DesktopOS = () => {
         return;
       }
 
-      if (selectedId) {
+      if (selectedId !== null && selectedId !== "") {
         setSelectedId(null);
       }
     };
 
     window.addEventListener("keydown", onKey);
 
-    return () => window.removeEventListener("keydown", onKey);
+    return () => {
+      window.removeEventListener("keydown", onKey);
+    };
   }, [lightbox, groupPanelOpen, windows, selectedId, closeWindow]);
 
   const onTilePointerDown = (e: ReactPointerEvent<HTMLDivElement>, tile: DesktopTile) => {
@@ -869,7 +891,7 @@ export const DesktopOS = () => {
   const onTilePointerMove = (e: ReactPointerEvent<HTMLDivElement>) => {
     const drag = dragRef.current;
 
-    if (!drag.id || drag.pointerId !== e.pointerId) {
+    if (drag.id === null || drag.id === "" || drag.pointerId !== e.pointerId) {
       return;
     }
 
@@ -930,7 +952,7 @@ export const DesktopOS = () => {
   const onTilePointerCancel = (e: ReactPointerEvent<HTMLDivElement>) => {
     const drag = dragRef.current;
 
-    if (!drag.id || drag.pointerId !== e.pointerId) {
+    if (drag.id === null || drag.id === "" || drag.pointerId !== e.pointerId) {
       return;
     }
 
@@ -1009,12 +1031,18 @@ export const DesktopOS = () => {
         tabIndex={0}
         aria-label={tileName(tile)}
         ref={registerTileRef(id)}
-        onPointerDown={(e) => onTilePointerDown(e, tile)}
+        onPointerDown={(e) => {
+          onTilePointerDown(e, tile);
+        }}
         onPointerMove={onTilePointerMove}
-        onPointerUp={(e) => onTilePointerUp(e, tile)}
+        onPointerUp={(e) => {
+          onTilePointerUp(e, tile);
+        }}
         onPointerCancel={onTilePointerCancel}
         onLostPointerCapture={onTilePointerCancel}
-        onKeyDown={(e) => onTileKeyDown(e, tile)}
+        onKeyDown={(e) => {
+          onTileKeyDown(e, tile);
+        }}
         className={`absolute z-[4] flex cursor-grab flex-col items-center outline-none select-none active:cursor-grabbing ${entranceDone ? "" : "opacity-0"}`}
         style={{
           touchAction: "none",
@@ -1039,11 +1067,17 @@ export const DesktopOS = () => {
         tabIndex={0}
         aria-label={tileName(tile)}
         ref={registerTileRef(id)}
-        onPointerDown={(e) => onTilePointerDown(e, tile)}
+        onPointerDown={(e) => {
+          onTilePointerDown(e, tile);
+        }}
         onPointerMove={onTilePointerMove}
-        onPointerUp={(e) => onTilePointerUp(e, tile)}
+        onPointerUp={(e) => {
+          onTilePointerUp(e, tile);
+        }}
         onPointerCancel={onTilePointerCancel}
-        onKeyDown={(e) => onTileKeyDown(e, tile)}
+        onKeyDown={(e) => {
+          onTileKeyDown(e, tile);
+        }}
         className={`flex flex-col items-center outline-none select-none ${entranceDone ? "" : "opacity-0"}`}
         style={{ touchAction: "manipulation" }}
       >
@@ -1083,7 +1117,9 @@ export const DesktopOS = () => {
               <button
                 type="button"
                 aria-label={app.name}
-                onClick={() => handleDockApp(app.id)}
+                onClick={() => {
+                  handleDockApp(app.id);
+                }}
                 className="block"
               >
                 <div
@@ -1115,7 +1151,9 @@ export const DesktopOS = () => {
               key={id}
               type="button"
               aria-label={app?.name ?? id}
-              onClick={() => handleDockApp(id)}
+              onClick={() => {
+                handleDockApp(id);
+              }}
               className="drop-shadow-[0_4px_10px_rgba(0,0,0,0.35)]"
               style={{ height: MOBILE_ICON_BASE, width: MOBILE_ICON_BASE }}
             >
@@ -1126,7 +1164,9 @@ export const DesktopOS = () => {
         <button
           type="button"
           aria-label="More apps"
-          onClick={() => setGroupPanelOpen(true)}
+          onClick={() => {
+            setGroupPanelOpen(true);
+          }}
           className={`rounded-[14px] border border-white/30 bg-white/15 p-[6px] shadow-[inset_0_1px_0_rgba(255,255,255,0.35),0_4px_10px_rgba(0,0,0,0.35)] backdrop-blur-md ${
             groupPanelOpen ? "ring-2 ring-white/40" : ""
           }`}
@@ -1300,7 +1340,14 @@ export const DesktopOS = () => {
             ))}
           </div>
 
-          {lightbox && <PhotoLightbox src={lightbox} onClose={() => setLightbox(null)} />}
+          {lightbox !== null && lightbox !== "" && (
+            <PhotoLightbox
+              src={lightbox}
+              onClose={() => {
+                setLightbox(null);
+              }}
+            />
+          )}
         </>
       )}
     </main>

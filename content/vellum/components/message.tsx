@@ -21,7 +21,9 @@ const Rate = () => {
       <Button
         aria-label="Good answer"
         aria-pressed={rating === "up"}
-        onClick={() => setRating(rating === "up" ? null : "up")}
+        onClick={() => {
+          setRating(rating === "up" ? null : "up");
+        }}
         size="icon-sm"
         variant="ghost"
       >
@@ -30,7 +32,9 @@ const Rate = () => {
       <Button
         aria-label="Bad answer"
         aria-pressed={rating === "down"}
-        onClick={() => setRating(rating === "down" ? null : "down")}
+        onClick={() => {
+          setRating(rating === "down" ? null : "down");
+        }}
         size="icon-sm"
         variant="ghost"
       >
@@ -59,16 +63,18 @@ export const AgentTurn = ({
   return (
     <article className="v-stack v-turn">
       {children}
-      {model ? (
+      {model !== undefined && model !== "" ? (
         <footer className="v-turn-foot">
-          {text && !stopped ? (
+          {text !== undefined && text !== "" && !stopped ? (
             <Tooltip
               content={copied ? "Copied" : "Copy"}
               render={(props) => (
                 <Button
                   {...props}
                   aria-label={copied ? "Copied" : "Copy answer"}
-                  onClick={() => copy(text)}
+                  onClick={() => {
+                    void copy(text);
+                  }}
                   size="icon-sm"
                   variant="ghost"
                 >

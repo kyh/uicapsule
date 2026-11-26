@@ -187,7 +187,7 @@ export const SpendingOverviewCylinder = () => {
       ],
       scales: {
         x: {
-          scale: scaleBand<string>()
+          scale: scaleBand()
             .domain([...WEEKDAYS])
             .paddingInner(0.2)
             .paddingOuter(0.05),
@@ -229,7 +229,11 @@ export const SpendingOverviewCylinder = () => {
         className="mt-4"
       />
       <ChartSlot height={HEIGHT} className="mt-4">
-        <div onMouseLeave={() => pin(null)}>
+        <div
+          onMouseLeave={() => {
+            pin(null);
+          }}
+        >
           <Chart
             definition={definition}
             renderer={renderer}
@@ -237,7 +241,7 @@ export const SpendingOverviewCylinder = () => {
             ariaLabel="Spending by weekday, drawn as filling cylinders"
             onFocusChange={(p) => {
               if (p) {
-                pin(DAY_LIST.indexOf(String(p.xValue)));
+                pin(DAY_LIST.indexOf(p.xValue));
               }
             }}
           />

@@ -30,7 +30,7 @@ export const ToolbarButton = ({
           aria-pressed={pressed}
           className={cn(
             "text-muted-foreground hover:text-foreground size-7 rounded-md [&_svg:not([class*='size-'])]:size-4",
-            pressed && "bg-accent text-foreground",
+            pressed === true && "bg-accent text-foreground",
             className,
           )}
           {...props}
