@@ -38,7 +38,7 @@ export const TableBody = ({
       const rowIndex = virtualRow.index;
       const rowId = row?.original?.id;
 
-      if (rowId === undefined || rowId === "") {
+      if (row === undefined || rowId === undefined || rowId === "") {
         return null;
       }
 
