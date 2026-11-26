@@ -1,9 +1,8 @@
 "use client";
 
-import { LayoutGrid, Moon, Palette, Smartphone, Sun } from "lucide-react";
-import { useEffect, useRef, useState } from "react";
+import { LayoutGrid, Palette, Smartphone } from "lucide-react";
+import { useEffect, useMemo, useRef, useState } from "react";
 
-import { Button } from "./components/button";
 import { TabBar } from "./components/tab-bar";
 import { ToastProvider } from "./components/toast";
 import { CATEGORIES, COMPONENT_COUNT, FOUNDATIONS, SCREENS } from "./data/catalog";
@@ -17,6 +16,11 @@ import { HomeScreen } from "./screens/home-screen";
 import { PaydayScreen } from "./screens/payday-screen";
 import { ReceiptsScreen } from "./screens/receipts-screen";
 import { SendScreen } from "./screens/send-screen";
+import { cssVars } from "./lib/css-vars";
+import { TokenOverrides } from "./lib/live-tokens";
+import type { Theme } from "./lib/live-tokens";
+import { tokenOverrides } from "./lib/tuning";
+import type { Tuning } from "./lib/tuning";
 import { Block, Frame, Section } from "./shell";
 import { ActionSpecimens } from "./specimens/actions";
 import { AssistantSpecimens } from "./specimens/assistant";
@@ -143,10 +147,33 @@ const useDock = () => {
   return { active, hidden, select };
 };
 
-export const DesignSystem = () => {
-  const [dark, setDark] = useState(false);
+export type ScreenId = (typeof SCREENS)[number]["id"];
+
+/** Props of the showcase page. Every tuning knob at its neutral value reproduces tokens.css exactly. */
+export interface DesignSystemProps extends Partial<Tuning> {
+  /** Shows one "In use" screen instead of all of them. */
+  screen?: ScreenId;
+  theme?: Theme;
+}
+
+export const DesignSystem = ({
+  accent,
+  motionScale = 1,
+  radiusScale = 1,
+  screen,
+  theme = "light",
+  typeScale = 1,
+}: DesignSystemProps) => {
   const [scrolled, setScrolled] = useState(false);
   const dock = useDock();
+
+  const overrides = useMemo(() => {
+    const tuning = { accent, motionScale, radiusScale, typeScale };
+
+    return { dark: tokenOverrides(tuning, "dark"), light: tokenOverrides(tuning, "light") };
+  }, [accent, motionScale, radiusScale, typeScale]);
+
+  const screens = SCREENS.filter((item) => screen === undefined || item.id === screen);
 
   useEffect(() => {
     const onScroll = () => {
@@ -162,120 +189,111 @@ export const DesignSystem = () => {
   }, []);
 
   return (
-    <div className="ds-clementine cl-page" data-theme={dark ? "dark" : "light"}>
-      <ToastProvider>
-        <header className="cl-topbar" data-scrolled={scrolled || undefined}>
-          <div className="cl-topbar__inner">
-            <a className="cl-topbar__name" href="#top">
-              <span aria-hidden className="cl-topbar__mark" />
-              {system.name}
-            </a>
-            <Button
-              aria-label="Dark theme"
-              aria-pressed={dark}
-              onClick={() => {
-                setDark(!dark);
-              }}
-              size="icon"
-              variant="secondary"
-            >
-              {dark ? (
-                <Sun aria-hidden size={20} strokeWidth={1.75} />
-              ) : (
-                <Moon aria-hidden size={20} strokeWidth={1.75} />
-              )}
-            </Button>
-          </div>
-        </header>
-        <main className="cl-main" id="top">
-          <header className="cl-hero">
-            <h1 className="cl-hero__title">{system.name}</h1>
-            <p className="cl-hero__tagline">{system.tagline}</p>
-            <p className="cl-hero__body">
-              Warm gray steps under near-black ink, soft-square buttons, figures with their cents
-              lifted, and one clementine action per view that glows inside a ring of zest. Below are{" "}
-              {SCREENS.length} working screens, {FOUNDATIONS.length} foundations and{" "}
-              {COMPONENT_COUNT} components, each in light and dark.
-            </p>
+    <div
+      className="ds-clementine cl-page"
+      data-theme={theme}
+      style={cssVars({ ...overrides[theme] })}
+    >
+      <TokenOverrides value={overrides}>
+        <ToastProvider>
+          <header className="cl-topbar" data-scrolled={scrolled || undefined}>
+            <div className="cl-topbar__inner">
+              <a className="cl-topbar__name" href="#top">
+                <span aria-hidden className="cl-topbar__mark" />
+                {system.name}
+              </a>
+            </div>
           </header>
+          <main className="cl-main" id="top">
+            <header className="cl-hero">
+              <h1 className="cl-hero__title">{system.name}</h1>
+              <p className="cl-hero__tagline">{system.tagline}</p>
+              <p className="cl-hero__body">
+                Warm gray steps under near-black ink, soft-square buttons, figures with their cents
+                lifted, and one clementine action per view that glows inside a ring of zest. Below
+                are {SCREENS.length} working screens, {FOUNDATIONS.length} foundations and{" "}
+                {COMPONENT_COUNT} components, each in light and dark.
+              </p>
+            </header>
 
-          <Section
-            id="in-use"
-            jumps={SCREENS}
-            lead="Four moments from one person's money week. Every control on them works, and every piece of them shows up again below as a component."
-            title="In use"
-          >
-            {SCREENS.map((screen) => {
-              const { Screen, lead } = SCREEN_VIEWS[screen.id];
+            <Section
+              id="in-use"
+              jumps={screens}
+              lead="Four moments from one person's money week. Every control on them works, and every piece of them shows up again below as a component."
+              title="In use"
+            >
+              {screens.map((item) => {
+                const { Screen, lead } = SCREEN_VIEWS[item.id];
 
-              return (
-                <Block id={screen.id} key={screen.id} lead={lead} title={screen.name}>
-                  <Frame>
-                    <Screen />
-                  </Frame>
-                </Block>
-              );
-            })}
-          </Section>
+                return (
+                  <Block id={item.id} key={item.id} lead={lead} title={item.name}>
+                    <Frame>
+                      <Screen />
+                    </Frame>
+                  </Block>
+                );
+              })}
+            </Section>
 
-          <Section
-            id="foundations"
-            jumps={FOUNDATIONS}
-            lead="The values behind those screens, read live from tokens.css in whichever theme you are viewing."
-            title="Foundations"
-          >
-            <ColorFoundation theme={dark ? "dark" : "light"} />
-            <TypeFoundation />
-            <SpaceFoundation />
-            <RadiusFoundation />
-            <ElevationFoundation />
-            <MotionFoundation />
-            <IconFoundation />
-            <AntiSlopFoundation />
-          </Section>
+            <Section
+              id="foundations"
+              jumps={FOUNDATIONS}
+              lead="The values behind those screens, read live from tokens.css in whichever theme you are viewing."
+              title="Foundations"
+            >
+              <ColorFoundation theme={theme} />
+              <TypeFoundation />
+              <SpaceFoundation />
+              <RadiusFoundation />
+              <ElevationFoundation />
+              <MotionFoundation />
+              <IconFoundation />
+              <AntiSlopFoundation />
+            </Section>
 
-          <Section
-            id="components"
-            jumps={CATEGORIES}
-            lead="Sorted by the job they do on a screen. Press, type, drag and toggle any of them."
-            title="Components"
-          >
-            {CATEGORIES.map((category) => {
-              const Specimens = SPECIMENS[category.id];
+            <Section
+              id="components"
+              jumps={CATEGORIES}
+              lead="Sorted by the job they do on a screen. Press, type, drag and toggle any of them."
+              title="Components"
+            >
+              {CATEGORIES.map((category) => {
+                const Specimens = SPECIMENS[category.id];
 
-              return (
-                <Block
-                  id={category.id}
-                  key={category.id}
-                  lead={category.items.join(", ")}
-                  title={category.name}
-                >
-                  <div className="cl-specs">
-                    <Specimens />
-                  </div>
-                </Block>
-              );
-            })}
-          </Section>
-          <footer className="cl-footer">
-            <p>
-              {system.name} follows the structure and rules of Lime from design.how, with its own
-              palette, glow, type, radius, copy and screens.
-            </p>
-          </footer>
-        </main>
-        <TabBar
-          className="cl-dock"
-          current={dock.active}
-          tucked={dock.hidden}
-          currentKind="location"
-          items={DOCK}
-          label="Sections"
-          onSelect={(label) => {
-            dock.select(label);
-          }}
-        />
-      </ToastProvider>
+                return (
+                  <Block
+                    id={category.id}
+                    key={category.id}
+                    lead={category.items.join(", ")}
+                    title={category.name}
+                  >
+                    <div className="cl-specs">
+                      <Specimens />
+                    </div>
+                  </Block>
+                );
+              })}
+            </Section>
+            <footer className="cl-footer">
+              <p>
+                {system.name} follows the structure and rules of Lime from design.how, with its own
+                palette, glow, type, radius, copy and screens.
+              </p>
+            </footer>
+          </main>
+          <TabBar
+            className="cl-dock"
+            current={dock.active}
+            tucked={dock.hidden}
+            currentKind="location"
+            items={DOCK}
+            label="Sections"
+            onSelect={(label) => {
+              dock.select(label);
+            }}
+          />
+        </ToastProvider>
+      </TokenOverrides>
     </div>
   );
 };

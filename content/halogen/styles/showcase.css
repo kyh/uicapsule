@@ -98,7 +98,7 @@
   background: var(--hx-wash);
 }
 .ds-halogen .hx-wrong-lamp-text {
-  color: #ffbe2e;
+  color: var(--hx-lamp);
 }
 @media (max-width: 520px) {
   .ds-halogen .hx-ftable,
@@ -250,6 +250,15 @@
   .ds-halogen .hx-pending > span {
     animation: none !important;
   }
+}
+.ds-halogen[data-motion="off"] *,
+.ds-halogen[data-motion="off"] *::before,
+.ds-halogen[data-motion="off"] *::after {
+  animation-duration: 0ms !important;
+  animation-delay: 0ms !important;
+}
+.ds-halogen[data-motion="off"] .hx-pending > span {
+  animation: none !important;
 }
 
 /* Screen layouts */

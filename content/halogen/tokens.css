@@ -188,6 +188,17 @@
   --hx-series-4: #4a463e;
 }
 
+.ds-halogen[data-motion="off"] {
+  --hx-dur-press: 0ms;
+  --hx-dur-state: 0ms;
+  --hx-dur-overlay: 0ms;
+  --hx-dur-wipe: 0ms;
+  --hx-dur-draw: 0ms;
+  --hx-dur-type: 0ms;
+  --hx-dur-scramble: 0ms;
+  --hx-dur-lamp: 0ms;
+}
+
 @media (prefers-reduced-motion: reduce) {
   .ds-halogen {
     --hx-dur-press: 0ms;

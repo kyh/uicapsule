@@ -185,6 +185,10 @@
     opacity: 1;
   }
 }
+.ds-halogen[data-motion="off"] .hx-pending > span:first-child {
+  background: currentcolor;
+  opacity: 1;
+}
 
 /* Status: a square mark and a word */
 .ds-halogen .hx-status {

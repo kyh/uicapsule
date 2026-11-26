@@ -9,6 +9,7 @@ import { Menu } from "../components/menu";
 import { Tooltip } from "../components/tooltip";
 import { Specimen } from "../chrome";
 import { useLater } from "../lib/hooks";
+import { DENSITY, useSettings } from "../lib/settings";
 
 /** Button, its sizes and states, and the quiet toolbar around a draft. */
 export const Actions = () => {
@@ -16,6 +17,7 @@ export const Actions = () => {
   const [saved, setSaved] = useState("Draft saved 2 min ago");
   const [sending, setSending] = useState(false);
   const later = useLater();
+  const sizes = DENSITY[useSettings().density];
 
   return (
     <>
@@ -32,7 +34,10 @@ export const Actions = () => {
           <Button variant="ghost">Skip</Button>
         </div>
       </Specimen>
-      <Specimen name="Button sizes" note="26, 32 and 36px, icon sizes square">
+      <Specimen
+        name="Button sizes"
+        note={`${sizes.sm}, ${sizes.md} and ${sizes.lg}px, icon sizes square`}
+      >
         <div className="v-cluster v-center">
           <Button size="sm">Deploy</Button>
           <Button>Deploy</Button>

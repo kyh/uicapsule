@@ -91,6 +91,10 @@
   }
 }
 
+.ds-fjord[data-motion="reduced"] .fj-arc {
+  animation: none;
+}
+
 .ds-fjord .fj-inkslot {
   display: inline-flex;
   flex: none;
@@ -650,6 +654,12 @@
     width: 100%;
     opacity: 0.4;
   }
+}
+
+.ds-fjord[data-motion="reduced"] .fj-progress-track[data-indeterminate] .fj-progress-fill {
+  animation: none;
+  width: 100%;
+  opacity: 0.4;
 }
 
 .ds-fjord .fj-steps {

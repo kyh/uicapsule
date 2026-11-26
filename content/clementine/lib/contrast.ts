@@ -1,22 +1,9 @@
+import { parseHex } from "./color";
+
 const channel = (value: number) => {
   const c = value / 255;
 
   return c <= 0.04045 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4;
-};
-
-const parseHex = (value: string) => {
-  const clean = value.trim().replace("#", "").toLowerCase();
-
-  const full =
-    clean.length === 3
-      ? Array.from(clean, (digit) => `${digit}${digit}`).join("")
-      : clean.slice(0, 6);
-
-  if (!/^[0-9a-f]{6}$/u.test(full)) {
-    return null;
-  }
-
-  return [0, 2, 4].map((start) => Number.parseInt(full.slice(start, start + 2), 16));
 };
 
 const luminance = (rgb: readonly number[]) => {

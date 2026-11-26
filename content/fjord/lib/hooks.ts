@@ -1,6 +1,8 @@
 import { useEffect, useRef, useState } from "react";
 import type { RefObject } from "react";
 
+import { useAppearance } from "./theme";
+
 const noop = () => null;
 
 export const useInterval = (callback: () => void, delay: number | null) => {
@@ -98,6 +100,7 @@ export const useDismiss = (
 };
 
 export const useReducedMotion = () => {
+  const { reducedMotion } = useAppearance();
   const [reduced, setReduced] = useState(false);
 
   useEffect(() => {
@@ -115,5 +118,5 @@ export const useReducedMotion = () => {
     };
   }, []);
 
-  return reduced;
+  return reducedMotion || reduced;
 };

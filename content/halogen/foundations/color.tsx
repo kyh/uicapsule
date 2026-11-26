@@ -6,9 +6,29 @@ import { Checkbox } from "../components/choice";
 import { Status } from "../components/status";
 import { Tag } from "../components/tag";
 import { contrast, ratio } from "../lib/contrast";
+import { LAMPS, useSettings } from "./settings";
 import { COLOR_GROUPS } from "./tokens";
 import type { ColorToken } from "./tokens";
 import { cssVars } from "../lib/css-vars";
+
+type LampTokens = (typeof LAMPS)[keyof typeof LAMPS];
+
+const tokenHex = (lamp: LampTokens, token: string, theme: "light" | "dark", fallback: string) => {
+  const vars: Record<string, string> = lamp[theme];
+
+  return vars[token] ?? fallback;
+};
+
+const withLamp = (token: ColorToken, lamp: LampTokens) => ({
+  ...token,
+  against: token.against && {
+    ...token.against,
+    dark: tokenHex(lamp, `--hx-${token.against.name}`, "dark", token.against.dark),
+    light: tokenHex(lamp, `--hx-${token.against.name}`, "light", token.against.light),
+  },
+  dark: tokenHex(lamp, token.token, "dark", token.dark),
+  light: tokenHex(lamp, token.token, "light", token.light),
+});
 
 const Swatch = ({ hex }: { hex: string }) => (
   <span className="hx-row">
@@ -40,52 +60,60 @@ const Ratio = ({ token }: { token: ColorToken }) => {
   );
 };
 
-/** The colour token table, with WCAG ratios computed from the same values the CSS ships. */
-export const ColorTable = () => (
-  <div className="hx-frame">
-    <div className="hx-table-wrap">
-      <table className="hx-table hx-ftable">
-        <thead>
-          <tr>
-            <th scope="col">Token</th>
-            <th scope="col">Use for</th>
-            <th scope="col">Light</th>
-            <th scope="col">Dark</th>
-            <th scope="col">Contrast</th>
-          </tr>
-        </thead>
-        {COLOR_GROUPS.map((group) => (
-          <tbody key={group.name}>
+/** The colour token table, with WCAG ratios computed from the same values the CSS ships for the lit lamp. */
+export const ColorTable = () => {
+  const lamp = LAMPS[useSettings().lamp];
+
+  return (
+    <div className="hx-frame">
+      <div className="hx-table-wrap">
+        <table className="hx-table hx-ftable">
+          <thead>
             <tr>
-              <th className="hx-label-sm hx-group-row" colSpan={5} scope="colgroup">
-                {group.name}
-              </th>
+              <th scope="col">Token</th>
+              <th scope="col">Use for</th>
+              <th scope="col">Light</th>
+              <th scope="col">Dark</th>
+              <th scope="col">Contrast</th>
             </tr>
-            {group.tokens.map((token) => (
-              <tr key={token.token}>
-                <td data-label="Token" data-nowrap>
-                  {token.token}
-                </td>
-                <td data-label="Use for" data-sans data-wide>
-                  {token.use}
-                </td>
-                <td data-label="Light" data-nowrap>
-                  <Swatch hex={token.light} />
-                </td>
-                <td data-label="Dark" data-nowrap>
-                  <Swatch hex={token.dark} />
-                </td>
-                <td data-label="Contrast" data-nowrap>
-                  <Ratio token={token} />
-                </td>
+          </thead>
+          {COLOR_GROUPS.map((group) => (
+            <tbody key={group.name}>
+              <tr>
+                <th className="hx-label-sm hx-group-row" colSpan={5} scope="colgroup">
+                  {group.name}
+                </th>
               </tr>
-            ))}
-          </tbody>
-        ))}
-      </table>
+              {group.tokens
+                .map((base) => withLamp(base, lamp))
+                .map((token) => (
+                  <tr key={token.token}>
+                    <td data-label="Token" data-nowrap>
+                      {token.token}
+                    </td>
+                    <td data-label="Use for" data-sans data-wide>
+                      {token.use}
+                    </td>
+                    <td data-label="Light" data-nowrap>
+                      <Swatch hex={token.light} />
+                    </td>
+                    <td data-label="Dark" data-nowrap>
+                      <Swatch hex={token.dark} />
+                    </td>
+                    <td data-label="Contrast" data-nowrap>
+                      <Ratio token={token} />
+                    </td>
+                  </tr>
+                ))}
+            </tbody>
+          ))}
+        </table>
+      </div>
     </div>
-  </div>
-);
+  );
+};
+
+const PAPER = "#fdfcf9";
 
 const LampCheck = () => {
   const [on, setOn] = useState(true);
@@ -116,59 +144,64 @@ const Rule = ({
 );
 
 /** Where amber may and may not go, drawn with the real components. */
-export const LampRules = () => (
-  <div className="hx-frame">
-    <div className="hx-head">
-      <span className="hx-head-title hx-code">--hx-lamp</span>
-      <span className="hx-head-meta hx-code-sm">one lit action per view</span>
+export const LampRules = () => {
+  const { label, light } = LAMPS[useSettings().lamp];
+  const name = label.toLowerCase();
+
+  return (
+    <div className="hx-frame">
+      <div className="hx-head">
+        <span className="hx-head-title hx-code">--hx-lamp</span>
+        <span className="hx-head-meta hx-code-sm">one lit action per view</span>
+      </div>
+      <div className="hx-dodont hx-lamp-grid">
+        <Rule
+          note="One per frame, dialog or foot row: the filament a person follows to the next step."
+          ok
+          title="The lit button"
+        >
+          <Button>Hold drift</Button>
+          <Button variant="lamp">Apply mapping</Button>
+        </Rule>
+        <Rule
+          note="Where you are sits on a pale amber wash with ink on top. It marks a place, not an action."
+          ok
+          title="The wash"
+        >
+          <span className="hx-code hx-wash-chip">drift_4ac1 · crm.contacts</span>
+        </Rule>
+        <Rule
+          note="A control that is on is filled amber under an ink tick. The tick says on; the fill only agrees."
+          ok
+          title="A ticked box"
+        >
+          <LampCheck />
+        </Rule>
+        <Rule
+          note={`On paper, ${name} letters reach ${ratio(light["--hx-lamp"], PAPER)}. Words that must read in ${name} use --hx-lamp-text, ${ratio(light["--hx-lamp-text"], PAPER)}.`}
+          ok={false}
+          title={`${label} letters`}
+        >
+          <span className="hx-label-sm hx-wrong-lamp-text">Spilling</span>
+          <span className="hx-label-sm hx-lamp-text">Spilling</span>
+        </Rule>
+        <Rule
+          note="Caution is orange and names itself. Amber is already busy meaning press here."
+          ok={false}
+          title="A caution"
+        >
+          <Tag tone="wash">Over budget</Tag>
+          <Status status="warn">Over budget</Status>
+        </Rule>
+        <Rule
+          note="Two lit buttons side by side and the eye cannot settle. Everything else is plain or ghost."
+          ok={false}
+          title="A second lamp"
+        >
+          <Button variant="lamp">Hold</Button>
+          <Button variant="lamp">Apply</Button>
+        </Rule>
+      </div>
     </div>
-    <div className="hx-dodont hx-lamp-grid">
-      <Rule
-        note="One per frame, dialog or foot row: the filament a person follows to the next step."
-        ok
-        title="The lit button"
-      >
-        <Button>Hold drift</Button>
-        <Button variant="lamp">Apply mapping</Button>
-      </Rule>
-      <Rule
-        note="Where you are sits on a pale amber wash with ink on top. It marks a place, not an action."
-        ok
-        title="The wash"
-      >
-        <span className="hx-code hx-wash-chip">drift_4ac1 · crm.contacts</span>
-      </Rule>
-      <Rule
-        note="A control that is on is filled amber under an ink tick. The tick says on; the fill only agrees."
-        ok
-        title="A ticked box"
-      >
-        <LampCheck />
-      </Rule>
-      <Rule
-        note={`On paper, amber letters reach ${ratio("#ffbe2e", "#fdfcf9")}. Words that must read in amber use --hx-lamp-text, ${ratio("#7a5000", "#fdfcf9")}.`}
-        ok={false}
-        title="Amber letters"
-      >
-        <span className="hx-label-sm hx-wrong-lamp-text">Spilling</span>
-        <span className="hx-label-sm hx-lamp-text">Spilling</span>
-      </Rule>
-      <Rule
-        note="Caution is orange and names itself. Amber is already busy meaning press here."
-        ok={false}
-        title="A caution"
-      >
-        <Tag tone="wash">Over budget</Tag>
-        <Status status="warn">Over budget</Status>
-      </Rule>
-      <Rule
-        note="Two lit buttons side by side and the eye cannot settle. Everything else is plain or ghost."
-        ok={false}
-        title="A second lamp"
-      >
-        <Button variant="lamp">Hold</Button>
-        <Button variant="lamp">Apply</Button>
-      </Rule>
-    </div>
-  </div>
-);
+  );
+};

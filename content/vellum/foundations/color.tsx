@@ -7,7 +7,7 @@ import { Button } from "../components/button";
 import { Status } from "../components/status";
 import { Minor } from "../chrome";
 import { composite, contrast, formatRatio } from "../lib/color";
-import { useTheme } from "../lib/theme";
+import { useTheme } from "../lib/settings";
 import { COLOR_TOKENS, CONTRAST, GREYS, STATUS, SURFACES, TEXT } from "./tokens";
 import type { ColorRole } from "./tokens";
 

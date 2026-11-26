@@ -5,7 +5,6 @@ import { useEffect, useState } from "react";
 import type { ReactNode } from "react";
 
 import { Button } from "./components/button";
-import { Segmented } from "./components/choice";
 import { Icon } from "./components/icon";
 import { Group, Section } from "./components/page";
 import { StatusStrip, StripCell } from "./components/status-strip";
@@ -15,10 +14,14 @@ import { ToastProvider } from "./components/toast";
 import { AntiSlop, RULES } from "./foundations/anti-slop";
 import { ColorTable, LampRules } from "./foundations/color";
 import { Iconography } from "./foundations/icons";
-import { Borders, Elevation, LEVELS, Radius, Space } from "./foundations/layout";
+import { Borders, Elevation, LEVELS, Radius, Space, spaceLead } from "./foundations/layout";
 import { Motion } from "./foundations/motion";
+import { DENSITIES, SettingsContext, settingVars } from "./foundations/settings";
+import type { Density, DensityScale, Lamp, Theme } from "./foundations/settings";
 import { COLOR_GROUPS, CURVES, MOTION_TOKENS, TYPE_ROLES } from "./foundations/tokens";
 import { TypeScale, Voices } from "./foundations/type";
+import { cssVars } from "./lib/css-vars";
+import { MotionContext } from "./lib/motion";
 import { DriftScreen } from "./screens/drift-screen";
 import { RunsScreen } from "./screens/runs-screen";
 import { SpendScreen } from "./screens/spend-screen";
@@ -37,15 +40,13 @@ import { Runs } from "./specimens/runs";
 import { Selection } from "./specimens/selection";
 import { system } from "./system";
 
-const THEMES = ["Light", "Dark"] as const;
-
 const NAV = [
   { href: "#in-use", label: "In use" },
   { href: "#foundations", label: "Foundations" },
   { href: "#components", label: "Components" },
 ];
 
-const FOUNDATIONS = [
+const foundations = (scale: DensityScale) => [
   {
     body: (
       <>
@@ -76,7 +77,7 @@ const FOUNDATIONS = [
   {
     body: <Space />,
     id: "f-space",
-    lead: "Padding, margins and gaps move in 4px steps, with a 2px half-step for marks. Controls stand 32px tall, rows 40px, and every region keeps a 12px inset.",
+    lead: spaceLead(scale),
     meta: "4px steps",
     title: "Space",
   },
@@ -124,40 +125,55 @@ const FOUNDATIONS = [
   },
 ];
 
-const SCREENS = [
+export type ScreenId = "runs" | "drift" | "spend" | "sync";
+
+interface ScreenEntry {
+  body: (openCommand: () => void) => ReactNode;
+  id: ScreenId;
+  lead: string;
+  parts: string;
+  title: string;
+}
+
+const SCREENS: ScreenEntry[] = [
   {
     body: (openCommand: () => void) => <RunsScreen onSearch={openCommand} />,
-    id: "s-runs",
+    id: "runs",
     lead: "Today's runs on prod. A strip cell narrows the table; Run now starts the picked pipeline, or restarts it when it is already going.",
     parts: "status strip · filter bar · table · menu · empty state · pagination",
     title: "Run board",
   },
   {
     body: () => <DriftScreen />,
-    id: "s-drift",
+    id: "drift",
     lead: "crm-api shipped a new contacts schema overnight. Pick a fix for each column and the mapping rewrites itself; Apply mapping replays the held rows.",
     parts: "tool-call stack · schema diff · code window · progress · popover",
     title: "Schema drift",
   },
   {
     body: () => <SpendScreen />,
-    id: "s-spend",
+    id: "spend",
     lead: "November's credits by team against budget, the queue they cause, and the queries spilling to disk. Pick a team row, then cap it.",
     parts: "table · line chart · popover · dialog · slider · switch",
     title: "Credit spend",
   },
   {
     body: () => <SyncScreen />,
-    id: "s-sync",
+    id: "sync",
     lead: "The nightly refresh across five systems. Run refresh lights each step in turn and draws the connector to the next.",
     parts: "swimlanes · activity · line chart · tabs · progress",
     title: "Customer 360 refresh",
   },
 ];
 
+/** The "In use" screens as picker options. */
+export const SCREEN_OPTIONS = SCREENS.map((item) => ({ label: item.title, value: item.id }));
+
+const FOUNDATION_TOTAL = foundations(DENSITIES.default).length;
+
 const COUNTS = [
   { label: "Components", value: String(COMPONENT_TOTAL) },
-  { label: "Foundations", value: String(FOUNDATIONS.length) },
+  { label: "Foundations", value: String(FOUNDATION_TOTAL) },
   { label: "Screens", value: String(SCREENS.length) },
   { label: "Radius", unit: "px", value: "0" },
   { label: "Shadows", value: "none" },
@@ -202,10 +218,29 @@ const Screen = ({
   </section>
 );
 
+interface DesignSystemProps {
+  /** Light paper or the dark sheet. */
+  theme?: Theme;
+  /** Which filament lights the one action per view. */
+  lamp?: Lamp;
+  /** Control, row and head heights, and the region inset. */
+  density?: Density;
+  /** The "In use" screen shown first. */
+  featured?: ScreenId;
+  /** False cuts every transition and typing effect, as reduced motion does. */
+  motion?: boolean;
+}
+
 /** The Halogen showcase: header, demo screens, foundations, then every component by category. */
-export const DesignSystem = () => {
-  const [theme, setTheme] = useState<(typeof THEMES)[number]>("Light");
+export const DesignSystem = ({
+  theme = "light",
+  lamp = "amber",
+  density = "default",
+  featured = "runs",
+  motion = true,
+}: DesignSystemProps) => {
   const [command, setCommand] = useState(false);
+  const screens = SCREENS.toSorted((a, b) => Number(b.id === featured) - Number(a.id === featured));
 
   useEffect(() => {
     const onKey = (event: KeyboardEvent) => {
@@ -223,139 +258,149 @@ export const DesignSystem = () => {
   }, []);
 
   return (
-    <div className="ds-halogen" data-theme={theme === "Dark" ? "dark" : undefined}>
-      <ToastProvider>
-        <header className="hx-topbar">
-          <div className="hx-shell hx-topbar-inner">
-            <a className="hx-brand hx-code" href="#top">
-              <Mark />
-              halogen
-              <span className="hx-code-sm hx-ink-3">v1.0</span>
-            </a>
-            <nav aria-label="Sections" className="hx-row hx-topnav">
-              {NAV.map((item, index) => (
-                <a className="hx-ntab" href={item.href} key={item.href}>
-                  <span className="hx-ntab-index">{String(index + 1).padStart(2, "0")}</span>
-                  {item.label}
+    <div
+      className="ds-halogen"
+      data-motion={motion ? undefined : "off"}
+      data-theme={theme === "dark" ? "dark" : undefined}
+      style={cssVars(settingVars(theme, lamp, density))}
+    >
+      <SettingsContext value={{ density, lamp }}>
+        <MotionContext value={motion}>
+          <ToastProvider>
+            <header className="hx-topbar">
+              <div className="hx-shell hx-topbar-inner">
+                <a className="hx-brand hx-code" href="#top">
+                  <Mark />
+                  halogen
+                  <span className="hx-code-sm hx-ink-3">v1.0</span>
                 </a>
-              ))}
-            </nav>
-            <span className="hx-row hx-end">
-              <Button
-                aria-label="Search"
-                onClick={() => {
-                  setCommand(true);
-                }}
-                size="icon-sm"
-                title="Search"
-                variant="ghost"
+                <nav aria-label="Sections" className="hx-row hx-topnav">
+                  {NAV.map((item, index) => (
+                    <a className="hx-ntab" href={item.href} key={item.href}>
+                      <span className="hx-ntab-index">{String(index + 1).padStart(2, "0")}</span>
+                      {item.label}
+                    </a>
+                  ))}
+                </nav>
+                <span className="hx-row hx-end">
+                  <Button
+                    aria-label="Search"
+                    onClick={() => {
+                      setCommand(true);
+                    }}
+                    size="icon-sm"
+                    title="Search"
+                    variant="ghost"
+                  >
+                    <Icon icon={Search} />
+                  </Button>
+                </span>
+              </div>
+            </header>
+
+            <main className="hx-shell" id="top">
+              <div className="hx-hero">
+                <h1 className="hx-display hx-hero-title">
+                  <TypeText perChar={55} text={system.name} />
+                </h1>
+                <p className="hx-heading hx-hero-lead">{system.tagline}</p>
+                <p className="hx-body hx-ink-2 hx-measure">
+                  Halogen is a working kit for the people who keep data platforms running. It draws
+                  on warm paper with hairlines and near-black ink, puts every control word in mono
+                  capitals and every sentence in a plain sans, and leaves each corner square. Light
+                  is scarce: one amber filament per view marks the thing to press. <Kbd>⌘</Kbd>{" "}
+                  <Kbd>K</Kbd> jumps anywhere.
+                </p>
+                <StatusStrip label="What Halogen ships">
+                  {COUNTS.map((item) => (
+                    <StripCell
+                      key={item.label}
+                      label={item.label}
+                      unit={item.unit}
+                      value={item.value}
+                    />
+                  ))}
+                </StatusStrip>
+              </div>
+
+              <Section
+                id="in-use"
+                lead="Screens from Larch's data platform, assembled only from the parts catalogued below. Every control on them responds."
+                meta={countOf(screens.length, "screen")}
+                title="In use"
               >
-                <Icon icon={Search} />
-              </Button>
-              <Segmented label="Theme" onValueChange={setTheme} options={THEMES} value={theme} />
-            </span>
-          </div>
-        </header>
+                <div className="hx-screens">
+                  {screens.map((item) => (
+                    <Screen
+                      id={`s-${item.id}`}
+                      key={item.id}
+                      lead={item.lead}
+                      parts={item.parts}
+                      title={item.title}
+                    >
+                      {item.body(() => {
+                        setCommand(true);
+                      })}
+                    </Screen>
+                  ))}
+                </div>
+              </Section>
 
-        <main className="hx-shell" id="top">
-          <div className="hx-hero">
-            <h1 className="hx-display hx-hero-title">
-              <TypeText perChar={55} text={system.name} />
-            </h1>
-            <p className="hx-heading hx-hero-lead">{system.tagline}</p>
-            <p className="hx-body hx-ink-2 hx-measure">
-              Halogen is a working kit for the people who keep data platforms running. It draws on
-              warm paper with hairlines and near-black ink, puts every control word in mono capitals
-              and every sentence in a plain sans, and leaves each corner square. Light is scarce:
-              one amber filament per view marks the thing to press. <Kbd>⌘</Kbd> <Kbd>K</Kbd> jumps
-              anywhere.
-            </p>
-            <StatusStrip label="What Halogen ships">
-              {COUNTS.map((item) => (
-                <StripCell
-                  key={item.label}
-                  label={item.label}
-                  unit={item.unit}
-                  value={item.value}
-                />
-              ))}
-            </StatusStrip>
-          </div>
+              <Section
+                id="foundations"
+                lead="What every part below already obeys. Each value here is read from the shipped CSS."
+                meta={countOf(FOUNDATION_TOTAL, "foundation")}
+                title="Foundations"
+              >
+                {foundations(DENSITIES[density]).map((item) => (
+                  <Group
+                    id={item.id}
+                    key={item.id}
+                    lead={item.lead}
+                    meta={item.meta}
+                    title={item.title}
+                  >
+                    {item.body}
+                  </Group>
+                ))}
+              </Section>
 
-          <Section
-            id="in-use"
-            lead="Screens from Larch's data platform, assembled only from the parts catalogued below. Every control on them responds."
-            meta={countOf(SCREENS.length, "screen")}
-            title="In use"
-          >
-            <div className="hx-screens">
-              {SCREENS.map((item) => (
-                <Screen
-                  id={item.id}
-                  key={item.id}
-                  lead={item.lead}
-                  parts={item.parts}
-                  title={item.title}
-                >
-                  {item.body(() => {
+              <Section
+                id="components"
+                lead="All live. Grouped by what you reach for, ending with the parts built for runs."
+                meta={`${countOf(COMPONENT_TOTAL, "component")} · ${countOf(GROUP_TOTAL, "group")}`}
+                title="Components"
+              >
+                <Actions />
+                <Inputs />
+                <Selection />
+                <Display />
+                <Feedback />
+                <Overlays
+                  onCommand={() => {
                     setCommand(true);
-                  })}
-                </Screen>
-              ))}
-            </div>
-          </Section>
+                  }}
+                />
+                <Navigation />
+                <Data />
+                <Code />
+                <Charts />
+                <Runs />
+              </Section>
+            </main>
 
-          <Section
-            id="foundations"
-            lead="What every part below already obeys. Each value here is read from the shipped CSS."
-            meta={countOf(FOUNDATIONS.length, "foundation")}
-            title="Foundations"
-          >
-            {FOUNDATIONS.map((item) => (
-              <Group
-                id={item.id}
-                key={item.id}
-                lead={item.lead}
-                meta={item.meta}
-                title={item.title}
-              >
-                {item.body}
-              </Group>
-            ))}
-          </Section>
-
-          <Section
-            id="components"
-            lead="All live. Grouped by what you reach for, ending with the parts built for runs."
-            meta={`${countOf(COMPONENT_TOTAL, "component")} · ${countOf(GROUP_TOTAL, "group")}`}
-            title="Components"
-          >
-            <Actions />
-            <Inputs />
-            <Selection />
-            <Display />
-            <Feedback />
-            <Overlays
-              onCommand={() => {
-                setCommand(true);
-              }}
-            />
-            <Navigation />
-            <Data />
-            <Code />
-            <Charts />
-            <Runs />
-          </Section>
-        </main>
-
-        <footer className="hx-rule-top">
-          <div className="hx-shell hx-row-wrap hx-between hx-footer">
-            <span className="hx-code-sm hx-ink-3">halogen · tokens.css · styles/*.css</span>
-            <span className="hx-caption hx-ink-3">Ruled paper, mono words, one filament lit.</span>
-          </div>
-        </footer>
-        <CommandHost onOpenChange={setCommand} open={command} />
-      </ToastProvider>
+            <footer className="hx-rule-top">
+              <div className="hx-shell hx-row-wrap hx-between hx-footer">
+                <span className="hx-code-sm hx-ink-3">halogen · tokens.css · styles/*.css</span>
+                <span className="hx-caption hx-ink-3">
+                  Ruled paper, mono words, one filament lit.
+                </span>
+              </div>
+            </footer>
+            <CommandHost onOpenChange={setCommand} open={command} />
+          </ToastProvider>
+        </MotionContext>
+      </SettingsContext>
     </div>
   );
 };

@@ -420,6 +420,9 @@
     rotate: 1turn;
   }
 }
+.ds-vellum[data-motion="reduced"] .v-arc {
+  animation: none;
+}
 @media (prefers-reduced-motion: reduce) {
   .ds-vellum .v-arc {
     animation: none;
@@ -1197,6 +1200,10 @@
   to {
     translate: 320% 0;
   }
+}
+.ds-vellum[data-motion="reduced"] .v-progress[data-indeterminate] .v-progress-fill {
+  animation: none;
+  translate: 100% 0;
 }
 @media (prefers-reduced-motion: reduce) {
   .ds-vellum .v-progress[data-indeterminate] .v-progress-fill {
