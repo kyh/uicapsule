@@ -11,6 +11,8 @@ delete process.env.AUTH_EMAIL_FROM;
 
 const { auth } = await import("./auth");
 
+const { refuseCodesWithoutMail } = await import("./sign-in-code-email");
+
 const options = {
   ...auth.options,
   logger: { disabled: true },
@@ -104,4 +106,17 @@ test("without email configuration, development logs the code", async (t) => {
   const logged = JSON.stringify(info.mock.calls);
   assert.ok(logged.includes("logged@example.com"));
   assert.match(logged, /sign-in code is \d{6}/u);
+});
+
+test("a deployment that sends no email refuses to send a code", async () => {
+  const testAuth = betterAuth({
+    ...options,
+    database: memoryAdapter({ account: [], session: [], user: [], verification: [] }),
+    hooks: { before: refuseCodesWithoutMail },
+  });
+
+  await assert.rejects(
+    testAuth.api.sendVerificationOTP({ body: { email: "off@example.com", type: "sign-in" } }),
+    (error) => error instanceof APIError && error.body?.code === "EMAIL_DISABLED",
+  );
 });

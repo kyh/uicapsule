@@ -48,11 +48,12 @@ test("the sender sends sign-in codes only", async (t) => {
   assert.equal(info.mock.callCount(), 0);
 });
 
-test("without email configuration, production refuses to send a code", async () => {
-  await assert.rejects(
-    signInCodeSenderOf("off")({ email: "dev@example.com", otp: "482913", type: "sign-in" }),
-    (error) => error instanceof APIError && error.body?.code === "EMAIL_DISABLED",
-  );
+test("without email configuration, the sender sends nothing", async (t) => {
+  const info = t.mock.method(console, "info");
+
+  await signInCodeSenderOf("off")({ email: "dev@example.com", otp: "482913", type: "sign-in" });
+
+  assert.equal(info.mock.callCount(), 0);
 });
 
 test("code delivery reports provider and network failures", async (t) => {
