@@ -55,6 +55,8 @@ creates `content/<slug>/{<slug>.tsx, preview.tsx, meta.json, package.json}` and 
 set from `scripts/templates/design-system/` (read its `README.md`). Build the system in
 `tokens.css`, reshape `components/*` only where tokens can't carry it, keep every
 component's props, and leave the showcase layout alone. Tags and `defaultSize` are prefilled.
+Its settings (color mode, accent, density, radius, type scale, motion, featured screen) are
+`controls` like any component's, never an in-page settings bar.
 Curation still applies: the system's idea should come from outside the web (a cockpit, a
 synth, a transit map), not "another neutral SaaS kit".
 
@@ -68,16 +70,23 @@ synth, a transit map), not "another neutral SaaS kit".
   `pnpm install` after).
 - Stage on a dark radial-gradient `<main class="flex h-dvh items-center justify-center">`
   like sibling previews — gallery cards and recordings assume it.
-- The component must demo itself: either it auto-animates, or the preview wires up an
-  auto-tour + visible controls. A recording of a static component is worthless, so
-  design the "flattering loop" now, not at recording time.
-- Configurable props go in a `controls` export from `preview.tsx`, which the site's props
-  panel renders and sends back as values. `Preview` receives one prop per key and maps them
-  onto the component (config objects, grids of instances, the backdrop, `key={value}` to
-  remount). Type its props by hand and default each one to its control, because the registry
-  and zip ship `preview.tsx` where nothing injects values; `pnpm typecheck:content <slug>`
-  checks them against the controls. Expose configuration only, never state the demo itself drives (a toggle's on/off,
-  a slider's current value, a timer's running state). Omit `controls` for a zero-prop preview.
+- The component must demo itself: either it auto-animates, or the preview runs an
+  auto-tour. A recording of a static component is worthless, so design the "flattering
+  loop" now, not at recording time. The loop runs on control defaults: the recording
+  captures `/preview-frame/<slug>`, where no props panel exists.
+- **Every component ships a `controls` export** from `preview.tsx`; the `/ui/<slug>` props
+  panel renders it and streams values back. Expose every knob a user would reach for: the
+  component's public props (colors, sizes, counts, durations, easing, copy, variants) and any
+  demo harness. Never build an in-frame picker, mode switcher or settings bar: a "which
+  state/variant/preset" selector, a sample-data toggle or a speed slider is a control. What
+  stays in the frame is the component's own interaction (the toggle you click when the toggle
+  is the component, a timer's start/stop, a drag), never a duplicate of a control.
+- `Preview` receives one prop per key and maps them onto the component (config objects, grids
+  of instances, the backdrop, `key={value}` to remount when a value only applies at mount).
+  Type its props by hand and default each one to its control, because the registry and zip ship
+  `preview.tsx` where nothing injects values; `pnpm typecheck:content <slug>` checks them
+  against the controls. Ranges must stay safe and visible across their whole span: no value
+  that hangs the component, overlaps it into nonsense, or does nothing on some devices.
 
   ```tsx
   export const controls = {
@@ -126,7 +135,9 @@ Previews are served by `//:dev:previews` (part of `pnpm dev:web`), a Vite dev se
 hot-reloads edits inside the frame: if the preview is blank, check that task is running. Previews run
 sandboxed, so the component must not rely on `localStorage`, `sessionStorage` or cookies.
 
-Screenshot `/preview-frame/<slug>` and actually look at it before recording.
+Screenshot `/preview-frame/<slug>` and actually look at it before recording. Then open
+`/ui/<slug>` and move every control through its range (ends included): each must visibly
+change the preview, and none may blank the frame or log an error.
 
 ## 4. Record
 

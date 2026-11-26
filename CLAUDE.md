@@ -100,8 +100,11 @@ Content is filesystem-driven; the web app never depends on content packages by n
   runner and fails on any `previewControlsSchema` rejects (strict objects, so a misspelled
   field fails too; `key`, `ref` and `Object.prototype` names are not control names), or on a
   preview that can't load in Node, naming the slug: browser globals at module scope would crash
-  a registry install's server render too. Controls are configuration, never interaction state the
-  demo itself drives (a toggle's on/off, a timer's running state). The generated entry passes
+  a registry install's server render too. Every component exposes its knobs
+  and any demo harness (variant, mode or preset pickers, sample-data toggles, speeds) as controls,
+  never as in-frame UI; the frame keeps only the component's own interaction (a toggle's on/off
+  when the toggle is the component, a timer's running state). Design systems expose their
+  settings (mode, accent, density…) the same way. The generated entry passes
   the module namespace to `startPreview`, which parses `controls` (throws on an invalid one),
   renders `Preview` from an external store so a value change never remounts it, announces the
   controls in `uicapsule:ready`, and folds each `uicapsule:props` in with `mergeControlValues`
