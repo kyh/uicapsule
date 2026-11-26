@@ -27,7 +27,6 @@
     "@vercel/analytics": "^2.0.1",
     "better-auth": "catalog:",
     "cn": "catalog:",
-    "jszip": "^3.10.2",
     "lucide-react": "catalog:",
     "motion": "catalog:",
     "next": "catalog:",

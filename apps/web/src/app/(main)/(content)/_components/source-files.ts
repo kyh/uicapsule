@@ -3,8 +3,6 @@
 import { queryOptions } from "@tanstack/react-query";
 import { z } from "zod";
 
-import type { SourceFile } from "@/lib/content/content-schema";
-
 const sourceFilesSchema = z.array(z.object({ code: z.string(), path: z.string() }));
 
 export const sourceFilesQuery = (slug: string) =>
@@ -23,24 +21,5 @@ export const sourceFilesQuery = (slug: string) =>
     queryKey: ["content-source-files", slug],
     staleTime: Infinity,
   });
-
-export const downloadZip = async (slug: string, sourceFiles: SourceFile[]) => {
-  const { default: JSZip } = await import("jszip");
-  const zip = new JSZip();
-
-  for (const { path, code } of sourceFiles) {
-    zip.file(path, code);
-  }
-
-  const zipBlob = await zip.generateAsync({ type: "blob" });
-  const url = URL.createObjectURL(zipBlob);
-  const link = document.createElement("a");
-  link.href = url;
-  link.download = `${slug}.zip`;
-  document.body.append(link);
-  link.click();
-  link.remove();
-  URL.revokeObjectURL(url);
-};
 
 export const installCommand = (slug: string) => `npx shadcn@latest add @uicapsule/${slug}`;
