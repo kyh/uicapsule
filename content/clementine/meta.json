@@ -1,0 +1,14 @@
+{
+  "name": "Clementine",
+  "description": "A bright, friendly money app on warm paper, where only the next step gets the zest.",
+  "addedAt": "2026-11-25",
+  "defaultSize": "full",
+  "cover": "clementine/clementine.20261125.mp4",
+  "tags": ["design-systems"],
+  "inspiredBy": [
+    {
+      "label": "Lime on design.how",
+      "url": "https://design.how/systems/lime"
+    }
+  ]
+}

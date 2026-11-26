@@ -1,0 +1,58 @@
+.ds-clementine.cl-page {
+  & .cl-icon-sizes {
+    display: grid;
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    gap: 12px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+
+    & > li {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+  }
+  & .cl-icon-sizes__stage {
+    display: grid;
+    place-items: center;
+    height: 80px;
+    margin-bottom: 4px;
+    background: var(--surface);
+    border-radius: var(--radius-panel);
+  }
+  & .cl-icon-set {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(152px, 1fr));
+    gap: 4px;
+    margin: 12px 0 0;
+    padding: 0;
+    list-style: none;
+
+    & li {
+      display: flex;
+      gap: 12px;
+      align-items: center;
+      padding: 8px 12px;
+      color: var(--fg);
+      border-radius: var(--radius-md);
+    }
+
+    & svg {
+      flex-shrink: 0;
+    }
+
+    & span {
+      color: var(--fg-2);
+      font-size: var(--text-sm);
+    }
+  }
+}
+
+@media (width < 600px) {
+  .ds-clementine.cl-page {
+    & .cl-icon-sizes {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+  }
+}

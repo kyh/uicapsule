@@ -1,0 +1,968 @@
+/*
+ * Halogen controls: buttons, marks, fields, overlays and choices. Scoped to .ds-halogen.
+ */
+
+/* Buttons: one lamp per view, the rest plain or ghost */
+.ds-halogen .hx-btn {
+  position: relative;
+  display: inline-flex;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  gap: var(--hx-2);
+  justify-self: start;
+  height: var(--hx-control);
+  padding: 0 var(--hx-3);
+  border: var(--hx-line) solid transparent;
+  background: transparent;
+  color: var(--hx-ink-1);
+  font: 400 13px/16px var(--hx-mono);
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  cursor: pointer;
+  user-select: none;
+  transition-property: background-color, border-color, color, box-shadow;
+  transition-duration: var(--hx-dur-state);
+  transition-timing-function: var(--hx-ease-out);
+}
+.ds-halogen .hx-btn[data-size="sm"] {
+  height: var(--hx-control-sm);
+  padding: 0 var(--hx-3);
+  font-size: 12px;
+  letter-spacing: 0.06em;
+}
+.ds-halogen .hx-btn[data-size="lg"] {
+  height: var(--hx-control-lg);
+  padding: 0 var(--hx-4);
+  font-size: 14px;
+  line-height: 20px;
+  letter-spacing: 0.04em;
+}
+.ds-halogen .hx-btn[data-size="icon"] {
+  width: var(--hx-control);
+  padding: 0;
+}
+.ds-halogen .hx-btn[data-size="icon-sm"] {
+  width: var(--hx-control-sm);
+  height: var(--hx-control-sm);
+  padding: 0;
+}
+.ds-halogen .hx-btn[data-variant="lamp"] {
+  border-color: var(--hx-slab-edge);
+  background-color: var(--hx-slab);
+  background-image: linear-gradient(to top, var(--hx-slab-glow), transparent 55%);
+  color: var(--hx-slab-ink);
+  transition-duration: var(--hx-dur-lamp);
+  transition-timing-function: var(--hx-ease-lamp);
+}
+.ds-halogen .hx-btn[data-variant="lamp"]:hover {
+  border-color: var(--hx-slab-edge-hover);
+  background-color: var(--hx-slab-hover);
+  background-image: linear-gradient(to top, var(--hx-slab-glow-hover), transparent 70%);
+  box-shadow: 0 0 0 1px var(--hx-slab-halo);
+}
+.ds-halogen .hx-btn[data-variant="lamp"]:active {
+  background-color: var(--hx-slab);
+  background-image: none;
+  transition-duration: var(--hx-dur-press);
+}
+.ds-halogen .hx-btn[data-variant="plain"] {
+  border-color: var(--hx-rule);
+  background-color: var(--hx-page);
+  background-image: linear-gradient(to top, var(--hx-well), transparent 60%);
+}
+.ds-halogen .hx-btn[data-variant="plain"]:hover {
+  border-color: var(--hx-rule-control);
+  background-color: var(--hx-panel);
+}
+.ds-halogen .hx-btn[data-variant="plain"]:active {
+  background-image: none;
+  background-color: var(--hx-pressed);
+  transition-duration: var(--hx-dur-press);
+}
+.ds-halogen .hx-btn[data-variant="ghost"] {
+  color: var(--hx-ink-2);
+}
+.ds-halogen .hx-btn[data-variant="ghost"]:hover {
+  background-color: var(--hx-hover);
+  color: var(--hx-ink-1);
+}
+.ds-halogen .hx-btn[data-variant="ghost"]:active,
+.ds-halogen .hx-btn[data-variant="ghost"][aria-pressed="true"],
+.ds-halogen .hx-btn[data-variant="ghost"][aria-expanded="true"] {
+  background-color: var(--hx-pressed);
+  color: var(--hx-ink-1);
+}
+.ds-halogen .hx-btn[data-variant="danger"] {
+  border-color: var(--hx-fail);
+  background-color: var(--hx-fail);
+  color: #fff;
+}
+.ds-halogen[data-theme="dark"] .hx-btn[data-variant="danger"] {
+  background-color: var(--hx-fail-tint);
+  color: var(--hx-fail-text);
+}
+.ds-halogen .hx-btn[data-variant="danger"]:hover {
+  box-shadow: 0 0 0 1px var(--hx-fail-tint);
+}
+.ds-halogen .hx-btn:disabled,
+.ds-halogen .hx-btn[aria-disabled="true"] {
+  border-color: var(--hx-rule);
+  background: var(--hx-well);
+  color: var(--hx-ink-off);
+  cursor: not-allowed;
+  box-shadow: none;
+}
+.ds-halogen .hx-btn-label[data-hidden] {
+  visibility: hidden;
+}
+.ds-halogen .hx-btn-pending {
+  position: absolute;
+  inset: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--hx-2);
+}
+.ds-halogen .hx-btn-group {
+  display: inline-flex;
+  min-inline-size: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+.ds-halogen .hx-btn-group > .hx-btn + .hx-btn {
+  margin-inline-start: -1px;
+}
+.ds-halogen .hx-btn-group > .hx-btn:hover,
+.ds-halogen .hx-btn-group > .hx-btn:focus-visible {
+  z-index: 1;
+}
+
+/* The pending mark: one lit square steps around four. The only loop. */
+.ds-halogen .hx-pending {
+  display: inline-grid;
+  flex-shrink: 0;
+  grid-template-columns: 3px 3px;
+  gap: var(--hx-half);
+}
+.ds-halogen .hx-pending > span {
+  width: 3px;
+  height: 3px;
+  background: var(--hx-rule-control);
+  opacity: 0.35;
+  animation: hx-pend var(--hx-dur-pending) steps(1, end) infinite;
+}
+.ds-halogen .hx-pending > span:nth-child(1) {
+  animation-delay: 0ms;
+}
+.ds-halogen .hx-pending > span:nth-child(2) {
+  animation-delay: -600ms;
+}
+.ds-halogen .hx-pending > span:nth-child(4) {
+  animation-delay: -400ms;
+}
+.ds-halogen .hx-pending > span:nth-child(3) {
+  animation-delay: -200ms;
+}
+@keyframes hx-pend {
+  0% {
+    background: currentcolor;
+    opacity: 1;
+  }
+  25% {
+    background: var(--hx-rule-control);
+    opacity: 0.35;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .ds-halogen .hx-pending > span {
+    animation: none;
+  }
+  .ds-halogen .hx-pending > span:first-child {
+    background: currentcolor;
+    opacity: 1;
+  }
+}
+
+/* Status: a square mark and a word */
+.ds-halogen .hx-status {
+  display: inline-flex;
+  align-items: center;
+  vertical-align: middle;
+  gap: var(--hx-2);
+  white-space: nowrap;
+}
+.ds-halogen .hx-mark {
+  display: inline-block;
+  flex-shrink: 0;
+  width: var(--hx-mark);
+  height: var(--hx-mark);
+  border: var(--hx-line) solid transparent;
+}
+.ds-halogen .hx-mark[data-status="ok"] {
+  background: var(--hx-ok);
+}
+.ds-halogen .hx-mark[data-status="warn"] {
+  background: var(--hx-warn);
+}
+.ds-halogen .hx-mark[data-status="fail"] {
+  background: var(--hx-fail);
+}
+.ds-halogen .hx-mark[data-status="waiting"] {
+  border-color: var(--hx-warn);
+  background: var(--hx-warn-tint);
+}
+.ds-halogen .hx-mark[data-status="queued"] {
+  border-color: var(--hx-ink-3);
+}
+.ds-halogen .hx-mark[data-status="idle"] {
+  border-color: var(--hx-rule-control);
+  background: var(--hx-well);
+}
+.ds-halogen .hx-mark[data-status="skipped"] {
+  border-color: var(--hx-ink-off);
+  background: linear-gradient(
+    to top right,
+    transparent calc(50% - 0.5px),
+    var(--hx-ink-off) calc(50% - 0.5px),
+    var(--hx-ink-off) calc(50% + 0.5px),
+    transparent calc(50% + 0.5px)
+  );
+}
+.ds-halogen .hx-mark[data-status="running"] {
+  display: inline-grid;
+  grid-template-columns: 3px 3px;
+  align-content: center;
+  gap: var(--hx-half);
+  width: var(--hx-mark);
+  height: var(--hx-mark);
+  vertical-align: middle;
+  border: 0;
+  color: var(--hx-ink-1);
+}
+.ds-halogen .hx-status[data-status="ok"] {
+  color: var(--hx-ok-text);
+}
+.ds-halogen .hx-status[data-status="warn"],
+.ds-halogen .hx-status[data-status="waiting"] {
+  color: var(--hx-warn-text);
+}
+.ds-halogen .hx-status[data-status="fail"] {
+  color: var(--hx-fail-text);
+}
+.ds-halogen .hx-status[data-status="running"] {
+  color: var(--hx-ink-1);
+}
+.ds-halogen .hx-status[data-status="queued"],
+.ds-halogen .hx-status[data-status="idle"],
+.ds-halogen .hx-status[data-status="skipped"] {
+  color: var(--hx-ink-3);
+}
+
+/* Tag */
+.ds-halogen .hx-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--hx-2);
+  height: 20px;
+  padding: 0 var(--hx-2);
+  border: var(--hx-line) solid var(--hx-rule);
+  background: var(--hx-well);
+  color: var(--hx-ink-2);
+  font: 400 11px/14px var(--hx-mono);
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+.ds-halogen .hx-tag[data-tone="ok"] {
+  border-color: transparent;
+  background: var(--hx-ok-tint);
+  color: var(--hx-ok-text);
+}
+.ds-halogen .hx-tag[data-tone="warn"] {
+  border-color: transparent;
+  background: var(--hx-warn-tint);
+  color: var(--hx-warn-text);
+}
+.ds-halogen .hx-tag[data-tone="fail"] {
+  border-color: transparent;
+  background: var(--hx-fail-tint);
+  color: var(--hx-fail-text);
+}
+.ds-halogen .hx-tag[data-tone="wash"] {
+  border-color: transparent;
+  background: var(--hx-wash);
+  color: var(--hx-ink-1);
+}
+.ds-halogen .hx-tag[data-tone="outline"] {
+  background: transparent;
+}
+
+/* Kbd */
+.ds-halogen .hx-kbd {
+  display: inline-grid;
+  place-items: center;
+  min-width: 20px;
+  height: 20px;
+  padding: 0 4px;
+  border: var(--hx-line) solid var(--hx-rule);
+  border-bottom-color: var(--hx-rule-control);
+  background: var(--hx-page);
+  color: var(--hx-ink-2);
+  font: 400 11px/14px var(--hx-mono);
+}
+
+/* Avatar: square, like everything else */
+.ds-halogen .hx-avatar {
+  display: inline-grid;
+  flex-shrink: 0;
+  place-items: center;
+  width: 24px;
+  height: 24px;
+  border: var(--hx-line) solid var(--hx-rule);
+  background: var(--hx-well);
+  color: var(--hx-ink-2);
+  font: 400 10px/1 var(--hx-mono);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+.ds-halogen .hx-avatar[data-size="lg"] {
+  width: 32px;
+  height: 32px;
+  font-size: 12px;
+}
+.ds-halogen .hx-avatar-stack {
+  display: inline-flex;
+}
+.ds-halogen .hx-avatar-stack > .hx-avatar + .hx-avatar {
+  margin-inline-start: -1px;
+}
+
+/* Status strip: the few numbers to check first, on one ruled row */
+.ds-halogen .hx-strip {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  border: var(--hx-line) solid var(--hx-rule);
+  overflow: hidden;
+  min-inline-size: 0;
+  margin: 0;
+  padding: 0;
+}
+.ds-halogen .hx-strip[data-plain] {
+  border: 0;
+  border-bottom: var(--hx-line) solid var(--hx-rule);
+}
+.ds-halogen .hx-strip-cell {
+  display: grid;
+  align-content: start;
+  gap: var(--hx-half);
+  min-width: 0;
+  margin: 0 0 -1px -1px;
+  padding: var(--hx-inset);
+  border: 0;
+  border-bottom: var(--hx-line) solid var(--hx-rule);
+  border-inline-start: var(--hx-line) solid var(--hx-rule);
+  background: transparent;
+  color: inherit;
+  text-align: start;
+  transition: background-color var(--hx-dur-state) var(--hx-ease-out);
+}
+.ds-halogen button.hx-strip-cell {
+  cursor: pointer;
+}
+.ds-halogen button.hx-strip-cell:hover {
+  background: var(--hx-hover);
+}
+.ds-halogen button.hx-strip-cell:focus-visible {
+  outline-offset: -3px;
+}
+.ds-halogen .hx-strip-cell[aria-current="true"] {
+  background: var(--hx-wash);
+}
+.ds-halogen button.hx-strip-cell[aria-current="true"]:hover {
+  background: var(--hx-wash-strong);
+}
+.ds-halogen .hx-strip-label {
+  color: var(--hx-ink-3);
+}
+.ds-halogen .hx-strip-value {
+  display: flex;
+  align-items: center;
+  gap: var(--hx-2);
+  color: var(--hx-ink-1);
+  font: 400 13px/20px var(--hx-mono);
+  white-space: nowrap;
+}
+.ds-halogen .hx-strip-unit {
+  color: var(--hx-ink-2);
+}
+
+/* Data list */
+.ds-halogen .hx-dl {
+  display: grid;
+  grid-template-columns: minmax(96px, max-content) minmax(0, 1fr);
+  column-gap: var(--hx-6);
+  margin: 0;
+}
+.ds-halogen .hx-dl > div {
+  display: contents;
+}
+.ds-halogen .hx-dl dt,
+.ds-halogen .hx-dl dd {
+  min-height: var(--hx-row-sm);
+  margin: 0;
+  padding: 8px 0;
+  border-bottom: var(--hx-line) solid var(--hx-rule-faint);
+}
+.ds-halogen .hx-dl > div:last-child dt,
+.ds-halogen .hx-dl > div:last-child dd {
+  border-bottom: 0;
+}
+.ds-halogen .hx-dl dt {
+  color: var(--hx-ink-3);
+}
+.ds-halogen .hx-dl dd {
+  display: flex;
+  align-items: center;
+  gap: var(--hx-2);
+  min-width: 0;
+  color: var(--hx-ink-1);
+}
+.ds-halogen .hx-facts {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+.ds-halogen .hx-facts > div {
+  display: grid;
+  gap: var(--hx-half);
+  padding: var(--hx-inset);
+  border-bottom: var(--hx-line) solid var(--hx-rule);
+}
+.ds-halogen .hx-facts > div:nth-child(odd) {
+  border-inline-end: var(--hx-line) solid var(--hx-rule);
+}
+.ds-halogen .hx-facts > div:nth-last-child(-n + 2) {
+  border-bottom: 0;
+}
+
+/* Fields */
+.ds-halogen .hx-field {
+  display: grid;
+  gap: var(--hx-2);
+  min-width: 0;
+}
+.ds-halogen .hx-field-label {
+  color: var(--hx-ink-2);
+}
+.ds-halogen .hx-field-hint {
+  max-width: 60ch;
+  color: var(--hx-ink-3);
+}
+.ds-halogen .hx-field-error {
+  display: flex;
+  align-items: center;
+  gap: var(--hx-2);
+  color: var(--hx-fail-text);
+}
+.ds-halogen .hx-input {
+  display: flex;
+  align-items: center;
+  gap: var(--hx-2);
+  width: 100%;
+  min-width: 0;
+  height: var(--hx-control);
+  padding: 0 var(--hx-3);
+  border: var(--hx-line) solid var(--hx-rule);
+  background: var(--hx-page);
+  color: var(--hx-ink-1);
+  font: 400 14px/20px var(--hx-sans);
+  transition: border-color var(--hx-dur-state) var(--hx-ease-out);
+}
+.ds-halogen .hx-input[data-size="sm"] {
+  height: var(--hx-control-sm);
+  padding: 0 var(--hx-2);
+  font-size: 13px;
+}
+.ds-halogen .hx-input:hover {
+  border-color: var(--hx-rule-control);
+}
+.ds-halogen .hx-input:focus-within {
+  border-color: var(--hx-focus);
+  outline: var(--hx-line) solid var(--hx-focus);
+  outline-offset: -2px;
+}
+.ds-halogen .hx-input[aria-invalid="true"],
+.ds-halogen .hx-input:has([aria-invalid="true"]) {
+  border-color: var(--hx-fail);
+}
+.ds-halogen .hx-input > input,
+.ds-halogen .hx-input > textarea {
+  flex: 1 1 auto;
+  min-width: 0;
+  height: 100%;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  outline: none;
+}
+.ds-halogen .hx-input input::placeholder,
+.ds-halogen .hx-input textarea::placeholder {
+  color: var(--hx-ink-3);
+}
+.ds-halogen .hx-input[data-mono] {
+  font: 400 13px/20px var(--hx-mono);
+}
+.ds-halogen .hx-input > svg {
+  flex-shrink: 0;
+  color: var(--hx-ink-3);
+}
+.ds-halogen .hx-input[data-multiline] {
+  align-items: stretch;
+  height: auto;
+  padding: var(--hx-2) var(--hx-3);
+}
+.ds-halogen .hx-input[data-multiline] > textarea {
+  min-height: 80px;
+  resize: vertical;
+}
+.ds-halogen .hx-input:has(:disabled) {
+  background: var(--hx-well);
+  color: var(--hx-ink-off);
+}
+
+/* Checkbox, radio, switch: amber under an ink mark is a state, not an action */
+.ds-halogen .hx-check {
+  display: inline-flex;
+  align-items: flex-start;
+  gap: var(--hx-2);
+  cursor: pointer;
+}
+.ds-halogen .hx-check > input {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
+.ds-halogen .hx-check-box {
+  display: inline-grid;
+  flex-shrink: 0;
+  place-items: center;
+  width: 16px;
+  height: 16px;
+  margin-top: var(--hx-half);
+  border: var(--hx-line) solid var(--hx-rule-control);
+  background: var(--hx-page);
+  color: var(--hx-slab-ink);
+  transition-property: background-color, border-color;
+  transition-duration: var(--hx-dur-state);
+  transition-timing-function: var(--hx-ease-out);
+}
+.ds-halogen .hx-check-box > svg {
+  opacity: 0;
+}
+.ds-halogen .hx-check > input:checked + .hx-check-box,
+.ds-halogen .hx-check > input:indeterminate + .hx-check-box {
+  border-color: var(--hx-slab-edge);
+  background: var(--hx-slab);
+}
+.ds-halogen .hx-check > input:checked + .hx-check-box > svg,
+.ds-halogen .hx-check > input:indeterminate + .hx-check-box > svg {
+  opacity: 1;
+}
+.ds-halogen .hx-check > input:focus-visible + .hx-check-box {
+  outline: var(--hx-focus-width) solid var(--hx-focus);
+  outline-offset: 2px;
+}
+.ds-halogen .hx-check > input:disabled + .hx-check-box {
+  border-color: var(--hx-rule);
+  background: var(--hx-well);
+}
+.ds-halogen .hx-check:has(input:disabled) {
+  color: var(--hx-ink-off);
+  cursor: not-allowed;
+}
+.ds-halogen .hx-radio-dot {
+  width: 6px;
+  height: 6px;
+  background: var(--hx-slab-ink);
+  opacity: 0;
+}
+.ds-halogen .hx-check > input:checked + .hx-check-box > .hx-radio-dot {
+  opacity: 1;
+}
+.ds-halogen .hx-switch {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--hx-2);
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--hx-ink-1);
+  cursor: pointer;
+  text-align: start;
+}
+.ds-halogen .hx-switch-track {
+  position: relative;
+  flex-shrink: 0;
+  width: 32px;
+  height: 16px;
+  border: var(--hx-line) solid var(--hx-rule-control);
+  background: var(--hx-well);
+  transition-property: background-color, border-color;
+  transition-duration: var(--hx-dur-state);
+  transition-timing-function: var(--hx-ease-out);
+}
+.ds-halogen .hx-switch-track::after {
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 10px;
+  height: 10px;
+  background: var(--hx-ink-3);
+  content: "";
+  transition-property: translate, background-color;
+  transition-duration: var(--hx-dur-state);
+  transition-timing-function: var(--hx-ease-out);
+}
+.ds-halogen .hx-switch[aria-checked="true"] .hx-switch-track {
+  border-color: var(--hx-slab-edge);
+  background: var(--hx-slab);
+}
+.ds-halogen .hx-switch[aria-checked="true"] .hx-switch-track::after {
+  background: var(--hx-slab-ink);
+  translate: 16px 0;
+}
+.ds-halogen .hx-switch:focus-visible {
+  outline: 0;
+}
+.ds-halogen .hx-switch:focus-visible .hx-switch-track {
+  outline: var(--hx-focus-width) solid var(--hx-focus);
+  outline-offset: 2px;
+}
+
+/* Segmented control */
+.ds-halogen .hx-seg {
+  display: inline-flex;
+  justify-self: start;
+  width: fit-content;
+  min-width: 0;
+  max-width: 100%;
+  margin: 0;
+  padding: 0;
+  border: var(--hx-line) solid var(--hx-rule);
+}
+.ds-halogen .hx-seg > label {
+  position: relative;
+  cursor: pointer;
+}
+.ds-halogen .hx-seg > label + label {
+  border-inline-start: var(--hx-line) solid var(--hx-rule);
+}
+.ds-halogen .hx-seg input {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
+.ds-halogen .hx-seg-option {
+  display: grid;
+  place-items: center;
+  height: calc(var(--hx-control-sm) - 2px);
+  padding: 0 var(--hx-3);
+  color: var(--hx-ink-2);
+  font: 400 12px/16px var(--hx-mono);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  transition-property: background-color, color;
+  transition-duration: var(--hx-dur-state);
+  transition-timing-function: var(--hx-ease-out);
+}
+.ds-halogen .hx-seg > label:hover .hx-seg-option {
+  background: var(--hx-hover);
+  color: var(--hx-ink-1);
+}
+.ds-halogen .hx-seg input:checked + .hx-seg-option {
+  background: var(--hx-slab);
+  color: var(--hx-slab-ink);
+}
+.ds-halogen .hx-seg input:focus-visible + .hx-seg-option {
+  outline: var(--hx-focus-width) solid var(--hx-focus);
+  outline-offset: -2px;
+}
+
+/* Slider */
+.ds-halogen .hx-slider {
+  width: 100%;
+  height: 16px;
+  margin: 0;
+  background: transparent;
+  cursor: pointer;
+  appearance: none;
+}
+.ds-halogen .hx-slider::-webkit-slider-runnable-track {
+  height: 8px;
+  border: var(--hx-line) solid var(--hx-rule-control);
+  background: linear-gradient(
+    to right,
+    var(--hx-lamp) var(--fill, 50%),
+    var(--hx-well) var(--fill, 50%)
+  );
+}
+.ds-halogen .hx-slider::-moz-range-track {
+  height: 6px;
+  border: var(--hx-line) solid var(--hx-rule-control);
+  background: linear-gradient(
+    to right,
+    var(--hx-lamp) var(--fill, 50%),
+    var(--hx-well) var(--fill, 50%)
+  );
+}
+.ds-halogen .hx-slider::-webkit-slider-thumb {
+  width: 12px;
+  height: 16px;
+  margin-top: -5px;
+  border: var(--hx-line) solid var(--hx-ink-1);
+  background: var(--hx-page);
+  appearance: none;
+}
+.ds-halogen .hx-slider::-moz-range-thumb {
+  width: 10px;
+  height: 14px;
+  border: var(--hx-line) solid var(--hx-ink-1);
+  background: var(--hx-page);
+}
+.ds-halogen .hx-slider:focus-visible {
+  outline-offset: 4px;
+}
+
+/* Meter and progress */
+.ds-halogen .hx-meter {
+  display: grid;
+  gap: var(--hx-2);
+  min-width: 0;
+}
+.ds-halogen .hx-meter-head {
+  display: flex;
+  align-items: baseline;
+  gap: var(--hx-2);
+}
+.ds-halogen .hx-meter-track {
+  position: relative;
+  height: 8px;
+  border: var(--hx-line) solid var(--hx-rule-control);
+  background: var(--hx-well);
+}
+.ds-halogen .hx-meter-fill {
+  position: absolute;
+  inset: -1px auto -1px -1px;
+  width: var(--value);
+  background: var(--hx-lamp);
+  animation: hx-wipe-x var(--hx-dur-wipe) var(--hx-ease-linear);
+}
+.ds-halogen .hx-meter-fill[data-tone="warn"] {
+  background: var(--hx-warn);
+}
+.ds-halogen .hx-meter-fill[data-tone="fail"] {
+  background: var(--hx-fail);
+}
+.ds-halogen .hx-meter-tick {
+  position: absolute;
+  top: -4px;
+  bottom: -4px;
+  left: var(--at);
+  width: 1px;
+  background: var(--hx-ink-2);
+}
+.ds-halogen .hx-progress {
+  display: grid;
+  grid-template-columns: repeat(var(--cells, 24), minmax(0, 1fr));
+  gap: var(--hx-half);
+  height: 10px;
+}
+.ds-halogen .hx-progress > span {
+  background: var(--hx-well);
+  outline: var(--hx-line) solid var(--hx-rule);
+  outline-offset: -1px;
+}
+.ds-halogen .hx-progress > span[data-on] {
+  background: var(--hx-ink-1);
+  outline: 0;
+}
+.ds-halogen .hx-progress > span[data-live] {
+  background: var(--hx-lamp);
+  outline: 0;
+}
+@keyframes hx-wipe-x {
+  from {
+    clip-path: inset(0 100% 0 0);
+  }
+}
+
+/* Alert: a band, a sentence, an action */
+.ds-halogen .hx-alert {
+  display: grid;
+  gap: var(--hx-2);
+  padding: var(--hx-inset);
+  background: var(--hx-fail-tint);
+}
+.ds-halogen .hx-alert[data-tone="warn"] {
+  background: var(--hx-warn-tint);
+}
+.ds-halogen .hx-alert[data-tone="ok"] {
+  background: var(--hx-ok-tint);
+}
+.ds-halogen .hx-alert[data-tone="info"] {
+  background: var(--hx-well);
+}
+.ds-halogen .hx-alert[data-framed] {
+  border: var(--hx-line) solid var(--hx-rule);
+}
+
+/* Skeleton: still, never a pulse */
+.ds-halogen .hx-skel {
+  display: block;
+  width: var(--w, 100%);
+  height: var(--h, 12px);
+  background: var(--hx-well);
+}
+
+/* Select: native, drawn as a field; its list is a Halogen overlay where the browser allows */
+.ds-halogen .hx-select {
+  width: 100%;
+  min-width: 0;
+  height: var(--hx-control);
+  padding: 0 32px 0 var(--hx-3);
+  border: var(--hx-line) solid var(--hx-rule);
+  background-color: var(--hx-page);
+  background-image:
+    linear-gradient(45deg, transparent 50%, var(--hx-ink-3) 50%),
+    linear-gradient(135deg, var(--hx-ink-3) 50%, transparent 50%);
+  background-position:
+    calc(100% - 17px) 50%,
+    calc(100% - 12px) 50%;
+  background-repeat: no-repeat;
+  background-size: 5px 5px;
+  color: var(--hx-ink-1);
+  font: 400 14px/20px var(--hx-sans);
+  cursor: pointer;
+  appearance: none;
+  transition: border-color var(--hx-dur-state) var(--hx-ease-out);
+}
+.ds-halogen .hx-select[data-size="sm"] {
+  height: var(--hx-control-sm);
+  padding-inline-start: var(--hx-2);
+  font-size: 13px;
+}
+.ds-halogen .hx-select:hover {
+  border-color: var(--hx-rule-control);
+}
+.ds-halogen .hx-select:focus-visible {
+  border-color: var(--hx-focus);
+  outline: var(--hx-line) solid var(--hx-focus);
+  outline-offset: -2px;
+}
+@supports (appearance: base-select) {
+  .ds-halogen .hx-select,
+  .ds-halogen .hx-select::picker(select) {
+    appearance: base-select;
+  }
+  .ds-halogen .hx-select {
+    display: flex;
+    align-items: center;
+    padding-inline-end: var(--hx-3);
+    background-image: none;
+  }
+  .ds-halogen .hx-select::picker-icon {
+    color: var(--hx-ink-3);
+    transition: rotate var(--hx-dur-state) var(--hx-ease-out);
+  }
+  .ds-halogen .hx-select:open::picker-icon {
+    rotate: 180deg;
+  }
+  .ds-halogen .hx-select::picker(select) {
+    min-width: anchor-size(width);
+    max-height: 320px;
+    margin-top: 4px;
+    padding: 0;
+    border: var(--hx-line) solid var(--hx-rule);
+    background: var(--hx-panel);
+    color: var(--hx-ink-1);
+    opacity: 1;
+    transition-property: opacity, translate, display, overlay;
+    transition-duration: var(--hx-dur-overlay);
+    transition-timing-function: var(--hx-ease-out);
+    transition-behavior: allow-discrete;
+  }
+  @starting-style {
+    .ds-halogen .hx-select:open::picker(select) {
+      opacity: 0;
+      translate: 0 -4px;
+    }
+  }
+  .ds-halogen .hx-select option {
+    display: flex;
+    align-items: center;
+    gap: var(--hx-2);
+    min-height: var(--hx-row-sm);
+    padding: 0 var(--hx-3);
+    font: 400 14px/20px var(--hx-sans);
+    cursor: pointer;
+  }
+  .ds-halogen .hx-select option:hover,
+  .ds-halogen .hx-select option:focus-visible {
+    background: var(--hx-hover);
+    outline: none;
+  }
+  .ds-halogen .hx-select option:checked {
+    background: var(--hx-wash);
+  }
+  .ds-halogen .hx-select option::checkmark {
+    order: 1;
+    margin-inline-start: auto;
+    color: var(--hx-ink-1);
+  }
+}
+
+/* Link: a value that opens something, underlined in the rule colour */
+.ds-halogen .hx-link {
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--hx-ink-1);
+  text-decoration: underline;
+  text-decoration-color: var(--hx-rule-control);
+  text-underline-offset: 3px;
+  cursor: pointer;
+}
+.ds-halogen .hx-link:hover,
+.ds-halogen .hx-link[aria-expanded="true"] {
+  text-decoration-color: var(--hx-ink-1);
+}
+.ds-halogen .hx-alert-actions {
+  margin-top: var(--hx-1);
+}
+.ds-halogen .hx-empty {
+  justify-items: start;
+  padding: var(--hx-6) 0;
+}
+.ds-halogen .hx-table .hx-empty {
+  padding: var(--hx-6) var(--hx-inset);
+}
+.ds-halogen .hx-empty-text {
+  max-width: 46ch;
+}
+.ds-halogen .hx-legend {
+  margin-bottom: var(--hx-3);
+  padding: 0;
+}
+.ds-halogen .hx-tag-removable {
+  padding-inline-end: 0;
+}
+.ds-halogen .hx-tag-x {
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+}

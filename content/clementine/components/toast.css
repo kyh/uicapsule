@@ -1,0 +1,66 @@
+.ds-clementine {
+  & .cl-toaster {
+    position: fixed;
+    bottom: 20px;
+    left: 50%;
+    z-index: var(--z-toast);
+    width: min(400px, calc(100% - 32px));
+    translate: -50% 0;
+    pointer-events: none;
+  }
+  & .cl-toast {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+    padding: 12px 12px 12px 16px;
+    color: var(--fg-inverse);
+    background: var(--ink);
+    border-radius: var(--radius-panel);
+    box-shadow: var(--shadow-menu);
+    animation: cl-rise var(--dur-base) var(--ease-out);
+    pointer-events: auto;
+    transition:
+      opacity var(--dur-fast) var(--ease-in),
+      translate var(--dur-fast) var(--ease-in);
+
+    &[data-leaving] {
+      opacity: 0;
+      translate: 0 8px;
+    }
+  }
+  & .cl-toast__text {
+    flex: 1 1 auto;
+    min-width: 0;
+  }
+  & .cl-toast__title {
+    margin: 0;
+    font-size: var(--text-sm);
+    font-weight: 500;
+  }
+  & .cl-toast__desc {
+    margin: 2px 0 0;
+    font-size: var(--text-sm);
+    opacity: 0.72;
+  }
+  & .cl-toast__action {
+    height: var(--control-sm);
+    padding: 0 16px;
+    color: inherit;
+    font: 500 var(--text-sm) / 1 var(--font-sans);
+    background: color-mix(in srgb, var(--fg-inverse) 16%, transparent);
+    border: 0;
+    border-radius: var(--radius-pill);
+    cursor: pointer;
+
+    &:hover {
+      background: color-mix(in srgb, var(--fg-inverse) 24%, transparent);
+    }
+  }
+}
+
+@keyframes cl-rise {
+  from {
+    opacity: 0;
+    translate: 0 8px;
+  }
+}

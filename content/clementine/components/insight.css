@@ -1,0 +1,51 @@
+.ds-clementine {
+  & .cl-insight {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px 16px;
+    align-items: flex-end;
+    justify-content: space-between;
+    min-width: 0;
+  }
+  & .cl-insight__text {
+    display: flex;
+    flex: 1 1 200px;
+    flex-direction: column;
+    gap: 4px;
+    min-width: 0;
+  }
+  & .cl-insight__title {
+    margin: 0;
+    font-size: var(--text-sm);
+    font-weight: 500;
+  }
+  & .cl-insight__figure {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0 8px;
+    align-items: baseline;
+    margin: 0;
+    font-size: var(--text-xl);
+    font-weight: 600;
+    letter-spacing: var(--tracking-tight);
+  }
+  & .cl-insight__basis {
+    color: var(--fg-2);
+    font-size: var(--text-sm);
+    font-weight: 400;
+    letter-spacing: 0;
+  }
+  & .cl-insight__side {
+    display: flex;
+    margin-left: auto;
+    flex-shrink: 0;
+    flex-direction: column;
+    gap: 8px;
+    align-items: flex-end;
+  }
+  & .cl-insight__status {
+    flex-basis: 100%;
+    color: var(--success-text);
+    font-size: var(--text-sm);
+  }
+}

@@ -1,0 +1,217 @@
+/*
+ * Halogen overlays: menus, popovers, tooltips, dialogs, toasts and the command menu.
+ * An overlay is the panel fill and one rule edge; nothing floats on a shadow.
+ */
+
+/* Anchors and menus */
+.ds-halogen .hx-anchor {
+  position: relative;
+  display: inline-block;
+  min-width: 0;
+}
+.ds-halogen .hx-anchor[data-block] {
+  display: block;
+}
+.ds-halogen .hx-select-trigger {
+  justify-content: space-between;
+  cursor: pointer;
+  text-align: start;
+}
+.ds-halogen .hx-overlay {
+  position: absolute;
+  inset: auto;
+  margin: 0;
+  padding: 0;
+  z-index: var(--hx-z-overlay);
+  min-width: 192px;
+  max-height: 320px;
+  overflow: auto;
+  border: var(--hx-line) solid var(--hx-rule);
+  background: var(--hx-panel);
+  color: var(--hx-ink-1);
+  animation: hx-overlay-in var(--hx-dur-overlay) var(--hx-ease-out);
+}
+.ds-halogen .hx-overlay[data-side="bottom"] {
+  top: calc(100% + 4px);
+  inset-inline-start: 0;
+}
+.ds-halogen .hx-overlay[data-side="bottom-end"] {
+  top: calc(100% + 4px);
+  inset-inline-end: 0;
+}
+.ds-halogen .hx-overlay[data-side="top"] {
+  bottom: calc(100% + 4px);
+  inset-inline-start: 0;
+}
+@keyframes hx-overlay-in {
+  from {
+    opacity: 0;
+    translate: 0 -4px;
+  }
+}
+.ds-halogen .hx-menu {
+  display: grid;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.ds-halogen .hx-menu-item {
+  display: flex;
+  align-items: center;
+  gap: var(--hx-2);
+  width: 100%;
+  min-height: var(--hx-row-sm);
+  padding: 0 var(--hx-3);
+  border: 0;
+  background: transparent;
+  color: var(--hx-ink-1);
+  font: 400 14px/20px var(--hx-sans);
+  text-align: start;
+  cursor: pointer;
+  outline: none;
+}
+.ds-halogen .hx-menu-item[data-active="true"] {
+  background: var(--hx-hover);
+}
+.ds-halogen .hx-menu-item[aria-selected="true"] {
+  background: var(--hx-wash);
+}
+.ds-halogen .hx-menu-item[data-active="true"][aria-selected="true"] {
+  background: var(--hx-wash-strong);
+}
+.ds-halogen .hx-menu-item[data-tone="fail"] {
+  color: var(--hx-fail-text);
+}
+.ds-halogen .hx-menu-item:focus-visible {
+  outline: var(--hx-focus-width) solid var(--hx-focus);
+  outline-offset: -2px;
+}
+.ds-halogen .hx-menu-item > svg {
+  flex-shrink: 0;
+  color: var(--hx-ink-3);
+}
+.ds-halogen .hx-menu-item .hx-kbd {
+  margin-inline-start: auto;
+}
+.ds-halogen .hx-menu-sep {
+  height: 1px;
+  margin: 0;
+  border: 0;
+  background: var(--hx-rule);
+}
+.ds-halogen .hx-popover {
+  display: grid;
+  gap: var(--hx-3);
+  width: 288px;
+  max-width: calc(100vw - 32px);
+  padding: var(--hx-4);
+}
+
+/* Tooltip */
+.ds-halogen .hx-tooltip[hidden] {
+  display: none;
+}
+.ds-halogen .hx-tooltip {
+  position: absolute;
+  bottom: calc(100% + var(--hx-2));
+  left: 50%;
+  z-index: var(--hx-z-overlay);
+  max-width: 256px;
+  padding: 4px 8px;
+  background: var(--hx-ink-1);
+  color: var(--hx-ink-inverse);
+  font: 400 12px/16px var(--hx-sans);
+  white-space: nowrap;
+  translate: -50% 0;
+  pointer-events: none;
+  animation: hx-tip-in var(--hx-dur-overlay) var(--hx-ease-out);
+}
+@keyframes hx-tip-in {
+  from {
+    opacity: 0;
+    translate: -50% 4px;
+  }
+}
+
+/* Dialog: the overlay over the scrim, fade only */
+.ds-halogen .hx-dialog {
+  width: min(480px, calc(100vw - 32px));
+  max-height: calc(100dvh - 64px);
+  margin: auto;
+  padding: 0;
+  overflow: auto;
+  border: var(--hx-line) solid var(--hx-rule);
+  background: var(--hx-panel);
+  color: var(--hx-ink-1);
+}
+.ds-halogen .hx-dialog[data-size="lg"] {
+  width: min(640px, calc(100vw - 32px));
+}
+.ds-halogen .hx-dialog[open] {
+  animation: hx-fade-in var(--hx-dur-overlay) var(--hx-ease-out);
+}
+.ds-halogen .hx-dialog::backdrop {
+  background: rgb(26 24 20 / 0.36);
+  animation: hx-fade-in var(--hx-dur-overlay) var(--hx-ease-out);
+}
+.ds-halogen[data-theme="dark"] .hx-dialog::backdrop {
+  background: rgb(0 0 0 / 0.64);
+}
+.ds-halogen .hx-dialog .hx-foot {
+  justify-content: flex-end;
+}
+@keyframes hx-fade-in {
+  from {
+    opacity: 0;
+  }
+}
+
+/* Toast */
+.ds-halogen .hx-toasts {
+  position: fixed;
+  inset-inline-end: var(--hx-4);
+  bottom: var(--hx-4);
+  z-index: var(--hx-z-overlay);
+  display: grid;
+  gap: var(--hx-2);
+  width: min(360px, calc(100vw - 32px));
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.ds-halogen .hx-toast {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: start;
+  gap: var(--hx-3);
+  padding: var(--hx-inset);
+  border: var(--hx-line) solid var(--hx-rule);
+  background: var(--hx-panel);
+  animation: hx-wipe-up var(--hx-dur-overlay) var(--hx-ease-out);
+}
+.ds-halogen .hx-toast > .hx-mark {
+  margin-top: calc((20px - var(--hx-mark)) / 2);
+}
+@keyframes hx-wipe-up {
+  from {
+    clip-path: inset(100% 0 0 0);
+  }
+}
+
+/* Command menu */
+.ds-halogen .hx-command-list {
+  margin: 0 -12px -12px;
+  border-top: var(--hx-line) solid var(--hx-rule);
+}
+.ds-halogen .hx-command-list .hx-menu-item {
+  min-height: var(--hx-row);
+  padding-inline: var(--hx-inset);
+  cursor: pointer;
+}
+.ds-halogen .hx-command-empty {
+  padding: var(--hx-3) 0 0;
+}
+.ds-halogen .hx-command-enter {
+  display: inline-flex;
+  width: 14px;
+}

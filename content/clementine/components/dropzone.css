@@ -1,0 +1,47 @@
+.ds-clementine {
+  & .cl-drop {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    align-items: center;
+    padding: 20px 16px;
+    color: var(--fg-3);
+    text-align: center;
+    background: var(--surface);
+    border-radius: var(--radius-panel);
+    outline: 1.5px dashed var(--line-strong);
+    outline-offset: -1.5px;
+    cursor: pointer;
+    transition:
+      background-color var(--dur-fast) var(--ease-out),
+      outline-color var(--dur-fast) var(--ease-out);
+
+    &:hover,
+    &[data-over] {
+      background: var(--accent-wash);
+      outline-color: var(--accent-line);
+    }
+
+    &:focus-within {
+      outline: var(--line-focus) solid var(--ring);
+      outline-offset: var(--focus-offset);
+    }
+  }
+  & .cl-drop__label {
+    margin-top: 4px;
+    color: var(--fg);
+    font-size: var(--text-sm);
+    font-weight: 500;
+  }
+  & .cl-drop__hint {
+    font-size: var(--text-sm);
+  }
+  & .cl-drop-wrap {
+    position: relative;
+  }
+  & button.cl-drop {
+    width: 100%;
+    font: inherit;
+    border: 0;
+  }
+}

@@ -8,15 +8,17 @@ are settled) — this file is the runnable half.
 
 ## Quickstart (headless)
 
-There is no bootstrap script. Four steps, in order:
-
 ```sh
-pnpm install
-cp .env.example .env              # then fill BETTER_AUTH_SECRET (any random string)
-pnpm -F db db                     # shell 1: turso dev on http://127.0.0.1:8080 (leave running)
-pnpm db:push                      # shell 2: apply the Drizzle schema to that local db
-pnpm dev:web                      # shell 2: http://localhost:3000
+pnpm install && pnpm bootstrap --yes   # .env, local Turso on :8080 if none answers, schema
+pnpm dev:web                           # http://localhost:3000
 ```
+
+Bootstrap is idempotent and never prompts with `--yes` (or without a TTY). It copies
+`.env.example` to `.env` only when `.env` is missing, starts `turso dev` detached only when
+nothing answers at `TURSO_DATABASE_URL` (log in `packages/db/turso-dev.log`, PID printed), then
+runs `pnpm db:push`. It refuses a `TURSO_DATABASE_URL` that isn't local, and needs the `turso`
+CLI on `PATH`. `pnpm bootstrap --dry-run` prints the steps; by hand they are
+`cp .env.example .env`, `pnpm -F db db` (its own shell, leave running), `pnpm db:push`.
 
 - `.env` is **required**, not optional: `apps/web`'s `dev` and `build` both run through
   `dotenv -e ../../.env --`, so a clone without it fails outright.

@@ -1,0 +1,38 @@
+.ds-clementine {
+  & .cl-balance {
+    display: inline-flex;
+    flex-shrink: 0;
+    gap: 8px;
+    align-items: center;
+    height: var(--control-sm);
+    padding: 0 12px 0 12px;
+    color: var(--warn-text);
+    font: 500 var(--text-sm) / 1 var(--font-sans);
+    white-space: nowrap;
+    background: var(--warn-tint);
+    border: 0;
+    border-radius: var(--radius-control);
+    cursor: pointer;
+    transition:
+      box-shadow var(--dur-base) var(--ease-out),
+      scale var(--dur-instant) var(--ease-out);
+
+    &:active:not(:disabled) {
+      scale: var(--scale-press);
+    }
+
+    &[data-low]:hover {
+      box-shadow: inset 0 0 0 1px var(--warn);
+    }
+
+    &:disabled {
+      color: var(--fg-disabled);
+      background: var(--surface-2);
+      box-shadow: none;
+      cursor: not-allowed;
+    }
+  }
+  & .cl-balance__left {
+    font-weight: 400;
+  }
+}

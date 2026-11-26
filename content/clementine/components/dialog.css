@@ -1,0 +1,164 @@
+.ds-clementine {
+  & .cl-dialog {
+    width: min(var(--overlay), calc(100% - 32px));
+    max-width: none;
+    max-height: calc(100dvh - 48px);
+    margin: auto;
+    padding: 0;
+    overflow: visible;
+    color: var(--fg);
+    background: transparent;
+    border: 0;
+    opacity: 0;
+    scale: var(--scale-enter);
+    transition:
+      opacity var(--dur-fast) var(--ease-in),
+      scale var(--dur-fast) var(--ease-in),
+      translate var(--dur-fast) var(--ease-in),
+      overlay var(--dur-fast) allow-discrete,
+      display var(--dur-fast) allow-discrete;
+
+    &[data-size="sm"] {
+      width: min(var(--overlay-sm), calc(100% - 32px));
+    }
+
+    &[open] {
+      opacity: 1;
+      scale: 1;
+      transition:
+        opacity var(--dur-slow) var(--ease-out),
+        scale var(--dur-slow) var(--ease-out),
+        translate var(--dur-slow) var(--ease-out),
+        overlay var(--dur-slow) allow-discrete,
+        display var(--dur-slow) allow-discrete;
+    }
+
+    &::backdrop {
+      background: var(--scrim);
+      opacity: 0;
+      transition:
+        opacity var(--dur-fast) var(--ease-in),
+        overlay var(--dur-fast) allow-discrete,
+        display var(--dur-fast) allow-discrete;
+    }
+
+    &[open]::backdrop {
+      opacity: 1;
+    }
+  }
+  & .cl-dialog__panel {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    max-height: inherit;
+    padding: 24px;
+    overflow: auto;
+    background: var(--raised);
+    border-radius: var(--radius-sheet);
+    box-shadow: var(--shadow-overlay);
+  }
+  & .cl-dialog__head {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+    justify-content: space-between;
+  }
+  & .cl-dialog__title {
+    margin: 0;
+    font-size: var(--text-xl);
+    font-weight: 600;
+    line-height: var(--leading-tight);
+    letter-spacing: var(--tracking-tight);
+  }
+  & .cl-dialog__desc {
+    margin: -8px 0 0;
+    color: var(--fg-2);
+    font-size: var(--text-sm);
+    line-height: var(--leading-normal);
+  }
+  & .cl-dialog__body {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+  & .cl-dialog__foot {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    justify-content: flex-end;
+    padding-top: 4px;
+  }
+  & .cl-dialog__grip {
+    display: none;
+  }
+  & .cl-dialog[data-kind="sheet"] {
+    width: min(var(--sheet), 100%);
+    height: 100dvh;
+    max-height: 100dvh;
+    margin: 0 0 0 auto;
+    scale: 1;
+    translate: 100% 0;
+
+    &[open] {
+      translate: 0 0;
+    }
+
+    & .cl-dialog__panel {
+      height: 100%;
+      border-radius: var(--radius-sheet) 0 0 var(--radius-sheet);
+    }
+  }
+}
+
+.ds-clementine {
+  @media (width < 640px) {
+    & .cl-dialog[data-kind="sheet"] {
+      inset: auto 0 0;
+      width: 100%;
+      height: fit-content;
+      max-height: 92dvh;
+      margin: 0;
+      translate: 0 100%;
+
+      & .cl-dialog__panel {
+        height: auto;
+        max-height: 92dvh;
+        padding-top: 12px;
+        border-radius: var(--radius-sheet) var(--radius-sheet) 0 0;
+      }
+
+      & .cl-dialog__grip {
+        display: block;
+        align-self: center;
+        width: 36px;
+        height: 4px;
+        background: var(--line-strong);
+        border-radius: var(--radius-pill);
+      }
+    }
+  }
+}
+
+@starting-style {
+  .ds-clementine .cl-dialog[open] {
+    opacity: 0;
+    scale: var(--scale-enter);
+  }
+
+  .ds-clementine .cl-dialog[data-kind="sheet"][open] {
+    scale: 1;
+    translate: 100% 0;
+  }
+
+  .ds-clementine .cl-dialog[open]::backdrop {
+    opacity: 0;
+  }
+}
+
+@media (width < 640px) {
+  @starting-style {
+    .ds-clementine .cl-dialog[data-kind="sheet"][open] {
+      translate: 0 100%;
+    }
+  }
+}

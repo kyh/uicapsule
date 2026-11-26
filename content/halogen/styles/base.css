@@ -1,0 +1,419 @@
+/*
+ * Halogen recipes. Every selector is scoped to .ds-halogen.
+ * Type roles, rules, frames, controls, marks and motion live here so the
+ * components only name a recipe and never a raw size or colour.
+ */
+
+.ds-halogen {
+  min-height: 100dvh;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  font-variant-ligatures: none;
+}
+
+.ds-halogen *,
+.ds-halogen *::before,
+.ds-halogen *::after {
+  border-radius: 0;
+  box-shadow: none;
+}
+.ds-halogen input,
+.ds-halogen input::before,
+.ds-halogen input::after {
+  border-radius: 0;
+}
+.ds-halogen input:is([type="radio"], [type="checkbox"]) {
+  width: 1px;
+  height: 1px;
+  margin: 0;
+  appearance: none;
+}
+.ds-halogen :where(h1, h2, h3, h4, h5, h6, p, figure, dl, dd, pre, blockquote) {
+  margin: 0;
+}
+.ds-halogen :where(fieldset) {
+  min-inline-size: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+.ds-halogen :where(ol, ul) {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.ds-halogen :focus-visible {
+  outline: var(--hx-focus-width) solid var(--hx-focus);
+  outline-offset: 2px;
+}
+
+.ds-halogen ::selection {
+  background: var(--hx-wash-strong);
+  color: var(--hx-ink-1);
+}
+
+.ds-halogen .hx-sr {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+/* Type roles */
+.ds-halogen .hx-display {
+  font: 400 60px/1 var(--hx-sans);
+  letter-spacing: -0.045em;
+}
+.ds-halogen .hx-title {
+  font: 400 30px/1.1 var(--hx-sans);
+  letter-spacing: -0.035em;
+}
+.ds-halogen .hx-heading {
+  font: 400 22px/1.2 var(--hx-sans);
+  letter-spacing: -0.025em;
+}
+.ds-halogen .hx-heading-sm {
+  font: 400 17px/1.3 var(--hx-sans);
+  letter-spacing: -0.02em;
+}
+.ds-halogen .hx-figure {
+  font: 400 40px/1 var(--hx-sans);
+  letter-spacing: -0.035em;
+}
+.ds-halogen .hx-body {
+  font: 400 15px/24px var(--hx-sans);
+}
+.ds-halogen .hx-body-sm {
+  font: 400 14px/20px var(--hx-sans);
+}
+.ds-halogen .hx-caption {
+  font: 400 13px/18px var(--hx-sans);
+}
+.ds-halogen .hx-label-lg,
+.ds-halogen .hx-label,
+.ds-halogen .hx-label-sm,
+.ds-halogen .hx-micro {
+  font-family: var(--hx-mono);
+  font-weight: 400;
+  text-transform: uppercase;
+}
+.ds-halogen .hx-label-lg {
+  font-size: 14px;
+  line-height: 20px;
+  letter-spacing: 0.04em;
+}
+.ds-halogen .hx-label {
+  font-size: 13px;
+  line-height: 16px;
+  letter-spacing: 0.05em;
+}
+.ds-halogen .hx-label-sm {
+  font-size: 12px;
+  line-height: 16px;
+  letter-spacing: 0.06em;
+}
+.ds-halogen .hx-micro {
+  font-size: 11px;
+  line-height: 14px;
+  letter-spacing: 0.07em;
+}
+.ds-halogen .hx-code {
+  font: 400 13px/20px var(--hx-mono);
+}
+.ds-halogen .hx-code-sm {
+  font: 400 12px/16px var(--hx-mono);
+}
+.ds-halogen code,
+.ds-halogen .hx-inline-mono {
+  font-family: var(--hx-mono);
+  font-size: var(--hx-mono-in-sans);
+}
+
+.ds-halogen .hx-ink-1 {
+  color: var(--hx-ink-1);
+}
+.ds-halogen .hx-ink-2 {
+  color: var(--hx-ink-2);
+}
+.ds-halogen .hx-ink-3 {
+  color: var(--hx-ink-3);
+}
+.ds-halogen .hx-lamp-text {
+  color: var(--hx-lamp-text);
+}
+.ds-halogen .hx-ok-text {
+  color: var(--hx-ok-text);
+}
+.ds-halogen .hx-warn-text {
+  color: var(--hx-warn-text);
+}
+.ds-halogen .hx-fail-text {
+  color: var(--hx-fail-text);
+}
+.ds-halogen .hx-measure {
+  max-width: 66ch;
+}
+.ds-halogen .hx-truncate {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.ds-halogen .hx-nowrap {
+  white-space: nowrap;
+}
+
+/* Layout helpers on the 4px grid */
+.ds-halogen .hx-row {
+  display: flex;
+  align-items: center;
+  gap: var(--hx-2);
+}
+.ds-halogen .hx-row-wrap {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--hx-2);
+}
+.ds-halogen .hx-stack {
+  display: grid;
+  align-content: start;
+  gap: var(--hx-3);
+}
+.ds-halogen .hx-stack-4 {
+  display: grid;
+  align-content: start;
+  gap: var(--hx-4);
+}
+.ds-halogen .hx-stack-6 {
+  display: grid;
+  align-content: start;
+  gap: var(--hx-6);
+}
+.ds-halogen
+  :is(.hx-stack, .hx-stack-4, .hx-stack-6, .hx-section, .hx-group, .hx-hero, .hx-screens)
+  > * {
+  min-width: 0;
+}
+
+.ds-halogen .hx-grid {
+  display: grid;
+}
+.ds-halogen .hx-fill {
+  width: 100%;
+}
+.ds-halogen .hx-gap-0 {
+  gap: 0;
+}
+.ds-halogen .hx-gap-half {
+  gap: var(--hx-half);
+}
+.ds-halogen .hx-gap-1 {
+  gap: var(--hx-1);
+}
+.ds-halogen .hx-gap-2 {
+  gap: var(--hx-2);
+}
+.ds-halogen .hx-gap-3 {
+  gap: var(--hx-3);
+}
+.ds-halogen .hx-gap-4 {
+  gap: var(--hx-4);
+}
+.ds-halogen .hx-gap-6 {
+  gap: var(--hx-6);
+}
+.ds-halogen .hx-pad-1 {
+  padding: var(--hx-1);
+}
+.ds-halogen .hx-pad-2 {
+  padding: var(--hx-2);
+}
+.ds-halogen .hx-pad-3 {
+  padding: var(--hx-3);
+}
+.ds-halogen .hx-panel {
+  background: var(--hx-panel);
+}
+.ds-halogen .hx-center {
+  justify-items: center;
+}
+.ds-halogen .hx-between {
+  justify-content: space-between;
+}
+.ds-halogen .hx-justify-end {
+  justify-content: flex-end;
+}
+.ds-halogen .hx-full-row {
+  flex-basis: 100%;
+}
+.ds-halogen .hx-grow {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+.ds-halogen .hx-end {
+  margin-inline-start: auto;
+}
+.ds-halogen .hx-dots {
+  background-image: radial-gradient(var(--hx-dot) 1px, transparent 1.2px);
+  background-size: 4px 4px;
+}
+
+/* Page shell */
+.ds-halogen {
+  --hx-sticky: var(--hx-head);
+}
+.ds-halogen .hx-shell {
+  max-width: 1240px;
+  margin: 0 auto;
+  padding: 0 var(--hx-8);
+}
+.ds-halogen .hx-topbar {
+  position: sticky;
+  top: 0;
+  z-index: var(--hx-z-raised);
+  border-bottom: var(--hx-line) solid var(--hx-rule);
+  background: var(--hx-page);
+}
+.ds-halogen .hx-topbar-inner {
+  display: flex;
+  align-items: center;
+  gap: var(--hx-4);
+  min-height: var(--hx-head);
+}
+.ds-halogen .hx-brand {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--hx-2);
+  color: var(--hx-ink-1);
+  text-decoration: none;
+}
+.ds-halogen .hx-hero {
+  display: grid;
+  gap: var(--hx-6);
+  padding: var(--hx-12) 0 var(--hx-10);
+}
+.ds-halogen .hx-hero-lead {
+  max-width: 60ch;
+  color: var(--hx-ink-2);
+}
+.ds-halogen .hx-section {
+  display: grid;
+  gap: var(--hx-8);
+  padding: var(--hx-12) 0;
+  border-top: var(--hx-line) solid var(--hx-rule);
+  scroll-margin-top: var(--hx-sticky);
+}
+.ds-halogen .hx-section-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: var(--hx-2) var(--hx-4);
+}
+.ds-halogen .hx-section-head > p {
+  flex-basis: 100%;
+  color: var(--hx-ink-2);
+}
+.ds-halogen .hx-group {
+  display: grid;
+  gap: var(--hx-4);
+  scroll-margin-top: var(--hx-sticky);
+}
+.ds-halogen .hx-group-head {
+  display: flex;
+  align-items: baseline;
+  gap: var(--hx-3);
+  padding-bottom: var(--hx-3);
+  border-bottom: var(--hx-line) solid var(--hx-rule);
+}
+
+/* Frame: a region's one edge, divided inside by rules */
+.ds-halogen .hx-frame {
+  min-width: 0;
+  border: var(--hx-line) solid var(--hx-rule);
+  background: var(--hx-page);
+}
+.ds-halogen .hx-frame[data-plain] {
+  border: 0;
+}
+.ds-halogen .hx-head {
+  display: flex;
+  align-items: center;
+  gap: var(--hx-3);
+  min-height: var(--hx-head);
+  padding: 0 var(--hx-inset);
+  border-bottom: var(--hx-line) solid var(--hx-rule);
+  background: var(--hx-panel);
+  flex-wrap: wrap;
+  row-gap: var(--hx-1);
+  padding-block: var(--hx-2);
+}
+.ds-halogen .hx-head-title {
+  min-width: 0;
+  overflow: hidden;
+  color: var(--hx-ink-1);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.ds-halogen .hx-head-meta {
+  color: var(--hx-ink-3);
+  white-space: nowrap;
+}
+.ds-halogen .hx-head-actions {
+  display: flex;
+  align-items: center;
+  gap: var(--hx-1);
+  margin-inline-start: auto;
+  margin-inline-end: calc(var(--hx-2) * -1);
+}
+.ds-halogen .hx-body-pad {
+  display: grid;
+  align-content: start;
+  gap: var(--hx-3);
+  padding: var(--hx-inset);
+}
+.ds-halogen .hx-foot {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--hx-2);
+  padding: var(--hx-inset);
+  border-top: var(--hx-line) solid var(--hx-rule);
+}
+.ds-halogen .hx-rule-row {
+  border-bottom: var(--hx-line) solid var(--hx-rule);
+}
+.ds-halogen .hx-rule-top {
+  border-top: var(--hx-line) solid var(--hx-rule);
+}
+.ds-halogen .hx-rule-faint {
+  border-bottom: var(--hx-line) solid var(--hx-rule-faint);
+}
+.ds-halogen .hx-split {
+  display: grid;
+  grid-template-columns: repeat(var(--cols, 2), minmax(0, 1fr));
+}
+.ds-halogen .hx-split > * + * {
+  border-inline-start: var(--hx-line) solid var(--hx-rule);
+}
+@media (max-width: 860px) {
+  .ds-halogen .hx-split {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .ds-halogen .hx-split > * + * {
+    border-inline-start: 0;
+    border-top: var(--hx-line) solid var(--hx-rule);
+  }
+}
+.ds-halogen .hx-hero-title {
+  min-height: 60px;
+}
+.ds-halogen .hx-footer {
+  min-height: var(--hx-12);
+}
+.ds-halogen .hx-shrink {
+  min-width: 0;
+}
