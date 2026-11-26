@@ -29,13 +29,15 @@ const withUsername = async (publisher: Publisher, username: string | undefined) 
     return publisher;
   }
 
-  if (!(await claimUsername(publisher.id, username))) {
+  const claimed = await claimUsername(publisher.id, username);
+
+  if (!claimed) {
     throw new ORPCError("CONFLICT", {
       message: `The username ${username} is taken. Pick another.`,
     });
   }
 
-  return { ...publisher, username };
+  return { ...publisher, username: claimed };
 };
 
 const previewUrl = (handle: string, slug: string) =>

@@ -5,6 +5,7 @@ import { user } from "@repo/db/drizzle-schema-auth";
 import { ugcComponent } from "@repo/db/drizzle-schema-ugc";
 import { list } from "@vercel/blob";
 import { and, desc, eq, isNull } from "drizzle-orm";
+import { z } from "zod";
 
 /** The paths, relative to the build, of every file already uploaded for one build. */
 export const uploadedFiles = async (prefix: string, token: string) => {
@@ -96,26 +97,44 @@ export const findPublisher = async (userId: string) => {
   return row;
 };
 
+const uniqueViolation = z.object({
+  cause: z.object({ extendedCode: z.literal("SQLITE_CONSTRAINT_UNIQUE") }),
+});
+
+const setUsernameOnce = async (userId: string, username: string) => {
+  try {
+    return await db
+      .update(user)
+      .set({ username })
+      .where(and(eq(user.id, userId), isNull(user.username)))
+      .returning({ username: user.username });
+  } catch (error) {
+    if (uniqueViolation.safeParse(error).success) {
+      return [];
+    }
+
+    throw error;
+  }
+};
+
 /**
- * Gives an account without a username this one. False when the account already has one or the
- * name is taken, since a username is set once and then names every URL the account publishes.
+ * Gives an account without a username this one, and returns the username the account ends up
+ * with: this one, or the one it already had, since a username is set once and then names every
+ * URL the account publishes. Undefined when another account holds the name. The unique column
+ * decides, so two claims racing for one name get one winner and one undefined.
  */
 export const claimUsername = async (userId: string, username: string) => {
-  const taken = await db
-    .select({ id: user.id })
-    .from(user)
-    .where(eq(user.username, username))
-    .limit(1);
+  const claimed = await setUsernameOnce(userId, username);
 
-  if (taken.length > 0) {
-    return false;
+  if (claimed.length > 0) {
+    return username;
   }
 
-  const updated = await db
-    .update(user)
-    .set({ username })
-    .where(and(eq(user.id, userId), isNull(user.username)))
-    .returning({ id: user.id });
+  const [account] = await db
+    .select({ username: user.username })
+    .from(user)
+    .where(eq(user.id, userId))
+    .limit(1);
 
-  return updated.length > 0;
+  return account?.username ?? undefined;
 };
