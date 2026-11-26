@@ -10,14 +10,15 @@
       "Bash(pnpm lint:*)",
       "Bash(pnpm format:*)",
       "Bash(pnpm build:*)",
-      "Bash(pnpm dev:web:*)",
       "Bash(pnpm -F db db)",
       "Bash(pnpm db:push)",
       "Bash(pnpm new:content:*)",
       "Bash(pnpm check:content:*)",
-      "Bash(agent-browser:*)"
+      "Bash(agent-browser:*)",
+      "Bash(pnpm bootstrap:*)",
+      "Bash(pnpm dev:*)"
     ],
-    "deny": ["Bash(pnpm db:push-remote:*)"]
+    "deny": ["Bash(pnpm db:push-remote:*)", "Bash(pnpm * db:push-remote:*)"]
   },
   "hooks": {
     "SessionStart": [
