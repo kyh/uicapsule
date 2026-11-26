@@ -372,6 +372,26 @@ export const controlEntries = (
     controlEntry(name, control, values[name]),
   );
 
+/** A run of entries sharing one `group`; `name` is null for controls declared without one. */
+export interface ControlGroup {
+  readonly entries: readonly ControlEntry[];
+  readonly name: string | null;
+}
+
+/**
+ * Entries split into runs of the same `group`, in declaration order. `previewControlsSchema`
+ * keeps each group contiguous, so every name heads exactly one run.
+ */
+export const groupEntries = (entries: readonly ControlEntry[]) =>
+  entries.reduce<ControlGroup[]>((groups, entry) => {
+    const name = entry.control.group ?? null;
+    const last = groups.at(-1);
+
+    return last?.name === name
+      ? [...groups.slice(0, -1), { entries: [...last.entries, entry], name }]
+      : [...groups, { entries: [entry], name }];
+  }, []);
+
 const holdsDefault = (entry: ControlEntry) =>
   entry.type === "color"
     ? fullHex(entry.value) === fullHex(entry.control.default)

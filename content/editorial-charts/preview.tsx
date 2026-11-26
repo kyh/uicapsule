@@ -7,6 +7,7 @@ import { PALETTES, SPRING } from "./lib/tokens";
 export const controls = {
   palette: {
     default: "ink",
+    group: "Style",
     label: "Palette",
     options: [
       { label: "Ink on paper", value: "ink" },
@@ -17,10 +18,26 @@ export const controls = {
     ],
     type: "select",
   },
-  quarter: { default: "Q1", label: "Quarter", options: ["Q1", "Q2", "Q3"], type: "select" },
-  autoCycle: { default: true, label: "Auto-cycle", type: "boolean" },
+  scale: {
+    default: 0.94,
+    group: "Style",
+    label: "Scale",
+    max: 1.1,
+    min: 0.5,
+    step: 0.01,
+    type: "number",
+  },
+  quarter: {
+    default: "Q1",
+    group: "Tour",
+    label: "Quarter",
+    options: ["Q1", "Q2", "Q3"],
+    type: "select",
+  },
+  autoCycle: { default: true, group: "Tour", label: "Auto-cycle", type: "boolean" },
   cycleSeconds: {
     default: 4.6,
+    group: "Tour",
     label: "Cycle (s)",
     max: 10,
     min: 2.5,
@@ -29,15 +46,25 @@ export const controls = {
   },
   revealMs: {
     default: 1500,
+    group: "Motion",
     label: "Ink-in (ms)",
     max: 4000,
     min: 300,
     step: 50,
     type: "number",
   },
-  twist: { default: 14, label: "Dial twist", max: 90, min: 0, step: 1, type: "number" },
+  twist: {
+    default: 14,
+    group: "Motion",
+    label: "Dial twist",
+    max: 90,
+    min: 0,
+    step: 1,
+    type: "number",
+  },
   stiffness: {
     default: 170,
+    group: "Motion",
     label: "Stiffness",
     max: 400,
     min: 60,
@@ -46,6 +73,7 @@ export const controls = {
   },
   damping: {
     default: 22,
+    group: "Motion",
     label: "Damping",
     max: 40,
     min: 8,
@@ -54,17 +82,18 @@ export const controls = {
   },
   title: {
     default: "The quarter, drawn in ink",
+    group: "Copy",
     label: "Title",
     placeholder: "Title",
     type: "text",
   },
   subtitle: {
     default: "four marks, one grammar, one spring",
+    group: "Copy",
     label: "Subtitle",
     placeholder: "Subtitle",
     type: "text",
   },
-  scale: { default: 0.94, label: "Scale", max: 1.1, min: 0.5, step: 0.01, type: "number" },
 } as const;
 
 interface PreviewProps {

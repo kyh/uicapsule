@@ -4,12 +4,43 @@ import { Dashboard } from "./dashboard";
 import { Sidebar } from "./sidebar";
 
 export const controls = {
-  defaultWidth: { default: 240, label: "Width", max: 400, min: 160, step: 4, type: "number" },
-  minWidth: { default: 100, label: "Min drag width", max: 240, min: 100, step: 4, type: "number" },
-  maxWidth: { default: 300, label: "Max drag width", max: 480, min: 240, step: 4, type: "number" },
-  workspaceName: { default: "Dataembed", label: "Workspace", placeholder: "Name", type: "text" },
+  defaultWidth: {
+    default: 240,
+    group: "Layout",
+    label: "Width",
+    max: 400,
+    min: 160,
+    step: 4,
+    type: "number",
+  },
+  minWidth: {
+    default: 100,
+    group: "Layout",
+    label: "Min drag width",
+    max: 240,
+    min: 100,
+    step: 4,
+    type: "number",
+  },
+  maxWidth: {
+    default: 300,
+    group: "Layout",
+    label: "Max drag width",
+    max: 480,
+    min: 240,
+    step: 4,
+    type: "number",
+  },
+  workspaceName: {
+    default: "Dataembed",
+    group: "Content",
+    label: "Workspace",
+    placeholder: "Name",
+    type: "text",
+  },
   activeItem: {
     default: "companies",
+    group: "Content",
     label: "Active item",
     options: [
       { label: "Notifications", value: "notifications" },
@@ -25,11 +56,16 @@ export const controls = {
     ],
     type: "select",
   },
-  background: { default: "#FBFBFB", label: "Background", type: "color" },
-  foreground: { default: "#232529", label: "Text", type: "color" },
-  searchBackground: { default: "#FFFFFF", label: "Search field", type: "color" },
-  activeBackground: { default: "#F4F5F6", label: "Active highlight", type: "color" },
-  accentColor: { default: "#266DF0", label: "Handle", type: "color" },
+  background: { default: "#FBFBFB", group: "Color", label: "Background", type: "color" },
+  foreground: { default: "#232529", group: "Color", label: "Text", type: "color" },
+  searchBackground: { default: "#FFFFFF", group: "Color", label: "Search field", type: "color" },
+  activeBackground: {
+    default: "#F4F5F6",
+    group: "Color",
+    label: "Active highlight",
+    type: "color",
+  },
+  accentColor: { default: "#266DF0", group: "Color", label: "Handle", type: "color" },
 } as const;
 
 interface PreviewProps {

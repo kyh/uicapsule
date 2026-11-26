@@ -47,22 +47,23 @@ const generateSamplePeople = (count: number) =>
   })) satisfies Person[];
 
 export const controls = {
-  rows: { default: 30, label: "Rows", max: 200, min: 1, step: 1, type: "number" },
+  rows: { default: 30, group: "Table", label: "Rows", max: 200, min: 1, step: 1, type: "number" },
+  rowNumbers: { default: true, group: "Table", label: "Row numbers", type: "boolean" },
+  rowActions: { default: true, group: "Table", label: "Row actions", type: "boolean" },
+  statusBar: { default: true, group: "Table", label: "Status bar", type: "boolean" },
   enrichDelay: {
     default: 900,
+    group: "Enrich",
     label: "Enrich delay (ms)",
     max: 3000,
     min: 100,
     step: 50,
     type: "number",
   },
-  placeholder: { default: "Generating...", label: "Placeholder", type: "text" },
-  enrichLabel: { default: "Enrich", label: "Enrich label", type: "text" },
-  selectionColor: { default: "#3b82f6", label: "Selection", type: "color" },
-  accentColor: { default: "#f66b2c", label: "Resize guide", type: "color" },
-  rowNumbers: { default: true, label: "Row numbers", type: "boolean" },
-  rowActions: { default: true, label: "Row actions", type: "boolean" },
-  statusBar: { default: true, label: "Status bar", type: "boolean" },
+  placeholder: { default: "Generating...", group: "Enrich", label: "Placeholder", type: "text" },
+  enrichLabel: { default: "Enrich", group: "Enrich", label: "Enrich label", type: "text" },
+  selectionColor: { default: "#3b82f6", group: "Color", label: "Selection", type: "color" },
+  accentColor: { default: "#f66b2c", group: "Color", label: "Resize guide", type: "color" },
 } as const;
 
 interface PreviewProps {

@@ -1,8 +1,13 @@
 "use client";
 
 import { useId, useState } from "react";
-import { RotateCcwIcon } from "lucide-react";
+import { ChevronDownIcon, RotateCcwIcon } from "lucide-react";
 import { Button } from "@repo/ui/components/button";
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "@repo/ui/components/collapsible";
 import {
   Select,
   SelectContent,
@@ -18,12 +23,13 @@ import {
   controlEntries,
   fitsSegmented,
   fullHex,
+  groupEntries,
   parseHexInput,
   selectOptions,
 } from "./control-format";
-import type { ControlEntry } from "./control-format";
+import type { ControlEntry, ControlGroup } from "./control-format";
 import { PANEL_BOUNDS } from "./panel-layout";
-import { FIELD_ROW, ROW_INPUT, ROW_LABEL, ROW_SURFACE } from "./control-row";
+import { FIELD_ROW, ROW_INPUT, ROW_LABEL, ROW_SURFACE, TRAVEL_EASE } from "./control-row";
 import { ScrubSlider } from "./scrub-slider";
 import { SegmentedControl } from "./segmented-control";
 
@@ -237,6 +243,67 @@ const ControlField = ({
   }
 };
 
+const ControlRows = ({
+  entries,
+  onChange,
+}: {
+  entries: readonly ControlEntry[];
+  onChange: (name: string, value: ControlValue) => void;
+}) =>
+  entries.map((entry) => (
+    <ControlField
+      key={entry.name}
+      entry={entry}
+      onChange={(value) => {
+        onChange(entry.name, value);
+      }}
+    />
+  ));
+
+const NamedGroup = ({
+  group: { entries, name },
+  onChange,
+}: {
+  group: ControlGroup & { readonly name: string };
+  onChange: (name: string, value: ControlValue) => void;
+}) => (
+  <Collapsible defaultOpen className="flex flex-col">
+    <CollapsibleTrigger className="group/trigger text-foreground/50 hover:text-foreground/80 focus-visible:text-foreground focus-visible:ring-ring/50 -mx-1 flex h-8 items-center justify-between rounded-sm px-1 text-[12px] font-medium transition-colors duration-150 outline-none focus-visible:ring-2">
+      {name}
+      <ChevronDownIcon
+        aria-hidden
+        className={cn(
+          "size-3.5 -rotate-90 transition-transform duration-300 group-data-panel-open/trigger:rotate-0",
+          TRAVEL_EASE,
+        )}
+      />
+    </CollapsibleTrigger>
+    <CollapsibleContent
+      className={cn(
+        "h-(--collapsible-panel-height) overflow-hidden transition-[height] duration-300 data-ending-style:h-0 data-starting-style:h-0",
+        TRAVEL_EASE,
+      )}
+    >
+      <div className="flex flex-col gap-1.5 pb-2">
+        <ControlRows entries={entries} onChange={onChange} />
+      </div>
+    </CollapsibleContent>
+  </Collapsible>
+);
+
+const ControlGroupSection = ({
+  group,
+  onChange,
+}: {
+  group: ControlGroup;
+  onChange: (name: string, value: ControlValue) => void;
+}) =>
+  group.name === null ? (
+    <ControlRows entries={group.entries} onChange={onChange} />
+  ) : (
+    <NamedGroup group={{ ...group, name: group.name }} onChange={onChange} />
+  );
+
 interface PropControlsProps {
   controls: PreviewControls;
   values: Readonly<Record<string, ControlValue>>;
@@ -246,20 +313,15 @@ interface PropControlsProps {
 
 /**
  * The editable list for a preview's `controls`: one 36px row per control, in declaration order,
+ * under a collapsible header per `group` when the controls declare groups,
  * fully controlled by `values` (a missing or mistyped value shows the control's default).
  * Reset is disabled while every value is already its default, yet stays focusable, so pressing it
  * from the keyboard keeps focus in the panel.
  */
 export const PropControls = ({ controls, values, onChange, onReset }: PropControlsProps) => (
   <div className="flex flex-col gap-1.5 px-4 pb-4">
-    {controlEntries(controls, values).map((entry) => (
-      <ControlField
-        key={entry.name}
-        entry={entry}
-        onChange={(value) => {
-          onChange(entry.name, value);
-        }}
-      />
+    {groupEntries(controlEntries(controls, values)).map((group) => (
+      <ControlGroupSection key={group.name ?? ""} group={group} onChange={onChange} />
     ))}
     <Button
       variant="ghost"

@@ -26,6 +26,7 @@ const widestCardWithoutOverlap = (radius: number, bend: number, count: number) =
 export const controls = {
   cardCount: {
     default: images.length,
+    group: "Layout",
     label: "Cards",
     max: images.length,
     min: 5,
@@ -34,6 +35,7 @@ export const controls = {
   },
   radius: {
     default: DEFAULT_RING_RADIUS,
+    group: "Layout",
     label: "Ring radius",
     max: 7,
     min: 3,
@@ -42,6 +44,7 @@ export const controls = {
   },
   imageWidth: {
     default: 3,
+    group: "Layout",
     label: "Card width",
     max: widestCardWithoutOverlap(DEFAULT_RING_RADIUS, DEFAULT_BEND, images.length),
     min: 1.5,
@@ -50,6 +53,7 @@ export const controls = {
   },
   cornerRadius: {
     default: 0.15,
+    group: "Layout",
     label: "Corner radius",
     max: 0.5,
     min: 0,
@@ -58,14 +62,36 @@ export const controls = {
   },
   bendAmount: {
     default: DEFAULT_BEND,
+    group: "Layout",
     label: "Bend",
     max: 0.5,
     min: -0.5,
     step: 0.01,
     type: "number",
   },
+  friction: {
+    default: 0.95,
+    group: "Motion",
+    label: "Friction",
+    max: 0.97,
+    min: 0.9,
+    step: 0.005,
+    type: "number",
+  },
+  enableSnapping: { default: true, group: "Motion", label: "Snap to card", type: "boolean" },
+  autorotate: { default: true, group: "Motion", label: "Auto-rotate", type: "boolean" },
+  autorotateSpeed: {
+    default: 0.02,
+    group: "Motion",
+    label: "Auto-rotate speed",
+    max: 0.1,
+    min: 0.005,
+    step: 0.005,
+    type: "number",
+  },
   adjacentOpacity: {
     default: 1,
+    group: "Style",
     label: "Side card opacity",
     max: 1,
     min: 0,
@@ -74,31 +100,14 @@ export const controls = {
   },
   farOpacity: {
     default: 1,
+    group: "Style",
     label: "Far card opacity",
     max: 1,
     min: 0,
     step: 0.05,
     type: "number",
   },
-  friction: {
-    default: 0.95,
-    label: "Friction",
-    max: 0.97,
-    min: 0.9,
-    step: 0.005,
-    type: "number",
-  },
-  enableSnapping: { default: true, label: "Snap to card", type: "boolean" },
-  autorotate: { default: true, label: "Auto-rotate", type: "boolean" },
-  autorotateSpeed: {
-    default: 0.02,
-    label: "Auto-rotate speed",
-    max: 0.1,
-    min: 0.005,
-    step: 0.005,
-    type: "number",
-  },
-  backgroundColor: { default: "#6F6D66", label: "Background", type: "color" },
+  backgroundColor: { default: "#6F6D66", group: "Style", label: "Background", type: "color" },
 } as const;
 
 interface PreviewProps {

@@ -5,6 +5,7 @@ import { Tooltip, TooltipContent, TooltipTrigger } from "./tooltip";
 export const controls = {
   type: {
     default: "block",
+    group: "Motion",
     label: "Animation",
     options: [
       { label: "Pixel grid", value: "block" },
@@ -12,10 +13,35 @@ export const controls = {
     ],
     type: "select",
   },
-  placement: { default: "top", options: ["top", "right", "bottom", "left"], type: "select" },
-  width: { default: 200, max: 400, min: 80, step: 10, type: "number" },
+  cols: {
+    default: 11,
+    group: "Motion",
+    label: "Columns",
+    max: 24,
+    min: 2,
+    step: 1,
+    type: "number",
+  },
+  rows: { default: 8, group: "Motion", max: 16, min: 2, step: 1, type: "number" },
+  stepMs: {
+    default: 70,
+    group: "Motion",
+    label: "Block fade (ms)",
+    max: 200,
+    min: 20,
+    step: 5,
+    type: "number",
+  },
+  placement: {
+    default: "top",
+    group: "Tooltip",
+    options: ["top", "right", "bottom", "left"],
+    type: "select",
+  },
+  width: { default: 200, group: "Tooltip", max: 400, min: 80, step: 10, type: "number" },
   aspectRatio: {
     default: "16/9",
+    group: "Tooltip",
     options: [
       { label: "16:9", value: "16/9" },
       { label: "4:3", value: "4/3" },
@@ -24,14 +50,17 @@ export const controls = {
     ],
     type: "select",
   },
-  cols: { default: 11, label: "Columns", max: 24, min: 2, step: 1, type: "number" },
-  rows: { default: 8, max: 16, min: 2, step: 1, type: "number" },
-  stepMs: { default: 70, label: "Block fade (ms)", max: 200, min: 20, step: 5, type: "number" },
-  panelColor: { default: "#020617", label: "Panel", type: "color" },
-  guides: { default: true, label: "Guide lines", type: "boolean" },
-  guideColor: { default: "#334155", label: "Guide color", type: "color" },
-  label: { default: "Hover", label: "Trigger label", placeholder: "Hover", type: "text" },
-  background: { default: "#1d293d", label: "Backdrop", type: "color" },
+  label: {
+    default: "Hover",
+    group: "Tooltip",
+    label: "Trigger label",
+    placeholder: "Hover",
+    type: "text",
+  },
+  panelColor: { default: "#020617", group: "Color", label: "Panel", type: "color" },
+  guides: { default: true, group: "Color", label: "Guide lines", type: "boolean" },
+  guideColor: { default: "#334155", group: "Color", label: "Guide color", type: "color" },
+  background: { default: "#1d293d", group: "Color", label: "Backdrop", type: "color" },
 } as const;
 
 interface PreviewProps {

@@ -5,6 +5,7 @@ import { BackgroundPixelStars, STAR_PALETTES } from "./background-pixel-stars";
 export const controls = {
   palette: {
     default: "retro",
+    group: "Stars",
     label: "Palette",
     options: [
       { label: "Retro", value: "retro" },
@@ -14,10 +15,27 @@ export const controls = {
     ],
     type: "select",
   },
-  density: { default: 4, label: "Density", max: 30, min: 0.5, step: 0.5, type: "number" },
-  pixelSize: { default: 5, label: "Pixel size", max: 12, min: 1, step: 1, type: "number" },
+  density: {
+    default: 4,
+    group: "Stars",
+    label: "Density",
+    max: 30,
+    min: 0.5,
+    step: 0.5,
+    type: "number",
+  },
+  pixelSize: {
+    default: 5,
+    group: "Stars",
+    label: "Pixel size",
+    max: 12,
+    min: 1,
+    step: 1,
+    type: "number",
+  },
   twinkleProbability: {
     default: 0.7,
+    group: "Twinkle",
     label: "Twinkle chance",
     max: 1,
     min: 0,
@@ -26,6 +44,7 @@ export const controls = {
   },
   minTwinklePeriod: {
     default: 2,
+    group: "Twinkle",
     label: "Twinkle min (s)",
     max: 8,
     min: 0.5,
@@ -34,6 +53,7 @@ export const controls = {
   },
   maxTwinklePeriod: {
     default: 4,
+    group: "Twinkle",
     label: "Twinkle max (s)",
     max: 8,
     min: 0.5,
@@ -42,6 +62,7 @@ export const controls = {
   },
   reshuffleInterval: {
     default: 5,
+    group: "Twinkle",
     label: "Reshuffle every (s)",
     max: 20,
     min: 1,
@@ -50,15 +71,25 @@ export const controls = {
   },
   reshuffleFraction: {
     default: 0.15,
+    group: "Twinkle",
     label: "Reshuffle amount",
     max: 1,
     min: 0.05,
     step: 0.05,
     type: "number",
   },
-  fps: { default: 16, label: "Frame rate", max: 60, min: 4, step: 1, type: "number" },
+  fps: {
+    default: 16,
+    group: "Twinkle",
+    label: "Frame rate",
+    max: 60,
+    min: 4,
+    step: 1,
+    type: "number",
+  },
   shootingStarInterval: {
     default: 4,
+    group: "Meteors",
     label: "Meteor every (s)",
     max: 15,
     min: 0.5,
@@ -67,6 +98,7 @@ export const controls = {
   },
   shootingStarSpeed: {
     default: 8,
+    group: "Meteors",
     label: "Meteor speed",
     max: 30,
     min: 2,
@@ -75,16 +107,17 @@ export const controls = {
   },
   shootingStarPixelSize: {
     default: 2,
+    group: "Meteors",
     label: "Meteor pixel",
     max: 6,
     min: 1,
     step: 1,
     type: "number",
   },
-  shootingStarColor: { default: "#ffffff", label: "Meteor", type: "color" },
-  trailColor: { default: "#b4f2ff", label: "Trail", type: "color" },
-  background: { default: "#000000", label: "Background", type: "color" },
-  texture: { default: true, label: "Backdrop texture", type: "boolean" },
+  shootingStarColor: { default: "#ffffff", group: "Meteors", label: "Meteor", type: "color" },
+  trailColor: { default: "#b4f2ff", group: "Meteors", label: "Trail", type: "color" },
+  background: { default: "#000000", group: "Backdrop", label: "Background", type: "color" },
+  texture: { default: true, group: "Backdrop", label: "Backdrop texture", type: "boolean" },
 } as const;
 
 interface PreviewProps {

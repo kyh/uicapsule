@@ -136,6 +136,27 @@ test("the schema rejects descriptors the panel could not render honestly", () =>
   );
 });
 
+test("groups are all-or-none and declared as contiguous runs", () => {
+  const hue = { default: 0, group: "Color", max: 360, min: 0, type: "number" } as const;
+  const tint = { default: "#fff", group: "Color", type: "color" } as const;
+  const loop = { default: true, group: "Motion", type: "boolean" } as const;
+
+  assert.equal(previewControlsSchema.safeParse({ hue, loop, tint }).success, false);
+  assert.equal(
+    previewControlsSchema.safeParse({ hue, plain: { default: false, type: "boolean" } }).success,
+    false,
+  );
+  assert.equal(
+    previewControlsSchema.safeParse({ hue, tint: { ...tint, group: "" } }).success,
+    false,
+  );
+  assert.equal(
+    previewControlsSchema.safeParse({ hue, loop, tint: { ...tint, group: "Motion" } }).success,
+    true,
+  );
+  assert.equal(previewControlsSchema.safeParse({ hue, tint, loop }).success, true);
+});
+
 test("defaults seed one value per control", () => {
   assert.deepEqual(defaultControlValues(orbControls), {
     background: "#0a0a0a",

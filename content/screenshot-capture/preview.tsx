@@ -7,18 +7,18 @@ import { ScreenshotCapture } from "./screenshot-capture";
 import type { ThumbnailCorner } from "./screenshot-capture";
 
 export const controls = {
-  linger: { default: 4.5, label: "Linger (s)", max: 10, min: 1, step: 0.5, type: "number" },
   thumbScale: {
     default: 0.2,
+    group: "Thumbnail",
     label: "Thumbnail size",
     max: 0.23,
     min: 0.12,
     step: 0.01,
     type: "number",
   },
-  bounce: { default: 0.22, label: "Bounce", max: 0.6, min: 0, step: 0.02, type: "number" },
   corner: {
     default: "left",
+    group: "Thumbnail",
     label: "Corner",
     options: [
       { label: "Bottom left", value: "left" },
@@ -26,24 +26,29 @@ export const controls = {
     ],
     type: "select",
   },
-  flash: { default: true, label: "Flash", type: "boolean" },
-  ringColor: { default: "#ffffff", label: "Border", type: "color" },
-  label: { default: "Screenshot", label: "Button", placeholder: "Screenshot", type: "text" },
-  hint: {
-    default: "Capture, then swipe the thumbnail away",
-    label: "Hint",
-    placeholder: "Hint text",
-    type: "text",
+  linger: {
+    default: 4.5,
+    group: "Motion",
+    label: "Linger (s)",
+    max: 10,
+    min: 1,
+    step: 0.5,
+    type: "number",
   },
-  eyebrow: { default: "Golden hour", label: "Eyebrow", placeholder: "Golden hour", type: "text" },
-  title: {
-    default: "Dolomites, Italy",
-    label: "Title",
-    placeholder: "Dolomites, Italy",
-    type: "text",
+  bounce: {
+    default: 0.22,
+    group: "Motion",
+    label: "Bounce",
+    max: 0.6,
+    min: 0,
+    step: 0.02,
+    type: "number",
   },
+  flash: { default: true, group: "Motion", label: "Flash", type: "boolean" },
+  ringColor: { default: "#ffffff", group: "Style", label: "Border", type: "color" },
   tone: {
     default: "espresso",
+    group: "Style",
     label: "Phone",
     options: [
       { label: "Espresso", value: "espresso" },
@@ -56,6 +61,34 @@ export const controls = {
       { label: "Terracotta", value: "terracotta" },
     ],
     type: "select",
+  },
+  eyebrow: {
+    default: "Golden hour",
+    group: "Copy",
+    label: "Eyebrow",
+    placeholder: "Golden hour",
+    type: "text",
+  },
+  title: {
+    default: "Dolomites, Italy",
+    group: "Copy",
+    label: "Title",
+    placeholder: "Dolomites, Italy",
+    type: "text",
+  },
+  label: {
+    default: "Screenshot",
+    group: "Copy",
+    label: "Button",
+    placeholder: "Screenshot",
+    type: "text",
+  },
+  hint: {
+    default: "Capture, then swipe the thumbnail away",
+    group: "Copy",
+    label: "Hint",
+    placeholder: "Hint text",
+    type: "text",
   },
 } as const;
 

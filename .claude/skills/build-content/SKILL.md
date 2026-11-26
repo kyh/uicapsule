@@ -115,6 +115,11 @@ synth, a transit map), not "another neutral SaaS kit".
   can't be control names; `pnpm build:previews` rejects an invalid export, which would
   otherwise throw in the frame.
 
+  More than eight controls? Give every one a `group` (`group: "Motion"`): 2–4 short names
+  (Layout, Color, Motion, Copy, Demo…), each with at least two controls, declared as contiguous
+  runs. The panel shows a collapsible header per group. Groups are all-or-none: one ungrouped
+  control among grouped ones, or a group split by another, fails the build.
+
 - `meta.json`: scaffold already filled `name`, `description`, `addedAt`; add `tags`,
   reusing the existing vocabulary. If the idea came from somewhere specific (a tweet,
   an app, a video), add `inspiredBy: [{ label, url }]` — provenance is part of the

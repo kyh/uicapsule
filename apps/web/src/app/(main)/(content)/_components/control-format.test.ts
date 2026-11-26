@@ -9,6 +9,7 @@ import {
   draggedNumber,
   fitsSegmented,
   formatNumber,
+  groupEntries,
   fullHex,
   handleCrowdsText,
   hashmarkRatios,
@@ -273,5 +274,34 @@ test("entries pair each control with a value of its own type, else its default",
       { label: "Enabled", name: "on", type: "boolean", value: false },
       { label: "Size", name: "size", type: "number", value: 7 },
     ],
+  );
+});
+
+test("entries split into one run per group, in declaration order", () => {
+  const controls = {
+    hue: { default: 0, group: "Color", max: 360, min: 0, type: "number" },
+    tint: { default: "#fff", group: "Color", type: "color" },
+    loop: { default: true, group: "Motion", type: "boolean" },
+    speed: { default: 1, group: "Motion", max: 4, min: 0, type: "number" },
+  } as const;
+
+  assert.deepEqual(
+    groupEntries(controlEntries(controls, {})).map(({ entries, name }) => ({
+      name,
+      names: entries.map((entry) => entry.name),
+    })),
+    [
+      { name: "Color", names: ["hue", "tint"] },
+      { name: "Motion", names: ["loop", "speed"] },
+    ],
+  );
+});
+
+test("ungrouped controls form a single unnamed run", () => {
+  const controls = { on: { default: false, type: "boolean" }, size: number(0, 10, 3) } as const;
+
+  assert.deepEqual(
+    groupEntries(controlEntries(controls, {})).map(({ entries, name }) => [name, entries.length]),
+    [[null, 2]],
   );
 });

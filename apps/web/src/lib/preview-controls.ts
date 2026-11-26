@@ -9,6 +9,7 @@ const RESERVED_PROP_NAMES = new Set([
 ]);
 
 const label = z.optional(z.string());
+const group = z.optional(z.string().check(z.minLength(1)));
 const hexColorSchema = z.string().check(z.regex(HEX_COLOR, "expected a #rgb or #rrggbb color"));
 
 const selectOptionSchema = z.union([
@@ -32,6 +33,7 @@ const optionValues = (options: readonly z.output<typeof selectOptionSchema>[]) =
 const numberControlSchema = z
   .strictObject({
     default: z.number(),
+    group,
     label,
     max: z.number(),
     min: z.number(),
@@ -47,6 +49,7 @@ const numberControlSchema = z
 const selectControlSchema = z
   .strictObject({
     default: z.string(),
+    group,
     label,
     options: z.readonly(z.array(selectOptionSchema).check(z.minLength(1))),
     type: z.literal("select"),
@@ -67,32 +70,57 @@ const selectControlSchema = z
 
 const previewControlSchema = z.discriminatedUnion("type", [
   numberControlSchema,
-  z.strictObject({ default: z.boolean(), label, type: z.literal("boolean") }),
+  z.strictObject({ default: z.boolean(), group, label, type: z.literal("boolean") }),
   selectControlSchema,
-  z.strictObject({ default: hexColorSchema, label, type: z.literal("color") }),
+  z.strictObject({ default: hexColorSchema, group, label, type: z.literal("color") }),
   z.strictObject({
     default: z.string(),
+    group,
     label,
     placeholder: z.optional(z.string()),
     type: z.literal("text"),
   }),
 ]);
 
+const groupsAllOrNone = (controls: readonly { readonly group?: string }[]) => {
+  const grouped = controls.filter((control) => control.group !== undefined).length;
+
+  return grouped === 0 || grouped === controls.length;
+};
+
+const groupsContiguous = (controls: readonly { readonly group?: string }[]) => {
+  const runs = controls
+    .map((control) => control.group)
+    .filter((name, index, names) => index === 0 || name !== names[index - 1]);
+
+  return new Set(runs).size === runs.length;
+};
+
 /**
  * Every control a preview's `controls` export may declare, keyed by the `Preview` prop it
  * feeds. `key` and `ref` are refused because React would swallow them, and every
  * `Object.prototype` name (`constructor`, `toString`, `__proto__`, …) because a plain props
- * object already answers to it.
+ * object already answers to it. Groups are all-or-none and contiguous, so the panel renders
+ * them in declaration order with one header each.
  */
 export const previewControlsSchema = z.readonly(
-  z.record(
-    z.string().check(
-      z.refine((name) => !RESERVED_PROP_NAMES.has(name), {
-        message: "key, ref and Object.prototype names cannot be control names",
+  z
+    .record(
+      z.string().check(
+        z.refine((name) => !RESERVED_PROP_NAMES.has(name), {
+          message: "key, ref and Object.prototype names cannot be control names",
+        }),
+      ),
+      previewControlSchema,
+    )
+    .check(
+      z.refine((controls) => groupsAllOrNone(Object.values(controls)), {
+        message: "either every control declares a group or none does",
+      }),
+      z.refine((controls) => groupsContiguous(Object.values(controls)), {
+        message: "each group must be declared as one contiguous run of controls",
       }),
     ),
-    previewControlSchema,
-  ),
 );
 
 /** One control descriptor: number, boolean, select, color or text. */

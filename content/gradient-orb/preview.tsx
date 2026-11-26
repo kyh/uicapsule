@@ -3,15 +3,47 @@
 import { GradientOrb } from "./gradient-orb";
 
 export const controls = {
-  baseColor: { default: "#3d5aff", label: "Base color", type: "color" },
-  swirlColorA: { default: "#9d00ff", label: "Swirl color 1", type: "color" },
-  swirlColorB: { default: "#ff5f1f", label: "Swirl color 2", type: "color" },
-  hue: { default: 0, label: "Hue shift", max: 360, min: 0, step: 1, type: "number" },
-  speed: { default: 1, label: "Flow speed", max: 3, min: 0, step: 0.05, type: "number" },
-  rotationSpeed: { default: 0.3, max: 2, min: 0, step: 0.05, type: "number" },
-  noiseScale: { default: 0.65, label: "Turbulence", max: 3, min: 0.1, step: 0.05, type: "number" },
-  innerRadius: { default: 0.1, label: "Core size", max: 0.8, min: 0, step: 0.01, type: "number" },
-  background: { default: "#0a0a0a", type: "color" },
+  baseColor: { default: "#3d5aff", group: "Color", label: "Base color", type: "color" },
+  swirlColorA: { default: "#9d00ff", group: "Color", label: "Swirl color 1", type: "color" },
+  swirlColorB: { default: "#ff5f1f", group: "Color", label: "Swirl color 2", type: "color" },
+  hue: {
+    default: 0,
+    group: "Color",
+    label: "Hue shift",
+    max: 360,
+    min: 0,
+    step: 1,
+    type: "number",
+  },
+  background: { default: "#0a0a0a", group: "Color", type: "color" },
+  speed: {
+    default: 1,
+    group: "Motion",
+    label: "Flow speed",
+    max: 3,
+    min: 0,
+    step: 0.05,
+    type: "number",
+  },
+  rotationSpeed: { default: 0.3, group: "Motion", max: 2, min: 0, step: 0.05, type: "number" },
+  noiseScale: {
+    default: 0.65,
+    group: "Shape",
+    label: "Turbulence",
+    max: 3,
+    min: 0.1,
+    step: 0.05,
+    type: "number",
+  },
+  innerRadius: {
+    default: 0.1,
+    group: "Shape",
+    label: "Core size",
+    max: 0.8,
+    min: 0,
+    step: 0.01,
+    type: "number",
+  },
 } as const;
 
 interface PreviewProps {

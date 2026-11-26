@@ -10,8 +10,20 @@ import { columnsConfig } from "./filters";
 
 export const controls = {
   accent: { default: "#f66b2c", label: "Accent", type: "color" },
-  chipRadius: { default: 16, label: "Chip radius", max: 16, min: 0, step: 1, type: "number" },
-  entityName: { default: "Person", label: "Entity name", placeholder: "Person", type: "text" },
+  chipRadius: {
+    default: 16,
+    label: "Chip radius",
+    max: 16,
+    min: 0,
+    step: 1,
+    type: "number",
+  },
+  entityName: {
+    default: "Person",
+    label: "Entity name",
+    placeholder: "Person",
+    type: "text",
+  },
   placeholder: {
     default: "Search or ask AI",
     label: "Placeholder",

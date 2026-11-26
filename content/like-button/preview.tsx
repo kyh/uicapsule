@@ -3,14 +3,9 @@
 import { LikeButton } from "./like-button";
 
 export const controls = {
-  count: { default: 0, label: "Count", max: 9999, min: 0, step: 1, type: "number" },
-  size: { default: 16, label: "Size", max: 48, min: 12, step: 1, type: "number" },
-  color: { default: "#fb2c36", label: "Heart", type: "color" },
-  idleColor: { default: "#99a1af", label: "Idle", type: "color" },
-  ringFrom: { default: "#e5214a", label: "Ring start", type: "color" },
-  ringTo: { default: "#cc8ef5", label: "Ring end", type: "color" },
   particles: {
     default: "confetti",
+    group: "Burst",
     label: "Particles",
     options: [
       { label: "Confetti", value: "confetti" },
@@ -18,9 +13,47 @@ export const controls = {
     ],
     type: "select",
   },
-  particleCount: { default: 14, label: "Particle count", max: 28, min: 4, step: 1, type: "number" },
-  burstRadius: { default: 32, label: "Burst", max: 64, min: 24, step: 1, type: "number" },
-  speed: { default: 1, label: "Speed", max: 2, min: 0.25, step: 0.05, type: "number" },
+  particleCount: {
+    default: 14,
+    group: "Burst",
+    label: "Particle count",
+    max: 28,
+    min: 4,
+    step: 1,
+    type: "number",
+  },
+  burstRadius: {
+    default: 32,
+    group: "Burst",
+    label: "Burst",
+    max: 64,
+    min: 24,
+    step: 1,
+    type: "number",
+  },
+  speed: {
+    default: 1,
+    group: "Burst",
+    label: "Speed",
+    max: 2,
+    min: 0.25,
+    step: 0.05,
+    type: "number",
+  },
+  color: { default: "#fb2c36", group: "Color", label: "Heart", type: "color" },
+  idleColor: { default: "#99a1af", group: "Color", label: "Idle", type: "color" },
+  ringFrom: { default: "#e5214a", group: "Color", label: "Ring start", type: "color" },
+  ringTo: { default: "#cc8ef5", group: "Color", label: "Ring end", type: "color" },
+  count: {
+    default: 0,
+    group: "Button",
+    label: "Count",
+    max: 9999,
+    min: 0,
+    step: 1,
+    type: "number",
+  },
+  size: { default: 16, group: "Button", label: "Size", max: 48, min: 12, step: 1, type: "number" },
 } as const;
 
 interface PreviewProps {

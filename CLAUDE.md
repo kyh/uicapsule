@@ -90,7 +90,9 @@ Content is filesystem-driven; the web app never depends on content packages by n
 - **Preview controls.** A `preview.tsx` may export `controls` beside its default `Preview`: an
   `as const` literal mapping prop name → descriptor (`number` with `min`/`max`/`step?`,
   `boolean`, `select` with `options` of strings or `{ value, label }`, `color` as hex, `text`
-  with `placeholder?`; every one has `default` and `label?`). `Preview` then receives one prop
+  with `placeholder?`; every one has `default`, `label?` and `group?`). A preview with more
+  than eight controls sorts them into a few named groups (the panel renders a collapsible header
+  per group); groups are all-or-none and each is declared as one contiguous run. `Preview` then receives one prop
   per key, typed by hand since content can't import `@repo/*` or the app. Each prop is optional
   and defaults to `controls.<key>.default` (`({ hue = controls.hue.default }: Partial<PreviewProps>)`),
   because `preview.tsx` ships in the registry item and zip where nothing injects values.

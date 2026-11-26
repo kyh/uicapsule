@@ -6,9 +6,18 @@ import NumberFlow from "@number-flow/react";
 import { RadialSlider } from "./radial-slider";
 
 export const controls = {
-  maxValue: { default: 100, label: "Ticks", max: 180, min: 12, step: 1, type: "number" },
+  maxValue: {
+    default: 100,
+    group: "Dial",
+    label: "Ticks",
+    max: 180,
+    min: 12,
+    step: 1,
+    type: "number",
+  },
   dragSensitivity: {
     default: 0.2,
+    group: "Dial",
     label: "Sensitivity",
     max: 1,
     min: 0.05,
@@ -17,18 +26,27 @@ export const controls = {
   },
   snapStiffness: {
     default: 300,
+    group: "Spring",
     label: "Snap stiffness",
     max: 800,
     min: 50,
     step: 10,
     type: "number",
   },
-  snapDamping: { default: 30, label: "Snap damping", max: 60, min: 5, step: 1, type: "number" },
-  tickColor: { default: "#e5e7eb", label: "Ticks color", type: "color" },
-  gradientFrom: { default: "#2b7fff", label: "Gradient start", type: "color" },
-  gradientTo: { default: "#f0b100", label: "Gradient end", type: "color" },
-  needleColor: { default: "#ffffff", label: "Needle", type: "color" },
-  background: { default: "#18181b", type: "color" },
+  snapDamping: {
+    default: 30,
+    group: "Spring",
+    label: "Snap damping",
+    max: 60,
+    min: 5,
+    step: 1,
+    type: "number",
+  },
+  tickColor: { default: "#e5e7eb", group: "Color", label: "Ticks color", type: "color" },
+  gradientFrom: { default: "#2b7fff", group: "Color", label: "Gradient start", type: "color" },
+  gradientTo: { default: "#f0b100", group: "Color", label: "Gradient end", type: "color" },
+  needleColor: { default: "#ffffff", group: "Color", label: "Needle", type: "color" },
+  background: { default: "#18181b", group: "Color", type: "color" },
 } as const;
 
 interface PreviewProps {
