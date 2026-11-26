@@ -28,7 +28,7 @@ test("password reset changes credentials, consumes its token, and revokes existi
       sendResetPassword: async ({ user, url, token }) => {
         delivery = { email: user.email, token, url };
 
-        return await Promise.resolve();
+        await Promise.resolve();
       },
     },
   });

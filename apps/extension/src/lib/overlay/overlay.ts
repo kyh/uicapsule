@@ -29,13 +29,14 @@ const PAGE_EVENTS = [
 
 const isFieldKey = (key: string): key is FieldKey => FIELD_KEYS.has(key);
 
-const nextFrame = async () =>
+const nextFrame = async () => {
   // oxlint-disable-next-line promise/avoid-new -- requestAnimationFrame has no promise form to await
   await new Promise<void>((resolve) => {
     requestAnimationFrame(() => {
       resolve();
     });
   });
+};
 
 const ask = async (request: WorkerRequest) => await browser.runtime.sendMessage(request);
 

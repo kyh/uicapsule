@@ -44,7 +44,9 @@ export const auth = betterAuth({
       process.env.RESEND_API_KEY !== "" &&
       process.env.AUTH_EMAIL_FROM !== undefined &&
       process.env.AUTH_EMAIL_FROM !== ""
-        ? async ({ user, url }) => await sendPasswordResetEmail(user.email, url)
+        ? async ({ user, url }) => {
+            await sendPasswordResetEmail(user.email, url);
+          }
         : undefined,
   },
   rateLimit: {

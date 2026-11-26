@@ -16,7 +16,9 @@ const validMeta = {
 
 const fixture = async (context: TestContext, files: [string, string][]) => {
   const directory = await mkdtemp(path.join(tmpdir(), "uicapsule-registry-"));
-  context.after(async () => await rm(directory, { force: true, recursive: true }));
+  context.after(async () => {
+    await rm(directory, { force: true, recursive: true });
+  });
 
   const defaults: [string, string][] = [
     ["meta.json", JSON.stringify(validMeta)],
@@ -24,11 +26,13 @@ const fixture = async (context: TestContext, files: [string, string][]) => {
     ["preview.tsx", "export default function Preview() { return null; }"],
   ];
 
-  for (const [relativePath, source] of [...defaults, ...files]) {
-    const target = path.join(directory, relativePath);
-    await mkdir(path.dirname(target), { recursive: true });
-    await writeFile(target, source);
-  }
+  await Promise.all(
+    [...new Map([...defaults, ...files])].map(async ([relativePath, source]) => {
+      const target = path.join(directory, relativePath);
+      await mkdir(path.dirname(target), { recursive: true });
+      await writeFile(target, source);
+    }),
+  );
 
   return directory;
 };

@@ -1,5 +1,6 @@
 #!/usr/bin/env tsx
 import { consola } from "consola";
+import { z } from "zod";
 
 const baseUrl = (process.argv[2] ?? "http://localhost:3000").replace(/\/$/u, "");
 
@@ -26,6 +27,28 @@ const fetchWith = async (path: string, accept?: string) => {
   });
 
   return { body: await response.text(), response };
+};
+
+const jsonLdNode = z.looseObject({
+  "@type": z.string().optional(),
+  contactPoint: z
+    .array(z.looseObject({ contactType: z.string().optional(), email: z.string().optional() }))
+    .optional(),
+});
+
+const jsonLdBlock = jsonLdNode.extend({ "@graph": z.array(jsonLdNode).optional() });
+
+const jsonLdNodesOf = (block: string) => {
+  const parsed = jsonLdBlock.parse(
+    JSON.parse(
+      block
+        .replaceAll(/^<script[^>]*>/giu, "")
+        .replaceAll(/<\/script>$/giu, "")
+        .replaceAll("\\u003c", "<"),
+    ),
+  );
+
+  return parsed["@graph"] ?? [parsed];
 };
 
 const visibleText = (html: string) =>
@@ -65,36 +88,24 @@ const checkHomePage = async () => {
 
   expect("home ships JSON-LD", jsonLdBlocks.length > 0, `${jsonLdBlocks.length} block(s)`);
 
-  const types = jsonLdBlocks.flatMap((block) => {
-    const json = block.replaceAll(/^<script[^>]*>/giu, "").replaceAll(/<\/script>$/giu, "");
-    const parsed = JSON.parse(json.replaceAll("\\u003c", "<"));
-    const graph = Array.isArray(parsed["@graph"]) ? parsed["@graph"] : [parsed];
-
-    return graph.map((node: { "@type"?: string }) => node["@type"]);
-  });
+  const nodes = jsonLdBlocks.flatMap(jsonLdNodesOf);
+  const types = nodes.map((node) => node["@type"]);
 
   for (const required of ["Organization", "WebSite", "SoftwareApplication", "CollectionPage"]) {
     expect(`JSON-LD includes ${required}`, types.includes(required), types.join(", "));
   }
 
-  const organizationBlock = jsonLdBlocks
-    .map((block) =>
-      JSON.parse(
-        block
-          .replaceAll(/^<script[^>]*>/giu, "")
-          .replaceAll(/<\/script>$/giu, "")
-          .replaceAll("\\u003c", "<"),
-      ),
-    )
-    .flatMap((parsed) => (Array.isArray(parsed["@graph"]) ? parsed["@graph"] : [parsed]))
-    .find((node: { "@type"?: string }) => node["@type"] === "Organization");
+  const organizationBlock = nodes.find((node) => node["@type"] === "Organization");
 
   expect(
     "Organization has a contactPoint with an email",
-    Array.isArray(organizationBlock?.contactPoint) &&
+    organizationBlock?.contactPoint !== undefined &&
       organizationBlock.contactPoint.every(
-        (point: { email?: string; contactType?: string }) =>
-          point.email !== undefined && point.email !== "" && point.contactType,
+        (point) =>
+          point.email !== undefined &&
+          point.email !== "" &&
+          point.contactType !== undefined &&
+          point.contactType !== "",
       ),
     JSON.stringify(organizationBlock?.contactPoint ?? null).slice(0, 120),
   );
@@ -110,8 +121,14 @@ const checkHomePage = async () => {
 };
 
 const checkMarkdownNegotiation = async () => {
-  for (const path of ["/", "/about", "/contact", "/privacy", "/terms", "/ui/dynamic-island"]) {
-    const { response, body } = await fetchWith(path, "text/markdown");
+  const markdownPages = await Promise.all(
+    ["/", "/about", "/contact", "/privacy", "/terms", "/ui/dynamic-island"].map(async (path) => ({
+      path,
+      ...(await fetchWith(path, "text/markdown")),
+    })),
+  );
+
+  for (const { path, response, body } of markdownPages) {
     const contentType = response.headers.get("content-type") ?? "";
     expect(
       `Accept: text/markdown on ${path} → markdown`,
@@ -134,8 +151,15 @@ const checkMarkdownNegotiation = async () => {
     htmlResponse.headers.get("content-type") ?? "(none)",
   );
 
-  for (const path of ["/about.md", "/privacy.md", "/terms.md"]) {
-    const { response: mdSibling } = await fetchWith(path);
+  const mdSiblings = await Promise.all(
+    ["/about.md", "/privacy.md", "/terms.md"].map(async (path) => {
+      const { response } = await fetchWith(path);
+
+      return { mdSibling: response, path };
+    }),
+  );
+
+  for (const { path, mdSibling } of mdSiblings) {
     expect(
       `${path} serves markdown with no Accept header`,
       mdSibling.status === 200 &&
@@ -144,12 +168,20 @@ const checkMarkdownNegotiation = async () => {
     );
   }
 
-  for (const [name, headers] of [
-    ["a client-side navigation", { rsc: "1" }],
-    ["a prefetch", { "next-router-prefetch": "1", rsc: "1" }],
-    ["a Server Action", { accept: "text/x-component", "next-action": "abc123" }],
-  ] as const) {
-    const response = await fetch(`${baseUrl}/about`, { headers, redirect: "manual" });
+  const internalRequests = await Promise.all(
+    (
+      [
+        ["a client-side navigation", { rsc: "1" }],
+        ["a prefetch", { "next-router-prefetch": "1", rsc: "1" }],
+        ["a Server Action", { accept: "text/x-component", "next-action": "abc123" }],
+      ] as const
+    ).map(async ([name, headers]) => ({
+      name,
+      response: await fetch(`${baseUrl}/about`, { headers, redirect: "manual" }),
+    })),
+  );
+
+  for (const { name, response } of internalRequests) {
     expect(
       `${name} is not answered with 406`,
       response.status !== 406,
@@ -177,12 +209,20 @@ const checkMarkdownNegotiation = async () => {
 };
 
 const checkProxyScope = async () => {
-  for (const [path, target] of [
-    ["/", "/index.md"],
-    ["/about", "/about.md"],
-  ] as const) {
-    const { body } = await fetchWith(path);
+  const alternates = await Promise.all(
+    (
+      [
+        ["/", "/index.md"],
+        ["/about", "/about.md"],
+      ] as const
+    ).map(async ([path, target]) => {
+      const { body } = await fetchWith(path);
 
+      return { body, path, target };
+    }),
+  );
+
+  for (const { path, target, body } of alternates) {
     const alternate =
       /<link[^>]+rel="alternate"[^>]+type="text\/markdown"[^>]*>/iu.exec(body)?.[0] ?? "";
 
@@ -293,6 +333,16 @@ type McpRequest =
       params: { arguments: { limit: number; query: string }; name: string };
     };
 
+const mcpPayload = z.looseObject({
+  result: z
+    .looseObject({
+      content: z.array(z.looseObject({ text: z.string().optional() })).optional(),
+      serverInfo: z.looseObject({ name: z.string().optional() }).optional(),
+      tools: z.array(z.looseObject({ name: z.string() })).optional(),
+    })
+    .optional(),
+});
+
 const mcpCall = async (request: McpRequest) => {
   const response = await fetch(`${baseUrl}/mcp`, {
     body: JSON.stringify({ id: 1, jsonrpc: "2.0", ...request }),
@@ -314,7 +364,7 @@ const mcpCall = async (request: McpRequest) => {
         .map((line) => line.slice("data:".length))
         .join("");
 
-  return { payload: payload ? JSON.parse(payload) : null, response };
+  return { payload: payload === "" ? null : mcpPayload.parse(JSON.parse(payload)), response };
 };
 
 const checkMcp = async () => {
@@ -335,11 +385,11 @@ const checkMcp = async () => {
   );
 
   const { payload: tools } = await mcpCall({ method: "tools/list", params: {} });
-  const names = (tools?.result?.tools ?? []).map((tool: { name: string }) => tool.name);
+  const names = (tools?.result?.tools ?? []).map((tool) => tool.name);
   expect(
     "MCP lists search_components and get_component",
     names.includes("search_components") && names.includes("get_component"),
-    names.join(", ") || JSON.stringify(tools).slice(0, 120),
+    names.length > 0 ? names.join(", ") : JSON.stringify(tools).slice(0, 120),
   );
 
   const { payload: search } = await mcpCall({
@@ -351,13 +401,19 @@ const checkMcp = async () => {
   expect(
     "MCP search returns installable components",
     text.includes("npx shadcn@latest add"),
-    text.slice(0, 120) || JSON.stringify(search).slice(0, 120),
+    text === "" ? JSON.stringify(search).slice(0, 120) : text.slice(0, 120),
   );
 };
 
 const checkTrustAnchors = async () => {
-  for (const path of ["/about", "/contact", "/privacy", "/terms"]) {
-    const { response, body } = await fetchWith(path);
+  const trustPages = await Promise.all(
+    ["/about", "/contact", "/privacy", "/terms"].map(async (path) => ({
+      path,
+      ...(await fetchWith(path)),
+    })),
+  );
+
+  for (const { path, response, body } of trustPages) {
     const text = visibleText(body);
     expect(`${path} → 200`, response.status === 200, `status ${response.status}`);
 
@@ -372,8 +428,15 @@ const checkTrustAnchors = async () => {
     );
   }
 
-  for (const path of ["/privacy", "/terms"]) {
-    const { body } = await fetchWith(path);
+  const legalPages = await Promise.all(
+    ["/privacy", "/terms"].map(async (path) => {
+      const { body } = await fetchWith(path);
+
+      return { body, path };
+    }),
+  );
+
+  for (const { path, body } of legalPages) {
     const ids = new Set([...body.matchAll(/\sid="(?<id>[^"]+)"/gu)].map((match) => match[1]));
     const anchors = [...body.matchAll(/\shref="#(?<id>[^"]+)"/gu)].map((match) => match[1] ?? "");
     const missing = anchors.filter((id) => !ids.has(id));

@@ -81,7 +81,9 @@ for (const [relativePath, source] of fixtureFiles) {
   await writeFile(target, source);
 }
 
-after(async () => await rm(fixture, { force: true, recursive: true }));
+after(async () => {
+  await rm(fixture, { force: true, recursive: true });
+});
 
 const previousCwd = process.cwd();
 

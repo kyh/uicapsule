@@ -44,9 +44,9 @@ const router = {
     .handler(async ({ input: { slug } }) => {
       const all = await getAllContent();
       const component = all.find((c) => c.slug === slug);
-      after(
-        async () => await track("mcp_get", { found: Boolean(component), slug: slug.slice(0, 100) }),
-      );
+      after(async () => {
+        await track("mcp_get", { found: Boolean(component), slug: slug.slice(0, 100) });
+      });
 
       if (!component) {
         throw new ORPCError("NOT_FOUND", { message: `Component not found: ${slug}` });
@@ -88,14 +88,13 @@ const router = {
     )
     .handler(async ({ input }) => {
       const results = searchCatalog(await getAllContent(), input);
-      after(
-        async () =>
-          await track("mcp_search", {
-            query: input.query?.slice(0, 100) ?? "",
-            results: results.length,
-            tags: input.tags?.join(",") ?? "",
-          }),
-      );
+      after(async () => {
+        await track("mcp_search", {
+          query: input.query?.slice(0, 100) ?? "",
+          results: results.length,
+          tags: input.tags?.join(",") ?? "",
+        });
+      });
 
       return results;
     }),

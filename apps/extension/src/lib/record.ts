@@ -7,7 +7,7 @@ const RECORD_MS = 6000;
 const VIDEO_BITS_PER_SECOND = 2_500_000;
 const MIME_TYPES = ["video/webm;codecs=vp9", "video/webm;codecs=vp8", "video/webm", "video/mp4"];
 
-const stopAfter = async (recorder: MediaRecorder, video: HTMLVideoElement, ms: number) =>
+const stopAfter = async (recorder: MediaRecorder, video: HTMLVideoElement, ms: number) => {
   // oxlint-disable-next-line promise/avoid-new -- MediaRecorder signals its end with an event, not a promise
   await new Promise<void>((resolve) => {
     const stop = () => {
@@ -27,6 +27,7 @@ const stopAfter = async (recorder: MediaRecorder, video: HTMLVideoElement, ms: n
       { once: true },
     );
   });
+};
 
 /** Records a few seconds of what the video is showing, then puts it back as it was. */
 export const recordVideo = async (video: HTMLVideoElement) => {

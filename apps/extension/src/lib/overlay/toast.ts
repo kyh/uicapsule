@@ -7,7 +7,7 @@ const LEAVE_MS = 200;
 export const showToast = async (
   root: ShadowRoot,
   toast: { link?: { href: string; label: string }; text?: string; title: string; tone?: "error" },
-) =>
+) => {
   // oxlint-disable-next-line promise/avoid-new -- resolves on the toast's own timers and close button
   await new Promise<void>((resolve) => {
     const close = h("button", { "aria-label": "Dismiss", class: "icon-btn", type: "button" }, [
@@ -57,3 +57,4 @@ export const showToast = async (
     });
     root.append(element);
   });
+};

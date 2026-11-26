@@ -81,7 +81,7 @@ const main = defineCommand({
   },
   run: async ({ args }) => {
     const dryRun = args["dry-run"];
-    const interactive = Boolean(process.stdin.isTTY) && !args.yes;
+    const interactive = process.stdin.isTTY && !args.yes;
 
     const exec = (command: string) => {
       if (dryRun) {
@@ -154,16 +154,26 @@ const main = defineCommand({
 
       const startedAt = performance.now();
 
-      while (performance.now() - startedAt < DB_BOOT_BUDGET_MS) {
-        if (await databaseAnswers(url)) {
-          consola.success(
-            `started local Turso at ${url} (pid ${child.pid}, log ${DB_LOG}; stop it with kill ${child.pid})`,
-          );
+      const answers: () => Promise<boolean> = async () => {
+        if (performance.now() - startedAt >= DB_BOOT_BUDGET_MS) {
+          return false;
+        }
 
-          return;
+        if (await databaseAnswers(url)) {
+          return true;
         }
 
         await sleep(250);
+
+        return await answers();
+      };
+
+      if (await answers()) {
+        consola.success(
+          `started local Turso at ${url} (pid ${child.pid}, log ${DB_LOG}; stop it with kill ${child.pid})`,
+        );
+
+        return;
       }
 
       throw new Error(
