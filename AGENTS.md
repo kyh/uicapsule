@@ -121,7 +121,7 @@ agent-browser get text body                                   # `get text` needs
 agent-browser screenshot /tmp/after.png
 ```
 
-Give each agent its own browser with `AGENT_BROWSER_SESSION=<repo>-<task>` (or `--session`): the default one is shared. Locate by `snapshot -i` refs or `find role … --name`, never `find text`, which can match a hidden duplicate label. A background tab gets no animation frames, so menus won't open: `agent-browser tab keep live` fixes it.
+Each session gets its own browser: the SessionStart hook sets `AGENT_BROWSER_SESSION` to the session's id, so a subagent driving a browser beside another passes `--session <name>`. Locate by `snapshot -i` refs or `find role … --name`, never `find text`, which can match a hidden duplicate label. A background tab gets no animation frames, so menus won't open: `agent-browser tab keep live` fixes it.
 
 Authenticated flows (only `/auth/*` has any), against the login created above. Locate by the
 form's `data-test` hooks or by role: a snapshot's `@eN` refs shift between runs and builds.
