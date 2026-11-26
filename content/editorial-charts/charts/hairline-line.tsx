@@ -1,15 +1,14 @@
 "use client";
 
 import { defineChart, dot, lineY, text, tickX } from "@tanstack/charts";
-import { motion } from "@tanstack/charts/motion";
+import type { ChartMotionSpringTransition } from "@tanstack/charts/motion";
 import { Chart } from "@tanstack/charts/react/core";
 import { scaleLinear } from "@tanstack/charts/scales/linear";
 import { useMemo } from "react";
 
 import type { DayRow } from "../lib/data";
-import { FAINT, INK, MUTED, PAPER, SPRING } from "../lib/tokens";
-
-const renderer = motion({ initial: "always", transition: SPRING });
+import { useSpringRenderer } from "../lib/spring-renderer";
+import type { Palette } from "../lib/tokens";
 
 export const HairlineLine = ({
   days,
@@ -17,6 +16,8 @@ export const HairlineLine = ({
   yMax,
   height,
   initialWidth,
+  palette,
+  spring,
 }: {
   days: DayRow[];
   /** 0 → 1 entrance progress; days land left to right as it advances. */
@@ -24,7 +25,11 @@ export const HairlineLine = ({
   yMax: number;
   height: number;
   initialWidth: number;
+  palette: Palette;
+  spring: ChartMotionSpringTransition;
 }) => {
+  const { key, renderer } = useSpringRenderer(spring);
+  const { faint, ink, muted, paper } = palette;
   const revealed = Math.min(days.length, Math.floor(reveal * (days.length + 1)));
 
   const definition = useMemo(() => {
@@ -58,7 +63,7 @@ export const HairlineLine = ({
         tickX(shown, {
           key: "day",
           length: 8,
-          stroke: FAINT,
+          stroke: faint,
           strokeWidth: 1,
           x: "day",
           y: () => 0,
@@ -67,7 +72,7 @@ export const HairlineLine = ({
           ? [
               lineY(days, {
                 key: "day",
-                stroke: INK,
+                stroke: ink,
                 strokeWidth: 1.25,
                 x: "day",
                 y: "value",
@@ -75,7 +80,7 @@ export const HairlineLine = ({
             ]
           : []),
         dot(weekdays, {
-          fill: INK,
+          fill: ink,
           id: "weekday-dots",
           key: "day",
           r: 2.4,
@@ -83,11 +88,11 @@ export const HairlineLine = ({
           y: "value",
         }),
         dot(weekends, {
-          fill: PAPER,
+          fill: paper,
           id: "weekend-dots",
           key: "day",
           r: 2.6,
-          stroke: INK,
+          stroke: ink,
           strokeWidth: 1.1,
           x: "day",
           y: "value",
@@ -96,7 +101,7 @@ export const HairlineLine = ({
           anchor: (d) => (d.day >= 27 ? "end" : "middle"),
           dx: (d) => (d.day >= 27 ? 3 : 0),
           dy: -13,
-          fill: INK,
+          fill: ink,
           fontSize: 11.5,
           fontWeight: 800,
           key: "day",
@@ -111,11 +116,12 @@ export const HairlineLine = ({
         y: { scale: scaleLinear().domain([0, yMax * 1.2]) },
       },
     });
-  }, [days, revealed, yMax]);
+  }, [days, revealed, yMax, faint, ink, paper]);
 
   return (
     <div>
       <Chart
+        key={key}
         definition={definition}
         renderer={renderer}
         height={height}
@@ -124,7 +130,7 @@ export const HairlineLine = ({
       />
       <div
         className="relative h-5 pt-1.5 text-[9px] font-semibold tracking-[0.09em]"
-        style={{ color: MUTED }}
+        style={{ color: muted }}
       >
         <span className="absolute left-0">DAY 1</span>
         <span className="absolute left-[48.3%] -translate-x-1/2">DAY 15</span>

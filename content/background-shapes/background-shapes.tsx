@@ -45,49 +45,66 @@ const Cell5 = ({ colors, strokeWidth }: CellProps) => (
   <line x1="25" x2="75" y1="75" y2="25" fill="none" stroke={colors[0]} strokeWidth={strokeWidth} />
 );
 
-const Cell6 = () => null;
+const BlankCell = () => null;
 
-const Cell7 = () => <rect width="75" height="75" x="12.5" y="12.5" fill="rgba(255,255,255,0.1)" />;
+const Cell7 = ({ colors }: CellProps) => (
+  <rect width="75" height="75" x="12.5" y="12.5" fill={colors[0]} fillOpacity={0.1} />
+);
 
 interface CellConfig {
   glyph: CellComponent;
   weight: number;
 }
 
-const cellConfigs: CellConfig[] = [
+const glyphConfigs: CellConfig[] = [
   { glyph: Cell1, weight: 1 },
   { glyph: Cell2, weight: 1 },
   { glyph: Cell3, weight: 1 },
   { glyph: Cell4, weight: 1 },
   { glyph: Cell5, weight: 1 },
-  { glyph: Cell6, weight: 5 },
   { glyph: Cell7, weight: 3 },
 ];
 
-const weightedCells: CellConfig[] = cellConfigs.flatMap((config) =>
+const weightedGlyphs: CellConfig[] = glyphConfigs.flatMap((config) =>
   Array.from({ length: config.weight }, () => config),
 );
 
-const fallbackCell: CellConfig = { glyph: Cell1, weight: 1 };
+const blankCell: CellConfig = { glyph: BlankCell, weight: 0 };
 
-const pickCell = () =>
-  weightedCells[Math.floor(Math.random() * weightedCells.length)] ?? fallbackCell;
+const pickCell = (blankWeight: number) => {
+  const roll = Math.random() * (weightedGlyphs.length + blankWeight);
 
-const CELL_SCALE = 0.2;
+  return roll < blankWeight
+    ? blankCell
+    : (weightedGlyphs[Math.floor(roll - blankWeight)] ?? blankCell);
+};
+
+const GLYPH_VIEWBOX = 100;
 
 const DEFAULT_COLORS = ["white"];
 
 interface GridCellProps {
   x: number;
   y: number;
+  size: number;
   colors: string[];
   strokeWidth: number;
   minInterval: number;
   maxInterval: number;
+  blankWeight: number;
 }
 
-const GridCell = ({ x, y, colors, strokeWidth, minInterval, maxInterval }: GridCellProps) => {
-  const [currentCell, setCurrentCell] = useState<CellConfig>(pickCell);
+const GridCell = ({
+  x,
+  y,
+  size,
+  colors,
+  strokeWidth,
+  minInterval,
+  maxInterval,
+  blankWeight,
+}: GridCellProps) => {
+  const [currentCell, setCurrentCell] = useState<CellConfig>(() => pickCell(blankWeight));
 
   useEffect(() => {
     const getRandomInterval = () => Math.random() * (maxInterval - minInterval) + minInterval;
@@ -96,7 +113,7 @@ const GridCell = ({ x, y, colors, strokeWidth, minInterval, maxInterval }: GridC
 
     const scheduleNext = () => {
       timeoutId = setTimeout(() => {
-        setCurrentCell(pickCell());
+        setCurrentCell(pickCell(blankWeight));
         scheduleNext();
       }, getRandomInterval());
     };
@@ -106,13 +123,13 @@ const GridCell = ({ x, y, colors, strokeWidth, minInterval, maxInterval }: GridC
     return () => {
       clearTimeout(timeoutId);
     };
-  }, [minInterval, maxInterval]);
+  }, [minInterval, maxInterval, blankWeight]);
 
   const Glyph = currentCell.glyph;
 
   return (
     <g transform={`translate(${x} ${y})`}>
-      <g transform={`scale(${CELL_SCALE})`}>
+      <g transform={`scale(${size / GLYPH_VIEWBOX})`}>
         <Glyph colors={colors} strokeWidth={strokeWidth} />
       </g>
     </g>
@@ -128,6 +145,8 @@ interface BackgroundGlyphsProps {
   className?: string;
   minInterval?: number;
   maxInterval?: number;
+  /** Relative odds of an empty cell against the 8 weighted glyph slots. */
+  blankWeight?: number;
 }
 
 export const BackgroundGlyphs = ({
@@ -139,39 +158,58 @@ export const BackgroundGlyphs = ({
   className = "",
   minInterval = 1000,
   maxInterval = 5000,
+  blankWeight = 5,
 }: BackgroundGlyphsProps) => {
   const borderSize = cellSize * 2;
 
   const cells = useMemo<ReactNode[]>(() => {
     const list: ReactNode[] = [];
 
-    for (let x = borderSize; x < width / 2; x += cellSize) {
-      for (let y = borderSize; y < height - borderSize; y += cellSize) {
+    for (let column = 0; borderSize + (column + 1) * cellSize <= width / 2; column += 1) {
+      const x = borderSize + column * cellSize;
+
+      for (let row = 0; borderSize + row * cellSize < height - borderSize; row += 1) {
+        const y = borderSize + row * cellSize;
+
         list.push(
           <GridCell
-            key={`left-${x}-${y}`}
+            key={`left-${column}-${row}`}
             x={x}
             y={y}
+            size={cellSize}
             colors={colors}
             strokeWidth={strokeWidth}
             minInterval={minInterval}
             maxInterval={maxInterval}
+            blankWeight={blankWeight}
           />,
           <GridCell
-            key={`right-${x}-${y}`}
+            key={`right-${column}-${row}`}
             x={width - cellSize - x}
             y={y}
+            size={cellSize}
             colors={colors}
             strokeWidth={strokeWidth}
             minInterval={minInterval}
             maxInterval={maxInterval}
+            blankWeight={blankWeight}
           />,
         );
       }
     }
 
     return list;
-  }, [width, height, cellSize, strokeWidth, colors, borderSize, minInterval, maxInterval]);
+  }, [
+    width,
+    height,
+    cellSize,
+    strokeWidth,
+    colors,
+    borderSize,
+    minInterval,
+    maxInterval,
+    blankWeight,
+  ]);
 
   return (
     <svg width={width} height={height} viewBox={`0 0 ${width} ${height}`} className={className}>

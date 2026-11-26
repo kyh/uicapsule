@@ -19,6 +19,13 @@
   --input: hsl(240 3.7% 15.9%);
   --ring: hsl(240 4.9% 83.9%);
   --radius: 0.3rem;
+  --emerald-pulse: oklch(0.696 0.17 162.48);
+  --emerald-glow: #16413d;
+  --emerald-sweep: #059669;
+  --emerald-sweep-tip: #6ee7b7;
+  --emerald-card-from: #202e26;
+  --emerald-card-to: #28342e;
+  isolation: isolate;
   background: var(--background);
   color: var(--foreground);
 }
@@ -133,7 +140,7 @@
   z-index: -1;
   width: 80%;
   height: 20px;
-  background-color: #16413d;
+  background-color: var(--emerald-glow);
   border-radius: 50%;
   filter: blur(40px);
   content: "";
@@ -156,8 +163,8 @@
     90deg,
     rgba(144, 224, 196, 0),
     rgba(162, 183, 231, 0.5) 41%,
-    #059669 91%,
-    #6ee7b7 122%
+    var(--emerald-sweep) 91%,
+    var(--emerald-sweep-tip) 122%
   );
   transform-origin: 0 50%;
   opacity: 0;

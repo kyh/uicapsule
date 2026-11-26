@@ -183,6 +183,7 @@ interface FilterSelectorProps {
   strategy: FilterStrategy;
   onAIFilterSubmit?: (prompt: string) => void;
   aiGenerating?: boolean;
+  placeholder?: string;
 }
 
 export const FilterSelector = ({
@@ -192,6 +193,7 @@ export const FilterSelector = ({
   strategy,
   onAIFilterSubmit,
   aiGenerating,
+  placeholder = "Search or ask AI",
 }: FilterSelectorProps) => {
   const [open, setOpen] = useState(false);
   const [value, setValue] = useState("");
@@ -275,38 +277,40 @@ export const FilterSelector = ({
             value={value}
             onValueChange={setValue}
             ref={inputRef}
-            placeholder="Search or ask AI"
+            placeholder={placeholder}
           />
           <CommandList className="max-h-fit">
             <CommandGroup>
-              <CommandItem
-                value={value}
-                disabled={!onAIFilterSubmit || aiGenerating}
-                onSelect={() => {
-                  const prompt = value.trim();
+              {onAIFilterSubmit !== undefined && (
+                <CommandItem
+                  value={value}
+                  disabled={aiGenerating}
+                  onSelect={() => {
+                    const prompt = value.trim();
 
-                  if (!prompt || !onAIFilterSubmit) {
-                    return;
-                  }
+                    if (!prompt) {
+                      return;
+                    }
 
-                  onAIFilterSubmit(prompt);
-                  setOpen(false);
-                  setTimeout(() => {
-                    setValue("");
-                    setProperty(undefined);
-                  }, 100);
-                }}
-              >
-                <div className="flex w-full items-center justify-between gap-2">
-                  <div className="flex items-center gap-2">
-                    <SparklesIcon className="size-4" />
-                    <span>Ask AI</span>
+                    onAIFilterSubmit(prompt);
+                    setOpen(false);
+                    setTimeout(() => {
+                      setValue("");
+                      setProperty(undefined);
+                    }, 100);
+                  }}
+                >
+                  <div className="flex w-full items-center justify-between gap-2">
+                    <div className="flex items-center gap-2">
+                      <SparklesIcon className="size-4" />
+                      <span>Ask AI</span>
+                    </div>
+                    <span className="text-(--muted-foreground) truncate text-xs">
+                      {value.trim().length > 0 ? `"${value.trim()}"` : "Type a prompt"}
+                    </span>
                   </div>
-                  <span className="text-(--muted-foreground) truncate text-xs">
-                    {value.trim().length > 0 ? `"${value.trim()}"` : "Type a prompt"}
-                  </span>
-                </div>
-              </CommandItem>
+                </CommandItem>
+              )}
               {visibleColumns.map((visibleColumn) => (
                 <FilterableColumn
                   key={visibleColumn.id}
@@ -340,6 +344,7 @@ export const FilterSelector = ({
       value,
       strategy,
       onAIFilterSubmit,
+      placeholder,
     ],
   );
 

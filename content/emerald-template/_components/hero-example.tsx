@@ -32,8 +32,38 @@ import {
 
 const noop = () => null;
 
-const samples = [
+export const SAMPLE_IDS = ["changelog", "ownership", "remote"] as const;
+
+export type SampleId = (typeof SAMPLE_IDS)[number];
+
+export type QuestionMode = "cycle" | SampleId;
+
+export interface ChatTiming {
+  typeDelay: number;
+  stepDuration: number;
+  answerHold: number;
+}
+
+export interface HeroExampleProps extends ChatTiming {
+  question: QuestionMode;
+  scrollTilt: boolean;
+  tiltAngle: number;
+  focusBlur: boolean;
+}
+
+interface Sample {
+  id: SampleId;
+  input: string;
+  output: {
+    reasoning: readonly { icon: StepIcon; text: string }[];
+    references: readonly { content: string; source: string }[];
+    text: string;
+  };
+}
+
+const samples: readonly Sample[] = [
   {
+    id: "changelog",
     input: "Can you provide a changelog of everything shipped in Dataembed this week?",
     output: {
       reasoning: [
@@ -67,6 +97,7 @@ Version 1.1.2 launch - 3/14/2025:
     },
   },
   {
+    id: "ownership",
     input: "Who is responsible for the new landing experience?",
     output: {
       reasoning: [
@@ -96,6 +127,7 @@ The Grow team collaborates with various partners, including educational institut
     },
   },
   {
+    id: "remote",
     input: "Whats our HR policy on working from home?",
     output: {
       reasoning: [
@@ -255,12 +287,14 @@ const Typewriter = ({
   onTyped,
   splitType = "letters",
   hideCursor,
+  delay,
 }: {
   start: boolean;
   text: string;
   onTyped?: () => void;
   splitType?: "letters" | "words";
   hideCursor?: boolean;
+  delay: number;
 }) => {
   const textContainerRef = useRef<HTMLDivElement>(null);
   const finishedRef = useRef(false);
@@ -280,7 +314,7 @@ const Typewriter = ({
       if (i < splitText.length) {
         textContainerRef.current.textContent = splitText.slice(0, i + 1).join(splitBy);
         i += 1;
-        timeoutId = setTimeout(write, 25);
+        timeoutId = setTimeout(write, delay);
       } else {
         finishedRef.current = true;
         i = 0;
@@ -317,7 +351,7 @@ const Typewriter = ({
         clearTimeout(timeoutId);
       }
     };
-  }, [start, text, onTyped, splitType]);
+  }, [start, text, onTyped, splitType, delay]);
 
   return (
     <div>
@@ -327,7 +361,16 @@ const Typewriter = ({
   );
 };
 
-export const ExampleChat = ({ start }: { start: boolean }) => {
+export const ExampleChat = ({
+  start,
+  question,
+  typeDelay,
+  stepDuration,
+  answerHold,
+}: ChatTiming & { start: boolean; question: QuestionMode }) => {
+  const playlist =
+    question === "cycle" ? samples : samples.filter((sample) => sample.id === question);
+
   const promisesRef = useRef<(() => void)[]>([]);
   const [currentSampleIndex, setCurrentSampleIndex] = useState(0);
   const [showQuestion, setShowQuestion] = useState(true);
@@ -395,7 +438,7 @@ export const ExampleChat = ({ start }: { start: boolean }) => {
   const showResults = () => {
     setShowLoading(true);
 
-    const reasoningStepCount = samples[currentSampleIndex]?.output.reasoning.length ?? 0;
+    const reasoningStepCount = playlist[currentSampleIndex]?.output.reasoning.length ?? 0;
     let startTime = 0;
 
     play([
@@ -413,7 +456,7 @@ export const ExampleChat = ({ start }: { start: boolean }) => {
         act: () => {
           setCurrentStepIndex(index + 1);
         },
-        delay: 800,
+        delay: stepDuration,
       })),
       {
         act: () => {
@@ -435,10 +478,10 @@ export const ExampleChat = ({ start }: { start: boolean }) => {
         },
         delay: 1000,
       },
-      { act: clearAll, delay: 5000 },
+      { act: clearAll, delay: answerHold },
       {
         act: () => {
-          setCurrentSampleIndex((currentSampleIndex + 1) % samples.length);
+          setCurrentSampleIndex((currentSampleIndex + 1) % playlist.length);
           setShowQuestion(true);
         },
         delay: 1000,
@@ -446,7 +489,7 @@ export const ExampleChat = ({ start }: { start: boolean }) => {
     ]);
   };
 
-  const currentSample = samples[currentSampleIndex];
+  const currentSample = playlist[currentSampleIndex];
 
   const chainOfThoughtHeaderText = useMemo(() => {
     if (isThinkingComplete && thinkingDuration !== null) {
@@ -477,6 +520,7 @@ export const ExampleChat = ({ start }: { start: boolean }) => {
           <Typewriter
             start={start && showQuestion}
             text={currentSample?.input ?? ""}
+            delay={typeDelay}
             onTyped={() => {
               showResults();
             }}
@@ -511,6 +555,7 @@ export const ExampleChat = ({ start }: { start: boolean }) => {
                   start
                   text={currentSample?.output.text ?? ""}
                   splitType="words"
+                  delay={typeDelay}
                   hideCursor
                 />
               </motion.div>
@@ -540,19 +585,29 @@ export const ExampleChat = ({ start }: { start: boolean }) => {
 
 const scrollYProgressMap = [0, 0.1];
 
-export const HeroExample = () => {
+export const HeroExample = ({
+  question,
+  scrollTilt,
+  tiltAngle,
+  focusBlur,
+  ...timing
+}: HeroExampleProps) => {
   const [isScaled, setIsScaled] = useState(false);
   const ref = useRef(null);
 
   const isInView = useInView(ref, {
-    amount: 1,
+    amount: scrollTilt ? 1 : 0.5,
   });
 
+  const resting = scrollTilt
+    ? { rotateX: tiltAngle, scale: 0.9, y: 21.28, z: -74.56 }
+    : { rotateX: 0, scale: 1, y: 0, z: 0 };
+
   const { scrollYProgress } = useScroll();
-  const y = useTransform(scrollYProgress, scrollYProgressMap, [21.28, 0]);
-  const z = useTransform(scrollYProgress, scrollYProgressMap, [-74.56, 0]);
-  const rotateX = useTransform(scrollYProgress, scrollYProgressMap, [40, 0]);
-  const scale = useTransform(scrollYProgress, scrollYProgressMap, [0.9, 1]);
+  const y = useTransform(scrollYProgress, scrollYProgressMap, [resting.y, 0]);
+  const z = useTransform(scrollYProgress, scrollYProgressMap, [resting.z, 0]);
+  const rotateX = useTransform(scrollYProgress, scrollYProgressMap, [resting.rotateX, 0]);
+  const scale = useTransform(scrollYProgress, scrollYProgressMap, [resting.scale, 1]);
 
   useMotionValueEvent(scale, "change", (latest) => {
     if (latest > 0.97) {
@@ -562,12 +617,12 @@ export const HeroExample = () => {
     }
   });
 
-  const shouldRun = isScaled && isInView;
+  const shouldRun = (!scrollTilt || isScaled) && isInView;
 
   return (
     <>
       <AnimatePresence>
-        {shouldRun && (
+        {focusBlur && shouldRun && (
           <motion.div
             className="pointer-events-none fixed inset-0 bg-transparent backdrop-blur transition"
             initial={{ opacity: 0 }}
@@ -587,7 +642,7 @@ export const HeroExample = () => {
           z,
         }}
       >
-        <ExampleChat start={shouldRun} />
+        <ExampleChat key={question} start={shouldRun} question={question} {...timing} />
       </motion.div>
     </>
   );

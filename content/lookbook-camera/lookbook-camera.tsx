@@ -31,16 +31,8 @@ const SELECTION_HEIGHT_FRACTION_NARROW = 0.36;
 const POST_DESELECT_HEIGHT_FRACTION = 0.375;
 
 const DRAG_THRESHOLD_PX = 6;
-const WHEEL_SENSITIVITY = 0.0018;
-const MAX_CAMERA_SCALE = 6;
 const DEFAULT_MIN_ZOOM_CARD_HEIGHT = 240;
 const DEFAULT_MIN_ZOOM_CARD_HEIGHT_NARROW = 200;
-const DEFAULT_INERTIA_FRICTION = 0.93;
-const AUTO_DRIFT_PX_PER_FRAME = 0.45;
-
-const PARALLAX_RANGE = 320;
-const PARALLAX_STRENGTH = 9;
-const ENTRANCE_STAGGER = 0.04;
 
 const KEYBOARD_REACHABLE = BASE_LOOKS.length;
 
@@ -75,6 +67,47 @@ interface DragState {
   worldAnchorX: number;
   worldAnchorY: number;
   inertiaActive: boolean;
+}
+
+export interface LookbookCameraProps {
+  /** Canvas paper colour. */
+  background?: string;
+  /** Ink colour for type, rules and controls. */
+  foreground?: string;
+  /** Secondary text colour (hint, captions). */
+  mutedForeground?: string;
+  /** Idle camera drift in px per frame; 0 holds the camera still. */
+  driftSpeed?: number;
+  /** How far, in px, cards near the cursor lean towards it. */
+  parallaxStrength?: number;
+  /** Radius, in px, of the cursor's parallax falloff. */
+  parallaxRange?: number;
+  /** Per-frame velocity kept after a fling, 0–1. Higher glides further. */
+  inertiaFriction?: number;
+  /** Wheel delta to zoom factor exponent. */
+  wheelSensitivity?: number;
+  /** Largest camera scale the wheel can reach. */
+  maxZoom?: number;
+  /** Opacity the other looks fade to while one is open. */
+  dimOpacity?: number;
+  /** Maximum card rotation either side of upright, in degrees. */
+  maxTilt?: number;
+  /** Seconds between each card's entrance. Read at mount. */
+  entranceStagger?: number;
+  /** Footer hint; an empty string hides it. */
+  hint?: string;
+}
+
+interface Tuning {
+  dimOpacity: number;
+  driftSpeed: number;
+  entranceStagger: number;
+  inertiaFriction: number;
+  maxTilt: number;
+  maxZoom: number;
+  parallaxRange: number;
+  parallaxStrength: number;
+  wheelSensitivity: number;
 }
 
 const clamp = (v: number, lo: number, hi: number) => Math.min(hi, Math.max(lo, v));
@@ -115,7 +148,12 @@ const solveSelection = (d: Dims, pos: Pos, worldCx: number, worldCy: number) => 
   } satisfies SelectionGeometry;
 };
 
-const dimOtherCards = (refs: (HTMLDivElement | null)[], idx: number, prevIdx: number | null) => {
+const dimOtherCards = (
+  refs: (HTMLDivElement | null)[],
+  idx: number,
+  prevIdx: number | null,
+  opacity: number,
+) => {
   for (let i = 0; i < LOOKS.length; i += 1) {
     if (i === idx || i === prevIdx) {
       continue;
@@ -128,7 +166,7 @@ const dimOtherCards = (refs: (HTMLDivElement | null)[], idx: number, prevIdx: nu
     }
 
     gsap.killTweensOf(el);
-    gsap.to(el, { duration: 0.55, ease: "power2.out", opacity: 0.22 });
+    gsap.to(el, { duration: 0.55, ease: "power2.out", opacity });
   }
 };
 
@@ -141,9 +179,9 @@ const restoreCloseButton = (btn: HTMLButtonElement | null) => {
 
 const PARALLAX_REST = { extraX: 0, extraY: 0, lift: 1 };
 
-const cursorParallax = (ddx: number, ddy: number) => {
+const cursorParallax = (ddx: number, ddy: number, range: number, strength: number) => {
   const dist = Math.hypot(ddx, ddy);
-  const falloff = Math.max(0, 1 - dist / PARALLAX_RANGE);
+  const falloff = Math.max(0, 1 - dist / range);
   const cEased = falloff * falloff * (3 - 2 * falloff);
 
   if (dist <= 0.5) {
@@ -151,8 +189,8 @@ const cursorParallax = (ddx: number, ddy: number) => {
   }
 
   return {
-    extraX: (ddx / dist) * PARALLAX_STRENGTH * cEased,
-    extraY: (ddy / dist) * PARALLAX_STRENGTH * cEased,
+    extraX: (ddx / dist) * strength * cEased,
+    extraY: (ddy / dist) * strength * cEased,
     lift: 1 + cEased * 0.04,
   };
 };
@@ -183,7 +221,48 @@ const BackgroundLines = () => (
   </svg>
 );
 
-export const LookbookCamera = () => {
+const resolveProps = ({
+  background = "#fffdf8",
+  foreground = "#221e18",
+  mutedForeground = "#6f6757",
+  driftSpeed = 0.45,
+  parallaxStrength = 9,
+  parallaxRange = 320,
+  inertiaFriction = 0.93,
+  wheelSensitivity = 0.0018,
+  maxZoom = 6,
+  dimOpacity = 0.22,
+  maxTilt = 2,
+  entranceStagger = 0.04,
+  hint = "Drag to pan · scroll to zoom · click a look",
+}: LookbookCameraProps) => ({
+  background,
+  foreground,
+  hint,
+  mutedForeground,
+  tuning: {
+    dimOpacity,
+    driftSpeed,
+    entranceStagger,
+    inertiaFriction,
+    maxTilt,
+    maxZoom,
+    parallaxRange,
+    parallaxStrength,
+    wheelSensitivity,
+  } satisfies Tuning,
+});
+
+export const LookbookCamera = (props: LookbookCameraProps) => {
+  const { background, foreground, hint, mutedForeground, tuning } = resolveProps(props);
+
+  const { dimOpacity, maxTilt } = tuning;
+  const tuningRef = useRef<Tuning>(tuning);
+
+  useLayoutEffect(() => {
+    tuningRef.current = tuning;
+  });
+
   const [selectedIdx, setSelectedIdx] = useState<number | null>(null);
   const [dims, setDims] = useState<Dims | null>(null);
   const [positions, setPositions] = useState<Pos[]>([]);
@@ -302,7 +381,7 @@ export const LookbookCamera = () => {
     const worldH = rows * cellH;
     const baseFit = Math.min(w / worldW, h / worldH) * 0.94;
     const d: Dims = { baseFit, h, w, worldH, worldW };
-    const p = layoutPositions(worldW, worldH, cols, LOOKS.length);
+    const p = layoutPositions(worldW, worldH, cols, LOOKS.length, tuningRef.current.maxTilt);
     dimsRef.current = d;
     positionsRef.current = p;
     refreshRect();
@@ -610,7 +689,7 @@ export const LookbookCamera = () => {
           onStart: () => {
             prevEl.style.pointerEvents = "";
           },
-          opacity: 0.22,
+          opacity: tuningRef.current.dimOpacity,
           rotation: prevPos.rot,
           scale: 1,
           x: wrapOffset(prevPos.x, worldCx, d.worldW),
@@ -618,7 +697,7 @@ export const LookbookCamera = () => {
         });
       }
 
-      dimOtherCards(itemRefs.current, idx, prevIdx);
+      dimOtherCards(itemRefs.current, idx, prevIdx, tuningRef.current.dimOpacity);
 
       gsap.killTweensOf(camera.current);
       gsap.to(camera.current, {
@@ -735,6 +814,24 @@ export const LookbookCamera = () => {
     },
     [],
   );
+
+  useLayoutEffect(() => {
+    if (!cameraInitedRef.current) {
+      return;
+    }
+
+    const d = dimsRef.current;
+    const cols = chooseCols(LOOKS.length, d.w / d.h);
+    positionsRef.current = layoutPositions(d.worldW, d.worldH, cols, LOOKS.length, maxTilt);
+  }, [maxTilt]);
+
+  useEffect(() => {
+    if (selectedIdxRef.current === null) {
+      return;
+    }
+
+    dimOtherCards(itemRefs.current, selectedIdxRef.current, null, dimOpacity);
+  }, [dimOpacity]);
 
   useLayoutEffect(() => {
     const c = containerRef.current;
@@ -889,9 +986,10 @@ export const LookbookCamera = () => {
       const sx = e.clientX - r.left;
       const sy = e.clientY - r.top;
       const currentScale = camera.current.scale;
-      const zoomFactor = Math.exp(-e.deltaY * WHEEL_SENSITIVITY);
+      const { maxZoom: zoomCeiling, wheelSensitivity: sensitivity } = tuningRef.current;
+      const zoomFactor = Math.exp(-e.deltaY * sensitivity);
       const minScale = effectiveMinScale();
-      const newScale = clamp(currentScale * zoomFactor, minScale, MAX_CAMERA_SCALE);
+      const newScale = clamp(currentScale * zoomFactor, minScale, Math.max(minScale, zoomCeiling));
 
       if (newScale === currentScale) {
         return;
@@ -929,8 +1027,9 @@ export const LookbookCamera = () => {
       ) {
         camera.current.x += drag.current.vx;
         camera.current.y += drag.current.vy;
-        drag.current.vx *= DEFAULT_INERTIA_FRICTION;
-        drag.current.vy *= DEFAULT_INERTIA_FRICTION;
+        const friction = tuningRef.current.inertiaFriction;
+        drag.current.vx *= friction;
+        drag.current.vy *= friction;
 
         if (Math.hypot(drag.current.vx, drag.current.vy) < 0.12) {
           drag.current.inertiaActive = false;
@@ -943,8 +1042,10 @@ export const LookbookCamera = () => {
     };
 
     const stepDrift = (sel: number | null) => {
+      const drift = tuningRef.current.driftSpeed;
+
       if (
-        AUTO_DRIFT_PX_PER_FRAME > 0 &&
+        drift > 0 &&
         !reduceMotionRef.current &&
         enteredRef.current &&
         sel === null &&
@@ -953,7 +1054,7 @@ export const LookbookCamera = () => {
         !drag.current.inertiaActive &&
         driftRamp.current.amount > 0.001
       ) {
-        const speed = AUTO_DRIFT_PX_PER_FRAME * driftRamp.current.amount;
+        const speed = drift * driftRamp.current.amount;
         camera.current.x -= speed;
         camera.current.y -= speed;
         applyCameraTransform();
@@ -986,6 +1087,7 @@ export const LookbookCamera = () => {
         const managed = gsapManagedItems.current;
         const refs = itemRefs.current;
         const written = lastWrittenRef.current;
+        const { parallaxRange: range, parallaxStrength: strength } = tuningRef.current;
 
         for (let i = 0; i < refs.length; i += 1) {
           if (managed.has(i)) {
@@ -1009,7 +1111,7 @@ export const LookbookCamera = () => {
             const wrappedY = p.y + tileOffY;
             const icx = camX + wrappedX * camS;
             const icy = camY + wrappedY * camS;
-            par = cursorParallax(mx - icx, my - icy);
+            par = cursorParallax(mx - icx, my - icy, range, strength);
           }
 
           const ox = par.extraX + tileOffX;
@@ -1092,7 +1194,7 @@ export const LookbookCamera = () => {
         ease: "power3.out",
         filter: "blur(0px)",
         opacity: 1,
-        stagger: { each: ENTRANCE_STAGGER, from: "random" },
+        stagger: { each: tuningRef.current.entranceStagger, from: "random" },
       },
       0,
     );
@@ -1136,10 +1238,10 @@ export const LookbookCamera = () => {
     >
       <style>{`
         [data-lookbook-root]{
-          --background:#fffdf8;
-          --foreground:#221e18;
+          --background:${background};
+          --foreground:${foreground};
           --muted:#ece4d4;
-          --muted-foreground:#6f6757;
+          --muted-foreground:${mutedForeground};
           --border:#ddd3c0;
         }
         [data-lookbook-root] .lbk-display{
@@ -1217,17 +1319,17 @@ export const LookbookCamera = () => {
         </div>
       </div>
 
-      <div
-        className="pointer-events-none absolute bottom-6 left-8 z-20"
-        style={{
-          opacity: selectedIdx === null ? 1 : 0,
-          transition: "opacity 0.5s ease",
-        }}
-      >
-        <p className="text-muted-foreground text-[10px] tracking-[0.3em] uppercase">
-          Drag to pan · scroll to zoom · click a look
-        </p>
-      </div>
+      {hint !== "" && (
+        <div
+          className="pointer-events-none absolute bottom-6 left-8 z-20"
+          style={{
+            opacity: selectedIdx === null ? 1 : 0,
+            transition: "opacity 0.5s ease",
+          }}
+        >
+          <p className="text-muted-foreground text-[10px] tracking-[0.3em] uppercase">{hint}</p>
+        </div>
+      )}
 
       {selectedLook && dims && (
         <>

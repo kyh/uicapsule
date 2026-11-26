@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 import { Actions } from "./catalog/actions";
 import { Ai } from "./catalog/ai";
@@ -12,7 +12,6 @@ import { Navigation } from "./catalog/navigation";
 import { Overlays } from "./catalog/overlays";
 import { Selection } from "./catalog/selection";
 import { Part, Sub } from "./chrome";
-import { Segmented } from "./components/segmented";
 import { ToastProvider } from "./components/toast";
 import { AntiSlop } from "./foundations/anti-slop";
 import { ColorFoundation } from "./foundations/color";
@@ -21,8 +20,9 @@ import { IconFoundation } from "./foundations/icons";
 import { BordersFoundation, RadiusFoundation, SpaceFoundation } from "./foundations/layout";
 import { MotionFoundation } from "./foundations/motion";
 import { TypeFoundation } from "./foundations/type";
-import { ThemeContext } from "./lib/theme";
-import type { Theme } from "./lib/theme";
+import { cssVars } from "./lib/css-vars";
+import { SettingsContext } from "./lib/settings";
+import type { Density, Settings, Theme } from "./lib/settings";
 import { DocsScreen } from "./screens/docs";
 import { NotesScreen } from "./screens/notes";
 import { RoutingScreen } from "./screens/routing";
@@ -30,11 +30,6 @@ import { TriageScreen } from "./screens/triage";
 import { CATEGORIES, FOUNDATIONS, SCREENS, system } from "./system";
 
 const COMPONENT_COUNT = CATEGORIES.reduce((sum, category) => sum + category.components.length, 0);
-
-const THEMES = [
-  { label: "Light", value: "light" },
-  { label: "Dark", value: "dark" },
-] as const;
 
 const CATALOG = {
   "c-actions": Actions,
@@ -169,13 +164,40 @@ const useScrollSpy = (ids: readonly string[]) => {
 const SPY_IDS = NAV.flatMap((group) => group.items.map((item) => item.id));
 
 /** The Vellum showcase: demo screens, foundations and components, drawn in Vellum. */
-export const DesignSystem = () => {
-  const [theme, setTheme] = useState<Theme>("light");
+export const DesignSystem = ({
+  theme = "light",
+  density = "default",
+  radiusScale = 1,
+  monoScale = 0.8,
+  reducedMotion = false,
+}: {
+  /** Light or dark ink. */
+  theme?: Theme;
+  /** Control and row heights. */
+  density?: Density;
+  /** Multiplies every radius but the pill; 0 squares the corners. */
+  radiusScale?: number;
+  /** How far inline mono is scaled against the sans around it. */
+  monoScale?: number;
+  /** Applies the reduced-motion recipe whatever the OS asks for. */
+  reducedMotion?: boolean;
+}) => {
   const current = useScrollSpy(SPY_IDS);
 
+  const settings = useMemo<Settings>(
+    () => ({ density, monoScale, radiusScale, theme }),
+    [density, monoScale, radiusScale, theme],
+  );
+
   return (
-    <ThemeContext.Provider value={theme}>
-      <div className="ds-vellum v-root" data-theme={theme}>
+    <SettingsContext.Provider value={settings}>
+      <div
+        className="ds-vellum v-root"
+        data-density={density === "default" ? undefined : density}
+        data-motion={reducedMotion ? "reduced" : undefined}
+        data-theme={theme}
+        style={cssVars({ "--mono-scale": monoScale, "--radius-scale": radiusScale })}
+      >
         <ToastProvider>
           <div className="v-page">
             <nav aria-label="Vellum" className="v-nav">
@@ -201,13 +223,6 @@ export const DesignSystem = () => {
                     <Mark />
                     <h1 className="v-title">{system.name}</h1>
                   </span>
-                  <Segmented
-                    label="Theme"
-                    onValueChange={setTheme}
-                    options={THEMES}
-                    size="sm"
-                    value={theme}
-                  />
                 </div>
                 <p className="v-tagline">{system.tagline}</p>
                 <p className="v-counts">
@@ -244,7 +259,7 @@ export const DesignSystem = () => {
 
               <Part
                 id="foundations"
-                lede="Every value the components read, shown the way they are used. The values printed follow the theme switch above."
+                lede="Every value the components read, shown the way they are used. The values printed follow the theme it is drawn in."
                 title="Foundations"
               >
                 {FOUNDATIONS.map((foundation) => {
@@ -295,6 +310,6 @@ export const DesignSystem = () => {
           </div>
         </ToastProvider>
       </div>
-    </ThemeContext.Provider>
+    </SettingsContext.Provider>
   );
 };

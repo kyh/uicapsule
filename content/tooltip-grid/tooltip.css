@@ -1,5 +1,4 @@
 .tooltip {
-  --colors-panel: #020617;
   --colors-shadowLight: hsl(206 22% 7% / 35%);
   --colors-shadowDark: hsl(206 22% 7% / 20%);
 
@@ -22,7 +21,6 @@
 .line {
   --mask-background: #ffffff;
   --fade-stop: 90%;
-  --border-color: #334155;
 
   position: fixed;
   pointer-events: none;

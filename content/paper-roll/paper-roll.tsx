@@ -5,20 +5,78 @@ import * as THREE from "three";
 
 const noop = () => null;
 
-const RIBBON_W = 1.5;
 const ATLAS_N = 8;
 const ROLL_R = 1.75;
 const CARD_LEN = (2 * Math.PI * ROLL_R) / ATLAS_N;
 const INNER_R = ROLL_R * 0.52;
 const STEP = 0.12;
-const MAX_PTS = 760;
 const CURL_SEG = 16;
-const MAX_SEG = MAX_PTS + CURL_SEG + 2;
-const FLOOR_RGB = "vec3(0.905, 0.905, 0.912)";
+const FOG_NEAR = 24;
+const FOG_FAR = 58;
+const BASE_SPEED = 9;
 
-export const PaperRoll = () => {
+export interface PaperRollProps {
+  /** Wordmark printed on the cover and manifesto pages. */
+  brand?: string;
+  /** Primary ink on the printed pages. */
+  accent?: string;
+  /** Secondary warm ink on the printed pages. */
+  warm?: string;
+  /** Secondary cool ink on the printed pages. */
+  cool?: string;
+  /** Sky and fog color. */
+  background?: string;
+  /** Ground plane color. */
+  floor?: string;
+  /** Top rolling speed in world units per second. */
+  speed?: number;
+  /** How hard the autopilot steers; 0 rolls in a straight line. */
+  wander?: number;
+  /** Camera distance multiplier. */
+  distance?: number;
+  /** Laid-out paper kept on the floor, in path samples. Applies on mount. */
+  trailLength?: number;
+  /** Width of the paper strip in world units. Applies on mount. */
+  paperWidth?: number;
+}
+
+interface AtlasPalette {
+  accent: string;
+  brand: string;
+  cool: string;
+  warm: string;
+}
+
+const shade = (hex: string, k: number) =>
+  `#${new THREE.Color(hex).multiplyScalar(k).getHexString()}`;
+
+const wordFont = (px: number) =>
+  `800 italic ${px}px -apple-system, "Segoe UI", Helvetica, Arial, sans-serif`;
+
+const atlasKey = ({ accent, brand, cool, warm }: AtlasPalette) =>
+  `${brand}|${accent}|${warm}|${cool}`;
+
+export const PaperRoll = ({
+  brand = "KYH",
+  accent = "#e4551f",
+  warm = "#f0a32e",
+  cool = "#1e4fd6",
+  background = "#eaeaec",
+  floor = "#e7e7ea",
+  speed = BASE_SPEED,
+  wander = 1,
+  distance = 1,
+  trailLength = 760,
+  paperWidth = 1.5,
+}: PaperRollProps) => {
   const rootRef = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const latest = { accent, background, brand, cool, distance, floor, speed, warm, wander };
+  const liveRef = useRef(latest);
+
+  useEffect(() => {
+    liveRef.current = latest;
+  });
 
   useEffect(() => {
     const container = rootRef.current;
@@ -28,6 +86,10 @@ export const PaperRoll = () => {
       return noop;
     }
 
+    const RIBBON_W = Math.max(0.1, paperWidth);
+    const MAX_PTS = Math.max(2, Math.round(trailLength));
+    const MAX_SEG = MAX_PTS + CURL_SEG + 2;
+    const initial = liveRef.current;
     let seed = 7;
 
     const rand = () => {
@@ -43,8 +105,10 @@ export const PaperRoll = () => {
     renderer.shadowMap.type = THREE.PCFShadowMap;
 
     const scene = new THREE.Scene();
-    scene.background = new THREE.Color(0xea_ea_ec);
-    scene.fog = new THREE.Fog(0xea_ea_ec, 24, 58);
+    const skyColor = new THREE.Color(initial.background);
+    scene.background = skyColor;
+    const fog = new THREE.Fog(initial.background, FOG_NEAR, FOG_FAR);
+    scene.fog = fog;
 
     const camera = new THREE.PerspectiveCamera(
       32,
@@ -77,33 +141,37 @@ export const PaperRoll = () => {
     const floorGeo = new THREE.PlaneGeometry(400, 400);
 
     const floorMat = new THREE.MeshStandardMaterial({
-      color: 0xe7_e7_ea,
+      color: initial.floor,
       metalness: 0,
       roughness: 1,
     });
 
-    const floor = new THREE.Mesh(floorGeo, floorMat);
-    floor.rotation.x = -Math.PI / 2;
-    floor.receiveShadow = true;
-    scene.add(floor);
+    const floorMesh = new THREE.Mesh(floorGeo, floorMat);
+    floorMesh.rotation.x = -Math.PI / 2;
+    floorMesh.receiveShadow = true;
+    scene.add(floorMesh);
 
-    const buildAtlas = () => {
-      const CELL = 512;
-      const cv = document.createElement("canvas");
-      cv.width = CELL * ATLAS_N;
-      cv.height = CELL;
+    const CELL = 512;
+    const atlasCanvas = document.createElement("canvas");
+    atlasCanvas.width = CELL * ATLAS_N;
+    atlasCanvas.height = CELL;
+
+    const drawAtlas = (palette: AtlasPalette) => {
+      const cv = atlasCanvas;
       const g = cv.getContext("2d");
 
       if (!g) {
         throw new Error("PaperRoll requires a 2D canvas context");
       }
 
+      seed = 7;
       const INK = "#161616";
       const PAPER = "#fbfaf7";
-      const ORANGE = "#e4551f";
-      const AMBER = "#f0a32e";
-      const BLUE = "#1e4fd6";
+      const ORANGE = palette.accent;
+      const AMBER = palette.warm;
+      const BLUE = palette.cool;
 
+      g.clearRect(0, 0, cv.width, cv.height);
       g.fillStyle = "#f6f5f1";
       g.fillRect(0, 0, cv.width, cv.height);
 
@@ -121,10 +189,22 @@ export const PaperRoll = () => {
         }
       };
 
-      const label = (x: number, y: number, txt: string, color?: string, size?: number) => {
+      const label = (
+        x: number,
+        y: number,
+        txt: string,
+        color?: string,
+        size?: number,
+        maxWidth?: number,
+      ) => {
         g.fillStyle = color === undefined || color === "" ? INK : color;
         g.font = `700 ${size === undefined || size === 0 ? 13 : size}px -apple-system, "Segoe UI", Helvetica, Arial, sans-serif`;
-        g.fillText(txt, x, y);
+
+        if (maxWidth === undefined) {
+          g.fillText(txt, x, y);
+        } else {
+          g.fillText(txt, x, y, maxWidth);
+        }
       };
 
       const mono = (x: number, y: number, txt: string, color?: string, size?: number) => {
@@ -194,7 +274,7 @@ export const PaperRoll = () => {
 
       const draws: ((f: Frame) => void)[] = [
         (f) => {
-          label(f.x + 22, f.y + 36, "KYH PRESS", INK, 15);
+          label(f.x + 22, f.y + 36, `${palette.brand} PRESS`.trim(), INK, 15, f.w - 130);
           mono(f.x + f.w - 96, f.y + 34, "A/W 26");
           g.fillStyle = ORANGE;
           g.fillRect(f.x + 22, f.y + 54, f.w - 44, f.h - 150);
@@ -215,8 +295,13 @@ export const PaperRoll = () => {
         },
         (f) => {
           g.fillStyle = INK;
-          g.font = '800 italic 128px -apple-system, "Segoe UI", Helvetica, Arial, sans-serif';
-          g.fillText("KYH", f.x + 26, f.y + 148);
+          g.font = wordFont(128);
+
+          const wordWidth = g.measureText(palette.brand).width;
+          const room = f.w - 52;
+
+          g.font = wordFont(wordWidth > room ? Math.floor((128 * room) / wordWidth) : 128);
+          g.fillText(palette.brand, f.x + 26, f.y + 148);
           g.fillStyle = ORANGE;
           g.fillRect(f.x + 30, f.y + 176, 66, 10);
           bars(f.x + 30, f.y + 214, f.w - 90, 7, 22, "#b9b8b2");
@@ -228,10 +313,10 @@ export const PaperRoll = () => {
 
           const tints: [string, string][] = [
             ["#c9c9ce", "#8f8f96"],
-            [AMBER, "#c77e14"],
+            [AMBER, shade(AMBER, 0.65)],
             ["#2c2c30", "#141416"],
             ["#dcd9d2", "#b0aca2"],
-            [BLUE, "#123089"],
+            [BLUE, shade(BLUE, 0.38)],
             ["#7d7d84", "#4c4c52"],
           ];
 
@@ -330,14 +415,6 @@ export const PaperRoll = () => {
         draw(frame);
         indexTag(frame, c + 1);
       }
-
-      const tex = new THREE.CanvasTexture(cv);
-      tex.wrapS = THREE.RepeatWrapping;
-      tex.wrapT = THREE.ClampToEdgeWrapping;
-      tex.colorSpace = THREE.SRGBColorSpace;
-      tex.anisotropy = renderer.capabilities.getMaxAnisotropy();
-
-      return tex;
     };
 
     const buildCapTexture = () => {
@@ -428,7 +505,13 @@ export const PaperRoll = () => {
       return new THREE.CanvasTexture(cv);
     };
 
-    const atlasTex = buildAtlas();
+    drawAtlas(initial);
+    let drawnAtlas = atlasKey(initial);
+    const atlasTex = new THREE.CanvasTexture(atlasCanvas);
+    atlasTex.wrapS = THREE.RepeatWrapping;
+    atlasTex.wrapT = THREE.ClampToEdgeWrapping;
+    atlasTex.colorSpace = THREE.SRGBColorSpace;
+    atlasTex.anisotropy = renderer.capabilities.getMaxAnisotropy();
     const capTex = buildCapTexture();
     const blobTex = buildBlobTexture();
 
@@ -531,6 +614,7 @@ export const PaperRoll = () => {
     ribbonGeo.setDrawRange(0, 0);
 
     const uTailS = { value: 0 };
+    const uFloor = { value: new THREE.Color(initial.floor) };
 
     const ribbonMat = new THREE.MeshStandardMaterial({
       map: atlasTex,
@@ -541,16 +625,20 @@ export const PaperRoll = () => {
 
     ribbonMat.onBeforeCompile = (shader) => {
       shader.uniforms.uTailS = uTailS;
+      shader.uniforms.uFloor = uFloor;
       shader.vertexShader = shader.vertexShader
         .replace("#include <common>", "#include <common>\nattribute float aS;\nvarying float vS;")
         .replace("#include <begin_vertex>", "#include <begin_vertex>\nvS = aS;");
       shader.fragmentShader = shader.fragmentShader
-        .replace("#include <common>", "#include <common>\nvarying float vS;\nuniform float uTailS;")
+        .replace(
+          "#include <common>",
+          "#include <common>\nvarying float vS;\nuniform float uTailS;\nuniform vec3 uFloor;",
+        )
         .replace(
           "#include <map_fragment>",
           "#include <map_fragment>\n" +
             "float tail = smoothstep(uTailS, uTailS + 3.0, vS);\n" +
-            `diffuseColor.rgb = mix(${FLOOR_RGB}, diffuseColor.rgb, tail);`,
+            "diffuseColor.rgb = mix(uFloor, diffuseColor.rgb, tail);",
         );
     };
 
@@ -568,7 +656,6 @@ export const PaperRoll = () => {
 
     const SPRING = 16;
     const DAMP = 5.4;
-    const MAX_SPEED = 9;
 
     const hx = new Float32Array(MAX_PTS);
     const hz = new Float32Array(MAX_PTS);
@@ -632,9 +719,10 @@ export const PaperRoll = () => {
       acceleration.addScaledVector(vel, -DAMP);
       vel.addScaledVector(acceleration, dt);
       const sp = vel.length();
+      const maxSpeed = liveRef.current.speed;
 
-      if (sp > MAX_SPEED) {
-        vel.multiplyScalar(MAX_SPEED / sp);
+      if (sp > maxSpeed) {
+        vel.multiplyScalar(maxSpeed / sp);
       }
 
       positionDelta.copy(vel).multiplyScalar(dt);
@@ -887,7 +975,11 @@ export const PaperRoll = () => {
           target.set(hit.x, hit.z);
         }
       } else {
-        autoAngle += dt * (0.34 + 0.5 * Math.sin(t * 0.31) + 0.3 * Math.sin(t * 0.113 + 2.1));
+        autoAngle +=
+          dt *
+          liveRef.current.wander *
+          (liveRef.current.speed / BASE_SPEED) *
+          (0.34 + 0.5 * Math.sin(t * 0.31) + 0.3 * Math.sin(t * 0.113 + 2.1));
         target.set(pos.x + Math.sin(autoAngle) * 5.2, pos.y + Math.cos(autoAngle) * 5.2);
       }
     };
@@ -907,8 +999,10 @@ export const PaperRoll = () => {
     };
 
     const updateCamera = (dt: number) => {
-      desiredPosition.set(pos.x, 0, pos.y).addScaledVector(camOffset, introZoom());
-      const k = 1 - Math.exp(-2.6 * dt);
+      desiredPosition
+        .set(pos.x, 0, pos.y)
+        .addScaledVector(camOffset, introZoom() * liveRef.current.distance);
+      const k = 1 - Math.exp(-2.6 * Math.max(1, liveRef.current.speed / BASE_SPEED) * dt);
       camPos.lerp(desiredPosition, k);
       desiredPosition.set(pos.x, 0.55, pos.y);
       lookAt.lerp(desiredPosition, k);
@@ -920,18 +1014,48 @@ export const PaperRoll = () => {
 
     for (let i = 0; i < 560; i += 1) {
       t0 += 1 / 60;
-      autoAngle += (1 / 60) * (0.34 + 0.5 * Math.sin(t0 * 0.31) + 0.3 * Math.sin(t0 * 0.113 + 2.1));
+      autoAngle +=
+        (1 / 60) *
+        initial.wander *
+        (initial.speed / BASE_SPEED) *
+        (0.34 + 0.5 * Math.sin(t0 * 0.31) + 0.3 * Math.sin(t0 * 0.113 + 2.1));
       target.set(pos.x + Math.sin(autoAngle) * 5.2, pos.y + Math.cos(autoAngle) * 5.2);
       stepMotion(1 / 60);
     }
 
-    camPos.set(pos.x, 0, pos.y).addScaledVector(camOffset, 1.5);
+    camPos.set(pos.x, 0, pos.y).addScaledVector(camOffset, 1.5 * initial.distance);
     lookAt.set(pos.x, 0.55, pos.y);
 
     const timer = new THREE.Timer();
     timer.connect(document);
     let elapsed = 0;
     let animationFrameId = 0;
+    let drawnTheme = `${initial.background}|${initial.floor}`;
+
+    const applyLive = () => {
+      const live = liveRef.current;
+      const theme = `${live.background}|${live.floor}`;
+
+      if (theme !== drawnTheme) {
+        drawnTheme = theme;
+        skyColor.set(live.background);
+        fog.color.set(live.background);
+        floorMat.color.set(live.floor);
+        uFloor.value.set(live.floor);
+      }
+
+      const atlas = atlasKey(live);
+
+      if (atlas !== drawnAtlas) {
+        drawnAtlas = atlas;
+        drawAtlas(live);
+        atlasTex.needsUpdate = true;
+        barrelTex.needsUpdate = true;
+      }
+
+      fog.near = FOG_NEAR * live.distance;
+      fog.far = FOG_FAR * live.distance;
+    };
 
     const frame = (now: number) => {
       animationFrameId = requestAnimationFrame(frame);
@@ -939,6 +1063,7 @@ export const PaperRoll = () => {
       const dt = Math.min(timer.getDelta(), 1 / 8);
       elapsed += dt;
       introT += dt;
+      applyLive();
 
       if (!paused) {
         updateTarget(elapsed, dt);
@@ -958,7 +1083,7 @@ export const PaperRoll = () => {
         blob.position.set(pos.x, 0.006, pos.y);
         blob.rotation.z = yaw - Math.PI / 2;
 
-        floor.position.set(pos.x, 0, pos.y);
+        floorMesh.position.set(pos.x, 0, pos.y);
         sun.position.set(pos.x + 5, 10, pos.y + 4);
         sun.target.position.set(pos.x, 0, pos.y);
       }
@@ -1011,12 +1136,13 @@ export const PaperRoll = () => {
       blobTex.dispose();
       renderer.dispose();
     };
-  }, []);
+  }, [paperWidth, trailLength]);
 
   return (
     <div
       ref={rootRef}
-      className="relative size-full cursor-grab touch-none overflow-hidden bg-[#eaeaec] select-none active:cursor-grabbing"
+      className="relative size-full cursor-grab touch-none overflow-hidden select-none active:cursor-grabbing"
+      style={{ backgroundColor: background }}
     >
       <canvas ref={canvasRef} className="absolute inset-0 block" />
     </div>

@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useId, useRef, useState } from "react";
-import type { KeyboardEvent, ToggleEvent } from "react";
+import type { CSSProperties, KeyboardEvent, ToggleEvent } from "react";
 import { Check, ChevronDown, Copy, Pencil, Save, Upload } from "lucide-react";
 import {
   AnimatePresence,
@@ -23,33 +23,73 @@ const MENU_ITEMS = [
   { icon: Upload, id: "export", label: "Export" },
 ] as const satisfies readonly { id: ActionId; label: string; icon: typeof Save }[];
 
-const DONE_LABEL: Record<ActionId, string> = {
+const DONE_LABEL: Record<Exclude<ActionId, "save">, string> = {
   copy: "Copied",
   export: "Exported",
-  save: "Saved",
   "save-as": "Saved as",
 };
 
-const CONFIRM_MS = 1600;
-
-const LEADING_WIDTH = 144;
 const SEAM = 2;
 const TRAILING_SIZE = 56;
 const TRAILING_RADIUS = TRAILING_SIZE / 2;
 
-const MORPH_SPRING = { bounce: 0.35, visualDuration: 0.3 };
-const PRESS_SCALE = 0.9;
 const PRESS_DOWN = { duration: 0.08, ease: "easeOut" } as const;
 const PRESS_RELEASE = { bounce: 0.55, type: "spring", visualDuration: 0.35 } as const;
 
 const roundnessOf = (morph: number) => Math.min(Math.max(morph, 0), 1);
+
+type SplitStyle = CSSProperties & Record<`--${string}`, string>;
 
 interface Confirmation {
   id: ActionId;
   seq: number;
 }
 
-export const SplitButton = () => {
+/** Colors, copy and motion of a {@link SplitButton}; every field is optional. */
+export interface SplitButtonProps {
+  /** Leading action text. */
+  label?: string;
+  /** Leading action text while its confirmation shows. */
+  doneLabel?: string;
+  /** Leading segment width in px. */
+  width?: number;
+  /** Button container color; hover, press and open tints mix it with white. */
+  accent?: string;
+  /** Text and icon color on the button. */
+  ink?: string;
+  /** Menu surface color. */
+  menuColor?: string;
+  /** Menu text color. */
+  menuInk?: string;
+  /** Focused menu item background. */
+  highlight?: string;
+  /** Focused menu item text color. */
+  highlightInk?: string;
+  /** Spring bounce of the trailing segment's corner morph, 0 to 1. */
+  bounce?: number;
+  /** Visual duration of the corner morph in seconds. */
+  morphDuration?: number;
+  /** Trailing segment scale at the bottom of its press. */
+  pressScale?: number;
+  /** How long a confirmation stays before the label returns, in ms. */
+  confirmMs?: number;
+}
+
+export const SplitButton = ({
+  label = "Save",
+  doneLabel = "Saved",
+  width = 144,
+  accent = "#a8c7fa",
+  ink = "#062e6f",
+  menuColor = "#2b2c30",
+  menuInk = "#e3e3e3",
+  highlight = "#004a77",
+  highlightInk = "#c2e7ff",
+  bounce = 0.35,
+  morphDuration = 0.3,
+  pressScale = 0.9,
+  confirmMs = 1600,
+}: SplitButtonProps) => {
   const domId = useId().replaceAll(/[^\w-]/gu, "");
   const anchorName = `--split-${domId}`;
   const menuId = `split-menu-${domId}`;
@@ -62,12 +102,12 @@ export const SplitButton = () => {
   const [activeIndex, setActiveIndex] = useState<number | null>(null);
   const [confirmation, setConfirmation] = useState<Confirmation | null>(null);
 
-  const morph = useSpring(0, MORPH_SPRING);
+  const morph = useSpring(0, { bounce, visualDuration: morphDuration });
   const scale = useMotionValue(1);
   const cornerRadius = useTransform(morph, (m) => roundnessOf(m) * TRAILING_RADIUS);
   const chevronRotate = useTransform(morph, [0, 1], [0, 180]);
   const chevronShift = useTransform(morph, (m) => (roundnessOf(m) - 1) * 2);
-  const seamX = useTransform(() => LEADING_WIDTH + TRAILING_RADIUS * (1 - scale.get()));
+  const seamX = useTransform(() => width + TRAILING_RADIUS * (1 - scale.get()));
   const filletRadius = useTransform(() => cornerRadius.get() * scale.get() + SEAM);
   const filletTop = useTransform(() => TRAILING_RADIUS * (1 - scale.get()) - SEAM);
 
@@ -99,15 +139,15 @@ export const SplitButton = () => {
 
     const timer = window.setTimeout(() => {
       setConfirmation(null);
-    }, CONFIRM_MS);
+    }, confirmMs);
 
     return () => {
       window.clearTimeout(timer);
     };
-  }, [confirmation]);
+  }, [confirmation, confirmMs]);
 
   const press = async () => {
-    await animate(scale, PRESS_SCALE, PRESS_DOWN);
+    await animate(scale, pressScale, PRESS_DOWN);
     await animate(scale, 1, PRESS_RELEASE);
   };
 
@@ -151,28 +191,41 @@ export const SplitButton = () => {
     }
   };
 
-  const confirmedLabel = confirmation ? DONE_LABEL[confirmation.id] : null;
+  const doneLabels = { ...DONE_LABEL, save: doneLabel } satisfies Record<ActionId, string>;
+  const confirmedLabel = confirmation ? doneLabels[confirmation.id] : null;
+
+  const palette: SplitStyle = {
+    "--split-accent": accent,
+    "--split-active": `color-mix(in srgb, ${accent}, white 30%)`,
+    "--split-highlight": highlight,
+    "--split-highlight-ink": highlightInk,
+    "--split-hover": `color-mix(in srgb, ${accent}, white 16%)`,
+    "--split-ink": ink,
+    "--split-menu": menuColor,
+    "--split-menu-ink": menuInk,
+    "--split-open": `color-mix(in srgb, ${accent}, white 50%)`,
+  };
 
   return (
     <>
       <div
         className="group/split inline-flex h-14 gap-0.5 select-none"
         data-open={open}
-        style={{ anchorName }}
+        style={{ ...palette, anchorName }}
       >
         <button
           type="button"
-          aria-label={confirmedLabel ?? "Save"}
+          aria-label={confirmedLabel ?? label}
           onClick={() => {
             confirm("save");
           }}
-          className="group/leading relative isolate flex cursor-pointer items-center justify-center gap-2 rounded-l-full text-[17px] font-medium text-[#062e6f] outline-none focus-visible:ring-2 focus-visible:ring-[#d3e3fd] focus-visible:ring-offset-2 focus-visible:ring-offset-[#131314]"
-          style={{ width: LEADING_WIDTH }}
+          className="group/leading relative isolate flex cursor-pointer items-center justify-center gap-2 rounded-l-full text-[17px] font-medium whitespace-nowrap text-(--split-ink) focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-(--split-open)"
+          style={{ width }}
         >
           <motion.span
             aria-hidden
-            className="pointer-events-none absolute inset-y-0 left-0 -z-10 rounded-l-full bg-[#a8c7fa] transition-colors duration-200 group-hover/leading:bg-[#b6d0fb] group-active/leading:bg-[#c2d7fc]"
-            style={{ ...notchMask, width: LEADING_WIDTH + SEAM + TRAILING_RADIUS }}
+            className="pointer-events-none absolute inset-y-0 left-0 -z-10 rounded-l-full bg-(--split-accent) transition-colors duration-200 group-hover/leading:bg-(--split-hover) group-active/leading:bg-(--split-active)"
+            style={{ ...notchMask, width: width + SEAM + TRAILING_RADIUS }}
           />
           <AnimatePresence mode="popLayout" initial={false}>
             <motion.span
@@ -183,12 +236,12 @@ export const SplitButton = () => {
               exit={{ filter: "blur(4px)", opacity: 0, y: -10 }}
               transition={{ bounce: 0.25, duration: 0.35, type: "spring" }}
             >
-              {confirmedLabel !== null && confirmedLabel !== "" ? (
+              {confirmation ? (
                 <Check className="size-5" strokeWidth={2.5} />
               ) : (
                 <Save className="size-5" strokeWidth={2.25} />
               )}
-              {confirmedLabel ?? "Save"}
+              {confirmedLabel ?? label}
             </motion.span>
           </AnimatePresence>
         </button>
@@ -199,7 +252,7 @@ export const SplitButton = () => {
           aria-haspopup="menu"
           aria-expanded={open}
           onKeyDown={onTrailingKeyDown}
-          className="relative z-10 grid cursor-pointer place-items-center rounded-r-[28px] bg-[#a8c7fa] text-[#062e6f] transition-colors duration-300 outline-none group-data-[open=true]/split:bg-[#d3e3fd] hover:bg-[#b6d0fb] focus-visible:ring-2 focus-visible:ring-[#d3e3fd] focus-visible:ring-offset-2 focus-visible:ring-offset-[#131314] active:bg-[#c2d7fc]"
+          className="relative z-10 grid cursor-pointer place-items-center rounded-r-[28px] bg-(--split-accent) text-(--split-ink) transition-colors duration-300 group-data-[open=true]/split:bg-(--split-open) hover:bg-(--split-hover) focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-(--split-open) active:bg-(--split-active)"
           style={{
             borderBottomLeftRadius: cornerRadius,
             borderTopLeftRadius: cornerRadius,
@@ -222,8 +275,13 @@ export const SplitButton = () => {
         aria-label="Save options"
         onToggle={onToggle}
         onKeyDown={onMenuKeyDown}
-        style={{ left: "anchor(left)", positionAnchor: anchorName, top: "anchor(bottom)" }}
-        className="m-0 mt-1.5 w-56 origin-top-left -translate-y-1 scale-[0.9] rounded-[6px_6px_24px_24px] border-0 bg-[#2b2c30] p-1.5 text-[#e3e3e3] opacity-0 shadow-[0_12px_32px_-8px_rgb(0_0_0/0.6)] transition-[opacity,scale,translate,display,overlay] transition-discrete duration-300 ease-[cubic-bezier(0.34,1.56,0.64,1)] [inset:auto] open:translate-y-0 open:scale-100 open:opacity-100 starting:open:-translate-y-1 starting:open:scale-[0.9] starting:open:opacity-0"
+        style={{
+          ...palette,
+          left: "anchor(left)",
+          positionAnchor: anchorName,
+          top: "anchor(bottom)",
+        }}
+        className="m-0 mt-1.5 w-56 origin-top-left -translate-y-1 scale-[0.9] rounded-[6px_6px_24px_24px] border-0 bg-(--split-menu) p-1.5 text-(--split-menu-ink) opacity-0 shadow-[0_12px_32px_-8px_rgb(0_0_0/0.6)] transition-[opacity,scale,translate,display,overlay] transition-discrete duration-300 ease-[cubic-bezier(0.34,1.56,0.64,1)] [inset:auto] open:translate-y-0 open:scale-100 open:opacity-100 starting:open:-translate-y-1 starting:open:scale-[0.9] starting:open:opacity-0"
       >
         {MENU_ITEMS.map((item, index) => (
           <button
@@ -244,7 +302,7 @@ export const SplitButton = () => {
             onClick={() => {
               choose(item.id);
             }}
-            className="flex h-12 w-full cursor-pointer items-center gap-3 rounded-[4px] px-3 text-left text-[15px] transition-[background-color,color,border-radius] duration-200 outline-none first:rounded-t-[4px] last:rounded-b-[20px] data-[active=true]:rounded-[16px] data-[active=true]:bg-[#004a77] data-[active=true]:text-[#c2e7ff]"
+            className="flex h-12 w-full cursor-pointer items-center gap-3 rounded-[4px] px-3 text-left text-[15px] transition-[background-color,color,border-radius] duration-200 outline-none first:rounded-t-[4px] last:rounded-b-[20px] data-[active=true]:rounded-[16px] data-[active=true]:bg-(--split-highlight) data-[active=true]:text-(--split-highlight-ink)"
           >
             <item.icon className="size-5" strokeWidth={2} />
             {item.label}

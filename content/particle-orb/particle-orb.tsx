@@ -118,29 +118,75 @@ const createDotTexture = (size = 32, color = "#FFFFFF") => {
   return new THREE.CanvasTexture(canvas);
 };
 
+/**
+ * Props for the particle orb.
+ * All fields are optional and fall back to the defaults below.
+ */
+export interface ParticleOrbProps {
+  /** Dot color; dots blend additively, so overlaps glow brighter. @default "#101a88" */
+  color?: string;
+  /** Center color of the radial backdrop. @default "#060a33" */
+  backgroundInner?: string;
+  /** Edge color of the radial backdrop. @default "#000000" */
+  backgroundOuter?: string;
+  /** Sphere radius in scene units (camera sits at z = 3). @default 1.5 */
+  radius?: number;
+  /** Icosahedron subdivision level; higher means more, denser dots. @default 40 */
+  detail?: number;
+  /** Dot size where the noise is lowest. @default 0.01 */
+  particleSizeMin?: number;
+  /** Dot size where the noise is highest. @default 0.08 */
+  particleSizeMax?: number;
+  /** How far noise pushes dots before they snap back onto the sphere. @default 0.4 */
+  noiseStrength?: number;
+  /** Spatial frequency multiplier of the noise field. @default 1 */
+  noiseScale?: number;
+  /** Speed at which the noise field drifts. @default 1 */
+  flowSpeed?: number;
+  /** Spin around the vertical axis in radians per second. @default 0.2 */
+  rotationSpeed?: number;
+}
+
+const defaults: Required<ParticleOrbProps> = {
+  backgroundInner: "#060a33",
+  backgroundOuter: "#000000",
+  color: "#101a88",
+  detail: 40,
+  flowSpeed: 1,
+  noiseScale: 1,
+  noiseStrength: 0.4,
+  particleSizeMax: 0.08,
+  particleSizeMin: 0.01,
+  radius: 1.5,
+  rotationSpeed: 0.2,
+};
+
+const createUniforms = () => ({
+  noiseScale: { value: defaults.noiseScale },
+  noiseStrength: { value: defaults.noiseStrength },
+  particleSizeMax: { value: defaults.particleSizeMax },
+  particleSizeMin: { value: defaults.particleSizeMin },
+  radius: { value: defaults.radius },
+  time: { value: 0 },
+});
+
 const setupPointsShader = (
   material: THREE.PointsMaterial,
-  opts: { radius: number; particleSizeMin: number; particleSizeMax: number },
+  uniforms: ReturnType<typeof createUniforms>,
 ) => {
-  const { radius, particleSizeMin, particleSizeMax } = opts;
-  let compiled: THREE.WebGLProgramParametersWithUniforms | null = null;
-
   material.onBeforeCompile = (shader: THREE.WebGLProgramParametersWithUniforms) => {
-    shader.uniforms.time = { value: 0 };
-    shader.uniforms.radius = { value: radius };
-    shader.uniforms.particleSizeMin = { value: particleSizeMin };
-    shader.uniforms.particleSizeMax = { value: particleSizeMax };
+    Object.assign(shader.uniforms, uniforms);
     shader.vertexShader = `${
       webGlNoise
-    }\nuniform float time;\nuniform float radius;\nuniform float particleSizeMin;\nuniform float particleSizeMax;\n${
+    }\nuniform float time;\nuniform float radius;\nuniform float particleSizeMin;\nuniform float particleSizeMax;\nuniform float noiseStrength;\nuniform float noiseScale;\n${
       shader.vertexShader
     }`;
     shader.vertexShader = shader.vertexShader.replace(
       "#include <begin_vertex>",
       `
           vec3 p = position;
-          float n = snoise( vec3( p.x*.6 + time*0.2, p.y*0.4 + time*0.3, p.z*.2 + time*0.2) );
-          p += n *0.4;
+          float n = snoise( vec3( p.x*.6*noiseScale + time*0.2, p.y*0.4*noiseScale + time*0.3, p.z*.2*noiseScale + time*0.2) );
+          p += n * noiseStrength;
 
           float l = radius / length(p);
           p *= l;
@@ -149,21 +195,68 @@ const setupPointsShader = (
         `,
     );
     shader.vertexShader = shader.vertexShader.replace("gl_PointSize = size;", "gl_PointSize = s;");
-
-    compiled = shader;
-  };
-
-  return (time: number) => {
-    const timeUniform = compiled?.uniforms.time;
-
-    if (timeUniform) {
-      timeUniform.value = time;
-    }
   };
 };
 
-export const ParticleOrb = () => {
+/**
+ * Noise-displaced particle sphere: an icosahedron's vertices drawn as additive dots,
+ * pushed through 3D simplex noise in the vertex shader and pulled back onto the sphere.
+ * Every prop updates live; `detail` rebuilds only the geometry.
+ *
+ * @example
+ * ```tsx
+ * <ParticleOrb />
+ * <ParticleOrb color="#ff3366" rotationSpeed={0.5} />
+ * ```
+ */
+export const ParticleOrb = ({
+  backgroundInner = defaults.backgroundInner,
+  backgroundOuter = defaults.backgroundOuter,
+  color = defaults.color,
+  detail = defaults.detail,
+  flowSpeed = defaults.flowSpeed,
+  noiseScale = defaults.noiseScale,
+  noiseStrength = defaults.noiseStrength,
+  particleSizeMax = defaults.particleSizeMax,
+  particleSizeMin = defaults.particleSizeMin,
+  radius = defaults.radius,
+  rotationSpeed = defaults.rotationSpeed,
+}: ParticleOrbProps) => {
   const rootRef = useRef<HTMLDivElement>(null);
+  const pointsRef = useRef<THREE.Points | null>(null);
+
+  const liveRef = useRef({
+    color,
+    flowSpeed,
+    noiseScale,
+    noiseStrength,
+    particleSizeMax,
+    particleSizeMin,
+    radius,
+    rotationSpeed,
+  });
+
+  useEffect(() => {
+    liveRef.current = {
+      color,
+      flowSpeed,
+      noiseScale,
+      noiseStrength,
+      particleSizeMax,
+      particleSizeMin,
+      radius,
+      rotationSpeed,
+    };
+  }, [
+    color,
+    flowSpeed,
+    noiseScale,
+    noiseStrength,
+    particleSizeMax,
+    particleSizeMin,
+    radius,
+    rotationSpeed,
+  ]);
 
   useEffect(() => {
     const container = rootRef.current;
@@ -189,36 +282,41 @@ export const ParticleOrb = () => {
     renderer.setSize(initialWidth, initialHeight);
     container.append(renderer.domElement);
 
-    const radius = 1.5;
-    const detail = 40;
-    const particleSizeMin = 0.01;
-    const particleSizeMax = 0.08;
-
-    const geometry = new THREE.IcosahedronGeometry(1, detail);
     const texture = createDotTexture(32, "#FFFFFF");
 
     const material = new THREE.PointsMaterial({
       blending: THREE.AdditiveBlending,
-      color: 0x10_1a_88,
       depthTest: false,
       map: texture,
     });
 
-    const setShaderTime = setupPointsShader(material, {
-      particleSizeMax,
-      particleSizeMin,
-      radius,
-    });
+    const uniforms = createUniforms();
+    setupPointsShader(material, uniforms);
 
-    const points = new THREE.Points(geometry, material);
+    const points = new THREE.Points(new THREE.BufferGeometry(), material);
+    pointsRef.current = points;
     scene.add(points);
 
     let animationFrameId = 0;
+    let lastTime: number | null = null;
+    let flow = 0;
+    let rotation = 0;
 
     const animate = (timeMs: number) => {
-      const time = timeMs * 0.001;
-      points.rotation.set(0, time * 0.2, 0);
-      setShaderTime(time);
+      const dt = lastTime === null ? 0 : Math.min((timeMs - lastTime) * 0.001, 0.1);
+      lastTime = timeMs;
+      flow += dt * liveRef.current.flowSpeed;
+      rotation += dt * liveRef.current.rotationSpeed;
+
+      material.color.set(liveRef.current.color);
+      uniforms.time.value = flow;
+      uniforms.radius.value = liveRef.current.radius;
+      uniforms.particleSizeMin.value = liveRef.current.particleSizeMin;
+      uniforms.particleSizeMax.value = liveRef.current.particleSizeMax;
+      uniforms.noiseStrength.value = liveRef.current.noiseStrength;
+      uniforms.noiseScale.value = liveRef.current.noiseScale;
+      points.rotation.set(0, rotation, 0);
+
       renderer.render(scene, camera);
       animationFrameId = requestAnimationFrame(animate);
     };
@@ -238,7 +336,8 @@ export const ParticleOrb = () => {
       cancelAnimationFrame(animationFrameId);
       resizeObserver.disconnect();
       scene.remove(points);
-      geometry.dispose();
+      pointsRef.current = null;
+      points.geometry.dispose();
       material.dispose();
       texture.dispose();
       renderer.dispose();
@@ -249,10 +348,31 @@ export const ParticleOrb = () => {
     };
   }, []);
 
+  const subdivisions = Math.max(1, Math.round(detail));
+
+  useEffect(() => {
+    const points = pointsRef.current;
+
+    if (!points) {
+      return noop;
+    }
+
+    const geometry = new THREE.IcosahedronGeometry(1, subdivisions);
+    points.geometry.dispose();
+    points.geometry = geometry;
+
+    return () => {
+      geometry.dispose();
+    };
+  }, [subdivisions]);
+
   return (
     <div
       ref={rootRef}
-      className="h-full w-full bg-[radial-gradient(circle_farthest-corner,_#060a33,_#000000)]"
+      className="h-full w-full"
+      style={{
+        background: `radial-gradient(circle farthest-corner, ${backgroundInner}, ${backgroundOuter})`,
+      }}
     />
   );
 };

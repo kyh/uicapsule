@@ -17,6 +17,7 @@ import {
 import { useState } from "react";
 
 import { Button } from "../components/button";
+import { DENSITY, useSettings } from "../lib/settings";
 
 const SET = [
   { Icon: ArrowUp, name: "Send" },
@@ -36,6 +37,7 @@ const SET = [
 /** Lucide at a 1.75 stroke, 12, 14 and 16px, and only where a shape beats a word. */
 export const IconFoundation = () => {
   const [pinned, setPinned] = useState(true);
+  const sizes = DENSITY[useSettings().density];
 
   return (
     <>
@@ -52,7 +54,7 @@ export const IconFoundation = () => {
           <Button aria-label="Copy run ID" size="icon-sm" variant="ghost">
             <Copy aria-hidden />
           </Button>
-          <span className="v-caption v-t2">12 in a 26px control</span>
+          <span className="v-caption v-t2">12 in a {sizes.sm}px control</span>
         </div>
         <div className="v-stack-sm v-text-center" inert>
           <Button size="md" variant="secondary">
@@ -65,7 +67,7 @@ export const IconFoundation = () => {
           <Button aria-label="Dictate" size="icon-lg" variant="secondary">
             <Mic aria-hidden />
           </Button>
-          <span className="v-caption v-t2">16 in a 36px control</span>
+          <span className="v-caption v-t2">16 in a {sizes.lg}px control</span>
         </div>
         <div className="v-stack-sm v-text-center">
           <Button

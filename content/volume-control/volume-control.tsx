@@ -12,12 +12,17 @@ import { DotsTrack } from "./dots-track";
 import { MacosChrome, VolumeHud } from "./macos-chrome";
 import { PlusMinusTrack } from "./plus-minus-track";
 import { TiltTrack } from "./tilt-track";
-import { DEFAULT_VOLUME } from "./volume-scale";
+import { DEFAULT_VOLUME, snapVolume } from "./volume-scale";
 
 export type VolumeVariant = "tilt" | "cannon" | "curling" | "dots" | "plus-minus";
 
 interface VolumeControlProps {
   variant?: VolumeVariant;
+  /** Where the volume starts, 0–100, snapped to the nearest detent. Read on mount and
+   * on every variant switch. */
+  defaultVolume?: number;
+  /** The HUD's heading. */
+  title?: string;
 }
 
 const HUD_POP = { damping: 30, stiffness: 380, type: "spring" } as const;
@@ -107,15 +112,20 @@ const NowPlayingWindow = ({ volume }: { volume: MotionValue<number> }) => (
  * frame without re-rendering React — the controls write to it, the chrome reads
  * it, and neither knows anything about the other.
  */
-export const VolumeControl = ({ variant = "tilt" }: VolumeControlProps) => {
-  const volume = useMotionValue(DEFAULT_VOLUME);
+export const VolumeControl = ({
+  variant = "tilt",
+  defaultVolume = DEFAULT_VOLUME,
+  title = "Output level",
+}: VolumeControlProps) => {
+  const startVolume = snapVolume(defaultVolume);
+  const volume = useMotionValue(startVolume);
   const [open, setOpen] = useState(true);
 
   const [renderedVariant, setRenderedVariant] = useState(variant);
 
   if (renderedVariant !== variant) {
     setRenderedVariant(variant);
-    volume.set(DEFAULT_VOLUME);
+    volume.set(startVolume);
   }
 
   const Track = TRACKS[variant];
@@ -132,7 +142,7 @@ export const VolumeControl = ({ variant = "tilt" }: VolumeControlProps) => {
           style={{ transformOrigin: "top right" }}
           className="absolute top-full right-0 z-10 mt-2.5"
         >
-          <VolumeHud volume={volume} title="Output level" hint={HINTS[variant]}>
+          <VolumeHud volume={volume} title={title} hint={HINTS[variant]}>
             <Track volume={volume} />
           </VolumeHud>
         </motion.div>

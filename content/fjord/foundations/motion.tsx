@@ -133,7 +133,7 @@ export const MotionFoundation = () => {
           </ul>
           {reduced ? (
             <p className="fj-t-body-sm fj-c-2">
-              Your system asks for less motion, so each mark lands at once and the arc holds still.
+              Less motion is on, so each mark lands at once and the arc holds still.
             </p>
           ) : null}
         </Stage>

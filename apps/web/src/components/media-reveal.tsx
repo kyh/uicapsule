@@ -1,52 +1,13 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import type { RefObject } from "react";
+import type { Ref } from "react";
 import Image from "next/image";
 import { animate, motion, useMotionValue, useReducedMotion, useTransform } from "motion/react";
-import { useTheme } from "next-themes";
 import { cn } from "cn";
 import { noop } from "@tanstack/react-query";
 
-import { PREVIEW_ALLOW, PREVIEW_SANDBOX, parseFrameMessage } from "@/lib/preview-protocol";
-import type { ParentMessage } from "@/lib/preview-protocol";
-
-const usePreviewTheme = (iframeRef: RefObject<HTMLIFrameElement | null>, mounted: boolean) => {
-  const { resolvedTheme } = useTheme();
-
-  useEffect(() => {
-    const iframe = iframeRef.current;
-
-    if (!mounted || !iframe || resolvedTheme === undefined || resolvedTheme === "") {
-      return noop;
-    }
-
-    const message: ParentMessage = {
-      theme: resolvedTheme === "dark" ? "dark" : "light",
-      type: "uicapsule:theme",
-    };
-
-    const send = () => {
-      iframe.contentWindow?.postMessage(message, "*");
-    };
-
-    const onMessage = (event: MessageEvent) => {
-      if (
-        event.source === iframe.contentWindow &&
-        parseFrameMessage(event)?.type === "uicapsule:ready"
-      ) {
-        send();
-      }
-    };
-
-    send();
-    window.addEventListener("message", onMessage);
-
-    return () => {
-      window.removeEventListener("message", onMessage);
-    };
-  }, [iframeRef, mounted, resolvedTheme]);
-};
+import { PREVIEW_ALLOW, PREVIEW_SANDBOX } from "@/lib/preview-protocol";
 
 const useInView = (rootMargin = "200px") => {
   const ref = useRef<HTMLDivElement>(null);
@@ -102,17 +63,15 @@ interface MediaRevealProps {
   image?: string;
   video?: string;
   iframe?: { src: string; title: string; type: FrameType };
+  frameRef?: Ref<HTMLIFrameElement>;
 }
 
-export const MediaReveal = ({ className, image, video, iframe }: MediaRevealProps) => {
+export const MediaReveal = ({ className, image, video, iframe, frameRef }: MediaRevealProps) => {
   const { ref: rootRef, visible, loaded } = useInView();
   const videoRef = useRef<HTMLVideoElement>(null);
-  const iframeRef = useRef<HTMLIFrameElement>(null);
   const [revealed, setRevealed] = useState(false);
   const [wiped, setWiped] = useState(false);
   const prefersReducedMotion = useReducedMotion();
-
-  usePreviewTheme(iframeRef, iframe?.type === "local" && loaded);
 
   const retired = wiped || (revealed && Boolean(prefersReducedMotion));
 
@@ -239,7 +198,7 @@ export const MediaReveal = ({ className, image, video, iframe }: MediaRevealProp
       )}
       {iframe && loaded && (
         <iframe
-          ref={iframeRef}
+          ref={frameRef}
           className="bg-background absolute inset-0 h-full w-full"
           title={iframe.title}
           src={iframe.src}

@@ -39,6 +39,7 @@ Vendored from upstream at the commits below, then run through `oxfmt` (except `l
 | `remove-animations`            | [emilkowalski/skills](https://github.com/emilkowalski/skills)                     | lock      | MIT        |
 | `review-animations`            | [emilkowalski/skills](https://github.com/emilkowalski/skills)                     | lock      | MIT        |
 | `shadcn`                       | [shadcn-ui/ui](https://github.com/shadcn-ui/ui)                                   | `98a1fe6` | MIT        |
+| `stageshow`                    | [benjitaylor/skills](https://github.com/benjitaylor/skills)                       | lock      | MIT        |
 | `state-machine`                | [jakubkrehel/skills](https://github.com/jakubkrehel/skills)                       | lock      | MIT        |
 | `variant`                      | [jakubkrehel/skills](https://github.com/jakubkrehel/skills)                       | lock      | MIT        |
 
@@ -60,6 +61,8 @@ Local deviations:
 
 - `adapt` is the web half of impeccable's `adapt` subcommand, given its own frontmatter.
   Upstream folded it into the 2MB `impeccable` bundle; the native variant was dropped.
+- `stageshow` is cover tooling (design-system trailers, `cover-video`), not served over `/mcp`.
+  Its bundled app icons are not MIT; see its `NOTICE.md`.
 - `better-*` siblings are included because `better-interface` only orchestrates them.
 - Upstream `agents/`, `evals/` and `demo/` folders were omitted, except in `lock` rows, which
   keep upstream's tree as is.

@@ -809,9 +809,15 @@ export const chooseCols = (count: number, viewportAspect: number) => {
 /**
  * Deterministic grid with mild per-cell jitter. Each item sits at its cell
  * centre plus a hashed offset (±0.09 cellW, ±0.07 cellH) and a rotation of up
- * to ±2°. Positions are stable across renders.
+ * to ±`maxTilt` degrees. Positions are stable across renders.
  */
-export const layoutPositions = (worldW: number, worldH: number, cols: number, count: number) => {
+export const layoutPositions = (
+  worldW: number,
+  worldH: number,
+  cols: number,
+  count: number,
+  maxTilt = 2,
+) => {
   const rows = Math.ceil(count / cols);
   const cellW = worldW / cols;
   const cellH = worldH / rows;
@@ -823,7 +829,7 @@ export const layoutPositions = (worldW: number, worldH: number, cols: number, co
     const seed = i * 37 + 7;
     const ox = (hash(seed) - 0.5) * cellW * 0.18;
     const oy = (hash(seed + 1) - 0.5) * cellH * 0.14;
-    const rot = (hash(seed + 2) - 0.5) * 4;
+    const rot = (hash(seed + 2) - 0.5) * 2 * maxTilt;
     out.push({
       rot,
       x: col * cellW + cellW / 2 + ox,

@@ -1,15 +1,13 @@
 "use client";
 
 import { defineChart, vector } from "@tanstack/charts";
-import { motion } from "@tanstack/charts/motion";
+import type { ChartMotionSpringTransition } from "@tanstack/charts/motion";
 import { Chart } from "@tanstack/charts/react/core";
 import { scaleLinear } from "@tanstack/charts/scales/linear";
 import { useMemo } from "react";
 
 import type { ChannelRow } from "../lib/data";
-import { SPRING } from "../lib/tokens";
-
-const renderer = motion({ initial: "always", transition: SPRING });
+import { useSpringRenderer } from "../lib/spring-renderer";
 
 interface RingTick {
   id: number;
@@ -26,6 +24,7 @@ export const TickRing = ({
   size,
   twist,
   ladder,
+  spring,
 }: {
   channels: ChannelRow[];
   /** 0 → 1 entrance progress; the dial sweeps clockwise as it advances. */
@@ -33,7 +32,9 @@ export const TickRing = ({
   size: number;
   twist: number;
   ladder: readonly string[];
+  spring: ChartMotionSpringTransition;
 }) => {
+  const { key, renderer } = useSpringRenderer(spring);
   const revealed = Math.min(100, Math.floor(reveal * 101));
 
   const definition = useMemo(() => {
@@ -73,7 +74,7 @@ export const TickRing = ({
           key: "id",
           length: (d) => (d.major ? 26 : 18),
           rotate: "rotate",
-          stroke: (d) => shade.get(d.channel) ?? ladder[0] ?? "#f1f0ec",
+          stroke: (d) => shade.get(d.channel) ?? ladder[0] ?? "currentColor",
           strokeWidth: 2.4,
           x: "x",
           y: "y",
@@ -88,6 +89,7 @@ export const TickRing = ({
 
   return (
     <Chart
+      key={key}
       definition={definition}
       renderer={renderer}
       width={size}

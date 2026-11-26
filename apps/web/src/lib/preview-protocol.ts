@@ -1,5 +1,7 @@
 import * as z from "zod/mini";
 
+import { controlValuesPayloadSchema, previewControlsSchema } from "./preview-controls";
+
 /**
  * Sandbox flags for a local component preview, applied twice: as the preview document's
  * `Content-Security-Policy: sandbox` (so it holds even when the URL is opened top-level) and
@@ -29,12 +31,20 @@ export type InspectBox = z.infer<typeof inspectBoxSchema>;
 const parentMessageSchema = z.discriminatedUnion("type", [
   z.object({ theme: previewThemeSchema, type: z.literal("uicapsule:theme") }),
   z.object({ enabled: z.boolean(), type: z.literal("uicapsule:inspect") }),
+  z.object({
+    type: z.literal("uicapsule:props"),
+    values: controlValuesPayloadSchema,
+  }),
 ]);
 
 export type ParentMessage = z.infer<typeof parentMessageSchema>;
 
 const frameMessageSchema = z.discriminatedUnion("type", [
-  z.object({ type: z.literal("uicapsule:ready") }),
+  z.object({
+    // oxlint-disable-next-line promise/valid-params -- z.catch is zod's fallback schema, not Promise#catch
+    controls: z.catch(z.nullable(previewControlsSchema), null),
+    type: z.literal("uicapsule:ready"),
+  }),
   z.object({ box: z.nullable(inspectBoxSchema), type: z.literal("uicapsule:inspect-box") }),
 ]);
 

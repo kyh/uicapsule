@@ -31,6 +31,7 @@ const ResizeHandle = ({
   onDraggingChange,
 }: ResizeHandleProps) => {
   const start = useRef<{ x: number; width: number } | null>(null);
+  const [dragging, setDragging] = useState(false);
   const outward = side === "left" ? -1 : 1;
 
   const onPointerDown = (event: PointerEvent<HTMLDivElement>) => {
@@ -40,6 +41,7 @@ const ResizeHandle = ({
       width: event.currentTarget.parentElement?.offsetWidth ?? width,
       x: event.clientX,
     };
+    setDragging(true);
     onDraggingChange(true);
   };
 
@@ -53,6 +55,7 @@ const ResizeHandle = ({
 
   const onLostPointerCapture = () => {
     start.current = null;
+    setDragging(false);
     onDraggingChange(false);
   };
 
@@ -77,15 +80,21 @@ const ResizeHandle = ({
       aria-valuenow={Math.round(width)}
       aria-valuemin={minWidth}
       aria-valuemax={maxWidth}
+      data-dragging={dragging || undefined}
       className={cn(
-        "bg-muted-foreground/20 hover:bg-primary focus-visible:bg-primary active:bg-primary absolute top-1/2 hidden h-24 w-1.5 -translate-y-1/2 cursor-ew-resize touch-none rounded-full transition-colors duration-150 ease-out outline-none motion-reduce:transition-none md:block",
-        side === "left" ? "-left-3 -translate-x-1/2" : "-right-3 translate-x-1/2",
+        "group absolute top-1/2 hidden h-20 w-4 -translate-y-1/2 cursor-ew-resize touch-none place-items-center outline-none md:grid",
+        side === "left" ? "-left-1.5 -translate-x-1/2" : "-right-1.5 translate-x-1/2",
       )}
       onPointerDown={onPointerDown}
       onPointerMove={onPointerMove}
       onLostPointerCapture={onLostPointerCapture}
       onKeyDown={onKeyDown}
-    />
+    >
+      <span
+        aria-hidden
+        className="bg-muted-foreground/25 group-hover:bg-primary group-focus-visible:bg-primary group-data-dragging:bg-primary h-16 w-1 scale-y-50 rounded-full transition-[scale,background-color] duration-300 ease-[cubic-bezier(0.23,1,0.32,1)] group-hover:scale-y-100 group-focus-visible:scale-y-100 group-data-dragging:scale-y-100 motion-reduce:transition-none"
+      />
+    </div>
   );
 };
 

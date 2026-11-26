@@ -42,10 +42,10 @@
     "width": 1920
   },
   "chibi-plants": {
-    "cover": "chibi-plants/chibi-plants.mp4",
-    "duration": 13.18,
+    "cover": "chibi-plants/chibi-plants.20261126.mp4",
+    "duration": 11.58,
     "height": 900,
-    "uploadDate": "2026-09-08",
+    "uploadDate": "2026-11-26",
     "width": 1600
   },
   "circle-to-search": {
@@ -56,10 +56,10 @@
     "width": 1600
   },
   "clementine": {
-    "cover": "clementine/clementine.20261125.mp4",
-    "duration": 11.6,
+    "cover": "clementine/clementine.20261126.mp4",
+    "duration": 13.2,
     "height": 900,
-    "uploadDate": "2026-11-25",
+    "uploadDate": "2026-11-26",
     "width": 1600
   },
   "context-menu-peek": {
@@ -70,10 +70,10 @@
     "width": 1600
   },
   "desktop-os": {
-    "cover": "desktop-os/desktop-os.mp4",
-    "duration": 13.67,
+    "cover": "desktop-os/desktop-os.20261126.mp4",
+    "duration": 12.68,
     "height": 900,
-    "uploadDate": "2026-09-08",
+    "uploadDate": "2026-11-26",
     "width": 1600
   },
   "diffusion-reveal": {
@@ -98,10 +98,10 @@
     "width": 1600
   },
   "dynamic-island": {
-    "cover": "dynamic-island/dynamic-island.mp4",
-    "duration": 13.18,
+    "cover": "dynamic-island/dynamic-island.20261126.mp4",
+    "duration": 10.98,
     "height": 900,
-    "uploadDate": "2026-09-08",
+    "uploadDate": "2026-11-26",
     "width": 1600
   },
   "editorial-charts": {
@@ -140,17 +140,17 @@
     "width": 1600
   },
   "fjord": {
-    "cover": "fjord/fjord.20261125.mp4",
-    "duration": 11.6,
+    "cover": "fjord/fjord.20261126.mp4",
+    "duration": 12.5,
     "height": 900,
-    "uploadDate": "2026-11-25",
+    "uploadDate": "2026-11-26",
     "width": 1600
   },
   "formation": {
-    "cover": "formation/formation.mp4",
-    "duration": 14.02,
+    "cover": "formation/formation.20261126.mp4",
+    "duration": 13.77,
     "height": 900,
-    "uploadDate": "2026-09-08",
+    "uploadDate": "2026-11-26",
     "width": 1600
   },
   "geometric-orb": {
@@ -175,10 +175,10 @@
     "width": 1600
   },
   "halogen": {
-    "cover": "halogen/halogen.20261125.mp4",
-    "duration": 11.6,
+    "cover": "halogen/halogen.20261126.mp4",
+    "duration": 13,
     "height": 900,
-    "uploadDate": "2026-11-25",
+    "uploadDate": "2026-11-26",
     "width": 1600
   },
   "infinite-grid": {
@@ -378,10 +378,10 @@
     "width": 1916
   },
   "vellum": {
-    "cover": "vellum/vellum.20261125.mp4",
-    "duration": 11.6,
+    "cover": "vellum/vellum.20261126.mp4",
+    "duration": 12.5,
     "height": 900,
-    "uploadDate": "2026-11-25",
+    "uploadDate": "2026-11-26",
     "width": 1600
   },
   "vibe-dial": {
@@ -399,10 +399,10 @@
     "width": 1732
   },
   "volume-control": {
-    "cover": "volume-control/volume-control.20260926.mp4",
-    "duration": 13.55,
+    "cover": "volume-control/volume-control.20261126.mp4",
+    "duration": 10.8,
     "height": 900,
-    "uploadDate": "2026-09-25",
+    "uploadDate": "2026-11-26",
     "width": 1600
   },
   "voxel-landing": {

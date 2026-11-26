@@ -18,6 +18,8 @@ import { SourceAssetIcon, SourceIcon } from "./source-icon";
 
 const noop = () => null;
 
+const pulseStop = { stopColor: "var(--emerald-pulse)" };
+
 const stepTranslateY = [0, -100, -170];
 
 const workflowSteps = ["Connect your data source", "Build your app", "One click deploy"];
@@ -101,9 +103,9 @@ const Lines = ({
           id={animateId}
           gradientUnits="userSpaceOnUse"
         >
-          <stop stopColor="oklch(0.696 0.17 162.48)" stopOpacity="0" />
-          <stop stopColor="oklch(0.696 0.17 162.48)" stopOpacity="0.4" />
-          <stop offset="1" stopColor="oklch(0.696 0.17 162.48)" stopOpacity="0" />
+          <stop style={pulseStop} stopOpacity="0" />
+          <stop style={pulseStop} stopOpacity="0.4" />
+          <stop offset="1" style={pulseStop} stopOpacity="0" />
         </motion.linearGradient>
       </defs>
     </svg>

@@ -15,6 +15,8 @@
   --input: #e4e4e7;
   --ring: #a1a1aa;
   --destructive: #dc2626;
+  --selection-tint: #3b82f6;
+  --selection: color-mix(in oklab, var(--selection-tint) 8%, var(--background));
   color: var(--foreground);
 }
 
@@ -34,6 +36,7 @@
   --input: #ffffff26;
   --ring: #71717a;
   --destructive: #f87171;
+  --selection: color-mix(in oklab, var(--selection-tint) 18%, var(--background));
 }
 
 @layer base {

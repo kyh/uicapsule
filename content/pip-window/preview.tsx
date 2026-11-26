@@ -2,6 +2,8 @@
 
 import type { CSSProperties } from "react";
 
+import type { ClayTone } from "./phone-frame";
+import type { PipCorner } from "./pip-window";
 import { PipWindow } from "./pip-window";
 
 const backdrop: CSSProperties = {
@@ -13,9 +15,150 @@ const backdrop: CSSProperties = {
   ].join(", "),
 };
 
-const Preview = () => (
+export const controls = {
+  momentum: {
+    default: 0.18,
+    group: "Physics",
+    label: "Throw",
+    max: 0.4,
+    min: 0.04,
+    step: 0.01,
+    type: "number",
+  },
+  bounce: {
+    default: 0.32,
+    group: "Physics",
+    label: "Bounce",
+    max: 0.6,
+    min: 0.08,
+    step: 0.01,
+    type: "number",
+  },
+  duration: {
+    default: 0.55,
+    group: "Physics",
+    label: "Settle time",
+    max: 1.2,
+    min: 0.25,
+    step: 0.05,
+    type: "number",
+  },
+  tuck: { default: true, group: "Physics", label: "Edge tuck", type: "boolean" },
+  peek: {
+    default: 26,
+    group: "Physics",
+    label: "Peek tab",
+    max: 56,
+    min: 18,
+    step: 1,
+    type: "number",
+  },
+  defaultCorner: {
+    default: "bottom-right",
+    group: "Layout",
+    label: "Start corner",
+    options: [
+      { label: "Top left", value: "top-left" },
+      { label: "Top right", value: "top-right" },
+      { label: "Bottom left", value: "bottom-left" },
+      { label: "Bottom right", value: "bottom-right" },
+    ],
+    type: "select",
+  },
+  width: {
+    default: 150,
+    group: "Layout",
+    label: "Window width",
+    max: 200,
+    min: 120,
+    step: 2,
+    type: "number",
+  },
+  margin: {
+    default: 14,
+    group: "Layout",
+    label: "Edge margin",
+    max: 40,
+    min: 6,
+    step: 1,
+    type: "number",
+  },
+  accent: { default: "#00d492", group: "Surface", label: "Speaking", type: "color" },
+  tone: {
+    default: "teal",
+    group: "Surface",
+    label: "Phone",
+    options: [
+      { label: "Teal", value: "teal" },
+      { label: "Graphite", value: "graphite" },
+      { label: "Slate", value: "slate" },
+      { label: "Moss", value: "moss" },
+      { label: "Plum", value: "plum" },
+      { label: "Espresso", value: "espresso" },
+      { label: "Ochre", value: "ochre" },
+      { label: "Terracotta", value: "terracotta" },
+    ],
+    type: "select",
+  },
+  name: { default: "Nova", group: "Copy", label: "Caller", placeholder: "Name", type: "text" },
+  initials: { default: "NV", group: "Copy", label: "Initials", placeholder: "NV", type: "text" },
+  hint: {
+    default: "Flick the call window · throw it off an edge to tuck it",
+    group: "Copy",
+    label: "Hint",
+    placeholder: "Hint text",
+    type: "text",
+  },
+} as const;
+
+interface PreviewProps {
+  accent: string;
+  bounce: number;
+  defaultCorner: PipCorner;
+  duration: number;
+  hint: string;
+  initials: string;
+  margin: number;
+  momentum: number;
+  name: string;
+  peek: number;
+  tone: ClayTone;
+  tuck: boolean;
+  width: number;
+}
+
+const Preview = ({
+  accent = controls.accent.default,
+  bounce = controls.bounce.default,
+  defaultCorner = controls.defaultCorner.default,
+  duration = controls.duration.default,
+  hint = controls.hint.default,
+  initials = controls.initials.default,
+  margin = controls.margin.default,
+  momentum = controls.momentum.default,
+  name = controls.name.default,
+  peek = controls.peek.default,
+  tone = controls.tone.default,
+  tuck = controls.tuck.default,
+  width = controls.width.default,
+}: Partial<PreviewProps>) => (
   <main className="flex h-dvh items-center justify-center overflow-hidden p-5" style={backdrop}>
-    <PipWindow />
+    <PipWindow
+      key={defaultCorner}
+      accent={accent}
+      bounce={bounce}
+      defaultCorner={defaultCorner}
+      duration={duration}
+      hint={hint}
+      initials={initials}
+      margin={margin}
+      momentum={momentum}
+      name={name}
+      peek={peek}
+      tone={tone}
+      tuck={tuck}
+      width={width}
+    />
   </main>
 );
 

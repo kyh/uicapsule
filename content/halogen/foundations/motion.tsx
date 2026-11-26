@@ -121,7 +121,7 @@ export const Motion = () => {
         <div className="hx-head">
           <span className="hx-head-title hx-code">Durations</span>
           <span className="hx-head-meta hx-code-sm">
-            {reduced ? "Reduced motion on: all 0ms" : "7 tokens"}
+            {reduced ? "Motion off: all 0ms" : "7 tokens"}
           </span>
           <div className="hx-head-actions">
             <Button

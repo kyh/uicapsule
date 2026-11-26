@@ -33,12 +33,20 @@ export const useActive = () => use(ActiveContext);
 
 /** Wraps one card in the wall and owns its in-view state. It sits ABOVE the
  * chart component, so hooks in a chart's own body (`useCycle`) see it too. */
-export const ChartCell = ({ children, id }: { children: ReactNode; id: string }) => {
+export const ChartCell = ({
+  children,
+  gap,
+  id,
+}: {
+  children: ReactNode;
+  gap: number;
+  id: string;
+}) => {
   const ref = useRef<HTMLDivElement>(null);
   const active = useInView(ref, { margin: "0px 0px -12% 0px", once: true });
 
   return (
-    <div ref={ref} data-chart={id} className="break-inside-avoid">
+    <div ref={ref} data-chart={id} className="break-inside-avoid" style={{ paddingBottom: gap }}>
       <ActiveContext value={active}>{children}</ActiveContext>
     </div>
   );
@@ -61,7 +69,7 @@ export const Card = ({
       animate={active ? { opacity: 1, scale: 1, y: 0 } : undefined}
       transition={SPRING}
       className={cx(
-        "relative mb-4 overflow-hidden rounded-[22px] bg-white p-5 text-[#0b0b0f] shadow-[0_1px_2px_rgba(16,16,24,0.04),0_8px_24px_-12px_rgba(16,16,24,0.12)] ring-1 ring-black/[0.04]",
+        "relative overflow-hidden rounded-[22px] bg-white p-5 text-[#0b0b0f] shadow-[0_1px_2px_rgba(16,16,24,0.04),0_8px_24px_-12px_rgba(16,16,24,0.12)] ring-1 ring-black/[0.04]",
         className,
       )}
       style={style}

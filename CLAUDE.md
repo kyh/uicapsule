@@ -70,7 +70,11 @@ Content is filesystem-driven; the web app never depends on content packages by n
   dev, `pnpm dev:web` runs `//#dev:previews` beside `next dev` (turbo `with`): a Vite dev server
   on `PREVIEW_DEV_ORIGIN` (`:5174`), and the frame route in development serves a shell that loads
   `/@preview/<slug>.js` from it with React Refresh, so edits (and new Tailwind classes, recompiled
-  per slug on change) hot-swap inside the sandboxed frame. Its root is `apps/web` only so plugin-react
+  per slug on change) hot-swap inside the sandboxed frame. A `preview.tsx` that exports
+  `controls` would break React Refresh's boundary (a non-component export), so in dev the plugin
+  appends `previewHotFooter`: the runtime's `hotPreviewModule` keeps `controls` out of the check
+  (`window.__getReactRefreshIgnoredExports`) and, through the module's own accept, applies a changed
+  export live (current values re-merged, `uicapsule:ready` re-announced). Its root is `apps/web` only so plugin-react
   resolves React; its watcher ignores everything there but `src/lib`, so it never watches what
   `next dev` watches. `@repo/ui/globals.css` no longer scans
   `content/**`, so the site's CSS carries no component classes.
@@ -80,8 +84,8 @@ Content is filesystem-driven; the web app never depends on content packages by n
   embedding iframe carries the same `sandbox`: a preview runs on an opaque origin with no
   cookies and no storage, even when its URL is opened top-level (so `/previews/*` answers
   CORS with `*`, since module scripts from an opaque origin are CORS fetches). The site talks
-  to a frame only through `postMessage` (`lib/preview-protocol.ts`: theme in, inspect boxes
-  out, both zod-parsed), never `contentDocument`. `NEXT_PUBLIC_PREVIEW_URL` (e.g.
+  to a frame only through `postMessage` (`lib/preview-protocol.ts`: theme, inspect and control
+  values in; ready with its controls and inspect boxes out; all zod-parsed), never `contentDocument`. `NEXT_PUBLIC_PREVIEW_URL` (e.g.
   `https://preview.uicapsule.com`, a domain alias of this same Vercel project) moves frames to
   their own host, and `next.config.ts` redirects every other path on that host to www. A
   separate registrable domain would also keep a flagged UGC preview off uicapsule.com's
@@ -92,7 +96,8 @@ Content is filesystem-driven; the web app never depends on content packages by n
   `handleSchema`), and a component lives at `/u/<username>/<slug>`, its frame at
   `/preview-frame/u/<username>/<slug>` (`ugcPreviewFrameSrc`).
   - **Bundle contract: plain ESM, React from us.** Any bundler works. `index.js` default-exports
-    a component rendered with no props; `index.css` is required (may be empty); other files sit
+    a component rendered with no props (an optional `controls` export is parsed and fed to it
+    like a curated preview's); `index.css` is required (may be empty); other files sit
     in up to four folders, referenced by absolute URL under the `assetBase` the server hands out.
     `UGC_SHARED_MODULES` (react, react-dom, motion and their subpaths) stay external: the shell's
     import map points them at `/previews/_ugc/*`, which `build:previews` builds once
@@ -131,8 +136,33 @@ Content is filesystem-driven; the web app never depends on content packages by n
     session token (better-auth `bearer`, admitted by `/api/orpc`'s Origin guard because it sends no
     Origin). Not done yet: gallery cards or `/u` pages, source upload, moderation, revoking an
     app, and cleanup of builds uploaded but never published.
-- `/r/<slug>.json` serves the shadcn registry item. The docked code panel and zip download
-  use `/api/content/<slug>`; the viewer and zip library load on demand.
+- **Preview controls.** A `preview.tsx` may export `controls` beside its default `Preview`: an
+  `as const` literal mapping prop name → descriptor (`number` with `min`/`max`/`step?`,
+  `boolean`, `select` with `options` of strings or `{ value, label }`, `color` as hex, `text`
+  with `placeholder?`; every one has `default`, `label?` and `group?`). A preview with more
+  than eight controls sorts them into a few named groups (the panel renders a collapsible header
+  per group); groups are all-or-none and each is declared as one contiguous run. `Preview` then receives one prop
+  per key, typed by hand since content can't import `@repo/*` or the app. Each prop is optional
+  and defaults to `controls.<key>.default` (`({ hue = controls.hue.default }: Partial<PreviewProps>)`),
+  because `preview.tsx` ships in the registry item and zip where nothing injects values.
+  `typecheck:content` holds it to `ControlValues<typeof controls>` and to rendering with no
+  props, each select default to its options and each color default to `#…`
+  (`lib/preview-controls.ts`); `build:previews` loads every `controls` export through Vite's SSR
+  runner and fails on any `previewControlsSchema` rejects (strict objects, so a misspelled
+  field fails too; `key`, `ref` and `Object.prototype` names are not control names), or on a
+  preview that can't load in Node, naming the slug: browser globals at module scope would crash
+  a registry install's server render too. Every component exposes its knobs
+  and any demo harness (variant, mode or preset pickers, sample-data toggles, speeds) as controls,
+  never as in-frame UI; the frame keeps only the component's own interaction (a toggle's on/off
+  when the toggle is the component, a timer's running state). Design systems expose their
+  settings (mode, accent, density…) the same way. The generated entry passes
+  the module namespace to `startPreview`, which parses `controls` (throws on an invalid one),
+  renders `Preview` from an external store so a value change never remounts it, announces the
+  controls in `uicapsule:ready`, and folds each `uicapsule:props` in with `mergeControlValues`
+  (clamped, option-checked, hex-checked; unknown keys dropped). Without `controls` a preview
+  stays zero-prop.
+- `/r/<slug>.json` serves the shadcn registry item. The docked code panel uses
+  `/api/content/<slug>`; its viewer loads on demand.
 - `/ui/<slug>` is a docked workspace (`_components/component-workspace.tsx`): component list,
   preview + toolbar, code panel, info panel. Switching components is client state +
   `history.pushState`, so the iframe swaps without a route remount. Every panel starts collapsed; sizes and open state live in
@@ -152,10 +182,11 @@ Content is filesystem-driven; the web app never depends on content packages by n
   anti-slop rules), and components grouped by category with domain-specific ones. Keep that
   section order so entries compare side by side; everything else, chrome included, is the
   system's. Template edits reach only systems scaffolded afterwards. Like `pages`, the gallery card shows a badge
-  (`elementBadge` in `content-categories.ts`) instead of an index number.
+  (`elementBadge` in `content-categories.ts`) instead of an index number. Its cover is a 12–15s trailer
+  of the real page, not a scroll: `cover-video` skill, `trailer/shots/<slug>.js`.
 - `meta.json` carries provenance: `addedAt` (required, stamped by `new:content`, drives
   gallery order newest-first), `inspiredBy` (where the idea came from), `requestedBy`
-  (who asked for it). Keep them honest — they render on the detail page.
+  (who asked for it). Keep `inspiredBy` and `requestedBy` honest — they render on the detail page.
 
 ### Component requests
 
@@ -400,6 +431,9 @@ asked for, so a foreign page holding a code could sign its visitor in.
   `packages/db` in web's build hash. Without it a `packages/db`-only commit is the same stale
   `FULL TURBO` replay as a content-only one. Don't list `@repo/db` in `apps/web` to fix that
   instead: nothing there imports it.
+- **`dev`/`dev:web` use `turbo run`, not `turbo watch` — keep it.** `next dev` and the Vite
+  preview server watch their own files. Under `turbo watch`, `globalDependencies` (`content/**`)
+  restarts both on every content edit, which kills preview hot-swaps and blanks frames mid-edit.
 - Settled audit findings that should not be re-raised live in the pinned issue #84.
 
 ## Content Curation Philosophy
@@ -422,3 +456,6 @@ choreography, gallery copy. In priority order:
 - A dev preview that renders blank means the preview dev server isn't running: `next dev` alone
   doesn't start it. Use `pnpm dev:web`, or run `pnpm dev:previews` beside it. A built preview
   that renders unstyled means `public/previews` is stale: run `pnpm build:previews`.
+- The preview dev server imports `scripts/build-previews.ts` and `scripts/preview-bundle.ts`
+  once at startup, so an edit to either (the generated entry and HMR footer included) reaches dev frames only
+  after restarting `pnpm dev:web`. HMR covers `src/lib` and content, not those two.

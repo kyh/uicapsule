@@ -1,16 +1,16 @@
 "use client";
 
-import { useEffect, useId, useState } from "react";
-import type { ReactNode } from "react";
-import { Boxes, ChevronDown, Layers, Moon, PanelsTopLeft, Sun } from "lucide-react";
+import { useEffect, useId, useMemo, useState } from "react";
+import type { ComponentType, ReactNode } from "react";
+import { Boxes, ChevronDown, Layers, PanelsTopLeft } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 
-import { Button } from "./components/button";
 import { Icon } from "./components/icon";
 import { Breadcrumb } from "./components/navigation";
 import { ToastProvider } from "./components/toast";
 import { FOUNDATIONS } from "./foundations";
-import { ThemeContext } from "./lib/theme";
+import { cssVars } from "./lib/css";
+import { AppearanceContext } from "./lib/theme";
 import type { Theme } from "./lib/theme";
 import { ApiKeys } from "./screens/api-keys";
 import { ModelSwap } from "./screens/model-swap";
@@ -19,17 +19,25 @@ import { RunTraceScreen } from "./screens/run-trace";
 import { CATEGORIES, COMPONENT_COUNT } from "./specimens";
 import { system } from "./system";
 
-const SCREENS = [
-  { id: "screen-repo", title: "Repo overview" },
-  { id: "screen-trace", title: "Run trace" },
-  { id: "screen-swap", title: "Model swap" },
-  { id: "screen-keys", title: "Deploy keys" },
-] as const;
-
 interface Entry {
   id: string;
   title: string;
 }
+
+interface Screen extends Entry {
+  Component: ComponentType;
+}
+
+const SCREENS = [
+  { Component: RepoHome, id: "screen-repo", title: "Repo overview" },
+  { Component: RunTraceScreen, id: "screen-trace", title: "Run trace" },
+  { Component: ModelSwap, id: "screen-swap", title: "Model swap" },
+  { Component: ApiKeys, id: "screen-keys", title: "Deploy keys" },
+] as const satisfies readonly Screen[];
+
+export type ScreenId = (typeof SCREENS)[number]["id"];
+
+export type Density = "compact" | "regular" | "comfortable";
 
 interface Part {
   id: string;
@@ -38,11 +46,19 @@ interface Part {
   entries: readonly Entry[];
 }
 
-const PARTS = [
-  { entries: SCREENS, icon: PanelsTopLeft, id: "in-use", title: "In use" },
-  { entries: FOUNDATIONS, icon: Layers, id: "foundations", title: "Foundations" },
-  { entries: CATEGORIES, icon: Boxes, id: "components", title: "Components" },
-] as const satisfies readonly Part[];
+const featureFirst = (featured: ScreenId) => [
+  ...SCREENS.filter((screen) => screen.id === featured),
+  ...SCREENS.filter((screen) => screen.id !== featured),
+];
+
+const partsFor = (screens: readonly Screen[]) =>
+  [
+    { entries: screens, icon: PanelsTopLeft, id: "in-use", title: "In use" },
+    { entries: FOUNDATIONS, icon: Layers, id: "foundations", title: "Foundations" },
+    { entries: CATEGORIES, icon: Boxes, id: "components", title: "Components" },
+  ] as const satisfies readonly Part[];
+
+type Parts = ReturnType<typeof partsFor>;
 
 const HEAD_ROOM = 0.35;
 
@@ -51,11 +67,11 @@ interface Place {
   entry: string | null;
 }
 
-const locate = () => {
+const locate = (parts: Parts) => {
   const line = window.innerHeight * HEAD_ROOM;
-  let place: Place = { entry: null, part: PARTS[0].id };
+  let place: Place = { entry: null, part: parts[0].id };
 
-  for (const part of PARTS) {
+  for (const part of parts) {
     const node = document.querySelector(`#${part.id}`);
 
     if (node && node.getBoundingClientRect().top <= line) {
@@ -74,8 +90,8 @@ const locate = () => {
   return place;
 };
 
-const usePlace = () => {
-  const [place, setPlace] = useState<Place>({ entry: null, part: PARTS[0].id });
+const usePlace = (parts: Parts) => {
+  const [place, setPlace] = useState<Place>({ entry: null, part: parts[0].id });
 
   useEffect(() => {
     let frame = 0;
@@ -83,7 +99,7 @@ const usePlace = () => {
     const update = () => {
       window.cancelAnimationFrame(frame);
       frame = window.requestAnimationFrame(() => {
-        const next = locate();
+        const next = locate(parts);
 
         setPlace((current) =>
           current.part === next.part && current.entry === next.entry ? current : next,
@@ -100,7 +116,7 @@ const usePlace = () => {
       window.removeEventListener("scroll", update);
       window.removeEventListener("resize", update);
     };
-  }, []);
+  }, [parts]);
 
   return place;
 };
@@ -134,17 +150,52 @@ const PageSection = ({ part, lede, children }: PageSectionProps) => (
   </section>
 );
 
-export const DesignSystem = () => {
-  const [mode, setMode] = useState<Theme>("light");
-  const place = usePlace();
+interface DesignSystemProps {
+  theme: Theme;
+  focusHue: number;
+  radiusScale: number;
+  typeScale: number;
+  density: Density;
+  reducedMotion: boolean;
+  featuredScreen: ScreenId;
+}
+
+/** The Fjord showcase page; every prop drives a token on the `.ds-fjord` root. */
+export const DesignSystem = ({
+  theme,
+  focusHue,
+  radiusScale,
+  typeScale,
+  density,
+  reducedMotion,
+  featuredScreen,
+}: DesignSystemProps) => {
+  const screens = useMemo(() => featureFirst(featuredScreen), [featuredScreen]);
+  const parts = useMemo(() => partsFor(screens), [screens]);
+
+  const appearance = useMemo(
+    () => ({ focusHue, reducedMotion, theme }),
+    [focusHue, reducedMotion, theme],
+  );
+
+  const place = usePlace(parts);
   const jumpId = useId();
-  const part = PARTS.find((entry) => entry.id === place.part) ?? PARTS[0];
+  const part = parts.find((entry) => entry.id === place.part) ?? parts[0];
   const here = part.entries.find((entry) => entry.id === place.entry);
-  const dark = mode === "dark";
 
   return (
-    <ThemeContext.Provider value={mode}>
-      <div className="ds-fjord fj-page" data-theme={mode}>
+    <AppearanceContext.Provider value={appearance}>
+      <div
+        className="ds-fjord fj-page"
+        data-density={density}
+        data-motion={reducedMotion ? "reduced" : "full"}
+        data-theme={theme}
+        style={cssVars({
+          "--fj-focus-hue": focusHue,
+          "--fj-radius-scale": radiusScale,
+          "--fj-type-scale": typeScale,
+        })}
+      >
         <ToastProvider>
           <div className="fj-shell">
             <nav aria-label="Parts of the page" className="fj-rail">
@@ -155,7 +206,7 @@ export const DesignSystem = () => {
                 </svg>
               </a>
               <ul>
-                {PARTS.map((entry) => (
+                {parts.map((entry) => (
                   <li key={entry.id}>
                     <a
                       aria-current={entry.id === place.part ? "location" : undefined}
@@ -200,7 +251,7 @@ export const DesignSystem = () => {
                       }}
                       value={place.entry ?? place.part}
                     >
-                      {PARTS.map((entry) => (
+                      {parts.map((entry) => (
                         <optgroup key={entry.id} label={entry.title}>
                           <option value={entry.id}>{entry.title}, overview</option>
                           {entry.entries.map((child) => (
@@ -213,17 +264,6 @@ export const DesignSystem = () => {
                     </select>
                     <Icon icon={ChevronDown} size={12} />
                   </div>
-                  <Button
-                    aria-label="Dark theme"
-                    aria-pressed={dark}
-                    onClick={() => {
-                      setMode(dark ? "light" : "dark");
-                    }}
-                    size="icon-sm"
-                    variant="ghost"
-                  >
-                    <Icon icon={dark ? Moon : Sun} />
-                  </Button>
                 </div>
               </div>
 
@@ -244,19 +284,18 @@ export const DesignSystem = () => {
 
                 <PageSection
                   lede="Four screens from Kestrel, a team whose coding agents open most of its pull requests. Every part is a Fjord component and every screen runs: slots fill and empty, a trace forks and waits, a model swap closes its shadow window, a deploy key is minted and burned."
-                  part={PARTS[0]}
+                  part={parts[0]}
                 >
                   <div className="fj-screens">
-                    <RepoHome />
-                    <RunTraceScreen />
-                    <ModelSwap />
-                    <ApiKeys />
+                    {screens.map(({ Component, id }) => (
+                      <Component key={id} />
+                    ))}
                   </div>
                 </PageSection>
 
                 <PageSection
                   lede="What the screens stand on. Each choice names its token, gives a rule an id, and says why, so a reviewer can hold a pull request to it."
-                  part={PARTS[1]}
+                  part={parts[1]}
                 >
                   <div className="fj-foundations">
                     {FOUNDATIONS.map(({ Component, id }) => (
@@ -267,7 +306,7 @@ export const DesignSystem = () => {
 
                 <PageSection
                   lede={`${COMPONENT_COUNT} components in ${CATEGORIES.length} groups. Each one is the real thing, so press it, type in it or tab through it.`}
-                  part={PARTS[2]}
+                  part={parts[2]}
                 >
                   <div className="fj-categories">
                     {CATEGORIES.map(({ Component, id }) => (
@@ -287,6 +326,6 @@ export const DesignSystem = () => {
           </div>
         </ToastProvider>
       </div>
-    </ThemeContext.Provider>
+    </AppearanceContext.Provider>
   );
 };

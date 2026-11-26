@@ -1311,8 +1311,8 @@
   }
 
   .ds-fjord .fj-t-display {
-    font-size: 36px;
-    line-height: 40px;
+    font-size: calc(36px * var(--fj-type-scale));
+    line-height: calc(40px * var(--fj-type-scale));
   }
 
   .ds-fjord .fj-window-body {
@@ -1523,6 +1523,10 @@
   .ds-fjord .fj-motion-dot {
     animation: none;
   }
+}
+
+.ds-fjord[data-motion="reduced"] .fj-motion-dot {
+  animation: none;
 }
 
 .ds-fjord .fj-pad > output {

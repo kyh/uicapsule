@@ -55,6 +55,8 @@ creates `content/<slug>/{<slug>.tsx, preview.tsx, meta.json, package.json}` and 
 set from `scripts/templates/design-system/` (read its `README.md`). Build the system in
 `tokens.css`, reshape `components/*` only where tokens can't carry it, keep every
 component's props, and leave the showcase layout alone. Tags and `defaultSize` are prefilled.
+Its settings (color mode, accent, density, radius, type scale, motion, featured screen) are
+`controls` like any component's, never an in-page settings bar.
 Curation still applies: the system's idea should come from outside the web (a cockpit, a
 synth, a transit map), not "another neutral SaaS kit".
 
@@ -68,9 +70,56 @@ synth, a transit map), not "another neutral SaaS kit".
   `pnpm install` after).
 - Stage on a dark radial-gradient `<main class="flex h-dvh items-center justify-center">`
   like sibling previews — gallery cards and recordings assume it.
-- The component must demo itself: either it auto-animates, or the preview wires up an
-  auto-tour + visible controls. A recording of a static component is worthless, so
-  design the "flattering loop" now, not at recording time.
+- The component must demo itself: either it auto-animates, or the preview runs an
+  auto-tour. A recording of a static component is worthless, so design the "flattering
+  loop" now, not at recording time. The loop runs on control defaults: the recording
+  captures `/preview-frame/<slug>`, where no props panel exists.
+- **Every component ships a `controls` export** from `preview.tsx`; the `/ui/<slug>` props
+  panel renders it and streams values back. Expose every knob a user would reach for: the
+  component's public props (colors, sizes, counts, durations, easing, copy, variants) and any
+  demo harness. Never build an in-frame picker, mode switcher or settings bar: a "which
+  state/variant/preset" selector, a sample-data toggle or a speed slider is a control. What
+  stays in the frame is the component's own interaction (the toggle you click when the toggle
+  is the component, a timer's start/stop, a drag), never a duplicate of a control.
+- `Preview` receives one prop per key and maps them onto the component (config objects, grids
+  of instances, the backdrop, `key={value}` to remount when a value only applies at mount).
+  Type its props by hand and default each one to its control, because the registry and zip ship
+  `preview.tsx` where nothing injects values; `pnpm typecheck:content <slug>` checks them
+  against the controls. Ranges must stay safe and visible across their whole span: no value
+  that hangs the component, overlaps it into nonsense, or does nothing on some devices.
+
+  ```tsx
+  export const controls = {
+    hue: { default: 0, label: "Hue rotation", max: 360, min: 0, step: 1, type: "number" },
+    background: { default: "#0a0a0a", type: "color" },
+    quality: { default: "high", options: ["low", { label: "High", value: "high" }], type: "select" },
+    grain: { default: false, type: "boolean" },
+    caption: { default: "", placeholder: "Overlay text", type: "text" },
+  } as const;
+
+  interface PreviewProps {
+    hue: number; background: string; quality: "low" | "high"; grain: boolean; caption: string;
+  }
+
+  const Preview = ({
+    hue = controls.hue.default,
+    background = controls.background.default,
+    quality = controls.quality.default,
+    grain = controls.grain.default,
+    caption = controls.caption.default,
+  }: Partial<PreviewProps>) => …;
+  ```
+
+  `number` needs `min <= default <= max`, a `select` default must be one of its option
+  values (unique), `color` is `#rgb`/`#rrggbb`, unknown fields are errors, and `key`/`ref`
+  can't be control names; `pnpm build:previews` rejects an invalid export, which would
+  otherwise throw in the frame.
+
+  More than eight controls? Give every one a `group` (`group: "Motion"`): 2–4 short names
+  (Layout, Color, Motion, Copy, Demo…), each with at least two controls, declared as contiguous
+  runs. The panel shows a collapsible header per group. Groups are all-or-none: one ungrouped
+  control among grouped ones, or a group split by another, fails the build.
+
 - `meta.json`: scaffold already filled `name`, `description`, `addedAt`; add `tags`,
   reusing the existing vocabulary. If the idea came from somewhere specific (a tweet,
   an app, a video), add `inspiredBy: [{ label, url }]` — provenance is part of the
@@ -91,7 +140,9 @@ Previews are served by `//:dev:previews` (part of `pnpm dev:web`), a Vite dev se
 hot-reloads edits inside the frame: if the preview is blank, check that task is running. Previews run
 sandboxed, so the component must not rely on `localStorage`, `sessionStorage` or cookies.
 
-Screenshot `/preview-frame/<slug>` and actually look at it before recording.
+Screenshot `/preview-frame/<slug>` and actually look at it before recording. Then open
+`/ui/<slug>` and move every control through its range (ends included): each must visibly
+change the preview, and none may blank the frame or log an error.
 
 ## 4. Record
 

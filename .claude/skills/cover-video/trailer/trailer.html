@@ -1,0 +1,1024 @@
+<!doctype html>
+<!-- Trailer engine for design-system covers. Format and recipe: README.md beside this file. -->
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>trailer</title>
+    <style>
+      html,
+      body {
+        margin: 0;
+        height: 100%;
+        overflow: hidden;
+        background: var(--trailer-bg, #000);
+      }
+      #stage {
+        position: absolute;
+        left: 0;
+        top: 0;
+        overflow: hidden;
+        transform-origin: 0 0;
+        background: var(--trailer-bg, #000);
+        contain: strict;
+      }
+      .shot {
+        position: absolute;
+        inset: 0;
+        opacity: 0;
+        transform-origin: 50% 50%;
+      }
+      .mask {
+        position: absolute;
+        inset: 0;
+        overflow: hidden;
+      }
+      .inner {
+        position: absolute;
+        inset: 0;
+      }
+      .band,
+      .edge {
+        position: absolute;
+        pointer-events: none;
+      }
+      .edge {
+        box-sizing: border-box;
+        opacity: 0;
+      }
+      .pulse {
+        position: fixed;
+        right: 0;
+        bottom: 0;
+        width: 4px;
+        height: 4px;
+        background: #000;
+        pointer-events: none;
+        z-index: 20;
+      }
+      .cam {
+        position: absolute;
+        left: 0;
+        top: 0;
+        overflow: hidden;
+        transform-origin: 0 0;
+      }
+      /* will-change pins the frame's raster: without it every scale step of the camera makes
+         the out-of-process frame re-raster, and the take drops to ~30fps during a push-in. */
+      .cam iframe {
+        display: block;
+        border: 0;
+        background: transparent;
+        will-change: transform;
+      }
+      .dim {
+        position: absolute;
+        inset: 0;
+        background: #000;
+        opacity: 0;
+        pointer-events: none;
+      }
+      .scrim,
+      .card-bg {
+        position: absolute;
+        inset: 0;
+        opacity: 0;
+        pointer-events: none;
+        z-index: 10;
+      }
+      .ov {
+        position: absolute;
+        z-index: 11;
+        visibility: hidden;
+        white-space: nowrap;
+        pointer-events: none;
+        font-kerning: normal;
+        text-rendering: optimizeLegibility;
+        -webkit-font-smoothing: antialiased;
+      }
+      .ov .line {
+        display: block;
+      }
+      .ov[data-reveal="mask"] .line {
+        overflow: hidden;
+        padding-bottom: 0.14em;
+        margin-bottom: -0.14em;
+      }
+      .ov .line > span {
+        display: inline-block;
+      }
+      #debug {
+        position: fixed;
+        left: 12px;
+        right: 12px;
+        bottom: 12px;
+        display: flex;
+        gap: 12px;
+        align-items: center;
+        padding: 8px 12px;
+        border-radius: 10px;
+        background: rgb(0 0 0 / 0.72);
+        color: #fff;
+        font:
+          12px/1 ui-monospace,
+          monospace;
+        z-index: 10;
+      }
+      #debug input {
+        flex: 1;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="stage"></div>
+    <script>
+      (() => {
+        const params = new URLSearchParams(location.search);
+        const slug = params.get("slug") ?? "example";
+        const debug = params.get("debug") === "1";
+
+        const EASE = {
+          linear: [0, 0, 1, 1],
+          house: [0.65, 0, 0.1, 1],
+          through: [0.8, 0, 0.1, 1],
+          settle: [0.05, 0.85, 0.3, 1],
+          enter: [0.1, 0.8, 0.3, 0.95],
+          trip: [0.78, 0, 0.17, 1],
+          camera: [0.45, 0, 0.1, 1],
+          arrive: [0.25, 0.8, 0.25, 1],
+          ui: [0.3, 0.75, 0.1, 1],
+        };
+
+        const bezier = ([x1, y1, x2, y2]) => {
+          const cx = 3 * x1;
+          const bx = 3 * (x2 - x1) - cx;
+          const ax = 1 - cx - bx;
+          const cy = 3 * y1;
+          const by = 3 * (y2 - y1) - cy;
+          const ay = 1 - cy - by;
+          const x = (u) => ((ax * u + bx) * u + cx) * u;
+          const dx = (u) => (3 * ax * u + 2 * bx) * u + cx;
+          return (t) => {
+            if (t <= 0) return 0;
+            if (t >= 1) return 1;
+            let u = t;
+            for (let i = 0; i < 8; i++) {
+              const d = dx(u);
+              if (Math.abs(d) < 1e-6) break;
+              const next = u - (x(u) - t) / d;
+              if (next < 0 || next > 1) break;
+              u = next;
+            }
+            if (Math.abs(x(u) - t) > 1e-6) {
+              let lo = 0;
+              let hi = 1;
+              for (let i = 0; i < 40; i++) {
+                u = (lo + hi) / 2;
+                if (x(u) < t) lo = u;
+                else hi = u;
+              }
+            }
+            return ((ay * u + by) * u + cy) * u;
+          };
+        };
+
+        const easeCache = new Map();
+        const ease = (name, fallback) => {
+          const spec = name ?? fallback;
+          if (typeof spec === "function") return spec;
+          const key = JSON.stringify(spec);
+          if (!easeCache.has(key)) {
+            const curve = Array.isArray(spec) ? spec : EASE[spec];
+            if (!curve) throw new Error(`trailer: unknown ease "${spec}"`);
+            easeCache.set(key, bezier(curve));
+          }
+          return easeCache.get(key);
+        };
+
+        const clamp01 = (v) => (v < 0 ? 0 : v > 1 ? 1 : v);
+        const lerp = (a, b, p) => a + (b - a) * p;
+        const HEX = /^#[0-9a-f]{6}$/i;
+        const hexMix = (a, b, p) => {
+          const ch = (h, i) => parseInt(h.slice(1 + i * 2, 3 + i * 2), 16);
+          return `#${[0, 1, 2]
+            .map((i) =>
+              Math.round(lerp(ch(a, i), ch(b, i), p))
+                .toString(16)
+                .padStart(2, "0"),
+            )
+            .join("")}`;
+        };
+
+        const mixValue = (a, b, p) => {
+          if (typeof a === "number" && typeof b === "number") return lerp(a, b, p);
+          if (typeof a === "string" && typeof b === "string" && HEX.test(a) && HEX.test(b)) {
+            return p >= 1 ? b : hexMix(a, b, p);
+          }
+          return p >= 0.5 ? b : a;
+        };
+
+        const mixView = (a, b, p, key) =>
+          key === "scale" ? Math.exp(lerp(Math.log(a), Math.log(b), p)) : lerp(a, b, p);
+
+        // A track folds its cues in order; each tween starts from the value the earlier cues
+        // give at its own start time, so any t can be evaluated without running the clock.
+        const makeTrack = (initial, cues, mix) => {
+          const compiled = [];
+          const evaluate = (t, count) => {
+            const state = { ...initial };
+            for (let i = 0; i < count; i++) {
+              const cue = compiled[i];
+              if (cue.at > t) break;
+              if (!cue.dur) {
+                Object.assign(state, cue.to);
+                continue;
+              }
+              const p = cue.ease(clamp01((t - cue.at) / cue.dur));
+              for (const key of Object.keys(cue.to)) {
+                state[key] =
+                  cue.from[key] === undefined
+                    ? cue.to[key]
+                    : mix(cue.from[key], cue.to[key], p, key);
+              }
+            }
+            return state;
+          };
+          for (const cue of cues) {
+            compiled.push({ ...cue, from: evaluate(cue.at, compiled.length) });
+          }
+          return (t) => evaluate(t, compiled.length);
+        };
+
+        const start = (config) => {
+          const W = config.width ?? 1600;
+          const H = config.height ?? 900;
+          const duration = config.duration;
+          const origin = config.origin ?? "http://localhost:3000";
+          const propRate = config.propRate ?? 30;
+          const themeProp = config.themeProp ?? "theme";
+          const settleMs = (config.settle ?? 1) * 1000;
+          if (typeof duration !== "number") throw new Error("trailer: duration is required");
+
+          const root = document.documentElement;
+          root.style.setProperty("--trailer-bg", config.background ?? "#000");
+          const stage = document.querySelector("#stage");
+          stage.style.width = `${W}px`;
+          stage.style.height = `${H}px`;
+
+          const fit = () => {
+            const s = Math.min(innerWidth / W, innerHeight / H);
+            stage.style.transform =
+              s === 1
+                ? "none"
+                : `translate(${(innerWidth - W * s) / 2}px, ${(innerHeight - H * s) / 2}px) scale(${s})`;
+          };
+          fit();
+          addEventListener("resize", fit);
+
+          // Measured: without a change on every frame, Chrome's screencast drops to ~15fps for
+          // the first moments of a move that follows a still (a wipe after a hold stuttered in
+          // three takes of three). This pulse is below one luma step and keeps it at 60.
+          const pulse = document.createElement("div");
+          pulse.className = "pulse";
+          document.body.append(pulse);
+          pulse.animate([{ opacity: 0.004 }, { opacity: 0.008 }], {
+            duration: 400,
+            iterations: Infinity,
+            direction: "alternate",
+          });
+
+          const resolveView = (view) => {
+            if (!view) return {};
+            const out = { ...view };
+            if (view.rect) {
+              const [x, y, w, h] = view.rect;
+              out.x = x + w / 2;
+              out.y = y + h / 2;
+              out.scale = Math.min(W / w, H / h);
+              delete out.rect;
+            }
+            return out;
+          };
+
+          const cues = [...(config.cues ?? [])]
+            .map((cue, index) => ({ ...cue, index }))
+            .sort((a, b) => a.at - b.at || a.index - b.index);
+
+          const shots = Object.entries(config.shots ?? {}).map(([id, spec]) => {
+            const width = spec.width ?? W;
+            const height = spec.height ?? H;
+            const base =
+              spec.url ??
+              `${origin}/preview-frame/${encodeURIComponent(spec.slug ?? config.slug ?? slug)}`;
+            const anchor = spec.anchor ? `#${spec.anchor.replace(/^#/, "")}` : "";
+
+            const el = document.createElement("div");
+            el.className = "shot";
+            const cam = document.createElement("div");
+            cam.className = "cam";
+            cam.style.width = `${width}px`;
+            cam.style.height = `${height}px`;
+            if (spec.radius) cam.style.borderRadius = `${spec.radius}px`;
+            if (spec.shadow) cam.style.boxShadow = spec.shadow;
+            if (spec.background) cam.style.background = spec.background;
+            const frame = document.createElement("iframe");
+            frame.width = String(width);
+            frame.height = String(height);
+            frame.setAttribute(
+              "sandbox",
+              "allow-scripts allow-forms allow-modals allow-popups allow-pointer-lock",
+            );
+            frame.setAttribute("allow", "clipboard-write; fullscreen");
+            frame.setAttribute("scrolling", "no");
+            frame.src = base;
+            cam.append(frame);
+            const dim = document.createElement("div");
+            dim.className = "dim";
+            if (spec.dimColor) dim.style.background = spec.dimColor;
+            const inner = document.createElement("div");
+            inner.className = "inner";
+            inner.append(cam);
+            if (spec.band) {
+              const band = document.createElement("div");
+              band.className = "band";
+              const side = spec.band.side ?? "top";
+              Object.assign(band.style, {
+                left: "0",
+                right: "0",
+                [side]: "0",
+                height: `${spec.band.height}px`,
+                background: spec.band.color,
+              });
+              inner.append(band);
+            }
+            inner.append(dim);
+            const mask = document.createElement("div");
+            mask.className = "mask";
+            mask.append(inner);
+            el.append(mask);
+            stage.append(el);
+
+            const camDefault = { x: W / 2, y: H / 2, scale: 1, dim: 0, blur: 0 };
+            const camInitial = { ...camDefault, ...resolveView(spec.view) };
+            const camCues = cues
+              .filter((c) => c.camera === id)
+              .map((c) => ({
+                at: c.at,
+                dur: c.dur ?? 0,
+                ease: ease(c.ease, "house"),
+                to: resolveView(c.to),
+              }));
+            const propCues = cues
+              .filter((c) => c.props === id)
+              .map((c) => ({
+                at: c.at,
+                dur: c.tween ? (c.dur ?? 1) : 0,
+                ease: ease(c.ease, "house"),
+                to: c.tween ?? c.set ?? {},
+              }));
+
+            return {
+              id,
+              el,
+              inner,
+              cam,
+              dim,
+              frame,
+              base,
+              anchor,
+              anchored: !anchor,
+              ready: false,
+              theme: spec.theme,
+              width,
+              height,
+              clamp: spec.clamp !== false,
+              blurs: camInitial.blur > 0 || camCues.some((c) => c.to.blur > 0),
+              view: makeTrack(camInitial, camCues, mixView),
+              props: makeTrack(spec.props ?? {}, propCues, mixValue),
+              posted: {},
+              postedTheme: null,
+              lastPost: -Infinity,
+            };
+          });
+          const shotById = new Map(shots.map((s) => [s.id, s]));
+          for (const cue of cues) {
+            for (const key of ["show", "camera", "props"]) {
+              if (cue[key] !== undefined && !shotById.has(cue[key])) {
+                throw new Error(`trailer: cue at ${cue.at}s names unknown shot "${cue[key]}"`);
+              }
+            }
+          }
+
+          // `dir` is the direction of travel: the incoming shot (slide) or its edge (wipe) moves
+          // that way, so it enters from the opposite side.
+          const travel = (dir) => {
+            const axis = dir === "up" || dir === "down" ? "Y" : "X";
+            return {
+              axis,
+              span: axis === "X" ? W : H,
+              sign: dir === "right" || dir === "down" ? -1 : 1,
+            };
+          };
+          const offsetTransform = (axis, px, tail = "") =>
+            `translate(${axis === "X" ? px.toFixed(3) : 0}px, ${axis === "Y" ? px.toFixed(3) : 0}px)${tail}`;
+
+          // A wipe's line and feather hang off the incoming shot's leading edge, outside its mask,
+          // so they ride the same composited transform and lie over the outgoing shot.
+          const makeEdge = (shot, c) => {
+            const width = c.edgeWidth ?? (c.edge ? 2 : 0);
+            const feather = c.feather ?? 0;
+            if (!width && !feather) return null;
+            const { axis, sign } = travel(c.dir ?? "left");
+            const lead = axis === "X" ? (sign > 0 ? "left" : "right") : sign > 0 ? "top" : "bottom";
+            const back = { left: "right", right: "left", top: "bottom", bottom: "top" }[lead];
+            const edge = document.createElement("div");
+            edge.className = "edge";
+            Object.assign(edge.style, {
+              [back]: "100%",
+              ...(axis === "X"
+                ? { top: "0", bottom: "0", width: `${Math.max(width, feather)}px` }
+                : { left: "0", right: "0", height: `${Math.max(width, feather)}px` }),
+              ...(feather
+                ? {
+                    background: `linear-gradient(to ${lead}, ${c.featherColor ?? "rgb(0 0 0 / 0.3)"}, transparent)`,
+                  }
+                : {}),
+              ...(width
+                ? {
+                    [`border${back[0].toUpperCase()}${back.slice(1)}`]: `${width}px solid ${c.edge ?? "currentColor"}`,
+                  }
+                : {}),
+            });
+            shot.el.append(edge);
+            return edge;
+          };
+
+          const showCues = cues
+            .filter((c) => c.show)
+            .map((c) => {
+              const shot = shotById.get(c.show);
+              const transition = c.transition ?? "cut";
+              return {
+                at: c.at,
+                shot,
+                transition,
+                dur: transition !== "cut" ? (c.dur ?? 0.8) : 0,
+                ease: c.ease,
+                dir: c.dir ?? "left",
+                edge: transition === "wipe" ? makeEdge(shot, c) : null,
+              };
+            });
+
+          const TYPE_DEFAULTS = {
+            title: {
+              size: 96,
+              weight: 600,
+              tracking: -0.03,
+              align: "center",
+              valign: "middle",
+              x: W / 2,
+              y: H / 2,
+            },
+            caption: {
+              size: 34,
+              weight: 500,
+              tracking: -0.01,
+              align: "left",
+              valign: "bottom",
+              x: 96,
+              y: H - 88,
+            },
+            card: {
+              size: 120,
+              weight: 600,
+              tracking: -0.035,
+              align: "center",
+              valign: "middle",
+              x: W / 2,
+              y: H / 2,
+              card: true,
+            },
+          };
+          const typeBase = {
+            family: "-apple-system, BlinkMacSystemFont, 'Helvetica Neue', Arial, sans-serif",
+            color: "#fff",
+            leading: 1.05,
+            reveal: "rise",
+            in: 0.7,
+            out: 0.45,
+            stagger: 0.08,
+            ...config.type?.base,
+          };
+
+          const overlays = cues
+            .filter((c) => c.text !== undefined)
+            .map((cue) => {
+              const kind = cue.kind ?? "caption";
+              const o = { ...typeBase, ...TYPE_DEFAULTS[kind], ...config.type?.[kind], ...cue };
+              const scrim = document.createElement("div");
+              scrim.className = "scrim";
+              if (o.scrim) {
+                const side = o.scrim === true ? "bottom" : o.scrim;
+                const color = o.scrimColor ?? "rgb(0 0 0 / 0.55)";
+                const to = {
+                  bottom: "to top",
+                  top: "to bottom",
+                  left: "to right",
+                  right: "to left",
+                }[side];
+                scrim.style.background =
+                  side === "full"
+                    ? color
+                    : `linear-gradient(${to}, ${color}, transparent ${o.scrimReach ?? 55}%)`;
+                stage.append(scrim);
+              }
+              const backdrop = document.createElement("div");
+              backdrop.className = "card-bg";
+              if (o.card) {
+                backdrop.style.background = o.cardBackground ?? config.background ?? "#000";
+                stage.append(backdrop);
+              }
+              const el = document.createElement("div");
+              el.className = "ov";
+              el.dataset.reveal = o.reveal;
+              Object.assign(el.style, {
+                fontFamily: o.family,
+                fontSize: `${o.size}px`,
+                fontWeight: String(o.weight),
+                letterSpacing: `${o.tracking}em`,
+                lineHeight: String(o.leading),
+                color: o.color,
+                textAlign: o.align,
+                textShadow:
+                  o.shadow === true ? "0 2px 24px rgb(0 0 0 / 0.35)" : (o.shadow ?? "none"),
+                left: `${o.x}px`,
+                top: `${o.y}px`,
+                transform: `translate(${{ left: "0", center: "-50%", right: "-100%" }[o.align]}, ${{ top: "0", middle: "-50%", bottom: "-100%" }[o.valign]})`,
+                ...(o.maxWidth ? { whiteSpace: "normal", width: `${o.maxWidth}px` } : {}),
+                ...o.style,
+              });
+              const lines = String(o.text)
+                .split("\n")
+                .map((text) => {
+                  const line = document.createElement("span");
+                  line.className = "line";
+                  const inner = document.createElement("span");
+                  if (o.html) inner.innerHTML = text;
+                  else inner.textContent = text;
+                  line.append(inner);
+                  el.append(line);
+                  return inner;
+                });
+              stage.append(el);
+              return {
+                o,
+                el,
+                lines,
+                scrim: o.scrim ? scrim : null,
+                backdrop: o.card ? backdrop : null,
+                inEase: ease(o.inEase, o.reveal === "mask" ? "settle" : "arrive"),
+                outEase: ease(o.outEase, "through"),
+              };
+            });
+
+          const transitionStyles = (cue, p) => {
+            const e = ease(cue.ease, cue.transition === "fade" ? "camera" : "house");
+            if (cue.transition === "fade") {
+              return { inn: { opacity: e(p) }, out: { opacity: 1 } };
+            }
+            if (cue.transition === "wipe") {
+              const { axis, span, sign } = travel(cue.dir);
+              const offset = sign * span * (1 - e(p));
+              return {
+                inn: {
+                  transform: offsetTransform(axis, offset, " scale(1)"),
+                  inner: offsetTransform(axis, -offset),
+                },
+                out: { opacity: 1 },
+              };
+            }
+            if (cue.transition === "slide") {
+              const k = e(p);
+              const { axis, span, sign } = travel(cue.dir);
+              return {
+                inn: { transform: `translate${axis}(${sign * span * (1 - k)}px)` },
+                out: { transform: `translate${axis}(${-sign * span * k}px)` },
+              };
+            }
+            if (cue.transition === "push") {
+              const a = ease(null, "through")(clamp01(p / 0.62));
+              const b = ease(null, "settle")(clamp01((p - 0.3) / 0.7));
+              const fadeIn = ease(null, "camera")(clamp01((p - 0.22) / 0.4));
+              return {
+                inn: { opacity: fadeIn, transform: `scale(${lerp(0.94, 1, b)})` },
+                out: { opacity: 1, transform: `scale(${lerp(1, 1.16, a)})` },
+              };
+            }
+            throw new Error(`trailer: unknown transition "${cue.transition}"`);
+          };
+
+          const postProps = (shot, t, now, force, immediate = force) => {
+            if (!shot.ready || !shot.anchored) return;
+            const values = shot.props(t);
+            const changed = {};
+            let discrete = false;
+            for (const [key, value] of Object.entries(values)) {
+              if (force || shot.posted[key] !== value) {
+                changed[key] = value;
+                if (typeof value !== "number") discrete = true;
+              }
+            }
+            const theme =
+              shot.theme ??
+              (values[themeProp] === "light" || values[themeProp] === "dark"
+                ? values[themeProp]
+                : null);
+            if (theme && (force || theme !== shot.postedTheme)) {
+              shot.frame.contentWindow?.postMessage({ type: "uicapsule:theme", theme }, "*");
+              shot.postedTheme = theme;
+            }
+            if (!Object.keys(changed).length) return;
+            if (!immediate && !discrete && now - shot.lastPost < 1000 / propRate - 2) return;
+            shot.frame.contentWindow?.postMessage(
+              { type: "uicapsule:props", values: changed },
+              "*",
+            );
+            Object.assign(shot.posted, changed);
+            shot.lastPost = now;
+          };
+
+          // Every pixel the harness draws is a pure function of t, so it is sampled once into
+          // paused Web Animations. Playback then runs on the compositor: a camera move holds 60fps
+          // while a frame re-renders for new props, and seeking is setting currentTime.
+          const styleAt = (t) => {
+            const out = new Map();
+            for (const shot of shots) {
+              const v = shot.view(t);
+              const s = v.scale;
+              let { x, y } = v;
+              if (shot.clamp) {
+                if (shot.width * s >= W)
+                  x = Math.min(Math.max(x, W / (2 * s)), shot.width - W / (2 * s));
+                if (shot.height * s >= H)
+                  y = Math.min(Math.max(y, H / (2 * s)), shot.height - H / (2 * s));
+              }
+              const transform = `translate(${(W / 2 - x * s).toFixed(3)}px, ${(H / 2 - y * s).toFixed(3)}px) scale(${s.toFixed(5)})`;
+              // A filter, even blur(0), gives the camera a render surface that is redrawn at every
+              // scale step, so it is only animated on shots that blur.
+              out.set(
+                shot.cam,
+                shot.blurs
+                  ? { transform, filter: `blur(${Math.max(0, v.blur).toFixed(2)}px)` }
+                  : { transform },
+              );
+              out.set(shot.dim, { opacity: v.dim.toFixed(4) });
+            }
+
+            let index = -1;
+            for (let i = 0; i < showCues.length; i++) if (showCues[i].at <= t) index = i;
+            if (index === -1 && showCues.length && !showCues[0].at) index = 0;
+            const shotStyles = new Map();
+            let edgeAt = { cue: null, p: 1 };
+            if (index >= 0) {
+              const cue = showCues[index];
+              const p = cue.dur ? clamp01((t - cue.at) / cue.dur) : 1;
+              const prev = index > 0 ? showCues[index - 1].shot : null;
+              if (p < 1 && prev && prev !== cue.shot) {
+                const { inn, out: away } = transitionStyles(cue, p);
+                shotStyles.set(prev, { ...away, z: 1 });
+                shotStyles.set(cue.shot, { ...inn, z: 2 });
+                edgeAt = { cue, p };
+              } else {
+                shotStyles.set(cue.shot, { z: 2 });
+              }
+            }
+            for (const shot of shots) {
+              const style = shotStyles.get(shot);
+              out.set(shot.el, {
+                opacity: (style ? (style.opacity ?? 1) : 0).toFixed(4),
+                transform: style?.transform ?? "translateX(0px) scale(1)",
+                zIndex: String(style?.z ?? 0),
+              });
+              out.set(shot.inner, { transform: style?.inner ?? "translate(0px, 0px)" });
+            }
+            for (const cue of showCues) {
+              if (!cue.edge) continue;
+              const p = cue === edgeAt.cue ? edgeAt.p : 1;
+              out.set(cue.edge, { opacity: (p < 1 ? clamp01(p / 0.12) : 0).toFixed(4) });
+            }
+
+            for (const ov of overlays) {
+              const { o } = ov;
+              const until = o.until ?? duration;
+              const visible = t >= o.at && t <= until;
+              out.set(ov.el, { visibility: visible ? "visible" : "hidden" });
+              let whole = 0;
+              ov.lines.forEach((line, i) => {
+                const pin = ov.inEase(clamp01((t - o.at - i * o.stagger) / o.in));
+                const pout =
+                  o.until === undefined ? 0 : ov.outEase(clamp01((t - (until - o.out)) / o.out));
+                if (i === 0) whole = Math.min(ov.inEase(clamp01((t - o.at) / o.in)), 1 - pout);
+                let opacity = pin * (1 - pout);
+                let shift = "0em";
+                let scale = 1;
+                let blur = 0;
+                if (o.reveal === "rise") {
+                  shift = `${((1 - pin) * 0.32 - pout * 0.16).toFixed(4)}em`;
+                } else if (o.reveal === "mask") {
+                  opacity = 1 - pout;
+                  shift = `${((1 - pin) * 110 - pout * 110).toFixed(3)}%`;
+                } else if (o.reveal === "blur") {
+                  blur = (1 - pin) * 12 + pout * 8;
+                  scale = 1.04 - pin * 0.04 + pout * 0.02;
+                } else if (o.reveal !== "fade") {
+                  throw new Error(`trailer: unknown reveal "${o.reveal}"`);
+                }
+                const style = {
+                  opacity: opacity.toFixed(4),
+                  transform: `translateY(${shift}) scale(${scale.toFixed(4)})`,
+                };
+                if (o.reveal === "blur") style.filter = `blur(${blur.toFixed(2)}px)`;
+                out.set(line, style);
+              });
+              const backing = (visible ? whole : 0).toFixed(4);
+              if (ov.scrim) out.set(ov.scrim, { opacity: backing });
+              if (ov.backdrop) out.set(ov.backdrop, { opacity: backing });
+            }
+            return out;
+          };
+
+          // visibility and z-index can't run on the compositor, and one main-thread animation
+          // re-commits the frame tree every tick, which re-rasters every scaling iframe. They are
+          // switched from the clock instead, only on the frames where they change.
+          const DISCRETE = new Set(["visibility", "zIndex"]);
+          const FPS = 60;
+          const PRIME = 1.5;
+          const steps = Math.max(1, Math.round(duration * FPS));
+          const samples = new Map();
+          const discrete = new Map();
+          // Keyframes interpolate linearly, so a cut, or a reveal shorter than a frame, falling
+          // between two samples would play as a one-sample crossfade, and a frame landing inside
+          // it shows a ghost. Each such instant gets the states either side of it at the same
+          // offset: a hard step.
+          const instant = 1 / FPS;
+          const cuts = new Set([
+            ...showCues.filter((cue) => !cue.dur).map((cue) => cue.at),
+            ...overlays.flatMap(({ o, lines }) => [
+              ...(o.in < instant ? lines.map((_, i) => o.at + i * o.stagger + o.in) : []),
+              ...(o.until !== undefined && o.out < instant ? [o.until] : []),
+            ]),
+          ]);
+          const pushSmooth = (offset, t) => {
+            for (const [el, style] of styleAt(t)) {
+              const smooth = { offset };
+              for (const [key, value] of Object.entries(style))
+                if (!DISCRETE.has(key)) smooth[key] = value;
+              if (!samples.has(el)) samples.set(el, []);
+              samples.get(el).push(smooth);
+            }
+          };
+          for (let i = 0; i <= steps; i++) {
+            for (const at of cuts) {
+              if (
+                at > Math.max(0, ((i - 1) / steps) * duration) &&
+                at < duration &&
+                at <= (i / steps) * duration
+              ) {
+                const offset = Math.min(at / duration, i / steps);
+                pushSmooth(offset, at - 1e-6);
+                pushSmooth(offset, at);
+              }
+            }
+            for (const [el, style] of styleAt((i / steps) * duration)) {
+              const smooth = { offset: i / steps };
+              const step = {};
+              for (const [key, value] of Object.entries(style)) {
+                if (DISCRETE.has(key)) step[key] = value;
+                else smooth[key] = value;
+              }
+              if (!samples.has(el)) samples.set(el, []);
+              samples.get(el).push(smooth);
+              if (Object.keys(step).length) {
+                if (!discrete.has(el)) discrete.set(el, []);
+                discrete.get(el).push(step);
+              }
+            }
+          }
+          const same = (a, b) => {
+            for (const key of Object.keys(a))
+              if (key !== "offset" && a[key] !== b[key]) return false;
+            return true;
+          };
+          const animations = [];
+          for (const [el, frames] of samples) {
+            const kept = frames.filter(
+              (frame, i) =>
+                i === 0 ||
+                i === frames.length - 1 ||
+                !same(frame, frames[i - 1]) ||
+                !same(frame, frames[i + 1]),
+            );
+            if (kept.length === 1 || Object.keys(kept[0]).length === 1) continue;
+            if (kept.length === 2 && same(kept[0], kept[1])) {
+              const { offset, ...still } = kept[0];
+              Object.assign(el.style, still);
+              continue;
+            }
+            const animation = el.animate(kept, { duration: duration * 1000, fill: "both" });
+            animation.pause();
+            animation.currentTime = 0;
+            animations.push(animation);
+          }
+          const applied = new Map();
+          const applyDiscrete = (t) => {
+            // The last sample at or before t: rounding would hide an overlay that ends on a cut
+            // half a frame before the cut.
+            const i = Math.min(steps, Math.max(0, Math.floor((t / duration) * steps + 1e-6)));
+            for (const [el, frames] of discrete) {
+              const step = frames[i];
+              const last = applied.get(el);
+              if (last && same(step, last)) continue;
+              Object.assign(el.style, step);
+              applied.set(el, step);
+            }
+          };
+
+          let currentT = 0;
+          let playing = null;
+          let loopDebug = false;
+          const seekVisuals = (t) => {
+            for (const animation of animations) {
+              animation.pause();
+              animation.currentTime = t * 1000;
+            }
+          };
+          const postAll = (t, force, immediate = force) => {
+            currentT = t;
+            applyDiscrete(t);
+            const now = performance.now();
+            for (const shot of shots) postProps(shot, t, now, force, immediate);
+          };
+
+          window.trailerReady = false;
+          window.trailerDone = false;
+          window.trailerTime = () => currentT;
+          window.trailerStatus = () => ({
+            ready: window.trailerReady,
+            shots: shots.map((s) => ({ id: s.id, ready: s.ready, anchored: s.anchored })),
+          });
+
+          let raf = 0;
+          const seek = (t) => {
+            cancelAnimationFrame(raf);
+            playing = null;
+            const clamped = Math.max(0, Math.min(duration, t));
+            seekVisuals(clamped);
+            postAll(clamped, false, true);
+          };
+          window.trailerSeek = (t) => {
+            seek(t);
+            return new Promise((resolve) =>
+              requestAnimationFrame(() => requestAnimationFrame(() => resolve(currentT))),
+            );
+          };
+          window.trailerStart = () => {
+            seek(0);
+            window.trailerDone = false;
+            const origin = document.timeline.currentTime;
+            for (const animation of animations) {
+              animation.startTime = origin;
+            }
+            playing = origin;
+            const tick = (now) => {
+              if (playing !== origin) return;
+              const t = (now - origin) / 1000;
+              if (t >= duration) {
+                postAll(duration, false);
+                window.trailerDone = true;
+                playing = null;
+                if (debug && loopDebug) window.trailerStart();
+                return;
+              }
+              postAll(Math.max(0, t), false);
+              raf = requestAnimationFrame(tick);
+            };
+            raf = requestAnimationFrame(tick);
+            return true;
+          };
+
+          const fontsLoaded = Promise.all(
+            (config.fonts ?? []).map(async (font) => {
+              const face = new FontFace(font.family, `url(${JSON.stringify(font.src)})`, {
+                weight: String(font.weight ?? "normal"),
+                style: font.style ?? "normal",
+              });
+              document.fonts.add(await face.load());
+            }),
+          ).catch((error) => console.error("trailer: font failed to load", error));
+
+          // Measured, not documented: Chrome re-rasters an out-of-process frame on every camera
+          // step until it has once been shown at about 1.5x, which halves the frame rate of any
+          // zoom. Holding each shot at 1.5x for a few frames before t=0 fixes it, invisibly,
+          // because inactive shots sit at opacity 0 rather than visibility: hidden.
+          const prime = async () => {
+            const frame = () => new Promise((resolve) => requestAnimationFrame(resolve));
+            const holds = shots.map((shot) =>
+              shot.cam.animate(
+                [
+                  {
+                    transform: `translate(${(W - shot.width * PRIME) / 2}px, 0px) scale(${PRIME})`,
+                  },
+                ],
+                { duration: 1, fill: "forwards" },
+              ),
+            );
+            await frame();
+            await frame();
+            await frame();
+            await new Promise((resolve) => setTimeout(resolve, 300));
+            for (const hold of holds) hold.cancel();
+          };
+
+          let settled = false;
+          const maybeReady = async () => {
+            if (settled || !shots.every((s) => s.ready && s.anchored)) return;
+            settled = true;
+            await fontsLoaded;
+            await document.fonts.ready;
+            await prime();
+            seek(0);
+            setTimeout(() => {
+              seek(Number(params.get("t") ?? 0));
+              window.trailerReady = true;
+            }, settleMs);
+          };
+
+          addEventListener("message", (event) => {
+            const shot = shots.find((s) => s.frame.contentWindow === event.source);
+            if (!shot || event.data?.type !== "uicapsule:ready") return;
+            shot.ready = true;
+            shot.posted = {};
+            shot.postedTheme = null;
+            if (!shot.anchored) {
+              // React renders after the shell parses, so the frame's own fragment scroll finds
+              // nothing; a hash-only src change is a same-document scroll, not a reload.
+              setTimeout(() => {
+                shot.frame.src = shot.base + shot.anchor;
+                shot.anchored = true;
+                postProps(shot, currentT, performance.now(), true);
+                maybeReady();
+              }, 500);
+            }
+            postProps(shot, currentT, performance.now(), true);
+            maybeReady();
+          });
+
+          if (debug) {
+            const bar = document.createElement("div");
+            bar.id = "debug";
+            bar.innerHTML =
+              '<button data-play>play</button><label><input type="checkbox" data-loop> loop</label><input type="range" min="0" step="0.01" data-scrub><span data-time></span>';
+            document.body.append(bar);
+            const scrub = bar.querySelector("[data-scrub]");
+            const time = bar.querySelector("[data-time]");
+            scrub.max = String(duration);
+            bar.querySelector("[data-play]").onclick = () => window.trailerStart();
+            bar.querySelector("[data-loop]").onchange = (e) => (loopDebug = e.target.checked);
+            scrub.oninput = () => window.trailerSeek(Number(scrub.value));
+            const show = () => {
+              time.textContent = `${currentT.toFixed(2)}s / ${duration}s ${window.trailerReady ? "ready" : "loading"}`;
+              scrub.value = String(currentT);
+              requestAnimationFrame(show);
+            };
+            show();
+          }
+
+          seekVisuals(0);
+        };
+
+        const fail = (message) => {
+          window.trailerError = message;
+          console.error(message);
+          if (debug)
+            document.body.insertAdjacentHTML(
+              "beforeend",
+              `<pre style="color:#f66">${message}</pre>`,
+            );
+        };
+
+        const script = document.createElement("script");
+        script.src = `shots/${encodeURIComponent(slug)}.js`;
+        script.onload = () => {
+          try {
+            if (!window.trailer)
+              throw new Error(`trailer: shots/${slug}.js did not set window.trailer`);
+            start(window.trailer);
+          } catch (error) {
+            fail(String(error?.stack ?? error));
+          }
+        };
+        script.onerror = () => fail(`trailer: could not load shots/${slug}.js`);
+        document.head.append(script);
+      })();
+    </script>
+  </body>
+</html>

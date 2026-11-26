@@ -25,15 +25,13 @@ export const sourceFilesQuery = (slug: string) =>
   });
 
 export const downloadZip = async (slug: string, sourceFiles: SourceFile[]) => {
-  const { default: JSZip } = await import("jszip");
-  const zip = new JSZip();
+  const { strToU8, zipSync } = await import("fflate");
 
-  for (const { path, code } of sourceFiles) {
-    zip.file(path, code);
-  }
+  const archive = zipSync(
+    Object.fromEntries(sourceFiles.map(({ path, code }) => [path, strToU8(code)])),
+  );
 
-  const zipBlob = await zip.generateAsync({ type: "blob" });
-  const url = URL.createObjectURL(zipBlob);
+  const url = URL.createObjectURL(new Blob([archive], { type: "application/zip" }));
   const link = document.createElement("a");
   link.href = url;
   link.download = `${slug}.zip`;

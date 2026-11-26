@@ -23,7 +23,7 @@ export const ContentPreview = ({ slug, name, index, tags, isNew, cover }: Conten
 
   return (
     <PrefetchLink
-      className="bg-background group flex flex-col justify-between gap-3 p-3 text-lg sm:p-6"
+      className="bg-background group flex flex-col justify-between gap-3 p-4 text-lg"
       href={`/ui/${slug}`}
       onClick={() => {
         void trigger("selection");

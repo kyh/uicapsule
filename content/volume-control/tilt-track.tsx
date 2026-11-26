@@ -18,7 +18,9 @@ import {
 
 const MARBLE_SIZE = 22;
 const GROOVE_HEIGHT = 34;
-const TRAVEL = HUD_INNER_WIDTH - MARBLE_SIZE;
+const PANEL_PADDING = 12;
+const GROOVE_INSET = (GROOVE_HEIGHT - MARBLE_SIZE) / 2;
+const TRAVEL = HUD_INNER_WIDTH - 2 * PANEL_PADDING - 2 * GROOVE_INSET - MARBLE_SIZE;
 
 const MAX_TILT = 15;
 const PX_PER_DEGREE = 7;
@@ -51,7 +53,7 @@ const Detents = () => (
           className={`absolute top-1/2 w-px -translate-y-1/2 ${
             major ? "h-4 bg-white/25" : "h-2 bg-white/10"
           }`}
-          style={{ left: volumeToX(value) + MARBLE_SIZE / 2 + (GROOVE_HEIGHT - MARBLE_SIZE) / 2 }}
+          style={{ left: volumeToX(value) + MARBLE_SIZE / 2 + GROOVE_INSET }}
         />
       );
     })}
@@ -237,8 +239,12 @@ export const TiltTrack = ({ volume }: TiltTrackProps) => {
         onPointerUp={handlePointerUp}
         onPointerCancel={handlePointerUp}
         onKeyDown={handleKeyDown}
-        style={{ rotate: reduceMotion === true ? 0 : tilt, touchAction: "none" }}
-        className={`relative my-[62px] rounded-2xl bg-neutral-900/70 px-3 py-3 outline-none focus-visible:ring-2 focus-visible:ring-white/70 ${
+        style={{
+          padding: PANEL_PADDING,
+          rotate: reduceMotion === true ? 0 : tilt,
+          touchAction: "none",
+        }}
+        className={`relative my-[62px] rounded-2xl bg-neutral-900/70 outline-none focus-visible:ring-2 focus-visible:ring-white/70 ${
           tilting ? "cursor-grabbing" : "cursor-grab"
         }`}
       >
@@ -253,7 +259,7 @@ export const TiltTrack = ({ volume }: TiltTrackProps) => {
             className="absolute top-1/2 left-0 rounded-full bg-gradient-to-b from-white to-neutral-400 shadow-[0_2px_5px_rgba(0,0,0,0.6)]"
             style={{
               height: MARBLE_SIZE,
-              marginLeft: (GROOVE_HEIGHT - MARBLE_SIZE) / 2,
+              marginLeft: GROOVE_INSET,
               marginTop: -MARBLE_SIZE / 2,
               rotate: reduceMotion === true ? 0 : marbleSpin,
               width: MARBLE_SIZE,

@@ -6,6 +6,7 @@ import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import type { PointerEvent, RefObject } from "react";
 
 import {
+  P,
   Spring,
   at,
   burst,
@@ -47,7 +48,7 @@ const CONTROL =
   "absolute inset-x-0 -inset-y-[8px] cursor-ew-resize touch-none px-[8px] data-disabled:cursor-not-allowed";
 
 const THUMB =
-  "pointer-events-none size-[28px] rounded-full border-[length:var(--sk-bw)] border-(--sk-ink) bg-white will-change-transform";
+  "pointer-events-none size-[28px] rounded-full border-[length:var(--sk-bw)] border-(--sk-ink) bg-(--sk-card) will-change-transform";
 
 const trail = (c: { x: number; y: number }, dir: number, big: number) => {
   const px = c.x - dir * rnd(14, 30);
@@ -181,7 +182,7 @@ const SakugaSlider = ({
       if (Math.abs(s.peak) > 1.3) {
         slash(c.x + dir * 34, c.y, {
           ang: dir > 0 ? 0 : Math.PI,
-          col: "#b8b3ff",
+          col: P.shade,
           len: 150,
           life: 0.5,
           thick: 12,
@@ -246,8 +247,8 @@ const SakugaSlider = ({
       if (Math.abs(v) > 1.5 && s.t - s.said > 1.1) {
         s.said = s.t;
         sfx("shu", c.x - dir * 6, c.y - 78, {
-          col: "#5a4fd8",
-          edge: "#ffffff",
+          col: P.line,
+          edge: P.fill,
           life: 0.75,
           rot: -0.16,
           size: 104,

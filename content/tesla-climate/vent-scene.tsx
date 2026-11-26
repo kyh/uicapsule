@@ -5,14 +5,20 @@ import type { FC } from "react";
 
 const noop = () => null;
 
-interface VentSceneProps {
+type Rgb = readonly [number, number, number];
+
+export interface VentSceneProps {
   tempF: number;
   fanSpeed: number;
   powerOn: boolean;
   acOn: boolean;
+  coldColor: string;
+  hotColor: string;
+  strandCount: number;
+  glow: number;
+  reach: number;
 }
 
-const STRANDS = 38;
 const SEGMENTS = 16;
 const SLIT_Y = 0.5;
 const SLIT_WIDTH = 0.46;
@@ -20,15 +26,30 @@ const SLIT_WIDTH = 0.46;
 const TINT_MIN_TEMP = 60;
 const TINT_TEMP_SPAN = 20;
 
-const tintFor = (tempF: number, acOn: boolean) => {
+const FALLBACK_RGB: Rgb = [150, 178, 226];
+
+const expandHex = (digits: string) =>
+  digits.length === 3 ? digits.replaceAll(/./gu, "$&$&") : digits;
+
+const hexToRgb = (hex: string) => {
+  const full = expandHex(hex.replace("#", ""));
+
+  const rgb: Rgb = [
+    Number.parseInt(full.slice(0, 2), 16),
+    Number.parseInt(full.slice(2, 4), 16),
+    Number.parseInt(full.slice(4, 6), 16),
+  ];
+
+  return full.length === 6 && rgb.every(Number.isFinite) ? rgb : FALLBACK_RGB;
+};
+
+const tintFor = (tempF: number, acOn: boolean, cold: Rgb, hot: Rgb) => {
   if (!acOn) {
     return [168, 176, 188];
   }
 
   const k = Math.min(1, Math.max(0, (tempF - TINT_MIN_TEMP) / TINT_TEMP_SPAN));
-  const cold: readonly [number, number, number] = [90, 140, 240];
-  const mid: readonly [number, number, number] = [150, 178, 226];
-  const hot: readonly [number, number, number] = [235, 105, 105];
+  const mid: Rgb = [150, 178, 226];
   const from = k < 0.5 ? cold : mid;
   const to = k < 0.5 ? mid : hot;
   const t = k < 0.5 ? k * 2 : (k - 0.5) * 2;
@@ -46,9 +67,31 @@ const seeded = (index: number, channel: number) => {
   return value - Math.floor(value);
 };
 
-export const VentScene: FC<VentSceneProps> = ({ tempF, fanSpeed, powerOn, acOn }) => {
+export const VentScene: FC<VentSceneProps> = ({
+  tempF,
+  fanSpeed,
+  powerOn,
+  acOn,
+  coldColor,
+  hotColor,
+  strandCount,
+  glow,
+  reach: reachScale,
+}) => {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
-  const settingsRef = useRef({ acOn, fanSpeed, powerOn, tempF });
+
+  const settingsRef = useRef({
+    acOn,
+    cold: hexToRgb(coldColor),
+    fanSpeed,
+    glow,
+    hot: hexToRgb(hotColor),
+    powerOn,
+    reachScale,
+    strandCount,
+    tempF,
+  });
+
   const steerRef = useRef({ current: 0, reach: 1, reachTarget: 1, target: 0 });
   const intensityRef = useRef(0);
   const smoothFanRef = useRef(fanSpeed);
@@ -57,8 +100,18 @@ export const VentScene: FC<VentSceneProps> = ({ tempF, fanSpeed, powerOn, acOn }
   const draggingRef = useRef(false);
 
   useEffect(() => {
-    settingsRef.current = { acOn, fanSpeed, powerOn, tempF };
-  }, [tempF, fanSpeed, powerOn, acOn]);
+    settingsRef.current = {
+      acOn,
+      cold: hexToRgb(coldColor),
+      fanSpeed,
+      glow,
+      hot: hexToRgb(hotColor),
+      powerOn,
+      reachScale,
+      strandCount,
+      tempF,
+    };
+  }, [tempF, fanSpeed, powerOn, acOn, coldColor, hotColor, strandCount, glow, reachScale]);
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -111,7 +164,18 @@ export const VentScene: FC<VentSceneProps> = ({ tempF, fanSpeed, powerOn, acOn }
       }
 
       const time = timeMs * 0.001;
-      const { tempF: temp, fanSpeed: fan, powerOn: on, acOn: cool } = settingsRef.current;
+
+      const {
+        tempF: temp,
+        fanSpeed: fan,
+        powerOn: on,
+        acOn: cool,
+        cold,
+        hot,
+        strandCount: strands,
+        glow: blur,
+        reachScale: scale,
+      } = settingsRef.current;
 
       intensityRef.current += ((on ? 1 : 0) - intensityRef.current) * 0.06;
       smoothFanRef.current += (fan - smoothFanRef.current) * 0.08;
@@ -122,7 +186,7 @@ export const VentScene: FC<VentSceneProps> = ({ tempF, fanSpeed, powerOn, acOn }
 
       const intensity = intensityRef.current;
       const smoothFan = smoothFanRef.current;
-      const tint = tintFor(temp, cool);
+      const tint = tintFor(temp, cool, cold, hot);
       const unit = h / 340;
 
       const backdrop = context.createLinearGradient(0, 0, 0, h);
@@ -152,11 +216,11 @@ export const VentScene: FC<VentSceneProps> = ({ tempF, fanSpeed, powerOn, acOn }
         offContext.globalCompositeOperation = "lighter";
         offContext.lineCap = "round";
 
-        const reach = h * 0.52 * (0.62 + smoothFan * 0.055) * steer.reach;
+        const reach = h * 0.52 * (0.62 + smoothFan * 0.055) * steer.reach * scale;
         const pulseSpeed = 1.4 + smoothFan * 0.75;
         const flutter = 0.75 + smoothFan * 0.11;
 
-        for (let index = 0; index < STRANDS; index += 1) {
+        for (let index = 0; index < strands; index += 1) {
           const across = seeded(index, 1) - 0.5;
           const lengthSeed = 0.55 + 0.45 * seeded(index, 2);
           const phase = seeded(index, 3) * Math.PI * 2;
@@ -201,7 +265,7 @@ export const VentScene: FC<VentSceneProps> = ({ tempF, fanSpeed, powerOn, acOn }
         context.save();
 
         if ("filter" in CanvasRenderingContext2D.prototype) {
-          context.filter = "blur(7px)";
+          context.filter = `blur(${blur}px)`;
           context.drawImage(offscreen, 0, 0, w, h);
           context.filter = "blur(1.5px)";
         } else {

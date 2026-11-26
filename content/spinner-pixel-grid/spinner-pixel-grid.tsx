@@ -274,9 +274,9 @@ export const SpinnerPixelGrid = ({
 
   const config: VariantConfig = variantConfigs[variant];
   const duration = config.duration / safeSpeed;
-  const rainbowAnimation = rainbow ? `, hue-rotate ${10 / safeSpeed}s linear infinite` : "";
 
   const rootStyle: SpinnerStyle = {
+    animation: animate && rainbow ? `hue-rotate ${10 / safeSpeed}s linear infinite` : undefined,
     ...style,
     "--spinner-color": color,
     "--square-size": `${size}px`,
@@ -302,7 +302,7 @@ export const SpinnerPixelGrid = ({
                   className="absolute inset-0"
                   style={{
                     animation: animate
-                      ? `${config.keyframe} ${duration}s linear ${config.delay(x, y, gridSize) / safeSpeed}s infinite${rainbowAnimation}`
+                      ? `${config.keyframe} ${duration}s linear ${config.delay(x, y, gridSize) / safeSpeed}s infinite`
                       : undefined,
                     backgroundColor: "var(--spinner-color)",
                     borderRadius: dot === "circle" ? "50%" : undefined,

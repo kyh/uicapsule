@@ -7,7 +7,6 @@ import { ChartCell } from "./lib/kit";
 
 const noop = () => null;
 
-const DRIFT = 42;
 const YIELD_MS = 3000;
 
 /**
@@ -15,7 +14,23 @@ const YIELD_MS = 3000;
  * its chart only once it scrolls into view, so the wall reads as a stream of
  * entrances; the wall drifts on its own and yields to any hover or scroll.
  */
-export const FinanceCharts = ({ autoScroll = true }: { autoScroll?: boolean }) => {
+export const FinanceCharts = ({
+  autoScroll = true,
+  background = "#f3f4f7",
+  columnWidth = 340,
+  gap = 16,
+  speed = 42,
+}: {
+  autoScroll?: boolean;
+  /** Wall backdrop behind the cards. */
+  background?: string;
+  /** Minimum masonry column width in px; the wall fits as many as it can. */
+  columnWidth?: number;
+  /** Space between cards, across and down, in px. */
+  gap?: number;
+  /** Auto-scroll drift in px per second. */
+  speed?: number;
+}) => {
   const scroller = useRef<HTMLDivElement>(null);
   const hovered = useRef(false);
   const holdUntil = useRef(0);
@@ -50,7 +65,7 @@ export const FinanceCharts = ({ autoScroll = true }: { autoScroll?: boolean }) =
       if (hovered.current || t < holdUntil.current || t < yieldUntil || y >= end - 1) {
         y = el.scrollTop;
       } else {
-        y += (DRIFT * dt) / 1000;
+        y += (speed * dt) / 1000;
         el.scrollTop = y;
       }
 
@@ -63,7 +78,7 @@ export const FinanceCharts = ({ autoScroll = true }: { autoScroll?: boolean }) =
     return () => {
       cancelAnimationFrame(raf);
     };
-  }, [autoScroll]);
+  }, [autoScroll, speed]);
 
   return (
     <div
@@ -82,11 +97,12 @@ export const FinanceCharts = ({ autoScroll = true }: { autoScroll?: boolean }) =
       }}
       onPointerUp={release}
       onPointerCancel={release}
-      className="size-full overflow-y-auto bg-[#f3f4f7] [font-family:Inter,ui-sans-serif,system-ui,sans-serif] [scrollbar-width:none]"
+      style={{ background }}
+      className="size-full overflow-y-auto [font-family:Inter,ui-sans-serif,system-ui,sans-serif] [scrollbar-width:none]"
     >
-      <div className="mx-auto max-w-[1680px] columns-[340px] gap-4 px-4 py-6">
+      <div className="mx-auto max-w-[1680px] px-4 py-6" style={{ columnGap: gap, columnWidth }}>
         {CHARTS.map(({ id, Chart }) => (
-          <ChartCell key={id} id={id}>
+          <ChartCell key={id} id={id} gap={gap}>
             <Chart />
           </ChartCell>
         ))}

@@ -203,10 +203,10 @@
 
 @media (prefers-reduced-motion: reduce) {
   .ds-clementine {
-    --dur-instant: 0ms;
-    --dur-fast: 0ms;
-    --dur-base: 0ms;
-    --dur-slow: 0ms;
+    --dur-instant: 0ms !important;
+    --dur-fast: 0ms !important;
+    --dur-base: 0ms !important;
+    --dur-slow: 0ms !important;
     --scale-press: 1;
     --scale-enter: 1;
   }

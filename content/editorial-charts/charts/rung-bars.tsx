@@ -1,16 +1,15 @@
 "use client";
 
 import { defineChart, text, tickY } from "@tanstack/charts";
-import { motion } from "@tanstack/charts/motion";
+import type { ChartMotionSpringTransition } from "@tanstack/charts/motion";
 import { Chart } from "@tanstack/charts/react/core";
 import { scaleLinear } from "@tanstack/charts/scales/linear";
 import { scalePoint } from "@tanstack/charts/scales/point";
 import { useMemo } from "react";
 
 import type { PlanRow } from "../lib/data";
-import { INK, MUTED, SPRING } from "../lib/tokens";
-
-const renderer = motion({ initial: "always", transition: SPRING });
+import { useSpringRenderer } from "../lib/spring-renderer";
+import type { Palette } from "../lib/tokens";
 
 const RUNG = 2;
 
@@ -26,13 +25,19 @@ export const RungBars = ({
   reveal,
   height,
   initialWidth,
+  palette,
+  spring,
 }: {
   plans: PlanRow[];
   /** 0 → 1 entrance progress; rungs climb in as it advances. */
   reveal: number;
   height: number;
   initialWidth: number;
+  palette: Palette;
+  spring: ChartMotionSpringTransition;
 }) => {
+  const { key, renderer } = useSpringRenderer(spring);
+  const { ink, muted, tint } = palette;
   const totalRungs = plans.reduce((sum, p) => sum + Math.round(p.value / RUNG), 0);
   const revealed = Math.min(totalRungs, Math.floor(reveal * (totalRungs + 1)));
 
@@ -63,14 +68,14 @@ export const RungBars = ({
         tickY(shown, {
           key: "id",
           span: 0.5,
-          stroke: (d) => (d.fifth ? INK : "rgba(27,27,25,0.55)"),
+          stroke: (d) => (d.fifth ? ink : tint),
           strokeWidth: 1.2,
           x: "plan",
           y: "y",
         }),
         text(labeled, {
           dy: -13,
-          fill: INK,
+          fill: ink,
           fontSize: 12,
           fontWeight: 800,
           key: "plan",
@@ -88,18 +93,19 @@ export const RungBars = ({
         y: { scale: scaleLinear().domain([0, top]) },
       },
     });
-  }, [plans, revealed]);
+  }, [plans, revealed, ink, tint]);
 
   return (
     <div>
       <Chart
+        key={key}
         definition={definition}
         renderer={renderer}
         height={height}
         initialWidth={initialWidth}
         ariaLabel="Monthly recurring revenue by plan, one rung per two thousand dollars"
       />
-      <div className="flex" style={{ color: MUTED }}>
+      <div className="flex" style={{ color: muted }}>
         {plans.map((p) => (
           <span
             key={p.plan}

@@ -4,11 +4,15 @@ import type { Dispatch, FC, RefObject, SetStateAction } from "react";
 import { memo, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { gsap } from "gsap";
 
-import type { Cell, Dims } from "./build-cells";
+import type { Cell, CellLayout, Dims } from "./build-cells";
 import type { Photo } from "./photos";
 import {
   buildCells,
   CELL_CLASS,
+  CELL_GAP_DESKTOP,
+  CELL_H_DESKTOP,
+  CELL_RADIUS,
+  CELL_TILT,
   CULL_MARGIN,
   MOBILE_BREAKPOINT,
   PAN_LERP,
@@ -30,13 +34,16 @@ import { FeaturedCard } from "./featured-card";
 
 const noop = () => null;
 
+const NO_OVERRIDES = {};
+
 interface WallProps {
   cells: Cell[];
   photos: readonly [Photo, ...Photo[]];
   itemsRef: RefObject<(HTMLDivElement | null)[]>;
+  cornerRadius: number;
 }
 
-const WallBase = ({ cells, photos, itemsRef }: WallProps) => (
+const WallBase = ({ cells, photos, itemsRef, cornerRadius }: WallProps) => (
   <>
     {cells.map((cell, i) => {
       const photo = photos[cell.photoIndex];
@@ -52,7 +59,7 @@ const WallBase = ({ cells, photos, itemsRef }: WallProps) => (
             itemsRef.current[i] = el;
           }}
           className={CELL_CLASS}
-          style={{ height: cell.height, opacity: 0, width: cell.width }}
+          style={{ borderRadius: cornerRadius, height: cell.height, opacity: 0, width: cell.width }}
         >
           <img
             src={photo.thumbUrl}
@@ -84,6 +91,33 @@ interface PhysicsState {
   featuredPhoto: number;
 }
 
+export interface WallMotion {
+  /** Multiplies the clearing's idle, hover and expanded radii. */
+  wellScale: number;
+  /** How far past the clearing tiles still bend, as a multiple of its radius. */
+  falloff: number;
+  /** Multiplies every row's drift; 0 holds the wall still. */
+  drift: number;
+  /** Per-frame lerp of the clearing toward the pointer, 0–1. */
+  follow: number;
+  /** Per-frame lerp of the click-to-center pan, 0–1. */
+  panEase: number;
+}
+
+const resolveLayout = ({
+  cellHeight = CELL_H_DESKTOP,
+  gap = CELL_GAP_DESKTOP,
+  tilt = CELL_TILT,
+}: Partial<CellLayout>) => ({ cellHeight, gap, tilt }) satisfies CellLayout;
+
+const resolveMotion = ({
+  drift = 1,
+  falloff = SOFT_PUSH_RATIO,
+  follow = VOID_LERP,
+  panEase = PAN_LERP,
+  wellScale = 1,
+}: Partial<WallMotion>) => ({ drift, falloff, follow, panEase, wellScale }) satisfies WallMotion;
+
 interface IntroState {
   entrance: number;
   voidEmerge: number;
@@ -105,6 +139,7 @@ const advanceVoid = (
   p: PhysicsState,
   introVals: IntroState,
   frame: Frame,
+  tuning: WallMotion,
   reduceMotion: boolean,
 ) => {
   const isExpanded = p.expanded;
@@ -118,12 +153,12 @@ const advanceVoid = (
         continue;
       }
 
-      p.rowOffsets[r] = offset + rowDriftSpeed(r);
+      p.rowOffsets[r] = offset + rowDriftSpeed(r) * tuning.drift;
     }
   }
 
-  p.panOff.x += (p.panTarget.x - p.panOff.x) * PAN_LERP;
-  p.panOff.y += (p.panTarget.y - p.panOff.y) * PAN_LERP;
+  p.panOff.x += (p.panTarget.x - p.panOff.x) * tuning.panEase;
+  p.panOff.y += (p.panTarget.y - p.panOff.y) * tuning.panEase;
 
   if (isExpanded) {
     if (!p.pinned) {
@@ -142,8 +177,8 @@ const advanceVoid = (
   } else if (p.mouse.has) {
     const tx = p.mouse.x - p.panOff.x;
     const ty = p.mouse.y - p.panOff.y;
-    p.voidWorld.x += (tx - p.voidWorld.x) * VOID_LERP;
-    p.voidWorld.y += (ty - p.voidWorld.y) * VOID_LERP;
+    p.voidWorld.x += (tx - p.voidWorld.x) * tuning.follow;
+    p.voidWorld.y += (ty - p.voidWorld.y) * tuning.follow;
   }
 
   let baseR: number;
@@ -156,7 +191,7 @@ const advanceVoid = (
     baseR = frame.idleRadius;
   }
 
-  p.targetRadius = baseR * introVals.voidEmerge;
+  p.targetRadius = baseR * tuning.wellScale * introVals.voidEmerge;
   p.voidRadius += (p.targetRadius - p.voidRadius) * RADIUS_LERP;
 };
 
@@ -166,10 +201,11 @@ const placeCell = (
   p: PhysicsState,
   introVals: IntroState,
   frame: Frame,
+  falloff: number,
 ) => {
   const { vw, vh, tileW, tileH, halfDiag } = frame;
   const R = p.voidRadius;
-  const SOFT = R * SOFT_PUSH_RATIO;
+  const SOFT = R * falloff;
   const vX = p.voidWorld.x;
   const vY = p.voidWorld.y;
   const { entrance } = introVals;
@@ -268,6 +304,13 @@ const placeCell = (
 interface GravityWallProps {
   /** Non-empty by construction, so `photos[0]` needs no guard. */
   photos: readonly [Photo, ...Photo[]];
+  layout?: Partial<CellLayout>;
+  motion?: Partial<WallMotion>;
+  /** Cell corner radius in px. */
+  cornerRadius?: number;
+  background?: string;
+  /** Opacity of the background-colored edge vignette, 0–1. */
+  vignette?: number;
 }
 
 const useSlugToggle = (setSlugs: Dispatch<SetStateAction<Set<string>>>, slug: string) =>
@@ -285,7 +328,16 @@ const useSlugToggle = (setSlugs: Dispatch<SetStateAction<Set<string>>>, slug: st
     });
   }, [setSlugs, slug]);
 
-export const GravityWall: FC<GravityWallProps> = ({ photos }) => {
+export const GravityWall: FC<GravityWallProps> = ({
+  photos,
+  layout = NO_OVERRIDES,
+  motion = NO_OVERRIDES,
+  cornerRadius = CELL_RADIUS,
+  background = "#0a0a0a",
+  vignette = 0.5,
+}) => {
+  const { cellHeight, gap, tilt } = resolveLayout(layout);
+  const { drift, falloff, follow, panEase, wellScale } = resolveMotion(motion);
   const [dims, setDims] = useState<Dims | null>(null);
   const [featuredIdx, setFeaturedIdx] = useState(0);
   const [expanded, setExpanded] = useState(false);
@@ -314,13 +366,22 @@ export const GravityWall: FC<GravityWallProps> = ({ photos }) => {
     voidWorld: { x: 0, y: 0 },
   });
 
+  const tuning = useRef<WallMotion>({ drift, falloff, follow, panEase, wellScale });
+
+  useEffect(() => {
+    tuning.current = { drift, falloff, follow, panEase, wellScale };
+  }, [drift, falloff, follow, panEase, wellScale]);
+
   const intro = useRef<IntroState>({
     entrance: 0,
     featuredEmerge: 0,
     voidEmerge: 0,
   });
 
-  const built = useMemo(() => (dims ? buildCells(dims, photos) : null), [dims, photos]);
+  const built = useMemo(
+    () => (dims ? buildCells(dims, photos, { cellHeight, gap, tilt }) : null),
+    [dims, photos, cellHeight, gap, tilt],
+  );
 
   const featuredCell =
     built && built.cells.length > 0
@@ -650,7 +711,8 @@ export const GravityWall: FC<GravityWallProps> = ({ photos }) => {
     let raf = 0;
 
     const tick = () => {
-      advanceVoid(p, introVals, frame, reduceMotionRef.current);
+      const tune = tuning.current;
+      advanceVoid(p, introVals, frame, tune, reduceMotionRef.current);
       const isExpanded = p.expanded;
       const R = p.voidRadius;
       const vX = p.voidWorld.x;
@@ -672,7 +734,7 @@ export const GravityWall: FC<GravityWallProps> = ({ photos }) => {
           continue;
         }
 
-        const dist = placeCell(cell, el, p, introVals, frame);
+        const dist = placeCell(cell, el, p, introVals, frame, tune.falloff);
 
         if (dist < nearestDist) {
           nearestDist = dist;
@@ -752,18 +814,25 @@ export const GravityWall: FC<GravityWallProps> = ({ photos }) => {
     <section
       ref={sectionRef}
       aria-label="Interactive photo wall"
-      className="relative isolate h-full w-full touch-none overflow-hidden bg-[#0a0a0a] text-white select-none"
+      className="relative isolate h-full w-full touch-none overflow-hidden text-white select-none"
+      style={{ background }}
     >
       <div aria-hidden className="absolute inset-0">
-        {built && <Wall cells={built.cells} photos={photos} itemsRef={itemEls} />}
+        {built && (
+          <Wall
+            cells={built.cells}
+            photos={photos}
+            itemsRef={itemEls}
+            cornerRadius={cornerRadius}
+          />
+        )}
       </div>
 
       <div
         aria-hidden
         className="pointer-events-none absolute inset-0 z-[14]"
         style={{
-          background:
-            "radial-gradient(ellipse 78% 78% at 50% 50%, transparent 40%, rgb(10 10 10 / 0.5) 100%)",
+          background: `radial-gradient(ellipse 78% 78% at 50% 50%, transparent 40%, color-mix(in srgb, ${background} ${Math.round(vignette * 100)}%, transparent) 100%)`,
         }}
       />
 

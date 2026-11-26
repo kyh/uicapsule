@@ -19,14 +19,23 @@ export interface GradientOrbConfig {
   noiseScale?: number;
   /** Inner radius of the orb glow (0–1). @default 0.1 */
   innerRadius?: number;
+  /**
+   * Hex palette: the noise-mixed base, then the two colors that swirl around the rim.
+   * @default ["#3d5aff", "#9d00ff", "#ff5f1f"]
+   */
+  colors?: readonly [string, string, string];
+  /** Time scale for the pulse, noise flow, rim swirl and orbiting light. @default 1 */
+  speed?: number;
 }
 
 const defaults: Required<GradientOrbConfig> = {
   background: "#0a0a0a",
+  colors: ["#3d5aff", "#9d00ff", "#ff5f1f"],
   hue: 0,
   innerRadius: 0.1,
   noiseScale: 0.65,
   rotationSpeed: 0.3,
+  speed: 1,
 };
 
 const vertexShader = `
@@ -47,6 +56,9 @@ const fragmentShader = `
   uniform float rot;
   uniform float noiseScale;
   uniform float innerRadius;
+  uniform vec3 baseColor0;
+  uniform vec3 baseColor1;
+  uniform vec3 baseColor2;
 
   varying vec2 vUv;
 
@@ -113,10 +125,7 @@ const fragmentShader = `
     return vec4(colorIn.rgb / (a + 1e-5), a);
   }
 
-  const vec3 baseColor0 = vec3(0.239, 0.353, 1.0);   // blue
-  const vec3 baseColor1 = vec3(0.616, 0.0, 1.0);     // purple
-  const vec3 baseColor2 = vec3(1.0, 0.373, 0.122);   // orange
-  const vec3 baseColor3 = vec3(0.0, 0.0, 0.0);       // black
+  const vec3 baseColor3 = vec3(0.0, 0.0, 0.0);
 
   float light1(float intensity, float attenuation, float dist) {
     return intensity / (1.0 + dist * attenuation);
@@ -178,15 +187,23 @@ const fragmentShader = `
   }
 `;
 
+const setDisplayRgb = (target: THREE.Vector3, hex: string) => {
+  const { r, g, b } = new THREE.Color(hex).getRGB({ b: 0, g: 0, r: 0 }, THREE.SRGBColorSpace);
+  target.set(r, g, b);
+};
+
 const GradientScene = ({
+  colors: [color0, color1, color2],
   hue,
   rotationSpeed,
   noiseScale,
   innerRadius,
+  speed,
 }: Required<Omit<GradientOrbConfig, "background">>) => {
   const materialRef = useRef<THREE.ShaderMaterial>(null);
   const { size, viewport } = useThree();
   const rotRef = useRef(0);
+  const timeRef = useRef(0);
   const lastTimeRef = useRef(0);
 
   const geometry = useMemo(() => {
@@ -209,15 +226,24 @@ const GradientScene = ({
 
   const uniforms = useMemo(
     () => ({
-      hue: { value: hue },
+      baseColor0: { value: new THREE.Vector3() },
+      baseColor1: { value: new THREE.Vector3() },
+      baseColor2: { value: new THREE.Vector3() },
+      hue: { value: 0 },
       iResolution: { value: new THREE.Vector3(1, 1, 1) },
       iTime: { value: 0 },
-      innerRadius: { value: innerRadius },
-      noiseScale: { value: noiseScale },
+      innerRadius: { value: 0 },
+      noiseScale: { value: 0 },
       rot: { value: 0 },
     }),
-    [hue, noiseScale, innerRadius],
+    [],
   );
+
+  useEffect(() => {
+    setDisplayRgb(uniforms.baseColor0.value, color0);
+    setDisplayRgb(uniforms.baseColor1.value, color1);
+    setDisplayRgb(uniforms.baseColor2.value, color2);
+  }, [uniforms, color0, color1, color2]);
 
   useFrame((state) => {
     if (!materialRef.current) {
@@ -229,16 +255,19 @@ const GradientScene = ({
     lastTimeRef.current = t;
 
     rotRef.current += dt * rotationSpeed;
+    timeRef.current += dt * speed;
 
     const u = materialRef.current.uniforms;
 
-    if (!u.iTime || !u.hue || !u.rot || !u.iResolution) {
+    if (!u.iTime || !u.hue || !u.rot || !u.iResolution || !u.noiseScale || !u.innerRadius) {
       return;
     }
 
-    u.iTime.value = t;
+    u.iTime.value = timeRef.current;
     u.hue.value = hue;
     u.rot.value = rotRef.current;
+    u.noiseScale.value = noiseScale;
+    u.innerRadius.value = innerRadius;
 
     const resolution: unknown = u.iResolution.value;
 
@@ -284,7 +313,7 @@ export const GradientOrb = ({
   config?: GradientOrbConfig;
   className?: string;
 }) => {
-  const { background, hue, rotationSpeed, noiseScale, innerRadius } = {
+  const { background, colors, hue, rotationSpeed, noiseScale, innerRadius, speed } = {
     ...defaults,
     ...config,
   };
@@ -294,10 +323,12 @@ export const GradientOrb = ({
       <Canvas gl={{ alpha: false, antialias: true }}>
         <color attach="background" args={[background]} />
         <GradientScene
+          colors={colors}
           hue={hue}
           rotationSpeed={rotationSpeed}
           noiseScale={noiseScale}
           innerRadius={innerRadius}
+          speed={speed}
         />
       </Canvas>
     </div>

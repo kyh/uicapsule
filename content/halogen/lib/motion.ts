@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, useSyncExternalStore } from "react";
+import { createContext, use, useEffect, useRef, useState, useSyncExternalStore } from "react";
 
 const noop = () => null;
 
@@ -16,8 +16,15 @@ const subscribe = (onChange: () => void) => {
 const readReduced = () => window.matchMedia(QUERY).matches;
 const readServer = () => false;
 
-/** True when the viewer asked for reduced motion. */
-export const useReducedMotion = () => useSyncExternalStore(subscribe, readReduced, readServer);
+/** False when the showcase has motion switched off, which reads the same as reduced motion. */
+export const MotionContext = createContext(true);
+
+/** True when the viewer asked for reduced motion or the showcase switched motion off. */
+export const useReducedMotion = () => {
+  const reduced = useSyncExternalStore(subscribe, readReduced, readServer);
+
+  return reduced || !use(MotionContext);
+};
 
 const GLYPHS = "abcdefghjkmnpqrstuvwxyz0123456789_";
 const SEP = "\u0000";

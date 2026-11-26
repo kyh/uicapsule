@@ -4,27 +4,14 @@ import { memo, useEffect, useRef } from "react";
 
 const noop = () => null;
 
-const STAR_COLORS = [
-  "#FFFFFF",
-  "#FFFFAA",
-  "#AAAAFF",
-  "#FFAAAA",
-  "#AAFFAA",
-  "#FFAAFF",
-  "#AAFFFF",
-] as const;
+export const STAR_PALETTES = {
+  cool: ["#FFFFFF", "#AAAAFF", "#AAFFFF", "#AAD4FF"],
+  mono: ["#FFFFFF"],
+  retro: ["#FFFFFF", "#FFFFAA", "#AAAAFF", "#FFAAAA", "#AAFFAA", "#FFAAFF", "#AAFFFF"],
+  warm: ["#FFFFFF", "#FFFFAA", "#FFAAAA", "#FFD4AA"],
+} as const satisfies Record<string, readonly string[]>;
 
-const starDensity = 0.00004;
-const twinkleProbability = 0.7;
-const minTwinkleSpeed = 2;
-const maxTwinkleSpeed = 4;
-const pixelSize = 5;
-const starRegenerationIntervalMs = 5000;
-const percentToRegenerate = 0.15;
-
-const shootingStarPixelSize = 2;
-const targetFps = 16;
-const frameInterval = 1000 / targetFps;
+const fallbackStarColor = "#FFFFFF";
 const shootingStarWidth = 4;
 const shootingStarHeight = 2;
 const shootingStarMargin = 30;
@@ -56,17 +43,57 @@ interface ShootingStar {
   trail: TrailPoint[];
 }
 
-const randomStarColor = () => {
-  const colorIndex = Math.floor(Math.random() * STAR_COLORS.length);
+export interface BackgroundPixelStarsProps {
+  /** Colors a background star picks from at random. */
+  colors?: readonly string[];
+  /** Background stars per 100,000 px² of canvas. */
+  density?: number;
+  /** Frame rate the canvas redraws at; low values read as retro stepping. */
+  fps?: number;
+  /** Seconds a twinkle half-cycle lasts, lower bound. */
+  minTwinklePeriod?: number;
+  /** Seconds a twinkle half-cycle lasts, upper bound. */
+  maxTwinklePeriod?: number;
+  /** Size of one background star pixel, in px. */
+  pixelSize?: number;
+  /** Seconds between reshuffles of part of the starfield. */
+  reshuffleInterval?: number;
+  /** Fraction of stars (0–1) replaced on each reshuffle. */
+  reshuffleFraction?: number;
+  /** Shooting star head color. */
+  shootingStarColor?: string;
+  /** Average seconds between shooting stars. */
+  shootingStarInterval?: number;
+  /** Size of one shooting star pixel, in px. */
+  shootingStarPixelSize?: number;
+  /** Slowest shooting star speed in px per frame; each one adds up to 5 more. */
+  shootingStarSpeed?: number;
+  /** Shooting star trail color. */
+  trailColor?: string;
+  /** Chance (0–1) that a background star twinkles. */
+  twinkleProbability?: number;
+}
 
-  return STAR_COLORS[colorIndex] ?? STAR_COLORS[0];
+interface StarFieldConfig {
+  colors: readonly string[];
+  maxTwinklePeriod: number;
+  minTwinklePeriod: number;
+  pixelSize: number;
+  twinkleProbability: number;
+}
+
+const randomStarColor = (colors: readonly string[]) => {
+  const colorIndex = Math.floor(Math.random() * colors.length);
+
+  return colors[colorIndex] ?? fallbackStarColor;
 };
 
-const createBackgroundStar = (width: number, height: number) => {
-  const shouldTwinkle = Math.random() < twinkleProbability;
+const createBackgroundStar = (width: number, height: number, config: StarFieldConfig) => {
+  const { pixelSize } = config;
+  const shouldTwinkle = Math.random() < config.twinkleProbability;
   const gridX = Math.floor(Math.random() * (width / pixelSize)) * pixelSize;
   const gridY = Math.floor(Math.random() * (height / pixelSize)) * pixelSize;
-  const color = randomStarColor();
+  const color = randomStarColor(config.colors);
   const baseOpacity = Math.random() * 0.5 + 0.5;
 
   return {
@@ -75,23 +102,39 @@ const createBackgroundStar = (width: number, height: number) => {
     currentOpacity: baseOpacity,
     twinkle: shouldTwinkle,
     twinkleDirection: -1,
-    twinkleSpeed: minTwinkleSpeed + Math.random() * (maxTwinkleSpeed - minTwinkleSpeed),
+    twinkleSpeed:
+      config.minTwinklePeriod + Math.random() * (config.maxTwinklePeriod - config.minTwinklePeriod),
     twinkleTimer: 0,
     x: gridX,
     y: gridY,
   };
 };
 
-const createShootingStar = (width: number) => ({
+const createShootingStar = (width: number, baseSpeed: number) => ({
   angle: 45 + Math.random() * 90,
   distance: 0,
-  speed: Math.random() * 5 + 8,
+  speed: Math.random() * 5 + baseSpeed,
   trail: [],
   x: Math.random() * width,
   y: 0,
 });
 
-const BackgroundPixelStarsCanvas = () => {
+const BackgroundPixelStarsCanvas = ({
+  colors = STAR_PALETTES.retro,
+  density = 4,
+  fps = 16,
+  maxTwinklePeriod = 4,
+  minTwinklePeriod = 2,
+  pixelSize = 5,
+  reshuffleFraction = 0.15,
+  reshuffleInterval = 5,
+  shootingStarColor = "#ffffff",
+  shootingStarInterval = 4,
+  shootingStarPixelSize = 2,
+  shootingStarSpeed = 8,
+  trailColor = "#b4f2ff",
+  twinkleProbability = 0.7,
+}: BackgroundPixelStarsProps) => {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
 
   useEffect(() => {
@@ -107,17 +150,30 @@ const BackgroundPixelStarsCanvas = () => {
       return noop;
     }
 
+    const targetFps = Math.max(1, fps);
+    const frameInterval = 1000 / targetFps;
+
+    const starField = {
+      colors,
+      maxTwinklePeriod: Math.max(minTwinklePeriod, maxTwinklePeriod),
+      minTwinklePeriod: Math.min(minTwinklePeriod, maxTwinklePeriod),
+      pixelSize: Math.max(1, pixelSize),
+      twinkleProbability,
+    } satisfies StarFieldConfig;
+
+    const starsPerPixel = density / 100_000;
+
     let backgroundStars: BackgroundStar[] = [];
     let shootingStars: ShootingStar[] = [];
 
     const initBackgroundStars = () => {
       const area = canvas.width * canvas.height;
-      const numStars = Math.floor(area * starDensity);
+      const numStars = Math.floor(area * starsPerPixel);
 
       backgroundStars = [];
 
       for (let i = 0; i < numStars; i += 1) {
-        backgroundStars.push(createBackgroundStar(canvas.width, canvas.height));
+        backgroundStars.push(createBackgroundStar(canvas.width, canvas.height, starField));
       }
     };
 
@@ -126,11 +182,11 @@ const BackgroundPixelStarsCanvas = () => {
         return;
       }
 
-      const numToRegenerate = Math.max(1, Math.floor(backgroundStars.length * percentToRegenerate));
+      const numToRegenerate = Math.max(1, Math.floor(backgroundStars.length * reshuffleFraction));
 
       for (let i = 0; i < numToRegenerate; i += 1) {
         const randomIndex = Math.floor(Math.random() * backgroundStars.length);
-        backgroundStars[randomIndex] = createBackgroundStar(canvas.width, canvas.height);
+        backgroundStars[randomIndex] = createBackgroundStar(canvas.width, canvas.height, starField);
       }
     };
 
@@ -138,7 +194,7 @@ const BackgroundPixelStarsCanvas = () => {
       for (const star of backgroundStars) {
         ctx.fillStyle = star.color;
         ctx.globalAlpha = star.currentOpacity;
-        ctx.fillRect(star.x, star.y, pixelSize, pixelSize);
+        ctx.fillRect(star.x, star.y, starField.pixelSize, starField.pixelSize);
 
         if (!star.twinkle) {
           continue;
@@ -213,7 +269,8 @@ const BackgroundPixelStarsCanvas = () => {
           ctx.rotate(radians);
           ctx.translate(-point.x, -point.y);
 
-          ctx.fillStyle = `rgba(180, 242, 255, ${point.opacity})`;
+          ctx.fillStyle = trailColor;
+          ctx.globalAlpha = point.opacity;
           ctx.fillRect(point.x, point.y, shootingStarPixelSize, shootingStarPixelSize);
 
           ctx.restore();
@@ -224,7 +281,7 @@ const BackgroundPixelStarsCanvas = () => {
         ctx.rotate(radians);
         ctx.translate(-star.x, -star.y);
 
-        ctx.fillStyle = "#ffffff";
+        ctx.fillStyle = shootingStarColor;
         ctx.globalAlpha = 1;
 
         for (let y = 0; y < shootingStarHeight; y += 1) {
@@ -280,15 +337,18 @@ const BackgroundPixelStarsCanvas = () => {
     let shootingStarTimer: ReturnType<typeof setTimeout> | undefined;
 
     const spawnShootingStar = () => {
-      shootingStars = [...shootingStars, createShootingStar(canvas.width)];
+      shootingStars = [...shootingStars, createShootingStar(canvas.width, shootingStarSpeed)];
 
-      const randomDelay = Math.random() * 4000 + 2000;
+      const randomDelay = shootingStarInterval * 1000 * (0.5 + Math.random());
       shootingStarTimer = setTimeout(spawnShootingStar, randomDelay);
     };
 
     spawnShootingStar();
 
-    const regenerationInterval = setInterval(regenerateBackgroundStars, starRegenerationIntervalMs);
+    const regenerationInterval = setInterval(
+      regenerateBackgroundStars,
+      Math.max(0.1, reshuffleInterval) * 1000,
+    );
 
     window.addEventListener("resize", resizeCanvas);
 
@@ -298,7 +358,22 @@ const BackgroundPixelStarsCanvas = () => {
       clearTimeout(shootingStarTimer);
       window.removeEventListener("resize", resizeCanvas);
     };
-  }, []);
+  }, [
+    colors,
+    density,
+    fps,
+    maxTwinklePeriod,
+    minTwinklePeriod,
+    pixelSize,
+    reshuffleFraction,
+    reshuffleInterval,
+    shootingStarColor,
+    shootingStarInterval,
+    shootingStarPixelSize,
+    shootingStarSpeed,
+    trailColor,
+    twinkleProbability,
+  ]);
 
   return <canvas ref={canvasRef} className="pointer-events-none fixed inset-0" />;
 };

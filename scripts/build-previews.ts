@@ -7,9 +7,10 @@ import { UGC_SHARED_MODULES } from "@repo/contract/ugc/ugc-schema";
 import react from "@vitejs/plugin-react";
 import { defineCommand, runMain } from "citty";
 import { consola } from "consola";
-import { build, createServer } from "vite";
-import { z } from "zod";
+import { parseSync } from "oxc-parser";
+import { build, createServer, isRunnableDevEnvironment } from "vite";
 import type { InlineConfig, Plugin, Rollup } from "vite";
+import * as z from "zod/mini";
 
 import { contentMetaSchema } from "../apps/web/src/lib/content/content-schema";
 import {
@@ -18,10 +19,12 @@ import {
   UGC_BOOT_PATH,
   ugcSharedModulePath,
 } from "../apps/web/src/lib/content/preview-shell";
+import { previewControlsSchema } from "../apps/web/src/lib/preview-controls";
 import {
   EXTRA_ASSET_GLOBS,
   compilePreviewStylesheet,
   previewEntry,
+  previewHotFooter,
   repoRoot,
   runtimeModule,
   themeStylesheet,
@@ -63,6 +66,8 @@ const readLocalSlugs = async () => {
   return slugs.filter((_, index) => local[index] === true);
 };
 
+const previewFile = (slug: string) => path.join(contentRoot, slug, "preview.tsx");
+
 const stylesheetId = (slug: string) => path.join(contentRoot, slug, STYLESHEET_NAME);
 
 const slugOfFile = (file: string) => {
@@ -73,6 +78,7 @@ const slugOfFile = (file: string) => {
 
 const previewPlugin = (slugs: string[], dev: boolean) => {
   const known = new Set(slugs);
+  const hotPreviews = new Set(dev ? slugs.map(previewFile) : []);
 
   return {
     enforce: "pre",
@@ -94,7 +100,7 @@ const previewPlugin = (slugs: string[], dev: boolean) => {
       if (id.startsWith(RESOLVED_ENTRY_PREFIX)) {
         const slug = id.slice(RESOLVED_ENTRY_PREFIX.length);
 
-        return previewEntry(path.join(contentRoot, slug, "preview.tsx"), stylesheetId(slug));
+        return previewEntry(previewFile(slug), stylesheetId(slug));
       }
 
       if (path.basename(id) === STYLESHEET_NAME) {
@@ -117,6 +123,8 @@ const previewPlugin = (slugs: string[], dev: boolean) => {
 
       return path.basename(source) === STYLESHEET_NAME ? source : null;
     },
+    transform: (code, id) =>
+      hotPreviews.has(id) ? { code: `${code}\n${previewHotFooter(id)}\n`, map: null } : null,
   } satisfies Plugin;
 };
 
@@ -229,6 +237,67 @@ const buildPreviews = async (slugs: string[]) => {
   });
 };
 
+const exportsControls = async (slug: string) => {
+  const file = previewFile(slug);
+  const { module } = parseSync(file, await readFile(file, "utf-8"));
+
+  return module.staticExports.some((declaration) =>
+    declaration.entries.some((entry) => entry.exportName.name === "controls"),
+  );
+};
+
+const checkPreviewControls = async (slugs: string[]) => {
+  const exported = await Promise.all(slugs.map(exportsControls));
+  const controlled = slugs.filter((_, index) => exported[index] === true);
+
+  const server = await createServer({
+    appType: "custom",
+    assetsInclude: EXTRA_ASSET_GLOBS,
+    configFile: false,
+    logLevel: "warn",
+    root: contentRoot,
+    server: { hmr: false, middlewareMode: true, ws: false },
+  });
+
+  try {
+    const { ssr } = server.environments;
+
+    if (!isRunnableDevEnvironment(ssr)) {
+      throw new Error("Vite's SSR environment cannot run modules");
+    }
+
+    const controlIssues = async (slug: string) => {
+      try {
+        const { controls } = await ssr.runner.import<{ readonly controls?: unknown }>(
+          previewFile(slug),
+        );
+
+        const parsed = previewControlsSchema.safeParse(controls);
+
+        return parsed.success
+          ? []
+          : [`${slug}/preview.tsx controls:\n${z.prettifyError(parsed.error)}`];
+      } catch (error) {
+        const reason = error instanceof Error ? error.message : String(error);
+
+        return [
+          `${slug}/preview.tsx could not be loaded in Node to read its controls (keep window, document and other browser globals out of module scope; registry installs render it on a server too):\n${reason}`,
+        ];
+      }
+    };
+
+    const issues = await Promise.all(controlled.map(controlIssues));
+
+    const invalid = issues.flat();
+
+    if (invalid.length > 0) {
+      throw new Error(`Invalid preview controls\n\n${invalid.join("\n\n")}`);
+    }
+  } finally {
+    await server.close();
+  }
+};
+
 const SHARED_PREFIX = "ugc-shared:";
 const RESOLVED_SHARED_PREFIX = `\0${SHARED_PREFIX}`;
 const requireFromWeb = createRequire(path.join(webRoot, "package.json"));
@@ -318,7 +387,7 @@ const servePreviews = async (slugs: string[]) => {
   const server = await createServer({
     ...sharedConfig(slugs, true),
     optimizeDeps: {
-      entries: [...slugs.map((slug) => path.join(contentRoot, slug, "preview.tsx")), runtimeModule],
+      entries: [...slugs.map(previewFile), runtimeModule],
     },
     root: webRoot,
     server: {
@@ -364,6 +433,7 @@ const main = defineCommand({
       return;
     }
 
+    await checkPreviewControls(slugs);
     await buildPreviews(slugs);
     await buildUgcRuntime();
     consola.success(

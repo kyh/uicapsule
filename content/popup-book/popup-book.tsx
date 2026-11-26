@@ -57,15 +57,25 @@ export interface PopupBookProps {
   /** Turns a page on its own every `interval` ms until someone interacts. */
   autoPlay?: boolean;
   interval?: number;
+  /** Page the book opens on, read at mount. */
+  startIndex?: number;
+  /** Scales how fast a page turn springs; 1 is the tuned paper weight. */
+  turnSpeed?: number;
 }
 
-export const PopupBook = ({ autoPlay = true, interval = 2800 }: PopupBookProps) => {
+export const PopupBook = ({
+  autoPlay = true,
+  interval = 2800,
+  startIndex = 0,
+  turnSpeed = 1,
+}: PopupBookProps) => {
   const uid = useId().replaceAll(":", "");
+  const start = clamp(Math.round(startIndex), 0, LAST);
 
   const reduceMotion = useReducedMotion();
-  const progress = useMotionValue(0);
-  const [value, setValue] = useState(0);
-  const [index, setIndex] = useState(0);
+  const progress = useMotionValue(start);
+  const [value, setValue] = useState(start);
+  const [index, setIndex] = useState(start);
   const [ready, setReady] = useState(false);
 
   const onReady = useCallback(() => {
@@ -92,13 +102,13 @@ export const PopupBook = ({ autoPlay = true, interval = 2800 }: PopupBookProps) 
       const distance = Math.abs(next - progress.get());
 
       animate(progress, next, {
-        damping: 14,
+        damping: 14 * turnSpeed,
         restDelta: 0.0005,
-        stiffness: distance > 1.5 ? 24 : 36,
+        stiffness: (distance > 1.5 ? 24 : 36) * turnSpeed ** 2,
         type: "spring",
       });
     },
-    [progress, reduceMotion],
+    [progress, reduceMotion, turnSpeed],
   );
 
   const userGoTo = (target: number) => {

@@ -1,11 +1,12 @@
 import type { ReactNode } from "react";
 import { Header } from "@/components/header";
+import { SiteFrame } from "@/components/site-frame";
 
 const Layout = ({ children }: { children: ReactNode }) => (
-  <section>
+  <SiteFrame>
     <Header />
     {children}
-  </section>
+  </SiteFrame>
 );
 
 export default Layout;

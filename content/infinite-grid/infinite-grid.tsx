@@ -10,7 +10,7 @@ import type {
 const MIN_VELOCITY = 0.2;
 const UPDATE_INTERVAL = 16;
 const VELOCITY_HISTORY_SIZE = 5;
-const FRICTION = 0.9;
+const DEFAULT_MOMENTUM = 0.9;
 const VELOCITY_THRESHOLD = 0.3;
 const MOVING_DISTANCE = 5;
 const REST_DELAY = 200;
@@ -89,6 +89,8 @@ export interface GridItemConfig {
 
 export interface InfiniteGridProps {
   gridSize: number;
+  /** Share of glide velocity kept each frame after release, below 1. */
+  momentum?: number;
   renderItem: (itemConfig: GridItemConfig) => ReactNode;
   className?: string;
   initialPosition?: Position;
@@ -155,9 +157,15 @@ interface View {
   setOffset: Dispatch<SetStateAction<Position>>;
 }
 
-const createEngine = (initialOffset: Position, initialGridSize: number, view: View) => {
+const createEngine = (
+  initialOffset: Position,
+  initialGridSize: number,
+  initialMomentum: number,
+  view: View,
+) => {
   let container: HTMLDivElement | null = null;
   let gridSize = initialGridSize;
+  let momentum = initialMomentum;
   let offset = { ...initialOffset };
   let restPos = { ...initialOffset };
   let startPos = { ...initialOffset };
@@ -216,10 +224,10 @@ const createEngine = (initialOffset: Position, initialGridSize: number, view: Vi
         return;
       }
 
-      let deceleration = FRICTION;
+      let deceleration = momentum;
 
       if (speed < VELOCITY_THRESHOLD) {
-        deceleration = FRICTION * (speed / VELOCITY_THRESHOLD);
+        deceleration = momentum * (speed / VELOCITY_THRESHOLD);
       }
 
       offset = { x: offset.x + velocity.x, y: offset.y + velocity.y };
@@ -342,16 +350,26 @@ const createEngine = (initialOffset: Position, initialGridSize: number, view: Vi
   };
 
   const setGridSize = (size: number) => {
+    if (size === gridSize) {
+      return;
+    }
+
     gridSize = size;
+    updateGridItems();
   };
 
-  return { handleDown, handleMove, handleUp, mount, setGridSize };
+  const setMomentum = (value: number) => {
+    momentum = value;
+  };
+
+  return { handleDown, handleMove, handleUp, mount, setGridSize, setMomentum };
 };
 
 type Engine = ReturnType<typeof createEngine>;
 
 export const InfiniteGrid = ({
   gridSize,
+  momentum = DEFAULT_MOMENTUM,
   renderItem,
   className,
   initialPosition,
@@ -367,7 +385,7 @@ export const InfiniteGrid = ({
 
   // oxlint-disable-next-line typescript/prefer-nullish-coalescing -- React allows a ref read during render only as lazy initialisation spelled `=== null`; `??=` fails react/refs
   if (engineRef.current === null) {
-    engineRef.current = createEngine(initialPosition ?? ORIGIN, gridSize, {
+    engineRef.current = createEngine(initialPosition ?? ORIGIN, gridSize, momentum, {
       setContainerSize,
       setGridItems,
       setIsDragging,
@@ -379,6 +397,10 @@ export const InfiniteGrid = ({
   useEffect(() => {
     engineRef.current?.setGridSize(gridSize);
   }, [gridSize]);
+
+  useEffect(() => {
+    engineRef.current?.setMomentum(momentum);
+  }, [momentum]);
 
   useEffect(() => engineRef.current?.mount(containerRef.current), []);
 

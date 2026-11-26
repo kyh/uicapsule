@@ -7,8 +7,6 @@ import { AnimatePresence, MotionConfig, motion, useReducedMotion } from "motion/
 
 const noop = () => null;
 
-const AUTO_ADVANCE_MS = 4000;
-
 const WeatherWidget: FC = () => (
   <div className="flex h-full flex-col justify-between bg-gradient-to-b from-[#2563eb] to-[#0c4a9e] p-5">
     <div>
@@ -99,21 +97,21 @@ const WIDGETS: { id: string; label: string; icon: FC<{ className?: string }>; no
     { icon: BatteryCharging, id: "battery", label: "Batteries", node: <BatteryWidget /> },
   ];
 
-const variants = {
+const createVariants = (flipAngle: number, travel: number) => ({
   center: { opacity: 1, rotateX: 0, scale: 1, y: "0%" },
   enter: (direction: number) => ({
     opacity: 0,
-    rotateX: direction > 0 ? -78 : 78,
+    rotateX: direction > 0 ? -flipAngle : flipAngle,
     scale: 0.92,
-    y: direction > 0 ? "38%" : "-38%",
+    y: `${direction > 0 ? travel : -travel}%`,
   }),
   exit: (direction: number) => ({
     opacity: 0,
-    rotateX: direction > 0 ? 78 : -78,
+    rotateX: direction > 0 ? flipAngle : -flipAngle,
     scale: 0.92,
-    y: direction > 0 ? "-38%" : "38%",
+    y: `${direction > 0 ? -travel : travel}%`,
   }),
-};
+});
 
 interface Page {
   index: number;
@@ -122,7 +120,66 @@ interface Page {
 
 const wrap = (value: number) => (value + WIDGETS.length) % WIDGETS.length;
 
-export const WidgetStack = () => {
+interface PageDotsProps {
+  index: number;
+  visible: boolean;
+  onSelect: (index: number) => void;
+}
+
+const PageDots = ({ index, visible, onSelect }: PageDotsProps) => (
+  <div className={`flex flex-col gap-1.5 ${visible ? "" : "invisible"}`}>
+    {WIDGETS.map((entry, dotIndex) => (
+      <button
+        type="button"
+        key={entry.id}
+        aria-label={`Show ${entry.label}`}
+        onClick={() => {
+          onSelect(dotIndex);
+        }}
+        className={`size-1.5 rounded-full transition-colors ${
+          dotIndex === index ? "bg-white" : "bg-white/25"
+        }`}
+      />
+    ))}
+  </div>
+);
+
+export interface WidgetStackProps {
+  /** Roll to the next widget on a timer until reduced motion is requested. */
+  autoAdvance?: boolean;
+  /** Milliseconds each widget stays before auto-advancing. */
+  interval?: number;
+  /** Which way the auto-advance rolls the stack. */
+  direction?: "up" | "down";
+  /** Degrees a widget tips back as it rolls in or out. */
+  flipAngle?: number;
+  /** Vertical distance a widget travels while rolling, as a percent of its height. */
+  travel?: number;
+  /** Spring duration of one roll, in seconds. */
+  duration?: number;
+  /** Spring bounce of one roll, 0 to 1. */
+  bounce?: number;
+  /** CSS perspective depth of the flip, in pixels. */
+  perspective?: number;
+  /** Widget corner radius, in pixels. */
+  cornerRadius?: number;
+  showDots?: boolean;
+  showHint?: boolean;
+}
+
+export const WidgetStack = ({
+  autoAdvance = true,
+  interval = 4000,
+  direction: autoDirection = "up",
+  flipAngle = 78,
+  travel = 38,
+  duration = 0.55,
+  bounce = 0.2,
+  perspective = 900,
+  cornerRadius = 24,
+  showDots = true,
+  showHint = true,
+}: WidgetStackProps) => {
   const [page, setPage] = useState<Page>({ direction: 1, index: 0 });
   const { index, direction } = page;
   const reduced = useReducedMotion() ?? false;
@@ -131,27 +188,31 @@ export const WidgetStack = () => {
     setPage({ direction: nextDirection, index: wrap(next) });
   };
 
+  const autoStep = autoDirection === "up" ? 1 : -1;
+  const autoRolls = autoAdvance && !reduced;
+
   useEffect(() => {
-    if (reduced) {
+    if (!autoRolls) {
       return noop;
     }
 
     const timer = setTimeout(() => {
-      setPage({ direction: 1, index: wrap(index + 1) });
-    }, AUTO_ADVANCE_MS);
+      setPage({ direction: autoStep, index: wrap(index + autoStep) });
+    }, interval);
 
     return () => {
       clearTimeout(timer);
     };
-  }, [index, reduced]);
+  }, [autoRolls, autoStep, index, interval]);
 
   const widget = WIDGETS[index];
+  const variants = createVariants(flipAngle, travel);
 
   return (
     <MotionConfig reducedMotion="user">
       <div className="flex flex-col items-center gap-5 select-none">
         <div className="flex items-center gap-4">
-          <div className="relative h-[170px] w-[300px]" style={{ perspective: 900 }}>
+          <div className="relative h-[170px] w-[300px]" style={{ perspective }}>
             <AnimatePresence initial={false} custom={direction} mode="popLayout">
               <motion.div
                 key={widget?.id ?? index}
@@ -160,7 +221,7 @@ export const WidgetStack = () => {
                 initial="enter"
                 animate="center"
                 exit="exit"
-                transition={{ bounce: 0.2, duration: 0.55, type: "spring" }}
+                transition={{ bounce, duration, type: "spring" }}
                 drag="y"
                 dragConstraints={{ bottom: 0, top: 0 }}
                 dragElastic={0.28}
@@ -171,33 +232,25 @@ export const WidgetStack = () => {
                     goTo(index - 1, -1);
                   }
                 }}
-                className="absolute inset-0 cursor-grab overflow-hidden rounded-[24px] shadow-2xl shadow-black/50 ring-1 ring-white/10 active:cursor-grabbing"
-                style={{ transformStyle: "preserve-3d" }}
+                className="absolute inset-0 cursor-grab overflow-hidden shadow-2xl shadow-black/50 ring-1 ring-white/10 active:cursor-grabbing"
+                style={{ borderRadius: cornerRadius, transformStyle: "preserve-3d" }}
               >
                 {widget?.node}
               </motion.div>
             </AnimatePresence>
           </div>
 
-          <div className="flex flex-col gap-1.5">
-            {WIDGETS.map((entry, dotIndex) => (
-              <button
-                type="button"
-                key={entry.id}
-                aria-label={`Show ${entry.label}`}
-                onClick={() => {
-                  goTo(dotIndex, dotIndex > index ? 1 : -1);
-                }}
-                className={`size-1.5 rounded-full transition-colors ${
-                  dotIndex === index ? "bg-white" : "bg-white/25"
-                }`}
-              />
-            ))}
-          </div>
+          <PageDots
+            index={index}
+            visible={showDots}
+            onSelect={(dotIndex) => {
+              goTo(dotIndex, dotIndex > index ? 1 : -1);
+            }}
+          />
         </div>
 
-        <p className="text-[11px] text-white/30">
-          {reduced ? "Swipe the widget vertically" : "Swipe the widget vertically — or wait"}
+        <p className={`text-[11px] text-white/30 ${showHint ? "" : "invisible"}`}>
+          {autoRolls ? "Swipe the widget vertically — or wait" : "Swipe the widget vertically"}
         </p>
       </div>
     </MotionConfig>

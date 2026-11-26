@@ -705,6 +705,10 @@
   }
 }
 
+.ds-fjord[data-motion="reduced"] .fj-ruler > span::after {
+  transition: none;
+}
+
 .ds-fjord .fj-keyrow {
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto auto;

@@ -12,7 +12,7 @@ import {
   RiImageLine,
   RiReactjsLine,
 } from "@remixicon/react";
-import { DownloadIcon, ExternalLinkIcon, XIcon } from "lucide-react";
+import { ExternalLinkIcon, XIcon } from "lucide-react";
 import type { BundledLanguage } from "shiki";
 import { Button } from "@repo/ui/components/button";
 import {
@@ -26,7 +26,7 @@ import { toast } from "@repo/ui/components/toast";
 import { cn } from "cn";
 
 import type { ContentComponentSummary, SourceFile } from "@/lib/content/content-schema";
-import { downloadZip, sourceFilesQuery } from "./source-files";
+import { sourceFilesQuery } from "./source-files";
 import { ToolbarButton } from "./toolbar-button";
 
 const extensionToLanguageMap = {
@@ -135,28 +135,9 @@ const LocalCodeDock = ({ slug, onClose }: { slug: string; onClose: () => void })
   const { data, isError } = useQuery(sourceFilesQuery(slug));
   const files = useMemo(() => (data ? orderFiles(slug, data) : []), [data, slug]);
   const [selected, setSelected] = useState<string | null>(null);
-  const [downloading, setDownloading] = useState(false);
 
   const file = files.find((f) => f.path === selected) ?? files[0];
   const language = languageOf(file?.path ?? "");
-
-  const onDownload = async () => {
-    if (!data || downloading) {
-      return;
-    }
-
-    setDownloading(true);
-
-    try {
-      await downloadZip(slug, data);
-      toast.success(`${slug}.zip downloaded`);
-    } catch (error) {
-      console.error("Failed to create zip file:", error);
-      toast.error("Failed to create zip file", { description: "Please try again later" });
-    }
-
-    setDownloading(false);
-  };
 
   return (
     <CodeBlock
@@ -168,7 +149,7 @@ const LocalCodeDock = ({ slug, onClose }: { slug: string; onClose: () => void })
         <div
           role="tablist"
           aria-label="Source files"
-          className="flex min-w-0 flex-1 items-center gap-0.5 overflow-x-auto [scrollbar-width:none]"
+          className="flex min-w-0 flex-1 items-center gap-0.5 overflow-x-auto pr-6 [scrollbar-width:none] [mask-image:linear-gradient(to_right,black_calc(100%-1.5rem),transparent)]"
         >
           {files.map(({ path }) => {
             const active = path === file?.path;
@@ -201,16 +182,6 @@ const LocalCodeDock = ({ slug, onClose }: { slug: string; onClose: () => void })
               toast.success(`Copied ${file?.path ?? "file"}`);
             }}
           />
-          <ToolbarButton
-            label="Download .zip"
-            disabled={!data}
-            loading={downloading}
-            onClick={() => {
-              void onDownload();
-            }}
-          >
-            <DownloadIcon />
-          </ToolbarButton>
           <ToolbarButton label="Hide code" onClick={onClose}>
             <XIcon />
           </ToolbarButton>

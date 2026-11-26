@@ -77,13 +77,14 @@
   --flat-text: var(--ink-80);
 
   /* Shape */
+  --radius-scale: 1;
   --radius-pill: 999px;
-  --radius-shell: 14px;
-  --radius-panel: 11px;
-  --radius-overlay: 10px;
-  --radius-tag: 6px;
-  --radius-mark: 2px;
   --shell-inset: 3px;
+  --radius-shell: calc(14px * var(--radius-scale));
+  --radius-panel: max(0px, calc(14px * var(--radius-scale) - var(--shell-inset)));
+  --radius-overlay: calc(10px * var(--radius-scale));
+  --radius-tag: calc(6px * var(--radius-scale));
+  --radius-mark: calc(2px * var(--radius-scale));
   --shell-foot-inset: 6px;
 
   /* Space */
@@ -187,6 +188,34 @@
   --glass-rim: rgb(255 255 255 / 0.6);
   --flat-bg: var(--field);
   --flat-ring: var(--ink-10);
+}
+
+.ds-vellum[data-density="compact"] {
+  --control-sm: 22px;
+  --control: 28px;
+  --control-lg: 32px;
+  --row: 32px;
+}
+
+.ds-vellum[data-density="comfortable"] {
+  --control-sm: 30px;
+  --control: 36px;
+  --control-lg: 40px;
+  --row: 40px;
+}
+
+.ds-vellum[data-motion="reduced"] {
+  --dur-glass-press: 0ms;
+  --dur-glass-release: 0ms;
+  --dur-press: 0ms;
+  --dur-state: 0ms;
+  --dur-overlay: 0ms;
+  --dur-slide: 0ms;
+  --dur-demo: 0ms;
+  --scale-press: 1;
+  --scale-press-glass: 1;
+  --scale-overlay: 1;
+  --overlay-shift: 0px;
 }
 
 @media (prefers-reduced-motion: reduce) {

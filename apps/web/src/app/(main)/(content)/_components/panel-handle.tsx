@@ -23,22 +23,22 @@ const GRIP_TRANSITION = {
 
 const GRIP_CLASS = {
   code: "bottom-1/2 left-0 mb-0.75 h-1 w-8",
-  info: "top-0 right-1/2 mr-0.75 h-8 w-1",
-  nav: "top-0 left-1/2 ml-0.75 h-8 w-1",
+  info: "top-0 left-1/2 ml-0.75 h-8 w-1",
+  props: "top-0 right-1/2 mr-0.75 h-8 w-1",
 } satisfies Record<PanelId, string>;
 
-const DIRECTION = { code: -1, info: -1, nav: 1 } satisfies Record<PanelId, 1 | -1>;
+const DIRECTION = { code: -1, info: 1, props: -1 } satisfies Record<PanelId, 1 | -1>;
 
 const LABEL = {
   code: "Resize the code panel",
-  info: "Resize the info panel",
-  nav: "Resize the component list",
+  info: "Resize the details panel",
+  props: "Resize the props panel",
 } satisfies Record<PanelId, string>;
 
 const GROW_KEYS = {
   code: { grow: "ArrowUp", shrink: "ArrowDown" },
-  info: { grow: "ArrowLeft", shrink: "ArrowRight" },
-  nav: { grow: "ArrowRight", shrink: "ArrowLeft" },
+  info: { grow: "ArrowRight", shrink: "ArrowLeft" },
+  props: { grow: "ArrowLeft", shrink: "ArrowRight" },
 } satisfies Record<PanelId, { grow: string; shrink: string }>;
 
 interface PanelHandleProps {
@@ -51,7 +51,7 @@ interface PanelHandleProps {
 
 export const PanelHandle = ({
   panel,
-  state,
+  state: { open, size },
   onChange,
   onDraggingChange,
   className,
@@ -87,9 +87,15 @@ export const PanelHandle = ({
 
     event.preventDefault();
     event.currentTarget.setPointerCapture(event.pointerId);
-    start.current = { pointer: pointerOf(event), size: state.open ? state.size : 0 };
+    start.current = { pointer: pointerOf(event), size };
     setDragging(true);
     onDraggingChange(true);
+  };
+
+  const endDrag = () => {
+    start.current = null;
+    setDragging(false);
+    onDraggingChange(false);
   };
 
   const onPointerMove = (event: PointerEvent<HTMLDivElement>) => {
@@ -102,18 +108,15 @@ export const PanelHandle = ({
     const raw = start.current.size + DIRECTION[panel] * (pointerOf(event) - start.current.pointer);
 
     if (raw < bounds.min / 2) {
-      onChange(panel, { open: false });
+      const restored = start.current.size;
+
+      endDrag();
+      onChange(panel, { open: false, size: restored });
 
       return;
     }
 
-    onChange(panel, { open: true, size: clampPanel(panel, raw) });
-  };
-
-  const onLostPointerCapture = () => {
-    start.current = null;
-    setDragging(false);
-    onDraggingChange(false);
+    onChange(panel, { size: clampPanel(panel, raw) });
   };
 
   const onKeyDown = (event: KeyboardEvent<HTMLDivElement>) => {
@@ -121,7 +124,7 @@ export const PanelHandle = ({
 
     if (event.key === "Enter") {
       event.preventDefault();
-      onChange(panel, { open: !state.open });
+      onChange(panel, { open: false });
 
       return;
     }
@@ -133,10 +136,13 @@ export const PanelHandle = ({
     event.preventDefault();
 
     const step = event.key === keys.grow ? KEYBOARD_STEP : -KEYBOARD_STEP;
-    const base = state.open ? state.size : bounds.min - KEYBOARD_STEP;
 
-    onChange(panel, { open: true, size: clampPanel(panel, base + step) });
+    onChange(panel, { size: clampPanel(panel, size + step) });
   };
+
+  if (!open) {
+    return null;
+  }
 
   return (
     <div
@@ -145,8 +151,8 @@ export const PanelHandle = ({
       tabIndex={0}
       aria-label={LABEL[panel]}
       aria-orientation={vertical ? "vertical" : "horizontal"}
-      aria-valuenow={state.open ? state.size : 0}
-      aria-valuemin={0}
+      aria-valuenow={size}
+      aria-valuemin={bounds.min}
       aria-valuemax={bounds.max}
       data-dragging={dragging || undefined}
       className={cn(
@@ -166,9 +172,9 @@ export const PanelHandle = ({
       }}
       onPointerDown={onPointerDown}
       onPointerMove={onPointerMove}
-      onLostPointerCapture={onLostPointerCapture}
+      onLostPointerCapture={endDrag}
       onDoubleClick={() => {
-        onChange(panel, { open: !state.open });
+        onChange(panel, { open: false });
       }}
       onKeyDown={onKeyDown}
     >

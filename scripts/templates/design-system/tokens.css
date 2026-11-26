@@ -5,6 +5,10 @@
  *
  * Scoped to .ds-template (rewritten to .ds-<slug> on scaffold) so two systems
  * visited in one session never bleed into each other.
+ *
+ * The preview's controls drive this file and nothing else: data-theme and
+ * data-density select the blocks below, and the root's inline style sets
+ * --accent, --ds-radius-scale and --ds-duration-scale.
  */
 .ds-template {
   /* Surfaces */
@@ -17,18 +21,19 @@
   --border: oklch(0.9 0.006 90);
   --input: oklch(0.88 0.006 90);
 
-  /* Intent */
+  /* Intent: the accent's foreground flips to light ink on a dark accent */
   --primary: oklch(0.25 0.01 90);
   --primary-foreground: oklch(0.985 0.002 90);
   --secondary: oklch(0.94 0.005 90);
   --secondary-foreground: var(--foreground);
   --accent: oklch(0.72 0.17 55);
-  --accent-foreground: oklch(0.2 0.03 55);
+  --accent-foreground: oklch(from var(--accent) clamp(0.2, (0.62 - l) * 1000, 0.985) 0.03 h);
   --destructive: oklch(0.58 0.21 27);
-  --ring: oklch(0.72 0.17 55);
+  --ring: var(--accent);
 
   /* Shape */
-  --radius: 0.625rem;
+  --ds-radius-scale: 1;
+  --radius: calc(0.625rem * var(--ds-radius-scale));
   --ds-border-width: 1px;
   --ds-shadow: 0 1px 2px oklch(0 0 0 / 0.06), 0 4px 12px oklch(0 0 0 / 0.04);
 
@@ -39,10 +44,36 @@
   --ds-heading-tracking: -0.02em;
 
   /* Motion */
-  --ds-duration: 160ms;
+  --ds-duration-scale: 1;
+  --ds-duration: calc(160ms * var(--ds-duration-scale));
   --ds-ease: cubic-bezier(0.2, 0, 0, 1);
 
   background: var(--background);
   color: var(--foreground);
   font-family: var(--ds-font-body);
+}
+
+.ds-template[data-theme="dark"] {
+  color-scheme: dark;
+  --background: oklch(0.17 0.005 90);
+  --foreground: oklch(0.95 0.004 90);
+  --card: oklch(0.21 0.006 90);
+  --muted: oklch(0.25 0.006 90);
+  --muted-foreground: oklch(0.7 0.01 90);
+  --border: oklch(0.3 0.007 90);
+  --input: oklch(0.36 0.008 90);
+  --primary: oklch(0.95 0.004 90);
+  --primary-foreground: oklch(0.2 0.01 90);
+  --secondary: oklch(0.27 0.006 90);
+  --destructive: oklch(0.66 0.2 27);
+  --ds-shadow: 0 1px 2px oklch(0 0 0 / 0.5), 0 4px 12px oklch(0 0 0 / 0.35);
+}
+
+/* Density rescales Tailwind's spacing unit, so every padding, gap and control height follows */
+.ds-template[data-density="compact"] {
+  --spacing: 0.2rem;
+}
+
+.ds-template[data-density="comfortable"] {
+  --spacing: 0.3rem;
 }

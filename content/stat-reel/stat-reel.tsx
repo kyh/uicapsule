@@ -19,26 +19,53 @@ const WHEEL_LINE_PX = 16;
 
 const GESTURE_IDLE_MS = 500;
 
-const COLOR_REST = "#636365";
-const COLOR_FOCUS = "#010102";
-
 const SANS =
   'ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif';
 
-const CFG = {
+const MANUAL_STEP_S = 1.2;
+const WHEEL_STEP_PX = 45;
+const MOBILE_FALLOFF_RATIO = 150 / 270;
+
+export interface StatReelProps {
+  /** Advance the reel on its own; scrolling still seizes it either way. */
+  autoplay?: boolean;
+  /** Section background. */
+  background?: string;
+  /** Scale of the label on the center line, relative to the base font. */
+  centerScale?: number;
+  /** Seconds each stat holds before the next auto step. */
+  dwell?: number;
+  /** Distance in px from center over which labels shrink to `farScale`. */
+  falloff?: number;
+  /** Scale of labels far from center, on the same base as `centerScale`. */
+  farScale?: number;
+  /** Multiplier on the gradient figure's size. */
+  figureScale?: number;
+  /** Color of the label on the center line. */
+  focusColor?: string;
+  /** Color of resting labels and the figure prefix. */
+  restColor?: string;
+  /** Seconds after the last scroll before autoplay resumes. */
+  resumeAfter?: number;
+  /** Duration in seconds of one auto step. */
+  stepDuration?: number;
+}
+
+type ReelConfig = Required<StatReelProps>;
+
+const DEFAULTS = {
+  autoplay: true,
+  background: "#f2f2f4",
   centerScale: 1.68,
   dwell: 0.6,
   falloff: 270,
-  falloffMobile: 150,
   farScale: 0.7,
-  manualStep: 1.2,
-  numScale: 1.05,
-  resume: 4,
-  step: 0.8,
-  wheelStep: 45,
-};
-
-const FAR_RATIO = CFG.farScale / CFG.centerScale;
+  figureScale: 1.05,
+  focusColor: "#010102",
+  restColor: "#636365",
+  resumeAfter: 4,
+  stepDuration: 0.8,
+} satisfies ReelConfig;
 
 const clamp01 = (v: number) => (v < 0 ? 0 : Math.min(1, v));
 const lerp = (a: number, b: number, t: number) => a + (b - a) * t;
@@ -52,10 +79,6 @@ interface CSSVarProperties extends CSSProperties {
 
 const PANEL_MASK =
   "linear-gradient(to bottom, transparent 0%, #000 16%, #000 84%, transparent 100%)";
-
-const SECTION_STYLE: CSSProperties = {
-  fontFamily: SANS,
-};
 
 const PANEL_STYLE: CSSProperties = {
   WebkitMaskImage: PANEL_MASK,
@@ -101,7 +124,7 @@ const RowsBase: FC<RowsProps> = ({ register }) => (
           register(j, el);
         }}
         style={ROW_STYLE}
-        className="pointer-events-none absolute top-0 right-0 left-[clamp(32px,5vw,80px)] flex origin-left items-center leading-[1.05] font-medium whitespace-nowrap text-[#636365] [will-change:transform]"
+        className="pointer-events-none absolute top-0 right-0 left-[clamp(32px,5vw,80px)] flex origin-left items-center leading-[1.05] font-medium whitespace-nowrap text-(color:--sr-rest) [will-change:transform]"
       >
         {statAt(j).label}
       </div>
@@ -113,8 +136,37 @@ const Rows = memo(RowsBase);
 
 Rows.displayName = "StatReelRows";
 
-export const StatReel: FC = () => {
+export const StatReel: FC<StatReelProps> = ({
+  autoplay = DEFAULTS.autoplay,
+  background = DEFAULTS.background,
+  centerScale = DEFAULTS.centerScale,
+  dwell = DEFAULTS.dwell,
+  falloff = DEFAULTS.falloff,
+  farScale = DEFAULTS.farScale,
+  figureScale = DEFAULTS.figureScale,
+  focusColor = DEFAULTS.focusColor,
+  restColor = DEFAULTS.restColor,
+  resumeAfter = DEFAULTS.resumeAfter,
+  stepDuration = DEFAULTS.stepDuration,
+}) => {
   const [focusedIndex, setFocusedIndex] = useState(0);
+
+  const config = {
+    autoplay,
+    background,
+    centerScale,
+    dwell,
+    falloff,
+    farScale,
+    figureScale,
+    focusColor,
+    restColor,
+    resumeAfter,
+    stepDuration,
+  } satisfies ReelConfig;
+
+  const configRef = useRef<ReelConfig>(config);
+  const kickAutoRef = useRef<(() => void) | null>(null);
 
   const sectionRef = useRef<HTMLElement>(null);
   const leftRef = useRef<HTMLDivElement>(null);
@@ -133,10 +185,25 @@ export const StatReel: FC = () => {
 
   const sizeRef = useRef({
     cy: 0,
-    falloff: CFG.falloff,
     itemH: DESKTOP.itemH,
+    mobile: false,
     panelH: 0,
   });
+
+  useIsoLayoutEffect(() => {
+    configRef.current = config;
+  });
+
+  const prevAutoplay = useRef(autoplay);
+
+  useEffect(() => {
+    if (prevAutoplay.current === autoplay) {
+      return;
+    }
+
+    prevAutoplay.current = autoplay;
+    kickAutoRef.current?.();
+  }, [autoplay]);
 
   const register = useCallback((index: number, el: HTMLDivElement | null) => {
     rowsRef.current[index] = el;
@@ -172,14 +239,13 @@ export const StatReel: FC = () => {
 
       sizeRef.current = {
         cy: panelH / 2,
-        falloff: mobile ? CFG.falloffMobile : CFG.falloff,
         itemH: base.itemH,
+        mobile,
         panelH,
       };
 
       section.style.setProperty("--bm-item-h", `${base.itemH}px`);
       section.style.setProperty("--bm-base-font", `${base.font}px`);
-      section.style.setProperty("--center-scale", String(CFG.centerScale));
 
       if (numberRef.current && leftRef.current) {
         applyFit(numberRef.current, leftRef.current);
@@ -224,14 +290,22 @@ export const StatReel: FC = () => {
     };
 
     const queueAutoStep = () => {
-      if (modeRef.current !== "auto" || isReduced()) {
+      if (dwellTimer !== null && dwellTimer !== 0) {
+        clearTimeout(dwellTimer);
+      }
+
+      if (modeRef.current !== "auto" || isReduced() || !configRef.current.autoplay) {
         return;
       }
 
       dwellTimer = setTimeout(() => {
+        if (!configRef.current.autoplay) {
+          return;
+        }
+
         targetRef.current += 1;
-        tweenTo(targetRef.current, CFG.step, "expo.inOut", queueAutoStep);
-      }, CFG.dwell * 1000);
+        tweenTo(targetRef.current, configRef.current.stepDuration, "expo.inOut", queueAutoStep);
+      }, configRef.current.dwell * 1000);
     };
 
     const startAuto = () => {
@@ -264,15 +338,15 @@ export const StatReel: FC = () => {
 
       modeRef.current = "user";
       targetRef.current += dir;
-      tweenTo(targetRef.current, CFG.manualStep, "expo.out", queueAutoStep);
+      tweenTo(targetRef.current, MANUAL_STEP_S, "expo.out", queueAutoStep);
 
-      resumeTimer = setTimeout(startAuto, CFG.resume * 1000);
+      resumeTimer = setTimeout(startAuto, configRef.current.resumeAfter * 1000);
     };
 
     const drain = () => {
-      while (Math.abs(accumRef.current) >= CFG.wheelStep) {
+      while (Math.abs(accumRef.current) >= WHEEL_STEP_PX) {
         const d = Math.sign(accumRef.current);
-        accumRef.current -= d * CFG.wheelStep;
+        accumRef.current -= d * WHEEL_STEP_PX;
         stepManual(d);
       }
     };
@@ -296,7 +370,10 @@ export const StatReel: FC = () => {
     let prevNearest: HTMLDivElement | null = null;
 
     const render = () => {
-      const { itemH, falloff, panelH, cy } = sizeRef.current;
+      const { itemH, mobile, panelH, cy } = sizeRef.current;
+      const cfg = configRef.current;
+      const falloffPx = mobile ? cfg.falloff * MOBILE_FALLOFF_RATIO : cfg.falloff;
+      const farRatio = cfg.farScale / cfg.centerScale;
 
       if (panelH > 0) {
         const { idx } = proxyState;
@@ -326,13 +403,13 @@ export const StatReel: FC = () => {
             continue;
           }
 
-          const s = smoothstep(clamp01(Math.abs(off) / falloff));
+          const s = smoothstep(clamp01(Math.abs(off) / falloffPx));
 
           if (row.style.opacity !== "1") {
             row.style.opacity = "1";
           }
 
-          row.style.transform = `translateY(${screenY - itemH / 2}px) scale(${lerp(1, FAR_RATIO, s)})`;
+          row.style.transform = `translateY(${screenY - itemH / 2}px) scale(${lerp(1, farRatio, s)})`;
 
           const a = Math.abs(off);
 
@@ -344,11 +421,11 @@ export const StatReel: FC = () => {
 
         if (nearestEl !== prevNearest) {
           if (prevNearest) {
-            prevNearest.style.color = COLOR_REST;
+            prevNearest.style.color = "";
           }
 
           if (nearestEl) {
-            nearestEl.style.color = COLOR_FOCUS;
+            nearestEl.style.color = "var(--sr-focus)";
           }
 
           prevNearest = nearestEl;
@@ -497,8 +574,15 @@ export const StatReel: FC = () => {
       startTimer = setTimeout(startAuto, START_DELAY_MS);
     }
 
+    kickAutoRef.current = () => {
+      if (modeRef.current === "auto") {
+        startAuto();
+      }
+    };
+
     return () => {
       disposed = true;
+      kickAutoRef.current = null;
       cancelAnimationFrame(rafId);
       ro.disconnect();
       window.removeEventListener("resize", measure);
@@ -550,7 +634,7 @@ export const StatReel: FC = () => {
           figure,
           { opacity: 0, scale: 0.95, y: 14 },
           {
-            duration: Math.max(0.32, CFG.step * 0.7),
+            duration: Math.max(0.32, configRef.current.stepDuration * 0.7),
             ease: "expo.out",
             opacity: 1,
             overwrite: true,
@@ -566,17 +650,31 @@ export const StatReel: FC = () => {
     }
   }, [focusedIndex]);
 
+  useIsoLayoutEffect(() => {
+    if (numberRef.current && leftRef.current) {
+      applyFit(numberRef.current, leftRef.current);
+    }
+  }, [figureScale]);
+
   const current = statAt(focusedIndex);
 
   const numberStyle: CSSVarProperties = {
-    "--bm-num-scale": String(CFG.numScale),
+    "--bm-num-scale": String(figureScale),
     backgroundImage: current.gradient,
+  };
+
+  const sectionStyle: CSSVarProperties = {
+    "--center-scale": String(centerScale),
+    "--sr-focus": focusColor,
+    "--sr-rest": restColor,
+    backgroundColor: background,
+    fontFamily: SANS,
   };
 
   return (
     <section
-      className="relative flex h-full w-full flex-col overflow-hidden bg-[#f2f2f4] text-[#010102] [--bm-base-font:19px] [--bm-item-h:46px] [--center-scale:1.68] min-[900px]:flex-row min-[900px]:[--bm-base-font:26px] min-[900px]:[--bm-item-h:62px]"
-      style={SECTION_STYLE}
+      className="relative flex h-full w-full flex-col overflow-hidden text-(color:--sr-focus) [--bm-base-font:19px] [--bm-item-h:46px] min-[900px]:flex-row min-[900px]:[--bm-base-font:26px] min-[900px]:[--bm-item-h:62px]"
+      style={sectionStyle}
       ref={sectionRef}
       aria-label="Ocean depth statistics"
       // oxlint-disable-next-line jsx-a11y/no-noninteractive-tabindex -- wheel and touch already seize the reel; the tab stop is what gives a keyboard-only user the same arrow-key access to it
@@ -588,7 +686,7 @@ export const StatReel: FC = () => {
         aria-hidden
       >
         <div className="opacity-0 [will-change:transform,opacity]" ref={figureRef}>
-          <div className="mb-1.5 min-h-[26px] w-full text-center text-[clamp(14px,1.4vw,20px)] font-medium text-[#636365] min-[900px]:w-auto min-[900px]:text-left">
+          <div className="mb-1.5 min-h-[26px] w-full text-center text-[clamp(14px,1.4vw,20px)] font-medium text-(color:--sr-rest) min-[900px]:w-auto min-[900px]:text-left">
             {current.prefix ?? " "}
           </div>
 

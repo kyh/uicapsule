@@ -10,12 +10,14 @@ import {
   div,
   length,
   max,
+  min,
   mix,
   mul,
   positionLocal,
   smoothstep,
   sub,
   texture,
+  uniform,
   uv,
   vec3,
   vec4,
@@ -30,6 +32,7 @@ const REFERENCE_FPS = 60;
 const VELOCITY_THRESHOLD = 0.002;
 const SNAP_SPEED = 0.15;
 const SNAP_EPSILON = 0.005;
+const AUTOROTATE_RESUME_SECONDS = 1.5;
 const TAU = Math.PI * 2;
 
 const closestSnapRotation = (currentRotation: number, anglePerImage: number, count: number) => {
@@ -52,6 +55,16 @@ const closestSnapRotation = (currentRotation: number, anglePerImage: number, cou
   return targetRotation;
 };
 
+const shortestAngleDelta = (from: number, to: number) => {
+  const diff = to - from;
+
+  if (Math.abs(diff) <= Math.PI) {
+    return diff;
+  }
+
+  return diff > 0 ? diff - TAU : diff + TAU;
+};
+
 const setPlaneOpacity = (group: Group, opacity: number) => {
   for (const child of group.children) {
     if (child instanceof Mesh && child.material instanceof NodeMaterial) {
@@ -60,8 +73,39 @@ const setPlaneOpacity = (group: Group, opacity: number) => {
   }
 };
 
-const BEND_MULTIPLIER = 2;
+export const BEND_MULTIPLIER = 2;
 const CORNER_MASK_FEATHER = 0.01;
+
+class RoundedCardMaterial extends NodeMaterial {
+  readonly bendStrength = uniform(0);
+  readonly cornerRadius = uniform(0);
+
+  constructor(imageTexture: Texture) {
+    super();
+
+    const position = positionLocal;
+    const normalizedX = div(position.x, 0.5);
+    const curvature = mul(mul(normalizedX, normalizedX), this.bendStrength);
+
+    this.positionNode = vec3(position.x, position.y, add(position.z, curvature));
+
+    const uvCoords = uv();
+    const imageColor = texture(imageTexture, uvCoords);
+    const center = sub(uvCoords, 0.5);
+    const cornerOffset = sub(abs(center), sub(0.5, this.cornerRadius));
+
+    const signedDistance = sub(
+      add(length(max(cornerOffset, 0)), min(max(cornerOffset.x, cornerOffset.y), 0)),
+      this.cornerRadius,
+    );
+
+    const mask = sub(1, smoothstep(-CORNER_MASK_FEATHER, CORNER_MASK_FEATHER, signedDistance));
+
+    this.colorNode = mix(vec4(0, 0, 0, 0), imageColor, mask);
+    this.transparent = true;
+    this.side = DoubleSide;
+  }
+}
 
 export const ImageCarouselCanvas = ({
   backgroundColor = "#6F6D66",
@@ -124,46 +168,16 @@ const ImagePlane = ({
   farOpacity,
   currentIndexRef,
 }: ImagePlaneProps) => {
-  const meshRef = useRef<MeshType<BufferGeometry, NodeMaterial> | null>(null);
+  const meshRef = useRef<MeshType<BufferGeometry, RoundedCardMaterial> | null>(null);
 
   const angle = (index * TAU) / total;
   const x = Math.sin(angle) * radius;
   const z = Math.cos(angle) * radius;
-  const planeHeight = planeWidth * IMAGE_ASPECT;
 
-  const roundedCornersMaterial = useMemo(() => {
-    const material = new NodeMaterial();
-
-    const position = positionLocal;
-
-    const bendStrength = mul(bendAmount, BEND_MULTIPLIER);
-    const normalizedX = div(position.x, planeWidth * 0.5);
-    const curvature = mul(mul(normalizedX, normalizedX), bendStrength);
-    const bentZ = add(position.z, curvature);
-
-    material.positionNode = vec3(position.x, position.y, bentZ);
-
-    const uvCoords = uv();
-
-    const imageColor = texture(imageTexture, uvCoords);
-
-    const center = sub(uvCoords, 0.5);
-    const d = length(max(sub(abs(center), 0.5 - cornerRadius), 0));
-
-    const mask = smoothstep(
-      cornerRadius + CORNER_MASK_FEATHER,
-      cornerRadius - CORNER_MASK_FEATHER,
-      d,
-    );
-
-    const finalColor = mix(vec4(0, 0, 0, 0), imageColor, mask);
-
-    material.colorNode = finalColor;
-    material.transparent = true;
-    material.side = DoubleSide;
-
-    return material;
-  }, [imageTexture, bendAmount, planeWidth, cornerRadius]);
+  const roundedCornersMaterial = useMemo(
+    () => new RoundedCardMaterial(imageTexture),
+    [imageTexture],
+  );
 
   useEffect(
     () => () => {
@@ -179,6 +193,8 @@ const ImagePlane = ({
       return;
     }
 
+    mesh.material.bendStrength.value = bendAmount * BEND_MULTIPLIER;
+    mesh.material.cornerRadius.value = cornerRadius;
     mesh.lookAt(0, mesh.position.y, 0);
 
     const rawDistance = Math.abs(index - currentIndexRef.current);
@@ -202,8 +218,13 @@ const ImagePlane = ({
   });
 
   return (
-    <mesh ref={meshRef} position={[x, 0, z]} material={roundedCornersMaterial}>
-      <planeGeometry args={[planeWidth, planeHeight, 32, 32]} />
+    <mesh
+      ref={meshRef}
+      position={[x, 0, z]}
+      scale={[planeWidth, planeWidth, 1]}
+      material={roundedCornersMaterial}
+    >
+      <planeGeometry args={[1, IMAGE_ASPECT, 32, 32]} />
     </mesh>
   );
 };
@@ -253,6 +274,8 @@ export const ImageCarousel = ({
   const targetRotationRef = useRef(0);
   const isSnapping = useRef(false);
   const currentIndexRef = useRef(0);
+  const isUserHolding = useRef(false);
+  const idleSeconds = useRef(0);
 
   const isAnimatingIn = useRef(true);
   const animationProgress = useRef(0);
@@ -284,13 +307,20 @@ export const ImageCarousel = ({
   useEffect(() => {
     const canvas = gl.domElement;
 
+    const holdAutorotate = () => {
+      isUserHolding.current = true;
+      idleSeconds.current = 0;
+    };
+
     const handleWheel = (event: WheelEvent) => {
       event.preventDefault();
+      holdAutorotate();
       velocityRef.current += event.deltaY * wheelSensitivity;
       isSnapping.current = false;
     };
 
     const startDrag = (clientX: number) => {
+      holdAutorotate();
       isDragging.current = true;
       lastPointerX.current = clientX;
     };
@@ -300,6 +330,7 @@ export const ImageCarousel = ({
         return;
       }
 
+      holdAutorotate();
       velocityRef.current += (clientX - lastPointerX.current) * dragSensitivity;
       lastPointerX.current = clientX;
       isSnapping.current = false;
@@ -393,7 +424,9 @@ export const ImageCarousel = ({
       return;
     }
 
-    if (autorotate && !isDragging.current && !isSnapping.current) {
+    const isAutorotating = autorotate && !isUserHolding.current;
+
+    if (isAutorotating && !isDragging.current) {
       velocityRef.current += autorotateSpeed * delta;
     }
 
@@ -401,12 +434,12 @@ export const ImageCarousel = ({
 
     const anglePerImage = TAU / images.length;
 
-    if (
-      enableSnapping &&
+    const isAtRest = () =>
       !isDragging.current &&
       !isSnapping.current &&
-      Math.abs(velocityRef.current) < VELOCITY_THRESHOLD
-    ) {
+      Math.abs(velocityRef.current) < VELOCITY_THRESHOLD;
+
+    if (enableSnapping && !isAutorotating && isAtRest()) {
       targetRotationRef.current = closestSnapRotation(
         rotationRef.current,
         anglePerImage,
@@ -417,11 +450,7 @@ export const ImageCarousel = ({
     }
 
     if (isSnapping.current) {
-      let diff = targetRotationRef.current - rotationRef.current;
-
-      if (Math.abs(diff) > Math.PI) {
-        diff += diff > 0 ? -TAU : TAU;
-      }
+      const diff = shortestAngleDelta(rotationRef.current, targetRotationRef.current);
 
       if (Math.abs(diff) < SNAP_EPSILON) {
         rotationRef.current = targetRotationRef.current;
@@ -434,6 +463,14 @@ export const ImageCarousel = ({
     }
 
     group.rotation.y = rotationRef.current;
+
+    if (isUserHolding.current && isAtRest()) {
+      idleSeconds.current += delta;
+
+      if (idleSeconds.current >= AUTOROTATE_RESUME_SECONDS) {
+        isUserHolding.current = false;
+      }
+    }
 
     const normalizedAngle = ((-rotationRef.current % TAU) + TAU) % TAU;
     currentIndexRef.current = Math.round(normalizedAngle / anglePerImage) % images.length;

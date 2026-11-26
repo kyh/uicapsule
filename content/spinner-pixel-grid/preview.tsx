@@ -1,78 +1,75 @@
 "use client";
 
-import { useState } from "react";
-
 import { SpinnerPixelGrid, spinnerDots, spinnerVariants } from "./spinner-pixel-grid";
-import type { SpinnerDot } from "./spinner-pixel-grid";
+import type { SpinnerDot, SpinnerVariant } from "./spinner-pixel-grid";
 
-const Preview = () => {
-  const [glow, setGlow] = useState(true);
-  const [rainbow, setRainbow] = useState(true);
-  const [dot, setDot] = useState<SpinnerDot>("square");
+const titleCase = (value: string) => value.charAt(0).toUpperCase() + value.slice(1);
 
-  return (
-    <div className="min-h-screen bg-black text-yellow-300">
-      <div className="sticky top-0 z-10 flex flex-wrap items-center gap-4 border-b border-white/10 bg-black/80 p-4 backdrop-blur">
-        <label className="flex items-center gap-2 text-sm text-gray-300">
-          <input
-            type="checkbox"
-            checked={glow}
-            onChange={(e) => {
-              setGlow(e.target.checked);
-            }}
-          />
-          Glow
-        </label>
-        <label className="flex items-center gap-2 text-sm text-gray-300">
-          <input
-            type="checkbox"
-            checked={rainbow}
-            onChange={(e) => {
-              setRainbow(e.target.checked);
-            }}
-          />
-          Rainbow
-        </label>
-        <div className="flex items-center gap-2 text-sm text-gray-300">
-          Shape:
-          {spinnerDots.map((s) => (
-            <button
-              key={s}
-              type="button"
-              aria-pressed={dot === s}
-              onClick={() => {
-                setDot(s);
-              }}
-              className={
-                dot === s
-                  ? "rounded bg-white/15 px-2 py-1 capitalize"
-                  : "rounded px-2 py-1 capitalize text-gray-500 hover:text-gray-300"
-              }
-            >
-              {s}
-            </button>
-          ))}
-        </div>
-      </div>
+export const controls = {
+  variant: {
+    default: "all",
+    label: "Animation",
+    options: [
+      { label: "All", value: "all" },
+      ...spinnerVariants.map((value) => ({ label: titleCase(value), value })),
+    ],
+    type: "select",
+  },
+  dot: {
+    default: "square",
+    label: "Dot shape",
+    options: spinnerDots.map((value) => ({ label: titleCase(value), value })),
+    type: "select",
+  },
+  color: { default: "#ffdf20", type: "color" },
+  glow: { default: true, type: "boolean" },
+  rainbow: { default: true, type: "boolean" },
+  size: { default: 10, label: "Dot size", max: 20, min: 4, step: 1, type: "number" },
+  gridSize: { default: 5, label: "Grid size", max: 9, min: 3, step: 2, type: "number" },
+  speed: { default: 1, max: 3, min: 0.25, step: 0.25, type: "number" },
+} as const;
 
+interface PreviewProps {
+  color: string;
+  dot: SpinnerDot;
+  glow: boolean;
+  gridSize: number;
+  rainbow: boolean;
+  size: number;
+  speed: number;
+  variant: "all" | SpinnerVariant;
+}
+
+const Preview = ({
+  color = controls.color.default,
+  dot = controls.dot.default,
+  glow = controls.glow.default,
+  gridSize = controls.gridSize.default,
+  rainbow = controls.rainbow.default,
+  size = controls.size.default,
+  speed = controls.speed.default,
+  variant = controls.variant.default,
+}: Partial<PreviewProps>) => {
+  const spinnerProps = { color, dot, glow, gridSize, rainbow, size, speed };
+
+  return variant === "all" ? (
+    <div className="min-h-screen bg-black">
       <div className="grid grid-cols-2 pb-32 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
-        {spinnerVariants.map((variant) => (
+        {spinnerVariants.map((v) => (
           <div
-            key={variant}
+            key={v}
             className="flex flex-col items-center justify-center gap-4 border border-white/10 p-8"
           >
-            <SpinnerPixelGrid
-              variant={variant}
-              dot={dot}
-              glow={glow}
-              rainbow={rainbow}
-              size={10}
-              gridSize={5}
-            />
-            <span className="text-xs text-gray-500">{variant}</span>
+            <SpinnerPixelGrid variant={v} {...spinnerProps} />
+            <span className="text-xs text-gray-500">{v}</span>
           </div>
         ))}
       </div>
+    </div>
+  ) : (
+    <div className="flex min-h-screen flex-col items-center justify-center gap-6 bg-black">
+      <SpinnerPixelGrid variant={variant} {...spinnerProps} />
+      <span className="text-xs text-gray-500">{variant}</span>
     </div>
   );
 };

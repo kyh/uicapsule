@@ -2,53 +2,64 @@ import { Button } from "../components/button";
 import { StatusMark } from "../components/status";
 import { Avatar, Tag } from "../components/tag";
 import { cssVars } from "../lib/css-vars";
+import { DENSITIES, useSettings } from "./settings";
+import type { DensityScale } from "./settings";
 
 const STEPS = [48, 40, 32, 24, 20, 16, 12, 8, 4, 2].toReversed();
 
 const SIZES = [
-  { name: "--hx-control-sm", px: 28, use: "Compact buttons, icons in a head row" },
-  { name: "--hx-control", px: 32, use: "Buttons, fields, tabs" },
-  { name: "--hx-control-lg", px: 36, use: "The one large control a page may have" },
-  { name: "--hx-row-sm", px: 32, use: "Menu items, table heads" },
-  { name: "--hx-row", px: 40, use: "Table rows, tool-call steps" },
-  { name: "--hx-head", px: 40, use: "The head row of a frame" },
-];
+  { name: "--hx-control-sm", use: "Compact buttons, icons in a head row" },
+  { name: "--hx-control", use: "Buttons, fields, tabs" },
+  { name: "--hx-control-lg", use: "The one large control a page may have" },
+  { name: "--hx-row-sm", use: "Menu items, table heads" },
+  { name: "--hx-row", use: "Table rows, tool-call steps" },
+  { name: "--hx-head", use: "The head row of a frame" },
+] as const;
+
+/** The Space lead, with the heights the current density sets. */
+export const spaceLead = (scale: DensityScale) =>
+  `Padding, margins and gaps move in 4px steps, with a 2px half-step for marks. Controls stand ${scale["--hx-control"]}px tall, rows ${scale["--hx-row"]}px, and every region keeps a ${scale["--hx-inset"]}px inset.`;
 
 const stepName = (step: number) => (step === 2 ? "--hx-half" : `--hx-${step / 4}`);
 
-/** The 4px scale with its one half-step, and the measured heights. */
-export const Space = () => (
-  <div className="hx-split hx-frame" style={cssVars({ "--cols": 2 })}>
-    <div className="hx-body-pad hx-gap-2">
-      <span className="hx-label-sm hx-ink-3">Steps</span>
-      {STEPS.map((step) => (
-        <div className="hx-row hx-gap-3" key={step}>
-          <span className="hx-code-sm hx-ink-3 hx-space-px">{step}px</span>
-          <span className="hx-space-bar" style={cssVars({ "--w": `${step * 4}px` })} />
-          <span className="hx-code-sm hx-ink-3 hx-end">{stepName(step)}</span>
-        </div>
-      ))}
-    </div>
-    <div className="hx-body-pad hx-gap-2">
-      <span className="hx-label-sm hx-ink-3">Heights</span>
-      {SIZES.map((size) => (
-        <div className="hx-row hx-gap-3" key={size.name}>
-          <span className="hx-space-box" style={cssVars({ "--h": `${size.px}px` })} />
-          <span className="hx-stack hx-gap-0">
-            <span className="hx-code-sm">
-              {size.name} · {size.px}px
+/** The 4px scale with its one half-step, and the heights the current density measures. */
+export const Space = () => {
+  const { density } = useSettings();
+  const scale = DENSITIES[density];
+
+  return (
+    <div className="hx-split hx-frame" style={cssVars({ "--cols": 2 })}>
+      <div className="hx-body-pad hx-gap-2">
+        <span className="hx-label-sm hx-ink-3">Steps</span>
+        {STEPS.map((step) => (
+          <div className="hx-row hx-gap-3" key={step}>
+            <span className="hx-code-sm hx-ink-3 hx-space-px">{step}px</span>
+            <span className="hx-space-bar" style={cssVars({ "--w": `${step * 4}px` })} />
+            <span className="hx-code-sm hx-ink-3 hx-end">{stepName(step)}</span>
+          </div>
+        ))}
+      </div>
+      <div className="hx-body-pad hx-gap-2">
+        <span className="hx-label-sm hx-ink-3">Heights</span>
+        {SIZES.map((size) => (
+          <div className="hx-row hx-gap-3" key={size.name}>
+            <span className="hx-space-box" style={cssVars({ "--h": `${scale[size.name]}px` })} />
+            <span className="hx-stack hx-gap-0">
+              <span className="hx-code-sm">
+                {size.name} · {scale[size.name]}px
+              </span>
+              <span className="hx-caption hx-ink-3">{size.use}</span>
             </span>
-            <span className="hx-caption hx-ink-3">{size.use}</span>
-          </span>
-        </div>
-      ))}
-      <p className="hx-caption hx-ink-2">
-        Padding, margins and gaps move in 4px steps. The 2px half-step lives only inside marks and
-        tags, and the -1px overlaps that let two rules share a line are not spacing at all.
-      </p>
+          </div>
+        ))}
+        <p className="hx-caption hx-ink-2">
+          Padding, margins and gaps move in 4px steps. The 2px half-step lives only inside marks and
+          tags, and the -1px overlaps that let two rules share a line are not spacing at all.
+        </p>
+      </div>
     </div>
-  </div>
-);
+  );
+};
 
 export const ROLES = [
   { name: "Control", node: <Button size="sm">Rerun</Button> },

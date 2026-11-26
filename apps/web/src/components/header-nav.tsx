@@ -18,7 +18,12 @@ export const HeaderNav = ({ className, searchEntries, profile }: HeaderNavProps)
   const { trigger } = useWebHaptics();
 
   return (
-    <nav className={cn("flex h-16 w-full grid-cols-3 items-center gap-2 px-4 sm:grid", className)}>
+    <nav
+      className={cn(
+        "flex h-16 w-full grid-cols-[1fr_auto_1fr] items-center gap-2 px-4 sm:grid",
+        className,
+      )}
+    >
       <div className="flex items-center justify-start gap-2">
         <Link
           href="/"

@@ -1,45 +1,121 @@
 "use client";
 
-import { useState } from "react";
-
 import type { ChibiVariant } from "./chibi-plants";
 import { CHIBI_VARIANTS, ChibiPlants, VARIANTS } from "./chibi-plants";
 
-const Preview = () => {
-  const [variant, setVariant] = useState<ChibiVariant>("pip");
+export const controls = {
+  variant: {
+    default: "pip",
+    group: "Plant",
+    label: "Plant",
+    options: CHIBI_VARIANTS.map((value) => ({ label: VARIANTS[value].label, value })),
+    type: "select",
+  },
+  eyeScale: {
+    default: 1,
+    group: "Plant",
+    label: "Eye size",
+    max: 1.6,
+    min: 0.5,
+    step: 0.05,
+    type: "number",
+  },
+  gaze: {
+    default: 1,
+    group: "Plant",
+    label: "Cursor follow",
+    max: 1.5,
+    min: 0,
+    step: 0.05,
+    type: "number",
+  },
+  wobble: {
+    default: 1,
+    group: "Motion",
+    label: "Idle sway",
+    max: 2,
+    min: 0,
+    step: 0.05,
+    type: "number",
+  },
+  speed: {
+    default: 1,
+    group: "Motion",
+    label: "Idle speed",
+    max: 3,
+    min: 0,
+    step: 0.1,
+    type: "number",
+  },
+  firmness: {
+    default: 0.5,
+    group: "Motion",
+    label: "Firmness",
+    max: 1,
+    min: 0,
+    step: 0.05,
+    type: "number",
+  },
+  interactive: { default: true, group: "Motion", label: "Grab & toss", type: "boolean" },
+  customColors: { default: false, group: "Color", label: "Custom colors", type: "boolean" },
+  bodyColor: { default: "#9fd6a3", group: "Color", label: "Body", type: "color" },
+  leafColor: { default: "#67b26f", group: "Color", label: "Leaves", type: "color" },
+  potColor: { default: "#d98b71", group: "Color", label: "Pot", type: "color" },
+  cheekColor: { default: "#e8798f", group: "Color", label: "Blush", type: "color" },
+  glow: { default: "#2e2a33", group: "Color", label: "Backdrop glow", type: "color" },
+  backdrop: { default: "#0b0a0e", group: "Color", label: "Backdrop", type: "color" },
+} as const;
 
-  return (
-    <main className="relative h-dvh w-full overflow-hidden bg-[#0b0a0e]">
-      <ChibiPlants variant={variant} className="absolute inset-0" />
+interface PreviewProps {
+  backdrop: string;
+  bodyColor: string;
+  cheekColor: string;
+  customColors: boolean;
+  eyeScale: number;
+  firmness: number;
+  gaze: number;
+  glow: string;
+  interactive: boolean;
+  leafColor: string;
+  potColor: string;
+  speed: number;
+  variant: ChibiVariant;
+  wobble: number;
+}
 
-      <fieldset className="absolute bottom-4 left-4 m-0 flex min-w-0 flex-col items-center border-0 p-0">
-        <legend className="sr-only">Plant</legend>
-        {CHIBI_VARIANTS.map((v) => (
-          <button
-            key={v}
-            type="button"
-            data-variant={v}
-            aria-label={VARIANTS[v].label}
-            aria-pressed={variant === v}
-            title={VARIANTS[v].label}
-            onClick={() => {
-              setVariant(v);
-            }}
-            className="group grid size-9 place-items-center rounded-full outline-none focus-visible:ring-2 focus-visible:ring-white/60"
-          >
-            <span
-              className={`size-4 rounded-full transition-[scale,opacity,box-shadow] duration-200 ease-out motion-reduce:transition-none ${
-                variant === v
-                  ? "ring-2 ring-white/85 ring-offset-2 ring-offset-[#0b0a0e]"
-                  : "opacity-55 group-hover:scale-110 group-hover:opacity-100"
-              }`}
-              style={{ background: VARIANTS[v].palette.body }}
-            />
-          </button>
-        ))}
-      </fieldset>
-    </main>
-  );
-};
+const Preview = ({
+  backdrop = controls.backdrop.default,
+  bodyColor = controls.bodyColor.default,
+  cheekColor = controls.cheekColor.default,
+  customColors = controls.customColors.default,
+  eyeScale = controls.eyeScale.default,
+  firmness = controls.firmness.default,
+  gaze = controls.gaze.default,
+  glow = controls.glow.default,
+  interactive = controls.interactive.default,
+  leafColor = controls.leafColor.default,
+  potColor = controls.potColor.default,
+  speed = controls.speed.default,
+  variant = controls.variant.default,
+  wobble = controls.wobble.default,
+}: Partial<PreviewProps>) => (
+  <main className="relative h-dvh w-full overflow-hidden" style={{ backgroundColor: backdrop }}>
+    <ChibiPlants
+      background={[glow, backdrop]}
+      bodyColor={customColors ? bodyColor : undefined}
+      cheekColor={cheekColor}
+      className="absolute inset-0"
+      eyeScale={eyeScale}
+      firmness={firmness}
+      gaze={gaze}
+      interactive={interactive}
+      leafColor={customColors ? leafColor : undefined}
+      potColor={customColors ? potColor : undefined}
+      speed={speed}
+      variant={variant}
+      wobble={wobble}
+    />
+  </main>
+);
 
 export default Preview;

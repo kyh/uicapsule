@@ -58,7 +58,7 @@ export const StatusBarSummary = () => {
 
   return (
     <span>
-      {data.length} rows × {columnCount} columns
+      {data.length} {data.length === 1 ? "row" : "rows"} × {columnCount} columns
     </span>
   );
 };

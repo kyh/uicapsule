@@ -7,8 +7,8 @@ const noop = () => null;
 
 const WIDTH = 520;
 const HEIGHT = 300;
-const DURATION_MS = 6200;
-const STEPS = 30;
+const REGENERATE_HUE_STEP = 73;
+const LOOP_PAUSE_MS = 1800;
 
 const paintScene = (ctx: CanvasRenderingContext2D, hueShift: number) => {
   const h = (base: number) => (base + hueShift) % 360;
@@ -65,7 +65,23 @@ const paintScene = (ctx: CanvasRenderingContext2D, hueShift: number) => {
   ctx.fillRect(0, HEIGHT * 0.55, WIDTH, HEIGHT * 0.3);
 };
 
-export const DiffusionReveal = () => {
+export interface DiffusionRevealProps {
+  duration?: number;
+  grain?: number;
+  hue?: number;
+  loop?: boolean;
+  prompt?: string;
+  steps?: number;
+}
+
+export const DiffusionReveal = ({
+  duration = 6.2,
+  grain = 1,
+  hue = 0,
+  loop = false,
+  prompt = "a quiet valley at dusk, low fog, oil painting",
+  steps = 30,
+}: DiffusionRevealProps) => {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const [progress, setProgress] = useState(0);
   const [seed, setSeed] = useState(0);
@@ -95,7 +111,7 @@ export const DiffusionReveal = () => {
       return noop;
     }
 
-    paintScene(sceneCtx, seed * 73);
+    paintScene(sceneCtx, hue + seed * REGENERATE_HUE_STEP);
 
     const noise = document.createElement("canvas");
     noise.width = 128;
@@ -123,10 +139,12 @@ export const DiffusionReveal = () => {
     let raf = 0;
     let frame = 0;
     const start = performance.now();
+    const durationMs = duration * 1000;
 
     const tick = (now: number) => {
-      const t = Math.min(1, (now - start) / DURATION_MS);
-      const eased = t * t * (3 - 2 * t);
+      const t = Math.min(1, (now - start) / durationMs);
+      const denoised = Math.floor(t * steps) / steps;
+      const eased = denoised * denoised * (3 - 2 * denoised);
       setProgress(t);
 
       if (t >= 1) {
@@ -147,7 +165,7 @@ export const DiffusionReveal = () => {
       ctx.drawImage(scene, 0, 0, WIDTH, HEIGHT, 0, 0, rw, rh);
       ctx.drawImage(canvas, 0, 0, rw, rh, 0, 0, WIDTH, HEIGHT);
 
-      const noiseAlpha = (1 - eased) ** 1.35;
+      const noiseAlpha = grain * (1 - eased) ** 1.35;
 
       if (noiseAlpha > 0.004) {
         ctx.globalAlpha = noiseAlpha;
@@ -172,17 +190,33 @@ export const DiffusionReveal = () => {
     return () => {
       cancelAnimationFrame(raf);
     };
-  }, [seed, reduceMotion]);
+  }, [seed, reduceMotion, duration, grain, hue, steps]);
 
-  const step = Math.min(STEPS, Math.max(1, Math.ceil(progress * STEPS)));
+  const step = Math.min(steps, Math.max(1, Math.ceil(progress * steps)));
   const done = progress >= 1;
+
+  useEffect(() => {
+    if (!loop || !done) {
+      return noop;
+    }
+
+    const timeout = window.setTimeout(() => {
+      setElapsed(null);
+      setProgress(0);
+      setSeed((s) => s + 1);
+    }, LOOP_PAUSE_MS);
+
+    return () => {
+      window.clearTimeout(timeout);
+    };
+  }, [loop, done]);
 
   return (
     <div className="w-[560px] rounded-3xl bg-[#150f22] p-5 shadow-2xl shadow-black/60 ring-1 ring-white/10 select-none">
       <div className="mb-4 flex items-center justify-between gap-3 px-1.5">
         <p className="truncate text-[12.5px] text-white/65">
-          <span className="mr-1.5 text-white/30">Prompt</span>a quiet valley at dusk, low fog, oil
-          painting
+          <span className="mr-1.5 text-white/30">Prompt</span>
+          {prompt}
         </p>
         <button
           type="button"
@@ -202,7 +236,7 @@ export const DiffusionReveal = () => {
         <div className="absolute top-3 left-3 rounded-full bg-black/55 px-2.5 py-1 text-[10px] font-medium text-white/85 backdrop-blur tabular-nums">
           {done && elapsed !== null
             ? `Done in ${elapsed.toFixed(1)}s`
-            : `Denoising · step ${String(step)}/${String(STEPS)}`}
+            : `Denoising · step ${String(step)}/${String(steps)}`}
         </div>
       </motion.div>
 

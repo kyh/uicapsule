@@ -1,6 +1,7 @@
 "use client";
 
-import type { ComponentProps } from "react";
+import { createContext, useContext } from "react";
+import type { ComponentProps, CSSProperties } from "react";
 import { Button as ButtonPrimitive } from "@base-ui/react/button";
 import { Checkbox as CheckboxPrimitive } from "@base-ui/react/checkbox";
 import { Popover as PopoverPrimitive } from "@base-ui/react/popover";
@@ -13,6 +14,10 @@ import { CheckIcon, SearchIcon } from "lucide-react";
 import { DayPicker } from "react-day-picker";
 import "react-day-picker/style.css";
 import "../filter-bar.css";
+
+export type FilterBarStyle = CSSProperties & Record<`--${string}`, string>;
+
+export const FilterBarStyleContext = createContext<FilterBarStyle | undefined>(undefined);
 
 type Styled<Props> = Omit<Props, "className"> & { className?: string };
 
@@ -59,24 +64,29 @@ export const PopoverContent = ({
   side = "bottom",
   ...props
 }: Styled<PopoverPrimitive.Popup.Props> &
-  Pick<PopoverPrimitive.Positioner.Props, "align" | "side">) => (
-  <PopoverPrimitive.Portal>
-    <PopoverPrimitive.Positioner
-      align={align}
-      side={side}
-      sideOffset={4}
-      className="filter-bar isolate z-50"
-    >
-      <PopoverPrimitive.Popup
-        className={cn(
-          "flex w-72 origin-(--transform-origin) flex-col gap-4 rounded-md bg-(--popover) p-4 text-sm text-(--popover-foreground) shadow-md ring-1 ring-(--foreground)/10 outline-none",
-          className,
-        )}
-        {...props}
-      />
-    </PopoverPrimitive.Positioner>
-  </PopoverPrimitive.Portal>
-);
+  Pick<PopoverPrimitive.Positioner.Props, "align" | "side">) => {
+  const style = useContext(FilterBarStyleContext);
+
+  return (
+    <PopoverPrimitive.Portal>
+      <PopoverPrimitive.Positioner
+        align={align}
+        side={side}
+        sideOffset={4}
+        className="filter-bar isolate z-50"
+        style={style}
+      >
+        <PopoverPrimitive.Popup
+          className={cn(
+            "flex w-72 origin-(--transform-origin) flex-col gap-4 rounded-md bg-(--popover) p-4 text-sm text-(--popover-foreground) shadow-md ring-1 ring-(--foreground)/10 outline-none",
+            className,
+          )}
+          {...props}
+        />
+      </PopoverPrimitive.Positioner>
+    </PopoverPrimitive.Portal>
+  );
+};
 
 export const Checkbox = ({ className, ...props }: Styled<CheckboxPrimitive.Root.Props>) => (
   <CheckboxPrimitive.Root

@@ -279,14 +279,19 @@ export const SearchButton = ({ searchEntries }: { searchEntries: SearchEntry[] }
       <button
         type="button"
         aria-expanded={searchOpen}
-        className="border-input bg-muted flex h-9 w-full rounded-full border px-3 py-2 shadow-xs transition"
+        className="border-input bg-background group flex h-9 w-full rounded-full sm:w-75 border px-3 py-2 shadow-xs transition"
         onClick={() => {
           changeSearchOpen(true);
         }}
       >
         <span className="flex grow items-center gap-1">
-          <SearchIcon className="text-muted-foreground size-4" aria-hidden="true" />
-          <span className="text-muted-foreground text-sm">Search</span>
+          <SearchIcon
+            className="text-muted-foreground group-hover:text-primary size-4 transition-colors"
+            aria-hidden="true"
+          />
+          <span className="text-muted-foreground group-hover:text-primary text-sm transition-colors">
+            Search
+          </span>
         </span>
         <kbd className="bg-background text-muted-foreground inline-flex h-full items-center rounded border px-1 font-sans text-xs">
           ⌘K

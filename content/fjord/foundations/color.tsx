@@ -3,7 +3,7 @@ import { useEffect, useRef, useState } from "react";
 import { Badge, KINDS, KIND_WORD } from "../components/badge";
 import { Status } from "../components/status";
 import { contrastRatio, paint, toOklch } from "../lib/contrast";
-import { useTheme } from "../lib/theme";
+import { useAppearance } from "../lib/theme";
 import { Foundation, Rules, Stage } from "./section";
 
 const noop = () => null;
@@ -189,7 +189,7 @@ const TokenTable = ({
 };
 
 export const ColorFoundation = () => {
-  const theme = useTheme();
+  const { focusHue, theme } = useAppearance();
 
   return (
     <Foundation
@@ -269,7 +269,7 @@ export const ColorFoundation = () => {
         <TokenTable
           caption="Text tokens with measured contrast"
           grounds={["on paper", "on fog"]}
-          key={theme}
+          key={`${theme}-${focusHue.toString()}`}
           rows={TEXT_ROWS}
         />
       </div>

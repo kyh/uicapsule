@@ -9,10 +9,12 @@ import { Panel, Shell, ShellFoot } from "../components/card";
 import { DataList } from "../components/data-list";
 import { Kbd } from "../components/kbd";
 import { Specimen } from "../chrome";
+import { DENSITY, useSettings } from "../lib/settings";
 
 /** Card, badge, avatar, kbd and data list. */
 export const Display = () => {
   const [choice, setChoice] = useState<"open" | "kept" | "diff">("open");
+  const sizes = DENSITY[useSettings().density];
 
   return (
     <>
@@ -62,7 +64,7 @@ export const Display = () => {
           </Shell>
         </div>
       </Specimen>
-      <Specimen name="Data list" note="label and value, one 36px row each">
+      <Specimen name="Data list" note={`label and value, one ${sizes.row}px row each`}>
         <div className="v-fill">
           <Shell>
             <Panel>

@@ -25,8 +25,6 @@ const RESPONSES = [
   "Morphing earns trust when nothing teleports. Anchor the capsule in place, animate width and height from the same origin, and stagger content in a beat after the container settles so the shape reads first and the details second.",
 ] as const;
 
-const SPRING: Transition = { bounce: 0.3, duration: 0.55, type: "spring" };
-
 const WIDTHS = {
   idle: "w-[260px]",
   input: "w-[min(400px,calc(100vw-48px))]",
@@ -37,12 +35,10 @@ const WIDTHS = {
 
 const pickIndex = (length: number) => Math.floor(Math.random() * length);
 
-const BAR_COUNT = 21;
-
-const ListeningWave = () => (
+const ListeningWave = ({ bars }: { bars: number }) => (
   <div className="flex h-8 flex-1 items-center justify-center gap-[3px]">
-    {Array.from({ length: BAR_COUNT }, (_, index) => {
-      const envelope = 0.3 + 0.7 * Math.sin((index / (BAR_COUNT - 1)) * Math.PI);
+    {Array.from({ length: bars }, (_, index) => {
+      const envelope = 0.3 + 0.7 * Math.sin((index / Math.max(bars - 1, 1)) * Math.PI);
       const wobble = 0.45 + (Math.sin(index * 12.9898) * 0.5 + 0.5) * 0.55;
 
       return (
@@ -62,18 +58,74 @@ const ListeningWave = () => (
   </div>
 );
 
-const ThinkingSweep = () => (
-  <div aria-hidden className="pointer-events-none absolute inset-0 overflow-hidden rounded-[24px]">
+interface ThinkingSweepProps {
+  radius: number;
+  surface: string;
+  sweepFrom: string;
+  sweepTo: string;
+}
+
+const ThinkingSweep = ({ radius, surface, sweepFrom, sweepTo }: ThinkingSweepProps) => (
+  <div
+    aria-hidden
+    className="pointer-events-none absolute inset-0 overflow-hidden"
+    style={{ borderRadius: radius }}
+  >
     <motion.div
-      className="absolute inset-[-150%] bg-[conic-gradient(from_0deg,transparent_0%,transparent_62%,#a78bfa_80%,#67e8f9_90%,transparent_100%)]"
+      className="absolute inset-[-150%]"
+      style={{
+        background: `conic-gradient(from 0deg, transparent 0%, transparent 62%, ${sweepFrom} 80%, ${sweepTo} 90%, transparent 100%)`,
+      }}
       animate={{ rotate: 360 }}
       transition={{ duration: 1.6, ease: "linear", repeat: Infinity }}
     />
-    <div className="absolute inset-[1.5px] rounded-[22.5px] bg-neutral-900" />
+    <div
+      className="absolute inset-[1.5px]"
+      style={{ backgroundColor: surface, borderRadius: Math.max(radius - 1.5, 0) }}
+    />
   </div>
 );
 
-export const DynamicAiComposer = () => {
+/** Props for {@link DynamicAiComposer}. Every field is optional and defaults to the original look. */
+export interface DynamicAiComposerProps {
+  /** Waveform bars while listening. */
+  bars?: number;
+  /** Spring bounce of every morph, 0 to 1. */
+  bounce?: number;
+  /** Spring duration of every morph, in seconds. */
+  duration?: number;
+  /** Peak opacity of the halo pulsed on each state change, 0 to 1. */
+  glow?: number;
+  /** Idle and input prompt text. */
+  placeholder?: string;
+  /** Capsule corner radius, in pixels. */
+  radius?: number;
+  /** Capsule fill color. */
+  surface?: string;
+  /** Leading color of the thinking border sweep. */
+  sweepFrom?: string;
+  /** Trailing color of the thinking border sweep. */
+  sweepTo?: string;
+  /** How long the thinking state holds before streaming, in milliseconds. */
+  thinkingMs?: number;
+  /** Base delay between streamed words, in milliseconds. */
+  wordDelayMs?: number;
+}
+
+export const DynamicAiComposer = ({
+  bars = 21,
+  bounce = 0.3,
+  duration = 0.55,
+  glow = 0.55,
+  placeholder = "Ask anything",
+  radius = 24,
+  surface = "#171717",
+  sweepFrom = "#a78bfa",
+  sweepTo = "#67e8f9",
+  thinkingMs = 1500,
+  wordDelayMs = 60,
+}: DynamicAiComposerProps) => {
+  const spring: Transition = { bounce, duration, type: "spring" };
   const [mode, setMode] = useState<Mode>("idle");
   const [draft, setDraft] = useState("");
   const [exchange, setExchange] = useState<Exchange | null>(null);
@@ -147,7 +199,7 @@ export const DynamicAiComposer = () => {
               () => {
                 step(index + 1);
               },
-              60 + ((index * 37) % 60),
+              wordDelayMs + (((index * 37) % 60) * wordDelayMs) / 60,
             );
           }
         };
@@ -155,9 +207,9 @@ export const DynamicAiComposer = () => {
         queue(() => {
           step(0);
         }, 250);
-      }, 1500);
+      }, thinkingMs);
     },
-    [queue],
+    [queue, thinkingMs, wordDelayMs],
   );
 
   const handleSend = useCallback(() => {
@@ -207,7 +259,7 @@ export const DynamicAiComposer = () => {
               className="flex h-full flex-1 items-center gap-2.5 text-left"
             >
               <Sparkles className="size-4 text-white/50" />
-              <span className="text-sm text-white/45">Ask anything</span>
+              <span className="text-sm text-white/45">{placeholder}</span>
             </button>
             <button
               type="button"
@@ -244,7 +296,7 @@ export const DynamicAiComposer = () => {
                   setMode("idle");
                 }
               }}
-              placeholder="Ask anything…"
+              placeholder={`${placeholder}…`}
               className="w-full resize-none bg-transparent px-4 pt-3.5 text-sm leading-6 text-white outline-none placeholder:text-white/40"
             />
             <div className="flex items-center gap-1 p-2">
@@ -293,7 +345,7 @@ export const DynamicAiComposer = () => {
             >
               <X className="size-4" />
             </button>
-            <ListeningWave />
+            <ListeningWave bars={bars} />
             <span className="w-8 shrink-0 text-center text-xs tabular-nums text-white/50">
               {Math.floor(elapsed / 60)}:{String(elapsed % 60).padStart(2, "0")}
             </span>
@@ -376,9 +428,10 @@ export const DynamicAiComposer = () => {
         <motion.div
           key={glowKey}
           aria-hidden
-          className="pointer-events-none absolute -inset-2 rounded-[32px] bg-[conic-gradient(from_0deg,#60a5fa,#a78bfa,#f472b6,#38bdf8,#60a5fa)] blur-xl"
+          className="pointer-events-none absolute -inset-2 bg-[conic-gradient(from_0deg,#60a5fa,#a78bfa,#f472b6,#38bdf8,#60a5fa)] blur-xl"
+          style={{ borderRadius: radius + 8 }}
           initial={{ opacity: 0 }}
-          animate={{ opacity: [0, 0.55, 0] }}
+          animate={{ opacity: [0, glow, 0] }}
           exit={{ opacity: 0, transition: { duration: 0.25 } }}
           transition={{ duration: 1.2, ease: "easeInOut", repeat: isLoading ? Infinity : 0 }}
         />
@@ -386,11 +439,18 @@ export const DynamicAiComposer = () => {
 
       <motion.div
         layout
-        style={{ borderRadius: 24 }}
-        transition={SPRING}
-        className={`relative overflow-hidden bg-neutral-900 shadow-2xl shadow-black/50 ring-1 ring-white/10 ${WIDTHS[mode]}`}
+        style={{ backgroundColor: surface, borderRadius: radius }}
+        transition={spring}
+        className={`relative overflow-hidden shadow-2xl shadow-black/50 ring-1 ring-white/10 ${WIDTHS[mode]}`}
       >
-        {mode === "thinking" && <ThinkingSweep />}
+        {mode === "thinking" && (
+          <ThinkingSweep
+            radius={radius}
+            surface={surface}
+            sweepFrom={sweepFrom}
+            sweepTo={sweepTo}
+          />
+        )}
         <motion.div
           key={mode}
           className="relative"
@@ -399,7 +459,7 @@ export const DynamicAiComposer = () => {
             filter: "blur(0px)",
             opacity: 1,
             scale: 1,
-            transition: { ...SPRING, delay: 0.05 },
+            transition: { ...spring, delay: 0.05 },
           }}
         >
           {content}

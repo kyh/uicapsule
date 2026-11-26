@@ -5,29 +5,55 @@ import { AnimatePresence, MotionConfig, motion } from "motion/react";
 
 const noop = () => null;
 
-const MIN = 0;
-const MAX = 2;
 const SWEEP = 270;
-const TICKS = 41;
-
-const MOODS: { at: number; label: string }[] = [
-  { at: 0, label: "Precise" },
-  { at: 0.4, label: "Balanced" },
-  { at: 0.8, label: "Creative" },
-  { at: 1.2, label: "Loose" },
-  { at: 1.6, label: "Unhinged" },
-];
-
-const moodFor = (t: number) => MOODS.findLast((mood) => t >= mood.at)?.label ?? "Precise";
-const clampTemp = (value: number) => Math.min(MAX, Math.max(MIN, value));
-
 const ARC = 2 * Math.PI * 40;
-const tickAngle = (index: number) => -135 + (index / (TICKS - 1)) * SWEEP;
+const BASE_SIZE = 300;
 
-export const VibeDial = () => {
-  const [temp, setTemp] = useState(0.2);
+const DEFAULT_MOODS = ["Precise", "Balanced", "Creative", "Loose", "Unhinged"];
+
+const moodFor = (moods: readonly string[], fraction: number) =>
+  moods[Math.min(moods.length - 1, Math.floor(fraction * moods.length))] ?? "";
+
+const hueSpan = (coolHue: number, hotHue: number) => (((hotHue - coolHue) % 360) + 360) % 360;
+
+/** Props for {@link VibeDial}; every one is optional and defaults to the original look. */
+export interface VibeDialProps {
+  coolHue?: number;
+  decimals?: number;
+  defaultValue?: number;
+  glow?: number;
+  highLabel?: string;
+  hotHue?: number;
+  label?: string;
+  lowLabel?: string;
+  max?: number;
+  moods?: readonly string[];
+  sensitivity?: number;
+  size?: number;
+  ticks?: number;
+}
+
+export const VibeDial = ({
+  coolHue = 215,
+  decimals = 2,
+  defaultValue = 0.2,
+  glow = 1,
+  highLabel = "spicy",
+  hotHue = 25,
+  label = "temperature",
+  lowLabel = "safe",
+  max = 2,
+  moods = DEFAULT_MOODS,
+  sensitivity = 1,
+  size = BASE_SIZE,
+  ticks = 41,
+}: VibeDialProps) => {
+  const clampTemp = (value: number) => Math.min(max, Math.max(0, value));
+  const [temp, setTemp] = useState(() => clampTemp(defaultValue));
   const [dragging, setDragging] = useState(false);
   const dialRef = useRef<HTMLDivElement | null>(null);
+  const wheelStep = 0.00175 * max * sensitivity;
+  const dragStep = 0.0045 * max * sensitivity;
 
   useEffect(() => {
     const dial = dialRef.current;
@@ -38,7 +64,7 @@ export const VibeDial = () => {
 
     const onWheel = (event: WheelEvent) => {
       event.preventDefault();
-      setTemp((current) => clampTemp(current - event.deltaY * 0.0035));
+      setTemp((current) => Math.min(max, Math.max(0, current - event.deltaY * wheelStep)));
     };
 
     dial.addEventListener("wheel", onWheel, { passive: false });
@@ -46,21 +72,26 @@ export const VibeDial = () => {
     return () => {
       dial.removeEventListener("wheel", onWheel);
     };
-  }, []);
+  }, [max, wheelStep]);
 
-  const fraction = temp / MAX;
+  const scale = size / BASE_SIZE;
+  const span = hueSpan(coolHue, hotHue);
+  const majorEvery = Math.max(1, Math.round((ticks - 1) / 4));
+  const tickAngle = (index: number) => -135 + (index / (ticks - 1)) * SWEEP;
+  const fraction = Math.min(1, temp / max);
   const angle = -135 + fraction * SWEEP;
-  const hue = 215 + temp * 85;
-  const wild = Math.max(0, temp - 1.2) / 0.8;
-  const mood = moodFor(temp);
-  const lit = Math.round(fraction * (TICKS - 1));
+  const hue = coolHue + fraction * span;
+  const wild = Math.max(0, fraction - 0.6) / 0.4;
+  const mood = moodFor(moods, fraction);
+  const lit = Math.round(fraction * (ticks - 1));
 
   return (
     <MotionConfig reducedMotion="user">
       <div className="flex flex-col items-center select-none">
         <div
           ref={dialRef}
-          className="relative size-[300px] cursor-ns-resize touch-none rounded-full"
+          className="relative cursor-ns-resize touch-none rounded-full"
+          style={{ height: size, width: size }}
           onPointerDown={(event) => {
             event.currentTarget.setPointerCapture(event.pointerId);
             setDragging(true);
@@ -70,7 +101,7 @@ export const VibeDial = () => {
               return;
             }
 
-            setTemp((current) => clampTemp(current - event.movementY * 0.009));
+            setTemp((current) => clampTemp(current - event.movementY * dragStep));
           }}
           onPointerUp={(event) => {
             event.currentTarget.releasePointerCapture(event.pointerId);
@@ -79,17 +110,21 @@ export const VibeDial = () => {
         >
           <motion.div
             aria-hidden
-            animate={{ opacity: 0.18 + fraction * 0.5, scale: 0.85 + fraction * 0.3 }}
+            animate={{
+              opacity: Math.min(1, (0.18 + fraction * 0.5) * glow),
+              scale: 0.85 + fraction * 0.3,
+            }}
             transition={{ damping: 30, stiffness: 200, type: "spring" }}
-            className="pointer-events-none absolute -inset-16 rounded-full blur-2xl"
+            className="pointer-events-none absolute rounded-full blur-2xl"
             style={{
+              inset: -64 * scale,
               background: `radial-gradient(circle, oklch(0.62 0.24 ${String(hue)} / 0.55) 0%, transparent 65%)`,
             }}
           />
 
           <svg viewBox="0 0 100 100" className="absolute inset-0 size-full">
-            {Array.from({ length: TICKS }, (_, index) => {
-              const major = index % 10 === 0;
+            {Array.from({ length: ticks }, (_, index) => {
+              const major = index % majorEvery === 0;
 
               return (
                 <line
@@ -100,7 +135,7 @@ export const VibeDial = () => {
                   y2="6"
                   stroke={
                     index <= lit
-                      ? `oklch(0.8 0.19 ${String(215 + (index / (TICKS - 1)) * 170)})`
+                      ? `oklch(0.8 0.19 ${String(coolHue + (index / (ticks - 1)) * span)})`
                       : "rgba(255,255,255,0.12)"
                   }
                   strokeWidth={major ? 1.1 : 0.7}
@@ -139,11 +174,15 @@ export const VibeDial = () => {
           <motion.div
             animate={{ rotate: angle, scale: dragging ? 1.03 : 1 }}
             transition={{ damping: 30, stiffness: 400, type: "spring" }}
-            className="absolute inset-[44px] rounded-full bg-gradient-to-b from-[#35291f] to-[#140d09] shadow-[0_18px_40px_rgb(0_0_0/0.6),inset_0_1px_0_rgb(255_255_255/0.08)] ring-1 ring-white/10"
+            style={{ inset: 44 * scale }}
+            className="absolute rounded-full bg-gradient-to-b from-[#35291f] to-[#140d09] shadow-[0_18px_40px_rgb(0_0_0/0.6),inset_0_1px_0_rgb(255_255_255/0.08)] ring-1 ring-white/10"
           >
             <span
-              className="absolute top-[14px] left-1/2 h-[22px] w-[5px] -translate-x-1/2 rounded-full"
+              className="absolute left-1/2 -translate-x-1/2 rounded-full"
               style={{
+                height: 22 * scale,
+                top: 14 * scale,
+                width: 5 * scale,
                 background: `oklch(0.82 0.2 ${String(hue)})`,
                 boxShadow: `0 0 12px oklch(0.75 0.22 ${String(hue)})`,
               }}
@@ -152,15 +191,16 @@ export const VibeDial = () => {
 
           <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center">
             <span
-              className="text-[44px] leading-none font-bold tracking-tight tabular-nums"
+              className="leading-none font-bold tracking-tight tabular-nums"
               style={{
+                fontSize: 44 * scale,
                 color: `oklch(${String(0.97 - fraction * 0.1)} ${String(fraction * 0.12)} ${String(hue)})`,
               }}
             >
-              {temp.toFixed(2)}
+              {temp.toFixed(decimals)}
             </span>
             <span className="mt-1.5 text-[10px] tracking-[0.22em] text-white/35 uppercase">
-              temperature
+              {label}
             </span>
           </div>
         </div>
@@ -185,8 +225,8 @@ export const VibeDial = () => {
         </div>
 
         <div className="mt-3 flex w-[220px] justify-between text-[10px] tracking-[0.18em] text-white/30 uppercase">
-          <span>safe</span>
-          <span>spicy</span>
+          <span>{lowLabel}</span>
+          <span>{highLabel}</span>
         </div>
       </div>
     </MotionConfig>
