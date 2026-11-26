@@ -19,6 +19,22 @@ Target spec (matches existing covers + the `aspect-video` gallery card):
 
 Use the session scratchpad for all intermediate files (raw mp4, mp4, frames, batch json).
 
+## Design systems: trailer
+
+A design system's cover (element tag `design-systems`) is a 12–15s trailer of the system, not a
+scroll through its page. Author it as `.claude/skills/cover-video/trailer/shots/<slug>.js`: shots
+of the real `/preview-frame/<slug>` at section anchors, camera moves, live control changes
+through the `controls` props, and sparse type, told in beats per the stageshow skill's
+`references/motion.md`. `trailer/README.md` has the format, the recording recipe and the
+gotchas; `shots/example.js` is a working Vellum demo.
+
+Staging and recording follow steps 2–5 with three changes: open
+`file://<repo>/.claude/skills/cover-video/trailer/trailer.html?slug=<slug>` instead of the
+frame, wait until `window.trailerReady` is true, and replace the batch with
+`eval "trailerStart()"` and a `sleep` of the duration plus half a second before `record stop`.
+Trim the held first frame as the README shows, so the loop is exactly `duration` long. Stills
+for authoring come from `await trailerSeek(t)` plus a screenshot. Steps 6–7 are unchanged.
+
 ## 1. Preflight
 
 ```bash
@@ -59,6 +75,17 @@ block before measuring — `transform: scale(1.8)` on `main`'s first child, orig
 then measure buttons with `getBoundingClientRect()`. Never `zoom` the root: it rescales
 `h-dvh` and pushes the layout off-screen.
 
+A component animated with motion's `layout` (shared-layout morphs, `popLayout`) jumps for a
+few frames under any CSS `transform` or `zoom` ancestor: motion measures in screen pixels but
+applies in local units. Scale those with CDP instead, `Emulation.setPageScaleFactor` (pinch
+zoom: layout is untouched, text stays sharp), then pan the visual viewport with a wheel.
+
+To show a state the defaults don't, drive the controls during the take: a top-level frame is
+its own parent, so `eval "window.postMessage({type:'uicapsule:props',values:{view:'music'}},'*')"`
+inside the batch changes a control live. It also makes loops exact (end on the starting value).
+Before `record start`, cycle every state once: a first mount stalls the main thread and shows
+up as a one-frame teleport in the take.
+
 ## 3. Record: native mp4, `--fps 60`, ONE batch call
 
 ```bash
@@ -81,6 +108,8 @@ ffprobe -v error -show_entries stream=avg_frame_rate,width,height:format=duratio
   navigation: `record start <file> http://localhost:3000/preview-frame/<slug> --fps 60`.
   Stage on the same URL first anyway, so the viewport is already locked.
 - A sub-second file is a known intermittent failure — re-record.
+- Chrome's screencast stops sending frames for ~270ms on the first change after the page has
+  been still for ~2.2s or more. Keep every still hold under 2s, or keep something drifting.
 
 Individual CLI calls cost ~0.4s each — a 20-action take balloons from 12s to 27s. Write the
 whole choreography as a batch file instead (timing lives in `wait` entries):

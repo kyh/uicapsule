@@ -133,7 +133,8 @@ Content is filesystem-driven; the web app never depends on content packages by n
   anti-slop rules), and components grouped by category with domain-specific ones. Keep that
   section order so entries compare side by side; everything else, chrome included, is the
   system's. Template edits reach only systems scaffolded afterwards. Like `pages`, the gallery card shows a badge
-  (`elementBadge` in `content-categories.ts`) instead of an index number.
+  (`elementBadge` in `content-categories.ts`) instead of an index number. Its cover is a 12–15s trailer
+  of the real page, not a scroll: `cover-video` skill, `trailer/shots/<slug>.js`.
 - `meta.json` carries provenance: `addedAt` (required, stamped by `new:content`, drives
   gallery order newest-first), `inspiredBy` (where the idea came from), `requestedBy`
   (who asked for it). Keep `inspiredBy` and `requestedBy` honest — they render on the detail page.
