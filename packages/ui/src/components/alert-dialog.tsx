@@ -247,7 +247,7 @@ export const GlobalAlertDialog = () => {
         <AlertDialogHeader>
           <AlertDialogTitle>{alertState.title}</AlertDialogTitle>
         </AlertDialogHeader>
-        {alertState.description && (
+        {Boolean(alertState.description) && (
           <AlertDialogDescription>{alertState.description}</AlertDialogDescription>
         )}
         <AlertDialogFooter>

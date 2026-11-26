@@ -344,7 +344,8 @@ export const CodeBlockFiles = ({ className, children, ...props }: CodeBlockFiles
   );
 };
 
-export type CodeBlockFilenameProps = HTMLAttributes<HTMLDivElement> & {
+export type CodeBlockFilenameProps = Omit<HTMLAttributes<HTMLDivElement>, "children"> & {
+  children: string;
   icon?: IconType;
   value?: string;
 };
@@ -364,7 +365,7 @@ export const CodeBlockFilename = ({
       "u",
     );
 
-    return regex.test(String(children));
+    return regex.test(children);
   })?.[1];
 
   const Icon = icon ?? defaultIcon;
@@ -396,20 +397,19 @@ export const CodeBlockCopyButton = ({ ...props }: CodeBlockCopyButtonProps) => {
   return <CopyButton label="Copy code" value={code} {...props} />;
 };
 
-type CodeBlockFallbackProps = HTMLAttributes<HTMLDivElement>;
+type CodeBlockFallbackProps = Omit<HTMLAttributes<HTMLDivElement>, "children"> & {
+  children: string;
+};
 
 const CodeBlockFallback = ({ children, ...props }: CodeBlockFallbackProps) => (
   <div {...props}>
     <pre className="w-full">
       <code>
-        {children
-          ?.toString()
-          .split("\n")
-          .map((line, lineNumber) => (
-            <span className="line" key={lineNumber}>
-              {line}
-            </span>
-          ))}
+        {children.split("\n").map((line, lineNumber) => (
+          <span className="line" key={lineNumber}>
+            {line}
+          </span>
+        ))}
       </code>
     </pre>
   </div>

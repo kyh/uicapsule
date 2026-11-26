@@ -79,7 +79,7 @@ const Button = ({
       focusableWhenDisabled={loading}
       aria-busy={loading === true || undefined}
       onClick={(event) => {
-        trigger(variant === "destructive" ? "warning" : "selection");
+        void trigger(variant === "destructive" ? "warning" : "selection");
         onClick?.(event);
       }}
       {...props}

@@ -39,7 +39,7 @@ export const CopyButton = ({
   );
 
   const copyToClipboard = async () => {
-    if (!navigator.clipboard?.writeText || value === undefined) {
+    if (!("clipboard" in navigator) || value === undefined) {
       return;
     }
 

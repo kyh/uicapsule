@@ -130,7 +130,7 @@ const FieldSeparator = ({
 }) => (
   <div
     data-slot="field-separator"
-    data-content={!!children}
+    data-content={Boolean(children)}
     className={cn(
       "relative -my-2 h-5 text-sm group-data-[variant=outline]/field-group:-mb-2",
       className,
@@ -138,7 +138,7 @@ const FieldSeparator = ({
     {...props}
   >
     <Separator className="absolute inset-0 top-1/2" />
-    {children && (
+    {Boolean(children) && (
       <span
         className="relative mx-auto block w-fit bg-background px-2 text-muted-foreground"
         data-slot="field-separator-content"
@@ -179,7 +179,9 @@ const FieldError = ({
       messages[0]
     ));
 
-  if (!content) {
+  const hasContent = Boolean(content);
+
+  if (!hasContent) {
     return null;
   }
 

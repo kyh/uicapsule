@@ -84,7 +84,9 @@ const ToastIcon = ({
   const icon =
     toastObject.data?.icon ?? (isToastType(toastObject.type) ? TYPE_ICONS[toastObject.type] : null);
 
-  if (!icon) {
+  const hasIcon = Boolean(icon);
+
+  if (!hasIcon) {
     return null;
   }
 
