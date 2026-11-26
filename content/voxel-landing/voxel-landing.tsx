@@ -723,9 +723,7 @@ export const VoxelLanding = ({ autoTour = true }: VoxelLandingProps) => {
 
       if (autoTour && !reducedMotion) {
         if (elapsed - lastInput < 4) {
-          if (pausedAt === null) {
-            pausedAt = elapsed;
-          }
+          pausedAt ??= elapsed;
         } else {
           if (pausedAt !== null) {
             tourOffset += elapsed - pausedAt;

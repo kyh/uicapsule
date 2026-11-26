@@ -156,7 +156,7 @@ export const FilterValueOptionDisplay = ({ filter, column }: FilterValueDisplayP
   const name = column.displayName.toLowerCase();
   const pluralName = name.endsWith("s") ? `${name}es` : `${name}s`;
 
-  const hasOptionIcons = options?.some((o) => o.icon === undefined) !== true;
+  const hasOptionIcons = !options?.some((o) => o.icon === undefined);
 
   return (
     <div className="inline-flex items-center gap-0.5">
@@ -201,7 +201,7 @@ export const FilterValueMultiOptionDisplay = ({
 
   const name = column.displayName.toLowerCase();
 
-  const hasOptionIcons = options?.some((o) => o.icon === undefined) !== true;
+  const hasOptionIcons = !options?.some((o) => o.icon === undefined);
 
   return (
     <div className="inline-flex items-center gap-1.5">
@@ -455,7 +455,7 @@ export const FilterValueOptionController = ({
   actions,
 }: FilterValueControllerProps<"option" | "multiOption">) => {
   // oxlint-disable-next-line react/hook-use-state -- a one-time snapshot of the selection when the controller opens, so items stay in their group while toggling; there is deliberately no setter
-  const [initialSelectedValues] = useState(() => new Set(filter?.values || []));
+  const [initialSelectedValues] = useState(() => new Set(filter?.values ?? []));
 
   const filterValues = filter?.values;
 

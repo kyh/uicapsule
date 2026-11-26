@@ -159,7 +159,7 @@ export const CategoryBreakdown = () => {
               ariaLabel="Monthly spending split by category"
               onFocusChange={(p) => {
                 if (p) {
-                  pin(Number(String(p.xValue).split("-")[0]));
+                  pin(Number(p.xValue.split("-")[0]));
                 }
               }}
             />

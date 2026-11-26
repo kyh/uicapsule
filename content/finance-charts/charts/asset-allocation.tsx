@@ -151,8 +151,7 @@ export const AssetAllocation = () => {
                   fill: "#55555e",
                   fontSize: 11,
                   key: "key",
-                  text: (l) =>
-                    `${Math.round((l.value / totalOf(String(l.targetKey), "target")) * 100)}%`,
+                  text: (l) => `${Math.round((l.value / totalOf(l.targetKey, "target")) * 100)}%`,
                   x: (l) => l.x2 - 6,
                   y: (l) => l.y2,
                 }),

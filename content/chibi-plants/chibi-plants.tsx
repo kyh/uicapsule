@@ -1217,7 +1217,7 @@ export const ChibiPlants = ({
       renderer.domElement.remove();
       quad.geometry.dispose();
       material.dispose();
-      renderer.dispose();
+      void renderer.dispose();
     };
   }, []);
 

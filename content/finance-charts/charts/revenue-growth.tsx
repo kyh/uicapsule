@@ -241,7 +241,7 @@ export const RevenueGrowth = () => {
               ariaLabel="Annual revenue and MRR over five years"
               onFocusChange={(p) => {
                 if (p) {
-                  const y = Number(p.xValue);
+                  const y = p.xValue;
 
                   if (Number.isInteger(y) && y >= 1 && y <= 5) {
                     pin(y - 1);

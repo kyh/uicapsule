@@ -134,9 +134,7 @@ export const Formation = ({ works }: FormationProps) => {
 
   const sRef = useRef<LoopState | null>(null);
 
-  if (!sRef.current) {
-    sRef.current = createState();
-  }
+  sRef.current ??= createState();
 
   const S = sRef.current;
 

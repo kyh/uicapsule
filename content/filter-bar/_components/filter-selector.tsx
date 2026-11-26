@@ -86,7 +86,9 @@ export const FilterableColumn = <TType extends ColumnDataType>({
               )}
             </div>
           )}
-          {Icon === undefined && isFiltered && <div className="h-2 w-2 rounded-full bg-green-500" />}
+          {Icon === undefined && isFiltered && (
+            <div className="h-2 w-2 rounded-full bg-green-500" />
+          )}
           <span>{column.displayName}</span>
         </div>
         {column.type !== "boolean" && (

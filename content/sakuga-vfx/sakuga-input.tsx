@@ -61,9 +61,7 @@ const SakugaInput = ({ className, onFocus, onInput, ...props }: SakugaInputProps
           const inp = e.currentTarget;
           live.current = inp;
 
-          if (!ruler.current) {
-            ruler.current = document.createElement("canvas").getContext("2d");
-          }
+          ruler.current ??= document.createElement("canvas").getContext("2d");
 
           const c = at(inp, 0, 0.5);
           const x = c.x + 18 + Math.min(c.w - 38, beforeCaret(inp, ruler.current));

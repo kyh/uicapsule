@@ -174,7 +174,7 @@ export const FinancialBreakdown = () => {
             ariaLabel="Assets, debt, investments and cash by day, May 1 to May 13"
             onFocusChange={(p) => {
               if (p) {
-                pin(DAYS.indexOf(Number(p.xValue)));
+                pin(DAYS.indexOf(p.xValue));
               }
             }}
           />

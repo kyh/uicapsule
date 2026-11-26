@@ -132,7 +132,7 @@ const SakugaRadioGroup = <Value,>({
       <RadioGroupPrimitive
         data-slot="sakuga-radio-group"
         className={cn(GROUP, className)}
-        value={value === undefined ? (own as Value) : value}
+        value={value ?? (own as Value)}
         onValueChange={change}
         {...props}
       />

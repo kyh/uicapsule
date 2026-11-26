@@ -62,7 +62,7 @@ const Jitter = () => {
 
 const TypeScale = () => {
   const tokens = useLiveTokens(ALL_LIVE_TOKENS);
-  const read = (name: string) => tokens?.light.get(name) || "…";
+  const read = (name: string) => tokens?.light.get(name) ?? "…";
 
   return (
     <ol className="cl-type">

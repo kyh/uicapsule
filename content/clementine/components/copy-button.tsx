@@ -22,6 +22,19 @@ export const CopyButton = ({ value, label = "Copy" }: { value: string; label?: s
     };
   }, [copied]);
 
+  const copy = async () => {
+    if (!("clipboard" in navigator)) {
+      return;
+    }
+
+    try {
+      await navigator.clipboard.writeText(value);
+      setCopied(true);
+    } catch {
+      setCopied(false);
+    }
+  };
+
   return (
     <button
       aria-label={`${label}: ${value}`}
@@ -30,14 +43,7 @@ export const CopyButton = ({ value, label = "Copy" }: { value: string; label?: s
       data-size="sm"
       data-variant="secondary"
       onClick={() => {
-        void navigator.clipboard
-          ?.writeText(value)
-          .then(() => {
-            setCopied(true);
-          })
-          .catch(() => {
-            setCopied(false);
-          });
+        void copy();
       }}
       type="button"
     >

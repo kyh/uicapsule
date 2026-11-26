@@ -189,7 +189,7 @@ export const Overview = () => {
               line: false,
               tickLabels: { fontSize: 11.5 },
               ticks: {
-                format: (v) => MONTHS[quarter * 3 + Math.floor(Number(v) / 20)] ?? "",
+                format: (v) => MONTHS[quarter * 3 + Math.floor(v / 20)] ?? "",
                 size: 0,
                 values: [...MONTH_TICKS],
               },
@@ -256,7 +256,7 @@ export const Overview = () => {
               ariaLabel="Daily revenue with a selected range"
               onFocusChange={(p) => {
                 if (p) {
-                  const x = Number(p.xValue) - WINDOW / 2;
+                  const x = p.xValue - WINDOW / 2;
                   let best = 0;
 
                   for (const [k, s] of STARTS.entries()) {

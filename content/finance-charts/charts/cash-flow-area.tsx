@@ -247,7 +247,7 @@ export const CashFlowArea = () => {
             ariaLabel="Cash flow this year against last year"
             onFocusChange={(p) => {
               if (p) {
-                pin(nearestIndex(STOPS, Number(p.xValue)));
+                pin(nearestIndex(STOPS, p.xValue));
               }
             }}
           />

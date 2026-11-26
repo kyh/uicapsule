@@ -365,15 +365,13 @@ export const InfiniteGrid = ({
 
   const engineRef = useRef<Engine | null>(null);
 
-  if (engineRef.current === null) {
-    engineRef.current = createEngine(initialPosition ?? ORIGIN, gridSize, {
-      setContainerSize,
-      setGridItems,
-      setIsDragging,
-      setIsMoving,
-      setOffset,
-    });
-  }
+  engineRef.current ??= createEngine(initialPosition ?? ORIGIN, gridSize, {
+    setContainerSize,
+    setGridItems,
+    setIsDragging,
+    setIsMoving,
+    setOffset,
+  });
 
   useEffect(() => {
     engineRef.current?.setGridSize(gridSize);

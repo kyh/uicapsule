@@ -220,9 +220,7 @@ const SakugaRating = ({
             ref={(node) => {
               stars.current[i] = node;
 
-              if (!springs.current[i]) {
-                springs.current[i] = new Spring(1, 560, 12);
-              }
+              springs.current[i] ??= new Spring(1, 560, 12);
             }}
             type="button"
             // oxlint-disable-next-line jsx-a11y/prefer-tag-over-role -- a star can be cleared by clicking it again, which a native radio cannot do

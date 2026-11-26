@@ -120,7 +120,7 @@ const clear = (load: Load) => {
 };
 
 const setGoal = (load: Load, value: number) => {
-  const n = clamp(Number(value) || 0);
+  const n = clamp(value || 0);
 
   if (load.doneAt && n >= 1) {
     return;

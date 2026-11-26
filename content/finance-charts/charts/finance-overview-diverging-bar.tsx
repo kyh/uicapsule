@@ -249,7 +249,7 @@ export const FinanceOverviewDivergingBar = () => {
               ariaLabel="Hourly revenue, today above the line and yesterday below"
               onFocusChange={(p) => {
                 if (p) {
-                  const i = Number(p.xValue);
+                  const i = p.xValue;
 
                   if (Number.isInteger(i) && i >= 0 && i < BARS) {
                     pin(i);

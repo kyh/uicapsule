@@ -129,7 +129,7 @@ export const TotalSales = () => {
             ariaLabel="Sales by hour, today against yesterday"
             onFocusChange={(p) => {
               if (p) {
-                const x = Number(p.xValue);
+                const x = p.xValue;
                 let best = 0;
 
                 for (const [k, s] of STOPS.entries()) {

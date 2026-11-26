@@ -241,7 +241,7 @@ export const SpendingOverviewCylinder = () => {
             ariaLabel="Spending by weekday, drawn as filling cylinders"
             onFocusChange={(p) => {
               if (p) {
-                pin(DAY_LIST.indexOf(String(p.xValue)));
+                pin(DAY_LIST.indexOf(p.xValue));
               }
             }}
           />

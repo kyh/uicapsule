@@ -130,7 +130,7 @@ export const CumulativeAssetsAndLiabilities = () => {
                 fontSize: 11.5,
               },
               ticks: {
-                format: (v) => MONTHS[Math.round(Number(v) / 12.5)] ?? "",
+                format: (v) => MONTHS[Math.round(v / 12.5)] ?? "",
                 size: 0,
                 values: [...MONTH_X],
               },
@@ -207,7 +207,7 @@ export const CumulativeAssetsAndLiabilities = () => {
               ariaLabel="Cumulative assets and liabilities, year to date"
               onFocusChange={(p) => {
                 if (p) {
-                  const x = Number(p.xValue);
+                  const x = p.xValue;
                   let best = 0;
 
                   for (const [k, s] of STOPS.entries()) {

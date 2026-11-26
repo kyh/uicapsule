@@ -140,7 +140,7 @@ export const CustomerRate = () => {
             ariaLabel="Returning and first-time customer rate by hour"
             onFocusChange={(p) => {
               if (p) {
-                const x = Number(p.xValue);
+                const x = p.xValue;
                 let best = 0;
 
                 for (const [k, s] of STOPS.entries()) {

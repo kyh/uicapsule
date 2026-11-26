@@ -169,7 +169,7 @@ export const SpendingOverviewRange = () => {
             ariaLabel="Intraday spending ranges for each day of the week"
             onFocusChange={(p) => {
               if (p) {
-                pin(Number(String(p.xValue).split("-")[0]));
+                pin(Number(p.xValue.split("-")[0]));
               }
             }}
           />
