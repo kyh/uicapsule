@@ -33,36 +33,27 @@ Liveness: `curl -s -o /dev/null -w '%{http_code}' localhost:3000/` → `200`.
 ## Login
 
 **There is no seeded user.** Auth exists and works, but nothing in the gallery is gated by
-it (`user.me` has zero callers — see CLAUDE.md "Decisions"). Create one the first time you need it:
+it (`user.me` has zero callers — see CLAUDE.md "Decisions"). Sign-in is an
+emailed six-digit code (better-auth's `emailOTP`: five minutes, three tries), and the same
+call signs a new address up, so it is idempotent. `pnpm sign-in-code [email]` mints a code
+straight into the database (`auth.api.createVerificationOTP`, default `dev@uicapsule.local`),
+so nothing needs an inbox:
 
 ```sh
-curl -s -i -X POST localhost:3000/api/auth/sign-up/email \
+curl -s -i -X POST localhost:3000/api/auth/sign-in/email-otp \
   -H 'content-type: application/json' \
-  -d '{"email":"dev@uicapsule.local","password":"password","name":"Dev"}' \
+  -d "{\"email\":\"dev@uicapsule.local\",\"otp\":\"$(pnpm sign-in-code)\",\"name\":\"Dev\"}" \
   | grep -iE 'HTTP/|set-cookie'
 ```
 
-A `200` plus a `better-auth.session_token` cookie means the user was created — hand that
-cookie to `curl` or agent-browser.
-
-**Sign-up is not idempotent.** A second call for the same email returns
-`422 USER_ALREADY_EXISTS_USE_ANOTHER_EMAIL` (better-auth throws; it does not return the
-existing session). That is not a failure — it means the user is already there. Sign in
-instead:
-
-```sh
-curl -s -i -X POST localhost:3000/api/auth/sign-in/email \
-  -H 'content-type: application/json' \
-  -d '{"email":"dev@uicapsule.local","password":"password"}' \
-  | grep -iE 'HTTP/|set-cookie'
-```
-
-The same credentials work in the `/auth/login` form. Mind the rate limit: better-auth
+A `200` plus a `better-auth.session_token` cookie means you are signed in — hand that
+cookie to `curl` or agent-browser. In the `/auth/login` form, the code `Continue with email`
+sends lands in `pnpm dev:web`'s log (no `RESEND_API_KEY` locally). Mind the rate limit: better-auth
 applies a built-in rule of **3 requests / 10s per IP** to any `/sign-in*`, `/sign-up*`,
 `/change-password*` or `/change-email*` path, and it _overrides_ the `window: 60, max: 10`
 configured in `packages/service/src/auth/auth.ts` (only `rateLimit.customRules` could beat it).
-The configured 10/60 governs the other `/api/auth/*` routes. So a sign-up → sign-in → form
-login sequence already spends the whole budget — one retry inside 10s gets a 429. Always
+The configured 10/60 governs the other `/api/auth/*` routes, and `emailOTP` adds its own 3 per
+60s on sending and checking codes. A retry inside the window gets a 429. Always
 print the status line, or a 422/429 looks like "auth is broken".
 
 ## Verify a change end-to-end
@@ -127,10 +118,11 @@ form's `data-test` hooks or by role: a snapshot's `@eN` refs shift between runs 
 ```sh
 agent-browser open http://localhost:3000/auth/login
 agent-browser fill '[data-test="email-input"]' dev@uicapsule.local
-agent-browser fill '[data-test="password-input"]' password
-agent-browser find role button click --name Login
+agent-browser find role button click --name 'Continue with email'
+agent-browser fill '[data-test="code-input"]' <code>   # from pnpm dev:web's log
+agent-browser find role button click --name 'Sign in'
 agent-browser wait --url '**/'                # redirects to /
-agent-browser network requests --filter sign-in   # expect 200; a 403 means the Origin does not match BETTER_AUTH_URL
+agent-browser network requests --filter email-otp # expect 200; a 403 means the Origin does not match BETTER_AUTH_URL
 ```
 
 The routes worth checking, and what each proves:

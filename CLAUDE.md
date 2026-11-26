@@ -220,8 +220,9 @@ Next imports, no filesystem — so it can be unit-tested without a runtime. The 
 - **Auth's origin must match the port.** Outside Vercel, `packages/service/src/auth/auth.ts`
   takes its `baseURL` from `BETTER_AUTH_URL`, else `http://localhost:3000`, so a fallback to
   3001 makes every browser sign-in 403 silently. For another port, set `BETTER_AUTH_URL` to it.
-- **No seeded login.** Nothing in the gallery is authed. `POST /api/auth/sign-up/email`
-  creates one on demand (see `AGENTS.md` → Login).
+- **No seeded login, and no passwords.** Nothing in the gallery is authed. Sign-in is an
+  emailed code (better-auth `emailOTP`) that signs a new address up too; `pnpm sign-in-code`
+  mints one without an inbox (see `AGENTS.md` → Login).
 - **Verify**: `pnpm verify` for the static gate, `pnpm check:agent-endpoints` for the
   machine-readable surfaces (needs a running server), then drive the running app with
   `agent-browser` — `/`, `/ui/<slug>`, `/preview-frame/<slug>`, `/r/<slug>.json`. The
@@ -299,14 +300,14 @@ The build's `check:content` guard validates metadata, preview files, manifests, 
 It rejects private workspace dependencies and paths escaping a component directory. Do not
 remove it. Scaffold with `pnpm new:content`; finish a component or remove its directory.
 
-Password reset uses Resend. Configure `RESEND_API_KEY` and `AUTH_EMAIL_FROM` with a verified
-sender to enable it. Without both, outside production (`NODE_ENV !== "production"`) the reset
-mail, link included, goes to the server log instead, so local dev can follow it; in production
-nothing is sent or logged (a live reset link in the logs would hand the account to anyone who
-reads them), boot warns once, and Better Auth returns `RESET_PASSWORD_DISABLED` up front
-(`packages/service/src/auth/password-reset-email.ts`). Configured
-requests keep account existence private; provider failures are logged. Request acceptance
-does not prove delivery. Reset tokens expire after one hour and revoke existing sessions.
+Sign-in codes go out through Resend. Configure `RESEND_API_KEY` and `AUTH_EMAIL_FROM` with a
+verified sender to enable them. Without both, outside production (`NODE_ENV !== "production"`)
+the mail, code included, goes to the server log instead, so local dev can follow it; in
+production nothing is sent or logged (a live code in the logs would hand the account to anyone
+who reads them), boot warns once, and sending a code is refused with `EMAIL_DISABLED`
+(`packages/service/src/auth/sign-in-code-email.ts`). Only `sign-in` codes are sent: the
+plugin's other code types send nothing, so no password or verification flow is reachable.
+Provider failures are logged. Codes expire after five minutes and allow three tries.
 
 ## Decisions (do not re-litigate)
 
