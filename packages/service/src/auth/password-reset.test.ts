@@ -4,6 +4,8 @@ import { betterAuth } from "better-auth";
 import { memoryAdapter } from "better-auth/adapters/memory";
 import { APIError } from "better-auth/api";
 
+import { passwordResetSenderOf } from "./password-reset-email";
+
 delete process.env.RESEND_API_KEY;
 
 delete process.env.AUTH_EMAIL_FROM;
@@ -81,8 +83,35 @@ test("password reset changes credentials, consumes its token, and revokes existi
   );
 });
 
-test("missing email configuration disables password reset before user lookup", async () => {
-  const testAuth = betterAuth({ ...options, database: memoryAdapter({}) });
+test("without email configuration, development logs the reset link", async (t) => {
+  const info = t.mock.method(console, "info");
+
+  const testAuth = betterAuth({
+    ...options,
+    database: memoryAdapter({ account: [], session: [], user: [], verification: [] }),
+  });
+
+  await testAuth.api.signUpEmail({
+    body: { email: "logged@example.com", name: "Logged", password: "password-for-logged-reset" },
+  });
+  await testAuth.api.requestPasswordReset({
+    body: { email: "logged@example.com", redirectTo: "/auth/password-update" },
+  });
+  const logged = JSON.stringify(info.mock.calls);
+  assert.ok(logged.includes("logged@example.com"));
+  assert.ok(logged.includes("/api/auth/reset-password/"));
+});
+
+test("without email configuration, production refuses password reset before user lookup", async () => {
+  const testAuth = betterAuth({
+    ...options,
+    database: memoryAdapter({}),
+    emailAndPassword: {
+      ...options.emailAndPassword,
+      sendResetPassword: passwordResetSenderOf("off"),
+    },
+  });
+
   await assert.rejects(
     testAuth.api.requestPasswordReset({ body: { email: "unknown@example.com" } }),
     (error) => error instanceof APIError && error.body?.code === "RESET_PASSWORD_DISABLED",
