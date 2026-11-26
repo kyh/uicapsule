@@ -34,7 +34,7 @@ const facetsFor = (cards: GalleryCard[], filter: GalleryFilter) => {
       mode: "single",
       options: [{ name: "Recommended", slug: "recommended" }],
       searchable: false,
-      standalone: true,
+      trailing: true,
     },
     {
       key: "element",

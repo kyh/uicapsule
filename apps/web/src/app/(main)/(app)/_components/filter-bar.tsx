@@ -1,11 +1,9 @@
 "use client";
 
 import { useOptimistic, useState, useTransition } from "react";
-import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { Badge } from "@repo/ui/components/badge";
 import { Button } from "@repo/ui/components/button";
-import { ButtonGroup } from "@repo/ui/components/button-group";
 import { Checkbox } from "@repo/ui/components/checkbox";
 import {
   Drawer,
@@ -19,7 +17,6 @@ import {
   NavigationMenu,
   NavigationMenuContent,
   NavigationMenuItem,
-  NavigationMenuLink,
   NavigationMenuList,
   NavigationMenuPopup,
   NavigationMenuPortal,
@@ -27,8 +24,9 @@ import {
   NavigationMenuTrigger,
   NavigationMenuViewport,
 } from "@repo/ui/components/navigation-menu";
+import { RadioGroup, RadioGroupItem } from "@repo/ui/components/radio-group";
 import { cn } from "cn";
-import { CheckIcon, ChevronDownIcon, SearchIcon } from "lucide-react";
+import { ChevronDownIcon, SearchIcon } from "lucide-react";
 
 import { galleryParams } from "@/lib/content/content-categories";
 import type { GalleryFilter } from "@/lib/content/content-categories";
@@ -44,7 +42,7 @@ export interface Facet {
   label: string;
   mode: "single" | "multi";
   searchable: boolean;
-  standalone?: boolean;
+  trailing?: boolean;
   defaultOption?: { name: string };
   options: FacetOption[];
 }
@@ -73,10 +71,15 @@ const selectionFor = (filter: GalleryFilter, key: Facet["key"]) => {
 };
 
 const triggerClassname = (highlighted: boolean) =>
-  cn("shrink-0 dark:bg-background!", highlighted && "border-foreground relative z-10 border-l!");
+  cn(
+    "hover:text-primary aria-expanded:text-primary shrink-0 dark:bg-background!",
+    highlighted && "border-foreground",
+  );
+
+const DEFAULT_ROW = "default";
 
 const rowClassname =
-  "flex w-full items-center gap-2 rounded-sm px-2 py-1.5 text-sm outline-none select-none hover:bg-muted focus-visible:bg-muted data-[empty]:text-muted-foreground";
+  "flex w-full items-center gap-2 rounded-sm px-2 py-1.5 text-sm outline-none select-none hover:bg-muted focus-visible:bg-muted data-[empty]:text-muted-foreground [&:hover_[data-slot=checkbox]]:border-muted-foreground/60 [&:hover_[data-slot=radio-group-item]]:border-muted-foreground/60";
 
 const useFilterNavigation = (filter: GalleryFilter) => {
   const router = useRouter();
@@ -91,7 +94,6 @@ const useFilterNavigation = (filter: GalleryFilter) => {
   };
 
   return {
-    hrefWith,
     navigate: (mutate: (params: URLSearchParams) => void) => {
       router.push(hrefWith(mutate), { scroll: false });
     },
@@ -146,7 +148,9 @@ const FacetLabel = ({ facet, selected }: FacetProps) => {
     <>
       {facet.label}{" "}
       {names.length > 1 ? (
-        <Badge variant="secondary">{names.length}</Badge>
+        <Badge variant="secondary" className="text-current">
+          {names.length}
+        </Badge>
       ) : (
         <ChevronDownIcon className="size-4" />
       )}
@@ -166,7 +170,7 @@ const FacetList = ({
   onNavigate?: () => void;
 }) => {
   const selected = selectionFor(filter, facet.key);
-  const { hrefWith, navigate } = useFilterNavigation(filter);
+  const { navigate } = useFilterNavigation(filter);
   const [, startTransition] = useTransition();
   const [checked, setChecked] = useOptimistic(selected);
   const normalizedQuery = facet.searchable ? query.trim().toLowerCase() : "";
@@ -201,10 +205,7 @@ const FacetList = ({
         {options.map((option) => (
           <label
             key={option.slug}
-            className={cn(
-              rowClassname,
-              "[&:hover_[data-slot=checkbox]]:border-muted-foreground/60",
-            )}
+            className={rowClassname}
             data-empty={option.count === 0 || undefined}
           >
             <Checkbox
@@ -226,55 +227,41 @@ const FacetList = ({
     ...facet.options,
   ].filter((row) => matches(row.name));
 
+  const select = (slug: string | null) => {
+    startTransition(() => {
+      setChecked(new Set(slug === null ? [] : [slug]));
+      navigate((params) => {
+        if (slug === null) {
+          params.delete(facet.key);
+        } else {
+          params.set(facet.key, slug);
+        }
+      });
+    });
+    onNavigate?.();
+  };
+
   return (
     <FacetRows empty={rows.length === 0}>
-      {rows.map((row) => {
-        const active = row.slug === null ? selected.size === 0 : selected.has(row.slug);
-
-        const href = hrefWith((params) => {
-          if (row.slug === null) {
-            params.delete(facet.key);
-          } else {
-            params.set(facet.key, row.slug);
-          }
-        });
-
-        const content = (
-          <>
-            <CheckIcon className={cn("size-4", !active && "invisible")} />
+      <RadioGroup
+        aria-label={facet.label}
+        value={[...checked][0] ?? DEFAULT_ROW}
+        onValueChange={(value) => {
+          select(value === DEFAULT_ROW ? null : value);
+        }}
+      >
+        {rows.map((row) => (
+          <label
+            key={row.slug ?? DEFAULT_ROW}
+            className={rowClassname}
+            data-empty={row.count === 0 || undefined}
+          >
+            <RadioGroupItem value={row.slug ?? DEFAULT_ROW} />
             <span className="flex-1">{row.name}</span>
             <FacetCount count={row.count} />
-          </>
-        );
-
-        const rowProps = {
-          className: rowClassname,
-          "data-empty": row.count === 0 || undefined,
-        };
-
-        return onNavigate ? (
-          <Link
-            key={row.slug ?? "all"}
-            href={href}
-            scroll={false}
-            aria-current={active ? "page" : undefined}
-            onClick={onNavigate}
-            {...rowProps}
-          >
-            {content}
-          </Link>
-        ) : (
-          <NavigationMenuLink
-            key={row.slug ?? "all"}
-            active={active}
-            closeOnClick
-            render={<Link href={href} scroll={false} />}
-            {...rowProps}
-          >
-            {content}
-          </NavigationMenuLink>
-        );
-      })}
+          </label>
+        ))}
+      </RadioGroup>
     </FacetRows>
   );
 };
@@ -322,10 +309,11 @@ const FacetDrawer = ({ facet, filter }: { facet: Facet; filter: GalleryFilter })
 
 export const FilterBar = ({ facets, filter }: { facets: Facet[]; filter: GalleryFilter }) => {
   const [query, setQuery] = useState("");
-  const [activeFacet, setActiveFacet] = useState<Facet | null>(null);
+  const [openKey, setOpenKey] = useState<Facet["key"] | null>(null);
+  const activeFacet = facets.find((facet) => facet.key === openKey);
   const selectedFor = (facet: Facet) => selectionFor(filter, facet.key);
-  const standalone = facets.filter((facet) => facet.standalone === true);
-  const grouped = facets.filter((facet) => facet.standalone !== true);
+  const leading = facets.filter((facet) => facet.trailing !== true);
+  const trailing = facets.filter((facet) => facet.trailing === true);
 
   const trigger = (facet: Facet) => (
     <NavigationMenuItem key={facet.key} value={facet.key} render={<div />}>
@@ -340,8 +328,15 @@ export const FilterBar = ({ facets, filter }: { facets: Facet[]; filter: Gallery
       >
         <FacetLabel facet={facet} selected={selectedFor(facet)} />
       </NavigationMenuTrigger>
-      <NavigationMenuContent className="w-64">
-        <FacetList facet={facet} filter={filter} query={query} />
+      <NavigationMenuContent className={facet.searchable ? "w-64" : "w-48"}>
+        <FacetList
+          facet={facet}
+          filter={filter}
+          query={query}
+          onNavigate={() => {
+            setOpenKey(null);
+          }}
+        />
       </NavigationMenuContent>
     </NavigationMenuItem>
   );
@@ -351,15 +346,16 @@ export const FilterBar = ({ facets, filter }: { facets: Facet[]; filter: Gallery
   return (
     <>
       <NavigationMenu
-        className="max-md:hidden"
+        className="w-full max-md:hidden"
+        value={openKey}
         onValueChange={(value) => {
-          setActiveFacet(facets.find((facet) => facet.key === value) ?? null);
+          setOpenKey(value);
           setQuery("");
         }}
       >
-        <NavigationMenuList render={<div />}>
-          {standalone.map(trigger)}
-          <ButtonGroup>{grouped.map(trigger)}</ButtonGroup>
+        <NavigationMenuList render={<div />} className="gap-2">
+          {leading.map(trigger)}
+          <div className="ml-auto flex items-center gap-3">{trailing.map(trigger)}</div>
         </NavigationMenuList>
         <NavigationMenuPortal>
           <NavigationMenuPositioner>
@@ -372,9 +368,9 @@ export const FilterBar = ({ facets, filter }: { facets: Facet[]; filter: Gallery
           </NavigationMenuPositioner>
         </NavigationMenuPortal>
       </NavigationMenu>
-      <div className="flex items-center gap-3 md:hidden">
-        {standalone.map(drawer)}
-        <ButtonGroup>{grouped.map(drawer)}</ButtonGroup>
+      <div className="flex w-full items-center gap-2 md:hidden">
+        {leading.map(drawer)}
+        <div className="ml-auto flex items-center gap-3">{trailing.map(drawer)}</div>
       </div>
     </>
   );
