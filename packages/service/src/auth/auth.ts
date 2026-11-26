@@ -10,7 +10,11 @@ import { cimd } from "@better-auth/cimd";
 import { fetchClientMetadataResource } from "@better-auth/cimd/node";
 import { mcp } from "@better-auth/mcp";
 
-import { sendPasswordResetEmail } from "./password-reset-email";
+import {
+  PASSWORD_RESET_OFF_WARNING,
+  passwordResetModeOf,
+  passwordResetSenderOf,
+} from "./password-reset-email";
 
 const vercelBaseUrl = (...hosts: (string | undefined)[]) => {
   const allowedHosts = hosts.filter((host): host is string => Boolean(host));
@@ -56,6 +60,15 @@ export const AUTH_ISSUER = `${canonicalOrigin()}/api/auth`;
 /** The publishing MCP server: the protected resource every MCP access token is bound to. */
 export const MCP_PUBLISH_RESOURCE = `${canonicalOrigin()}/mcp/publish`;
 
+const passwordResetMode = passwordResetModeOf(
+  { AUTH_EMAIL_FROM: process.env.AUTH_EMAIL_FROM, RESEND_API_KEY: process.env.RESEND_API_KEY },
+  process.env.NODE_ENV === "production",
+);
+
+if (passwordResetMode === "off") {
+  console.warn(`[password-reset] ${PASSWORD_RESET_OFF_WARNING}`);
+}
+
 export const auth = betterAuth({
   baseURL: resolveBaseUrl(),
   disabledPaths: ["/token"],
@@ -65,10 +78,7 @@ export const auth = betterAuth({
   emailAndPassword: {
     enabled: true,
     revokeSessionsOnPasswordReset: true,
-    sendResetPassword:
-      process.env.RESEND_API_KEY && process.env.AUTH_EMAIL_FROM
-        ? ({ user, url }) => sendPasswordResetEmail(user.email, url)
-        : undefined,
+    sendResetPassword: passwordResetSenderOf(passwordResetMode),
   },
   plugins: [
     bearer(),

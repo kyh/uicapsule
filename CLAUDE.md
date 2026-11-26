@@ -347,7 +347,11 @@ It rejects private workspace dependencies and paths escaping a component directo
 remove it. Scaffold with `pnpm new:content`; finish a component or remove its directory.
 
 Password reset uses Resend. Configure `RESEND_API_KEY` and `AUTH_EMAIL_FROM` with a verified
-sender to enable it. Without both, Better Auth returns `RESET_PASSWORD_DISABLED`. Configured
+sender to enable it. Without both, outside production (`NODE_ENV !== "production"`) the reset
+mail, link included, goes to the server log instead, so local dev can follow it; in production
+nothing is sent or logged (a live reset link in the logs would hand the account to anyone who
+reads them), boot warns once, and Better Auth returns `RESET_PASSWORD_DISABLED` up front
+(`packages/service/src/auth/password-reset-email.ts`). Configured
 requests keep account existence private; provider failures are logged. Request acceptance
 does not prove delivery. Reset tokens expire after one hour and revoke existing sessions.
 

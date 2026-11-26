@@ -137,14 +137,15 @@ agent-browser get text body                                   # `get text` needs
 agent-browser screenshot /tmp/after.png
 ```
 
-Authenticated flows (only `/auth/*` has any), against the login created above:
+Authenticated flows (only `/auth/*` has any), against the login created above. Locate by the
+form's `data-test` hooks or by role: a snapshot's `@eN` refs shift between runs and builds.
 
 ```sh
 agent-browser open http://localhost:3000/auth/login
-agent-browser snapshot                        # → email @e6, password @e7, Login @e4
-agent-browser fill @e6 dev@uicapsule.local
-agent-browser fill @e7 password
-agent-browser click @e4                       # redirects to /
+agent-browser fill '[data-test="email-input"]' dev@uicapsule.local
+agent-browser fill '[data-test="password-input"]' password
+agent-browser find role button click --name Login
+agent-browser wait --url '**/'                # redirects to /
 agent-browser network requests --filter sign-in   # expect 200; a 403 means the Origin does not match BETTER_AUTH_URL
 ```
 
