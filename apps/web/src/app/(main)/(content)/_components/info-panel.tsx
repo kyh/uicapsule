@@ -4,14 +4,12 @@ import type { ReactNode } from "react";
 import { ArrowLeftIcon, ArrowRightIcon, ExternalLinkIcon } from "lucide-react";
 import { Badge } from "@repo/ui/components/badge";
 import { Button } from "@repo/ui/components/button";
-import { CopyButton } from "@repo/ui/components/copy-button";
-import { toast } from "@repo/ui/components/toast";
 import { cn } from "cn";
 
 import { tagLabel } from "@/lib/content/content-categories";
 import type { ContentComponentSummary } from "@/lib/content/content-schema";
+import { InstallTabs } from "./install-tabs";
 import { PersonAvatar } from "./person-avatar";
-import { installCommand } from "./source-files";
 
 const LINK_CLASS =
   "text-muted-foreground hover:text-foreground underline decoration-dotted underline-offset-4 transition-colors";
@@ -24,30 +22,13 @@ const formatAddedAt = (isoDate: string) =>
     year: "numeric",
   });
 
+const SECTION_CLASS = "flex flex-col gap-2 border-b px-4 py-4";
+
 const Section = ({ title, children }: { title: string; children: ReactNode }) => (
-  <section className="flex flex-col gap-2 border-b px-4 py-4">
+  <section className={SECTION_CLASS}>
     <h2 className="text-muted-foreground text-xs font-medium">{title}</h2>
     {children}
   </section>
-);
-
-const InstallCommand = ({ slug }: { slug: string }) => (
-  <div className="bg-muted/40 flex h-10 items-center gap-2 rounded-lg border pr-1 pl-3">
-    <code className="min-w-0 flex-1 overflow-x-auto font-[monospace] text-xs whitespace-nowrap select-text [scrollbar-width:none] [mask-image:linear-gradient(to_right,black_calc(100%-1.5rem),transparent)]">
-      {installCommand(slug)}
-    </code>
-    <CopyButton
-      label="Copy install command"
-      value={installCommand(slug)}
-      className="size-8"
-      onCopy={() => {
-        toast.success("Copied to clipboard");
-      }}
-      onError={() => {
-        toast.error("Failed to copy command to clipboard.");
-      }}
-    />
-  </div>
 );
 
 export const InfoPanel = ({ component }: { component: ContentComponentSummary }) => (
@@ -59,9 +40,7 @@ export const InfoPanel = ({ component }: { component: ContentComponentSummary })
       </p>
     </header>
     {component.type === "local" ? (
-      <Section title="Install">
-        <InstallCommand slug={component.slug} />
-      </Section>
+      <InstallTabs slug={component.slug} className={SECTION_CLASS} />
     ) : (
       <Section title="Source">
         <a

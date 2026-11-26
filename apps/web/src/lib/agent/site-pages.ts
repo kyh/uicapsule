@@ -3,6 +3,7 @@ import { siteConfig } from "@/lib/site-config";
 import {
   mcpClaudeCodeCommand,
   mcpConfigJson,
+  mcpInstallPath,
   mcpInstallPrompt,
   mcpServerUrl,
 } from "./mcp-install-prompt";
@@ -1105,7 +1106,7 @@ export const mcpGuide: InstallGuide = {
   ],
   guaranteesHeading: "Read-only, no key",
   heading: "The MCP server for building better UI.",
-  path: "/install/mcp",
+  path: mcpInstallPath,
   prompts: [
     {
       text: "Find a uicapsule component for a volume slider and install it in this app",

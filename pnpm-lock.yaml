@@ -459,6 +459,9 @@ importers:
       cn:
         specifier: 'catalog:'
         version: 0.4.0
+      fflate:
+        specifier: ^0.8.3
+        version: 0.8.3
       lucide-react:
         specifier: 'catalog:'
         version: 1.77.0(@types/react@19.3.0)(react@19.3.1)
