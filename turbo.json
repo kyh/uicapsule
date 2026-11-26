@@ -18,6 +18,23 @@
         "scripts/content-validation.ts"
       ]
     },
+    "//#build:previews": {
+      "inputs": [
+        "content/**",
+        "scripts/build-previews.ts",
+        "scripts/preview-bundle.ts",
+        "apps/web/src/lib/content/content-schema.ts",
+        "apps/web/src/lib/content/preview-runtime.ts",
+        "apps/web/src/lib/content/preview-shell.ts",
+        "apps/web/src/lib/preview-protocol.ts",
+        "packages/ui/src/styles/theme.css"
+      ],
+      "outputs": ["apps/web/public/previews/**"]
+    },
+    "//#dev:previews": {
+      "cache": false,
+      "persistent": true
+    },
     "dev": {
       "cache": false,
       "persistent": true
@@ -52,6 +69,7 @@
     "BETTER_AUTH_SECRET",
     "BETTER_AUTH_URL",
     "NEXT_PUBLIC_ASSETS_URL",
+    "NEXT_PUBLIC_PREVIEW_URL",
     "PORT",
     "VERCEL_PROJECT_PRODUCTION_URL",
     "RESEND_API_KEY",

@@ -4,40 +4,13 @@ import { memo, useEffect, useRef, useState } from "react";
 import type { RefObject } from "react";
 
 import type { ContentComponentSummary } from "@/lib/content/content-schema";
+import { parseFrameMessage, previewFrameSrc } from "@/lib/preview-protocol";
+import type { InspectBox, ParentMessage } from "@/lib/preview-protocol";
 import { cn } from "cn";
 
 import { MediaReveal } from "@/components/media-reveal";
 import { Resizable } from "./resizable";
 import { noop } from "@tanstack/react-query";
-
-interface InspectBox {
-  x: number;
-  y: number;
-  width: number;
-  height: number;
-  label: string;
-}
-
-const blockEvent = (event: Event) => {
-  event.preventDefault();
-  event.stopPropagation();
-};
-
-const describe = (element: Element, view: Window & typeof globalThis) => {
-  const slot =
-    element instanceof view.HTMLElement || element instanceof view.SVGElement
-      ? element.dataset.slot
-      : undefined;
-
-  if (slot !== undefined && slot !== "") {
-    return slot;
-  }
-
-  const tag = element.tagName.toLowerCase();
-  const [firstClass] = element.classList;
-
-  return firstClass !== undefined && firstClass !== "" ? `${tag}.${firstClass}` : tag;
-};
 
 const useInspector = (enabled: boolean, wrapperRef: RefObject<HTMLDivElement | null>) => {
   const [box, setBox] = useState<InspectBox | null>(null);
@@ -51,69 +24,44 @@ const useInspector = (enabled: boolean, wrapperRef: RefObject<HTMLDivElement | n
       return noop;
     }
 
-    let detach: (() => void) | null = null;
+    let current: HTMLIFrameElement | null = null;
 
-    const onLeave = () => {
-      setBox(null);
+    const send = (inspect: boolean) => {
+      const message: ParentMessage = { enabled: inspect, type: "uicapsule:inspect" };
+      current?.contentWindow?.postMessage(message, "*");
     };
 
-    const attach = (iframe: HTMLIFrameElement) => {
-      detach?.();
+    const onMessage = (event: MessageEvent) => {
+      const iframe = current;
 
-      const doc = iframe.contentDocument;
-
-      if (!doc?.documentElement) {
+      if (!iframe || event.source !== iframe.contentWindow) {
         return;
       }
 
-      const root = doc.documentElement;
+      const message = parseFrameMessage(event);
 
-      const onMove = (event: PointerEvent) => {
-        const { target } = event;
-        const view = doc.defaultView;
-
-        if (view === null || !(target instanceof view.Element) || target === root) {
-          setBox(null);
-
-          return;
-        }
-
-        const element = target;
-        const rect = element.getBoundingClientRect();
-        const frame = iframe.getBoundingClientRect();
-        const outer = wrapper.getBoundingClientRect();
-
-        setBox({
-          height: rect.height,
-          label: `${describe(element, view)} · ${Math.round(rect.width)}×${Math.round(rect.height)}`,
-          width: rect.width,
-          x: rect.left + frame.left - outer.left,
-          y: rect.top + frame.top - outer.top,
-        });
-      };
-
-      const previousCursor = root.style.cursor;
-      root.style.cursor = "crosshair";
-      doc.addEventListener("pointermove", onMove, true);
-      root.addEventListener("pointerleave", onLeave);
-      doc.addEventListener("click", blockEvent, true);
-      doc.addEventListener("pointerdown", blockEvent, true);
-
-      detach = () => {
-        root.style.cursor = previousCursor;
-        doc.removeEventListener("pointermove", onMove, true);
-        root.removeEventListener("pointerleave", onLeave);
-        doc.removeEventListener("click", blockEvent, true);
-        doc.removeEventListener("pointerdown", blockEvent, true);
-      };
-    };
-
-    let current: HTMLIFrameElement | null = null;
-
-    const onLoad = () => {
-      if (current) {
-        attach(current);
+      if (message?.type === "uicapsule:ready") {
+        send(true);
       }
+
+      if (message?.type !== "uicapsule:inspect-box") {
+        return;
+      }
+
+      if (!message.box) {
+        setBox(null);
+
+        return;
+      }
+
+      const frame = iframe.getBoundingClientRect();
+      const outer = wrapper.getBoundingClientRect();
+
+      setBox({
+        ...message.box,
+        x: message.box.x + frame.left - outer.left,
+        y: message.box.y + frame.top - outer.top,
+      });
     };
 
     const bind = () => {
@@ -123,17 +71,11 @@ const useInspector = (enabled: boolean, wrapperRef: RefObject<HTMLDivElement | n
         return;
       }
 
-      current?.removeEventListener("load", onLoad);
       current = iframe;
-
-      if (!iframe) {
-        return;
-      }
-
-      iframe.addEventListener("load", onLoad);
-      attach(iframe);
+      send(true);
     };
 
+    window.addEventListener("message", onMessage);
     bind();
 
     const observer = new MutationObserver(bind);
@@ -141,8 +83,8 @@ const useInspector = (enabled: boolean, wrapperRef: RefObject<HTMLDivElement | n
 
     return () => {
       observer.disconnect();
-      current?.removeEventListener("load", onLoad);
-      detach?.();
+      window.removeEventListener("message", onMessage);
+      send(false);
       setBox(null);
     };
   }, [enabled, wrapperRef]);
@@ -163,8 +105,7 @@ const PreviewStageBase = ({ component, inspect, width, onWidthChange }: PreviewS
   const wrapperRef = useRef<HTMLDivElement>(null);
   const box = useInspector(inspect && component.type === "local", wrapperRef);
 
-  const src =
-    component.type === "remote" ? component.iframeUrl : `/preview-frame/${component.slug}`;
+  const src = component.type === "remote" ? component.iframeUrl : previewFrameSrc(component.slug);
 
   return (
     <div ref={wrapperRef} className="relative flex h-full min-h-0 justify-center p-3 md:px-6">

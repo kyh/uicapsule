@@ -1,6 +1,6 @@
-import { existsSync, readdirSync } from "node:fs";
-import path from "node:path";
 import type { NextConfig } from "next";
+
+import { siteConfig } from "./src/lib/site-config";
 
 type ImageConfig = NonNullable<NextConfig["images"]>;
 
@@ -8,19 +8,23 @@ type RemotePatterns = NonNullable<ImageConfig["remotePatterns"]>;
 
 const IS_PRODUCTION = process.env.NODE_ENV === "production";
 const ASSETS_URL = process.env.NEXT_PUBLIC_ASSETS_URL;
+const PREVIEW_URL = process.env.NEXT_PUBLIC_PREVIEW_URL;
 
-const appRoot = import.meta.dirname;
-const contentRoot = path.join(appRoot, "..", "..", "content");
-
-const getContentPackages = () => {
-  try {
-    return readdirSync(contentRoot)
-      .filter((slug) => !slug.startsWith("."))
-      .filter((slug) => existsSync(path.join(contentRoot, slug, "package.json")))
-      .map((slug) => `@uicapsule/${slug}`);
-  } catch {
+const previewHostRedirects = () => {
+  if (PREVIEW_URL === undefined || PREVIEW_URL === "") {
     return [];
   }
+
+  const { hostname } = new URL(PREVIEW_URL);
+
+  return [
+    {
+      destination: `${siteConfig.url}/:path*`,
+      has: [{ type: "host" as const, value: hostname }],
+      permanent: false,
+      source: "/:path((?!preview-frame/|previews/|_next/).*)",
+    },
+  ];
 };
 
 const getRemotePatterns = () => {
@@ -51,13 +55,7 @@ const getRemotePatterns = () => {
   return remotePatterns;
 };
 
-const transpilePackages = [
-  "@repo/contract",
-  "@repo/db",
-  "@repo/service",
-  "@repo/ui",
-  ...getContentPackages(),
-];
+const transpilePackages = ["@repo/contract", "@repo/db", "@repo/service", "@repo/ui"];
 
 const config: NextConfig = {
   /** next dev rewrites AGENTS.md/CLAUDE.md when it detects an agent; we own those files */
@@ -65,6 +63,18 @@ const config: NextConfig = {
   cacheComponents: true,
   /** cover/PR recordings capture cold navigations; the badge can't be stripped in time */
   devIndicators: false,
+  /** previews run on an opaque origin, so their module scripts and chunks are CORS fetches */
+  headers: async () =>
+    await Promise.resolve([
+      {
+        headers: [{ key: "Access-Control-Allow-Origin", value: "*" }],
+        source: "/previews/:path*",
+      },
+      {
+        headers: [{ key: "Cache-Control", value: "public, max-age=31536000, immutable" }],
+        source: "/previews/:dir(chunks|assets)/:file*",
+      },
+    ]),
   experimental: {
     globalNotFound: true,
   },
@@ -73,6 +83,7 @@ const config: NextConfig = {
   },
   /** a default <Link> prefetches only the route's shared App Shell; gallery cards opt into more on intent */
   partialPrefetching: true,
+  redirects: async () => await Promise.resolve(previewHostRedirects()),
   transpilePackages,
 };
 

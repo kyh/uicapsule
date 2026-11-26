@@ -59,8 +59,30 @@ Content is filesystem-driven; the web app never depends on content packages by n
   Shell. Gallery cards are `PrefetchLink` (`components/prefetch-link.tsx`), upgrading to
   `prefetch={true}` on hover/focus/touch; viewport `prefetch={true}` would cost one request
   per visible card.
-- `preview-frame/[slug]` renders previews via a relative dynamic import of
-  `content/<slug>/preview.tsx`.
+- **Previews never compile into the Next app.** `scripts/build-previews.ts` (turbo
+  `//#build:previews`, which web's build depends on) bundles every `content/<slug>/preview.tsx`
+  with Vite 8 (Rolldown, ~3s for every preview; one build, shared chunks, `lib/content/preview-runtime.ts` as the boot wrapper)
+  into gitignored `apps/web/public/previews/<slug>/` (`index.js` + one `index.css`). Each slug's
+  entry imports a virtual Tailwind stylesheet compiled from `@repo/ui/theme.css`, scanning only
+  that slug, and a `generateBundle` step merges every stylesheet a preview's chunks import into
+  its `index.css`. Turbopack can't be driven outside `next dev`/`next build`, hence Vite. In
+  dev, `pnpm dev:web` runs `//#dev:previews` beside `next dev` (turbo `with`): a Vite dev server
+  on `PREVIEW_DEV_ORIGIN` (`:5174`), and the frame route in development serves a shell that loads
+  `/@preview/<slug>.js` from it with React Refresh, so edits (and new Tailwind classes, recompiled
+  per slug on change) hot-swap inside the sandboxed frame. Its root is `apps/web` only so plugin-react
+  resolves React; its watcher ignores everything there but `src/lib`, so it never watches what
+  `next dev` watches. `@repo/ui/globals.css` no longer scans
+  `content/**`, so the site's CSS carries no component classes.
+- **`/preview-frame/<slug>` is a sandboxed document.** A static route handler
+  returns the shell (`lib/content/preview-shell.ts`) with
+  `Content-Security-Policy: sandbox <PREVIEW_SANDBOX>` and no `allow-same-origin`, and the
+  embedding iframe carries the same `sandbox`: a preview runs on an opaque origin with no
+  cookies and no storage, even when its URL is opened top-level (so `/previews/*` answers
+  CORS with `*`, since module scripts from an opaque origin are CORS fetches). The site talks
+  to a frame only through `postMessage` (`lib/preview-protocol.ts`: theme in, inspect boxes
+  out, both zod-parsed), never `contentDocument`. `NEXT_PUBLIC_PREVIEW_URL` (e.g.
+  `https://preview.uicapsule.com`, a domain alias of this same Vercel project) moves frames to
+  their own host, and `next.config.ts` redirects every other path on that host to www.
 - `/r/<slug>.json` serves the shadcn registry item. The docked code panel and zip download
   use `/api/content/<slug>`; the viewer and zip library load on demand.
 - `/ui/<slug>` is a docked workspace (`_components/component-workspace.tsx`): component list,
@@ -223,6 +245,8 @@ pnpm db:push          # Push local db schema
 pnpm db:push-remote   # Push to production Turso
 pnpm new:content <slug>  # Scaffold a new content component in content/ (--design-system for the template)
 pnpm check:content    # Fail if any content/<slug> is not a loadable component
+pnpm build:previews   # Bundle every content preview into apps/web/public/previews with Vite (build runs it)
+pnpm dev:previews     # Vite dev server for previews on :5174 with hot reload (dev:web runs it)
 pnpm test             # node:test — auth + RPC transport guards + the agent-surface tests
 pnpm check:agent-endpoints  # Runtime check of the agent surfaces (needs a running server)
 pnpm skills:update    # Bump the skills-lock.json skills (emilkowalski, jakubkrehel) to upstream HEAD; review the diff
@@ -338,6 +362,6 @@ choreography, gallery copy. In priority order:
 
 ## Gotchas
 
-- Turbopack's persistent cache freezes the Tailwind `@source` glob: arbitrary classes that
-  exist only in a NEWLY created `content/<slug>` package silently don't generate (styles in
-  DOM but no CSS). Fix: `rm -rf apps/web/.next` and restart `pnpm dev:web`.
+- A dev preview that renders blank means the preview dev server isn't running: `next dev` alone
+  doesn't start it. Use `pnpm dev:web`, or run `pnpm dev:previews` beside it. A built preview
+  that renders unstyled means `public/previews` is stale: run `pnpm build:previews`.

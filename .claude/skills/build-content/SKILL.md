@@ -87,10 +87,9 @@ curl -s -o /dev/null -w "%{http_code}" http://localhost:3000/preview-frame/<slug
 
 Dev server not running → start `pnpm dev:web` in the background.
 
-**Turbopack gotcha (bites every new content package):** the persistent cache freezes
-the Tailwind `@source` glob, so arbitrary classes that exist only in the NEW package
-silently generate no CSS — markup renders unstyled. If the preview looks unstyled:
-`rm -rf apps/web/.next`, restart `pnpm dev:web`.
+Previews are served by `//:dev:previews` (part of `pnpm dev:web`), a Vite dev server that
+hot-reloads edits inside the frame: if the preview is blank, check that task is running. Previews run
+sandboxed, so the component must not rely on `localStorage`, `sessionStorage` or cookies.
 
 Screenshot `/preview-frame/<slug>` and actually look at it before recording.
 

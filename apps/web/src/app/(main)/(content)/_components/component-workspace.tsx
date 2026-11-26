@@ -20,6 +20,7 @@ import { useMediaQuery } from "@repo/ui/hooks/use-media-query";
 import { cn } from "cn";
 
 import type { ContentComponentSummary, DefaultSize } from "@/lib/content/content-schema";
+import { previewFrameSrc } from "@/lib/preview-protocol";
 import { siteConfig } from "@/lib/site-config";
 import { ComponentNav, groupComponents } from "./component-nav";
 import { InfoPanel } from "./info-panel";
@@ -175,7 +176,7 @@ export const ComponentWorkspace = ({ initialSlug, feed }: ComponentWorkspaceProp
 
   const width = widths[active.slug] ?? PREVIEW_WIDTH[active.defaultSize ?? "full"];
   const preset = WIDTH_PRESETS.find((p) => PREVIEW_WIDTH[p.size] === width)?.size;
-  const previewHref = active.type === "remote" ? active.iframeUrl : `/preview-frame/${active.slug}`;
+  const previewHref = active.type === "remote" ? active.iframeUrl : previewFrameSrc(active.slug);
   const codeOpen = isDesktop ? layout.code.open : mobilePanel === "code";
 
   const toggleMobile = (panel: MobilePanel) => {
