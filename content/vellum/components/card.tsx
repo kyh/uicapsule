@@ -18,6 +18,6 @@ export const Panel = ({
 export const ShellFoot = ({ meta, children }: { meta?: ReactNode; children?: ReactNode }) => (
   <div className="v-shell-foot">
     <span className="v-foot-meta v-caption">{meta}</span>
-    {children ? <span className="v-foot-actions">{children}</span> : null}
+    {Boolean(children) && <span className="v-foot-actions">{children}</span>}
   </div>
 );

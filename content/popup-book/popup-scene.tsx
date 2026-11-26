@@ -210,6 +210,9 @@ const rasterize = async (node: ReactNode, width: number, height: number, ppu: nu
   return texture;
 };
 
+const faceTexture = async (key: string, art: ReactNode, width: number, height: number) =>
+  [key, await rasterize(art, width, height, FACE_PPU)] as const;
+
 const Paper = ({ width, height, fill }: { width: number; height: number; fill: string }) => (
   <>
     <rect width={width} height={height} fill={fill} />
@@ -304,60 +307,64 @@ const loadTextures = async () => {
     1,
   );
 
-  const cities: BookTextures["cities"] = [];
+  const cities: BookTextures["cities"] = await Promise.all(
+    CITIES.map(async (city) => {
+      const solids: PopupSolid[] = city.solids ?? [];
 
-  for (const city of CITIES) {
-    const panorama = await rasterize(
-      <>
-        {city.panorama}
-        <Edge d="M1 1H199V199H1zM201 1H399V199H201z" />
-      </>,
-      SIZE * 2,
-      SIZE,
-      PAGE_PPU,
-    );
+      const [panorama, floor, cards, faces] = await Promise.all([
+        rasterize(
+          <>
+            {city.panorama}
+            <Edge d="M1 1H199V199H1zM201 1H399V199H201z" />
+          </>,
+          SIZE * 2,
+          SIZE,
+          PAGE_PPU,
+        ),
+        rasterize(
+          <>
+            <rect width={SIZE} height={SIZE} fill={city.ground} />
+            {city.floor}
+            <Edge d="M1 1H199V199H1z" />
+            <path d="M0 0L200 200" stroke={INK} strokeWidth={1.2} opacity={0.25} />
+          </>,
+          SIZE,
+          SIZE,
+          PAGE_PPU,
+        ),
+        Promise.all(
+          city.layers.map(async (layer) => {
+            const { width } = cardSpan(layer.left, layer.right);
 
-    const floor = await rasterize(
-      <>
-        <rect width={SIZE} height={SIZE} fill={city.ground} />
-        {city.floor}
-        <Edge d="M1 1H199V199H1z" />
-        <path d="M0 0L200 200" stroke={INK} strokeWidth={1.2} opacity={0.25} />
-      </>,
-      SIZE,
-      SIZE,
-      PAGE_PPU,
-    );
+            const [back, front] = await Promise.all([
+              rasterize(cardArt(layer, true), width, layer.height, 1.5),
+              rasterize(cardArt(layer, false), width, layer.height, PAGE_PPU),
+            ]);
 
-    const cards: BookTextures["cities"][number]["cards"] = [];
+            return { back, front };
+          }),
+        ),
+        Promise.all(
+          solids.flatMap((solid, solidIndex) =>
+            (["top", "left", "right"] as const).flatMap((face) => {
+              const art = solid.art?.[face];
+              const hasArt = Boolean(art);
 
-    for (const layer of city.layers) {
-      const { width } = cardSpan(layer.left, layer.right);
+              if (!hasArt) {
+                return [];
+              }
 
-      cards.push({
-        back: await rasterize(cardArt(layer, true), width, layer.height, 1.5),
-        front: await rasterize(cardArt(layer, false), width, layer.height, PAGE_PPU),
-      });
-    }
+              const [fw, fh] = faceSize(solid, face);
 
-    const faces = new Map<string, Texture>();
+              return [faceTexture(faceKey(solidIndex, face), art, fw, fh)];
+            }),
+          ),
+        ),
+      ]);
 
-    const solids: PopupSolid[] = city.solids ?? [];
-
-    for (const [solidIndex, solid] of solids.entries()) {
-      for (const face of ["top", "left", "right"] as const) {
-        const art = solid.art?.[face];
-
-        if (art) {
-          const [fw, fh] = faceSize(solid, face);
-
-          faces.set(faceKey(solidIndex, face), await rasterize(art, fw, fh, FACE_PPU));
-        }
-      }
-    }
-
-    cities.push({ cards, faces, floor, panorama });
-  }
+      return { cards, faces: new Map<string, Texture>(faces), floor, panorama };
+    }),
+  );
 
   return { backing, cities, cloth } satisfies BookTextures;
 };
@@ -420,8 +427,10 @@ const FORMS = {
 
 const HALO = 1.4;
 
+const haloScale = (size: number) => 1 + (2 * HALO) / size;
+
 const Halo = ({ extent, children }: { extent: [number, number, number]; children: ReactNode }) => (
-  <mesh scale={extent.map((size) => 1 + (2 * HALO) / size) as [number, number, number]}>
+  <mesh scale={[haloScale(extent[0]), haloScale(extent[1]), haloScale(extent[2])]}>
     {children}
     <meshBasicMaterial color={PAPER} side={BackSide} />
   </mesh>

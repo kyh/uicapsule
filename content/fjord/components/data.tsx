@@ -26,7 +26,7 @@ export const StatStrip = ({ stats, label }: { stats: StatEntry[]; label: string 
           {stat.value}
           {stat.unit !== undefined && stat.unit !== "" ? <small>{stat.unit}</small> : null}
         </dd>
-        {stat.delta ? <dd className="fj-stat-delta">{stat.delta}</dd> : null}
+        {Boolean(stat.delta) && <dd className="fj-stat-delta">{stat.delta}</dd>}
       </div>
     ))}
   </dl>

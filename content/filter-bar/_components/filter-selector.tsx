@@ -78,7 +78,7 @@ export const FilterableColumn = <TType extends ColumnDataType>({
     >
       <div className="flex w-full items-center justify-between">
         <div className="inline-flex items-center gap-1.5">
-          {Icon && (
+          {Icon !== undefined && (
             <div className="relative">
               {renderColumnIcon(Icon, "size-4 stroke-[2.25px]")}
               {isFiltered && (
@@ -86,7 +86,7 @@ export const FilterableColumn = <TType extends ColumnDataType>({
               )}
             </div>
           )}
-          {!Icon && isFiltered && <div className="h-2 w-2 rounded-full bg-green-500" />}
+          {Icon === undefined && isFiltered && <div className="h-2 w-2 rounded-full bg-green-500" />}
           <span>{column.displayName}</span>
         </div>
         {column.type !== "boolean" && (
@@ -156,7 +156,7 @@ export const QuickSearchFilters = ({
                       className="dark:border-(--ring) mr-1 opacity-0 group-data-[selected=true]:opacity-100 data-checked:opacity-100"
                     />
                     <div className="flex w-4 items-center justify-center">
-                      {v.icon && renderColumnIcon(v.icon, "text-(--primary) size-4")}
+                      {v.icon !== undefined && renderColumnIcon(v.icon, "text-(--primary) size-4")}
                     </div>
                     <div className="flex items-center gap-0.5">
                       <span className="text-(--muted-foreground)">{column.displayName}</span>
@@ -250,7 +250,7 @@ export const FilterSelector = ({
               <span className="sr-only">Back</span>
             </Button>
             <div className="flex items-center gap-1.5 text-sm">
-              {column.icon && renderColumnIcon(column.icon, "size-4 stroke-[2.25px]")}
+              {column.icon !== undefined && renderColumnIcon(column.icon, "size-4 stroke-[2.25px]")}
               <span className="font-medium">{column.displayName}</span>
             </div>
           </div>

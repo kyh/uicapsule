@@ -28,7 +28,7 @@ export const Alert = ({ tone = "fail", word, children, actions, framed }: AlertP
       {word}
     </span>
     <p className="hx-body-sm hx-measure">{children}</p>
-    {actions ? <div className="hx-row-wrap hx-alert-actions">{actions}</div> : null}
+    {Boolean(actions) && <div className="hx-row-wrap hx-alert-actions">{actions}</div>}
   </div>
 );
 

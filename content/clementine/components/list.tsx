@@ -58,9 +58,9 @@ export const ListItem = ({
       {leading}
       <span className="cl-row__text">
         <span className="cl-row__title">{title}</span>
-        {description ? <span className="cl-row__desc">{description}</span> : null}
+        {Boolean(description) && <span className="cl-row__desc">{description}</span>}
       </span>
-      {trailing ? <span className="cl-row__trail">{trailing}</span> : null}
+      {Boolean(trailing) && <span className="cl-row__trail">{trailing}</span>}
       {chevron ? (
         <ChevronRight aria-hidden className="cl-row__chev" size={16} strokeWidth={1.75} />
       ) : null}

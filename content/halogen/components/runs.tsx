@@ -48,7 +48,7 @@ export const ToolCallRow = ({ label, detail, state, seconds, tab, children }: To
         {seconds === undefined ? "" : formatDuration(seconds)}
       </span>
     </div>
-    {children ? <div className="hx-call-body">{children}</div> : null}
+    {Boolean(children) && <div className="hx-call-body">{children}</div>}
   </li>
 );
 

@@ -92,7 +92,7 @@ export const Table = <T,>({
           </tr>
         </thead>
         <tbody>
-          {sorted.length === 0 && empty ? (
+          {sorted.length === 0 && Boolean(empty) ? (
             <tr data-empty>
               <td colSpan={columns.length}>{empty}</td>
             </tr>

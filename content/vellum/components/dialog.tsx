@@ -85,6 +85,8 @@ export const Dialog = ({
     };
   }, [open, onOpenChange]);
 
+  const hasDescription = Boolean(description);
+
   return (
     <div
       className="v-scrim"
@@ -98,7 +100,7 @@ export const Dialog = ({
       role="presentation"
     >
       <div
-        aria-describedby={description ? `${id}-description` : undefined}
+        aria-describedby={hasDescription ? `${id}-description` : undefined}
         aria-labelledby={`${id}-title`}
         aria-modal="true"
         className="v-shell v-dialog"
@@ -110,11 +112,11 @@ export const Dialog = ({
             <h2 className="v-heading-sm" id={`${id}-title`}>
               {title}
             </h2>
-            {description ? (
+            {hasDescription && (
               <div className="v-body-sm v-t2" id={`${id}-description`}>
                 {description}
               </div>
-            ) : null}
+            )}
             {children}
           </div>
         </Panel>

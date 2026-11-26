@@ -351,14 +351,14 @@ export const CardHeader = ({
       {icon ? <IconTile icon={icon} color={color ?? INK} /> : null}
       <div className="min-w-0">
         <h3 className="truncate text-[15px] font-semibold tracking-[-0.01em]">{title}</h3>
-        {subtitle ? (
+        {Boolean(subtitle) && (
           <p className="mt-0.5 truncate text-[12px]" style={{ color: MUTED }}>
             {subtitle}
           </p>
-        ) : null}
+        )}
       </div>
     </div>
-    {actions ? <div className="flex shrink-0 items-center gap-1.5">{actions}</div> : null}
+    {Boolean(actions) && <div className="flex shrink-0 items-center gap-1.5">{actions}</div>}
   </div>
 );
 

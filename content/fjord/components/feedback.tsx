@@ -23,7 +23,7 @@ export const Alert = ({ status, title, children, actions }: AlertProps) => (
       <p className="fj-alert-title">{title}</p>
       <div className="fj-alert-text">{children}</div>
     </div>
-    {actions ? <div className="fj-alert-actions">{actions}</div> : null}
+    {Boolean(actions) && <div className="fj-alert-actions">{actions}</div>}
   </div>
 );
 
@@ -38,7 +38,7 @@ export const EmptyState = ({ title, children, actions }: EmptyProps) => (
   <div className="fj-empty">
     <p className="fj-empty-title">{title}</p>
     <p className="fj-empty-text">{children}</p>
-    {actions ? <div className="fj-hstack">{actions}</div> : null}
+    {Boolean(actions) && <div className="fj-hstack">{actions}</div>}
   </div>
 );
 

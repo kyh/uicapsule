@@ -75,7 +75,7 @@ export const Dialog = ({
         </div>
       </header>
       <div className="hx-body-pad hx-gap-4">{children}</div>
-      {footer ? <footer className="hx-foot">{footer}</footer> : null}
+      {Boolean(footer) && <footer className="hx-foot">{footer}</footer>}
     </dialog>
   );
 };

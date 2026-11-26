@@ -51,9 +51,11 @@ export const Dialog = ({
     }
   }, [open]);
 
+  const hasDescription = Boolean(description);
+
   return (
     <dialog
-      aria-describedby={description ? descId : undefined}
+      aria-describedby={hasDescription ? descId : undefined}
       aria-labelledby={titleId}
       className="fj-dialog"
       data-size={size}
@@ -70,11 +72,11 @@ export const Dialog = ({
                 <h2 className="fj-dialog-title" id={titleId}>
                   {title}
                 </h2>
-                {description ? (
+                {hasDescription && (
                   <p className="fj-dialog-desc" id={descId}>
                     {description}
                   </p>
-                ) : null}
+                )}
               </div>
               <Button
                 aria-label="Close"

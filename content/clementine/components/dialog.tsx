@@ -65,9 +65,11 @@ export const Dialog = ({
     };
   }, [kind, onOpenChange]);
 
+  const hasDescription = Boolean(description);
+
   return (
     <dialog
-      aria-describedby={description ? descId : undefined}
+      aria-describedby={hasDescription ? descId : undefined}
       aria-labelledby={titleId}
       className="cl-dialog"
       closedby={kind === "alert" ? "closerequest" : "any"}
@@ -102,13 +104,13 @@ export const Dialog = ({
             </button>
           )}
         </header>
-        {description ? (
+        {hasDescription && (
           <p className="cl-dialog__desc" id={descId}>
             {description}
           </p>
-        ) : null}
-        {children ? <div className="cl-dialog__body">{children}</div> : null}
-        {footer ? <footer className="cl-dialog__foot">{footer}</footer> : null}
+        )}
+        {Boolean(children) && <div className="cl-dialog__body">{children}</div>}
+        {Boolean(footer) && <footer className="cl-dialog__foot">{footer}</footer>}
       </div>
     </dialog>
   );

@@ -98,7 +98,7 @@ export const ToolCall = ({ call, question, actions }: ToolCallProps) => {
       (call.reason === undefined || call.reason === "") ? (
         <pre className="fj-tool-out fj-well">{call.output}</pre>
       ) : null}
-      {call.status === "awaiting" && question ? (
+      {call.status === "awaiting" && Boolean(question) ? (
         <div className="fj-tool-ask">
           <p>{question}</p>
           <div className="fj-hstack">{actions}</div>

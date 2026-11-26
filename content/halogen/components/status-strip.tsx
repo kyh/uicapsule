@@ -30,7 +30,7 @@ export const StripCell = ({ label, value, unit, lead, selected, onSelect }: Cell
       <span className="hx-strip-value">
         {lead}
         {value}
-        {unit ? <span className="hx-strip-unit">{unit}</span> : null}
+        {Boolean(unit) && <span className="hx-strip-unit">{unit}</span>}
       </span>
     </>
   );

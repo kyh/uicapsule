@@ -43,7 +43,7 @@ export const Sub = ({
         <h3 className="v-heading" id={`${id}-title`}>
           {title}
         </h3>
-        {note ? <p>{note}</p> : null}
+        {Boolean(note) && <p>{note}</p>}
       </div>
       {action}
     </div>

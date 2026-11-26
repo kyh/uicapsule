@@ -143,7 +143,7 @@ export const FilterValueOptionDisplay = ({ filter, column }: FilterValueDisplayP
 
   if (selected.length === 1 && only) {
     const { label, icon: Icon } = only;
-    const hasIcon = !!Icon;
+    const hasIcon = Icon !== undefined;
 
     return (
       <span className="inline-flex items-center gap-1">
@@ -156,7 +156,7 @@ export const FilterValueOptionDisplay = ({ filter, column }: FilterValueDisplayP
   const name = column.displayName.toLowerCase();
   const pluralName = name.endsWith("s") ? `${name}es` : `${name}s`;
 
-  const hasOptionIcons = !options?.some((o) => !o.icon);
+  const hasOptionIcons = options?.some((o) => o.icon === undefined) !== true;
 
   return (
     <div className="inline-flex items-center gap-0.5">
@@ -164,7 +164,7 @@ export const FilterValueOptionDisplay = ({ filter, column }: FilterValueDisplayP
         selected.slice(0, 3).map(({ value, icon }) => {
           const Icon = icon;
 
-          if (!Icon) {
+          if (Icon === undefined) {
             return null;
           }
 
@@ -188,7 +188,7 @@ export const FilterValueMultiOptionDisplay = ({
 
   if (selected.length === 1 && only) {
     const { label, icon: Icon } = only;
-    const hasIcon = !!Icon;
+    const hasIcon = Icon !== undefined;
 
     return (
       <span className="inline-flex items-center gap-1.5">
@@ -201,7 +201,7 @@ export const FilterValueMultiOptionDisplay = ({
 
   const name = column.displayName.toLowerCase();
 
-  const hasOptionIcons = !options?.some((o) => !o.icon);
+  const hasOptionIcons = options?.some((o) => o.icon === undefined) !== true;
 
   return (
     <div className="inline-flex items-center gap-1.5">
@@ -210,7 +210,7 @@ export const FilterValueMultiOptionDisplay = ({
           {selected.slice(0, 3).map(({ value, icon }) => {
             const Icon = icon;
 
-            if (!Icon) {
+            if (Icon === undefined) {
               return null;
             }
 
@@ -439,7 +439,7 @@ const OptionItemBase = ({ option, onToggle }: OptionItemProps) => {
           className="dark:border-(--ring) mr-1 shrink-0 opacity-0 group-data-[selected=true]:opacity-100 data-checked:opacity-100"
         />
         <div className="shrink-0">
-          {Icon && renderIcon(Icon, { className: "text-(--primary) size-4" })}
+          {Icon !== undefined && renderIcon(Icon, { className: "text-(--primary) size-4" })}
         </div>
         <span className="overflow-x-hidden overflow-ellipsis whitespace-nowrap">{label}</span>
       </div>

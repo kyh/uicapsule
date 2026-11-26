@@ -32,8 +32,8 @@ export const FrameHead = ({ title, status, meta, actions }: FrameHeadProps) => (
   <header className="hx-head">
     <span className="hx-head-title hx-code">{title}</span>
     {status}
-    {meta ? <span className="hx-head-meta hx-code-sm">{meta}</span> : null}
-    {actions ? <div className="hx-head-actions">{actions}</div> : null}
+    {Boolean(meta) && <span className="hx-head-meta hx-code-sm">{meta}</span>}
+    {Boolean(actions) && <div className="hx-head-actions">{actions}</div>}
   </header>
 );
 

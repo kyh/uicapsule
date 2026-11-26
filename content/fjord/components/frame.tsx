@@ -19,8 +19,8 @@ export const PanelHead = ({ title, meta, action, titleId }: HeadProps) => (
     <h4 className="fj-panel-title" id={titleId}>
       {title}
     </h4>
-    {meta ? <span className="fj-panel-meta">{meta}</span> : null}
-    {action ? <div className="fj-panel-action">{action}</div> : null}
+    {Boolean(meta) && <span className="fj-panel-meta">{meta}</span>}
+    {Boolean(action) && <div className="fj-panel-action">{action}</div>}
   </header>
 );
 
@@ -46,8 +46,8 @@ export const CardHead = ({ title, meta, action, titleId }: HeadProps) => (
     <h4 className="fj-card-title" id={titleId}>
       {title}
     </h4>
-    {meta ? <span className="fj-card-meta">{meta}</span> : null}
-    {action ? <div className="fj-card-action">{action}</div> : null}
+    {Boolean(meta) && <span className="fj-card-meta">{meta}</span>}
+    {Boolean(action) && <div className="fj-card-action">{action}</div>}
   </header>
 );
 
@@ -73,8 +73,8 @@ export const Item = ({ title, description, end, start, size }: ItemProps) => (
     {start}
     <div className="fj-item-main">
       <div className="fj-item-title">{title}</div>
-      {description ? <div className="fj-item-desc">{description}</div> : null}
+      {Boolean(description) && <div className="fj-item-desc">{description}</div>}
     </div>
-    {end ? <div className="fj-item-end">{end}</div> : null}
+    {Boolean(end) && <div className="fj-item-end">{end}</div>}
   </div>
 );
