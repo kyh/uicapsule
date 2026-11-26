@@ -193,8 +193,8 @@ Next imports, no filesystem — so it can be unit-tested without a runtime. The 
 
 `AGENTS.md` is the runnable guide — read it before touching anything. The essentials:
 
-- **Provision**: no bootstrap script. `pnpm install` → `cp .env.example .env` (fill it) →
-  `pnpm -F db db` in one shell → `pnpm db:push` → `pnpm dev:web`.
+- **Provision**: `pnpm install && pnpm bootstrap --yes` (`.env` from `.env.example`, local
+  Turso via `turso dev`, `pnpm db:push`; idempotent, local URLs only) → `pnpm dev:web`.
 - **Auth's origin must match the port.** Outside Vercel, `packages/service/src/auth/auth.ts`
   takes its `baseURL` from `BETTER_AUTH_URL`, else `http://localhost:3000`, so a fallback to
   3001 makes every browser sign-in 403 silently. For another port, set `BETTER_AUTH_URL` to it.
@@ -208,6 +208,7 @@ Next imports, no filesystem — so it can be unit-tested without a runtime. The 
 ## Common Commands
 
 ```bash
+pnpm bootstrap --yes  # First run: .env, local Turso (detached), schema — idempotent
 pnpm dev:web          # Next.js app on :3000 (the one you want)
 pnpm dev:extension    # WXT dev build of the extension (load-unpacked: apps/extension/.output/chrome-mv3)
 pnpm -F db db         # Local Turso (turso dev) on :8080 — its own shell; `pnpm dev` does NOT start it
