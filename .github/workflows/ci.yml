@@ -47,3 +47,57 @@ jobs:
 
       - name: Build
         run: pnpm build
+
+  # The runtime gate. `ci` proves the code compiles and units behave; this proves the app boots,
+  # serves the gallery, and signs someone in by a code minted in a fresh local Turso, the way
+  # kyh/init's smoke does. Runs beside `ci`, at the cost of building web a second time.
+  smoke:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      TURBO_TELEMETRY_DISABLED: 1
+      TURSO_DATABASE_URL: http://127.0.0.1:8080
+      TURSO_AUTH_TOKEN: ""
+      BETTER_AUTH_SECRET: uicapsule-ci-only-secret-for-the-smoke
+      BETTER_AUTH_URL: http://localhost:3000
+      NEXT_PUBLIC_ASSETS_URL: https://d24l2zb4cwkekfpl.public.blob.vercel-storage.com
+      PORT: 3000
+    steps:
+      - uses: actions/checkout@v6
+
+      - uses: pnpm/setup@v2
+        with:
+          runtime: node@24
+          cache: true
+
+      - run: touch .env
+
+      # `pnpm -F db db` locally: the same `turso dev`, on a throwaway file
+      - name: Start local Turso
+        run: |
+          curl -sSfL https://get.tur.so/install.sh | bash
+          "$HOME/.turso/turso" dev --db-file "$RUNNER_TEMP/smoke.db" > "$RUNNER_TEMP/turso.log" 2>&1 &
+          curl --fail --silent --retry 30 --retry-delay 1 --retry-all-errors --max-time 2 \
+            --output /dev/null "$TURSO_DATABASE_URL/health"
+
+      - name: Push schema
+        run: pnpm db:push
+
+      - name: Build
+        run: pnpm build
+
+      - name: Start web
+        run: pnpm -F @repo/web start > "$RUNNER_TEMP/web.log" 2>&1 &
+
+      # Waits for /, then the gallery's pages, the registry, a refused cross-site sign-in, a code's
+      # sign-in, user.me and sign-out (scripts/smoke.ts)
+      - name: Smoke
+        run: pnpm smoke
+
+      # Status codes and headers of the agent-readable surfaces, which verify cannot see
+      - name: Agent endpoints
+        run: pnpm check:agent-endpoints
+
+      - name: Server logs
+        if: failure()
+        run: cat "$RUNNER_TEMP/web.log" "$RUNNER_TEMP/turso.log" || true

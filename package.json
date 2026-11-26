@@ -23,6 +23,7 @@
     "build:previews": "node --import tsx scripts/build-previews.ts",
     "dev:previews": "node --import tsx scripts/build-previews.ts --dev",
     "check:agent-endpoints": "node --import tsx scripts/check-agent-endpoints.ts",
+    "smoke": "node --import tsx scripts/smoke.ts",
     "sign-in-code": "pnpm --silent -F @repo/service sign-in-code",
     "verify": "pnpm typecheck && pnpm lint && pnpm format && pnpm test && pnpm build",
     "typecheck:content": "node --import tsx scripts/typecheck-content.ts",
@@ -34,6 +35,8 @@
   "devDependencies": {
     "@interfere/landmines": "^0.1.1",
     "@kyh/tsconfig": "catalog:",
+    "@orpc/client": "catalog:",
+    "@repo/contract": "workspace:*",
     "@tailwindcss/postcss": "catalog:",
     "@types/node": "catalog:",
     "@types/react": "catalog:",
