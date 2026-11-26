@@ -1,95 +1,27 @@
 "use client";
 
-import { memo, useEffect, useRef, useState } from "react";
-import type { RefObject } from "react";
+import { memo, useRef, useState } from "react";
+import { useTheme } from "next-themes";
+import { noop } from "@tanstack/react-query";
+import { cn } from "cn";
 
 import type { ContentComponentSummary } from "@/lib/content/content-schema";
-import { parseFrameMessage, previewFrameSrc } from "@/lib/preview-protocol";
-import type { InspectBox, ParentMessage } from "@/lib/preview-protocol";
-import { cn } from "cn";
+import type { ControlValue, PreviewControls } from "@/lib/preview-controls";
+import { previewFrameSrc } from "@/lib/preview-protocol";
+import type { InspectBox } from "@/lib/preview-protocol";
 
 import { MediaReveal } from "@/components/media-reveal";
 import { Resizable } from "./resizable";
-import { noop } from "@tanstack/react-query";
+import { usePreviewChannel } from "./use-preview-channel";
 
-const useInspector = (enabled: boolean, wrapperRef: RefObject<HTMLDivElement | null>) => {
-  const [box, setBox] = useState<InspectBox | null>(null);
+const NO_VALUES: Readonly<Record<string, ControlValue>> = {};
 
-  useEffect(() => {
-    const wrapper = wrapperRef.current;
+const previewTheme = (resolvedTheme: string | undefined) => {
+  if (resolvedTheme === undefined || resolvedTheme === "") {
+    return null;
+  }
 
-    if (!enabled || !wrapper) {
-      setBox(null);
-
-      return noop;
-    }
-
-    let current: HTMLIFrameElement | null = null;
-
-    const send = (inspect: boolean) => {
-      const message: ParentMessage = { enabled: inspect, type: "uicapsule:inspect" };
-      current?.contentWindow?.postMessage(message, "*");
-    };
-
-    const onMessage = (event: MessageEvent) => {
-      const iframe = current;
-
-      if (!iframe || event.source !== iframe.contentWindow) {
-        return;
-      }
-
-      const message = parseFrameMessage(event);
-
-      if (message?.type === "uicapsule:ready") {
-        send(true);
-      }
-
-      if (message?.type !== "uicapsule:inspect-box") {
-        return;
-      }
-
-      if (!message.box) {
-        setBox(null);
-
-        return;
-      }
-
-      const frame = iframe.getBoundingClientRect();
-      const outer = wrapper.getBoundingClientRect();
-
-      setBox({
-        ...message.box,
-        x: message.box.x + frame.left - outer.left,
-        y: message.box.y + frame.top - outer.top,
-      });
-    };
-
-    const bind = () => {
-      const iframe = wrapper.querySelector("iframe");
-
-      if (iframe === current) {
-        return;
-      }
-
-      current = iframe;
-      send(true);
-    };
-
-    window.addEventListener("message", onMessage);
-    bind();
-
-    const observer = new MutationObserver(bind);
-    observer.observe(wrapper, { childList: true, subtree: true });
-
-    return () => {
-      observer.disconnect();
-      window.removeEventListener("message", onMessage);
-      send(false);
-      setBox(null);
-    };
-  }, [enabled, wrapperRef]);
-
-  return box;
+  return resolvedTheme === "dark" ? "dark" : "light";
 };
 
 export const PREVIEW_WIDTH = { full: 4000, md: 720, sm: 375 } as const;
@@ -99,11 +31,38 @@ interface PreviewStageProps {
   inspect: boolean;
   width: number;
   onWidthChange: (width: number) => void;
+  values?: Readonly<Record<string, ControlValue>>;
+  onControlsChange?: (controls: PreviewControls | null) => void;
 }
 
-const PreviewStageBase = ({ component, inspect, width, onWidthChange }: PreviewStageProps) => {
+const PreviewStageBase = ({
+  component,
+  inspect,
+  width,
+  onWidthChange,
+  values = NO_VALUES,
+  onControlsChange = noop,
+}: PreviewStageProps) => {
   const wrapperRef = useRef<HTMLDivElement>(null);
-  const box = useInspector(inspect && component.type === "local", wrapperRef);
+  const [frame, setFrame] = useState<HTMLIFrameElement | null>(null);
+  const [box, setBox] = useState<InspectBox | null>(null);
+  const { resolvedTheme } = useTheme();
+
+  usePreviewChannel(component.type === "local" ? frame : null, {
+    inspect,
+    onControlsChange,
+    onInspectBox: (viewportBox) => {
+      const outer = wrapperRef.current?.getBoundingClientRect();
+
+      setBox(
+        viewportBox && outer
+          ? { ...viewportBox, x: viewportBox.x - outer.left, y: viewportBox.y - outer.top }
+          : null,
+      );
+    },
+    theme: previewTheme(resolvedTheme),
+    values,
+  });
 
   const src = component.type === "remote" ? component.iframeUrl : previewFrameSrc(component.slug);
 
@@ -120,11 +79,12 @@ const PreviewStageBase = ({ component, inspect, width, onWidthChange }: PreviewS
           <MediaReveal
             key={component.slug}
             className="h-full w-full"
+            frameRef={setFrame}
             iframe={{ src, title: component.name, type: component.type }}
           />
         </div>
       </Resizable>
-      {box && (
+      {inspect && box && (
         <div
           aria-hidden
           className="border-primary bg-primary/10 pointer-events-none absolute z-10 rounded-[2px] border"

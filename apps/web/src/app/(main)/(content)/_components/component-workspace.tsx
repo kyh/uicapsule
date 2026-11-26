@@ -27,10 +27,10 @@ import { InfoPager, InfoPanel } from "./info-panel";
 import { MobileSheet } from "./mobile-sheet";
 import { PanelHandle } from "./panel-handle";
 import { panelLayoutScript, usePanelLayout } from "./panel-layout";
-import type { PanelId } from "./panel-layout";
 import { PREVIEW_WIDTH, PreviewStage } from "./preview-stage";
 import { PropsPanel } from "./props-panel";
 import { ToolbarButton } from "./toolbar-button";
+import { useLiveProps } from "./use-live-props";
 
 const CodeDock = dynamic(async () => {
   const mod = await import("./code-dock");
@@ -51,6 +51,16 @@ const KEY_DELTA = new Map<string, 1 | -1>([
   ["k", -1],
 ]);
 
+const KEYBOARD_WIDGETS =
+  'input, textarea, select, [role="combobox"], [role="listbox"], [role="menu"], [role="slider"], [role="spinbutton"], [role="switch"], [role="textbox"]';
+
+const handlesOwnKeys = (target: EventTarget | null) =>
+  target instanceof HTMLElement &&
+  (target.isContentEditable || target.closest(KEYBOARD_WIDGETS) !== null);
+
+const frameSlug = (component: ContentComponentSummary | undefined) =>
+  component?.type === "local" ? component.slug : null;
+
 const orderComponents = (components: ContentComponentSummary[]) =>
   contentElements.flatMap((element) =>
     components
@@ -61,22 +71,33 @@ const orderComponents = (components: ContentComponentSummary[]) =>
 const slugFromPath = (pathname: string) =>
   /^\/ui\/(?<slug>[^/]+)\/?$/u.exec(pathname)?.groups?.slug;
 
-const Divider = () => <span aria-hidden className="bg-border mx-1 h-4 w-px" />;
+const Divider = () => <span aria-hidden className="bg-border mx-1 h-4 w-px max-md:hidden" />;
 
 interface CodeToggleProps {
   open: boolean;
   onToggle: () => void;
-  className?: string;
 }
 
-const CodeToggle = ({ open, onToggle, className }: CodeToggleProps) => (
+const CodeToggle = ({ open, onToggle }: CodeToggleProps) => (
+  <ToolbarButton label={open ? "Hide code" : "Show code"} pressed={open} onClick={onToggle}>
+    <SquareTerminalIcon />
+  </ToolbarButton>
+);
+
+interface InspectToggleProps {
+  on: boolean;
+  disabled: boolean;
+  onToggle: () => void;
+}
+
+const InspectToggle = ({ on, disabled, onToggle }: InspectToggleProps) => (
   <ToolbarButton
-    label={open ? "Hide code" : "Show code"}
-    pressed={open}
-    className={className}
+    label={on ? "Stop inspecting" : "Inspect elements"}
+    pressed={on}
+    disabled={disabled}
     onClick={onToggle}
   >
-    <SquareTerminalIcon />
+    <SquareDashedMousePointerIcon />
   </ToolbarButton>
 );
 
@@ -100,7 +121,7 @@ export const ComponentWorkspace = ({ initialSlug, feed }: ComponentWorkspaceProp
   const [prevInitialSlug, setPrevInitialSlug] = useState(initialSlug);
   const [inspect, setInspect] = useState(false);
   const [widths, setWidths] = useState<Record<string, number>>({});
-  const [mobilePanel, setMobilePanel] = useState<PanelId | null>(null);
+  const [mobileInfoOpen, setMobileInfoOpen] = useState(false);
 
   if (layout.code.open && !codeMounted) {
     setCodeMounted(true);
@@ -121,6 +142,13 @@ export const ComponentWorkspace = ({ initialSlug, feed }: ComponentWorkspaceProp
   const active = ordered[activeIndex];
   const prev = ordered[activeIndex - 1];
   const next = ordered[activeIndex + 1];
+
+  const {
+    onControlsChange,
+    props: liveProps,
+    reset: resetProps,
+    setValue: setPropValue,
+  } = useLiveProps(frameSlug(active));
 
   const select = useCallback((slug: string) => {
     setActiveSlug(slug);
@@ -157,15 +185,7 @@ export const ComponentWorkspace = ({ initialSlug, feed }: ComponentWorkspaceProp
 
   useEffect(() => {
     const onKey = (event: KeyboardEvent) => {
-      const { target } = event;
-
-      if (
-        event.metaKey ||
-        event.ctrlKey ||
-        event.altKey ||
-        (target instanceof HTMLElement &&
-          (target.tagName === "INPUT" || target.tagName === "TEXTAREA" || target.isContentEditable))
-      ) {
+      if (event.metaKey || event.ctrlKey || event.altKey || handlesOwnKeys(event.target)) {
         return;
       }
 
@@ -201,22 +221,14 @@ export const ComponentWorkspace = ({ initialSlug, feed }: ComponentWorkspaceProp
   const width = widths[active.slug] ?? PREVIEW_WIDTH[active.defaultSize ?? "full"];
   const preset = WIDTH_PRESETS.find((p) => PREVIEW_WIDTH[p.size] === width)?.size;
   const previewHref = active.type === "remote" ? active.iframeUrl : previewFrameSrc(active.slug);
-  const isOpen = (panel: PanelId) => (isDesktop ? layout[panel].open : mobilePanel === panel);
+  const infoOpen = isDesktop ? layout.info.open : mobileInfoOpen;
 
-  const toggle = (panel: PanelId) => {
+  const toggleInfo = () => {
     if (isDesktop) {
-      togglePanel(panel);
+      togglePanel("info");
     } else {
-      setMobilePanel((current) => (current === panel ? null : panel));
+      setMobileInfoOpen((open) => !open);
     }
-  };
-
-  const infoOpen = isOpen("info");
-  const propsOpen = isOpen("props");
-  const codeOpen = isOpen("code");
-
-  const toggleCode = () => {
-    toggle("code");
   };
 
   return (
@@ -257,22 +269,9 @@ export const ComponentWorkspace = ({ initialSlug, feed }: ComponentWorkspaceProp
               <ToolbarButton
                 label={infoOpen ? "Hide details" : "Show details"}
                 pressed={infoOpen}
-                onClick={() => {
-                  toggle("info");
-                }}
+                onClick={toggleInfo}
               >
                 <PanelLeftIcon />
-              </ToolbarButton>
-              <ToolbarButton
-                label={inspect ? "Stop inspecting" : "Inspect elements"}
-                pressed={inspect}
-                disabled={active.type === "remote"}
-                className="max-md:hidden"
-                onClick={() => {
-                  setInspect((on) => !on);
-                }}
-              >
-                <SquareDashedMousePointerIcon />
               </ToolbarButton>
             </div>
             <Tabs
@@ -324,11 +323,6 @@ export const ComponentWorkspace = ({ initialSlug, feed }: ComponentWorkspaceProp
               >
                 <ArrowRightIcon />
               </ToolbarButton>
-              <CodeToggle
-                open={codeOpen}
-                className={cn(layout.props.open && "md:hidden")}
-                onToggle={toggleCode}
-              />
               <ToolbarButton
                 label={OPEN_IN_NEW_TAB}
                 nativeButton={false}
@@ -345,10 +339,11 @@ export const ComponentWorkspace = ({ initialSlug, feed }: ComponentWorkspaceProp
               </ToolbarButton>
               <Divider />
               <ToolbarButton
-                label={propsOpen ? "Hide props" : "Show props"}
-                pressed={propsOpen}
+                label={layout.props.open ? "Hide props" : "Show props"}
+                pressed={layout.props.open}
+                className="max-md:hidden"
                 onClick={() => {
-                  toggle("props");
+                  togglePanel("props");
                 }}
               >
                 <PanelRightIcon />
@@ -361,7 +356,9 @@ export const ComponentWorkspace = ({ initialSlug, feed }: ComponentWorkspaceProp
               component={active}
               inspect={inspect}
               width={width}
+              values={liveProps.status === "ready" ? liveProps.values : undefined}
               onWidthChange={onWidthChange}
+              onControlsChange={onControlsChange}
             />
           </div>
 
@@ -396,7 +393,28 @@ export const ComponentWorkspace = ({ initialSlug, feed }: ComponentWorkspaceProp
         <aside aria-label="Props" className="relative hidden min-w-0 md:block">
           <div inert={!layout.props.open} className="h-full overflow-hidden">
             <div className="h-full w-(--props-size) overflow-y-auto border-l">
-              <PropsPanel action={<CodeToggle open={codeOpen} onToggle={toggleCode} />} />
+              <PropsPanel
+                live={liveProps}
+                onChange={setPropValue}
+                onReset={resetProps}
+                action={
+                  <>
+                    <InspectToggle
+                      on={inspect}
+                      disabled={active.type === "remote"}
+                      onToggle={() => {
+                        setInspect((on) => !on);
+                      }}
+                    />
+                    <CodeToggle
+                      open={layout.code.open}
+                      onToggle={() => {
+                        togglePanel("code");
+                      }}
+                    />
+                  </>
+                }
+              />
             </div>
           </div>
           <PanelHandle
@@ -409,10 +427,10 @@ export const ComponentWorkspace = ({ initialSlug, feed }: ComponentWorkspaceProp
         </aside>
       </div>
       <MobileSheet
-        panel={isDesktop ? null : mobilePanel}
+        open={!isDesktop && mobileInfoOpen}
         active={active}
         onClose={() => {
-          setMobilePanel(null);
+          setMobileInfoOpen(false);
         }}
       />
       <div
