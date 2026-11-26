@@ -6,6 +6,8 @@ import type { Kind } from "./badge";
 import { cssVars } from "../lib/css";
 import { Icon } from "./icon";
 
+const noop = () => null;
+
 const ALERT_ICON = { fail: OctagonX, info: Info, ok: CircleCheck, warn: TriangleAlert } as const;
 
 interface AlertProps {
@@ -77,6 +79,8 @@ export const useSkeletonGate = (loading: boolean) => {
         window.clearTimeout(timer);
       };
     }
+
+    return noop;
   }, [loading, shown, since]);
 
   return shown;

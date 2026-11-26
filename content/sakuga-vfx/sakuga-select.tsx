@@ -323,14 +323,9 @@ const SakugaSelect = <Value, Multiple extends boolean | undefined = false>({
   const actions = actionsRef ?? ownActions;
   const [ownOpen, setOwnOpen] = useState(defaultOpen);
   const open = openProp ?? ownOpen;
-  const { multiple } = props;
+  const start = defaultValue ?? null;
 
-  const start = useMemo(
-    () => (defaultValue ?? (multiple === true ? [] : null)) as typeof valueProp,
-    [defaultValue, multiple],
-  );
-
-  const [ownValue, setOwnValue] = useState(start);
+  const [ownValue, setOwnValue] = useState<typeof valueProp>(start);
   const owned = valueProp !== undefined;
   const field = useRef<HTMLInputElement>(null);
   const fieldRef = useMergedRef(field, inputRef);
@@ -591,7 +586,7 @@ const SakugaSelectItem = ({
 
   const rowRef = useMergedRef((node: HTMLDivElement | null) => {
     if (!node) {
-      return;
+      return noop;
     }
 
     const { rows } = rigRef.current;

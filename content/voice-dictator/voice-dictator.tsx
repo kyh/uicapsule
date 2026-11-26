@@ -48,7 +48,7 @@ export const VoiceDictator: FC = () => {
     const canvas = canvasRef.current;
 
     if (!canvas) {
-      return;
+      return null;
     }
 
     const gl = canvas.getContext("webgl", {
@@ -58,7 +58,7 @@ export const VoiceDictator: FC = () => {
     });
 
     if (!gl) {
-      return;
+      return null;
     }
 
     const vertexShaderSource = `
@@ -126,7 +126,7 @@ export const VoiceDictator: FC = () => {
 
       gl.shaderSource(shader, source);
       gl.compileShader(shader);
-      const compiled = gl.getShaderParameter(shader, gl.COMPILE_STATUS);
+      const compiled = gl.getShaderParameter(shader, gl.COMPILE_STATUS) === true;
 
       if (!compiled) {
         const info = gl.getShaderInfoLog(shader);
@@ -142,7 +142,7 @@ export const VoiceDictator: FC = () => {
 
     const program = gl.createProgram();
 
-    if (!program) {
+    if (program === null) {
       throw new Error("Unable to create WebGL program");
     }
 
@@ -150,7 +150,7 @@ export const VoiceDictator: FC = () => {
     gl.attachShader(program, fragmentShader);
     gl.linkProgram(program);
 
-    const linked = gl.getProgramParameter(program, gl.LINK_STATUS);
+    const linked = gl.getProgramParameter(program, gl.LINK_STATUS) === true;
 
     if (!linked) {
       const info = gl.getProgramInfoLog(program);
@@ -258,9 +258,11 @@ export const VoiceDictator: FC = () => {
 
   useEffect(() => {
     try {
-      return initialiseWebGL();
+      return initialiseWebGL() ?? noop;
     } catch (error) {
       console.error(error);
+
+      return noop;
     }
   }, [initialiseWebGL]);
 

@@ -72,8 +72,12 @@ export const ToastProvider = ({ children }: { children: ReactNode }) => {
   }, [leaving]);
 
   const card = useCallback((node: HTMLDivElement | null) => {
+    const unpause = () => {
+      setPaused(false);
+    };
+
     if (!node) {
-      return;
+      return unpause;
     }
 
     const hold = () => {
@@ -98,7 +102,7 @@ export const ToastProvider = ({ children }: { children: ReactNode }) => {
       node.removeEventListener("pointerleave", release);
       node.removeEventListener("focusin", hold);
       node.removeEventListener("focusout", release);
-      setPaused(false);
+      unpause();
     };
   }, []);
 

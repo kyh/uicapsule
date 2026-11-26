@@ -26,10 +26,16 @@ interface ToastEntry extends ToastInput {
   id: number;
 }
 
-const ToastContext = createContext<(toast: ToastInput) => void>(() => {});
+const ToastContext = createContext<((toast: ToastInput) => void) | null>(null);
 
 /** Shows a toast from anywhere under the ToastProvider. */
-export const useToast = () => useContext(ToastContext);
+export const useToast = () => {
+  const push = useContext(ToastContext);
+
+  return (toast: ToastInput) => {
+    push?.(toast);
+  };
+};
 
 const readingTime = (title: string) => Math.max(4000, title.split(" ").length * 300 + 2500);
 

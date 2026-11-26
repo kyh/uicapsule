@@ -245,10 +245,6 @@ const formatDateRange = (start: Date, end: Date) => {
 };
 
 export const FilterValueDateDisplay = ({ filter }: FilterValueDisplayProps<"date">) => {
-  if (!filter) {
-    return null;
-  }
-
   if (filter.values.length === 0) {
     return <Ellipsis className="size-4" />;
   }
@@ -271,10 +267,6 @@ export const FilterValueDateDisplay = ({ filter }: FilterValueDisplayProps<"date
 };
 
 export const FilterValueTextDisplay = ({ filter }: FilterValueDisplayProps<"text">) => {
-  if (!filter) {
-    return null;
-  }
-
   if (
     filter.values.length === 0 ||
     (filter.values[0] !== undefined && filter.values[0] !== "" && filter.values[0].trim() === "")
@@ -288,7 +280,7 @@ export const FilterValueTextDisplay = ({ filter }: FilterValueDisplayProps<"text
 };
 
 export const FilterValueNumberDisplay = ({ filter }: FilterValueDisplayProps<"number">) => {
-  if (!filter || !filter.values || filter.values.length === 0) {
+  if (filter.values.length === 0) {
     return null;
   }
 
@@ -311,7 +303,7 @@ export const FilterValueBooleanDisplay = ({
   filter,
   column,
 }: FilterValueDisplayProps<"boolean">) => {
-  if (!filter || filter.values.length === 0) {
+  if (filter.values.length === 0) {
     return null;
   }
 
@@ -455,7 +447,7 @@ export const FilterValueOptionController = ({
   actions,
 }: FilterValueControllerProps<"option" | "multiOption">) => {
   // oxlint-disable-next-line react/hook-use-state -- a one-time snapshot of the selection when the controller opens, so items stay in their group while toggling; there is deliberately no setter
-  const [initialSelectedValues] = useState(() => new Set(filter?.values ?? []));
+  const [initialSelectedValues] = useState(() => new Set(filter?.values));
 
   const filterValues = filter?.values;
 
@@ -593,7 +585,7 @@ export const FilterValueNumberController = ({
     [column.min, column.max],
   );
 
-  const [sliderMin, sliderMax] = [minMax ? minMax[0] : 0, minMax ? minMax[1] : 0];
+  const [sliderMin, sliderMax] = minMax;
 
   const [values, setValues] = useState(filter?.values ?? [0, 0]);
   const [previousFilterValues, setPreviousFilterValues] = useState(filter?.values);
@@ -627,7 +619,7 @@ export const FilterValueNumberController = ({
   };
 
   const changeSlider = (value: number | readonly number[]) => {
-    const nextValues = Array.isArray(value) ? [...value] : [value];
+    const nextValues = [value].flat();
     setValues(nextValues);
     setFilterValueDebounced(nextValues);
   };
@@ -648,14 +640,12 @@ export const FilterValueNumberController = ({
 
       if (type === "single") {
         newValues = [values[0] ?? 0];
-      } else if (minMax) {
+      } else {
         const value = values[0] ?? 0;
         newValues =
           value - minMax[0] < minMax[1] - value
             ? createNumberRange([value, minMax[1]])
             : createNumberRange([minMax[0], value]);
-      } else {
-        newValues = createNumberRange([values[0] ?? 0, values[1] ?? 0]);
       }
 
       const newOperator = type === "single" ? "is" : "is between";
@@ -693,17 +683,15 @@ export const FilterValueNumberController = ({
                 <TabsTrigger value="range">range</TabsTrigger>
               </TabsList>
               <TabsContent value="single" className="mt-4 flex flex-col gap-4">
-                {minMax && (
-                  <Slider
-                    value={[values[0] ?? 0]}
-                    onValueChange={changeSlider}
-                    onValueCommitted={flushFilterValueUpdate}
-                    min={sliderMin}
-                    max={sliderMax}
-                    step={1}
-                    aria-orientation="horizontal"
-                  />
-                )}
+                <Slider
+                  value={[values[0] ?? 0]}
+                  onValueChange={changeSlider}
+                  onValueCommitted={flushFilterValueUpdate}
+                  min={sliderMin}
+                  max={sliderMax}
+                  step={1}
+                  aria-orientation="horizontal"
+                />
                 <div className="flex items-center gap-2">
                   <span className="text-xs font-medium">value</span>
                   <DebouncedInput
@@ -717,17 +705,15 @@ export const FilterValueNumberController = ({
                 </div>
               </TabsContent>
               <TabsContent value="range" className="mt-4 flex flex-col gap-4">
-                {minMax && (
-                  <Slider
-                    value={values}
-                    onValueChange={changeSlider}
-                    onValueCommitted={flushFilterValueUpdate}
-                    min={sliderMin}
-                    max={sliderMax}
-                    step={1}
-                    aria-orientation="horizontal"
-                  />
-                )}
+                <Slider
+                  value={values}
+                  onValueChange={changeSlider}
+                  onValueCommitted={flushFilterValueUpdate}
+                  min={sliderMin}
+                  max={sliderMax}
+                  step={1}
+                  aria-orientation="horizontal"
+                />
                 <div className="grid grid-cols-2 gap-4">
                   <div className="flex items-center gap-2">
                     <span className="text-xs font-medium">min</span>

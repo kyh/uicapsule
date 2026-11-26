@@ -10,7 +10,7 @@ interface IconProps {
 /** Renders a Lucide glyph with flat caps, mitred joins and a 1.5px absolute stroke. */
 export const Icon = ({ icon: Glyph, size = 16, label, className }: IconProps) => (
   <Glyph
-    absoluteStrokeWidth
+    nonScalingStroke
     aria-hidden={label !== undefined && label !== "" ? undefined : true}
     aria-label={label}
     className={className}

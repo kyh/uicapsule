@@ -20,7 +20,13 @@ type PotId = (typeof POTS)[number]["id"];
 
 type Stage = "editing" | "saving" | "saved";
 
-const START = Object.fromEntries(POTS.map((pot) => [pot.id, pot.start])) as Record<PotId, number>;
+const startOf = (id: PotId) => POTS.find((pot) => pot.id === id)?.start ?? 0;
+
+const START = {
+  bills: startOf("bills"),
+  kyoto: startOf("kyoto"),
+  rainy: startOf("rainy"),
+} satisfies Record<PotId, number>;
 
 export const PaydayScreen = () => {
   const [amounts, setAmounts] = useState(START);

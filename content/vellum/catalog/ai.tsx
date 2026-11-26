@@ -187,12 +187,7 @@ export const Ai = () => {
         <div aria-hidden className="v-cluster v-center v-gap-16" inert>
           {SEND_STATES.map((state) => (
             <div className="v-stack-sm v-text-center" key={state.note}>
-              <SendButton
-                empty={state.empty}
-                onSend={() => {}}
-                onStop={() => {}}
-                status={state.status}
-              />
+              <SendButton empty={state.empty} status={state.status} />
               <span className="v-caption v-t2">{state.note}</span>
             </div>
           ))}

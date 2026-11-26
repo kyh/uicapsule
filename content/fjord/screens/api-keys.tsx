@@ -293,7 +293,7 @@ export const ApiKeys = () => {
     : "Use 3 to 32 lowercase letters, digits or dashes.";
 
   const live = keys.filter((key) => key.env === env && key.revoked !== true);
-  const revoked = keys.filter((key) => key.env === env && key.revoked);
+  const revoked = keys.filter((key) => key.env === env && key.revoked === true);
 
   const create = () => {
     setTouched(true);

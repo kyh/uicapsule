@@ -74,7 +74,7 @@ export const useDismiss = (
         return;
       }
 
-      const inside = savedRefs.current.some((ref) => ref.current?.contains(target));
+      const inside = savedRefs.current.some((ref) => ref.current?.contains(target) === true);
 
       if (!inside) {
         saved.current();

@@ -2,7 +2,8 @@ import type { ButtonHTMLAttributes, ReactNode } from "react";
 
 import { StatusArc } from "./status";
 
-interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
+interface ButtonProps extends Omit<ButtonHTMLAttributes<HTMLButtonElement>, "type"> {
+  type?: "button" | "submit";
   variant?: "primary" | "secondary" | "ghost" | "destructive";
   size?: "xs" | "sm" | "md" | "icon" | "icon-sm" | "icon-xs";
   pending?: boolean;
@@ -29,8 +30,7 @@ export const Button = ({
     data-variant={variant}
     disabled={disabled}
     onClick={pending === true ? undefined : onClick}
-    // oxlint-disable-next-line react/button-has-type -- defaults to "button"; a form passes "submit"
-    type={type}
+    type={type === "submit" ? "submit" : "button"}
     {...props}
   >
     {pending === undefined ? (

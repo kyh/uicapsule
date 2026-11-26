@@ -3,7 +3,18 @@ import type { ReactNode } from "react";
 
 import { useInView } from "../lib/hooks";
 
-export type StatusValue = "running" | "waiting" | "queued" | "ok" | "warn" | "fail" | "idle";
+/** Every status a run can show. */
+export const STATUS_VALUES = [
+  "running",
+  "waiting",
+  "queued",
+  "ok",
+  "warn",
+  "fail",
+  "idle",
+] as const;
+
+export type StatusValue = (typeof STATUS_VALUES)[number];
 
 export const STATUS_WORD = {
   fail: "Failed",

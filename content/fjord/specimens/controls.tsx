@@ -180,6 +180,7 @@ const RANGES = ["1h", "24h", "7d", "30d"] as const;
 export const Selection = () => {
   const [notify, setNotify] = useState(true);
   const [redact, setRedact] = useState(false);
+  const [shared, setShared] = useState(false);
   const [policy, setPolicy] = useState<(typeof POLICIES)[number]["value"]>("outside");
   const [paused, setPaused] = useState(false);
   const [budget, setBudget] = useState(12);
@@ -203,10 +204,10 @@ export const Selection = () => {
         />
         <Checkbox checked={redact} label="Redact secrets in traces" onCheckedChange={setRedact} />
         <Checkbox
-          checked={false}
+          checked={shared}
           disabled
           label="Share traces publicly"
-          onCheckedChange={() => {}}
+          onCheckedChange={setShared}
         />
       </Specimen>
       <Specimen

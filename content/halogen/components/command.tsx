@@ -73,7 +73,11 @@ export const CommandPalette = ({ open, onOpenChange, items, onRun }: CommandProp
     <Dialog
       meta={`${matches.length} ${matches.length === 1 ? "result" : "results"}`}
       onOpenChange={(next) => {
-        next ? onOpenChange(true) : close();
+        if (next) {
+          onOpenChange(true);
+        } else {
+          close();
+        }
       }}
       open={open}
       size="lg"

@@ -400,12 +400,19 @@ export const ExampleChat = ({ start }: { start: boolean }) => {
 
     const reasoningStepCount = samples[currentSampleIndex]?.output.reasoning.length ?? 0;
 
-    for (let i = 0; i < reasoningStepCount; i += 1) {
-      setCurrentStepIndex(i);
+    const stepFrom: (index: number) => Promise<void> = async (index) => {
+      if (index >= reasoningStepCount) {
+        return;
+      }
+
+      setCurrentStepIndex(index);
       const stepDelay = wait(800);
       promisesRef.current.push(stepDelay.cancel);
       await stepDelay.promise;
-    }
+      await stepFrom(index + 1);
+    };
+
+    await stepFrom(0);
 
     const afterAllSteps = wait(500);
     promisesRef.current.push(afterAllSteps.cancel);

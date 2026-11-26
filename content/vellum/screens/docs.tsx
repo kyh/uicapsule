@@ -82,7 +82,6 @@ const CitedAnswer = ({
             aria-label={`Source ${part.source}, ${SOURCES[part.source - 1]?.title}`}
             className="v-cite"
             data-active={active === part.source ? "" : undefined}
-            // oxlint-disable-next-line react/no-array-index-key -- the answer is a fixed literal and a source repeats
             key={`cite-${index}`}
             onBlur={() => {
               onActive(null);

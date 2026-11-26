@@ -73,12 +73,12 @@ export const Iconography = () => (
         <span className="hx-label-sm hx-ink-3">Square ends</span>
         <span className="hx-row hx-gap-6">
           <span className="hx-stack hx-gap-1 hx-center">
-            <Workflow absoluteStrokeWidth aria-hidden size={48} strokeWidth={3} />
+            <Workflow nonScalingStroke aria-hidden size={48} strokeWidth={3} />
             <span className="hx-micro hx-fail-text">Stock, round</span>
           </span>
           <span className="hx-stack hx-gap-1 hx-center">
             <Workflow
-              absoluteStrokeWidth
+              nonScalingStroke
               aria-hidden
               size={48}
               strokeLinecap="square"

@@ -46,7 +46,7 @@ export const ActionReceipt = ({
   const now = useNow(1000, undoUntil !== undefined && !undone);
   const left = undoUntil === undefined ? 0 : Math.ceil((undoUntil - now) / 1000);
   const canUndo = onUndo !== undefined && (left > 0 || undoing) && !undone;
-  const partial = steps.some((step) => step.failed);
+  const partial = steps.some((step) => step.failed === true);
 
   return (
     <Shell>

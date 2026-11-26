@@ -2,15 +2,19 @@ import type { ReactNode } from "react";
 
 import { cx } from "../lib/cx";
 
-export type RunStatus =
-  | "ok"
-  | "warn"
-  | "fail"
-  | "running"
-  | "queued"
-  | "waiting"
-  | "idle"
-  | "skipped";
+/** Every run status. */
+export const RUN_STATUSES = [
+  "fail",
+  "idle",
+  "ok",
+  "queued",
+  "running",
+  "skipped",
+  "waiting",
+  "warn",
+] as const;
+
+export type RunStatus = (typeof RUN_STATUSES)[number];
 
 export const STATUS_WORD = {
   fail: "Failed",

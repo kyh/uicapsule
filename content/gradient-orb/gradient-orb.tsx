@@ -239,11 +239,16 @@ const GradientScene = ({
     u.iTime.value = t;
     u.hue.value = hue;
     u.rot.value = rotRef.current;
-    u.iResolution.value.set(
-      size.width * viewport.dpr,
-      size.height * viewport.dpr,
-      size.width / size.height,
-    );
+
+    const resolution: unknown = u.iResolution.value;
+
+    if (resolution instanceof THREE.Vector3) {
+      resolution.set(
+        size.width * viewport.dpr,
+        size.height * viewport.dpr,
+        size.width / size.height,
+      );
+    }
   });
 
   return (

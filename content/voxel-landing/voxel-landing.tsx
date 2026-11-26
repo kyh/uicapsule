@@ -112,11 +112,11 @@ const buildSign = (out: Voxel[], word: string, cz: number, section: number) => {
     );
   }
 
-  for (const [li, ch] of [...word].entries()) {
+  for (const [li, ch] of Array.from(word, (char, index) => [index, char] as const)) {
     const glyph = FONT.get(ch) ?? [];
 
     for (const [gy, row] of glyph.entries()) {
-      for (const [gx, cell] of [...row].entries()) {
+      for (const [gx, cell] of Array.from(row, (char, index) => [index, char] as const)) {
         if (cell !== "#") {
           continue;
         }
@@ -133,11 +133,11 @@ const buildSign = (out: Voxel[], word: string, cz: number, section: number) => {
 const buildFlatWord = (out: Voxel[], word: string, cx: number, cz: number, accent: string) => {
   const cols = word.length * 6 - 1;
 
-  for (const [li, ch] of [...word].entries()) {
+  for (const [li, ch] of Array.from(word, (char, index) => [index, char] as const)) {
     const glyph = FONT.get(ch) ?? [];
 
     for (const [gz, row] of glyph.entries()) {
-      for (const [gx, cell] of [...row].entries()) {
+      for (const [gx, cell] of Array.from(row, (char, index) => [index, char] as const)) {
         if (cell !== "#") {
           continue;
         }

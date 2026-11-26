@@ -926,7 +926,7 @@ const compileShader = (gl: WebGL2RenderingContext, type: number, source: string)
   gl.shaderSource(shader, source);
   gl.compileShader(shader);
 
-  if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) {
+  if (gl.getShaderParameter(shader, gl.COMPILE_STATUS) !== true) {
     console.error("liquid-orb shader compile failed:", gl.getShaderInfoLog(shader));
     gl.deleteShader(shader);
 
@@ -1015,13 +1015,13 @@ export const LiquidOrb = ({
       const program = gl.createProgram();
       let entry: ProgramEntry | null = null;
 
-      if (fs && program) {
+      if (fs !== null && program !== null) {
         gl.attachShader(program, vs);
         gl.attachShader(program, fs);
         gl.linkProgram(program);
         gl.deleteShader(fs);
 
-        if (gl.getProgramParameter(program, gl.LINK_STATUS)) {
+        if (gl.getProgramParameter(program, gl.LINK_STATUS) === true) {
           const loc = (name: string) => gl.getUniformLocation(program, name);
           // eslint-disable-next-line react/hooks -- WebGL method, not a React hook.
           gl.useProgram(program);

@@ -22,7 +22,8 @@ export type ButtonVariant = keyof typeof VARIANT_CLASS;
 
 export type ButtonSize = "sm" | "md" | "lg" | "icon-sm" | "icon" | "icon-lg";
 
-export interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
+export interface ButtonProps extends Omit<ButtonHTMLAttributes<HTMLButtonElement>, "type"> {
+  type?: "button" | "submit";
   /** Glass for the one lead (ink, coral or green); flat secondary; plain ghost. */
   variant?: ButtonVariant;
   size?: ButtonSize;
@@ -54,8 +55,7 @@ export const Button = ({
     data-size={size === "md" ? undefined : size}
     data-tone={TONE[variant]}
     onClick={pending ? undefined : onClick}
-    // oxlint-disable-next-line react/button-has-type -- defaults to "button"; a form passes "submit"
-    type={type}
+    type={type === "submit" ? "submit" : "button"}
     {...props}
   >
     {pending ? <Arc small={size === "sm" || size === "icon-sm"} /> : null}

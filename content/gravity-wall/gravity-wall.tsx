@@ -533,30 +533,22 @@ export const GravityWall: FC<GravityWallProps> = ({ photos }) => {
       p.hovering = false;
     };
 
+    const onScroll = () => {
+      refreshOrigin();
+    };
+
     section.addEventListener("pointermove", onMove);
     section.addEventListener("touchmove", onTouch, { passive: true });
     section.addEventListener("pointerenter", onEnter);
     section.addEventListener("pointerleave", onLeave);
-    window.addEventListener(
-      "scroll",
-      () => {
-        refreshOrigin();
-      },
-      { capture: true, passive: true },
-    );
+    window.addEventListener("scroll", onScroll, { capture: true, passive: true });
 
     return () => {
       section.removeEventListener("pointermove", onMove);
       section.removeEventListener("touchmove", onTouch);
       section.removeEventListener("pointerenter", onEnter);
       section.removeEventListener("pointerleave", onLeave);
-      window.removeEventListener(
-        "scroll",
-        () => {
-          refreshOrigin();
-        },
-        { capture: true },
-      );
+      window.removeEventListener("scroll", onScroll, { capture: true });
     };
   }, [refreshOrigin]);
 

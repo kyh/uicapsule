@@ -83,7 +83,7 @@ const SakugaToast = ({
   className,
   ref,
   ...props
-}: Styled<ToastPrimitive.Root.Props> & {
+}: Styled<Omit<ToastPrimitive.Root.Props, "toast">> & {
   toast: ToastObject;
   motionRef: RefObject<Motion>;
 }) => {

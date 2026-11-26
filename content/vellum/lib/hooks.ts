@@ -50,6 +50,7 @@ export const useCopy = (resetAfter = 1600) => {
         area.style.opacity = "0";
         document.body.append(area);
         area.select();
+        // oxlint-disable-next-line typescript/no-deprecated -- the only copy path left when the clipboard API is blocked in a sandboxed frame
         document.execCommand("copy");
         area.remove();
       }

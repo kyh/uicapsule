@@ -83,9 +83,9 @@ export const useScramble = (text: string, replay = 0, duration = 420) => {
       const progress = Math.min(1, (now - start) / duration);
       const settled = Math.floor(progress * target.length);
       setShown(
-        [...target]
-          .map((char, index) => (index < settled || KEEP.has(char) ? char : randomGlyph()))
-          .join(""),
+        Array.from(target, (char, index) =>
+          index < settled || KEEP.has(char) ? char : randomGlyph(),
+        ).join(""),
       );
 
       if (progress < 1) {

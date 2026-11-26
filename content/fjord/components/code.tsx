@@ -68,13 +68,15 @@ const isText = (value: JsonValue): value is string => typeof value === "string";
 
 const isNumber = (value: JsonValue): value is number => typeof value === "number";
 
+const isList = (value: JsonValue): value is readonly JsonValue[] => Array.isArray(value);
+
 const entriesOf = (value: JsonValue) => {
-  if (Array.isArray(value)) {
+  if (isList(value)) {
     return value.map<[string, JsonValue]>((item, index) => [String(index), item]);
   }
 
   if (isObject(value)) {
-    return Object.entries(value);
+    return Object.entries<JsonValue>(value);
   }
 
   return [];
@@ -89,7 +91,7 @@ const Scalar = ({ value }: { value: JsonValue }) => {
     return <span data-token="num">{value}</span>;
   }
 
-  return <span data-token="kw">{String(value)}</span>;
+  return <span data-token="kw">{JSON.stringify(value)}</span>;
 };
 
 const JsonNode = ({ name, value, depth }: { name?: string; value: JsonValue; depth: number }) => {

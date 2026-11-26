@@ -1,8 +1,7 @@
 import { Avatar, AvatarGroup } from "../components/avatar";
 import { Badge, CodeTag, KINDS, Kbd } from "../components/badge";
 import { DataList, RelativeTime, StatStrip } from "../components/data";
-import { InkSlot, STATUS_RANK, Status } from "../components/status";
-import type { StatusValue } from "../components/status";
+import { InkSlot, STATUS_RANK, STATUS_VALUES, Status } from "../components/status";
 import { Category, Specimen } from "./specimen";
 
 export const DISPLAY_NAMES = [
@@ -17,9 +16,7 @@ export const DISPLAY_NAMES = [
   "Relative time",
 ] as const;
 
-const ALL_STATUSES = (Object.keys(STATUS_RANK) as StatusValue[]).toSorted(
-  (a, b) => STATUS_RANK[b] - STATUS_RANK[a],
-);
+const ALL_STATUSES = STATUS_VALUES.toSorted((a, b) => STATUS_RANK[b] - STATUS_RANK[a]);
 
 export const Display = () => (
   <Category

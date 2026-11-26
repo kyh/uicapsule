@@ -132,6 +132,7 @@ const SakugaRadioGroup = <Value,>({
       <RadioGroupPrimitive
         data-slot="sakuga-radio-group"
         className={cn(GROUP, className)}
+        // oxlint-disable-next-line typescript/no-unsafe-type-assertion, anti-slop/require-safety-comment-for-type-assertion -- Base UI types value as Value | undefined, yet a controlled group takes null for nothing checked, and undefined would make it uncontrolled
         value={value ?? (own as Value)}
         onValueChange={change}
         {...props}

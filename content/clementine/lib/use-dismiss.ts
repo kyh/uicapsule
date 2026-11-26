@@ -17,7 +17,11 @@ export const useDismiss = (
     }
 
     const onPointer = (event: PointerEvent) => {
-      const target = event.target as Node;
+      const { target } = event;
+
+      if (!(target instanceof Node)) {
+        return;
+      }
 
       if (refs.every((ref) => ref.current?.contains(target) !== true)) {
         onClose("outside");

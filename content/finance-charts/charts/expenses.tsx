@@ -53,9 +53,10 @@ export const Expenses = () => {
     const slices = pie(rows, { gapAngle: 0.025, value: "value" });
     const rest = slices.find((s) => s.id === "rest");
 
-    const open = HATCH.filter(
-      (a) => rest && a > rest.startAngle + 0.03 && a < rest.endAngle - 0.03,
-    );
+    const open =
+      rest === undefined
+        ? []
+        : HATCH.filter((a) => a > rest.startAngle + 0.03 && a < rest.endAngle - 0.03);
 
     return defineChart({
       color: {

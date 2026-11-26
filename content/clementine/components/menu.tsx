@@ -33,7 +33,12 @@ interface MenuProps {
 
 const moveFocus = (list: HTMLElement | null, step: number) => {
   const buttons = [...(list?.querySelectorAll<HTMLButtonElement>("[role=menuitem]") ?? [])];
-  const current = buttons.indexOf(document.activeElement as HTMLButtonElement);
+
+  const current =
+    document.activeElement instanceof HTMLButtonElement
+      ? buttons.indexOf(document.activeElement)
+      : -1;
+
   let next = (current + step + buttons.length) % buttons.length;
 
   if (current === -1) {

@@ -141,7 +141,7 @@ const useScrollSpy = (ids: readonly string[]) => {
           seen.set(entry.target.id, entry.isIntersecting);
         }
 
-        const first = ids.find((id) => seen.get(id));
+        const first = ids.find((id) => seen.get(id) === true);
 
         if (first !== undefined && first !== "") {
           setCurrent(first);

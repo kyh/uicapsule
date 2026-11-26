@@ -20,7 +20,7 @@ const TABS = [
   { name: "Product", total: 61_302.95, values: [74, 96, 62, 70, 48, 57, 39] },
 ] as const;
 
-const DAY_INDEX = new Map(WEEKDAYS.map((d, i) => [d, i]));
+const DAY_INDEX = new Map<string, number>(WEEKDAYS.map((d, i) => [d, i]));
 const PAD = 0.2;
 const TOP = 108;
 const HEIGHT = 250;

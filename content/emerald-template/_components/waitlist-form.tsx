@@ -1,14 +1,14 @@
 "use client";
 
 import { useState } from "react";
-import type { FormEvent } from "react";
+import type { SubmitEvent } from "react";
 import { Button } from "./ui";
 
 export const WaitlistForm = () => {
   const [email, setEmail] = useState("");
   const [submitted, setSubmitted] = useState(false);
 
-  const handleJoinWaitlist = (event: FormEvent<HTMLFormElement>) => {
+  const handleJoinWaitlist = (event: SubmitEvent<HTMLFormElement>) => {
     event.preventDefault();
 
     if (!email) {

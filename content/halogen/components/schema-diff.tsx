@@ -18,7 +18,7 @@ export interface DriftRow<T extends string> {
   kind: DriftKind;
   before?: DriftColumn;
   after?: DriftColumn;
-  options: SelectOption<T>[];
+  options: [SelectOption<T>, ...SelectOption<T>[]];
 }
 
 const TONE = {
@@ -98,7 +98,7 @@ export const SchemaDiff = <T extends string>({
                   }}
                   options={row.options}
                   size="sm"
-                  value={choices[row.id] ?? row.options[0]?.value ?? ("" as T)}
+                  value={choices[row.id] ?? row.options[0].value}
                 />
               )}
             </td>

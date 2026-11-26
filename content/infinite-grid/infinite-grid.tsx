@@ -300,7 +300,7 @@ const createEngine = (initialOffset: Position, initialGridSize: number, view: Vi
   const handleTouchMove = (e: TouchEvent) => {
     const touch = e.touches.item(0);
 
-    if (!touch) {
+    if (touch === null) {
       return;
     }
 
@@ -365,13 +365,16 @@ export const InfiniteGrid = ({
 
   const engineRef = useRef<Engine | null>(null);
 
-  engineRef.current ??= createEngine(initialPosition ?? ORIGIN, gridSize, {
-    setContainerSize,
-    setGridItems,
-    setIsDragging,
-    setIsMoving,
-    setOffset,
-  });
+  // oxlint-disable-next-line typescript/prefer-nullish-coalescing -- React allows a ref read during render only as lazy initialisation spelled `=== null`; `??=` fails react/refs
+  if (engineRef.current === null) {
+    engineRef.current = createEngine(initialPosition ?? ORIGIN, gridSize, {
+      setContainerSize,
+      setGridItems,
+      setIsDragging,
+      setIsMoving,
+      setOffset,
+    });
+  }
 
   useEffect(() => {
     engineRef.current?.setGridSize(gridSize);
@@ -391,7 +394,7 @@ export const InfiniteGrid = ({
   const handleTouchStart = (e: ReactTouchEvent) => {
     const touch = e.touches.item(0);
 
-    if (!touch) {
+    if (touch === null) {
       return;
     }
 

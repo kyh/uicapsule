@@ -16,19 +16,25 @@ import { Category, Specimen } from "./specimen";
 
 export const FEEDBACK_NAMES = ["Toast", "Alert", "Progress", "Empty state", "Skeleton"] as const;
 
-const TOASTS: ToastInput[] = [
-  { description: "Next run in 6 minutes.", title: "Schedule saved" },
-  {
-    action: { label: "Undo", onSelect: () => {} },
-    description: "It stays in the trash for 30 days.",
-    title: "Agent archived",
-  },
-  {
-    description: "The webhook answered 503 three times.",
-    status: "fail",
-    title: "Delivery to #oncall failed",
-  },
-];
+const toastsOf = (toast: (input: ToastInput) => void) =>
+  [
+    { description: "Next run in 6 minutes.", title: "Schedule saved" },
+    {
+      action: {
+        label: "Undo",
+        onSelect: () => {
+          toast({ description: "It is back on the agents list.", title: "Agent restored" });
+        },
+      },
+      description: "It stays in the trash for 30 days.",
+      title: "Agent archived",
+    },
+    {
+      description: "The webhook answered 503 three times.",
+      status: "fail",
+      title: "Delivery to #oncall failed",
+    },
+  ] satisfies ToastInput[];
 
 const LOADS = [80, 900] as const;
 
@@ -81,7 +87,7 @@ export const Feedback = () => {
         name="Toast"
       >
         <div className="fj-vstack">
-          {TOASTS.map((entry) => (
+          {toastsOf(toast).map((entry) => (
             <div className="fj-hstack" key={entry.title}>
               <Button onClick={() => toast(entry)} size="sm">
                 {entry.title}

@@ -123,7 +123,6 @@ const CommandPalette = () => {
                 aria-controls="fj-cmd-list"
                 aria-expanded
                 aria-label="Search commands"
-                // oxlint-disable-next-line jsx-a11y/no-autofocus -- a command palette exists to be typed into the moment it opens
                 autoFocus
                 onChange={(event) => {
                   setQuery(event.target.value);

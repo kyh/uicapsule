@@ -866,12 +866,11 @@ const SakugaChip = ({ className, children, ref, ...props }: ComponentProps<"span
 
   const enrol = useCallback(
     (node: HTMLSpanElement | null) => {
-      if (!node) {
-        return;
-      }
-
       const els = chipElsRef.current;
-      els.set(key, node);
+
+      if (node !== null) {
+        els.set(key, node);
+      }
 
       return () => {
         els.delete(key);

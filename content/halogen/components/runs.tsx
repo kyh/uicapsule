@@ -1,6 +1,6 @@
 import { ArrowUp, Paperclip } from "lucide-react";
 import { useId, useRef, useState } from "react";
-import type { FormEvent, ReactNode } from "react";
+import type { ReactNode, SyntheticEvent } from "react";
 
 import { duration as formatDuration } from "../lib/format";
 import { Button } from "./button";
@@ -93,7 +93,7 @@ export const PromptInput = ({
   const picker = useRef<HTMLInputElement>(null);
   const id = useId();
 
-  const submit = (event: FormEvent) => {
+  const submit = (event: SyntheticEvent) => {
     event.preventDefault();
 
     if (!text.trim()) {

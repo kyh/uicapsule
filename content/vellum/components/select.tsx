@@ -52,7 +52,10 @@ export const Select = <T extends string>({
       ...(list.current?.querySelectorAll<HTMLButtonElement>("[role=menuitemradio]") ?? []),
     ];
 
-    const at = entries.indexOf(document.activeElement as HTMLButtonElement);
+    const at =
+      document.activeElement instanceof HTMLButtonElement
+        ? entries.indexOf(document.activeElement)
+        : -1;
 
     if (event.key === "ArrowDown") {
       event.preventDefault();

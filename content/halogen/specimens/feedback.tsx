@@ -7,12 +7,11 @@ import { Icon } from "../components/icon";
 import { Meter, Progress } from "../components/meter";
 import { Group, Sheet, SpecCell } from "../components/page";
 import { groupHead } from "./catalog";
-import { STATUS_WORD, Status } from "../components/status";
-import type { RunStatus } from "../components/status";
+import { RUN_STATUSES, Status } from "../components/status";
 import { useToast } from "../components/toast";
 import { useInterval } from "../lib/motion";
 
-const ALL = Object.keys(STATUS_WORD) as RunStatus[];
+const ALL = RUN_STATUSES;
 
 export const Feedback = () => {
   const push = useToast();

@@ -642,7 +642,7 @@ export const TerminalDisintegrate = () => {
 
     let fontTimer = 0;
 
-    if (document.fonts?.ready) {
+    if ("fonts" in document) {
       // oxlint-disable-next-line promise/avoid-new -- a cancellable timeout in the browser; there is no promise-returning timer to await here
       const timeout = new Promise<void>((resolve) => {
         fontTimer = window.setTimeout(resolve, 800);

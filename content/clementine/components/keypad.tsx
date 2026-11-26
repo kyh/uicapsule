@@ -20,8 +20,10 @@ const KEYS = [
   "del",
 ] as const satisfies readonly Key[];
 
+const DIGITS = ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9"] as const satisfies readonly Key[];
+
 const KEY_OF_EVENT = new Map<string, Key>([
-  ...KEYS.filter((key) => /^[0-9]$/u.test(key)).map((key) => [key, key] as const),
+  ...DIGITS.map((digit) => [digit, digit] as const),
   [",", "."],
   [".", "."],
   ["Backspace", "del"],
