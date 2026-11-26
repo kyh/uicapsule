@@ -382,15 +382,22 @@ export interface ControlGroup {
  * Entries split into runs of the same `group`, in declaration order. `previewControlsSchema`
  * keeps each group contiguous, so every name heads exactly one run.
  */
-export const groupEntries = (entries: readonly ControlEntry[]) =>
-  entries.reduce<ControlGroup[]>((groups, entry) => {
+export const groupEntries = (entries: readonly ControlEntry[]) => {
+  const groups: { entries: ControlEntry[]; name: string | null }[] = [];
+
+  for (const entry of entries) {
     const name = entry.control.group ?? null;
     const last = groups.at(-1);
 
-    return last?.name === name
-      ? [...groups.slice(0, -1), { entries: [...last.entries, entry], name }]
-      : [...groups, { entries: [entry], name }];
-  }, []);
+    if (last?.name === name) {
+      last.entries.push(entry);
+    } else {
+      groups.push({ entries: [entry], name });
+    }
+  }
+
+  return groups satisfies readonly ControlGroup[];
+};
 
 const holdsDefault = (entry: ControlEntry) =>
   entry.type === "color"

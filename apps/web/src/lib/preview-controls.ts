@@ -89,9 +89,9 @@ const groupsAllOrNone = (controls: readonly { readonly group?: string }[]) => {
 };
 
 const groupsContiguous = (controls: readonly { readonly group?: string }[]) => {
-  const runs = controls
-    .map((control) => control.group)
-    .filter((name, index, names) => index === 0 || name !== names[index - 1]);
+  const runs = controls.flatMap((control, index) =>
+    index > 0 && control.group === controls[index - 1]?.group ? [] : [control.group],
+  );
 
   return new Set(runs).size === runs.length;
 };
