@@ -14,14 +14,6 @@ import { PersonAvatar } from "./person-avatar";
 const LINK_CLASS =
   "text-muted-foreground hover:text-foreground underline decoration-dotted underline-offset-4 transition-colors";
 
-const formatAddedAt = (isoDate: string) =>
-  new Date(`${isoDate}T00:00:00Z`).toLocaleDateString("en-US", {
-    day: "numeric",
-    month: "short",
-    timeZone: "UTC",
-    year: "numeric",
-  });
-
 const SECTION_CLASS = "flex flex-col gap-2 border-b px-4 py-4";
 
 const Section = ({ title, children }: { title: string; children: ReactNode }) => (
@@ -111,9 +103,6 @@ export const InfoPanel = ({ component }: { component: ContentComponentSummary })
         </div>
       </Section>
     )}
-    <p className="text-muted-foreground px-4 py-3 text-xs select-text">
-      Added <time dateTime={component.addedAt}>{formatAddedAt(component.addedAt)}</time>
-    </p>
   </div>
 );
 
