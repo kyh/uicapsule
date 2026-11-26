@@ -5,7 +5,11 @@ import type { BaseURLConfig } from "better-auth";
 // WARNING: keep the relations-v2 entry; the default adapter reads db._.fullSchema, which drizzle 1.0 removed.
 import { drizzleAdapter } from "@better-auth/drizzle-adapter/relations-v2";
 
-import { sendPasswordResetEmail } from "./password-reset-email";
+import {
+  PASSWORD_RESET_OFF_WARNING,
+  passwordResetModeOf,
+  passwordResetSenderOf,
+} from "./password-reset-email";
 
 const vercelBaseUrl = (...hosts: (string | undefined)[]) => {
   const allowedHosts = hosts.filter((host): host is string => Boolean(host));
@@ -29,6 +33,15 @@ export const resolveBaseUrl = () => {
   return process.env.BETTER_AUTH_URL || "http://localhost:3000";
 };
 
+const passwordResetMode = passwordResetModeOf(
+  { AUTH_EMAIL_FROM: process.env.AUTH_EMAIL_FROM, RESEND_API_KEY: process.env.RESEND_API_KEY },
+  process.env.NODE_ENV === "production",
+);
+
+if (passwordResetMode === "off") {
+  console.warn(`[password-reset] ${PASSWORD_RESET_OFF_WARNING}`);
+}
+
 export const auth = betterAuth({
   baseURL: resolveBaseUrl(),
   database: drizzleAdapter(db, {
@@ -37,10 +50,7 @@ export const auth = betterAuth({
   emailAndPassword: {
     enabled: true,
     revokeSessionsOnPasswordReset: true,
-    sendResetPassword:
-      process.env.RESEND_API_KEY && process.env.AUTH_EMAIL_FROM
-        ? ({ user, url }) => sendPasswordResetEmail(user.email, url)
-        : undefined,
+    sendResetPassword: passwordResetSenderOf(passwordResetMode),
   },
   rateLimit: {
     enabled: true,

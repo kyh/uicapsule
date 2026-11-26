@@ -2,7 +2,41 @@ import assert from "node:assert/strict";
 import { test } from "node:test";
 import { APIError } from "better-auth/api";
 
-import { sendPasswordResetEmail } from "./password-reset-email";
+import {
+  PASSWORD_RESET_OFF_WARNING,
+  passwordResetModeOf,
+  passwordResetSenderOf,
+  sendPasswordResetEmail,
+} from "./password-reset-email";
+
+const SENDER = "UICapsule <reset@example.com>";
+
+test("password reset sends once Resend and a sender are set, and otherwise logs outside production only", () => {
+  for (const production of [false, true]) {
+    assert.equal(
+      passwordResetModeOf({ AUTH_EMAIL_FROM: SENDER, RESEND_API_KEY: "test-key" }, production),
+      "resend",
+    );
+  }
+
+  for (const settings of [{}, { RESEND_API_KEY: "test-key" }, { AUTH_EMAIL_FROM: SENDER }]) {
+    assert.equal(passwordResetModeOf(settings, false), "log");
+    assert.equal(passwordResetModeOf(settings, true), "off");
+  }
+
+  assert.equal(passwordResetSenderOf("off"), undefined);
+  assert.match(PASSWORD_RESET_OFF_WARNING, /AUTH_EMAIL_FROM/u);
+});
+
+test("the development sender logs the reset link instead of calling Resend", async (t) => {
+  const info = t.mock.method(console, "info");
+  const resetUrl = "http://localhost:3000/api/auth/reset-password/dev-token";
+
+  await passwordResetSenderOf("log")?.({ url: resetUrl, user: { email: "dev@example.com" } });
+  const logged = JSON.stringify(info.mock.calls);
+  assert.ok(logged.includes("dev@example.com"));
+  assert.ok(logged.includes(resetUrl));
+});
 
 test("password reset delivery reports provider and network failures", async (t) => {
   const previousKey = process.env.RESEND_API_KEY;
