@@ -1,10 +1,11 @@
 import { ChevronDown, ChevronRight } from "lucide-react";
 import { useState } from "react";
-import type { CSSProperties, ReactNode } from "react";
+import type { ReactNode } from "react";
 
 import { CopyButton } from "./copy-button";
 import { Frame, FrameHead } from "./frame";
 import { Icon } from "./icon";
+import { cssVars } from "../lib/css-vars";
 
 const TOKEN =
   /(?<com>--.*$)|(?<str>'[^']*')|(?<kw>\b(?:SELECT|FROM|WHERE|JOIN|ON|GROUP|BY|ORDER|MERGE|INTO|USING|WHEN|MATCHED|THEN|UPDATE|SET|INSERT|VALUES|AND|AS|NOT|COUNT|HAVING|DISTINCT|PARTITION|INTERVAL)\b)|(?<num>\b\d[\d_.]*\b)/gu;
@@ -79,7 +80,7 @@ export const CodeWindow = ({
       />
       <pre
         className="hx-code-body"
-        style={{ "--gutter": `${String(lines.length).length + 3}ch` } as CSSProperties}
+        style={cssVars({ "--gutter": `${String(lines.length).length + 3}ch` })}
       >
         <code>
           {lines.map((line, index) => (
@@ -164,7 +165,9 @@ const JsonNode = ({ name, node, depth }: { name: string; node: Json; depth: numb
       <button
         aria-expanded={open}
         className="hx-json-toggle"
-        onClick={() => setOpen(!open)}
+        onClick={() => {
+          setOpen(!open);
+        }}
         type="button"
       >
         <Icon icon={open ? ChevronDown : ChevronRight} size={14} />

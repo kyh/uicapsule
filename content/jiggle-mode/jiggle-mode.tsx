@@ -247,7 +247,7 @@ export const JiggleMode = () => {
 
   useEffect(
     () => () => {
-      if (pressTimerRef.current) {
+      if (pressTimerRef.current !== null && pressTimerRef.current !== 0) {
         clearTimeout(pressTimerRef.current);
       }
     },
@@ -255,15 +255,17 @@ export const JiggleMode = () => {
   );
 
   const startPress = useCallback(() => {
-    if (pressTimerRef.current) {
+    if (pressTimerRef.current !== null && pressTimerRef.current !== 0) {
       clearTimeout(pressTimerRef.current);
     }
 
-    pressTimerRef.current = setTimeout(() => setEditing(true), LONG_PRESS_MS);
+    pressTimerRef.current = setTimeout(() => {
+      setEditing(true);
+    }, LONG_PRESS_MS);
   }, []);
 
   const cancelPress = useCallback(() => {
-    if (pressTimerRef.current) {
+    if (pressTimerRef.current !== null && pressTimerRef.current !== 0) {
       clearTimeout(pressTimerRef.current);
       pressTimerRef.current = null;
     }
@@ -333,7 +335,7 @@ export const JiggleMode = () => {
         onPointerUp={() => {
           cancelPress();
 
-          if (wallpaperPressWhileEditingRef.current && !draggingId) {
+          if (wallpaperPressWhileEditingRef.current && (draggingId === null || draggingId === "")) {
             setEditing(false);
           }
 
@@ -391,9 +393,15 @@ export const JiggleMode = () => {
                   dragElastic={0.1}
                   onPointerDown={editing ? undefined : startPress}
                   onPointerUp={cancelPress}
-                  onDragStart={() => setDraggingId(app.id)}
-                  onDrag={(_, info) => reorderTo(app.id, info.point.x, info.point.y)}
-                  onDragEnd={() => setDraggingId(null)}
+                  onDragStart={() => {
+                    setDraggingId(app.id);
+                  }}
+                  onDrag={(_, info) => {
+                    reorderTo(app.id, info.point.x, info.point.y);
+                  }}
+                  onDragEnd={() => {
+                    setDraggingId(null);
+                  }}
                   animate={
                     editing
                       ? {
@@ -436,7 +444,9 @@ export const JiggleMode = () => {
                           event.stopPropagation();
                           removeApp(app.id);
                         }}
-                        onPointerDown={(event) => event.stopPropagation()}
+                        onPointerDown={(event) => {
+                          event.stopPropagation();
+                        }}
                         className="absolute -top-1.5 -left-1.5 grid size-5 place-items-center rounded-full bg-neutral-200/95 text-neutral-700 shadow-md"
                       >
                         <Minus className="size-3.5" strokeWidth={3} />

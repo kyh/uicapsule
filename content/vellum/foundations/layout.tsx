@@ -136,7 +136,6 @@ export const RadiusFoundation = () => (
         <div className="v-radius-demo">
           <div aria-hidden className="v-strip v-radius-strip">
             {["ok", "ok", "fail", "ok", "ok", "ok", "ok", "ok"].map((status, index) => (
-              // oxlint-disable-next-line react/no-array-index-key -- a fixed sample where marks repeat
               <span data-status={status} key={index} />
             ))}
           </div>

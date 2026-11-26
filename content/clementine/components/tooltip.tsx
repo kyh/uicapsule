@@ -3,6 +3,8 @@ import type { KeyboardEvent, ReactElement, ReactNode } from "react";
 
 import "./tooltip.css";
 
+const noop = () => null;
+
 export interface TooltipTriggerProps {
   "aria-describedby": string;
   onBlur: () => void;
@@ -25,12 +27,16 @@ export const Tooltip = ({
 
   useEffect(() => {
     if (delay === null) {
-      return;
+      return noop;
     }
 
-    const timer = window.setTimeout(() => setOpen(true), delay);
+    const timer = window.setTimeout(() => {
+      setOpen(true);
+    }, delay);
 
-    return () => window.clearTimeout(timer);
+    return () => {
+      window.clearTimeout(timer);
+    };
   }, [delay]);
 
   const hide = () => {
@@ -43,13 +49,17 @@ export const Tooltip = ({
       {children({
         "aria-describedby": id,
         onBlur: hide,
-        onFocus: () => setDelay(0),
+        onFocus: () => {
+          setDelay(0);
+        },
         onKeyDown: (event) => {
           if (event.key === "Escape") {
             hide();
           }
         },
-        onPointerEnter: () => setDelay(400),
+        onPointerEnter: () => {
+          setDelay(400);
+        },
         onPointerLeave: hide,
       })}
       <span className="cl-tooltip" data-open={open || undefined} id={id} role="tooltip">

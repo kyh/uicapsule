@@ -9,6 +9,8 @@ import { Spring, at, clamp, clock, later, lines, puff, ticks } from "./sakuga-co
 import { FONT_BODY, SakugaStyle, useFrame, useMergedRef } from "./sakuga-react";
 import type { Styled } from "./sakuga-react";
 
+const noop = () => null;
+
 interface Rig {
   sx: Spring;
   sw: Spring;
@@ -64,9 +66,9 @@ const land = (tab: HTMLElement, dir: number) => {
   const c = at(tab);
   ticks(c.x, c.y - c.h / 2 - 12, { dir: -Math.PI / 2, fan: 0.5, len: 15, life: 0.5, n: 3, r: 4 });
   puff(c.x - dir * (c.w / 2 + 12), c.y - 6, { life: 0.7, n: 4, size: 9, vx: -dir * 20, vy: -12 });
-  later(90, () =>
-    puff(c.x - dir * (c.w / 2 + 20), c.y + 14, { life: 0.55, n: 3, size: 6, vx: -dir * 14 }),
-  );
+  later(90, () => {
+    puff(c.x - dir * (c.w / 2 + 20), c.y + 14, { life: 0.55, n: 3, size: 6, vx: -dir * 14 });
+  });
   lines(c.x - (dir * c.w) / 2, c.y, { dir: dir > 0 ? Math.PI : 0, len: 34, n: 4, spread: 10 });
 };
 
@@ -147,7 +149,7 @@ const SakugaTabsList = ({
     const ind = raised.current;
 
     if (!list || !ind) {
-      return;
+      return noop;
     }
 
     const r = rig.current;

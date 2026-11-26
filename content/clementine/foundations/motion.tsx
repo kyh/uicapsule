@@ -19,7 +19,9 @@ const subscribe = (onChange: () => void) => {
 
   query.addEventListener("change", onChange);
 
-  return () => query.removeEventListener("change", onChange);
+  return () => {
+    query.removeEventListener("change", onChange);
+  };
 };
 
 const useReducedMotion = () =>
@@ -114,7 +116,12 @@ const JobDemos = () => {
           Grows in from 0.96 on ease-out; leaves on ease-in, a step quicker.
         </p>
         <div className="cl-job__row">
-          <Button onClick={() => setCard(!card)} variant="secondary">
+          <Button
+            onClick={() => {
+              setCard(!card);
+            }}
+            variant="secondary"
+          >
             {card ? "Hide" : "Show"} the note
           </Button>
           <span className="cl-enter" data-open={card || undefined}>

@@ -28,7 +28,9 @@ export const Actions = () => {
               <Button
                 onClick={() => {
                   setPending(true);
-                  window.setTimeout(() => setPending(false), 1800);
+                  window.setTimeout(() => {
+                    setPending(false);
+                  }, 1800);
                 }}
                 pending={pending}
                 pendingLabel="Deploying"
@@ -67,7 +69,9 @@ export const Actions = () => {
             <ButtonGroup label="Move between runs">
               <Button
                 aria-label="Previous run"
-                onClick={() => setRun(Math.max(1, run - 1))}
+                onClick={() => {
+                  setRun(Math.max(1, run - 1));
+                }}
                 size="icon"
               >
                 <Icon icon={ChevronLeft} />
@@ -75,7 +79,9 @@ export const Actions = () => {
               <Button>Run {run} of 48</Button>
               <Button
                 aria-label="Next run"
-                onClick={() => setRun(Math.min(48, run + 1))}
+                onClick={() => {
+                  setRun(Math.min(48, run + 1));
+                }}
                 size="icon"
               >
                 <Icon icon={ChevronRight} />

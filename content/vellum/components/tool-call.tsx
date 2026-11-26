@@ -31,7 +31,9 @@ export const ToolCall = ({
           aria-controls={id}
           aria-expanded={open}
           className="v-fold-trigger"
-          onClick={() => setOpen(!open)}
+          onClick={() => {
+            setOpen(!open);
+          }}
           type="button"
         >
           <span className="v-truncate">{title}</span>

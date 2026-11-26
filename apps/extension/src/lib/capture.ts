@@ -16,16 +16,15 @@ const EXTENSION_TYPES = new Map<string, keyof typeof ATTACHMENT_TYPES>([
 const loadImage = async (dataUrl: string) => {
   const response = await fetch(dataUrl);
 
-  return createImageBitmap(await response.blob());
+  return await createImageBitmap(await response.blob());
 };
 
 /** Crops a screenshot of the visible tab to the selection, shrinking it until it fits the upload cap. */
 export const cropScreenshot = async (dataUrl: string, rect: Rect, viewportWidth: number) => {
   const image = await loadImage(dataUrl);
   const crop = toImagePixels(rect, viewportWidth, image.width);
-  let scale = 1;
 
-  for (;;) {
+  const fit: (scale: number) => Promise<File> = async (scale) => {
     const canvas = new OffscreenCanvas(
       Math.max(1, Math.round(crop.width * scale)),
       Math.max(1, Math.round(crop.height * scale)),
@@ -61,8 +60,10 @@ export const cropScreenshot = async (dataUrl: string, rect: Rect, viewportWidth:
       return new File([webp], "capture.webp", { type: "image/webp" });
     }
 
-    scale *= 0.75;
-  }
+    return await fit(scale * 0.75);
+  };
+
+  return await fit(1);
 };
 
 const fileName = (src: string, type: string) => {

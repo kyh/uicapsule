@@ -44,7 +44,9 @@ export const Selection = () => {
             checked={all}
             indeterminate={!all && picked.length > 0}
             label="Sync all tables"
-            onCheckedChange={(checked) => setPicked(checked ? [...TABLES] : [])}
+            onCheckedChange={(checked) => {
+              setPicked(checked ? [...TABLES] : []);
+            }}
           />
           <div className="hx-stack hx-indent">
             {TABLES.map((table) => (
@@ -52,9 +54,9 @@ export const Selection = () => {
                 checked={picked.includes(table)}
                 key={table}
                 label={<code>{table}</code>}
-                onCheckedChange={(checked) =>
-                  setPicked(checked ? [...picked, table] : picked.filter((item) => item !== table))
-                }
+                onCheckedChange={(checked) => {
+                  setPicked(checked ? [...picked, table] : picked.filter((item) => item !== table));
+                }}
               />
             ))}
           </div>

@@ -36,7 +36,9 @@ const Picker = <T extends string>({ label, value, options, onChange }: PickerPro
     <select
       aria-label={label}
       value={value}
-      onChange={(event) => onChange(event.target.value)}
+      onChange={(event) => {
+        onChange(event.target.value);
+      }}
       className="appearance-none bg-transparent py-1.5 pr-7 pl-3 text-xs text-neutral-400 outline-none"
     >
       {options.map((option) => (

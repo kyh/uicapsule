@@ -47,7 +47,9 @@ export const TeslaClimate = () => {
             type="button"
             aria-pressed={powerOn}
             aria-label={powerOn ? "Turn climate off" : "Turn climate on"}
-            onClick={() => setPowerOn((previous) => !previous)}
+            onClick={() => {
+              setPowerOn((previous) => !previous);
+            }}
             className={`grid h-10 w-11 place-items-center rounded-lg shadow-sm ring-1 transition-colors ${
               powerOn
                 ? "bg-[#3d63f5] text-white ring-[#3d63f5]"
@@ -60,7 +62,9 @@ export const TeslaClimate = () => {
           <button
             type="button"
             aria-pressed={acOn}
-            onClick={() => setAcOn((previous) => !previous)}
+            onClick={() => {
+              setAcOn((previous) => !previous);
+            }}
             className={`h-10 rounded-lg px-3.5 text-[13px] font-medium shadow-sm ring-1 transition-colors disabled:opacity-60 ${
               acOn && powerOn
                 ? "bg-[#96a3f4]/50 text-[#2c3ea8] ring-[#8291ea]/40"
@@ -75,7 +79,9 @@ export const TeslaClimate = () => {
             <button
               type="button"
               aria-label="Decrease temperature"
-              onClick={() => adjustTemp(-1)}
+              onClick={() => {
+                adjustTemp(-1);
+              }}
               className="grid h-full w-8 place-items-center text-[#8a92a0] transition-colors hover:text-[#3c4452] disabled:opacity-50"
               disabled={!powerOn}
             >
@@ -91,7 +97,9 @@ export const TeslaClimate = () => {
             <button
               type="button"
               aria-label="Increase temperature"
-              onClick={() => adjustTemp(1)}
+              onClick={() => {
+                adjustTemp(1);
+              }}
               className="grid h-full w-8 place-items-center text-[#8a92a0] transition-colors hover:text-[#3c4452] disabled:opacity-50"
               disabled={!powerOn}
             >
@@ -103,7 +111,9 @@ export const TeslaClimate = () => {
             <button
               type="button"
               aria-label="Decrease fan speed"
-              onClick={() => adjustFan(-1)}
+              onClick={() => {
+                adjustFan(-1);
+              }}
               className="grid h-full w-8 place-items-center text-[#8a92a0] transition-colors hover:text-[#3c4452] disabled:opacity-50"
               disabled={!powerOn}
             >
@@ -125,7 +135,9 @@ export const TeslaClimate = () => {
             <button
               type="button"
               aria-label="Increase fan speed"
-              onClick={() => adjustFan(1)}
+              onClick={() => {
+                adjustFan(1);
+              }}
               className="grid h-full w-8 place-items-center text-[#8a92a0] transition-colors hover:text-[#3c4452] disabled:opacity-50"
               disabled={!powerOn}
             >

@@ -27,7 +27,9 @@ export const Reasoning = ({
         aria-controls={id}
         aria-expanded={open}
         className="v-fold-trigger"
-        onClick={() => setPinned(!open)}
+        onClick={() => {
+          setPinned(!open);
+        }}
         type="button"
       >
         {streaming ? <Arc small /> : null}

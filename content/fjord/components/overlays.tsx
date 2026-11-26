@@ -7,6 +7,8 @@ import { Kbd } from "./badge";
 import { Button } from "./button";
 import { Icon } from "./icon";
 
+const noop = () => null;
+
 interface DialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
@@ -49,13 +51,17 @@ export const Dialog = ({
     }
   }, [open]);
 
+  const hasDescription = Boolean(description);
+
   return (
     <dialog
-      aria-describedby={description ? descId : undefined}
+      aria-describedby={hasDescription ? descId : undefined}
       aria-labelledby={titleId}
       className="fj-dialog"
       data-size={size}
-      onClose={() => onOpenChange(false)}
+      onClose={() => {
+        onOpenChange(false);
+      }}
       ref={ref}
     >
       {open ? (
@@ -66,15 +72,17 @@ export const Dialog = ({
                 <h2 className="fj-dialog-title" id={titleId}>
                   {title}
                 </h2>
-                {description ? (
+                {hasDescription && (
                   <p className="fj-dialog-desc" id={descId}>
                     {description}
                   </p>
-                ) : null}
+                )}
               </div>
               <Button
                 aria-label="Close"
-                onClick={() => onOpenChange(false)}
+                onClick={() => {
+                  onOpenChange(false);
+                }}
                 size="icon-sm"
                 variant="ghost"
               >
@@ -84,7 +92,7 @@ export const Dialog = ({
             {children}
           </div>
           <div className="fj-dialog-foot">
-            {note ? <p>{note}</p> : null}
+            {note !== undefined && note !== "" ? <p>{note}</p> : null}
             {footer}
           </div>
         </>
@@ -113,11 +121,19 @@ export const Popover = ({ renderTrigger, children, label, align, side }: Popover
   const ref = useRef<HTMLDivElement>(null);
   const id = useId();
 
-  useDismiss(open, () => setOpen(false), [ref]);
+  useDismiss(open, () => {
+    setOpen(false);
+  }, [ref]);
 
   return (
     <div className="fj-anchor" ref={ref}>
-      {renderTrigger({ id, open, toggle: () => setOpen((value) => !value) })}
+      {renderTrigger({
+        id,
+        open,
+        toggle: () => {
+          setOpen((value) => !value);
+        },
+      })}
       {open ? (
         <dialog
           aria-label={label}
@@ -157,15 +173,21 @@ export const Tooltip = ({ content, align = "center", children }: TooltipProps) =
 
   useEffect(() => {
     if (delay === null) {
-      return;
+      return noop;
     }
 
-    const timer = window.setTimeout(() => setOpen(true), delay);
+    const timer = window.setTimeout(() => {
+      setOpen(true);
+    }, delay);
 
-    return () => window.clearTimeout(timer);
+    return () => {
+      window.clearTimeout(timer);
+    };
   }, [delay]);
 
-  const show = (wait: number) => setDelay(wait);
+  const show = (wait: number) => {
+    setDelay(wait);
+  };
 
   const hide = () => {
     setDelay(null);
@@ -177,13 +199,17 @@ export const Tooltip = ({ content, align = "center", children }: TooltipProps) =
       {children({
         "aria-describedby": open ? id : undefined,
         onBlur: hide,
-        onFocus: () => show(0),
+        onFocus: () => {
+          show(0);
+        },
         onKeyDown: (event) => {
           if (event.key === "Escape") {
             hide();
           }
         },
-        onPointerEnter: () => show(400),
+        onPointerEnter: () => {
+          show(400);
+        },
         onPointerLeave: hide,
       })}
       {open ? (
@@ -221,7 +247,9 @@ export const Menu = ({ label, items, renderTrigger, align }: MenuProps) => {
     ref.current?.querySelector<HTMLButtonElement>("[aria-haspopup]")?.focus();
   };
 
-  useDismiss(open, () => setOpen(false), [ref]);
+  useDismiss(open, () => {
+    setOpen(false);
+  }, [ref]);
 
   useEffect(() => {
     if (open) {
@@ -260,7 +288,13 @@ export const Menu = ({ label, items, renderTrigger, align }: MenuProps) => {
 
   return (
     <div className="fj-anchor" ref={ref}>
-      {renderTrigger({ id, open, toggle: () => setOpen((value) => !value) })}
+      {renderTrigger({
+        id,
+        open,
+        toggle: () => {
+          setOpen((value) => !value);
+        },
+      })}
       {open ? (
         <div
           aria-label={label}
@@ -268,20 +302,24 @@ export const Menu = ({ label, items, renderTrigger, align }: MenuProps) => {
           data-align={align}
           id={id}
           onKeyDown={onKeyDown}
-          onPointerLeave={(event) => event.currentTarget.focus()}
+          onPointerLeave={(event) => {
+            event.currentTarget.focus();
+          }}
           role="menu"
           tabIndex={-1}
         >
           {items.map((item, index) => (
             <button
               className="fj-menu-item"
-              data-variant={item.destructive ? "destructive" : undefined}
+              data-variant={item.destructive === true ? "destructive" : undefined}
               key={item.label}
               onClick={() => {
                 close();
                 item.onSelect();
               }}
-              onPointerMove={(event) => event.currentTarget.focus()}
+              onPointerMove={(event) => {
+                event.currentTarget.focus();
+              }}
               ref={(node) => {
                 itemRefs.current[index] = node;
               }}
@@ -290,7 +328,7 @@ export const Menu = ({ label, items, renderTrigger, align }: MenuProps) => {
               type="button"
             >
               {item.label}
-              {item.shortcut ? (
+              {item.shortcut !== undefined && item.shortcut !== "" ? (
                 <span className="fj-menu-meta">
                   <Kbd>{item.shortcut}</Kbd>
                 </span>
@@ -333,7 +371,7 @@ export const Select = <T extends string>({
       </label>
       <div className="fj-select-wrap">
         <select
-          aria-describedby={hint ? `${id}-hint` : undefined}
+          aria-describedby={hint !== undefined && hint !== "" ? `${id}-hint` : undefined}
           className="fj-input fj-select"
           id={id}
           onChange={(event) => {
@@ -353,7 +391,7 @@ export const Select = <T extends string>({
         </select>
         <Icon icon={ChevronDown} size={12} />
       </div>
-      {hint ? (
+      {hint !== undefined && hint !== "" ? (
         <p className="fj-field-hint" id={`${id}-hint`}>
           {hint}
         </p>

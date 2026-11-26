@@ -103,7 +103,9 @@ const GridCell = ({ x, y, colors, strokeWidth, minInterval, maxInterval }: GridC
 
     scheduleNext();
 
-    return () => clearTimeout(timeoutId);
+    return () => {
+      clearTimeout(timeoutId);
+    };
   }, [minInterval, maxInterval]);
 
   const Glyph = currentCell.glyph;

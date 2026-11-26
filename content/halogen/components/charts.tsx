@@ -1,8 +1,8 @@
 import { useState } from "react";
-import type { CSSProperties } from "react";
 
 import { short } from "../lib/format";
 import { useWidth } from "../lib/use-width";
+import { cssVars } from "../lib/css-vars";
 
 export interface Datum {
   label: string;
@@ -55,7 +55,7 @@ export const StemChart = ({
             const y = Math.round(top + plot - (item.value / max) * plot);
 
             return (
-              <g key={item.label} style={{ "--i": index } as CSSProperties}>
+              <g key={item.label} style={cssVars({ "--i": index })}>
                 <line className="hx-stem" x1={x} x2={x} y1={height - bottom} y2={y} />
                 <rect
                   className="hx-stem-head"
@@ -110,7 +110,7 @@ export const BarBlocks = ({ label, data, format = short, height = 140 }: BlocksP
 
   return (
     <figure aria-label={label} className="hx-shrink">
-      <ol className="hx-blocks" style={{ "--h": `${height}px` } as CSSProperties}>
+      <ol className="hx-blocks" style={cssVars({ "--h": `${height}px` })}>
         {data.map((item, index) => {
           const share = item.value / total;
           const percent = share > 0 && share < 0.01 ? "<1%" : `${Math.round(share * 100)}%`;
@@ -121,7 +121,7 @@ export const BarBlocks = ({ label, data, format = short, height = 140 }: BlocksP
               className="hx-block"
               data-tone={item.tone}
               key={item.label}
-              style={{ "--i": index, "--share": share.toFixed(4) } as CSSProperties}
+              style={cssVars({ "--i": index, "--share": share.toFixed(4) })}
             >
               <span aria-hidden className="hx-code">
                 {format(item.value)}
@@ -193,7 +193,9 @@ export const LineChart = ({
         aria-hidden
         className="hx-chart"
         height={height}
-        onPointerLeave={() => setHover(null)}
+        onPointerLeave={() => {
+          setHover(null);
+        }}
         onPointerMove={(event) => {
           const box = event.currentTarget.getBoundingClientRect();
           const share = (event.clientX - box.left - left) / plotW;

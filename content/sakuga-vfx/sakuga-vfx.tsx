@@ -77,10 +77,14 @@ const PrimaryCard = () => {
           setDone(false);
           later(760, () => {
             const n = run.current;
-            flushSync(() => setDone(true));
+            flushSync(() => {
+              setDone(true);
+            });
             later(1800, () => {
               if (n === run.current) {
-                flushSync(() => setDone(false));
+                flushSync(() => {
+                  setDone(false);
+                });
               }
             });
           });
@@ -95,7 +99,12 @@ const PrimaryCard = () => {
 const ToastCard = () => (
   <Card id="toast" name="Toast" how="Press Save.">
     <div className="relative grid justify-items-center gap-[22px]">
-      <SakugaButton variant="secondary" onClick={() => sakugaToast("Saved successfully!")}>
+      <SakugaButton
+        variant="secondary"
+        onClick={() => {
+          sakugaToast("Saved successfully!");
+        }}
+      >
         Save
       </SakugaButton>
       <SakugaToaster />
@@ -124,7 +133,9 @@ const LoadingDemo = () => {
             d.doneAt = 0;
             d.goal = 0;
             d.at = 0;
-            flushSync(() => setValue(0));
+            flushSync(() => {
+              setValue(0);
+            });
           }
 
           return;
@@ -140,7 +151,9 @@ const LoadingDemo = () => {
           d.at = Math.min(d.goal, d.at + dt * clamp((d.goal - d.at) * 3, 0.12, 0.9));
         }
 
-        flushSync(() => setValue(next));
+        flushSync(() => {
+          setValue(next);
+        });
       }),
     [],
   );

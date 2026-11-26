@@ -5,5 +5,6 @@
     "incremental": false,
     "noEmit": true
   },
-  "include": ["scripts/**/*.ts", "oxlint.config.ts"]
+  "include": ["scripts/**/*.ts", "oxlint.config.ts"],
+  "exclude": ["scripts/templates"]
 }

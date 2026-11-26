@@ -22,14 +22,18 @@ export const RadioGroup = <T extends string>({
           <input
             checked={option.value === value}
             name={name}
-            onChange={() => onValueChange(option.value)}
+            onChange={() => {
+              onValueChange(option.value);
+            }}
             type="radio"
             value={option.value}
           />
           <span aria-hidden className="v-radio-dot v-nudge" />
           <span className="v-stack-sm v-gap-1">
             <span>{option.label}</span>
-            {option.hint ? <span className="v-caption v-t2">{option.hint}</span> : null}
+            {option.hint !== undefined && option.hint !== "" ? (
+              <span className="v-caption v-t2">{option.hint}</span>
+            ) : null}
           </span>
         </label>
       ))}

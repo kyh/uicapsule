@@ -15,7 +15,9 @@ export const Checkbox = ({ checked, onCheckedChange, label, description }: Check
     <input
       checked={checked}
       className="cl-sr-input"
-      onChange={(event) => onCheckedChange(event.target.checked)}
+      onChange={(event) => {
+        onCheckedChange(event.target.checked);
+      }}
       type="checkbox"
     />
     <span aria-hidden className="cl-check__box">
@@ -23,7 +25,9 @@ export const Checkbox = ({ checked, onCheckedChange, label, description }: Check
     </span>
     <span className="cl-check__text">
       <span>{label}</span>
-      {description ? <span className="cl-check__desc">{description}</span> : null}
+      {description !== undefined && description !== "" ? (
+        <span className="cl-check__desc">{description}</span>
+      ) : null}
     </span>
   </label>
 );

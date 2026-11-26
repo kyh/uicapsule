@@ -6,6 +6,8 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { consola } from "consola";
 
+import { inOrder } from "./in-order";
+
 const repoRoot = fileURLToPath(new URL("..", import.meta.url));
 const contentRoot = path.join(repoRoot, "content");
 const compiler = path.join(repoRoot, "node_modules/typescript/bin/tsc");
@@ -31,7 +33,7 @@ const main = async () => {
   const failed: string[] = [];
 
   try {
-    for (const slug of selected) {
+    await inOrder(selected, async (slug) => {
       const packageRoot = path.join(contentRoot, slug);
       const files: string[] = [];
 
@@ -43,7 +45,7 @@ const main = async () => {
       }
 
       if (files.length === 0) {
-        continue;
+        return;
       }
 
       const previewCheck = path.join(configRoot, `${slug}-preview.ts`);
@@ -66,13 +68,14 @@ const main = async () => {
         stdio: "inherit",
       });
 
-      const [exitCode] = await once(child, "close");
+      const closed: unknown[] = await once(child, "close");
+      const [exitCode] = closed;
       checked += 1;
 
       if (exitCode !== 0) {
         failed.push(slug);
       }
-    }
+    });
   } finally {
     await rm(configRoot, { force: true, recursive: true });
   }

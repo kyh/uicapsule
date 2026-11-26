@@ -144,7 +144,14 @@ export const TotalBalance = () => {
         ))}
       </div>
       <ChartSlot height={HEIGHT} className="mt-5">
-        <div onMouseEnter={() => pin(FILLED + HOLD - 1)} onMouseLeave={() => pin(null)}>
+        <div
+          onMouseEnter={() => {
+            pin(FILLED + HOLD - 1);
+          }}
+          onMouseLeave={() => {
+            pin(null);
+          }}
+        >
           <Chart
             definition={definition}
             renderer={renderer}

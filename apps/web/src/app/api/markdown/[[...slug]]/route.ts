@@ -30,7 +30,7 @@ const buildBody = async (segments: string[]) => {
 
   const [first, slug, ...rest] = segments;
 
-  if (first === "ui" && slug && rest.length === 0) {
+  if (first === "ui" && slug !== undefined && slug !== "" && rest.length === 0) {
     const all = await getAllContent();
     const component = all.find((entry) => entry.slug === slug);
 

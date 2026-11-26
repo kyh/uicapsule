@@ -100,7 +100,7 @@ export const readContentIndex = cache(async () => {
       if (meta.type === "local") {
         const preview = await stat(path.join(contentRoot, slug, "preview.tsx")).catch(() => null);
 
-        if (!preview?.isFile()) {
+        if (preview?.isFile() !== true) {
           return null;
         }
       }

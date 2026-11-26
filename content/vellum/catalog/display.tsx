@@ -41,10 +41,21 @@ export const Display = () => {
                 </span>
               }
             >
-              <Button onClick={() => setChoice("kept")} size="sm" variant="secondary">
+              <Button
+                onClick={() => {
+                  setChoice("kept");
+                }}
+                size="sm"
+                variant="secondary"
+              >
                 Keep v11
               </Button>
-              <Button onClick={() => setChoice("diff")} size="sm">
+              <Button
+                onClick={() => {
+                  setChoice("diff");
+                }}
+                size="sm"
+              >
                 See the diff
               </Button>
             </ShellFoot>

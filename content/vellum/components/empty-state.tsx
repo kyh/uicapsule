@@ -16,6 +16,6 @@ export const EmptyState = ({
     {icon}
     <p className="v-heading-sm">{title}</p>
     <p className="v-body-sm v-t2 v-empty-text">{children}</p>
-    {action ? <div className="v-empty-action">{action}</div> : null}
+    {Boolean(action) && <div className="v-empty-action">{action}</div>}
   </div>
 );

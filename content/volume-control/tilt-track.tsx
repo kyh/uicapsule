@@ -87,7 +87,9 @@ export const TiltTrack = ({ volume }: TiltTrackProps) => {
   const seated = useRef<number | null>(snapVolume(volume.get()));
 
   useEffect(() => {
-    const unsubscribe = x.on("change", (next) => volume.set(xToVolume(next)));
+    const unsubscribe = x.on("change", (next) => {
+      volume.set(xToVolume(next));
+    });
 
     return unsubscribe;
   }, [x, volume]);
@@ -101,7 +103,12 @@ export const TiltTrack = ({ volume }: TiltTrackProps) => {
     return volume.on("change", report);
   }, [volume]);
 
-  useEffect(() => () => cancelAnimationFrame(frame.current), []);
+  useEffect(
+    () => () => {
+      cancelAnimationFrame(frame.current);
+    },
+    [],
+  );
 
   const run = () => {
     cancelAnimationFrame(frame.current);
@@ -165,7 +172,7 @@ export const TiltTrack = ({ volume }: TiltTrackProps) => {
   };
 
   const handlePointerDown = (event: React.PointerEvent<HTMLDivElement>) => {
-    if (reduceMotion) {
+    if (reduceMotion === true) {
       return;
     }
 
@@ -230,7 +237,7 @@ export const TiltTrack = ({ volume }: TiltTrackProps) => {
         onPointerUp={handlePointerUp}
         onPointerCancel={handlePointerUp}
         onKeyDown={handleKeyDown}
-        style={{ rotate: reduceMotion ? 0 : tilt, touchAction: "none" }}
+        style={{ rotate: reduceMotion === true ? 0 : tilt, touchAction: "none" }}
         className={`relative my-[62px] rounded-2xl bg-neutral-900/70 px-3 py-3 outline-none focus-visible:ring-2 focus-visible:ring-white/70 ${
           tilting ? "cursor-grabbing" : "cursor-grab"
         }`}
@@ -248,7 +255,7 @@ export const TiltTrack = ({ volume }: TiltTrackProps) => {
               height: MARBLE_SIZE,
               marginLeft: (GROOVE_HEIGHT - MARBLE_SIZE) / 2,
               marginTop: -MARBLE_SIZE / 2,
-              rotate: reduceMotion ? 0 : marbleSpin,
+              rotate: reduceMotion === true ? 0 : marbleSpin,
               width: MARBLE_SIZE,
               x,
             }}
@@ -265,7 +272,7 @@ export const TiltTrack = ({ volume }: TiltTrackProps) => {
         <span className="absolute h-5 w-5 rounded-full border-x border-white/15" />
         <motion.span
           className="size-3 rounded-full bg-emerald-400/80 shadow-[0_0_8px_rgba(52,211,153,0.6)]"
-          style={{ x: reduceMotion ? 0 : bubbleX }}
+          style={{ x: reduceMotion === true ? 0 : bubbleX }}
         />
       </div>
     </div>

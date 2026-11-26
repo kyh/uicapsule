@@ -123,7 +123,14 @@ export const GlobalDefi = () => {
           <span className="font-semibold text-[#0b0b0f]">2023-2030</span>.
         </p>
         <ChartSlot height={HEIGHT} className="mt-3">
-          <div onMouseEnter={() => pin(STEPS - 1)} onMouseLeave={() => pin(null)}>
+          <div
+            onMouseEnter={() => {
+              pin(STEPS - 1);
+            }}
+            onMouseLeave={() => {
+              pin(null);
+            }}
+          >
             <Chart
               definition={definition}
               renderer={renderer}

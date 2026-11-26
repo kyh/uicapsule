@@ -149,11 +149,16 @@ export const DesignSystem = () => {
   const dock = useDock();
 
   useEffect(() => {
-    const onScroll = () => setScrolled(window.scrollY > 8);
+    const onScroll = () => {
+      setScrolled(window.scrollY > 8);
+    };
+
     onScroll();
     window.addEventListener("scroll", onScroll, { passive: true });
 
-    return () => window.removeEventListener("scroll", onScroll);
+    return () => {
+      window.removeEventListener("scroll", onScroll);
+    };
   }, []);
 
   return (
@@ -168,7 +173,9 @@ export const DesignSystem = () => {
             <Button
               aria-label="Dark theme"
               aria-pressed={dark}
-              onClick={() => setDark(!dark)}
+              onClick={() => {
+                setDark(!dark);
+              }}
               size="icon"
               variant="secondary"
             >
@@ -264,7 +271,9 @@ export const DesignSystem = () => {
           currentKind="location"
           items={DOCK}
           label="Sections"
-          onSelect={(label) => dock.select(label)}
+          onSelect={(label) => {
+            dock.select(label);
+          }}
         />
       </ToastProvider>
     </div>

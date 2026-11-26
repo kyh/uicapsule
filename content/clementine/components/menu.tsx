@@ -6,6 +6,8 @@ import type { DismissReason } from "../lib/use-dismiss";
 
 import "./menu.css";
 
+const noop = () => null;
+
 export interface MenuItem {
   label: string;
   icon?: ReactNode;
@@ -31,7 +33,12 @@ interface MenuProps {
 
 const moveFocus = (list: HTMLElement | null, step: number) => {
   const buttons = [...(list?.querySelectorAll<HTMLButtonElement>("[role=menuitem]") ?? [])];
-  const current = buttons.indexOf(document.activeElement as HTMLButtonElement);
+
+  const current =
+    document.activeElement instanceof HTMLButtonElement
+      ? buttons.indexOf(document.activeElement)
+      : -1;
+
   let next = (current + step + buttons.length) % buttons.length;
 
   if (current === -1) {
@@ -66,12 +73,16 @@ export const Menu = ({ open, onOpenChange, label, items, trigger, align = "start
 
   useEffect(() => {
     if (!open) {
-      return;
+      return noop;
     }
 
-    const frame = window.requestAnimationFrame(() => moveFocus(list.current, 1));
+    const frame = window.requestAnimationFrame(() => {
+      moveFocus(list.current, 1);
+    });
 
-    return () => window.cancelAnimationFrame(frame);
+    return () => {
+      window.cancelAnimationFrame(frame);
+    };
   }, [open]);
 
   const onKeyDown = (event: KeyboardEvent) => {
@@ -89,7 +100,9 @@ export const Menu = ({ open, onOpenChange, label, items, trigger, align = "start
         "aria-controls": id,
         "aria-expanded": open,
         "aria-haspopup": "menu",
-        onClick: () => onOpenChange(!open),
+        onClick: () => {
+          onOpenChange(!open);
+        },
       })}
       <div
         aria-label={label}
@@ -106,7 +119,7 @@ export const Menu = ({ open, onOpenChange, label, items, trigger, align = "start
         {items.map((item) => (
           <button
             className="cl-menu__item"
-            data-danger={item.danger || undefined}
+            data-danger={item.danger === true || undefined}
             key={item.label}
             onClick={() => {
               close("select");

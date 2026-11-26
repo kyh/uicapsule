@@ -6,6 +6,8 @@ import { contrastRatio, paint, toOklch } from "../lib/contrast";
 import { useTheme } from "../lib/theme";
 import { Foundation, Rules, Stage } from "./section";
 
+const noop = () => null;
+
 interface TokenRow {
   token: string;
   use: string;
@@ -65,7 +67,7 @@ const useMeasured = (rows: TokenRow[]) => {
     const node = ref.current;
 
     if (!node) {
-      return;
+      return noop;
     }
 
     const frame = window.requestAnimationFrame(() => {
@@ -90,7 +92,9 @@ const useMeasured = (rows: TokenRow[]) => {
       setMeasured(next);
     });
 
-    return () => window.cancelAnimationFrame(frame);
+    return () => {
+      window.cancelAnimationFrame(frame);
+    };
   }, [rows]);
 
   return { measured, ref };

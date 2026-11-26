@@ -68,7 +68,12 @@ const RowActions = ({ row }: { row: SpreadsheetRow }) => {
         <MoreVerticalIcon className="h-3 w-3" />
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end">
-        <DropdownMenuItem onClick={() => deleteRow(row.id)} className="text-(--destructive)">
+        <DropdownMenuItem
+          onClick={() => {
+            deleteRow(row.id);
+          }}
+          className="text-(--destructive)"
+        >
           <TrashIcon className="size-4" />
           Delete
         </DropdownMenuItem>
@@ -84,7 +89,7 @@ const ToolbarButtons = () => {
   return (
     <>
       <ToolbarButton
-        onClick={() =>
+        onClick={() => {
           addRow(() => ({
             company: "",
             email: "",
@@ -93,8 +98,8 @@ const ToolbarButtons = () => {
             lastName: "",
             linkedinUrl: "",
             role: "",
-          }))
-        }
+          }));
+        }}
       >
         <Plus className="size-4" />
         Add Row

@@ -87,7 +87,11 @@ const TokenTable = ({
             <td className="v-t2" data-label="Use for">
               {item.use}
             </td>
-            <td className="v-t2" data-empty={item.not ? undefined : ""} data-label="Not for">
+            <td
+              className="v-t2"
+              data-empty={item.not !== undefined && item.not !== "" ? undefined : ""}
+              data-label="Not for"
+            >
               {item.not ?? "–"}
             </td>
             <td data-label="Light">
@@ -107,7 +111,11 @@ const ratioFor = (values: Record<string, string>, pair: (typeof CONTRAST)[number
   Math.min(
     ...pair.backgrounds.map((background) => {
       const ground = values[background] ?? "#fff";
-      const flat = pair.over ? composite(ground, values[pair.over] ?? "#fff") : ground;
+
+      const flat =
+        pair.over !== undefined && pair.over !== ""
+          ? composite(ground, values[pair.over] ?? "#fff")
+          : ground;
 
       return contrast(values[pair.foreground] ?? "#000", flat);
     }),

@@ -11,7 +11,7 @@ const ASSETS_URL = process.env.NEXT_PUBLIC_ASSETS_URL;
 const PREVIEW_URL = process.env.NEXT_PUBLIC_PREVIEW_URL;
 
 const previewHostRedirects = () => {
-  if (!PREVIEW_URL) {
+  if (PREVIEW_URL === undefined || PREVIEW_URL === "") {
     return [];
   }
 
@@ -30,7 +30,7 @@ const previewHostRedirects = () => {
 const getRemotePatterns = () => {
   const remotePatterns: RemotePatterns = [];
 
-  if (ASSETS_URL) {
+  if (ASSETS_URL !== undefined && ASSETS_URL !== "") {
     const { hostname } = new URL(ASSETS_URL);
 
     remotePatterns.push({
@@ -64,8 +64,8 @@ const config: NextConfig = {
   /** cover/PR recordings capture cold navigations; the badge can't be stripped in time */
   devIndicators: false,
   /** previews run on an opaque origin, so their module scripts and chunks are CORS fetches */
-  headers: () =>
-    Promise.resolve([
+  headers: async () =>
+    await Promise.resolve([
       {
         headers: [{ key: "Access-Control-Allow-Origin", value: "*" }],
         source: "/previews/:path*",
@@ -83,7 +83,7 @@ const config: NextConfig = {
   },
   /** a default <Link> prefetches only the route's shared App Shell; gallery cards opt into more on intent */
   partialPrefetching: true,
-  redirects: () => Promise.resolve(previewHostRedirects()),
+  redirects: async () => await Promise.resolve(previewHostRedirects()),
   transpilePackages,
 };
 

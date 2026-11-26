@@ -20,13 +20,16 @@ export const useResizableSidebar = ({
     e.preventDefault();
     isResizingRef.current = true;
     startXRef.current = e.clientX;
-    // oxlint-disable-next-line unicorn/prefer-number-coercion -- parseInt tolerates a trailing unit the replace() misses; Number() would NaN on it
-    startWidthRef.current = Number.parseInt(
+
+    const stored = Number(
       getComputedStyle(document.documentElement)
         .getPropertyValue("--sidebar-width")
-        .replace("px", "") || defaultWidth.toString(),
-      10,
+        .trim()
+        .replace(/px$/u, ""),
     );
+
+    startWidthRef.current = Number.isFinite(stored) && stored > 0 ? stored : defaultWidth;
+
     document.body.style.cursor = "col-resize";
     document.body.style.userSelect = "none";
   };

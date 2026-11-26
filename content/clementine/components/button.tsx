@@ -18,7 +18,8 @@ export type ButtonVariant =
 
 export type ButtonSize = "sm" | "md" | "lg" | "icon-sm" | "icon" | "icon-lg";
 
-interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
+interface ButtonProps extends Omit<ButtonHTMLAttributes<HTMLButtonElement>, "type"> {
+  type?: "button" | "submit";
   variant?: ButtonVariant;
   size?: ButtonSize;
   pending?: boolean;
@@ -45,8 +46,7 @@ export const Button = ({
     data-size={size}
     data-variant={variant}
     onClick={pending ? undefined : onClick}
-    // oxlint-disable-next-line react/button-has-type -- defaults to "button"; a form passes "submit"
-    type={type}
+    type={type === "submit" ? "submit" : "button"}
     {...props}
   >
     {pending ? (

@@ -67,7 +67,9 @@ export const RunsScreen = ({ onSearch }: { onSearch: () => void }) => {
   const [syncedAt, setSyncedAt] = useState(SYNCED_AT);
   const [refresh, setRefresh] = useState(0);
 
-  useInterval(() => setAge((value) => value + 1), 1000);
+  useInterval(() => {
+    setAge((value) => value + 1);
+  }, 1000);
 
   const count = (status: RunStatus) => runs.filter((run) => run.status === status).length;
 
@@ -114,9 +116,9 @@ export const RunsScreen = ({ onSearch }: { onSearch: () => void }) => {
     setSelected(id);
     setFilter(null);
     push({
-      detail: restarted ? `${restarted} cancelled · ${id}` : id,
+      detail: restarted !== null && restarted !== "" ? `${restarted} cancelled · ${id}` : id,
       status: "running",
-      title: `${current.pipeline} ${restarted ? "restarted" : "started"}`,
+      title: `${current.pipeline} ${restarted !== null && restarted !== "" ? "restarted" : "started"}`,
     });
   };
 
@@ -181,8 +183,12 @@ export const RunsScreen = ({ onSearch }: { onSearch: () => void }) => {
         <DropdownMenu
           items={MENU}
           label={`Actions for ${run.id}`}
-          onOpenChange={(open) => setMenu(open ? run.id : null)}
-          onSelect={(action) => onMenu(run, action)}
+          onOpenChange={(open) => {
+            setMenu(open ? run.id : null);
+          }}
+          onSelect={(action) => {
+            onMenu(run, action);
+          }}
           open={menu === run.id}
           renderTrigger={(props) => (
             <Button
@@ -244,7 +250,9 @@ export const RunsScreen = ({ onSearch }: { onSearch: () => void }) => {
             key={cell.status}
             label={cell.label}
             lead={<StatusMark status={cell.status} />}
-            onSelect={() => setFilter(filter === cell.status ? null : cell.status)}
+            onSelect={() => {
+              setFilter(filter === cell.status ? null : cell.status);
+            }}
             selected={filter === cell.status}
             value={cell.status === "fail" ? count("fail") + count("warn") : count(cell.status)}
           />
@@ -258,7 +266,9 @@ export const RunsScreen = ({ onSearch }: { onSearch: () => void }) => {
             aria-label="Filter pipelines"
             fieldSize="sm"
             lead={<Icon icon={Search} size={14} />}
-            onChange={(event) => setQuery(event.target.value)}
+            onChange={(event) => {
+              setQuery(event.target.value);
+            }}
             placeholder="Filter pipelines"
             value={query}
           />
@@ -308,13 +318,13 @@ export const RunsScreen = ({ onSearch }: { onSearch: () => void }) => {
         </span>
         <span className="hx-row hx-end">
           <Button
-            onClick={() =>
+            onClick={() => {
               push({
                 detail: "geo.tiles_rebuild",
                 status: "queued",
                 title: "Backfill queued for Nov 1 to 24",
-              })
-            }
+              });
+            }}
           >
             Backfill
           </Button>

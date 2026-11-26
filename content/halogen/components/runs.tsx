@@ -1,6 +1,6 @@
 import { ArrowUp, Paperclip } from "lucide-react";
 import { useId, useRef, useState } from "react";
-import type { FormEvent, ReactNode } from "react";
+import type { ReactNode, SyntheticEvent } from "react";
 
 import { duration as formatDuration } from "../lib/format";
 import { Button } from "./button";
@@ -32,7 +32,7 @@ interface ToolCallRowProps {
 /** A machine step: bracketed verb, the object it touched, its time, and an optional tab or approval. */
 export const ToolCallRow = ({ label, detail, state, seconds, tab, children }: ToolCallRowProps) => (
   <li className="hx-call" data-state={state}>
-    {tab ? (
+    {tab !== undefined && tab !== "" ? (
       <span className="hx-call-tab">
         {state === "running" ? <Pending /> : null}
         {tab}
@@ -41,12 +41,14 @@ export const ToolCallRow = ({ label, detail, state, seconds, tab, children }: To
     <div className="hx-call-head">
       <StatusMark label={state} status={MARK[state]} />
       <span className="hx-call-name hx-label-sm">{label}</span>
-      {detail ? <span className="hx-call-detail hx-code-sm">{detail}</span> : null}
+      {detail !== undefined && detail !== "" ? (
+        <span className="hx-call-detail hx-code-sm">{detail}</span>
+      ) : null}
       <span className="hx-code-sm hx-ink-3 hx-end hx-nowrap">
         {seconds === undefined ? "" : formatDuration(seconds)}
       </span>
     </div>
-    {children ? <div className="hx-call-body">{children}</div> : null}
+    {Boolean(children) && <div className="hx-call-body">{children}</div>}
   </li>
 );
 
@@ -64,7 +66,9 @@ export const Activity = ({ text, elapsed }: { text: string; elapsed?: string }) 
     <span className="hx-grow hx-truncate">
       <TypeText text={text} />
     </span>
-    {elapsed ? <span className="hx-code-sm hx-ink-3">{elapsed}</span> : null}
+    {elapsed !== undefined && elapsed !== "" ? (
+      <span className="hx-code-sm hx-ink-3">{elapsed}</span>
+    ) : null}
   </div>
 );
 
@@ -89,7 +93,7 @@ export const PromptInput = ({
   const picker = useRef<HTMLInputElement>(null);
   const id = useId();
 
-  const submit = (event: FormEvent) => {
+  const submit = (event: SyntheticEvent) => {
     event.preventDefault();
 
     if (!text.trim()) {
@@ -108,7 +112,9 @@ export const PromptInput = ({
       <textarea
         className="hx-body-sm hx-prompt-text"
         id={id}
-        onChange={(event) => setText(event.target.value)}
+        onChange={(event) => {
+          setText(event.target.value);
+        }}
         onKeyDown={(event) => {
           if (event.key === "Enter" && !event.shiftKey) {
             submit(event);
@@ -122,7 +128,9 @@ export const PromptInput = ({
         <input
           aria-hidden
           className="hx-sr"
-          onChange={(event) => setPicked(event.target.files?.[0]?.name ?? null)}
+          onChange={(event) => {
+            setPicked(event.target.files?.[0]?.name ?? null);
+          }}
           ref={picker}
           tabIndex={-1}
           type="file"
@@ -136,7 +144,7 @@ export const PromptInput = ({
         >
           <Icon icon={Paperclip} />
         </Button>
-        {picked || attachment ? (
+        {(picked !== null && picked !== "") || (attachment !== undefined && attachment !== "") ? (
           <span className="hx-code-sm hx-ink-3 hx-truncate">
             {[attachment, picked].filter(Boolean).join(" + ")} attached
           </span>
@@ -144,7 +152,7 @@ export const PromptInput = ({
         <Button
           aria-label="Ask"
           className="hx-end"
-          disabled={!text.trim() && !pending}
+          disabled={!text.trim() && pending !== true}
           pending={pending}
           size="icon-sm"
           type="submit"

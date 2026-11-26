@@ -40,6 +40,8 @@ import {
   gazeMatrix,
 } from "./chibi-rig";
 
+const noop = () => null;
+
 /**
  * Chibi plants raymarched from signed distance fields — the same technique as
  * tobis.vision's "critters": every part (pot, body, leaves, arms) is an SDF
@@ -370,7 +372,7 @@ export const ChibiPlants = ({
     const container = containerRef.current;
 
     if (!container) {
-      return;
+      return noop;
     }
 
     let disposed = false;
@@ -1215,7 +1217,7 @@ export const ChibiPlants = ({
       renderer.domElement.remove();
       quad.geometry.dispose();
       material.dispose();
-      renderer.dispose();
+      void renderer.dispose();
     };
   }, []);
 

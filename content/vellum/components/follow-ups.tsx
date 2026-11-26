@@ -16,7 +16,9 @@ export const FollowUps = ({
         <button
           className="v-fold-trigger"
           disabled={disabled}
-          onClick={() => onSelect(item)}
+          onClick={() => {
+            onSelect(item);
+          }}
           data-follow-up=""
           type="button"
         >

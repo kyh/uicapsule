@@ -1,8 +1,7 @@
-import type { CSSProperties } from "react";
-
 import { Button } from "../components/button";
 import { StatusMark } from "../components/status";
 import { Avatar, Tag } from "../components/tag";
+import { cssVars } from "../lib/css-vars";
 
 const STEPS = [48, 40, 32, 24, 20, 16, 12, 8, 4, 2].toReversed();
 
@@ -19,13 +18,13 @@ const stepName = (step: number) => (step === 2 ? "--hx-half" : `--hx-${step / 4}
 
 /** The 4px scale with its one half-step, and the measured heights. */
 export const Space = () => (
-  <div className="hx-split hx-frame" style={{ "--cols": 2 } as CSSProperties}>
+  <div className="hx-split hx-frame" style={cssVars({ "--cols": 2 })}>
     <div className="hx-body-pad hx-gap-2">
       <span className="hx-label-sm hx-ink-3">Steps</span>
       {STEPS.map((step) => (
         <div className="hx-row hx-gap-3" key={step}>
           <span className="hx-code-sm hx-ink-3 hx-space-px">{step}px</span>
-          <span className="hx-space-bar" style={{ "--w": `${step * 4}px` } as CSSProperties} />
+          <span className="hx-space-bar" style={cssVars({ "--w": `${step * 4}px` })} />
           <span className="hx-code-sm hx-ink-3 hx-end">{stepName(step)}</span>
         </div>
       ))}
@@ -34,7 +33,7 @@ export const Space = () => (
       <span className="hx-label-sm hx-ink-3">Heights</span>
       {SIZES.map((size) => (
         <div className="hx-row hx-gap-3" key={size.name}>
-          <span className="hx-space-box" style={{ "--h": `${size.px}px` } as CSSProperties} />
+          <span className="hx-space-box" style={cssVars({ "--h": `${size.px}px` })} />
           <span className="hx-stack hx-gap-0">
             <span className="hx-code-sm">
               {size.name} · {size.px}px
@@ -78,7 +77,7 @@ export const ROLES = [
 
 /** Radius by role: every role, every corner, 0. */
 export const Radius = () => (
-  <div className="hx-tiles" style={{ "--tiles": 4 } as CSSProperties}>
+  <div className="hx-tiles" style={cssVars({ "--tiles": 4 })}>
     {ROLES.map((role) => (
       <div key={role.name}>
         <div className="hx-row hx-slop-demo">{role.node}</div>
@@ -93,7 +92,7 @@ export const Radius = () => (
 
 /** The line roles, the focus ring and the one texture. */
 export const Borders = () => (
-  <div className="hx-tiles" style={{ "--tiles": 4 } as CSSProperties}>
+  <div className="hx-tiles" style={cssVars({ "--tiles": 4 })}>
     <div>
       <div className="hx-grid">
         {["09:41", "09:36", "09:30"].map((time) => (
@@ -147,7 +146,7 @@ export const LEVELS = [
 
 /** The four levels. Nothing casts a shadow; an overlay is set apart by fill, edge and the scrim. */
 export const Elevation = () => (
-  <div className="hx-tiles" style={{ "--tiles": 4 } as CSSProperties}>
+  <div className="hx-tiles" style={cssVars({ "--tiles": 4 })}>
     {LEVELS.map((level, index) => (
       <div key={level.name}>
         <div className="hx-level" data-level={index}>

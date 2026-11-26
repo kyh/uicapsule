@@ -86,14 +86,22 @@ export const Data = () => {
                   <button
                     aria-label="Remove owner filter"
                     className="hx-sort hx-tag-x"
-                    onClick={() => setOwner(false)}
+                    onClick={() => {
+                      setOwner(false);
+                    }}
                     type="button"
                   >
                     <Icon icon={X} size={14} />
                   </button>
                 </span>
               ) : (
-                <Button onClick={() => setOwner(true)} size="sm" variant="ghost">
+                <Button
+                  onClick={() => {
+                    setOwner(true);
+                  }}
+                  size="sm"
+                  variant="ghost"
+                >
                   Add filter
                 </Button>
               )}

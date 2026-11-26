@@ -39,7 +39,7 @@ export const NotFoundMessage = () => (
         {notFoundRecoveryLinks.map((item) => (
           <li key={item.label}>
             <RecoveryLink href={item.href ?? "/"}>{item.label}</RecoveryLink>
-            {item.text ? ` — ${item.text}` : null}
+            {item.text !== undefined && item.text !== "" ? ` — ${item.text}` : null}
           </li>
         ))}
       </ul>

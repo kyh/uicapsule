@@ -11,7 +11,9 @@ export const Checkbox = ({ checked, onCheckedChange, label }: CheckboxProps) => 
     <input
       checked={checked}
       className="peer sr-only"
-      onChange={(event) => onCheckedChange(event.target.checked)}
+      onChange={(event) => {
+        onCheckedChange(event.target.checked);
+      }}
       type="checkbox"
     />
     <span className="border-input peer-checked:bg-primary peer-checked:border-primary text-primary-foreground peer-focus-visible:outline-ring grid size-5 shrink-0 place-items-center rounded-sm border-(length:--ds-border-width) transition-colors duration-(--ds-duration) peer-checked:*:scale-100 peer-checked:*:opacity-100 peer-focus-visible:outline-2 peer-focus-visible:outline-offset-2">

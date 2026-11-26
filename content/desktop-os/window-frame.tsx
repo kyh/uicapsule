@@ -8,6 +8,8 @@ import { XIcon } from "lucide-react";
 
 import type { OpenWindow } from "./window-types";
 
+const noop = () => null;
+
 export interface FrameProps {
   win: OpenWindow;
   isMobile: boolean;
@@ -58,7 +60,7 @@ export const WindowFrame = ({
     const el = frameRef.current;
 
     if (!el) {
-      return;
+      return noop;
     }
 
     const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
@@ -66,7 +68,7 @@ export const WindowFrame = ({
     if (reduced) {
       gsap.set(el, { filter: "none", opacity: 1, scale: 1, y: 0 });
 
-      return;
+      return noop;
     }
 
     const tween = gsap.fromTo(
@@ -203,7 +205,9 @@ export const WindowFrame = ({
       // oxlint-disable-next-line jsx-a11y/prefer-tag-over-role -- a <dialog> element's UA inset/fit-content sizing and open/close model fight this absolutely positioned, pointer-dragged frame
       role="dialog"
       aria-label={title}
-      onMouseDown={() => onFocus(win.uid)}
+      onMouseDown={() => {
+        onFocus(win.uid);
+      }}
       className="pointer-events-auto absolute flex flex-col overflow-hidden rounded-[12px] border border-black/15 bg-[#fbfaf7] text-[#1a1612] shadow-[0_30px_80px_-20px_rgba(0,0,0,0.45),0_8px_24px_-8px_rgba(0,0,0,0.35)]"
       style={{
         height: win.h,
@@ -228,7 +232,9 @@ export const WindowFrame = ({
           <button
             type="button"
             aria-label="Close window"
-            onClick={() => onClose(win.uid)}
+            onClick={() => {
+              onClose(win.uid);
+            }}
             className="group/tl flex size-3 items-center justify-center rounded-full bg-[#ff5f57] ring-1 ring-black/10"
           >
             <svg
@@ -276,7 +282,7 @@ export const PhotoLightbox = ({ src, onClose }: { src: string; onClose: () => vo
     const el = overlayRef.current;
 
     if (!el) {
-      return;
+      return noop;
     }
 
     const tween = gsap.fromTo(

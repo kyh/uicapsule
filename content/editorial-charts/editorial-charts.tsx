@@ -9,6 +9,8 @@ import { TickRing } from "./charts/tick-ring";
 import { DAY_MAX, SCENES } from "./lib/data";
 import { DARK, FAINT, INK, LADDER, MUTED, PAPER } from "./lib/tokens";
 
+const noop = () => null;
+
 const CYCLE_MS = 4600;
 
 const useCountUp = (target: number, ms = 950) => {
@@ -18,7 +20,7 @@ const useCountUp = (target: number, ms = 950) => {
     const from = painted.current;
 
     if (from === target) {
-      return;
+      return noop;
     }
 
     let raf = 0;
@@ -38,7 +40,9 @@ const useCountUp = (target: number, ms = 950) => {
 
     raf = requestAnimationFrame(step);
 
-    return () => cancelAnimationFrame(raf);
+    return () => {
+      cancelAnimationFrame(raf);
+    };
   }, [target, ms]);
 
   return shown;
@@ -48,7 +52,7 @@ const useReveal = (active: boolean, ms: number) => {
   const [progress, setProgress] = useState(0);
   useEffect(() => {
     if (!active) {
-      return;
+      return noop;
     }
 
     let raf = 0;
@@ -65,7 +69,9 @@ const useReveal = (active: boolean, ms: number) => {
 
     raf = requestAnimationFrame(step);
 
-    return () => cancelAnimationFrame(raf);
+    return () => {
+      cancelAnimationFrame(raf);
+    };
   }, [active, ms]);
 
   return progress;
@@ -75,8 +81,8 @@ const Kicker = ({ children, dark }: { children: string; dark?: boolean }) => (
   <span
     className="inline-block rounded-full border border-dashed px-2.5 py-0.5 text-[8.5px] font-semibold tracking-[0.14em]"
     style={{
-      borderColor: dark ? DARK.faint : FAINT,
-      color: dark ? DARK.muted : MUTED,
+      borderColor: dark === true ? DARK.faint : FAINT,
+      color: dark === true ? DARK.muted : MUTED,
     }}
   >
     {children}
@@ -98,11 +104,11 @@ const CardHead = ({
     <Kicker dark={dark}>{kicker}</Kicker>
     <h2
       className="mt-2 text-[16.5px] font-bold tracking-[-0.02em]"
-      style={{ color: dark ? DARK.ink : INK }}
+      style={{ color: dark === true ? DARK.ink : INK }}
     >
       {title}
     </h2>
-    <p className="mt-0.5 text-[11.5px]" style={{ color: dark ? DARK.muted : MUTED }}>
+    <p className="mt-0.5 text-[11.5px]" style={{ color: dark === true ? DARK.muted : MUTED }}>
       {sub}
     </p>
   </div>
@@ -111,7 +117,7 @@ const CardHead = ({
 const SourceRow = ({ children, dark }: { children: string; dark?: boolean }) => (
   <p
     className="mt-auto pt-3 text-[9px] font-medium tracking-[0.08em]"
-    style={{ color: dark ? DARK.faint : FAINT }}
+    style={{ color: dark === true ? DARK.faint : FAINT }}
   >
     {children}
   </p>
@@ -121,8 +127,13 @@ export const EditorialCharts = () => {
   const [scene, setScene] = useState(0);
   const [inked, setInked] = useState(false);
   useEffect(() => {
-    const frame = requestAnimationFrame(() => setInked(true));
-    const t = setInterval(() => setScene((s) => (s + 1) % SCENES.length), CYCLE_MS);
+    const frame = requestAnimationFrame(() => {
+      setInked(true);
+    });
+
+    const t = setInterval(() => {
+      setScene((s) => (s + 1) % SCENES.length);
+    }, CYCLE_MS);
 
     return () => {
       cancelAnimationFrame(frame);

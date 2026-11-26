@@ -57,22 +57,17 @@ describe("renderLlmsTxt — llmstxt.org format", () => {
   });
 
   test("puts the when-to-use guidance above the first H2, where free prose is allowed", () => {
-    // oxlint-disable-next-line unicorn/prefer-set-has -- a string, not a list: `.includes` here is substring search, and the rule's autofix turns it into a per-character test
-    const beforeFirstHeading = body.slice(0, body.indexOf("\n## "));
-    assert.ok(
-      beforeFirstHeading.includes("**When to use this:**"),
-      'should contain "**When to use this:**"',
-    );
-    assert.ok(beforeFirstHeading.includes("How to call it:"), 'should contain "How to call it:"');
-    assert.ok(
-      beforeFirstHeading.includes("Reading it as an agent:"),
-      'should contain "Reading it as an agent:"',
-    );
-    assert.ok(
-      beforeFirstHeading.includes("Licensing and support:"),
-      'should contain "Licensing and support:"',
-    );
-    assert.ok(beforeFirstHeading.includes("Not a fit"), 'should contain "Not a fit"');
+    const firstHeading = body.indexOf("\n## ");
+
+    for (const phrase of [
+      "**When to use this:**",
+      "How to call it:",
+      "Reading it as an agent:",
+      "Licensing and support:",
+      "Not a fit",
+    ]) {
+      assert.ok(body.slice(0, firstHeading).includes(phrase), `should contain "${phrase}"`);
+    }
   });
 
   test("names concrete jobs rather than marketing copy", () => {

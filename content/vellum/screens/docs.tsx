@@ -82,12 +82,19 @@ const CitedAnswer = ({
             aria-label={`Source ${part.source}, ${SOURCES[part.source - 1]?.title}`}
             className="v-cite"
             data-active={active === part.source ? "" : undefined}
-            // oxlint-disable-next-line react/no-array-index-key -- the answer is a fixed literal and a source repeats
             key={`cite-${index}`}
-            onBlur={() => onActive(null)}
-            onFocus={() => onActive(part.source)}
-            onPointerEnter={() => onActive(part.source)}
-            onPointerLeave={() => onActive(null)}
+            onBlur={() => {
+              onActive(null);
+            }}
+            onFocus={() => {
+              onActive(part.source);
+            }}
+            onPointerEnter={() => {
+              onActive(part.source);
+            }}
+            onPointerLeave={() => {
+              onActive(null);
+            }}
             type="button"
           >
             {part.source}
@@ -143,7 +150,9 @@ export const DocsScreen = () => {
 
   const run = (id: number, prompt: string) => {
     setStatus("submitted");
-    later(() => setStatus((current) => (current === "submitted" ? "streaming" : current)), 700);
+    later(() => {
+      setStatus((current) => (current === "submitted" ? "streaming" : current));
+    }, 700);
     later(() => {
       setTurns((list) =>
         list.map((turn) =>
@@ -187,7 +196,9 @@ export const DocsScreen = () => {
         model="Quill 4"
         onRetry={() => {
           setRerunning(true);
-          later(() => setRerunning(false), 1600);
+          later(() => {
+            setRerunning(false);
+          }, 1600);
         }}
         text={rerunning ? undefined : ANSWER_TEXT}
       >
@@ -224,7 +235,13 @@ export const DocsScreen = () => {
           <Bubble>{turn.prompt}</Bubble>
           <AgentTurn
             model={turn.reply === null && !turn.stopped ? undefined : "Quill 4"}
-            onRetry={status === "ready" ? () => retry(turn) : undefined}
+            onRetry={
+              status === "ready"
+                ? () => {
+                    retry(turn);
+                  }
+                : undefined
+            }
             stopped={turn.stopped}
             text={turn.reply ?? undefined}
           >

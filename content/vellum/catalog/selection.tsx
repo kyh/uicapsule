@@ -39,6 +39,7 @@ export const Selection = () => {
   const [tone, setTone] = useState<(typeof TONES)[number]["value"]>("warm");
   const [quiet, setQuiet] = useState(true);
   const [digest, setDigest] = useState(false);
+  const [masked, setMasked] = useState(true);
   const [limit, setLimit] = useState(50);
   const [range, setRange] = useState<(typeof RANGE)[number]["value"]>("week");
   const [calendar, setCalendar] = useState<(typeof CALENDARS)[number]["value"]>("household");
@@ -55,7 +56,9 @@ export const Selection = () => {
             <Checkbox
               checked={items[key] ?? false}
               key={key}
-              onCheckedChange={(checked) => setItems((current) => ({ ...current, [key]: checked }))}
+              onCheckedChange={(checked) => {
+                setItems((current) => ({ ...current, [key]: checked }));
+              }}
             >
               {label}
             </Checkbox>
@@ -72,10 +75,10 @@ export const Selection = () => {
           <Switch checked={quiet} label="Show sources under answers" onCheckedChange={setQuiet} />
           <Switch checked={digest} label="Keep traces for 30 days" onCheckedChange={setDigest} />
           <Switch
-            checked
+            checked={masked}
             label="Mask customer emails in traces, set by Ruth"
             disabled
-            onCheckedChange={() => null}
+            onCheckedChange={setMasked}
           />
         </div>
       </Specimen>

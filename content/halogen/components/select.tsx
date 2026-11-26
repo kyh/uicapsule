@@ -31,7 +31,7 @@ export const Select = <T extends string>({
 
   return (
     <div className="hx-field">
-      <label className={hideLabel ? "hx-sr" : "hx-field-label hx-label-sm"} htmlFor={id}>
+      <label className={hideLabel === true ? "hx-sr" : "hx-field-label hx-label-sm"} htmlFor={id}>
         {label}
       </label>
       <select
@@ -49,7 +49,9 @@ export const Select = <T extends string>({
       >
         {options.map((option) => (
           <option key={option.value} value={option.value}>
-            {option.meta ? `${option.label} · ${option.meta}` : option.label}
+            {option.meta !== undefined && option.meta !== ""
+              ? `${option.label} · ${option.meta}`
+              : option.label}
           </option>
         ))}
       </select>

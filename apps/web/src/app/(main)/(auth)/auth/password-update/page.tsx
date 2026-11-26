@@ -11,7 +11,12 @@ const PasswordUpdate = async ({
 }: Pick<PageProps<"/auth/password-update">, "searchParams">) => {
   const { token, error } = await searchParams;
 
-  if (!token || Array.isArray(token) || error) {
+  if (
+    token === undefined ||
+    token === "" ||
+    Array.isArray(token) ||
+    (error !== undefined && error !== "")
+  ) {
     return (
       <div className="space-y-4 text-center">
         <p>This password reset link is missing or expired.</p>

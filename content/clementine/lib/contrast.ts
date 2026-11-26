@@ -8,7 +8,9 @@ const parseHex = (value: string) => {
   const clean = value.trim().replace("#", "").toLowerCase();
 
   const full =
-    clean.length === 3 ? [...clean].map((digit) => `${digit}${digit}`).join("") : clean.slice(0, 6);
+    clean.length === 3
+      ? Array.from(clean, (digit) => `${digit}${digit}`).join("")
+      : clean.slice(0, 6);
 
   if (!/^[0-9a-f]{6}$/u.test(full)) {
     return null;

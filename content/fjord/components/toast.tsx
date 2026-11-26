@@ -13,6 +13,8 @@ import { CircleCheck, OctagonX, TriangleAlert, X } from "lucide-react";
 import { Button } from "./button";
 import { Icon } from "./icon";
 
+const noop = () => null;
+
 export interface ToastInput {
   title: string;
   description?: string;
@@ -63,11 +65,16 @@ const ToastItem = ({
     const node = ref.current;
 
     if (!node) {
-      return;
+      return noop;
     }
 
-    const hold = () => setPaused(true);
-    const release = () => setPaused(false);
+    const hold = () => {
+      setPaused(true);
+    };
+
+    const release = () => {
+      setPaused(false);
+    };
 
     const events = [
       ["pointerenter", hold],
@@ -89,11 +96,14 @@ const ToastItem = ({
 
   useEffect(() => {
     if (paused) {
-      return;
+      return noop;
     }
 
     const started = Date.now();
-    const timer = window.setTimeout(() => onDismiss(toast.id), remaining.current);
+
+    const timer = window.setTimeout(() => {
+      onDismiss(toast.id);
+    }, remaining.current);
 
     return () => {
       remaining.current -= Date.now() - started;
@@ -106,7 +116,9 @@ const ToastItem = ({
       <Icon icon={STATUS_ICON[toast.status ?? "ok"]} />
       <div className="fj-toast-body">
         <p className="fj-toast-title">{toast.title}</p>
-        {toast.description ? <p className="fj-toast-text">{toast.description}</p> : null}
+        {toast.description !== undefined && toast.description !== "" ? (
+          <p className="fj-toast-text">{toast.description}</p>
+        ) : null}
       </div>
       {toast.action ? (
         <Button
@@ -121,7 +133,9 @@ const ToastItem = ({
       ) : null}
       <Button
         aria-label="Dismiss"
-        onClick={() => onDismiss(toast.id)}
+        onClick={() => {
+          onDismiss(toast.id);
+        }}
         size="icon-xs"
         variant="ghost"
       >

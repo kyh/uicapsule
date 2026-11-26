@@ -20,6 +20,17 @@ const KEYS = [
   "del",
 ] as const satisfies readonly Key[];
 
+const DIGITS = ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9"] as const satisfies readonly Key[];
+
+const KEY_OF_EVENT = new Map<string, Key>([
+  ...DIGITS.map((digit) => [digit, digit] as const),
+  [",", "."],
+  [".", "."],
+  ["Backspace", "del"],
+]);
+
+const KEY_LABEL: Partial<Record<Key, string>> = { ".": "Decimal point", del: "Delete" };
+
 /** Applies one key to the typed amount string: two decimals at most, no second point, no leading zero. */
 export const pressKey = (value: string, key: Key, { decimal = true, maxDigits = 7 } = {}) => {
   if (key === "del") {
@@ -55,16 +66,12 @@ interface KeypadProps {
 }
 
 export const Keypad = ({ value, onValueChange, decimal = true, disabled = false }: KeypadProps) => {
-  const press = (key: Key) => onValueChange(pressKey(value, key, { decimal }));
+  const press = (key: Key) => {
+    onValueChange(pressKey(value, key, { decimal }));
+  };
 
   const onKeyDown = (event: KeyboardEvent) => {
-    const map = new Map<string, Key>([
-      [",", "."],
-      [".", "."],
-      ["Backspace", "del"],
-    ]);
-
-    const key = /^[0-9]$/u.test(event.key) ? (event.key as Key) : map.get(event.key);
+    const key = KEY_OF_EVENT.get(event.key);
 
     if (key && !disabled) {
       event.preventDefault();
@@ -82,11 +89,13 @@ export const Keypad = ({ value, onValueChange, decimal = true, disabled = false 
 
         return (
           <button
-            aria-label={{ ".": "Decimal point", del: "Delete" }[key as "." | "del"]}
+            aria-label={KEY_LABEL[key]}
             className="cl-keypad__key"
             disabled={disabled}
             key={key}
-            onClick={() => press(key)}
+            onClick={() => {
+              press(key);
+            }}
             onKeyDown={onKeyDown}
             type="button"
           >

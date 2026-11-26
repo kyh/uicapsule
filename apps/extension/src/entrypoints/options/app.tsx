@@ -38,7 +38,7 @@ export const App = () => {
   const save = async () => {
     const parsed = parseServiceUrl(serviceUrl);
 
-    if (!parsed) {
+    if (parsed === null || parsed === "") {
       return;
     }
 
@@ -104,7 +104,9 @@ export const App = () => {
           <Switch
             id="video"
             checked={preferences.video}
-            onCheckedChange={(checked) => setPreference("video", checked)}
+            onCheckedChange={(checked) => {
+              setPreference("video", checked);
+            }}
           />
           <div className="flex flex-col gap-1">
             <FieldLabel htmlFor="video">Attach video</FieldLabel>
@@ -118,7 +120,9 @@ export const App = () => {
           <Switch
             id="html"
             checked={preferences.html}
-            onCheckedChange={(checked) => setPreference("html", checked)}
+            onCheckedChange={(checked) => {
+              setPreference("html", checked);
+            }}
           />
           <div className="flex flex-col gap-1">
             <FieldLabel htmlFor="html">Include HTML</FieldLabel>

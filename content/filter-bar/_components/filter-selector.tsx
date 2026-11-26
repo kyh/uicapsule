@@ -30,6 +30,8 @@ import type {
 import { getColumn, bindFilter } from "../filter-package";
 import { FilterValueController } from "./filter-value";
 
+const noop = () => null;
+
 const renderColumnIcon = (icon: ReactElement | ReactElementType, className: string) => {
   if (isValidElement(icon)) {
     return icon;
@@ -76,7 +78,7 @@ export const FilterableColumn = <TType extends ColumnDataType>({
     >
       <div className="flex w-full items-center justify-between">
         <div className="inline-flex items-center gap-1.5">
-          {Icon && (
+          {Icon !== undefined && (
             <div className="relative">
               {renderColumnIcon(Icon, "size-4 stroke-[2.25px]")}
               {isFiltered && (
@@ -84,7 +86,9 @@ export const FilterableColumn = <TType extends ColumnDataType>({
               )}
             </div>
           )}
-          {!Icon && isFiltered && <div className="h-2 w-2 rounded-full bg-green-500" />}
+          {Icon === undefined && isFiltered && (
+            <div className="h-2 w-2 rounded-full bg-green-500" />
+          )}
           <span>{column.displayName}</span>
         </div>
         {column.type !== "boolean" && (
@@ -113,7 +117,7 @@ export const QuickSearchFilters = ({
     [columns],
   );
 
-  if (!search || search.trim().length < 2) {
+  if (search === undefined || search === "" || search.trim().length < 2) {
     return null;
   }
 
@@ -154,7 +158,7 @@ export const QuickSearchFilters = ({
                       className="dark:border-(--ring) mr-1 opacity-0 group-data-[selected=true]:opacity-100 data-checked:opacity-100"
                     />
                     <div className="flex w-4 items-center justify-center">
-                      {v.icon && renderColumnIcon(v.icon, "text-(--primary) size-4")}
+                      {v.icon !== undefined && renderColumnIcon(v.icon, "text-(--primary) size-4")}
                     </div>
                     <div className="flex items-center gap-0.5">
                       <span className="text-(--muted-foreground)">{column.displayName}</span>
@@ -194,18 +198,23 @@ export const FilterSelector = ({
   const [property, setProperty] = useState<string | undefined>();
   const inputRef = useRef<HTMLInputElement>(null);
 
-  const visibleColumns = useMemo(() => columns.filter((c) => !c.hidden), [columns]);
+  const visibleColumns = useMemo(() => columns.filter((c) => c.hidden !== true), [columns]);
 
   const visibleFilters = useMemo(
     () => filters.filter((f) => visibleColumns.find((c) => c.id === f.columnId)),
     [filters, visibleColumns],
   );
 
-  const column = property ? getColumn(visibleColumns, property) : undefined;
-  const filter = property ? visibleFilters.find((f) => f.columnId === property) : undefined;
+  const column =
+    property !== undefined && property !== "" ? getColumn(visibleColumns, property) : undefined;
+
+  const filter =
+    property !== undefined && property !== ""
+      ? visibleFilters.find((f) => f.columnId === property)
+      : undefined;
 
   useEffect(() => {
-    if (!property) {
+    if (property === undefined || property === "") {
       return;
     }
 
@@ -214,30 +223,36 @@ export const FilterSelector = ({
 
   useEffect(() => {
     if (open) {
-      return;
+      return noop;
     }
 
-    const timeoutId = setTimeout(() => setValue(""), 150);
+    const timeoutId = setTimeout(() => {
+      setValue("");
+    }, 150);
 
-    return () => clearTimeout(timeoutId);
+    return () => {
+      clearTimeout(timeoutId);
+    };
   }, [open]);
 
   const content = useMemo(
     () =>
-      property && column && column.type !== "boolean" ? (
+      property !== undefined && property !== "" && column && column.type !== "boolean" ? (
         <div className="flex flex-col">
           <div className="flex h-9 items-center gap-2 border-b px-2">
             <Button
               variant="ghost"
               size="icon"
-              onClick={() => setProperty(undefined)}
+              onClick={() => {
+                setProperty(undefined);
+              }}
               className="h-6 w-6 p-0"
             >
               <ArrowLeftIcon className="size-4" />
               <span className="sr-only">Back</span>
             </Button>
             <div className="flex items-center gap-1.5 text-sm">
-              {column.icon && renderColumnIcon(column.icon, "size-4 stroke-[2.25px]")}
+              {column.icon !== undefined && renderColumnIcon(column.icon, "size-4 stroke-[2.25px]")}
               <span className="font-medium">{column.displayName}</span>
             </div>
           </div>
@@ -335,7 +350,9 @@ export const FilterSelector = ({
         setOpen(next);
 
         if (!next) {
-          setTimeout(() => setProperty(undefined), 100);
+          setTimeout(() => {
+            setProperty(undefined);
+          }, 100);
         }
       }}
     >

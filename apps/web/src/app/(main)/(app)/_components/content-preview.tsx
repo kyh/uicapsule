@@ -25,7 +25,9 @@ export const ContentPreview = ({ slug, name, index, tags, isNew, cover }: Conten
     <PrefetchLink
       className="bg-background group flex flex-col justify-between gap-3 p-3 text-lg sm:p-6"
       href={`/ui/${slug}`}
-      onClick={() => trigger("selection")}
+      onClick={() => {
+        void trigger("selection");
+      }}
     >
       <div className="grid">
         <MediaReveal
@@ -45,7 +47,7 @@ export const ContentPreview = ({ slug, name, index, tags, isNew, cover }: Conten
       <div className="flex justify-between font-mono text-xs">
         <p className="group-hover:text-primary transition">{name}</p>
         <p className="text-muted-foreground/50 group-hover:text-primary/50 transition">
-          {badge ? (
+          {badge !== undefined && badge !== "" ? (
             <Badge className="group-hover:text-primary" variant="secondary">
               {badge}
             </Badge>

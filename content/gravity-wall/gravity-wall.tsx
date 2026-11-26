@@ -28,6 +28,8 @@ import {
 } from "./build-cells";
 import { FeaturedCard } from "./featured-card";
 
+const noop = () => null;
+
 interface WallProps {
   cells: Cell[];
   photos: readonly [Photo, ...Photo[]];
@@ -183,8 +185,7 @@ const placeCell = (
 
   const dx = effectiveWorldX - vX;
   const dy = effectiveWorldY - vY;
-  // oxlint-disable-next-line unicorn/prefer-modern-math-apis -- Math.hypot is slower and this runs ~500 times a frame; same result for pixel-scale inputs
-  const dist = Math.sqrt(dx * dx + dy * dy);
+  const dist = Math.hypot(dx, dy);
 
   const baseScreenX = effectiveWorldX + p.panOff.x;
   const baseScreenY = effectiveWorldY + p.panOff.y;
@@ -340,7 +341,9 @@ export const GravityWall: FC<GravityWallProps> = ({ photos }) => {
     apply();
     mq.addEventListener("change", apply);
 
-    return () => mq.removeEventListener("change", apply);
+    return () => {
+      mq.removeEventListener("change", apply);
+    };
   }, []);
 
   const refreshOrigin = useCallback(() => {
@@ -361,7 +364,7 @@ export const GravityWall: FC<GravityWallProps> = ({ photos }) => {
     const section = sectionRef.current;
 
     if (!section) {
-      return;
+      return noop;
     }
 
     let raf = 0;
@@ -482,8 +485,13 @@ export const GravityWall: FC<GravityWallProps> = ({ photos }) => {
     [built, dims, setFeatured],
   );
 
-  const goNext = useCallback(() => navigate(1), [navigate]);
-  const goPrev = useCallback(() => navigate(-1), [navigate]);
+  const goNext = useCallback(() => {
+    navigate(1);
+  }, [navigate]);
+
+  const goPrev = useCallback(() => {
+    navigate(-1);
+  }, [navigate]);
 
   const toggleLike = useSlugToggle(setLiked, currentPhoto.slug);
   const toggleSave = useSlugToggle(setSaved, currentPhoto.slug);
@@ -492,7 +500,7 @@ export const GravityWall: FC<GravityWallProps> = ({ photos }) => {
     const section = sectionRef.current;
 
     if (!section) {
-      return;
+      return noop;
     }
 
     const p = physics.current;
@@ -524,18 +532,22 @@ export const GravityWall: FC<GravityWallProps> = ({ photos }) => {
       p.hovering = false;
     };
 
+    const onScroll = () => {
+      refreshOrigin();
+    };
+
     section.addEventListener("pointermove", onMove);
     section.addEventListener("touchmove", onTouch, { passive: true });
     section.addEventListener("pointerenter", onEnter);
     section.addEventListener("pointerleave", onLeave);
-    window.addEventListener("scroll", refreshOrigin, { capture: true, passive: true });
+    window.addEventListener("scroll", onScroll, { capture: true, passive: true });
 
     return () => {
       section.removeEventListener("pointermove", onMove);
       section.removeEventListener("touchmove", onTouch);
       section.removeEventListener("pointerenter", onEnter);
       section.removeEventListener("pointerleave", onLeave);
-      window.removeEventListener("scroll", refreshOrigin, { capture: true });
+      window.removeEventListener("scroll", onScroll, { capture: true });
     };
   }, [refreshOrigin]);
 
@@ -556,12 +568,14 @@ export const GravityWall: FC<GravityWallProps> = ({ photos }) => {
 
     window.addEventListener("keydown", onKey);
 
-    return () => window.removeEventListener("keydown", onKey);
+    return () => {
+      window.removeEventListener("keydown", onKey);
+    };
   }, [close, goNext, goPrev]);
 
   useEffect(() => {
     if (!built || !dims) {
-      return;
+      return noop;
     }
 
     const { cells, tile } = built;
@@ -694,13 +708,15 @@ export const GravityWall: FC<GravityWallProps> = ({ photos }) => {
 
     raf = requestAnimationFrame(tick);
 
-    return () => cancelAnimationFrame(raf);
+    return () => {
+      cancelAnimationFrame(raf);
+    };
   }, [built, dims, setFeatured]);
 
   const hasBuilt = built !== null;
   useEffect(() => {
     if (!hasBuilt) {
-      return;
+      return noop;
     }
 
     const introVals = intro.current;
@@ -710,7 +726,7 @@ export const GravityWall: FC<GravityWallProps> = ({ photos }) => {
       introVals.voidEmerge = 1;
       introVals.featuredEmerge = 1;
 
-      return;
+      return noop;
     }
 
     introVals.entrance = 0;

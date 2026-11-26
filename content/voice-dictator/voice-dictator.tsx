@@ -4,6 +4,8 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import type { FC } from "react";
 import { motion } from "motion/react";
 
+const noop = () => null;
+
 const TRANSCRIPT_LIBRARY = [
   "The warrior should be cloaked in obsidian armor with faint runes pulsing across each plate, wind tearing through the cape as petals scatter around the scene.",
   "Let's add a soft volumetric glow behind the subject to carve out the silhouette and make the cliff edge feel like it's dissolving into the clouds below.",
@@ -46,7 +48,7 @@ export const VoiceDictator: FC = () => {
     const canvas = canvasRef.current;
 
     if (!canvas) {
-      return;
+      return null;
     }
 
     const gl = canvas.getContext("webgl", {
@@ -56,7 +58,7 @@ export const VoiceDictator: FC = () => {
     });
 
     if (!gl) {
-      return;
+      return null;
     }
 
     const vertexShaderSource = `
@@ -124,7 +126,7 @@ export const VoiceDictator: FC = () => {
 
       gl.shaderSource(shader, source);
       gl.compileShader(shader);
-      const compiled = gl.getShaderParameter(shader, gl.COMPILE_STATUS);
+      const compiled = gl.getShaderParameter(shader, gl.COMPILE_STATUS) === true;
 
       if (!compiled) {
         const info = gl.getShaderInfoLog(shader);
@@ -140,7 +142,7 @@ export const VoiceDictator: FC = () => {
 
     const program = gl.createProgram();
 
-    if (!program) {
+    if (program === null) {
       throw new Error("Unable to create WebGL program");
     }
 
@@ -148,7 +150,7 @@ export const VoiceDictator: FC = () => {
     gl.attachShader(program, fragmentShader);
     gl.linkProgram(program);
 
-    const linked = gl.getProgramParameter(program, gl.LINK_STATUS);
+    const linked = gl.getProgramParameter(program, gl.LINK_STATUS) === true;
 
     if (!linked) {
       const info = gl.getProgramInfoLog(program);
@@ -243,7 +245,7 @@ export const VoiceDictator: FC = () => {
     render(0);
 
     return () => {
-      if (animationFrameRef.current) {
+      if (animationFrameRef.current !== null && animationFrameRef.current !== 0) {
         cancelAnimationFrame(animationFrameRef.current);
       }
 
@@ -256,9 +258,11 @@ export const VoiceDictator: FC = () => {
 
   useEffect(() => {
     try {
-      return initialiseWebGL();
+      return initialiseWebGL() ?? noop;
     } catch (error) {
       console.error(error);
+
+      return noop;
     }
   }, [initialiseWebGL]);
 
@@ -269,14 +273,14 @@ export const VoiceDictator: FC = () => {
 
   useEffect(() => {
     if (!isListening) {
-      if (pulseTimeoutRef.current) {
+      if (pulseTimeoutRef.current !== null && pulseTimeoutRef.current !== 0) {
         clearTimeout(pulseTimeoutRef.current);
         pulseTimeoutRef.current = null;
       }
 
       targetAmplitudeRef.current = 0.06;
 
-      return;
+      return noop;
     }
 
     const pump = () => {
@@ -292,7 +296,7 @@ export const VoiceDictator: FC = () => {
     pump();
 
     return () => {
-      if (pulseTimeoutRef.current) {
+      if (pulseTimeoutRef.current !== null && pulseTimeoutRef.current !== 0) {
         clearTimeout(pulseTimeoutRef.current);
         pulseTimeoutRef.current = null;
       }
@@ -301,12 +305,12 @@ export const VoiceDictator: FC = () => {
 
   useEffect(() => {
     if (!isListening) {
-      if (wordTimeoutRef.current) {
+      if (wordTimeoutRef.current !== null && wordTimeoutRef.current !== 0) {
         clearTimeout(wordTimeoutRef.current);
         wordTimeoutRef.current = null;
       }
 
-      return;
+      return noop;
     }
 
     scriptRef.current = pickTranscript().split(" ");
@@ -325,7 +329,7 @@ export const VoiceDictator: FC = () => {
 
       const nextWord = scriptRef.current[wordIndexRef.current];
 
-      if (nextWord) {
+      if (nextWord !== undefined && nextWord !== "") {
         wordIndexRef.current += 1;
         setTranscript((previous) => (previous.length > 0 ? `${previous} ${nextWord}` : nextWord));
         targetAmplitudeRef.current = 0.32 + Math.random() * 0.6;
@@ -339,7 +343,7 @@ export const VoiceDictator: FC = () => {
     wordTimeoutRef.current = setTimeout(deliver, initialDelay);
 
     return () => {
-      if (wordTimeoutRef.current) {
+      if (wordTimeoutRef.current !== null && wordTimeoutRef.current !== 0) {
         clearTimeout(wordTimeoutRef.current);
         wordTimeoutRef.current = null;
       }

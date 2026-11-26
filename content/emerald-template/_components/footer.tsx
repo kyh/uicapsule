@@ -33,24 +33,21 @@ const SocialLink = ({
   </a>
 );
 
-const SmallPrint = () => {
-  // oxlint-disable-next-line react/purity -- copyright year is meant to be current
-  const year = new Date().getUTCFullYear();
+const YEAR = new Date().getUTCFullYear();
 
-  return (
-    <div className="flex flex-col items-center justify-between gap-5 border-t border-white/10 pt-8 sm:flex-row">
-      <p className="text-xs text-zinc-400">&copy; Copyright {year}. All rights reserved.</p>
-      <div className="flex gap-4">
-        <SocialLink href="" icon={TwitterIcon}>
-          Follow us on Twitter
-        </SocialLink>
-        <SocialLink href="" icon={GitHubIcon}>
-          Follow us on GitHub
-        </SocialLink>
-      </div>
+const SmallPrint = () => (
+  <div className="flex flex-col items-center justify-between gap-5 border-t border-white/10 pt-8 sm:flex-row">
+    <p className="text-xs text-zinc-400">&copy; Copyright {YEAR}. All rights reserved.</p>
+    <div className="flex gap-4">
+      <SocialLink href="" icon={TwitterIcon}>
+        Follow us on Twitter
+      </SocialLink>
+      <SocialLink href="" icon={GitHubIcon}>
+        Follow us on GitHub
+      </SocialLink>
     </div>
-  );
-};
+  </div>
+);
 
 export const Footer = () => (
   <footer className="mt-20 border-t border-white/10 text-sm sm:mt-24">

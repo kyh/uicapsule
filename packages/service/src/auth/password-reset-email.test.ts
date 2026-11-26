@@ -59,10 +59,10 @@ test("password reset delivery reports provider and network failures", async (t) 
 
   const resetUrl = "https://example.com/api/auth/reset-password/test-token";
   let received: Request | undefined;
-  await sendPasswordResetEmail("dev@example.com", resetUrl, (input, init) => {
+  await sendPasswordResetEmail("dev@example.com", resetUrl, async (input, init) => {
     received = new Request(input, init);
 
-    return Promise.resolve(Response.json({ id: "test-message" }));
+    return await Promise.resolve(Response.json({ id: "test-message" }));
   });
   assert.ok(received);
   assert.equal(received.url, "https://api.resend.com/emails");
@@ -77,14 +77,18 @@ test("password reset delivery reports provider and network failures", async (t) 
   });
 
   await assert.rejects(
-    sendPasswordResetEmail("dev@example.com", resetUrl, () =>
-      Promise.resolve(new Response(null, { status: 503 })),
+    sendPasswordResetEmail(
+      "dev@example.com",
+      resetUrl,
+      async () => await Promise.resolve(new Response(null, { status: 503 })),
     ),
     APIError,
   );
   await assert.rejects(
-    sendPasswordResetEmail("dev@example.com", resetUrl, () =>
-      Promise.reject(new Error("Network unavailable")),
+    sendPasswordResetEmail(
+      "dev@example.com",
+      resetUrl,
+      async () => await Promise.reject(new Error("Network unavailable")),
     ),
     APIError,
   );

@@ -6,8 +6,8 @@ import * as route from "./route";
 
 const APP_ORIGIN = "http://localhost:3000";
 
-const post = (headers: Record<string, string> = {}) =>
-  route.POST(
+const post = async (headers: Record<string, string> = {}) =>
+  await route.POST(
     new NextRequest(`${APP_ORIGIN}/api/orpc/user/me`, {
       body: JSON.stringify({ json: {} }),
       headers: { "content-type": "application/json", ...headers },

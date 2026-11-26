@@ -69,12 +69,12 @@ export const Inline = ({ text }: { text: string }) =>
 
 const ProseItem = ({ item }: { item: ProseListItem }) => (
   <li>
-    {item.href ? (
+    {item.href !== undefined && item.href !== "" ? (
       <ProseLink href={item.href}>{item.label}</ProseLink>
     ) : (
       <span className="text-foreground">{item.label}</span>
     )}
-    {item.text ? (
+    {item.text !== undefined && item.text !== "" ? (
       <>
         {" — "}
         <Inline text={item.text} />
@@ -165,12 +165,17 @@ const ProseBlockView = ({ block, id }: { block: ProseBlock; id?: string }) => {
       return <CodeSnippet text={block.text} label={block.label} />;
     }
 
-    default: {
+    case "paragraph": {
       return (
         <p>
           <Inline text={block.text} />
         </p>
       );
+    }
+
+    default: {
+      const exhaustive: never = block;
+      throw new Error(`Unknown prose block: ${JSON.stringify(exhaustive)}`);
     }
   }
 };

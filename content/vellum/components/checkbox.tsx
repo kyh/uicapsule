@@ -15,7 +15,9 @@ export const Checkbox = ({
   <label className="v-check" data-done={strike && checked ? "" : undefined}>
     <input
       checked={checked}
-      onChange={(event) => onCheckedChange(event.target.checked)}
+      onChange={(event) => {
+        onCheckedChange(event.target.checked);
+      }}
       type="checkbox"
     />
     <span aria-hidden className="v-check-box">

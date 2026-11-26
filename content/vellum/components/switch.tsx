@@ -14,7 +14,9 @@ export const Switch = ({
     aria-checked={checked}
     className="v-switch"
     disabled={disabled}
-    onClick={() => onCheckedChange(!checked)}
+    onClick={() => {
+      onCheckedChange(!checked);
+    }}
     role="switch"
     type="button"
   >

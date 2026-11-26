@@ -12,29 +12,29 @@ interface FieldProps extends InputHTMLAttributes<HTMLInputElement> {
 /** A one-line field: a pill whose hairline darkens to a third of ink on focus. */
 export const Field = ({ label, hint, error, icon, hideLabel = false, ...props }: FieldProps) => {
   const id = useId();
-  const hintId = hint ? `${id}-hint` : undefined;
-  const describedBy = error ? `${id}-error` : hintId;
+  const hintId = hint !== undefined && hint !== "" ? `${id}-hint` : undefined;
+  const describedBy = error !== undefined && error !== "" ? `${id}-error` : hintId;
 
   return (
     <div className="v-field-wrap">
       <label className={hideLabel ? "v-sr" : undefined} htmlFor={id}>
         {label}
       </label>
-      <div className="v-field" data-invalid={error ? "" : undefined}>
+      <div className="v-field" data-invalid={error !== undefined && error !== "" ? "" : undefined}>
         {icon}
         <input
           aria-describedby={describedBy}
-          aria-invalid={error ? true : undefined}
+          aria-invalid={error !== undefined && error !== "" ? true : undefined}
           id={id}
           {...props}
         />
       </div>
-      {error ? (
+      {error !== undefined && error !== "" ? (
         <p className="v-error" id={`${id}-error`}>
           {error}
         </p>
       ) : null}
-      {hint && !error ? (
+      {hint !== undefined && hint !== "" && (error === undefined || error === "") ? (
         <p className="v-hint" id={`${id}-hint`}>
           {hint}
         </p>
@@ -55,12 +55,12 @@ export const Textarea = ({
     <div className="v-field-wrap">
       <label htmlFor={id}>{label}</label>
       <textarea
-        aria-describedby={hint ? `${id}-hint` : undefined}
+        aria-describedby={hint !== undefined && hint !== "" ? `${id}-hint` : undefined}
         className="v-textarea"
         id={id}
         {...props}
       />
-      {hint ? (
+      {hint !== undefined && hint !== "" ? (
         <p className="v-hint" id={`${id}-hint`}>
           {hint}
         </p>

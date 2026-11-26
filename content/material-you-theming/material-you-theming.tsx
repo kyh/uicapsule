@@ -197,7 +197,9 @@ export const MaterialYouTheming = () => {
                 key={wallpaper.id}
                 aria-label={`Use ${wallpaper.name} wallpaper`}
                 aria-pressed={wallpaper.id === active.id}
-                onClick={() => setActive(wallpaper)}
+                onClick={() => {
+                  setActive(wallpaper);
+                }}
                 whileTap={{ scale: 0.92 }}
                 animate={{ scale: wallpaper.id === active.id ? 1.06 : 1 }}
                 className="relative h-[116px] w-[62px] overflow-hidden rounded-2xl ring-2"

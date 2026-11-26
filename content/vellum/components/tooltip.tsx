@@ -17,7 +17,9 @@ export const Tooltip = ({
 
   const show = (delay: number) => {
     window.clearTimeout(timer.current);
-    timer.current = window.setTimeout(() => setOpen(true), delay);
+    timer.current = window.setTimeout(() => {
+      setOpen(true);
+    }, delay);
   };
 
   const hide = () => {
@@ -29,13 +31,17 @@ export const Tooltip = ({
     <span
       className="v-anchor"
       onBlur={hide}
-      onFocus={() => show(0)}
+      onFocus={() => {
+        show(0);
+      }}
       onKeyDown={(event) => {
         if (event.key === "Escape") {
           hide();
         }
       }}
-      onPointerEnter={() => show(400)}
+      onPointerEnter={() => {
+        show(400);
+      }}
       onPointerLeave={hide}
       role="presentation"
     >

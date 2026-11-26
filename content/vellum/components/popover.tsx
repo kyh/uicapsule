@@ -32,14 +32,18 @@ export const Popover = ({
   const root = useRef<HTMLDivElement>(null);
   const id = useId();
 
-  useDismiss(root, open, () => onOpenChange(false));
+  useDismiss(root, open, () => {
+    onOpenChange(false);
+  });
 
   return (
     <div className="v-anchor" ref={root}>
       {renderTrigger({
         "aria-controls": id,
         "aria-expanded": open,
-        onClick: () => onOpenChange(!open),
+        onClick: () => {
+          onOpenChange(!open);
+        },
       })}
       <dialog
         aria-label={title}

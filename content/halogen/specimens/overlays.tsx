@@ -79,11 +79,22 @@ export const Overlays = ({ onCommand }: { onCommand: () => void }) => {
           note="A panel over the dimmed sheet, driven by open and onOpenChange. When the action is a loss, red is the only strong button inside."
           path="overlays/dialog"
         >
-          <Button onClick={() => setDrop(true)}>Drop table</Button>
+          <Button
+            onClick={() => {
+              setDrop(true);
+            }}
+          >
+            Drop table
+          </Button>
           <Dialog
             footer={
               <>
-                <Button onClick={() => setDrop(false)} variant="ghost">
+                <Button
+                  onClick={() => {
+                    setDrop(false);
+                  }}
+                  variant="ghost"
+                >
                   Keep table
                 </Button>
                 <Button
@@ -117,7 +128,9 @@ export const Overlays = ({ onCommand }: { onCommand: () => void }) => {
               <Input
                 data-autofocus
                 mono
-                onChange={(event) => setTyped(event.target.value)}
+                onChange={(event) => {
+                  setTyped(event.target.value);
+                }}
                 placeholder="staging.events_old"
                 value={typed}
               />
@@ -193,7 +206,9 @@ export const Overlays = ({ onCommand }: { onCommand: () => void }) => {
               items={MENU}
               label="Run actions"
               onOpenChange={setMenu}
-              onSelect={(id) => setLast(MENU.find((item) => item.id === id)?.label ?? id)}
+              onSelect={(id) => {
+                setLast(MENU.find((item) => item.id === id)?.label ?? id);
+              }}
               open={menu}
               renderTrigger={(props) => (
                 <Button {...props} aria-label="Run actions" size="icon-sm" variant="ghost">
@@ -237,7 +252,10 @@ export const CommandHost = ({
       items={COMMANDS}
       onOpenChange={onOpenChange}
       onRun={(item) => {
-        const target = item.target ? document.querySelector<HTMLElement>(`#${item.target}`) : null;
+        const target =
+          item.target !== undefined && item.target !== ""
+            ? document.querySelector<HTMLElement>(`#${item.target}`)
+            : null;
 
         if (!target) {
           push({ detail: item.group, status: "ok", title: `Ran ${item.label}` });
@@ -245,15 +263,15 @@ export const CommandHost = ({
           return;
         }
 
-        requestAnimationFrame(() =>
+        requestAnimationFrame(() => {
           requestAnimationFrame(() => {
             target.focus({ preventScroll: true });
             target.scrollIntoView({
               behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth",
               block: "start",
             });
-          }),
-        );
+          });
+        });
       }}
       open={open}
     />

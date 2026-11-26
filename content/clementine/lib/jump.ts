@@ -9,7 +9,7 @@ export const jumpTo = (id: string, focus?: string) => {
   const still = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
   target.scrollIntoView({ behavior: still ? "auto" : "smooth", block: "start" });
 
-  if (focus) {
+  if (focus !== undefined && focus !== "") {
     target.querySelector<HTMLElement>(focus)?.focus({ preventScroll: true });
   }
 };

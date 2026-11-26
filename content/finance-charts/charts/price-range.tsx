@@ -190,7 +190,7 @@ export const PriceRange = () => {
               line: false,
               tickLabels: { fontSize: 11 },
               ticks: {
-                format: (v) => DAYS[Math.round((Number(v) - 4) / 13)] ?? "",
+                format: (v) => DAYS[Math.round((v - 4) / 13)] ?? "",
                 size: 0,
                 values: DAYS.map((_, k) => 4 + k * 13),
               },

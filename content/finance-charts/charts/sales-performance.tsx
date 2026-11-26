@@ -258,7 +258,11 @@ export const SalesPerformance = () => {
         </div>
       </div>
       <ChartSlot height={HEIGHT} className="mt-3">
-        <div onMouseLeave={() => pin(null)}>
+        <div
+          onMouseLeave={() => {
+            pin(null);
+          }}
+        >
           <Chart
             definition={definition}
             renderer={renderer}

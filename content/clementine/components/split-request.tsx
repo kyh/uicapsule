@@ -53,13 +53,13 @@ export const SplitRequest = ({
                 aria-label={`${on ? "Leave out" : "Include"} ${person.name}`}
                 className="cl-link"
                 disabled={sent}
-                onClick={() =>
+                onClick={() => {
                   onIncludedChange(
                     on
                       ? included.filter((name) => name !== person.name)
                       : [...included, person.name],
-                  )
-                }
+                  );
+                }}
                 type="button"
               >
                 {on ? "Leave out" : "Include"}
@@ -69,7 +69,13 @@ export const SplitRequest = ({
         })}
       </ul>
       <div className="cl-pay-row">
-        <Button block disabled={total === 0 || sent} onClick={() => onRequest(total)}>
+        <Button
+          block
+          disabled={total === 0 || sent}
+          onClick={() => {
+            onRequest(total);
+          }}
+        >
           {sent ? "Asked" : "Ask for the money"}
         </Button>
         <Amount size="lg" tone="accent" value={total} />

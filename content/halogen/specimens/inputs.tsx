@@ -43,7 +43,9 @@ export const Inputs = () => {
                 aria-describedby={describedBy}
                 id={id}
                 mono
-                onChange={(event) => setName(event.target.value)}
+                onChange={(event) => {
+                  setName(event.target.value);
+                }}
                 value={name}
               />
             )}
@@ -55,7 +57,9 @@ export const Inputs = () => {
                 aria-invalid={invalid}
                 id={id}
                 mono
-                onChange={(event) => setCron(event.target.value)}
+                onChange={(event) => {
+                  setCron(event.target.value);
+                }}
                 value={cron}
               />
             )}
@@ -88,7 +92,9 @@ export const Inputs = () => {
                 aria-describedby={describedBy}
                 id={id}
                 maxLength={280}
-                onChange={(event) => setNotes(event.target.value)}
+                onChange={(event) => {
+                  setNotes(event.target.value);
+                }}
                 value={notes}
               />
             )}

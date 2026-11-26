@@ -240,7 +240,7 @@ const createEngine = (refs: EngineRefs) => {
     let left = 0;
 
     for (const [i, b] of layout.bridges.entries()) {
-      if (s.snapped[i]) {
+      if (s.snapped[i] === true) {
         continue;
       }
 
@@ -475,7 +475,9 @@ const createEngine = (refs: EngineRefs) => {
     paint();
   };
 
-  const stop = () => cancelAnimationFrame(s.raf);
+  const stop = () => {
+    cancelAnimationFrame(s.raf);
+  };
 
   return {
     handlers: {

@@ -153,7 +153,9 @@ export const OptionsPortfolio = () => {
               key={Icon.displayName ?? i}
               type="button"
               aria-label={i === 0 ? "Bar view" : "Trend view"}
-              onClick={() => pin(i)}
+              onClick={() => {
+                pin(i);
+              }}
               className="relative inline-flex h-7 w-10 items-center justify-center rounded-full"
               style={{ color: i === mode ? INK : MUTED }}
             >
@@ -187,7 +189,14 @@ export const OptionsPortfolio = () => {
         ))}
       </div>
       <ChartSlot height={HEIGHT} className="mt-5">
-        <div onMouseLeave={() => pin(null)} onMouseEnter={() => pin(mode)}>
+        <div
+          onMouseLeave={() => {
+            pin(null);
+          }}
+          onMouseEnter={() => {
+            pin(mode);
+          }}
+        >
           <Chart
             definition={definition}
             renderer={renderer}

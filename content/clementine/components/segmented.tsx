@@ -1,7 +1,7 @@
-import type { CSSProperties } from "react";
 import { useId } from "react";
 
 import "./segmented.css";
+import { cssVars } from "../lib/css-vars";
 
 interface SegmentedProps<T extends string> {
   label: string;
@@ -25,12 +25,10 @@ export const Segmented = <T extends string>({
     <fieldset
       className="cl-seg"
       data-block={block || undefined}
-      style={
-        {
-          "--cl-seg-count": options.length,
-          "--cl-seg-index": index,
-        } as CSSProperties
-      }
+      style={cssVars({
+        "--cl-seg-count": options.length,
+        "--cl-seg-index": index,
+      })}
     >
       <legend className="cl-sr">{label}</legend>
       <span aria-hidden className="cl-seg__thumb" />
@@ -40,7 +38,9 @@ export const Segmented = <T extends string>({
             checked={option === value}
             className="cl-sr-input"
             name={name}
-            onChange={() => onValueChange(option)}
+            onChange={() => {
+              onValueChange(option);
+            }}
             type="radio"
             value={option}
           />

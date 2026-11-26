@@ -74,7 +74,7 @@ export const getSourceFiles = async (slug: string) => {
     return null;
   }
 
-  return readSourceFiles(component);
+  return await readSourceFiles(component);
 };
 
 export const getShadcnRegistry = async () => {
@@ -111,7 +111,7 @@ export const getShadcnRegistryItem = async (slug: string) => {
     return null;
   }
 
-  return buildShadcnRegistryItem(component);
+  return await buildShadcnRegistryItem(component);
 };
 
 export const getRepoSkills = async (names: readonly string[]) => {

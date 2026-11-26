@@ -14,6 +14,8 @@ import { useToast } from "../components/toast";
 import { clock, full } from "../lib/format";
 import { NIGHTS, SYNC_LANES, SYNC_STEPS } from "./data";
 
+const noop = () => null;
+
 const STAGES = [
   { label: "Extract", value: "extract" },
   { label: "Load", value: "load" },
@@ -60,7 +62,7 @@ export const SyncScreen = () => {
 
   useEffect(() => {
     if (!running) {
-      return;
+      return noop;
     }
 
     const timer = window.setTimeout(() => {
@@ -82,7 +84,9 @@ export const SyncScreen = () => {
       }
     }, 1100);
 
-    return () => window.clearTimeout(timer);
+    return () => {
+      window.clearTimeout(timer);
+    };
   }, [cursor, elapsed, push, running]);
 
   const steps = SYNC_STEPS.map((step, index) => ({ ...step, state: stateAt(index, cursor) }));
@@ -164,7 +168,13 @@ export const SyncScreen = () => {
           </div>
         ) : null}
         <span className="hx-row hx-end">
-          <Button disabled={running} onClick={() => setStage("publish")} variant="ghost">
+          <Button
+            disabled={running}
+            onClick={() => {
+              setStage("publish");
+            }}
+            variant="ghost"
+          >
             View marts
           </Button>
           <Button

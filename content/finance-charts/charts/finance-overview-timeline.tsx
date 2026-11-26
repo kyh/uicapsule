@@ -151,7 +151,14 @@ export const FinanceOverviewTimeline = () => {
         ))}
       </div>
       <ChartSlot height={HEIGHT} className="mt-4">
-        <div onMouseEnter={() => pin(w)} onMouseLeave={() => pin(null)}>
+        <div
+          onMouseEnter={() => {
+            pin(w);
+          }}
+          onMouseLeave={() => {
+            pin(null);
+          }}
+        >
           <Chart
             definition={definition}
             renderer={renderer}

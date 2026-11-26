@@ -124,7 +124,12 @@ const AccentRule = ({ tokens, theme }: { tokens: TokenValues | null; theme: Them
           <span>The action with the zest ring</span>
         </li>
         <li>
-          <Balance onClick={() => setTopped((current) => current + 20)} value={topped} />
+          <Balance
+            onClick={() => {
+              setTopped((current) => current + 20);
+            }}
+            value={topped}
+          />
           <span>The balance chip, which tops up by $20.00 here</span>
         </li>
         <li>

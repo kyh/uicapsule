@@ -118,8 +118,12 @@ const SakugaButton = ({
       wob(c.x - c.w / 2 - 8, c.y, { dir: -1 });
       wob(c.x + c.w / 2 + 8, c.y, { dir: 1 });
       donut(c.x + 6, c.y - 44, { life: 1.25, r: 30, vx: 22, vy: -52 });
-      later(90, () => donut(c.x + 54, c.y - 50, { life: 1.1, r: 18, vx: 34, vy: -40 }));
-      later(170, () => donut(c.x + 86, c.y - 46, { life: 0.95, r: 10, vx: 40, vy: -30 }));
+      later(90, () => {
+        donut(c.x + 54, c.y - 50, { life: 1.1, r: 18, vx: 34, vy: -40 });
+      });
+      later(170, () => {
+        donut(c.x + 86, c.y - 46, { life: 0.95, r: 10, vx: 40, vy: -30 });
+      });
       const fall = { arc: 1, dir: Math.PI / 2, grav: 380, n: 2, size: 6, speed: 20 };
       shards(c.x - 30, c.y + 30, fall);
       shards(c.x + 34, c.y + 30, fall);

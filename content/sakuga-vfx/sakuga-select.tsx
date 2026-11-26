@@ -17,6 +17,8 @@ import {
 } from "./sakuga-react";
 import type { Styled } from "./sakuga-react";
 
+const noop = () => null;
+
 interface Rig {
   anchor: HTMLElement | null;
   trigger: HTMLElement | null;
@@ -124,7 +126,7 @@ const openEffects = (rig: Rig) => {
 const landEffects = (rig: Rig) => {
   const b = rig.trigger;
 
-  if (!b?.isConnected) {
+  if (b?.isConnected !== true) {
     return;
   }
 
@@ -321,14 +323,9 @@ const SakugaSelect = <Value, Multiple extends boolean | undefined = false>({
   const actions = actionsRef ?? ownActions;
   const [ownOpen, setOwnOpen] = useState(defaultOpen);
   const open = openProp ?? ownOpen;
-  const { multiple } = props;
+  const start = defaultValue ?? null;
 
-  const start = useMemo(
-    () => (defaultValue ?? (multiple ? [] : null)) as typeof valueProp,
-    [defaultValue, multiple],
-  );
-
-  const [ownValue, setOwnValue] = useState(start);
+  const [ownValue, setOwnValue] = useState<typeof valueProp>(start);
   const owned = valueProp !== undefined;
   const field = useRef<HTMLInputElement>(null);
   const fieldRef = useMergedRef(field, inputRef);
@@ -341,13 +338,18 @@ const SakugaSelect = <Value, Multiple extends boolean | undefined = false>({
     const form = field.current?.form;
 
     if (!form || owned) {
-      return;
+      return noop;
     }
 
-    const reset = () => setOwnValue(start);
+    const reset = () => {
+      setOwnValue(start);
+    };
+
     form.addEventListener("reset", reset);
 
-    return () => form.removeEventListener("reset", reset);
+    return () => {
+      form.removeEventListener("reset", reset);
+    };
   }, [owned, start]);
 
   useFrame((dt) => {
@@ -375,7 +377,7 @@ const SakugaSelect = <Value, Multiple extends boolean | undefined = false>({
           rigRef.current.byHand =
             details.reason !== "none" && details.reason !== "imperative-action";
 
-          if (rigRef.current.trigger?.matches(":focus-visible")) {
+          if (rigRef.current.trigger?.matches(":focus-visible") === true) {
             ring(rigRef.current, true);
           }
         } else {
@@ -459,7 +461,7 @@ const SakugaSelectTrigger = ({
           onBlur?.(e);
           const to = e.relatedTarget;
 
-          if (!(to instanceof Node && rigRef.current.popup?.contains(to))) {
+          if (!(to instanceof Node && rigRef.current.popup?.contains(to) === true)) {
             ring(rigRef.current, false);
           }
         }}
@@ -584,7 +586,7 @@ const SakugaSelectItem = ({
 
   const rowRef = useMergedRef((node: HTMLDivElement | null) => {
     if (!node) {
-      return;
+      return noop;
     }
 
     const { rows } = rigRef.current;

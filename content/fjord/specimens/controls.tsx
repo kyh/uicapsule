@@ -29,7 +29,9 @@ export const Actions = () => {
 
   const save = () => {
     setSaving(true);
-    window.setTimeout(() => setSaving(false), 1600);
+    window.setTimeout(() => {
+      setSaving(false);
+    }, 1600);
   };
 
   return (
@@ -73,7 +75,9 @@ export const Actions = () => {
             <Button
               aria-pressed={view === option}
               key={option}
-              onClick={() => setView(option)}
+              onClick={() => {
+                setView(option);
+              }}
               size="sm"
             >
               {option}
@@ -123,7 +127,9 @@ export const Inputs = () => {
         <TextField
           hint="Agents open pull requests from this branch."
           label="Base branch"
-          onChange={(event) => setBranch(event.target.value)}
+          onChange={(event) => {
+            setBranch(event.target.value);
+          }}
           value={branch}
           error={branchError}
           mono
@@ -174,6 +180,7 @@ const RANGES = ["1h", "24h", "7d", "30d"] as const;
 export const Selection = () => {
   const [notify, setNotify] = useState(true);
   const [redact, setRedact] = useState(false);
+  const [shared, setShared] = useState(false);
   const [policy, setPolicy] = useState<(typeof POLICIES)[number]["value"]>("outside");
   const [paused, setPaused] = useState(false);
   const [budget, setBudget] = useState(12);
@@ -197,10 +204,10 @@ export const Selection = () => {
         />
         <Checkbox checked={redact} label="Redact secrets in traces" onCheckedChange={setRedact} />
         <Checkbox
-          checked={false}
+          checked={shared}
           disabled
           label="Share traces publicly"
-          onCheckedChange={() => null}
+          onCheckedChange={setShared}
         />
       </Specimen>
       <Specimen

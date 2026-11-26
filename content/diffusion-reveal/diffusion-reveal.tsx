@@ -3,6 +3,8 @@
 import { useEffect, useRef, useState } from "react";
 import { motion, useReducedMotion } from "motion/react";
 
+const noop = () => null;
+
 const WIDTH = 520;
 const HEIGHT = 300;
 const DURATION_MS = 6200;
@@ -81,7 +83,7 @@ export const DiffusionReveal = () => {
     const ctx = canvas?.getContext("2d");
 
     if (!canvas || !ctx) {
-      return;
+      return noop;
     }
 
     const scene = document.createElement("canvas");
@@ -90,7 +92,7 @@ export const DiffusionReveal = () => {
     const sceneCtx = scene.getContext("2d");
 
     if (!sceneCtx) {
-      return;
+      return noop;
     }
 
     paintScene(sceneCtx, seed * 73);
@@ -101,7 +103,7 @@ export const DiffusionReveal = () => {
     const noiseCtx = noise.getContext("2d");
 
     if (!noiseCtx) {
-      return;
+      return noop;
     }
 
     const refreshNoise = () => {
@@ -167,7 +169,9 @@ export const DiffusionReveal = () => {
     refreshNoise();
     raf = requestAnimationFrame(tick);
 
-    return () => cancelAnimationFrame(raf);
+    return () => {
+      cancelAnimationFrame(raf);
+    };
   }, [seed, reduceMotion]);
 
   const step = Math.min(STEPS, Math.max(1, Math.ceil(progress * STEPS)));

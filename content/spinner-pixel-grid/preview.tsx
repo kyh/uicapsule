@@ -14,11 +14,23 @@ const Preview = () => {
     <div className="min-h-screen bg-black text-yellow-300">
       <div className="sticky top-0 z-10 flex flex-wrap items-center gap-4 border-b border-white/10 bg-black/80 p-4 backdrop-blur">
         <label className="flex items-center gap-2 text-sm text-gray-300">
-          <input type="checkbox" checked={glow} onChange={(e) => setGlow(e.target.checked)} />
+          <input
+            type="checkbox"
+            checked={glow}
+            onChange={(e) => {
+              setGlow(e.target.checked);
+            }}
+          />
           Glow
         </label>
         <label className="flex items-center gap-2 text-sm text-gray-300">
-          <input type="checkbox" checked={rainbow} onChange={(e) => setRainbow(e.target.checked)} />
+          <input
+            type="checkbox"
+            checked={rainbow}
+            onChange={(e) => {
+              setRainbow(e.target.checked);
+            }}
+          />
           Rainbow
         </label>
         <div className="flex items-center gap-2 text-sm text-gray-300">
@@ -28,7 +40,9 @@ const Preview = () => {
               key={s}
               type="button"
               aria-pressed={dot === s}
-              onClick={() => setDot(s)}
+              onClick={() => {
+                setDot(s);
+              }}
               className={
                 dot === s
                   ? "rounded bg-white/15 px-2 py-1 capitalize"

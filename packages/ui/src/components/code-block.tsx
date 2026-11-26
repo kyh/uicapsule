@@ -80,13 +80,17 @@ import {
   transformerNotationHighlight,
   transformerNotationWordHighlight,
 } from "@shikijs/transformers";
-import { codeToHtml } from "shiki";
+import { toJsxRuntime } from "hast-util-to-jsx-runtime";
+import { Fragment, jsx, jsxs } from "react/jsx-runtime";
+import { codeToHast } from "shiki";
 
 import type { IconType } from "@icons-pack/react-simple-icons";
 import { CopyButton } from "./copy-button";
 import type { CopyButtonProps } from "./copy-button";
 import { useControllableState } from "@repo/ui/hooks/use-controllable-state";
 import { cn } from "cn";
+
+const noop = () => null;
 
 export type { BundledLanguage, SpecialLanguage } from "shiki";
 
@@ -241,12 +245,12 @@ const codeBlockClassName = cn(
   "[&_.line]:relative",
 );
 
-const highlight = (
-  html: string,
+const highlight = async (
+  code: string,
   language?: BundledLanguage | SpecialLanguage,
   themes?: CodeOptionsMultipleThemes["themes"],
 ) =>
-  codeToHtml(html, {
+  await codeToHast(code, {
     lang: language ?? "typescript",
     themes: themes ?? {
       dark: "github-dark-default",
@@ -342,7 +346,8 @@ export const CodeBlockFiles = ({ className, children, ...props }: CodeBlockFiles
   );
 };
 
-export type CodeBlockFilenameProps = HTMLAttributes<HTMLDivElement> & {
+export type CodeBlockFilenameProps = Omit<HTMLAttributes<HTMLDivElement>, "children"> & {
+  children: string;
   icon?: IconType;
   value?: string;
 };
@@ -362,7 +367,7 @@ export const CodeBlockFilename = ({
       "u",
     );
 
-    return regex.test(String(children));
+    return regex.test(children);
   })?.[1];
 
   const Icon = icon ?? defaultIcon;
@@ -394,20 +399,19 @@ export const CodeBlockCopyButton = ({ ...props }: CodeBlockCopyButtonProps) => {
   return <CopyButton label="Copy code" value={code} {...props} />;
 };
 
-type CodeBlockFallbackProps = HTMLAttributes<HTMLDivElement>;
+type CodeBlockFallbackProps = Omit<HTMLAttributes<HTMLDivElement>, "children"> & {
+  children: string;
+};
 
 const CodeBlockFallback = ({ children, ...props }: CodeBlockFallbackProps) => (
   <div {...props}>
     <pre className="w-full">
       <code>
-        {children
-          ?.toString()
-          .split("\n")
-          .map((line, lineNumber) => (
-            <span className="line" key={lineNumber}>
-              {line}
-            </span>
-          ))}
+        {children.split("\n").map((line, lineNumber) => (
+          <span className="line" key={lineNumber}>
+            {line}
+          </span>
+        ))}
       </code>
     </pre>
   </div>
@@ -475,7 +479,7 @@ export const CodeBlockContent = ({
   ...props
 }: CodeBlockContentProps) => {
   const [highlighted, setHighlighted] = useState<{
-    html: string;
+    root: Awaited<ReturnType<typeof highlight>>;
     source: string;
     language: CodeBlockContentProps["language"];
     themes: CodeBlockContentProps["themes"];
@@ -483,17 +487,17 @@ export const CodeBlockContent = ({
 
   useEffect(() => {
     if (!syntaxHighlighting) {
-      return;
+      return noop;
     }
 
     let active = true;
 
     const updateHighlight = async () => {
       try {
-        const html = await highlight(children, language, themes);
+        const root = await highlight(children, language, themes);
 
         if (active) {
-          setHighlighted({ html, language, source: children, themes });
+          setHighlighted({ language, root, source: children, themes });
         }
       } catch (error) {
         console.error(error);
@@ -507,17 +511,16 @@ export const CodeBlockContent = ({
     };
   }, [children, themes, syntaxHighlighting, language]);
 
-  const html =
+  const root =
     highlighted?.source === children &&
     highlighted.language === language &&
     highlighted.themes === themes
-      ? highlighted.html
+      ? highlighted.root
       : null;
 
-  if (!(syntaxHighlighting && html)) {
+  if (!(syntaxHighlighting && root !== null && root.children.length > 0)) {
     return <CodeBlockFallback {...props}>{children}</CodeBlockFallback>;
   }
 
-  // oxlint-disable-next-line react/no-danger -- the markup is shiki's own output for the code string, never user-supplied HTML
-  return <div dangerouslySetInnerHTML={{ __html: html }} {...props} />;
+  return <div {...props}>{toJsxRuntime(root, { Fragment, jsx, jsxs })}</div>;
 };

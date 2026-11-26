@@ -73,7 +73,7 @@ export const PanelHandle = ({
     const length = vertical ? rect.height : rect.width;
     const next = Math.min(length - GRIP_HALF, Math.max(GRIP_HALF, along));
 
-    if (jump || reducedMotion) {
+    if (jump || reducedMotion === true) {
       grip.jump(next);
     } else {
       grip.set(next);
@@ -140,7 +140,7 @@ export const PanelHandle = ({
 
   return (
     <div
-      // oxlint-disable-next-line jsx-a11y/prefer-tag-over-role -- a focusable separator is a widget; <hr> can't take focus or handlers
+      // oxlint-disable-next-line jsx-a11y/prefer-tag-over-role -- a focusable separator is ARIA's splitter widget; an <hr> with tabIndex and key handlers fails no-noninteractive-tabindex and no-noninteractive-element-interactions (checked), so role="separator" on a div is the one spelling every rule accepts
       role="separator"
       tabIndex={0}
       aria-label={LABEL[panel]}
@@ -161,11 +161,15 @@ export const PanelHandle = ({
         trackGrip(event, true);
         setHovered(true);
       }}
-      onPointerLeave={() => setHovered(false)}
+      onPointerLeave={() => {
+        setHovered(false);
+      }}
       onPointerDown={onPointerDown}
       onPointerMove={onPointerMove}
       onLostPointerCapture={onLostPointerCapture}
-      onDoubleClick={() => onChange(panel, { open: !state.open })}
+      onDoubleClick={() => {
+        onChange(panel, { open: !state.open });
+      }}
       onKeyDown={onKeyDown}
     >
       <motion.span

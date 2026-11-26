@@ -16,7 +16,7 @@ export const FilterSubject = <TType extends ColumnDataType>({
 
   return (
     <span className="flex items-center gap-1 px-2 font-medium whitespace-nowrap select-none">
-      {Icon &&
+      {Icon !== undefined &&
         (isValidElement(Icon)
           ? Icon
           : (() => {

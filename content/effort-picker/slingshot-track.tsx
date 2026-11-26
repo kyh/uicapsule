@@ -84,7 +84,12 @@ export const SlingshotTrack = ({ knobX, theme, onPhaseChange }: SlingshotTrackPr
   const frame = useRef(0);
   const pullOrigin = useRef<PullOrigin | null>(null);
 
-  useEffect(() => () => cancelAnimationFrame(frame.current), []);
+  useEffect(
+    () => () => {
+      cancelAnimationFrame(frame.current);
+    },
+    [],
+  );
 
   const settle = (x: number) => {
     const level = nearestLevel(theme, x);

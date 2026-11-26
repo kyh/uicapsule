@@ -15,7 +15,9 @@ export const Chip = ({
   <button
     aria-pressed={selected}
     className="cl-chip"
-    onClick={() => onSelectedChange(!selected)}
+    onClick={() => {
+      onSelectedChange(!selected);
+    }}
     type="button"
   >
     <Check aria-hidden className="cl-chip__check" size={14} strokeWidth={2.25} />

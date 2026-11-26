@@ -3,6 +3,8 @@
 import { useEffect, useRef, useState } from "react";
 import type { KeyboardEvent } from "react";
 
+const noop = () => null;
+
 /** Switches between views; a pressed-ink pill slides under the chosen tab. */
 export const Tabs = <T extends string>({
   id,
@@ -26,7 +28,7 @@ export const Tabs = <T extends string>({
     const element = list.current;
 
     if (!element) {
-      return;
+      return noop;
     }
 
     const measure = () => {
@@ -42,7 +44,9 @@ export const Tabs = <T extends string>({
 
     observer.observe(element);
 
-    return () => observer.disconnect();
+    return () => {
+      observer.disconnect();
+    };
   }, []);
 
   const onKeyDown = (event: KeyboardEvent<HTMLDivElement>) => {
@@ -89,7 +93,9 @@ export const Tabs = <T extends string>({
           className="v-tab"
           id={`${id}-tab-${tab.value}`}
           key={tab.value}
-          onClick={() => onValueChange(tab.value)}
+          onClick={() => {
+            onValueChange(tab.value);
+          }}
           role="tab"
           tabIndex={tab.value === value ? 0 : -1}
           type="button"
