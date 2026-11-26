@@ -264,7 +264,7 @@ export const ComponentWorkspace = ({ initialSlug, feed }: ComponentWorkspaceProp
         </aside>
 
         <div className="flex min-w-0 flex-col max-md:contents md:min-h-0">
-          <div className="flex h-12 shrink-0 items-center gap-1 overflow-x-auto px-2 [scrollbar-width:none] md:grid md:grid-cols-[1fr_auto_1fr]">
+          <div className="flex shrink-0 items-center gap-1 overflow-x-auto p-4 [scrollbar-width:none] md:grid md:grid-cols-[1fr_auto_1fr]">
             <div className="flex shrink-0 items-center gap-1">
               <ToolbarButton
                 label={infoOpen ? "Hide details" : "Show details"}
