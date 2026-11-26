@@ -284,7 +284,7 @@ pnpm smoke            # Drive a running server: pages, a code's sign-in, user.me
 pnpm check:agent-endpoints  # Runtime check of the agent surfaces (needs a running server)
 pnpm skills:update    # Bump the skills-lock.json skills (emilkowalski, jakubkrehel) to upstream HEAD; review the diff
 pnpm skills:sync      # Restore .claude/skills to exactly what skills-lock.json pins
-pnpm og:video         # By hand, never in verify: home loop (scripts/og-video/scene.html → Blob og/og.<date>.mp4 + poster, keys in home-media.json) + cover-media.json and Blob stills (<cover key>.jpg) for /ui/<slug>
+pnpm og:video         # By hand, never in verify: home loop (scripts/og-video/scene.html → Blob og/og.<date>.mp4 + poster, keys in home-media.json) + cover-media.json and Blob stills (<cover key>.jpg) for /ui/<slug>; prints a per-slug `vercel blob del` for recorded covers it superseded
 ```
 
 ## Verification Contract

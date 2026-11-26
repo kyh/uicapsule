@@ -197,8 +197,8 @@ curl -s -o /dev/null -w "%{http_code} %{content_type}" "$A/$KEY"
 # expect: 200 video/mp4
 ```
 
-`vercel blob list` and `copy` print to stderr; `copy` also needs `--access public`. Once the
-new key is live on production, delete the superseded one with `vercel blob del <old-key>`.
+`vercel blob list` and `copy` print to stderr; `copy` also needs `--access public`. Don't
+delete the old key yet: step 7's `og:video` names it once production no longer needs it.
 
 ## 7. Wire up + confirm
 
@@ -216,3 +216,8 @@ Then refresh the share metadata: `pnpm og:video --only covers` probes the new co
 `apps/web/src/lib/content/cover-media.json` (the page's og:video size and its VideoObject)
 and uploads its still to Blob beside the cover, as `<cover key>.jpg` (the page's OG card).
 Commit cover-media.json with the meta.json change. Until it runs, the page simply has no og:video.
+When a slug's recorded cover changed, it prints a `vercel blob del` for the old cover and its
+still, one command per slug: run a slug's once production serves its new key, never before, and
+skip any slug that isn't in your deploy (another session's edit). It names only covers
+cover-media.json recorded, and only on the run that drops them, so copy it then; an old key it
+never recorded (step 7 skipped, a non-h264 cover) is yours to delete by hand.
