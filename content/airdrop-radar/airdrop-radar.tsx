@@ -79,7 +79,11 @@ export const AirdropRadar = () => {
     timersRef.current.push(
       setTimeout(() => {
         setSend({ id, phase: "sent" });
-        timersRef.current.push(setTimeout(() => setSend(null), 2200));
+        timersRef.current.push(
+          setTimeout(() => {
+            setSend(null);
+          }, 2200),
+        );
       }, 1900),
     );
   }, []);
@@ -94,12 +98,12 @@ export const AirdropRadar = () => {
             className="absolute top-1/2 left-1/2 rounded-full border border-sky-400/40"
             style={{ height: 80, width: 80, x: "-50%", y: "-50%" }}
             animate={
-              reduceMotion
+              reduceMotion === true
                 ? { opacity: 0.4 - ring * 0.1, scale: 2.4 + ring * 2.4 }
                 : { opacity: [0.55, 0], scale: [1, 9] }
             }
             transition={
-              reduceMotion
+              reduceMotion === true
                 ? { duration: 0 }
                 : { delay: ring * 1.2, duration: 3.6, ease: "easeOut", repeat: Infinity }
             }
@@ -113,7 +117,9 @@ export const AirdropRadar = () => {
             <motion.button
               type="button"
               key={person.id}
-              onClick={() => share(person.id)}
+              onClick={() => {
+                share(person.id);
+              }}
               animate={{ opacity: dimmed ? 0.35 : 1, scale: dimmed ? 0.92 : 1 }}
               transition={{ bounce: 0.3, duration: 0.45, type: "spring" }}
               className="absolute -translate-x-1/2 -translate-y-1/2"

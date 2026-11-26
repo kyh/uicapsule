@@ -10,6 +10,7 @@ import { cn } from "cn";
 
 import { MediaReveal } from "@/components/media-reveal";
 import { Resizable } from "./resizable";
+import { noop } from "@tanstack/react-query";
 
 const useInspector = (enabled: boolean, wrapperRef: RefObject<HTMLDivElement | null>) => {
   const [box, setBox] = useState<InspectBox | null>(null);
@@ -20,7 +21,7 @@ const useInspector = (enabled: boolean, wrapperRef: RefObject<HTMLDivElement | n
     if (!enabled || !wrapper) {
       setBox(null);
 
-      return;
+      return noop;
     }
 
     let current: HTMLIFrameElement | null = null;

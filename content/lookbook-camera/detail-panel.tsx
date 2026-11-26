@@ -248,7 +248,9 @@ export const DetailPanel = ({ look, containerW, containerH, ref }: DetailPanelPr
                     <div key={item.id} className="group/thumb relative size-[72px]">
                       <button
                         type="button"
-                        onClick={() => setActiveIdx(i)}
+                        onClick={() => {
+                          setActiveIdx(i);
+                        }}
                         aria-pressed={isActive}
                         aria-label={`View ${item.name}`}
                         className="absolute inset-0 overflow-hidden rounded-xl transition-all duration-300"
@@ -311,7 +313,9 @@ export const DetailPanel = ({ look, containerW, containerH, ref }: DetailPanelPr
           <div className="mt-4 px-5" data-detail-anim>
             <button
               type="button"
-              onClick={() => toggle(activeItem.id)}
+              onClick={() => {
+                toggle(activeItem.id);
+              }}
               aria-pressed={isActiveAdded}
               className={`group/add w-full rounded-full border py-2.5 text-[10.5px] tracking-[0.22em] uppercase transition-all ${
                 isActiveAdded

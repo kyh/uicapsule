@@ -229,7 +229,11 @@ export const RevenueGrowth = () => {
         </div>
         <p className="mt-5 text-[12px] text-[#3a3a42]">Revenue</p>
         <ChartSlot height={HEIGHT} className="mt-2">
-          <div onMouseLeave={() => pin(null)}>
+          <div
+            onMouseLeave={() => {
+              pin(null);
+            }}
+          >
             <Chart
               definition={definition}
               renderer={renderer}
@@ -237,7 +241,7 @@ export const RevenueGrowth = () => {
               ariaLabel="Annual revenue and MRR over five years"
               onFocusChange={(p) => {
                 if (p) {
-                  const y = Number(p.xValue);
+                  const y = p.xValue;
 
                   if (Number.isInteger(y) && y >= 1 && y <= 5) {
                     pin(y - 1);

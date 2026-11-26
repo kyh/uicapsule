@@ -5,6 +5,8 @@ import type { FC } from "react";
 import { AnimatePresence, MotionConfig, motion, useReducedMotion } from "motion/react";
 import type { Transition } from "motion/react";
 
+const noop = () => null;
+
 const LOOP_SECONDS = 48;
 const TRACK_WIDTH = 572;
 const PREVIEW_WIDTH = 176;
@@ -150,7 +152,7 @@ export const SeekFilmstrip = () => {
 
   useEffect(() => {
     if (!playing || scrubbing) {
-      return;
+      return noop;
     }
 
     let raf = 0;
@@ -165,7 +167,9 @@ export const SeekFilmstrip = () => {
 
     raf = requestAnimationFrame(tick);
 
-    return () => cancelAnimationFrame(raf);
+    return () => {
+      cancelAnimationFrame(raf);
+    };
   }, [playing, scrubbing]);
 
   const tFromPointer = (clientX: number) => {
@@ -245,8 +249,12 @@ export const SeekFilmstrip = () => {
                   setScrubT(tFromPointer(event.clientX));
                 }
               }}
-              onPointerUp={(event) => endScrub(tFromPointer(event.clientX))}
-              onPointerCancel={() => endScrub(null)}
+              onPointerUp={(event) => {
+                endScrub(tFromPointer(event.clientX));
+              }}
+              onPointerCancel={() => {
+                endScrub(null);
+              }}
             >
               <motion.div
                 animate={{ height: scrubbing ? 40 : 5 }}
@@ -292,7 +300,9 @@ export const SeekFilmstrip = () => {
             </span>
             <button
               type="button"
-              onClick={() => setPlayChoice(!playing)}
+              onClick={() => {
+                setPlayChoice(!playing);
+              }}
               className="rounded-full bg-white/10 px-4 py-1.5 text-[12px] font-medium text-white transition-colors hover:bg-white/15"
             >
               {playing ? "Pause" : "Play"}

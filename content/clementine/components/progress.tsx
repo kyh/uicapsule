@@ -18,7 +18,7 @@ export const Progress = ({
   <div className="cl-progress">
     <div className="cl-progress__head">
       <span className="cl-progress__label">{label}</span>
-      {detail ? <span className="cl-progress__detail">{detail}</span> : null}
+      {Boolean(detail) && <span className="cl-progress__detail">{detail}</span>}
     </div>
     <progress aria-label={label} className="cl-sr" max={max} value={value} />
     <div aria-hidden className="cl-progress__track" data-tone={tone}>

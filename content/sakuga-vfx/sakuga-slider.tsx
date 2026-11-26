@@ -23,6 +23,8 @@ import {
 import { FONT_BODY, SakugaStyle, useFrame } from "./sakuga-react";
 import type { Styled } from "./sakuga-react";
 
+const noop = () => null;
+
 type SakugaSliderProps = Styled<SliderPrimitive.Root.Props<number>> & {
   unit?: string;
 };
@@ -132,7 +134,7 @@ const SakugaSlider = ({
 
   useEffect(() => {
     if (value !== undefined) {
-      return;
+      return noop;
     }
 
     const restore = (e: Event) => {
@@ -149,7 +151,9 @@ const SakugaSlider = ({
 
     document.addEventListener("reset", restore);
 
-    return () => document.removeEventListener("reset", restore);
+    return () => {
+      document.removeEventListener("reset", restore);
+    };
   }, [value, defaultValue, min, max]);
 
   const pressDown = (e: PointerEvent<HTMLDivElement>) => {

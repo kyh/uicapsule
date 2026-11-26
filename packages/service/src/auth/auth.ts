@@ -35,7 +35,9 @@ export const resolveBaseUrl = () => {
     return vercelBaseUrl(process.env.VERCEL_URL, process.env.VERCEL_BRANCH_URL);
   }
 
-  return process.env.BETTER_AUTH_URL || "http://localhost:3000";
+  return process.env.BETTER_AUTH_URL === undefined || process.env.BETTER_AUTH_URL === ""
+    ? "http://localhost:3000"
+    : process.env.BETTER_AUTH_URL;
 };
 
 /**

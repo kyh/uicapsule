@@ -14,6 +14,8 @@ import type { ReactNode } from "react";
 
 import { Button } from "./button";
 
+const noop = () => null;
+
 interface ToastInput {
   title: string;
   tone?: "ok" | "fail";
@@ -24,10 +26,16 @@ interface ToastEntry extends ToastInput {
   id: number;
 }
 
-const ToastContext = createContext<(toast: ToastInput) => void>(() => null);
+const ToastContext = createContext<((toast: ToastInput) => void) | null>(null);
 
 /** Shows a toast from anywhere under the ToastProvider. */
-export const useToast = () => useContext(ToastContext);
+export const useToast = () => {
+  const push = useContext(ToastContext);
+
+  return (toast: ToastInput) => {
+    push?.(toast);
+  };
+};
 
 const readingTime = (title: string) => Math.max(4000, title.split(" ").length * 300 + 2500);
 
@@ -37,21 +45,33 @@ const ToastItem = ({ toast, onClose }: { toast: ToastEntry; onClose: (id: number
 
   useEffect(() => {
     if (paused || held) {
-      return;
+      return noop;
     }
 
-    const id = window.setTimeout(() => onClose(toast.id), readingTime(toast.title));
+    const id = window.setTimeout(() => {
+      onClose(toast.id);
+    }, readingTime(toast.title));
 
-    return () => window.clearTimeout(id);
+    return () => {
+      window.clearTimeout(id);
+    };
   }, [paused, held, onClose, toast.id, toast.title]);
 
   return (
     <div
       className="v-toast v-overlay"
-      onBlur={() => setPaused(false)}
-      onFocus={() => setPaused(true)}
-      onPointerEnter={() => setPaused(true)}
-      onPointerLeave={() => setPaused(false)}
+      onBlur={() => {
+        setPaused(false);
+      }}
+      onFocus={() => {
+        setPaused(true);
+      }}
+      onPointerEnter={() => {
+        setPaused(true);
+      }}
+      onPointerLeave={() => {
+        setPaused(false);
+      }}
       role={held ? "alert" : "status"}
     >
       {toast.tone === "ok" ? <CircleCheck aria-hidden className="v-ok-text" /> : null}
@@ -70,7 +90,13 @@ const ToastItem = ({ toast, onClose }: { toast: ToastEntry; onClose: (id: number
         </Button>
       ) : null}
       {held || !toast.action ? (
-        <Button onClick={() => onClose(toast.id)} size="sm" variant="ghost">
+        <Button
+          onClick={() => {
+            onClose(toast.id);
+          }}
+          size="sm"
+          variant="ghost"
+        >
           Close
         </Button>
       ) : null}

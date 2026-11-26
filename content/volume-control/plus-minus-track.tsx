@@ -9,6 +9,8 @@ import type { MotionValue } from "motion/react";
 import { HUD_INNER_WIDTH } from "./macos-chrome";
 import { clampVolume, DETENT_STEP, snapVolume, VOLUME_MAX, VOLUME_MIN } from "./volume-scale";
 
+const noop = () => null;
+
 const FIELD_WIDTH = HUD_INNER_WIDTH;
 const FIELD_HEIGHT = 150;
 const COLS = 5;
@@ -85,8 +87,8 @@ export const PlusMinusTrack = ({ volume }: PlusMinusTrackProps) => {
   const whacked = useRef(new Set<number>());
 
   useEffect(() => {
-    if (reduceMotion) {
-      return;
+    if (reduceMotion === true) {
+      return noop;
     }
 
     const pop = () => {
@@ -116,7 +118,9 @@ export const PlusMinusTrack = ({ volume }: PlusMinusTrackProps) => {
     popRef.current = pop;
     pop();
 
-    return () => window.clearTimeout(timer.current);
+    return () => {
+      window.clearTimeout(timer.current);
+    };
   }, [reduceMotion]);
 
   const apply = (delta: number) => {
@@ -139,10 +143,15 @@ export const PlusMinusTrack = ({ volume }: PlusMinusTrackProps) => {
     timer.current = window.setTimeout(() => popRef.current?.(), 200);
   };
 
-  if (reduceMotion) {
+  if (reduceMotion === true) {
     return (
       <div className="flex items-center justify-center gap-4">
-        <StaticButton kind="minus" onClick={() => apply(-STEP)} />
+        <StaticButton
+          kind="minus"
+          onClick={() => {
+            apply(-STEP);
+          }}
+        />
         <span
           // oxlint-disable-next-line jsx-a11y/prefer-tag-over-role -- a range input would be the honest slider this piece refuses to be; the keyboard contract is the same
           role="slider"
@@ -165,7 +174,12 @@ export const PlusMinusTrack = ({ volume }: PlusMinusTrackProps) => {
         >
           {level}
         </span>
-        <StaticButton kind="plus" onClick={() => apply(STEP)} />
+        <StaticButton
+          kind="plus"
+          onClick={() => {
+            apply(STEP);
+          }}
+        />
       </div>
     );
   }
@@ -212,7 +226,9 @@ export const PlusMinusTrack = ({ volume }: PlusMinusTrackProps) => {
                   key={mole.id}
                   type="button"
                   aria-label={mole.kind === "plus" ? "Louder" : "Quieter"}
-                  onPointerDown={() => whack(mole)}
+                  onPointerDown={() => {
+                    whack(mole);
+                  }}
                   initial={{ opacity: 0, scale: 0.4, y: 10 }}
                   animate={{ opacity: 1, scale: 1, y: 0 }}
                   exit={{ opacity: 0, scale: 0.5, y: 8 }}

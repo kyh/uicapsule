@@ -16,6 +16,8 @@ import { usePoseCurls } from "./use-pose-curls";
 
 import type { PoseStatus } from "./use-pose-curls";
 
+const noop = () => null;
+
 const SET_MS = 10_000;
 const COUNT_MS = 900;
 const CURL_GAIN = 27;
@@ -267,10 +269,9 @@ export const CurlCard = ({ knobX, theme }: CurlCardProps) => {
     burstId.current += 1;
     const burst = { id: burstId.current, percent: effortRef.current };
     setBursts((current) => [...current, burst]);
-    window.setTimeout(
-      () => setBursts((current) => current.filter((item) => item.id !== burst.id)),
-      700,
-    );
+    window.setTimeout(() => {
+      setBursts((current) => current.filter((item) => item.id !== burst.id));
+    }, 700);
   }, [knobX, knobScale]);
 
   const { videoRef, canvasRef, status, error, posed, retry } = usePoseCurls({
@@ -299,12 +300,16 @@ export const CurlCard = ({ knobX, theme }: CurlCardProps) => {
 
   useEffect(() => {
     if (!celebrating) {
-      return;
+      return noop;
     }
 
-    const timer = window.setTimeout(() => setCelebrating(false), FANFARE_MS);
+    const timer = window.setTimeout(() => {
+      setCelebrating(false);
+    }, FANFARE_MS);
 
-    return () => window.clearTimeout(timer);
+    return () => {
+      window.clearTimeout(timer);
+    };
   }, [celebrating]);
 
   if (take.status === "arming" && status === "tracking" && posed) {
@@ -313,7 +318,7 @@ export const CurlCard = ({ knobX, theme }: CurlCardProps) => {
 
   useEffect(() => {
     if (take.status !== "countdown") {
-      return;
+      return noop;
     }
 
     const { count } = take;
@@ -326,12 +331,14 @@ export const CurlCard = ({ knobX, theme }: CurlCardProps) => {
       }
     }, COUNT_MS);
 
-    return () => window.clearTimeout(timer);
+    return () => {
+      window.clearTimeout(timer);
+    };
   }, [take]);
 
   useEffect(() => {
     if (take.status !== "lifting") {
-      return;
+      return noop;
     }
 
     let frame = 0;
@@ -381,7 +388,9 @@ export const CurlCard = ({ knobX, theme }: CurlCardProps) => {
 
     frame = requestAnimationFrame(tick);
 
-    return () => cancelAnimationFrame(frame);
+    return () => {
+      cancelAnimationFrame(frame);
+    };
   }, [take.status, knobX, knobScale, cardPop, timerScale, theme]);
 
   const power = take.status === "complete" ? fanfarePower(theme, take.level) : 0;

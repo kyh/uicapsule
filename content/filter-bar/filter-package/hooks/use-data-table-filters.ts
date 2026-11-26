@@ -25,15 +25,24 @@ export const useDataTableFilters = <Row>({
 
   const actions = useMemo<DataTableFilterActions>(
     () => ({
-      addFilterValue: (column, values) =>
-        setFilters((current) => toggleFilterValues(current, column, values, true)),
-      removeAllFilters: () => setFilters([]),
-      removeFilter: (columnId) =>
-        setFilters((current) => current.filter((filter) => filter.columnId !== columnId)),
-      removeFilterValue: (column, values) =>
-        setFilters((current) => toggleFilterValues(current, column, values, false)),
-      setFilterOperator: (update) => setFilters((current) => setFilterOperator(current, update)),
-      setFilterValue: (update) => setFilters((current) => setFilterValue(current, update)),
+      addFilterValue: (column, values) => {
+        setFilters((current) => toggleFilterValues(current, column, values, true));
+      },
+      removeAllFilters: () => {
+        setFilters([]);
+      },
+      removeFilter: (columnId) => {
+        setFilters((current) => current.filter((filter) => filter.columnId !== columnId));
+      },
+      removeFilterValue: (column, values) => {
+        setFilters((current) => toggleFilterValues(current, column, values, false));
+      },
+      setFilterOperator: (update) => {
+        setFilters((current) => setFilterOperator(current, update));
+      },
+      setFilterValue: (update) => {
+        setFilters((current) => setFilterValue(current, update));
+      },
     }),
     [setFilters],
   );

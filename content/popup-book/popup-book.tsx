@@ -14,6 +14,8 @@ import type { PointerEvent } from "react";
 import { CITIES, INK } from "./popup-cities";
 import { PopupScene } from "./popup-scene";
 
+const noop = () => null;
+
 const LAST = CITIES.length - 1;
 
 const clamp = (value: number, min: number, max: number) => Math.min(max, Math.max(min, value));
@@ -65,7 +67,11 @@ export const PopupBook = ({ autoPlay = true, interval = 2800 }: PopupBookProps) 
   const [value, setValue] = useState(0);
   const [index, setIndex] = useState(0);
   const [ready, setReady] = useState(false);
-  const onReady = useCallback(() => setReady(true), []);
+
+  const onReady = useCallback(() => {
+    setReady(true);
+  }, []);
+
   const idleUntil = useRef(0);
   const drag = useRef<{ x: number; y: number; start: number; moved: boolean } | null>(null);
 
@@ -76,7 +82,7 @@ export const PopupBook = ({ autoPlay = true, interval = 2800 }: PopupBookProps) 
       const next = clamp(Math.round(target), 0, LAST);
       setIndex(next);
 
-      if (reduceMotion) {
+      if (reduceMotion === true) {
         progress.jump(next);
         setValue(next);
 
@@ -102,7 +108,7 @@ export const PopupBook = ({ autoPlay = true, interval = 2800 }: PopupBookProps) 
 
   useEffect(() => {
     if (!autoPlay || !ready) {
-      return;
+      return noop;
     }
 
     const timer = setInterval(() => {
@@ -113,7 +119,9 @@ export const PopupBook = ({ autoPlay = true, interval = 2800 }: PopupBookProps) 
       goTo(index >= LAST ? 0 : index + 1);
     }, interval);
 
-    return () => clearInterval(timer);
+    return () => {
+      clearInterval(timer);
+    };
   }, [autoPlay, goTo, index, interval, ready]);
 
   const onPointerDown = (event: PointerEvent<HTMLDivElement>) => {
@@ -176,7 +184,13 @@ export const PopupBook = ({ autoPlay = true, interval = 2800 }: PopupBookProps) 
       className="flex w-full max-w-[720px] flex-col items-center gap-1 select-none"
     >
       <div className="flex w-full items-center justify-center gap-1 sm:gap-4">
-        <Arrow flip disabled={index === 0} onClick={() => userGoTo(index - 1)} />
+        <Arrow
+          flip
+          disabled={index === 0}
+          onClick={() => {
+            userGoTo(index - 1);
+          }}
+        />
         <div
           onPointerDown={onPointerDown}
           onPointerMove={onPointerMove}
@@ -237,11 +251,19 @@ export const PopupBook = ({ autoPlay = true, interval = 2800 }: PopupBookProps) 
             value={index}
             aria-label="City"
             aria-valuetext={`${CITIES[index]?.name ?? ""}, ${index + 1} of ${CITIES.length}`}
-            onChange={(event) => userGoTo(Number(event.currentTarget.value))}
+            onChange={(event) => {
+              userGoTo(Number(event.currentTarget.value));
+            }}
             className="sr-only"
           />
         </div>
-        <Arrow flip={false} disabled={index === LAST} onClick={() => userGoTo(index + 1)} />
+        <Arrow
+          flip={false}
+          disabled={index === LAST}
+          onClick={() => {
+            userGoTo(index + 1);
+          }}
+        />
       </div>
       <div className="relative h-16 w-full" aria-live="polite">
         <AnimatePresence initial={false} mode="wait">

@@ -87,7 +87,7 @@ export const DropdownMenu = ({
       >
         {items.map((item, index) => (
           <div key={item.id} role="none">
-            {item.separatorBefore ? <hr className="hx-menu-sep" /> : null}
+            {item.separatorBefore === true ? <hr className="hx-menu-sep" /> : null}
             <button
               className="hx-menu-item"
               data-active={index === active}
@@ -96,14 +96,18 @@ export const DropdownMenu = ({
                 onSelect(item.id);
                 onOpenChange(false);
               }}
-              onPointerEnter={() => setActive(index)}
+              onPointerEnter={() => {
+                setActive(index);
+              }}
               role="menuitem"
               tabIndex={index === active ? 0 : -1}
               type="button"
             >
               {item.icon ? <Icon icon={item.icon} /> : null}
               <span className="hx-grow">{item.label}</span>
-              {item.shortcut ? <Kbd>{item.shortcut}</Kbd> : null}
+              {item.shortcut !== undefined && item.shortcut !== "" ? (
+                <Kbd>{item.shortcut}</Kbd>
+              ) : null}
             </button>
           </div>
         ))}

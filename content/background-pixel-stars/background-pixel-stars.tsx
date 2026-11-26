@@ -2,6 +2,8 @@
 
 import { memo, useEffect, useRef } from "react";
 
+const noop = () => null;
+
 const STAR_COLORS = [
   "#FFFFFF",
   "#FFFFAA",
@@ -96,13 +98,13 @@ const BackgroundPixelStarsCanvas = () => {
     const canvas = canvasRef.current;
 
     if (!canvas) {
-      return;
+      return noop;
     }
 
     const ctx = canvas.getContext("2d");
 
     if (!ctx) {
-      return;
+      return noop;
     }
 
     let backgroundStars: BackgroundStar[] = [];

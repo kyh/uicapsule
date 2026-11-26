@@ -2,6 +2,8 @@
 
 import { useEffect, useRef, useState } from "react";
 
+const noop = () => null;
+
 const FONT = new Map(
   Object.entries({
     A: [".###.", "#...#", "#####", "#...#", "#...#"],
@@ -56,7 +58,7 @@ const shade = (hex: string, factor: number) => {
   const key = `${hex}:${factor}`;
   const cached = shadeCache.get(key);
 
-  if (cached) {
+  if (cached !== undefined && cached !== "") {
     return cached;
   }
 
@@ -110,11 +112,11 @@ const buildSign = (out: Voxel[], word: string, cz: number, section: number) => {
     );
   }
 
-  for (const [li, ch] of [...word].entries()) {
+  for (const [li, ch] of Array.from(word, (char, index) => [index, char] as const)) {
     const glyph = FONT.get(ch) ?? [];
 
     for (const [gy, row] of glyph.entries()) {
-      for (const [gx, cell] of [...row].entries()) {
+      for (const [gx, cell] of Array.from(row, (char, index) => [index, char] as const)) {
         if (cell !== "#") {
           continue;
         }
@@ -131,11 +133,11 @@ const buildSign = (out: Voxel[], word: string, cz: number, section: number) => {
 const buildFlatWord = (out: Voxel[], word: string, cx: number, cz: number, accent: string) => {
   const cols = word.length * 6 - 1;
 
-  for (const [li, ch] of [...word].entries()) {
+  for (const [li, ch] of Array.from(word, (char, index) => [index, char] as const)) {
     const glyph = FONT.get(ch) ?? [];
 
     for (const [gz, row] of glyph.entries()) {
-      for (const [gx, cell] of [...row].entries()) {
+      for (const [gx, cell] of Array.from(row, (char, index) => [index, char] as const)) {
         if (cell !== "#") {
           continue;
         }
@@ -652,13 +654,13 @@ export const VoxelLanding = ({ autoTour = true }: VoxelLandingProps) => {
     const htmlLayer = htmlRef.current;
 
     if (!container || !canvas || !htmlLayer) {
-      return;
+      return noop;
     }
 
     const ctx = canvas.getContext("2d");
 
     if (!ctx) {
-      return;
+      return noop;
     }
 
     const world = buildWorld();
@@ -721,9 +723,7 @@ export const VoxelLanding = ({ autoTour = true }: VoxelLandingProps) => {
 
       if (autoTour && !reducedMotion) {
         if (elapsed - lastInput < 4) {
-          if (pausedAt === null) {
-            pausedAt = elapsed;
-          }
+          pausedAt ??= elapsed;
         } else {
           if (pausedAt !== null) {
             tourOffset += elapsed - pausedAt;

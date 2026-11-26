@@ -4,18 +4,24 @@ import { useEffect, useState } from "react";
 import { Button } from "./button";
 import { Icon } from "./icon";
 
+const noop = () => null;
+
 /** Copies `value` to the clipboard and swaps its glyph for a tick briefly. */
 export const CopyButton = ({ value, label = "Copy" }: { value: string; label?: string }) => {
   const [copied, setCopied] = useState(false);
 
   useEffect(() => {
     if (!copied) {
-      return;
+      return noop;
     }
 
-    const timer = window.setTimeout(() => setCopied(false), 1400);
+    const timer = window.setTimeout(() => {
+      setCopied(false);
+    }, 1400);
 
-    return () => window.clearTimeout(timer);
+    return () => {
+      window.clearTimeout(timer);
+    };
   }, [copied]);
 
   const copy = async () => {
@@ -31,7 +37,9 @@ export const CopyButton = ({ value, label = "Copy" }: { value: string; label?: s
   return (
     <Button
       aria-label={copied ? "Copied" : label}
-      onClick={copy}
+      onClick={() => {
+        void copy();
+      }}
       size="icon-sm"
       title={copied ? "Copied" : label}
       variant="ghost"

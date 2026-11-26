@@ -232,7 +232,11 @@ export const GlobalFinanceMarketCombo = () => {
         </span>
       </div>
       <ChartSlot height={HEIGHT} className="mt-2">
-        <div onMouseLeave={() => pin(null)}>
+        <div
+          onMouseLeave={() => {
+            pin(null);
+          }}
+        >
           <Chart
             definition={definition}
             renderer={renderer}

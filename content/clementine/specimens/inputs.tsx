@@ -34,13 +34,21 @@ export const InputSpecimens = () => {
         note="The label sits above, the field is a 14px soft square on warm paper, and text is 16px so phones never zoom in."
       >
         <div className="cl-spec-col">
-          <Input label="Goal name" onChange={(event) => setGoal(event.target.value)} value={goal} />
+          <Input
+            label="Goal name"
+            onChange={(event) => {
+              setGoal(event.target.value);
+            }}
+            value={goal}
+          />
           <Input
             description="Try a number over 50,000 to see the error."
             error={targetError}
             inputMode="decimal"
             label="Target"
-            onChange={(event) => setTarget(event.target.value.replaceAll(/[^0-9.]/gu, ""))}
+            onChange={(event) => {
+              setTarget(event.target.value.replaceAll(/[^0-9.]/gu, ""));
+            }}
             prefix="$"
             value={target}
           />
@@ -53,7 +61,9 @@ export const InputSpecimens = () => {
         <div className="cl-spec-col">
           <Textarea
             label="Note to Teodor"
-            onChange={(event) => setNote(event.target.value)}
+            onChange={(event) => {
+              setNote(event.target.value);
+            }}
             rows={3}
             value={note}
           />

@@ -3,6 +3,8 @@ import type { ReactNode } from "react";
 
 import "./toast.css";
 
+const noop = () => null;
+
 interface ToastInput {
   title: string;
   description?: string;
@@ -40,30 +42,47 @@ export const ToastProvider = ({ children }: { children: ReactNode }) => {
 
   useEffect(() => {
     if (!toast || paused) {
-      return;
+      return noop;
     }
 
-    const hide = window.setTimeout(() => setLeaving(true), toast.action ? 8000 : 5000);
+    const hide = window.setTimeout(
+      () => {
+        setLeaving(true);
+      },
+      toast.action ? 8000 : 5000,
+    );
 
-    return () => window.clearTimeout(hide);
+    return () => {
+      window.clearTimeout(hide);
+    };
   }, [toast, paused]);
 
   useEffect(() => {
     if (!leaving) {
-      return;
+      return noop;
     }
 
-    const remove = window.setTimeout(() => setToast(null), 160);
+    const remove = window.setTimeout(() => {
+      setToast(null);
+    }, 160);
 
-    return () => window.clearTimeout(remove);
+    return () => {
+      window.clearTimeout(remove);
+    };
   }, [leaving]);
 
   const card = useCallback((node: HTMLDivElement | null) => {
+    const unpause = () => {
+      setPaused(false);
+    };
+
     if (!node) {
-      return;
+      return unpause;
     }
 
-    const hold = () => setPaused(true);
+    const hold = () => {
+      setPaused(true);
+    };
 
     const release = (event: Event) => {
       const next = event instanceof FocusEvent ? event.relatedTarget : null;
@@ -83,7 +102,7 @@ export const ToastProvider = ({ children }: { children: ReactNode }) => {
       node.removeEventListener("pointerleave", release);
       node.removeEventListener("focusin", hold);
       node.removeEventListener("focusout", release);
-      setPaused(false);
+      unpause();
     };
   }, []);
 
@@ -97,7 +116,9 @@ export const ToastProvider = ({ children }: { children: ReactNode }) => {
           <div className="cl-toast" data-leaving={leaving || undefined} key={toast.id} ref={card}>
             <div className="cl-toast__text">
               <p className="cl-toast__title">{toast.title}</p>
-              {toast.description ? <p className="cl-toast__desc">{toast.description}</p> : null}
+              {toast.description !== undefined && toast.description !== "" ? (
+                <p className="cl-toast__desc">{toast.description}</p>
+              ) : null}
             </div>
             {toast.action ? (
               <button

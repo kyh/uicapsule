@@ -60,7 +60,7 @@ export const pageOpenGraph = (
     url: path,
   };
 
-  if (videos) {
+  if (videos !== undefined) {
     openGraph.videos = videos;
   }
 

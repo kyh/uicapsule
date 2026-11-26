@@ -17,7 +17,7 @@ export const ErrorState = ({
     <div className="cl-alert__body">
       <p className="cl-alert__title">{title}</p>
       <p className="cl-alert__text">{children}</p>
-      {action ? <div className="cl-alert__action">{action}</div> : null}
+      {Boolean(action) && <div className="cl-alert__action">{action}</div>}
     </div>
   </div>
 );

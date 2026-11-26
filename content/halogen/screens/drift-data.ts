@@ -96,7 +96,7 @@ export const mappingSql = (choices: Record<string, Resolution>) => {
   ];
 
   const changed = [phone, ltv, consent, region].flatMap((line) =>
-    line ? [lines.indexOf(line) + 1] : [],
+    line !== null && line !== "" ? [lines.indexOf(line) + 1] : [],
   );
 
   return { changed, code: `${lines.join("\n")};` };

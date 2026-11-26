@@ -2,6 +2,7 @@ import { lstat, readFile, readdir } from "node:fs/promises";
 import path from "node:path";
 import { Visitor, parseSync } from "oxc-parser";
 import type { Argument } from "oxc-parser";
+import { z } from "zod";
 
 import {
   contentMetaSchema,
@@ -12,9 +13,8 @@ export const ignoredDirectories = new Set(["node_modules", "dist", ".cache", ".t
 const codeExtensions = new Set([".ts", ".tsx", ".js", ".jsx", ".mts", ".cts", ".mjs", ".cjs"]);
 
 const staticSpecifier = (node: Argument | null | undefined) => {
-  // oxlint-disable-next-line anti-slop/no-runtime-typeof -- ESTree tags every literal "Literal"; value type is the discriminant
-  if (node?.type === "Literal" && typeof node.value === "string") {
-    return node.value;
+  if (node?.type === "Literal") {
+    return z.string().safeParse(node.value).data;
   }
 
   return node?.type === "TemplateLiteral" && node.expressions.length === 0
@@ -43,7 +43,7 @@ export const validateContentDirectory = async (directory: string) => {
 
   const preview = await lstat(path.join(directory, "preview.tsx")).catch(() => null);
 
-  if (!preview?.isFile()) {
+  if (preview?.isFile() !== true) {
     issues.push("missing preview.tsx");
   }
 
@@ -51,7 +51,7 @@ export const validateContentDirectory = async (directory: string) => {
     .then((source) => contentPackageSchema.safeParse(JSON.parse(source)))
     .catch(() => null);
 
-  if (pkg?.success) {
+  if (pkg?.success === true) {
     for (const group of [
       pkg.data.dependencies,
       pkg.data.devDependencies,
@@ -81,76 +81,86 @@ export const validateContentDirectory = async (directory: string) => {
     }
   };
 
-  const visit = async (directoryPath: string) => {
+  const sourceFilesOf: (directoryPath: string) => Promise<string[]> = async (directoryPath) => {
     const entries = await readdir(directoryPath, { withFileTypes: true });
 
-    for (const entry of entries) {
-      if (ignoredDirectories.has(entry.name)) {
-        continue;
-      }
+    const nested = await Promise.all(
+      entries
+        .filter((entry) => !ignoredDirectories.has(entry.name))
+        .map(async (entry) => {
+          const file = path.join(directoryPath, entry.name);
 
-      const file = path.join(directoryPath, entry.name);
-
-      if (entry.isDirectory()) {
-        await visit(file);
-        continue;
-      }
-
-      if (!entry.isFile()) {
-        continue;
-      }
-
-      const extension = path.extname(file);
-
-      if (!codeExtensions.has(extension) && extension !== ".css") {
-        continue;
-      }
-
-      const source = await readFile(file, "utf-8");
-
-      if (extension === ".css") {
-        const css = source.replaceAll(/\/\*[\s\S]*?\*\//gu, "");
-
-        for (const match of css.matchAll(/@import\s+(?:url\(\s*)?["'](?<specifier>[^"']+)["']/gu)) {
-          const specifier = match.groups?.specifier;
-
-          if (specifier) {
-            checkImport(file, specifier);
+          if (entry.isDirectory()) {
+            return await sourceFilesOf(file);
           }
-        }
 
-        continue;
-      }
+          const extension = path.extname(file);
 
-      const { program, errors } = parseSync(file, source, { sourceType: "unambiguous" });
+          return entry.isFile() && (codeExtensions.has(extension) || extension === ".css")
+            ? [file]
+            : [];
+        }),
+    );
 
-      for (const error of errors) {
-        issues.push(`${path.relative(directory, file)}: ${error.message}`);
-      }
-
-      const check = (node: Argument | null | undefined) => {
-        const specifier = staticSpecifier(node);
-
-        if (specifier) {
-          checkImport(file, specifier);
-        }
-      };
-
-      new Visitor({
-        CallExpression: (node) => {
-          if (node.callee.type === "Identifier" && node.callee.name === "require") {
-            check(node.arguments[0]);
-          }
-        },
-        ExportAllDeclaration: (node) => check(node.source),
-        ExportNamedDeclaration: (node) => check(node.source),
-        ImportDeclaration: (node) => check(node.source),
-        ImportExpression: (node) => check(node.source),
-      }).visit(program);
-    }
+    return nested.flat();
   };
 
-  await visit(directory);
+  const checkSource = (file: string, source: string) => {
+    if (path.extname(file) === ".css") {
+      const css = source.replaceAll(/\/\*[\s\S]*?\*\//gu, "");
+
+      for (const match of css.matchAll(/@import\s+(?:url\(\s*)?["'](?<specifier>[^"']+)["']/gu)) {
+        const specifier = match.groups?.specifier;
+
+        if (specifier !== undefined && specifier !== "") {
+          checkImport(file, specifier);
+        }
+      }
+
+      return;
+    }
+
+    const { program, errors } = parseSync(file, source, { sourceType: "unambiguous" });
+
+    for (const error of errors) {
+      issues.push(`${path.relative(directory, file)}: ${error.message}`);
+    }
+
+    const check = (node: Argument | null | undefined) => {
+      const specifier = staticSpecifier(node);
+
+      if (specifier !== undefined && specifier !== "") {
+        checkImport(file, specifier);
+      }
+    };
+
+    new Visitor({
+      CallExpression: (node) => {
+        if (node.callee.type === "Identifier" && node.callee.name === "require") {
+          check(node.arguments[0]);
+        }
+      },
+      ExportAllDeclaration: (node) => {
+        check(node.source);
+      },
+      ExportNamedDeclaration: (node) => {
+        check(node.source);
+      },
+      ImportDeclaration: (node) => {
+        check(node.source);
+      },
+      ImportExpression: (node) => {
+        check(node.source);
+      },
+    }).visit(program);
+  };
+
+  const files = await sourceFilesOf(directory);
+  const sources = await Promise.all(files.map(async (file) => await readFile(file, "utf-8")));
+
+  for (const [index, file] of files.entries()) {
+    checkSource(file, sources[index] ?? "");
+  }
 
   return issues;
 };

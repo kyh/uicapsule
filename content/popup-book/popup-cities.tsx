@@ -223,8 +223,11 @@ const Stripes = ({ w, h, colors }: { w: number; h: number; colors: string[] }) =
   </g>
 );
 
-const scaleArt = (node: ReactNode, k: number) =>
-  node ? <g transform={`scale(${k})`}>{node}</g> : undefined;
+const scaleArt = (node: ReactNode, k: number) => {
+  const hasArt = Boolean(node);
+
+  return hasArt ? <g transform={`scale(${k})`}>{node}</g> : undefined;
+};
 
 const place = (solids: PopupSolid[], x: number, y: number, k = 1) =>
   solids.map<PopupSolid>((solid) => ({

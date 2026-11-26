@@ -31,7 +31,9 @@ export const Display = () => {
                 key={item.label}
                 label={item.label}
                 lead={<StatusMark status={item.status} />}
-                onSelect={() => setCell(item.label)}
+                onSelect={() => {
+                  setCell(item.label);
+                }}
                 selected={cell === item.label}
                 value={item.value}
               />

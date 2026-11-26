@@ -62,7 +62,9 @@ export const Data = () => {
                       <button
                         className="v-fold-trigger"
                         data-size="sm"
-                        onClick={() => setByStatus(!byStatus)}
+                        onClick={() => {
+                          setByStatus(!byStatus);
+                        }}
                         type="button"
                       >
                         Status

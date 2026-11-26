@@ -52,7 +52,9 @@ const add = (type: ToastType, title: ReactNode, options?: ToastOptions) =>
 const toast = Object.assign(
   (title: ReactNode, options?: ToastOptions) => add("default", title, options),
   {
-    dismiss: (id?: string) => manager.close(id),
+    dismiss: (id?: string) => {
+      manager.close(id);
+    },
     error: (title: ReactNode, options?: ToastOptions) => add("error", title, options),
     info: (title: ReactNode, options?: ToastOptions) => add("info", title, options),
     loading: (title: ReactNode, options?: ToastOptions) =>
@@ -82,7 +84,9 @@ const ToastIcon = ({
   const icon =
     toastObject.data?.icon ?? (isToastType(toastObject.type) ? TYPE_ICONS[toastObject.type] : null);
 
-  if (!icon) {
+  const hasIcon = Boolean(icon);
+
+  if (!hasIcon) {
     return null;
   }
 

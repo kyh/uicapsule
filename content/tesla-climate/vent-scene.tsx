@@ -3,6 +3,8 @@
 import { useEffect, useRef, useState } from "react";
 import type { FC } from "react";
 
+const noop = () => null;
+
 interface VentSceneProps {
   tempF: number;
   fanSpeed: number;
@@ -62,20 +64,20 @@ export const VentScene: FC<VentSceneProps> = ({ tempF, fanSpeed, powerOn, acOn }
     const canvas = canvasRef.current;
 
     if (!canvas) {
-      return;
+      return noop;
     }
 
     const context = canvas.getContext("2d");
 
     if (!context) {
-      return;
+      return noop;
     }
 
     const offscreen = document.createElement("canvas");
     const offContext = offscreen.getContext("2d");
 
     if (!offContext) {
-      return;
+      return noop;
     }
 
     let frame = 0;
@@ -259,7 +261,9 @@ export const VentScene: FC<VentSceneProps> = ({ tempF, fanSpeed, powerOn, acOn }
 
     frame = requestAnimationFrame(step);
 
-    return () => cancelAnimationFrame(frame);
+    return () => {
+      cancelAnimationFrame(frame);
+    };
   }, []);
 
   const aimStream = (clientX: number, clientY: number) => {

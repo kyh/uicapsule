@@ -6,7 +6,9 @@ import { MotionConfig } from "motion/react";
 import { parseParentMessage } from "../preview-protocol";
 import type { FrameMessage, PreviewTheme } from "../preview-protocol";
 
-const post = (message: FrameMessage) => window.parent.postMessage(message, "*");
+const post = (message: FrameMessage) => {
+  window.parent.postMessage(message, "*");
+};
 
 const applyTheme = (theme: PreviewTheme) => {
   const root = document.documentElement;
@@ -18,17 +20,19 @@ const applyTheme = (theme: PreviewTheme) => {
 const describe = (element: Element) => {
   const slot = element instanceof HTMLElement ? element.dataset.slot : undefined;
 
-  if (slot) {
+  if (slot !== undefined && slot !== "") {
     return slot;
   }
 
   const tag = element.tagName.toLowerCase();
   const [firstClass] = element.classList;
 
-  return firstClass ? `${tag}.${firstClass}` : tag;
+  return firstClass !== undefined && firstClass !== "" ? `${tag}.${firstClass}` : tag;
 };
 
-const clearBox = () => post({ box: null, type: "uicapsule:inspect-box" });
+const clearBox = () => {
+  post({ box: null, type: "uicapsule:inspect-box" });
+};
 
 const blockEvent = (event: Event) => {
   event.preventDefault();

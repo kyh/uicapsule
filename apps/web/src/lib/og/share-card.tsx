@@ -31,13 +31,9 @@ const shorten = (text: string) => {
 export const readStill = async (url: string) => {
   const response = await fetch(url).catch(() => null);
 
-  if (!response?.ok) {
-    return;
-  }
-
-  const bytes = Buffer.from(await response.arrayBuffer());
-
-  return `data:image/jpeg;base64,${bytes.toString("base64")}`;
+  return response?.ok === true
+    ? `data:image/jpeg;base64,${Buffer.from(await response.arrayBuffer()).toString("base64")}`
+    : undefined;
 };
 
 export interface ShareCard {
@@ -50,7 +46,7 @@ export interface ShareCard {
 }
 
 const Still = ({ src }: { src: string }) => (
-  // oxlint-disable-next-line next/no-img-element -- satori renders plain <img>; next/image does not exist here
+  // oxlint-disable-next-line next/no-img-element -- satori draws a cover image only from <img>: next/image does not exist there, and its background-image ignores background-position (checked by rendering)
   <img
     alt=""
     height={size.height}
@@ -102,8 +98,8 @@ export const renderShareCard = ({ description, path: pagePath, still, title }: S
         width: "100%",
       }}
     >
-      {still ? <Still src={still} /> : <Mark />}
-      {still ? <Scrim /> : null}
+      {still !== undefined && still !== "" ? <Still src={still} /> : <Mark />}
+      {still !== undefined && still !== "" ? <Scrim /> : null}
       <div
         style={{
           display: "flex",

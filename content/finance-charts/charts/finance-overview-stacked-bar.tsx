@@ -166,7 +166,11 @@ export const FinanceOverviewStackedBar = () => {
         ))}
       </div>
       <ChartSlot height={HEIGHT} className="mt-4">
-        <div onMouseLeave={() => pin(null)}>
+        <div
+          onMouseLeave={() => {
+            pin(null);
+          }}
+        >
           <Chart
             definition={definition}
             renderer={renderer}

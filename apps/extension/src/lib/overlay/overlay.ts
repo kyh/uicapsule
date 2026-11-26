@@ -1,4 +1,5 @@
 import { componentRequestSchema } from "@repo/contract/request/request-schema";
+import type { z } from "zod";
 
 import { htmlFor, labelFor, selectorFor, videoFor, videoSource } from "../element";
 import { decodeFile } from "../encoding";
@@ -29,13 +30,18 @@ const PAGE_EVENTS = [
 
 const isFieldKey = (key: string): key is FieldKey => FIELD_KEYS.has(key);
 
-const nextFrame = () =>
-  // oxlint-disable-next-line promise/avoid-new -- requestAnimationFrame has no promise form to await
-  new Promise<void>((resolve) => {
-    requestAnimationFrame(() => resolve());
+const nextFrame = async () => {
+  const frame = Promise.withResolvers<null>();
+
+  requestAnimationFrame(() => {
+    frame.resolve(null);
   });
 
-const ask = (request: WorkerRequest) => browser.runtime.sendMessage(request);
+  await frame.promise;
+};
+
+const ask = async <T extends z.ZodType>(request: WorkerRequest, schema: T) =>
+  schema.parse(await browser.runtime.sendMessage(request));
 
 const sizeLabel = (base64: string) => `${((base64.length * 3) / 4 / 1024 / 1024).toFixed(1)} MB`;
 
@@ -126,7 +132,7 @@ export const mountOverlay = (onClosed: () => void) => {
     let result: FileResult = { ok: false, reason: "" };
 
     if (source.kind === "file") {
-      result = fileResultSchema.parse(await ask({ src: source.src, type: "video" }));
+      result = await ask({ src: source.src, type: "video" }, fileResultSchema);
     }
 
     if (run !== generation) {
@@ -231,11 +237,12 @@ export const mountOverlay = (onClosed: () => void) => {
 
     const run = generation;
 
-    const result = submitResultSchema.parse(
-      await ask({ draft: request, files: video ? [shot, video] : [shot], type: "submit" }),
+    const result = await ask(
+      { draft: request, files: video === null ? [shot] : [shot, video], type: "submit" },
+      submitResultSchema,
     );
 
-    if (run !== generation || !details) {
+    if (run !== generation || details === null) {
       return;
     }
 
@@ -251,7 +258,10 @@ export const mountOverlay = (onClosed: () => void) => {
     void toastAndClose({
       link: { href: result.url, label: "View" },
       text: "If it gets built, it lands in the gallery with your credit.",
-      title: result.number ? `Request #${result.number} filed` : "Request filed",
+      title:
+        result.number !== undefined && result.number !== 0
+          ? `Request #${result.number} filed`
+          : "Request filed",
     });
   };
 
@@ -294,12 +304,13 @@ export const mountOverlay = (onClosed: () => void) => {
     await nextFrame();
     await nextFrame();
 
-    const result = fileResultSchema.parse(
-      await ask({
+    const result = await ask(
+      {
         rect: picked.rect,
         type: "capture",
         viewport: { height: window.innerHeight, width: window.innerWidth },
-      }),
+      },
+      fileResultSchema,
     );
 
     host.toggleAttribute("data-hidden", false);
@@ -333,7 +344,7 @@ export const mountOverlay = (onClosed: () => void) => {
       return;
     }
 
-    if (request.tool === "media" && request.src) {
+    if (request.tool === "media" && request.src !== undefined && request.src !== "") {
       const element = mediaFor(request.src);
 
       if (element) {
@@ -374,7 +385,13 @@ export const mountOverlay = (onClosed: () => void) => {
   window.addEventListener("keydown", onKey, { capture: true, signal });
 
   for (const type of PAGE_EVENTS) {
-    host.addEventListener(type, (event) => event.stopPropagation(), { signal });
+    host.addEventListener(
+      type,
+      (event) => {
+        event.stopPropagation();
+      },
+      { signal },
+    );
   }
 
   const style = document.createElement("style");

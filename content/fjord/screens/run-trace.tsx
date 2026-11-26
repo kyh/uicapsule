@@ -194,11 +194,11 @@ const StepStatus = ({ step, elapsed }: { step: Step; elapsed: number }) => {
     return <Status status="running" />;
   }
 
-  if (step.failed) {
+  if (step.failed === true) {
     return <Status status="fail" />;
   }
 
-  if (step.cached) {
+  if (step.cached === true) {
     return <Status status="ok">From cache</Status>;
   }
 
@@ -206,24 +206,25 @@ const StepStatus = ({ step, elapsed }: { step: Step; elapsed: number }) => {
 };
 
 const StepDetail = ({ step, elapsed }: { step: Step; elapsed: number }) => {
-  const extra = step.retriedBy
-    ? [
-        {
-          term: "Retried by",
-          value: (
-            <span className="fj-hstack" data-gap="8">
-              <Avatar name={step.retriedBy} size="sm" />
-              {step.retriedBy}
-            </span>
-          ),
-        },
-      ]
-    : [];
+  const extra =
+    step.retriedBy !== undefined && step.retriedBy !== ""
+      ? [
+          {
+            term: "Retried by",
+            value: (
+              <span className="fj-hstack" data-gap="8">
+                <Avatar name={step.retriedBy} size="sm" />
+                {step.retriedBy}
+              </span>
+            ),
+          },
+        ]
+      : [];
 
   return (
     <>
       <CardHead
-        action={<Badge kind={step.kind} trouble={step.failed ? "fail" : undefined} />}
+        action={<Badge kind={step.kind} trouble={step.failed === true ? "fail" : undefined} />}
         title={step.name}
       />
       <div className="fj-detail">
@@ -261,10 +262,21 @@ const GateDetail = ({ phase, decided, mergeMs, decide, outcome }: GateDetailProp
         <ToolCall
           actions={
             <>
-              <Button onClick={() => decide(false)} size="sm">
+              <Button
+                onClick={() => {
+                  decide(false);
+                }}
+                size="sm"
+              >
                 Keep it open
               </Button>
-              <Button onClick={() => decide(true)} size="sm" variant="primary">
+              <Button
+                onClick={() => {
+                  decide(true);
+                }}
+                size="sm"
+                variant="primary"
+              >
                 Merge #2817
               </Button>
             </>
@@ -439,20 +451,24 @@ export const RunTrace = ({ startAt = 3000 }: { startAt?: number }) => {
                   className="fj-trace-row"
                   data-kind={row.kind}
                   data-lane={row.lane}
-                  data-trouble={row.failed && !live ? "fail" : undefined}
+                  data-trouble={row.failed === true && !live ? "fail" : undefined}
                   key={row.id}
-                  onClick={() => setSelected(row.id)}
+                  onClick={() => {
+                    setSelected(row.id);
+                  }}
                   type="button"
                 >
                   <span className="fj-trace-name">
                     <span className="fj-truncate">{row.name}</span>
                     {row.lane === "fork" ? <span className="fj-trace-note">3 together</span> : null}
-                    {row.retriedBy ? <Avatar name={row.retriedBy} size="sm" /> : null}
+                    {row.retriedBy !== undefined && row.retriedBy !== "" ? (
+                      <Avatar name={row.retriedBy} size="sm" />
+                    ) : null}
                   </span>
                   <Lane>
                     <span
                       className="fj-trace-bar"
-                      data-cached={row.cached ? "" : undefined}
+                      data-cached={row.cached === true ? "" : undefined}
                       data-fork={row.lane === "fork" ? "" : undefined}
                       data-live={live ? "" : undefined}
                       style={{ left: pct(row.start), width: pct(end - row.start) }}
@@ -462,9 +478,11 @@ export const RunTrace = ({ startAt = 3000 }: { startAt?: number }) => {
                       data-flip={row.end / SCALE > FLIP_AT ? "" : undefined}
                       style={labelAt(row.start, end, row.end)}
                     >
-                      {row.cached ? "cache hit" : formatMs(end - row.start)}
-                      {row.failed && !live ? <span className="fj-c-fail"> failed</span> : null}
-                      {row.retriedBy ? (
+                      {row.cached === true ? "cache hit" : formatMs(end - row.start)}
+                      {row.failed === true && !live ? (
+                        <span className="fj-c-fail"> failed</span>
+                      ) : null}
+                      {row.retriedBy !== undefined && row.retriedBy !== "" ? (
                         <span className="fj-sr"> retried by {row.retriedBy}</span>
                       ) : null}
                     </span>
@@ -477,7 +495,9 @@ export const RunTrace = ({ startAt = 3000 }: { startAt?: number }) => {
                 aria-pressed={selected === "merge"}
                 className="fj-trace-row"
                 data-kind="repo"
-                onClick={() => setSelected("merge")}
+                onClick={() => {
+                  setSelected("merge");
+                }}
                 type="button"
               >
                 <span className="fj-trace-name">

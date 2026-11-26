@@ -38,10 +38,10 @@ test("files a labelled issue with mentions neutralized", async (t) => {
   withToken(t, "test-token");
   let received: Request | undefined;
 
-  const issue = await createComponentRequestIssue(request, (input, init) => {
+  const issue = await createComponentRequestIssue(request, async (input, init) => {
     received = new Request(input, init);
 
-    return Promise.resolve(
+    return await Promise.resolve(
       Response.json({ html_url: "https://github.com/kyh/uicapsule/issues/7", number: 7 }),
     );
   });
@@ -86,19 +86,20 @@ const unavailable = { code: "SERVICE_UNAVAILABLE" };
 test("reports missing token, provider failure, and network failure as unavailable", async (t) => {
   withToken(t);
   await assert.rejects(
-    createComponentRequestIssue(request, () => Promise.resolve(Response.json({}))),
+    createComponentRequestIssue(request, async () => await Promise.resolve(Response.json({}))),
     unavailable,
   );
 
   withToken(t, "test-token");
   await assert.rejects(
-    createComponentRequestIssue(request, () =>
-      Promise.resolve(new Response("nope", { status: 401 })),
+    createComponentRequestIssue(
+      request,
+      async () => await Promise.resolve(new Response("nope", { status: 401 })),
     ),
     unavailable,
   );
   await assert.rejects(
-    createComponentRequestIssue(request, () => Promise.reject(new Error("offline"))),
+    createComponentRequestIssue(request, async () => await Promise.reject(new Error("offline"))),
     unavailable,
   );
 });

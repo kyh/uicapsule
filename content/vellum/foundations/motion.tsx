@@ -98,7 +98,9 @@ const Curve = ({ name, d, ease }: { name: string; d: string; ease: "in" | "out" 
   return (
     <Cell
       meta={`${name}, over --dur-demo`}
-      onReplay={() => setRun((count) => count + 1)}
+      onReplay={() => {
+        setRun((count) => count + 1);
+      }}
       title={ease === "out" ? "Ease out" : "Ease in"}
     >
       <svg aria-hidden className="v-curve v-curve-box" viewBox="-2 -2 104 64">
@@ -126,28 +128,49 @@ export const MotionFoundation = () => {
 
   const press = (kind: "glass" | "flat") => {
     setHeld(kind);
-    later(() => setHeld(null), kind === "glass" ? 260 : 320);
+    later(
+      () => {
+        setHeld(null);
+      },
+      kind === "glass" ? 260 : 320,
+    );
   };
 
   const replay = (set: (value: boolean) => void) => {
     set(false);
-    later(() => set(true), 260);
+    later(() => {
+      set(true);
+    }, 260);
   };
 
   return (
     <>
       <div className="v-motion-grid">
-        <Cell meta="50ms down, 200ms up" onReplay={() => press("glass")} title="Glass press">
+        <Cell
+          meta="50ms down, 200ms up"
+          onReplay={() => {
+            press("glass");
+          }}
+          title="Glass press"
+        >
           <Button held={held === "glass"}>Grade again</Button>
         </Cell>
-        <Cell meta="120ms to 0.97" onReplay={() => press("flat")} title="Flat press">
+        <Cell
+          meta="120ms to 0.97"
+          onReplay={() => {
+            press("flat");
+          }}
+          title="Flat press"
+        >
           <Button held={held === "flat"} variant="secondary">
             Edit prompt
           </Button>
         </Cell>
         <Cell
           meta="160ms, a colour change"
-          onReplay={() => setState((value) => !value)}
+          onReplay={() => {
+            setState((value) => !value);
+          }}
           title="State"
         >
           <span className="v-field v-motion-field" data-on={state ? "" : undefined}>
@@ -156,7 +179,9 @@ export const MotionFoundation = () => {
         </Cell>
         <Cell
           meta="200ms in, 4px from the trigger"
-          onReplay={() => replay(setOverlay)}
+          onReplay={() => {
+            replay(setOverlay);
+          }}
           title="Overlay"
         >
           <span className="v-anchor v-motion-anchor">
@@ -168,7 +193,13 @@ export const MotionFoundation = () => {
             </span>
           </span>
         </Cell>
-        <Cell meta="200ms, settles from 0.97" onReplay={() => replay(setDialog)} title="Dialog">
+        <Cell
+          meta="200ms, settles from 0.97"
+          onReplay={() => {
+            replay(setDialog);
+          }}
+          title="Dialog"
+        >
           <Shell className="v-motion-dialog" data-open={dialog ? "" : undefined}>
             <Panel padded>
               <span className="v-caption">Turn the router off?</span>
@@ -177,7 +208,9 @@ export const MotionFoundation = () => {
         </Cell>
         <Cell
           meta="200ms, the thumb moves"
-          onReplay={() => setSlide((value) => !value)}
+          onReplay={() => {
+            setSlide((value) => !value);
+          }}
           title="Slide"
         >
           <span className="v-slide-demo v-motion-w" data-on={slide ? "" : undefined}>
@@ -188,7 +221,9 @@ export const MotionFoundation = () => {
           meta="800ms a turn, linear"
           onReplay={() => {
             setPending(true);
-            later(() => setPending(false), 2400);
+            later(() => {
+              setPending(false);
+            }, 2400);
           }}
           title="Pending"
         >

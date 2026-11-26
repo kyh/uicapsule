@@ -19,7 +19,12 @@ export const passwordResetModeOf = (
   { AUTH_EMAIL_FROM, RESEND_API_KEY }: PasswordResetSettings,
   production: boolean,
 ) => {
-  if (RESEND_API_KEY && AUTH_EMAIL_FROM) {
+  if (
+    RESEND_API_KEY !== undefined &&
+    RESEND_API_KEY !== "" &&
+    AUTH_EMAIL_FROM !== undefined &&
+    AUTH_EMAIL_FROM !== ""
+  ) {
     return "resend" satisfies PasswordResetMode;
   }
 
@@ -43,7 +48,7 @@ export const sendPasswordResetEmail = async (
   const apiKey = process.env.RESEND_API_KEY;
   const from = process.env.AUTH_EMAIL_FROM;
 
-  if (!apiKey || !from) {
+  if (apiKey === undefined || apiKey === "" || from === undefined || from === "") {
     throw APIError.from("SERVICE_UNAVAILABLE", {
       code: "PASSWORD_RESET_UNAVAILABLE",
       message: "Password reset is temporarily unavailable. Try again later.",
@@ -78,19 +83,22 @@ export const sendPasswordResetEmail = async (
   });
 };
 
-const passwordResetSenders = {
-  log: ({ user, url }: PasswordResetRequest) => {
+const deliverPasswordReset = async (
+  mode: "log" | "resend",
+  { user, url }: PasswordResetRequest,
+) => {
+  if (mode === "log") {
     logPasswordResetEmail(user.email, url);
 
-    return Promise.resolve();
-  },
-  off: undefined,
-  resend: async ({ user, url }: PasswordResetRequest) => {
-    await sendPasswordResetEmail(user.email, url);
-  },
-} satisfies Record<
-  PasswordResetMode,
-  ((request: PasswordResetRequest) => Promise<void>) | undefined
->;
+    return;
+  }
 
-export const passwordResetSenderOf = (mode: PasswordResetMode) => passwordResetSenders[mode];
+  await sendPasswordResetEmail(user.email, url);
+};
+
+export const passwordResetSenderOf = (mode: PasswordResetMode) =>
+  mode === "off"
+    ? undefined
+    : async (request: PasswordResetRequest) => {
+        await deliverPasswordReset(mode, request);
+      };

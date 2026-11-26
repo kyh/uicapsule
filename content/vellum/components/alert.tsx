@@ -31,7 +31,7 @@ export const Alert = ({
       <Icon aria-hidden />
       <div className="v-stack-sm v-gap-2 v-grow">
         <p className="v-alert-title">{title}</p>
-        {children ? <div className="v-t1">{children}</div> : null}
+        {Boolean(children) && <div className="v-t1">{children}</div>}
       </div>
       {action}
     </div>

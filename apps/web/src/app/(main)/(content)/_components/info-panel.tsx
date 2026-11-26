@@ -39,8 +39,12 @@ const InstallCommand = ({ slug }: { slug: string }) => (
       label="Copy install command"
       value={installCommand(slug)}
       className="size-8"
-      onCopy={() => toast.success("Copied to clipboard")}
-      onError={() => toast.error("Failed to copy command to clipboard.")}
+      onCopy={() => {
+        toast.success("Copied to clipboard");
+      }}
+      onError={() => {
+        toast.error("Failed to copy command to clipboard.");
+      }}
     />
   </div>
 );

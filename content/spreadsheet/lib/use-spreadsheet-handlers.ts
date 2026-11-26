@@ -93,13 +93,18 @@ export const useSpreadsheetHandlers = ({ columns, navigationMap }: UseSpreadshee
 
           const [firstSelectedCell] = [...currentSelectedCells];
 
-          if (!firstSelectedCell) {
+          if (firstSelectedCell === undefined || firstSelectedCell === "") {
             return new Set([cellKey]);
           }
 
           const [firstRowId, firstCol] = firstSelectedCell.split(":");
 
-          if (!firstRowId || !firstCol) {
+          if (
+            firstRowId === undefined ||
+            firstRowId === "" ||
+            firstCol === undefined ||
+            firstCol === ""
+          ) {
             return new Set([cellKey]);
           }
 
@@ -114,9 +119,13 @@ export const useSpreadsheetHandlers = ({ columns, navigationMap }: UseSpreadshee
         const isCurrentlySelected = selectedCells.has(cellKey) && selectedCells.size === 1;
 
         if (isCurrentlyEditing) {
-          setTimeout(() => setEditingCell(null), 0);
+          setTimeout(() => {
+            setEditingCell(null);
+          }, 0);
         } else if (isCurrentlySelected) {
-          setTimeout(() => setEditingCell({ columnId, rowId }), 0);
+          setTimeout(() => {
+            setEditingCell({ columnId, rowId });
+          }, 0);
         } else {
           setSelectedCells(() => new Set([cellKey]));
         }

@@ -6,7 +6,9 @@ const subscribe = (onChange: () => void) => {
   const query = window.matchMedia(QUERY);
   query.addEventListener("change", onChange);
 
-  return () => query.removeEventListener("change", onChange);
+  return () => {
+    query.removeEventListener("change", onChange);
+  };
 };
 
 const getSnapshot = () => window.matchMedia(QUERY).matches;

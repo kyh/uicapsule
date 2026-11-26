@@ -30,8 +30,8 @@ type TreeProps<T = unknown> = {
 
 const Tree = <T = unknown,>({ indent = 20, tree, className, ...props }: TreeProps<T>) => {
   const context = useMemo(() => ({ indent, tree }), [indent, tree]);
-  const containerProps = tree?.getContainerProps?.() ?? {};
-  const mergedProps = mergeProps(containerProps, props);
+  const containerProps: HTMLAttributes<HTMLDivElement> = tree?.getContainerProps?.() ?? {};
+  const mergedProps = mergeProps<"div">(containerProps, props);
 
   const { style: propStyle, ...otherProps } = mergedProps;
 
@@ -67,8 +67,8 @@ const TreeItem = <T = unknown,>({
   const { indent } = useContext(TreeContext);
   const context = useMemo(() => ({ currentItem: item, indent }), [indent, item]);
 
-  const itemProps = item.getProps?.() ?? {};
-  const mergedProps = mergeProps(itemProps, props);
+  const itemProps: HTMLAttributes<HTMLButtonElement> = item.getProps?.() ?? {};
+  const mergedProps = mergeProps<"button">(itemProps, props);
 
   const { style: propStyle, ...otherProps } = mergedProps;
 
@@ -94,8 +94,7 @@ const TreeItem = <T = unknown,>({
       style: mergedStyle,
       ...otherProps,
     },
-    // oxlint-disable-next-line jsx-a11y/control-has-associated-label -- useRender merges `children` into whichever element renders
-    render: render ?? <button type="button" />,
+    render: render ?? ((renderProps) => <button type="button" {...renderProps} />),
   });
 
   return <TreeContext.Provider value={context}>{element}</TreeContext.Provider>;

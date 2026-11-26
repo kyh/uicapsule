@@ -31,7 +31,7 @@ export const Steps = ({
           </span>
           <div className="v-stack-sm v-step-text">
             <span className={`v-label ${state === "next" ? "v-t2" : "v-t1"}`}>{step.title}</span>
-            {step.detail ? <span className="v-caption v-t2">{step.detail}</span> : null}
+            {Boolean(step.detail) && <span className="v-caption v-t2">{step.detail}</span>}
           </div>
         </li>
       );

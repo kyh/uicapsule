@@ -71,7 +71,14 @@ export const Budget = () => {
         </p>
       </div>
       <ChartSlot height={HEIGHT} className="mt-2">
-        <div onMouseEnter={() => pin(FILLED + 3)} onMouseLeave={() => pin(null)}>
+        <div
+          onMouseEnter={() => {
+            pin(FILLED + 3);
+          }}
+          onMouseLeave={() => {
+            pin(null);
+          }}
+        >
           <Chart
             definition={definition}
             renderer={renderer}

@@ -235,7 +235,11 @@ export const CashFlowArea = () => {
       </div>
 
       <ChartSlot height={HEIGHT} className="mt-3">
-        <div onMouseLeave={() => pin(null)}>
+        <div
+          onMouseLeave={() => {
+            pin(null);
+          }}
+        >
           <Chart
             definition={definition}
             renderer={renderer}
@@ -243,7 +247,7 @@ export const CashFlowArea = () => {
             ariaLabel="Cash flow this year against last year"
             onFocusChange={(p) => {
               if (p) {
-                pin(nearestIndex(STOPS, Number(p.xValue)));
+                pin(nearestIndex(STOPS, p.xValue));
               }
             }}
           />

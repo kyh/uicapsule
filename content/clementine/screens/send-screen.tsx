@@ -88,7 +88,9 @@ export const SendScreen = () => {
           <Search aria-hidden size={16} strokeWidth={1.75} />
           <span className="cl-sr">Search people</span>
           <input
-            onChange={(event) => setQuery(event.target.value)}
+            onChange={(event) => {
+              setQuery(event.target.value);
+            }}
             placeholder="Name or @handle"
             type="search"
             value={query}
@@ -153,7 +155,9 @@ export const SendScreen = () => {
               <Button
                 block
                 disabled={amount === 0 || over}
-                onClick={() => setStep("review")}
+                onClick={() => {
+                  setStep("review");
+                }}
                 size="lg"
               >
                 Continue
@@ -166,7 +170,9 @@ export const SendScreen = () => {
             <div className="cl-phone__head">
               <Button
                 aria-label="Back to the amount"
-                onClick={() => setStep("amount")}
+                onClick={() => {
+                  setStep("amount");
+                }}
                 size="icon-sm"
                 variant="ghost"
               >

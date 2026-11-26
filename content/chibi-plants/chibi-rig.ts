@@ -1292,8 +1292,14 @@ export class PlantRig {
         return this.leaves[2];
       }
 
-      default: {
+      case "body":
+      case "pot": {
         return null;
+      }
+
+      default: {
+        const exhaustive: never = part;
+        throw new Error(`Unknown plant part: ${String(exhaustive)}`);
       }
     }
   }

@@ -1,7 +1,7 @@
 "use client";
 
-import { cloneElement, createContext, use, useCallback, useMemo, useState } from "react";
-import type { CSSProperties, HTMLProps, ReactElement, ReactNode } from "react";
+import { createContext, use, useCallback, useMemo, useState } from "react";
+import type { CSSProperties, HTMLProps, ReactNode } from "react";
 
 import {
   autoUpdate,
@@ -180,37 +180,18 @@ export const Tooltip = ({ children, ...options }: { children: ReactNode } & Tool
   return <TooltipContext.Provider value={tooltip}>{children}</TooltipContext.Provider>;
 };
 
-type TooltipTriggerProps = HTMLProps<HTMLElement> &
-  (
-    | { asChild: true; children: ReactElement<HTMLProps<HTMLElement>> }
-    | { asChild?: false; children: ReactNode }
-  );
-
-export const TooltipTrigger = ({
-  children,
-  asChild,
-  ref: propRef,
-  ...props
-}: TooltipTriggerProps) => {
+export const TooltipTrigger = ({ children, ref: propRef, ...props }: HTMLProps<HTMLElement>) => {
   const context = useTooltipContext();
-  const { ref: childRef, ...childProps } = asChild ? children.props : {};
-  const ref = useMergeRefs([context.refs.setReference, propRef, childRef]);
-
-  const stateProps = {
-    "data-side": context.placement.split("-")[0],
-    "data-state": context.open ? "open" : "closed",
-  };
-
-  if (asChild) {
-    // oxlint-disable-next-line react/refs, react/no-clone-element -- asChild: the trigger props and merged ref are grafted onto the caller's element, never reading ref.current
-    return cloneElement(children, {
-      ...context.getReferenceProps({ ...props, ...childProps, ...stateProps }),
-      ref,
-    });
-  }
+  const ref = useMergeRefs([context.refs.setReference, propRef]);
 
   return (
-    <button type="button" ref={ref} {...stateProps} {...context.getReferenceProps(props)}>
+    <button
+      type="button"
+      ref={ref}
+      data-side={context.placement.split("-")[0]}
+      data-state={context.open ? "open" : "closed"}
+      {...context.getReferenceProps(props)}
+    >
       {children}
     </button>
   );

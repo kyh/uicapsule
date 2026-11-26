@@ -144,8 +144,12 @@ export const Spreadsheet = ({
             style={{
               width: `calc(var(--col-${header.column.id}-size) * 1px)`,
             }}
-            onMouseDown={(e) => handleMouseDown(e, "", header.column.id)}
-            onMouseMove={(e) => handleMouseMove(e, "", header.column.id)}
+            onMouseDown={(e) => {
+              handleMouseDown(e, "", header.column.id);
+            }}
+            onMouseMove={(e) => {
+              handleMouseMove(e, "", header.column.id);
+            }}
           >
             {header.isPlaceholder
               ? null

@@ -1,17 +1,17 @@
-/* oxlint-disable no-bitwise -- mulberry32 needs unsigned 32-bit wraparound */
+import { or, shiftRight, toUint32, xor } from "./uint32";
+
+/** Mulberry32: a seeded generator of numbers in [0, 1). */
 export const rng = (seed: number) => {
-  let a = seed >>> 0;
+  let a = toUint32(seed);
 
   return () => {
-    a = (a + 0x6d_2b_79_f5) >>> 0;
-    let t = a;
-    t = Math.imul(t ^ (t >>> 15), t | 1);
-    t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+    a = toUint32(a + 0x6d_2b_79_f5);
+    let t = Math.imul(xor(a, shiftRight(a, 15)), or(a, 1));
+    t = xor(t, t + Math.imul(xor(t, shiftRight(t, 7)), or(t, 61)));
 
-    return ((t ^ (t >>> 14)) >>> 0) / 4_294_967_296;
+    return xor(t, shiftRight(t, 14)) / 4_294_967_296;
   };
 };
-/* oxlint-enable no-bitwise */
 
 /** A bounded random walk: `n` points starting at `start`. */
 export const walk = (

@@ -26,7 +26,7 @@ export const Screen = ({ id, title, description, crumbs, bar, children }: Screen
       <div className="fj-window">
         <div className="fj-window-bar">
           <Breadcrumb items={crumbs} />
-          {bar ? <div className="fj-push fj-hstack">{bar}</div> : null}
+          {Boolean(bar) && <div className="fj-push fj-hstack">{bar}</div>}
         </div>
         <div className="fj-window-body">{children}</div>
       </div>
@@ -46,12 +46,12 @@ export const PageHeader = ({
   <div className="fj-pagehead">
     <div className="fj-vstack" data-gap="4">
       <h4 className="fj-t-heading">{title}</h4>
-      {children ? (
+      {Boolean(children) && (
         <div className="fj-hstack fj-t-body fj-c-2" data-gap="12" data-wrap="">
           {children}
         </div>
-      ) : null}
+      )}
     </div>
-    {actions ? <div className="fj-pagehead-actions">{actions}</div> : null}
+    {Boolean(actions) && <div className="fj-pagehead-actions">{actions}</div>}
   </div>
 );

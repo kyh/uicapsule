@@ -92,8 +92,9 @@ const useFilterNavigation = (filter: GalleryFilter) => {
 
   return {
     hrefWith,
-    navigate: (mutate: (params: URLSearchParams) => void) =>
-      router.push(hrefWith(mutate), { scroll: false }),
+    navigate: (mutate: (params: URLSearchParams) => void) => {
+      router.push(hrefWith(mutate), { scroll: false });
+    },
   };
 };
 
@@ -118,7 +119,9 @@ const FilterInput = ({ value, onChange }: FilterInputProps) => (
     <SearchIcon className="text-muted-foreground size-4 shrink-0" aria-hidden="true" />
     <input
       value={value}
-      onChange={(event) => onChange(event.target.value)}
+      onChange={(event) => {
+        onChange(event.target.value);
+      }}
       placeholder="Filter..."
       aria-label="Filter options"
       className="placeholder:text-muted-foreground h-full w-full bg-transparent text-sm outline-none"
@@ -206,7 +209,9 @@ const FacetList = ({
           >
             <Checkbox
               checked={checked.has(option.slug)}
-              onCheckedChange={() => toggle(option.slug)}
+              onCheckedChange={() => {
+                toggle(option.slug);
+              }}
             />
             <span className="flex-1">{option.name}</span>
             <FacetCount count={option.count} />
@@ -305,7 +310,9 @@ const FacetDrawer = ({ facet, filter }: { facet: Facet; filter: GalleryFilter })
             facet={facet}
             filter={filter}
             query={query}
-            onNavigate={() => setOpen(false)}
+            onNavigate={() => {
+              setOpen(false);
+            }}
           />
         </div>
       </DrawerContent>
@@ -317,8 +324,8 @@ export const FilterBar = ({ facets, filter }: { facets: Facet[]; filter: Gallery
   const [query, setQuery] = useState("");
   const [activeFacet, setActiveFacet] = useState<Facet | null>(null);
   const selectedFor = (facet: Facet) => selectionFor(filter, facet.key);
-  const standalone = facets.filter((facet) => facet.standalone);
-  const grouped = facets.filter((facet) => !facet.standalone);
+  const standalone = facets.filter((facet) => facet.standalone === true);
+  const grouped = facets.filter((facet) => facet.standalone !== true);
 
   const trigger = (facet: Facet) => (
     <NavigationMenuItem key={facet.key} value={facet.key} render={<div />}>
@@ -357,7 +364,9 @@ export const FilterBar = ({ facets, filter }: { facets: Facet[]; filter: Gallery
         <NavigationMenuPortal>
           <NavigationMenuPositioner>
             <NavigationMenuPopup>
-              {activeFacet?.searchable && <FilterInput value={query} onChange={setQuery} />}
+              {activeFacet?.searchable === true && (
+                <FilterInput value={query} onChange={setQuery} />
+              )}
               <NavigationMenuViewport />
             </NavigationMenuPopup>
           </NavigationMenuPositioner>

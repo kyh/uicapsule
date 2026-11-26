@@ -7,7 +7,8 @@ export type ButtonVariant = "lamp" | "plain" | "ghost" | "danger";
 
 export type ButtonSize = "sm" | "md" | "lg" | "icon" | "icon-sm";
 
-interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
+interface ButtonProps extends Omit<ButtonHTMLAttributes<HTMLButtonElement>, "type"> {
+  type?: "button" | "submit";
   variant?: ButtonVariant;
   size?: ButtonSize;
   pending?: boolean;
@@ -33,8 +34,7 @@ export const Button = ({
     data-size={size === "md" ? undefined : size}
     data-variant={variant}
     onClick={pending ? undefined : onClick}
-    // oxlint-disable-next-line react/button-has-type -- defaults to "button"; a form passes "submit"
-    type={type}
+    type={type === "submit" ? "submit" : "button"}
     {...rest}
   >
     <span className="hx-btn-label hx-row" data-hidden={pending || undefined}>

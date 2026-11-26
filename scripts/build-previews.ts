@@ -40,7 +40,7 @@ const isLocalPreview = async (slug: string) => {
     .then((source) => contentMetaSchema.safeParse(JSON.parse(source)))
     .catch(() => null);
 
-  if (!meta?.success || meta.data.type !== "local") {
+  if (meta?.success !== true || meta.data.type !== "local") {
     return false;
   }
 
@@ -59,7 +59,7 @@ const readLocalSlugs = async () => {
 
   const local = await Promise.all(slugs.map(isLocalPreview));
 
-  return slugs.filter((_, index) => local[index]);
+  return slugs.filter((_, index) => local[index] === true);
 };
 
 const stylesheetId = (slug: string) => path.join(contentRoot, slug, STYLESHEET_NAME);
@@ -110,7 +110,7 @@ const previewPlugin = (slugs: string[], dev: boolean) => {
         ? source.slice(ENTRY_PREFIX.length)
         : DEV_ENTRY.exec(source)?.groups?.slug;
 
-      if (slug && known.has(slug)) {
+      if (slug !== undefined && known.has(slug)) {
         return `${RESOLVED_ENTRY_PREFIX}${slug}`;
       }
 
@@ -192,9 +192,13 @@ const sharedConfig = (slugs: string[], dev: boolean) =>
 
 const IGNORED_WARNINGS = new Set(["INVALID_ANNOTATION", "MODULE_LEVEL_DIRECTIVE"]);
 
-const quietWarnings = (warning: Rollup.RollupLog, warn: Rollup.LoggingFunction) => {
-  if (!IGNORED_WARNINGS.has(warning.code ?? "")) {
-    warn(warning);
+const quietLogs = (
+  level: Rollup.LogLevel,
+  log: Rollup.RollupLog,
+  handler: Rollup.LogOrStringHandler,
+) => {
+  if (!IGNORED_WARNINGS.has(log.code ?? "")) {
+    handler(level, log);
   }
 };
 
@@ -211,7 +215,7 @@ const buildPreviews = async (slugs: string[]) => {
       reportCompressedSize: false,
       rolldownOptions: {
         input: Object.fromEntries(slugs.map((slug) => [`${slug}/index`, `${ENTRY_PREFIX}${slug}`])),
-        onwarn: quietWarnings,
+        onLog: quietLogs,
         output: {
           assetFileNames: "assets/[name]-[hash][extname]",
           chunkFileNames: "chunks/[name]-[hash].js",
@@ -276,7 +280,7 @@ const buildUgcRuntime = async () => {
             ]),
           ),
         },
-        onwarn: quietWarnings,
+        onLog: quietLogs,
         output: {
           chunkFileNames: "_ugc/chunks/[name]-[hash].js",
           entryFileNames: "[name].js",

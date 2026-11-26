@@ -4,12 +4,14 @@ import { useCallback, useEffect, useRef, useState } from "react";
 
 import type { NormalizedLandmark, PoseLandmarker } from "@mediapipe/tasks-vision";
 
+const noop = () => null;
+
 const WASM_BASE_URL = "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.35/wasm";
 
 const MODEL_URL =
   "https://storage.googleapis.com/mediapipe-models/pose_landmarker/pose_landmarker_lite/float16/1/pose_landmarker_lite.task";
 
-const loadVision = () => import("@mediapipe/tasks-vision");
+const loadVision = async () => await import("@mediapipe/tasks-vision");
 
 interface Arm {
   shoulder: number;
@@ -228,11 +230,13 @@ export const usePoseCurls = ({ enabled, onRep }: UsePoseCurlsOptions) => {
     onRepRef.current = onRep;
   }, [onRep]);
 
-  const retry = useCallback(() => setAttempt((count) => count + 1), []);
+  const retry = useCallback(() => {
+    setAttempt((count) => count + 1);
+  }, []);
 
   useEffect(() => {
     if (request === null) {
-      return;
+      return noop;
     }
 
     let cancelled = false;

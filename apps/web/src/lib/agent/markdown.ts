@@ -40,9 +40,14 @@ const renderInline = (text: string) =>
     .join("");
 
 const renderListItem = (item: ProseListItem) => {
-  const label = item.href ? `[${item.label}](${absoluteUrl(item.href)})` : `**${item.label}**`;
+  const label =
+    item.href !== undefined && item.href !== ""
+      ? `[${item.label}](${absoluteUrl(item.href)})`
+      : `**${item.label}**`;
 
-  return item.text ? `- ${label}: ${renderInline(item.text)}` : `- ${label}`;
+  return item.text !== undefined && item.text !== ""
+    ? `- ${label}: ${renderInline(item.text)}`
+    : `- ${label}`;
 };
 
 export const renderList = (items: ProseListItem[]) => items.map(renderListItem).join("\n");
@@ -82,8 +87,13 @@ const renderBlock = (block: ProseBlock) => {
       return `\`\`\`${block.language}\n${block.text}\n\`\`\``;
     }
 
-    default: {
+    case "paragraph": {
       return renderInline(block.text);
+    }
+
+    default: {
+      const exhaustive: never = block;
+      throw new Error(`Unknown prose block: ${JSON.stringify(exhaustive)}`);
     }
   }
 };

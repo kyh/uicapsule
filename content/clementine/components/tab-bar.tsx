@@ -41,7 +41,7 @@ export const TabBar = ({
         </>
       );
 
-      return href ? (
+      return href !== undefined && href !== "" ? (
         <a
           aria-current={on ? currentKind : undefined}
           className="cl-tabbar__item"

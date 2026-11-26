@@ -24,7 +24,9 @@ export const Checkbox = ({
     <input
       checked={checked}
       disabled={disabled}
-      onChange={(event) => onCheckedChange(event.target.checked)}
+      onChange={(event) => {
+        onCheckedChange(event.target.checked);
+      }}
       type="checkbox"
     />
     <span aria-hidden className="fj-check-box">
@@ -32,7 +34,7 @@ export const Checkbox = ({
     </span>
     <span className="fj-check-text">
       <span>{label}</span>
-      {description ? <span>{description}</span> : null}
+      {description !== undefined && description !== "" ? <span>{description}</span> : null}
     </span>
   </label>
 );
@@ -48,7 +50,9 @@ export const Switch = ({ checked, onCheckedChange, label }: SwitchProps) => (
   <button
     aria-checked={checked}
     className="fj-switch"
-    onClick={() => onCheckedChange(!checked)}
+    onClick={() => {
+      onCheckedChange(!checked);
+    }}
     role="switch"
     type="button"
   >
@@ -74,7 +78,9 @@ export const SwitchRow = ({
       aria-checked={checked}
       aria-label={label}
       className="fj-switch"
-      onClick={() => onCheckedChange(!checked)}
+      onClick={() => {
+        onCheckedChange(!checked);
+      }}
       role="switch"
       type="button"
     >
@@ -113,7 +119,9 @@ export const Segmented = <T extends string>({
           <input
             checked={option === value}
             name={name}
-            onChange={() => onValueChange(option)}
+            onChange={() => {
+              onValueChange(option);
+            }}
             type="radio"
             value={option}
           />
@@ -154,7 +162,9 @@ export const ChoiceList = <T extends string>({
           <input
             checked={option.value === value}
             name={name}
-            onChange={() => onValueChange(option.value)}
+            onChange={() => {
+              onValueChange(option.value);
+            }}
             type="radio"
             value={option.value}
           />
@@ -205,7 +215,9 @@ export const Slider = ({
         className="fj-range"
         max={max}
         min={min}
-        onChange={(event) => onValueChange(Number(event.target.value))}
+        onChange={(event) => {
+          onValueChange(Number(event.target.value));
+        }}
         step={step}
         style={cssVars({ "--fj-fill": fill })}
         type="range"

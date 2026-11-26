@@ -12,8 +12,8 @@ interface FieldShellProps {
 
 export const Field = ({ label, description, error, children }: FieldShellProps) => {
   const id = useId();
-  const descId = description ? `${id}-desc` : "";
-  const errId = error ? `${id}-err` : "";
+  const descId = description !== undefined && description !== "" ? `${id}-desc` : "";
+  const errId = error !== undefined && error !== "" ? `${id}-err` : "";
   const describedBy = [descId, errId].filter(Boolean).join(" ") || undefined;
 
   return (
@@ -22,12 +22,12 @@ export const Field = ({ label, description, error, children }: FieldShellProps) 
         {label}
       </label>
       {children({ describedBy, id, invalid: Boolean(error) })}
-      {description ? (
+      {description !== undefined && description !== "" ? (
         <p className="cl-field__desc" id={descId}>
           {description}
         </p>
       ) : null}
-      {error ? (
+      {error !== undefined && error !== "" ? (
         <p className="cl-field__error" id={errId}>
           {error}
         </p>
@@ -47,7 +47,7 @@ export const Input = ({ label, description, error, prefix, ...props }: InputProp
   <Field description={description} error={error} label={label}>
     {({ id, describedBy, invalid }) => (
       <span className="cl-input" data-invalid={invalid || undefined}>
-        {prefix ? (
+        {prefix !== undefined && prefix !== "" ? (
           <span aria-hidden className="cl-input__prefix">
             {prefix}
           </span>

@@ -86,7 +86,9 @@ const Items = ({
             <div className="v-between v-items-start" key={item.id}>
               <Checkbox
                 checked={done.has(item.id)}
-                onCheckedChange={(checked) => onToggle(item.id, checked)}
+                onCheckedChange={(checked) => {
+                  onToggle(item.id, checked);
+                }}
                 strike
               >
                 {item.text}
@@ -101,7 +103,9 @@ const Items = ({
           Dictate one
         </Button>
         <Button
-          onClick={() => toast({ title: `Posted ${items.length} action items to #design` })}
+          onClick={() => {
+            toast({ title: `Posted ${items.length} action items to #design` });
+          }}
           size="sm"
         >
           Post to #design
@@ -120,7 +124,7 @@ export const NotesScreen = () => {
     () => new Set(ITEMS.flatMap((item) => (item.done ? [item.id] : []))),
   );
 
-  const toggle = (id: string, checked: boolean) =>
+  const toggle = (id: string, checked: boolean) => {
     setDone((set) => {
       const next = new Set(set);
 
@@ -132,6 +136,7 @@ export const NotesScreen = () => {
 
       return next;
     });
+  };
 
   return (
     <div className="v-screen-cols">
@@ -143,14 +148,18 @@ export const NotesScreen = () => {
           <Items
             done={done}
             items={items}
-            onDictate={() => setStarted(Date.now())}
+            onDictate={() => {
+              setStarted(Date.now());
+            }}
             onToggle={toggle}
           />
         ) : (
           <Shell>
             <Panel padded>
               <VoiceNote
-                onCancel={() => setStarted(null)}
+                onCancel={() => {
+                  setStarted(null);
+                }}
                 onSave={() => {
                   setItems((list) =>
                     list.some((item) => item.id === DICTATED.id) ? list : [...list, DICTATED],

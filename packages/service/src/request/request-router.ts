@@ -6,7 +6,7 @@ import { createComponentRequestIssue, REQUESTS_REPO } from "./github-issue";
 
 export const requestRouter = {
   create: os.request.create.handler(async ({ input }) => {
-    if (input.website) {
+    if (input.website !== undefined && input.website !== "") {
       return { url: `https://github.com/${REQUESTS_REPO}/issues` };
     }
 

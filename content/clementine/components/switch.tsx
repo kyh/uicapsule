@@ -20,14 +20,18 @@ export const Switch = ({
     aria-label={hideLabel ? label : undefined}
     className="cl-switch"
     data-bare={hideLabel || undefined}
-    onClick={() => onCheckedChange(!checked)}
+    onClick={() => {
+      onCheckedChange(!checked);
+    }}
     role="switch"
     type="button"
   >
     {hideLabel ? null : (
       <span className="cl-check__text">
         <span>{label}</span>
-        {description ? <span className="cl-check__desc">{description}</span> : null}
+        {description !== undefined && description !== "" ? (
+          <span className="cl-check__desc">{description}</span>
+        ) : null}
       </span>
     )}
     <span aria-hidden className="cl-switch__track">

@@ -6,6 +6,8 @@ import { gsap } from "gsap";
 
 import { N, STATS, statAt } from "./stat-reel-data";
 
+const noop = () => null;
+
 const DESKTOP = { font: 26, itemH: 62 };
 const MOBILE = { font: 19, itemH: 46 };
 const START_DELAY_MS = 600;
@@ -73,10 +75,8 @@ const applyFit = (num: HTMLElement, col: HTMLElement) => {
   num.style.setProperty("--bm-num-fit", "1");
   const natural = num.scrollWidth;
   const cs = window.getComputedStyle(col);
-  // oxlint-disable-next-line unicorn/prefer-number-coercion -- computed padding carries a px unit, which Number() rejects
-  const padL = Number.parseFloat(cs.paddingLeft) || 0;
-  // oxlint-disable-next-line unicorn/prefer-number-coercion -- computed padding carries a px unit, which Number() rejects
-  const padR = Number.parseFloat(cs.paddingRight) || 0;
+  const padL = Number(cs.paddingLeft.replace("px", "")) || 0;
+  const padR = Number(cs.paddingRight.replace("px", "")) || 0;
   const available = col.clientWidth - padL - padR - FIT_GUTTER_PX;
 
   if (available <= 0) {
@@ -97,7 +97,9 @@ const RowsBase: FC<RowsProps> = ({ register }) => (
     {Array.from({ length: ROW_COUNT }, (_, j) => (
       <div
         key={j}
-        ref={(el) => register(j, el)}
+        ref={(el) => {
+          register(j, el);
+        }}
         style={ROW_STYLE}
         className="pointer-events-none absolute top-0 right-0 left-[clamp(32px,5vw,80px)] flex origin-left items-center leading-[1.05] font-medium whitespace-nowrap text-[#636365] [will-change:transform]"
       >
@@ -146,7 +148,7 @@ export const StatReel: FC = () => {
     const panel = panelRef.current;
 
     if (!section || !figure || !panel) {
-      return;
+      return noop;
     }
 
     let disposed = false;
@@ -240,7 +242,7 @@ export const StatReel: FC = () => {
       modeRef.current = "auto";
       targetRef.current = Math.round(proxyState.idx);
 
-      if (dwellTimer) {
+      if (dwellTimer !== null && dwellTimer !== 0) {
         clearTimeout(dwellTimer);
       }
 
@@ -248,15 +250,15 @@ export const StatReel: FC = () => {
     };
 
     const stepManual = (dir: number) => {
-      if (startTimer) {
+      if (startTimer !== null && startTimer !== 0) {
         clearTimeout(startTimer);
       }
 
-      if (dwellTimer) {
+      if (dwellTimer !== null && dwellTimer !== 0) {
         clearTimeout(dwellTimer);
       }
 
-      if (resumeTimer) {
+      if (resumeTimer !== null && resumeTimer !== 0) {
         clearTimeout(resumeTimer);
       }
 
@@ -281,7 +283,7 @@ export const StatReel: FC = () => {
       accumRef.current += deltaPx;
       drain();
 
-      if (idleTimer) {
+      if (idleTimer !== null && idleTimer !== 0) {
         clearTimeout(idleTimer);
       }
 
@@ -508,19 +510,19 @@ export const StatReel: FC = () => {
       section.removeEventListener("touchcancel", onTouchEnd);
       section.removeEventListener("keydown", onKeyDown);
 
-      if (dwellTimer) {
+      if (dwellTimer !== null && dwellTimer !== 0) {
         clearTimeout(dwellTimer);
       }
 
-      if (resumeTimer) {
+      if (resumeTimer !== null && resumeTimer !== 0) {
         clearTimeout(resumeTimer);
       }
 
-      if (startTimer) {
+      if (startTimer !== null && startTimer !== 0) {
         clearTimeout(startTimer);
       }
 
-      if (idleTimer) {
+      if (idleTimer !== null && idleTimer !== 0) {
         clearTimeout(idleTimer);
       }
 
@@ -612,7 +614,7 @@ export const StatReel: FC = () => {
       <ul className="sr-only">
         {STATS.map((stat) => (
           <li key={stat.label}>
-            {`${stat.prefix ? `${stat.prefix} ` : ""}${stat.value} — ${stat.label}`}
+            {`${stat.prefix !== undefined && stat.prefix !== "" ? `${stat.prefix} ` : ""}${stat.value} — ${stat.label}`}
           </li>
         ))}
       </ul>

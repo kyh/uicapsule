@@ -1,8 +1,9 @@
 import { Check, Minus } from "lucide-react";
 import { useId } from "react";
-import type { CSSProperties, ReactNode } from "react";
+import type { ReactNode } from "react";
 
 import { Icon } from "./icon";
+import { cssVars } from "../lib/css-vars";
 
 interface CheckboxProps {
   label: ReactNode;
@@ -26,7 +27,9 @@ export const Checkbox = ({
     <input
       checked={checked}
       disabled={disabled}
-      onChange={(event) => onCheckedChange(event.target.checked)}
+      onChange={(event) => {
+        onCheckedChange(event.target.checked);
+      }}
       ref={(node) => {
         if (node) {
           node.indeterminate = Boolean(indeterminate);
@@ -35,11 +38,13 @@ export const Checkbox = ({
       type="checkbox"
     />
     <span className="hx-check-box">
-      <Icon icon={indeterminate ? Minus : Check} size={14} />
+      <Icon icon={indeterminate === true ? Minus : Check} size={14} />
     </span>
     <span className="hx-stack hx-gap-half">
       <span className="hx-body-sm">{label}</span>
-      {description ? <span className="hx-caption hx-ink-3">{description}</span> : null}
+      {description !== undefined && description !== "" ? (
+        <span className="hx-caption hx-ink-3">{description}</span>
+      ) : null}
     </span>
   </label>
 );
@@ -68,7 +73,9 @@ export const RadioGroup = <T extends string>({
           <input
             checked={option.value === value}
             name={name}
-            onChange={() => onValueChange(option.value)}
+            onChange={() => {
+              onValueChange(option.value);
+            }}
             type="radio"
             value={option.value}
           />
@@ -77,7 +84,7 @@ export const RadioGroup = <T extends string>({
           </span>
           <span className="hx-stack hx-gap-half">
             <span className="hx-body-sm">{option.label}</span>
-            {option.description ? (
+            {option.description !== undefined && option.description !== "" ? (
               <span className="hx-caption hx-ink-3">{option.description}</span>
             ) : null}
           </span>
@@ -99,14 +106,18 @@ export const Switch = ({ label, checked, onCheckedChange, description }: SwitchP
   <button
     aria-checked={checked}
     className="hx-switch"
-    onClick={() => onCheckedChange(!checked)}
+    onClick={() => {
+      onCheckedChange(!checked);
+    }}
     role="switch"
     type="button"
   >
     <span className="hx-switch-track" />
     <span className="hx-stack hx-gap-half">
       <span className="hx-body-sm">{label}</span>
-      {description ? <span className="hx-caption hx-ink-3">{description}</span> : null}
+      {description !== undefined && description !== "" ? (
+        <span className="hx-caption hx-ink-3">{description}</span>
+      ) : null}
     </span>
   </button>
 );
@@ -135,7 +146,9 @@ export const Segmented = <T extends string>({
           <input
             checked={option === value}
             name={name}
-            onChange={() => onValueChange(option)}
+            onChange={() => {
+              onValueChange(option);
+            }}
             type="radio"
             value={option}
           />
@@ -185,9 +198,11 @@ export const Slider = ({
         id={id}
         max={max}
         min={min}
-        onChange={(event) => onValueChange(Number(event.target.value))}
+        onChange={(event) => {
+          onValueChange(Number(event.target.value));
+        }}
         step={step}
-        style={{ "--fill": fill } as CSSProperties}
+        style={cssVars({ "--fill": fill })}
         type="range"
         value={value}
       />

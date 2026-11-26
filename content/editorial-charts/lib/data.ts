@@ -1,3 +1,5 @@
+import { shiftRight, toUint32, xor } from "./uint32";
+
 export interface PlanRow {
   plan: string;
   value: number;
@@ -30,15 +32,13 @@ export interface Scene {
   mix: MixRow[];
 }
 
-/* oxlint-disable no-bitwise -- integer hash: xorshift-multiply needs unsigned 32-bit wraparound */
-const hash = (n: number) => {
-  let x = (n + 0x9e_37_79_b9) >>> 0;
-  x = Math.imul(x ^ (x >>> 16), 0x4_5d_9f_3b) >>> 0;
-  x = Math.imul(x ^ (x >>> 16), 0x4_5d_9f_3b) >>> 0;
+export const hash = (n: number) => {
+  let x = toUint32(n + 0x9e_37_79_b9);
+  x = toUint32(Math.imul(xor(x, shiftRight(x, 16)), 0x4_5d_9f_3b));
+  x = toUint32(Math.imul(xor(x, shiftRight(x, 16)), 0x4_5d_9f_3b));
 
-  return ((x ^ (x >>> 16)) >>> 0) / 0xff_ff_ff_ff;
+  return xor(x, shiftRight(x, 16)) / 0xff_ff_ff_ff;
 };
-/* oxlint-enable no-bitwise */
 
 const days = (seed: number, base: number, slope: number) =>
   Array.from({ length: 30 }, (_, i) => {

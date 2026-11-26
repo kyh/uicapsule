@@ -323,10 +323,14 @@ too, so shipped component source carries none of it either:
   `null` fields needs the typed variable, since `satisfies` keeps the literal `null`.
 - **Tests** are `*.test.ts` beside their subject, with no module mocks, stubbed globals, fixed
   sleeps or retries.
-- The two deliberate overrides: `no-await-in-loop` is off because sequential awaits are the
-  point here (rate-limited source reads, ordered writes), and
-  `anti-slop/require-safety-comment-for-type-assertion` is off because the `// SAFETY:` comment
-  it demands is one `no-comments` forbids.
+- No rule is turned off, and lint is type-aware (`options.typeAware`, run by the
+  `oxlint-tsgolint` devDependency); the config only scopes `next` to `apps/web` and lets
+  `node:test`'s `describe`/`it` float. Sequential awaits are written without a loop await
+  (`scripts/in-order.ts`, or a recursive async step), and a type assertion is replaced by a zod
+  parse or a guard rather than justified in a `// SAFETY:` comment.
+- Every file is typed: the root `tsconfig.json` covers `scripts/` and the lint config,
+  `scripts/templates/tsconfig.json` the design-system template, and `content/tsconfig.json`
+  gives each content file the content settings the linter reads.
 
 Typecheck covers the app, shared packages, scripts, and every code-bearing content package
 independently. Content remains excluded from the app's TypeScript project because independent

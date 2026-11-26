@@ -18,11 +18,11 @@ const full = new Intl.DateTimeFormat("en-US", { day: "numeric", month: "long", w
 const owedThrough = (bills: readonly Bill[], index: number) =>
   bills
     .slice(0, index + 1)
-    .filter((bill) => !bill.paid)
+    .filter((bill) => bill.paid !== true)
     .reduce((sum, bill) => sum + Math.abs(bill.amount), 0);
 
 const noteFor = (bill: Bill, covered: boolean, autopayLabel: string) => {
-  if (bill.paid) {
+  if (bill.paid === true) {
     return "Paid";
   }
 
@@ -48,7 +48,7 @@ export const BillSchedule = ({
       return (
         <li
           className="cl-bill"
-          data-paid={bill.paid || undefined}
+          data-paid={bill.paid === true || undefined}
           data-short={covered ? undefined : true}
           key={`${bill.name}-${bill.due.toISOString()}`}
         >
@@ -64,7 +64,7 @@ export const BillSchedule = ({
           <span className="cl-row__text">
             <span className="cl-row__title">{bill.name}</span>
             <span className="cl-row__desc cl-bill__note">
-              {bill.paid ? <Check aria-hidden size={12} strokeWidth={2.5} /> : null}
+              {bill.paid === true ? <Check aria-hidden size={12} strokeWidth={2.5} /> : null}
               {noteFor(bill, covered, autopayLabel)}
             </span>
           </span>

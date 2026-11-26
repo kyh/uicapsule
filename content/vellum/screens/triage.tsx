@@ -76,7 +76,9 @@ const Batch = () => {
                 setStage("sent");
               }, 1400);
             }}
-            onDeny={() => setStage("kept")}
+            onDeny={() => {
+              setStage("kept");
+            }}
             pending={stage === "sending"}
             pendingLabel="Sending"
             question="Send the fix to 38 customers?"
@@ -92,7 +94,9 @@ const Batch = () => {
             by="Triage agent"
             onUndo={() => {
               setUndo("undoing");
-              later(() => setUndo("undone"), 900);
+              later(() => {
+                setUndo("undone");
+              }, 900);
             }}
             steps={[
               { detail: "38 sent", label: "Replied on every ticket" },
@@ -107,7 +111,13 @@ const Batch = () => {
         ) : null}
         {stage === "sent" && undo === "undone" ? (
           <div>
-            <Button onClick={() => setStage("asking")} size="sm" variant="secondary">
+            <Button
+              onClick={() => {
+                setStage("asking");
+              }}
+              size="sm"
+              variant="secondary"
+            >
               Read the draft again
             </Button>
           </div>
@@ -116,7 +126,13 @@ const Batch = () => {
           <div className="v-stack-sm">
             <p className="v-body v-t1">Kept it as a draft in Triage. Nothing went out.</p>
             <div>
-              <Button onClick={() => setStage("asking")} size="sm" variant="secondary">
+              <Button
+                onClick={() => {
+                  setStage("asking");
+                }}
+                size="sm"
+                variant="secondary"
+              >
                 Read the draft again
               </Button>
             </div>

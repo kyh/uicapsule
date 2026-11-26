@@ -16,7 +16,9 @@ export const FilterChip = ({
   <button
     aria-pressed={pressed}
     className="v-chip"
-    onClick={() => onPressedChange(!pressed)}
+    onClick={() => {
+      onPressedChange(!pressed);
+    }}
     type="button"
   >
     {children}

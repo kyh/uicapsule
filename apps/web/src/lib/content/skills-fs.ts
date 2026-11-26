@@ -9,7 +9,9 @@ const frontmatterField = (text: string, field: string) => {
   const block = /^---\n(?<body>[\s\S]*?)\n---\n/u.exec(text)?.groups?.body ?? "";
   const line = block.split("\n").find((entry) => entry.startsWith(`${field}: `));
 
-  return line?.slice(field.length + 2).trim() || null;
+  const value = line?.slice(field.length + 2).trim();
+
+  return value === undefined || value === "" ? null : value;
 };
 
 const readMarkdownFiles = async (root: string) => {
@@ -49,7 +51,12 @@ export const readRepoSkill = async (name: string) => {
   const [main] = files;
   const description = main?.path === "SKILL.md" ? frontmatterField(main.text, "description") : null;
 
-  if (!main || frontmatterField(main.text, "name") !== name || !description) {
+  if (
+    !main ||
+    frontmatterField(main.text, "name") !== name ||
+    description === null ||
+    description === ""
+  ) {
     throw new Error(`.claude/skills/${name}/SKILL.md needs name: ${name} and a description`);
   }
 

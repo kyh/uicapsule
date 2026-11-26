@@ -23,6 +23,8 @@ import { FILES, FIRST_NOTE, NOTES, PHOTOS, findFile } from "./desktop-data";
 import { WindowFrame } from "./window-frame";
 import { useReducedMotion } from "./use-reduced-motion";
 
+const noop = () => null;
+
 const QuickLookBody = ({ fileId, ctx }: { fileId: string | undefined; ctx: WindowCtx }) => {
   const startIndex = Math.max(
     0,
@@ -56,7 +58,9 @@ const QuickLookBody = ({ fileId, ctx }: { fileId: string | undefined; ctx: Windo
       <div className="relative min-h-0 flex-1">
         <button
           type="button"
-          onClick={() => ctx.openLightbox(file.full)}
+          onClick={() => {
+            ctx.openLightbox(file.full);
+          }}
           aria-label={`Open ${file.name} full screen`}
           className="absolute inset-0 flex items-center justify-center p-6"
         >
@@ -70,7 +74,9 @@ const QuickLookBody = ({ fileId, ctx }: { fileId: string | undefined; ctx: Windo
 
         <button
           type="button"
-          onClick={() => step(-1)}
+          onClick={() => {
+            step(-1);
+          }}
           aria-label="Previous file"
           className="absolute top-1/2 left-3 flex size-8 -translate-y-1/2 items-center justify-center rounded-full bg-white/12 text-white backdrop-blur-md transition-colors hover:bg-white/25"
         >
@@ -78,7 +84,9 @@ const QuickLookBody = ({ fileId, ctx }: { fileId: string | undefined; ctx: Windo
         </button>
         <button
           type="button"
-          onClick={() => step(1)}
+          onClick={() => {
+            step(1);
+          }}
           aria-label="Next file"
           className="absolute top-1/2 right-3 flex size-8 -translate-y-1/2 items-center justify-center rounded-full bg-white/12 text-white backdrop-blur-md transition-colors hover:bg-white/25"
         >
@@ -110,7 +118,9 @@ const PhotosBody = ({ ctx }: { ctx: WindowCtx }) => (
         <button
           key={photo.src}
           type="button"
-          onClick={() => ctx.openLightbox(photo.full)}
+          onClick={() => {
+            ctx.openLightbox(photo.full);
+          }}
           className={`group relative overflow-hidden rounded-[8px] bg-black/5 ${
             photo.ratio === "tall" ? "row-span-2" : ""
           } ${photo.ratio === "wide" ? "col-span-2" : ""}`}
@@ -184,7 +194,9 @@ const NotesBody = ({ ctx }: { ctx: WindowCtx }) => {
           {ctx.isMobile && (
             <button
               type="button"
-              onClick={() => setMobileView("list")}
+              onClick={() => {
+                setMobileView("list");
+              }}
               className="flex items-center gap-1 border-b border-black/[0.06] px-3 py-2.5 text-[13px] font-medium text-[#1a1612]"
             >
               <ChevronLeftIcon className="size-4" />
@@ -236,7 +248,7 @@ const ViewModeButton = ({
     type="button"
     aria-label={label}
     className={`rounded p-1 text-black/45 ${
-      active ? "bg-white text-black/70 shadow-[0_1px_0_rgba(0,0,0,0.08)]" : ""
+      active === true ? "bg-white text-black/70 shadow-[0_1px_0_rgba(0,0,0,0.08)]" : ""
     }`}
   >
     {children}
@@ -333,7 +345,9 @@ const FinderBody = ({ win, ctx }: { win: OpenWindow; ctx: WindowCtx }) => {
               <button
                 key={file.id}
                 type="button"
-                onClick={() => ctx.openQuickLook(file.id)}
+                onClick={() => {
+                  ctx.openQuickLook(file.id);
+                }}
                 className="group flex flex-col items-center gap-1.5 rounded-md p-2 focus:outline-none focus-visible:bg-[#cce3ff]"
               >
                 <span className="size-[68px] overflow-hidden rounded-[6px] border border-black/10 bg-black/5">
@@ -406,7 +420,7 @@ const TerminalBody = () => {
 
   useEffect(() => {
     if (reducedMotion) {
-      return;
+      return noop;
     }
 
     let shown = 0;
@@ -420,7 +434,9 @@ const TerminalBody = () => {
       }
     }, 190);
 
-    return () => window.clearInterval(id);
+    return () => {
+      window.clearInterval(id);
+    };
   }, [reducedMotion]);
 
   return (

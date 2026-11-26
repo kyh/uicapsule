@@ -46,7 +46,7 @@ export const ScreenshotCapture = () => {
 
   useEffect(
     () => () => {
-      if (timerRef.current) {
+      if (timerRef.current !== null && timerRef.current !== 0) {
         clearTimeout(timerRef.current);
       }
     },
@@ -59,11 +59,13 @@ export const ScreenshotCapture = () => {
     setFlashKey(id);
     setShot({ id });
 
-    if (timerRef.current) {
+    if (timerRef.current !== null && timerRef.current !== 0) {
       clearTimeout(timerRef.current);
     }
 
-    timerRef.current = setTimeout(() => setShot(null), LINGER_MS);
+    timerRef.current = setTimeout(() => {
+      setShot(null);
+    }, LINGER_MS);
   }, []);
 
   return (

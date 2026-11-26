@@ -75,16 +75,16 @@ const Button = ({
     <ButtonPrimitive
       data-slot="button"
       className={cn(buttonVariants({ className, loading, size, variant }))}
-      disabled={loading || disabled}
+      disabled={loading === true || disabled}
       focusableWhenDisabled={loading}
-      aria-busy={loading || undefined}
+      aria-busy={loading === true || undefined}
       onClick={(event) => {
-        trigger(variant === "destructive" ? "warning" : "selection");
+        void trigger(variant === "destructive" ? "warning" : "selection");
         onClick?.(event);
       }}
       {...props}
     >
-      {loading && (
+      {loading === true && (
         <span
           aria-hidden
           className="pointer-events-none absolute inset-0 grid place-items-center rounded-full"

@@ -22,7 +22,9 @@ const Preview = () => {
             aria-label={VARIANTS[v].label}
             aria-pressed={variant === v}
             title={VARIANTS[v].label}
-            onClick={() => setVariant(v)}
+            onClick={() => {
+              setVariant(v);
+            }}
             className="group grid size-9 place-items-center rounded-full outline-none focus-visible:ring-2 focus-visible:ring-white/60"
           >
             <span

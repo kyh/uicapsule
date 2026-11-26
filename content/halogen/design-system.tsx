@@ -217,7 +217,9 @@ export const DesignSystem = () => {
 
     window.addEventListener("keydown", onKey);
 
-    return () => window.removeEventListener("keydown", onKey);
+    return () => {
+      window.removeEventListener("keydown", onKey);
+    };
   }, []);
 
   return (
@@ -241,7 +243,9 @@ export const DesignSystem = () => {
             <span className="hx-row hx-end">
               <Button
                 aria-label="Search"
-                onClick={() => setCommand(true)}
+                onClick={() => {
+                  setCommand(true);
+                }}
                 size="icon-sm"
                 title="Search"
                 variant="ghost"
@@ -293,7 +297,9 @@ export const DesignSystem = () => {
                   parts={item.parts}
                   title={item.title}
                 >
-                  {item.body(() => setCommand(true))}
+                  {item.body(() => {
+                    setCommand(true);
+                  })}
                 </Screen>
               ))}
             </div>
@@ -329,7 +335,11 @@ export const DesignSystem = () => {
             <Selection />
             <Display />
             <Feedback />
-            <Overlays onCommand={() => setCommand(true)} />
+            <Overlays
+              onCommand={() => {
+                setCommand(true);
+              }}
+            />
             <Navigation />
             <Data />
             <Code />

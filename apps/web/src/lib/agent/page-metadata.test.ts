@@ -44,7 +44,7 @@ describe("pageOpenGraph / pageTwitter", () => {
   test("restate the creator and add og:video only when asked", () => {
     assert.equal(pageTwitter({ image })?.creator, "@kaiyuhsu");
     const openGraph = pageOpenGraph("/", { image });
-    assert.ok(openGraph && !Object.keys(openGraph).includes("videos"), "no videos key");
+    assert.ok(!Object.keys(openGraph).includes("videos"), "no videos key");
     const videos = ogVideo("https://assets.example.com/og/og.20261124.mp4", 1200, 630);
     assert.deepEqual(pageOpenGraph("/", { image, videos })?.videos, videos);
   });

@@ -16,6 +16,8 @@ import {
 } from "./sakuga-react";
 import type { Styled } from "./sakuga-react";
 
+const noop = () => null;
+
 interface Rig {
   pill: HTMLElement | null;
   num: HTMLElement | null;
@@ -212,16 +214,23 @@ const SakugaNumberField = ({
     const form = field.current?.form;
 
     if (!form || owned) {
-      return;
+      return noop;
     }
 
-    const reset = () => setOwn(defaultValue ?? null);
+    const reset = () => {
+      setOwn(defaultValue ?? null);
+    };
+
     form.addEventListener("reset", reset);
 
-    return () => form.removeEventListener("reset", reset);
+    return () => {
+      form.removeEventListener("reset", reset);
+    };
   }, [owned, defaultValue]);
 
-  useFrame((dt) => stepRig(rigRef.current, dt));
+  useFrame((dt) => {
+    stepRig(rigRef.current, dt);
+  });
 
   return (
     <NumberFieldPrimitive.Root

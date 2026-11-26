@@ -70,9 +70,15 @@ const createSpreadsheetStore = (
         columnWidths: widths(state.columnWidths),
       }));
     },
-    setDragLineVisible: (visible) => set({ dragLineVisible: visible }),
-    setDragStartCell: (cell) => set({ dragStartCell: cell }),
-    setEditingCell: (cell) => set({ editingCell: cell }),
+    setDragLineVisible: (visible) => {
+      set({ dragLineVisible: visible });
+    },
+    setDragStartCell: (cell) => {
+      set({ dragStartCell: cell });
+    },
+    setEditingCell: (cell) => {
+      set({ editingCell: cell });
+    },
     setSelectedCells: (cells) => {
       set((state) => ({
         selectedCells: cells(state.selectedCells),
@@ -100,7 +106,7 @@ const createSpreadsheetStore = (
         for (const cellKey of state.selectedCells) {
           const [rowId, columnId] = cellKey.split(":");
 
-          if (!rowId || !columnId) {
+          if (rowId === undefined || rowId === "" || columnId === undefined || columnId === "") {
             continue;
           }
 

@@ -220,8 +220,14 @@ const ProfileMenu = ({ user }: { user?: SessionUser }) => {
   const router = useRouter();
   const [navValue, setNavValue] = useState<string | null>(null);
   const [drawerOpen, setDrawerOpen] = useState(false);
-  const closeNav = useCallback(() => setNavValue(null), []);
-  const closeDrawer = useCallback(() => setDrawerOpen(false), []);
+
+  const closeNav = useCallback(() => {
+    setNavValue(null);
+  }, []);
+
+  const closeDrawer = useCallback(() => {
+    setDrawerOpen(false);
+  }, []);
 
   const handleSignOut = () => {
     void authClient.signOut({
@@ -235,7 +241,10 @@ const ProfileMenu = ({ user }: { user?: SessionUser }) => {
 
   const avatar = (
     <Avatar className="size-8">
-      {user?.image && <AvatarImage src={user.image} alt="" />}
+      {user !== undefined &&
+        user.image !== undefined &&
+        user.image !== null &&
+        user.image !== "" && <AvatarImage src={user.image} alt="" />}
       <AvatarFallback>
         {user ? (user.name || user.email).slice(0, 2).toUpperCase() : "UI"}
       </AvatarFallback>
@@ -247,7 +256,9 @@ const ProfileMenu = ({ user }: { user?: SessionUser }) => {
       <NavigationMenu
         className="max-sm:hidden"
         value={navValue}
-        onValueChange={(value) => setNavValue(value)}
+        onValueChange={(value) => {
+          setNavValue(value);
+        }}
       >
         <NavigationMenuList render={<div />}>
           <NavigationMenuItem value="profile" render={<div />}>

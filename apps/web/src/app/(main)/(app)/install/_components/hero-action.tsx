@@ -6,18 +6,23 @@ import { Button, buttonVariants } from "@repo/ui/components/button";
 import { toast } from "@repo/ui/components/toast";
 
 import type { InstallGuide } from "@/lib/agent/site-pages";
+import { noop } from "@tanstack/react-query";
 
 const CopyActionButton = ({ label, value }: { label: string; value: string }) => {
   const [copied, setCopied] = useState(false);
 
   useEffect(() => {
     if (!copied) {
-      return;
+      return noop;
     }
 
-    const timeout = setTimeout(() => setCopied(false), 2000);
+    const timeout = setTimeout(() => {
+      setCopied(false);
+    }, 2000);
 
-    return () => clearTimeout(timeout);
+    return () => {
+      clearTimeout(timeout);
+    };
   }, [copied]);
 
   const copy = async () => {
@@ -34,7 +39,13 @@ const CopyActionButton = ({ label, value }: { label: string; value: string }) =>
   };
 
   return (
-    <Button size="lg" className="px-4" onClick={copy}>
+    <Button
+      size="lg"
+      className="px-4"
+      onClick={() => {
+        void copy();
+      }}
+    >
       {copied ? <CheckIcon aria-hidden="true" /> : <CopyIcon aria-hidden="true" />}
       {label}
       <span className="sr-only" aria-live="polite">

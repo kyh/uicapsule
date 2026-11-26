@@ -48,7 +48,9 @@ export const ActionSpecimens = () => {
             <Button
               onClick={() => {
                 setSending(true);
-                window.setTimeout(() => setSending(false), 1600);
+                window.setTimeout(() => {
+                  setSending(false);
+                }, 1600);
               }}
               pending={sending}
               variant="solid"

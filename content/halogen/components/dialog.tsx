@@ -51,16 +51,22 @@ export const Dialog = ({
         event.preventDefault();
         onOpenChange(false);
       }}
-      onClose={() => onOpenChange(false)}
+      onClose={() => {
+        onOpenChange(false);
+      }}
       ref={ref}
     >
       <header className="hx-head">
         <h2 className="hx-head-title hx-code">{title}</h2>
-        {meta ? <span className="hx-head-meta hx-code-sm">{meta}</span> : null}
+        {meta !== undefined && meta !== "" ? (
+          <span className="hx-head-meta hx-code-sm">{meta}</span>
+        ) : null}
         <div className="hx-head-actions">
           <Button
             aria-label="Close"
-            onClick={() => onOpenChange(false)}
+            onClick={() => {
+              onOpenChange(false);
+            }}
             size="icon-sm"
             variant="ghost"
           >
@@ -69,7 +75,7 @@ export const Dialog = ({
         </div>
       </header>
       <div className="hx-body-pad hx-gap-4">{children}</div>
-      {footer ? <footer className="hx-foot">{footer}</footer> : null}
+      {Boolean(footer) && <footer className="hx-foot">{footer}</footer>}
     </dialog>
   );
 };

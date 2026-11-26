@@ -46,7 +46,7 @@ export const ActionReceipt = ({
   const now = useNow(1000, undoUntil !== undefined && !undone);
   const left = undoUntil === undefined ? 0 : Math.ceil((undoUntil - now) / 1000);
   const canUndo = onUndo !== undefined && (left > 0 || undoing) && !undone;
-  const partial = steps.some((step) => step.failed);
+  const partial = steps.some((step) => step.failed === true);
 
   return (
     <Shell>
@@ -59,11 +59,11 @@ export const ActionReceipt = ({
           {steps.map((step) => (
             <li className="v-receipt-step" key={step.label}>
               <span className={`v-body-sm ${undone ? "v-t2" : "v-t1"}`}>
-                <span className="v-sr">{step.failed ? "Failed: " : "Done: "}</span>
+                <span className="v-sr">{step.failed === true ? "Failed: " : "Done: "}</span>
                 {step.label}
               </span>
-              {step.detail ? (
-                <span className={`v-caption ${step.failed ? "v-fail-text" : "v-t2"}`}>
+              {step.detail !== undefined && step.detail !== "" ? (
+                <span className={`v-caption ${step.failed === true ? "v-fail-text" : "v-t2"}`}>
                   {step.detail}
                 </span>
               ) : null}

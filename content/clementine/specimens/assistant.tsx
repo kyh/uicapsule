@@ -84,8 +84,12 @@ export const AssistantSpecimens = () => {
         <div className="cl-spec-col">
           <ApprovalRequest
             amount={-34}
-            onApprove={() => setGymState("approved")}
-            onDecline={() => setGymState("declined")}
+            onApprove={() => {
+              setGymState("approved");
+            }}
+            onDecline={() => {
+              setGymState("declined");
+            }}
             reason="Your climbing membership renews on Monday"
             reasons={[
               { source: "Paid every month since March", text: "Same gym, same $34.00" },
@@ -95,7 +99,13 @@ export const AssistantSpecimens = () => {
             title="Pay Granite Wall Climbing"
           />
           {gymState === "waiting" ? null : (
-            <button className="cl-link" onClick={() => setGymState("waiting")} type="button">
+            <button
+              className="cl-link"
+              onClick={() => {
+                setGymState("waiting");
+              }}
+              type="button"
+            >
               Show the request again
             </button>
           )}
@@ -108,8 +118,12 @@ export const AssistantSpecimens = () => {
         <ApprovalRequest
           amount={-620}
           available={480}
-          onApprove={() => toast.show({ title: "Approve stays off until Everyday has $620.00" })}
-          onDecline={() => toast.show({ title: "Lantern Mutual can wait until payday" })}
+          onApprove={() => {
+            toast.show({ title: "Approve stays off until Everyday has $620.00" });
+          }}
+          onDecline={() => {
+            toast.show({ title: "Lantern Mutual can wait until payday" });
+          }}
           reason="Car insurance for the year, due Dec 3"
           title="Pay Lantern Mutual"
         />
@@ -131,7 +145,9 @@ export const AssistantSpecimens = () => {
               label: "Could not pay Loop Streaming",
             },
           ]}
-          onUndo={() => setUndone(true)}
+          onUndo={() => {
+            setUndone(true);
+          }}
           summary="Done this morning, while you slept."
           undone={undone}
         />
@@ -180,7 +196,9 @@ export const AssistantSpecimens = () => {
             amount={-129}
             date="Nov 11"
             merchant="Quill & Fold"
-            onAdd={() => setPaired(true)}
+            onAdd={() => {
+              setPaired(true);
+            }}
             state={paired ? "matched" : "missing"}
           />
         </ul>
@@ -194,7 +212,9 @@ export const AssistantSpecimens = () => {
             action={watching ? undefined : "Tell me at $30.00"}
             basis="on trains this week, the most since June"
             figure="$34.00"
-            onAction={() => setWatching(true)}
+            onAction={() => {
+              setWatching(true);
+            }}
             points={TRANSIT_WEEKS}
             status={watching ? "We will tell you when a week passes $30.00." : undefined}
             title="Commuting is creeping up"
@@ -206,7 +226,12 @@ export const AssistantSpecimens = () => {
             onAction={() => {
               setMoved(true);
               toast.show({
-                action: { label: "Undo", onClick: () => setMoved(false) },
+                action: {
+                  label: "Undo",
+                  onClick: () => {
+                    setMoved(false);
+                  },
+                },
                 title: "Put $18.40 toward Kyoto in April",
               });
             }}
@@ -229,7 +254,12 @@ export const AssistantSpecimens = () => {
           onRequest={(total) => {
             setRequested(true);
             toast.show({
-              action: { label: "Undo", onClick: () => setRequested(false) },
+              action: {
+                label: "Undo",
+                onClick: () => {
+                  setRequested(false);
+                },
+              },
               title: `Asked ${String(included.length)} friends for ${formatAmount(total)}`,
             });
           }}
@@ -266,7 +296,13 @@ export const AssistantSpecimens = () => {
             </>
           ) : null}
           <FollowUps items={[...ANSWERS.keys()]} onPick={say} />
-          <ChatInput onSend={() => say(draft)} onValueChange={setDraft} value={draft} />
+          <ChatInput
+            onSend={() => {
+              say(draft);
+            }}
+            onValueChange={setDraft}
+            value={draft}
+          />
         </div>
       </Specimen>
     </>

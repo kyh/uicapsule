@@ -61,13 +61,21 @@ export const Navigation = () => {
           <div className="v-cluster">
             <Button
               disabled={step === 0}
-              onClick={() => setStep(step - 1)}
+              onClick={() => {
+                setStep(step - 1);
+              }}
               size="sm"
               variant="secondary"
             >
               Back
             </Button>
-            <Button disabled={step === SETUP.length} onClick={() => setStep(step + 1)} size="sm">
+            <Button
+              disabled={step === SETUP.length}
+              onClick={() => {
+                setStep(step + 1);
+              }}
+              size="sm"
+            >
               {step >= SETUP.length - 1 ? "Finish setup" : "Next step"}
             </Button>
           </div>

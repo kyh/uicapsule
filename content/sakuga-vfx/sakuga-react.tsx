@@ -6,6 +6,8 @@ import type { Ref, RefObject } from "react";
 import { addBackLayer, onFrame, removeBackLayer, squashy } from "./sakuga-core";
 import type { Layer, Squashy } from "./sakuga-core";
 
+const noop = () => null;
+
 export type Styled<Props> = Omit<Props, "className"> & { className?: string };
 
 const assignRef = <T,>(ref: Ref<T> | undefined, node: T | null) => {
@@ -101,7 +103,13 @@ export const useFrame = (fn: (dt: number) => void) => {
   useEffect(() => {
     latest.current = fn;
   });
-  useEffect(() => onFrame((dt) => latest.current(dt)), []);
+  useEffect(
+    () =>
+      onFrame((dt) => {
+        latest.current(dt);
+      }),
+    [],
+  );
 };
 
 export const useBackLayer = () => {
@@ -128,7 +136,7 @@ export const useSquashy = (
   const sq = useRef<Squashy | null>(null);
   useEffect(() => {
     if (!el.current) {
-      return;
+      return noop;
     }
 
     const made = squashy(el.current, { d, k, low, wide });

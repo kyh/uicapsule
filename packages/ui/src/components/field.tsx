@@ -46,29 +46,30 @@ const FieldGroup = ({ className, ...props }: ComponentProps<"div">) => (
   />
 );
 
-const fieldVariants = cva("group/field flex w-full gap-3 data-[invalid=true]:text-destructive", {
-  defaultVariants: {
-    orientation: "vertical",
-  },
-  variants: {
-    orientation: {
-      horizontal:
-        "flex-row items-center has-[>[data-slot=field-content]]:items-start *:data-[slot=field-label]:flex-auto has-[>[data-slot=field-content]]:[&>[role=checkbox],[role=radio]]:mt-px",
-      responsive:
-        "flex-col *:w-full @md/field-group:flex-row @md/field-group:items-center @md/field-group:*:w-auto @md/field-group:has-[>[data-slot=field-content]]:items-start @md/field-group:*:data-[slot=field-label]:flex-auto [&>.sr-only]:w-auto @md/field-group:has-[>[data-slot=field-content]]:[&>[role=checkbox],[role=radio]]:mt-px",
-      vertical: "flex-col *:w-full [&>.sr-only]:w-auto",
+const fieldVariants = cva(
+  "group/field flex w-full min-w-0 gap-3 data-[invalid=true]:text-destructive",
+  {
+    defaultVariants: {
+      orientation: "vertical",
+    },
+    variants: {
+      orientation: {
+        horizontal:
+          "flex-row items-center has-[>[data-slot=field-content]]:items-start *:data-[slot=field-label]:flex-auto has-[>[data-slot=field-content]]:[&>[role=checkbox],[role=radio]]:mt-px",
+        responsive:
+          "flex-col *:w-full @md/field-group:flex-row @md/field-group:items-center @md/field-group:*:w-auto @md/field-group:has-[>[data-slot=field-content]]:items-start @md/field-group:*:data-[slot=field-label]:flex-auto [&>.sr-only]:w-auto @md/field-group:has-[>[data-slot=field-content]]:[&>[role=checkbox],[role=radio]]:mt-px",
+        vertical: "flex-col *:w-full [&>.sr-only]:w-auto",
+      },
     },
   },
-});
+);
 
 const Field = ({
   className,
   orientation = "vertical",
   ...props
-}: ComponentProps<"div"> & VariantProps<typeof fieldVariants>) => (
-  <div
-    // oxlint-disable-next-line jsx-a11y/prefer-tag-over-role -- a fieldset brings its own box model (min-width, border, padding) and breaks the orientation layouts
-    role="group"
+}: ComponentProps<"fieldset"> & VariantProps<typeof fieldVariants>) => (
+  <fieldset
     data-slot="field"
     data-orientation={orientation}
     className={cn(fieldVariants({ orientation }), className)}
@@ -84,10 +85,10 @@ const FieldContent = ({ className, ...props }: ComponentProps<"div">) => (
   />
 );
 
-const FieldLabel = ({ className, ...props }: ComponentProps<typeof Label>) => (
-  // oxlint-disable-next-line jsx-a11y/label-has-associated-control -- wraps the Label primitive; the consumer supplies htmlFor or nests the control
+const FieldLabel = ({ className, htmlFor, ...props }: ComponentProps<typeof Label>) => (
   <Label
     data-slot="field-label"
+    htmlFor={htmlFor}
     className={cn(
       "group/field-label peer/field-label flex w-fit gap-2 leading-snug group-data-[disabled=true]/field:opacity-50 has-data-checked:border-primary/30 has-data-checked:bg-primary/5 has-[>[data-slot=field]]:rounded-md has-[>[data-slot=field]]:border *:data-[slot=field]:p-3 dark:has-data-checked:border-primary/20 dark:has-data-checked:bg-primary/10",
       "has-[>[data-slot=field]]:w-full has-[>[data-slot=field]]:flex-col",
@@ -130,7 +131,7 @@ const FieldSeparator = ({
 }) => (
   <div
     data-slot="field-separator"
-    data-content={!!children}
+    data-content={Boolean(children)}
     className={cn(
       "relative -my-2 h-5 text-sm group-data-[variant=outline]/field-group:-mb-2",
       className,
@@ -138,7 +139,7 @@ const FieldSeparator = ({
     {...props}
   >
     <Separator className="absolute inset-0 top-1/2" />
-    {children && (
+    {Boolean(children) && (
       <span
         className="relative mx-auto block w-fit bg-background px-2 text-muted-foreground"
         data-slot="field-separator-content"
@@ -158,7 +159,13 @@ const FieldError = ({
   errors?: ({ message?: string } | undefined)[];
 }) => {
   const messages = [
-    ...new Set(errors?.flatMap((fieldError) => (fieldError?.message ? [fieldError.message] : []))),
+    ...new Set(
+      errors?.flatMap((fieldError) =>
+        fieldError !== undefined && fieldError.message !== undefined && fieldError.message !== ""
+          ? [fieldError.message]
+          : [],
+      ),
+    ),
   ];
 
   const content =
@@ -173,7 +180,9 @@ const FieldError = ({
       messages[0]
     ));
 
-  if (!content) {
+  const hasContent = Boolean(content);
+
+  if (!hasContent) {
     return null;
   }
 

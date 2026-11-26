@@ -113,7 +113,7 @@ export const IncomeOverview = () => {
               },
               ticks: { padding: 8, size: 0 },
             },
-            scale: scaleBand<string>()
+            scale: scaleBand()
               .domain([...QUARTERS])
               .paddingInner(PADDING)
               .paddingOuter(0),
@@ -155,7 +155,11 @@ export const IncomeOverview = () => {
         Tracking progress toward $100K quarterly targets
       </p>
       <ChartSlot height={HEIGHT} className="mt-3">
-        <div onMouseLeave={() => pin(null)}>
+        <div
+          onMouseLeave={() => {
+            pin(null);
+          }}
+        >
           <Chart
             definition={definition}
             renderer={renderer}

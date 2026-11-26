@@ -75,7 +75,7 @@ const createTransport = (storeApi: StoreApi<SpreadsheetStore>) =>
       for (const cellKey of cells) {
         const [rowId, columnId] = cellKey.split(":");
 
-        if (!rowId || !columnId) {
+        if (rowId === undefined || rowId === "" || columnId === undefined || columnId === "") {
           continue;
         }
 

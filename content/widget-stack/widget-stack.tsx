@@ -5,6 +5,8 @@ import type { FC, ReactNode } from "react";
 import { BatteryCharging, CalendarDays, CloudSun, Image as ImageIcon } from "lucide-react";
 import { AnimatePresence, MotionConfig, motion, useReducedMotion } from "motion/react";
 
+const noop = () => null;
+
 const AUTO_ADVANCE_MS = 4000;
 
 const WeatherWidget: FC = () => (
@@ -131,14 +133,16 @@ export const WidgetStack = () => {
 
   useEffect(() => {
     if (reduced) {
-      return;
+      return noop;
     }
 
     const timer = setTimeout(() => {
       setPage({ direction: 1, index: wrap(index + 1) });
     }, AUTO_ADVANCE_MS);
 
-    return () => clearTimeout(timer);
+    return () => {
+      clearTimeout(timer);
+    };
   }, [index, reduced]);
 
   const widget = WIDGETS[index];
@@ -181,7 +185,9 @@ export const WidgetStack = () => {
                 type="button"
                 key={entry.id}
                 aria-label={`Show ${entry.label}`}
-                onClick={() => goTo(dotIndex, dotIndex > index ? 1 : -1)}
+                onClick={() => {
+                  goTo(dotIndex, dotIndex > index ? 1 : -1);
+                }}
                 className={`size-1.5 rounded-full transition-colors ${
                   dotIndex === index ? "bg-white" : "bg-white/25"
                 }`}

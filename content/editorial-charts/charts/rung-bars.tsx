@@ -81,7 +81,7 @@ export const RungBars = ({
       ],
       scales: {
         x: {
-          scale: scalePoint<string>()
+          scale: scalePoint()
             .domain(plans.map((p) => p.plan))
             .padding(0.5),
         },

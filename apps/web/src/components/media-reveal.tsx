@@ -6,6 +6,7 @@ import Image from "next/image";
 import { animate, motion, useMotionValue, useReducedMotion, useTransform } from "motion/react";
 import { useTheme } from "next-themes";
 import { cn } from "cn";
+import { noop } from "@tanstack/react-query";
 
 import { PREVIEW_ALLOW, PREVIEW_SANDBOX, parseFrameMessage } from "@/lib/preview-protocol";
 import type { ParentMessage } from "@/lib/preview-protocol";
@@ -16,8 +17,8 @@ const usePreviewTheme = (iframeRef: RefObject<HTMLIFrameElement | null>, mounted
   useEffect(() => {
     const iframe = iframeRef.current;
 
-    if (!mounted || !iframe || !resolvedTheme) {
-      return;
+    if (!mounted || !iframe || resolvedTheme === undefined || resolvedTheme === "") {
+      return noop;
     }
 
     const message: ParentMessage = {
@@ -25,7 +26,9 @@ const usePreviewTheme = (iframeRef: RefObject<HTMLIFrameElement | null>, mounted
       type: "uicapsule:theme",
     };
 
-    const send = () => iframe.contentWindow?.postMessage(message, "*");
+    const send = () => {
+      iframe.contentWindow?.postMessage(message, "*");
+    };
 
     const onMessage = (event: MessageEvent) => {
       if (
@@ -39,7 +42,9 @@ const usePreviewTheme = (iframeRef: RefObject<HTMLIFrameElement | null>, mounted
     send();
     window.addEventListener("message", onMessage);
 
-    return () => window.removeEventListener("message", onMessage);
+    return () => {
+      window.removeEventListener("message", onMessage);
+    };
   }, [iframeRef, mounted, resolvedTheme]);
 };
 
@@ -52,7 +57,7 @@ const useInView = (rootMargin = "200px") => {
     if (!el || !("IntersectionObserver" in window)) {
       setVisibility("visible");
 
-      return;
+      return noop;
     }
 
     const io = new IntersectionObserver(
@@ -71,7 +76,9 @@ const useInView = (rootMargin = "200px") => {
 
     io.observe(el);
 
-    return () => io.disconnect();
+    return () => {
+      io.disconnect();
+    };
   }, [rootMargin]);
 
   return { loaded: visibility !== "hidden", ref, visible: visibility === "visible" };
@@ -83,11 +90,18 @@ const WIPE_DURATION = 0.6;
 const SHIMMER_HIGHLIGHT = "color-mix(in oklab, var(--color-foreground) 8%, transparent)";
 const SHIMMER_GRADIENT = `linear-gradient(90deg, transparent 25%, ${SHIMMER_HIGHLIGHT} 50%, transparent 75%)`;
 
+type FrameType = "local" | "remote";
+
+const frameSandbox = (type: FrameType) =>
+  type === "remote" ? "allow-scripts allow-same-origin" : PREVIEW_SANDBOX;
+
+const frameAllow = (type: FrameType) => (type === "local" ? PREVIEW_ALLOW : undefined);
+
 interface MediaRevealProps {
   className?: string;
   image?: string;
   video?: string;
-  iframe?: { src: string; title: string; type: "local" | "remote" };
+  iframe?: { src: string; title: string; type: FrameType };
 }
 
 export const MediaReveal = ({ className, image, video, iframe }: MediaRevealProps) => {
@@ -112,7 +126,7 @@ export const MediaReveal = ({ className, image, video, iframe }: MediaRevealProp
   const sweep = useMotionValue(-50);
   const sweepX = useTransform(sweep, (value) => `${value}%`);
 
-  const shimmering = visible && !revealed && !prefersReducedMotion;
+  const shimmering = visible && !revealed && prefersReducedMotion !== true;
 
   useEffect(() => {
     const element = videoRef.current;
@@ -121,7 +135,7 @@ export const MediaReveal = ({ className, image, video, iframe }: MediaRevealProp
       return;
     }
 
-    if (visible && !prefersReducedMotion) {
+    if (visible && prefersReducedMotion !== true) {
       const play = async () => {
         try {
           await element.play();
@@ -140,7 +154,7 @@ export const MediaReveal = ({ className, image, video, iframe }: MediaRevealProp
 
   useEffect(() => {
     if (!shimmering) {
-      return;
+      return noop;
     }
 
     sweep.set(-50);
@@ -151,27 +165,33 @@ export const MediaReveal = ({ className, image, video, iframe }: MediaRevealProp
       repeat: Infinity,
     });
 
-    return () => controls.stop();
+    return () => {
+      controls.stop();
+    };
   }, [shimmering, sweep]);
 
   useEffect(() => {
     if (!revealed) {
       wipe.set(100);
 
-      return;
+      return noop;
     }
 
-    if (prefersReducedMotion) {
-      return;
+    if (prefersReducedMotion === true) {
+      return noop;
     }
 
     const controls = animate(wipe, -100, {
       duration: WIPE_DURATION,
       ease: "easeInOut",
-      onComplete: () => setWiped(true),
+      onComplete: () => {
+        setWiped(true);
+      },
     });
 
-    return () => controls.stop();
+    return () => {
+      controls.stop();
+    };
   }, [revealed, wipe, prefersReducedMotion]);
 
   const [hasIframe, setHasIframe] = useState(Boolean(iframe));
@@ -187,17 +207,19 @@ export const MediaReveal = ({ className, image, video, iframe }: MediaRevealProp
 
   return (
     <div ref={rootRef} className={cn("bg-muted relative overflow-hidden", className)}>
-      {image && loaded && (
+      {image !== undefined && image !== "" && loaded && (
         <Image
           className="absolute inset-0 h-full w-full object-cover"
           src={image}
           alt=""
           fill
           sizes="(max-width: 640px) 100vw, 50vw"
-          onLoad={() => setRevealed(true)}
+          onLoad={() => {
+            setRevealed(true);
+          }}
         />
       )}
-      {video && loaded && (
+      {video !== undefined && video !== "" && loaded && (
         <video
           ref={videoRef}
           preload="auto"
@@ -205,8 +227,12 @@ export const MediaReveal = ({ className, image, video, iframe }: MediaRevealProp
           loop
           muted
           playsInline
-          onLoadedData={() => setRevealed(true)}
-          onCanPlay={() => setRevealed(true)}
+          onLoadedData={() => {
+            setRevealed(true);
+          }}
+          onCanPlay={() => {
+            setRevealed(true);
+          }}
         >
           <source src={video} type="video/mp4" />
         </video>
@@ -217,10 +243,12 @@ export const MediaReveal = ({ className, image, video, iframe }: MediaRevealProp
           className="bg-background absolute inset-0 h-full w-full"
           title={iframe.title}
           src={iframe.src}
-          sandbox={iframe.type === "remote" ? "allow-scripts allow-same-origin" : PREVIEW_SANDBOX}
-          allow={iframe.type === "local" ? PREVIEW_ALLOW : undefined}
+          sandbox={frameSandbox(iframe.type)}
+          allow={frameAllow(iframe.type)}
           referrerPolicy="no-referrer"
-          onLoad={() => setRevealed(true)}
+          onLoad={() => {
+            setRevealed(true);
+          }}
         />
       )}
       {!retired && (

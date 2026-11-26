@@ -102,7 +102,13 @@ export const MotionFoundation = () => {
         <Stage>
           <div className="fj-motion-head">
             <p className="fj-t-label">Every duration, read from the tokens</p>
-            <Button onClick={() => setRun((value) => value + 1)} size="sm" variant="primary">
+            <Button
+              onClick={() => {
+                setRun((value) => value + 1);
+              }}
+              size="sm"
+              variant="primary"
+            >
               <Icon icon={Play} />
               Play all
             </Button>
@@ -169,7 +175,12 @@ export const MotionFoundation = () => {
           <div className="fj-motion-demo">
             <Status status={status} />
           </div>
-          <Button onClick={() => setFlip((value) => value + 1)} size="sm">
+          <Button
+            onClick={() => {
+              setFlip((value) => value + 1);
+            }}
+            size="sm"
+          >
             Flip the status
           </Button>
           <p className="fj-t-body-sm fj-c-2">
@@ -189,7 +200,13 @@ export const MotionFoundation = () => {
               <span className="fj-t-body-sm fj-c-3">Nothing open</span>
             )}
           </div>
-          <Button aria-pressed={shown} onClick={() => setShown((value) => !value)} size="sm">
+          <Button
+            aria-pressed={shown}
+            onClick={() => {
+              setShown((value) => !value);
+            }}
+            size="sm"
+          >
             {shown ? "Close it" : "Open it"}
           </Button>
           <p className="fj-t-body-sm fj-c-2">

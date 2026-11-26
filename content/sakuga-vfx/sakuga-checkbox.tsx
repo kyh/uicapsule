@@ -8,6 +8,8 @@ import { Spring, at, dotted, kira, later, lines, puff, sfx, shards, slash } from
 import { SakugaStyle, useFrame, useMergedRef } from "./sakuga-react";
 import type { Styled } from "./sakuga-react";
 
+const noop = () => null;
+
 type SakugaCheckboxProps = Styled<CheckboxPrimitive.Root.Props>;
 
 const ROOT =
@@ -41,7 +43,9 @@ const land = (box: HTMLElement | null, rig: Rig, checked: boolean) => {
     slash(c.x - 6, c.y + 12, { ang: 2.72, len: 110, life: 0.55, thick: 7 });
     lines(c.x - 34, c.y + 26, { dir: 2.75, len: 60, n: 6, spread: 14 });
     shards(c.x, c.y, { arc: 6.28, grav: 260, n: 6, size: 6, speed: 190 });
-    later(380, () => kira(c.x + 24, c.y - 22, { r: 9 }));
+    later(380, () => {
+      kira(c.x + 24, c.y - 22, { r: 9 });
+    });
     sfx("zuza", c.x + 30, c.y - 62, { rot: -0.12, size: 112, ...dotted() });
   } else {
     puff(c.x, c.y, { life: 0.4, n: 3, size: 7 });
@@ -98,7 +102,7 @@ const SakugaCheckbox = ({
     const form = hidden?.form;
 
     if (checked !== undefined || !hidden || !form) {
-      return;
+      return noop;
     }
 
     const back = () => {
@@ -111,7 +115,9 @@ const SakugaCheckbox = ({
 
     form.addEventListener("reset", back);
 
-    return () => form.removeEventListener("reset", back);
+    return () => {
+      form.removeEventListener("reset", back);
+    };
   }, [checked, defaultChecked]);
 
   useFrame((dt) => {

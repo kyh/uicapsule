@@ -3,6 +3,7 @@
 import { useEffect } from "react";
 import type { RefObject } from "react";
 import { useMotionTemplate, useMotionValue, useSpring, useTransform } from "motion/react";
+import { noop } from "@tanstack/react-query";
 
 export const TILT = {
   max: 7,
@@ -38,7 +39,7 @@ export const useTilt = ({
       aimX.set(0);
       aimY.set(0);
 
-      return;
+      return noop;
     }
 
     const move = (event: PointerEvent) => {
@@ -70,7 +71,9 @@ export const useTilt = ({
 
     window.addEventListener("pointermove", move);
 
-    return () => window.removeEventListener("pointermove", move);
+    return () => {
+      window.removeEventListener("pointermove", move);
+    };
   }, [aimX, aimY, disabled, rootRef, tiltX, tiltY]);
 
   return { aimX, aimY, artX, artY, plane, tiltX, tiltY };

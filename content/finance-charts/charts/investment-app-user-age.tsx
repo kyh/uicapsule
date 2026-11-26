@@ -159,7 +159,11 @@ export const InvestmentAppUserAge = () => {
         <Num value={group.born[0]} format={(n) => String(Math.round(n))} /> -{" "}
         <Num value={group.born[1]} format={(n) => String(Math.round(n))} />
       </p>
-      <div onMouseLeave={() => pin(null)}>
+      <div
+        onMouseLeave={() => {
+          pin(null);
+        }}
+      >
         <ChartSlot height={HEIGHT} className="mt-2">
           <Chart
             definition={definition}
@@ -180,7 +184,9 @@ export const InvestmentAppUserAge = () => {
             <button
               key={g.label}
               type="button"
-              onMouseEnter={() => pin(i)}
+              onMouseEnter={() => {
+                pin(i);
+              }}
               className="relative flex-1 py-1 text-[12px] font-medium"
               style={{ color: i === hi ? "#ffffff" : "#a1a1aa" }}
             >

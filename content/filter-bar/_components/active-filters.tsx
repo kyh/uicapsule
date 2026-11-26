@@ -15,6 +15,8 @@ import { FilterOperator } from "./filter-operator";
 import { FilterSubject } from "./filter-subject";
 import { FilterValue } from "./filter-value";
 
+const noop = () => null;
+
 interface ActiveFiltersProps {
   columns: Column[];
   filters: FiltersState;
@@ -64,7 +66,9 @@ export const ActiveFilter = ({ binding, actions, strategy, entityName }: ActiveF
         variant="ghost"
         className="text-(--muted-foreground) hover:text-(--primary) h-full w-7 rounded-none rounded-r-2xl text-xs"
         aria-label={`Remove ${column.displayName} filter`}
-        onClick={() => actions.removeFilter(filter.columnId)}
+        onClick={() => {
+          actions.removeFilter(filter.columnId);
+        }}
       >
         <X className="size-4 -translate-x-0.5" />
       </Button>
@@ -96,7 +100,7 @@ export const ActiveFilters = ({
         />
       );
     })}
-    {aiGenerating && <ActiveFilterSkeleton />}
+    {aiGenerating === true && <ActiveFilterSkeleton />}
   </>
 );
 
@@ -122,7 +126,7 @@ export const ActiveFiltersContainer = ({ children }: { children: ReactNode }) =>
     const el = scrollContainerRef.current;
 
     if (!el) {
-      return;
+      return noop;
     }
 
     const resizeObserver = new ResizeObserver(checkScroll);

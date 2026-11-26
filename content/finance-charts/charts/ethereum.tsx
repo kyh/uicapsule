@@ -101,7 +101,7 @@ const Stat = ({
     <span style={{ color: MUTED }}>{label}</span>
     <span
       className="text-[12px] font-medium normal-case"
-      style={{ color: down ? DOWN : "#0b0b0f" }}
+      style={{ color: down === true ? DOWN : "#0b0b0f" }}
     >
       {value}
     </span>

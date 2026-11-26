@@ -37,9 +37,13 @@ export const Group = ({ id, title, meta, lead, children }: GroupProps) => (
       <h3 className="hx-heading" id={`${id}-title`}>
         {title}
       </h3>
-      {meta ? <span className="hx-code-sm hx-ink-3 hx-end">{meta}</span> : null}
+      {meta !== undefined && meta !== "" ? (
+        <span className="hx-code-sm hx-ink-3 hx-end">{meta}</span>
+      ) : null}
     </div>
-    {lead ? <p className="hx-body-sm hx-ink-2 hx-measure">{lead}</p> : null}
+    {lead !== undefined && lead !== "" ? (
+      <p className="hx-body-sm hx-ink-2 hx-measure">{lead}</p>
+    ) : null}
     {children}
   </section>
 );
@@ -58,12 +62,14 @@ export const SpecCell = ({ name, path, note, wide, edge, children }: CellProps) 
   <article
     aria-label={name}
     className="hx-cell"
-    data-edge={edge || undefined}
-    data-wide={wide || undefined}
+    data-edge={edge === true || undefined}
+    data-wide={wide === true || undefined}
   >
     <header className="hx-cell-head">
       <h4 className="hx-code">{name}</h4>
-      {path ? <span className="hx-code-sm hx-ink-3 hx-end">{path}</span> : null}
+      {path !== undefined && path !== "" ? (
+        <span className="hx-code-sm hx-ink-3 hx-end">{path}</span>
+      ) : null}
     </header>
     <div className="hx-cell-stage">{children}</div>
     <p className="hx-cell-note hx-caption">{note}</p>

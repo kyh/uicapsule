@@ -1,0 +1,5 @@
+{
+  "extends": "../tsconfig.content.json",
+  "include": ["**/*"],
+  "exclude": ["**/node_modules", "**/dist", "**/.cache", "**/.turbo"]
+}

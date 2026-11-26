@@ -109,7 +109,7 @@ const bestMatchFor = (entries: AcceptEntry[], candidate: string) => {
  * proxy code cannot be exercised in a unit test.
  */
 export const negotiateMediaType = (header: string | null) => {
-  if (!header?.trim()) {
+  if (header === null || header.trim() === "") {
     return "text/html";
   }
 
@@ -149,7 +149,7 @@ export const negotiateMediaType = (header: string | null) => {
  * hand a flight payload to a document request.
  */
 export const withVaryAccept = (existing: string | null) => {
-  if (!existing?.trim()) {
+  if (existing === null || existing.trim() === "") {
     return "Accept";
   }
 

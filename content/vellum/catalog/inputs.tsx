@@ -45,7 +45,9 @@ export const Inputs = () => {
             error={invalid ? "Add the part after the dot, such as .app" : undefined}
             hint="The agent pages this address when a run fails twice."
             label="Escalation email"
-            onChange={(event) => setEmail(event.target.value)}
+            onChange={(event) => {
+              setEmail(event.target.value);
+            }}
             type="email"
             value={email}
           />
@@ -57,7 +59,9 @@ export const Inputs = () => {
             hint={`${note.length} of 280 characters`}
             label="System prompt for the support agent"
             maxLength={280}
-            onChange={(event) => setNote(event.target.value)}
+            onChange={(event) => {
+              setNote(event.target.value);
+            }}
             value={note}
           />
         </div>
@@ -74,11 +78,11 @@ export const Inputs = () => {
               <FilterChip
                 count={filter.count}
                 key={filter.label}
-                onPressedChange={(on) =>
+                onPressedChange={(on) => {
                   setFilters((list) =>
                     on ? [...list, filter.label] : list.filter((item) => item !== filter.label),
-                  )
-                }
+                  );
+                }}
                 pressed={filters.includes(filter.label)}
               >
                 {filter.label}
@@ -90,7 +94,9 @@ export const Inputs = () => {
             {people.map((person) => (
               <ValueChip
                 key={person}
-                onRemove={() => setPeople((list) => list.filter((item) => item !== person))}
+                onRemove={() => {
+                  setPeople((list) => list.filter((item) => item !== person));
+                }}
               >
                 {person}
               </ValueChip>

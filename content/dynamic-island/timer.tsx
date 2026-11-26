@@ -1,12 +1,14 @@
 import { AnimatePresence, motion } from "motion/react";
 import { useEffect, useState } from "react";
 
+const noop = () => null;
+
 const Counter = ({ paused }: { paused: boolean }) => {
   const [count, setCount] = useState(60);
 
   useEffect(() => {
     if (paused) {
-      return;
+      return noop;
     }
 
     const id = setInterval(() => {
@@ -58,7 +60,9 @@ export const Timer = () => {
       <motion.button
         type="button"
         aria-label="Pause timer"
-        onClick={() => setIsPaused((p) => !p)}
+        onClick={() => {
+          setIsPaused((p) => !p);
+        }}
         whileTap={{ scale: 0.9 }}
         className="flex h-10 w-10 items-center justify-center rounded-full bg-[#5A3C07] transition-colors hover:bg-[#694608]"
       >

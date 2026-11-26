@@ -11,7 +11,11 @@ interface FrameProps {
 
 /** The outlined region. Split its insides with rules, not further frames. */
 export const Frame = ({ label, plain, className, children }: FrameProps) => (
-  <section aria-label={label} className={cx("hx-frame", className)} data-plain={plain || undefined}>
+  <section
+    aria-label={label}
+    className={cx("hx-frame", className)}
+    data-plain={plain === true || undefined}
+  >
     {children}
   </section>
 );
@@ -28,8 +32,8 @@ export const FrameHead = ({ title, status, meta, actions }: FrameHeadProps) => (
   <header className="hx-head">
     <span className="hx-head-title hx-code">{title}</span>
     {status}
-    {meta ? <span className="hx-head-meta hx-code-sm">{meta}</span> : null}
-    {actions ? <div className="hx-head-actions">{actions}</div> : null}
+    {Boolean(meta) && <span className="hx-head-meta hx-code-sm">{meta}</span>}
+    {Boolean(actions) && <div className="hx-head-actions">{actions}</div>}
   </header>
 );
 

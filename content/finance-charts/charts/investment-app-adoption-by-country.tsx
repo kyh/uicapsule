@@ -182,7 +182,11 @@ export const InvestmentAppAdoptionByCountry = () => {
         className="mt-4 [&_span>span]:size-2.5"
       />
       <ChartSlot height={HEIGHT} className="mt-3">
-        <div onMouseLeave={() => pin(null)}>
+        <div
+          onMouseLeave={() => {
+            pin(null);
+          }}
+        >
           <Chart
             definition={definition}
             renderer={renderer}

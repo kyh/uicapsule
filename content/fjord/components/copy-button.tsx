@@ -4,6 +4,8 @@ import { Check, Copy } from "lucide-react";
 import { Button } from "./button";
 import { Icon } from "./icon";
 
+const noop = () => null;
+
 const writeClipboard = async (value: string) => {
   try {
     await navigator.clipboard.writeText(value);
@@ -46,12 +48,16 @@ export const CopyButton = ({
 
   useEffect(() => {
     if (!copied) {
-      return;
+      return noop;
     }
 
-    const timer = window.setTimeout(() => setCopied(false), 1600);
+    const timer = window.setTimeout(() => {
+      setCopied(false);
+    }, 1600);
 
-    return () => window.clearTimeout(timer);
+    return () => {
+      window.clearTimeout(timer);
+    };
   }, [copied]);
 
   const copy = async () => {
@@ -65,13 +71,15 @@ export const CopyButton = ({
   return (
     <>
       <Button
-        aria-label={showLabel ? undefined : label}
-        onClick={copy}
-        size={showLabel ? "sm" : size}
-        variant={showLabel ? "secondary" : "ghost"}
+        aria-label={showLabel === true ? undefined : label}
+        onClick={() => {
+          void copy();
+        }}
+        size={showLabel === true ? "sm" : size}
+        variant={showLabel === true ? "secondary" : "ghost"}
       >
         <Icon icon={copied ? Check : Copy} />
-        {showLabel ? visibleLabel : null}
+        {showLabel === true ? visibleLabel : null}
       </Button>
       <output className="fj-sr">{copied ? "Copied" : ""}</output>
     </>

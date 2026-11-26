@@ -30,18 +30,22 @@ export const RadioGroup = <T extends string>({
             checked={option.value === value}
             className="cl-sr-input"
             name={name}
-            onChange={() => onValueChange(option.value)}
+            onChange={() => {
+              onValueChange(option.value);
+            }}
             type="radio"
             value={option.value}
           />
           <span aria-hidden className="cl-radio__dot" />
           <span className="cl-check__text">
             <span>{option.label}</span>
-            {option.description ? (
+            {option.description !== undefined && option.description !== "" ? (
               <span className="cl-check__desc">{option.description}</span>
             ) : null}
           </span>
-          {option.trailing ? <span className="cl-radio__trail">{option.trailing}</span> : null}
+          {option.trailing !== undefined && option.trailing !== "" ? (
+            <span className="cl-radio__trail">{option.trailing}</span>
+          ) : null}
         </label>
       ))}
     </fieldset>

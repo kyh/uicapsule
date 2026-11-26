@@ -43,7 +43,7 @@ export const Sub = ({
         <h3 className="v-heading" id={`${id}-title`}>
           {title}
         </h3>
-        {note ? <p>{note}</p> : null}
+        {Boolean(note) && <p>{note}</p>}
       </div>
       {action}
     </div>
@@ -72,7 +72,7 @@ export const Specimen = ({
     <div className="v-stage">{children}</div>
     <figcaption className="v-specimen-cap">
       {name}
-      {note ? <span>{note}</span> : null}
+      {note !== undefined && note !== "" ? <span>{note}</span> : null}
     </figcaption>
   </figure>
 );

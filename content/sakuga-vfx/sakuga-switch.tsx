@@ -8,6 +8,8 @@ import { isCalm } from "./sakuga-core";
 import { SakugaStyle, useFrame, useMergedRef } from "./sakuga-react";
 import type { Styled } from "./sakuga-react";
 
+const noop = () => null;
+
 type SakugaSwitchProps = Styled<SwitchPrimitive.Root.Props> & {
   frames?: string;
 };
@@ -31,7 +33,13 @@ const getSheet = (src: string) => {
 
   if (!img) {
     img = new Image();
-    img.addEventListener("error", () => broken.add(src), { once: true });
+    img.addEventListener(
+      "error",
+      () => {
+        broken.add(src);
+      },
+      { once: true },
+    );
     img.src = src;
     sheets.set(src, img);
   }
@@ -147,7 +155,7 @@ const SakugaSwitch = ({
     const form = hidden?.form;
 
     if (checked !== undefined || !hidden || !form) {
-      return;
+      return noop;
     }
 
     const back = () => {
@@ -160,23 +168,31 @@ const SakugaSwitch = ({
 
     form.addEventListener("reset", back);
 
-    return () => form.removeEventListener("reset", back);
+    return () => {
+      form.removeEventListener("reset", back);
+    };
   }, [checked, defaultChecked]);
 
   useEffect(() => {
     const img = getSheet(frames);
-    const show = () => paint(canvas.current, img, rigRef.current, plain.current);
+
+    const show = () => {
+      paint(canvas.current, img, rigRef.current, plain.current);
+    };
+
     rigRef.current.shown = -1;
 
     if (img.complete) {
       show();
 
-      return;
+      return noop;
     }
 
     img.addEventListener("load", show);
 
-    return () => img.removeEventListener("load", show);
+    return () => {
+      img.removeEventListener("load", show);
+    };
   }, [frames]);
 
   useFrame((dt) => {
