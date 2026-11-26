@@ -307,8 +307,9 @@ production nothing is sent or logged (a live code in the logs would hand the acc
 who reads them), boot warns once, and sending a code is refused with `EMAIL_DISABLED`
 (`packages/service/src/auth/sign-in-code-email.ts`). Only `sign-in` codes are sent: the
 plugin's other code types send nothing, so no password or verification flow is reachable.
-Provider failures are logged. Codes expire after five minutes and allow three tries. A code's sign-in checks the request's origin in the auth hook: better-auth checks it
-only when a code is asked for, so a foreign page holding a code could sign its visitor in.
+Provider failures are logged. Codes expire after five minutes and allow three tries. A code's
+sign-in checks the request's origin in the auth hook: better-auth checks it only when a code is
+asked for, so a foreign page holding a code could sign its visitor in.
 
 ## Decisions (do not re-litigate)
 
