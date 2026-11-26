@@ -54,7 +54,7 @@ interface PropsPanelProps extends PropsBodyProps {
 /** The props aside: its toolbar actions over the active preview's controls, nothing while its frame loads. */
 export const PropsPanel = ({ action, ...body }: PropsPanelProps) => (
   <div className="flex h-full flex-col">
-    <div className="flex h-12 shrink-0 items-center justify-end gap-1 px-2">{action}</div>
+    <div className="flex shrink-0 items-center justify-end gap-1 p-4">{action}</div>
     <PropsBody {...body} />
   </div>
 );

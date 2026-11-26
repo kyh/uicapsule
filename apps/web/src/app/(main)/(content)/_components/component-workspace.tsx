@@ -52,7 +52,7 @@ const KEY_DELTA = new Map<string, 1 | -1>([
 ]);
 
 const KEYBOARD_WIDGETS =
-  'input, textarea, select, [role="combobox"], [role="listbox"], [role="menu"], [role="slider"], [role="spinbutton"], [role="switch"], [role="textbox"]';
+  'input, textarea, select, [role="combobox"], [role="listbox"], [role="menu"], [role="radio"], [role="radiogroup"], [role="slider"], [role="spinbutton"], [role="switch"], [role="textbox"]';
 
 const handlesOwnKeys = (target: EventTarget | null) =>
   target instanceof HTMLElement &&

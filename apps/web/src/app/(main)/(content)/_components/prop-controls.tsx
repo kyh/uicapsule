@@ -3,8 +3,6 @@
 import { useId, useState } from "react";
 import { RotateCcwIcon } from "lucide-react";
 import { Button } from "@repo/ui/components/button";
-import { Input } from "@repo/ui/components/input";
-import { Label } from "@repo/ui/components/label";
 import {
   Select,
   SelectContent,
@@ -12,102 +10,115 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@repo/ui/components/select";
-import { Slider } from "@repo/ui/components/slider";
-import { Switch } from "@repo/ui/components/switch";
+import { cn } from "cn";
 
 import type { ControlValue, PreviewControls } from "@/lib/preview-controls";
 import {
   atDefaults,
   controlEntries,
+  fitsSegmented,
   fullHex,
-  numberFormat,
-  numberLargeStep,
-  numberStep,
   parseHexInput,
   selectOptions,
 } from "./control-format";
 import type { ControlEntry } from "./control-format";
+import { PANEL_BOUNDS } from "./panel-layout";
+import { FIELD_ROW, ROW_INPUT, ROW_LABEL, ROW_SURFACE } from "./control-row";
+import { ScrubSlider } from "./scrub-slider";
+import { SegmentedControl } from "./segmented-control";
 
-const LABEL = "text-sm font-normal";
-const ROW = "flex min-h-11 items-center justify-between gap-3 px-4 py-1.5";
-const STACK = "flex flex-col gap-2.5 px-4 py-2.5";
+const PANEL_PADDING_X = 16;
+
+const NARROWEST_ROW = PANEL_BOUNDS.props.min - 2 * PANEL_PADDING_X;
+
+const BOOLEAN_OPTIONS = [
+  { label: "Off", value: "off" },
+  { label: "On", value: "on" },
+] as const;
 
 type FieldProps<Type extends ControlEntry["type"]> = Extract<ControlEntry, { type: Type }> & {
   onChange: (value: ControlValue) => void;
 };
 
-const NumberField = ({ control, label, value, onChange }: FieldProps<"number">) => {
+const SegmentedRow = ({
+  label,
+  options,
+  value,
+  onChange,
+}: {
+  label: string;
+  options: readonly { readonly label: string; readonly value: string }[];
+  value: string;
+  onChange: (value: string) => void;
+}) => {
   const labelId = useId();
-  const step = numberStep(control);
-  const format = numberFormat(step);
 
   return (
-    <div className={STACK}>
-      <div className="flex items-center justify-between gap-3">
-        <span id={labelId} className={LABEL}>
-          {label}
-        </span>
-        <span aria-hidden className="text-muted-foreground text-xs tabular-nums">
-          {new Intl.NumberFormat(undefined, format).format(value)}
-        </span>
-      </div>
-      <Slider
-        aria-labelledby={labelId}
-        value={value}
-        min={control.min}
-        max={control.max}
-        step={step}
-        largeStep={numberLargeStep(control)}
-        format={format}
-        onValueChange={(next) => {
-          const [first] = [next].flat();
-
-          if (first !== undefined) {
-            onChange(first);
-          }
-        }}
-      />
+    <div className={cn(ROW_SURFACE, "flex items-center justify-between gap-3 py-0.5 pr-0.5 pl-3")}>
+      <span id={labelId} className={cn(ROW_LABEL, "truncate")}>
+        {label}
+      </span>
+      <SegmentedControl labelId={labelId} options={options} value={value} onChange={onChange} />
     </div>
   );
 };
 
 const BooleanField = ({ label, value, onChange }: FieldProps<"boolean">) => (
-  <Label className={`${ROW} ${LABEL}`}>
-    {label}
-    <Switch checked={value} onCheckedChange={onChange} />
-  </Label>
+  <SegmentedRow
+    label={label}
+    options={BOOLEAN_OPTIONS}
+    value={value ? "on" : "off"}
+    onChange={(next) => {
+      onChange(next === "on");
+    }}
+  />
 );
 
 const SelectField = ({ control, label, value, onChange }: FieldProps<"select">) => {
   const labelId = useId();
   const options = selectOptions(control);
 
+  if (fitsSegmented(label, options, NARROWEST_ROW)) {
+    return <SegmentedRow label={label} options={options} value={value} onChange={onChange} />;
+  }
+
   return (
-    <div className={ROW}>
-      <span id={labelId} className={LABEL}>
-        {label}
-      </span>
-      <Select
-        items={options}
-        value={value}
-        onValueChange={(next) => {
-          if (next !== null) {
-            onChange(next);
-          }
-        }}
+    <Select
+      items={options}
+      value={value}
+      onValueChange={(next) => {
+        if (next !== null) {
+          onChange(next);
+        }
+      }}
+    >
+      <SelectTrigger
+        aria-labelledby={labelId}
+        className={cn(
+          ROW_SURFACE,
+          "hover:bg-foreground/10 focus-visible:bg-foreground/10 data-popup-open:bg-foreground/15 dark:bg-foreground/5 dark:hover:bg-foreground/10 dark:focus-visible:bg-foreground/10 focus-visible:ring-ring/50 w-full gap-2 border-0 py-0 pr-2 pl-3 text-[13px] font-medium shadow-none transition-colors duration-150 focus-visible:ring-2 focus-visible:ring-inset [&>svg]:size-4 [&>svg]:opacity-60 [&>svg]:transition-transform [&>svg]:duration-200 data-popup-open:[&>svg]:rotate-180",
+        )}
       >
-        <SelectTrigger size="sm" aria-labelledby={labelId} className="max-w-40 min-w-0">
-          <SelectValue />
-        </SelectTrigger>
-        <SelectContent>
-          {options.map((option) => (
-            <SelectItem key={option.value} value={option.value}>
-              {option.label}
-            </SelectItem>
-          ))}
-        </SelectContent>
-      </Select>
-    </div>
+        <span id={labelId} aria-hidden className={cn(ROW_LABEL, "mr-auto shrink-0")}>
+          {label}
+        </span>
+        <SelectValue className="text-foreground/70 min-w-0 flex-none justify-end truncate text-right" />
+      </SelectTrigger>
+      <SelectContent
+        alignItemWithTrigger={false}
+        className="bg-popover ring-foreground/10 rounded-md p-1 shadow-lg"
+      >
+        {options.map((option) => (
+          <SelectItem
+            key={option.value}
+            value={option.value}
+            className="text-foreground/70 focus:bg-foreground/10 focus:text-foreground data-selected:bg-foreground/10 data-selected:text-foreground min-h-9 rounded-sm py-2 pr-8 pl-2 text-[13px] font-medium transition-colors duration-150"
+          >
+            {option.label}
+          </SelectItem>
+        ))}
+      </SelectContent>
+    </Select>
   );
 };
 
@@ -127,42 +138,45 @@ const ColorField = ({ label, value, onChange }: FieldProps<"color">) => {
   };
 
   return (
-    <div className={ROW}>
-      <Label htmlFor={inputId} className={LABEL}>
+    <div className={FIELD_ROW}>
+      <label htmlFor={inputId} className={cn(ROW_LABEL, "min-w-0 truncate")}>
         {label}
-      </Label>
-      <div className="flex items-center gap-1.5">
-        <input
-          type="color"
-          aria-label={`${label} picker`}
-          value={fullHex(value)}
-          className="border-input size-8 shrink-0 cursor-pointer appearance-none rounded-md border bg-transparent p-1 [&::-moz-color-swatch]:rounded-sm [&::-moz-color-swatch]:border-0 [&::-webkit-color-swatch]:rounded-sm [&::-webkit-color-swatch]:border-0 [&::-webkit-color-swatch-wrapper]:p-0"
-          onChange={(event) => {
-            setDraft(null);
-            onChange(event.currentTarget.value);
-          }}
-        />
-        <Input
-          id={inputId}
-          value={draft ?? value}
-          aria-invalid={invalid}
-          autoComplete="off"
-          spellCheck={false}
-          maxLength={7}
-          className="h-8 w-22 text-xs tabular-nums md:text-xs"
-          onValueChange={setDraft}
-          onBlur={commit}
-          onKeyDown={(event) => {
-            if (event.key === "Enter") {
-              commit();
-            }
+      </label>
+      <input
+        id={inputId}
+        value={draft ?? value}
+        aria-invalid={invalid}
+        autoComplete="off"
+        spellCheck={false}
+        maxLength={7}
+        className={cn(
+          ROW_INPUT,
+          "aria-invalid:text-destructive ml-auto w-[7.5ch] flex-none font-mono",
+        )}
+        onChange={(event) => {
+          setDraft(event.currentTarget.value);
+        }}
+        onBlur={commit}
+        onKeyDown={(event) => {
+          if (event.key === "Enter") {
+            commit();
+          }
 
-            if (event.key === "Escape") {
-              setDraft(null);
-            }
-          }}
-        />
-      </div>
+          if (event.key === "Escape") {
+            setDraft(null);
+          }
+        }}
+      />
+      <input
+        type="color"
+        aria-label={`${label} picker`}
+        value={fullHex(value)}
+        className="border-foreground/15 focus-visible:ring-ring/50 size-5 shrink-0 cursor-pointer appearance-none rounded-[5px] border bg-transparent p-0 shadow-[inset_0_0_0_1px_rgb(255_255_255/0.08)] transition-transform duration-150 outline-none hover:scale-108 focus-visible:ring-2 [&::-moz-color-swatch]:rounded-[4px] [&::-moz-color-swatch]:border-0 [&::-webkit-color-swatch]:rounded-[4px] [&::-webkit-color-swatch]:border-0 [&::-webkit-color-swatch-wrapper]:p-0"
+        onChange={(event) => {
+          setDraft(null);
+          onChange(event.currentTarget.value);
+        }}
+      />
     </div>
   );
 };
@@ -171,16 +185,19 @@ const TextField = ({ control, label, value, onChange }: FieldProps<"text">) => {
   const inputId = useId();
 
   return (
-    <div className={STACK}>
-      <Label htmlFor={inputId} className={LABEL}>
+    <div className={FIELD_ROW}>
+      <label htmlFor={inputId} className={cn(ROW_LABEL, "shrink-0")}>
         {label}
-      </Label>
-      <Input
+      </label>
+      <input
         id={inputId}
         value={value}
         placeholder={control.placeholder}
-        className="h-8"
-        onValueChange={onChange}
+        autoComplete="off"
+        className={ROW_INPUT}
+        onChange={(event) => {
+          onChange(event.currentTarget.value);
+        }}
       />
     </div>
   );
@@ -195,7 +212,7 @@ const ControlField = ({
 }) => {
   switch (entry.type) {
     case "number": {
-      return <NumberField {...entry} onChange={onChange} />;
+      return <ScrubSlider {...entry} onChange={onChange} />;
     }
 
     case "boolean": {
@@ -228,12 +245,13 @@ interface PropControlsProps {
 }
 
 /**
- * The editable list for a preview's `controls`: one field per control, in declaration order,
+ * The editable list for a preview's `controls`: one 36px row per control, in declaration order,
  * fully controlled by `values` (a missing or mistyped value shows the control's default).
- * Reset is disabled while every value is already its default.
+ * Reset is disabled while every value is already its default, yet stays focusable, so pressing it
+ * from the keyboard keeps focus in the panel.
  */
 export const PropControls = ({ controls, values, onChange, onReset }: PropControlsProps) => (
-  <div className="flex flex-col py-1.5">
+  <div className="flex flex-col gap-1.5 px-4 pb-4">
     {controlEntries(controls, values).map((entry) => (
       <ControlField
         key={entry.name}
@@ -243,17 +261,18 @@ export const PropControls = ({ controls, values, onChange, onReset }: PropContro
         }}
       />
     ))}
-    <div className="flex justify-end px-4 pt-2 pb-1">
-      <Button
-        variant="ghost"
-        size="xs"
-        className="text-muted-foreground rounded-md"
-        disabled={atDefaults(controls, values)}
-        onClick={onReset}
-      >
-        <RotateCcwIcon data-icon="inline-start" />
-        Reset
-      </Button>
-    </div>
+    <Button
+      variant="ghost"
+      className={cn(
+        ROW_SURFACE,
+        "text-foreground/70 hover:bg-foreground/10 hover:text-foreground active:bg-foreground/15 data-disabled:text-foreground/35 focus-visible:ring-ring/50 w-full gap-1.5 text-[13px] font-medium transition-colors duration-150 focus-visible:ring-2 focus-visible:ring-inset active:not-aria-[haspopup]:scale-100 data-disabled:pointer-events-none [&_svg:not([class*='size-'])]:size-3.5",
+      )}
+      disabled={atDefaults(controls, values)}
+      focusableWhenDisabled
+      onClick={onReset}
+    >
+      <RotateCcwIcon aria-hidden />
+      Reset
+    </Button>
   </div>
 );
