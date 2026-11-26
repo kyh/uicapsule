@@ -6,6 +6,8 @@ export const CELL_GAP_DESKTOP = 12;
 export const CELL_GAP_MOBILE = 8;
 export const TILE_SCALE_DESKTOP = 2.4;
 export const TILE_SCALE_MOBILE = 2.4;
+export const CELL_TILT = 1.8;
+export const CELL_RADIUS = 3;
 
 export const MOBILE_BREAKPOINT = 768;
 
@@ -25,7 +27,7 @@ export const SOFT_PUSH_RATIO = 1.3;
 export const CULL_MARGIN = 240;
 
 export const CELL_CLASS =
-  "absolute left-0 top-0 select-none overflow-hidden rounded-[3px] pointer-events-none will-change-transform origin-center [backface-visibility:hidden]";
+  "absolute left-0 top-0 select-none overflow-hidden pointer-events-none will-change-transform origin-center [backface-visibility:hidden]";
 
 const hash = (n: number) => {
   const x = Math.sin(n * 12.9898 + 78.233) * 43_758.5453;
@@ -63,6 +65,14 @@ export interface TileSize {
   width: number;
   height: number;
   rows: number;
+}
+
+/** Desktop sizes in px; mobile keeps the stock mobile-to-desktop ratios. */
+export interface CellLayout {
+  cellHeight: number;
+  gap: number;
+  /** Max rotation either way, in degrees. */
+  tilt: number;
 }
 
 export interface Dims {
@@ -104,10 +114,14 @@ const pickPhoto = (seed: number, leftIdx: number, aboveIdx: number, poolSize: nu
   return candidate;
 };
 
-export const buildCells = (dims: Dims, photos: readonly [Photo, ...Photo[]]) => {
+export const buildCells = (
+  dims: Dims,
+  photos: readonly [Photo, ...Photo[]],
+  layout: CellLayout,
+) => {
   const { vw, vh, isMobile } = dims;
-  const cellH = isMobile ? CELL_H_MOBILE : CELL_H_DESKTOP;
-  const gap = isMobile ? CELL_GAP_MOBILE : CELL_GAP_DESKTOP;
+  const cellH = isMobile ? layout.cellHeight * (CELL_H_MOBILE / CELL_H_DESKTOP) : layout.cellHeight;
+  const gap = isMobile ? layout.gap * (CELL_GAP_MOBILE / CELL_GAP_DESKTOP) : layout.gap;
   const scale = isMobile ? TILE_SCALE_MOBILE : TILE_SCALE_DESKTOP;
   const stepY = cellH + gap;
 
@@ -188,7 +202,7 @@ export const buildCells = (dims: Dims, photos: readonly [Photo, ...Photo[]]) => 
         height: cellH,
         index: idx,
         photoIndex: item.photoIndex,
-        rotation: (hash(r * 5 + item.colIdx * 11 + 3) - 0.5) * 3.6,
+        rotation: (hash(r * 5 + item.colIdx * 11 + 3) - 0.5) * 2 * layout.tilt,
         rowIndex: r,
         scale: 1 + (hash(r * 7 + item.colIdx * 13 + 5) - 0.5) * 0.05,
         width: item.width,

@@ -27,7 +27,7 @@ interface ActiveFiltersProps {
 }
 
 const ActiveFilterSkeleton = () => (
-  <div className="border-(--border) bg-(--muted)/60 text-(--muted-foreground) flex h-7 items-center gap-2 rounded-2xl border px-3 text-xs shadow-xs">
+  <div className="border-(--border) bg-(--muted)/60 text-(--muted-foreground) flex h-7 items-center gap-2 rounded-(--chip-radius) border px-3 text-xs shadow-xs">
     <div className="flex items-center gap-2">
       <span className="bg-(--muted-foreground)/60 block h-2 w-10 animate-pulse rounded" />
       <span className="bg-(--muted-foreground)/40 block h-2 w-6 animate-pulse rounded" />
@@ -50,7 +50,7 @@ export const ActiveFilter = ({ binding, actions, strategy, entityName }: ActiveF
   }
 
   return (
-    <div className="border-(--border) bg-(--background) flex h-7 items-center rounded-2xl border text-xs shadow-xs">
+    <div className="border-(--border) bg-(--background) flex h-7 items-center rounded-(--chip-radius) border text-xs shadow-xs">
       <FilterSubject column={column} entityName={entityName} />
       <Separator orientation="vertical" />
       <FilterOperator filter={filter} actions={actions} />
@@ -64,7 +64,7 @@ export const ActiveFilter = ({ binding, actions, strategy, entityName }: ActiveF
       <Separator orientation="vertical" />
       <Button
         variant="ghost"
-        className="text-(--muted-foreground) hover:text-(--primary) h-full w-7 rounded-none rounded-r-2xl text-xs"
+        className="text-(--muted-foreground) hover:text-(--primary) h-full w-7 rounded-none rounded-r-(--chip-radius) text-xs"
         aria-label={`Remove ${column.displayName} filter`}
         onClick={() => {
           actions.removeFilter(filter.columnId);

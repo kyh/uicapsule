@@ -45,7 +45,7 @@ const Cell5 = ({ colors, strokeWidth }: CellProps) => (
   <line x1="25" x2="75" y1="75" y2="25" fill="none" stroke={colors[0]} strokeWidth={strokeWidth} />
 );
 
-const Cell6 = () => null;
+const BlankCell = () => null;
 
 const Cell7 = ({ colors }: CellProps) => (
   <rect width="75" height="75" x="12.5" y="12.5" fill={colors[0]} fillOpacity={0.1} />
@@ -56,24 +56,28 @@ interface CellConfig {
   weight: number;
 }
 
-const cellConfigs: CellConfig[] = [
+const glyphConfigs: CellConfig[] = [
   { glyph: Cell1, weight: 1 },
   { glyph: Cell2, weight: 1 },
   { glyph: Cell3, weight: 1 },
   { glyph: Cell4, weight: 1 },
   { glyph: Cell5, weight: 1 },
-  { glyph: Cell6, weight: 5 },
   { glyph: Cell7, weight: 3 },
 ];
 
-const weightedCells: CellConfig[] = cellConfigs.flatMap((config) =>
+const weightedGlyphs: CellConfig[] = glyphConfigs.flatMap((config) =>
   Array.from({ length: config.weight }, () => config),
 );
 
-const fallbackCell: CellConfig = { glyph: Cell1, weight: 1 };
+const blankCell: CellConfig = { glyph: BlankCell, weight: 0 };
 
-const pickCell = () =>
-  weightedCells[Math.floor(Math.random() * weightedCells.length)] ?? fallbackCell;
+const pickCell = (blankWeight: number) => {
+  const roll = Math.random() * (weightedGlyphs.length + blankWeight);
+
+  return roll < blankWeight
+    ? blankCell
+    : (weightedGlyphs[Math.floor(roll - blankWeight)] ?? blankCell);
+};
 
 const GLYPH_VIEWBOX = 100;
 
@@ -87,10 +91,20 @@ interface GridCellProps {
   strokeWidth: number;
   minInterval: number;
   maxInterval: number;
+  blankWeight: number;
 }
 
-const GridCell = ({ x, y, size, colors, strokeWidth, minInterval, maxInterval }: GridCellProps) => {
-  const [currentCell, setCurrentCell] = useState<CellConfig>(pickCell);
+const GridCell = ({
+  x,
+  y,
+  size,
+  colors,
+  strokeWidth,
+  minInterval,
+  maxInterval,
+  blankWeight,
+}: GridCellProps) => {
+  const [currentCell, setCurrentCell] = useState<CellConfig>(() => pickCell(blankWeight));
 
   useEffect(() => {
     const getRandomInterval = () => Math.random() * (maxInterval - minInterval) + minInterval;
@@ -99,7 +113,7 @@ const GridCell = ({ x, y, size, colors, strokeWidth, minInterval, maxInterval }:
 
     const scheduleNext = () => {
       timeoutId = setTimeout(() => {
-        setCurrentCell(pickCell());
+        setCurrentCell(pickCell(blankWeight));
         scheduleNext();
       }, getRandomInterval());
     };
@@ -109,7 +123,7 @@ const GridCell = ({ x, y, size, colors, strokeWidth, minInterval, maxInterval }:
     return () => {
       clearTimeout(timeoutId);
     };
-  }, [minInterval, maxInterval]);
+  }, [minInterval, maxInterval, blankWeight]);
 
   const Glyph = currentCell.glyph;
 
@@ -131,6 +145,8 @@ interface BackgroundGlyphsProps {
   className?: string;
   minInterval?: number;
   maxInterval?: number;
+  /** Relative odds of an empty cell against the 8 weighted glyph slots. */
+  blankWeight?: number;
 }
 
 export const BackgroundGlyphs = ({
@@ -142,6 +158,7 @@ export const BackgroundGlyphs = ({
   className = "",
   minInterval = 1000,
   maxInterval = 5000,
+  blankWeight = 5,
 }: BackgroundGlyphsProps) => {
   const borderSize = cellSize * 2;
 
@@ -164,6 +181,7 @@ export const BackgroundGlyphs = ({
             strokeWidth={strokeWidth}
             minInterval={minInterval}
             maxInterval={maxInterval}
+            blankWeight={blankWeight}
           />,
           <GridCell
             key={`right-${column}-${row}`}
@@ -174,13 +192,24 @@ export const BackgroundGlyphs = ({
             strokeWidth={strokeWidth}
             minInterval={minInterval}
             maxInterval={maxInterval}
+            blankWeight={blankWeight}
           />,
         );
       }
     }
 
     return list;
-  }, [width, height, cellSize, strokeWidth, colors, borderSize, minInterval, maxInterval]);
+  }, [
+    width,
+    height,
+    cellSize,
+    strokeWidth,
+    colors,
+    borderSize,
+    minInterval,
+    maxInterval,
+    blankWeight,
+  ]);
 
   return (
     <svg width={width} height={height} viewBox={`0 0 ${width} ${height}`} className={className}>

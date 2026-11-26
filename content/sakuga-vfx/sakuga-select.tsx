@@ -5,7 +5,7 @@ import { cn } from "cn";
 import { createContext, use, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import type { RefObject } from "react";
 
-import { Spring, at, clamp, later, puff, sfx, ticks } from "./sakuga-core";
+import { P, Spring, at, clamp, later, puff, sfx, ticks } from "./sakuga-core";
 import type { Squashy } from "./sakuga-core";
 import {
   FONT_BODY,
@@ -115,8 +115,8 @@ const openEffects = (rig: Rig) => {
   puff(left - 9, end - far * 16, { life: 0.8, n: 4, size: 8, vx: -14, vy: -6 });
   puff(right + 13, end - far * 30, { life: 0.7, n: 3, size: 7, vx: 14, vy: -10 });
   sfx("shu", q.x + q.w / 2 + (above ? -34 : 4), q.y - far * (q.h / 2 + (above ? 30 : 36)), {
-    col: "#5a4fd8",
-    edge: "#ffffff",
+    col: P.line,
+    edge: P.fill,
     life: 0.75,
     rot: -0.16,
     size: 88,
@@ -549,7 +549,7 @@ const SakugaSelectContent = ({
         <SelectPrimitive.Popup
           data-slot="sakuga-select-content"
           className={cn(
-            "w-max max-w-[min(300px,calc(100vw-32px))] min-w-(--anchor-width) origin-[50%_-16px] rounded-[13px] border-[length:var(--sk-bw)] border-(--sk-ink) bg-(--sk-card) p-[5px] text-[15px] leading-[1.4] font-medium text-(--sk-ink) shadow-(--sk-sh) outline-none [transform:scale(0)] will-change-transform data-closed:pointer-events-none data-[side=top]:origin-[50%_calc(100%+16px)]",
+            "w-max max-w-[min(300px,calc(100vw-32px))] min-w-(--anchor-width) origin-[50%_-16px] rounded-[max(0px,calc(var(--sk-r)-2px))] border-[length:var(--sk-bw)] border-(--sk-ink) bg-(--sk-card) p-[5px] text-[15px] leading-[1.4] font-medium text-(--sk-ink) shadow-(--sk-sh) outline-none [transform:scale(0)] will-change-transform data-closed:pointer-events-none data-[side=top]:origin-[50%_calc(100%+16px)]",
             FONT_BODY,
             className,
           )}
@@ -566,7 +566,7 @@ const SakugaSelectContent = ({
                 rigRef.current.raised = node;
               }}
               aria-hidden
-              className="absolute top-0 right-0 left-0 rounded-[9px] border-[2.4px] border-(--sk-ink) bg-(--sk-soft) will-change-transform"
+              className="absolute top-0 right-0 left-0 rounded-[max(0px,calc(var(--sk-r)-6px))] border-[2.4px] border-(--sk-ink) bg-(--sk-soft) will-change-transform"
             />
             {children}
           </SelectPrimitive.List>
@@ -601,7 +601,7 @@ const SakugaSelectItem = ({
     <SelectPrimitive.Item
       data-slot="sakuga-select-item"
       className={cn(
-        "group/sk-row relative flex cursor-pointer items-center justify-between gap-[14px] rounded-[9px] px-[12px] py-[9px] text-[15px] leading-[1.2] font-semibold whitespace-nowrap outline-none select-none [paint-order:stroke_fill] [-webkit-text-stroke:3px_var(--sk-card)] data-disabled:cursor-not-allowed data-disabled:opacity-45 data-on:[-webkit-text-stroke-color:var(--sk-soft)] data-[selected]:font-extrabold data-inv:bg-(--sk-ink) data-inv:text-(--sk-card) data-inv:[-webkit-text-stroke-color:var(--sk-ink)]!",
+        "group/sk-row relative flex cursor-pointer items-center justify-between gap-[14px] rounded-[max(0px,calc(var(--sk-r)-6px))] px-[12px] py-[9px] text-[15px] leading-[1.2] font-semibold whitespace-nowrap outline-none select-none [paint-order:stroke_fill] [-webkit-text-stroke:3px_var(--sk-card)] data-disabled:cursor-not-allowed data-disabled:opacity-45 data-on:[-webkit-text-stroke-color:var(--sk-soft)] data-[selected]:font-extrabold data-inv:bg-(--sk-ink) data-inv:text-(--sk-card) data-inv:[-webkit-text-stroke-color:var(--sk-ink)]!",
         className,
       )}
       {...props}

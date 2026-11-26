@@ -8,6 +8,7 @@ import {
   DropdownMenuTrigger,
 } from "./components/ui";
 
+import { useMemo } from "react";
 import { MoreVerticalIcon, Plus, Sparkles, TrashIcon } from "lucide-react";
 
 import type { SpreadsheetProps } from "./components/spreadsheet";
@@ -45,7 +46,38 @@ const generateSamplePeople = (count: number) =>
     role: "",
   })) satisfies Person[];
 
-const initialData = generateSamplePeople(30);
+export const controls = {
+  rows: { default: 30, label: "Rows", max: 200, min: 1, step: 1, type: "number" },
+  enrichDelay: {
+    default: 900,
+    label: "Enrich delay (ms)",
+    max: 3000,
+    min: 100,
+    step: 50,
+    type: "number",
+  },
+  placeholder: { default: "Generating...", label: "Placeholder", type: "text" },
+  enrichLabel: { default: "Enrich", label: "Enrich label", type: "text" },
+  selectionColor: { default: "#3b82f6", label: "Selection", type: "color" },
+  accentColor: { default: "#f66b2c", label: "Resize guide", type: "color" },
+  rowNumbers: { default: true, label: "Row numbers", type: "boolean" },
+  rowActions: { default: true, label: "Row actions", type: "boolean" },
+  statusBar: { default: true, label: "Status bar", type: "boolean" },
+} as const;
+
+interface PreviewProps {
+  accentColor: string;
+  enrichDelay: number;
+  enrichLabel: string;
+  placeholder: string;
+  rowActions: boolean;
+  rowNumbers: boolean;
+  rows: number;
+  selectionColor: string;
+  statusBar: boolean;
+}
+
+const ENRICH_JITTER_MS = 500;
 
 const initialColumnWidths = {
   company: 150,
@@ -82,8 +114,16 @@ const RowActions = ({ row }: { row: SpreadsheetRow }) => {
   );
 };
 
-const ToolbarButtons = () => {
-  const { handleEnrich } = useAiEnrichment();
+const ToolbarButtons = ({
+  delayMs,
+  enrichLabel,
+  placeholder,
+}: {
+  delayMs: readonly [number, number];
+  enrichLabel: string;
+  placeholder: string;
+}) => {
+  const { handleEnrich } = useAiEnrichment({ delayMs, placeholder });
   const addRow = useSpreadsheetStore((state) => state.addRow);
 
   return (
@@ -106,7 +146,7 @@ const ToolbarButtons = () => {
       </ToolbarButton>
       <ToolbarButton onClick={handleEnrich}>
         <Sparkles className="size-4" />
-        Enrich
+        {enrichLabel}
       </ToolbarButton>
     </>
   );
@@ -121,25 +161,52 @@ const columns: SpreadsheetProps["columns"] = [
   { accessorKey: "role", cell: EditableCell, header: "Role" },
 ];
 
-const Preview = () => (
-  <SpreadsheetProvider initialData={initialData} initialColumnWidths={initialColumnWidths}>
-    <Toolbar>
-      <ToolbarButtons />
-    </Toolbar>
-    <Spreadsheet
-      columns={columns}
-      showRowNumbers
-      renderRowActions={(row) => <RowActions row={row} />}
-    />
-    <StatusBar>
-      <StatusBarSection>
-        <StatusBarMessage />
-      </StatusBarSection>
-      <StatusBarSection className="justify-end">
-        <StatusBarSummary />
-      </StatusBarSection>
-    </StatusBar>
-  </SpreadsheetProvider>
-);
+const Preview = ({
+  accentColor = controls.accentColor.default,
+  enrichDelay = controls.enrichDelay.default,
+  enrichLabel = controls.enrichLabel.default,
+  placeholder = controls.placeholder.default,
+  rowActions = controls.rowActions.default,
+  rowNumbers = controls.rowNumbers.default,
+  rows = controls.rows.default,
+  selectionColor = controls.selectionColor.default,
+  statusBar = controls.statusBar.default,
+}: Partial<PreviewProps>) => {
+  const initialData = useMemo(() => generateSamplePeople(rows), [rows]);
+
+  const delayMs = [
+    Math.max(0, enrichDelay - ENRICH_JITTER_MS),
+    enrichDelay + ENRICH_JITTER_MS,
+  ] as const;
+
+  return (
+    <SpreadsheetProvider
+      key={rows}
+      initialData={initialData}
+      initialColumnWidths={initialColumnWidths}
+      accentColor={accentColor}
+      selectionColor={selectionColor}
+    >
+      <Toolbar>
+        <ToolbarButtons delayMs={delayMs} enrichLabel={enrichLabel} placeholder={placeholder} />
+      </Toolbar>
+      <Spreadsheet
+        columns={columns}
+        showRowNumbers={rowNumbers}
+        renderRowActions={rowActions ? (row) => <RowActions row={row} /> : undefined}
+      />
+      {statusBar && (
+        <StatusBar>
+          <StatusBarSection>
+            <StatusBarMessage />
+          </StatusBarSection>
+          <StatusBarSection className="justify-end">
+            <StatusBarSummary />
+          </StatusBarSection>
+        </StatusBar>
+      )}
+    </SpreadsheetProvider>
+  );
+};
 
 export default Preview;

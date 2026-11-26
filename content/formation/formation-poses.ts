@@ -32,13 +32,6 @@ export interface FmLayout {
   flatCY: number;
 }
 
-export const MODES: { id: FormationMode; label: string }[] = [
-  { id: "flat", label: "Flat" },
-  { id: "tilt", label: "Tilt" },
-  { id: "ring", label: "Ring" },
-  { id: "gallery", label: "Gallery" },
-];
-
 export const SPRING = 0.12;
 export const HOVER_EASE = 0.055;
 export const HOVER_ZOOM = 0.26;
@@ -167,13 +160,13 @@ const buildFlatRing = (
   return { Rx, Ry, flatAngles, flatCY };
 };
 
-export const getLayout = (W: number, H: number, n: number) => {
+export const getLayout = (W: number, H: number, n: number, cardScale = 1) => {
   const mobile = Math.min(W, H) < 640;
   const portrait = H > W;
 
-  const cardW = mobile
-    ? clamp(Math.min(W, H) * 0.27, 80, 118)
-    : clamp(Math.min(W, H) * 0.155, 128, 196);
+  const cardW =
+    (mobile ? clamp(Math.min(W, H) * 0.27, 80, 118) : clamp(Math.min(W, H) * 0.155, 128, 196)) *
+    cardScale;
 
   const cardH = Math.round(cardW * 1.34);
   const flatScale = mobile ? 0.42 : 0.62;

@@ -1,18 +1,13 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import type { FC } from "react";
 import { AnimatePresence, MotionConfig, motion, useReducedMotion } from "motion/react";
 import type { Transition } from "motion/react";
 
 const noop = () => null;
 
-const LOOP_SECONDS = 48;
 const TRACK_WIDTH = 572;
-const PREVIEW_WIDTH = 176;
-const PREVIEW_HEIGHT = 99;
-const STRIP = Array.from({ length: 12 }, (_, i) => (i + 0.5) / 12);
-const SPRING: Transition = { damping: 32, stiffness: 420, type: "spring" };
 const INSTANT: Transition = { duration: 0 };
 
 const clamp01 = (value: number) => Math.min(1, Math.max(0, value));
@@ -140,11 +135,110 @@ const Frame: FC<{ t: number }> = ({ t }) => {
   );
 };
 
-export const SeekFilmstrip = () => {
-  const [playedT, setPlayedT] = useState(0.3);
+interface TrackProps {
+  accent: string;
+  frameCount: number;
+  headT: number;
+  playedT: number;
+  scrubbing: boolean;
+  spring: Transition;
+}
+
+const Track: FC<TrackProps> = ({ accent, frameCount, headT, playedT, scrubbing, spring }) => {
+  const strip = useMemo(
+    () => Array.from({ length: frameCount }, (_, i) => (i + 0.5) / frameCount),
+    [frameCount],
+  );
+
+  return (
+    <>
+      <motion.div
+        animate={{ height: scrubbing ? 40 : 5 }}
+        initial={false}
+        transition={spring}
+        className="relative flex w-full gap-[2px] overflow-hidden rounded-md bg-white/12"
+      >
+        {strip.map((t) => (
+          <motion.div
+            key={t}
+            animate={{ opacity: scrubbing ? 1 : 0 }}
+            initial={false}
+            className="h-full flex-1"
+          >
+            <Frame t={t} />
+          </motion.div>
+        ))}
+        <div
+          className="absolute inset-y-0 left-0"
+          style={{
+            backgroundColor: `color-mix(in srgb, ${accent} 85%, transparent)`,
+            opacity: scrubbing ? 0 : 1,
+            width: `${String(playedT * 100)}%`,
+          }}
+        />
+        <div
+          className="absolute inset-y-0 right-0 bg-black/45"
+          style={{
+            opacity: scrubbing ? 1 : 0,
+            width: `${String((1 - headT) * 100)}%`,
+          }}
+        />
+      </motion.div>
+      <motion.div
+        animate={{ height: scrubbing ? 52 : 13, width: scrubbing ? 3 : 13 }}
+        initial={false}
+        transition={spring}
+        className="pointer-events-none absolute top-1/2 -translate-x-1/2 -translate-y-1/2 rounded-full shadow-md shadow-black/60"
+        style={{ backgroundColor: accent, left: `${String(headT * 100)}%` }}
+      />
+    </>
+  );
+};
+
+export interface SeekFilmstripProps {
+  /** Caption over the video. */
+  title?: string;
+  /** Seconds one full day takes to play back. */
+  loopSeconds?: number;
+  /** Preview frames in the raised filmstrip. */
+  frameCount?: number;
+  /** Width in px of the hover preview; height follows at 16:9. */
+  previewWidth?: number;
+  /** Initial playhead position, 0–1 of the day. Read on mount. */
+  startTime?: number;
+  /** Start playing on mount (still respects reduced motion). */
+  autoplay?: boolean;
+  /** Black overlay opacity on the video while scrubbing. */
+  scrubDim?: number;
+  /** Playhead, progress fill and preview ring color. */
+  accent?: string;
+  /** Player chrome background. */
+  panelColor?: string;
+  /** Spring stiffness for the track and playhead morph. */
+  stiffness?: number;
+  /** Spring damping for the track and playhead morph. */
+  damping?: number;
+}
+
+export const SeekFilmstrip = ({
+  title = "One Day — timelapse",
+  loopSeconds = 48,
+  frameCount = 12,
+  previewWidth = 176,
+  startTime = 0.3,
+  autoplay = true,
+  scrubDim = 0.3,
+  accent = "#ffffff",
+  panelColor = "#0a1122",
+  stiffness = 420,
+  damping = 32,
+}: SeekFilmstripProps) => {
+  const [playedT, setPlayedT] = useState(() => clamp01(startTime));
   const [playChoice, setPlayChoice] = useState<boolean | null>(null);
   const reduced = useReducedMotion() ?? false;
-  const playing = playChoice ?? !reduced;
+  const playing = playChoice ?? (autoplay && !reduced);
+  const previewHeight = Math.round((previewWidth * 9) / 16);
+
   const [scrubT, setScrubT] = useState<number | null>(null);
   const scrubbing = scrubT !== null;
   const trackRef = useRef<HTMLDivElement | null>(null);
@@ -161,7 +255,7 @@ export const SeekFilmstrip = () => {
     const tick = (now: number) => {
       const dt = (now - last) / 1000;
       last = now;
-      setPlayedT((current) => (current + dt / LOOP_SECONDS) % 1);
+      setPlayedT((current) => (current + dt / loopSeconds) % 1);
       raf = requestAnimationFrame(tick);
     };
 
@@ -170,7 +264,7 @@ export const SeekFilmstrip = () => {
     return () => {
       cancelAnimationFrame(raf);
     };
-  }, [playing, scrubbing]);
+  }, [loopSeconds, playing, scrubbing]);
 
   const tFromPointer = (clientX: number) => {
     const rect = trackRef.current?.getBoundingClientRect();
@@ -194,24 +288,27 @@ export const SeekFilmstrip = () => {
   const headT = scrubT ?? playedT;
 
   const previewLeft = Math.min(
-    TRACK_WIDTH - PREVIEW_WIDTH,
-    Math.max(0, headT * TRACK_WIDTH - PREVIEW_WIDTH / 2),
+    TRACK_WIDTH - previewWidth,
+    Math.max(0, headT * TRACK_WIDTH - previewWidth / 2),
   );
 
-  const spring = reduced ? INSTANT : SPRING;
+  const spring: Transition = reduced ? INSTANT : { damping, stiffness, type: "spring" };
 
   return (
     <MotionConfig reducedMotion="user">
-      <div className="w-[620px] overflow-hidden rounded-3xl bg-[#0a1122] shadow-2xl shadow-black/60 ring-1 ring-white/10 select-none">
+      <div
+        className="w-[620px] overflow-hidden rounded-3xl shadow-2xl shadow-black/60 ring-1 ring-white/10 select-none"
+        style={{ backgroundColor: panelColor }}
+      >
         <div className="relative h-[300px]">
           <Frame t={playedT} />
           <motion.div
             aria-hidden
-            animate={{ opacity: scrubbing ? 0.3 : 0 }}
+            animate={{ opacity: scrubbing ? scrubDim : 0 }}
             className="pointer-events-none absolute inset-0 bg-black"
           />
           <div className="absolute top-4 left-5 text-[12px] font-medium text-white/85 drop-shadow">
-            One Day — timelapse
+            {title}
           </div>
         </div>
 
@@ -224,8 +321,13 @@ export const SeekFilmstrip = () => {
                   animate={{ opacity: 1, scale: 1, y: 0 }}
                   exit={{ opacity: 0, scale: 0.94, y: 6 }}
                   transition={spring}
-                  className="pointer-events-none absolute bottom-[calc(100%+10px)] z-10 origin-bottom overflow-hidden rounded-lg shadow-2xl ring-2 shadow-black/70 ring-white"
-                  style={{ height: PREVIEW_HEIGHT, left: previewLeft, width: PREVIEW_WIDTH }}
+                  className="pointer-events-none absolute bottom-[calc(100%+10px)] z-10 origin-bottom overflow-hidden rounded-lg shadow-2xl shadow-black/70"
+                  style={{
+                    height: previewHeight,
+                    left: previewLeft,
+                    outline: `2px solid ${accent}`,
+                    width: previewWidth,
+                  }}
                 >
                   <Frame t={scrubT} />
                   <span className="absolute bottom-1.5 left-1/2 -translate-x-1/2 rounded bg-black/60 px-1.5 py-px text-[11px] font-medium text-white tabular-nums">
@@ -256,40 +358,13 @@ export const SeekFilmstrip = () => {
                 endScrub(null);
               }}
             >
-              <motion.div
-                animate={{ height: scrubbing ? 40 : 5 }}
-                initial={false}
-                transition={spring}
-                className="relative flex w-full gap-[2px] overflow-hidden rounded-md bg-white/12"
-              >
-                {STRIP.map((t) => (
-                  <motion.div
-                    key={t}
-                    animate={{ opacity: scrubbing ? 1 : 0 }}
-                    initial={false}
-                    className="h-full flex-1"
-                  >
-                    <Frame t={t} />
-                  </motion.div>
-                ))}
-                <div
-                  className="absolute inset-y-0 left-0 bg-white/85"
-                  style={{ opacity: scrubbing ? 0 : 1, width: `${String(playedT * 100)}%` }}
-                />
-                <div
-                  className="absolute inset-y-0 right-0 bg-black/45"
-                  style={{
-                    opacity: scrubbing ? 1 : 0,
-                    width: `${String((1 - headT) * 100)}%`,
-                  }}
-                />
-              </motion.div>
-              <motion.div
-                animate={{ height: scrubbing ? 52 : 13, width: scrubbing ? 3 : 13 }}
-                initial={false}
-                transition={spring}
-                className="pointer-events-none absolute top-1/2 -translate-x-1/2 -translate-y-1/2 rounded-full bg-white shadow-md shadow-black/60"
-                style={{ left: `${String(headT * 100)}%` }}
+              <Track
+                accent={accent}
+                frameCount={frameCount}
+                headT={headT}
+                playedT={playedT}
+                scrubbing={scrubbing}
+                spring={spring}
               />
             </div>
           </div>

@@ -1,8 +1,6 @@
 import { useMemo, useRef } from "react";
 import { animate, motion, useMotionValue } from "motion/react";
 
-const PIXELS_PER_DEGREE = 5;
-
 const nearestTickAngle = (rotation: number, snapAngle: number) => {
   const normalized = ((rotation % 360) + 360) % 360;
 
@@ -12,9 +10,25 @@ const nearestTickAngle = (rotation: number, snapAngle: number) => {
 interface RadialSliderProps {
   onChange: (value: number) => void;
   maxValue?: number;
+  /** Degrees the ring turns per pixel dragged. */
+  dragSensitivity?: number;
+  tickColor?: string;
+  gradientFrom?: string;
+  gradientTo?: string;
+  snapStiffness?: number;
+  snapDamping?: number;
 }
 
-export const RadialSlider = ({ onChange, maxValue = 100 }: RadialSliderProps) => {
+export const RadialSlider = ({
+  onChange,
+  maxValue = 100,
+  dragSensitivity = 0.2,
+  tickColor = "#e5e7eb",
+  gradientFrom = "#2b7fff",
+  gradientTo = "#f0b100",
+  snapStiffness = 300,
+  snapDamping = 30,
+}: RadialSliderProps) => {
   const rotate = useMotionValue(0);
   const accumulatedRotation = useRef(0);
 
@@ -28,10 +42,10 @@ export const RadialSlider = ({ onChange, maxValue = 100 }: RadialSliderProps) =>
             transform: `rotate(${angle}deg)`,
           }}
         >
-          <div className="absolute h-8 w-0.5 bg-gray-200" />
+          <div className="absolute h-8 w-0.5" style={{ backgroundColor: tickColor }} />
         </div>
       )),
-    [maxValue],
+    [maxValue, tickColor],
   );
 
   return (
@@ -41,7 +55,7 @@ export const RadialSlider = ({ onChange, maxValue = 100 }: RadialSliderProps) =>
         dragConstraints={{ left: 0, right: 0 }}
         dragElastic={0}
         onDrag={(_event, info) => {
-          rotate.set(accumulatedRotation.current + info.offset.x / PIXELS_PER_DEGREE);
+          rotate.set(accumulatedRotation.current + info.offset.x * dragSensitivity);
 
           const snapAngle = 360 / maxValue;
           const nearestMultiple = nearestTickAngle(rotate.get(), snapAngle);
@@ -61,8 +75,8 @@ export const RadialSlider = ({ onChange, maxValue = 100 }: RadialSliderProps) =>
           accumulatedRotation.current = finalRotation;
 
           animate(rotate, finalRotation, {
-            damping: 30,
-            stiffness: 300,
+            damping: snapDamping,
+            stiffness: snapStiffness,
             type: "spring",
           });
         }}
@@ -71,7 +85,10 @@ export const RadialSlider = ({ onChange, maxValue = 100 }: RadialSliderProps) =>
       >
         {ticks}
       </motion.div>
-      <div className="pointer-events-none absolute right-0 bottom-0 left-0 z-10 h-[calc(50%+1rem)] bg-gradient-to-r from-blue-500 to-yellow-500 mix-blend-multiply" />
+      <div
+        className="pointer-events-none absolute right-0 bottom-0 left-0 z-10 h-[calc(50%+1rem)] mix-blend-multiply"
+        style={{ backgroundImage: `linear-gradient(to right, ${gradientFrom}, ${gradientTo})` }}
+      />
     </>
   );
 };

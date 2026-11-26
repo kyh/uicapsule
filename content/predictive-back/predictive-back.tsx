@@ -1,7 +1,7 @@
 "use client";
 
 import { useRef, useState } from "react";
-import type { PointerEvent } from "react";
+import type { CSSProperties, PointerEvent } from "react";
 import { ArrowLeft, ChevronLeft, ChevronRight } from "lucide-react";
 import {
   animate,
@@ -12,10 +12,9 @@ import {
   useTransform,
 } from "motion/react";
 import { PhoneFrame, SCREEN_HEIGHT, SCREEN_WIDTH } from "./phone-frame";
+import type { ClayTone } from "./phone-frame";
 
-const EDGE = 28;
 const PEEK = 220;
-const COMMIT = 110;
 const EXIT = SCREEN_WIDTH + 48;
 const ARROW_SIZE = 40;
 
@@ -46,7 +45,45 @@ const STORIES = [
 
 const TARGET = 2;
 
-export const PredictiveBack = () => {
+type AccentStyle = CSSProperties & Record<`--${string}`, string>;
+
+export interface PredictiveBackProps {
+  /** Highlight color: the hero art, the eyebrow and the story you open. */
+  accent?: string;
+  /** Show the floating back arrow that follows the finger. */
+  arrow?: boolean;
+  /** Spring-back bounce when a peek is cancelled. */
+  bounce?: number;
+  /** Drag distance in screen px (velocity-projected) that commits the back. */
+  commitAt?: number;
+  /** How dark the previous screen starts behind the peek, 0 to 1. */
+  dim?: number;
+  /** Width in screen px of the left-edge zone that starts the gesture. */
+  edgeWidth?: number;
+  /** Helper text at the bottom of the detail screen. */
+  hint?: string;
+  /** Scale the detail screen shrinks to over the peek. */
+  peekScale?: number;
+  /** Settle spring duration in seconds. */
+  settleDuration?: number;
+  /** Headline of the detail screen. */
+  title?: string;
+  tone?: ClayTone;
+}
+
+export const PredictiveBack = ({
+  accent = "#e0673a",
+  arrow: showArrow = true,
+  bounce = 0.15,
+  commitAt = 110,
+  dim = 0.6,
+  edgeWidth = 28,
+  hint = "Drag from the left edge",
+  peekScale = 0.86,
+  settleDuration = 0.36,
+  title = "Edge peeks: predictive back and the end of mystery navigation",
+  tone = "terracotta",
+}: PredictiveBackProps) => {
   const [screen, setScreen] = useState<"detail" | "home">("detail");
   const reduced = useReducedMotion() ?? false;
   const grabRef = useRef<Grab | null>(null);
@@ -56,23 +93,23 @@ export const PredictiveBack = () => {
   const arrow = useMotionValue(0);
   const arrowY = useMotionValue(SCREEN_HEIGHT / 2);
 
-  const detailScale = useTransform(offset, [0, PEEK], [1, 0.86]);
+  const detailScale = useTransform(offset, [0, PEEK], [1, peekScale]);
   const homeScale = useTransform(offset, [0, EXIT], [0.92, 1]);
   const homeX = useTransform(offset, [0, EXIT], [-20, 0]);
-  const homeDim = useTransform(offset, [0, EXIT], [0.6, 0]);
+  const homeDim = useTransform(offset, [0, EXIT], [dim, 0]);
 
   const arrowX = useTransform(arrow, [0, PEEK], [-ARROW_SIZE, 18]);
   const arrowOpacity = useTransform(arrow, [0, 24], [0, 1]);
-  const armed = useTransform(arrow, [0, COMMIT - 1, COMMIT], [0.55, 0.9, 1.12]);
+  const armed = useTransform(arrow, [0, commitAt - 1, commitAt], [0.55, 0.9, 1.12]);
   const arrowScale = useSpring(armed, { damping: 18, stiffness: 520 });
 
   const arrowFill = useTransform(
     arrow,
-    [COMMIT - 1, COMMIT],
+    [commitAt - 1, commitAt],
     ["rgba(255,255,255,0.16)", "rgba(255,255,255,1)"],
   );
 
-  const arrowInk = useTransform(arrow, [COMMIT - 1, COMMIT], ["#ffffff", "#0b0c10"]);
+  const arrowInk = useTransform(arrow, [commitAt - 1, commitAt], ["#ffffff", "#0b0c10"]);
   const arrowTop = useTransform(arrowY, (y) => y - ARROW_SIZE / 2);
 
   const settle = (target: number, velocity: number) => {
@@ -90,13 +127,13 @@ export const PredictiveBack = () => {
       return;
     }
 
-    void animate(lift, 0, { bounce: 0, type: "spring", visualDuration: 0.3 });
+    void animate(lift, 0, { bounce: 0, type: "spring", visualDuration: settleDuration * 0.83 });
     void animate(offset, target, {
-      bounce: target === 0 ? 0.15 : 0,
+      bounce: target === 0 ? bounce : 0,
       onComplete: done,
       type: "spring",
       velocity,
-      visualDuration: 0.36,
+      visualDuration: settleDuration,
     });
   };
 
@@ -106,7 +143,7 @@ export const PredictiveBack = () => {
     const localX = (event.clientX - rect.left) / unit;
     const onButton = event.target instanceof Element && event.target.closest("button") !== null;
     const inFlight = offset.isAnimating();
-    const fromEdge = screen === "detail" && localX < EDGE && !onButton;
+    const fromEdge = screen === "detail" && localX < edgeWidth && !onButton;
 
     if (!inFlight && !fromEdge) {
       return;
@@ -152,7 +189,7 @@ export const PredictiveBack = () => {
 
     grabRef.current = null;
     const velocity = offset.getVelocity();
-    const commit = offset.get() + project(velocity) > COMMIT;
+    const commit = offset.get() + project(velocity) > commitAt;
 
     if (reduced) {
       arrow.jump(0);
@@ -163,14 +200,24 @@ export const PredictiveBack = () => {
     settle(commit ? EXIT : 0, velocity);
   };
 
+  const palette: AccentStyle = {
+    "--accent": accent,
+    "--accent-card": `color-mix(in srgb, ${accent} 19%, #140e0c)`,
+    "--accent-card-hover": `color-mix(in srgb, ${accent} 24%, #140e0c)`,
+    "--accent-deep": `color-mix(in srgb, ${accent} 21%, #1a1310)`,
+    "--accent-glow": `color-mix(in oklab, ${accent} 40%, oklab(0.958 -0.005 0.108))`,
+    "--accent-ring": `color-mix(in srgb, ${accent} 40%, transparent)`,
+  };
+
   const openDetail = () => {
     setScreen("detail");
     settle(0, offset.getVelocity());
   };
 
   return (
-    <PhoneFrame className="bg-black" tone="terracotta">
+    <PhoneFrame className="bg-black" tone={tone}>
       <div
+        style={palette}
         className="absolute inset-0 touch-none"
         onPointerDown={onPointerDown}
         onPointerMove={onPointerMove}
@@ -197,7 +244,7 @@ export const PredictiveBack = () => {
                 onClick={index === TARGET ? openDetail : undefined}
                 className={`flex w-full items-center gap-3.5 rounded-[20px] p-2.5 text-left ring-1 transition-colors ${
                   index === TARGET
-                    ? "bg-[#3a1f16] ring-[#e0673a]/40 hover:bg-[#43241a]"
+                    ? "bg-(--accent-card) ring-(--accent-ring) hover:bg-(--accent-card-hover)"
                     : "bg-white/[0.04] ring-white/[0.05]"
                 }`}
               >
@@ -205,7 +252,7 @@ export const PredictiveBack = () => {
                   aria-hidden="true"
                   className="size-[52px] shrink-0 rounded-[14px]"
                   style={{
-                    background: `radial-gradient(circle at 30% 30%, ${story.hue} 0%, #1a1311 85%)`,
+                    background: `radial-gradient(circle at 30% 30%, ${index === TARGET ? accent : story.hue} 0%, #1a1311 85%)`,
                   }}
                 />
                 <span className="min-w-0 flex-1">
@@ -235,7 +282,7 @@ export const PredictiveBack = () => {
           style={{ scale: detailScale, x: offset, y: lift }}
           className="absolute inset-0 overflow-hidden rounded-[50px] bg-[#1a1310] shadow-[0_24px_60px_rgb(0_0_0/0.7)]"
         >
-          <div className="relative h-[292px] overflow-hidden bg-[radial-gradient(circle_at_28%_38%,#fdba74_0%,#e0673a_28%,#44211a_70%)]">
+          <div className="relative h-[292px] overflow-hidden bg-[radial-gradient(circle_at_28%_38%,var(--accent-glow)_0%,var(--accent)_28%,var(--accent-deep)_70%)]">
             <div className="absolute -right-10 bottom-[-60px] size-[220px] rounded-full bg-[#2a120c]/50 blur-[2px]" />
             <div className="absolute top-[120px] left-[150px] size-[64px] rounded-full bg-white/15 ring-1 ring-white/25" />
             <div className="absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-[#1a1310] to-transparent" />
@@ -252,11 +299,11 @@ export const PredictiveBack = () => {
             </button>
           </div>
           <div className="relative -mt-6 px-6">
-            <p className="text-[11px] font-semibold tracking-[0.16em] text-orange-300 uppercase">
+            <p className="text-[11px] font-semibold tracking-[0.16em] text-(--accent-glow) uppercase">
               Navigation
             </p>
             <p className="mt-2 text-[24px] leading-[1.15] font-bold tracking-tight text-white">
-              Edge peeks: predictive back and the end of mystery navigation
+              {title}
             </p>
             <div className="mt-4 flex items-center gap-2.5">
               <span className="size-7 rounded-full bg-[linear-gradient(135deg,#f472b6,#6366f1)]" />
@@ -272,7 +319,7 @@ export const PredictiveBack = () => {
             </p>
           </div>
           <div className="absolute inset-x-0 bottom-0 flex h-28 items-end justify-center bg-gradient-to-t from-[#1a1310] via-[#1a1310]/90 to-transparent pb-9">
-            <p className="text-[11px] text-white/30">Drag from the left edge</p>
+            <p className="text-[11px] text-white/30">{hint}</p>
           </div>
           <span
             aria-hidden="true"
@@ -280,22 +327,24 @@ export const PredictiveBack = () => {
           />
         </motion.article>
 
-        <motion.div
-          aria-hidden="true"
-          style={{
-            backgroundColor: arrowFill,
-            color: arrowInk,
-            height: ARROW_SIZE,
-            opacity: arrowOpacity,
-            scale: arrowScale,
-            width: ARROW_SIZE,
-            x: arrowX,
-            y: arrowTop,
-          }}
-          className="pointer-events-none absolute top-0 left-0 z-40 grid place-items-center rounded-full shadow-lg shadow-black/40 backdrop-blur-md"
-        >
-          <ArrowLeft className="size-[18px]" />
-        </motion.div>
+        {showArrow && (
+          <motion.div
+            aria-hidden="true"
+            style={{
+              backgroundColor: arrowFill,
+              color: arrowInk,
+              height: ARROW_SIZE,
+              opacity: arrowOpacity,
+              scale: arrowScale,
+              width: ARROW_SIZE,
+              x: arrowX,
+              y: arrowTop,
+            }}
+            className="pointer-events-none absolute top-0 left-0 z-40 grid place-items-center rounded-full shadow-lg shadow-black/40 backdrop-blur-md"
+          >
+            <ArrowLeft className="size-[18px]" />
+          </motion.div>
+        )}
       </div>
     </PhoneFrame>
   );

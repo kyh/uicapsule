@@ -33,6 +33,8 @@ export interface GeometricOrbConfig {
   squiggleFrequency?: number;
   /** Animation speed of the squiggle oscillation. @default 2 */
   squiggleSpeed?: number;
+  /** How far lines on the far side fade toward the background, from 0 (flat) to 1 (invisible). @default 0.85 */
+  depthFade?: number;
   /** Number of points around the full circle. Higher = smoother curves + finer depth-fade. @default 96 */
   pointsPerLine?: number;
   /** Whether scroll-to-zoom is enabled. @default true */
@@ -48,6 +50,7 @@ export interface GeometricOrbConfig {
 const defaults: Required<GeometricOrbConfig> = {
   background: "#0a0a0a",
   color: "#eeeeee",
+  depthFade: 0.85,
   enablePan: false,
   enableZoom: true,
   lineWidth: 2,
@@ -97,9 +100,17 @@ const LatitudeLines = ({ config }: { config: Required<GeometricOrbConfig> }) => 
     [config.numLines, config.lineWidth],
   );
 
+  const vertexCount = config.pointsPerLine + 1;
+
   const geometries = useMemo(
-    () => Array.from({ length: config.numLines }, () => new LineGeometry()),
-    [config.numLines],
+    () =>
+      Array.from({ length: config.numLines }, () => {
+        const geometry = new LineGeometry();
+        geometry.setPositions(new Float32Array(vertexCount * 3));
+
+        return geometry;
+      }),
+    [config.numLines, vertexCount],
   );
 
   useEffect(
@@ -124,8 +135,6 @@ const LatitudeLines = ({ config }: { config: Required<GeometricOrbConfig> }) => 
       mat.resolution.set(size.width, size.height);
     }
   }, [materials, size.width, size.height]);
-
-  const vertexCount = config.pointsPerLine + 1;
 
   const buffersRef = useRef<{
     vertexCount: number;
@@ -195,7 +204,7 @@ const LatitudeLines = ({ config }: { config: Required<GeometricOrbConfig> }) => 
         const worldZ = -x * sinR + z * cosR;
         const dot = worldX * camDir.x + y * camDir.y + worldZ * camDir.z;
         const depthFactor = (dot / config.radius + 1) / 2;
-        const opacity = depthFactor * 0.85 + 0.15;
+        const opacity = 1 - (1 - depthFactor) * config.depthFade;
 
         colorBuffer[offset] = THREE.MathUtils.lerp(backgroundColor.r, baseColor.r, opacity);
         colorBuffer[offset + 1] = THREE.MathUtils.lerp(backgroundColor.g, baseColor.g, opacity);

@@ -1,4 +1,4 @@
-import { useCallback } from "react";
+import { useCallback, useMemo } from "react";
 import { useChat } from "@ai-sdk/react";
 import { StaticChatTransport } from "@loremllm/transport";
 
@@ -15,33 +15,46 @@ type FilterUIMessage = UIMessage<
   }
 >;
 
-const transport = new StaticChatTransport<FilterUIMessage>({
-  chunkDelayMs: [600, 1400],
-  async *mockResponse() {
-    yield {
-      data: {
-        columnId: "skills",
-        values: ["javascript", "typescript", "react", "nodejs"],
-      },
-      type: "data-setFilter",
-    };
+const createTransport = (chunkDelayMs: [number, number]) =>
+  new StaticChatTransport<FilterUIMessage>({
+    chunkDelayMs,
+    async *mockResponse() {
+      yield {
+        data: {
+          columnId: "skills",
+          values: ["javascript", "typescript", "react", "nodejs"],
+        },
+        type: "data-setFilter",
+      };
 
-    yield {
-      data: {
-        columnId: "department",
-        values: ["design"],
-      },
-      type: "data-setFilter",
-    };
-  },
-});
+      yield {
+        data: {
+          columnId: "department",
+          values: ["design"],
+        },
+        type: "data-setFilter",
+      };
+    },
+  });
 
 interface UseAiFilterSimulationParams {
   columns: Column[];
   actions: DataTableFilterActions;
+  chunkDelayMs: [number, number];
 }
 
-export const useAiFilterSimulation = ({ columns, actions }: UseAiFilterSimulationParams) => {
+export const useAiFilterSimulation = ({
+  columns,
+  actions,
+  chunkDelayMs,
+}: UseAiFilterSimulationParams) => {
+  const [minDelayMs, maxDelayMs] = chunkDelayMs;
+
+  const transport = useMemo(
+    () => createTransport([minDelayMs, maxDelayMs]),
+    [minDelayMs, maxDelayMs],
+  );
+
   const { sendMessage, status } = useChat<FilterUIMessage>({
     onData: (dataPart) => {
       if (dataPart.type === "data-setFilter") {

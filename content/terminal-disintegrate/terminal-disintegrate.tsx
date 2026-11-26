@@ -28,21 +28,8 @@ const FLIP_END = 0.86;
 const PHASE_2_AT = (HOLD1_END + TRANS1_END) / 2;
 const PHASE_3_AT = (HOLD2_END + TRANS2_END) / 2;
 
-const ENTRANCE_MS = 2000;
-const CURL_AMP_PX = 22;
-const SCORCH_AMP = 0.45;
-
-const TRANS_OPTS = { curlAmp: CURL_AMP_PX, scorchAmp: SCORCH_AMP };
-const ENTRANCE_OPTS = { curlAmp: CURL_AMP_PX * 2.4, scorchAmp: SCORCH_AMP * 1.3 };
-
-const SWEEP_MS = 8000;
-const HOLD_MS = 900;
-const CYCLE_MS = SWEEP_MS * 2 + HOLD_MS * 2;
-
-const BG_LIGHT = "#cff060";
-const FG_LIGHT = "#1c5f27";
-const BG_DARK = "#1c5f27";
-const FG_DARK = "#cff060";
+const ENTRANCE_CURL_GAIN = 2.4;
+const ENTRANCE_SCORCH_GAIN = 1.3;
 
 const MONO_FAMILY =
   '"JetBrains Mono", "Cascadia Mono", "DejaVu Sans Mono", Menlo, Consolas, "Liberation Mono", "Noto Sans Mono", monospace';
@@ -69,18 +56,33 @@ const mixHex = (a: string, b: string, t: number) => {
   return `#${ch(ca.r, cb.r)}${ch(ca.g, cb.g)}${ch(ca.b, cb.b)}`;
 };
 
-const paletteAt = (p: number) => {
+interface Settings {
+  lightBackground: string;
+  lightForeground: string;
+  darkBackground: string;
+  darkForeground: string;
+  sweepMs: number;
+  holdMs: number;
+  curlAmp: number;
+  scorchAmp: number;
+  autoPlay: boolean;
+}
+
+const paletteAt = (p: number, s: Settings) => {
   if (p <= FLIP_START) {
-    return { bg: BG_LIGHT, fg: FG_LIGHT };
+    return { bg: s.lightBackground, fg: s.lightForeground };
   }
 
   if (p >= FLIP_END) {
-    return { bg: BG_DARK, fg: FG_DARK };
+    return { bg: s.darkBackground, fg: s.darkForeground };
   }
 
   const t = smoothstep((p - FLIP_START) / (FLIP_END - FLIP_START));
 
-  return { bg: mixHex(BG_LIGHT, BG_DARK, t), fg: mixHex(FG_LIGHT, FG_DARK, t) };
+  return {
+    bg: mixHex(s.lightBackground, s.darkBackground, t),
+    fg: mixHex(s.lightForeground, s.darkForeground, t),
+  };
 };
 
 interface Layout {
@@ -128,23 +130,106 @@ const phaseAt = (p: number) => {
   return 3;
 };
 
-const autoTargetAt = (u: number) => {
-  if (u < SWEEP_MS) {
-    return u / SWEEP_MS;
+const autoTargetAt = (u: number, sweepMs: number, holdMs: number) => {
+  if (u < sweepMs) {
+    return u / sweepMs;
   }
 
-  if (u < SWEEP_MS + HOLD_MS) {
+  if (u < sweepMs + holdMs) {
     return 1;
   }
 
-  if (u < SWEEP_MS * 2 + HOLD_MS) {
-    return 1 - (u - SWEEP_MS - HOLD_MS) / SWEEP_MS;
+  if (u < sweepMs * 2 + holdMs) {
+    return 1 - (u - sweepMs - holdMs) / sweepMs;
   }
 
   return 0;
 };
 
-export const TerminalDisintegrate = () => {
+export interface TerminalDisintegrateProps {
+  /** Screen background before the palette flips. */
+  lightBackground?: string;
+  /** Glyph color before the palette flips. */
+  lightForeground?: string;
+  /** Screen background after the palette flips on the last screen. */
+  darkBackground?: string;
+  /** Glyph color after the palette flips on the last screen. */
+  darkForeground?: string;
+  /** Milliseconds the auto-play takes to sweep through all three screens. */
+  sweepDuration?: number;
+  /** Milliseconds the auto-play rests at each end before reversing. */
+  holdDuration?: number;
+  /** Milliseconds the opening assembly takes; read once at mount. */
+  entranceDuration?: number;
+  /** Pixels of curl-noise sway on drifting embers. */
+  turbulence?: number;
+  /** Share of embers, 0 to 1, that flicker into burn glyphs mid-flight. */
+  scorch?: number;
+  /** Sweep back and forth on its own until dragged. */
+  autoPlay?: boolean;
+  /** Show the screen counter, hint and progress rail. */
+  showChrome?: boolean;
+  /** Hint text along the bottom edge. */
+  hint?: string;
+  /** Darken the corners with a soft vignette. */
+  vignette?: boolean;
+}
+
+export const TerminalDisintegrate = ({
+  lightBackground = "#cff060",
+  lightForeground = "#1c5f27",
+  darkBackground = "#1c5f27",
+  darkForeground = "#cff060",
+  sweepDuration = 8000,
+  holdDuration = 900,
+  entranceDuration = 2000,
+  turbulence = 22,
+  scorch = 0.45,
+  autoPlay = true,
+  showChrome = true,
+  hint = "drag · disintegrate · resolve",
+  vignette = true,
+}: TerminalDisintegrateProps) => {
+  const settingsRef = useRef<Settings>({
+    autoPlay,
+    curlAmp: turbulence,
+    darkBackground,
+    darkForeground,
+    holdMs: holdDuration,
+    lightBackground,
+    lightForeground,
+    scorchAmp: scorch,
+    sweepMs: sweepDuration,
+  });
+
+  const settingsDirtyRef = useRef(false);
+  const entranceMsRef = useRef(entranceDuration);
+
+  useEffect(() => {
+    settingsRef.current = {
+      autoPlay,
+      curlAmp: turbulence,
+      darkBackground,
+      darkForeground,
+      holdMs: holdDuration,
+      lightBackground,
+      lightForeground,
+      scorchAmp: scorch,
+      sweepMs: sweepDuration,
+    };
+    settingsDirtyRef.current = true;
+  }, [
+    autoPlay,
+    darkBackground,
+    darkForeground,
+    holdDuration,
+    lightBackground,
+    lightForeground,
+    scorch,
+    sweepDuration,
+    turbulence,
+  ]);
+
   const rootRef = useRef<HTMLDivElement | null>(null);
   const bgRef = useRef<HTMLDivElement | null>(null);
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
@@ -198,11 +283,14 @@ export const TerminalDisintegrate = () => {
       t2out: [],
     };
 
+    const entranceMs = entranceMsRef.current;
+    const settings = () => settingsRef.current;
+
     const S: Runtime = {
-      autoElapsed: -HOLD_MS,
+      autoElapsed: -settings().holdMs,
       entranceDone: false,
       entranceT: 0,
-      fg: FG_LIGHT,
+      fg: settings().lightForeground,
       interacted: false,
       lastDrawnP: -1,
       lastNow: null,
@@ -290,8 +378,14 @@ export const TerminalDisintegrate = () => {
       ctx.clearRect(0, 0, layout.w, layout.h);
       ctx.fillStyle = S.fg;
 
+      const { curlAmp, scorchAmp } = settings();
+      const transOpts = { curlAmp, scorchAmp };
+
       if (!S.entranceDone) {
-        renderParticles(ctx, particles.entrance, S.entranceT, ENTRANCE_OPTS);
+        renderParticles(ctx, particles.entrance, S.entranceT, {
+          curlAmp: curlAmp * ENTRANCE_CURL_GAIN,
+          scorchAmp: Math.min(1, scorchAmp * ENTRANCE_SCORCH_GAIN),
+        });
 
         return;
       }
@@ -303,14 +397,14 @@ export const TerminalDisintegrate = () => {
         renderGrid(ctx, grids.btc, frameX1, frameY, cellW, cellH);
       } else if (p <= TRANS1_END) {
         const local = (p - HOLD1_END) / (TRANS1_END - HOLD1_END);
-        renderParticles(ctx, particles.t1out, local, TRANS_OPTS);
-        renderParticles(ctx, particles.t1in, local, TRANS_OPTS);
+        renderParticles(ctx, particles.t1out, local, transOpts);
+        renderParticles(ctx, particles.t1in, local, transOpts);
       } else if (p <= HOLD2_END) {
         renderGrid(ctx, grids.gold, frameX2, frameY, cellW, cellH);
       } else if (p <= TRANS2_END) {
         const local = (p - HOLD2_END) / (TRANS2_END - HOLD2_END);
-        renderParticles(ctx, particles.t2out, local, TRANS_OPTS);
-        renderParticles(ctx, particles.t2in, local, TRANS_OPTS);
+        renderParticles(ctx, particles.t2out, local, transOpts);
+        renderParticles(ctx, particles.t2in, local, transOpts);
       } else {
         renderGrid(ctx, grids.stats, frameX3, frameY, cellW, cellH);
       }
@@ -323,7 +417,7 @@ export const TerminalDisintegrate = () => {
     let shownFade = -1;
 
     const applyPalette = (p: number) => {
-      const { fg, bg } = paletteAt(p);
+      const { fg, bg } = paletteAt(p, settings());
       S.fg = fg;
 
       if (fg !== shownFg) {
@@ -407,7 +501,7 @@ export const TerminalDisintegrate = () => {
 
       idleTimer = window.setTimeout(() => {
         idleTimer = 0;
-        S.autoElapsed = clamp01(S.targetP) * SWEEP_MS;
+        S.autoElapsed = clamp01(S.targetP) * settings().sweepMs;
         S.interacted = false;
       }, IDLE_RESUME_MS);
     };
@@ -509,6 +603,7 @@ export const TerminalDisintegrate = () => {
     let ready = false;
     let onScreen = true;
     let cancelled = false;
+    let wasAutoPlaying = settings().autoPlay;
 
     const tick = (now: number) => {
       if (!running) {
@@ -518,8 +613,23 @@ export const TerminalDisintegrate = () => {
       const dt = S.lastNow === null ? 16.7 : Math.min(64, now - S.lastNow);
       S.lastNow = now;
 
+      if (settingsDirtyRef.current) {
+        settingsDirtyRef.current = false;
+        shownFg = "";
+        shownBg = "";
+        S.lastDrawnP = -1;
+      }
+
+      const { autoPlay: autoNow, sweepMs, holdMs } = settings();
+
+      if (autoNow && !wasAutoPlaying) {
+        S.autoElapsed = clamp01(S.targetP) * sweepMs;
+      }
+
+      wasAutoPlaying = autoNow;
+
       if (!S.entranceDone) {
-        S.entranceT = Math.min(1, S.entranceT + dt / ENTRANCE_MS);
+        S.entranceT = Math.min(1, S.entranceT + dt / entranceMs);
         const fade = S.entranceT < 0.5 ? 0 : (S.entranceT - 0.5) / 0.5;
         applyPalette(0);
         applyChrome(0, fade);
@@ -535,10 +645,10 @@ export const TerminalDisintegrate = () => {
         return;
       }
 
-      if (!S.interacted && !reduce) {
-        S.autoElapsed = (S.autoElapsed + dt) % CYCLE_MS;
+      if (autoNow && !S.interacted && !reduce) {
+        S.autoElapsed = (S.autoElapsed + dt) % (sweepMs * 2 + holdMs * 2);
         const u = Math.max(0, S.autoElapsed);
-        S.targetP = autoTargetAt(u);
+        S.targetP = autoTargetAt(u, sweepMs, holdMs);
       }
 
       let sp = S.smoothP + (S.targetP - S.smoothP) * 0.12;
@@ -705,8 +815,8 @@ export const TerminalDisintegrate = () => {
       aria-valuemax={100}
       aria-valuenow={0}
       style={{
-        background: BG_LIGHT,
-        color: "var(--terminal-fg, #1c5f27)",
+        background: lightBackground,
+        color: `var(--terminal-fg, ${lightForeground})`,
         cursor: "grab",
         height: "100%",
         overflow: "hidden",
@@ -720,7 +830,6 @@ export const TerminalDisintegrate = () => {
         ref={bgRef}
         aria-hidden
         style={{
-          background: BG_LIGHT,
           inset: 0,
           pointerEvents: "none",
           position: "absolute",
@@ -732,6 +841,7 @@ export const TerminalDisintegrate = () => {
         aria-hidden
         style={{
           background: "radial-gradient(ellipse at center, transparent 35%, rgba(0,0,0,0.06) 95%)",
+          display: vignette ? "block" : "none",
           inset: 0,
           mixBlendMode: "multiply",
           pointerEvents: "none",
@@ -750,6 +860,7 @@ export const TerminalDisintegrate = () => {
         ref={chipRef}
         aria-hidden
         style={{
+          display: showChrome ? "block" : "none",
           fontFamily: MONO_FAMILY,
           fontSize: 11,
           left: 22,
@@ -770,6 +881,7 @@ export const TerminalDisintegrate = () => {
         aria-hidden
         style={{
           bottom: 16,
+          display: showChrome ? "block" : "none",
           fontFamily: MONO_FAMILY,
           fontSize: 10,
           left: 22,
@@ -781,7 +893,7 @@ export const TerminalDisintegrate = () => {
           zIndex: 4,
         }}
       >
-        drag · disintegrate · resolve
+        {hint}
       </div>
 
       <div
@@ -790,6 +902,7 @@ export const TerminalDisintegrate = () => {
         style={{
           background: "currentColor",
           bottom: "7%",
+          display: showChrome ? "block" : "none",
           left: 0,
           opacity: 0,
           pointerEvents: "none",
@@ -805,6 +918,7 @@ export const TerminalDisintegrate = () => {
         aria-hidden
         style={{
           background: "currentColor",
+          display: showChrome ? "block" : "none",
           height: "86%",
           left: 0,
           pointerEvents: "none",

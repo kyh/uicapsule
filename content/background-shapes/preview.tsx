@@ -8,7 +8,8 @@ export const controls = {
   color: { default: "#ffffff", label: "Glyph color", type: "color" },
   background: { default: "#2164d6", type: "color" },
   cellSize: { default: 20, label: "Cell size", max: 60, min: 16, step: 2, type: "number" },
-  strokeWidth: { default: 10, label: "Stroke width", max: 30, min: 2, step: 1, type: "number" },
+  strokeWidth: { default: 10, label: "Stroke width", max: 20, min: 3, step: 1, type: "number" },
+  blankWeight: { default: 5, label: "Empty cells", max: 20, min: 0, step: 1, type: "number" },
   minInterval: {
     default: 1000,
     label: "Min swap delay (ms)",
@@ -29,6 +30,7 @@ export const controls = {
 
 interface PreviewProps {
   background: string;
+  blankWeight: number;
   cellSize: number;
   color: string;
   maxInterval: number;
@@ -38,6 +40,7 @@ interface PreviewProps {
 
 const Preview = ({
   background = controls.background.default,
+  blankWeight = controls.blankWeight.default,
   cellSize = controls.cellSize.default,
   color = controls.color.default,
   maxInterval = controls.maxInterval.default,
@@ -71,6 +74,7 @@ const Preview = ({
           colors={colors}
           minInterval={Math.min(minInterval, maxInterval)}
           maxInterval={Math.max(minInterval, maxInterval)}
+          blankWeight={blankWeight}
         />
       )}
     </div>

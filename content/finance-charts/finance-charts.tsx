@@ -16,12 +16,18 @@ const YIELD_MS = 3000;
  */
 export const FinanceCharts = ({
   autoScroll = true,
+  background = "#f3f4f7",
   columnWidth = 340,
+  gap = 16,
   speed = 42,
 }: {
   autoScroll?: boolean;
+  /** Wall backdrop behind the cards. */
+  background?: string;
   /** Minimum masonry column width in px; the wall fits as many as it can. */
   columnWidth?: number;
+  /** Space between cards, across and down, in px. */
+  gap?: number;
   /** Auto-scroll drift in px per second. */
   speed?: number;
 }) => {
@@ -91,11 +97,12 @@ export const FinanceCharts = ({
       }}
       onPointerUp={release}
       onPointerCancel={release}
-      className="size-full overflow-y-auto bg-[#f3f4f7] [font-family:Inter,ui-sans-serif,system-ui,sans-serif] [scrollbar-width:none]"
+      style={{ background }}
+      className="size-full overflow-y-auto [font-family:Inter,ui-sans-serif,system-ui,sans-serif] [scrollbar-width:none]"
     >
-      <div className="mx-auto max-w-[1680px] gap-4 px-4 py-6" style={{ columnWidth }}>
+      <div className="mx-auto max-w-[1680px] px-4 py-6" style={{ columnGap: gap, columnWidth }}>
         {CHARTS.map(({ id, Chart }) => (
-          <ChartCell key={id} id={id}>
+          <ChartCell key={id} id={id} gap={gap}>
             <Chart />
           </ChartCell>
         ))}

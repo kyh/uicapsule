@@ -18,19 +18,15 @@ import { motion } from "motion/react";
 
 export type ExpandedWidgetView = "music" | "call" | "memo" | "recording" | "incoming" | "flight";
 
-export interface ExpandedWidgetOption {
-  view: ExpandedWidgetView;
-  label: string;
+/** Text the expanded activities render. */
+export interface ExpandedWidgetCopy {
+  /** Who the call is with, on the ongoing and incoming call activities. */
+  callerName: string;
+  /** Track artist or album on the music activity. */
+  songArtist: string;
+  /** Track title on the music activity. */
+  songTitle: string;
 }
-
-export const expandedWidgetOptions: ExpandedWidgetOption[] = [
-  { label: "music", view: "music" },
-  { label: "call", view: "call" },
-  { label: "memo", view: "memo" },
-  { label: "record", view: "recording" },
-  { label: "incoming", view: "incoming" },
-  { label: "flight", view: "flight" },
-];
 
 const ISLAND_BG = "#0a0a0a";
 const TEXT_MUTED = "#a3a3a3";
@@ -118,14 +114,18 @@ const Equalizer = () => (
   </div>
 );
 
-const MusicExpanded = () => (
+interface WidgetProps {
+  copy: ExpandedWidgetCopy;
+}
+
+const MusicExpanded = ({ copy }: WidgetProps) => (
   <WidgetShell layout="flex-col gap-3 rounded-[32px]">
     <div className="flex items-center gap-2">
       <AlbumArt />
       <div className="min-w-0 flex-1">
-        <p className={TITLE_CLASS}>Selfless</p>
+        <p className={TITLE_CLASS}>{copy.songTitle}</p>
         <p className={SUBTITLE_CLASS} style={{ color: TEXT_MUTED }}>
-          The New Abnormal
+          {copy.songArtist}
         </p>
       </div>
       <Equalizer />
@@ -152,12 +152,12 @@ const MusicExpanded = () => (
   </WidgetShell>
 );
 
-const OngoingCallExpanded = () => (
+const OngoingCallExpanded = ({ copy }: WidgetProps) => (
   <WidgetShell layout="flex-col gap-3 rounded-[32px]">
     <div className="flex items-center gap-2">
       <Avatar />
       <div className="min-w-0 flex-1">
-        <p className={TITLE_CLASS}>Mike Wheeler</p>
+        <p className={TITLE_CLASS}>{copy.callerName}</p>
         <p className={SUBTITLE_CLASS} style={{ color: TEXT_MUTED }}>
           FaceTime Audio
         </p>
@@ -245,11 +245,11 @@ const ScreenRecordingExpanded = () => (
   </WidgetShell>
 );
 
-const IncomingCallExpanded = () => (
+const IncomingCallExpanded = ({ copy }: WidgetProps) => (
   <WidgetShell layout="items-center gap-2 rounded-full">
     <Avatar />
     <div className="min-w-0 flex-1">
-      <p className={`${TITLE_CLASS} font-semibold`}>Mike Wheeler</p>
+      <p className={`${TITLE_CLASS} font-semibold`}>{copy.callerName}</p>
       <p className={SUBTITLE_CLASS} style={{ color: TEXT_MUTED }}>
         Mobile
       </p>
@@ -317,7 +317,7 @@ const FlightExpanded = () => (
   </WidgetShell>
 );
 
-const EXPANDED_WIDGETS: Record<ExpandedWidgetView, () => ReactElement> = {
+const EXPANDED_WIDGETS: Record<ExpandedWidgetView, (props: WidgetProps) => ReactElement> = {
   call: OngoingCallExpanded,
   flight: FlightExpanded,
   incoming: IncomingCallExpanded,
@@ -327,11 +327,12 @@ const EXPANDED_WIDGETS: Record<ExpandedWidgetView, () => ReactElement> = {
 };
 
 interface ExpandedWidgetProps {
+  copy: ExpandedWidgetCopy;
   view: ExpandedWidgetView;
 }
 
-export const ExpandedWidget = ({ view }: ExpandedWidgetProps) => {
+export const ExpandedWidget = ({ copy, view }: ExpandedWidgetProps) => {
   const Widget = EXPANDED_WIDGETS[view];
 
-  return <Widget />;
+  return <Widget copy={copy} />;
 };

@@ -43,14 +43,64 @@ export class Spring {
   }
 }
 
-export const P = {
+/** Colors every canvas effect is drawn in, as hex. */
+export interface Palette {
+  accent: string;
+  fill: string;
+  ink: string;
+  line: string;
+  primary: string;
+  shade: string;
+  track: string;
+}
+
+export const STOCK_PALETTE: Readonly<Palette> = {
   accent: "#ff5fa8",
   fill: "#ffffff",
   ink: "#1d1a4a",
   line: "#5a4fd8",
-  sfx: ["#1d1a4a", "#ffffff"],
+  primary: "#8f8df7",
   shade: "#b8b3ff",
-} as const;
+  track: "#c9cbe0",
+};
+
+export const P: Palette = { ...STOCK_PALETTE };
+
+/** Recolors effects spawned after the call; keys left out return to the stock palette. */
+export const setPalette = (next: Partial<Palette> = {}) => {
+  P.accent = next.accent ?? STOCK_PALETTE.accent;
+  P.fill = next.fill ?? STOCK_PALETTE.fill;
+  P.ink = next.ink ?? STOCK_PALETTE.ink;
+  P.line = next.line ?? STOCK_PALETTE.line;
+  P.primary = next.primary ?? STOCK_PALETTE.primary;
+  P.shade = next.shade ?? STOCK_PALETTE.shade;
+  P.track = next.track ?? STOCK_PALETTE.track;
+};
+
+export type Rgb = readonly [number, number, number];
+
+/** Parses `#rgb` or `#rrggbb`; anything else reads as black. */
+export const toRgb = (hex: string) => {
+  const h = /^#?(?<digits>[\da-f]{3}|[\da-f]{6})$/iu.exec(hex.trim())?.groups?.digits ?? "000";
+  const wide = h.length === 6;
+
+  const channel = (i: number) =>
+    Number.parseInt(wide ? h.slice(i * 2, i * 2 + 2) : h.charAt(i).repeat(2), 16);
+
+  const rgb: Rgb = [channel(0), channel(1), channel(2)];
+
+  return rgb;
+};
+
+export const toHex = (rgb: readonly number[]) =>
+  `#${rgb
+    .slice(0, 3)
+    .map((v) =>
+      Math.round(clamp(v, 0, 255))
+        .toString(16)
+        .padStart(2, "0"),
+    )
+    .join("")}`;
 
 type Draw = (k: number, t: number, dt: number) => void;
 
@@ -221,6 +271,7 @@ export const clock = {
     return now;
   },
   paused: false,
+  speed: 1,
 };
 
 const idle = () =>
@@ -235,7 +286,7 @@ const loop = (ms: number) => {
   last = ms;
 
   if (!clock.paused) {
-    advance(dt);
+    advance(dt * clock.speed);
   }
 
   if (idle()) {
@@ -990,7 +1041,7 @@ export const sfx = (
   const s = new Spring(0.2, 520, 17);
   s.to = 1;
   let lastT = 0;
-  const c = bake(name, col ?? P.sfx[0], edge ?? P.sfx[1], dots);
+  const c = bake(name, col ?? P.ink, edge ?? P.fill, dots);
   const k0 = sz / WORDS[name][0];
   add(life, (k, t) => {
     const sc = s.step(t - lastT) * (1 - easeIn(clamp((k - 0.86) / 0.14))) * k0;
@@ -1001,8 +1052,8 @@ export const sfx = (
   });
 };
 
-export const hollow = () => ({ col: "#ffffff", edge: "#1d1a4a" });
-export const dotted = () => ({ dots: true, edge: "#1d1a4a" });
+export const hollow = () => ({ col: P.fill, edge: P.ink });
+export const dotted = () => ({ dots: true, edge: P.ink });
 
 export const at = (el: Element, fx = 0.5, fy = 0.5) => {
   const b = el.getBoundingClientRect();

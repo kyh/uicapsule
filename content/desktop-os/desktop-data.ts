@@ -232,23 +232,34 @@ export const DOCK_APPS: readonly DockApp[] = [
 export const MOBILE_PRIMARY: readonly DockAppId[] = ["files", "photos", "notes"];
 export const GROUP_APPS: readonly DockAppId[] = ["preview", "terminal", "trash"];
 
+export interface WallpaperTone {
+  readonly glowLeft: string;
+  readonly glowRight: string;
+  readonly rays: boolean;
+}
+
 /**
  * Pure-CSS wallpaper. The thin conic rays are what makes the boot's
  * `blur(24px) → blur(0)` legible on a gradient.
  *
- * Deliberately fixed rather than theme-reactive: the menu bar, dock tooltips
- * and icon labels are all white (as on macOS, where the wallpaper is chosen by
- * the user and does not invert with the system theme). A pale wallpaper drops
- * that chrome to ~1.8:1 contrast, and darkening one far enough to carry white
- * text just reproduces this gradient.
+ * Keep the glows dark: the menu bar, dock tooltips and icon labels are all
+ * white (as on macOS, where the wallpaper is chosen by the user and does not
+ * invert with the system theme), and a pale glow drops that chrome to ~1.8:1
+ * contrast.
  */
-export const WALLPAPER = [
-  "repeating-conic-gradient(from 196deg at 50% 118%, rgba(255,255,255,0.045) 0deg 1.6deg, rgba(255,255,255,0) 1.6deg 7deg)",
-  "radial-gradient(120% 82% at 20% 8%, #2b3d74 0%, rgba(43,61,116,0) 58%)",
-  "radial-gradient(110% 88% at 82% 4%, #4a2a63 0%, rgba(74,42,99,0) 54%)",
-  "radial-gradient(140% 110% at 50% 116%, #05070f 0%, rgba(5,7,15,0) 64%)",
-  "linear-gradient(158deg, #1d2647 0%, #2a2350 34%, #171634 66%, #08090f 100%)",
-].join(", ");
+export const wallpaperGradient = ({ glowLeft, glowRight, rays }: WallpaperTone) =>
+  [
+    ...(rays
+      ? [
+          "repeating-conic-gradient(from 196deg at 50% 118%, rgba(255,255,255,0.045) 0deg 1.6deg, rgba(255,255,255,0) 1.6deg 7deg)",
+        ]
+      : []),
+    `radial-gradient(120% 82% at 20% 8%, ${glowLeft} 0%, transparent 58%)`,
+    `radial-gradient(110% 88% at 82% 4%, ${glowRight} 0%, transparent 54%)`,
+    "radial-gradient(140% 110% at 50% 116%, #05070f 0%, rgba(5,7,15,0) 64%)",
+    "linear-gradient(158deg, #1d2647 0%, #2a2350 34%, #171634 66%, #08090f 100%)",
+  ].join(", ");
 
-export const VEIL_GRADIENT =
-  "radial-gradient(120% 90% at 50% 30%, rgba(0,0,0,0) 0%, rgba(0,0,0,0.18) 70%, rgba(0,0,0,0.35) 100%)";
+/** `edge` is the vignette's alpha at the frame corners; the 70% stop sits at 18/35 of it. */
+export const veilGradient = (edge: number) =>
+  `radial-gradient(120% 90% at 50% 30%, rgba(0,0,0,0) 0%, rgba(0,0,0,${((edge * 18) / 35).toFixed(3)}) 70%, rgba(0,0,0,${edge.toFixed(3)}) 100%)`;

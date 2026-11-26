@@ -25,11 +25,11 @@ import {
   HERO_FILE,
   MOBILE_PRIMARY,
   TILES,
-  VEIL_GRADIENT,
-  WALLPAPER,
   tileId,
   tileName,
   tilePos,
+  veilGradient,
+  wallpaperGradient,
 } from "./desktop-data";
 import { WindowView } from "./window-bodies";
 import { PhotoLightbox } from "./window-frame";
@@ -37,19 +37,13 @@ import { DEFAULT_WINDOW_SIZES } from "./window-types";
 
 const noop = () => null;
 
-const DOCK_ICON_BASE = 56;
-const DOCK_ICON_MAX = 96;
-const DOCK_HOVER_RANGE = 140;
 const DOCK_SIZE_LERP = 0.28;
 const DOCK_CURSOR_LERP = 0.22;
 const MOBILE_ICON_BASE = 72;
 
-const TILE_SIZE = 78;
-const MOBILE_TILE_SIZE = 64;
+const MOBILE_TILE_RATIO = 64 / 78;
 const FEATURED_SIZE = 180;
 const TILE_EDGE_MARGIN = 4;
-const TILE_BOX_W = 96;
-const TILE_BOX_H = TILE_SIZE + 24;
 const REEL_FRAME_MS = 100;
 const REEL_DELAY_MS = 250;
 const PRELOAD_CAP_MS = 1400;
@@ -147,15 +141,100 @@ interface OpenSpec {
   folderName?: string;
 }
 
-export const DesktopOS = () => {
+/** Every prop is optional; the defaults are the gallery's look. */
+export interface DesktopOSProps {
+  /** Play the boot sequence on mount; off lands straight on the finished desktop. */
+  readonly boot?: boolean;
+  /** Boot timeline multiplier: 2 plays it twice as fast. */
+  readonly bootSpeed?: number;
+  /** Desktop thumbnail edge in px (phones scale it by 64/78). */
+  readonly iconSize?: number;
+  /** Resting dock icon edge in px. */
+  readonly dockIconSize?: number;
+  /** Extra px an icon grows directly under the cursor; 0 turns magnification off. */
+  readonly dockMagnification?: number;
+  /** Distance in px from the cursor at which magnification fades to nothing. */
+  readonly dockReach?: number;
+  /** Selected icon label fill. */
+  readonly accent?: string;
+  readonly glowLeft?: string;
+  readonly glowRight?: string;
+  readonly rays?: boolean;
+  /** Vignette alpha at the corners, 0–1. */
+  readonly vignette?: number;
+  /** Bold app name at the left of the menu bar. */
+  readonly appName?: string;
+  readonly time?: string;
+  /** Weekday shown before the time on the desktop menu bar. */
+  readonly weekday?: string;
+  /** Dock app to launch once the boot settles. */
+  readonly openOnBoot?: DockAppId;
+}
+
+const bootTimeScale = (bootSpeed = 1) => clamp(bootSpeed, 0.1, 10);
+
+const resolveConfig = ({
+  boot = true,
+  iconSize = 78,
+  dockIconSize = 56,
+  dockMagnification = 40,
+  dockReach = 140,
+  accent = "#3b82f6",
+  glowLeft = "#2b3d74",
+  glowRight = "#4a2a63",
+  rays = true,
+  vignette = 0.35,
+  appName = "Finder",
+  time = "14:08",
+  weekday = "Wed",
+  openOnBoot,
+}: DesktopOSProps) => ({
+  accent,
+  appName,
+  boot,
+  clockLabel: [weekday, time].filter(Boolean).join(" "),
+  dockIconMax: dockIconSize + Math.max(0, dockMagnification),
+  dockIconSize,
+  dockReach: Math.max(1, dockReach),
+  iconSize,
+  mobileTileSize: Math.round(iconSize * MOBILE_TILE_RATIO),
+  openOnBoot,
+  tileBoxH: iconSize + 24,
+  tileBoxW: Math.max(96, iconSize + 18),
+  time,
+  veil: veilGradient(clamp(vignette, 0, 1)),
+  wallpaper: wallpaperGradient({ glowLeft, glowRight, rays }),
+});
+
+export const DesktopOS = (props: DesktopOSProps) => {
+  const {
+    accent,
+    appName,
+    boot,
+    clockLabel,
+    dockIconMax,
+    dockIconSize,
+    dockReach,
+    iconSize,
+    mobileTileSize,
+    openOnBoot,
+    tileBoxH,
+    tileBoxW,
+    time,
+    veil,
+    wallpaper,
+  } = resolveConfig(props);
+
+  const timeScale = bootTimeScale(props.bootSpeed);
   const [mounted, setMounted] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
   const [seeded, setSeeded] = useState(false);
   const [tilePositions, setTilePositions] = useState<Record<string, TilePosition>>({});
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const reducedMotion = useReducedMotion();
+  const skipBoot = reducedMotion || !boot;
   const [animatedEntranceDone, setAnimatedEntranceDone] = useState(false);
-  const entranceDone = reducedMotion || animatedEntranceDone;
+  const entranceDone = skipBoot || animatedEntranceDone;
   const [windows, setWindows] = useState<readonly OpenWindow[]>([]);
   const [lightbox, setLightbox] = useState<string | null>(null);
   const [groupPanelOpen, setGroupPanelOpen] = useState(false);
@@ -174,6 +253,8 @@ export const DesktopOS = () => {
   const isMobileRef = useRef(false);
   const winCounter = useRef(0);
   const entranceStartedRef = useRef(false);
+  const bootAppOpenedRef = useRef(false);
+  const entranceFinishedRef = useRef(false);
 
   const dockIconEls = useRef<Map<DockAppId, HTMLDivElement>>(new Map());
   const dockIconSizes = useRef<Map<DockAppId, number>>(new Map());
@@ -321,32 +402,35 @@ export const DesktopOS = () => {
     };
   }, []);
 
-  const seedPositions = useCallback(() => {
-    const sec = sectionRef.current;
-    const vw = sec?.clientWidth ?? 1280;
-    const vh = sec?.clientHeight ?? 800;
-    const bounds = tileBounds(TILE_BOX_W, TILE_BOX_H);
+  const seedPositions = useCallback(
+    (boxW: number, boxH: number) => {
+      const sec = sectionRef.current;
+      const vw = sec?.clientWidth ?? 1280;
+      const vh = sec?.clientHeight ?? 800;
+      const bounds = tileBounds(boxW, boxH);
 
-    setTilePositions((prev) => {
-      const next: Record<string, TilePosition> = {};
+      setTilePositions((prev) => {
+        const next: Record<string, TilePosition> = {};
 
-      for (const [i, tile] of TILES.entries()) {
-        const id = tileId(tile);
-        const seed = tilePos(tile);
-        const existing = prev[id];
-        const baseX = existing ? existing.x : (seed.xPct / 100) * vw;
-        const baseY = existing ? existing.y : (seed.yPct / 100) * vh;
-        next[id] = {
-          x: clamp(baseX, TILE_EDGE_MARGIN, bounds.maxX),
-          y: clamp(baseY, TILE_EDGE_MARGIN, bounds.maxY),
-          z: existing ? existing.z : 10 + i,
-        };
-      }
+        for (const [i, tile] of TILES.entries()) {
+          const id = tileId(tile);
+          const seed = tilePos(tile);
+          const existing = prev[id];
+          const baseX = existing ? existing.x : (seed.xPct / 100) * vw;
+          const baseY = existing ? existing.y : (seed.yPct / 100) * vh;
+          next[id] = {
+            x: clamp(baseX, TILE_EDGE_MARGIN, bounds.maxX),
+            y: clamp(baseY, TILE_EDGE_MARGIN, bounds.maxY),
+            z: existing ? existing.z : 10 + i,
+          };
+        }
 
-      return next;
-    });
-    setSeeded(true);
-  }, [tileBounds]);
+        return next;
+      });
+      setSeeded(true);
+    },
+    [tileBounds],
+  );
 
   useEffect(() => {
     isMobileRef.current = window.matchMedia("(max-width: 767px)").matches;
@@ -354,7 +438,7 @@ export const DesktopOS = () => {
 
     const wrap = wallpaperWrapRef.current;
 
-    if (wrap && !window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+    if (wrap && boot && !window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
       if (isMobileRef.current) {
         gsap.set(wrap, { opacity: 0 });
       } else {
@@ -363,25 +447,25 @@ export const DesktopOS = () => {
     }
 
     setMounted(true);
-  }, []);
+  }, [boot]);
 
   useEffect(() => {
     if (!mounted) {
       return noop;
     }
 
-    seedPositions();
+    seedPositions(tileBoxW, tileBoxH);
 
     const mq = window.matchMedia("(max-width: 767px)");
 
     const onChange = () => {
       isMobileRef.current = mq.matches;
       setIsMobile(mq.matches);
-      seedPositions();
+      seedPositions(tileBoxW, tileBoxH);
     };
 
     const onResize = () => {
-      seedPositions();
+      seedPositions(tileBoxW, tileBoxH);
     };
 
     mq.addEventListener("change", onChange);
@@ -391,7 +475,7 @@ export const DesktopOS = () => {
       mq.removeEventListener("change", onChange);
       window.removeEventListener("resize", onResize);
     };
-  }, [mounted, seedPositions]);
+  }, [mounted, seedPositions, tileBoxW, tileBoxH]);
 
   useEffect(() => {
     tilePositionsRef.current = tilePositions;
@@ -402,7 +486,7 @@ export const DesktopOS = () => {
       return noop;
     }
 
-    if (entranceStartedRef.current) {
+    if (entranceStartedRef.current || entranceFinishedRef.current) {
       return noop;
     }
 
@@ -425,7 +509,7 @@ export const DesktopOS = () => {
     let reelInterval: number | null = null;
     let capTimeout: number | null = null;
 
-    if (reducedMotion) {
+    if (skipBoot) {
       if (wrap) {
         gsap.set(wrap, { filter: "none", opacity: 1, scale: 1 });
       }
@@ -448,7 +532,7 @@ export const DesktopOS = () => {
     }
 
     const runMobile = () => {
-      const tl = gsap.timeline({ defaults: { ease: "power3.out" } });
+      const tl = gsap.timeline({ defaults: { ease: "power3.out" } }).timeScale(timeScale);
       timeline = tl;
 
       if (wrap) {
@@ -480,6 +564,7 @@ export const DesktopOS = () => {
 
       tl.call(
         () => {
+          entranceFinishedRef.current = true;
           setAnimatedEntranceDone(true);
         },
         undefined,
@@ -491,12 +576,14 @@ export const DesktopOS = () => {
       const positions = tilePositionsRef.current;
       const sw = sec.clientWidth;
       const sh = sec.clientHeight;
-      const centreX = sw / 2 - 48;
-      const centreY = sh / 2 - 58;
       const heroPos = positions[HERO_ID];
       const heroEl = tileRefs.current.get(HERO_ID);
+      const boxW = heroEl?.offsetWidth ?? 96;
+      const heroSize = heroEl?.firstElementChild?.getBoundingClientRect().height ?? 78;
+      const centreX = sw / 2 - boxW / 2;
+      const centreY = sh / 2 - (heroSize + 38) / 2;
 
-      const tl = gsap.timeline({ defaults: { ease: "power3.out" } });
+      const tl = gsap.timeline({ defaults: { ease: "power3.out" } }).timeScale(timeScale);
       timeline = tl;
 
       if (wrap) {
@@ -555,9 +642,9 @@ export const DesktopOS = () => {
           {
             duration: 0.36,
             ease: "power3.inOut",
-            scale: TILE_SIZE / FEATURED_SIZE,
-            x: heroPos.x + 48 - sw / 2,
-            y: heroPos.y + 39 - sh / 2,
+            scale: heroSize / FEATURED_SIZE,
+            x: heroPos.x + boxW / 2 - sw / 2,
+            y: heroPos.y + heroSize / 2 - sh / 2,
           },
           1.3,
         );
@@ -581,6 +668,7 @@ export const DesktopOS = () => {
 
       tl.call(
         () => {
+          entranceFinishedRef.current = true;
           setAnimatedEntranceDone(true);
         },
         undefined,
@@ -610,8 +698,8 @@ export const DesktopOS = () => {
           if (img) {
             img.src = next;
           }
-        }, REEL_FRAME_MS);
-      }, REEL_DELAY_MS);
+        }, REEL_FRAME_MS / timeScale);
+      }, REEL_DELAY_MS / timeScale);
     };
 
     const start = () => {
@@ -672,7 +760,16 @@ export const DesktopOS = () => {
         window.clearTimeout(capTimeout);
       }
     };
-  }, [mounted, seeded, reducedMotion]);
+  }, [mounted, seeded, skipBoot, timeScale]);
+
+  useEffect(() => {
+    if (!seeded || !entranceDone || openOnBoot === undefined || bootAppOpenedRef.current) {
+      return;
+    }
+
+    bootAppOpenedRef.current = true;
+    handleDockApp(openOnBoot);
+  });
 
   useEffect(() => {
     const tick = () => {
@@ -687,14 +784,14 @@ export const DesktopOS = () => {
           const rect = el.getBoundingClientRect();
           const centre = rect.left + rect.width / 2;
           const dist = Math.abs(cursor.smooth - centre);
-          const t = Math.max(0, 1 - dist / DOCK_HOVER_RANGE);
+          const t = Math.max(0, 1 - dist / dockReach);
           const falloff = t * t * (3 - 2 * t);
 
           const target = cursor.active
-            ? DOCK_ICON_BASE + (DOCK_ICON_MAX - DOCK_ICON_BASE) * falloff
-            : DOCK_ICON_BASE;
+            ? dockIconSize + (dockIconMax - dockIconSize) * falloff
+            : dockIconSize;
 
-          const current = dockIconSizes.current.get(id) ?? DOCK_ICON_BASE;
+          const current = dockIconSizes.current.get(id) ?? dockIconSize;
           const next = current + (target - current) * DOCK_SIZE_LERP;
           dockIconSizes.current.set(id, next);
 
@@ -721,7 +818,7 @@ export const DesktopOS = () => {
 
       rafId.current = null;
     };
-  }, []);
+  }, [dockIconSize, dockIconMax, dockReach]);
 
   const setDockIconRef = (id: DockAppId) => (el: HTMLDivElement | null) => {
     if (el) {
@@ -1001,9 +1098,8 @@ export const DesktopOS = () => {
         )}
 
         <div
-          className={`mt-2 max-w-[110px] truncate rounded-[5px] px-1.5 py-[1px] text-center text-[11px] leading-tight font-medium drop-shadow-[0_1px_2px_rgba(0,0,0,0.8)] ${
-            selected ? "bg-[#3b82f6] text-white" : "text-white"
-          }`}
+          className="mt-2 max-w-[110px] truncate rounded-[5px] px-1.5 py-[1px] text-center text-[11px] leading-tight font-medium text-white drop-shadow-[0_1px_2px_rgba(0,0,0,0.8)]"
+          style={selected ? { backgroundColor: accent } : undefined}
         >
           {tileName(tile)}
         </div>
@@ -1047,11 +1143,11 @@ export const DesktopOS = () => {
         style={{
           touchAction: "none",
           transform: pos ? `translate3d(${pos.x}px, ${pos.y}px, 0)` : "translate3d(0px, 0px, 0)",
-          width: TILE_BOX_W,
+          width: tileBoxW,
           zIndex: pos?.z ?? 10 + index,
         }}
       >
-        {renderTileInner(tile, TILE_SIZE)}
+        {renderTileInner(tile, iconSize)}
       </div>
     );
   };
@@ -1081,7 +1177,7 @@ export const DesktopOS = () => {
         className={`flex flex-col items-center outline-none select-none ${entranceDone ? "" : "opacity-0"}`}
         style={{ touchAction: "manipulation" }}
       >
-        {renderTileInner(tile, MOBILE_TILE_SIZE)}
+        {renderTileInner(tile, mobileTileSize)}
       </div>
     );
   };
@@ -1092,7 +1188,7 @@ export const DesktopOS = () => {
         onPointerMove={dockPointerMove}
         onPointerLeave={dockPointerLeave}
         className="flex items-end gap-1.5 rounded-[26px] border border-white/25 bg-white/[0.14] px-3 pt-3 pb-3 backdrop-blur-2xl backdrop-saturate-150"
-        style={{ boxShadow: DOCK_SHADOW, height: DOCK_ICON_BASE + 24 }}
+        style={{ boxShadow: DOCK_SHADOW, height: dockIconSize + 24 }}
       >
         {DOCK_APPS.map((app) => (
           <Fragment key={app.id}>
@@ -1125,7 +1221,7 @@ export const DesktopOS = () => {
                 <div
                   ref={setDockIconRef(app.id)}
                   className="drop-shadow-[0_4px_10px_rgba(0,0,0,0.35)]"
-                  style={{ height: DOCK_ICON_BASE, width: DOCK_ICON_BASE }}
+                  style={{ height: dockIconSize, width: dockIconSize }}
                 >
                   <AppGlyph id={app.id} />
                 </div>
@@ -1193,13 +1289,10 @@ export const DesktopOS = () => {
       <style>{SCOPED_CSS}</style>
 
       <div ref={wallpaperWrapRef} className="absolute inset-0 z-0">
-        <div className="absolute inset-0" style={{ background: WALLPAPER }} />
+        <div className="absolute inset-0" style={{ background: wallpaper }} />
       </div>
 
-      <div
-        className="pointer-events-none absolute inset-0 z-[1]"
-        style={{ background: VEIL_GRADIENT }}
-      />
+      <div className="pointer-events-none absolute inset-0 z-[1]" style={{ background: veil }} />
 
       <div
         role="presentation"
@@ -1225,7 +1318,7 @@ export const DesktopOS = () => {
             {isMobile ? (
               <div className="flex h-12 items-center justify-between px-4 text-white drop-shadow-[0_1px_2px_rgba(0,0,0,0.6)]">
                 <div className="flex items-center gap-1.5">
-                  <span className="text-[14px] font-semibold tracking-tight">14:08</span>
+                  <span className="text-[14px] font-semibold tracking-tight">{time}</span>
                   <BellSlashGlyph />
                 </div>
                 <div className="flex items-center gap-1">
@@ -1238,7 +1331,7 @@ export const DesktopOS = () => {
               <div className="flex h-7 items-center justify-between bg-black/15 px-4 backdrop-blur-md">
                 <div className="flex items-center gap-4 text-[11px] text-white/80">
                   <span className="size-3 rounded-[2px] bg-white" aria-hidden="true" />
-                  <span className="font-bold">Finder</span>
+                  <span className="font-bold">{appName}</span>
                   <span className="text-white/70">File</span>
                   <span className="text-white/70">Edit</span>
                   <span className="text-white/70">View</span>
@@ -1250,7 +1343,7 @@ export const DesktopOS = () => {
                     <MacBatteryGlyph />
                   </span>
                   <span>100%</span>
-                  <span>Wed 14:08</span>
+                  <span>{clockLabel}</span>
                 </div>
               </div>
             )}

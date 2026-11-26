@@ -234,7 +234,7 @@ const SakugaTabsList = ({
       data-slot="sakuga-tabs-list"
       activateOnFocus={activateOnFocus}
       className={cn(
-        "relative mt-[10px] flex rounded-[12px] border-[length:var(--sk-bw)] border-(--sk-ink) bg-(--sk-card) shadow-(--sk-sh)",
+        "relative mt-[10px] flex rounded-[max(0px,calc(var(--sk-r)-3px))] border-[length:var(--sk-bw)] border-(--sk-ink) bg-(--sk-card) shadow-(--sk-sh)",
         className,
       )}
       {...props}
@@ -244,7 +244,7 @@ const SakugaTabsList = ({
         aria-hidden
         data-slot="sakuga-tabs-indicator"
         style={HIDDEN}
-        className="absolute top-[-11px] bottom-[-1px] left-0 ml-[calc(var(--sk-bw)*-1)] w-[10px] rounded-t-[13px] border-[length:var(--sk-bw)] border-b-0 border-(--sk-ink) bg-(--sk-card) will-change-[transform,width]"
+        className="absolute top-[-11px] bottom-[-1px] left-0 ml-[calc(var(--sk-bw)*-1)] w-[10px] rounded-t-[max(0px,calc(var(--sk-r)-2px))] border-[length:var(--sk-bw)] border-b-0 border-(--sk-ink) bg-(--sk-card) will-change-[transform,width]"
       />
       {children}
     </TabsPrimitive.List>

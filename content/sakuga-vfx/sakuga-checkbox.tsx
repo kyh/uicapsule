@@ -13,7 +13,7 @@ const noop = () => null;
 type SakugaCheckboxProps = Styled<CheckboxPrimitive.Root.Props>;
 
 const ROOT =
-  "grid h-[38px] w-[38px] flex-none cursor-pointer place-items-center rounded-[9px] border-[length:var(--sk-bw)] border-(--sk-ink) bg-(--sk-card) shadow-(--sk-sh) will-change-transform [--sk-dash:30] [-webkit-tap-highlight-color:transparent] focus-visible:outline-[2.5px] focus-visible:outline-offset-[3px] focus-visible:outline-(--sk-acc) focus-visible:outline-solid data-checked:[--sk-dash:0] data-disabled:cursor-not-allowed data-disabled:opacity-50";
+  "grid h-[38px] w-[38px] flex-none cursor-pointer place-items-center rounded-[clamp(0px,calc(var(--sk-r)-6px),14px)] border-[length:var(--sk-bw)] border-(--sk-ink) bg-(--sk-card) shadow-(--sk-sh) will-change-transform [--sk-dash:30] [-webkit-tap-highlight-color:transparent] focus-visible:outline-[2.5px] focus-visible:outline-offset-[3px] focus-visible:outline-(--sk-acc) focus-visible:outline-solid data-checked:[--sk-dash:0] data-disabled:cursor-not-allowed data-disabled:opacity-50";
 
 const TICK =
   "h-[26px] w-[26px] fill-none stroke-(--sk-tick) stroke-[4.6] [stroke-dasharray:30] [stroke-dashoffset:var(--sk-dash)] [stroke-linecap:round] [stroke-linejoin:round] [transition:stroke-dashoffset_.24s_cubic-bezier(.2,.9,.3,1)_.08s]";

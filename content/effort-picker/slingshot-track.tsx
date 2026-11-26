@@ -9,7 +9,7 @@ import type { MotionValue } from "motion/react";
 import type { EffortTheme } from "./effort-theme";
 
 import { DialTrough, knobBoxStyle, KnobSkin, LevelLabel } from "./effort-dial";
-import { clamp, DEFAULT_LEVEL, KNOB_SIZE, TRACK_TRAVEL, TRACK_WIDTH } from "./effort-scale";
+import { clamp, KNOB_SIZE, TRACK_TRAVEL, TRACK_WIDTH } from "./effort-scale";
 import { EFFORT_THEMES, labelAt, levelCount, nearestLevel, notchX } from "./effort-theme";
 
 const MAX_OVERPULL = 140;
@@ -78,7 +78,7 @@ export const SlingshotTrack = ({ knobX, theme, onPhaseChange }: SlingshotTrackPr
   const speed = useMotionValue(0);
   const impact = useMotionValue(0);
   const knobOrigin = useMotionValue(0.5);
-  const anchorX = useMotionValue(notchX(theme, DEFAULT_LEVEL));
+  const anchorX = useMotionValue(knobX.get());
 
   const velocity = useRef(0);
   const frame = useRef(0);

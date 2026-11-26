@@ -86,7 +86,7 @@ export const TableBody = ({
                   role="presentation"
                   className={cn(
                     "border-(--border) relative flex h-9 shrink-0 cursor-default items-center border-r border-b transition-colors",
-                    isCellSelected && "bg-blue-50 dark:bg-blue-950/50",
+                    isCellSelected && "bg-(--selection)",
                   )}
                   style={{
                     width: `calc(var(--col-${cell.column.id}-size) * 1px)`,

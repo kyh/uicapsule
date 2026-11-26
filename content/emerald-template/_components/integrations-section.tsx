@@ -9,7 +9,9 @@ const QuestionCard = ({ children }: { children: ReactNode }) => (
   </div>
 );
 
-export const IntegrationsSection = () => (
+const MARQUEE_SECONDS = [70, 120, 30] as const;
+
+export const IntegrationsSection = ({ marqueeSpeed }: { marqueeSpeed: number }) => (
   <HomeCard
     className="mt-8 lg:pl-10"
     title="We'll go where you go"
@@ -24,12 +26,16 @@ export const IntegrationsSection = () => (
   >
     <div className="w-full overflow-hidden">
       <h3 className="text-center text-xs">Things people have asked:</h3>
-      <InfiniteLooper containerClassName="mt-3">
+      <InfiniteLooper containerClassName="mt-3" speed={MARQUEE_SECONDS[0] / marqueeSpeed}>
         <QuestionCard>When does the next fundraise start?</QuestionCard>
         <QuestionCard>Whats the latest on the Block deal?</QuestionCard>
         <QuestionCard>Who is managing design system project?</QuestionCard>
       </InfiniteLooper>
-      <InfiniteLooper containerClassName="mt-3" speed={120} direction="left">
+      <InfiniteLooper
+        containerClassName="mt-3"
+        speed={MARQUEE_SECONDS[1] / marqueeSpeed}
+        direction="left"
+      >
         <QuestionCard>Can you summarize the last all hands?</QuestionCard>
         <QuestionCard>Whats does the Grow team do?</QuestionCard>
         <QuestionCard>
@@ -37,7 +43,7 @@ export const IntegrationsSection = () => (
         </QuestionCard>
         <QuestionCard>Whats our HR policy on working from home?</QuestionCard>
       </InfiniteLooper>
-      <InfiniteLooper containerClassName="mt-3" speed={30}>
+      <InfiniteLooper containerClassName="mt-3" speed={MARQUEE_SECONDS[2] / marqueeSpeed}>
         <QuestionCard>Who do I contact to get Airtable access?</QuestionCard>
         <QuestionCard>Who is responsible for the design of the landing experience?</QuestionCard>
       </InfiniteLooper>

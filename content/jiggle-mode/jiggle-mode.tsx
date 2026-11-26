@@ -31,6 +31,7 @@ import type { LucideIcon } from "lucide-react";
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 
 import { PhoneFrame } from "./phone-frame";
+import type { ClayTone } from "./phone-frame";
 
 interface AppItem {
   id: string;
@@ -215,7 +216,36 @@ const DOCK: AppItem[] = [
 ];
 
 const COLUMNS = 4;
-const LONG_PRESS_MS = 450;
+const DEFAULT_GLOW_COLORS = ["#d97706", "#ea580c", "#be185d"] as const;
+
+const GLOWS = [
+  { className: "-top-20 -left-24 size-72", strength: 45 },
+  { className: "right-[-60px] bottom-24 size-80", strength: 25 },
+  { className: "bottom-[-80px] left-[-40px] size-64", strength: 25 },
+] as const;
+
+export interface JiggleModeProps {
+  /** How many home-screen apps to show, read at mount. */
+  appCount?: number;
+  /** Clay color of the phone shell. */
+  tone?: ClayTone;
+  /** Wallpaper base color behind the glows. */
+  wallpaper?: string;
+  /** The three wallpaper glow colors: top left, right, bottom left. */
+  glowColors?: readonly [string, string, string];
+  /** Base wobble amplitude in degrees; each icon adds up to 60% on top. */
+  wobbleAngle?: number;
+  /** Base half-period of one wobble in seconds; each icon adds up to 50ms. */
+  wobbleDuration?: number;
+  /** Hold time in milliseconds before edit mode starts. */
+  longPressMs?: number;
+  /** Scale of an icon while it is dragged. */
+  liftScale?: number;
+  showLabels?: boolean;
+  showDock?: boolean;
+  /** Hint shown outside edit mode; empty hides it. */
+  hint?: string;
+}
 
 const wobbleSeed = (id: string) => {
   let hash = 0;
@@ -235,8 +265,20 @@ const AppIcon: FC<{ app: AppItem }> = ({ app }) => (
   </div>
 );
 
-export const JiggleMode = () => {
-  const [order, setOrder] = useState<string[]>(APPS.map((app) => app.id));
+export const JiggleMode = ({
+  appCount = APPS.length,
+  tone = "ochre",
+  wallpaper = "#1a1209",
+  glowColors = DEFAULT_GLOW_COLORS,
+  wobbleAngle = 2,
+  wobbleDuration = 0.13,
+  longPressMs = 450,
+  liftScale = 1.14,
+  showLabels = true,
+  showDock = true,
+  hint = "Hold an icon to edit",
+}: JiggleModeProps) => {
+  const [order, setOrder] = useState<string[]>(() => APPS.slice(0, appCount).map((app) => app.id));
   const [editing, setEditing] = useState(false);
   const [draggingId, setDraggingId] = useState<string | null>(null);
   const gridRef = useRef<HTMLDivElement | null>(null);
@@ -261,8 +303,8 @@ export const JiggleMode = () => {
 
     pressTimerRef.current = setTimeout(() => {
       setEditing(true);
-    }, LONG_PRESS_MS);
-  }, []);
+    }, longPressMs);
+  }, [longPressMs]);
 
   const cancelPress = useCallback(() => {
     if (pressTimerRef.current !== null && pressTimerRef.current !== 0) {
@@ -316,11 +358,17 @@ export const JiggleMode = () => {
     .filter((app): app is AppItem => app !== undefined);
 
   return (
-    <PhoneFrame tone="ochre" className="bg-[#1a1209]">
-      <div aria-hidden className="absolute inset-0">
-        <div className="absolute -top-20 -left-24 size-72 rounded-full bg-[#d97706]/45 blur-3xl" />
-        <div className="absolute right-[-60px] bottom-24 size-80 rounded-full bg-[#ea580c]/25 blur-3xl" />
-        <div className="absolute bottom-[-80px] left-[-40px] size-64 rounded-full bg-[#be185d]/25 blur-3xl" />
+    <PhoneFrame tone={tone}>
+      <div aria-hidden className="absolute inset-0" style={{ backgroundColor: wallpaper }}>
+        {GLOWS.map((glow, index) => (
+          <div
+            key={glow.className}
+            className={`absolute rounded-full blur-3xl ${glow.className}`}
+            style={{
+              backgroundColor: `color-mix(in srgb, ${glowColors[index]} ${glow.strength}%, transparent)`,
+            }}
+          />
+        ))}
       </div>
 
       <div
@@ -373,7 +421,7 @@ export const JiggleMode = () => {
         <AnimatePresence mode="popLayout">
           {apps.map((app) => {
             const seed = wobbleSeed(app.id);
-            const wobble = 2 + seed * 1.2;
+            const wobble = wobbleAngle * (1 + seed * 0.6);
 
             return (
               <motion.div
@@ -406,7 +454,7 @@ export const JiggleMode = () => {
                     editing
                       ? {
                           rotate: jiggling ? [-wobble, wobble] : 0,
-                          scale: draggingId === app.id ? 1.14 : 1,
+                          scale: draggingId === app.id ? liftScale : 1,
                         }
                       : { rotate: 0, scale: 1 }
                   }
@@ -415,7 +463,7 @@ export const JiggleMode = () => {
                       ? {
                           rotate: jiggling
                             ? {
-                                duration: 0.13 + seed * 0.05,
+                                duration: wobbleDuration + seed * 0.05,
                                 ease: "easeInOut",
                                 repeat: Infinity,
                                 repeatType: "mirror",
@@ -454,48 +502,56 @@ export const JiggleMode = () => {
                     )}
                   </AnimatePresence>
                 </motion.div>
-                <span className="mt-1.5 text-[11px] font-medium text-white/90 drop-shadow-sm">
-                  {app.label}
-                </span>
+                {showLabels && (
+                  <span className="mt-1.5 text-[11px] font-medium text-white/90 drop-shadow-sm">
+                    {app.label}
+                  </span>
+                )}
               </motion.div>
             );
           })}
         </AnimatePresence>
       </div>
 
-      <div className="absolute inset-x-3 bottom-3">
-        <div className="flex items-center justify-around rounded-[30px] bg-white/15 p-3 backdrop-blur-xl">
-          {DOCK.map((app) => {
-            const seed = wobbleSeed(app.id);
+      {showDock && (
+        <div className="absolute inset-x-3 bottom-3">
+          <div className="flex items-center justify-around rounded-[30px] bg-white/15 p-3 backdrop-blur-xl">
+            {DOCK.map((app) => {
+              const seed = wobbleSeed(app.id);
 
-            return (
-              <motion.div
-                key={app.id}
-                animate={jiggling ? { rotate: [-(2 + seed), 2 + seed] } : { rotate: 0 }}
-                transition={
-                  jiggling
-                    ? {
-                        rotate: {
-                          duration: 0.13 + seed * 0.05,
-                          ease: "easeInOut",
-                          repeat: Infinity,
-                          repeatType: "mirror",
-                        },
-                      }
-                    : { rotate: { duration: 0.15 } }
-                }
-                whileTap={{ scale: 0.85 }}
-                style={{ transformOrigin: "center 60%" }}
-              >
-                <AppIcon app={app} />
-              </motion.div>
-            );
-          })}
+              return (
+                <motion.div
+                  key={app.id}
+                  animate={
+                    jiggling
+                      ? { rotate: [-wobbleAngle * (1 + seed / 2), wobbleAngle * (1 + seed / 2)] }
+                      : { rotate: 0 }
+                  }
+                  transition={
+                    jiggling
+                      ? {
+                          rotate: {
+                            duration: wobbleDuration + seed * 0.05,
+                            ease: "easeInOut",
+                            repeat: Infinity,
+                            repeatType: "mirror",
+                          },
+                        }
+                      : { rotate: { duration: 0.15 } }
+                  }
+                  whileTap={{ scale: 0.85 }}
+                  style={{ transformOrigin: "center 60%" }}
+                >
+                  <AppIcon app={app} />
+                </motion.div>
+              );
+            })}
+          </div>
         </div>
-      </div>
+      )}
 
       <AnimatePresence>
-        {!editing && (
+        {!editing && hint !== "" && (
           <motion.p
             key="hint"
             initial={{ opacity: 0 }}
@@ -503,7 +559,7 @@ export const JiggleMode = () => {
             exit={{ opacity: 0 }}
             className="pointer-events-none absolute inset-x-0 bottom-[108px] text-center text-[11px] text-white/35"
           >
-            Hold an icon to edit
+            {hint}
           </motion.p>
         )}
       </AnimatePresence>

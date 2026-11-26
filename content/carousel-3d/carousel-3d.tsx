@@ -32,6 +32,7 @@ const REFERENCE_FPS = 60;
 const VELOCITY_THRESHOLD = 0.002;
 const SNAP_SPEED = 0.15;
 const SNAP_EPSILON = 0.005;
+const AUTOROTATE_RESUME_SECONDS = 1.5;
 const TAU = Math.PI * 2;
 
 const closestSnapRotation = (currentRotation: number, anglePerImage: number, count: number) => {
@@ -52,6 +53,16 @@ const closestSnapRotation = (currentRotation: number, anglePerImage: number, cou
   }
 
   return targetRotation;
+};
+
+const shortestAngleDelta = (from: number, to: number) => {
+  const diff = to - from;
+
+  if (Math.abs(diff) <= Math.PI) {
+    return diff;
+  }
+
+  return diff > 0 ? diff - TAU : diff + TAU;
 };
 
 const setPlaneOpacity = (group: Group, opacity: number) => {
@@ -263,6 +274,8 @@ export const ImageCarousel = ({
   const targetRotationRef = useRef(0);
   const isSnapping = useRef(false);
   const currentIndexRef = useRef(0);
+  const isUserHolding = useRef(false);
+  const idleSeconds = useRef(0);
 
   const isAnimatingIn = useRef(true);
   const animationProgress = useRef(0);
@@ -294,13 +307,20 @@ export const ImageCarousel = ({
   useEffect(() => {
     const canvas = gl.domElement;
 
+    const holdAutorotate = () => {
+      isUserHolding.current = true;
+      idleSeconds.current = 0;
+    };
+
     const handleWheel = (event: WheelEvent) => {
       event.preventDefault();
+      holdAutorotate();
       velocityRef.current += event.deltaY * wheelSensitivity;
       isSnapping.current = false;
     };
 
     const startDrag = (clientX: number) => {
+      holdAutorotate();
       isDragging.current = true;
       lastPointerX.current = clientX;
     };
@@ -310,6 +330,7 @@ export const ImageCarousel = ({
         return;
       }
 
+      holdAutorotate();
       velocityRef.current += (clientX - lastPointerX.current) * dragSensitivity;
       lastPointerX.current = clientX;
       isSnapping.current = false;
@@ -403,7 +424,9 @@ export const ImageCarousel = ({
       return;
     }
 
-    if (autorotate && !isDragging.current && !isSnapping.current) {
+    const isAutorotating = autorotate && !isUserHolding.current;
+
+    if (isAutorotating && !isDragging.current) {
       velocityRef.current += autorotateSpeed * delta;
     }
 
@@ -411,12 +434,12 @@ export const ImageCarousel = ({
 
     const anglePerImage = TAU / images.length;
 
-    if (
-      enableSnapping &&
+    const isAtRest = () =>
       !isDragging.current &&
       !isSnapping.current &&
-      Math.abs(velocityRef.current) < VELOCITY_THRESHOLD
-    ) {
+      Math.abs(velocityRef.current) < VELOCITY_THRESHOLD;
+
+    if (enableSnapping && !isAutorotating && isAtRest()) {
       targetRotationRef.current = closestSnapRotation(
         rotationRef.current,
         anglePerImage,
@@ -427,11 +450,7 @@ export const ImageCarousel = ({
     }
 
     if (isSnapping.current) {
-      let diff = targetRotationRef.current - rotationRef.current;
-
-      if (Math.abs(diff) > Math.PI) {
-        diff += diff > 0 ? -TAU : TAU;
-      }
+      const diff = shortestAngleDelta(rotationRef.current, targetRotationRef.current);
 
       if (Math.abs(diff) < SNAP_EPSILON) {
         rotationRef.current = targetRotationRef.current;
@@ -444,6 +463,14 @@ export const ImageCarousel = ({
     }
 
     group.rotation.y = rotationRef.current;
+
+    if (isUserHolding.current && isAtRest()) {
+      idleSeconds.current += delta;
+
+      if (idleSeconds.current >= AUTOROTATE_RESUME_SECONDS) {
+        isUserHolding.current = false;
+      }
+    }
 
     const normalizedAngle = ((-rotationRef.current % TAU) + TAU) % TAU;
     currentIndexRef.current = Math.round(normalizedAngle / anglePerImage) % images.length;

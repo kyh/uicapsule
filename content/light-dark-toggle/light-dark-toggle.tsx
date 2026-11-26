@@ -3,48 +3,68 @@
 import { useId } from "react";
 import { motion } from "motion/react";
 
-const SUN_RAYS = [
-  { cx: 17, cy: 9, delay: 0 },
-  { cx: 13, cy: 15.928203230275509, delay: 0.05 },
-  { cx: 5.000000000000002, cy: 15.92820323027551, delay: 0.1 },
-  { cx: 1, cy: 9.000000000000002, delay: 0.15 },
-  { cx: 4.9999999999999964, cy: 2.071796769724492, delay: 0.2 },
-  { cx: 13, cy: 2.0717967697244912, delay: 0.25 },
-] as const;
-
-const RAY_RADIUS = 1.5;
+const CENTER = 9;
+const RAY_ORBIT = 8;
 
 interface LightDarkToggleProps {
   isLight: boolean;
+  duration?: number;
+  rayCount?: number;
+  rayRadius?: number;
+  rayStagger?: number;
+  size?: number;
 }
 
-export const LightDarkToggle = ({ isLight }: LightDarkToggleProps) => {
+export const LightDarkToggle = ({
+  isLight,
+  duration = 500,
+  rayCount = 6,
+  rayRadius = 1.5,
+  rayStagger = 0.05,
+  size = 24,
+}: LightDarkToggleProps) => {
   const maskId = `moon-mask-${useId().replaceAll(/[^a-zA-Z0-9]/gu, "")}`;
+
+  const rays = Array.from({ length: rayCount }, (_, index) => {
+    const angle = (index * 2 * Math.PI) / rayCount;
+
+    return {
+      angle,
+      cx: CENTER + RAY_ORBIT * Math.cos(angle),
+      cy: CENTER + RAY_ORBIT * Math.sin(angle),
+      delay: index * rayStagger,
+    };
+  });
 
   return (
     <svg
       viewBox="0 0 18 18"
-      style={{ transform: isLight ? "rotate(90deg)" : "rotate(40deg)" }}
-      className="size-6 overflow-visible transition-transform duration-500"
+      width={size}
+      height={size}
+      style={{
+        transform: isLight ? "rotate(90deg)" : "rotate(40deg)",
+        transitionDuration: `${duration}ms`,
+      }}
+      className="overflow-visible transition-transform"
     >
       <mask id={maskId}>
         <rect x="0" y="0" width="18" height="18" fill="#FFF" />
         <motion.circle animate={{ cx: isLight ? 25 : 10 }} cy="2" r="8" fill="black" />
       </mask>
       <motion.circle
-        cx="9"
-        cy="9"
+        cx={CENTER}
+        cy={CENTER}
         fill="currentColor"
         mask={`url(#${maskId})`}
         animate={{ r: isLight ? 5 : 8 }}
       />
       <g>
-        {SUN_RAYS.map((ray) => (
+        {rays.map((ray) => (
           <motion.circle
-            key={`${ray.cx}-${ray.cy}`}
+            key={ray.angle}
             cx={ray.cx}
             cy={ray.cy}
-            r={RAY_RADIUS}
+            r={rayRadius}
             fill="currentColor"
             animate={{ scale: isLight ? 1 : 0 }}
             transition={{ delay: isLight ? ray.delay : 0 }}

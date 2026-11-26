@@ -21,6 +21,7 @@ import type {
 } from "react";
 
 import {
+  P,
   Spring,
   at,
   clock,
@@ -241,7 +242,7 @@ const keysOf = (tags: readonly string[]) => {
 };
 
 const CHIP =
-  "inline-flex max-w-full items-center gap-[2px] rounded-[9px] bg-(--sk-card) py-[2px] pr-[3px] pl-[10px] text-[14px] leading-[1.2] font-bold text-(--sk-ink) border-[2.4px] border-(--sk-ink) shadow-[2.5px_3px_0_var(--sk-soft)]";
+  "inline-flex max-w-full items-center gap-[2px] rounded-[max(0px,calc(var(--sk-r)-6px))] bg-(--sk-card) py-[2px] pr-[3px] pl-[10px] text-[14px] leading-[1.2] font-bold text-(--sk-ink) border-[2.4px] border-(--sk-ink) shadow-[2.5px_3px_0_var(--sk-soft)]";
 
 const CROSS =
   "grid h-[21px] w-[21px] flex-none place-items-center rounded-full text-(--sk-ink) group-data-inv:text-(--sk-card)";
@@ -414,8 +415,8 @@ const SakugaChips = ({
 
     if (speak()) {
       sfx("shu", x + 6, f.y - 32, {
-        col: "#5a4fd8",
-        edge: "#ffffff",
+        col: P.line,
+        edge: P.fill,
         life: 0.75,
         rot: -0.16,
         size: 92,

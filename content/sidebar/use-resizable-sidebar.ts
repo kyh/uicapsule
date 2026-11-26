@@ -7,44 +7,60 @@ interface UseResizableSidebarOptions {
   maxWidth?: number;
 }
 
+const writeWidth = (sidebar: HTMLDivElement | null, width: number) => {
+  if (sidebar) {
+    sidebar.style.width = `${width}px`;
+  }
+};
+
+/**
+ * Resizes the element behind `sidebarRef` by writing its inline width, so a drag never
+ * re-renders React. The bounds stretch to include `defaultWidth`, so the starting width is
+ * never clamped away by `minWidth`/`maxWidth`.
+ */
 export const useResizableSidebar = ({
   defaultWidth = 240,
   minWidth = 100,
   maxWidth = 300,
 }: UseResizableSidebarOptions = {}) => {
+  const sidebarRef = useRef<HTMLDivElement>(null);
+  const widthRef = useRef<number>(defaultWidth);
   const startXRef = useRef<number>(0);
   const startWidthRef = useRef<number>(0);
   const isResizingRef = useRef<boolean>(false);
+
+  const lowerBound = Math.min(minWidth, defaultWidth);
+  const upperBound = Math.max(maxWidth, defaultWidth);
 
   const handleMouseDown = (e: ReactMouseEvent) => {
     e.preventDefault();
     isResizingRef.current = true;
     startXRef.current = e.clientX;
-
-    const stored = Number(
-      getComputedStyle(document.documentElement)
-        .getPropertyValue("--sidebar-width")
-        .trim()
-        .replace(/px$/u, ""),
-    );
-
-    startWidthRef.current = Number.isFinite(stored) && stored > 0 ? stored : defaultWidth;
+    startWidthRef.current = widthRef.current;
 
     document.body.style.cursor = "col-resize";
     document.body.style.userSelect = "none";
   };
 
   useEffect(() => {
-    document.documentElement.style.setProperty("--sidebar-width", `${defaultWidth}px`);
+    widthRef.current = defaultWidth;
+    writeWidth(sidebarRef.current, defaultWidth);
+  }, [defaultWidth]);
+
+  useEffect(() => {
+    const applyWidth = (width: number) => {
+      widthRef.current = Math.min(Math.max(width, lowerBound), upperBound);
+      writeWidth(sidebarRef.current, widthRef.current);
+    };
+
+    applyWidth(widthRef.current);
 
     const handleMouseMove = (e: MouseEvent) => {
       if (!isResizingRef.current) {
         return;
       }
 
-      const newWidth = startWidthRef.current + (e.clientX - startXRef.current);
-      const clampedWidth = Math.min(Math.max(newWidth, minWidth), maxWidth);
-      document.documentElement.style.setProperty("--sidebar-width", `${clampedWidth}px`);
+      applyWidth(startWidthRef.current + (e.clientX - startXRef.current));
     };
 
     const handleMouseUp = () => {
@@ -66,9 +82,10 @@ export const useResizableSidebar = ({
       document.body.style.cursor = "";
       document.body.style.userSelect = "";
     };
-  }, [defaultWidth, minWidth, maxWidth]);
+  }, [lowerBound, upperBound]);
 
   return {
     handleMouseDown,
+    sidebarRef,
   };
 };

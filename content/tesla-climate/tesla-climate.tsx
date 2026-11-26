@@ -21,18 +21,51 @@ const tempLabel = (tempF: number) => {
   return String(tempF);
 };
 
-export const TeslaClimate = () => {
+const MIN_FAN = 1;
+const MAX_FAN = 10;
+
+export interface TeslaClimateProps {
+  /** Starting cabin temperature in °F, clamped to 60–80 (the ends read LO / HI). */
+  defaultTemp?: number;
+  /** Starting fan speed, clamped to 1–10. */
+  defaultFanSpeed?: number;
+  /** Airflow tint at the coldest setting. */
+  coldColor?: string;
+  /** Airflow tint at the hottest setting. */
+  hotColor?: string;
+  /** Number of air strands in the stream. */
+  strandCount?: number;
+  /** Blur radius of the airflow glow, in px. */
+  glow?: number;
+  /** Multiplier on how far the stream travels from the vent. */
+  reach?: number;
+}
+
+const clamp = (value: number, min: number, max: number) => Math.min(max, Math.max(min, value));
+
+export const TeslaClimate = ({
+  defaultTemp = 68,
+  defaultFanSpeed = 4,
+  coldColor = "#5a8cf0",
+  hotColor = "#eb6969",
+  strandCount = 38,
+  glow = 7,
+  reach = 1,
+}: TeslaClimateProps) => {
   const [powerOn, setPowerOn] = useState(true);
   const [acOn, setAcOn] = useState(true);
-  const [tempF, setTempF] = useState(68);
-  const [fanSpeed, setFanSpeed] = useState(4);
+  const [tempF, setTempF] = useState(() => clamp(Math.round(defaultTemp), MIN_TEMP, MAX_TEMP));
+
+  const [fanSpeed, setFanSpeed] = useState(() =>
+    clamp(Math.round(defaultFanSpeed), MIN_FAN, MAX_FAN),
+  );
 
   const adjustTemp = (delta: number) => {
-    setTempF((previous) => Math.min(MAX_TEMP, Math.max(MIN_TEMP, previous + delta)));
+    setTempF((previous) => clamp(previous + delta, MIN_TEMP, MAX_TEMP));
   };
 
   const adjustFan = (delta: number) => {
-    setFanSpeed((previous) => Math.min(10, Math.max(1, previous + delta)));
+    setFanSpeed((previous) => clamp(previous + delta, MIN_FAN, MAX_FAN));
   };
 
   const label = tempLabel(tempF);
@@ -40,7 +73,17 @@ export const TeslaClimate = () => {
   return (
     <div className="w-[min(620px,94vw)] overflow-hidden rounded-[24px] shadow-2xl shadow-black/50 ring-1 ring-black/15 select-none">
       <div className="relative h-[380px]">
-        <VentScene tempF={tempF} fanSpeed={fanSpeed} powerOn={powerOn} acOn={acOn} />
+        <VentScene
+          tempF={tempF}
+          fanSpeed={fanSpeed}
+          powerOn={powerOn}
+          acOn={acOn}
+          coldColor={coldColor}
+          hotColor={hotColor}
+          strandCount={strandCount}
+          glow={glow}
+          reach={reach}
+        />
 
         <div className="absolute inset-x-0 bottom-4 flex items-center justify-center gap-2 px-4">
           <button

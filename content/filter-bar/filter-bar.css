@@ -15,6 +15,7 @@
   --input: #e4e4e7;
   --ring: #a1a1aa;
   --destructive: #dc2626;
+  --chip-radius: 1rem;
   color: var(--foreground);
 }
 

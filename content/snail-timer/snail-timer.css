@@ -1,12 +1,10 @@
 /* CSS custom properties and animations for SnailTimer.
    Scoped to the component root so a copy-pasted registry item cannot collide
-   with the host app's global custom properties. `--snail-move-duration` is
-   overridden per-instance by an inline style on `.snail-timer__track`. */
+   with the host app's global custom properties. `--snail-move-duration` and
+   `--snail-gait-duration` are overridden per-instance by inline styles. */
 .snail-timer {
   --snail-move-duration: 45s;
-  --snail-eye-duration: 1s;
-  --snail-scale-duration: 1s;
-  --snail-dust-duration: 1s;
+  --snail-gait-duration: 1s;
 }
 
 @keyframes snail-move {
@@ -53,17 +51,17 @@
 }
 
 .snail .right-eye {
-  animation: snail-eye var(--snail-eye-duration) ease infinite;
+  animation: snail-eye var(--snail-gait-duration) ease infinite;
   animation-delay: 0.1s;
 }
 
 .snail .body {
-  animation: snail-scale var(--snail-scale-duration) ease infinite;
+  animation: snail-scale var(--snail-gait-duration) ease infinite;
   animation-delay: 0.1s;
 }
 
 .snail .shell {
-  animation: snail-scale var(--snail-scale-duration) ease infinite;
+  animation: snail-scale var(--snail-gait-duration) ease infinite;
 }
 
 .snail-timer__dust {
@@ -71,7 +69,7 @@
   height: 66px;
   background-image: url("https://d24l2zb4cwkekfpl.public.blob.vercel-storage.com/snail-timer/dust.svg");
   background-size: 5910px 67px;
-  animation: snail-dust var(--snail-dust-duration) steps(29) infinite forwards;
+  animation: snail-dust var(--snail-gait-duration) steps(29) infinite forwards;
   transform: translate(-20px, 10px);
 }
 

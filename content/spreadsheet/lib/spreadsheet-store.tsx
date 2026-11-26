@@ -129,23 +129,43 @@ type SpreadsheetStoreApi = ReturnType<typeof createSpreadsheetStore>;
 
 const SpreadsheetContext = createContext<SpreadsheetStoreApi | null>(null);
 
+export interface SpreadsheetProviderProps {
+  initialData: SpreadsheetRow[];
+  initialColumnWidths: Record<string, number>;
+  /** Column-resize guide color; overrides `--primary`. */
+  accentColor?: string;
+  /** Hue tinting selected cells, mixed into the background per theme; overrides `--selection-tint`. */
+  selectionColor?: string;
+  children: ReactNode;
+}
+
 export const SpreadsheetProvider = ({
   initialData,
   initialColumnWidths,
+  accentColor,
+  selectionColor,
   children,
-}: {
-  initialData: SpreadsheetRow[];
-  initialColumnWidths: Record<string, number>;
-  children: ReactNode;
-}) => {
+}: SpreadsheetProviderProps) => {
   const store = useMemo(
     () => createSpreadsheetStore(initialData, initialColumnWidths),
     [initialData, initialColumnWidths],
   );
 
+  const themeVars: Record<string, string> = {};
+
+  if (accentColor !== undefined) {
+    themeVars["--primary"] = accentColor;
+  }
+
+  if (selectionColor !== undefined) {
+    themeVars["--selection-tint"] = selectionColor;
+  }
+
   return (
     <SpreadsheetContext value={store}>
-      <div className="spreadsheet">{children}</div>
+      <div className="spreadsheet" style={themeVars}>
+        {children}
+      </div>
     </SpreadsheetContext>
   );
 };

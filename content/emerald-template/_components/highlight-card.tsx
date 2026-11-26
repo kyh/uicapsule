@@ -32,7 +32,7 @@ const Pattern = ({
         />
       </div>
       <motion.div
-        className="absolute inset-0 rounded-2xl bg-gradient-to-r from-[#202e26] to-[#28342e] opacity-0 transition duration-300 group-hover:opacity-100"
+        className="absolute inset-0 rounded-2xl bg-gradient-to-r from-(--emerald-card-from) to-(--emerald-card-to) opacity-0 transition duration-300 group-hover:opacity-100"
         style={style}
       />
       <motion.div

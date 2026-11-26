@@ -1,7 +1,7 @@
 "use client";
 
 import type { CSSProperties, PointerEvent as ReactPointerEvent } from "react";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef } from "react";
 import { gsap } from "gsap";
 
 import type { FmLayout, FormationMode, Pose, Work } from "./formation-poses";
@@ -14,7 +14,6 @@ import {
   HOVER_EASE,
   HOVER_ZOOM,
   lerpPose,
-  MODES,
   MORPH_DUR,
   MORPH_STAGGER,
   PARALLAX_MAX,
@@ -114,20 +113,60 @@ const makeCards = (works: Work[]) =>
     work,
   }));
 
+const applyCardSizes = (cards: CardState[], L: FmLayout) => {
+  for (const card of cards) {
+    const { outer } = card;
+
+    if (!outer) {
+      continue;
+    }
+
+    outer.style.width = `${L.cardW}px`;
+    outer.style.height = `${L.cardH}px`;
+    outer.style.marginLeft = `${-L.cardW / 2}px`;
+    outer.style.marginTop = `${-L.cardH / 2}px`;
+  }
+};
+
 const pad = (n: number) => String(n).padStart(2, "0");
 
 const isDragging = (s: LoopState) => s.press?.committed === true;
 
-const isUI = (target: EventTarget | null) =>
-  target instanceof Element && target.closest("[data-fm-ui]") !== null;
-
-interface FormationProps {
+export interface FormationProps {
   works: Work[];
+  /** Formation the cards hold; changing it morphs every card to the new one. */
+  mode?: FormationMode;
+  backgroundTop?: string;
+  backgroundBottom?: string;
+  /** Multiplies the viewport-derived card size. */
+  cardScale?: number;
+  cornerRadius?: number;
+  /** Extra image scale on the hovered card, 0 for none. */
+  hoverZoom?: number;
+  /** Maximum cursor lean in degrees. */
+  parallax?: number;
+  perspective?: number;
+  /** Per-card morph length in milliseconds. */
+  morphDuration?: number;
+  /** Delay between the first and last card's morph start in milliseconds. */
+  morphStagger?: number;
+  showCounter?: boolean;
 }
 
-export const Formation = ({ works }: FormationProps) => {
-  const [mode, setMode] = useState<FormationMode>("flat");
-
+export const Formation = ({
+  works,
+  mode = "flat",
+  backgroundTop = "#121215",
+  backgroundBottom = "#09090b",
+  cardScale = 1,
+  cornerRadius = 12,
+  hoverZoom = HOVER_ZOOM,
+  parallax = PARALLAX_MAX,
+  perspective = PERSP,
+  morphDuration = MORPH_DUR,
+  morphStagger = MORPH_STAGGER,
+  showCounter = true,
+}: FormationProps) => {
   const rootRef = useRef<HTMLElement | null>(null);
   const parallaxRef = useRef<HTMLDivElement | null>(null);
   const counterRef = useRef<HTMLSpanElement | null>(null);
@@ -155,27 +194,7 @@ export const Formation = ({ works }: FormationProps) => {
   const firstMode = useRef(true);
 
   const renderStaticRef = useRef<(() => void) | null>(null);
-
-  const applyCardSizes = () => {
-    const L = layoutRef.current;
-
-    if (!L) {
-      return;
-    }
-
-    for (const card of cards) {
-      const { outer } = card;
-
-      if (!outer) {
-        continue;
-      }
-
-      outer.style.width = `${L.cardW}px`;
-      outer.style.height = `${L.cardH}px`;
-      outer.style.marginLeft = `${-L.cardW / 2}px`;
-      outer.style.marginTop = `${-L.cardH / 2}px`;
-    }
-  };
+  const tuningRef = useRef({ cardScale, morphDuration, morphStagger, parallax });
 
   const hoverHit = (px: number, py: number) => {
     const box = boxRef.current;
@@ -256,10 +275,6 @@ export const Formation = ({ works }: FormationProps) => {
   };
 
   const onPointerDown = (e: ReactPointerEvent<HTMLElement>) => {
-    if (isUI(e.target)) {
-      return;
-    }
-
     if (S.press) {
       return;
     }
@@ -347,6 +362,7 @@ export const Formation = ({ works }: FormationProps) => {
 
   useEffect(() => {
     renderStaticRef.current = renderStatic;
+    tuningRef.current = { cardScale, morphDuration, morphStagger, parallax };
   });
 
   useEffect(() => {
@@ -385,14 +401,15 @@ export const Formation = ({ works }: FormationProps) => {
         return;
       }
 
-      layoutRef.current = getLayout(box.w, box.h, n);
+      const L = getLayout(box.w, box.h, n, tuningRef.current.cardScale);
+      layoutRef.current = L;
 
       if (!st.cursor.inside) {
         st.cursor.x = box.w / 2;
         st.cursor.y = box.h / 2;
       }
 
-      applyCardSizes();
+      applyCardSizes(cards, L);
 
       if (st.reduced) {
         renderStatic();
@@ -432,13 +449,10 @@ export const Formation = ({ works }: FormationProps) => {
       if (st.morphing) {
         st.morphMs += dt;
         let allDone = true;
+        const { morphDuration: dur, morphStagger: stagger } = tuningRef.current;
 
         for (const card of cards) {
-          const p = clamp(
-            (st.morphMs - (MORPH_STAGGER * card.index) / staggerDenom) / MORPH_DUR,
-            0,
-            1,
-          );
+          const p = clamp((st.morphMs - (stagger * card.index) / staggerDenom) / dur, 0, 1);
 
           if (p < 1) {
             allDone = false;
@@ -533,8 +547,9 @@ export const Formation = ({ works }: FormationProps) => {
         }
       }
 
-      const ty = (st.cursor.x / L.W - 0.5) * PARALLAX_MAX;
-      const tx = (0.5 - st.cursor.y / L.H) * PARALLAX_MAX;
+      const lean = tuningRef.current.parallax;
+      const ty = (st.cursor.x / L.W - 0.5) * lean;
+      const tx = (0.5 - st.cursor.y / L.H) * lean;
       st.curTX += (tx - st.curTX) * 0.06;
       st.curTY += (ty - st.curTY) * 0.06;
 
@@ -621,10 +636,6 @@ export const Formation = ({ works }: FormationProps) => {
     window.addEventListener("resize", relayout);
 
     const onWheel = (e: WheelEvent) => {
-      if (isUI(e.target)) {
-        return;
-      }
-
       if (st.reduced) {
         return;
       }
@@ -717,6 +728,28 @@ export const Formation = ({ works }: FormationProps) => {
   }, [cards, S]);
 
   useEffect(() => {
+    if (showCounter) {
+      S.lastFocused = null;
+    }
+  }, [showCounter, S]);
+
+  useEffect(() => {
+    const box = boxRef.current;
+
+    if (box.w < 1 || box.h < 1) {
+      return;
+    }
+
+    const L = getLayout(box.w, box.h, n, cardScale);
+    layoutRef.current = L;
+    applyCardSizes(cards, L);
+
+    if (S.reduced) {
+      renderStaticRef.current?.();
+    }
+  }, [cardScale, cards, n, S]);
+
+  useEffect(() => {
     modeRef.current = mode;
 
     if (firstMode.current) {
@@ -742,9 +775,8 @@ export const Formation = ({ works }: FormationProps) => {
   }, [mode, cards, S]);
 
   const stageStyle: CustomCSS = {
-    "--fm-bg": "#0a0a0a",
     "--fm-fg": "#fafafa",
-    background: "linear-gradient(180deg, #121215 0%, #09090b 100%)",
+    background: `linear-gradient(180deg, ${backgroundTop} 0%, ${backgroundBottom} 100%)`,
     color: "rgba(255,255,255,0.92)",
     fontFamily: SANS,
     touchAction: "pan-y",
@@ -763,7 +795,7 @@ export const Formation = ({ works }: FormationProps) => {
     >
       <div
         className="absolute inset-0"
-        style={{ perspective: `${PERSP}px`, perspectiveOrigin: "50% 50%" }}
+        style={{ perspective: `${perspective}px`, perspectiveOrigin: "50% 50%" }}
       >
         <div
           ref={parallaxRef}
@@ -788,7 +820,7 @@ export const Formation = ({ works }: FormationProps) => {
                 }}
                 className="absolute inset-0 overflow-hidden"
                 style={{
-                  borderRadius: 12,
+                  borderRadius: cornerRadius,
                   boxShadow: "0 16px 40px -16px rgba(0,0,0,0.55)",
                   opacity: 0,
                 }}
@@ -796,8 +828,8 @@ export const Formation = ({ works }: FormationProps) => {
                 <div
                   className="absolute inset-0 overflow-hidden"
                   style={{
-                    borderRadius: 12,
-                    transform: `scale(calc(1 + ${HOVER_ZOOM} * var(--hv, 0)))`,
+                    borderRadius: cornerRadius,
+                    transform: `scale(calc(1 + ${hoverZoom} * var(--hv, 0)))`,
                   }}
                 >
                   <div
@@ -806,7 +838,7 @@ export const Formation = ({ works }: FormationProps) => {
                       backgroundImage: `url(${card.work.image})`,
                       backgroundPosition: "center",
                       backgroundSize: "cover",
-                      borderRadius: 12,
+                      borderRadius: cornerRadius,
                       filter: "saturate(0.98) contrast(1.03)",
                     }}
                   />
@@ -817,67 +849,26 @@ export const Formation = ({ works }: FormationProps) => {
         </div>
       </div>
 
-      <footer
-        className="pointer-events-none absolute inset-x-0 bottom-0 z-40 flex items-end justify-end p-5 sm:px-8"
-        style={{ color: "var(--fm-fg)" }}
-      >
-        <span
-          ref={counterRef}
-          className="hidden uppercase sm:block"
-          style={{
-            fontFamily: MONO,
-            fontSize: "0.64rem",
-            fontVariantNumeric: "tabular-nums",
-            letterSpacing: "0.2em",
-            opacity: 0.5,
-          }}
+      {showCounter ? (
+        <footer
+          className="pointer-events-none absolute inset-x-0 bottom-0 z-40 flex items-end justify-end p-5 sm:px-8"
+          style={{ color: "var(--fm-fg)" }}
         >
-          {`01 — ${pad(n)}`}
-        </span>
-      </footer>
-
-      <div className="pointer-events-none absolute inset-x-0 bottom-0 z-50 flex justify-center px-4 pb-6 sm:inset-x-auto sm:bottom-auto sm:right-0 sm:top-5 sm:justify-end sm:px-0 sm:pr-6">
-        <div
-          role="tablist"
-          data-fm-ui
-          className="pointer-events-auto flex gap-1 rounded-full p-1"
-          style={{
-            WebkitBackdropFilter: "blur(12px)",
-            backdropFilter: "blur(12px)",
-            background: "color-mix(in srgb, var(--fm-bg) 72%, transparent)",
-            border: "1px solid color-mix(in srgb, var(--fm-fg) 12%, transparent)",
-            boxShadow: "0 14px 40px -20px rgba(0,0,0,0.5)",
-          }}
-        >
-          {MODES.map((m) => {
-            const active = mode === m.id;
-
-            return (
-              <button
-                key={m.id}
-                role="tab"
-                type="button"
-                aria-selected={active}
-                onClick={() => {
-                  setMode(m.id);
-                }}
-                className="rounded-full transition-colors"
-                style={{
-                  background: active ? "var(--fm-fg)" : "transparent",
-                  border: "1px solid transparent",
-                  color: active ? "var(--fm-bg)" : "var(--fm-fg)",
-                  fontFamily: SANS,
-                  fontSize: "0.8rem",
-                  fontWeight: 500,
-                  padding: "6px 14px",
-                }}
-              >
-                {m.label}
-              </button>
-            );
-          })}
-        </div>
-      </div>
+          <span
+            ref={counterRef}
+            className="hidden uppercase sm:block"
+            style={{
+              fontFamily: MONO,
+              fontSize: "0.64rem",
+              fontVariantNumeric: "tabular-nums",
+              letterSpacing: "0.2em",
+              opacity: 0.5,
+            }}
+          >
+            {`01 — ${pad(n)}`}
+          </span>
+        </footer>
+      ) : null}
     </section>
   );
 };

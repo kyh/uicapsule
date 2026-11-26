@@ -2,7 +2,8 @@
 
 import type { CSSProperties } from "react";
 
-import { MaterialYouTheming } from "./material-you-theming";
+import { MaterialYouTheming, WALLPAPERS } from "./material-you-theming";
+import type { ClayTone } from "./phone-frame";
 
 const GRAIN =
   "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.07'/%3E%3C/svg%3E\")";
@@ -16,9 +17,83 @@ const backdrop: CSSProperties = {
   ].join(", "),
 };
 
-const Preview = () => (
+export const controls = {
+  hueShift: { default: 0, label: "Hue shift", max: 359, min: 0, step: 1, type: "number" },
+  chroma: { default: 1, label: "Chroma", max: 1.5, min: 0.3, step: 0.05, type: "number" },
+  duration: { default: 0.7, label: "Re-theme time", max: 2, min: 0.1, step: 0.05, type: "number" },
+  tone: {
+    default: "moss",
+    label: "Phone",
+    options: [
+      { label: "Moss", value: "moss" },
+      { label: "Graphite", value: "graphite" },
+      { label: "Espresso", value: "espresso" },
+      { label: "Ochre", value: "ochre" },
+      { label: "Plum", value: "plum" },
+      { label: "Slate", value: "slate" },
+      { label: "Teal", value: "teal" },
+      { label: "Terracotta", value: "terracotta" },
+    ],
+    type: "select",
+  },
+  time: { default: "9:41", label: "Clock", placeholder: "9:41", type: "text" },
+  date: { default: "Mon, Jul 7 · Material You", label: "Date", type: "text" },
+  trackTitle: { default: "Night Drive", label: "Track", type: "text" },
+  trackArtist: { default: "Solenne", label: "Artist", type: "text" },
+  messageFrom: { default: "Mia", label: "Sender", type: "text" },
+  messageText: { default: "That new wallpaper looks great on you", label: "Message", type: "text" },
+  hint: {
+    default: "Pick a wallpaper — the whole system re-themes",
+    label: "Caption",
+    type: "text",
+  },
+} as const;
+
+interface PreviewProps {
+  chroma: number;
+  date: string;
+  duration: number;
+  hint: string;
+  hueShift: number;
+  messageFrom: string;
+  messageText: string;
+  time: string;
+  tone: ClayTone;
+  trackArtist: string;
+  trackTitle: string;
+}
+
+const Preview = ({
+  chroma = controls.chroma.default,
+  date = controls.date.default,
+  duration = controls.duration.default,
+  hint = controls.hint.default,
+  hueShift = controls.hueShift.default,
+  messageFrom = controls.messageFrom.default,
+  messageText = controls.messageText.default,
+  time = controls.time.default,
+  tone = controls.tone.default,
+  trackArtist = controls.trackArtist.default,
+  trackTitle = controls.trackTitle.default,
+}: Partial<PreviewProps>) => (
   <main className="flex h-dvh items-center justify-center overflow-hidden p-5" style={backdrop}>
-    <MaterialYouTheming />
+    <MaterialYouTheming
+      chroma={chroma}
+      date={date}
+      duration={duration}
+      hint={hint}
+      messageFrom={messageFrom}
+      messageText={messageText}
+      time={time}
+      tone={tone}
+      trackArtist={trackArtist}
+      trackTitle={trackTitle}
+      wallpapers={WALLPAPERS.map((wallpaper) => ({
+        ...wallpaper,
+        hue: (wallpaper.hue + hueShift) % 360,
+        hueB: (wallpaper.hueB + hueShift) % 360,
+      }))}
+    />
   </main>
 );
 

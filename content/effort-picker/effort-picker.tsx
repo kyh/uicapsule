@@ -23,6 +23,8 @@ interface EffortPickerProps {
   /** Which app the picker is pretending to live inside. Orthogonal to variant:
    * the theme paints the chrome, the variant supplies the physics. */
   theme?: EffortTheme;
+  /** Level index the knob starts on, read once at mount; out-of-range values clamp to the ends. */
+  defaultLevel?: number;
 }
 
 const CARD_POP = { damping: 30, stiffness: 380, type: "spring" } as const;
@@ -39,8 +41,12 @@ const isPerformance = (variant: EffortVariant) => variant !== "slingshot";
  * The shell owns the knob's position so the composer chip can follow it frame by
  * frame without re-rendering React.
  */
-export const EffortPicker = ({ variant = "slingshot", theme = "chatgpt" }: EffortPickerProps) => {
-  const knobX = useMotionValue(notchX(theme, DEFAULT_LEVEL));
+export const EffortPicker = ({
+  variant = "slingshot",
+  theme = "chatgpt",
+  defaultLevel = DEFAULT_LEVEL,
+}: EffortPickerProps) => {
+  const knobX = useMotionValue(notchX(theme, defaultLevel));
   const [open, setOpen] = useState(!isPerformance(variant));
 
   const [renderedVariant, setRenderedVariant] = useState(variant);

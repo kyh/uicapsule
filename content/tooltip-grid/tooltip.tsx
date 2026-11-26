@@ -205,7 +205,9 @@ const lineTransition = {
   ease: easeInOutQuint,
 };
 
-const TooltipLines = () => {
+type CssVarStyle = CSSProperties & Record<`--${string}`, number | string>;
+
+const TooltipLines = ({ color }: { color: string }) => {
   const context = useTooltipContext();
   const floatingEl = context.elements.floating;
 
@@ -213,10 +215,13 @@ const TooltipLines = () => {
     return null;
   }
 
+  const style: CssVarStyle = { "--border-color": color };
+
   return (
     <>
       <motion.div
         className="line lineH"
+        style={style}
         initial={{ opacity: 0, y: -1 }}
         animate={{ opacity: 1, y: context.y }}
         exit={{ opacity: 0, y: -1 }}
@@ -224,6 +229,7 @@ const TooltipLines = () => {
       />
       <motion.div
         className="line lineH"
+        style={style}
         initial={{ opacity: 0, y: "100dvh" }}
         animate={{ opacity: 1, y: context.y + floatingEl.offsetHeight }}
         exit={{ opacity: 0, y: "100dvh" }}
@@ -231,6 +237,7 @@ const TooltipLines = () => {
       />
       <motion.div
         className="line lineV"
+        style={style}
         initial={{ opacity: 0, x: -1 }}
         animate={{ opacity: 1, x: context.x }}
         exit={{ opacity: 0, x: -1 }}
@@ -238,6 +245,7 @@ const TooltipLines = () => {
       />
       <motion.div
         className="line lineV"
+        style={style}
         initial={{ opacity: 0, x: "100dvw" }}
         animate={{ opacity: 1, x: context.x + floatingEl.offsetWidth }}
         exit={{ opacity: 0, x: "100dvw" }}
@@ -247,22 +255,20 @@ const TooltipLines = () => {
   );
 };
 
-const cols = 11;
-const rows = 8;
-const duration = 0.07;
-const baseDelay = duration / 2;
-const blocks = Array.from({ length: cols * rows }, (_, i) => i);
-const centerCol = Math.floor(cols / 2);
+interface BlockGrid {
+  cols: number;
+  rows: number;
+  duration: number;
+}
 
-const calculateDelay = (n: number) => baseDelay * Math.floor(n / cols) + baseDelay * (n % cols);
-
-const totalDelay = calculateDelay(cols * rows);
-
-const getDirectionalDelay = (n: number, direction: HoverDirection) => {
+const getDirectionalDelay = (n: number, direction: HoverDirection, grid: BlockGrid) => {
+  const { cols, rows } = grid;
+  const baseDelay = grid.duration / 2;
   const row = Math.floor(n / cols);
   const col = n % cols;
   const fromBottom = rows - 1 - row;
   const fromRight = cols - 1 - col;
+  const fromCenter = Math.abs(col - Math.floor(cols / 2));
 
   switch (direction) {
     case "left": {
@@ -274,7 +280,7 @@ const getDirectionalDelay = (n: number, direction: HoverDirection) => {
     }
 
     case "bottom-center": {
-      return baseDelay * fromBottom + baseDelay * Math.abs(col - centerCol);
+      return baseDelay * fromBottom + baseDelay * fromCenter;
     }
 
     case "top-left": {
@@ -294,7 +300,7 @@ const getDirectionalDelay = (n: number, direction: HoverDirection) => {
     }
 
     case "top-center": {
-      return baseDelay * row + baseDelay * Math.abs(col - centerCol);
+      return baseDelay * row + baseDelay * fromCenter;
     }
 
     default: {
@@ -303,20 +309,18 @@ const getDirectionalDelay = (n: number, direction: HoverDirection) => {
   }
 };
 
-type BlocksContainerStyle = CSSProperties & Record<`--${string}`, number>;
-
-const blocksContainerStyle: BlocksContainerStyle = { "--cols": cols, "--rows": rows };
-
-const TooltipBlocks = () => {
+const TooltipBlocks = ({ grid }: { grid: BlockGrid }) => {
   const context = useTooltipContext();
 
   if (!isPlaced(context)) {
     return null;
   }
 
+  const style: CssVarStyle = { "--cols": grid.cols, "--rows": grid.rows };
+
   return (
-    <div className="blocksContainer" style={blocksContainerStyle}>
-      {blocks.map((i) => (
+    <div className="blocksContainer" style={style}>
+      {Array.from({ length: grid.cols * grid.rows }, (_, i) => (
         <motion.div
           key={i}
           className="block"
@@ -324,8 +328,8 @@ const TooltipBlocks = () => {
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
           transition={{
-            delay: getDirectionalDelay(i, context.hoverDirection),
-            duration,
+            delay: getDirectionalDelay(i, context.hoverDirection, grid),
+            duration: grid.duration,
           }}
         />
       ))}
@@ -336,16 +340,42 @@ const TooltipBlocks = () => {
 export const TooltipContent = ({
   className,
   type = "default",
+  cols = 11,
+  rows = 8,
+  blockDuration = 0.07,
+  panelColor = "#020617",
+  guides = true,
+  guideColor = "#334155",
   ref: propRef,
+  style,
   children,
   ...props
 }: HTMLProps<HTMLDivElement> & {
   type?: "default" | "block";
+  cols?: number;
+  rows?: number;
+  blockDuration?: number;
+  panelColor?: string;
+  guides?: boolean;
+  guideColor?: string;
 }) => {
   const context = useTooltipContext();
   const ref = useMergeRefs([context.refs.setFloating, propRef]);
   const floatingProps = context.getFloatingProps(props);
   const blockType = type === "block";
+
+  const grid = useMemo<BlockGrid>(
+    () => ({ cols, duration: blockDuration, rows }),
+    [cols, rows, blockDuration],
+  );
+
+  const revealDelay = (blockDuration / 2) * rows;
+
+  const tooltipStyle: CssVarStyle = {
+    ...context.floatingStyles,
+    ...style,
+    "--colors-panel": panelColor,
+  };
 
   const tooltipMotionProps = blockType
     ? {}
@@ -361,7 +391,7 @@ export const TooltipContent = ({
         animate: {
           opacity: 1,
           transition: {
-            delay: context.hoverDirection.includes("top") ? totalDelay * 2 : totalDelay,
+            delay: context.hoverDirection.includes("top") ? revealDelay * 2 : revealDelay,
           },
         },
         exit: { opacity: 0 },
@@ -376,18 +406,20 @@ export const TooltipContent = ({
           <motion.div
             className={`tooltip ${blockType ? "block" : ""} ${className ?? ""}`}
             ref={ref}
-            style={context.floatingStyles}
+            style={tooltipStyle}
             {...tooltipMotionProps}
             {...floatingProps}
           >
-            {blockType && <TooltipBlocks />}
+            {blockType && <TooltipBlocks grid={grid} />}
             <motion.div className="content" {...contentMotionProps}>
               {children}
             </motion.div>
           </motion.div>
         )}
       </AnimatePresence>
-      {blockType && <AnimatePresence>{context.open && <TooltipLines />}</AnimatePresence>}
+      {blockType && guides && (
+        <AnimatePresence>{context.open && <TooltipLines color={guideColor} />}</AnimatePresence>
+      )}
     </FloatingPortal>
   );
 };

@@ -4,7 +4,9 @@ import { GeometricOrb } from "./geometric-orb";
 
 export const controls = {
   numLines: { default: 20, label: "Lines", max: 60, min: 4, step: 1, type: "number" },
-  speed: { default: 20, label: "Cycle duration (s)", max: 60, min: 4, step: 1, type: "number" },
+  speed: { default: 20, label: "Cycle (s)", max: 60, min: 4, step: 1, type: "number" },
+  radius: { default: 1.5, label: "Radius", max: 2.5, min: 0.5, step: 0.05, type: "number" },
+  pointsPerLine: { default: 96, label: "Detail", max: 192, min: 16, step: 8, type: "number" },
   lineWidth: { default: 2, label: "Line width", max: 6, min: 0.5, step: 0.5, type: "number" },
   squiggleAmount: {
     default: 0.04,
@@ -23,6 +25,7 @@ export const controls = {
     type: "number",
   },
   squiggleSpeed: { default: 2, label: "Squiggle speed", max: 8, min: 0, step: 0.1, type: "number" },
+  depthFade: { default: 0.85, label: "Depth fade", max: 1, min: 0, step: 0.05, type: "number" },
   color: { default: "#eeeeee", label: "Line color", type: "color" },
   background: { default: "#0a0a0a", type: "color" },
 } as const;
@@ -30,8 +33,11 @@ export const controls = {
 interface PreviewProps {
   background: string;
   color: string;
+  depthFade: number;
   lineWidth: number;
   numLines: number;
+  pointsPerLine: number;
+  radius: number;
   speed: number;
   squiggleAmount: number;
   squiggleFrequency: number;
@@ -41,8 +47,11 @@ interface PreviewProps {
 const Preview = ({
   background = controls.background.default,
   color = controls.color.default,
+  depthFade = controls.depthFade.default,
   lineWidth = controls.lineWidth.default,
   numLines = controls.numLines.default,
+  pointsPerLine = controls.pointsPerLine.default,
+  radius = controls.radius.default,
   speed = controls.speed.default,
   squiggleAmount = controls.squiggleAmount.default,
   squiggleFrequency = controls.squiggleFrequency.default,
@@ -53,8 +62,11 @@ const Preview = ({
       config={{
         background,
         color,
+        depthFade,
         lineWidth,
         numLines,
+        pointsPerLine,
+        radius,
         speed,
         squiggleAmount,
         squiggleFrequency,

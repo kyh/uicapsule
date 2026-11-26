@@ -26,17 +26,21 @@ const FONT = new Map(
   }),
 );
 
-const ACCENTS = ["#e23d2e", "#f0b429", "#3fa945", "#3186d4"] as const;
-const accentAt = (i: number) => ACCENTS[i % ACCENTS.length] ?? ACCENTS[0];
+/** Four accent colors: station markers, gates, signs, walkers, trucks and balloons. */
+export type VoxelPalette = readonly [string, string, string, string];
+
+export const DEFAULT_ACCENTS = ["#e23d2e", "#f0b429", "#3fa945", "#3186d4"] as const;
+
+const accentAt = (palette: VoxelPalette, i: number) => palette[i % palette.length] ?? palette[0];
 
 const SECTION_GAP = 60;
 
 const SECTIONS = [
-  { accent: ACCENTS[0], word: "VOXEL" },
-  { accent: ACCENTS[1], word: "BUILD" },
-  { accent: ACCENTS[2], word: "STACK" },
-  { accent: ACCENTS[3], word: "SHIP" },
-  { accent: ACCENTS[0], word: "START" },
+  { accent: 0, word: "VOXEL" },
+  { accent: 1, word: "BUILD" },
+  { accent: 2, word: "STACK" },
+  { accent: 3, word: "SHIP" },
+  { accent: 0, word: "START" },
 ] as const;
 
 const WORLD_LEN = SECTION_GAP * (SECTIONS.length - 1);
@@ -229,20 +233,20 @@ const buildTree = (out: Voxel[], x: number, z: number, seed: number) => {
   }
 };
 
-const buildWorld = () => {
+const buildWorld = (palette: VoxelPalette) => {
   const out: Voxel[] = [];
 
   buildSign(out, "VOXEL", -8, 0);
   buildSign(out, "START", WORLD_LEN - 8, 4);
 
   buildFountain(out);
-  buildGate(out, 45, "#e23d2e");
-  buildGate(out, 150, "#f0b429");
-  buildGate(out, 212, "#3fa945");
+  buildGate(out, 45, palette[0]);
+  buildGate(out, 150, palette[1]);
+  buildGate(out, 212, palette[2]);
 
-  buildFlatWord(out, "BUILD", -10, SECTION_GAP + 9, ACCENTS[1]);
-  buildFlatWord(out, "STACK", -10, SECTION_GAP * 2 + 9, ACCENTS[2]);
-  buildFlatWord(out, "SHIP", -10, SECTION_GAP * 3 + 9, ACCENTS[3]);
+  buildFlatWord(out, "BUILD", -10, SECTION_GAP + 9, palette[1]);
+  buildFlatWord(out, "STACK", -10, SECTION_GAP * 2 + 9, palette[2]);
+  buildFlatWord(out, "SHIP", -10, SECTION_GAP * 3 + 9, palette[3]);
 
   buildTree(out, 13, SECTION_GAP - 12, 0);
   buildTree(out, 15, SECTION_GAP - 2, 1);
@@ -259,7 +263,7 @@ const buildWorld = () => {
       out.push(vox({ color: y % 2 === 0 ? "#5a5f66" : "#6b7076", x: tx, y, z: tz }));
     }
 
-    out.push(vox({ color: accentAt(i), x: tx, y: height - 1, z: tz }));
+    out.push(vox({ color: accentAt(palette, i), x: tx, y: height - 1, z: tz }));
   }
 
   for (let dz = -8; dz <= 8; dz += 1) {
@@ -296,7 +300,7 @@ const buildWorld = () => {
     const px = Math.round(Math.sin(pz * 0.16) * 4) + 4 + (hash(i * 3.9) < 0.5 ? 3 : -3);
     out.push(
       vox({ color: "#7d838a", h: 3, size: 0.22, x: px, y: 0, z: pz }),
-      vox({ color: accentAt(i), size: 0.5, x: px, y: 3, z: pz }),
+      vox({ color: accentAt(palette, i), size: 0.5, x: px, y: 3, z: pz }),
     );
   }
 
@@ -310,7 +314,7 @@ const buildWorld = () => {
     } else {
       out.push(
         vox({ color: "#3fa945", h: 1, size: 0.16, x: fx, y: 0, z: fz }),
-        vox({ color: accentAt(i), size: 0.34, x: fx, y: 1, z: fz }),
+        vox({ color: accentAt(palette, i), size: 0.34, x: fx, y: 1, z: fz }),
       );
     }
   }
@@ -325,12 +329,12 @@ interface Walker {
   id: number;
 }
 
-const buildWalkers = () => {
+const buildWalkers = (palette: VoxelPalette) => {
   const walkers: Walker[] = [];
 
   const add = (hx: number, hz: number, radius: number) => {
     walkers.push({
-      body: accentAt(walkers.length),
+      body: accentAt(palette, walkers.length),
       home: [hx, hz],
       id: walkers.length,
       radius,
@@ -385,14 +389,16 @@ interface Label {
   size: string;
 }
 
-const LABELS: Label[] = [
-  {
-    lines: ["Voxelworks", "A tiny nation of cubes"],
+const heroLabel = (brand: string, tagline: string) =>
+  ({
+    lines: [brand, tagline],
     matrix: GROUND_CROSS,
     size: "text-xl",
     x: 14,
     z: 4,
-  },
+  }) satisfies Label;
+
+const STATION_LABELS: Label[] = [
   {
     lines: ["01. Build", "Plant the grove"],
     matrix: GROUND,
@@ -424,7 +430,15 @@ const LABELS: Label[] = [
 ];
 
 interface VoxelLandingProps {
+  /** Pan through the stations on a loop; paused for 4s after a wheel or drag. */
   autoTour?: boolean;
+  /** Multiplier on the auto tour's pace. */
+  tourSpeed?: number;
+  /** Camera zoom; 1 draws a 13px tile. */
+  zoom?: number;
+  accents?: VoxelPalette;
+  brand?: string;
+  tagline?: string;
 }
 
 const clamp01 = (v: number) => Math.min(1, Math.max(0, v));
@@ -487,7 +501,13 @@ type Push = (
   alpha: number,
 ) => void;
 
-const pushWorld = (push: Push, world: Voxel[], now: number, atFinale: boolean) => {
+const pushWorld = (
+  push: Push,
+  world: Voxel[],
+  palette: VoxelPalette,
+  now: number,
+  atFinale: boolean,
+) => {
   const pulsePhase = Math.floor(now * 2.5);
   const finaleRate = atFinale ? 0.34 : 0.16;
 
@@ -498,7 +518,7 @@ const pushWorld = (push: Push, world: Voxel[], now: number, atFinale: boolean) =
       const rate = v.section === 4 ? finaleRate : 0.16;
 
       if (hash(v.seed * 13.7 + pulsePhase * 3.3) < rate) {
-        color = accentAt(Math.floor(hash(v.seed + pulsePhase) * 4));
+        color = accentAt(palette, Math.floor(hash(v.seed + pulsePhase) * 4));
       }
     } else if (v.kind === "road") {
       alpha = 0.35 + 0.65 * hash(v.seed * 7.1 + Math.floor(now * 3.2));
@@ -519,7 +539,7 @@ const pushWalkers = (push: Push, walkers: Walker[], now: number, tick: number) =
   }
 };
 
-const pushSky = (push: Push, now: number, tick: number) => {
+const pushSky = (push: Push, palette: VoxelPalette, now: number, tick: number) => {
   for (let i = 0; i < 5; i += 1) {
     const bz = 20 + hash(i * 19.3) * (WORLD_LEN - 20);
     const bx = ((now * 2.4 + hash(i * 7.7) * 40) % 44) - 22;
@@ -548,7 +568,7 @@ const pushSky = (push: Push, now: number, tick: number) => {
     const qx = Math.round(bx * 4) / 4;
     const lift = Math.round(Math.sin(now * 0.7 + i * 2.4) * 2) / 4;
     push(qx, 10.4 + lift, bz, 0.5, 0.5, "#7a5a3a", 1);
-    push(qx, 11.4 + lift, bz, 1.1, 1.1, accentAt(i * 3), 1);
+    push(qx, 11.4 + lift, bz, 1.1, 1.1, accentAt(palette, i * 3), 1);
   }
 };
 
@@ -560,7 +580,7 @@ const JETS = [
   [0, -1.2],
 ] as const;
 
-const pushTrucks = (push: Push, now: number) => {
+const pushTrucks = (push: Push, palette: VoxelPalette, now: number) => {
   const truckSpan = WORLD_LEN + 40;
 
   for (let i = 0; i < 2; i += 1) {
@@ -571,11 +591,11 @@ const pushTrucks = (push: Push, now: number) => {
     const tx = Math.round(roadX(qz) * 4) / 4;
     const dir = outbound ? 1 : -1;
     push(tx, 0, qz + 0.7 * dir, 0.5, 0.7, "#e8ecef", 1);
-    push(tx, 0, qz - 0.5 * dir, 0.62, 1, accentAt(i * 2 + 1), 1);
+    push(tx, 0, qz - 0.5 * dir, 0.62, 1, accentAt(palette, i * 2 + 1), 1);
   }
 };
 
-const pushGround = (push: Push, now: number, tick: number) => {
+const pushGround = (push: Push, palette: VoxelPalette, now: number, tick: number) => {
   for (const [j, [jx, jz]] of JETS.entries()) {
     const jetH = 1 + Math.floor((Math.sin(now * 2.2 + j * 1.7) + 1) * 1.4);
 
@@ -584,7 +604,7 @@ const pushGround = (push: Push, now: number, tick: number) => {
     }
   }
 
-  pushTrucks(push, now);
+  pushTrucks(push, palette, now);
 
   const duckSpan = WORLD_LEN + 20;
   const duckLead = (now * 0.8 + 5) % duckSpan;
@@ -641,12 +661,24 @@ const paint = (ctx: CanvasRenderingContext2D, drawables: Drawable[]) => {
   ctx.globalAlpha = 1;
 };
 
-export const VoxelLanding = ({ autoTour = true }: VoxelLandingProps) => {
+export const VoxelLanding = ({
+  autoTour = true,
+  tourSpeed = 1,
+  zoom = 1,
+  accents = DEFAULT_ACCENTS,
+  brand = "Voxelworks",
+  tagline = "A tiny nation of cubes",
+}: VoxelLandingProps) => {
   const containerRef = useRef<HTMLDivElement | null>(null);
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const htmlRef = useRef<HTMLDivElement | null>(null);
+  const liveRef = useRef({ accents, autoTour, tourSpeed, zoom });
   const [sectionIdx, setSectionIdx] = useState(0);
   const [moved, setMoved] = useState(false);
+
+  useEffect(() => {
+    liveRef.current = { accents, autoTour, tourSpeed, zoom };
+  }, [accents, autoTour, tourSpeed, zoom]);
 
   useEffect(() => {
     const container = containerRef.current;
@@ -663,23 +695,24 @@ export const VoxelLanding = ({ autoTour = true }: VoxelLandingProps) => {
       return noop;
     }
 
-    const world = buildWorld();
-    const walkers = buildWalkers();
+    let palette = liveRef.current.accents;
+    let world = buildWorld(palette);
+    let walkers = buildWalkers(palette);
     const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
     let width = 0;
     let height = 0;
+    let dpr = 1;
     let dotPattern: CanvasPattern | null = null;
 
     const resize = () => {
-      const dpr = Math.min(window.devicePixelRatio, 2);
+      dpr = Math.min(window.devicePixelRatio, 2);
       width = container.clientWidth;
       height = container.clientHeight;
       canvas.width = Math.round(width * dpr);
       canvas.height = Math.round(height * dpr);
       canvas.style.width = `${width}px`;
       canvas.style.height = `${height}px`;
-      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
 
       const tile = document.createElement("canvas");
       tile.width = 18;
@@ -702,8 +735,8 @@ export const VoxelLanding = ({ autoTour = true }: VoxelLandingProps) => {
     let scroll = 0;
     let target = 0;
     let lastInput = -Infinity;
-    let tourOffset = 0;
-    let pausedAt: number | null = null;
+    let tourClock = 0;
+    let prevElapsed = 0;
     let raf = 0;
     let last = 0;
     let shownSection = 0;
@@ -719,30 +752,34 @@ export const VoxelLanding = ({ autoTour = true }: VoxelLandingProps) => {
 
       last = nowMs;
       const elapsed = (nowMs - start) / 1000;
+      const dt = elapsed - prevElapsed;
+      prevElapsed = elapsed;
       const now = reducedMotion ? 0 : elapsed;
+      const live = liveRef.current;
 
-      if (autoTour && !reducedMotion) {
-        if (elapsed - lastInput < 4) {
-          pausedAt ??= elapsed;
-        } else {
-          if (pausedAt !== null) {
-            tourOffset += elapsed - pausedAt;
-            pausedAt = null;
-          }
+      if (live.accents.join(",") !== palette.join(",")) {
+        palette = live.accents;
+        world = buildWorld(palette);
+        walkers = buildWalkers(palette);
+      }
 
-          target = tourScroll(elapsed - tourOffset);
-        }
+      if (live.autoTour && !reducedMotion && elapsed - lastInput >= 4) {
+        tourClock += dt * live.tourSpeed;
+        target = tourScroll(tourClock);
       }
 
       scroll += (target - scroll) * 0.09;
+      const viewW = width / live.zoom;
+      const viewH = height / live.zoom;
       const camZ = scroll * WORLD_LEN;
-      const offX = width / 2 + camZ * TILE;
-      const offY = height * 0.52 - camZ * HALF;
+      const offX = viewW / 2 + camZ * TILE;
+      const offY = viewH * 0.52 - camZ * HALF;
 
-      htmlLayer.style.transform = `translate3d(${offX}px, ${offY}px, 0)`;
+      htmlLayer.style.transform = `scale(${live.zoom}) translate3d(${offX}px, ${offY}px, 0)`;
 
+      ctx.setTransform(dpr * live.zoom, 0, 0, dpr * live.zoom, 0, 0);
       ctx.fillStyle = dotPattern ?? "#0f1114";
-      ctx.fillRect(0, 0, width, height);
+      ctx.fillRect(0, 0, viewW, viewH);
 
       const nearest = Math.round(scroll * (SECTIONS.length - 1));
 
@@ -765,17 +802,17 @@ export const VoxelLanding = ({ autoTour = true }: VoxelLandingProps) => {
         const sx = (x - z) * TILE + offX;
         const sy = (x + z) * HALF + offY - y * VY;
 
-        if (sx < -70 || sx > width + 70 || sy < -90 || sy > height + 90) {
+        if (sx < -70 || sx > viewW + 70 || sy < -90 || sy > viewH + 90) {
           return;
         }
 
         drawables.push({ alpha, color, depth: (x + z) * 1000 + y, h, size, sx, sy });
       };
 
-      pushWorld(push, world, now, atFinale);
+      pushWorld(push, world, palette, now, atFinale);
       pushWalkers(push, walkers, now, tick);
-      pushSky(push, now, tick);
-      pushGround(push, now, tick);
+      pushSky(push, palette, now, tick);
+      pushGround(push, palette, now, tick);
 
       drawables.sort((a, b) => a.depth - b.depth);
       paint(ctx, drawables);
@@ -829,9 +866,10 @@ export const VoxelLanding = ({ autoTour = true }: VoxelLandingProps) => {
       container.removeEventListener("pointerup", onPointerUp);
       container.removeEventListener("pointercancel", onPointerUp);
     };
-  }, [autoTour]);
+  }, []);
 
-  const accent = SECTIONS[sectionIdx]?.accent ?? ACCENTS[0];
+  const accent = accentAt(accents, SECTIONS[sectionIdx]?.accent ?? 0);
+  const labels = [heroLabel(brand, tagline), ...STATION_LABELS];
 
   return (
     <div
@@ -842,11 +880,11 @@ export const VoxelLanding = ({ autoTour = true }: VoxelLandingProps) => {
 
       <div
         ref={htmlRef}
-        className="pointer-events-none absolute left-0 top-0 will-change-transform"
+        className="pointer-events-none absolute left-0 top-0 origin-top-left will-change-transform"
       >
-        {LABELS.map((label) => (
+        {labels.map((label) => (
           <div
-            key={label.lines[0]}
+            key={`${label.x}:${label.z}`}
             className="absolute whitespace-nowrap"
             style={{
               transform: `translate(${(label.x - label.z) * TILE}px, ${(label.x + label.z) * HALF}px) ${label.matrix}`,
@@ -866,7 +904,7 @@ export const VoxelLanding = ({ autoTour = true }: VoxelLandingProps) => {
       <div className="pointer-events-none absolute inset-0 font-mono uppercase">
         <div className="absolute left-6 top-5 flex items-center gap-2 text-[11px] font-bold tracking-[0.35em] text-neutral-200">
           <span className="inline-block size-2.5" style={{ backgroundColor: accent }} />
-          Voxelworks
+          {brand}
         </div>
         <div className="absolute right-6 top-5 text-[10px] tracking-[0.3em] text-neutral-500">
           STN 0{sectionIdx + 1} / 0{SECTIONS.length}

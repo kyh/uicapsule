@@ -50,7 +50,7 @@ const endLabelShift = (value: number) => {
   }
 
   if (value === 100) {
-    return "-translate-x-2.5";
+    return "-translate-x-3.5";
   }
 
   return "";

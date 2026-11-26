@@ -14,17 +14,82 @@ const TRANSCRIPT_LIBRARY = [
   "Introduce a faint aurora stretching across the horizon to hint at ancient magic awakening right behind the hero.",
 ] as const;
 
-const AMPLITUDE_SMOOTHING = 0.95;
+const DEFAULT_PLACEHOLDER =
+  "Generate expressive prompts by speaking naturally. We will render a faux transcript here.";
+
+const AUTO_RESTART_DELAY = 1400;
 
 type TimeoutHandle = ReturnType<typeof setTimeout> | null;
 
-const pickTranscript = () => {
+const pickTranscript = (script: string) => {
+  const custom = script.trim();
+
+  if (custom !== "") {
+    return custom;
+  }
+
   const index = Math.floor(Math.random() * TRANSCRIPT_LIBRARY.length);
 
   return TRANSCRIPT_LIBRARY[index] ?? TRANSCRIPT_LIBRARY[0];
 };
 
-export const VoiceDictator: FC = () => {
+const hexToRgb = (hex: string) => {
+  const digits = hex.replace("#", "");
+
+  const full =
+    digits.length === 3
+      ? digits.replaceAll(/./gu, (digit) => `${digit}${digit}`)
+      : digits.padEnd(6, "0").slice(0, 6);
+
+  const channels = [0, 2, 4].map((start) => Number.parseInt(full.slice(start, start + 2), 16));
+
+  const [red = 255, green = 255, blue = 255] = channels.map((channel) =>
+    Number.isNaN(channel) ? 255 : channel,
+  );
+
+  return [red, green, blue] satisfies [number, number, number];
+};
+
+export interface VoiceDictatorProps {
+  /** Auto-start dictation on mount and again after each transcript finishes. */
+  autoDictate?: boolean;
+  background?: string;
+  /** Size of one Bayer dither cell in device pixels. */
+  ditherSize?: number;
+  /** Strength of the soft glow hugging the ring. */
+  glow?: number;
+  orbSize?: number;
+  /** Idle text shown before the first dictation. */
+  placeholder?: string;
+  /** How far simulated speech amplitude swells the ring. */
+  reactivity?: number;
+  ringColor?: string;
+  /** Resting ring radius as a fraction of half the viewport height. */
+  ringRadius?: number;
+  ringThickness?: number;
+  /** Fixed transcript to dictate; empty picks a random sample. */
+  script?: string;
+  /** Per-frame easing toward the target amplitude; higher is smoother. */
+  smoothing?: number;
+  /** Multiplier on word delivery rate. */
+  speechRate?: number;
+}
+
+export const VoiceDictator: FC<VoiceDictatorProps> = ({
+  autoDictate = false,
+  background = "#000000",
+  ditherSize = 1,
+  glow = 0.5,
+  orbSize = 32,
+  placeholder = DEFAULT_PLACEHOLDER,
+  reactivity = 1,
+  ringColor = "#ffffff",
+  ringRadius = 0.21,
+  ringThickness = 0.07,
+  script = "",
+  smoothing = 0.95,
+  speechRate = 1,
+}) => {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const buttonRef = useRef<HTMLButtonElement | null>(null);
   const animationFrameRef = useRef<number | null>(null);
@@ -34,9 +99,46 @@ export const VoiceDictator: FC = () => {
 
   const [isListening, setIsListening] = useState(false);
 
-  const [transcript, setTranscript] = useState(
-    "Generate expressive prompts by speaking naturally. We will render a faux transcript here.",
-  );
+  const [transcript, setTranscript] = useState<string | null>(null);
+
+  const configRef = useRef({
+    background,
+    ditherSize,
+    glow,
+    reactivity,
+    ringColor,
+    ringRadius,
+    ringThickness,
+    script,
+    smoothing,
+    speechRate,
+  });
+
+  useEffect(() => {
+    configRef.current = {
+      background,
+      ditherSize,
+      glow,
+      reactivity,
+      ringColor,
+      ringRadius,
+      ringThickness,
+      script,
+      smoothing,
+      speechRate,
+    };
+  }, [
+    background,
+    ditherSize,
+    glow,
+    reactivity,
+    ringColor,
+    ringRadius,
+    ringThickness,
+    script,
+    smoothing,
+    speechRate,
+  ]);
 
   const listeningRef = useRef(false);
   const scriptRef = useRef<string[]>([]);
@@ -75,6 +177,12 @@ export const VoiceDictator: FC = () => {
       uniform float uTime;
       uniform float uAmplitude;
       uniform vec2 uResolution;
+      uniform float uRadius;
+      uniform float uThickness;
+      uniform float uGlow;
+      uniform float uDitherSize;
+      uniform vec3 uRingColor;
+      uniform vec3 uBackground;
 
       float bayerDither(vec2 coord) {
         vec2 p = floor(mod(coord, 8.0));
@@ -100,20 +208,20 @@ export const VoiceDictator: FC = () => {
         float time = uTime * 0.5;
         float amplitude = clamp(uAmplitude, 0.0, 1.2);
 
-        float radius = 0.21 + amplitude * 0.11 + sin(time * 0.9) * 0.012;
-        float thickness = 0.07 + amplitude * 0.05 + sin(time * 0.63) * 0.009;
+        float radius = uRadius + amplitude * 0.11 + sin(time * 0.9) * 0.012;
+        float thickness = uThickness + amplitude * 0.05 + sin(time * 0.63) * 0.009;
 
         float dist = length(uv);
         float ring = smoothstep(radius + thickness, radius, dist) - smoothstep(radius, radius - thickness, dist);
         float glow = exp(-14.0 * abs(dist - radius));
         float halo = exp(-6.5 * dist * (1.0 + amplitude * 0.35));
 
-        float intensity = clamp(ring * 0.75 + glow * 0.5 + halo * 0.08, 0.0, 1.0);
+        float intensity = clamp(ring * 0.75 + glow * uGlow + halo * 0.08, 0.0, 1.0);
 
-        float threshold = bayerDither(gl_FragCoord.xy);
+        float threshold = bayerDither(floor(gl_FragCoord.xy / uDitherSize));
         float shade = step(threshold, intensity);
 
-        gl_FragColor = vec4(vec3(shade), 1.0);
+        gl_FragColor = vec4(mix(uBackground, uRingColor, shade), 1.0);
       }
     `;
 
@@ -181,7 +289,13 @@ export const VoiceDictator: FC = () => {
 
     const uniforms = {
       amplitude: gl.getUniformLocation(program, "uAmplitude"),
+      background: gl.getUniformLocation(program, "uBackground"),
+      ditherSize: gl.getUniformLocation(program, "uDitherSize"),
+      glow: gl.getUniformLocation(program, "uGlow"),
+      radius: gl.getUniformLocation(program, "uRadius"),
       resolution: gl.getUniformLocation(program, "uResolution"),
+      ringColor: gl.getUniformLocation(program, "uRingColor"),
+      thickness: gl.getUniformLocation(program, "uThickness"),
       time: gl.getUniformLocation(program, "uTime"),
     };
 
@@ -208,12 +322,16 @@ export const VoiceDictator: FC = () => {
 
       // eslint-disable-next-line react/hooks -- WebGL method, not a React hook.
       gl.useProgram(program);
-      gl.clearColor(0, 0, 0, 1);
+      const config = configRef.current;
+      const [bgR, bgG, bgB] = hexToRgb(config.background);
+      const [ringR, ringG, ringB] = hexToRgb(config.ringColor);
+      gl.clearColor(bgR / 255, bgG / 255, bgB / 255, 1);
       gl.clear(gl.COLOR_BUFFER_BIT);
 
       const amplitude =
         amplitudeRef.current +
-        (targetAmplitudeRef.current - amplitudeRef.current) * (1 - AMPLITUDE_SMOOTHING);
+        (targetAmplitudeRef.current * config.reactivity - amplitudeRef.current) *
+          (1 - config.smoothing);
 
       amplitudeRef.current = amplitude;
 
@@ -229,14 +347,21 @@ export const VoiceDictator: FC = () => {
         gl.uniform2f(uniforms.resolution, gl.drawingBufferWidth, gl.drawingBufferHeight);
       }
 
+      gl.uniform1f(uniforms.radius, config.ringRadius);
+      gl.uniform1f(uniforms.thickness, config.ringThickness);
+      gl.uniform1f(uniforms.glow, config.glow);
+      gl.uniform1f(uniforms.ditherSize, Math.max(1, config.ditherSize));
+      gl.uniform3f(uniforms.ringColor, ringR / 255, ringG / 255, ringB / 255);
+      gl.uniform3f(uniforms.background, bgR / 255, bgG / 255, bgB / 255);
+
       const button = buttonRef.current;
 
       if (button) {
         const scale = 1 + amplitude * 0.12;
-        const glow = 12 + amplitude * 80;
+        const shadowBlur = 12 + amplitude * 80;
         const opacity = 0.08 + amplitude * 0.22;
         button.style.transform = `scale(${scale})`;
-        button.style.boxShadow = `0 0 ${glow.toFixed(1)}px rgba(255, 255, 255, ${opacity.toFixed(3)})`;
+        button.style.boxShadow = `0 0 ${shadowBlur.toFixed(1)}px rgba(${ringR}, ${ringG}, ${ringB}, ${opacity.toFixed(3)})`;
       }
 
       gl.drawArrays(gl.TRIANGLES, 0, 6);
@@ -313,7 +438,7 @@ export const VoiceDictator: FC = () => {
       return noop;
     }
 
-    scriptRef.current = pickTranscript().split(" ");
+    scriptRef.current = pickTranscript(configRef.current.script).split(/\s+/u);
     wordIndexRef.current = 0;
 
     const deliver = () => {
@@ -331,11 +456,13 @@ export const VoiceDictator: FC = () => {
 
       if (nextWord !== undefined && nextWord !== "") {
         wordIndexRef.current += 1;
-        setTranscript((previous) => (previous.length > 0 ? `${previous} ${nextWord}` : nextWord));
+        setTranscript((previous) =>
+          previous !== null && previous.length > 0 ? `${previous} ${nextWord}` : nextWord,
+        );
         targetAmplitudeRef.current = 0.32 + Math.random() * 0.6;
       }
 
-      const delay = 160 + Math.random() * 200;
+      const delay = (160 + Math.random() * 200) / Math.max(0.1, configRef.current.speechRate);
       wordTimeoutRef.current = setTimeout(deliver, delay);
     };
 
@@ -350,6 +477,12 @@ export const VoiceDictator: FC = () => {
     };
   }, [isListening, stopDictation]);
 
+  const startDictation = useCallback(() => {
+    listeningRef.current = true;
+    setTranscript("");
+    setIsListening(true);
+  }, []);
+
   const handleToggle = useCallback(() => {
     if (listeningRef.current) {
       stopDictation();
@@ -357,13 +490,26 @@ export const VoiceDictator: FC = () => {
       return;
     }
 
-    listeningRef.current = true;
-    setTranscript("");
-    setIsListening(true);
-  }, [stopDictation]);
+    startDictation();
+  }, [startDictation, stopDictation]);
+
+  useEffect(() => {
+    if (!autoDictate || isListening) {
+      return noop;
+    }
+
+    const timeout = setTimeout(startDictation, AUTO_RESTART_DELAY);
+
+    return () => {
+      clearTimeout(timeout);
+    };
+  }, [autoDictate, isListening, startDictation]);
 
   return (
-    <div className="relative flex h-dvh w-dvw flex-col items-center justify-center overflow-hidden bg-black text-white">
+    <div
+      className="relative flex h-dvh w-dvw flex-col items-center justify-center overflow-hidden text-white"
+      style={{ backgroundColor: background }}
+    >
       <canvas ref={canvasRef} className="absolute inset-0 h-full w-full" />
 
       <motion.button
@@ -372,7 +518,12 @@ export const VoiceDictator: FC = () => {
         aria-label={isListening ? "Stop dictation" : "Start dictation"}
         aria-pressed={isListening}
         onClick={handleToggle}
-        className="absolute top-1/2 left-1/2 h-8 w-8 -translate-x-1/2 -translate-y-1/2 rounded-full bg-white/80"
+        className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 rounded-full"
+        style={{
+          backgroundColor: `color-mix(in srgb, ${ringColor} 80%, transparent)`,
+          height: orbSize,
+          width: orbSize,
+        }}
         animate={{
           opacity: isListening ? 0.9 : 0.6,
           scale: isListening ? [1, 1.1, 1] : 1,
@@ -393,7 +544,8 @@ export const VoiceDictator: FC = () => {
       />
 
       <motion.p
-        className="absolute bottom-20 z-10 max-w-2xl text-base leading-7 text-pretty text-white/70 sm:text-lg"
+        className="absolute bottom-20 z-10 max-w-2xl text-base leading-7 text-pretty sm:text-lg"
+        style={{ color: `color-mix(in srgb, ${ringColor} 70%, transparent)` }}
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{
@@ -401,11 +553,14 @@ export const VoiceDictator: FC = () => {
           ease: "easeInOut",
         }}
       >
-        {transcript}
+        {transcript ?? placeholder}
       </motion.p>
 
       <motion.div
-        className="pointer-events-none absolute inset-x-0 bottom-0 z-10 h-48 bg-gradient-to-t from-black via-black/40 to-transparent"
+        className="pointer-events-none absolute inset-x-0 bottom-0 z-10 h-48"
+        style={{
+          backgroundImage: `linear-gradient(to top, ${background}, color-mix(in srgb, ${background} 40%, transparent), transparent)`,
+        }}
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ duration: 0.5 }}

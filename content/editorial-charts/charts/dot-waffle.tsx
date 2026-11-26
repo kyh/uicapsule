@@ -1,15 +1,13 @@
 "use client";
 
 import { defineChart, dot } from "@tanstack/charts";
-import { motion } from "@tanstack/charts/motion";
+import type { ChartMotionSpringTransition } from "@tanstack/charts/motion";
 import { Chart } from "@tanstack/charts/react/core";
 import { scaleLinear } from "@tanstack/charts/scales/linear";
 import { useMemo } from "react";
 
 import type { MixRow } from "../lib/data";
-import { SPRING } from "../lib/tokens";
-
-const renderer = motion({ initial: "always", transition: SPRING });
+import { useSpringRenderer } from "../lib/spring-renderer";
 
 interface Cell {
   id: string;
@@ -23,13 +21,16 @@ export const DotWaffle = ({
   reveal,
   size,
   ladder,
+  spring,
 }: {
   mix: MixRow[];
   /** 0 → 1 entrance progress; the grid inks in dot by dot. */
   reveal: number;
   size: number;
   ladder: readonly string[];
+  spring: ChartMotionSpringTransition;
 }) => {
+  const { key, renderer } = useSpringRenderer(spring);
   const revealed = Math.min(100, Math.floor(reveal * 101));
 
   const definition = useMemo(() => {
@@ -70,6 +71,7 @@ export const DotWaffle = ({
 
   return (
     <Chart
+      key={key}
       definition={definition}
       renderer={renderer}
       width={size}

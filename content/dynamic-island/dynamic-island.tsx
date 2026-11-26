@@ -4,14 +4,16 @@ import { useState } from "react";
 import { AnimatePresence, motion } from "motion/react";
 import type { Transition } from "motion/react";
 
-import { ExpandedWidget, expandedWidgetOptions } from "./expanded-widgets";
-import type { ExpandedWidgetView } from "./expanded-widgets";
+import { ExpandedWidget } from "./expanded-widgets";
+import type { ExpandedWidgetCopy, ExpandedWidgetView } from "./expanded-widgets";
 import { Ring } from "./ring";
 import { Timer } from "./timer";
 
 type BaseView = "idle" | "ring" | "timer";
 
-type View = BaseView | ExpandedWidgetView;
+export type DynamicIslandView = BaseView | ExpandedWidgetView;
+
+type View = DynamicIslandView;
 
 type VariantKey = View | `${View}-${View}`;
 
@@ -22,13 +24,17 @@ interface AnimationVariant {
   bounce?: number;
 }
 
-const baseViews: { view: BaseView; label: string }[] = [
-  { label: "idle", view: "idle" },
-  { label: "ring", view: "ring" },
-  { label: "timer", view: "timer" },
+export const DYNAMIC_ISLAND_VIEWS: readonly View[] = [
+  "idle",
+  "ring",
+  "timer",
+  "music",
+  "call",
+  "memo",
+  "recording",
+  "incoming",
+  "flight",
 ];
-
-const views: { view: View; label: string }[] = [...baseViews, ...expandedWidgetOptions];
 
 const variants = {
   exit: (transition: AnimationVariant = {}) => ({
@@ -47,6 +53,8 @@ const ANIMATION_VARIANTS = new Map<VariantKey, AnimationVariant>([
 
 const DEFAULT_BOUNCE = 0.4;
 
+const MAX_BOUNCE = 0.9;
+
 const BOUNCE_VARIANTS = new Map<VariantKey, number>([
   ["idle", 0.5],
   ["ring-idle", 0.5],
@@ -57,7 +65,7 @@ const BOUNCE_VARIANTS = new Map<VariantKey, number>([
   ["idle-ring", 0.5],
 ]);
 
-const viewContent = (view: View) => {
+const viewContent = (view: View, copy: ExpandedWidgetCopy) => {
   if (view === "ring") {
     return <Ring />;
   }
@@ -70,23 +78,46 @@ const viewContent = (view: View) => {
     return <div className="h-7" />;
   }
 
-  return <ExpandedWidget view={view} />;
+  return <ExpandedWidget copy={copy} view={view} />;
 };
 
-const DynamicIsland = () => {
-  const [view, setView] = useState<View>("idle");
-  const [variantKey, setVariantKey] = useState<VariantKey>("idle");
+/** Props for {@link DynamicIsland}. */
+export interface DynamicIslandProps extends Partial<ExpandedWidgetCopy> {
+  /** The activity the island shows; changing it morphs from the previous one. */
+  view?: View;
+  /** Multiplies each transition's spring bounce (capped at 0.9). */
+  springiness?: number;
+  /** Spring duration of the island morph, in seconds. */
+  duration?: number;
+}
 
-  const content = viewContent(view);
+const DynamicIsland = ({
+  view = "idle",
+  springiness = 1,
+  duration = 0.8,
+  callerName = "Mike Wheeler",
+  songArtist = "The New Abnormal",
+  songTitle = "Selfless",
+}: DynamicIslandProps) => {
+  const [shownView, setShownView] = useState<View>(view);
+  const [variantKey, setVariantKey] = useState<VariantKey>(view);
+
+  if (shownView !== view) {
+    setShownView(view);
+    setVariantKey(`${shownView}-${view}`);
+  }
+
+  const content = viewContent(view, { callerName, songArtist, songTitle });
 
   const spring: Transition = {
-    bounce: BOUNCE_VARIANTS.get(variantKey) ?? DEFAULT_BOUNCE,
+    bounce: Math.min((BOUNCE_VARIANTS.get(variantKey) ?? DEFAULT_BOUNCE) * springiness, MAX_BOUNCE),
+    duration,
     type: "spring",
   };
 
   return (
     <div className="h-[260px]">
-      <div className="relative flex h-full w-full flex-col justify-between">
+      <div className="relative h-full w-full">
         <motion.div
           layout
           transition={spring}
@@ -124,22 +155,6 @@ const DynamicIsland = () => {
               {content}
             </motion.div>
           </AnimatePresence>
-        </div>
-        <div className="mx-auto flex max-w-[720px] flex-wrap justify-center gap-2 px-3">
-          {views.map(({ view: v, label }) => (
-            <button
-              type="button"
-              className="h-8 rounded-full bg-white px-3 py-1.5 text-xs font-medium text-gray-900 capitalize shadow-sm ring-1 ring-gray-300/50 ring-inset hover:bg-gray-50 aria-pressed:bg-black aria-pressed:text-white aria-pressed:ring-white/20 aria-pressed:hover:bg-black"
-              aria-pressed={view === v}
-              onClick={() => {
-                setView(v);
-                setVariantKey(`${view}-${v}`);
-              }}
-              key={v}
-            >
-              {label}
-            </button>
-          ))}
         </div>
       </div>
     </div>

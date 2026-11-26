@@ -20,16 +20,22 @@ const images = cards.map((card) => card.src);
 const DEFAULT_RING_RADIUS = 5;
 const DEFAULT_BEND = 0.1;
 
-const widestCardWithoutOverlap =
-  Math.floor(
-    20 * (DEFAULT_RING_RADIUS - BEND_MULTIPLIER * DEFAULT_BEND) * Math.tan(Math.PI / cards.length),
-  ) / 10;
+const widestCardWithoutOverlap = (radius: number, bend: number, count: number) =>
+  Math.floor(20 * (radius - BEND_MULTIPLIER * Math.max(0, bend)) * Math.tan(Math.PI / count)) / 10;
 
 export const controls = {
+  cardCount: {
+    default: images.length,
+    label: "Cards",
+    max: images.length,
+    min: 5,
+    step: 1,
+    type: "number",
+  },
   radius: {
     default: DEFAULT_RING_RADIUS,
     label: "Ring radius",
-    max: 9,
+    max: 7,
     min: 3,
     step: 0.1,
     type: "number",
@@ -37,7 +43,7 @@ export const controls = {
   imageWidth: {
     default: 3,
     label: "Card width",
-    max: widestCardWithoutOverlap,
+    max: widestCardWithoutOverlap(DEFAULT_RING_RADIUS, DEFAULT_BEND, images.length),
     min: 1.5,
     step: 0.1,
     type: "number",
@@ -74,6 +80,14 @@ export const controls = {
     step: 0.05,
     type: "number",
   },
+  friction: {
+    default: 0.95,
+    label: "Friction",
+    max: 0.97,
+    min: 0.9,
+    step: 0.005,
+    type: "number",
+  },
   enableSnapping: { default: true, label: "Snap to card", type: "boolean" },
   autorotate: { default: true, label: "Auto-rotate", type: "boolean" },
   autorotateSpeed: {
@@ -93,9 +107,11 @@ interface PreviewProps {
   autorotateSpeed: number;
   backgroundColor: string;
   bendAmount: number;
+  cardCount: number;
   cornerRadius: number;
   enableSnapping: boolean;
   farOpacity: number;
+  friction: number;
   imageWidth: number;
   radius: number;
 }
@@ -106,15 +122,17 @@ const Preview = ({
   autorotate = controls.autorotate.default,
   autorotateSpeed = controls.autorotateSpeed.default,
   bendAmount = controls.bendAmount.default,
+  cardCount = controls.cardCount.default,
   cornerRadius = controls.cornerRadius.default,
   enableSnapping = controls.enableSnapping.default,
   farOpacity = controls.farOpacity.default,
+  friction = controls.friction.default,
   imageWidth = controls.imageWidth.default,
   radius = controls.radius.default,
 }: Partial<PreviewProps>) => (
   <ImageCarouselCanvas backgroundColor={backgroundColor}>
     <ImageCarousel
-      images={images}
+      images={images.slice(0, cardCount)}
       adjacentOpacity={adjacentOpacity}
       autorotate={autorotate}
       autorotateSpeed={autorotateSpeed}
@@ -122,7 +140,8 @@ const Preview = ({
       cornerRadius={cornerRadius}
       enableSnapping={enableSnapping}
       farOpacity={farOpacity}
-      imageWidth={imageWidth}
+      friction={friction}
+      imageWidth={Math.min(imageWidth, widestCardWithoutOverlap(radius, bendAmount, cardCount))}
       radius={radius}
     />
   </ImageCarouselCanvas>

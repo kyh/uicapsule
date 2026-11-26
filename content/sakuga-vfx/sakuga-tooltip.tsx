@@ -271,7 +271,7 @@ const SakugaTooltipTrigger = ({
 };
 
 const TIP =
-  "pointer-events-none absolute bottom-[calc(100%+16px)] left-1/2 w-max max-w-[220px] min-w-[120px] origin-[50%_120%] [translate:-50%_0] [transform:scale(0)] rounded-[13px] border-[length:var(--sk-bw)] border-(--sk-ink) bg-(--sk-card) px-[14px] py-[11px] text-center text-[16px] font-extrabold shadow-(--sk-sh) will-change-transform before:absolute before:top-[calc(100%-4.5px)] before:left-1/2 before:z-1 before:-ml-[6px] before:border-[6px] before:border-t-[8.5px] before:border-transparent before:border-t-(--sk-card) before:content-[''] after:absolute after:top-full after:left-1/2 after:-ml-[9px] after:border-[9px] after:border-t-[12px] after:border-transparent after:border-t-(--sk-ink) after:content-['']";
+  "pointer-events-none absolute bottom-[calc(100%+16px)] left-1/2 w-max max-w-[220px] min-w-[120px] origin-[50%_120%] [translate:-50%_0] [transform:scale(0)] rounded-[max(0px,calc(var(--sk-r)-2px))] border-[length:var(--sk-bw)] border-(--sk-ink) bg-(--sk-card) px-[14px] py-[11px] text-center text-[16px] font-extrabold shadow-(--sk-sh) will-change-transform before:absolute before:top-[calc(100%-4.5px)] before:left-1/2 before:z-1 before:-ml-[6px] before:border-[6px] before:border-t-[8.5px] before:border-transparent before:border-t-(--sk-card) before:content-[''] after:absolute after:top-full after:left-1/2 after:-ml-[9px] after:border-[9px] after:border-t-[12px] after:border-transparent after:border-t-(--sk-ink) after:content-['']";
 
 const SakugaTooltipContent = ({ className, ref, ...props }: Styled<ComponentProps<"div">>) => {
   const { rigRef, tipId } = useShared();

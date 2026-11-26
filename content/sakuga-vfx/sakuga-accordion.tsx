@@ -210,7 +210,7 @@ const SakugaAccordionItem = ({
   );
 };
 
-const HEADER = `group flex w-full cursor-pointer touch-manipulation items-center justify-between gap-3 rounded-[10px] px-[16px] py-[10px] text-left text-[17px] leading-[1.2] font-extrabold tracking-[-0.01em] text-(--sk-ink) italic will-change-transform select-none focus-visible:outline-[2.5px] focus-visible:outline-offset-[-3px] focus-visible:outline-(--sk-acc) data-disabled:cursor-not-allowed data-disabled:opacity-45`;
+const HEADER = `group flex w-full cursor-pointer touch-manipulation items-center justify-between gap-3 rounded-[max(0px,calc(var(--sk-r)-5px))] px-[16px] py-[10px] text-left text-[17px] leading-[1.2] font-extrabold tracking-[-0.01em] text-(--sk-ink) italic will-change-transform select-none focus-visible:outline-[2.5px] focus-visible:outline-offset-[-3px] focus-visible:outline-(--sk-acc) data-disabled:cursor-not-allowed data-disabled:opacity-45`;
 
 const SakugaAccordionTrigger = ({
   className,
