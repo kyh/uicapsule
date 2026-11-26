@@ -142,7 +142,7 @@ export const RequestPasswordResetForm = () => {
         form.setError("root", {
           message:
             error.code === "RESET_PASSWORD_DISABLED"
-              ? "Password reset is temporarily unavailable. Try again later."
+              ? "Password reset is unavailable: this site sends no email."
               : (error.message ?? "Unable to request a reset. Try again."),
         });
 
