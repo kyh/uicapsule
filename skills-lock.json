@@ -225,6 +225,14 @@
       "computedHash": "50f1de2394b88bb3433eca1e30da6866a4e310963d872a66af20ca77fd77f07d",
       "installMode": "copy"
     },
+    "stageshow": {
+      "source": "benjitaylor/skills",
+      "commit": "299140fafd08df55a9c234e610c3f64af3f45531",
+      "sourceType": "github",
+      "skillPath": "stageshow/SKILL.md",
+      "computedHash": "faaf72b41c206b98da5788093eb07fcdceb80dee90b5dc6dd921048196279474",
+      "installMode": "copy"
+    },
     "state-machine": {
       "source": "jakubkrehel/skills",
       "commit": "672ae44ace6aaed65b86cbb1e2fd6fbea0e79578",
