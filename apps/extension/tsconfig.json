@@ -2,7 +2,7 @@
   "extends": "@kyh/tsconfig/base.json",
   "compilerOptions": {
     "jsx": "react-jsx",
-    "lib": ["ES2023", "dom", "dom.iterable"],
+    "lib": ["ES2023", "ES2024.Promise", "dom", "dom.iterable"],
     "module": "esnext",
     "paths": { "@/*": ["./src/*"] },
     "types": ["node"]

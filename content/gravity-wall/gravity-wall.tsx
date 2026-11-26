@@ -185,8 +185,7 @@ const placeCell = (
 
   const dx = effectiveWorldX - vX;
   const dy = effectiveWorldY - vY;
-  // oxlint-disable-next-line unicorn/prefer-modern-math-apis -- Math.hypot is slower and this runs ~500 times a frame; same result for pixel-scale inputs
-  const dist = Math.sqrt(dx * dx + dy * dy);
+  const dist = Math.hypot(dx, dy);
 
   const baseScreenX = effectiveWorldX + p.panOff.x;
   const baseScreenY = effectiveWorldY + p.panOff.y;

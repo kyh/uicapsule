@@ -56,6 +56,8 @@ const Divider = () => <span aria-hidden className="bg-border mx-1 h-4 w-px" />;
 
 const DESKTOP_QUERY = "(min-width: 768px)";
 
+const OPEN_IN_NEW_TAB = "Open in new tab";
+
 const PANEL_EASE = "ease-[cubic-bezier(0.23,1,0.32,1)]";
 
 interface ComponentWorkspaceProps {
@@ -306,11 +308,15 @@ export const ComponentWorkspace = ({ initialSlug, feed }: ComponentWorkspaceProp
                 <InfoIcon />
               </ToolbarButton>
               <ToolbarButton
-                label="Open in new tab"
+                label={OPEN_IN_NEW_TAB}
                 nativeButton={false}
                 render={
-                  // oxlint-disable-next-line jsx-a11y/control-has-associated-label -- Base UI render prop; the Button's children become the anchor's content
-                  <a href={previewHref} target="_blank" rel="noreferrer" />
+                  <a
+                    href={previewHref}
+                    target="_blank"
+                    rel="noreferrer"
+                    aria-label={OPEN_IN_NEW_TAB}
+                  />
                 }
               >
                 <ExternalLinkIcon />

@@ -19,16 +19,7 @@ import {
   TabsList,
   TabsTrigger,
 } from "./ui";
-import {
-  Fragment,
-  cloneElement,
-  isValidElement,
-  memo,
-  useCallback,
-  useEffect,
-  useMemo,
-  useState,
-} from "react";
+import { Fragment, isValidElement, memo, useCallback, useEffect, useMemo, useState } from "react";
 import type {
   ChangeEvent,
   ElementType as ReactElementType,
@@ -61,13 +52,20 @@ interface IconProps {
 type IconLike = ReactElement | ReactElementType;
 
 const renderIcon = (icon: IconLike, props: IconProps = {}) => {
+  const { key, ...iconProps } = props;
+
   if (isValidElement(icon)) {
-    // oxlint-disable-next-line react/no-clone-element -- applies the caller's className and key to an element the config supplied; wrapping it would change the DOM
-    return cloneElement(icon, props);
+    return (
+      <span
+        key={key}
+        className={cn("inline-flex shrink-0 items-center justify-center", iconProps.className)}
+      >
+        {icon}
+      </span>
+    );
   }
 
   const IconComp = icon;
-  const { key, ...iconProps } = props;
 
   return <IconComp key={key} {...iconProps} />;
 };
@@ -446,8 +444,16 @@ export const FilterValueOptionController = ({
   column,
   actions,
 }: FilterValueControllerProps<"option" | "multiOption">) => {
-  // oxlint-disable-next-line react/hook-use-state -- a one-time snapshot of the selection when the controller opens, so items stay in their group while toggling; there is deliberately no setter
-  const [initialSelectedValues] = useState(() => new Set(filter?.values));
+  const [snapshot, setSnapshot] = useState(() => ({
+    columnId: column.id,
+    values: new Set(filter?.values),
+  }));
+
+  if (snapshot.columnId !== column.id) {
+    setSnapshot({ columnId: column.id, values: new Set(filter?.values) });
+  }
+
+  const initialSelectedValues = snapshot.values;
 
   const filterValues = filter?.values;
 

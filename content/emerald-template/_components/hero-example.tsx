@@ -116,21 +116,10 @@ The Grow team collaborates with various partners, including educational institut
   },
 ];
 
-const wait = (delay: number) => {
-  let timeout: ReturnType<typeof setTimeout>;
-
-  // oxlint-disable-next-line promise/avoid-new -- a cancellable sleep in the browser; there is no promise-returning timer to await here
-  const promise = new Promise((resolve) => {
-    timeout = setTimeout(resolve, delay);
-  });
-
-  return {
-    cancel: () => {
-      clearTimeout(timeout);
-    },
-    promise,
-  };
-};
+interface Beat {
+  delay: number;
+  act: () => void;
+}
 
 type StepIcon = ComponentType<{ size?: number }>;
 
@@ -386,65 +375,75 @@ export const ExampleChat = ({ start }: { start: boolean }) => {
     };
   }, [start]);
 
-  const showResults = async () => {
-    setShowLoading(true);
-    const afterShowLoading = wait(1000);
-    promisesRef.current.push(afterShowLoading.cancel);
-    await afterShowLoading.promise;
+  const play = (beats: readonly Beat[]) => {
+    const [beat, ...rest] = beats;
 
-    const startTime = Date.now();
-    setShowChainOfThought(true);
-    setChainOfThoughtOpen(true);
-    setCurrentStepIndex(-1);
-    setIsThinkingComplete(false);
+    if (beat === undefined) {
+      return;
+    }
+
+    const timeout = setTimeout(() => {
+      beat.act();
+      play(rest);
+    }, beat.delay);
+
+    promisesRef.current.push(() => {
+      clearTimeout(timeout);
+    });
+  };
+
+  const showResults = () => {
+    setShowLoading(true);
 
     const reasoningStepCount = samples[currentSampleIndex]?.output.reasoning.length ?? 0;
+    let startTime = 0;
 
-    const stepFrom: (index: number) => Promise<void> = async (index) => {
-      if (index >= reasoningStepCount) {
-        return;
-      }
-
-      setCurrentStepIndex(index);
-      const stepDelay = wait(800);
-      promisesRef.current.push(stepDelay.cancel);
-      await stepDelay.promise;
-      await stepFrom(index + 1);
-    };
-
-    await stepFrom(0);
-
-    const afterAllSteps = wait(500);
-    promisesRef.current.push(afterAllSteps.cancel);
-    await afterAllSteps.promise;
-
-    const endTime = Date.now();
-    const duration = Math.round((endTime - startTime) / 1000);
-    setThinkingDuration(duration);
-    setIsThinkingComplete(true);
-
-    setChainOfThoughtOpen(false);
-    const afterCollapse = wait(300);
-    promisesRef.current.push(afterCollapse.cancel);
-    await afterCollapse.promise;
-
-    setShowAnswer(true);
-    const afterShowAnswer = wait(1000);
-    promisesRef.current.push(afterShowAnswer.cancel);
-    await afterShowAnswer.promise;
-
-    setShowFooter(true);
-    const afterShowFooter = wait(5000);
-    promisesRef.current.push(afterShowFooter.cancel);
-    await afterShowFooter.promise;
-
-    clearAll();
-    const afterClearAll = wait(1000);
-    promisesRef.current.push(afterClearAll.cancel);
-    await afterClearAll.promise;
-
-    setCurrentSampleIndex((currentSampleIndex + 1) % samples.length);
-    setShowQuestion(true);
+    play([
+      {
+        act: () => {
+          startTime = Date.now();
+          setShowChainOfThought(true);
+          setChainOfThoughtOpen(true);
+          setCurrentStepIndex(reasoningStepCount > 0 ? 0 : -1);
+          setIsThinkingComplete(false);
+        },
+        delay: 1000,
+      },
+      ...Array.from({ length: Math.max(0, reasoningStepCount - 1) }, (_, index) => ({
+        act: () => {
+          setCurrentStepIndex(index + 1);
+        },
+        delay: 800,
+      })),
+      {
+        act: () => {
+          setThinkingDuration(Math.round((Date.now() - startTime) / 1000));
+          setIsThinkingComplete(true);
+          setChainOfThoughtOpen(false);
+        },
+        delay: reasoningStepCount > 0 ? 1300 : 500,
+      },
+      {
+        act: () => {
+          setShowAnswer(true);
+        },
+        delay: 300,
+      },
+      {
+        act: () => {
+          setShowFooter(true);
+        },
+        delay: 1000,
+      },
+      { act: clearAll, delay: 5000 },
+      {
+        act: () => {
+          setCurrentSampleIndex((currentSampleIndex + 1) % samples.length);
+          setShowQuestion(true);
+        },
+        delay: 1000,
+      },
+    ]);
   };
 
   const currentSample = samples[currentSampleIndex];
@@ -479,7 +478,7 @@ export const ExampleChat = ({ start }: { start: boolean }) => {
             start={start && showQuestion}
             text={currentSample?.input ?? ""}
             onTyped={() => {
-              void showResults();
+              showResults();
             }}
           />
         </div>

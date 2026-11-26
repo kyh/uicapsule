@@ -46,7 +46,7 @@ export interface ShareCard {
 }
 
 const Still = ({ src }: { src: string }) => (
-  // oxlint-disable-next-line next/no-img-element -- satori renders plain <img>; next/image does not exist here
+  // oxlint-disable-next-line next/no-img-element -- satori draws a cover image only from <img>: next/image does not exist there, and its background-image ignores background-position (checked by rendering)
   <img
     alt=""
     height={size.height}

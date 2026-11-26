@@ -1,3 +1,6 @@
+import { seededRng } from "./terminal-random";
+import { shiftRight, toUint32 } from "./terminal-uint32";
+
 import type { Cell, Grid } from "./terminal-grid";
 
 import { OUTER_COLS, OUTER_ROWS } from "./terminal-grid";
@@ -12,21 +15,6 @@ export const smoothstep = (t: number) => {
 };
 
 const easeInOutCubic = (t: number) => (t < 0.5 ? 4 * t * t * t : 1 - (-2 * t + 2) ** 3 / 2);
-
-const seededRng = (seed: number) => {
-  /* oxlint-disable no-bitwise, unicorn/prefer-math-trunc -- Mulberry32 is int32 bit math; `| 0` is the wrap Math.trunc would drop */
-  let s = seed | 0 || 1;
-
-  return () => {
-    s = (s + 0x6d_2b_79_f5) | 0;
-    let t = s;
-    t = Math.imul(t ^ (t >>> 15), t | 1);
-    t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
-
-    return ((t ^ (t >>> 14)) >>> 0) / 4_294_967_296;
-  };
-  /* oxlint-enable no-bitwise, unicorn/prefer-math-trunc */
-};
 
 const curl = (seed: number, t: number, axis: number) => {
   const base = seed * 0.0173 + axis * 7.91;
@@ -320,11 +308,9 @@ export const renderParticles = (
     let ch = p.char;
 
     if (scorchAmp > 0 && local > 0.32 && local < 0.72) {
-      /* oxlint-disable no-bitwise -- Knuth multiplicative hash: `>>> 0` is the uint32 wrap, `& 0xff` the byte mask */
-      const pick = (p.seed * 2_654_435_761) >>> 0;
-      const burns = ((pick >>> 8) & 0xff) / 255 < scorchAmp;
+      const pick = toUint32(p.seed * 2_654_435_761);
+      const burns = (shiftRight(pick, 8) % 256) / 255 < scorchAmp;
 
-      /* oxlint-enable no-bitwise */
       if (burns) {
         ch = NOISE[(pick + Math.floor(local * 64)) % NOISE.length] ?? p.char;
       }

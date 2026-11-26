@@ -249,13 +249,12 @@ export const CodeDock = ({ component, onClose }: CodeDockProps) => {
           size="sm"
           nativeButton={false}
           render={
-            // oxlint-disable-next-line jsx-a11y/control-has-associated-label -- Base UI render prop; the Button's children become the anchor's content
-            <a href={component.sourceUrl} target="_blank" rel="noreferrer" />
+            <a href={component.sourceUrl} target="_blank" rel="noreferrer">
+              View source on GitHub
+              <ExternalLinkIcon />
+            </a>
           }
-        >
-          View source on GitHub
-          <ExternalLinkIcon />
-        </Button>
+        />
       </DockMessage>
     </div>
   );

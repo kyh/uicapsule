@@ -94,8 +94,7 @@ const TreeItem = <T = unknown,>({
       style: mergedStyle,
       ...otherProps,
     },
-    // oxlint-disable-next-line jsx-a11y/control-has-associated-label -- useRender merges `children` into whichever element renders
-    render: render ?? <button type="button" />,
+    render: render ?? ((renderProps) => <button type="button" {...renderProps} />),
   });
 
   return <TreeContext.Provider value={context}>{element}</TreeContext.Provider>;

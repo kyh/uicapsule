@@ -75,10 +75,8 @@ const applyFit = (num: HTMLElement, col: HTMLElement) => {
   num.style.setProperty("--bm-num-fit", "1");
   const natural = num.scrollWidth;
   const cs = window.getComputedStyle(col);
-  // oxlint-disable-next-line unicorn/prefer-number-coercion -- computed padding carries a px unit, which Number() rejects
-  const padL = Number.parseFloat(cs.paddingLeft) || 0;
-  // oxlint-disable-next-line unicorn/prefer-number-coercion -- computed padding carries a px unit, which Number() rejects
-  const padR = Number.parseFloat(cs.paddingRight) || 0;
+  const padL = Number(cs.paddingLeft.replace("px", "")) || 0;
+  const padR = Number(cs.paddingRight.replace("px", "")) || 0;
   const available = col.clientWidth - padL - padR - FIT_GUTTER_PX;
 
   if (available <= 0) {

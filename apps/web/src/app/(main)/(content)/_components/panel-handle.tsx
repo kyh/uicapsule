@@ -140,7 +140,7 @@ export const PanelHandle = ({
 
   return (
     <div
-      // oxlint-disable-next-line jsx-a11y/prefer-tag-over-role -- a focusable separator is a widget; <hr> can't take focus or handlers
+      // oxlint-disable-next-line jsx-a11y/prefer-tag-over-role -- a focusable separator is ARIA's splitter widget; an <hr> with tabIndex and key handlers fails no-noninteractive-tabindex and no-noninteractive-element-interactions (checked), so role="separator" on a div is the one spelling every rule accepts
       role="separator"
       tabIndex={0}
       aria-label={LABEL[panel]}

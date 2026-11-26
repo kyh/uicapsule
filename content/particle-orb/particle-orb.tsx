@@ -110,11 +110,10 @@ const createDotTexture = (size = 32, color = "#FFFFFF") => {
     throw new Error("2D canvas context not available");
   }
 
-  const circle = new Path2D();
-  circle.arc(radius, radius, radius, 0, 2 * Math.PI);
+  ctx.beginPath();
+  ctx.arc(radius, radius, radius, 0, 2 * Math.PI);
   ctx.fillStyle = color;
-  // eslint-disable-next-line unicorn/no-array-fill-with-reference-type -- Canvas fills a path, not an array.
-  ctx.fill(circle);
+  ctx.fill();
 
   return new THREE.CanvasTexture(canvas);
 };

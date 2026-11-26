@@ -23,6 +23,7 @@ import { useMutation } from "@tanstack/react-query";
 import { cn } from "cn";
 import { UploadIcon, XIcon } from "lucide-react";
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
+import Image from "next/image";
 import { useForm } from "react-hook-form";
 import type { FieldErrors, UseFormRegister } from "react-hook-form";
 import { z } from "zod";
@@ -113,8 +114,16 @@ const AttachmentMedia = ({
     );
   }
 
-  // oxlint-disable-next-line next/no-img-element -- object URL preview; nothing for next/image to optimize
-  return <img src={attachment.previewUrl} alt="" className="size-full object-cover" />;
+  return (
+    <Image
+      src={attachment.previewUrl}
+      alt=""
+      width={480}
+      height={480}
+      unoptimized
+      className="size-full object-cover"
+    />
+  );
 };
 
 interface RequestFieldsProps {

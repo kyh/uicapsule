@@ -1,6 +1,6 @@
 "use client";
 
-import { createORPCClient, onError } from "@orpc/client";
+import { createORPCClient } from "@orpc/client";
 import { RPCLink } from "@orpc/client/fetch";
 import { createTanstackQueryUtils } from "@orpc/tanstack-query";
 import { QueryClientProvider } from "@tanstack/react-query";
@@ -35,12 +35,17 @@ const getBaseUrl = () => {
 const link = new RPCLink({
   headers: () => ({ "x-orpc-source": "nextjs-react" }),
   interceptors: [
-    // oxlint-disable-next-line promise/prefer-await-to-callbacks -- oRPC interceptor API, not a Node callback
-    onError((error) => {
-      if (process.env.NODE_ENV === "development") {
-        console.error(error);
+    async (options) => {
+      try {
+        return await options.next();
+      } catch (error) {
+        if (process.env.NODE_ENV === "development") {
+          console.error(error);
+        }
+
+        throw error;
       }
-    }),
+    },
   ],
   origin: getBaseUrl,
   url: "/api/orpc",
