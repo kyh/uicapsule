@@ -8,7 +8,7 @@ import { emailOTP } from "better-auth/plugins";
 
 import {
   SIGN_IN_CODE_OFF_WARNING,
-  refuseCodesWithoutMail,
+  guardSignInCodes,
   signInCodeModeOf,
   signInCodeSenderOf,
 } from "./sign-in-code-email";
@@ -51,7 +51,7 @@ export const auth = betterAuth({
   database: drizzleAdapter(db, {
     provider: "sqlite",
   }),
-  hooks: signInCodeMode === "off" ? { before: refuseCodesWithoutMail } : undefined,
+  hooks: { before: guardSignInCodes(signInCodeMode) },
   plugins: [emailOTP({ sendVerificationOTP: signInCodeSenderOf(signInCodeMode) })],
   rateLimit: {
     enabled: true,

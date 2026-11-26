@@ -11,7 +11,7 @@ delete process.env.AUTH_EMAIL_FROM;
 
 const { auth } = await import("./auth");
 
-const { refuseCodesWithoutMail } = await import("./sign-in-code-email");
+const { guardSignInCodes } = await import("./sign-in-code-email");
 
 const options = {
   ...auth.options,
@@ -112,11 +112,35 @@ test("a deployment that sends no email refuses to send a code", async () => {
   const testAuth = betterAuth({
     ...options,
     database: memoryAdapter({ account: [], session: [], user: [], verification: [] }),
-    hooks: { before: refuseCodesWithoutMail },
+    hooks: { before: guardSignInCodes("off") },
   });
 
   await assert.rejects(
     testAuth.api.sendVerificationOTP({ body: { email: "off@example.com", type: "sign-in" } }),
     (error) => error instanceof APIError && error.body?.code === "EMAIL_DISABLED",
   );
+});
+
+test("a code's sign-in from another site is refused, and from this one goes through", async () => {
+  const { codes, testAuth } = authCapturingCodes();
+  const email = "origin@example.com";
+
+  const signInFrom = async (origin: string, otp: string) =>
+    await testAuth.handler(
+      new Request("http://localhost:3000/api/auth/sign-in/email-otp", {
+        body: JSON.stringify({ email, otp }),
+        headers: { "content-type": "application/json", origin },
+        method: "POST",
+      }),
+    );
+
+  await testAuth.api.sendVerificationOTP({ body: { email, type: "sign-in" } });
+  const [sent] = codes;
+  assert.ok(sent);
+
+  const foreign = await signInFrom("https://attacker.example", sent.otp);
+  assert.equal(foreign.status, 403);
+
+  const own = await signInFrom("http://localhost:3000", sent.otp);
+  assert.equal(own.status, 200);
 });

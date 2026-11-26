@@ -1,4 +1,4 @@
-import { APIError, createAuthMiddleware } from "better-auth/api";
+import { APIError, createAuthMiddleware, formCsrfMiddleware } from "better-auth/api";
 
 type SignInCodeMode = "resend" | "log" | "off";
 
@@ -82,7 +82,7 @@ export const sendSignInCodeEmail = async (to: string, otp: string, send: typeof 
   });
 };
 
-/** The `emailOTP` sender: sends sign-in codes only; `refuseCodesWithoutMail` stops them first when the deployment sends no email. */
+/** The `emailOTP` sender: sends sign-in codes only; `guardSignInCodes` stops them first when the deployment sends no email. */
 export const signInCodeSenderOf =
   (mode: SignInCodeMode) =>
   async ({ email, otp, type }: SignInCodeRequest) => {
@@ -104,16 +104,21 @@ export const signInCodeSenderOf =
   };
 
 /**
- * better-auth logs what a sender throws and answers success, so a deployment
- * that sends no email refuses the request here, before a code is minted.
+ * The auth hook for sign-in codes: a code's sign-in checks the request's origin,
+ * which better-auth checks only when a code is asked for, and a deployment that
+ * sends no email refuses to send one, since better-auth answers success over a
+ * sender that throws.
  */
-export const refuseCodesWithoutMail = createAuthMiddleware(async (ctx) => {
-  if (ctx.path === "/email-otp/send-verification-otp") {
-    throw APIError.from("SERVICE_UNAVAILABLE", {
-      code: "EMAIL_DISABLED",
-      message: "Sign-in by email is unavailable: this site sends no email.",
-    });
-  }
+export const guardSignInCodes = (mode: SignInCodeMode) =>
+  createAuthMiddleware(async (ctx) => {
+    if (ctx.path === "/sign-in/email-otp") {
+      await formCsrfMiddleware(ctx);
+    }
 
-  await Promise.resolve();
-});
+    if (ctx.path === "/email-otp/send-verification-otp" && mode === "off") {
+      throw APIError.from("SERVICE_UNAVAILABLE", {
+        code: "EMAIL_DISABLED",
+        message: "Sign-in by email is unavailable: this site sends no email.",
+      });
+    }
+  });
