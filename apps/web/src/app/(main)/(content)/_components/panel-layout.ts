@@ -3,7 +3,7 @@
 import { useLayoutEffect, useRef, useSyncExternalStore } from "react";
 import { z } from "zod";
 
-export type PanelId = "nav" | "info" | "code";
+export type PanelId = "info" | "props" | "code";
 
 interface PanelBounds {
   min: number;
@@ -16,19 +16,19 @@ interface PanelBounds {
 export const PANEL_BOUNDS = {
   code: { cssVar: "--code-h", initial: 280, max: 720, min: 140, sizeVar: "--code-size" },
   info: { cssVar: "--info-w", initial: 340, max: 560, min: 280, sizeVar: "--info-size" },
-  nav: { cssVar: "--nav-w", initial: 232, max: 400, min: 184, sizeVar: "--nav-size" },
+  props: { cssVar: "--props-w", initial: 280, max: 480, min: 240, sizeVar: "--props-size" },
 } satisfies Record<PanelId, PanelBounds>;
 
-const PANEL_IDS = ["nav", "info", "code"] as const satisfies readonly PanelId[];
+const PANEL_IDS = ["info", "props", "code"] as const satisfies readonly PanelId[];
 
-const STORAGE_KEY = "uicapsule:workspace-layout:v2";
+const STORAGE_KEY = "uicapsule:workspace-layout:v3";
 
 const panelStateSchema = z.object({ open: z.boolean(), size: z.number() });
 
 const layoutSchema = z.object({
   code: panelStateSchema,
   info: panelStateSchema,
-  nav: panelStateSchema,
+  props: panelStateSchema,
 });
 
 export type PanelState = z.infer<typeof panelStateSchema>;
@@ -40,8 +40,8 @@ export const clampPanel = (id: PanelId, size: number) =>
 
 const DEFAULT_LAYOUT: PanelLayout = {
   code: { open: false, size: PANEL_BOUNDS.code.initial },
-  info: { open: false, size: PANEL_BOUNDS.info.initial },
-  nav: { open: false, size: PANEL_BOUNDS.nav.initial },
+  info: { open: true, size: PANEL_BOUNDS.info.initial },
+  props: { open: true, size: PANEL_BOUNDS.props.initial },
 };
 
 const readLayout = () => {

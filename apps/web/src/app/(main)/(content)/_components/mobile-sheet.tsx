@@ -11,8 +11,9 @@ import {
 } from "@repo/ui/components/drawer";
 
 import type { ContentComponentSummary } from "@/lib/content/content-schema";
-import { ComponentNav } from "./component-nav";
 import { InfoPanel } from "./info-panel";
+import type { PanelId } from "./panel-layout";
+import { PropsPanel } from "./props-panel";
 
 const CodeDock = dynamic(async () => {
   const mod = await import("./code-dock");
@@ -20,35 +21,28 @@ const CodeDock = dynamic(async () => {
   return mod.CodeDock;
 });
 
-export type MobilePanel = "nav" | "info" | "code";
-
-const SHEETS: Record<MobilePanel, { title: string; swipe: "left" | "down" }> = {
-  code: { swipe: "down", title: "Source code" },
-  info: { swipe: "down", title: "Component details" },
-  nav: { swipe: "left", title: "Components" },
-};
+const TITLES = {
+  code: "Source code",
+  info: "Component details",
+  props: "Props",
+} satisfies Record<PanelId, string>;
 
 interface MobileSheetProps {
-  panel: MobilePanel | null;
+  panel: PanelId | null;
   active: ContentComponentSummary;
-  feed: ContentComponentSummary[];
-  onSelect: (slug: string) => void;
   onClose: () => void;
 }
 
-export const MobileSheet = ({ panel, active, feed, onSelect, onClose }: MobileSheetProps) => {
-  const [shown, setShown] = useState<MobilePanel>("info");
+export const MobileSheet = ({ panel, active, onClose }: MobileSheetProps) => {
+  const [shown, setShown] = useState<PanelId>("info");
 
   if (panel && panel !== shown) {
     setShown(panel);
   }
 
-  const sheet = SHEETS[shown];
-
   return (
     <Drawer
       open={panel !== null}
-      swipeDirection={sheet.swipe}
       onOpenChange={(open) => {
         if (!open) {
           onClose();
@@ -57,17 +51,17 @@ export const MobileSheet = ({ panel, active, feed, onSelect, onClose }: MobileSh
     >
       <DrawerContent className="bg-background">
         <DrawerHeader className="sr-only">
-          <DrawerTitle>{sheet.title}</DrawerTitle>
+          <DrawerTitle>{TITLES[shown]}</DrawerTitle>
           <DrawerDescription>{active.name}</DrawerDescription>
         </DrawerHeader>
-        {shown === "nav" && (
-          <div className="h-full min-h-0">
-            <ComponentNav feed={feed} activeSlug={active.slug} onSelect={onSelect} />
-          </div>
-        )}
         {shown === "info" && (
           <div className="min-h-0 overflow-y-auto">
             <InfoPanel component={active} />
+          </div>
+        )}
+        {shown === "props" && (
+          <div className="min-h-0 overflow-y-auto">
+            <PropsPanel />
           </div>
         )}
         {shown === "code" && (

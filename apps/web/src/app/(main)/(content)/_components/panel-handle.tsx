@@ -23,22 +23,22 @@ const GRIP_TRANSITION = {
 
 const GRIP_CLASS = {
   code: "bottom-1/2 left-0 mb-0.75 h-1 w-8",
-  info: "top-0 right-1/2 mr-0.75 h-8 w-1",
-  nav: "top-0 left-1/2 ml-0.75 h-8 w-1",
+  info: "top-0 left-1/2 ml-0.75 h-8 w-1",
+  props: "top-0 right-1/2 mr-0.75 h-8 w-1",
 } satisfies Record<PanelId, string>;
 
-const DIRECTION = { code: -1, info: -1, nav: 1 } satisfies Record<PanelId, 1 | -1>;
+const DIRECTION = { code: -1, info: 1, props: -1 } satisfies Record<PanelId, 1 | -1>;
 
 const LABEL = {
   code: "Resize the code panel",
-  info: "Resize the info panel",
-  nav: "Resize the component list",
+  info: "Resize the details panel",
+  props: "Resize the props panel",
 } satisfies Record<PanelId, string>;
 
 const GROW_KEYS = {
   code: { grow: "ArrowUp", shrink: "ArrowDown" },
-  info: { grow: "ArrowLeft", shrink: "ArrowRight" },
-  nav: { grow: "ArrowRight", shrink: "ArrowLeft" },
+  info: { grow: "ArrowRight", shrink: "ArrowLeft" },
+  props: { grow: "ArrowLeft", shrink: "ArrowRight" },
 } satisfies Record<PanelId, { grow: string; shrink: string }>;
 
 interface PanelHandleProps {
