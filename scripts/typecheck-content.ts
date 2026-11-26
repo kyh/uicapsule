@@ -11,6 +11,21 @@ import { inOrder } from "./in-order";
 const repoRoot = fileURLToPath(new URL("..", import.meta.url));
 const contentRoot = path.join(repoRoot, "content");
 const compiler = path.join(repoRoot, "node_modules/typescript/bin/tsc");
+const previewControlsModule = path.join(repoRoot, "apps/web/src/lib/preview-controls");
+
+const previewCheckSource = (packageRoot: string) =>
+  [
+    `import type { ComponentType } from ${JSON.stringify(path.join(packageRoot, "node_modules/@types/react/index"))};`,
+    `import type { CheckedPreviewControls, ControlValues, PreviewControls } from ${JSON.stringify(previewControlsModule)};`,
+    `import * as previewModule from ${JSON.stringify(path.join(packageRoot, "preview"))};`,
+    "type ExpectedPreviewModule = typeof previewModule extends { readonly controls: infer Controls }",
+    "  ? Controls extends PreviewControls",
+    "    ? { controls: CheckedPreviewControls<Controls>; default: ComponentType & ComponentType<ControlValues<Controls>> }",
+    "    : { controls: PreviewControls; default: ComponentType }",
+    "  : { default: ComponentType };",
+    "previewModule satisfies ExpectedPreviewModule;",
+    "",
+  ].join("\n");
 
 const main = async () => {
   const entries = await readdir(contentRoot, { withFileTypes: true });
@@ -49,12 +64,7 @@ const main = async () => {
       }
 
       const previewCheck = path.join(configRoot, `${slug}-preview.ts`);
-      await writeFile(
-        previewCheck,
-        `import type { ComponentType } from ${JSON.stringify(path.join(packageRoot, "node_modules/@types/react/index"))};\n` +
-          `import Preview from ${JSON.stringify(path.join(packageRoot, "preview"))};\n` +
-          "Preview satisfies ComponentType;\n",
-      );
+      await writeFile(previewCheck, previewCheckSource(packageRoot));
       files.push(previewCheck);
 
       const config = path.join(configRoot, `${slug}.json`);

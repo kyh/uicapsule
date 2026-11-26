@@ -71,6 +71,41 @@ synth, a transit map), not "another neutral SaaS kit".
 - The component must demo itself: either it auto-animates, or the preview wires up an
   auto-tour + visible controls. A recording of a static component is worthless, so
   design the "flattering loop" now, not at recording time.
+- Configurable props go in a `controls` export from `preview.tsx`, which the site's props
+  panel renders and sends back as values. `Preview` receives one prop per key and maps them
+  onto the component (config objects, grids of instances, the backdrop, `key={value}` to
+  remount). Type its props by hand and default each one to its control, because the registry
+  and zip ship `preview.tsx` where nothing injects values; `pnpm typecheck:content <slug>`
+  checks them against the controls. Expose configuration only, never state the demo itself drives (a toggle's on/off,
+  a slider's current value, a timer's running state). Omit `controls` for a zero-prop preview.
+
+  ```tsx
+  export const controls = {
+    hue: { default: 0, label: "Hue rotation", max: 360, min: 0, step: 1, type: "number" },
+    background: { default: "#0a0a0a", type: "color" },
+    quality: { default: "high", options: ["low", { label: "High", value: "high" }], type: "select" },
+    grain: { default: false, type: "boolean" },
+    caption: { default: "", placeholder: "Overlay text", type: "text" },
+  } as const;
+
+  interface PreviewProps {
+    hue: number; background: string; quality: "low" | "high"; grain: boolean; caption: string;
+  }
+
+  const Preview = ({
+    hue = controls.hue.default,
+    background = controls.background.default,
+    quality = controls.quality.default,
+    grain = controls.grain.default,
+    caption = controls.caption.default,
+  }: Partial<PreviewProps>) => …;
+  ```
+
+  `number` needs `min <= default <= max`, a `select` default must be one of its option
+  values (unique), `color` is `#rgb`/`#rrggbb`, unknown fields are errors, and `key`/`ref`
+  can't be control names; `pnpm build:previews` rejects an invalid export, which would
+  otherwise throw in the frame.
+
 - `meta.json`: scaffold already filled `name`, `description`, `addedAt`; add `tags`,
   reusing the existing vocabulary. If the idea came from somewhere specific (a tweet,
   an app, a video), add `inspiredBy: [{ label, url }]` — provenance is part of the

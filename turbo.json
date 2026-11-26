@@ -14,6 +14,7 @@
       "inputs": [
         "content/**",
         "scripts/check-content.ts",
+        "apps/web/src/lib/content/content-categories.ts",
         "apps/web/src/lib/content/content-schema.ts",
         "scripts/content-validation.ts"
       ]
@@ -23,7 +24,9 @@
         "content/**",
         "scripts/build-previews.ts",
         "scripts/preview-bundle.ts",
+        "apps/web/src/lib/content/content-categories.ts",
         "apps/web/src/lib/content/content-schema.ts",
+        "apps/web/src/lib/preview-controls.ts",
         "apps/web/src/lib/content/preview-runtime.ts",
         "apps/web/src/lib/content/preview-shell.ts",
         "apps/web/src/lib/preview-protocol.ts",

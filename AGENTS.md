@@ -67,9 +67,13 @@ pnpm verify           # typecheck · lint · format · test · build
 `verify` needs `.env` because it runs the production build. It does not need a database.
 CI runs the same gate on every push and pull request using local test configuration.
 
-- Typecheck covers the app, packages, scripts, and each of the 39 code-bearing content
-  packages independently, including each preview's default export. Previews must render
-  without required props. `pnpm typecheck:content <slug>` checks one component.
+- Typecheck covers the app, packages, scripts, and every code-bearing content package
+  independently, including each preview's default export. A preview always renders without
+  props, since the registry and zip ship it; one that exports `controls` must also accept
+  `ControlValues<typeof controls>`, each prop defaulting to its control's `default`
+  (CLAUDE.md → Preview controls). `pnpm typecheck:content <slug>` checks one component.
+  `pnpm build:previews` loads every `controls` export and fails on any the frame would reject,
+  or on a preview whose module scope can't run in Node (it names the slug).
 - Lint is a clean gate. `oxlint.config.ts` extends the ultracite presets (`ultracite/oxlint/core`, `react`, `next`, `anti-slop`, `landmines`); every rule is an error, including explicit `any`, non-null assertions, and type casts. Landmines bans prose comments (TSDoc on exports and single-line `// WARNING:` excepted) and annotated return types (pin a contract with `satisfies`, a typed variable or a generic argument), in `content/*` as well. No rule is turned off, and lint is type-aware (CLAUDE.md → Verification Contract). Prefer fixing code over `oxlint-disable` comments; when a rule is genuinely wrong for a line, disable that line with a `-- reason`.
   Next.js-only rules apply to the app; content stays portable.
 - Tests cover auth schema/cookies/reset, RPC transport, content filesystem/registry behavior,
@@ -146,7 +150,7 @@ The routes worth checking, and what each proves:
 | `/preview-frame/<slug>`   | the bare preview — what the cover-video skill records |
 | `/r/<slug>.json`          | shadcn registry item (external CLI contract)          |
 | `/r/registry.json`        | the full registry index                               |
-| `/api/content/<slug>`     | source payload behind the drawer + zip download       |
+| `/api/content/<slug>`     | source payload behind the docked code panel           |
 | `/about`, `/request`      | static page; request form → GitHub issue              |
 | `/contact`, `/privacy`    | prose pages (trust anchors)                           |
 | `/terms`                  | prose page (trust anchor) — the Terms of Use          |
