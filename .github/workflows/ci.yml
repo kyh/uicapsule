@@ -62,6 +62,12 @@ jobs:
       BETTER_AUTH_URL: http://localhost:3000
       NEXT_PUBLIC_ASSETS_URL: https://d24l2zb4cwkekfpl.public.blob.vercel-storage.com
       PORT: 3000
+    # The server `turso dev` runs locally (sqld), which turso's Linux installer leaves out
+    services:
+      libsql:
+        image: ghcr.io/tursodatabase/libsql-server:latest
+        ports:
+          - 8080:8080
     steps:
       - uses: actions/checkout@v6
 
@@ -72,11 +78,8 @@ jobs:
 
       - run: touch .env
 
-      # `pnpm -F db db` locally: the same `turso dev`, on a throwaway file
-      - name: Start local Turso
+      - name: Wait for libSQL
         run: |
-          curl -sSfL https://get.tur.so/install.sh | bash
-          "$HOME/.turso/turso" dev --db-file "$RUNNER_TEMP/smoke.db" > "$RUNNER_TEMP/turso.log" 2>&1 &
           curl --fail --silent --retry 30 --retry-delay 1 --retry-all-errors --max-time 2 \
             --output /dev/null "$TURSO_DATABASE_URL/health"
 
@@ -100,4 +103,4 @@ jobs:
 
       - name: Server logs
         if: failure()
-        run: cat "$RUNNER_TEMP/web.log" "$RUNNER_TEMP/turso.log" || true
+        run: cat "$RUNNER_TEMP/web.log"
