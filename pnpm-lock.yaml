@@ -297,7 +297,7 @@ importers:
         specifier: 'catalog:'
         version: 2.0.0-beta.45
       '@repo/contract':
-        specifier: workspace:^
+        specifier: workspace:*
         version: link:packages/contract
       '@tailwindcss/postcss':
         specifier: 'catalog:'

@@ -101,6 +101,16 @@ CI runs the same gate on every push and pull request using local test configurat
 package manifests, and imports. Private workspace imports and paths escaping the component
 fail the build. Do not remove this guard.
 
+The smoke drives a running server end to end, as CI's `smoke` job does on `next start`
+against a fresh local Turso: `/`, the first content slug's `/ui/<slug>`,
+`/preview-frame/<slug>` (its sandbox policy) and `/r/<slug>.json`, a code's sign-in from another
+site refused, then `smoke@uicapsule.local` signed in by a code it mints (`pnpm sign-in-code`),
+`user.me`, and sign-out. It needs the local database the server uses:
+
+```sh
+pnpm smoke                                  # defaults to http://localhost:3000 (SMOKE_URL otherwise)
+```
+
 Agent surfaces — the response codes, `Content-Type`/`Vary` headers, JSON-LD and Markdown
 negotiation that `verify` structurally cannot see — have their own runtime gate. It needs a
 server already running:

@@ -273,8 +273,9 @@ Next imports, no filesystem — so it can be unit-tested without a runtime. The 
 - **No seeded login, and no passwords.** Nothing in the gallery is authed. Sign-in is an
   emailed code (better-auth `emailOTP`) that signs a new address up too; `pnpm sign-in-code`
   mints one without an inbox (see `AGENTS.md` → Login).
-- **Verify**: `pnpm verify` for the static gate, `pnpm check:agent-endpoints` for the
-  machine-readable surfaces (needs a running server), then drive the running app with
+- **Verify**: `pnpm verify` for the static gate, `pnpm smoke` (pages, a code's sign-in,
+  `user.me`) and `pnpm check:agent-endpoints` for the machine-readable surfaces (both need a
+  running server; CI's `smoke` job runs both on `next start`), then drive the running app with
   `agent-browser` — `/`, `/ui/<slug>`, `/preview-frame/<slug>`, `/r/<slug>.json`. The
   extension is driven through Playwright's `--load-extension` (`AGENTS.md` → Platform matrix).
 
@@ -300,6 +301,7 @@ pnpm build:previews   # Bundle every content preview into apps/web/public/previe
 pnpm dev:previews     # Vite dev server for previews on :5174 with hot reload (dev:web runs it)
 pnpm publish:ugc <dir> --slug <s> --name <n>  # Build <dir>/preview.tsx to the plain-ESM contract with Vite and publish it (UICAPSULE_TOKEN, UICAPSULE_URL; --username once; --out to only build)
 pnpm test             # node:test — auth + RPC transport guards + the agent-surface tests
+pnpm smoke            # Drive a running server: pages, a code's sign-in, user.me, sign-out (CI runs it)
 pnpm check:agent-endpoints  # Runtime check of the agent surfaces (needs a running server)
 pnpm skills:update    # Bump the skills-lock.json skills (emilkowalski, jakubkrehel) to upstream HEAD; review the diff
 pnpm skills:sync      # Restore .claude/skills to exactly what skills-lock.json pins
