@@ -1,6 +1,5 @@
-import type { CSSProperties } from "react";
-
 import { useWidth } from "../lib/use-width";
+import { cssVars } from "../lib/css-vars";
 
 export interface Lane {
   id: string;
@@ -57,19 +56,15 @@ export const Swimlanes = ({ label, lanes, steps }: SwimlanesProps) => {
   return (
     <figure aria-label={label} className="hx-lanes-figure">
       <div className="hx-lanes-scroll" ref={viewRef}>
-        <div className="hx-lanes-inner" style={{ "--lanes": lanes.length } as CSSProperties}>
-          <div className="hx-lanes" style={{ "--lanes": lanes.length } as CSSProperties}>
+        <div className="hx-lanes-inner" style={cssVars({ "--lanes": lanes.length })}>
+          <div className="hx-lanes" style={cssVars({ "--lanes": lanes.length })}>
             {lanes.map((lane) => (
               <div className="hx-lane-head hx-micro" key={lane.id}>
                 {lane.label}
               </div>
             ))}
           </div>
-          <div
-            ref={ref}
-            className="hx-lane-field"
-            style={{ "--rows": steps.length } as CSSProperties}
-          >
+          <div ref={ref} className="hx-lane-field" style={cssVars({ "--rows": steps.length })}>
             <svg
               aria-hidden
               className="hx-lane-svg"
@@ -122,13 +117,11 @@ export const Swimlanes = ({ label, lanes, steps }: SwimlanesProps) => {
                     data-state={step.state}
                     data-tone={step.state === "active" ? "accent" : undefined}
                     key={step.label}
-                    style={
-                      {
-                        "--from": a,
-                        "--row": row,
-                        "--span": b - a + 1,
-                      } as CSSProperties
-                    }
+                    style={cssVars({
+                      "--from": a,
+                      "--row": row,
+                      "--span": b - a + 1,
+                    })}
                   >
                     <span className="hx-micro hx-truncate">{step.label}</span>
                     {step.meta !== undefined && step.meta !== "" ? (

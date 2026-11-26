@@ -1,8 +1,9 @@
 import { Check, Minus } from "lucide-react";
 import { useId } from "react";
-import type { CSSProperties, ReactNode } from "react";
+import type { ReactNode } from "react";
 
 import { Icon } from "./icon";
+import { cssVars } from "../lib/css-vars";
 
 interface CheckboxProps {
   label: ReactNode;
@@ -201,7 +202,7 @@ export const Slider = ({
           onValueChange(Number(event.target.value));
         }}
         step={step}
-        style={{ "--fill": fill } as CSSProperties}
+        style={cssVars({ "--fill": fill })}
         type="range"
         value={value}
       />

@@ -867,7 +867,7 @@ const SakugaChip = ({ className, children, ref, ...props }: ComponentProps<"span
   const enrol = useCallback(
     (node: HTMLSpanElement | null) => {
       if (!node) {
-        return undefined;
+        return;
       }
 
       const els = chipElsRef.current;

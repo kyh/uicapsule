@@ -1,6 +1,7 @@
-import type { CSSProperties, ReactNode } from "react";
+import type { ReactNode } from "react";
 
 import { StatusMark } from "./status";
+import { cssVars } from "../lib/css-vars";
 
 type AlertTone = "fail" | "warn" | "ok" | "info";
 
@@ -53,9 +54,5 @@ export const EmptyState = ({
 
 /** Static placeholder bars sized like the content they stand in for. */
 export const Skeleton = ({ width = "100%", height = 12 }: { width?: string; height?: number }) => (
-  <span
-    aria-hidden
-    className="hx-skel"
-    style={{ "--h": `${height}px`, "--w": width } as CSSProperties}
-  />
+  <span aria-hidden className="hx-skel" style={cssVars({ "--h": `${height}px`, "--w": width })} />
 );

@@ -48,7 +48,7 @@ export const VoiceDictator: FC = () => {
     const canvas = canvasRef.current;
 
     if (!canvas) {
-      return undefined;
+      return;
     }
 
     const gl = canvas.getContext("webgl", {
@@ -58,7 +58,7 @@ export const VoiceDictator: FC = () => {
     });
 
     if (!gl) {
-      return undefined;
+      return;
     }
 
     const vertexShaderSource = `

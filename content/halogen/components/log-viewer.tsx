@@ -1,6 +1,5 @@
 import { ArrowDownToLine, SkipForward, WrapText, Search } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
-import type { CSSProperties } from "react";
 
 import { Button } from "./button";
 import { Segmented } from "./choice";
@@ -9,6 +8,7 @@ import { Frame, FrameHead } from "./frame";
 import { Icon } from "./icon";
 import { Input } from "./field";
 import { Pending } from "./pending";
+import { cssVars } from "../lib/css-vars";
 
 export type LogLevel = "debug" | "info" | "warn" | "fail";
 
@@ -200,7 +200,7 @@ export const LogViewer = ({
           setFollow(false);
         }}
         ref={list}
-        style={{ "--log-h": `${height}px` } as CSSProperties}
+        style={cssVars({ "--log-h": `${height}px` })}
       >
         {shown.map((line) => (
           <li

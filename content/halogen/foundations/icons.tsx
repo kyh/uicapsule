@@ -18,9 +18,9 @@ import {
   TriangleAlert,
   Workflow,
 } from "lucide-react";
-import type { CSSProperties } from "react";
 
 import { Icon } from "../components/icon";
+import { cssVars } from "../lib/css-vars";
 
 const SET = [
   { icon: Search, name: "Search" },
@@ -46,7 +46,7 @@ const SET = [
 /** Lucide, squared: square ends, mitred joins, one 1.5px line at every size. */
 export const Iconography = () => (
   <div className="hx-stack-4">
-    <div className="hx-tiles hx-icon-grid" style={{ "--tiles": 9 } as CSSProperties}>
+    <div className="hx-tiles hx-icon-grid" style={cssVars({ "--tiles": 9 })}>
       {SET.map((item) => (
         <div key={item.name}>
           <Icon icon={item.icon} />
@@ -54,7 +54,7 @@ export const Iconography = () => (
         </div>
       ))}
     </div>
-    <div className="hx-tiles" style={{ "--tiles": 3 } as CSSProperties}>
+    <div className="hx-tiles" style={cssVars({ "--tiles": 3 })}>
       <div>
         <span className="hx-label-sm hx-ink-3">Sizes</span>
         <span className="hx-row hx-gap-4 hx-icon-sizes">

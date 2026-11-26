@@ -73,7 +73,7 @@ export const ToastProvider = ({ children }: { children: ReactNode }) => {
 
   const card = useCallback((node: HTMLDivElement | null) => {
     if (!node) {
-      return undefined;
+      return;
     }
 
     const hold = () => {

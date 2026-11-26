@@ -277,9 +277,7 @@ export const FilterValueTextDisplay = ({ filter }: FilterValueDisplayProps<"text
 
   if (
     filter.values.length === 0 ||
-    (filter.values[0] !== undefined &&
-      filter.values[0] !== "" &&
-      filter.values[0].trim() === "")
+    (filter.values[0] !== undefined && filter.values[0] !== "" && filter.values[0].trim() === "")
   ) {
     return <Ellipsis className="size-4" />;
   }

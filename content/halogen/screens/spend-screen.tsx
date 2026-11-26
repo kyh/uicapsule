@@ -1,5 +1,4 @@
 import { useState } from "react";
-import type { CSSProperties } from "react";
 
 import { Button } from "../components/button";
 import { LineChart } from "../components/charts";
@@ -28,6 +27,7 @@ import {
   forecastOf,
 } from "./spend-data";
 import type { AtCap, Spill, TeamSpend } from "./spend-data";
+import { cssVars } from "../lib/css-vars";
 
 const BudgetBar = ({ credits, budget, cap }: { credits: number; budget: number; cap?: number }) => {
   const scale = Math.max(credits, budget, cap ?? 0) * 1.15;
@@ -38,12 +38,10 @@ const BudgetBar = ({ credits, budget, cap }: { credits: number; budget: number; 
       aria-hidden
       className="hx-budget"
       data-over={over || undefined}
-      style={
-        {
-          "--fill": `${(credits / scale) * 100}%`,
-          "--tick": `${(budget / scale) * 100}%`,
-        } as CSSProperties
-      }
+      style={cssVars({
+        "--fill": `${(credits / scale) * 100}%`,
+        "--tick": `${(budget / scale) * 100}%`,
+      })}
     />
   );
 };

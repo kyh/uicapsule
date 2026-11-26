@@ -591,7 +591,7 @@ const SakugaSelectItem = ({
 
   const rowRef = useMergedRef((node: HTMLDivElement | null) => {
     if (!node) {
-      return undefined;
+      return;
     }
 
     const { rows } = rigRef.current;

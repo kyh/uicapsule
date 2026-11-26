@@ -1,5 +1,5 @@
 import { useState } from "react";
-import type { CSSProperties, ReactNode } from "react";
+import type { ReactNode } from "react";
 
 import { Button } from "../components/button";
 import { Checkbox } from "../components/choice";
@@ -8,10 +8,11 @@ import { Tag } from "../components/tag";
 import { contrast, ratio } from "../lib/contrast";
 import { COLOR_GROUPS } from "./tokens";
 import type { ColorToken } from "./tokens";
+import { cssVars } from "../lib/css-vars";
 
 const Swatch = ({ hex }: { hex: string }) => (
   <span className="hx-row">
-    <span className="hx-swatch" style={{ "--sw": hex } as CSSProperties} />
+    <span className="hx-swatch" style={cssVars({ "--sw": hex })} />
     <span className="hx-code-sm">{hex}</span>
   </span>
 );

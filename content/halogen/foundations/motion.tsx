@@ -1,6 +1,5 @@
 import { RotateCcw } from "lucide-react";
 import { useEffect, useState } from "react";
-import type { CSSProperties } from "react";
 
 import { Button } from "../components/button";
 import { Icon } from "../components/icon";
@@ -10,13 +9,14 @@ import { ToolCallRow, ToolCallStack } from "../components/runs";
 import { ScrambleText, TypeText } from "../components/text-motion";
 import { useReducedMotion } from "../lib/motion";
 import { CURVES, MOTION_TOKENS } from "./tokens";
+import { cssVars } from "../lib/css-vars";
 
 const Track = ({ dur, curve, run }: { dur: string; curve: string; run: boolean }) => (
   <div className="hx-motion-track">
     <span
       className="hx-motion-dot"
       data-run={run}
-      style={{ "--d": `var(${dur})`, "--e": `var(${curve})` } as CSSProperties}
+      style={cssVars({ "--d": `var(${dur})`, "--e": `var(${curve})` })}
     />
   </div>
 );
@@ -158,7 +158,7 @@ export const Motion = () => {
         </div>
       </div>
 
-      <div className="hx-tiles" style={{ "--tiles": 4 } as CSSProperties}>
+      <div className="hx-tiles" style={cssVars({ "--tiles": 4 })}>
         {CURVES.map((curve) => (
           <div key={curve.name}>
             <Curve points={curve.points} />
@@ -169,7 +169,7 @@ export const Motion = () => {
         ))}
       </div>
 
-      <div className="hx-tiles" style={{ "--tiles": 3 } as CSSProperties}>
+      <div className="hx-tiles" style={cssVars({ "--tiles": 3 })}>
         <div>
           <span className="hx-label-sm hx-ink-3">Type · 20ms a character</span>
           <span className="hx-heading-sm hx-motion-stage">

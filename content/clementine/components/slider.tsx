@@ -1,7 +1,7 @@
-import type { CSSProperties } from "react";
 import { useId } from "react";
 
 import "./slider.css";
+import { cssVars } from "../lib/css-vars";
 
 interface SliderProps {
   label: string;
@@ -44,7 +44,7 @@ export const Slider = ({
           onValueChange(Number(event.target.value));
         }}
         step={step}
-        style={{ "--cl-fill": `${pct}%` } as CSSProperties}
+        style={cssVars({ "--cl-fill": `${pct}%` })}
         type="range"
         value={value}
       />
