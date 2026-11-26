@@ -25,7 +25,7 @@ const getBaseUrl = () => {
     return window.location.origin;
   }
 
-  if (process.env.VERCEL_URL) {
+  if (process.env.VERCEL_URL !== undefined && process.env.VERCEL_URL !== "") {
     return `https://${process.env.VERCEL_URL}`;
   }
 

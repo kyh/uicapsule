@@ -5,6 +5,8 @@ import { ArrowUp, Check, Mic, Plus, Sparkles, X } from "lucide-react";
 import { AnimatePresence, motion, useAnimate } from "motion/react";
 import type { Transition } from "motion/react";
 
+const noop = () => null;
+
 type Mode = "idle" | "input" | "listening" | "thinking" | "responding";
 
 interface Exchange {
@@ -109,14 +111,16 @@ export const DynamicAiComposer = () => {
 
   useEffect(() => {
     if (mode !== "listening") {
-      return;
+      return noop;
     }
 
     const interval = setInterval(() => {
       setElapsed((previous) => previous + 1);
     }, 1000);
 
-    return () => clearInterval(interval);
+    return () => {
+      clearInterval(interval);
+    };
   }, [mode]);
 
   const submit = useCallback(
@@ -139,11 +143,18 @@ export const DynamicAiComposer = () => {
           setStreamedCount(index + 1);
 
           if (index + 1 < words.length) {
-            queue(() => step(index + 1), 60 + ((index * 37) % 60));
+            queue(
+              () => {
+                step(index + 1);
+              },
+              60 + ((index * 37) % 60),
+            );
           }
         };
 
-        queue(() => step(0), 250);
+        queue(() => {
+          step(0);
+        }, 250);
       }, 1500);
     },
     [queue],
@@ -190,7 +201,9 @@ export const DynamicAiComposer = () => {
           <div className="flex h-12 items-center gap-1 pr-2 pl-4">
             <button
               type="button"
-              onClick={() => setMode("input")}
+              onClick={() => {
+                setMode("input");
+              }}
               className="flex h-full flex-1 items-center gap-2.5 text-left"
             >
               <Sparkles className="size-4 text-white/50" />
@@ -218,7 +231,9 @@ export const DynamicAiComposer = () => {
               ref={textareaRef}
               rows={2}
               value={draft}
-              onChange={(event) => setDraft(event.target.value)}
+              onChange={(event) => {
+                setDraft(event.target.value);
+              }}
               onKeyDown={(event) => {
                 if (event.key === "Enter" && !event.shiftKey) {
                   event.preventDefault();
@@ -271,7 +286,9 @@ export const DynamicAiComposer = () => {
             <button
               type="button"
               aria-label="Cancel voice input"
-              onClick={() => setMode("idle")}
+              onClick={() => {
+                setMode("idle");
+              }}
               className="grid size-8 shrink-0 place-items-center rounded-full text-white/50 transition-colors hover:bg-white/10 hover:text-white"
             >
               <X className="size-4" />

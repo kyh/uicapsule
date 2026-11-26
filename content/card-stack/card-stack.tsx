@@ -2,6 +2,8 @@ import { useRef } from "react";
 import { useGSAP } from "@gsap/react";
 import { gsap } from "gsap";
 
+const noop = () => null;
+
 interface CardStackProps {
   cards: { src: string; href: string; alt: string }[];
 }
@@ -28,14 +30,14 @@ export const CardStack = ({ cards }: CardStackProps) => {
     const root = rootRef.current;
 
     if (!root) {
-      return;
+      return noop;
     }
 
     const slides = root.querySelectorAll(".slide");
     const slideContent = root.querySelectorAll(".content");
 
     if (slides.length === 0) {
-      return;
+      return noop;
     }
 
     const deltaObject = { delta: 0 };

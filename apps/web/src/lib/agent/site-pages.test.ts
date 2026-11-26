@@ -89,7 +89,8 @@ const blockTexts = (block: ProseBlock) => {
 
 const pageTexts = (page: ProsePage) => page.blocks.flatMap(blockTexts);
 
-const hrefsOf = (items: ProseListItem[]) => items.flatMap((item) => (item.href ? [item.href] : []));
+const hrefsOf = (items: ProseListItem[]) =>
+  items.flatMap((item) => (item.href !== undefined && item.href !== "" ? [item.href] : []));
 
 const pageHrefs = (page: ProsePage) => [
   ...page.blocks.flatMap((block) => (block.kind === "list" ? hrefsOf(block.items) : [])),

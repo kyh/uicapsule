@@ -47,7 +47,7 @@ const throttle = (func: () => void, limit: number) => {
       timeoutId = undefined;
       lastCall = now;
       func();
-    } else if (!timeoutId) {
+    } else if (timeoutId === undefined || timeoutId === 0) {
       timeoutId = setTimeout(() => {
         lastCall = Date.now();
         timeoutId = undefined;
@@ -57,7 +57,7 @@ const throttle = (func: () => void, limit: number) => {
   };
 
   throttledFn.cancel = () => {
-    if (timeoutId) {
+    if (timeoutId !== undefined && timeoutId !== 0) {
       clearTimeout(timeoutId);
       timeoutId = undefined;
     }
@@ -234,7 +234,7 @@ const createEngine = (initialOffset: Position, initialGridSize: number, view: Vi
   };
 
   const handleDown = (p: Position) => {
-    if (animationFrame) {
+    if (animationFrame !== null && animationFrame !== 0) {
       cancelAnimationFrame(animationFrame);
       animationFrame = null;
     }
@@ -290,7 +290,7 @@ const createEngine = (initialOffset: Position, initialGridSize: number, view: Vi
     isDragging = false;
     view.setIsDragging(false);
 
-    if (animationFrame) {
+    if (animationFrame !== null && animationFrame !== 0) {
       cancelAnimationFrame(animationFrame);
     }
 
@@ -329,7 +329,7 @@ const createEngine = (initialOffset: Position, initialGridSize: number, view: Vi
       mounted = false;
       container = null;
 
-      if (animationFrame) {
+      if (animationFrame !== null && animationFrame !== 0) {
         cancelAnimationFrame(animationFrame);
       }
 

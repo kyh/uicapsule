@@ -72,7 +72,9 @@ export const ToolCall = ({ call, question, actions }: ToolCallProps) => {
         aria-expanded={expandable ? open : undefined}
         className="fj-tool-row"
         disabled={!expandable}
-        onClick={() => setOpen((value) => !value)}
+        onClick={() => {
+          setOpen((value) => !value);
+        }}
         type="button"
       >
         <span aria-hidden className="fj-tool-glyph">
@@ -87,8 +89,13 @@ export const ToolCall = ({ call, question, actions }: ToolCallProps) => {
           {expandable ? <Icon icon={ChevronRight} size={12} /> : null}
         </span>
       </button>
-      {open && call.reason ? <p className="fj-tool-reason">{call.reason}</p> : null}
-      {open && call.output && !call.reason ? (
+      {open && call.reason !== undefined && call.reason !== "" ? (
+        <p className="fj-tool-reason">{call.reason}</p>
+      ) : null}
+      {open &&
+      call.output !== undefined &&
+      call.output !== "" &&
+      (call.reason === undefined || call.reason === "") ? (
         <pre className="fj-tool-out fj-well">{call.output}</pre>
       ) : null}
       {call.status === "awaiting" && question ? (

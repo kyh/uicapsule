@@ -72,7 +72,9 @@ export const CommandPalette = ({ open, onOpenChange, items, onRun }: CommandProp
   return (
     <Dialog
       meta={`${matches.length} ${matches.length === 1 ? "result" : "results"}`}
-      onOpenChange={(next) => (next ? onOpenChange(true) : close())}
+      onOpenChange={(next) => {
+        next ? onOpenChange(true) : close();
+      }}
       open={open}
       size="lg"
       title="Go to"
@@ -112,9 +114,15 @@ export const CommandPalette = ({ open, onOpenChange, items, onRun }: CommandProp
               aria-current={index === active ? "true" : undefined}
               className="hx-menu-item"
               data-active={index === active}
-              onClick={() => run(item)}
-              onFocus={() => setActive(index)}
-              onPointerEnter={() => setActive(index)}
+              onClick={() => {
+                run(item);
+              }}
+              onFocus={() => {
+                setActive(index);
+              }}
+              onPointerEnter={() => {
+                setActive(index);
+              }}
               tabIndex={-1}
               type="button"
             >

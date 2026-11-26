@@ -55,7 +55,9 @@ interface KeypadProps {
 }
 
 export const Keypad = ({ value, onValueChange, decimal = true, disabled = false }: KeypadProps) => {
-  const press = (key: Key) => onValueChange(pressKey(value, key, { decimal }));
+  const press = (key: Key) => {
+    onValueChange(pressKey(value, key, { decimal }));
+  };
 
   const onKeyDown = (event: KeyboardEvent) => {
     const map = new Map<string, Key>([
@@ -86,7 +88,9 @@ export const Keypad = ({ value, onValueChange, decimal = true, disabled = false 
             className="cl-keypad__key"
             disabled={disabled}
             key={key}
-            onClick={() => press(key)}
+            onClick={() => {
+              press(key);
+            }}
             onKeyDown={onKeyDown}
             type="button"
           >

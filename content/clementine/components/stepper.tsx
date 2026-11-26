@@ -27,7 +27,9 @@ export const Stepper = ({
     <Button
       aria-label={`Less for ${label}`}
       disabled={value - step < min}
-      onClick={() => onValueChange(value - step)}
+      onClick={() => {
+        onValueChange(value - step);
+      }}
       size="icon-sm"
       variant="secondary"
     >
@@ -39,7 +41,9 @@ export const Stepper = ({
     <Button
       aria-label={`More for ${label}`}
       disabled={value + step > max}
-      onClick={() => onValueChange(value + step)}
+      onClick={() => {
+        onValueChange(value + step);
+      }}
       size="icon-sm"
       variant="secondary"
     >

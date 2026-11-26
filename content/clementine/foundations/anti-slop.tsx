@@ -51,7 +51,9 @@ const PendingDemo = () => {
     <Button
       onClick={() => {
         setBusy(true);
-        window.setTimeout(() => setBusy(false), 1400);
+        window.setTimeout(() => {
+          setBusy(false);
+        }, 1400);
       }}
       pending={busy}
       size="sm"

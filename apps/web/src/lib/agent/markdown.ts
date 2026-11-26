@@ -40,9 +40,14 @@ const renderInline = (text: string) =>
     .join("");
 
 const renderListItem = (item: ProseListItem) => {
-  const label = item.href ? `[${item.label}](${absoluteUrl(item.href)})` : `**${item.label}**`;
+  const label =
+    item.href !== undefined && item.href !== ""
+      ? `[${item.label}](${absoluteUrl(item.href)})`
+      : `**${item.label}**`;
 
-  return item.text ? `- ${label}: ${renderInline(item.text)}` : `- ${label}`;
+  return item.text !== undefined && item.text !== ""
+    ? `- ${label}: ${renderInline(item.text)}`
+    : `- ${label}`;
 };
 
 export const renderList = (items: ProseListItem[]) => items.map(renderListItem).join("\n");

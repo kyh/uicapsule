@@ -8,7 +8,7 @@ export const sendPasswordResetEmail = async (
   const apiKey = process.env.RESEND_API_KEY;
   const from = process.env.AUTH_EMAIL_FROM;
 
-  if (!apiKey || !from) {
+  if (apiKey === undefined || apiKey === "" || from === undefined || from === "") {
     throw APIError.from("SERVICE_UNAVAILABLE", {
       code: "PASSWORD_RESET_UNAVAILABLE",
       message: "Password reset is temporarily unavailable. Try again later.",

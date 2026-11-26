@@ -115,7 +115,9 @@ const JsonNode = ({ name, value, depth }: { name?: string; value: JsonValue; dep
       <button
         aria-expanded={open}
         className="fj-json-toggle"
-        onClick={() => setOpen((current) => !current)}
+        onClick={() => {
+          setOpen((current) => !current);
+        }}
         type="button"
       >
         <Icon icon={ChevronRight} size={12} />
@@ -214,7 +216,9 @@ export const LogViewer = ({ initial, stream, header }: LogViewerProps) => {
           />
           <Button
             aria-pressed={paused}
-            onClick={() => setPaused((value) => !value)}
+            onClick={() => {
+              setPaused((value) => !value);
+            }}
             size="xs"
             variant="ghost"
           >

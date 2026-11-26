@@ -66,7 +66,9 @@ const ComponentNavBase = ({ feed, activeSlug, onSelect }: ComponentNavProps) => 
             value={query}
             placeholder="Filter components"
             className="placeholder:text-muted-foreground min-w-0 flex-1 bg-transparent text-sm outline-none"
-            onChange={(event) => setQuery(event.target.value)}
+            onChange={(event) => {
+              setQuery(event.target.value);
+            }}
           />
         </label>
       </div>

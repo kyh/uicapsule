@@ -31,14 +31,14 @@ const run = (command: string, args: string[]) =>
   execFileSync(command, args, { encoding: "utf-8", maxBuffer: 64 * 1024 * 1024 });
 
 const blobToken = async () => {
-  if (process.env.BLOB_READ_WRITE_TOKEN) {
+  if (process.env.BLOB_READ_WRITE_TOKEN !== undefined && process.env.BLOB_READ_WRITE_TOKEN !== "") {
     return process.env.BLOB_READ_WRITE_TOKEN;
   }
 
   const local = await readFile(path.join(repoRoot, ".env.local"), "utf-8").catch(() => "");
   const token = parseEnv(local).BLOB_READ_WRITE_TOKEN;
 
-  if (!token) {
+  if (token === undefined || token === "") {
     throw new Error("BLOB_READ_WRITE_TOKEN is unset and missing from .env.local");
   }
 
@@ -111,7 +111,12 @@ const logoPath = async () => {
 
   const match = /\sd="(?<d>[^"]+)"/u.exec(source);
 
-  if (!match?.groups?.d) {
+  if (
+    match === null ||
+    match.groups === undefined ||
+    match.groups.d === undefined ||
+    match.groups.d === ""
+  ) {
     throw new Error("could not find the logo path in logo.tsx");
   }
 
@@ -194,14 +199,22 @@ const renderScene = async () => {
 };
 
 const assetsUrl = async () => {
-  if (process.env.NEXT_PUBLIC_ASSETS_URL) {
+  if (
+    process.env.NEXT_PUBLIC_ASSETS_URL !== undefined &&
+    process.env.NEXT_PUBLIC_ASSETS_URL !== ""
+  ) {
     return process.env.NEXT_PUBLIC_ASSETS_URL;
   }
 
   const example = await readFile(path.join(repoRoot, ".env.example"), "utf-8");
   const match = /^NEXT_PUBLIC_ASSETS_URL="?(?<url>[^"\n]+)"?/mu.exec(example);
 
-  if (!match?.groups?.url) {
+  if (
+    match === null ||
+    match.groups === undefined ||
+    match.groups.url === undefined ||
+    match.groups.url === ""
+  ) {
     throw new Error("NEXT_PUBLIC_ASSETS_URL is unset and missing from .env.example");
   }
 
@@ -284,7 +297,7 @@ const probeCovers = async (force: boolean) => {
     const metaSource = await readFile(path.join(contentRoot, slug, "meta.json"), "utf-8");
     const { cover } = contentMetaSchema.parse(JSON.parse(metaSource));
 
-    if (!cover?.endsWith(".mp4")) {
+    if (cover?.endsWith(".mp4") !== true) {
       consola.warn(`${slug}: no mp4 cover, skipped`);
       continue;
     }
@@ -361,11 +374,11 @@ const main = defineCommand({
   },
   meta: { description: "Render the home og:video and index component cover videos" },
   run: async ({ args }) => {
-    if (!args.only || args.only === "covers") {
+    if (args.only === undefined || args.only === "" || args.only === "covers") {
       await probeCovers(Boolean(args.force));
     }
 
-    if (!args.only || args.only === "scene") {
+    if (args.only === undefined || args.only === "" || args.only === "scene") {
       await renderScene();
     }
   },

@@ -81,19 +81,19 @@ const submit = async (request: Extract<WorkerRequest, { type: "submit" }>) => {
 const handle = async (request: WorkerRequest, windowId: number | undefined) => {
   switch (request.type) {
     case "capture": {
-      return capture(request, windowId);
+      return await capture(request, windowId);
     }
 
     case "video": {
-      return video(request.src);
+      return await video(request.src);
     }
 
     case "submit": {
-      return submit(request);
+      return await submit(request);
     }
 
     case "run": {
-      return startOverlay(request.tabId, { tool: request.tool });
+      return await startOverlay(request.tabId, { tool: request.tool });
     }
 
     case "options": {
@@ -190,7 +190,7 @@ export default defineBackground(() => {
     const request = workerRequestSchema.safeParse(message);
 
     if (!request.success) {
-      return;
+      return undefined;
     }
 
     void respond(request.data, sender.tab?.windowId, sendResponse);

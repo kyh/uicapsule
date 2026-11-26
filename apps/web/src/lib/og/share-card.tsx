@@ -31,8 +31,8 @@ const shorten = (text: string) => {
 export const readStill = async (url: string) => {
   const response = await fetch(url).catch(() => null);
 
-  if (!response?.ok) {
-    return;
+  if (response?.ok !== true) {
+    return undefined;
   }
 
   const bytes = Buffer.from(await response.arrayBuffer());
@@ -102,8 +102,8 @@ export const renderShareCard = ({ description, path: pagePath, still, title }: S
         width: "100%",
       }}
     >
-      {still ? <Still src={still} /> : <Mark />}
-      {still ? <Scrim /> : null}
+      {still !== undefined && still !== "" ? <Still src={still} /> : <Mark />}
+      {still !== undefined && still !== "" ? <Scrim /> : null}
       <div
         style={{
           display: "flex",

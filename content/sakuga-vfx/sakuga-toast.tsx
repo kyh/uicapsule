@@ -39,7 +39,11 @@ const STAY = 2600;
 const sakugaToast = Object.assign(
   (title: ReactNode, options?: SakugaToastOptions) =>
     manager.add({ data: { duration: options?.duration ?? STAY }, id: ID, timeout: 0, title }),
-  { dismiss: () => manager.close(ID) },
+  {
+    dismiss: () => {
+      manager.close(ID);
+    },
+  },
 );
 
 type Phase = 0 | 1 | 2 | 3;

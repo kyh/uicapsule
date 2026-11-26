@@ -32,7 +32,9 @@ const useReplay = (replay: number) => {
     let inner = 0;
 
     const outer = requestAnimationFrame(() => {
-      inner = requestAnimationFrame(() => setState({ replay, run: true }));
+      inner = requestAnimationFrame(() => {
+        setState({ replay, run: true });
+      });
     });
 
     return () => {
@@ -68,7 +70,9 @@ const TokenRow = ({ token, replay }: { token: (typeof MOTION_TOKENS)[number]; re
       <td data-label="Replay">
         <Button
           aria-label={`Replay ${token.dur}`}
-          onClick={() => setOwn((value) => value + 1)}
+          onClick={() => {
+            setOwn((value) => value + 1);
+          }}
           size="icon-sm"
           variant="ghost"
         >
@@ -120,7 +124,13 @@ export const Motion = () => {
             {reduced ? "Reduced motion on: all 0ms" : "7 tokens"}
           </span>
           <div className="hx-head-actions">
-            <Button onClick={() => setReplay((value) => value + 1)} size="sm" variant="ghost">
+            <Button
+              onClick={() => {
+                setReplay((value) => value + 1);
+              }}
+              size="sm"
+              variant="ghost"
+            >
               Replay all
             </Button>
           </div>
@@ -193,7 +203,12 @@ export const Motion = () => {
           <div className="hx-motion-stage" key={`${replay}-${meter}`}>
             <Meter label="Slots busy" max={24} reading={`${meter} / 24`} value={meter} />
           </div>
-          <Button onClick={() => setMeter(meter > 19 ? 9 : meter + 5)} size="sm">
+          <Button
+            onClick={() => {
+              setMeter(meter > 19 ? 9 : meter + 5);
+            }}
+            size="sm"
+          >
             Change value
           </Button>
         </div>
@@ -211,7 +226,12 @@ export const Motion = () => {
             ) : null}
             {step >= 2 ? <ToolCallRow label="Replay rows" state="running" tab="Replaying" /> : null}
           </ToolCallStack>
-          <Button onClick={() => setStep(step >= 2 ? 1 : step + 1)} size="sm">
+          <Button
+            onClick={() => {
+              setStep(step >= 2 ? 1 : step + 1);
+            }}
+            size="sm"
+          >
             {step >= 2 ? "Reset" : "Next step"}
           </Button>
         </div>

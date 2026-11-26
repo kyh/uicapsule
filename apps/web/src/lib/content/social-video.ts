@@ -62,7 +62,7 @@ export const componentVideo = (component: ContentComponentSummary) => {
   const media = coverMediaFor(component);
 
   if (!media) {
-    return;
+    return undefined;
   }
 
   return {

@@ -13,6 +13,8 @@ import {
   useTransform,
 } from "motion/react";
 
+const noop = () => null;
+
 type ActionId = "save" | "save-as" | "copy" | "export";
 
 const MENU_ITEMS = [
@@ -92,12 +94,16 @@ export const SplitButton = () => {
 
   useEffect(() => {
     if (!confirmation) {
-      return;
+      return noop;
     }
 
-    const timer = window.setTimeout(() => setConfirmation(null), CONFIRM_MS);
+    const timer = window.setTimeout(() => {
+      setConfirmation(null);
+    }, CONFIRM_MS);
 
-    return () => window.clearTimeout(timer);
+    return () => {
+      window.clearTimeout(timer);
+    };
   }, [confirmation]);
 
   const press = async () => {
@@ -157,7 +163,9 @@ export const SplitButton = () => {
         <button
           type="button"
           aria-label={confirmedLabel ?? "Save"}
-          onClick={() => confirm("save")}
+          onClick={() => {
+            confirm("save");
+          }}
           className="group/leading relative isolate flex cursor-pointer items-center justify-center gap-2 rounded-l-full text-[17px] font-medium text-[#062e6f] outline-none focus-visible:ring-2 focus-visible:ring-[#d3e3fd] focus-visible:ring-offset-2 focus-visible:ring-offset-[#131314]"
           style={{ width: LEADING_WIDTH }}
         >
@@ -175,7 +183,7 @@ export const SplitButton = () => {
               exit={{ filter: "blur(4px)", opacity: 0, y: -10 }}
               transition={{ bounce: 0.25, duration: 0.35, type: "spring" }}
             >
-              {confirmedLabel ? (
+              {confirmedLabel !== null && confirmedLabel !== "" ? (
                 <Check className="size-5" strokeWidth={2.5} />
               ) : (
                 <Save className="size-5" strokeWidth={2.25} />
@@ -227,9 +235,15 @@ export const SplitButton = () => {
             role="menuitem"
             tabIndex={-1}
             data-active={activeIndex === index}
-            onPointerEnter={() => focusItem(index)}
-            onFocus={() => setActiveIndex(index)}
-            onClick={() => choose(item.id)}
+            onPointerEnter={() => {
+              focusItem(index);
+            }}
+            onFocus={() => {
+              setActiveIndex(index);
+            }}
+            onClick={() => {
+              choose(item.id);
+            }}
             className="flex h-12 w-full cursor-pointer items-center gap-3 rounded-[4px] px-3 text-left text-[15px] transition-[background-color,color,border-radius] duration-200 outline-none first:rounded-t-[4px] last:rounded-b-[20px] data-[active=true]:rounded-[16px] data-[active=true]:bg-[#004a77] data-[active=true]:text-[#c2e7ff]"
           >
             <item.icon className="size-5" strokeWidth={2} />

@@ -26,7 +26,9 @@ export const resolveBaseUrl = () => {
     return vercelBaseUrl(process.env.VERCEL_URL, process.env.VERCEL_BRANCH_URL);
   }
 
-  return process.env.BETTER_AUTH_URL || "http://localhost:3000";
+  return process.env.BETTER_AUTH_URL === undefined || process.env.BETTER_AUTH_URL === ""
+    ? "http://localhost:3000"
+    : process.env.BETTER_AUTH_URL;
 };
 
 export const auth = betterAuth({
@@ -38,8 +40,11 @@ export const auth = betterAuth({
     enabled: true,
     revokeSessionsOnPasswordReset: true,
     sendResetPassword:
-      process.env.RESEND_API_KEY && process.env.AUTH_EMAIL_FROM
-        ? ({ user, url }) => sendPasswordResetEmail(user.email, url)
+      process.env.RESEND_API_KEY !== undefined &&
+      process.env.RESEND_API_KEY !== "" &&
+      process.env.AUTH_EMAIL_FROM !== undefined &&
+      process.env.AUTH_EMAIL_FROM !== ""
+        ? async ({ user, url }) => await sendPasswordResetEmail(user.email, url)
         : undefined,
   },
   rateLimit: {

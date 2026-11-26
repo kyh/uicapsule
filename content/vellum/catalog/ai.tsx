@@ -45,7 +45,9 @@ const VoiceDemo = () => {
       <div className="v-fill">
         <VoiceNote
           compact
-          onCancel={() => setStarted(null)}
+          onCancel={() => {
+            setStarted(null);
+          }}
           onSave={() => {
             setSaved(true);
             setStarted(null);
@@ -85,7 +87,9 @@ const ReceiptDemo = ({ until }: { until: number }) => {
       by="Platform agent"
       onUndo={() => {
         setUndo("undoing");
-        later(() => setUndo("undone"), 800);
+        later(() => {
+          setUndo("undone");
+        }, 800);
       }}
       steps={[
         { detail: "key_…9f2c", label: "Made a new key for the docs agent" },
@@ -114,7 +118,9 @@ const MessageDemo = () => {
             ? undefined
             : () => {
                 setAnswering(true);
-                later(() => setAnswering(false), 1400);
+                later(() => {
+                  setAnswering(false);
+                }, 1400);
               }
         }
         text={answering ? undefined : WHY}
@@ -153,25 +159,27 @@ export const Ai = () => {
             label="Message the agent"
             onStop={() => {
               setStatus("stopping");
-              later(() => setStatus("ready"), 600);
+              later(() => {
+                setStatus("ready");
+              }, 600);
             }}
             onSubmit={(text) => {
               setSent(text);
               setStatus("submitted");
-              later(
-                () => setStatus((current) => (current === "submitted" ? "streaming" : current)),
-                600,
-              );
-              later(
-                () => setStatus((current) => (current === "streaming" ? "ready" : current)),
-                3200,
-              );
+              later(() => {
+                setStatus((current) => (current === "submitted" ? "streaming" : current));
+              }, 600);
+              later(() => {
+                setStatus((current) => (current === "streaming" ? "ready" : current));
+              }, 3200);
             }}
             placeholder="Ask an agent to do something"
             status={status}
           />
           <p aria-live="polite" className="v-caption v-t2">
-            {sent ? `Sent “${sent}”` : "Type and press Enter, then Stop while it runs"}
+            {sent !== null && sent !== ""
+              ? `Sent “${sent}”`
+              : "Type and press Enter, then Stop while it runs"}
           </p>
         </div>
       </Specimen>
@@ -181,8 +189,8 @@ export const Ai = () => {
             <div className="v-stack-sm v-text-center" key={state.note}>
               <SendButton
                 empty={state.empty}
-                onSend={() => null}
-                onStop={() => null}
+                onSend={() => {}}
+                onStop={() => {}}
                 status={state.status}
               />
               <span className="v-caption v-t2">{state.note}</span>
@@ -208,7 +216,9 @@ export const Ai = () => {
             <Button
               onClick={() => {
                 setThinking(true);
-                later(() => setThinking(false), 2400);
+                later(() => {
+                  setThinking(false);
+                }, 2400);
               }}
               size="sm"
               variant="secondary"
@@ -247,7 +257,9 @@ export const Ai = () => {
             disabled={busy}
             onClick={() => {
               setBusy(true);
-              later(() => setBusy(false), 1800);
+              later(() => {
+                setBusy(false);
+              }, 1800);
             }}
             size="sm"
             variant="secondary"
@@ -266,9 +278,13 @@ export const Ai = () => {
               meta="Asked 1 min ago"
               onAllow={() => {
                 setApproval("pending");
-                later(() => setApproval("allowed"), 1000);
+                later(() => {
+                  setApproval("allowed");
+                }, 1000);
               }}
-              onDeny={() => setApproval("denied")}
+              onDeny={() => {
+                setApproval("denied");
+              }}
               pending={approval === "pending"}
               pendingLabel="Posting"
               question="Post the incident note to #service-status?"
@@ -290,7 +306,13 @@ export const Ai = () => {
                   : "Held. The note stays in drafts."}
               </output>
               <div>
-                <Button onClick={() => setApproval("waiting")} size="sm" variant="secondary">
+                <Button
+                  onClick={() => {
+                    setApproval("waiting");
+                  }}
+                  size="sm"
+                  variant="secondary"
+                >
                   Show the request again
                 </Button>
               </div>
@@ -302,7 +324,13 @@ export const Ai = () => {
         <div className="v-fill v-stack">
           <ReceiptDemo key={until} until={until} />
           <div>
-            <Button onClick={() => setUntil(Date.now() + 45_000)} size="sm" variant="ghost">
+            <Button
+              onClick={() => {
+                setUntil(Date.now() + 45_000);
+              }}
+              size="sm"
+              variant="ghost"
+            >
               Reset the window
             </Button>
           </div>
@@ -340,7 +368,7 @@ export const Ai = () => {
             onSelect={setPicked}
           />
           <p aria-live="polite" className="v-caption v-t2">
-            {picked ? `Sent “${picked}”` : "A follow-up sends at once"}
+            {picked !== null && picked !== "" ? `Sent “${picked}”` : "A follow-up sends at once"}
           </p>
         </div>
       </Specimen>

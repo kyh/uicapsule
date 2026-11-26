@@ -5,6 +5,8 @@ import type { ReactNode } from "react";
 
 import { Panel, ShellFoot } from "./card";
 
+const noop = () => null;
+
 /** Asks for a decision over the scrim: a shell settling from 0.97, lifted by its ring. */
 export const Dialog = ({
   open,
@@ -31,7 +33,7 @@ export const Dialog = ({
 
   useEffect(() => {
     if (!open) {
-      return;
+      return noop;
     }
 
     returnTo.current =

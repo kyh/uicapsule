@@ -135,7 +135,9 @@ export const HomeScreen = () => {
     toast.show({
       action: {
         label: "Undo",
-        onClick: () => toast.show({ title: `Cancelled the request to ${from}` }),
+        onClick: () => {
+          toast.show({ title: `Cancelled the request to ${from}` });
+        },
       },
       description: "They get a link to pay from any bank",
       title: `Asked ${from} for ${formatAmount(askAmount)}`,
@@ -176,17 +178,34 @@ export const HomeScreen = () => {
             </p>
           </div>
           <div className="cl-quicks">
-            <QuickAction glow icon={Plus} label="Add money" onClick={() => setTopUp(true)} />
+            <QuickAction
+              glow
+              icon={Plus}
+              label="Add money"
+              onClick={() => {
+                setTopUp(true);
+              }}
+            />
             <QuickAction
               icon={ArrowUpRight}
               label="Send"
-              onClick={() => jumpTo("screen-send", "input[type=search]")}
+              onClick={() => {
+                jumpTo("screen-send", "input[type=search]");
+              }}
             />
-            <QuickAction icon={ArrowDownLeft} label="Request" onClick={() => setAsking(true)} />
+            <QuickAction
+              icon={ArrowDownLeft}
+              label="Request"
+              onClick={() => {
+                setAsking(true);
+              }}
+            />
             <QuickAction
               icon={ArrowLeftRight}
               label="Move"
-              onClick={() => jumpTo("screen-payday", ".cl-stepper button:not(:disabled)")}
+              onClick={() => {
+                jumpTo("screen-payday", ".cl-stepper button:not(:disabled)");
+              }}
             />
           </div>
           <Progress
@@ -236,7 +255,12 @@ export const HomeScreen = () => {
               onAction={() => {
                 setCapped(true);
                 toast.show({
-                  action: { label: "Undo", onClick: () => setCapped(false) },
+                  action: {
+                    label: "Undo",
+                    onClick: () => {
+                      setCapped(false);
+                    },
+                  },
                   title: "Bakery cap set at $60.00 a month",
                 });
               }}
@@ -267,7 +291,9 @@ export const HomeScreen = () => {
           {PRESETS.map((preset) => (
             <Chip
               key={preset}
-              onSelectedChange={() => setTyped(preset)}
+              onSelectedChange={() => {
+                setTyped(preset);
+              }}
               selected={typed === preset}
             >
               {formatAmount(Number(preset), { compact: true })}
@@ -280,7 +306,12 @@ export const HomeScreen = () => {
         description="They get a link and can pay from any bank. Nothing moves until they do."
         footer={
           <>
-            <Button onClick={() => setAsking(false)} variant="ghost">
+            <Button
+              onClick={() => {
+                setAsking(false);
+              }}
+              variant="ghost"
+            >
               Cancel
             </Button>
             <Button disabled={askAmount <= 0} onClick={request}>
@@ -296,7 +327,9 @@ export const HomeScreen = () => {
         <Input
           inputMode="decimal"
           label="Amount"
-          onChange={(event) => setAsk(event.target.value.replaceAll(/[^0-9.]/gu, ""))}
+          onChange={(event) => {
+            setAsk(event.target.value.replaceAll(/[^0-9.]/gu, ""));
+          }}
           prefix="$"
           value={ask}
         />

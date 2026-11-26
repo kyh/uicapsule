@@ -11,6 +11,8 @@ import { rng } from "../lib/data";
 import { Card, ChartSlot, MoreButton, Num, renderer, useCycle } from "../lib/kit";
 import { BLUE, GRID, INK, MUTED, ORANGE, PURPLE } from "../lib/tokens";
 
+const noop = () => null;
+
 const COLS = 13;
 const ROWS = 14;
 const HEIGHT = 300;
@@ -95,13 +97,18 @@ const useWidth = () => {
     const el = ref.current;
 
     if (!el) {
-      return;
+      return noop;
     }
 
-    const ro = new ResizeObserver(([entry]) => setWidth(entry?.contentRect.width ?? 0));
+    const ro = new ResizeObserver(([entry]) => {
+      setWidth(entry?.contentRect.width ?? 0);
+    });
+
     ro.observe(el);
 
-    return () => ro.disconnect();
+    return () => {
+      ro.disconnect();
+    };
   }, []);
 
   return [ref, width] as const;
@@ -181,8 +188,12 @@ export const BudgetOverview = () => {
           <button
             key={l.label}
             type="button"
-            onMouseEnter={() => pin(i)}
-            onMouseLeave={() => pin(null)}
+            onMouseEnter={() => {
+              pin(i);
+            }}
+            onMouseLeave={() => {
+              pin(null);
+            }}
             className="flex flex-col items-center border-black/[0.06] transition-opacity [&:not(:first-child)]:border-l"
             style={{ opacity: i === active ? 1 : 0.55 }}
           >

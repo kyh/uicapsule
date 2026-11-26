@@ -275,7 +275,10 @@ export const FilterValueTextDisplay = ({ filter }: FilterValueDisplayProps<"text
     return null;
   }
 
-  if (filter.values.length === 0 || (filter.values[0] && filter.values[0].trim() === "")) {
+  if (
+    filter.values.length === 0 ||
+    ((filter.values[0] ?? "") !== "" && filter.values[0].trim() === "")
+  ) {
     return <Ellipsis className="size-4" />;
   }
 
@@ -421,7 +424,7 @@ const OptionItemBase = ({ option, onToggle }: OptionItemProps) => {
   const { value, label, icon: Icon, selected } = option;
 
   const handleSelect = useCallback(() => {
-    onToggle(value, !selected);
+    onToggle(value, selected !== true);
   }, [onToggle, value, selected]);
 
   return (
@@ -603,8 +606,9 @@ export const FilterValueNumberController = ({
   const isNumberRange = filter && numberFilterOperators[filter.operator].target === "multiple";
 
   const setNumberFilterValue = useCallback(
-    (newValues: number[]) =>
-      actions.setFilterValue({ columnId: column.id, type: "number", values: newValues }),
+    (newValues: number[]) => {
+      actions.setFilterValue({ columnId: column.id, type: "number", values: newValues });
+    },
     [actions, column],
   );
 
@@ -679,8 +683,10 @@ export const FilterValueNumberController = ({
         <CommandGroup>
           <div className="flex w-full flex-col">
             <Tabs
-              value={isNumberRange ? "range" : "single"}
-              onValueChange={(v) => changeType(v === "range" ? "range" : "single")}
+              value={isNumberRange === true ? "range" : "single"}
+              onValueChange={(v) => {
+                changeType(v === "range" ? "range" : "single");
+              }}
             >
               <TabsList className="w-full *:text-xs">
                 <TabsTrigger value="single">single</TabsTrigger>
@@ -704,7 +710,9 @@ export const FilterValueNumberController = ({
                     id="single"
                     type="number"
                     value={(values[0] ?? 0).toString()}
-                    onChange={(v) => changeNumber([Number(v)])}
+                    onChange={(v) => {
+                      changeNumber([Number(v)]);
+                    }}
                   />
                 </div>
               </TabsContent>
@@ -726,7 +734,9 @@ export const FilterValueNumberController = ({
                     <DebouncedInput
                       type="number"
                       value={values[0] ?? 0}
-                      onChange={(v) => changeMinNumber(Number(v))}
+                      onChange={(v) => {
+                        changeMinNumber(Number(v));
+                      }}
                     />
                   </div>
                   <div className="flex items-center gap-2">
@@ -734,7 +744,9 @@ export const FilterValueNumberController = ({
                     <DebouncedInput
                       type="number"
                       value={values[1] ?? 0}
-                      onChange={(v) => changeMaxNumber(Number(v))}
+                      onChange={(v) => {
+                        changeMaxNumber(Number(v));
+                      }}
                     />
                   </div>
                 </div>

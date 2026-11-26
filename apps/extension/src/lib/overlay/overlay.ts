@@ -29,13 +29,15 @@ const PAGE_EVENTS = [
 
 const isFieldKey = (key: string): key is FieldKey => FIELD_KEYS.has(key);
 
-const nextFrame = () =>
+const nextFrame = async () =>
   // oxlint-disable-next-line promise/avoid-new -- requestAnimationFrame has no promise form to await
-  new Promise<void>((resolve) => {
-    requestAnimationFrame(() => resolve());
+  await new Promise<void>((resolve) => {
+    requestAnimationFrame(() => {
+      resolve();
+    });
   });
 
-const ask = (request: WorkerRequest) => browser.runtime.sendMessage(request);
+const ask = async (request: WorkerRequest) => await browser.runtime.sendMessage(request);
 
 const sizeLabel = (base64: string) => `${((base64.length * 3) / 4 / 1024 / 1024).toFixed(1)} MB`;
 
@@ -251,7 +253,10 @@ export const mountOverlay = (onClosed: () => void) => {
     void toastAndClose({
       link: { href: result.url, label: "View" },
       text: "If it gets built, it lands in the gallery with your credit.",
-      title: result.number ? `Request #${result.number} filed` : "Request filed",
+      title:
+        result.number !== undefined && result.number !== 0
+          ? `Request #${result.number} filed`
+          : "Request filed",
     });
   };
 
@@ -333,7 +338,7 @@ export const mountOverlay = (onClosed: () => void) => {
       return;
     }
 
-    if (request.tool === "media" && request.src) {
+    if (request.tool === "media" && request.src !== undefined && request.src !== "") {
       const element = mediaFor(request.src);
 
       if (element) {
@@ -374,7 +379,13 @@ export const mountOverlay = (onClosed: () => void) => {
   window.addEventListener("keydown", onKey, { capture: true, signal });
 
   for (const type of PAGE_EVENTS) {
-    host.addEventListener(type, (event) => event.stopPropagation(), { signal });
+    host.addEventListener(
+      type,
+      (event) => {
+        event.stopPropagation();
+      },
+      { signal },
+    );
   }
 
   const style = document.createElement("style");

@@ -18,6 +18,8 @@ import type { CSSProperties, ReactNode } from "react";
 import { usd } from "./data";
 import { GREEN, INK, MUTED, RED, SPRING } from "./tokens";
 
+const noop = () => null;
+
 /** The one renderer every chart shares: keyed springs, entrance on mount. */
 export const renderer = chartMotion({ initial: "always", transition: SPRING });
 
@@ -112,12 +114,16 @@ export const useCycle = (count: number, ms = 2200, start = 0) => {
   const [held, setHeld] = useState(false);
   useEffect(() => {
     if (!active || held || count < 2) {
-      return;
+      return noop;
     }
 
-    const t = setInterval(() => setIndex((i) => (i + 1) % count), ms);
+    const t = setInterval(() => {
+      setIndex((i) => (i + 1) % count);
+    }, ms);
 
-    return () => clearInterval(t);
+    return () => {
+      clearInterval(t);
+    };
   }, [active, held, count, ms]);
 
   const pin = (i: number | null) => {
@@ -154,15 +160,19 @@ export const Num = ({
   const active = useActive();
   const mv = useMotionValue(0);
   const [text, setText] = useState(() => format(0));
-  useMotionValueEvent(mv, "change", (v) => setText(format(v)));
+  useMotionValueEvent(mv, "change", (v) => {
+    setText(format(v));
+  });
   useEffect(() => {
     if (!active) {
-      return;
+      return noop;
     }
 
     const controls = animate(mv, value, { duration: 1.1, ease: [0.16, 1, 0.3, 1] });
 
-    return () => controls.stop();
+    return () => {
+      controls.stop();
+    };
   }, [active, value, mv]);
 
   return (
@@ -316,7 +326,7 @@ export const Chip = ({
   >
     {Icon ? <Icon className="size-3.5" /> : null}
     {children}
-    {chevron ? <ChevronDown className="size-3.5 text-[#8a8a93]" /> : null}
+    {chevron === true ? <ChevronDown className="size-3.5 text-[#8a8a93]" /> : null}
   </span>
 );
 
@@ -367,7 +377,7 @@ export const Caption = ({
     style={{ color: MUTED }}
   >
     {children}
-    {info ? <Info className="size-3" /> : null}
+    {info === true ? <Info className="size-3" /> : null}
   </p>
 );
 
@@ -480,7 +490,9 @@ export const Bubble = ({
         style={{ x: shift }}
         className={cx(
           "w-max rounded-xl px-2.5 py-1.5 text-[12px] shadow-[0_8px_24px_-8px_rgba(0,0,0,0.25)]",
-          dark ? "bg-[#18181b] text-white" : "bg-white text-[#0b0b0f] ring-1 ring-black/[0.06]",
+          dark === true
+            ? "bg-[#18181b] text-white"
+            : "bg-white text-[#0b0b0f] ring-1 ring-black/[0.06]",
           className,
         )}
       >

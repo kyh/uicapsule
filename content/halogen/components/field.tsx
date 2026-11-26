@@ -22,14 +22,18 @@ export const Field = ({ label, hint, error, children }: FieldProps) => {
       <label className="hx-field-label hx-label-sm" htmlFor={id}>
         {label}
       </label>
-      {children({ describedBy: note ? noteId : undefined, id, invalid: Boolean(error) })}
-      {error ? (
+      {children({
+        describedBy: note !== undefined && note !== "" ? noteId : undefined,
+        id,
+        invalid: Boolean(error),
+      })}
+      {error !== undefined && error !== "" ? (
         <p className="hx-field-error hx-caption" id={noteId}>
           <Icon icon={CircleAlert} size={14} />
           {error}
         </p>
       ) : null}
-      {!error && hint ? (
+      {(error === undefined || error === "") && hint !== undefined && hint !== "" ? (
         <p className="hx-field-hint hx-caption" id={noteId}>
           {hint}
         </p>
@@ -47,7 +51,7 @@ interface InputProps extends InputHTMLAttributes<HTMLInputElement> {
 
 /** A single-line input inside the field chrome, with optional lead and trail slots. */
 export const Input = ({ lead, trail, mono, fieldSize, ...rest }: InputProps) => (
-  <span className="hx-input" data-mono={mono || undefined} data-size={fieldSize}>
+  <span className="hx-input" data-mono={mono === true || undefined} data-size={fieldSize}>
     {lead}
     <input {...rest} />
     {trail}

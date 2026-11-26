@@ -49,7 +49,7 @@ export const Tabs = <T extends string>({
     <div>
       <div
         aria-label={label}
-        className={numbered ? "hx-ntabs" : "hx-tabs"}
+        className={numbered === true ? "hx-ntabs" : "hx-tabs"}
         onKeyDown={onKeyDown}
         ref={list}
         role="tablist"
@@ -59,16 +59,18 @@ export const Tabs = <T extends string>({
           <button
             aria-controls={`${id}-panel`}
             aria-selected={item.value === value}
-            className={numbered ? "hx-ntab" : "hx-tab"}
+            className={numbered === true ? "hx-ntab" : "hx-tab"}
             data-value={item.value}
             id={`${id}-${item.value}`}
             key={item.value}
-            onClick={() => onValueChange(item.value)}
+            onClick={() => {
+              onValueChange(item.value);
+            }}
             role="tab"
             tabIndex={item.value === value ? 0 : -1}
             type="button"
           >
-            {numbered ? (
+            {numbered === true ? (
               <span className="hx-ntab-index">{String(index + 1).padStart(2, "0")}</span>
             ) : null}
             {item.label}
@@ -135,7 +137,9 @@ export const Pagination = ({ page, pages, onPageChange }: PaginationProps) => {
       <button
         className="hx-page-btn hx-label-sm"
         disabled={page === 1}
-        onClick={() => onPageChange(page - 1)}
+        onClick={() => {
+          onPageChange(page - 1);
+        }}
         type="button"
       >
         Prev
@@ -151,7 +155,9 @@ export const Pagination = ({ page, pages, onPageChange }: PaginationProps) => {
             aria-current={value === page ? "page" : undefined}
             aria-label={`Page ${value}`}
             className="hx-page-btn"
-            onClick={() => onPageChange(value)}
+            onClick={() => {
+              onPageChange(value);
+            }}
             type="button"
           >
             {String(value).padStart(2, "0")}
@@ -161,7 +167,9 @@ export const Pagination = ({ page, pages, onPageChange }: PaginationProps) => {
       <button
         className="hx-page-btn hx-label-sm"
         disabled={page === pages}
-        onClick={() => onPageChange(page + 1)}
+        onClick={() => {
+          onPageChange(page + 1);
+        }}
         type="button"
       >
         Next

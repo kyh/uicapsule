@@ -130,7 +130,7 @@ export const Analytics = () => {
         },
         x: {
           axis: false,
-          scale: scaleBand<string>()
+          scale: scaleBand()
             .domain([...WEEKDAYS])
             .paddingInner(PAD)
             .paddingOuter(0),
@@ -163,7 +163,9 @@ export const Analytics = () => {
           <button
             key={t.name}
             type="button"
-            onClick={() => pinTab(i)}
+            onClick={() => {
+              pinTab(i);
+            }}
             className="relative rounded-full py-1.5 text-[12px] font-medium ring-1 ring-black/[0.08]"
             style={{ color: i === tab ? "#ffffff" : "#55555c" }}
           >

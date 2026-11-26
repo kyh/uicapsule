@@ -16,6 +16,8 @@ import {
   smoothstep,
 } from "./terminal-particles";
 
+const noop = () => null;
+
 const HOLD1_END = 0.03;
 const TRANS1_END = 0.36;
 const HOLD2_END = 0.55;
@@ -156,13 +158,13 @@ export const TerminalDisintegrate = () => {
     const rootEl = rootRef.current;
 
     if (!canvasEl || !rootEl) {
-      return;
+      return noop;
     }
 
     const ctx2d = canvasEl.getContext("2d");
 
     if (!ctx2d) {
-      return;
+      return noop;
     }
 
     const canvas: HTMLCanvasElement = canvasEl;

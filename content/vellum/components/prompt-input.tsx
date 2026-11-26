@@ -57,7 +57,9 @@ export const PromptInput = ({
       </label>
       <textarea
         id={id}
-        onChange={(event) => setText(event.target.value)}
+        onChange={(event) => {
+          setText(event.target.value);
+        }}
         onKeyDown={(event) => {
           if (event.key === "Enter" && !event.shiftKey) {
             event.preventDefault();
@@ -75,7 +77,9 @@ export const PromptInput = ({
           {files.map((name) => (
             <ValueChip
               key={name}
-              onRemove={() => setFiles((list) => list.filter((item) => item !== name))}
+              onRemove={() => {
+                setFiles((list) => list.filter((item) => item !== name));
+              }}
             >
               {name}
             </ValueChip>
@@ -107,7 +111,12 @@ export const PromptInput = ({
         </Button>
         <Menu
           align="start"
-          items={MODELS.map((name) => ({ label: name, onSelect: () => setModel(name) }))}
+          items={MODELS.map((name) => ({
+            label: name,
+            onSelect: () => {
+              setModel(name);
+            },
+          }))}
           label="Model"
           renderTrigger={(props) => (
             <Button {...props} aria-label={`Model, ${model}`} size="sm" variant="ghost">

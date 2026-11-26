@@ -9,7 +9,7 @@ import { validateContentDirectory } from "./content-validation";
 
 test("a scaffolded design system is valid, scoped to its slug, and carries no template-only files", async (context) => {
   const root = await mkdtemp(path.join(tmpdir(), "uicapsule-scaffold-"));
-  context.after(() => rm(root, { force: true, recursive: true }));
+  context.after(async () => await rm(root, { force: true, recursive: true }));
   const directory = path.join(root, "brass-instruments");
   await writeScaffold(directory, {
     description: "Machined brass, engraved scales.",
@@ -26,7 +26,7 @@ test("a scaffolded design system is valid, scoped to its slug, and carries no te
   const sources = await Promise.all(
     files
       .filter((file) => /\.(?:tsx?|css)$/u.test(file))
-      .map((file) => readFile(path.join(directory, file), "utf-8")),
+      .map(async (file) => await readFile(path.join(directory, file), "utf-8")),
   );
 
   assert.ok(sources.every((source) => !source.includes("ds-template")));

@@ -42,7 +42,9 @@ export const ReceiptsScreen = () => {
   const unsent = ready - sentCount;
   const [nextMissing] = missing;
 
-  const attach = (merchant: string) => setAdded((list) => [...list, merchant]);
+  const attach = (merchant: string) => {
+    setAdded((list) => [...list, merchant]);
+  };
 
   const reset = () => {
     setAdded([]);
@@ -51,13 +53,20 @@ export const ReceiptsScreen = () => {
 
   let action = {
     label: `Send ${plural(unsent, "receipt")} to Dana`,
-    run: () => setSentCount(ready),
+    run: () => {
+      setSentCount(ready);
+    },
   };
 
   let status = `${plural(ready, "receipt")} ready for Dana, your accountant. ${missing.length > 0 ? `${plural(missing.length, "photo")} still to take.` : "Nothing missing."}`;
 
   if (unsent === 0 && nextMissing) {
-    action = { label: `Add ${nextMissing.merchant}`, run: () => attach(nextMissing.merchant) };
+    action = {
+      label: `Add ${nextMissing.merchant}`,
+      run: () => {
+        attach(nextMissing.merchant);
+      },
+    };
     status = `Dana has ${plural(sentCount, "receipt")}. ${nextMissing.merchant} is next: add its photo and it goes with the rest.`;
   } else if (unsent === 0) {
     action = { label: "Done", run: reset };
@@ -81,7 +90,9 @@ export const ReceiptsScreen = () => {
               key={row.merchant}
               merchant={row.merchant}
               note={"note" in row ? row.note : undefined}
-              onAdd={() => attach(row.merchant)}
+              onAdd={() => {
+                attach(row.merchant);
+              }}
               state={row.state}
             />
           ))}
@@ -105,7 +116,13 @@ export const ReceiptsScreen = () => {
           }}
         />
         <div className="cl-pay-row">
-          <Button block onClick={() => action.run()} size="lg">
+          <Button
+            block
+            onClick={() => {
+              action.run();
+            }}
+            size="lg"
+          >
             {action.label}
           </Button>
         </div>
@@ -134,12 +151,20 @@ export const ReceiptsScreen = () => {
               <Button
                 block
                 icon={<Lock aria-hidden size={16} strokeWidth={1.75} />}
-                onClick={() => setConfirm(true)}
+                onClick={() => {
+                  setConfirm(true);
+                }}
                 variant="solid"
               >
                 Lock card
               </Button>
-              <Button block onClick={() => setCharge("mine")} variant="secondary">
+              <Button
+                block
+                onClick={() => {
+                  setCharge("mine");
+                }}
+                variant="secondary"
+              >
                 Yes, I bought it
               </Button>
             </>
@@ -148,7 +173,13 @@ export const ReceiptsScreen = () => {
               {charge === "locked"
                 ? "Card ··2208 is locked. We have asked Velo Parts Co. for the $212.00 back."
                 : "Got it. Velo Parts Co. is now a shop you use."}
-              <button className="cl-link" onClick={() => setCharge("ask")} type="button">
+              <button
+                className="cl-link"
+                onClick={() => {
+                  setCharge("ask");
+                }}
+                type="button"
+              >
                 Undo
               </button>
             </p>
@@ -172,7 +203,12 @@ export const ReceiptsScreen = () => {
         description="Card payments stop until you unlock it under Cards. Rent and Cobalt Mobile switch to paying from Everyday meanwhile."
         footer={
           <>
-            <Button onClick={() => setConfirm(false)} variant="ghost">
+            <Button
+              onClick={() => {
+                setConfirm(false);
+              }}
+              variant="ghost"
+            >
               Keep it on
             </Button>
             <Button

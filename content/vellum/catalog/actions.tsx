@@ -57,7 +57,9 @@ export const Actions = () => {
           <Button
             onClick={() => {
               setPending(true);
-              later(() => setPending(false), 1800);
+              later(() => {
+                setPending(false);
+              }, 1800);
             }}
             pending={pending}
             pendingLabel="Publishing"
@@ -87,7 +89,9 @@ export const Actions = () => {
                 <Button
                   {...props}
                   aria-label="Undo last change"
-                  onClick={() => setSaved("Undid the last change")}
+                  onClick={() => {
+                    setSaved("Undid the last change");
+                  }}
                   size="icon-sm"
                   variant="ghost"
                 >
@@ -112,17 +116,23 @@ export const Actions = () => {
                 {
                   icon: <Link2 aria-hidden />,
                   label: "Copy share link",
-                  onSelect: () => setSaved("Link copied"),
+                  onSelect: () => {
+                    setSaved("Link copied");
+                  },
                 },
                 {
                   icon: <Pencil aria-hidden />,
                   label: "Rename draft",
-                  onSelect: () => setSaved("Renamed"),
+                  onSelect: () => {
+                    setSaved("Renamed");
+                  },
                 },
                 "separator",
                 {
                   label: "Delete draft",
-                  onSelect: () => setSaved("Deleted, undo from the bin"),
+                  onSelect: () => {
+                    setSaved("Deleted, undo from the bin");
+                  },
                   tone: "fail",
                 },
               ]}
@@ -139,7 +149,9 @@ export const Actions = () => {
           </span>
           <div className="v-cluster">
             <Button
-              onClick={() => setSaved("Previewing as the customer sees it")}
+              onClick={() => {
+                setSaved("Previewing as the customer sees it");
+              }}
               size="sm"
               variant="secondary"
             >

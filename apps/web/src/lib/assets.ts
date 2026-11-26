@@ -1,6 +1,6 @@
 const assetsUrl = process.env.NEXT_PUBLIC_ASSETS_URL;
 
-if (!assetsUrl) {
+if (assetsUrl === undefined || assetsUrl === "") {
   throw new Error(
     "NEXT_PUBLIC_ASSETS_URL is unset — copy .env.example to .env (see AGENTS.md). It must " +
       "also be listed in turbo.json globalEnv or turbo's strict env mode strips it.",
@@ -21,8 +21,8 @@ const VIDEO_EXTENSIONS = new Set(["mp4", "webm"]);
 
 /** A meta.json `cover` key resolved to what the gallery card renders. */
 export const resolveCover = (key: string | undefined) => {
-  if (!key) {
-    return;
+  if (key === undefined || key === "") {
+    return undefined;
   }
 
   const extension = key.slice(key.lastIndexOf(".") + 1);

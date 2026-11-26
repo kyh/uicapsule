@@ -30,10 +30,10 @@ test("posts raw bytes to GitHub's user-attachments store for this repository", a
   withToken(t, "test-token");
   let received: Request | undefined;
 
-  const url = await uploadAttachment(meta, blob, (input, init) => {
+  const url = await uploadAttachment(meta, blob, async (input, init) => {
     received = new Request(input, init);
 
-    return Promise.resolve(
+    return await Promise.resolve(
       Response.json({ url: "https://github.com/user-attachments/assets/abc-123" }),
     );
   });
@@ -56,8 +56,10 @@ test("posts raw bytes to GitHub's user-attachments store for this repository", a
 test("refuses an asset URL outside GitHub's attachment host", async (t) => {
   withToken(t, "test-token");
   await assert.rejects(
-    uploadAttachment(meta, blob, () =>
-      Promise.resolve(Response.json({ url: "https://evil.example/x" })),
+    uploadAttachment(
+      meta,
+      blob,
+      async () => await Promise.resolve(Response.json({ url: "https://evil.example/x" })),
     ),
     { status: 500 },
   );
@@ -66,16 +68,20 @@ test("refuses an asset URL outside GitHub's attachment host", async (t) => {
 test("is unavailable without a token and on provider or network failure", async (t) => {
   withToken(t);
   await assert.rejects(
-    uploadAttachment(meta, blob, () => Promise.resolve(Response.json({}))),
+    uploadAttachment(meta, blob, async () => await Promise.resolve(Response.json({}))),
     { status: 503 },
   );
   withToken(t, "test-token");
   await assert.rejects(
-    uploadAttachment(meta, blob, () => Promise.resolve(new Response("no", { status: 401 }))),
+    uploadAttachment(
+      meta,
+      blob,
+      async () => await Promise.resolve(new Response("no", { status: 401 })),
+    ),
     { status: 503 },
   );
   await assert.rejects(
-    uploadAttachment(meta, blob, () => Promise.reject(new Error("offline"))),
+    uploadAttachment(meta, blob, async () => await Promise.reject(new Error("offline"))),
     { status: 503 },
   );
 });

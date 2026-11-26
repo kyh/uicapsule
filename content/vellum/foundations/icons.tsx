@@ -71,7 +71,9 @@ export const IconFoundation = () => {
           <Button
             aria-label="Pin this thread"
             aria-pressed={pinned}
-            onClick={() => setPinned(!pinned)}
+            onClick={() => {
+              setPinned(!pinned);
+            }}
             size="icon"
             variant="ghost"
           >

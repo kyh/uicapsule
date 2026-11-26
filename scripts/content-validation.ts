@@ -43,7 +43,7 @@ export const validateContentDirectory = async (directory: string) => {
 
   const preview = await lstat(path.join(directory, "preview.tsx")).catch(() => null);
 
-  if (!preview?.isFile()) {
+  if (preview?.isFile() !== true) {
     issues.push("missing preview.tsx");
   }
 
@@ -51,7 +51,7 @@ export const validateContentDirectory = async (directory: string) => {
     .then((source) => contentPackageSchema.safeParse(JSON.parse(source)))
     .catch(() => null);
 
-  if (pkg?.success) {
+  if (pkg?.success === true) {
     for (const group of [
       pkg.data.dependencies,
       pkg.data.devDependencies,
@@ -114,7 +114,7 @@ export const validateContentDirectory = async (directory: string) => {
         for (const match of css.matchAll(/@import\s+(?:url\(\s*)?["'](?<specifier>[^"']+)["']/gu)) {
           const specifier = match.groups?.specifier;
 
-          if (specifier) {
+          if (specifier !== undefined && specifier !== "") {
             checkImport(file, specifier);
           }
         }
@@ -131,7 +131,7 @@ export const validateContentDirectory = async (directory: string) => {
       const check = (node: Argument | null | undefined) => {
         const specifier = staticSpecifier(node);
 
-        if (specifier) {
+        if (specifier !== undefined && specifier !== "") {
           checkImport(file, specifier);
         }
       };
@@ -142,10 +142,18 @@ export const validateContentDirectory = async (directory: string) => {
             check(node.arguments[0]);
           }
         },
-        ExportAllDeclaration: (node) => check(node.source),
-        ExportNamedDeclaration: (node) => check(node.source),
-        ImportDeclaration: (node) => check(node.source),
-        ImportExpression: (node) => check(node.source),
+        ExportAllDeclaration: (node) => {
+          check(node.source);
+        },
+        ExportNamedDeclaration: (node) => {
+          check(node.source);
+        },
+        ImportDeclaration: (node) => {
+          check(node.source);
+        },
+        ImportExpression: (node) => {
+          check(node.source);
+        },
       }).visit(program);
     }
   };

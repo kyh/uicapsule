@@ -24,5 +24,5 @@ export const requireSession = builder
       });
     }
 
-    return next({ context: { session } });
+    return await next({ context: { session } });
   });

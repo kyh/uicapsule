@@ -22,6 +22,7 @@ import { ReceiptSpec, ReceiptSpecNotes } from "./receipt-spec";
 import type { ReceiptLayout } from "./receipt-spec";
 import { useTearStub } from "./use-tear-stub";
 import { TILT, useTilt } from "./use-tilt";
+import { noop } from "@tanstack/react-query";
 
 export interface Filed {
   art: ReceiptArtVariant;
@@ -111,8 +112,9 @@ export const Receipt = ({ filed }: { filed: Filed }) => {
   const [layout, setLayout] = useState<ReceiptLayout | null>(null);
   const [art, setArt] = useState({ swapped: false, variant: filed.art });
 
-  const handleNextArt = () =>
+  const handleNextArt = () => {
     setArt((current) => ({ swapped: true, variant: nextReceiptArt(current.variant) }));
+  };
 
   const headRef = useRef<HTMLDivElement>(null);
   const confirmationRef = useRef<HTMLHeadingElement>(null);
@@ -147,7 +149,7 @@ export const Receipt = ({ filed }: { filed: Filed }) => {
     const body = bodyRef.current;
 
     if (!(root && body)) {
-      return;
+      return noop;
     }
 
     const observer = new ResizeObserver(() => {
@@ -170,7 +172,9 @@ export const Receipt = ({ filed }: { filed: Filed }) => {
     observer.observe(root);
     observer.observe(body);
 
-    return () => observer.disconnect();
+    return () => {
+      observer.disconnect();
+    };
   }, [bodyRef, horizontal, rootRef]);
 
   const { aimX, aimY, artX, artY, plane, tiltX, tiltY } = useTilt({
@@ -183,12 +187,14 @@ export const Receipt = ({ filed }: { filed: Filed }) => {
     if (reducedMotion) {
       fold.jump(0);
 
-      return;
+      return noop;
     }
 
     const controls = animate(fold, 0, FLIP);
 
-    return () => controls.stop();
+    return () => {
+      controls.stop();
+    };
   }, [fold, reducedMotion]);
   const flipRef = useRef<HTMLDivElement>(null);
   useMotionValueEvent(fold, "change", (angle) => {
@@ -311,7 +317,9 @@ export const Receipt = ({ filed }: { filed: Filed }) => {
           <div
             ref={stubRef}
             {...handlers}
-            onDragStart={(event) => event.preventDefault()}
+            onDragStart={(event) => {
+              event.preventDefault();
+            }}
             data-grabbing={grabbing || undefined}
             className="flex cursor-grab touch-none flex-col select-none will-change-transform data-grabbing:cursor-grabbing sm:w-60 sm:shrink-0"
           >

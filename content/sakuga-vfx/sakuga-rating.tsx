@@ -20,6 +20,8 @@ import {
 import type { Layer } from "./sakuga-core";
 import { BACK_CANVAS, FONT_BODY, SakugaStyle, useBackLayer, useFrame } from "./sakuga-react";
 
+const noop = () => null;
+
 type SakugaRatingProps = Omit<ComponentProps<"div">, "defaultValue" | "onChange" | "children"> & {
   value?: number;
   defaultValue?: number;
@@ -81,10 +83,16 @@ const light = ({ b, spring, layer, i, n, was, full, turn, turns }: Pop) => {
   }
 
   sfx("pon", c.x + 20, c.y - 56, { life: 0.85, rot: 0.08, size: full ? 120 : 92, ...hollow() });
-  later(300, () => glint(b, c.x - 22, c.y - 30));
+  later(300, () => {
+    glint(b, c.x - 22, c.y - 30);
+  });
 };
 
-const queue = (pop: Pop) => later(Math.max(0, pop.i - pop.was) * 60, () => light(pop));
+const queue = (pop: Pop) => {
+  later(Math.max(0, pop.i - pop.was) * 60, () => {
+    light(pop);
+  });
+};
 
 const SakugaRating = ({
   className,
@@ -116,13 +124,18 @@ const SakugaRating = ({
     const form = field.current?.form;
 
     if (!form || owned) {
-      return;
+      return noop;
     }
 
-    const reset = () => setOwn(defaultValue);
+    const reset = () => {
+      setOwn(defaultValue);
+    };
+
     form.addEventListener("reset", reset);
 
-    return () => form.removeEventListener("reset", reset);
+    return () => {
+      form.removeEventListener("reset", reset);
+    };
   }, [owned, defaultValue]);
 
   useLayoutEffect(() => {
@@ -171,7 +184,7 @@ const SakugaRating = ({
   const keydown = (e: KeyboardEvent<HTMLButtonElement>) => {
     const d = STEPS.get(e.key);
 
-    if (!d) {
+    if (d === undefined || d === 0) {
       return;
     }
 
@@ -186,7 +199,7 @@ const SakugaRating = ({
       role="radiogroup"
       data-slot="sakuga-rating"
       data-disabled={disabled ? "" : undefined}
-      aria-label={labelledBy ? undefined : (label ?? "Rating")}
+      aria-label={labelledBy !== undefined && labelledBy !== "" ? undefined : (label ?? "Rating")}
       aria-labelledby={labelledBy}
       aria-disabled={disabled || undefined}
       className={cn(
@@ -222,7 +235,9 @@ const SakugaRating = ({
             data-disabled={disabled ? "" : undefined}
             data-lit={n <= first ? "" : undefined}
             className="group size-[44px] cursor-pointer p-[2px] will-change-transform focus-visible:outline-[2.5px] focus-visible:outline-offset-[3px] focus-visible:outline-(--sk-acc) data-disabled:cursor-not-allowed data-disabled:opacity-50"
-            onClick={() => rate(rated === n ? 0 : n)}
+            onClick={() => {
+              rate(rated === n ? 0 : n);
+            }}
             onKeyDown={keydown}
           >
             <svg

@@ -11,7 +11,11 @@ interface FrameProps {
 
 /** The outlined region. Split its insides with rules, not further frames. */
 export const Frame = ({ label, plain, className, children }: FrameProps) => (
-  <section aria-label={label} className={cx("hx-frame", className)} data-plain={plain || undefined}>
+  <section
+    aria-label={label}
+    className={cx("hx-frame", className)}
+    data-plain={plain === true || undefined}
+  >
     {children}
   </section>
 );

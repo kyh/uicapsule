@@ -11,11 +11,11 @@ interface IconProps {
 export const Icon = ({ icon: Glyph, size = 16, label, className }: IconProps) => (
   <Glyph
     absoluteStrokeWidth
-    aria-hidden={label ? undefined : true}
+    aria-hidden={label !== undefined && label !== "" ? undefined : true}
     aria-label={label}
     className={className}
     focusable="false"
-    role={label ? "img" : undefined}
+    role={label !== undefined && label !== "" ? "img" : undefined}
     size={size}
     strokeLinecap="square"
     strokeLinejoin="miter"

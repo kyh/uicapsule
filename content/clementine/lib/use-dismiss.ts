@@ -1,6 +1,8 @@
 import { useEffect } from "react";
 import type { RefObject } from "react";
 
+const noop = () => null;
+
 export type DismissReason = "escape" | "outside";
 
 /** Closes a popup on Escape or on a press outside the given elements, and says which it was. */
@@ -11,13 +13,13 @@ export const useDismiss = (
 ) => {
   useEffect(() => {
     if (!open) {
-      return;
+      return noop;
     }
 
     const onPointer = (event: PointerEvent) => {
       const target = event.target as Node;
 
-      if (refs.every((ref) => !ref.current?.contains(target))) {
+      if (refs.every((ref) => ref.current?.contains(target) !== true)) {
         onClose("outside");
       }
     };

@@ -259,7 +259,12 @@ export const FinanceOverviewFlow = () => {
           ))}
         </PlotOverlay>
       </ChartSlot>
-      <div className="mt-3 text-[12px]" onMouseLeave={() => pin(null)}>
+      <div
+        className="mt-3 text-[12px]"
+        onMouseLeave={() => {
+          pin(null);
+        }}
+      >
         <div
           className="grid grid-cols-[1.25fr_1fr_1fr_1fr] border-b pb-2"
           style={{ borderColor: GRID, ...muted }}
@@ -273,7 +278,9 @@ export const FinanceOverviewFlow = () => {
           <button
             key={r.name}
             type="button"
-            onMouseEnter={() => pin(i)}
+            onMouseEnter={() => {
+              pin(i);
+            }}
             className="relative grid w-full grid-cols-[1.25fr_1fr_1fr_1fr] border-b py-2.5 text-left tabular-nums last:border-b-0"
             style={{ borderColor: GRID, color: i === active ? INK : "#55555d" }}
           >

@@ -55,7 +55,9 @@ export const Selection = () => {
             <Checkbox
               checked={items[key] ?? false}
               key={key}
-              onCheckedChange={(checked) => setItems((current) => ({ ...current, [key]: checked }))}
+              onCheckedChange={(checked) => {
+                setItems((current) => ({ ...current, [key]: checked }));
+              }}
             >
               {label}
             </Checkbox>
@@ -75,7 +77,7 @@ export const Selection = () => {
             checked
             label="Mask customer emails in traces, set by Ruth"
             disabled
-            onCheckedChange={() => null}
+            onCheckedChange={() => {}}
           />
         </div>
       </Specimen>

@@ -73,7 +73,7 @@ export const PanelHandle = ({
     const length = vertical ? rect.height : rect.width;
     const next = Math.min(length - GRIP_HALF, Math.max(GRIP_HALF, along));
 
-    if (jump || reducedMotion) {
+    if (jump || reducedMotion === true) {
       grip.jump(next);
     } else {
       grip.set(next);
@@ -161,11 +161,15 @@ export const PanelHandle = ({
         trackGrip(event, true);
         setHovered(true);
       }}
-      onPointerLeave={() => setHovered(false)}
+      onPointerLeave={() => {
+        setHovered(false);
+      }}
       onPointerDown={onPointerDown}
       onPointerMove={onPointerMove}
       onLostPointerCapture={onLostPointerCapture}
-      onDoubleClick={() => onChange(panel, { open: !state.open })}
+      onDoubleClick={() => {
+        onChange(panel, { open: !state.open });
+      }}
       onKeyDown={onKeyDown}
     >
       <motion.span

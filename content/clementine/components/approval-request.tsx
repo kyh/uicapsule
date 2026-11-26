@@ -56,13 +56,15 @@ export const ApprovalRequest = ({
           {formatAmount(Math.abs(amount) - available)} short: Everyday has {formatAmount(available)}
         </p>
       ) : null}
-      {reasons?.length ? (
+      {reasons !== undefined && reasons.length !== undefined && reasons.length !== 0 ? (
         <>
           <button
             aria-controls={whyId}
             aria-expanded={why}
             className="cl-approval__why"
-            onClick={() => setWhy(!why)}
+            onClick={() => {
+              setWhy(!why);
+            }}
             type="button"
           >
             How I decided

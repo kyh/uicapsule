@@ -82,8 +82,12 @@ const uploadFile = async (file: File) => {
   const res = await fetch("/api/request/attachments", { body, method: "POST" });
   const parsed = uploadResponseSchema.safeParse(await res.json().catch(() => ({})));
 
-  if (!res.ok || !parsed.success || !parsed.data.url) {
-    throw new Error(parsed.success && parsed.data.message ? parsed.data.message : "Upload failed");
+  if (!res.ok || !parsed.success || parsed.data.url === undefined || parsed.data.url === "") {
+    throw new Error(
+      parsed.success && parsed.data.message !== undefined && parsed.data.message !== ""
+        ? parsed.data.message
+        : "Upload failed",
+    );
   }
 
   return parsed.data.url;
@@ -307,7 +311,10 @@ export const RequestForm = ({ className }: { className?: string }) => {
 
   const handleSubmit = form.handleSubmit(async (values) => {
     try {
-      const uploaded = attachments.flatMap((a) => (a.status === "done" && a.url ? [a.url] : []));
+      const uploaded = attachments.flatMap((a) =>
+        a.status === "done" && a.url !== undefined && a.url !== "" ? [a.url] : [],
+      );
+
       const references = splitLines(values.references);
       const result = await create.mutateAsync({ ...values, attachments: uploaded, references });
       setFiled({
@@ -332,13 +339,15 @@ export const RequestForm = ({ className }: { className?: string }) => {
       ) : (
         <motion.form
           key="form"
-          exit={reducedMotion ? undefined : { filter: "blur(4px)", opacity: 0, y: -8 }}
+          exit={reducedMotion === true ? undefined : { filter: "blur(4px)", opacity: 0, y: -8 }}
           transition={{ duration: 0.2, ease: "easeIn" }}
           className={cn(
             "grid gap-8 lg:grid-cols-[minmax(0,6fr)_minmax(0,5fr)] lg:gap-12",
             className,
           )}
-          onSubmit={handleSubmit}
+          onSubmit={(e) => {
+            void handleSubmit(e);
+          }}
         >
           <div className="flex flex-col gap-3 max-lg:order-first lg:sticky lg:top-24 lg:self-start lg:order-last">
             <button
@@ -409,7 +418,9 @@ export const RequestForm = ({ className }: { className?: string }) => {
                     <button
                       type="button"
                       aria-label={`Remove ${attachment.name}`}
-                      onClick={() => removeAttachment(attachment.id)}
+                      onClick={() => {
+                        removeAttachment(attachment.id);
+                      }}
                       className="bg-background/80 text-foreground absolute top-0.5 right-0.5 rounded-full p-0.5 opacity-0 transition group-hover/thumb:opacity-100 focus-visible:opacity-100"
                     >
                       <XIcon className="size-3" aria-hidden />

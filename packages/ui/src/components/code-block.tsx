@@ -88,6 +88,8 @@ import type { CopyButtonProps } from "./copy-button";
 import { useControllableState } from "@repo/ui/hooks/use-controllable-state";
 import { cn } from "cn";
 
+const noop = () => null;
+
 export type { BundledLanguage, SpecialLanguage } from "shiki";
 
 const filenameIconMap = {
@@ -241,12 +243,12 @@ const codeBlockClassName = cn(
   "[&_.line]:relative",
 );
 
-const highlight = (
+const highlight = async (
   html: string,
   language?: BundledLanguage | SpecialLanguage,
   themes?: CodeOptionsMultipleThemes["themes"],
 ) =>
-  codeToHtml(html, {
+  await codeToHtml(html, {
     lang: language ?? "typescript",
     themes: themes ?? {
       dark: "github-dark-default",
@@ -483,7 +485,7 @@ export const CodeBlockContent = ({
 
   useEffect(() => {
     if (!syntaxHighlighting) {
-      return;
+      return noop;
     }
 
     let active = true;
@@ -514,7 +516,7 @@ export const CodeBlockContent = ({
       ? highlighted.html
       : null;
 
-  if (!(syntaxHighlighting && html)) {
+  if (!(syntaxHighlighting && html !== null && html !== "")) {
     return <CodeBlockFallback {...props}>{children}</CodeBlockFallback>;
   }
 

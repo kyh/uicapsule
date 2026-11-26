@@ -21,7 +21,7 @@ const hueFor = (name: string) => {
 const githubAvatar = (url: string) => {
   const user = /^https:\/\/github\.com\/(?<user>[A-Za-z0-9-]+)\/?$/u.exec(url)?.groups?.user;
 
-  return user ? `https://github.com/${user}.png?size=80` : undefined;
+  return user !== undefined && user !== "" ? `https://github.com/${user}.png?size=80` : undefined;
 };
 
 export const PersonAvatar = ({ person }: { person: Person }) => {
@@ -30,7 +30,7 @@ export const PersonAvatar = ({ person }: { person: Person }) => {
   return (
     <a href={person.url} target="_blank" rel="noreferrer" title={person.name}>
       <Avatar>
-        {src && <AvatarImage src={src} alt={person.name} />}
+        {src !== undefined && src !== "" && <AvatarImage src={src} alt={person.name} />}
         <AvatarFallback
           className="text-background text-xs font-medium"
           style={{ backgroundColor: `oklch(0.7 0.14 ${hueFor(person.name)})` }}

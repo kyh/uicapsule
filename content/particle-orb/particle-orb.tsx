@@ -3,6 +3,8 @@
 import { useEffect, useRef } from "react";
 import * as THREE from "three";
 
+const noop = () => null;
+
 const webGlNoise = `
 vec3 mod289(vec3 x) {
   return x - floor(x * (1.0 / 289.0)) * 289.0;
@@ -168,7 +170,7 @@ export const ParticleOrb = () => {
     const container = rootRef.current;
 
     if (!container) {
-      return;
+      return noop;
     }
 
     const scene = new THREE.Scene();

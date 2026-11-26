@@ -99,7 +99,7 @@ const Row = ({ metric, step }: { metric: Metric; step: number }) => {
         ],
         scales: {
           x: {
-            scale: scaleBand<string>()
+            scale: scaleBand()
               .domain(rows.map((r) => r.id))
               .paddingInner(0.14)
               .paddingOuter(0),

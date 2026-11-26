@@ -116,14 +116,16 @@ export const ComponentWorkspace = ({ initialSlug, feed }: ComponentWorkspaceProp
     const onPopState = () => {
       const slug = slugFromPath(window.location.pathname);
 
-      if (slug) {
+      if (slug !== undefined && slug !== "") {
         setActiveSlug(slug);
       }
     };
 
     window.addEventListener("popstate", onPopState);
 
-    return () => window.removeEventListener("popstate", onPopState);
+    return () => {
+      window.removeEventListener("popstate", onPopState);
+    };
   }, []);
 
   useEffect(() => {
@@ -153,7 +155,9 @@ export const ComponentWorkspace = ({ initialSlug, feed }: ComponentWorkspaceProp
 
     window.addEventListener("keydown", onKey);
 
-    return () => window.removeEventListener("keydown", onKey);
+    return () => {
+      window.removeEventListener("keydown", onKey);
+    };
   }, [activeIndex, ordered, select]);
 
   const onWidthChange = useCallback(
@@ -172,8 +176,9 @@ export const ComponentWorkspace = ({ initialSlug, feed }: ComponentWorkspaceProp
   const previewHref = active.type === "remote" ? active.iframeUrl : `/preview-frame/${active.slug}`;
   const codeOpen = isDesktop ? layout.code.open : mobilePanel === "code";
 
-  const toggleMobile = (panel: MobilePanel) =>
+  const toggleMobile = (panel: MobilePanel) => {
     setMobilePanel((current) => (current === panel ? null : panel));
+  };
 
   return (
     <>
@@ -210,7 +215,9 @@ export const ComponentWorkspace = ({ initialSlug, feed }: ComponentWorkspaceProp
               label="Components"
               pressed={mobilePanel === "nav"}
               className="md:hidden"
-              onClick={() => toggleMobile("nav")}
+              onClick={() => {
+                toggleMobile("nav");
+              }}
             >
               <ListIcon />
             </ToolbarButton>
@@ -219,7 +226,9 @@ export const ComponentWorkspace = ({ initialSlug, feed }: ComponentWorkspaceProp
               pressed={inspect}
               disabled={active.type === "remote"}
               className="max-md:hidden"
-              onClick={() => setInspect((on) => !on)}
+              onClick={() => {
+                setInspect((on) => !on);
+              }}
             >
               <SquareDashedMousePointerIcon />
             </ToolbarButton>
@@ -227,7 +236,9 @@ export const ComponentWorkspace = ({ initialSlug, feed }: ComponentWorkspaceProp
               <Tabs
                 value={preset ?? null}
                 className="max-md:hidden"
-                onValueChange={(size: DefaultSize) => onWidthChange(PREVIEW_WIDTH[size])}
+                onValueChange={(size: DefaultSize) => {
+                  onWidthChange(PREVIEW_WIDTH[size]);
+                }}
               >
                 <TabsList
                   aria-label="Preview width"
@@ -252,21 +263,27 @@ export const ComponentWorkspace = ({ initialSlug, feed }: ComponentWorkspaceProp
               <ToolbarButton
                 label={prev ? `Previous: ${prev.name}` : "Previous"}
                 disabled={!prev}
-                onClick={() => prev && select(prev.slug)}
+                onClick={() => {
+                  prev && select(prev.slug);
+                }}
               >
                 <ArrowLeftIcon />
               </ToolbarButton>
               <ToolbarButton
                 label={next ? `Next: ${next.name}` : "Next"}
                 disabled={!next}
-                onClick={() => next && select(next.slug)}
+                onClick={() => {
+                  next && select(next.slug);
+                }}
               >
                 <ArrowRightIcon />
               </ToolbarButton>
               <ToolbarButton
                 label={codeOpen ? "Hide code" : "Show code"}
                 pressed={codeOpen}
-                onClick={() => (isDesktop ? togglePanel("code") : toggleMobile("code"))}
+                onClick={() => {
+                  isDesktop ? togglePanel("code") : toggleMobile("code");
+                }}
               >
                 <SquareTerminalIcon />
               </ToolbarButton>
@@ -274,7 +291,9 @@ export const ComponentWorkspace = ({ initialSlug, feed }: ComponentWorkspaceProp
                 label="Details"
                 pressed={mobilePanel === "info"}
                 className="md:hidden"
-                onClick={() => toggleMobile("info")}
+                onClick={() => {
+                  toggleMobile("info");
+                }}
               >
                 <InfoIcon />
               </ToolbarButton>
@@ -316,7 +335,12 @@ export const ComponentWorkspace = ({ initialSlug, feed }: ComponentWorkspaceProp
             {codeMounted && (
               <div inert={!layout.code.open} className="h-full overflow-hidden">
                 <div className="h-full md:h-(--code-size) md:max-h-[calc(100dvh-(--spacing(56)))]">
-                  <CodeDock component={active} onClose={() => setPanel("code", { open: false })} />
+                  <CodeDock
+                    component={active}
+                    onClose={() => {
+                      setPanel("code", { open: false });
+                    }}
+                  />
                 </div>
               </div>
             )}
@@ -343,7 +367,9 @@ export const ComponentWorkspace = ({ initialSlug, feed }: ComponentWorkspaceProp
         active={active}
         feed={feed}
         onSelect={select}
-        onClose={() => setMobilePanel(null)}
+        onClose={() => {
+          setMobilePanel(null);
+        }}
       />
       <div
         hidden

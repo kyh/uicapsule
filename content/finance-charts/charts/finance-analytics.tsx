@@ -58,9 +58,10 @@ const Pill = ({ hot }: { hot?: boolean }) => (
   <span
     className="inline-block h-3.5 w-1.5 rounded-full"
     style={{
-      background: hot
-        ? "linear-gradient(180deg, #fdba74, #ea580c)"
-        : "linear-gradient(180deg, #f4f4f6, #d4d4d8)",
+      background:
+        hot === true
+          ? "linear-gradient(180deg, #fdba74, #ea580c)"
+          : "linear-gradient(180deg, #f4f4f6, #d4d4d8)",
       boxShadow: "inset 0 0 0 0.5px rgba(0,0,0,0.08)",
     }}
   />
@@ -124,7 +125,7 @@ export const FinanceAnalytics = () => {
               },
               ticks: { padding: 8, size: 0 },
             },
-            scale: scaleBand<string>()
+            scale: scaleBand()
               .domain([...MONTHS])
               .paddingInner(PAD)
               .paddingOuter(0),
@@ -178,7 +179,11 @@ export const FinanceAnalytics = () => {
         </span>
       </div>
       <ChartSlot height={HEIGHT} className="mt-2">
-        <div onMouseLeave={() => pin(null)}>
+        <div
+          onMouseLeave={() => {
+            pin(null);
+          }}
+        >
           <Chart
             definition={definition}
             renderer={renderer}

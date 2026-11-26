@@ -128,7 +128,7 @@ export const CategoryBreakdown = () => {
       ],
       scales: {
         x: {
-          scale: scaleBand<string>()
+          scale: scaleBand()
             .domain(SLOTS.map((s) => s.id))
             .paddingInner(0.42)
             .paddingOuter(0),
@@ -147,7 +147,11 @@ export const CategoryBreakdown = () => {
       </div>
       <div className="mt-4 border-t border-black/[0.06] pt-4">
         <ChartSlot height={HEIGHT}>
-          <div onMouseLeave={() => pin(null)}>
+          <div
+            onMouseLeave={() => {
+              pin(null);
+            }}
+          >
             <Chart
               definition={definition}
               renderer={renderer}

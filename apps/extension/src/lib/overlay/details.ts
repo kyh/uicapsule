@@ -79,9 +79,15 @@ export const createDetails = (options: { onCancel: () => void; onSubmit: () => v
 
   const element = h("div", {}, [h("div", { class: "backdrop" }), dialog]);
 
-  close.addEventListener("click", () => options.onCancel());
-  cancel.addEventListener("click", () => options.onCancel());
-  submit.addEventListener("click", () => options.onSubmit());
+  close.addEventListener("click", () => {
+    options.onCancel();
+  });
+  cancel.addEventListener("click", () => {
+    options.onCancel();
+  });
+  submit.addEventListener("click", () => {
+    options.onSubmit();
+  });
 
   dialog.addEventListener("keydown", (event) => {
     if (event.key === "Enter" && (event.metaKey || event.ctrlKey)) {
@@ -93,7 +99,9 @@ export const createDetails = (options: { onCancel: () => void; onSubmit: () => v
   return {
     element,
     fields,
-    focus: () => fields.name.control.focus(),
+    focus: () => {
+      fields.name.control.focus();
+    },
     setBusy: (busy: boolean, label = "Filing…") => {
       submit.disabled = busy;
       submit.textContent = busy ? label : "File request";
@@ -108,12 +116,12 @@ export const createDetails = (options: { onCancel: () => void; onSubmit: () => v
         const entry = fields[key];
         const message = errors[key];
         entry.wrapper.toggleAttribute("data-invalid", Boolean(message));
-        entry.error.hidden = !message;
+        entry.error.hidden = message === undefined || message === "";
         entry.error.textContent = message ?? "";
       }
     },
     setProblem: (message: string | null) => {
-      problem.hidden = !message;
+      problem.hidden = message === null || message === "";
       problem.textContent = message ?? "";
     },
     setShot: async (file: File, size: { height: number; width: number }) => {

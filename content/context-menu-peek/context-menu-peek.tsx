@@ -53,7 +53,7 @@ export const ContextMenuPeek = () => {
 
   useEffect(
     () => () => {
-      if (pressTimerRef.current) {
+      if (pressTimerRef.current !== null && pressTimerRef.current !== 0) {
         clearTimeout(pressTimerRef.current);
       }
     },
@@ -61,7 +61,7 @@ export const ContextMenuPeek = () => {
   );
 
   const startPress = useCallback((id: string, bubble: HTMLElement) => {
-    if (pressTimerRef.current) {
+    if (pressTimerRef.current !== null && pressTimerRef.current !== 0) {
       clearTimeout(pressTimerRef.current);
     }
 
@@ -74,13 +74,15 @@ export const ContextMenuPeek = () => {
   }, []);
 
   const cancelPress = useCallback(() => {
-    if (pressTimerRef.current) {
+    if (pressTimerRef.current !== null && pressTimerRef.current !== 0) {
       clearTimeout(pressTimerRef.current);
       pressTimerRef.current = null;
     }
   }, []);
 
-  const dismiss = useCallback(() => setActive(null), []);
+  const dismiss = useCallback(() => {
+    setActive(null);
+  }, []);
 
   return (
     <MotionConfig reducedMotion="user">
@@ -112,7 +114,9 @@ export const ContextMenuPeek = () => {
               >
                 <div className={`relative ${isActive ? "z-40" : "z-0"}`}>
                   <motion.div
-                    onPointerDown={(event) => startPress(message.id, event.currentTarget)}
+                    onPointerDown={(event) => {
+                      startPress(message.id, event.currentTarget);
+                    }}
                     onPointerUp={cancelPress}
                     onPointerLeave={cancelPress}
                     animate={isActive ? { scale: 1.04, y: -2 } : { scale: 1, y: 0 }}
@@ -145,9 +149,9 @@ export const ContextMenuPeek = () => {
                             key={action.id}
                             onClick={dismiss}
                             className={`flex w-full items-center justify-between px-4 py-2.5 text-[14px] transition-colors hover:bg-white/5 ${
-                              action.destructive ? "text-red-400" : "text-white"
+                              action.destructive === true ? "text-red-400" : "text-white"
                             } ${index > 0 ? "border-t border-white/[0.07]" : ""} ${
-                              action.destructive ? "border-t-[6px] border-black/40" : ""
+                              action.destructive === true ? "border-t-[6px] border-black/40" : ""
                             }`}
                           >
                             {action.label}

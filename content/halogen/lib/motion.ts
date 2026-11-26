@@ -1,12 +1,16 @@
 import { useEffect, useRef, useState, useSyncExternalStore } from "react";
 
+const noop = () => null;
+
 const QUERY = "(prefers-reduced-motion: reduce)";
 
 const subscribe = (onChange: () => void) => {
   const media = window.matchMedia(QUERY);
   media.addEventListener("change", onChange);
 
-  return () => media.removeEventListener("change", onChange);
+  return () => {
+    media.removeEventListener("change", onChange);
+  };
 };
 
 const readReduced = () => window.matchMedia(QUERY).matches;
@@ -33,7 +37,7 @@ export const useTypewriter = (text: string, replay = 0, perChar = 20) => {
 
   useEffect(() => {
     if (reduced) {
-      return;
+      return noop;
     }
 
     const length = key.split(SEP)[0]?.length ?? 0;
@@ -50,7 +54,9 @@ export const useTypewriter = (text: string, replay = 0, perChar = 20) => {
       });
     }, perChar);
 
-    return () => window.clearInterval(timer);
+    return () => {
+      window.clearInterval(timer);
+    };
   }, [key, reduced, perChar]);
 
   const count = reduced ? text.length : state.count;
@@ -66,7 +72,7 @@ export const useScramble = (text: string, replay = 0, duration = 420) => {
 
   useEffect(() => {
     if (reduced) {
-      return;
+      return noop;
     }
 
     const target = key.split(SEP)[0] ?? "";
@@ -89,7 +95,9 @@ export const useScramble = (text: string, replay = 0, duration = 420) => {
 
     frame = requestAnimationFrame(step);
 
-    return () => cancelAnimationFrame(frame);
+    return () => {
+      cancelAnimationFrame(frame);
+    };
   }, [key, reduced, duration]);
 
   return reduced ? text : shown;
@@ -105,12 +113,16 @@ export const useInterval = (onTick: () => void, ms: number, running = true) => {
 
   useEffect(() => {
     if (!running) {
-      return;
+      return noop;
     }
 
-    const timer = window.setInterval(() => saved.current(), ms);
+    const timer = window.setInterval(() => {
+      saved.current();
+    }, ms);
 
-    return () => window.clearInterval(timer);
+    return () => {
+      window.clearInterval(timer);
+    };
   }, [ms, running]);
 };
 

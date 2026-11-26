@@ -158,7 +158,13 @@ const FieldError = ({
   errors?: ({ message?: string } | undefined)[];
 }) => {
   const messages = [
-    ...new Set(errors?.flatMap((fieldError) => (fieldError?.message ? [fieldError.message] : []))),
+    ...new Set(
+      errors?.flatMap((fieldError) =>
+        fieldError !== undefined && fieldError.message !== undefined && fieldError.message !== ""
+          ? [fieldError.message]
+          : [],
+      ),
+    ),
   ];
 
   const content =

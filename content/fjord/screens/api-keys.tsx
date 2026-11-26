@@ -145,10 +145,14 @@ const KeyRow = ({
   onDone: (key: ApiKey) => void;
 }) => {
   const toast = useToast();
-  const full = apiKey.secret ? `${PREFIX[apiKey.env]}${apiKey.secret}` : null;
+
+  const full =
+    apiKey.secret !== undefined && apiKey.secret !== ""
+      ? `${PREFIX[apiKey.env]}${apiKey.secret}`
+      : null;
 
   return (
-    <div className="fj-keyrow" data-fresh={full ? "" : undefined}>
+    <div className="fj-keyrow" data-fresh={full !== null && full !== "" ? "" : undefined}>
       <div className="fj-item-main">
         <span className="fj-item-title">
           <span className="fj-truncate">{apiKey.name}</span>
@@ -159,9 +163,14 @@ const KeyRow = ({
         <span className="fj-item-desc fj-hstack">
           <Avatar name={apiKey.owner} size="sm" />
           <span>
-            {apiKey.owner}, {full ? `in full this once, ${EXPIRY_WORD[apiKey.expires]}` : null}
-            {!full && apiKey.usedAgo === null ? `never used, ${EXPIRY_WORD[apiKey.expires]}` : null}
-            {!full && apiKey.usedAgo !== null ? (
+            {apiKey.owner},{" "}
+            {full !== null && full !== ""
+              ? `in full this once, ${EXPIRY_WORD[apiKey.expires]}`
+              : null}
+            {(full === null || full === "") && apiKey.usedAgo === null
+              ? `never used, ${EXPIRY_WORD[apiKey.expires]}`
+              : null}
+            {(full === null || full === "") && apiKey.usedAgo !== null ? (
               <>
                 used <RelativeTime secondsAgo={apiKey.usedAgo} />, {EXPIRY_WORD[apiKey.expires]}
               </>
@@ -174,7 +183,7 @@ const KeyRow = ({
         ••••
         {apiKey.tail}
       </CodeTag>
-      {apiKey.revoked ? (
+      {apiKey.revoked === true ? (
         <span className="fj-status" data-status="idle">
           Burned
         </span>
@@ -197,7 +206,13 @@ const KeyRow = ({
                   title: `Renaming ${apiKey.name}`,
                 }),
             },
-            { destructive: true, label: "Burn key", onSelect: () => onRevoke(apiKey) },
+            {
+              destructive: true,
+              label: "Burn key",
+              onSelect: () => {
+                onRevoke(apiKey);
+              },
+            },
           ]}
           label={`Actions for ${apiKey.name}`}
           renderTrigger={({ open, toggle, id }) => (
@@ -215,11 +230,17 @@ const KeyRow = ({
           )}
         />
       )}
-      {full ? (
+      {full !== null && full !== "" ? (
         <div className="fj-keyrow-secret">
           <code>{full}</code>
           <CopyButton label="Copy key" showLabel value={full} />
-          <Button onClick={() => onDone(apiKey)} size="sm" variant="ghost">
+          <Button
+            onClick={() => {
+              onDone(apiKey);
+            }}
+            size="sm"
+            variant="ghost"
+          >
             Hide it now
           </Button>
         </div>
@@ -271,7 +292,7 @@ export const ApiKeys = () => {
     ? undefined
     : "Use 3 to 32 lowercase letters, digits or dashes.";
 
-  const live = keys.filter((key) => key.env === env && !key.revoked);
+  const live = keys.filter((key) => key.env === env && key.revoked !== true);
   const revoked = keys.filter((key) => key.env === env && key.revoked);
 
   const create = () => {
@@ -324,10 +345,11 @@ export const ApiKeys = () => {
     setRevoking(null);
   };
 
-  const done = (target: ApiKey) =>
+  const done = (target: ApiKey) => {
     setKeys((current) =>
       current.map((key) => (key.id === target.id ? { ...key, secret: undefined } : key)),
     );
+  };
 
   return (
     <Screen
@@ -348,7 +370,13 @@ export const ApiKeys = () => {
       <Card label="Keys">
         <CardHead
           action={
-            <Button onClick={() => setCreating(true)} size="sm" variant="primary">
+            <Button
+              onClick={() => {
+                setCreating(true);
+              }}
+              size="sm"
+              variant="primary"
+            >
               <Icon icon={Plus} />
               Mint key
             </Button>
@@ -386,7 +414,13 @@ export const ApiKeys = () => {
         description="You can read the whole key once, right after it is minted."
         footer={
           <>
-            <Button onClick={() => setMintOpen(false)}>Cancel</Button>
+            <Button
+              onClick={() => {
+                setMintOpen(false);
+              }}
+            >
+              Cancel
+            </Button>
             <Button onClick={create} pending={pending} pendingLabel="Minting" variant="primary">
               Mint key
             </Button>
@@ -404,8 +438,12 @@ export const ApiKeys = () => {
           hint="Name it after the pipeline that will send it."
           label="Name"
           mono
-          onBlur={() => setTouched(true)}
-          onChange={(event) => setName(event.target.value)}
+          onBlur={() => {
+            setTouched(true);
+          }}
+          onChange={(event) => {
+            setName(event.target.value);
+          }}
           value={name}
         />
         <ChoiceList label="Access" onValueChange={setScope} options={SCOPES} value={scope} />
@@ -420,7 +458,13 @@ export const ApiKeys = () => {
         }
         footer={
           <>
-            <Button onClick={() => setRevoking(null)}>Keep it</Button>
+            <Button
+              onClick={() => {
+                setRevoking(null);
+              }}
+            >
+              Keep it
+            </Button>
             <Button onClick={revoke} variant="destructive">
               Burn key
             </Button>

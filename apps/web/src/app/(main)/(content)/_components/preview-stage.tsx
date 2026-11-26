@@ -8,6 +8,7 @@ import { cn } from "cn";
 
 import { MediaReveal } from "@/components/media-reveal";
 import { Resizable } from "./resizable";
+import { noop } from "@tanstack/react-query";
 
 interface InspectBox {
   x: number;
@@ -25,14 +26,14 @@ const blockEvent = (event: Event) => {
 const describe = (element: Element) => {
   const slot = "dataset" in element ? (element as HTMLElement).dataset.slot : undefined;
 
-  if (slot) {
+  if (slot !== undefined && slot !== "") {
     return slot;
   }
 
   const tag = element.tagName.toLowerCase();
   const [firstClass] = element.classList;
 
-  return firstClass ? `${tag}.${firstClass}` : tag;
+  return firstClass !== undefined && firstClass !== "" ? `${tag}.${firstClass}` : tag;
 };
 
 const useInspector = (enabled: boolean, wrapperRef: RefObject<HTMLDivElement | null>) => {
@@ -44,12 +45,14 @@ const useInspector = (enabled: boolean, wrapperRef: RefObject<HTMLDivElement | n
     if (!enabled || !wrapper) {
       setBox(null);
 
-      return;
+      return noop;
     }
 
     let detach: (() => void) | null = null;
 
-    const onLeave = () => setBox(null);
+    const onLeave = () => {
+      setBox(null);
+    };
 
     const attach = (iframe: HTMLIFrameElement) => {
       detach?.();
@@ -102,7 +105,10 @@ const useInspector = (enabled: boolean, wrapperRef: RefObject<HTMLDivElement | n
     };
 
     let current: HTMLIFrameElement | null = null;
-    const onLoad = () => current && attach(current);
+
+    const onLoad = () => {
+      current && attach(current);
+    };
 
     const bind = () => {
       const iframe = wrapper.querySelector("iframe");
@@ -111,14 +117,18 @@ const useInspector = (enabled: boolean, wrapperRef: RefObject<HTMLDivElement | n
         return;
       }
 
-      current?.removeEventListener("load", onLoad);
+      current?.removeEventListener("load", () => {
+        onLoad();
+      });
       current = iframe;
 
       if (!iframe) {
         return;
       }
 
-      iframe.addEventListener("load", onLoad);
+      iframe.addEventListener("load", () => {
+        onLoad();
+      });
       attach(iframe);
     };
 
@@ -129,7 +139,9 @@ const useInspector = (enabled: boolean, wrapperRef: RefObject<HTMLDivElement | n
 
     return () => {
       observer.disconnect();
-      current?.removeEventListener("load", onLoad);
+      current?.removeEventListener("load", () => {
+        onLoad();
+      });
       detach?.();
       setBox(null);
     };

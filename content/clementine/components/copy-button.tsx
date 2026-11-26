@@ -3,17 +3,23 @@ import { useEffect, useState } from "react";
 
 import "./copy-button.css";
 
+const noop = () => null;
+
 export const CopyButton = ({ value, label = "Copy" }: { value: string; label?: string }) => {
   const [copied, setCopied] = useState(false);
 
   useEffect(() => {
     if (!copied) {
-      return;
+      return noop;
     }
 
-    const reset = window.setTimeout(() => setCopied(false), 1600);
+    const reset = window.setTimeout(() => {
+      setCopied(false);
+    }, 1600);
 
-    return () => window.clearTimeout(reset);
+    return () => {
+      window.clearTimeout(reset);
+    };
   }, [copied]);
 
   return (
@@ -26,8 +32,12 @@ export const CopyButton = ({ value, label = "Copy" }: { value: string; label?: s
       onClick={() => {
         void navigator.clipboard
           ?.writeText(value)
-          .then(() => setCopied(true))
-          .catch(() => setCopied(false));
+          .then(() => {
+            setCopied(true);
+          })
+          .catch(() => {
+            setCopied(false);
+          });
       }}
       type="button"
     >

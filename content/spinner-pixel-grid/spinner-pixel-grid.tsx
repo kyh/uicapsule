@@ -242,7 +242,9 @@ const subscribeToReducedMotion = (onChange: () => void) => {
   const query = window.matchMedia(REDUCED_MOTION_QUERY);
   query.addEventListener("change", onChange);
 
-  return () => query.removeEventListener("change", onChange);
+  return () => {
+    query.removeEventListener("change", onChange);
+  };
 };
 
 const getReducedMotion = () => window.matchMedia(REDUCED_MOTION_QUERY).matches;

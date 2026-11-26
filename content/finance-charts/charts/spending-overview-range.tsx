@@ -108,7 +108,7 @@ export const SpendingOverviewRange = () => {
                 values: MIDDLES,
               },
             },
-            scale: scaleBand<string>().domain(SLOTS).paddingInner(0.45).paddingOuter(0.3),
+            scale: scaleBand().domain(SLOTS).paddingInner(0.45).paddingOuter(0.3),
           },
           y: {
             axis: {
@@ -157,7 +157,11 @@ export const SpendingOverviewRange = () => {
         ))}
       </div>
       <ChartSlot height={HEIGHT} className="mt-5">
-        <div onMouseLeave={() => pin(null)}>
+        <div
+          onMouseLeave={() => {
+            pin(null);
+          }}
+        >
           <Chart
             definition={definition}
             renderer={renderer}

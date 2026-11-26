@@ -1,5 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 
+const noop = () => null;
+
 /** Measures an element's content width so a chart draws at real pixels and its type never scales. */
 export const useWidth = <T extends HTMLElement>(fallback = 560) => {
   const ref = useRef<T>(null);
@@ -9,7 +11,7 @@ export const useWidth = <T extends HTMLElement>(fallback = 560) => {
     const node = ref.current;
 
     if (!node) {
-      return;
+      return noop;
     }
 
     const observer = new ResizeObserver(([entry]) => {
@@ -20,7 +22,9 @@ export const useWidth = <T extends HTMLElement>(fallback = 560) => {
 
     observer.observe(node);
 
-    return () => observer.disconnect();
+    return () => {
+      observer.disconnect();
+    };
   }, []);
 
   return { ref, width };

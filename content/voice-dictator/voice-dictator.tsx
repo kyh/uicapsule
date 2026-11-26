@@ -4,6 +4,8 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import type { FC } from "react";
 import { motion } from "motion/react";
 
+const noop = () => null;
+
 const TRANSCRIPT_LIBRARY = [
   "The warrior should be cloaked in obsidian armor with faint runes pulsing across each plate, wind tearing through the cape as petals scatter around the scene.",
   "Let's add a soft volumetric glow behind the subject to carve out the silhouette and make the cliff edge feel like it's dissolving into the clouds below.",
@@ -46,7 +48,7 @@ export const VoiceDictator: FC = () => {
     const canvas = canvasRef.current;
 
     if (!canvas) {
-      return;
+      return undefined;
     }
 
     const gl = canvas.getContext("webgl", {
@@ -56,7 +58,7 @@ export const VoiceDictator: FC = () => {
     });
 
     if (!gl) {
-      return;
+      return undefined;
     }
 
     const vertexShaderSource = `
@@ -243,7 +245,7 @@ export const VoiceDictator: FC = () => {
     render(0);
 
     return () => {
-      if (animationFrameRef.current) {
+      if (animationFrameRef.current !== null && animationFrameRef.current !== 0) {
         cancelAnimationFrame(animationFrameRef.current);
       }
 
@@ -269,14 +271,14 @@ export const VoiceDictator: FC = () => {
 
   useEffect(() => {
     if (!isListening) {
-      if (pulseTimeoutRef.current) {
+      if (pulseTimeoutRef.current !== null && pulseTimeoutRef.current !== 0) {
         clearTimeout(pulseTimeoutRef.current);
         pulseTimeoutRef.current = null;
       }
 
       targetAmplitudeRef.current = 0.06;
 
-      return;
+      return noop;
     }
 
     const pump = () => {
@@ -292,7 +294,7 @@ export const VoiceDictator: FC = () => {
     pump();
 
     return () => {
-      if (pulseTimeoutRef.current) {
+      if (pulseTimeoutRef.current !== null && pulseTimeoutRef.current !== 0) {
         clearTimeout(pulseTimeoutRef.current);
         pulseTimeoutRef.current = null;
       }
@@ -301,12 +303,12 @@ export const VoiceDictator: FC = () => {
 
   useEffect(() => {
     if (!isListening) {
-      if (wordTimeoutRef.current) {
+      if (wordTimeoutRef.current !== null && wordTimeoutRef.current !== 0) {
         clearTimeout(wordTimeoutRef.current);
         wordTimeoutRef.current = null;
       }
 
-      return;
+      return noop;
     }
 
     scriptRef.current = pickTranscript().split(" ");
@@ -325,7 +327,7 @@ export const VoiceDictator: FC = () => {
 
       const nextWord = scriptRef.current[wordIndexRef.current];
 
-      if (nextWord) {
+      if (nextWord !== undefined && nextWord !== "") {
         wordIndexRef.current += 1;
         setTranscript((previous) => (previous.length > 0 ? `${previous} ${nextWord}` : nextWord));
         targetAmplitudeRef.current = 0.32 + Math.random() * 0.6;
@@ -339,7 +341,7 @@ export const VoiceDictator: FC = () => {
     wordTimeoutRef.current = setTimeout(deliver, initialDelay);
 
     return () => {
-      if (wordTimeoutRef.current) {
+      if (wordTimeoutRef.current !== null && wordTimeoutRef.current !== 0) {
         clearTimeout(wordTimeoutRef.current);
         wordTimeoutRef.current = null;
       }

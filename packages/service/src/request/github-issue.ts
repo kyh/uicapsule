@@ -40,12 +40,12 @@ const backticksAround = (text: string, minimum: number) => {
 const formatCapture = ({ html, selector, url }: NonNullable<ComponentRequest["capture"]>) => {
   const lines = [`- Page: ${neutralizeMentions(url)}`];
 
-  if (selector) {
+  if (selector !== undefined && selector !== "") {
     const ticks = backticksAround(selector, 1);
     lines.push(`- Element: ${ticks} ${neutralizeMentions(selector)} ${ticks}`);
   }
 
-  if (html) {
+  if (html !== undefined && html !== "") {
     const ticks = backticksAround(html, 3);
     lines.push(
       "",
@@ -106,7 +106,7 @@ export const createComponentRequestIssue = async (
 ) => {
   const token = process.env.GITHUB_ISSUES_TOKEN;
 
-  if (!token) {
+  if (token === undefined || token === "") {
     throw new ORPCError("SERVICE_UNAVAILABLE", {
       message: "Requests are temporarily unavailable. Try again later.",
     });

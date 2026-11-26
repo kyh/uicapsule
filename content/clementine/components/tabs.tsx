@@ -51,7 +51,9 @@ export const Tabs = <T extends string>({ label, tabs, value, onValueChange }: Ta
             className="cl-tabs__tab"
             id={`${base}-t-${tab.value}`}
             key={tab.value}
-            onClick={() => onValueChange(tab.value)}
+            onClick={() => {
+              onValueChange(tab.value);
+            }}
             onKeyDown={onKeyDown}
             role="tab"
             tabIndex={tab.value === value ? 0 : -1}

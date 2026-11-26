@@ -179,7 +179,9 @@ export const LikeButton = () => {
               stiffness: 300,
               type: "spring",
             }}
-            onAnimationComplete={() => setBurst(null)}
+            onAnimationComplete={() => {
+              setBurst(null);
+            }}
             className="text-red-500"
             width="16"
             height="16"

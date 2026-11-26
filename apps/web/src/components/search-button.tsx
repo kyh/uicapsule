@@ -122,7 +122,9 @@ export const SearchButton = ({ searchEntries }: { searchEntries: SearchEntry[] }
 
     document.addEventListener("keydown", down);
 
-    return () => document.removeEventListener("keydown", down);
+    return () => {
+      document.removeEventListener("keydown", down);
+    };
   }, [resetSearch]);
 
   const facetSuggestions = useMemo(
@@ -255,7 +257,9 @@ export const SearchButton = ({ searchEntries }: { searchEntries: SearchEntry[] }
         value={suggestion.value}
         asChild
         className="px-2.5 py-2"
-        onSelect={() => handleSelect(suggestion.href)}
+        onSelect={() => {
+          handleSelect(suggestion.href);
+        }}
       >
         <Link href={suggestion.href} onClick={handleLinkClick}>
           <span className="bg-muted flex size-10 shrink-0 items-center justify-center rounded-md">
@@ -276,7 +280,9 @@ export const SearchButton = ({ searchEntries }: { searchEntries: SearchEntry[] }
         type="button"
         aria-expanded={searchOpen}
         className="border-input bg-muted flex h-9 w-full rounded-full border px-3 py-2 shadow-xs transition"
-        onClick={() => changeSearchOpen(true)}
+        onClick={() => {
+          changeSearchOpen(true);
+        }}
       >
         <span className="flex grow items-center gap-1">
           <SearchIcon className="text-muted-foreground size-4" aria-hidden="true" />
@@ -328,7 +334,9 @@ export const SearchButton = ({ searchEntries }: { searchEntries: SearchEntry[] }
                           "flex shrink-0 items-center gap-2 rounded-full px-3 py-1.5 text-xs font-medium transition",
                           activeView === view.id ? "bg-muted" : "hover:bg-muted/50",
                         )}
-                        onClick={() => setActiveView(view.id)}
+                        onClick={() => {
+                          setActiveView(view.id);
+                        }}
                       >
                         <view.icon className="text-muted-foreground size-3.5" aria-hidden="true" />
                         {view.label}
@@ -345,7 +353,9 @@ export const SearchButton = ({ searchEntries }: { searchEntries: SearchEntry[] }
                           "flex items-center gap-2.5 rounded-md px-3 py-2.5 text-left text-sm font-medium transition",
                           activeView === view.id ? "bg-muted" : "hover:bg-muted/50",
                         )}
-                        onClick={() => setActiveView(view.id)}
+                        onClick={() => {
+                          setActiveView(view.id);
+                        }}
                       >
                         <view.icon className="text-muted-foreground size-4" aria-hidden="true" />
                         {view.label}

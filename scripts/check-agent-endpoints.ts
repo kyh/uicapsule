@@ -15,11 +15,13 @@ const record = (name: string, ok: boolean, detail: string) => {
   checks.push({ detail, name, ok });
 };
 
-const expect = (name: string, ok: boolean, detail: string) => record(name, ok, detail);
+const expect = (name: string, ok: boolean, detail: string) => {
+  record(name, ok, detail);
+};
 
 const fetchWith = async (path: string, accept?: string) => {
   const response = await fetch(`${baseUrl}${path}`, {
-    headers: accept ? { accept } : {},
+    headers: accept !== undefined && accept !== "" ? { accept } : {},
     redirect: "manual",
   });
 
@@ -91,7 +93,8 @@ const checkHomePage = async () => {
     "Organization has a contactPoint with an email",
     Array.isArray(organizationBlock?.contactPoint) &&
       organizationBlock.contactPoint.every(
-        (point: { email?: string; contactType?: string }) => point.email && point.contactType,
+        (point: { email?: string; contactType?: string }) =>
+          point.email !== undefined && point.email !== "" && point.contactType,
       ),
     JSON.stringify(organizationBlock?.contactPoint ?? null).slice(0, 120),
   );
@@ -181,7 +184,7 @@ const checkProxyScope = async () => {
     const { body } = await fetchWith(path);
 
     const alternate =
-      body.match(/<link[^>]+rel="alternate"[^>]+type="text\/markdown"[^>]*>/iu)?.[0] ?? "";
+      /<link[^>]+rel="alternate"[^>]+type="text\/markdown"[^>]*>/iu.exec(body)?.[0] ?? "";
 
     expect(
       `HTML ${path} advertises ${target} via <link rel="alternate">`,

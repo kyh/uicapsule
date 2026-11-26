@@ -238,7 +238,11 @@ export const ValueLocked = () => {
           className="mt-4 !rounded-none [&_button]:!rounded-none [&_span]:!rounded-none"
         />
         <ChartSlot height={HEIGHT} className="mt-3">
-          <div onMouseLeave={() => pin(null)}>
+          <div
+            onMouseLeave={() => {
+              pin(null);
+            }}
+          >
             <Chart
               definition={definition}
               renderer={renderer}

@@ -26,7 +26,7 @@ export const Table = <T,>({ caption, columns, rows, rowKey, rowTone }: TableProp
       <thead>
         <tr>
           {columns.map((column) => (
-            <th data-num={column.numeric || undefined} key={column.key} scope="col">
+            <th data-num={column.numeric === true || undefined} key={column.key} scope="col">
               {column.header}
             </th>
           ))}
@@ -36,7 +36,11 @@ export const Table = <T,>({ caption, columns, rows, rowKey, rowTone }: TableProp
         {rows.map((row) => (
           <tr data-tone={rowTone?.(row)} key={rowKey(row)}>
             {columns.map((column) => (
-              <td data-label={column.label} data-num={column.numeric || undefined} key={column.key}>
+              <td
+                data-label={column.label}
+                data-num={column.numeric === true || undefined}
+                key={column.key}
+              >
                 {column.render(row)}
               </td>
             ))}

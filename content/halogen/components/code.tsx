@@ -164,7 +164,9 @@ const JsonNode = ({ name, node, depth }: { name: string; node: Json; depth: numb
       <button
         aria-expanded={open}
         className="hx-json-toggle"
-        onClick={() => setOpen(!open)}
+        onClick={() => {
+          setOpen(!open);
+        }}
         type="button"
       >
         <Icon icon={open ? ChevronDown : ChevronRight} size={14} />

@@ -284,7 +284,12 @@ export const SpendScreen = () => {
       <Dialog
         footer={
           <>
-            <Button onClick={() => setOpen(false)} variant="ghost">
+            <Button
+              onClick={() => {
+                setOpen(false);
+              }}
+              variant="ghost"
+            >
               Cancel
             </Button>
             <Button onClick={confirm} variant="lamp">

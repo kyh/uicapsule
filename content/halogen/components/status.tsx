@@ -37,9 +37,10 @@ export const statusRank = {
 
 /** Just the mark. Pass `label` when it appears without its word. */
 export const StatusMark = ({ status, label }: { status: RunStatus; label?: string }) => {
-  const a11y = label
-    ? { "aria-label": label, role: "img" as const }
-    : { "aria-hidden": true as const };
+  const a11y =
+    label !== undefined && label !== ""
+      ? { "aria-label": label, role: "img" as const }
+      : { "aria-hidden": true as const };
 
   if (status === "running") {
     return (
@@ -65,7 +66,7 @@ interface StatusProps {
 /** A run state as a square mark followed by its word in capitals. */
 export const Status = ({ status, children, size = "sm", live }: StatusProps) => (
   <span
-    aria-live={live ? "polite" : undefined}
+    aria-live={live === true ? "polite" : undefined}
     className={cx("hx-status", size === "sm" ? "hx-label-sm" : "hx-label")}
     data-status={status}
   >

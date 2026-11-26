@@ -37,6 +37,8 @@ import {
 } from "./sakuga-core";
 import { FONT_BODY, SakugaStyle, useFrame, useMergedRef } from "./sakuga-react";
 
+const noop = () => null;
+
 type SakugaChipsProps = Omit<ComponentProps<"span">, "defaultValue" | "onChange"> & {
   value?: readonly string[];
   defaultValue?: readonly string[];
@@ -420,7 +422,7 @@ const SakugaChips = ({
       });
     }
 
-    later(FLASH * 1000, () =>
+    later(FLASH * 1000, () => {
       shards(x + 6, y - 2, {
         arc: 0.9,
         dir: -0.36,
@@ -429,8 +431,8 @@ const SakugaChips = ({
         n: 2,
         size: 4,
         speed: 80,
-      }),
-    );
+      });
+    });
   };
 
   const settle = (found: Map<string, HTMLElement>, old: Map<string, HTMLElement>) => {
@@ -441,7 +443,7 @@ const SakugaChips = ({
     for (const [key, el] of found) {
       const m = motions.current.get(key);
 
-      if (m && !old.has(key) && why?.added.has(key)) {
+      if (m && !old.has(key) && why?.added.has(key) === true) {
         arrive(el, m);
         added.push(key);
       }
@@ -760,13 +762,18 @@ const SakugaChips = ({
     const form = status.current?.form;
 
     if (!form || controlled) {
-      return;
+      return noop;
     }
 
-    const restore = () => setOwn(initial.current);
+    const restore = () => {
+      setOwn(initial.current);
+    };
+
     form.addEventListener("reset", restore);
 
-    return () => form.removeEventListener("reset", restore);
+    return () => {
+      form.removeEventListener("reset", restore);
+    };
   }, [controlled]);
 
   const live = useRef({ change, focus, keyDown, pointerDown, remove });
@@ -776,17 +783,27 @@ const SakugaChips = ({
 
   const parts = useMemo<Chips>(
     () => ({
-      change: (e) => live.current.change(e),
+      change: (e) => {
+        live.current.change(e);
+      },
       chipElsRef: chipEls,
       cutLayerRef: cutLayer,
       disabled,
       entryRef: entry,
       fieldRef: field,
-      focus: () => live.current.focus(),
-      keyDown: (e) => live.current.keyDown(e),
+      focus: () => {
+        live.current.focus();
+      },
+      keyDown: (e) => {
+        live.current.keyDown(e);
+      },
       keyed,
-      pointerDown: (e) => live.current.pointerDown(e),
-      remove: (key) => live.current.remove(key),
+      pointerDown: (e) => {
+        live.current.pointerDown(e);
+      },
+      remove: (key) => {
+        live.current.remove(key);
+      },
     }),
     [disabled, keyed],
   );
@@ -850,7 +867,7 @@ const SakugaChip = ({ className, children, ref, ...props }: ComponentProps<"span
   const enrol = useCallback(
     (node: HTMLSpanElement | null) => {
       if (!node) {
-        return;
+        return undefined;
       }
 
       const els = chipElsRef.current;

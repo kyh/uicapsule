@@ -107,7 +107,10 @@ export const Resizable = ({
   children,
 }: ResizableProps) => {
   const [dragging, setDragging] = useState(false);
-  const setClamped = (next: number) => onWidthChange(Math.min(maxWidth, Math.max(minWidth, next)));
+
+  const setClamped = (next: number) => {
+    onWidthChange(Math.min(maxWidth, Math.max(minWidth, next)));
+  };
 
   const handle = (side: Side) => (
     <ResizeHandle

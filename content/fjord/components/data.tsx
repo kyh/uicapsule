@@ -24,7 +24,7 @@ export const StatStrip = ({ stats, label }: { stats: StatEntry[]; label: string 
         <dt className="fj-stat-label">{stat.label}</dt>
         <dd className="fj-stat-value">
           {stat.value}
-          {stat.unit ? <small>{stat.unit}</small> : null}
+          {stat.unit !== undefined && stat.unit !== "" ? <small>{stat.unit}</small> : null}
         </dd>
         {stat.delta ? <dd className="fj-stat-delta">{stat.delta}</dd> : null}
       </div>
@@ -53,7 +53,12 @@ export const RelativeTime = ({
 }) => {
   const [extra, setExtra] = useState(0);
 
-  useInterval(() => setExtra((value) => value + 15), live ? 15_000 : null);
+  useInterval(
+    () => {
+      setExtra((value) => value + 15);
+    },
+    live ? 15_000 : null,
+  );
 
   const total = secondsAgo + extra;
   const minutes = Math.round(total / 60);
@@ -130,7 +135,9 @@ export const Collapsible = ({ label, children, defaultOpen = false }: Collapsibl
       <button
         aria-expanded={open}
         className="fj-collapsible-trigger"
-        onClick={() => setOpen((value) => !value)}
+        onClick={() => {
+          setOpen((value) => !value);
+        }}
         type="button"
       >
         <Icon icon={ChevronRight} size={12} />

@@ -193,7 +193,7 @@ export const TooltipTrigger = ({
   ...props
 }: TooltipTriggerProps) => {
   const context = useTooltipContext();
-  const { ref: childRef, ...childProps } = asChild ? children.props : {};
+  const { ref: childRef, ...childProps } = asChild === true ? children.props : {};
   const ref = useMergeRefs([context.refs.setReference, propRef, childRef]);
 
   const stateProps = {
@@ -201,7 +201,7 @@ export const TooltipTrigger = ({
     "data-state": context.open ? "open" : "closed",
   };
 
-  if (asChild) {
+  if (asChild === true) {
     // oxlint-disable-next-line react/refs, react/no-clone-element -- asChild: the trigger props and merged ref are grafted onto the caller's element, never reading ref.current
     return cloneElement(children, {
       ...context.getReferenceProps({ ...props, ...childProps, ...stateProps }),

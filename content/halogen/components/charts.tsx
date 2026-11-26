@@ -193,7 +193,9 @@ export const LineChart = ({
         aria-hidden
         className="hx-chart"
         height={height}
-        onPointerLeave={() => setHover(null)}
+        onPointerLeave={() => {
+          setHover(null);
+        }}
         onPointerMove={(event) => {
           const box = event.currentTarget.getBoundingClientRect();
           const share = (event.clientX - box.left - left) / plotW;

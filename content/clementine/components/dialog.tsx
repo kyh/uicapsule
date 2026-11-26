@@ -4,6 +4,8 @@ import type { ReactNode } from "react";
 
 import "./dialog.css";
 
+const noop = () => null;
+
 interface DialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
@@ -47,7 +49,7 @@ export const Dialog = ({
     const node = ref.current;
 
     if (!node || kind === "alert" || "closedBy" in HTMLDialogElement.prototype) {
-      return;
+      return noop;
     }
 
     const onClick = (event: MouseEvent) => {
@@ -58,7 +60,9 @@ export const Dialog = ({
 
     node.addEventListener("click", onClick);
 
-    return () => node.removeEventListener("click", onClick);
+    return () => {
+      node.removeEventListener("click", onClick);
+    };
   }, [kind, onOpenChange]);
 
   return (
@@ -69,7 +73,9 @@ export const Dialog = ({
       closedby={kind === "alert" ? "closerequest" : "any"}
       data-kind={kind}
       data-size={size}
-      onClose={() => onOpenChange(false)}
+      onClose={() => {
+        onOpenChange(false);
+      }}
       ref={ref}
       role={kind === "alert" ? "alertdialog" : undefined}
     >
@@ -85,7 +91,9 @@ export const Dialog = ({
               className="cl-btn"
               data-size="icon-sm"
               data-variant="secondary"
-              onClick={() => onOpenChange(false)}
+              onClick={() => {
+                onOpenChange(false);
+              }}
               type="button"
             >
               <span className="cl-btn__body">

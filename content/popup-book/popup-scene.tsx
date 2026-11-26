@@ -540,7 +540,9 @@ const Book = ({
   const hatch = useRef(new Map<number, { opacity: number }>());
   const invalidate = useThree((state) => state.invalidate);
 
-  useMotionValueEvent(progress, "change", () => invalidate());
+  useMotionValueEvent(progress, "change", () => {
+    invalidate();
+  });
 
   const register = (key: string) => (node: Object3D | null) => {
     if (node) {

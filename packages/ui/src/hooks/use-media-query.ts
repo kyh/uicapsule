@@ -10,7 +10,9 @@ export const useMediaQuery = (query = "(min-width: 640px)") => {
       const result = matchMedia(query);
       result.addEventListener("change", onStoreChange);
 
-      return () => result.removeEventListener("change", onStoreChange);
+      return () => {
+        result.removeEventListener("change", onStoreChange);
+      };
     },
     [query],
   );

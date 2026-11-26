@@ -43,7 +43,7 @@ export const Swimlanes = ({ label, lanes, steps }: SwimlanesProps) => {
 
   const span = (step: LaneStep) => {
     const a = index(step.from);
-    const b = step.to ? index(step.to) : a;
+    const b = step.to !== undefined && step.to !== "" ? index(step.to) : a;
 
     return [Math.min(a, b), Math.max(a, b)] as const;
   };
@@ -131,7 +131,7 @@ export const Swimlanes = ({ label, lanes, steps }: SwimlanesProps) => {
                     }
                   >
                     <span className="hx-micro hx-truncate">{step.label}</span>
-                    {step.meta ? (
+                    {step.meta !== undefined && step.meta !== "" ? (
                       <span className="hx-code-sm hx-ink-3 hx-truncate">{step.meta}</span>
                     ) : null}
                   </li>

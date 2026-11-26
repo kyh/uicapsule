@@ -42,7 +42,9 @@ export const InfiniteLooper = ({
 
     setAnimating(false);
     window.clearTimeout(restartTimeoutRef.current);
-    restartTimeoutRef.current = window.setTimeout(() => setAnimating(true), 10);
+    restartTimeoutRef.current = window.setTimeout(() => {
+      setAnimating(true);
+    }, 10);
   }, [looperInstances]);
 
   useEffect(() => {

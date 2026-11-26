@@ -23,7 +23,9 @@ export const Dropzone = ({
         className="cl-drop"
         data-over={over || undefined}
         onClick={() => input.current?.click()}
-        onDragLeave={() => setOver(false)}
+        onDragLeave={() => {
+          setOver(false);
+        }}
         onDragOver={(event) => {
           event.preventDefault();
           setOver(true);
@@ -46,7 +48,9 @@ export const Dropzone = ({
         aria-label={label}
         className="cl-sr-input"
         multiple
-        onChange={(event) => onFiles([...(event.target.files ?? [])].map((file) => file.name))}
+        onChange={(event) => {
+          onFiles([...(event.target.files ?? [])].map((file) => file.name));
+        }}
         ref={input}
         tabIndex={-1}
         type="file"

@@ -183,7 +183,9 @@ const LocalCodeDock = ({ slug, onClose }: { slug: string; onClose: () => void })
                   "text-muted-foreground hover:text-foreground flex h-7 shrink-0 items-center gap-1.5 rounded-md px-2 text-xs transition-colors",
                   active && "bg-accent text-foreground",
                 )}
-                onClick={() => setSelected(path)}
+                onClick={() => {
+                  setSelected(path);
+                }}
               >
                 <FileIcon path={path} />
                 {path}
@@ -195,13 +197,17 @@ const LocalCodeDock = ({ slug, onClose }: { slug: string; onClose: () => void })
           <CodeBlockCopyButton
             className="size-7"
             disabled={!file}
-            onCopy={() => toast.success(`Copied ${file?.path ?? "file"}`)}
+            onCopy={() => {
+              toast.success(`Copied ${file?.path ?? "file"}`);
+            }}
           />
           <ToolbarButton
             label="Download .zip"
             disabled={!data}
             loading={downloading}
-            onClick={onDownload}
+            onClick={() => {
+              void onDownload();
+            }}
           >
             <DownloadIcon />
           </ToolbarButton>

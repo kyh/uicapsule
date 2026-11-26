@@ -29,11 +29,11 @@ interface SpecimenProps {
 
 /** One live component with its name and a line on what it does. A component that brings its own frame sits bare on the fog; anything else gets a paper stage. */
 export const Specimen = ({ name, description, wide, bare, children }: SpecimenProps) => (
-  <article className="fj-spec" data-wide={wide ? "" : undefined}>
+  <article className="fj-spec" data-wide={wide === true ? "" : undefined}>
     <header className="fj-spec-head">
       <h4 className="fj-t-label">{name}</h4>
       <p className="fj-t-body-sm fj-c-2">{description}</p>
     </header>
-    {bare ? children : <div className="fj-spec-stage">{children}</div>}
+    {bare === true ? children : <div className="fj-spec-stage">{children}</div>}
   </article>
 );

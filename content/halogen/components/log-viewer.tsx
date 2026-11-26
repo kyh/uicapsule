@@ -126,7 +126,9 @@ export const LogViewer = ({
             <Button
               aria-label={wrap ? "Do not wrap lines" : "Wrap lines"}
               aria-pressed={wrap}
-              onClick={() => setWrap(!wrap)}
+              onClick={() => {
+                setWrap(!wrap);
+              }}
               size="icon-sm"
               title="Wrap lines"
               variant="ghost"
@@ -146,7 +148,9 @@ export const LogViewer = ({
             <Button
               aria-label="Follow output"
               aria-pressed={follow}
-              onClick={() => setFollow(!follow)}
+              onClick={() => {
+                setFollow(!follow);
+              }}
               size="icon-sm"
               title="Follow output"
               variant="ghost"
@@ -165,17 +169,19 @@ export const LogViewer = ({
           </>
         }
         meta={`${lines.length} lines · ${warnings} warn · ${failures.length} fail`}
-        status={streaming ? <Pending label="Streaming" /> : null}
+        status={streaming === true ? <Pending label="Streaming" /> : null}
         title={name}
       />
-      {toolbar ? (
+      {toolbar === true ? (
         <div className="hx-toolbar">
           <div className="hx-log-search">
             <Input
               aria-label="Search the log"
               fieldSize="sm"
               lead={<Icon icon={Search} size={14} />}
-              onChange={(event) => setQuery(event.target.value)}
+              onChange={(event) => {
+                setQuery(event.target.value);
+              }}
               placeholder="Search messages"
               value={query}
             />
@@ -190,7 +196,9 @@ export const LogViewer = ({
         aria-label={`${name} output`}
         className="hx-log"
         data-wrap={wrap}
-        onWheel={() => setFollow(false)}
+        onWheel={() => {
+          setFollow(false);
+        }}
         ref={list}
         style={{ "--log-h": `${height}px` } as CSSProperties}
       >

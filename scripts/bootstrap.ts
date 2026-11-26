@@ -32,7 +32,7 @@ const readEnvValue = (name: string) => {
 };
 
 const databaseUrl = () => {
-  if (process.env.TURSO_DATABASE_URL) {
+  if (process.env.TURSO_DATABASE_URL !== undefined && process.env.TURSO_DATABASE_URL !== "") {
     return process.env.TURSO_DATABASE_URL;
   }
 

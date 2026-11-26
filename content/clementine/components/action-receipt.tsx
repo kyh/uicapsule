@@ -23,27 +23,31 @@ export const ActionReceipt = ({
 }) => (
   <div className="cl-receipt" data-undone={undone || undefined}>
     <span className="cl-sr">{name} did this:</span>
-    {summary ? <p className="cl-receipt__summary">{summary}</p> : null}
+    {summary !== undefined && summary !== "" ? (
+      <p className="cl-receipt__summary">{summary}</p>
+    ) : null}
     <ul className="cl-receipt__lines">
       {lines.map((line) => {
         let word = "Done";
 
         if (undone) {
           word = "Undone";
-        } else if (line.failed) {
+        } else if (line.failed === true) {
           word = "Failed";
         }
 
         return (
-          <li data-failed={line.failed || undefined} key={line.label}>
-            {line.failed ? (
+          <li data-failed={line.failed === true || undefined} key={line.label}>
+            {line.failed === true ? (
               <TriangleAlert aria-hidden size={16} strokeWidth={1.75} />
             ) : (
               <Check aria-hidden size={16} strokeWidth={2.25} />
             )}
             <span className="cl-sr">{word}: </span>
             <span className="cl-receipt__label">{line.label}</span>
-            {line.detail ? <span className="cl-receipt__detail">{line.detail}</span> : null}
+            {line.detail !== undefined && line.detail !== "" ? (
+              <span className="cl-receipt__detail">{line.detail}</span>
+            ) : null}
           </li>
         );
       })}

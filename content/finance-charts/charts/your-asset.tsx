@@ -185,7 +185,7 @@ export const YourAsset = () => {
         scales: {
           x: {
             axis: false,
-            scale: scaleBand<string>()
+            scale: scaleBand()
               .domain(COINS.map((c) => c.id))
               .paddingInner(0.76)
               .paddingOuter(0.38),
@@ -235,7 +235,11 @@ export const YourAsset = () => {
       </div>
       <Ticker />
       <ChartSlot height={HEIGHT} className="mt-4">
-        <div onMouseLeave={() => pin(null)}>
+        <div
+          onMouseLeave={() => {
+            pin(null);
+          }}
+        >
           <Chart
             definition={definition}
             renderer={renderer}

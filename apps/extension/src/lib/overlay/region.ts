@@ -165,7 +165,9 @@ export const createRegion = (options: {
     begin(event, { from: rect, kind, start: point(event) });
   });
 
-  actions.addEventListener("pointerdown", (event) => event.stopPropagation());
+  actions.addEventListener("pointerdown", (event) => {
+    event.stopPropagation();
+  });
 
   surface.addEventListener("pointermove", (event) => {
     const at = point(event);
@@ -232,7 +234,9 @@ export const createRegion = (options: {
     }
   };
 
-  cancel.addEventListener("click", () => options.onCancel());
+  cancel.addEventListener("click", () => {
+    options.onCancel();
+  });
   save.addEventListener("click", submit);
 
   const onScroll = () => {

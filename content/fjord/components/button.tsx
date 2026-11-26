@@ -23,12 +23,12 @@ export const Button = ({
   ...props
 }: ButtonProps) => (
   <button
-    aria-busy={pending || undefined}
-    className={className ? `fj-btn ${className}` : "fj-btn"}
+    aria-busy={pending === true || undefined}
+    className={className !== undefined && className !== "" ? `fj-btn ${className}` : "fj-btn"}
     data-size={size}
     data-variant={variant}
     disabled={disabled}
-    onClick={pending ? undefined : onClick}
+    onClick={pending === true ? undefined : onClick}
     // oxlint-disable-next-line react/button-has-type -- defaults to "button"; a form passes "submit"
     type={type}
     {...props}

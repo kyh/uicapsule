@@ -2,6 +2,8 @@
 
 import { useEffect, useRef, useState } from "react";
 
+const noop = () => null;
+
 const FONT = new Map(
   Object.entries({
     A: [".###.", "#...#", "#####", "#...#", "#...#"],
@@ -56,7 +58,7 @@ const shade = (hex: string, factor: number) => {
   const key = `${hex}:${factor}`;
   const cached = shadeCache.get(key);
 
-  if (cached) {
+  if (cached !== undefined && cached !== "") {
     return cached;
   }
 
@@ -652,13 +654,13 @@ export const VoxelLanding = ({ autoTour = true }: VoxelLandingProps) => {
     const htmlLayer = htmlRef.current;
 
     if (!container || !canvas || !htmlLayer) {
-      return;
+      return noop;
     }
 
     const ctx = canvas.getContext("2d");
 
     if (!ctx) {
-      return;
+      return noop;
     }
 
     const world = buildWorld();

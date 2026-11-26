@@ -93,7 +93,7 @@ export const Progress = ({ label, done, total, cells = 24, live, reading }: Prog
       <div aria-hidden className="hx-progress" style={{ "--cells": cells } as CSSProperties}>
         {slots.map((key, index) => (
           <span
-            data-live={live && index === filled && done < total ? true : undefined}
+            data-live={live === true && index === filled && done < total ? true : undefined}
             data-on={index < filled ? true : undefined}
             key={key}
           />

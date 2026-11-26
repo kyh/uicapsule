@@ -31,9 +31,13 @@ export const useToast = () => {
 
 const ToastRow = ({ item, onDismiss }: { item: ToastItem; onDismiss: (id: number) => void }) => {
   useEffect(() => {
-    const timer = window.setTimeout(() => onDismiss(item.id), 5000);
+    const timer = window.setTimeout(() => {
+      onDismiss(item.id);
+    }, 5000);
 
-    return () => window.clearTimeout(timer);
+    return () => {
+      window.clearTimeout(timer);
+    };
   }, [item.id, onDismiss]);
 
   return (
@@ -41,11 +45,15 @@ const ToastRow = ({ item, onDismiss }: { item: ToastItem; onDismiss: (id: number
       <StatusMark status={item.status} />
       <div className="hx-stack hx-gap-half">
         <span className="hx-body-sm">{item.title}</span>
-        {item.detail ? <span className="hx-code-sm hx-ink-3">{item.detail}</span> : null}
+        {item.detail !== undefined && item.detail !== "" ? (
+          <span className="hx-code-sm hx-ink-3">{item.detail}</span>
+        ) : null}
       </div>
       <Button
         aria-label="Dismiss"
-        onClick={() => onDismiss(item.id)}
+        onClick={() => {
+          onDismiss(item.id);
+        }}
         size="icon-sm"
         variant="ghost"
       >

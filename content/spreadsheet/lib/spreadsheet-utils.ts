@@ -77,7 +77,7 @@ export const getRangeCells = (
     for (let colIndex = minColIndex; colIndex <= maxColIndex; colIndex += 1) {
       const colId = columnIds[colIndex];
 
-      if (!colId) {
+      if (colId === undefined || colId === "") {
         continue;
       }
 
@@ -145,13 +145,13 @@ export const toggleCellSelection = (cellKey: string, selectedCells: Set<string>)
 export const getFirstSelectedCell = (selectedCells: Set<string>) => {
   const [firstSelectedCell] = [...selectedCells];
 
-  if (!firstSelectedCell) {
+  if (firstSelectedCell === undefined || firstSelectedCell === "") {
     return null;
   }
 
   const [rowId, columnId] = firstSelectedCell.split(":");
 
-  if (!rowId || !columnId) {
+  if (rowId === undefined || rowId === "" || columnId === undefined || columnId === "") {
     return null;
   }
 
@@ -188,16 +188,21 @@ export const createNavigationMap = (data: SpreadsheetRow[], columns: ColumnInfo[
       const [firstColId] = columnIds;
 
       const navigation: NavigationMap = {
-        down: nextRowId ? `${nextRowId}:${columnId}` : null,
-        left: prevColId ? `${row.id}:${prevColId}` : null,
-        right: nextColId ? `${row.id}:${nextColId}` : null,
+        down: nextRowId !== undefined && nextRowId !== "" ? `${nextRowId}:${columnId}` : null,
+        left: prevColId !== undefined && prevColId !== "" ? `${row.id}:${prevColId}` : null,
+        right: nextColId !== undefined && nextColId !== "" ? `${row.id}:${nextColId}` : null,
         tab: null,
-        up: prevRowId ? `${prevRowId}:${columnId}` : null,
+        up: prevRowId !== undefined && prevRowId !== "" ? `${prevRowId}:${columnId}` : null,
       };
 
-      if (nextColId) {
+      if (nextColId !== undefined && nextColId !== "") {
         navigation.tab = `${row.id}:${nextColId}`;
-      } else if (nextRowId && firstColId) {
+      } else if (
+        nextRowId !== undefined &&
+        nextRowId !== "" &&
+        firstColId !== undefined &&
+        firstColId !== ""
+      ) {
         navigation.tab = `${nextRowId}:${firstColId}`;
       }
 
@@ -221,13 +226,13 @@ export const getNextCellPositionFromMap = (
 
   const nextCellKey = navigation[direction];
 
-  if (!nextCellKey) {
+  if (nextCellKey === null || nextCellKey === "") {
     return null;
   }
 
   const [rowId, columnId] = nextCellKey.split(":");
 
-  if (!rowId || !columnId) {
+  if (rowId === undefined || rowId === "" || columnId === undefined || columnId === "") {
     return null;
   }
 

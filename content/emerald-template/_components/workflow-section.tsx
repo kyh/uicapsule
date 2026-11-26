@@ -16,6 +16,8 @@ import { HomeCard } from "./home-card";
 import { Logo } from "./logo";
 import { SourceAssetIcon, SourceIcon } from "./source-icon";
 
+const noop = () => null;
+
 const stepTranslateY = [0, -100, -170];
 
 const workflowSteps = ["Connect your data source", "Build your app", "One click deploy"];
@@ -53,25 +55,26 @@ const Lines = ({
     halfWidth + 1
   }v${bottomLineHeight}m-${sixthWidth} -${height}v${topLinesHeight}m${thirdWidth} -${topLinesHeight}v${topLinesHeight}`;
 
-  const animate = invert
-    ? {
-        x1: [0, 0],
-        x2: [0, 0],
-        y1: [2.5 * height, -2 * height],
-        y2: [2 * height, -2.5 * height],
-      }
-    : {
-        x1: [0, 0],
-        x2: [0, 0],
-        y1: [-2.5 * height, 2 * height],
-        y2: [-2 * height, 2.5 * height],
-      };
+  const animate =
+    invert === true
+      ? {
+          x1: [0, 0],
+          x2: [0, 0],
+          y1: [2.5 * height, -2 * height],
+          y2: [2 * height, -2.5 * height],
+        }
+      : {
+          x1: [0, 0],
+          x2: [0, 0],
+          y1: [-2.5 * height, 2 * height],
+          y2: [-2 * height, 2.5 * height],
+        };
 
-  const animateId = `pulse-${invert ? "inverted" : "normal"}`;
+  const animateId = `pulse-${invert === true ? "inverted" : "normal"}`;
 
   return (
     <svg
-      className={cn(invert && "rotate-180", className)}
+      className={cn(invert === true && "rotate-180", className)}
       viewBox={`0 0 ${width} ${height}`}
       fill="none"
     >
@@ -116,7 +119,7 @@ export const WorkflowSection = () => {
     const container = sourcesContainerRef.current;
 
     if (!container) {
-      return;
+      return noop;
     }
 
     const observer = new ResizeObserver(() => {
@@ -144,7 +147,9 @@ export const WorkflowSection = () => {
               // oxlint-disable-next-line jsx-a11y/no-noninteractive-element-interactions -- hover only previews the step's sources; nothing is actioned, so there is no keyboard equivalent to provide
               <li
                 className="relative leading-9"
-                onMouseEnter={() => setHighlighted(index)}
+                onMouseEnter={() => {
+                  setHighlighted(index);
+                }}
                 key={item}
               >
                 {highlighted === index && (

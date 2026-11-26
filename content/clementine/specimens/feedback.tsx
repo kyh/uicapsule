@@ -11,6 +11,8 @@ import { Specimen } from "../shell";
 
 import "./specimens.css";
 
+const noop = () => null;
+
 export const FeedbackSpecimens = () => {
   const toast = useToast();
   const [loading, setLoading] = useState(true);
@@ -20,12 +22,16 @@ export const FeedbackSpecimens = () => {
 
   useEffect(() => {
     if (!retrying) {
-      return;
+      return noop;
     }
 
-    const done = window.setTimeout(() => setRetrying(false), 1200);
+    const done = window.setTimeout(() => {
+      setRetrying(false);
+    }, 1200);
 
-    return () => window.clearTimeout(done);
+    return () => {
+      window.clearTimeout(done);
+    };
   }, [retrying]);
 
   return (
@@ -36,23 +42,25 @@ export const FeedbackSpecimens = () => {
       >
         <div className="cl-spec-row">
           <Button
-            onClick={() =>
+            onClick={() => {
               toast.show({
                 action: {
                   label: "Undo",
-                  onClick: () => toast.show({ title: "Moved $50.00 back to Everyday" }),
+                  onClick: () => {
+                    toast.show({ title: "Moved $50.00 back to Everyday" });
+                  },
                 },
                 title: "Moved $50.00 to Kyoto in April",
-              })
-            }
+              });
+            }}
             variant="secondary"
           >
             Move $50.00
           </Button>
           <Button
-            onClick={() =>
-              toast.show({ description: "Sunday, 6 pm", title: "Weekly summary turned on" })
-            }
+            onClick={() => {
+              toast.show({ description: "Sunday, 6 pm", title: "Weekly summary turned on" });
+            }}
             variant="outline"
           >
             Turn on summary
@@ -68,7 +76,13 @@ export const FeedbackSpecimens = () => {
           <span className="cl-note">
             {waiting ? "Checking the payee's details" : "Payee checked: Teodor Varga"}
           </span>
-          <Button onClick={() => setWaiting(!waiting)} size="sm" variant="secondary">
+          <Button
+            onClick={() => {
+              setWaiting(!waiting);
+            }}
+            size="sm"
+            variant="secondary"
+          >
             {waiting ? "Finish" : "Check again"}
           </Button>
         </div>
@@ -99,7 +113,13 @@ export const FeedbackSpecimens = () => {
               </>
             )}
           </div>
-          <Button onClick={() => setLoading(!loading)} size="sm" variant="secondary">
+          <Button
+            onClick={() => {
+              setLoading(!loading);
+            }}
+            size="sm"
+            variant="secondary"
+          >
             {loading ? "Finish loading" : "Load again"}
           </Button>
         </div>
@@ -111,14 +131,26 @@ export const FeedbackSpecimens = () => {
         {receipt ? (
           <div className="cl-spec-col">
             <p className="cl-note">Quill &amp; Fold, $129.00, paired with its payment on Nov 11.</p>
-            <Button onClick={() => setReceipt(false)} size="sm" variant="secondary">
+            <Button
+              onClick={() => {
+                setReceipt(false);
+              }}
+              size="sm"
+              variant="secondary"
+            >
               Empty it again
             </Button>
           </div>
         ) : (
           <Empty
             action={
-              <Button onClick={() => setReceipt(true)} size="sm" variant="secondary">
+              <Button
+                onClick={() => {
+                  setReceipt(true);
+                }}
+                size="sm"
+                variant="secondary"
+              >
                 Add a receipt
               </Button>
             }
@@ -136,7 +168,14 @@ export const FeedbackSpecimens = () => {
       >
         <ErrorState
           action={
-            <Button onClick={() => setRetrying(true)} pending={retrying} size="sm" variant="solid">
+            <Button
+              onClick={() => {
+                setRetrying(true);
+              }}
+              pending={retrying}
+              size="sm"
+              variant="solid"
+            >
               Try again
             </Button>
           }

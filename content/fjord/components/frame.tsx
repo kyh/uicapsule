@@ -25,7 +25,7 @@ export const PanelHead = ({ title, meta, action, titleId }: HeadProps) => (
 );
 
 export const PanelBody = ({ children, pad }: { children: ReactNode; pad?: boolean }) => (
-  <div className="fj-panel-body" data-pad={pad ? "" : undefined}>
+  <div className="fj-panel-body" data-pad={pad === true ? "" : undefined}>
     {children}
   </div>
 );

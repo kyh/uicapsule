@@ -153,7 +153,9 @@ export const CannonTrack = ({ volume }: CannonTrackProps) => {
     if (x > BOARD_WIDTH) {
       setWide(true);
       window.clearTimeout(wideTimer.current);
-      wideTimer.current = window.setTimeout(() => setWide(false), 1600);
+      wideTimer.current = window.setTimeout(() => {
+        setWide(false);
+      }, 1600);
       resetBall();
 
       return;
@@ -165,7 +167,7 @@ export const CannonTrack = ({ volume }: CannonTrackProps) => {
   };
 
   const fire = (vx: number, vy: number) => {
-    if (reduceMotion) {
+    if (reduceMotion === true) {
       let shot: Shot = { vx, vy, x: MUZZLE.x, y: MUZZLE.y };
 
       for (let t = 0; t < MAX_FLIGHT_SECONDS * 60; t += 1) {

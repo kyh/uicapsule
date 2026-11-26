@@ -14,6 +14,8 @@ import "./app.css";
 
 import "./payday.css";
 
+const noop = () => null;
+
 type PotId = (typeof POTS)[number]["id"];
 
 type Stage = "editing" | "saving" | "saved";
@@ -31,12 +33,16 @@ export const PaydayScreen = () => {
 
   useEffect(() => {
     if (stage !== "saving") {
-      return;
+      return noop;
     }
 
-    const done = window.setTimeout(() => setStage("saved"), 900);
+    const done = window.setTimeout(() => {
+      setStage("saved");
+    }, 900);
 
-    return () => window.clearTimeout(done);
+    return () => {
+      window.clearTimeout(done);
+    };
   }, [stage]);
 
   const parts: RingPart[] = [
@@ -101,7 +107,9 @@ export const PaydayScreen = () => {
                 <Stepper
                   label={pot.name}
                   max={amounts[pot.id] + spending - 100}
-                  onValueChange={(value) => change(pot.id, value)}
+                  onValueChange={(value) => {
+                    change(pot.id, value);
+                  }}
                   value={amounts[pot.id]}
                 />
               </li>
@@ -136,10 +144,20 @@ export const PaydayScreen = () => {
           <div className="cl-pay-row">
             {stage === "saved" && !undone ? (
               <>
-                <Button onClick={() => setUndone(true)} variant="outline">
+                <Button
+                  onClick={() => {
+                    setUndone(true);
+                  }}
+                  variant="outline"
+                >
                   Undo
                 </Button>
-                <Button block onClick={() => setStage("editing")}>
+                <Button
+                  block
+                  onClick={() => {
+                    setStage("editing");
+                  }}
+                >
                   Done
                 </Button>
               </>

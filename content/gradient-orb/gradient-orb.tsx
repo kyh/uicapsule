@@ -200,7 +200,12 @@ const GradientScene = ({
     return geo;
   }, []);
 
-  useEffect(() => () => geometry.dispose(), [geometry]);
+  useEffect(
+    () => () => {
+      geometry.dispose();
+    },
+    [geometry],
+  );
 
   const uniforms = useMemo(
     () => ({

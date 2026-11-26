@@ -8,7 +8,9 @@ export const Switch = ({ checked, onCheckedChange, label }: SwitchProps) => (
   <button
     aria-checked={checked}
     className="group flex items-center justify-between gap-4 text-sm"
-    onClick={() => onCheckedChange(!checked)}
+    onClick={() => {
+      onCheckedChange(!checked);
+    }}
     role="switch"
     type="button"
   >

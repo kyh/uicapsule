@@ -16,7 +16,7 @@ const validMeta = {
 
 const fixture = async (context: TestContext, files: [string, string][]) => {
   const directory = await mkdtemp(path.join(tmpdir(), "uicapsule-registry-"));
-  context.after(() => rm(directory, { force: true, recursive: true }));
+  context.after(async () => await rm(directory, { force: true, recursive: true }));
 
   const defaults: [string, string][] = [
     ["meta.json", JSON.stringify(validMeta)],

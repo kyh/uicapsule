@@ -3,18 +3,24 @@
 import { useCallback, useEffect, useEffectEvent, useRef, useState } from "react";
 import type { RefObject } from "react";
 
+const noop = () => null;
+
 /** Re-renders every `interval` ms while `active`, returning the current time. */
 export const useNow = (interval = 1000, active = true) => {
   const [now, setNow] = useState(() => Date.now());
 
   useEffect(() => {
     if (!active) {
-      return;
+      return noop;
     }
 
-    const id = window.setInterval(() => setNow(Date.now()), interval);
+    const id = window.setInterval(() => {
+      setNow(Date.now());
+    }, interval);
 
-    return () => window.clearInterval(id);
+    return () => {
+      window.clearInterval(id);
+    };
   }, [interval, active]);
 
   return now;
@@ -25,7 +31,12 @@ export const useCopy = (resetAfter = 1600) => {
   const [copied, setCopied] = useState(false);
   const timer = useRef<number | undefined>(undefined);
 
-  useEffect(() => () => window.clearTimeout(timer.current), []);
+  useEffect(
+    () => () => {
+      window.clearTimeout(timer.current);
+    },
+    [],
+  );
 
   const copy = useCallback(
     async (text: string) => {
@@ -45,7 +56,9 @@ export const useCopy = (resetAfter = 1600) => {
 
       setCopied(true);
       window.clearTimeout(timer.current);
-      timer.current = window.setTimeout(() => setCopied(false), resetAfter);
+      timer.current = window.setTimeout(() => {
+        setCopied(false);
+      }, resetAfter);
     },
     [resetAfter],
   );
@@ -63,7 +76,7 @@ export const useDismiss = (
 
   useEffect(() => {
     if (!open) {
-      return;
+      return noop;
     }
 
     const onPointer = (event: PointerEvent) => {

@@ -7,9 +7,9 @@ const RECORD_MS = 6000;
 const VIDEO_BITS_PER_SECOND = 2_500_000;
 const MIME_TYPES = ["video/webm;codecs=vp9", "video/webm;codecs=vp8", "video/webm", "video/mp4"];
 
-const stopAfter = (recorder: MediaRecorder, video: HTMLVideoElement, ms: number) =>
+const stopAfter = async (recorder: MediaRecorder, video: HTMLVideoElement, ms: number) =>
   // oxlint-disable-next-line promise/avoid-new -- MediaRecorder signals its end with an event, not a promise
-  new Promise<void>((resolve) => {
+  await new Promise<void>((resolve) => {
     const stop = () => {
       if (recorder.state !== "inactive") {
         recorder.stop();
@@ -32,7 +32,7 @@ const stopAfter = (recorder: MediaRecorder, video: HTMLVideoElement, ms: number)
 export const recordVideo = async (video: HTMLVideoElement) => {
   const mimeType = MIME_TYPES.find((type) => MediaRecorder.isTypeSupported(type));
 
-  if (!video.captureStream || !mimeType) {
+  if (!video.captureStream || mimeType === undefined || mimeType === "") {
     return { ok: false, reason: "This browser can't record video." } satisfies FileResult;
   }
 
@@ -55,7 +55,9 @@ export const recordVideo = async (video: HTMLVideoElement) => {
     videoBitsPerSecond: VIDEO_BITS_PER_SECOND,
   });
 
-  recorder.addEventListener("dataavailable", (event) => chunks.push(event.data));
+  recorder.addEventListener("dataavailable", (event) => {
+    chunks.push(event.data);
+  });
 
   try {
     if (paused) {

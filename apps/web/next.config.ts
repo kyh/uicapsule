@@ -26,7 +26,7 @@ const getContentPackages = () => {
 const getRemotePatterns = () => {
   const remotePatterns: RemotePatterns = [];
 
-  if (ASSETS_URL) {
+  if (ASSETS_URL !== undefined && ASSETS_URL !== "") {
     const { hostname } = new URL(ASSETS_URL);
 
     remotePatterns.push({

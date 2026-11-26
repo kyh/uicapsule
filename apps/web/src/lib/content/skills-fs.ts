@@ -49,7 +49,12 @@ export const readRepoSkill = async (name: string) => {
   const [main] = files;
   const description = main?.path === "SKILL.md" ? frontmatterField(main.text, "description") : null;
 
-  if (!main || frontmatterField(main.text, "name") !== name || !description) {
+  if (
+    !main ||
+    frontmatterField(main.text, "name") !== name ||
+    description === null ||
+    description === ""
+  ) {
     throw new Error(`.claude/skills/${name}/SKILL.md needs name: ${name} and a description`);
   }
 

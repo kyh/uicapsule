@@ -143,7 +143,7 @@ const useScrollSpy = (ids: readonly string[]) => {
 
         const first = ids.find((id) => seen.get(id));
 
-        if (first) {
+        if (first !== undefined && first !== "") {
           setCurrent(first);
         }
       },
@@ -158,7 +158,9 @@ const useScrollSpy = (ids: readonly string[]) => {
       }
     }
 
-    return () => observer.disconnect();
+    return () => {
+      observer.disconnect();
+    };
   }, [ids]);
 
   return current;

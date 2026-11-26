@@ -115,7 +115,14 @@ export const InvestmentGrowth = () => {
         <span style={{ color: "#52525b" }}>Last Week</span>
       </p>
       <ChartSlot height={HEIGHT} className="mt-4">
-        <div onMouseEnter={() => pin(w)} onMouseLeave={() => pin(null)}>
+        <div
+          onMouseEnter={() => {
+            pin(w);
+          }}
+          onMouseLeave={() => {
+            pin(null);
+          }}
+        >
           <Chart
             definition={definition}
             renderer={renderer}

@@ -18,7 +18,7 @@ interface AlertProps {
 export const Alert = ({ tone = "fail", word, children, actions, framed }: AlertProps) => (
   <div
     className="hx-alert"
-    data-framed={framed || undefined}
+    data-framed={framed === true || undefined}
     data-tone={tone}
     role={tone === "fail" ? "alert" : "status"}
   >

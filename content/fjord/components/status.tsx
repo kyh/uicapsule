@@ -32,13 +32,13 @@ export const StatusArc = ({ name, size = 14 }: { name?: string; size?: 12 | 14 }
 
   return (
     <svg
-      aria-hidden={name ? undefined : true}
+      aria-hidden={name !== undefined && name !== "" ? undefined : true}
       aria-label={name}
       className="fj-arc"
       data-paused={visible ? undefined : ""}
       data-size={size}
       ref={ref}
-      role={name ? "img" : undefined}
+      role={name !== undefined && name !== "" ? "img" : undefined}
       viewBox="0 0 16 16"
     >
       <circle
@@ -74,9 +74,12 @@ interface StatusProps {
 export const Status = ({ status, children, size, live, plain }: StatusProps) => {
   const word = children ?? STATUS_WORD[status];
 
-  if (status === "waiting" && !plain) {
+  if (status === "waiting" && plain !== true) {
     return (
-      <span aria-live={live ? "polite" : undefined} role={live ? "status" : undefined}>
+      <span
+        aria-live={live === true ? "polite" : undefined}
+        role={live === true ? "status" : undefined}
+      >
         <InkSlot size={size}>{word}</InkSlot>
       </span>
     );
@@ -84,11 +87,11 @@ export const Status = ({ status, children, size, live, plain }: StatusProps) => 
 
   return (
     <span
-      aria-live={live ? "polite" : undefined}
+      aria-live={live === true ? "polite" : undefined}
       className="fj-status"
       data-size={size}
       data-status={status}
-      role={live ? "status" : undefined}
+      role={live === true ? "status" : undefined}
     >
       {status === "running" ? <StatusArc size={size === "sm" ? 12 : 14} /> : null}
       {word}

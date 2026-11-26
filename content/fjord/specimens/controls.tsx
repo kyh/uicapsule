@@ -29,7 +29,9 @@ export const Actions = () => {
 
   const save = () => {
     setSaving(true);
-    window.setTimeout(() => setSaving(false), 1600);
+    window.setTimeout(() => {
+      setSaving(false);
+    }, 1600);
   };
 
   return (
@@ -73,7 +75,9 @@ export const Actions = () => {
             <Button
               aria-pressed={view === option}
               key={option}
-              onClick={() => setView(option)}
+              onClick={() => {
+                setView(option);
+              }}
               size="sm"
             >
               {option}
@@ -123,7 +127,9 @@ export const Inputs = () => {
         <TextField
           hint="Agents open pull requests from this branch."
           label="Base branch"
-          onChange={(event) => setBranch(event.target.value)}
+          onChange={(event) => {
+            setBranch(event.target.value);
+          }}
           value={branch}
           error={branchError}
           mono
@@ -200,7 +206,7 @@ export const Selection = () => {
           checked={false}
           disabled
           label="Share traces publicly"
-          onCheckedChange={() => null}
+          onCheckedChange={() => {}}
         />
       </Specimen>
       <Specimen

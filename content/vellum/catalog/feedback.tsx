@@ -62,7 +62,13 @@ export const Feedback = () => {
               </div>
             )}
           </div>
-          <Button onClick={() => setLoaded(!loaded)} size="sm" variant="secondary">
+          <Button
+            onClick={() => {
+              setLoaded(!loaded);
+            }}
+            size="sm"
+            variant="secondary"
+          >
             {loaded ? "Show loading" : "Show loaded"}
           </Button>
         </div>
@@ -81,22 +87,26 @@ export const Feedback = () => {
       <Specimen name="Toast" note="bottom corner, one optional action; failures wait to be closed">
         <div className="v-cluster v-center">
           <Button
-            onClick={() =>
+            onClick={() => {
               toast({
                 action: {
                   label: "Undo",
-                  onAction: () => toast({ title: "Put v11 back" }),
+                  onAction: () => {
+                    toast({ title: "Put v11 back" });
+                  },
                 },
                 title: "Published prompt v12",
                 tone: "ok",
-              })
-            }
+              });
+            }}
             variant="secondary"
           >
             Publish v12
           </Button>
           <Button
-            onClick={() => toast({ title: "The eval run lost its worker", tone: "fail" })}
+            onClick={() => {
+              toast({ title: "The eval run lost its worker", tone: "fail" });
+            }}
             variant="secondary"
           >
             Fail a run
@@ -107,7 +117,9 @@ export const Feedback = () => {
         <EmptyState
           action={
             <Button
-              onClick={() => toast({ title: "Queued a test turn for the docs agent" })}
+              onClick={() => {
+                toast({ title: "Queued a test turn for the docs agent" });
+              }}
               size="sm"
               variant="secondary"
             >

@@ -5,6 +5,8 @@ import { useEffect, useRef } from "react";
 import { CHARTS } from "./charts";
 import { ChartCell } from "./lib/kit";
 
+const noop = () => null;
+
 const DRIFT = 42;
 const YIELD_MS = 3000;
 
@@ -26,7 +28,7 @@ export const FinanceCharts = ({ autoScroll = true }: { autoScroll?: boolean }) =
     const el = scroller.current;
 
     if (!el || !autoScroll || matchMedia("(prefers-reduced-motion: reduce)").matches) {
-      return;
+      return noop;
     }
 
     let raf = 0;
@@ -58,7 +60,9 @@ export const FinanceCharts = ({ autoScroll = true }: { autoScroll?: boolean }) =
 
     raf = requestAnimationFrame(step);
 
-    return () => cancelAnimationFrame(raf);
+    return () => {
+      cancelAnimationFrame(raf);
+    };
   }, [autoScroll]);
 
   return (

@@ -19,7 +19,7 @@ export const FEEDBACK_NAMES = ["Toast", "Alert", "Progress", "Empty state", "Ske
 const TOASTS: ToastInput[] = [
   { description: "Next run in 6 minutes.", title: "Schedule saved" },
   {
-    action: { label: "Undo", onSelect: () => null },
+    action: { label: "Undo", onSelect: () => {} },
     description: "It stays in the trash for 30 days.",
     title: "Agent archived",
   },
@@ -41,7 +41,9 @@ export const Feedback = () => {
   const load = (ms: number) => {
     setLoading(true);
     setLastLoad(ms);
-    window.setTimeout(() => setLoading(false), ms);
+    window.setTimeout(() => {
+      setLoading(false);
+    }, ms);
   };
 
   return (
@@ -108,7 +110,13 @@ export const Feedback = () => {
       >
         <div className="fj-hstack">
           {LOADS.map((ms) => (
-            <Button key={ms} onClick={() => load(ms)} size="sm">
+            <Button
+              key={ms}
+              onClick={() => {
+                load(ms);
+              }}
+              size="sm"
+            >
               Load in {ms}ms
             </Button>
           ))}

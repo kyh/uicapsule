@@ -16,7 +16,7 @@ const EXTENSION_TYPES = new Map<string, keyof typeof ATTACHMENT_TYPES>([
 const loadImage = async (dataUrl: string) => {
   const response = await fetch(dataUrl);
 
-  return createImageBitmap(await response.blob());
+  return await createImageBitmap(await response.blob());
 };
 
 /** Crops a screenshot of the visible tab to the selection, shrinking it until it fits the upload cap. */

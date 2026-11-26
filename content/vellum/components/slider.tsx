@@ -37,7 +37,9 @@ export const Slider = ({
         id={id}
         max={max}
         min={min}
-        onChange={(event) => onValueChange(Number(event.target.value))}
+        onChange={(event) => {
+          onValueChange(Number(event.target.value));
+        }}
         step={step}
         style={{ "--fill": `${fill}%` } as CSSProperties}
         type="range"

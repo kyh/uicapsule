@@ -59,7 +59,7 @@ export const Button = ({
     {...props}
   >
     {pending ? <Arc small={size === "sm" || size === "icon-sm"} /> : null}
-    {pending && pendingLabel ? (
+    {pending && pendingLabel !== undefined && pendingLabel !== "" ? (
       <>
         <span aria-hidden className="v-btn-label">
           {pendingLabel}

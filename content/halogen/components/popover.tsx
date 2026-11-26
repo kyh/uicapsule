@@ -1,6 +1,8 @@
 import { useEffect, useId, useLayoutEffect, useRef, useState } from "react";
 import type { CSSProperties, ReactElement, ReactNode } from "react";
 
+const noop = () => null;
+
 interface PopoverProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
@@ -34,7 +36,7 @@ export const Popover = ({
 
   useLayoutEffect(() => {
     if (!open) {
-      return;
+      return noop;
     }
 
     const measure = () => {
@@ -73,11 +75,11 @@ export const Popover = ({
 
   useEffect(() => {
     if (!open) {
-      return;
+      return noop;
     }
 
     const onPointer = (event: PointerEvent) => {
-      if (event.target instanceof Node && !root.current?.contains(event.target)) {
+      if (event.target instanceof Node && root.current?.contains(event.target) !== true) {
         onOpenChange(false);
       }
     };
@@ -103,9 +105,11 @@ export const Popover = ({
       {renderTrigger({
         "aria-controls": id,
         "aria-expanded": open,
-        onClick: () => onOpenChange(!open),
+        onClick: () => {
+          onOpenChange(!open);
+        },
       })}
-      {open && bare ? (
+      {open && bare === true ? (
         <div
           className={`hx-overlay ${className ?? "hx-popover"}`}
           id={id}
@@ -117,7 +121,7 @@ export const Popover = ({
           {children}
         </div>
       ) : null}
-      {open && !bare ? (
+      {open && bare !== true ? (
         <dialog
           aria-label={label}
           className={`hx-overlay ${className ?? "hx-popover"}`}
@@ -149,15 +153,23 @@ export const Tooltip = ({
   return (
     <span
       className="hx-anchor"
-      onBlur={() => setShown(false)}
-      onFocus={() => setShown(true)}
+      onBlur={() => {
+        setShown(false);
+      }}
+      onFocus={() => {
+        setShown(true);
+      }}
       onKeyDown={(event) => {
         if (event.key === "Escape") {
           setShown(false);
         }
       }}
-      onPointerEnter={() => setShown(true)}
-      onPointerLeave={() => setShown(false)}
+      onPointerEnter={() => {
+        setShown(true);
+      }}
+      onPointerLeave={() => {
+        setShown(false);
+      }}
       role="presentation"
     >
       {renderTrigger({ "aria-describedby": id })}

@@ -69,12 +69,12 @@ export const Inline = ({ text }: { text: string }) =>
 
 const ProseItem = ({ item }: { item: ProseListItem }) => (
   <li>
-    {item.href ? (
+    {item.href !== undefined && item.href !== "" ? (
       <ProseLink href={item.href}>{item.label}</ProseLink>
     ) : (
       <span className="text-foreground">{item.label}</span>
     )}
-    {item.text ? (
+    {item.text !== undefined && item.text !== "" ? (
       <>
         {" — "}
         <Inline text={item.text} />

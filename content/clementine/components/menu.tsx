@@ -6,6 +6,8 @@ import type { DismissReason } from "../lib/use-dismiss";
 
 import "./menu.css";
 
+const noop = () => null;
+
 export interface MenuItem {
   label: string;
   icon?: ReactNode;
@@ -66,12 +68,16 @@ export const Menu = ({ open, onOpenChange, label, items, trigger, align = "start
 
   useEffect(() => {
     if (!open) {
-      return;
+      return noop;
     }
 
-    const frame = window.requestAnimationFrame(() => moveFocus(list.current, 1));
+    const frame = window.requestAnimationFrame(() => {
+      moveFocus(list.current, 1);
+    });
 
-    return () => window.cancelAnimationFrame(frame);
+    return () => {
+      window.cancelAnimationFrame(frame);
+    };
   }, [open]);
 
   const onKeyDown = (event: KeyboardEvent) => {
@@ -89,7 +95,9 @@ export const Menu = ({ open, onOpenChange, label, items, trigger, align = "start
         "aria-controls": id,
         "aria-expanded": open,
         "aria-haspopup": "menu",
-        onClick: () => onOpenChange(!open),
+        onClick: () => {
+          onOpenChange(!open);
+        },
       })}
       <div
         aria-label={label}
@@ -106,7 +114,7 @@ export const Menu = ({ open, onOpenChange, label, items, trigger, align = "start
         {items.map((item) => (
           <button
             className="cl-menu__item"
-            data-danger={item.danger || undefined}
+            data-danger={item.danger === true || undefined}
             key={item.label}
             onClick={() => {
               close("select");

@@ -6,8 +6,8 @@ import { POST } from "./route";
 
 const APP_ORIGIN = "http://localhost:3000";
 
-const post = (body: FormData | null, headers: Record<string, string> = {}) =>
-  POST(
+const post = async (body: FormData | null, headers: Record<string, string> = {}) =>
+  await POST(
     new NextRequest(`${APP_ORIGIN}/api/request/attachments`, {
       body,
       headers,

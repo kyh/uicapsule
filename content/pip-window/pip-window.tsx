@@ -134,9 +134,9 @@ export const PipWindow = () => {
         dragElastic={0.12}
         initial={HOME}
         animate={controls}
-        onDragEnd={(_, info) =>
-          settle(info.offset.x, info.offset.y, info.velocity.x, info.velocity.y)
-        }
+        onDragEnd={(_, info) => {
+          settle(info.offset.x, info.offset.y, info.velocity.x, info.velocity.y);
+        }}
         onClick={untuck}
         style={{ height: PIP_HEIGHT, width: PIP_WIDTH }}
         className="absolute top-0 left-0 cursor-grab overflow-hidden rounded-2xl shadow-2xl shadow-black/70 ring-1 ring-white/20 active:cursor-grabbing"

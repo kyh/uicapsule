@@ -72,7 +72,7 @@ export const Specimen = ({
     <div className="v-stage">{children}</div>
     <figcaption className="v-specimen-cap">
       {name}
-      {note ? <span>{note}</span> : null}
+      {note !== undefined && note !== "" ? <span>{note}</span> : null}
     </figcaption>
   </figure>
 );

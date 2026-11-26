@@ -30,7 +30,7 @@ export const HomeCard = ({
     <div
       className={cn(
         "flex h-full items-center gap-5 text-center lg:gap-8 lg:text-start",
-        inline ? "flex-col" : "flex-col lg:flex-row",
+        inline === true ? "flex-col" : "flex-col lg:flex-row",
       )}
     >
       <div className="flex min-w-[300px] shrink-0 flex-col gap-2 lg:gap-5">

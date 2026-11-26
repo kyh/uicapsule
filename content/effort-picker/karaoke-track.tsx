@@ -353,9 +353,15 @@ export const KaraokeCard = ({ knobX, theme }: KaraokeCardProps) => {
       void animate(knobX, 0, DIAL_SPRING);
     }
 
-    after(BEAT_MS, () => setTake({ count: 2, status: "countdown" }));
-    after(BEAT_MS * 2, () => setTake({ count: 1, status: "countdown" }));
-    after(COUNT_IN_MS, () => setTake({ matched: 0, status: "singing" }));
+    after(BEAT_MS, () => {
+      setTake({ count: 2, status: "countdown" });
+    });
+    after(BEAT_MS * 2, () => {
+      setTake({ count: 1, status: "countdown" });
+    });
+    after(COUNT_IN_MS, () => {
+      setTake({ matched: 0, status: "singing" });
+    });
 
     for (const [index, word] of FLAT_WORDS.entries()) {
       after(COUNT_IN_MS + word.cueBeat * BEAT_MS, () => {
@@ -377,7 +383,9 @@ export const KaraokeCard = ({ knobX, theme }: KaraokeCardProps) => {
         burstId.current += 1;
         const burst = { id: burstId.current, percent: landed };
         setBursts((current) => [...current, burst]);
-        after(800, () => setBursts((current) => current.filter((item) => item.id !== burst.id)));
+        after(800, () => {
+          setBursts((current) => current.filter((item) => item.id !== burst.id));
+        });
       });
     }
 
@@ -402,7 +410,9 @@ export const KaraokeCard = ({ knobX, theme }: KaraokeCardProps) => {
       burstId.current += 1;
       const finale = { id: burstId.current, percent: (notchX(theme, level) / TRACK_TRAVEL) * 100 };
       setBursts((current) => [...current, finale]);
-      after(900, () => setBursts((current) => current.filter((item) => item.id !== finale.id)));
+      after(900, () => {
+        setBursts((current) => current.filter((item) => item.id !== finale.id));
+      });
     });
   }, [after, clearTimers, knobX, theme]);
 

@@ -128,7 +128,11 @@ export const CustomerRate = () => {
       <SalesHeader label="Customer rate" value={8.73} format={pct} change={2.51} />
       <ChannelRows rows={CHANNELS} format={pct} />
       <ChartSlot height={HEIGHT} className="mt-5">
-        <div onMouseLeave={() => pin(null)}>
+        <div
+          onMouseLeave={() => {
+            pin(null);
+          }}
+        >
           <Chart
             definition={definition}
             renderer={renderer}

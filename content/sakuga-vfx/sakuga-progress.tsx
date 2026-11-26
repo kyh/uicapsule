@@ -545,7 +545,9 @@ const SakugaProgress = ({
       min={min}
       max={max}
       value={shown.value}
-      aria-label={ariaLabel ?? (labelledBy ? undefined : "Loading")}
+      aria-label={
+        ariaLabel ?? (labelledBy !== undefined && labelledBy !== "" ? undefined : "Loading")
+      }
       aria-labelledby={labelledBy}
       {...props}
     >

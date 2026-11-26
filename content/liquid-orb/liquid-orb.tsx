@@ -2,6 +2,8 @@
 
 import { useEffect, useRef } from "react";
 
+const noop = () => null;
+
 export type LiquidOrbPreset =
   | "siri"
   | "chrome"
@@ -956,7 +958,7 @@ export const LiquidOrb = ({
     const container = rootRef.current;
 
     if (!container) {
-      return;
+      return noop;
     }
 
     const canvas = document.createElement("canvas");
@@ -976,7 +978,7 @@ export const LiquidOrb = ({
     if (!gl) {
       canvas.remove();
 
-      return;
+      return noop;
     }
 
     const vs = compileShader(gl, gl.VERTEX_SHADER, vertexSrc);
@@ -984,7 +986,7 @@ export const LiquidOrb = ({
     if (!vs) {
       canvas.remove();
 
-      return;
+      return noop;
     }
 
     gl.disable(gl.BLEND);

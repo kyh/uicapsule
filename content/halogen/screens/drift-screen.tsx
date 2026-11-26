@@ -159,7 +159,9 @@ export const DriftScreen = () => {
           from="v6"
           label="Column changes between v6 and v7"
           locked={phase !== "held"}
-          onChoose={(id, value: Resolution) => setChoices({ ...choices, [id]: value })}
+          onChoose={(id, value: Resolution) => {
+            setChoices({ ...choices, [id]: value });
+          }}
           rows={DRIFT_ROWS}
           to="v7"
         />
@@ -206,7 +208,9 @@ export const DriftScreen = () => {
             <Button
               aria-pressed={holding}
               disabled={phase === "applying"}
-              onClick={() => setHolding(!holding)}
+              onClick={() => {
+                setHolding(!holding);
+              }}
               variant="ghost"
             >
               {holding ? "Holding" : "Hold drift"}
@@ -232,7 +236,9 @@ export const DriftScreen = () => {
             </Popover>
             <Button
               disabled={phase === "released" || holding}
-              onClick={() => setPhase("applying")}
+              onClick={() => {
+                setPhase("applying");
+              }}
               pending={phase === "applying"}
               pendingLabel="Replaying"
               variant="lamp"

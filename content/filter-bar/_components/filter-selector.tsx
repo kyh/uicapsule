@@ -30,6 +30,8 @@ import type {
 import { getColumn, bindFilter } from "../filter-package";
 import { FilterValueController } from "./filter-value";
 
+const noop = () => null;
+
 const renderColumnIcon = (icon: ReactElement | ReactElementType, className: string) => {
   if (isValidElement(icon)) {
     return icon;
@@ -113,7 +115,7 @@ export const QuickSearchFilters = ({
     [columns],
   );
 
-  if (!search || search.trim().length < 2) {
+  if (search === undefined || search === "" || search.trim().length < 2) {
     return null;
   }
 
@@ -194,18 +196,23 @@ export const FilterSelector = ({
   const [property, setProperty] = useState<string | undefined>();
   const inputRef = useRef<HTMLInputElement>(null);
 
-  const visibleColumns = useMemo(() => columns.filter((c) => !c.hidden), [columns]);
+  const visibleColumns = useMemo(() => columns.filter((c) => c.hidden !== true), [columns]);
 
   const visibleFilters = useMemo(
     () => filters.filter((f) => visibleColumns.find((c) => c.id === f.columnId)),
     [filters, visibleColumns],
   );
 
-  const column = property ? getColumn(visibleColumns, property) : undefined;
-  const filter = property ? visibleFilters.find((f) => f.columnId === property) : undefined;
+  const column =
+    property !== undefined && property !== "" ? getColumn(visibleColumns, property) : undefined;
+
+  const filter =
+    property !== undefined && property !== ""
+      ? visibleFilters.find((f) => f.columnId === property)
+      : undefined;
 
   useEffect(() => {
-    if (!property) {
+    if (property === undefined || property === "") {
       return;
     }
 
@@ -214,23 +221,29 @@ export const FilterSelector = ({
 
   useEffect(() => {
     if (open) {
-      return;
+      return noop;
     }
 
-    const timeoutId = setTimeout(() => setValue(""), 150);
+    const timeoutId = setTimeout(() => {
+      setValue("");
+    }, 150);
 
-    return () => clearTimeout(timeoutId);
+    return () => {
+      clearTimeout(timeoutId);
+    };
   }, [open]);
 
   const content = useMemo(
     () =>
-      property && column && column.type !== "boolean" ? (
+      property !== undefined && property !== "" && column && column.type !== "boolean" ? (
         <div className="flex flex-col">
           <div className="flex h-9 items-center gap-2 border-b px-2">
             <Button
               variant="ghost"
               size="icon"
-              onClick={() => setProperty(undefined)}
+              onClick={() => {
+                setProperty(undefined);
+              }}
               className="h-6 w-6 p-0"
             >
               <ArrowLeftIcon className="size-4" />
@@ -335,7 +348,9 @@ export const FilterSelector = ({
         setOpen(next);
 
         if (!next) {
-          setTimeout(() => setProperty(undefined), 100);
+          setTimeout(() => {
+            setProperty(undefined);
+          }, 100);
         }
       }}
     >

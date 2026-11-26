@@ -25,10 +25,10 @@ test("password reset changes credentials, consumes its token, and revokes existi
     database: memoryAdapter({ account: [], session: [], user: [], verification: [] }),
     emailAndPassword: {
       ...options.emailAndPassword,
-      sendResetPassword: ({ user, url, token }) => {
+      sendResetPassword: async ({ user, url, token }) => {
         delivery = { email: user.email, token, url };
 
-        return Promise.resolve();
+        return await Promise.resolve();
       },
     },
   });
@@ -62,7 +62,7 @@ test("password reset changes credentials, consumes its token, and revokes existi
   const callback = await testAuth.handler(new Request(delivery.url));
   assert.equal(callback.status, 302);
   const location = callback.headers.get("location");
-  assert.ok(location);
+  assert.ok(location !== null && location !== "");
   const resetPage = new URL(location);
   assert.equal(resetPage.pathname, "/auth/password-update");
   assert.equal(resetPage.searchParams.get("token"), delivery.token);

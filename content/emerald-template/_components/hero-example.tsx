@@ -30,6 +30,8 @@ import {
   ChainOfThoughtStep,
 } from "./chain-of-thought";
 
+const noop = () => null;
+
 const samples = [
   {
     input: "Can you provide a changelog of everything shipped in Dataembed this week?",
@@ -123,7 +125,9 @@ const wait = (delay: number) => {
   });
 
   return {
-    cancel: () => clearTimeout(timeout),
+    cancel: () => {
+      clearTimeout(timeout);
+    },
     promise,
   };
 };
@@ -329,7 +333,7 @@ const Typewriter = ({
   return (
     <div>
       <span ref={textContainerRef} />
-      {!hideCursor && <span className="cursor">|</span>}
+      {hideCursor !== true && <span className="cursor">|</span>}
     </div>
   );
 };
@@ -368,7 +372,7 @@ export const ExampleChat = ({ start }: { start: boolean }) => {
 
   useEffect(() => {
     if (!start) {
-      return;
+      return noop;
     }
 
     const pending = promisesRef.current;
@@ -467,7 +471,9 @@ export const ExampleChat = ({ start }: { start: boolean }) => {
           <Typewriter
             start={start && showQuestion}
             text={currentSample?.input ?? ""}
-            onTyped={() => showResults()}
+            onTyped={() => {
+              void showResults();
+            }}
           />
         </div>
         <div className={cn("loading", showLoading && "active")} />

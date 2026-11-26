@@ -145,6 +145,8 @@ export const writeScaffold = async (directory: string, options: ScaffoldOptions)
   };
 
   await Promise.all(
-    Object.entries(files).map(([file, source]) => writeFile(path.join(directory, file), source)),
+    Object.entries(files).map(
+      async ([file, source]) => await writeFile(path.join(directory, file), source),
+    ),
   );
 };

@@ -49,7 +49,9 @@ export const MobileSheet = ({ panel, active, feed, onSelect, onClose }: MobileSh
     <Drawer
       open={panel !== null}
       swipeDirection={sheet.swipe}
-      onOpenChange={(open) => !open && onClose()}
+      onOpenChange={(open) => {
+        !open && onClose();
+      }}
     >
       <DrawerContent className="bg-background">
         <DrawerHeader className="sr-only">

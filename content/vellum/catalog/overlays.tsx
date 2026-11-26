@@ -35,13 +35,21 @@ export const Overlays = () => {
           </p>
           <Button
             disabled={access === "revoked"}
-            onClick={() => setDialog(true)}
+            onClick={() => {
+              setDialog(true);
+            }}
             variant="secondary"
           >
             Revoke CRM access
           </Button>
           {access === "revoked" ? (
-            <Button onClick={() => setAccess("granted")} size="sm" variant="ghost">
+            <Button
+              onClick={() => {
+                setAccess("granted");
+              }}
+              size="sm"
+              variant="ghost"
+            >
               Reconnect
             </Button>
           ) : null}
@@ -52,7 +60,9 @@ export const Overlays = () => {
             <>
               <Button
                 data-autofocus=""
-                onClick={() => setDialog(false)}
+                onClick={() => {
+                  setDialog(false);
+                }}
                 size="sm"
                 variant="secondary"
               >
@@ -108,7 +118,13 @@ export const Overlays = () => {
                 one line each.
               </p>
               <div className="v-cluster v-end">
-                <Button onClick={() => setInfo(false)} size="sm" variant="secondary">
+                <Button
+                  onClick={() => {
+                    setInfo(false);
+                  }}
+                  size="sm"
+                  variant="secondary"
+                >
                   <X aria-hidden />
                   Close
                 </Button>
@@ -126,7 +142,9 @@ export const Overlays = () => {
                 <Button
                   {...props}
                   aria-label="Copy run ID"
-                  onClick={() => setTipped("Run ID copied")}
+                  onClick={() => {
+                    setTipped("Run ID copied");
+                  }}
                   size="icon"
                   variant="ghost"
                 >
@@ -140,7 +158,9 @@ export const Overlays = () => {
                 <Button
                   {...props}
                   aria-label="Run again"
-                  onClick={() => setTipped("Queued the run again")}
+                  onClick={() => {
+                    setTipped("Queued the run again");
+                  }}
                   size="icon"
                   variant="ghost"
                 >
@@ -154,7 +174,9 @@ export const Overlays = () => {
                 <Button
                   {...props}
                   aria-label="Rename run"
-                  onClick={() => setTipped("Renaming the run")}
+                  onClick={() => {
+                    setTipped("Renaming the run");
+                  }}
                   size="icon"
                   variant="ghost"
                 >
@@ -176,17 +198,23 @@ export const Overlays = () => {
               {
                 icon: <Copy aria-hidden />,
                 label: "Duplicate agent",
-                onSelect: () => setLast("Duplicated as Docs answerer 2"),
+                onSelect: () => {
+                  setLast("Duplicated as Docs answerer 2");
+                },
               },
               {
                 icon: <Pencil aria-hidden />,
                 label: "Rename agent",
-                onSelect: () => setLast("Renaming the agent"),
+                onSelect: () => {
+                  setLast("Renaming the agent");
+                },
               },
               "separator",
               {
                 label: "Archive agent",
-                onSelect: () => setLast("Archived; restore it from Settings"),
+                onSelect: () => {
+                  setLast("Archived; restore it from Settings");
+                },
                 tone: "fail",
               },
             ]}

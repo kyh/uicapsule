@@ -61,14 +61,21 @@ export const useSkeletonGate = (loading: boolean) => {
         setSince(Date.now());
       }, SHOW_DELAY);
 
-      return () => window.clearTimeout(timer);
+      return () => {
+        window.clearTimeout(timer);
+      };
     }
 
     if (!loading && shown) {
       const wait = Math.max(0, HOLD_MIN - (Date.now() - since));
-      const timer = window.setTimeout(() => setShown(false), wait);
 
-      return () => window.clearTimeout(timer);
+      const timer = window.setTimeout(() => {
+        setShown(false);
+      }, wait);
+
+      return () => {
+        window.clearTimeout(timer);
+      };
     }
   }, [loading, shown, since]);
 

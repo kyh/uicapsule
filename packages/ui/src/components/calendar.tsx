@@ -45,7 +45,7 @@ const CalendarDayButton = ({
 
   const ref = useRef<HTMLButtonElement>(null);
   useEffect(() => {
-    if (modifiers.focused) {
+    if (modifiers.focused === true) {
       ref.current?.focus();
     }
   }, [modifiers.focused]);
@@ -57,10 +57,10 @@ const CalendarDayButton = ({
       size="icon"
       data-day={day.date.toLocaleDateString()}
       data-selected-single={
-        modifiers.selected &&
-        !modifiers.range_start &&
-        !modifiers.range_end &&
-        !modifiers.range_middle
+        modifiers.selected === true &&
+        modifiers.range_start !== true &&
+        modifiers.range_end !== true &&
+        modifiers.range_middle !== true
       }
       data-range-start={modifiers.range_start}
       data-range-end={modifiers.range_end}

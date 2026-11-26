@@ -1,6 +1,8 @@
 import { useEffect, useRef, useState } from "react";
 import type { RefObject } from "react";
 
+const noop = () => null;
+
 export const useInterval = (callback: () => void, delay: number | null) => {
   const saved = useRef(callback);
 
@@ -10,12 +12,16 @@ export const useInterval = (callback: () => void, delay: number | null) => {
 
   useEffect(() => {
     if (delay === null) {
-      return;
+      return noop;
     }
 
-    const id = window.setInterval(() => saved.current(), delay);
+    const id = window.setInterval(() => {
+      saved.current();
+    }, delay);
 
-    return () => window.clearInterval(id);
+    return () => {
+      window.clearInterval(id);
+    };
   }, [delay]);
 };
 
@@ -26,7 +32,7 @@ export const useInView = (ref: RefObject<Element | null>) => {
     const node = ref.current;
 
     if (!node || typeof IntersectionObserver === "undefined") {
-      return;
+      return noop;
     }
 
     const observer = new IntersectionObserver(([entry]) => {
@@ -35,7 +41,9 @@ export const useInView = (ref: RefObject<Element | null>) => {
 
     observer.observe(node);
 
-    return () => observer.disconnect();
+    return () => {
+      observer.disconnect();
+    };
   }, [ref]);
 
   return visible;
@@ -56,7 +64,7 @@ export const useDismiss = (
 
   useEffect(() => {
     if (!open) {
-      return;
+      return noop;
     }
 
     const onPointer = (event: PointerEvent) => {
@@ -94,12 +102,17 @@ export const useReducedMotion = () => {
 
   useEffect(() => {
     const query = window.matchMedia("(prefers-reduced-motion: reduce)");
-    const update = () => setReduced(query.matches);
+
+    const update = () => {
+      setReduced(query.matches);
+    };
 
     update();
     query.addEventListener("change", update);
 
-    return () => query.removeEventListener("change", update);
+    return () => {
+      query.removeEventListener("change", update);
+    };
   }, []);
 
   return reduced;

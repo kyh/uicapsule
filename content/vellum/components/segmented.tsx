@@ -43,7 +43,9 @@ export const Segmented = <T extends string>({
           <input
             checked={option.value === value}
             name={name}
-            onChange={() => onValueChange(option.value)}
+            onChange={() => {
+              onValueChange(option.value);
+            }}
             type="radio"
             value={option.value}
           />

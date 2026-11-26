@@ -190,7 +190,7 @@ export const FinanceOverviewDivergingBar = () => {
         ],
         scales: {
           x: { axis: false, scale: scaleLinear().domain([0, 1]) },
-          y: { axis: false, scale: scaleBand<string>().domain(["r"]).padding(0) },
+          y: { axis: false, scale: scaleBand().domain(["r"]).padding(0) },
         },
       }),
     [t],
@@ -237,7 +237,11 @@ export const FinanceOverviewDivergingBar = () => {
           </div>
         </div>
         <ChartSlot height={HEIGHT} className="min-w-0 flex-1">
-          <div onMouseLeave={() => pin(null)}>
+          <div
+            onMouseLeave={() => {
+              pin(null);
+            }}
+          >
             <Chart
               definition={definition}
               renderer={renderer}

@@ -64,7 +64,9 @@ const CommandPalette = () => {
 
     window.addEventListener("keydown", onKey);
 
-    return () => window.removeEventListener("keydown", onKey);
+    return () => {
+      window.removeEventListener("keydown", onKey);
+    };
   }, []);
 
   const run = (command: Command | undefined) => {
@@ -93,7 +95,12 @@ const CommandPalette = () => {
 
   return (
     <>
-      <Button onClick={() => setOpen(true)} size="sm">
+      <Button
+        onClick={() => {
+          setOpen(true);
+        }}
+        size="sm"
+      >
         <Icon icon={Search} />
         Search commands
         <Kbd>⌘K</Kbd>
@@ -101,7 +108,9 @@ const CommandPalette = () => {
       <dialog
         aria-label="Command palette"
         className="fj-command"
-        onClose={() => setOpen(false)}
+        onClose={() => {
+          setOpen(false);
+        }}
         ref={ref}
       >
         {open ? (
@@ -138,8 +147,12 @@ const CommandPalette = () => {
                     data-active={index === active ? "" : undefined}
                     id={`fj-cmd-${index}`}
                     key={command.label}
-                    onPointerUp={() => run(command)}
-                    onPointerMove={() => setActive(index)}
+                    onPointerUp={() => {
+                      run(command);
+                    }}
+                    onPointerMove={() => {
+                      setActive(index);
+                    }}
                     // oxlint-disable-next-line jsx-a11y/prefer-tag-over-role -- option elements only live inside select or datalist
                     role="option"
                     tabIndex={-1}
@@ -184,12 +197,24 @@ export const Overlays = () => {
         description="One paper sheet: the question and its field, then a ruled strip of actions. The page behind dims and stops taking clicks."
         name="Dialog"
       >
-        <Button onClick={() => setOpen(true)}>Rename agent</Button>
+        <Button
+          onClick={() => {
+            setOpen(true);
+          }}
+        >
+          Rename agent
+        </Button>
         <Dialog
           description="Runs already in flight keep the old name in their traces."
           footer={
             <>
-              <Button onClick={() => setOpen(false)}>Cancel</Button>
+              <Button
+                onClick={() => {
+                  setOpen(false);
+                }}
+              >
+                Cancel
+              </Button>
               <Button
                 onClick={() => {
                   setOpen(false);
@@ -208,7 +233,9 @@ export const Overlays = () => {
           <TextField
             label="Name"
             mono
-            onChange={(event) => setName(event.target.value)}
+            onChange={(event) => {
+              setName(event.target.value);
+            }}
             value={name}
           />
         </Dialog>

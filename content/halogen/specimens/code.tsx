@@ -174,7 +174,9 @@ export const Code = () => {
               choices={fixes}
               from="v12"
               label="shop.orders, v12 to v13"
-              onChoose={(id, value) => setFixes({ ...fixes, [id]: value })}
+              onChoose={(id, value) => {
+                setFixes({ ...fixes, [id]: value });
+              }}
               rows={ORDERS_DRIFT}
               to="v13"
             />
@@ -194,7 +196,12 @@ export const Code = () => {
             toolbar
           />
           <div className="hx-row">
-            <Button onClick={() => setStreaming(!streaming)} size="sm">
+            <Button
+              onClick={() => {
+                setStreaming(!streaming);
+              }}
+              size="sm"
+            >
               {streaming ? "Stop stream" : "Stream lines"}
             </Button>
             <Button
