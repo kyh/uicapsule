@@ -83,7 +83,7 @@ const ResizeHandle = ({
       data-dragging={dragging || undefined}
       className={cn(
         "group absolute top-1/2 hidden h-20 w-4 -translate-y-1/2 cursor-ew-resize touch-none place-items-center outline-none md:grid",
-        side === "left" ? "-left-3 -translate-x-1/2" : "-right-3 translate-x-1/2",
+        side === "left" ? "-left-1.5 -translate-x-1/2" : "-right-1.5 translate-x-1/2",
       )}
       onPointerDown={onPointerDown}
       onPointerMove={onPointerMove}
