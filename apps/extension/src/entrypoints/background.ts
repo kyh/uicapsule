@@ -67,11 +67,10 @@ const submit = async (request: Extract<WorkerRequest, { type: "submit" }>) => {
   }
 
   const serviceUrl = await serviceUrlItem.getValue();
-  const attachments: string[] = [];
 
-  for (const file of request.files) {
-    attachments.push(await uploadAttachment(serviceUrl, decodeFile(file)));
-  }
+  const attachments = await Promise.all(
+    request.files.map(async (file) => await uploadAttachment(serviceUrl, decodeFile(file))),
+  );
 
   const filed = await fileRequest(serviceUrl, { ...parsed.data, attachments });
 
@@ -189,12 +188,11 @@ export default defineBackground(() => {
   browser.runtime.onMessage.addListener((message, sender, sendResponse) => {
     const request = workerRequestSchema.safeParse(message);
 
-    if (!request.success) {
-      return undefined;
+    if (request.success) {
+      void respond(request.data, sender.tab?.windowId, sendResponse);
     }
 
-    void respond(request.data, sender.tab?.windowId, sendResponse);
-
-    return true;
+    // oxlint-disable-next-line typescript/strict-void-return -- Chrome keeps the channel open for an async sendResponse only when the listener returns true; @wxt-dev/browser types the listener as returning void
+    return request.success;
   });
 });

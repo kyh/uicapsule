@@ -1,4 +1,5 @@
 import { componentRequestSchema } from "@repo/contract/request/request-schema";
+import type { z } from "zod";
 
 import { htmlFor, labelFor, selectorFor, videoFor, videoSource } from "../element";
 import { decodeFile } from "../encoding";
@@ -38,7 +39,8 @@ const nextFrame = async () => {
   });
 };
 
-const ask = async (request: WorkerRequest) => await browser.runtime.sendMessage(request);
+const ask = async <T extends z.ZodType>(request: WorkerRequest, schema: T) =>
+  schema.parse(await browser.runtime.sendMessage(request));
 
 const sizeLabel = (base64: string) => `${((base64.length * 3) / 4 / 1024 / 1024).toFixed(1)} MB`;
 
@@ -129,7 +131,7 @@ export const mountOverlay = (onClosed: () => void) => {
     let result: FileResult = { ok: false, reason: "" };
 
     if (source.kind === "file") {
-      result = fileResultSchema.parse(await ask({ src: source.src, type: "video" }));
+      result = await ask({ src: source.src, type: "video" }, fileResultSchema);
     }
 
     if (run !== generation) {
@@ -234,11 +236,12 @@ export const mountOverlay = (onClosed: () => void) => {
 
     const run = generation;
 
-    const result = submitResultSchema.parse(
-      await ask({ draft: request, files: video ? [shot, video] : [shot], type: "submit" }),
+    const result = await ask(
+      { draft: request, files: video === null ? [shot] : [shot, video], type: "submit" },
+      submitResultSchema,
     );
 
-    if (run !== generation || !details) {
+    if (run !== generation || details === null) {
       return;
     }
 
@@ -300,12 +303,13 @@ export const mountOverlay = (onClosed: () => void) => {
     await nextFrame();
     await nextFrame();
 
-    const result = fileResultSchema.parse(
-      await ask({
+    const result = await ask(
+      {
         rect: picked.rect,
         type: "capture",
         viewport: { height: window.innerHeight, width: window.innerWidth },
-      }),
+      },
+      fileResultSchema,
     );
 
     host.toggleAttribute("data-hidden", false);
