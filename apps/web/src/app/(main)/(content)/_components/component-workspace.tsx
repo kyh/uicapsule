@@ -23,7 +23,7 @@ import { contentElements } from "@/lib/content/content-categories";
 import type { ContentComponentSummary, DefaultSize } from "@/lib/content/content-schema";
 import { previewFrameSrc } from "@/lib/preview-protocol";
 import { siteConfig } from "@/lib/site-config";
-import { InfoPanel } from "./info-panel";
+import { InfoPager, InfoPanel } from "./info-panel";
 import { MobileSheet } from "./mobile-sheet";
 import { PanelHandle } from "./panel-handle";
 import { panelLayoutScript, usePanelLayout } from "./panel-layout";
@@ -62,6 +62,23 @@ const slugFromPath = (pathname: string) =>
   /^\/ui\/(?<slug>[^/]+)\/?$/u.exec(pathname)?.groups?.slug;
 
 const Divider = () => <span aria-hidden className="bg-border mx-1 h-4 w-px" />;
+
+interface CodeToggleProps {
+  open: boolean;
+  onToggle: () => void;
+  className?: string;
+}
+
+const CodeToggle = ({ open, onToggle, className }: CodeToggleProps) => (
+  <ToolbarButton
+    label={open ? "Hide code" : "Show code"}
+    pressed={open}
+    className={className}
+    onClick={onToggle}
+  >
+    <SquareTerminalIcon />
+  </ToolbarButton>
+);
 
 const DESKTOP_QUERY = "(min-width: 768px)";
 
@@ -198,6 +215,10 @@ export const ComponentWorkspace = ({ initialSlug, feed }: ComponentWorkspaceProp
   const propsOpen = isOpen("props");
   const codeOpen = isOpen("code");
 
+  const toggleCode = () => {
+    toggle("code");
+  };
+
   return (
     <>
       <div
@@ -213,9 +234,12 @@ export const ComponentWorkspace = ({ initialSlug, feed }: ComponentWorkspaceProp
         )}
       >
         <aside aria-label="Component details" className="relative hidden min-w-0 md:block">
-          <div inert={!layout.info.open} className="h-full overflow-hidden border-r">
-            <div className="h-full w-(--info-size) overflow-y-auto">
-              <InfoPanel key={active.slug} component={active} />
+          <div inert={!layout.info.open} className="flex h-full justify-end overflow-hidden">
+            <div className="flex h-full w-(--info-size) shrink-0 flex-col border-r">
+              <div className="min-h-0 flex-1 overflow-y-auto">
+                <InfoPanel key={active.slug} component={active} />
+              </div>
+              <InfoPager prev={prev} next={next} onSelect={select} />
             </div>
           </div>
           <PanelHandle
@@ -279,6 +303,7 @@ export const ComponentWorkspace = ({ initialSlug, feed }: ComponentWorkspaceProp
               <ToolbarButton
                 label={prev ? `Previous: ${prev.name}` : "Previous"}
                 disabled={!prev}
+                className="md:hidden"
                 onClick={() => {
                   if (prev) {
                     select(prev.slug);
@@ -290,6 +315,7 @@ export const ComponentWorkspace = ({ initialSlug, feed }: ComponentWorkspaceProp
               <ToolbarButton
                 label={next ? `Next: ${next.name}` : "Next"}
                 disabled={!next}
+                className="md:hidden"
                 onClick={() => {
                   if (next) {
                     select(next.slug);
@@ -298,15 +324,11 @@ export const ComponentWorkspace = ({ initialSlug, feed }: ComponentWorkspaceProp
               >
                 <ArrowRightIcon />
               </ToolbarButton>
-              <ToolbarButton
-                label={codeOpen ? "Hide code" : "Show code"}
-                pressed={codeOpen}
-                onClick={() => {
-                  toggle("code");
-                }}
-              >
-                <SquareTerminalIcon />
-              </ToolbarButton>
+              <CodeToggle
+                open={codeOpen}
+                className={cn(layout.props.open && "md:hidden")}
+                onToggle={toggleCode}
+              />
               <ToolbarButton
                 label={OPEN_IN_NEW_TAB}
                 nativeButton={false}
@@ -345,7 +367,7 @@ export const ComponentWorkspace = ({ initialSlug, feed }: ComponentWorkspaceProp
 
           <div
             className={cn(
-              "relative shrink-0 max-md:hidden md:h-(--code-h) md:max-h-[calc(100dvh-(--spacing(56)))] md:border-t md:transition-[height] md:duration-300 motion-reduce:transition-none",
+              "relative shrink-0 max-md:hidden md:h-(--code-h) md:max-h-[calc(100dvh-(--spacing(56)))] md:transition-[height] md:duration-300 motion-reduce:transition-none",
               PANEL_EASE,
             )}
           >
@@ -358,7 +380,7 @@ export const ComponentWorkspace = ({ initialSlug, feed }: ComponentWorkspaceProp
             />
             {codeMounted && (
               <div inert={!layout.code.open} className="h-full overflow-hidden">
-                <div className="h-full md:h-(--code-size) md:max-h-[calc(100dvh-(--spacing(56)))]">
+                <div className="h-(--code-size) max-h-[calc(100dvh-(--spacing(56)))] border-t">
                   <CodeDock
                     component={active}
                     onClose={() => {
@@ -372,9 +394,9 @@ export const ComponentWorkspace = ({ initialSlug, feed }: ComponentWorkspaceProp
         </div>
 
         <aside aria-label="Props" className="relative hidden min-w-0 md:block">
-          <div inert={!layout.props.open} className="h-full overflow-hidden border-l">
-            <div className="h-full w-(--props-size) overflow-y-auto">
-              <PropsPanel />
+          <div inert={!layout.props.open} className="h-full overflow-hidden">
+            <div className="h-full w-(--props-size) overflow-y-auto border-l">
+              <PropsPanel action={<CodeToggle open={codeOpen} onToggle={toggleCode} />} />
             </div>
           </div>
           <PanelHandle

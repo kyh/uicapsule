@@ -1,8 +1,9 @@
 "use client";
 
 import type { ReactNode } from "react";
-import { ExternalLinkIcon } from "lucide-react";
+import { ArrowLeftIcon, ArrowRightIcon, ExternalLinkIcon } from "lucide-react";
 import { Badge } from "@repo/ui/components/badge";
+import { Button } from "@repo/ui/components/button";
 import { CopyButton } from "@repo/ui/components/copy-button";
 import { toast } from "@repo/ui/components/toast";
 import { cn } from "cn";
@@ -135,4 +136,59 @@ export const InfoPanel = ({ component }: { component: ContentComponentSummary })
       Added <time dateTime={component.addedAt}>{formatAddedAt(component.addedAt)}</time>
     </p>
   </div>
+);
+
+const PAGER = {
+  next: { Icon: ArrowRightIcon, label: "Next", shortcut: "j" },
+  prev: { Icon: ArrowLeftIcon, label: "Previous", shortcut: "k" },
+} as const;
+
+interface PagerButtonProps {
+  direction: keyof typeof PAGER;
+  component: ContentComponentSummary | undefined;
+  onSelect: (slug: string) => void;
+}
+
+const PagerButton = ({ direction, component, onSelect }: PagerButtonProps) => {
+  const { Icon, label, shortcut } = PAGER[direction];
+  const icon = <Icon />;
+
+  return (
+    <Button
+      variant="ghost"
+      size="sm"
+      disabled={!component}
+      aria-label={component ? `${label}: ${component.name}` : label}
+      aria-keyshortcuts={shortcut}
+      className={cn(
+        "text-muted-foreground hover:text-foreground max-w-full min-w-0 rounded-md font-normal",
+        direction === "prev" ? "justify-self-start" : "justify-self-end",
+      )}
+      onClick={() => {
+        if (component) {
+          onSelect(component.slug);
+        }
+      }}
+    >
+      {direction === "prev" && icon}
+      <span className="truncate">{component?.name ?? label}</span>
+      {direction === "next" && icon}
+    </Button>
+  );
+};
+
+interface InfoPagerProps {
+  prev: ContentComponentSummary | undefined;
+  next: ContentComponentSummary | undefined;
+  onSelect: (slug: string) => void;
+}
+
+export const InfoPager = ({ prev, next, onSelect }: InfoPagerProps) => (
+  <nav
+    aria-label="Browse components"
+    className="grid h-12 shrink-0 grid-cols-2 items-center gap-1 border-t px-2"
+  >
+    <PagerButton direction="prev" component={prev} onSelect={onSelect} />
+    <PagerButton direction="next" component={next} onSelect={onSelect} />
+  </nav>
 );
