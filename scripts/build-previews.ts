@@ -193,7 +193,7 @@ const buildPreviews = async (slugs: string[]) => {
       modulePreload: false,
       outDir: outRoot,
       reportCompressedSize: false,
-      rollupOptions: {
+      rolldownOptions: {
         input: Object.fromEntries(slugs.map((slug) => [`${slug}/index`, `${ENTRY_PREFIX}${slug}`])),
         onwarn: (warning, warn) => {
           if (warning.code !== "INVALID_ANNOTATION") {
@@ -212,6 +212,13 @@ const buildPreviews = async (slugs: string[]) => {
   });
 };
 
+const previewLibRoot = path.dirname(path.dirname(runtimeModule));
+
+const isAppFile = (file: string) =>
+  file.startsWith(`${webRoot}${path.sep}`) &&
+  !file.startsWith(`${previewLibRoot}${path.sep}`) &&
+  !`${previewLibRoot}${path.sep}`.startsWith(`${file}${path.sep}`);
+
 const servePreviews = async (slugs: string[]) => {
   const { port } = new URL(PREVIEW_DEV_ORIGIN);
 
@@ -227,7 +234,7 @@ const servePreviews = async (slugs: string[]) => {
       origin: PREVIEW_DEV_ORIGIN,
       port: Number(port),
       strictPort: true,
-      watch: { ignored: ["**/.next/**", "**/public/previews/**"] },
+      watch: { ignored: [isAppFile] },
     },
   });
 

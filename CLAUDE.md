@@ -61,7 +61,7 @@ Content is filesystem-driven; the web app never depends on content packages by n
   per visible card.
 - **Previews never compile into the Next app.** `scripts/build-previews.ts` (turbo
   `//#build:previews`, which web's build depends on) bundles every `content/<slug>/preview.tsx`
-  with Vite (one build, shared chunks, `lib/content/preview-runtime.ts` as the boot wrapper)
+  with Vite 8 (Rolldown, ~3s for every preview; one build, shared chunks, `lib/content/preview-runtime.ts` as the boot wrapper)
   into gitignored `apps/web/public/previews/<slug>/` (`index.js` + one `index.css`). Each slug's
   entry imports a virtual Tailwind stylesheet compiled from `@repo/ui/theme.css`, scanning only
   that slug, and a `generateBundle` step merges every stylesheet a preview's chunks import into
@@ -69,7 +69,9 @@ Content is filesystem-driven; the web app never depends on content packages by n
   dev, `pnpm dev:web` runs `//#dev:previews` beside `next dev` (turbo `with`): a Vite dev server
   on `PREVIEW_DEV_ORIGIN` (`:5174`), and the frame route in development serves a shell that loads
   `/@preview/<slug>.js` from it with React Refresh, so edits (and new Tailwind classes, recompiled
-  per slug on change) hot-swap inside the sandboxed frame. `@repo/ui/globals.css` no longer scans
+  per slug on change) hot-swap inside the sandboxed frame. Its root is `apps/web` only so plugin-react
+  resolves React; its watcher ignores everything there but `src/lib`, so it never watches what
+  `next dev` watches. `@repo/ui/globals.css` no longer scans
   `content/**`, so the site's CSS carries no component classes.
 - **`/preview-frame/<slug>` is a sandboxed document.** A static route handler
   returns the shell (`lib/content/preview-shell.ts`) with
