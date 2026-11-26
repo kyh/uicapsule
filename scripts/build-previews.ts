@@ -209,7 +209,7 @@ const buildPreviews = async (slugs: string[]) => {
       modulePreload: false,
       outDir: outRoot,
       reportCompressedSize: false,
-      rollupOptions: {
+      rolldownOptions: {
         input: Object.fromEntries(slugs.map((slug) => [`${slug}/index`, `${ENTRY_PREFIX}${slug}`])),
         onwarn: quietWarnings,
         output: {
@@ -266,7 +266,7 @@ const buildUgcRuntime = async () => {
       modulePreload: false,
       outDir: outRoot,
       reportCompressedSize: false,
-      rollupOptions: {
+      rolldownOptions: {
         input: {
           [outName(UGC_BOOT_PATH)]: path.join(webRoot, "src/lib/content/ugc-boot.ts"),
           ...Object.fromEntries(
@@ -298,6 +298,13 @@ const buildUgcRuntime = async () => {
   await rm(empty, { force: true, recursive: true });
 };
 
+const previewLibRoot = path.dirname(path.dirname(runtimeModule));
+
+const isAppFile = (file: string) =>
+  file.startsWith(`${webRoot}${path.sep}`) &&
+  !file.startsWith(`${previewLibRoot}${path.sep}`) &&
+  !`${previewLibRoot}${path.sep}`.startsWith(`${file}${path.sep}`);
+
 const servePreviews = async (slugs: string[]) => {
   const { port } = new URL(PREVIEW_DEV_ORIGIN);
 
@@ -313,7 +320,7 @@ const servePreviews = async (slugs: string[]) => {
       origin: PREVIEW_DEV_ORIGIN,
       port: Number(port),
       strictPort: true,
-      watch: { ignored: ["**/.next/**", "**/public/previews/**"] },
+      watch: { ignored: [isAppFile] },
     },
   });
 

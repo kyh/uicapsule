@@ -23,7 +23,7 @@ catalog:
   "@types/node": ^24.19.2
   "@types/react": ^19.3.0
   "@types/react-dom": ^19.3.0
-  "@vitejs/plugin-react": ^5.2.0
+  "@vitejs/plugin-react": ^6.3.0
   better-auth: ^1.7.27
   cn: ^0.4.0
   # drizzle-kit must match drizzle-orm exactly.
@@ -37,7 +37,7 @@ catalog:
   tailwindcss: ^4.3.5
   tsx: ^4.23.15
   typescript: ^7.0.2
-  vite: ^7.3.1
+  vite: ^8.3.8
   zod: ^4.6.7
 
 linkWorkspacePackages: true

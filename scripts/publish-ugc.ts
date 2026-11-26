@@ -9,7 +9,7 @@ import { UGC_SHARED_MODULES, newUgcBuild, ugcSlugSchema } from "@repo/contract/u
 import react from "@vitejs/plugin-react";
 import { defineCommand, runMain } from "citty";
 import { consola } from "consola";
-import { build as viteBuild } from "vite";
+import { esmExternalRequirePlugin, build as viteBuild } from "vite";
 import type { Rollup } from "vite";
 
 import { EXTRA_ASSET_GLOBS, compilePreviewStylesheet } from "./preview-bundle";
@@ -24,8 +24,7 @@ const bundle = async (dir: string, assetBase: string) => {
       cssCodeSplit: false,
       modulePreload: false,
       reportCompressedSize: false,
-      rollupOptions: {
-        external: [...UGC_SHARED_MODULES],
+      rolldownOptions: {
         input: { index: path.join(dir, "preview.tsx") },
         output: {
           assetFileNames: "assets/[hash][extname]",
@@ -39,7 +38,7 @@ const bundle = async (dir: string, assetBase: string) => {
     },
     configFile: false,
     logLevel: "warn",
-    plugins: [react()],
+    plugins: [react(), esmExternalRequirePlugin({ external: [...UGC_SHARED_MODULES] })],
     publicDir: false,
     root: dir,
   });
