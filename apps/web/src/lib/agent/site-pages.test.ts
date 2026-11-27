@@ -231,7 +231,7 @@ describe("the legal pages", () => {
   });
 
   test("the privacy policy opens with its effective date and indexes every section", () => {
-    assert.equal(paragraphs(privacyPage)[0], "Effective as of November 24, 2026.");
+    assert.equal(paragraphs(privacyPage)[0], "Effective as of November 27, 2026.");
     const index = privacyPage.blocks.find((block) => block.kind === "list");
     assert.ok(index?.kind === "list", "the first list is the index");
     assert.deepEqual(
