@@ -56,10 +56,10 @@
     "width": 1600
   },
   "clementine": {
-    "cover": "clementine/clementine.20261126.mp4",
-    "duration": 13.2,
+    "cover": "clementine/clementine.20261127.mp4",
+    "duration": 12,
     "height": 900,
-    "uploadDate": "2026-11-26",
+    "uploadDate": "2026-11-27",
     "width": 1600
   },
   "context-menu-peek": {
@@ -140,10 +140,10 @@
     "width": 1600
   },
   "fjord": {
-    "cover": "fjord/fjord.20261126.mp4",
-    "duration": 12.5,
+    "cover": "fjord/fjord.20261127.mp4",
+    "duration": 13.5,
     "height": 900,
-    "uploadDate": "2026-11-26",
+    "uploadDate": "2026-11-27",
     "width": 1600
   },
   "formation": {
@@ -175,10 +175,10 @@
     "width": 1600
   },
   "halogen": {
-    "cover": "halogen/halogen.20261126.mp4",
-    "duration": 13,
+    "cover": "halogen/halogen.20261127.mp4",
+    "duration": 12.6,
     "height": 900,
-    "uploadDate": "2026-11-26",
+    "uploadDate": "2026-11-27",
     "width": 1600
   },
   "infinite-grid": {
@@ -378,10 +378,10 @@
     "width": 1916
   },
   "vellum": {
-    "cover": "vellum/vellum.20261126.mp4",
-    "duration": 12.5,
+    "cover": "vellum/vellum.20261127.mp4",
+    "duration": 13,
     "height": 900,
-    "uploadDate": "2026-11-26",
+    "uploadDate": "2026-11-27",
     "width": 1600
   },
   "vibe-dial": {

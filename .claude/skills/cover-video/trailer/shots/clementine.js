@@ -1,115 +1,112 @@
-const SANS = "-apple-system, BlinkMacSystemFont, 'Helvetica Neue', Arial, sans-serif";
-const INK = "#17130f";
-const PAPER = "#fdfbf8";
-const CREAM = "#f6f1ea";
 const CLEMENTINE = "#ff8c2b";
 const LIME = "#a6d63a";
+const BLUEBERRY = "#4d7cff";
+const RASPBERRY = "#ff4f7b";
 
-const WORDMARK = { weight: 600, tracking: -0.035 };
+// Chrome rounds a frame's on-stage offset to whole pixels, so the view is written as the offset
+// of the iframe's top-left corner (whole px) plus a scale.
+const view = (ox, oy, scale) => ({ x: (800 - ox) / scale, y: (450 - oy) / scale, scale });
+const OX = -360;
+const OY = -229;
+const SCALE = 1.45;
+// The Send card 22px in on top and sides, its history bleeding off the bottom: a sent row grows
+// the card 66px, and any framing that holds the grown card whole also shows the page prose above
+// or the next section's heading below.
+// Locked off: the glow's box-shadow rasters differently on every scale step, so a push made
+// every glowing button flicker.
+const SEND = view(OX, OY, SCALE);
 
-// Every camera is locked off: the glow's box-shadow rasters differently on every scale step,
-// so a push made every glowing button flicker and its landing shimmered on the pixel grid.
-// Typing on Send is real input from the recording batch (a pre-roll tap on Teodor's row clears
-// the amount while the paper card hides it), not a cue: the harness has no clicks.
-// Send's card spans y 173–820 and Payday's 173–834 at their anchors, both x 264–1336.
-const SEND = { x: 800, y: 497, scale: 1.34 };
-const PLAN = { x: 800, y: 503.5, scale: 1.31 };
-
-// The title card is a shot under a full paper veil: Lime's at the start, Send's at the end, so
-// neither the typed-in Send nor a theme ever shows behind it and the seam is paper on paper.
-// Paper reaches each screen by a wipe: a full-frame veil fade made the encoder's fade prediction
-// step the whole frame's brightness twice on the way.
-const paper = (view) => ({ ...view, dim: 1 });
-const TITLE_OUT = 1.6;
-const OPEN = 1.85;
-const PLAN_AT = 5.6;
-const NIGHT = 7.0;
-const ZEST = 8.6;
-const HOME = 11.2;
+// Chrome starts the compositor ~0.2s after trailerStart, so the first tap waits out a still.
+const OPEN = 0.45;
 const WIPE = 0.7;
-const ZEST_WIPE = 0.6;
-// The outgoing shot leaves on the frame a wipe lands, with a short hitch: type arrives after it.
-const LANDED = 0.1;
-const DURATION = 13.2;
+const LIME_AT = 2.95;
+const BLUE_AT = 5.8;
+const RASPBERRY_AT = 8.05;
+const HOME_AT = 10.15;
+const DURATION = 12;
 
-const MARK =
-  '<span style="display:inline-block;width:0.3em;height:0.3em;margin:0 0.3em 0.1em 0;border-radius:999px;background:#ff8c2b;box-shadow:0 0 0 0.09em #ffe1c2;vertical-align:middle"></span>';
-
-// The card fades rather than rises, on whole pixels: a rise left the closing card's layer a
-// fraction of a pixel off the opening one, and the loop seam shimmered on the glyph edges.
-const titleCard = (at, until) => [
-  {
-    at,
-    until,
-    kind: "title",
-    html: true,
-    text: `${MARK}Clementine`,
-    size: 120,
-    ...WORDMARK,
-    color: INK,
-    x: 480,
-    y: 428,
-    align: "left",
-    valign: "bottom",
-    reveal: "fade",
-  },
-  {
-    at: at + 0.12,
-    until,
-    kind: "title",
-    text: "Only the next step gets the zest.",
-    size: 40,
-    weight: 400,
-    tracking: -0.015,
-    color: "#4f4840",
-    x: 538,
-    y: 466,
-    align: "left",
-    valign: "top",
-    reveal: "fade",
-  },
+// The harness has no clicks: the recording batch replays these as real pointer input on the
+// active frame. Every shot is first pre-rolled to the state the outgoing shot reaches at its
+// wipe (seek so it is on top, tap its prefix of the flow), so a wipe changes only the accent.
+// Points are in the frame's own CSS px at its anchor scroll.
+const POINTS = {
+  teodor: [600, 383],
+  one: [1013, 409],
+  eight: [1123, 537],
+  point: [1013, 601],
+  five: [1123, 473],
+  del: [1232, 601],
+  next: [1123, 675],
+  today: [1123, 562],
+  send: [1076, 641],
+  undo: [1004, 450],
+  done: [1123, 450],
+};
+const TAPS = [
+  { at: OPEN + 0.05, on: "one" },
+  { at: 0.78, on: "eight" },
+  { at: 1.06, on: "five" },
+  { at: 1.5, on: "del" },
+  { at: 1.85, on: "point" },
+  { at: 2.13, on: "five" },
+  { at: 4, on: "next" },
+  { at: 5, on: "today" },
+  { at: 6.85, on: "send" },
+  { at: 9.1, on: "undo" },
+  { at: 11.2, on: "done" },
+];
+const onStage = (on) => {
+  const [x, y] = POINTS[on];
+  return { on, x: x * SCALE + OX, y: y * SCALE + OY };
+};
+// Tapping the selected payee clears the amount, so every shot starts from $0.00.
+const preroll = (until) => [
+  onStage("teodor"),
+  ...TAPS.filter((tap) => tap.at < until).map((tap) => onStage(tap.on)),
 ];
 
-// The payoff super sits in Payday's empty left column, under the ring's note, on the dark shots
-// only: it arrives once the night wipe has passed it and leaves before the paper wipe reaches it.
-const SUPER = { size: 64, ...WORDMARK, leading: 1.04, color: CREAM, x: 141, align: "left" };
+const send = (accent) => ({
+  anchor: "screen-send",
+  height: 1100,
+  props: { theme: "light", accent },
+  view: SEND,
+});
+
+const wipe = (at, show, accent) => ({
+  at,
+  show,
+  transition: "wipe",
+  dir: "right",
+  dur: WIPE,
+  ease: "house",
+  edge: accent,
+  edgeWidth: 3,
+  feather: 72,
+  featherColor: `${accent}2e`,
+});
 
 window.trailer = {
   slug: "clementine",
   duration: DURATION,
-  background: PAPER,
-  type: { base: { family: SANS, color: INK } },
+  background: "#ffffff",
   shots: {
-    send: {
-      anchor: "screen-send",
-      height: 1100,
-      clamp: false,
-      props: { theme: "light" },
-      view: SEND,
-      dimColor: PAPER,
+    clementine: send(CLEMENTINE),
+    lime: send(LIME),
+    blueberry: send(BLUEBERRY),
+    raspberry: send(RASPBERRY),
+    home: send(CLEMENTINE),
+  },
+  input: {
+    // Page margin left of the card: the pointer parks here so no hover rides across a wipe.
+    rest: { x: 6, y: 450 },
+    preroll: {
+      clementine: { seek: 0, taps: preroll(0) },
+      lime: { seek: LIME_AT + WIPE + 0.1, taps: preroll(LIME_AT) },
+      blueberry: { seek: BLUE_AT + WIPE + 0.1, taps: preroll(BLUE_AT) },
+      raspberry: { seek: RASPBERRY_AT + WIPE + 0.1, taps: preroll(RASPBERRY_AT) },
+      home: { seek: HOME_AT + WIPE + 0.1, taps: preroll(HOME_AT) },
     },
-    plan: {
-      anchor: "screen-payday",
-      height: 1100,
-      clamp: false,
-      props: { theme: "light", accent: CLEMENTINE },
-      view: PLAN,
-    },
-    planDark: {
-      anchor: "screen-payday",
-      height: 1100,
-      clamp: false,
-      props: { theme: "dark", accent: CLEMENTINE },
-      view: PLAN,
-    },
-    planLime: {
-      anchor: "screen-payday",
-      height: 1100,
-      clamp: false,
-      props: { theme: "dark", accent: LIME },
-      view: paper(PLAN),
-      dimColor: PAPER,
-    },
+    taps: TAPS.map((tap) => ({ at: tap.at, ...onStage(tap.on) })),
   },
   cues: [
     // Start marker: drawn only before trailerStart, so the trim finds t=0 to the frame.
@@ -129,52 +126,10 @@ window.trailer = {
       out: 0.001,
     },
 
-    { at: 0, show: "planLime" },
-    ...titleCard(-1, TITLE_OUT + 0.45),
-    { at: OPEN, show: "send", transition: "wipe", dir: "up", dur: WIPE, ease: "house" },
-    { at: OPEN + WIPE + 0.5, camera: "planLime", to: { ...PLAN, dim: 0 } },
-
-    { at: PLAN_AT, show: "plan" },
-    { at: PLAN_AT + 0.5, camera: "send", to: paper(SEND) },
-
-    {
-      at: NIGHT,
-      show: "planDark",
-      transition: "wipe",
-      dir: "down",
-      dur: WIPE,
-      ease: "house",
-      feather: 56,
-      featherColor: "rgb(23 19 15 / 0.22)",
-    },
-    {
-      at: NIGHT + WIPE + LANDED,
-      until: HOME,
-      text: "Any theme,",
-      ...SUPER,
-      y: 774,
-      valign: "bottom",
-    },
-    {
-      at: ZEST,
-      show: "planLime",
-      transition: "wipe",
-      dir: "right",
-      dur: ZEST_WIPE,
-      ease: "house",
-      edge: LIME,
-      edgeWidth: 3,
-    },
-    {
-      at: ZEST + ZEST_WIPE + LANDED,
-      until: HOME,
-      text: "any zest.",
-      ...SUPER,
-      y: 774,
-      valign: "top",
-    },
-
-    { at: HOME, show: "send", transition: "wipe", dir: "up", dur: WIPE, ease: "house" },
-    ...titleCard(HOME + 0.5),
+    { at: 0, show: "clementine" },
+    wipe(LIME_AT, "lime", LIME),
+    wipe(BLUE_AT, "blueberry", BLUEBERRY),
+    wipe(RASPBERRY_AT, "raspberry", RASPBERRY),
+    wipe(HOME_AT, "home", CLEMENTINE),
   ],
 };

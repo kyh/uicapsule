@@ -23,10 +23,16 @@ Use the session scratchpad for all intermediate files (raw mp4, mp4, frames, bat
 
 A design system's cover (element tag `design-systems`) is a 12–15s trailer of the system, not a
 scroll through its page. Author it as `.claude/skills/cover-video/trailer/shots/<slug>.js`: shots
-of the real `/preview-frame/<slug>` at section anchors, camera moves, live control changes
-through the `controls` props, and sparse type, told in beats per the stageshow skill's
-`references/motion.md`. `trailer/README.md` has the format, the recording recipe and the
-gotchas; `shots/example.js` is a working Vellum demo.
+of the real `/preview-frame/<slug>` at section anchors, camera moves and live control changes
+through the `controls` props, told in beats per the stageshow skill's `references/motion.md`.
+No overlay type: no title card, supers or end card, and no drawn shapes posing as UI. The
+footage is the system's components and In-use screens, not its header or docs prose. The
+gallery shows the systems side by side, so each trailer owns a camera grammar and a re-skin the
+others don't use (Vellum: one take of pushes, density and radius reflow; Halogen: locked-off
+cuts, lamp cycle in the dark; Fjord: a vertical descent, focus-hue sweep; Clementine: real
+input, accent swaps behind accent-edged wipes). A new system picks one that's still free.
+`trailer/README.md` has the format, the recording recipe and the gotchas; `shots/example.js`
+is a working Vellum demo.
 
 Staging and recording follow steps 2–5 with three changes: open
 `file://<repo>/.claude/skills/cover-video/trailer/trailer.html?slug=<slug>` instead of the

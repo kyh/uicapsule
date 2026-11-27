@@ -7,8 +7,9 @@ step. `shots/example.js` (Vellum) exercises every feature.
 
 Story first: read `.claude/skills/stageshow/references/motion.md` (Story, Loops, Pace) and
 `review.md` before writing cues. Three to five beats and a payoff, a camera that pushes in on
-the detail that matters and pulls back, every move with a cause, overlapping beats, about two
-seconds of reading time per caption, and a last frame identical to the first.
+the detail that matters and pulls back, every move with a cause, overlapping beats, and a last
+frame identical to the first. Gallery covers use no type overlays (cover-video skill, "Design
+systems: trailer"); the overlay kinds below are for other trailers.
 
 ## Config
 
