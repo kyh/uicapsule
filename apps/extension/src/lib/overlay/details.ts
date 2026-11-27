@@ -133,7 +133,8 @@ export const createDetails = (options: { onCancel: () => void; onSubmit: () => v
       badge.textContent = `${Math.round(size.width)} × ${Math.round(size.height)}`;
     },
     setTarget: (host: string) => {
-      target.textContent = `Filed as a public GitHub issue via ${host}`;
+      target.textContent = "Posted publicly on GitHub";
+      target.title = `Files a public GitHub issue through ${host}`;
     },
     setWhere: (text: string) => {
       where.textContent = text;
