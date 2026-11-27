@@ -36,7 +36,7 @@ UNAUTHORIZED); procedure-level `.use` runs after. Feature routers stay plain obj
 looks the session up itself, so `createORPCContext` carries only headers and public procedures
 never touch the database. Clients type against `ContractClient` / `RouterInputs` /
 `RouterOutputs` and import schemas from `@repo/contract`; only server code (the route handlers
-under `apps/web/src/app/api`, `mcp/publish`, `.well-known`, and `preview-frame/u/[user]/[slug]`,
+under `apps/web/src/app/api`, `mcp`, `.well-known`, and `preview-frame/u/[user]/[slug]`,
 which reads published components through `@repo/service/ugc/ugc-store`) imports `@repo/service`. Layout follows oRPC's Hybrid monorepo
 recipe.
 
@@ -114,14 +114,19 @@ Content is filesystem-driven; the web app never depends on content packages by n
     immutable (409 on a second write). Uploads pass through our function rather than Blob client
     tokens so a plain `curl` can do it, which caps a file at 4MB (Vercel's body limit). Blob keys
     use the user id, never the username: `ugc/<userId>/<slug>/<build>/<file>`.
-  - **MCP publishing is a separate server at `/mcp/publish`**, not a tool on `/mcp`: `/mcp` stays
-    anonymous and read-only. It is an OAuth 2.1 resource: better-auth's `@better-auth/mcp` plugin
+  - **MCP publishing is four tools on the one `/mcp` server, and only they need sign-in.**
+    `/mcp` serves everyone anonymously and lists the publish tools to everyone (`app/mcp/publish-tools.ts`,
+    `PUBLISH_TOOL_NAMES`). A request with an `Authorization` header, or a `tools/call` naming a
+    publish tool, goes through the token check instead; so an anonymous client's first publish call
+    gets a 401 challenge, which MCP clients answer by running OAuth and retrying (the TS SDK does on
+    any request, not only `initialize`), and nothing else ever asks for an account. `/mcp` is an
+    OAuth 2.1 resource for that: better-auth's `@better-auth/mcp` plugin
     is the authorization server (dynamic client registration, CIMD client ids via
     `@better-auth/cimd`, PKCE, JWT access tokens from the `jwt` plugin, `/token` disabled in
     favour of `/oauth2/token`), with `/auth/login` → `/auth/consent` as its pages. The route
     verifies tokens with `createMcpProtectedRequestHandler` against the JWKS (audience
-    `MCP_PUBLISH_RESOURCE`) and answers a missing token with the `WWW-Authenticate` challenge that
-    points at `/.well-known/oauth-protected-resource/mcp/publish`; `app/.well-known/[...path]`
+    `MCP_RESOURCE`) and answers a missing token with the `WWW-Authenticate` challenge that
+    points at `/.well-known/oauth-protected-resource/mcp`; `app/.well-known/[...path]`
     hands every well-known path to `auth.handler`. Issuer and resource come from
     `canonicalOrigin()` (production domain, else branch URL, else `BETTER_AUTH_URL`). The plugin
     tables (`jwks`, `oauth_*`) are in `drizzle-schema-auth.ts`, checked against
@@ -260,9 +265,9 @@ Next imports, no filesystem — so it can be unit-tested without a runtime. The 
   README, install prompt, `/install/mcp`, `/llms.txt`, about page) names both: **skills** help an agent build
   better UI in any project, and **tools** serve this gallery's components as templates. A new
   skill belongs only if it serves the first job; a new tool only if it serves the second.
-  Publishing your own component is neither: it lives on the authed `/mcp/publish` server (see
-  Content architecture), so `/mcp` never needs sign-in.
-  It is a stateless Streamable HTTP MCP server with two read-only tools,
+  Publishing your own component is neither: its four tools are the one part that needs sign-in
+  (see Content architecture), and copy says so wherever it says "no account".
+  It is a stateless Streamable HTTP MCP server with two read-only gallery tools,
   `search_components` and `get_component`: oRPC procedures in the route, registered by
   `@orpc/mcp`'s `McpRegistrar` on a fresh `McpServer` per request (`createMcpHandler` from
   `@modelcontextprotocol/server`). They stay out of `@repo/contract`: no client calls them

@@ -1,11 +1,16 @@
+import { createMcpProtectedRequestHandler } from "@better-auth/mcp";
 import { McpServer, ProtocolError, createMcpHandler } from "@modelcontextprotocol/server";
 import { McpRegistrar, mcp } from "@orpc/mcp";
 import { ORPCError, os } from "@orpc/server";
+import { AUTH_ISSUER, MCP_RESOURCE } from "@repo/service/auth";
+import type { Publisher } from "@repo/service/ugc/ugc-publish";
+import { findPublisher } from "@repo/service/ugc/ugc-store";
 import { track } from "@vercel/analytics/server";
 import { after } from "next/server";
 import { z } from "zod";
 
 import { componentDetail, searchCatalog, serverInstructions } from "@/lib/agent/mcp-catalog";
+import { publishInstructions } from "@/lib/agent/mcp-publish";
 import {
   REPO_SKILLS,
   SKILL_CACHE_HINT,
@@ -16,6 +21,8 @@ import {
 import { contentElements, contentStyles } from "@/lib/content/content-categories";
 import { getAllContent, getRepoSkills, getShadcnRegistryItem } from "@/lib/content/content-data";
 import { siteConfig } from "@/lib/site-config";
+
+import { PUBLISH_TOOL_NAMES, publishTools } from "./publish-tools";
 
 const tagSlugs = [...contentElements, ...contentStyles].map((filter) => filter.slug);
 const slugList = (filters: { slug: string }[]) => filters.map((filter) => filter.slug).join(", ");
@@ -147,18 +154,58 @@ const registerSkills = async (server: McpServer) => {
   );
 };
 
-const handler = createMcpHandler(async () => {
+const createServer = async (publisher: Publisher | null) => {
   const server = new McpServer(
     { name: "uicapsule", version: "1.0.0" },
-    { instructions: serverInstructions },
+    { instructions: `${serverInstructions} ${publishInstructions}` },
   );
 
   await registrar.register(server);
+  await new McpRegistrar(publishTools(publisher)).register(server);
   await registerSkills(server);
 
   return server;
+};
+
+const anonymous = createMcpHandler(async () => await createServer(null));
+
+const signedIn = createMcpProtectedRequestHandler(
+  { audience: MCP_RESOURCE, issuer: AUTH_ISSUER, jwksUrl: `${AUTH_ISSUER}/jwks` },
+  async (request, claims) => {
+    const publisher =
+      claims.sub !== undefined && claims.sub !== "" ? await findPublisher(claims.sub) : undefined;
+
+    if (!publisher) {
+      return Response.json({ error: "This account no longer exists" }, { status: 401 });
+    }
+
+    return await createMcpHandler(async () => await createServer(publisher)).fetch(request);
+  },
+);
+
+const publishCall = z.object({
+  method: z.literal("tools/call"),
+  params: z.object({ name: z.enum(PUBLISH_TOOL_NAMES) }),
 });
 
-const serve = async (request: Request) => await handler.fetch(request);
+const callsPublishTool = async (request: Request) => {
+  if (request.method !== "POST") {
+    return false;
+  }
+
+  const body: unknown = await request
+    .clone()
+    .json()
+    .catch(() => null);
+
+  return (Array.isArray(body) ? body : [body]).some(
+    (message) => publishCall.safeParse(message).success,
+  );
+};
+
+const serve = async (request: Request) =>
+  request.headers.has("authorization") || (await callsPublishTool(request))
+    ? await signedIn(request)
+    : await anonymous.fetch(request);
 
 export { serve as GET, serve as POST };

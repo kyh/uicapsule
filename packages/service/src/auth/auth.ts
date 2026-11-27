@@ -62,8 +62,8 @@ export const canonicalOrigin = () => {
 /** The issuer of every JWT, pinned so a token minted through any of a deployment's hosts verifies. */
 export const AUTH_ISSUER = `${canonicalOrigin()}/api/auth`;
 
-/** The publishing MCP server: the protected resource every MCP access token is bound to. */
-export const MCP_PUBLISH_RESOURCE = `${canonicalOrigin()}/mcp/publish`;
+/** The MCP server: the protected resource every MCP access token is bound to, for publishing. */
+export const MCP_RESOURCE = `${canonicalOrigin()}/mcp`;
 
 const signInCodeMode = signInCodeModeOf(
   { AUTH_EMAIL_FROM: process.env.AUTH_EMAIL_FROM, RESEND_API_KEY: process.env.RESEND_API_KEY },
@@ -91,7 +91,7 @@ export const auth = betterAuth({
       clientRegistrationDefaultApplicationType: "infer",
       consentPage: "/auth/consent",
       loginPage: "/auth/login",
-      resource: MCP_PUBLISH_RESOURCE,
+      resource: MCP_RESOURCE,
     }),
     cimd({ fetchClientMetadataResource, metadataProfile: "mcp-2026-07-28" }),
     username({

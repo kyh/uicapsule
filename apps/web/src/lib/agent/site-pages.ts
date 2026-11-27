@@ -1060,14 +1060,21 @@ export const mcpGuide: InstallGuide = {
     "Give your coding agent skills for building better UI and a gallery of components to start from. One URL, no API key.",
   faq: [
     {
-      text: `A remote MCP server at \`${mcpServerUrl}\`. It gives a coding agent skills that make its UI work better, and tools that search this gallery and return a component's source to build from.`,
+      text: `A remote MCP server at \`${mcpServerUrl}\`. It gives a coding agent skills that make its UI work better, and tools that search this gallery and return a component's source to build from. With an account, your agent can also publish your own components to it.`,
       title: "What is the UICapsule MCP server?",
     },
     {
       text: "Any client that connects to a remote server over Streamable HTTP. The tools work in all of them. The skills arrive through MCP's skills extension, so they appear only in clients that support it.",
       title: "Which agents work with it?",
     },
-    { text: "Yes. There is no account, no key and no usage limit.", title: "Is it free?" },
+    {
+      text: "Yes. There is no key and no usage limit, and you need an account only to publish your own components.",
+      title: "Is it free?",
+    },
+    {
+      text: "Only when your agent first publishes a component for you. Your client opens a page where you sign in with a code we email you and allow the agent. Everything else on the server works without an account.",
+      title: "When do I need to sign in?",
+    },
     {
       text: "The search text and the components looked up are recorded as anonymous analytics events, so we can see what people look for. The [Privacy Policy](/privacy) has the details.",
       title: "What does it record?",
@@ -1088,13 +1095,21 @@ export const mcpGuide: InstallGuide = {
       text: "Find a component by what it does or looks like, then get its source, dependencies and the shadcn command that installs it.",
       title: "Start from a component",
     },
+    {
+      names: ["start_publish", "publish_component"],
+      text: "Publish your own component to your account, with a live preview at its own address. Your agent bundles and uploads it after you sign in.",
+      title: "Publish your own",
+    },
   ],
   featuresHeading: "What your agent gets",
   guarantees: [
-    { text: "No account, no API key, nothing to sign in to.", title: "No key" },
     {
-      text: "The server only answers questions. Your agent writes any files, usually by running the shadcn command it gets back.",
-      title: "Read-only",
+      text: "No API key, and no account to search, install or use the skills. Only publishing asks you to sign in.",
+      title: "No key",
+    },
+    {
+      text: "The gallery tools only answer questions, and your agent writes any files, usually by running the shadcn command it gets back. Publishing writes only to your own account.",
+      title: "Read-only gallery",
     },
     {
       text: `The components are MIT licensed, and the server is [open source](${siteConfig.repository}).`,
@@ -1105,7 +1120,7 @@ export const mcpGuide: InstallGuide = {
       title: "Always current",
     },
   ],
-  guaranteesHeading: "Read-only, no key",
+  guaranteesHeading: "No key to start",
   heading: "The MCP server for building better UI.",
   path: mcpInstallPath,
   prompts: [

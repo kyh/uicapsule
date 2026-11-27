@@ -25,7 +25,7 @@ In Claude Code, run: ${mcpClaudeCodeCommand}
 Otherwise, add this to your MCP config file:
 { "mcpServers": { "uicapsule": { "type": "http", "url": "${mcpServerUrl}" } } }
 
-It does two things: skills that help you build better UI (motion, accessibility, typography, color, layout, copy), listed through MCP's skills extension, and two read-only tools, search_components and get_component, that serve ${siteConfig.name} components as templates. Once it is installed, confirm both tools are available.`;
+It does two things: skills that help you build better UI (motion, accessibility, typography, color, layout, copy), listed through MCP's skills extension, and two read-only tools, search_components and get_component, that serve ${siteConfig.name} components as templates. It also has tools that publish the user's own components to their ${siteConfig.name} account; the first call to one asks the user to sign in, and nothing else needs an account. Once it is installed, confirm search_components and get_component are available.`;
 
 /** Pasted into a coding agent from a component's page, so it carries its own fallback for an agent without the server. */
 export const mcpComponentPrompt = (

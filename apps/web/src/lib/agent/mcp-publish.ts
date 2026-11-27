@@ -4,9 +4,12 @@ import { siteConfig } from "../site-config";
 
 const megabytes = (bytes: number) => `${bytes / 1024 / 1024}MB`;
 
-/** What the publishing MCP server tells a client it is for, and the order its tools run in. */
+/** The note every publishing tool's description opens with. */
+export const SIGN_IN_NOTE = "Needs sign-in: the first call asks the user to sign in.";
+
+/** What the MCP server tells a client about publishing, after what it says about the gallery. */
 export const publishInstructions = [
-  `This server publishes React components to the signed-in user's ${siteConfig.name} account, where each one gets a sandboxed live preview at /u/<username>/<slug>. The user's code never enters ${siteConfig.name}'s repository; you build it here and upload the build.`,
+  `Its publishing tools put the user's own React components on their ${siteConfig.name} account, where each one gets a sandboxed live preview at /u/<username>/<slug>. Only these need an account: the first call to one makes the client ask the user to sign in, and everything else works without one. Use them only when the user asks to publish. The user's code never enters ${siteConfig.name}'s repository; you build it here and upload the build.`,
   "Publishing is four steps. start_publish reserves a build and returns its assetBase and the bundling rules. Bundle the component by those rules into one directory. get_upload_urls returns one signed URL and a curl command per file; run every command from that directory. publish_component then points the slug at the build, and the preview is live at once.",
   "A build never changes once uploaded: to change a component, start a new publish. list_my_components shows what is already published.",
 ].join(" ");

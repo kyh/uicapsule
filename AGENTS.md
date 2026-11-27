@@ -52,17 +52,17 @@ cookie to `curl` or agent-browser. The response's `set-auth-token` header is the
 `--username` sets once (or `POST /api/auth/update-user` `{"username":"dev"}`). In the `/auth/login` form, the code `Continue with email`
 sends lands in `pnpm dev:web`'s log (no `RESEND_API_KEY` locally).
 
-**Testing MCP publishing (`/mcp/publish`) needs an OAuth token, not a session.** Register a
+**Testing MCP publishing (the publish tools on `/mcp`) needs an OAuth token, not a session.** Register a
 client, then run authorization code + PKCE with the session cookie:
 
 1. `POST /api/auth/oauth2/register` with `{"client_name":"Test","redirect_uris":["http://127.0.0.1:33418/callback"],"token_endpoint_auth_method":"none"}` → `client_id`.
-2. `GET /api/auth/oauth2/authorize?response_type=code&client_id=…&redirect_uri=…&code_challenge=…&code_challenge_method=S256&scope=openid%20offline_access&resource=http://localhost:3000/mcp/publish`
+2. `GET /api/auth/oauth2/authorize?response_type=code&client_id=…&redirect_uri=…&code_challenge=…&code_challenge_method=S256&scope=openid%20offline_access&resource=http://localhost:3000/mcp`
    with the cookie. A first grant lands on `/auth/consent?…&sig=…`; `POST /api/auth/oauth2/consent`
    `{"accept":true,"oauth_query":"<that query string>"}` returns `{url}` with the `code`.
 3. `POST /api/auth/oauth2/token` (form: `grant_type=authorization_code`, `code`, `code_verifier`,
    `client_id`, `redirect_uri`, `resource`) → a JWT `access_token`; send it as `Authorization: Bearer`.
 
-`resource` must be exactly `MCP_PUBLISH_RESOURCE`, or the token's audience won't verify. The
+`resource` must be exactly `MCP_RESOURCE`, or the token's audience won't verify. The
 upload URLs the tools return point at `/api/ugc/upload` and write to the real Blob store named
 by `BLOB_READ_WRITE_TOKEN`; to stay offline, point `VERCEL_BLOB_API_URL` at a local stand-in.
 
