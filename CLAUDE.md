@@ -229,7 +229,10 @@ Next imports, no filesystem — so it can be unit-tested without a runtime. The 
   `.claude/skills/THIRD_PARTY.md`. It ships with each
   deploy, so there is no npm package to publish or version. `server.json` is its MCP Registry
   entry (`com.uicapsule/components`, DNS-verified); republish with `mcp-publisher publish` only
-  when that metadata changes — the signing key is not in the repo.
+  when that metadata changes (bump `version` first; the registry rejects a republished one). The
+  login token expires, so a 401 means log in again with the DNS key, which lives outside the repo
+  at `~/.config/uicapsule/mcp-registry-ed25519.pem` on the maintainer's machine:
+  `mcp-publisher login dns --domain uicapsule.com --private-key "$(openssl pkey -in <pem> -outform DER | tail -c 32 | xxd -p -c 64)"`.
 - Runtime gate: `pnpm check:agent-endpoints` against a running server. `pnpm verify`
   cannot see status codes or headers.
 
