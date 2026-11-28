@@ -15,6 +15,7 @@ export default defineConfig({
     ".expo",
     ".wxt",
     ".claude",
+    "apps/web/agent/skills",
     ".codex",
     ".superset",
     ".playwright-mcp",

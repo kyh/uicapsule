@@ -2,6 +2,7 @@
   "$schema": "./node_modules/oxfmt/configuration_schema.json",
   "ignorePatterns": [
     ".agents",
+    "apps/web/agent/skills",
     "dist",
     "dist-electron",
     "node_modules",

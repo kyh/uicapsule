@@ -180,10 +180,12 @@ Two committed skills own the full lifecycles and both shell out to `agent-browse
 - `.claude/skills/build-content` — idea → scaffold → build → record → PR
 - `.claude/skills/cover-video` — record, verify, upload to Blob, wire into `meta.json`
 - `.claude/skills/build-requests` — drain `ready`-labelled request issues through both of
-  the above, one PR per issue, `Closes #n`. Meant for a local daily schedule.
+  the above, one PR per issue, `Closes #n`. Applying `ready` runs it for that issue in the
+  eve agent in `apps/web/agent` (see CLAUDE.md → Component requests); locally it drains whatever
+  is still labelled.
 
 Requests arrive as GitHub issues labelled `request`, from `/request` (oRPC → GitHub API,
-`GITHUB_ISSUES_TOKEN`) or the `component-request.yml` template. Apply `ready` to accept.
+`GITHUB_ISSUES_TOKEN`) or the `component-request.yml` template. Apply `ready` to accept and build.
 
 Content packages **must not** import from `apps/web` or `packages/*`. The registry serves
 their source verbatim — `content-fs.ts` does no import rewriting and hardcodes

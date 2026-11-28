@@ -86,6 +86,10 @@
     "VERCEL",
     "VERCEL_ENV",
     "VERCEL_URL",
+    "VERCEL_OIDC_TOKEN",
+    "VERCEL_PROJECT_ID",
+    "VERCEL_TEAM_ID",
+    "VERCEL_ORG_ID",
     "npm_lifecycle_event"
   ]
 }

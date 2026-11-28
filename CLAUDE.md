@@ -174,8 +174,36 @@ only the extension origins in `EXTENSION_ORIGINS`. The dev build pins its ID
 @repo/extension zip` (`--mode store`) drops it, so the Web Store ID must be added to
 `EXTENSION_ORIGINS` too.
 
-Triage is manual: apply `ready` to accept, close as not-planned to decline. The
-`build-requests` skill drains `ready` issues into PRs (run locally, on a schedule).
+Triage is manual: apply `ready` to accept, close as not-planned to decline. Applying `ready`
+starts the **request builder**, an eve agent in `apps/web/agent` that `withEve` (next.config.ts)
+serves beside the site at `/eve/v1/*` and `eve build` builds before `next build`; `next dev`
+boots it too. Its GitHub channel (`channels/github.ts`, a self-managed GitHub App:
+`GITHUB_APP_ID`, `GITHUB_APP_PRIVATE_KEY`, `GITHUB_WEBHOOK_SECRET`, `GITHUB_APP_SLUG`) starts a
+session only when `kyh` (matched by user id, `lib/request-trigger.ts`) labels an issue that then
+carries `ready` and not `building`, and continues it only on `kyh`'s `@<slug>` comments; anyone
+else's label or mention is ignored. The hook sees the issue, not which label the event added, so
+the label set stands in for it. The session runs the `build-requests` skill (its "Running as the
+eve agent" section) in a Vercel Sandbox (`sandbox.ts`: eve's default image plus Node 24, pnpm,
+ffmpeg, jq, python3, agent-browser, the Vercel CLI and eve-code's `gh` (`installCodeTooling`),
+8 vCPUs; `VERCEL_EVE_GIT_SANDBOX_IMAGE` 404s on Vercel at eve 1.5.0). Its skills are every
+`.claude/skills/*` directory, which `scripts/sync-agent-skills.ts` copies into the gitignored
+`apps/web/agent/skills/` before `eve build` and `next dev`, because eve's discovery rejects
+symlinked skill directories; a new skill reaches the agent on the next build. The channel checks
+the repo out (detached, depth 1) before every turn and its firewall rule carries `git`; that
+checkout also resets the firewall, so `gh`'s API grant comes from
+`tools/refresh-github-access.ts`, which mints a token scoped to this repo from the App at the
+start of each turn, so it never enters the sandbox; installation tokens last an hour, hence a
+tool rather than setup. The agent's last reply is the issue comment; eve posts it. The `git`
+extension is not mounted: its `pr` skill opens drafts. Agent PRs carry three variants behind a
+`variant` control, each with a video: `tools/attach-video.ts` reads the mp4 from the sandbox and
+posts it to GitHub's user-attachments store with `GITHUB_ISSUES_TOKEN`
+(`@repo/service/request/github-upload`, the request form's uploader without `server-only`, which
+would throw outside Next), so that token never enters the sandbox either. Local runs keep the GIF
+on `kyh/pr-preview-assets`.
+`BLOB_READ_WRITE_TOKEN` does enter the sandbox, because `vercel blob put` and `og:video` need
+it. `EVE_BASE_URL` in the sandbox stops its own `next dev` from booting a nested agent. CI builds
+with `--skip-sandbox-prewarm` (no Vercel credentials); only Vercel builds prepare the sandbox
+snapshot. The skill still drains the queue locally.
 
 ### Agent-readable surfaces
 

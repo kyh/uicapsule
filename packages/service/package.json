@@ -6,7 +6,8 @@
   "exports": {
     ".": "./src/index.ts",
     "./auth": "./src/auth/auth.ts",
-    "./request/github-attachment": "./src/request/github-attachment.ts"
+    "./request/github-attachment": "./src/request/github-attachment.ts",
+    "./request/github-upload": "./src/request/github-upload.ts"
   },
   "scripts": {
     "clean": "git clean -xdf .cache .turbo node_modules",

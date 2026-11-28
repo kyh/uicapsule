@@ -1,5 +1,7 @@
 import type { NextConfig } from "next";
 
+import { withEve } from "eve/next";
+
 import { siteConfig } from "./src/lib/site-config";
 
 type ImageConfig = NonNullable<NextConfig["images"]>;
@@ -63,7 +65,7 @@ const transpilePackages = [
   "@repo/ui",
 ];
 
-const config: NextConfig = {
+export const nextConfig: NextConfig = {
   /** next dev rewrites AGENTS.md/CLAUDE.md when it detects an agent; we own those files */
   agentRules: false,
   cacheComponents: true,
@@ -93,4 +95,4 @@ const config: NextConfig = {
   transpilePackages,
 };
 
-export default config;
+export default withEve(nextConfig);
