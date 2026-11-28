@@ -183,8 +183,9 @@ session only when `kyh` (matched by user id, `lib/request-trigger.ts`) labels an
 carries `ready` and not `building`, and continues it only on `kyh`'s `@<slug>` comments; anyone
 else's label or mention is ignored. The hook sees the issue, not which label the event added, so
 the label set stands in for it. The session runs the `build-requests` skill (its "Running as the
-eve agent" section) in a Vercel Sandbox (`sandbox.ts`: eve's git image plus Node 24, pnpm,
-ffmpeg, agent-browser and the Vercel CLI, 8 vCPUs). GitHub access is a token scoped to this repo
+eve agent" section) in a Vercel Sandbox (`sandbox.ts`: eve's default image plus Node 24, pnpm,
+ffmpeg, gh, agent-browser and the Vercel CLI, 8 vCPUs; `VERCEL_EVE_GIT_SANDBOX_IMAGE` 404s on
+Vercel at eve 1.5.0). GitHub access is a token scoped to this repo
 that `tools/refresh-github-access.ts` mints from the App and adds at the sandbox firewall, so it
 never enters the sandbox; installation tokens last an hour, hence a tool rather than setup.
 `BLOB_READ_WRITE_TOKEN` does enter the sandbox, because `vercel blob put` and `og:video` need

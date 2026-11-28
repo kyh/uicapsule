@@ -1,16 +1,17 @@
 import { defineSandbox } from "eve/sandbox";
-import { VERCEL_EVE_GIT_SANDBOX_IMAGE, VercelSandbox } from "eve/sandbox/vercel";
+import { VercelSandbox } from "eve/sandbox/vercel";
 import { z } from "zod";
 
 const TOOLING = [
   "sudo apt-get update -q",
-  "sudo apt-get install -y -q ffmpeg",
+  "sudo apt-get install -y -q ffmpeg gh",
   "sudo npm install -g n",
   "sudo n 24",
   "sudo npm install -g pnpm@12.23.0 agent-browser@0.43.0 vercel@65.15.0",
   "agent-browser install --with-deps",
   "node --version | grep -q '^v24\\.'",
   "ffmpeg -version",
+  "gh --version",
   "agent-browser --version",
 ].join(" && ");
 
@@ -20,7 +21,6 @@ const sandboxEnvSchema = z.object({
 });
 
 export const environment = VercelSandbox.environment({
-  image: VERCEL_EVE_GIT_SANDBOX_IMAGE,
   prepare: async (sandbox) => {
     const result = await sandbox.run({ command: TOOLING });
 
