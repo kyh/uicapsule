@@ -67,3 +67,10 @@ export const parseFrameMessage = (event: MessageEvent) => {
 /** Where a local component's preview document lives: the preview origin, else this one. */
 export const previewFrameSrc = (slug: string, origin = process.env.NEXT_PUBLIC_PREVIEW_URL) =>
   `${origin ?? ""}/preview-frame/${encodeURIComponent(slug)}`;
+
+/** Where a user-published component's preview document lives: `/preview-frame/u/<handle>/<slug>`. */
+export const ugcPreviewFrameSrc = (
+  handle: string,
+  slug: string,
+  origin = process.env.NEXT_PUBLIC_PREVIEW_URL,
+) => `${origin ?? ""}/preview-frame/u/${encodeURIComponent(handle)}/${encodeURIComponent(slug)}`;

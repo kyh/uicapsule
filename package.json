@@ -22,6 +22,7 @@
     "check:content": "node --import tsx scripts/check-content.ts",
     "build:previews": "node --import tsx scripts/build-previews.ts",
     "dev:previews": "node --import tsx scripts/build-previews.ts --dev",
+    "publish:ugc": "node --import tsx scripts/publish-ugc.ts",
     "check:agent-endpoints": "node --import tsx scripts/check-agent-endpoints.ts",
     "smoke": "node --import tsx scripts/smoke.ts",
     "sign-in-code": "pnpm --silent -F @repo/service sign-in-code",

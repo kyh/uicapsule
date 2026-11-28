@@ -16,6 +16,7 @@ const { guardSignInCodes } = await import("./sign-in-code-email");
 const options = {
   ...auth.options,
   logger: { disabled: true },
+  plugins: auth.options.plugins.filter((plugin) => plugin.id === "email-otp"),
   rateLimit: { enabled: false },
   secret: "uicapsule-sign-in-code-integration-test-secret",
 };

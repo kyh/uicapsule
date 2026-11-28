@@ -38,7 +38,8 @@ UNAUTHORIZED); procedure-level `.use` runs after. Feature routers stay plain obj
 looks the session up itself, so `createORPCContext` carries only headers and public procedures
 never touch the database. Clients type against `ContractClient` / `RouterInputs` /
 `RouterOutputs` and import schemas from `@repo/contract`; only server code (the route handlers
-under `apps/web/src/app/api`) imports `@repo/service`. Layout follows oRPC's Hybrid monorepo
+under `apps/web/src/app/api`, `mcp`, `.well-known`, and `preview-frame/u/[user]/[slug]`,
+which reads published components through `@repo/service/ugc/ugc-store`) imports `@repo/service`. Layout follows oRPC's Hybrid monorepo
 recipe.
 
 ### Content architecture
@@ -79,7 +80,7 @@ Content is filesystem-driven; the web app never depends on content packages by n
   resolves React; its watcher ignores everything there but `src/lib`, so it never watches what
   `next dev` watches. `@repo/ui/globals.css` no longer scans
   `content/**`, so the site's CSS carries no component classes.
-- **`/preview-frame/<slug>` is a sandboxed document.** A static route handler
+- **`/preview-frame/<slug>` is the trust boundary for UGC.** A static route handler
   returns the shell (`lib/content/preview-shell.ts`) with
   `Content-Security-Policy: sandbox <PREVIEW_SANDBOX>` and no `allow-same-origin`, and the
   embedding iframe carries the same `sandbox`: a preview runs on an opaque origin with no
@@ -88,7 +89,60 @@ Content is filesystem-driven; the web app never depends on content packages by n
   to a frame only through `postMessage` (`lib/preview-protocol.ts`: theme, inspect and control
   values in; ready with its controls and inspect boxes out; all zod-parsed), never `contentDocument`. `NEXT_PUBLIC_PREVIEW_URL` (e.g.
   `https://preview.uicapsule.com`, a domain alias of this same Vercel project) moves frames to
-  their own host, and `next.config.ts` redirects every other path on that host to www.
+  their own host, and `next.config.ts` redirects every other path on that host to www. A
+  separate registrable domain would also keep a flagged UGC preview off uicapsule.com's
+  Safe Browsing reputation; it is the same one env var.
+- **Users publish their own components to their account** (contract `ugc/`, service
+  `ugc/`, table `ugc_component` in `@repo/db/drizzle-schema-ugc`). Their code never enters the
+  repo. Accounts carry a `username` (better-auth `username` plugin, validated by the contract's
+  `handleSchema`), and a component lives at `/u/<username>/<slug>`, its frame at
+  `/preview-frame/u/<username>/<slug>` (`ugcPreviewFrameSrc`).
+  - **Bundle contract: plain ESM, React from us.** Any bundler works. `index.js` default-exports
+    a component rendered with no props (an optional `controls` export is parsed and fed to it
+    like a curated preview's); `index.css` is required (may be empty); other files sit
+    in up to four folders, referenced by absolute URL under the `assetBase` the server hands out.
+    `UGC_SHARED_MODULES` (react, react-dom, motion and their subpaths) stay external: the shell's
+    import map points them at `/previews/_ugc/*`, which `build:previews` builds once
+    (`buildUgcRuntime`), with `_ugc/boot.js` (`lib/content/ugc-boot.ts`) importing the entry
+    named in `<meta name="uicapsule-entry">` and handing it to `startPreview`, and `_ugc/base.css`
+    (theme + preflight). So a user bundle carries no React and every UGC frame shares one copy.
+  - **Flow**: `ugc.prepare` / `start_publish` (quota, server-generated build id, `assetBase`) →
+    `ugc.createUpload` / `get_upload_urls` (one signed URL per file not already stored) → `PUT`
+    each file → `ugc.publish` / `publish_component` (checks every file is in Blob, upserts the
+    row). Logic lives once in `@repo/service/ugc/ugc-publish`; the oRPC router and the MCP route
+    are thin wrappers. A signed URL is `/api/ugc/upload?token=<grant>.<HMAC>` (`ugc-upload-token.ts`,
+    keyed off the auth secret), pinning pathname, content type and size for 15 minutes; the route
+    streams the body with a size cap and `put`s it with `allowOverwrite: false`, so a build is
+    immutable (409 on a second write). Uploads pass through our function rather than Blob client
+    tokens so a plain `curl` can do it, which caps a file at 4MB (Vercel's body limit). Blob keys
+    use the user id, never the username: `ugc/<userId>/<slug>/<build>/<file>`.
+  - **MCP publishing is four tools on the one `/mcp` server, and only they need sign-in.**
+    `/mcp` serves everyone anonymously and lists the publish tools to everyone (`app/mcp/publish-tools.ts`,
+    `PUBLISH_TOOL_NAMES`). A request with an `Authorization` header, or a `tools/call` naming a
+    publish tool, goes through the token check instead; so an anonymous client's first publish call
+    gets a 401 challenge, which MCP clients answer by running OAuth and retrying (the TS SDK does on
+    any request, not only `initialize`), and nothing else ever asks for an account. `/mcp` is an
+    OAuth 2.1 resource for that: better-auth's `@better-auth/mcp` plugin
+    is the authorization server (dynamic client registration, CIMD client ids via
+    `@better-auth/cimd`, PKCE, JWT access tokens from the `jwt` plugin, `/token` disabled in
+    favour of `/oauth2/token`), with `/auth/login` → `/auth/consent` as its pages. The route
+    verifies tokens with `createMcpProtectedRequestHandler` against the JWKS (audience
+    `MCP_RESOURCE`) and answers a missing token with the `WWW-Authenticate` challenge that
+    points at `/.well-known/oauth-protected-resource/mcp`; `app/.well-known/[...path]`
+    hands every well-known path to `auth.handler`. Issuer and resource come from
+    `canonicalOrigin()` (production domain, else branch URL, else `BETTER_AUTH_URL`). The plugin
+    tables (`jwks`, `oauth_*`) are in `drizzle-schema-auth.ts`, checked against
+    `getAuthTables` by `auth-tables.test.ts`; array and JSON fields are `text({ mode: "json" })`
+    because the Drizzle adapter does not serialize them on SQLite. `@better-auth/*` are pinned to
+    better-auth's exact version and `@better-auth/core` is overridden to it, or two cores resolve
+    and the plugin types break.
+  - The frame route reads Turso on every request and lets the CDN cache a hit for 60s; a miss is
+    never cached, so a fresh publish shows at once. `renderUgcShell` adds `script-src <shell
+    origin> <bundle origin> <inline hashes>` to the sandbox CSP, so a published bundle can't load
+    code from anywhere else. `pnpm publish:ugc` is the same flow over oRPC for a person with a
+    session token (better-auth `bearer`, admitted by `/api/orpc`'s Origin guard because it sends no
+    Origin). Not done yet: gallery cards or `/u` pages, source upload, moderation, revoking an
+    app, and cleanup of builds uploaded but never published.
 - **Preview controls.** A `preview.tsx` may export `controls` beside its default `Preview`: an
   `as const` literal mapping prop name → descriptor (`number` with `min`/`max`/`step?`,
   `boolean`, `select` with `options` of strings or `{ value, label }`, `color` as hex, `text`
@@ -217,7 +271,9 @@ Next imports, no filesystem — so it can be unit-tested without a runtime. The 
   README, install prompt, `/install/mcp`, `/llms.txt`, about page) names both: **skills** help an agent build
   better UI in any project, and **tools** serve this gallery's components as templates. A new
   skill belongs only if it serves the first job; a new tool only if it serves the second.
-  It is a stateless Streamable HTTP MCP server with two read-only tools,
+  Publishing your own component is neither: its four tools are the one part that needs sign-in
+  (see Content architecture), and copy says so wherever it says "no account".
+  It is a stateless Streamable HTTP MCP server with two read-only gallery tools,
   `search_components` and `get_component`: oRPC procedures in the route, registered by
   `@orpc/mcp`'s `McpRegistrar` on a fresh `McpServer` per request (`createMcpHandler` from
   `@modelcontextprotocol/server`). They stay out of `@repo/contract`: no client calls them
@@ -293,6 +349,7 @@ pnpm new:content <slug>  # Scaffold a new content component in content/ (--desig
 pnpm check:content    # Fail if any content/<slug> is not a loadable component
 pnpm build:previews   # Bundle every content preview into apps/web/public/previews with Vite (build runs it)
 pnpm dev:previews     # Vite dev server for previews on :5174 with hot reload (dev:web runs it)
+pnpm publish:ugc <dir> --slug <s> --name <n>  # Build <dir>/preview.tsx to the plain-ESM contract with Vite and publish it (UICAPSULE_TOKEN, UICAPSULE_URL; --username once; --out to only build)
 pnpm test             # node:test — auth + RPC transport guards + the agent-surface tests
 pnpm smoke            # Drive a running server: pages, a code's sign-in, user.me, sign-out (CI runs it)
 pnpm check:agent-endpoints  # Runtime check of the agent surfaces (needs a running server)
@@ -359,9 +416,10 @@ asked for, so a foreign page holding a code could sign its visitor in.
 
 ## Decisions (do not re-litigate)
 
-- **auth + oRPC are kept.** oRPC serves two procedures: `request.create`, called by the
-  `/request` form, and `user.me`, with zero callers, deliberately retained with auth for a
-  future feature. Make them correct; don't propose deleting them.
+- **auth + oRPC are kept.** oRPC serves `request.create`, called by the `/request` form, the
+  `ugc.*` publishing procedures, called by `pnpm publish:ugc`, and `user.me`, with zero callers,
+  deliberately retained with auth for a future feature. Make them correct; don't propose
+  deleting them.
 - **Assets live in the `uicapsule-assets` Vercel Blob store.** Covers, illustrations, share
   stills and the home og video resolve against `NEXT_PUBLIC_ASSETS_URL`; `meta.json`,
   `cover-media.json` and `home-media.json` store bucket keys, never URLs. Nothing media goes in

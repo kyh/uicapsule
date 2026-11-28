@@ -1,8 +1,9 @@
 "use client";
 
-import { useState } from "react";
+import { useRef, useState } from "react";
 import type { HTMLAttributes } from "react";
-import { useRouter } from "next/navigation";
+import Link from "next/link";
+import { useRouter, useSearchParams } from "next/navigation";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Button } from "@repo/ui/components/button";
 import { Field, FieldError, FieldLabel } from "@repo/ui/components/field";
@@ -18,6 +19,8 @@ import { authClient } from "@/lib/auth-client";
 const CODE_LENGTH = 6;
 
 const emailSchema = z.object({ email: z.email("Invalid email address") });
+
+const continuationSchema = z.object({ redirect: z.literal(true), url: z.string() });
 
 const CODE_ERRORS = new Map([
   ["INVALID_OTP", "That code isn't right. Check it and try again."],
@@ -98,6 +101,7 @@ const EmailStep = ({ onSent }: { onSent: (email: string) => void }) => {
 
 const CodeStep = ({ email, onBack }: { email: string; onBack: () => void }) => {
   const router = useRouter();
+  const continuation = useRef<string>(undefined);
   const [resending, setResending] = useState(false);
   const [failure, setFailure] = useState<string>();
 
@@ -132,11 +136,13 @@ const CodeStep = ({ email, onBack }: { email: string; onBack: () => void }) => {
           }}
           verify={async (otp) => {
             try {
-              const { error } = await authClient.signIn.emailOtp({
+              const { data, error } = await authClient.signIn.emailOtp({
                 email,
                 name: email.split("@")[0] ?? "User",
                 otp,
               });
+
+              continuation.current = continuationSchema.safeParse(data).data?.url;
 
               setFailure(error ? errorMessageOf(error) : undefined);
 
@@ -148,6 +154,12 @@ const CodeStep = ({ email, onBack }: { email: string; onBack: () => void }) => {
             }
           }}
           onSuccess={() => {
+            if (continuation.current !== undefined) {
+              window.location.assign(continuation.current);
+
+              return;
+            }
+
             router.replace("/");
             router.refresh();
           }}
@@ -193,5 +205,16 @@ export const AuthForm = ({ className, ...props }: HTMLAttributes<HTMLDivElement>
         />
       )}
     </div>
+  );
+};
+
+/** A link to the other auth page that keeps the query, so a sign-in an app started carries over. */
+export const AuthSwitchLink = ({ children, href }: { children: string; href: string }) => {
+  const search = useSearchParams().toString();
+
+  return (
+    <Link href={search === "" ? href : `${href}?${search}`} className="underline">
+      {children}
+    </Link>
   );
 };

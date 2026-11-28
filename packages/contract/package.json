@@ -6,7 +6,8 @@
   "exports": {
     ".": "./src/index.ts",
     "./request/attachment-schema": "./src/request/attachment-schema.ts",
-    "./request/request-schema": "./src/request/request-schema.ts"
+    "./request/request-schema": "./src/request/request-schema.ts",
+    "./ugc/ugc-schema": "./src/ugc/ugc-schema.ts"
   },
   "scripts": {
     "clean": "git clean -xdf .cache .turbo node_modules",

@@ -1,0 +1,188 @@
+#!/usr/bin/env tsx
+import { existsSync } from "node:fs";
+import { mkdir, writeFile } from "node:fs/promises";
+import path from "node:path";
+import { createORPCClient } from "@orpc/client";
+import { RPCLink } from "@orpc/client/fetch";
+import type { ContractClient } from "@repo/contract";
+import { UGC_SHARED_MODULES, newUgcBuild, ugcSlugSchema } from "@repo/contract/ugc/ugc-schema";
+import react from "@vitejs/plugin-react";
+import { defineCommand, runMain } from "citty";
+import { consola } from "consola";
+import { esmExternalRequirePlugin, build as viteBuild } from "vite";
+import type { Rollup } from "vite";
+
+import { EXTRA_ASSET_GLOBS, compilePreviewStylesheet } from "./preview-bundle";
+
+const bundle = async (dir: string, assetBase: string) => {
+  const result = await viteBuild({
+    assetsInclude: EXTRA_ASSET_GLOBS,
+    base: assetBase.endsWith("/") ? assetBase : `${assetBase}/`,
+    build: {
+      assetsInlineLimit: 0,
+      chunkSizeWarningLimit: 4096,
+      cssCodeSplit: false,
+      modulePreload: false,
+      reportCompressedSize: false,
+      rolldownOptions: {
+        input: { index: path.join(dir, "preview.tsx") },
+        output: {
+          assetFileNames: "assets/[hash][extname]",
+          chunkFileNames: "chunks/[hash].js",
+          entryFileNames: "[name].js",
+        },
+        preserveEntrySignatures: "strict",
+      },
+      target: "es2022",
+      write: false,
+    },
+    configFile: false,
+    logLevel: "warn",
+    plugins: [react(), esmExternalRequirePlugin({ external: [...UGC_SHARED_MODULES] })],
+    publicDir: false,
+    root: dir,
+  });
+
+  const outputs = (Array.isArray(result) ? result : [result]).filter(
+    (output): output is Rollup.RolldownOutput => "output" in output,
+  );
+
+  const files = new Map<string, Uint8Array>();
+  const css: string[] = [];
+
+  for (const file of outputs.flatMap((output) => output.output)) {
+    if (file.type === "chunk") {
+      files.set(file.fileName, new TextEncoder().encode(file.code));
+    } else if (file.fileName.endsWith(".css")) {
+      css.push(String(file.source));
+    } else {
+      files.set(
+        file.fileName,
+        file.source instanceof Uint8Array ? file.source : new TextEncoder().encode(file.source),
+      );
+    }
+  }
+
+  const tailwind = await compilePreviewStylesheet(dir, true);
+  files.set("index.css", new TextEncoder().encode([tailwind, ...css].join("\n")));
+
+  return files;
+};
+
+const main = defineCommand({
+  args: {
+    "asset-base": {
+      description: "With --out: the public URL assets are referenced from",
+      type: "string",
+    },
+    dir: {
+      description: "Component directory holding preview.tsx",
+      required: true,
+      type: "positional",
+    },
+    name: { description: "Display name of the component", type: "string" },
+    out: {
+      description: "Only build: write the files under this directory instead of publishing",
+      type: "string",
+    },
+    slug: { description: "Slug under /u/<username>/", required: true, type: "string" },
+    url: {
+      default: process.env.UICAPSULE_URL ?? "http://localhost:3000",
+      description: "The uicapsule site to publish to",
+      type: "string",
+    },
+    username: {
+      description: "Set your username first (needed once, before your first publish)",
+      type: "string",
+    },
+  },
+  meta: {
+    description:
+      "Build one component's preview and publish it to your account, at /u/<username>/<slug>. Needs UICAPSULE_TOKEN, a session token from signing in.",
+    name: "publish:ugc",
+  },
+  run: async ({ args }) => {
+    const dir = path.resolve(args.dir);
+    const slug = ugcSlugSchema.parse(args.slug);
+
+    if (!existsSync(path.join(dir, "preview.tsx"))) {
+      throw new Error(`${dir} has no preview.tsx`);
+    }
+
+    if (args.out !== undefined && args.out !== "") {
+      const build = newUgcBuild();
+      const files = await bundle(dir, args["asset-base"] ?? `https://assets.invalid/ugc/${build}`);
+      const out = path.join(path.resolve(args.out), build);
+
+      await Promise.all(
+        [...files].map(async ([file, contents]) => {
+          await mkdir(path.dirname(path.join(out, file)), { recursive: true });
+          await writeFile(path.join(out, file), contents);
+        }),
+      );
+
+      consola.success(`Built ${files.size} files into ${out}`);
+
+      return;
+    }
+
+    const token = process.env.UICAPSULE_TOKEN;
+
+    if (token === undefined || token === "") {
+      throw new Error("UICAPSULE_TOKEN is unset: sign in and pass your session token");
+    }
+
+    if (args.name === undefined || args.name === "") {
+      throw new Error("--name is required to publish");
+    }
+
+    const headers = { authorization: `Bearer ${token}` };
+
+    if (args.username !== undefined && args.username !== "") {
+      const response = await fetch(new URL("/api/auth/update-user", args.url), {
+        body: JSON.stringify({ username: args.username }),
+        headers: { ...headers, "content-type": "application/json" },
+        method: "POST",
+      });
+
+      if (!response.ok) {
+        throw new Error(`Could not set username: ${await response.text()}`);
+      }
+    }
+
+    const client: ContractClient = createORPCClient(
+      new RPCLink({ headers, origin: new URL(args.url).origin, url: "/api/orpc" }),
+    );
+
+    const { assetBase, build } = await client.ugc.prepare({ slug });
+    const files = await bundle(dir, assetBase);
+
+    const { uploads } = await client.ugc.createUpload({
+      build,
+      files: [...files].map(([file, contents]) => ({ path: file, size: contents.byteLength })),
+      slug,
+    });
+
+    await Promise.all(
+      uploads.map(async (upload) => {
+        const response = await fetch(upload.url, {
+          body: files.get(upload.path) ?? new Uint8Array(),
+          headers: { "content-type": upload.contentType },
+          method: "PUT",
+        });
+
+        if (!response.ok) {
+          throw new Error(`Uploading ${upload.path} failed: ${await response.text()}`);
+        }
+      }),
+    );
+
+    const published = await client.ugc.publish({ build, name: args.name, slug });
+
+    consola.success(
+      `Published ${published.path} (build ${build}, ${uploads.length} of ${files.size} files uploaded). Live at ${new URL(`/preview-frame${published.path}`, args.url).href} within a minute.`,
+    );
+  },
+});
+
+await runMain(main);

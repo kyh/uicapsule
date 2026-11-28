@@ -10,5 +10,5 @@ export default {
   },
   dialect: "turso",
   out: "./drizzle",
-  schema: "./src/drizzle-schema-auth.ts",
+  schema: ["./src/drizzle-schema-auth.ts", "./src/drizzle-schema-ugc.ts"],
 } satisfies Config;

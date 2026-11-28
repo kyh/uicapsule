@@ -333,7 +333,7 @@ type McpRequest =
   | { method: "resources/read"; params: { uri: string } }
   | {
       method: "tools/call";
-      params: { arguments: { limit: number; query: string }; name: string };
+      params: { arguments: Record<string, number | string>; name: string };
     };
 
 const mcpPayload = z.looseObject({
@@ -384,6 +384,8 @@ const mcpCall = async (request: McpRequest) => {
   return { payload: payload === "" ? null : mcpPayload.parse(JSON.parse(payload)), response };
 };
 
+const GALLERY_TOOLS = new Set(["get_component", "search_components"]);
+
 type ListedTool = NonNullable<NonNullable<z.infer<typeof mcpPayload>["result"]>["tools"]>[number];
 
 const checkGalleryTools = (listed: ListedTool[]) => {
@@ -393,9 +395,12 @@ const checkGalleryTools = (listed: ListedTool[]) => {
     searchTool?._meta?.ui?.resourceUri === GALLERY_RESOURCE_URI,
     JSON.stringify(searchTool?._meta ?? null).slice(0, 120),
   );
+  const gallery = listed.filter((tool) => GALLERY_TOOLS.has(tool.name));
   expect(
-    "MCP tools declare destructiveHint: false",
-    listed.length > 0 && listed.every((tool) => tool.annotations?.destructiveHint === false),
+    "MCP gallery tools declare destructiveHint: false, the rest declare it",
+    gallery.length === GALLERY_TOOLS.size &&
+      gallery.every((tool) => tool.annotations?.destructiveHint === false) &&
+      listed.every((tool) => tool.annotations?.destructiveHint !== undefined),
     listed.map((tool) => `${tool.name}=${String(tool.annotations?.destructiveHint)}`).join(", "),
   );
 };
@@ -446,6 +451,38 @@ const checkMcpGallery = async (listed: ListedTool[]) => {
   await checkGallerySearch();
 };
 
+const checkMcpPublishAuth = async (names: string[]) => {
+  expect(
+    "MCP lists the publishing tools to an anonymous client",
+    names.includes("start_publish") && names.includes("publish_component"),
+    names.join(", "),
+  );
+
+  const { response: publish } = await mcpCall({
+    method: "tools/call",
+    params: { arguments: { slug: "check-agent-endpoints" }, name: "start_publish" },
+  });
+
+  const challenge = publish.headers.get("www-authenticate") ?? "";
+  expect(
+    "MCP answers an anonymous publish with a 401 sign-in challenge",
+    publish.status === 401 && challenge.includes("/.well-known/oauth-protected-resource/mcp"),
+    `status ${publish.status}, www-authenticate ${challenge.slice(0, 160)}`,
+  );
+
+  const metadata = await fetch(`${baseUrl}/.well-known/oauth-protected-resource/mcp`);
+
+  const resource = z
+    .looseObject({ resource: z.string() })
+    .safeParse(await metadata.json().catch(() => null));
+
+  expect(
+    "MCP protected-resource metadata names /mcp",
+    metadata.status === 200 && resource.success && resource.data.resource.endsWith("/mcp"),
+    `status ${metadata.status}`,
+  );
+};
+
 const checkMcp = async () => {
   const { response: init, payload: initPayload } = await mcpCall({
     method: "initialize",
@@ -471,6 +508,7 @@ const checkMcp = async () => {
     names.length > 0 ? names.join(", ") : JSON.stringify(tools).slice(0, 120),
   );
 
+  await checkMcpPublishAuth(names);
   await checkMcpGallery(tools?.result?.tools ?? []);
 
   const { payload: search } = await mcpCall({

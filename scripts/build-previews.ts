@@ -1,6 +1,9 @@
 #!/usr/bin/env tsx
-import { readFile, readdir, stat } from "node:fs/promises";
+import { mkdtemp, readFile, readdir, rm, stat, writeFile } from "node:fs/promises";
+import { createRequire } from "node:module";
+import { tmpdir } from "node:os";
 import path from "node:path";
+import { UGC_SHARED_MODULES } from "@repo/contract/ugc/ugc-schema";
 import react from "@vitejs/plugin-react";
 import { defineCommand, runMain } from "citty";
 import { consola } from "consola";
@@ -10,7 +13,12 @@ import type { InlineConfig, Plugin, Rollup } from "vite";
 import * as z from "zod/mini";
 
 import { contentMetaSchema } from "../apps/web/src/lib/content/content-schema";
-import { PREVIEW_DEV_ORIGIN } from "../apps/web/src/lib/content/preview-shell";
+import {
+  PREVIEW_DEV_ORIGIN,
+  UGC_BASE_STYLESHEET_PATH,
+  UGC_BOOT_PATH,
+  ugcSharedModulePath,
+} from "../apps/web/src/lib/content/preview-shell";
 import { previewControlsSchema } from "../apps/web/src/lib/preview-controls";
 import {
   EXTRA_ASSET_GLOBS,
@@ -191,6 +199,18 @@ const sharedConfig = (slugs: string[], dev: boolean) =>
     root: contentRoot,
   }) satisfies InlineConfig;
 
+const IGNORED_WARNINGS = new Set(["INVALID_ANNOTATION", "MODULE_LEVEL_DIRECTIVE"]);
+
+const quietLogs = (
+  level: Rollup.LogLevel,
+  log: Rollup.RollupLog,
+  handler: Rollup.LogOrStringHandler,
+) => {
+  if (!IGNORED_WARNINGS.has(log.code ?? "")) {
+    handler(level, log);
+  }
+};
+
 const buildPreviews = async (slugs: string[]) => {
   await build({
     ...sharedConfig(slugs, false),
@@ -204,11 +224,7 @@ const buildPreviews = async (slugs: string[]) => {
       reportCompressedSize: false,
       rolldownOptions: {
         input: Object.fromEntries(slugs.map((slug) => [`${slug}/index`, `${ENTRY_PREFIX}${slug}`])),
-        onLog: (level, log, handler) => {
-          if (log.code !== "INVALID_ANNOTATION") {
-            handler(level, log);
-          }
-        },
+        onLog: quietLogs,
         output: {
           assetFileNames: "assets/[name]-[hash][extname]",
           chunkFileNames: "chunks/[name]-[hash].js",
@@ -282,6 +298,82 @@ const checkPreviewControls = async (slugs: string[]) => {
   }
 };
 
+const SHARED_PREFIX = "ugc-shared:";
+const RESOLVED_SHARED_PREFIX = `\0${SHARED_PREFIX}`;
+const requireFromWeb = createRequire(path.join(webRoot, "package.json"));
+const IDENTIFIER = /^[A-Za-z_$][\w$]*$/u;
+
+const sharedModuleSource = (specifier: string) => {
+  const required: unknown = requireFromWeb(specifier);
+
+  if (z.object({ __esModule: z.literal(true) }).safeParse(required).success) {
+    return `export * from ${JSON.stringify(specifier)};`;
+  }
+
+  const names = Object.keys(z.record(z.string(), z.unknown()).parse(required)).filter(
+    (name) => name !== "default" && IDENTIFIER.test(name),
+  );
+
+  return [
+    `import shared from ${JSON.stringify(specifier)};`,
+    "export default shared;",
+    `export const { ${names.join(", ")} } = shared;`,
+  ].join("\n");
+};
+
+const sharedModules = {
+  load: (id) =>
+    id.startsWith(RESOLVED_SHARED_PREFIX)
+      ? sharedModuleSource(id.slice(RESOLVED_SHARED_PREFIX.length))
+      : null,
+  name: "uicapsule-ugc-shared",
+  resolveId: (source) => (source.startsWith(SHARED_PREFIX) ? `\0${source}` : null),
+} satisfies Plugin;
+
+const outName = (publicPath: string) =>
+  publicPath.replace(/^\/previews\//u, "").replace(/\.js$/u, "");
+
+const buildUgcRuntime = async () => {
+  await build({
+    base: "/previews/",
+    build: {
+      chunkSizeWarningLimit: 4096,
+      emptyOutDir: false,
+      modulePreload: false,
+      outDir: outRoot,
+      reportCompressedSize: false,
+      rolldownOptions: {
+        input: {
+          [outName(UGC_BOOT_PATH)]: path.join(webRoot, "src/lib/content/ugc-boot.ts"),
+          ...Object.fromEntries(
+            UGC_SHARED_MODULES.map((specifier) => [
+              outName(ugcSharedModulePath(specifier)),
+              `${SHARED_PREFIX}${specifier}`,
+            ]),
+          ),
+        },
+        onLog: quietLogs,
+        output: {
+          chunkFileNames: "_ugc/chunks/[name]-[hash].js",
+          entryFileNames: "[name].js",
+        },
+        preserveEntrySignatures: "strict",
+      },
+      target: "es2022",
+    },
+    configFile: false,
+    logLevel: "warn",
+    plugins: [sharedModules],
+    publicDir: false,
+    root: webRoot,
+  });
+
+  const empty = await mkdtemp(path.join(tmpdir(), "ugc-base-"));
+  const css = await compilePreviewStylesheet(empty, true);
+  await writeFile(path.join(outRoot, UGC_BASE_STYLESHEET_PATH.replace(/^\/previews\//u, "")), css);
+  await rm(empty, { force: true, recursive: true });
+};
+
 const previewLibRoot = path.dirname(path.dirname(runtimeModule));
 
 const isAppFile = (file: string) =>
@@ -332,6 +424,7 @@ const main = defineCommand({
     const slugs = await readLocalSlugs();
 
     if (args.dev) {
+      await buildUgcRuntime();
       await servePreviews(slugs);
       consola.info(
         `Serving ${slugs.length} previews at ${PREVIEW_DEV_ORIGIN} (restart to pick up a new content folder)`,
@@ -342,6 +435,7 @@ const main = defineCommand({
 
     await checkPreviewControls(slugs);
     await buildPreviews(slugs);
+    await buildUgcRuntime();
     consola.success(
       `Built ${slugs.length} previews in ${Math.round(performance.now() - started)}ms`,
     );

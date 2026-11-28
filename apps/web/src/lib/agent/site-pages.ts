@@ -250,9 +250,9 @@ const privacySections: ProseBlock[] = [
   ),
   bullets(
     "**Contact data**, such as your email address and, if you give it, your name.",
-    '**Profile data**, such as the email address you use to establish an online account on the Service, and your display name, which the sign-up form sets to the part of your email address before the "@". You sign in with a one-time code we email you; there is no password.',
+    '**Profile data**, such as the email address you use to establish an online account on the Service, your display name, which the sign-up form sets to the part of your email address before the "@", and the username you choose when you first publish a component. You sign in with a one-time code we email you; there is no password.',
     "**Communications data** based on our exchanges with you, including when you contact us by email.",
-    "**User-generated content and input data**, such as the component requests you file through the Service: the name of the component, a description of what it does, links to where you saw it, the name and link you give for credit, and any images or videos you attach, as well as associated metadata. Metadata includes information on how, when, where and by whom a piece of content was collected and how that content has been formatted or edited. Metadata also includes information that users can add or can have added to their content, such as keywords, geographical or location information, and other similar data. Files you attach are uploaded as you provide them, with their file names and any metadata they contain, as soon as you add them to the form, even if you do not go on to file the request. If you file a request with our browser extension, it also includes the address of the page you captured it from, a screenshot of the area or element you selected, with any arrows, drawings or notes you add on top, and, when you pick an element, a CSS selector that locates it and, unless you turn it off, its HTML. When the element is a video, the extension attaches a copy of the video file, or a recording of a few seconds of it, as one of your files, unless you turn that off. The extension reads a page only after you start a capture on it (from its toolbar button, a keyboard shortcut or the right-click menu), and only the tab you start it in.",
+    "**User-generated content and input data**, such as the component requests you file through the Service: the name of the component, a description of what it does, links to where you saw it, the name and link you give for credit, and any images or videos you attach, as well as associated metadata. Metadata includes information on how, when, where and by whom a piece of content was collected and how that content has been formatted or edited. Metadata also includes information that users can add or can have added to their content, such as keywords, geographical or location information, and other similar data. Files you attach are uploaded as you provide them, with their file names and any metadata they contain, as soon as you add them to the form, even if you do not go on to file the request. If you publish a component to your account, it includes the component's name and slug, the built files you upload for it, and when you published it. If you allow an app, such as an AI agent, to publish for you, it also includes that you allowed it, the name and addresses the app registered with us, and the tokens we issue to it. If you file a request with our browser extension, it also includes the address of the page you captured it from, a screenshot of the area or element you selected, with any arrows, drawings or notes you add on top, and, when you pick an element, a CSS selector that locates it and, unless you turn it off, its HTML. When the element is a video, the extension attaches a copy of the video file, or a recording of a few seconds of it, as one of your files, unless you turn that off. The extension reads a page only after you start a capture on it (from its toolbar button, a keyboard shortcut or the right-click menu), and only the tab you start it in.",
     "**Other data** not specifically listed here, which we will use as described in this Privacy Policy or as otherwise disclosed at the time of collection.",
   ),
   p(
@@ -347,7 +347,8 @@ const privacySections: ProseBlock[] = [
   ),
   p("Specifically:"),
   bullets(
-    "Your account, including its display name and email address, is kept until you ask us to delete it. Deleting it removes it along with everything attached to it, including its sessions.",
+    "Your account, including its display name, username and email address, is kept until you ask us to delete it. Deleting it removes it along with everything attached to it, including its sessions, the apps you allowed to publish for you and the components you published, and we delete those components' files from storage.",
+    "A component you publish stays public, with its files, until you or we remove it or your account is deleted. Files you upload for a version you never publish may be deleted at any time.",
     "Each session record, including the IP address and user agent the session was created from, is deleted when you sign out or when your account is deleted.",
     "A sign-in code expires five minutes after it is sent and works only once.",
     "Rate-limit counters for the sign-in, sign-up and other account endpoints are keyed by IP address. Each expires after a window of at most one minute, and expired counters are deleted as those endpoints continue to be used.",
@@ -369,12 +370,12 @@ const privacySections: ProseBlock[] = [
       {
         href: "https://vercel.com/legal/privacy-notice",
         label: "Vercel",
-        text: "hosts the Service and keeps its request logs, provides Vercel Web Analytics, and runs the Vercel Blob store that serves component covers and other media",
+        text: "hosts the Service and keeps its request logs, provides Vercel Web Analytics, and runs the Vercel Blob store that serves component covers, other media and the files of components you publish",
       },
       {
         href: "https://turso.tech/privacy-policy",
         label: "Turso",
-        text: "hosts the database behind accounts",
+        text: "hosts the database behind accounts and the components published to them",
       },
       {
         href: "https://docs.github.com/en/site-policy/privacy-policies/github-general-privacy-statement",
@@ -407,7 +408,7 @@ const privacySections: ProseBlock[] = [
     "**Business transferees.** We may disclose personal information in the context of actual or prospective business transactions (e.g., investments in UICapsule, financing of UICapsule, or the sale, transfer or merger of all or part of UICapsule or its assets). For example, we may need to share certain personal information with prospective counterparties and their advisers. We may also disclose your personal information to an acquirer, successor, or assignee of UICapsule as part of any merger, acquisition, sale of assets, or similar transaction, and/or in the event of an insolvency, bankruptcy, or receivership in which personal information is transferred to one or more third parties as one of our business assets.",
   ),
   p(
-    "**Other users and the public.** Your user-generated content and input data is visible to other users of the Service and the public. The component requests you file, including the files you attach and the name and link you give for credit, are published as public issues in our GitHub repository, and if we build a component from your request, its page shows that name and link and, where the link is a GitHub profile, your GitHub profile picture. This information can be seen, collected and used by others, including being cached, copied, screen captured or stored elsewhere by others (e.g., search engines), and we are not responsible for any such use of this information. Your account information is never shown to other users.",
+    "**Other users and the public.** Your user-generated content and input data is visible to other users of the Service and the public. The component requests you file, including the files you attach and the name and link you give for credit, are published as public issues in our GitHub repository, and if we build a component from your request, its page shows that name and link and, where the link is a GitHub profile, your GitHub profile picture. This information can be seen, collected and used by others, including being cached, copied, screen captured or stored elsewhere by others (e.g., search engines), and we are not responsible for any such use of this information. A component you publish, including its name and files, is public at an address that contains your username. Apart from that username, your account information is never shown to other users.",
   ),
 
   h2(privacySection.choices),
@@ -415,7 +416,7 @@ const privacySections: ProseBlock[] = [
     "In this section, we describe the rights and choices available to all users. Users who are located in certain U.S. states and Europe can find additional information about their rights below.",
   ),
   p(
-    `**Access or update your information.** If you have registered for an account with us through the Service, you may review the display name and email address on it by logging into the account and opening the profile menu. To update anything else, email us at ${EMAIL}.`,
+    `**Access or update your information.** If you have registered for an account with us through the Service, you may review the display name, username (if you have set one) and email address on it by logging into the account and opening the profile menu. To update anything else, email us at ${EMAIL}.`,
   ),
   p(
     "**Cookies and other technologies.** Most browsers let you remove or reject cookies. To do this, follow the instructions in your browser settings. Many browsers accept cookies by default until you change your settings. If you set your browser to disable cookies, you will not be able to sign in or stay signed in, but every other part of the Service works without them. You can also clear your browser's local storage to remove your theme preference, and block Vercel Web Analytics with a content blocker without affecting the Service.",
@@ -787,7 +788,7 @@ export const termsPage: ProsePage = {
 
     h2("1. Accounts"),
     p(
-      `1.1 **Creating an Account.** You may register for an account on the Site, although you do not need one to use any part of it. When you register, you agree to provide accurate and complete information and to keep that information current. You can delete your account at any time by emailing us at ${EMAIL}. We may suspend or terminate your account as described in Section 8.`,
+      `1.1 **Creating an Account.** You may register for an account on the Site. You do not need one to browse, install or download components; you need one only to publish your own. When you register, you agree to provide accurate and complete information and to keep that information current. You can delete your account at any time by emailing us at ${EMAIL}. We may suspend or terminate your account as described in Section 8.`,
     ),
     p(
       "1.2 **Account Security.** You are responsible for keeping your login credentials confidential and for all activity that occurs under your account. If you believe your account has been accessed without your authorization, please notify us immediately. We are not liable for any losses resulting from your failure to keep your credentials secure.",
@@ -813,7 +814,7 @@ export const termsPage: ProsePage = {
       "2.6 **Feedback.** If you share feedback or suggestions about the Site with us, you grant us a perpetual, irrevocable, worldwide, non-exclusive, fully-paid, royalty-free license to use that feedback freely, in any manner and for any purpose, without attribution. Please do not submit any feedback that you consider proprietary or confidential.",
     ),
     p(
-      '2.7 **Your Content.** You can request a component through the Site. A request, including its text, its links, the name and link you give for credit and any files you attach (together, "**Your Content**"), is published as a public issue in our GitHub repository, where anyone can read it, and files you attach are uploaded to GitHub as soon as you add them. You keep any ownership rights you have in Your Content. You grant us a perpetual, irrevocable, worldwide, non-exclusive, fully-paid, royalty-free license to use, reproduce, publish and display Your Content, including on GitHub, to build components based on it, to publish and license those components as we choose, including under the MIT License, and to credit you on them by the name and link you give us. You are responsible for Your Content, and you represent that you have all rights necessary to submit it and to grant this license. Please do not include anything in a request that you want to keep private.',
+      '2.7 **Your Content.** You can request a component through the Site. A request, including its text, its links, the name and link you give for credit and any files you attach (together, "**Your Content**"), is published as a public issue in our GitHub repository, where anyone can read it, and files you attach are uploaded to GitHub as soon as you add them. You keep any ownership rights you have in Your Content. You grant us a perpetual, irrevocable, worldwide, non-exclusive, fully-paid, royalty-free license to use, reproduce, publish and display Your Content, including on GitHub, to build components based on it, to publish and license those components as we choose, including under the MIT License, and to credit you on them by the name and link you give us. You are responsible for Your Content, and you represent that you have all rights necessary to submit it and to grant this license. Please do not include anything in a request that you want to keep private. If you publish a component to your account, its name, its files and your username are part of Your Content too: they are public at an address containing your username, and you grant us the same license to host, reproduce and display them on the Site, except that we will not publish or license a component you publish as our own. We may remove a published component at any time.',
     ),
     p(
       "2.8 **Permitted Uses.** Notwithstanding Section 2.2, you may (a) use the components published in the gallery, including by installing, copying, modifying and distributing their source code, under the license described in Section 2.9; and (b) access the Site with automated tools, such as crawlers, AI agents and the shadcn command-line tool, including through the machine-readable endpoints we publish for that purpose: our shadcn registry, our MCP server, llms.txt, our sitemap and the Markdown version of each page.",
@@ -1062,14 +1063,21 @@ export const mcpGuide: InstallGuide = {
     "Give your coding agent skills for building better UI and a gallery of components to start from. One URL, no API key.",
   faq: [
     {
-      text: `A remote MCP server at \`${mcpServerUrl}\`. It gives a coding agent skills that make its UI work better, and tools that search this gallery and return a component's source to build from.`,
+      text: `A remote MCP server at \`${mcpServerUrl}\`. It gives a coding agent skills that make its UI work better, and tools that search this gallery and return a component's source to build from. With an account, your agent can also publish your own components to it.`,
       title: "What is the UICapsule MCP server?",
     },
     {
       text: "Any client that connects to a remote server over Streamable HTTP. The tools work in all of them. The skills arrive through MCP's skills extension, so they appear only in clients that support it. Clients that render MCP Apps, Claude and ChatGPT among them, also show search results as a gallery you can browse.",
       title: "Which agents work with it?",
     },
-    { text: "Yes. There is no account, no key and no usage limit.", title: "Is it free?" },
+    {
+      text: "Yes. There is no key and no usage limit, and you need an account only to publish your own components.",
+      title: "Is it free?",
+    },
+    {
+      text: "Only when your agent first publishes a component for you. Your client opens a page where you sign in with a code we email you and allow the agent. Everything else on the server works without an account.",
+      title: "When do I need to sign in?",
+    },
     {
       text: "The search text and the components looked up are recorded as anonymous analytics events, so we can see what people look for. The [Privacy Policy](/privacy) has the details.",
       title: "What does it record?",
@@ -1090,13 +1098,21 @@ export const mcpGuide: InstallGuide = {
       text: "Find a component by what it does or looks like, then get its source, dependencies and the shadcn command that installs it.",
       title: "Start from a component",
     },
+    {
+      names: ["start_publish", "publish_component"],
+      text: "Publish your own component to your account, with a live preview at its own address. Your agent bundles and uploads it after you sign in.",
+      title: "Publish your own",
+    },
   ],
   featuresHeading: "What your agent gets",
   guarantees: [
-    { text: "No account, no API key, nothing to sign in to.", title: "No key" },
     {
-      text: "The server only answers questions. Your agent writes any files, usually by running the shadcn command it gets back.",
-      title: "Read-only",
+      text: "No API key, and no account to search, install or use the skills. Only publishing asks you to sign in.",
+      title: "No key",
+    },
+    {
+      text: "The gallery tools only answer questions, and your agent writes any files, usually by running the shadcn command it gets back. Publishing writes only to your own account.",
+      title: "Read-only gallery",
     },
     {
       text: `The components are MIT licensed, and the server is [open source](${siteConfig.repository}).`,
@@ -1107,7 +1123,7 @@ export const mcpGuide: InstallGuide = {
       title: "Always current",
     },
   ],
-  guaranteesHeading: "Read-only, no key",
+  guaranteesHeading: "No key to start",
   heading: "The MCP server for building better UI.",
   path: mcpInstallPath,
   prompts: [

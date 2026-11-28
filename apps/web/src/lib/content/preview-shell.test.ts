@@ -1,8 +1,16 @@
+import { z } from "zod";
 import assert from "node:assert/strict";
 import { test } from "node:test";
 
 import { PREVIEW_SANDBOX } from "../preview-protocol";
-import { PREVIEW_DEV_ORIGIN, previewShellHeaders, renderPreviewShell } from "./preview-shell";
+import {
+  PREVIEW_DEV_ORIGIN,
+  previewShellHeaders,
+  renderPreviewShell,
+  renderUgcShell,
+} from "./preview-shell";
+
+const importMapSchema = z.object({ imports: z.record(z.string(), z.string()) });
 
 test("the preview document is sandboxed by its own header", () => {
   assert.equal(previewShellHeaders["Content-Security-Policy"], `sandbox ${PREVIEW_SANDBOX}`);
@@ -39,4 +47,49 @@ test("the shell escapes the component name", () => {
 
   assert.ok(!html.includes("<img"));
   assert.match(html, /&lt;img src=x onerror=&quot;alert\(1\)&quot;&gt;/u);
+});
+
+const ugc = renderUgcShell({
+  entry: "https://blob.example/ugc/u1/knob/0123456789abcdef",
+  name: "Knob",
+  shellOrigin: "https://preview.example",
+});
+
+const csp = ugc.headers["Content-Security-Policy"];
+
+test("a user-published preview boots its Blob build through the frame's runtime", () => {
+  assert.match(
+    ugc.body,
+    /<meta name="uicapsule-entry" content="https:\/\/blob\.example\/ugc\/u1\/knob\/0123456789abcdef\/index\.js">/u,
+  );
+  assert.match(
+    ugc.body,
+    /href="https:\/\/blob\.example\/ugc\/u1\/knob\/0123456789abcdef\/index\.css"/u,
+  );
+  assert.match(
+    ugc.body,
+    /<script type="module" src="https:\/\/preview\.example\/previews\/_ugc\/boot\.js">/u,
+  );
+});
+
+test("a user-published preview's bare imports resolve to the frame's one React", () => {
+  const map = /<script type="importmap">(?<map>.*?)<\/script>/u.exec(ugc.body)?.groups?.map ?? "";
+  const { imports } = importMapSchema.parse(JSON.parse(map));
+
+  assert.equal(imports.react, "https://preview.example/previews/_ugc/react.js");
+  assert.equal(
+    imports["react/jsx-runtime"],
+    "https://preview.example/previews/_ugc/react-jsx-runtime.js",
+  );
+  assert.equal(imports["motion/react"], "https://preview.example/previews/_ugc/motion-react.js");
+});
+
+test("a user-published preview may only run scripts from the frame and its bundle origin", () => {
+  assert.ok(csp.startsWith(`sandbox ${PREVIEW_SANDBOX}; `));
+  assert.match(
+    csp,
+    /script-src https:\/\/preview\.example https:\/\/blob\.example 'sha256-[\w+/]+=*' 'sha256-[\w+/]+=*';/u,
+  );
+  assert.match(csp, /object-src 'none'/u);
+  assert.ok(!csp.includes("unsafe"));
 });

@@ -39,7 +39,7 @@ export const whenToUse: ProseListItem[] = [
   },
   {
     label: "Not a fit",
-    text: "UICapsule is not a general-purpose UI kit, a CSS framework, a hosted service, or an API. There is no SDK, no pricing, and no account required to use anything here",
+    text: "UICapsule is not a general-purpose UI kit, a CSS framework, a hosted service, or an API. There is no SDK, no pricing, and no account required for anything but publishing your own components",
   },
 ];
 
