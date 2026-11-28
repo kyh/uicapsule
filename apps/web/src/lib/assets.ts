@@ -10,6 +10,9 @@ if (assetsUrl === undefined || assetsUrl === "") {
 /** Public URL of a key in the `uicapsule-assets` Vercel Blob store. */
 export const assetUrl = (key: string) => `${assetsUrl}/${key}`;
 
+/** Origin every asset URL is served from, for allow-lists such as a CSP. */
+export const assetsOrigin = new URL(assetsUrl).origin;
+
 export type CoverType = "image" | "video";
 
 export interface Cover {

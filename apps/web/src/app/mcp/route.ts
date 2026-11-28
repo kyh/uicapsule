@@ -1,10 +1,18 @@
+import { registerAppResource } from "@modelcontextprotocol/ext-apps/server";
 import { McpServer, ProtocolError, createMcpHandler } from "@modelcontextprotocol/server";
 import { McpRegistrar, mcp } from "@orpc/mcp";
 import { ORPCError, os } from "@orpc/server";
+import { galleryHtml } from "@repo/mcp-app";
 import { track } from "@vercel/analytics/server";
 import { after } from "next/server";
 import { z } from "zod";
 
+import {
+  galleryResource,
+  galleryResourceContents,
+  galleryResourceMeta,
+  galleryToolMeta,
+} from "@/lib/agent/mcp-app";
 import { componentDetail, searchCatalog, serverInstructions } from "@/lib/agent/mcp-catalog";
 import {
   REPO_SKILLS,
@@ -20,7 +28,9 @@ import { siteConfig } from "@/lib/site-config";
 const tagSlugs = [...contentElements, ...contentStyles].map((filter) => filter.slug);
 const slugList = (filters: { slug: string }[]) => filters.map((filter) => filter.slug).join(", ");
 
-const readCatalog = { annotations: { openWorldHint: false, readOnlyHint: true } };
+const readCatalog = {
+  annotations: { destructiveHint: false, openWorldHint: false, readOnlyHint: true },
+};
 
 const router = {
   get_component: os
@@ -59,7 +69,8 @@ const router = {
     .meta(
       mcp.tool({
         ...readCatalog,
-        description: `Search the ${siteConfig.name} catalog by what a component does or looks like. An empty query lists everything, newest first.`,
+        _meta: galleryToolMeta,
+        description: `Search the ${siteConfig.name} catalog by what a component does or looks like. An empty query lists everything, newest first. Hosts that render MCP Apps show the results as a browsable gallery.`,
         title: "Search components",
       }),
     )
@@ -91,7 +102,7 @@ const router = {
       after(async () => {
         await track("mcp_search", {
           query: input.query?.slice(0, 100) ?? "",
-          results: results.length,
+          results: results.components.length,
           tags: input.tags?.join(",") ?? "",
         });
       });
@@ -147,6 +158,16 @@ const registerSkills = async (server: McpServer) => {
   );
 };
 
+const registerGallery = (server: McpServer) => {
+  registerAppResource(
+    server,
+    galleryResource.name,
+    galleryResource.uri,
+    { _meta: galleryResourceMeta, description: galleryResource.description },
+    () => galleryResourceContents(galleryHtml),
+  );
+};
+
 const handler = createMcpHandler(async () => {
   const server = new McpServer(
     { name: "uicapsule", version: "1.0.0" },
@@ -155,6 +176,7 @@ const handler = createMcpHandler(async () => {
 
   await registrar.register(server);
   await registerSkills(server);
+  registerGallery(server);
 
   return server;
 });

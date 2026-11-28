@@ -1066,7 +1066,7 @@ export const mcpGuide: InstallGuide = {
       title: "What is the UICapsule MCP server?",
     },
     {
-      text: "Any client that connects to a remote server over Streamable HTTP. The tools work in all of them. The skills arrive through MCP's skills extension, so they appear only in clients that support it.",
+      text: "Any client that connects to a remote server over Streamable HTTP. The tools work in all of them. The skills arrive through MCP's skills extension, so they appear only in clients that support it. Clients that render MCP Apps, Claude and ChatGPT among them, also show search results as a gallery you can browse.",
       title: "Which agents work with it?",
     },
     { text: "Yes. There is no account, no key and no usage limit.", title: "Is it free?" },

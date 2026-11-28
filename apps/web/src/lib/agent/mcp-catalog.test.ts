@@ -1,6 +1,8 @@
 import assert from "node:assert/strict";
 import { describe, test } from "node:test";
 
+import { galleryResultSchema } from "@repo/mcp-app/gallery-schema";
+
 import { catalogEntry, searchCatalog } from "./mcp-catalog";
 
 import type { ContentComponentSummary } from "@/lib/content/content-schema";
@@ -30,7 +32,8 @@ const catalog: ContentComponentSummary[] = [
   ]),
 ];
 
-const slugs = (entries: { slug: string }[]) => entries.map((entry) => entry.slug);
+const slugs = ({ components }: { components: { slug: string }[] }) =>
+  components.map((entry) => entry.slug);
 
 describe("searchCatalog", () => {
   test("lists everything in catalog order for an empty query", () => {
@@ -61,7 +64,26 @@ describe("searchCatalog", () => {
   });
 
   test("honours the limit", () => {
-    assert.equal(searchCatalog(catalog, { limit: 1 }).length, 1);
+    assert.equal(searchCatalog(catalog, { limit: 1 }).components.length, 1);
+  });
+
+  test("returns what the gallery view parses", () => {
+    const result = galleryResultSchema.parse(searchCatalog(catalog, { limit: 10 }));
+    assert.equal(result.components.length, catalog.length);
+  });
+
+  test("gives a video cover its still as the poster", () => {
+    const [knob] = searchCatalog([{ ...(catalog[0] ?? assert.fail()), cover: "knob/knob.mp4" }], {
+      limit: 1,
+    }).components;
+
+    assert.equal(knob?.cover?.type, "video");
+    assert.ok(knob?.cover?.type === "video" && knob.cover.poster.endsWith("/knob/knob.jpg"));
+    assert.ok(knob.cover.url.endsWith("/knob/knob.mp4"));
+  });
+
+  test("leaves the cover out for a component without one", () => {
+    assert.equal(searchCatalog(catalog, { limit: 1 }).components[0]?.cover, undefined);
   });
 });
 

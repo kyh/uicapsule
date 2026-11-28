@@ -17,7 +17,8 @@ One server, two jobs for your agent:
 - **Build better UI.** Skills for motion, gestures, accessibility, typography, color, layout,
   copy and interface review, served over MCP's skills extension (`skills/list`).
 - **Start from a component.** `search_components` and `get_component` find UICapsule components
-  by what they do and return their source and shadcn install command.
+  by what they do and return their source and shadcn install command. In clients that render MCP
+  Apps, search results open as a browsable gallery.
 
 Add it:
 
