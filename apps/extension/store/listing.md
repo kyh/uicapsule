@@ -11,20 +11,20 @@ Item ID: `gnmicdmjhhjjpfjmfliegaeondebgick`. Every field the dashboard asks for,
 
 ## Store listing
 
-| Field              | Value                                                                                                                     |
-| ------------------ | ------------------------------------------------------------------------------------------------------------------------- |
-| Description        | The block below                                                                                                           |
-| Category           | Developer Tools                                                                                                           |
-| Language           | English                                                                                                                   |
-| Store icon         | `store-icon-128.png`                                                                                                      |
-| Screenshots        | `screenshot-1-snap.png`, `screenshot-2-describe.png`, `screenshot-3-filed.png`, `screenshot-4-toolbar.png`, in that order |
-| Small promo tile   | `promo-small-440x280.png`                                                                                                 |
-| Marquee promo tile | `promo-marquee-1400x560.png`                                                                                              |
-| Global promo video | Leave empty                                                                                                               |
-| Official URL       | None, unless uicapsule.com is verified in Search Console under the same Google account                                    |
-| Homepage URL       | `https://www.uicapsule.com/install/extension`                                                                             |
-| Support URL        | `https://github.com/kyh/uicapsule/issues`                                                                                 |
-| Mature content     | Off                                                                                                                       |
+| Field              | Value                                                                                                                      |
+| ------------------ | -------------------------------------------------------------------------------------------------------------------------- |
+| Description        | The block below                                                                                                            |
+| Category           | Developer Tools                                                                                                            |
+| Language           | English                                                                                                                    |
+| Store icon         | `store-icon-128.png`                                                                                                       |
+| Screenshots        | `screenshot-1-snap.png`, `screenshot-2-annotate.png`, `screenshot-3-describe.png`, `screenshot-4-filed.png`, in that order |
+| Small promo tile   | `promo-small-440x280.png`                                                                                                  |
+| Marquee promo tile | `promo-marquee-1400x560.png`                                                                                               |
+| Global promo video | Leave empty                                                                                                                |
+| Official URL       | None, unless uicapsule.com is verified in Search Console under the same Google account                                     |
+| Homepage URL       | `https://www.uicapsule.com/install/extension`                                                                              |
+| Support URL        | `https://github.com/kyh/uicapsule/issues`                                                                                  |
+| Mature content     | Off                                                                                                                        |
 
 Name and summary come from the manifest: "UICapsule" and "Select part of any page and request it as a UICapsule component."
 
@@ -34,8 +34,10 @@ Description:
 See an interaction you want built? UICapsule lets you select it on any web page and file it as a component request for the UICapsule gallery, with a screenshot and a link back to where you saw it.
 
 HOW IT WORKS
-• Capture a region (Alt+Shift+R, or Option+Shift+R on Mac): hover to highlight an element and click to snap to it, or drag a box. Move or resize it, then press Save or Enter.
-• Capture the visible area (Alt+Shift+V): grab everything on screen in one go.
+• Click the toolbar icon (or press Alt+Shift+R, Option+Shift+R on Mac) to open the inspect bar at the bottom of the page.
+• Hover to highlight an element and click to snap to it, or drag a box and move or resize it. Or press V (Alt+Shift+V from anywhere) to take the whole visible area.
+• Switch to Annotate to draw arrows, sketch, or pin notes on top. The screenshot grows to include what you draw.
+• Press Request (or Enter) when it's ready.
 • Right-click any image or video and choose "Request from this image" or "Request from this video".
 • Name the component, describe what it does, add a credit name and link if you want one, and press File request.
 
@@ -120,5 +122,5 @@ Privacy policy URL: `https://www.uicapsule.com/privacy`
 ## Test instructions (if the dashboard has this tab)
 
 ```text
-No account or sign-in. Open any web page, press Alt+Shift+R (Option+Shift+R on Mac) or click the toolbar icon and choose Capture region. Click an element, press Enter, fill in a name and description, and press File request. The request is posted as a public issue at https://github.com/kyh/uicapsule/issues?q=label%3Arequest. Please file test requests with "Chrome review" in the name so we can close them.
+No account or sign-in. Open any web page, click the toolbar icon (or press Alt+Shift+R, Option+Shift+R on Mac) to open the inspect bar at the bottom of the page. Click an element, press Enter, fill in a name and description, and press File request. The request is posted as a public issue at https://github.com/kyh/uicapsule/issues?q=label%3Arequest. Please file test requests with "Chrome review" in the name so we can close them.
 ```

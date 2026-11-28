@@ -15,6 +15,7 @@
   "dependencies": {
     "@orpc/client": "catalog:",
     "@repo/contract": "workspace:^",
+    "@repo/inspector": "workspace:^",
     "@repo/ui": "workspace:^",
     "cn": "catalog:",
     "lucide-react": "catalog:",

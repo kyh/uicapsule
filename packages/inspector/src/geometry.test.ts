@@ -1,7 +1,14 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 
-import { clampToViewport, moveRect, rectFromPoints, resizeRect, toImagePixels } from "./geometry";
+import {
+  clampToViewport,
+  moveRect,
+  rectFromPoints,
+  resizeRect,
+  toImagePixels,
+  unionRect,
+} from "./geometry";
 
 const viewport = { height: 800, width: 1200 };
 
@@ -64,4 +71,11 @@ test("an edge handle only moves its own edge", () => {
     x: 100,
     y: 140,
   });
+});
+
+test("a union holds both rects, whichever side each sits on", () => {
+  assert.deepEqual(
+    unionRect({ height: 10, width: 10, x: 50, y: 50 }, { height: 5, width: 5, x: 0, y: 70 }),
+    { height: 25, width: 60, x: 0, y: 50 },
+  );
 });

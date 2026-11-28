@@ -3,14 +3,13 @@ import { componentRequestSchema } from "@repo/contract/request/request-schema";
 import { fileRequest, uploadAttachment } from "@/lib/api";
 import { cropScreenshot, downloadVideo } from "@/lib/capture";
 import { decodeFile, encodeBlob } from "@/lib/encoding";
-import { clampToViewport } from "@/lib/geometry";
+import { clampToViewport } from "@repo/inspector/geometry";
 import { workerRequestSchema } from "@/lib/messages";
 import type {
   FileResult,
+  OverlayMessage,
   OverlayStart,
-  RunResult,
   SubmitResult,
-  Tool,
   WorkerRequest,
 } from "@/lib/messages";
 import { serviceUrlItem } from "@/lib/storage";
@@ -91,10 +90,6 @@ const handle = async (request: WorkerRequest, windowId: number | undefined) => {
       return await submit(request);
     }
 
-    case "run": {
-      return await startOverlay(request.tabId, { tool: request.tool });
-    }
-
     case "options": {
       await browser.runtime.openOptionsPage();
 
@@ -135,7 +130,7 @@ const MENUS = {
 const COMMANDS = {
   "capture-region": "region",
   "capture-visible": "visible",
-} satisfies Record<string, Tool>;
+} satisfies Record<string, OverlayStart["tool"]>;
 
 const isCommand = (command: string): command is keyof typeof COMMANDS =>
   Object.hasOwn(COMMANDS, command);
@@ -150,19 +145,15 @@ const createMenus = async () => {
 
 const isMenu = (id: string): id is keyof typeof MENUS => Object.hasOwn(MENUS, id);
 
-const startOverlay = async (tabId: number, start: Omit<OverlayStart, "type">) => {
+const sendToOverlay = async (tabId: number, message: OverlayMessage) => {
   try {
     await browser.scripting.executeScript({ files: ["/overlay.js"], target: { tabId } });
-    await browser.tabs.sendMessage(tabId, { ...start, type: "overlay:start" });
+    await browser.tabs.sendMessage(tabId, message);
     await browser.action.setBadgeText({ tabId, text: "" });
     await browser.action.setTitle({ tabId, title: TITLE });
-
-    return { ok: true } satisfies RunResult;
   } catch {
     await browser.action.setBadgeText({ tabId, text: "!" });
     await browser.action.setTitle({ tabId, title: UNREACHABLE });
-
-    return { ok: false, reason: UNREACHABLE } satisfies RunResult;
   }
 };
 
@@ -175,13 +166,19 @@ export default defineBackground(() => {
     const id = String(info.menuItemId);
 
     if (tab?.id !== undefined && isMenu(id)) {
-      void startOverlay(tab.id, { src: info.srcUrl, tool: MENUS[id].tool });
+      void sendToOverlay(tab.id, { src: info.srcUrl, tool: MENUS[id].tool, type: "overlay:start" });
+    }
+  });
+
+  browser.action.onClicked.addListener((tab) => {
+    if (tab.id !== undefined) {
+      void sendToOverlay(tab.id, { type: "overlay:toggle" });
     }
   });
 
   browser.commands.onCommand.addListener((command, tab) => {
     if (isCommand(command) && tab?.id !== undefined) {
-      void startOverlay(tab.id, { tool: COMMANDS[command] });
+      void sendToOverlay(tab.id, { tool: COMMANDS[command], type: "overlay:start" });
     }
   });
 

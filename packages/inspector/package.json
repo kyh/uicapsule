@@ -1,0 +1,35 @@
+{
+  "name": "@repo/inspector",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    "./annotation-layer": "./src/annotation-layer.tsx",
+    "./annotations": "./src/annotations.ts",
+    "./element-picker": "./src/element-picker.tsx",
+    "./geometry": "./src/geometry.ts",
+    "./inspect-bar": "./src/inspect-bar.tsx",
+    "./inspector-root": "./src/inspector-root.tsx",
+    "./selection": "./src/selection.ts",
+    "./styles": "./src/styles.ts",
+    "./use-annotations": "./src/use-annotations.ts"
+  },
+  "scripts": {
+    "clean": "git clean -xdf .cache .turbo node_modules",
+    "test": "node --import tsx --test 'src/**/*.test.ts'",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "lucide-react": "catalog:"
+  },
+  "devDependencies": {
+    "@kyh/tsconfig": "catalog:",
+    "@types/node": "catalog:",
+    "@types/react": "catalog:",
+    "tsx": "catalog:",
+    "typescript": "catalog:"
+  },
+  "peerDependencies": {
+    "react": "catalog:"
+  }
+}

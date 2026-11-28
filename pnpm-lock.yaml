@@ -374,6 +374,9 @@ importers:
       '@repo/contract':
         specifier: workspace:^
         version: link:../../packages/contract
+      '@repo/inspector':
+        specifier: workspace:^
+        version: link:../../packages/inspector
       '@repo/ui':
         specifier: workspace:^
         version: link:../../packages/ui
@@ -1925,6 +1928,31 @@ importers:
       drizzle-kit:
         specifier: 'catalog:'
         version: 1.0.0-rc.4
+      typescript:
+        specifier: 'catalog:'
+        version: 7.0.2
+
+  packages/inspector:
+    dependencies:
+      lucide-react:
+        specifier: 'catalog:'
+        version: 1.77.0(@types/react@19.3.0)(react@19.3.1)
+      react:
+        specifier: 'catalog:'
+        version: 19.3.1
+    devDependencies:
+      '@kyh/tsconfig':
+        specifier: 'catalog:'
+        version: 1.3.0
+      '@types/node':
+        specifier: 'catalog:'
+        version: 24.19.2
+      '@types/react':
+        specifier: 'catalog:'
+        version: 19.3.0
+      tsx:
+        specifier: 'catalog:'
+        version: 4.23.15
       typescript:
         specifier: 'catalog:'
         version: 7.0.2

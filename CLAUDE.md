@@ -15,6 +15,7 @@ packages/
   service/       # oRPC implementation of the contract + better-auth
   db/            # Drizzle ORM + Turso (libSQL)
   ui/            # shadcn-derived components on Base UI
+  inspector/     # Inspect bar, element picker, annotations: shared by the extension and web app
   mcp-app/       # MCP App views for /mcp: React built to one inline HTML file
 content/         # Gallery components — one workspace package per slug
 ```
@@ -204,13 +205,16 @@ PATs allowed, repo write access required), capped at 4MB by Vercel's request-bod
 Visitor text has `@` neutralized so it can't trigger the `@claude` workflow.
 
 **Browser extension** (`apps/extension`, WXT, scaffolded from kyh/init's) works like Pond's
-(raphaelsalaja/pond): the toolbar icon opens a popup of commands (Capture region, Capture visible
-area, Shortcuts, Settings), mirrored by keyboard commands (⌥⇧R, ⌥⇧V) and the right-click menu,
-which adds "Request from this image/video". Each runs `entrypoints/overlay.ts` in the tab
-(`lib/overlay/`, vanilla DOM in a closed shadow root so no page CSS or framework leaks either way):
-the region picker highlights the element under the pointer, a click snaps to it, a drag draws a
-box, and handles move or resize it before Save/Enter; then a request dialog over the page, then a
-toast. The background crops `captureVisibleTab` to the box; files cross to it as base64
+(raphaelsalaja/pond) with Mesurer's inspect bar: the toolbar icon toggles a bar at the bottom of
+the page, as do the keyboard commands (⌥⇧R, ⌥⇧V) and the right-click menu, which adds "Request
+from this image/video". Each runs `entrypoints/overlay.ts` in the tab (`lib/overlay/`, React in an
+open shadow root so no page CSS leaks either way; open because a closed root hides the focused
+field from window key listeners). The bar's UI lives in `packages/inspector` (`@repo/inspector`,
+plain CSS scoped under `.uic-inspector` so it works in a shadow root or the web app; subpath
+exports, no barrel), shared with the web app: Capture (Inspect: hover highlights, click snaps, drag
+draws a box, handles move or resize it; Visible area) and Annotate (Select, Arrow, Pen, Text, with
+undo). Request hides the bar's chrome, screenshots the selection grown to fit the annotations, then
+a request dialog over the page, then a toast. The background crops `captureVisibleTab` to the box; files cross to it as base64
 (`lib/encoding.ts`) and it files through the same `/api/request/attachments` + `request.create` as
 the form, adding `capture` (page URL, element selector, scrubbed HTML) that the issue body renders
 under "Captured from". Selector and HTML exist only for a snapped, unadjusted box. Settings
