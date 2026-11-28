@@ -47,6 +47,33 @@ The session names one issue. Differences from a local run:
 - §6's comments are your final reply: eve posts it on the issue, so don't `gh issue comment`.
   The label edits still go through `gh`.
 
+### Variants and PR videos (eve only)
+
+Every agent PR carries the request plus two alternatives, each with its own video:
+
+- **Three variants, one component.** Build the closest reading of the request as the primary,
+  then two alternatives that answer the same brief differently, following the `variant`
+  skill's rule: one axis (usually the interaction or motion idea, not color), each direction
+  named for what it is (`Spring`, `Magnetic`, never `B`). They ship behind one `variant`
+  select control, primary as its default, per `build-content`'s controls rule: no in-frame
+  picker. All three clear the same floor; one that can't is dropped and replaced.
+- **One take per variant.** Record each per `build-content` §4 (1280×800, 60fps), switching
+  with `eval "window.postMessage({type:'uicapsule:props',values:{variant:'<name>'}},'*')"`
+  before `record start`, and frame-check each take the same way.
+- **Videos, not the GIF.** Skip `publish-recording.sh`. Encode each take for the PR, under
+  10 MB:
+  `ffmpeg -y -v error -i <raw>.mp4 -vf scale=1280:-2 -c:v libx264 -crf 26 -preset slow -pix_fmt yuv420p -an -movflags +faststart <scratch>/<slug>-<variant>.mp4`
+  then upload each with the `attach-video` tool. Its URL, alone on a line, is a video player in
+  the PR body.
+- **PR body:** replace `build-content`'s "Preview recording" section with "Preview
+  recordings": a `### <Variant>` heading per variant (primary first, marked as the default),
+  one sentence on how it differs, then its URL on its own line. End with: "Comment
+  `@<bot> keep <variant>` to drop the others."
+- **Done gate** §5 line 2 becomes: every variant's take is ≥ 8s and has an `attach-video` URL,
+  and `gh pr view --json body` shows each URL. The cover (`cover-video`) records the primary.
+- **`keep <variant>`** from the owner: delete the other variants and the `variant` control,
+  re-run `pnpm verify`, push, and edit the PR body to keep only that video.
+
 ## 1. Queue
 
 ```bash

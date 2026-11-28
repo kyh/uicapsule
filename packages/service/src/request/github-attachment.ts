@@ -1,11 +1,7 @@
 import "server-only";
-import { ATTACHMENT_URL_PREFIX } from "@repo/contract/request/attachment-schema";
 import type { AttachmentMeta } from "@repo/contract/request/attachment-schema";
-import { z } from "zod";
 
-const REQUESTS_REPO_ID = 329_844_766;
-
-const uploadedAssetSchema = z.object({ url: z.string().startsWith(ATTACHMENT_URL_PREFIX) });
+import { postUserAttachment } from "./github-upload";
 
 export class AttachmentUploadError extends Error {
   readonly status: 503 | 500;
@@ -30,39 +26,17 @@ export const uploadAttachment = async (
     throw unavailable("Attachments are temporarily unavailable. Add a link instead.");
   }
 
-  const url = new URL("https://uploads.github.com/user-attachments/assets");
-  url.searchParams.set("name", meta.name);
-  url.searchParams.set("content_type", meta.type);
-  url.searchParams.set("repository_id", String(REQUESTS_REPO_ID));
+  const result = await postUserAttachment({ body, name: meta.name, send, token, type: meta.type });
 
-  let response: Response;
-
-  try {
-    response = await send(url, {
-      body,
-      headers: {
-        Accept: "application/vnd.github+json",
-        Authorization: `Bearer ${token}`,
-        "Content-Type": "application/octet-stream",
-      },
-      method: "POST",
-      signal: AbortSignal.timeout(30_000),
-    });
-  } catch (error) {
-    console.error("Attachment upload failed", error);
-    throw unavailable("Unable to upload the file. Try again or add a link instead.");
+  if (result.kind === "uploaded") {
+    return result.url;
   }
 
-  if (!response.ok) {
-    console.error("Attachment upload failed", response.status, await response.text());
-    throw unavailable("Unable to upload the file. Try again or add a link instead.");
-  }
+  console.error("Attachment upload failed", result.cause);
 
-  const parsed = uploadedAssetSchema.safeParse(await response.json());
-
-  if (!parsed.success) {
+  if (result.kind === "malformed") {
     throw new AttachmentUploadError("GitHub returned an unexpected response.", 500);
   }
 
-  return parsed.data.url;
+  throw unavailable("Unable to upload the file. Try again or add a link instead.");
 };
