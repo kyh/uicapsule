@@ -174,8 +174,12 @@ only the extension origins in `EXTENSION_ORIGINS`. The dev build pins its ID
 @repo/extension zip` (`--mode store`) drops it, so the Web Store ID must be added to
 `EXTENSION_ORIGINS` too.
 
-Triage is manual: apply `ready` to accept, close as not-planned to decline. The
-`build-requests` skill drains `ready` issues into PRs (run locally, on a schedule).
+Triage is manual: apply `ready` to accept, close as not-planned to decline. Applying `ready`
+starts `.github/workflows/build-request.yml`, which runs the `build-requests` skill for that
+issue through `claude-code-action` (dev server, headless agent-browser, ffmpeg, Blob upload on
+the runner; needs the `CLAUDE_CODE_OAUTH_TOKEN` and `BLOB_READ_WRITE_TOKEN` secrets) and opens a
+PR that closes it. A failed run removes `building` and comments; re-apply `ready` or dispatch
+the workflow with the issue number to retry. The skill still drains the queue locally.
 
 ### Agent-readable surfaces
 

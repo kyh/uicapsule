@@ -1,0 +1,95 @@
+name: Build request
+
+# Labelling an issue `ready` builds it: the build-requests skill runs for that one issue on a
+# fresh runner (dev server, headless browser, ffmpeg, Blob upload) and opens a PR that closes
+# it. Only someone with triage access can apply a label, and the action re-checks that the
+# labeller has write access, so visitor-filed text never starts a run on its own.
+on:
+  issues:
+    types: [labeled]
+  workflow_dispatch:
+    inputs:
+      issue:
+        description: Issue number to build (re-runs a failed request)
+        required: true
+        type: number
+
+concurrency:
+  group: build-request-${{ github.event.issue.number || inputs.issue }}
+  cancel-in-progress: false
+
+jobs:
+  build:
+    if: github.event_name == 'workflow_dispatch' || github.event.label.name == 'ready'
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    permissions:
+      contents: write
+      issues: write
+      pull-requests: write
+      id-token: write
+      actions: read
+    env:
+      ISSUE_NUMBER: ${{ github.event.issue.number || inputs.issue }}
+      TURBO_TELEMETRY_DISABLED: 1
+      TURSO_DATABASE_URL: http://127.0.0.1:8080
+      TURSO_AUTH_TOKEN: ""
+      BETTER_AUTH_SECRET: uicapsule-ci-only-secret-for-request-builds
+      BETTER_AUTH_URL: http://localhost:3000
+      NEXT_PUBLIC_ASSETS_URL: https://d24l2zb4cwkekfpl.public.blob.vercel-storage.com
+      BLOB_READ_WRITE_TOKEN: ${{ secrets.BLOB_READ_WRITE_TOKEN }}
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          ref: main
+          fetch-depth: 0
+
+      - uses: pnpm/setup@v2
+        with:
+          runtime: node@24
+          cache: true
+
+      - run: touch .env
+
+      - run: pnpm install --frozen-lockfile
+
+      - name: Install recording tools
+        run: |
+          sudo apt-get update -q
+          sudo apt-get install -y -q ffmpeg
+          npm i -g agent-browser@latest vercel@latest
+          agent-browser install --with-deps
+          agent-browser --version
+          ffmpeg -version | head -1
+
+      - name: Start dev server
+        run: |
+          pnpm dev:web > "$RUNNER_TEMP/dev.log" 2>&1 &
+          curl --fail --silent --retry 90 --retry-delay 2 --retry-all-errors --max-time 5 \
+            --output /dev/null http://localhost:3000/
+
+      - name: Build the request
+        uses: anthropics/claude-code-action@v1
+        with:
+          claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+          prompt: |
+            Follow .claude/skills/build-requests/SKILL.md for issue #${{ env.ISSUE_NUMBER }} only,
+            in its "Running in GitHub Actions" mode. The dev server is already up on :3000
+            (log: ${{ runner.temp }}/dev.log). Use ${{ runner.temp }}/scratch for scratch files.
+          claude_args: |
+            --max-turns 400
+            --allowedTools "Bash(pnpm:*),Bash(git:*),Bash(gh issue:*),Bash(gh pr:*),Bash(agent-browser:*),Bash(ffmpeg:*),Bash(ffprobe:*),Bash(vercel blob put:*),Bash(.claude/skills/build-content/scripts/publish-recording.sh:*)"
+          additional_permissions: |
+            actions: read
+
+      - name: Dev server log
+        if: failure()
+        run: tail -200 "$RUNNER_TEMP/dev.log"
+
+      - name: Release the issue on failure
+        if: failure() || cancelled()
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh issue edit "$ISSUE_NUMBER" --remove-label building || true
+          gh issue comment "$ISSUE_NUMBER" --body "Build run failed: $GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID. Re-apply \`ready\` to retry."

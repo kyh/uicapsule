@@ -18,7 +18,7 @@ python3 -c "exit(0 if float('$DUR') >= 8 else 1)" || {
 ffmpeg -y -v error -i "$SRC" \
   -vf "fps=12,scale=800:-1:flags=lanczos,split[s0][s1];[s0]palettegen=max_colors=128[p];[s1][p]paletteuse=dither=bayer" \
   "$GIF"
-echo "gif: $GIF ($(stat -f%z "$GIF") bytes, ${DUR}s source)"
+echo "gif: $GIF ($(wc -c < "$GIF" | tr -d " ") bytes, ${DUR}s source)"
 
 cd "$REPO_ROOT"
 git fetch -q origin "$ASSETS_BRANCH"
@@ -29,7 +29,9 @@ git -C "$WT" add "$SLUG.gif"
 git -C "$WT" commit -qm "chore: preview recording for $SLUG
 
 Co-Authored-By: Claude Fable 5 <noreply@anthropic.com>"
-git -C "$WT" -c http.postBuffer=157286400 push -q origin "HEAD:$ASSETS_BRANCH"
+push() { git -C "$WT" -c http.postBuffer=157286400 push -q origin "HEAD:$ASSETS_BRANCH"; }
+push || { git -C "$WT" pull -q --rebase origin "$ASSETS_BRANCH" && push; } || {
+  sleep 5; git -C "$WT" pull -q --rebase origin "$ASSETS_BRANCH" && push; }
 
 URL="https://raw.githubusercontent.com/kyh/uicapsule/$ASSETS_BRANCH/$SLUG.gif"
 CODE_TYPE=$(curl -s -o /dev/null -w "%{http_code} %{content_type}" "$URL")
