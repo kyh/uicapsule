@@ -93,7 +93,7 @@ export const publishTools = (signedIn: Publisher | null) => {
     list_my_components: os
       .meta(
         mcp.tool({
-          annotations: { openWorldHint: false, readOnlyHint: true },
+          annotations: { destructiveHint: false, openWorldHint: false, readOnlyHint: true },
           description: `${SIGN_IN_NOTE} List the components this account has published, newest first.`,
           title: "List my components",
         }),

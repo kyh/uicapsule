@@ -213,7 +213,7 @@ export const contactPage: ProsePage = {
   title: "Contact",
 };
 
-const PRIVACY_DATE = "November 24, 2026";
+const PRIVACY_DATE = "November 27, 2026";
 const TERMS_DATE = "October 3, 2026";
 
 const EMAIL = `[${siteConfig.email}](mailto:${siteConfig.email})`;
@@ -752,6 +752,9 @@ export const privacyPage: ProsePage = {
       'Kaiyu Hsu ("**UICapsule**," "**we**," "**us**" or "**our**") provides UICapsule, a curated gallery of open-source UI components. This Privacy Policy describes how UICapsule processes personal information that we collect through our digital or online properties or services that link to this Privacy Policy (including, as applicable, our website at www.uicapsule.com, our shadcn component registry, our MCP server and our browser extension) and the other activities described in this Privacy Policy (collectively, the "**Service**").',
     ),
     p(
+      "The use of information received from the UICapsule browser extension adheres to the [Chrome Web Store User Data Policy](https://developer.chrome.com/docs/webstore/program-policies/user-data-faq), including the Limited Use requirements.",
+    ),
+    p(
       `**Notice to European users**: Please see the ${anchorTo(privacySection.europe)} section below for additional information for individuals located in the European Economic Area or United Kingdom (which we refer to as "**Europe**", and "**European**" should be understood accordingly).`,
     ),
     p(
@@ -1064,7 +1067,7 @@ export const mcpGuide: InstallGuide = {
       title: "What is the UICapsule MCP server?",
     },
     {
-      text: "Any client that connects to a remote server over Streamable HTTP. The tools work in all of them. The skills arrive through MCP's skills extension, so they appear only in clients that support it.",
+      text: "Any client that connects to a remote server over Streamable HTTP. The tools work in all of them. The skills arrive through MCP's skills extension, so they appear only in clients that support it. Clients that render MCP Apps, Claude and ChatGPT among them, also show search results as a gallery you can browse.",
       title: "Which agents work with it?",
     },
     {
@@ -1214,7 +1217,7 @@ export const extensionGuide: InstallGuide = {
   featuresHeading: "What it does",
   guarantees: [
     {
-      text: "A request is filed only when you press Save. Nothing is sent while you look around.",
+      text: "A request is filed only when you press **File request**. Nothing is sent while you look around.",
       title: "You decide when",
     },
     {
@@ -1222,7 +1225,7 @@ export const extensionGuide: InstallGuide = {
       title: "What it sends",
     },
     {
-      text: "No account needed. Add a name and link in Settings if you want credit.",
+      text: "No account needed. Add a name and link in the request if you want credit; the extension remembers them for next time.",
       title: "No sign-in",
     },
     {

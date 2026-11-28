@@ -1,162 +1,184 @@
-const INK = "rgb(21 18 14 / 0.8)";
-const INK_60 = "rgb(21 18 14 / 0.62)";
-const NIGHT_INK = "#f3f0ea";
-const PAGE = "#f7f5f0";
-const NIGHT_PAGE = "#0d0c0a";
-const SANS = "'Vellum Sans', Geist, Inter, -apple-system, sans-serif";
-const MARK = `<svg viewBox="0 0 22 22" style="width:0.62em;height:0.62em;margin-right:0.2em;vertical-align:-0.02em"><rect fill="#efece5" height="22" rx="7" width="22"/><rect fill="#fffefb" height="16" rx="4.5" stroke="rgb(21 18 14 / 0.06)" width="16" x="3" y="3"/><rect fill="rgb(21 18 14 / 0.8)" height="1.5" rx="0.75" width="10" x="6" y="8"/><rect fill="rgb(21 18 14 / 0.45)" height="1.5" rx="0.75" width="7" x="6" y="11.5"/></svg>`;
+const GROUND = "#f7f5f0";
 
-// Captions sit on a strip of the screen's own ground, drawn inside each shot so the dark wipe
-// carries its strip with it.
-const BAND = 210;
+const TIGHT = { density: "compact", radiusScale: 0.3 };
 
-// 816px is the widest frame that keeps the In-use screens in one column (two from 820).
-const page = (anchor, theme, view, ground) => ({
+const screen = (anchor, settings, view, size = {}) => ({
   anchor,
-  width: 816,
-  height: 1000,
-  props: { theme, reducedMotion: true },
+  props: { theme: "light", reducedMotion: true, ...settings },
   view,
   clamp: false,
-  band: { height: BAND, color: ground },
+  ...size,
 });
 
-// The screens sit in a 16px gutter of document paper, so no framing goes below 2.04x, where the
-// screen's own ground fills the stage edge to edge.
-const ROUTING = { x: 408, y: 312, scale: 2.04 };
-const ROUTING_IN = { x: 408, y: 300, scale: 2.2 };
-const TRIAGE_TOP = { x: 408, y: 283, scale: 2.25 };
-const TRIAGE = { x: 408, y: 406, scale: 2.24 };
+// Density is a discrete control, so a step reflows the whole layout in one frame. Each breathing
+// shot loads the dev frame's own shell plus a listener that eases the tokens behind density and
+// radius itself: `space` (0 compact, 0.5 default, 1 comfortable) interpolates the density
+// tokens between the values the page's compact and comfortable blocks resolve to, and `radius`
+// is --radius-scale. Posts carrying only those keys stop here, so React never re-renders.
+// The override is scoped to the shot's own screen, redeclaring the tokens derived from
+// --radius-scale there (custom properties inherit resolved): restyling and reflowing the whole
+// page every frame halved the take's frame rate, and the screens above would push it down.
+// Density only moves control and row heights; Action items is a padded stack, so its rows hold.
+const BREATH_TOKENS = ["--control-sm", "--control", "--control-lg", "--row"];
+function breathShell(scope, tokens) {
+  const style = document.createElement("style");
+  const live = {};
+  let base = null;
+  const resolve = (density) => {
+    const probe = document.createElement("div");
+    probe.className = "ds-vellum";
+    probe.dataset.density = density;
+    probe.style.cssText = "position:absolute;visibility:hidden";
+    document.body.append(probe);
+    const css = getComputedStyle(probe);
+    const values = tokens.map((token) => Number.parseFloat(css.getPropertyValue(token)));
+    probe.remove();
+    return values;
+  };
+  const derived = (rules, out) => {
+    for (const rule of rules) {
+      if (rule.cssRules) derived(rule.cssRules, out);
+      if (rule.selectorText !== ".ds-vellum") continue;
+      for (const name of rule.style) {
+        const value = rule.style.getPropertyValue(name);
+        if (name.startsWith("--") && value.includes("var(--radius-scale")) {
+          out.push(`${name}:${value}`);
+        }
+      }
+    }
+    return out;
+  };
+  addEventListener("message", (event) => {
+    const values = event.data?.type === "uicapsule:props" ? event.data.values : null;
+    if (!values || !("space" in values || "radius" in values)) return;
+    Object.assign(live, values);
+    base ??= {
+      lo: resolve("compact"),
+      hi: resolve("comfortable"),
+      radii: [...document.styleSheets].flatMap((sheet) => derived(sheet.cssRules, [])),
+    };
+    const rules = tokens.map(
+      (token, i) =>
+        `${token}:${(base.lo[i] + (base.hi[i] - base.lo[i]) * live.space).toFixed(3)}px!important`,
+    );
+    rules.push(`--radius-scale:${live.radius.toFixed(4)}!important`, ...base.radii);
+    style.textContent = `#${scope}{${rules.join(";")}}`;
+    if (!style.isConnected) document.head.append(style);
+    if (Object.keys(values).every((key) => key === "space" || key === "radius")) {
+      event.stopImmediatePropagation();
+    }
+  });
+}
+const DEV = "http://localhost:5174";
+const breathingShell = (slug, scope) =>
+  `data:text/html;charset=utf-8,${encodeURIComponent(`<!doctype html>
+<html lang="en" class="h-full">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script>document.documentElement.classList.add(matchMedia("(prefers-color-scheme: dark)").matches?"dark":"light");(${breathShell})(${JSON.stringify(scope)},${JSON.stringify(BREATH_TOKENS)})</script>
+<script type="module">import RefreshRuntime from "${DEV}/@react-refresh";RefreshRuntime.injectIntoGlobalHook(window);window.$RefreshReg$ = () => {};window.$RefreshSig$ = () => (type) => type;window.__vite_plugin_react_preamble_installed__ = true;</script>
+<script type="module" src="${DEV}/@vite/client"></script>
+<script type="module" src="${DEV}/@preview/${slug}.js"></script>
+</head>
+<body class="bg-background text-foreground font-sans antialiased h-full">
+<div id="root" style="display:contents"></div>
+</body>
+</html>`)}`;
 
-const TITLE = { html: true, kind: "title", reveal: "mask", y: 420, size: 132, tracking: -0.035 };
-const LINE = {
-  kind: "caption",
-  reveal: "mask",
-  scrim: false,
-  align: "center",
-  valign: "top",
-  x: 800,
-  y: 520,
-  size: 34,
-  weight: 400,
-  color: INK_60,
+// 816px keeps the In-use screens in one column (two from 820), so a screen's own ground fills
+// the stage edge to edge from 2.04x.
+const NARROW = { width: 816, height: 1000 };
+
+// Chrome rounds a frame's on-stage offset to whole pixels, so every view is the point at the
+// stage centre and a scale, with the iframe's top-left corner rounded to a whole pixel. A move
+// between two such views starts and lands without a one-pixel snap.
+const at = (cx, cy, scale) => {
+  const ox = Math.round(800 - cx * scale);
+  const oy = Math.round(450 - cy * scale);
+  return { x: (800 - ox) / scale, y: (450 - oy) / scale, scale };
 };
 
-// A paper sheet as one masked line. A mask exit also fades, so it lifts off translucent, the way
-// vellum does, and lays back down opaque.
-const SHEET = {
-  html: true,
-  kind: "caption",
-  reveal: "mask",
-  scrim: false,
-  text: `<div style="width:1600px;height:900px;background:${PAGE};box-shadow:0 18px 40px -12px rgb(21 18 14 / 0.28)"></div>`,
-  x: 0,
-  y: 0,
-  align: "left",
-  valign: "top",
-  size: 0,
-  leading: 0,
-};
+// Each breathing shot scopes its tokens to its own section, so nothing above it reflows and the
+// anchor scroll holds. Every window's top and bottom edge sits in a gap between rows, measured
+// on trailerSeek stills in the state the shot is in when the camera gets there. Each shot keeps
+// one scale and its camera only translates: every zoom step re-rasters the framed page, and over
+// a reflow that dropped frames (Notes at 2.45 to 2.3, Triage at 2.04 to 2.43, twice).
+const DOCS_HOME = at(408, 530.5, 2.2);
+const DOCS_SOFT = at(408, 364.5, 2.2);
+const NOTES_IN = at(408, 345.65, 2.3);
+const NOTES_DOWN = at(408, 469.7, 2.3);
+const TRIAGE_WIDE = at(408, 415, 2.43);
+const TRIAGE_IN = at(408, 490, 2.43);
 
-// A caption that starts on a cut, or on a still frame, records frozen half-masked for up to
-// ~0.27s and then pops, so each one starts a beat after something is already moving.
-const caption = (at, until, text, night = false) => ({
-  kind: "caption",
-  at,
-  until,
-  text,
-  reveal: "mask",
-  align: "center",
-  valign: "middle",
-  x: 800,
-  y: BAND / 2 + 4,
-  size: 80,
-  weight: 500,
-  tracking: -0.03,
-  color: night ? NIGHT_INK : INK,
-  in: 0.75,
-  out: 0.35,
-  inEase: "arrive",
-  outEase: [0.6, 0, 0.9, 0.5],
-});
-
-// The take opens on a still title: Chrome starts the compositor animations ~0.2s late, so
-// any motion in the first moments is lost to the recording.
+// Chrome starts the compositor animations ~0.2s after trailerStart, so the take opens on a
+// still or the trim lands mid-move.
 const OPEN = 0.45;
-const CUT = 3.6;
-const WIPE = 6.4;
-const CLOSE = 9.5;
+// The push crossfades for 40% of its length; any longer and the overlap reads as a dissolve.
+const PUSH = 0.55;
+const TO_NOTES = 0.5;
+const TO_TRIAGE = 3.8;
+const TO_DOCS = 7.4;
+const EXHALE = 9.6;
+
+const TIGHT_BREATH = { space: 0, radius: TIGHT.radiusScale };
+const HALF_BREATH = { space: 0.5, radius: 1.15 };
+const SOFT_BREATH = { space: 1, radius: 2 };
+// One inhale split across the Notes→Triage push: the first half leaves at speed and the second
+// arrives at it, so the reflow never pauses on the cut.
+const INHALE_OUT = [0.42, 0, 0.82, 0.62];
+const INHALE_IN = [0.18, 0.38, 0.58, 1];
+
+const breathing = (anchor, breath, view) => ({
+  ...screen(anchor, { ...TIGHT, ...breath }, view, NARROW),
+  url: breathingShell("vellum", anchor),
+});
 
 window.trailer = {
   slug: "vellum",
-  duration: 12.5,
-  background: PAGE,
-  fonts: [
-    {
-      family: "Vellum Sans",
-      src: "file:///Users/kyh/Library/Fonts/GeistVF.ttf",
-      weight: "100 900",
-    },
-  ],
-  type: {
-    base: { family: SANS, color: INK, weight: 500 },
-  },
+  duration: 13,
+  background: GROUND,
+  // Each post restyles and re-rasters the breathing screen; at 60Hz that load dropped frames.
+  // A step is a fraction of a pixel either way, so 30Hz reads the same.
+  propRate: 30,
   shots: {
-    routing: page("s-routing", "light", ROUTING, PAGE),
-    triage: page("s-triage", "light", TRIAGE_TOP, PAGE),
-    triageDark: page("s-triage", "dark", TRIAGE, NIGHT_PAGE),
+    docs: breathing("s-docs", TIGHT_BREATH, DOCS_HOME),
+    notes: breathing("s-notes", TIGHT_BREATH, NOTES_IN),
+    triage: breathing("s-triage", HALF_BREATH, TRIAGE_WIDE),
+    // The return to Docs is its own frame, loaded soft: posting the soft state to the hidden
+    // opening shot mid-take re-rendered it and dropped a frame of the Notes drift.
+    docsBack: breathing("s-docs", SOFT_BREATH, DOCS_SOFT),
   },
   cues: [
-    { at: -1, until: OPEN + 0.95, ...SHEET, in: 0.01, out: 0.6, outEase: [0.6, 0, 0.4, 1] },
+    // Start marker: drawn only before trailerStart, so the trim finds t=0 to the frame.
     {
       at: -1,
-      until: OPEN + 0.35,
-      text: `${MARK}Vellum`,
-      ...TITLE,
+      until: 0.005,
+      html: true,
+      text: '<div style="width:1600px;height:900px;background:#000"></div>',
+      x: 0,
+      y: 0,
+      align: "left",
+      valign: "top",
+      size: 0,
+      leading: 0,
+      reveal: "fade",
       in: 0.01,
-      out: 0.35,
-      outEase: "house",
-    },
-    {
-      at: -1,
-      until: OPEN + 0.3,
-      text: "Iron-gall ink for AI products",
-      ...LINE,
-      in: 0.01,
-      out: 0.3,
-      outEase: "house",
+      out: 0.001,
     },
 
-    { at: 0, show: "routing" },
-    { at: OPEN + 0.8, camera: "routing", to: ROUTING_IN, dur: 1.8, ease: "house" },
-    caption(OPEN + 1.1, CUT, "Colour only for verdicts"),
+    { at: 0, show: "docs" },
 
-    { at: CUT, show: "triage" },
-    caption(CUT + 0.4, WIPE + 0.05, "One glossy button: the next step"),
-    { at: CUT + 0.3, camera: "triage", to: TRIAGE, dur: 2, ease: "house" },
+    { at: TO_NOTES, show: "notes", transition: "push", dur: PUSH },
+    { at: TO_NOTES + 0.15, camera: "notes", to: NOTES_DOWN, dur: 3.0, ease: "house" },
+    { at: 1.0, props: "notes", tween: HALF_BREATH, dur: TO_TRIAGE - 1.0, ease: INHALE_OUT },
 
-    {
-      at: WIPE,
-      show: "triageDark",
-      transition: "wipe",
-      dir: "down",
-      dur: 0.7,
-      ease: [0.7, 0, 0.25, 1],
-      feather: 56,
-      featherColor: "rgb(13 12 10 / 0.2)",
-    },
-    caption(WIPE + 0.35, CLOSE, "Same ink, dark paper", true),
+    { at: TO_TRIAGE, show: "triage", transition: "push", dur: PUSH },
+    { at: TO_TRIAGE, props: "triage", tween: SOFT_BREATH, dur: 2.4, ease: INHALE_IN },
+    { at: TO_TRIAGE + 0.15, camera: "triage", to: TRIAGE_IN, dur: 3.0, ease: "house" },
 
-    { at: CLOSE, ...SHEET, in: 0.45, inEase: [0.3, 0, 0.2, 1] },
-    { at: CLOSE + 0.55, text: `${MARK}Vellum`, ...TITLE, in: 0.85, inEase: [0.3, 0.5, 0.2, 1] },
-    {
-      at: CLOSE + 0.8,
-      text: "Iron-gall ink for AI products",
-      ...LINE,
-      in: 0.75,
-      inEase: [0.3, 0.5, 0.2, 1],
-    },
-    { at: CLOSE + 0.5, camera: "routing", to: ROUTING },
-    { at: CLOSE + 0.5, camera: "triage", to: TRIAGE_TOP },
+    { at: TO_DOCS, show: "docsBack", transition: "push", dur: PUSH },
+    { at: EXHALE, props: "docsBack", tween: TIGHT_BREATH, dur: 1.5, ease: "house" },
+    { at: EXHALE - 0.1, camera: "docsBack", to: DOCS_HOME, dur: 2.3, ease: "house" },
   ],
 };

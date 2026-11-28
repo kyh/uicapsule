@@ -1,101 +1,94 @@
+// Fjord's light canvas, so the stage past an iframe's edge reads as more page.
 const FOG = "#e4f0f6";
-const INK = "#102534";
-// Fjord's dark-theme canvas.
-const DEEP = "#091520";
-// Fjord's dark-theme text-1.
-const DARK_TEXT = "#e8f0f4";
-const SANS = "'Fjord Inter', Inter, -apple-system, sans-serif";
-
-const STILL = { reducedMotion: true };
+const PAGE = { theme: "light", focusHue: 244, radiusScale: 1 };
+const SCALE = 1.4;
+// Centres the 1120px product window with 16px of fog either side.
+const OX = -359;
 
 // Chrome rounds a frame's on-stage offset to whole pixels, so every view is written as the
 // offset of the iframe's top-left corner (whole px) plus a scale. A move between two such views
 // starts and lands without a one-pixel snap.
-const view = (ox, oy, scale) => ({ x: (800 - ox) / scale, y: (450 - oy) / scale, scale });
+const view = (oy) => ({ x: (800 - OX) / SCALE, y: (450 - oy) / SCALE, scale: SCALE });
 
-// Every camera is locked off and cuts carry the rhythm: slow pushes stepped the type on the pixel
-// grid, and a big push or pull snaps the frame's offset to whole pixels, so its landing stalls a
-// frame (and a push-in re-rasters as it grows, dropping to ~30fps under load).
-// The hero iframe stops above the meta rule, so the page's fog runs on under the stage and the
-// wordmark and tagline sit alone; the icon rail and the crumb bar's rule stay just off stage.
-const HERO = view(-135, -122, 2.33);
-// The whole product frame floating on the canvas, with the same 37px above and below it. The
-// section's intro would show a sliver of its last line above the frame, so a band of canvas
-// covers the top 28px.
-const RUN = view(-170, -136, 1.171875);
-const RUN_BAND = 28;
-// The merge card whole on the left, its left edge inside the 16px gap that hides the run card;
-// the window's right edge stands in frame, and the fog beyond it, out to the iframe's own edge,
-// is the captions' ground. The bottom edge falls between two lines of the code block.
-const DECISION = view(-2399, -635, 2.5);
+// The recording prepares every frame over CDP before trailerStart (prep.mjs, spin-sync.mjs,
+// freeze-arcs.mjs and take-run.mjs, kept beside the take in the cover-video scratch, not in the
+// repo): it hides each screen's heading and intro prose (.fj-screen-intro), the page's breadcrumb
+// bar and the section lede above the first window, so the camera falls from window to window and
+// never reads as a docs page; it stops every frame's 1Hz clocks on the same tick and holds the
+// "Running" spinners still at one phase, so the two frames match at the seam; and it gives the
+// tall frame keyboard focus, so a scripted focus() draws the :focus-visible ring. Stills need the same prep.
+// The coordinates are for that prepared page: windows at 64 (repo), 1024 (trace), 1800 (swap).
 
-const trace = (theme, at) => ({
-  anchor: "screen-trace",
-  width: 1600,
-  height: 900,
-  props: { theme, ...STILL },
-  view: at,
-});
+// focusHue paints exactly one thing: the 2px ring on whatever holds the keyboard. So the re-skin
+// rides on a Tab walk down the page that take-run.mjs plays inside the tall frame while the camera
+// falls: Assign, Sort, Replay, every waterfall row down to the selected merge row, Keep it open,
+// Merge, the JSON toggle, Start over, All tasks, the checkbox (ticked, which enables Sign and swap),
+// Decline, Sign and swap, Add 10 minutes. The hop times live in walk.mjs beside take-run.mjs;
+// keep them inside the windows the camera shows below. The hops stay glacier blue through the
+// first fall, the waterfall walk steps the hue 244 up through magenta to 360 and on to 40, and in
+// drift 2 the swap window tweens it to 150 while the controls' radii (radiusScale's inner and
+// control steps) double. The window and panel radii stay: each step of those re-rasters every
+// shadowed panel, and the morph dropped a dozen frames.
+// There are no props cues: walk.mjs paints those tokens itself, scoped to the focused element's
+// screen (radii to the swap screen). A prop post re-renders all ~23,000px of the page and remounts
+// the colour foundation, which is keyed on the hue; every post froze the screencast one to three
+// frames, at each hop and at 8Hz through the morph. A screen-scoped token costs a subtree recalc.
 
-const caption = ({ at, until, text, color }) => ({
-  at,
-  until,
-  text,
-  color,
-  kind: "caption",
-  x: 1136,
-  y: 450,
-  valign: "middle",
-  in: 0.6,
-  out: 0.3,
-});
+// One frame holds Repo overview, Run trace and Model swap, stacked as the page stacks them. Never
+// zoom it: a scale step re-rasters all of it and drops one frame in three. It runs 15px into the
+// next window so that its foot is still 30px on the stage when the drop ends, under the incoming
+// frame: the moment an out-of-process frame leaves the viewport, Chrome throttles it and the
+// screencast froze for 15 frames mid-drop. The incoming frame always covers that sliver.
+const fjord = { anchor: "screen-repo", height: 2560, clamp: false, props: PAGE };
 
-const WIDE_AT = 1.6;
-const CLOSE_AT = 3.3;
-const DEEP_AT = 5.75;
-const WIPE = 0.7;
-const DEEP_WIDE_AT = 8.5;
-const HOME = 10.4;
-const DURATION = 12.5;
+// The repo window's top 16px below the stage's: its header and the live agent slots. Poster.
+const TOP = view(-74);
+// The trace window's top 16px below the stage's, as the waterfall's first row comes into reach.
+const TRACE_IN = view(-1418);
+// The trace window's foot 76px above the stage's: the merge row, the footer, the JSON.
+const TRACE_OUT = view(-1595);
+// Model swap's breadcrumb bar just in: shadow comparison, Signatures.
+const SWAP_IN = view(-2474);
+// Model swap's foot 92px above the stage's: one window gap (72px at 1.4) less the next window's
+// 16px, so the drop into the repo window below meets it at the page's own spacing.
+const SWAP_OUT = view(-2654);
+// The drop carries both frames up one stage height with their cameras, not a slide: a slide parks
+// the incoming frame wholly below the stage on its first frame, where Chrome throttles it, and
+// every slide take dropped a frame on the way up. Moved by camera,
+// the repo frame waits with its top 74px on the stage (fog over the swap frame's own fog, with
+// the breadcrumb bar and lede hidden), so it is never out of view.
+const DROP_SPAN = 900;
+const SWAP_GONE = view(-2654 - DROP_SPAN);
+const TOP_LOW = view(-74 + DROP_SPAN);
+
+// The camera never rests between OPEN and the end hold: fast falls through the gaps, slow drifts
+// while the ring walks a window. The drifts run at exactly 60px/s, one whole pixel a frame, so a
+// repeated frame in them is a real drop and not the pixel grid. Each fall's ease is a cubic whose
+// end slopes match the drifts (slope = speed * dur / distance), so the joins carry one velocity.
+const OPEN = 0.45;
+const FALL_1 = { at: OPEN, dur: 3, to: TRACE_IN, ease: [0.42, 0, 0.67, 0.9558] };
+const DRIFT_1 = { at: 3.45, dur: 2.95, to: TRACE_OUT, ease: "linear" };
+const FALL_2 = { at: 6.4, dur: 1.9, to: SWAP_IN, ease: [0.33, 0.0428, 0.67, 0.9572] };
+const DRIFT_2 = { at: 8.3, dur: 3, to: SWAP_OUT, ease: "linear" };
+// The drop into the next window leaves at the drift's 60px/s and settles on the poster frame.
+const DROP = { at: 11.3, dur: 1.3, ease: [0.33, 0.0286, 0.25, 1] };
+// The repo frame turns opaque at once (this curve overshoots 1 and opacity clamps) a quarter second
+// before the drop, once the swap window's foot has cleared the strip it covers, so its first draw
+// is not on the drop's first frames; the fade's length keeps the swap frame drawn beneath to the end.
+const AT_ONCE = [0, 5, 0.1, 1];
+const SHOW_HOME = 11.05;
 
 window.trailer = {
   slug: "fjord",
-  duration: DURATION,
+  duration: 13.5,
   background: FOG,
-  fonts: [
-    {
-      family: "Fjord Inter",
-      src: "file:///Users/kyh/Library/Fonts/Inter-VariableFont_slnt%2Cwght.ttf",
-      weight: "100 900",
-    },
-  ],
-  type: {
-    base: { family: SANS, color: INK, weight: 400 },
-    caption: {
-      size: 84,
-      weight: 380,
-      tracking: -0.03,
-      leading: 1.05,
-      scrim: false,
-      reveal: "mask",
-      stagger: 0.1,
-    },
-  },
+  // The run trace plays from 3s to its gate (about 4s) and only then holds still at the same
+  // height; the anchors also scroll smoothly. Start after both, or the first and last frames differ.
+  settle: 6,
   shots: {
-    hero: {
-      width: 1160,
-      height: 330,
-      clamp: false,
-      props: { theme: "light", typeScale: 1.25, ...STILL },
-      view: HERO,
-      // The iframe ends at stage y 647; the band carries the fog to the bottom edge so the wipe
-      // home reveals fog, not the dark shot underneath.
-      band: { height: 264, color: FOG, side: "bottom" },
-    },
-    wide: { ...trace("light", RUN), band: { height: RUN_BAND, color: FOG } },
-    close: trace("light", DECISION),
-    deep: trace("dark", DECISION),
-    deepWide: { ...trace("dark", RUN), band: { height: RUN_BAND, color: DEEP } },
+    fjord: { ...fjord, view: TOP },
+    // The loop's landing: only the top of the page is ever shown, so only the repo window is drawn.
+    home: { ...fjord, height: 1052, view: TOP },
   },
   cues: [
     // Start marker: drawn only before trailerStart, so the trim finds t=0 to the frame.
@@ -115,44 +108,19 @@ window.trailer = {
       out: 0.001,
     },
 
-    { at: 0, show: "hero" },
+    { at: 0, show: "fjord" },
+    ...[FALL_1, DRIFT_1, FALL_2, DRIFT_2].map((move) => ({ camera: "fjord", ...move })),
 
-    { at: WIDE_AT, show: "wide" },
-
-    { at: CLOSE_AT, show: "close" },
-    caption({ at: CLOSE_AT + 0.25, until: DEEP_AT - 0.05, text: "Ink means\nyour call." }),
-
-    // Deep water rises from the bottom: a re-skin, not a dissolve between two takes.
+    // Both cameras move as one, so it reads as one more drop down the same page.
+    { at: 10, camera: "home", to: TOP_LOW },
     {
-      at: DEEP_AT,
-      show: "deep",
-      transition: "wipe",
-      dir: "up",
-      dur: WIPE,
-      ease: "house",
-      feather: 80,
-      featherColor: "rgb(4 14 22 / 0.28)",
+      at: SHOW_HOME,
+      show: "home",
+      transition: "fade",
+      dur: DROP.at + DROP.dur - SHOW_HOME,
+      ease: AT_ONCE,
     },
-    // After the wipe has landed: the outgoing shot leaves on that frame with a short hitch.
-    caption({
-      at: DEEP_AT + WIPE + 0.1,
-      until: DEEP_WIDE_AT - 0.05,
-      text: "Same call,\nafter dark.",
-      color: DARK_TEXT,
-    }),
-
-    { at: DEEP_WIDE_AT, show: "deepWide" },
-
-    // The fog rolls back in from the top onto the opening frame.
-    {
-      at: HOME,
-      show: "hero",
-      transition: "wipe",
-      dir: "down",
-      dur: WIPE,
-      ease: "house",
-      feather: 80,
-      featherColor: "rgb(4 14 22 / 0.22)",
-    },
+    { at: DROP.at, camera: "fjord", to: SWAP_GONE, dur: DROP.dur, ease: DROP.ease },
+    { at: DROP.at, camera: "home", to: TOP, dur: DROP.dur, ease: DROP.ease },
   ],
 };

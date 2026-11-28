@@ -55,7 +55,13 @@ const getRemotePatterns = () => {
   return remotePatterns;
 };
 
-const transpilePackages = ["@repo/contract", "@repo/db", "@repo/service", "@repo/ui"];
+const transpilePackages = [
+  "@repo/contract",
+  "@repo/db",
+  "@repo/mcp-app",
+  "@repo/service",
+  "@repo/ui",
+];
 
 const config: NextConfig = {
   /** next dev rewrites AGENTS.md/CLAUDE.md when it detects an agent; we own those files */

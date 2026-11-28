@@ -15,6 +15,7 @@ packages/
   service/       # oRPC implementation of the contract + better-auth
   db/            # Drizzle ORM + Turso (libSQL)
   ui/            # shadcn-derived components on Base UI
+  mcp-app/       # MCP App views for /mcp: React built to one inline HTML file
 content/         # Gallery components — one workspace package per slug
 ```
 
@@ -188,7 +189,8 @@ Content is filesystem-driven; the web app never depends on content packages by n
   section order so entries compare side by side; everything else, chrome included, is the
   system's. Template edits reach only systems scaffolded afterwards. Like `pages`, the gallery card shows a badge
   (`elementBadge` in `content-categories.ts`) instead of an index number. Its cover is a 12–15s trailer
-  of the real page, not a scroll: `cover-video` skill, `trailer/shots/<slug>.js`.
+  of the real page, not a scroll, with no overlay text and a camera grammar and re-skin no other
+  system's trailer uses: `cover-video` skill, `trailer/shots/<slug>.js`.
 - `meta.json` carries provenance: `addedAt` (required, stamped by `new:content`, drives
   gallery order newest-first), `inspiredBy` (where the idea came from), `requestedBy`
   (who asked for it). Keep `inspiredBy` and `requestedBy` honest — they render on the detail page.
@@ -273,7 +275,12 @@ Next imports, no filesystem — so it can be unit-tested without a runtime. The 
   `@modelcontextprotocol/server`). They stay out of `@repo/contract`: no client calls them
   over RPC. A tool's name is its router key, its title and hints are `mcp.tool` meta, a
   thrown `ORPCError` is a tool error. Ranking and payload shapes live in
-  `lib/agent/mcp-catalog.ts`; the route only wires them to `content-data`. It also serves skills over MCP's skills extension
+  `lib/agent/mcp-catalog.ts`; the route only wires them to `content-data`. `search_components` is also an MCP App
+  (`io.modelcontextprotocol/ui`): its `_meta.ui` points at `ui://uicapsule/gallery-v1.html`, a
+  single-file React view built by `@repo/mcp-app` (Vite + `vite-plugin-singlefile`, imported by the
+  route as a string) that renders the result's `structuredContent` (`gallery-schema.ts`, the one
+  shape server and view share) as the site's gallery, with CSP allowing only the asset origin; bump
+  the URI's version on a breaking change. It also serves skills over MCP's skills extension
   (`io.modelcontextprotocol/skills`, SEP-2640): `skills/list`/`skills/get` and a `skill://`
   resource per file. They are the vendored `emilkowalski/skills` and `jakubkrehel/skills`
   entries named in `REPO_SKILLS` (`lib/agent/mcp-skills.ts`), read at runtime from
@@ -285,7 +292,10 @@ Next imports, no filesystem — so it can be unit-tested without a runtime. The 
   `.claude/skills/THIRD_PARTY.md`. It ships with each
   deploy, so there is no npm package to publish or version. `server.json` is its MCP Registry
   entry (`com.uicapsule/components`, DNS-verified); republish with `mcp-publisher publish` only
-  when that metadata changes — the signing key is not in the repo.
+  when that metadata changes (bump `version` first; the registry rejects a republished one). The
+  login token expires, so a 401 means log in again with the DNS key, which lives outside the repo
+  at `~/.config/uicapsule/mcp-registry-ed25519.pem` on the maintainer's machine:
+  `mcp-publisher login dns --domain uicapsule.com --private-key "$(openssl pkey -in <pem> -outform DER | tail -c 32 | xxd -p -c 64)"`.
 - Runtime gate: `pnpm check:agent-endpoints` against a running server. `pnpm verify`
   cannot see status codes or headers.
 
@@ -341,7 +351,7 @@ pnpm smoke            # Drive a running server: pages, a code's sign-in, user.me
 pnpm check:agent-endpoints  # Runtime check of the agent surfaces (needs a running server)
 pnpm skills:update    # Bump the skills-lock.json skills (emilkowalski, jakubkrehel) to upstream HEAD; review the diff
 pnpm skills:sync      # Restore .claude/skills to exactly what skills-lock.json pins
-pnpm og:video         # By hand, never in verify: home loop (scripts/og-video/scene.html → Blob og/og.<date>.mp4 + poster, keys in home-media.json) + cover-media.json and Blob stills (<cover key>.jpg) for /ui/<slug>
+pnpm og:video         # By hand, never in verify: home loop (scripts/og-video/scene.html → Blob og/og.<date>.mp4 + poster, keys in home-media.json) + cover-media.json and Blob stills (<cover key>.jpg) for /ui/<slug>; prints a per-slug `vercel blob del` for recorded covers it superseded
 ```
 
 ## Verification Contract

@@ -15,9 +15,11 @@ import {
   contentMetaSchema,
   coverMediaSchema,
   coverStillKey,
+  homeMediaSchema,
 } from "../apps/web/src/lib/content/content-schema";
 import type { CoverMedia, HomeMedia } from "../apps/web/src/lib/content/content-schema";
 import { inOrder } from "./in-order";
+import { unreferencedKeys } from "./unreferenced-keys";
 
 const repoRoot = path.resolve(import.meta.dirname, "..");
 const webRoot = path.join(repoRoot, "apps/web");
@@ -195,6 +197,7 @@ const renderScene = async () => {
 
   const token = await blobToken();
   const stem = await freeStem("og/og", "mp4", token);
+  const previous = await readHomeMedia();
 
   const media = {
     poster: `${stem}.jpg`,
@@ -206,6 +209,16 @@ const renderScene = async () => {
   await writeFile(homeMediaFile, `${JSON.stringify(media, null, 2)}\n`);
   await rm(work, { force: true, recursive: true });
   consola.success(`wrote home-media.json: ${media.video} and its poster`);
+
+  reportSuperseded([
+    {
+      keys: unreferencedKeys(previous ? [previous.video, previous.poster] : [], [
+        media.video,
+        media.poster,
+      ]),
+      label: "home og:video",
+    },
+  ]);
 };
 
 const assetsUrl = async () => {
@@ -274,6 +287,33 @@ const uploadDate = (slug: string, cover: string) => {
   return date || new Date().toLocaleDateString("sv");
 };
 
+const reportSuperseded = (groups: readonly { keys: readonly string[]; label: string }[]) => {
+  const stale = groups.filter((group) => group.keys.length > 0);
+
+  if (stale.length === 0) {
+    return;
+  }
+
+  consola.box(
+    [
+      "Superseded in Blob. Delete each once production serves its replacement:",
+      "",
+      `RW=\${BLOB_READ_WRITE_TOKEN:-$(grep '^BLOB_READ_WRITE_TOKEN=' .env.local | cut -d= -f2- | tr -d '"')}`,
+      ...stale.flatMap((group) => [
+        `# ${group.label}`,
+        `vercel blob del ${group.keys.join(" ")} --rw-token "$RW"`,
+      ]),
+    ].join("\n"),
+  );
+};
+
+const readHomeMedia = async () => {
+  const source = await readFile(homeMediaFile, "utf-8").catch(() => "null");
+  const parsed = homeMediaSchema.safeParse(JSON.parse(source));
+
+  return parsed.success ? parsed.data : null;
+};
+
 const readCoverMedia = async () => {
   const source = await readFile(coverMediaFile, "utf-8").catch(() => "{}");
   const parsed = z.record(z.string(), coverMediaSchema).safeParse(JSON.parse(source));
@@ -281,11 +321,14 @@ const readCoverMedia = async () => {
   if (!parsed.success) {
     consola.warn("cover-media.json is malformed, re-probing every cover");
 
-    return new Map<string, CoverMedia>();
+    return [];
   }
 
-  return new Map(Object.values(parsed.data).map((entry) => [entry.cover, entry]));
+  return Object.entries(parsed.data);
 };
+
+const withStills = (covers: readonly string[]) =>
+  covers.flatMap((cover) => [cover, coverStillKey(cover)]);
 
 const probeCovers = async (force: boolean) => {
   const base = await assetsUrl();
@@ -299,13 +342,19 @@ const probeCovers = async (force: boolean) => {
 
   const token = await blobToken();
   const work = await mkdtemp(path.join(tmpdir(), "og-stills-"));
-  const previous = force ? new Map<string, CoverMedia>() : await readCoverMedia();
+  const recorded = await readCoverMedia();
+  const previous = new Map(force ? [] : recorded.map(([, entry]) => [entry.cover, entry]));
 
   const media: Record<string, CoverMedia> = {};
+  const covers: string[] = [];
 
   await inOrder(slugs, async (slug) => {
     const metaSource = await readFile(path.join(contentRoot, slug, "meta.json"), "utf-8");
     const { cover } = contentMetaSchema.parse(JSON.parse(metaSource));
+
+    if (cover !== undefined) {
+      covers.push(cover);
+    }
 
     if (cover?.endsWith(".mp4") !== true) {
       consola.warn(`${slug}: no mp4 cover, skipped`);
@@ -371,6 +420,15 @@ const probeCovers = async (force: boolean) => {
   const probed = Object.values(media).filter((entry) => !previous.has(entry.cover)).length;
   consola.success(
     `wrote ${Object.keys(media).length} entries to cover-media.json (${probed} probed)`,
+  );
+
+  const live = [...covers, ...withStills(covers.filter((cover) => cover.endsWith(".mp4")))];
+
+  reportSuperseded(
+    recorded.map(([slug, entry]) => ({
+      keys: unreferencedKeys(withStills([entry.cover]), live),
+      label: slug,
+    })),
   );
 };
 

@@ -1,170 +1,63 @@
-const MONO =
-  "'Commit Mono', 'JetBrains Mono', 'IBM Plex Mono', ui-monospace, 'SF Mono', Menlo, monospace";
-
-const PAPER = "#fdfcf9";
-
-// Halogen's own strip cell, per theme: tokens.css --hx-page/--hx-panel, --hx-rule, --hx-ink-3.
-const CELL = {
-  light: { ground: PAPER, rule: "#e1ddd2", label: "#6d685e" },
-  dark: { ground: "#1a1916", rule: "#2d2b26", label: "#9f998d" },
-};
-const LAMP_TEXT = {
-  light: { amber: "#7a5000" },
-  dark: { amber: "#ffbe2e", xenon: "#8ec5ff", blacklight: "#c2a3ff" },
-};
-const LAMP_FILL = "#ffbe2e";
-
-const LABEL = 26;
-// Shorter than the 1e-6 s the harness samples either side of a cut, so an overlay that starts
-// or ends with a hard reveal steps on the cut frame exactly.
-const HARD = 1e-7;
-const PAD = { top: 14, side: 26, bottom: 16 };
-
-// Overlays are drawn on the stage, not in the camera, so every one of them is only on screen
-// while its shot's camera holds still.
-
-// Cells sit in the Credit spend board's empty left column, under the five team rows, at SPEND.
-const CELL_AT = { x: 66, y: 752 };
-
-const cellBox = ({ at, until, theme, in: inDur = HARD }) => ({
-  at,
-  until,
-  html: true,
-  text: `<div style="padding:${PAD.top}px ${PAD.side}px ${PAD.bottom}px;min-width:330px;background:${CELL[theme].ground};border:1px solid ${CELL[theme].rule}"><div>LAMP</div><div style="font-size:2em">&nbsp;</div></div>`,
-  family: MONO,
-  size: LABEL,
-  weight: 400,
-  tracking: 0.08,
-  leading: 1.5,
-  color: CELL[theme].label,
-  x: CELL_AT.x,
-  y: CELL_AT.y,
-  align: "left",
-  valign: "bottom",
-  reveal: "fade",
-  in: inDur,
-  out: HARD,
-});
-
-const valueAt = { x: CELL_AT.x + 1 + PAD.side, y: CELL_AT.y - 1 - PAD.bottom };
-
-// The value swaps in one frame, with the page: a roll stuttered on the page's re-render hitch.
-const cellValue = ({ at, until, theme, lamp }) => ({
-  at,
-  until,
-  text: lamp,
-  family: MONO,
-  size: LABEL * 2,
-  weight: 400,
-  tracking: -0.01,
-  leading: 1.5,
-  color: LAMP_TEXT[theme][lamp],
-  ...valueAt,
-  align: "left",
-  valign: "bottom",
-  reveal: "fade",
-  in: HARD,
-  out: HARD,
-});
-
-// A rise is 0.32em of the overlay's own size, so the value is set at 2em inside a LABEL-sized
-// overlay: it rises about 8px with its fade instead of 17px through the cell's bottom edge.
-const cellValueRise = ({ at, until, theme, lamp, in: inDur }) => ({
-  at,
-  until,
-  html: true,
-  text: `<span style="font-size:2em;letter-spacing:-0.01em">${lamp}</span>`,
-  family: MONO,
-  size: LABEL,
-  weight: 400,
-  tracking: 0,
-  leading: 1.5,
-  color: LAMP_TEXT[theme][lamp],
-  ...valueAt,
-  align: "left",
-  valign: "bottom",
-  reveal: "rise",
-  in: inDur,
-  out: HARD,
-});
-
-// The hero at 760px wide stacks the status strip into two rows, so the title plate fills 16:9.
-// It never zooms: a shot rasters differently after a zoom, so a pull-back into the last frame
-// leaves the loop seam shimmering against the never-zoomed first frame.
-const HERO = { x: 380, y: 322, scale: 1.82 };
-
-// The lamp over the tagline's "one amber filament" at HERO, multiplied so the ink shows.
-const LAMP_WORDS = { x: 752.7, y: 231.6, w: 358.5, h: 48.2 };
-const wordsLamp = ({ at, until }) => ({
-  at,
-  until,
-  html: true,
-  text: `<div style="width:${LAMP_WORDS.w}px;height:${LAMP_WORDS.h}px;background:${LAMP_FILL}"></div>`,
-  x: LAMP_WORDS.x,
-  y: LAMP_WORDS.y,
-  align: "left",
-  valign: "top",
-  size: 0,
-  leading: 0,
-  reveal: "fade",
-  in: HARD,
-  out: HARD,
-  style: { mixBlendMode: "multiply" },
-});
-
-// Halogen's motion rule is "state changes cut", so every camera is locked off and every
-// change lands on a cut: a push on these pages read as drift and stuttered in the take.
-const RUNS = { x: 500, y: 536.8, scale: 1.62 };
-const SPEND = { x: 534, y: 402, scale: 1.5 };
+// Halogen's dark sheet, tokens.css --hx-page.
+const SHEET = "#131210";
 
 const STILL = { motion: false };
-const RUNS_AT = 2.3;
-const SPEND_AT = 3.9;
-const LIGHTS_OUT = 6.0;
-const XENON = 7.1;
-const BLACKLIGHT = 8.2;
-const AMBER = 9.3;
-const CLOSE = 10.6;
-// A lamp change reaches the screen four or five frames after its post, so it is posted that
-// early and lands with the cell's swap.
-const RERENDER = 0.075;
+
+// Chrome rounds a frame's on-stage offset to whole pixels, so every view is written as the
+// offset of the iframe's top-left corner (whole px) plus a scale.
+const view = (ox, oy, scale) => ({ x: (800 - ox) / scale, y: (450 - oy) / scale, scale });
+
+// Halogen's motion rule is "state changes cut": every camera is locked off, the beat is a cut
+// every BEAT seconds, and a lamp change is a jump cut on the framing the last phrase ended on.
+// Three framings rotated by one per lamp come back to the first after three lamps, so the
+// blacklight phrase ends on the opening framing and its jump back to amber is the loop.
+// The section captions sit 15px above each screen, so every framing starts inside its screen.
+// Credit spend at 1000px wide: the strip down to the footer, the screen's sides 32px in.
+const SPEND = view(0, -250, 1.6);
+// Run board at 860px: filter bar to the tenth row's rule.
+const RUNS = view(-13, -577, 1.89);
+// Schema drift at 1000px: the code window, replay list and footer, cut at the diff table's rule.
+const DRIFT = view(-800, -1552, 2.4);
+
+const spend = (lamp) => ({
+  anchor: "s-spend",
+  width: 1000,
+  height: 900,
+  props: { theme: "dark", lamp, ...STILL },
+  view: SPEND,
+});
+const runs = (lamp) => ({
+  anchor: "s-runs",
+  width: 860,
+  height: 900,
+  props: { theme: "dark", lamp, ...STILL },
+  view: RUNS,
+});
+const drift = (lamp) => ({
+  anchor: "s-drift",
+  width: 1000,
+  height: 1100,
+  props: { theme: "dark", lamp, ...STILL },
+  view: DRIFT,
+});
+
+const BEAT = 1.4;
+// The take opens and closes on half a beat of the same amber spend, one whole beat across the seam.
+const cut = (n) => BEAT / 2 + n * BEAT;
 
 window.trailer = {
   slug: "halogen",
-  duration: 13,
-  background: PAPER,
+  duration: 12.6,
+  background: SHEET,
+  // A jump cut is two frames of one page under two lamps, so each framing has a second frame.
+  // A frame shown again re-lights while hidden, mid-hold, so its re-render never lands on a cut.
   shots: {
-    hero: {
-      width: 760,
-      height: 560,
-      clamp: false,
-      props: { theme: "light", ...STILL },
-      view: HERO,
-    },
-    runs: {
-      anchor: "s-runs",
-      width: 1000,
-      height: 830,
-      clamp: false,
-      props: { theme: "light", ...STILL },
-      view: RUNS,
-    },
-    spendLight: {
-      anchor: "s-spend",
-      width: 1068,
-      height: 712,
-      clamp: false,
-      props: { theme: "light", lamp: "amber", ...STILL },
-      view: SPEND,
-    },
-    spendDark: {
-      anchor: "s-spend",
-      width: 1068,
-      height: 712,
-      clamp: false,
-      props: { theme: "dark", lamp: "amber", ...STILL },
-      view: SPEND,
-    },
+    spendAmber: spend("amber"),
+    spendLit: spend("xenon"),
+    runsLit: runs("amber"),
+    runsBlacklight: runs("blacklight"),
+    driftLit: drift("amber"),
+    driftXenon: drift("xenon"),
   },
   cues: [
     // Start marker: drawn only before trailerStart, so the trim finds t=0 to the frame.
@@ -184,32 +77,21 @@ window.trailer = {
       out: 0.001,
     },
 
-    { at: 0, show: "hero" },
-    wordsLamp({ at: 0.4 - HARD, until: RUNS_AT }),
+    { at: 0, show: "spendAmber" },
+    { at: cut(0), show: "runsLit" },
+    { at: cut(1), show: "driftLit" },
 
-    { at: RUNS_AT, show: "runs" },
+    { at: cut(2), show: "driftXenon" },
+    { at: cut(2) + BEAT / 2, props: "runsLit", set: { lamp: "xenon" } },
+    { at: cut(3), show: "spendLit" },
+    { at: cut(3) + BEAT / 2, props: "driftLit", set: { lamp: "blacklight" } },
+    { at: cut(4), show: "runsLit" },
 
-    { at: SPEND_AT, show: "spendLight" },
-    cellBox({ at: SPEND_AT + 0.45, until: LIGHTS_OUT, theme: "light", in: 0.6 }),
-    cellValueRise({
-      at: SPEND_AT + 0.65,
-      until: LIGHTS_OUT,
-      theme: "light",
-      lamp: "amber",
-      in: 0.6,
-    }),
+    { at: cut(5), show: "runsBlacklight" },
+    { at: cut(6), show: "driftLit" },
+    { at: cut(6) + BEAT / 2, props: "spendLit", set: { lamp: "blacklight" } },
+    { at: cut(7), show: "spendLit" },
 
-    { at: LIGHTS_OUT, show: "spendDark" },
-    cellBox({ at: LIGHTS_OUT - HARD, until: CLOSE, theme: "dark" }),
-    cellValue({ at: LIGHTS_OUT - HARD, until: XENON, theme: "dark", lamp: "amber" }),
-    { at: XENON - RERENDER, props: "spendDark", set: { lamp: "xenon" } },
-    cellValue({ at: XENON - HARD, until: BLACKLIGHT, theme: "dark", lamp: "xenon" }),
-    { at: BLACKLIGHT - RERENDER, props: "spendDark", set: { lamp: "blacklight" } },
-    cellValue({ at: BLACKLIGHT - HARD, until: AMBER, theme: "dark", lamp: "blacklight" }),
-    { at: AMBER - RERENDER, props: "spendDark", set: { lamp: "amber" } },
-    cellValue({ at: AMBER - HARD, until: CLOSE, theme: "dark", lamp: "amber" }),
-
-    { at: CLOSE, show: "hero" },
-    wordsLamp({ at: CLOSE - HARD, until: CLOSE + 1.3 }),
+    { at: cut(8), show: "spendAmber" },
   ],
 };

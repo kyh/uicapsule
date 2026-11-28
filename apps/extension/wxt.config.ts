@@ -9,6 +9,8 @@ const DEV_KEY =
 export default defineConfig({
   dev: { server: { port: 3001 } },
   manifest: ({ mode }) => {
+    const store = mode === "store";
+
     const manifest: UserManifest = {
       action: { default_title: "Request a component" },
       commands: {
@@ -26,14 +28,16 @@ export default defineConfig({
         },
       },
       description: "Select part of any page and request it as a UICapsule component.",
-      host_permissions: ["https://www.uicapsule.com/*", "http://localhost/*"],
+      host_permissions: store
+        ? ["https://www.uicapsule.com/*"]
+        : ["https://www.uicapsule.com/*", "http://localhost/*"],
       name: "UICapsule",
       optional_host_permissions: ["<all_urls>"],
       permissions: ["activeTab", "contextMenus", "scripting", "storage"],
       version: "0.1.0",
     };
 
-    if (mode !== "store") {
+    if (!store) {
       manifest.key = DEV_KEY;
     }
 
