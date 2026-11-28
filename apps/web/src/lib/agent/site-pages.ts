@@ -369,7 +369,7 @@ const privacySections: ProseBlock[] = [
       {
         href: "https://vercel.com/legal/privacy-notice",
         label: "Vercel",
-        text: "hosts the Service and keeps its request logs, provides Vercel Web Analytics, and runs the Vercel Blob store that serves component covers and other media",
+        text: "hosts the Service and keeps its request logs, provides Vercel Web Analytics, runs the Vercel Blob store that serves component covers and other media, and runs the agent that builds an accepted request, which reads the request's text, links, credit and attached files and passes them through Vercel AI Gateway to Anthropic",
       },
       {
         href: "https://turso.tech/privacy-policy",
@@ -389,7 +389,7 @@ const privacySections: ProseBlock[] = [
       {
         href: "https://www.anthropic.com/legal/privacy",
         label: "Anthropic",
-        text: "provides the AI coding tools we use to build requested components",
+        text: "provides the AI models and coding tools we use to build requested components",
       },
     ],
     kind: "list",

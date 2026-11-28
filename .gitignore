@@ -50,6 +50,11 @@ yarn-error.log*
 # turbo
 .turbo
 
+# eve: the request builder's build, its local runs' workflow data, and the build's mid-swap backup
+.eve/
+.workflow-data/
+*.eve-backup-*
+
 local.*
 turso-dev.log
 .superset

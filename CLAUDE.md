@@ -175,11 +175,22 @@ only the extension origins in `EXTENSION_ORIGINS`. The dev build pins its ID
 `EXTENSION_ORIGINS` too.
 
 Triage is manual: apply `ready` to accept, close as not-planned to decline. Applying `ready`
-starts `.github/workflows/build-request.yml`, which runs the `build-requests` skill for that
-issue through `claude-code-action` (dev server, headless agent-browser, ffmpeg, Blob upload on
-the runner; needs the `CLAUDE_CODE_OAUTH_TOKEN` and `BLOB_READ_WRITE_TOKEN` secrets) and opens a
-PR that closes it. A failed run removes `building` and comments; re-apply `ready` or dispatch
-the workflow with the issue number to retry. The skill still drains the queue locally.
+starts the **request builder**, an eve agent in `apps/web/agent` that `withEve` (next.config.ts)
+serves beside the site at `/eve/v1/*` and `eve build` builds before `next build`; `next dev`
+boots it too. Its GitHub channel (`channels/github.ts`, a self-managed GitHub App:
+`GITHUB_APP_ID`, `GITHUB_APP_PRIVATE_KEY`, `GITHUB_WEBHOOK_SECRET`, `GITHUB_APP_SLUG`) starts a
+session only when `kyh` (matched by user id, `lib/request-trigger.ts`) labels an issue that then
+carries `ready` and not `building`, and continues it only on `kyh`'s `@<slug>` comments; anyone
+else's label or mention is ignored. The hook sees the issue, not which label the event added, so
+the label set stands in for it. The session runs the `build-requests` skill (its "Running as the
+eve agent" section) in a Vercel Sandbox (`sandbox.ts`: eve's git image plus Node 24, pnpm,
+ffmpeg, agent-browser and the Vercel CLI, 8 vCPUs). GitHub access is a token scoped to this repo
+that `tools/refresh-github-access.ts` mints from the App and adds at the sandbox firewall, so it
+never enters the sandbox; installation tokens last an hour, hence a tool rather than setup.
+`BLOB_READ_WRITE_TOKEN` does enter the sandbox, because `vercel blob put` and `og:video` need
+it. `EVE_BASE_URL` in the sandbox stops its own `next dev` from booting a nested agent. CI builds
+with `--skip-sandbox-prewarm` (no Vercel credentials); only Vercel builds prepare the sandbox
+snapshot. The skill still drains the queue locally.
 
 ### Agent-readable surfaces
 
