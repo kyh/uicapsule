@@ -30,12 +30,11 @@ const draftSchema = z.object({
 
 export type Draft = z.infer<typeof draftSchema>;
 
-/** What the popup and the in-page overlay ask of the background worker. */
+/** What the in-page overlay asks of the background worker. */
 export const workerRequestSchema = z.discriminatedUnion("type", [
   z.object({ rect: rectSchema, type: z.literal("capture"), viewport: viewportSchema }),
   z.object({ src: z.string(), type: z.literal("video") }),
   z.object({ draft: draftSchema, files: z.array(encodedSchema), type: z.literal("submit") }),
-  z.object({ type: z.literal("options") }),
 ]);
 
 export type WorkerRequest = z.infer<typeof workerRequestSchema>;

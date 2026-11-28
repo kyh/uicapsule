@@ -4,7 +4,6 @@ import type { AnnotationTool } from "@repo/inspector/annotation-layer";
 export type BarCommand =
   | { kind: "back" }
   | { kind: "request" }
-  | { kind: "settings" }
   | { kind: "visible" }
   | { kind: "tool"; tool: AnnotationTool | "inspect" | "last-annotate" };
 
@@ -35,11 +34,7 @@ export const barCommand = (event: {
     return { kind: "back" } satisfies BarCommand;
   }
 
-  if (command) {
-    return key === "," ? ({ kind: "settings" } satisfies BarCommand) : null;
-  }
-
-  if (!plain) {
+  if (command || !plain) {
     return null;
   }
 

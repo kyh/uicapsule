@@ -16,11 +16,10 @@ test("letters pick tools and digits switch groups", () => {
   assert.deepEqual(press("v"), { kind: "visible" });
 });
 
-test("a modified letter is left to the page, except ⌘, for Settings", () => {
+test("a modified key is left to the page", () => {
   assert.equal(press("d", { metaKey: true }), null);
   assert.equal(press("t", { altKey: true }), null);
-  assert.deepEqual(press(",", { metaKey: true }), { kind: "settings" });
-  assert.deepEqual(press(",", { ctrlKey: true }), { kind: "settings" });
+  assert.equal(press(",", { metaKey: true }), null);
 });
 
 test("Enter requests and Escape steps back", () => {

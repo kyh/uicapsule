@@ -73,7 +73,7 @@ export const inspectorCss = `
 .uic-tool svg { width: 18px; height: 18px; stroke-width: 1.5; }
 .uic-tool:hover { background: var(--uic-bar-hover); color: var(--uic-bar-fg-hover); }
 .uic-tool[aria-pressed="true"] { background: var(--uic-bar-pressed); color: var(--uic-bar-fg); }
-.uic-tool:focus-visible, .uic-switch-option:focus-visible, .uic-action:focus-visible { outline: 2px solid var(--uic-focus); outline-offset: -2px; }
+.uic-tool:focus-visible, .uic-switch-option:focus-visible { outline: 2px solid var(--uic-focus); outline-offset: -2px; }
 .uic-tool:disabled { opacity: 0.4; pointer-events: none; }
 
 .uic-switch { position: relative; display: flex; align-items: center; flex: none; gap: 2px; margin: 0 4px 0 0; padding: 2px; border: 0; border-radius: 8px; }
@@ -94,12 +94,8 @@ export const inspectorCss = `
 
 .uic-tip { position: absolute; bottom: calc(100% + 12px); left: 50%; translate: -50% 0; display: flex; align-items: center; gap: 8px; padding: 4px 4px 4px 10px; border-radius: 8px; background: #000; color: #fff; font-size: 12px; line-height: 20px; font-weight: 400; white-space: nowrap; opacity: 0; pointer-events: none; transition: opacity 150ms cubic-bezier(0.4, 0, 0.2, 1); }
 .uic-tip kbd { display: grid; place-items: center; min-width: 20px; height: 20px; padding: 0 5px; border-radius: 5px; background: rgb(255 255 255 / 0.18); color: rgb(255 255 255 / 0.8); font: inherit; font-size: 11px; }
-.uic-tool:hover .uic-tip, .uic-tool:focus-visible .uic-tip, .uic-switch-option:hover .uic-tip, .uic-switch-option:focus-visible .uic-tip, .uic-action:hover .uic-tip, .uic-action:focus-visible .uic-tip { opacity: 1; }
+.uic-tool:hover .uic-tip, .uic-tool:focus-visible .uic-tip, .uic-switch-option:hover .uic-tip, .uic-switch-option:focus-visible .uic-tip { opacity: 1; }
 
-.uic-bar .uic-action { position: relative; display: inline-flex; align-items: center; flex: none; gap: 6px; height: 32px; padding: 0 12px 0 10px; border-radius: 8px; background: var(--uic-bar-fg); color: var(--uic-bar-bg); font-size: 13px; font-weight: 500; line-height: 1; }
-.uic-bar .uic-action:hover { background: var(--uic-bar-fg-hover); }
-.uic-bar .uic-action:disabled { opacity: 0.55; pointer-events: none; }
-.uic-bar .uic-action svg { width: 16px; height: 16px; stroke-width: 2; }
 
 .uic-surface { position: absolute; inset: 0; overflow: hidden; pointer-events: none; user-select: none; touch-action: none; }
 .uic-surface[data-active] { pointer-events: auto; cursor: crosshair; }

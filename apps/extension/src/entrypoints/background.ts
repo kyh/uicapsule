@@ -90,12 +90,6 @@ const handle = async (request: WorkerRequest, windowId: number | undefined) => {
       return await submit(request);
     }
 
-    case "options": {
-      await browser.runtime.openOptionsPage();
-
-      return { ok: true };
-    }
-
     default: {
       return { ok: false, reason: FALLBACK };
     }

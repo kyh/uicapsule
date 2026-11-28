@@ -1,6 +1,5 @@
 import type { AnnotationTool } from "@repo/inspector/annotation-layer";
 import {
-  BarAction,
   BarDivider,
   InspectBar,
   ToolButton,
@@ -16,7 +15,6 @@ import {
   MoveUpRight,
   Pencil,
   Scan,
-  Settings,
   Signature,
   SquareDashedMousePointer,
   Type,
@@ -28,8 +26,6 @@ import { toolKey } from "./bar-keys";
 
 /** The bar's tools: one picks what to capture, the rest draw on top of it. */
 export type BarTool = "inspect" | AnnotationTool;
-
-const MAC = navigator.userAgent.includes("Mac");
 
 const ANNOTATE_TOOLS = [
   { icon: <MousePointer2 />, label: "Select", tool: "select" },
@@ -45,13 +41,12 @@ const GROUPS: SwitchOption<"annotate" | "capture">[] = [
 
 /**
  * The inspect bar the extension shows: a switch between the capture and annotate tools, that
- * group's tools, then Request, Settings and Close.
+ * group's tools, then Request and Close.
  */
 export const CaptureBar = ({
   onClose,
   onGroup,
   onRequest,
-  onSettings,
   onTool,
   onVisible,
   tool,
@@ -60,7 +55,6 @@ export const CaptureBar = ({
   onClose: () => void;
   onGroup: (group: "annotate" | "capture") => void;
   onRequest: () => void;
-  onSettings: () => void;
   onTool: (tool: BarTool) => void;
   onVisible: () => void;
   tool: BarTool;
@@ -125,21 +119,8 @@ export const CaptureBar = ({
         ]}
       />
       <BarDivider />
-      <ToolGroup label="Request and settings">
-        <BarAction
-          icon={<ArrowUp />}
-          shortcut="↵"
-          tip="File a component request"
-          onPress={onRequest}
-        >
-          Request
-        </BarAction>
-        <ToolButton
-          icon={<Settings />}
-          label="Settings"
-          shortcut={MAC ? "⌘," : "Ctrl+,"}
-          onPress={onSettings}
-        />
+      <ToolGroup label="Request">
+        <ToolButton icon={<ArrowUp />} label="Request" shortcut="↵" onPress={onRequest} />
         <ToolButton icon={<X />} label="Close" shortcut="Esc" onPress={onClose} />
       </ToolGroup>
     </InspectBar>

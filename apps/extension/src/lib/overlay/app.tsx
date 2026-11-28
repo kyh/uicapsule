@@ -104,10 +104,6 @@ const shotRect = (selection: Selection, marks: Element | null) => {
   return visiblePart(drawn ? unionRect(box, drawn) : box);
 };
 
-const openSettings = () => {
-  void browser.runtime.sendMessage({ type: "options" });
-};
-
 /**
  * The extension's overlay: the inspect bar over the page, then the request dialog over a capture
  * of the selection with its annotations, then a toast. Closing before filing keeps nothing.
@@ -271,11 +267,6 @@ export const OverlayApp = ({ onClose, start }: { onClose: () => void; start: Ove
         break;
       }
 
-      case "settings": {
-        openSettings();
-        break;
-      }
-
       case "visible": {
         setSelection({ kind: "visible" });
         chooseTool("inspect");
@@ -358,7 +349,6 @@ export const OverlayApp = ({ onClose, start }: { onClose: () => void; start: Ove
           onRequest={() => {
             void request();
           }}
-          onSettings={openSettings}
           onTool={chooseTool}
           onVisible={() => {
             setSelection({ kind: "visible" });

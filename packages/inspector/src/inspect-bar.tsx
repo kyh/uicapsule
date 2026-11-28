@@ -182,26 +182,3 @@ export const ToolStage = <T extends string>({
     </div>
   );
 };
-
-/** The bar's one labelled button: what the host does with the selection. */
-export const BarAction = ({
-  children,
-  disabled,
-  icon,
-  onPress,
-  shortcut,
-  tip,
-}: {
-  children: ReactNode;
-  disabled?: boolean;
-  icon?: ReactNode;
-  onPress: () => void;
-  shortcut?: string;
-  tip: string;
-}) => (
-  <button className="uic-action" disabled={disabled} type="button" onClick={onPress}>
-    {icon}
-    {children}
-    <Tip label={tip} shortcut={shortcut} />
-  </button>
-);
