@@ -1,0 +1,14 @@
+@import "@repo/ui/theme.css";
+
+@source "../../ui/src/components/badge.tsx";
+@source "../../ui/src/components/button.tsx";
+@source "../../ui/src/components/copy-button.tsx";
+@source "../../ui/src/components/input.tsx";
+@source "../../ui/src/components/spinner.tsx";
+
+@layer base {
+  html,
+  body {
+    @apply bg-background text-foreground font-sans antialiased;
+  }
+}

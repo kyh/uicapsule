@@ -15,6 +15,7 @@ packages/
   service/       # oRPC implementation of the contract + better-auth
   db/            # Drizzle ORM + Turso (libSQL)
   ui/            # shadcn-derived components on Base UI
+  mcp-app/       # MCP App views for /mcp: React built to one inline HTML file
 content/         # Gallery components — one workspace package per slug
 ```
 
@@ -218,7 +219,12 @@ Next imports, no filesystem — so it can be unit-tested without a runtime. The 
   `@modelcontextprotocol/server`). They stay out of `@repo/contract`: no client calls them
   over RPC. A tool's name is its router key, its title and hints are `mcp.tool` meta, a
   thrown `ORPCError` is a tool error. Ranking and payload shapes live in
-  `lib/agent/mcp-catalog.ts`; the route only wires them to `content-data`. It also serves skills over MCP's skills extension
+  `lib/agent/mcp-catalog.ts`; the route only wires them to `content-data`. `search_components` is also an MCP App
+  (`io.modelcontextprotocol/ui`): its `_meta.ui` points at `ui://uicapsule/gallery-v1.html`, a
+  single-file React view built by `@repo/mcp-app` (Vite + `vite-plugin-singlefile`, imported by the
+  route as a string) that renders the result's `structuredContent` (`gallery-schema.ts`, the one
+  shape server and view share) as the site's gallery, with CSP allowing only the asset origin; bump
+  the URI's version on a breaking change. It also serves skills over MCP's skills extension
   (`io.modelcontextprotocol/skills`, SEP-2640): `skills/list`/`skills/get` and a `skill://`
   resource per file. They are the vendored `emilkowalski/skills` and `jakubkrehel/skills`
   entries named in `REPO_SKILLS` (`lib/agent/mcp-skills.ts`), read at runtime from

@@ -2,6 +2,8 @@
 import { consola } from "consola";
 import { z } from "zod";
 
+import { GALLERY_RESOURCE_URI, galleryResultSchema } from "../packages/mcp-app/src/gallery-schema";
+
 const baseUrl = (process.argv[2] ?? "http://localhost:3000").replace(/\/$/u, "");
 
 interface Check {
@@ -328,6 +330,7 @@ type McpRequest =
       };
     }
   | { method: "tools/list"; params: Record<string, never> }
+  | { method: "resources/read"; params: { uri: string } }
   | {
       method: "tools/call";
       params: { arguments: { limit: number; query: string }; name: string };
@@ -337,8 +340,22 @@ const mcpPayload = z.looseObject({
   result: z
     .looseObject({
       content: z.array(z.looseObject({ text: z.string().optional() })).optional(),
+      contents: z.array(z.unknown()).optional(),
       serverInfo: z.looseObject({ name: z.string().optional() }).optional(),
-      tools: z.array(z.looseObject({ name: z.string() })).optional(),
+      structuredContent: z.unknown().optional(),
+      tools: z
+        .array(
+          z.looseObject({
+            _meta: z
+              .looseObject({
+                ui: z.looseObject({ resourceUri: z.string().optional() }).optional(),
+              })
+              .optional(),
+            annotations: z.looseObject({ destructiveHint: z.boolean().optional() }).optional(),
+            name: z.string(),
+          }),
+        )
+        .optional(),
     })
     .optional(),
 });
@@ -367,6 +384,68 @@ const mcpCall = async (request: McpRequest) => {
   return { payload: payload === "" ? null : mcpPayload.parse(JSON.parse(payload)), response };
 };
 
+type ListedTool = NonNullable<NonNullable<z.infer<typeof mcpPayload>["result"]>["tools"]>[number];
+
+const checkGalleryTools = (listed: ListedTool[]) => {
+  const searchTool = listed.find((tool) => tool.name === "search_components");
+  expect(
+    "MCP search_components opens the gallery view",
+    searchTool?._meta?.ui?.resourceUri === GALLERY_RESOURCE_URI,
+    JSON.stringify(searchTool?._meta ?? null).slice(0, 120),
+  );
+  expect(
+    "MCP tools declare destructiveHint: false",
+    listed.length > 0 && listed.every((tool) => tool.annotations?.destructiveHint === false),
+    listed.map((tool) => `${tool.name}=${String(tool.annotations?.destructiveHint)}`).join(", "),
+  );
+};
+
+const galleryViewItem = z.looseObject({
+  _meta: z.looseObject({
+    ui: z.looseObject({ csp: z.looseObject({ resourceDomains: z.array(z.string()).min(1) }) }),
+  }),
+  mimeType: z.literal("text/html;profile=mcp-app"),
+  text: z.string().startsWith("<!doctype html>"),
+});
+
+const checkGalleryView = async () => {
+  const { payload } = await mcpCall({
+    method: "resources/read",
+    params: { uri: GALLERY_RESOURCE_URI },
+  });
+
+  const item = galleryViewItem.safeParse(payload?.result?.contents?.[0]);
+  expect(
+    "MCP gallery view is an MCP App document that allows its cover origin",
+    item.success,
+    item.success
+      ? item.data._meta.ui.csp.resourceDomains.join(", ")
+      : item.error.message.slice(0, 120),
+  );
+};
+
+const checkGallerySearch = async () => {
+  const { payload } = await mcpCall({
+    method: "tools/call",
+    params: { arguments: { limit: 3, query: "slider" }, name: "search_components" },
+  });
+
+  const structured = galleryResultSchema.safeParse(payload?.result?.structuredContent);
+  expect(
+    "MCP search structuredContent is what the gallery view parses",
+    structured.success && structured.data.components.length > 0,
+    structured.success
+      ? `${String(structured.data.components.length)} components`
+      : structured.error.message.slice(0, 120),
+  );
+};
+
+const checkMcpGallery = async (listed: ListedTool[]) => {
+  checkGalleryTools(listed);
+  await checkGalleryView();
+  await checkGallerySearch();
+};
+
 const checkMcp = async () => {
   const { response: init, payload: initPayload } = await mcpCall({
     method: "initialize",
@@ -391,6 +470,8 @@ const checkMcp = async () => {
     names.includes("search_components") && names.includes("get_component"),
     names.length > 0 ? names.join(", ") : JSON.stringify(tools).slice(0, 120),
   );
+
+  await checkMcpGallery(tools?.result?.tools ?? []);
 
   const { payload: search } = await mcpCall({
     method: "tools/call",

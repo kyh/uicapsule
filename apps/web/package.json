@@ -14,6 +14,7 @@
   },
   "dependencies": {
     "@hookform/resolvers": "^5.9.2",
+    "@modelcontextprotocol/ext-apps": "^2.0.4",
     "@modelcontextprotocol/server": "^2.4.0",
     "@orpc/client": "catalog:",
     "@orpc/mcp": "catalog:",
@@ -21,6 +22,7 @@
     "@orpc/tanstack-query": "catalog:",
     "@remixicon/react": "^4.9.0",
     "@repo/contract": "workspace:^",
+    "@repo/mcp-app": "workspace:^",
     "@repo/service": "workspace:^",
     "@repo/ui": "workspace:^",
     "@tanstack/react-query": "catalog:",
