@@ -1,4 +1,0 @@
-{
-  "$schema": "https://openapi.vercel.sh/vercel.json",
-  "rewrites": [{ "destination": "/eve/v1/:path+", "source": "/agent/v1/:path+" }]
-}
