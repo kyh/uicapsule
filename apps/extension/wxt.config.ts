@@ -34,7 +34,6 @@ export default defineConfig({
       name: "UICapsule",
       optional_host_permissions: ["<all_urls>"],
       permissions: ["activeTab", "contextMenus", "scripting", "storage"],
-      version: "0.1.0",
     };
 
     if (!store) {

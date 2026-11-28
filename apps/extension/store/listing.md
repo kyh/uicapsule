@@ -4,9 +4,10 @@ Item ID: `gnmicdmjhhjjpfjmfliegaeondebgick`. Every field the dashboard asks for,
 
 ## Before you submit
 
-- [ ] Vercel production: `EXTENSION_ORIGINS=chrome-extension://gnmicdmjhhjjpfjmfliegaeondebgick,chrome-extension://gndnanbepebpjjifhogmdlabbpddfgml`, then redeploy. Without it, every request from the store build fails with a 403.
-- [ ] Push main, so /privacy goes live with the Limited Use line.
-- [ ] Package tab: upload a new zip. The draft holds the zip built before the dialog copy changed. Run `pnpm -F @repo/extension zip`, then upload `apps/extension/.output/repoextension-0.1.0-chrome-store.zip`.
+- [x] Vercel production: `EXTENSION_ORIGINS=chrome-extension://gnmicdmjhhjjpfjmfliegaeondebgick,chrome-extension://gndnanbepebpjjifhogmdlabbpddfgml`. Check: a POST to `/api/request/attachments` with that Origin answers 400, any other extension 403.
+- [x] Push main, so /privacy goes live with the Limited Use line.
+- [ ] Package tab: upload `apps/extension/.output/repoextension-0.2.0-chrome-store.zip` (`pnpm -F @repo/extension zip`; the version comes from `package.json`).
+- [ ] Store listing tab: replace all screenshots with the four below, in order. The old toolbar-popup one is gone.
 - [ ] Account tab: verify the contact email, fill in the trader declaration, and pay the one-time fee if you haven't.
 
 ## Store listing
