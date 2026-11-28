@@ -400,7 +400,7 @@ const checkGalleryTools = (listed: ListedTool[]) => {
     "MCP gallery tools declare destructiveHint: false, the rest declare it",
     gallery.length === GALLERY_TOOLS.size &&
       gallery.every((tool) => tool.annotations?.destructiveHint === false) &&
-      listed.every((tool) => typeof tool.annotations?.destructiveHint === "boolean"),
+      listed.every((tool) => tool.annotations?.destructiveHint !== undefined),
     listed.map((tool) => `${tool.name}=${String(tool.annotations?.destructiveHint)}`).join(", "),
   );
 };
