@@ -176,8 +176,10 @@ only the extension origins in `EXTENSION_ORIGINS`. The dev build pins its ID
 
 Triage is manual: apply `ready` to accept, close as not-planned to decline. Applying `ready`
 starts the **request builder**, an eve agent in `apps/web/agent` that `withEve` (next.config.ts)
-serves beside the site at `/eve/v1/*` and `eve build` builds before `next build`; `next dev`
-boots it too. Its GitHub channel (`channels/github.ts`, a self-managed GitHub App:
+serves beside the site at `/agent/v1/*` and `eve build` builds before `next build`; `next dev`
+boots it too. eve 1.5.0 hardcodes its protocol at `/eve/v1/*`, so `/agent/v1/*` is a
+`beforeFiles` rewrite that next.config.ts puts ahead of eve's own (Next never revisits an earlier
+rewrite); `/eve/v1/*` still answers. Its GitHub channel (`channels/github.ts`, a self-managed GitHub App:
 `GITHUB_APP_ID`, `GITHUB_APP_PRIVATE_KEY`, `GITHUB_WEBHOOK_SECRET`, `GITHUB_APP_SLUG`) starts a
 session only when `kyh` (matched by user id, `lib/request-trigger.ts`) labels an issue that then
 carries `ready` and not `building`, and continues it only on `kyh`'s `@<slug>` comments; anyone

@@ -95,4 +95,30 @@ export const nextConfig: NextConfig = {
   transpilePackages,
 };
 
-export default withEve(nextConfig);
+const AGENT_ALIAS = { destination: "/eve/v1/:path+", source: "/agent/v1/:path+" };
+
+const withAgentAlias = (config: NextConfig) => {
+  const { rewrites } = config;
+
+  return {
+    ...config,
+    rewrites: async () => {
+      const existing = await rewrites?.();
+
+      if (existing === undefined) {
+        return { beforeFiles: [AGENT_ALIAS] };
+      }
+
+      if (Array.isArray(existing)) {
+        return { afterFiles: existing, beforeFiles: [AGENT_ALIAS] };
+      }
+
+      return { ...existing, beforeFiles: [AGENT_ALIAS, ...(existing.beforeFiles ?? [])] };
+    },
+  } satisfies NextConfig;
+};
+
+const config = async (...args: Parameters<ReturnType<typeof withEve<NextConfig>>>) =>
+  withAgentAlias(await withEve(nextConfig)(...args));
+
+export default config;
