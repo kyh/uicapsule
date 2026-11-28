@@ -1,7 +1,35 @@
-import type { Rect } from "./messages";
+export interface Point {
+  x: number;
+  y: number;
+}
+
+export interface Rect {
+  height: number;
+  width: number;
+  x: number;
+  y: number;
+}
+
+export interface Size {
+  height: number;
+  width: number;
+}
+
+/** The smallest rect holding both `a` and `b`. */
+export const unionRect = (a: Rect, b: Rect) => {
+  const x = Math.min(a.x, b.x);
+  const y = Math.min(a.y, b.y);
+
+  return {
+    height: Math.max(a.y + a.height, b.y + b.height) - y,
+    width: Math.max(a.x + a.width, b.x + b.width) - x,
+    x,
+    y,
+  } satisfies Rect;
+};
 
 /** The part of `rect` inside the viewport, or null when too little of it is visible to capture. */
-export const clampToViewport = (rect: Rect, viewport: { width: number; height: number }) => {
+export const clampToViewport = (rect: Rect, viewport: Size) => {
   const x = Math.max(0, rect.x);
   const y = Math.max(0, rect.y);
   const right = Math.min(viewport.width, rect.x + rect.width);
@@ -27,7 +55,7 @@ export const toImagePixels = (rect: Rect, viewportWidth: number, imageWidth: num
 };
 
 /** The rect spanned by two drag points, in either direction. */
-export const rectFromPoints = (a: { x: number; y: number }, b: { x: number; y: number }) =>
+export const rectFromPoints = (a: Point, b: Point) =>
   ({
     height: Math.abs(b.y - a.y),
     width: Math.abs(b.x - a.x),
@@ -39,15 +67,10 @@ export type Handle = "e" | "n" | "ne" | "nw" | "s" | "se" | "sw" | "w";
 
 export const HANDLES: Handle[] = ["nw", "n", "ne", "e", "se", "s", "sw", "w"];
 
-interface Bounds {
-  height: number;
-  width: number;
-}
-
 const clamp = (value: number, max: number) => Math.min(max, Math.max(0, value));
 
 /** Moves `rect` by a drag delta without letting it leave the viewport. */
-export const moveRect = (rect: Rect, dx: number, dy: number, bounds: Bounds) =>
+export const moveRect = (rect: Rect, dx: number, dy: number, bounds: Size) =>
   ({
     ...rect,
     x: clamp(rect.x + dx, bounds.width - rect.width),
@@ -55,7 +78,7 @@ export const moveRect = (rect: Rect, dx: number, dy: number, bounds: Bounds) =>
   }) satisfies Rect;
 
 /** Drags one edge or corner of `rect`; crossing the opposite edge flips the box. */
-export const resizeRect = (rect: Rect, handle: Handle, dx: number, dy: number, bounds: Bounds) => {
+export const resizeRect = (rect: Rect, handle: Handle, dx: number, dy: number, bounds: Size) => {
   const left = rect.x + (handle.includes("w") ? dx : 0);
   const right = rect.x + rect.width + (handle.includes("e") ? dx : 0);
   const top = rect.y + (handle.includes("n") ? dy : 0);

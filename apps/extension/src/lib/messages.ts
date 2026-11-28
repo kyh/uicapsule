@@ -1,10 +1,6 @@
 import { captureSchema } from "@repo/contract/request/request-schema";
 import { z } from "zod";
 
-export const toolSchema = z.enum(["region", "visible"]);
-
-export type Tool = z.infer<typeof toolSchema>;
-
 const rectSchema = z.object({
   height: z.number(),
   width: z.number(),
@@ -40,7 +36,6 @@ export const workerRequestSchema = z.discriminatedUnion("type", [
   z.object({ src: z.string(), type: z.literal("video") }),
   z.object({ draft: draftSchema, files: z.array(encodedSchema), type: z.literal("submit") }),
   z.object({ type: z.literal("options") }),
-  z.object({ tabId: z.number(), tool: toolSchema, type: z.literal("run") }),
 ]);
 
 export type WorkerRequest = z.infer<typeof workerRequestSchema>;
@@ -59,18 +54,20 @@ export const submitResultSchema = z.discriminatedUnion("ok", [
 
 export type SubmitResult = z.infer<typeof submitResultSchema>;
 
-export const runResultSchema = z.discriminatedUnion("ok", [
-  z.object({ ok: z.literal(true) }),
-  z.object({ ok: z.literal(false), reason: z.string() }),
+/**
+ * What the background asks of the overlay it injected: open the inspect bar to pick a region, the
+ * visible area or what was right-clicked (`start`), or open or close it from the toolbar icon
+ * (`toggle`).
+ */
+export const overlayMessageSchema = z.discriminatedUnion("type", [
+  z.object({
+    src: z.string().optional(),
+    tool: z.enum(["media", "region", "visible"]),
+    type: z.literal("overlay:start"),
+  }),
+  z.object({ type: z.literal("overlay:toggle") }),
 ]);
 
-export type RunResult = z.infer<typeof runResultSchema>;
+export type OverlayMessage = z.infer<typeof overlayMessageSchema>;
 
-/** What the background asks of the overlay it injected: pick with a tool, or take what was right-clicked. */
-export const overlayStartSchema = z.object({
-  src: z.string().optional(),
-  tool: z.enum(["media", "region", "visible"]),
-  type: z.literal("overlay:start"),
-});
-
-export type OverlayStart = z.infer<typeof overlayStartSchema>;
+export type OverlayStart = Extract<OverlayMessage, { type: "overlay:start" }>;

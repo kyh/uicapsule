@@ -1,5 +1,5 @@
-import { overlayStartSchema } from "@/lib/messages";
-import { mountOverlay } from "@/lib/overlay/overlay";
+import { overlayMessageSchema } from "@/lib/messages";
+import { mountOverlay } from "@/lib/overlay/mount";
 
 const INSTALLED = "data-uicapsule-capture";
 
@@ -12,16 +12,27 @@ export default defineUnlistedScript(() => {
 
   let overlay: ReturnType<typeof mountOverlay> | undefined;
 
-  browser.runtime.onMessage.addListener((message) => {
-    const start = overlayStartSchema.safeParse(message);
-
-    if (!start.success) {
-      return;
-    }
-
+  const open = () => {
     overlay ??= mountOverlay(() => {
       overlay = undefined;
     });
-    void overlay.start(start.data);
+
+    return overlay;
+  };
+
+  browser.runtime.onMessage.addListener((message) => {
+    const parsed = overlayMessageSchema.safeParse(message);
+
+    if (!parsed.success) {
+      return;
+    }
+
+    if (parsed.data.type === "overlay:start") {
+      open().start(parsed.data);
+    } else if (overlay) {
+      overlay.destroy();
+    } else {
+      open().start({ tool: "region", type: "overlay:start" });
+    }
   });
 });

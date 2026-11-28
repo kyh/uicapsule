@@ -1,6 +1,6 @@
 import { ATTACHMENT_MAX_BYTES, ATTACHMENT_TYPES } from "@repo/contract/request/attachment-schema";
 
-import { toImagePixels } from "./geometry";
+import { toImagePixels } from "@repo/inspector/geometry";
 import type { Rect } from "./messages";
 
 const isAttachmentType = (type: string): type is keyof typeof ATTACHMENT_TYPES =>
