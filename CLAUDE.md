@@ -184,10 +184,17 @@ carries `ready` and not `building`, and continues it only on `kyh`'s `@<slug>` c
 else's label or mention is ignored. The hook sees the issue, not which label the event added, so
 the label set stands in for it. The session runs the `build-requests` skill (its "Running as the
 eve agent" section) in a Vercel Sandbox (`sandbox.ts`: eve's default image plus Node 24, pnpm,
-ffmpeg, gh, agent-browser and the Vercel CLI, 8 vCPUs; `VERCEL_EVE_GIT_SANDBOX_IMAGE` 404s on
-Vercel at eve 1.5.0). GitHub access is a token scoped to this repo
-that `tools/refresh-github-access.ts` mints from the App and adds at the sandbox firewall, so it
-never enters the sandbox; installation tokens last an hour, hence a tool rather than setup.
+ffmpeg, jq, python3, agent-browser, the Vercel CLI and eve-code's `gh` (`installCodeTooling`),
+8 vCPUs; `VERCEL_EVE_GIT_SANDBOX_IMAGE` 404s on Vercel at eve 1.5.0). Its skills are every
+`.claude/skills/*` directory, which `scripts/sync-agent-skills.ts` copies into the gitignored
+`apps/web/agent/skills/` before `eve build` and `next dev`, because eve's discovery rejects
+symlinked skill directories; a new skill reaches the agent on the next build. The channel checks
+the repo out (detached, depth 1) before every turn and its firewall rule carries `git`; that
+checkout also resets the firewall, so `gh`'s API grant comes from
+`tools/refresh-github-access.ts`, which mints a token scoped to this repo from the App at the
+start of each turn, so it never enters the sandbox; installation tokens last an hour, hence a
+tool rather than setup. The agent's last reply is the issue comment; eve posts it. The `git`
+extension is not mounted: its `pr` skill opens drafts.
 `BLOB_READ_WRITE_TOKEN` does enter the sandbox, because `vercel blob put` and `og:video` need
 it. `EVE_BASE_URL` in the sandbox stops its own `next dev` from booting a nested agent. CI builds
 with `--skip-sandbox-prewarm` (no Vercel credentials); only Vercel builds prepare the sandbox

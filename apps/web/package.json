@@ -4,11 +4,11 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "build": "pnpm with-env eve build $([ -n \"$VERCEL\" ] || echo --skip-sandbox-prewarm) && pnpm with-env next build",
+    "build": "tsx ../../scripts/sync-agent-skills.ts && pnpm with-env eve build $([ -n \"$VERCEL\" ] || echo --skip-sandbox-prewarm) && pnpm with-env next build",
     "clean": "git clean -xdf .cache .next .turbo node_modules",
-    "dev": "pnpm with-env next dev",
+    "dev": "tsx ../../scripts/sync-agent-skills.ts && pnpm with-env next dev",
     "start": "pnpm with-env next start",
-    "test": "TURSO_DATABASE_URL=http://127.0.0.1:8080 node --conditions=react-server --import tsx --test 'src/**/*.test.ts' 'agent/**/*.test.ts'",
+    "test": "TURSO_DATABASE_URL=http://127.0.0.1:8080 node --conditions=react-server --import tsx --test 'src/**/*.test.ts' 'agent/lib/**/*.test.ts'",
     "typecheck": "next typegen && tsc --noEmit",
     "with-env": "dotenv -e ../../.env --"
   },

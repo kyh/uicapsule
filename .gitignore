@@ -54,6 +54,8 @@ yarn-error.log*
 .eve/
 .workflow-data/
 *.eve-backup-*
+# the request builder's skills, copied from .claude/skills by scripts/sync-agent-skills.ts
+apps/web/agent/skills/
 
 local.*
 turso-dev.log

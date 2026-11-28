@@ -1,17 +1,19 @@
+import { installCodeTooling } from "eve/extensions/code/sandbox";
 import { defineSandbox } from "eve/sandbox";
 import { VercelSandbox } from "eve/sandbox/vercel";
 import { z } from "zod";
 
 const TOOLING = [
   "sudo apt-get update -q",
-  "sudo apt-get install -y -q ffmpeg gh",
+  "sudo apt-get install -y -q ffmpeg jq python3",
   "sudo npm install -g n",
   "sudo n 24",
   "sudo npm install -g pnpm@12.23.0 agent-browser@0.43.0 vercel@65.15.0",
   "agent-browser install --with-deps",
   "node --version | grep -q '^v24\\.'",
   "ffmpeg -version",
-  "gh --version",
+  "jq --version",
+  "python3 --version",
   "agent-browser --version",
 ].join(" && ");
 
@@ -27,6 +29,8 @@ export const environment = VercelSandbox.environment({
     if (result.exitCode !== 0) {
       throw new Error(`request builder tooling failed: ${result.stderr}`);
     }
+
+    await installCodeTooling(sandbox);
   },
 });
 
@@ -37,7 +41,6 @@ export default defineSandbox(async () => {
     env: {
       BLOB_READ_WRITE_TOKEN: env.BLOB_READ_WRITE_TOKEN,
       EVE_BASE_URL: "http://127.0.0.1:9",
-      GH_TOKEN: "brokered-at-the-firewall",
       NEXT_PUBLIC_ASSETS_URL: env.NEXT_PUBLIC_ASSETS_URL,
       TURBO_TELEMETRY_DISABLED: "1",
     },
