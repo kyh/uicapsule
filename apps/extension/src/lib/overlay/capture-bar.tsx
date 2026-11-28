@@ -5,7 +5,10 @@ import {
   InspectBar,
   ToolButton,
   ToolGroup,
+  ToolStage,
+  ToolSwitch,
 } from "@repo/inspector/inspect-bar";
+import type { SwitchOption } from "@repo/inspector/inspect-bar";
 import {
   ArrowUp,
   Fullscreen,
@@ -35,6 +38,11 @@ const ANNOTATE_TOOLS = [
   { icon: <Type />, label: "Text", tool: "text" },
 ] satisfies { icon: ReactNode; label: string; tool: AnnotationTool }[];
 
+const GROUPS: SwitchOption<"annotate" | "capture">[] = [
+  { icon: <Scan />, label: "Capture", shortcut: "1", value: "capture" },
+  { icon: <Signature />, label: "Annotate", shortcut: "2", value: "annotate" },
+];
+
 /**
  * The inspect bar the extension shows: a switch between the capture and annotate tools, that
  * group's tools, then Request, Settings and Close.
@@ -62,62 +70,60 @@ export const CaptureBar = ({
 
   return (
     <InspectBar label="UICapsule">
-      <ToolGroup label="Tool group">
-        <ToolButton
-          icon={<Scan />}
-          label="Capture"
-          pressed={capturing}
-          shortcut="1"
-          onPress={() => {
-            onGroup("capture");
-          }}
-        />
-        <ToolButton
-          icon={<Signature />}
-          label="Annotate"
-          pressed={!capturing}
-          shortcut="2"
-          onPress={() => {
-            onGroup("annotate");
-          }}
-        />
-      </ToolGroup>
+      <ToolSwitch
+        label="Tool group"
+        options={GROUPS}
+        value={capturing ? "capture" : "annotate"}
+        onChange={onGroup}
+      />
       <BarDivider />
-      {capturing ? (
-        <ToolGroup label="Capture">
-          <ToolButton
-            icon={<SquareDashedMousePointer />}
-            label="Inspect"
-            pressed={!visible}
-            shortcut="I"
-            onPress={() => {
-              onTool("inspect");
-            }}
-          />
-          <ToolButton
-            icon={<Fullscreen />}
-            label="Visible area"
-            pressed={visible}
-            shortcut="V"
-            onPress={onVisible}
-          />
-        </ToolGroup>
-      ) : (
-        <ToolGroup label="Annotate">
-          {ANNOTATE_TOOLS.map((entry) => (
-            <ToolButton
-              key={entry.tool}
-              icon={entry.icon}
-              label={entry.label}
-              pressed={tool === entry.tool}
-              shortcut={toolKey(entry.tool)}
-              onPress={() => {
-                onTool(entry.tool);
-              }}
-            />
-          ))}
-        </ToolGroup>
-      )}
+      <ToolStage
+        open={capturing ? "capture" : "annotate"}
+        panels={[
+          {
+            content: (
+              <ToolGroup label="Capture">
+                <ToolButton
+                  icon={<SquareDashedMousePointer />}
+                  label="Inspect"
+                  pressed={capturing && !visible}
+                  shortcut="I"
+                  onPress={() => {
+                    onTool("inspect");
+                  }}
+                />
+                <ToolButton
+                  icon={<Fullscreen />}
+                  label="Visible area"
+                  pressed={capturing && visible}
+                  shortcut="V"
+                  onPress={onVisible}
+                />
+              </ToolGroup>
+            ),
+            value: "capture",
+          },
+          {
+            content: (
+              <ToolGroup label="Annotate">
+                {ANNOTATE_TOOLS.map((entry) => (
+                  <ToolButton
+                    key={entry.tool}
+                    icon={entry.icon}
+                    label={entry.label}
+                    pressed={tool === entry.tool}
+                    shortcut={toolKey(entry.tool)}
+                    onPress={() => {
+                      onTool(entry.tool);
+                    }}
+                  />
+                ))}
+              </ToolGroup>
+            ),
+            value: "annotate",
+          },
+        ]}
+      />
       <BarDivider />
       <ToolGroup label="Request and settings">
         <BarAction
