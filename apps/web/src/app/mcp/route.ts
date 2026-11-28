@@ -28,18 +28,18 @@ import { siteConfig } from "@/lib/site-config";
 const tagSlugs = [...contentElements, ...contentStyles].map((filter) => filter.slug);
 const slugList = (filters: { slug: string }[]) => filters.map((filter) => filter.slug).join(", ");
 
-const readCatalog = {
-  annotations: { destructiveHint: false, openWorldHint: false, readOnlyHint: true },
-};
+const readCatalog = (title: string) => ({
+  annotations: { destructiveHint: false, openWorldHint: false, readOnlyHint: true, title },
+  title,
+});
 
 const router = {
   get_component: os
     .meta(
       mcp.tool({
-        ...readCatalog,
+        ...readCatalog("Get component"),
         description:
           "Get one component by slug: its install command, npm dependencies, and the full source of every file it ships.",
-        title: "Get component",
       }),
     )
     .input(
@@ -68,10 +68,9 @@ const router = {
   search_components: os
     .meta(
       mcp.tool({
-        ...readCatalog,
+        ...readCatalog("Search components"),
         _meta: galleryToolMeta,
         description: `Search the ${siteConfig.name} catalog by what a component does or looks like. An empty query lists everything, newest first. Hosts that render MCP Apps show the results as a browsable gallery.`,
-        title: "Search components",
       }),
     )
     .input(
